@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+@tailwind base;
+@tailwind components; 
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 98%);
+  --foreground: hsl(220, 25%, 8%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(220, 25%, 8%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(220, 25%, 8%);
+  --primary: hsl(210, 79%, 46%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-dark: hsl(210, 79%, 41%);
+  --primary-light: hsl(210, 79%, 51%);
+  --secondary: hsl(122, 39%, 49%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(220, 13%, 91%);
+  --muted-foreground: hsl(220, 9%, 46%);
+  --accent: hsl(220, 13%, 91%);
+  --accent-foreground: hsl(220, 9%, 46%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 13%, 91%);
+  --input: hsl(220, 13%, 91%);
+  --ring: hsl(210, 79%, 46%);
+  --success: hsl(122, 39%, 49%);
+  --warning: hsl(38, 92%, 50%);
+  --error: hsl(0, 84%, 60%);
+  --surface: hsl(0, 0%, 98%);
+  --surface-variant: hsl(0, 0%, 96%);
+  --font-roboto: 'Roboto', sans-serif;
+  --shadow-material-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-material-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  --shadow-material-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(220, 27%, 8%);
+  --foreground: hsl(220, 9%, 91%);
+  --card: hsl(220, 27%, 12%);
+  --card-foreground: hsl(220, 9%, 91%);
+  --popover: hsl(220, 27%, 12%);
+  --popover-foreground: hsl(220, 9%, 91%);
+  --primary: hsl(210, 79%, 51%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-dark: hsl(210, 79%, 46%);
+  --primary-light: hsl(210, 79%, 56%);
+  --secondary: hsl(122, 39%, 54%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(220, 27%, 16%);
+  --muted-foreground: hsl(220, 9%, 46%);
+  --accent: hsl(220, 27%, 16%);
+  --accent-foreground: hsl(220, 9%, 91%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(220, 27%, 16%);
+  --input: hsl(220, 27%, 16%);
+  --ring: hsl(210, 79%, 51%);
+  --success: hsl(122, 39%, 54%);
+  --warning: hsl(38, 92%, 55%);
+  --error: hsl(0, 84%, 65%);
+  --surface: hsl(220, 27%, 8%);
+  --surface-variant: hsl(220, 27%, 12%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-roboto antialiased;
+  }
+}
+
+@layer utilities {
+  .font-roboto {
+    font-family: var(--font-roboto);
+  }
+  
+  .bg-primary {
+    background-color: hsl(var(--primary));
+  }
+  
+  .bg-primary-dark {
+    background-color: hsl(var(--primary-dark));
+  }
+  
+  .bg-primary-light {
+    background-color: hsl(var(--primary-light));
+  }
+  
+  .bg-secondary {
+    background-color: hsl(var(--secondary));
+  }
+  
+  .bg-success {
+    background-color: hsl(var(--success));
+  }
+  
+  .bg-warning {
+    background-color: hsl(var(--warning));
+  }
+  
+  .bg-error {
+    background-color: hsl(var(--error));
+  }
+  
+  .bg-surface {
+    background-color: hsl(var(--surface));
+  }
+  
+  .bg-surface-variant {
+    background-color: hsl(var(--surface-variant));
+  }
+  
+  .text-primary {
+    color: hsl(var(--primary));
+  }
+  
+  .text-primary-dark {
+    color: hsl(var(--primary-dark));
+  }
+  
+  .text-secondary {
+    color: hsl(var(--secondary));
+  }
+  
+  .text-success {
+    color: hsl(var(--success));
+  }
+  
+  .text-warning {
+    color: hsl(var(--warning));
+  }
+  
+  .text-error {
+    color: hsl(var(--error));
+  }
+  
+  .shadow-material-1 {
+    box-shadow: var(--shadow-material-1);
+  }
+  
+  .shadow-material-2 {
+    box-shadow: var(--shadow-material-2);
+  }
+  
+  .shadow-material-3 {
+    box-shadow: var(--shadow-material-3);
+  }
+  
+  .tree-connector {
+    position: relative;
+  }
+  
+  .tree-connector::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    border-left: 2px solid hsl(var(--border));
+  }
+  
+  .tree-connector:last-child::before {
+    bottom: 24px;
+  }
+  
+  .language-status-living {
+    @apply bg-success text-white;
+  }
+  
+  .language-status-endangered {
+    @apply bg-warning text-white;
+  }
+  
+  .language-status-moribund {
+    @apply bg-red-600 text-white;
+  }
+  
+  .language-status-dead {
+    @apply bg-gray-600 text-white;
+  }
+}
