@@ -2,7 +2,17 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Settings, Menu, GitCompare, Database } from "lucide-react";
+import { 
+  Search, 
+  Settings, 
+  Menu, 
+  GitCompare, 
+  Database, 
+  History, 
+  Brain, 
+  Users, 
+  Filter 
+} from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
 import LanguageTree from "@/components/language-tree";
@@ -13,6 +23,10 @@ import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import LanguageMap from "@/components/language-map";
 import RealTimeProgress from "@/components/real-time-progress";
 import LinguisticDatabasePanel from "@/components/linguistic-database-panel";
+import LanguageEvolutionTimeline from "@/components/language-evolution-timeline";
+import AITranslationContext from "@/components/ai-translation-context";
+import UserContributionPanel from "@/components/user-contribution-panel";
+import AdvancedSearchFilters from "@/components/advanced-search-filters";
 import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
@@ -22,6 +36,12 @@ export default function Dashboard() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [linguisticPanelOpen, setLinguisticPanelOpen] = useState(false);
+  const [evolutionTimelineOpen, setEvolutionTimelineOpen] = useState(false);
+  const [aiContextOpen, setAiContextOpen] = useState(false);
+  const [contributionPanelOpen, setContributionPanelOpen] = useState(false);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
+  const [selectedWord, setSelectedWord] = useState<any>(null);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "",
@@ -204,6 +224,53 @@ export default function Dashboard() {
       <LinguisticDatabasePanel
         isOpen={linguisticPanelOpen}
         onClose={() => setLinguisticPanelOpen(false)}
+      />
+
+      {/* Advanced Search Filters */}
+      <AdvancedSearchFilters
+        isOpen={advancedFiltersOpen}
+        onClose={() => setAdvancedFiltersOpen(false)}
+        onApplyFilters={(filters) => {
+          console.log('Applied filters:', filters);
+          setFilters(prev => ({ ...prev, ...filters }));
+        }}
+      />
+
+      {/* Language Evolution Timeline */}
+      {selectedLanguage && (
+        <LanguageEvolutionTimeline
+          languageId={selectedLanguage.id}
+          languageName={selectedLanguage.name}
+          isOpen={evolutionTimelineOpen}
+          onClose={() => {
+            setEvolutionTimelineOpen(false);
+            setSelectedLanguage(null);
+          }}
+        />
+      )}
+
+      {/* AI Translation Context */}
+      {selectedWord && (
+        <AITranslationContext
+          baseWordId={selectedWord.id}
+          baseWord={selectedWord.word}
+          languageId={selectedWord.languageId || selectedLanguageId || ""}
+          languageName={selectedWord.languageName || "Selected Language"}
+          translation={selectedWord.translation || ""}
+          isOpen={aiContextOpen}
+          onClose={() => {
+            setAiContextOpen(false);
+            setSelectedWord(null);
+          }}
+        />
+      )}
+
+      {/* User Contribution Panel */}
+      <UserContributionPanel
+        baseWordId={selectedWord?.id || "word1"}
+        baseWord={selectedWord?.word || "water"}
+        isOpen={contributionPanelOpen}
+        onClose={() => setContributionPanelOpen(false)}
       />
       
       {/* Floating Action Button */}

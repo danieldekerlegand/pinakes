@@ -78,6 +78,90 @@ export const scrapingJobs = pgTable("scraping_jobs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Language Evolution Timeline
+export const languageEvolution = pgTable("language_evolution", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  languageId: varchar("language_id").notNull().references(() => languages.id),
+  timelineEvent: text("timeline_event").notNull(),
+  period: text("period").notNull(), // e.g., "500-1100 CE", "Modern Era"
+  description: text("description").notNull(),
+  linguisticChanges: jsonb("linguistic_changes").$type<string[]>().default([]),
+  geographicInfluence: text("geographic_influence"),
+  culturalContext: text("cultural_context"),
+  evidenceSources: jsonb("evidence_sources").$type<string[]>().default([]),
+  contributorId: text("contributor_id"),
+  verificationStatus: text("verification_status").default("pending"), // pending, verified, disputed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User Contributions for Word Translations
+export const userContributions = pgTable("user_contributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  baseWordId: varchar("base_word_id").notNull().references(() => baseWords.id),
+  languageId: varchar("language_id").notNull().references(() => languages.id),
+  translation: text("translation").notNull(),
+  pronunciation: text("pronunciation"),
+  contextNotes: text("context_notes"),
+  etymology: text("etymology"),
+  usageExamples: jsonb("usage_examples").$type<string[]>().default([]),
+  dialectVariant: text("dialect_variant"),
+  contributorName: text("contributor_name"),
+  contributorEmail: text("contributor_email"),
+  sourceReferences: jsonb("source_references").$type<string[]>().default([]),
+  confidence: integer("confidence").default(50), // 1-100 scale
+  verificationStatus: text("verification_status").default("pending"), // pending, approved, rejected
+  moderatorNotes: text("moderator_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// AI-Generated Translation Contexts
+export const translationContexts = pgTable("translation_contexts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  baseWordId: varchar("base_word_id").notNull().references(() => baseWords.id),
+  languageId: varchar("language_id").notNull().references(() => languages.id),
+  contextType: text("context_type").notNull(), // cultural, historical, semantic, phonetic
+  contextDescription: text("context_description").notNull(),
+  aiGeneratedInsight: text("ai_generated_insight"),
+  linguisticAnalysis: jsonb("linguistic_analysis").$type<{
+    semanticField: string[];
+    cognates: string[];
+    borrowings: string[];
+    soundChanges: string[];
+  }>(),
+  relatedTerms: jsonb("related_terms").$type<string[]>().default([]),
+  crossLinguisticComparisons: jsonb("cross_linguistic_comparisons").$type<{
+    language: string;
+    term: string;
+    relationship: string;
+  }[]>().default([]),
+  confidence: integer("confidence").default(80), // AI confidence level
+  humanVerified: boolean("human_verified").default(false),
+  generatedAt: timestamp("generated_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Advanced Search Filters Storage
+export const searchFilters = pgTable("search_filters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id"), // Optional user association
+  filterName: text("filter_name").notNull(),
+  languageFamilies: jsonb("language_families").$type<string[]>().default([]),
+  timePeriodsFrom: text("time_periods_from"),
+  timePeriodsTo: text("time_periods_to"),
+  geographicRegions: jsonb("geographic_regions").$type<string[]>().default([]),
+  speakerCountMin: integer("speaker_count_min"),
+  speakerCountMax: integer("speaker_count_max"),
+  languageStatus: jsonb("language_status").$type<string[]>().default([]), // living, endangered, extinct
+  etymologyPatterns: jsonb("etymology_patterns").$type<string[]>().default([]),
+  phoneticFeatures: jsonb("phonetic_features").$type<string[]>().default([]),
+  writingSystems: jsonb("writing_systems").$type<string[]>().default([]),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertLanguageFamilySchema = createInsertSchema(languageFamilies).omit({
   id: true,
@@ -106,6 +190,30 @@ export const insertScrapingJobSchema = createInsertSchema(scrapingJobs).omit({
   createdAt: true,
 });
 
+export const insertLanguageEvolutionSchema = createInsertSchema(languageEvolution).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserContributionSchema = createInsertSchema(userContributions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTranslationContextSchema = createInsertSchema(translationContexts).omit({
+  id: true,
+  generatedAt: true,
+  updatedAt: true,
+});
+
+export const insertSearchFilterSchema = createInsertSchema(searchFilters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type LanguageFamily = typeof languageFamilies.$inferSelect;
 export type InsertLanguageFamily = z.infer<typeof insertLanguageFamilySchema>;
@@ -117,6 +225,16 @@ export type WordTranslation = typeof wordTranslations.$inferSelect;
 export type InsertWordTranslation = z.infer<typeof insertWordTranslationSchema>;
 export type ScrapingJob = typeof scrapingJobs.$inferSelect;
 export type InsertScrapingJob = z.infer<typeof insertScrapingJobSchema>;
+
+// New feature types
+export type LanguageEvolution = typeof languageEvolution.$inferSelect;
+export type InsertLanguageEvolution = z.infer<typeof insertLanguageEvolutionSchema>;
+export type UserContribution = typeof userContributions.$inferSelect;
+export type InsertUserContribution = z.infer<typeof insertUserContributionSchema>;
+export type TranslationContext = typeof translationContexts.$inferSelect;
+export type InsertTranslationContext = z.infer<typeof insertTranslationContextSchema>;
+export type SearchFilter = typeof searchFilters.$inferSelect;
+export type InsertSearchFilter = z.infer<typeof insertSearchFilterSchema>;
 
 // Extended types for frontend
 export type LanguageFamilyWithChildren = LanguageFamily & {

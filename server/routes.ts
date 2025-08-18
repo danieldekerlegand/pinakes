@@ -535,5 +535,196 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return translations[targetLang]?.[word] || `${word}_${targetLang}`;
   }
 
+  // Language Evolution API routes
+  app.get('/api/languages/:languageId/evolution', async (req, res) => {
+    try {
+      const { languageId } = req.params;
+      const evolution = await storage.getLanguageEvolution(languageId);
+      res.json(evolution);
+    } catch (error) {
+      console.error('Error fetching language evolution:', error);
+      res.status(500).json({ error: 'Failed to fetch language evolution' });
+    }
+  });
+
+  app.post('/api/languages/:languageId/evolution', async (req, res) => {
+    try {
+      const { languageId } = req.params;
+      const evolutionData = {
+        ...req.body,
+        languageId,
+        verificationStatus: 'pending' as const,
+      };
+      
+      const evolution = await storage.createLanguageEvolution(evolutionData);
+      res.status(201).json(evolution);
+    } catch (error) {
+      console.error('Error creating language evolution:', error);
+      res.status(500).json({ error: 'Failed to create language evolution' });
+    }
+  });
+
+  // User Contributions API routes
+  app.get('/api/words/:baseWordId/user-contributions', async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const contributions = await storage.getUserContributions(baseWordId);
+      res.json(contributions);
+    } catch (error) {
+      console.error('Error fetching user contributions:', error);
+      res.status(500).json({ error: 'Failed to fetch user contributions' });
+    }
+  });
+
+  app.post('/api/words/:baseWordId/user-contributions', async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const contributionData = {
+        ...req.body,
+        baseWordId,
+        verificationStatus: 'pending' as const,
+      };
+      
+      const contribution = await storage.createUserContribution(contributionData);
+      res.status(201).json(contribution);
+    } catch (error) {
+      console.error('Error creating user contribution:', error);
+      res.status(500).json({ error: 'Failed to create user contribution' });
+    }
+  });
+
+  // Translation Context API routes
+  app.get('/api/words/:baseWordId/languages/:languageId/contexts', async (req, res) => {
+    try {
+      const { baseWordId, languageId } = req.params;
+      const contexts = await storage.getTranslationContexts(baseWordId, languageId);
+      res.json(contexts);
+    } catch (error) {
+      console.error('Error fetching translation contexts:', error);
+      res.status(500).json({ error: 'Failed to fetch translation contexts' });
+    }
+  });
+
+  app.post('/api/words/:baseWordId/languages/:languageId/generate-contexts', async (req, res) => {
+    try {
+      const { baseWordId, languageId } = req.params;
+      const { baseWord, translation, languageName } = req.body;
+
+      // Check if OpenAI API key is available
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key not configured. Please provide your OpenAI API key to use AI translation contexts.' 
+        });
+      }
+
+      // Import OpenAI here to avoid errors if not available
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Generate AI contexts for different types
+      const contextTypes = ['cultural', 'historical', 'semantic', 'phonetic'] as const;
+      const generatedContexts = [];
+
+      for (const contextType of contextTypes) {
+        try {
+          const prompt = `As a professional linguist, analyze the translation of "${baseWord}" to "${translation}" in ${languageName} from a ${contextType} perspective. 
+
+Provide a detailed analysis including:
+1. Context description (2-3 sentences)
+2. Linguistic insight (2-3 sentences)
+3. Related terms (3-5 words)
+4. Cross-linguistic comparisons if relevant
+
+Respond with JSON in this exact format:
+{
+  "contextDescription": "string",
+  "aiGeneratedInsight": "string", 
+  "relatedTerms": ["term1", "term2", "term3"],
+  "linguisticAnalysis": {
+    "semanticField": ["field1", "field2"],
+    "cognates": ["cognate1", "cognate2"],
+    "borrowings": ["source1", "source2"],
+    "soundChanges": ["change1", "change2"]
+  },
+  "crossLinguisticComparisons": [
+    {"language": "Language Name", "term": "word", "relationship": "cognate/borrowing/etc"}
+  ],
+  "confidence": 85
+}`;
+
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
+            max_tokens: 800,
+          });
+
+          const result = JSON.parse(response.choices[0].message.content);
+          
+          const contextData = {
+            baseWordId,
+            languageId,
+            contextType,
+            contextDescription: result.contextDescription,
+            aiGeneratedInsight: result.aiGeneratedInsight,
+            linguisticAnalysis: result.linguisticAnalysis,
+            relatedTerms: result.relatedTerms,
+            crossLinguisticComparisons: result.crossLinguisticComparisons,
+            confidence: result.confidence,
+            humanVerified: false,
+          };
+
+          const context = await storage.createTranslationContext(contextData);
+          generatedContexts.push(context);
+        } catch (error) {
+          console.error(`Error generating ${contextType} context:`, error);
+          // Continue with other context types even if one fails
+        }
+      }
+
+      res.status(201).json(generatedContexts);
+    } catch (error) {
+      console.error('Error generating AI contexts:', error);
+      res.status(500).json({ error: 'Failed to generate AI contexts' });
+    }
+  });
+
+  // Search Filters API routes
+  app.get('/api/search-filters', async (req, res) => {
+    try {
+      const filters = await storage.getSearchFilters();
+      res.json(filters);
+    } catch (error) {
+      console.error('Error fetching search filters:', error);
+      res.status(500).json({ error: 'Failed to fetch search filters' });
+    }
+  });
+
+  app.post('/api/search-filters', async (req, res) => {
+    try {
+      const filterData = {
+        ...req.body,
+        isDefault: false,
+      };
+      
+      const filter = await storage.createSearchFilter(filterData);
+      res.status(201).json(filter);
+    } catch (error) {
+      console.error('Error creating search filter:', error);
+      res.status(500).json({ error: 'Failed to create search filter' });
+    }
+  });
+
+  app.delete('/api/search-filters/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSearchFilter(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting search filter:', error);
+      res.status(500).json({ error: 'Failed to delete search filter' });
+    }
+  });
+
   return server;
 }

@@ -12,7 +12,15 @@ import {
   type LanguageFamilyWithChildren,
   type LanguageWithStats,
   type LanguageWithVariants,
-  type WordComparison
+  type WordComparison,
+  type LanguageEvolution,
+  type InsertLanguageEvolution,
+  type UserContribution,
+  type InsertUserContribution,
+  type TranslationContext,
+  type InsertTranslationContext,
+  type SearchFilter,
+  type InsertSearchFilter
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -65,6 +73,23 @@ export interface IStorage {
     groups: number;
     complexes: number;
   }>;
+
+  // Language Evolution
+  getLanguageEvolution(languageId: string): Promise<LanguageEvolution[]>;
+  createLanguageEvolution(evolution: InsertLanguageEvolution): Promise<LanguageEvolution>;
+  
+  // User Contributions
+  getUserContributions(baseWordId: string): Promise<UserContribution[]>;
+  createUserContribution(contribution: InsertUserContribution): Promise<UserContribution>;
+  
+  // Translation Contexts
+  getTranslationContexts(baseWordId: string, languageId: string): Promise<TranslationContext[]>;
+  createTranslationContext(context: InsertTranslationContext): Promise<TranslationContext>;
+  
+  // Search Filters
+  getSearchFilters(): Promise<SearchFilter[]>;
+  createSearchFilter(filter: InsertSearchFilter): Promise<SearchFilter>;
+  deleteSearchFilter(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -73,6 +98,10 @@ export class MemStorage implements IStorage {
   private baseWords: Map<string, BaseWord> = new Map();
   private wordTranslations: Map<string, WordTranslation> = new Map();
   private scrapingJobs: Map<string, ScrapingJob> = new Map();
+  private languageEvolution: Map<string, LanguageEvolution> = new Map();
+  private userContributions: Map<string, UserContribution> = new Map();
+  private translationContexts: Map<string, TranslationContext> = new Map();
+  private searchFilters: Map<string, SearchFilter> = new Map();
 
   constructor() {
     this.initializeData();
@@ -856,6 +885,97 @@ export class MemStorage implements IStorage {
       groups,
       complexes,
     };
+  }
+
+  // Language Evolution methods
+  async getLanguageEvolution(languageId: string): Promise<LanguageEvolution[]> {
+    return Array.from(this.languageEvolution.values())
+      .filter(evolution => evolution.languageId === languageId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  async createLanguageEvolution(evolution: InsertLanguageEvolution): Promise<LanguageEvolution> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const newEvolution: LanguageEvolution = {
+      id,
+      ...evolution,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.languageEvolution.set(id, newEvolution);
+    return newEvolution;
+  }
+
+  // User Contributions methods
+  async getUserContributions(baseWordId: string): Promise<UserContribution[]> {
+    const contributions = Array.from(this.userContributions.values())
+      .filter(contribution => contribution.baseWordId === baseWordId);
+    
+    // Add language names
+    return contributions.map(contrib => {
+      const language = this.languages.get(contrib.languageId);
+      return {
+        ...contrib,
+        languageName: language?.name || 'Unknown Language'
+      } as UserContribution & { languageName: string };
+    });
+  }
+
+  async createUserContribution(contribution: InsertUserContribution): Promise<UserContribution> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const newContribution: UserContribution = {
+      id,
+      ...contribution,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.userContributions.set(id, newContribution);
+    return newContribution;
+  }
+
+  // Translation Contexts methods
+  async getTranslationContexts(baseWordId: string, languageId: string): Promise<TranslationContext[]> {
+    return Array.from(this.translationContexts.values())
+      .filter(context => context.baseWordId === baseWordId && context.languageId === languageId)
+      .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+  }
+
+  async createTranslationContext(context: InsertTranslationContext): Promise<TranslationContext> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const newContext: TranslationContext = {
+      id,
+      ...context,
+      generatedAt: now,
+      updatedAt: now,
+    };
+    this.translationContexts.set(id, newContext);
+    return newContext;
+  }
+
+  // Search Filters methods
+  async getSearchFilters(): Promise<SearchFilter[]> {
+    return Array.from(this.searchFilters.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createSearchFilter(filter: InsertSearchFilter): Promise<SearchFilter> {
+    const id = randomUUID();
+    const now = new Date().toISOString();
+    const newFilter: SearchFilter = {
+      id,
+      ...filter,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.searchFilters.set(id, newFilter);
+    return newFilter;
+  }
+
+  async deleteSearchFilter(id: string): Promise<void> {
+    this.searchFilters.delete(id);
   }
 }
 
