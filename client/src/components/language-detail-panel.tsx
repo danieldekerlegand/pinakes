@@ -66,22 +66,34 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
   if (isLoading) {
     return (
-      <aside className="fixed top-0 right-0 w-96 bg-white shadow-material-2 h-screen border-l border-gray-200 z-30 overflow-y-auto">
-        <div className="p-6 animate-pulse">
-          <div className="flex items-center justify-between mb-6">
-            <div className="h-6 bg-gray-200 rounded w-32" />
-            <div className="w-6 h-6 bg-gray-200 rounded" />
-          </div>
-          <div className="space-y-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i}>
-                <div className="h-4 bg-gray-200 rounded mb-2" />
-                <div className="h-8 bg-gray-200 rounded" />
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+        <div 
+          className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex-shrink-0 border-b border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded w-24 mt-1 animate-pulse" />
               </div>
-            ))}
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="space-y-4 animate-pulse">
+              {[...Array(6)].map((_, i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-200 rounded mb-2" />
+                  <div className="h-8 bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </aside>
+      </div>
     );
   }
 
@@ -91,27 +103,31 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
   const completionPercentage = Math.round(language.wordListCompletion || 0);
 
   return (
-    <aside className="fixed top-0 right-0 w-96 bg-white shadow-material-2 h-screen border-l border-gray-200 z-30 flex flex-col">
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-medium text-gray-900" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>
-            {language.name}
-          </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            data-testid="button-close-panel"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+      <div 
+        className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex-shrink-0 border-b border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>
+                {language.name}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {language.classification}
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Basic Information */}
-          <div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div>
             <h3 className="text-sm font-medium text-gray-700 mb-3">Basic Information</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -352,9 +368,9 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               </div>
             </div>
           )}
-        </div>
+          </div>
         </div>
       </div>
-    </aside>
+    </div>
   );
 }
