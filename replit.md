@@ -2,13 +2,21 @@
 
 The Linguistic Family Tree is a full-stack TypeScript application for exploring language families, languages, and word translations with advanced historical language tracking and comparative analysis capabilities. The system provides an interactive tree-based visualization for browsing linguistic relationships, managing word translations across languages, tracking historical language evolution, and includes comprehensive word list comparison tools with background scraping for automated data collection. Built with React frontend, Express backend, and PostgreSQL database.
 
-## Recent Enhancements (Dec 2024)
+## Recent Enhancements (December 2024)
 
-- **Historical Language Variants**: Added support for chronological language evolution (Old English → Middle English → Early Modern English → Modern English) with regional distribution tracking
+### Taxonomic Structure & Modern Dialects (Latest)
+- **Taxonomic Language Family Structure**: Implemented proper linguistic taxonomy (phylum → family → subfamily → branch → group → complex) with Indo-European hierarchy
+- **Modern English Dialects**: Added American, British, and Australian English variants with geographic coordinates and historical context
+- **Enhanced Statistics Dashboard**: Comprehensive stats showing counts by taxonomic level (phylums, families, subfamilies, branches, groups, complexes)
+- **Interactive Language Map**: Geographic visualization component with coordinates, filters, and point-of-interest display for languages and families
+- **Scraping Job Trigger**: UI-accessible button for starting word list scraping jobs with language selection and progress tracking
+
+### Previous Features
+- **Historical Language Variants**: Added support for chronological language evolution (Old English → Middle English → Early Modern English → Modern English) with regional distribution tracking  
 - **Enhanced Language Tree**: Interactive expansion/collapse of historical variants with timeline context and regional information
 - **Word List Comparison Tool**: Side-by-side comparison interface for analyzing word translations across multiple languages
 - **Extended Language Detail Panel**: Comprehensive historical evolution section showing chronological variants with contextual information
-- **Enhanced Data Schema**: Added fields for historical relationships, chronological ordering, and temporal ranges
+- **Enhanced Data Schema**: Added fields for historical relationships, chronological ordering, temporal ranges, coordinates, and dialect classification
 
 # User Preferences
 

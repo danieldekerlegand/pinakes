@@ -8,12 +8,15 @@ import LanguageTree from "@/components/language-tree";
 import LanguageDetailPanel from "@/components/language-detail-panel";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
 import WordComparisonPanel from "@/components/word-comparison";
+import ScrapingTriggerButton from "@/components/scraping-trigger-button";
+import LanguageMap from "@/components/language-map";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "",
@@ -47,11 +50,21 @@ export default function Dashboard() {
                   placeholder="Search languages..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-primary-dark text-white placeholder-blue-200 border-none w-64 focus:ring-2 focus:ring-white"
+                  className="bg-white text-gray-900 placeholder-gray-500 border border-gray-300 w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   data-testid="input-search"
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-blue-200" />
               </div>
+              <ScrapingTriggerButton />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-primary-dark"
+                onClick={() => setMapOpen(true)}
+                data-testid="button-open-map"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -141,6 +154,12 @@ export default function Dashboard() {
       <WordComparisonPanel
         isOpen={comparisonOpen}
         onClose={() => setComparisonOpen(false)}
+      />
+
+      {/* Language Map */}
+      <LanguageMap
+        isOpen={mapOpen}
+        onClose={() => setMapOpen(false)}
       />
       
       {/* Floating Action Button */}

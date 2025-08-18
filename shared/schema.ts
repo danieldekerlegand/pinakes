@@ -8,6 +8,7 @@ export const languageFamilies = pgTable("language_families", {
   name: text("name").notNull(),
   parentId: varchar("parent_id").references(() => languageFamilies.id),
   description: text("description"),
+  taxonomicLevel: text("taxonomic_level").notNull().default("family"), // phylum, stock, family, subfamily, branch, group, complex
   estimatedOrigin: text("estimated_origin"),
   timeOrigin: text("time_origin"),
   region: text("region"),
@@ -23,19 +24,21 @@ export const languages = pgTable("languages", {
   iso639_1: varchar("iso639_1", { length: 2 }),
   iso639_2: varchar("iso639_2", { length: 3 }),
   familyId: varchar("family_id").references(() => languageFamilies.id).notNull(),
-  parentLanguageId: varchar("parent_language_id").references(() => languages.id), // For historical variants
+  parentLanguageId: varchar("parent_language_id").references(() => languages.id), // For historical variants and dialects
   region: text("region"),
   countries: jsonb("countries").$type<string[]>().default([]),
   nativeSpeakers: integer("native_speakers").default(0),
   totalSpeakers: integer("total_speakers").default(0),
-  status: text("status").notNull(), // living, endangered, moribund, dead
+  status: text("status").notNull(), // living, endangered, moribund, dead, historical, dialect
   timeOrigin: text("time_origin"),
   timeEnd: text("time_end"), // For historical variants that are no longer spoken
   classification: text("classification"),
   writingSystem: text("writing_system"),
   isHistoricalVariant: boolean("is_historical_variant").default(false),
+  isDialect: boolean("is_dialect").default(false), // For modern dialects and varieties
   chronologicalOrder: integer("chronological_order").default(0), // For ordering variants
-  historicalContext: text("historical_context"), // Description of historical period
+  historicalContext: text("historical_context"), // Description of historical period or dialect context
+  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(), // Geographic coordinates for mapping
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -7,7 +7,13 @@ interface Stats {
   totalLanguages: number;
   wordListsScraped: number;
   totalFamilies: number;
-  activeScrapingJobs: number;
+  phylums: number;
+  families: number;
+  subfamilies: number;
+  branches: number;
+  groups: number;
+  complexes: number;
+  scrapingQueue: number;
 }
 
 export default function StatsOverview() {
@@ -17,7 +23,7 @@ export default function StatsOverview() {
 
   if (!stats) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="p-6 bg-gradient-to-br from-blue-50 to-white border-0 shadow-material-1">
             <div className="animate-pulse space-y-2">
@@ -39,11 +45,39 @@ export default function StatsOverview() {
       bgColor: "bg-blue-100",
     },
     {
-      title: "Language Families",
-      value: stats.totalFamilies,
+      title: "Phylums",
+      value: stats.phylums,
       icon: TreePine,
       color: "text-green-600",
       bgColor: "bg-green-100",
+    },
+    {
+      title: "Families", 
+      value: stats.families,
+      icon: TreePine,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-100",
+    },
+    {
+      title: "Subfamilies",
+      value: stats.subfamilies,
+      icon: TreePine,
+      color: "text-teal-600", 
+      bgColor: "bg-teal-100",
+    },
+    {
+      title: "Branches",
+      value: stats.branches,
+      icon: TreePine,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-100",
+    },
+    {
+      title: "Groups",
+      value: stats.groups,
+      icon: TreePine,
+      color: "text-sky-600",
+      bgColor: "bg-sky-100",
     },
     {
       title: "Word Lists Scraped",
@@ -53,8 +87,8 @@ export default function StatsOverview() {
       bgColor: "bg-purple-100",
     },
     {
-      title: "Active Scraping Jobs",
-      value: stats.activeScrapingJobs,
+      title: "Scraping Queue",
+      value: stats.scrapingQueue,
       icon: Database,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -62,7 +96,7 @@ export default function StatsOverview() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
       {statCards.map((stat, index) => (
         <Card
           key={index}
@@ -82,7 +116,7 @@ export default function StatsOverview() {
               <stat.icon className="h-6 w-6" />
             </div>
           </div>
-          {stat.title === "Active Scraping Jobs" && stat.value > 0 && (
+          {stat.title === "Scraping Queue" && stat.value > 0 && (
             <Badge className="mt-3 bg-orange-100 text-orange-800">
               In Progress
             </Badge>

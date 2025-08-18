@@ -76,6 +76,7 @@ export class MemStorage implements IStorage {
       name: "Indo-European",
       parentId: null,
       description: "Largest language family in the world",
+      taxonomicLevel: "phylum",
       estimatedOrigin: "Pontic-Caspian steppe",
       timeOrigin: "c. 3500 BCE",
       region: "Europe, Asia, Americas",
@@ -89,6 +90,7 @@ export class MemStorage implements IStorage {
       name: "Germanic",
       parentId: "1",
       description: "Branch of Indo-European languages",
+      taxonomicLevel: "family",
       estimatedOrigin: "Northern Europe",
       timeOrigin: "c. 500 BCE", 
       region: "Northern Europe, Americas",
@@ -102,6 +104,7 @@ export class MemStorage implements IStorage {
       name: "Sino-Tibetan", 
       parentId: null,
       description: "Second largest language family",
+      taxonomicLevel: "phylum",
       estimatedOrigin: "Yellow River valley",
       timeOrigin: "c. 4500 BCE",
       region: "East Asia, Southeast Asia",
@@ -133,8 +136,10 @@ export class MemStorage implements IStorage {
       classification: "Indo-European > Germanic > West Germanic",
       writingSystem: "Latin script",
       isHistoricalVariant: false,
+      isDialect: false,
       chronologicalOrder: 4,
       historicalContext: null,
+      coordinates: { lat: 54.5260, lng: -2.2173 }, // Geographic center of British Isles
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -157,8 +162,10 @@ export class MemStorage implements IStorage {
       classification: "Indo-European > Germanic > West Germanic",
       writingSystem: "Latin script",
       isHistoricalVariant: false,
+      isDialect: false,
       chronologicalOrder: 1,
       historicalContext: null,
+      coordinates: { lat: 51.1657, lng: 10.4515 }, // Geographic center of Germany
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -184,6 +191,7 @@ export class MemStorage implements IStorage {
       isHistoricalVariant: true,
       chronologicalOrder: 1,
       historicalContext: "Anglo-Saxon period, influenced by Latin and Old Norse",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -208,6 +216,7 @@ export class MemStorage implements IStorage {
       isHistoricalVariant: true,
       chronologicalOrder: 2,
       historicalContext: "Norman influence, Great Vowel Shift beginning",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -232,6 +241,86 @@ export class MemStorage implements IStorage {
       isHistoricalVariant: true,
       chronologicalOrder: 3,
       historicalContext: "Renaissance period, Shakespearean era, printing press influence",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Modern English dialects and varieties
+    const americanEnglish: Language = {
+      id: "lang6",
+      name: "American English",
+      nativeName: "American English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "United States",
+      countries: ["United States"],
+      nativeSpeakers: 300000000,
+      totalSpeakers: 300000000,
+      status: "living",
+      timeOrigin: "17th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Developed from early colonial English with indigenous and immigrant influences",
+      coordinates: { lat: 39.8283, lng: -98.5795 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const britishEnglish: Language = {
+      id: "lang7",
+      name: "British English", 
+      nativeName: "British English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "United Kingdom",
+      countries: ["United Kingdom"],
+      nativeSpeakers: 65000000,
+      totalSpeakers: 65000000,
+      status: "living",
+      timeOrigin: "18th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Standard form developed during the 18th-19th centuries",
+      coordinates: { lat: 55.3781, lng: -3.4360 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const australianEnglish: Language = {
+      id: "lang8",
+      name: "Australian English",
+      nativeName: "Australian English", 
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "Australia",
+      countries: ["Australia"],
+      nativeSpeakers: 25000000,
+      totalSpeakers: 25000000,
+      status: "living",
+      timeOrigin: "19th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Developed from British colonial English with unique Australian innovations",
+      coordinates: { lat: -25.2744, lng: 133.7751 },
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -241,6 +330,9 @@ export class MemStorage implements IStorage {
     this.languages.set("lang3", oldEnglish);
     this.languages.set("lang4", middleEnglish);
     this.languages.set("lang5", earlyModernEnglish);
+    this.languages.set("lang6", americanEnglish);
+    this.languages.set("lang7", britishEnglish);
+    this.languages.set("lang8", australianEnglish);
 
     // Initialize sample base words
     const sampleWords = [
@@ -471,9 +563,16 @@ export class MemStorage implements IStorage {
     wordListsScraped: number;
     baseWords: number;
     scrapingQueue: number;
+    totalFamilies: number;
+    phylums: number;
+    families: number;
+    subfamilies: number;
+    branches: number;
+    groups: number;
+    complexes: number;
   }> {
     const totalLanguages = Array.from(this.languages.values())
-      .filter(lang => !lang.isHistoricalVariant).length;
+      .filter(lang => !lang.isHistoricalVariant && !lang.isDialect).length;
     const baseWords = this.baseWords.size;
     
     // Count languages with any translations
@@ -484,11 +583,28 @@ export class MemStorage implements IStorage {
     const pendingJobs = Array.from(this.scrapingJobs.values())
       .filter(job => job.status === 'pending' || job.status === 'running').length;
 
+    // Count families by taxonomic level
+    const families = Array.from(this.languageFamilies.values());
+    const totalFamilies = families.length;
+    const phylums = families.filter(f => f.taxonomicLevel === 'phylum').length;
+    const familyLevel = families.filter(f => f.taxonomicLevel === 'family').length;
+    const subfamilies = families.filter(f => f.taxonomicLevel === 'subfamily').length;
+    const branches = families.filter(f => f.taxonomicLevel === 'branch').length;
+    const groups = families.filter(f => f.taxonomicLevel === 'group').length;
+    const complexes = families.filter(f => f.taxonomicLevel === 'complex').length;
+
     return {
       totalLanguages,
       wordListsScraped: languagesWithTranslations,
       baseWords,
       scrapingQueue: pendingJobs,
+      totalFamilies,
+      phylums,
+      families: familyLevel,
+      subfamilies,
+      branches,
+      groups,
+      complexes,
     };
   }
 }
