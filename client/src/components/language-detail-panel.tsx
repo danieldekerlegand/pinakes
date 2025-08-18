@@ -100,7 +100,8 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
   if (!language) return null;
 
   const sampleTranslations = translations.slice(0, 5);
-  const completionPercentage = Math.round(language.wordListCompletion || 0);
+  // Use the backend-calculated completion percentage
+  const completionPercentage = language.completionPercentage || 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
