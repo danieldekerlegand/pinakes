@@ -82,7 +82,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
   const [isExpanded, setIsExpanded] = useState(level === 0);
 
   const filteredLanguages = useMemo(() => {
-    return family.languages.filter(lang => {
+    return family.languages.filter((lang: LanguageWithVariants) => {
       // Apply status filter
       if (filters.status.length > 0 && !filters.status.includes(lang.status)) {
         return false;
@@ -91,7 +91,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
       // Apply region filter
       if (filters.region && filters.region !== "all-regions") {
         const langRegions = Array.isArray(lang.region) ? lang.region : [lang.region];
-        if (!langRegions.some(r => r.toLowerCase().includes(filters.region.toLowerCase()))) {
+        if (!langRegions.some((r: string) => r.toLowerCase().includes(filters.region.toLowerCase()))) {
           return false;
         }
       }
@@ -155,7 +155,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
             {/* Languages */}
             {filteredLanguages.length > 0 && (
               <div className="p-4 space-y-3">
-                {filteredLanguages.map((language) => (
+                {filteredLanguages.map((language: LanguageWithVariants) => (
                   <div key={language.id} className="language-item">
                     <div
                       className={`flex items-center justify-between p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-colors ${
@@ -208,7 +208,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                     {/* Variants and Dialects */}
                     {selectedLanguageId === language.id && (
                       <div className="ml-6 mt-2 space-y-2">
-                        {language.historicalVariants?.map((variant) => (
+                        {language.historicalVariants?.map((variant: any) => (
                           <div key={variant.id} className="flex items-center space-x-2 p-2 bg-amber-50 rounded border">
                             <Clock className="h-3 w-3 text-amber-600" />
                             <span className="text-sm font-medium text-amber-800">{variant.name}</span>
@@ -220,7 +220,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             </Badge>
                           </div>
                         ))}
-                        {language.dialects?.map((dialect) => (
+                        {language.dialects?.map((dialect: any) => (
                           <div key={dialect.id} className="flex items-center space-x-2 p-2 bg-green-50 rounded border">
                             <Users className="h-3 w-3 text-green-600" />
                             <span className="text-sm font-medium text-green-800">{dialect.name}</span>
@@ -245,7 +245,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
             {/* Subfamilies */}
             {family.children.length > 0 && (
               <div className="pl-6 pb-4">
-                {family.children.map((child) => (
+                {family.children.map((child: LanguageFamilyWithChildren) => (
                   <TreeNode
                     key={child.id}
                     family={child}
