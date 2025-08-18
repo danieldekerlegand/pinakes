@@ -197,7 +197,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                       </div>
                     </div>
                     
-                    {/* Historical Variants and Dialects */}
+                    {/* Variants and Dialects */}
                     {selectedLanguageId === language.id && (
                       <div className="ml-6 mt-2 space-y-2">
                         {language.historicalVariants?.map((variant) => (
@@ -303,7 +303,7 @@ export default function LanguageTree({ searchQuery, filters, selectedLanguageId,
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Language Family Tree</h2>
-              <p className="text-sm text-gray-600">Taxonomic hierarchy with modern dialects and historical variants</p>
+              <p className="text-sm text-gray-600">Taxonomic hierarchy with dialects and variants</p>
             </div>
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600">

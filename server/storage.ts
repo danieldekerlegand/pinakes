@@ -593,11 +593,33 @@ export class MemStorage implements IStorage {
         .map(family => ({
           ...family,
           children: buildTree(family.id),
-          languages: languages.filter(lang => lang.familyId === family.id).map(lang => ({
-            ...lang,
-            historicalVariants: languages.filter(l => l.parentLanguageId === lang.id && l.isHistoricalVariant),
-            dialects: languages.filter(l => l.parentLanguageId === lang.id && l.isDialect)
-          }))
+          // Only include root languages (no parentLanguageId) for the main language list
+          languages: languages
+            .filter(lang => lang.familyId === family.id && !lang.parentLanguageId)
+            .map(lang => {
+              // Get all historical variants and dialects recursively
+              const getVariantsAndDialects = (parentLangId: string): { variants: any[], dialects: any[] } => {
+                const children = languages.filter(l => l.parentLanguageId === parentLangId);
+                const variants = children.filter(l => l.isHistoricalVariant);
+                const dialects = children.filter(l => l.isDialect);
+                
+                // For each variant, also get its child dialects
+                variants.forEach(variant => {
+                  const variantChildren = getVariantsAndDialects(variant.id);
+                  dialects.push(...variantChildren.dialects);
+                });
+                
+                return { variants, dialects };
+              };
+              
+              const { variants, dialects } = getVariantsAndDialects(lang.id);
+              
+              return {
+                ...lang,
+                historicalVariants: variants,
+                dialects: dialects
+              };
+            })
         }));
     };
 
