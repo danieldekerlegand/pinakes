@@ -5,7 +5,10 @@ import { Globe, TreePine, FileText, Database } from "lucide-react";
 
 interface Stats {
   totalLanguages: number;
+  historicalVariants: number;
+  dialects: number;
   wordListsScraped: number;
+  baseWords: number;
   totalFamilies: number;
   phylums: number;
   families: number;
@@ -38,39 +41,53 @@ export default function StatsOverview() {
 
   const languageStats = [
     {
-      title: "Total Languages",
+      title: "Main Languages",
       value: stats.totalLanguages,
       icon: Globe,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
+      title: "Historical Variants",
+      value: stats.historicalVariants,
+      icon: FileText,
+      color: "text-amber-600",
+      bgColor: "bg-amber-100",
+    },
+    {
+      title: "Modern Dialects",
+      value: stats.dialects,
+      icon: Globe,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
       title: "Phylums",
       value: stats.phylums,
       icon: TreePine,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
     },
     {
       title: "Families", 
       value: stats.families,
       icon: TreePine,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-100",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
     },
     {
       title: "Subfamilies",
       value: stats.subfamilies,
       icon: TreePine,
-      color: "text-teal-600", 
-      bgColor: "bg-teal-100",
+      color: "text-green-600", 
+      bgColor: "bg-green-100",
     },
     {
       title: "Branches",
       value: stats.branches,
       icon: TreePine,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-100",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
     },
     {
       title: "Groups",
@@ -83,9 +100,16 @@ export default function StatsOverview() {
 
   const scrapingStats = [
     {
+      title: "Base Words",
+      value: stats.baseWords,
+      icon: FileText,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100",
+    },
+    {
       title: "Word Lists Scraped",
       value: stats.wordListsScraped,
-      icon: FileText,
+      icon: Database,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
@@ -116,7 +140,7 @@ export default function StatsOverview() {
                 <div>
                   <p className="text-xs font-medium text-gray-600">{stat.title}</p>
                   <p className="text-xl font-semibold text-gray-900 mt-1" data-testid={`stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {stat.value.toLocaleString()}
+                    {(stat.value || 0).toLocaleString()}
                   </p>
                 </div>
                 <div className={`${stat.bgColor} ${stat.color} p-2 rounded-lg`}>
@@ -144,7 +168,7 @@ export default function StatsOverview() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-semibold text-gray-900 mt-1" data-testid={`stat-value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {stat.value.toLocaleString()}
+                    {(stat.value || 0).toLocaleString()}
                   </p>
                 </div>
                 <div className={`${stat.bgColor} ${stat.color} p-3 rounded-lg`}>

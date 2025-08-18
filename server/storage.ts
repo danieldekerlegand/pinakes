@@ -400,12 +400,15 @@ export class MemStorage implements IStorage {
           ...family,
           children: buildTree(family.id),
           languages: Array.from(this.languages.values())
-            .filter(lang => lang.familyId === family.id && !lang.isHistoricalVariant)
+            .filter(lang => lang.familyId === family.id && !lang.isHistoricalVariant && !lang.isDialect)
             .map(lang => ({
               ...lang,
               historicalVariants: Array.from(this.languages.values())
-                .filter(variant => variant.parentLanguageId === lang.id)
-                .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0))
+                .filter(variant => variant.parentLanguageId === lang.id && !variant.isDialect)
+                .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0)),
+              dialects: Array.from(this.languages.values())
+                .filter(dialect => dialect.parentLanguageId === lang.id && dialect.isDialect)
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
             }))
         }));
     };
@@ -454,8 +457,12 @@ export class MemStorage implements IStorage {
       .find(job => job.languageId === id && job.status === 'running');
 
     const historicalVariants = Array.from(this.languages.values())
-      .filter(variant => variant.parentLanguageId === id)
+      .filter(variant => variant.parentLanguageId === id && !variant.isDialect)
       .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0));
+
+    const dialects = Array.from(this.languages.values())
+      .filter(dialect => dialect.parentLanguageId === id && dialect.isDialect)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     return {
       ...language,
@@ -463,6 +470,7 @@ export class MemStorage implements IStorage {
       lastScrapedAt: activeJob?.completedAt?.toISOString(),
       scrapingStatus: activeJob?.status as any,
       historicalVariants,
+      dialects,
     };
   }
 
@@ -630,6 +638,8 @@ export class MemStorage implements IStorage {
 
   async getLanguageStats(): Promise<{
     totalLanguages: number;
+    historicalVariants: number;
+    dialects: number;
     wordListsScraped: number;
     baseWords: number;
     scrapingQueue: number;
@@ -641,8 +651,10 @@ export class MemStorage implements IStorage {
     groups: number;
     complexes: number;
   }> {
-    const totalLanguages = Array.from(this.languages.values())
-      .filter(lang => !lang.isHistoricalVariant && !lang.isDialect).length;
+    const allLanguages = Array.from(this.languages.values());
+    const totalLanguages = allLanguages.filter(lang => !lang.isHistoricalVariant && !lang.isDialect).length;
+    const historicalVariants = allLanguages.filter(lang => lang.isHistoricalVariant).length;
+    const dialects = allLanguages.filter(lang => lang.isDialect).length;
     const baseWords = this.baseWords.size;
     
     // Count languages with any translations
@@ -665,6 +677,8 @@ export class MemStorage implements IStorage {
 
     return {
       totalLanguages,
+      historicalVariants,
+      dialects,
       wordListsScraped: languagesWithTranslations,
       baseWords,
       scrapingQueue: pendingJobs,

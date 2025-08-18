@@ -126,6 +126,7 @@ export type LanguageFamilyWithChildren = LanguageFamily & {
 
 export type LanguageWithVariants = Language & {
   historicalVariants: Language[];
+  dialects: Language[];
 };
 
 export type LanguageWithStats = Language & {
@@ -133,6 +134,7 @@ export type LanguageWithStats = Language & {
   lastScrapedAt?: string;
   scrapingStatus?: 'pending' | 'running' | 'completed' | 'failed';
   historicalVariants: Language[];
+  dialects: Language[];
 };
 
 export type WordComparison = {
