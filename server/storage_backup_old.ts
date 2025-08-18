@@ -52,18 +52,9 @@ export interface IStorage {
   // Statistics
   getLanguageStats(): Promise<{
     totalLanguages: number;
-    historicalVariants: number;
-    dialects: number;
     wordListsScraped: number;
     baseWords: number;
     scrapingQueue: number;
-    totalFamilies: number;
-    phylums: number;
-    families: number;
-    subfamilies: number;
-    branches: number;
-    groups: number;
-    complexes: number;
   }>;
 }
 
@@ -79,7 +70,7 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize language families
+    // Initialize sample language families
     const indoEuropean: LanguageFamily = {
       id: "1",
       name: "Indo-European",
@@ -108,6 +99,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
 
+    // Germanic subfamilies
     const westGermanic: LanguageFamily = {
       id: "4",
       name: "West Germanic", 
@@ -171,7 +163,7 @@ export class MemStorage implements IStorage {
     this.languageFamilies.set("5", northGermanic);
     this.languageFamilies.set("6", eastGermanic);
 
-    // Initialize languages - English branch
+    // Initialize sample languages
     const english: Language = {
       id: "lang1",
       name: "English",
@@ -193,196 +185,11 @@ export class MemStorage implements IStorage {
       isDialect: false,
       chronologicalOrder: 4,
       historicalContext: null,
-      coordinates: { lat: 54.5260, lng: -2.2173 },
+      coordinates: { lat: 54.5260, lng: -2.2173 }, // Geographic center of British Isles
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    const modernEnglish: Language = {
-      id: "lang9",
-      name: "Modern English",
-      nativeName: "Modern English",
-      iso639_1: "en",
-      iso639_2: "eng",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang1",
-      region: "Global",
-      countries: ["Multiple"],
-      nativeSpeakers: 380000000,
-      totalSpeakers: 1500000000,
-      status: "living",
-      timeOrigin: "17th century",
-      timeEnd: null,
-      classification: "Indo-European > Germanic > West Germanic > English",
-      writingSystem: "Latin script",
-      isHistoricalVariant: true,
-      isDialect: false,
-      chronologicalOrder: 4,
-      historicalContext: "Contemporary form of English from 17th century onwards",
-      coordinates: { lat: 54.5260, lng: -2.2173 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // English dialects
-    const americanEnglish: Language = {
-      id: "lang6",
-      name: "American English",
-      nativeName: "American English",
-      iso639_1: "en",
-      iso639_2: "eng",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang9", // Parent is Modern English
-      region: "United States",
-      countries: ["United States"],
-      nativeSpeakers: 300000000,
-      totalSpeakers: 300000000,
-      status: "living",
-      timeOrigin: "17th century",
-      timeEnd: null,
-      classification: "Indo-European > Germanic > West Germanic > English",
-      writingSystem: "Latin script",
-      isHistoricalVariant: false,
-      isDialect: true,
-      chronologicalOrder: 5,
-      historicalContext: "Developed from early colonial English with indigenous and immigrant influences",
-      coordinates: { lat: 39.8283, lng: -98.5795 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const britishEnglish: Language = {
-      id: "lang7",
-      name: "British English", 
-      nativeName: "British English",
-      iso639_1: "en",
-      iso639_2: "eng",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang9", // Parent is Modern English
-      region: "United Kingdom",
-      countries: ["United Kingdom"],
-      nativeSpeakers: 65000000,
-      totalSpeakers: 65000000,
-      status: "living",
-      timeOrigin: "18th century",
-      timeEnd: null,
-      classification: "Indo-European > Germanic > West Germanic > English",
-      writingSystem: "Latin script",
-      isHistoricalVariant: false,
-      isDialect: true,
-      chronologicalOrder: 5,
-      historicalContext: "Standard form developed during the 18th-19th centuries",
-      coordinates: { lat: 55.3781, lng: -3.4360 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const australianEnglish: Language = {
-      id: "lang8",
-      name: "Australian English",
-      nativeName: "Australian English", 
-      iso639_1: "en",
-      iso639_2: "eng",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang9", // Parent is Modern English
-      region: "Australia",
-      countries: ["Australia"],
-      nativeSpeakers: 25000000,
-      totalSpeakers: 25000000,
-      status: "living",
-      timeOrigin: "19th century",
-      timeEnd: null,
-      classification: "Indo-European > Germanic > West Germanic > English",
-      writingSystem: "Latin script",
-      isHistoricalVariant: false,
-      isDialect: true,
-      chronologicalOrder: 5,
-      historicalContext: "Developed from British colonial English with unique Australian innovations",
-      coordinates: { lat: -25.2744, lng: 133.7751 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Historical English variants
-    const oldEnglish: Language = {
-      id: "lang3",
-      name: "Old English",
-      nativeName: "Englisc",
-      iso639_1: null,
-      iso639_2: "ang",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang1",
-      region: "England, Southern Scotland",
-      countries: ["England"],
-      nativeSpeakers: 0,
-      totalSpeakers: 0,
-      status: "dead",
-      timeOrigin: "5th century CE",
-      timeEnd: "12th century CE",
-      classification: "Indo-European > Germanic > West Germanic",
-      writingSystem: "Latin script, Runic script",
-      isHistoricalVariant: true,
-      chronologicalOrder: 1,
-      historicalContext: "Anglo-Saxon period, influenced by Latin and Old Norse",
-      coordinates: { lat: 52.3555, lng: -1.1743 },
-      isDialect: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const middleEnglish: Language = {
-      id: "lang4",
-      name: "Middle English",
-      nativeName: "Englisch",
-      iso639_1: null,
-      iso639_2: "enm",
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang1",
-      region: "England, Wales, Southern Scotland",
-      countries: ["England", "Wales"],
-      nativeSpeakers: 0,
-      totalSpeakers: 0,
-      status: "dead",
-      timeOrigin: "12th century CE",
-      timeEnd: "15th century CE",
-      classification: "Indo-European > Germanic > West Germanic",
-      writingSystem: "Latin script",
-      isHistoricalVariant: true,
-      chronologicalOrder: 2,
-      historicalContext: "Norman influence, Great Vowel Shift beginning",
-      coordinates: { lat: 52.3555, lng: -1.1743 },
-      isDialect: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const earlyModernEnglish: Language = {
-      id: "lang5",
-      name: "Early Modern English",
-      nativeName: "English",
-      iso639_1: null,
-      iso639_2: null,
-      familyId: "4", // West Germanic
-      parentLanguageId: "lang1",
-      region: "England, Wales, Scotland, Ireland",
-      countries: ["England", "Wales", "Scotland", "Ireland"],
-      nativeSpeakers: 0,
-      totalSpeakers: 0,
-      status: "dead",
-      timeOrigin: "15th century CE",
-      timeEnd: "17th century CE",
-      classification: "Indo-European > Germanic > West Germanic",
-      writingSystem: "Latin script",
-      isHistoricalVariant: true,
-      chronologicalOrder: 3,
-      historicalContext: "Renaissance period, Shakespearean era, printing press influence",
-      coordinates: { lat: 52.3555, lng: -1.1743 },
-      isDialect: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Other West Germanic languages
     const german: Language = {
       id: "lang2",
       name: "German",
@@ -404,11 +211,12 @@ export class MemStorage implements IStorage {
       isDialect: false,
       chronologicalOrder: 1,
       historicalContext: null,
-      coordinates: { lat: 51.1657, lng: 10.4515 },
+      coordinates: { lat: 51.1657, lng: 10.4515 }, // Geographic center of Germany
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
+    // Add more West Germanic languages
     const dutch: Language = {
       id: "lang10",
       name: "Dutch",
@@ -435,9 +243,35 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
 
+    const afrikaans: Language = {
+      id: "lang11",
+      name: "Afrikaans",
+      nativeName: "Afrikaans",
+      iso639_1: "af",
+      iso639_2: "afr",
+      familyId: "4", // West Germanic
+      parentLanguageId: null,
+      region: "South Africa, Namibia",
+      countries: ["South Africa", "Namibia"],
+      nativeSpeakers: 7000000,
+      totalSpeakers: 10000000,
+      status: "living",
+      timeOrigin: "17th century CE",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Evolved from Dutch during colonial period",
+      coordinates: { lat: -30.5595, lng: 22.9375 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     // North Germanic languages
     const swedish: Language = {
-      id: "lang11",
+      id: "lang12",
       name: "Swedish",
       nativeName: "svenska",
       iso639_1: "sv",
@@ -463,7 +297,7 @@ export class MemStorage implements IStorage {
     };
 
     const norwegian: Language = {
-      id: "lang12", 
+      id: "lang13", 
       name: "Norwegian",
       nativeName: "norsk",
       iso639_1: "no",
@@ -489,7 +323,7 @@ export class MemStorage implements IStorage {
     };
 
     const danish: Language = {
-      id: "lang13",
+      id: "lang14",
       name: "Danish",
       nativeName: "dansk",
       iso639_1: "da",
@@ -514,20 +348,260 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
 
-    // Store all languages
+    const icelandic: Language = {
+      id: "lang15",
+      name: "Icelandic",
+      nativeName: "íslenska",
+      iso639_1: "is",
+      iso639_2: "isl",
+      familyId: "5", // North Germanic
+      parentLanguageId: null,
+      region: "Iceland",
+      countries: ["Iceland"],
+      nativeSpeakers: 350000,
+      totalSpeakers: 350000,
+      status: "living",
+      timeOrigin: "9th century CE",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > North Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Most conservative North Germanic language",
+      coordinates: { lat: 64.9631, lng: -19.0208 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // East Germanic (extinct)
+    const gothic: Language = {
+      id: "lang16",
+      name: "Gothic",
+      nativeName: "Gutisk",
+      iso639_1: null,
+      iso639_2: "got",
+      familyId: "6", // East Germanic
+      parentLanguageId: null,
+      region: "Eastern Europe",
+      countries: ["Ukraine", "Romania", "Bulgaria"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "3rd century CE",
+      timeEnd: "8th century CE",
+      classification: "Indo-European > Germanic > East Germanic",
+      writingSystem: "Gothic script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Earliest attested Germanic language with substantial corpus",
+      coordinates: { lat: 45.9432, lng: 24.9668 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Historical variants of English
+    const oldEnglish: Language = {
+      id: "lang3",
+      name: "Old English",
+      nativeName: "Englisc",
+      iso639_1: null,
+      iso639_2: "ang",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Southern Scotland",
+      countries: ["England"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "5th century CE",
+      timeEnd: "12th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script, Runic script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 1,
+      historicalContext: "Anglo-Saxon period, influenced by Latin and Old Norse",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const middleEnglish: Language = {
+      id: "lang4",
+      name: "Middle English",
+      nativeName: "Englisch",
+      iso639_1: null,
+      iso639_2: "enm",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Wales, Southern Scotland",
+      countries: ["England", "Wales"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "12th century CE",
+      timeEnd: "15th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 2,
+      historicalContext: "Norman influence, Great Vowel Shift beginning",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const earlyModernEnglish: Language = {
+      id: "lang5",
+      name: "Early Modern English",
+      nativeName: "English",
+      iso639_1: null,
+      iso639_2: null,
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Wales, Scotland, Ireland",
+      countries: ["England", "Wales", "Scotland", "Ireland"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "15th century CE",
+      timeEnd: "17th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 3,
+      historicalContext: "Renaissance period, Shakespearean era, printing press influence",
+      coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // First create Modern English as the current form
+    const modernEnglish: Language = {
+      id: "lang9",
+      name: "Modern English",
+      nativeName: "Modern English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "Global",
+      countries: ["Multiple"],
+      nativeSpeakers: 380000000,
+      totalSpeakers: 1500000000,
+      status: "living",
+      timeOrigin: "17th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      isDialect: false,
+      chronologicalOrder: 4,
+      historicalContext: "Contemporary form of English from 17th century onwards",
+      coordinates: { lat: 54.5260, lng: -2.2173 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Modern English dialects and varieties
+    const americanEnglish: Language = {
+      id: "lang6",
+      name: "American English",
+      nativeName: "American English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang9", // Parent is Modern English
+      region: "United States",
+      countries: ["United States"],
+      nativeSpeakers: 300000000,
+      totalSpeakers: 300000000,
+      status: "living",
+      timeOrigin: "17th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Developed from early colonial English with indigenous and immigrant influences",
+      coordinates: { lat: 39.8283, lng: -98.5795 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const britishEnglish: Language = {
+      id: "lang7",
+      name: "British English", 
+      nativeName: "British English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang9", // Parent is Modern English
+      region: "United Kingdom",
+      countries: ["United Kingdom"],
+      nativeSpeakers: 65000000,
+      totalSpeakers: 65000000,
+      status: "living",
+      timeOrigin: "18th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Standard form developed during the 18th-19th centuries",
+      coordinates: { lat: 55.3781, lng: -3.4360 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const australianEnglish: Language = {
+      id: "lang8",
+      name: "Australian English",
+      nativeName: "Australian English", 
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang9", // Parent is Modern English
+      region: "Australia",
+      countries: ["Australia"],
+      nativeSpeakers: 25000000,
+      totalSpeakers: 25000000,
+      status: "living",
+      timeOrigin: "19th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: true,
+      chronologicalOrder: 5,
+      historicalContext: "Developed from British colonial English with unique Australian innovations",
+      coordinates: { lat: -25.2744, lng: 133.7751 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     this.languages.set("lang1", english);
     this.languages.set("lang2", german);
     this.languages.set("lang3", oldEnglish);
     this.languages.set("lang4", middleEnglish);
     this.languages.set("lang5", earlyModernEnglish);
+    this.languages.set("lang9", modernEnglish);
     this.languages.set("lang6", americanEnglish);
     this.languages.set("lang7", britishEnglish);
     this.languages.set("lang8", australianEnglish);
-    this.languages.set("lang9", modernEnglish);
     this.languages.set("lang10", dutch);
-    this.languages.set("lang11", swedish);
-    this.languages.set("lang12", norwegian);
-    this.languages.set("lang13", danish);
+    this.languages.set("lang11", afrikaans);
+    this.languages.set("lang12", swedish);
+    this.languages.set("lang13", norwegian);
+    this.languages.set("lang14", danish);
+    this.languages.set("lang15", icelandic);
+    this.languages.set("lang16", gothic);
 
     // Initialize sample base words
     const sampleWords = [
@@ -556,15 +630,24 @@ export class MemStorage implements IStorage {
 
   async getLanguageFamilyTree(): Promise<LanguageFamilyWithChildren[]> {
     const families = Array.from(this.languageFamilies.values());
-    const languages = Array.from(this.languages.values());
     
     const buildTree = (parentId: string | null): LanguageFamilyWithChildren[] => {
       return families
-        .filter(family => family.parentId === parentId)
+        .filter(f => f.parentId === parentId)
         .map(family => ({
           ...family,
           children: buildTree(family.id),
-          languages: languages.filter(lang => lang.familyId === family.id)
+          languages: Array.from(this.languages.values())
+            .filter(lang => lang.familyId === family.id && !lang.isHistoricalVariant && !lang.isDialect)
+            .map(lang => ({
+              ...lang,
+              historicalVariants: Array.from(this.languages.values())
+                .filter(variant => variant.parentLanguageId === lang.id && !variant.isDialect)
+                .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0)),
+              dialects: Array.from(this.languages.values())
+                .filter(dialect => dialect.parentLanguageId === lang.id && dialect.isDialect)
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+            }))
         }));
     };
 
@@ -576,6 +659,13 @@ export class MemStorage implements IStorage {
     const family: LanguageFamily = {
       ...insertFamily,
       id,
+      region: insertFamily.region || null,
+      parentId: insertFamily.parentId || null,
+      description: insertFamily.description || null,
+      estimatedOrigin: insertFamily.estimatedOrigin || null,
+      timeOrigin: insertFamily.timeOrigin || null,
+      totalSpeakers: insertFamily.totalSpeakers || null,
+      languageCount: insertFamily.languageCount || null,
       createdAt: new Date(),
     };
     this.languageFamilies.set(id, family);
@@ -587,39 +677,38 @@ export class MemStorage implements IStorage {
   }
 
   async getLanguagesByFamily(familyId: string): Promise<Language[]> {
-    return Array.from(this.languages.values()).filter(lang => lang.familyId === familyId);
+    return Array.from(this.languages.values())
+      .filter(lang => lang.familyId === familyId);
   }
 
   async getLanguage(id: string): Promise<LanguageWithStats | undefined> {
     const language = this.languages.get(id);
     if (!language) return undefined;
 
+    const baseWordCount = this.baseWords.size;
     const translationCount = Array.from(this.wordTranslations.values())
-      .filter(t => t.languageId === id).length;
+      .filter(t => t.languageId === id && t.translation !== null).length;
     
-    const totalWords = this.baseWords.size;
-    const completionPercentage = totalWords > 0 ? Math.round((translationCount / totalWords) * 100) : 0;
+    const wordListCompletion = baseWordCount > 0 ? (translationCount / baseWordCount) * 100 : 0;
+    
+    const activeJob = Array.from(this.scrapingJobs.values())
+      .find(job => job.languageId === id && job.status === 'running');
 
-    // Get historical variants if this is a main language
-    const historicalVariants = !language.isHistoricalVariant && !language.isDialect
-      ? Array.from(this.languages.values()).filter(l => 
-          l.parentLanguageId === id && l.isHistoricalVariant
-        )
-      : [];
+    const historicalVariants = Array.from(this.languages.values())
+      .filter(variant => variant.parentLanguageId === id && !variant.isDialect)
+      .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0));
 
-    // Get dialects if this is a modern variant
-    const dialects = language.isHistoricalVariant && language.name.includes("Modern")
-      ? Array.from(this.languages.values()).filter(l => 
-          l.parentLanguageId === id && l.isDialect
-        )
-      : [];
+    const dialects = Array.from(this.languages.values())
+      .filter(dialect => dialect.parentLanguageId === id && dialect.isDialect)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     return {
       ...language,
-      translationCount,
-      completionPercentage,
+      wordListCompletion,
+      lastScrapedAt: activeJob?.completedAt?.toISOString(),
+      scrapingStatus: activeJob?.status as any,
       historicalVariants,
-      dialects
+      dialects,
     };
   }
 
@@ -633,6 +722,23 @@ export class MemStorage implements IStorage {
     const language: Language = {
       ...insertLanguage,
       id,
+      region: insertLanguage.region || null,
+      nativeName: insertLanguage.nativeName || null,
+      iso639_1: insertLanguage.iso639_1 || null,
+      iso639_2: insertLanguage.iso639_2 || null,
+      parentLanguageId: insertLanguage.parentLanguageId || null,
+      countries: insertLanguage.countries || [],
+      nativeSpeakers: insertLanguage.nativeSpeakers || null,
+      totalSpeakers: insertLanguage.totalSpeakers || null,
+      timeOrigin: insertLanguage.timeOrigin || null,
+      timeEnd: insertLanguage.timeEnd || null,
+      classification: insertLanguage.classification || null,
+      writingSystem: insertLanguage.writingSystem || null,
+      isHistoricalVariant: insertLanguage.isHistoricalVariant || false,
+      isDialect: insertLanguage.isDialect || false,
+      chronologicalOrder: insertLanguage.chronologicalOrder || null,
+      historicalContext: insertLanguage.historicalContext || null,
+      coordinates: insertLanguage.coordinates || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -649,6 +755,8 @@ export class MemStorage implements IStorage {
     const word: BaseWord = {
       ...insertWord,
       id,
+      category: insertWord.category || null,
+      definition: insertWord.definition || null,
       createdAt: new Date(),
     };
     this.baseWords.set(id, word);
@@ -656,23 +764,24 @@ export class MemStorage implements IStorage {
   }
 
   async updateBaseWords(words: InsertBaseWord[]): Promise<void> {
-    // Clear existing base words
     this.baseWords.clear();
-    
-    // Add new words
     words.forEach((word, index) => {
+      const id = randomUUID();
       const baseWord: BaseWord = {
         ...word,
-        id: `word${index + 1}`,
+        id,
+        position: index + 1,
+        category: word.category || null,
+        definition: word.definition || null,
         createdAt: new Date(),
       };
-      this.baseWords.set(baseWord.id, baseWord);
+      this.baseWords.set(id, baseWord);
     });
   }
 
   async getWordTranslations(languageId: string): Promise<WordTranslation[]> {
     return Array.from(this.wordTranslations.values())
-      .filter(translation => translation.languageId === languageId);
+      .filter(t => t.languageId === languageId);
   }
 
   async getTranslation(baseWordId: string, languageId: string): Promise<WordTranslation | undefined> {
@@ -685,6 +794,11 @@ export class MemStorage implements IStorage {
     const translation: WordTranslation = {
       ...insertTranslation,
       id,
+      source: insertTranslation.source || null,
+      translation: insertTranslation.translation || null,
+      pronunciation: insertTranslation.pronunciation || null,
+      notes: insertTranslation.notes || null,
+      verified: insertTranslation.verified || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -694,7 +808,7 @@ export class MemStorage implements IStorage {
 
   async updateWordTranslation(id: string, updateData: Partial<WordTranslation>): Promise<WordTranslation> {
     const translation = this.wordTranslations.get(id);
-    if (!translation) throw new Error("Word translation not found");
+    if (!translation) throw new Error("Translation not found");
     
     const updated: WordTranslation = {
       ...translation,
