@@ -44,7 +44,7 @@ export default function Dashboard() {
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
-    region: "",
+    region: "all-regions",
     speakers: "",
   });
 

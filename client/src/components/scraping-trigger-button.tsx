@@ -20,15 +20,9 @@ export default function ScrapingTriggerButton() {
 
   const scrapingMutation = useMutation({
     mutationFn: async (languageId: string) => {
-      const response = await apiRequest('/api/scraping-jobs', {
-        method: 'POST',
-        body: JSON.stringify({
-          languageId,
-          status: 'pending',
-          totalWords: 5000,
-          completedWords: 0,
-          failedWords: 0,
-        }),
+      const response = await apiRequest('POST', '/api/scraping-jobs', {
+        languageId,
+        status: 'pending',
       });
       return response.json();
     },

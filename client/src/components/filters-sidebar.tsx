@@ -58,7 +58,7 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
   const clearAllFilters = () => {
     onFiltersChange({
       status: [],
-      region: "",
+      region: "all-regions",
       speakers: "",
     });
   };
@@ -121,7 +121,7 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
                   <SelectValue placeholder="Select region..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All regions</SelectItem>
+                  <SelectItem value="all-regions">All regions</SelectItem>
                   {regionOptions.map((region) => (
                     <SelectItem key={region} value={region}>
                       {region}
@@ -165,14 +165,14 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
             </div>
 
             {/* Applied Filters Summary */}
-            {(filters.status.length > 0 || filters.region || filters.speakers) && (
+            {(filters.status.length > 0 || (filters.region && filters.region !== "all-regions") || filters.speakers) && (
               <Card className="p-4 bg-blue-50 border-blue-200">
                 <h4 className="text-sm font-medium text-blue-900 mb-2">Active Filters</h4>
                 <div className="space-y-1 text-xs text-blue-700">
                   {filters.status.length > 0 && (
                     <p>Status: {filters.status.join(", ")}</p>
                   )}
-                  {filters.region && <p>Region: {filters.region}</p>}
+                  {filters.region && filters.region !== "all-regions" && <p>Region: {filters.region}</p>}
                   {filters.speakers && (
                     <p>Speakers: {speakerRanges.find(r => r.value === filters.speakers)?.label}</p>
                   )}

@@ -206,8 +206,9 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
             </div>
 
             {/* Language Selection Grid */}
-            <ScrollArea className="h-48 border rounded-lg p-4">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="h-48 border rounded-lg overflow-hidden">
+              <ScrollArea className="h-full p-4">
+                <div className="grid grid-cols-2 gap-2">
                 {filteredLanguages.map((language) => (
                   <div
                     key={language.id}
@@ -227,8 +228,9 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
                     </div>
                   </div>
                 ))}
-              </div>
-            </ScrollArea>
+                </div>
+              </ScrollArea>
+            </div>
 
             {/* Selected Languages Display */}
             {selectedLanguages.length > 0 && (

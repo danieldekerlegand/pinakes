@@ -88,6 +88,14 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
         return false;
       }
       
+      // Apply region filter
+      if (filters.region && filters.region !== "all-regions") {
+        const langRegions = Array.isArray(lang.region) ? lang.region : [lang.region];
+        if (!langRegions.some(r => r.toLowerCase().includes(filters.region.toLowerCase()))) {
+          return false;
+        }
+      }
+      
       // Apply search filter
       if (searchQuery && !lang.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !lang.nativeName?.toLowerCase().includes(searchQuery.toLowerCase())) {
