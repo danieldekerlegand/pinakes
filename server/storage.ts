@@ -577,6 +577,172 @@ export class MemStorage implements IStorage {
       };
       this.baseWords.set(baseWord.id, baseWord);
     });
+
+    // Initialize sample word translations for comparison tool
+    const translationData: { [key: string]: { [key: string]: string } } = {
+      // English translations
+      "lang1": {
+        "word1": "hello", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountain", "word6": "tree", "word7": "sun", "word8": "moon",
+        "word9": "fire", "word10": "earth", "word11": "wind", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "child", "word18": "mother", "word19": "father", "word20": "brother",
+        "word21": "sister", "word22": "hand", "word23": "eye", "word24": "ear",
+        "word25": "mouth", "word26": "food", "word27": "eat", "word28": "drink",
+        "word29": "sleep", "word30": "walk", "word31": "run", "word32": "speak"
+      },
+      // German translations
+      "lang2": {
+        "word1": "hallo", "word2": "wasser", "word3": "haus", "word4": "familie",
+        "word5": "berg", "word6": "baum", "word7": "sonne", "word8": "mond",
+        "word9": "feuer", "word10": "erde", "word11": "wind", "word12": "liebe",
+        "word13": "zeit", "word14": "person", "word15": "frau", "word16": "mann",
+        "word17": "kind", "word18": "mutter", "word19": "vater", "word20": "bruder",
+        "word21": "schwester", "word22": "hand", "word23": "auge", "word24": "ohr",
+        "word25": "mund", "word26": "essen", "word27": "essen", "word28": "trinken",
+        "word29": "schlafen", "word30": "gehen", "word31": "laufen", "word32": "sprechen"
+      },
+      // Old English translations
+      "lang3": {
+        "word1": "hæl", "word2": "wæter", "word3": "hūs", "word4": "gefræge",
+        "word5": "beorg", "word6": "trēow", "word7": "sunne", "word8": "mōna",
+        "word9": "fȳr", "word10": "eorþe", "word11": "wind", "word12": "lufu",
+        "word13": "tīd", "word14": "mann", "word15": "wīf", "word16": "wer",
+        "word17": "cild", "word18": "mōdor", "word19": "fæder", "word20": "brōþor",
+        "word21": "sweoster", "word22": "hand", "word23": "ēage", "word24": "ēare",
+        "word25": "mūþ", "word26": "mete", "word27": "etan", "word28": "drincan",
+        "word29": "slǣpan", "word30": "gān", "word31": "rinnan", "word32": "sprecan"
+      },
+      // Middle English translations
+      "lang4": {
+        "word1": "halo", "word2": "water", "word3": "hous", "word4": "familie",
+        "word5": "mountaine", "word6": "tree", "word7": "sunne", "word8": "mone",
+        "word9": "fyr", "word10": "erthe", "word11": "wynd", "word12": "love",
+        "word13": "tyme", "word14": "persone", "word15": "womman", "word16": "man",
+        "word17": "child", "word18": "moder", "word19": "fader", "word20": "brother",
+        "word21": "sister", "word22": "hond", "word23": "ye", "word24": "ere",
+        "word25": "mouth", "word26": "mete", "word27": "eten", "word28": "drynken",
+        "word29": "slepen", "word30": "walken", "word31": "rennen", "word32": "speken"
+      },
+      // Early Modern English translations
+      "lang5": {
+        "word1": "hello", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountaine", "word6": "tree", "word7": "sunne", "word8": "moone",
+        "word9": "fire", "word10": "earth", "word11": "winde", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "childe", "word18": "mother", "word19": "father", "word20": "brother",
+        "word21": "sister", "word22": "hande", "word23": "eye", "word24": "eare",
+        "word25": "mouth", "word26": "foode", "word27": "eate", "word28": "drinke",
+        "word29": "sleepe", "word30": "walke", "word31": "runne", "word32": "speake"
+      },
+      // American English translations
+      "lang6": {
+        "word1": "hello", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountain", "word6": "tree", "word7": "sun", "word8": "moon",
+        "word9": "fire", "word10": "earth", "word11": "wind", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "kid", "word18": "mom", "word19": "dad", "word20": "brother",
+        "word21": "sister", "word22": "hand", "word23": "eye", "word24": "ear",
+        "word25": "mouth", "word26": "food", "word27": "eat", "word28": "drink",
+        "word29": "sleep", "word30": "walk", "word31": "run", "word32": "talk"
+      },
+      // British English translations
+      "lang7": {
+        "word1": "hello", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountain", "word6": "tree", "word7": "sun", "word8": "moon",
+        "word9": "fire", "word10": "earth", "word11": "wind", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "child", "word18": "mum", "word19": "dad", "word20": "brother",
+        "word21": "sister", "word22": "hand", "word23": "eye", "word24": "ear",
+        "word25": "mouth", "word26": "food", "word27": "eat", "word28": "drink",
+        "word29": "sleep", "word30": "walk", "word31": "run", "word32": "speak"
+      },
+      // Australian English translations
+      "lang8": {
+        "word1": "g'day", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountain", "word6": "tree", "word7": "sun", "word8": "moon",
+        "word9": "fire", "word10": "earth", "word11": "wind", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "kid", "word18": "mum", "word19": "dad", "word20": "brother",
+        "word21": "sister", "word22": "hand", "word23": "eye", "word24": "ear",
+        "word25": "mouth", "word26": "tucker", "word27": "eat", "word28": "drink",
+        "word29": "sleep", "word30": "walk", "word31": "run", "word32": "speak"
+      },
+      // Modern English translations
+      "lang9": {
+        "word1": "hello", "word2": "water", "word3": "house", "word4": "family",
+        "word5": "mountain", "word6": "tree", "word7": "sun", "word8": "moon",
+        "word9": "fire", "word10": "earth", "word11": "wind", "word12": "love",
+        "word13": "time", "word14": "person", "word15": "woman", "word16": "man",
+        "word17": "child", "word18": "mother", "word19": "father", "word20": "brother",
+        "word21": "sister", "word22": "hand", "word23": "eye", "word24": "ear",
+        "word25": "mouth", "word26": "food", "word27": "eat", "word28": "drink",
+        "word29": "sleep", "word30": "walk", "word31": "run", "word32": "speak"
+      },
+      // Dutch translations
+      "lang10": {
+        "word1": "hallo", "word2": "water", "word3": "huis", "word4": "familie",
+        "word5": "berg", "word6": "boom", "word7": "zon", "word8": "maan",
+        "word9": "vuur", "word10": "aarde", "word11": "wind", "word12": "liefde",
+        "word13": "tijd", "word14": "persoon", "word15": "vrouw", "word16": "man",
+        "word17": "kind", "word18": "moeder", "word19": "vader", "word20": "broer",
+        "word21": "zus", "word22": "hand", "word23": "oog", "word24": "oor",
+        "word25": "mond", "word26": "voedsel", "word27": "eten", "word28": "drinken",
+        "word29": "slapen", "word30": "lopen", "word31": "rennen", "word32": "spreken"
+      },
+      // Swedish translations
+      "lang11": {
+        "word1": "hej", "word2": "vatten", "word3": "hus", "word4": "familj",
+        "word5": "berg", "word6": "träd", "word7": "sol", "word8": "måne",
+        "word9": "eld", "word10": "jord", "word11": "vind", "word12": "kärlek",
+        "word13": "tid", "word14": "person", "word15": "kvinna", "word16": "man",
+        "word17": "barn", "word18": "mamma", "word19": "pappa", "word20": "bror",
+        "word21": "syster", "word22": "hand", "word23": "öga", "word24": "öra",
+        "word25": "mun", "word26": "mat", "word27": "äta", "word28": "dricka",
+        "word29": "sova", "word30": "gå", "word31": "springa", "word32": "tala"
+      },
+      // Norwegian translations
+      "lang12": {
+        "word1": "hei", "word2": "vann", "word3": "hus", "word4": "familie",
+        "word5": "fjell", "word6": "tre", "word7": "sol", "word8": "måne",
+        "word9": "ild", "word10": "jord", "word11": "vind", "word12": "kjærlighet",
+        "word13": "tid", "word14": "person", "word15": "kvinne", "word16": "mann",
+        "word17": "barn", "word18": "mamma", "word19": "pappa", "word20": "bror",
+        "word21": "søster", "word22": "hånd", "word23": "øye", "word24": "øre",
+        "word25": "munn", "word26": "mat", "word27": "spise", "word28": "drikke",
+        "word29": "sove", "word30": "gå", "word31": "løpe", "word32": "snakke"
+      },
+      // Danish translations
+      "lang13": {
+        "word1": "hej", "word2": "vand", "word3": "hus", "word4": "familie",
+        "word5": "bjerg", "word6": "træ", "word7": "sol", "word8": "måne",
+        "word9": "ild", "word10": "jord", "word11": "vind", "word12": "kærlighed",
+        "word13": "tid", "word14": "person", "word15": "kvinde", "word16": "mand",
+        "word17": "barn", "word18": "mor", "word19": "far", "word20": "bror",
+        "word21": "søster", "word22": "hånd", "word23": "øje", "word24": "øre",
+        "word25": "mund", "word26": "mad", "word27": "spise", "word28": "drikke",
+        "word29": "sove", "word30": "gå", "word31": "løbe", "word32": "tale"
+      }
+    };
+
+    // Create word translation records
+    Object.entries(translationData).forEach(([languageId, translations]) => {
+      Object.entries(translations).forEach(([wordId, translation]) => {
+        const wordTranslation: WordTranslation = {
+          id: `${wordId}_${languageId}`,
+          baseWordId: wordId,
+          languageId: languageId,
+          translation: translation,
+          pronunciation: null,
+          notes: null,
+          source: "sample_data",
+          verified: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        this.wordTranslations.set(wordTranslation.id, wordTranslation);
+      });
+    });
   }
 
   async getLanguageFamilies(): Promise<LanguageFamily[]> {
