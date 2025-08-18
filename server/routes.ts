@@ -1,10 +1,79 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertLanguageFamilySchema, insertLanguageSchema, insertBaseWordSchema, insertWordTranslationSchema, insertScrapingJobSchema } from "@shared/schema";
 import { z } from "zod";
 
+// WebSocket connection manager
+class WebSocketManager {
+  private wss: WebSocketServer | null = null;
+  private clients: Set<WebSocket> = new Set();
+
+  initialize(server: Server) {
+    this.wss = new WebSocketServer({ server, path: '/ws' });
+    
+    this.wss.on('connection', (ws) => {
+      this.clients.add(ws);
+      console.log('Client connected to WebSocket');
+      
+      ws.on('close', () => {
+        this.clients.delete(ws);
+        console.log('Client disconnected from WebSocket');
+      });
+
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        this.clients.delete(ws);
+      });
+
+      // Send initial status
+      ws.send(JSON.stringify({
+        type: 'status',
+        message: 'Connected to scraping progress updates'
+      }));
+    });
+  }
+
+  broadcast(data: any) {
+    const message = JSON.stringify(data);
+    this.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
+
+  broadcastProgress(jobId: string, progress: {
+    status: string;
+    completed: number;
+    total: number;
+    currentWord?: string;
+    percentage?: number;
+    errorMessage?: string;
+  }) {
+    this.broadcast({
+      type: 'scraping_progress',
+      jobId,
+      ...progress
+    });
+  }
+
+  broadcastJobUpdate(job: any) {
+    this.broadcast({
+      type: 'job_update',
+      job
+    });
+  }
+}
+
+export const wsManager = new WebSocketManager();
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  const server = createServer(app);
+  
+  // Initialize WebSocket manager
+  wsManager.initialize(server);
   
   // Language Families
   app.get("/api/language-families", async (req, res) => {
@@ -193,20 +262,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scraping-jobs", async (req, res) => {
     try {
       const validatedData = insertScrapingJobSchema.parse(req.body);
-      const job = await storage.createScrapingJob(validatedData);
-      res.status(201).json(job);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Failed to create scraping job" });
-      }
-    }
-  });
-
-  app.post("/api/scraping-jobs", async (req, res) => {
-    try {
-      const validatedData = insertScrapingJobSchema.parse(req.body);
       
       // Check if there's already an active job for this language
       const existingJob = await storage.getActiveScrapingJob(validatedData.languageId);
@@ -221,6 +276,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedWords: 0,
         failedWords: 0,
       });
+      
+      // Broadcast job creation to WebSocket clients
+      wsManager.broadcastJobUpdate(job);
       
       // Start scraping process (in a real app, this would be a background job)
       startScrapingProcess(job.id);
@@ -261,65 +319,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock scraping process (simulates web scraping)
+  // Mock scraping process with real-time progress tracking
   async function startScrapingProcess(jobId: string) {
     try {
-      const job = await storage.updateScrapingJob(jobId, {
+      const updatedJob = await storage.updateScrapingJob(jobId, {
         status: 'running',
         startedAt: new Date(),
       });
 
+      // Broadcast job started
+      wsManager.broadcastJobUpdate(updatedJob);
+      wsManager.broadcastProgress(jobId, {
+        status: 'running',
+        completed: 0,
+        total: updatedJob.totalWords || 0,
+        percentage: 0
+      });
+
       const baseWords = await storage.getBaseWords();
-      const language = await storage.getLanguage(job.languageId);
+      const language = await storage.getLanguage(updatedJob.languageId);
       
       if (!language) return;
 
-      // Simulate scraping with delays
+      let completedCount = 0;
+      let failedCount = 0;
+
+      // Simulate scraping with delays and real-time updates
       for (let i = 0; i < baseWords.length; i++) {
         const baseWord = baseWords[i];
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+        // Broadcast current word being processed
+        wsManager.broadcastProgress(jobId, {
+          status: 'running',
+          completed: completedCount,
+          total: baseWords.length,
+          currentWord: baseWord.word,
+          percentage: Math.round((completedCount / baseWords.length) * 100)
+        });
+        
+        // Simulate API call delay (realistic scraping time)
+        await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 300));
         
         // Simulate success/failure (90% success rate)
         const success = Math.random() > 0.1;
         
         if (success) {
-          // Create mock translation
+          // Create mock translation with realistic data
+          const translations = {
+            en: baseWord.word,
+            de: getGermanTranslation(baseWord.word),
+            nl: getDutchTranslation(baseWord.word),
+            sv: getSwedishTranslation(baseWord.word),
+            no: getNorwegianTranslation(baseWord.word),
+            da: getDanishTranslation(baseWord.word)
+          };
+
           await storage.createWordTranslation({
             baseWordId: baseWord.id,
-            languageId: job.languageId,
-            translation: `${baseWord.word}_${language.iso639_1}`, // Mock translation
-            source: "mock_scraper",
+            languageId: updatedJob.languageId,
+            translation: translations[language.iso639_1 as keyof typeof translations] || `${baseWord.word}_${language.iso639_1}`,
+            source: "mock_linguistic_api",
             verified: false,
           });
           
-          await storage.updateScrapingJob(jobId, {
-            completedWords: i + 1,
-          });
+          completedCount++;
         } else {
-          await storage.updateScrapingJob(jobId, {
-            completedWords: i,
-            failedWords: (await storage.getScrapingJobs())[0]?.failedWords || 0 + 1,
-          });
+          failedCount++;
         }
+
+        // Update job progress
+        const jobUpdate = await storage.updateScrapingJob(jobId, {
+          completedWords: completedCount,
+          failedWords: failedCount,
+        });
+
+        // Broadcast progress update
+        wsManager.broadcastProgress(jobId, {
+          status: 'running',
+          completed: completedCount,
+          total: baseWords.length,
+          percentage: Math.round((completedCount / baseWords.length) * 100)
+        });
+
+        wsManager.broadcastJobUpdate(jobUpdate);
       }
 
       // Mark job as completed
-      await storage.updateScrapingJob(jobId, {
+      const completedJob = await storage.updateScrapingJob(jobId, {
         status: 'completed',
         completedAt: new Date(),
       });
 
+      // Broadcast completion
+      wsManager.broadcastProgress(jobId, {
+        status: 'completed',
+        completed: completedCount,
+        total: baseWords.length,
+        percentage: 100
+      });
+
+      wsManager.broadcastJobUpdate(completedJob);
+
     } catch (error) {
-      await storage.updateScrapingJob(jobId, {
+      const failedJob = await storage.updateScrapingJob(jobId, {
         status: 'failed',
         completedAt: new Date(),
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
       });
+
+      wsManager.broadcastProgress(jobId, {
+        status: 'failed',
+        completed: 0,
+        total: 0,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      wsManager.broadcastJobUpdate(failedJob);
     }
   }
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Mock translation functions for realistic data
+  function getGermanTranslation(word: string): string {
+    const translations: { [key: string]: string } = {
+      hello: "hallo", water: "wasser", house: "haus", family: "familie",
+      mountain: "berg", tree: "baum", sun: "sonne", moon: "mond",
+      fire: "feuer", earth: "erde", wind: "wind", love: "liebe",
+      time: "zeit", person: "person", woman: "frau", man: "mann",
+      child: "kind", mother: "mutter", father: "vater", brother: "bruder",
+      sister: "schwester", hand: "hand", eye: "auge", ear: "ohr",
+      mouth: "mund", food: "essen", eat: "essen", drink: "trinken",
+      sleep: "schlafen", walk: "gehen", run: "laufen", speak: "sprechen"
+    };
+    return translations[word] || `${word}_de`;
+  }
+
+  function getDutchTranslation(word: string): string {
+    const translations: { [key: string]: string } = {
+      hello: "hallo", water: "water", house: "huis", family: "familie",
+      mountain: "berg", tree: "boom", sun: "zon", moon: "maan",
+      fire: "vuur", earth: "aarde", wind: "wind", love: "liefde",
+      time: "tijd", person: "persoon", woman: "vrouw", man: "man",
+      child: "kind", mother: "moeder", father: "vader", brother: "broer",
+      sister: "zus", hand: "hand", eye: "oog", ear: "oor",
+      mouth: "mond", food: "voedsel", eat: "eten", drink: "drinken",
+      sleep: "slapen", walk: "lopen", run: "rennen", speak: "spreken"
+    };
+    return translations[word] || `${word}_nl`;
+  }
+
+  function getSwedishTranslation(word: string): string {
+    const translations: { [key: string]: string } = {
+      hello: "hej", water: "vatten", house: "hus", family: "familj",
+      mountain: "berg", tree: "träd", sun: "sol", moon: "måne",
+      fire: "eld", earth: "jord", wind: "vind", love: "kärlek",
+      time: "tid", person: "person", woman: "kvinna", man: "man",
+      child: "barn", mother: "mor", father: "far", brother: "bror",
+      sister: "syster", hand: "hand", eye: "öga", ear: "öra",
+      mouth: "mun", food: "mat", eat: "äta", drink: "dricka",
+      sleep: "sova", walk: "gå", run: "springa", speak: "tala"
+    };
+    return translations[word] || `${word}_sv`;
+  }
+
+  function getNorwegianTranslation(word: string): string {
+    const translations: { [key: string]: string } = {
+      hello: "hei", water: "vann", house: "hus", family: "familie",
+      mountain: "fjell", tree: "tre", sun: "sol", moon: "måne",
+      fire: "ild", earth: "jord", wind: "vind", love: "kjærlighet",
+      time: "tid", person: "person", woman: "kvinne", man: "mann",
+      child: "barn", mother: "mor", father: "far", brother: "bror",
+      sister: "søster", hand: "hånd", eye: "øye", ear: "øre",
+      mouth: "munn", food: "mat", eat: "spise", drink: "drikke",
+      sleep: "sove", walk: "gå", run: "løpe", speak: "snakke"
+    };
+    return translations[word] || `${word}_no`;
+  }
+
+  function getDanishTranslation(word: string): string {
+    const translations: { [key: string]: string } = {
+      hello: "hej", water: "vand", house: "hus", family: "familie",
+      mountain: "bjerg", tree: "træ", sun: "sol", moon: "måne",
+      fire: "ild", earth: "jord", wind: "vind", love: "kærlighed",
+      time: "tid", person: "person", woman: "kvinde", man: "mand",
+      child: "barn", mother: "mor", father: "far", brother: "bror",
+      sister: "søster", hand: "hånd", eye: "øje", ear: "øre",
+      mouth: "mund", food: "mad", eat: "spise", drink: "drikke",
+      sleep: "sove", walk: "gå", run: "løbe", speak: "tale"
+    };
+    return translations[word] || `${word}_da`;
+  }
+
+  return server;
 }

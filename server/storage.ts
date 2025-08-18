@@ -564,7 +564,11 @@ export class MemStorage implements IStorage {
         .map(family => ({
           ...family,
           children: buildTree(family.id),
-          languages: languages.filter(lang => lang.familyId === family.id)
+          languages: languages.filter(lang => lang.familyId === family.id).map(lang => ({
+            ...lang,
+            historicalVariants: languages.filter(l => l.parentLanguageId === lang.id && l.isHistoricalVariant),
+            dialects: languages.filter(l => l.parentLanguageId === lang.id && l.isDialect)
+          }))
         }));
     };
 
@@ -574,8 +578,16 @@ export class MemStorage implements IStorage {
   async createLanguageFamily(insertFamily: InsertLanguageFamily): Promise<LanguageFamily> {
     const id = randomUUID();
     const family: LanguageFamily = {
-      ...insertFamily,
       id,
+      name: insertFamily.name,
+      parentId: insertFamily.parentId,
+      description: insertFamily.description,
+      taxonomicLevel: insertFamily.taxonomicLevel,
+      estimatedOrigin: insertFamily.estimatedOrigin,
+      timeOrigin: insertFamily.timeOrigin,
+      region: insertFamily.region,
+      totalSpeakers: insertFamily.totalSpeakers,
+      languageCount: insertFamily.languageCount,
       createdAt: new Date(),
     };
     this.languageFamilies.set(id, family);
@@ -616,7 +628,6 @@ export class MemStorage implements IStorage {
 
     return {
       ...language,
-      translationCount,
       completionPercentage,
       historicalVariants,
       dialects
@@ -631,8 +642,27 @@ export class MemStorage implements IStorage {
   async createLanguage(insertLanguage: InsertLanguage): Promise<Language> {
     const id = randomUUID();
     const language: Language = {
-      ...insertLanguage,
       id,
+      name: insertLanguage.name,
+      nativeName: insertLanguage.nativeName,
+      iso639_1: insertLanguage.iso639_1,
+      iso639_2: insertLanguage.iso639_2,
+      familyId: insertLanguage.familyId,
+      parentLanguageId: insertLanguage.parentLanguageId,
+      region: insertLanguage.region,
+      countries: insertLanguage.countries,
+      nativeSpeakers: insertLanguage.nativeSpeakers,
+      totalSpeakers: insertLanguage.totalSpeakers,
+      status: insertLanguage.status,
+      timeOrigin: insertLanguage.timeOrigin,
+      timeEnd: insertLanguage.timeEnd,
+      classification: insertLanguage.classification,
+      writingSystem: insertLanguage.writingSystem,
+      isHistoricalVariant: insertLanguage.isHistoricalVariant,
+      isDialect: insertLanguage.isDialect,
+      chronologicalOrder: insertLanguage.chronologicalOrder,
+      historicalContext: insertLanguage.historicalContext,
+      coordinates: insertLanguage.coordinates,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -647,8 +677,11 @@ export class MemStorage implements IStorage {
   async createBaseWord(insertWord: InsertBaseWord): Promise<BaseWord> {
     const id = randomUUID();
     const word: BaseWord = {
-      ...insertWord,
       id,
+      word: insertWord.word,
+      position: insertWord.position,
+      category: insertWord.category || null,
+      definition: insertWord.definition || null,
       createdAt: new Date(),
     };
     this.baseWords.set(id, word);
@@ -662,8 +695,11 @@ export class MemStorage implements IStorage {
     // Add new words
     words.forEach((word, index) => {
       const baseWord: BaseWord = {
-        ...word,
         id: `word${index + 1}`,
+        word: word.word,
+        position: word.position,
+        category: word.category || null,
+        definition: word.definition || null,
         createdAt: new Date(),
       };
       this.baseWords.set(baseWord.id, baseWord);
@@ -683,8 +719,14 @@ export class MemStorage implements IStorage {
   async createWordTranslation(insertTranslation: InsertWordTranslation): Promise<WordTranslation> {
     const id = randomUUID();
     const translation: WordTranslation = {
-      ...insertTranslation,
       id,
+      baseWordId: insertTranslation.baseWordId,
+      languageId: insertTranslation.languageId,
+      translation: insertTranslation.translation || null,
+      pronunciation: insertTranslation.pronunciation || null,
+      notes: insertTranslation.notes || null,
+      source: insertTranslation.source || null,
+      verified: insertTranslation.verified || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

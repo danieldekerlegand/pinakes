@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Settings, Menu, GitCompare } from "lucide-react";
@@ -10,6 +11,8 @@ import ScrapingStatusBar from "@/components/scraping-status-bar";
 import WordComparisonPanel from "@/components/word-comparison";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import LanguageMap from "@/components/language-map";
+import RealTimeProgress from "@/components/real-time-progress";
+import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +25,17 @@ export default function Dashboard() {
     region: "",
     speakers: "",
   });
+
+  // Fetch scraping jobs for real-time progress tracking
+  const { data: scrapingJobs = [], refetch: refetchJobs } = useQuery<ScrapingJob[]>({
+    queryKey: ['/api/scraping-jobs'],
+    refetchInterval: 1000, // Poll every 1 second for active jobs
+  });
+
+  // Filter for active jobs
+  const activeJobs = scrapingJobs.filter(job => 
+    job.status === 'running' || job.status === 'pending'
+  );
 
   return (
     <div className="min-h-screen bg-surface">
@@ -147,8 +161,21 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Scraping Status Bar */}
+      {/* Scraping Status Bar with Real-Time Progress */}
       <ScrapingStatusBar />
+      
+      {/* Real-Time Progress Display */}
+      {activeJobs.length > 0 && (
+        <div className="fixed bottom-24 right-6 z-40 max-w-md">
+          <RealTimeProgress 
+            activeJobs={activeJobs}
+            onJobUpdate={(job) => {
+              // Trigger refetch of jobs when an update comes through WebSocket
+              refetchJobs();
+            }}
+          />
+        </div>
+      )}
       
       {/* Word Comparison Panel */}
       <WordComparisonPanel
