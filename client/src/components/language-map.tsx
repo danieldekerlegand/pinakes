@@ -1,313 +1,480 @@
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { X, Map as MapIcon, Filter } from "lucide-react";
-import type { Language, LanguageFamily } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { 
+  MapPin, 
+  Users, 
+  Globe, 
+  Layers, 
+  ZoomIn, 
+  ZoomOut,
+  Filter,
+  Info,
+  TreePine,
+  Network
+} from "lucide-react";
 
 interface LanguageMapProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface MapPoint {
+interface Language {
   id: string;
   name: string;
-  coordinates: { lat: number; lng: number };
-  type: 'language' | 'family';
-  speakers?: number;
-  status?: string;
+  nativeName?: string;
+  familyId?: string;
   familyName?: string;
+  coordinates?: [number, number];
+  speakerCount?: number;
+  region?: string;
+  status?: string;
+  iso639_1?: string;
+  iso639_2?: string;
+}
+
+interface LanguageFamily {
+  id: string;
+  name: string;
+  parentId?: string;
+  coordinates?: [number, number];
+  languages: Language[];
+  color?: string;
 }
 
 export default function LanguageMap({ isOpen, onClose }: LanguageMapProps) {
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    type: 'all', // all, languages, families
-    status: 'all', // all, living, endangered, extinct, historical
-    minSpeakers: 0,
-  });
-  const [selectedPoint, setSelectedPoint] = useState<MapPoint | null>(null);
+  const [selectedFamily, setSelectedFamily] = useState<string>('all');
+  const [showConnections, setShowConnections] = useState(true);
+  const [showFamilyNames, setShowFamilyNames] = useState(true);
+  const [zoomLevel, setZoomLevel] = useState([1]);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  const { data: languages = [] } = useQuery<Language[]>({
+  // Fetch languages with coordinates
+  const { data: languagesData = [] } = useQuery({
     queryKey: ['/api/languages'],
   });
 
-  const { data: families = [] } = useQuery<LanguageFamily[]>({
+  // Transform language data to include coordinates
+  const languages: Language[] = languagesData.map((lang: any) => ({
+    ...lang,
+    familyName: lang.familyId ? 'Indo-European' : 'Unknown', // Simplified for demo
+    coordinates: getLanguageCoordinates(lang.name), // Helper function
+  })).filter(lang => lang.coordinates);
+
+  // Fetch language families
+  const { data: families = [] } = useQuery({
     queryKey: ['/api/language-families'],
   });
 
-  const mapPoints: MapPoint[] = [
-    // Languages with coordinates
-    ...languages
-      .filter(lang => lang.coordinates && !lang.isHistoricalVariant)
-      .map(lang => ({
-        id: lang.id,
-        name: lang.name,
-        coordinates: lang.coordinates!,
-        type: 'language' as const,
-        speakers: lang.totalSpeakers || 0,
-        status: lang.status,
-        familyName: families.find(f => f.id === lang.familyId)?.name,
-      })),
-    // Language families (could add coordinates for family origins)
-    ...families
-      .filter(family => family.region) // Families with known regions
-      .map(family => ({
-        id: family.id,
-        name: family.name,
-        coordinates: getEstimatedCoordinates(family.region!), // Helper function for regions
-        type: 'family' as const,
-        speakers: family.totalSpeakers || 0,
-      })),
-  ];
+  // Helper function to get approximate coordinates for languages
+  function getLanguageCoordinates(languageName: string): [number, number] | undefined {
+    const coords: Record<string, [number, number]> = {
+      'English': [-2, 54], // UK
+      'American English': [-95, 40], // USA
+      'British English': [-2, 54], // UK
+      'Australian English': [133, -27], // Australia
+      'German': [10, 51], // Germany
+      'Dutch': [5, 52], // Netherlands
+      'Swedish': [15, 60], // Sweden
+      'Norwegian': [8, 60], // Norway
+      'Danish': [10, 56], // Denmark
+      'Icelandic': [-19, 64], // Iceland
+      'French': [2, 46], // France
+      'Italian': [12, 42], // Italy
+      'Spanish': [-4, 40], // Spain
+      'Portuguese': [-8, 40], // Portugal
+      'Old English': [-2, 54], // Historical UK
+      'Middle English': [-2, 54], // Historical UK
+      'Early Modern English': [-2, 54], // Historical UK
+      'Gothic': [25, 45], // Historical Eastern Europe
+    };
+    return coords[languageName];
+  }
 
-  const filteredPoints = mapPoints.filter(point => {
-    if (filters.type !== 'all' && point.type !== filters.type) return false;
-    if (filters.status !== 'all' && point.status !== filters.status) return false;
-    if (point.speakers! < filters.minSpeakers) return false;
-    return true;
-  });
+  // Family color mapping
+  const familyColors = new Map([
+    ['Indo-European', '#3B82F6'], // Blue
+    ['West Germanic', '#10B981'], // Green
+    ['North Germanic', '#F59E0B'], // Amber
+    ['East Germanic', '#EF4444'], // Red
+    ['Germanic', '#8B5CF6'], // Purple
+    ['Romance', '#EC4899'], // Pink
+    ['Slavic', '#06B6D4'], // Cyan
+  ]);
 
-  if (!isOpen) return null;
+  const getFamilyColor = (familyName: string): string => {
+    return familyColors.get(familyName) || '#6B7280'; // Default gray
+  };
+
+  // Filter languages based on selected family
+  const filteredLanguages = selectedFamily === 'all' 
+    ? languages 
+    : languages.filter(lang => lang.familyName === selectedFamily);
+
+  // Generate language connections based on family relationships
+  const generateConnections = (): Array<{ from: Language; to: Language; family: string }> => {
+    const connections: Array<{ from: Language; to: Language; family: string }> = [];
+    
+    // Group languages by family
+    const languagesByFamily = new Map<string, Language[]>();
+    filteredLanguages.forEach(lang => {
+      const family = lang.familyName || 'Unknown';
+      if (!languagesByFamily.has(family)) {
+        languagesByFamily.set(family, []);
+      }
+      languagesByFamily.get(family)!.push(lang);
+    });
+
+    // Create connections within each family
+    languagesByFamily.forEach((langs, family) => {
+      if (langs.length > 1) {
+        // Connect each language to the next one in the family
+        for (let i = 0; i < langs.length - 1; i++) {
+          connections.push({
+            from: langs[i],
+            to: langs[i + 1],
+            family
+          });
+        }
+      }
+    });
+
+    return connections;
+  };
+
+  const connections = showConnections ? generateConnections() : [];
+
+  // Convert geographic coordinates to SVG coordinates
+  const projectCoordinates = (coords: [number, number], width: number, height: number): [number, number] => {
+    const [lon, lat] = coords;
+    // Simple equirectangular projection
+    const x = ((lon + 180) / 360) * width;
+    const y = ((90 - lat) / 180) * height;
+    return [x * zoomLevel[0], y * zoomLevel[0]];
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-material-3 w-full max-w-7xl max-h-[90vh] m-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <MapIcon className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-medium text-gray-900" data-testid="text-map-title">
-              Interactive Language Map
-            </h2>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-gray-600"
-              data-testid="button-toggle-filters"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-              data-testid="button-close-map"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            Interactive Linguistic Map
+          </DialogTitle>
+        </DialogHeader>
 
-        <div className="flex h-[70vh]">
-          {/* Filters Panel */}
-          {showFilters && (
-            <div className="w-80 border-r border-gray-200 p-4 overflow-y-auto bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Map Filters</h3>
-              
-              <div className="space-y-4">
+        <div className="flex gap-4 h-[80vh]">
+          {/* Map Controls Sidebar */}
+          <div className="w-80 space-y-4 overflow-y-auto">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Map Controls
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Family Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Show
-                  </label>
-                  <select
-                    value={filters.type}
-                    onChange={(e) => setFilters({...filters, type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  >
-                    <option value="all">All</option>
-                    <option value="languages">Languages Only</option>
-                    <option value="families">Families Only</option>
-                  </select>
+                  <label className="text-sm font-medium mb-2 block">Language Family</label>
+                  <Select value={selectedFamily} onValueChange={setSelectedFamily}>
+                    <SelectTrigger data-testid="select-family-filter">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Families</SelectItem>
+                      <SelectItem value="Indo-European">Indo-European</SelectItem>
+                      <SelectItem value="West Germanic">West Germanic</SelectItem>
+                      <SelectItem value="North Germanic">North Germanic</SelectItem>
+                      <SelectItem value="East Germanic">East Germanic</SelectItem>
+                      <SelectItem value="Romance">Romance</SelectItem>
+                      <SelectItem value="Slavic">Slavic</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={filters.status}
-                    onChange={(e) => setFilters({...filters, status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="living">Living</option>
-                    <option value="endangered">Endangered</option>
-                    <option value="extinct">Extinct</option>
-                    <option value="historical">Historical</option>
-                  </select>
+                {/* Display Options */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Show Connections</label>
+                    <Switch 
+                      checked={showConnections} 
+                      onCheckedChange={setShowConnections}
+                      data-testid="switch-connections"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Show Language Names</label>
+                    <Switch 
+                      checked={showFamilyNames} 
+                      onCheckedChange={setShowFamilyNames}
+                      data-testid="switch-names"
+                    />
+                  </div>
                 </div>
 
+                {/* Zoom Control */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Speakers
+                  <label className="text-sm font-medium mb-2 block">
+                    Zoom Level: {zoomLevel[0].toFixed(1)}x
                   </label>
-                  <input
-                    type="number"
-                    value={filters.minSpeakers}
-                    onChange={(e) => setFilters({...filters, minSpeakers: parseInt(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    placeholder="0"
+                  <Slider
+                    value={zoomLevel}
+                    onValueChange={setZoomLevel}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    className="w-full"
+                    data-testid="slider-zoom"
                   />
                 </div>
 
-                <div className="pt-4">
-                  <p className="text-sm text-gray-600">
-                    Showing {filteredPoints.length} of {mapPoints.length} items
-                  </p>
+                {/* Statistics */}
+                <div className="pt-2 border-t">
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Languages:</span>
+                      <span className="font-medium">{filteredLanguages.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Families:</span>
+                      <span className="font-medium">
+                        {new Set(filteredLanguages.map(l => l.familyName)).size}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Connections:</span>
+                      <span className="font-medium">{connections.length}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </CardContent>
+            </Card>
 
-          {/* Map Container */}
-          <div className="flex-1 relative">
-            {/* Simple placeholder map - in a real implementation, this would be a proper map component */}
-            <div className="w-full h-full bg-gradient-to-b from-blue-100 to-green-100 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzMzMzMzMyIvPgo8L3N2Zz4K')] opacity-10"></div>
-              
-              {/* Language/Family Points */}
-              {filteredPoints.map((point, index) => {
-                // Convert lat/lng to screen coordinates (simplified)
-                const x = ((point.coordinates.lng + 180) / 360) * 100;
-                const y = ((90 - point.coordinates.lat) / 180) * 100;
-                
-                return (
-                  <div
-                    key={point.id}
-                    className={`absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2 ${
-                      point.type === 'language' ? 'z-20' : 'z-10'
-                    }`}
-                    style={{ left: `${x}%`, top: `${y}%` }}
-                    onClick={() => setSelectedPoint(point)}
-                    data-testid={`map-point-${point.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    <div
-                      className={`w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                        point.type === 'language'
-                          ? point.status === 'living'
-                            ? 'bg-green-500'
-                            : point.status === 'endangered'
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                          : 'bg-blue-500'
-                      } hover:scale-150 transition-transform`}
-                    />
-                    {/* Speaker count indicator for languages */}
-                    {point.type === 'language' && point.speakers! > 1000000 && (
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full border border-white"></div>
+            {/* Language Details */}
+            {selectedLanguage && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    Language Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">{selectedLanguage.name}</h3>
+                    {selectedLanguage.nativeName && (
+                      <p className="text-sm text-muted-foreground">{selectedLanguage.nativeName}</p>
                     )}
-                  </div>
-                );
-              })}
-
-              {/* Legend */}
-              <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 p-3 rounded-lg shadow-sm">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Legend</h4>
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span>Living Language</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <span>Endangered</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span>Extinct/Historical</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span>Language Family</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                    <span>1M+ speakers</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Selected Point Info */}
-              {selectedPoint && (
-                <Card className="absolute top-4 right-4 max-w-sm p-4 bg-white shadow-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium text-gray-900">{selectedPoint.name}</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedPoint(null)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
                   </div>
                   
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Badge className={`${
-                        selectedPoint.type === 'language'
-                          ? selectedPoint.status === 'living'
-                            ? 'bg-green-100 text-green-800'
-                            : selectedPoint.status === 'endangered'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {selectedPoint.type === 'language' ? selectedPoint.status : selectedPoint.type}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Family:</span>
+                      <Badge 
+                        style={{ backgroundColor: getFamilyColor(selectedLanguage.familyName || '') }}
+                        className="text-white"
+                      >
+                        {selectedLanguage.familyName || 'Unknown'}
                       </Badge>
                     </div>
                     
-                    {selectedPoint.speakers && selectedPoint.speakers > 0 && (
-                      <p className="text-gray-600">
-                        <span className="font-medium">Speakers:</span> {selectedPoint.speakers.toLocaleString()}
-                      </p>
+                    {selectedLanguage.speakerCount && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Speakers:</span>
+                        <span className="font-medium">
+                          {selectedLanguage.speakerCount.toLocaleString()}
+                        </span>
+                      </div>
                     )}
                     
-                    {selectedPoint.familyName && (
-                      <p className="text-gray-600">
-                        <span className="font-medium">Family:</span> {selectedPoint.familyName}
-                      </p>
+                    {selectedLanguage.region && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Region:</span>
+                        <span className="font-medium">{selectedLanguage.region}</span>
+                      </div>
                     )}
                     
-                    <p className="text-gray-500 text-xs">
-                      {selectedPoint.coordinates.lat.toFixed(2)}°, {selectedPoint.coordinates.lng.toFixed(2)}°
-                    </p>
+                    {selectedLanguage.iso639_1 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">ISO Code:</span>
+                        <span className="font-mono font-medium">{selectedLanguage.iso639_1}</span>
+                      </div>
+                    )}
+
+                    {selectedLanguage.coordinates && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Coordinates:</span>
+                        <span className="font-mono text-xs">
+                          {selectedLanguage.coordinates[1].toFixed(2)}, {selectedLanguage.coordinates[0].toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Family Legend */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Layers className="h-4 w-4" />
+                  Family Legend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {Array.from(new Set(filteredLanguages.map(l => l.familyName))).map(family => (
+                    <div key={family} className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: getFamilyColor(family || '') }}
+                      />
+                      <span className="text-sm">{family || 'Unknown'}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Interactive Map */}
+          <div className="flex-1 border rounded-lg overflow-hidden bg-slate-50">
+            <svg
+              ref={svgRef}
+              className="w-full h-full cursor-pointer"
+              viewBox={`0 0 ${800 * zoomLevel[0]} ${400 * zoomLevel[0]}`}
+              style={{ backgroundColor: '#f8fafc' }}
+              data-testid="linguistic-map-svg"
+            >
+              {/* World outline (simplified) */}
+              <defs>
+                <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                  <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+              
+              {/* Continent outlines */}
+              <g opacity="0.3">
+                {/* Europe */}
+                <rect x={320 * zoomLevel[0]} y={80 * zoomLevel[0]} width={150 * zoomLevel[0]} height={80 * zoomLevel[0]} 
+                      fill="none" stroke="#cbd5e1" strokeWidth="2" rx="8" />
+                <text x={395 * zoomLevel[0]} y={125 * zoomLevel[0]} textAnchor="middle" 
+                      className="text-xs fill-gray-400" fontSize={12 * zoomLevel[0]}>Europe</text>
+                
+                {/* North America */}
+                <rect x={100 * zoomLevel[0]} y={60 * zoomLevel[0]} width={180 * zoomLevel[0]} height={120 * zoomLevel[0]} 
+                      fill="none" stroke="#cbd5e1" strokeWidth="2" rx="8" />
+                <text x={190 * zoomLevel[0]} y={125 * zoomLevel[0]} textAnchor="middle" 
+                      className="text-xs fill-gray-400" fontSize={12 * zoomLevel[0]}>North America</text>
+                
+                {/* Asia */}
+                <rect x={480 * zoomLevel[0]} y={70 * zoomLevel[0]} width={200 * zoomLevel[0]} height={140 * zoomLevel[0]} 
+                      fill="none" stroke="#cbd5e1" strokeWidth="2" rx="8" />
+                <text x={580 * zoomLevel[0]} y={145 * zoomLevel[0]} textAnchor="middle" 
+                      className="text-xs fill-gray-400" fontSize={12 * zoomLevel[0]}>Asia</text>
+              </g>
+
+              {/* Family Connections */}
+              {connections.map((connection, index) => {
+                const [fromX, fromY] = projectCoordinates(connection.from.coordinates!, 800, 400);
+                const [toX, toY] = projectCoordinates(connection.to.coordinates!, 800, 400);
+                
+                return (
+                  <line
+                    key={`connection-${index}`}
+                    x1={fromX}
+                    y1={fromY}
+                    x2={toX}
+                    y2={toY}
+                    stroke={getFamilyColor(connection.family)}
+                    strokeWidth={2 * zoomLevel[0]}
+                    opacity="0.5"
+                    strokeDasharray="5,5"
+                    data-testid={`connection-${index}`}
+                  />
+                );
+              })}
+
+              {/* Language Points */}
+              {filteredLanguages.map((language) => {
+                if (!language.coordinates) return null;
+                
+                const [x, y] = projectCoordinates(language.coordinates, 800, 400);
+                const isSelected = selectedLanguage?.id === language.id;
+                const radius = isSelected ? 8 * zoomLevel[0] : 6 * zoomLevel[0];
+                
+                return (
+                  <g key={language.id}>
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={radius}
+                      fill={getFamilyColor(language.familyName || '')}
+                      stroke={isSelected ? '#1f2937' : 'white'}
+                      strokeWidth={isSelected ? 3 * zoomLevel[0] : 2 * zoomLevel[0]}
+                      className="cursor-pointer hover:stroke-gray-800 transition-all"
+                      onClick={() => setSelectedLanguage(language)}
+                      data-testid={`language-point-${language.id}`}
+                    />
+                    
+                    {(showFamilyNames || isSelected) && (
+                      <text
+                        x={x}
+                        y={y - (radius + 5 * zoomLevel[0])}
+                        textAnchor="middle"
+                        className="text-xs font-medium pointer-events-none"
+                        fill="#374151"
+                        fontSize={11 * zoomLevel[0]}
+                        data-testid={`language-label-${language.id}`}
+                      >
+                        {language.name}
+                      </text>
+                    )}
+                    
+                    {/* Speaker count indicator */}
+                    {language.speakerCount && language.speakerCount > 1000000 && (
+                      <circle
+                        cx={x + radius - 2}
+                        cy={y - radius + 2}
+                        r={3 * zoomLevel[0]}
+                        fill="#f59e0b"
+                        stroke="white"
+                        strokeWidth={1}
+                        className="pointer-events-none"
+                      />
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* Family name labels for major groups */}
+              {showFamilyNames && selectedFamily === 'all' && (
+                <g className="text-sm font-semibold">
+                  <text x={395 * zoomLevel[0]} y={50 * zoomLevel[0]} textAnchor="middle" 
+                        fill={getFamilyColor('Indo-European')} fontSize={16 * zoomLevel[0]}>
+                    Indo-European
+                  </text>
+                  <text x={395 * zoomLevel[0]} y={200 * zoomLevel[0]} textAnchor="middle" 
+                        fill={getFamilyColor('West Germanic')} fontSize={14 * zoomLevel[0]}>
+                    Germanic Branch
+                  </text>
+                </g>
               )}
-            </div>
+            </svg>
           </div>
         </div>
-
-        <div className="p-4 border-t border-gray-200 bg-gray-50 text-center text-sm text-gray-600">
-          Interactive map showing language families and individual languages with geographic distribution
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-}
-
-// Helper function to get estimated coordinates for regions
-function getEstimatedCoordinates(region: string): { lat: number; lng: number } {
-  const regionCoords: Record<string, { lat: number; lng: number }> = {
-    'Europe': { lat: 54.5260, lng: 15.2551 },
-    'Asia': { lat: 29.8403, lng: 89.2961 },
-    'Africa': { lat: -8.7832, lng: 34.5085 },
-    'North America': { lat: 54.5260, lng: -105.2551 },
-    'South America': { lat: -14.2350, lng: -51.9253 },
-    'Oceania': { lat: -25.2744, lng: 133.7751 },
-    'Middle East': { lat: 29.2985, lng: 42.5510 },
-    'Northern Europe': { lat: 64.0000, lng: 10.0000 },
-    'Central Europe': { lat: 48.0000, lng: 17.0000 },
-    'Global': { lat: 0, lng: 0 },
-  };
-  
-  return regionCoords[region] || { lat: 0, lng: 0 };
 }
