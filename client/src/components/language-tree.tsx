@@ -102,8 +102,8 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
   
   if (!hasVisibleContent) return null;
 
-  const TaxonomyIcon = getTaxonomyIcon(family.taxonomicLevel);
-  const colorClasses = getTaxonomyColor(family.taxonomicLevel);
+  const TaxonomyIcon = getTaxonomyIcon(family.taxonomicLevel || 'family');
+  const colorClasses = getTaxonomyColor(family.taxonomicLevel || 'family');
 
   return (
     <div className="tree-node mb-2">
@@ -120,7 +120,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{family.name}</h3>
-              <p className="text-sm text-gray-500 capitalize">{family.taxonomicLevel}</p>
+              <p className="text-sm text-gray-500 capitalize">{family.taxonomicLevel || 'family'}</p>
             </div>
           </div>
           
@@ -168,7 +168,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             )}
                           </div>
                           <div className="flex items-center space-x-2 mt-1">
-                            <Badge className={getStatusColor(language.status)} size="sm">
+                            <Badge className={getStatusColor(language.status)}>
                               {language.status}
                             </Badge>
                             {language.totalSpeakers && language.totalSpeakers > 0 && (
@@ -207,7 +207,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             <span className="text-xs text-amber-600">
                               {variant.timeOrigin} - {variant.timeEnd || 'present'}
                             </span>
-                            <Badge className={getStatusColor(variant.status)} size="sm">
+                            <Badge className={getStatusColor(variant.status)}>
                               {variant.status}
                             </Badge>
                           </div>
@@ -217,7 +217,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             <Users className="h-3 w-3 text-green-600" />
                             <span className="text-sm font-medium text-green-800">{dialect.name}</span>
                             <span className="text-xs text-green-600">{dialect.region}</span>
-                            <Badge className={getStatusColor(dialect.status)} size="sm">
+                            <Badge className={getStatusColor(dialect.status)}>
                               {dialect.status}
                             </Badge>
                             {dialect.totalSpeakers && dialect.totalSpeakers > 0 && (
