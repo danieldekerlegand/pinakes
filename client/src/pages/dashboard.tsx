@@ -45,7 +45,7 @@ export default function Dashboard() {
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "all-regions",
-    speakers: "",
+    speakers: "any",
   });
 
   // Fetch scraping jobs for real-time progress tracking

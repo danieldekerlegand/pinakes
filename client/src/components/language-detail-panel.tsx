@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Eye, FolderSync, Download } from "lucide-react";
+import { X, Eye, FolderSync, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { LanguageWithStats, WordTranslation } from "@shared/schema";
+import type { LanguageWithStats, WordTranslation, BaseWord } from "@shared/schema";
 
 interface LanguageDetailPanelProps {
   languageId: string;
@@ -25,13 +26,19 @@ function getStatusColor(status: string) {
 export default function LanguageDetailPanel({ languageId, onClose }: LanguageDetailPanelProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showWordList, setShowWordList] = useState(false);
 
   const { data: language, isLoading } = useQuery<LanguageWithStats>({
     queryKey: ['/api/languages', languageId],
   });
 
   const { data: translations = [] } = useQuery<WordTranslation[]>({
-    queryKey: ['/api/languages', languageId, 'translations'],
+    queryKey: ['/api/word-translations'],
+    select: (data) => data.filter((t: WordTranslation) => t.languageId === languageId),
+  });
+
+  const { data: baseWords = [] } = useQuery<BaseWord[]>({
+    queryKey: ['/api/words'],
   });
 
   const startScrapingMutation = useMutation({
@@ -235,10 +242,11 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               <Button
                 variant="ghost"
                 className="w-full justify-start text-primary hover:bg-blue-50"
+                onClick={() => setShowWordList(!showWordList)}
                 data-testid="button-view-word-list"
               >
-                <Eye className="h-4 w-4 mr-2" />
-                View Word List
+                {showWordList ? <ChevronUp className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                {showWordList ? 'Hide Word List' : 'View Word List'}
               </Button>
               <Button
                 variant="ghost"
@@ -266,7 +274,7 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-3">Historical Evolution</h3>
               <div className="space-y-3">
-                {language.historicalVariants.map((variant, index) => (
+                {language.historicalVariants.map((variant: any, index: number) => (
                   <div key={variant.id} className="border-l-2 border-purple-200 pl-3 pb-2" data-testid={`variant-${index}`}>
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="text-sm font-medium text-gray-900">{variant.name}</h4>
@@ -291,22 +299,55 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             </div>
           )}
 
-          {/* Sample Words */}
-          {sampleTranslations.length > 0 && (
+          {/* Complete Word List */}
+          {showWordList && translations.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Sample Words</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                Complete Word List ({translations.length} words)
+              </h3>
+              <Card className="max-h-96 overflow-y-auto">
+                <div className="p-4 space-y-2">
+                  {translations.map((translation, index) => {
+                    const baseWord = baseWords.find(w => w.id === translation.baseWordId);
+                    return (
+                      <div key={translation.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0" data-testid={`word-${index}`}>
+                        <span className="text-sm text-gray-600 font-medium">
+                          {baseWord?.word || `Word ${index + 1}`}
+                        </span>
+                        <span className="text-sm text-gray-900 font-semibold">
+                          {translation.translation || 'N/A'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Sample Words Preview */}
+          {!showWordList && sampleTranslations.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Sample Words Preview</h3>
               <div className="space-y-2">
-                {sampleTranslations.map((translation, index) => (
-                  <div key={translation.id} className="flex justify-between items-center py-1" data-testid={`sample-word-${index}`}>
-                    <span className="text-sm text-gray-600">
-                      {/* We'd need to fetch the base word, for now using mock */}
-                      word_{index + 1}
-                    </span>
-                    <span className="text-sm text-gray-900 font-medium">
-                      {translation.translation || 'N/A'}
-                    </span>
+                {sampleTranslations.map((translation, index) => {
+                  const baseWord = baseWords.find(w => w.id === translation.baseWordId);
+                  return (
+                    <div key={translation.id} className="flex justify-between items-center py-1" data-testid={`sample-word-${index}`}>
+                      <span className="text-sm text-gray-600">
+                        {baseWord?.word || `Word ${index + 1}`}
+                      </span>
+                      <span className="text-sm text-gray-900 font-medium">
+                        {translation.translation || 'N/A'}
+                      </span>
+                    </div>
+                  );
+                })}
+                {translations.length > 5 && (
+                  <div className="text-xs text-gray-500 text-center pt-2">
+                    + {translations.length - 5} more words (click "View Word List" to see all)
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}

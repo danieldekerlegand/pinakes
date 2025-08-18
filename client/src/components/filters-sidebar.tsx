@@ -36,7 +36,7 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
   ];
 
   const speakerRanges = [
-    { value: "", label: "Any" },
+    { value: "any", label: "Any" },
     { value: "1000000+", label: "1M+ speakers" },
     { value: "100000-1000000", label: "100K - 1M speakers" },
     { value: "10000-100000", label: "10K - 100K speakers" },
@@ -59,7 +59,7 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
     onFiltersChange({
       status: [],
       region: "all-regions",
-      speakers: "",
+      speakers: "any",
     });
   };
 
