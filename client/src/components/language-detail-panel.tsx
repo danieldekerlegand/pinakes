@@ -66,7 +66,7 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
   if (isLoading) {
     return (
-      <aside className="w-96 bg-white shadow-material-2 min-h-screen border-l border-gray-200">
+      <aside className="fixed top-0 right-0 w-96 bg-white shadow-material-2 h-screen border-l border-gray-200 z-30 overflow-y-auto">
         <div className="p-6 animate-pulse">
           <div className="flex items-center justify-between mb-6">
             <div className="h-6 bg-gray-200 rounded w-32" />
@@ -91,7 +91,7 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
   const completionPercentage = Math.round(language.wordListCompletion || 0);
 
   return (
-    <aside className="w-96 bg-white shadow-material-2 min-h-screen border-l border-gray-200">
+    <aside className="fixed top-0 right-0 w-96 bg-white shadow-material-2 h-screen border-l border-gray-200 z-30 overflow-y-auto">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-medium text-gray-900" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>

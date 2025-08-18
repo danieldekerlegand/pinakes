@@ -132,7 +132,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto flex">
+      <div className={`max-w-7xl mx-auto flex ${selectedLanguageId ? 'mr-96' : ''}`}>
         {/* Sidebar */}
         <FiltersSidebar
           isOpen={sidebarOpen}
@@ -177,10 +177,7 @@ export default function Dashboard() {
                 searchQuery={searchQuery}
                 filters={filters}
                 selectedLanguageId={selectedLanguageId}
-                onLanguageSelect={(id) => {
-                  console.log('Dashboard setting selectedLanguageId to:', id);
-                  setSelectedLanguageId(id);
-                }}
+                onLanguageSelect={setSelectedLanguageId}
               />
             </div>
           </div>
@@ -194,12 +191,7 @@ export default function Dashboard() {
           />
         )}
         
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-4 left-4 bg-black text-white p-2 rounded text-xs">
-            selectedLanguageId: {selectedLanguageId || 'null'}
-          </div>
-        )}
+
       </div>
 
       {/* Scraping Status Bar with Real-Time Progress */}

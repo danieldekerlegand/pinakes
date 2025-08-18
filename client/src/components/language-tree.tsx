@@ -163,10 +163,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                           ? 'bg-blue-50 border-blue-200' 
                           : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                       }`}
-                      onClick={() => {
-                        console.log('Language clicked:', language.name, language.id);
-                        onLanguageSelect(language.id);
-                      }}
+                      onClick={() => onLanguageSelect(language.id)}
                       data-testid={`language-${language.id}`}
                     >
                       <div className="flex items-center space-x-3">
