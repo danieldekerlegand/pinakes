@@ -177,7 +177,10 @@ export default function Dashboard() {
                 searchQuery={searchQuery}
                 filters={filters}
                 selectedLanguageId={selectedLanguageId}
-                onLanguageSelect={setSelectedLanguageId}
+                onLanguageSelect={(id) => {
+                  console.log('Dashboard setting selectedLanguageId to:', id);
+                  setSelectedLanguageId(id);
+                }}
               />
             </div>
           </div>
@@ -189,6 +192,13 @@ export default function Dashboard() {
             languageId={selectedLanguageId}
             onClose={() => setSelectedLanguageId(null)}
           />
+        )}
+        
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 left-4 bg-black text-white p-2 rounded text-xs">
+            selectedLanguageId: {selectedLanguageId || 'null'}
+          </div>
         )}
       </div>
 
