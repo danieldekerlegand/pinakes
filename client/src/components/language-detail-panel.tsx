@@ -261,6 +261,36 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             </div>
           </div>
 
+          {/* Historical Variants */}
+          {language.historicalVariants && language.historicalVariants.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Historical Evolution</h3>
+              <div className="space-y-3">
+                {language.historicalVariants.map((variant, index) => (
+                  <div key={variant.id} className="border-l-2 border-purple-200 pl-3 pb-2" data-testid={`variant-${index}`}>
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="text-sm font-medium text-gray-900">{variant.name}</h4>
+                      <Badge className={`${getStatusColor(variant.status)} text-xs`}>
+                        {variant.status}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-1">
+                      {variant.timeOrigin} - {variant.timeEnd || 'present'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {variant.region}
+                    </p>
+                    {variant.historicalContext && (
+                      <p className="text-xs text-purple-700 mt-1 italic">
+                        {variant.historicalContext}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Sample Words */}
           {sampleTranslations.length > 0 && (
             <div>

@@ -1,10 +1,9 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useState } from "react";
+import { X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { List, FolderSync, Download, X } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FiltersSidebarProps {
   isOpen: boolean;
@@ -17,32 +16,36 @@ interface FiltersSidebarProps {
   onFiltersChange: (filters: any) => void;
 }
 
-const statusFilters = [
-  { id: 'living', label: 'Living', count: 3247, color: 'bg-success' },
-  { id: 'endangered', label: 'Endangered', count: 1823, color: 'bg-warning' },
-  { id: 'moribund', label: 'Moribund', count: 456, color: 'bg-red-600' },
-  { id: 'dead', label: 'Dead/Extinct', count: 892, color: 'bg-gray-600' },
-];
-
-const speakerRanges = [
-  { id: '1m+', label: '1M+ speakers' },
-  { id: '100k-1m', label: '100K - 1M speakers' },
-  { id: '10k-100k', label: '10K - 100K speakers' },
-  { id: '<10k', label: '< 10K speakers' },
-];
-
-const regions = [
-  'All Regions',
-  'Europe',
-  'Asia', 
-  'Africa',
-  'Americas',
-  'Oceania'
-];
-
 export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChange }: FiltersSidebarProps) {
-  const handleStatusChange = (statusId: string, checked: boolean) => {
-    const newStatus = checked
+  const statusOptions = [
+    { id: "living", label: "Living", count: 156 },
+    { id: "endangered", label: "Endangered", count: 89 },
+    { id: "extinct", label: "Extinct", count: 234 },
+    { id: "proto", label: "Proto-language", count: 45 },
+    { id: "historical", label: "Historical", count: 67 },
+  ];
+
+  const regionOptions = [
+    "Europe",
+    "Asia",
+    "Africa", 
+    "North America",
+    "South America",
+    "Oceania",
+    "Middle East",
+  ];
+
+  const speakerRanges = [
+    { value: "", label: "Any" },
+    { value: "1000000+", label: "1M+ speakers" },
+    { value: "100000-1000000", label: "100K - 1M speakers" },
+    { value: "10000-100000", label: "10K - 100K speakers" },
+    { value: "1000-10000", label: "1K - 10K speakers" },
+    { value: "0-1000", label: "< 1K speakers" },
+  ];
+
+  const updateStatusFilter = (statusId: string, checked: boolean) => {
+    const newStatus = checked 
       ? [...filters.status, statusId]
       : filters.status.filter(s => s !== statusId);
     
@@ -52,149 +55,133 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
     });
   };
 
-  const handleRegionChange = (region: string) => {
+  const clearAllFilters = () => {
     onFiltersChange({
-      ...filters,
-      region: region === 'All Regions' ? '' : region,
+      status: [],
+      region: "",
+      speakers: "",
     });
   };
 
-  const handleSpeakersChange = (speakers: string) => {
-    onFiltersChange({
-      ...filters,
-      speakers,
-    });
-  };
+  if (!isOpen) return null;
 
   return (
-    <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
-      
-      <aside className={`
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 fixed md:relative z-50 md:z-auto
-        w-80 bg-white shadow-material-1 min-h-screen transition-transform duration-300 ease-in-out
-      `}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:relative lg:bg-transparent lg:inset-auto lg:z-auto">
+      <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-material-3 overflow-y-auto lg:relative lg:w-full lg:shadow-none">
         <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+          <div className="flex items-center justify-between mb-6 lg:hidden">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden"
               onClick={onClose}
-              data-testid="button-close-sidebar"
+              className="text-gray-400 hover:text-gray-600"
+              data-testid="button-close-filters"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Language Status Filter */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Language Status</h3>
-            <div className="space-y-2">
-              {statusFilters.map(status => (
-                <div key={status.id} className="flex items-center space-between">
-                  <div className="flex items-center space-x-2">
+          <div className="space-y-6">
+            {/* Language Status */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Language Status</h3>
+              <div className="space-y-2">
+                {statusOptions.map((option) => (
+                  <div key={option.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={status.id}
-                      checked={filters.status.includes(status.id)}
-                      onCheckedChange={(checked) => handleStatusChange(status.id, !!checked)}
-                      className="border-gray-300"
-                      data-testid={`checkbox-status-${status.id}`}
+                      id={option.id}
+                      checked={filters.status.includes(option.id)}
+                      onCheckedChange={(checked) => updateStatusFilter(option.id, !!checked)}
+                      data-testid={`checkbox-status-${option.id}`}
                     />
-                    <Label htmlFor={status.id} className="text-sm cursor-pointer">
-                      {status.label}
-                    </Label>
+                    <label
+                      htmlFor={option.id}
+                      className="text-sm text-gray-700 flex-1 cursor-pointer"
+                    >
+                      {option.label}
+                    </label>
+                    <span className="text-xs text-gray-500">{option.count}</span>
                   </div>
-                  <Badge 
-                    className={`ml-auto text-xs ${status.color} text-white`}
-                    data-testid={`badge-count-${status.id}`}
-                  >
-                    {status.count.toLocaleString()}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Geographic Region Filter */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Geographic Region</h3>
-            <Select
-              value={filters.region || 'All Regions'}
-              onValueChange={handleRegionChange}
-            >
-              <SelectTrigger className="w-full" data-testid="select-region">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {regions.map(region => (
-                  <SelectItem key={region} value={region}>
-                    {region}
-                  </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </div>
+            </div>
 
-          {/* Speaker Count Filter */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Number of Speakers</h3>
-            <RadioGroup
-              value={filters.speakers}
-              onValueChange={handleSpeakersChange}
-              data-testid="radio-group-speakers"
-            >
-              {speakerRanges.map(range => (
-                <div key={range.id} className="flex items-center space-x-2">
-                  <RadioGroupItem value={range.id} id={range.id} />
-                  <Label htmlFor={range.id} className="text-sm cursor-pointer">
-                    {range.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+            {/* Geographic Region */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Geographic Region</h3>
+              <Select
+                value={filters.region}
+                onValueChange={(value) => onFiltersChange({ ...filters, region: value })}
+              >
+                <SelectTrigger data-testid="select-region">
+                  <SelectValue placeholder="Select region..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All regions</SelectItem>
+                  {regionOptions.map((region) => (
+                    <SelectItem key={region} value={region}>
+                      {region}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Quick Actions */}
-          <div className="border-t pt-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h3>
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                data-testid="button-manage-base-words"
+            {/* Speaker Count */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Speaker Count</h3>
+              <Select
+                value={filters.speakers}
+                onValueChange={(value) => onFiltersChange({ ...filters, speakers: value })}
               >
-                <List className="h-4 w-4 mr-2" />
-                Manage Base Word List
-              </Button>
+                <SelectTrigger data-testid="select-speakers">
+                  <SelectValue placeholder="Select range..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {speakerRanges.map((range) => (
+                    <SelectItem key={range.value} value={range.value}>
+                      {range.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters */}
+            <div className="pt-4 border-t border-gray-200">
               <Button
-                variant="ghost" 
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                data-testid="button-refresh-all"
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                className="w-full"
+                data-testid="button-clear-filters"
               >
-                <FolderSync className="h-4 w-4 mr-2" />
-                Refresh All Word Lists
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                data-testid="button-export-data"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Data
+                Clear All Filters
               </Button>
             </div>
+
+            {/* Applied Filters Summary */}
+            {(filters.status.length > 0 || filters.region || filters.speakers) && (
+              <Card className="p-4 bg-blue-50 border-blue-200">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Active Filters</h4>
+                <div className="space-y-1 text-xs text-blue-700">
+                  {filters.status.length > 0 && (
+                    <p>Status: {filters.status.join(", ")}</p>
+                  )}
+                  {filters.region && <p>Region: {filters.region}</p>}
+                  {filters.speakers && (
+                    <p>Speakers: {speakerRanges.find(r => r.value === filters.speakers)?.label}</p>
+                  )}
+                </div>
+              </Card>
+            )}
           </div>
         </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 }

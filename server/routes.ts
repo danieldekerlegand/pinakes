@@ -107,6 +107,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get word comparisons across multiple languages
+  app.get('/api/word-comparisons', async (req, res) => {
+    const languageIds = Array.isArray(req.query.languages) 
+      ? req.query.languages as string[]
+      : typeof req.query.languages === 'string' 
+        ? [req.query.languages]
+        : [];
+
+    if (languageIds.length < 2) {
+      return res.status(400).json({ error: 'At least 2 language IDs required' });
+    }
+
+    try {
+      const comparisons = await storage.getWordComparisons(languageIds);
+      res.json(comparisons);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get word comparisons' });
+    }
+  });
+
   app.post("/api/base-words", async (req, res) => {
     try {
       const validatedData = insertBaseWordSchema.parse(req.body);
@@ -198,6 +218,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to create scraping job" });
       }
+    }
+  });
+
+  // Word Comparisons
+  app.get("/api/word-comparisons", async (req, res) => {
+    try {
+      const { languages } = req.query;
+      if (!languages) {
+        return res.status(400).json({ message: "Language IDs are required" });
+      }
+      
+      const languageIds = Array.isArray(languages) ? languages as string[] : [languages as string];
+      const comparisons = await storage.getWordComparisons(languageIds);
+      res.json(comparisons);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch word comparisons" });
     }
   });
 

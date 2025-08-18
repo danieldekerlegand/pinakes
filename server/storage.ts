@@ -10,7 +10,9 @@ import {
   type ScrapingJob,
   type InsertScrapingJob,
   type LanguageFamilyWithChildren,
-  type LanguageWithStats
+  type LanguageWithStats,
+  type LanguageWithVariants,
+  type WordComparison
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -43,6 +45,9 @@ export interface IStorage {
   getActiveScrapingJob(languageId: string): Promise<ScrapingJob | undefined>;
   createScrapingJob(job: InsertScrapingJob): Promise<ScrapingJob>;
   updateScrapingJob(id: string, job: Partial<ScrapingJob>): Promise<ScrapingJob>;
+  
+  // Word Comparison
+  getWordComparisons(languageIds: string[]): Promise<WordComparison[]>;
   
   // Statistics
   getLanguageStats(): Promise<{
@@ -117,14 +122,19 @@ export class MemStorage implements IStorage {
       iso639_1: "en",
       iso639_2: "eng", 
       familyId: "2",
+      parentLanguageId: null,
       region: "Global",
       countries: ["United States", "United Kingdom", "Canada", "Australia"],
       nativeSpeakers: 380000000,
       totalSpeakers: 1500000000,
       status: "living",
       timeOrigin: "5th century CE",
+      timeEnd: null,
       classification: "Indo-European > Germanic > West Germanic",
       writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      chronologicalOrder: 4,
+      historicalContext: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -136,20 +146,101 @@ export class MemStorage implements IStorage {
       iso639_1: "de",
       iso639_2: "deu",
       familyId: "2", 
+      parentLanguageId: null,
       region: "Central Europe",
       countries: ["Germany", "Austria", "Switzerland"],
       nativeSpeakers: 76000000,
       totalSpeakers: 95000000,
       status: "living",
       timeOrigin: "6th century CE",
+      timeEnd: null,
       classification: "Indo-European > Germanic > West Germanic",
       writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      chronologicalOrder: 1,
+      historicalContext: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Historical variants of English
+    const oldEnglish: Language = {
+      id: "lang3",
+      name: "Old English",
+      nativeName: "Englisc",
+      iso639_1: null,
+      iso639_2: "ang",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Southern Scotland",
+      countries: ["England"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "5th century CE",
+      timeEnd: "12th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script, Runic script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 1,
+      historicalContext: "Anglo-Saxon period, influenced by Latin and Old Norse",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const middleEnglish: Language = {
+      id: "lang4",
+      name: "Middle English",
+      nativeName: "Englisch",
+      iso639_1: null,
+      iso639_2: "enm",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Wales, Southern Scotland",
+      countries: ["England", "Wales"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "12th century CE",
+      timeEnd: "15th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 2,
+      historicalContext: "Norman influence, Great Vowel Shift beginning",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const earlyModernEnglish: Language = {
+      id: "lang5",
+      name: "Early Modern English",
+      nativeName: "English",
+      iso639_1: null,
+      iso639_2: null,
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "England, Wales, Scotland, Ireland",
+      countries: ["England", "Wales", "Scotland", "Ireland"],
+      nativeSpeakers: 0,
+      totalSpeakers: 0,
+      status: "dead",
+      timeOrigin: "15th century CE",
+      timeEnd: "17th century CE",
+      classification: "Indo-European > Germanic > West Germanic",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      chronologicalOrder: 3,
+      historicalContext: "Renaissance period, Shakespearean era, printing press influence",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     this.languages.set("lang1", english);
     this.languages.set("lang2", german);
+    this.languages.set("lang3", oldEnglish);
+    this.languages.set("lang4", middleEnglish);
+    this.languages.set("lang5", earlyModernEnglish);
 
     // Initialize sample base words
     const sampleWords = [
@@ -178,7 +269,6 @@ export class MemStorage implements IStorage {
 
   async getLanguageFamilyTree(): Promise<LanguageFamilyWithChildren[]> {
     const families = Array.from(this.languageFamilies.values());
-    const rootFamilies = families.filter(f => !f.parentId);
     
     const buildTree = (parentId: string | null): LanguageFamilyWithChildren[] => {
       return families
@@ -187,7 +277,13 @@ export class MemStorage implements IStorage {
           ...family,
           children: buildTree(family.id),
           languages: Array.from(this.languages.values())
-            .filter(lang => lang.familyId === family.id)
+            .filter(lang => lang.familyId === family.id && !lang.isHistoricalVariant)
+            .map(lang => ({
+              ...lang,
+              historicalVariants: Array.from(this.languages.values())
+                .filter(variant => variant.parentLanguageId === lang.id)
+                .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0))
+            }))
         }));
     };
 
@@ -227,11 +323,16 @@ export class MemStorage implements IStorage {
     const activeJob = Array.from(this.scrapingJobs.values())
       .find(job => job.languageId === id && job.status === 'running');
 
+    const historicalVariants = Array.from(this.languages.values())
+      .filter(variant => variant.parentLanguageId === id)
+      .sort((a, b) => (a.chronologicalOrder || 0) - (b.chronologicalOrder || 0));
+
     return {
       ...language,
       wordListCompletion,
       lastScrapedAt: activeJob?.completedAt?.toISOString(),
       scrapingStatus: activeJob?.status as any,
+      historicalVariants,
     };
   }
 
@@ -351,13 +452,28 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async getWordComparisons(languageIds: string[]): Promise<WordComparison[]> {
+    const baseWords = Array.from(this.baseWords.values()).sort((a, b) => a.position - b.position);
+    const languages = languageIds.map(id => this.languages.get(id)).filter(Boolean) as Language[];
+    
+    return baseWords.map(baseWord => ({
+      baseWord,
+      translations: languages.map(language => ({
+        language,
+        translation: Array.from(this.wordTranslations.values())
+          .find(t => t.baseWordId === baseWord.id && t.languageId === language.id) || null
+      }))
+    }));
+  }
+
   async getLanguageStats(): Promise<{
     totalLanguages: number;
     wordListsScraped: number;
     baseWords: number;
     scrapingQueue: number;
   }> {
-    const totalLanguages = this.languages.size;
+    const totalLanguages = Array.from(this.languages.values())
+      .filter(lang => !lang.isHistoricalVariant).length;
     const baseWords = this.baseWords.size;
     
     // Count languages with any translations

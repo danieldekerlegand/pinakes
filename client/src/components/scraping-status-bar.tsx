@@ -15,8 +15,8 @@ export default function ScrapingStatusBar() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (activeJob && activeJob.totalWords > 0) {
-      setProgress((activeJob.completedWords / activeJob.totalWords) * 100);
+    if (activeJob && (activeJob.totalWords || 0) > 0) {
+      setProgress(((activeJob.completedWords || 0) / (activeJob.totalWords || 1)) * 100);
     }
   }, [activeJob]);
 

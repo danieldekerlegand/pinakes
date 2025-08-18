@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronDown, TreePine, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { LanguageFamilyWithChildren, Language } from "@shared/schema";
+import type { LanguageFamilyWithChildren, Language, LanguageWithVariants } from "@shared/schema";
 
 interface LanguageTreeProps {
   searchQuery: string;
@@ -135,47 +135,126 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
 }
 
 interface LanguageNodeProps {
-  language: Language;
+  language: LanguageWithVariants;
   isSelected: boolean;
   onSelect: () => void;
 }
 
 function LanguageNode({ language, isSelected, onSelect }: LanguageNodeProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasVariants = language.historicalVariants && language.historicalVariants.length > 0;
+
+  return (
+    <div>
+      <div
+        className={`flex items-center p-2 rounded-md cursor-pointer transition-colors ${
+          isSelected ? 'bg-blue-100 border border-blue-200' : 'hover:bg-blue-50'
+        }`}
+        onClick={onSelect}
+        data-testid={`language-node-${language.name.toLowerCase().replace(/\s+/g, '-')}`}
+      >
+        {hasVariants && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className="mr-1 hover:bg-gray-200 rounded p-1"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-3 w-3 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-3 w-3 text-gray-400" />
+            )}
+          </button>
+        )}
+        {!hasVariants && <div className="w-5 mr-1" />}
+        
+        <Globe className="h-4 w-4 text-primary mr-3" />
+        
+        <div className="flex-1">
+          <h5 className="text-sm font-medium text-gray-900" data-testid={`text-language-name-${language.name.toLowerCase().replace(/\s+/g, '-')}`}>
+            {language.name}
+          </h5>
+          <p className="text-xs text-gray-600">
+            {formatSpeakerCount(language.totalSpeakers || 0)} speakers • {language.region}
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Badge className={`${getStatusColor(language.status)} text-xs`}>
+            {language.status}
+          </Badge>
+          {hasVariants && (
+            <Badge className="bg-purple-100 text-purple-800 text-xs">
+              {language.historicalVariants.length} variants
+            </Badge>
+          )}
+          {/* Mock completion percentage */}
+          <div className="flex items-center space-x-1">
+            <div className="w-12 bg-gray-200 rounded-full h-1.5">
+              <div
+                className="bg-success h-1.5 rounded-full"
+                style={{ width: `${Math.random() * 40 + 60}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-500">
+              {Math.floor(Math.random() * 40 + 60)}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Historical Variants */}
+      {isExpanded && hasVariants && (
+        <div className="ml-8 mt-2 space-y-1">
+          {language.historicalVariants.map((variant) => (
+            <HistoricalVariantNode
+              key={variant.id}
+              variant={variant}
+              onSelect={() => onSelect()}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface HistoricalVariantNodeProps {
+  variant: Language;
+  onSelect: () => void;
+}
+
+function HistoricalVariantNode({ variant, onSelect }: HistoricalVariantNodeProps) {
   return (
     <div
-      className={`flex items-center p-2 rounded-md cursor-pointer transition-colors ${
-        isSelected ? 'bg-blue-100 border border-blue-200' : 'hover:bg-blue-50'
-      }`}
+      className="flex items-center p-2 rounded-md cursor-pointer hover:bg-purple-50 border-l-2 border-purple-200"
       onClick={onSelect}
-      data-testid={`language-node-${language.name.toLowerCase().replace(/\s+/g, '-')}`}
+      data-testid={`variant-node-${variant.name.toLowerCase().replace(/\s+/g, '-')}`}
     >
-      <Globe className="h-4 w-4 text-primary mr-3" />
+      <div className="w-4 h-4 mr-3 flex items-center justify-center">
+        <div className="w-2 h-2 bg-purple-400 rounded-full" />
+      </div>
       
       <div className="flex-1">
-        <h5 className="text-sm font-medium text-gray-900" data-testid={`text-language-name-${language.name.toLowerCase().replace(/\s+/g, '-')}`}>
-          {language.name}
-        </h5>
-        <p className="text-xs text-gray-600">
-          {formatSpeakerCount(language.totalSpeakers)} speakers • {language.region}
+        <h6 className="text-sm font-medium text-gray-800" data-testid={`text-variant-name-${variant.name.toLowerCase().replace(/\s+/g, '-')}`}>
+          {variant.name}
+        </h6>
+        <p className="text-xs text-gray-500">
+          {variant.timeOrigin} - {variant.timeEnd || 'present'} • {variant.region}
         </p>
+        {variant.historicalContext && (
+          <p className="text-xs text-purple-600 mt-1 italic">
+            {variant.historicalContext}
+          </p>
+        )}
       </div>
       
       <div className="flex items-center space-x-2">
-        <Badge className={`${getStatusColor(language.status)} text-xs`}>
-          {language.status}
+        <Badge className={`${getStatusColor(variant.status)} text-xs`}>
+          {variant.status}
         </Badge>
-        {/* Mock completion percentage */}
-        <div className="flex items-center space-x-1">
-          <div className="w-12 bg-gray-200 rounded-full h-1.5">
-            <div
-              className="bg-success h-1.5 rounded-full"
-              style={{ width: `${Math.random() * 40 + 60}%` }}
-            />
-          </div>
-          <span className="text-xs text-gray-500">
-            {Math.floor(Math.random() * 40 + 60)}%
-          </span>
-        </div>
       </div>
     </div>
   );

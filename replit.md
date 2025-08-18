@@ -1,6 +1,14 @@
 # Overview
 
-The Linguistic Family Tree is a full-stack TypeScript application for exploring language families, languages, and word translations. The system provides an interactive tree-based visualization for browsing linguistic relationships, managing word translations across languages, and includes a background scraping system for automated data collection. Built with React frontend, Express backend, and PostgreSQL database.
+The Linguistic Family Tree is a full-stack TypeScript application for exploring language families, languages, and word translations with advanced historical language tracking and comparative analysis capabilities. The system provides an interactive tree-based visualization for browsing linguistic relationships, managing word translations across languages, tracking historical language evolution, and includes comprehensive word list comparison tools with background scraping for automated data collection. Built with React frontend, Express backend, and PostgreSQL database.
+
+## Recent Enhancements (Dec 2024)
+
+- **Historical Language Variants**: Added support for chronological language evolution (Old English → Middle English → Early Modern English → Modern English) with regional distribution tracking
+- **Enhanced Language Tree**: Interactive expansion/collapse of historical variants with timeline context and regional information
+- **Word List Comparison Tool**: Side-by-side comparison interface for analyzing word translations across multiple languages
+- **Extended Language Detail Panel**: Comprehensive historical evolution section showing chronological variants with contextual information
+- **Enhanced Data Schema**: Added fields for historical relationships, chronological ordering, and temporal ranges
 
 # User Preferences
 

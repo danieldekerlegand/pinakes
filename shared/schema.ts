@@ -23,14 +23,19 @@ export const languages = pgTable("languages", {
   iso639_1: varchar("iso639_1", { length: 2 }),
   iso639_2: varchar("iso639_2", { length: 3 }),
   familyId: varchar("family_id").references(() => languageFamilies.id).notNull(),
+  parentLanguageId: varchar("parent_language_id").references(() => languages.id), // For historical variants
   region: text("region"),
   countries: jsonb("countries").$type<string[]>().default([]),
   nativeSpeakers: integer("native_speakers").default(0),
   totalSpeakers: integer("total_speakers").default(0),
   status: text("status").notNull(), // living, endangered, moribund, dead
   timeOrigin: text("time_origin"),
+  timeEnd: text("time_end"), // For historical variants that are no longer spoken
   classification: text("classification"),
   writingSystem: text("writing_system"),
+  isHistoricalVariant: boolean("is_historical_variant").default(false),
+  chronologicalOrder: integer("chronological_order").default(0), // For ordering variants
+  historicalContext: text("historical_context"), // Description of historical period
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -113,11 +118,24 @@ export type InsertScrapingJob = z.infer<typeof insertScrapingJobSchema>;
 // Extended types for frontend
 export type LanguageFamilyWithChildren = LanguageFamily & {
   children: LanguageFamilyWithChildren[];
-  languages: Language[];
+  languages: LanguageWithVariants[];
+};
+
+export type LanguageWithVariants = Language & {
+  historicalVariants: Language[];
 };
 
 export type LanguageWithStats = Language & {
   wordListCompletion: number;
   lastScrapedAt?: string;
   scrapingStatus?: 'pending' | 'running' | 'completed' | 'failed';
+  historicalVariants: Language[];
+};
+
+export type WordComparison = {
+  baseWord: BaseWord;
+  translations: Array<{
+    language: Language;
+    translation: WordTranslation | null;
+  }>;
 };

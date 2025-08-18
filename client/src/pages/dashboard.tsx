@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Settings, Menu } from "lucide-react";
+import { Search, Settings, Menu, GitCompare } from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
 import LanguageTree from "@/components/language-tree";
 import LanguageDetailPanel from "@/components/language-detail-panel";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
+import WordComparisonPanel from "@/components/word-comparison";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "",
@@ -50,6 +52,15 @@ export default function Dashboard() {
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-blue-200" />
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-primary-dark"
+                onClick={() => setComparisonOpen(true)}
+                data-testid="button-compare-words"
+              >
+                <GitCompare className="h-5 w-5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm" 
@@ -125,6 +136,12 @@ export default function Dashboard() {
 
       {/* Scraping Status Bar */}
       <ScrapingStatusBar />
+      
+      {/* Word Comparison Panel */}
+      <WordComparisonPanel
+        isOpen={comparisonOpen}
+        onClose={() => setComparisonOpen(false)}
+      />
       
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
