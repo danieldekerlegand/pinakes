@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Settings, Menu, GitCompare } from "lucide-react";
+import { Search, Settings, Menu, GitCompare, Database } from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
 import LanguageTree from "@/components/language-tree";
@@ -12,6 +12,7 @@ import WordComparisonPanel from "@/components/word-comparison";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import LanguageMap from "@/components/language-map";
 import RealTimeProgress from "@/components/real-time-progress";
+import LinguisticDatabasePanel from "@/components/linguistic-database-panel";
 import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
+  const [linguisticPanelOpen, setLinguisticPanelOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "",
@@ -87,6 +89,15 @@ export default function Dashboard() {
                 data-testid="button-compare-words"
               >
                 <GitCompare className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setLinguisticPanelOpen(true)}
+                data-testid="button-databases"
+              >
+                <Database className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -187,6 +198,12 @@ export default function Dashboard() {
       <LanguageMap
         isOpen={mapOpen}
         onClose={() => setMapOpen(false)}
+      />
+
+      {/* Linguistic Database Panel */}
+      <LinguisticDatabasePanel
+        isOpen={linguisticPanelOpen}
+        onClose={() => setLinguisticPanelOpen(false)}
       />
       
       {/* Floating Action Button */}

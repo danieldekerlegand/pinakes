@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { linguisticService } from "./services/linguistic-apis";
 import { insertLanguageFamilySchema, insertLanguageSchema, insertBaseWordSchema, insertWordTranslationSchema, insertScrapingJobSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -319,6 +320,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Linguistic API status and testing endpoints
+  app.get("/api/linguistic-services/status", async (req, res) => {
+    try {
+      const status = linguisticService.getServiceStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch linguistic service status" });
+    }
+  });
+
+  app.post("/api/linguistic-services/test", async (req, res) => {
+    try {
+      const { word, fromLang = 'en', toLang = 'de' } = req.body;
+      
+      if (!word) {
+        return res.status(400).json({ error: "Word parameter is required" });
+      }
+
+      const result = await linguisticService.getTranslation(word, fromLang, toLang);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Translation test failed", details: error.message });
+    }
+  });
+
   // Mock scraping process with real-time progress tracking
   async function startScrapingProcess(jobId: string) {
     try {
@@ -364,23 +390,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const success = Math.random() > 0.1;
         
         if (success) {
-          // Create mock translation with realistic data
-          const translations = {
-            en: baseWord.word,
-            de: getGermanTranslation(baseWord.word),
-            nl: getDutchTranslation(baseWord.word),
-            sv: getSwedishTranslation(baseWord.word),
-            no: getNorwegianTranslation(baseWord.word),
-            da: getDanishTranslation(baseWord.word)
-          };
+          // Use professional linguistic API for authentic translation
+          const linguisticResult = await linguisticService.getTranslation(
+            baseWord.word, 
+            'en', // Base language
+            language.iso639_1 || language.iso639_2 || 'en'
+          );
 
-          await storage.createWordTranslation({
-            baseWordId: baseWord.id,
-            languageId: updatedJob.languageId,
-            translation: translations[language.iso639_1 as keyof typeof translations] || `${baseWord.word}_${language.iso639_1}`,
-            source: "mock_linguistic_api",
-            verified: false,
-          });
+          let translationData;
+          if (linguisticResult.success && linguisticResult.data) {
+            translationData = {
+              baseWordId: baseWord.id,
+              languageId: updatedJob.languageId,
+              translation: linguisticResult.data.translation,
+              pronunciation: linguisticResult.data.pronunciation,
+              notes: linguisticResult.data.definition ? `Definition: ${linguisticResult.data.definition}` : null,
+              source: linguisticResult.data.source,
+              verified: linguisticResult.data.confidence > 0.8,
+            };
+          } else {
+            // Fallback to basic translation if API fails
+            translationData = {
+              baseWordId: baseWord.id,
+              languageId: updatedJob.languageId,
+              translation: getFallbackTranslation(baseWord.word, language.iso639_1),
+              source: "fallback_rules",
+              verified: false,
+            };
+          }
+
+          await storage.createWordTranslation(translationData);
           
           completedCount++;
         } else {
@@ -438,75 +477,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Mock translation functions for realistic data
-  function getGermanTranslation(word: string): string {
-    const translations: { [key: string]: string } = {
-      hello: "hallo", water: "wasser", house: "haus", family: "familie",
-      mountain: "berg", tree: "baum", sun: "sonne", moon: "mond",
-      fire: "feuer", earth: "erde", wind: "wind", love: "liebe",
-      time: "zeit", person: "person", woman: "frau", man: "mann",
-      child: "kind", mother: "mutter", father: "vater", brother: "bruder",
-      sister: "schwester", hand: "hand", eye: "auge", ear: "ohr",
-      mouth: "mund", food: "essen", eat: "essen", drink: "trinken",
-      sleep: "schlafen", walk: "gehen", run: "laufen", speak: "sprechen"
+  // Fallback translation for when professional APIs are unavailable
+  function getFallbackTranslation(word: string, targetLang: string): string {
+    const translations: { [key: string]: { [key: string]: string } } = {
+      de: {
+        hello: "hallo", water: "wasser", house: "haus", family: "familie",
+        mountain: "berg", tree: "baum", sun: "sonne", moon: "mond",
+        fire: "feuer", earth: "erde", wind: "wind", love: "liebe",
+        time: "zeit", person: "person", woman: "frau", man: "mann",
+        child: "kind", mother: "mutter", father: "vater", brother: "bruder",
+        sister: "schwester", hand: "hand", eye: "auge", ear: "ohr",
+        mouth: "mund", food: "essen", eat: "essen", drink: "trinken",
+        sleep: "schlafen", walk: "gehen", run: "laufen", speak: "sprechen"
+      },
+      nl: {
+        hello: "hallo", water: "water", house: "huis", family: "familie",
+        mountain: "berg", tree: "boom", sun: "zon", moon: "maan",
+        fire: "vuur", earth: "aarde", wind: "wind", love: "liefde",
+        time: "tijd", person: "persoon", woman: "vrouw", man: "man",
+        child: "kind", mother: "moeder", father: "vader", brother: "broer",
+        sister: "zus", hand: "hand", eye: "oog", ear: "oor",
+        mouth: "mond", food: "voedsel", eat: "eten", drink: "drinken",
+        sleep: "slapen", walk: "lopen", run: "rennen", speak: "spreken"
+      },
+      sv: {
+        hello: "hej", water: "vatten", house: "hus", family: "familj",
+        mountain: "berg", tree: "träd", sun: "sol", moon: "måne",
+        fire: "eld", earth: "jord", wind: "vind", love: "kärlek",
+        time: "tid", person: "person", woman: "kvinna", man: "man",
+        child: "barn", mother: "mor", father: "far", brother: "bror",
+        sister: "syster", hand: "hand", eye: "öga", ear: "öra",
+        mouth: "mun", food: "mat", eat: "äta", drink: "dricka",
+        sleep: "sova", walk: "gå", run: "springa", speak: "tala"
+      },
+      no: {
+        hello: "hei", water: "vann", house: "hus", family: "familie",
+        mountain: "fjell", tree: "tre", sun: "sol", moon: "måne",
+        fire: "ild", earth: "jord", wind: "vind", love: "kjærlighet",
+        time: "tid", person: "person", woman: "kvinne", man: "mann",
+        child: "barn", mother: "mor", father: "far", brother: "bror",
+        sister: "søster", hand: "hånd", eye: "øye", ear: "øre",
+        mouth: "munn", food: "mat", eat: "spise", drink: "drikke",
+        sleep: "sove", walk: "gå", run: "løpe", speak: "snakke"
+      },
+      da: {
+        hello: "hej", water: "vand", house: "hus", family: "familie",
+        mountain: "bjerg", tree: "træ", sun: "sol", moon: "måne",
+        fire: "ild", earth: "jord", wind: "vind", love: "kærlighed",
+        time: "tid", person: "person", woman: "kvinde", man: "mand",
+        child: "barn", mother: "mor", father: "far", brother: "bror",
+        sister: "søster", hand: "hånd", eye: "øje", ear: "øre",
+        mouth: "mund", food: "mad", eat: "spise", drink: "drikke",
+        sleep: "sove", walk: "gå", run: "løbe", speak: "tale"
+      }
     };
-    return translations[word] || `${word}_de`;
-  }
 
-  function getDutchTranslation(word: string): string {
-    const translations: { [key: string]: string } = {
-      hello: "hallo", water: "water", house: "huis", family: "familie",
-      mountain: "berg", tree: "boom", sun: "zon", moon: "maan",
-      fire: "vuur", earth: "aarde", wind: "wind", love: "liefde",
-      time: "tijd", person: "persoon", woman: "vrouw", man: "man",
-      child: "kind", mother: "moeder", father: "vader", brother: "broer",
-      sister: "zus", hand: "hand", eye: "oog", ear: "oor",
-      mouth: "mond", food: "voedsel", eat: "eten", drink: "drinken",
-      sleep: "slapen", walk: "lopen", run: "rennen", speak: "spreken"
-    };
-    return translations[word] || `${word}_nl`;
-  }
-
-  function getSwedishTranslation(word: string): string {
-    const translations: { [key: string]: string } = {
-      hello: "hej", water: "vatten", house: "hus", family: "familj",
-      mountain: "berg", tree: "träd", sun: "sol", moon: "måne",
-      fire: "eld", earth: "jord", wind: "vind", love: "kärlek",
-      time: "tid", person: "person", woman: "kvinna", man: "man",
-      child: "barn", mother: "mor", father: "far", brother: "bror",
-      sister: "syster", hand: "hand", eye: "öga", ear: "öra",
-      mouth: "mun", food: "mat", eat: "äta", drink: "dricka",
-      sleep: "sova", walk: "gå", run: "springa", speak: "tala"
-    };
-    return translations[word] || `${word}_sv`;
-  }
-
-  function getNorwegianTranslation(word: string): string {
-    const translations: { [key: string]: string } = {
-      hello: "hei", water: "vann", house: "hus", family: "familie",
-      mountain: "fjell", tree: "tre", sun: "sol", moon: "måne",
-      fire: "ild", earth: "jord", wind: "vind", love: "kjærlighet",
-      time: "tid", person: "person", woman: "kvinne", man: "mann",
-      child: "barn", mother: "mor", father: "far", brother: "bror",
-      sister: "søster", hand: "hånd", eye: "øye", ear: "øre",
-      mouth: "munn", food: "mat", eat: "spise", drink: "drikke",
-      sleep: "sove", walk: "gå", run: "løpe", speak: "snakke"
-    };
-    return translations[word] || `${word}_no`;
-  }
-
-  function getDanishTranslation(word: string): string {
-    const translations: { [key: string]: string } = {
-      hello: "hej", water: "vand", house: "hus", family: "familie",
-      mountain: "bjerg", tree: "træ", sun: "sol", moon: "måne",
-      fire: "ild", earth: "jord", wind: "vind", love: "kærlighed",
-      time: "tid", person: "person", woman: "kvinde", man: "mand",
-      child: "barn", mother: "mor", father: "far", brother: "bror",
-      sister: "søster", hand: "hånd", eye: "øje", ear: "øre",
-      mouth: "mund", food: "mad", eat: "spise", drink: "drikke",
-      sleep: "sove", walk: "gå", run: "løbe", speak: "tale"
-    };
-    return translations[word] || `${word}_da`;
+    return translations[targetLang]?.[word] || `${word}_${targetLang}`;
   }
 
   return server;
