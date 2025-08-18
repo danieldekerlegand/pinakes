@@ -192,6 +192,7 @@ export class MemStorage implements IStorage {
       chronologicalOrder: 1,
       historicalContext: "Anglo-Saxon period, influenced by Latin and Old Norse",
       coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -217,6 +218,7 @@ export class MemStorage implements IStorage {
       chronologicalOrder: 2,
       historicalContext: "Norman influence, Great Vowel Shift beginning",
       coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -242,6 +244,34 @@ export class MemStorage implements IStorage {
       chronologicalOrder: 3,
       historicalContext: "Renaissance period, Shakespearean era, printing press influence",
       coordinates: { lat: 52.3555, lng: -1.1743 }, // England geographic center
+      isDialect: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // First create Modern English as the current form
+    const modernEnglish: Language = {
+      id: "lang9",
+      name: "Modern English",
+      nativeName: "Modern English",
+      iso639_1: "en",
+      iso639_2: "eng",
+      familyId: "2",
+      parentLanguageId: "lang1",
+      region: "Global",
+      countries: ["Multiple"],
+      nativeSpeakers: 380000000,
+      totalSpeakers: 1500000000,
+      status: "living",
+      timeOrigin: "17th century",
+      timeEnd: null,
+      classification: "Indo-European > Germanic > West Germanic > English",
+      writingSystem: "Latin script",
+      isHistoricalVariant: true,
+      isDialect: false,
+      chronologicalOrder: 4,
+      historicalContext: "Contemporary form of English from 17th century onwards",
+      coordinates: { lat: 54.5260, lng: -2.2173 },
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -254,7 +284,7 @@ export class MemStorage implements IStorage {
       iso639_1: "en",
       iso639_2: "eng",
       familyId: "2",
-      parentLanguageId: "lang1",
+      parentLanguageId: "lang9", // Parent is Modern English
       region: "United States",
       countries: ["United States"],
       nativeSpeakers: 300000000,
@@ -280,7 +310,7 @@ export class MemStorage implements IStorage {
       iso639_1: "en",
       iso639_2: "eng",
       familyId: "2",
-      parentLanguageId: "lang1",
+      parentLanguageId: "lang9", // Parent is Modern English
       region: "United Kingdom",
       countries: ["United Kingdom"],
       nativeSpeakers: 65000000,
@@ -306,7 +336,7 @@ export class MemStorage implements IStorage {
       iso639_1: "en",
       iso639_2: "eng",
       familyId: "2",
-      parentLanguageId: "lang1",
+      parentLanguageId: "lang9", // Parent is Modern English
       region: "Australia",
       countries: ["Australia"],
       nativeSpeakers: 25000000,
@@ -330,6 +360,7 @@ export class MemStorage implements IStorage {
     this.languages.set("lang3", oldEnglish);
     this.languages.set("lang4", middleEnglish);
     this.languages.set("lang5", earlyModernEnglish);
+    this.languages.set("lang9", modernEnglish);
     this.languages.set("lang6", americanEnglish);
     this.languages.set("lang7", britishEnglish);
     this.languages.set("lang8", australianEnglish);
@@ -387,6 +418,13 @@ export class MemStorage implements IStorage {
     const family: LanguageFamily = {
       ...insertFamily,
       id,
+      region: insertFamily.region || null,
+      parentId: insertFamily.parentId || null,
+      description: insertFamily.description || null,
+      estimatedOrigin: insertFamily.estimatedOrigin || null,
+      timeOrigin: insertFamily.timeOrigin || null,
+      totalSpeakers: insertFamily.totalSpeakers || null,
+      languageCount: insertFamily.languageCount || null,
       createdAt: new Date(),
     };
     this.languageFamilies.set(id, family);
@@ -438,6 +476,23 @@ export class MemStorage implements IStorage {
     const language: Language = {
       ...insertLanguage,
       id,
+      region: insertLanguage.region || null,
+      nativeName: insertLanguage.nativeName || null,
+      iso639_1: insertLanguage.iso639_1 || null,
+      iso639_2: insertLanguage.iso639_2 || null,
+      parentLanguageId: insertLanguage.parentLanguageId || null,
+      countries: insertLanguage.countries || [],
+      nativeSpeakers: insertLanguage.nativeSpeakers || null,
+      totalSpeakers: insertLanguage.totalSpeakers || null,
+      timeOrigin: insertLanguage.timeOrigin || null,
+      timeEnd: insertLanguage.timeEnd || null,
+      classification: insertLanguage.classification || null,
+      writingSystem: insertLanguage.writingSystem || null,
+      isHistoricalVariant: insertLanguage.isHistoricalVariant || false,
+      isDialect: insertLanguage.isDialect || false,
+      chronologicalOrder: insertLanguage.chronologicalOrder || null,
+      historicalContext: insertLanguage.historicalContext || null,
+      coordinates: insertLanguage.coordinates || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -454,6 +509,8 @@ export class MemStorage implements IStorage {
     const word: BaseWord = {
       ...insertWord,
       id,
+      category: insertWord.category || null,
+      definition: insertWord.definition || null,
       createdAt: new Date(),
     };
     this.baseWords.set(id, word);
@@ -468,6 +525,8 @@ export class MemStorage implements IStorage {
         ...word,
         id,
         position: index + 1,
+        category: word.category || null,
+        definition: word.definition || null,
         createdAt: new Date(),
       };
       this.baseWords.set(id, baseWord);
@@ -489,6 +548,11 @@ export class MemStorage implements IStorage {
     const translation: WordTranslation = {
       ...insertTranslation,
       id,
+      source: insertTranslation.source || null,
+      translation: insertTranslation.translation || null,
+      pronunciation: insertTranslation.pronunciation || null,
+      notes: insertTranslation.notes || null,
+      verified: insertTranslation.verified || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -511,7 +575,7 @@ export class MemStorage implements IStorage {
 
   async getScrapingJobs(): Promise<ScrapingJob[]> {
     return Array.from(this.scrapingJobs.values()).sort((a, b) => 
-      b.createdAt.getTime() - a.createdAt.getTime()
+      (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
     );
   }
 
@@ -526,6 +590,12 @@ export class MemStorage implements IStorage {
     const job: ScrapingJob = {
       ...insertJob,
       id,
+      totalWords: insertJob.totalWords || null,
+      completedWords: insertJob.completedWords || null,
+      failedWords: insertJob.failedWords || null,
+      startedAt: insertJob.startedAt || null,
+      completedAt: insertJob.completedAt || null,
+      errorMessage: insertJob.errorMessage || null,
       createdAt: new Date(),
     };
     this.scrapingJobs.set(id, job);

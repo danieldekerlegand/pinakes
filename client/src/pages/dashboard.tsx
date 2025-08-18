@@ -26,14 +26,14 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-surface">
       {/* Header */}
-      <header className="bg-primary text-white shadow-material-2 sticky top-0 z-50">
+      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden p-2 text-white hover:bg-primary-dark"
+                className="md:hidden p-2 text-white hover:bg-blue-700"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 data-testid="button-mobile-menu"
               >
@@ -53,13 +53,13 @@ export default function Dashboard() {
                   className="bg-white text-gray-900 placeholder-gray-500 border border-gray-300 w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   data-testid="input-search"
                 />
-                <Search className="absolute right-3 top-2.5 h-4 w-4 text-blue-200" />
+                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
               <ScrapingTriggerButton />
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 text-white hover:bg-primary-dark"
+                className="p-2 text-white hover:bg-blue-700"
                 onClick={() => setMapOpen(true)}
                 data-testid="button-open-map"
               >
@@ -68,7 +68,7 @@ export default function Dashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 text-white hover:bg-primary-dark"
+                className="p-2 text-white hover:bg-blue-700"
                 onClick={() => setComparisonOpen(true)}
                 data-testid="button-compare-words"
               >
@@ -77,7 +77,7 @@ export default function Dashboard() {
               <Button
                 variant="ghost"
                 size="sm" 
-                className="p-2 text-white hover:bg-primary-dark"
+                className="p-2 text-white hover:bg-blue-700"
                 data-testid="button-settings"
               >
                 <Settings className="h-5 w-5" />
@@ -165,7 +165,7 @@ export default function Dashboard() {
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <Button
-          className="bg-primary hover:bg-primary-dark text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
+          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
           data-testid="button-floating-action"
         >
           <span className="text-xl">+</span>

@@ -87,7 +87,7 @@ export default function ScrapingTriggerButton() {
               <SelectContent>
                 {availableLanguages.map(language => (
                   <SelectItem key={language.id} value={language.id}>
-                    {language.name} ({language.nativeName})
+                    {language.name} ({language.nativeName || language.name})
                   </SelectItem>
                 ))}
               </SelectContent>
