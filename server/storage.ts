@@ -172,7 +172,7 @@ export class MemStorage implements IStorage {
     const romance: LanguageFamily = {
       id: "3",
       name: "Romance",
-      parentId: "1",
+      parentId: "66", // Updated to be under Latino-Faliscan
       description: "Languages descended from Latin including Spanish, French, Italian, Portuguese",
       taxonomicLevel: "subfamily",
       estimatedOrigin: "Roman Empire",
@@ -230,7 +230,7 @@ export class MemStorage implements IStorage {
     const slavic: LanguageFamily = {
       id: "9",
       name: "Slavic",
-      parentId: "1",
+      parentId: "58", // Updated to be under Balto-Slavic
       description: "Languages including Russian, Polish, Czech, Serbian, Bulgarian",
       taxonomicLevel: "subfamily",
       estimatedOrigin: "Eastern Europe",
@@ -754,6 +754,348 @@ export class MemStorage implements IStorage {
     this.languageFamilies.set("40", transNewGuinea);
     this.languageFamilies.set("41", niloSaharan);
     this.languageFamilies.set("42", khoeKwadi);
+
+    // === ADDITIONAL NATIVE AMERICAN FAMILIES ===
+
+    const muskogean: LanguageFamily = {
+      id: "43",
+      name: "Muskogean",
+      parentId: null,
+      level: "family",
+      description: "Language family of the Southeastern United States",
+      region: "Southeastern United States",
+      countries: ["United States"],
+      coordinates: { lat: 32.0, lng: -85.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const siouanCatawban: LanguageFamily = {
+      id: "44",
+      name: "Siouan–Catawban",
+      parentId: null,
+      level: "family",
+      description: "Language family of the Great Plains and Eastern United States",
+      region: "Great Plains, Eastern United States",
+      countries: ["United States"],
+      coordinates: { lat: 43.0, lng: -100.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const caddoan: LanguageFamily = {
+      id: "45",
+      name: "Caddoan",
+      parentId: null,
+      level: "family",
+      description: "Language family of the Great Plains",
+      region: "Great Plains",
+      countries: ["United States"],
+      coordinates: { lat: 35.0, lng: -98.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const keresan: LanguageFamily = {
+      id: "46",
+      name: "Keresan",
+      parentId: null,
+      level: "family",
+      description: "Language isolate family of the Pueblo peoples",
+      region: "New Mexico",
+      countries: ["United States"],
+      coordinates: { lat: 35.0, lng: -106.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const kiowaTanoan: LanguageFamily = {
+      id: "47",
+      name: "Kiowa-Tanoan",
+      parentId: null,
+      level: "family",
+      description: "Language family including Kiowa and Tanoan languages",
+      region: "Great Plains and Southwest",
+      countries: ["United States"],
+      coordinates: { lat: 35.5, lng: -105.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const yumanCochimi: LanguageFamily = {
+      id: "48",
+      name: "Yuman–Cochimí",
+      parentId: null,
+      level: "family",
+      description: "Language family of the Southwestern United States and Northwestern Mexico",
+      region: "Southwest US, Northwest Mexico",
+      countries: ["United States", "Mexico"],
+      coordinates: { lat: 33.0, lng: -115.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const otoManguean: LanguageFamily = {
+      id: "49",
+      name: "Oto-Manguean",
+      parentId: null,
+      level: "family",
+      description: "Large language family of central and southern Mexico",
+      region: "Central and Southern Mexico",
+      countries: ["Mexico"],
+      coordinates: { lat: 17.0, lng: -96.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mixeZoque: LanguageFamily = {
+      id: "50",
+      name: "Mixe-Zoque",
+      parentId: null,
+      level: "family",
+      description: "Language family of southern Mexico",
+      region: "Southern Mexico",
+      countries: ["Mexico"],
+      coordinates: { lat: 17.0, lng: -94.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const chibchan: LanguageFamily = {
+      id: "51",
+      name: "Chibchan",
+      parentId: null,
+      level: "family",
+      description: "Language family of Central and South America",
+      region: "Central America, Northern South America",
+      countries: ["Costa Rica", "Panama", "Colombia", "Venezuela"],
+      coordinates: { lat: 9.0, lng: -75.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const misumalpan: LanguageFamily = {
+      id: "52",
+      name: "Misumalpan",
+      parentId: null,
+      level: "family",
+      description: "Language family of Central America",
+      region: "Nicaragua, Honduras",
+      countries: ["Nicaragua", "Honduras"],
+      coordinates: { lat: 13.0, lng: -85.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const macroJe: LanguageFamily = {
+      id: "53",
+      name: "Macro-Jê",
+      parentId: null,
+      level: "family",
+      description: "Large language family of Brazil",
+      region: "Brazil",
+      countries: ["Brazil"],
+      coordinates: { lat: -12.0, lng: -55.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const cariban: LanguageFamily = {
+      id: "54",
+      name: "Cariban",
+      parentId: null,
+      level: "family",
+      description: "Language family of northern South America",
+      region: "Venezuela, Guyana, Suriname, Brazil",
+      countries: ["Venezuela", "Guyana", "Suriname", "Brazil"],
+      coordinates: { lat: 5.0, lng: -65.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const aymaran: LanguageFamily = {
+      id: "55",
+      name: "Aymaran",
+      parentId: null,
+      level: "family",
+      description: "Language family of the Andes",
+      region: "Bolivia, Peru, Chile",
+      countries: ["Bolivia", "Peru", "Chile"],
+      coordinates: { lat: -16.0, lng: -68.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const araucanian: LanguageFamily = {
+      id: "56",
+      name: "Araucanian",
+      parentId: null,
+      level: "family",
+      description: "Language family of Chile and Argentina",
+      region: "Chile, Argentina",
+      countries: ["Chile", "Argentina"],
+      coordinates: { lat: -38.0, lng: -72.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const chonan: LanguageFamily = {
+      id: "57",
+      name: "Chonan",
+      parentId: null,
+      level: "family",
+      description: "Language family of Patagonia",
+      region: "Patagonia (Argentina, Chile)",
+      countries: ["Argentina", "Chile"],
+      coordinates: { lat: -45.0, lng: -70.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === INDO-EUROPEAN SUBFAMILY RESTRUCTURING ===
+
+    const baltoSlavic: LanguageFamily = {
+      id: "58",
+      name: "Balto-Slavic",
+      parentId: "1",
+      level: "branch",
+      description: "Major branch of Indo-European including Baltic and Slavic languages",
+      region: "Eastern Europe",
+      countries: ["Russia", "Poland", "Lithuania", "Latvia"],
+      coordinates: { lat: 55.0, lng: 25.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const anatolian: LanguageFamily = {
+      id: "59",
+      name: "Anatolian",
+      parentId: "1",
+      level: "branch",
+      description: "Extinct branch of Indo-European languages from Anatolia",
+      region: "Ancient Anatolia",
+      countries: ["Turkey"],
+      coordinates: { lat: 39.0, lng: 35.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const albanian: LanguageFamily = {
+      id: "60",
+      name: "Albanian",
+      parentId: "1",
+      level: "branch",
+      description: "Branch of Indo-European with Albanian language",
+      region: "Balkans",
+      countries: ["Albania", "Kosovo"],
+      coordinates: { lat: 41.0, lng: 20.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const armenian: LanguageFamily = {
+      id: "61",
+      name: "Armenian",
+      parentId: "1",
+      level: "branch",
+      description: "Branch of Indo-European with Armenian language",
+      region: "Armenian Highlands",
+      countries: ["Armenia"],
+      coordinates: { lat: 40.0, lng: 45.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const celtic: LanguageFamily = {
+      id: "62",
+      name: "Celtic",
+      parentId: "1",
+      level: "branch",
+      description: "Branch of Indo-European languages of Western Europe",
+      region: "Western Europe",
+      countries: ["Ireland", "Scotland", "Wales", "Brittany"],
+      coordinates: { lat: 53.0, lng: -8.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const hellenic: LanguageFamily = {
+      id: "63",
+      name: "Hellenic",
+      parentId: "1",
+      level: "branch",
+      description: "Branch of Indo-European with Greek languages",
+      region: "Greece, Cyprus",
+      countries: ["Greece", "Cyprus"],
+      coordinates: { lat: 39.0, lng: 22.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const italic: LanguageFamily = {
+      id: "64",
+      name: "Italic",
+      parentId: "1",
+      level: "branch",
+      description: "Branch of Indo-European including Latin and its descendants",
+      region: "Italian Peninsula",
+      countries: ["Italy"],
+      coordinates: { lat: 42.0, lng: 12.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const tocharian: LanguageFamily = {
+      id: "65",
+      name: "Tocharian",
+      parentId: "1",
+      level: "branch",
+      description: "Extinct branch of Indo-European from Central Asia",
+      region: "Ancient Tarim Basin",
+      countries: ["China"],
+      coordinates: { lat: 42.0, lng: 86.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const latinoFaliscan: LanguageFamily = {
+      id: "66",
+      name: "Latino-Faliscan",
+      parentId: "64",
+      level: "subfamily",
+      description: "Subfamily of Italic including Latin and Faliscan",
+      region: "Central Italy",
+      countries: ["Italy"],
+      coordinates: { lat: 42.0, lng: 12.5 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Store all new families
+    this.languageFamilies.set("43", muskogean);
+    this.languageFamilies.set("44", siouanCatawban);
+    this.languageFamilies.set("45", caddoan);
+    this.languageFamilies.set("46", keresan);
+    this.languageFamilies.set("47", kiowaTanoan);
+    this.languageFamilies.set("48", yumanCochimi);
+    this.languageFamilies.set("49", otoManguean);
+    this.languageFamilies.set("50", mixeZoque);
+    this.languageFamilies.set("51", chibchan);
+    this.languageFamilies.set("52", misumalpan);
+    this.languageFamilies.set("53", macroJe);
+    this.languageFamilies.set("54", cariban);
+    this.languageFamilies.set("55", aymaran);
+    this.languageFamilies.set("56", araucanian);
+    this.languageFamilies.set("57", chonan);
+    this.languageFamilies.set("58", baltoSlavic);
+    this.languageFamilies.set("59", anatolian);
+    this.languageFamilies.set("60", albanian);
+    this.languageFamilies.set("61", armenian);
+    this.languageFamilies.set("62", celtic);
+    this.languageFamilies.set("63", hellenic);
+    this.languageFamilies.set("64", italic);
+    this.languageFamilies.set("65", tocharian);
+    this.languageFamilies.set("66", latinoFaliscan);
 
     // ============ INITIALIZE COMPREHENSIVE WORLD LANGUAGES ============
     
@@ -1724,9 +2066,543 @@ export class MemStorage implements IStorage {
     this.languages.set("lang34", vietnamese);
     this.languages.set("lang35", thai);
 
-    // === NATIVE AMERICAN LANGUAGES ===
+    // === COMPREHENSIVE NATIVE AMERICAN LANGUAGES ===
 
-    // Algonquian Languages
+    // === MUSKOGEAN LANGUAGES ===
+    const choctaw: Language = {
+      id: "lang70",
+      name: "Choctaw",
+      nativeName: "Chahta anumpa",
+      iso639_1: null,
+      iso639_2: "cho",
+      familyId: "43", // Muskogean
+      parentLanguageId: null,
+      region: "Oklahoma, Mississippi",
+      countries: ["United States"],
+      nativeSpeakers: 9600,
+      totalSpeakers: 9600,
+      status: "endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Muskogean > Western Muskogean",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Best preserved of the Muskogean languages, with strong transmission in Mississippi",
+      coordinates: { lat: 34.5, lng: -89.5 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const creek: Language = {
+      id: "lang71",
+      name: "Creek (Muscogee)",
+      nativeName: "Mvskoke",
+      iso639_1: null,
+      iso639_2: "mus",
+      familyId: "43", // Muskogean
+      parentLanguageId: null,
+      region: "Oklahoma, Florida",
+      countries: ["United States"],
+      nativeSpeakers: 400,
+      totalSpeakers: 400,
+      status: "critically endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Muskogean > Eastern Muskogean",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Language of the historic Creek Confederacy",
+      coordinates: { lat: 35.5, lng: -96.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const chickasaw: Language = {
+      id: "lang72",
+      name: "Chickasaw",
+      nativeName: "Chikashshanompa'",
+      iso639_1: null,
+      iso639_2: "cic",
+      familyId: "43", // Muskogean
+      parentLanguageId: null,
+      region: "Oklahoma",
+      countries: ["United States"],
+      nativeSpeakers: 75,
+      totalSpeakers: 75,
+      status: "severely endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Muskogean > Western Muskogean",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Close relative of Choctaw, active revitalization efforts",
+      coordinates: { lat: 34.6, lng: -96.7 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === SIOUAN-CATAWBAN LANGUAGES ===
+    const dakota: Language = {
+      id: "lang73",
+      name: "Dakota",
+      nativeName: "Dakȟótiyapi",
+      iso639_1: null,
+      iso639_2: "dak",
+      familyId: "44", // Siouan-Catawban
+      parentLanguageId: null,
+      region: "Minnesota, South Dakota, North Dakota",
+      countries: ["United States"],
+      nativeSpeakers: 290,
+      totalSpeakers: 290,
+      status: "severely endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Siouan-Catawban > Core Siouan > Mississippi Valley Siouan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Eastern dialect of the Sioux language continuum",
+      coordinates: { lat: 44.9, lng: -93.3 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const lakota: Language = {
+      id: "lang74",
+      name: "Lakota",
+      nativeName: "Lakȟótiyapi",
+      iso639_1: null,
+      iso639_2: "lkt",
+      familyId: "44", // Siouan-Catawban
+      parentLanguageId: null,
+      region: "South Dakota, North Dakota",
+      countries: ["United States"],
+      nativeSpeakers: 2000,
+      totalSpeakers: 2000,
+      status: "severely endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Siouan-Catawban > Core Siouan > Mississippi Valley Siouan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Western dialect of the Sioux language continuum, language of Sitting Bull and Crazy Horse",
+      coordinates: { lat: 43.9, lng: -103.3 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === CADDOAN LANGUAGES ===
+    const caddo: Language = {
+      id: "lang75",
+      name: "Caddo",
+      nativeName: "Hasíínay",
+      iso639_1: null,
+      iso639_2: "cad",
+      familyId: "45", // Caddoan
+      parentLanguageId: null,
+      region: "Oklahoma",
+      countries: ["United States"],
+      nativeSpeakers: 25,
+      totalSpeakers: 25,
+      status: "critically endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Caddoan > Southern Caddoan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Language of the historic Caddo Confederacy",
+      coordinates: { lat: 35.1, lng: -98.4 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const pawnee: Language = {
+      id: "lang76",
+      name: "Pawnee",
+      nativeName: "Páári",
+      iso639_1: null,
+      iso639_2: "paw",
+      familyId: "45", // Caddoan
+      parentLanguageId: null,
+      region: "Oklahoma",
+      countries: ["United States"],
+      nativeSpeakers: 10,
+      totalSpeakers: 10,
+      status: "critically endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Caddoan > Northern Caddoan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Great Plains agricultural people, known for earth lodge villages",
+      coordinates: { lat: 36.3, lng: -96.8 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === KERESAN LANGUAGES ===
+    const keres: Language = {
+      id: "lang77",
+      name: "Keres",
+      nativeName: "Keres",
+      iso639_1: null,
+      iso639_2: "kjq",
+      familyId: "46", // Keresan
+      parentLanguageId: null,
+      region: "New Mexico",
+      countries: ["United States"],
+      nativeSpeakers: 13000,
+      totalSpeakers: 13000,
+      status: "threatened",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Keresan (isolate)",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Language of several Pueblo communities in New Mexico",
+      coordinates: { lat: 35.4, lng: -106.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === KIOWA-TANOAN LANGUAGES ===
+    const kiowa: Language = {
+      id: "lang78",
+      name: "Kiowa",
+      nativeName: "Cáuijògà",
+      iso639_1: null,
+      iso639_2: "kio",
+      familyId: "47", // Kiowa-Tanoan
+      parentLanguageId: null,
+      region: "Oklahoma",
+      countries: ["United States"],
+      nativeSpeakers: 20,
+      totalSpeakers: 20,
+      status: "critically endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Kiowa-Tanoan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Great Plains nomadic people, moved from Montana to Oklahoma",
+      coordinates: { lat: 34.7, lng: -98.6 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const tiwa: Language = {
+      id: "lang79",
+      name: "Tiwa",
+      nativeName: "Tiwa",
+      iso639_1: null,
+      iso639_2: "tix",
+      familyId: "47", // Kiowa-Tanoan
+      parentLanguageId: null,
+      region: "New Mexico",
+      countries: ["United States"],
+      nativeSpeakers: 1800,
+      totalSpeakers: 1800,
+      status: "severely endangered",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Kiowa-Tanoan > Tanoan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Pueblo language spoken at Taos and Picuris",
+      coordinates: { lat: 36.4, lng: -105.6 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === YUMAN-COCHIMÍ LANGUAGES ===
+    const mojave: Language = {
+      id: "lang80",
+      name: "Mojave",
+      nativeName: "'Aha Makav",
+      iso639_1: null,
+      iso639_2: "mov",
+      familyId: "48", // Yuman-Cochimí
+      parentLanguageId: null,
+      region: "California, Arizona",
+      countries: ["United States"],
+      nativeSpeakers: 200,
+      totalSpeakers: 200,
+      status: "severely endangered",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Yuman-Cochimí > Core Yuman > River Yuman",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Colorado River people, traditional agricultural society",
+      coordinates: { lat: 34.5, lng: -114.6 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === OTO-MANGUEAN LANGUAGES ===
+    const zapotec: Language = {
+      id: "lang81",
+      name: "Zapotec",
+      nativeName: "Diidxazá",
+      iso639_1: null,
+      iso639_2: "zap",
+      familyId: "49", // Oto-Manguean
+      parentLanguageId: null,
+      region: "Oaxaca, Mexico",
+      countries: ["Mexico"],
+      nativeSpeakers: 490000,
+      totalSpeakers: 490000,
+      status: "living",
+      timeOrigin: "500 BCE",
+      timeEnd: null,
+      classification: "Oto-Manguean > Zapotecan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Ancient Mesoamerican civilization, builders of Monte Albán",
+      coordinates: { lat: 17.1, lng: -96.7 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mixtec: Language = {
+      id: "lang82",
+      name: "Mixtec",
+      nativeName: "Tu'un savi",
+      iso639_1: null,
+      iso639_2: "mix",
+      familyId: "49", // Oto-Manguean
+      parentLanguageId: null,
+      region: "Oaxaca, Guerrero, Puebla, Mexico",
+      countries: ["Mexico"],
+      nativeSpeakers: 511000,
+      totalSpeakers: 511000,
+      status: "living",
+      timeOrigin: "500 BCE",
+      timeEnd: null,
+      classification: "Oto-Manguean > Mixtecan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Ancient Mesoamerican people, known for codices and goldwork",
+      coordinates: { lat: 17.2, lng: -97.8 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === MIXE-ZOQUE LANGUAGES ===
+    const mixe: Language = {
+      id: "lang83",
+      name: "Mixe",
+      nativeName: "Ayuujk",
+      iso639_1: null,
+      iso639_2: "mco",
+      familyId: "50", // Mixe-Zoque
+      parentLanguageId: null,
+      region: "Oaxaca, Mexico",
+      countries: ["Mexico"],
+      nativeSpeakers: 132000,
+      totalSpeakers: 132000,
+      status: "living",
+      timeOrigin: "1500 BCE",
+      timeEnd: null,
+      classification: "Mixe-Zoque > Mixean",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Mountain people of Oaxaca, possibly related to ancient Olmecs",
+      coordinates: { lat: 17.0, lng: -95.8 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === CHIBCHAN LANGUAGES ===
+    const guaymi: Language = {
+      id: "lang84",
+      name: "Guaymí",
+      nativeName: "Ngäbere",
+      iso639_1: null,
+      iso639_2: "gym",
+      familyId: "51", // Chibchan
+      parentLanguageId: null,
+      region: "Panama, Costa Rica",
+      countries: ["Panama", "Costa Rica"],
+      nativeSpeakers: 170000,
+      totalSpeakers: 170000,
+      status: "living",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Chibchan > Guaymí",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Largest indigenous group in Panama",
+      coordinates: { lat: 8.5, lng: -81.5 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === MISUMALPAN LANGUAGES ===
+    const miskito: Language = {
+      id: "lang85",
+      name: "Miskito",
+      nativeName: "Mískitu",
+      iso639_1: null,
+      iso639_2: "miq",
+      familyId: "52", // Misumalpan
+      parentLanguageId: null,
+      region: "Nicaragua, Honduras",
+      countries: ["Nicaragua", "Honduras"],
+      nativeSpeakers: 180000,
+      totalSpeakers: 180000,
+      status: "living",
+      timeOrigin: "1500 CE",
+      timeEnd: null,
+      classification: "Misumalpan",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Caribbean coastal people, historically allied with British",
+      coordinates: { lat: 14.0, lng: -84.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === MACRO-JÊ LANGUAGES ===
+    const kaingang: Language = {
+      id: "lang86",
+      name: "Kaingang",
+      nativeName: "Kanhgág",
+      iso639_1: null,
+      iso639_2: "kgp",
+      familyId: "53", // Macro-Jê
+      parentLanguageId: null,
+      region: "Southern Brazil",
+      countries: ["Brazil"],
+      nativeSpeakers: 22000,
+      totalSpeakers: 22000,
+      status: "threatened",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Macro-Jê > Jê",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Largest Jê-speaking group in Brazil",
+      coordinates: { lat: -25.4, lng: -51.5 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === CARIBAN LANGUAGES ===
+    const carib: Language = {
+      id: "lang87",
+      name: "Carib",
+      nativeName: "Kari'nja",
+      iso639_1: null,
+      iso639_2: "car",
+      familyId: "54", // Cariban
+      parentLanguageId: null,
+      region: "Venezuela, Guyana, Suriname, French Guiana, Brazil",
+      countries: ["Venezuela", "Guyana", "Suriname", "French Guiana", "Brazil"],
+      nativeSpeakers: 10000,
+      totalSpeakers: 10000,
+      status: "threatened",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Cariban > Coastal Cariban",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Historical Caribbean maritime people, source of word 'Caribbean'",
+      coordinates: { lat: 7.5, lng: -61.0 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === AYMARAN LANGUAGES ===
+    const aymara: Language = {
+      id: "lang88",
+      name: "Aymara",
+      nativeName: "Aymar aru",
+      iso639_1: "ay",
+      iso639_2: "aym",
+      familyId: "55", // Aymaran
+      parentLanguageId: null,
+      region: "Bolivia, Peru, Chile",
+      countries: ["Bolivia", "Peru", "Chile"],
+      nativeSpeakers: 1700000,
+      totalSpeakers: 2800000,
+      status: "living",
+      timeOrigin: "500 CE",
+      timeEnd: null,
+      classification: "Aymaran",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Co-official language in Bolivia, pre-Inca Andean civilization",
+      coordinates: { lat: -16.2, lng: -63.6 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === ARAUCANIAN LANGUAGES ===
+    const mapuche: Language = {
+      id: "lang89",
+      name: "Mapuche",
+      nativeName: "Mapudungun",
+      iso639_1: null,
+      iso639_2: "arn",
+      familyId: "56", // Araucanian
+      parentLanguageId: null,
+      region: "Chile, Argentina",
+      countries: ["Chile", "Argentina"],
+      nativeSpeakers: 260000,
+      totalSpeakers: 260000,
+      status: "threatened",
+      timeOrigin: "1000 CE",
+      timeEnd: null,
+      classification: "Araucanian",
+      writingSystem: "Latin script",
+      isHistoricalVariant: false,
+      isDialect: false,
+      chronologicalOrder: 1,
+      historicalContext: "Only undefeated indigenous people in the Americas, resisted Inca and Spanish empires",
+      coordinates: { lat: -38.7, lng: -72.6 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // === ALGONQUIAN LANGUAGES ===
     const ojibwe: Language = {
       id: "lang36",
       name: "Ojibwe",
@@ -1885,32 +2761,7 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
 
-    // Siouan Languages
-    const lakota: Language = {
-      id: "lang42",
-      name: "Lakota",
-      nativeName: "Lakȟótiyapi",
-      iso639_1: "lkt",
-      iso639_2: "lkt",
-      familyId: "32", // Siouan
-      parentLanguageId: null,
-      region: "Great Plains",
-      countries: ["United States"],
-      nativeSpeakers: 2000,
-      totalSpeakers: 2000,
-      status: "severely endangered",
-      timeOrigin: "1600 CE",
-      timeEnd: null,
-      classification: "Siouan",
-      writingSystem: "Latin script",
-      isHistoricalVariant: false,
-      isDialect: false,
-      chronologicalOrder: 1,
-      historicalContext: null,
-      coordinates: { lat: 43.7, lng: -102.3 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+
 
     // Mayan Languages
     const yucatecMaya: Language = {
@@ -2415,6 +3266,28 @@ export class MemStorage implements IStorage {
     this.languages.set("lang58", punjabi);
     this.languages.set("lang59", polish);
     this.languages.set("lang60", czech);
+
+    // === STORE NEW NATIVE AMERICAN LANGUAGES ===
+    this.languages.set("lang70", choctaw);
+    this.languages.set("lang71", creek);
+    this.languages.set("lang72", chickasaw);
+    this.languages.set("lang73", dakota);
+    this.languages.set("lang74", lakota);
+    this.languages.set("lang75", caddo);
+    this.languages.set("lang76", pawnee);
+    this.languages.set("lang77", keres);
+    this.languages.set("lang78", kiowa);
+    this.languages.set("lang79", tiwa);
+    this.languages.set("lang80", mojave);
+    this.languages.set("lang81", zapotec);
+    this.languages.set("lang82", mixtec);
+    this.languages.set("lang83", mixe);
+    this.languages.set("lang84", guaymi);
+    this.languages.set("lang85", miskito);
+    this.languages.set("lang86", kaingang);
+    this.languages.set("lang87", carib);
+    this.languages.set("lang88", aymara);
+    this.languages.set("lang89", mapuche);
 
     // Initialize sample base words
     const sampleWords = [
@@ -3034,6 +3907,248 @@ export class MemStorage implements IStorage {
         "word21": "sestra", "word22": "ruka", "word23": "oko", "word24": "ucho",
         "word25": "ústa", "word26": "jídlo", "word27": "jíst", "word28": "pít",
         "word29": "spát", "word30": "chodit", "word31": "běhat", "word32": "mluvit"
+      },
+
+      // === NATIVE AMERICAN LANGUAGE TRANSLATIONS ===
+
+      // Choctaw translations (Muskogean)
+      "lang70": {
+        "word1": "halito", "word2": "oka", "word3": "chuka", "word4": "ishki",
+        "word5": "nvni", "word6": "iti", "word7": "hvshi", "word8": "hvshi",
+        "word9": "luak", "word10": "yakni", "word11": "mahli", "word12": "hollo",
+        "word13": "nitak", "word14": "hattak", "word15": "ohoyo", "word16": "hattak",
+        "word17": "alla", "word18": "ishki", "word19": "iki", "word20": "itibapishi",
+        "word21": "itanchi", "word22": "ibbak", "word23": "nishkin", "word24": "haksobish",
+        "word25": "itih", "word26": "vpa", "word27": "vpa", "word28": "ishko",
+        "word29": "nusi", "word30": "aya", "word31": "maleli", "word32": "anumpuli"
+      },
+
+      // Creek (Muscogee) translations (Muskogean)
+      "lang71": {
+        "word1": "hensci", "word2": "ue", "word3": "cuko", "word4": "cuko-vculvke",
+        "word5": "ecke", "word6": "eto", "word7": "hvse", "word8": "hvresse",
+        "word9": "totkv", "word10": "ekvnv", "word11": "hotvle", "word12": "vnokeckv",
+        "word13": "oketv", "word14": "este", "word15": "hokte", "word16": "honvnwv",
+        "word17": "hopuetake", "word18": "ecke", "word19": "erke", "word20": "cehofv",
+        "word21": "ewvhvlv", "word22": "enke", "word23": "turwv", "word24": "hvcetvnks",
+        "word25": "cukpe", "word26": "hompetvn", "word27": "hompetvs", "word28": "eskes",
+        "word29": "nocets", "word30": "ares", "word31": "letkes", "word32": "kerkueces"
+      },
+
+      // Chickasaw translations (Muskogean)
+      "lang72": {
+        "word1": "chokma", "word2": "oka'", "word3": "chuka", "word4": "issuba",
+        "word5": "nvni", "word6": "iti", "word7": "hvshi", "word8": "hvshi",
+        "word9": "luak", "word10": "yakni", "word11": "mahli", "word12": "hollo",
+        "word13": "nitak", "word14": "hattak", "word15": "ohoyo", "word16": "hattak",
+        "word17": "alla", "word18": "ishki", "word19": "iki", "word20": "itibapishi",
+        "word21": "itanchi", "word22": "ibbak", "word23": "nishkin", "word24": "haksobish",
+        "word25": "itih", "word26": "ilhpak", "word27": "vpa", "word28": "ishko",
+        "word29": "nusi", "word30": "aya", "word31": "maleli", "word32": "anumpuli"
+      },
+
+      // Dakota translations (Siouan-Catawban)
+      "lang73": {
+        "word1": "hau", "word2": "mni", "word3": "tipi", "word4": "tiospaye",
+        "word5": "he", "word6": "can", "word7": "wi", "word8": "hanhepi wi",
+        "word9": "peta", "word10": "maka", "word11": "tate", "word12": "wastekidapi",
+        "word13": "omaka", "word14": "wicasta", "word15": "winyan", "word16": "wicasta",
+        "word17": "hokshila", "word18": "ina", "word19": "ate", "word20": "timdo",
+        "word21": "tankashi", "word22": "nape", "word23": "ishta", "word24": "noge",
+        "word25": "i", "word26": "woyute", "word27": "yute", "word28": "yatkan",
+        "word29": "istinma", "word30": "mani", "word31": "inyanka", "word32": "ia"
+      },
+
+      // Lakota translations (Siouan-Catawban)
+      "lang74": {
+        "word1": "hau", "word2": "mni", "word3": "tipi", "word4": "tiospaye",
+        "word5": "paha", "word6": "can", "word7": "wi", "word8": "hanwi",
+        "word9": "peta", "word10": "maka", "word11": "tate", "word12": "cantekiyapi",
+        "word13": "omaka", "word14": "wicasta", "word15": "winyan", "word16": "wicasta",
+        "word17": "wakanyeja", "word18": "ina", "word19": "ate", "word20": "cinye",
+        "word21": "tankaku", "word22": "nape", "word23": "ishta", "word24": "noge",
+        "word25": "i", "word26": "woyute", "word27": "wote", "word28": "yatkan",
+        "word29": "istinma", "word30": "mani", "word31": "inyanka", "word32": "wohdaka"
+      },
+
+      // Caddo translations (Caddoan)
+      "lang75": {
+        "word1": "hasíínay", "word2": "káani", "word3": "naahá", "word4": "hadahnih",
+        "word5": "náckish", "word6": "háah", "word7": "sáckah", "word8": "háabish",
+        "word9": "kút", "word10": "an", "word11": "híyah", "word12": "sahníh",
+        "word13": "káyah", "word14": "hasíínay", "word15": "wi", "word16": "híyah",
+        "word17": "bitsi", "word18": "an", "word19": "adáh", "word20": "sitsi",
+        "word21": "nakatsi", "word22": "kish", "word23": "nash", "word24": "kitah",
+        "word25": "dah", "word26": "kanih", "word27": "kan", "word28": "dah",
+        "word29": "híbah", "word30": "bisah", "word31": "bahsah", "word32": "dadáh"
+      },
+
+      // Pawnee translations (Caddoan)
+      "lang76": {
+        "word1": "ráwa", "word2": "kiicu", "word3": "naahá", "word4": "itka",
+        "word5": "pahóku", "word6": "raki", "word7": "sakuru", "word8": "paa",
+        "word9": "ahi", "word10": "huruu", "word11": "cuu", "word12": "rahuruu",
+        "word13": "raa", "word14": "cka", "word15": "cka", "word16": "cka",
+        "word17": "piiru", "word18": "atira", "word19": "ati", "word20": "riisu",
+        "word21": "isku", "word22": "riks", "word23": "kiiriks", "word24": "raciks",
+        "word25": "raaku", "word26": "kawaahtu", "word27": "kawaahtu", "word28": "kiisku",
+        "word29": "rahuu", "word30": "raasu", "word31": "ciirahkaa", "word32": "raaku"
+      },
+
+      // Keres translations (Keresan)
+      "lang77": {
+        "word1": "guwaadzi", "word2": "baa", "word3": "k'ini", "word4": "h'aniya",
+        "word5": "k'apina", "word6": "stiini", "word7": "dyami", "word8": "b'anu",
+        "word9": "k'uyama", "word10": "naya", "word11": "hawi", "word12": "sh'uma",
+        "word13": "hawani", "word14": "ha'niya", "word15": "na'sha", "word16": "guuwa",
+        "word17": "ch'itra", "word18": "naya", "word19": "baba", "word20": "k'aya",
+        "word21": "wawa", "word22": "k'uwani", "word23": "mishti", "word24": "hakani",
+        "word25": "k'uwa", "word26": "kawaik", "word27": "tuu", "word28": "tyuu",
+        "word29": "hewani", "word30": "truu", "word31": "hastuu", "word32": "hawani"
+      },
+
+      // Kiowa translations (Kiowa-Tanoan)
+      "lang78": {
+        "word1": "háchò", "word2": "pā", "word3": "cáuì", "word4": "góm",
+        "word5": "kép", "word6": "tálì", "word7": "pā́", "word8": "pólì",
+        "word9": "kɔ̃́", "word10": "sę́nt", "word11": "nɔ̃́m", "word12": "dɔ̃́",
+        "word13": "sę́t", "word14": "tènè", "word15": "tālì", "word16": "tènè",
+        "word17": "ɔ́n", "word18": "nâ", "word19": "tɔ̃́", "word20": "sénè",
+        "word21": "tánè", "word22": "ɔ̃́", "word23": "tɔ̃́", "word24": "jɔ̃́",
+        "word25": "tɔ̃́", "word26": "sɔ̃́m", "word27": "ɔ̃́", "word28": "p'ɔ̃́",
+        "word29": "p'ɔ̃́t", "word30": "gyā", "word31": "pā́l", "word32": "kɔ̃́"
+      },
+
+      // Tiwa translations (Kiowa-Tanoan)
+      "lang79": {
+        "word1": "tua'ay", "word2": "pó", "word3": "tú'u", "word4": "povi-ena",
+        "word5": "tsiena", "word6": "phó", "word7": "p'óna", "word8": "p'óenemamu",
+        "word9": "k'o'ona", "word10": "t'áyna", "word11": "phíyu", "word12": "óchuumbi",
+        "word13": "t'óyna", "word14": "t'áyna", "word15": "ócuuma", "word16": "t'áyna",
+        "word17": "phuléna", "word18": "eena", "word19": "bába", "word20": "titíi",
+        "word21": "sísacu", "word22": "mú'una", "word23": "p'íne", "word24": "nakúne",
+        "word25": "tóombi", "word26": "ch'óona", "word27": "ch'óona", "word28": "p'íbi",
+        "word29": "phuúna", "word30": "yéebi", "word31": "kúutuu", "word32": "hóobi"
+      },
+
+      // Mojave translations (Yuman-Cochimí)
+      "lang80": {
+        "word1": "iiyey", "word2": "'aha", "word3": "'ava", "word4": "nyuum",
+        "word5": "'avii", "word6": "ahweet", "word7": "nyuuv", "word8": "hulypo",
+        "word9": "ahuul", "word10": "'ahaa", "word11": "hunyep", "word12": "'ahot",
+        "word13": "hunyep", "word14": "'iipaa", "word15": "'iipaa", "word16": "'iipaa",
+        "word17": "humat", "word18": "nye", "word19": "kweek", "word20": "ahii",
+        "word21": "huvii", "word22": "usaly", "word23": "iily", "word24": "ahwii",
+        "word25": "ithem", "word26": "'eesaly", "word27": "'eesaly", "word28": "aruuly",
+        "word29": "huuvek", "word30": "vaaly", "word31": "kwii", "word32": "ahwatk"
+      },
+
+      // Zapotec translations (Oto-Manguean)
+      "lang81": {
+        "word1": "naa", "word2": "nisa", "word3": "yoo", "word4": "xhiaa",
+        "word5": "dani", "word6": "yaga", "word7": "beeu", "word8": "beu",
+        "word9": "izi", "word10": "yoo", "word11": "bee", "word12": "gule",
+        "word13": "dxi", "word14": "binnigula", "word15": "ba'du", "word16": "binnilaa",
+        "word17": "xquenda", "word18": "na", "word19": "tata", "word20": "beza",
+        "word21": "bere", "word22": "lo'o", "word23": "yu'u", "word24": "xini",
+        "word25": "rua", "word26": "gueta", "word27": "gute", "word28": "runi",
+        "word29": "runi", "word30": "nuu", "word31": "ca", "word32": "runi"
+      },
+
+      // Mixtec translations (Oto-Manguean)
+      "lang82": {
+        "word1": "ndio", "word2": "nduta", "word3": "veʔe", "word4": "ichi",
+        "word5": "yuku", "word6": "yuu", "word7": "iva", "word8": "yoo",
+        "word9": "ita", "word10": "nuu", "word11": "ichi", "word12": "naa",
+        "word13": "viko", "word14": "ñuu", "word15": "ñaʔa", "word16": "tavi",
+        "word17": "xiko", "word18": "iya", "word19": "tatu", "word20": "saan",
+        "word21": "nuu", "word22": "lulu", "word23": "ita", "word24": "xini",
+        "word25": "nuu", "word26": "itun", "word27": "kuni", "word28": "nduvi",
+        "word29": "tee", "word30": "saa", "word31": "tuku", "word32": "saa"
+      },
+
+      // Mixe translations (Mixe-Zoque)
+      "lang83": {
+        "word1": "ëjts", "word2": "jää'äy", "word3": "këjk", "word4": "käjp",
+        "word5": "yu'uk", "word6": "te'", "word7": "tsapak", "word8": "tsapa",
+        "word9": "tuk", "word10": "nëëjk", "word11": "iik", "word12": "yu'ujk",
+        "word13": "aats", "word14": "anää'äy", "word15": "tujk", "word16": "anää'äy",
+        "word17": "poj", "word18": "tyëjk", "word19": "taak", "word20": "xaam",
+        "word21": "iits", "word22": "käk", "word23": "ëjts", "word24": "nëk",
+        "word25": "ëjts", "word26": "aap", "word27": "këm", "word28": "uj",
+        "word29": "poj", "word30": "xëm", "word31": "tsooj", "word32": "ëjts"
+      },
+
+      // Guaymí (Ngäbere) translations (Chibchan)
+      "lang84": {
+        "word1": "kere", "word2": "ti", "word3": "krä", "word4": "mimi",
+        "word5": "kwebä", "word6": "kri", "word7": "siebo", "word8": "kwe",
+        "word9": "nege", "word10": "no", "word11": "jiä", "word12": "mimi",
+        "word13": "dröno", "word14": "ngäbe", "word15": "juami", "word16": "ngäbe",
+        "word17": "uñe", "word18": "no", "word19": "tata", "word20": "krebä",
+        "word21": "mimi", "word22": "cha", "word23": "uro", "word24": "kre",
+        "word25": "to", "word26": "bete", "word27": "ta", "word28": "uje",
+        "word29": "nobä", "word30": "nabä", "word31": "krebä", "word32": "kwa"
+      },
+
+      // Miskito translations (Misumalpan)
+      "lang85": {
+        "word1": "pain", "word2": "li", "word3": "plun", "word4": "kiamp",
+        "word5": "krasa", "word6": "dus", "word7": "lapa", "word8": "kati",
+        "word9": "bila", "word10": "mihta", "word11": "wina", "word12": "yamni",
+        "word13": "taim", "word14": "witin", "word15": "mairin", "word16": "witin",
+        "word17": "tuktang", "word18": "yapti", "word19": "tata", "word20": "lakra",
+        "word21": "biksa", "word22": "sakaia", "word23": "mata", "word24": "aiku",
+        "word25": "bila", "word26": "kaikan", "word27": "muna", "word28": "yabai",
+        "word29": "laki", "word30": "wali", "word31": "pri", "word32": "taki"
+      },
+
+      // Kaingang translations (Macro-Jê)
+      "lang86": {
+        "word1": "han", "word2": "goj", "word3": "in", "word4": "ra ke",
+        "word5": "mro", "word6": "pẽ", "word7": "ra", "word8": "kysã",
+        "word9": "pe", "word10": "ga", "word11": "nỹr", "word12": "kanhgág",
+        "word13": "kysã", "word14": "kanhgág", "word15": "finy", "word16": "kanhgág",
+        "word17": "kurumĩ", "word18": "nỹ", "word19": "pa", "word20": "regre",
+        "word21": "tỹnh", "word22": "pẽ", "word23": "nĩ", "word24": "apĩka",
+        "word25": "nũ", "word26": "emẽ", "word27": "jú", "word28": "ẽg",
+        "word29": "ẽnh", "word30": "ẽg", "word31": "kakrẽ", "word32": "ar"
+      },
+
+      // Carib translations (Cariban)
+      "lang87": {
+        "word1": "konio", "word2": "tuna", "word3": "ey", "word4": "eputamuto",
+        "word5": "wöpö", "word6": "wewe", "word7": "wei", "word8": "kapü",
+        "word9": "apüy", "word10": "nono", "word11": "wenamu", "word12": "koneka",
+        "word13": "waray", "word14": "okoyü", "word15": "woroki", "word16": "okoyü",
+        "word17": "memeru", "word18": "ey", "word19": "papay", "word20": "yewüy",
+        "word21": "itoto", "word22": "upöya", "word23": "wözö", "word24": "akanapa",
+        "word25": "anüy", "word26": "arakü", "word27": "epu", "word28": "itü",
+        "word29": "apüy", "word30": "ekey", "word31": "anüka", "word32": "anüy"
+      },
+
+      // Aymara translations (Aymaran)
+      "lang88": {
+        "word1": "kamisaki", "word2": "uma", "word3": "uta", "word4": "ayllu",
+        "word5": "qullu", "word6": "quqa", "word7": "inti", "word8": "phaxsi",
+        "word9": "nina", "word10": "uraq", "word11": "wayra", "word12": "muná",
+        "word13": "pacha", "word14": "jaqi", "word15": "warmi", "word16": "chacha",
+        "word17": "wawa", "word18": "mama", "word19": "tata", "word20": "jila",
+        "word21": "kullaka", "word22": "ampara", "word23": "nayra", "word24": "jinchu",
+        "word25": "laka", "word26": "manq'a", "word27": "manq'aña", "word28": "umaña",
+        "word29": "ikiña", "word30": "sarxi", "word31": "phy'iña", "word32": "arsuña"
+      },
+
+      // Mapuche translations (Araucanian)
+      "lang89": {
+        "word1": "mari mari", "word2": "ko", "word3": "ruka", "word4": "lov",
+        "word5": "mawün", "word6": "aliwen", "word7": "antü", "word8": "küyen",
+        "word9": "kütral", "word10": "mapu", "word11": "küren", "word12": "ayün",
+        "word13": "tripantu", "word14": "che", "word15": "domo", "word16": "wentru",
+        "word17": "pichi che", "word18": "ñuke", "word19": "chaw", "word20": "peñi",
+        "word21": "lamien", "word22": "kuwü", "word23": "nge", "word24": "pilun",
+        "word25": "wün", "word26": "iyael", "word27": "iyael", "word28": "punem",
+        "word29": "umawn", "word30": "tripan", "word31": "kürüf", "word32": "dungun"
       }
     };
 
