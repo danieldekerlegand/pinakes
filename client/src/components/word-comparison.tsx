@@ -21,7 +21,8 @@ import {
   Search,
   Zap,
   Users,
-  Clock
+  Clock,
+  X
 } from "lucide-react";
 import type { Language, WordComparison } from "@shared/schema";
 
@@ -141,19 +142,32 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
     .join(", ");
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[800px] max-w-[90vw]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center space-x-2">
-            <GitCompare className="h-5 w-5" />
-            <span>One-Click Language Comparison</span>
-          </SheetTitle>
-          <SheetDescription>
-            Compare word translations across multiple languages instantly
-          </SheetDescription>
-        </SheetHeader>
+    <>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+          <div 
+            className="fixed right-0 top-0 h-full w-[800px] max-w-[90vw] bg-white shadow-lg flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex-shrink-0 border-b border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Languages className="h-5 w-5 mr-2" />
+                    One-Click Language Comparison
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Compare word lists across languages using preset combinations or custom selections.
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={onClose}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
 
-        <div className="mt-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
           {/* Quick Comparison Presets */}
           <div>
             <Label className="text-sm font-medium mb-3 block flex items-center space-x-2">
@@ -371,8 +385,11 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
               <p className="text-gray-600">Select at least 2 languages to start comparing</p>
             </div>
           )}
+              </div>
+            </div>
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </>
   );
 }
