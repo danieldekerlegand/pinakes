@@ -415,6 +415,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Etymology and Historical Word Migration endpoints
+  app.post("/api/generate-etymology-data", async (req, res) => {
+    try {
+      console.log("Starting etymology data generation...");
+      await storage.generateEtymologyData();
+      res.json({ 
+        success: true, 
+        message: "Etymology data generation completed successfully" 
+      });
+    } catch (error) {
+      console.error("Error generating etymology data:", error);
+      res.status(500).json({ 
+        error: "Failed to generate etymology data", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.get("/api/etymology/:baseWordId", async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const etymology = await storage.getEtymologyByWord(baseWordId);
+      res.json(etymology);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch etymology" });
+    }
+  });
+
+  app.get("/api/word-migrations/:etymologyId", async (req, res) => {
+    try {
+      const { etymologyId } = req.params;
+      const migrations = await storage.getWordMigrations(etymologyId);
+      res.json(migrations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch word migrations" });
+    }
+  });
+
+  app.get("/api/cognates/:baseWordId", async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const cognates = await storage.getCognates(baseWordId);
+      res.json(cognates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cognates" });
+    }
+  });
+
+  app.get("/api/phonetic-evolution/:baseWordId", async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const evolution = await storage.getPhoneticEvolution(baseWordId);
+      res.json(evolution);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch phonetic evolution" });
+    }
+  });
+
+  app.get("/api/semantic-shifts/:baseWordId", async (req, res) => {
+    try {
+      const { baseWordId } = req.params;
+      const shifts = await storage.getSemanticShifts(baseWordId);
+      res.json(shifts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch semantic shifts" });
+    }
+  });
+
+  app.get("/api/search-etymologies", async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: "Search query required" });
+      }
+      const results = await storage.searchEtymologies(q);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search etymologies" });
+    }
+  });
+
+  app.get("/api/etymological-network/:networkId", async (req, res) => {
+    try {
+      const { networkId } = req.params;
+      const network = await storage.getEtymologicalNetwork(networkId);
+      res.json(network);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch etymological network" });
+    }
+  });
+
   app.post("/api/linguistic-services/test", async (req, res) => {
     try {
       const { word, fromLang = 'en', toLang = 'de' } = req.body;

@@ -539,6 +539,48 @@ export class DatabaseStorage implements IStorage {
     const { modernDialects } = await import("@shared/schema");
     return await db.select().from(modernDialects).where(eq(modernDialects.mainLanguageId, mainLanguageId));
   }
+
+  // Etymology and word migration methods
+  async generateEtymologyData(): Promise<void> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    await etymologyExplorer.generateEtymologyData();
+    await etymologyExplorer.createEtymologicalNetworks();
+  }
+
+  async getEtymologyByWord(baseWordId: string): Promise<any> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getEtymologyByWord(baseWordId);
+  }
+
+  async getWordMigrations(etymologyId: string): Promise<any[]> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getWordMigrations(etymologyId);
+  }
+
+  async getCognates(baseWordId: string): Promise<any[]> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getCognates(baseWordId);
+  }
+
+  async getPhoneticEvolution(baseWordId: string): Promise<any[]> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getPhoneticEvolution(baseWordId);
+  }
+
+  async getSemanticShifts(baseWordId: string): Promise<any[]> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getSemanticShifts(baseWordId);
+  }
+
+  async searchEtymologies(query: string): Promise<any[]> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.searchEtymologies(query);
+  }
+
+  async getEtymologicalNetwork(networkId: string): Promise<any> {
+    const { etymologyExplorer } = await import("./services/etymology-explorer");
+    return await etymologyExplorer.getEtymologicalNetwork(networkId);
+  }
 }
 
 export const storage = new DatabaseStorage();

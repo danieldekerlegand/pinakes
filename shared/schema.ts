@@ -249,6 +249,104 @@ export const userContributions = pgTable("user_contributions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Etymology and Historical Word Migration Tracking
+export const etymologies = pgTable("etymologies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  baseWordId: varchar("base_word_id").notNull().references(() => baseWords.id),
+  sourceLanguageId: varchar("source_language_id").references(() => languages.id),
+  targetLanguageId: varchar("target_language_id").notNull().references(() => languages.id),
+  originalForm: text("original_form").notNull(), // Original word form in source language
+  currentForm: text("current_form").notNull(), // Current form in target language
+  etymologyPath: jsonb("etymology_path").$type<{
+    language: string;
+    form: string;
+    meaning: string;
+    timeperiod: string;
+    notes?: string;
+  }[]>().default([]), // Complete migration path
+  migrationRoute: jsonb("migration_route").$type<{
+    fromLanguage: string;
+    toLanguage: string;
+    timeperiod: string;
+    mechanism: string; // borrowing, conquest, trade, cultural_contact, etc.
+    confidence: number; // 1-100
+  }[]>().default([]),
+  cognates: jsonb("cognates").$type<{
+    language: string;
+    form: string;
+    meaning: string;
+    relationship: string; // direct_descendant, borrowing, cognate, false_friend
+  }[]>().default([]),
+  semanticShifts: jsonb("semantic_shifts").$type<{
+    timeperiod: string;
+    oldMeaning: string;
+    newMeaning: string;
+    mechanism: string; // metaphor, metonymy, narrowing, broadening, etc.
+  }[]>().default([]),
+  phoneticChanges: jsonb("phonetic_changes").$type<{
+    timeperiod: string;
+    oldForm: string;
+    newForm: string;
+    soundLaw: string;
+    environment?: string;
+  }[]>().default([]),
+  firstAttestation: text("first_attestation"), // Earliest recorded usage
+  attestationSource: text("attestation_source"), // Historical source/document
+  etymologyConfidence: integer("etymology_confidence").default(50), // 1-100 scale
+  scholarlyNotes: text("scholarly_notes"),
+  sources: jsonb("sources").$type<string[]>().default([]),
+  verified: boolean("verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Word Migration Events - specific historical borrowing/transmission events
+export const wordMigrations = pgTable("word_migrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  etymologyId: varchar("etymology_id").notNull().references(() => etymologies.id),
+  sourceLanguageId: varchar("source_language_id").notNull().references(() => languages.id),
+  targetLanguageId: varchar("target_language_id").notNull().references(() => languages.id),
+  sourceForm: text("source_form").notNull(),
+  targetForm: text("target_form").notNull(),
+  migrationPeriod: text("migration_period").notNull(), // e.g., "1066-1200 CE"
+  migrationMechanism: text("migration_mechanism").notNull(), // conquest, trade, religion, scholarship, etc.
+  historicalContext: text("historical_context"), // Historical event that caused migration
+  geographicRoute: jsonb("geographic_route").$type<{
+    region: string;
+    coordinates?: { lat: number; lng: number };
+    role: string; // origin, intermediate, destination
+  }[]>().default([]),
+  culturalImpact: text("cultural_impact"), // How the word transmission affected culture
+  frequency: text("frequency"), // common, rare, specialized, obsolete
+  socialRegister: text("social_register"), // formal, informal, technical, archaic
+  confidence: integer("confidence").default(50), // 1-100 confidence in this migration
+  evidenceSources: jsonb("evidence_sources").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Etymological Networks - connections between related words
+export const etymologicalNetworks = pgTable("etymological_networks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  networkName: text("network_name").notNull(), // e.g., "Proto-Indo-European *h₂er-"
+  rootForm: text("root_form"), // Reconstructed root form
+  protoLanguage: text("proto_language"), // e.g., "Proto-Indo-European"
+  semanticField: text("semantic_field"), // e.g., "agriculture", "kinship", "warfare"
+  members: jsonb("members").$type<{
+    languageId: string;
+    baseWordId: string;
+    form: string;
+    meaning: string;
+    relationship: string; // direct_descendant, cognate, derivative
+  }[]>().default([]),
+  reconstruction: text("reconstruction"), // Scholarly reconstruction notes
+  scholarConsensus: integer("scholar_consensus").default(50), // 1-100 agreement level
+  controversies: text("controversies"), // Scholarly debates about this etymology
+  references: jsonb("references").$type<string[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // AI-Generated Translation Contexts
 export const translationContexts = pgTable("translation_contexts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -293,6 +391,25 @@ export const searchFilters = pgTable("search_filters", {
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for etymology and migration tracking
+export const insertEtymologySchema = createInsertSchema(etymologies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWordMigrationSchema = createInsertSchema(wordMigrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEtymologicalNetworkSchema = createInsertSchema(etymologicalNetworks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Insert schemas for normalized taxonomic structure
@@ -395,6 +512,14 @@ export const insertSearchFilterSchema = createInsertSchema(searchFilters).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+// Etymology and migration types
+export type Etymology = typeof etymologies.$inferSelect;
+export type InsertEtymology = z.infer<typeof insertEtymologySchema>;
+export type WordMigration = typeof wordMigrations.$inferSelect;
+export type InsertWordMigration = z.infer<typeof insertWordMigrationSchema>;
+export type EtymologicalNetwork = typeof etymologicalNetworks.$inferSelect;
+export type InsertEtymologicalNetwork = z.infer<typeof insertEtymologicalNetworkSchema>;
 
 // Normalized taxonomic types
 export type Phylum = typeof phylums.$inferSelect;

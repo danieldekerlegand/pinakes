@@ -13,7 +13,8 @@ import {
   Users, 
   Filter,
   TreePine,
-  Layers
+  Layers,
+  BookOpen
 } from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
@@ -31,6 +32,7 @@ import UserContributionPanel from "@/components/user-contribution-panel";
 import AdvancedSearchFilters from "@/components/advanced-search-filters";
 import { LanguageFamilyScraper } from "@/components/language-family-scraper";
 import { DatabaseNormalizer } from "@/components/database-normalizer";
+import EtymologyExplorer from "@/components/etymology-explorer";
 import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
@@ -46,6 +48,7 @@ export default function Dashboard() {
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const [familyScrapingOpen, setFamilyScrapingOpen] = useState(false);
   const [normalizerOpen, setNormalizerOpen] = useState(false);
+  const [etymologyExplorerOpen, setEtymologyExplorerOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [filters, setFilters] = useState({
@@ -142,6 +145,15 @@ export default function Dashboard() {
                 data-testid="button-database-normalizer"
               >
                 <Layers className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setEtymologyExplorerOpen(true)}
+                data-testid="button-etymology"
+              >
+                <BookOpen className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -316,6 +328,13 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Etymology Explorer Modal */}
+      <EtymologyExplorer
+        isOpen={etymologyExplorerOpen}
+        onClose={() => setEtymologyExplorerOpen(false)}
+        baseWordId={selectedWord?.id}
+      />
       
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
