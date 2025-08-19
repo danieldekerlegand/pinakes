@@ -348,6 +348,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database Normalization endpoint
+  app.post("/api/normalize-database", async (req, res) => {
+    try {
+      console.log("Starting database normalization...");
+      await storage.normalizeDatabase();
+      res.json({ 
+        success: true, 
+        message: "Database normalization completed successfully" 
+      });
+    } catch (error) {
+      console.error("Error during database normalization:", error);
+      res.status(500).json({ 
+        error: "Failed to normalize database", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Taxonomic structure endpoints
+  app.get("/api/phylums", async (req, res) => {
+    try {
+      const phylums = await storage.getPhylums();
+      res.json(phylums);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch phylums" });
+    }
+  });
+
+  app.get("/api/families/:phylumId?", async (req, res) => {
+    try {
+      const { phylumId } = req.params;
+      const families = await storage.getFamilies(phylumId);
+      res.json(families);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch families" });
+    }
+  });
+
+  app.get("/api/main-languages", async (req, res) => {
+    try {
+      const languages = await storage.getMainLanguages();
+      res.json(languages);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch main languages" });
+    }
+  });
+
+  app.get("/api/historical-variants/:mainLanguageId", async (req, res) => {
+    try {
+      const { mainLanguageId } = req.params;
+      const variants = await storage.getHistoricalVariants(mainLanguageId);
+      res.json(variants);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch historical variants" });
+    }
+  });
+
+  app.get("/api/modern-dialects/:mainLanguageId", async (req, res) => {
+    try {
+      const { mainLanguageId } = req.params;
+      const dialects = await storage.getModernDialects(mainLanguageId);
+      res.json(dialects);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch modern dialects" });
+    }
+  });
+
   app.post("/api/linguistic-services/test", async (req, res) => {
     try {
       const { word, fromLang = 'en', toLang = 'de' } = req.body;

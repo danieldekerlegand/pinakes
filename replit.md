@@ -4,6 +4,19 @@ The Linguistic Family Tree is a full-stack TypeScript application for exploring 
 
 ## Recent Enhancements (January 2025)
 
+### Fully Normalized Database Architecture with Taxonomic Hierarchy (Latest - January 19, 2025)
+- **Complete Database Normalization**: Successfully transformed flat language family structure into properly normalized taxonomic hierarchy with separate tables for each linguistic level
+- **8-Level Taxonomic Structure**: Phylums → Families → Subfamilies → Branches → Groups → Main Languages → Historical Variants → Modern Dialects
+- **Separate Database Tables**: `phylums`, `families`, `subfamilies`, `branches`, `groups`, `main_languages`, `historical_variants`, `modern_dialects` with proper foreign key relationships
+- **Database Migration Tool**: Comprehensive `DatabaseNormalizer` service with automatic data migration from legacy flat structure to normalized hierarchy
+- **Enhanced API Endpoints**: New RESTful endpoints for each taxonomic level (`/api/phylums`, `/api/families/:phylumId`, `/api/main-languages`, etc.)
+- **Frontend Database Management**: Interactive DatabaseNormalizer component with progress tracking and validation for manual database restructuring
+- **Backward Compatibility**: Legacy tables and APIs maintained during transition period for seamless migration
+- **Data Integrity**: Proper hierarchical relationships with nullable foreign keys for flexibility and comprehensive validation tools
+- **Performance Optimization**: Separate tables enable efficient queries at any taxonomic level and better data organization for large-scale linguistic databases
+
+## Recent Enhancements (Previous)
+
 ### Comprehensive Native American Language Integration (Latest - January 18, 2025)
 - **20 Authentic Native American Languages**: Successfully integrated with real translations from tribal sources and official dictionaries
 - **Complete Translation Database**: 640+ authentic word translations across Native American languages using Choctaw Nation dictionary, tribal language departments, and academic sources
@@ -84,12 +97,31 @@ Preferred communication style: Simple, everyday language.
 - **Storage Layer**: Abstracted storage interface for database operations
 
 ## Database Schema Design
-- **Language Families**: Hierarchical structure with self-referencing parent relationships
-- **Languages**: Rich metadata including ISO codes, geographic regions, speaker statistics
-- **Base Words**: Core vocabulary with categorization and positioning
-- **Word Translations**: Many-to-many relationship between base words and languages
-- **Scraping Jobs**: Background job tracking with progress monitoring
-- **Data Integrity**: Foreign key constraints and proper indexing for performance
+
+### Normalized Taxonomic Structure (Current)
+- **Phylums**: Top-level linguistic groupings (e.g., Indo-European, Sino-Tibetan) with speaker counts and regional distribution
+- **Families**: Language families within phylums (e.g., Germanic, Romance) with hierarchical foreign key references
+- **Subfamilies**: Subdivisions of families (e.g., West Germanic, North Germanic) for detailed classification
+- **Branches**: Specific linguistic branches within subfamilies for precise categorization
+- **Groups**: Fine-grained language groups within branches for comprehensive organization
+- **Main Languages**: Primary linguistic units with ISO codes, speaker statistics, and taxonomic references
+- **Historical Variants**: Temporal language evolution (e.g., Old English → Middle English) with chronological ordering
+- **Modern Dialects**: Contemporary regional varieties and dialects with geographic and demographic data
+
+### Supporting Tables
+- **Base Words**: Core vocabulary with categorization and positioning for translation management
+- **Word Translations**: Many-to-many relationships between base words and all language types (main, historical, dialectal)
+- **Scraping Jobs**: Background processing with progress monitoring and status tracking
+- **Language Evolution**: Timeline events and historical linguistic changes
+- **User Contributions**: Community-driven translation submissions with verification workflows
+- **Translation Contexts**: AI-generated linguistic context and cultural information
+- **Search Filters**: Advanced filtering capabilities for complex linguistic queries
+
+### Data Integrity & Performance
+- **Foreign Key Constraints**: Proper hierarchical relationships with cascade options
+- **Flexible References**: Nullable foreign keys in main languages for incomplete taxonomic data
+- **Indexing Strategy**: Optimized queries for taxonomic navigation and language lookup
+- **Migration Tools**: Automated normalization and data validation services
 
 ## External Dependencies
 

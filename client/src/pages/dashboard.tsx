@@ -12,7 +12,8 @@ import {
   Brain, 
   Users, 
   Filter,
-  TreePine
+  TreePine,
+  Layers
 } from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
@@ -29,6 +30,7 @@ import AITranslationContext from "@/components/ai-translation-context";
 import UserContributionPanel from "@/components/user-contribution-panel";
 import AdvancedSearchFilters from "@/components/advanced-search-filters";
 import { LanguageFamilyScraper } from "@/components/language-family-scraper";
+import { DatabaseNormalizer } from "@/components/database-normalizer";
 import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
@@ -43,6 +45,7 @@ export default function Dashboard() {
   const [contributionPanelOpen, setContributionPanelOpen] = useState(false);
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const [familyScrapingOpen, setFamilyScrapingOpen] = useState(false);
+  const [normalizerOpen, setNormalizerOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [filters, setFilters] = useState({
@@ -130,6 +133,15 @@ export default function Dashboard() {
                 data-testid="button-family-scraping"
               >
                 <TreePine className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setNormalizerOpen(true)}
+                data-testid="button-database-normalizer"
+              >
+                <Layers className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -292,6 +304,15 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setFamilyScrapingOpen(false)}>
           <div onClick={e => e.stopPropagation()}>
             <LanguageFamilyScraper />
+          </div>
+        </div>
+      )}
+
+      {/* Database Normalizer Modal */}
+      {normalizerOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setNormalizerOpen(false)}>
+          <div onClick={e => e.stopPropagation()}>
+            <DatabaseNormalizer />
           </div>
         </div>
       )}

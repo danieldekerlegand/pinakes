@@ -478,6 +478,67 @@ export class DatabaseStorage implements IStorage {
     const { languageFamilyScraper } = await import("./services/language-family-scraper");
     await languageFamilyScraper.scrapeComprehensiveLanguageFamilies();
   }
+
+  async normalizeDatabase(): Promise<void> {
+    // Import the database normalizer service
+    const { databaseNormalizer } = await import("./services/database-normalizer");
+    await databaseNormalizer.normalizeDatabase();
+    await databaseNormalizer.validateNormalization();
+  }
+
+  // Normalized taxonomic structure methods
+  async getPhylums(): Promise<any[]> {
+    // Import the new schema tables
+    const { phylums } = await import("@shared/schema");
+    return await db.select().from(phylums);
+  }
+
+  async getFamilies(phylumId?: string): Promise<any[]> {
+    const { families, phylums } = await import("@shared/schema");
+    if (phylumId) {
+      return await db.select().from(families).where(eq(families.phylumId, phylumId));
+    }
+    return await db.select().from(families);
+  }
+
+  async getSubfamilies(familyId?: string): Promise<any[]> {
+    const { subfamilies } = await import("@shared/schema");
+    if (familyId) {
+      return await db.select().from(subfamilies).where(eq(subfamilies.familyId, familyId));
+    }
+    return await db.select().from(subfamilies);
+  }
+
+  async getBranches(subfamilyId?: string): Promise<any[]> {
+    const { branches } = await import("@shared/schema");
+    if (subfamilyId) {
+      return await db.select().from(branches).where(eq(branches.subfamilyId, subfamilyId));
+    }
+    return await db.select().from(branches);
+  }
+
+  async getGroups(branchId?: string): Promise<any[]> {
+    const { groups } = await import("@shared/schema");
+    if (branchId) {
+      return await db.select().from(groups).where(eq(groups.branchId, branchId));
+    }
+    return await db.select().from(groups);
+  }
+
+  async getMainLanguages(): Promise<any[]> {
+    const { mainLanguages } = await import("@shared/schema");
+    return await db.select().from(mainLanguages);
+  }
+
+  async getHistoricalVariants(mainLanguageId: string): Promise<any[]> {
+    const { historicalVariants } = await import("@shared/schema");
+    return await db.select().from(historicalVariants).where(eq(historicalVariants.mainLanguageId, mainLanguageId));
+  }
+
+  async getModernDialects(mainLanguageId: string): Promise<any[]> {
+    const { modernDialects } = await import("@shared/schema");
+    return await db.select().from(modernDialects).where(eq(modernDialects.mainLanguageId, mainLanguageId));
+  }
 }
 
 export const storage = new DatabaseStorage();

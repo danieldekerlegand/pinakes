@@ -1,7 +1,78 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Normalized taxonomic structure for linguistic classification
+
+// Top-level phylums (e.g., Indo-European, Sino-Tibetan)
+export const phylums = pgTable("phylums", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  region: text("region"),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  speakerCount: integer("speaker_count").default(0),
+  languageCount: integer("language_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Language families within phylums (e.g., Germanic, Romance)
+export const families = pgTable("families", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  phylumId: varchar("phylum_id").notNull().references(() => phylums.id),
+  description: text("description"),
+  region: text("region"),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  speakerCount: integer("speaker_count").default(0),
+  languageCount: integer("language_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Subfamilies within families (e.g., West Germanic, North Germanic)
+export const subfamilies = pgTable("subfamilies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  familyId: varchar("family_id").notNull().references(() => families.id),
+  description: text("description"),
+  region: text("region"),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  speakerCount: integer("speaker_count").default(0),
+  languageCount: integer("language_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Branches within subfamilies (e.g., Anglo-Frisian, High German)
+export const branches = pgTable("branches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  subfamilyId: varchar("subfamily_id").notNull().references(() => subfamilies.id),
+  description: text("description"),
+  region: text("region"),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  speakerCount: integer("speaker_count").default(0),
+  languageCount: integer("language_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Groups within branches (e.g., Anglo-Saxon, Franconian)
+export const groups = pgTable("groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  branchId: varchar("branch_id").notNull().references(() => branches.id),
+  description: text("description"),
+  region: text("region"),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  speakerCount: integer("speaker_count").default(0),
+  languageCount: integer("language_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const languageFamilies = pgTable("language_families", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -17,6 +88,68 @@ export const languageFamilies = pgTable("language_families", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Main languages - core linguistic units
+export const mainLanguages = pgTable("main_languages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nativeName: text("native_name"),
+  iso639_1: varchar("iso639_1", { length: 2 }),
+  iso639_2: varchar("iso639_2", { length: 3 }),
+  // Hierarchical references (nullable for flexibility)
+  phylumId: varchar("phylum_id").references(() => phylums.id),
+  familyId: varchar("family_id").references(() => families.id),
+  subfamilyId: varchar("subfamily_id").references(() => subfamilies.id),
+  branchId: varchar("branch_id").references(() => branches.id),
+  groupId: varchar("group_id").references(() => groups.id),
+  region: text("region"),
+  countries: jsonb("countries").$type<string[]>().default([]),
+  nativeSpeakers: integer("native_speakers").default(0),
+  totalSpeakers: integer("total_speakers").default(0),
+  status: text("status").notNull(), // living, endangered, moribund, dead
+  timeOrigin: text("time_origin"),
+  classification: text("classification"),
+  writingSystem: text("writing_system"),
+  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Historical variants of main languages (e.g., Old English, Middle English)
+export const historicalVariants = pgTable("historical_variants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nativeName: text("native_name"),
+  mainLanguageId: varchar("main_language_id").notNull().references(() => mainLanguages.id),
+  parentVariantId: varchar("parent_variant_id").references((): any => historicalVariants.id), // For evolution chains
+  timeStart: text("time_start"), // e.g., "450 CE"
+  timeEnd: text("time_end"), // e.g., "1150 CE"
+  chronologicalOrder: integer("chronological_order").default(0),
+  region: text("region"),
+  historicalContext: text("historical_context"),
+  linguisticChanges: jsonb("linguistic_changes").$type<string[]>().default([]),
+  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Modern dialects and varieties of main languages
+export const modernDialects = pgTable("modern_dialects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nativeName: text("native_name"),
+  mainLanguageId: varchar("main_language_id").notNull().references(() => mainLanguages.id),
+  parentDialectId: varchar("parent_dialect_id").references((): any => modernDialects.id), // For nested dialects
+  region: text("region"),
+  countries: jsonb("countries").$type<string[]>().default([]),
+  speakers: integer("speakers").default(0),
+  dialectType: text("dialect_type"), // regional, social, creole, pidgin
+  distinctiveFeatures: jsonb("distinctive_features").$type<string[]>().default([]),
+  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Keep the original languages table for backward compatibility during migration
 export const languages = pgTable("languages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -24,21 +157,21 @@ export const languages = pgTable("languages", {
   iso639_1: varchar("iso639_1", { length: 2 }),
   iso639_2: varchar("iso639_2", { length: 3 }),
   familyId: varchar("family_id").references((): any => languageFamilies.id).notNull(),
-  parentLanguageId: varchar("parent_language_id").references((): any => languages.id), // For historical variants and dialects
+  parentLanguageId: varchar("parent_language_id").references((): any => languages.id),
   region: text("region"),
   countries: jsonb("countries").$type<string[]>().default([]),
   nativeSpeakers: integer("native_speakers").default(0),
   totalSpeakers: integer("total_speakers").default(0),
-  status: text("status").notNull(), // living, endangered, moribund, dead, historical, dialect
+  status: text("status").notNull(),
   timeOrigin: text("time_origin"),
-  timeEnd: text("time_end"), // For historical variants that are no longer spoken
+  timeEnd: text("time_end"),
   classification: text("classification"),
   writingSystem: text("writing_system"),
   isHistoricalVariant: boolean("is_historical_variant").default(false),
-  isDialect: boolean("is_dialect").default(false), // For modern dialects and varieties
-  chronologicalOrder: integer("chronological_order").default(0), // For ordering variants
-  historicalContext: text("historical_context"), // Description of historical period or dialect context
-  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(), // Geographic coordinates for mapping
+  isDialect: boolean("is_dialect").default(false),
+  chronologicalOrder: integer("chronological_order").default(0),
+  historicalContext: text("historical_context"),
+  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -162,7 +295,56 @@ export const searchFilters = pgTable("search_filters", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Insert schemas
+// Insert schemas for normalized taxonomic structure
+export const insertPhylumSchema = createInsertSchema(phylums).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFamilySchema = createInsertSchema(families).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSubfamilySchema = createInsertSchema(subfamilies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBranchSchema = createInsertSchema(branches).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGroupSchema = createInsertSchema(groups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMainLanguageSchema = createInsertSchema(mainLanguages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHistoricalVariantSchema = createInsertSchema(historicalVariants).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertModernDialectSchema = createInsertSchema(modernDialects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Legacy insert schemas for backward compatibility
 export const insertLanguageFamilySchema = createInsertSchema(languageFamilies).omit({
   id: true,
   createdAt: true,
@@ -214,7 +396,25 @@ export const insertSearchFilterSchema = createInsertSchema(searchFilters).omit({
   updatedAt: true,
 });
 
-// Types
+// Normalized taxonomic types
+export type Phylum = typeof phylums.$inferSelect;
+export type InsertPhylum = z.infer<typeof insertPhylumSchema>;
+export type Family = typeof families.$inferSelect;
+export type InsertFamily = z.infer<typeof insertFamilySchema>;
+export type Subfamily = typeof subfamilies.$inferSelect;
+export type InsertSubfamily = z.infer<typeof insertSubfamilySchema>;
+export type Branch = typeof branches.$inferSelect;
+export type InsertBranch = z.infer<typeof insertBranchSchema>;
+export type Group = typeof groups.$inferSelect;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
+export type MainLanguage = typeof mainLanguages.$inferSelect;
+export type InsertMainLanguage = z.infer<typeof insertMainLanguageSchema>;
+export type HistoricalVariant = typeof historicalVariants.$inferSelect;
+export type InsertHistoricalVariant = z.infer<typeof insertHistoricalVariantSchema>;
+export type ModernDialect = typeof modernDialects.$inferSelect;
+export type InsertModernDialect = z.infer<typeof insertModernDialectSchema>;
+
+// Legacy types for backward compatibility
 export type LanguageFamily = typeof languageFamilies.$inferSelect;
 export type InsertLanguageFamily = z.infer<typeof insertLanguageFamilySchema>;
 export type Language = typeof languages.$inferSelect;
@@ -226,7 +426,7 @@ export type InsertWordTranslation = z.infer<typeof insertWordTranslationSchema>;
 export type ScrapingJob = typeof scrapingJobs.$inferSelect;
 export type InsertScrapingJob = z.infer<typeof insertScrapingJobSchema>;
 
-// New feature types
+// Feature types
 export type LanguageEvolution = typeof languageEvolution.$inferSelect;
 export type InsertLanguageEvolution = z.infer<typeof insertLanguageEvolutionSchema>;
 export type UserContribution = typeof userContributions.$inferSelect;
