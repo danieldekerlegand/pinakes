@@ -581,6 +581,13 @@ export class DatabaseStorage implements IStorage {
     const { etymologyExplorer } = await import("./services/etymology-explorer");
     return await etymologyExplorer.getEtymologicalNetwork(networkId);
   }
+
+  // Vocabulary expansion methods
+  async expandBaseVocabulary(): Promise<void> {
+    const { VocabularyExpander } = await import('./services/vocabulary-expander');
+    const expander = new VocabularyExpander();
+    await expander.expandBaseVocabulary();
+  }
 }
 
 export const storage = new DatabaseStorage();

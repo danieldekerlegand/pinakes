@@ -433,6 +433,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Expand base vocabulary
+  app.post("/api/expand-base-vocabulary", async (req, res) => {
+    try {
+      console.log("Starting base vocabulary expansion...");
+      await storage.expandBaseVocabulary();
+      res.json({ 
+        success: true, 
+        message: "Base vocabulary expansion completed successfully" 
+      });
+    } catch (error) {
+      console.error("Error expanding base vocabulary:", error);
+      res.status(500).json({ 
+        error: "Failed to expand base vocabulary", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   app.get("/api/etymology/:baseWordId", async (req, res) => {
     try {
       const { baseWordId } = req.params;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, json, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -181,8 +181,13 @@ export const baseWords = pgTable("base_words", {
   word: text("word").notNull().unique(),
   position: integer("position").notNull(),
   category: text("category"),
+  frequency: decimal("frequency", { precision: 3, scale: 2 }).default("1.0"),
+  difficulty: integer("difficulty").default(1),
+  pos: varchar("pos", { length: 20 }),
+  notes: text("notes"),
   definition: text("definition"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const wordTranslations = pgTable("word_translations", {
