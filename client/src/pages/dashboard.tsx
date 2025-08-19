@@ -11,7 +11,8 @@ import {
   History, 
   Brain, 
   Users, 
-  Filter 
+  Filter,
+  TreePine
 } from "lucide-react";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
@@ -27,6 +28,7 @@ import LanguageEvolutionTimeline from "@/components/language-evolution-timeline"
 import AITranslationContext from "@/components/ai-translation-context";
 import UserContributionPanel from "@/components/user-contribution-panel";
 import AdvancedSearchFilters from "@/components/advanced-search-filters";
+import { LanguageFamilyScraper } from "@/components/language-family-scraper";
 import type { ScrapingJob } from "@shared/schema";
 
 export default function Dashboard() {
@@ -40,6 +42,7 @@ export default function Dashboard() {
   const [aiContextOpen, setAiContextOpen] = useState(false);
   const [contributionPanelOpen, setContributionPanelOpen] = useState(false);
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [familyScrapingOpen, setFamilyScrapingOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
   const [selectedWord, setSelectedWord] = useState<any>(null);
   const [filters, setFilters] = useState({
@@ -118,6 +121,15 @@ export default function Dashboard() {
                 data-testid="button-databases"
               >
                 <Database className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setFamilyScrapingOpen(true)}
+                data-testid="button-family-scraping"
+              >
+                <TreePine className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -274,6 +286,15 @@ export default function Dashboard() {
         isOpen={contributionPanelOpen}
         onClose={() => setContributionPanelOpen(false)}
       />
+
+      {/* Language Family Scraper Modal */}
+      {familyScrapingOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setFamilyScrapingOpen(false)}>
+          <div onClick={e => e.stopPropagation()}>
+            <LanguageFamilyScraper />
+          </div>
+        </div>
+      )}
       
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">

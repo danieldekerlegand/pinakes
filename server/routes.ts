@@ -330,6 +330,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Language Family Tree Scraping endpoint
+  app.post("/api/scrape-language-families", async (req, res) => {
+    try {
+      console.log("Starting language family tree scraping...");
+      await storage.scrapeLanguageFamilyTree();
+      res.json({ 
+        success: true, 
+        message: "Language family tree scraping completed successfully" 
+      });
+    } catch (error) {
+      console.error("Error during language family tree scraping:", error);
+      res.status(500).json({ 
+        error: "Failed to scrape language family tree", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   app.post("/api/linguistic-services/test", async (req, res) => {
     try {
       const { word, fromLang = 'en', toLang = 'de' } = req.body;

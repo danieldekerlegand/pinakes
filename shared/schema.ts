@@ -6,7 +6,7 @@ import { z } from "zod";
 export const languageFamilies = pgTable("language_families", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  parentId: varchar("parent_id").references(() => languageFamilies.id),
+  parentId: varchar("parent_id").references((): any => languageFamilies.id),
   description: text("description"),
   taxonomicLevel: text("taxonomic_level").notNull().default("family"), // phylum, stock, family, subfamily, branch, group, complex
   estimatedOrigin: text("estimated_origin"),
@@ -23,8 +23,8 @@ export const languages = pgTable("languages", {
   nativeName: text("native_name"),
   iso639_1: varchar("iso639_1", { length: 2 }),
   iso639_2: varchar("iso639_2", { length: 3 }),
-  familyId: varchar("family_id").references(() => languageFamilies.id).notNull(),
-  parentLanguageId: varchar("parent_language_id").references(() => languages.id), // For historical variants and dialects
+  familyId: varchar("family_id").references((): any => languageFamilies.id).notNull(),
+  parentLanguageId: varchar("parent_language_id").references((): any => languages.id), // For historical variants and dialects
   region: text("region"),
   countries: jsonb("countries").$type<string[]>().default([]),
   nativeSpeakers: integer("native_speakers").default(0),
@@ -248,7 +248,7 @@ export type LanguageWithVariants = Language & {
 };
 
 export type LanguageWithStats = Language & {
-  wordListCompletion: number;
+  completionPercentage: number;
   lastScrapedAt?: string;
   scrapingStatus?: 'pending' | 'running' | 'completed' | 'failed';
   historicalVariants: Language[];
@@ -256,9 +256,8 @@ export type LanguageWithStats = Language & {
 };
 
 export type WordComparison = {
-  baseWord: BaseWord;
-  translations: Array<{
-    language: Language;
-    translation: WordTranslation | null;
-  }>;
+  baseWord: string;
+  position: number;
+  category: string;
+  translations: { [languageId: string]: string };
 };
