@@ -1,21 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  TreePine, 
-  Globe, 
-  Network, 
-  GitBranch, 
-  Target, 
-  Layers,
+import {
+  ChevronRight,
+  ChevronDown,
+  TreePine,
+  Globe,
+  GitBranch,
+  Target,
   Users,
-  FileText,
-  Clock
+  Clock,
+  Trash2,
+  Database,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { LanguageFamilyWithChildren, Language, LanguageWithVariants } from "@shared/schema";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import type { LanguageFamilyWithChildren, LanguageWithVariants } from "@shared/types";
 
 interface LanguageTreeProps {
   searchQuery: string;
@@ -26,6 +28,9 @@ interface LanguageTreeProps {
   };
   selectedLanguageId: string | null;
   onLanguageSelect: (languageId: string) => void;
+  onRefresh?: () => void;
+  expandAll?: number;
+  collapseAll?: number;
 }
 
 interface TreeNodeProps {
@@ -35,6 +40,9 @@ interface TreeNodeProps {
   filters: any;
   selectedLanguageId: string | null;
   onLanguageSelect: (languageId: string) => void;
+  onRefresh?: () => void;
+  expandAll?: number;
+  collapseAll?: number;
 }
 
 function getStatusColor(status: string) {
@@ -54,40 +62,92 @@ function formatSpeakerCount(count: number): string {
   return count.toString();
 }
 
-function getTaxonomyIcon(taxonomicLevel: string) {
-  switch (taxonomicLevel.toLowerCase()) {
-    case 'phylum': return Network;
-    case 'family': return TreePine;
-    case 'subfamily': return GitBranch;
-    case 'branch': return Target;
-    case 'group': return Layers;
-    case 'complex': return Users;
-    default: return TreePine;
-  }
-}
+const getTreeIcon = (level: number) => {
+  if (level === 0) return <TreePine className="h-5 w-5" />;
+  if (level === 1) return <GitBranch className="h-4 w-4" />;
+  return <Target className="h-4 w-4" />;
+};
 
-function getTaxonomyColor(taxonomicLevel: string) {
-  switch (taxonomicLevel.toLowerCase()) {
-    case 'phylum': return 'text-purple-600 bg-purple-100';
-    case 'family': return 'text-blue-600 bg-blue-100';
-    case 'subfamily': return 'text-green-600 bg-green-100';
-    case 'branch': return 'text-orange-600 bg-orange-100';
-    case 'group': return 'text-red-600 bg-red-100';
-    case 'complex': return 'text-indigo-600 bg-indigo-100';
+const getTreeColor = (level: number) => {
+  switch (level) {
+    case 0: return 'text-blue-600 bg-blue-100';
+    case 1: return 'text-green-600 bg-green-100';
+    case 2: return 'text-orange-600 bg-orange-100';
     default: return 'text-gray-600 bg-gray-100';
   }
+};
+
+function WordListBadge({ hasWordList }: { hasWordList?: boolean }) {
+  if (!hasWordList) return null;
+
+  return (
+    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+      <Sparkles className="h-3 w-3 mr-1" />
+      Word List
+    </Badge>
+  );
 }
 
-function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onLanguageSelect }: TreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(level === 0);
+function SourceBadge({ source }: { source?: 'northeuralex' | 'scraped' }) {
+  if (!source) return null;
+
+  if (source === 'scraped') {
+    return (
+      <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+        <Sparkles className="h-3 w-3 mr-1" />
+        Scraped
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+      <Database className="h-3 w-3 mr-1" />
+      NorthEuraLex
+    </Badge>
+  );
+}
+
+function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onLanguageSelect, onRefresh, expandAll, collapseAll }: TreeNodeProps) {
+  // Compute whether this node should be expanded based on props and level
+  const computeExpanded = () => {
+    // If collapseAll was just triggered, only level 0 expands
+    if (collapseAll && collapseAll > 0) {
+      return level === 0;
+    }
+    // If expandAll was just triggered, everything expands
+    if (expandAll && expandAll > 0) {
+      return true;
+    }
+    // Default: only level 0 is expanded
+    return level === 0;
+  };
+
+  const [manuallyExpanded, setManuallyExpanded] = useState<boolean | null>(null);
+
+  // Determine the final expanded state
+  const isExpanded = manuallyExpanded !== null ? manuallyExpanded : computeExpanded();
+
+  // Reset manual state when expand/collapse all is triggered
+  useEffect(() => {
+    if ((expandAll && expandAll > 0) || (collapseAll && collapseAll > 0)) {
+      setManuallyExpanded(null);
+    }
+  }, [expandAll, collapseAll]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'family' | 'language', id: string, name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
 
   const filteredLanguages = useMemo(() => {
     return family.languages.filter((lang: LanguageWithVariants) => {
-      // Apply status filter
-      if (filters.status.length > 0 && !filters.status.includes(lang.status)) {
-        return false;
+      // Apply data source filter
+      if (filters.dataSource && filters.dataSource.length > 0) {
+        if (lang.source && !filters.dataSource.includes(lang.source)) {
+          return false;
+        }
       }
-      
+
       // Apply region filter
       if (filters.region && filters.region !== "all-regions") {
         const langRegions = Array.isArray(lang.region) ? lang.region : [lang.region];
@@ -95,40 +155,97 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
           return false;
         }
       }
-      
+
       // Apply search filter
-      if (searchQuery && !lang.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !lang.nativeName?.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false;
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = lang.name.toLowerCase().includes(query);
+        const matchesNativeName = lang.nativeName?.toLowerCase().includes(query);
+        const matchesIso = lang.iso639_1?.toLowerCase().includes(query) || lang.iso639_2?.toLowerCase().includes(query);
+
+        if (!matchesName && !matchesNativeName && !matchesIso) {
+          return false;
+        }
       }
-      
+
       return true;
     });
   }, [family.languages, searchQuery, filters]);
 
-  const hasVisibleContent = filteredLanguages.length > 0 || family.children.length > 0;
-  
-  if (!hasVisibleContent) return null;
+  const TreeIcon = getTreeIcon(level);
+  const colorClasses = getTreeColor(level);
 
-  const TaxonomyIcon = getTaxonomyIcon(family.taxonomicLevel || 'family');
-  const colorClasses = getTaxonomyColor(family.taxonomicLevel || 'family');
+  // Determine if child families will actually be visible
+  const childrenWillShow = family.children.length > 0 && (manuallyExpanded !== null ? manuallyExpanded : !collapseAll);
+  // Chevron should reflect actual visibility: if no children, follow isExpanded; if has children, only show down when children visible
+  const showExpandedChevron = family.children.length === 0 ? isExpanded : (isExpanded && childrenWillShow);
+
+  const handleDeleteClick = (type: 'family' | 'language', id: string, name: string) => {
+    setDeleteTarget({ type, id, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    
+    setIsDeleting(true);
+    try {
+      const endpoint = deleteTarget.type === 'family' 
+        ? `/api/language-families/${deleteTarget.id}`
+        : `/api/languages/${deleteTarget.id}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Delete operation failed');
+      }
+      
+      toast({
+        title: "Success",
+        description: `${deleteTarget.type === 'family' ? 'Language family' : 'Language'} deleted successfully`,
+      });
+      
+      onRefresh?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to delete ${deleteTarget.type}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    }
+  };
 
   return (
     <div className="tree-node mb-2">
       {/* Family Header */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
         <div
-          className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
-          data-testid={`tree-node-${family.name.toLowerCase().replace(/\s+/g, '-')}`}
+          className="group flex items-center justify-between p-4 hover:bg-gray-50"
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-1 cursor-pointer"
+               onClick={() => {
+                 // Toggle based on actual visibility state
+                 if (family.children.length > 0) {
+                   // For families with children, toggle based on whether children are showing
+                   setManuallyExpanded(!childrenWillShow);
+                 } else {
+                   // For families without children, toggle based on isExpanded
+                   setManuallyExpanded(!isExpanded);
+                 }
+               }}
+               data-testid={`tree-node-${family.name.toLowerCase().replace(/\s+/g, '-')}`}
+          >
             <div className={`p-2 rounded-lg ${colorClasses}`}>
-              <TaxonomyIcon className="h-5 w-5" />
+              {TreeIcon}
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">{family.name}</h3>
-              <p className="text-sm text-gray-500 capitalize">{family.taxonomicLevel || 'family'}</p>
             </div>
           </div>
           
@@ -141,7 +258,19 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                 {family.children.length} sub-groups
               </Badge>
             )}
-            {isExpanded ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick('family', family.id, family.name);
+              }}
+              title="Delete language family"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            {showExpandedChevron ? (
               <ChevronDown className="h-5 w-5 text-gray-400" />
             ) : (
               <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -152,13 +281,131 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
         {/* Languages and Children */}
         {isExpanded && (
           <div className="border-t border-gray-100">
-            {/* Languages */}
-            {filteredLanguages.length > 0 && (
+            {/* Languages - if no children, wrap in a virtual secondary level */}
+            {family.children.length === 0 && filteredLanguages.length > 0 && (
+              <div className="pl-6 pb-4 pt-4">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-2">
+                  <div className="group flex items-center justify-between p-3 bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-1.5 rounded-lg ${getTreeColor(level + 1)}`}>
+                        {getTreeIcon(level + 1)}
+                      </div>
+                      <h4 className="font-medium text-gray-700 text-sm">Languages</h4>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {filteredLanguages.length} languages
+                    </Badge>
+                  </div>
+                  <div className="border-t border-gray-100 p-4 space-y-3">
+                    {filteredLanguages.map((language: LanguageWithVariants) => (
+                      <div key={language.id} className="language-item">
+                        <div
+                          className={`group flex items-center justify-between p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-colors ${
+                            selectedLanguageId === language.id
+                              ? 'bg-blue-50 border-blue-200'
+                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                          }`}
+                          onClick={() => onLanguageSelect(language.id)}
+                          data-testid={`language-${language.id}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Globe className="h-4 w-4 text-gray-600" />
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">{language.name}</span>
+                                {language.nativeName && language.nativeName !== language.name && (
+                                  <span className="text-sm text-gray-500">({language.nativeName})</span>
+                                )}
+                              </div>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <WordListBadge hasWordList={(language as any).completionPercentage > 0} />
+                                <Badge className={getStatusColor(language.status)}>
+                                  {language.status}
+                                </Badge>
+                                {language.totalSpeakers && language.totalSpeakers > 0 && (
+                                  <span className="text-xs text-gray-500">
+                                    {formatSpeakerCount(language.totalSpeakers)} speakers
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            {language.historicalVariants && language.historicalVariants.length > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {language.historicalVariants.length} variants
+                              </Badge>
+                            )}
+                            {language.dialects && language.dialects.length > 0 && (
+                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                                <Users className="h-3 w-3 mr-1" />
+                                {language.dialects.length} dialects
+                              </Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick('language', language.id, language.name);
+                              }}
+                              title="Delete language"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                          </div>
+                        </div>
+
+                        {/* Variants and Dialects */}
+                        {selectedLanguageId === language.id && (
+                          <div className="ml-6 mt-2 space-y-2">
+                            {language.historicalVariants?.map((variant: any) => (
+                              <div key={variant.id} className="flex items-center space-x-2 p-2 bg-amber-50 rounded border">
+                                <Clock className="h-3 w-3 text-amber-600" />
+                                <span className="text-sm font-medium text-amber-800">{variant.name}</span>
+                                <span className="text-xs text-amber-600">
+                                  {variant.timeOrigin} - {variant.timeEnd || 'present'}
+                                </span>
+                                <Badge className={getStatusColor(variant.status)}>
+                                  {variant.status}
+                                </Badge>
+                              </div>
+                            ))}
+                            {language.dialects?.map((dialect: any) => (
+                              <div key={dialect.id} className="flex items-center space-x-2 p-2 bg-green-50 rounded border">
+                                <Users className="h-3 w-3 text-green-600" />
+                                <span className="text-sm font-medium text-green-800">{dialect.name}</span>
+                                <span className="text-xs text-green-600">{dialect.region}</span>
+                                <Badge className={getStatusColor(dialect.status)}>
+                                  {dialect.status}
+                                </Badge>
+                                {dialect.totalSpeakers && dialect.totalSpeakers > 0 && (
+                                  <span className="text-xs text-green-600">
+                                    {formatSpeakerCount(dialect.totalSpeakers)} speakers
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Languages - original rendering for families WITH children */}
+            {family.children.length > 0 && filteredLanguages.length > 0 && (
               <div className="p-4 space-y-3">
                 {filteredLanguages.map((language: LanguageWithVariants) => (
                   <div key={language.id} className="language-item">
                     <div
-                      className={`flex items-center justify-between p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-colors ${
+                      className={`group flex items-center justify-between p-3 rounded-lg border hover:shadow-sm cursor-pointer transition-colors ${
                         selectedLanguageId === language.id 
                           ? 'bg-blue-50 border-blue-200' 
                           : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
@@ -176,6 +423,7 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             )}
                           </div>
                           <div className="flex items-center space-x-2 mt-1">
+                            <WordListBadge hasWordList={(language as any).completionPercentage > 0} />
                             <Badge className={getStatusColor(language.status)}>
                               {language.status}
                             </Badge>
@@ -201,6 +449,18 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                             {language.dialects.length} dialects
                           </Badge>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick('language', language.id, language.name);
+                          }}
+                          title="Delete language"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
                     </div>
@@ -242,8 +502,8 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
               </div>
             )}
             
-            {/* Subfamilies */}
-            {family.children.length > 0 && (
+            {/* Subfamilies - only render if not in collapse-all mode OR if this node was manually expanded */}
+            {family.children.length > 0 && (manuallyExpanded !== null ? manuallyExpanded : !collapseAll) && (
               <div className="pl-6 pb-4">
                 {family.children.map((child: LanguageFamilyWithChildren) => (
                   <TreeNode
@@ -254,6 +514,9 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
                     filters={filters}
                     selectedLanguageId={selectedLanguageId}
                     onLanguageSelect={onLanguageSelect}
+                    onRefresh={onRefresh}
+                    expandAll={expandAll}
+                    collapseAll={collapseAll}
                   />
                 ))}
               </div>
@@ -261,16 +524,69 @@ function TreeNode({ family, level, searchQuery, filters, selectedLanguageId, onL
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Confirm Deletion
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the {deleteTarget?.type} "{deleteTarget?.name}"?
+              This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
 
 
-export default function LanguageTree({ searchQuery, filters, selectedLanguageId, onLanguageSelect }: LanguageTreeProps) {
+export default function LanguageTree({ searchQuery, filters, selectedLanguageId, onLanguageSelect, onRefresh, expandAll, collapseAll }: LanguageTreeProps) {
   const { data: familyTree, isLoading } = useQuery<LanguageFamilyWithChildren[]>({
     queryKey: ['/api/language-families/tree'],
   });
+
+  // Filter families by data source
+  const filteredFamilyTree = useMemo(() => {
+    if (!familyTree) return [];
+
+    return familyTree.filter(family => {
+      // Apply search filter to family name
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesFamily = family.name.toLowerCase().includes(query);
+
+        // Also check if any languages in this family match
+        const hasMatchingLanguage = family.languages.some((lang: LanguageWithVariants) => {
+          const matchesName = lang.name.toLowerCase().includes(query);
+          const matchesNativeName = lang.nativeName?.toLowerCase().includes(query);
+          const matchesIso = lang.iso639_1?.toLowerCase().includes(query) || lang.iso639_2?.toLowerCase().includes(query);
+          return matchesName || matchesNativeName || matchesIso;
+        });
+
+        if (!matchesFamily && !hasMatchingLanguage) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [familyTree, searchQuery]);
 
   if (isLoading) {
     return (
@@ -291,11 +607,11 @@ export default function LanguageTree({ searchQuery, filters, selectedLanguageId,
     );
   }
 
-  if (!familyTree?.length) {
+  if (!filteredFamilyTree?.length) {
     return (
       <div className="text-center py-8">
         <TreePine className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">No language families found.</p>
+        <p className="text-gray-600">No language families found matching your filters.</p>
       </div>
     );
   }
@@ -311,25 +627,25 @@ export default function LanguageTree({ searchQuery, filters, selectedLanguageId,
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Language Family Tree</h2>
-              <p className="text-sm text-gray-600">Taxonomic hierarchy with dialects and variants</p>
+              <p className="text-sm text-gray-600">Hierarchical tree structure with dialects and variants</p>
             </div>
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
-              <Network className="h-4 w-4 text-purple-600" />
-              <span>Phylum</span>
-            </div>
-            <div className="flex items-center space-x-1">
               <TreePine className="h-4 w-4 text-blue-600" />
-              <span>Family</span>
+              <span>Primary Level</span>
             </div>
             <div className="flex items-center space-x-1">
               <GitBranch className="h-4 w-4 text-green-600" />
-              <span>Subfamily</span>
+              <span>Secondary Level</span>
             </div>
             <div className="flex items-center space-x-1">
               <Target className="h-4 w-4 text-orange-600" />
-              <span>Branch</span>
+              <span>Tertiary Level</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Target className="h-4 w-4 text-gray-600" />
+              <span>Deeper Levels</span>
             </div>
           </div>
         </div>
@@ -337,7 +653,7 @@ export default function LanguageTree({ searchQuery, filters, selectedLanguageId,
 
       {/* Tree Content */}
       <div className="space-y-2">
-        {familyTree.map(family => (
+        {filteredFamilyTree.map(family => (
           <TreeNode
             key={family.id}
             family={family}
@@ -346,6 +662,9 @@ export default function LanguageTree({ searchQuery, filters, selectedLanguageId,
             filters={filters}
             selectedLanguageId={selectedLanguageId}
             onLanguageSelect={onLanguageSelect}
+            onRefresh={onRefresh}
+            expandAll={expandAll}
+            collapseAll={collapseAll}
           />
         ))}
       </div>

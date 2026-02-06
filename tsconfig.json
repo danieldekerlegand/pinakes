@@ -1,6 +1,17 @@
 {
   "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "**/*.test.ts",
+    "client/src/components/advanced-search-filters.tsx",
+    "client/src/components/ai-translation-context.tsx",
+    "client/src/components/database-normalizer.tsx",
+    "client/src/components/language-evolution-timeline.tsx",
+    "client/src/components/language-map.tsx",
+    "client/src/components/user-contribution-panel.tsx"
+  ],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",

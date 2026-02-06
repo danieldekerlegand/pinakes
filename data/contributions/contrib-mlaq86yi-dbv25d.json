@@ -1,0 +1,28 @@
+{
+  "id": "contrib-mlaq86yi-dbv25d",
+  "entityType": "cuisine",
+  "action": "add",
+  "status": "approved",
+  "submittedAt": "2026-02-06T10:12:33.210Z",
+  "contributorName": "Test User",
+  "entityData": {
+    "name": "Ethiopian",
+    "region": "East Africa",
+    "coordinates": {
+      "lat": 9.02,
+      "lng": 38.75
+    },
+    "timeOrigin": -1000,
+    "description": "Injera-based cuisine with complex spice blends"
+  },
+  "sources": [
+    {
+      "title": "Ethiopian Food History",
+      "url": "https://example.com/ethiopian-food"
+    }
+  ],
+  "confidence": 85,
+  "notes": "Should be added to the cuisines dataset",
+  "reviewedAt": "2026-02-06T10:12:46.837Z",
+  "reviewNote": "Verified Ethiopian cuisine data looks good"
+}

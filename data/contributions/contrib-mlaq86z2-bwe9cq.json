@@ -1,0 +1,17 @@
+{
+  "id": "contrib-mlaq86z2-bwe9cq",
+  "entityType": "religion",
+  "action": "flag",
+  "status": "pending",
+  "submittedAt": "2026-02-06T10:12:33.230Z",
+  "entityId": "hinduism",
+  "entityData": {
+    "issue": "timeOrigin should be -3000 not -1500, based on Indus Valley evidence"
+  },
+  "sources": [
+    {
+      "title": "Indus Valley Civilization Research"
+    }
+  ],
+  "confidence": 70
+}

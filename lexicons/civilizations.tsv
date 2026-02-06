@@ -1,0 +1,3 @@
+id	name	native_name	time_period_start	time_period_end	time_period_label	associated_language_ids	writing_systems	political_structure	capital	population	haplogroup_ids	cuisine_id	sources	description
+roman-empire	Roman Empire	Imperium Romanum	-27	476	Roman Empire (27 BCE - 476 CE)	["latin"]	["Latin alphabet"]	Empire	Rome	60000000	["R1b","J2","E1b1b"]	roman	["Historical records","Archaeological evidence"]	Ancient Roman civilization centered on the Mediterranean
+ancient-greece	Ancient Greece	Ἑλλάς	-800	-146	Classical Greece (800-146 BCE)	["ancient-greek"]	["Greek alphabet"]	City-states	Athens	8000000	["J2","E1b1b","R1b"]	greek	["Ancient texts","Archaeological sites"]	Collection of Greek city-states in classical antiquity

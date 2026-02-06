@@ -1,0 +1,544 @@
+id	name	parent_id	description	taxonomic_level	region	total_speakers	language_count
+sino_tibetan__sino_tibetan	Sino-Tibetan	sino_tibetan	One of the largest language families in the world, primarily spoken in East Asia, Southeast Asia, and the Himalayas.	Family	East Asia, Southeast Asia, South Asia		
+sino_tibetan__sinitic	Sinitic	sino_tibetan	The branch containing the Chinese languages (dialects), characterized by SVO word order and tonality.	Subfamily	Greater China, Southeast Asia		
+sino_tibetan__tibeto_burman	Tibeto-Burman	sino_tibetan	A diverse branch containing hundreds of languages including Tibetan and Burmese, often SOV word order.	Subfamily	Himalayas, Myanmar, Northeast India, Southwest China		
+sino_tibetan__lolo_burmese	Lolo-Burmese	sino_tibetan	A major subgroup of Tibeto-Burman that includes Burmese and the Yi languages.	Genus	Myanmar, Southwest China		
+sino_tibetan__bodish	Bodish	sino_tibetan	A subgroup containing the Tibetic languages.	Genus	Tibet, Bhutan, Nepal, Northern India		
+sino_tibetan__karenic	Karenic	sino_tibetan	A distinct branch of Tibeto-Burman spoken by the Karen peoples.	Genus	Myanmar, Thailand		
+sino_tibetan__kuki_chin_naga	Kuki-Chin-Naga	sino_tibetan	A cluster of languages spoken in the border regions of India and Myanmar.	Geographical Grouping	Northeast India, Western Myanmar		
+sino_tibetan__sal	Sal	sino_tibetan	Also known as Brahmaputran, a major branch including Bodo-Garo, Jingpho-Luish, and Konyak languages.	Subfamily	Northeast India, Northern Myanmar, Southwest China		
+sino_tibetan__bodo_garo	Bodo-Garo	sino_tibetan	Also known as Baric, part of the Sal branch spoken in Northeast India.	Genus	Northeast India, Bangladesh		
+sino_tibetan__jingpho_luish	Jingpho-Luish	sino_tibetan	Also known as Kachinic, part of the Sal branch including Jingpho (Kachin).	Genus	Myanmar, China, India		
+niger_congo__niger_congo	Niger-Congo	niger_congo	The largest language family in Africa and one of the largest in the world by number of languages.	Family	Sub-Saharan Africa		
+niger_congo__benue_congo	Benue-Congo	niger_congo	The largest branch of Niger-Congo, covering most of Sub-Saharan Africa.	Subfamily	Central and Southern Africa		
+niger_congo__bantu	Bantu	niger_congo	A major branch of the Benue-Congo family, comprising hundreds of languages.	Branch	Central, Southern, and East Africa		
+niger_congo__volta_niger	Volta-Niger	niger_congo	Includes major languages of southern Nigeria and Benin.	Subfamily	West Africa		
+niger_congo__atlantic	Atlantic	niger_congo	Spoken primarily along the Atlantic coast from Senegal to Liberia.	Subfamily	West Africa		
+niger_congo__mande	Mande	niger_congo	Spoken in several countries in West Africa by the Mandé peoples.	Subfamily	West Africa		
+niger_congo__kwa	Kwa	niger_congo	Spoken along the Ivory Coast, Ghana, Togo, and Benin.	Subfamily	West Africa		
+niger_congo__gur	Gur	niger_congo	Spoken in Burkina Faso, Mali, Ghana, and Togo.	Subfamily	Sahel and Savanna regions of West Africa		
+austronesian__austronesian	Austronesian	austronesian	One of the world's largest language families, widely dispersed throughout the islands of Southeast Asia and the Pacific, with a few members on continental Asia.	Family	Maritime Southeast Asia, Oceania, Madagascar, Taiwan		
+austronesian__malayo_polynesian	Malayo-Polynesian	austronesian	The largest subgroup of the Austronesian language family, comprising all Austronesian languages spoken outside Taiwan.	Subfamily	Maritime Southeast Asia, Oceania, Madagascar		
+austronesian__formosan	Formosan	austronesian	The indigenous languages of Taiwan, which form several distinct primary branches of the Austronesian family.	Group	Taiwan		
+austronesian__philippine	Philippine	austronesian	A proposed subgroup of Western Malayo-Polynesian affecting most languages in the Philippines and northern Sulawesi.	Subfamily	Philippines, Northern Sulawesi		
+austronesian__malayic	Malayic	austronesian	A branch of Malayo-Polynesian that includes the Malay language, Minangkabau, and Iban.	Subfamily	Sumatra, Malay Peninsula, Borneo, Coastal Southeast Asia		
+austronesian__javanese	Javanese	austronesian	A branch consisting primarily of the Javanese language.	Subfamily	Java		
+austronesian__greater_barito	Greater Barito	austronesian	A group of languages in Borneo and including Malagasy in Madagascar.	Subfamily	Borneo, Madagascar		
+austronesian__oceanic	Oceanic	austronesian	A branch containing approximately 450 languages, including Polynesian, Micronesian, and Fijian languages.	Subfamily	Oceania		
+austronesian__polynesian	Polynesian	austronesian	A subgroup of Oceanic languages spoken in the Polynesian Triangle.	Subfamily	Polynesia		
+austronesian__south_sulawesi	South Sulawesi	austronesian	A group including Buginese and Makassarese.	Subfamily	Sulawesi		
+trans_new_guinea__trans_new_guinea	Trans-New Guinea	trans_new_guinea	One of the largest language families in the world, covering most of the interior of New Guinea.	Family	New Guinea		
+trans_new_guinea__engan	Engan	trans_new_guinea	A major branch located in the highlands of PNG, containing the populous Enga and Huli languages.	Subfamily	Papua New Guinea Highlands		
+trans_new_guinea__chimbu_wahgi	Chimbu-Wahgi	trans_new_guinea	Located in the Chimbu and Western Highlands provinces.	Subfamily	Papua New Guinea Highlands		
+trans_new_guinea__dani	Dani	trans_new_guinea	Located in the Baliem Valley and surrounding areas of Highland Papua, Indonesia.	Subfamily	Indonesian Papua Highlands		
+trans_new_guinea__paniai_lakes	Paniai Lakes	trans_new_guinea	Centered around the Paniai Lakes in Indonesia.	Subfamily	Indonesian Papua		
+trans_new_guinea__finisterre_huon	Finisterre-Huon	trans_new_guinea	A large family located on the Huon Peninsula.	Subfamily	Morobe Province, Papua New Guinea		
+trans_new_guinea__madang	Madang	trans_new_guinea	A diverse group located on the north coast and hinterlands.	Subfamily	Madang Province, Papua New Guinea		
+trans_new_guinea__ok	Ok	trans_new_guinea	Spans the border between Indonesia and Papua New Guinea in the Star Mountains.	Subfamily	Central Cordillera		
+trans_new_guinea__asmat_kamoro	Asmat-Kamoro	trans_new_guinea	Located in the southern swampy lowlands.	Subfamily	Southern Papua, Indonesia		
+trans_new_guinea__binandere	Binandere	trans_new_guinea	Located in the 'Bird's Tail' of New Guinea.	Subfamily	Oro Province, Papua New Guinea		
+trans_new_guinea__mek	Mek	trans_new_guinea	Located in the eastern highlands of Indonesian Papua.	Subfamily	Indonesian Papua Highlands		
+turkic__turkic	Turkic	turkic	A major language family spoken by Turkic peoples across a vast area from Eastern Europe and the Mediterranean to Siberia and Western China.	Family	Eurasia		
+turkic__oghuz	Oghuz	turkic	The Southwestern branch of Common Turkic, including the most widely spoken Turkic languages.	Subfamily	West Asia, Balkans		
+turkic__kipchak	Kipchak	turkic	The Northwestern branch of Common Turkic, historically associated with the Golden Horde.	Subfamily	Central Asia, Eastern Europe		
+turkic__karluk	Karluk	turkic	The Southeastern branch of Common Turkic, originating from the Karluk confederation.	Subfamily	Central Asia		
+turkic__siberian_turkic	Siberian Turkic	turkic	The Northeastern branch of Common Turkic, spoken primarily in Siberia.	Subfamily	Siberia		
+turkic__oghur	Oghur	turkic	A distinct primary branch of Turkic, separate from Common Turkic, characterized by r-hotacism.	Subfamily	Volga Region		
+turkic__arghu	Arghu	turkic	A distinct branch represented by a single isolated language.	Subfamily	Iran		
+kra_dai__kra_dai	Kra-Dai	kra_dai	A language family of tonal languages found in southern China and Southeast Asia.	Family	Southeast Asia and Southern China		
+kra_dai__tai	Tai	kra_dai	The largest branch of the Kra-Dai family, containing Thai, Lao, and Zhuang.	Subfamily	Southeast Asia and Southern China		
+kra_dai__kam_sui	Kam-Sui	kra_dai	A branch spoken primarily in Guizhou and Guangxi provinces of China.	Subfamily	Southern China		
+kra_dai__hlai	Hlai	kra_dai	Spoken by the Li people on Hainan Island, China.	Subfamily	Hainan Island		
+kra_dai__kra	Kra	kra_dai	Also known as Kadai or Geyang, a branch of languages with complex clusters.	Subfamily	Southern China and Northern Vietnam		
+kra_dai__ong_be	Ong-Be	kra_dai	A small branch consisting primarily of the Be language.	Subfamily	Hainan Island		
+austroasiatic__austroasiatic	Austroasiatic	austroasiatic	A large language family of mainland Southeast Asia and South Asia, also known as Mon-Khmer.	Family	Southeast Asia and South Asia		
+austroasiatic__vietic	Vietic	austroasiatic	The branch containing Vietnamese and Muong.	Subfamily	Vietnam, Laos		
+austroasiatic__khmer	Khmer	austroasiatic	The branch containing the Khmer language.	Subfamily	Cambodia, Vietnam, Thailand		
+austroasiatic__munda	Munda	austroasiatic	A primary branch of Austroasiatic spoken in central and eastern India.	Subfamily	India, Bangladesh		
+austroasiatic__monic	Monic	austroasiatic	The branch containing Mon and Nyah Kur.	Subfamily	Myanmar, Thailand		
+austroasiatic__khasian	Khasian	austroasiatic	The branch containing Khasi and Pnar.	Subfamily	Northeast India		
+austroasiatic__palaungic	Palaungic	austroasiatic	The branch containing Wa and Palaung languages.	Subfamily	Myanmar, China, Thailand		
+austroasiatic__khmuic	Khmuic	austroasiatic	The branch containing Khmu and related languages.	Subfamily	Laos, Vietnam, Thailand, China		
+austroasiatic__bahnaric	Bahnaric	austroasiatic	A diverse branch spoken in the Central Highlands of Vietnam and surrounding areas.	Subfamily	Vietnam, Cambodia, Laos		
+austroasiatic__katuic	Katuic	austroasiatic	The branch containing Kuy and Bru.	Subfamily	Laos, Vietnam, Thailand		
+austroasiatic__aslian	Aslian	austroasiatic	The branch spoken by the Orang Asli in the Malay Peninsula.	Subfamily	Peninsular Malaysia, Thailand		
+austroasiatic__nicobarese	Nicobarese	austroasiatic	Languages spoken on the Nicobar Islands.	Subfamily	Nicobar Islands (India)		
+nilo_saharan__nilo_saharan	Nilo-Saharan	nilo_saharan	A proposed family of African languages spoken by some 50–60 million people, mainly in the upper parts of the Chari and Nile rivers, including historic Nubia.	Family	Africa		
+nilo_saharan__eastern_sudanic	Eastern Sudanic	nilo_saharan	The largest branch of the Nilo-Saharan family, containing the Nilotic and Nubian languages.	Subfamily	East Africa		
+nilo_saharan__central_sudanic	Central Sudanic	nilo_saharan	A branch spoken in the Central African Republic, Chad, South Sudan, Uganda, and DR Congo.	Subfamily	Central Africa		
+nilo_saharan__saharan	Saharan	nilo_saharan	Languages spoken across the Sahara desert, primarily in Chad, Niger, and Nigeria.	Subfamily	Sahel		
+nilo_saharan__songhay	Songhay	nilo_saharan	Centered on the middle course of the Niger River in Mali, Niger, and Benin.	Subfamily	West Africa		
+nilo_saharan__fur	Fur	nilo_saharan	Small family spoken in the Darfur region of Sudan.	Subfamily	Sudan		
+nilo_saharan__maban	Maban	nilo_saharan	Spoken in eastern Chad and western Sudan.	Subfamily	Chad/Sudan border		
+nilo_saharan__komuz	Komuz	nilo_saharan	Includes the Koman languages and Gumuz.	Subfamily	Ethiopia/Sudan border		
+nilo_saharan__berta	Berta	nilo_saharan	An independent branch of Nilo-Saharan diverging within the Chari-Nile core group.	Subfamily	Sudan, Ethiopia		
+nilo_saharan__kunama	Kunama	nilo_saharan	An independent early-diverging branch of Nilo-Saharan.	Subfamily	Eritrea, Ethiopia		
+pama_nyungan__pama_nyungan	Pama-Nyungan	pama_nyungan	The most widespread Australian Aboriginal language family, covering about 90% of the continent.	family	Australia		
+pama_nyungan__wati	Wati	pama_nyungan	Also known as the Western Desert language group.	subfamily	Central Australia		
+pama_nyungan__arandic	Arandic	pama_nyungan	A group of languages spoken in the Northern Territory, primarily around Alice Springs.	subfamily	Central Australia		
+pama_nyungan__ngumpin_yapa	Ngumpin-Yapa	pama_nyungan	Includes the widely spoken Warlpiri language.	subfamily	Northern Territory and Western Australia		
+pama_nyungan__yol_u	Yolŋu	pama_nyungan	Spoken by the Yolŋu people in northeastern Arnhem Land.	subfamily	Arnhem Land		
+pama_nyungan__paman	Paman	pama_nyungan	A large subgroup containing languages of the Cape York Peninsula in Queensland.	subfamily	Cape York Peninsula		
+pama_nyungan__wiradhuric	Wiradhuric	pama_nyungan	Central New South Wales languages.	subfamily	New South Wales		
+pama_nyungan__thura_yura	Thura-Yura	pama_nyungan	Languages spoken in the Adelaide region and surrounding areas.	subfamily	South Australia		
+pama_nyungan__nyungar	Nyungar	pama_nyungan	Languages spoken in the southwest corner of Western Australia.	subfamily	Southwest Western Australia		
+pama_nyungan__yuin_kuric	Yuin-Kuric	pama_nyungan	Languages spoken along the east coast.	subfamily	New South Wales and Queensland		
+pama_nyungan__dyirbalic	Dyirbalic	pama_nyungan	Known for the Dyirbal language and its unique grammatical features.	subfamily	North Queensland		
+quechuan__quechuan	Quechuan	quechuan	Primary language family indigenous to the Andes region of South America.	family	South America		
+quechuan__quechua_i_waywash	Quechua I (Waywash)	quechuan	The central branch of the Quechua family, primarily spoken in the central Peruvian highlands.	subfamily	Central Peru		
+quechuan__quechua_ii_wampuy	Quechua II (Wampuy)	quechuan	The peripheral branch of the Quechua family, widely expanded under the Inca Empire.	subfamily	Andes and Amazon		
+quechuan__quechua_ii_a_yunkay	Quechua II-A (Yunkay)	quechuan	Transitional branch found in localized areas of Peru.	subfamily	Northern and Central Peru		
+quechuan__quechua_ii_b_northern	Quechua II-B (Northern)	quechuan	Northern variety, often referred to as Kichwa or Inga.	subfamily	Ecuador, Colombia, Northern Peru		
+quechuan__quechua_ii_c_southern	Quechua II-C (Southern)	quechuan	The most widely spoken branch, including Cusco, Ayacucho, and Bolivian varieties.	subfamily	Southern Peru, Bolivia, Argentina, Chile		
+hmong_mien__hmong_mien	Hmong-Mien	hmong_mien	A primary language family of southern China and Southeast Asia, historically known as Miao-Yao. It consists of two major branches: Hmongic and Mienic.	Family	East Asia and Southeast Asia		
+hmong_mien__hmongic	Hmongic	hmong_mien	The larger and more diverse branch of the family, comprising the various Miao/Hmong languages and the Bunu languages.	Subfamily	Southern China, Northern Vietnam, Laos, Thailand		
+hmong_mien__mienic	Mienic	hmong_mien	The smaller branch of the family, primarily consisting of the Yao languages.	Subfamily	Southern China, Northern Vietnam, Laos, Thailand		
+tupian__tupian	Tupian	tupian	One of the most widespread language families in South America, consisting of about 70 languages.	Family	South America		
+tupian__tupi_guarani	Tupi-Guarani	tupian	The largest subfamily of the Tupian languages, covering a vast area from the Amazon to the Rio de la Plata.	Subfamily	South America		
+tupian__munduruku	Mundurukú	tupian	A small subfamily of the Tupian family, primarily located in the Amazon Basin.	Subfamily	Brazil		
+tupian__mawe	Mawé	tupian	A single-language branch of the Tupian family.	Subfamily	Brazil		
+tupian__monde	Mondé	tupian	A subfamily spoken in Rondônia and Mato Grosso states of Brazil.	Subfamily	Brazil		
+tupian__tupari	Tuparí	tupian	A subfamily spoken primarily in the state of Rondônia.	Subfamily	Brazil		
+tupian__juruna	Jurúna	tupian	A small subfamily located near the Xingu Indigenous Park.	Subfamily	Brazil		
+tupian__arikem	Arikém	tupian	A subfamily located in Rondônia.	Subfamily	Brazil		
+tupian__ramarama	Ramarama	tupian	A subfamily with currently only one living language, spoken in Rondônia.	Subfamily	Brazil		
+tupian__aweti	Aweti	tupian	A branch consisting of a single language spoken in the Upper Xingu region.	Subfamily	Brazil		
+mayan__mayan	Mayan	mayan	One of the most continuous and documented language families in the Americas, originating in present-day southern Mexico, Guatemala, Belize, and western Honduras.	Family	Mesoamerica		
+mayan__huastecan	Huastecan	mayan	The most divergent branch of the Mayan family, separated geographically from the main block of Mayan languages.	Branch	Mexico (San Luis Potosí, Veracruz)		
+mayan__yucatecan	Yucatecan	mayan	A major branch spoken primarily across the Yucatán Peninsula.	Branch	Yucatán Peninsula (Mexico, Belize, Guatemala)		
+mayan__cholan_tzeltalan	Cholan-Tzeltalan	mayan	Includes languages historically associated with the Classic Maya civilization's hieroglyphic inscriptions.	Branch	Chiapas (Mexico), Guatemala, Honduras		
+mayan__q_anjob_alan_chujean	Q'anjob'alan-Chujean	mayan	A branch primarily located in the Cuchumatanes mountains.	Branch	Guatemala (Huehuetenango), Mexico (Chiapas)		
+mayan__mamean	Mamean	mayan	Includes Mam and Ixil, spoken in the western highlands of Guatemala.	Branch	Guatemala (Western Highlands), Mexico (Chiapas)		
+mayan__k_ichean	K'ichean	mayan	The largest and most diverse branch in terms of speaker numbers, including K'iche' and Q'eqchi'.	Branch	Guatemala (Central Highlands)		
+uto_aztecan__uto_aztecan	Uto-Aztecan	uto_aztecan	One of the largest and most widespread language families of the Americas, ranging from the Great Basin in the U.S. to El Salvador.	Family	Western United States and Mexico		
+uto_aztecan__northern_uto_aztecan	Northern Uto-Aztecan	uto_aztecan	The northern division of the family, located entirely within the United States.	Subfamily	Western United States		
+uto_aztecan__numic	Numic	uto_aztecan	A widespread branch of Northern Uto-Aztecan found across the Great Basin and Colorado Plateau.	Branch	Great Basin (USA)		
+uto_aztecan__central_numic	Central Numic	uto_aztecan	A subgroup of Numic including Shoshone, Panamint (Timbisha), and Comanche.	Sub-branch	Great Basin and Great Plains (USA)		
+uto_aztecan__takic	Takic	uto_aztecan	A branch of Northern Uto-Aztecan located in Southern California.	Branch	Southern California (USA)		
+uto_aztecan__hopi	Hopi	uto_aztecan	An isolate branch within Uto-Aztecan, sometimes grouped with Northern Uto-Aztecan.	Branch	Arizona (USA)		
+uto_aztecan__southern_uto_aztecan	Southern Uto-Aztecan	uto_aztecan	The southern division, containing the majority of the family's speakers.	Subfamily	Mexico and Southwestern USA		
+uto_aztecan__tepiman	Tepiman	uto_aztecan	Also known as Pimic, straddling the US-Mexico border.	Branch	Arizona (USA) and Northern Mexico		
+uto_aztecan__taracahitic	Taracahitic	uto_aztecan	Includes the Tarahumaran and Cahitan languages.	Branch	Northwestern Mexico		
+uto_aztecan__corachol	Corachol	uto_aztecan	Includes Cora and Huichol languages.	Branch	Central Mexico		
+uto_aztecan__nahuan	Nahuan	uto_aztecan	Includes the Aztecan languages, most notably Nahuatl.	Branch	Central Mexico to El Salvador		
+na_dene__na_dene	Na-Dene	na_dene	A major language family of North America, encompassing Tlingit, Eyak, and the Athabaskan languages. It is one of the primary language families of the Americas.	Family	North America		
+na_dene__tlingit	Tlingit	na_dene	A primary branch of the Na-Dene family consisting of the Tlingit language.	Branch	Pacific Northwest		
+na_dene__eyak_athabaskan	Eyak-Athabaskan	na_dene	The major division of Na-Dene comprising Eyak and the widespread Athabaskan languages.	Subfamily	North America		
+na_dene__athabaskan	Athabaskan	na_dene	A large group of indigenous languages spanning from Alaska and Western Canada to the American Southwest.	Subfamily	North America		
+na_dene__northern_athabaskan	Northern Athabaskan	na_dene	The largest geographic subgroup of Athabaskan languages.	Branch	Alaska and Western Canada		
+na_dene__pacific_coast_athabaskan	Pacific Coast Athabaskan	na_dene	A group of Athabaskan languages formerly spoken along the Pacific Coast.	Branch	Pacific Northwest and California		
+na_dene__southern_athabaskan	Southern Athabaskan	na_dene	Also known as Apachean, this group includes Navajo and the Apache languages.	Branch	American Southwest		
+algic__algic	Algic	algic	A major language family of North America including the Algonquian languages and the Ritwan languages.	family	North America		
+algic__algonquian	Algonquian	algic	The largest subfamily of Algic, spanning from the Rocky Mountains to the Atlantic coast.	subfamily	North America		
+algic__plains_algonquian	Plains Algonquian	algic	A subgroup of Algonquian languages spoken in the Great Plains.	subfamily	Great Plains		
+algic__central_algonquian	Central Algonquian	algic	A subgroup of Algonquian languages spoken roughly around the Great Lakes.	subfamily	Great Lakes		
+algic__eastern_algonquian	Eastern Algonquian	algic	A subgroup of Algonquian languages spoken along the Atlantic coast.	subfamily	Atlantic Coast		
+otomanguean__otomanguean	Otomanguean	otomanguean	A large language family comprising several subfamilies of indigenous languages of Mexico and Central America, known for their tonal systems and complex verb morphology.	Family	Mesoamerica		
+otomanguean__oto_pamean	Oto-Pamean	otomanguean	A major branch of Otomanguean spoken primarily in central Mexico, including Otomi and Mazahua.	Subfamily	Central Mexico		
+otomanguean__chinantecan	Chinantecan	otomanguean	A branch consisting of Chinantec languages spoken in the Chinantla region of Oaxaca.	Subfamily	Oaxaca, Mexico		
+otomanguean__tlapanecan	Tlapanecan	otomanguean	Includes the Tlapanec (Me'phaa) language varieties.	Subfamily	Guerrero, Mexico		
+otomanguean__popolocan	Popolocan	otomanguean	Includes Mazatec, Popoloca, Ixcatec, and Chocho.	Subfamily	Oaxaca and Puebla, Mexico		
+otomanguean__zapotecan	Zapotecan	otomanguean	A large branch containing Zapotec and Chatino languages.	Subfamily	Oaxaca, Mexico		
+otomanguean__mixtecan	Mixtecan	otomanguean	Includes Mixtec, Triqui, and Cuicatec languages.	Subfamily	Oaxaca, Puebla, and Guerrero (La Mixteca)		
+otomanguean__amuzgoan	Amuzgoan	otomanguean	Consists of the Amuzgo language varieties.	Subfamily	Guerrero and Oaxaca, Mexico		
+otomanguean__manguean	Manguean	otomanguean	An extinct branch that extended furthest south into Central America.	Subfamily	Chiapas (Mexico), Nicaragua, Costa Rica		
+arawakan__arawakan	Arawakan	arawakan	Also known as Maipurean, this is one of the most widespread language families in South America.	family	South America, Central America, Caribbean		
+arawakan__northern_maipurean	Northern Maipurean	arawakan	A major division encompassing the Caribbean Arawak and Inland Northern branches.	subfamily	Northern South America, Caribbean, Central America		
+arawakan__southern_maipurean	Southern Maipurean	arawakan	A major division encompassing the Campa, Purus, and Bolivia-Parana branches.	subfamily	Bolivia, Brazil, Peru		
+arawakan__campa	Campa	arawakan	A subgroup of Pre-Andean Arawakan languages.	subfamily	Peru		
+arawakan__xingu	Xingu	arawakan	A subgroup located in the Xingu Indigenous Park.	subfamily	Brazil		
+chibchan__chibchan	Chibchan	chibchan	A language family spoken in the Isthmo-Colombian Area, extending from eastern Honduras to northern Colombia and Venezuela.	Family	Central America and Northern South America		
+chibchan__isthmic	Isthmic	chibchan	A major division of Chibchan languages spoken primarily in Costa Rica and Panama.	Subfamily	Costa Rica and Panama		
+chibchan__magdalenic	Magdalenic	chibchan	A division of Chibchan languages spoken in the Magdalena territories of Colombia, including the Sierra Nevada de Santa Marta.	Subfamily	Colombia		
+chibchan__votic	Votic	chibchan	A small branch of Chibchan languages located near the San Juan River.	Subfamily	Nicaragua and Costa Rica		
+chibchan__wotic	Wotic	chibchan	The northernmost branch of the Chibchan family.	Subfamily	Honduras		
+panoan__panoan	Panoan	panoan	A family of languages spoken in the Amazon basin of Peru, western Brazil, and northern Bolivia.	family	South America		
+panoan__mayoruna	Mayoruna	panoan	Northern branch of the Panoan family, primarily located in the border regions of Brazil and Peru.	subfamily	Peru, Brazil		
+panoan__mainline_pano	Mainline Pano	panoan	The central core of the family, including the Chama and Cashibo groups.	subfamily	Peru, Brazil		
+panoan__nawa	Nawa	panoan	Also known as the South-Central or Purus branch, containing Yaminahua and related languages.	subfamily	Peru, Brazil, Bolivia		
+panoan__bolivian_pano	Bolivian Pano	panoan	Southern group of Panoan languages spoken primarily in the Beni Department of Bolivia.	subfamily	Bolivia		
+macro_je__macro_je	Macro-Jê	macro_je	A major language stock of South America, primarily spoken in Brazil, centered on the Brazilian Plateau.	Phylum	South America		
+macro_je__je	Jê	macro_je	The largest and most widely distributed family within the Macro-Jê stock.	Family	Brazil		
+macro_je__northern_je	Northern Jê	macro_je	The northern branch of the Jê family, including the Timbira complex and Kayapó.	Subfamily	Amazon Basin/Cerrado		
+macro_je__central_je	Central Jê	macro_je	The central branch of the Jê family, primarily in Tocantins and Mato Grosso.	Subfamily	Central Brazil		
+macro_je__southern_je	Southern Jê	macro_je	The southern branch of the Jê family, located in the Atlantic Forest biome.	Subfamily	Southern Brazil		
+macro_je__bororoan	Bororoan	macro_je	A small family within the Macro-Jê stock, historically associated with the Bororo people.	Family	Mato Grosso		
+macro_je__jabutian	Jabutian	macro_je	A small family located in the Guaporé territory.	Family	Rondônia		
+macro_je__maxakalian	Maxakalian	macro_je	A family located in eastern Brazil.	Family	Minas Gerais/Bahia		
+macro_je__krenak	Krenak	macro_je	Also known as Botocudo, historically spoken by the Aimoré people.	Family	Minas Gerais		
+macro_je__karaja	Karajá	macro_je	A family consisting of a dialect cluster along the Araguaia River.	Family	Araguaia River Valley		
+macro_je__guato	Guató	macro_je	An isolated language family of disputed classification within Macro-Jê.	Family	Mato Grosso do Sul		
+macro_je__ofaye	Ofayé	macro_je	A small family confirmed as part of Nuclear Macro-Jê through lexical and phonological evidence.	Family	Mato Grosso do Sul		
+macro_je__rikbaktsa	Rikbaktsa	macro_je	A family confirmed as part of Nuclear Macro-Jê through robust phonological and lexical matches.	Family	Rondônia		
+cariban__cariban	Cariban	cariban	One of the largest indigenous language families in South America, widely distributed across the Guiana Shield, the Amazon Basin, and northern Colombia.	Family	Northern South America		
+cariban__venezuelan_carib	Venezuelan Carib	cariban	A major branch located primarily in the coastal ranges and western areas of Venezuela and Colombia.	Subfamily	Venezuela, Colombia		
+cariban__guianan_carib	Guianan Carib	cariban	Includes the languages of the Guiana Highlands and surrounding areas.	Subfamily	Guianas, Brazil, Venezuela		
+cariban__southern_carib	Southern Carib	cariban	Languages spoken primarily in the Xingu Park and southern Amazon basin.	Subfamily	Brazil		
+cariban__parukotoan	Parukotoan	cariban	A branch including Waiwai and Hixkaryana.	Subfamily	Brazil, Guyana		
+aymaran__aymaran	Aymaran	aymaran	Also known as Jaqi or Aru, this is one of the two dominant indigenous language families of the Central Andes, alongside Quechuan.	Family	Andes		
+aymaran__central_aymaran	Central Aymaran	aymaran	The northern branch of the family, historically spoken in the Yauyos province of the Lima region.	Subfamily	Peru		
+aymaran__southern_aymaran	Southern Aymaran	aymaran	The southern branch comprising the widely spoken varieties of the Aymara language across Bolivia, Peru, and Chile.	Subfamily	Altiplano		
+araucanian__araucanian	Araucanian	araucanian	A small language family indigenous to central Chile and adjacent areas of Argentina, comprising the Mapudungun and Huilliche languages.	Family	Southern South America		
+siouan_catawban__siouan_catawban	Siouan-Catawban	siouan_catawban	A primary language family of North America, historically located primarily in the Great Plains, Ohio Valley, and parts of the Southeast.	Family	North America		
+siouan_catawban__catawban	Catawban	siouan_catawban	The eastern branch of the family, historically spoken in the Carolinas.	Subfamily	Southeastern United States		
+siouan_catawban__siouan_proper_western_siouan	Siouan Proper (Western Siouan)	siouan_catawban	The primary branch containing the majority of Siouan languages.	Subfamily	Great Plains and Midwest		
+siouan_catawban__missouri_river_siouan	Missouri River Siouan	siouan_catawban	A branch of Siouan Proper primarily located in Montana and North Dakota.	Branch	Northern Great Plains		
+siouan_catawban__mandan	Mandan	siouan_catawban	A distinct branch consisting of a single language, Mandan.	Branch	North Dakota		
+siouan_catawban__mississippi_valley_siouan	Mississippi Valley Siouan	siouan_catawban	The largest branch of Siouan Proper, containing the Dakota, Dhegihan, and Chiwere-Winnebago groups.	Branch	Central Great Plains		
+siouan_catawban__dakotan	Dakotan	siouan_catawban	A subgroup of Mississippi Valley Siouan containing the Sioux dialects and Assiniboine-Stoney.	Group	Northern Plains		
+siouan_catawban__chiwere_winnebago	Chiwere-Winnebago	siouan_catawban	A subgroup of Mississippi Valley Siouan historically located in Wisconsin, Iowa, and Missouri.	Group	Midwest		
+siouan_catawban__dhegihan	Dhegihan	siouan_catawban	A subgroup of Mississippi Valley Siouan historically located in the lower Mississippi and Arkansas river valleys.	Group	Southern Plains		
+siouan_catawban__ohio_valley_siouan	Ohio Valley Siouan	siouan_catawban	A branch of Siouan Proper that migrated back towards the southeast, now entirely extinct.	Branch	Southeastern United States		
+iroquoian__iroquoian	Iroquoian	iroquoian	A First Nations and Native American language family of eastern North America.	Family	North America		
+iroquoian__southern_iroquoian	Southern Iroquoian	iroquoian	The southern branch of the Iroquoian family, consisting solely of Cherokee.	Subfamily	Southeastern United States		
+iroquoian__northern_iroquoian	Northern Iroquoian	iroquoian	The northern branch including the Five Nations, Tuscarora, and Huron-Wendat.	Subfamily	Northeastern United States and Eastern Canada		
+salishan__salishan	Salishan	salishan	A family of languages of the Pacific Northwest Coast of North America, known for their consonant clusters and agglutinative nature.	Family	Pacific Northwest		
+salishan__bella_coola	Bella Coola	salishan	A single-language branch of the Salishan family, geographically isolated from other Salish languages by Athabaskan and Wakashan speakers.	Branch	Central British Columbia Coast		
+salishan__coast_salish	Coast Salish	salishan	The maritime branch of the family, covering the area around the Salish Sea and parts of the coast.	Branch	Pacific Northwest Coast		
+salishan__central_salish	Central Salish	salishan	The largest subdivision of Coast Salish, including Halkomelem, Squamish, and Lushootseed.	Sub-branch	Georgia Strait, Puget Sound		
+salishan__tsamosan	Tsamosan	salishan	Also known as Olympic, this branch includes languages spoken in the Olympic Peninsula of Washington.	Sub-branch	Olympic Peninsula		
+salishan__tillamook	Tillamook	salishan	The southernmost branch of the Salishan family, now extinct.	Sub-branch	Oregon Coast		
+salishan__interior_salish	Interior Salish	salishan	The inland branch of the family, separated from the coast by the Cascade Mountains.	Branch	Columbia Plateau		
+salishan__northern_interior_salish	Northern Interior Salish	salishan	Includes Shuswap, Lillooet, and Thompson.	Sub-branch	British Columbia Interior		
+salishan__southern_interior_salish	Southern Interior Salish	salishan	Includes Coeur d'Alene, Columbian, Colville-Okanagan, and Montana Salish.	Sub-branch	Columbia Basin		
+muskogean__muskogean	Muskogean	muskogean	An indigenous language family of the Southeastern United States, historically centered in present-day Mississippi, Alabama, Georgia, and Florida, now also present in Oklahoma due to forced removal.	family	Southeastern United States		
+muskogean__western_muskogean	Western Muskogean	muskogean	The western branch of the Muskogean family, consisting primarily of Choctaw and Chickasaw.	subfamily	Mississippi, Oklahoma		
+muskogean__eastern_muskogean	Eastern Muskogean	muskogean	The eastern branch of the Muskogean family, including the Muskogee (Creek), Mikasuki, Alabama, and Koasati languages.	subfamily	Alabama, Georgia, Florida, Oklahoma		
+tucanoan__tucanoan	Tucanoan	tucanoan	A language family spoken in the northwestern Amazon, particularly in Colombia, Brazil, Ecuador, and Peru.	Family	Northwest Amazon		
+tucanoan__eastern_tucanoan	Eastern Tucanoan	tucanoan	The larger branch of the family, known for linguistic exogamy and multilingualism in the Vaupés basin.	Subfamily	Vaupés Region (Colombia/Brazil)		
+tucanoan__western_tucanoan	Western Tucanoan	tucanoan	A branch spoken widely in the Putumayo and Napo river basins of Colombia, Ecuador, and Peru.	Subfamily	Putumayo and Caquetá Basins		
+mixe_zoque__mixe_zoque	Mixe-Zoque	mixe_zoque	A language family spoken primarily in and around the Isthmus of Tehuantepec in Mexico. It is historically significant as the likely language family of the Olmec civilization.	Family	Southern Mexico		
+mixe_zoque__mixean	Mixean	mixe_zoque	The Mixean branch includes the various Mixe languages of Oaxaca and the Sayula and Oluta Popoluca languages of Veracruz.	Subfamily	Oaxaca, Veracruz		
+mixe_zoque__zoquean	Zoquean	mixe_zoque	The Zoquean branch includes the Zoque languages of Chiapas and Oaxaca, as well as Sierra and Texistepec Popoluca in Veracruz and Ayapanec in Tabasco.	Subfamily	Chiapas, Oaxaca, Veracruz, Tabasco		
+totonacan__totonacan	Totonacan	totonacan	A family of languages spoken in the states of Veracruz, Puebla, and Hidalgo in Mexico. It is traditionally divided into two main branches: Totonac and Tepehua.	Family	Mexico (Veracruz, Puebla, Hidalgo)		
+totonacan__totonac	Totonac	totonacan	The larger branch of the Totonacan family, comprising various languages often referred to collectively as Totonac.	Subfamily	Mexico (Veracruz, Puebla)		
+totonacan__tepehua	Tepehua	totonacan	The smaller branch of the Totonacan family, spoken in a compact area where the three states of Hidalgo, Puebla, and Veracruz meet.	Subfamily	Mexico (Hidalgo, Puebla, Veracruz)		
+mande__mande	Mande	mande	A major language family in West Africa, comprising about 70-75 languages, spoken by 30 to 40 million people.	Family	West Africa		
+mande__west_mande	West Mande	mande	The larger branch of the Mande family, containing the Manding, Southwest, and Northwest sub-branches.	Subfamily	West Africa		
+mande__east_mande	East Mande	mande	The smaller branch of the Mande family, primarily spoken in Cote d'Ivoire, Burkina Faso, and Nigeria.	Subfamily	West Africa		
+mande__manding	Manding	mande	A dialect continuum and subfamily of West Mande including Bambara, Dyula, and Maninka.	Subfamily	West Africa		
+mande__southwest_mande	Southwest Mande	mande	A group within West Mande including Mende, Kpelle, and Loma.	Subfamily	Liberia, Sierra Leone, Guinea		
+mande__soninke_bozo	Soninke-Bozo	mande	A subfamily of West Mande generally classified under Northwest Mande.	Subfamily	Mali, Senegal		
+mande__vai_kono	Vai-Kono	mande	A closely related pair of Western Mande languages spoken in Sierra Leone and Liberia.	Subfamily	Sierra Leone, Liberia		
+mande__susu_jalonke	Susu-Jalonke	mande	A Northwest Mande group including Susu and Yalunka, dialectically related to Soninke.	Subfamily	Guinea, Sierra Leone		
+mande__southern_mande	Southern Mande	mande	A branch of Southeastern Mande including Dan and Guro.	Subfamily	Côte d'Ivoire, Liberia		
+songhay__songhay	Songhay	songhay	A group of languages spoken mainly along the Niger River in Mali and Niger, as well as in Benin, Burkina Faso, and Nigeria. Often debated as an independent family or part of Nilo-Saharan.	family	West Africa		
+songhay__southern_songhay	Southern Songhay	songhay	The main branch of the family, comprising the major languages spoken along the Niger River.	subfamily	West Africa		
+songhay__northern_songhay	Northern Songhay	songhay	A group of Songhay languages heavily influenced by Berber/Tuareg, spoken by nomadic or oasis populations.	subfamily	Sahel/Sahara		
+khoe__khoe_kwadi	Khoe-Kwadi	khoe	A language family of Southern Africa, also known as Central Khoisan, consisting of the Khoe family and the extinct Kwadi language.	Family	Southern Africa		
+khoe__kwadi	Kwadi	khoe	A divergent branch of the Khoe-Kwadi family, consisting solely of the extinct Kwadi language.	Subfamily	Southwestern Angola		
+khoe__khoe	Khoe	khoe	The primary branch of the family, often divided into Khoekhoe (Non-Kalahari) and Kalahari Khoe (Tshu-Khwe).	Subfamily	Southern Africa		
+khoe__khoekhoe	Khoekhoe	khoe	Also known as Non-Kalahari Khoe, this branch includes the most populous language of the family, Nama, as well as extinct languages like Korana.	Subfamily	Namibia, South Africa		
+khoe__kalahari_khoe	Kalahari Khoe	khoe	Also known as Tshu-Khwe, this branch covers the Khoe languages spoken primarily in the Kalahari Desert region.	Subfamily	Botswana, Namibia		
+khoe__east_kalahari_khoe	East Kalahari Khoe	khoe	The eastern sub-branch of the Kalahari Khoe languages, including Shua and Tshwa.	Subfamily	Botswana		
+khoe__west_kalahari_khoe	West Kalahari Khoe	khoe	The western sub-branch of the Kalahari Khoe languages, including Khwe, Naro, and G||ana.	Subfamily	Botswana, Namibia		
+tuu__tuu	Tuu	tuu	Also known as Southern Khoisan or Taa-ǃKwi, the Tuu family consists of languages spoken in Botswana and South Africa. They are famous for their heavy use of click consonants and for having some of the most complex distinct inventories of segments of any language in the world.	Family	Southern Africa		
+tuu__taa	Taa	tuu	The branch of the Tuu family containing the vibrant !Xóõ language and the extinct Lower Nossob dialects.	Subfamily	Botswana, Namibia		
+tuu__kwi	!Kwi	tuu	Also known as !Ui, this branch contains the moribund Nǁng language and several extinct languages including ǀXam.	Subfamily	South Africa		
+kx_a__kx_a	Kx'a	kx_a	A language family established in 2010 linking the ǂʼAmkoe language with the Juu dialect cluster. Formerly referred to as Northern Khoisan (Juu) plus the isolate ǂHoan.	Family	Southern Africa		
+kx_a__juu	Juu	kx_a	Also known as !Kung or Northern Khoisan, this is a dialect cluster often analyzed as comprising several distinct languages. It is the largest branch of the Kx'a family.	Subfamily	Namibia, Botswana, Angola		
+kx_a__amkoe	ǂʼAmkoe	kx_a	A severely endangered branch of the Kx'a family, historically known as ǂHoan. It represents the only proven external relative of the Juu languages.	Subfamily	Botswana		
+yeniseian__yeniseian	Yeniseian	yeniseian	A language family spoken in the Yenisei River region of central Siberia. It is hypothesized to be part of the Dené–Yeniseian macro-family.	Family	Central Siberia		
+yeniseian__northern_yeniseian	Northern Yeniseian	yeniseian	The surviving branch of the Yeniseian family, containing Ket and the recently extinct Yugh.	Subfamily	Turukhansk District		
+yeniseian__southern_yeniseian	Southern Yeniseian	yeniseian	The extinct branch of the Yeniseian family, which included Kott, Assan, Arin, and Pumpokol.	Subfamily	Krasnoyarsk Krai		
+yukaghir__yukaghir	Yukaghir	yukaghir	A small family of languages spoken in the Kolyma and Indigirka river basins in northeastern Siberia. They are traditionally regarded as an isolate group or a small family consisting of two divergent languages.	family	Russian Far East		
+sepik__sepik	Sepik	sepik	A language family consisting of approximately 50 languages spoken in the Sepik river basin of northern Papua New Guinea.	Family	Sepik River Basin, Papua New Guinea		
+sepik__middle_sepik	Middle Sepik	sepik	The most populous branch of the Sepik family, containing the Ndu and Nukuma languages.	Subfamily	East Sepik Province		
+sepik__sepik_hill	Sepik Hill	sepik	A branch including languages spoken in the foothills south of the Sepik river, such as Alamblak.	Subfamily	Sepik River Basin (foothills)		
+sepik__upper_sepik	Upper Sepik	sepik	Languages spoken in the upper reaches of the Sepik river, including Abau and Iwam.	Subfamily	Sandaun Province		
+sepik__tama	Tama	sepik	A smaller branch including languages like Yessan-Mayo.	Subfamily	Sepik Basin		
+sepik__yellow_river	Yellow River	sepik	Languages spoken along the Yellow River tributary of the Sepik.	Subfamily	Yellow River (Sepik Tributary)		
+sepik__ram	Ram	sepik	A small branch comprising languages like Karawa and Pouye.	Subfamily	Sepik Basin		
+torricelli__torricelli	Torricelli	torricelli	A major language family of northern Papua New Guinea, spoken primarily in the Torricelli and Prince Alexander ranges and along the Sepik coast. They are known for their unusual typological features compared to other Papuan languages, such as SVO word order.	Family	Papua New Guinea		
+torricelli__arapesh	Arapesh	torricelli	A major branch of the Torricelli family, noted for having a complex noun class system.	Subfamily	East Sepik Province, Papua New Guinea		
+torricelli__wapei	Wapei	torricelli	The largest branch of the Torricelli family in terms of number of languages, located west of the Arapesh lands.	Subfamily	Sandaun Province, Papua New Guinea		
+torricelli__marienberg	Marienberg	torricelli	A branch located in the Marienberg Hills south of the Sepik River.	Subfamily	East Sepik Province, Papua New Guinea		
+torricelli__palei	Palei	torricelli	A branch spoken in the Torricelli Mountains.	Subfamily	Sandaun Province, Papua New Guinea		
+torricelli__monumbo	Monumbo	torricelli	The easternmost branch of the Torricelli family, located on the coast.	Subfamily	Madang Province, Papua New Guinea		
+torricelli__kombio	Kombio	torricelli	A branch geographically adjacent to the Arapesh languages.	Subfamily	East Sepik Province, Papua New Guinea		
+torricelli__urim	Urim	torricelli	A small branch, primarily consisting of the Urim language.	Subfamily	East Sepik Province, Papua New Guinea		
+torricelli__maimai	Maimai	torricelli	A branch located in the Maimai district.	Subfamily	Sandaun Province, Papua New Guinea		
+sino_tibetan	Sino-Tibetan		A vast language family that includes the Sinitic languages (Chinese) and the Tibeto-Burman languages.	family	East Asia, Southeast Asia, South Asia		
+niger_congo	Niger-Congo		One of the world's largest language families by number of languages, dominating most of Sub-Saharan Africa.	family	Sub-Saharan Africa		
+austronesian	Austronesian		A widespread maritime language family ranging from Madagascar in the west to Easter Island in the east.	family	Maritime Southeast Asia, Oceania, Madagascar		
+trans_new_guinea	Trans-New Guinea		The most extensive language family on the island of New Guinea, both in geography and number of languages.	family	New Guinea		
+turkic	Turkic		A language family spoken across a vast area from Eastern Europe and the Mediterranean to Siberia and Western China.	family	Eurasia		
+kra_dai	Kra-Dai		A family of tonal languages including Thai and Lao, formerly grouped with Sino-Tibetan.	family	Southeast Asia, Southern China		
+austroasiatic	Austroasiatic		A large family indigenous to Southeast Asia and India, including Vietnamese, Khmer, and the Munda languages.	family	Mainland Southeast Asia, South Asia		
+nilo_saharan	Nilo-Saharan		A proposed family uniting various languages spoken in the upper Nile and Chari regions.	family	Central Africa, East Africa		
+pama_nyungan	Pama-Nyungan		The most widespread indigenous language family in Australia, covering most of the continent.	family	Australia		
+quechuan	Quechuan		The primary language family of the Inca Empire, spoken widely in the Andes of South America.	family	Andes		
+hmong_mien	Hmong-Mien		A primary language family of southern China and Southeast Asia, known for complex tone systems.	family	Southern China, Southeast Asia		
+tupian	Tupian		One of the most geographically widespread language families in South America, including Guarani.	family	South America		
+mayan	Mayan		A major language family of Mesoamerica with a continuous history of written literature dating back millennia.	family	Mesoamerica		
+uto_aztecan	Uto-Aztecan		A major family of the Americas, stretching from the Great Basin to Central Mexico, including Nahuatl.	family	Western United States, Mexico		
+na_dene	Na-Dene		A major family primarily in Alaska and western Canada, which also includes the Apachean languages of the US Southwest.	family	North America		
+algic	Algic		A widespread family including the populous Algonquian branch (e.g., Cree, Ojibwe) and languages of California.	family	North America		
+otomanguean	Otomanguean		A large and diverse ancient family of Mesoamerica, known for complex tone systems, including Zapotec and Mixtec.	family	Mexico		
+arawakan	Arawakan		The largest indigenous language family in South America by geographical extent, ranging from the Andes to the Amazon.	family	South America, Caribbean		
+chibchan	Chibchan		A family spanning the Isthmo-Colombian area, from Honduras to northern Colombia and Venezuela.	family	Central America, Northern South America		
+panoan	Panoan		A family spoken in the Amazon basin of Peru, western Brazil, and Bolivia.	family	Amazon		
+macro_je	Macro-Jê		A proposed stock of South American languages, primarily centered on the Brazilian plateau.	family	Brazil		
+cariban	Cariban		A family spoken widely across northern South America and historically in the Lesser Antilles.	family	Northern South America		
+aymaran	Aymaran		An Andean family spoken in Bolivia, Peru, and Chile, coexisting for centuries with Quechuan.	family	Andes		
+araucanian	Araucanian		A small family comprising Mapudungun and Huilliche spoken in the Southern Cone.	family	Chile, Argentina		
+siouan_catawban	Siouan-Catawban		A significant family of the Great Plains and southeastern United States, including Lakota and Crow.	family	North America		
+iroquoian	Iroquoian		A family centered around the Great Lakes and St. Lawrence region, including Mohawk and Cherokee.	family	Eastern North America		
+salishan	Salishan		A family known for its complex consonant clusters, spoken in British Columbia and Washington state.	family	Pacific Northwest		
+muskogean	Muskogean		A family of the Southeastern US, including Choctaw, Chickasaw, and Creek.	family	Southeastern United States		
+tucanoan	Tucanoan		A family spoken in the northwestern Amazon, known for linguistic exogamy practices.	family	Amazon		
+mixe_zoque	Mixe-Zoque		A language family of the Isthmus of Tehuantepec, potentially linked to the ancient Olmec civilization.	family	Mexico		
+totonacan	Totonacan		An isolate family spoken in the states of Veracruz and Puebla in Mexico.	family	Mexico		
+mande	Mande		A major family of West Africa including Mandinka and Bambara, often treated as distinct from Niger-Congo.	family	West Africa		
+songhay	Songhay		A group of languages centered on the middle Niger River, historically associated with the Songhai Empire.	family	Sahel		
+khoe	Khoe		The largest family of non-Bantu 'click' languages in Southern Africa.	family	Southern Africa		
+tuu	Tuu		A family of Khoisan languages, formerly called Southern Khoisan, known for extremely large click inventories.	family	Southern Africa		
+kx_a	Kx'a		A linkage of click languages comprising the Ju dialects (including !Kung) and the ǂʼAmkoe language.	family	Southern Africa		
+yeniseian	Yeniseian		A severely endangered language family in Central Siberia, linked by some linguists to Na-Dene.	family	Siberia		
+yukaghir	Yukaghir		A small family of languages spoken by the Yukaghir people in the Russian Far East.	family	Siberia		
+sepik	Sepik		A diverse family of languages spoken in the Sepik river basin of northern Papua New Guinea.	family	New Guinea		
+torricelli	Torricelli		A major family of northern Papua New Guinea, distinct from the Trans-New Guinea phylum.	family	New Guinea		
+uralic	Uralic			family			
+uralic__finnic	Finnic	uralic		subfamily			
+uralic__saami	Saami	uralic		subfamily			
+uralic__mari	Mari	uralic		subfamily			
+uralic__mordvin	Mordvin	uralic		subfamily			
+uralic__permian	Permian	uralic		subfamily			
+uralic__hungarian	Hungarian	uralic		subfamily			
+uralic__khantyic	Khantyic	uralic		subfamily			
+uralic__mansic	Mansic	uralic		subfamily			
+uralic__samoyedic	Samoyedic	uralic		subfamily			
+indo_european	Indo-European			family			
+indo_european__indo_aryan	Indo-Aryan	indo_european		subfamily			
+indo_european__iranian	Iranian	indo_european		subfamily			
+indo_european__armenic	Armenic	indo_european		subfamily			
+indo_european__graeco_phrygian	Graeco-Phrygian	indo_european		subfamily			
+indo_european__albanian	Albanian	indo_european		subfamily			
+indo_european__balto_slavic	Balto-Slavic	indo_european		subfamily			
+indo_european__germanic	Germanic	indo_european		subfamily			
+indo_european__celtic	Celtic	indo_european		subfamily			
+indo_european__italic	Italic	indo_european		subfamily			
+turkic__west_oghuz	West Oghuz	turkic		subfamily			
+turkic__uzbek	Uzbek	turkic		subfamily			
+mongolic	Mongolic			family			
+mongolic__eastern_mongolic	Eastern Mongolic	mongolic		subfamily			
+tungusic	Tungusic			family			
+tungusic__northern_tungusic	Northern Tungusic	tungusic		subfamily			
+tungusic__manchu_jurchen	Manchu-Jurchen	tungusic		subfamily			
+tungusic__central_tungusic	Central Tungusic	tungusic		subfamily			
+chukotko_kamchatkan	Chukotko-Kamchatkan			family			
+chukotko_kamchatkan__itelmen	Itelmen	chukotko_kamchatkan		subfamily			
+chukotko_kamchatkan__chukotian	Chukotian	chukotko_kamchatkan		subfamily			
+nivkh	Nivkh			family			
+nivkh__nivkh	Nivkh	nivkh		subfamily			
+ainu	Ainu			family			
+ainu__hokkaido_kuril_ainu	Hokkaido-Kuril Ainu	ainu		subfamily			
+koreanic	Koreanic			family			
+koreanic__korean	Korean	koreanic		subfamily			
+japonic	Japonic			family			
+japonic__japanesic	Japanesic	japonic		subfamily			
+eskimo_aleut	Eskimo-Aleut			family			
+eskimo_aleut__aleut	Aleut	eskimo_aleut		subfamily			
+eskimo_aleut__eskimo	Eskimo	eskimo_aleut		subfamily			
+dravidian	Dravidian			family			
+dravidian__south_dravidian	South Dravidian	dravidian		subfamily			
+burushaski	Burushaski			family			
+burushaski__burushaski	Burushaski	burushaski		subfamily			
+kartvelian	Kartvelian			family			
+kartvelian__georgian_zan	Georgian-Zan	kartvelian		subfamily			
+basque	Basque			family			
+basque__basque	Basque	basque		subfamily			
+abkhaz_adyge	Abkhaz-Adyge			family			
+abkhaz_adyge__abkhaz_abaza	Abkhaz-Abaza	abkhaz_adyge		subfamily			
+abkhaz_adyge__circassian	Circassian	abkhaz_adyge		subfamily			
+nakh_daghestanian	Nakh-Daghestanian			family			
+nakh_daghestanian__daghestanian	Daghestanian	nakh_daghestanian		subfamily			
+nakh_daghestanian__nakh	Nakh	nakh_daghestanian		subfamily			
+afro_asiatic	Afro-Asiatic			family			
+afro_asiatic__semitic	Semitic	afro_asiatic		subfamily			
+afro_asiatic__berber	Berber	afro_asiatic	A branch of Afro-Asiatic languages spoken across North Africa, from Morocco to Egypt, and in parts of the Sahel.	Subfamily	North Africa, Sahel		
+afro_asiatic__cushitic	Cushitic	afro_asiatic	A branch of Afro-Asiatic languages spoken primarily in the Horn of Africa and parts of East Africa.	Subfamily	Horn of Africa, East Africa		
+afro_asiatic__chadic	Chadic	afro_asiatic	The largest branch of Afro-Asiatic by number of languages, spoken primarily in Nigeria, Niger, Chad, and Cameroon.	Subfamily	West Africa, Central Africa		
+afro_asiatic__omotic	Omotic	afro_asiatic	A branch of Afro-Asiatic languages spoken in southwestern Ethiopia.	Subfamily	Ethiopia		
+afro_asiatic__egyptian	Egyptian	afro_asiatic	An extinct branch of Afro-Asiatic that includes Ancient Egyptian and Coptic.	Subfamily	Egypt		
+indo_european__anatolian	Anatolian	indo_european	An extinct branch of Indo-European that includes Hittite, Luwian, and other ancient languages of Anatolia.	Subfamily	Anatolia (extinct)		
+indo_european__tocharian	Tocharian	indo_european	An extinct branch of Indo-European spoken in the Tarim Basin of Central Asia.	Subfamily	Central Asia (extinct)		
+wakashan	Wakashan		A language family of the Pacific Northwest Coast, known for complex phonology and polysynthetic morphology.	Family	Pacific Northwest Coast		
+wakashan__northern_wakashan	Northern Wakashan	wakashan	The northern branch including Kwak'wala and related languages.	Subfamily	British Columbia		
+wakashan__southern_wakashan	Southern Wakashan	wakashan	The southern branch including Nuu-chah-nulth and Makah.	Subfamily	Vancouver Island, Washington		
+tsimshianic	Tsimshianic		A small language family of the Pacific Northwest Coast of British Columbia.	Family	British Columbia		
+tsimshianic__tsimshian	Tsimshian (Maritime)	tsimshianic	The coastal branch including Coast Tsimshian and Southern Tsimshian.	Subfamily	Coastal British Columbia, Alaska		
+tsimshianic__nass_gitksan	Nass-Gitksan (Interior)	tsimshianic	The interior branch including Nisga'a and Gitksan.	Subfamily	Interior British Columbia		
+haida	Haida		A language isolate of Haida Gwaii and southeastern Alaska, known for its complex phonology.	Family	Haida Gwaii, Alaska		
+haida__northern_haida	Northern Haida	haida	The northern dialects including Alaskan (Kaigani) and Masset.	Subfamily	Alaska, Northern Haida Gwaii		
+haida__southern_haida	Southern Haida	haida	The southern dialects including Skidegate.	Subfamily	Southern Haida Gwaii		
+caddoan	Caddoan		A language family of the Great Plains, historically spoken from present-day North Dakota to Texas.	Family	Great Plains		
+caddoan__northern_caddoan	Northern Caddoan	caddoan	The northern branch including Pawnee, Arikara, and extinct Kitsai.	Subfamily	Great Plains		
+caddoan__southern_caddoan	Southern Caddoan	caddoan	The southern branch including Caddo and extinct Wichita.	Subfamily	Southern Plains		
+sahaptian	Sahaptian		A language family of the Columbia Plateau region.	Family	Columbia Plateau		
+sahaptian__nez_perce	Nez Perce	sahaptian	The Nez Perce language with Upper and Lower dialects.	Subfamily	Idaho, Washington, Oregon		
+sahaptian__sahaptin	Sahaptin	sahaptian	The Sahaptin language with multiple dialects including Yakama and Umatilla.	Subfamily	Columbia Plateau		
+klamath_modoc	Klamath-Modoc		A small language family of southern Oregon and northern California.	Family	Oregon, California		
+klamath_modoc__klamath	Klamath	klamath_modoc	The northern dialect spoken in Oregon.	Subfamily	Southern Oregon		
+klamath_modoc__modoc	Modoc	klamath_modoc	The southern dialect spoken in California and Oklahoma.	Subfamily	Northern California, Oklahoma		
+pomoan	Pomoan		A language family of northern California, known for complex phonology and evidential systems.	Family	Northern California		
+pomoan__eastern_pomoan	Eastern Pomoan	pomoan	Includes Southeastern, Eastern, and Northeastern Pomo.	Subfamily	Northern California		
+pomoan__western_pomoan	Western Pomoan	pomoan	Includes Northern Pomo and the Southern group (Central, Southern, Kashaya).	Subfamily	Northern California		
+yuman	Yuman		A language family of the southwestern United States and northwestern Mexico.	Family	Southwest US, Northwest Mexico		
+yuman__river_yuman	River Yuman	yuman	Languages spoken along the Colorado River.	Subfamily	Colorado River		
+yuman__upland_yuman	Upland Yuman	yuman	Languages spoken in the uplands of Arizona.	Subfamily	Arizona		
+yuman__delta_california_yuman	Delta-California Yuman	yuman	Languages spoken in the Colorado River Delta and Baja California.	Subfamily	Baja California, Colorado Delta		
+maiduan	Maiduan		A language family of the Sierra Nevada foothills in California.	Family	Northern California		
+maiduan__maidu	Maidu (Northeastern)	maiduan	The northeastern branch also known as Mountain Maidu.	Subfamily	Northern Sierra Nevada		
+maiduan__konkow	Konkow (Northwestern)	maiduan	The northwestern branch also known as Concow.	Subfamily	Northern Sierra Nevada		
+maiduan__nisenan	Nisenan (Southern)	maiduan	The southern branch also known as Southern Maidu.	Subfamily	Northern Sierra Nevada		
+wintuan	Wintuan		A language family of the Sacramento Valley in California.	Family	Northern California		
+wintuan__northern_wintuan	Northern Wintuan	wintuan	Includes Wintu and Nomlaki.	Subfamily	Northern Sacramento Valley		
+wintuan__southern_wintuan	Southern Wintuan	wintuan	Includes Patwin and Southern Patwin.	Subfamily	Southern Sacramento Valley		
+utian	Utian		A language family of central California, including Miwok and Costanoan languages.	Family	Central California		
+utian__miwokan	Miwokan	utian	The Miwok branch of Utian.	Subfamily	Central California		
+utian__costanoan	Costanoan	utian	The Costanoan (Ohlone) branch of Utian.	Subfamily	San Francisco Bay Area		
+chinookan	Chinookan		A language family of the lower Columbia River region.	Family	Columbia River		
+chinookan__lower_chinook	Lower Chinook	chinookan	The coastal branch of Chinookan, also known as Chinook-proper.	Subfamily	Columbia River Mouth		
+chinookan__kathlamet	Kathlamet	chinookan	The middle branch of Chinookan, sometimes classified as Middle Chinookan.	Subfamily	Lower Columbia River		
+chinookan__upper_chinook	Upper Chinook	chinookan	The upriver branch of Chinookan, also known as Kiksht or Columbia Chinook.	Subfamily	Upper Columbia River		
+kiowa_tanoan	Kiowa-Tanoan		A language family of the Great Plains and Rio Grande Pueblos.	Family	Great Plains, New Mexico		
+kiowa_tanoan__kiowa	Kiowa	kiowa_tanoan	The Plains branch of the family.	Subfamily	Oklahoma		
+kiowa_tanoan__tanoan	Tanoan	kiowa_tanoan	The Pueblo branch of the family.	Subfamily	New Mexico		
+kiowa_tanoan__tiwa	Tiwa	kiowa_tanoan	A branch of Tanoan spoken in several Rio Grande Pueblos.	Subfamily	New Mexico		
+kiowa_tanoan__tewa	Tewa	kiowa_tanoan	A branch of Tanoan spoken in several Rio Grande Pueblos and Hopi Reservation.	Subfamily	New Mexico, Arizona		
+kiowa_tanoan__towa	Towa	kiowa_tanoan	A branch of Tanoan spoken at Jemez Pueblo.	Subfamily	New Mexico		
+zuni	Zuni		A language isolate spoken at Zuni Pueblo in New Mexico.	Family	New Mexico		
+zuni__zuni_language	Zuni Language	zuni	The single Zuni language with minimal dialectal variation.	Subfamily	Zuni Pueblo, New Mexico		
+keres	Keres		A language isolate spoken in several Pueblos in New Mexico.	Family	New Mexico		
+keres__eastern_keres	Eastern Keres	keres	Dialects spoken at Cochiti, San Felipe, Santo Domingo, Zia, and Santa Ana pueblos.	Subfamily	Rio Grande Valley, New Mexico		
+keres__western_keres	Western Keres	keres	Dialects spoken at Acoma and Laguna pueblos.	Subfamily	Western New Mexico		
+barbacoan	Barbacoan		A small language family of the Pacific coast of Colombia and Ecuador.	Family	Colombia, Ecuador		
+barbacoan__northern	Northern Barbacoan	barbacoan	The northern branch including Awan and Coconucan languages.	Subfamily	Colombia		
+barbacoan__southern	Southern Barbacoan	barbacoan	The southern branch including Cayapa-Tsafiki languages.	Subfamily	Ecuador		
+chocoan	Chocoan		A small language family of western Colombia and eastern Panama.	Family	Colombia, Panama		
+chocoan__embera	Emberá	chocoan	The Emberá branch with multiple dialects.	Subfamily	Colombia, Panama		
+chocoan__wounaan	Wounaan	chocoan	The Wounaan language, closely related to Emberá.	Subfamily	Colombia, Panama		
+jivaroan	Jivaroan		A language family of the Amazon basin in Ecuador and Peru.	Family	Amazon (Ecuador, Peru)		
+jivaroan__shuar_achuar	Shuar-Achuar	jivaroan	The western branch including Shuar and Achuar.	Subfamily	Ecuador, Peru		
+jivaroan__awajun_wampis	Awajún-Wampis	jivaroan	The eastern branch including Awajún (Aguaruna) and Wampis (Huambisa).	Subfamily	Peru		
+zaparoan	Zaparoan		A nearly extinct language family of the Amazon basin in Ecuador and Peru.	Family	Amazon (Ecuador, Peru)		
+zaparoan__zaparoan_languages	Zaparoan Languages	zaparoan	Includes Záparo, Arabela, Iquito, and extinct Andoa and Cahuarano.	Subfamily	Amazon (Ecuador, Peru)		
+witotoan	Witotoan		A small language family of the Amazon basin in Colombia, Peru, and Brazil.	Family	Amazon		
+witotoan__witotoan_languages	Witotoan Languages	witotoan	Includes Witoto (Huitoto), Ocaina, and Nonuya.	Subfamily	Amazon		
+guaicuruan	Guaicuruan		A language family of the Gran Chaco region of South America.	Family	Gran Chaco		
+guaicuruan__northern_guaicuruan	Northern Guaicuruan	guaicuruan	Includes Toba, Pilagá, and Mocoví.	Subfamily	Northern Gran Chaco		
+guaicuruan__southern_guaicuruan	Southern Guaicuruan	guaicuruan	Includes Kadiwéu (Caduveo).	Subfamily	Southern Gran Chaco		
+matacoan	Matacoan		A language family of the Gran Chaco region of South America.	Family	Gran Chaco		
+matacoan__matacoan_languages	Matacoan Languages	matacoan	Includes Wichí (Mataco), Chorote, Nivaclé, and Maká.	Subfamily	Gran Chaco		
+zamucoan	Zamucoan		A small language family of the Gran Chaco region.	Family	Gran Chaco		
+zamucoan__zamucoan_languages	Zamucoan Languages	zamucoan	Includes Ayoreo and Chamacoco.	Subfamily	Gran Chaco		
+mascoian	Mascoian		A language family of the Gran Chaco region of Paraguay.	Family	Gran Chaco (Paraguay)		
+mascoian__mascoian_languages	Mascoian Languages	mascoian	Includes Maskoy, Sanapaná, Angaité, and Guaná.	Subfamily	Gran Chaco (Paraguay)		
+lule_vilela	Lule-Vilela		A nearly extinct language family of Argentina.	Family	Argentina		
+lule_vilela__lule_vilela_languages	Lule-Vilela Languages	lule_vilela	Includes extinct Lule and nearly extinct Vilela.	Subfamily	Argentina		
+charruan	Charruan		An extinct language family of Uruguay and Argentina.	Family	Uruguay, Argentina (extinct)		
+charruan__charruan_languages	Charruan Languages	charruan	Includes extinct Charrúa and Chaná.	Subfamily	Uruguay, Argentina (extinct)		
+huavean	Huavean		A language isolate of Oaxaca, Mexico, spoken in four coastal communities.	Family	Oaxaca, Mexico		
+huavean__huave_dialects	Huave Dialects	huavean	Includes San Mateo, San Francisco, Santa María, and San Dionisio dialects.	Subfamily	Oaxaca Coast, Mexico		
+purepecha	Purépecha		A language isolate of Michoacán, Mexico, also known as Tarascan.	Family	Michoacán, Mexico		
+purepecha__purepecha_language	Purépecha Language	purepecha	The single Purépecha language with regional variation.	Subfamily	Michoacán, Mexico		
+seri	Seri		A language isolate of Sonora, Mexico, spoken by the Seri people.	Family	Sonora, Mexico		
+seri__seri_language	Seri Language	seri	The single Seri language spoken on Tiburón Island and coastal Sonora.	Subfamily	Sonora, Mexico		
+lencan	Lencan		An extinct language family of Honduras and El Salvador.	Family	Honduras, El Salvador (extinct)		
+lencan__lenca_languages	Lenca Languages	lencan	Includes extinct Lenca and Chilanga.	Subfamily	Honduras, El Salvador (extinct)		
+xincan	Xincan		A nearly extinct language family of Guatemala.	Family	Guatemala		
+xincan__xincan_languages	Xincan Languages	xincan	Includes Jumaytepeque, Yupiltepeque, Chiquimulilla, and Guazacapán Xinca.	Subfamily	Guatemala		
+misumalpan	Misumalpan		A language family of Nicaragua and Honduras.	Family	Nicaragua, Honduras		
+misumalpan__miskito	Miskito	misumalpan	The Miskito language, the largest of the family.	Subfamily	Nicaragua, Honduras		
+misumalpan__sumo_mayangna	Sumo-Mayangna	misumalpan	Includes Mayangna (Sumo) dialects.	Subfamily	Nicaragua		
+timucua	Timucua		An extinct language isolate of Florida and Georgia.	Family	Florida, Georgia (extinct)		
+timucua__timucua_dialects	Timucua Dialects	timucua	Includes extinct Timucua dialects from various Florida missions.	Subfamily	Florida, Georgia (extinct)		
+natchez	Natchez		An extinct language isolate of Mississippi and Louisiana.	Family	Mississippi, Louisiana (extinct)		
+natchez__natchez_language	Natchez Language	natchez	The extinct Natchez language.	Subfamily	Mississippi, Louisiana (extinct)		
+chitimacha	Chitimacha		An extinct language isolate of Louisiana.	Family	Louisiana (extinct)		
+chitimacha__chitimacha_language	Chitimacha Language	chitimacha	The extinct Chitimacha language.	Subfamily	Louisiana (extinct)		
+atakapa	Atakapa		An extinct language isolate of Louisiana and Texas.	Family	Louisiana, Texas (extinct)		
+atakapa__eastern_atakapa	Eastern Atakapa	atakapa	The eastern dialect of Atakapa, documented around Saint Martinville, Louisiana.	Subfamily	Louisiana (extinct)		
+atakapa__western_atakapa	Western Atakapa	atakapa	The western dialect of Atakapa, documented around Lake Charles, Louisiana and Galveston Bay, Texas.	Subfamily	Louisiana, Texas (extinct)		
+tunica	Tunica		An extinct language isolate of Louisiana and Mississippi.	Family	Louisiana, Mississippi (extinct)		
+tunica__tunica_language	Tunica Language	tunica	The extinct Tunica language.	Subfamily	Louisiana, Mississippi (extinct)		
+tonkawa	Tonkawa		An extinct language isolate of Texas.	Family	Texas (extinct)		
+tonkawa__tonkawa_language	Tonkawa Language	tonkawa	The extinct Tonkawa language.	Subfamily	Texas (extinct)		
+karuk	Karuk		A language isolate of northwestern California.	Family	Northern California		
+karuk__karuk_language	Karuk Language	karuk	The Karuk language of the Klamath River region.	Subfamily	Northern California		
+washo	Washo		A language isolate of the Lake Tahoe region.	Family	California, Nevada		
+washo__washo_language	Washo Language	washo	The Washo language of the Lake Tahoe basin.	Subfamily	California, Nevada		
+yukian	Yukian		An extinct language family of northern California.	Family	Northern California (extinct)		
+yukian__yuki_wappo	Yuki-Wappo	yukian	Includes extinct Yuki and Wappo languages.	Subfamily	Northern California (extinct)		
+chumashan	Chumashan		An extinct language family of coastal southern California.	Family	Southern California (extinct)		
+chumashan__chumashan_languages	Chumashan Languages	chumashan	Includes extinct Island Chumash, Barbareño, Ventureño, Purisimeño, Obispeño, and Ineseño.	Subfamily	Southern California (extinct)		
+esselen	Esselen		An extinct language isolate of coastal central California.	Family	Central California (extinct)		
+esselen__esselen_language	Esselen Language	esselen	The extinct Esselen language.	Subfamily	Central California (extinct)		
+salinan	Salinan		An extinct language isolate of coastal central California.	Family	Central California (extinct)		
+salinan__salinan_language	Salinan Language	salinan	The extinct Salinan language with Antoniaño and Miguelino dialects.	Subfamily	Central California (extinct)		
+sumerian	Sumerian		An extinct language isolate of ancient Mesopotamia, one of the earliest written languages.	Family	Mesopotamia (extinct)		
+sumerian__sumerian_language	Sumerian Language	sumerian	The extinct Sumerian language with Emesal and Emegir varieties.	Subfamily	Mesopotamia (extinct)		
+elamite	Elamite		An extinct language isolate of ancient Iran.	Family	Iran (extinct)		
+elamite__elamite_language	Elamite Language	elamite	The extinct Elamite language with Old, Middle, and Achaemenid periods.	Subfamily	Iran (extinct)		
+hurro_urartian	Hurro-Urartian		An extinct language family of ancient Anatolia and the Caucasus.	Family	Anatolia, Caucasus (extinct)		
+hurro_urartian__hurrian	Hurrian	hurro_urartian	An extinct language of ancient Mesopotamia and Anatolia.	Subfamily	Mesopotamia, Anatolia (extinct)		
+hurro_urartian__urartian	Urartian	hurro_urartian	An extinct language of ancient Armenia.	Subfamily	Armenia (extinct)		
+hattic	Hattic		An extinct language isolate of ancient Anatolia.	Family	Anatolia (extinct)		
+hattic__hattic_language	Hattic Language	hattic	The extinct Hattic language of the Hattians.	Subfamily	Anatolia (extinct)		
+etruscan	Etruscan		An extinct language isolate of ancient Italy.	Family	Italy (extinct)		
+etruscan__etruscan_language	Etruscan Language	etruscan	The extinct Etruscan language.	Subfamily	Italy (extinct)		
+andamanese	Andamanese		A language family of the Andaman Islands, including Great Andamanese languages, Jarawa, and Onge.	Family	Andaman Islands		
+andamanese__great_andamanese	Great Andamanese	andamanese	A branch of nearly extinct languages of the Andaman Islands.	Subfamily	Andaman Islands		
+andamanese__ongan	Ongan	andamanese	A branch including Jarawa and Onge.	Subfamily	Andaman Islands		
+kusunda	Kusunda		A nearly extinct language isolate of Nepal.	Family	Nepal		
+kusunda__kusunda_language	Kusunda Language	kusunda	The nearly extinct Kusunda language.	Subfamily	Nepal		
+nihali	Nihali		A language isolate of central India.	Family	Central India		
+nihali__nihali_language	Nihali Language	nihali	The Nihali language, possibly a language isolate.	Subfamily	Central India		
+eskimo_aleut__inuit	Inuit	eskimo_aleut	The Inuit branch of Eskimo, including Inuktitut and Inupiaq.	Subfamily	Arctic (Canada, Alaska, Greenland)		
+eskimo_aleut__yupik	Yupik	eskimo_aleut	The Yupik branch of Eskimo.	Subfamily	Alaska, Siberia		
+japonic__ryukyuan	Ryukyuan	japonic	The Ryukyuan languages of the Ryukyu Islands, distinct from Japanese.	Subfamily	Ryukyu Islands		
+dravidian__north_dravidian	North Dravidian	dravidian	The northern branch of Dravidian including Brahui and Kurukh.	Subfamily	Pakistan, Central India		
+dravidian__central_dravidian	Central Dravidian	dravidian	The central branch of Dravidian including Gondi and Kui.	Subfamily	Central India		
+kartvelian__svan	Svan	kartvelian	The most divergent branch of Kartvelian.	Subfamily	Georgia		
+mongolic__western_mongolic	Western Mongolic	mongolic	The western branch including Oirat and Kalmyk.	Subfamily	Western Mongolia, Russia		
+tungusic__southern_tungusic	Southern Tungusic	tungusic	The southern branch including Nanai and Ulch.	Subfamily	Russian Far East, China		
+abkhaz_adyge__ubykh	Ubykh	abkhaz_adyge	An extinct language known for having one of the largest consonant inventories.	Subfamily	Turkey (extinct)		
+nakh_daghestanian__avar_andic	Avar-Andic	nakh_daghestanian	A major branch of Daghestanian languages.	Subfamily	Dagestan		
+nakh_daghestanian__tsezic	Tsezic	nakh_daghestanian	A branch of Daghestanian languages known for complex case systems.	Subfamily	Dagestan		
+nakh_daghestanian__lezgic	Lezgic	nakh_daghestanian	A major branch of Daghestanian languages.	Subfamily	Dagestan, Azerbaijan		
+nakh_daghestanian__dargwa	Dargwa	nakh_daghestanian	A branch consisting of the Dargwa language cluster.	Subfamily	Dagestan		
+nakh_daghestanian__lak	Lak	nakh_daghestanian	A branch consisting of the Lak language.	Subfamily	Dagestan		
+skou	Skou		A small Papuan language family of the north coast of Papua.	Family	Papua		
+skou__skou_languages	Skou Languages	skou	Includes Skou, Sangke, I'saka, and Rawo.	Subfamily	North Coast Papua		
+lower_mamberamo	Lower Mamberamo		A small Papuan language family of Papua.	Family	Papua		
+lower_mamberamo__lower_mamberamo_languages	Lower Mamberamo Languages	lower_mamberamo	Includes Warembori and Pauwi.	Subfamily	Mamberamo River, Papua		
+border	Border		A Papuan language family of the Papua New Guinea-Indonesia border region.	Family	Papua New Guinea, Indonesia		
+border__border_languages	Border Languages	border	Includes Imonda, Waris, and related languages.	Subfamily	Border Region		
+kwomtari	Kwomtari		A small Papuan language family of Papua New Guinea.	Family	Papua New Guinea		
+kwomtari__kwomtari_languages	Kwomtari Languages	kwomtari	Includes Kwomtari, Guriaso, and Nai.	Subfamily	Sandaun Province		
+left_may	Left May		A small Papuan language family of Papua New Guinea.	Family	Papua New Guinea		
+left_may__left_may_languages	Left May Languages	left_may	Includes Ama and Nakwi.	Subfamily	Sandaun Province		
+yuat	Yuat		A Papuan language family of the Yuat River basin.	Family	Papua New Guinea		
+yuat__yuat_languages	Yuat Languages	yuat	Includes Biwat, Changriwa, Kyenele, and Miyak.	Subfamily	Yuat River Basin		
+ramu	Ramu		A Papuan language family of the Ramu River basin.	Family	Papua New Guinea		
+ramu__ramu_languages	Ramu Languages	ramu	Includes multiple branches along the Ramu River.	Subfamily	Ramu River Basin		
+lower_sepik	Lower Sepik		A Papuan language family of the lower Sepik River.	Family	Papua New Guinea		
+lower_sepik__lower_sepik_languages	Lower Sepik Languages	lower_sepik	Includes Yimas, Karawari, and related languages.	Subfamily	Lower Sepik River		
+gunwinyguan	Gunwinyguan		A major Australian Aboriginal language family of Arnhem Land.	Family	Northern Territory		
+gunwinyguan__gunwinyguan_languages	Gunwinyguan Languages	gunwinyguan	Includes Kunwinjku, Jawoyn, Ngalakgan, and related languages.	Subfamily	Arnhem Land		
+arnhem	Arnhem		A group of Australian Aboriginal languages of Arnhem Land.	Family	Northern Territory		
+arnhem__arnhem_languages	Arnhem Languages	arnhem	Includes Burarra, Nunggubuyu, and other non-Pama-Nyungan Arnhem languages.	Subfamily	Arnhem Land		
+daly	Daly		A group of Australian Aboriginal languages of the Daly River region.	Family	Northern Territory		
+daly__daly_languages	Daly Languages	daly	Includes Malak-Malak, Marrithiyel, Murrinh-Patha, and related languages.	Subfamily	Daly River Region		
+jarrakan	Jarrakan		An Australian Aboriginal language family of the Northern Territory and Western Australia.	Family	Northern Territory, Western Australia		
+jarrakan__jarrakan_languages	Jarrakan Languages	jarrakan	Includes Kija and Miriwoong.	Subfamily	East Kimberley		
+nyulnyulan	Nyulnyulan		An Australian Aboriginal language family of the Dampier Peninsula.	Family	Western Australia		
+nyulnyulan__nyulnyulan_languages	Nyulnyulan Languages	nyulnyulan	Includes Bardi, Jawi, Nyulnyul, and related languages.	Subfamily	Dampier Peninsula		
+worrorran	Worrorran		An Australian Aboriginal language family of the Kimberley region.	Family	Western Australia		
+worrorran__northern_worrorran	Northern Worrorran	worrorran	Includes Wunambal and Gaambera.	Subfamily	Northern Kimberley		
+worrorran__western_worrorran	Western Worrorran	worrorran	Includes Worora and Unggumi.	Subfamily	Western Kimberley		
+bunuban	Bunuban		A small Australian Aboriginal language family of the Northern Territory.	Family	Northern Territory		
+bunuban__bunuban_languages	Bunuban Languages	bunuban	The two closely related languages of the Bunuban family: Bunuba and Gooniyandi.	Subfamily	Kimberley, Western Australia		
+tiwi	Tiwi		A language isolate of the Tiwi Islands, Northern Territory.	Family	Northern Territory		
+tiwi__tiwi_language	Tiwi Language	tiwi	The Tiwi language with Traditional and Modern varieties.	Subfamily	Tiwi Islands		

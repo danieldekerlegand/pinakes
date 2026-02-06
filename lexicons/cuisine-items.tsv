@@ -1,0 +1,2101 @@
+id	cuisine_id	name	food_type	time_origin	time_end
+chinese-peking-duck	chinese	Peking Duck	Main Dish	-500	null
+chinese-kung-pao-chicken	chinese	Kung Pao Chicken	Stir-Fry	-500	null
+chinese-sweet-and-sour-pork	chinese	Sweet and Sour Pork	Main Dish	-500	null
+chinese-mapo-tofu	chinese	Mapo Tofu	Main Dish	-500	null
+chinese-dim-sum	chinese	Dim Sum	Appetizer	-500	null
+chinese-xiaolongbao	chinese	Xiaolongbao	Dumpling	-500	null
+chinese-dumplings	chinese	Dumplings	Dumpling	-500	null
+chinese-spring-rolls	chinese	Spring Rolls	Appetizer	-500	null
+chinese-fried-rice	chinese	Fried Rice	Rice Dish	-500	null
+chinese-chow-mein	chinese	Chow Mein	Noodle Dish	-500	null
+chinese-lo-mein	chinese	Lo Mein	Noodle Dish	-500	null
+chinese-dan-dan-noodles	chinese	Dan Dan Noodles	Noodle Dish	-500	null
+chinese-wonton-soup	chinese	Wonton Soup	Soup	-500	null
+chinese-hot-and-sour-soup	chinese	Hot and Sour Soup	Soup	-500	null
+chinese-egg-drop-soup	chinese	Egg Drop Soup	Soup	-500	null
+chinese-congee	chinese	Congee	Rice Porridge	-500	null
+chinese-char-siu	chinese	Char Siu	Grilled Meat	-500	null
+chinese-general-tsos-chicken	chinese	General Tso's Chicken	Main Dish	1950	null
+chinese-orange-chicken	chinese	Orange Chicken	Main Dish	1950	null
+chinese-mongolian-beef	chinese	Mongolian Beef	Main Dish	-500	null
+chinese-beef-and-broccoli	chinese	Beef and Broccoli	Stir-Fry	-500	null
+chinese-moo-shu-pork	chinese	Moo Shu Pork	Main Dish	-500	null
+chinese-twice-cooked-pork	chinese	Twice Cooked Pork	Main Dish	-500	null
+chinese-hong-shao-rou	chinese	Hong Shao Rou	Stew	-500	null
+chinese-dongpo-pork	chinese	Dongpo Pork	Main Dish	-500	null
+chinese-sichuan-hot-pot	chinese	Sichuan Hot Pot	Hot Pot	-500	null
+chinese-chongqing-chicken	chinese	Chongqing Chicken	Stir-Fry	-500	null
+chinese-fish-fragrant-eggplant	chinese	Fish Fragrant Eggplant	Stir-Fry	-500	null
+chinese-gong-bao-shrimp	chinese	Gong Bao Shrimp	Stir-Fry	-500	null
+chinese-salt-and-pepper-squid	chinese	Salt and Pepper Squid	Fried Food	-500	null
+chinese-steamed-fish	chinese	Steamed Fish	Main Dish	-500	null
+chinese-braised-abalone	chinese	Braised Abalone	Main Dish	-500	null
+chinese-sea-cucumber	chinese	Sea Cucumber	Main Dish	-500	null
+chinese-birds-nest-soup	chinese	Bird's Nest Soup	Soup	-500	null
+chinese-shark-fin-soup	chinese	Shark Fin Soup	Soup	-500	null
+chinese-buddhas-delight	chinese	Buddha's Delight	Vegetable Dish	-500	null
+chinese-ma-la-xiang-guo	chinese	Ma La Xiang Guo	Stir-Fry	-500	null
+chinese-chuan-chuan	chinese	Chuan Chuan	Street Food	-500	null
+chinese-jianbing	chinese	Jianbing	Street Food	-500	null
+chinese-roujiamo	chinese	Roujiamo	Sandwich	-500	null
+chinese-baozi	chinese	Baozi	Steamed Bun	-500	null
+chinese-mantou	chinese	Mantou	Steamed Bun	-500	null
+chinese-scallion-pancake	chinese	Scallion Pancake	Flatbread	-500	null
+chinese-ramen-chinese-style	chinese	Ramen (Chinese style)	Noodle Soup	-500	null
+chinese-lanzhou-beef-noodles	chinese	Lanzhou Beef Noodles	Noodle Soup	-500	null
+chinese-guilin-rice-noodles	chinese	Guilin Rice Noodles	Noodle Dish	-500	null
+chinese-zhajiangmian	chinese	Zhajiangmian	Noodle Dish	-500	null
+chinese-biang-biang-noodles	chinese	Biang Biang Noodles	Noodle Dish	-500	null
+chinese-shengjianbao	chinese	Shengjianbao	Fried Bun	-500	null
+chinese-guotie	chinese	Guotie	Dumpling	-500	null
+chinese-shumai	chinese	Shumai	Dumpling	-500	null
+chinese-har-gow	chinese	Har Gow	Dumpling	-500	null
+chinese-cheung-fun	chinese	Cheung Fun	Rice Roll	-500	null
+chinese-turnip-cake	chinese	Turnip Cake	Dim Sum	-500	null
+chinese-taro-cake	chinese	Taro Cake	Dim Sum	-500	null
+chinese-egg-tart	chinese	Egg Tart	Dessert	-500	null
+chinese-pineapple-bun	chinese	Pineapple Bun	Bread	-500	null
+chinese-coconut-bun	chinese	Coconut Bun	Bread	-500	null
+chinese-bbq-pork-bun	chinese	BBQ Pork Bun	Steamed Bun	-500	null
+chinese-custard-bun	chinese	Custard Bun	Steamed Bun	-500	null
+chinese-zongzi	chinese	Zongzi	Rice Dumpling	-500	null
+chinese-nian-gao	chinese	Nian Gao	Rice Cake	-500	null
+chinese-tangyuan	chinese	Tangyuan	Dessert	-500	null
+chinese-mooncake	chinese	Mooncake	Dessert	-500	null
+chinese-sesame-balls	chinese	Sesame Balls	Dessert	-500	null
+chinese-almond-cookie	chinese	Almond Cookie	Cookie	-500	null
+chinese-fortune-cookie	chinese	Fortune Cookie	Cookie	1950	null
+chinese-dragons-beard-candy	chinese	Dragon's Beard Candy	Candy	-500	null
+chinese-white-rabbit-candy	chinese	White Rabbit Candy	Candy	-500	null
+chinese-haw-flakes	chinese	Haw Flakes	Candy	-500	null
+chinese-century-egg	chinese	Century Egg	Appetizer	-500	null
+chinese-tea-egg	chinese	Tea Egg	Snack	-500	null
+chinese-soy-sauce-egg	chinese	Soy Sauce Egg	Side Dish	-500	null
+chinese-preserved-vegetables	chinese	Preserved Vegetables	Pickle	-500	null
+chinese-pickled-cucumber	chinese	Pickled Cucumber	Pickle	-500	null
+chinese-wood-ear-mushroom	chinese	Wood Ear Mushroom	Side Dish	-500	null
+chinese-bok-choy	chinese	Bok Choy	Side Dish	-500	null
+chinese-chinese-broccoli	chinese	Chinese Broccoli	Side Dish	-500	null
+chinese-water-spinach	chinese	Water Spinach	Side Dish	-500	null
+chinese-lotus-root	chinese	Lotus Root	Side Dish	-500	null
+chinese-bamboo-shoots	chinese	Bamboo Shoots	Side Dish	-500	null
+chinese-baby-corn	chinese	Baby Corn	Side Dish	-500	null
+chinese-snow-peas	chinese	Snow Peas	Side Dish	-500	null
+chinese-edamame	chinese	Edamame	Snack	-500	null
+chinese-roasted-chestnuts	chinese	Roasted Chestnuts	Snack	-500	null
+chinese-sunflower-seeds	chinese	Sunflower Seeds	Snack	-500	null
+chinese-tofu-pudding	chinese	Tofu Pudding	Dessert	-500	null
+chinese-soy-milk	chinese	Soy Milk	Beverage	-500	null
+chinese-grass-jelly	chinese	Grass Jelly	Dessert	-500	null
+chinese-bubble-tea	chinese	Bubble Tea	Beverage	-500	null
+chinese-chrysanthemum-tea	chinese	Chrysanthemum Tea	Beverage	-500	null
+chinese-pu-erh-tea	chinese	Pu-erh Tea	Beverage	-500	null
+chinese-oolong-tea	chinese	Oolong Tea	Beverage	-500	null
+chinese-jasmine-tea	chinese	Jasmine Tea	Beverage	-500	null
+chinese-longjing-tea	chinese	Longjing Tea	Beverage	-500	null
+chinese-baijiu	chinese	Baijiu	Beverage	-500	null
+chinese-huangjiu	chinese	Huangjiu	Beverage	-500	null
+chinese-tsingtao-beer	chinese	Tsingtao Beer	Beverage	-500	null
+chinese-sour-plum-drink	chinese	Sour Plum Drink	Beverage	-500	null
+chinese-herbal-tea	chinese	Herbal Tea	Beverage	-500	null
+ethiopian-injera	ethiopian	Injera	Bread	-500	null
+ethiopian-doro-wat	ethiopian	Doro Wat	Stew	-500	null
+ethiopian-kitfo	ethiopian	Kitfo	Main Dish	-500	null
+ethiopian-tibs	ethiopian	Tibs	Stir-Fry	-500	null
+ethiopian-shiro	ethiopian	Shiro	Stew	-500	null
+ethiopian-gomen	ethiopian	Gomen	Side Dish	-500	null
+ethiopian-misir-wat	ethiopian	Misir Wat	Stew	-500	null
+ethiopian-alicha	ethiopian	Alicha	Stew	-500	null
+ethiopian-fitfit	ethiopian	Fitfit	Main Dish	-500	null
+ethiopian-firfir	ethiopian	Firfir	Breakfast Dish	-500	null
+ethiopian-dulet	ethiopian	Dulet	Main Dish	-500	null
+ethiopian-beyaynetu	ethiopian	Beyaynetu	Mixed Platter	-500	null
+ethiopian-azifa	ethiopian	Azifa	Salad	-500	null
+ethiopian-kik-alicha	ethiopian	Kik Alicha	Stew	-500	null
+ethiopian-yetsom-beyaynetu	ethiopian	Yetsom Beyaynetu	Vegetarian Platter	-500	null
+ethiopian-fasolia	ethiopian	Fasolia	Stew	-500	null
+ethiopian-atkilt-wat	ethiopian	Atkilt Wat	Vegetable Stew	-500	null
+ethiopian-yemisir-kik	ethiopian	Yemisir Kik	Stew	-500	null
+ethiopian-kategna	ethiopian	Kategna	Bread	-500	null
+ethiopian-chechebsa	ethiopian	Chechebsa	Breakfast Dish	-500	null
+ethiopian-kinche	ethiopian	Kinche	Porridge	-500	null
+ethiopian-genfo	ethiopian	Genfo	Porridge	-500	null
+ethiopian-foul	ethiopian	Foul	Stew	-500	null
+ethiopian-sambusa	ethiopian	Sambusa	Appetizer	-500	null
+ethiopian-enkulal-firfir	ethiopian	Enkulal Firfir	Egg Dish	-500	null
+ethiopian-chuko	ethiopian	Chuko	Sauce	-500	null
+ethiopian-awaze	ethiopian	Awaze	Sauce	-500	null
+ethiopian-mitmita	ethiopian	Mitmita	Spice Mix	-500	null
+ethiopian-berbere	ethiopian	Berbere	Spice Mix	-500	null
+ethiopian-siga-wat	ethiopian	Siga Wat	Stew	-500	null
+ethiopian-bozena-shiro	ethiopian	Bozena Shiro	Stew	-500	null
+ethiopian-yebeg-alicha	ethiopian	Yebeg Alicha	Stew	-500	null
+ethiopian-yebeg-tibs	ethiopian	Yebeg Tibs	Stir-Fry	-500	null
+ethiopian-zilzil-tibs	ethiopian	Zilzil Tibs	Stir-Fry	-500	null
+ethiopian-derek-tibs	ethiopian	Derek Tibs	Stir-Fry	-500	null
+ethiopian-quanta-firfir	ethiopian	Quanta Firfir	Main Dish	-500	null
+ethiopian-gored-gored	ethiopian	Gored Gored	Main Dish	-500	null
+ethiopian-tire-siga	ethiopian	Tire Siga	Main Dish	-500	null
+ethiopian-kurt	ethiopian	Kurt	Main Dish	-500	null
+ethiopian-ayibe	ethiopian	Ayibe	Cheese	-500	null
+ethiopian-fosese	ethiopian	Fosese	Appetizer	-500	null
+ethiopian-kocho	ethiopian	Kocho	Side Dish	-500	null
+ethiopian-dabo-kolo	ethiopian	Dabo Kolo	Snack	-500	null
+ethiopian-himbasha	ethiopian	Himbasha	Bread	-500	null
+ethiopian-ambasha	ethiopian	Ambasha	Bread	-500	null
+ethiopian-dabo	ethiopian	Dabo	Bread	-500	null
+ethiopian-dabbo-firfir	ethiopian	Dabbo Firfir	Breakfast Dish	-500	null
+ethiopian-timatim-salata	ethiopian	Timatim Salata	Salad	-500	null
+ethiopian-sils	ethiopian	Sils	Salad	-500	null
+ethiopian-dinich	ethiopian	Dinich	Side Dish	-500	null
+ethiopian-key-sega	ethiopian	Key Sega	Stew	-500	null
+ethiopian-tere-sega	ethiopian	Tere Sega	Main Dish	-500	null
+ethiopian-yeshimbra-asa	ethiopian	Yeshimbra Asa	Stew	-500	null
+ethiopian-buticha	ethiopian	Buticha	Side Dish	-500	null
+ethiopian-gomen-kitfo	ethiopian	Gomen Kitfo	Main Dish	-500	null
+ethiopian-tekil-gomen	ethiopian	Tekil Gomen	Side Dish	-500	null
+ethiopian-yetakelt-wat	ethiopian	Yetakelt Wat	Stew	-500	null
+ethiopian-inguday-tibs	ethiopian	Inguday Tibs	Stir-Fry	-500	null
+ethiopian-fosolia	ethiopian	Fosolia	Stew	-500	null
+ethiopian-telba-fitfit	ethiopian	Telba Fitfit	Appetizer	-500	null
+ethiopian-cheka	ethiopian	Cheka	Stew	-500	null
+ethiopian-tibs-wat	ethiopian	Tibs Wat	Stew	-500	null
+ethiopian-yedoro-tibs	ethiopian	Yedoro Tibs	Stir-Fry	-500	null
+ethiopian-asa-tibs	ethiopian	Asa Tibs	Stir-Fry	-500	null
+ethiopian-siga-tibs	ethiopian	Siga Tibs	Stir-Fry	-500	null
+ethiopian-quanta-wat	ethiopian	Quanta Wat	Stew	-500	null
+ethiopian-yedoro-wot	ethiopian	Yedoro Wot	Stew	-500	null
+ethiopian-doro-alicha	ethiopian	Doro Alicha	Stew	-500	null
+ethiopian-key-wot	ethiopian	Key Wot	Stew	-500	null
+ethiopian-siga-wot	ethiopian	Siga Wot	Stew	-500	null
+ethiopian-asa-wot	ethiopian	Asa Wot	Stew	-500	null
+ethiopian-yasa-wot	ethiopian	Yasa Wot	Stew	-500	null
+ethiopian-birkuta	ethiopian	Birkuta	Side Dish	-500	null
+ethiopian-kita	ethiopian	Kita	Bread	-500	null
+ethiopian-firfir-dabo	ethiopian	Firfir Dabo	Bread Dish	-500	null
+ethiopian-kollo	ethiopian	Kollo	Snack	-500	null
+ethiopian-niter-kibbeh	ethiopian	Niter Kibbeh	Butter	-500	null
+ethiopian-tej	ethiopian	Tej	Beverage	-500	null
+ethiopian-tella	ethiopian	Tella	Beverage	-500	null
+ethiopian-buna	ethiopian	Buna	Beverage	-500	null
+ethiopian-atmet	ethiopian	Atmet	Beverage	-500	null
+ethiopian-keribo	ethiopian	Keribo	Beverage	-500	null
+ethiopian-fanta-ethiopian	ethiopian	Fanta (Ethiopian)	Beverage	-500	null
+ethiopian-ambo	ethiopian	Ambo	Beverage	-500	null
+ethiopian-spris	ethiopian	Spris	Beverage	-500	null
+ethiopian-beso	ethiopian	Beso	Beverage	-500	null
+ethiopian-siljo	ethiopian	Siljo	Beverage	-500	null
+ethiopian-katikala	ethiopian	Katikala	Side Dish	-500	null
+ethiopian-fosolia-with-rice	ethiopian	Fosolia with Rice	Main Dish	-500	null
+ethiopian-shahan-ful	ethiopian	Shahan Ful	Stew	-500	null
+ethiopian-ful-medames	ethiopian	Ful Medames	Stew	-500	null
+ethiopian-asa-goulash	ethiopian	Asa Goulash	Stew	-500	null
+ethiopian-tihlo	ethiopian	Tihlo	Dumpling	-500	null
+ethiopian-enjera-firfir	ethiopian	Enjera Firfir	Breakfast Dish	-500	null
+ethiopian-telba	ethiopian	Telba	Side Dish	-500	null
+ethiopian-fafan	ethiopian	Fafan	Porridge	-500	null
+ethiopian-pasta-bolognese-ethiopian	ethiopian	Pasta Bolognese Ethiopian	Main Dish	-500	null
+ethiopian-maraq	ethiopian	Maraq	Soup	-500	null
+ethiopian-shorba	ethiopian	Shorba	Soup	-500	null
+ethiopian-suqaar	ethiopian	Suqaar	Stir-Fry	-500	null
+french-croissant	french	Croissant	Bread/Pastry	1200	null
+french-baguette	french	Baguette	Bread	1200	null
+french-coq-au-vin	french	Coq au Vin	Main Dish	1200	null
+french-beef-bourguignon	french	Beef Bourguignon	Stew	800	null
+french-bouillabaisse	french	Bouillabaisse	Soup/Stew	1200	null
+french-ratatouille	french	Ratatouille	Vegetable Dish	1200	null
+french-quiche-lorraine	french	Quiche Lorraine	Savory Tart	1200	null
+french-crpes	french	Crêpes	Pancake/Dessert	1200	null
+french-souffl	french	Soufflé	Dessert/Side	1200	null
+french-french-onion-soup	french	French Onion Soup	Soup	800	null
+french-foie-gras	french	Foie Gras	Appetizer	1200	null
+french-escargots	french	Escargots	Appetizer	1200	null
+french-cassoulet	french	Cassoulet	Stew	800	null
+french-confit-de-canard	french	Confit de Canard	Main Dish	1200	null
+french-magret-de-canard	french	Magret de Canard	Main Dish	1200	null
+french-steak-frites	french	Steak Frites	Main Dish	1200	null
+french-steak-tartare	french	Steak Tartare	Main Dish	1200	null
+french-pot-au-feu	french	Pot-au-Feu	Stew	800	null
+french-blanquette-de-veau	french	Blanquette de Veau	Stew	800	null
+french-navarin-dagneau	french	Navarin d'Agneau	Stew	800	null
+french-gigot-dagneau	french	Gigot d'Agneau	Main Dish	1200	null
+french-choucroute-garnie	french	Choucroute Garnie	Main Dish	1200	null
+french-raclette	french	Raclette	Main Dish	1200	null
+french-fondue-savoyarde	french	Fondue Savoyarde	Main Dish	1200	null
+french-tartiflette	french	Tartiflette	Main Dish	1200	null
+french-gratin-dauphinois	french	Gratin Dauphinois	Side Dish	1200	null
+french-aligot	french	Aligot	Side Dish	1200	null
+french-pote	french	Potée	Stew	800	null
+french-hachis-parmentier	french	Hachis Parmentier	Main Dish	1200	null
+french-brandade-de-morue	french	Brandade de Morue	Main Dish	1200	null
+french-moules-marinires	french	Moules Marinières	Main Dish	1200	null
+french-moules-frites	french	Moules Frites	Main Dish	1200	null
+french-coquilles-saint-jacques	french	Coquilles Saint-Jacques	Main Dish	1200	null
+french-sole-meunire	french	Sole Meunière	Main Dish	1200	null
+french-truite-aux-amandes	french	Truite aux Amandes	Main Dish	1200	null
+french-saumon-loseille	french	Saumon à l'Oseille	Main Dish	1200	null
+french-terrine-de-campagne	french	Terrine de Campagne	Appetizer	1200	null
+french-pt-en-crote	french	Pâté en Croûte	Appetizer	1200	null
+french-rillettes	french	Rillettes	Appetizer	1200	null
+french-tapenade	french	Tapenade	Spread/Dip	1200	null
+french-anchoade	french	Anchoïade	Spread/Dip	1200	null
+french-pistou	french	Pistou	Sauce	1200	null
+french-bouillabaisse	french	Bouillabaisse	Soup/Stew	1200	null
+french-soupe-de-poisson	french	Soupe de Poisson	Soup	800	null
+french-vichyssoise	french	Vichyssoise	Soup	800	null
+french-potage-saint-germain	french	Potage Saint-Germain	Soup	800	null
+french-velout	french	Velouté	Soup	800	null
+french-consomm	french	Consommé	Soup	800	null
+french-bisque-de-homard	french	Bisque de Homard	Soup	800	null
+french-salade-nioise	french	Salade Niçoise	Salad	1200	null
+french-salade-lyonnaise	french	Salade Lyonnaise	Salad	1200	null
+french-salade-landaise	french	Salade Landaise	Salad	1200	null
+french-crudits	french	Crudités	Appetizer	1200	null
+french-gougres	french	Gougères	Appetizer	1200	null
+french-vol-au-vent	french	Vol-au-Vent	Appetizer	1200	null
+french-bouche-la-reine	french	Bouchée à la Reine	Appetizer	1200	null
+french-croque-monsieur	french	Croque Monsieur	Sandwich	1200	null
+french-croque-madame	french	Croque Madame	Sandwich	1200	null
+french-jambon-beurre	french	Jambon-Beurre	Sandwich	1200	null
+french-pain-au-chocolat	french	Pain au Chocolat	Bread/Pastry	1200	null
+french-brioche	french	Brioche	Bread	1200	null
+french-pain-perdu	french	Pain Perdu	Dessert	1200	null
+french-madeleines	french	Madeleines	Dessert	1200	null
+french-financiers	french	Financiers	Dessert	1200	null
+french-canel	french	Canelé	Dessert	1200	null
+french-profiteroles	french	Profiteroles	Dessert	1200	null
+french-clair	french	Éclair	Dessert	1200	null
+french-religieuse	french	Religieuse	Dessert	1200	null
+french-paris-brest	french	Paris-Brest	Dessert	1200	null
+french-saint-honor	french	Saint-Honoré	Dessert	1200	null
+french-mille-feuille	french	Mille-Feuille	Dessert	1200	null
+french-opra-cake	french	Opéra Cake	Dessert	1200	null
+french-tarte-tatin	french	Tarte Tatin	Dessert	1200	null
+french-tarte-aux-pommes	french	Tarte aux Pommes	Dessert	1200	null
+french-tarte-au-citron	french	Tarte au Citron	Dessert	1200	null
+french-clafoutis	french	Clafoutis	Dessert	1200	null
+french-far-breton	french	Far Breton	Dessert	1200	null
+french-kouign-amann	french	Kouign-Amann	Dessert	1200	null
+french-galette-des-rois	french	Galette des Rois	Dessert	1200	null
+french-bche-de-nol	french	Bûche de Noël	Dessert	1200	null
+french-crme-brle	french	Crème Brûlée	Dessert	1200	null
+french-crme-caramel	french	Crème Caramel	Dessert	1200	null
+french-le-flottante	french	Île Flottante	Dessert	1200	null
+french-mousse-au-chocolat	french	Mousse au Chocolat	Dessert	1200	null
+french-charlotte	french	Charlotte	Dessert	1200	null
+french-bavarois	french	Bavarois	Dessert	1200	null
+french-macarons	french	Macarons	Dessert	1200	null
+french-calissons	french	Calissons	Candy	1200	null
+french-nougat	french	Nougat	Candy	1200	null
+french-pralines	french	Pralines	Candy	1200	null
+french-drages	french	Dragées	Candy	1200	null
+french-pte-de-fruits	french	Pâte de Fruits	Candy	1200	null
+french-confiture	french	Confiture	Jam/Preserve	1200	null
+french-chvre	french	Chèvre	Cheese	1200	null
+french-camembert	french	Camembert	Cheese	1200	null
+french-roquefort	french	Roquefort	Cheese	1200	null
+french-comt	french	Comté	Cheese	1200	null
+french-brie	french	Brie	Cheese	1200	null
+french-burgundy-wine	french	Burgundy Wine	Beverage	1200	null
+french-champagne	french	Champagne	Beverage	1200	null
+georgian-khachapuri	georgian	Khachapuri	Bread	-300	null
+georgian-khinkali	georgian	Khinkali	Dumpling	-300	null
+georgian-lobio	georgian	Lobio	Stew	-300	null
+georgian-badrijani	georgian	Badrijani	Appetizer	-300	null
+georgian-pkhali	georgian	Pkhali	Appetizer	-300	null
+georgian-chakapuli	georgian	Chakapuli	Stew	-300	null
+georgian-chakhokhbili	georgian	Chakhokhbili	Stew	-300	null
+georgian-kharcho	georgian	Kharcho	Soup	-300	null
+georgian-chikhirtma	georgian	Chikhirtma	Soup	-300	null
+georgian-satsivi	georgian	Satsivi	Sauce/Main	-300	null
+georgian-chashushuli	georgian	Chashushuli	Stew	-300	null
+georgian-mtsvadi	georgian	Mtsvadi	Grilled Meat	-300	null
+georgian-kupati	georgian	Kupati	Sausage	-300	null
+georgian-churchkhela	georgian	Churchkhela	Candy	-300	null
+georgian-elarji	georgian	Elarji	Porridge	-300	null
+georgian-sulguni	georgian	Sulguni	Cheese	-300	null
+georgian-imeruli-khachapuri	georgian	Imeruli Khachapuri	Bread	-300	null
+georgian-ajaruli-khachapuri	georgian	Ajaruli Khachapuri	Bread	-300	null
+georgian-megruli-khachapuri	georgian	Megruli Khachapuri	Bread	-300	null
+georgian-achma	georgian	Achma	Savory Pie	-300	null
+georgian-gebzhalia	georgian	Gebzhalia	Cheese Dish	-300	null
+georgian-nadughi	georgian	Nadughi	Cheese Spread	-300	null
+georgian-kuchmachi	georgian	Kuchmachi	Appetizer	-300	null
+georgian-shkmeruli	georgian	Shkmeruli	Main Dish	-300	null
+georgian-ojakhuri	georgian	Ojakhuri	Stir-Fry	-300	null
+georgian-khashi	georgian	Khashi	Soup	-300	null
+georgian-borano	georgian	Borano	Main Dish	-300	null
+georgian-chirbuli	georgian	Chirbuli	Egg Dish	-300	null
+georgian-ajapsandali	georgian	Ajapsandali	Vegetable Stew	-300	null
+georgian-jonjoli	georgian	Jonjoli	Pickle	-300	null
+georgian-tkemali	georgian	Tkemali	Sauce	-300	null
+georgian-ajika	georgian	Ajika	Sauce	-300	null
+georgian-satsebeli	georgian	Satsebeli	Sauce	-300	null
+georgian-bazhe	georgian	Bazhe	Sauce	-300	null
+georgian-khmeli-suneli	georgian	Khmeli Suneli	Spice Mix	-300	null
+georgian-mchadi	georgian	Mchadi	Cornbread	-300	null
+georgian-shotis-puri	georgian	Shotis Puri	Bread	-300	null
+georgian-tonis-puri	georgian	Tonis Puri	Bread	-300	null
+georgian-lavashi	georgian	Lavashi	Bread	-300	null
+georgian-nazuki	georgian	Nazuki	Sweet Bread	-300	null
+georgian-kada	georgian	Kada	Sweet Bread	-300	null
+georgian-gozinaki	georgian	Gozinaki	Dessert	-300	null
+georgian-pelamushi	georgian	Pelamushi	Dessert	-300	null
+georgian-tklapi	georgian	Tklapi	Fruit Leather	-300	null
+georgian-murabba	georgian	Murabba	Preserve	-300	null
+georgian-matsoni	georgian	Matsoni	Yogurt	-300	null
+georgian-borjomi	georgian	Borjomi	Beverage	-300	null
+georgian-tarragon-soda	georgian	Tarragon Soda	Beverage	-300	null
+georgian-lagidze	georgian	Lagidze	Beverage	-300	null
+georgian-georgian-wine	georgian	Georgian Wine	Beverage	-300	null
+georgian-saperavi-wine	georgian	Saperavi Wine	Beverage	-300	null
+georgian-rkatsiteli-wine	georgian	Rkatsiteli Wine	Beverage	-300	null
+georgian-qvevri-wine	georgian	Qvevri Wine	Beverage	-300	null
+georgian-chacha	georgian	Chacha	Beverage	-300	null
+georgian-kindzmarauli	georgian	Kindzmarauli	Beverage	-300	null
+georgian-khvanchkara	georgian	Khvanchkara	Beverage	-300	null
+georgian-chiri	georgian	Chiri	Dried Fruit	-300	null
+georgian-tapa	georgian	Tapa	Dried Beef	-300	null
+georgian-bastourma	georgian	Bastourma	Cured Meat	-300	null
+georgian-sudjuk	georgian	Sudjuk	Sausage	-300	null
+georgian-kababi	georgian	Kababi	Grilled Meat	-300	null
+georgian-lori	georgian	Lori	Cheese	-300	null
+georgian-dambal-khacho	georgian	Dambal-Khacho	Cheese	-300	null
+georgian-tenili	georgian	Tenili	Cheese	-300	null
+georgian-kalti	georgian	Kalti	Cheese	-300	null
+georgian-guda	georgian	Guda	Cheese	-300	null
+georgian-meskhuri-guda	georgian	Meskhuri Guda	Cheese	-300	null
+georgian-tushuri-guda	georgian	Tushuri Guda	Cheese	-300	null
+georgian-kartuli-guda	georgian	Kartuli Guda	Cheese	-300	null
+georgian-imeruli	georgian	Imeruli	Cheese	-300	null
+georgian-kobi	georgian	Kobi	Cabbage Dish	-300	null
+georgian-nigvziani-badrijani	georgian	Nigvziani Badrijani	Appetizer	-300	null
+georgian-lobiani	georgian	Lobiani	Bread	-300	null
+georgian-kubdari	georgian	Kubdari	Bread	-300	null
+georgian-mkhlovani	georgian	Mkhlovani	Bread	-300	null
+georgian-chvishtari	georgian	Chvishtari	Cornbread	-300	null
+georgian-karalashvili	georgian	Karalashvili	Bread	-300	null
+georgian-shishbarak	georgian	Shishbarak	Dumpling	-300	null
+georgian-tolma	georgian	Tolma	Stuffed Vegetable	-300	null
+georgian-kartvlebi	georgian	Kartvlebi	Dish	-300	null
+georgian-kupati-sadzlari	georgian	Kupati Sadzlari	Sausage	-300	null
+georgian-qababi	georgian	Qababi	Grilled Meat	-300	null
+georgian-abkhazura	georgian	Abkhazura	Stew	-300	null
+georgian-khorkhali	georgian	Khorkhali	Stew	-300	null
+georgian-elarji-with-sulguni	georgian	Elarji with Sulguni	Main Dish	-300	null
+georgian-mujuji	georgian	Mujuji	Dish	-300	null
+georgian-soko-ketsze	georgian	Soko Ketsze	Appetizer	-300	null
+georgian-lobio-nigvzit	georgian	Lobio Nigvzit	Stew	-300	null
+georgian-spinach-pkhali	georgian	Spinach Pkhali	Appetizer	-300	null
+georgian-beet-pkhali	georgian	Beet Pkhali	Appetizer	-300	null
+georgian-eggplant-with-walnuts	georgian	Eggplant with Walnuts	Appetizer	-300	null
+georgian-khachapuri-with-egg	georgian	Khachapuri with Egg	Bread	-300	null
+georgian-adjaruli-with-butter	georgian	Adjaruli with Butter	Bread	-300	null
+georgian-penovani-khachapuri	georgian	Penovani Khachapuri	Bread	-300	null
+georgian-megruli-with-double-cheese	georgian	Megruli with Double Cheese	Bread	-300	null
+georgian-kveri-bread	georgian	Kveri Bread	Bread	-300	null
+georgian-acharuli-khachapuri	georgian	Acharuli Khachapuri	Bread	-300	null
+georgian-imeretian-khachapuri	georgian	Imeretian Khachapuri	Bread	-300	null
+georgian-tklapi-fruit-roll	georgian	Tklapi Fruit Roll	Snack	-300	null
+georgian-churchkhela-walnut	georgian	Churchkhela Walnut	Candy	-300	null
+german-bratwurst	german	Bratwurst	Sausage	1200	null
+german-schnitzel	german	Schnitzel	Main Dish	1200	null
+german-sauerkraut	german	Sauerkraut	Side Dish	1200	null
+german-pretzels-brezeln	german	Pretzels (Brezeln)	Bread	1200	null
+german-currywurst	german	Currywurst	Street Food	1200	null
+german-sptzle	german	Spätzle	Side Dish	1200	null
+german-sauerbraten	german	Sauerbraten	Main Dish	1200	null
+german-rouladen	german	Rouladen	Main Dish	1200	null
+german-kartoffelpuffer	german	Kartoffelpuffer	Side Dish	1200	null
+german-schweinshaxe	german	Schweinshaxe	Main Dish	1200	null
+german-weisswurst	german	Weisswurst	Sausage	1200	null
+german-leberkse	german	Leberkäse	Meat Loaf	1200	null
+german-kassler	german	Kassler	Main Dish	1200	null
+german-eisbein	german	Eisbein	Main Dish	1200	null
+german-maultaschen	german	Maultaschen	Dumpling	1200	null
+german-knigsberger-klopse	german	Königsberger Klopse	Main Dish	1200	null
+german-schwarzwlder-kirschtorte	german	Schwarzwälder Kirschtorte	Dessert	1200	null
+german-stollen	german	Stollen	Dessert	1200	null
+german-apple-strudel	german	Apple Strudel	Dessert	1200	null
+german-dampfnudel	german	Dampfnudel	Dessert	1200	null
+german-kndel	german	Knödel	Side Dish	1200	null
+german-semmelkndel	german	Semmelknödel	Side Dish	1200	null
+german-kartoffelkndel	german	Kartoffelknödel	Side Dish	1200	null
+german-rotkohl	german	Rotkohl	Side Dish	1200	null
+german-gulasch	german	Gulasch	Stew	800	null
+german-goulash-soup	german	Goulash Soup	Soup	800	null
+german-kartoffelsuppe	german	Kartoffelsuppe	Soup	800	null
+german-erbsensuppe	german	Erbsensuppe	Soup	800	null
+german-linsensuppe	german	Linsensuppe	Soup	800	null
+german-flammkuchen	german	Flammkuchen	Flatbread	1200	null
+german-zwiebelkuchen	german	Zwiebelkuchen	Savory Pie	1200	null
+german-ksesptzle	german	Käsespätzle	Main Dish	1200	null
+german-labskaus	german	Labskaus	Main Dish	1200	null
+german-rollmops	german	Rollmops	Appetizer	1200	null
+german-matjes	german	Matjes	Appetizer	1200	null
+german-bismarckhering	german	Bismarckhering	Appetizer	1200	null
+german-brathering	german	Brathering	Appetizer	1200	null
+german-forelle-mllerin	german	Forelle Müllerin	Main Dish	1200	null
+german-aal	german	Aal	Main Dish	1200	null
+german-karpfen	german	Karpfen	Main Dish	1200	null
+german-grnkohl-mit-pinkel	german	Grünkohl mit Pinkel	Main Dish	1200	null
+german-himmel-und-erde	german	Himmel und Erde	Main Dish	1200	null
+german-hoppel-poppel	german	Hoppel Poppel	Main Dish	1200	null
+german-bauernfrhstck	german	Bauernfrühstück	Breakfast Dish	1200	null
+german-strammer-max	german	Strammer Max	Breakfast Dish	1200	null
+german-ksebrot	german	Käsebrot	Sandwich	1200	null
+german-butterbrot	german	Butterbrot	Sandwich	1200	null
+german-abendbrot	german	Abendbrot	Meal/Snack	1200	null
+german-belegte-brtchen	german	Belegte Brötchen	Sandwich	1200	null
+german-frikadellen	german	Frikadellen	Main Dish	1200	null
+german-hackbraten	german	Hackbraten	Main Dish	1200	null
+german-falscher-hase	german	Falscher Hase	Main Dish	1200	null
+german-jgerschnitzel	german	Jägerschnitzel	Main Dish	1200	null
+german-zigeunerschnitzel	german	Zigeunerschnitzel	Main Dish	1200	null
+german-rahmschnitzel	german	Rahmschnitzel	Main Dish	1200	null
+german-cordon-bleu	german	Cordon Bleu	Main Dish	1200	null
+german-saumagen	german	Saumagen	Main Dish	1200	null
+german-blutwurst	german	Blutwurst	Sausage	1200	null
+german-leberwurst	german	Leberwurst	Sausage	1200	null
+german-mettwurst	german	Mettwurst	Sausage	1200	null
+german-teewurst	german	Teewurst	Sausage	1200	null
+german-bockwurst	german	Bockwurst	Sausage	1200	null
+german-frankfurter	german	Frankfurter	Sausage	1200	null
+german-knackwurst	german	Knackwurst	Sausage	1200	null
+german-debreziner	german	Debreziner	Sausage	1200	null
+german-nrnberger-rostbratwurst	german	Nürnberger Rostbratwurst	Sausage	1200	null
+german-thringer-rostbratwurst	german	Thüringer Rostbratwurst	Sausage	1200	null
+german-weiwurst-mit-senf	german	Weißwurst mit Senf	Sausage	1200	null
+german-obatzda	german	Obatzda	Cheese Spread	1200	null
+german-handkse-mit-musik	german	Handkäse mit Musik	Cheese	1200	null
+german-harzer-kse	german	Harzer Käse	Cheese	1200	null
+german-camembert-gebacken	german	Camembert gebacken	Appetizer	1200	null
+german-brotzeit	german	Brotzeit	Meal/Snack	1200	null
+german-vesper	german	Vesper	Meal/Snack	1200	null
+german-reibekuchen	german	Reibekuchen	Side Dish	1200	null
+german-bratkartoffeln	german	Bratkartoffeln	Side Dish	1200	null
+german-pommes-frites	german	Pommes Frites	Side Dish	1200	null
+german-kartoffelsalat	german	Kartoffelsalat	Salad	1200	null
+german-gurkensalat	german	Gurkensalat	Salad	1200	null
+german-krautsalat	german	Krautsalat	Salad	1200	null
+german-wurstsalat	german	Wurstsalat	Salad	1200	null
+german-nudelsalat	german	Nudelsalat	Salad	1200	null
+german-bienenstich	german	Bienenstich	Dessert	1200	null
+german-donauwelle	german	Donauwelle	Dessert	1200	null
+german-ksekuchen	german	Käsekuchen	Dessert	1200	null
+german-streuselkuchen	german	Streuselkuchen	Dessert	1200	null
+german-pfannkuchen-berliner	german	Pfannkuchen (Berliner)	Dessert	1200	null
+german-krapfen	german	Krapfen	Dessert	1200	null
+german-windbeutel	german	Windbeutel	Dessert	1200	null
+german-spaghettieis	german	Spaghettieis	Dessert	1200	null
+german-rote-grtze	german	Rote Grütze	Dessert	1200	null
+german-apfelkuchen	german	Apfelkuchen	Dessert	1200	null
+german-pflaumenkuchen	german	Pflaumenkuchen	Dessert	1200	null
+german-zwetschgenkuchen	german	Zwetschgenkuchen	Dessert	1200	null
+german-marmorkuchen	german	Marmorkuchen	Dessert	1200	null
+german-lebkuchen	german	Lebkuchen	Cookie	1200	null
+german-spekulatius	german	Spekulatius	Cookie	1200	null
+german-printen	german	Printen	Cookie	1200	null
+german-beer-pils	german	Beer (Pils	Weizen	1200	null
+german-apfelschorle	german	Apfelschorle	Beverage	1200	null
+greek-moussaka	greek	Moussaka	Main Dish	-800	null
+greek-souvlaki	greek	Souvlaki	Grilled Skewers	-800	null
+greek-gyros	greek	Gyros	Sandwich	-800	null
+greek-spanakopita	greek	Spanakopita	Savory Pie	-800	null
+greek-dolmades	greek	Dolmades	Appetizer	-800	null
+greek-tzatziki	greek	Tzatziki	Dip/Sauce	-800	null
+greek-greek-salad	greek	Greek Salad	Salad	-800	null
+greek-pastitsio	greek	Pastitsio	Main Dish	-800	null
+greek-baklava	greek	Baklava	Dessert	-800	null
+greek-feta-cheese	greek	Feta Cheese	Cheese	-800	null
+greek-taramasalata	greek	Taramasalata	Dip/Sauce	-800	null
+greek-melitzanosalata	greek	Melitzanosalata	Dip/Sauce	-800	null
+greek-saganaki	greek	Saganaki	Appetizer	-800	null
+greek-fasolada	greek	Fasolada	Soup	-800	null
+greek-avgolemono	greek	Avgolemono	Soup	-800	null
+greek-keftedes	greek	Keftedes	Appetizer	-800	null
+greek-loukoumades	greek	Loukoumades	Dessert	-800	null
+greek-galaktoboureko	greek	Galaktoboureko	Dessert	-800	null
+greek-kataifi	greek	Kataifi	Dessert	-800	null
+greek-halva	greek	Halva	Dessert	-800	null
+greek-tiropita	greek	Tiropita	Savory Pie	-800	null
+greek-kolokithokeftedes	greek	Kolokithokeftedes	Appetizer	-800	null
+greek-horiatiki	greek	Horiatiki	Salad	-800	null
+greek-melitzanes-imam	greek	Melitzanes Imam	Main Dish	-800	null
+greek-gigantes-plaki	greek	Gigantes Plaki	Side Dish	-800	null
+greek-stifado	greek	Stifado	Stew	-800	null
+greek-kleftiko	greek	Kleftiko	Main Dish	-800	null
+greek-arni-psito	greek	Arni Psito	Main Dish	-800	null
+greek-paidakia	greek	Paidakia	Grilled Meat	-800	null
+greek-bifteki	greek	Bifteki	Main Dish	-800	null
+greek-soutzoukakia	greek	Soutzoukakia	Main Dish	-800	null
+greek-gemista	greek	Gemista	Main Dish	-800	null
+greek-briam	greek	Briam	Vegetable Dish	-800	null
+greek-fakorizo	greek	Fakorizo	Main Dish	-800	null
+greek-revithia	greek	Revithia	Soup	-800	null
+greek-fava	greek	Fava	Dip/Side	-800	null
+greek-skordalia	greek	Skordalia	Dip/Sauce	-800	null
+greek-htipiti	greek	Htipiti	Dip/Sauce	-800	null
+greek-horta	greek	Horta	Side Dish	-800	null
+greek-bamies	greek	Bamies	Stew	-800	null
+greek-papoutsakia	greek	Papoutsakia	Main Dish	-800	null
+greek-pasteli	greek	Pasteli	Snack	-800	null
+greek-loukaniko	greek	Loukaniko	Sausage	-800	null
+greek-octopus-grilled	greek	Octopus Grilled	Main Dish	-800	null
+greek-kalamari	greek	Kalamari	Appetizer	-800	null
+greek-gavros	greek	Gavros	Appetizer	-800	null
+greek-bakaliaros-skordalia	greek	Bakaliaros Skordalia	Main Dish	-800	null
+greek-psarosoupa	greek	Psarosoupa	Soup	-800	null
+greek-kakavia	greek	Kakavia	Soup/Stew	-800	null
+greek-kotosoupa	greek	Kotosoupa	Soup	-800	null
+greek-magiritsa	greek	Magiritsa	Soup	-800	null
+greek-patsas	greek	Patsas	Soup	-800	null
+greek-kokoretsi	greek	Kokoretsi	Street Food	-800	null
+greek-splinantero	greek	Splinantero	Main Dish	-800	null
+greek-kontosouvli	greek	Kontosouvli	Grilled Meat	-800	null
+greek-exohiko	greek	Exohiko	Main Dish	-800	null
+greek-youvarlakia	greek	Youvarlakia	Soup	-800	null
+greek-giouvarlakia	greek	Giouvarlakia	Soup	-800	null
+greek-mpougatsa	greek	Mpougatsa	Dessert	-800	null
+greek-bougatsa	greek	Bougatsa	Dessert	-800	null
+greek-koulouri	greek	Koulouri	Bread	-800	null
+greek-tsoureki	greek	Tsoureki	Bread	-800	null
+greek-vasilopita	greek	Vasilopita	Bread/Dessert	-800	null
+greek-paximadia	greek	Paximadia	Biscuit	-800	null
+greek-melomakarona	greek	Melomakarona	Cookie	-800	null
+greek-kourabiedes	greek	Kourabiedes	Cookie	-800	null
+greek-diples	greek	Diples	Dessert	-800	null
+greek-karydopita	greek	Karydopita	Dessert	-800	null
+greek-ravani	greek	Ravani	Dessert	-800	null
+greek-portokalopita	greek	Portokalopita	Dessert	-800	null
+greek-spoon-sweets	greek	Spoon Sweets	Preserve	-800	null
+greek-frappe	greek	Frappe	Beverage	-800	null
+greek-greek-coffee	greek	Greek Coffee	Beverage	-800	null
+greek-ouzo	greek	Ouzo	Beverage	-800	null
+greek-tsipouro	greek	Tsipouro	Beverage	-800	null
+greek-retsina	greek	Retsina	Beverage	-800	null
+greek-mastika	greek	Mastika	Beverage	-800	null
+greek-soumada	greek	Soumada	Beverage	-800	null
+greek-rizogalo	greek	Rizogalo	Dessert	-800	null
+greek-halvas-simigdalenios	greek	Halvas Simigdalenios	Dessert	-800	null
+greek-amygdalota	greek	Amygdalota	Cookie	-800	null
+greek-finikia	greek	Finikia	Cookie	-800	null
+greek-pasteli-bars	greek	Pasteli Bars	Snack	-800	null
+greek-soutzoukos	greek	Soutzoukos	Snack	-800	null
+greek-pita-bread	greek	Pita Bread	Bread	-800	null
+greek-lagana	greek	Lagana	Bread	-800	null
+greek-eliopita	greek	Eliopita	Savory Pie	-800	null
+greek-kreatopita	greek	Kreatopita	Savory Pie	-800	null
+greek-prasopita	greek	Prasopita	Savory Pie	-800	null
+greek-manitaropita	greek	Manitaropita	Savory Pie	-800	null
+greek-tyropitakia	greek	Tyropitakia	Appetizer	-800	null
+greek-spanakopitakia	greek	Spanakopitakia	Appetizer	-800	null
+greek-bourekakia	greek	Bourekakia	Appetizer	-800	null
+greek-koulourakia	greek	Koulourakia	Cookie	-800	null
+greek-trigona	greek	Trigona	Dessert	-800	null
+greek-ekmek-kataifi	greek	Ekmek Kataifi	Dessert	-800	null
+greek-koufeta	greek	Koufeta	Candy	-800	null
+greek-pasteli-with-honey	greek	Pasteli with Honey	Snack	-800	null
+greek-greek-yogurt-with-honey	greek	Greek Yogurt with Honey	Dessert	-800	null
+greek-metaxa	greek	Metaxa	Beverage	-800	null
+hungarian-goulash	hungarian	Goulash	Stew	800	null
+hungarian-chicken-paprikash	hungarian	Chicken Paprikash	Main Dish	1200	null
+hungarian-langos	hungarian	Langos	Fried Bread	1200	null
+hungarian-fishermans-soup	hungarian	Fisherman's Soup	Soup	800	null
+hungarian-stuffed-cabbage	hungarian	Stuffed Cabbage	Main Dish	1200	null
+hungarian-lngos	hungarian	Lángos	Street Food	1200	null
+hungarian-dobos-torte	hungarian	Dobos Torte	Dessert	1200	null
+hungarian-chimney-cake	hungarian	Chimney Cake	Dessert	1200	null
+hungarian-krtskalcs	hungarian	Kürtőskalács	Dessert	1200	null
+hungarian-prklt	hungarian	Pörkölt	Stew	800	null
+hungarian-papriks	hungarian	Paprikás	Stew	800	null
+hungarian-tokny	hungarian	Tokány	Stew	800	null
+hungarian-lecso	hungarian	Lecso	Vegetable Stew	1200	null
+hungarian-fzelk	hungarian	Főzelék	Vegetable Stew	1200	null
+hungarian-rntott-sajt	hungarian	Rántott Sajt	Fried Cheese	1200	null
+hungarian-rntott-hs	hungarian	Rántott Hús	Fried Meat	1200	null
+hungarian-breaded-pork	hungarian	Breaded Pork	Main Dish	1200	null
+hungarian-veal-paprikash	hungarian	Veal Paprikash	Main Dish	1200	null
+hungarian-beef-goulash	hungarian	Beef Goulash	Stew	800	null
+hungarian-pork-goulash	hungarian	Pork Goulash	Stew	800	null
+hungarian-kolbsz	hungarian	Kolbász	Sausage	1200	null
+hungarian-hurka	hungarian	Hurka	Sausage	1200	null
+hungarian-debreceni	hungarian	Debreceni	Sausage	1200	null
+hungarian-csabai	hungarian	Csabai	Sausage	1200	null
+hungarian-tliszalmi	hungarian	Téliszalámi	Sausage	1200	null
+hungarian-szkelykposzta	hungarian	Székelykáposzta	Stew	800	null
+hungarian-tlttt-kposzta	hungarian	Töltött Káposzta	Main Dish	1200	null
+hungarian-tlttt-paprika	hungarian	Töltött Paprika	Main Dish	1200	null
+hungarian-hortobgyi-palacsinta	hungarian	Hortobágyi Palacsinta	Main Dish	1200	null
+hungarian-palacsinta	hungarian	Palacsinta	Pancake	1200	null
+hungarian-gundel-palacsinta	hungarian	Gundel Palacsinta	Dessert	1200	null
+hungarian-rakott-krumpli	hungarian	Rakott Krumpli	Casserole	1200	null
+hungarian-rakott-kposzta	hungarian	Rakott Káposzta	Casserole	1200	null
+hungarian-tcsni	hungarian	Tócsni	Potato Pancake	1200	null
+hungarian-liptauer	hungarian	Liptauer	Cheese Spread	1200	null
+hungarian-krztt	hungarian	Körözött	Cheese Spread	1200	null
+hungarian-trs-csusza	hungarian	Túrós Csusza	Main Dish	1200	null
+hungarian-kposzts-kocka	hungarian	Káposztás Kocka	Main Dish	1200	null
+hungarian-bableves	hungarian	Bableves	Soup	800	null
+hungarian-gulysleves	hungarian	Gulyásleves	Soup	800	null
+hungarian-jkai-bableves	hungarian	Jókai Bableves	Soup	800	null
+hungarian-jhzi-tykhsleves	hungarian	Újházi Tyúkhúsleves	Soup	800	null
+hungarian-palcleves	hungarian	Palócleves	Soup	800	null
+hungarian-zldbableves	hungarian	Zöldbableves	Soup	800	null
+hungarian-gombaleves	hungarian	Gombaleves	Soup	800	null
+hungarian-gymlcsleves	hungarian	Gyümölcsleves	Soup	800	null
+hungarian-hideg-meggyleves	hungarian	Hideg Meggyleves	Soup	800	null
+hungarian-nokedli	hungarian	Nokedli	Dumpling	1200	null
+hungarian-galuska	hungarian	Galuska	Dumpling	1200	null
+hungarian-tarhonya	hungarian	Tarhonya	Pasta	1200	null
+hungarian-slambuc	hungarian	Slambuc	Main Dish	1200	null
+hungarian-brassi-aprpecsenye	hungarian	Brassói Aprópecsenye	Main Dish	1200	null
+hungarian-cignypecsenye	hungarian	Cigánypecsenye	Main Dish	1200	null
+hungarian-tatrbeefsteak	hungarian	Tatárbeefsteak	Main Dish	1200	null
+hungarian-marhaprklt	hungarian	Marhapörkölt	Stew	800	null
+hungarian-csirkepapriks	hungarian	Csirkepaprikás	Main Dish	1200	null
+hungarian-pacalprklt	hungarian	Pacalpörkölt	Stew	800	null
+hungarian-borjprklt	hungarian	Borjúpörkölt	Stew	800	null
+hungarian-vadprklt	hungarian	Vadpörkölt	Stew	800	null
+hungarian-halszl	hungarian	Halászlé	Soup	800	null
+hungarian-rc-ponty	hungarian	Rác Ponty	Main Dish	1200	null
+hungarian-papriks-krumpli	hungarian	Paprikás Krumpli	Stew	800	null
+hungarian-lecss-hs	hungarian	Lecsós Hús	Main Dish	1200	null
+hungarian-paradicsomos-kposzta	hungarian	Paradicsomos Káposzta	Side Dish	1200	null
+hungarian-vegyes-savanysg	hungarian	Vegyes Savanyúság	Pickle	1200	null
+hungarian-csalamd	hungarian	Csalamádé	Pickle	1200	null
+hungarian-ecetes-paprika	hungarian	Ecetes Paprika	Pickle	1200	null
+hungarian-kovszos-uborka	hungarian	Kovászos Uborka	Pickle	1200	null
+hungarian-rtes	hungarian	Rétes	Dessert	1200	null
+hungarian-alms-rtes	hungarian	Almás Rétes	Dessert	1200	null
+hungarian-meggyes-rtes	hungarian	Meggyes Rétes	Dessert	1200	null
+hungarian-trs-rtes	hungarian	Túrós Rétes	Dessert	1200	null
+hungarian-mkos-rtes	hungarian	Mákos Rétes	Dessert	1200	null
+hungarian-somli-galuska	hungarian	Somlói Galuska	Dessert	1200	null
+hungarian-rig-jancsi	hungarian	Rigó Jancsi	Dessert	1200	null
+hungarian-eszterhzy-torta	hungarian	Eszterházy Torta	Dessert	1200	null
+hungarian-dobostorta	hungarian	Dobostorta	Dessert	1200	null
+hungarian-krmes	hungarian	Krémes	Dessert	1200	null
+hungarian-trgombc	hungarian	Túrógombóc	Dessert	1200	null
+hungarian-fnk	hungarian	Fánk	Dessert	1200	null
+hungarian-bejgli	hungarian	Bejgli	Dessert	1200	null
+hungarian-zserb	hungarian	Zserbó	Dessert	1200	null
+hungarian-fldni	hungarian	Flódni	Dessert	1200	null
+hungarian-aranygaluska	hungarian	Aranygaluska	Dessert	1200	null
+hungarian-madrtej	hungarian	Madártej	Dessert	1200	null
+hungarian-slet	hungarian	Sólet	Stew	800	null
+hungarian-flekken	hungarian	Flekken	Main Dish	1200	null
+hungarian-pogcsa	hungarian	Pogácsa	Bread	1200	null
+hungarian-teperts-pogcsa	hungarian	Tepertős Pogácsa	Bread	1200	null
+hungarian-trs-pogcsa	hungarian	Túrós Pogácsa	Bread	1200	null
+hungarian-kifli	hungarian	Kifli	Bread	1200	null
+hungarian-zsemle	hungarian	Zsemle	Bread	1200	null
+hungarian-plinka	hungarian	Pálinka	Beverage	1200	null
+hungarian-unicum	hungarian	Unicum	Beverage	1200	null
+hungarian-tokaji-wine	hungarian	Tokaji Wine	Beverage	1200	null
+hungarian-egri-bikavr	hungarian	Egri Bikavér	Beverage	1200	null
+hungarian-frccs	hungarian	Fröccs	Beverage	1200	null
+hungarian-meggyleves	hungarian	Meggyleves	Soup	800	null
+hungarian-tr-rudi	hungarian	Túró Rudi	Dessert	1200	null
+hungarian-szdavz	hungarian	Szódavíz	Beverage	1200	null
+indian-butter-chicken	indian	Butter Chicken	Main Dish	-1000	null
+indian-tikka-masala	indian	Tikka Masala	Main Dish	-1000	null
+indian-biryani	indian	Biryani	Rice Dish	-1000	null
+indian-naan	indian	Naan	Bread	-1000	null
+indian-samosa	indian	Samosa	Appetizer	-1000	null
+indian-tandoori-chicken	indian	Tandoori Chicken	Main Dish	-1000	null
+indian-palak-paneer	indian	Palak Paneer	Main Dish	-1000	null
+indian-dal-makhani	indian	Dal Makhani	Stew	-1000	null
+indian-rogan-josh	indian	Rogan Josh	Main Dish	-1000	null
+indian-vindaloo	indian	Vindaloo	Curry	-1000	null
+indian-korma	indian	Korma	Curry	-1000	null
+indian-masala-dosa	indian	Masala Dosa	Main Dish	-1000	null
+indian-idli	indian	Idli	Breakfast Dish	-1000	null
+indian-vada	indian	Vada	Appetizer	-1000	null
+indian-uttapam	indian	Uttapam	Pancake	-1000	null
+indian-poori	indian	Poori	Bread	-1000	null
+indian-paratha	indian	Paratha	Bread	-1000	null
+indian-roti	indian	Roti	Bread	-1000	null
+indian-chapati	indian	Chapati	Bread	-1000	null
+indian-bhatura	indian	Bhatura	Bread	-1000	null
+indian-kulcha	indian	Kulcha	Bread	-1000	null
+indian-chana-masala	indian	Chana Masala	Stew	-1000	null
+indian-aloo-gobi	indian	Aloo Gobi	Stir-Fry	-1000	null
+indian-baingan-bharta	indian	Baingan Bharta	Main Dish	-1000	null
+indian-bhindi-masala	indian	Bhindi Masala	Main Dish	-1000	null
+indian-paneer-tikka	indian	Paneer Tikka	Appetizer	-1000	null
+indian-malai-kofta	indian	Malai Kofta	Main Dish	-1000	null
+indian-kadai-paneer	indian	Kadai Paneer	Main Dish	-1000	null
+indian-matar-paneer	indian	Matar Paneer	Main Dish	-1000	null
+indian-shahi-paneer	indian	Shahi Paneer	Main Dish	-1000	null
+indian-rajma	indian	Rajma	Stew	-1000	null
+indian-chole	indian	Chole	Stew	-1000	null
+indian-dal-tadka	indian	Dal Tadka	Stew	-1000	null
+indian-dal-fry	indian	Dal Fry	Stew	-1000	null
+indian-sambhar	indian	Sambhar	Stew	-1000	null
+indian-rasam	indian	Rasam	Soup	-1000	null
+indian-pongal	indian	Pongal	Rice Dish	-1000	null
+indian-pulao	indian	Pulao	Rice Dish	-1000	null
+indian-jeera-rice	indian	Jeera Rice	Rice Dish	-1000	null
+indian-lemon-rice	indian	Lemon Rice	Rice Dish	-1000	null
+indian-curd-rice	indian	Curd Rice	Rice Dish	-1000	null
+indian-tamarind-rice	indian	Tamarind Rice	Rice Dish	-1000	null
+indian-fish-curry	indian	Fish Curry	Curry	-1000	null
+indian-prawn-curry	indian	Prawn Curry	Curry	-1000	null
+indian-goan-fish-curry	indian	Goan Fish Curry	Curry	-1000	null
+indian-malabar-fish-curry	indian	Malabar Fish Curry	Curry	-1000	null
+indian-mutton-curry	indian	Mutton Curry	Curry	-1000	null
+indian-keema	indian	Keema	Main Dish	-1000	null
+indian-nihari	indian	Nihari	Stew	-1000	null
+indian-haleem	indian	Haleem	Stew	-1000	null
+indian-paya	indian	Paya	Soup	-1000	null
+indian-kebab	indian	Kebab	Grilled Meat	-1000	null
+indian-seekh-kebab	indian	Seekh Kebab	Grilled Skewers	-1000	null
+indian-shami-kebab	indian	Shami Kebab	Appetizer	-1000	null
+indian-galouti-kebab	indian	Galouti Kebab	Appetizer	-1000	null
+indian-reshmi-kebab	indian	Reshmi Kebab	Grilled Meat	-1000	null
+indian-pakora	indian	Pakora	Fritter	-1000	null
+indian-bhaji	indian	Bhaji	Fritter	-1000	null
+indian-pani-puri	indian	Pani Puri	Street Food	-1000	null
+indian-bhel-puri	indian	Bhel Puri	Street Food	-1000	null
+indian-sev-puri	indian	Sev Puri	Street Food	-1000	null
+indian-dahi-puri	indian	Dahi Puri	Street Food	-1000	null
+indian-pav-bhaji	indian	Pav Bhaji	Street Food	-1000	null
+indian-vada-pav	indian	Vada Pav	Sandwich	-1000	null
+indian-dabeli	indian	Dabeli	Sandwich	-1000	null
+indian-kachori	indian	Kachori	Snack	-1000	null
+indian-dhokla	indian	Dhokla	Snack	-1000	null
+indian-thepla	indian	Thepla	Flatbread	-1000	null
+indian-khakhra	indian	Khakhra	Cracker	-1000	null
+indian-fafda	indian	Fafda	Snack	-1000	null
+indian-chaat	indian	Chaat	Street Food	-1000	null
+indian-aloo-tikki	indian	Aloo Tikki	Street Food	-1000	null
+indian-papdi-chaat	indian	Papdi Chaat	Street Food	-1000	null
+indian-raj-kachori	indian	Raj Kachori	Street Food	-1000	null
+indian-raita	indian	Raita	Side Dish	-1000	null
+indian-pickle-achar	indian	Pickle (Achar)	Condiment	-1000	null
+indian-chutney	indian	Chutney	Condiment	-1000	null
+indian-papadum	indian	Papadum	Cracker	-1000	null
+indian-kheer	indian	Kheer	Dessert	-1000	null
+indian-gulab-jamun	indian	Gulab Jamun	Dessert	-1000	null
+indian-rasgulla	indian	Rasgulla	Dessert	-1000	null
+indian-jalebi	indian	Jalebi	Dessert	-1000	null
+indian-ladoo	indian	Ladoo	Dessert	-1000	null
+indian-barfi	indian	Barfi	Dessert	-1000	null
+indian-halwa	indian	Halwa	Dessert	-1000	null
+indian-kulfi	indian	Kulfi	Dessert	-1000	null
+indian-rasmalai	indian	Rasmalai	Dessert	-1000	null
+indian-sandesh	indian	Sandesh	Dessert	-1000	null
+indian-mysore-pak	indian	Mysore Pak	Dessert	-1000	null
+indian-peda	indian	Peda	Dessert	-1000	null
+indian-khaja	indian	Khaja	Dessert	-1000	null
+indian-ghewar	indian	Ghewar	Dessert	-1000	null
+indian-imarti	indian	Imarti	Dessert	-1000	null
+indian-soan-papdi	indian	Soan Papdi	Candy	-1000	null
+indian-chai	indian	Chai	Beverage	-1000	null
+indian-lassi	indian	Lassi	Beverage	-1000	null
+indian-masala-chai	indian	Masala Chai	Beverage	-1000	null
+indian-thandai	indian	Thandai	Beverage	-1000	null
+indian-nimbu-pani	indian	Nimbu Pani	Beverage	-1000	null
+indian-sugarcane-juice	indian	Sugarcane Juice	Beverage	-1000	null
+indonesian-nasi-goreng	indonesian	Nasi Goreng	Fried Rice	500	null
+indonesian-mie-goreng	indonesian	Mie Goreng	Noodle Dish	500	null
+indonesian-satay	indonesian	Satay	Grilled Skewers	500	null
+indonesian-rendang	indonesian	Rendang	Stew	500	null
+indonesian-gado-gado	indonesian	Gado-Gado	Salad	500	null
+indonesian-nasi-padang	indonesian	Nasi Padang	Rice Dish	500	null
+indonesian-soto-ayam	indonesian	Soto Ayam	Soup	500	null
+indonesian-bakso	indonesian	Bakso	Soup	500	null
+indonesian-sop-buntut	indonesian	Sop Buntut	Soup	500	null
+indonesian-rawon	indonesian	Rawon	Soup	500	null
+indonesian-soto-betawi	indonesian	Soto Betawi	Soup	500	null
+indonesian-gudeg	indonesian	Gudeg	Stew	500	null
+indonesian-opor-ayam	indonesian	Opor Ayam	Stew	500	null
+indonesian-ayam-goreng	indonesian	Ayam Goreng	Fried Chicken	500	null
+indonesian-ayam-bakar	indonesian	Ayam Bakar	Grilled Chicken	500	null
+indonesian-ikan-bakar	indonesian	Ikan Bakar	Grilled Fish	500	null
+indonesian-ikan-goreng	indonesian	Ikan Goreng	Fried Fish	500	null
+indonesian-pepes-ikan	indonesian	Pepes Ikan	Steamed Fish	500	null
+indonesian-gulai	indonesian	Gulai	Curry	500	null
+indonesian-kare-ayam	indonesian	Kare Ayam	Curry	500	null
+indonesian-sambal	indonesian	Sambal	Sauce	500	null
+indonesian-sambal-terasi	indonesian	Sambal Terasi	Sauce	500	null
+indonesian-sambal-matah	indonesian	Sambal Matah	Sauce	500	null
+indonesian-sambal-ijo	indonesian	Sambal Ijo	Sauce	500	null
+indonesian-tempeh	indonesian	Tempeh	Side Dish	500	null
+indonesian-tempe-goreng	indonesian	Tempe Goreng	Fried Tempeh	500	null
+indonesian-tahu-goreng	indonesian	Tahu Goreng	Fried Tofu	500	null
+indonesian-tahu-gejrot	indonesian	Tahu Gejrot	Appetizer	500	null
+indonesian-perkedel	indonesian	Perkedel	Fritter	500	null
+indonesian-bakwan	indonesian	Bakwan	Fritter	500	null
+indonesian-lumpia	indonesian	Lumpia	Spring Roll	500	null
+indonesian-risoles	indonesian	Risoles	Fried Pastry	500	null
+indonesian-pastel	indonesian	Pastel	Fried Pastry	500	null
+indonesian-lemper	indonesian	Lemper	Rice Roll	500	null
+indonesian-arem-arem	indonesian	Arem-Arem	Rice Roll	500	null
+indonesian-lontong	indonesian	Lontong	Rice Cake	500	null
+indonesian-ketupat	indonesian	Ketupat	Rice Cake	500	null
+indonesian-nasi-uduk	indonesian	Nasi Uduk	Rice Dish	500	null
+indonesian-nasi-kuning	indonesian	Nasi Kuning	Rice Dish	500	null
+indonesian-nasi-liwet	indonesian	Nasi Liwet	Rice Dish	500	null
+indonesian-nasi-tumpeng	indonesian	Nasi Tumpeng	Rice Dish	500	null
+indonesian-bubur-ayam	indonesian	Bubur Ayam	Rice Porridge	500	null
+indonesian-bubur-kacang-hijau	indonesian	Bubur Kacang Hijau	Dessert	500	null
+indonesian-lontong-sayur	indonesian	Lontong Sayur	Main Dish	500	null
+indonesian-sop-konro	indonesian	Sop Konro	Soup	500	null
+indonesian-coto-makassar	indonesian	Coto Makassar	Soup	500	null
+indonesian-pempek	indonesian	Pempek	Fish Cake	500	null
+indonesian-tekwan	indonesian	Tekwan	Soup	500	null
+indonesian-model	indonesian	Model	Fish Cake	500	null
+indonesian-kerupuk	indonesian	Kerupuk	Cracker	500	null
+indonesian-emping	indonesian	Emping	Cracker	500	null
+indonesian-rempeyek	indonesian	Rempeyek	Cracker	500	null
+indonesian-asinan	indonesian	Asinan	Pickle/Salad	500	null
+indonesian-rujak	indonesian	Rujak	Salad	500	null
+indonesian-karedok	indonesian	Karedok	Salad	500	null
+indonesian-lotek	indonesian	Lotek	Salad	500	null
+indonesian-pecel	indonesian	Pecel	Salad	500	null
+indonesian-urap	indonesian	Urap	Salad	500	null
+indonesian-ketoprak	indonesian	Ketoprak	Main Dish	500	null
+indonesian-kupat-tahu	indonesian	Kupat Tahu	Main Dish	500	null
+indonesian-tahu-tek	indonesian	Tahu Tek	Main Dish	500	null
+indonesian-siomay	indonesian	Siomay	Dumpling	500	null
+indonesian-batagor	indonesian	Batagor	Fried Dumpling	500	null
+indonesian-martabak-manis	indonesian	Martabak Manis	Dessert	500	null
+indonesian-martabak-telur	indonesian	Martabak Telur	Savory Pancake	500	null
+indonesian-terang-bulan	indonesian	Terang Bulan	Dessert	500	null
+indonesian-kue-lapis	indonesian	Kue Lapis	Dessert	500	null
+indonesian-klepon	indonesian	Klepon	Dessert	500	null
+indonesian-onde-onde	indonesian	Onde-Onde	Dessert	500	null
+indonesian-dadar-gulung	indonesian	Dadar Gulung	Dessert	500	null
+indonesian-lupis	indonesian	Lupis	Dessert	500	null
+indonesian-cenil	indonesian	Cenil	Dessert	500	null
+indonesian-nagasari	indonesian	Nagasari	Dessert	500	null
+indonesian-getuk	indonesian	Getuk	Dessert	500	null
+indonesian-kue-putu	indonesian	Kue Putu	Dessert	500	null
+indonesian-serabi	indonesian	Serabi	Dessert	500	null
+indonesian-pisang-goreng	indonesian	Pisang Goreng	Fried Banana	500	null
+indonesian-pisang-rai	indonesian	Pisang Rai	Dessert	500	null
+indonesian-es-campur	indonesian	Es Campur	Dessert	500	null
+indonesian-es-teler	indonesian	Es Teler	Dessert	500	null
+indonesian-es-cendol	indonesian	Es Cendol	Dessert	500	null
+indonesian-es-dawet	indonesian	Es Dawet	Dessert	500	null
+indonesian-es-kacang-merah	indonesian	Es Kacang Merah	Dessert	500	null
+indonesian-kolak	indonesian	Kolak	Dessert	500	null
+indonesian-bubur-sumsum	indonesian	Bubur Sumsum	Dessert	500	null
+indonesian-bubur-candil	indonesian	Bubur Candil	Dessert	500	null
+indonesian-ongol-ongol	indonesian	Ongol-Ongol	Dessert	500	null
+indonesian-kue-cubit	indonesian	Kue Cubit	Dessert	500	null
+indonesian-kue-pancong	indonesian	Kue Pancong	Dessert	500	null
+indonesian-lemang	indonesian	Lemang	Rice Dish	500	null
+indonesian-dodol	indonesian	Dodol	Candy	500	null
+indonesian-wajik	indonesian	Wajik	Dessert	500	null
+indonesian-jenang	indonesian	Jenang	Dessert	500	null
+indonesian-kopi-tubruk	indonesian	Kopi Tubruk	Beverage	500	null
+indonesian-teh-botol	indonesian	Teh Botol	Beverage	500	null
+indonesian-es-kelapa-muda	indonesian	Es Kelapa Muda	Beverage	500	null
+indonesian-wedang-jahe	indonesian	Wedang Jahe	Beverage	500	null
+indonesian-bajigur	indonesian	Bajigur	Beverage	500	null
+indonesian-bandrek	indonesian	Bandrek	Beverage	500	null
+indonesian-arak-bali	indonesian	Arak Bali	Beverage	500	null
+iranian-kebab	iranian	Kebab	Grilled Meat	-1000	null
+iranian-tahdig	iranian	Tahdig	Rice Dish	-1000	null
+iranian-ghormeh-sabzi	iranian	Ghormeh Sabzi	Stew	-1000	null
+iranian-fesenjan	iranian	Fesenjan	Stew	-1000	null
+iranian-zereshk-polo	iranian	Zereshk Polo	Rice Dish	-1000	null
+iranian-baghali-polo	iranian	Baghali Polo	Rice Dish	-1000	null
+iranian-koobideh	iranian	Koobideh	Grilled Meat	-1000	null
+iranian-joojeh-kabab	iranian	Joojeh Kabab	Grilled Chicken	-1000	null
+iranian-barg-kabab	iranian	Barg Kabab	Grilled Meat	-1000	null
+iranian-khoresh-gheymeh	iranian	Khoresh Gheymeh	Stew	-1000	null
+iranian-khoresh-karafs	iranian	Khoresh Karafs	Stew	-1000	null
+iranian-khoresh-bademjan	iranian	Khoresh Bademjan	Stew	-1000	null
+iranian-ash-reshteh	iranian	Ash Reshteh	Soup	-1000	null
+iranian-abgoosht	iranian	Abgoosht	Soup/Stew	-1000	null
+iranian-halim	iranian	Halim	Porridge	-1000	null
+iranian-kashk-e-bademjan	iranian	Kashk-e Bademjan	Appetizer	-1000	null
+iranian-mirza-ghasemi	iranian	Mirza Ghasemi	Appetizer	-1000	null
+iranian-kuku-sabzi	iranian	Kuku Sabzi	Frittata	-1000	null
+iranian-kuku-sibzamini	iranian	Kuku Sibzamini	Frittata	-1000	null
+iranian-dolmeh	iranian	Dolmeh	Stuffed Vegetable	-1000	null
+iranian-kotlet	iranian	Kotlet	Cutlet	-1000	null
+iranian-lubia-polo	iranian	Lubia Polo	Rice Dish	-1000	null
+iranian-adas-polo	iranian	Adas Polo	Rice Dish	-1000	null
+iranian-shirin-polo	iranian	Shirin Polo	Rice Dish	-1000	null
+iranian-albaloo-polo	iranian	Albaloo Polo	Rice Dish	-1000	null
+iranian-morasa-polo	iranian	Morasa Polo	Rice Dish	-1000	null
+iranian-sabzi-polo	iranian	Sabzi Polo	Rice Dish	-1000	null
+iranian-tahchin	iranian	Tahchin	Rice Dish	-1000	null
+iranian-kateh	iranian	Kateh	Rice Dish	-1000	null
+iranian-dami-gojeh	iranian	Dami Gojeh	Rice Dish	-1000	null
+iranian-torshi	iranian	Torshi	Pickle	-1000	null
+iranian-mast-o-khiar	iranian	Mast-o Khiar	Side Dish	-1000	null
+iranian-mast-o-moosir	iranian	Mast-o Moosir	Side Dish	-1000	null
+iranian-salad-shirazi	iranian	Salad Shirazi	Salad	-1000	null
+iranian-salad-olivieh	iranian	Salad Olivieh	Salad	-1000	null
+iranian-panir	iranian	Panir	Cheese	-1000	null
+iranian-sabzi-khordan	iranian	Sabzi Khordan	Side Dish	-1000	null
+iranian-lavash	iranian	Lavash	Bread	-1000	null
+iranian-sangak	iranian	Sangak	Bread	-1000	null
+iranian-barbari	iranian	Barbari	Bread	-1000	null
+iranian-taftoon	iranian	Taftoon	Bread	-1000	null
+iranian-nun-e-roghani	iranian	Nun-e Roghani	Bread	-1000	null
+iranian-falafel	iranian	Falafel	Appetizer	-1000	null
+iranian-sambooseh	iranian	Sambooseh	Appetizer	-1000	null
+iranian-tah-chin	iranian	Tah Chin	Rice Dish	-1000	null
+iranian-maast	iranian	Maast	Yogurt	-1000	null
+iranian-doogh	iranian	Doogh	Beverage	-1000	null
+iranian-sharbat	iranian	Sharbat	Beverage	-1000	null
+iranian-chai	iranian	Chai	Beverage	-1000	null
+iranian-noon-panir-sabzi	iranian	Noon Panir Sabzi	Breakfast	-1000	null
+iranian-halva	iranian	Halva	Dessert	-1000	null
+iranian-baklava	iranian	Baklava	Dessert	-1000	null
+iranian-zoolbia	iranian	Zoolbia	Dessert	-1000	null
+iranian-bamieh	iranian	Bamieh	Dessert	-1000	null
+iranian-sohan	iranian	Sohan	Dessert	-1000	null
+iranian-gaz	iranian	Gaz	Candy	-1000	null
+iranian-noghl	iranian	Noghl	Candy	-1000	null
+iranian-pashmak	iranian	Pashmak	Candy	-1000	null
+iranian-faloodeh	iranian	Faloodeh	Dessert	-1000	null
+iranian-bastani	iranian	Bastani	Dessert	-1000	null
+iranian-ranginak	iranian	Ranginak	Dessert	-1000	null
+iranian-koloocheh	iranian	Koloocheh	Cookie	-1000	null
+iranian-nan-e-berenji	iranian	Nan-e Berenji	Cookie	-1000	null
+iranian-nan-e-nokhodchi	iranian	Nan-e Nokhodchi	Cookie	-1000	null
+iranian-shirini-nokhodchi	iranian	Shirini Nokhodchi	Cookie	-1000	null
+iranian-qottab	iranian	Qottab	Dessert	-1000	null
+iranian-nan-e-shirmal	iranian	Nan-e Shirmal	Bread	-1000	null
+iranian-komaj	iranian	Komaj	Cookie	-1000	null
+iranian-masghati	iranian	Masghati	Dessert	-1000	null
+iranian-louz	iranian	Louz	Dessert	-1000	null
+iranian-ash-e-anar	iranian	Ash-e Anar	Soup	-1000	null
+iranian-ash-e-sholeh-ghalamkar	iranian	Ash-e Sholeh Ghalamkar	Soup	-1000	null
+iranian-ash-e-jo	iranian	Ash-e Jo	Soup	-1000	null
+iranian-eshkeneh	iranian	Eshkeneh	Soup	-1000	null
+iranian-shole-zard	iranian	Shole Zard	Dessert	-1000	null
+iranian-samanu	iranian	Samanu	Dessert	-1000	null
+iranian-kachi	iranian	Kachi	Dessert	-1000	null
+iranian-reshte-khoshkar	iranian	Reshte Khoshkar	Dessert	-1000	null
+iranian-kufteh	iranian	Kufteh	Meatball	-1000	null
+iranian-kufteh-berenji	iranian	Kufteh Berenji	Meatball	-1000	null
+iranian-kufteh-tabrizi	iranian	Kufteh Tabrizi	Meatball	-1000	null
+iranian-shami	iranian	Shami	Cutlet	-1000	null
+iranian-nargesi	iranian	Nargesi	Egg Dish	-1000	null
+iranian-borani-esfenaj	iranian	Borani Esfenaj	Side Dish	-1000	null
+iranian-borani-bademjan	iranian	Borani Bademjan	Side Dish	-1000	null
+iranian-borani-kadoo	iranian	Borani Kadoo	Side Dish	-1000	null
+iranian-reshteh-polo	iranian	Reshteh Polo	Rice Dish	-1000	null
+iranian-havij-polo	iranian	Havij Polo	Rice Dish	-1000	null
+iranian-shevid-baghali-polo	iranian	Shevid Baghali Polo	Rice Dish	-1000	null
+iranian-mahi-polo	iranian	Mahi Polo	Rice Dish	-1000	null
+iranian-eshkeneh	iranian	Eshkeneh	Soup	-1000	null
+iranian-kufteh-tabrizi	iranian	Kufteh Tabrizi	Soup	-1000	null
+iranian-sherbet	iranian	Sherbet	Beverage	-1000	null
+iranian-sekanjabin	iranian	Sekanjabin	Beverage	-1000	null
+iranian-khakshir	iranian	Khakshir	Beverage	-1000	null
+iranian-bidmeshk	iranian	Bidmeshk	Beverage	-1000	null
+iranian-tokhm-e-sharbati	iranian	Tokhm-e Sharbati	Beverage	-1000	null
+iranian-ab-havij	iranian	Ab Havij	Beverage	-1000	null
+iranian-ab-anar	iranian	Ab Anar	Beverage	-1000	null
+iranian-ab-porteghal	iranian	Ab Porteghal	Beverage	-1000	null
+italian-pizza-margherita	italian	Pizza Margherita	Pizza	-200	null
+italian-pasta-carbonara	italian	Pasta Carbonara	Pasta	-200	null
+italian-lasagna	italian	Lasagna	Pasta	-200	null
+italian-risotto	italian	Risotto	Rice Dish	-200	null
+italian-osso-buco	italian	Osso Buco	Main Dish	-200	null
+italian-tiramisu	italian	Tiramisu	Dessert	-200	null
+italian-gelato	italian	Gelato	Dessert	-200	null
+italian-bruschetta	italian	Bruschetta	Appetizer	-200	null
+italian-caprese-salad	italian	Caprese Salad	Salad	-200	null
+italian-minestrone	italian	Minestrone	Soup	-200	null
+italian-ribollita	italian	Ribollita	Soup	-200	null
+italian-pasta-e-fagioli	italian	Pasta e Fagioli	Soup	-200	null
+italian-spaghetti-bolognese	italian	Spaghetti Bolognese	Pasta	-200	null
+italian-penne-arrabbiata	italian	Penne Arrabbiata	Pasta	-200	null
+italian-fettuccine-alfredo	italian	Fettuccine Alfredo	Pasta	-200	null
+italian-cacio-e-pepe	italian	Cacio e Pepe	Pasta	-200	null
+italian-amatriciana	italian	Amatriciana	Pasta	-200	null
+italian-puttanesca	italian	Puttanesca	Pasta	-200	null
+italian-aglio-e-olio	italian	Aglio e Olio	Pasta	-200	null
+italian-pasta-alla-norma	italian	Pasta alla Norma	Pasta	-200	null
+italian-pesto-genovese	italian	Pesto Genovese	Sauce/Pasta	-200	null
+italian-linguine-alle-vongole	italian	Linguine alle Vongole	Pasta	-200	null
+italian-spaghetti-alle-cozze	italian	Spaghetti alle Cozze	Pasta	-200	null
+italian-frutti-di-mare	italian	Frutti di Mare	Pasta/Seafood	-200	null
+italian-ravioli	italian	Ravioli	Pasta	-200	null
+italian-tortellini	italian	Tortellini	Pasta	-200	null
+italian-agnolotti	italian	Agnolotti	Pasta	-200	null
+italian-gnocchi	italian	Gnocchi	Pasta	-200	null
+italian-polenta	italian	Polenta	Side Dish	-200	null
+italian-arancini	italian	Arancini	Appetizer	-200	null
+italian-suppli	italian	Suppli	Appetizer	-200	null
+italian-focaccia	italian	Focaccia	Bread	-200	null
+italian-panini	italian	Panini	Sandwich	-200	null
+italian-tramezzini	italian	Tramezzini	Sandwich	-200	null
+italian-piadina	italian	Piadina	Flatbread	-200	null
+italian-calzone	italian	Calzone	Pizza	-200	null
+italian-stromboli	italian	Stromboli	Pizza	-200	null
+italian-pizza-napoletana	italian	Pizza Napoletana	Pizza	-200	null
+italian-pizza-quattro-formaggi	italian	Pizza Quattro Formaggi	Pizza	-200	null
+italian-pizza-quattro-stagioni	italian	Pizza Quattro Stagioni	Pizza	-200	null
+italian-pizza-diavola	italian	Pizza Diavola	Pizza	-200	null
+italian-pizza-prosciutto-e-funghi	italian	Pizza Prosciutto e Funghi	Pizza	-200	null
+italian-pizza-capricciosa	italian	Pizza Capricciosa	Pizza	-200	null
+italian-saltimbocca	italian	Saltimbocca	Main Dish	-200	null
+italian-piccata	italian	Piccata	Main Dish	-200	null
+italian-vitello-tonnato	italian	Vitello Tonnato	Main Dish	-200	null
+italian-bistecca-alla-fiorentina	italian	Bistecca alla Fiorentina	Main Dish	-200	null
+italian-tagliata	italian	Tagliata	Main Dish	-200	null
+italian-porchetta	italian	Porchetta	Main Dish	-200	null
+italian-cotoletta-alla-milanese	italian	Cotoletta alla Milanese	Main Dish	-200	null
+italian-bollito-misto	italian	Bollito Misto	Main Dish	-200	null
+italian-brasato-al-barolo	italian	Brasato al Barolo	Main Dish	-200	null
+italian-cacciatore	italian	Cacciatore	Main Dish	-200	null
+italian-parmigiana-di-melanzane	italian	Parmigiana di Melanzane	Main Dish	-200	null
+italian-caponata	italian	Caponata	Side Dish	-200	null
+italian-peperonata	italian	Peperonata	Side Dish	-200	null
+italian-frittata	italian	Frittata	Egg Dish	-200	null
+italian-carbonara-di-zucchine	italian	Carbonara di Zucchine	Pasta	-200	null
+italian-pasta-primavera	italian	Pasta Primavera	Pasta	-200	null
+italian-pasta-al-limone	italian	Pasta al Limone	Pasta	-200	null
+italian-pasta-con-le-sarde	italian	Pasta con le Sarde	Pasta	-200	null
+italian-pasta-alla-gricia	italian	Pasta alla Gricia	Pasta	-200	null
+italian-bucatini-allamatriciana	italian	Bucatini all'Amatriciana	Pasta	-200	null
+italian-orecchiette-con-cime-di-rapa	italian	Orecchiette con Cime di Rapa	Pasta	-200	null
+italian-trofie-al-pesto	italian	Trofie al Pesto	Pasta	-200	null
+italian-pappardelle-al-cinghiale	italian	Pappardelle al Cinghiale	Pasta	-200	null
+italian-tagliatelle-al-rag	italian	Tagliatelle al Ragù	Pasta	-200	null
+italian-risotto-alla-milanese	italian	Risotto alla Milanese	Rice Dish	-200	null
+italian-risotto-ai-funghi	italian	Risotto ai Funghi	Rice Dish	-200	null
+italian-risotto-al-nero-di-seppia	italian	Risotto al Nero di Seppia	Rice Dish	-200	null
+italian-risotto-ai-frutti-di-mare	italian	Risotto ai Frutti di Mare	Rice Dish	-200	null
+italian-carpaccio	italian	Carpaccio	Appetizer	-200	null
+italian-crudo-di-parma	italian	Crudo di Parma	Appetizer	-200	null
+italian-bresaola	italian	Bresaola	Cured Meat	-200	null
+italian-mortadella	italian	Mortadella	Cured Meat	-200	null
+italian-salame	italian	Salame	Cured Meat	-200	null
+italian-prosciutto-e-melone	italian	Prosciutto e Melone	Appetizer	-200	null
+italian-antipasto-misto	italian	Antipasto Misto	Appetizer	-200	null
+italian-insalata-mista	italian	Insalata Mista	Salad	-200	null
+italian-panzanella	italian	Panzanella	Salad	-200	null
+italian-insalata-di-mare	italian	Insalata di Mare	Salad	-200	null
+italian-calamari-fritti	italian	Calamari Fritti	Appetizer	-200	null
+italian-fritto-misto	italian	Fritto Misto	Main Dish	-200	null
+italian-zuppa-di-pesce	italian	Zuppa di Pesce	Soup	-200	null
+italian-acqua-pazza	italian	Acqua Pazza	Main Dish	-200	null
+italian-cacciucco	italian	Cacciucco	Soup/Stew	-200	null
+italian-baccal-mantecato	italian	Baccalà Mantecato	Appetizer	-200	null
+italian-sarde-in-saor	italian	Sarde in Saor	Appetizer	-200	null
+italian-affogato	italian	Affogato	Dessert	-200	null
+italian-panna-cotta	italian	Panna Cotta	Dessert	-200	null
+italian-cannoli	italian	Cannoli	Dessert	-200	null
+italian-sfogliatelle	italian	Sfogliatelle	Dessert	-200	null
+italian-bab	italian	Babà	Dessert	-200	null
+italian-cassata	italian	Cassata	Dessert	-200	null
+italian-zabaglione	italian	Zabaglione	Dessert	-200	null
+italian-amaretti	italian	Amaretti	Cookie	-200	null
+italian-biscotti	italian	Biscotti	Cookie	-200	null
+italian-panettone	italian	Panettone	Bread/Dessert	-200	null
+italian-pandoro	italian	Pandoro	Bread/Dessert	-200	null
+italian-limoncello	italian	Limoncello	Beverage	-200	null
+japanese-sushi	japanese	Sushi	Sushi/Sashimi	500	null
+japanese-sashimi	japanese	Sashimi	Sushi/Sashimi	500	null
+japanese-ramen	japanese	Ramen	Noodle Soup	500	null
+japanese-tempura	japanese	Tempura	Fried Food	500	null
+japanese-tonkatsu	japanese	Tonkatsu	Main Dish	500	null
+japanese-yakitori	japanese	Yakitori	Grilled Skewers	500	null
+japanese-udon	japanese	Udon	Noodle Dish	500	null
+japanese-soba	japanese	Soba	Noodle Dish	500	null
+japanese-miso-soup	japanese	Miso Soup	Soup	500	null
+japanese-teriyaki-chicken	japanese	Teriyaki Chicken	Main Dish	500	null
+japanese-gyoza	japanese	Gyoza	Dumpling	500	null
+japanese-okonomiyaki	japanese	Okonomiyaki	Savory Pancake	500	null
+japanese-takoyaki	japanese	Takoyaki	Street Food	500	null
+japanese-yakisoba	japanese	Yakisoba	Noodle Dish	500	null
+japanese-shabu-shabu	japanese	Shabu-Shabu	Hot Pot	500	null
+japanese-sukiyaki	japanese	Sukiyaki	Hot Pot	500	null
+japanese-kaiseki	japanese	Kaiseki	Multi-Course Meal	500	null
+japanese-donburi	japanese	Donburi	Rice Bowl	500	null
+japanese-oyakodon	japanese	Oyakodon	Rice Bowl	500	null
+japanese-katsudon	japanese	Katsudon	Rice Bowl	500	null
+japanese-gyudon	japanese	Gyudon	Rice Bowl	500	null
+japanese-tendon	japanese	Tendon	Rice Bowl	500	null
+japanese-unadon	japanese	Unadon	Rice Bowl	500	null
+japanese-chirashi	japanese	Chirashi	Sushi Bowl	500	null
+japanese-nigiri	japanese	Nigiri	Sushi/Sashimi	500	null
+japanese-maki-rolls	japanese	Maki Rolls	Sushi/Sashimi	500	null
+japanese-temaki	japanese	Temaki	Sushi/Sashimi	500	null
+japanese-onigiri	japanese	Onigiri	Rice Snack	500	null
+japanese-ochazuke	japanese	Ochazuke	Rice Dish	500	null
+japanese-chazuke	japanese	Chazuke	Rice Dish	500	null
+japanese-natto	japanese	Natto	Side Dish	500	null
+japanese-edamame	japanese	Edamame	Appetizer	500	null
+japanese-agedashi-tofu	japanese	Agedashi Tofu	Appetizer	500	null
+japanese-hiyayakko	japanese	Hiyayakko	Appetizer	500	null
+japanese-tsukemono	japanese	Tsukemono	Pickle/Side	500	null
+japanese-umeboshi	japanese	Umeboshi	Pickle/Side	500	null
+japanese-tamagoyaki	japanese	Tamagoyaki	Egg Dish	500	null
+japanese-chawanmushi	japanese	Chawanmushi	Egg Custard	500	null
+japanese-oden	japanese	Oden	Stew	500	null
+japanese-nikujaga	japanese	Nikujaga	Stew	500	null
+japanese-korokke	japanese	Korokke	Fried Food	500	null
+japanese-menchi-katsu	japanese	Menchi Katsu	Fried Food	500	null
+japanese-ebi-fry	japanese	Ebi Fry	Fried Food	500	null
+japanese-kara-age	japanese	Kara-age	Fried Food	500	null
+japanese-tori-karaage	japanese	Tori Karaage	Fried Food	500	null
+japanese-kushikatsu	japanese	Kushikatsu	Fried Skewers	500	null
+japanese-kushiage	japanese	Kushiage	Fried Skewers	500	null
+japanese-yakiudon	japanese	Yakiudon	Noodle Dish	500	null
+japanese-nabeyaki-udon	japanese	Nabeyaki Udon	Noodle Soup	500	null
+japanese-zaru-soba	japanese	Zaru Soba	Noodle Dish	500	null
+japanese-kitsune-udon	japanese	Kitsune Udon	Noodle Soup	500	null
+japanese-tanuki-soba	japanese	Tanuki Soba	Noodle Soup	500	null
+japanese-tsukemen	japanese	Tsukemen	Noodle Dish	500	null
+japanese-shoyu-ramen	japanese	Shoyu Ramen	Noodle Soup	500	null
+japanese-miso-ramen	japanese	Miso Ramen	Noodle Soup	500	null
+japanese-tonkotsu-ramen	japanese	Tonkotsu Ramen	Noodle Soup	500	null
+japanese-shio-ramen	japanese	Shio Ramen	Noodle Soup	500	null
+japanese-teppanyaki	japanese	Teppanyaki	Grilled Food	500	null
+japanese-okonomiyaki-hiroshima-style	japanese	Okonomiyaki Hiroshima-style	Savory Pancake	500	null
+japanese-monjayaki	japanese	Monjayaki	Savory Pancake	500	null
+japanese-yakiniku	japanese	Yakiniku	Grilled Meat	500	null
+japanese-horumon	japanese	Horumon	Grilled Offal	500	null
+japanese-motsunabe	japanese	Motsunabe	Hot Pot	500	null
+japanese-chankonabe	japanese	Chankonabe	Hot Pot	500	null
+japanese-yudofu	japanese	Yudofu	Tofu Dish	500	null
+japanese-tofu-steak	japanese	Tofu Steak	Main Dish	500	null
+japanese-goya-champuru	japanese	Goya Champuru	Stir-Fry	500	null
+japanese-somen	japanese	Somen	Noodle Dish	500	null
+japanese-hiyashi-chuka	japanese	Hiyashi Chuka	Noodle Dish	500	null
+japanese-unagi	japanese	Unagi	Grilled Eel	500	null
+japanese-anago	japanese	Anago	Grilled Eel	500	null
+japanese-mentaiko	japanese	Mentaiko	Roe/Side	500	null
+japanese-ikura	japanese	Ikura	Roe/Side	500	null
+japanese-uni	japanese	Uni	Roe/Side	500	null
+japanese-toro	japanese	Toro	Sushi/Sashimi	500	null
+japanese-hamachi	japanese	Hamachi	Sushi/Sashimi	500	null
+japanese-saba-shioyaki	japanese	Saba Shioyaki	Grilled Fish	500	null
+japanese-sanma	japanese	Sanma	Grilled Fish	500	null
+japanese-taiyaki	japanese	Taiyaki	Dessert	500	null
+japanese-dorayaki	japanese	Dorayaki	Dessert	500	null
+japanese-mochi	japanese	Mochi	Dessert	500	null
+japanese-dango	japanese	Dango	Dessert	500	null
+japanese-daifuku	japanese	Daifuku	Dessert	500	null
+japanese-manju	japanese	Manju	Dessert	500	null
+japanese-yokan	japanese	Yokan	Dessert	500	null
+japanese-anmitsu	japanese	Anmitsu	Dessert	500	null
+japanese-kakigori	japanese	Kakigori	Dessert	500	null
+japanese-matcha-ice-cream	japanese	Matcha Ice Cream	Dessert	500	null
+japanese-melon-pan	japanese	Melon Pan	Bread	500	null
+japanese-cream-pan	japanese	Cream Pan	Bread	500	null
+japanese-anpan	japanese	Anpan	Bread	500	null
+japanese-curry-pan	japanese	Curry Pan	Bread	500	null
+japanese-japanese-curry	japanese	Japanese Curry	Main Dish	500	null
+japanese-hayashi-rice	japanese	Hayashi Rice	Main Dish	500	null
+japanese-omurice	japanese	Omurice	Main Dish	500	null
+japanese-korokke-pan	japanese	Korokke Pan	Sandwich	500	null
+japanese-castella-cake	japanese	Castella Cake	Dessert	500	null
+japanese-melonpan	japanese	Melonpan	Bread	500	null
+japanese-green-tea	japanese	Green Tea	Beverage	500	null
+japanese-sake	japanese	Sake	Beverage	500	null
+korean-kimchi	korean	Kimchi	Side Dish	500	null
+korean-bibimbap	korean	Bibimbap	Rice Dish	500	null
+korean-bulgogi	korean	Bulgogi	Grilled Meat	500	null
+korean-korean-bbq	korean	Korean BBQ	Grilled Meat	500	null
+korean-galbi	korean	Galbi	Grilled Ribs	500	null
+korean-samgyeopsal	korean	Samgyeopsal	Grilled Pork	500	null
+korean-japchae	korean	Japchae	Noodle Dish	500	null
+korean-tteokbokki	korean	Tteokbokki	Street Food	500	null
+korean-korean-fried-chicken	korean	Korean Fried Chicken	Fried Chicken	1950	null
+korean-jjajangmyeon	korean	Jjajangmyeon	Noodle Dish	500	null
+korean-jjamppong	korean	Jjamppong	Noodle Soup	500	null
+korean-naengmyeon	korean	Naengmyeon	Noodle Dish	500	null
+korean-sundubu-jjigae	korean	Sundubu Jjigae	Stew	500	null
+korean-kimchi-jjigae	korean	Kimchi Jjigae	Stew	500	null
+korean-doenjang-jjigae	korean	Doenjang Jjigae	Stew	500	null
+korean-budae-jjigae	korean	Budae Jjigae	Stew	500	null
+korean-galbitang	korean	Galbitang	Soup	500	null
+korean-seolleongtang	korean	Seolleongtang	Soup	500	null
+korean-samgyetang	korean	Samgyetang	Soup	500	null
+korean-yukgaejang	korean	Yukgaejang	Soup	500	null
+korean-kongnamul-guk	korean	Kongnamul Guk	Soup	500	null
+korean-miyeok-guk	korean	Miyeok Guk	Soup	500	null
+korean-manduguk	korean	Manduguk	Soup	500	null
+korean-tteokguk	korean	Tteokguk	Soup	500	null
+korean-kimbap	korean	Kimbap	Rice Roll	500	null
+korean-mandu	korean	Mandu	Dumpling	500	null
+korean-hotteok	korean	Hotteok	Dessert	500	null
+korean-bingsu	korean	Bingsu	Dessert	500	null
+korean-tteok	korean	Tteok	Rice Cake	500	null
+korean-songpyeon	korean	Songpyeon	Rice Cake	500	null
+korean-yakgwa	korean	Yakgwa	Dessert	500	null
+korean-hangwa	korean	Hangwa	Dessert	500	null
+korean-bungeoppang	korean	Bungeoppang	Dessert	500	null
+korean-hodugwaja	korean	Hodugwaja	Dessert	500	null
+korean-gyeran-bbang	korean	Gyeran Bbang	Snack	500	null
+korean-eomuk	korean	Eomuk	Fish Cake	500	null
+korean-twigim	korean	Twigim	Fried Food	500	null
+korean-gimbap	korean	Gimbap	Rice Roll	500	null
+korean-jeon	korean	Jeon	Pancake	500	null
+korean-pajeon	korean	Pajeon	Pancake	500	null
+korean-kimchi-jeon	korean	Kimchi Jeon	Pancake	500	null
+korean-haemul-pajeon	korean	Haemul Pajeon	Pancake	500	null
+korean-bindaetteok	korean	Bindaetteok	Pancake	500	null
+korean-gamjajeon	korean	Gamjajeon	Pancake	500	null
+korean-hobakjeon	korean	Hobakjeon	Pancake	500	null
+korean-gochujang	korean	Gochujang	Sauce	500	null
+korean-doenjang	korean	Doenjang	Sauce	500	null
+korean-ssamjang	korean	Ssamjang	Sauce	500	null
+korean-yangnyeom	korean	Yangnyeom	Sauce	500	null
+korean-banchan	korean	Banchan	Side Dish	500	null
+korean-namul	korean	Namul	Side Dish	500	null
+korean-japchae	korean	Japchae	Side Dish	500	null
+korean-kongnamul-muchim	korean	Kongnamul Muchim	Side Dish	500	null
+korean-sukjunamul	korean	Sukjunamul	Side Dish	500	null
+korean-sigeumchi-namul	korean	Sigeumchi Namul	Side Dish	500	null
+korean-gaji-namul	korean	Gaji Namul	Side Dish	500	null
+korean-mu-saengchae	korean	Mu Saengchae	Side Dish	500	null
+korean-oiseon	korean	Oiseon	Side Dish	500	null
+korean-dubu-jorim	korean	Dubu Jorim	Side Dish	500	null
+korean-gyeran-jjim	korean	Gyeran Jjim	Steamed Egg	500	null
+korean-altang	korean	Altang	Stew	500	null
+korean-haemultang	korean	Haemultang	Stew	500	null
+korean-maeuntang	korean	Maeuntang	Stew	500	null
+korean-agujjim	korean	Agujjim	Stew	500	null
+korean-galbijjim	korean	Galbijjim	Stew	500	null
+korean-jjukkumi-bokkeum	korean	Jjukkumi Bokkeum	Stir-Fry	500	null
+korean-ojingeo-bokkeum	korean	Ojingeo Bokkeum	Stir-Fry	500	null
+korean-nakji-bokkeum	korean	Nakji Bokkeum	Stir-Fry	500	null
+korean-dakgalbi	korean	Dakgalbi	Stir-Fry	500	null
+korean-buldak	korean	Buldak	Stir-Fry	500	null
+korean-jokbal	korean	Jokbal	Main Dish	500	null
+korean-bossam	korean	Bossam	Main Dish	500	null
+korean-makchang	korean	Makchang	Grilled Offal	500	null
+korean-sundae	korean	Sundae	Sausage	500	null
+korean-soondae	korean	Soondae	Sausage	500	null
+korean-gopchang	korean	Gopchang	Grilled Offal	500	null
+korean-twigak	korean	Twigak	Snack	500	null
+korean-yakbap	korean	Yakbap	Rice Dish	500	null
+korean-juk	korean	Juk	Rice Porridge	500	null
+korean-jatjuk	korean	Jatjuk	Rice Porridge	500	null
+korean-hobakjuk	korean	Hobakjuk	Rice Porridge	500	null
+korean-heukimjajuk	korean	Heukimjajuk	Rice Porridge	500	null
+korean-patjuk	korean	Patjuk	Rice Porridge	500	null
+korean-chueotang	korean	Chueotang	Soup	500	null
+korean-haejang-guk	korean	Haejang-guk	Soup	500	null
+korean-sundaeguk	korean	Sundaeguk	Soup	500	null
+korean-ttaro-gukbap	korean	Ttaro Gukbap	Soup	500	null
+korean-soju	korean	Soju	Beverage	500	null
+korean-makgeolli	korean	Makgeolli	Beverage	500	null
+korean-bokbunja	korean	Bokbunja	Beverage	500	null
+korean-dongdongju	korean	Dongdongju	Beverage	500	null
+korean-sikhye	korean	Sikhye	Beverage	500	null
+korean-sujeonggwa	korean	Sujeonggwa	Beverage	500	null
+korean-yulmu-cha	korean	Yulmu Cha	Beverage	500	null
+korean-bori-cha	korean	Bori Cha	Beverage	500	null
+korean-oksusu-cha	korean	Oksusu Cha	Beverage	500	null
+korean-misutgaru	korean	Misutgaru	Beverage	500	null
+korean-banana-milk	korean	Banana Milk	Beverage	500	null
+korean-milkis	korean	Milkis	Beverage	500	null
+korean-dalgona-coffee	korean	Dalgona Coffee	Beverage	500	null
+mexican-tacos-al-pastor	mexican	Tacos al Pastor	Main Dish	-2000	null
+mexican-guacamole	mexican	Guacamole	Dip/Sauce	-2000	null
+mexican-enchiladas	mexican	Enchiladas	Main Dish	-2000	null
+mexican-quesadillas	mexican	Quesadillas	Main Dish	-2000	null
+mexican-mole-poblano	mexican	Mole Poblano	Sauce	-2000	null
+mexican-tamales	mexican	Tamales	Main Dish	-2000	null
+mexican-chiles-rellenos	mexican	Chiles Rellenos	Main Dish	-2000	null
+mexican-pozole	mexican	Pozole	Soup/Stew	-2000	null
+mexican-carnitas	mexican	Carnitas	Main Dish	-2000	null
+mexican-ceviche	mexican	Ceviche	Seafood Dish	-2000	null
+mexican-tortas	mexican	Tortas	Sandwich	-2000	null
+mexican-sopes	mexican	Sopes	Appetizer	-2000	null
+mexican-tostadas	mexican	Tostadas	Appetizer/Main	-2000	null
+mexican-chilaquiles	mexican	Chilaquiles	Breakfast Dish	-2000	null
+mexican-huevos-rancheros	mexican	Huevos Rancheros	Breakfast Dish	-2000	null
+mexican-elote-mexican-street-corn	mexican	Elote (Mexican Street Corn)	Street Food	-2000	null
+mexican-flautas	mexican	Flautas	Main Dish	-2000	null
+mexican-barbacoa	mexican	Barbacoa	Main Dish	-2000	null
+mexican-birria	mexican	Birria	Stew	-2000	null
+mexican-cochinita-pibil	mexican	Cochinita Pibil	Main Dish	-2000	null
+mexican-menudo	mexican	Menudo	Soup	-2000	null
+mexican-gorditas	mexican	Gorditas	Main Dish	-2000	null
+mexican-tlayudas	mexican	Tlayudas	Main Dish	-2000	null
+mexican-sincronizadas	mexican	Sincronizadas	Main Dish	-2000	null
+mexican-molletes	mexican	Molletes	Breakfast Dish	-2000	null
+mexican-pico-de-gallo	mexican	Pico de Gallo	Salsa/Condiment	-2000	null
+mexican-salsa-verde	mexican	Salsa Verde	Salsa/Condiment	-2000	null
+mexican-salsa-roja	mexican	Salsa Roja	Salsa/Condiment	-2000	null
+mexican-refried-beans-frijoles-refritos	mexican	Refried Beans (Frijoles Refritos)	Side Dish	-2000	null
+mexican-mexican-rice-arroz-rojo	mexican	Mexican Rice (Arroz Rojo)	Side Dish	-2000	null
+mexican-nachos	mexican	Nachos	Appetizer	-2000	null
+mexican-burritos	mexican	Burritos	Main Dish	-2000	null
+mexican-fajitas	mexican	Fajitas	Main Dish	-2000	null
+mexican-chimichangas	mexican	Chimichangas	Main Dish	-2000	null
+mexican-queso-fundido	mexican	Queso Fundido	Appetizer	-2000	null
+mexican-esquites	mexican	Esquites	Side Dish	-2000	null
+mexican-rajas-con-crema	mexican	Rajas con Crema	Side Dish	-2000	null
+mexican-nopales	mexican	Nopales	Side Dish	-2000	null
+mexican-calabacitas	mexican	Calabacitas	Side Dish	-2000	null
+mexican-frijoles-charros	mexican	Frijoles Charros	Side Dish	-2000	null
+mexican-sopa-de-tortilla	mexican	Sopa de Tortilla	Soup	-2000	null
+mexican-albondigas-soup	mexican	Albondigas Soup	Soup	-2000	null
+mexican-caldo-de-res	mexican	Caldo de Res	Soup	-2000	null
+mexican-caldo-de-pollo	mexican	Caldo de Pollo	Soup	-2000	null
+mexican-coctel-de-camaron	mexican	Coctel de Camaron	Appetizer	-2000	null
+mexican-aguachile	mexican	Aguachile	Seafood Dish	-2000	null
+mexican-tostadas-de-ceviche	mexican	Tostadas de Ceviche	Appetizer	-2000	null
+mexican-camarones-a-la-diabla	mexican	Camarones a la Diabla	Main Dish	-2000	null
+mexican-pescado-zarandeado	mexican	Pescado Zarandeado	Main Dish	-2000	null
+mexican-empanadas	mexican	Empanadas	Appetizer/Snack	-2000	null
+mexican-panucho	mexican	Panucho	Appetizer	-2000	null
+mexican-papadzules	mexican	Papadzules	Main Dish	-2000	null
+mexican-poc-chuc	mexican	Poc Chuc	Main Dish	-2000	null
+mexican-machaca	mexican	Machaca	Main Dish	-2000	null
+mexican-discada	mexican	Discada	Main Dish	-2000	null
+mexican-cabrito	mexican	Cabrito	Main Dish	-2000	null
+mexican-carne-asada	mexican	Carne Asada	Main Dish	-2000	null
+mexican-arrachera	mexican	Arrachera	Main Dish	-2000	null
+mexican-alambre	mexican	Alambre	Main Dish	-2000	null
+mexican-tacos-de-lengua	mexican	Tacos de Lengua	Main Dish	-2000	null
+mexican-tacos-de-cabeza	mexican	Tacos de Cabeza	Main Dish	-2000	null
+mexican-tacos-de-suadero	mexican	Tacos de Suadero	Main Dish	-2000	null
+mexican-tacos-dorados	mexican	Tacos Dorados	Main Dish	-2000	null
+mexican-mulitas	mexican	Mulitas	Main Dish	-2000	null
+mexican-vampiros	mexican	Vampiros	Main Dish	-2000	null
+mexican-gringas	mexican	Gringas	Main Dish	-2000	null
+mexican-pambazo	mexican	Pambazo	Sandwich	-2000	null
+mexican-cemita	mexican	Cemita	Sandwich	-2000	null
+mexican-lonches	mexican	Lonches	Sandwich	-2000	null
+mexican-milanesa	mexican	Milanesa	Main Dish	-2000	null
+mexican-chiles-en-nogada	mexican	Chiles en Nogada	Main Dish	-2000	null
+mexican-rajas-poblanas	mexican	Rajas Poblanas	Side Dish	-2000	null
+mexican-huitlacoche-quesadilla	mexican	Huitlacoche Quesadilla	Main Dish	-2000	null
+mexican-queso-fresco	mexican	Queso Fresco	Cheese	-2000	null
+mexican-crema-mexicana	mexican	Crema Mexicana	Condiment	-2000	null
+mexican-chorizo	mexican	Chorizo	Sausage	-2000	null
+mexican-chuleta	mexican	Chuleta	Main Dish	-2000	null
+mexican-morcilla	mexican	Morcilla	Sausage	-2000	null
+mexican-chicharrn	mexican	Chicharrón	Snack	-2000	null
+mexican-tripas	mexican	Tripas	Main Dish	-2000	null
+mexican-buche	mexican	Buche	Main Dish	-2000	null
+mexican-choriqueso	mexican	Choriqueso	Appetizer	-2000	null
+mexican-papas-con-chorizo	mexican	Papas con Chorizo	Side Dish	-2000	null
+mexican-huevos-con-chorizo	mexican	Huevos con Chorizo	Breakfast Dish	-2000	null
+mexican-huevos-a-la-mexicana	mexican	Huevos a la Mexicana	Breakfast Dish	-2000	null
+mexican-enfrijoladas	mexican	Enfrijoladas	Main Dish	-2000	null
+mexican-enmoladas	mexican	Enmoladas	Main Dish	-2000	null
+mexican-entomatadas	mexican	Entomatadas	Main Dish	-2000	null
+mexican-sopa-azteca	mexican	Sopa Azteca	Soup	-2000	null
+mexican-sopa-de-lima	mexican	Sopa de Lima	Soup	-2000	null
+mexican-sopa-de-fideo	mexican	Sopa de Fideo	Soup	-2000	null
+mexican-arroz-con-leche	mexican	Arroz con Leche	Dessert	-2000	null
+mexican-flan	mexican	Flan	Dessert	-2000	null
+mexican-tres-leches-cake	mexican	Tres Leches Cake	Dessert	-2000	null
+mexican-churros	mexican	Churros	Dessert	-2000	null
+mexican-buuelos	mexican	Buñuelos	Dessert	-2000	null
+mexican-pan-de-muerto	mexican	Pan de Muerto	Bread	-2000	null
+mexican-conchas	mexican	Conchas	Bread	-2000	null
+mexican-champurrado	mexican	Champurrado	Beverage	-2000	null
+mexican-horchata	mexican	Horchata	Beverage	-2000	null
+peruvian-ceviche	peruvian	Ceviche	Seafood Dish	-1000	null
+peruvian-lomo-saltado	peruvian	Lomo Saltado	Main Dish	-1000	null
+peruvian-aji-de-gallina	peruvian	Aji de Gallina	Main Dish	-1000	null
+peruvian-anticuchos	peruvian	Anticuchos	Street Food	-1000	null
+peruvian-causa-limea	peruvian	Causa Limeña	Appetizer	-1000	null
+peruvian-pollo-a-la-brasa	peruvian	Pollo a la Brasa	Main Dish	-1000	null
+peruvian-papa-a-la-huancana	peruvian	Papa a la Huancaína	Appetizer	-1000	null
+peruvian-arroz-con-pollo	peruvian	Arroz con Pollo	Main Dish	-1000	null
+peruvian-tacu-tacu	peruvian	Tacu Tacu	Side Dish	-1000	null
+peruvian-rocoto-relleno	peruvian	Rocoto Relleno	Main Dish	-1000	null
+peruvian-cuy-chactado	peruvian	Cuy Chactado	Main Dish	-1000	null
+peruvian-pachamanca	peruvian	Pachamanca	Main Dish	-1000	null
+peruvian-tiradito	peruvian	Tiradito	Seafood Dish	-1000	null
+peruvian-leche-de-tigre	peruvian	Leche de Tigre	Beverage/Appetizer	-1000	null
+peruvian-chupe-de-camarones	peruvian	Chupe de Camarones	Soup	-1000	null
+peruvian-seco-de-cordero	peruvian	Seco de Cordero	Stew	-1000	null
+peruvian-carapulcra	peruvian	Carapulcra	Stew	-1000	null
+peruvian-olluquito-con-charqui	peruvian	Olluquito con Charqui	Stew	-1000	null
+peruvian-aguadito	peruvian	Aguadito	Soup	-1000	null
+peruvian-parihuela	peruvian	Parihuela	Soup	-1000	null
+peruvian-chilcano	peruvian	Chilcano	Soup	-1000	null
+peruvian-sudado-de-pescado	peruvian	Sudado de Pescado	Stew	-1000	null
+peruvian-escabeche-de-pescado	peruvian	Escabeche de Pescado	Main Dish	-1000	null
+peruvian-arroz-con-mariscos	peruvian	Arroz con Mariscos	Main Dish	-1000	null
+peruvian-jalea	peruvian	Jalea	Main Dish	-1000	null
+peruvian-chicharrn-de-calamar	peruvian	Chicharrón de Calamar	Appetizer	-1000	null
+peruvian-chicharrn-de-pescado	peruvian	Chicharrón de Pescado	Main Dish	-1000	null
+peruvian-chicharrn-de-pollo	peruvian	Chicharrón de Pollo	Main Dish	-1000	null
+peruvian-chicharrn-de-cerdo	peruvian	Chicharrón de Cerdo	Main Dish	-1000	null
+peruvian-butifarra	peruvian	Butifarra	Sandwich	-1000	null
+peruvian-tamales-peruanos	peruvian	Tamales Peruanos	Main Dish	-1000	null
+peruvian-humitas	peruvian	Humitas	Main Dish	-1000	null
+peruvian-juane	peruvian	Juane	Main Dish	-1000	null
+peruvian-tacacho-con-cecina	peruvian	Tacacho con Cecina	Main Dish	-1000	null
+peruvian-inchicapi	peruvian	Inchicapi	Soup	-1000	null
+peruvian-patarashca	peruvian	Patarashca	Main Dish	-1000	null
+peruvian-caldo-de-gallina	peruvian	Caldo de Gallina	Soup	-1000	null
+peruvian-shambar	peruvian	Shambar	Soup	-1000	null
+peruvian-mondonguito-a-la-italiana	peruvian	Mondonguito a la Italiana	Stew	-1000	null
+peruvian-sancochado	peruvian	Sancochado	Soup/Stew	-1000	null
+peruvian-patasca	peruvian	Patasca	Soup	-1000	null
+peruvian-adobo-arequipeo	peruvian	Adobo Arequipeño	Main Dish	-1000	null
+peruvian-malaya	peruvian	Malaya	Main Dish	-1000	null
+peruvian-cau-cau	peruvian	Cau Cau	Stew	-1000	null
+peruvian-chanfainita	peruvian	Chanfainita	Stew	-1000	null
+peruvian-salchipapas	peruvian	Salchipapas	Street Food	-1000	null
+peruvian-papa-rellena	peruvian	Papa Rellena	Appetizer	-1000	null
+peruvian-empanadas-peruanas	peruvian	Empanadas Peruanas	Appetizer	-1000	null
+peruvian-tequeos	peruvian	Tequeños	Appetizer	-1000	null
+peruvian-yuca-frita	peruvian	Yuca Frita	Side Dish	-1000	null
+peruvian-choclo-con-queso	peruvian	Choclo con Queso	Side Dish	-1000	null
+peruvian-cancha	peruvian	Cancha	Snack	-1000	null
+peruvian-ocopa-arequipea	peruvian	Ocopa Arequipeña	Appetizer	-1000	null
+peruvian-solterito	peruvian	Solterito	Salad	-1000	null
+peruvian-ensalada-de-palta	peruvian	Ensalada de Palta	Salad	-1000	null
+peruvian-ensalada-rusa	peruvian	Ensalada Rusa	Salad	-1000	null
+peruvian-sarsa-criolla	peruvian	Sarsa Criolla	Condiment	-1000	null
+peruvian-aj-amarillo-sauce	peruvian	Ají Amarillo Sauce	Sauce	-1000	null
+peruvian-aj-panca-sauce	peruvian	Ají Panca Sauce	Sauce	-1000	null
+peruvian-huancana-sauce	peruvian	Huancaína Sauce	Sauce	-1000	null
+peruvian-arroz-chaufa	peruvian	Arroz Chaufa	Main Dish	-1000	null
+peruvian-tallarin-saltado	peruvian	Tallarin Saltado	Main Dish	-1000	null
+peruvian-wantan-frito	peruvian	Wantan Frito	Appetizer	-1000	null
+peruvian-aeropuerto	peruvian	Aeropuerto	Main Dish	-1000	null
+peruvian-enrollado-de-pollo	peruvian	Enrollado de Pollo	Main Dish	-1000	null
+peruvian-estofado-de-pollo	peruvian	Estofado de Pollo	Stew	-1000	null
+peruvian-pollo-al-horno	peruvian	Pollo al Horno	Main Dish	-1000	null
+peruvian-milanesa	peruvian	Milanesa	Main Dish	-1000	null
+peruvian-apanado	peruvian	Apanado	Main Dish	-1000	null
+peruvian-chuleta-de-cerdo	peruvian	Chuleta de Cerdo	Main Dish	-1000	null
+peruvian-costillas-de-cerdo	peruvian	Costillas de Cerdo	Main Dish	-1000	null
+peruvian-adobo-de-chancho	peruvian	Adobo de Chancho	Main Dish	-1000	null
+peruvian-chicharrones	peruvian	Chicharrones	Main Dish	-1000	null
+peruvian-lechn	peruvian	Lechón	Main Dish	-1000	null
+peruvian-rachi	peruvian	Rachi	Appetizer	-1000	null
+peruvian-chunchules	peruvian	Chunchules	Appetizer	-1000	null
+peruvian-mollejitas	peruvian	Mollejitas	Appetizer	-1000	null
+peruvian-corazn-anticucho	peruvian	Corazón Anticucho	Street Food	-1000	null
+peruvian-pollo-anticucho	peruvian	Pollo Anticucho	Street Food	-1000	null
+peruvian-choclo-con-huevo	peruvian	Choclo con Huevo	Side Dish	-1000	null
+peruvian-caldo-de-cabeza	peruvian	Caldo de Cabeza	Soup	-1000	null
+peruvian-sopa-de-menestrn	peruvian	Sopa de Menestrón	Soup	-1000	null
+peruvian-sopa-teolgica	peruvian	Sopa Teológica	Soup	-1000	null
+peruvian-sopa-seca	peruvian	Sopa Seca	Main Dish	-1000	null
+peruvian-caigua-rellena	peruvian	Caigua Rellena	Main Dish	-1000	null
+peruvian-zapallo-relleno	peruvian	Zapallo Relleno	Main Dish	-1000	null
+peruvian-yuca-al-ajillo	peruvian	Yuca al Ajillo	Side Dish	-1000	null
+peruvian-camarones-al-ajillo	peruvian	Camarones al Ajillo	Main Dish	-1000	null
+peruvian-pulpo-al-olivo	peruvian	Pulpo al Olivo	Appetizer	-1000	null
+peruvian-suspiro-limeo	peruvian	Suspiro Limeño	Dessert	-1000	null
+peruvian-mazamorra-morada	peruvian	Mazamorra Morada	Dessert	-1000	null
+peruvian-arroz-con-leche	peruvian	Arroz con Leche	Dessert	-1000	null
+peruvian-picarones	peruvian	Picarones	Dessert	-1000	null
+peruvian-turrn-de-doa-pepa	peruvian	Turrón de Doña Pepa	Dessert	-1000	null
+peruvian-alfajores	peruvian	Alfajores	Dessert	-1000	null
+peruvian-king-kong	peruvian	King Kong	Dessert	-1000	null
+peruvian-chocotejas	peruvian	Chocotejas	Dessert	-1000	null
+peruvian-pisco-sour	peruvian	Pisco Sour	Beverage	-1000	null
+peruvian-chicha-morada	peruvian	Chicha Morada	Beverage	-1000	null
+peruvian-inca-kola	peruvian	Inca Kola	Beverage	-1000	null
+polish-pierogi	polish	Pierogi	Dumpling	1200	null
+polish-bigos	polish	Bigos	Stew	800	null
+polish-urek	polish	Żurek	Soup	800	null
+polish-barszcz	polish	Barszcz	Soup	800	null
+polish-kotlet-schabowy	polish	Kotlet Schabowy	Main Dish	1200	null
+polish-gobki	polish	Gołąbki	Main Dish	1200	null
+polish-placki-ziemniaczane	polish	Placki Ziemniaczane	Side Dish	1200	null
+polish-kielbasa	polish	Kielbasa	Sausage	1200	null
+polish-flaki	polish	Flaki	Soup	800	null
+polish-ros	polish	Rosół	Soup	800	null
+polish-krupnik	polish	Krupnik	Soup	800	null
+polish-ogrkowa	polish	Ogórkowa	Soup	800	null
+polish-kapuniak	polish	Kapuśniak	Soup	800	null
+polish-grochwka	polish	Grochówka	Soup	800	null
+polish-czernina	polish	Czernina	Soup	800	null
+polish-zrazy	polish	Zrazy	Main Dish	1200	null
+polish-pulpety	polish	Pulpety	Meatball	1200	null
+polish-klopsiki	polish	Klopsiki	Meatball	1200	null
+polish-pasztet	polish	Pasztet	Pâté	1200	null
+polish-smalec	polish	Smalec	Spread	1200	null
+polish-oscypek	polish	Oscypek	Cheese	1200	null
+polish-twarg	polish	Twaróg	Cheese	1200	null
+polish-bryndza	polish	Bryndza	Cheese	1200	null
+polish-kaszanka	polish	Kaszanka	Sausage	1200	null
+polish-krakowska	polish	Krakowska	Sausage	1200	null
+polish-kabanos	polish	Kabanos	Sausage	1200	null
+polish-salceson	polish	Salceson	Sausage	1200	null
+polish-wdlina	polish	Wędlina	Cured Meat	1200	null
+polish-schab	polish	Schab	Main Dish	1200	null
+polish-golonka	polish	Golonka	Main Dish	1200	null
+polish-karkwka	polish	Karkówka	Main Dish	1200	null
+polish-eberka	polish	Żeberka	Main Dish	1200	null
+polish-piecze	polish	Pieczeń	Main Dish	1200	null
+polish-pieczona-kaczka	polish	Pieczona Kaczka	Main Dish	1200	null
+polish-pieczona-g	polish	Pieczona Gęś	Main Dish	1200	null
+polish-karp	polish	Karp	Main Dish	1200	null
+polish-led	polish	Śledź	Appetizer	1200	null
+polish-tatar	polish	Tatar	Appetizer	1200	null
+polish-led-w-mietanie	polish	Śledź w Śmietanie	Appetizer	1200	null
+polish-led-w-oleju	polish	Śledź w Oleju	Appetizer	1200	null
+polish-mizeria	polish	Mizeria	Salad	1200	null
+polish-surwka-z-kapusty	polish	Surówka z Kapusty	Salad	1200	null
+polish-saatka-jarzynowa	polish	Sałatka Jarzynowa	Salad	1200	null
+polish-ledzie-w-oleju	polish	Śledzie w Oleju	Appetizer	1200	null
+polish-makaron-z-serem	polish	Makaron z Serem	Main Dish	1200	null
+polish-kopytka	polish	Kopytka	Dumpling	1200	null
+polish-pyzy	polish	Pyzy	Dumpling	1200	null
+polish-kluski-lskie	polish	Kluski Śląskie	Dumpling	1200	null
+polish-leniwe	polish	Leniwe	Dumpling	1200	null
+polish-uszka	polish	Uszka	Dumpling	1200	null
+polish-krokiety	polish	Krokiety	Appetizer	1200	null
+polish-naleniki	polish	Naleśniki	Pancake	1200	null
+polish-racuchy	polish	Racuchy	Pancake	1200	null
+polish-faworki	polish	Faworki	Dessert	1200	null
+polish-pczki	polish	Pączki	Dessert	1200	null
+polish-sernik	polish	Sernik	Dessert	1200	null
+polish-makowiec	polish	Makowiec	Dessert	1200	null
+polish-piernik	polish	Piernik	Dessert	1200	null
+polish-szarlotka	polish	Szarlotka	Dessert	1200	null
+polish-jabecznik	polish	Jabłecznik	Dessert	1200	null
+polish-krwki	polish	Krówki	Candy	1200	null
+polish-ptasie-mleczko	polish	Ptasie Mleczko	Candy	1200	null
+polish-prince-polo	polish	Prince Polo	Candy	1200	null
+polish-toffifee	polish	Toffifee	Candy	1200	null
+polish-rogale-witomarciskie	polish	Rogale Świętomarcińskie	Dessert	1200	null
+polish-koacz	polish	Kołacz	Dessert	1200	null
+polish-babka	polish	Babka	Dessert	1200	null
+polish-mazurek	polish	Mazurek	Dessert	1200	null
+polish-murzynek	polish	Murzynek	Dessert	1200	null
+polish-keks	polish	Keks	Dessert	1200	null
+polish-biszkopt	polish	Biszkopt	Dessert	1200	null
+polish-sekacz	polish	Sekacz	Dessert	1200	null
+polish-napoleonka	polish	Napoleonka	Dessert	1200	null
+polish-kremwka	polish	Kremówka	Dessert	1200	null
+polish-wuzetka	polish	Wuzetka	Dessert	1200	null
+polish-karpatka	polish	Karpatka	Dessert	1200	null
+polish-pischinger	polish	Pischinger	Dessert	1200	null
+polish-pierniczki	polish	Pierniczki	Cookie	1200	null
+polish-ciastka-kruche	polish	Ciastka Kruche	Cookie	1200	null
+polish-ciasteczka	polish	Ciasteczka	Cookie	1200	null
+polish-herbatniki	polish	Herbatniki	Cookie	1200	null
+polish-wafle	polish	Wafle	Cookie	1200	null
+polish-rurki	polish	Rurki	Cookie	1200	null
+polish-gofry	polish	Gofry	Waffle	1200	null
+polish-chleb	polish	Chleb	Bread	1200	null
+polish-buka	polish	Bułka	Bread	1200	null
+polish-kajzerka	polish	Kajzerka	Bread	1200	null
+polish-bagietka	polish	Bagietka	Bread	1200	null
+polish-chleb-razowy	polish	Chleb Razowy	Bread	1200	null
+polish-kompot	polish	Kompot	Beverage	1200	null
+polish-sok	polish	Sok	Beverage	1200	null
+polish-kawa	polish	Kawa	Beverage	1200	null
+polish-herbata	polish	Herbata	Beverage	1200	null
+polish-piwo	polish	Piwo	Beverage	1200	null
+polish-wdka	polish	Wódka	Beverage	1200	null
+polish-ubrwka	polish	Żubrówka	Beverage	1200	null
+polish-liwowica	polish	Śliwowica	Beverage	1200	null
+polish-krupnik-liqueur	polish	Krupnik (liqueur)	Beverage	1200	null
+polish-mid-pitny	polish	Miód Pitny	Beverage	1200	null
+polish-kisiel	polish	Kisiel	Dessert	1200	null
+portuguese-bacalhau-brs	portuguese	Bacalhau à Brás	Main Dish	-200	null
+portuguese-bacalhau-gomes-de-s	portuguese	Bacalhau à Gomes de Sá	Main Dish	-200	null
+portuguese-caldo-verde	portuguese	Caldo Verde	Soup	-200	null
+portuguese-francesinha	portuguese	Francesinha	Sandwich	-200	null
+portuguese-pastel-de-nata	portuguese	Pastel de Nata	Dessert	-200	null
+portuguese-arroz-de-marisco	portuguese	Arroz de Marisco	Main Dish	-200	null
+portuguese-cataplana	portuguese	Cataplana	Stew	-200	null
+portuguese-alheira	portuguese	Alheira	Sausage	-200	null
+portuguese-chourio	portuguese	Chouriço	Sausage	-200	null
+portuguese-piri-piri-chicken	portuguese	Piri Piri Chicken	Main Dish	-200	null
+portuguese-sardinhas-assadas	portuguese	Sardinhas Assadas	Grilled Fish	-200	null
+portuguese-polvo-lagareiro	portuguese	Polvo à Lagareiro	Main Dish	-200	null
+portuguese-cozido-portuguesa	portuguese	Cozido à Portuguesa	Stew	-200	null
+portuguese-tripas-moda-do-porto	portuguese	Tripas à Moda do Porto	Stew	-200	null
+portuguese-aorda	portuguese	Açorda	Bread Soup	-200	null
+portuguese-sopa-da-pedra	portuguese	Sopa da Pedra	Soup	-200	null
+portuguese-feijoada	portuguese	Feijoada	Stew	-200	null
+portuguese-arroz-de-pato	portuguese	Arroz de Pato	Main Dish	-200	null
+portuguese-cabidela	portuguese	Cabidela	Stew	-200	null
+portuguese-chanfana	portuguese	Chanfana	Stew	-200	null
+portuguese-rojes	portuguese	Rojões	Main Dish	-200	null
+portuguese-porco-alentejana	portuguese	Porco à Alentejana	Main Dish	-200	null
+portuguese-bifana	portuguese	Bifana	Sandwich	-200	null
+portuguese-prego	portuguese	Prego	Sandwich	-200	null
+portuguese-pataniscas	portuguese	Pataniscas	Fritter	-200	null
+portuguese-pastis-de-bacalhau	portuguese	Pastéis de Bacalhau	Appetizer	-200	null
+portuguese-ameijoas-bulho-pato	portuguese	Ameijoas à Bulhão Pato	Appetizer	-200	null
+portuguese-percebes	portuguese	Percebes	Seafood	-200	null
+portuguese-conquilhas	portuguese	Conquilhas	Appetizer	-200	null
+portuguese-lulas-recheadas	portuguese	Lulas Recheadas	Main Dish	-200	null
+portuguese-caldeirada	portuguese	Caldeirada	Stew	-200	null
+portuguese-arroz-de-cabidela	portuguese	Arroz de Cabidela	Main Dish	-200	null
+portuguese-migas	portuguese	Migas	Side Dish	-200	null
+portuguese-favas	portuguese	Favas	Side Dish	-200	null
+portuguese-espetada	portuguese	Espetada	Grilled Skewers	-200	null
+portuguese-bife-caf	portuguese	Bife à Café	Main Dish	-200	null
+portuguese-bitoque	portuguese	Bitoque	Main Dish	-200	null
+portuguese-picanha	portuguese	Picanha	Main Dish	-200	null
+portuguese-carne-de-porco-alentejana	portuguese	Carne de Porco à Alentejana	Main Dish	-200	null
+portuguese-ensopado-de-borrego	portuguese	Ensopado de Borrego	Stew	-200	null
+portuguese-rancho	portuguese	Rancho	Stew	-200	null
+portuguese-sopa-de-peixe	portuguese	Sopa de Peixe	Soup	-200	null
+portuguese-gaspacho	portuguese	Gaspacho	Soup	-200	null
+portuguese-sopa-de-legumes	portuguese	Sopa de Legumes	Soup	-200	null
+portuguese-canja	portuguese	Canja	Soup	-200	null
+portuguese-sopa-de-gro	portuguese	Sopa de Grão	Soup	-200	null
+portuguese-queijadas	portuguese	Queijadas	Dessert	-200	null
+portuguese-travesseiros	portuguese	Travesseiros	Dessert	-200	null
+portuguese-ovos-moles	portuguese	Ovos Moles	Dessert	-200	null
+portuguese-arroz-doce	portuguese	Arroz Doce	Dessert	-200	null
+portuguese-leite-creme	portuguese	Leite Creme	Dessert	-200	null
+portuguese-pudim-flan	portuguese	Pudim Flan	Dessert	-200	null
+portuguese-pudim-abade-de-priscos	portuguese	Pudim Abade de Priscos	Dessert	-200	null
+portuguese-bolo-de-arroz	portuguese	Bolo de Arroz	Dessert	-200	null
+portuguese-bolo-rei	portuguese	Bolo Rei	Dessert	-200	null
+portuguese-bolo-de-bolacha	portuguese	Bolo de Bolacha	Dessert	-200	null
+portuguese-toucinho-do-cu	portuguese	Toucinho do Céu	Dessert	-200	null
+portuguese-po-de-l	portuguese	Pão de Ló	Dessert	-200	null
+portuguese-rabanadas	portuguese	Rabanadas	Dessert	-200	null
+portuguese-filhs	portuguese	Filhós	Dessert	-200	null
+portuguese-sonhos	portuguese	Sonhos	Dessert	-200	null
+portuguese-azevias	portuguese	Azevias	Dessert	-200	null
+portuguese-bolo-de-mel	portuguese	Bolo de Mel	Dessert	-200	null
+portuguese-broas	portuguese	Broas	Bread	-200	null
+portuguese-bolo-de-caco	portuguese	Bolo de Caco	Bread	-200	null
+portuguese-po-alentejano	portuguese	Pão Alentejano	Bread	-200	null
+portuguese-cornbread-broa	portuguese	Cornbread (Broa)	Bread	-200	null
+portuguese-massa-sovada	portuguese	Massa Sovada	Bread	-200	null
+portuguese-folar	portuguese	Folar	Bread	-200	null
+portuguese-sericaia	portuguese	Sericaia	Dessert	-200	null
+portuguese-morgado	portuguese	Morgado	Dessert	-200	null
+portuguese-dom-rodrigo	portuguese	Dom Rodrigo	Dessert	-200	null
+portuguese-barriga-de-freira	portuguese	Barriga de Freira	Dessert	-200	null
+portuguese-papos-de-anjo	portuguese	Papos de Anjo	Dessert	-200	null
+portuguese-trouxas-de-ovos	portuguese	Trouxas de Ovos	Dessert	-200	null
+portuguese-fatias-douradas	portuguese	Fatias Douradas	Dessert	-200	null
+portuguese-aletria	portuguese	Aletria	Dessert	-200	null
+portuguese-lampreia-de-ovos	portuguese	Lampreia de Ovos	Dessert	-200	null
+portuguese-cavacas	portuguese	Cavacas	Cookie	-200	null
+portuguese-biscoitos	portuguese	Biscoitos	Cookie	-200	null
+portuguese-broinhas	portuguese	Broinhas	Cookie	-200	null
+portuguese-esquecidos	portuguese	Esquecidos	Cookie	-200	null
+portuguese-vinho-do-porto	portuguese	Vinho do Porto	Beverage	-200	null
+portuguese-vinho-verde	portuguese	Vinho Verde	Beverage	-200	null
+portuguese-ginjinha	portuguese	Ginjinha	Beverage	-200	null
+portuguese-moscatel	portuguese	Moscatel	Beverage	-200	null
+portuguese-medronho	portuguese	Medronho	Beverage	-200	null
+portuguese-licor-beiro	portuguese	Licor Beirão	Beverage	-200	null
+portuguese-sumol	portuguese	Sumol	Beverage	-200	null
+portuguese-galo	portuguese	Galão	Beverage	-200	null
+portuguese-bica	portuguese	Bica	Beverage	-200	null
+portuguese-mazagran	portuguese	Mazagran	Beverage	-200	null
+portuguese-serra-da-estrela-cheese	portuguese	Serra da Estrela Cheese	Cheese	-200	null
+portuguese-azeito-cheese	portuguese	Azeitão Cheese	Cheese	-200	null
+portuguese-so-jorge-cheese	portuguese	São Jorge Cheese	Cheese	-200	null
+portuguese-requeijo	portuguese	Requeijão	Cheese	-200	null
+portuguese-presunto	portuguese	Presunto	Cured Meat	-200	null
+portuguese-morcela	portuguese	Morcela	Sausage	-200	null
+portuguese-farinheira	portuguese	Farinheira	Sausage	-200	null
+portuguese-linguia	portuguese	Linguiça	Sausage	-200	null
+spanish-paella	spanish	Paella	Rice Dish	-200	null
+spanish-tapas	spanish	Tapas	Appetizer	-200	null
+spanish-jamn-ibrico	spanish	Jamón Ibérico	Cured Meat	-200	null
+spanish-gazpacho	spanish	Gazpacho	Soup	-200	null
+spanish-tortilla-espaola	spanish	Tortilla Española	Egg Dish	-200	null
+spanish-patatas-bravas	spanish	Patatas Bravas	Appetizer	-200	null
+spanish-churros-con-chocolate	spanish	Churros con Chocolate	Dessert	-200	null
+spanish-croquetas	spanish	Croquetas	Appetizer	-200	null
+spanish-pimientos-de-padrn	spanish	Pimientos de Padrón	Appetizer	-200	null
+spanish-pan-con-tomate	spanish	Pan con Tomate	Appetizer	-200	null
+spanish-pulpo-a-la-gallega	spanish	Pulpo a la Gallega	Main Dish	-200	null
+spanish-gambas-al-ajillo	spanish	Gambas al Ajillo	Appetizer	-200	null
+spanish-calamares-a-la-romana	spanish	Calamares a la Romana	Appetizer	-200	null
+spanish-albndigas	spanish	Albóndigas	Main Dish	-200	null
+spanish-chorizo	spanish	Chorizo	Sausage	-200	null
+spanish-morcilla	spanish	Morcilla	Sausage	-200	null
+spanish-salchichn	spanish	Salchichón	Sausage	-200	null
+spanish-sobrasada	spanish	Sobrasada	Sausage	-200	null
+spanish-fabada-asturiana	spanish	Fabada Asturiana	Stew	-200	null
+spanish-cocido-madrileo	spanish	Cocido Madrileño	Stew	-200	null
+spanish-callos-a-la-madrilea	spanish	Callos a la Madrileña	Stew	-200	null
+spanish-rabo-de-toro	spanish	Rabo de Toro	Main Dish	-200	null
+spanish-lechazo-asado	spanish	Lechazo Asado	Main Dish	-200	null
+spanish-cochinillo-asado	spanish	Cochinillo Asado	Main Dish	-200	null
+spanish-cordero-al-chilindrn	spanish	Cordero al Chilindrón	Stew	-200	null
+spanish-pollo-al-ajillo	spanish	Pollo al Ajillo	Main Dish	-200	null
+spanish-arroz-negro	spanish	Arroz Negro	Rice Dish	-200	null
+spanish-arroz-con-bogavante	spanish	Arroz con Bogavante	Rice Dish	-200	null
+spanish-fideu	spanish	Fideuà	Noodle Dish	-200	null
+spanish-migas	spanish	Migas	Main Dish	-200	null
+spanish-salmorejo	spanish	Salmorejo	Soup	-200	null
+spanish-pisto-manchego	spanish	Pisto Manchego	Vegetable Dish	-200	null
+spanish-escalivada	spanish	Escalivada	Side Dish	-200	null
+spanish-empanada-gallega	spanish	Empanada Gallega	Savory Pie	-200	null
+spanish-caldo-gallego	spanish	Caldo Gallego	Soup	-200	null
+spanish-lacn-con-grelos	spanish	Lacón con Grelos	Main Dish	-200	null
+spanish-percebes	spanish	Percebes	Seafood	-200	null
+spanish-mejillones-al-vapor	spanish	Mejillones al Vapor	Appetizer	-200	null
+spanish-navajas	spanish	Navajas	Seafood	-200	null
+spanish-almejas-a-la-marinera	spanish	Almejas a la Marinera	Main Dish	-200	null
+spanish-chipirones-en-su-tinta	spanish	Chipirones en su Tinta	Main Dish	-200	null
+spanish-bacalao-al-pil-pil	spanish	Bacalao al Pil Pil	Main Dish	-200	null
+spanish-bacalao-a-la-vizcana	spanish	Bacalao a la Vizcaína	Main Dish	-200	null
+spanish-marmitako	spanish	Marmitako	Stew	-200	null
+spanish-txangurro	spanish	Txangurro	Main Dish	-200	null
+spanish-pintxos	spanish	Pintxos	Appetizer	-200	null
+spanish-gilda	spanish	Gilda	Appetizer	-200	null
+spanish-boquerones-en-vinagre	spanish	Boquerones en Vinagre	Appetizer	-200	null
+spanish-ensaladilla-rusa	spanish	Ensaladilla Rusa	Salad	-200	null
+spanish-huevos-rotos	spanish	Huevos Rotos	Main Dish	-200	null
+spanish-revuelto-de-setas	spanish	Revuelto de Setas	Main Dish	-200	null
+spanish-revuelto-de-ajetes	spanish	Revuelto de Ajetes	Main Dish	-200	null
+spanish-piperada	spanish	Piperada	Side Dish	-200	null
+spanish-menestra-de-verduras	spanish	Menestra de Verduras	Vegetable Dish	-200	null
+spanish-espinacas-con-garbanzos	spanish	Espinacas con Garbanzos	Stew	-200	null
+spanish-potaje-de-garbanzos	spanish	Potaje de Garbanzos	Stew	-200	null
+spanish-lentejas-guisadas	spanish	Lentejas Guisadas	Stew	-200	null
+spanish-alubias-con-chorizo	spanish	Alubias con Chorizo	Stew	-200	null
+spanish-berenjenas-con-miel	spanish	Berenjenas con Miel	Appetizer	-200	null
+spanish-calabacn-relleno	spanish	Calabacín Relleno	Main Dish	-200	null
+spanish-pimientos-rellenos	spanish	Pimientos Rellenos	Main Dish	-200	null
+spanish-tomates-rellenos	spanish	Tomates Rellenos	Main Dish	-200	null
+spanish-gazpacho-manchego	spanish	Gazpacho Manchego	Stew	-200	null
+spanish-ajo-blanco	spanish	Ajo Blanco	Soup	-200	null
+spanish-sopa-castellana	spanish	Sopa Castellana	Soup	-200	null
+spanish-sopa-de-ajo	spanish	Sopa de Ajo	Soup	-200	null
+spanish-escudella	spanish	Escudella	Soup	-200	null
+spanish-sopa-de-picadillo	spanish	Sopa de Picadillo	Soup	-200	null
+spanish-crema-de-verduras	spanish	Crema de Verduras	Soup	-200	null
+spanish-carne-en-salsa	spanish	Carne en Salsa	Main Dish	-200	null
+spanish-carrilleras-al-vino-tinto	spanish	Carrilleras al Vino Tinto	Main Dish	-200	null
+spanish-solomillo-al-whisky	spanish	Solomillo al Whisky	Main Dish	-200	null
+spanish-entrecot	spanish	Entrecot	Main Dish	-200	null
+spanish-chuletas-de-cordero	spanish	Chuletas de Cordero	Main Dish	-200	null
+spanish-secreto-ibrico	spanish	Secreto Ibérico	Main Dish	-200	null
+spanish-pluma-ibrica	spanish	Pluma Ibérica	Main Dish	-200	null
+spanish-magro-con-tomate	spanish	Magro con Tomate	Main Dish	-200	null
+spanish-flamenqun	spanish	Flamenquín	Main Dish	-200	null
+spanish-salmorejo-de-carne	spanish	Salmorejo de Carne	Main Dish	-200	null
+spanish-pring	spanish	Pringá	Main Dish	-200	null
+spanish-caldereta-de-cordero	spanish	Caldereta de Cordero	Stew	-200	null
+spanish-caldereta-de-cabrito	spanish	Caldereta de Cabrito	Stew	-200	null
+spanish-perdiz-escabechada	spanish	Perdiz Escabechada	Main Dish	-200	null
+spanish-conejo-al-ajillo	spanish	Conejo al Ajillo	Main Dish	-200	null
+spanish-codornices-guisadas	spanish	Codornices Guisadas	Main Dish	-200	null
+spanish-flan-de-huevo	spanish	Flan de Huevo	Dessert	-200	null
+spanish-natillas	spanish	Natillas	Dessert	-200	null
+spanish-arroz-con-leche	spanish	Arroz con Leche	Dessert	-200	null
+spanish-tarta-de-santiago	spanish	Tarta de Santiago	Dessert	-200	null
+spanish-crema-catalana	spanish	Crema Catalana	Dessert	-200	null
+spanish-turrn	spanish	Turrón	Candy	-200	null
+spanish-polvorones	spanish	Polvorones	Cookie	-200	null
+spanish-mantecados	spanish	Mantecados	Cookie	-200	null
+spanish-tocino-de-cielo	spanish	Tocino de Cielo	Dessert	-200	null
+spanish-pestios	spanish	Pestiños	Dessert	-200	null
+spanish-rosquillas	spanish	Rosquillas	Dessert	-200	null
+spanish-buuelos	spanish	Buñuelos	Dessert	-200	null
+spanish-torrijas	spanish	Torrijas	Dessert	-200	null
+spanish-sangra	spanish	Sangría	Beverage	-200	null
+spanish-horchata	spanish	Horchata	Beverage	-200	null
+thai-pad-thai	thai	Pad Thai	Noodle Dish	500	null
+thai-tom-yum-goong	thai	Tom Yum Goong	Soup	500	null
+thai-green-curry	thai	Green Curry	Curry	500	null
+thai-red-curry	thai	Red Curry	Curry	500	null
+thai-massaman-curry	thai	Massaman Curry	Curry	500	null
+thai-pad-see-ew	thai	Pad See Ew	Noodle Dish	500	null
+thai-som-tam	thai	Som Tam	Salad	500	null
+thai-larb	thai	Larb	Salad	500	null
+thai-tom-kha-gai	thai	Tom Kha Gai	Soup	500	null
+thai-khao-pad	thai	Khao Pad	Fried Rice	500	null
+thai-pad-krapow-moo	thai	Pad Krapow Moo	Stir-Fry	500	null
+thai-pad-krapow-gai	thai	Pad Krapow Gai	Stir-Fry	500	null
+thai-panang-curry	thai	Panang Curry	Curry	500	null
+thai-yellow-curry	thai	Yellow Curry	Curry	500	null
+thai-gaeng-keow-wan	thai	Gaeng Keow Wan	Curry	500	null
+thai-gaeng-phed	thai	Gaeng Phed	Curry	500	null
+thai-gaeng-daeng	thai	Gaeng Daeng	Curry	500	null
+thai-gaeng-hanglay	thai	Gaeng Hanglay	Curry	500	null
+thai-khao-soi	thai	Khao Soi	Noodle Soup	500	null
+thai-khao-man-gai	thai	Khao Man Gai	Rice Dish	500	null
+thai-khao-moo-daeng	thai	Khao Moo Daeng	Rice Dish	500	null
+thai-khao-moo-grob	thai	Khao Moo Grob	Rice Dish	500	null
+thai-khao-kha-moo	thai	Khao Kha Moo	Rice Dish	500	null
+thai-gai-yang	thai	Gai Yang	Grilled Chicken	500	null
+thai-moo-ping	thai	Moo Ping	Grilled Pork	500	null
+thai-satay	thai	Satay	Grilled Skewers	500	null
+thai-crying-tiger-suea-rong-hai	thai	Crying Tiger (Suea Rong Hai)	Grilled Beef	500	null
+thai-nam-tok	thai	Nam Tok	Salad	500	null
+thai-yam-nua	thai	Yam Nua	Salad	500	null
+thai-yam-woon-sen	thai	Yam Woon Sen	Salad	500	null
+thai-yam-talay	thai	Yam Talay	Salad	500	null
+thai-yam-mama	thai	Yam Mama	Salad	500	null
+thai-pla-pao	thai	Pla Pao	Grilled Fish	500	null
+thai-pla-rad-prik	thai	Pla Rad Prik	Main Dish	500	null
+thai-pla-neung-manao	thai	Pla Neung Manao	Steamed Fish	500	null
+thai-hoi-tod	thai	Hoi Tod	Omelet	500	null
+thai-hor-mok	thai	Hor Mok	Curry Custard	500	null
+thai-khanom-jeen-nam-ya	thai	Khanom Jeen Nam Ya	Noodle Dish	500	null
+thai-khanom-jeen-nam-ngiao	thai	Khanom Jeen Nam Ngiao	Noodle Dish	500	null
+thai-kuay-teow-reua	thai	Kuay Teow Reua	Noodle Soup	500	null
+thai-kuay-teow-nam-tok	thai	Kuay Teow Nam Tok	Noodle Soup	500	null
+thai-kuay-teow-neua	thai	Kuay Teow Neua	Noodle Soup	500	null
+thai-guay-tiew-tom-yum	thai	Guay Tiew Tom Yum	Noodle Soup	500	null
+thai-pad-woon-sen	thai	Pad Woon Sen	Noodle Dish	500	null
+thai-pad-kee-mao-drunken-noodles	thai	Pad Kee Mao (Drunken Noodles)	Noodle Dish	500	null
+thai-pad-si-racha	thai	Pad Si Racha	Noodle Dish	500	null
+thai-rad-na	thai	Rad Na	Noodle Dish	500	null
+thai-khao-tom	thai	Khao Tom	Rice Soup	500	null
+thai-jok	thai	Jok	Rice Porridge	500	null
+thai-khao-niao-mamuang	thai	Khao Niao Mamuang	Dessert	500	null
+thai-khao-niao	thai	Khao Niao	Side Dish	500	null
+thai-sticky-rice	thai	Sticky Rice	Side Dish	500	null
+thai-phat-phak-ruam	thai	Phat Phak Ruam	Stir-Fry	500	null
+thai-phak-bung-fai-daeng	thai	Phak Bung Fai Daeng	Stir-Fry	500	null
+thai-tod-mun-pla	thai	Tod Mun Pla	Fried Cake	500	null
+thai-tod-mun-khao-pod	thai	Tod Mun Khao Pod	Fried Cake	500	null
+thai-spring-rolls	thai	Spring Rolls	Appetizer	500	null
+thai-fresh-spring-rolls	thai	Fresh Spring Rolls	Appetizer	500	null
+thai-po-pia-tod	thai	Po Pia Tod	Fried Roll	500	null
+thai-po-pia-sod	thai	Po Pia Sod	Fresh Roll	500	null
+thai-gai-tod	thai	Gai Tod	Fried Chicken	500	null
+thai-peek-gai-tod	thai	Peek Gai Tod	Fried Chicken Wings	500	null
+thai-phat-phrik-khing	thai	Phat Phrik Khing	Stir-Fry	500	null
+thai-kai-jeow	thai	Kai Jeow	Omelet	500	null
+thai-khai-luk-khoei	thai	Khai Luk Khoei	Egg Dish	500	null
+thai-moo-tod	thai	Moo Tod	Fried Pork	500	null
+thai-neua-pad-prik	thai	Neua Pad Prik	Stir-Fry	500	null
+thai-pla-tod	thai	Pla Tod	Fried Fish	500	null
+thai-pla-muek-tod-kratiem	thai	Pla Muek Tod Kratiem	Fried Squid	500	null
+thai-poo-pad-pong-garee	thai	Poo Pad Pong Garee	Stir-Fry	500	null
+thai-goong-pad-preow-wan	thai	Goong Pad Preow Wan	Stir-Fry	500	null
+thai-goong-tod-gratiem	thai	Goong Tod Gratiem	Fried Shrimp	500	null
+thai-goong-chup-paeng-tod	thai	Goong Chup Paeng Tod	Fried Shrimp	500	null
+thai-khao-pad-sapparot	thai	Khao Pad Sapparot	Fried Rice	500	null
+thai-khao-pad-poo	thai	Khao Pad Poo	Fried Rice	500	null
+thai-khao-pad-goong	thai	Khao Pad Goong	Fried Rice	500	null
+thai-khao-kluk-gapi	thai	Khao Kluk Gapi	Rice Dish	500	null
+thai-khao-pad-krapow	thai	Khao Pad Krapow	Fried Rice	500	null
+thai-gaeng-jued	thai	Gaeng Jued	Soup	500	null
+thai-gaeng-som	thai	Gaeng Som	Soup	500	null
+thai-tom-saep	thai	Tom Saep	Soup	500	null
+thai-suki	thai	Suki	Hot Pot	500	null
+thai-moo-krata	thai	Moo Krata	Hot Pot	500	null
+thai-laab-moo	thai	Laab Moo	Salad	500	null
+thai-laab-gai	thai	Laab Gai	Salad	500	null
+thai-nam-prik-ong	thai	Nam Prik Ong	Dip/Sauce	500	null
+thai-nam-prik-kapi	thai	Nam Prik Kapi	Dip/Sauce	500	null
+thai-nam-prik-noom	thai	Nam Prik Noom	Dip/Sauce	500	null
+thai-nam-prik-pao	thai	Nam Prik Pao	Paste	500	null
+thai-khanom-krok	thai	Khanom Krok	Dessert	500	null
+thai-khanom-bueang	thai	Khanom Bueang	Dessert	500	null
+thai-khanom-thuay	thai	Khanom Thuay	Dessert	500	null
+thai-tako	thai	Tako	Dessert	500	null
+thai-sangkaya-fak-thong	thai	Sangkaya Fak Thong	Dessert	500	null
+thai-luk-chup	thai	Luk Chup	Dessert	500	null
+thai-foi-thong	thai	Foi Thong	Dessert	500	null
+thai-kluay-tod	thai	Kluay Tod	Dessert	500	null
+thai-thai-tea	thai	Thai Tea	Beverage	500	null
+thai-thai-iced-coffee	thai	Thai Iced Coffee	Beverage	500	null
+thai-nam-manao	thai	Nam Manao	Beverage	500	null
+turkish-kebab	turkish	Kebab	Grilled Meat	-200	null
+turkish-lahmacun	turkish	Lahmacun	Flatbread	-200	null
+turkish-pide	turkish	Pide	Flatbread	-200	null
+turkish-dner	turkish	Döner	Sandwich	-200	null
+turkish-baklava	turkish	Baklava	Dessert	-200	null
+turkish-turkish-delight	turkish	Turkish Delight	Candy	-200	null
+turkish-manti	turkish	Manti	Dumpling	-200	null
+turkish-brek	turkish	Börek	Savory Pastry	-200	null
+turkish-menemen	turkish	Menemen	Breakfast Dish	-200	null
+turkish-iskender-kebab	turkish	İskender Kebab	Main Dish	-200	null
+turkish-adana-kebab	turkish	Adana Kebab	Grilled Meat	-200	null
+turkish-i-kebab	turkish	Şiş Kebab	Grilled Skewers	-200	null
+turkish-kfte	turkish	Köfte	Meatball	-200	null
+turkish-imam-bayld	turkish	İmam Bayıldı	Main Dish	-200	null
+turkish-dolma	turkish	Dolma	Stuffed Vegetable	-200	null
+turkish-mercimek-orbas	turkish	Mercimek Çorbası	Soup	-200	null
+turkish-ezogelin-orbas	turkish	Ezogelin Çorbası	Soup	-200	null
+turkish-yayla-orbas	turkish	Yayla Çorbası	Soup	-200	null
+turkish-ikembe-orbas	turkish	İşkembe Çorbası	Soup	-200	null
+turkish-kelle-paa	turkish	Kelle Paça	Soup	-200	null
+turkish--kfte	turkish	Çığ Köfte	Appetizer	-200	null
+turkish-ksr	turkish	Kısır	Salad	-200	null
+turkish-oban-salatas	turkish	Çoban Salatası	Salad	-200	null
+turkish-patlcan-salatas	turkish	Patlıcan Salatası	Salad	-200	null
+turkish-haydari	turkish	Haydari	Dip/Sauce	-200	null
+turkish-cack	turkish	Cacık	Dip/Sauce	-200	null
+turkish-acuka	turkish	Acuka	Dip/Sauce	-200	null
+turkish-tahin-pekmez	turkish	Tahin Pekmez	Spread	-200	null
+turkish-simit	turkish	Simit	Bread	-200	null
+turkish-gzleme	turkish	Gözleme	Flatbread	-200	null
+turkish-pii	turkish	Pişi	Fried Bread	-200	null
+turkish-ama	turkish	Açma	Bread	-200	null
+turkish-pogaca	turkish	Pogaca	Bread	-200	null
+turkish-midye-dolma	turkish	Midye Dolma	Appetizer	-200	null
+turkish-hamsi	turkish	Hamsi	Fried Fish	-200	null
+turkish-balk-ekmek	turkish	Balık Ekmek	Sandwich	-200	null
+turkish-kl-i	turkish	Kılıç Şiş	Grilled Fish	-200	null
+turkish-upra	turkish	Çupra	Grilled Fish	-200	null
+turkish-levrek	turkish	Levrek	Grilled Fish	-200	null
+turkish-mcver	turkish	Mücver	Fritter	-200	null
+turkish-karnyark	turkish	Karnıyarık	Main Dish	-200	null
+turkish-hnkar-beendi	turkish	Hünkar Beğendi	Main Dish	-200	null
+turkish-kuzu-tandr	turkish	Kuzu Tandır	Main Dish	-200	null
+turkish-etli-yaprak-sarma	turkish	Etli Yaprak Sarma	Main Dish	-200	null
+turkish-mant	turkish	Mantı	Dumpling	-200	null
+turkish-gve	turkish	Güveç	Stew	-200	null
+turkish-tas-kebap	turkish	Tas Kebap	Stew	-200	null
+turkish-kavurma	turkish	Kavurma	Main Dish	-200	null
+turkish-pastrma	turkish	Pastırma	Cured Meat	-200	null
+turkish-sucuk	turkish	Sucuk	Sausage	-200	null
+turkish-kuru-fasulye	turkish	Kuru Fasulye	Stew	-200	null
+turkish-nohut	turkish	Nohut	Stew	-200	null
+turkish-mercimek	turkish	Mercimek	Side Dish	-200	null
+turkish-bulgur-pilav	turkish	Bulgur Pilavı	Side Dish	-200	null
+turkish-ehriyeli-pilav	turkish	Şehriyeli Pilav	Side Dish	-200	null
+turkish-i-pilav	turkish	İç Pilav	Rice Dish	-200	null
+turkish-pilav	turkish	Pilav	Rice Dish	-200	null
+turkish-zeytinyal-fasulye	turkish	Zeytinyağlı Fasulye	Side Dish	-200	null
+turkish-zeytinyal-enginar	turkish	Zeytinyağlı Enginar	Side Dish	-200	null
+turkish-zeytinyal-bamya	turkish	Zeytinyağlı Bamya	Side Dish	-200	null
+turkish-zeytinyal-yaprak-sarma	turkish	Zeytinyağlı Yaprak Sarma	Appetizer	-200	null
+turkish-patlcan-kzartmas	turkish	Patlıcan Kızartması	Side Dish	-200	null
+turkish-kabak-mcveri	turkish	Kabak Mücveri	Fritter	-200	null
+turkish-sigara-brei	turkish	Sigara Böreği	Appetizer	-200	null
+turkish-su-brei	turkish	Su Böreği	Savory Pastry	-200	null
+turkish-kol-brei	turkish	Kol Böreği	Savory Pastry	-200	null
+turkish-tala-brei	turkish	Talaş Böreği	Savory Pastry	-200	null
+turkish-peynirli-brek	turkish	Peynirli Börek	Savory Pastry	-200	null
+turkish-kymal-brek	turkish	Kıymalı Börek	Savory Pastry	-200	null
+turkish-kaarl-pide	turkish	Kaşarlı Pide	Flatbread	-200	null
+turkish-kymal-pide	turkish	Kıymalı Pide	Flatbread	-200	null
+turkish-yumurtal-pide	turkish	Yumurtalı Pide	Flatbread	-200	null
+turkish-kubal-pide	turkish	Kuşbaşılı Pide	Flatbread	-200	null
+turkish-knefe	turkish	Künefe	Dessert	-200	null
+turkish-kadayf	turkish	Kadayıf	Dessert	-200	null
+turkish-revani	turkish	Revani	Dessert	-200	null
+turkish-ekerpare	turkish	Şekerpare	Dessert	-200	null
+turkish-tulumba	turkish	Tulumba	Dessert	-200	null
+turkish-irmik-helvas	turkish	İrmik Helvası	Dessert	-200	null
+turkish-un-helvas	turkish	Un Helvası	Dessert	-200	null
+turkish-tahin-helvas	turkish	Tahin Helvası	Dessert	-200	null
+turkish-stla	turkish	Sütlaç	Dessert	-200	null
+turkish-kazandibi	turkish	Kazandibi	Dessert	-200	null
+turkish-kekl	turkish	Keşkül	Dessert	-200	null
+turkish-kabak-tatls	turkish	Kabak Tatlısı	Dessert	-200	null
+turkish-aure	turkish	Aşure	Dessert	-200	null
+turkish-lokma	turkish	Lokma	Dessert	-200	null
+turkish-pimaniye	turkish	Pişmaniye	Candy	-200	null
+turkish-cezerye	turkish	Cezerye	Candy	-200	null
+turkish-akide-ekeri	turkish	Akide Şekeri	Candy	-200	null
+turkish-turkish-coffee	turkish	Turkish Coffee	Beverage	-200	null
+turkish-turkish-tea	turkish	Turkish Tea	Beverage	-200	null
+turkish-ayran	turkish	Ayran	Beverage	-200	null
+turkish-algam	turkish	Şalgam	Beverage	-200	null
+turkish-boza	turkish	Boza	Beverage	-200	null
+turkish-sahlep	turkish	Sahlep	Beverage	-200	null
+turkish-rak	turkish	Rakı	Beverage	-200	null
+turkish-ra	turkish	Şıra	Beverage	-200	null
+turkish-limonata	turkish	Limonata	Beverage	-200	null
+turkish-turu	turkish	Turşu	Pickle	-200	null
+vietnamese-pho	vietnamese	Pho	Noodle Soup	500	null
+vietnamese-banh-mi	vietnamese	Banh Mi	Sandwich	500	null
+vietnamese-goi-cuon-spring-rolls	vietnamese	Goi Cuon (Spring Rolls)	Appetizer	500	null
+vietnamese-bun-cha	vietnamese	Bun Cha	Noodle Dish	500	null
+vietnamese-cao-lau	vietnamese	Cao Lau	Noodle Dish	500	null
+vietnamese-banh-xeo	vietnamese	Banh Xeo	Savory Pancake	500	null
+vietnamese-com-tam	vietnamese	Com Tam	Rice Dish	500	null
+vietnamese-banh-cuon	vietnamese	Banh Cuon	Rice Roll	500	null
+vietnamese-mi-quang	vietnamese	Mi Quang	Noodle Dish	500	null
+vietnamese-hu-tieu	vietnamese	Hu Tieu	Noodle Soup	500	null
+vietnamese-bun-bo-hue	vietnamese	Bun Bo Hue	Noodle Soup	500	null
+vietnamese-bun-rieu	vietnamese	Bun Rieu	Noodle Soup	500	null
+vietnamese-bun-thit-nuong	vietnamese	Bun Thit Nuong	Noodle Dish	500	null
+vietnamese-bun-bo-nam-bo	vietnamese	Bun Bo Nam Bo	Noodle Dish	500	null
+vietnamese-bun-dau-mam-tom	vietnamese	Bun Dau Mam Tom	Noodle Dish	500	null
+vietnamese-goi-ga	vietnamese	Goi Ga	Salad	500	null
+vietnamese-goi-du-du	vietnamese	Goi Du Du	Salad	500	null
+vietnamese-nom-hoa-chuoi	vietnamese	Nom Hoa Chuoi	Salad	500	null
+vietnamese-cha-ca-la-vong	vietnamese	Cha Ca La Vong	Main Dish	500	null
+vietnamese-canh-chua	vietnamese	Canh Chua	Soup	500	null
+vietnamese-ca-kho-to	vietnamese	Ca Kho To	Main Dish	500	null
+vietnamese-thit-kho-tau	vietnamese	Thit Kho Tau	Main Dish	500	null
+vietnamese-ga-kho-gung	vietnamese	Ga Kho Gung	Main Dish	500	null
+vietnamese-ga-nuong	vietnamese	Ga Nuong	Grilled Chicken	500	null
+vietnamese-ga-roti	vietnamese	Ga Roti	Roasted Chicken	500	null
+vietnamese-ga-tan	vietnamese	Ga Tan	Soup	500	null
+vietnamese-suon-nuong	vietnamese	Suon Nuong	Grilled Pork	500	null
+vietnamese-thit-nuong	vietnamese	Thit Nuong	Grilled Pork	500	null
+vietnamese-bo-nuong	vietnamese	Bo Nuong	Grilled Beef	500	null
+vietnamese-bo-luc-lac	vietnamese	Bo Luc Lac	Stir-Fry	500	null
+vietnamese-bo-kho	vietnamese	Bo Kho	Stew	500	null
+vietnamese-bo-la-lot	vietnamese	Bo La Lot	Grilled Beef	500	null
+vietnamese-nem-nuong	vietnamese	Nem Nuong	Grilled Sausage	500	null
+vietnamese-nem-lui	vietnamese	Nem Lui	Grilled Sausage	500	null
+vietnamese-nem-ran-cha-gio	vietnamese	Nem Ran (Cha Gio)	Fried Roll	500	null
+vietnamese-banh-bao	vietnamese	Banh Bao	Steamed Bun	500	null
+vietnamese-banh-beo	vietnamese	Banh Beo	Rice Cake	500	null
+vietnamese-banh-bot-loc	vietnamese	Banh Bot Loc	Dumpling	500	null
+vietnamese-banh-canh	vietnamese	Banh Canh	Noodle Soup	500	null
+vietnamese-banh-khot	vietnamese	Banh Khot	Pancake	500	null
+vietnamese-banh-trang-nuong	vietnamese	Banh Trang Nuong	Grilled Rice Paper	500	null
+vietnamese-banh-trang-tron	vietnamese	Banh Trang Tron	Salad	500	null
+vietnamese-banh-tet	vietnamese	Banh Tet	Rice Cake	500	null
+vietnamese-banh-chung	vietnamese	Banh Chung	Rice Cake	500	null
+vietnamese-xoi	vietnamese	Xoi	Sticky Rice	500	null
+vietnamese-xoi-ga	vietnamese	Xoi Ga	Sticky Rice	500	null
+vietnamese-xoi-xeo	vietnamese	Xoi Xeo	Sticky Rice	500	null
+vietnamese-xoi-vo	vietnamese	Xoi Vo	Sticky Rice	500	null
+vietnamese-chao-ga	vietnamese	Chao Ga	Rice Porridge	500	null
+vietnamese-chao-vit	vietnamese	Chao Vit	Rice Porridge	500	null
+vietnamese-chao-long	vietnamese	Chao Long	Rice Porridge	500	null
+vietnamese-com-chien	vietnamese	Com Chien	Fried Rice	500	null
+vietnamese-com-hen	vietnamese	Com Hen	Rice Dish	500	null
+vietnamese-com-ga	vietnamese	Com Ga	Rice Dish	500	null
+vietnamese-com-ga-hoi-an	vietnamese	Com Ga Hoi An	Rice Dish	500	null
+vietnamese-com-suon	vietnamese	Com Suon	Rice Dish	500	null
+vietnamese-com-bo	vietnamese	Com Bo	Rice Dish	500	null
+vietnamese-bot-chien	vietnamese	Bot Chien	Fried Cake	500	null
+vietnamese-banh-trang-tron	vietnamese	Banh Trang Tron	Salad	500	null
+vietnamese-banh-trang-cuon-thit-heo	vietnamese	Banh Trang Cuon Thit Heo	Wrap	500	null
+vietnamese-banh-da-cua	vietnamese	Banh Da Cua	Noodle Soup	500	null
+vietnamese-banh-duc	vietnamese	Banh Duc	Rice Cake	500	null
+vietnamese-banh-flan	vietnamese	Banh Flan	Dessert	500	null
+vietnamese-che	vietnamese	Che	Dessert	500	null
+vietnamese-che-ba-mau	vietnamese	Che Ba Mau	Dessert	500	null
+vietnamese-che-chuoi	vietnamese	Che Chuoi	Dessert	500	null
+vietnamese-che-buoi	vietnamese	Che Buoi	Dessert	500	null
+vietnamese-che-thai	vietnamese	Che Thai	Dessert	500	null
+vietnamese-che-khuc-bach	vietnamese	Che Khuc Bach	Dessert	500	null
+vietnamese-banh-ran	vietnamese	Banh Ran	Dessert	500	null
+vietnamese-banh-cam	vietnamese	Banh Cam	Dessert	500	null
+vietnamese-banh-tom	vietnamese	Banh Tom	Fritter	500	null
+vietnamese-banh-cong	vietnamese	Banh Cong	Fritter	500	null
+vietnamese-banh-gio	vietnamese	Banh Gio	Dumpling	500	null
+vietnamese-banh-it-tran	vietnamese	Banh It Tran	Dumpling	500	null
+vietnamese-oc-snails	vietnamese	Oc (Snails)	Appetizer	500	null
+vietnamese-oc-len-xao	vietnamese	Oc Len Xao	Stir-Fry	500	null
+vietnamese-ngheu-hap	vietnamese	Ngheu Hap	Steamed Clams	500	null
+vietnamese-so-huyet-nuong	vietnamese	So Huyet Nuong	Grilled Clams	500	null
+vietnamese-muc-xao	vietnamese	Muc Xao	Stir-Fry	500	null
+vietnamese-muc-nuong	vietnamese	Muc Nuong	Grilled Squid	500	null
+vietnamese-tom-rang-muoi	vietnamese	Tom Rang Muoi	Fried Shrimp	500	null
+vietnamese-tom-hum	vietnamese	Tom Hum	Lobster Dish	500	null
+vietnamese-cua-rang-me	vietnamese	Cua Rang Me	Crab Dish	500	null
+vietnamese-goi-ca	vietnamese	Goi Ca	Salad	500	null
+vietnamese-goi-tom	vietnamese	Goi Tom	Salad	500	null
+vietnamese-goi-tai-heo	vietnamese	Goi Tai Heo	Salad	500	null
+vietnamese-bun-oc	vietnamese	Bun Oc	Noodle Soup	500	null
+vietnamese-bun-mam	vietnamese	Bun Mam	Noodle Soup	500	null
+vietnamese-bun-ca	vietnamese	Bun Ca	Noodle Soup	500	null
+vietnamese-lau-thai	vietnamese	Lau Thai	Hot Pot	500	null
+vietnamese-lau-hai-san	vietnamese	Lau Hai San	Hot Pot	500	null
+vietnamese-lau-bo	vietnamese	Lau Bo	Hot Pot	500	null
+vietnamese-ca-phe-sua-da	vietnamese	Ca Phe Sua Da	Beverage	500	null
+vietnamese-ca-phe-trung	vietnamese	Ca Phe Trung	Beverage	500	null
+vietnamese-nuoc-mia	vietnamese	Nuoc Mia	Beverage	500	null
+vietnamese-sinh-to	vietnamese	Sinh To	Beverage	500	null
+vietnamese-tra-da	vietnamese	Tra Da	Beverage	500	null
+vietnamese-ruou-can	vietnamese	Ruou Can	Beverage	500	null
+vietnamese-bia-hoi	vietnamese	Bia Hoi	Beverage	500	null

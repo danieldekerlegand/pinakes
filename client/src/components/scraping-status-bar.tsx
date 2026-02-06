@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, Pause } from "lucide-react";
-import type { ScrapingJob } from "@shared/schema";
+import type { ScrapingJob } from "@shared/types";
 
 export default function ScrapingStatusBar() {
   const { data: jobs = [] } = useQuery<ScrapingJob[]>({
@@ -33,7 +33,7 @@ export default function ScrapingStatusBar() {
             </span>
           </div>
           <div className="text-sm text-gray-500" data-testid="text-current-job">
-            Processing: {activeJob.languageId} - {activeJob.completedWords} / {activeJob.totalWords} words
+            {activeJob.statusMessage || `Processing: ${activeJob.languageId} - ${activeJob.completedWords} / ${activeJob.totalWords} words`}
           </div>
         </div>
         

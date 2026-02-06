@@ -1,0 +1,1100 @@
+id	name	native_name	iso639_1	iso639_2	family_id	parent_language_id	region	countries	native_speakers	total_speakers	status	time_origin	time_end	classification	writing_system	is_historical_variant	is_dialect	chronological_order	historical_context	latitude	longitude
+cmn	Mandarin	普通话 (Pǔtōnghuà) / 國語 (Guóyǔ)	zh	cmn	sino_tibetan__sinitic		China, Taiwan, Singapore	China;Taiwan;Singapore;Malaysia	920000000	1120000000	living				Hanzi (Simplified & Traditional)	false	false	0			
+yue	Yue Chinese (Cantonese)	粵語 (Jyut6jyu5)		yue	sino_tibetan__sinitic		Southern China, Hong Kong, Macau	China;Hong Kong;Macau	84000000	85000000	living				Hanzi (Traditional & Simplified)	false	false	0			
+wuu	Wu Chinese	吴语 (Ng-nyiu)		wuu	sino_tibetan__sinitic		Eastern China (Jiangsu, Zhejiang, Shanghai)	China	81000000	81500000	living				Hanzi	false	false	0			
+nan	Min Nan	Bân-lâm-gú / 閩南語		nan	sino_tibetan__sinitic		Fujian, Taiwan, Southeast Asia	China;Taiwan;Philippines;Malaysia;Singapore	49000000	50000000	living				Hanzi, Pe̍h-ōe-jī (Latin)	false	false	0			
+hak	Hakka	客家話 (Hak-kâ-fa)		hak	sino_tibetan__sinitic		Southern China, Taiwan, Southeast Asia	China;Taiwan;Malaysia	48000000	48500000	living				Hanzi	false	false	0			
+hsn	Xiang Chinese	湘语 (Siāng-ngǔ)		hsn	sino_tibetan__sinitic		Hunan (China)	China	36000000	36000000	living				Hanzi	false	false	0			
+gan	Gan Chinese	赣语 (Gon-nyu)		gan	sino_tibetan__sinitic		Jiangxi (China)	China	22000000	22000000	living				Hanzi	false	false	0			
+mya	Burmese	မြန်မာဘာသာ (Mranmabhasa)	my	mya	sino_tibetan__lolo_burmese		Myanmar	Myanmar	33000000	43000000	living				Burmese	false	false	0			
+bod	Standard Tibetan	བོད་སྐད་ (Bod skad)	bo	bod	sino_tibetan__bodish		Tibet Autonomous Region	China;India;Nepal	1200000	6000000	living				Tibetan	false	false	0			
+dzo	Dzongkha	རྫོང་ཁ (Dzongkha)	dz	dzo	sino_tibetan__bodish		Bhutan	Bhutan	170000	640000	living				Tibetan	false	false	0			
+iii	Sichuan Yi (Nuosu)	ꆈꌠꉙ (Nuosuhxop)	ii	iii	sino_tibetan__lolo_burmese		Sichuan, Yunnan (China)	China	2000000	2000000	living				Yi Syllabary	false	false	0			
+mni	Meitei (Manipuri)	ꯃꯤꯇꯩꯂꯣꯟ (Meiteilon)		mni	sino_tibetan__kuki_chin_naga		Manipur (India)	India;Myanmar;Bangladesh	1800000	2000000	living				Meitei Mayek	false	false	0			
+new	Newar (Nepal Bhasa)	नेपाल भाषा (Newah Bhaye)		new	sino_tibetan__tibeto_burman		Kathmandu Valley	Nepal	860000	1000000	living				Devanagari, Ranjana	false	false	0			
+ksw	S'gaw Karen	ကညီကျိာ် (S'gaw K'nyaw)		ksw	sino_tibetan__karenic		Kayin State (Myanmar), Northern Thailand	Myanmar;Thailand	3000000	3000000	living				Burmese (Karen variant), Latin	false	false	0			
+xsr	Sherpa	ཤར་པ (Sharpa)		xsr	sino_tibetan__bodish		Himalayas	Nepal;China;India	170000	170000	living				Tibetan, Devanagari	false	false	0			
+lhu	Lahu	Ladhulsi		lhu	sino_tibetan__lolo_burmese		Yunnan, Myanmar, Thailand, Laos	China;Myanmar;Thailand;Laos	500000	550000	living				Latin	false	false	0			
+kac	Jingpho (Kachin)	Jingpho		kac	sino_tibetan__jingpho_luish		Kachin State (Myanmar), Yunnan (China)	Myanmar;China	940000	950000	living				Latin	false	false	0			
+bca	Bai	Baipho		bca	sino_tibetan__sinitic		Yunnan (China)	China	1200000	1200000	living				Latin, Hanzi	false	false	0			
+lbj	Ladakhi	ལ་དྭགས་སྐད་ (La-dwags skad)		lbj	sino_tibetan__bodish		Ladakh (India)	India	110000	110000	living				Tibetan	false	false	0			
+brx	Bodo	बर' (Boro)		brx	sino_tibetan__bodo_garo		Assam (India)	India	1400000	1500000	living				Devanagari	false	false	0			
+swa	Swahili	Kiswahili	sw	swa	niger_congo__bantu		East Africa	Tanzania;Kenya;Uganda;DR Congo;Rwanda	16000000	150000000	living				Latin	false	false	0			
+yor	Yoruba	Èdè Yorùbá	yo	yor	niger_congo__volta_niger		West Africa	Nigeria;Benin;Togo	50000000	55000000	living				Latin	false	false	0			
+ibo	Igbo	Asụsụ Igbo	ig	ibo	niger_congo__volta_niger		West Africa	Nigeria	27000000	30000000	living				Latin	false	false	0			
+ful	Fula	Fulfulde	ff	ful	niger_congo__atlantic		West Africa / Sahel	Nigeria;Guinea;Senegal;Mali;Cameroon;Niger	25000000	35000000	living				Latin	false	false	0			
+zul	Zulu	isiZulu	zu	zul	niger_congo__bantu		Southern Africa	South Africa;Lesotho;Eswatini	12000000	28000000	living				Latin	false	false	0			
+xho	Xhosa	isiXhosa	xh	xho	niger_congo__bantu		Southern Africa	South Africa;Zimbabwe	8200000	19000000	living				Latin	false	false	0			
+sna	Shona	ChiShona	sn	sna	niger_congo__bantu		Southern Africa	Zimbabwe;Mozambique	11000000	14000000	living				Latin	false	false	0			
+aka	Akan	Akan	ak	aka	niger_congo__kwa		West Africa	Ghana;Ivory Coast	11000000	19000000	living				Latin	false	false	0			
+kin	Kinyarwanda	Ikinyarwanda	rw	kin	niger_congo__bantu		East Africa	Rwanda;Uganda;DR Congo	12000000	15000000	living				Latin	false	false	0			
+wol	Wolof	Wolof	wo	wol	niger_congo__atlantic		West Africa	Senegal;Gambia;Mauritania	5500000	10000000	living				Latin	false	false	0			
+lin	Lingala	Lingála	ln	lin	niger_congo__bantu		Central Africa	DR Congo;Congo Republic	2000000	20000000	living				Latin	false	false	0			
+bam	Bambara	Bamanankan	bm	bam	niger_congo__mande		West Africa	Mali;Burkina Faso;Ivory Coast	4000000	14000000	living				Latin	false	false	0			
+ewe	Ewe	Eʋegbe	ee	ewe	niger_congo__kwa		West Africa	Ghana;Togo	4500000	7000000	living				Latin	false	false	0			
+lug	Luganda	Oluganda	lg	lug	niger_congo__bantu		East Africa	Uganda	6000000	10000000	living				Latin	false	false	0			
+mos	Mossi	Mooré		mos	niger_congo__gur		West Africa	Burkina Faso	7600000	9000000	living				Latin	false	false	0			
+sot	Sesotho	Sesotho	st	sot	niger_congo__bantu		Southern Africa	Lesotho;South Africa;Zimbabwe	5600000	12000000	living				Latin	false	false	0			
+tsn	Tswana	Setswana	tn	tsn	niger_congo__bantu		Southern Africa	Botswana;South Africa;Namibia;Zimbabwe	5300000	8000000	living				Latin	false	false	0			
+kik	Kikuyu	Gĩkũyũ	ki	kik	niger_congo__bantu		East Africa	Kenya	6600000	7000000	living				Latin	false	false	0			
+nya	Chichewa	Chinyanja	ny	nya	niger_congo__bantu		Southern Africa	Malawi;Zambia;Mozambique;Zimbabwe	12000000	15000000	living				Latin	false	false	0			
+run	Kirundi	Ikirundi	rn	run	niger_congo__bantu		East Africa	Burundi;Tanzania;DR Congo;Uganda	11000000	12000000	living				Latin	false	false	0			
+tso	Tsonga	Xitsonga	ts	tso	niger_congo__bantu		Southern Africa	South Africa;Mozambique;Eswatini;Zimbabwe	3700000	5000000	living				Latin	false	false	0			
+dyu	Dyula	Julakan		dyu	niger_congo__mande		West Africa	Burkina Faso;Ivory Coast;Mali	1500000	10000000	living				Latin	false	false	0			
+srr	Serer	Seereer		srr	niger_congo__atlantic		West Africa	Senegal;Gambia	1500000	1500000	living				Latin	false	false	0			
+bin	Edo	Ẹ̀dó		bin	niger_congo__volta_niger		West Africa	Nigeria	1700000	1700000	living				Latin	false	false	0			
+gaa	Ga	Gã		gaa	niger_congo__kwa		West Africa	Ghana	2000000	2000000	living				Latin	false	false	0			
+ktu	Kituba	Kikongo ya Leta		ktu	niger_congo__bantu		Central Africa	DR Congo;Congo Republic	4200000	10000000	living				Latin	false	false	0			
+jav	Javanese	Basa Jawa	jv	jav	austronesian__javanese		Southeast Asia	Indonesia;Suriname	82000000	95000000	living				Latin, Javanese	false	false	0			
+ind	Indonesian	Bahasa Indonesia	id	ind	austronesian__malayic		Southeast Asia	Indonesia;Timor-Leste	43000000	200000000	living				Latin	false	false	0			
+msa	Malay	Bahasa Melayu	ms	msa	austronesian__malayic		Southeast Asia	Malaysia;Brunei;Singapore;Indonesia	19000000	33000000	living				Latin, Jawi (Arabic)	false	false	0			
+sun	Sundanese	Basa Sunda	su	sun	austronesian__malayo_polynesian		Southeast Asia	Indonesia	42000000	42000000	living				Latin, Sundanese	false	false	0			
+tgl	Tagalog	Tagalog	tl	tgl	austronesian__philippine		Southeast Asia	Philippines	28000000	82000000	living				Latin, Baybayin (Historical)	false	false	0			
+ceb	Cebuano	Bisaya		ceb	austronesian__philippine		Southeast Asia	Philippines	27000000	27000000	living				Latin	false	false	0			
+mlg	Malagasy	Malagasy	mg	mlg	austronesian__greater_barito		East Africa	Madagascar;Comoros	25000000	25000000	living				Latin	false	false	0			
+mad	Madurese	Bhâsa Madhurâ		mad	austronesian__malayo_polynesian		Southeast Asia	Indonesia	14000000	14000000	living				Latin	false	false	0			
+ilo	Ilokano	Ilokano		ilo	austronesian__philippine		Southeast Asia	Philippines	9100000	11000000	living				Latin	false	false	0			
+hil	Hiligaynon	Ilonggo		hil	austronesian__philippine		Southeast Asia	Philippines	9000000	9000000	living				Latin	false	false	0			
+min	Minangkabau	Baso Minangkabau		min	austronesian__malayic		Southeast Asia	Indonesia	5500000	5500000	living				Latin	false	false	0			
+bug	Buginese	Basa Ugi		bug	austronesian__south_sulawesi		Southeast Asia	Indonesia	5000000	5000000	living				Latin, Lontara	false	false	0			
+bjn	Banjar	Bahasa Banjar		bjn	austronesian__malayic		Southeast Asia	Indonesia	3500000	3500000	living				Latin	false	false	0			
+ace	Acehnese	Basa Acèh		ace	austronesian__malayo_polynesian		Southeast Asia	Indonesia	3500000	3500000	living				Latin, Jawi	false	false	0			
+ban	Balinese	Basa Bali		ban	austronesian__malayo_polynesian		Southeast Asia	Indonesia	3300000	3300000	living				Latin, Balinese	false	false	0			
+war	Waray	Waray-Waray		war	austronesian__philippine		Southeast Asia	Philippines	3000000	3000000	living				Latin	false	false	0			
+pam	Kapampangan	Kapampangan		pam	austronesian__philippine		Southeast Asia	Philippines	2400000	2400000	living				Latin, Kulitan	false	false	0			
+bcl	Bikol	Bikol Sentral		bcl	austronesian__philippine		Southeast Asia	Philippines	2500000	2500000	living				Latin	false	false	0			
+mak	Makassarese	Basa Mangkasara		mak	austronesian__south_sulawesi		Southeast Asia	Indonesia	2100000	2100000	living				Latin, Lontara	false	false	0			
+tet	Tetum	Tetun		tet	austronesian__malayo_polynesian		Southeast Asia	Timor-Leste;Indonesia	500000	800000	living				Latin	false	false	0			
+smo	Samoan	Gagana Faʻa Sāmoa	sm	smo	austronesian__polynesian		Oceania	Samoa;American Samoa	510000	510000	living				Latin	false	false	0			
+fij	Fijian	Na Vosa Vakaviti	fj	fij	austronesian__oceanic		Oceania	Fiji	340000	600000	living				Latin	false	false	0			
+mri	Maori	Te Reo Māori	mi	mri	austronesian__polynesian		Oceania	New Zealand	148000	185000	living				Latin	false	false	0			
+ton	Tongan	Faka-Tonga	to	ton	austronesian__polynesian		Oceania	Tonga	187000	200000	living				Latin	false	false	0			
+ami	Amis	Pangcah		ami	austronesian__formosan		East Asia	Taiwan	138000	138000	vulnerable				Latin	false	false	0			
+tah	Tahitian	Reo Tahiti	ty	tah	austronesian__polynesian		Oceania	French Polynesia	68000	120000	living				Latin	false	false	0			
+cha	Chamorro	Fino' CHamoru	ch	cha	austronesian__malayo_polynesian		Oceania	Guam;Northern Mariana Islands	58000	58000	vulnerable				Latin	false	false	0			
+gil	Gilbertese	Taetae ni Kiribati		gil	austronesian__oceanic		Oceania	Kiribati;Fiji	120000	120000	living				Latin	false	false	0			
+pau	Palauan	A tekoi er a Belau		pau	austronesian__malayo_polynesian		Oceania	Palau	17000	17000	living				Latin	false	false	0			
+haw	Hawaiian	ʻŌlelo Hawaiʻi		haw	austronesian__polynesian		Oceania	United States	2000	24000	endangered				Latin	false	false	0			
+enq	Enga	Enga		enq	trans_new_guinea__engan		Enga Province, Papua New Guinea	Papua New Guinea	230000	230000	living				Latin	false	false	0			
+hui	Huli	Huli		hui	trans_new_guinea__engan		Hela Province, Papua New Guinea	Papua New Guinea	150000	150000	living				Latin	false	false	0			
+med	Melpa	Melpa		med	trans_new_guinea__chimbu_wahgi		Western Highlands, Papua New Guinea	Papua New Guinea	130000	130000	living				Latin	false	false	0			
+ueu	Kuman	Kuman		ueu	trans_new_guinea__chimbu_wahgi		Simbu Province, Papua New Guinea	Papua New Guinea	115000	120000	living				Latin	false	false	0			
+dnw	Western Dani	Lani		dnw	trans_new_guinea__dani		Highland Papua, Indonesia	Indonesia	180000	180000	living				Latin	false	false	0			
+ekg	Ekari	Me mana		ekg	trans_new_guinea__paniai_lakes		Central Papua, Indonesia	Indonesia	100000	100000	living				Latin	false	false	0			
+dnt	Mid Grand Valley Dani	Baliem Dani		dnt	trans_new_guinea__dani		Highland Papua, Indonesia	Indonesia	50000	50000	living				Latin	false	false	0			
+kmg	Kâte	Kâte		kmg	trans_new_guinea__finisterre_huon		Morobe Province, Papua New Guinea	Papua New Guinea	6000	12000	living				Latin	false	false	0			
+kmh	Kalam	Kalam		kmh	trans_new_guinea__madang		Madang Province, Papua New Guinea	Papua New Guinea	25000	25000	living				Latin	false	false	0			
+kew	West Kewa	Kewa		kew	trans_new_guinea__engan		Southern Highlands, Papua New Guinea	Papua New Guinea	45000	45000	living				Latin	false	false	0			
+akh	Angal Heneng	Angal Heneng		akh	trans_new_guinea__engan		Southern Highlands, Papua New Guinea	Papua New Guinea	40000	40000	living				Latin	false	false	0			
+whg	North Wahgi	Yu Wei		whg	trans_new_guinea__chimbu_wahgi		Western Highlands, Papua New Guinea	Papua New Guinea	47000	47000	living				Latin	false	false	0			
+tlf	Telefol	Telefol		tlf	trans_new_guinea__ok		Sandaun Province, Papua New Guinea	Papua New Guinea	5400	5400	living				Latin	false	false	0			
+cns	Central Asmat	Asmat		cns	trans_new_guinea__asmat_kamoro		South Papua, Indonesia	Indonesia	7000	7000	living				Latin	false	false	0			
+kgq	Kamoro	Mimika		kgq	trans_new_guinea__asmat_kamoro		South Papua, Indonesia	Indonesia	8000	8000	living				Latin	false	false	0			
+okv	Orokaiva	Orokaiva		okv	trans_new_guinea__binandere		Oro Province, Papua New Guinea	Papua New Guinea	35000	35000	living				Latin	false	false	0			
+ipi	Ipili	Ipili		ipi	trans_new_guinea__engan		Enga Province, Papua New Guinea	Papua New Guinea	26000	26000	living				Latin	false	false	0			
+mbw	Maring	Maring		mbw	trans_new_guinea__chimbu_wahgi		Western Highlands/Madang, Papua New Guinea	Papua New Guinea	11000	11000	living				Latin	false	false	0			
+xte	Ketengban	Ketengban		xte	trans_new_guinea__mek		Highland Papua, Indonesia	Indonesia	10000	10000	living				Latin	false	false	0			
+spl	Selepet	Selepet		spl	trans_new_guinea__finisterre_huon		Morobe Province, Papua New Guinea	Papua New Guinea	7000	7000	living				Latin	false	false	0			
+tur	Turkish	Türkçe	tr	tur	turkic__oghuz		West Asia, Southeast Europe	Turkey;Cyprus;Germany	79000000	88000000	living				Latin	false	false	0			
+aze	Azerbaijani	Azərbaycan dili	az	aze	turkic__oghuz		Caucasus, West Asia	Azerbaijan;Iran	23000000	30000000	living				Latin, Arabic	false	false	0			
+uzb	Uzbek	Oʻzbek tili	uz	uzb	turkic__karluk		Central Asia	Uzbekistan;Afghanistan	27000000	33000000	living				Latin, Cyrillic	false	false	0			
+kaz	Kazakh	Qazaq tili	kk	kaz	turkic__kipchak		Central Asia	Kazakhstan;China;Mongolia	13000000	16000000	living				Cyrillic, Latin	false	false	0			
+uig	Uyghur	Uyghur tili	ug	uig	turkic__karluk		Central Asia	China;Kazakhstan	10400000	11000000	living				Arabic	false	false	0			
+tuk	Turkmen	Türkmen dili	tk	tuk	turkic__oghuz		Central Asia	Turkmenistan;Iran;Afghanistan	6700000	9000000	living				Latin	false	false	0			
+tat	Tatar	Tatar tele	tt	tat	turkic__kipchak		Eastern Europe	Russia	5200000	6500000	living				Cyrillic	false	false	0			
+kir	Kyrgyz	Qırğız tili	ky	kir	turkic__kipchak		Central Asia	Kyrgyzstan;China	4500000	5100000	living				Cyrillic	false	false	0			
+bak	Bashkir	Bașqort tele	ba	bak	turkic__kipchak		Eastern Europe	Russia	1200000	1400000	living				Cyrillic	false	false	0			
+chv	Chuvash	Căvaš čĕlhi	cv	chv	turkic__oghur		Eastern Europe	Russia	1050000	1100000	living				Cyrillic	false	false	0			
+sah	Yakut	Sakha tyla		sah	turkic__siberian_turkic		Siberia	Russia	450000	480000	living				Cyrillic	false	false	0			
+kaa	Karakalpak	Qaraqalpaq tili		kaa	turkic__kipchak		Central Asia	Uzbekistan	580000	600000	living				Latin, Cyrillic	false	false	0			
+crh	Crimean Tatar	Qırımtatar tili		crh	turkic__kipchak		Eastern Europe	Ukraine;Romania;Turkey	480000	550000	living				Latin, Cyrillic	false	false	0			
+kum	Kumyk	Qumuq til		kum	turkic__kipchak		Caucasus	Russia	420000	450000	living				Cyrillic	false	false	0			
+krc	Karachay-Balkar	Qaraçay-Malqar til		krc	turkic__kipchak		Caucasus	Russia	300000	310000	living				Cyrillic	false	false	0			
+tyv	Tuvan	Tıva dıl		tyv	turkic__siberian_turkic		Siberia	Russia;Mongolia	280000	300000	living				Cyrillic	false	false	0			
+gag	Gagauz	Gagauz dili		gag	turkic__oghuz		Eastern Europe	Moldova;Ukraine	140000	150000	living				Latin	false	false	0			
+slr	Salar	Salarça		slr	turkic__oghuz		East Asia	China	70000	100000	living				Latin	false	false	0			
+klj	Khalaj	Xalac		klj	turkic__arghu		West Asia	Iran	42000	42000	living				Arabic	false	false	0			
+nog	Nogai	Noğay tili		nog	turkic__kipchak		Caucasus	Russia	87000	90000	living				Cyrillic	false	false	0			
+kjh	Khakas	Xakas tili		kjh	turkic__siberian_turkic		Siberia	Russia	43000	45000	living				Cyrillic	false	false	0			
+alt	Southern Altai	Altay tili		alt	turkic__siberian_turkic		Siberia	Russia	55000	60000	living				Cyrillic	false	false	0			
+qxq	Qashqai	Qaşqay dili		qxq	turkic__oghuz		West Asia	Iran	900000	950000	living				Arabic	false	false	0			
+tha	Thai	ภาษาไทย	th	tha	kra_dai__tai		Thailand	Thailand	20000000	60000000	living				Thai	false	false	0			
+lao	Lao	ພາສາລາວ	lo	lao	kra_dai__tai		Laos	Laos;Thailand	3500000	25000000	living				Lao	false	false	0			
+zha	Zhuang	Vahcuengh	za	zha	kra_dai__tai		Southern China	China	16000000	16000000	living				Latin	false	false	0			
+shn	Shan	ၵႂၢမ်းတႆး		shn	kra_dai__tai		Myanmar	Myanmar;Thailand;China	3300000	4000000	living				Burmese (Shan variant)	false	false	0			
+bouyei	Bouyei	Haausqyaix			kra_dai__tai		Southern China	China;Vietnam	2600000	2600000	living				Latin	false	false	0			
+northern_thai	Northern Thai	กำเมือง			kra_dai__tai		Thailand	Thailand;Laos	6000000	6000000	living				Thai	false	false	0			
+sou	Southern Thai	ภาษาใต้		sou	kra_dai__tai		Thailand	Thailand;Malaysia	4500000	4500000	living				Thai	false	false	0			
+blt	Tai Dam	ꪼꪕꪒꪲꪾ		blt	kra_dai__tai		Vietnam	Vietnam;Laos;China;Thailand	760000	800000	living				Tai Viet	false	false	0			
+khb	Tai Lue	ᦅᧄᦺᦑᦟᦹᧉ		khb	kra_dai__tai		China	China;Laos;Thailand;Myanmar	550000	600000	living				New Tai Lue	false	false	0			
+kam	Kam	lix Gaeml			kra_dai__kam_sui		Southern China	China	1500000	1600000	living				Latin	false	false	0			
+sui	Sui	le1 sui3			kra_dai__kam_sui		Southern China	China	200000	300000	living				Sui	false	false	0			
+maonan	Maonan				kra_dai__kam_sui		Southern China	China	30000	107000	living				Latin	false	false	0			
+mulam	Mulam				kra_dai__kam_sui		Southern China	China	86000	86000	living				Latin	false	false	0			
+lic	Hlai	Hlai		lic	kra_dai__hlai		Hainan	China	700000	700000	living				Latin	false	false	0			
+gelao	Gelao	Klau			kra_dai__kra		Guizhou	China;Vietnam	7900	500000	living					false	false	0			
+lachi	Lachi	Li			kra_dai__kra		Yunnan/Ha Giang	Vietnam;China	10000	12000	living					false	false	0			
+be	Be	Vo Limkou			kra_dai__ong_be		Hainan	China	600000	600000	living					false	false	0			
+ahom	Ahom				kra_dai__tai		Assam	India			extinct				Ahom	false	false	0			
+nung	Nung	Nùng			kra_dai__tai		Northern Vietnam	Vietnam	850000	850000	living				Latin	false	false	0			
+tay	Tay	Tày			kra_dai__tai		Northern Vietnam	Vietnam	1600000	1600000	living				Latin	false	false	0			
+phu_thai	Phu Thai	Phu Thai			kra_dai__tai		Mekong Basin	Thailand;Laos;Vietnam	800000	800000	living				Thai	false	false	0			
+saek	Saek	Saek			kra_dai__tai		Nakhon Phanom	Laos;Thailand	25000	25000	living					false	false	0			
+tdd	Tai Nüa	ᥑᥣᥛᥰ ᥖᥭᥰ ᥘᥫᥴ		tdd	kra_dai__tai		Yunnan	China;Myanmar;Laos	650000	700000	living				Tai Le	false	false	0			
+tai_hongjin	Tai Hongjin				kra_dai__tai		Honghe	China	150000	150000	living					false	false	0			
+laha	Laha	La Ha			kra_dai__kra		Son La	Vietnam	5600	8000	living					false	false	0			
+vie	Vietnamese	Tiếng Việt	vi	vie	austroasiatic__vietic		Southeast Asia	Vietnam	76000000	85000000	Living				Latin (Chữ Quốc ngữ)	false	false	0			
+khm	Khmer	ភាសាខ្មែរ	km	khm	austroasiatic__khmer		Southeast Asia	Cambodia;Vietnam;Thailand	16000000	17000000	Living				Khmer	false	false	0			
+sat	Santali	ᱥᱟᱱᱛᱟᱲᱤ		sat	austroasiatic__munda		South Asia	India;Bangladesh;Nepal	7600000	7600000	Living				Ol Chiki	false	false	0			
+mnw	Mon	ဘာသာမန်		mnw	austroasiatic__monic		Southeast Asia	Myanmar;Thailand	850000	1000000	Living				Mon-Burmese	false	false	0			
+kha	Khasi	Ka Ktien Khasi		kha	austroasiatic__khasian		South Asia	India;Bangladesh	1000000	1100000	Living				Latin	false	false	0			
+unr	Mundari	Mundari		unr	austroasiatic__munda		South Asia	India;Bangladesh;Nepal	1100000	1100000	Living				Latin, Devanagari	false	false	0			
+hoc	Ho	𑢹𑣉𑣉 𑣎𑣋𑣜		hoc	austroasiatic__munda		South Asia	India	1000000	1000000	Living				Warang Citi	false	false	0			
+wbm	Wa (Parauk)	Vax		wbm	austroasiatic__palaungic		Southeast Asia	Myanmar;China	1200000	1200000	Living				Latin, Dai	false	false	0			
+mtq	Muong	Thiểng Mường		mtq	austroasiatic__vietic		Southeast Asia	Vietnam	1300000	1300000	Living				Latin	false	false	0			
+kjg	Khmu	Khmus		kjg	austroasiatic__khmuic		Southeast Asia	Laos;Vietnam;Thailand;China	700000	700000	Living				Latin, Lao	false	false	0			
+bdq	Bahnar	Ba Na		bdq	austroasiatic__bahnaric		Southeast Asia	Vietnam	160000	160000	Living				Latin	false	false	0			
+kpm	Koho	K'Ho		kpm	austroasiatic__bahnaric		Southeast Asia	Vietnam	170000	170000	Living				Latin	false	false	0			
+sed	Sedang	Rơ-teng		sed	austroasiatic__bahnaric		Southeast Asia	Vietnam;Laos	100000	100000	Living				Latin	false	false	0			
+kdt	Kuy	Kuay		kdt	austroasiatic__katuic		Southeast Asia	Thailand;Laos;Cambodia	500000	500000	Living				Thai	false	false	0			
+bru	Bru, Eastern	Bru		bru	austroasiatic__katuic		Southeast Asia	Vietnam;Laos	130000	130000	Living				Latin, Lao	false	false	0			
+sea	Semai	Sengoi		sea	austroasiatic__aslian		Southeast Asia	Malaysia	44000	44000	Living				Latin	false	false	0			
+caq	Car	Pu		caq	austroasiatic__nicobarese		South Asia	India	37000	37000	Living				Latin	false	false	0			
+kfq	Korku	Korku		kfq	austroasiatic__munda		South Asia	India	720000	720000	Living				Devanagari	false	false	0			
+srb	Sora	Saora		srb	austroasiatic__munda		South Asia	India	410000	410000	Living				Sorang Sompeng	false	false	0			
+khr	Kharia	Kharia		khr	austroasiatic__munda		South Asia	India	290000	290000	Living				Devanagari	false	false	0			
+pbv	Pnar	Pnar		pbv	austroasiatic__khasian		South Asia	India;Bangladesh	300000	300000	Living				Latin	false	false	0			
+pll	Palaung, Shwe	Ta'ang		pll	austroasiatic__palaungic		Southeast Asia	Myanmar;China	150000	150000	Living				Burmese	false	false	0			
+tea	Temiar	Temiar		tea	austroasiatic__aslian		Southeast Asia	Malaysia	30000	30000	Living				Latin	false	false	0			
+cbn	Nyah Kur	Chao Bon		cbn	austroasiatic__monic		Southeast Asia	Thailand	1500	1500	Living				Thai	false	false	0			
+kxm	Northern Khmer	Khmer Surin		kxm	austroasiatic__khmer		Southeast Asia	Thailand	1400000	1400000	Living				Thai	false	false	0			
+luo	Dholuo	Dholuo		luo	nilo_saharan__eastern_sudanic		East Africa	Kenya;Tanzania	4200000	4500000	living				Latin	false	false	0			
+din	Dinka	Thuɔŋjäŋ	din	din	nilo_saharan__eastern_sudanic		East Africa	South Sudan	2000000	2000000	living				Latin	false	false	0			
+nus	Nuer	Thok Naath		nus	nilo_saharan__eastern_sudanic		East Africa	South Sudan;Ethiopia	1800000	1800000	living				Latin	false	false	0			
+mas	Maasai	Maa		mas	nilo_saharan__eastern_sudanic		East Africa	Kenya;Tanzania	1300000	1300000	living				Latin	false	false	0			
+kau	Kanuri (Central)	Kanuri	kr	kau	nilo_saharan__saharan		West/Central Africa	Nigeria;Niger;Chad;Cameroon	4000000	4500000	living				Latin, Arabic	false	false	0			
+dje	Zarma	Djerma		dje	nilo_saharan__songhay		West Africa	Niger;Nigeria	3500000	3500000	living				Latin	false	false	0			
+fia	Nobiin	Nòbíin		fia	nilo_saharan__eastern_sudanic		North Africa	Egypt;Sudan	500000	600000	living				Latin, Arabic, Coptic (historical)	false	false	0			
+lgg	Lugbara	Ti Lugbara		lgg	nilo_saharan__central_sudanic		Central/East Africa	Uganda;DR Congo	1700000	1700000	living				Latin	false	false	0			
+fvr	Fur	bèle fòòr		fvr	nilo_saharan__fur		North/Central Africa	Sudan	750000	750000	living				Latin, Arabic	false	false	0			
+ach	Acholi	Acoli		ach	nilo_saharan__eastern_sudanic		East Africa	Uganda;South Sudan	1500000	1500000	living				Latin	false	false	0			
+sba	Ngambay	Sara		sba	nilo_saharan__central_sudanic		Central Africa	Chad;Cameroon	1000000	1000000	living				Latin	false	false	0			
+bfa	Bari	Kutuk na Bari		bfa	nilo_saharan__eastern_sudanic		East Africa	South Sudan;Uganda	500000	600000	living				Latin	false	false	0			
+shk	Shilluk	Dhøg Cøllø		shk	nilo_saharan__eastern_sudanic		East Africa	South Sudan	200000	200000	living				Latin	false	false	0			
+teo	Teso	Ateso		teo	nilo_saharan__eastern_sudanic		East Africa	Uganda;Kenya	1900000	1900000	living				Latin	false	false	0			
+mls	Masalit	Kana Masaraka		mls	nilo_saharan__maban		Central Africa	Sudan;Chad	400000	400000	living				Latin	false	false	0			
+ses	Koyraboro Senni	Koroboro Senni		ses	nilo_saharan__songhay		West Africa	Mali	430000	430000	living				Latin	false	false	0			
+kun	Kunama	Kunama		kun	nilo_saharan__kunama		Horn of Africa	Eritrea;Ethiopia	150000	150000	living				Latin	false	false	0			
+wti	Berta	Berta		wti	nilo_saharan__berta		Horn of Africa	Ethiopia;Sudan	180000	180000	living				Latin	false	false	0			
+mdj	Mangbetu	Nemangbetu		mdj	nilo_saharan__central_sudanic		Central Africa	DR Congo	620000	620000	living				Latin	false	false	0			
+led	Lendu	Bbaledha		led	nilo_saharan__central_sudanic		Central Africa	DR Congo;Uganda	760000	760000	living				Latin	false	false	0			
+guk	Gumuz	Gumuz		guk	nilo_saharan__komuz		Horn of Africa	Ethiopia;Sudan	160000	160000	living				Latin	false	false	0			
+tuq	Teda	Tedaga		tuq	nilo_saharan__saharan		Sahara	Chad;Libya;Niger	42000	42000	living				Latin	false	false	0			
+zag	Zaghawa	Beria		zag	nilo_saharan__saharan		Sahel	Sudan;Chad	170000	170000	living				Latin	false	false	0			
+kln	Kalenjin (Nandi)	Chamgei		kln	nilo_saharan__eastern_sudanic		East Africa	Kenya	950000	950000	living				Latin	false	false	0			
+wbp	Warlpiri	Warlpiri		wbp	pama_nyungan__ngumpin_yapa		Northern Territory	Australia	2300	2500	living				Latin	false	false	0			
+pjt	Pitjantjatjara	Pitjantjatjara		pjt	pama_nyungan__wati		Central Australia	Australia	3100	3200	living				Latin	false	false	0			
+aer	Arrernte	Arrernte		aer	pama_nyungan__arandic		Northern Territory	Australia	4500	4500	living				Latin	false	false	0			
+aly	Alyawarr	Alyawarr		aly	pama_nyungan__arandic		Northern Territory	Australia	1500	1500	living				Latin	false	false	0			
+lrg	Luritja	Luritja		lrg	pama_nyungan__wati		Northern Territory	Australia	800	800	living				Latin	false	false	0			
+ntj	Ngaanyatjarra	Ngaanyatjarra		ntj	pama_nyungan__wati		Western Australia	Australia	1000	1000	living				Latin	false	false	0			
+kdd	Yankunytjatjara	Yankunytjatjara		kdd	pama_nyungan__wati		South Australia	Australia	400	420	living				Latin	false	false	0			
+dwu	Dhuwal	Dhuwal		dwu	pama_nyungan__yol_u		Northern Territory	Australia	3500	3500	living				Latin	false	false	0			
+djr	Djambarrpuyngu	Djambarrpuyngu		djr	pama_nyungan__yol_u		Northern Territory	Australia	2700	2700	living				Latin	false	false	0			
+wrh	Wiradjuri	Wiradyuri		wrh	pama_nyungan__wiradhuric		New South Wales	Australia		1000	revitalizing				Latin	false	false	0			
+kld	Gamilaraay	Gamilaraay		kld	pama_nyungan__wiradhuric		New South Wales	Australia		100	revitalizing				Latin	false	false	0			
+zku	Kaurna	Kaurna		zku	pama_nyungan__thura_yura		South Australia	Australia		50	revitalizing				Latin	false	false	0			
+nys	Noongar	Nyungar		nys	pama_nyungan__nyungar		Western Australia	Australia	400	500	endangered				Latin	false	false	0			
+wim	Wik-Mungkan	Wik-Mungkan		wim	pama_nyungan__paman		Queensland	Australia	1000	1000	living				Latin	false	false	0			
+kky	Guugu Yimithirr	Guugu Yimithirr		kky	pama_nyungan__paman		Queensland	Australia	700	700	endangered				Latin	false	false	0			
+thd	Kuuk Thaayorre	Kuuk Thaayorre		thd	pama_nyungan__paman		Queensland	Australia	250	250	endangered				Latin	false	false	0			
+dbl	Dyirbal	Dyirbal		dbl	pama_nyungan__dyirbalic		Queensland	Australia	8	8	critically endangered				Latin	false	false	0			
+bdy	Bundjalung	Bundjalung		bdy	pama_nyungan__yuin_kuric		New South Wales	Australia	10	100	revitalizing				Latin	false	false	0			
+kgs	Gumbaynggirr	Gumbaynggirr		kgs	pama_nyungan__yuin_kuric		New South Wales	Australia		50	revitalizing				Latin	false	false	0			
+yij	Yindjibarndi	Yindjibarndi		yij	pama_nyungan__pama_nyungan		Western Australia	Australia	300	300	endangered				Latin	false	false	0			
+wrm	Warumungu	Warumungu		wrm	pama_nyungan__pama_nyungan		Northern Territory	Australia	300	300	endangered				Latin	false	false	0			
+gbb	Kaytetye	Kaytetye		gbb	pama_nyungan__arandic		Northern Territory	Australia	100	100	endangered				Latin	false	false	0			
+mpj	Martu Wangka	Martu Wangka		mpj	pama_nyungan__wati		Western Australia	Australia	850	850	living				Latin	false	false	0			
+piu	Pintupi	Pintupi		piu	pama_nyungan__wati		Northern Territory	Australia	150	150	living				Latin	false	false	0			
+drl	Paakantyi	Paakantyi		drl	pama_nyungan__pama_nyungan		New South Wales	Australia	5	20	critically endangered				Latin	false	false	0			
+quz	Cusco Quechua	Qusqu Qheswa	qu	quz	quechuan__quechua_ii_c_southern		Southern Peru	Peru	1500000	1500000	living				Latin	false	false	0			
+quy	Ayacucho Quechua	Chanka Qichwa	qu	quy	quechuan__quechua_ii_c_southern		Southern Peru	Peru	900000	1000000	living				Latin	false	false	0			
+quh	South Bolivian Quechua	Qhurus-Qhichwa	qu	quh	quechuan__quechua_ii_c_southern		Bolivia	Bolivia;Argentina	2800000	3600000	living				Latin	false	false	0			
+qug	Chimborazo Highland Quichua	Kichwa	qu	qug	quechuan__quechua_ii_b_northern		Central Ecuador	Ecuador	1000000	1000000	living				Latin	false	false	0			
+qvi	Imbabura Highland Quichua	Kichwa	qu	qvi	quechuan__quechua_ii_b_northern		Northern Ecuador	Ecuador	300000	300000	living				Latin	false	false	0			
+qwh	Huaylas Ancash Quechua	Hwaylas Qichwa		qwh	quechuan__quechua_i_waywash		Central Peru	Peru	300000	320000	living				Latin	false	false	0			
+qub	Huallaga Huánuco Quechua	Wallaqa Qichwa		qub	quechuan__quechua_i_waywash		Central Peru	Peru	40000	40000	living				Latin	false	false	0			
+qvc	Cajamarca Quechua	Kashamarka Qichwa		qvc	quechuan__quechua_ii_a_yunkay		Northern Peru	Peru	30000	30000	living				Latin	false	false	0			
+qus	Santiago del Estero Quichua	Quichua		qus	quechuan__quechua_ii_c_southern		Argentina	Argentina	60000	100000	living				Latin	false	false	0			
+inb	Inga	Inga Kichwa		inb	quechuan__quechua_ii_b_northern		Colombia	Colombia	18000	20000	living				Latin	false	false	0			
+qul	North Bolivian Quechua	Qhichwa		qul	quechuan__quechua_ii_c_southern		La Paz	Bolivia;Peru	116000	116000	living				Latin	false	false	0			
+quf	Lambayeque Quechua	Inkawasi-Kañaris		quf	quechuan__quechua_ii_a_yunkay		Northern Peru	Peru	20000	20000	living				Latin	false	false	0			
+quw	Tena Lowland Quichua	Kichwa		quw	quechuan__quechua_ii_b_northern		Amazonian Ecuador	Ecuador	5000	5000	living				Latin	false	false	0			
+qxp	Puno Quechua	Qullaw Qichwa		qxp	quechuan__quechua_ii_c_southern		Southern Peru	Peru	700000	700000	living				Latin	false	false	0			
+qvh	Huamalíes-Dos de Mayo Huánuco Quechua	Qichwa		qvh	quechuan__quechua_i_waywash		Central Peru	Peru	80000	80000	living				Latin	false	false	0			
+qvm	Margos-Yarowilca-Lauricocha Quechua	Qichwa		qvm	quechuan__quechua_i_waywash		Central Peru	Peru	90000	90000	living				Latin	false	false	0			
+qwa	Corongo Ancash Quechua	Qichwa		qwa	quechuan__quechua_i_waywash		Central Peru	Peru	8000	8000	living				Latin	false	false	0			
+quk	Chachapoyas Quechua	Chachapuya Qichwa		quk	quechuan__quechua_ii_b_northern		Amazonas	Peru	5000	5000	living				Latin	false	false	0			
+qux	Yauyos Quechua	Yawyu Qichwa		qux	quechuan__quechua_ii_a_yunkay		Lima	Peru	6000	6000	living				Latin	false	false	0			
+qvp	Pacaraos Quechua	Qichwa		qvp	quechuan__quechua_ii_a_yunkay		Huaral	Peru	300	300	endangered				Latin	false	false	0			
+mww	Hmong Daw	Hmoob Dawb	hmn	mww	hmong_mien__hmongic		Southeast Asia, China, Diaspora	China;Vietnam;Laos;Thailand;United States;France	1300000	1350000	living				Latin (RPA), Pahawh Hmong	false	false	0			
+hnj	Hmong Njua	Moob Leeg	hmn	hnj	hmong_mien__hmongic		Southeast Asia, China, Diaspora	China;Vietnam;Laos;Thailand;United States	1500000	1500000	living				Latin (RPA), Pahawh Hmong	false	false	0			
+hmd	Hmu	Hmu		hmd	hmong_mien__hmongic		Southern China	China	2100000	2100000	living				Latin (Pinyin-based)	false	false	0			
+mmr	Qo Xiong	Xong		mmr	hmong_mien__hmongic		Southern China	China	900000	900000	living				Latin	false	false	0			
+hma	A-Hmao	Ad Hmaob		hma	hmong_mien__hmongic		Southern China	China	300000	300000	living				Pollard Script	false	false	0			
+ium	Iu Mien	Iu Mienh		ium	hmong_mien__mienic		Southern China, Southeast Asia, Diaspora	China;Vietnam;Laos;Thailand;United States	1700000	1700000	living				Latin, Chinese characters	false	false	0			
+mji	Kim Mun	Kim Mun		mji	hmong_mien__mienic		Southern China, Southeast Asia	China;Vietnam;Laos	370000	370000	living				Latin, Chinese characters	false	false	0			
+shx	She	Ho Ne		shx	hmong_mien__hmongic		Eastern China	China	1000	1000	living				None	false	false	0			
+bip	Biao Min	Biao Min		bip	hmong_mien__mienic		Southern China	China	43000	43000	living				None	false	false	0			
+bpn	Zao Min	Zao Min		bpn	hmong_mien__mienic		Southern China	China	60000	60000	living				None	false	false	0			
+pha	Pa-Hng	Pa-Hng		pha	hmong_mien__hmongic		Southern China, Vietnam	China;Vietnam	32000	32000	living				None	false	false	0			
+bwx	Bunu	Nuox		bwx	hmong_mien__hmongic		Southern China	China	290000	290000	living				Latin	false	false	0			
+pnu	Jiongnai	Kiong Nai		pnu	hmong_mien__hmongic		Southern China	China	1100	1100	living				None	false	false	0			
+hmi	Huishui Miao			hmi	hmong_mien__hmongic		Southern China	China	180000	180000	living				Latin	false	false	0			
+hmm	Mashan Miao	Mang		hmm	hmong_mien__hmongic		Southern China	China	140000	140000	living				None	false	false	0			
+hmy	Guiyang Miao			hmy	hmong_mien__hmongic		Southern China	China	190000	190000	living				Latin	false	false	0			
+hml	Luobohe Miao	A Hmao		hml	hmong_mien__hmongic		Southern China	China	60000	60000	living				None	false	false	0			
+hmj	Gejia	Ge		hmj	hmong_mien__hmongic		Southern China	China	60000	60000	living				Latin	false	false	0			
+sfm	Small Flowery Miao	Gha-Mu		sfm	hmong_mien__hmongic		Southern China	China	84000	84000	living				Pollard Script	false	false	0			
+buh	Younuo	Younuo		buh	hmong_mien__hmongic		Southern China	China	9700	9700	living				None	false	false	0			
+grn	Paraguayan Guarani	Avañe'ẽ	gn	grn	tupian__tupi_guarani		South America	Paraguay;Argentina;Brazil;Bolivia	6500000	10000000	living				Latin	false	false	0			
+yrl	Nheengatu	Nheengatu		yrl	tupian__tupi_guarani		Amazon	Brazil;Colombia;Venezuela	14000	20000	living				Latin	false	false	0			
+kgk	Kaiwá	Kaiwá		kgk	tupian__tupi_guarani		South America	Brazil;Argentina	18000	20000	living				Latin	false	false	0			
+gun	Mbyá Guaraní	Mbya		gun	tupian__tupi_guarani		South America	Paraguay;Argentina;Brazil;Uruguay	25000	27000	living				Latin	false	false	0			
+nhd	Ava Guaraní	Ñandeva		nhd	tupian__tupi_guarani		South America	Paraguay;Brazil	15000	16000	living				Latin	false	false	0			
+tpn	Old Tupi	Tupinambá		tpn	tupian__tupi_guarani		Brazil	Brazil			extinct				Latin	false	false	0			
+gub	Guajajara	Tenetehára		gub	tupian__tupi_guarani		Brazil	Brazil	19000	19000	living				Latin	false	false	0			
+kay	Kamayurá	Kamayurá		kay	tupian__tupi_guarani		Brazil	Brazil	600	600	living				Latin	false	false	0			
+oym	Wayampi	Wayãpi		oym	tupian__tupi_guarani		Amazon	French Guiana;Brazil	1200	1200	living				Latin	false	false	0			
+urb	Urubu-Kaapor	Ka'apor		urb	tupian__tupi_guarani		Brazil	Brazil	1000	1000	living				Latin	false	false	0			
+srq	Sirionó	Mbia Chee		srq	tupian__tupi_guarani		Bolivia	Bolivia	400	400	endangered				Latin	false	false	0			
+guq	Aché	Aché		guq	tupian__tupi_guarani		Paraguay	Paraguay	1500	1500	living				Latin	false	false	0			
+tpj	Tapieté	Guasurango		tpj	tupian__tupi_guarani		South America	Argentina;Bolivia;Paraguay	100	100	endangered				Latin	false	false	0			
+myu	Mundurukú	Wuy Jug		myu	tupian__munduruku		Brazil	Brazil	10000	13000	living				Latin	false	false	0			
+mav	Sateré-Mawé	Sateré-Mawé		mav	tupian__mawe		Brazil	Brazil	9000	13000	living				Latin	false	false	0			
+awe	Aweti	Awetÿza		awe	tupian__aweti		Brazil	Brazil	140	200	living				Latin	false	false	0			
+jur	Juruna	Yudjá		jur	tupian__juruna		Brazil	Brazil	300	350	living				Latin	false	false	0			
+xiy	Xipaya	Xipaya		xiy	tupian__juruna		Brazil	Brazil	2	2	extinct				Latin	false	false	0			
+sru	Suruí Paiter	Paiter		sru	tupian__monde		Brazil	Brazil	1000	1200	living				Latin	false	false	0			
+cin	Cinta Larga	Cinta Larga		cin	tupian__monde		Brazil	Brazil	1500	1800	living				Latin	false	false	0			
+gvo	Gavião do Jiparaná	Digüet		gvo	tupian__monde		Brazil	Brazil	500	800	living				Latin	false	false	0			
+tpr	Tupari	Tuparí		tpr	tupian__tupari		Brazil	Brazil	350	500	living				Latin	false	false	0			
+mag	Makuráp	Makuráp		mag	tupian__tupari		Brazil	Brazil	40	40	endangered				Latin	false	false	0			
+aqz	Akuntsu	Akuntsu		aqz	tupian__tupari		Brazil	Brazil	4	4	endangered				Latin	false	false	0			
+ktn	Karitiana	Karitiana		ktn	tupian__arikem		Brazil	Brazil	250	320	living				Latin	false	false	0			
+arr	Karo	Karo		arr	tupian__ramarama		Brazil	Brazil	200	300	living				Latin	false	false	0			
+pto	Zo'é	Zo'é		pto	tupian__tupi_guarani		Brazil	Brazil	260	260	living					false	false	0			
+xet	Xetá	Xetá		xet	tupian__tupi_guarani		Brazil	Brazil			extinct				Latin	false	false	0			
+pur	Puruborá	Pumbora		pur	tupian__tupian		Brazil	Brazil	2	2	endangered				Latin	false	false	0			
+myn	Yucatec Maya	Maaya t'aan		myn	mayan__yucatecan		Yucatán Peninsula	Mexico;Belize	800000	850000	Living				Latin	false	false	0			
+quc	K'iche'	K'iche'		quc	mayan__k_ichean		Central Highlands	Guatemala	1050000	1200000	Living				Latin	false	false	0			
+kek	Q'eqchi'	Q'eqchi'		kek	mayan__k_ichean		Alta Verapaz, Petén, Belize	Guatemala;Belize;Mexico	800000	900000	Living				Latin	false	false	0			
+mam	Mam	Qyol Mam		mam	mayan__mamean		Huehuetenango, San Marcos, Quetzaltenango	Guatemala;Mexico	480000	500000	Living				Latin	false	false	0			
+cak	Kaqchikel	Kaqchikel		cak	mayan__k_ichean		Central Highlands	Guatemala	450000	500000	Living				Latin	false	false	0			
+tzh	Tzeltal	Bats'il k'op		tzh	mayan__cholan_tzeltalan		Chiapas	Mexico	460000	500000	Living				Latin	false	false	0			
+tzo	Tzotzil	Bats'i k'op		tzo	mayan__cholan_tzeltalan		Chiapas	Mexico	430000	450000	Living				Latin	false	false	0			
+hus	Huastec	Tének		hus	mayan__huastecan		La Huasteca	Mexico	150000	170000	Living				Latin	false	false	0			
+ctu	Ch'ol	Lak ttyan		ctu	mayan__cholan_tzeltalan		Chiapas	Mexico	220000	250000	Living				Latin	false	false	0			
+tzj	Tz'utujil	Tz'utujil		tzj	mayan__k_ichean		Lake Atitlán	Guatemala	60000	85000	Living				Latin	false	false	0			
+kjb	Q'anjob'al	Q'anjob'al		kjb	mayan__q_anjob_alan_chujean		Huehuetenango	Guatemala;Mexico	140000	160000	Living				Latin	false	false	0			
+poh	Poqomchi'	Poqomchi'		poh	mayan__k_ichean		Alta Verapaz	Guatemala	90000	115000	Living				Latin	false	false	0			
+ixl	Ixil	Ixil		ixl	mayan__mamean		El Quiché (Ixil Triangle)	Guatemala	70000	85000	Living				Latin	false	false	0			
+caa	Ch'orti'	Ch'orti'		caa	mayan__cholan_tzeltalan		Chiquimula, Copán	Guatemala;Honduras	30000	30000	Endangered				Latin	false	false	0			
+cac	Chuj	Koti'		cac	mayan__q_anjob_alan_chujean		Huehuetenango	Guatemala;Mexico	40000	50000	Living				Latin	false	false	0			
+chf	Tabasco Chontal	Yokot'an		chf	mayan__cholan_tzeltalan		Tabasco	Mexico	37000	40000	Vulnerable				Latin	false	false	0			
+acr	Achi	Achi		acr	mayan__k_ichean		Baja Verapaz	Guatemala	85000	90000	Living				Latin	false	false	0			
+jac	Jakaltek	Popti'		jac	mayan__q_anjob_alan_chujean		Huehuetenango	Guatemala;Mexico	35000	40000	Living				Latin	false	false	0			
+mop	Mopan	Mopan		mop	mayan__yucatecan		Petén, Belize	Guatemala;Belize	10000	12000	Endangered				Latin	false	false	0			
+poc	Poqomam	Poqomam		poc	mayan__k_ichean		Escuintla, Guatemala, Jalapa	Guatemala	10000	15000	Endangered				Latin	false	false	0			
+lac	Lacandon	Jach t'aan		lac	mayan__yucatecan		Chiapas (Selva Lacandona)	Mexico	600	700	Critically Endangered				Latin	false	false	0			
+toj	Tojolabal	Tojol'ab'al		toj	mayan__q_anjob_alan_chujean		Chiapas	Mexico	50000	60000	Living				Latin	false	false	0			
+knj	Akateko	Kuti'		knj	mayan__q_anjob_alan_chujean		Huehuetenango	Guatemala;Mexico	30000	35000	Living				Latin	false	false	0			
+itz	Itza'	Itza'		itz	mayan__yucatecan		Petén (Lake Petén Itzá)	Guatemala	100	100	Critically Endangered				Latin	false	false	0			
+hop	Hopi	Hopilavayi		hop	uto_aztecan__hopi		Arizona	United States	5000	5200	living				Latin Area style script, Traditional phonemic script (Latin based), New orthography (Latin based), Latin (Mormon alphabet)	false	false	0			
+shh	Shoshone	Sosoni' da̱i̱gwape		shh	uto_aztecan__central_numic		Great Basin	United States	2000	2200	living				Latin	false	false	0			
+comanche	Comanche	Nʉmʉ Tekwapʉ			uto_aztecan__numic		Oklahoma	United States	100	150	living				Latin	false	false	0			
+northern_paiute	Northern Paiute	Numu			uto_aztecan__numic		Nevada, Oregon, Idaho, California	United States	700	700	living				Latin	false	false	0			
+ute	Ute-Southern Paiute	Nümpü		ute	uto_aztecan__numic		Colorado, Utah, Nevada	United States	920	1000	living				Latin	false	false	0			
+mnr	Mono	Nyyhmy		mnr	uto_aztecan__numic		California	United States	40	100	living				Latin	false	false	0			
+lui	Luiseño	Cham'teela		lui	uto_aztecan__takic		Southern California	United States	5	100	living				Latin	false	false	0			
+chl	Cahuilla	Íviluɂat		chl	uto_aztecan__takic		Southern California	United States	6	30	living				Latin	false	false	0			
+ser	Serrano	Maarringa'yam		ser	uto_aztecan__takic		Southern California	United States	1	15	living				Latin	false	false	0			
+tubatulabal	Tubatulabal	Pakanapul			uto_aztecan__northern_uto_aztecan		California	United States	5	10	living				Latin	false	false	0			
+ood	O'odham	O'odham ñiok		ood	uto_aztecan__tepiman		Arizona, Sonora	United States;Mexico	14000	15000	living				Latin	false	false	0			
+northern_tepehuan	Northern Tepehuán	Ódami			uto_aztecan__tepiman		Chihuahua	Mexico	8000	8000	living				Latin	false	false	0			
+southern_tepehuan	Southern Tepehuán	O'dam			uto_aztecan__tepiman		Durango	Mexico	25000	30000	living				Latin	false	false	0			
+tar	Tarahumara	Rarámuri ra'ícha		tar	uto_aztecan__taracahitic		Chihuahua	Mexico	85000	90000	living				Latin	false	false	0			
+yaq	Yaqui	Yoeme		yaq	uto_aztecan__taracahitic		Sonora, Arizona	Mexico;United States	17000	20000	living				Latin	false	false	0			
+mayo	Mayo	Yoreme			uto_aztecan__taracahitic		Sonora, Sinaloa	Mexico	32000	40000	living				Latin	false	false	0			
+guarijio	Guarijio	Warihó			uto_aztecan__taracahitic		Sonora, Chihuahua	Mexico	2000	2100	living				Latin	false	false	0			
+crn	Cora	Náayeri		crn	uto_aztecan__corachol		Nayarit	Mexico	21000	30000	living				Latin	false	false	0			
+hch	Huichol	Wixárika		hch	uto_aztecan__corachol		Nayarit, Jalisco	Mexico	45000	50000	living				Latin	false	false	0			
+nah	Huasteca Nahuatl	Macehualtlahtolli		nah	uto_aztecan__nahuan		Huasteca	Mexico	450000	500000	living				Latin	false	false	0			
+nah	Guerrero Nahuatl	Nahuatlahtolli		nah	uto_aztecan__nahuan		Guerrero	Mexico	150000	160000	living				Latin	false	false	0			
+nah	Central Nahuatl	Nawatlahtolli		nah	uto_aztecan__nahuan		Central Mexico	Mexico	40000	45000	living				Latin	false	false	0			
+ppl	Pipil	Nawat		ppl	uto_aztecan__nahuan		El Salvador	El Salvador	200	3000	living				Latin	false	false	0			
+tli	Tlingit	Lingít		tli	na_dene__tlingit		Pacific Northwest	United States;Canada	500	1500	endangered				Latin	false	false	0			
+eyak	Eyak	I•ya•q			na_dene__eyak_athabaskan		Alaska	United States			extinct				Latin	false	false	0			
+aht	Ahtna	Atnakenaege’		aht	na_dene__northern_athabaskan		Alaska	United States	25	80	endangered				Latin	false	false	0			
+tfn	Dena'ina	Dena’ina Qenaga		tfn	na_dene__northern_athabaskan		Alaska	United States	50	75	critically endangered				Latin	false	false	0			
+ing	Deg Xinag	Deg Xinag		ing	na_dene__northern_athabaskan		Alaska	United States	15	20	critically endangered				Latin	false	false	0			
+koy	Koyukon	Denaakk'e		koy	na_dene__northern_athabaskan		Alaska	United States	150	300	endangered				Latin	false	false	0			
+kuu	Upper Kuskokwim	Dinak'i		kuu	na_dene__northern_athabaskan		Alaska	United States	40	40	endangered				Latin	false	false	0			
+gwi	Gwich'in	Dinju Zhuh K'yuu		gwi	na_dene__northern_athabaskan		Alaska and Yukon	United States;Canada	400	500	endangered				Latin	false	false	0			
+haa	Hän	Hän Hwëch'in		haa	na_dene__northern_athabaskan		Alaska and Yukon	United States;Canada	10	10	critically endangered				Latin	false	false	0			
+northern_tutchone	Northern Tutchone	Dän k'e			na_dene__northern_athabaskan		Yukon	Canada	200	300	endangered				Latin	false	false	0			
+southern_tutchone	Southern Tutchone	Dän k'è			na_dene__northern_athabaskan		Yukon	Canada	150	200	endangered				Latin	false	false	0			
+kkz	Kaska	Dene Zágé		kkz	na_dene__northern_athabaskan		British Columbia and Yukon	Canada	240	400	endangered				Latin	false	false	0			
+tht	Tahltan	Tāłtān		tht	na_dene__northern_athabaskan		British Columbia	Canada	30	45	critically endangered				Latin	false	false	0			
+sek	Sekani	Tse’khene		sek	na_dene__northern_athabaskan		British Columbia	Canada	30	40	endangered				Latin	false	false	0			
+bea	Dane-zaa	Dane-zaa Ẕáágéʔ		bea	na_dene__northern_athabaskan		British Columbia and Alberta	Canada	160	200	endangered				Latin	false	false	0			
+den	Slavey	Dene K'e		den	na_dene__northern_athabaskan		Northwest Territories	Canada	2000	2500	endangered				Latin	false	false	0			
+dgr	Dogrib	Tłı̨chǫ		dgr	na_dene__northern_athabaskan		Northwest Territories	Canada	1700	2000	vulnerable				Latin	false	false	0			
+chp	Chipewyan	Dëne Sųłıné		chp	na_dene__northern_athabaskan		Canadian Prairies and Territories	Canada	11000	13000	vulnerable				Latin	false	false	0			
+srs	Tsuut'ina	Tsúùt'ínà		srs	na_dene__northern_athabaskan		Alberta	Canada	50	80	critically endangered				Latin	false	false	0			
+crx	Carrier	Dakelh		crx	na_dene__northern_athabaskan		British Columbia	Canada	600	1000	endangered				Latin	false	false	0			
+clc	Chilcotin	Tsilhqot'in		clc	na_dene__northern_athabaskan		British Columbia	Canada	800	1000	endangered				Latin	false	false	0			
+hup	Hupa	Na:tinixwe Mixine:whe'		hup	na_dene__pacific_coast_athabaskan		California	United States	5	30	endangered				Latin	false	false	0			
+tol	Tolowa	Taa-laa-wa		tol	na_dene__pacific_coast_athabaskan		Oregon and California	United States	2	10	critically endangered				Latin	false	false	0			
+nav	Navajo	Diné Bizaad	nv	nav	na_dene__southern_athabaskan		American Southwest	United States	170000	175000	living				Latin	false	false	0			
+apw	Western Apache	Ndee biyati'		apw	na_dene__southern_athabaskan		Arizona	United States	14000	14000	vulnerable				Latin	false	false	0			
+apm	Mescalero-Chiricahua	Nde Bizaa		apm	na_dene__southern_athabaskan		New Mexico and Oklahoma	United States	1500	2000	endangered				Latin	false	false	0			
+apj	Jicarilla	Abáachi		apj	na_dene__southern_athabaskan		New Mexico	United States	300	500	endangered				Latin	false	false	0			
+apl	Lipan Apache	Hlipi Nde		apl	na_dene__southern_athabaskan		Texas	United States			dormant				Latin	false	false	0			
+apk	Plains Apache	Naishan		apk	na_dene__southern_athabaskan		Oklahoma	United States			extinct				Latin	false	false	0			
+wiy	Wiyot	Soulatluk		wiy	algic__algic		North America	United States			extinct				Latin	false	false	0			
+yur	Yurok	Puliklah		yur	algic__algic		North America	United States	20	300	living				Latin	false	false	0			
+bla	Blackfoot	Siksiká		bla	algic__plains_algonquian		North America	Canada;United States	3250	5000	living				Latin	false	false	0			
+chy	Cheyenne	Tsėhésenėstsestȯtse		chy	algic__plains_algonquian		North America	United States	1900	2000	living				Latin	false	false	0			
+arp	Arapaho	Hinónoʼeitíít		arp	algic__plains_algonquian		North America	United States	1000	1000	living				Latin	false	false	0			
+ats	Gros Ventre	A'aninin		ats	algic__plains_algonquian		North America	United States			extinct				Latin	false	false	0			
+cre	Plains Cree	nêhiyawêwin	cr	cre	algic__central_algonquian		North America	Canada	34000	40000	living				Canadian Aboriginal Syllabics	false	false	0			
+cre	Swampy Cree	nêhinawêwin		cre	algic__central_algonquian		North America	Canada	45000	50000	living				Canadian Aboriginal Syllabics	false	false	0			
+oji	Ojibwe	Anishinaabemowin	oj	oji	algic__central_algonquian		North America	Canada;United States	50000	80000	living				Canadian Aboriginal Syllabics	false	false	0			
+pot	Potawatomi	Bodéwadmimwen		pot	algic__central_algonquian		North America	United States;Canada	50	150	living				Latin	false	false	0			
+mez	Menominee	Omāēqnomenew		mez	algic__central_algonquian		North America	United States	35	100	living				Latin	false	false	0			
+sac	Meskwaki	Meshkwahkihaki		sac	algic__central_algonquian		North America	United States	250	400	living				Latin	false	false	0			
+sjw	Shawnee	Shaawanwa		sjw	algic__central_algonquian		North America	United States	100	200	living				Latin	false	false	0			
+mia	Miami-Illinois	Myaamia		mia	algic__central_algonquian		North America	United States		500	living				Latin	false	false	0			
+kic	Kickapoo	Kiwikapawa		kic	algic__central_algonquian		North America	United States;Mexico	800	1000	living				Latin	false	false	0			
+mic	Mi'kmaq	Mi'kmawi'simk		mic	algic__eastern_algonquian		North America	Canada;United States	6600	7140	living				Latin	false	false	0			
+pqm	Malecite-Passamaquoddy	Skicinuwatuwewakon		pqm	algic__eastern_algonquian		North America	Canada;United States	300	500	living				Latin	false	false	0			
+abe	Western Abenaki	Wôbanakiôdwawogan		abe	algic__eastern_algonquian		North America	Canada;United States	15	50	living				Latin	false	false	0			
+wam	Massachusett	Wôpanâak		wam	algic__eastern_algonquian		North America	United States		500	living				Latin	false	false	0			
+xpq	Mohegan-Pequot	Mowhaq		xpq	algic__eastern_algonquian		North America	United States		100	extinct				Latin	false	false	0			
+umu	Munsee	Huluníixsuwaakan		umu	algic__eastern_algonquian		North America	Canada;United States	5	20	living				Latin	false	false	0			
+unm	Unami	Lënape		unm	algic__eastern_algonquian		North America	United States			extinct				Latin	false	false	0			
+pim	Powhatan	Powhatan		pim	algic__eastern_algonquian		North America	United States			extinct				Latin	false	false	0			
+nsk	Naskapi	Iyuwiyimuun		nsk	algic__central_algonquian		North America	Canada	1000	1100	living				Canadian Aboriginal Syllabics	false	false	0			
+moe	Innu-aimun	Innu-aimun		moe	algic__central_algonquian		North America	Canada	11000	13000	living				Latin	false	false	0			
+otm	Mezquital Otomi	Hñähñu		otm	otomanguean__oto_pamean		Hidalgo, Mexico	Mexico	88000	100000	living				Latin	false	false	0			
+maz	Mazahua	Jñatio		maz	otomanguean__oto_pamean		State of Mexico, Michoacán	Mexico	130000	150000	living				Latin	false	false	0			
+mat	Matlatzinca	Botuná		mat	otomanguean__oto_pamean		State of Mexico	Mexico	1200	1500	living				Latin	false	false	0			
+pbs	Central Pame	Xi'ui		pbs	otomanguean__oto_pamean		San Luis Potosí, Mexico	Mexico	12000	12000	living				Latin	false	false	0			
+cuc	Usila Chinantec	Jajmi dzä kii'		cuc	otomanguean__chinantecan		Oaxaca, Mexico	Mexico	9000	10000	living				Latin	false	false	0			
+tpc	Tlapanec	Me'phaa		tpc	otomanguean__tlapanecan		Guerrero, Mexico	Mexico	98000	140000	living				Latin	false	false	0			
+mau	Huautla Mazatec	Enna		mau	otomanguean__popolocan		Oaxaca, Mexico	Mexico	80000	85000	living				Latin	false	false	0			
+pls	Tlacoyalco Popoloca	Ngigua		pls	otomanguean__popolocan		Puebla, Mexico	Mexico	16000	20000	living				Latin	false	false	0			
+ixc	Ixcatec	Xwja		ixc	otomanguean__popolocan		Oaxaca, Mexico	Mexico	10	150	living				Latin	false	false	0			
+coz	Chocho	Runixa ngiigua		coz	otomanguean__popolocan		Oaxaca, Mexico	Mexico	800	1000	living				Latin	false	false	0			
+zai	Isthmus Zapotec	Diidxazá		zai	otomanguean__zapotecan		Oaxaca (Isthmus of Tehuantepec)	Mexico	85000	100000	living				Latin	false	false	0			
+zav	Yatzachi Zapotec	Dižə'ə		zav	otomanguean__zapotecan		Oaxaca (Sierra Norte)	Mexico	2500	3000	living				Latin	false	false	0			
+ctp	Highland Chatino	Cha' jna'a		ctp	otomanguean__zapotecan		Oaxaca, Mexico	Mexico	20000	25000	living				Latin	false	false	0			
+mxb	Tezoatlán Mixtec	Tu'un Savi		mxb	otomanguean__mixtecan		Oaxaca, Mexico	Mexico	6000	7000	living				Latin	false	false	0			
+trc	Copala Triqui	Xnánj nu'		trc	otomanguean__mixtecan		Oaxaca, Mexico	Mexico	25000	30000	living				Latin	false	false	0			
+cux	Tepeuxila Cuicatec	Nduudu yu		cux	otomanguean__mixtecan		Oaxaca, Mexico	Mexico	8500	10000	living				Latin	false	false	0			
+amu	Guerrero Amuzgo	Ñomndaa		amu	otomanguean__amuzgoan		Guerrero, Mexico	Mexico	45000	50000	living				Latin	false	false	0			
+cip	Chiapanec			cip	otomanguean__manguean		Chiapas, Mexico	Mexico			extinct				Latin	false	false	0			
+mom	Mangue	Monimbo		mom	otomanguean__manguean		Nicaragua	Nicaragua			extinct					false	false	0			
+guc	Wayuu	Wayuunaiki		guc	arawakan__northern_maipurean		Northern South America	Colombia;Venezuela	325000	400000	living				Latin	false	false	0			
+gar	Garifuna	Garifuna		gar	arawakan__northern_maipurean		Central America	Honduras;Belize;Guatemala;Nicaragua	200000	300000	living				Latin	false	false	0			
+arw	Arawak	Lokono		arw	arawakan__northern_maipurean		Guianas	Suriname;Guyana;French Guiana;Venezuela	2500	2500	living				Latin	false	false	0			
+cni	Asháninka	Asháninka		cni	arawakan__campa		Amazon	Peru;Brazil	70000	75000	living				Latin	false	false	0			
+cpu	Ashéninka	Ashéninka		cpu	arawakan__campa		Amazon	Peru	25000	25000	living				Latin	false	false	0			
+mcb	Machiguenga	Matsigenka		mcb	arawakan__campa		Amazon	Peru	13000	13000	living				Latin	false	false	0			
+ter	Terena	Terena		ter	arawakan__southern_maipurean		Mato Grosso	Brazil	20000	20000	living				Latin	false	false	0			
+wap	Wapishana	Wapichana		wap	arawakan__northern_maipurean		Amazon	Guyana;Brazil	12000	13000	living				Latin	false	false	0			
+bwi	Baniwa	Baniwa		bwi	arawakan__northern_maipurean		Amazon	Brazil;Venezuela;Colombia	5000	6000	living				Latin	false	false	0			
+ame	Yanesha'	Yanesha'		ame	arawakan__southern_maipurean		Amazon	Peru	8000	10000	living				Latin	false	false	0			
+pib	Yine	Yine		pib	arawakan__southern_maipurean		Amazon	Peru	3000	4000	living				Latin	false	false	0			
+plu	Palikúr	Palikúr		plu	arawakan__northern_maipurean		Amazon	Brazil;French Guiana	1400	1500	living				Latin	false	false	0			
+pab	Pareci	Pareshí		pab	arawakan__southern_maipurean		Mato Grosso	Brazil	3000	3000	living				Latin	false	false	0			
+ign	Moxo Ignaciano	Ignaciano		ign	arawakan__southern_maipurean		Llanos de Moxos	Bolivia	4500	4500	living				Latin	false	false	0			
+trn	Moxo Trinitario	Trinitario		trn	arawakan__southern_maipurean		Llanos de Moxos	Bolivia	5500	5500	living				Latin	false	false	0			
+pio	Piapoco	Dzaze		pio	arawakan__northern_maipurean		Llanos	Colombia;Venezuela	6500	7000	living				Latin	false	false	0			
+aca	Achagua	Achagua		aca	arawakan__northern_maipurean		Llanos	Colombia	300	400	living				Latin	false	false	0			
+kpc	Kurripako	Kurripako		kpc	arawakan__northern_maipurean		Amazon	Colombia;Brazil;Venezuela	12000	12000	living				Latin	false	false	0			
+mmh	Mehináku	Mehináku		mmh	arawakan__xingu		Xingu	Brazil	250	260	living				Latin	false	false	0			
+wau	Waurá	Wauja		wau	arawakan__xingu		Xingu	Brazil	500	500	living				Latin	false	false	0			
+tnq	Taíno	Taíno		tnq	arawakan__northern_maipurean		Caribbean	Puerto Rico;Cuba;Dominican Republic;Jamaica			extinct					false	false	0			
+not	Nomatsigenga	Nomatsigenga		not	arawakan__campa		Amazon	Peru	8000	8000	living				Latin	false	false	0			
+cox	Nanti	Nanti		cox	arawakan__campa		Amazon	Peru	450	450	living					false	false	0			
+brg	Baure	Baure		brg	arawakan__southern_maipurean		Beni	Bolivia	60	1000	living				Latin	false	false	0			
+unk	Enawene Nawe	Enawenê-Nawê		unk	arawakan__southern_maipurean		Mato Grosso	Brazil	500	500	living					false	false	0			
+gym	Ngäbere	Ngäbere		gym	chibchan__isthmic		Panama and Costa Rica	Panama;Costa Rica	170000	260000	living				Latin	false	false	0			
+cub	Guna	Dulegaya		cub	chibchan__isthmic		Panama and Colombia	Panama;Colombia	60000	65000	living				Latin	false	false	0			
+bzd	Bribri	Bribri		bzd	chibchan__isthmic		Costa Rica	Costa Rica	6000	11000	living				Latin	false	false	0			
+cjp	Cabécar	Cabécar		cjp	chibchan__isthmic		Costa Rica	Costa Rica	9000	13000	living				Latin	false	false	0			
+sab	Buglere	Buglere		sab	chibchan__isthmic		Panama	Panama	2500	3000	living				Latin	false	false	0			
+tfr	Teribe	Naso Tërdi		tfr	chibchan__isthmic		Panama	Panama	3000	3500	living				Latin	false	false	0			
+brn	Boruca	Brúnkajk		brn	chibchan__isthmic		Costa Rica	Costa Rica			extinct				Latin	false	false	0			
+kog	Kogi	Kogui		kog	chibchan__magdalenic		Colombia	Colombia	11000	11000	living				Latin	false	false	0			
+arh	Arhuaco	Ika		arh	chibchan__magdalenic		Colombia	Colombia	15000	15000	living				Latin	false	false	0			
+mbp	Wiwa	Damana		mbp	chibchan__magdalenic		Colombia	Colombia	2000	3000	living				Latin	false	false	0			
+tnb	Uwa	Uw Cuwa		tnb	chibchan__magdalenic		Colombia	Colombia	2500	5000	living				Latin	false	false	0			
+chb	Muisca	Muysccubun		chb	chibchan__magdalenic		Colombia	Colombia			extinct				Latin	false	false	0			
+cbg	Chimila	Ette Ennaka		cbg	chibchan__magdalenic		Colombia	Colombia	2000	2000	living				Latin	false	false	0			
+mot	Barí	Barí ara		mot	chibchan__magdalenic		Colombia and Venezuela	Colombia;Venezuela	5000	5500	living				Latin	false	false	0			
+rma	Rama	Rama		rma	chibchan__votic		Nicaragua	Nicaragua	24	24	living				Latin	false	false	0			
+gut	Maléku	Maléku Jaíka		gut	chibchan__votic		Costa Rica	Costa Rica	300	450	living				Latin	false	false	0			
+pay	Pech	Pech		pay	chibchan__wotic		Honduras	Honduras	1000	1000	living				Latin	false	false	0			
+shp	Shipibo-Conibo	Joni		shp	panoan__mainline_pano		South America	Peru	30000	35000	living				Latin	false	false	0			
+mcf	Matsés	Matsés		mcf	panoan__mayoruna		South America	Peru;Brazil	3000	3200	living				Latin	false	false	0			
+cbs	Cashinahua	Huni Kuin		cbs	panoan__nawa		South America	Brazil;Peru	9000	10000	living				Latin	false	false	0			
+cbr	Cashibo-Cacataibo	Uni		cbr	panoan__mainline_pano		South America	Peru	1500	1800	living				Latin	false	false	0			
+yaa	Yaminahua	Yaminawa		yaa	panoan__nawa		South America	Peru;Brazil;Bolivia	1200	1400	living				Latin	false	false	0			
+mzr	Marubo	Marubo		mzr	panoan__mainline_pano		South America	Brazil	5000	6000	living				Latin	false	false	0			
+amc	Amahuaca	Yora		amc	panoan__nawa		South America	Peru;Brazil	300	350	endangered				Latin	false	false	0			
+cao	Chácobo	Chácobo		cao	panoan__bolivian_pano		South America	Bolivia	500	800	living				Latin	false	false	0			
+mcd	Sharanahua	Onicoin		mcd	panoan__nawa		South America	Peru	400	450	endangered				Latin	false	false	0			
+mpq	Matis	Mushabo		mpq	panoan__mayoruna		South America	Brazil	400	400	endangered				Latin	false	false	0			
+kaq	Capanahua	Kapanawa		kaq	panoan__mainline_pano		South America	Peru	350	350	endangered				Latin	false	false	0			
+isc	Iskonawa	Iskonawa		isc	panoan__mainline_pano		South America	Peru	15	15	critically endangered				Latin	false	false	0			
+pcp	Pacahuara	Pacahuara		pcp	panoan__bolivian_pano		South America	Bolivia	5	5	critically endangered				Latin	false	false	0			
+knt	Shanenawa	Shanenawa		knt	panoan__mainline_pano		South America	Brazil	400	400	living				Latin	false	false	0			
+ktx	Kaxarari	Kaxararí		ktx	panoan__mainline_pano		South America	Brazil	250	300	endangered				Latin	false	false	0			
+xor	Korubo	Korubo		xor	panoan__mayoruna		South America	Brazil	200	200	living					false	false	0			
+pyn	Poyanawa	Poyanawa		pyn	panoan__mainline_pano		South America	Brazil	10	500	critically endangered				Latin	false	false	0			
+msh	Mastanahua	Mastanahua		msh	panoan__nawa		South America	Peru	100	100	endangered				Latin	false	false	0			
+pno	Panobo	Pano		pno	panoan__mainline_pano		South America	Peru			extinct					false	false	0			
+ywn	Yawanawa	Yawanawá		ywn	panoan__mainline_pano		South America	Brazil	50	800	endangered				Latin	false	false	0			
+kgp	Kaingang	Kanhgág		kgp	macro_je__southern_je		Southern Brazil	Brazil	30000	30000	Vulnerable				Latin	false	false	0			
+xok	Xokleng	Laklãnõ		xok	macro_je__southern_je		Santa Catarina	Brazil	2000	2000	Vulnerable				Latin	false	false	0			
+xav	Xavante	A'uwe		xav	macro_je__central_je		Mato Grosso	Brazil	19000	19000	Vulnerable				Latin	false	false	0			
+xer	Xerente	Akwe		xer	macro_je__central_je		Tocantins	Brazil	3500	3800	Vulnerable				Latin	false	false	0			
+txu	Kayapó	Mebêngôkre		txu	macro_je__northern_je		Pará/Mato Grosso	Brazil	8600	9000	Vulnerable				Latin	false	false	0			
+ram	Canela	Kanela		ram	macro_je__northern_je		Maranhão	Brazil	3000	3000	Vulnerable				Latin	false	false	0			
+xra	Krahô	Craô		xra	macro_je__northern_je		Tocantins	Brazil	2900	2900	Vulnerable				Latin	false	false	0			
+kre	Panará	Panará		kre	macro_je__northern_je		Mato Grosso/Pará	Brazil	600	600	Vulnerable				Latin	false	false	0			
+suy	Suyá	Kĩsêdjê		suy	macro_je__northern_je		Mato Grosso	Brazil	350	400	Vulnerable				Latin	false	false	0			
+kpj	Karajá	Iny Rybè		kpj	macro_je__karaja		Goiás/Tocantins	Brazil	3000	3200	Vulnerable				Latin	false	false	0			
+jav	Javaé	Itya		jav	macro_je__karaja		Tocantins	Brazil	1500	1500	Vulnerable				Latin	false	false	0			
+bor	Bororo	Boe Wadáru		bor	macro_je__bororoan		Mato Grosso	Brazil	1400	1400	Endangered				Latin	false	false	0			
+umu	Umutina	Umutina		umu	macro_je__bororoan		Mato Grosso	Brazil			Extinct				Latin	false	false	0			
+mbl	Maxakalí	Tikmũ'ũn		mbl	macro_je__maxakalian		Minas Gerais	Brazil	1200	1200	Vulnerable				Latin	false	false	0			
+kqq	Krenak	Borun		kqq	macro_je__krenak		Minas Gerais	Brazil	10	50	Critically Endangered				Latin	false	false	0			
+rkb	Rikbaktsa	Rikbaktsa		rkb	macro_je__rikbaktsa		Mato Grosso	Brazil	1100	1100	Endangered				Latin	false	false	0			
+opy	Ofayé	Ofayé		opy	macro_je__ofaye		Mato Grosso do Sul	Brazil	2	15	Critically Endangered				Latin	false	false	0			
+gta	Guató	Guató		gta	macro_je__guato		Mato Grosso do Sul	Brazil;Bolivia	5	50	Critically Endangered				Latin	false	false	0			
+jbt	Djeoromitxí	Djeoromitxí		jbt	macro_je__jabutian		Rondônia	Brazil	50	150	Endangered				Latin	false	false	0			
+ark	Arikapú	Arikapú		ark	macro_je__jabutian		Rondônia	Brazil	2	6	Critically Endangered				Latin	false	false	0			
+car	Kari'nja	Kari'nja	car	car	cariban__guianan_carib		Guiana Shield	Suriname;Guyana;French Guiana;Venezuela;Brazil	7500	8000	living				Latin	false	false	0			
+mbc	Macushi	Makushi		mbc	cariban__venezuelan_carib		Roraima, Rupununi	Brazil;Guyana;Venezuela	25000	30000	living				Latin	false	false	0			
+aoc	Pemon	Pemón		aoc	cariban__venezuelan_carib		Gran Sabana	Venezuela;Brazil;Guyana	30000	30000	living				Latin	false	false	0			
+ake	Akawaio	Kapón		ake	cariban__venezuelan_carib		Mazaruni River	Guyana;Venezuela;Brazil	6000	6000	living				Latin	false	false	0			
+pbc	Patamona	Kapón		pbc	cariban__venezuelan_carib		Potaro-Siparuni	Guyana	4700	5000	living				Latin	false	false	0			
+mch	Ye'kuana	Ye'kuana		mch	cariban__guianan_carib		Orinoco Basin	Venezuela;Brazil	5900	6500	living				Latin	false	false	0			
+way	Wayana	Wayana		way	cariban__guianan_carib		Amazon Basin	Suriname;French Guiana;Brazil	1000	1200	living				Latin	false	false	0			
+tri	Tiriyó	Tiriyó		tri	cariban__guianan_carib		Northern Brazil, Suriname	Brazil;Suriname	2000	2400	living				Latin	false	false	0			
+yup	Yukpa	Ypa		yup	cariban__venezuelan_carib		Serranía del Perijá	Colombia;Venezuela	3000	3500	living				Latin	false	false	0			
+pbh	Panare	E'ñepa		pbh	cariban__venezuelan_carib		Bolívar	Venezuela	3500	4000	living				Latin	false	false	0			
+waw	Waiwai	Waiwai		waw	cariban__parukotoan		Amazon Basin	Guyana;Brazil	2000	3000	living				Latin	false	false	0			
+hix	Hixkaryana	Hixkaryána		hix	cariban__parukotoan		Nhamundá River	Brazil	600	600	living				Latin	false	false	0			
+kui	Kuikuro	Kuikuro		kui	cariban__southern_carib		Xingu Indigenous Park	Brazil	600	650	living				Latin	false	false	0			
+kui	Kalapalo	Kalapalo		kui	cariban__southern_carib		Xingu Indigenous Park	Brazil	400	400	living				Latin	false	false	0			
+bkq	Bakairi	Kurâ		bkq	cariban__southern_carib		Mato Grosso	Brazil	900	950	living				Latin	false	false	0			
+apy	Apalaí	Apalaí		apy	cariban__guianan_carib		Paru Leste River	Brazil	450	450	living				Latin	false	false	0			
+txi	Ikpeng	Ikpeng		txi	cariban__southern_carib		Xingu Indigenous Park	Brazil	460	460	living				Latin	false	false	0			
+atr	Waimiri-Atroari	Kinja		atr	cariban__guianan_carib		Roraima, Amazonas	Brazil	1500	2000	living				Latin	false	false	0			
+aap	Arara (Pará)	Ugôrongmó		aap	cariban__southern_carib		Pará	Brazil	300	300	living				Latin	false	false	0			
+tmz	Tamanaku	Tamanaku		tmz	cariban__venezuelan_carib		Orinoco	Venezuela			extinct				Latin	false	false	0			
+aym	Central Aymara	Aymar aru	ay	aym	aymaran__southern_aymaran		Altiplano	Bolivia;Peru;Argentina	1677100	2000000	Living				Latin	false	false	0			
+aym	Southern Aymara	Aymar aru	ay	aym	aymaran__southern_aymaran		Southern Peru	Peru	219000	220000	Living				Latin	false	false	0			
+jaqaru	Jaqaru	Jaqaru			aymaran__central_aymaran		Yauyos	Peru	740	740	Endangered				Latin	false	false	0			
+kawki	Kawki	Kawki			aymaran__central_aymaran		Yauyos	Peru	10	10	Critically Endangered				Latin	false	false	0			
+arn	Mapudungun	Mapudungun		arn	araucanian__araucanian		Southern South America	Chile;Argentina	260000	300000	Living				Latin	false	false	0			
+huilliche	Huilliche	Chesungun			araucanian__araucanian		Southern South America	Chile	2000	2000	Moribund				Latin	false	false	0			
+lkt	Lakota	Lakȟótiyapi		lkt	siouan_catawban__dakotan		North America	United States;Canada	2100	6000	living				Latin	false	false	0			
+dak	Dakota	Dakȟótiyapi		dak	siouan_catawban__dakotan		North America	United States;Canada	290	1000	living				Latin	false	false	0			
+asb	Assiniboine	Nakona		asb	siouan_catawban__dakotan		North America	Canada;United States	50	150	living				Latin	false	false	0			
+sto	Stoney	Nakoda		sto	siouan_catawban__dakotan		North America	Canada	3200	3500	living				Latin	false	false	0			
+cro	Crow	Apsáalooke		cro	siouan_catawban__missouri_river_siouan		North America	United States	3500	4000	living				Latin	false	false	0			
+hid	Hidatsa	Hiraacá		hid	siouan_catawban__missouri_river_siouan		North America	United States	100	500	living				Latin	false	false	0			
+mhq	Mandan	Nų́ų́ʔetaa íroo		mhq	siouan_catawban__mandan		North America	United States			extinct				Latin	false	false	0			
+win	Ho-Chunk	Hocąk		win	siouan_catawban__chiwere_winnebago		North America	United States	200	300	living				Latin	false	false	0			
+iow	Chiwere	Báxoje-Jíwere-Ñút’achi		iow	siouan_catawban__chiwere_winnebago		North America	United States		30	extinct				Latin	false	false	0			
+oma	Omaha-Ponca	Umoⁿhoⁿ-Paⁿka		oma	siouan_catawban__dhegihan		North America	United States	40	100	living				Latin	false	false	0			
+osa	Osage	Wazhazhe ie		osa	siouan_catawban__dhegihan		North America	United States		50	extinct				Osage	false	false	0			
+ksk	Kansa	Kaánze íe		ksk	siouan_catawban__dhegihan		North America	United States		10	extinct				Latin	false	false	0			
+qua	Quapaw	Ogahpah		qua	siouan_catawban__dhegihan		North America	United States		10	extinct				Latin	false	false	0			
+tutelo	Tutelo	Tutelo			siouan_catawban__ohio_valley_siouan		North America	United States			extinct				Latin	false	false	0			
+bll	Biloxi	Tanêks		bll	siouan_catawban__ohio_valley_siouan		North America	United States			extinct				Latin	false	false	0			
+ofo	Ofo			ofo	siouan_catawban__ohio_valley_siouan		North America	United States			extinct				Latin	false	false	0			
+chc	Catawba	Iye		chc	siouan_catawban__catawban		North America	United States		20	extinct				Latin	false	false	0			
+xwc	Woccon			xwc	siouan_catawban__catawban		North America	United States			extinct				Latin	false	false	0			
+chr	Cherokee	Tsalagi	chr	chr	iroquoian__southern_iroquoian		Oklahoma, North Carolina	United States	12000	20000	Living				Cherokee Syllabary	false	false	0			
+moh	Mohawk	"Kanienɵk ha"	mh	moh	iroquoian__northern_iroquoian		New York, Quebec, Ontario	United States;Canada	3500	4000	Living				Latin	false	false	0			
+one	Oneida	Onʉyotaʔa:ka		one	iroquoian__northern_iroquoian		New York, Wisconsin, Ontario	United States;Canada	200	250	Living				Latin	false	false	0			
+see	Seneca	"On dowʔga:"		see	iroquoian__northern_iroquoian		New York	United States	50	100	Living				Latin	false	false	0			
+cay	Cayuga	"Gayogo̱h :nǫʔ"		cay	iroquoian__northern_iroquoian		Ontario, New York	United States;Canada	60	100	Living				Latin	false	false	0			
+ono	Onondaga	Onoñdaʔgegʔ		ono	iroquoian__northern_iroquoian		New York, Ontario	United States;Canada	50	80	Living				Latin	false	false	0			
+tus	Tuscarora	Skarùːręʔ		tus	iroquoian__northern_iroquoian		New York, Ontario, North Carolina	United States;Canada			Dormant				Latin	false	false	0			
+wya	Wyandot	Wandat		wya	iroquoian__northern_iroquoian		Oklahoma, Quebec	United States;Canada			Dormant				Latin	false	false	0			
+huron	Huron	Wendat			iroquoian__northern_iroquoian		Ontario, Quebec	Canada			Extinct				Latin	false	false	0			
+ntw	Nottoway	Cheroenhaka		ntw	iroquoian__northern_iroquoian		Virginia	United States			Extinct					false	false	0			
+sqn	Susquehannock			sqn	iroquoian__northern_iroquoian		Pennsylvania	United States			Extinct					false	false	0			
+lre	Laurentian			lre	iroquoian__northern_iroquoian		Quebec	Canada			Extinct					false	false	0			
+erie	Erie				iroquoian__northern_iroquoian		Ohio, Pennsylvania	United States			Extinct					false	false	0			
+petun	Petun	Tionontati			iroquoian__northern_iroquoian		Ontario	Canada			Extinct					false	false	0			
+neutral	Neutral	Chonnonton			iroquoian__northern_iroquoian		Ontario	Canada			Extinct					false	false	0			
+wenro	Wenro	Wenrohronon			iroquoian__northern_iroquoian		New York	United States			Extinct					false	false	0			
+meherrin	Meherrin	Kauwetsʔa:ka			iroquoian__northern_iroquoian		Virginia, North Carolina	United States			Extinct					false	false	0			
+blc	Nuxalk	It7Nuxalkmc		blc	salishan__bella_coola		British Columbia	Canada	17	500	Critically Endangered				Latin	false	false	0			
+coo	Comox-Sliammon	ʔayʔajʊθəm		coo	salishan__central_salish		British Columbia	Canada	36	400	Critically Endangered				Latin	false	false	0			
+hur	Halkomelem	Halq'eméylem		hur	salishan__central_salish		British Columbia	Canada	225	500	Endangered				Latin	false	false	0			
+lut	Lushootseed	dxʷləšucid		lut	salishan__central_salish		Washington	United States		300	Reawakening				Latin	false	false	0			
+squ	Squamish	Sḵwx̱wú7mesh		squ	salishan__central_salish		British Columbia	Canada	7	450	Critically Endangered				Latin	false	false	0			
+nok	Nooksack	Lhéchelesem		nok	salishan__central_salish		Washington	United States		10	Dormant				Latin	false	false	0			
+sec	Sechelt	Sháshíshálh		sec	salishan__central_salish		British Columbia	Canada	4	150	Critically Endangered				Latin	false	false	0			
+str	Northern Straits	Lək̓ʷəŋín̓əŋ		str	salishan__central_salish		British Columbia, Washington	Canada;United States	15	60	Critically Endangered				Latin	false	false	0			
+clm	Klallam	Nəxʷsƛ̓ay̓əmúcən		clm	salishan__central_salish		Washington	United States		250	Reawakening				Latin	false	false	0			
+twa	Twana	Tuwáduq		twa	salishan__central_salish		Washington	United States			Dormant				Latin	false	false	0			
+cow	Cowlitz	Sł'púlmš		cow	salishan__tsamosan		Washington	United States		20	Reawakening				Latin	false	false	0			
+cjh	Upper Chehalis	Q̓ʷay̓áyiłq̓		cjh	salishan__tsamosan		Washington	United States			Extinct				Latin	false	false	0			
+cea	Lower Chehalis	Łəw̓ál̓məš		cea	salishan__tsamosan		Washington	United States			Extinct				Latin	false	false	0			
+qun	Quinault	Kʷínaył		qun	salishan__tsamosan		Washington	United States			Extinct				Latin	false	false	0			
+til	Tillamook	Hutyéyu		til	salishan__tillamook		Oregon	United States			Extinct				Latin	false	false	0			
+shs	Shuswap	Secwepemctsín		shs	salishan__northern_interior_salish		British Columbia	Canada	200	1600	Endangered				Latin	false	false	0			
+lil	Lillooet	St'at'imcets		lil	salishan__northern_interior_salish		British Columbia	Canada	200	300	Endangered				Latin	false	false	0			
+thp	Thompson	Nlaka'pamux		thp	salishan__northern_interior_salish		British Columbia	Canada	320	500	Endangered				Latin	false	false	0			
+crd	Coeur d'Alene	Snchitsu'umshtsn		crd	salishan__southern_interior_salish		Idaho	United States	2	40	Critically Endangered				Latin	false	false	0			
+col	Columbia-Moses	Nxaʔamxcín		col	salishan__southern_interior_salish		Washington	United States	25	50	Critically Endangered				Latin	false	false	0			
+oka	Colville-Okanagan	Nsylxcən		oka	salishan__southern_interior_salish		British Columbia, Washington	Canada;United States	150	400	Endangered				Latin	false	false	0			
+fla	Montana Salish	Séliš		fla	salishan__southern_interior_salish		Montana	United States	60	110	Critically Endangered				Latin	false	false	0			
+cho	Choctaw	Chahta'		cho	muskogean__western_muskogean		Southeastern United States & Oklahoma	United States	9600	10000	vulnerable				Latin	false	false	0			
+cic	Chickasaw	Chikashshanompa'		cic	muskogean__western_muskogean		Oklahoma	United States	75	100	critically endangered				Latin	false	false	0			
+mus	Muskogee	Mvskoke		mus	muskogean__eastern_muskogean		Oklahoma, Florida	United States	4000	5000	vulnerable				Latin	false	false	0			
+mik	Mikasuki	Mikisúkî		mik	muskogean__eastern_muskogean		Florida	United States	400	500	vulnerable				Latin	false	false	0			
+akz	Alabama	Albaamo innaaɬiilka		akz	muskogean__eastern_muskogean		Texas	United States	250	280	endangered				Latin	false	false	0			
+cku	Koasati	Kowassá:ti		cku	muskogean__eastern_muskogean		Louisiana, Texas	United States	300	350	endangered				Latin	false	false	0			
+xap	Apalachee			xap	muskogean__eastern_muskogean		Florida	United States			extinct				Latin	false	false	0			
+hitchiti	Hitchiti	Atcik-hata			muskogean__eastern_muskogean		Georgia, Florida	United States			extinct					false	false	0			
+houma	Houma				muskogean__western_muskogean		Louisiana	United States			extinct					false	false	0			
+tuo	Tucano	Dahseyé		tuo	tucanoan__eastern_tucanoan		Vaupés Region	Brazil;Colombia	6000	20000	Vulnerable				Latin	false	false	0			
+cub	Cubeo	Pamiwa		cub	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	6500	6500	Vulnerable				Latin	false	false	0			
+gvc	Guanano	Kotiria		gvc	guaicuruan__southern_guaicuruan		Vaupés Region	Brazil;Colombia	1600	1600	Endangered				Latin	false	false	0			
+des	Desano	Wirã		des	tucanoan__eastern_tucanoan		Vaupés Region	Brazil;Colombia	2500	2500	Endangered				Latin	false	false	0			
+pir	Piratapuyo	Wa'ikhana		pir	tucanoan__eastern_tucanoan		Vaupés Region	Brazil;Colombia	1500	1500	Endangered				Latin	false	false	0			
+bsn	Barasana	Jebá		bsn	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	1900	1900	Vulnerable				Latin	false	false	0			
+myy	Macuna	Buhagana		myy	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	1000	1000	Vulnerable				Latin	false	false	0			
+sri	Siriano	Selei		sri	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	300	300	Endangered				Latin	false	false	0			
+tav	Tatuyo	Suna		tav	tucanoan__eastern_tucanoan		Vaupés Region	Colombia	400	400	Endangered				Latin	false	false	0			
+cbc	Carapana	Moxdoa		cbc	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	450	450	Endangered				Latin	false	false	0			
+yui	Yuruti	Wajiara		yui	tucanoan__eastern_tucanoan		Vaupés Region	Colombia;Brazil	500	500	Endangered				Latin	false	false	0			
+coe	Koreguaje	Korébaju		coe	tucanoan__western_tucanoan		Caquetá	Colombia	2000	2000	Vulnerable				Latin	false	false	0			
+snn	Siona	Gantëya		snn	tucanoan__western_tucanoan		Putumayo	Colombia;Ecuador	400	400	Endangered				Latin	false	false	0			
+sey	Secoya	Aido Pãi		sey	tucanoan__western_tucanoan		Napo	Ecuador;Peru	1000	1000	Endangered				Latin	false	false	0			
+ore	Orejón	Maijiki		ore	tucanoan__western_tucanoan		Napo	Peru	100	100	Critically Endangered				Latin	false	false	0			
+tnc	Tanimuca	Ufaina		tnc	tucanoan__western_tucanoan		Amazonas	Colombia	300	300	Vulnerable				Latin	false	false	0			
+mto	Totontepec Mixe	Ayuk		mto	mixe_zoque__mixean		Oaxaca	Mexico	5500	5500	living				Latin	false	false	0			
+mxp	Tlahuitoltepec Mixe	Xaamkëjxp		mxp	mixe_zoque__mixean		Oaxaca	Mexico	14000	14000	living				Latin	false	false	0			
+mir	Isthmus Mixe	Ayuk		mir	mixe_zoque__mixean		Oaxaca	Mexico	45000	45000	living				Latin	false	false	0			
+mco	Ayutla Mixe	Tukyo'm		mco	mixe_zoque__mixean		Oaxaca	Mexico	5500	5500	living				Latin	false	false	0			
+mxq	Juquila Mixe	Kojy-tsaam		mxq	mixe_zoque__mixean		Oaxaca	Mexico	8500	8500	living				Latin	false	false	0			
+mzl	Mazatlán Mixe	Tutu Aayúujk		mzl	mixe_zoque__mixean		Oaxaca	Mexico	19000	19000	living				Latin	false	false	0			
+neq	North Central Mixe	Ayüük		neq	mixe_zoque__mixean		Oaxaca	Mexico	13000	13000	living				Latin	false	false	0			
+pxm	Quetzaltepec Mixe	Ayüük		pxm	mixe_zoque__mixean		Oaxaca	Mexico	6500	6500	living				Latin	false	false	0			
+pos	Sayula Popoluca	Yamay		pos	mixe_zoque__mixean		Veracruz	Mexico	4000	4000	living				Latin	false	false	0			
+plo	Oluta Popoluca	Yaak'awü		plo	mixe_zoque__mixean		Veracruz	Mexico	10	10	critically endangered				Latin	false	false	0			
+poi	Sierra Popoluca	Nuntajɨyi		poi	mixe_zoque__zoquean		Veracruz	Mexico	28000	28000	living				Latin	false	false	0			
+poq	Texistepec Popoluca	Wää 'oot		poq	mixe_zoque__zoquean		Veracruz	Mexico	15	15	critically endangered				Latin	false	false	0			
+zoc	Copainalá Zoque	O'de püt		zoc	mixe_zoque__zoquean		Chiapas	Mexico	10000	10000	living				Latin	false	false	0			
+zos	Francisco León Zoque	O'de püt		zos	mixe_zoque__zoquean		Chiapas	Mexico	20000	20000	living				Latin	false	false	0			
+zor	Rayón Zoque	O'de püt		zor	mixe_zoque__zoquean		Chiapas	Mexico	2200	2200	living				Latin	false	false	0			
+zoh	Chimalapa Zoque	Angpø'n		zoh	mixe_zoque__zoquean		Oaxaca	Mexico	4500	4500	living				Latin	false	false	0			
+zoq	Tabasco Zoque	Nuumte Oote		zoq	mixe_zoque__zoquean		Tabasco	Mexico	5	5	critically endangered				Latin	false	false	0			
+jto	Jitotol Zoque	O'de püt		jto	mixe_zoque__zoquean		Chiapas	Mexico	1500	1500	living				Latin	false	false	0			
+tot	Highland Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	120000	120000	Vulnerable				Latin	false	false	0			
+tot	Papantla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	80000	80000	Vulnerable				Latin	false	false	0			
+tot	Xicotepec de Juárez Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3000	3000	Definitely endangered				Latin	false	false	0			
+tot	Filomeno Mata Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	15000	15000	Vulnerable				Latin	false	false	0			
+tot	Coyutla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	48000	48000	Vulnerable				Latin	false	false	0			
+tot	Upper Necaxa Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3400	3400	Definitely endangered				Latin	false	false	0			
+tot	Tecpatlán Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	540	540	Definitely endangered				Latin	false	false	0			
+tot	Ozumatlán Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	1500	1500	Definitely endangered				Latin	false	false	0			
+tot	Yecuatla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	130	130	Severely endangered				Latin	false	false	0			
+huehuetla_tepehua	Huehuetla Tepehua	Lhiimaqalhqama'			totonacan__tepehua		Hidalgo, Mexico	Mexico	1500	1500	Definitely endangered				Latin	false	false	0			
+tlachichilco_tepehua	Tlachichilco Tepehua	Maqalhqama'			totonacan__tepehua		Veracruz, Mexico	Mexico	3000	3000	Definitely endangered				Latin	false	false	0			
+pisaflores_tepehua	Pisaflores Tepehua	Lhima'alh'ama'			totonacan__tepehua		Veracruz, Mexico	Mexico	4000	4000	Severely endangered				Latin	false	false	0			
+bam	Bambara	Bamanankan	bm	bam	mande__manding		West Africa	Mali;Burkina Faso;Senegal	5000000	14000000	living				Latin, N'Ko	false	false	0			
+dyu	Dyula	Julakan		dyu	mande__manding		West Africa	Côte d'Ivoire;Burkina Faso	1500000	12000000	living				Latin, N'Ko, Arabic	false	false	0			
+mnk	Mandinka	Mandinka		mnk	mande__manding		West Africa	Senegal;Gambia;Guinea-Bissau	1300000	1500000	living				Latin, Arabic	false	false	0			
+emk	Maninka, Eastern	Maninkakan		emk	mande__manding		West Africa	Guinea;Mali	3300000	4000000	living				Latin, N'Ko, Arabic	false	false	0			
+snk	Soninke	Soninkanxe	sn	snk	mande__soninke_bozo		West Africa	Mali;Senegal;Mauritania;Gambia	2200000	2500000	living				Latin, Arabic	false	false	0			
+sus	Susu	Sosoxui	su	sus	mande__susu_jalonke		West Africa	Guinea;Sierra Leone	1100000	1500000	living				Latin, Arabic	false	false	0			
+yal	Yalunka	Yalunka		yal	mande__susu_jalonke		West Africa	Guinea;Sierra Leone;Mali	150000	200000	living				Latin, Arabic	false	false	0			
+men	Mende	Mɛnde yia		men	mande__southwest_mande		West Africa	Sierra Leone;Liberia	1500000	2000000	living				Latin, Mende Kikakui	false	false	0			
+kpe	Kpelle	Kpele		kpe	mande__southwest_mande		West Africa	Liberia;Guinea	1300000	1300000	living				Latin	false	false	0			
+lom	Loma	Lɔɔma		lom	mande__southwest_mande		West Africa	Liberia;Guinea	400000	400000	living				Latin	false	false	0			
+bza	Bandi	Bandi		bza	mande__southwest_mande		West Africa	Liberia	100000	100000	living				Latin	false	false	0			
+vai	Vai	Vai		vai	mande__vai_kono		West Africa	Liberia;Sierra Leone	120000	120000	living				Vai Syllabary, Latin	false	false	0			
+kno	Kono	Kono		kno	mande__vai_kono		West Africa	Sierra Leone	250000	250000	living				Latin	false	false	0			
+dnj	Dan	Dan		dnj	mande__southern_mande		West Africa	Côte d'Ivoire;Liberia	1200000	1300000	living				Latin	false	false	0			
+mev	Mano	Maa		mev	mande__southwest_mande		West Africa	Liberia;Guinea	400000	400000	living				Latin	false	false	0			
+goa	Guro	Kweni		goa	mande__southern_mande		West Africa	Côte d'Ivoire	500000	500000	living				Latin	false	false	0			
+bib	Bisa	Bissa		bib	mande__east_mande		West Africa	Burkina Faso;Ghana	600000	600000	living				Latin	false	false	0			
+boz	Bozo, Tieyaxo	Tiéyaxo		boz	mande__soninke_bozo		West Africa	Mali	170000	170000	living				Latin	false	false	0			
+bqc	Boko	Boko		bqc	mande__east_mande		West Africa	Benin;Nigeria	150000	150000	living				Latin	false	false	0			
+san	San	Samo			mande__east_mande		West Africa	Burkina Faso	250000	250000	living				Latin	false	false	0			
+dje	Zarma	Zarma Ciine		dje	songhay__southern_songhay		West Africa	Niger;Nigeria;Burkina Faso;Mali	3500000	5000000	living				Latin	false	false	0			
+ses	Koyraboro Senni	Koyraboro Senni		ses	songhay__southern_songhay		West Africa	Mali	400000	430000	living				Latin	false	false	0			
+khq	Koyra Chiini	Koyra Chiini		khq	songhay__southern_songhay		West Africa	Mali	200000	200000	living				Latin	false	false	0			
+ddn	Dendi	Dendi		ddn	songhay__southern_songhay		West Africa	Benin;Niger	30000	100000	living				Latin	false	false	0			
+dsq	Tadaksahak	Tadaksahak		dsq	songhay__northern_songhay		West Africa	Mali	100000	100000	living				Latin	false	false	0			
+twq	Tasawaq	Tasawaq		twq	songhay__northern_songhay		West Africa	Niger	8000	8000	living				Latin	false	false	0			
+kcy	Korandje	Korandje		kcy	songhay__northern_songhay		North Africa	Algeria	3000	3000	living				Arabic	false	false	0			
+hmb	Humburi Senni	Humburi Senni		hmb	songhay__southern_songhay		West Africa	Mali	15000	25000	living				Latin	false	false	0			
+tst	Tondi Songway Kiini	Tondi Songway Kiini		tst	songhay__southern_songhay		West Africa	Mali	3000	3000	living					false	false	0			
+tda	Tagdal	Tagdal		tda	songhay__northern_songhay		West Africa	Niger	27000	27000	living					false	false	0			
+djenne_chiini	Djenne Chiini	Djenné Chiini			songhay__southern_songhay		West Africa	Mali			living				Latin	false	false	0			
+khi	Khoekhoe	Khoekhoegowab		khi	khoe__khoekhoe		Southern Africa	Namibia;South Africa;Botswana	200000	250000	living				Latin	false	false	0			
+khi	Hai||om	Hai||om		khi	khoe__khoekhoe		Northern Namibia	Namibia	16000	16000	living				Latin	false	false	0			
+kqz	Korana	!Ora		kqz	khoe__khoekhoe		South Africa	South Africa			extinct				Latin	false	false	0			
+xii	Xiri	Xiri		xii	khoe__khoekhoe		South Africa	South Africa			extinct				Latin	false	false	0			
+nhr	Naro	Naro		nhr	khoe__west_kalahari_khoe		Ghanzi District	Botswana;Namibia	14000	14000	living				Latin	false	false	0			
+xuu	Khwe	Kxoe		xuu	khoe__west_kalahari_khoe		Caprivi Strip	Namibia;Botswana;Angola;Zambia	8000	8000	living				Latin	false	false	0			
+gnk	G||ana	G||ana		gnk	khoe__west_kalahari_khoe		Kalahari Desert	Botswana	2000	2000	living				Latin	false	false	0			
+gwj	G|ui	G|ui		gwj	khoe__west_kalahari_khoe		Kalahari Desert	Botswana	2500	2500	living				Latin	false	false	0			
+shg	Shua	Shua		shg	khoe__east_kalahari_khoe		Nata River Basin	Botswana	6000	6000	living				Latin	false	false	0			
+hio	Tsoa	Tsoa		hio	khoe__east_kalahari_khoe		Eastern Kalahari	Botswana;Zimbabwe	5000	5000	living				Latin	false	false	0			
+tyu	Kua	Kua		tyu	khoe__east_kalahari_khoe		Central Kalahari	Botswana	800	800	living				Latin	false	false	0			
+dnc	Danisi	Danisi		dnc	khoe__east_kalahari_khoe		Nata River	Botswana			living				Latin	false	false	0			
+hio	Tshwa	Tshwa		hio	khoe__east_kalahari_khoe		Eastern Kalahari	Botswana;Zimbabwe	6000	6000	living				Latin	false	false	0			
+kwz	Kwadi	Kwadi		kwz	khoe__kwadi		Namibe Province	Angola			extinct					false	false	0			
+eini	Eini	Eini			khoe__khoekhoe		Orange River	South Africa			extinct					false	false	0			
+hnh	Ani	||Ani		hnh	khoe__west_kalahari_khoe		Okavango Delta	Botswana	1000	1000	living				Latin	false	false	0			
+nmn	!Xóõ	ǃXóõ		nmn	tuu__taa		Southern Africa	Botswana;Namibia	4000	4000	Vulnerable				Latin	false	false	0			
+nsr	Lower Nossob			nsr	tuu__taa		Southern Africa	South Africa;Botswana			Extinct					false	false	0			
+ngh	Nǁng	Nǀuu		ngh	tuu__kwi		Southern Africa	South Africa	3	3	Critically Endangered				Latin	false	false	0			
+xam	ǀXam	ǀXam		xam	tuu__kwi		Southern Africa	South Africa			Extinct				Latin	false	false	0			
+xeg	ǁXegwi	ǁXegwi		xeg	tuu__kwi		Southern Africa	South Africa			Extinct					false	false	0			
+kqu	Seroa	Seroa		kqu	tuu__kwi		Southern Africa	South Africa			Extinct					false	false	0			
+ga_ne	ǃGãǃne	ǃGãǃne			tuu__kwi		Southern Africa	South Africa			Extinct					false	false	0			
+haasi	ǀHaasi	ǀHaasi			tuu__taa		Southern Africa	South Africa			Extinct					false	false	0			
+auni	ǀʼAuni	ǀʼAuni			tuu__taa		Southern Africa	South Africa			Extinct					false	false	0			
+kqc	Kakia	Masarwa		kqc	tuu__taa		Southern Africa	Botswana			Extinct					false	false	0			
+khomani	ǂKhomani	ǂKhomani			tuu__kwi		Southern Africa	South Africa			Extinct					false	false	0			
+kwi	ǃKwi	ǃKwi			tuu__kwi		Southern Africa	South Africa			Extinct					false	false	0			
+tshasi	Tshasi				tuu__taa		Southern Africa	Botswana			Extinct					false	false	0			
+west_taa	West Taa				tuu__taa		Southern Africa	Namibia			Vulnerable				Latin	false	false	0			
+east_taa	East Taa				tuu__taa		Southern Africa	Botswana			Vulnerable				Latin	false	false	0			
+ju_hoan	Juǀ'hoan	Juǀʼhoansi			kx_a__juu		Southern Africa	Namibia;Botswana	34000	35000	living				Latin	false	false	0			
+ekoka_kung	Ekoka ǃKung	ǃKung			kx_a__juu		Southern Africa	Namibia;Angola	15000	18000	living				Latin	false	false	0			
+amkoe	ǂʼAmkoe	ǂʼAmkoe			kx_a__amkoe		Southern Africa	Botswana	60	60	moribund				Latin	false	false	0			
+vasekela	Vasekela	Vasekela			kx_a__juu		Southern Africa	Namibia;Angola	6200	6200	living				Latin	false	false	0			
+maligo	Maligo	Maligo			kx_a__juu		Southern Africa	Angola;Namibia	2500	2500	threatened				Latin	false	false	0			
+mangetti_dune_kung	Mangetti Dune ǃKung	ǃKung			kx_a__juu		Southern Africa	Namibia	1000	1000	living				Latin	false	false	0			
+omatako_kung	Omatako ǃKung	ǃKung			kx_a__juu		Southern Africa	Namibia	500	500	living				Latin	false	false	0			
+n_aqriaxe	Nǃaqriaxe	Nǃaqriaxe			kx_a__amkoe		Southern Africa	Botswana	15	15	critically endangered				Latin	false	false	0			
+hoan	ǂHoan	ǂHȍã			kx_a__amkoe		Southern Africa	Botswana	30	30	critically endangered				Latin	false	false	0			
+sasi	Sasi	Sasi			kx_a__amkoe		Southern Africa	Botswana	10	10	critically endangered				Latin	false	false	0			
+ket	Ket	Ostigan			yeniseian__northern_yeniseian		Siberia (Krasnoyarsk Krai)	Russia	200	500	living				Cyrillic	false	false	0			
+yugh	Yugh				yeniseian__northern_yeniseian		Siberia (Turukhansky District)	Russia			extinct					false	false	0			
+kott	Kott				yeniseian__southern_yeniseian		Siberia (Mana River)	Russia			extinct					false	false	0			
+assan	Assan				yeniseian__southern_yeniseian		Siberia (South of Krasnoyarsk)	Russia			extinct					false	false	0			
+arin	Arin	Arin			yeniseian__southern_yeniseian		Siberia (Yenisei River)	Russia			extinct					false	false	0			
+pumpokol	Pumpokol				yeniseian__southern_yeniseian		Siberia (Upper Ket River)	Russia			extinct					false	false	0			
+ykg	Tundra Yukaghir	Вадул		ykg	yukaghir__yukaghir		Russian Far East	Russia	60	370	Moribund				Cyrillic	false	false	0			
+yux	Kolyma Yukaghir	Одул		yux	yukaghir__yukaghir		Russian Far East	Russia	10	50	Moribund				Cyrillic	false	false	0			
+omk	Omok			omk	yukaghir__yukaghir		Russian Far East	Russia			Extinct					false	false	0			
+xcv	Chuvan			xcv	yukaghir__yukaghir		Russian Far East	Russia			Extinct					false	false	0			
+aml	Abelam	Ambulas		aml	sepik__middle_sepik		East Sepik Province	Papua New Guinea	45000	45000	living				Latin	false	false	0			
+bzf	Boiken	Nucum		bzf	sepik__middle_sepik		East Sepik Province	Papua New Guinea	35000	35000	living				Latin	false	false	0			
+ian	Iatmul	Gepma		ian	sepik__middle_sepik		Middle Sepik River	Papua New Guinea	8400	8400	living				Latin	false	false	0			
+sic	Sawos			sic	sepik__middle_sepik		East Sepik Province	Papua New Guinea	9000	9000	living				Latin	false	false	0			
+mle	Manambu			mle	sepik__middle_sepik		East Sepik Province	Papua New Guinea	2100	2100	living				Latin	false	false	0			
+kmo	Kwoma			kmo	sepik__middle_sepik		East Sepik Province	Papua New Guinea	3000	3000	living				Latin	false	false	0			
+kwj	Kwanga			kwj	sepik__middle_sepik		East Sepik Province	Papua New Guinea	13000	13000	living				Latin	false	false	0			
+amp	Alamblak			amp	sepik__sepik_hill		East Sepik Province	Papua New Guinea	1500	1500	living				Latin	false	false	0			
+bjd	Bahinemo	Inaru		bjd	sepik__sepik_hill		East Sepik Province	Papua New Guinea	550	550	living				Latin	false	false	0			
+dju	Kapriman	Wasare		dju	sepik__sepik_hill		East Sepik Province	Papua New Guinea	1600	1600	living				Latin	false	false	0			
+aau	Abau			aau	sepik__upper_sepik		Sandaun Province	Papua New Guinea	7000	7000	living				Latin	false	false	0			
+iwm	Iwam	May River Iwam		iwm	sepik__upper_sepik		East Sepik Province	Papua New Guinea	3000	3000	living				Latin	false	false	0			
+iws	Sepik Iwam	Yawenian		iws	sepik__upper_sepik		East Sepik Province	Papua New Guinea	2500	2500	living				Latin	false	false	0			
+wog	Wogamusin	Wongamusin		wog	sepik__upper_sepik		East Sepik Province	Papua New Guinea	700	700	living				Latin	false	false	0			
+yss	Yessan-Mayo	Yessan		yss	sepik__tama		East Sepik Province	Papua New Guinea	2000	2000	living				Latin	false	false	0			
+nux	Mehek	Driafleisuma		nux	sepik__tama		East Sepik Province	Papua New Guinea	6300	6300	living				Latin	false	false	0			
+nnm	Namia	Edawapi		nnm	sepik__yellow_river		Sandaun Province	Papua New Guinea	6000	6000	living				Latin	false	false	0			
+akq	Ak			akq	sepik__yellow_river		Sandaun Province	Papua New Guinea	75	75	living					false	false	0			
+aww	Awun			aww	sepik__yellow_river		Sandaun Province	Papua New Guinea	400	400	living					false	false	0			
+xrw	Karawa	Bulawa		xrw	sepik__ram		Sandaun Province	Papua New Guinea	60	60	living					false	false	0			
+bye	Pouye			bye	sepik__ram		Sandaun Province	Papua New Guinea	900	900	living				Latin	false	false	0			
+ong	Olo	Olo		ong	torricelli__wapei		Sandaun Province	Papua New Guinea	13700	13700	Vulnerable				Latin	false	false	0			
+avt	Au	Au		avt	torricelli__wapei		Sandaun Province	Papua New Guinea	8000	8000	Vulnerable				Latin	false	false	0			
+ape	Bukiyip	Bukiyip		ape	torricelli__arapesh		East Sepik Province	Papua New Guinea	16000	16000	Vulnerable				Latin	false	false	0			
+aoj	Mufian	Mufian		aoj	torricelli__arapesh		East Sepik Province	Papua New Guinea	11000	11000	Vulnerable				Latin	false	false	0			
+ado	Abu	Abu'		ado	torricelli__arapesh		East Sepik Province	Papua New Guinea	2400	2400	Vulnerable				Latin	false	false	0			
+aon	Bumbita	Bumbita		aon	torricelli__arapesh		East Sepik Province	Papua New Guinea	4300	4300	Vulnerable				Latin	false	false	0			
+kms	Kamasau	Wand Tuan		kms	torricelli__marienberg		East Sepik Province	Papua New Guinea	950	950	Definiteley endangered				Latin	false	false	0			
+bvn	Buna	Buna		bvn	torricelli__marienberg		East Sepik Province	Papua New Guinea	750	750	Definiteley endangered				Latin	false	false	0			
+uri	Urim	Kalp		uri	torricelli__urim		East Sepik Province	Papua New Guinea	3700	3700	Vulnerable				Latin	false	false	0			
+urx	Urimo	Urimo		urx	torricelli__marienberg		East Sepik Province	Papua New Guinea	2600	2600	Vulnerable				Latin	false	false	0			
+xbi	Kombio	Kombio		xbi	torricelli__kombio		East Sepik Province	Papua New Guinea	2900	2900	Vulnerable				Latin	false	false	0			
+yis	Yis	Yis		yis	torricelli__wapei		Sandaun Province	Papua New Guinea	320	320	Endangered					false	false	0			
+van	Valman	Valman		van	torricelli__wapei		Sandaun Province	Papua New Guinea	1700	1700	Vulnerable				Latin	false	false	0			
+mxk	Monumbo	Monumbo		mxk	torricelli__monumbo		Madang Province	Papua New Guinea	450	450	Severely endangered				Latin	false	false	0			
+ill	Lilau	Lilau		ill	torricelli__monumbo		Madang Province	Papua New Guinea	450	450	Severely endangered				Latin	false	false	0			
+auk	Heyo	Arin		auk	torricelli__maimai		Sandaun Province	Papua New Guinea	2700	2700	Vulnerable				Latin	false	false	0			
+rhp	Yahang	Yahang		rhp	torricelli__maimai		Sandaun Province	Papua New Guinea	1400	1400	Vulnerable					false	false	0			
+lsr	Aruop	Srenge		lsr	torricelli__palei		Sandaun Province	Papua New Guinea	700	700	Endangered				Latin	false	false	0			
+aof	Bragat	Bragat		aof	torricelli__palei		Sandaun Province	Papua New Guinea	460	460	Endangered					false	false	0			
+gnu	Gnau	Gnau		gnu	torricelli__wapei		Sandaun Province	Papua New Guinea	990	990	Vulnerable				Latin	false	false	0			
+yyu	Yau	Yau		yyu	torricelli__wapei		Sandaun Province	Papua New Guinea	150	150	Endangered					false	false	0			
+mkc	Siliput	Siliput		mkc	torricelli__maimai		Sandaun Province	Papua New Guinea	540	540	Endangered					false	false	0			
+mty	Nambi	Nabi		mty	torricelli__palei		Sandaun Province	Papua New Guinea	640	640	Definiteley endangered					false	false	0			
+ele	Elepi	Samap		ele	torricelli__marienberg		East Sepik Province	Papua New Guinea	360	360	Endangered					false	false	0			
+eit	Eitiep	Eitiep		eit	torricelli__kombio		East Sepik Province	Papua New Guinea	430	430	Endangered					false	false	0			
+fin	Finnish			fin	uralic__finnic						living					false	false	0		61	24.45
+krl	North Karelian			krl	uralic__finnic						living					false	false	0		65.1691	30.8655
+olo	Olonets Karelian			olo	uralic__finnic						living					false	false	0		61	33
+vep	Veps			vep	uralic__finnic						living					false	false	0		60.3353	34.7865
+ekk	Estonian			ekk	uralic__finnic						living					false	false	0		59.25	24.75
+liv	Livonian			liv	uralic__finnic						living					false	false	0		57.566	22.0262
+sma	Southern Sami			sma	uralic__saami						living					false	false	0		64.25	12.6
+smj	Lule Sami			smj	uralic__saami						living					false	false	0		67.2759	17.8057
+sme	Northern Sami			sme	uralic__saami						living					false	false	0		68.725	22.1113
+smn	Inari Sami			smn	uralic__saami						living					false	false	0		69.4229	27.8658
+sms	Skolt Sami			sms	uralic__saami						living					false	false	0		68.8326	29.7204
+sjd	Kildin Sami			sjd	uralic__saami						living					false	false	0		68.2158	35.8348
+mrj	Hill Mari			mrj	uralic__mari						living					false	false	0		56.33	46.33
+mhr	Meadow Mari			mhr	uralic__mari						living					false	false	0		57	49.5
+mdf	Moksha			mdf	uralic__mordvin						living					false	false	0		54.1855	42.6728
+myv	Erzya			myv	uralic__mordvin						living					false	false	0		53	45.5
+udm	Udmurt			udm	uralic__permian						living					false	false	0		56.12921	52.63548
+koi	Komi-Permyak			koi	uralic__permian						living					false	false	0		59.6602	54.7959
+kpv	Komi-Zyrian			kpv	uralic__permian						living					false	false	0		64.0527	54.946
+hun	Hungarian			hun	uralic__hungarian						living					false	false	0		46.9068585714	19.6555271429
+kca	Northern Khanty			kca	uralic__khantyic						living					false	false	0		62.4308	66.1218
+mns	Northern Mansi			mns	uralic__mansic						living					false	false	0		64.4118	61.344
+sel	Northern Selkup			sel	uralic__samoyedic						living					false	false	0		59.9409	82.3004
+yrk	Tundra Nenets			yrk	uralic__samoyedic						living					false	false	0		66.1775	71.0234
+enf	Forest Enets			enf	uralic__samoyedic						living					false	false	0		69.9829	88.2121
+nio	Nganasan			nio	uralic__samoyedic						living					false	false	0		73.1354	86.2106
+ben	Bengali			ben	indo_european__indo_aryan						living					false	false	0		24	90
+hin	Hindi			hin	indo_european__indo_aryan						living					false	false	0		27.2	78
+pbu	Northern Pashto			pbu	indo_european__iranian						living					false	false	0		32.1	67.2
+pes	Western Farsi			pes	indo_european__iranian						living					false	false	0		28.6593	55.1586
+kmr	Northern Kurdish			kmr	indo_european__iranian						living					false	false	0		37	43
+oss	Ossetian			oss	indo_european__iranian						living					false	false	0		43.18	44.23
+hye	Armenian			hye	indo_european__armenic						living					false	false	0		40	45
+ell	Modern Greek			ell	indo_european__graeco_phrygian						living					false	false	0		38	23.75
+sqi	Standard Albanian			sqi	indo_european__albanian						living					false	false	0		41.33	19.85
+bul	Bulgarian			bul	indo_european__balto_slavic						living					false	false	0		42.7	23.8
+hrv	Croatian			hrv	indo_european__balto_slavic						living					false	false	0		45.2006	16.826
+slv	Slovene			slv	indo_european__balto_slavic						living					false	false	0		46.2543	14.7766
+slk	Slovak			slk	indo_european__balto_slavic						living					false	false	0		48.545705	18.78479
+ces	Czech			ces	indo_european__balto_slavic						living					false	false	0		49.873398	15.10437
+pol	Polish			pol	indo_european__balto_slavic						living					false	false	0		51.8439	18.6255
+ukr	Ukrainian			ukr	indo_european__balto_slavic						living					false	false	0		50.25	28.65
+bel	Belarusian			bel	indo_european__balto_slavic						living					false	false	0		53.2307	25.6038
+rus	Russian			rus	indo_european__balto_slavic						living					false	false	0		57.6	39.8
+lit	Lithuanian			lit	indo_european__balto_slavic						living					false	false	0		55.1429	23.9601
+lav	Latvian			lav	indo_european__balto_slavic						living					false	false	0		56.826108	24.309118
+isl	Icelandic			isl	indo_european__germanic						living					false	false	0		63.4837	-19.0212
+nor	Norwegian (Bokmål)			nor	indo_european__germanic						living					false	false	0		59.92	10.71
+swe	Swedish			swe	indo_european__germanic						living					false	false	0		59.800634	17.389526
+dan	Danish			dan	indo_european__germanic						living					false	false	0		55.6	12.5
+deu	German			deu	indo_european__germanic						living					false	false	0		52.27	10.5
+nld	Dutch			nld	indo_european__germanic						living					false	false	0		52	5
+eng	English			eng	indo_european__germanic						living					false	false	0		53	-1
+gle	Irish			gle	indo_european__celtic						living					false	false	0		53.2186	-7.61509
+cym	Welsh			cym	indo_european__celtic						living					false	false	0		52	-4
+bre	Breton			bre	indo_european__celtic						living					false	false	0		48.2452	-3.78934
+lat	Latin			lat	indo_european__italic						living					false	false	0		41.9026	12.4502
+fra	French			fra	indo_european__italic						living					false	false	0		48	2
+cat	Catalan			cat	indo_european__italic						living					false	false	0		41.453	1.569
+spa	Spanish			spa	indo_european__italic						living					false	false	0		42.25	-3.7
+por	Portuguese			por	indo_european__italic						living					false	false	0		39.91	-8.1
+ita	Italian			ita	indo_european__italic						living					false	false	0		43.0464	12.6489
+ron	Romanian			ron	indo_european__italic						living					false	false	0		46.3913	24.2256
+azj	North Azerbaijani			azj	turkic__west_oghuz						living					false	false	0		40.4	49.6
+uzn	Northern Uzbek			uzn	turkic__uzbek						living					false	false	0		39.65	67
+khk	Khalkha Mongolian			khk	mongolic__eastern_mongolic						living					false	false	0		48.324	106.289
+bua	Buryat			bua	mongolic__eastern_mongolic						living					false	false	0		51.83	107.6
+xal	Kalmyk			xal	mongolic__eastern_mongolic						living					false	false	0		46.566667	45.316667
+evn	Evenki			evn	tungusic__northern_tungusic						living					false	false	0		65.75	105.3
+mnc	Manchu			mnc	tungusic__manchu_jurchen						living					false	false	0		47.3122	126.557
+gld	Nanai			gld	tungusic__central_tungusic						living					false	false	0		48.4343	134.797
+itl	Itelmen			itl	chukotko_kamchatkan__itelmen						living					false	false	0		56.7798	156.906
+ckt	Chukchi			ckt	chukotko_kamchatkan__chukotian						living					false	false	0		68.6436	170.045
+niv	Nivkh			niv	nivkh__nivkh						living					false	false	0		52.59	140.681
+ain	Hokkaido Ainu			ain	ainu__hokkaido_kuril_ainu						living					false	false	0		43.633654	142.46167
+kor	Korean			kor	koreanic__korean						living					false	false	0		37.5	128
+jpn	Japanese			jpn	japonic__japanesic						living					false	false	0		35	135
+ale	Aleut			ale	eskimo_aleut__aleut						living					false	false	0		52.1228	-174.29
+ess	Central Siberian Yupik			ess	esselen__esselen_language						living					false	false	0		63.4308	-170.272
+kal	Kalaallisut			kal	eskimo_aleut__eskimo						living					false	false	0		69.3761	-52.864
+kan	Kannada			kan	dravidian__south_dravidian						living					false	false	0		13.5878	76.1198
+mal	Malayalam			mal	dravidian__south_dravidian						living					false	false	0		9.59208	76.7651
+tam	Tamil			tam	dravidian__south_dravidian						living					false	false	0		10.520219	78.825989
+tel	Telugu			tel	dravidian__south_dravidian						living					false	false	0		16.4529	78.7024
+bsk	Burushaski			bsk	burushaski__burushaski						living					false	false	0		36.2161	74.8236
+kat	Georgian			kat	kartvelian__georgian_zan						living					false	false	0		41.850397	43.78613
+eus	Basque			eus	basque__basque						living					false	false	0		43.2787	-1.31622
+abk	Abkhaz			abk	abkhaz_adyge__abkhaz_abaza						living					false	false	0		43.056218	41.159115
+ady	Adyghe			ady	abkhaz_adyge__circassian						living					false	false	0		44.65	40
+ava	Avar			ava	nakh_daghestanian__daghestanian						living					false	false	0		41.7047	46.558
+ddo	Tsez			ddo	nakh_daghestanian__daghestanian						living					false	false	0		42.2646	45.8096
+lbe	Lak			lbe	nakh_daghestanian__daghestanian						living					false	false	0		42.1328	47.0809
+lez	Lezgian			lez	nakh_daghestanian__daghestanian						living					false	false	0		41.5157	47.8951
+dar	Dargwa			dar	nakh_daghestanian__daghestanian						living					false	false	0		42.4257	47.4388
+che	Chechen			che	nakh_daghestanian__nakh						living					false	false	0		43.5	45.5
+arb	Standard Arabic			arb	zaparoan__zaparoan_languages						living					false	false	0		27.9625	43.8525
+heb	Modern Hebrew			heb	afro_asiatic__semitic						living					false	false	0		31.1056	35.0179
+kab	Kabyle	Taqbaylit		kab	afro_asiatic__berber		North Africa	Algeria	5500000	7000000	living				Latin, Tifinagh	false	false	0			
+rif	Tarifit	Tarifit		rif	afro_asiatic__berber		North Africa	Morocco;Algeria	4000000	4000000	living				Latin, Tifinagh	false	false	0			
+shi	Tashelhit	Tacelḥit		shi	afro_asiatic__berber		North Africa	Morocco	3000000	4000000	living				Latin, Tifinagh, Arabic	false	false	0			
+tzm	Central Atlas Tamazight	Tamaziɣt		tzm	afro_asiatic__berber		North Africa	Morocco	2300000	3000000	living				Latin, Tifinagh, Arabic	false	false	0			
+thv	Tahaggart Tamahaq	Tahaggart		thv	afro_asiatic__berber		Sahara	Algeria;Niger;Mali	70000	70000	living				Tifinagh, Latin	false	false	0			
+tmh	Tamashek	Tamasheq		tmh	afro_asiatic__berber		Sahel	Mali;Burkina Faso;Niger	280000	280000	living				Latin, Tifinagh	false	false	0			
+ttq	Tawallammat Tamajaq	Tamajaq		ttq	afro_asiatic__berber		Sahara	Niger	800000	800000	living				Tifinagh, Latin	false	false	0			
+gha	Ghadamès	Ghadamès		gha	afro_asiatic__berber		North Africa	Libya	10000	10000	endangered				Latin	false	false	0			
+siz	Siwi	Siwi		siz	afro_asiatic__berber		North Africa	Egypt	20000	30000	endangered				Arabic	false	false	0			
+nxm	Numidian			nxm	afro_asiatic__berber		North Africa	Algeria;Tunisia			extinct				Libyco-Berber	false	false	0			
+som	Somali	Af-Soomaali	so	som	afro_asiatic__cushitic		Horn of Africa	Somalia;Ethiopia;Kenya;Djibouti	16000000	21000000	living				Latin	false	false	0			
+orm	Oromo	Afaan Oromoo	om	orm	afro_asiatic__cushitic		Horn of Africa	Ethiopia;Kenya	37000000	37000000	living				Latin, Ge'ez	false	false	0			
+aar	Afar	Qafar af	aa	aar	afro_asiatic__cushitic		Horn of Africa	Ethiopia;Eritrea;Djibouti	1800000	2000000	living				Latin	false	false	0			
+sid	Sidamo	Sidaamu Afoo		sid	afro_asiatic__cushitic		Ethiopia	Ethiopia	4000000	4000000	living				Ge'ez, Latin	false	false	0			
+bej	Beja	Bidhaawyeet		bej	afro_asiatic__cushitic		Horn of Africa	Sudan;Egypt;Eritrea	2760000	2760000	living				Arabic, Latin	false	false	0			
+hdy	Hadiyya	Hadiyyisa		hdy	afro_asiatic__cushitic		Ethiopia	Ethiopia	1700000	1700000	living				Ge'ez, Latin	false	false	0			
+kxv	Kambaata	Kambaatissa		kxv	afro_asiatic__cushitic		Ethiopia	Ethiopia	1000000	1000000	living				Ge'ez, Latin	false	false	0			
+hau	Hausa	Harshen Hausa	ha	hau	afro_asiatic__chadic		West Africa	Nigeria;Niger;Ghana;Cameroon	63000000	85000000	living				Latin, Arabic (Ajami)	false	false	0			
+bcy	Bacama	Bacama		bcy	afro_asiatic__chadic		West Africa	Nigeria	200000	200000	living				Latin	false	false	0			
+mrt	Margi	Margi		mrt	afro_asiatic__chadic		West Africa	Nigeria	350000	350000	living				Latin	false	false	0			
+wal	Wolaytta	Wolaytta		wal	afro_asiatic__omotic		Ethiopia	Ethiopia	2000000	2000000	living				Ge'ez, Latin	false	false	0			
+gaz	West Central Oromo	Afaan Oromoo		gaz	afro_asiatic__cushitic		Ethiopia	Ethiopia	17000000	17000000	living				Latin, Ge'ez	false	false	0			
+cop	Coptic	Ⲙⲉⲧⲣⲉⲙ̀ⲛⲭⲏⲙⲓ		cop	afro_asiatic__egyptian		Egypt	Egypt			extinct	-3000	1600		Coptic	false	false	0	Last stage of Egyptian language	
+egy	Ancient Egyptian	r n kmt		egy	afro_asiatic__egyptian		Egypt	Egypt			extinct	-3200	-600		Egyptian hieroglyphs	false	false	0	Ancient language of Egypt	
+akk	Akkadian	Akkadû		akk	afro_asiatic__semitic		Mesopotamia	Iraq			extinct	-2500	100		Cuneiform	false	false	0	Ancient Semitic language	
+phn	Phoenician	𐤊𐤍𐤏𐤍𐤉		phn	afro_asiatic__semitic		Levant	Lebanon;Syria			extinct	-1200	100		Phoenician alphabet	false	false	0	Ancient Canaanite language	
+uga	Ugaritic			uga	afro_asiatic__semitic		Syria	Syria			extinct	-1400	-1200		Ugaritic alphabet	false	false	0	Ancient Semitic language	
+arc	Aramaic	ܐܪܡܝܐ		arc	afro_asiatic__semitic		Middle East	Syria;Iraq;Iran;Turkey	1000000	1000000	endangered				Syriac, Hebrew	false	false	0	Ancient lingua franca	
+amh	Amharic	አማርኛ	am	amh	afro_asiatic__semitic		Ethiopia	Ethiopia	25000000	32000000	living				Ge'ez	false	false	0			
+tir	Tigrinya	ትግርኛ	ti	tir	afro_asiatic__semitic		Horn of Africa	Eritrea;Ethiopia	9000000	9000000	living				Ge'ez	false	false	0			
+mlt	Maltese	Malti	mt	mlt	afro_asiatic__semitic		Europe	Malta	520000	520000	living				Latin	false	false	0			
+hit	Hittite	𒉈𒅆𒇷		hit	indo_european__anatolian		Anatolia	Turkey			extinct	-1650	-1100		Cuneiform	false	false	0	Oldest attested Indo-European language	
+luw	Luwian			luw	indo_european__anatolian		Anatolia	Turkey			extinct	-1400	-600		Cuneiform, Hieroglyphic Luwian	false	false	0	Ancient Anatolian language	
+xld	Lydian			xld	indo_european__anatolian		Anatolia	Turkey			extinct	-700	-200		Lydian alphabet	false	false	0	Ancient Anatolian language	
+txb	Tocharian B			txb	indo_european__tocharian		Central Asia	China			extinct	500	1000		Brahmi	false	false	0	Extinct Indo-European language	
+xto	Tocharian A			xto	indo_european__tocharian		Central Asia	China			extinct	500	1000		Brahmi	false	false	0	Extinct Indo-European language	
+got	Gothic	𐌲𐌿𐍄𐌹𐍃𐌺		got	indo_european__germanic		Europe	Ukraine;Romania			extinct	300	900		Gothic alphabet	false	false	0	Extinct East Germanic language	
+prg	Old Prussian	Prūsiskan		prg	indo_european__balto_slavic		Europe	Poland;Russia			extinct	1300	1700		Latin	false	false	0	Extinct Baltic language	
+dlm	Dalmatian	Dalmato		dlm	indo_european__italic		Europe	Croatia			extinct	1000	1898		Latin	false	false	0	Extinct Romance language	
+cor	Cornish	Kernowek		cor	indo_european__celtic		Europe	United Kingdom	600	3000	reviving				Latin	false	false	0	Revived Celtic language	
+glv	Manx	Gaelg		glv	indo_european__celtic		Europe	Isle of Man	100	1800	reviving				Latin	false	false	0	Revived Celtic language	
+brh	Brahui	Bráhuí		brh	dravidian__north_dravidian		South Asia	Pakistan;Afghanistan	2800000	2800000	living				Arabic, Latin	false	false	0			
+kru	Kurukh	Kurux		kru	dravidian__north_dravidian		South Asia	India;Nepal;Bhutan	2100000	2100000	living				Devanagari, Latin	false	false	0			
+gon	Gondi	Gōndi		gon	dravidian__central_dravidian		Central India	India	3000000	3000000	living				Devanagari, Telugu	false	false	0			
+kfx	Kui	Kui		kfx	dravidian__central_dravidian		Central India	India	940000	940000	living				Odia, Latin	false	false	0			
+tcy	Tulu	Tuḷu		tcy	dravidian__south_dravidian		South India	India	2000000	2000000	living				Kannada, Tulu	false	false	0			
+xmf	Mingrelian	მარგალური		xmf	kartvelian__georgian_zan		Georgia	Georgia	344000	500000	living				Georgian	false	false	0			
+lzz	Laz	Lazuri		lzz	kartvelian__georgian_zan		Georgia, Turkey	Turkey;Georgia	20000	30000	endangered				Georgian, Latin	false	false	0			
+sva	Svan	ლუშნუ ნინ		sva	kartvelian__svan		Georgia	Georgia	15000	30000	endangered				Georgian	false	false	0			
+xal	Kalmyk	Хальмг келн		xal	mongolic__western_mongolic		Russia	Russia	80000	100000	endangered				Cyrillic	false	false	0			
+mvf	Peripheral Mongolian	Монгол		mvf	mongolic__eastern_mongolic		China	China	5000000	5000000	living				Mongolian, Latin	false	false	0			
+dta	Daur	Дагуур		dta	mongolic__eastern_mongolic		China	China	96000	96000	endangered				Cyrillic, Latin	false	false	0			
+evn	Even	Эвэды		evn	tungusic__northern_tungusic		Russia	Russia	5700	22000	endangered				Cyrillic	false	false	0			
+neg	Negidal	Элькэн бэйэнин		neg	tungusic__northern_tungusic		Russia	Russia	120	500	critically endangered				Cyrillic	false	false	0			
+ulc	Ulch	Нани		ulc	tungusic__southern_tungusic		Russia	Russia	100	2800	critically endangered				Cyrillic	false	false	0			
+oaa	Orok	Уйльта		oaa	tungusic__southern_tungusic		Russia	Russia	47	400	critically endangered				Cyrillic	false	false	0			
+ude	Udihe	Удиэ		ude	tungusic__southern_tungusic		Russia	Russia	100	1500	critically endangered				Cyrillic	false	false	0			
+ikt	Inuktitut	ᐃᓄᒃᑎᑐᑦ		ikt	eskimo_aleut__inuit		Canada	Canada	39000	39000	living				Canadian Aboriginal Syllabics, Latin	false	false	0			
+esi	Inupiaq	Iñupiatun		esi	eskimo_aleut__inuit		Alaska	United States	2000	3500	endangered				Latin	false	false	0			
+esu	Central Yupik	Yugtun		esu	eskimo_aleut__yupik		Alaska	United States	10000	10000	endangered				Latin	false	false	0			
+ems	Pacific Gulf Yupik	Sugpiaq		ems	eskimo_aleut__yupik		Alaska	United States	400	400	critically endangered				Latin	false	false	0			
+ysr	Sirenik	Сиӷы́ныӷмыстун		ysr	eskimo_aleut__yupik		Russia	Russia			extinct				Cyrillic	false	false	0	Extinct Yupik language	
+ryu	Okinawan	沖縄口		ryu	japonic__ryukyuan		Japan	Japan	980000	1000000	endangered				Japanese, Hiragana	false	false	0			
+mvi	Miyako	ミャークフツ		mvi	japonic__ryukyuan		Japan	Japan	50000	50000	endangered				Japanese	false	false	0			
+rys	Yaeyama	ヤイマムニ		rys	japonic__ryukyuan		Japan	Japan	47000	47000	endangered				Japanese	false	false	0			
+yoi	Yonaguni	ドゥナンムヌイ		yoi	japonic__ryukyuan		Japan	Japan	400	400	critically endangered				Japanese	false	false	0			
+ams	Amami	シマグチ		ams	japonic__ryukyuan		Japan	Japan	13000	13000	endangered				Japanese	false	false	0			
+xug	Kunigami	クニガミ		xug	japonic__ryukyuan		Japan	Japan	5000	5000	endangered				Japanese	false	false	0			
+jje	Jeju	제주말		jje	koreanic__korean		South Korea	South Korea	5000	10000	critically endangered				Hangul	false	false	0			
+kbd	Kabardian	Къэбэрдей		kbd	abkhaz_adyge__circassian		Russia	Russia	1600000	1600000	living				Cyrillic	false	false	0			
+uby	Ubykh	Убыхыбзэ		uby	abkhaz_adyge__ubykh		Turkey	Turkey			extinct	1800	1992		Cyrillic, Latin	false	false	0	Had 84 consonants	
+inh	Ingush	ГӀалгӀай		inh	nakh_daghestanian__nakh		Russia	Russia	500000	500000	living				Cyrillic	false	false	0			
+bbl	Bats	Бацბი		bbl	nakh_daghestanian__nakh		Georgia	Georgia	3000	3000	endangered				Georgian	false	false	0			
+tab	Tabasaran	Табасаран		tab	nakh_daghestanian__lezgic		Russia	Russia	130000	130000	living				Cyrillic	false	false	0			
+agx	Aghul	Агъул		agx	nakh_daghestanian__lezgic		Russia	Russia	29000	29000	living				Cyrillic	false	false	0			
+rut	Rutul	Мыхаӏбишды		rut	nakh_daghestanian__lezgic		Russia, Azerbaijan	Russia;Azerbaijan	30000	30000	living				Cyrillic	false	false	0			
+udi	Udi	Удин		udi	nakh_daghestanian__lezgic		Azerbaijan	Azerbaijan;Georgia	8000	8000	endangered				Cyrillic, Georgian	false	false	0			
+khv	Khvarshi	Хваршиял		khv	nakh_daghestanian__avar_andic		Russia	Russia	8000	8000	endangered				Cyrillic	false	false	0			
+aqc	Archi	Аршишттиб		aqc	nakh_daghestanian__avar_andic		Russia	Russia	1200	1200	endangered				Cyrillic	false	false	0			
+noo	Nootka	Nuučaan̓uł		noo	wakashan__southern_wakashan		Canada	Canada	400	500	endangered				Latin	false	false	0			
+kwk	Kwak'wala	Kwak̓wala		kwk	wakashan__northern_wakashan		Canada	Canada	200	400	critically endangered				Latin	false	false	0			
+myh	Makah	Qʷi·qʷi·diččaq		myh	wakashan__southern_wakashan		United States	United States	20	30	critically endangered				Latin	false	false	0			
+hei	Heiltsuk	Híɫzaqv		hei	wakashan__northern_wakashan		Canada	Canada	300	500	endangered				Latin	false	false	0			
+tsi	Coast Tsimshian	Sm'algyax		tsi	tsimshianic__tsimshian		Canada	Canada	200	400	critically endangered				Latin	false	false	0			
+git	Gitxsan	Gitxsanimaax		git	tsimshianic__nass_gitksan		Canada	Canada	1000	1500	endangered				Latin	false	false	0			
+hdn	Northern Haida	X̱aad Kíl		hdn	haida__northern_haida		Canada	Canada	20	50	critically endangered				Latin	false	false	0			
+hax	Southern Haida	X̱aat Kíl		hax	haida__southern_haida		United States	United States	10	30	critically endangered				Latin	false	false	0			
+cad	Caddo	Hasí:nay		cad	caddoan__southern_caddoan		United States	United States	25	25	critically endangered				Latin	false	false	0			
+wic	Wichita	Kirikirʔi:s		wic	caddoan__southern_caddoan		United States	United States			extinct				Latin	false	false	0			
+paw	Pawnee	Paári		paw	caddoan__northern_caddoan		United States	United States	10	10	critically endangered				Latin	false	false	0			
+ari	Arikara	Sáhniš		ari	caddoan__northern_caddoan		United States	United States	2	2	critically endangered				Latin	false	false	0			
+nez	Nez Perce	Niimiipuutímt		nez	sahaptian__nez_perce		United States	United States	100	200	critically endangered				Latin	false	false	0			
+uma	Umatilla	Ímatalam		uma	sahaptian__sahaptin		United States	United States	50	100	critically endangered				Latin	false	false	0			
+kla	Klamath-Modoc	Maklaks		kla	klamath_modoc__klamath		United States	United States	1	10	critically endangered				Latin	false	false	0			
+pef	Northeastern Pomo	Pomo		pef	pomoan__eastern_pomoan		United States	United States	2	10	critically endangered				Latin	false	false	0			
+pom	Southeastern Pomo	Pomo		pom	pomoan__eastern_pomoan		United States	United States	5	10	critically endangered				Latin	false	false	0			
+poo	Central Pomo	Pomo		poo	pomoan__western_pomoan		United States	United States	5	10	critically endangered				Latin	false	false	0			
+kju	Kashaya	Kashaya		kju	pomoan__western_pomoan		United States	United States	10	50	critically endangered				Latin	false	false	0			
+moj	Mojave	'Aha Makav		moj	yuman__river_yuman		United States	United States	200	1000	endangered				Latin	false	false	0			
+yuf	Havasupai-Walapai-Yavapai	Havasupai		yuf	yuman__upland_yuman		United States	United States	1500	2000	endangered				Latin	false	false	0			
+coc	Cocopa	Kwikapa		coc	yuman__delta_california_yuman		Mexico, United States	Mexico;United States	500	1000	endangered				Latin	false	false	0			
+mrc	Maricopa	Piipaash		mrc	yuman__river_yuman		United States	United States	100	200	critically endangered				Latin	false	false	0			
+nmu	Northeast Maidu	Májdy		nmu	maiduan__maidu		United States	United States	2	10	critically endangered				Latin	false	false	0			
+mjd	Northwest Maidu	Májdy		mjd	maiduan__konkow		United States	United States	1	5	critically endangered				Latin	false	false	0			
+wnw	Wintu	Wintʰu·h		wnw	wintuan__northern_wintuan		United States	United States	5	10	critically endangered				Latin	false	false	0			
+pwi	Patwin	Patwin		pwi	wintuan__southern_wintuan		United States	United States	1	5	critically endangered				Latin	false	false	0			
+csm	Central Sierra Miwok	Miwuk		csm	utian__miwokan		United States	United States	2	10	critically endangered				Latin	false	false	0			
+nsq	Northern Sierra Miwok	Miwuk		nsq	utian__miwokan		United States	United States	1	5	critically endangered				Latin	false	false	0			
+cst	Ohlone	Ohlone		cst	utian__costanoan		United States	United States			extinct				Latin	false	false	0	Costanoan language	
+wac	Wasco-Wishram	Wasco		wac	chinookan__upper_chinook		United States	United States	6	10	critically endangered				Latin	false	false	0			
+chh	Chinook	Chinuk		chh	chinookan__lower_chinook		United States	United States			extinct				Latin	false	false	0			
+kio	Kiowa	Cáuijògà		kio	kiowa_tanoan__kiowa		United States	United States	400	1000	endangered				Latin	false	false	0			
+tew	Tewa	Tewa		tew	kiowa_tanoan__tewa		United States	United States	2000	3000	endangered				Latin	false	false	0			
+tix	Southern Tiwa	Tiwa		tix	kiowa_tanoan__tiwa		United States	United States	1600	2000	endangered				Latin	false	false	0			
+tao	Northern Tiwa	Tiwa		tao	kiowa_tanoan__tiwa		United States	United States	2500	3000	endangered				Latin	false	false	0			
+tow	Jemez	Towa		tow	kiowa_tanoan__towa		United States	United States	3000	3500	endangered				Latin	false	false	0			
+zun	Zuni	Shiwi'ma		zun	zuni__zuni_language		United States	United States	9600	10000	living				Latin	false	false	0			
+kee	Eastern Keres	Keres		kee	keres__eastern_keres		United States	United States	4000	5000	endangered				Latin	false	false	0			
+kjq	Western Keres	Keres		kjq	keres__western_keres		United States	United States	3000	4000	endangered				Latin	false	false	0			
+awa	Awa-Cuaiquer	Awapit		awa	barbacoan__northern		Colombia, Ecuador	Colombia;Ecuador	21000	21000	living				Latin	false	false	0			
+cbi	Cha'palaa	Cha'palaachi		cbi	barbacoan__southern		Ecuador	Ecuador	10000	10000	endangered				Latin	false	false	0			
+cof	Tsafiki	Tsafiki		cof	barbacoan__southern		Ecuador	Ecuador	2300	2300	endangered				Latin	false	false	0			
+gum	Guambiano	Namtrik		gum	barbacoan__northern		Colombia	Colombia	20000	20000	living				Latin	false	false	0			
+emp	Northern Emberá	Emberá		emp	chocoan__embera		Colombia, Panama	Colombia;Panama	70000	70000	living				Latin	false	false	0			
+sja	Epena	Epena		sja	chocoan__embera		Colombia	Colombia	5000	5000	endangered				Latin	false	false	0			
+noa	Wounaan	Woun Meu		noa	chocoan__wounaan		Colombia, Panama	Colombia;Panama	7000	7000	living				Latin	false	false	0			
+jiv	Shuar	Shuar chicham		jiv	jivaroan__shuar_achuar		Ecuador, Peru	Ecuador;Peru	110000	110000	living				Latin	false	false	0			
+acu	Achuar-Shiwiar	Achuar		acu	jivaroan__shuar_achuar		Ecuador, Peru	Ecuador;Peru	18000	18000	living				Latin	false	false	0			
+hub	Huambisa	Wampis		hub	jivaroan__awajun_wampis		Peru	Peru	10000	10000	living				Latin	false	false	0			
+agr	Aguaruna	Awajún		agr	jivaroan__awajun_wampis		Peru	Peru	55000	55000	living				Latin	false	false	0			
+zro	Záparo	Sápara		zro	zaparoan__zaparoan_languages		Ecuador	Ecuador	1	5	critically endangered				Latin	false	false	0			
+arb	Arabela	Chiripuno		arb	zaparoan__zaparoan_languages		Peru	Peru	50	100	critically endangered				Latin	false	false	0			
+iqu	Iquito	Iíkitu		iqu	zaparoan__zaparoan_languages		Peru	Peru	25	150	critically endangered				Latin	false	false	0			
+hto	Witoto	Mɨnɨka		hto	witotoan__witotoan_languages		Colombia, Peru	Colombia;Peru	7000	7000	endangered				Latin	false	false	0			
+oca	Ocaina	Ocaina		oca	witotoan__witotoan_languages		Peru	Peru	50	100	critically endangered				Latin	false	false	0			
+noy	Nonuya	Nónɨya		noy	witotoan__witotoan_languages		Colombia	Colombia	150	200	critically endangered				Latin	false	false	0			
+tob	Toba	Qom		tob	guaicuruan__northern_guaicuruan		Argentina	Argentina	60000	60000	living				Latin	false	false	0			
+plg	Pilagá	Pilagá		plg	guaicuruan__northern_guaicuruan		Argentina	Argentina	5000	5000	endangered				Latin	false	false	0			
+moc	Mocoví	Moqoit		moc	guaicuruan__northern_guaicuruan		Argentina	Argentina	4500	4500	endangered				Latin	false	false	0			
+gvc	Kadiwéu	Kadiwéu		gvc	guaicuruan__southern_guaicuruan		Brazil	Brazil	1500	2000	endangered				Latin	false	false	0			
+mzh	Wichí Lhamtés Güisnay	Wichí		mzh	matacoan__matacoan_languages		Argentina	Argentina	40000	40000	living				Latin	false	false	0			
+cta	Chorote	Iyojwa'ja		cta	matacoan__matacoan_languages		Argentina, Paraguay	Argentina;Paraguay	2000	2000	endangered				Latin	false	false	0			
+cag	Nivaclé	Nivaclé		cag	matacoan__matacoan_languages		Paraguay	Paraguay	15000	15000	living				Latin	false	false	0			
+mca	Maká	Maká		mca	matacoan__matacoan_languages		Paraguay	Paraguay	1500	1500	endangered				Latin	false	false	0			
+ayo	Ayoreo	Ayoreode		ayo	zamucoan__zamucoan_languages		Bolivia, Paraguay	Bolivia;Paraguay	5000	5000	endangered				Latin	false	false	0			
+ceg	Chamacoco	Ɨshɨro		ceg	zamucoan__zamucoan_languages		Paraguay	Paraguay	1500	2000	endangered				Latin	false	false	0			
+enl	Enlhet	Enlhet		enl	mascoian__mascoian_languages		Paraguay	Paraguay	6000	6000	living				Latin	false	false	0			
+enx	Enxet	Enxet		enx	mascoian__mascoian_languages		Paraguay	Paraguay	7000	7000	living				Latin	false	false	0			
+spn	Sanapaná	Sanapaná		spn	mascoian__mascoian_languages		Paraguay	Paraguay	2500	2500	endangered				Latin	false	false	0			
+vil	Vilela	Vilela		vil	lule_vilela__lule_vilela_languages		Argentina	Argentina	20	20	critically endangered				Latin	false	false	0			
+hve	San Francisco del Mar Huave	Huave		hve	huavean__huave_dialects		Mexico	Mexico	800	800	endangered				Latin	false	false	0			
+huv	San Mateo del Mar Huave	Huave		huv	huavean__huave_dialects		Mexico	Mexico	12000	12000	living				Latin	false	false	0			
+tsz	Purépecha	P'urhépecha		tsz	purepecha__purepecha_language		Mexico	Mexico	140000	140000	living				Latin	false	false	0			
+sei	Seri	Cmiique Iitom		sei	seri__seri_language		Mexico	Mexico	900	1000	endangered				Latin	false	false	0			
+len	Lenca	Lenca		len	lencan__lenca_languages		Honduras	Honduras			extinct				Latin	false	false	0			
+xin	Xinca	Xinka		xin	xincan__xincan_languages		Guatemala	Guatemala	25	100	critically endangered				Latin	false	false	0			
+miq	Miskito	Miskitu		miq	misumalpan__miskito		Nicaragua, Honduras	Nicaragua;Honduras	180000	200000	living				Latin	false	false	0			
+sum	Sumo-Mayangna	Mayangna		sum	misumalpan__sumo_mayangna		Nicaragua	Nicaragua	10000	10000	endangered				Latin	false	false	0			
+tjm	Timucua	Timucua		tjm	timucua__timucua_dialects		United States	United States			extinct				Latin	false	false	0			
+ncz	Natchez	Natchez		ncz	natchez__natchez_language		United States	United States			extinct				Latin	false	false	0			
+ctm	Chitimacha	Chitimacha		ctm	chitimacha__chitimacha_language		United States	United States			extinct				Latin	false	false	0			
+aqp	Atakapa	Atakapa		aqp	atakapa__western_atakapa		United States	United States			extinct				Latin	false	false	0			
+tun	Tunica	Tunica		tun	tunica__tunica_language		United States	United States			extinct				Latin	false	false	0			
+tqw	Tonkawa	Tonkawa		tqw	tonkawa__tonkawa_language		United States	United States			extinct				Latin	false	false	0			
+kyh	Karuk	Araráhih		kyh	karuk__karuk_language		United States	United States	12	100	critically endangered				Latin	false	false	0			
+was	Washo	Wá:šiw		was	washo__washo_language		United States	United States	20	100	critically endangered				Latin	false	false	0			
+yuk	Yuki	Ukomno'm		yuk	yukian__yuki_wappo		United States	United States			extinct				Latin	false	false	0			
+wao	Wappo	Wappo		wao	yukian__yuki_wappo		United States	United States			extinct				Latin	false	false	0			
+chs	Chumash	Chumash		chs	chumashan__chumashan_languages		United States	United States			extinct				Latin	false	false	0			
+ess	Esselen	Esselen		ess	esselen__esselen_language		United States	United States			extinct				Latin	false	false	0			
+sln	Salinan	Salinan		sln	salinan__salinan_language		United States	United States			extinct				Latin	false	false	0			
+sux	Sumerian	𒅴𒂠		sux	sumerian__sumerian_language		Iraq	Iraq			extinct	-3100	-1800		Cuneiform	false	false	0	Earliest written language	
+elx	Elamite	Hatamti		elx	elamite__elamite_language		Iran	Iran			extinct	-2800	300		Elamite cuneiform	false	false	0			
+xhu	Hurrian	Hurwohe		xhu	hurro_urartian__hurrian		Syria, Turkey	Syria;Turkey;Iraq			extinct	-2300	-1000		Cuneiform	false	false	0			
+xur	Urartian	Biainili		xur	hurro_urartian__urartian		Armenia	Armenia;Turkey			extinct	-900	-600		Cuneiform	false	false	0			
+htx	Hattic	Hattic		htx	hattic__hattic_language		Turkey	Turkey			extinct	-2500	-2000		Cuneiform	false	false	0			
+ett	Etruscan	Rasenna		ett	etruscan__etruscan_language		Italy	Italy			extinct	-700	100		Etruscan alphabet	false	false	0			
+abe	Great Andamanese	Aka-Jeru		abe	andamanese__great_andamanese		India	India	50	50	critically endangered				Latin	false	false	0			
+anq	Jarawa	Aong		anq	andamanese__ongan		India	India	400	400	endangered				None	false	false	0			
+oon	Onge	Onge		oon	andamanese__ongan		India	India	100	100	critically endangered				Latin	false	false	0			
+kgg	Kusunda	Kusunda		kgg	kusunda__kusunda_language		Nepal	Nepal	1	8	critically endangered				Devanagari	false	false	0			
+nll	Nihali	Nihali		nll	nihali__nihali_language		India	India	2000	5000	endangered				Devanagari	false	false	0			
+lko	Loo	Loo		lko	skou__skou_languages		Indonesia	Indonesia	600	600	living				Latin	false	false	0			
+skv	Skou	Skou		skv	skou__skou_languages		Indonesia	Indonesia	700	700	living				Latin	false	false	0			
+bpz	Bilba	Bilba		bpz	lower_mamberamo__lower_mamberamo_languages		Indonesia	Indonesia	300	300	living				Latin	false	false	0			
+gdr	Gundungurra	Gundungurra		gdr	pama_nyungan__yuin_kuric		Australia	Australia			extinct				Latin	false	false	0			
+xdk	Dharuk	Dharuk		xdk	pama_nyungan__yuin_kuric		Australia	Australia			extinct				Latin	false	false	0			
+duj	Dhudhuroa	Dhudhuroa		duj	pama_nyungan__pama_nyungan		Australia	Australia			extinct				Latin	false	false	0			
+guf	Gupapuyngu	Gupapuyngu		guf	gunwinyguan__gunwinyguan_languages		Australia	Australia	1500	1500	living				Latin	false	false	0			
+dax	Dayi	Dayi		dax	daly__daly_languages		Australia	Australia	30	30	critically endangered				Latin	false	false	0			
+djd	Djamindjung	Djamindjung		djd	jarrakan__jarrakan_languages		Australia	Australia	50	100	critically endangered				Latin	false	false	0			
+nyv	Nyulnyul	Nyulnyul		nyv	nyulnyulan__nyulnyulan_languages		Australia	Australia	3	10	critically endangered				Latin	false	false	0			
+wro	Worora	Worora		wro	worrorran__western_worrorran		Australia	Australia	30	100	critically endangered				Latin	false	false	0			
+bck	Bunuba	Bunuba		bck	bunuban__bunuban_languages		Australia	Australia	100	200	endangered				Latin	false	false	0			
+tiw	Tiwi	Tiwi		tiw	tiwi__tiwi_language		Australia	Australia	2000	2500	living				Latin	false	false	0			
+pie	Proto-Indo-European	*PIE		ine-pro	indo_european		Pontic-Caspian Steppe		0	0	extinct	-4500	-2500	reconstructed		true	false	1	Reconstructed ancestor of all Indo-European languages		
+pgm	Proto-Germanic	*Ur-Germanisch		gem-pro	indo_european__germanic		Northern Europe		0	0	extinct	-500	400	reconstructed		true	false	2	Reconstructed ancestor of all Germanic languages		
+psl	Proto-Slavic	*Praslovьnьskъ		sla-pro	indo_european__balto_slavic		Eastern Europe		0	0	extinct	-1500	600	reconstructed		true	false	2	Reconstructed ancestor of all Slavic languages		
+pce	Proto-Celtic	*Keltoi		cel-pro	indo_european__celtic		Central Europe		0	0	extinct	-1300	-500	reconstructed		true	false	2	Reconstructed ancestor of all Celtic languages		
+ine	Proto-Italic	*Proto-Italic		itc-pro	indo_european__italic		Italian Peninsula		0	0	extinct	-1500	-700	reconstructed		true	false	2	Reconstructed ancestor of Italic languages		
+iir	Proto-Indo-Iranian	*Proto-Indo-Iranian		iir-pro	indo_european		Central Asia		0	0	extinct	-2000	-1500	reconstructed		true	false	2	Reconstructed ancestor of Indo-Iranian languages		
+lat	Latin	Lingua Latina	la	lat	indo_european__italic		Roman Empire	Italy	0	0	extinct	-700	1500	Classical Latin	Latin	true	false	3	Classical language of ancient Rome		
+grc	Ancient Greek	Ἑλληνική (Hellēnikḗ)		grc	indo_european__graeco_phrygian		Ancient Greece	Greece	0	0	extinct	-800	600	Ancient Greek	Greek	true	false	3	Classical language of ancient Greece		
+ang	Old English	Ænglisc		ang	indo_european__germanic	eng	Anglo-Saxon England	United Kingdom	0	0	extinct	450	1150		Latin	true	false	4	Ancestor of Modern English		
+non	Old Norse	Norrœnt mál		non	indo_european__germanic		Scandinavia	Norway;Sweden;Denmark;Iceland	0	0	extinct	700	1350		Runic, Latin	true	false	4	Ancestor of North Germanic languages		
+goh	Old High German	Althochdeutsch		goh	indo_european__germanic	deu	Southern Germany	Germany	0	0	extinct	750	1050		Latin	true	false	4	Ancestor of Modern German		
+osx	Old Saxon	Sahsisk		osx	indo_european__germanic		Northern Germany	Germany	0	0	extinct	800	1200		Latin	true	false	4	Ancestor of Low German		
+chu	Old Church Slavonic	Словѣньскъ		chu	indo_european__balto_slavic		Balkans	Bulgaria	0	0	extinct	863	1100		Glagolitic, Cyrillic	true	false	4	Oldest attested Slavic language		
+peo	Old Persian	𐎱𐎠𐎼𐎿		peo	indo_european__iranian		Persia	Iran	0	0	extinct	-600	-300		Old Persian Cuneiform	true	false	4	Language of the Achaemenid Empire		
+ave	Avestan	Avesta		ave	indo_european__iranian		Ancient Persia	Iran	0	0	extinct	-1000	400		Avestan	true	false	4	Language of the Zoroastrian scriptures		
+san	Sanskrit	संस्कृतम् (Saṃskṛtam)	sa	san	indo_european__indo_aryan		Ancient India	India	0	25000	extinct	-1500	1200	Classical Sanskrit	Devanagari, Brahmi	true	false	4	Classical language of ancient India		
+pli	Pali	पालि (Pāli)	pi	pli	indo_european__indo_aryan		Ancient India	India;Sri Lanka	0	0	extinct	-500	1000		Brahmi, Devanagari	true	false	4	Language of early Buddhist texts		
+pra	Prakrit	𑀧𑀸𑀓𑀤		pra	indo_european__indo_aryan		Ancient India	India	0	0	extinct	-600	1000		Brahmi	true	false	4	Middle Indo-Aryan vernacular languages		
+xcl	Classical Armenian	Գրաբար (Grabar)		xcl	indo_european__armenic		Armenia	Armenia	0	0	extinct	400	1200		Armenian	true	false	4	Classical form of Armenian		
+got	Gothic	𐌲𐌿𐍄𐌹𐍃𐌺		got	indo_european__germanic		Eastern Europe	Ukraine;Romania	0	0	extinct	300	900		Gothic	true	false	4	Earliest attested Germanic language		
+pst	Proto-Sino-Tibetan	*PST		sit-pro	sino_tibetan		East Asia		0	0	extinct	-4500	-2500	reconstructed		true	false	1	Reconstructed ancestor of Sino-Tibetan languages		
+och	Old Chinese	上古漢語		och	sino_tibetan__sinitic		Ancient China	China	0	0	extinct	-1000	200		Oracle Bone Script, Bronze Script	true	false	4	Archaic form of Chinese		
+ltc	Middle Chinese	中古漢語		ltc	sino_tibetan__sinitic		Medieval China	China	0	0	extinct	600	1200		Chinese characters	true	false	5	Medieval form of Chinese		
+obt	Old Tibetan	བོད་སྐད་རྙིང་པ		obt	sino_tibetan__bodish		Tibet	China	0	0	extinct	650	1100		Tibetan	true	false	4	Classical form of Tibetan		
+paa	Proto-Austronesian	*PAN		map-pro	austronesian		Taiwan		0	0	extinct	-3500	-2500	reconstructed		true	false	1	Reconstructed ancestor of Austronesian languages		
+pmp	Proto-Malayo-Polynesian	*PMP		poz-pro	austronesian		Maritime Southeast Asia		0	0	extinct	-2500	-1500	reconstructed		true	false	2	Reconstructed ancestor of Malayo-Polynesian languages		
+poc	Proto-Oceanic	*POc		pqe-pro	austronesian		Western Pacific		0	0	extinct	-1500	-1000	reconstructed		true	false	3	Reconstructed ancestor of Oceanic languages		
+poz	Proto-Polynesian	*PPn		pqe-pol	austronesian		Central Pacific		0	0	extinct	-1000	-500	reconstructed		true	false	4	Reconstructed ancestor of Polynesian languages		
+pnc	Proto-Niger-Congo	*PNC		nic-pro	niger_congo		West Africa		0	0	extinct	-7000	-3000	reconstructed		true	false	1	Reconstructed ancestor of Niger-Congo languages		
+bnt	Proto-Bantu	*PB		bnt-pro	niger_congo__bantu		Central Africa		0	0	extinct	-3000	-1000	reconstructed		true	false	2	Reconstructed ancestor of Bantu languages		
+fiu	Proto-Uralic	*PU		fiu-pro	uralic		Ural Mountains		0	0	extinct	-4000	-2000	reconstructed		true	false	1	Reconstructed ancestor of Uralic languages		
+urj	Proto-Finno-Ugric	*PFU		fiu-fiu	uralic		Northern Eurasia		0	0	extinct	-3000	-1500	reconstructed		true	false	2	Reconstructed ancestor of Finno-Ugric languages		
+trk	Proto-Turkic	*PT		trk-pro	turkic		Central Asia		0	0	extinct	-500	500	reconstructed		true	false	1	Reconstructed ancestor of Turkic languages		
+otk	Old Turkic	𐰴𐰆𐰴 𐱅𐰇𐰼𐰜		otk	turkic		Central Asia	Mongolia;China	0	0	extinct	700	1100		Old Turkic script	true	false	4	Earliest attested Turkic language		
+xgn	Proto-Mongolic	*PM		xgn-pro	mongolic		Mongolia		0	0	extinct	-500	1000	reconstructed		true	false	1	Reconstructed ancestor of Mongolic languages		
+xwo	Written Oirat	ᡆᡕᡅᠷᠠᡑ		xwo	mongolic__western_mongolic		Mongolia	Mongolia;Russia	0	0	extinct	1600	1900		Clear Script	true	false	4	Classical Oirat literary language		
+tut	Proto-Tungusic	*PTu		tuw-pro	tungusic		Manchuria		0	0	extinct	-500	500	reconstructed		true	false	1	Reconstructed ancestor of Tungusic languages		
+dra	Proto-Dravidian	*PD		dra-pro	dravidian		South India		0	0	extinct	-2500	-1000	reconstructed		true	false	1	Reconstructed ancestor of Dravidian languages		
+tam	Old Tamil	தமிழ் (Tamiḻ)		tam-old	dravidian__south_dravidian		South India	India	0	0	extinct	-300	700		Tamil-Brahmi, Grantha	true	false	4	Classical form of Tamil		
+afa	Proto-Afro-Asiatic	*PAA		afa-pro	afro_asiatic		Northeast Africa		0	0	extinct	-10000	-5000	reconstructed		true	false	1	Reconstructed ancestor of Afro-Asiatic languages		
+sem	Proto-Semitic	*PS		sem-pro	afro_asiatic__semitic		Middle East		0	0	extinct	-3750	-2000	reconstructed		true	false	2	Reconstructed ancestor of Semitic languages		
+akk	Akkadian	𒀝𒅗𒁺𒌑		akk	afro_asiatic__semitic		Mesopotamia	Iraq	0	0	extinct	-2500	100		Cuneiform	true	false	4	Earliest attested Semitic language		
+arc	Aramaic	ܐܪܡܝܐ (Arāmāyā)		arc	afro_asiatic__semitic		Middle East	Syria;Iraq;Iran	0	500000	endangered	-1100	1200	Classical Aramaic	Aramaic	true	false	4	Classical language of the ancient Near East		
+egy	Ancient Egyptian	𓂋𓏺𓈖𓆎𓅓𓏏𓊖		egy	afro_asiatic__egyptian		Ancient Egypt	Egypt	0	0	extinct	-3000	-700		Egyptian Hieroglyphs	true	false	4	Language of ancient Egypt		
+cop	Coptic	Ⲙⲉⲧⲣⲉⲙ̀ⲛⲭⲏⲙⲓ		cop	afro_asiatic__egyptian		Egypt	Egypt	0	500	endangered	200	1600	Coptic	Coptic	true	false	5	Latest stage of Egyptian language		
+paa-na	Proto-Algonquian	*PA		alg-pro	algic		Great Lakes		0	0	extinct	-1000	500	reconstructed		true	false	2	Reconstructed ancestor of Algonquian languages		
+pua	Proto-Uto-Aztecan	*PUA		azc-pro	uto_aztecan		Western North America		0	0	extinct	-3000	-1000	reconstructed		true	false	1	Reconstructed ancestor of Uto-Aztecan languages		
+nci	Classical Nahuatl	Nāhuatlahtōlli		nci	uto_aztecan		Central Mexico	Mexico	0	0	extinct	1200	1700		Latin	true	false	4	Classical form of Nahuatl		
+pmy	Proto-Mayan	*PM		myn-pro	mayan		Mesoamerica		0	0	extinct	-2000	-500	reconstructed		true	false	1	Reconstructed ancestor of Mayan languages		
+myn	Classical Mayan	𐤀𐤇𐤀𐤅		myn-cla	mayan		Maya region	Mexico;Guatemala	0	0	extinct	200	900		Mayan hieroglyphs	true	false	4	Classical language of Maya civilization		
+xqa	Proto-Quechuan	*PQ		qwe-pro	quechuan		Andes		0	0	extinct	-1000	1200	reconstructed		true	false	1	Reconstructed ancestor of Quechuan languages		
+qwc	Classical Quechua	Qhapaq Simi		qwc	quechuan		Inca Empire	Peru	0	0	extinct	1200	1600		Latin	true	false	4	Classical language of Inca Empire		

@@ -1,0 +1,236 @@
+LINGUISTIC CONTACT PHENOMENA - INTERESTING PATTERNS AND EXAMPLES
+
+This document highlights notable patterns of substrata, superstrata, and adstrata in world languages.
+
+================================================================================
+DEFINITIONS
+================================================================================
+
+SUBSTRATE (Substrata): Language(s) spoken in a region before replacement by another 
+language. The substrate often leaves traces in phonology, vocabulary (especially 
+place names), and sometimes grammar.
+
+SUPERSTRATE (Superstrata): Language(s) of conquerors/elites imposed on a population. 
+Often contributes vocabulary (especially prestige terms) but may have limited 
+grammatical impact.
+
+ADSTRATE (Adstrata): Neighboring languages in contact through trade, bilingualism, 
+or cultural exchange. Mutual influence between peers rather than replacement.
+
+================================================================================
+MASSIVE SUBSTRATE INFLUENCES
+================================================================================
+
+**English (Celtic/Pre-Germanic → English)**
+- Celtic Brittonic substrate visible in place names, some phonology
+- Pre-Germanic European substrate in non-IE vocabulary
+- Norman French superstrate gave 40% of vocabulary but minimal grammar impact
+
+**Romanian (Dacian/Thracian → Latin → Romanian)**
+- Massive Slavic superstrate (~20% vocabulary) - unusual for Romance
+- Retained Latin grammar but absorbed huge Slavic layer
+
+**Armenian (Hurro-Urartian → Armenian)**
+- 30-40% of vocabulary has no IE etymology
+- Likely Hurro-Urartian substrate from pre-IE Anatolia
+
+**Hindi-Urdu (Dravidian/Munda → Indo-Aryan)**
+- Dravidian substrate visible in retroflexes, SOV word order
+- Austroasiatic (Munda) substrate in phonology
+- Unknown Indus Valley Civilization language substrate
+
+**Greek (Pre-Greek/Minoan → Greek)**
+- ~40% of vocabulary non-Indo-European
+- Pre-Greek substrate includes Minoan, Pelasgian, Anatolian languages
+- Especially visible in maritime, plant, place name vocabulary
+
+================================================================================
+CLICK CONSONANTS FROM SUBSTRATE
+================================================================================
+
+**Zulu & Xhosa (Khoesan → Bantu)**
+- Adopted click consonants from Khoesan substrate
+- Unique in Bantu family - other Bantu languages lack clicks
+- Physical evidence of population mixing in southern Africa
+
+================================================================================
+GRAMMATICAL FEATURES FROM SUBSTRATE
+================================================================================
+
+**Bulgarian (Thracian → Slavic + Balkan Sprachbund)**
+- Only Slavic language to lose case system (retained in all others)
+- Postposed definite article (like Romanian, Albanian)
+- Balkan Sprachbund convergence with non-Slavic neighbors
+
+**Afrikaans (Khoekhoe/Malay → Dutch)**
+- Simplified morphology beyond Dutch
+- Khoekhoe substrate influenced phonology
+- Malay substrate from Cape Malay population
+- Unique among Germanic languages
+
+**Amharic (Cushitic → Semitic)**
+- SOV word order (unlike other Semitic: VSO/SVO)
+- Cushitic grammatical substrate despite Semitic vocabulary
+- Ethiopian Semitic uniquely influenced by Cushitic substrate
+
+================================================================================
+RELIGIOUS/CULTURAL SUPERSTRATES
+================================================================================
+
+**Persian/Arabic → Multiple Languages**
+- Persian influenced: Urdu (40%), Ottoman Turkish (40%), Uzbek, Tajik
+- Arabic influenced: Persian (40%), Turkish (6%), Swahili (35%), Hausa
+- Religious/prestige vocabulary but limited grammatical impact
+
+**Sanskrit/Pali → Southeast Asian Languages**
+- Thai, Khmer, Burmese, Malay, Javanese
+- Massive vocabulary influence (especially abstract/religious terms)
+- Local grammar retained despite vocabulary replacement
+
+**Chinese → East Asian Languages**
+- Vietnamese (60%+), Korean (60%+), Japanese (60%+)
+- Character writing systems borrowed
+- Local grammar structures retained
+
+================================================================================
+COLONIAL SUPERSTRATES
+================================================================================
+
+**Spanish/Portuguese → Americas**
+- Nahuatl + Spanish → Mexican Spanish substrate
+- Quechua + Spanish → Andean Spanish varieties  
+- Guarani + Spanish → Paraguayan bilingualism (unique survival)
+- Tupian + Portuguese → Brazilian Portuguese substrate
+
+**French → Africa/Vietnam**
+- Maghrebi Arabic (massive French influence)
+- Vietnamese (French cultural/technical vocabulary)
+- West African French varieties (substrate from local languages)
+
+**English → Global**
+- Indian English (substrate from Indo-Aryan/Dravidian)
+- African English varieties (substrate from Bantu/Niger-Congo)
+- Philippine English (substrate from Austronesian)
+
+================================================================================
+NOMAD/INVADER SUPERSTRATES WITH MINIMAL IMPACT
+================================================================================
+
+**Mongolic/Turkic over Settled Populations**
+- Manchu → Chinese (Manchu rulers adopted Chinese)
+- Turkic → Persian (retained Persian despite Turkic rule)
+- Norman French → English (French elite, English masses)
+- Arabic → Egyptian (Coptic substrate survived in phonology)
+
+Pattern: Smaller elite populations adopting local language while contributing 
+vocabulary. Elite may even shift to substrate language (Manchu, Normans).
+
+================================================================================
+ADSTRATE CONVERGENCE: SPRACHBÜNDE
+================================================================================
+
+**Balkan Sprachbund** (Albanian, Bulgarian, Greek, Macedonian, Romanian)
+- Postposed definite article
+- Loss of infinitive
+- Future tense formation
+- Clitic doubling
+- Despite different families: Albanian (IE-Albanian), Greek (IE-Greek), 
+  Romanian (IE-Romance), Bulgarian (IE-Slavic), Turkish (Turkic)
+
+**South Asian Sprachbund** (Indo-Aryan, Dravidian, Munda)
+- Retroflex consonants
+- SOV word order
+- Converging grammar despite unrelated families
+
+**Mesoamerican Sprachbund** (Uto-Aztecan, Mayan, Oto-Manguean)
+- Vigesimal (base-20) number systems
+- Numeral classifiers
+- Similar grammatical patterns despite unrelated origins
+
+================================================================================
+LANGUAGE ISOLATES WITH HEAVY CONTACT
+================================================================================
+
+**Basque** (Pre-IE → Latin/Romance)
+- Survived IE expansion unlike all other Western European languages
+- Heavy Latin/Romance loanwords but retained non-IE grammar
+- Influenced Spanish/Gascon phonology (5-vowel system)
+
+**Japanese** (Jomon? → Chinese influence)
+- Possible Jomon substrate + hypothetical Austronesian
+- 60%+ vocabulary from Chinese
+- Grammar remained Japonic despite massive lexical borrowing
+
+**Korean** (Unknown substrate → Chinese/Mongolic/Tungusic)
+- 60%+ vocabulary from Chinese
+- Mongolic/Tungusic grammatical similarities
+- Substrate unknown - possibly multiple ancient languages
+
+================================================================================
+UNUSUAL PATTERNS
+================================================================================
+
+**Maltese (Arabic + Romance)**
+- Siculo-Arabic base (North African Arabic)
+- 50%+ Romance (Italian/Sicilian) superstrate
+- Only Semitic language written in Latin alphabet
+- Unique: comparable Semitic and Romance components
+
+**Yiddish (Germanic + Hebrew + Slavic)**
+- High German base
+- Hebrew/Aramaic religious/liturgical layer
+- Slavic substrate/adstrate from Eastern Europe
+- Three-way fusion creating distinct language
+
+**Romani (Indo-Aryan + Multiple European)**
+- Preserved Middle Indo-Aryan (from India)
+- Each dialect has different European substrate based on region
+- Greek, Armenian, Hungarian, Romanian, Spanish, etc.
+
+================================================================================
+NEARLY REPLACED LANGUAGES
+================================================================================
+
+**Irish, Welsh, Scottish Gaelic** (Celtic → English superstrate)
+- English nearly replaced Celtic languages
+- Massive borrowing from English
+- Revitalization efforts ongoing
+
+**Coptic** (Egyptian → Arabic)
+- Last stage of Ancient Egyptian
+- Replaced by Arabic (7th century CE)
+- Survived as liturgical language only
+
+**Sumerian** (Sumerian → Akkadian)
+- Replaced by Akkadian ~2000 BCE
+- Continued as liturgical/scholarly language
+- Bilingualism for centuries before extinction
+
+================================================================================
+KEY INSIGHTS
+================================================================================
+
+1. **Phonology** most easily borrowed from substrate (clicks, retroflexes, 
+   vowel systems)
+
+2. **Grammar** most resistant to change - usually retained even with 
+   massive vocabulary replacement
+
+3. **Vocabulary** most easily replaced, especially:
+   - Prestige/cultural terms from superstrate
+   - Religious terms from cultural superstrate
+   - Technical terms from adstrate
+
+4. **Elite replacement** often means elite adopts local language 
+   (Normans, Manchus)
+
+5. **Mass replacement** means substrate language survives in phonology/toponyms
+   (Celtic in English, Pre-Greek in Greek)
+
+6. **Sprachbünde** show grammar CAN be borrowed through long-term contact
+   between neighbors
+
+7. **Isolates** often show heavy contact but retain core grammar
+   (Basque, Japanese, Korean)
+
+================================================================================

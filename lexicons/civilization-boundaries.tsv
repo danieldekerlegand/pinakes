@@ -1,0 +1,3 @@
+id	civilization_id	geometry	time_period_start	time_period_end	time_period_label	boundary_type	confidence	sources	notes
+roman-empire-117	roman-empire	{"type":"Polygon","coordinates":[[[-10,35],[-10,45],[5,50],[15,48],[25,45],[35,40],[40,35],[35,30],[10,30],[-10,35]]]}	117	117	Trajan's Empire at Maximum Extent (117 CE)	political	90	["Historical records","Archaeological evidence"]	Roman Empire at its greatest territorial extent under Trajan
+ancient-greece-classical	ancient-greece	{"type":"Polygon","coordinates":[[[19,35],[19,42],[29,42],[29,35],[25,34],[19,35]]]}	-500	-323	Classical Period (500-323 BCE)	cultural	85	["Ancient texts","Archaeological sites"]	Greek cultural sphere during classical period

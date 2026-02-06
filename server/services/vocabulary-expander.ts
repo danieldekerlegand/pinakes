@@ -6,6 +6,10 @@ export class VocabularyExpander {
   async expandBaseVocabulary(): Promise<void> {
     console.log("Starting base vocabulary expansion to 2000 words...");
 
+    if (!db) {
+      throw new Error("Database is not configured. Set DATABASE_URL to use vocabulary expansion.");
+    }
+
     // Core vocabulary categories with high-frequency words
     const vocabularyCategories = this.getCoreVocabularyData();
     
@@ -24,7 +28,7 @@ export class VocabularyExpander {
             frequency: wordData.frequency ? wordData.frequency.toString() : "1.0",
             difficulty: wordData.difficulty || 1,
             pos: wordData.pos || 'noun',
-            notes: wordData.notes || null
+            notes: (wordData as any).notes || null
           }).onConflictDoNothing(); // Avoid duplicates
           
           totalAdded++;

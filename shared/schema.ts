@@ -3,76 +3,7 @@ import { pgTable, text, varchar, integer, timestamp, jsonb, boolean, json, decim
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Normalized taxonomic structure for linguistic classification
-
-// Top-level phylums (e.g., Indo-European, Sino-Tibetan)
-export const phylums = pgTable("phylums", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull().unique(),
-  description: text("description"),
-  region: text("region"),
-  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
-  speakerCount: integer("speaker_count").default(0),
-  languageCount: integer("language_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Language families within phylums (e.g., Germanic, Romance)
-export const families = pgTable("families", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  phylumId: varchar("phylum_id").notNull().references(() => phylums.id),
-  description: text("description"),
-  region: text("region"),
-  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
-  speakerCount: integer("speaker_count").default(0),
-  languageCount: integer("language_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Subfamilies within families (e.g., West Germanic, North Germanic)
-export const subfamilies = pgTable("subfamilies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  familyId: varchar("family_id").notNull().references(() => families.id),
-  description: text("description"),
-  region: text("region"),
-  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
-  speakerCount: integer("speaker_count").default(0),
-  languageCount: integer("language_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Branches within subfamilies (e.g., Anglo-Frisian, High German)
-export const branches = pgTable("branches", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  subfamilyId: varchar("subfamily_id").notNull().references(() => subfamilies.id),
-  description: text("description"),
-  region: text("region"),
-  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
-  speakerCount: integer("speaker_count").default(0),
-  languageCount: integer("language_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Groups within branches (e.g., Anglo-Saxon, Franconian)
-export const groups = pgTable("groups", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  branchId: varchar("branch_id").notNull().references(() => branches.id),
-  description: text("description"),
-  region: text("region"),
-  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
-  speakerCount: integer("speaker_count").default(0),
-  languageCount: integer("language_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Core classification and language tables
 
 export const languageFamilies = pgTable("language_families", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -88,68 +19,7 @@ export const languageFamilies = pgTable("language_families", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Main languages - core linguistic units
-export const mainLanguages = pgTable("main_languages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  nativeName: text("native_name"),
-  iso639_1: varchar("iso639_1", { length: 2 }),
-  iso639_2: varchar("iso639_2", { length: 3 }),
-  // Hierarchical references (nullable for flexibility)
-  phylumId: varchar("phylum_id").references(() => phylums.id),
-  familyId: varchar("family_id").references(() => families.id),
-  subfamilyId: varchar("subfamily_id").references(() => subfamilies.id),
-  branchId: varchar("branch_id").references(() => branches.id),
-  groupId: varchar("group_id").references(() => groups.id),
-  region: text("region"),
-  countries: jsonb("countries").$type<string[]>().default([]),
-  nativeSpeakers: integer("native_speakers").default(0),
-  totalSpeakers: integer("total_speakers").default(0),
-  status: text("status").notNull(), // living, endangered, moribund, dead
-  timeOrigin: text("time_origin"),
-  classification: text("classification"),
-  writingSystem: text("writing_system"),
-  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Historical variants of main languages (e.g., Old English, Middle English)
-export const historicalVariants = pgTable("historical_variants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  nativeName: text("native_name"),
-  mainLanguageId: varchar("main_language_id").notNull().references(() => mainLanguages.id),
-  parentVariantId: varchar("parent_variant_id").references((): any => historicalVariants.id), // For evolution chains
-  timeStart: text("time_start"), // e.g., "450 CE"
-  timeEnd: text("time_end"), // e.g., "1150 CE"
-  chronologicalOrder: integer("chronological_order").default(0),
-  region: text("region"),
-  historicalContext: text("historical_context"),
-  linguisticChanges: jsonb("linguistic_changes").$type<string[]>().default([]),
-  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Modern dialects and varieties of main languages
-export const modernDialects = pgTable("modern_dialects", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  nativeName: text("native_name"),
-  mainLanguageId: varchar("main_language_id").notNull().references(() => mainLanguages.id),
-  parentDialectId: varchar("parent_dialect_id").references((): any => modernDialects.id), // For nested dialects
-  region: text("region"),
-  countries: jsonb("countries").$type<string[]>().default([]),
-  speakers: integer("speakers").default(0),
-  dialectType: text("dialect_type"), // regional, social, creole, pidgin
-  distinctiveFeatures: jsonb("distinctive_features").$type<string[]>().default([]),
-  coordinates: jsonb("coordinates").$type<{lat: number, lng: number}>(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Keep the original languages table for backward compatibility during migration
+// Canonical languages table for all genealogical nodes
 export const languages = pgTable("languages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -213,6 +83,10 @@ export const scrapingJobs = pgTable("scraping_jobs", {
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
   errorMessage: text("error_message"),
+  dataSource: text("data_source"), // gemini, wiktionary, merriam-webster, other
+  outputPath: text("output_path"), // TSV file path where results are stored
+  wordCount: integer("word_count"), // Number of words scraped
+  apiCallsUsed: integer("api_calls_used"), // Track API usage
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -398,6 +272,134 @@ export const searchFilters = pgTable("search_filters", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ============================================================================
+// Geospatial and Historical Data Tables
+// ============================================================================
+
+// Language Ranges - GeoJSON polygons for language territories
+export const languageRanges = pgTable("language_ranges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  languageId: varchar("language_id").notNull().references(() => languages.id),
+  familyId: varchar("family_id").notNull().references(() => languageFamilies.id),
+  geometry: jsonb("geometry").notNull(), // GeoJSON geometry (Polygon or MultiPolygon)
+  rangeType: text("range_type").notNull().default("current"), // current, historical, reconstructed
+  timePeriodStart: integer("time_period_start"), // Year (negative for BCE)
+  timePeriodEnd: integer("time_period_end"), // null means "to present"
+  timePeriodLabel: text("time_period_label"), // Human-readable label
+  confidence: integer("confidence").default(50), // 1-100
+  sources: jsonb("sources").$type<string[]>().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Archaeological Sites - Point locations with temporal and cultural data
+export const archaeologicalSites = pgTable("archaeological_sites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  coordinates: jsonb("coordinates").notNull().$type<{ lat: number; lng: number }>(),
+  siteType: text("site_type").notNull().default("unknown"), // settlement, burial, temple, fortification, workshop, ceremonial
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  associatedLanguageIds: jsonb("associated_language_ids").$type<string[]>().default([]),
+  associatedCultureIds: jsonb("associated_culture_ids").$type<string[]>().default([]),
+  excavationStatus: text("excavation_status").default("unexcavated"), // unexcavated, partial, extensive, complete
+  findings: jsonb("findings").$type<string[]>().default([]),
+  importance: integer("importance").default(50), // 1-100, for marker sizing
+  confidence: integer("confidence").default(50), // 1-100
+  sources: jsonb("sources").$type<string[]>().default([]),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Civilizations - Historical civilizations with metadata
+export const civilizations = pgTable("civilizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  nativeName: text("native_name"),
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  associatedLanguageIds: jsonb("associated_language_ids").$type<string[]>().default([]),
+  writingSystems: jsonb("writing_systems").$type<string[]>().default([]),
+  politicalStructure: text("political_structure"), // Empire, city-state, etc.
+  capital: text("capital"),
+  population: integer("population"), // Estimated at peak
+  sources: jsonb("sources").$type<string[]>().default([]),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Civilization Boundaries - GeoJSON polygons for civilization territories over time
+export const civilizationBoundaries = pgTable("civilization_boundaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  civilizationId: varchar("civilization_id").notNull().references(() => civilizations.id),
+  geometry: jsonb("geometry").notNull(), // GeoJSON geometry (Polygon or MultiPolygon)
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  boundaryType: text("boundary_type").default("political"), // political, cultural, linguistic, military
+  confidence: integer("confidence").default(50), // 1-100
+  sources: jsonb("sources").$type<string[]>().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Historical Routes - LineString geometries for trade/migration routes
+export const historicalRoutes = pgTable("historical_routes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  geometry: jsonb("geometry").notNull(), // GeoJSON geometry (LineString)
+  routeType: text("route_type").notNull().default("unknown"), // trade, migration, conquest, pilgrimage, communication
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  associatedLanguageIds: jsonb("associated_language_ids").$type<string[]>().default([]),
+  linguisticImpact: text("linguistic_impact"),
+  tradedGoods: jsonb("traded_goods").$type<string[]>().default([]),
+  direction: text("direction").default("bidirectional"), // bidirectional, unidirectional
+  sources: jsonb("sources").$type<string[]>().default([]),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Material Cultures - Culture groups (pottery styles, burial practices, etc.)
+export const materialCultures = pgTable("material_cultures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  cultureType: text("culture_type").notNull().default("unknown"), // pottery, burial, architecture, tools, art, clothing, weapons
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  associatedLanguageIds: jsonb("associated_language_ids").$type<string[]>().default([]),
+  sources: jsonb("sources").$type<string[]>().default([]),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Material Culture Distributions - Points/polygons showing culture distribution
+export const materialCultureDistributions = pgTable("material_culture_distributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  cultureId: varchar("culture_id").notNull().references(() => materialCultures.id),
+  geometry: jsonb("geometry").notNull(), // GeoJSON geometry (Point, Polygon, or MultiPolygon)
+  intensity: decimal("intensity", { precision: 3, scale: 2 }).default("1.0"), // 0-1, for heatmap
+  timePeriodStart: integer("time_period_start").notNull(),
+  timePeriodEnd: integer("time_period_end"),
+  timePeriodLabel: text("time_period_label"),
+  artifactCount: integer("artifact_count"), // Number of artifacts found
+  confidence: integer("confidence").default(50), // 1-100
+  sources: jsonb("sources").$type<string[]>().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas for etymology and migration tracking
 export const insertEtymologySchema = createInsertSchema(etymologies).omit({
   id: true,
@@ -412,55 +414,6 @@ export const insertWordMigrationSchema = createInsertSchema(wordMigrations).omit
 });
 
 export const insertEtymologicalNetworkSchema = createInsertSchema(etymologicalNetworks).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Insert schemas for normalized taxonomic structure
-export const insertPhylumSchema = createInsertSchema(phylums).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertFamilySchema = createInsertSchema(families).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertSubfamilySchema = createInsertSchema(subfamilies).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertBranchSchema = createInsertSchema(branches).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertGroupSchema = createInsertSchema(groups).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertMainLanguageSchema = createInsertSchema(mainLanguages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertHistoricalVariantSchema = createInsertSchema(historicalVariants).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertModernDialectSchema = createInsertSchema(modernDialects).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -518,6 +471,49 @@ export const insertSearchFilterSchema = createInsertSchema(searchFilters).omit({
   updatedAt: true,
 });
 
+// Geospatial insert schemas
+export const insertLanguageRangeSchema = createInsertSchema(languageRanges).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertArchaeologicalSiteSchema = createInsertSchema(archaeologicalSites).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCivilizationSchema = createInsertSchema(civilizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCivilizationBoundarySchema = createInsertSchema(civilizationBoundaries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHistoricalRouteSchema = createInsertSchema(historicalRoutes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMaterialCultureSchema = createInsertSchema(materialCultures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMaterialCultureDistributionSchema = createInsertSchema(materialCultureDistributions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Etymology and migration types
 export type Etymology = typeof etymologies.$inferSelect;
 export type InsertEtymology = z.infer<typeof insertEtymologySchema>;
@@ -525,24 +521,6 @@ export type WordMigration = typeof wordMigrations.$inferSelect;
 export type InsertWordMigration = z.infer<typeof insertWordMigrationSchema>;
 export type EtymologicalNetwork = typeof etymologicalNetworks.$inferSelect;
 export type InsertEtymologicalNetwork = z.infer<typeof insertEtymologicalNetworkSchema>;
-
-// Normalized taxonomic types
-export type Phylum = typeof phylums.$inferSelect;
-export type InsertPhylum = z.infer<typeof insertPhylumSchema>;
-export type Family = typeof families.$inferSelect;
-export type InsertFamily = z.infer<typeof insertFamilySchema>;
-export type Subfamily = typeof subfamilies.$inferSelect;
-export type InsertSubfamily = z.infer<typeof insertSubfamilySchema>;
-export type Branch = typeof branches.$inferSelect;
-export type InsertBranch = z.infer<typeof insertBranchSchema>;
-export type Group = typeof groups.$inferSelect;
-export type InsertGroup = z.infer<typeof insertGroupSchema>;
-export type MainLanguage = typeof mainLanguages.$inferSelect;
-export type InsertMainLanguage = z.infer<typeof insertMainLanguageSchema>;
-export type HistoricalVariant = typeof historicalVariants.$inferSelect;
-export type InsertHistoricalVariant = z.infer<typeof insertHistoricalVariantSchema>;
-export type ModernDialect = typeof modernDialects.$inferSelect;
-export type InsertModernDialect = z.infer<typeof insertModernDialectSchema>;
 
 // Legacy types for backward compatibility
 export type LanguageFamily = typeof languageFamilies.$inferSelect;
@@ -566,6 +544,22 @@ export type InsertTranslationContext = z.infer<typeof insertTranslationContextSc
 export type SearchFilter = typeof searchFilters.$inferSelect;
 export type InsertSearchFilter = z.infer<typeof insertSearchFilterSchema>;
 
+// Geospatial types
+export type LanguageRange = typeof languageRanges.$inferSelect;
+export type InsertLanguageRange = z.infer<typeof insertLanguageRangeSchema>;
+export type ArchaeologicalSite = typeof archaeologicalSites.$inferSelect;
+export type InsertArchaeologicalSite = z.infer<typeof insertArchaeologicalSiteSchema>;
+export type Civilization = typeof civilizations.$inferSelect;
+export type InsertCivilization = z.infer<typeof insertCivilizationSchema>;
+export type CivilizationBoundary = typeof civilizationBoundaries.$inferSelect;
+export type InsertCivilizationBoundary = z.infer<typeof insertCivilizationBoundarySchema>;
+export type HistoricalRoute = typeof historicalRoutes.$inferSelect;
+export type InsertHistoricalRoute = z.infer<typeof insertHistoricalRouteSchema>;
+export type MaterialCulture = typeof materialCultures.$inferSelect;
+export type InsertMaterialCulture = z.infer<typeof insertMaterialCultureSchema>;
+export type MaterialCultureDistribution = typeof materialCultureDistributions.$inferSelect;
+export type InsertMaterialCultureDistribution = z.infer<typeof insertMaterialCultureDistributionSchema>;
+
 // Extended types for frontend
 export type LanguageFamilyWithChildren = LanguageFamily & {
   children: LanguageFamilyWithChildren[];
@@ -583,6 +577,17 @@ export type LanguageWithStats = Language & {
   scrapingStatus?: 'pending' | 'running' | 'completed' | 'failed';
   historicalVariants: Language[];
   dialects: Language[];
+};
+
+export type LanguageGenealogyNode = {
+  id: string;
+  name: string;
+  taxonomicLevel?: string | null;
+  status?: string | null;
+  region?: string | null;
+  totalSpeakers?: number | null;
+  isLanguage: boolean;
+  children: LanguageGenealogyNode[];
 };
 
 export type WordComparison = {

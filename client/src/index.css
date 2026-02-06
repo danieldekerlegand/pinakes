@@ -83,63 +83,63 @@
   }
   
   .bg-primary {
-    background-color: hsl(var(--primary));
+    background-color: var(--primary);
   }
-  
+
   .bg-primary-dark {
-    background-color: hsl(var(--primary-dark));
+    background-color: var(--primary-dark);
   }
-  
+
   .bg-primary-light {
-    background-color: hsl(var(--primary-light));
+    background-color: var(--primary-light);
   }
-  
+
   .bg-secondary {
-    background-color: hsl(var(--secondary));
+    background-color: var(--secondary);
   }
-  
+
   .bg-success {
-    background-color: hsl(var(--success));
+    background-color: var(--success);
   }
-  
+
   .bg-warning {
-    background-color: hsl(var(--warning));
+    background-color: var(--warning);
   }
-  
+
   .bg-error {
-    background-color: hsl(var(--error));
+    background-color: var(--error);
   }
-  
+
   .bg-surface {
-    background-color: hsl(var(--surface));
+    background-color: var(--surface);
   }
-  
+
   .bg-surface-variant {
-    background-color: hsl(var(--surface-variant));
+    background-color: var(--surface-variant);
   }
-  
+
   .text-primary {
-    color: hsl(var(--primary));
+    color: var(--primary);
   }
-  
+
   .text-primary-dark {
-    color: hsl(var(--primary-dark));
+    color: var(--primary-dark);
   }
-  
+
   .text-secondary {
-    color: hsl(var(--secondary));
+    color: var(--secondary);
   }
-  
+
   .text-success {
-    color: hsl(var(--success));
+    color: var(--success);
   }
-  
+
   .text-warning {
-    color: hsl(var(--warning));
+    color: var(--warning);
   }
-  
+
   .text-error {
-    color: hsl(var(--error));
+    color: var(--error);
   }
   
   .shadow-material-1 {

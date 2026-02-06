@@ -1,0 +1,2101 @@
+Cuisine,Item Number,Food Item,Food Type
+Chinese,1,Peking Duck,Main Dish
+Chinese,2,Kung Pao Chicken,Stir-Fry
+Chinese,3,Sweet and Sour Pork,Main Dish
+Chinese,4,Mapo Tofu,Main Dish
+Chinese,5,Dim Sum,Appetizer
+Chinese,6,Xiaolongbao,Dumpling
+Chinese,7,Dumplings,Dumpling
+Chinese,8,Spring Rolls,Appetizer
+Chinese,9,Fried Rice,Rice Dish
+Chinese,10,Chow Mein,Noodle Dish
+Chinese,11,Lo Mein,Noodle Dish
+Chinese,12,Dan Dan Noodles,Noodle Dish
+Chinese,13,Wonton Soup,Soup
+Chinese,14,Hot and Sour Soup,Soup
+Chinese,15,Egg Drop Soup,Soup
+Chinese,16,Congee,Rice Porridge
+Chinese,17,Char Siu,Grilled Meat
+Chinese,18,General Tso's Chicken,Main Dish
+Chinese,19,Orange Chicken,Main Dish
+Chinese,20,Mongolian Beef,Main Dish
+Chinese,21,Beef and Broccoli,Stir-Fry
+Chinese,22,Moo Shu Pork,Main Dish
+Chinese,23,Twice Cooked Pork,Main Dish
+Chinese,24,Hong Shao Rou,Stew
+Chinese,25,Dongpo Pork,Main Dish
+Chinese,26,Sichuan Hot Pot,Hot Pot
+Chinese,27,Chongqing Chicken,Stir-Fry
+Chinese,28,Fish Fragrant Eggplant,Stir-Fry
+Chinese,29,Gong Bao Shrimp,Stir-Fry
+Chinese,30,Salt and Pepper Squid,Fried Food
+Chinese,31,Steamed Fish,Main Dish
+Chinese,32,Braised Abalone,Main Dish
+Chinese,33,Sea Cucumber,Main Dish
+Chinese,34,Bird's Nest Soup,Soup
+Chinese,35,Shark Fin Soup,Soup
+Chinese,36,Buddha's Delight,Vegetable Dish
+Chinese,37,Ma La Xiang Guo,Stir-Fry
+Chinese,38,Chuan Chuan,Street Food
+Chinese,39,Jianbing,Street Food
+Chinese,40,Roujiamo,Sandwich
+Chinese,41,Baozi,Steamed Bun
+Chinese,42,Mantou,Steamed Bun
+Chinese,43,Scallion Pancake,Flatbread
+Chinese,44,Ramen (Chinese style),Noodle Soup
+Chinese,45,Lanzhou Beef Noodles,Noodle Soup
+Chinese,46,Guilin Rice Noodles,Noodle Dish
+Chinese,47,Zhajiangmian,Noodle Dish
+Chinese,48,Biang Biang Noodles,Noodle Dish
+Chinese,49,Shengjianbao,Fried Bun
+Chinese,50,Guotie,Dumpling
+Chinese,51,Shumai,Dumpling
+Chinese,52,Har Gow,Dumpling
+Chinese,53,Cheung Fun,Rice Roll
+Chinese,54,Turnip Cake,Dim Sum
+Chinese,55,Taro Cake,Dim Sum
+Chinese,56,Egg Tart,Dessert
+Chinese,57,Pineapple Bun,Bread
+Chinese,58,Coconut Bun,Bread
+Chinese,59,BBQ Pork Bun,Steamed Bun
+Chinese,60,Custard Bun,Steamed Bun
+Chinese,61,Zongzi,Rice Dumpling
+Chinese,62,Nian Gao,Rice Cake
+Chinese,63,Tangyuan,Dessert
+Chinese,64,Mooncake,Dessert
+Chinese,65,Sesame Balls,Dessert
+Chinese,66,Almond Cookie,Cookie
+Chinese,67,Fortune Cookie,Cookie
+Chinese,68,Dragon's Beard Candy,Candy
+Chinese,69,White Rabbit Candy,Candy
+Chinese,70,Haw Flakes,Candy
+Chinese,71,Century Egg,Appetizer
+Chinese,72,Tea Egg,Snack
+Chinese,73,Soy Sauce Egg,Side Dish
+Chinese,74,Preserved Vegetables,Pickle
+Chinese,75,Pickled Cucumber,Pickle
+Chinese,76,Wood Ear Mushroom,Side Dish
+Chinese,77,Bok Choy,Side Dish
+Chinese,78,Chinese Broccoli,Side Dish
+Chinese,79,Water Spinach,Side Dish
+Chinese,80,Lotus Root,Side Dish
+Chinese,81,Bamboo Shoots,Side Dish
+Chinese,82,Baby Corn,Side Dish
+Chinese,83,Snow Peas,Side Dish
+Chinese,84,Edamame,Snack
+Chinese,85,Roasted Chestnuts,Snack
+Chinese,86,Sunflower Seeds,Snack
+Chinese,87,Tofu Pudding,Dessert
+Chinese,88,Soy Milk,Beverage
+Chinese,89,Grass Jelly,Dessert
+Chinese,90,Bubble Tea,Beverage
+Chinese,91,Chrysanthemum Tea,Beverage
+Chinese,92,Pu-erh Tea,Beverage
+Chinese,93,Oolong Tea,Beverage
+Chinese,94,Jasmine Tea,Beverage
+Chinese,95,Longjing Tea,Beverage
+Chinese,96,Baijiu,Beverage
+Chinese,97,Huangjiu,Beverage
+Chinese,98,Tsingtao Beer,Beverage
+Chinese,99,Sour Plum Drink,Beverage
+Chinese,100,Herbal Tea,Beverage
+Ethiopian,1,Injera,Bread
+Ethiopian,2,Doro Wat,Stew
+Ethiopian,3,Kitfo,Main Dish
+Ethiopian,4,Tibs,Stir-Fry
+Ethiopian,5,Shiro,Stew
+Ethiopian,6,Gomen,Side Dish
+Ethiopian,7,Misir Wat,Stew
+Ethiopian,8,Alicha,Stew
+Ethiopian,9,Fitfit,Main Dish
+Ethiopian,10,Firfir,Breakfast Dish
+Ethiopian,11,Dulet,Main Dish
+Ethiopian,12,Beyaynetu,Mixed Platter
+Ethiopian,13,Azifa,Salad
+Ethiopian,14,Kik Alicha,Stew
+Ethiopian,15,Yetsom Beyaynetu,Vegetarian Platter
+Ethiopian,16,Fasolia,Stew
+Ethiopian,17,Atkilt Wat,Vegetable Stew
+Ethiopian,18,Yemisir Kik,Stew
+Ethiopian,19,Kategna,Bread
+Ethiopian,20,Chechebsa,Breakfast Dish
+Ethiopian,21,Kinche,Porridge
+Ethiopian,22,Genfo,Porridge
+Ethiopian,23,Foul,Stew
+Ethiopian,24,Sambusa,Appetizer
+Ethiopian,25,Enkulal Firfir,Egg Dish
+Ethiopian,26,Chuko,Sauce
+Ethiopian,27,Awaze,Sauce
+Ethiopian,28,Mitmita,Spice Mix
+Ethiopian,29,Berbere,Spice Mix
+Ethiopian,30,Siga Wat,Stew
+Ethiopian,31,Bozena Shiro,Stew
+Ethiopian,32,Yebeg Alicha,Stew
+Ethiopian,33,Yebeg Tibs,Stir-Fry
+Ethiopian,34,Zilzil Tibs,Stir-Fry
+Ethiopian,35,Derek Tibs,Stir-Fry
+Ethiopian,36,Quanta Firfir,Main Dish
+Ethiopian,37,Gored Gored,Main Dish
+Ethiopian,38,Tire Siga,Main Dish
+Ethiopian,39,Kurt,Main Dish
+Ethiopian,40,Ayibe,Cheese
+Ethiopian,41,Fosese,Appetizer
+Ethiopian,42,Kocho,Side Dish
+Ethiopian,43,Dabo Kolo,Snack
+Ethiopian,44,Himbasha,Bread
+Ethiopian,45,Ambasha,Bread
+Ethiopian,46,Dabo,Bread
+Ethiopian,47,Dabbo Firfir,Breakfast Dish
+Ethiopian,48,Timatim Salata,Salad
+Ethiopian,49,Sils,Salad
+Ethiopian,50,Dinich,Side Dish
+Ethiopian,51,Key Sega,Stew
+Ethiopian,52,Tere Sega,Main Dish
+Ethiopian,53,Yeshimbra Asa,Stew
+Ethiopian,54,Buticha,Side Dish
+Ethiopian,55,Gomen Kitfo,Main Dish
+Ethiopian,56,Tekil Gomen,Side Dish
+Ethiopian,57,Yetakelt Wat,Stew
+Ethiopian,58,Inguday Tibs,Stir-Fry
+Ethiopian,59,Fosolia,Stew
+Ethiopian,60,Telba Fitfit,Appetizer
+Ethiopian,61,Cheka,Stew
+Ethiopian,62,Tibs Wat,Stew
+Ethiopian,63,Yedoro Tibs,Stir-Fry
+Ethiopian,64,Asa Tibs,Stir-Fry
+Ethiopian,65,Siga Tibs,Stir-Fry
+Ethiopian,66,Quanta Wat,Stew
+Ethiopian,67,Yedoro Wot,Stew
+Ethiopian,68,Doro Alicha,Stew
+Ethiopian,69,Key Wot,Stew
+Ethiopian,70,Siga Wot,Stew
+Ethiopian,71,Asa Wot,Stew
+Ethiopian,72,Yasa Wot,Stew
+Ethiopian,73,Birkuta,Side Dish
+Ethiopian,74,Kita,Bread
+Ethiopian,75,Firfir Dabo,Bread Dish
+Ethiopian,76,Kollo,Snack
+Ethiopian,77,Niter Kibbeh,Butter
+Ethiopian,78,Tej,Beverage
+Ethiopian,79,Tella,Beverage
+Ethiopian,80,Buna,Beverage
+Ethiopian,81,Atmet,Beverage
+Ethiopian,82,Keribo,Beverage
+Ethiopian,83,Fanta (Ethiopian),Beverage
+Ethiopian,84,Ambo,Beverage
+Ethiopian,85,Spris,Beverage
+Ethiopian,86,Beso,Beverage
+Ethiopian,87,Siljo,Beverage
+Ethiopian,88,Katikala,Side Dish
+Ethiopian,89,Fosolia with Rice,Main Dish
+Ethiopian,90,Shahan Ful,Stew
+Ethiopian,91,Ful Medames,Stew
+Ethiopian,92,Asa Goulash,Stew
+Ethiopian,93,Tihlo,Dumpling
+Ethiopian,94,Enjera Firfir,Breakfast Dish
+Ethiopian,95,Telba,Side Dish
+Ethiopian,96,Fafan,Porridge
+Ethiopian,97,Pasta Bolognese Ethiopian,Main Dish
+Ethiopian,98,Maraq,Soup
+Ethiopian,99,Shorba,Soup
+Ethiopian,100,Suqaar,Stir-Fry
+French,1,Croissant,Bread/Pastry
+French,2,Baguette,Bread
+French,3,Coq au Vin,Main Dish
+French,4,Beef Bourguignon,Stew
+French,5,Bouillabaisse,Soup/Stew
+French,6,Ratatouille,Vegetable Dish
+French,7,Quiche Lorraine,Savory Tart
+French,8,Crêpes,Pancake/Dessert
+French,9,Soufflé,Dessert/Side
+French,10,French Onion Soup,Soup
+French,11,Foie Gras,Appetizer
+French,12,Escargots,Appetizer
+French,13,Cassoulet,Stew
+French,14,Confit de Canard,Main Dish
+French,15,Magret de Canard,Main Dish
+French,16,Steak Frites,Main Dish
+French,17,Steak Tartare,Main Dish
+French,18,Pot-au-Feu,Stew
+French,19,Blanquette de Veau,Stew
+French,20,Navarin d'Agneau,Stew
+French,21,Gigot d'Agneau,Main Dish
+French,22,Choucroute Garnie,Main Dish
+French,23,Raclette,Main Dish
+French,24,Fondue Savoyarde,Main Dish
+French,25,Tartiflette,Main Dish
+French,26,Gratin Dauphinois,Side Dish
+French,27,Aligot,Side Dish
+French,28,Potée,Stew
+French,29,Hachis Parmentier,Main Dish
+French,30,Brandade de Morue,Main Dish
+French,31,Moules Marinières,Main Dish
+French,32,Moules Frites,Main Dish
+French,33,Coquilles Saint-Jacques,Main Dish
+French,34,Sole Meunière,Main Dish
+French,35,Truite aux Amandes,Main Dish
+French,36,Saumon à l'Oseille,Main Dish
+French,37,Terrine de Campagne,Appetizer
+French,38,Pâté en Croûte,Appetizer
+French,39,Rillettes,Appetizer
+French,40,Tapenade,Spread/Dip
+French,41,Anchoïade,Spread/Dip
+French,42,Pistou,Sauce
+French,43,Bouillabaisse,Soup/Stew
+French,44,Soupe de Poisson,Soup
+French,45,Vichyssoise,Soup
+French,46,Potage Saint-Germain,Soup
+French,47,Velouté,Soup
+French,48,Consommé,Soup
+French,49,Bisque de Homard,Soup
+French,50,Salade Niçoise,Salad
+French,51,Salade Lyonnaise,Salad
+French,52,Salade Landaise,Salad
+French,53,Crudités,Appetizer
+French,54,Gougères,Appetizer
+French,55,Vol-au-Vent,Appetizer
+French,56,Bouchée à la Reine,Appetizer
+French,57,Croque Monsieur,Sandwich
+French,58,Croque Madame,Sandwich
+French,59,Jambon-Beurre,Sandwich
+French,60,Pain au Chocolat,Bread/Pastry
+French,61,Brioche,Bread
+French,62,Pain Perdu,Dessert
+French,63,Madeleines,Dessert
+French,64,Financiers,Dessert
+French,65,Canelé,Dessert
+French,66,Profiteroles,Dessert
+French,67,Éclair,Dessert
+French,68,Religieuse,Dessert
+French,69,Paris-Brest,Dessert
+French,70,Saint-Honoré,Dessert
+French,71,Mille-Feuille,Dessert
+French,72,Opéra Cake,Dessert
+French,73,Tarte Tatin,Dessert
+French,74,Tarte aux Pommes,Dessert
+French,75,Tarte au Citron,Dessert
+French,76,Clafoutis,Dessert
+French,77,Far Breton,Dessert
+French,78,Kouign-Amann,Dessert
+French,79,Galette des Rois,Dessert
+French,80,Bûche de Noël,Dessert
+French,81,Crème Brûlée,Dessert
+French,82,Crème Caramel,Dessert
+French,83,Île Flottante,Dessert
+French,84,Mousse au Chocolat,Dessert
+French,85,Charlotte,Dessert
+French,86,Bavarois,Dessert
+French,87,Macarons,Dessert
+French,88,Calissons,Candy
+French,89,Nougat,Candy
+French,90,Pralines,Candy
+French,91,Dragées,Candy
+French,92,Pâte de Fruits,Candy
+French,93,Confiture,Jam/Preserve
+French,94,Chèvre,Cheese
+French,95,Camembert,Cheese
+French,96,Roquefort,Cheese
+French,97,Comté,Cheese
+French,98,Brie,Cheese
+French,99,Burgundy Wine,Beverage
+French,100,Champagne,Beverage
+Georgian,1,Khachapuri,Bread
+Georgian,2,Khinkali,Dumpling
+Georgian,3,Lobio,Stew
+Georgian,4,Badrijani,Appetizer
+Georgian,5,Pkhali,Appetizer
+Georgian,6,Chakapuli,Stew
+Georgian,7,Chakhokhbili,Stew
+Georgian,8,Kharcho,Soup
+Georgian,9,Chikhirtma,Soup
+Georgian,10,Satsivi,Sauce/Main
+Georgian,11,Chashushuli,Stew
+Georgian,12,Mtsvadi,Grilled Meat
+Georgian,13,Kupati,Sausage
+Georgian,14,Churchkhela,Candy
+Georgian,15,Elarji,Porridge
+Georgian,16,Sulguni,Cheese
+Georgian,17,Imeruli Khachapuri,Bread
+Georgian,18,Ajaruli Khachapuri,Bread
+Georgian,19,Megruli Khachapuri,Bread
+Georgian,20,Achma,Savory Pie
+Georgian,21,Gebzhalia,Cheese Dish
+Georgian,22,Nadughi,Cheese Spread
+Georgian,23,Kuchmachi,Appetizer
+Georgian,24,Shkmeruli,Main Dish
+Georgian,25,Ojakhuri,Stir-Fry
+Georgian,26,Khashi,Soup
+Georgian,27,Borano,Main Dish
+Georgian,28,Chirbuli,Egg Dish
+Georgian,29,Ajapsandali,Vegetable Stew
+Georgian,30,Jonjoli,Pickle
+Georgian,31,Tkemali,Sauce
+Georgian,32,Ajika,Sauce
+Georgian,33,Satsebeli,Sauce
+Georgian,34,Bazhe,Sauce
+Georgian,35,Khmeli Suneli,Spice Mix
+Georgian,36,Mchadi,Cornbread
+Georgian,37,Shotis Puri,Bread
+Georgian,38,Tonis Puri,Bread
+Georgian,39,Lavashi,Bread
+Georgian,40,Nazuki,Sweet Bread
+Georgian,41,Kada,Sweet Bread
+Georgian,42,Gozinaki,Dessert
+Georgian,43,Pelamushi,Dessert
+Georgian,44,Tklapi,Fruit Leather
+Georgian,45,Murabba,Preserve
+Georgian,46,Matsoni,Yogurt
+Georgian,47,Borjomi,Beverage
+Georgian,48,Tarragon Soda,Beverage
+Georgian,49,Lagidze,Beverage
+Georgian,50,Georgian Wine,Beverage
+Georgian,51,Saperavi Wine,Beverage
+Georgian,52,Rkatsiteli Wine,Beverage
+Georgian,53,Qvevri Wine,Beverage
+Georgian,54,Chacha,Beverage
+Georgian,55,Kindzmarauli,Beverage
+Georgian,56,Khvanchkara,Beverage
+Georgian,57,Chiri,Dried Fruit
+Georgian,58,Tapa,Dried Beef
+Georgian,59,Bastourma,Cured Meat
+Georgian,60,Sudjuk,Sausage
+Georgian,61,Kababi,Grilled Meat
+Georgian,62,Lori,Cheese
+Georgian,63,Dambal-Khacho,Cheese
+Georgian,64,Tenili,Cheese
+Georgian,65,Kalti,Cheese
+Georgian,66,Guda,Cheese
+Georgian,67,Meskhuri Guda,Cheese
+Georgian,68,Tushuri Guda,Cheese
+Georgian,69,Kartuli Guda,Cheese
+Georgian,70,Imeruli,Cheese
+Georgian,71,Kobi,Cabbage Dish
+Georgian,72,Nigvziani Badrijani,Appetizer
+Georgian,73,Lobiani,Bread
+Georgian,74,Kubdari,Bread
+Georgian,75,Mkhlovani,Bread
+Georgian,76,Chvishtari,Cornbread
+Georgian,77,Karalashvili,Bread
+Georgian,78,Shishbarak,Dumpling
+Georgian,79,Tolma,Stuffed Vegetable
+Georgian,80,Kartvlebi,Dish
+Georgian,81,Kupati Sadzlari,Sausage
+Georgian,82,Qababi,Grilled Meat
+Georgian,83,Abkhazura,Stew
+Georgian,84,Khorkhali,Stew
+Georgian,85,Elarji with Sulguni,Main Dish
+Georgian,86,Mujuji,Dish
+Georgian,87,Soko Ketsze,Appetizer
+Georgian,88,Lobio Nigvzit,Stew
+Georgian,89,Spinach Pkhali,Appetizer
+Georgian,90,Beet Pkhali,Appetizer
+Georgian,91,Eggplant with Walnuts,Appetizer
+Georgian,92,Khachapuri with Egg,Bread
+Georgian,93,Adjaruli with Butter,Bread
+Georgian,94,Penovani Khachapuri,Bread
+Georgian,95,Megruli with Double Cheese,Bread
+Georgian,96,Kveri Bread,Bread
+Georgian,97,Acharuli Khachapuri,Bread
+Georgian,98,Imeretian Khachapuri,Bread
+Georgian,99,Tklapi Fruit Roll,Snack
+Georgian,100,Churchkhela Walnut,Candy
+German,1,Bratwurst,Sausage
+German,2,Schnitzel,Main Dish
+German,3,Sauerkraut,Side Dish
+German,4,Pretzels (Brezeln),Bread
+German,5,Currywurst,Street Food
+German,6,Spätzle,Side Dish
+German,7,Sauerbraten,Main Dish
+German,8,Rouladen,Main Dish
+German,9,Kartoffelpuffer,Side Dish
+German,10,Schweinshaxe,Main Dish
+German,11,Weisswurst,Sausage
+German,12,Leberkäse,Meat Loaf
+German,13,Kassler,Main Dish
+German,14,Eisbein,Main Dish
+German,15,Maultaschen,Dumpling
+German,16,Königsberger Klopse,Main Dish
+German,17,Schwarzwälder Kirschtorte,Dessert
+German,18,Stollen,Dessert
+German,19,Apple Strudel,Dessert
+German,20,Dampfnudel,Dessert
+German,21,Knödel,Side Dish
+German,22,Semmelknödel,Side Dish
+German,23,Kartoffelknödel,Side Dish
+German,24,Rotkohl,Side Dish
+German,25,Gulasch,Stew
+German,26,Goulash Soup,Soup
+German,27,Kartoffelsuppe,Soup
+German,28,Erbsensuppe,Soup
+German,29,Linsensuppe,Soup
+German,30,Flammkuchen,Flatbread
+German,31,Zwiebelkuchen,Savory Pie
+German,32,Käsespätzle,Main Dish
+German,33,Labskaus,Main Dish
+German,34,Rollmops,Appetizer
+German,35,Matjes,Appetizer
+German,36,Bismarckhering,Appetizer
+German,37,Brathering,Appetizer
+German,38,Forelle Müllerin,Main Dish
+German,39,Aal,Main Dish
+German,40,Karpfen,Main Dish
+German,41,Grünkohl mit Pinkel,Main Dish
+German,42,Himmel und Erde,Main Dish
+German,43,Hoppel Poppel,Main Dish
+German,44,Bauernfrühstück,Breakfast Dish
+German,45,Strammer Max,Breakfast Dish
+German,46,Käsebrot,Sandwich
+German,47,Butterbrot,Sandwich
+German,48,Abendbrot,Meal/Snack
+German,49,Belegte Brötchen,Sandwich
+German,50,Frikadellen,Main Dish
+German,51,Hackbraten,Main Dish
+German,52,Falscher Hase,Main Dish
+German,53,Jägerschnitzel,Main Dish
+German,54,Zigeunerschnitzel,Main Dish
+German,55,Rahmschnitzel,Main Dish
+German,56,Cordon Bleu,Main Dish
+German,57,Saumagen,Main Dish
+German,58,Blutwurst,Sausage
+German,59,Leberwurst,Sausage
+German,60,Mettwurst,Sausage
+German,61,Teewurst,Sausage
+German,62,Bockwurst,Sausage
+German,63,Frankfurter,Sausage
+German,64,Knackwurst,Sausage
+German,65,Debreziner,Sausage
+German,66,Nürnberger Rostbratwurst,Sausage
+German,67,Thüringer Rostbratwurst,Sausage
+German,68,Weißwurst mit Senf,Sausage
+German,69,Obatzda,Cheese Spread
+German,70,Handkäse mit Musik,Cheese
+German,71,Harzer Käse,Cheese
+German,72,Camembert gebacken,Appetizer
+German,73,Brotzeit,Meal/Snack
+German,74,Vesper,Meal/Snack
+German,75,Reibekuchen,Side Dish
+German,76,Bratkartoffeln,Side Dish
+German,77,Pommes Frites,Side Dish
+German,78,Kartoffelsalat,Salad
+German,79,Gurkensalat,Salad
+German,80,Krautsalat,Salad
+German,81,Wurstsalat,Salad
+German,82,Nudelsalat,Salad
+German,83,Bienenstich,Dessert
+German,84,Donauwelle,Dessert
+German,85,Käsekuchen,Dessert
+German,86,Streuselkuchen,Dessert
+German,87,Pfannkuchen (Berliner),Dessert
+German,88,Krapfen,Dessert
+German,89,Windbeutel,Dessert
+German,90,Spaghettieis,Dessert
+German,91,Rote Grütze,Dessert
+German,92,Apfelkuchen,Dessert
+German,93,Pflaumenkuchen,Dessert
+German,94,Zwetschgenkuchen,Dessert
+German,95,Marmorkuchen,Dessert
+German,96,Lebkuchen,Cookie
+German,97,Spekulatius,Cookie
+German,98,Printen,Cookie
+German,99,Beer (Pils, Weizen, Märzen),Beverage
+German,100,Apfelschorle,Beverage
+Greek,1,Moussaka,Main Dish
+Greek,2,Souvlaki,Grilled Skewers
+Greek,3,Gyros,Sandwich
+Greek,4,Spanakopita,Savory Pie
+Greek,5,Dolmades,Appetizer
+Greek,6,Tzatziki,Dip/Sauce
+Greek,7,Greek Salad,Salad
+Greek,8,Pastitsio,Main Dish
+Greek,9,Baklava,Dessert
+Greek,10,Feta Cheese,Cheese
+Greek,11,Taramasalata,Dip/Sauce
+Greek,12,Melitzanosalata,Dip/Sauce
+Greek,13,Saganaki,Appetizer
+Greek,14,Fasolada,Soup
+Greek,15,Avgolemono,Soup
+Greek,16,Keftedes,Appetizer
+Greek,17,Loukoumades,Dessert
+Greek,18,Galaktoboureko,Dessert
+Greek,19,Kataifi,Dessert
+Greek,20,Halva,Dessert
+Greek,21,Tiropita,Savory Pie
+Greek,22,Kolokithokeftedes,Appetizer
+Greek,23,Horiatiki,Salad
+Greek,24,Melitzanes Imam,Main Dish
+Greek,25,Gigantes Plaki,Side Dish
+Greek,26,Stifado,Stew
+Greek,27,Kleftiko,Main Dish
+Greek,28,Arni Psito,Main Dish
+Greek,29,Paidakia,Grilled Meat
+Greek,30,Bifteki,Main Dish
+Greek,31,Soutzoukakia,Main Dish
+Greek,32,Gemista,Main Dish
+Greek,33,Briam,Vegetable Dish
+Greek,34,Fakorizo,Main Dish
+Greek,35,Revithia,Soup
+Greek,36,Fava,Dip/Side
+Greek,37,Skordalia,Dip/Sauce
+Greek,38,Htipiti,Dip/Sauce
+Greek,39,Horta,Side Dish
+Greek,40,Bamies,Stew
+Greek,41,Papoutsakia,Main Dish
+Greek,42,Pasteli,Snack
+Greek,43,Loukaniko,Sausage
+Greek,44,Octopus Grilled,Main Dish
+Greek,45,Kalamari,Appetizer
+Greek,46,Gavros,Appetizer
+Greek,47,Bakaliaros Skordalia,Main Dish
+Greek,48,Psarosoupa,Soup
+Greek,49,Kakavia,Soup/Stew
+Greek,50,Kotosoupa,Soup
+Greek,51,Magiritsa,Soup
+Greek,52,Patsas,Soup
+Greek,53,Kokoretsi,Street Food
+Greek,54,Splinantero,Main Dish
+Greek,55,Kontosouvli,Grilled Meat
+Greek,56,Exohiko,Main Dish
+Greek,57,Youvarlakia,Soup
+Greek,58,Giouvarlakia,Soup
+Greek,59,Mpougatsa,Dessert
+Greek,60,Bougatsa,Dessert
+Greek,61,Koulouri,Bread
+Greek,62,Tsoureki,Bread
+Greek,63,Vasilopita,Bread/Dessert
+Greek,64,Paximadia,Biscuit
+Greek,65,Melomakarona,Cookie
+Greek,66,Kourabiedes,Cookie
+Greek,67,Diples,Dessert
+Greek,68,Karydopita,Dessert
+Greek,69,Ravani,Dessert
+Greek,70,Portokalopita,Dessert
+Greek,71,Spoon Sweets,Preserve
+Greek,72,Frappe,Beverage
+Greek,73,Greek Coffee,Beverage
+Greek,74,Ouzo,Beverage
+Greek,75,Tsipouro,Beverage
+Greek,76,Retsina,Beverage
+Greek,77,Mastika,Beverage
+Greek,78,Soumada,Beverage
+Greek,79,Rizogalo,Dessert
+Greek,80,Halvas Simigdalenios,Dessert
+Greek,81,Amygdalota,Cookie
+Greek,82,Finikia,Cookie
+Greek,83,Pasteli Bars,Snack
+Greek,84,Soutzoukos,Snack
+Greek,85,Pita Bread,Bread
+Greek,86,Lagana,Bread
+Greek,87,Eliopita,Savory Pie
+Greek,88,Kreatopita,Savory Pie
+Greek,89,Prasopita,Savory Pie
+Greek,90,Manitaropita,Savory Pie
+Greek,91,Tyropitakia,Appetizer
+Greek,92,Spanakopitakia,Appetizer
+Greek,93,Bourekakia,Appetizer
+Greek,94,Koulourakia,Cookie
+Greek,95,Trigona,Dessert
+Greek,96,Ekmek Kataifi,Dessert
+Greek,97,Koufeta,Candy
+Greek,98,Pasteli with Honey,Snack
+Greek,99,Greek Yogurt with Honey,Dessert
+Greek,100,Metaxa,Beverage
+Hungarian,1,Goulash,Stew
+Hungarian,2,Chicken Paprikash,Main Dish
+Hungarian,3,Langos,Fried Bread
+Hungarian,4,Fisherman's Soup,Soup
+Hungarian,5,Stuffed Cabbage,Main Dish
+Hungarian,6,Lángos,Street Food
+Hungarian,7,Dobos Torte,Dessert
+Hungarian,8,Chimney Cake,Dessert
+Hungarian,9,Kürtőskalács,Dessert
+Hungarian,10,Pörkölt,Stew
+Hungarian,11,Paprikás,Stew
+Hungarian,12,Tokány,Stew
+Hungarian,13,Lecso,Vegetable Stew
+Hungarian,14,Főzelék,Vegetable Stew
+Hungarian,15,Rántott Sajt,Fried Cheese
+Hungarian,16,Rántott Hús,Fried Meat
+Hungarian,17,Breaded Pork,Main Dish
+Hungarian,18,Veal Paprikash,Main Dish
+Hungarian,19,Beef Goulash,Stew
+Hungarian,20,Pork Goulash,Stew
+Hungarian,21,Kolbász,Sausage
+Hungarian,22,Hurka,Sausage
+Hungarian,23,Debreceni,Sausage
+Hungarian,24,Csabai,Sausage
+Hungarian,25,Téliszalámi,Sausage
+Hungarian,26,Székelykáposzta,Stew
+Hungarian,27,Töltött Káposzta,Main Dish
+Hungarian,28,Töltött Paprika,Main Dish
+Hungarian,29,Hortobágyi Palacsinta,Main Dish
+Hungarian,30,Palacsinta,Pancake
+Hungarian,31,Gundel Palacsinta,Dessert
+Hungarian,32,Rakott Krumpli,Casserole
+Hungarian,33,Rakott Káposzta,Casserole
+Hungarian,34,Tócsni,Potato Pancake
+Hungarian,35,Liptauer,Cheese Spread
+Hungarian,36,Körözött,Cheese Spread
+Hungarian,37,Túrós Csusza,Main Dish
+Hungarian,38,Káposztás Kocka,Main Dish
+Hungarian,39,Bableves,Soup
+Hungarian,40,Gulyásleves,Soup
+Hungarian,41,Jókai Bableves,Soup
+Hungarian,42,Újházi Tyúkhúsleves,Soup
+Hungarian,43,Palócleves,Soup
+Hungarian,44,Zöldbableves,Soup
+Hungarian,45,Gombaleves,Soup
+Hungarian,46,Gyümölcsleves,Soup
+Hungarian,47,Hideg Meggyleves,Soup
+Hungarian,48,Nokedli,Dumpling
+Hungarian,49,Galuska,Dumpling
+Hungarian,50,Tarhonya,Pasta
+Hungarian,51,Slambuc,Main Dish
+Hungarian,52,Brassói Aprópecsenye,Main Dish
+Hungarian,53,Cigánypecsenye,Main Dish
+Hungarian,54,Tatárbeefsteak,Main Dish
+Hungarian,55,Marhapörkölt,Stew
+Hungarian,56,Csirkepaprikás,Main Dish
+Hungarian,57,Pacalpörkölt,Stew
+Hungarian,58,Borjúpörkölt,Stew
+Hungarian,59,Vadpörkölt,Stew
+Hungarian,60,Halászlé,Soup
+Hungarian,61,Rác Ponty,Main Dish
+Hungarian,62,Paprikás Krumpli,Stew
+Hungarian,63,Lecsós Hús,Main Dish
+Hungarian,64,Paradicsomos Káposzta,Side Dish
+Hungarian,65,Vegyes Savanyúság,Pickle
+Hungarian,66,Csalamádé,Pickle
+Hungarian,67,Ecetes Paprika,Pickle
+Hungarian,68,Kovászos Uborka,Pickle
+Hungarian,69,Rétes,Dessert
+Hungarian,70,Almás Rétes,Dessert
+Hungarian,71,Meggyes Rétes,Dessert
+Hungarian,72,Túrós Rétes,Dessert
+Hungarian,73,Mákos Rétes,Dessert
+Hungarian,74,Somlói Galuska,Dessert
+Hungarian,75,Rigó Jancsi,Dessert
+Hungarian,76,Eszterházy Torta,Dessert
+Hungarian,77,Dobostorta,Dessert
+Hungarian,78,Krémes,Dessert
+Hungarian,79,Túrógombóc,Dessert
+Hungarian,80,Fánk,Dessert
+Hungarian,81,Bejgli,Dessert
+Hungarian,82,Zserbó,Dessert
+Hungarian,83,Flódni,Dessert
+Hungarian,84,Aranygaluska,Dessert
+Hungarian,85,Madártej,Dessert
+Hungarian,86,Sólet,Stew
+Hungarian,87,Flekken,Main Dish
+Hungarian,88,Pogácsa,Bread
+Hungarian,89,Tepertős Pogácsa,Bread
+Hungarian,90,Túrós Pogácsa,Bread
+Hungarian,91,Kifli,Bread
+Hungarian,92,Zsemle,Bread
+Hungarian,93,Pálinka,Beverage
+Hungarian,94,Unicum,Beverage
+Hungarian,95,Tokaji Wine,Beverage
+Hungarian,96,Egri Bikavér,Beverage
+Hungarian,97,Fröccs,Beverage
+Hungarian,98,Meggyleves,Soup
+Hungarian,99,Túró Rudi,Dessert
+Hungarian,100,Szódavíz,Beverage
+Indian,1,Butter Chicken,Main Dish
+Indian,2,Tikka Masala,Main Dish
+Indian,3,Biryani,Rice Dish
+Indian,4,Naan,Bread
+Indian,5,Samosa,Appetizer
+Indian,6,Tandoori Chicken,Main Dish
+Indian,7,Palak Paneer,Main Dish
+Indian,8,Dal Makhani,Stew
+Indian,9,Rogan Josh,Main Dish
+Indian,10,Vindaloo,Curry
+Indian,11,Korma,Curry
+Indian,12,Masala Dosa,Main Dish
+Indian,13,Idli,Breakfast Dish
+Indian,14,Vada,Appetizer
+Indian,15,Uttapam,Pancake
+Indian,16,Poori,Bread
+Indian,17,Paratha,Bread
+Indian,18,Roti,Bread
+Indian,19,Chapati,Bread
+Indian,20,Bhatura,Bread
+Indian,21,Kulcha,Bread
+Indian,22,Chana Masala,Stew
+Indian,23,Aloo Gobi,Stir-Fry
+Indian,24,Baingan Bharta,Main Dish
+Indian,25,Bhindi Masala,Main Dish
+Indian,26,Paneer Tikka,Appetizer
+Indian,27,Malai Kofta,Main Dish
+Indian,28,Kadai Paneer,Main Dish
+Indian,29,Matar Paneer,Main Dish
+Indian,30,Shahi Paneer,Main Dish
+Indian,31,Rajma,Stew
+Indian,32,Chole,Stew
+Indian,33,Dal Tadka,Stew
+Indian,34,Dal Fry,Stew
+Indian,35,Sambhar,Stew
+Indian,36,Rasam,Soup
+Indian,37,Pongal,Rice Dish
+Indian,38,Pulao,Rice Dish
+Indian,39,Jeera Rice,Rice Dish
+Indian,40,Lemon Rice,Rice Dish
+Indian,41,Curd Rice,Rice Dish
+Indian,42,Tamarind Rice,Rice Dish
+Indian,43,Fish Curry,Curry
+Indian,44,Prawn Curry,Curry
+Indian,45,Goan Fish Curry,Curry
+Indian,46,Malabar Fish Curry,Curry
+Indian,47,Mutton Curry,Curry
+Indian,48,Keema,Main Dish
+Indian,49,Nihari,Stew
+Indian,50,Haleem,Stew
+Indian,51,Paya,Soup
+Indian,52,Kebab,Grilled Meat
+Indian,53,Seekh Kebab,Grilled Skewers
+Indian,54,Shami Kebab,Appetizer
+Indian,55,Galouti Kebab,Appetizer
+Indian,56,Reshmi Kebab,Grilled Meat
+Indian,57,Pakora,Fritter
+Indian,58,Bhaji,Fritter
+Indian,59,Pani Puri,Street Food
+Indian,60,Bhel Puri,Street Food
+Indian,61,Sev Puri,Street Food
+Indian,62,Dahi Puri,Street Food
+Indian,63,Pav Bhaji,Street Food
+Indian,64,Vada Pav,Sandwich
+Indian,65,Dabeli,Sandwich
+Indian,66,Kachori,Snack
+Indian,67,Dhokla,Snack
+Indian,68,Thepla,Flatbread
+Indian,69,Khakhra,Cracker
+Indian,70,Fafda,Snack
+Indian,71,Chaat,Street Food
+Indian,72,Aloo Tikki,Street Food
+Indian,73,Papdi Chaat,Street Food
+Indian,74,Raj Kachori,Street Food
+Indian,75,Raita,Side Dish
+Indian,76,Pickle (Achar),Condiment
+Indian,77,Chutney,Condiment
+Indian,78,Papadum,Cracker
+Indian,79,Kheer,Dessert
+Indian,80,Gulab Jamun,Dessert
+Indian,81,Rasgulla,Dessert
+Indian,82,Jalebi,Dessert
+Indian,83,Ladoo,Dessert
+Indian,84,Barfi,Dessert
+Indian,85,Halwa,Dessert
+Indian,86,Kulfi,Dessert
+Indian,87,Rasmalai,Dessert
+Indian,88,Sandesh,Dessert
+Indian,89,Mysore Pak,Dessert
+Indian,90,Peda,Dessert
+Indian,91,Khaja,Dessert
+Indian,92,Ghewar,Dessert
+Indian,93,Imarti,Dessert
+Indian,94,Soan Papdi,Candy
+Indian,95,Chai,Beverage
+Indian,96,Lassi,Beverage
+Indian,97,Masala Chai,Beverage
+Indian,98,Thandai,Beverage
+Indian,99,Nimbu Pani,Beverage
+Indian,100,Sugarcane Juice,Beverage
+Indonesian,1,Nasi Goreng,Fried Rice
+Indonesian,2,Mie Goreng,Noodle Dish
+Indonesian,3,Satay,Grilled Skewers
+Indonesian,4,Rendang,Stew
+Indonesian,5,Gado-Gado,Salad
+Indonesian,6,Nasi Padang,Rice Dish
+Indonesian,7,Soto Ayam,Soup
+Indonesian,8,Bakso,Soup
+Indonesian,9,Sop Buntut,Soup
+Indonesian,10,Rawon,Soup
+Indonesian,11,Soto Betawi,Soup
+Indonesian,12,Gudeg,Stew
+Indonesian,13,Opor Ayam,Stew
+Indonesian,14,Ayam Goreng,Fried Chicken
+Indonesian,15,Ayam Bakar,Grilled Chicken
+Indonesian,16,Ikan Bakar,Grilled Fish
+Indonesian,17,Ikan Goreng,Fried Fish
+Indonesian,18,Pepes Ikan,Steamed Fish
+Indonesian,19,Gulai,Curry
+Indonesian,20,Kare Ayam,Curry
+Indonesian,21,Sambal,Sauce
+Indonesian,22,Sambal Terasi,Sauce
+Indonesian,23,Sambal Matah,Sauce
+Indonesian,24,Sambal Ijo,Sauce
+Indonesian,25,Tempeh,Side Dish
+Indonesian,26,Tempe Goreng,Fried Tempeh
+Indonesian,27,Tahu Goreng,Fried Tofu
+Indonesian,28,Tahu Gejrot,Appetizer
+Indonesian,29,Perkedel,Fritter
+Indonesian,30,Bakwan,Fritter
+Indonesian,31,Lumpia,Spring Roll
+Indonesian,32,Risoles,Fried Pastry
+Indonesian,33,Pastel,Fried Pastry
+Indonesian,34,Lemper,Rice Roll
+Indonesian,35,Arem-Arem,Rice Roll
+Indonesian,36,Lontong,Rice Cake
+Indonesian,37,Ketupat,Rice Cake
+Indonesian,38,Nasi Uduk,Rice Dish
+Indonesian,39,Nasi Kuning,Rice Dish
+Indonesian,40,Nasi Liwet,Rice Dish
+Indonesian,41,Nasi Tumpeng,Rice Dish
+Indonesian,42,Bubur Ayam,Rice Porridge
+Indonesian,43,Bubur Kacang Hijau,Dessert
+Indonesian,44,Lontong Sayur,Main Dish
+Indonesian,45,Sop Konro,Soup
+Indonesian,46,Coto Makassar,Soup
+Indonesian,47,Pempek,Fish Cake
+Indonesian,48,Tekwan,Soup
+Indonesian,49,Model,Fish Cake
+Indonesian,50,Kerupuk,Cracker
+Indonesian,51,Emping,Cracker
+Indonesian,52,Rempeyek,Cracker
+Indonesian,53,Asinan,Pickle/Salad
+Indonesian,54,Rujak,Salad
+Indonesian,55,Karedok,Salad
+Indonesian,56,Lotek,Salad
+Indonesian,57,Pecel,Salad
+Indonesian,58,Urap,Salad
+Indonesian,59,Ketoprak,Main Dish
+Indonesian,60,Kupat Tahu,Main Dish
+Indonesian,61,Tahu Tek,Main Dish
+Indonesian,62,Siomay,Dumpling
+Indonesian,63,Batagor,Fried Dumpling
+Indonesian,64,Martabak Manis,Dessert
+Indonesian,65,Martabak Telur,Savory Pancake
+Indonesian,66,Terang Bulan,Dessert
+Indonesian,67,Kue Lapis,Dessert
+Indonesian,68,Klepon,Dessert
+Indonesian,69,Onde-Onde,Dessert
+Indonesian,70,Dadar Gulung,Dessert
+Indonesian,71,Lupis,Dessert
+Indonesian,72,Cenil,Dessert
+Indonesian,73,Nagasari,Dessert
+Indonesian,74,Getuk,Dessert
+Indonesian,75,Kue Putu,Dessert
+Indonesian,76,Serabi,Dessert
+Indonesian,77,Pisang Goreng,Fried Banana
+Indonesian,78,Pisang Rai,Dessert
+Indonesian,79,Es Campur,Dessert
+Indonesian,80,Es Teler,Dessert
+Indonesian,81,Es Cendol,Dessert
+Indonesian,82,Es Dawet,Dessert
+Indonesian,83,Es Kacang Merah,Dessert
+Indonesian,84,Kolak,Dessert
+Indonesian,85,Bubur Sumsum,Dessert
+Indonesian,86,Bubur Candil,Dessert
+Indonesian,87,Ongol-Ongol,Dessert
+Indonesian,88,Kue Cubit,Dessert
+Indonesian,89,Kue Pancong,Dessert
+Indonesian,90,Lemang,Rice Dish
+Indonesian,91,Dodol,Candy
+Indonesian,92,Wajik,Dessert
+Indonesian,93,Jenang,Dessert
+Indonesian,94,Kopi Tubruk,Beverage
+Indonesian,95,Teh Botol,Beverage
+Indonesian,96,Es Kelapa Muda,Beverage
+Indonesian,97,Wedang Jahe,Beverage
+Indonesian,98,Bajigur,Beverage
+Indonesian,99,Bandrek,Beverage
+Indonesian,100,Arak Bali,Beverage
+Iranian,1,Kebab,Grilled Meat
+Iranian,2,Tahdig,Rice Dish
+Iranian,3,Ghormeh Sabzi,Stew
+Iranian,4,Fesenjan,Stew
+Iranian,5,Zereshk Polo,Rice Dish
+Iranian,6,Baghali Polo,Rice Dish
+Iranian,7,Koobideh,Grilled Meat
+Iranian,8,Joojeh Kabab,Grilled Chicken
+Iranian,9,Barg Kabab,Grilled Meat
+Iranian,10,Khoresh Gheymeh,Stew
+Iranian,11,Khoresh Karafs,Stew
+Iranian,12,Khoresh Bademjan,Stew
+Iranian,13,Ash Reshteh,Soup
+Iranian,14,Abgoosht,Soup/Stew
+Iranian,15,Halim,Porridge
+Iranian,16,Kashk-e Bademjan,Appetizer
+Iranian,17,Mirza Ghasemi,Appetizer
+Iranian,18,Kuku Sabzi,Frittata
+Iranian,19,Kuku Sibzamini,Frittata
+Iranian,20,Dolmeh,Stuffed Vegetable
+Iranian,21,Kotlet,Cutlet
+Iranian,22,Lubia Polo,Rice Dish
+Iranian,23,Adas Polo,Rice Dish
+Iranian,24,Shirin Polo,Rice Dish
+Iranian,25,Albaloo Polo,Rice Dish
+Iranian,26,Morasa Polo,Rice Dish
+Iranian,27,Sabzi Polo,Rice Dish
+Iranian,28,Tahchin,Rice Dish
+Iranian,29,Kateh,Rice Dish
+Iranian,30,Dami Gojeh,Rice Dish
+Iranian,31,Torshi,Pickle
+Iranian,32,Mast-o Khiar,Side Dish
+Iranian,33,Mast-o Moosir,Side Dish
+Iranian,34,Salad Shirazi,Salad
+Iranian,35,Salad Olivieh,Salad
+Iranian,36,Panir,Cheese
+Iranian,37,Sabzi Khordan,Side Dish
+Iranian,38,Lavash,Bread
+Iranian,39,Sangak,Bread
+Iranian,40,Barbari,Bread
+Iranian,41,Taftoon,Bread
+Iranian,42,Nun-e Roghani,Bread
+Iranian,43,Falafel,Appetizer
+Iranian,44,Sambooseh,Appetizer
+Iranian,45,Tah Chin,Rice Dish
+Iranian,46,Maast,Yogurt
+Iranian,47,Doogh,Beverage
+Iranian,48,Sharbat,Beverage
+Iranian,49,Chai,Beverage
+Iranian,50,Noon Panir Sabzi,Breakfast
+Iranian,51,Halva,Dessert
+Iranian,52,Baklava,Dessert
+Iranian,53,Zoolbia,Dessert
+Iranian,54,Bamieh,Dessert
+Iranian,55,Sohan,Dessert
+Iranian,56,Gaz,Candy
+Iranian,57,Noghl,Candy
+Iranian,58,Pashmak,Candy
+Iranian,59,Faloodeh,Dessert
+Iranian,60,Bastani,Dessert
+Iranian,61,Ranginak,Dessert
+Iranian,62,Koloocheh,Cookie
+Iranian,63,Nan-e Berenji,Cookie
+Iranian,64,Nan-e Nokhodchi,Cookie
+Iranian,65,Shirini Nokhodchi,Cookie
+Iranian,66,Qottab,Dessert
+Iranian,67,Nan-e Shirmal,Bread
+Iranian,68,Komaj,Cookie
+Iranian,69,Masghati,Dessert
+Iranian,70,Louz,Dessert
+Iranian,71,Ash-e Anar,Soup
+Iranian,72,Ash-e Sholeh Ghalamkar,Soup
+Iranian,73,Ash-e Jo,Soup
+Iranian,74,Eshkeneh,Soup
+Iranian,75,Shole Zard,Dessert
+Iranian,76,Samanu,Dessert
+Iranian,77,Kachi,Dessert
+Iranian,78,Reshte Khoshkar,Dessert
+Iranian,79,Kufteh,Meatball
+Iranian,80,Kufteh Berenji,Meatball
+Iranian,81,Kufteh Tabrizi,Meatball
+Iranian,82,Shami,Cutlet
+Iranian,83,Nargesi,Egg Dish
+Iranian,84,Borani Esfenaj,Side Dish
+Iranian,85,Borani Bademjan,Side Dish
+Iranian,86,Borani Kadoo,Side Dish
+Iranian,87,Reshteh Polo,Rice Dish
+Iranian,88,Havij Polo,Rice Dish
+Iranian,89,Shevid Baghali Polo,Rice Dish
+Iranian,90,Mahi Polo,Rice Dish
+Iranian,91,Eshkeneh,Soup
+Iranian,92,Kufteh Tabrizi,Soup
+Iranian,93,Sherbet,Beverage
+Iranian,94,Sekanjabin,Beverage
+Iranian,95,Khakshir,Beverage
+Iranian,96,Bidmeshk,Beverage
+Iranian,97,Tokhm-e Sharbati,Beverage
+Iranian,98,Ab Havij,Beverage
+Iranian,99,Ab Anar,Beverage
+Iranian,100,Ab Porteghal,Beverage
+Italian,1,Pizza Margherita,Pizza
+Italian,2,Pasta Carbonara,Pasta
+Italian,3,Lasagna,Pasta
+Italian,4,Risotto,Rice Dish
+Italian,5,Osso Buco,Main Dish
+Italian,6,Tiramisu,Dessert
+Italian,7,Gelato,Dessert
+Italian,8,Bruschetta,Appetizer
+Italian,9,Caprese Salad,Salad
+Italian,10,Minestrone,Soup
+Italian,11,Ribollita,Soup
+Italian,12,Pasta e Fagioli,Soup
+Italian,13,Spaghetti Bolognese,Pasta
+Italian,14,Penne Arrabbiata,Pasta
+Italian,15,Fettuccine Alfredo,Pasta
+Italian,16,Cacio e Pepe,Pasta
+Italian,17,Amatriciana,Pasta
+Italian,18,Puttanesca,Pasta
+Italian,19,Aglio e Olio,Pasta
+Italian,20,Pasta alla Norma,Pasta
+Italian,21,Pesto Genovese,Sauce/Pasta
+Italian,22,Linguine alle Vongole,Pasta
+Italian,23,Spaghetti alle Cozze,Pasta
+Italian,24,Frutti di Mare,Pasta/Seafood
+Italian,25,Ravioli,Pasta
+Italian,26,Tortellini,Pasta
+Italian,27,Agnolotti,Pasta
+Italian,28,Gnocchi,Pasta
+Italian,29,Polenta,Side Dish
+Italian,30,Arancini,Appetizer
+Italian,31,Suppli,Appetizer
+Italian,32,Focaccia,Bread
+Italian,33,Panini,Sandwich
+Italian,34,Tramezzini,Sandwich
+Italian,35,Piadina,Flatbread
+Italian,36,Calzone,Pizza
+Italian,37,Stromboli,Pizza
+Italian,38,Pizza Napoletana,Pizza
+Italian,39,Pizza Quattro Formaggi,Pizza
+Italian,40,Pizza Quattro Stagioni,Pizza
+Italian,41,Pizza Diavola,Pizza
+Italian,42,Pizza Prosciutto e Funghi,Pizza
+Italian,43,Pizza Capricciosa,Pizza
+Italian,44,Saltimbocca,Main Dish
+Italian,45,Piccata,Main Dish
+Italian,46,Vitello Tonnato,Main Dish
+Italian,47,Bistecca alla Fiorentina,Main Dish
+Italian,48,Tagliata,Main Dish
+Italian,49,Porchetta,Main Dish
+Italian,50,Cotoletta alla Milanese,Main Dish
+Italian,51,Bollito Misto,Main Dish
+Italian,52,Brasato al Barolo,Main Dish
+Italian,53,Cacciatore,Main Dish
+Italian,54,Parmigiana di Melanzane,Main Dish
+Italian,55,Caponata,Side Dish
+Italian,56,Peperonata,Side Dish
+Italian,57,Frittata,Egg Dish
+Italian,58,Carbonara di Zucchine,Pasta
+Italian,59,Pasta Primavera,Pasta
+Italian,60,Pasta al Limone,Pasta
+Italian,61,Pasta con le Sarde,Pasta
+Italian,62,Pasta alla Gricia,Pasta
+Italian,63,Bucatini all'Amatriciana,Pasta
+Italian,64,Orecchiette con Cime di Rapa,Pasta
+Italian,65,Trofie al Pesto,Pasta
+Italian,66,Pappardelle al Cinghiale,Pasta
+Italian,67,Tagliatelle al Ragù,Pasta
+Italian,68,Risotto alla Milanese,Rice Dish
+Italian,69,Risotto ai Funghi,Rice Dish
+Italian,70,Risotto al Nero di Seppia,Rice Dish
+Italian,71,Risotto ai Frutti di Mare,Rice Dish
+Italian,72,Carpaccio,Appetizer
+Italian,73,Crudo di Parma,Appetizer
+Italian,74,Bresaola,Cured Meat
+Italian,75,Mortadella,Cured Meat
+Italian,76,Salame,Cured Meat
+Italian,77,Prosciutto e Melone,Appetizer
+Italian,78,Antipasto Misto,Appetizer
+Italian,79,Insalata Mista,Salad
+Italian,80,Panzanella,Salad
+Italian,81,Insalata di Mare,Salad
+Italian,82,Calamari Fritti,Appetizer
+Italian,83,Fritto Misto,Main Dish
+Italian,84,Zuppa di Pesce,Soup
+Italian,85,Acqua Pazza,Main Dish
+Italian,86,Cacciucco,Soup/Stew
+Italian,87,Baccalà Mantecato,Appetizer
+Italian,88,Sarde in Saor,Appetizer
+Italian,89,Affogato,Dessert
+Italian,90,Panna Cotta,Dessert
+Italian,91,Cannoli,Dessert
+Italian,92,Sfogliatelle,Dessert
+Italian,93,Babà,Dessert
+Italian,94,Cassata,Dessert
+Italian,95,Zabaglione,Dessert
+Italian,96,Amaretti,Cookie
+Italian,97,Biscotti,Cookie
+Italian,98,Panettone,Bread/Dessert
+Italian,99,Pandoro,Bread/Dessert
+Italian,100,Limoncello,Beverage
+Japanese,1,Sushi,Sushi/Sashimi
+Japanese,2,Sashimi,Sushi/Sashimi
+Japanese,3,Ramen,Noodle Soup
+Japanese,4,Tempura,Fried Food
+Japanese,5,Tonkatsu,Main Dish
+Japanese,6,Yakitori,Grilled Skewers
+Japanese,7,Udon,Noodle Dish
+Japanese,8,Soba,Noodle Dish
+Japanese,9,Miso Soup,Soup
+Japanese,10,Teriyaki Chicken,Main Dish
+Japanese,11,Gyoza,Dumpling
+Japanese,12,Okonomiyaki,Savory Pancake
+Japanese,13,Takoyaki,Street Food
+Japanese,14,Yakisoba,Noodle Dish
+Japanese,15,Shabu-Shabu,Hot Pot
+Japanese,16,Sukiyaki,Hot Pot
+Japanese,17,Kaiseki,Multi-Course Meal
+Japanese,18,Donburi,Rice Bowl
+Japanese,19,Oyakodon,Rice Bowl
+Japanese,20,Katsudon,Rice Bowl
+Japanese,21,Gyudon,Rice Bowl
+Japanese,22,Tendon,Rice Bowl
+Japanese,23,Unadon,Rice Bowl
+Japanese,24,Chirashi,Sushi Bowl
+Japanese,25,Nigiri,Sushi/Sashimi
+Japanese,26,Maki Rolls,Sushi/Sashimi
+Japanese,27,Temaki,Sushi/Sashimi
+Japanese,28,Onigiri,Rice Snack
+Japanese,29,Ochazuke,Rice Dish
+Japanese,30,Chazuke,Rice Dish
+Japanese,31,Natto,Side Dish
+Japanese,32,Edamame,Appetizer
+Japanese,33,Agedashi Tofu,Appetizer
+Japanese,34,Hiyayakko,Appetizer
+Japanese,35,Tsukemono,Pickle/Side
+Japanese,36,Umeboshi,Pickle/Side
+Japanese,37,Tamagoyaki,Egg Dish
+Japanese,38,Chawanmushi,Egg Custard
+Japanese,39,Oden,Stew
+Japanese,40,Nikujaga,Stew
+Japanese,41,Korokke,Fried Food
+Japanese,42,Menchi Katsu,Fried Food
+Japanese,43,Ebi Fry,Fried Food
+Japanese,44,Kara-age,Fried Food
+Japanese,45,Tori Karaage,Fried Food
+Japanese,46,Kushikatsu,Fried Skewers
+Japanese,47,Kushiage,Fried Skewers
+Japanese,48,Yakiudon,Noodle Dish
+Japanese,49,Nabeyaki Udon,Noodle Soup
+Japanese,50,Zaru Soba,Noodle Dish
+Japanese,51,Kitsune Udon,Noodle Soup
+Japanese,52,Tanuki Soba,Noodle Soup
+Japanese,53,Tsukemen,Noodle Dish
+Japanese,54,Shoyu Ramen,Noodle Soup
+Japanese,55,Miso Ramen,Noodle Soup
+Japanese,56,Tonkotsu Ramen,Noodle Soup
+Japanese,57,Shio Ramen,Noodle Soup
+Japanese,58,Teppanyaki,Grilled Food
+Japanese,59,Okonomiyaki Hiroshima-style,Savory Pancake
+Japanese,60,Monjayaki,Savory Pancake
+Japanese,61,Yakiniku,Grilled Meat
+Japanese,62,Horumon,Grilled Offal
+Japanese,63,Motsunabe,Hot Pot
+Japanese,64,Chankonabe,Hot Pot
+Japanese,65,Yudofu,Tofu Dish
+Japanese,66,Tofu Steak,Main Dish
+Japanese,67,Goya Champuru,Stir-Fry
+Japanese,68,Somen,Noodle Dish
+Japanese,69,Hiyashi Chuka,Noodle Dish
+Japanese,70,Unagi,Grilled Eel
+Japanese,71,Anago,Grilled Eel
+Japanese,72,Mentaiko,Roe/Side
+Japanese,73,Ikura,Roe/Side
+Japanese,74,Uni,Roe/Side
+Japanese,75,Toro,Sushi/Sashimi
+Japanese,76,Hamachi,Sushi/Sashimi
+Japanese,77,Saba Shioyaki,Grilled Fish
+Japanese,78,Sanma,Grilled Fish
+Japanese,79,Taiyaki,Dessert
+Japanese,80,Dorayaki,Dessert
+Japanese,81,Mochi,Dessert
+Japanese,82,Dango,Dessert
+Japanese,83,Daifuku,Dessert
+Japanese,84,Manju,Dessert
+Japanese,85,Yokan,Dessert
+Japanese,86,Anmitsu,Dessert
+Japanese,87,Kakigori,Dessert
+Japanese,88,Matcha Ice Cream,Dessert
+Japanese,89,Melon Pan,Bread
+Japanese,90,Cream Pan,Bread
+Japanese,91,Anpan,Bread
+Japanese,92,Curry Pan,Bread
+Japanese,93,Japanese Curry,Main Dish
+Japanese,94,Hayashi Rice,Main Dish
+Japanese,95,Omurice,Main Dish
+Japanese,96,Korokke Pan,Sandwich
+Japanese,97,Castella Cake,Dessert
+Japanese,98,Melonpan,Bread
+Japanese,99,Green Tea,Beverage
+Japanese,100,Sake,Beverage
+Korean,1,Kimchi,Side Dish
+Korean,2,Bibimbap,Rice Dish
+Korean,3,Bulgogi,Grilled Meat
+Korean,4,Korean BBQ,Grilled Meat
+Korean,5,Galbi,Grilled Ribs
+Korean,6,Samgyeopsal,Grilled Pork
+Korean,7,Japchae,Noodle Dish
+Korean,8,Tteokbokki,Street Food
+Korean,9,Korean Fried Chicken,Fried Chicken
+Korean,10,Jjajangmyeon,Noodle Dish
+Korean,11,Jjamppong,Noodle Soup
+Korean,12,Naengmyeon,Noodle Dish
+Korean,13,Sundubu Jjigae,Stew
+Korean,14,Kimchi Jjigae,Stew
+Korean,15,Doenjang Jjigae,Stew
+Korean,16,Budae Jjigae,Stew
+Korean,17,Galbitang,Soup
+Korean,18,Seolleongtang,Soup
+Korean,19,Samgyetang,Soup
+Korean,20,Yukgaejang,Soup
+Korean,21,Kongnamul Guk,Soup
+Korean,22,Miyeok Guk,Soup
+Korean,23,Manduguk,Soup
+Korean,24,Tteokguk,Soup
+Korean,25,Kimbap,Rice Roll
+Korean,26,Mandu,Dumpling
+Korean,27,Hotteok,Dessert
+Korean,28,Bingsu,Dessert
+Korean,29,Tteok,Rice Cake
+Korean,30,Songpyeon,Rice Cake
+Korean,31,Yakgwa,Dessert
+Korean,32,Hangwa,Dessert
+Korean,33,Bungeoppang,Dessert
+Korean,34,Hodugwaja,Dessert
+Korean,35,Gyeran Bbang,Snack
+Korean,36,Eomuk,Fish Cake
+Korean,37,Twigim,Fried Food
+Korean,38,Gimbap,Rice Roll
+Korean,39,Jeon,Pancake
+Korean,40,Pajeon,Pancake
+Korean,41,Kimchi Jeon,Pancake
+Korean,42,Haemul Pajeon,Pancake
+Korean,43,Bindaetteok,Pancake
+Korean,44,Gamjajeon,Pancake
+Korean,45,Hobakjeon,Pancake
+Korean,46,Gochujang,Sauce
+Korean,47,Doenjang,Sauce
+Korean,48,Ssamjang,Sauce
+Korean,49,Yangnyeom,Sauce
+Korean,50,Banchan,Side Dish
+Korean,51,Namul,Side Dish
+Korean,52,Japchae,Side Dish
+Korean,53,Kongnamul Muchim,Side Dish
+Korean,54,Sukjunamul,Side Dish
+Korean,55,Sigeumchi Namul,Side Dish
+Korean,56,Gaji Namul,Side Dish
+Korean,57,Mu Saengchae,Side Dish
+Korean,58,Oiseon,Side Dish
+Korean,59,Dubu Jorim,Side Dish
+Korean,60,Gyeran Jjim,Steamed Egg
+Korean,61,Altang,Stew
+Korean,62,Haemultang,Stew
+Korean,63,Maeuntang,Stew
+Korean,64,Agujjim,Stew
+Korean,65,Galbijjim,Stew
+Korean,66,Jjukkumi Bokkeum,Stir-Fry
+Korean,67,Ojingeo Bokkeum,Stir-Fry
+Korean,68,Nakji Bokkeum,Stir-Fry
+Korean,69,Dakgalbi,Stir-Fry
+Korean,70,Buldak,Stir-Fry
+Korean,71,Jokbal,Main Dish
+Korean,72,Bossam,Main Dish
+Korean,73,Makchang,Grilled Offal
+Korean,75,Sundae,Sausage
+Korean,76,Soondae,Sausage
+Korean,77,Gopchang,Grilled Offal
+Korean,77,Twigak,Snack
+Korean,78,Yakbap,Rice Dish
+Korean,79,Juk,Rice Porridge
+Korean,80,Jatjuk,Rice Porridge
+Korean,81,Hobakjuk,Rice Porridge
+Korean,82,Heukimjajuk,Rice Porridge
+Korean,83,Patjuk,Rice Porridge
+Korean,84,Chueotang,Soup
+Korean,85,Haejang-guk,Soup
+Korean,86,Sundaeguk,Soup
+Korean,87,Ttaro Gukbap,Soup
+Korean,88,Soju,Beverage
+Korean,89,Makgeolli,Beverage
+Korean,90,Bokbunja,Beverage
+Korean,91,Dongdongju,Beverage
+Korean,92,Sikhye,Beverage
+Korean,93,Sujeonggwa,Beverage
+Korean,94,Yulmu Cha,Beverage
+Korean,95,Bori Cha,Beverage
+Korean,96,Oksusu Cha,Beverage
+Korean,97,Misutgaru,Beverage
+Korean,98,Banana Milk,Beverage
+Korean,99,Milkis,Beverage
+Korean,100,Dalgona Coffee,Beverage
+Mexican,1,Tacos al Pastor,Main Dish
+Mexican,2,Guacamole,Dip/Sauce
+Mexican,3,Enchiladas,Main Dish
+Mexican,4,Quesadillas,Main Dish
+Mexican,5,Mole Poblano,Sauce
+Mexican,6,Tamales,Main Dish
+Mexican,7,Chiles Rellenos,Main Dish
+Mexican,8,Pozole,Soup/Stew
+Mexican,9,Carnitas,Main Dish
+Mexican,10,Ceviche,Seafood Dish
+Mexican,11,Tortas,Sandwich
+Mexican,12,Sopes,Appetizer
+Mexican,13,Tostadas,Appetizer/Main
+Mexican,14,Chilaquiles,Breakfast Dish
+Mexican,15,Huevos Rancheros,Breakfast Dish
+Mexican,16,Elote (Mexican Street Corn),Street Food
+Mexican,17,Flautas,Main Dish
+Mexican,18,Barbacoa,Main Dish
+Mexican,19,Birria,Stew
+Mexican,20,Cochinita Pibil,Main Dish
+Mexican,21,Menudo,Soup
+Mexican,22,Gorditas,Main Dish
+Mexican,23,Tlayudas,Main Dish
+Mexican,24,Sincronizadas,Main Dish
+Mexican,25,Molletes,Breakfast Dish
+Mexican,26,Pico de Gallo,Salsa/Condiment
+Mexican,27,Salsa Verde,Salsa/Condiment
+Mexican,28,Salsa Roja,Salsa/Condiment
+Mexican,29,Refried Beans (Frijoles Refritos),Side Dish
+Mexican,30,Mexican Rice (Arroz Rojo),Side Dish
+Mexican,31,Nachos,Appetizer
+Mexican,32,Burritos,Main Dish
+Mexican,33,Fajitas,Main Dish
+Mexican,34,Chimichangas,Main Dish
+Mexican,35,Queso Fundido,Appetizer
+Mexican,36,Esquites,Side Dish
+Mexican,37,Rajas con Crema,Side Dish
+Mexican,38,Nopales,Side Dish
+Mexican,39,Calabacitas,Side Dish
+Mexican,40,Frijoles Charros,Side Dish
+Mexican,41,Sopa de Tortilla,Soup
+Mexican,42,Albondigas Soup,Soup
+Mexican,43,Caldo de Res,Soup
+Mexican,44,Caldo de Pollo,Soup
+Mexican,45,Coctel de Camaron,Appetizer
+Mexican,46,Aguachile,Seafood Dish
+Mexican,47,Tostadas de Ceviche,Appetizer
+Mexican,48,Camarones a la Diabla,Main Dish
+Mexican,49,Pescado Zarandeado,Main Dish
+Mexican,50,Empanadas,Appetizer/Snack
+Mexican,51,Panucho,Appetizer
+Mexican,52,Papadzules,Main Dish
+Mexican,53,Poc Chuc,Main Dish
+Mexican,54,Machaca,Main Dish
+Mexican,55,Discada,Main Dish
+Mexican,56,Cabrito,Main Dish
+Mexican,57,Carne Asada,Main Dish
+Mexican,58,Arrachera,Main Dish
+Mexican,59,Alambre,Main Dish
+Mexican,60,Tacos de Lengua,Main Dish
+Mexican,61,Tacos de Cabeza,Main Dish
+Mexican,62,Tacos de Suadero,Main Dish
+Mexican,63,Tacos Dorados,Main Dish
+Mexican,64,Mulitas,Main Dish
+Mexican,65,Vampiros,Main Dish
+Mexican,66,Gringas,Main Dish
+Mexican,67,Pambazo,Sandwich
+Mexican,68,Cemita,Sandwich
+Mexican,69,Lonches,Sandwich
+Mexican,70,Milanesa,Main Dish
+Mexican,71,Chiles en Nogada,Main Dish
+Mexican,72,Rajas Poblanas,Side Dish
+Mexican,73,Huitlacoche Quesadilla,Main Dish
+Mexican,74,Queso Fresco,Cheese
+Mexican,75,Crema Mexicana,Condiment
+Mexican,76,Chorizo,Sausage
+Mexican,77,Chuleta,Main Dish
+Mexican,78,Morcilla,Sausage
+Mexican,79,Chicharrón,Snack
+Mexican,80,Tripas,Main Dish
+Mexican,81,Buche,Main Dish
+Mexican,82,Choriqueso,Appetizer
+Mexican,83,Papas con Chorizo,Side Dish
+Mexican,84,Huevos con Chorizo,Breakfast Dish
+Mexican,85,Huevos a la Mexicana,Breakfast Dish
+Mexican,86,Enfrijoladas,Main Dish
+Mexican,87,Enmoladas,Main Dish
+Mexican,88,Entomatadas,Main Dish
+Mexican,89,Sopa Azteca,Soup
+Mexican,90,Sopa de Lima,Soup
+Mexican,91,Sopa de Fideo,Soup
+Mexican,92,Arroz con Leche,Dessert
+Mexican,93,Flan,Dessert
+Mexican,94,Tres Leches Cake,Dessert
+Mexican,95,Churros,Dessert
+Mexican,96,Buñuelos,Dessert
+Mexican,97,Pan de Muerto,Bread
+Mexican,98,Conchas,Bread
+Mexican,99,Champurrado,Beverage
+Mexican,100,Horchata,Beverage
+Peruvian,1,Ceviche,Seafood Dish
+Peruvian,2,Lomo Saltado,Main Dish
+Peruvian,3,Aji de Gallina,Main Dish
+Peruvian,4,Anticuchos,Street Food
+Peruvian,5,Causa Limeña,Appetizer
+Peruvian,6,Pollo a la Brasa,Main Dish
+Peruvian,7,Papa a la Huancaína,Appetizer
+Peruvian,8,Arroz con Pollo,Main Dish
+Peruvian,9,Tacu Tacu,Side Dish
+Peruvian,10,Rocoto Relleno,Main Dish
+Peruvian,11,Cuy Chactado,Main Dish
+Peruvian,12,Pachamanca,Main Dish
+Peruvian,13,Tiradito,Seafood Dish
+Peruvian,14,Leche de Tigre,Beverage/Appetizer
+Peruvian,15,Chupe de Camarones,Soup
+Peruvian,16,Seco de Cordero,Stew
+Peruvian,17,Carapulcra,Stew
+Peruvian,18,Olluquito con Charqui,Stew
+Peruvian,19,Aguadito,Soup
+Peruvian,20,Parihuela,Soup
+Peruvian,21,Chilcano,Soup
+Peruvian,22,Sudado de Pescado,Stew
+Peruvian,23,Escabeche de Pescado,Main Dish
+Peruvian,24,Arroz con Mariscos,Main Dish
+Peruvian,25,Jalea,Main Dish
+Peruvian,26,Chicharrón de Calamar,Appetizer
+Peruvian,27,Chicharrón de Pescado,Main Dish
+Peruvian,28,Chicharrón de Pollo,Main Dish
+Peruvian,29,Chicharrón de Cerdo,Main Dish
+Peruvian,30,Butifarra,Sandwich
+Peruvian,31,Tamales Peruanos,Main Dish
+Peruvian,32,Humitas,Main Dish
+Peruvian,33,Juane,Main Dish
+Peruvian,34,Tacacho con Cecina,Main Dish
+Peruvian,35,Inchicapi,Soup
+Peruvian,36,Patarashca,Main Dish
+Peruvian,37,Caldo de Gallina,Soup
+Peruvian,38,Shambar,Soup
+Peruvian,39,Mondonguito a la Italiana,Stew
+Peruvian,40,Sancochado,Soup/Stew
+Peruvian,41,Patasca,Soup
+Peruvian,42,Adobo Arequipeño,Main Dish
+Peruvian,43,Malaya,Main Dish
+Peruvian,44,Cau Cau,Stew
+Peruvian,45,Chanfainita,Stew
+Peruvian,46,Salchipapas,Street Food
+Peruvian,47,Papa Rellena,Appetizer
+Peruvian,48,Empanadas Peruanas,Appetizer
+Peruvian,49,Tequeños,Appetizer
+Peruvian,50,Yuca Frita,Side Dish
+Peruvian,51,Choclo con Queso,Side Dish
+Peruvian,52,Cancha,Snack
+Peruvian,53,Ocopa Arequipeña,Appetizer
+Peruvian,54,Solterito,Salad
+Peruvian,55,Ensalada de Palta,Salad
+Peruvian,56,Ensalada Rusa,Salad
+Peruvian,57,Sarsa Criolla,Condiment
+Peruvian,58,Ají Amarillo Sauce,Sauce
+Peruvian,59,Ají Panca Sauce,Sauce
+Peruvian,60,Huancaína Sauce,Sauce
+Peruvian,61,Arroz Chaufa,Main Dish
+Peruvian,62,Tallarin Saltado,Main Dish
+Peruvian,63,Wantan Frito,Appetizer
+Peruvian,64,Aeropuerto,Main Dish
+Peruvian,65,Enrollado de Pollo,Main Dish
+Peruvian,66,Estofado de Pollo,Stew
+Peruvian,67,Pollo al Horno,Main Dish
+Peruvian,68,Milanesa,Main Dish
+Peruvian,69,Apanado,Main Dish
+Peruvian,70,Chuleta de Cerdo,Main Dish
+Peruvian,71,Costillas de Cerdo,Main Dish
+Peruvian,72,Adobo de Chancho,Main Dish
+Peruvian,73,Chicharrones,Main Dish
+Peruvian,74,Lechón,Main Dish
+Peruvian,75,Rachi,Appetizer
+Peruvian,76,Chunchules,Appetizer
+Peruvian,77,Mollejitas,Appetizer
+Peruvian,78,Corazón Anticucho,Street Food
+Peruvian,79,Pollo Anticucho,Street Food
+Peruvian,80,Choclo con Huevo,Side Dish
+Peruvian,81,Caldo de Cabeza,Soup
+Peruvian,82,Sopa de Menestrón,Soup
+Peruvian,83,Sopa Teológica,Soup
+Peruvian,84,Sopa Seca,Main Dish
+Peruvian,85,Caigua Rellena,Main Dish
+Peruvian,86,Zapallo Relleno,Main Dish
+Peruvian,87,Yuca al Ajillo,Side Dish
+Peruvian,88,Camarones al Ajillo,Main Dish
+Peruvian,89,Pulpo al Olivo,Appetizer
+Peruvian,90,Suspiro Limeño,Dessert
+Peruvian,91,Mazamorra Morada,Dessert
+Peruvian,92,Arroz con Leche,Dessert
+Peruvian,93,Picarones,Dessert
+Peruvian,94,Turrón de Doña Pepa,Dessert
+Peruvian,95,Alfajores,Dessert
+Peruvian,96,King Kong,Dessert
+Peruvian,97,Chocotejas,Dessert
+Peruvian,98,Pisco Sour,Beverage
+Peruvian,99,Chicha Morada,Beverage
+Peruvian,100,Inca Kola,Beverage
+Polish,1,Pierogi,Dumpling
+Polish,2,Bigos,Stew
+Polish,3,Żurek,Soup
+Polish,4,Barszcz,Soup
+Polish,5,Kotlet Schabowy,Main Dish
+Polish,6,Gołąbki,Main Dish
+Polish,7,Placki Ziemniaczane,Side Dish
+Polish,8,Kielbasa,Sausage
+Polish,9,Flaki,Soup
+Polish,10,Rosół,Soup
+Polish,11,Krupnik,Soup
+Polish,12,Ogórkowa,Soup
+Polish,13,Kapuśniak,Soup
+Polish,14,Grochówka,Soup
+Polish,15,Czernina,Soup
+Polish,16,Zrazy,Main Dish
+Polish,17,Pulpety,Meatball
+Polish,18,Klopsiki,Meatball
+Polish,19,Pasztet,Pâté
+Polish,20,Smalec,Spread
+Polish,21,Oscypek,Cheese
+Polish,22,Twaróg,Cheese
+Polish,23,Bryndza,Cheese
+Polish,24,Kaszanka,Sausage
+Polish,25,Krakowska,Sausage
+Polish,26,Kabanos,Sausage
+Polish,27,Salceson,Sausage
+Polish,28,Wędlina,Cured Meat
+Polish,29,Schab,Main Dish
+Polish,30,Golonka,Main Dish
+Polish,31,Karkówka,Main Dish
+Polish,32,Żeberka,Main Dish
+Polish,33,Pieczeń,Main Dish
+Polish,34,Pieczona Kaczka,Main Dish
+Polish,35,Pieczona Gęś,Main Dish
+Polish,36,Karp,Main Dish
+Polish,37,Śledź,Appetizer
+Polish,38,Tatar,Appetizer
+Polish,39,Śledź w Śmietanie,Appetizer
+Polish,40,Śledź w Oleju,Appetizer
+Polish,41,Mizeria,Salad
+Polish,42,Surówka z Kapusty,Salad
+Polish,43,Sałatka Jarzynowa,Salad
+Polish,44,Śledzie w Oleju,Appetizer
+Polish,45,Makaron z Serem,Main Dish
+Polish,46,Kopytka,Dumpling
+Polish,47,Pyzy,Dumpling
+Polish,48,Kluski Śląskie,Dumpling
+Polish,49,Leniwe,Dumpling
+Polish,50,Uszka,Dumpling
+Polish,51,Krokiety,Appetizer
+Polish,52,Naleśniki,Pancake
+Polish,53,Racuchy,Pancake
+Polish,54,Faworki,Dessert
+Polish,55,Pączki,Dessert
+Polish,56,Sernik,Dessert
+Polish,57,Makowiec,Dessert
+Polish,58,Piernik,Dessert
+Polish,59,Szarlotka,Dessert
+Polish,60,Jabłecznik,Dessert
+Polish,61,Krówki,Candy
+Polish,62,Ptasie Mleczko,Candy
+Polish,63,Prince Polo,Candy
+Polish,64,Toffifee,Candy
+Polish,65,Rogale Świętomarcińskie,Dessert
+Polish,66,Kołacz,Dessert
+Polish,67,Babka,Dessert
+Polish,68,Mazurek,Dessert
+Polish,69,Murzynek,Dessert
+Polish,70,Keks,Dessert
+Polish,71,Biszkopt,Dessert
+Polish,72,Sekacz,Dessert
+Polish,73,Napoleonka,Dessert
+Polish,74,Kremówka,Dessert
+Polish,75,Wuzetka,Dessert
+Polish,76,Karpatka,Dessert
+Polish,77,Pischinger,Dessert
+Polish,78,Pierniczki,Cookie
+Polish,79,Ciastka Kruche,Cookie
+Polish,80,Ciasteczka,Cookie
+Polish,81,Herbatniki,Cookie
+Polish,82,Wafle,Cookie
+Polish,83,Rurki,Cookie
+Polish,84,Gofry,Waffle
+Polish,85,Chleb,Bread
+Polish,86,Bułka,Bread
+Polish,87,Kajzerka,Bread
+Polish,88,Bagietka,Bread
+Polish,89,Chleb Razowy,Bread
+Polish,90,Kompot,Beverage
+Polish,91,Sok,Beverage
+Polish,92,Kawa,Beverage
+Polish,93,Herbata,Beverage
+Polish,94,Piwo,Beverage
+Polish,95,Wódka,Beverage
+Polish,96,Żubrówka,Beverage
+Polish,97,Śliwowica,Beverage
+Polish,98,Krupnik (liqueur),Beverage
+Polish,99,Miód Pitny,Beverage
+Polish,100,Kisiel,Dessert
+Portuguese,1,Bacalhau à Brás,Main Dish
+Portuguese,2,Bacalhau à Gomes de Sá,Main Dish
+Portuguese,3,Caldo Verde,Soup
+Portuguese,4,Francesinha,Sandwich
+Portuguese,5,Pastel de Nata,Dessert
+Portuguese,6,Arroz de Marisco,Main Dish
+Portuguese,7,Cataplana,Stew
+Portuguese,8,Alheira,Sausage
+Portuguese,9,Chouriço,Sausage
+Portuguese,10,Piri Piri Chicken,Main Dish
+Portuguese,11,Sardinhas Assadas,Grilled Fish
+Portuguese,12,Polvo à Lagareiro,Main Dish
+Portuguese,13,Cozido à Portuguesa,Stew
+Portuguese,14,Tripas à Moda do Porto,Stew
+Portuguese,15,Açorda,Bread Soup
+Portuguese,16,Sopa da Pedra,Soup
+Portuguese,17,Feijoada,Stew
+Portuguese,18,Arroz de Pato,Main Dish
+Portuguese,19,Cabidela,Stew
+Portuguese,20,Chanfana,Stew
+Portuguese,21,Rojões,Main Dish
+Portuguese,22,Porco à Alentejana,Main Dish
+Portuguese,23,Bifana,Sandwich
+Portuguese,24,Prego,Sandwich
+Portuguese,25,Pataniscas,Fritter
+Portuguese,26,Pastéis de Bacalhau,Appetizer
+Portuguese,27,Ameijoas à Bulhão Pato,Appetizer
+Portuguese,28,Percebes,Seafood
+Portuguese,29,Conquilhas,Appetizer
+Portuguese,30,Lulas Recheadas,Main Dish
+Portuguese,31,Caldeirada,Stew
+Portuguese,32,Arroz de Cabidela,Main Dish
+Portuguese,33,Migas,Side Dish
+Portuguese,34,Favas,Side Dish
+Portuguese,35,Espetada,Grilled Skewers
+Portuguese,36,Bife à Café,Main Dish
+Portuguese,37,Bitoque,Main Dish
+Portuguese,38,Picanha,Main Dish
+Portuguese,39,Carne de Porco à Alentejana,Main Dish
+Portuguese,40,Ensopado de Borrego,Stew
+Portuguese,41,Rancho,Stew
+Portuguese,42,Sopa de Peixe,Soup
+Portuguese,43,Gaspacho,Soup
+Portuguese,44,Sopa de Legumes,Soup
+Portuguese,45,Canja,Soup
+Portuguese,46,Sopa de Grão,Soup
+Portuguese,47,Queijadas,Dessert
+Portuguese,48,Travesseiros,Dessert
+Portuguese,49,Ovos Moles,Dessert
+Portuguese,50,Arroz Doce,Dessert
+Portuguese,51,Leite Creme,Dessert
+Portuguese,52,Pudim Flan,Dessert
+Portuguese,53,Pudim Abade de Priscos,Dessert
+Portuguese,54,Bolo de Arroz,Dessert
+Portuguese,55,Bolo Rei,Dessert
+Portuguese,56,Bolo de Bolacha,Dessert
+Portuguese,57,Toucinho do Céu,Dessert
+Portuguese,58,Pão de Ló,Dessert
+Portuguese,59,Rabanadas,Dessert
+Portuguese,60,Filhós,Dessert
+Portuguese,61,Sonhos,Dessert
+Portuguese,62,Azevias,Dessert
+Portuguese,63,Bolo de Mel,Dessert
+Portuguese,64,Broas,Bread
+Portuguese,65,Bolo de Caco,Bread
+Portuguese,66,Pão Alentejano,Bread
+Portuguese,67,Cornbread (Broa),Bread
+Portuguese,68,Massa Sovada,Bread
+Portuguese,69,Folar,Bread
+Portuguese,70,Sericaia,Dessert
+Portuguese,71,Morgado,Dessert
+Portuguese,72,Dom Rodrigo,Dessert
+Portuguese,73,Barriga de Freira,Dessert
+Portuguese,74,Papos de Anjo,Dessert
+Portuguese,75,Trouxas de Ovos,Dessert
+Portuguese,76,Fatias Douradas,Dessert
+Portuguese,77,Aletria,Dessert
+Portuguese,78,Lampreia de Ovos,Dessert
+Portuguese,79,Cavacas,Cookie
+Portuguese,80,Biscoitos,Cookie
+Portuguese,81,Broinhas,Cookie
+Portuguese,82,Esquecidos,Cookie
+Portuguese,83,Vinho do Porto,Beverage
+Portuguese,84,Vinho Verde,Beverage
+Portuguese,85,Ginjinha,Beverage
+Portuguese,86,Moscatel,Beverage
+Portuguese,87,Medronho,Beverage
+Portuguese,88,Licor Beirão,Beverage
+Portuguese,89,Sumol,Beverage
+Portuguese,90,Galão,Beverage
+Portuguese,91,Bica,Beverage
+Portuguese,92,Mazagran,Beverage
+Portuguese,93,Serra da Estrela Cheese,Cheese
+Portuguese,94,Azeitão Cheese,Cheese
+Portuguese,95,São Jorge Cheese,Cheese
+Portuguese,96,Requeijão,Cheese
+Portuguese,97,Presunto,Cured Meat
+Portuguese,98,Morcela,Sausage
+Portuguese,99,Farinheira,Sausage
+Portuguese,100,Linguiça,Sausage
+Spanish,1,Paella,Rice Dish
+Spanish,2,Tapas,Appetizer
+Spanish,3,Jamón Ibérico,Cured Meat
+Spanish,4,Gazpacho,Soup
+Spanish,5,Tortilla Española,Egg Dish
+Spanish,6,Patatas Bravas,Appetizer
+Spanish,7,Churros con Chocolate,Dessert
+Spanish,8,Croquetas,Appetizer
+Spanish,9,Pimientos de Padrón,Appetizer
+Spanish,10,Pan con Tomate,Appetizer
+Spanish,11,Pulpo a la Gallega,Main Dish
+Spanish,12,Gambas al Ajillo,Appetizer
+Spanish,13,Calamares a la Romana,Appetizer
+Spanish,14,Albóndigas,Main Dish
+Spanish,15,Chorizo,Sausage
+Spanish,16,Morcilla,Sausage
+Spanish,17,Salchichón,Sausage
+Spanish,18,Sobrasada,Sausage
+Spanish,19,Fabada Asturiana,Stew
+Spanish,20,Cocido Madrileño,Stew
+Spanish,21,Callos a la Madrileña,Stew
+Spanish,22,Rabo de Toro,Main Dish
+Spanish,23,Lechazo Asado,Main Dish
+Spanish,24,Cochinillo Asado,Main Dish
+Spanish,25,Cordero al Chilindrón,Stew
+Spanish,26,Pollo al Ajillo,Main Dish
+Spanish,27,Arroz Negro,Rice Dish
+Spanish,28,Arroz con Bogavante,Rice Dish
+Spanish,29,Fideuà,Noodle Dish
+Spanish,30,Migas,Main Dish
+Spanish,31,Salmorejo,Soup
+Spanish,32,Pisto Manchego,Vegetable Dish
+Spanish,33,Escalivada,Side Dish
+Spanish,34,Empanada Gallega,Savory Pie
+Spanish,35,Caldo Gallego,Soup
+Spanish,36,Lacón con Grelos,Main Dish
+Spanish,37,Percebes,Seafood
+Spanish,38,Mejillones al Vapor,Appetizer
+Spanish,39,Navajas,Seafood
+Spanish,40,Almejas a la Marinera,Main Dish
+Spanish,41,Chipirones en su Tinta,Main Dish
+Spanish,42,Bacalao al Pil Pil,Main Dish
+Spanish,43,Bacalao a la Vizcaína,Main Dish
+Spanish,44,Marmitako,Stew
+Spanish,45,Txangurro,Main Dish
+Spanish,46,Pintxos,Appetizer
+Spanish,47,Gilda,Appetizer
+Spanish,48,Boquerones en Vinagre,Appetizer
+Spanish,49,Ensaladilla Rusa,Salad
+Spanish,50,Huevos Rotos,Main Dish
+Spanish,51,Revuelto de Setas,Main Dish
+Spanish,52,Revuelto de Ajetes,Main Dish
+Spanish,53,Piperada,Side Dish
+Spanish,54,Menestra de Verduras,Vegetable Dish
+Spanish,55,Espinacas con Garbanzos,Stew
+Spanish,56,Potaje de Garbanzos,Stew
+Spanish,57,Lentejas Guisadas,Stew
+Spanish,58,Alubias con Chorizo,Stew
+Spanish,59,Berenjenas con Miel,Appetizer
+Spanish,60,Calabacín Relleno,Main Dish
+Spanish,61,Pimientos Rellenos,Main Dish
+Spanish,62,Tomates Rellenos,Main Dish
+Spanish,63,Gazpacho Manchego,Stew
+Spanish,64,Ajo Blanco,Soup
+Spanish,65,Sopa Castellana,Soup
+Spanish,66,Sopa de Ajo,Soup
+Spanish,67,Escudella,Soup
+Spanish,68,Sopa de Picadillo,Soup
+Spanish,69,Crema de Verduras,Soup
+Spanish,70,Carne en Salsa,Main Dish
+Spanish,71,Carrilleras al Vino Tinto,Main Dish
+Spanish,72,Solomillo al Whisky,Main Dish
+Spanish,73,Entrecot,Main Dish
+Spanish,74,Chuletas de Cordero,Main Dish
+Spanish,75,Secreto Ibérico,Main Dish
+Spanish,76,Pluma Ibérica,Main Dish
+Spanish,77,Magro con Tomate,Main Dish
+Spanish,78,Flamenquín,Main Dish
+Spanish,79,Salmorejo de Carne,Main Dish
+Spanish,80,Pringá,Main Dish
+Spanish,81,Caldereta de Cordero,Stew
+Spanish,82,Caldereta de Cabrito,Stew
+Spanish,83,Perdiz Escabechada,Main Dish
+Spanish,84,Conejo al Ajillo,Main Dish
+Spanish,85,Codornices Guisadas,Main Dish
+Spanish,86,Flan de Huevo,Dessert
+Spanish,87,Natillas,Dessert
+Spanish,88,Arroz con Leche,Dessert
+Spanish,89,Tarta de Santiago,Dessert
+Spanish,90,Crema Catalana,Dessert
+Spanish,91,Turrón,Candy
+Spanish,92,Polvorones,Cookie
+Spanish,93,Mantecados,Cookie
+Spanish,94,Tocino de Cielo,Dessert
+Spanish,95,Pestiños,Dessert
+Spanish,96,Rosquillas,Dessert
+Spanish,97,Buñuelos,Dessert
+Spanish,98,Torrijas,Dessert
+Spanish,99,Sangría,Beverage
+Spanish,100,Horchata,Beverage
+Thai,1,Pad Thai,Noodle Dish
+Thai,2,Tom Yum Goong,Soup
+Thai,3,Green Curry,Curry
+Thai,4,Red Curry,Curry
+Thai,5,Massaman Curry,Curry
+Thai,6,Pad See Ew,Noodle Dish
+Thai,7,Som Tam,Salad
+Thai,8,Larb,Salad
+Thai,9,Tom Kha Gai,Soup
+Thai,10,Khao Pad,Fried Rice
+Thai,11,Pad Krapow Moo,Stir-Fry
+Thai,12,Pad Krapow Gai,Stir-Fry
+Thai,13,Panang Curry,Curry
+Thai,14,Yellow Curry,Curry
+Thai,15,Gaeng Keow Wan,Curry
+Thai,16,Gaeng Phed,Curry
+Thai,17,Gaeng Daeng,Curry
+Thai,18,Gaeng Hanglay,Curry
+Thai,19,Khao Soi,Noodle Soup
+Thai,20,Khao Man Gai,Rice Dish
+Thai,21,Khao Moo Daeng,Rice Dish
+Thai,22,Khao Moo Grob,Rice Dish
+Thai,23,Khao Kha Moo,Rice Dish
+Thai,24,Gai Yang,Grilled Chicken
+Thai,25,Moo Ping,Grilled Pork
+Thai,26,Satay,Grilled Skewers
+Thai,27,Crying Tiger (Suea Rong Hai),Grilled Beef
+Thai,28,Nam Tok,Salad
+Thai,29,Yam Nua,Salad
+Thai,30,Yam Woon Sen,Salad
+Thai,31,Yam Talay,Salad
+Thai,32,Yam Mama,Salad
+Thai,33,Pla Pao,Grilled Fish
+Thai,34,Pla Rad Prik,Main Dish
+Thai,35,Pla Neung Manao,Steamed Fish
+Thai,36,Hoi Tod,Omelet
+Thai,37,Hor Mok,Curry Custard
+Thai,38,Khanom Jeen Nam Ya,Noodle Dish
+Thai,39,Khanom Jeen Nam Ngiao,Noodle Dish
+Thai,40,Kuay Teow Reua,Noodle Soup
+Thai,41,Kuay Teow Nam Tok,Noodle Soup
+Thai,42,Kuay Teow Neua,Noodle Soup
+Thai,43,Guay Tiew Tom Yum,Noodle Soup
+Thai,44,Pad Woon Sen,Noodle Dish
+Thai,45,Pad Kee Mao (Drunken Noodles),Noodle Dish
+Thai,46,Pad Si Racha,Noodle Dish
+Thai,47,Rad Na,Noodle Dish
+Thai,48,Khao Tom,Rice Soup
+Thai,49,Jok,Rice Porridge
+Thai,50,Khao Niao Mamuang,Dessert
+Thai,51,Khao Niao,Side Dish
+Thai,52,Sticky Rice,Side Dish
+Thai,53,Phat Phak Ruam,Stir-Fry
+Thai,54,Phak Bung Fai Daeng,Stir-Fry
+Thai,55,Tod Mun Pla,Fried Cake
+Thai,56,Tod Mun Khao Pod,Fried Cake
+Thai,57,Spring Rolls,Appetizer
+Thai,58,Fresh Spring Rolls,Appetizer
+Thai,59,Po Pia Tod,Fried Roll
+Thai,60,Po Pia Sod,Fresh Roll
+Thai,61,Gai Tod,Fried Chicken
+Thai,62,Peek Gai Tod,Fried Chicken Wings
+Thai,63,Phat Phrik Khing,Stir-Fry
+Thai,64,Kai Jeow,Omelet
+Thai,65,Khai Luk Khoei,Egg Dish
+Thai,66,Moo Tod,Fried Pork
+Thai,67,Neua Pad Prik,Stir-Fry
+Thai,68,Pla Tod,Fried Fish
+Thai,69,Pla Muek Tod Kratiem,Fried Squid
+Thai,70,Poo Pad Pong Garee,Stir-Fry
+Thai,71,Goong Pad Preow Wan,Stir-Fry
+Thai,72,Goong Tod Gratiem,Fried Shrimp
+Thai,73,Goong Chup Paeng Tod,Fried Shrimp
+Thai,74,Khao Pad Sapparot,Fried Rice
+Thai,75,Khao Pad Poo,Fried Rice
+Thai,76,Khao Pad Goong,Fried Rice
+Thai,77,Khao Kluk Gapi,Rice Dish
+Thai,78,Khao Pad Krapow,Fried Rice
+Thai,79,Gaeng Jued,Soup
+Thai,80,Gaeng Som,Soup
+Thai,81,Tom Saep,Soup
+Thai,82,Suki,Hot Pot
+Thai,83,Moo Krata,Hot Pot
+Thai,84,Laab Moo,Salad
+Thai,85,Laab Gai,Salad
+Thai,86,Nam Prik Ong,Dip/Sauce
+Thai,87,Nam Prik Kapi,Dip/Sauce
+Thai,88,Nam Prik Noom,Dip/Sauce
+Thai,89,Nam Prik Pao,Paste
+Thai,90,Khanom Krok,Dessert
+Thai,91,Khanom Bueang,Dessert
+Thai,92,Khanom Thuay,Dessert
+Thai,93,Tako,Dessert
+Thai,94,Sangkaya Fak Thong,Dessert
+Thai,95,Luk Chup,Dessert
+Thai,96,Foi Thong,Dessert
+Thai,97,Kluay Tod,Dessert
+Thai,98,Thai Tea,Beverage
+Thai,99,Thai Iced Coffee,Beverage
+Thai,100,Nam Manao,Beverage
+Turkish,1,Kebab,Grilled Meat
+Turkish,2,Lahmacun,Flatbread
+Turkish,3,Pide,Flatbread
+Turkish,4,Döner,Sandwich
+Turkish,5,Baklava,Dessert
+Turkish,6,Turkish Delight,Candy
+Turkish,7,Manti,Dumpling
+Turkish,8,Börek,Savory Pastry
+Turkish,9,Menemen,Breakfast Dish
+Turkish,10,İskender Kebab,Main Dish
+Turkish,11,Adana Kebab,Grilled Meat
+Turkish,12,Şiş Kebab,Grilled Skewers
+Turkish,13,Köfte,Meatball
+Turkish,14,İmam Bayıldı,Main Dish
+Turkish,15,Dolma,Stuffed Vegetable
+Turkish,16,Mercimek Çorbası,Soup
+Turkish,17,Ezogelin Çorbası,Soup
+Turkish,18,Yayla Çorbası,Soup
+Turkish,19,İşkembe Çorbası,Soup
+Turkish,20,Kelle Paça,Soup
+Turkish,21,Çığ Köfte,Appetizer
+Turkish,22,Kısır,Salad
+Turkish,23,Çoban Salatası,Salad
+Turkish,24,Patlıcan Salatası,Salad
+Turkish,25,Haydari,Dip/Sauce
+Turkish,26,Cacık,Dip/Sauce
+Turkish,27,Acuka,Dip/Sauce
+Turkish,28,Tahin Pekmez,Spread
+Turkish,29,Simit,Bread
+Turkish,30,Gözleme,Flatbread
+Turkish,31,Pişi,Fried Bread
+Turkish,32,Açma,Bread
+Turkish,33,Pogaca,Bread
+Turkish,34,Midye Dolma,Appetizer
+Turkish,35,Hamsi,Fried Fish
+Turkish,36,Balık Ekmek,Sandwich
+Turkish,37,Kılıç Şiş,Grilled Fish
+Turkish,38,Çupra,Grilled Fish
+Turkish,39,Levrek,Grilled Fish
+Turkish,40,Mücver,Fritter
+Turkish,41,Karnıyarık,Main Dish
+Turkish,42,Hünkar Beğendi,Main Dish
+Turkish,43,Kuzu Tandır,Main Dish
+Turkish,44,Etli Yaprak Sarma,Main Dish
+Turkish,45,Mantı,Dumpling
+Turkish,46,Güveç,Stew
+Turkish,47,Tas Kebap,Stew
+Turkish,48,Kavurma,Main Dish
+Turkish,49,Pastırma,Cured Meat
+Turkish,50,Sucuk,Sausage
+Turkish,51,Kuru Fasulye,Stew
+Turkish,52,Nohut,Stew
+Turkish,53,Mercimek,Side Dish
+Turkish,54,Bulgur Pilavı,Side Dish
+Turkish,55,Şehriyeli Pilav,Side Dish
+Turkish,56,İç Pilav,Rice Dish
+Turkish,57,Pilav,Rice Dish
+Turkish,58,Zeytinyağlı Fasulye,Side Dish
+Turkish,59,Zeytinyağlı Enginar,Side Dish
+Turkish,60,Zeytinyağlı Bamya,Side Dish
+Turkish,61,Zeytinyağlı Yaprak Sarma,Appetizer
+Turkish,62,Patlıcan Kızartması,Side Dish
+Turkish,63,Kabak Mücveri,Fritter
+Turkish,64,Sigara Böreği,Appetizer
+Turkish,65,Su Böreği,Savory Pastry
+Turkish,66,Kol Böreği,Savory Pastry
+Turkish,67,Talaş Böreği,Savory Pastry
+Turkish,68,Peynirli Börek,Savory Pastry
+Turkish,69,Kıymalı Börek,Savory Pastry
+Turkish,70,Kaşarlı Pide,Flatbread
+Turkish,71,Kıymalı Pide,Flatbread
+Turkish,72,Yumurtalı Pide,Flatbread
+Turkish,73,Kuşbaşılı Pide,Flatbread
+Turkish,74,Künefe,Dessert
+Turkish,75,Kadayıf,Dessert
+Turkish,76,Revani,Dessert
+Turkish,77,Şekerpare,Dessert
+Turkish,78,Tulumba,Dessert
+Turkish,79,İrmik Helvası,Dessert
+Turkish,80,Un Helvası,Dessert
+Turkish,81,Tahin Helvası,Dessert
+Turkish,82,Sütlaç,Dessert
+Turkish,83,Kazandibi,Dessert
+Turkish,84,Keşkül,Dessert
+Turkish,85,Kabak Tatlısı,Dessert
+Turkish,86,Aşure,Dessert
+Turkish,87,Lokma,Dessert
+Turkish,88,Pişmaniye,Candy
+Turkish,89,Cezerye,Candy
+Turkish,90,Akide Şekeri,Candy
+Turkish,91,Turkish Coffee,Beverage
+Turkish,92,Turkish Tea,Beverage
+Turkish,93,Ayran,Beverage
+Turkish,94,Şalgam,Beverage
+Turkish,95,Boza,Beverage
+Turkish,96,Sahlep,Beverage
+Turkish,97,Rakı,Beverage
+Turkish,98,Şıra,Beverage
+Turkish,99,Limonata,Beverage
+Turkish,100,Turşu,Pickle
+Vietnamese,1,Pho,Noodle Soup
+Vietnamese,2,Banh Mi,Sandwich
+Vietnamese,3,Goi Cuon (Spring Rolls),Appetizer
+Vietnamese,4,Bun Cha,Noodle Dish
+Vietnamese,5,Cao Lau,Noodle Dish
+Vietnamese,6,Banh Xeo,Savory Pancake
+Vietnamese,7,Com Tam,Rice Dish
+Vietnamese,8,Banh Cuon,Rice Roll
+Vietnamese,9,Mi Quang,Noodle Dish
+Vietnamese,10,Hu Tieu,Noodle Soup
+Vietnamese,11,Bun Bo Hue,Noodle Soup
+Vietnamese,12,Bun Rieu,Noodle Soup
+Vietnamese,13,Bun Thit Nuong,Noodle Dish
+Vietnamese,14,Bun Bo Nam Bo,Noodle Dish
+Vietnamese,15,Bun Dau Mam Tom,Noodle Dish
+Vietnamese,16,Goi Ga,Salad
+Vietnamese,17,Goi Du Du,Salad
+Vietnamese,18,Nom Hoa Chuoi,Salad
+Vietnamese,19,Cha Ca La Vong,Main Dish
+Vietnamese,20,Canh Chua,Soup
+Vietnamese,21,Ca Kho To,Main Dish
+Vietnamese,22,Thit Kho Tau,Main Dish
+Vietnamese,23,Ga Kho Gung,Main Dish
+Vietnamese,24,Ga Nuong,Grilled Chicken
+Vietnamese,25,Ga Roti,Roasted Chicken
+Vietnamese,26,Ga Tan,Soup
+Vietnamese,27,Suon Nuong,Grilled Pork
+Vietnamese,28,Thit Nuong,Grilled Pork
+Vietnamese,29,Bo Nuong,Grilled Beef
+Vietnamese,30,Bo Luc Lac,Stir-Fry
+Vietnamese,31,Bo Kho,Stew
+Vietnamese,32,Bo La Lot,Grilled Beef
+Vietnamese,33,Nem Nuong,Grilled Sausage
+Vietnamese,34,Nem Lui,Grilled Sausage
+Vietnamese,35,Nem Ran (Cha Gio),Fried Roll
+Vietnamese,36,Banh Bao,Steamed Bun
+Vietnamese,37,Banh Beo,Rice Cake
+Vietnamese,38,Banh Bot Loc,Dumpling
+Vietnamese,39,Banh Canh,Noodle Soup
+Vietnamese,40,Banh Khot,Pancake
+Vietnamese,41,Banh Trang Nuong,Grilled Rice Paper
+Vietnamese,42,Banh Trang Tron,Salad
+Vietnamese,43,Banh Tet,Rice Cake
+Vietnamese,44,Banh Chung,Rice Cake
+Vietnamese,45,Xoi,Sticky Rice
+Vietnamese,46,Xoi Ga,Sticky Rice
+Vietnamese,47,Xoi Xeo,Sticky Rice
+Vietnamese,48,Xoi Vo,Sticky Rice
+Vietnamese,49,Chao Ga,Rice Porridge
+Vietnamese,50,Chao Vit,Rice Porridge
+Vietnamese,51,Chao Long,Rice Porridge
+Vietnamese,52,Com Chien,Fried Rice
+Vietnamese,53,Com Hen,Rice Dish
+Vietnamese,54,Com Ga,Rice Dish
+Vietnamese,55,Com Ga Hoi An,Rice Dish
+Vietnamese,56,Com Suon,Rice Dish
+Vietnamese,57,Com Bo,Rice Dish
+Vietnamese,58,Bot Chien,Fried Cake
+Vietnamese,59,Banh Trang Tron,Salad
+Vietnamese,60,Banh Trang Cuon Thit Heo,Wrap
+Vietnamese,61,Banh Da Cua,Noodle Soup
+Vietnamese,62,Banh Duc,Rice Cake
+Vietnamese,63,Banh Flan,Dessert
+Vietnamese,64,Che,Dessert
+Vietnamese,65,Che Ba Mau,Dessert
+Vietnamese,66,Che Chuoi,Dessert
+Vietnamese,67,Che Buoi,Dessert
+Vietnamese,68,Che Thai,Dessert
+Vietnamese,69,Che Khuc Bach,Dessert
+Vietnamese,70,Banh Ran,Dessert
+Vietnamese,71,Banh Cam,Dessert
+Vietnamese,72,Banh Tom,Fritter
+Vietnamese,73,Banh Cong,Fritter
+Vietnamese,74,Banh Gio,Dumpling
+Vietnamese,75,Banh It Tran,Dumpling
+Vietnamese,76,Oc (Snails),Appetizer
+Vietnamese,77,Oc Len Xao,Stir-Fry
+Vietnamese,78,Ngheu Hap,Steamed Clams
+Vietnamese,79,So Huyet Nuong,Grilled Clams
+Vietnamese,80,Muc Xao,Stir-Fry
+Vietnamese,81,Muc Nuong,Grilled Squid
+Vietnamese,82,Tom Rang Muoi,Fried Shrimp
+Vietnamese,83,Tom Hum,Lobster Dish
+Vietnamese,84,Cua Rang Me,Crab Dish
+Vietnamese,85,Goi Ca,Salad
+Vietnamese,86,Goi Tom,Salad
+Vietnamese,87,Goi Tai Heo,Salad
+Vietnamese,88,Bun Oc,Noodle Soup
+Vietnamese,89,Bun Mam,Noodle Soup
+Vietnamese,90,Bun Ca,Noodle Soup
+Vietnamese,91,Lau Thai,Hot Pot
+Vietnamese,92,Lau Hai San,Hot Pot
+Vietnamese,93,Lau Bo,Hot Pot
+Vietnamese,94,Ca Phe Sua Da,Beverage
+Vietnamese,95,Ca Phe Trung,Beverage
+Vietnamese,96,Nuoc Mia,Beverage
+Vietnamese,97,Sinh To,Beverage
+Vietnamese,98,Tra Da,Beverage
+Vietnamese,99,Ruou Can,Beverage
+Vietnamese,100,Bia Hoi,Beverage

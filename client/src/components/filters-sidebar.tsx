@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Filter } from "lucide-react";
+import { X, Filter, Database, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,10 +45,10 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
   ];
 
   const updateStatusFilter = (statusId: string, checked: boolean) => {
-    const newStatus = checked 
+    const newStatus = checked
       ? [...filters.status, statusId]
       : filters.status.filter(s => s !== statusId);
-    
+
     onFiltersChange({
       ...filters,
       status: newStatus,
@@ -86,6 +86,14 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
           </div>
 
           <div className="space-y-6">
+            {/* Data Source */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Data Source</h3>
+              <p className="text-sm text-gray-600 italic">
+                All languages from NorthEuraLex database. Languages with scraped word lists are marked with a "Word List" badge.
+              </p>
+            </div>
+
             {/* Language Status */}
             <div>
               <h3 className="text-sm font-medium text-gray-900 mb-3">Language Status</h3>

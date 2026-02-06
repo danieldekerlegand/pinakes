@@ -1,0 +1,19 @@
+{
+  "id": "contrib-mlaqdj3y-9j8p9w",
+  "entityType": "music-tradition",
+  "action": "add",
+  "status": "pending",
+  "submittedAt": "2026-02-06T10:16:42.238Z",
+  "contributorName": "Daniel",
+  "entityData": {
+    "name": "Fado",
+    "region": "Southern Europe",
+    "description": "Portuguese melancholic urban folk genre"
+  },
+  "sources": [
+    {
+      "title": "Encyclopedia of World Music"
+    }
+  ],
+  "confidence": 90
+}

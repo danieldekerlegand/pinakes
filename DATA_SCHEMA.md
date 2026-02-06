@@ -1,0 +1,383 @@
+# LinguaScrape Data Schema & Integration Plan
+
+## Overview
+This document defines the data schema for integrating linguistic, genetic, cultural, archaeological, and culinary data into the LinguaScrape system.
+
+## Core Principle: Everything Links to Languages
+All data types should be linkable to languages through various relationship fields.
+
+---
+
+## Data Types & TSV Files
+
+### 1. Languages (EXISTING: `lexicons/languages.tsv`)
+**Primary Key:** `id`
+**Fields:**
+- id, name, native_name, iso639_1, iso639_2
+- family_id (→ language_families.id)
+- parent_language_id (→ languages.id)
+- region, countries (JSON array)
+- native_speakers, total_speakers, status
+- time_origin, time_end
+- coordinates (JSON: {lat, lng})
+- haplogroup_ids (JSON array → haplogroups.id) **NEW**
+- cuisine_ids (JSON array → cuisines.id) **NEW**
+- civilization_ids (JSON array → civilizations.id) **NEW**
+
+### 2. Language Families (EXISTING: `lexicons/families.tsv`)
+**Primary Key:** `id`
+**Fields:**
+- id, name, parent_id
+- description, taxonomic_level, region
+- total_speakers, language_count
+- proto_language_id (→ proto_languages.id) **NEW**
+- haplogroup_ids (JSON array) **NEW**
+
+---
+
+## Geospatial Data (Map Visualization)
+
+### 3. Language Ranges (`lexicons/language-ranges.tsv`)
+**Primary Key:** `id`
+**Purpose:** GeoJSON polygons for language territories
+**Fields:**
+- id
+- language_id (→ languages.id)
+- family_id (→ language_families.id)
+- geometry (JSON: GeoJSON Polygon/MultiPolygon)
+- range_type (current | historical | reconstructed)
+- time_period_start (integer, negative for BCE)
+- time_period_end (integer, null = present)
+- time_period_label (e.g., "Classical Period")
+- confidence (1-100)
+- sources (JSON array)
+- notes
+
+**Example:**
+```
+id	language_id	family_id	geometry	range_type	time_period_start	time_period_end	time_period_label	confidence	sources
+latin-range-117	latin	indo-european	{"type":"Polygon","coordinates":[...]}	historical	-753	476	Roman Empire Period	90	["Historical records","Archaeological evidence"]
+```
+
+### 4. Archaeological Sites (`lexicons/archaeological-sites.tsv`)
+**Primary Key:** `id`
+**Fields:**
+- id, name
+- coordinates (JSON: {lat, lng})
+- site_type (settlement | burial | temple | fortification | workshop | ceremonial)
+- time_period_start, time_period_end, time_period_label
+- associated_language_ids (JSON array → languages.id)
+- associated_culture_ids (JSON array → material_cultures.id)
+- associated_civilization_ids (JSON array → civilizations.id) **NEW**
+- excavation_status (unexcavated | partial | extensive | complete)
+- findings (JSON array)
+- importance (1-100)
+- confidence (1-100)
+- sources (JSON array)
+- description
+
+### 5. Civilizations (`lexicons/civilizations.tsv`)
+**Primary Key:** `id`
+**Fields:**
+- id, name, native_name
+- time_period_start, time_period_end, time_period_label
+- associated_language_ids (JSON array)
+- writing_systems (JSON array)
+- political_structure (Empire | City-state | Kingdom | etc.)
+- capital
+- population (peak estimate)
+- haplogroup_ids (JSON array → haplogroups.id) **NEW**
+- cuisine_id (→ cuisines.id) **NEW**
+- sources (JSON array)
+- description
+
+### 6. Civilization Boundaries (`lexicons/civilization-boundaries.tsv`)
+**Purpose:** Time-varying GeoJSON polygons for civilizations
+**Fields:**
+- id
+- civilization_id (→ civilizations.id)
+- geometry (JSON: GeoJSON Polygon/MultiPolygon)
+- time_period_start, time_period_end, time_period_label
+- boundary_type (political | cultural | linguistic | military)
+- confidence (1-100)
+- sources (JSON array)
+
+### 7. Historical Routes (`lexicons/historical-routes.tsv`)
+**Primary Key:** `id`
+**Purpose:** Trade routes, migration paths
+**Fields:**
+- id, name
+- geometry (JSON: GeoJSON LineString)
+- route_type (trade | migration | conquest | pilgrimage | communication)
+- time_period_start, time_period_end, time_period_label
+- associated_language_ids (JSON array)
+- associated_civilization_ids (JSON array) **NEW**
+- linguistic_impact (description)
+- traded_goods (JSON array)
+- direction (bidirectional | unidirectional)
+- sources (JSON array)
+- description
+
+### 8. Material Cultures (`lexicons/material-cultures.tsv`)
+**Primary Key:** `id`
+**Purpose:** Archaeological culture groups
+**Fields:**
+- id, name
+- culture_type (pottery | burial | architecture | tools | art | clothing | weapons)
+- time_period_start, time_period_end, time_period_label
+- associated_language_ids (JSON array)
+- associated_civilization_ids (JSON array) **NEW**
+- haplogroup_ids (JSON array → haplogroups.id) **NEW**
+- sources (JSON array)
+- description
+
+### 9. Material Culture Distributions (`lexicons/material-culture-distributions.tsv`)
+**Purpose:** Point/polygon locations of artifact finds
+**Fields:**
+- id
+- culture_id (→ material_cultures.id)
+- geometry (JSON: GeoJSON Point/Polygon/MultiPolygon)
+- intensity (0.0-1.0, for heatmap)
+- time_period_start, time_period_end, time_period_label
+- artifact_count
+- confidence (1-100)
+- sources (JSON array)
+
+---
+
+## Genetic Data
+
+### 10. Haplogroups (`lexicons/haplogroups.tsv`) **NEW**
+**Primary Key:** `id`
+**Purpose:** Y-chromosome haplogroup markers
+**Fields:**
+- id (e.g., "R1b", "J2", "C2")
+- name (full name)
+- parent_id (→ haplogroups.id, for hierarchical structure)
+- haplogroup_type (Y-chromosome | mtDNA)
+- description
+- associated_language_family_ids (JSON array → language_families.id)
+- associated_civilization_ids (JSON array → civilizations.id)
+- geographic_origin (region)
+- time_origin (years BCE/CE)
+- sources (JSON array)
+
+**Example:**
+```
+id	name	parent_id	haplogroup_type	description	associated_language_family_ids	associated_civilization_ids	geographic_origin	time_origin	sources
+R1b	R1b (Western)	R	Y-chromosome	Western European haplogroup	["indo-european","celtic","germanic"]	["roman-empire"]	Western Europe	-15000	["Genetic studies"]
+J2	J2 (Mediterranean)	J	Y-chromosome	Mediterranean/Caucasus haplogroup	["indo-european","kartvelian","semitic"]	["roman-empire","ancient-greece"]	Caucasus	-25000	["Genetic studies"]
+```
+
+---
+
+## Cultural Data
+
+### 11. Cuisines (`lexicons/cuisines.tsv`) **NEW**
+**Primary Key:** `id`
+**Fields:**
+- id, name
+- region
+- associated_language_ids (JSON array → languages.id)
+- associated_civilization_ids (JSON array → civilizations.id)
+- description
+- sources (JSON array)
+
+### 12. Cuisine Items (`lexicons/cuisine-items.tsv`) **NEW**
+**Purpose:** Individual dishes/foods
+**Fields:**
+- id
+- cuisine_id (→ cuisines.id)
+- name
+- item_type (main_dish | soup | dessert | beverage | side | staple)
+- ingredients (JSON array)
+- description
+- cultural_significance
+
+**Example:**
+```
+id	cuisine_id	name	item_type	ingredients	description	cultural_significance
+peking-duck	chinese	Peking Duck	main_dish	["duck","maltose syrup","spices"]	Roasted duck with crispy skin	Beijing specialty since Yuan Dynasty
+```
+
+---
+
+## Linguistic Relationships
+
+### 13. Language Contact (`lexicons/language-contact.tsv`) **NEW**
+**Primary Key:** `id`
+**Purpose:** Substrata, superstrata, adstrata relationships
+**Fields:**
+- id
+- language_id (→ languages.id, the target language)
+- contact_type (substrate | superstrate | adstrate)
+- influencing_language_id (→ languages.id)
+- influencing_language_name (for extinct/reconstructed languages)
+- time_period_start, time_period_end
+- impact_areas (JSON array: phonology | vocabulary | grammar | syntax)
+- vocabulary_percentage (e.g., "40%")
+- description
+- sources (JSON array)
+
+**Example:**
+```
+id	language_id	contact_type	influencing_language_id	influencing_language_name	time_period_start	time_period_end	impact_areas	vocabulary_percentage	description	sources
+english-celtic-sub	english	substrate	old-brythonic	Old Brythonic	-500	500	["phonology","place_names"]	5%	Celtic place names in Britain	["Linguistic studies"]
+english-french-super	english	superstrate	norman-french	Norman French	1066	1500	["vocabulary","prestige"]	40%	Norman conquest influence	["Historical linguistics"]
+```
+
+### 14. Proto-Languages (`lexicons/proto-languages.tsv`) **NEW**
+**Primary Key:** `id`
+**Purpose:** Reconstructed ancestral languages
+**Fields:**
+- id, name
+- family_id (→ language_families.id)
+- time_period_start, time_period_end (estimated)
+- geographic_origin
+- descendant_language_ids (JSON array → languages.id)
+- descendant_family_ids (JSON array → language_families.id)
+- reconstruction_confidence (1-100)
+- haplogroup_ids (JSON array → haplogroups.id)
+- sources (JSON array)
+- notes
+
+**Example:**
+```
+id	name	family_id	time_period_start	time_period_end	geographic_origin	descendant_language_ids	descendant_family_ids	reconstruction_confidence	haplogroup_ids	sources
+pie	Proto-Indo-European	indo-european	-4500	-2500	Pontic-Caspian steppe	[]	["indo-european"]	85	["R1a","R1b"]	["Comparative linguistics","Genetic studies"]
+```
+
+---
+
+## Migration & Movement
+
+### 15. Migrations (`lexicons/migrations.tsv`) **NEW**
+**Primary Key:** `id`
+**Purpose:** Population movements
+**Fields:**
+- id, name
+- route_geometry (JSON: GeoJSON LineString)
+- migrating_group_name
+- origin_region, destination_region
+- time_period_start, time_period_end
+- associated_language_ids (JSON array)
+- associated_haplogroup_ids (JSON array)
+- associated_culture_ids (JSON array → material_cultures.id)
+- migration_type (expansion | displacement | colonization | nomadic)
+- population_size_estimate
+- causes (JSON array: climate | war | resources | etc.)
+- linguistic_impact
+- sources (JSON array)
+
+---
+
+## Relationships & Linkages
+
+### Key Linking Fields Summary:
+
+1. **Languages link to:**
+   - Language Families (family_id)
+   - Parent Languages (parent_language_id)
+   - Haplogroups (haplogroup_ids)
+   - Cuisines (cuisine_ids)
+   - Civilizations (civilization_ids)
+   - → Language Ranges, Archaeological Sites, Material Cultures (via associated_language_ids)
+
+2. **Civilizations link to:**
+   - Languages (associated_language_ids)
+   - Haplogroups (haplogroup_ids)
+   - Cuisines (cuisine_id)
+   - → Civilization Boundaries, Archaeological Sites, Historical Routes
+
+3. **Material Cultures link to:**
+   - Languages (associated_language_ids)
+   - Civilizations (associated_civilization_ids)
+   - Haplogroups (haplogroup_ids)
+
+4. **Archaeological Sites link to:**
+   - Languages, Cultures, Civilizations (associated_*_ids)
+
+5. **Haplogroups link to:**
+   - Language Families, Civilizations, Material Cultures, Proto-Languages
+
+---
+
+## TSV File Format Rules
+
+1. **Tab-separated** (use `\t` as delimiter)
+2. **Header row** with column names
+3. **JSON fields** for arrays and objects (e.g., `["item1","item2"]` or `{"lat":40.7,"lng":14.5}`)
+4. **Null values** as empty strings
+5. **Negative years** for BCE dates (e.g., -500 = 500 BCE)
+6. **UTF-8 encoding** for international characters
+
+---
+
+## Implementation Phases
+
+### Phase 1: Core Geospatial Data
+- Language Ranges
+- Archaeological Sites
+- Civilizations + Boundaries
+- Historical Routes
+- Material Cultures + Distributions
+
+### Phase 2: Genetic & Cultural Data
+- Haplogroups
+- Cuisines + Cuisine Items
+- Proto-Languages
+
+### Phase 3: Relationship Data
+- Language Contact
+- Migrations
+
+### Phase 4: Advanced Features
+- Temporal queries
+- Multi-layer filtering
+- Cross-domain analysis (e.g., show languages by haplogroup)
+- Cultural diffusion visualization
+
+---
+
+## Example Query Patterns
+
+**"Show all languages associated with haplogroup R1b"**
+```typescript
+const haplogroupR1b = getHaplogroup('R1b');
+const languages = getLanguages().filter(lang =>
+  lang.haplogroup_ids?.includes('R1b')
+);
+```
+
+**"Show all archaeological sites for Latin"**
+```typescript
+const sites = getArchaeologicalSites().filter(site =>
+  site.associated_language_ids?.includes('latin')
+);
+```
+
+**"Show language contacts for English"**
+```typescript
+const contacts = getLanguageContacts().filter(contact =>
+  contact.language_id === 'english'
+);
+```
+
+**"Show civilizations during Roman Empire period"**
+```typescript
+const year = 117; // 117 CE
+const civs = getCivilizations().filter(civ =>
+  year >= civ.time_period_start &&
+  (civ.time_period_end === null || year <= civ.time_period_end)
+);
+```
+
+---
+
+## Notes
+
+- All ID fields should use kebab-case (e.g., `proto-indo-european`, `haplogroup-r1b`)
+- Maintain referential integrity in TSV files
+- Source attribution is critical for academic credibility
+- Confidence scores help users understand data reliability
+- Time periods enable temporal filtering and animation

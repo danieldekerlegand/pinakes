@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Eye, FolderSync, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Eye, Download, ChevronUp, Sparkles } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import type { LanguageWithStats, WordTranslation, BaseWord } from "@shared/schema";
+import type { LanguageWithStats } from "@shared/types";
 
 interface LanguageDetailPanelProps {
   languageId: string;
   onClose: () => void;
+}
+
+interface LanguageWord {
+  baseWord: string;
+  conceptId: string;
+  translation: string | null;
+  ipa: string | null;
 }
 
 function getStatusColor(status: string) {
@@ -24,50 +31,56 @@ function getStatusColor(status: string) {
 }
 
 export default function LanguageDetailPanel({ languageId, onClose }: LanguageDetailPanelProps) {
+  const [showWordList, setShowWordList] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showWordList, setShowWordList] = useState(false);
 
   const { data: language, isLoading } = useQuery<LanguageWithStats>({
     queryKey: ['/api/languages', languageId],
   });
 
-  const { data: translations = [] } = useQuery<WordTranslation[]>({
-    queryKey: ['/api/word-translations'],
-    select: (data) => data.filter((t: WordTranslation) => t.languageId === languageId),
+  const { data: wordList = [], isLoading: isLoadingWords } = useQuery<LanguageWord[]>({
+    queryKey: ['/api/languages', languageId, 'word-list'],
+    queryFn: async () => {
+      const response = await fetch(`/api/languages/${languageId}/word-list`);
+      if (!response.ok) throw new Error('Failed to fetch word list');
+      return response.json();
+    },
+    enabled: showWordList,
   });
 
-  const { data: baseWords = [] } = useQuery<BaseWord[]>({
-    queryKey: ['/api/words'],
-  });
-
-  const startScrapingMutation = useMutation({
+  const scrapingMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/scraping-jobs', {
+      const response = await apiRequest('POST', '/api/scraping/words', {
         languageId,
+        languageName: language?.name || '',
+        dataSources: ['gemini'],
       });
+      return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/scraping-jobs'] });
       toast({
         title: "Scraping Started",
-        description: `Word list scraping has been queued for ${language?.name}.`,
+        description: "Word list scraping has been started. Check the progress panel for updates.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/scraping-jobs'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/languages', languageId] });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
-        title: "Scraping Failed",
-        description: error.message || "Failed to start scraping process.",
+        title: "Error",
+        description: "Failed to start scraping job. Please try again.",
         variant: "destructive",
       });
     },
   });
 
+  // Check if language has any word translations
+  const hasWordList = wordList.some(word => word.translation !== null);
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
-        <div 
+        <div
           className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
@@ -99,23 +112,25 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
   if (!language) return null;
 
-  const sampleTranslations = translations.slice(0, 5);
-  // Use the backend-calculated completion percentage
-  const completionPercentage = language.completionPercentage || 0;
+  // Calculate completion percentage based on available translations
+  const wordsWithTranslation = wordList.filter(w => w.translation !== null).length;
+  const completionPercentage = wordList.length > 0
+    ? Math.round((wordsWithTranslation / wordList.length) * 100)
+    : 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
-      <div 
-        className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg flex flex-col"
+      <div
+        className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-900 shadow-lg flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-shrink-0 border-b border-gray-200 p-6">
+        <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>
                 {language.name}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {language.classification}
               </p>
             </div>
@@ -129,24 +144,24 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
           <div className="space-y-6">
             {/* Basic Information */}
             <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Basic Information</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Basic Information</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Family:</span>
-                <span className="text-sm text-gray-900" data-testid="text-classification">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Family:</span>
+                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-classification">
                   {language.classification}
                 </span>
               </div>
               {language.iso639_1 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">ISO 639-1:</span>
-                  <span className="text-sm text-gray-900 font-mono" data-testid="text-iso-code">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">ISO 639-1:</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100 font-mono" data-testid="text-iso-code">
                     {language.iso639_1}
                   </span>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Status:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
                 <Badge className={`${getStatusColor(language.status)} text-xs`} data-testid="badge-status">
                   {language.status}
                 </Badge>
@@ -156,18 +171,18 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
           {/* Geographic Information */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Geographic Distribution</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Geographic Distribution</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Region:</span>
-                <span className="text-sm text-gray-900" data-testid="text-region">
-                  {language.region}
+                <span className="text-sm text-gray-600 dark:text-gray-400">Region:</span>
+                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-region">
+                  {language.region || 'Unknown'}
                 </span>
               </div>
               {language.countries && language.countries.length > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Countries:</span>
-                  <span className="text-sm text-gray-900" data-testid="text-countries">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Countries:</span>
+                  <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-countries">
                     {language.countries.length} countries
                   </span>
                 </div>
@@ -176,138 +191,105 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
           </div>
 
           {/* Speaker Statistics */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Speaker Statistics (2025)</h3>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-600">Native Speakers:</span>
-                  <span className="text-sm text-gray-900" data-testid="text-native-speakers">
-                    {language.nativeSpeakers?.toLocaleString() || 'Unknown'}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full"
-                    style={{
-                      width: `${Math.min((language.nativeSpeakers || 0) / (language.totalSpeakers || 1) * 100, 100)}%`
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-600">Total Speakers:</span>
-                  <span className="text-sm text-gray-900" data-testid="text-total-speakers">
-                    {language.totalSpeakers?.toLocaleString() || 'Unknown'}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-secondary h-2 rounded-full w-full" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Word List Status */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Word List Status</h3>
-            <Card className={`border p-4 ${
-              completionPercentage >= 80 ? 'bg-green-50 border-green-200' :
-              completionPercentage >= 50 ? 'bg-yellow-50 border-yellow-200' :
-              'bg-red-50 border-red-200'
-            }`}>
-              <div className="flex items-center mb-2">
-                <div className={`w-3 h-3 rounded-full mr-2 ${
-                  completionPercentage >= 80 ? 'bg-success' :
-                  completionPercentage >= 50 ? 'bg-warning' :
-                  'bg-red-500'
-                }`} />
-                <span className="text-sm font-medium" data-testid="text-completion-status">
-                  {completionPercentage >= 80 ? 'Complete' : 
-                   completionPercentage >= 50 ? 'In Progress' : 'Needs Update'}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 space-y-1">
-                <div className="flex justify-between">
-                  <span>Completion:</span>
-                  <span className="font-medium" data-testid="text-completion-percentage">
-                    {completionPercentage}%
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Words Found:</span>
-                  <span className="font-medium" data-testid="text-words-found">
-                    {translations.filter(t => t.translation).length}
-                  </span>
-                </div>
-                {language.lastScrapedAt && (
-                  <div className="flex justify-between">
-                    <span>Last Updated:</span>
-                    <span className="font-medium" data-testid="text-last-updated">
-                      {new Date(language.lastScrapedAt).toLocaleDateString()}
-                    </span>
+          {(language.nativeSpeakers || language.totalSpeakers) && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Speaker Statistics</h3>
+              <div className="space-y-3">
+                {language.nativeSpeakers && (
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Native Speakers:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-native-speakers">
+                        {language.nativeSpeakers.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full"
+                        style={{
+                          width: `${Math.min((language.nativeSpeakers || 0) / (language.totalSpeakers || 1) * 100, 100)}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {language.totalSpeakers && (
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Total Speakers:</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-total-speakers">
+                        {language.totalSpeakers.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="bg-secondary h-2 rounded-full w-full" />
+                    </div>
                   </div>
                 )}
               </div>
-            </Card>
-          </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Actions</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Actions</h3>
             <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                onClick={() => setShowWordList(!showWordList)}
-                data-testid="button-view-word-list"
-              >
-                {showWordList ? <ChevronUp className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                {showWordList ? 'Hide Word List' : 'View Word List'}
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                onClick={() => startScrapingMutation.mutate()}
-                disabled={startScrapingMutation.isPending}
-                data-testid="button-refresh-word-list"
-              >
-                <FolderSync className={`h-4 w-4 mr-2 ${startScrapingMutation.isPending ? 'animate-spin' : ''}`} />
-                {startScrapingMutation.isPending ? 'Starting...' : 'Refresh Word List'}
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-primary hover:bg-blue-50"
-                data-testid="button-export-csv"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+              {hasWordList || showWordList ? (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  onClick={() => setShowWordList(!showWordList)}
+                  data-testid="button-view-word-list"
+                >
+                  {showWordList ? <ChevronUp className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                  {showWordList ? 'Hide Word List' : 'View Word List'}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  onClick={() => scrapingMutation.mutate()}
+                  disabled={scrapingMutation.isPending}
+                  data-testid="button-scrape-word-list"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {scrapingMutation.isPending ? 'Starting Scraping...' : 'Scrape Word List'}
+                </Button>
+              )}
+              {hasWordList && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  data-testid="button-export-csv"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
             </div>
           </div>
 
           {/* Historical Variants */}
           {language.historicalVariants && language.historicalVariants.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Historical Evolution</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Historical Evolution</h3>
               <div className="space-y-3">
                 {language.historicalVariants.map((variant: any, index: number) => (
                   <div key={variant.id} className="border-l-2 border-purple-200 pl-3 pb-2" data-testid={`variant-${index}`}>
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="text-sm font-medium text-gray-900">{variant.name}</h4>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{variant.name}</h4>
                       <Badge className={`${getStatusColor(variant.status)} text-xs`}>
                         {variant.status}
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                       {variant.timeOrigin} - {variant.timeEnd || 'present'}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
                       {variant.region}
                     </p>
                     {variant.historicalContext && (
-                      <p className="text-xs text-purple-700 mt-1 italic">
+                      <p className="text-xs text-purple-700 dark:text-purple-400 mt-1 italic">
                         {variant.historicalContext}
                       </p>
                     )}
@@ -318,55 +300,60 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
           )}
 
           {/* Complete Word List */}
-          {showWordList && translations.length > 0 && (
+          {showWordList && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">
-                Complete Word List ({translations.length} words)
-              </h3>
-              <Card className="max-h-96 overflow-y-auto">
-                <div className="p-4 space-y-2">
-                  {translations.map((translation, index) => {
-                    const baseWord = baseWords.find(w => w.id === translation.baseWordId);
-                    return (
-                      <div key={translation.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0" data-testid={`word-${index}`}>
-                        <span className="text-sm text-gray-600 font-medium">
-                          {baseWord?.word || `Word ${index + 1}`}
-                        </span>
-                        <span className="text-sm text-gray-900 font-semibold">
-                          {translation.translation || 'N/A'}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {/* Sample Words Preview */}
-          {!showWordList && sampleTranslations.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Sample Words Preview</h3>
-              <div className="space-y-2">
-                {sampleTranslations.map((translation, index) => {
-                  const baseWord = baseWords.find(w => w.id === translation.baseWordId);
-                  return (
-                    <div key={translation.id} className="flex justify-between items-center py-1" data-testid={`sample-word-${index}`}>
-                      <span className="text-sm text-gray-600">
-                        {baseWord?.word || `Word ${index + 1}`}
-                      </span>
-                      <span className="text-sm text-gray-900 font-medium">
-                        {translation.translation || 'N/A'}
-                      </span>
-                    </div>
-                  );
-                })}
-                {translations.length > 5 && (
-                  <div className="text-xs text-gray-500 text-center pt-2">
-                    + {translations.length - 5} more words (click "View Word List" to see all)
-                  </div>
-                )}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Word List
+                </h3>
+                <Badge variant="outline">
+                  {wordsWithTranslation} / {wordList.length} words ({completionPercentage}%)
+                </Badge>
               </div>
+
+              {isLoadingWords ? (
+                <Card className="p-4">
+                  <div className="space-y-2 animate-pulse">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex justify-between">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32" />
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : (
+                <Card className="max-h-96 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+                      <tr>
+                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">English</th>
+                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">{language.name}</th>
+                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">IPA</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {wordList.map((word, index) => (
+                        <tr
+                          key={word.conceptId}
+                          className={index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}
+                          data-testid={`word-${index}`}
+                        >
+                          <td className="p-2 text-gray-600 dark:text-gray-400">
+                            {word.baseWord}
+                          </td>
+                          <td className="p-2 text-gray-900 dark:text-gray-100 font-medium">
+                            {word.translation || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
+                          </td>
+                          <td className="p-2 text-gray-700 dark:text-gray-300 font-mono text-xs">
+                            {word.ipa || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Card>
+              )}
             </div>
           )}
           </div>
@@ -374,4 +361,4 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
       </div>
     </div>
   );
-}
+ }

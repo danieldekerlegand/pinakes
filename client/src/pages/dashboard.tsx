@@ -2,71 +2,91 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  Settings, 
-  Menu, 
-  GitCompare, 
-  Database, 
-  History, 
-  Brain, 
-  Users, 
-  Filter,
+import {
+  Search,
+  Settings,
+  Menu,
   TreePine,
-  Layers,
-  BookOpen
+  GitCompare,
+  Sparkles,
+  Database,
+  Plus,
+  X,
+  Network
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
-import LanguageTree from "@/components/language-tree";
+// import LanguageTree from "@/components/language-tree"; // Old tree component
+import { LanguageFamilyVisualization } from "@/components/LanguageFamilyVisualization";
 import LanguageDetailPanel from "@/components/language-detail-panel";
-import ScrapingStatusBar from "@/components/scraping-status-bar";
 import WordComparisonPanel from "@/components/word-comparison";
+import LinguisticDistanceAnalyzer from "@/components/linguistic-distance-analyzer";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
-import LanguageMap from "@/components/language-map";
 import RealTimeProgress from "@/components/real-time-progress";
-import LinguisticDatabasePanel from "@/components/linguistic-database-panel";
-import LanguageEvolutionTimeline from "@/components/language-evolution-timeline";
-import AITranslationContext from "@/components/ai-translation-context";
-import UserContributionPanel from "@/components/user-contribution-panel";
-import AdvancedSearchFilters from "@/components/advanced-search-filters";
-import { LanguageFamilyScraper } from "@/components/language-family-scraper";
-import { DatabaseNormalizer } from "@/components/database-normalizer";
-import EtymologyExplorer from "@/components/etymology-explorer";
-import type { ScrapingJob } from "@shared/schema";
+import ScrapingStatusBar from "@/components/scraping-status-bar";
+import type { ScrapingJob } from "@shared/types";
+
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
-  const [linguisticPanelOpen, setLinguisticPanelOpen] = useState(false);
-  const [evolutionTimelineOpen, setEvolutionTimelineOpen] = useState(false);
-  const [aiContextOpen, setAiContextOpen] = useState(false);
-  const [contributionPanelOpen, setContributionPanelOpen] = useState(false);
-  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
-  const [familyScrapingOpen, setFamilyScrapingOpen] = useState(false);
-  const [normalizerOpen, setNormalizerOpen] = useState(false);
-  const [etymologyExplorerOpen, setEtymologyExplorerOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<any>(null);
-  const [selectedWord, setSelectedWord] = useState<any>(null);
+  const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(false);
+  const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
+  const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
+  const [expandAll, setExpandAll] = useState<number>(0);
+  const [collapseAll, setCollapseAll] = useState<number>(0);
   const [filters, setFilters] = useState({
     status: ["living", "endangered"] as string[],
     region: "all-regions",
     speakers: "any",
   });
+  const { toast } = useToast();
 
-  // Fetch scraping jobs for real-time progress tracking
-  const { data: scrapingJobs = [], refetch: refetchJobs } = useQuery<ScrapingJob[]>({
+  // Fetch scraping jobs for progress tracking
+  const { data: scrapingJobs = [] } = useQuery<ScrapingJob[]>({
     queryKey: ['/api/scraping-jobs'],
-    refetchInterval: 1000, // Poll every 1 second for active jobs
+    refetchInterval: 2000, // Poll every 2 seconds
   });
 
-  // Filter for active jobs
-  const activeJobs = scrapingJobs.filter(job => 
-    job.status === 'running' || job.status === 'pending'
-  );
+  const activeJobs = scrapingJobs.filter(job => job.status === 'running' || job.status === 'pending');
+
+  const handleScrapeFamilies = async () => {
+    try {
+      const response = await fetch("/api/scraping/families", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clearExisting: false }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start scraping");
+      }
+
+      toast({
+        title: "Scraping Started",
+        description: "Language family scraping has been started using Gemini AI. Check the console for progress.",
+      });
+
+      setScrapingMenuOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start language family scraping",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-surface">
@@ -100,22 +120,13 @@ export default function Dashboard() {
                 />
                 <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
-              <ScrapingTriggerButton />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setMapOpen(true)}
-                data-testid="button-open-map"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="p-2 text-white hover:bg-blue-700"
                 onClick={() => setComparisonOpen(true)}
-                data-testid="button-compare-words"
+                data-testid="button-compare-languages"
+                title="Word Comparison"
               >
                 <GitCompare className="h-5 w-5" />
               </Button>
@@ -123,41 +134,15 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setLinguisticPanelOpen(true)}
-                data-testid="button-databases"
+                onClick={() => setDistanceAnalyzerOpen(true)}
+                data-testid="button-distance-analyzer"
+                title="Linguistic Distance Analyzer"
               >
-                <Database className="h-5 w-5" />
+                <Network className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setFamilyScrapingOpen(true)}
-                data-testid="button-family-scraping"
-              >
-                <TreePine className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setNormalizerOpen(true)}
-                data-testid="button-database-normalizer"
-              >
-                <Layers className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setEtymologyExplorerOpen(true)}
-                data-testid="button-etymology"
-              >
-                <BookOpen className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm" 
                 className="p-2 text-white hover:bg-blue-700"
                 data-testid="button-settings"
               >
@@ -180,7 +165,14 @@ export default function Dashboard() {
         {/* Main Content */}
         <main className="flex-1 p-6">
           <StatsOverview />
-          
+
+          {/* Scraping Progress */}
+          {activeJobs.length > 0 && (
+            <div className="mt-6">
+              <RealTimeProgress activeJobs={activeJobs} />
+            </div>
+          )}
+
           <div className="bg-white rounded-lg shadow-material-1 mt-8">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
@@ -193,14 +185,24 @@ export default function Dashboard() {
                     size="sm"
                     className="text-primary hover:bg-blue-50"
                     data-testid="button-expand-all"
+                    onClick={() => {
+                      const timestamp = Date.now();
+                      setCollapseAll(0);
+                      setExpandAll(timestamp);
+                    }}
                   >
                     Expand All
                   </Button>
                   <Button
-                    variant="ghost" 
+                    variant="ghost"
                     size="sm"
                     className="text-primary hover:bg-blue-50"
                     data-testid="button-collapse-all"
+                    onClick={() => {
+                      const timestamp = Date.now();
+                      setExpandAll(0);
+                      setCollapseAll(timestamp);
+                    }}
                   >
                     Collapse All
                   </Button>
@@ -209,142 +211,143 @@ export default function Dashboard() {
             </div>
 
             <div className="p-6">
+              <LanguageFamilyVisualization
+                selectedLanguageId={selectedLanguageId}
+                onLanguageSelect={setSelectedLanguageId}
+              />
+              {/* Old tree component (commented out - can be restored if needed)
               <LanguageTree
                 searchQuery={searchQuery}
                 filters={filters}
                 selectedLanguageId={selectedLanguageId}
                 onLanguageSelect={setSelectedLanguageId}
+                onRefresh={() => {
+                  // Refresh the language tree data
+                  window.location.reload();
+                }}
+                expandAll={expandAll}
+                collapseAll={collapseAll}
               />
+              */}
             </div>
           </div>
         </main>
-
-        {/* Language Detail Panel */}
-        {selectedLanguageId && (
-          <LanguageDetailPanel
-            languageId={selectedLanguageId}
-            onClose={() => setSelectedLanguageId(null)}
-          />
-        )}
-        
-
       </div>
 
-      {/* Scraping Status Bar with Real-Time Progress */}
-      <ScrapingStatusBar />
-      
-      {/* Real-Time Progress Display */}
-      {activeJobs.length > 0 && (
-        <div className="fixed bottom-24 right-6 z-40 max-w-md">
-          <RealTimeProgress 
-            activeJobs={activeJobs}
-            onJobUpdate={(job) => {
-              // Trigger refetch of jobs when an update comes through WebSocket
-              refetchJobs();
-            }}
-          />
-        </div>
+      {/* Language Detail Panel */}
+      {selectedLanguageId && (
+        <LanguageDetailPanel
+          languageId={selectedLanguageId}
+          onClose={() => setSelectedLanguageId(null)}
+        />
       )}
-      
+
       {/* Word Comparison Panel */}
       <WordComparisonPanel
         isOpen={comparisonOpen}
         onClose={() => setComparisonOpen(false)}
       />
 
-      {/* Language Map */}
-      <LanguageMap
-        isOpen={mapOpen}
-        onClose={() => setMapOpen(false)}
+      {/* Linguistic Distance Analyzer */}
+      <LinguisticDistanceAnalyzer
+        isOpen={distanceAnalyzerOpen}
+        onClose={() => setDistanceAnalyzerOpen(false)}
       />
 
-      {/* Linguistic Database Panel */}
-      <LinguisticDatabasePanel
-        isOpen={linguisticPanelOpen}
-        onClose={() => setLinguisticPanelOpen(false)}
-      />
-
-      {/* Advanced Search Filters */}
-      <AdvancedSearchFilters
-        isOpen={advancedFiltersOpen}
-        onClose={() => setAdvancedFiltersOpen(false)}
-        onApplyFilters={(filters) => {
-          console.log('Applied filters:', filters);
-          setFilters(prev => ({ ...prev, ...filters }));
-        }}
-      />
-
-      {/* Language Evolution Timeline */}
-      {selectedLanguage && (
-        <LanguageEvolutionTimeline
-          languageId={selectedLanguage.id}
-          languageName={selectedLanguage.name}
-          isOpen={evolutionTimelineOpen}
-          onClose={() => {
-            setEvolutionTimelineOpen(false);
-            setSelectedLanguage(null);
-          }}
-        />
-      )}
-
-      {/* AI Translation Context */}
-      {selectedWord && (
-        <AITranslationContext
-          baseWordId={selectedWord.id}
-          baseWord={selectedWord.word}
-          languageId={selectedWord.languageId || selectedLanguageId || ""}
-          languageName={selectedWord.languageName || "Selected Language"}
-          translation={selectedWord.translation || ""}
-          isOpen={aiContextOpen}
-          onClose={() => {
-            setAiContextOpen(false);
-            setSelectedWord(null);
-          }}
-        />
-      )}
-
-      {/* User Contribution Panel */}
-      <UserContributionPanel
-        baseWordId={selectedWord?.id || "word1"}
-        baseWord={selectedWord?.word || "water"}
-        isOpen={contributionPanelOpen}
-        onClose={() => setContributionPanelOpen(false)}
-      />
-
-      {/* Language Family Scraper Modal */}
-      {familyScrapingOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setFamilyScrapingOpen(false)}>
-          <div onClick={e => e.stopPropagation()}>
-            <LanguageFamilyScraper />
-          </div>
-        </div>
-      )}
-
-      {/* Database Normalizer Modal */}
-      {normalizerOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={() => setNormalizerOpen(false)}>
-          <div onClick={e => e.stopPropagation()}>
-            <DatabaseNormalizer />
-          </div>
-        </div>
-      )}
-
-      {/* Etymology Explorer Modal */}
-      <EtymologyExplorer
-        isOpen={etymologyExplorerOpen}
-        onClose={() => setEtymologyExplorerOpen(false)}
-        baseWordId={selectedWord?.id}
-      />
-      
       {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-40">
         <Button
-          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
+          onClick={() => setScrapingMenuOpen(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
           data-testid="button-floating-action"
+          title="Scrape New Data"
         >
-          <span className="text-xl">+</span>
+          <Sparkles className="h-6 w-6" />
         </Button>
       </div>
+
+      {/* Scraping Menu Dialog */}
+      <Dialog open={scrapingMenuOpen} onOpenChange={setScrapingMenuOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              <span>Scrape New Data</span>
+            </DialogTitle>
+            <DialogDescription>
+              Use AI or linguistic databases to expand your language database
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 mt-4">
+            <Card
+              className="p-4 cursor-pointer hover:bg-purple-50 border-2 hover:border-purple-300 transition-colors"
+              onClick={handleScrapeFamilies}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <TreePine className="h-5 w-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">Scrape Language Families</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use Gemini AI to generate comprehensive language family trees
+                  </p>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Sparkles className="h-3 w-3 text-purple-600" />
+                    <span className="text-xs text-purple-600 font-medium">Powered by Gemini AI</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card
+              className="p-4 cursor-pointer hover:bg-blue-50 border-2 hover:border-blue-300 transition-colors"
+              onClick={() => {
+                setScrapingMenuOpen(false);
+                // Open the scraping modal directly by triggering the button click
+                setTimeout(() => {
+                  const scrapingButton = document.querySelector('[data-testid="button-trigger-scraping"]') as HTMLButtonElement;
+                  scrapingButton?.click();
+                }, 100);
+              }}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Database className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">Scrape Word Lists</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Select a language to scrape word translations from linguistic APIs
+                  </p>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Sparkles className="h-3 w-3 text-blue-600" />
+                    <span className="text-xs text-blue-600 font-medium">Powered by Gemini AI</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="mt-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setScrapingMenuOpen(false)}
+              className="w-full"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Word Scraping Dialog - now opens directly */}
+      <ScrapingTriggerButton />
+
+      {/* Scraping Status Bar */}
+      <ScrapingStatusBar />
     </div>
   );
 }

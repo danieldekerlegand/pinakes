@@ -1,0 +1,85 @@
+Genetic History
+
+Caucasus Genetics:
+Kartvelian: G (39.9%), J (32.5%)
+Northwest Caucasian: G, I
+Northeast Caucasian: J, I
+
+I: Northwest Caucasian, Northeast Caucasian, 
+J: Northeast Caucasian, South Caucasian, Semitic
+
+Native American Genetics:
+
+C (Mongolian, Tungusic, Chukotko-Kamchatkan) Natives: Na-Dené, Algic, Siouan
+Q (Yeniseian, Chukotko-Kamchatkan) Natives:
+Non-Q Natives:
+
+Y-chromosome Haplogroup Ethnicities General:
+
+* A: Khoisan, Nilo-Saharan
+* B: Nilo-Saharan, Pygmy, Hadza
+* CT:
+    * CF:
+        * C: Mongolian, Tungusic, Chukotko-Kamchatkan, Nivkh, Turkic, Ainu, Na-Dené, Algonquian, Siouan, Aboriginal Australian
+            * C1/C2 (Austronesian), C3 (Mongolic/Hazara, Tungusic, Turkic, Na-Dené), C4 (Australian Aboriginal)
+            * C*/C1: Aboriginal Australian
+            * C2: Mongolian, Tungusic, Chukotko-Kamchatkan, Nivkh, Turkic, Ainu, Na-Dené
+            * C-P39/C2b1a1a: Na-Dené, Algonquian, Siouan
+        * F: Dravidian
+            * GHIJK
+                * G: Hattian, Kaskian, EEF (Ötzi), ANF, Kalash, Brahui
+                    * G1: Madjar, Argyn
+                    * G2: ANF, EEF, Northwest Caucasian, Hattian, Kaskian, South Caucasian, Ossetian, Svan, Sardinian, Corsican
+                        * G2A: Elamite, Lurs
+                * HIJK:
+                    * H: Dravidian, Roma
+                    * IJK
+                        * IJ
+                            * I: Cro-Magnon, Aurignacian, Gravettian, Epi-Gravettian, Solutrean, Magdalenian, Pitted Ware, Northwest Caucasian, Northeast Caucasian
+                                * I1: Scandinavian
+                                * I2: Balkan, Sardinian
+                            * J: South Caucasian, Northeast Caucasian, Semitic, Arab
+                                * J1: Avar-Andic, Dargin, Lezgin, Lak, Semitic
+                                    * J1-Page08: Sumerian, Marsh Arab
+                                * J2: Elamite, Lurs, Nakh
+                        * K: Negrito, Melanesian, Micronesian, Aboriginal Australian
+                            * LT
+                                * L: Indus Valley Civilization, Dravidian
+                                * T: Somali (Dir, Isaaq), Yerukala, Lodha, Toubou
+                            * M: Papuan, Micronesian, Melanesian
+                            * NO:
+                                * N: Uralic, Turkic, Tungusic, Mongolic, Yukaghir, Chukotko-Kamchatkan
+                                    * N3: Finnic, Chukotko-Kamchatkan, Yukaghir
+                                * O: Sino-Tibetan, Manchu, Austroasiatic, Hmong-Mien, Austronesian, Korean, Japanese
+                                    * O1: Tai-Kadai
+                                    * O2: Austro-Asiatic, Korean
+                                    * O3: Sino-Tibetan, Hmong-Mien, Yayoi-Japanese
+                            * P: Negrito, Aeta, Turkic, Tuvan, Altai, Nivkh
+                                * Q: Yeniseian, Turkic, Samoyedic, Nivkh, Yukaghir, Na-Dené, Selkup
+                                    * Q1: Eskimo-Aleut
+                                    * Q2: Turkmen
+                                    * Q3: Yupik, Amerindian
+                                * R:
+                                    * R1a: Eastern Hunter Gatherer, Yamnaya, West Slav, East Slav, Baltic
+                                    * R1b: Western Hunter Gatherer, Yamnaya, Bell Beaker, Italo-Celtic, Germanic, Bashkir, Armenian, Hausa
+                                    * R2: Indian
+                            * S: Papuan, Aboriginal Australian
+    * DE:
+        * D: Tibeto-Burman, Hmong-Mien, Japanese, Andamanese
+            * D1/D3: Tibeto-Burman
+            * D2: Paleo-Siberian, Ainu, Jomon-Japanese
+        * E: Dogon, Niger-Congo, Omotic, Southern Egyptian, Oromo, Somali, Albanian, Samaritan Levite, Maghreb Arab, Berber, Guanche
+            * E1: Niger-Congo
+                * E1a: Dogon
+                * E1b1a1: Niger-Congo
+                * E1b1a2: Omotic
+                * E1b1b1a:
+            * E-V12: Southern Egyptian
+            * E-V32: Oromo, Somali
+            * E-V13: Albanian
+            * E-V22: Samaritan Levite
+            * E-V65: Maghreb Arab
+            * E1b1b1b:
+            * E-M81/E-M183: Berber, Guanche
+            * E2: Nilotic
+            * E3: Cushitic, Berber, Niger-Congo

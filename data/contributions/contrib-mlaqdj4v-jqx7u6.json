@@ -1,0 +1,17 @@
+{
+  "id": "contrib-mlaqdj4v-jqx7u6",
+  "entityType": "cuisine",
+  "action": "flag",
+  "status": "pending",
+  "submittedAt": "2026-02-06T10:16:42.271Z",
+  "entityId": "japanese",
+  "entityData": {
+    "issue": "Missing matcha and wagashi in staple items"
+  },
+  "sources": [
+    {
+      "title": "Japanese Culinary History"
+    }
+  ],
+  "confidence": 80
+}

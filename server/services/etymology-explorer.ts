@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db as _db } from "../db";
 import { 
   etymologies, 
   wordMigrations, 
@@ -8,6 +8,8 @@ import {
   wordTranslations
 } from "@shared/schema";
 import { eq, and, or, like, sql } from "drizzle-orm";
+
+const db = _db as any;
 
 interface EtymologyPath {
   language: string;
@@ -36,6 +38,10 @@ export class EtymologyExplorer {
   
   async generateEtymologyData(): Promise<void> {
     console.log("Generating comprehensive etymology data...");
+
+    if (!_db) {
+      throw new Error("Database is not configured. Set DATABASE_URL to use etymology features.");
+    }
     
     try {
       // Create etymological data for common Indo-European words

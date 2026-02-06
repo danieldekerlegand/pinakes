@@ -1,0 +1,166 @@
+Proto-Languages
+
+Language and DNA
+North-Northeast Asia
+Nivkh (C-Mongolic/Turkic/Tungusic, Q/R-American, O-Sino-Tibetan/Kra-Dai/Austronesian)
+Yukaghir (N-Uralic, Q-American, C2-Na-Dene)
+Ainu
+Chukotko-Kamchatkan
+Eskimo-Aleut
+
+Central-Northeast Asia
+Tungusic
+Japonic
+Koreanic
+Mongolic
+Turkic
+Yeniseian
+
+Central and Western Asia and Caucasus
+Burushaski
+Dravidian
+Northwest Caucasian
+Northeast Caucasian
+Kartvelian
+Sumerian
+Elamite
+Hattic
+Gutian
+Kassite
+
+Europe
+Vasconic
+Tyrsenian
+
+Central Africa
+Nilo-Saharan
+Sandawe
+
+Proposed Groupings
+
+- Sandawe
+    - Khoisan (splits in Tanzania south of Kilimanjaro and heads southwest)
+    - Nilo-Saharan (splits in Tanzania south of Kilimanjaro and heads northwest)
+        - Niger-Congo (splits in central Niger)
+        - Afro-Asiatic (splits in Egypt/Sudan)
+
+To do: 
+- Compare Vasconic, Tyrsenian, Proto-Caucasian, Hattic, Gutian, Kassite, Sumerian, Elamite, Yeniseian, Burushaski, Dravidian
+- Compare Sandawe, Tsoa/Tshwa, Hadza, Kalenjin, Luo, Maasai, Dogon, Mande, Katla/Rashad
+
+
+Dene-Caucasian: Na-Dene, Haida, Yeniseian, North Caucasian, Sino-Tibetan, Buruskaski, Vasconic, Tyrsenian (sometimes), Sumerian (sometimes), Almosan (rarely)
+
+Eurasiatic: Indo-European, Uralic-Yukaghir, Altaic (Turkic, Mongolic, Tungusic), Chukotko-Kamchatkan, Eskaleut, Korean-Japanese-Ainu, Nivkh, Tyrsenian
+
+Indo-Uralic: Indo-European, Uralic, Yukaghir, Eskaleut
+
+Nostratic: Afro-Asiatic, Kartvelian, Dravidian, Eurasiatic (Indo-European, Uralic, Altaic)
+
+Indo-Pacific: Andamanese, Papuan, Tasmanian, Kusunda, Nihali, Vedda, Negrito
+
+Amerind: Almosan–Keresiouan, Hokan–Penutian, Central Amerind, Andean–Chibchan–Paezan, Equatorial–Tucanoan, Ge–Pano–Carib
+
+Austric: Austroasiatic, Austronesian, Kra-Dai (sometimes), Hmong-Mien (sometimes)
+
+Borean: Nostratic, Dene-Caucasian, Amerind, Austric
+
+Grouping Guesses
+Khoe-Kwadi-Sandawe, Elamite, Dravidian, Austroasiatic, Trans-New-Guinean, Pama-Nyungan
+
+Chukotko-Kamchatkan, Nivkh, Algic, Tsimshianic, Mosan (Salishan, Wakashan, Chimakuan), Kutenai, Muskogean, Natchez, Tunica, Atakapa
+
+Hattic, Hurro-Urartian, Na-Dene, Haida, Yeniseian
+
+Uralic, Yukaghir, Eskaleut
+
+Sumerian, Hattic, North Caucasian, Cretan, Etruscan, Basque, Indo-European, Afro-Asiatic
+
+Proto-Language Timelines
+Europe and Middle East
+Proto-Afro-Asiatic - 10kya - Egypt
+Proto-Uralic - 7-5.65kya - Urals
+Proto-North-Caucasian - 7kya - Northern Caucasus
+Proto-Northwest-Caucasian - 5.7-5kya - Northwest Caucasus
+Proto-Northeast-Caucasian - 5.7-4.3kya - Northeast Caucasus
+Proto-Hurro-Urartian - 5.7-4.3kya - Southern Caucasus
+Proto-Indo-European - 5.3-4.6kya - Eastern Ukraine/Northwestern Caucasus
+Proto-Tyrsenian - 3.3-3kya - Northern Italy
+Proto-Kartvelian - 2kya - Western Caucasus
+Proto-Basque - 2.5-1.9kya - Northern Iberia
+Proto-Sumerian - Kuwait
+Proto-Elamite - Northwest Iran
+
+Africa
+Proto-Nilo-Saharan - 8kya - Sudan
+Proto-Niger-Congo - 7kya - West Africa
+Proto-Khoe-Kwadi-Sandawe - 2kya - Tanzania
+Proto-Kx’a - ? - Namibia/Zimbabwe
+
+Oceania
+Proto-Trans-New-Guinean - 10-5kya - Papua New Guinea
+Proto-Pama-Nyungan - 5kya - Australia
+
+South Asia
+Proto-Dravidian - 6-4kya - India
+
+Southeast Asia
+Proto-Austroasiatic - 9-7kya - South China
+Proto-Sino-Tibetan - 9-7kya - North China
+Proto-Austronesian - 6-4.5kya - Taiwan
+Proto-Hmong-Mien - 4.5kya - South China
+Proto-Kra-Dai - 4.5kya - South China
+
+Northeast Asia
+Proto-Chukotko-Kamchatkan - 4kya - Kamchatka
+Proto-Turkic - 3.5kya - East Kazakhstan/West Mongolia
+Proto-Japonic - 3.5-2.3kya - South Korea
+Proto-Yeniseian - 3.4-2.9kya - Northeast Kazakhstan
+Proto-Mongolic - 3.3kya - East Mongolia
+Proto-Tungusic - 2.5-1.5kya - Manchuria
+Proto-Koreanic - 2.3kya - North Korea
+Proto-Yukaghir - 2kya - Siberia
+Proto-Nivkh - 1.6-0.4kya - Sakhalin
+Proto-Ainu - 1.3-0.8kya - Japan
+
+North America
+First Wave Across Beringia - 25kya
+Peopling of North America - 16kya
+Na-Dené - 8-6kya - Beringia
+Algic - 7kya - Washington
+Yok-Utian - 6.5-4.5kya - Idaho
+Salishan - 5.5kya - British Colombia
+Final Wave Across Beringia (Eskaleut) - 5-4kya
+Iroquoian - 4.6kya - New York
+Proto-Eskimo-Aleut - 4kya - East Siberia/Beringia
+Siouan - 4kya - Ohio
+Tanoan - 3.5-1.5kya - New Mexico
+Caddoan - 3kya - Oklahoma
+Proto-Algonquian - 3-2.5kya - Mid-Atlantic
+Muskogean - 2.6kya - American Southeast
+Wakashan - 2.5-1.7kya - British Colombia/Washington
+
+Central America
+Peopling of Central America - 15kya
+Oto-Manguean - 7-4.3kya - Puebla
+Chibchan - 6.7kya - Honduras
+Uto-Aztecan - 5kya - Sonora
+Mayan - 4.2kya - Guatemala
+Mixe-Zoque - 3.8kya - Oaxaca
+Misumalpan - 2.8kya - Nicaragua
+Totonacan - 1.2kya - North Veracruz
+
+South America
+Peopling of South America - 14kya
+Macro-Jê - 6-5kya - Bahia
+Arawakan - 5.5kya - Amazonas
+Tupian - 5kya - Northeast Bolivia/Rondônia
+Cariban - 4.4kya - Guiana
+Yanomaman - 2.5-1kya - Venezuela
+Tukanoan - 2.5-2kya - Colombia
+Panoan - 2.2kya - East Peru/West Amazonas
+Quechua - 2-1kya - North Peru
+Aymaranan - 2-1kya - South Peru
+Araucanian - 1.7-1.3kya - Central Chile
+Jivaroan - 1.2kya - Ecuador
+Alacalufan - Tierra del Fuego
