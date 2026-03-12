@@ -324,7 +324,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3 - US-3.06. Build on existing Leaflet layer system."
     },
     {

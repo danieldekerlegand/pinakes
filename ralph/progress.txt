@@ -17,6 +17,8 @@ Started: Thu Mar 12 02:32:13 CDT 2026
 - UI panel pattern: sliding right panel with `isOpen`/`onClose` props, overlay backdrop, triggered from header buttons
 - Some API endpoints return `{ items: [...], count: N }` objects, not flat arrays — check response shape
 - D3 hierarchy node `.x`/`.y` can be `undefined` in strict TS — use `?? 0` for safe access
+- URL param persistence: use `history.replaceState` (not pushState) and skip initial render with `useRef` flag
+- Layer presets defined in `LAYER_PRESETS` array in `geospatial-types.ts`; empty `layers` array = show all
 
 ---
 
@@ -347,5 +349,31 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - CSS animation on Leaflet polylines works via `className` prop on pathOptions — `stroke-dashoffset` animates the dash pattern
   - The `useRef` pattern for injecting `<style>` elements ensures cleanup on unmount
   - Pre-existing type errors (19) remain unchanged; client changes don't introduce new ones
+  - Manual browser verification needed (no dev-browser skill available)
+---
+
+## 2026-03-12 - US-037
+- Enhanced `LayerPanel` with preset layer combinations: Linguistic Atlas, Political History, Cultural Diffusion, Trade & Economy, All Layers
+- Added `LAYER_PRESETS` array and `LayerPreset` interface to `geospatial-types.ts`
+- Added `haplogroups` layer type and `genetics` category to `DEFAULT_LAYER_CONFIGS`
+- Created `HaplogroupLayer` component (`client/src/components/visualizations/map-layers/HaplogroupLayer.tsx`) with:
+  - CircleMarker rendering colored by haplogroup type (Y-DNA green, mtDNA purple)
+  - Geographic coordinate resolution from region names
+  - Popup with haplogroup details, associated language families, origin info
+- Enhanced `useMapLayers` hook with:
+  - URL parameter persistence (`layers` and `opacities` params) via `history.replaceState`
+  - `applyPreset(presetId)` method and `activePresetId` detection
+  - Initial state hydration from URL params on mount
+- Enhanced `MapLegend` with dynamic entries for all layer types: battles, cuisines, music, religions, haplogroups, material-culture, routes (conquest)
+- Added category colors for cuisines (orange), music (fuchsia), religions (indigo), genetics (emerald) in LayerPanel
+- Integrated haplogroup data fetching and rendering in `EnhancedLanguageMapView`
+- Files changed: client/src/lib/visualization/geospatial-types.ts, client/src/components/visualizations/hooks/useMapLayers.ts, client/src/components/visualizations/map-layers/LayerPanel.tsx, client/src/components/visualizations/map-layers/MapLegend.tsx, client/src/components/visualizations/map-layers/HaplogroupLayer.tsx (new), client/src/components/visualizations/EnhancedLanguageMapView.tsx
+- **Learnings for future iterations:**
+  - URL param sync uses `history.replaceState` (not pushState) to avoid polluting browser history on every toggle
+  - Skip initial render URL sync with a ref flag to avoid overwriting URL params that were just read
+  - Haplogroup API returns `{ haplogroups: [...], count: N }` — consistent with other collection endpoints
+  - Haplogroups don't have explicit coordinates; use `geographicOrigin` string to resolve approximate coords
+  - `LAYER_PRESETS` with empty `layers` array means "show all" — special case in `applyPreset`
+  - Pre-existing type errors (19) remain unchanged; UI changes don't introduce new ones
   - Manual browser verification needed (no dev-browser skill available)
 ---
