@@ -13,6 +13,7 @@ import {
   getAvailableLanguageIds,
 } from "./services/linguistic-distance-calculator";
 import { traceEtymology, traceDescendants } from "./services/etymology-trace";
+import { analyzeTextOrigins } from "./services/text-etymology-analyzer";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -1466,6 +1467,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error tracing etymology:", error);
       res.status(500).json({
         message: "Failed to trace etymology",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/text-analysis/origins - Analyze etymological origins of a text
+   */
+  app.post("/api/text-analysis/origins", async (req, res) => {
+    try {
+      const { text, language } = req.body;
+      if (!text || !language) {
+        res.status(400).json({
+          message: "Both 'text' and 'language' fields are required",
+        });
+        return;
+      }
+
+      const result = await analyzeTextOrigins(text, language);
+      res.json(result);
+    } catch (error) {
+      console.error("Error analyzing text origins:", error);
+      res.status(500).json({
+        message: "Failed to analyze text origins",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
