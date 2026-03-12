@@ -6,6 +6,7 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - Language IDs in data files must match the `id` column in `lexicons/languages.tsv`
 - Pre-existing typecheck errors exist in visualization and map components — not related to new data work
 - Genre values for sample-texts: prose, poetry, religious, legal, inscription, conversational
+- Language detail panel uses collapsible sections with `enabled: showX` lazy-loading pattern for data queries
 - Old Irish (sga) is not in languages.tsv; used `gle` (Irish) as substitute
 - Classical Chinese is not in languages.tsv; used `och` (Old Chinese) as closest match
 - TSV loader pattern: `parseTsv()` + `getIdx()` (required) / `header.indexOf()` (optional), cache in `private cachedX`, lazy-load in `private loadX()`
@@ -39,4 +40,22 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Routes pattern: wrap in try/catch, return `{ items, count, filters }` for list endpoints
   - Transliteration field has space padding for Latin-script languages — `.trim()` it when loading
   - `/api/languages/:id/sample-texts` does NOT conflict with `/api/languages/:id` since Express matches longer paths first
+---
+
+## 2026-03-12 - US-003
+- Added "Sample Texts" collapsible section to `language-detail-panel.tsx`
+- Fetches from `GET /api/languages/:id/sample-texts` using React Query (lazy-loaded on expand)
+- Displays original text with `dir="auto"` for proper Unicode/RTL rendering
+- Shows transliteration below text for non-Latin scripts (only when non-empty after trim)
+- English translation in a toggleable panel per text (using local `expandedTranslations` Set state)
+- Metadata displayed below each text: source, date composed, genre badge, script badge
+- Empty state message when no sample texts exist
+- Files changed: `client/src/components/language-detail-panel.tsx`
+- **Learnings for future iterations:**
+  - The language detail panel is a right-side sliding panel, not a page — keep content compact for the narrow w-96 width
+  - Pattern: lazy-load data sections with `enabled: showX` in useQuery — avoids fetching data for sections user never opens
+  - `dir="auto"` attribute handles bidirectional text (Arabic, Hebrew) rendering automatically
+  - The panel uses collapsible sections (state toggle + conditional render), not shadcn Tabs
+  - Pre-existing typecheck errors remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
 ---
