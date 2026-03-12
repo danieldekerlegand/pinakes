@@ -75,3 +75,16 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - The `cognate` relation is bidirectional conceptually but stored as a single row (source->target)
   - Used real etymological data organized by section: OE->Eng, Latin->Romance, Norse->Eng, Greek->Latin->Eng, borrowings by source language
 ---
+
+## 2026-03-12 - US-005
+- Added `EtymologyRelation` interface and TSV loader to `server/tsv-storage.ts`
+- Added API endpoints:
+  - `GET /api/etymology-relations` with optional `source_language`, `target_language`, `relation_type` query params
+  - `GET /api/etymology-relations/word/:word` returning all relations for a given word (matches as source or target, case-insensitive)
+- Registered routes in `server/routes.ts`
+- Files changed: `server/tsv-storage.ts`, `server/routes.ts`
+- **Learnings for future iterations:**
+  - The word lookup endpoint matches case-insensitively on both source_word and target_word fields
+  - All columns in etymology-relations.tsv are required (used `getIdx` for all)
+  - Pre-existing typecheck errors remain unchanged — no new errors introduced
+---
