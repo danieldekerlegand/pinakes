@@ -1,0 +1,294 @@
+{
+  "project": "LinguaScrape",
+  "branchName": "ralph/phase1-sample-texts-etymology",
+  "description": "Phase 1: Sample Texts & Text-Level Etymology Analysis - Give every language a voice and port etymology-tree analytical capabilities into the web platform",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Create sample-texts.tsv data file",
+      "description": "As a developer, I need the sample texts TSV data file created and populated so that the system has representative text passages for languages.",
+      "acceptanceCriteria": [
+        "Create lexicons/sample-texts.tsv with columns: id, language_id, title, text, transliteration, translation_en, source, date_composed, genre, script",
+        "Genre values: prose, poetry, religious, legal, inscription, conversational",
+        "Populate with 3 sample texts each for at least 15 major languages: English, Spanish, French, German, Italian, Portuguese, Russian, Arabic, Mandarin, Hindi, Japanese, Korean, Turkish, Swahili, Greek",
+        "Populate with at least 1 sample text each for 10 dead/historical languages: Latin, Ancient Greek, Sanskrit, Old English, Old Norse, Gothic, Sumerian, Akkadian, Old Irish, Classical Chinese",
+        "Total minimum 55 sample text entries",
+        "All language_id values must match existing IDs in languages.tsv",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Use real representative texts - opening lines of famous works, religious texts, inscriptions, proverbs. Include transliteration for non-Latin scripts."
+    },
+    {
+      "id": "US-002",
+      "title": "Add sample texts TSV loader and API endpoints",
+      "description": "As a developer, I need server-side loading and API endpoints for sample texts so the frontend can access them.",
+      "acceptanceCriteria": [
+        "Add sample-texts TSV loading to server/tsv-storage.ts following existing patterns",
+        "Add GET /api/sample-texts endpoint returning all sample texts with optional query params: language_id, genre, script",
+        "Add GET /api/sample-texts/:id endpoint returning a single sample text",
+        "Add GET /api/languages/:id/sample-texts endpoint returning all texts for a specific language",
+        "Response includes all TSV fields parsed correctly",
+        "Register routes in server/routes.ts",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Add sample text viewer to language detail view",
+      "description": "As a user, I want to see sample texts when viewing a language's details so I can see what the language looks like.",
+      "acceptanceCriteria": [
+        "Add a 'Sample Texts' section/tab within the language detail view",
+        "Display original text with proper Unicode rendering",
+        "Show transliteration alongside text for non-Latin scripts (if available)",
+        "Show English translation in a toggleable/collapsible panel",
+        "Display metadata below each text: source, date composed, genre, script",
+        "Show empty state message when no sample texts exist for a language",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Create etymology-relations.tsv data file",
+      "description": "As a developer, I need etymological derivation relationship data so the system can trace word origins across languages.",
+      "acceptanceCriteria": [
+        "Create lexicons/etymology-relations.tsv with columns: id, source_word, source_language, target_word, target_language, relation_type",
+        "relation_type values: derived_from, etymology, cognate, borrowed_from, calque",
+        "Populate with at least 2000 etymological relationships",
+        "Include relationships tracing common English words back to Latin, Old French, Old English, Old Norse, Greek",
+        "Include at least 200 cognate relationships across Indo-European languages (e.g., English 'mother' / German 'Mutter' / Latin 'mater' / Sanskrit 'matar')",
+        "Include at least 100 borrowing relationships (e.g., English 'algebra' borrowed_from Arabic, English 'tsunami' borrowed_from Japanese)",
+        "Include at least 50 relationships involving non-Indo-European languages",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Model after the etymwn.tsv format from etymology-tree (rel:is_derived_from, rel:etymology, rel:etymological_origin_of) but normalized to our TSV schema."
+    },
+    {
+      "id": "US-005",
+      "title": "Add etymology relations TSV loader and API endpoints",
+      "description": "As a developer, I need server-side loading and API endpoints for etymology relations so the frontend can query them.",
+      "acceptanceCriteria": [
+        "Add etymology-relations TSV loading to server/tsv-storage.ts",
+        "Add GET /api/etymology-relations endpoint with optional filters: source_language, target_language, relation_type",
+        "Add GET /api/etymology-relations/word/:word endpoint returning all relations for a given word",
+        "Register routes in server/routes.ts",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add etymology trace service",
+      "description": "As a developer, I need a service that recursively traces a word's full etymology chain (like trace-etymology in the Clojure etymology-tree project).",
+      "acceptanceCriteria": [
+        "Create server/services/etymology-trace.ts",
+        "Implement traceEtymology(word, language) function that recursively follows derived_from and etymology relations to find all ancestor words",
+        "Implement traceDescendants(word, language) function that follows relations in reverse to find all descendant words",
+        "Handle circular references with a visited-set (same approach as etymology-tree)",
+        "Return results as a tree structure: { word, language, relation, children: [...] }",
+        "Add GET /api/etymology-relations/trace/:word endpoint that returns the full trace tree",
+        "Add optional query param ?language= to disambiguate homographs",
+        "Register route in server/routes.ts",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "Reference etymology-tree/src/stylometry/core.clj trace-etymology function for the recursive pattern."
+    },
+    {
+      "id": "US-007",
+      "title": "Add text tokenization and origin frequency service",
+      "description": "As a developer, I need a service that tokenizes a text and computes what percentage of words come from each origin language (like word-origin-frequencies in etymology-tree).",
+      "acceptanceCriteria": [
+        "Create server/services/text-etymology-analyzer.ts",
+        "Implement tokenize(text, language) function that splits text into words and normalizes them",
+        "Implement analyzeTextOrigins(text, language) function that: tokenizes the text, looks up each word's etymology chain, traces each to its oldest known ancestor, groups by origin language, returns frequency counts and percentages",
+        "Return structure: { totalWords, analyzedWords, unknownWords, origins: [{ language, languageName, count, percentage, words: string[] }] }",
+        "Handle unknown words gracefully (categorized as 'Unknown origin')",
+        "Add POST /api/text-analysis/origins endpoint accepting { text, language } body",
+        "Register route in server/routes.ts",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "Reference etymology-tree/src/stylometry/core.clj word-origin-frequencies function."
+    },
+    {
+      "id": "US-008",
+      "title": "Add Text Analyzer page with text input",
+      "description": "As a user, I want a Text Analyzer page where I can paste text and select a source language to analyze its etymological composition.",
+      "acceptanceCriteria": [
+        "Add new 'Text Analyzer' page accessible from main navigation",
+        "Text input area (textarea) for pasting text",
+        "Language selector dropdown defaulting to English",
+        "Analyze button that calls POST /api/text-analysis/origins",
+        "Loading state while analysis runs",
+        "Add route in client App.tsx",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Add etymology origin breakdown chart to Text Analyzer",
+      "description": "As a user, I want to see a pie/donut chart showing the percentage breakdown of vocabulary origins after analyzing a text.",
+      "acceptanceCriteria": [
+        "Display results as a donut chart (using Recharts PieChart) with segments colored by origin language",
+        "Each segment labeled with language name and percentage",
+        "Legend showing all origin languages with colors and word counts",
+        "Summary text: e.g. '423 of 500 words analyzed, 77 unknown'",
+        "Clicking a chart segment expands to show the list of specific words from that origin",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Add word-level etymology highlighting to Text Analyzer",
+      "description": "As a user, I want to hover over any word in my analyzed text and see its etymology chain highlighted inline.",
+      "acceptanceCriteria": [
+        "After analysis, display the original text with each word as a hoverable span",
+        "Words colored by their origin language (matching the donut chart colors)",
+        "Hover tooltip shows: word -> derived from X (language) -> derived from Y (language) -> ... -> root word (origin language)",
+        "Unknown words shown in gray with 'Unknown origin' tooltip",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Add quick-analyze button for sample texts",
+      "description": "As a user, I want to analyze any sample text from the language detail view with a single click, sending it to the Text Analyzer pre-filled.",
+      "acceptanceCriteria": [
+        "Add 'Analyze Etymology' button next to each sample text in the language detail view",
+        "Clicking navigates to Text Analyzer page with text and language pre-filled",
+        "Analysis runs automatically on page load when pre-filled via URL params or navigation state",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Add etymology tree D3 visualization",
+      "description": "As a user, I want to see a visual tree showing how a word has traveled across languages, with nodes for each word form and edges for derivation relationships.",
+      "acceptanceCriteria": [
+        "New EtymologyTreeVisualization component using D3.js tree layout",
+        "Nodes represent word forms labeled with word and language name",
+        "Edges represent derivation relationships labeled with relation type",
+        "Nodes colored by language family",
+        "Click any node to recenter the tree on that word (triggers new trace API call)",
+        "Zoom and pan support",
+        "Accessible from Text Analyzer (click any word) and from a standalone 'Word Etymology' search",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Add etymology tree export",
+      "description": "As a user, I want to export the etymology tree visualization as SVG or PNG.",
+      "acceptanceCriteria": [
+        "Add export button to etymology tree visualization with SVG and PNG options",
+        "Reuse existing export utilities from client/src/lib/visualization/export.ts",
+        "Exported image includes the full visible tree with labels",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Add comparative text analysis endpoint",
+      "description": "As a developer, I need an endpoint that analyzes two texts and returns their etymological compositions side-by-side with a comparison summary.",
+      "acceptanceCriteria": [
+        "Add POST /api/text-analysis/compare endpoint accepting { textA, textB, languageA, languageB } body",
+        "Returns both analyses plus a comparison object: { sharedOrigins, uniqueToA, uniqueToB, differences: [{ language, percentA, percentB, diff }] }",
+        "Differences sorted by absolute difference descending",
+        "Register route in server/routes.ts",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Add comparative text analysis UI",
+      "description": "As a user, I want to compare the etymological composition of two texts side-by-side.",
+      "acceptanceCriteria": [
+        "Add 'Compare' tab or toggle in the Text Analyzer page",
+        "Side-by-side text input areas with independent language selectors",
+        "Dual donut charts with synchronized color coding (same origin language = same color in both charts)",
+        "Difference summary below charts: e.g. 'Text A has 15% more Latin-origin words than Text B'",
+        "Shared vs unique origin languages highlighted in a table",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Expand sample texts to 50 languages",
+      "description": "As a developer, I need to expand the sample texts dataset to cover more languages for broader coverage.",
+      "acceptanceCriteria": [
+        "Add sample texts for at least 35 additional languages beyond the initial 25 from US-001",
+        "Include: Dutch, Swedish, Norwegian, Danish, Polish, Czech, Romanian, Hungarian, Finnish, Estonian, Georgian, Armenian, Hebrew, Persian, Urdu, Bengali, Tamil, Telugu, Thai, Vietnamese, Burmese, Khmer, Indonesian, Tagalog, Yoruba, Zulu, Amharic, Hausa, Quechua, Nahuatl, Hawaiian, Maori, Tibetan, Mongolian, Basque",
+        "At least 2 texts per language",
+        "Add 10 more dead/historical language texts: Middle English, Old French, Old Persian, Coptic, Hittite, Avestan, Old Church Slavonic, Egyptian (hieroglyphic), Phoenician, Tocharian",
+        "Total sample texts reaches at least 150 entries",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "This is a data expansion story - focus on creating high-quality, real sample texts with proper transliterations."
+    },
+    {
+      "id": "US-017",
+      "title": "Expand etymology relations to 5000+",
+      "description": "As a developer, I need to expand the etymology relations dataset for better text analysis coverage.",
+      "acceptanceCriteria": [
+        "Expand lexicons/etymology-relations.tsv to at least 5000 entries",
+        "Add at least 1000 more English word etymologies covering common vocabulary (top 3000 English words should have coverage)",
+        "Add at least 500 cognate sets across Romance languages",
+        "Add at least 500 cognate sets across Germanic languages",
+        "Add at least 300 borrowing relationships from Arabic, Persian, Sanskrit, Chinese, Japanese into other languages",
+        "Add at least 200 relationships involving Slavic languages",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": "This is a data expansion story. Focus on breadth of English coverage first (since English text analysis is the primary use case), then cross-language cognates."
+    }
+  ]
+}

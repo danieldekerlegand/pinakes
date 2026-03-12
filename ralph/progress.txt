@@ -1,0 +1,25 @@
+# Ralph Progress Log
+Started: Thu Mar 12 00:45:34 CDT 2026
+
+## Codebase Patterns
+- TSV files live in `lexicons/` directory — all data storage uses TSV format
+- Language IDs in data files must match the `id` column in `lexicons/languages.tsv`
+- Pre-existing typecheck errors exist in visualization and map components — not related to new data work
+- Genre values for sample-texts: prose, poetry, religious, legal, inscription, conversational
+- Old Irish (sga) is not in languages.tsv; used `gle` (Irish) as substitute
+- Classical Chinese is not in languages.tsv; used `och` (Old Chinese) as closest match
+
+---
+
+## 2026-03-12 - US-001
+- Created `lexicons/sample-texts.tsv` with 56 sample text entries
+- Columns: id, language_id, title, text, transliteration, translation_en, source, date_composed, genre, script
+- 15 major languages with 3 texts each (45 texts): eng, spa, fra, deu, ita, por, rus, arb, cmn, hin, jpn, kor, tur, swa, ell
+- 10 historical/dead languages with 1+ text each (11 texts): lat (2), grc, san, ang, non, got, sux, akk, gle (for Old Irish), och (for Classical Chinese)
+- Files changed: `lexicons/sample-texts.tsv` (created)
+- **Learnings for future iterations:**
+  - `gle` (Irish) was used as a substitute for Old Irish (sga) which doesn't exist in languages.tsv
+  - `och` (Old Chinese) was used for Classical Chinese — no separate Classical Chinese entry exists
+  - Transliteration column is left with a space (" ") for Latin-script languages since empty fields could cause TSV parsing issues
+  - Pre-existing typecheck errors in the codebase are unrelated to data files
+---
