@@ -254,3 +254,19 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Existing archaeological-sites.tsv used non-ISO language refs ("latin" instead of "lat") — fixed to be consistent
   - Pre-existing type errors down to 5 (from 19 noted previously) — still unrelated to data changes
 ---
+
+## 2026-03-12 - US-032
+- Created `lexicons/migration-routes.tsv` with 34 migration/trade/conquest routes
+- Columns: id, name, route_type, waypoints (GeoJSON LineString), start_date, end_date, peoples (JSON), associated_languages (JSON), description, consequences
+- Route types: migration (11), trade (8), conquest (4), colonization (2), diaspora (4), plus mixed
+- All 17+ named routes from acceptance criteria included: Out of Africa, Indo-European expansion, Bantu expansion, Austronesian expansion, Polynesian voyaging, Silk Road, Trans-Saharan trade, Amber Road, Incense Route, Viking expansion, Arab expansion, Mongol conquests, European colonization routes, Atlantic slave trade, Great Migration (US), Jewish diaspora, Romani migration
+- Additional routes: Beringia land bridge, Indo-Aryan migration, Turkic migrations, Crusades, Portuguese maritime, Spice trade, Trail of Tears, Phoenician trade, Han Dynasty expansion, Irish diaspora, Malay Archipelago trade, Gothic migrations, Hungarian migration, Viking Eastern route, Arab Indian Ocean trade
+- All language_ids validated against languages.tsv (Mongolian uses `khk` not `mon`)
+- Files changed: lexicons/migration-routes.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Mongolian in this dataset uses `khk` (Khalkha Mongolian), NOT `mon` — always check specific variant codes
+  - GeoJSON LineString coordinates are `[longitude, latitude]` arrays — same as Polygon but without closing
+  - Route types from acceptance criteria: migration, trade, conquest, colonization, diaspora
+  - Some routes have empty `associated_languages` (e.g., prehistoric migrations) — valid for pre-language-family events
+  - Pre-existing type errors (5) remain unchanged; data-only TSV changes don't affect typecheck
+---
