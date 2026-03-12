@@ -1,12 +1,25 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Eye, Download, ChevronUp, Sparkles } from "lucide-react";
+import { X, Eye, Download, ChevronUp, ChevronDown, Sparkles, BookOpen } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { LanguageWithStats } from "@shared/types";
+
+interface SampleText {
+  id: string;
+  languageId: string;
+  title: string;
+  text: string;
+  transliteration: string;
+  translationEn: string;
+  source: string;
+  dateComposed: string;
+  genre: string;
+  script: string;
+}
 
 interface LanguageDetailPanelProps {
   languageId: string;
@@ -32,6 +45,8 @@ function getStatusColor(status: string) {
 
 export default function LanguageDetailPanel({ languageId, onClose }: LanguageDetailPanelProps) {
   const [showWordList, setShowWordList] = useState(false);
+  const [showSampleTexts, setShowSampleTexts] = useState(false);
+  const [expandedTranslations, setExpandedTranslations] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -48,6 +63,30 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
     },
     enabled: showWordList,
   });
+
+  const { data: sampleTextsData, isLoading: isLoadingSampleTexts } = useQuery<{ items: SampleText[]; count: number }>({
+    queryKey: ['/api/languages', languageId, 'sample-texts'],
+    queryFn: async () => {
+      const response = await fetch(`/api/languages/${languageId}/sample-texts`);
+      if (!response.ok) throw new Error('Failed to fetch sample texts');
+      return response.json();
+    },
+    enabled: showSampleTexts,
+  });
+
+  const sampleTexts = sampleTextsData?.items ?? [];
+
+  const toggleTranslation = (textId: string) => {
+    setExpandedTranslations(prev => {
+      const next = new Set(prev);
+      if (next.has(textId)) {
+        next.delete(textId);
+      } else {
+        next.add(textId);
+      }
+      return next;
+    });
+  };
 
   const scrapingMutation = useMutation({
     mutationFn: async () => {
@@ -298,6 +337,81 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               </div>
             </div>
           )}
+
+          {/* Sample Texts */}
+          <div>
+            <Button
+              variant="ghost"
+              className="w-full justify-between text-sm font-medium text-gray-700 dark:text-gray-300 px-0 hover:bg-transparent"
+              onClick={() => setShowSampleTexts(!showSampleTexts)}
+            >
+              <span className="flex items-center">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Sample Texts
+              </span>
+              {showSampleTexts ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {showSampleTexts && (
+              <div className="mt-3 space-y-4">
+                {isLoadingSampleTexts ? (
+                  <div className="space-y-3 animate-pulse">
+                    {[...Array(2)].map((_, i) => (
+                      <Card key={i} className="p-4">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+                        <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                      </Card>
+                    ))}
+                  </div>
+                ) : sampleTexts.length === 0 ? (
+                  <Card className="p-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center italic">
+                      No sample texts available for this language.
+                    </p>
+                  </Card>
+                ) : (
+                  sampleTexts.map((st) => (
+                    <Card key={st.id} className="p-4">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        {st.title}
+                      </h4>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-wrap" dir="auto">
+                        {st.text}
+                      </p>
+                      {st.transliteration && st.transliteration.trim() && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic mt-2 leading-relaxed">
+                          {st.transliteration}
+                        </p>
+                      )}
+                      <div className="mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-primary px-0 h-auto py-1"
+                          onClick={() => toggleTranslation(st.id)}
+                        >
+                          {expandedTranslations.has(st.id) ? 'Hide Translation' : 'Show Translation'}
+                          {expandedTranslations.has(st.id) ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                        </Button>
+                        {expandedTranslations.has(st.id) && (
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 leading-relaxed border-l-2 border-primary/30 pl-3">
+                            {st.translationEn}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        {st.source && <span>Source: {st.source}</span>}
+                        {st.dateComposed && <span>· {st.dateComposed}</span>}
+                        {st.genre && <Badge variant="outline" className="text-xs">{st.genre}</Badge>}
+                        {st.script && <Badge variant="outline" className="text-xs">{st.script}</Badge>}
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Complete Word List */}
           {showWordList && (
