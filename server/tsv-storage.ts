@@ -118,6 +118,15 @@ export interface SampleText {
   script: string;
 }
 
+export interface EtymologyRelation {
+  id: string;
+  sourceWord: string;
+  sourceLanguage: string;
+  targetWord: string;
+  targetLanguage: string;
+  relationType: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -179,6 +188,9 @@ export class TsvStorage {
 
   // Sample Texts
   private cachedSampleTexts: SampleText[] | null = null;
+
+  // Etymology Relations
+  private cachedEtymologyRelations: EtymologyRelation[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -1680,5 +1692,76 @@ export class TsvStorage {
   async getSampleText(id: string): Promise<SampleText | null> {
     this.loadSampleTexts();
     return (this.cachedSampleTexts ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ===========================================================================
+  // Etymology Relations
+  // ===========================================================================
+
+  /**
+   * Load etymology relations from TSV file
+   */
+  private loadEtymologyRelations(): void {
+    if (this.cachedEtymologyRelations) return;
+
+    const text = this.readFileIfExists("lexicons/etymology-relations.tsv");
+    if (!text) { this.cachedEtymologyRelations = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const srcWordIdx = getIdx(header, "source_word");
+    const srcLangIdx = getIdx(header, "source_language");
+    const tgtWordIdx = getIdx(header, "target_word");
+    const tgtLangIdx = getIdx(header, "target_language");
+    const relTypeIdx = getIdx(header, "relation_type");
+
+    this.cachedEtymologyRelations = rows.map((row) => ({
+      id: row[idIdx],
+      sourceWord: row[srcWordIdx],
+      sourceLanguage: row[srcLangIdx],
+      targetWord: row[tgtWordIdx],
+      targetLanguage: row[tgtLangIdx],
+      relationType: row[relTypeIdx],
+    }));
+  }
+
+  /**
+   * Get etymology relations with optional filtering
+   */
+  async getEtymologyRelations(filters?: {
+    sourceLanguage?: string;
+    targetLanguage?: string;
+    relationType?: string;
+  }): Promise<EtymologyRelation[]> {
+    this.loadEtymologyRelations();
+    let relations = this.cachedEtymologyRelations ?? [];
+
+    if (filters?.sourceLanguage) {
+      relations = relations.filter((r) => r.sourceLanguage === filters.sourceLanguage);
+    }
+
+    if (filters?.targetLanguage) {
+      relations = relations.filter((r) => r.targetLanguage === filters.targetLanguage);
+    }
+
+    if (filters?.relationType) {
+      relations = relations.filter((r) =>
+        r.relationType.toLowerCase() === filters.relationType!.toLowerCase()
+      );
+    }
+
+    return relations;
+  }
+
+  /**
+   * Get all etymology relations for a given word (as source or target)
+   */
+  async getEtymologyRelationsForWord(word: string): Promise<EtymologyRelation[]> {
+    this.loadEtymologyRelations();
+    const normalizedWord = word.toLowerCase();
+    return (this.cachedEtymologyRelations ?? []).filter(
+      (r) => r.sourceWord.toLowerCase() === normalizedWord ||
+             r.targetWord.toLowerCase() === normalizedWord
+    );
   }
 }

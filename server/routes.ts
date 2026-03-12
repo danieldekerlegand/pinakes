@@ -1388,5 +1388,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Etymology Relations
+  // ============================================================================
+
+  /**
+   * GET /api/etymology-relations - Get etymology relations with optional filtering
+   */
+  app.get("/api/etymology-relations", async (req, res) => {
+    try {
+      const sourceLanguage = req.query.source_language as string | undefined;
+      const targetLanguage = req.query.target_language as string | undefined;
+      const relationType = req.query.relation_type as string | undefined;
+
+      const relations = await storage.getEtymologyRelations({
+        sourceLanguage,
+        targetLanguage,
+        relationType,
+      });
+      res.json({
+        relations,
+        count: relations.length,
+        filters: { sourceLanguage, targetLanguage, relationType },
+      });
+    } catch (error) {
+      console.error("Error fetching etymology relations:", error);
+      res.status(500).json({
+        message: "Failed to fetch etymology relations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/etymology-relations/word/:word - Get all relations for a given word
+   */
+  app.get("/api/etymology-relations/word/:word", async (req, res) => {
+    try {
+      const relations = await storage.getEtymologyRelationsForWord(req.params.word);
+      res.json({
+        relations,
+        count: relations.length,
+        word: req.params.word,
+      });
+    } catch (error) {
+      console.error("Error fetching etymology relations for word:", error);
+      res.status(500).json({
+        message: "Failed to fetch etymology relations for word",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
