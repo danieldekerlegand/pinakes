@@ -300,3 +300,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Migration routes API returns `{ routes: [...], count: N }` — consistent with other collection endpoints
   - Pre-existing type errors (19 originally, now showing various client-side issues) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-035
+- Added `Battle` interface to `server/tsv-storage.ts` with fields: id, name, date, coordinates ([lat, lng] tuple), belligerents (array of {name, civilization_id}), outcome, casualtiesEstimate, significance, associatedLanguageChanges, warName
+- Added `loadBattles()` private loader with JSON parsing for coordinates and belligerents fields
+- Added `getBattles(warName?, startDate?, endDate?, civilizationId?)` and `getBattleById(id)` methods
+- Date filtering uses parseInt for numeric comparison (handles negative BCE dates correctly)
+- Civilization filter checks if any belligerent's civilization_id matches
+- Added two API routes in `server/routes.ts`:
+  - `GET /api/battles` (with optional `war_name`, `start_date`, `end_date`, `civilization_id` query params)
+  - `GET /api/battles/:id`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Battles use `coordinates` as `[lat, lng]` (NOT GeoJSON `[lng, lat]`) — parsed as tuple type `[number, number]`
+  - `belligerents` is a JSON array of objects with `civilization_id` that can be `null` — filter uses `.some()` on the array
+  - Date filtering for battles needs parseInt since dates are string years (can be negative for BCE)
+  - Battles API returns `{ battles: [...], count: N }` — consistent with other collection endpoints
+  - Pre-existing type errors (19) remain unchanged; server changes don't affect them
+---
