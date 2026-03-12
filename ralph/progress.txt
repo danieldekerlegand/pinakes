@@ -377,3 +377,20 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pre-existing type errors (19) remain unchanged; UI changes don't introduce new ones
   - Manual browser verification needed (no dev-browser skill available)
 ---
+## 2026-03-12 - US-038
+- Created `lexicons/language-contacts.tsv` with 95 language contact events across all major contact scenarios worldwide
+- Columns: id, source_language_id, target_language_id, contact_type (substrate/superstrate/adstrate), time_period, region, features_transferred (JSON with phonological/lexical/grammatical arrays), example_features, intensity (heavy/moderate/light)
+- Contact types: superstrate (38), adstrate (35), substrate (12), borrowing/mixed (10)
+- Integrated and enriched data from existing `data/language_contact_phenomena.csv` (117 entries mapped to structured TSV format)
+- Geographic coverage: Europe (35+), Asia (20+), Middle East (10+), Africa (10+), Americas (8), Pacific (3)
+- Historical depth: from 3000BCE (Sumerian-Akkadian) to present-day English global influence
+- Key contact scenarios: Norman French→English, Arabic→Spanish, Sanskrit→Southeast Asian, Chinese→Japanese/Korean/Vietnamese, Norse→English, Latin→Romance, Balkan Sprachbund, colonial contacts
+- All language IDs validated against languages.tsv (no invalid references)
+- Files changed: lexicons/language-contacts.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Many languages from the CSV source are NOT in languages.tsv (afr, fas, gla, kur, mar, mkd, nep, pan, pus, que, rom, sin, srp, tgk, yid) — use only validated IDs
+  - Contact types in this dataset: substrate, superstrate, adstrate (no pidginization/creolization entries as those require pidgin/creole language IDs which aren't in languages.tsv)
+  - `features_transferred` JSON has three arrays: phonological, lexical, grammatical — some may be empty `[]`
+  - The existing `data/language_contact_phenomena.csv` has rich narrative data but uses language names not IDs — manual mapping required
+  - Pre-existing type errors (19) remain unchanged; data-only TSV changes don't affect typecheck
+---
