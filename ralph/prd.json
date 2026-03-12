@@ -228,7 +228,7 @@
         "Typecheck passes"
       ],
       "priority": 14,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3 - US-3.02. Data expansion story."
     },
     {

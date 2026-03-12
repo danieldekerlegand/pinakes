@@ -239,3 +239,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Always validate: 1) polygon closure (first coord = last coord), 2) civilization_id references, 3) JSON validity
   - Pre-existing type errors (19) unchanged — TSV data-only changes don't affect typecheck
 ---
+
+## 2026-03-12 - US-031
+- Expanded `lexicons/archaeological-sites.tsv` from 3 to 65 archaeological sites across all inhabited continents
+- All 27+ named sites from acceptance criteria included plus 38 additional sites
+- Site types: city (29), temple (11), settlement (10), ceremonial (5), cave_art (4), burial (4), fortress (2)
+- Continental coverage: Europe (19), Middle East (14), Asia (15), Americas (10), Africa (7)
+- Fixed existing entries to use ISO language codes (lat, grc) instead of "latin", "ancient-greek"
+- All language_ids and civilization_ids validated against respective TSV files
+- Files changed: lexicons/archaeological-sites.tsv (expanded), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Several languages are NOT in languages.tsv: Rapanui (rap), Ge'ez (gez), Sinhala (sin), Marathi (mar), Tajik (tgk) — use empty arrays or closest available code
+  - `swa` is Swahili (not `swh`), `qwc` is Classical Quechua (not `que`) in this dataset
+  - Existing archaeological-sites.tsv used non-ISO language refs ("latin" instead of "lat") — fixed to be consistent
+  - Pre-existing type errors down to 5 (from 19 noted previously) — still unrelated to data changes
+---
