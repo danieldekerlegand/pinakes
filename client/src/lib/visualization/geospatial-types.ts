@@ -161,7 +161,8 @@ export type LayerType =
   | 'material-culture-heatmap'
   | 'cuisines'
   | 'music'
-  | 'religions';
+  | 'religions'
+  | 'haplogroups';
 
 export type LayerCategory =
   | 'languages'
@@ -171,7 +172,8 @@ export type LayerCategory =
   | 'culture'
   | 'cuisines'
   | 'music'
-  | 'religions';
+  | 'religions'
+  | 'genetics';
 
 export interface PolygonStyle {
   fillColor?: string;
@@ -482,5 +484,65 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         strokeWeight: 2,
       },
     },
+  },
+  {
+    id: 'haplogroups',
+    type: 'haplogroups',
+    category: 'genetics',
+    name: 'Haplogroup Distributions',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 90,
+    renderStyle: {
+      marker: {
+        size: 10,
+        opacity: 0.7,
+        strokeWeight: 2,
+      },
+    },
+  },
+];
+
+// ============================================================================
+// Layer Presets
+// ============================================================================
+
+export interface LayerPreset {
+  id: string;
+  name: string;
+  description: string;
+  layers: string[]; // Layer IDs to enable
+}
+
+export const LAYER_PRESETS: LayerPreset[] = [
+  {
+    id: 'linguistic-atlas',
+    name: 'Linguistic Atlas',
+    description: 'Language ranges, writing systems, and related archaeology',
+    layers: ['language-ranges', 'archaeological-sites'],
+  },
+  {
+    id: 'political-history',
+    name: 'Political History',
+    description: 'Civilizations, battles, and conquest routes',
+    layers: ['civilizations', 'battles', 'routes'],
+  },
+  {
+    id: 'cultural-diffusion',
+    name: 'Cultural Diffusion',
+    description: 'Music, religions, cuisines, and material culture',
+    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap'],
+  },
+  {
+    id: 'trade-economy',
+    name: 'Trade & Economy',
+    description: 'Trade routes, material culture, and cuisine regions',
+    layers: ['routes', 'cuisines', 'material-culture'],
+  },
+  {
+    id: 'all-layers',
+    name: 'All Layers',
+    description: 'Show everything',
+    layers: [], // Special: empty means show all
   },
 ];

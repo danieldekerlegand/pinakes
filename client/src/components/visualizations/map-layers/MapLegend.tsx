@@ -59,7 +59,7 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
           </div>
 
           {/* Legend Items */}
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {visibleLayers.map((layer) => (
               <div key={layer.id} className="space-y-1">
                 <div className="text-xs font-medium text-gray-700">{layer.name}</div>
@@ -122,6 +122,28 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
                       </svg>
                       <span className="text-xs text-gray-600">Migration Route</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="12" className="flex-shrink-0">
+                        <line x1="0" y1="6" x2="16" y2="6" stroke="#ef4444" strokeWidth="2" />
+                        <polygon points="13,3 16,6 13,9" fill="#ef4444" />
+                      </svg>
+                      <span className="text-xs text-gray-600">Conquest Route</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Battles */}
+                {layer.type === 'battles' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-600" />
+                      <span className="text-xs text-gray-600">Battle Site</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full border-2 border-yellow-400 bg-yellow-200" style={{ opacity: 0.7 }} />
+                      <span className="text-xs text-gray-600">Active (flash)</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Visible within 50yr window</div>
                   </div>
                 )}
 
@@ -138,6 +160,68 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
                       <span>High</span>
                     </div>
                     <div className="text-xs text-gray-500">Artifact density</div>
+                  </div>
+                )}
+
+                {/* Material Culture */}
+                {layer.type === 'material-culture' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-3 rounded border border-red-400" style={{ backgroundColor: '#fca5a5', opacity: 0.4 }} />
+                      <span className="text-xs text-gray-600">Culture Region</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cuisines */}
+                {layer.type === 'cuisines' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500" />
+                      <span className="text-xs text-gray-600">East Asian</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-orange-500" />
+                      <span className="text-xs text-gray-600">South Asian</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <span className="text-xs text-gray-600">European</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Color by region</div>
+                  </div>
+                )}
+
+                {/* Music */}
+                {layer.type === 'music' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-fuchsia-500" />
+                      <span className="text-xs text-gray-600">Music Tradition</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Color by tradition type</div>
+                  </div>
+                )}
+
+                {/* Religions */}
+                {layer.type === 'religions' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-indigo-500" />
+                      <span className="text-xs text-gray-600">Religion Origin</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Color by religion</div>
+                  </div>
+                )}
+
+                {/* Haplogroups */}
+                {layer.type === 'haplogroups' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-gray-600">Haplogroup Region</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Color by haplogroup type</div>
                   </div>
                 )}
               </div>

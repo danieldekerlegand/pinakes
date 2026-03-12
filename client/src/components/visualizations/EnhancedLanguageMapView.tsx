@@ -20,6 +20,8 @@ import { LayerPanel } from './map-layers/LayerPanel';
 import { MapLegend } from './map-layers/MapLegend';
 import { BattlesLayer } from './map-layers/BattlesLayer';
 import type { BattleFeature } from './map-layers/BattlesLayer';
+import { HaplogroupLayer } from './map-layers/HaplogroupLayer';
+import type { HaplogroupFeature } from './map-layers/HaplogroupLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -63,6 +65,8 @@ export function EnhancedLanguageMapView({
     showCategory,
     hideCategory,
     getLayerConfig,
+    applyPreset,
+    activePresetId,
   } = useMapLayers();
 
   const {
@@ -144,6 +148,28 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('battles'),
   });
 
+  // Fetch haplogroups data
+  const { data: haplogroupsData, isLoading: loadingHaplogroups } = useQuery<{ haplogroups: HaplogroupFeature[]; count: number }>({
+    queryKey: ['/api/haplogroups'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('haplogroups'),
+    select: (data) => {
+      // Transform haplogroup data to include coordinates from geographic_origin
+      const haplogroups = (data.haplogroups || []).map((h: any) => ({
+        id: h.id,
+        name: h.name,
+        haplogroupType: h.haplogroupType || h.haplogroup_type || 'Y-DNA',
+        geographicOrigin: h.geographicOrigin || h.geographic_origin || 'Unknown',
+        timeOrigin: h.timeOrigin || h.time_origin || null,
+        description: h.description || '',
+        associatedLanguageFamilyIds: h.associatedLanguageFamilyIds || h.associated_language_family_ids || [],
+        associatedCivilizationIds: h.associatedCivilizationIds || h.associated_civilization_ids || [],
+        coordinates: { lat: 0, lng: 0 }, // Will be resolved by layer component from geographicOrigin
+      }));
+      return { haplogroups, count: haplogroups.length };
+    },
+  });
+
   // Use sample data as fallback when API returns empty data
   const allLanguageRanges = useMemo(() => {
     if (languageRangesData?.features && languageRangesData.features.length > 0) {
@@ -199,6 +225,11 @@ export function EnhancedLanguageMapView({
   const allBattles = useMemo(() => {
     return battlesData?.battles ?? [];
   }, [battlesData]);
+
+  // Haplogroups data
+  const allHaplogroups = useMemo(() => {
+    return haplogroupsData?.haplogroups ?? [];
+  }, [haplogroupsData]);
 
   // Filter features by current time
   const filteredLanguageRanges = useMemo(() => {
@@ -304,7 +335,8 @@ export function EnhancedLanguageMapView({
     (loadingCuisines && isLayerVisible('cuisines')) ||
     (loadingMusic && isLayerVisible('music')) ||
     (loadingReligions && isLayerVisible('religions')) ||
-    (loadingBattles && isLayerVisible('battles'));
+    (loadingBattles && isLayerVisible('battles')) ||
+    (loadingHaplogroups && isLayerVisible('haplogroups'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -418,6 +450,16 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('battles')?.opacity || 0.9}
           />
         )}
+
+        {/* Haplogroup Layer */}
+        {isLayerVisible('haplogroups') && allHaplogroups.length > 0 && (
+          <HaplogroupLayer
+            haplogroups={allHaplogroups}
+            opacity={getLayerConfig('haplogroups')?.opacity || 0.7}
+            onHaplogroupClick={handleFeatureClick}
+            selectedHaplogroupId={selectedFeatureId}
+          />
+        )}
       </MapContainer>
 
       {/* Layer Controls Panel */}
@@ -430,6 +472,8 @@ export function EnhancedLanguageMapView({
         onHideAll={hideAll}
         onShowCategory={showCategory}
         onHideCategory={hideCategory}
+        onApplyPreset={applyPreset}
+        activePresetId={activePresetId}
       />
 
       {/* Map Legend */}
