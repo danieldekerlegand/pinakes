@@ -92,6 +92,20 @@ export interface MigrationRoute {
   consequences: string;
 }
 
+// Sound change types
+export interface SoundChange {
+  id: string;
+  name: string;
+  familyId: string;
+  sourceLanguageId: string;
+  targetLanguageId: string;
+  changeRule: string;
+  environment: string;
+  dateRange: string;
+  examples: Array<{ before: string; after: string; meaning: string }>;
+  relatedChanges: string[];
+}
+
 // Language contact types
 export interface LanguageContact {
   id: string;
@@ -280,6 +294,9 @@ export class TsvStorage {
 
   // Language contacts data cache
   private cachedLanguageContacts: LanguageContact[] | null = null;
+
+  // Sound change data cache
+  private cachedSoundChanges: SoundChange[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -2237,5 +2254,67 @@ export class TsvStorage {
     return (this.cachedLanguageContacts ?? []).filter(
       (c) => c.sourceLanguageId === languageId || c.targetLanguageId === languageId
     );
+  }
+
+  // ── Sound Changes ──────────────────────────────────────────────────
+
+  private loadSoundChanges(): void {
+    if (this.cachedSoundChanges) return;
+
+    const text = this.readFileIfExists("lexicons/sound-changes.tsv");
+    if (!text) { this.cachedSoundChanges = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const familyIdx = header.indexOf("family_id");
+    const srcIdx = header.indexOf("source_language_id");
+    const tgtIdx = header.indexOf("target_language_id");
+    const ruleIdx = header.indexOf("change_rule");
+    const envIdx = header.indexOf("environment");
+    const dateIdx = header.indexOf("date_range");
+    const exIdx = header.indexOf("examples");
+    const relIdx = header.indexOf("related_changes");
+
+    this.cachedSoundChanges = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      familyId: familyIdx >= 0 ? row[familyIdx] || "" : "",
+      sourceLanguageId: srcIdx >= 0 ? row[srcIdx] || "" : "",
+      targetLanguageId: tgtIdx >= 0 ? row[tgtIdx] || "" : "",
+      changeRule: ruleIdx >= 0 ? row[ruleIdx] || "" : "",
+      environment: envIdx >= 0 ? row[envIdx] || "" : "",
+      dateRange: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      examples: (() => {
+        if (exIdx < 0 || !row[exIdx]) return [];
+        try { return JSON.parse(row[exIdx]); } catch { return []; }
+      })(),
+      relatedChanges: (() => {
+        if (relIdx < 0 || !row[relIdx]) return [];
+        try { return JSON.parse(row[relIdx]); } catch { return []; }
+      })(),
+    }));
+  }
+
+  async getSoundChanges(familyId?: string, sourceLanguageId?: string, targetLanguageId?: string): Promise<SoundChange[]> {
+    this.loadSoundChanges();
+    let changes = this.cachedSoundChanges ?? [];
+
+    if (familyId) {
+      changes = changes.filter((c) => c.familyId === familyId);
+    }
+    if (sourceLanguageId) {
+      changes = changes.filter((c) => c.sourceLanguageId === sourceLanguageId);
+    }
+    if (targetLanguageId) {
+      changes = changes.filter((c) => c.targetLanguageId === targetLanguageId);
+    }
+
+    return changes;
+  }
+
+  async getSoundChangeById(id: string): Promise<SoundChange | null> {
+    this.loadSoundChanges();
+    return (this.cachedSoundChanges ?? []).find((c) => c.id === id) ?? null;
   }
 }

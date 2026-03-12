@@ -1736,5 +1736,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/sound-changes - Get all sound changes
+   */
+  app.get("/api/sound-changes", async (req, res) => {
+    try {
+      const { family_id, source_language_id, target_language_id } = req.query;
+      const changes = await storage.getSoundChanges(
+        family_id as string | undefined,
+        source_language_id as string | undefined,
+        target_language_id as string | undefined,
+      );
+      res.json({
+        changes,
+        count: changes.length,
+      });
+    } catch (error) {
+      console.error("Error fetching sound changes:", error);
+      res.status(500).json({
+        message: "Failed to fetch sound changes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/sound-changes/:id - Get a single sound change
+   */
+  app.get("/api/sound-changes/:id", async (req, res) => {
+    try {
+      const change = await storage.getSoundChangeById(req.params.id);
+      if (!change) {
+        res.status(404).json({ message: `Sound change '${req.params.id}' not found` });
+        return;
+      }
+      res.json(change);
+    } catch (error) {
+      console.error("Error fetching sound change:", error);
+      res.status(500).json({
+        message: "Failed to fetch sound change",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
