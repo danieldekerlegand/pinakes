@@ -19,6 +19,8 @@ Started: Thu Mar 12 02:32:13 CDT 2026
 - D3 hierarchy node `.x`/`.y` can be `undefined` in strict TS — use `?? 0` for safe access
 - URL param persistence: use `history.replaceState` (not pushState) and skip initial render with `useRef` flag
 - Layer presets defined in `LAYER_PRESETS` array in `geospatial-types.ts`; empty `layers` array = show all
+- New map layers require: adding to `LayerType` union, `DEFAULT_LAYER_CONFIGS` array, and relevant presets in geospatial-types.ts
+- TSV resources without coordinates can resolve them from language IDs via the shared `/api/languages` query in EnhancedLanguageMapView
 
 ---
 
@@ -628,4 +630,17 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Kinship system types are: Eskimo, Hawaiian, Sudanese, Omaha, Crow, Iroquois, Dravidian
   - Some languages (e.g., Tamil) appear in multiple system classifications depending on the community/region
   - All 30 entries validated successfully against languages.tsv IDs
+---
+
+## 2026-03-12 - US-053
+- Added KinshipSystem interface and TSV loader to server/tsv-storage.ts
+- Added GET /api/kinship-systems and GET /api/kinship-systems/:id API routes
+- Created KinshipSystemLayer.tsx map visualization with color-coded system types and ego-centric kinship term diagram in popups
+- Integrated layer into EnhancedLanguageMapView with coordinate resolution from language IDs
+- Added 'kinship-systems' to LayerType, DEFAULT_LAYER_CONFIGS, and cultural-diffusion preset
+- Files changed: server/tsv-storage.ts, server/routes.ts, KinshipSystemLayer.tsx (new), EnhancedLanguageMapView.tsx, geospatial-types.ts
+- **Learnings for future iterations:**
+  - Kinship systems TSV lacks coordinates — resolved by mapping languageIds to language coordinates via /api/languages
+  - New layer types must be added to LayerType union in geospatial-types.ts or you get TS2322
+  - The languages query for coordinate resolution is shared between language-contacts and kinship-systems layers — use OR in the enabled condition
 ---
