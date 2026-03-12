@@ -567,3 +567,14 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Circle (react-leaflet) is better than CircleMarker for km-radius geographic zones; CircleMarker uses pixel radius
   - The filter state for sub-layer toggles (like Y-DNA/mtDNA) can be managed via React.useState in the parent and passed down as props
 ---
+
+## 2026-03-12 - US-048
+- Created `lexicons/material-culture.tsv` with 45 entries across 6 categories: pottery (5), metallurgy (4), agriculture (8), tools (11), textiles (4), architecture (4), plus additional tool/weapon entries
+- Covers all required items: Bell Beaker, Corded Ware, Linear Pottery, Iron smelting, Bronze working, Wheel, Writing (cuneiform, Chinese, Egyptian, Phoenician alphabet), Agriculture (Fertile Crescent, Yangtze, Mesoamerica, Papua New Guinea), Gunpowder, Printing, domesticated crops (wheat, rice, maize, potato), domesticated animals (horse, cattle, dog)
+- Files changed: lexicons/material-culture.tsv (new)
+- **Learnings for future iterations:**
+  - Material culture TSV uses JSON arrays for `origin_coordinates` and `spread_data` fields
+  - `spread_data` is an array of objects with `date`, `coordinates`, and `associated_civilization` keys
+  - `origin_date` uses negative numbers for BCE dates (e.g., -3500 for 3500 BCE)
+  - Categories are: pottery, metallurgy, agriculture, tools, textiles, architecture
+---

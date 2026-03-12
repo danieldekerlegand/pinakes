@@ -505,7 +505,7 @@
         "Typecheck passes"
       ],
       "priority": 31,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5 - US-5.01 data."
     },
     {
