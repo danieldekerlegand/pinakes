@@ -104,7 +104,7 @@
         "Typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Reference etymology-tree/src/stylometry/core.clj trace-etymology function for the recursive pattern."
     },
     {

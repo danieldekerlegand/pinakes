@@ -11,6 +11,8 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - Classical Chinese is not in languages.tsv; used `och` (Old Chinese) as closest match
 - TSV loader pattern: `parseTsv()` + `getIdx()` (required) / `header.indexOf()` (optional), cache in `private cachedX`, lazy-load in `private loadX()`
 - API route pattern: try/catch, list endpoints return `{ items, count, filters }`, single-item endpoints return object or 404
+- Etymology relation direction: source_word is derived FROM target_word — ancestors go source→target, descendants go target→source
+- Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
 
 ---
 
@@ -87,4 +89,20 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - The word lookup endpoint matches case-insensitively on both source_word and target_word fields
   - All columns in etymology-relations.tsv are required (used `getIdx` for all)
   - Pre-existing typecheck errors remain unchanged — no new errors introduced
+---
+
+## 2026-03-12 - US-006
+- Created `server/services/etymology-trace.ts` with `traceEtymology` and `traceDescendants` functions
+- Both functions recursively follow `derived_from`, `etymology`, and `borrowed_from` relations
+- Circular reference protection via visited-set using `word|language` composite keys
+- Returns tree structure: `{ word, language, relation, children: [...] }`
+- Added `GET /api/etymology-relations/trace/:word` endpoint with optional `?language=` and `?direction=descendants` query params
+- Registered route in `server/routes.ts`
+- Files changed: `server/services/etymology-trace.ts` (created), `server/routes.ts`
+- **Learnings for future iterations:**
+  - Etymology relations are directional: source_word is derived FROM target_word for `derived_from`, `etymology`, `borrowed_from`
+  - Tracing ancestors = follow source→target; tracing descendants = follow target→source
+  - The trace endpoint supports `?direction=descendants` to reverse the trace direction
+  - `cognate` relations are excluded from tracing since they're peer relationships, not parent-child
+  - Route ordering: `/trace/:word` and `/word/:word` don't conflict since Express matches the static segment (`trace` vs `word`) before the param
 ---
