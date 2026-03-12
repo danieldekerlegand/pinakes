@@ -224,3 +224,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `Languages` icon from lucide-react works well for verb-related UI elements
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-030
+- Expanded `lexicons/civilizations.tsv` from 2 to 34 civilizations covering all required regions
+- Expanded `lexicons/civilization-boundaries.tsv` from 2 to 80+ boundary entries with multiple temporal snapshots
+- Civilizations added: Sumerian, Akkadian, Babylonian, Assyrian, Ancient Egypt, Persian (Achaemenid), Maurya, Gupta, Han Dynasty, Tang Dynasty, Mongol Empire, Ottoman Empire, Byzantine Empire, HRE, Aztec, Inca, Maya, Khmer, Mali, Songhai, Great Zimbabwe, Carthage, Phoenicia, Indus Valley, Shang Dynasty, Hittite, Umayyad Caliphate, Abbasid Caliphate, Viking territories, Celtic territories, Mughal Empire, Sasanian Empire
+- Multiple temporal snapshots per expanding/contracting empire (2-4 snapshots each)
+- All GeoJSON polygons validated (closed, valid coordinates, proper structure)
+- All civilization_ids in boundaries match civilizations.tsv (no orphan references)
+- Files changed: lexicons/civilizations.tsv (expanded), lexicons/civilization-boundaries.tsv (expanded), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - GeoJSON coordinates are [longitude, latitude] — easy to mix up with [lat, lng]
+  - Simplified polygons (5-12 points) keep file sizes reasonable while preserving recognizable shapes
+  - Always validate: 1) polygon closure (first coord = last coord), 2) civilization_id references, 3) JSON validity
+  - Pre-existing type errors (19) unchanged — TSV data-only changes don't affect typecheck
+---

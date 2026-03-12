@@ -214,7 +214,7 @@
         "Typecheck passes"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3 - US-3.01. This is a large data expansion story. Use simplified GeoJSON polygons (not overly detailed) to keep file sizes reasonable."
     },
     {
