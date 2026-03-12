@@ -263,3 +263,23 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Used `Map` + `forEach` pattern (not `for..of`) for TypeScript target compatibility
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
 ---
+
+## 2026-03-12 - US-015
+- Added "Compare" mode toggle to Text Analyzer page (Analyze / Compare buttons)
+- Compare mode features:
+  - Side-by-side text input areas with independent language selectors
+  - Dual donut charts with synchronized color coding (same origin language = same color in both charts)
+  - `buildSyncedColorMap` function collects all unique origin languages from both analyses and assigns colors consistently
+  - Difference summary sentences: e.g. "Text A has 15.2% more Latin-origin words than Text B"
+  - Full comparison table showing: origin language, Text A %, Text B %, difference, and status (Shared / Only in A / Only in B)
+  - Extracted reusable `DonutChart` and `LanguageSelector` sub-components from existing code
+- Uses `POST /api/text-analysis/compare` endpoint via `useMutation`
+- Container width expands to `max-w-6xl` in compare mode for side-by-side layout
+- Files changed: `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - Synchronized colors across two charts: collect all unique language codes from both analyses into one array, assign colors from that unified list
+  - IIFE pattern `{compareMutation.data && (() => { ... })()}` works for inline complex rendering with local variables in JSX
+  - Reusable sub-components (DonutChart, LanguageSelector) keep compare mode DRY with single analysis mode
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
