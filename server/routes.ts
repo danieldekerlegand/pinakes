@@ -1496,5 +1496,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * POST /api/text-analysis/compare - Compare etymological origins of two texts
+   */
+  app.post("/api/text-analysis/compare", async (req, res) => {
+    try {
+      const { textA, textB, languageA, languageB } = req.body;
+      if (!textA || !textB || !languageA || !languageB) {
+        res.status(400).json({
+          message:
+            "Fields 'textA', 'textB', 'languageA', and 'languageB' are all required",
+        });
+        return;
+      }
+
+      const [analysisA, analysisB] = await Promise.all([
+        analyzeTextOrigins(textA, languageA),
+        analyzeTextOrigins(textB, languageB),
+      ]);
+
+      // Build origin language sets
+      const originsMapA = new Map<string, number>();
+      for (const o of analysisA.origins) {
+        originsMapA.set(o.language, o.percentage);
+      }
+      const originsMapB = new Map<string, number>();
+      for (const o of analysisB.origins) {
+        originsMapB.set(o.language, o.percentage);
+      }
+
+      // Collect all origin languages
+      const allLanguages = new Set<string>();
+      originsMapA.forEach((_v, k) => allLanguages.add(k));
+      originsMapB.forEach((_v, k) => allLanguages.add(k));
+
+      const sharedOrigins: string[] = [];
+      const uniqueToA: string[] = [];
+      const uniqueToB: string[] = [];
+      const differences: Array<{
+        language: string;
+        percentA: number;
+        percentB: number;
+        diff: number;
+      }> = [];
+
+      allLanguages.forEach((lang) => {
+        const inA = originsMapA.has(lang);
+        const inB = originsMapB.has(lang);
+        const percentA = originsMapA.get(lang) ?? 0;
+        const percentB = originsMapB.get(lang) ?? 0;
+
+        if (inA && inB) {
+          sharedOrigins.push(lang);
+        } else if (inA) {
+          uniqueToA.push(lang);
+        } else {
+          uniqueToB.push(lang);
+        }
+
+        differences.push({
+          language: lang,
+          percentA,
+          percentB,
+          diff: Math.round((percentA - percentB) * 10) / 10,
+        });
+      });
+
+      // Sort differences by absolute difference descending
+      differences.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+      res.json({
+        analysisA,
+        analysisB,
+        comparison: {
+          sharedOrigins,
+          uniqueToA,
+          uniqueToB,
+          differences,
+        },
+      });
+    } catch (error) {
+      console.error("Error comparing text origins:", error);
+      res.status(500).json({
+        message: "Failed to compare text origins",
+      });
+    }
+  });
+
   return server;
 }
