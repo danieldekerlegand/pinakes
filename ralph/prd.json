@@ -165,7 +165,7 @@
         "Typecheck passes"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.06 data. The conjugation_table JSON should be structured as {present: {1sg: 'soy', 2sg: 'eres', ...}, past: {...}, ...}."
     },
     {
