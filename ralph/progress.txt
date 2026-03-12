@@ -15,6 +15,7 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
 - Missing from languages.tsv: Urdu, Middle English, Old French — use substitutes (kmr for Urdu, arc/goh for ME/OF)
 - TypeScript target doesn't support `\p{L}` regex or `for..of` on Map/Set — use explicit Unicode ranges and `.forEach()` instead
+- TSV files may have `\r\n` line endings — normalize with `sed -i '' 's/\r$//'` when appending data from scripts
 - Text analysis service: `analyzeTextOrigins` from `server/services/text-etymology-analyzer.ts`
 - Routing: `wouter` with `useLocation` hook — `const [, navigate] = useLocation()` for programmatic navigation
 - POST endpoints use `useMutation` with `apiRequest("POST", url, data)` + `res.json()` for response parsing
@@ -297,5 +298,28 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Estonian uses code `ekk` (not `est`), Persian uses `pes` (not `fas`), Quechua uses `quz` (Cusco dialect)
   - For non-Latin scripts where exact Unicode text is uncertain, using transliteration in both text and transliteration fields is acceptable
   - Python scripts work well for generating large TSV datasets — use `"\t".join()` for proper tab separation
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+---
+
+## 2026-03-12 - US-017
+- Expanded `lexicons/etymology-relations.tsv` from 2354 to 5180 entries (+2826 new entries)
+- Breakdown of new entries:
+  - 200+ Old English → English derived_from (common Germanic-origin words)
+  - 230+ Latin → English etymology (common Latinate vocabulary)
+  - 85 Old French → English etymology, 70 Old Norse → English derived_from
+  - 120 Greek → English etymology
+  - 540 Latin → Romance languages derived_from (108 sets × 5 languages)
+  - 550 Germanic cognate sets (110 sets × 5 pairs)
+  - 66 Arabic, 40 Persian, 70 Sanskrit, 72 Chinese, 35 Japanese borrowings
+  - 270 Slavic cognate sets (90 sets × 3 pairs)
+  - 200+ additional Latin → English etymology, plus Turkish, Nahuatl, Malay, Hawaiian, African borrowings
+- Final counts meeting all acceptance criteria:
+  - Total: 5180 entries (≥5000 ✓), English coverage: 2076+ (≥1000 ✓)
+  - Romance: 592 (≥500 ✓), Germanic: 568 (≥500 ✓)
+  - Borrowings from arb/pes/san/cmn/jpn: 447 (≥300 ✓), Slavic: 506 (≥200 ✓)
+- Files changed: `lexicons/etymology-relations.tsv`
+- **Learnings for future iterations:**
+  - Original TSV had `\r\n` line endings; appending with Python creates `\n` — run `sed -i '' 's/\r$//'` to normalize
+  - Python script approach with categorized sections makes large data expansions manageable and countable
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
 ---
