@@ -17,7 +17,8 @@ import {
   BookOpen,
   Type,
   Languages,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -40,6 +41,7 @@ import GrammarPanel from "@/components/grammar-panel";
 import WritingSystemsPanel from "@/components/writing-systems-panel";
 import VerbParadigmsPanel from "@/components/verb-paradigms-panel";
 import LanguageContactsPanel from "@/components/language-contacts-panel";
+import SoundChangesPanel from "@/components/sound-changes-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -57,6 +59,7 @@ export default function Dashboard() {
   const [writingSystemsOpen, setWritingSystemsOpen] = useState(false);
   const [verbParadigmsOpen, setVerbParadigmsOpen] = useState(false);
   const [languageContactsOpen, setLanguageContactsOpen] = useState(false);
+  const [soundChangesOpen, setSoundChangesOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -194,6 +197,16 @@ export default function Dashboard() {
                 title="Language Contact Network"
               >
                 <ArrowLeftRight className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setSoundChangesOpen(true)}
+                data-testid="button-sound-changes"
+                title="Sound Changes Explorer"
+              >
+                <Zap className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -347,6 +360,12 @@ export default function Dashboard() {
       <LanguageContactsPanel
         isOpen={languageContactsOpen}
         onClose={() => setLanguageContactsOpen(false)}
+      />
+
+      {/* Sound Changes Explorer */}
+      <SoundChangesPanel
+        isOpen={soundChangesOpen}
+        onClose={() => setSoundChangesOpen(false)}
       />
 
       {/* Floating Action Button */}
