@@ -247,3 +247,19 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
 ---
+
+## 2026-03-12 - US-014
+- Added `POST /api/text-analysis/compare` endpoint to `server/routes.ts`
+- Accepts `{ textA, textB, languageA, languageB }` body
+- Runs both analyses in parallel via `Promise.all`
+- Returns `{ analysisA, analysisB, comparison }` where comparison includes:
+  - `sharedOrigins`: origin languages present in both texts
+  - `uniqueToA` / `uniqueToB`: origin languages exclusive to each text
+  - `differences`: per-language percentage comparison sorted by absolute difference descending
+- Files changed: `server/routes.ts`
+- **Learnings for future iterations:**
+  - Reused `analyzeTextOrigins` directly — no new service file needed for comparison
+  - `Promise.all` works well for running two independent analyses in parallel
+  - Used `Map` + `forEach` pattern (not `for..of`) for TypeScript target compatibility
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+---
