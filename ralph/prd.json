@@ -199,7 +199,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.06 UI."
     },
     {

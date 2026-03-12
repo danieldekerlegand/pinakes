@@ -15,7 +15,8 @@ import {
   Network,
   Music,
   BookOpen,
-  Type
+  Type,
+  Languages
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -36,6 +37,7 @@ import LinguisticDistanceAnalyzer from "@/components/linguistic-distance-analyze
 import PhonologyPanel from "@/components/phonology-panel";
 import GrammarPanel from "@/components/grammar-panel";
 import WritingSystemsPanel from "@/components/writing-systems-panel";
+import VerbParadigmsPanel from "@/components/verb-paradigms-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -51,6 +53,7 @@ export default function Dashboard() {
   const [phonologyOpen, setPhonologyOpen] = useState(false);
   const [grammarOpen, setGrammarOpen] = useState(false);
   const [writingSystemsOpen, setWritingSystemsOpen] = useState(false);
+  const [verbParadigmsOpen, setVerbParadigmsOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -168,6 +171,16 @@ export default function Dashboard() {
                 title="Writing Systems Explorer"
               >
                 <Type className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setVerbParadigmsOpen(true)}
+                data-testid="button-verb-paradigms"
+                title="Verb Conjugation Comparison"
+              >
+                <Languages className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -309,6 +322,12 @@ export default function Dashboard() {
       <WritingSystemsPanel
         isOpen={writingSystemsOpen}
         onClose={() => setWritingSystemsOpen(false)}
+      />
+
+      {/* Verb Conjugation Comparison */}
+      <VerbParadigmsPanel
+        isOpen={verbParadigmsOpen}
+        onClose={() => setVerbParadigmsOpen(false)}
       />
 
       {/* Floating Action Button */}

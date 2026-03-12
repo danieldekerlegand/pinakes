@@ -202,3 +202,25 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `conjugationTable` JSON structure varies wildly by language type — parsed as `Record<string, unknown>` for flexibility
   - Pre-existing type errors (19) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-029
+- Created `VerbParadigmsPanel` component (`client/src/components/verb-paradigms-panel.tsx`) with:
+  - Verb concept selector (to be, to go, to give) to choose which verb to compare
+  - Language selector allowing up to 3 languages with search, color-coded badges
+  - Single language view: full conjugation table with all tenses as columns, persons as rows
+  - Side-by-side comparison: summary stats (infinitive, complexity score, distinct forms, irregularity markers)
+  - Per-tense comparison tables with language-colored headers showing forms for each person
+  - Shared form highlighting (yellow dot) when two languages have identical forms for a tense+person
+  - Shared tense/mood category indicators (e.g., Romance languages all having future tense)
+  - Complexity comparison bar chart
+  - Notes display for each paradigm
+- Added Languages icon button to dashboard header navigation for opening the panel
+- Wired panel into dashboard with `verbParadigmsOpen` state and `VerbParadigmsPanel` component
+- Files changed: client/src/components/verb-paradigms-panel.tsx (new), client/src/pages/dashboard.tsx, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Verb paradigms API returns `{ paradigms: [...], count: N }` — use `.paradigms` to access array
+  - conjugationTable is `Record<string, Record<string, string>>` — tenses as outer keys, person forms as inner keys
+  - Person keys follow pattern: 1sg, 2sg, 3sg, 1pl, 2pl, 3pl — but some languages may have different keys
+  - `Languages` icon from lucide-react works well for verb-related UI elements
+  - Manual browser verification needed (no dev-browser skill available)
+---
