@@ -15,6 +15,9 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
 - TypeScript target doesn't support `\p{L}` regex or `for..of` on Map/Set — use explicit Unicode ranges and `.forEach()` instead
 - Text analysis service: `analyzeTextOrigins` from `server/services/text-etymology-analyzer.ts`
+- Routing: `wouter` with `useLocation` hook — `const [, navigate] = useLocation()` for programmatic navigation
+- POST endpoints use `useMutation` with `apiRequest("POST", url, data)` + `res.json()` for response parsing
+- New pages: create in `client/src/pages/`, add route in `App.tsx`, add nav button in dashboard header
 
 ---
 
@@ -123,4 +126,20 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Word origin tracing caches per unique word to avoid redundant recursive lookups
   - The analyzer checks both source and target positions in relations to determine if a word exists in the dataset
   - Pre-existing typecheck errors (19) remain unchanged in visualization/map components
+---
+
+## 2026-03-12 - US-008
+- Created `client/src/pages/text-analyzer.tsx` with text input, language selector, and analysis results display
+- Added `/text-analyzer` route to `client/src/App.tsx`
+- Added Text Analyzer navigation button (FileText icon) to dashboard header in `client/src/pages/dashboard.tsx`
+- Features: textarea input, language dropdown (fetched from `/api/languages`), analyze button with loading state, results display with origin breakdown
+- Uses `useMutation` for POST `/api/text-analysis/origins` endpoint
+- Files changed: `client/src/pages/text-analyzer.tsx` (created), `client/src/App.tsx`, `client/src/pages/dashboard.tsx`
+- **Learnings for future iterations:**
+  - `wouter` uses `useLocation` hook returning `[location, navigate]` — `navigate("/path")` for programmatic navigation
+  - Dashboard uses `useLocation` from wouter for navigation to other pages
+  - Text Analyzer page is a standalone page (not a modal/dialog) — separate from dashboard layout
+  - `useMutation` from react-query is the pattern for POST endpoints; `apiRequest` + `.json()` for response parsing
+  - Pre-existing typecheck errors (19) remain unchanged
+  - Manual browser verification needed (no browser testing tools configured)
 ---
