@@ -14,7 +14,8 @@ import {
   Plus,
   X,
   Network,
-  FileText
+  FileText,
+  BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -142,6 +143,16 @@ export default function Dashboard() {
                 title="Text Analyzer"
               >
                 <FileText className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => navigate("/word-etymology")}
+                data-testid="button-word-etymology"
+                title="Word Etymology"
+              >
+                <BookOpen className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"

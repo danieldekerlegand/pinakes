@@ -93,10 +93,12 @@ function HighlightedText({
   text,
   wordDetails,
   originColorMap,
+  onWordClick,
 }: {
   text: string;
   wordDetails: WordDetail[];
   originColorMap: Record<string, string>;
+  onWordClick?: (word: string, language: string) => void;
 }) {
   const tokens = splitTextTokens(text);
   let wordIndex = 0;
@@ -105,7 +107,7 @@ function HighlightedText({
     <div className="space-y-3">
       <h4 className="font-semibold">Etymology Highlighting</h4>
       <p className="text-sm text-muted-foreground">
-        Hover over words to see their etymology chain. Colors match the chart above.
+        Hover over words to see their etymology chain. Click any word to view its full etymology tree. Colors match the chart above.
       </p>
       <TooltipProvider delayDuration={200}>
         <div className="p-4 bg-muted/30 rounded-lg leading-relaxed text-base whitespace-pre-wrap">
@@ -131,10 +133,16 @@ function HighlightedText({
               <UITooltip key={i}>
                 <TooltipTrigger asChild>
                   <span
-                    className="cursor-help rounded px-0.5 transition-colors hover:opacity-80"
+                    className="cursor-pointer rounded px-0.5 transition-colors hover:opacity-80"
                     style={{
                       borderBottom: `2px solid ${color}`,
                       color: detail.origin ? undefined : "#94a3b8",
+                    }}
+                    onClick={() => {
+                      if (onWordClick) {
+                        const lang = detail.chain.length > 0 ? detail.chain[0].language : "";
+                        onWordClick(detail.word, lang);
+                      }
                     }}
                   >
                     {token.text}
@@ -148,6 +156,7 @@ function HighlightedText({
                     {detail.origin ? (
                       <div className="space-y-1">
                         <div className="font-medium">{chainText}</div>
+                        <div className="text-blue-500">Click to see etymology tree</div>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">Unknown origin</span>
@@ -392,6 +401,12 @@ export default function TextAnalyzer() {
                 text={text}
                 wordDetails={analysisMutation.data.wordDetails}
                 originColorMap={buildOriginColorMap(analysisMutation.data.origins)}
+                onWordClick={(w, lang) => {
+                  const params = new URLSearchParams();
+                  params.set("word", w);
+                  if (lang) params.set("language", lang);
+                  navigate("/word-etymology?" + params.toString());
+                }}
               />
             </div>
           )}
