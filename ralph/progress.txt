@@ -8,6 +8,8 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - Genre values for sample-texts: prose, poetry, religious, legal, inscription, conversational
 - Old Irish (sga) is not in languages.tsv; used `gle` (Irish) as substitute
 - Classical Chinese is not in languages.tsv; used `och` (Old Chinese) as closest match
+- TSV loader pattern: `parseTsv()` + `getIdx()` (required) / `header.indexOf()` (optional), cache in `private cachedX`, lazy-load in `private loadX()`
+- API route pattern: try/catch, list endpoints return `{ items, count, filters }`, single-item endpoints return object or 404
 
 ---
 
@@ -22,4 +24,19 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - `och` (Old Chinese) was used for Classical Chinese — no separate Classical Chinese entry exists
   - Transliteration column is left with a space (" ") for Latin-script languages since empty fields could cause TSV parsing issues
   - Pre-existing typecheck errors in the codebase are unrelated to data files
+---
+
+## 2026-03-12 - US-002
+- Added `SampleText` interface and TSV loader to `server/tsv-storage.ts`
+- Added three API endpoints:
+  - `GET /api/sample-texts` with optional `language_id`, `genre`, `script` query params
+  - `GET /api/sample-texts/:id` for single text lookup
+  - `GET /api/languages/:id/sample-texts` for all texts by language
+- Files changed: `server/tsv-storage.ts`, `server/routes.ts`
+- **Learnings for future iterations:**
+  - TSV loader pattern: use `parseTsv()` + `getIdx()` for required columns, `header.indexOf()` for optional ones
+  - Cached data pattern: `private cachedX: Type[] | null = null` → `private loadX()` checks cache → `async getX()` calls loader then filters
+  - Routes pattern: wrap in try/catch, return `{ items, count, filters }` for list endpoints
+  - Transliteration field has space padding for Latin-script languages — `.trim()` it when loading
+  - `/api/languages/:id/sample-texts` does NOT conflict with `/api/languages/:id` since Express matches longer paths first
 ---
