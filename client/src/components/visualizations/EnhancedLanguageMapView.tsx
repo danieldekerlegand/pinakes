@@ -28,6 +28,8 @@ import { LanguageContactsLayer } from './map-layers/LanguageContactsLayer';
 import type { LanguageContactFeature } from './map-layers/LanguageContactsLayer';
 import { GeneticLinguisticCorrelationLayer } from './map-layers/GeneticLinguisticCorrelationLayer';
 import type { CorrelationFeature, DivergenceAnnotation } from './map-layers/GeneticLinguisticCorrelationLayer';
+import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
+import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -201,6 +203,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('genetic-linguistic-correlation'),
   });
 
+  // Fetch foodway events data
+  const { data: foodwayEventsData, isLoading: loadingFoodwayEvents } = useQuery<{ events: FoodwayEventFeature[]; count: number }>({
+    queryKey: ['/api/foodway-events'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('foodway-events'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts layer)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -287,6 +296,11 @@ export function EnhancedLanguageMapView({
   // Genetic-linguistic correlation data
   const glcCorrelations = useMemo(() => glcData?.correlations ?? [], [glcData]);
   const glcDivergences = useMemo(() => glcData?.divergences ?? [], [glcData]);
+
+  // Foodway events data
+  const allFoodwayEvents = useMemo(() => {
+    return foodwayEventsData?.events ?? [];
+  }, [foodwayEventsData]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -414,7 +428,8 @@ export function EnhancedLanguageMapView({
     (loadingBattles && isLayerVisible('battles')) ||
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
     (loadingContacts && isLayerVisible('language-contacts')) ||
-    (loadingGlc && isLayerVisible('genetic-linguistic-correlation'));
+    (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
+    (loadingFoodwayEvents && isLayerVisible('foodway-events'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -569,6 +584,17 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('genetic-linguistic-correlation')?.opacity || 0.7}
             haplogroupTypeFilter={glcHaplogroupTypeFilter}
             onFilterChange={setGlcHaplogroupTypeFilter}
+          />
+        )}
+
+        {/* Foodway Events Layer */}
+        {isLayerVisible('foodway-events') && allFoodwayEvents.length > 0 && (
+          <FoodwayEventLayer
+            events={allFoodwayEvents}
+            opacity={getLayerConfig('foodway-events')?.opacity || 0.8}
+            onEventClick={handleFeatureClick}
+            selectedEventId={selectedFeatureId}
+            isAnimating={isPlaying}
           />
         )}
       </MapContainer>

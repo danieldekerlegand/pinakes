@@ -164,7 +164,8 @@ export type LayerType =
   | 'religions'
   | 'haplogroups'
   | 'language-contacts'
-  | 'genetic-linguistic-correlation';
+  | 'genetic-linguistic-correlation'
+  | 'foodway-events';
 
 export type LayerCategory =
   | 'languages'
@@ -534,6 +535,21 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'foodway-events',
+    type: 'foodway-events',
+    category: 'cuisines',
+    name: 'Foodway Events',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 255,
+    renderStyle: {
+      line: {
+        weight: 3,
+        opacity: 0.8,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -564,13 +580,13 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap'],
+    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events'],
   },
   {
     id: 'trade-economy',
     name: 'Trade & Economy',
     description: 'Trade routes, material culture, and cuisine regions',
-    layers: ['routes', 'cuisines', 'material-culture'],
+    layers: ['routes', 'cuisines', 'material-culture', 'foodway-events'],
   },
   {
     id: 'genetic-linguistic',

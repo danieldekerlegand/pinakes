@@ -2028,5 +2028,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/foodway-events - Get all foodway events with optional filtering
+   */
+  app.get("/api/foodway-events", async (req, res) => {
+    try {
+      const foodItem = req.query.food_item as string | undefined;
+      const mechanism = req.query.mechanism as string | undefined;
+      const dateStart = req.query.date_start ? parseInt(req.query.date_start as string, 10) : undefined;
+      const dateEnd = req.query.date_end ? parseInt(req.query.date_end as string, 10) : undefined;
+      const events = await storage.getFoodwayEvents({ foodItem, mechanism, dateStart, dateEnd });
+      res.json({ events, count: events.length });
+    } catch (error) {
+      console.error("Error fetching foodway events:", error);
+      res.status(500).json({
+        message: "Failed to fetch foodway events",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/foodway-events/:id - Get a single foodway event
+   */
+  app.get("/api/foodway-events/:id", async (req, res) => {
+    try {
+      const event = await storage.getFoodwayEventById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "Foodway event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching foodway event:", error);
+      res.status(500).json({
+        message: "Failed to fetch foodway event",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

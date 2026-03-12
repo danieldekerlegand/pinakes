@@ -238,6 +238,21 @@ export interface MaterialCulture {
   significance: string;
 }
 
+export interface FoodwayEvent {
+  id: string;
+  name: string;
+  foodItem: string;
+  originRegion: string;
+  originCoordinates: [number, number];
+  destinationRegion: string;
+  destinationCoordinates: [number, number];
+  date: number;
+  mechanism: string;
+  associatedRouteId: string;
+  description: string;
+  culturalImpact: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -317,6 +332,9 @@ export class TsvStorage {
 
   // Sound change data cache
   private cachedSoundChanges: SoundChange[] | null = null;
+
+  // Foodway events data cache
+  private cachedFoodwayEvents: FoodwayEvent[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -2465,5 +2483,77 @@ export class TsvStorage {
   async getSoundChangeById(id: string): Promise<SoundChange | null> {
     this.loadSoundChanges();
     return (this.cachedSoundChanges ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  // ── Foodway Events ──────────────────────────────────────────────────
+
+  private loadFoodwayEvents(): void {
+    if (this.cachedFoodwayEvents) return;
+
+    const text = this.readFileIfExists("lexicons/foodway-events.tsv");
+    if (!text) { this.cachedFoodwayEvents = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const foodItemIdx = getIdx(header, "food_item");
+    const originRegionIdx = getIdx(header, "origin_region");
+    const originCoordsIdx = getIdx(header, "origin_coordinates");
+    const destRegionIdx = getIdx(header, "destination_region");
+    const destCoordsIdx = getIdx(header, "destination_coordinates");
+    const dateIdx = getIdx(header, "date");
+    const mechanismIdx = header.indexOf("mechanism");
+    const routeIdIdx = header.indexOf("associated_route_id");
+    const descIdx = header.indexOf("description");
+    const impactIdx = header.indexOf("cultural_impact");
+
+    this.cachedFoodwayEvents = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      foodItem: row[foodItemIdx],
+      originRegion: row[originRegionIdx],
+      originCoordinates: (() => {
+        try { return JSON.parse(row[originCoordsIdx]); } catch { return [0, 0]; }
+      })() as [number, number],
+      destinationRegion: row[destRegionIdx],
+      destinationCoordinates: (() => {
+        try { return JSON.parse(row[destCoordsIdx]); } catch { return [0, 0]; }
+      })() as [number, number],
+      date: parseInt(row[dateIdx], 10) || 0,
+      mechanism: mechanismIdx >= 0 ? row[mechanismIdx] || "" : "",
+      associatedRouteId: routeIdIdx >= 0 ? row[routeIdIdx] || "" : "",
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      culturalImpact: impactIdx >= 0 ? row[impactIdx] || "" : "",
+    }));
+  }
+
+  async getFoodwayEvents(filters?: {
+    foodItem?: string;
+    mechanism?: string;
+    dateStart?: number;
+    dateEnd?: number;
+  }): Promise<FoodwayEvent[]> {
+    this.loadFoodwayEvents();
+    let events = this.cachedFoodwayEvents ?? [];
+
+    if (filters?.foodItem) {
+      events = events.filter((e) => e.foodItem.toLowerCase().includes(filters.foodItem!.toLowerCase()));
+    }
+    if (filters?.mechanism) {
+      events = events.filter((e) => e.mechanism === filters.mechanism);
+    }
+    if (filters?.dateStart !== undefined) {
+      events = events.filter((e) => e.date >= filters.dateStart!);
+    }
+    if (filters?.dateEnd !== undefined) {
+      events = events.filter((e) => e.date <= filters.dateEnd!);
+    }
+
+    return events;
+  }
+
+  async getFoodwayEventById(id: string): Promise<FoodwayEvent | null> {
+    this.loadFoodwayEvents();
+    return (this.cachedFoodwayEvents ?? []).find((e) => e.id === id) ?? null;
   }
 }
