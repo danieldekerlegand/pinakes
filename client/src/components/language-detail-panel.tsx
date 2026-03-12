@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Eye, Download, ChevronUp, ChevronDown, Sparkles, BookOpen } from "lucide-react";
+import { X, Eye, Download, ChevronUp, ChevronDown, Sparkles, BookOpen, FlaskConical } from "lucide-react";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
   const [showWordList, setShowWordList] = useState(false);
   const [showSampleTexts, setShowSampleTexts] = useState(false);
   const [expandedTranslations, setExpandedTranslations] = useState<Set<string>>(new Set());
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -405,6 +407,22 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
                         {st.dateComposed && <span>· {st.dateComposed}</span>}
                         {st.genre && <Badge variant="outline" className="text-xs">{st.genre}</Badge>}
                         {st.script && <Badge variant="outline" className="text-xs">{st.script}</Badge>}
+                      </div>
+                      <div className="mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => {
+                            const params = new URLSearchParams();
+                            params.set("text", st.text);
+                            params.set("language", st.languageId);
+                            navigate("/text-analyzer?" + params.toString());
+                          }}
+                        >
+                          <FlaskConical className="h-3 w-3 mr-1" />
+                          Analyze Etymology
+                        </Button>
                       </div>
                     </Card>
                   ))

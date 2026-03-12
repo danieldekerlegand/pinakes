@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
@@ -165,8 +165,15 @@ function HighlightedText({
 
 export default function TextAnalyzer() {
   const [, navigate] = useLocation();
-  const [text, setText] = useState("");
-  const [language, setLanguage] = useState("eng");
+  const autoAnalyzed = useRef(false);
+
+  // Read URL params for pre-filled state
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialText = searchParams.get("text") ?? "";
+  const initialLanguage = searchParams.get("language") ?? "eng";
+
+  const [text, setText] = useState(initialText);
+  const [language, setLanguage] = useState(initialLanguage);
   const [expandedOrigin, setExpandedOrigin] = useState<string | null>(null);
 
   const { data: languagesData } = useQuery<{ items: Language[]; count: number }>({
@@ -179,6 +186,14 @@ export default function TextAnalyzer() {
       return res.json();
     },
   });
+
+  // Auto-analyze when pre-filled via URL params
+  useEffect(() => {
+    if (initialText && !autoAnalyzed.current) {
+      autoAnalyzed.current = true;
+      analysisMutation.mutate({ text: initialText, language: initialLanguage });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAnalyze = () => {
     if (!text.trim()) return;
