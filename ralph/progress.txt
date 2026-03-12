@@ -117,3 +117,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - The grammar-panel uses `enabled: isOpen` on queries to avoid fetching data when panel is closed — good pattern for heavy panels
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-024
+- Created `lexicons/writing-systems.tsv` with 60 writing systems covering all major script families
+- Columns: id, name, type, direction, parent_system_id, language_ids (JSON), origin_date, origin_region, character_count, sample_characters, unicode_block, is_active
+- Script types: alphabet (13), abjad (8), abugida (18), syllabary (6), logographic (3), featural (1)
+- Directions: LTR (majority), RTL (Arabic, Hebrew, Nabataean, Syriac, Avestan, Sogdian, N'Ko), TTB (Traditional Mongolian, Oracle Bone)
+- Evolution chains preserved: Proto-Sinaitic -> Proto-Canaanite -> Phoenician -> Greek -> Latin; Brahmi -> all South/Southeast Asian scripts; Aramaic -> Arabic, Hebrew, Syriac, Nabataean, Sogdian -> Mongolian
+- Active vs historical: 28 active, 32 historical/extinct
+- All language_ids validated against languages.tsv (no invalid references)
+- Files changed: lexicons/writing-systems.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Writing system parent chains need intermediate nodes (e.g., Phoenician-derived, Brahmi-derived) to model the full evolution tree cleanly
+  - `language_ids` is a JSON array of language codes, unlike other TSV files that use a single `language_id` field
+  - Some writing systems (Linear A, Brahmi, Proto-scripts) have empty language_ids `[]` — valid for undeciphered or ancestor scripts
+---
