@@ -605,3 +605,16 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Coordinates are stored as JSON arrays [lon,lat] matching other geospatial TSV files
   - Some events have empty associated_route_id where no direct route reference exists
 ---
+
+## 2026-03-12 - US-051
+- Added FoodwayEvent interface and TSV loader to server/tsv-storage.ts with caching, coordinate parsing, and filtering by food_item, mechanism, date range
+- Added GET /api/foodway-events and GET /api/foodway-events/:id API endpoints in server/routes.ts
+- Created FoodwayEventLayer.tsx map component with animated Polyline routes from origin to destination, color-coded by mechanism (trade=green, colonization=red, migration=blue), with CircleMarker endpoints and rich popups
+- Registered 'foodway-events' layer type in geospatial-types.ts with LayerType, DEFAULT_LAYER_CONFIGS, and added to cultural-diffusion and trade-economy presets
+- Integrated into EnhancedLanguageMapView.tsx with data fetching, loading state, and layer rendering
+- Files changed: server/tsv-storage.ts, server/routes.ts, client/src/components/visualizations/map-layers/FoodwayEventLayer.tsx (new), client/src/lib/visualization/geospatial-types.ts, client/src/components/visualizations/EnhancedLanguageMapView.tsx
+- **Learnings for future iterations:**
+  - The setStyle `this` typing issue on Leaflet event handlers is a pre-existing pattern across all layer components — don't try to fix it, it works at runtime
+  - Foodway events TSV uses [lng, lat] format for coordinates; must swap to [lat, lng] for Leaflet
+  - Layer integration requires updates in 3 places: geospatial-types.ts (LayerType + config + presets), EnhancedLanguageMapView.tsx (query + memo + loading check + render), and the layer component itself
+---
