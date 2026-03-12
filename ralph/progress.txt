@@ -132,3 +132,20 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `language_ids` is a JSON array of language codes, unlike other TSV files that use a single `language_id` field
   - Some writing systems (Linear A, Brahmi, Proto-scripts) have empty language_ids `[]` — valid for undeciphered or ancestor scripts
 ---
+
+## 2026-03-12 - US-025
+- Added `WritingSystem` interface to `server/tsv-storage.ts` with 12 fields (id, name, type, direction, parentSystemId, languageIds, originDate, originRegion, characterCount, sampleCharacters, unicodeBlock, isActive)
+- Added `loadWritingSystems()` private loader with JSON parsing for languageIds array, parseInt for characterCount, boolean parsing for isActive
+- Added `getWritingSystems(type?, direction?, isActive?)`, `getWritingSystemById(id)`, `getWritingSystemDescendants(id)` methods
+- Descendants method uses BFS traversal via parentSystemId to find all children recursively
+- Added four API routes in `server/routes.ts`:
+  - `GET /api/writing-systems` (with optional `type`, `direction`, `is_active` query params)
+  - `GET /api/writing-systems/:id`
+  - `GET /api/writing-systems/:id/descendants` (returns parent + all descendant systems)
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Writing systems use `parentSystemId` for tree relationships — descendants endpoint uses BFS queue traversal
+  - `isActive` is a boolean field parsed from "true"/"false" strings in TSV; filter param comes as string from query
+  - Writing systems have `languageIds` (plural JSON array) unlike phonological/grammar which have singular `languageId`
+  - The descendants endpoint returns both the parent system and all descendants for complete tree context
+---

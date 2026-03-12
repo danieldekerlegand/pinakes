@@ -132,7 +132,7 @@
         "Typecheck passes"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.05 API."
     },
     {
