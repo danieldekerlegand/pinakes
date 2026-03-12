@@ -420,7 +420,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 26,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.02 UI."
     },
     {

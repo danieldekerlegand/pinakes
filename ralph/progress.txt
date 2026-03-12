@@ -476,3 +476,22 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `relatedChanges` is a JSON array of sound change IDs (e.g., `["sc001","sc002"]`) for cross-referencing related rules
   - Pre-existing type errors (21) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-043
+- Created `SoundChangesPanel` component (`client/src/components/sound-changes-panel.tsx`) with:
+  - Card view: expandable sound change cards showing name, IPA rule, environment, date range, family badge
+  - Interactive examples: clickable before/after pairs with IPA notation, strikethrough for original form, highlight for result
+  - Related changes chain: clickable badges linking to related sound changes with smooth scroll navigation
+  - Timeline view: horizontal bar chart showing when each change occurred, sorted chronologically
+  - Filter by language family with count indicators
+  - View mode toggle (cards vs timeline)
+- Added Zap icon button to dashboard header navigation for opening the panel
+- Wired panel into dashboard with `soundChangesOpen` state and `SoundChangesPanel` component
+- Files changed: client/src/components/sound-changes-panel.tsx (new), client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - Sound changes API returns `{ changes: [...], count: N }` — consistent with other collection endpoints
+  - `relatedChanges` is an array of IDs — use it to build chain navigation between related sound shift rules
+  - `dateRange` format is "start to end" with negative numbers for BCE — parse with split + parseInt
+  - Pre-existing type errors (21) remain unchanged; UI changes don't introduce new ones
+  - Manual browser verification needed (no dev-browser skill available)
+---
