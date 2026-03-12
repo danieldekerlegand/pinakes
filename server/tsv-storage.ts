@@ -64,6 +64,18 @@ export interface WritingSystem {
   isActive: boolean;
 }
 
+// Verb paradigm types
+export interface VerbParadigm {
+  id: string;
+  languageId: string;
+  verbConcept: string;
+  infinitiveForm: string;
+  conjugationTable: Record<string, unknown>;
+  irregular: boolean;
+  complexityScore: number;
+  notes: string;
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -215,6 +227,9 @@ export class TsvStorage {
 
   // Writing systems data cache
   private cachedWritingSystems: WritingSystem[] | null = null;
+
+  // Verb paradigms data cache
+  private cachedVerbParadigms: VerbParadigm[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1906,5 +1921,72 @@ export class TsvStorage {
     }
 
     return descendants;
+  }
+
+  /**
+   * Load verb paradigms from TSV file
+   */
+  private loadVerbParadigms(): void {
+    if (this.cachedVerbParadigms) return;
+
+    const text = this.readFileIfExists("lexicons/verb-paradigms.tsv");
+    if (!text) { this.cachedVerbParadigms = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const conceptIdx = header.indexOf("verb_concept");
+    const infinitiveIdx = header.indexOf("infinitive_form");
+    const conjugationIdx = header.indexOf("conjugation_table");
+    const irregularIdx = header.indexOf("irregular");
+    const complexityIdx = header.indexOf("complexity_score");
+    const notesIdx = header.indexOf("notes");
+
+    this.cachedVerbParadigms = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      verbConcept: conceptIdx >= 0 ? row[conceptIdx] || "" : "",
+      infinitiveForm: infinitiveIdx >= 0 ? row[infinitiveIdx] || "" : "",
+      conjugationTable: (() => {
+        if (conjugationIdx < 0 || !row[conjugationIdx]) return {};
+        try { return JSON.parse(row[conjugationIdx]); } catch { return {}; }
+      })(),
+      irregular: irregularIdx >= 0 ? row[irregularIdx] === "true" : false,
+      complexityScore: complexityIdx >= 0 ? parseInt(row[complexityIdx] || "0", 10) || 0 : 0,
+      notes: notesIdx >= 0 ? row[notesIdx] || "" : "",
+    }));
+  }
+
+  /**
+   * Get all verb paradigms with optional filters
+   */
+  async getVerbParadigms(languageId?: string, verbConcept?: string): Promise<VerbParadigm[]> {
+    this.loadVerbParadigms();
+    let paradigms = this.cachedVerbParadigms ?? [];
+
+    if (languageId) {
+      paradigms = paradigms.filter((p) => p.languageId === languageId);
+    }
+    if (verbConcept) {
+      paradigms = paradigms.filter((p) => p.verbConcept === verbConcept);
+    }
+
+    return paradigms;
+  }
+
+  /**
+   * Get a single verb paradigm by ID
+   */
+  async getVerbParadigmById(id: string): Promise<VerbParadigm | null> {
+    this.loadVerbParadigms();
+    return (this.cachedVerbParadigms ?? []).find((p) => p.id === id) ?? null;
+  }
+
+  /**
+   * Get verb paradigms for a specific language
+   */
+  async getVerbParadigmsByLanguage(languageId: string): Promise<VerbParadigm[]> {
+    this.loadVerbParadigms();
+    return (this.cachedVerbParadigms ?? []).filter((p) => p.languageId === languageId);
   }
 }

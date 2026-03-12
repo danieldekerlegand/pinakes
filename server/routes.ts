@@ -1517,5 +1517,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Verb Paradigms Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/verb-paradigms - Get all verb paradigms
+   */
+  app.get("/api/verb-paradigms", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const verbConcept = req.query.verb_concept as string | undefined;
+      const paradigms = await storage.getVerbParadigms(languageId, verbConcept);
+      res.json({
+        paradigms,
+        count: paradigms.length,
+      });
+    } catch (error) {
+      console.error("Error fetching verb paradigms:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigms",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/verb-paradigms/:id - Get a single verb paradigm
+   */
+  app.get("/api/verb-paradigms/:id", async (req, res) => {
+    try {
+      const paradigm = await storage.getVerbParadigmById(req.params.id);
+      if (!paradigm) {
+        res.status(404).json({ message: `Verb paradigm '${req.params.id}' not found` });
+        return;
+      }
+      res.json(paradigm);
+    } catch (error) {
+      console.error("Error fetching verb paradigm:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigm",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/verb-paradigms - Get verb paradigms for a specific language
+   */
+  app.get("/api/languages/:id/verb-paradigms", async (req, res) => {
+    try {
+      const paradigms = await storage.getVerbParadigmsByLanguage(req.params.id);
+      if (paradigms.length === 0) {
+        res.status(404).json({ message: `No verb paradigms found for language '${req.params.id}'` });
+        return;
+      }
+      res.json({
+        paradigms,
+        count: paradigms.length,
+      });
+    } catch (error) {
+      console.error("Error fetching verb paradigms for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigms for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
