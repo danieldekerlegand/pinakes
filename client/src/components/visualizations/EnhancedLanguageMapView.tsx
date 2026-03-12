@@ -24,6 +24,8 @@ import { HaplogroupLayer } from './map-layers/HaplogroupLayer';
 import type { HaplogroupFeature } from './map-layers/HaplogroupLayer';
 import { LanguageContactsLayer } from './map-layers/LanguageContactsLayer';
 import type { LanguageContactFeature } from './map-layers/LanguageContactsLayer';
+import { GeneticLinguisticCorrelationLayer } from './map-layers/GeneticLinguisticCorrelationLayer';
+import type { CorrelationFeature, DivergenceAnnotation } from './map-layers/GeneticLinguisticCorrelationLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -179,6 +181,18 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('language-contacts'),
   });
 
+  // Fetch genetic-linguistic correlations
+  const [glcHaplogroupTypeFilter, setGlcHaplogroupTypeFilter] = React.useState<'Y-chromosome' | 'mtDNA' | null>(null);
+  const { data: glcData, isLoading: loadingGlc } = useQuery<{
+    correlations: CorrelationFeature[];
+    divergences: DivergenceAnnotation[];
+    summary: string;
+  }>({
+    queryKey: ['/api/genetic-linguistic-correlations', { haplogroupType: glcHaplogroupTypeFilter }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('genetic-linguistic-correlation'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts layer)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -257,6 +271,10 @@ export function EnhancedLanguageMapView({
   const allLanguageContacts = useMemo(() => {
     return languageContactsData?.contacts ?? [];
   }, [languageContactsData]);
+
+  // Genetic-linguistic correlation data
+  const glcCorrelations = useMemo(() => glcData?.correlations ?? [], [glcData]);
+  const glcDivergences = useMemo(() => glcData?.divergences ?? [], [glcData]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -382,7 +400,8 @@ export function EnhancedLanguageMapView({
     (loadingReligions && isLayerVisible('religions')) ||
     (loadingBattles && isLayerVisible('battles')) ||
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
-    (loadingContacts && isLayerVisible('language-contacts'));
+    (loadingContacts && isLayerVisible('language-contacts')) ||
+    (loadingGlc && isLayerVisible('genetic-linguistic-correlation'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -516,6 +535,17 @@ export function EnhancedLanguageMapView({
             selectedContactId={selectedFeatureId}
           />
         )}
+
+        {/* Genetic-Linguistic Correlation Layer */}
+        {isLayerVisible('genetic-linguistic-correlation') && glcCorrelations.length > 0 && (
+          <GeneticLinguisticCorrelationLayer
+            correlations={glcCorrelations}
+            divergences={glcDivergences}
+            opacity={getLayerConfig('genetic-linguistic-correlation')?.opacity || 0.7}
+            haplogroupTypeFilter={glcHaplogroupTypeFilter}
+            onFilterChange={setGlcHaplogroupTypeFilter}
+          />
+        )}
       </MapContainer>
 
       {/* Layer Controls Panel */}
@@ -531,6 +561,31 @@ export function EnhancedLanguageMapView({
         onApplyPreset={applyPreset}
         activePresetId={activePresetId}
       />
+
+      {/* Genetic-Linguistic Haplogroup Type Toggle */}
+      {isLayerVisible('genetic-linguistic-correlation') && (
+        <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg border p-2 flex items-center gap-1.5 text-xs">
+          <span className="font-medium text-gray-700 mr-1">Filter:</span>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === null ? null : null)}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === null ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === 'Y-chromosome' ? null : 'Y-chromosome')}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === 'Y-chromosome' ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            Y-DNA
+          </button>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === 'mtDNA' ? null : 'mtDNA')}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === 'mtDNA' ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            mtDNA
+          </button>
+        </div>
+      )}
 
       {/* Map Legend */}
       <MapLegend

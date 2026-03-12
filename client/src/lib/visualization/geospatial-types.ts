@@ -163,7 +163,8 @@ export type LayerType =
   | 'music'
   | 'religions'
   | 'haplogroups'
-  | 'language-contacts';
+  | 'language-contacts'
+  | 'genetic-linguistic-correlation';
 
 export type LayerCategory =
   | 'languages'
@@ -517,6 +518,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'genetic-linguistic-correlation',
+    type: 'genetic-linguistic-correlation',
+    category: 'genetics',
+    name: 'Genetic-Linguistic Correlation',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 85,
+    renderStyle: {
+      polygon: {
+        fillOpacity: 0.35,
+        strokeWeight: 2,
+        strokeOpacity: 0.8,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -554,6 +571,12 @@ export const LAYER_PRESETS: LayerPreset[] = [
     name: 'Trade & Economy',
     description: 'Trade routes, material culture, and cuisine regions',
     layers: ['routes', 'cuisines', 'material-culture'],
+  },
+  {
+    id: 'genetic-linguistic',
+    name: 'Genetic-Linguistic',
+    description: 'Haplogroup distributions overlaid with language family ranges',
+    layers: ['language-ranges', 'haplogroups', 'genetic-linguistic-correlation'],
   },
   {
     id: 'all-layers',

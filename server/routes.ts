@@ -1381,6 +1381,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Genetic-Linguistic Correlation Routes (Phase 4)
+  // ============================================================================
+
+  const { GeneticLinguisticCorrelationService } = await import("./services/genetic-linguistic-correlation");
+  const geneticLinguistic = new GeneticLinguisticCorrelationService(storage as any);
+
+  /**
+   * GET /api/genetic-linguistic-correlations - Compute genetic-linguistic correlations
+   * Query params: haplogroupType (optional) - 'Y-chromosome' or 'mtDNA'
+   */
+  app.get("/api/genetic-linguistic-correlations", async (req, res) => {
+    try {
+      const haplogroupType = req.query.haplogroupType as string | undefined;
+      const result = await geneticLinguistic.computeCorrelations(haplogroupType);
+      res.json(result);
+    } catch (error) {
+      console.error("Error computing genetic-linguistic correlations:", error);
+      res.status(500).json({
+        message: "Failed to compute genetic-linguistic correlations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Contribution API Routes (Phase 5)
   // ============================================================================
 
