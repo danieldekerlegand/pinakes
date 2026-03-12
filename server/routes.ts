@@ -2067,5 +2067,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/kinship-systems - Get all kinship systems with optional filtering
+   */
+  app.get("/api/kinship-systems", async (req, res) => {
+    try {
+      const systemType = req.query.system_type as string | undefined;
+      const descentRule = req.query.descent_rule as string | undefined;
+      const systems = await storage.getKinshipSystems({ systemType, descentRule });
+      res.json({ systems, count: systems.length });
+    } catch (error) {
+      console.error("Error fetching kinship systems:", error);
+      res.status(500).json({
+        message: "Failed to fetch kinship systems",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/kinship-systems/:id - Get a single kinship system
+   */
+  app.get("/api/kinship-systems/:id", async (req, res) => {
+    try {
+      const system = await storage.getKinshipSystemById(req.params.id);
+      if (!system) {
+        return res.status(404).json({ message: "Kinship system not found" });
+      }
+      res.json(system);
+    } catch (error) {
+      console.error("Error fetching kinship system:", error);
+      res.status(500).json({
+        message: "Failed to fetch kinship system",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

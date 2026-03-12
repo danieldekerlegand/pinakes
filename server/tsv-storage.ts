@@ -253,6 +253,17 @@ export interface FoodwayEvent {
   culturalImpact: string;
 }
 
+// Kinship system types
+export interface KinshipSystem {
+  id: string;
+  systemType: string;
+  languageIds: string[];
+  terminology: Record<string, string>;
+  descentRule: string;
+  residenceRule: string;
+  associatedCivilizations: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -335,6 +346,9 @@ export class TsvStorage {
 
   // Foodway events data cache
   private cachedFoodwayEvents: FoodwayEvent[] | null = null;
+
+  // Kinship systems data cache
+  private cachedKinshipSystems: KinshipSystem[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -2555,5 +2569,59 @@ export class TsvStorage {
   async getFoodwayEventById(id: string): Promise<FoodwayEvent | null> {
     this.loadFoodwayEvents();
     return (this.cachedFoodwayEvents ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  // ── Kinship Systems ──────────────────────────────────────────────────
+
+  private loadKinshipSystems(): void {
+    if (this.cachedKinshipSystems) return;
+
+    const text = this.readFileIfExists("lexicons/kinship-systems.tsv");
+    if (!text) { this.cachedKinshipSystems = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const systemTypeIdx = getIdx(header, "system_type");
+    const languageIdsIdx = getIdx(header, "language_ids");
+    const terminologyIdx = getIdx(header, "terminology");
+    const descentRuleIdx = getIdx(header, "descent_rule");
+    const residenceRuleIdx = header.indexOf("residence_rule");
+    const civIdx = header.indexOf("associated_civilizations");
+
+    this.cachedKinshipSystems = rows.map((row) => ({
+      id: row[idIdx],
+      systemType: row[systemTypeIdx],
+      languageIds: (() => {
+        try { return JSON.parse(row[languageIdsIdx]); } catch { return []; }
+      })() as string[],
+      terminology: (() => {
+        try { return JSON.parse(row[terminologyIdx]); } catch { return {}; }
+      })() as Record<string, string>,
+      descentRule: row[descentRuleIdx],
+      residenceRule: residenceRuleIdx >= 0 ? row[residenceRuleIdx] || "" : "",
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+    }));
+  }
+
+  async getKinshipSystems(filters?: {
+    systemType?: string;
+    descentRule?: string;
+  }): Promise<KinshipSystem[]> {
+    this.loadKinshipSystems();
+    let systems = this.cachedKinshipSystems ?? [];
+
+    if (filters?.systemType) {
+      systems = systems.filter((s) => s.systemType === filters.systemType);
+    }
+    if (filters?.descentRule) {
+      systems = systems.filter((s) => s.descentRule === filters.descentRule);
+    }
+
+    return systems;
+  }
+
+  async getKinshipSystemById(id: string): Promise<KinshipSystem | null> {
+    this.loadKinshipSystems();
+    return (this.cachedKinshipSystems ?? []).find((s) => s.id === id) ?? null;
   }
 }

@@ -30,6 +30,8 @@ import { GeneticLinguisticCorrelationLayer } from './map-layers/GeneticLinguisti
 import type { CorrelationFeature, DivergenceAnnotation } from './map-layers/GeneticLinguisticCorrelationLayer';
 import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
 import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
+import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
+import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -210,11 +212,18 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('foodway-events'),
   });
 
-  // Fetch languages for coordinate resolution (needed by language contacts layer)
+  // Fetch kinship systems data
+  const { data: kinshipSystemsData, isLoading: loadingKinshipSystems } = useQuery<{ systems: KinshipSystemFeature[]; count: number }>({
+    queryKey: ['/api/kinship-systems'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('kinship-systems'),
+  });
+
+  // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
     staleTime: 10 * 60 * 1000,
-    enabled: isLayerVisible('language-contacts'),
+    enabled: isLayerVisible('language-contacts') || isLayerVisible('kinship-systems'),
     select: (data: any[]) =>
       data.map((l: any) => ({
         id: l.id,
@@ -301,6 +310,23 @@ export function EnhancedLanguageMapView({
   const allFoodwayEvents = useMemo(() => {
     return foodwayEventsData?.events ?? [];
   }, [foodwayEventsData]);
+
+  // Kinship systems data with coordinate resolution
+  const allKinshipSystems = useMemo(() => {
+    const systems = kinshipSystemsData?.systems ?? [];
+    if (!languagesForCoords || languagesForCoords.length === 0) return systems;
+    const langMap = new Map(languagesForCoords.map((l) => [l.id, l.coordinates]));
+    return systems.map((s) => {
+      // Resolve coordinates from first language with known coordinates
+      for (const langId of s.languageIds) {
+        const coords = langMap.get(langId);
+        if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+          return { ...s, coordinates: coords };
+        }
+      }
+      return s;
+    });
+  }, [kinshipSystemsData, languagesForCoords]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -429,7 +455,8 @@ export function EnhancedLanguageMapView({
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
     (loadingContacts && isLayerVisible('language-contacts')) ||
     (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
-    (loadingFoodwayEvents && isLayerVisible('foodway-events'));
+    (loadingFoodwayEvents && isLayerVisible('foodway-events')) ||
+    (loadingKinshipSystems && isLayerVisible('kinship-systems'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -595,6 +622,16 @@ export function EnhancedLanguageMapView({
             onEventClick={handleFeatureClick}
             selectedEventId={selectedFeatureId}
             isAnimating={isPlaying}
+          />
+        )}
+
+        {/* Kinship Systems Layer */}
+        {isLayerVisible('kinship-systems') && allKinshipSystems.length > 0 && (
+          <KinshipSystemLayer
+            systems={allKinshipSystems}
+            opacity={getLayerConfig('kinship-systems')?.opacity || 0.8}
+            onSystemClick={handleFeatureClick}
+            selectedSystemId={selectedFeatureId}
           />
         )}
       </MapContainer>
