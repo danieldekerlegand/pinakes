@@ -1585,5 +1585,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/migration-routes - Get all migration routes
+   */
+  app.get("/api/migration-routes", async (req, res) => {
+    try {
+      const routeType = req.query.route_type as string | undefined;
+      const startDate = req.query.start_date as string | undefined;
+      const endDate = req.query.end_date as string | undefined;
+      const routes = await storage.getMigrationRoutes(routeType, startDate, endDate);
+      res.json({
+        routes,
+        count: routes.length,
+      });
+    } catch (error) {
+      console.error("Error fetching migration routes:", error);
+      res.status(500).json({
+        message: "Failed to fetch migration routes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/migration-routes/:id - Get a single migration route
+   */
+  app.get("/api/migration-routes/:id", async (req, res) => {
+    try {
+      const route = await storage.getMigrationRouteById(req.params.id);
+      if (!route) {
+        res.status(404).json({ message: `Migration route '${req.params.id}' not found` });
+        return;
+      }
+      res.json(route);
+    } catch (error) {
+      console.error("Error fetching migration route:", error);
+      res.status(500).json({
+        message: "Failed to fetch migration route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

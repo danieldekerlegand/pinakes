@@ -64,6 +64,20 @@ export interface WritingSystem {
   isActive: boolean;
 }
 
+// Migration route types
+export interface MigrationRoute {
+  id: string;
+  name: string;
+  routeType: string;
+  waypoints: Record<string, unknown>;
+  startDate: string;
+  endDate: string;
+  peoples: string[];
+  associatedLanguages: string[];
+  description: string;
+  consequences: string;
+}
+
 // Verb paradigm types
 export interface VerbParadigm {
   id: string;
@@ -230,6 +244,9 @@ export class TsvStorage {
 
   // Verb paradigms data cache
   private cachedVerbParadigms: VerbParadigm[] | null = null;
+
+  // Migration routes data cache
+  private cachedMigrationRoutes: MigrationRoute[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1988,5 +2005,70 @@ export class TsvStorage {
   async getVerbParadigmsByLanguage(languageId: string): Promise<VerbParadigm[]> {
     this.loadVerbParadigms();
     return (this.cachedVerbParadigms ?? []).filter((p) => p.languageId === languageId);
+  }
+
+  // ── Migration Routes ──────────────────────────────────────────────
+
+  private loadMigrationRoutes(): void {
+    if (this.cachedMigrationRoutes) return;
+
+    const text = this.readFileIfExists("lexicons/migration-routes.tsv");
+    if (!text) { this.cachedMigrationRoutes = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const routeTypeIdx = header.indexOf("route_type");
+    const waypointsIdx = header.indexOf("waypoints");
+    const startDateIdx = header.indexOf("start_date");
+    const endDateIdx = header.indexOf("end_date");
+    const peoplesIdx = header.indexOf("peoples");
+    const langIdx = header.indexOf("associated_languages");
+    const descIdx = header.indexOf("description");
+    const consequencesIdx = header.indexOf("consequences");
+
+    this.cachedMigrationRoutes = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      routeType: routeTypeIdx >= 0 ? row[routeTypeIdx] || "" : "",
+      waypoints: (() => {
+        if (waypointsIdx < 0 || !row[waypointsIdx]) return {};
+        try { return JSON.parse(row[waypointsIdx]); } catch { return {}; }
+      })(),
+      startDate: startDateIdx >= 0 ? row[startDateIdx] || "" : "",
+      endDate: endDateIdx >= 0 ? row[endDateIdx] || "" : "",
+      peoples: (() => {
+        if (peoplesIdx < 0 || !row[peoplesIdx]) return [];
+        try { return JSON.parse(row[peoplesIdx]); } catch { return []; }
+      })(),
+      associatedLanguages: (() => {
+        if (langIdx < 0 || !row[langIdx]) return [];
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      consequences: consequencesIdx >= 0 ? row[consequencesIdx] || "" : "",
+    }));
+  }
+
+  async getMigrationRoutes(routeType?: string, startDate?: string, endDate?: string): Promise<MigrationRoute[]> {
+    this.loadMigrationRoutes();
+    let routes = this.cachedMigrationRoutes ?? [];
+
+    if (routeType) {
+      routes = routes.filter((r) => r.routeType === routeType);
+    }
+    if (startDate) {
+      routes = routes.filter((r) => r.startDate >= startDate);
+    }
+    if (endDate) {
+      routes = routes.filter((r) => r.endDate <= endDate);
+    }
+
+    return routes;
+  }
+
+  async getMigrationRouteById(id: string): Promise<MigrationRoute | null> {
+    this.loadMigrationRoutes();
+    return (this.cachedMigrationRoutes ?? []).find((r) => r.id === id) ?? null;
   }
 }
