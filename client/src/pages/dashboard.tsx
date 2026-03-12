@@ -12,7 +12,8 @@ import {
   Database,
   Plus,
   X,
-  Network
+  Network,
+  Music
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,6 +31,7 @@ import { LanguageFamilyVisualization } from "@/components/LanguageFamilyVisualiz
 import LanguageDetailPanel from "@/components/language-detail-panel";
 import WordComparisonPanel from "@/components/word-comparison";
 import LinguisticDistanceAnalyzer from "@/components/linguistic-distance-analyzer";
+import PhonologyPanel from "@/components/phonology-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -42,6 +44,7 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(false);
+  const [phonologyOpen, setPhonologyOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -129,6 +132,16 @@ export default function Dashboard() {
                 title="Word Comparison"
               >
                 <GitCompare className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setPhonologyOpen(true)}
+                data-testid="button-phonology"
+                title="Phonological Inventory Comparison"
+              >
+                <Music className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -252,6 +265,12 @@ export default function Dashboard() {
       <LinguisticDistanceAnalyzer
         isOpen={distanceAnalyzerOpen}
         onClose={() => setDistanceAnalyzerOpen(false)}
+      />
+
+      {/* Phonological Inventory Comparison */}
+      <PhonologyPanel
+        isOpen={phonologyOpen}
+        onClose={() => setPhonologyOpen(false)}
       />
 
       {/* Floating Action Button */}

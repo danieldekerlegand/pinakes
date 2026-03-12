@@ -32,7 +32,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.01 API. Follow the same patterns used for sample-texts and etymology-relations loaders."
     },
     {
@@ -50,7 +50,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.02. The IPA consonant chart should be a standard place-of-articulation (columns) x manner-of-articulation (rows) grid. The vowel chart should be a trapezoid with front/central/back and close/mid/open axes."
     },
     {

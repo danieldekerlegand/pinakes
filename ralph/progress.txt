@@ -8,6 +8,13 @@ Started: Thu Mar 12 02:32:13 CDT 2026
 - Typecheck command: `npm run check` (runs `tsc`)
 - Pre-existing type errors exist in the codebase; data-only TSV changes don't affect typecheck
 - Always validate language_id values against languages.tsv before committing
+- TSV loader pattern: private cached field → private load method (with parseTsv/getIdx) → async get methods with optional filters
+- API route pattern: GET /api/{resource} (list with filters), GET /api/{resource}/:id (single), GET /api/languages/:id/{resource} (by language)
+- Routes are registered in server/routes.ts, storage methods in server/tsv-storage.ts
+- Interface types for TSV data are exported from tsv-storage.ts
+- Client code cannot import from server — duplicate interfaces locally for API response types
+- TypeScript target doesn't support Set spreading; use `Array.from(set)` instead
+- UI panel pattern: sliding right panel with `isOpen`/`onClose` props, overlay backdrop, triggered from header buttons
 
 ---
 
@@ -24,4 +31,38 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Use `awk -F'\t' 'NR>1{print $1}' lexicons/languages.tsv | sort` to get valid IDs
   - JSON in TSV fields must be on a single line with no unescaped tabs
   - The codebase has ~1099 languages in languages.tsv
+---
+
+## 2026-03-12 - US-019
+- Added `PhonologicalInventory` interface to `server/tsv-storage.ts`
+- Added `loadPhonologicalInventories()` private loader with JSON field parsing for consonants, vowels, tones, and phonotactic_patterns
+- Added `getPhonologicalInventories(languageId?)`, `getPhonologicalInventory(id)`, `getPhonologicalInventoryByLanguage(languageId)` methods
+- Added three API routes in `server/routes.ts`:
+  - `GET /api/phonological-inventories` (with optional `language_id` query param)
+  - `GET /api/phonological-inventories/:id`
+  - `GET /api/languages/:id/phonological-inventory`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - The `tones` field needs special handling: it can be `null` (string literal) or a JSON array — parse accordingly
+  - Follow the haplogroups/religions pattern for adding new domain data: interface → cached field → load method → get methods → routes
+  - Pre-existing type errors (19) are unrelated to server code; server changes won't introduce new ones
+---
+
+## 2026-03-12 - US-020
+- Created `PhonologyPanel` component (`client/src/components/phonology-panel.tsx`) with:
+  - Language selector allowing 2-4 languages with search, color-coded badges
+  - Full IPA consonant chart (place of articulation × manner of articulation grid) with color-coded phonemes per language
+  - SVG vowel trapezoid chart with positioned vowel markers using language colors
+  - Color-coded overlap highlighting (yellow background for shared phonemes)
+  - Summary statistics table: total consonants, vowels, tones, syllable structure, stress system
+- Added Music icon button to dashboard header navigation for opening the phonology panel
+- Wired panel into dashboard with isOpen/onClose pattern matching existing panels
+- Files changed: client/src/components/phonology-panel.tsx (new), client/src/pages/dashboard.tsx, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Cannot import server types in client code — define interfaces locally instead of importing from server/tsv-storage.ts
+  - TypeScript target doesn't support Set spreading (`[...set]`), use `Array.from(set)` instead
+  - The app uses right-sliding panel pattern for all comparison views, not separate routes
+  - Panel pattern: `isOpen` boolean prop, overlay with `bg-black bg-opacity-50`, fixed right panel
+  - Available IPA mappings: ~100+ consonants and ~30 vowels mapped to chart positions
+  - Manual browser verification needed (no dev-browser skill available)
 ---
