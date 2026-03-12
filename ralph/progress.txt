@@ -592,3 +592,16 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Layer IDs 'material-culture' and 'material-culture-heatmap' are separate layers in DEFAULT_LAYER_CONFIGS
   - spread_data JSON field uses snake_case keys (associated_civilization) which need camelCase mapping
 ---
+
+## 2026-03-12 - US-050
+- Created `lexicons/foodway-events.tsv` with 51 food exchange events
+- Covers Columbian Exchange (tomato, potato, maize, cacao, peppers, wheat, cattle, horses, sugarcane), Silk Road spices (pepper, cinnamon, nutmeg/cloves, ginger, apricot, millet, chickpea), Austronesian crops (taro, breadfruit, yam, coconut, sweet potato), coffee spread, tea spread, Bantu sorghum, rice cultivation, and more
+- All 12 required columns present: id, name, food_item, origin_region, origin_coordinates, destination_region, destination_coordinates, date, mechanism, associated_route_id, description, cultural_impact
+- Mechanisms include: trade, colonization, migration
+- associated_route_id references valid migration-routes.tsv IDs where applicable
+- Files changed: lexicons/foodway-events.tsv (new)
+- **Learnings for future iterations:**
+  - Foodway events reference migration-routes.tsv IDs; check those IDs exist before using them
+  - Coordinates are stored as JSON arrays [lon,lat] matching other geospatial TSV files
+  - Some events have empty associated_route_id where no direct route reference exists
+---
