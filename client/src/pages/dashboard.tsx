@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,8 @@ import {
   Database,
   Plus,
   X,
-  Network
+  Network,
+  FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -37,6 +39,7 @@ import type { ScrapingJob } from "@shared/types";
 
 
 export default function Dashboard() {
+  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -129,6 +132,16 @@ export default function Dashboard() {
                 title="Word Comparison"
               >
                 <GitCompare className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => navigate("/text-analyzer")}
+                data-testid="button-text-analyzer"
+                title="Text Analyzer"
+              >
+                <FileText className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
