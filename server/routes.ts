@@ -1670,5 +1670,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/language-contacts - Get all language contact events
+   */
+  app.get("/api/language-contacts", async (req, res) => {
+    try {
+      const sourceLanguageId = req.query.source_language_id as string | undefined;
+      const targetLanguageId = req.query.target_language_id as string | undefined;
+      const contactType = req.query.contact_type as string | undefined;
+      const intensity = req.query.intensity as string | undefined;
+      const contacts = await storage.getLanguageContacts(sourceLanguageId, targetLanguageId, contactType, intensity);
+      res.json({
+        contacts,
+        count: contacts.length,
+      });
+    } catch (error) {
+      console.error("Error fetching language contacts:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contacts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/language-contacts/:id - Get a single language contact event
+   */
+  app.get("/api/language-contacts/:id", async (req, res) => {
+    try {
+      const contact = await storage.getLanguageContactById(req.params.id);
+      if (!contact) {
+        res.status(404).json({ message: `Language contact '${req.params.id}' not found` });
+        return;
+      }
+      res.json(contact);
+    } catch (error) {
+      console.error("Error fetching language contact:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contact",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/contacts - Get all contact events involving a specific language
+   */
+  app.get("/api/languages/:id/contacts", async (req, res) => {
+    try {
+      const contacts = await storage.getLanguageContactsByLanguage(req.params.id);
+      if (contacts.length === 0) {
+        res.status(404).json({ message: `No language contacts found for language '${req.params.id}'` });
+        return;
+      }
+      res.json({
+        contacts,
+        count: contacts.length,
+      });
+    } catch (error) {
+      console.error("Error fetching language contacts for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contacts for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

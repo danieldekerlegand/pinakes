@@ -92,6 +92,19 @@ export interface MigrationRoute {
   consequences: string;
 }
 
+// Language contact types
+export interface LanguageContact {
+  id: string;
+  sourceLanguageId: string;
+  targetLanguageId: string;
+  contactType: string;
+  timePeriod: string;
+  region: string;
+  featuresTransferred: { phonological: string[]; lexical: string[]; grammatical: string[] };
+  exampleFeatures: string;
+  intensity: string;
+}
+
 // Verb paradigm types
 export interface VerbParadigm {
   id: string;
@@ -264,6 +277,9 @@ export class TsvStorage {
 
   // Migration routes data cache
   private cachedMigrationRoutes: MigrationRoute[] | null = null;
+
+  // Language contacts data cache
+  private cachedLanguageContacts: LanguageContact[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -2154,5 +2170,72 @@ export class TsvStorage {
   async getMigrationRouteById(id: string): Promise<MigrationRoute | null> {
     this.loadMigrationRoutes();
     return (this.cachedMigrationRoutes ?? []).find((r) => r.id === id) ?? null;
+  }
+
+  // ── Language Contacts ──────────────────────────────────────────────
+
+  private loadLanguageContacts(): void {
+    if (this.cachedLanguageContacts) return;
+
+    const text = this.readFileIfExists("lexicons/language-contacts.tsv");
+    if (!text) { this.cachedLanguageContacts = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const srcIdx = header.indexOf("source_language_id");
+    const tgtIdx = header.indexOf("target_language_id");
+    const typeIdx = header.indexOf("contact_type");
+    const periodIdx = header.indexOf("time_period");
+    const regionIdx = header.indexOf("region");
+    const featIdx = header.indexOf("features_transferred");
+    const exampleIdx = header.indexOf("example_features");
+    const intensityIdx = header.indexOf("intensity");
+
+    this.cachedLanguageContacts = rows.map((row) => ({
+      id: row[idIdx],
+      sourceLanguageId: srcIdx >= 0 ? row[srcIdx] || "" : "",
+      targetLanguageId: tgtIdx >= 0 ? row[tgtIdx] || "" : "",
+      contactType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      timePeriod: periodIdx >= 0 ? row[periodIdx] || "" : "",
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      featuresTransferred: (() => {
+        if (featIdx < 0 || !row[featIdx]) return { phonological: [], lexical: [], grammatical: [] };
+        try { return JSON.parse(row[featIdx]); } catch { return { phonological: [], lexical: [], grammatical: [] }; }
+      })(),
+      exampleFeatures: exampleIdx >= 0 ? row[exampleIdx] || "" : "",
+      intensity: intensityIdx >= 0 ? row[intensityIdx] || "" : "",
+    }));
+  }
+
+  async getLanguageContacts(sourceLanguageId?: string, targetLanguageId?: string, contactType?: string, intensity?: string): Promise<LanguageContact[]> {
+    this.loadLanguageContacts();
+    let contacts = this.cachedLanguageContacts ?? [];
+
+    if (sourceLanguageId) {
+      contacts = contacts.filter((c) => c.sourceLanguageId === sourceLanguageId);
+    }
+    if (targetLanguageId) {
+      contacts = contacts.filter((c) => c.targetLanguageId === targetLanguageId);
+    }
+    if (contactType) {
+      contacts = contacts.filter((c) => c.contactType === contactType);
+    }
+    if (intensity) {
+      contacts = contacts.filter((c) => c.intensity === intensity);
+    }
+
+    return contacts;
+  }
+
+  async getLanguageContactById(id: string): Promise<LanguageContact | null> {
+    this.loadLanguageContacts();
+    return (this.cachedLanguageContacts ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  async getLanguageContactsByLanguage(languageId: string): Promise<LanguageContact[]> {
+    this.loadLanguageContacts();
+    return (this.cachedLanguageContacts ?? []).filter(
+      (c) => c.sourceLanguageId === languageId || c.targetLanguageId === languageId
+    );
   }
 }
