@@ -100,3 +100,20 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - The getGrammarFeatures method supports 3 optional filters vs phonological's 1 — follow acceptance criteria for filter params
   - Pre-existing type errors (19) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-023
+- Created `GrammarPanel` component (`client/src/components/grammar-panel.tsx`) with:
+  - Full matrix view: languages as rows, grammatical features as columns
+  - Color-coded cells for word order (SVO green, SOV blue, VSO orange), morphological type, ergativity
+  - Sortable columns (click header to toggle asc/desc)
+  - Feature category filter (All, Word Order, Morphology, Case & Agreement, TAM & Verb, Syntax)
+  - Structural similarity score between any two selected languages (Jaccard for arrays, exact match for strings)
+  - Rare feature highlighting (amber dot for features appearing in <5% of languages)
+- Wired panel into dashboard with BookOpen icon button in header navigation
+- Added `grammarOpen` state and `GrammarPanel` component to dashboard
+- Files changed: client/src/components/grammar-panel.tsx (new), client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - GrammarFeatures interface needs an index signature `[key: string]: string | string[] | number` to allow dynamic property access without TS errors
+  - The grammar-panel uses `enabled: isOpen` on queries to avoid fetching data when panel is closed — good pattern for heavy panels
+  - Manual browser verification needed (no dev-browser skill available)
+---
