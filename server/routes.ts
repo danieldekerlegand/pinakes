@@ -12,6 +12,7 @@ import {
   calculateGeographicDistance,
   getAvailableLanguageIds,
 } from "./services/linguistic-distance-calculator";
+import { traceEtymology, traceDescendants } from "./services/etymology-trace";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -1435,6 +1436,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations for word:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations for word",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/etymology-relations/trace/:word - Trace full etymology tree for a word
+   */
+  app.get("/api/etymology-relations/trace/:word", async (req, res) => {
+    try {
+      const language = req.query.language as string | undefined;
+      const direction = req.query.direction as string | undefined;
+
+      let tree;
+      if (direction === "descendants") {
+        tree = await traceDescendants(req.params.word, language);
+      } else {
+        tree = await traceEtymology(req.params.word, language);
+      }
+
+      res.json({
+        tree,
+        word: req.params.word,
+        language: language ?? null,
+        direction: direction ?? "ancestors",
+      });
+    } catch (error) {
+      console.error("Error tracing etymology:", error);
+      res.status(500).json({
+        message: "Failed to trace etymology",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
