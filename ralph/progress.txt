@@ -618,3 +618,14 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Foodway events TSV uses [lng, lat] format for coordinates; must swap to [lat, lng] for Leaflet
   - Layer integration requires updates in 3 places: geospatial-types.ts (LayerType + config + presets), EnhancedLanguageMapView.tsx (query + memo + loading check + render), and the layer component itself
 ---
+
+## 2026-03-12 - US-052
+- Created `lexicons/kinship-systems.tsv` with 30 entries spanning all 7 kinship system types
+- Columns: id, system_type, language_ids (JSON), terminology (JSON), descent_rule, residence_rule, associated_civilizations
+- System types covered: Eskimo (5), Hawaiian (4), Sudanese (4), Omaha (4), Crow (3), Iroquois (3), Dravidian (4), plus additional overlap entries
+- Files changed: lexicons/kinship-systems.tsv
+- **Learnings for future iterations:**
+  - Kinship system types are: Eskimo, Hawaiian, Sudanese, Omaha, Crow, Iroquois, Dravidian
+  - Some languages (e.g., Tamil) appear in multiple system classifications depending on the community/region
+  - All 30 entries validated successfully against languages.tsv IDs
+---
