@@ -19,6 +19,7 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - POST endpoints use `useMutation` with `apiRequest("POST", url, data)` + `res.json()` for response parsing
 - New pages: create in `client/src/pages/`, add route in `App.tsx`, add nav button in dashboard header
 - Recharts: import directly from `recharts` (not via shadcn chart wrapper); use `PieChart` + `Pie` with `innerRadius` for donut charts, `Cell` for colors
+- shadcn Tooltip: import as `UITooltip` when Recharts `Tooltip` is also imported; pattern: `TooltipProvider` > `UITooltip` > `TooltipTrigger asChild` > `TooltipContent`
 
 ---
 
@@ -159,6 +160,25 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Use `Cell` components inside `Pie` for per-segment colors
   - Recharts `onClick` on `Pie` passes the data entry as first argument
   - Custom `Tooltip content` prop receives `{ active, payload }` — payload[0].payload has the original data object
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-010
+- Extended `analyzeTextOrigins` server service to return `wordDetails` array with per-word origin and full etymology chain
+- Refactored `traceToOrigin` → `traceToOriginWithChain` to return the chain of derivations alongside the origin
+- Added `HighlightedText` component to Text Analyzer page with:
+  - Each word rendered as a hoverable span with colored underline matching donut chart colors
+  - Tooltip showing full etymology chain: `word (Language) → ancestor (Language) → ... → root (Language)`
+  - Unknown words shown in gray with "Unknown origin" tooltip
+  - Text splitting preserves original whitespace and punctuation
+- Used shadcn `Tooltip` component (TooltipProvider/UITooltip/TooltipTrigger/TooltipContent)
+- Files changed: `server/services/text-etymology-analyzer.ts`, `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - shadcn Tooltip uses `TooltipProvider` wrapping, with `UITooltip` > `TooltipTrigger asChild` > `TooltipContent` pattern
+  - Import as `UITooltip` to avoid name collision with Recharts `Tooltip`
+  - Text tokenization on client must match server tokenizer regex for word indices to align
+  - `traceToOriginWithChain` returns both origin and chain, caching per unique word avoids redundant traces
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
 ---
