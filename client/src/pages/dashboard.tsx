@@ -14,7 +14,8 @@ import {
   X,
   Network,
   Music,
-  BookOpen
+  BookOpen,
+  Type
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -34,6 +35,7 @@ import WordComparisonPanel from "@/components/word-comparison";
 import LinguisticDistanceAnalyzer from "@/components/linguistic-distance-analyzer";
 import PhonologyPanel from "@/components/phonology-panel";
 import GrammarPanel from "@/components/grammar-panel";
+import WritingSystemsPanel from "@/components/writing-systems-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -48,6 +50,7 @@ export default function Dashboard() {
   const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(false);
   const [phonologyOpen, setPhonologyOpen] = useState(false);
   const [grammarOpen, setGrammarOpen] = useState(false);
+  const [writingSystemsOpen, setWritingSystemsOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -155,6 +158,16 @@ export default function Dashboard() {
                 title="Grammar Comparison Matrix"
               >
                 <BookOpen className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setWritingSystemsOpen(true)}
+                data-testid="button-writing-systems"
+                title="Writing Systems Explorer"
+              >
+                <Type className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -290,6 +303,12 @@ export default function Dashboard() {
       <GrammarPanel
         isOpen={grammarOpen}
         onClose={() => setGrammarOpen(false)}
+      />
+
+      {/* Writing Systems Explorer */}
+      <WritingSystemsPanel
+        isOpen={writingSystemsOpen}
+        onClose={() => setWritingSystemsOpen(false)}
       />
 
       {/* Floating Action Button */}

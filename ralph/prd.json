@@ -150,7 +150,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 2 - US-2.05 UI. Reuse existing D3 tree layout and Leaflet map components."
     },
     {

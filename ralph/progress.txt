@@ -15,6 +15,8 @@ Started: Thu Mar 12 02:32:13 CDT 2026
 - Client code cannot import from server — duplicate interfaces locally for API response types
 - TypeScript target doesn't support Set spreading; use `Array.from(set)` instead
 - UI panel pattern: sliding right panel with `isOpen`/`onClose` props, overlay backdrop, triggered from header buttons
+- Some API endpoints return `{ items: [...], count: N }` objects, not flat arrays — check response shape
+- D3 hierarchy node `.x`/`.y` can be `undefined` in strict TS — use `?? 0` for safe access
 
 ---
 
@@ -148,4 +150,23 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `isActive` is a boolean field parsed from "true"/"false" strings in TSV; filter param comes as string from query
   - Writing systems have `languageIds` (plural JSON array) unlike phonological/grammar which have singular `languageId`
   - The descendants endpoint returns both the parent system and all descendants for complete tree context
+---
+
+## 2026-03-12 - US-026
+- Created `WritingSystemsPanel` component (`client/src/components/writing-systems-panel.tsx`) with:
+  - D3.js family tree visualization showing script evolution with zoom/pan, color-coded by type
+  - Grid view with filterable cards showing all writing systems
+  - Detail panel showing: name, type, direction, sample characters (Unicode rendered), associated languages, origin date/region, parent/descendant navigation
+  - Filter/search by type (alphabet, abjad, abugida, syllabary, logographic, featural) and active/historical status
+  - Type legend with color-coded badges
+  - Tree nodes labeled with script name and sample characters
+- Added Type icon button to dashboard header navigation for opening the panel
+- Wired panel into dashboard with `writingSystemsOpen` state
+- Files changed: client/src/components/writing-systems-panel.tsx (new), client/src/pages/dashboard.tsx, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - D3 hierarchy `.y` and `.x` can be `undefined` in TS strict mode — use nullish coalescing (`?? 0`) to satisfy type checker
+  - D3's `.filter()` with a string predicate causes TS errors — use `Boolean()` wrapper for truthy checks
+  - Writing systems API returns `{ systems: [...], count: N }` — not a flat array like phonological-inventories
+  - Family tree uses `parentSystemId` to build hierarchy; multiple root nodes get wrapped in virtual root
+  - Manual browser verification needed (no dev-browser skill available)
 ---
