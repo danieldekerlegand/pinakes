@@ -9,11 +9,24 @@ export interface OriginEntry {
   words: string[];
 }
 
+export interface WordChainEntry {
+  word: string;
+  language: string;
+  languageName: string;
+}
+
+export interface WordDetail {
+  word: string;
+  origin: string | null;
+  chain: WordChainEntry[];
+}
+
 export interface TextAnalysisResult {
   totalWords: number;
   analyzedWords: number;
   unknownWords: number;
   origins: OriginEntry[];
+  wordDetails: WordDetail[];
 }
 
 // Relations that indicate ancestry (source is derived FROM target)
@@ -32,18 +45,23 @@ export function tokenize(text: string, _language?: string): string[] {
     .filter((w) => w.length > 0);
 }
 
+interface TraceResult {
+  origin: string | null;
+  chain: Array<{ word: string; language: string }>;
+}
+
 /**
  * Trace a single word to its oldest known ancestor language.
- * Returns the origin language code or null if unknown.
+ * Returns the origin language code and the full chain of derivations.
  */
-function traceToOrigin(
+function traceToOriginWithChain(
   word: string,
   language: string,
   relations: EtymologyRelation[],
   visited: Set<string>,
-): string | null {
+): TraceResult {
   const key = `${word}|${language}`;
-  if (visited.has(key)) return language;
+  if (visited.has(key)) return { origin: language, chain: [{ word, language }] };
   visited.add(key);
 
   const normalizedWord = word.toLowerCase();
@@ -68,9 +86,9 @@ function traceToOrigin(
       (r) => r.sourceWord.toLowerCase() === normalizedWord,
     );
     if (existsAsTarget || existsAsSource) {
-      return language;
+      return { origin: language, chain: [{ word, language }] };
     }
-    return null;
+    return { origin: null, chain: [] };
   }
 
   // Follow the first ancestor chain (prefer derived_from > etymology > borrowed_from)
@@ -80,13 +98,14 @@ function traceToOrigin(
   });
 
   const ancestor = sorted[0];
-  const result = traceToOrigin(
+  const result = traceToOriginWithChain(
     ancestor.targetWord,
     ancestor.targetLanguage,
     relations,
     visited,
   );
-  return result ?? ancestor.targetLanguage;
+  const chain = [{ word, language }, ...result.chain];
+  return { origin: result.origin ?? ancestor.targetLanguage, chain };
 }
 
 /**
@@ -110,20 +129,36 @@ export async function analyzeTextOrigins(
     langNameMap.set(lang.id.toLowerCase(), lang.name);
   }
 
-  // Count origins
+  // Count origins and build word details
   const originCounts = new Map<string, string[]>();
   let unknownWords = 0;
-  const seen = new Map<string, string | null>(); // cache per unique word
+  const seen = new Map<string, TraceResult>(); // cache per unique word
+  const wordDetails: WordDetail[] = [];
 
   for (const word of words) {
-    let origin: string | null;
+    let traceResult: TraceResult;
     if (seen.has(word)) {
-      origin = seen.get(word) ?? null;
+      traceResult = seen.get(word)!;
     } else {
       const visited = new Set<string>();
-      origin = traceToOrigin(word, language, allRelations, visited);
-      seen.set(word, origin);
+      traceResult = traceToOriginWithChain(word, language, allRelations, visited);
+      seen.set(word, traceResult);
     }
+
+    const origin = traceResult.origin;
+
+    // Build chain with language names
+    const chainWithNames: WordChainEntry[] = traceResult.chain.map((entry) => ({
+      word: entry.word,
+      language: entry.language,
+      languageName: langNameMap.get(entry.language.toLowerCase()) ?? entry.language,
+    }));
+
+    wordDetails.push({
+      word,
+      origin,
+      chain: chainWithNames,
+    });
 
     if (origin === null) {
       unknownWords++;
@@ -164,5 +199,6 @@ export async function analyzeTextOrigins(
     analyzedWords,
     unknownWords,
     origins,
+    wordDetails,
   };
 }

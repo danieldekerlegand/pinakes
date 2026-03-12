@@ -12,6 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  TooltipProvider,
+  Tooltip as UITooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { Language } from "@shared/types";
@@ -31,11 +37,130 @@ interface OriginEntry {
   words: string[];
 }
 
+interface WordChainEntry {
+  word: string;
+  language: string;
+  languageName: string;
+}
+
+interface WordDetail {
+  word: string;
+  origin: string | null;
+  chain: WordChainEntry[];
+}
+
 interface AnalysisResult {
   totalWords: number;
   analyzedWords: number;
   unknownWords: number;
   origins: OriginEntry[];
+  wordDetails: WordDetail[];
+}
+
+/**
+ * Build a map from origin language code to its color from the chart.
+ */
+function buildOriginColorMap(origins: OriginEntry[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  origins.forEach((origin, index) => {
+    map[origin.language] = ORIGIN_COLORS[index % ORIGIN_COLORS.length];
+  });
+  return map;
+}
+
+/**
+ * Split text into tokens preserving whitespace and punctuation as separate entries.
+ * Returns array of { text, isWord } where isWord tokens can be matched against wordDetails.
+ */
+function splitTextTokens(text: string): Array<{ text: string; isWord: boolean }> {
+  const tokens: Array<{ text: string; isWord: boolean }> = [];
+  // Match sequences of word characters (including Unicode) or sequences of non-word characters
+  const regex = /([a-zA-Z0-9\u00C0-\u024F\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3000-\u9FFF\uAC00-\uD7AF'-]+)|([^a-zA-Z0-9\u00C0-\u024F\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3000-\u9FFF\uAC00-\uD7AF'-]+)/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match[1]) {
+      // Strip leading/trailing apostrophes/hyphens to match tokenizer behavior
+      const cleaned = match[1].replace(/^['-]+|['-]+$/g, "");
+      tokens.push({ text: match[0], isWord: cleaned.length > 0 });
+    } else {
+      tokens.push({ text: match[0], isWord: false });
+    }
+  }
+  return tokens;
+}
+
+function HighlightedText({
+  text,
+  wordDetails,
+  originColorMap,
+}: {
+  text: string;
+  wordDetails: WordDetail[];
+  originColorMap: Record<string, string>;
+}) {
+  const tokens = splitTextTokens(text);
+  let wordIndex = 0;
+
+  return (
+    <div className="space-y-3">
+      <h4 className="font-semibold">Etymology Highlighting</h4>
+      <p className="text-sm text-muted-foreground">
+        Hover over words to see their etymology chain. Colors match the chart above.
+      </p>
+      <TooltipProvider delayDuration={200}>
+        <div className="p-4 bg-muted/30 rounded-lg leading-relaxed text-base whitespace-pre-wrap">
+          {tokens.map((token, i) => {
+            if (!token.isWord) {
+              return <span key={i}>{token.text}</span>;
+            }
+            const detail = wordIndex < wordDetails.length ? wordDetails[wordIndex] : null;
+            wordIndex++;
+            if (!detail) {
+              return <span key={i}>{token.text}</span>;
+            }
+
+            const color = detail.origin ? originColorMap[detail.origin] ?? "#94a3b8" : "#94a3b8";
+            const chainText =
+              detail.chain.length > 0
+                ? detail.chain
+                    .map((entry) => `${entry.word} (${entry.languageName})`)
+                    .join(" → ")
+                : "Unknown origin";
+
+            return (
+              <UITooltip key={i}>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help rounded px-0.5 transition-colors hover:opacity-80"
+                    style={{
+                      borderBottom: `2px solid ${color}`,
+                      color: detail.origin ? undefined : "#94a3b8",
+                    }}
+                  >
+                    {token.text}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="max-w-xs"
+                >
+                  <div className="text-xs">
+                    {detail.origin ? (
+                      <div className="space-y-1">
+                        <div className="font-medium">{chainText}</div>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Unknown origin</span>
+                    )}
+                  </div>
+                </TooltipContent>
+              </UITooltip>
+            );
+          })}
+        </div>
+      </TooltipProvider>
+    </div>
+  );
 }
 
 export default function TextAnalyzer() {
@@ -246,6 +371,13 @@ export default function TextAnalyzer() {
                   </div>
                 ))}
               </div>
+
+              {/* Highlighted text with etymology tooltips */}
+              <HighlightedText
+                text={text}
+                wordDetails={analysisMutation.data.wordDetails}
+                originColorMap={buildOriginColorMap(analysisMutation.data.origins)}
+              />
             </div>
           )}
         </Card>
