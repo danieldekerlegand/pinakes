@@ -461,3 +461,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `date_range` uses format "-500 to -100" for BCE dates, "1400 to 1700" for CE dates
   - Pre-existing type errors (5) remain unchanged; data-only TSV changes don't affect typecheck
 ---
+
+## 2026-03-12 - US-042
+- Added `SoundChange` interface to `server/tsv-storage.ts` with fields: id, name, familyId, sourceLanguageId, targetLanguageId, changeRule, environment, dateRange, examples (parsed JSON array of {before, after, meaning}), relatedChanges (parsed JSON string array)
+- Added `loadSoundChanges()` private loader with JSON parsing for examples and relatedChanges fields
+- Added `getSoundChanges(familyId?, sourceLanguageId?, targetLanguageId?)` and `getSoundChangeById(id)` methods
+- Added two API routes in `server/routes.ts`:
+  - `GET /api/sound-changes` (with optional `family_id`, `source_language_id`, `target_language_id` query params)
+  - `GET /api/sound-changes/:id`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Sound changes API returns `{ changes: [...], count: N }` — consistent with other collection endpoints
+  - `examples` is a JSON array of objects with `before`, `after`, `meaning` keys
+  - `relatedChanges` is a JSON array of sound change IDs (e.g., `["sc001","sc002"]`) for cross-referencing related rules
+  - Pre-existing type errors (21) remain unchanged; server changes don't affect them
+---

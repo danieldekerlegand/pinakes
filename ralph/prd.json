@@ -403,7 +403,7 @@
         "Typecheck passes"
       ],
       "priority": 25,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.02 API."
     },
     {
