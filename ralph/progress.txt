@@ -394,3 +394,20 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - The existing `data/language_contact_phenomena.csv` has rich narrative data but uses language names not IDs — manual mapping required
   - Pre-existing type errors (19) remain unchanged; data-only TSV changes don't affect typecheck
 ---
+
+## 2026-03-12 - US-039
+- Added `LanguageContact` interface to `server/tsv-storage.ts` with fields: id, sourceLanguageId, targetLanguageId, contactType, timePeriod, region, featuresTransferred (parsed JSON with phonological/lexical/grammatical arrays), exampleFeatures, intensity
+- Added `loadLanguageContacts()` private loader with JSON parsing for featuresTransferred field
+- Added `getLanguageContacts(sourceLanguageId?, targetLanguageId?, contactType?, intensity?)`, `getLanguageContactById(id)`, `getLanguageContactsByLanguage(languageId)` methods
+- `getLanguageContactsByLanguage` filters on both sourceLanguageId and targetLanguageId (a language can be either source or target of a contact event)
+- Added three API routes in `server/routes.ts`:
+  - `GET /api/language-contacts` (with optional `source_language_id`, `target_language_id`, `contact_type`, `intensity` query params)
+  - `GET /api/language-contacts/:id`
+  - `GET /api/languages/:id/contacts`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Language contacts are bidirectional — `getLanguageContactsByLanguage` checks BOTH source and target language IDs using OR filter
+  - `featuresTransferred` JSON has a fixed structure: `{ phonological: [], lexical: [], grammatical: [] }` — use this as default fallback
+  - Language contacts API returns `{ contacts: [...], count: N }` — consistent with other collection endpoints
+  - Pre-existing type errors (19) remain unchanged; server changes don't affect them
+---

@@ -356,7 +356,7 @@
         "Typecheck passes"
       ],
       "priority": 22,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.01 API."
     },
     {
