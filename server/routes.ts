@@ -1320,5 +1320,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Sample Texts
+  // ============================================================================
+
+  /**
+   * GET /api/sample-texts - Get sample texts with optional filtering
+   */
+  app.get("/api/sample-texts", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const genre = req.query.genre as string | undefined;
+      const script = req.query.script as string | undefined;
+
+      const texts = await storage.getSampleTexts({ languageId, genre, script });
+      res.json({
+        texts,
+        count: texts.length,
+        filters: { languageId, genre, script },
+      });
+    } catch (error) {
+      console.error("Error fetching sample texts:", error);
+      res.status(500).json({
+        message: "Failed to fetch sample texts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/sample-texts/:id - Get a single sample text by ID
+   */
+  app.get("/api/sample-texts/:id", async (req, res) => {
+    try {
+      const text = await storage.getSampleText(req.params.id);
+      if (!text) {
+        res.status(404).json({ message: `Sample text '${req.params.id}' not found` });
+        return;
+      }
+      res.json(text);
+    } catch (error) {
+      console.error("Error fetching sample text:", error);
+      res.status(500).json({
+        message: "Failed to fetch sample text",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/sample-texts - Get all sample texts for a specific language
+   */
+  app.get("/api/languages/:id/sample-texts", async (req, res) => {
+    try {
+      const texts = await storage.getSampleTexts({ languageId: req.params.id });
+      res.json({
+        texts,
+        count: texts.length,
+        languageId: req.params.id,
+      });
+    } catch (error) {
+      console.error("Error fetching language sample texts:", error);
+      res.status(500).json({
+        message: "Failed to fetch sample texts for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

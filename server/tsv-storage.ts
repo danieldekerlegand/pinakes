@@ -104,6 +104,20 @@ export interface CuisineItem {
   timeEnd: number | null;
 }
 
+// Sample Text types
+export interface SampleText {
+  id: string;
+  languageId: string;
+  title: string;
+  text: string;
+  transliteration: string;
+  translationEn: string;
+  source: string;
+  dateComposed: string;
+  genre: string;
+  script: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -162,6 +176,9 @@ export class TsvStorage {
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
   private cachedCuisineItems: CuisineItem[] | null = null;
+
+  // Sample Texts
+  private cachedSampleTexts: SampleText[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -1586,5 +1603,82 @@ export class TsvStorage {
     }
 
     return { cuisine, items };
+  }
+
+  // ============================================================================
+  // Sample Text Data Methods
+  // ============================================================================
+
+  /**
+   * Load sample texts from TSV file
+   */
+  private loadSampleTexts(): void {
+    if (this.cachedSampleTexts) return;
+
+    const text = this.readFileIfExists("lexicons/sample-texts.tsv");
+    if (!text) { this.cachedSampleTexts = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const titleIdx = header.indexOf("title");
+    const textIdx = header.indexOf("text");
+    const translitIdx = header.indexOf("transliteration");
+    const transEnIdx = header.indexOf("translation_en");
+    const sourceIdx = header.indexOf("source");
+    const dateIdx = header.indexOf("date_composed");
+    const genreIdx = header.indexOf("genre");
+    const scriptIdx = header.indexOf("script");
+
+    this.cachedSampleTexts = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
+      text: textIdx >= 0 ? row[textIdx] || "" : "",
+      transliteration: translitIdx >= 0 ? (row[translitIdx] || "").trim() : "",
+      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
+      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
+      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
+      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
+
+  /**
+   * Get sample texts with optional filtering
+   */
+  async getSampleTexts(filters?: {
+    languageId?: string;
+    genre?: string;
+    script?: string;
+  }): Promise<SampleText[]> {
+    this.loadSampleTexts();
+    let texts = this.cachedSampleTexts ?? [];
+
+    if (filters?.languageId) {
+      texts = texts.filter((t) => t.languageId === filters.languageId);
+    }
+
+    if (filters?.genre) {
+      texts = texts.filter((t) =>
+        t.genre.toLowerCase() === filters.genre!.toLowerCase()
+      );
+    }
+
+    if (filters?.script) {
+      texts = texts.filter((t) =>
+        t.script.toLowerCase() === filters.script!.toLowerCase()
+      );
+    }
+
+    return texts;
+  }
+
+  /**
+   * Get a single sample text by ID
+   */
+  async getSampleText(id: string): Promise<SampleText | null> {
+    this.loadSampleTexts();
+    return (this.cachedSampleTexts ?? []).find((t) => t.id === id) ?? null;
   }
 }
