@@ -170,3 +170,19 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Family tree uses `parentSystemId` to build hierarchy; multiple root nodes get wrapped in virtual root
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-027
+- Created `lexicons/verb-paradigms.tsv` with 94 entries across 43 languages
+- Columns: id, language_id, verb_concept, infinitive_form, conjugation_table (JSON), irregular (boolean), complexity_score, notes
+- Three verb concepts covered: 'to be' (40 entries), 'to go' (25 entries), 'to give' (29 entries)
+- Morphological type coverage: fusional (22 languages), agglutinative (7), isolating (5), polysynthetic (3), language isolates (2)
+- Historical languages included: lat, grc, san
+- Polysynthetic coverage: moh (Mohawk), ikt (Inuktitut), ain (Ainu)
+- Polypersonal verbs: kat (Georgian), eus (Basque), moh (Mohawk) show multi-argument agreement
+- Files changed: lexicons/verb-paradigms.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - conjugation_table JSON structure varies significantly by language type: fusional languages have tense/person grids, isolating languages have simple statement/negation pairs, polysynthetic languages may use agent>patient notation
+  - Armenian (hye) Unicode characters need careful handling — use Python Unicode escapes to avoid encoding issues
+  - complexity_score roughly correlates: polysynthetic (16-36), fusional (8-30), agglutinative (9-24), isolating (2-5)
+  - 'to give' is typologically interesting — it triggers ditransitive alignment, honorific systems (Korean), and polypersonal agreement (Basque, Georgian)
+---
