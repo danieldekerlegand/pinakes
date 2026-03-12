@@ -1,0 +1,27 @@
+# Ralph Progress Log
+Started: Thu Mar 12 02:32:13 CDT 2026
+
+## Codebase Patterns
+- TSV files live in `lexicons/` directory with tab-separated columns
+- Language IDs in `languages.tsv` use ISO 639-3 codes (e.g., `eng`, `cmn`, `arb`)
+- JSON arrays/objects are embedded directly in TSV fields (properly escaped with double quotes)
+- Typecheck command: `npm run check` (runs `tsc`)
+- Pre-existing type errors exist in the codebase; data-only TSV changes don't affect typecheck
+- Always validate language_id values against languages.tsv before committing
+
+---
+
+## 2026-03-12 - US-018
+- Created `lexicons/phonological-inventories.tsv` with 112 languages across all major families
+- Columns: id, language_id, consonants (JSON IPA array), vowels (JSON IPA array), tones (JSON array or null), phonotactic_patterns (JSON), syllable_structure, stress_system
+- Coverage: Indo-European (30), Sino-Tibetan (6), Afro-Asiatic (7), Niger-Congo (15), Austronesian (8), Uralic (8), Turkic (8), Dravidian (4), Japonic (1), Koreanic (1), Austroasiatic (2), Tai-Kadai (2), Mongolic (1), Eskimo-Aleut (1), Ainu (1), Basque (1), Yeniseian (1), Historical (7+), others
+- Historical languages included: lat, san, grc, got, ang, goh, peo, ave, non, chu, cop, sux, hit, akk, egy, pli
+- Click consonants included for zul and xho
+- Tonal data included for cmn, yue, wuu, nan, vie, tha, lao, yor, ewe, aka, lug, ibo, zul, xho, mya, bod
+- Files changed: lexicons/phonological-inventories.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Some common language codes (guj, mar, pan, urd, sin, que) are NOT in languages.tsv - always validate against actual IDs
+  - Use `awk -F'\t' 'NR>1{print $1}' lexicons/languages.tsv | sort` to get valid IDs
+  - JSON in TSV fields must be on a single line with no unescaped tabs
+  - The codebase has ~1099 languages in languages.tsv
+---
