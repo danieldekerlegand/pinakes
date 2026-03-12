@@ -186,3 +186,19 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - complexity_score roughly correlates: polysynthetic (16-36), fusional (8-30), agglutinative (9-24), isolating (2-5)
   - 'to give' is typologically interesting — it triggers ditransitive alignment, honorific systems (Korean), and polypersonal agreement (Basque, Georgian)
 ---
+
+## 2026-03-12 - US-028
+- Added `VerbParadigm` interface to `server/tsv-storage.ts` with fields: id, languageId, verbConcept, infinitiveForm, conjugationTable (parsed JSON), irregular (boolean), complexityScore (number), notes
+- Added `loadVerbParadigms()` private loader with JSON parsing for conjugationTable, boolean parsing for irregular, parseInt for complexityScore
+- Added `getVerbParadigms(languageId?, verbConcept?)`, `getVerbParadigmById(id)`, `getVerbParadigmsByLanguage(languageId)` methods
+- Note: `getVerbParadigmsByLanguage` returns an array (not single item) since a language has multiple verb paradigms (one per verb concept)
+- Added three API routes in `server/routes.ts`:
+  - `GET /api/verb-paradigms` (with optional `language_id`, `verb_concept` query params)
+  - `GET /api/verb-paradigms/:id`
+  - `GET /api/languages/:id/verb-paradigms`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Verb paradigms are 1-to-many per language (multiple verb concepts per language), unlike grammar-features which is 1-to-1 — so the `byLanguage` method returns an array, not a single item
+  - `conjugationTable` JSON structure varies wildly by language type — parsed as `Record<string, unknown>` for flexibility
+  - Pre-existing type errors (19) remain unchanged; server changes don't affect them
+---
