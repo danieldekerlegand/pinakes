@@ -5,6 +5,8 @@ import {
   createZoomBehavior,
   getFamilyColor,
 } from '../../lib/visualization/d3-helpers';
+import { exportSVG, exportPNG } from '../../lib/visualization/export-utils';
+import { Download } from 'lucide-react';
 
 export interface EtymologyNode {
   word: string;
@@ -208,6 +210,23 @@ export function EtymologyTreeVisualization({ treeData, onNodeClick }: EtymologyT
   }
   collectLanguages(treeData);
 
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport(format: 'svg' | 'png') {
+    if (!svgRef.current || exporting) return;
+    setExporting(true);
+    try {
+      const filename = 'etymology-tree.' + format;
+      if (format === 'svg') {
+        exportSVG(svgRef.current, filename);
+      } else {
+        await exportPNG(svgRef.current, filename);
+      }
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div ref={containerRef} className="w-full h-full relative bg-gray-50 rounded-lg">
       <svg
@@ -232,6 +251,27 @@ export function EtymologyTreeVisualization({ treeData, onNodeClick }: EtymologyT
           <div className="text-xs text-blue-600 mt-1">Click to trace this word</div>
         </div>
       )}
+      {/* Export buttons */}
+      <div className="absolute top-3 left-3 flex gap-1">
+        <button
+          onClick={function() { handleExport('svg'); }}
+          disabled={exporting}
+          className="flex items-center gap-1 bg-white/90 hover:bg-white border rounded px-2 py-1 text-xs text-gray-700 shadow-sm"
+          title="Export as SVG"
+        >
+          <Download className="h-3 w-3" />
+          SVG
+        </button>
+        <button
+          onClick={function() { handleExport('png'); }}
+          disabled={exporting}
+          className="flex items-center gap-1 bg-white/90 hover:bg-white border rounded px-2 py-1 text-xs text-gray-700 shadow-sm"
+          title="Export as PNG"
+        >
+          <Download className="h-3 w-3" />
+          PNG
+        </button>
+      </div>
       {/* Legend */}
       <div className="absolute top-3 right-3 bg-white/90 rounded-lg border px-3 py-2 text-xs space-y-1 max-h-40 overflow-y-auto">
         <div className="font-medium text-gray-700 mb-1">Languages</div>
