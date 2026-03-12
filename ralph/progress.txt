@@ -13,6 +13,8 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - API route pattern: try/catch, list endpoints return `{ items, count, filters }`, single-item endpoints return object or 404
 - Etymology relation direction: source_word is derived FROM target_word — ancestors go source→target, descendants go target→source
 - Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
+- TypeScript target doesn't support `\p{L}` regex or `for..of` on Map/Set — use explicit Unicode ranges and `.forEach()` instead
+- Text analysis service: `analyzeTextOrigins` from `server/services/text-etymology-analyzer.ts`
 
 ---
 
@@ -105,4 +107,20 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - The trace endpoint supports `?direction=descendants` to reverse the trace direction
   - `cognate` relations are excluded from tracing since they're peer relationships, not parent-child
   - Route ordering: `/trace/:word` and `/word/:word` don't conflict since Express matches the static segment (`trace` vs `word`) before the param
+---
+
+## 2026-03-12 - US-007
+- Created `server/services/text-etymology-analyzer.ts` with `tokenize` and `analyzeTextOrigins` functions
+- `tokenize(text, language)` splits text into normalized lowercase words, stripping punctuation
+- `analyzeTextOrigins(text, language)` tokenizes text, traces each word to its oldest known ancestor language via etymology relations, groups by origin language with counts and percentages
+- Returns structure: `{ totalWords, analyzedWords, unknownWords, origins: [{ language, languageName, count, percentage, words }] }`
+- Added `POST /api/text-analysis/origins` endpoint accepting `{ text, language }` body
+- Registered route in `server/routes.ts`
+- Files changed: `server/services/text-etymology-analyzer.ts` (created), `server/routes.ts`
+- **Learnings for future iterations:**
+  - TypeScript target doesn't support `\p{L}` Unicode property escapes in regex — use explicit Unicode ranges instead
+  - TypeScript target doesn't support `for..of` on Map/Set — use `.forEach()` instead
+  - Word origin tracing caches per unique word to avoid redundant recursive lookups
+  - The analyzer checks both source and target positions in relations to determine if a word exists in the dataset
+  - Pre-existing typecheck errors (19) remain unchanged in visualization/map components
 ---
