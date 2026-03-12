@@ -549,3 +549,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Enhanced service caches phonological and grammar data in module-level Maps for fast repeated lookups
   - The `Array.from(set)` pattern is still needed when iterating Sets due to TypeScript target constraints
 ---
+
+## 2026-03-12 - US-047
+- Implemented genetic-linguistic correlation map layer
+- Created server service (`server/services/genetic-linguistic-correlation.ts`) that computes correlation scores between haplogroup distributions and language families based on geographic overlap
+- Created map layer component (`client/src/components/visualizations/map-layers/GeneticLinguisticCorrelationLayer.tsx`) rendering haplogroup zones as shaded circles with correlation score visualization
+- Added Y-chromosome / mtDNA toggle filter in the map UI
+- Added `genetic-linguistic-correlation` layer type and config to geospatial-types.ts
+- Added `Genetic-Linguistic` preset to LAYER_PRESETS
+- Added GET /api/genetic-linguistic-correlations endpoint to server routes
+- Notable divergences (e.g., Hungarian/Uralic + R1b, Turkish/Turkic + J2) highlighted with dashed-line annotations
+- Files changed: geospatial-types.ts, EnhancedLanguageMapView.tsx, GeneticLinguisticCorrelationLayer.tsx (new), genetic-linguistic-correlation.ts (new), routes.ts
+- **Learnings for future iterations:**
+  - The `storage` object from routes.ts needs `as any` cast when passing to services that expect `TsvStorage` type directly
+  - LanguageFamily type comes from shared/schema.ts, has `region` field for geographic association
+  - Haplogroup data has `associatedLanguageFamilyIds` linking directly to family IDs in families.tsv
+  - Circle (react-leaflet) is better than CircleMarker for km-radius geographic zones; CircleMarker uses pixel radius
+  - The filter state for sub-layer toggles (like Y-DNA/mtDNA) can be managed via React.useState in the parent and passed down as props
+---
