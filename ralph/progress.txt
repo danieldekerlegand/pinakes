@@ -578,3 +578,17 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `origin_date` uses negative numbers for BCE dates (e.g., -3500 for 3500 BCE)
   - Categories are: pottery, metallurgy, agriculture, tools, textiles, architecture
 ---
+
+## 2026-03-12 - US-049
+- Implemented MaterialCulture interface and TSV loader in server/tsv-storage.ts
+- Added GET /api/material-culture (with category filter) and GET /api/material-culture/:id endpoints in routes.ts
+- Created MaterialCultureWaveLayer.tsx with animated concentric wave spread visualization from origin points
+- Integrated wave layer into EnhancedLanguageMapView with timeline-based filtering (currentYear)
+- Fixed heatmap layer to use correct 'material-culture-heatmap' layer ID
+- Files changed: server/tsv-storage.ts, server/routes.ts, client/src/components/visualizations/EnhancedLanguageMapView.tsx, client/src/components/visualizations/map-layers/MaterialCultureWaveLayer.tsx
+- **Learnings for future iterations:**
+  - The /api/map/material-cultures endpoint returns `{ distributions, metadata }` not a GeoJSON FeatureCollection - don't use MaterialCultureCollection type for it
+  - The material-culture TSV file is at lexicons/material-culture.tsv (singular), not material-cultures.tsv
+  - Layer IDs 'material-culture' and 'material-culture-heatmap' are separate layers in DEFAULT_LAYER_CONFIGS
+  - spread_data JSON field uses snake_case keys (associated_civilization) which need camelCase mapping
+---

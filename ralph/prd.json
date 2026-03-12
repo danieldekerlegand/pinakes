@@ -524,7 +524,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 32,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5 - US-5.01 API + UI."
     },
     {
