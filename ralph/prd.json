@@ -258,7 +258,7 @@
         "Typecheck passes"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3 - US-3.03 API."
     },
     {
@@ -272,7 +272,7 @@
         "Typecheck passes"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 3 - US-3.04 data."
     },
     {

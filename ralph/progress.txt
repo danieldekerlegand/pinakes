@@ -270,3 +270,33 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Some routes have empty `associated_languages` (e.g., prehistoric migrations) — valid for pre-language-family events
   - Pre-existing type errors (5) remain unchanged; data-only TSV changes don't affect typecheck
 ---
+
+## 2026-03-12 - US-034
+- Created `lexicons/battles.tsv` with 53 historically significant battles spanning from -1274 BCE to 1954 CE
+- Columns: id, name, date, coordinates (lat/lng JSON), belligerents (JSON array of {name, civilization_id}), outcome, casualties_estimate, significance, associated_language_changes, war_name
+- Continental coverage: Europe (25+), Middle East/North Africa (10+), Asia (8), Americas (5), Africa (5)
+- Key language-shift battles included: Hastings (Norman French→English), Constantinople 1453 (Greek→Turkish), Tenochtitlan (Nahuatl→Spanish), Alesia (Celtic→Latin), Yarmouk (Greek/Aramaic→Arabic), Talas (Chinese→Arabic/Turkic influence)
+- All civilization_id references validated against civilizations.tsv (null used for non-cataloged civilizations)
+- All coordinate JSON and belligerent JSON validated
+- Files changed: lexicons/battles.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Battles use `coordinates` as `[lat, lng]` (NOT GeoJSON `[lng, lat]` order) — different from civilization-boundaries and migration-routes
+  - `belligerents` uses `civilization_id: null` for civilizations not in civilizations.tsv (e.g., Germanic tribes, Crusader states)
+  - `date` is a simple year string (negative for BCE) — simpler than migration-routes date format
+  - Pre-existing type errors unchanged; data-only TSV changes don't affect typecheck
+---
+
+## 2026-03-12 - US-033
+- Added `MigrationRoute` interface to `server/tsv-storage.ts` with fields: id, name, routeType, waypoints (parsed GeoJSON), startDate, endDate, peoples (JSON array), associatedLanguages (JSON array), description, consequences
+- Added `loadMigrationRoutes()` private loader with JSON parsing for waypoints, peoples, and associatedLanguages fields
+- Added `getMigrationRoutes(routeType?, startDate?, endDate?)` and `getMigrationRouteById(id)` methods
+- Added two API routes in `server/routes.ts`:
+  - `GET /api/migration-routes` (with optional `route_type`, `start_date`, `end_date` query params)
+  - `GET /api/migration-routes/:id`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Migration routes use GeoJSON LineString for waypoints (unlike civilizations which use Polygon)
+  - `startDate` and `endDate` are strings (can be negative for BCE dates like "-70000") — string comparison works for filtering
+  - Migration routes API returns `{ routes: [...], count: N }` — consistent with other collection endpoints
+  - Pre-existing type errors (19 originally, now showing various client-side issues) remain unchanged; server changes don't affect them
+---
