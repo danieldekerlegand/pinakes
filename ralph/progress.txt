@@ -515,3 +515,23 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Haplogroup uses `associatedLanguageFamilyIds` (not `associatedLanguageIds`) — these are family IDs, not language IDs
   - Pre-existing type errors (21) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-045
+- Created `CorrelationExplorerPanel` component (`client/src/components/correlation-explorer-panel.tsx`) with:
+  - Query builder UI: select two domains (language, cuisine, music, religion, haplogroup, civilization) and relationship type (co-occurrence, temporal-correlation, geographic-overlap)
+  - Sankey diagram visualization using D3: flow between domain entities with color-coded nodes/links, thickness proportional to correlation score
+  - Scatter plot visualization: entity pairs plotted by score with mean line, hover tooltips, click-to-select
+  - Pre-built "interesting queries" section with 4 one-click queries from the API
+  - Narrative mode: scholarly explanations for each pre-built query (IE/R1b, Islam/Arabic, Austronesian/outrigger, Roman roads/Romance)
+  - Correlation list with score bars, expandable evidence details
+  - View mode toggle between Sankey and Scatter visualizations
+- Added Combine icon button to dashboard header navigation for opening the panel
+- Wired panel into dashboard with `correlationExplorerOpen` state
+- Files changed: client/src/components/correlation-explorer-panel.tsx (new), client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - Cross-domain correlate is a POST endpoint (not GET) — use fetch with JSON body, not useQuery
+  - Prebuilt queries API returns `{ queries: [...], count: N }` — consistent with other collection endpoints
+  - Custom Sankey built with D3 paths (no d3-sankey plugin needed): split nodes into left/right by domain, cubic Bezier links
+  - Pre-existing type errors (21) remain unchanged; UI changes don't introduce new ones
+  - Manual browser verification needed (no dev-browser skill available)
+---

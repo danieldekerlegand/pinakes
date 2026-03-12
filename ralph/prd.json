@@ -455,7 +455,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 28,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.03 UI. Sankey diagram is a new visualization type - use D3 sankey plugin."
     },
     {
