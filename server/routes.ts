@@ -1193,6 +1193,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Cross-Domain Correlation API Routes (Phase 4)
+  // ============================================================================
+
+  const { CrossDomainCorrelation } = await import("./services/cross-domain-correlation");
+  const correlation = new CrossDomainCorrelation(storage);
+
+  /**
+   * POST /api/cross-domain/correlate - Compute correlations between two domains
+   */
+  app.post("/api/cross-domain/correlate", async (req, res) => {
+    try {
+      const { domainA, domainB, relationshipType } = req.body;
+      if (!domainA || !domainB || !relationshipType) {
+        res.status(400).json({
+          message: "Missing required fields: domainA, domainB, relationshipType",
+        });
+        return;
+      }
+
+      const result = await correlation.queryCorrelation(domainA, domainB, relationshipType);
+      res.json(result);
+    } catch (error) {
+      console.error("Error computing cross-domain correlation:", error);
+      res.status(500).json({
+        message: "Failed to compute correlation",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cross-domain/prebuilt-queries - Get list of pre-built correlation queries
+   */
+  app.get("/api/cross-domain/prebuilt-queries", async (_req, res) => {
+    try {
+      const queries = correlation.getPrebuiltQueries();
+      res.json({ queries, count: queries.length });
+    } catch (error) {
+      console.error("Error fetching prebuilt queries:", error);
+      res.status(500).json({
+        message: "Failed to fetch prebuilt queries",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Contribution API Routes (Phase 5)
   // ============================================================================
 
