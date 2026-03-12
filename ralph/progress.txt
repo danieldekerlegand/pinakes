@@ -233,3 +233,17 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
 ---
+
+## 2026-03-12 - US-013
+- Added SVG and PNG export buttons to the EtymologyTreeVisualization component
+- Reused existing `exportSVG` and `exportPNG` from `client/src/lib/visualization/export-utils.ts`
+- Export buttons positioned in top-left corner of the visualization (non-overlapping with legend in top-right)
+- Uses `lucide-react` Download icon for consistency with project UI patterns
+- Files changed: `client/src/components/visualizations/EtymologyTreeVisualization.tsx`
+- **Learnings for future iterations:**
+  - Export utilities path is `client/src/lib/visualization/export-utils.ts` (not `export.ts` as PRD suggested)
+  - `exportSVG` is synchronous, `exportPNG` is async — handle both in the export handler
+  - Adding export to a D3 visualization is straightforward since the component already has a `svgRef`
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
