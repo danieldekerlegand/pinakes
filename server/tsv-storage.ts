@@ -48,6 +48,22 @@ export interface GrammarFeatures {
   ergativity: string;
 }
 
+// Writing system types
+export interface WritingSystem {
+  id: string;
+  name: string;
+  type: string;
+  direction: string;
+  parentSystemId: string;
+  languageIds: string[];
+  originDate: string;
+  originRegion: string;
+  characterCount: number;
+  sampleCharacters: string;
+  unicodeBlock: string;
+  isActive: boolean;
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -196,6 +212,9 @@ export class TsvStorage {
 
   // Grammar features data cache
   private cachedGrammarFeatures: GrammarFeatures[] | null = null;
+
+  // Writing systems data cache
+  private cachedWritingSystems: WritingSystem[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1793,5 +1812,99 @@ export class TsvStorage {
   async getGrammarFeaturesByLanguage(languageId: string): Promise<GrammarFeatures | null> {
     this.loadGrammarFeatures();
     return (this.cachedGrammarFeatures ?? []).find((f) => f.languageId === languageId) ?? null;
+  }
+
+  /**
+   * Load writing systems from TSV file
+   */
+  private loadWritingSystems(): void {
+    if (this.cachedWritingSystems) return;
+
+    const text = this.readFileIfExists("lexicons/writing-systems.tsv");
+    if (!text) { this.cachedWritingSystems = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const typeIdx = header.indexOf("type");
+    const directionIdx = header.indexOf("direction");
+    const parentIdx = header.indexOf("parent_system_id");
+    const langIdsIdx = header.indexOf("language_ids");
+    const originDateIdx = header.indexOf("origin_date");
+    const originRegionIdx = header.indexOf("origin_region");
+    const charCountIdx = header.indexOf("character_count");
+    const sampleIdx = header.indexOf("sample_characters");
+    const unicodeIdx = header.indexOf("unicode_block");
+    const activeIdx = header.indexOf("is_active");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedWritingSystems = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      type: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      direction: directionIdx >= 0 ? row[directionIdx] || "" : "",
+      parentSystemId: parentIdx >= 0 ? row[parentIdx] || "" : "",
+      languageIds: parseArr(langIdsIdx, row),
+      originDate: originDateIdx >= 0 ? row[originDateIdx] || "" : "",
+      originRegion: originRegionIdx >= 0 ? row[originRegionIdx] || "" : "",
+      characterCount: charCountIdx >= 0 ? parseInt(row[charCountIdx] || "0", 10) || 0 : 0,
+      sampleCharacters: sampleIdx >= 0 ? row[sampleIdx] || "" : "",
+      unicodeBlock: unicodeIdx >= 0 ? row[unicodeIdx] || "" : "",
+      isActive: activeIdx >= 0 ? row[activeIdx] === "true" : false,
+    }));
+  }
+
+  /**
+   * Get all writing systems with optional filters
+   */
+  async getWritingSystems(type?: string, direction?: string, isActive?: string): Promise<WritingSystem[]> {
+    this.loadWritingSystems();
+    let systems = this.cachedWritingSystems ?? [];
+
+    if (type) {
+      systems = systems.filter((s) => s.type === type);
+    }
+    if (direction) {
+      systems = systems.filter((s) => s.direction === direction);
+    }
+    if (isActive !== undefined) {
+      const active = isActive === "true";
+      systems = systems.filter((s) => s.isActive === active);
+    }
+
+    return systems;
+  }
+
+  /**
+   * Get a single writing system by ID
+   */
+  async getWritingSystemById(id: string): Promise<WritingSystem | null> {
+    this.loadWritingSystems();
+    return (this.cachedWritingSystems ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  /**
+   * Get all writing systems descended from a given system
+   */
+  async getWritingSystemDescendants(id: string): Promise<WritingSystem[]> {
+    this.loadWritingSystems();
+    const all = this.cachedWritingSystems ?? [];
+    const descendants: WritingSystem[] = [];
+    const queue = [id];
+
+    while (queue.length > 0) {
+      const parentId = queue.shift()!;
+      const children = all.filter((s) => s.parentSystemId === parentId);
+      for (const child of children) {
+        descendants.push(child);
+        queue.push(child.id);
+      }
+    }
+
+    return descendants;
   }
 }

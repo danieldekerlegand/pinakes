@@ -1450,5 +1450,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/writing-systems - Get all writing systems
+   */
+  app.get("/api/writing-systems", async (req, res) => {
+    try {
+      const type = req.query.type as string | undefined;
+      const direction = req.query.direction as string | undefined;
+      const isActive = req.query.is_active as string | undefined;
+      const systems = await storage.getWritingSystems(type, direction, isActive);
+      res.json({
+        systems,
+        count: systems.length,
+      });
+    } catch (error) {
+      console.error("Error fetching writing systems:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing systems",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/writing-systems/:id - Get a single writing system
+   */
+  app.get("/api/writing-systems/:id", async (req, res) => {
+    try {
+      const system = await storage.getWritingSystemById(req.params.id);
+      if (!system) {
+        res.status(404).json({ message: `Writing system '${req.params.id}' not found` });
+        return;
+      }
+      res.json(system);
+    } catch (error) {
+      console.error("Error fetching writing system:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing system",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/writing-systems/:id/descendants - Get all descendants of a writing system
+   */
+  app.get("/api/writing-systems/:id/descendants", async (req, res) => {
+    try {
+      const parent = await storage.getWritingSystemById(req.params.id);
+      if (!parent) {
+        res.status(404).json({ message: `Writing system '${req.params.id}' not found` });
+        return;
+      }
+      const descendants = await storage.getWritingSystemDescendants(req.params.id);
+      res.json({
+        parent,
+        descendants,
+        count: descendants.length,
+      });
+    } catch (error) {
+      console.error("Error fetching writing system descendants:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing system descendants",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
