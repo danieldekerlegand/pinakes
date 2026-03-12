@@ -9,6 +9,8 @@ import { ArchaeologicalSitesLayer } from './map-layers/ArchaeologicalSitesLayer'
 import { CivilizationLayer } from './map-layers/CivilizationLayer';
 import { RoutesLayer } from './map-layers/RoutesLayer';
 import { MaterialCultureHeatmap } from './map-layers/MaterialCultureHeatmap';
+import { MaterialCultureWaveLayer } from './map-layers/MaterialCultureWaveLayer';
+import type { MaterialCultureItem } from './map-layers/MaterialCultureWaveLayer';
 import { CuisineLayer } from './map-layers/CuisineLayer';
 import type { CuisineFeature } from './map-layers/CuisineLayer';
 import { MusicTraditionLayer } from './map-layers/MusicTraditionLayer';
@@ -45,7 +47,6 @@ import type {
   HistoricalRouteFeature,
   HistoricalRouteCollection,
   MaterialCultureDistribution,
-  MaterialCultureCollection,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
 
@@ -117,11 +118,18 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('routes'),
   });
 
-  // Fetch material cultures data
-  const { data: materialCulturesData, isLoading: loadingMaterialCultures } = useQuery<MaterialCultureCollection>({
+  // Fetch material cultures heatmap data
+  const { data: materialCulturesData, isLoading: loadingMaterialCultures } = useQuery<{ distributions: MaterialCultureDistribution[]; metadata: unknown }>({
     queryKey: ['/api/map/material-cultures'],
     staleTime: 5 * 60 * 1000,
-    enabled: isLayerVisible('material-cultures'),
+    enabled: isLayerVisible('material-culture-heatmap'),
+  });
+
+  // Fetch material culture items for wave visualization
+  const { data: materialCultureItemsData, isLoading: loadingMaterialCultureItems } = useQuery<{ items: MaterialCultureItem[]; count: number }>({
+    queryKey: ['/api/material-culture'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('material-culture'),
   });
 
   // Fetch cuisines data with temporal filtering
@@ -241,6 +249,10 @@ export function EnhancedLanguageMapView({
     }
     return sampleMaterialCultureDistributions;
   }, [materialCulturesData]);
+
+  const materialCultureItems = useMemo(() => {
+    return materialCultureItemsData?.items ?? [];
+  }, [materialCultureItemsData]);
 
   // Cuisine data (already filtered by year on server)
   const filteredCuisines = useMemo(() => {
@@ -394,7 +406,8 @@ export function EnhancedLanguageMapView({
     (loadingSites && isLayerVisible('archaeological-sites')) ||
     (loadingCivilizations && isLayerVisible('civilizations')) ||
     (loadingRoutes && isLayerVisible('routes')) ||
-    (loadingMaterialCultures && isLayerVisible('material-cultures')) ||
+    (loadingMaterialCultures && isLayerVisible('material-culture-heatmap')) ||
+    (loadingMaterialCultureItems && isLayerVisible('material-culture')) ||
     (loadingCuisines && isLayerVisible('cuisines')) ||
     (loadingMusic && isLayerVisible('music')) ||
     (loadingReligions && isLayerVisible('religions')) ||
@@ -469,11 +482,23 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Material Culture Wave Layer */}
+        {isLayerVisible('material-culture') && materialCultureItems.length > 0 && (
+          <MaterialCultureWaveLayer
+            items={materialCultureItems}
+            opacity={getLayerConfig('material-culture')?.opacity || 0.7}
+            currentYear={currentYear}
+            onItemClick={handleFeatureClick}
+            selectedItemId={selectedFeatureId}
+            animationEnabled={isPlaying}
+          />
+        )}
+
         {/* Material Culture Heatmap */}
-        {isLayerVisible('material-cultures') && filteredMaterialCultures.length > 0 && (
+        {isLayerVisible('material-culture-heatmap') && filteredMaterialCultures.length > 0 && (
           <MaterialCultureHeatmap
             distributions={filteredMaterialCultures}
-            opacity={getLayerConfig('material-cultures')?.opacity || 0.6}
+            opacity={getLayerConfig('material-culture-heatmap')?.opacity || 0.6}
           />
         )}
 

@@ -815,6 +815,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all material culture items with optional category filter
+  app.get("/api/material-culture", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const filters = {
+        category: category as string | undefined,
+      };
+      const items = await storage.getMaterialCultures(filters);
+      res.json({ items, count: items.length });
+    } catch (error) {
+      console.error("Error fetching material culture:", error);
+      res.status(500).json({
+        message: "Failed to fetch material culture",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Get a single material culture item by ID
+  app.get("/api/material-culture/:id", async (req, res) => {
+    try {
+      const item = await storage.getMaterialCultureById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Material culture item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching material culture item:", error);
+      res.status(500).json({
+        message: "Failed to fetch material culture item",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Bulk endpoint to fetch multiple layer types at once
   app.post("/api/map/features", async (req, res) => {
     try {

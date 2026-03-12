@@ -219,6 +219,25 @@ export interface CuisineItem {
   timeEnd: number | null;
 }
 
+// Material culture types
+export interface MaterialCultureSpreadEvent {
+  date: number;
+  coordinates: [number, number];
+  associatedCivilization: string;
+}
+
+export interface MaterialCulture {
+  id: string;
+  name: string;
+  category: string;
+  originDate: number;
+  originCoordinates: [number, number];
+  spreadData: MaterialCultureSpreadEvent[];
+  description: string;
+  associatedLanguages: string[];
+  significance: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -263,6 +282,7 @@ export class TsvStorage {
   private cachedCivilizations: CivilizationFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
   private cachedMaterialCultureDistributions: MaterialCultureDistribution[] | null = null;
+  private cachedMaterialCultures: MaterialCulture[] | null = null;
 
   // Haplogroup data cache
   private cachedHaplogroups: Haplogroup[] | null = null;
@@ -1121,8 +1141,81 @@ export class TsvStorage {
   }
 
   /**
+   * Load material culture data from TSV file
+   */
+  private loadMaterialCultures(): void {
+    if (this.cachedMaterialCultures) return;
+
+    const text = this.readFileIfExists("lexicons/material-culture.tsv");
+    if (!text) { this.cachedMaterialCultures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const originDateIdx = getIdx(header, "origin_date");
+    const originCoordsIdx = getIdx(header, "origin_coordinates");
+    const spreadIdx = getIdx(header, "spread_data");
+    const descIdx = header.indexOf("description");
+    const langIdx = header.indexOf("associated_languages");
+    const sigIdx = header.indexOf("significance");
+
+    this.cachedMaterialCultures = rows.map((row) => {
+      let originCoords: [number, number] = [0, 0];
+      try { originCoords = JSON.parse(row[originCoordsIdx]); } catch {}
+
+      let spreadData: MaterialCultureSpreadEvent[] = [];
+      try {
+        spreadData = JSON.parse(row[spreadIdx]).map((e: any) => ({
+          date: e.date,
+          coordinates: e.coordinates as [number, number],
+          associatedCivilization: e.associated_civilization || "",
+        }));
+      } catch {}
+
+      const langStr = langIdx >= 0 ? row[langIdx] || "" : "";
+      const associatedLanguages = langStr ? langStr.split(",").map((s: string) => s.trim()) : [];
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        category: row[categoryIdx] || "unknown",
+        originDate: parseInt(row[originDateIdx], 10) || 0,
+        originCoordinates: originCoords,
+        spreadData,
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        associatedLanguages,
+        significance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get all material cultures with optional category filter
+   */
+  async getMaterialCultures(filters?: {
+    category?: string;
+  }): Promise<MaterialCulture[]> {
+    this.loadMaterialCultures();
+    let items = this.cachedMaterialCultures ?? [];
+
+    if (filters?.category) {
+      items = items.filter((mc) => mc.category === filters.category);
+    }
+
+    return items;
+  }
+
+  /**
+   * Get a single material culture by ID
+   */
+  async getMaterialCultureById(id: string): Promise<MaterialCulture | null> {
+    this.loadMaterialCultures();
+    return (this.cachedMaterialCultures ?? []).find((mc) => mc.id === id) ?? null;
+  }
+
+  /**
    * Get material culture distributions for heatmap
-   * Note: Returns empty until lexicons/material-cultures.tsv is populated
    */
   async getMaterialCultureDistributions(filters?: {
     timeStart?: number;
@@ -1130,8 +1223,64 @@ export class TsvStorage {
     bbox?: string;
     cultureTypes?: string[];
   }): Promise<MaterialCultureDistribution[]> {
-    // No TSV data yet for material cultures
-    return [];
+    this.loadMaterialCultures();
+    const cultures = this.cachedMaterialCultures ?? [];
+
+    const distributions: MaterialCultureDistribution[] = [];
+
+    for (const mc of cultures) {
+      if (filters?.cultureTypes && filters.cultureTypes.length > 0) {
+        if (!filters.cultureTypes.includes(mc.category)) continue;
+      }
+
+      // Add origin point
+      const originInRange =
+        (!filters?.timeStart || mc.originDate >= filters.timeStart) &&
+        (!filters?.timeEnd || mc.originDate <= filters.timeEnd);
+
+      if (originInRange) {
+        distributions.push({
+          lat: mc.originCoordinates[0],
+          lng: mc.originCoordinates[1],
+          intensity: 1.0,
+          cultureId: mc.id,
+          timePeriod: {
+            start: mc.originDate,
+            end: mc.spreadData.length > 0
+              ? mc.spreadData[mc.spreadData.length - 1].date
+              : null,
+            label: mc.name,
+          },
+        });
+      }
+
+      // Add spread points
+      for (const spread of mc.spreadData) {
+        const inRange =
+          (!filters?.timeStart || spread.date >= filters.timeStart) &&
+          (!filters?.timeEnd || spread.date <= filters.timeEnd);
+
+        if (inRange) {
+          // Intensity decreases with distance from origin in time
+          const timeDiff = Math.abs(spread.date - mc.originDate);
+          const intensity = Math.max(0.2, 1.0 - timeDiff / 10000);
+
+          distributions.push({
+            lat: spread.coordinates[0],
+            lng: spread.coordinates[1],
+            intensity,
+            cultureId: mc.id,
+            timePeriod: {
+              start: spread.date,
+              end: null,
+              label: `${mc.name} - ${spread.associatedCivilization}`,
+            },
+          });
+        }
+      }
+    }
+
+    return distributions;
   }
 
   // ============================================================================
