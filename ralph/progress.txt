@@ -66,3 +66,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Available IPA mappings: ~100+ consonants and ~30 vowels mapped to chart positions
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-021
+- Created `lexicons/grammar-features.tsv` with 105 languages across all major typological profiles
+- Columns: id, language_id, word_order, morphological_type, case_system (JSON), gender_system (JSON), number_system (JSON), tense_aspect_mood (JSON), agreement_system, negation_strategy, question_formation, relative_clause_strategy, noun_class_count, verb_valency_changes (JSON), evidentiality, ergativity
+- Morphological type coverage: fusional (49), agglutinative (41), isolating (11), polysynthetic (4)
+- Word order coverage: SVO (49), SOV (38), VSO (8), V2 variants (8), free (1)
+- Ergativity coverage: nominative-accusative (majority), ergative-absolutive (eus, ikt, ale, abk, ady), split-ergative (kat, hin, sux), none (isolating languages)
+- Evidentiality systems included: Turkish (-mIş), Bulgarian (renarrated mood), Estonian (quotative mood)
+- Historical languages: lat, san, grc, ang, got, non, peo, akk, sux, hit, egy
+- Polysynthetic languages: moh (Mohawk), ain (Ainu), ikt (Inuktitut), ady (Adyghe)
+- Files changed: lexicons/grammar-features.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - The `case_system` JSON field can range from `["none"]` for isolating languages to 15+ cases for Finnish/Estonian
+  - Amharic (amh) aspects include "gerundive" — careful with JSON array syntax in TAM field
+  - Some languages have complex alignment: Georgian is split-ergative, Basque is fully ergative-absolutive
+  - Noun class counts vary widely: 0 for most, 10-26 for Bantu and Niger-Congo languages
+  - `ekk` is Estonian (not `est`), `srb` is Serbian (not `srp`), `arb` is Standard Arabic (not `ara`) in this dataset
+---
