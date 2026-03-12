@@ -12,6 +12,14 @@ import {
   calculateGeographicDistance,
   getAvailableLanguageIds,
 } from "./services/linguistic-distance-calculator";
+import {
+  computeEnhancedDistance,
+  computePhonologicalDistance,
+  computeGrammaticalDistance,
+  findNearestByDimension,
+  type ComparisonMode,
+  type EnhancedPairwiseResult,
+} from "./services/linguistic-distance-enhanced";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -527,6 +535,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching available languages:", error);
       res.status(500).json({
         message: "Failed to fetch available languages",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Enhanced Linguistic Distance Endpoints (multi-dimensional)
+  // ============================================================================
+
+  // Enhanced pairwise distance with comparison modes
+  app.post("/api/linguistic-distance/enhanced/pairwise", async (req, res) => {
+    try {
+      const { language1Id, language2Id, mode } = req.body;
+
+      if (!language1Id || !language2Id) {
+        return res.status(400).json({
+          message: "Both language1Id and language2Id are required"
+        });
+      }
+
+      const validModes: ComparisonMode[] = ['vocabulary', 'phonological', 'grammatical', 'combined'];
+      const selectedMode: ComparisonMode = validModes.includes(mode) ? mode : 'combined';
+
+      const languages = await storage.getLanguages();
+      const lang1 = languages.find(l => l.id === language1Id);
+      const lang2 = languages.find(l => l.id === language2Id);
+
+      if (!lang1 || !lang2) {
+        return res.status(404).json({ message: "One or both languages not found" });
+      }
+
+      // Get vocabulary distance if needed
+      let vocabDistance: number | undefined;
+      if (selectedMode === 'vocabulary' || selectedMode === 'combined') {
+        try {
+          const pairwise = await calculatePairwiseDistance(lang1, lang2);
+          vocabDistance = pairwise.lexical.ldnd >= 0 ? pairwise.lexical.ldnd : undefined;
+        } catch {
+          // vocabulary data might not be available
+        }
+      }
+
+      const result = await computeEnhancedDistance(language1Id, language2Id, vocabDistance);
+
+      // Build similarity description
+      const descriptions: string[] = [];
+      if (result.distances.grammatical !== null) {
+        const gramSim = Math.round((1 - result.distances.grammatical) * 100);
+        descriptions.push(`${gramSim}% similar grammatically`);
+      }
+      if (result.distances.phonological !== null) {
+        const phonSim = Math.round((1 - result.distances.phonological) * 100);
+        descriptions.push(`${phonSim}% similar phonologically`);
+      }
+      if (result.distances.vocabulary !== null && result.distances.vocabulary >= 0) {
+        const vocabSim = Math.round((1 - result.distances.vocabulary) * 100);
+        descriptions.push(`${vocabSim}% similar in vocabulary`);
+      }
+
+      res.json({
+        ...result,
+        language1: lang1,
+        language2: lang2,
+        mode: selectedMode,
+        description: descriptions.length > 0
+          ? `${lang1.name} and ${lang2.name} are ${descriptions.join(' but ')}`
+          : `Insufficient data to compare ${lang1.name} and ${lang2.name}`,
+      });
+    } catch (error) {
+      console.error("Error calculating enhanced pairwise distance:", error);
+      res.status(500).json({
+        message: "Failed to calculate enhanced distance",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Enhanced nearest neighbors filtered by dimension
+  app.get("/api/linguistic-distance/enhanced/nearest/:languageId", async (req, res) => {
+    try {
+      const { languageId } = req.params;
+      const k = parseInt(req.query.k as string) || 10;
+      const mode = (req.query.mode as ComparisonMode) || 'combined';
+
+      const validModes: ComparisonMode[] = ['vocabulary', 'phonological', 'grammatical', 'combined'];
+      if (!validModes.includes(mode)) {
+        return res.status(400).json({ message: "mode must be one of: vocabulary, phonological, grammatical, combined" });
+      }
+
+      if (k < 1 || k > 100) {
+        return res.status(400).json({ message: "k must be between 1 and 100" });
+      }
+
+      const languages = await storage.getLanguages();
+      const targetLanguage = languages.find(l => l.id === languageId);
+
+      if (!targetLanguage) {
+        return res.status(404).json({ message: "Language not found" });
+      }
+
+      // For vocabulary mode, use existing calculator
+      if (mode === 'vocabulary') {
+        const results = await findNearestLanguages(targetLanguage, languages, k);
+        res.json({
+          targetLanguage,
+          mode,
+          nearestLanguages: results.map(r => ({
+            language: r.language2,
+            distance: r.lexical.ldnd,
+          })),
+          count: results.length,
+        });
+        return;
+      }
+
+      const results = await findNearestByDimension(languageId, mode, k);
+
+      // Resolve language objects
+      const enrichedResults = results.map(r => ({
+        language: languages.find(l => l.id === r.languageId) || { id: r.languageId, name: r.languageId },
+        distance: r.distance,
+      }));
+
+      res.json({
+        targetLanguage,
+        mode,
+        nearestLanguages: enrichedResults,
+        count: enrichedResults.length,
+      });
+    } catch (error) {
+      console.error("Error finding enhanced nearest languages:", error);
+      res.status(500).json({
+        message: "Failed to find nearest languages",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
