@@ -411,3 +411,39 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Language contacts API returns `{ contacts: [...], count: N }` — consistent with other collection endpoints
   - Pre-existing type errors (19) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-040
+- Created `LanguageContactsPanel` component (`client/src/components/language-contacts-panel.tsx`) with:
+  - D3 force-directed network graph showing languages as nodes, contact events as directed edges
+  - Nodes sized by contact count, edges colored by contact_type (substrate=purple, superstrate=red, adstrate=blue, borrowing=green)
+  - Edge thickness represents intensity (heavy=4, moderate=2.5, light=1.5)
+  - Arrow markers on edges showing direction of influence
+  - Click edge to show contact details: type, intensity, time period, region, features transferred (phonological/lexical/grammatical), examples
+  - Draggable nodes with D3 force simulation
+  - Zoom/pan on the graph
+  - Filters: contact type, intensity, region
+  - Scrollable contact list below graph with type/intensity badges
+- Created `LanguageContactsLayer` map component (`client/src/components/visualizations/map-layers/LanguageContactsLayer.tsx`) with:
+  - Curved polylines between source/target language positions using quadratic Bezier approximation
+  - Lines colored by contact_type, weighted by intensity
+  - Substrate edges rendered with dashed lines
+  - Hover effect increases weight/opacity
+  - Popups showing contact details with feature transfer breakdown
+  - Language nodes as blue circle markers at coordinate positions
+- Added `language-contacts` layer type to `geospatial-types.ts` with DEFAULT_LAYER_CONFIGS entry (category: languages, zIndex: 180)
+- Added ArrowLeftRight icon button to dashboard header navigation for opening the panel
+- Integrated into `EnhancedLanguageMapView`:
+  - Language contacts data fetching from `/api/language-contacts`
+  - Language coordinate resolution from `/api/languages` (coordinates field)
+  - LanguageContactsLayer rendering inside MapContainer
+- Added language contacts legend entries to MapLegend
+- Files changed: client/src/components/language-contacts-panel.tsx (new), client/src/components/visualizations/map-layers/LanguageContactsLayer.tsx (new), client/src/lib/visualization/geospatial-types.ts, client/src/components/visualizations/EnhancedLanguageMapView.tsx, client/src/components/visualizations/map-layers/MapLegend.tsx, client/src/pages/dashboard.tsx, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Languages.tsv has latitude/longitude columns (21/22) but only ~97/1099 have coordinates populated — map overlay will only show contacts for languages with coords
+  - The `setStyle` in Leaflet event handlers causes TS errors (same as RoutesLayer, ArchaeologicalSitesLayer) — pre-existing Leaflet type issue, works at runtime
+  - D3 force simulation needs cleanup on unmount (return stop function from useEffect) to prevent memory leaks
+  - Curved polylines between languages use quadratic Bezier approximation with 11 segments — perpendicular offset of 15% of distance
+  - Language contacts are directed (source→target) — arrow markers on edges help show direction of influence
+  - Pre-existing type errors (19) + 2 new identical `setStyle` pattern = 21 total — no new regression types
+  - Manual browser verification needed (no dev-browser skill available)
+---

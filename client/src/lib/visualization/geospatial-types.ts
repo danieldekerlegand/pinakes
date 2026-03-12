@@ -162,7 +162,8 @@ export type LayerType =
   | 'cuisines'
   | 'music'
   | 'religions'
-  | 'haplogroups';
+  | 'haplogroups'
+  | 'language-contacts';
 
 export type LayerCategory =
   | 'languages'
@@ -498,6 +499,21 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         size: 10,
         opacity: 0.7,
         strokeWeight: 2,
+      },
+    },
+  },
+  {
+    id: 'language-contacts',
+    type: 'language-contacts',
+    category: 'languages',
+    name: 'Language Contacts',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 180,
+    renderStyle: {
+      line: {
+        weight: 2,
+        opacity: 0.7,
       },
     },
   },

@@ -22,6 +22,8 @@ import { BattlesLayer } from './map-layers/BattlesLayer';
 import type { BattleFeature } from './map-layers/BattlesLayer';
 import { HaplogroupLayer } from './map-layers/HaplogroupLayer';
 import type { HaplogroupFeature } from './map-layers/HaplogroupLayer';
+import { LanguageContactsLayer } from './map-layers/LanguageContactsLayer';
+import type { LanguageContactFeature } from './map-layers/LanguageContactsLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -170,6 +172,26 @@ export function EnhancedLanguageMapView({
     },
   });
 
+  // Fetch language contacts data
+  const { data: languageContactsData, isLoading: loadingContacts } = useQuery<{ contacts: LanguageContactFeature[]; count: number }>({
+    queryKey: ['/api/language-contacts'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('language-contacts'),
+  });
+
+  // Fetch languages for coordinate resolution (needed by language contacts layer)
+  const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
+    queryKey: ['/api/languages'],
+    staleTime: 10 * 60 * 1000,
+    enabled: isLayerVisible('language-contacts'),
+    select: (data: any[]) =>
+      data.map((l: any) => ({
+        id: l.id,
+        name: l.name,
+        coordinates: l.coordinates || null,
+      })),
+  });
+
   // Use sample data as fallback when API returns empty data
   const allLanguageRanges = useMemo(() => {
     if (languageRangesData?.features && languageRangesData.features.length > 0) {
@@ -230,6 +252,29 @@ export function EnhancedLanguageMapView({
   const allHaplogroups = useMemo(() => {
     return haplogroupsData?.haplogroups ?? [];
   }, [haplogroupsData]);
+
+  // Language contacts data
+  const allLanguageContacts = useMemo(() => {
+    return languageContactsData?.contacts ?? [];
+  }, [languageContactsData]);
+
+  // Build language coordinate map for contacts layer
+  const languageCoordsMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; lat: number; lng: number }>();
+    if (languagesForCoords) {
+      for (const lang of languagesForCoords) {
+        if (lang.coordinates && Number.isFinite(lang.coordinates.lat) && Number.isFinite(lang.coordinates.lng)) {
+          map.set(lang.id, {
+            id: lang.id,
+            name: lang.name,
+            lat: lang.coordinates.lat,
+            lng: lang.coordinates.lng,
+          });
+        }
+      }
+    }
+    return map;
+  }, [languagesForCoords]);
 
   // Filter features by current time
   const filteredLanguageRanges = useMemo(() => {
@@ -336,7 +381,8 @@ export function EnhancedLanguageMapView({
     (loadingMusic && isLayerVisible('music')) ||
     (loadingReligions && isLayerVisible('religions')) ||
     (loadingBattles && isLayerVisible('battles')) ||
-    (loadingHaplogroups && isLayerVisible('haplogroups'));
+    (loadingHaplogroups && isLayerVisible('haplogroups')) ||
+    (loadingContacts && isLayerVisible('language-contacts'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -458,6 +504,16 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('haplogroups')?.opacity || 0.7}
             onHaplogroupClick={handleFeatureClick}
             selectedHaplogroupId={selectedFeatureId}
+          />
+        )}
+        {/* Language Contacts Layer */}
+        {isLayerVisible('language-contacts') && allLanguageContacts.length > 0 && (
+          <LanguageContactsLayer
+            contacts={allLanguageContacts}
+            languageCoords={languageCoordsMap}
+            opacity={getLayerConfig('language-contacts')?.opacity || 0.7}
+            onContactClick={handleFeatureClick}
+            selectedContactId={selectedFeatureId}
           />
         )}
       </MapContainer>

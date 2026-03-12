@@ -224,6 +224,31 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
                     <div className="text-xs text-gray-500 ml-5">Color by haplogroup type</div>
                   </div>
                 )}
+
+                {/* Language Contacts */}
+                {layer.type === 'language-contacts' && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="12" className="flex-shrink-0">
+                        <line x1="0" y1="6" x2="16" y2="6" stroke="#ef4444" strokeWidth="2" />
+                      </svg>
+                      <span className="text-xs text-gray-600">Superstrate</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="12" className="flex-shrink-0">
+                        <line x1="0" y1="6" x2="16" y2="6" stroke="#3b82f6" strokeWidth="2" />
+                      </svg>
+                      <span className="text-xs text-gray-600">Adstrate</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="16" height="12" className="flex-shrink-0">
+                        <line x1="0" y1="6" x2="16" y2="6" stroke="#8b5cf6" strokeWidth="2" strokeDasharray="4,2" />
+                      </svg>
+                      <span className="text-xs text-gray-600">Substrate</span>
+                    </div>
+                    <div className="text-xs text-gray-500 ml-5">Thickness = intensity</div>
+                  </div>
+                )}
               </div>
             ))}
 
