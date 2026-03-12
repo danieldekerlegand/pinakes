@@ -20,6 +20,7 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - New pages: create in `client/src/pages/`, add route in `App.tsx`, add nav button in dashboard header
 - Recharts: import directly from `recharts` (not via shadcn chart wrapper); use `PieChart` + `Pie` with `innerRadius` for donut charts, `Cell` for colors
 - shadcn Tooltip: import as `UITooltip` when Recharts `Tooltip` is also imported; pattern: `TooltipProvider` > `UITooltip` > `TooltipTrigger asChild` > `TooltipContent`
+- URL search params: use `new URLSearchParams(window.location.search)` — wouter doesn't handle search params natively
 
 ---
 
@@ -179,6 +180,20 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Import as `UITooltip` to avoid name collision with Recharts `Tooltip`
   - Text tokenization on client must match server tokenizer regex for word indices to align
   - `traceToOriginWithChain` returns both origin and chain, caching per unique word avoids redundant traces
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-011
+- Added "Analyze Etymology" button (FlaskConical icon) to each sample text card in language detail panel
+- Button navigates to `/text-analyzer?text=...&language=...` with URL-encoded text and language ID
+- Text Analyzer reads URL search params on mount, pre-fills text and language fields
+- Auto-triggers analysis via `useEffect` with `useRef` guard to prevent double-firing
+- Files changed: `client/src/components/language-detail-panel.tsx`, `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - wouter doesn't have built-in search param handling — use `new URLSearchParams(window.location.search)` directly
+  - URL params approach is cleaner than navigation state for cross-page pre-filling (survives page refresh)
+  - Use `useRef` flag to guard one-time auto-analysis in `useEffect` to prevent React strict mode double-firing
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
 ---
