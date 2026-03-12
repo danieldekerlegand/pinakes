@@ -535,3 +535,17 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pre-existing type errors (21) remain unchanged; UI changes don't introduce new ones
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-046
+- Created `server/services/linguistic-distance-enhanced.ts` with `computePhonologicalDistance`, `computeGrammaticalDistance`, `computeEnhancedDistance`, and `findNearestByDimension` functions
+- Added enhanced API endpoints: `POST /api/linguistic-distance/enhanced/pairwise` and `GET /api/linguistic-distance/enhanced/nearest/:languageId`
+- Upgraded `linguistic-distance-analyzer.tsx` with comparison mode selector (vocabulary/phonological/grammatical/combined), Recharts radar/spider chart for 2-language multi-dimensional profile, dimensional breakdown bars with detailed sub-metrics, and nearest-neighbors view filterable by dimension
+- Files changed: `server/services/linguistic-distance-enhanced.ts` (new), `server/routes.ts`, `client/src/components/linguistic-distance-analyzer.tsx`
+- **Learnings for future iterations:**
+  - Phonological distance uses Jaccard similarity on consonant/vowel inventories with tone/syllable/stress weighting
+  - Grammatical distance uses feature matching (word order, morphology, case, gender, TAM, etc.) with weighted combination
+  - Enhanced endpoints use `storage.getPhonologicalInventories()` and `storage.getGrammarFeatures()` with Map caching by languageId
+  - Recharts RadarChart needs `PolarGrid`, `PolarAngleAxis`, `PolarRadiusAxis`, and `Radar` components; wrap in `ResponsiveContainer`
+  - Enhanced service caches phonological and grammar data in module-level Maps for fast repeated lookups
+  - The `Array.from(set)` pattern is still needed when iterating Sets due to TypeScript target constraints
+---

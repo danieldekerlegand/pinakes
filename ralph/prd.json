@@ -474,7 +474,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 29,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.04. This extends the existing linguistic distance infrastructure. Depends on phonological inventories and grammar features data from Phase 2."
     },
     {
