@@ -59,3 +59,19 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Pre-existing typecheck errors remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
 ---
+
+## 2026-03-12 - US-004
+- Created `lexicons/etymology-relations.tsv` with 2354 etymological relationships
+- Columns: id, source_word, source_language, target_word, target_language, relation_type
+- Breakdown: 844 etymology, 835 cognate, 356 derived_from, 295 borrowed_from, 24 calque
+- Coverage: English from OE (100+), Latin/French (190+), Old Norse (65+), Greek (85+)
+- 835 cognate relationships across Indo-European (Germanic, Romance, Slavic, Indo-Aryan)
+- 295 borrowing relationships from Arabic, Japanese, Chinese, Korean, Turkish, Persian, Nahuatl, Hawaiian, Swahili, etc.
+- 132 non-Indo-European language relationships
+- Files changed: `lexicons/etymology-relations.tsv` (created)
+- **Learnings for future iterations:**
+  - Python script approach works well for generating large TSV datasets — keeps data organized and countable
+  - Pre-existing typecheck errors remain unchanged in visualization/map components
+  - The `cognate` relation is bidirectional conceptually but stored as a single row (source->target)
+  - Used real etymological data organized by section: OE->Eng, Latin->Romance, Norse->Eng, Greek->Latin->Eng, borrowings by source language
+---

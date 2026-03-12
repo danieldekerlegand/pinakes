@@ -70,7 +70,7 @@
         "Typecheck passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Model after the etymwn.tsv format from etymology-tree (rel:is_derived_from, rel:etymology, rel:etymological_origin_of) but normalized to our TSV schema."
     },
     {
