@@ -495,3 +495,23 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pre-existing type errors (21) remain unchanged; UI changes don't introduce new ones
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-044
+- Created `server/services/cross-domain-correlation.ts` with:
+  - `CrossDomainCorrelation` class with `queryCorrelation(domainA, domainB, relationshipType)` method
+  - Three analysis algorithms: co-occurrence (Jaccard similarity on shared language IDs), temporal-correlation (time overlap ratio with language boost), geographic-overlap (haversine distance + region matching)
+  - Domain loaders for language, cuisine, music, religion, haplogroup, civilization
+  - 4 pre-built queries: IE vs R1b, Islam vs Arabic loanwords, Austronesian vs outrigger canoe, Roman roads vs Romance boundaries
+  - `getPrebuiltQueries()` method returning seed queries
+- Added two API routes in `server/routes.ts`:
+  - `POST /api/cross-domain/correlate` accepting `{ domainA, domainB, relationshipType }` body
+  - `GET /api/cross-domain/prebuilt-queries` returning pre-built query list
+- Return structure: `{ domainA, domainB, correlations: [{ entityA, entityB, score, evidence }], summary }`
+- Files changed: server/services/cross-domain-correlation.ts (new), server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Existing `cross-domain-analysis.ts` handles entity search/connections; new `cross-domain-correlation.ts` handles domain-to-domain statistical correlations — different concerns
+  - CivilizationFeature is a GeoJSON Feature with `properties.civilizationId`, `properties.name`, `properties.timePeriod`, `properties.associatedLanguageIds`
+  - Language type has `coordinates?: { lat: number; lng: number } | null` (not separate lat/lng fields)
+  - Haplogroup uses `associatedLanguageFamilyIds` (not `associatedLanguageIds`) — these are family IDs, not language IDs
+  - Pre-existing type errors (21) remain unchanged; server changes don't affect them
+---

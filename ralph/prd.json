@@ -438,7 +438,7 @@
         "Typecheck passes"
       ],
       "priority": 27,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.03 backend."
     },
     {
