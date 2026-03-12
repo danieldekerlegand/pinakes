@@ -64,6 +64,20 @@ export interface WritingSystem {
   isActive: boolean;
 }
 
+// Battle types
+export interface Battle {
+  id: string;
+  name: string;
+  date: string;
+  coordinates: [number, number];
+  belligerents: Array<{ name: string; civilization_id: string | null }>;
+  outcome: string;
+  casualtiesEstimate: string;
+  significance: string;
+  associatedLanguageChanges: string;
+  warName: string;
+}
+
 // Migration route types
 export interface MigrationRoute {
   id: string;
@@ -244,6 +258,9 @@ export class TsvStorage {
 
   // Verb paradigms data cache
   private cachedVerbParadigms: VerbParadigm[] | null = null;
+
+  // Battles data cache
+  private cachedBattles: Battle[] | null = null;
 
   // Migration routes data cache
   private cachedMigrationRoutes: MigrationRoute[] | null = null;
@@ -2005,6 +2022,73 @@ export class TsvStorage {
   async getVerbParadigmsByLanguage(languageId: string): Promise<VerbParadigm[]> {
     this.loadVerbParadigms();
     return (this.cachedVerbParadigms ?? []).filter((p) => p.languageId === languageId);
+  }
+
+  // ── Battles ─────────────────────────────────────────────────────────
+
+  private loadBattles(): void {
+    if (this.cachedBattles) return;
+
+    const text = this.readFileIfExists("lexicons/battles.tsv");
+    if (!text) { this.cachedBattles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const dateIdx = header.indexOf("date");
+    const coordIdx = header.indexOf("coordinates");
+    const bellIdx = header.indexOf("belligerents");
+    const outcomeIdx = header.indexOf("outcome");
+    const casualtiesIdx = header.indexOf("casualties_estimate");
+    const sigIdx = header.indexOf("significance");
+    const langChangeIdx = header.indexOf("associated_language_changes");
+    const warIdx = header.indexOf("war_name");
+
+    this.cachedBattles = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      date: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      coordinates: (() => {
+        if (coordIdx < 0 || !row[coordIdx]) return [0, 0] as [number, number];
+        try { return JSON.parse(row[coordIdx]) as [number, number]; } catch { return [0, 0] as [number, number]; }
+      })(),
+      belligerents: (() => {
+        if (bellIdx < 0 || !row[bellIdx]) return [];
+        try { return JSON.parse(row[bellIdx]); } catch { return []; }
+      })(),
+      outcome: outcomeIdx >= 0 ? row[outcomeIdx] || "" : "",
+      casualtiesEstimate: casualtiesIdx >= 0 ? row[casualtiesIdx] || "" : "",
+      significance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+      associatedLanguageChanges: langChangeIdx >= 0 ? row[langChangeIdx] || "" : "",
+      warName: warIdx >= 0 ? row[warIdx] || "" : "",
+    }));
+  }
+
+  async getBattles(warName?: string, startDate?: string, endDate?: string, civilizationId?: string): Promise<Battle[]> {
+    this.loadBattles();
+    let battles = this.cachedBattles ?? [];
+
+    if (warName) {
+      battles = battles.filter((b) => b.warName === warName);
+    }
+    if (startDate) {
+      battles = battles.filter((b) => parseInt(b.date) >= parseInt(startDate));
+    }
+    if (endDate) {
+      battles = battles.filter((b) => parseInt(b.date) <= parseInt(endDate));
+    }
+    if (civilizationId) {
+      battles = battles.filter((b) =>
+        b.belligerents.some((belt) => belt.civilization_id === civilizationId)
+      );
+    }
+
+    return battles;
+  }
+
+  async getBattleById(id: string): Promise<Battle | null> {
+    this.loadBattles();
+    return (this.cachedBattles ?? []).find((b) => b.id === id) ?? null;
   }
 
   // ── Migration Routes ──────────────────────────────────────────────

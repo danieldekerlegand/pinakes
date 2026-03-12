@@ -1586,6 +1586,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/battles - Get all battles
+   */
+  app.get("/api/battles", async (req, res) => {
+    try {
+      const warName = req.query.war_name as string | undefined;
+      const startDate = req.query.start_date as string | undefined;
+      const endDate = req.query.end_date as string | undefined;
+      const civilizationId = req.query.civilization_id as string | undefined;
+      const battles = await storage.getBattles(warName, startDate, endDate, civilizationId);
+      res.json({
+        battles,
+        count: battles.length,
+      });
+    } catch (error) {
+      console.error("Error fetching battles:", error);
+      res.status(500).json({
+        message: "Failed to fetch battles",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/battles/:id - Get a single battle
+   */
+  app.get("/api/battles/:id", async (req, res) => {
+    try {
+      const battle = await storage.getBattleById(req.params.id);
+      if (!battle) {
+        res.status(404).json({ message: `Battle '${req.params.id}' not found` });
+        return;
+      }
+      res.json(battle);
+    } catch (error) {
+      console.error("Error fetching battle:", error);
+      res.status(500).json({
+        message: "Failed to fetch battle",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/migration-routes - Get all migration routes
    */
   app.get("/api/migration-routes", async (req, res) => {
