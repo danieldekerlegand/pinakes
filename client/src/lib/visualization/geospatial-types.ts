@@ -156,6 +156,7 @@ export type LayerType =
   | 'archaeological-sites'
   | 'civilizations'
   | 'routes'
+  | 'battles'
   | 'material-culture'
   | 'material-culture-heatmap'
   | 'cuisines'
@@ -378,6 +379,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       line: {
         weight: 3,
         opacity: 0.7,
+      },
+    },
+  },
+  {
+    id: 'battles',
+    type: 'battles',
+    category: 'archaeology',
+    name: 'Historical Battles',
+    visible: false,
+    opacity: 0.9,
+    zIndex: 300,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.9,
+        strokeWeight: 2,
       },
     },
   },

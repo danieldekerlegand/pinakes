@@ -46,9 +46,12 @@ export function TimeSlider({
   };
 
   const getEpochLabel = (year: number): string => {
-    if (year < -1000) return 'Ancient';
+    if (year < -3000) return 'Prehistoric';
+    if (year < -1200) return 'Bronze Age';
+    if (year < -500) return 'Iron Age';
     if (year < 500) return 'Classical';
     if (year < 1500) return 'Medieval';
+    if (year < 1800) return 'Early Modern';
     return 'Modern';
   };
 
@@ -165,10 +168,10 @@ export function TimeSlider({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 yr/s</SelectItem>
-                <SelectItem value="50">50 yr/s</SelectItem>
-                <SelectItem value="100">100 yr/s</SelectItem>
-                <SelectItem value="200">200 yr/s</SelectItem>
+                <SelectItem value="1">1x</SelectItem>
+                <SelectItem value="5">5x</SelectItem>
+                <SelectItem value="10">10x</SelectItem>
+                <SelectItem value="50">50x</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -184,10 +187,10 @@ export function TimeSlider({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 years</SelectItem>
-                <SelectItem value="50">50 years</SelectItem>
-                <SelectItem value="100">100 years</SelectItem>
-                <SelectItem value="200">200 years</SelectItem>
+                <SelectItem value="10">Decade</SelectItem>
+                <SelectItem value="25">25 years</SelectItem>
+                <SelectItem value="50">Half century</SelectItem>
+                <SelectItem value="100">Century</SelectItem>
               </SelectContent>
             </Select>
           </div>

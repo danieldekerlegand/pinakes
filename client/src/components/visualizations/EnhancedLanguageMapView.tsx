@@ -18,6 +18,9 @@ import type { ReligionFeature } from './map-layers/ReligionLayer';
 import { TimeSlider } from './map-layers/TimeSlider';
 import { LayerPanel } from './map-layers/LayerPanel';
 import { MapLegend } from './map-layers/MapLegend';
+import { BattlesLayer } from './map-layers/BattlesLayer';
+import type { BattleFeature } from './map-layers/BattlesLayer';
+import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
   sampleLanguageRanges,
@@ -134,6 +137,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('religions'),
   });
 
+  // Fetch battles data
+  const { data: battlesData, isLoading: loadingBattles } = useQuery<{ battles: BattleFeature[]; count: number }>({
+    queryKey: ['/api/battles'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('battles'),
+  });
+
   // Use sample data as fallback when API returns empty data
   const allLanguageRanges = useMemo(() => {
     if (languageRangesData?.features && languageRangesData.features.length > 0) {
@@ -184,6 +194,11 @@ export function EnhancedLanguageMapView({
   const filteredReligions = useMemo(() => {
     return religionsData?.religions ?? [];
   }, [religionsData]);
+
+  // Battles data
+  const allBattles = useMemo(() => {
+    return battlesData?.battles ?? [];
+  }, [battlesData]);
 
   // Filter features by current time
   const filteredLanguageRanges = useMemo(() => {
@@ -288,7 +303,8 @@ export function EnhancedLanguageMapView({
     (loadingMaterialCultures && isLayerVisible('material-cultures')) ||
     (loadingCuisines && isLayerVisible('cuisines')) ||
     (loadingMusic && isLayerVisible('music')) ||
-    (loadingReligions && isLayerVisible('religions'));
+    (loadingReligions && isLayerVisible('religions')) ||
+    (loadingBattles && isLayerVisible('battles'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -352,6 +368,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('routes')?.opacity || 0.7}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={selectedFeatureId}
+            isAnimating={isPlaying}
           />
         )}
 
@@ -392,6 +409,15 @@ export function EnhancedLanguageMapView({
             selectedReligionId={selectedFeatureId}
           />
         )}
+
+        {/* Battles Layer */}
+        {isLayerVisible('battles') && allBattles.length > 0 && (
+          <BattlesLayer
+            battles={allBattles}
+            currentYear={currentYear}
+            opacity={getLayerConfig('battles')?.opacity || 0.9}
+          />
+        )}
       </MapContainer>
 
       {/* Layer Controls Panel */}
@@ -410,6 +436,16 @@ export function EnhancedLanguageMapView({
       <MapLegend
         layerConfigs={layerState.layerConfigs}
         activeLayers={layerState.activeLayers}
+      />
+
+      {/* Timeline Events Sidebar */}
+      <TimelineEventsSidebar
+        currentYear={currentYear}
+        civilizations={filteredCivilizations}
+        routes={filteredRoutes}
+        archaeologicalSites={filteredArchaeologicalSites}
+        battles={allBattles}
+        isVisible={isPlaying || filteredCivilizations.length > 0 || allBattles.length > 0}
       />
 
       {/* Time Slider */}

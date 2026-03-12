@@ -318,3 +318,34 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Battles API returns `{ battles: [...], count: N }` — consistent with other collection endpoints
   - Pre-existing type errors (19) remain unchanged; server changes don't affect them
 ---
+
+## 2026-03-12 - US-036
+- Enhanced `TimeSlider` with:
+  - Speed controls: 1x, 5x, 10x, 50x (years per second)
+  - Step sizes: Decade (10yr), 25yr, Half century (50yr), Century (100yr)
+  - Expanded era labels: Prehistoric, Bronze Age, Iron Age, Classical, Medieval, Early Modern, Modern
+- Created `BattlesLayer` component (`client/src/components/visualizations/map-layers/BattlesLayer.tsx`):
+  - Flash animation when timeline crosses a battle's date (yellow pulse, 2s duration)
+  - Battles visible within 50-year window of current time with fade-out opacity
+  - Red circle markers with popups showing name, date, belligerents, outcome, significance, language impact
+- Created `TimelineEventsSidebar` component (`client/src/components/visualizations/map-layers/TimelineEventsSidebar.tsx`):
+  - Shows key events within 100-year window of current time
+  - Displays civilizations rising/falling, battles, archaeological sites being founded, routes beginning
+  - Events sorted by proximity to current year, max 8 shown
+  - Current year and era label header
+- Added animated flowing routes: CSS dash-flow animation on route polylines when timeline is playing
+- Added `battles` layer type to `geospatial-types.ts` with DEFAULT_LAYER_CONFIGS entry
+- Integrated all new components into `EnhancedLanguageMapView`:
+  - Battles data fetching from `/api/battles`
+  - BattlesLayer rendering inside MapContainer
+  - TimelineEventsSidebar positioned next to LayerPanel
+  - Route animation prop passed based on isPlaying state
+- Files changed: client/src/components/visualizations/map-layers/TimeSlider.tsx, client/src/components/visualizations/map-layers/BattlesLayer.tsx (new), client/src/components/visualizations/map-layers/TimelineEventsSidebar.tsx (new), client/src/components/visualizations/map-layers/RoutesLayer.tsx, client/src/components/visualizations/EnhancedLanguageMapView.tsx, client/src/lib/visualization/geospatial-types.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Battles API returns `{ battles: [...], count: N }` — consistent with other collection endpoints
+  - Battles use `[lat, lng]` coordinates (NOT GeoJSON `[lng, lat]`), so no coordinate swapping needed for Leaflet
+  - CSS animation on Leaflet polylines works via `className` prop on pathOptions — `stroke-dashoffset` animates the dash pattern
+  - The `useRef` pattern for injecting `<style>` elements ensures cleanup on unmount
+  - Pre-existing type errors (19) remain unchanged; client changes don't introduce new ones
+  - Manual browser verification needed (no dev-browser skill available)
+---
