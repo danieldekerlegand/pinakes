@@ -16,6 +16,18 @@ import type {
   MaterialCultureDistribution,
 } from "../client/src/lib/visualization/geospatial-types";
 
+// Phonological inventory types
+export interface PhonologicalInventory {
+  id: string;
+  languageId: string;
+  consonants: string[];
+  vowels: string[];
+  tones: string[] | null;
+  phonotacticPatterns: Record<string, unknown>;
+  syllableStructure: string;
+  stressSystem: string;
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -158,6 +170,9 @@ export class TsvStorage {
 
   // Religion data cache
   private cachedReligions: Religion[] | null = null;
+
+  // Phonological inventory data cache
+  private cachedPhonologicalInventories: PhonologicalInventory[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1586,5 +1601,82 @@ export class TsvStorage {
     }
 
     return { cuisine, items };
+  }
+
+  // ============================================================================
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const consIdx = header.indexOf("consonants");
+    const vowIdx = header.indexOf("vowels");
+    const toneIdx = header.indexOf("tones");
+    const patIdx = header.indexOf("phonotactic_patterns");
+    const syllIdx = header.indexOf("syllable_structure");
+    const stressIdx = header.indexOf("stress_system");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    const parseObj = (idx: number, row: string[]): Record<string, unknown> => {
+      if (idx < 0 || !row[idx]) return {};
+      try { return JSON.parse(row[idx]); } catch { return {}; }
+    };
+
+    this.cachedPhonologicalInventories = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      consonants: parseArr(consIdx, row),
+      vowels: parseArr(vowIdx, row),
+      tones: toneIdx >= 0 && row[toneIdx] && row[toneIdx] !== "null"
+        ? ((): string[] | null => { try { return JSON.parse(row[toneIdx]); } catch { return null; } })()
+        : null,
+      phonotacticPatterns: parseObj(patIdx, row),
+      syllableStructure: syllIdx >= 0 ? row[syllIdx] || "" : "",
+      stressSystem: stressIdx >= 0 ? row[stressIdx] || "" : "",
+    }));
+  }
+
+  /**
+   * Get all phonological inventories with optional language_id filter
+   */
+  async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
+    this.loadPhonologicalInventories();
+    let inventories = this.cachedPhonologicalInventories ?? [];
+
+    if (languageId) {
+      inventories = inventories.filter((inv) => inv.languageId === languageId);
+    }
+
+    return inventories;
+  }
+
+  /**
+   * Get a single phonological inventory by ID
+   */
+  async getPhonologicalInventory(id: string): Promise<PhonologicalInventory | null> {
+    this.loadPhonologicalInventories();
+    return (this.cachedPhonologicalInventories ?? []).find((inv) => inv.id === id) ?? null;
+  }
+
+  /**
+   * Get the phonological inventory for a specific language
+   */
+  async getPhonologicalInventoryByLanguage(languageId: string): Promise<PhonologicalInventory | null> {
+    this.loadPhonologicalInventories();
+    return (this.cachedPhonologicalInventories ?? []).find((inv) => inv.languageId === languageId) ?? null;
   }
 }

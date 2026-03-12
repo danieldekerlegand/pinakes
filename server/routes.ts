@@ -1320,5 +1320,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Phonological Inventories
+  // ============================================================================
+
+  /**
+   * GET /api/phonological-inventories - Get all phonological inventories
+   */
+  app.get("/api/phonological-inventories", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const inventories = await storage.getPhonologicalInventories(languageId);
+      res.json({
+        inventories,
+        count: inventories.length,
+      });
+    } catch (error) {
+      console.error("Error fetching phonological inventories:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventories",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/phonological-inventories/:id - Get a single phonological inventory
+   */
+  app.get("/api/phonological-inventories/:id", async (req, res) => {
+    try {
+      const inventory = await storage.getPhonologicalInventory(req.params.id);
+      if (!inventory) {
+        res.status(404).json({ message: `Phonological inventory '${req.params.id}' not found` });
+        return;
+      }
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching phonological inventory:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventory",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/phonological-inventory - Get inventory for a specific language
+   */
+  app.get("/api/languages/:id/phonological-inventory", async (req, res) => {
+    try {
+      const inventory = await storage.getPhonologicalInventoryByLanguage(req.params.id);
+      if (!inventory) {
+        res.status(404).json({ message: `No phonological inventory found for language '${req.params.id}'` });
+        return;
+      }
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching phonological inventory for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventory for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
