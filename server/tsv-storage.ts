@@ -28,6 +28,26 @@ export interface PhonologicalInventory {
   stressSystem: string;
 }
 
+// Grammar features types
+export interface GrammarFeatures {
+  id: string;
+  languageId: string;
+  wordOrder: string;
+  morphologicalType: string;
+  caseSystem: string[];
+  genderSystem: string[];
+  numberSystem: string[];
+  tenseAspectMood: string[];
+  agreementSystem: string;
+  negationStrategy: string;
+  questionFormation: string;
+  relativeClauseStrategy: string;
+  nounClassCount: number;
+  verbValencyChanges: string[];
+  evidentiality: string;
+  ergativity: string;
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -173,6 +193,9 @@ export class TsvStorage {
 
   // Phonological inventory data cache
   private cachedPhonologicalInventories: PhonologicalInventory[] | null = null;
+
+  // Grammar features data cache
+  private cachedGrammarFeatures: GrammarFeatures[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1678,5 +1701,97 @@ export class TsvStorage {
   async getPhonologicalInventoryByLanguage(languageId: string): Promise<PhonologicalInventory | null> {
     this.loadPhonologicalInventories();
     return (this.cachedPhonologicalInventories ?? []).find((inv) => inv.languageId === languageId) ?? null;
+  }
+
+  // ============================================================================
+  // Grammar Features Data Methods
+  // ============================================================================
+
+  /**
+   * Load grammar features from TSV file
+   */
+  private loadGrammarFeatures(): void {
+    if (this.cachedGrammarFeatures) return;
+
+    const text = this.readFileIfExists("lexicons/grammar-features.tsv");
+    if (!text) { this.cachedGrammarFeatures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const wordOrderIdx = header.indexOf("word_order");
+    const morphIdx = header.indexOf("morphological_type");
+    const caseIdx = header.indexOf("case_system");
+    const genderIdx = header.indexOf("gender_system");
+    const numberIdx = header.indexOf("number_system");
+    const tamIdx = header.indexOf("tense_aspect_mood");
+    const agreementIdx = header.indexOf("agreement_system");
+    const negationIdx = header.indexOf("negation_strategy");
+    const questionIdx = header.indexOf("question_formation");
+    const relClauseIdx = header.indexOf("relative_clause_strategy");
+    const nounClassIdx = header.indexOf("noun_class_count");
+    const valencyIdx = header.indexOf("verb_valency_changes");
+    const evidentialityIdx = header.indexOf("evidentiality");
+    const ergativityIdx = header.indexOf("ergativity");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedGrammarFeatures = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      wordOrder: wordOrderIdx >= 0 ? row[wordOrderIdx] || "" : "",
+      morphologicalType: morphIdx >= 0 ? row[morphIdx] || "" : "",
+      caseSystem: parseArr(caseIdx, row),
+      genderSystem: parseArr(genderIdx, row),
+      numberSystem: parseArr(numberIdx, row),
+      tenseAspectMood: parseArr(tamIdx, row),
+      agreementSystem: agreementIdx >= 0 ? row[agreementIdx] || "" : "",
+      negationStrategy: negationIdx >= 0 ? row[negationIdx] || "" : "",
+      questionFormation: questionIdx >= 0 ? row[questionIdx] || "" : "",
+      relativeClauseStrategy: relClauseIdx >= 0 ? row[relClauseIdx] || "" : "",
+      nounClassCount: nounClassIdx >= 0 ? parseInt(row[nounClassIdx] || "0", 10) || 0 : 0,
+      verbValencyChanges: parseArr(valencyIdx, row),
+      evidentiality: evidentialityIdx >= 0 ? row[evidentialityIdx] || "" : "",
+      ergativity: ergativityIdx >= 0 ? row[ergativityIdx] || "" : "",
+    }));
+  }
+
+  /**
+   * Get all grammar features with optional filters
+   */
+  async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
+    this.loadGrammarFeatures();
+    let features = this.cachedGrammarFeatures ?? [];
+
+    if (languageId) {
+      features = features.filter((f) => f.languageId === languageId);
+    }
+    if (wordOrder) {
+      features = features.filter((f) => f.wordOrder === wordOrder);
+    }
+    if (morphologicalType) {
+      features = features.filter((f) => f.morphologicalType === morphologicalType);
+    }
+
+    return features;
+  }
+
+  /**
+   * Get a single grammar features entry by ID
+   */
+  async getGrammarFeaturesById(id: string): Promise<GrammarFeatures | null> {
+    this.loadGrammarFeatures();
+    return (this.cachedGrammarFeatures ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  /**
+   * Get grammar features for a specific language
+   */
+  async getGrammarFeaturesByLanguage(languageId: string): Promise<GrammarFeatures | null> {
+    this.loadGrammarFeatures();
+    return (this.cachedGrammarFeatures ?? []).find((f) => f.languageId === languageId) ?? null;
   }
 }

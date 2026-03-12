@@ -1384,5 +1384,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Grammar Features Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/grammar-features - Get all grammar features
+   */
+  app.get("/api/grammar-features", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const wordOrder = req.query.word_order as string | undefined;
+      const morphologicalType = req.query.morphological_type as string | undefined;
+      const features = await storage.getGrammarFeatures(languageId, wordOrder, morphologicalType);
+      res.json({
+        features,
+        count: features.length,
+      });
+    } catch (error) {
+      console.error("Error fetching grammar features:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/grammar-features/:id - Get a single grammar features entry
+   */
+  app.get("/api/grammar-features/:id", async (req, res) => {
+    try {
+      const feature = await storage.getGrammarFeaturesById(req.params.id);
+      if (!feature) {
+        res.status(404).json({ message: `Grammar features '${req.params.id}' not found` });
+        return;
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error("Error fetching grammar features:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/grammar-features - Get grammar features for a specific language
+   */
+  app.get("/api/languages/:id/grammar-features", async (req, res) => {
+    try {
+      const feature = await storage.getGrammarFeaturesByLanguage(req.params.id);
+      if (!feature) {
+        res.status(404).json({ message: `No grammar features found for language '${req.params.id}'` });
+        return;
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error("Error fetching grammar features for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

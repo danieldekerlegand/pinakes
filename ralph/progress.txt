@@ -84,3 +84,19 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Noun class counts vary widely: 0 for most, 10-26 for Bantu and Niger-Congo languages
   - `ekk` is Estonian (not `est`), `srb` is Serbian (not `srp`), `arb` is Standard Arabic (not `ara`) in this dataset
 ---
+
+## 2026-03-12 - US-022
+- Added `GrammarFeatures` interface to `server/tsv-storage.ts` with all 16 TSV columns mapped to typed fields
+- Added `loadGrammarFeatures()` private loader with JSON field parsing for case_system, gender_system, number_system, tense_aspect_mood, verb_valency_changes
+- Added `getGrammarFeatures(languageId?, wordOrder?, morphologicalType?)`, `getGrammarFeaturesById(id)`, `getGrammarFeaturesByLanguage(languageId)` methods
+- Added three API routes in `server/routes.ts`:
+  - `GET /api/grammar-features` (with optional `language_id`, `word_order`, `morphological_type` query params)
+  - `GET /api/grammar-features/:id`
+  - `GET /api/languages/:id/grammar-features`
+- Files changed: server/tsv-storage.ts, server/routes.ts, ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Grammar features TSV has 16 columns; 5 are JSON arrays (case_system, gender_system, number_system, tense_aspect_mood, verb_valency_changes), rest are strings/numbers
+  - `noun_class_count` is numeric (parseInt), defaults to 0
+  - The getGrammarFeatures method supports 3 optional filters vs phonological's 1 — follow acceptance criteria for filter params
+  - Pre-existing type errors (19) remain unchanged; server changes don't affect them
+---
