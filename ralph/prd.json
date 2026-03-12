@@ -387,7 +387,7 @@
         "Typecheck passes"
       ],
       "priority": 24,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 4 - US-4.02 data. Use standard IPA notation for change rules."
     },
     {

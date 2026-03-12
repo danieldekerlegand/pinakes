@@ -447,3 +447,17 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pre-existing type errors (19) + 2 new identical `setStyle` pattern = 21 total — no new regression types
   - Manual browser verification needed (no dev-browser skill available)
 ---
+
+## 2026-03-12 - US-041
+- Created `lexicons/sound-changes.tsv` with 48 historical sound changes across multiple language families
+- Columns: id, name, family_id, source_language_id, target_language_id, change_rule (IPA), environment, date_range, examples (JSON array), related_changes (JSON)
+- Key sound changes included: Grimm's Law (3 sub-rules + full overview), Verner's Law, Great Vowel Shift (4 sub-shifts), High German Consonant Shift (3 sub-shifts), Grassmann's Law (Greek + Sanskrit), Latin to Romance changes (Spanish, French, Italian, Portuguese, Romanian), Proto-Slavic palatalizations (3), rhotacism, Celtic lenition, Armenian consonant shift, Sanskrit retroflexion, Bantu spirantization + nasal hardening, Austronesian lenition, Germanic umlaut/i-mutation, Ingvaeonic nasal spirant law, Finnish consonant gradation, Japanese rendaku, Korean fortition, Arabic emphatics, Dravidian retroflex, Turkish/Hungarian vowel harmony, French nasalization, Spanish diphthongization, Icelandic quantity shift, Sino-Tibetan tone genesis, Lithuanian accent conservation
+- Coverage: Indo-European (34), Niger-Congo (2), Austronesian (2), Turkic (1), Uralic (2), Japonic (1), Koreanic (1), Afro-Asiatic (1), Sino-Tibetan (1), Dravidian (1)
+- All language IDs validated against languages.tsv, all JSON validated
+- Files changed: lexicons/sound-changes.tsv (new), ralph/prd.json, ralph/progress.txt
+- **Learnings for future iterations:**
+  - Sound changes often come in groups (Grimm's Law has 3 parts, GVS has 4+ shifts) — use separate entries with `related_changes` cross-references
+  - Some sound changes are self-referential (source=target) for internal changes like Finnish consonant gradation or Japanese rendaku
+  - `date_range` uses format "-500 to -100" for BCE dates, "1400 to 1700" for CE dates
+  - Pre-existing type errors (5) remain unchanged; data-only TSV changes don't affect typecheck
+---
