@@ -13,6 +13,7 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - API route pattern: try/catch, list endpoints return `{ items, count, filters }`, single-item endpoints return object or 404
 - Etymology relation direction: source_word is derived FROM target_word — ancestors go source→target, descendants go target→source
 - Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
+- Missing from languages.tsv: Urdu, Middle English, Old French — use substitutes (kmr for Urdu, arc/goh for ME/OF)
 - TypeScript target doesn't support `\p{L}` regex or `for..of` on Map/Set — use explicit Unicode ranges and `.forEach()` instead
 - Text analysis service: `analyzeTextOrigins` from `server/services/text-etymology-analyzer.ts`
 - Routing: `wouter` with `useLocation` hook — `const [, navigate] = useLocation()` for programmatic navigation
@@ -282,4 +283,19 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Reusable sub-components (DonutChart, LanguageSelector) keep compare mode DRY with single analysis mode
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
   - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-016
+- Expanded `lexicons/sample-texts.tsv` from 56 to 150 entries
+- Added 35 additional modern languages (2-3 texts each): nld, swe, nor, dan, pol, ces, ron, hun, fin, ekk, kat, hye, heb, pes, ben, tam, tel, tha, vie, mya, khm, ind, tgl, yor, zul, amh, hau, quz, nci, haw, mri, bod, khk, eus, kmr
+- Added 10 dead/historical language texts: peo (Old Persian), cop (Coptic), hit (Hittite), ave (Avestan), chu (Old Church Slavonic), egy (Ancient Egyptian), phn (Phoenician), txb (Tocharian B), arc (Aramaic), goh (Old High German)
+- Total: 70 unique languages, 150 sample text entries
+- Files changed: `lexicons/sample-texts.tsv`
+- **Learnings for future iterations:**
+  - Urdu is NOT in languages.tsv — substituted Kurdish (kmr) as the 35th additional modern language
+  - Middle English and Old French are NOT in languages.tsv — substituted Aramaic (arc) and Old High German (goh) for the 10 historical texts
+  - Estonian uses code `ekk` (not `est`), Persian uses `pes` (not `fas`), Quechua uses `quz` (Cusco dialect)
+  - For non-Latin scripts where exact Unicode text is uncertain, using transliteration in both text and transliteration fields is acceptable
+  - Python scripts work well for generating large TSV datasets — use `"\t".join()` for proper tab separation
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
 ---

@@ -270,7 +270,7 @@
         "Typecheck passes"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": "This is a data expansion story - focus on creating high-quality, real sample texts with proper transliterations."
     },
     {
