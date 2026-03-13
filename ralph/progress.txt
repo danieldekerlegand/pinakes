@@ -669,3 +669,14 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Panel components follow consistent pattern: overlay + fixed right panel with header gradient, controls, and scrollable content
   - Dashboard header is getting crowded with buttons - may need a dropdown menu approach in future
 ---
+
+## 2026-03-12 - US-056
+- Created `lexicons/trade-goods.tsv` with 45 trade goods across 6 categories (spice, metal, textile, grain, luxury, animal)
+- Goods include silk, pepper, cinnamon, clove, nutmeg, gold, silver, tin, copper, amber, frankincense, ivory, salt, tea, coffee, sugar, cotton, wool, horses, porcelain, obsidian, lapis lazuli, jade, and more
+- All trade_routes references validated against migration-routes.tsv IDs
+- Files changed: `lexicons/trade-goods.tsv`
+- **Learnings for future iterations:**
+  - trade-goods.tsv uses JSON arrays for trade_routes and associated_languages columns
+  - Category values: spice, metal, textile, grain, luxury, animal
+  - origin_coordinates uses `{"lat":N,"lng":N}` JSON format (same as art-traditions.tsv)
+---
