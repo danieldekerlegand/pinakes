@@ -670,7 +670,7 @@
         "Typecheck passes"
       ],
       "priority": 41,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6 - US-6.01 backend. Use existing cross-domain search infrastructure as a starting point."
     },
     {

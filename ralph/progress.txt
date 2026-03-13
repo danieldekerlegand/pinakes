@@ -693,3 +693,20 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - SVG-based map visualization with equirectangular projection is a lightweight alternative to Leaflet for panel-embedded maps
   - animateMotion SVG element works well for animated flow along trade route paths
 ---
+
+## 2026-03-12 - US-058
+- Implemented global search backend service with fuzzy matching across all data domains
+- Created `server/services/global-search.ts` with `globalSearch(query)` function
+- Added `GET /api/search?q=query` endpoint in `server/routes.ts`
+- Searches across: languages, words, language families, writing systems, battles, migration routes, religions, music traditions, musical instruments, cuisines, cuisine items, art traditions, kinship systems, trade goods, foodway events, civilizations, archaeological sites
+- Returns results grouped by entityType with relevance scoring, limited to top 50
+- Files changed: server/services/global-search.ts (new), server/routes.ts
+- **Learnings for future iterations:**
+  - `BaseWord` has `definition` field, not `meaning`
+  - `MusicalInstrument` uses `instrumentFamily` not `category`, and `originRegion` not `region`
+  - `Religion` uses `religionType` not `type`, `originRegion` not `foundingRegion`
+  - `CuisineItem` has `foodType` not `category`, and no `description` field
+  - `KinshipSystem` has no `name` field — use `systemType` + `id` for display
+  - `TradeGood` has no `description` — use `economicSignificance` instead
+  - Civilizations/ArchaeologicalSites are GeoJSON features — access props via `feature.properties.name`, `properties.civilizationId`, `properties.siteId`
+---
