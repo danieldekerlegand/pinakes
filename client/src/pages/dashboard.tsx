@@ -20,7 +20,8 @@ import {
   ArrowLeftRight,
   Zap,
   Combine,
-  Palette
+  Palette,
+  Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -46,6 +47,7 @@ import LanguageContactsPanel from "@/components/language-contacts-panel";
 import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
 import ArtTraditionsPanel from "@/components/art-traditions-panel";
+import TradeGoodsPanel from "@/components/trade-goods-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -66,6 +68,7 @@ export default function Dashboard() {
   const [soundChangesOpen, setSoundChangesOpen] = useState(false);
   const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(false);
   const [artTraditionsOpen, setArtTraditionsOpen] = useState(false);
+  const [tradeGoodsOpen, setTradeGoodsOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -223,6 +226,16 @@ export default function Dashboard() {
                 title="Art Traditions Explorer"
               >
                 <Palette className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setTradeGoodsOpen(true)}
+                data-testid="button-trade-goods"
+                title="Trade Goods Explorer"
+              >
+                <Package className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -398,6 +411,12 @@ export default function Dashboard() {
       <ArtTraditionsPanel
         isOpen={artTraditionsOpen}
         onClose={() => setArtTraditionsOpen(false)}
+      />
+
+      {/* Trade Goods Explorer */}
+      <TradeGoodsPanel
+        isOpen={tradeGoodsOpen}
+        onClose={() => setTradeGoodsOpen(false)}
       />
 
       {/* Correlation Explorer */}

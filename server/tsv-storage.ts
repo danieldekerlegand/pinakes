@@ -269,6 +269,19 @@ export interface ArtTradition {
   notableExamples: string[];
 }
 
+// Trade good types
+export interface TradeGood {
+  id: string;
+  name: string;
+  category: string;
+  originRegion: string;
+  originCoordinates: { lat: number; lng: number };
+  tradeRoutes: string[];
+  timePeriod: string;
+  economicSignificance: string;
+  associatedLanguages: string[];
+}
+
 // Kinship system types
 export interface KinshipSystem {
   id: string;
@@ -365,6 +378,9 @@ export class TsvStorage {
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Trade goods data cache
+  private cachedTradeGoods: TradeGood[] | null = null;
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
@@ -2708,5 +2724,63 @@ export class TsvStorage {
   async getKinshipSystemById(id: string): Promise<KinshipSystem | null> {
     this.loadKinshipSystems();
     return (this.cachedKinshipSystems ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  private loadTradeGoods(): void {
+    if (this.cachedTradeGoods) return;
+
+    const text = this.readFileIfExists("lexicons/trade-goods.tsv");
+    if (!text) { this.cachedTradeGoods = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const regionIdx = getIdx(header, "origin_region");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const routesIdx = getIdx(header, "trade_routes");
+    const periodIdx = getIdx(header, "time_period");
+    const sigIdx = getIdx(header, "economic_significance");
+    const langIdx = getIdx(header, "associated_languages");
+
+    this.cachedTradeGoods = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx],
+      originRegion: row[regionIdx],
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      tradeRoutes: (() => {
+        try { return JSON.parse(row[routesIdx]); } catch { return []; }
+      })() as string[],
+      timePeriod: row[periodIdx],
+      economicSignificance: row[sigIdx],
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getTradeGoods(filters?: {
+    category?: string;
+    timePeriod?: string;
+  }): Promise<TradeGood[]> {
+    this.loadTradeGoods();
+    let goods = this.cachedTradeGoods ?? [];
+
+    if (filters?.category) {
+      goods = goods.filter((g) => g.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+    if (filters?.timePeriod) {
+      goods = goods.filter((g) => g.timePeriod.includes(filters.timePeriod!));
+    }
+
+    return goods;
+  }
+
+  async getTradeGoodById(id: string): Promise<TradeGood | null> {
+    this.loadTradeGoods();
+    return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 }

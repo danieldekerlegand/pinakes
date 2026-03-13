@@ -2141,5 +2141,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/trade-goods - Get all trade goods with optional filtering
+   */
+  app.get("/api/trade-goods", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const timePeriod = req.query.time_period as string | undefined;
+      const goods = await storage.getTradeGoods({ category, timePeriod });
+      res.json({ goods, count: goods.length });
+    } catch (error) {
+      console.error("Error fetching trade goods:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade goods",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/trade-goods/:id - Get a single trade good
+   */
+  app.get("/api/trade-goods/:id", async (req, res) => {
+    try {
+      const good = await storage.getTradeGoodById(req.params.id);
+      if (!good) {
+        return res.status(404).json({ message: "Trade good not found" });
+      }
+      res.json(good);
+    } catch (error) {
+      console.error("Error fetching trade good:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade good",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
