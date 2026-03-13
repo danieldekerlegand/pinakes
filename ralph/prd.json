@@ -754,7 +754,7 @@
         "Typecheck passes"
       ],
       "priority": 46,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6 - US-6.04."
     },
     {

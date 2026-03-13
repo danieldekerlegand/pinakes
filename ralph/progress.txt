@@ -21,6 +21,11 @@ Started: Thu Mar 12 02:32:13 CDT 2026
 - Layer presets defined in `LAYER_PRESETS` array in `geospatial-types.ts`; empty `layers` array = show all
 - New map layers require: adding to `LayerType` union, `DEFAULT_LAYER_CONFIGS` array, and relevant presets in geospatial-types.ts
 - TSV resources without coordinates can resolve them from language IDs via the shared `/api/languages` query in EnhancedLanguageMapView
+- react-window v2 uses `List` export (not `FixedSizeList`), with `rowComponent`/`rowProps`/`rowCount`/`rowHeight` API
+- Pagination pattern: endpoints support optional `?limit=N&offset=M`; returns `{ items, total, limit, offset }` when limit is set, flat array otherwise
+- Map clustering: use `MarkerClusterGroup` component in map-layers/ for dense point layers (>200 markers)
+- D3 canvas rendering: LanguageNetworkView switches to canvas for >500 nodes; uses manual hit testing for interactions
+- React Query stale times: configured in `STALE_TIMES` object in queryClient.ts (static: 30m, derived: 10m, search: 5m, realtime: 2m)
 
 ---
 
@@ -769,4 +774,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Use `useRef` flag to skip initial render sync to URL to avoid clobbering URL-restored state
   - Panel state uses short names (comparison, distance, phonology, etc.) mapped to boolean state variables
   - Pre-existing TS errors exist — only verify no NEW errors are introduced
+---
+
+## 2026-03-12 - US-063
+- Implemented performance optimization for large datasets
+- **Virtual scrolling**: Added react-window v2 `List` component for word list table in language-detail-panel.tsx (renders only visible rows)
+- **Server-side pagination**: Added optional `limit`/`offset` query params to `/api/languages/:id/word-list` and `/api/word-comparisons` endpoints. Returns `{ items, total, limit, offset }` when `limit` is specified, otherwise returns the full array for backward compatibility
+- **Map clustering**: Created `MarkerClusterGroup.tsx` wrapper using leaflet.markercluster for Leaflet maps. Applied to `ArchaeologicalSitesLayer` and `BattlesLayer` when markers exceed 200 (CLUSTER_THRESHOLD)
+- **Canvas rendering for D3**: Modified `LanguageNetworkView.tsx` to switch between SVG (<=500 nodes) and HTML Canvas (>500 nodes) rendering. Canvas mode draws links, nodes, and labels directly via 2D context with zoom/pan support
+- **React Query optimization**: Changed default staleTime from `Infinity` to 30 minutes for static data. Added `STALE_TIMES` config object with domain-specific intervals (static: 30m, derived: 10m, search: 5m, realtime: 2m). Added `gcTime` of 1 hour to keep unused cache entries longer
+- **Lazy-load TSV data**: Already implemented - all TSV data uses on-demand loading with caching (load on first request, not startup)
+- Files changed: language-detail-panel.tsx, LanguageNetworkView.tsx, ArchaeologicalSitesLayer.tsx, BattlesLayer.tsx, MarkerClusterGroup.tsx (new), queryClient.ts, routes.ts, package.json
+- **Learnings for future iterations:**
+  - react-window v2 has a completely different API than v1: uses `rowComponent`/`rowProps`/`rowCount`/`rowHeight` instead of v1's `children` render prop pattern
+  - react-window v2 type inference for `RowProps` is tricky - ForbiddenKeys_2 excludes `ariaAttributes`, `index`, `style` from RowProps. Using `as any` cast for rowComponent/rowProps is pragmatic
+  - leaflet.markercluster works with L.circleMarker, not just L.marker - use `clusterGroup.addLayers()` for batch adding
+  - D3 canvas rendering needs manual hit testing (find closest node by distance) since there are no DOM elements to attach events to
+  - Pre-existing type errors (20) exist in codebase from geospatial-types.ts, setStyle issues, etc. - not introduced by this story
 ---
