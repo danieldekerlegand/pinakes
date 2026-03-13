@@ -20,6 +20,7 @@ import {
   type ComparisonMode,
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
+import { globalSearch } from "./services/global-search";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -2173,6 +2174,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching trade good:", error);
       res.status(500).json({
         message: "Failed to fetch trade good",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Global Search Endpoint
+  // ============================================================================
+
+  /**
+   * GET /api/search?q=query - Unified search across all data domains
+   */
+  app.get("/api/search", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: "", totalCount: 0 });
+        return;
+      }
+      const result = await globalSearch(q);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in global search:", error);
+      res.status(500).json({
+        message: "Failed to perform search",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
