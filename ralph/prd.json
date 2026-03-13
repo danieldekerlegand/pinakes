@@ -702,7 +702,7 @@
         "Typecheck passes"
       ],
       "priority": 43,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6 - US-6.02 data."
     },
     {

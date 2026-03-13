@@ -725,3 +725,14 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pre-existing typecheck errors exist (Leaflet types, geospatial-types, etc.) - not caused by new code
   - The searchQuery state in dashboard is only used by the old commented-out LanguageTree component
 ---
+
+## 2026-03-12 - US-060
+- Created lexicons/narratives.tsv with 10 guided exploration narratives
+- Each narrative has 6 steps with map coordinates, time points, highlighted entities, and layer configs
+- Narratives: Sugar Journey, Silk Road Languages, Indo-European Expansion, Columbian Exchange, Spread of Writing, Bantu Migration, Norman Conquest & English, Austronesian Voyagers, Arabic Golden Age, Spice Trade
+- Files changed: lexicons/narratives.tsv
+- **Learnings for future iterations:**
+  - TSV with embedded JSON arrays works well for complex structured data like narrative steps
+  - Each step's highlighted_entities use ISO 639-3 language codes matching languages.tsv
+  - Layer config layers field uses layer type strings like "languages", "trade_routes", "migrations", "civilizations", "archaeological_sites"
+---
