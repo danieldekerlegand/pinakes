@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
 import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
+import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(false);
   const [artTraditionsOpen, setArtTraditionsOpen] = useState(false);
   const [tradeGoodsOpen, setTradeGoodsOpen] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -79,6 +81,39 @@ export default function Dashboard() {
     speakers: "any",
   });
   const { toast } = useToast();
+
+  // Cmd/Ctrl+K keyboard shortcut for global search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setGlobalSearchOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  // Handle navigation from global search results
+  const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
+    if (entityType === "language") {
+      setSelectedLanguageId(id);
+    } else if (entityType === "writing-system") {
+      setWritingSystemsOpen(true);
+    } else if (entityType === "art-tradition") {
+      setArtTraditionsOpen(true);
+    } else if (entityType === "trade-good") {
+      setTradeGoodsOpen(true);
+    } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
+      // No dedicated panel for these yet - show toast with info
+      toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
+    } else if (entityType === "language-family") {
+      // Could scroll to/highlight in tree - for now toast
+      toast({ title: "Language Family", description: id });
+    } else {
+      toast({ title: entityType.replace(/-/g, " "), description: id });
+    }
+  };
 
   // Fetch scraping jobs for progress tracking
   const { data: scrapingJobs = [] } = useQuery<ScrapingJob[]>({
@@ -136,17 +171,19 @@ export default function Dashboard() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative hidden md:block">
-                <Input
-                  type="text"
-                  placeholder="Search languages..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-white text-gray-900 placeholder-gray-500 border border-gray-300 w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  data-testid="input-search"
-                />
-                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-              </div>
+              <button
+                onClick={() => setGlobalSearchOpen(true)}
+                className="hidden md:flex items-center space-x-2 bg-blue-500 hover:bg-blue-400 text-white/90 rounded-md px-3 py-1.5 text-sm transition-colors w-64 justify-between"
+                data-testid="input-search"
+              >
+                <span className="flex items-center space-x-2">
+                  <Search className="h-4 w-4" />
+                  <span>Search everything...</span>
+                </span>
+                <kbd className="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-blue-400 bg-blue-600 px-1.5 font-mono text-[10px] font-medium text-white/70">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -423,6 +460,13 @@ export default function Dashboard() {
       <CorrelationExplorerPanel
         isOpen={correlationExplorerOpen}
         onClose={() => setCorrelationExplorerOpen(false)}
+      />
+
+      {/* Global Search Dialog */}
+      <GlobalSearchDialog
+        open={globalSearchOpen}
+        onOpenChange={setGlobalSearchOpen}
+        onNavigate={handleSearchNavigate}
       />
 
       {/* Floating Action Button */}
