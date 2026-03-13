@@ -1523,6 +1523,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/contributions/export - Export contributions as CSV
+   */
+  app.get("/api/contributions/export", async (_req, res) => {
+    try {
+      const csv = contributions.exportCsv();
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=contributions.csv");
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting contributions:", error);
+      res.status(500).json({
+        message: "Failed to export contributions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/contributions/entity/:entityType/:entityId - Get approved contributions for an entity
+   */
+  app.get("/api/contributions/entity/:entityType/:entityId", async (req, res) => {
+    try {
+      const contribs = contributions.getByEntity(req.params.entityType, req.params.entityId);
+      res.json({ contributions: contribs });
+    } catch (error) {
+      console.error("Error getting entity contributions:", error);
+      res.status(500).json({
+        message: "Failed to get entity contributions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/contributions/stats - Get contribution statistics
    */
   app.get("/api/contributions/stats", async (req, res) => {

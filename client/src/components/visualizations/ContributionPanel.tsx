@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Plus, Flag, Edit3, Loader2, Check, X, ChevronDown,
+  Plus, Flag, Edit3, Loader2, Check, X,
   Clock, Send, AlertCircle, CheckCircle2, XCircle,
+  Download, ArrowRight,
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -39,6 +39,9 @@ interface Contribution {
   sources: ContributionSource[];
   confidence: number;
   notes?: string;
+  fieldName?: string;
+  currentValue?: string;
+  suggestedValue?: string;
 }
 
 interface ContributionStats {
@@ -50,6 +53,7 @@ interface ContributionStats {
 }
 
 const ENTITY_TYPES = [
+  { value: 'language', label: 'Language' },
   { value: 'cuisine', label: 'Cuisine' },
   { value: 'music-tradition', label: 'Music Tradition' },
   { value: 'musical-instrument', label: 'Musical Instrument' },
@@ -77,7 +81,7 @@ const ACTION_ICONS: Record<ContributionAction, React.ReactNode> = {
 };
 
 // ============================================================================
-// Contribution Form
+// Contribution Form (with per-field editing)
 // ============================================================================
 
 function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -94,6 +98,11 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
   const [contributorName, setContributorName] = useState('');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Per-field editing state
+  const [fieldName, setFieldName] = useState('');
+  const [currentValue, setCurrentValue] = useState('');
+  const [suggestedValue, setSuggestedValue] = useState('');
 
   const submitMutation = useMutation({
     mutationFn: async (data: unknown) => {
@@ -116,6 +125,9 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
       setSourceTitle('');
       setSourceUrl('');
       setNotes('');
+      setFieldName('');
+      setCurrentValue('');
+      setSuggestedValue('');
       setErrors([]);
       onSuccess?.();
     },
@@ -130,6 +142,10 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
     const entityData: Record<string, unknown> = {};
     if (action === 'flag') {
       entityData.issue = description;
+    } else if (action === 'edit' && fieldName) {
+      // Per-field edit
+      entityData[fieldName] = suggestedValue;
+      entityData.name = entityId;
     } else {
       if (name) entityData.name = name;
       if (region) entityData.region = region;
@@ -145,6 +161,11 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
       confidence,
       contributorName: contributorName || undefined,
       notes: notes || undefined,
+      ...(action === 'edit' && fieldName ? {
+        fieldName,
+        currentValue,
+        suggestedValue,
+      } : {}),
     });
   };
 
@@ -196,8 +217,50 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
       )}
 
-      {/* Entity data */}
-      {action !== 'flag' && (
+      {/* Per-field editing (for edits only) */}
+      {action === 'edit' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 space-y-3">
+          <p className="text-xs font-medium text-blue-700">Per-Field Edit</p>
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Field Name
+            </label>
+            <Input
+              value={fieldName}
+              onChange={(e) => setFieldName(e.target.value)}
+              placeholder="e.g., region, status, name"
+            />
+          </div>
+          {fieldName && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Current Value
+                </label>
+                <Input
+                  value={currentValue}
+                  onChange={(e) => setCurrentValue(e.target.value)}
+                  placeholder="What's the current value?"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Suggested Value <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={suggestedValue}
+                  onChange={(e) => setSuggestedValue(e.target.value)}
+                  placeholder="What should it be?"
+                  required
+                />
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Entity data (whole-entity for add, or when no field specified for edit) */}
+      {action === 'add' && (
         <>
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-1">Name</label>
@@ -219,17 +282,19 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
         </>
       )}
 
-      <div>
-        <label className="text-sm font-medium text-gray-700 block mb-1">
-          {action === 'flag' ? 'Issue Description' : 'Description'}
-        </label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 text-sm min-h-[60px]"
-          placeholder={action === 'flag' ? 'Describe the issue...' : 'Brief description'}
-        />
-      </div>
+      {(action !== 'edit' || !fieldName) && (
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">
+            {action === 'flag' ? 'Issue Description' : 'Description'}
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border rounded-md px-3 py-2 text-sm min-h-[60px]"
+            placeholder={action === 'flag' ? 'Describe the issue...' : 'Brief description'}
+          />
+        </div>
+      )}
 
       {/* Source citation */}
       <div className="border-t pt-3">
@@ -312,7 +377,7 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
 }
 
 // ============================================================================
-// Review Queue
+// Review Queue (enhanced with per-field edit display)
 // ============================================================================
 
 function ReviewQueue() {
@@ -370,7 +435,7 @@ function ReviewQueue() {
               className="border rounded-lg p-3 bg-white"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="flex items-center gap-1 text-xs">
                     {ACTION_ICONS[contrib.action]}
                   </span>
@@ -389,10 +454,28 @@ function ReviewQueue() {
                     <span className="ml-1">{contrib.status}</span>
                   </Badge>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 shrink-0">
                   {new Date(contrib.submittedAt).toLocaleDateString()}
                 </span>
               </div>
+
+              {/* Per-field edit display */}
+              {contrib.fieldName && (
+                <div className="bg-blue-50 border border-blue-100 rounded-md p-2 mb-2">
+                  <p className="text-xs font-medium text-blue-700 mb-1">
+                    Field: {contrib.fieldName}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-500 bg-white px-2 py-0.5 rounded border">
+                      {contrib.currentValue || <span className="italic">empty</span>}
+                    </span>
+                    <ArrowRight className="h-3 w-3 text-blue-500 shrink-0" />
+                    <span className="text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200 font-medium">
+                      {contrib.suggestedValue}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {typeof contrib.entityData.description === 'string' && (
                 <p className="text-xs text-gray-600 mb-2">
@@ -472,6 +555,15 @@ export function ContributionPanel() {
     staleTime: 15 * 1000,
   });
 
+  const handleExportCsv = () => {
+    const link = document.createElement('a');
+    link.href = '/api/contributions/export';
+    link.download = 'contributions.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Stats bar */}
@@ -489,6 +581,15 @@ export function ContributionPanel() {
           <Badge style={{ backgroundColor: STATUS_COLORS.rejected, color: 'white' }} className="text-xs">
             {stats.rejected} rejected
           </Badge>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto text-xs text-gray-600 hover:text-gray-900"
+            onClick={handleExportCsv}
+          >
+            <Download className="h-3.5 w-3.5 mr-1" />
+            Export CSV
+          </Button>
         </div>
       )}
 
@@ -515,8 +616,8 @@ export function ContributionPanel() {
               <div className="p-4 max-w-lg">
                 <h3 className="font-semibold text-lg mb-1">Contribute Data</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Submit new cultural entities, suggest edits, or flag inaccuracies.
-                  All submissions require source citations.
+                  Submit new cultural entities, suggest per-field edits, or flag inaccuracies.
+                  Use the "Suggest Edit" buttons on data displays for quick per-field corrections.
                 </p>
                 <ContributionForm
                   onSuccess={() => setActiveTab('review')}
@@ -528,9 +629,9 @@ export function ContributionPanel() {
           <TabsContent value="review" className="mt-0 h-full">
             <ScrollArea className="h-full">
               <div className="p-4">
-                <h3 className="font-semibold text-lg mb-1">Review Queue</h3>
+                <h3 className="font-semibold text-lg mb-1">Review Dashboard</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  Review pending contributions. Approve to add to the dataset or reject with feedback.
+                  Review pending contributions. Per-field edits show the specific change proposed.
                 </p>
                 <ReviewQueue />
               </div>

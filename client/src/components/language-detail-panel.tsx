@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { SuggestEditButton } from "@/components/SuggestEditButton";
+import { ContributorAttribution } from "@/components/ContributorAttribution";
 import type { LanguageWithStats } from "@shared/types";
 
 interface LanguageDetailPanelProps {
@@ -168,10 +170,17 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Basic Information</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Family:</span>
-                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-classification">
+                <span className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1" data-testid="text-classification">
                   {language.classification}
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="classification"
+                    fieldLabel="Language Family"
+                    currentValue={language.classification || ''}
+                  />
                 </span>
               </div>
               {language.iso639_1 && (
@@ -184,9 +193,18 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-                <Badge className={`${getStatusColor(language.status)} text-xs`} data-testid="badge-status">
-                  {language.status}
-                </Badge>
+                <span className="flex items-center gap-1">
+                  <Badge className={`${getStatusColor(language.status)} text-xs`} data-testid="badge-status">
+                    {language.status}
+                  </Badge>
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="status"
+                    fieldLabel="Language Status"
+                    currentValue={language.status || ''}
+                  />
+                </span>
               </div>
             </div>
           </div>
@@ -195,10 +213,17 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
           <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Geographic Distribution</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Region:</span>
-                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-region">
+                <span className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1" data-testid="text-region">
                   {language.region || 'Unknown'}
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="region"
+                    fieldLabel="Region"
+                    currentValue={language.region || ''}
+                  />
                 </span>
               </div>
               {language.countries && language.countries.length > 0 && (
@@ -320,6 +345,9 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               </div>
             </div>
           )}
+
+          {/* Contributor Attribution */}
+          <ContributorAttribution entityType="language" entityId={languageId} />
 
           {/* Complete Word List */}
           {showWordList && (
