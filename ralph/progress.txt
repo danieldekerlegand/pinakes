@@ -816,3 +816,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - SuggestEditButton needs onClick stopPropagation to prevent panel closing when clicking in overlay panels
   - Dialog component from shadcn/ui works well for inline edit forms without needing a separate panel
 ---
+
+## 2026-03-12 - US-065
+- Implemented responsive design and accessibility improvements across the platform
+- Files changed:
+  - `client/src/pages/dashboard.tsx` - Responsive header toolbar with overflow dropdown, ARIA labels on all buttons, keyboard navigation (Escape closes panels, ? shows help), skip-to-content link, high contrast toggle
+  - `client/src/components/LanguageFamilyVisualization.tsx` - Responsive tab grid (3-col on mobile, 6-col on desktop), ARIA labels on tabs, alt text for all visualization views (tree, network, timeline, map, explorer, contribute), responsive visualization heights
+  - `client/src/components/filters-sidebar.tsx` - Added `role="dialog"`, `aria-modal`, `aria-label` to sidebar overlay and close button
+  - `client/src/components/visualizations/map-layers/TimeSlider.tsx` - Touch-friendly button sizes (min 40-44px), larger slider handle (28px), responsive width, ARIA labels on all playback controls
+  - `client/src/index.css` - High contrast mode CSS variables (light + dark), touch-friendly Leaflet zoom controls, focus-visible styles, skip-to-content link styles
+  - `client/src/hooks/use-high-contrast.tsx` - New hook for high contrast mode with localStorage persistence
+- **Learnings for future iterations:**
+  - Tailwind `touch-manipulation` class prevents double-tap zoom on touch buttons
+  - For Leaflet map controls, use CSS `!important` overrides on `.leaflet-control-zoom a` for touch sizing
+  - High contrast mode uses CSS variable overrides on `.high-contrast` class on `<html>`
+  - The `sr-only` utility class is useful for screen-reader-only text
+  - Pre-existing type errors in map layers (setStyle, CivilizationLayer `this`) are not related to accessibility changes
+  - DropdownMenu from Radix UI provides built-in keyboard navigation (arrow keys, Enter/Space)
+---
