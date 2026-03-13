@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,8 @@ import {
   Zap,
   Combine,
   Palette,
-  Package
+  Package,
+  Compass
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -274,6 +276,17 @@ export default function Dashboard() {
               >
                 <Package className="h-5 w-5" />
               </Button>
+              <Link href="/stories">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 text-white hover:bg-blue-700"
+                  data-testid="button-stories"
+                  title="Guided Stories"
+                >
+                  <Compass className="h-5 w-5" />
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"

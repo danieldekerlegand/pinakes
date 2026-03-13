@@ -2180,6 +2180,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Narratives Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/narratives - Get all narratives
+   */
+  app.get("/api/narratives", async (req, res) => {
+    try {
+      const narratives = await storage.getNarratives();
+      res.json({ narratives, count: narratives.length });
+    } catch (error) {
+      console.error("Error fetching narratives:", error);
+      res.status(500).json({
+        message: "Failed to fetch narratives",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/narratives/:id - Get a single narrative with all steps
+   */
+  app.get("/api/narratives/:id", async (req, res) => {
+    try {
+      const narrative = await storage.getNarrativeById(req.params.id);
+      if (!narrative) {
+        return res.status(404).json({ message: "Narrative not found" });
+      }
+      res.json(narrative);
+    } catch (error) {
+      console.error("Error fetching narrative:", error);
+      res.status(500).json({
+        message: "Failed to fetch narrative",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Global Search Endpoint
   // ============================================================================
 

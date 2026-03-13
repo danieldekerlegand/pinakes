@@ -293,6 +293,23 @@ export interface KinshipSystem {
   associatedCivilizations: string;
 }
 
+// Narrative types
+export interface NarrativeStep {
+  text: string;
+  mapCenter: [number, number];
+  mapZoom: number;
+  timePoint: number;
+  highlightedEntities: string[];
+  layerConfig: { layers: string[] };
+}
+
+export interface Narrative {
+  id: string;
+  title: string;
+  description: string;
+  steps: NarrativeStep[];
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -384,6 +401,9 @@ export class TsvStorage {
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
+
+  // Narratives data cache
+  private cachedNarratives: Narrative[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -2782,5 +2802,52 @@ export class TsvStorage {
   async getTradeGoodById(id: string): Promise<TradeGood | null> {
     this.loadTradeGoods();
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
+  }
+
+  // ── Narratives ──────────────────────────────────────────────────────
+
+  private loadNarratives(): void {
+    if (this.cachedNarratives) return;
+
+    const text = this.readFileIfExists("lexicons/narratives.tsv");
+    if (!text) { this.cachedNarratives = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const titleIdx = getIdx(header, "title");
+    const descIdx = getIdx(header, "description");
+    const stepsIdx = getIdx(header, "steps");
+
+    this.cachedNarratives = rows.map((row) => {
+      let steps: NarrativeStep[] = [];
+      try {
+        const rawSteps = JSON.parse(row[stepsIdx]) as Array<Record<string, unknown>>;
+        steps = rawSteps.map((s) => ({
+          text: (s.text as string) || "",
+          mapCenter: (s.map_center as [number, number]) || [0, 0],
+          mapZoom: (s.map_zoom as number) || 3,
+          timePoint: (s.time_point as number) || 0,
+          highlightedEntities: (s.highlighted_entities as string[]) || [],
+          layerConfig: (s.layer_config as { layers: string[] }) || { layers: [] },
+        }));
+      } catch { /* empty */ }
+
+      return {
+        id: row[idIdx],
+        title: row[titleIdx],
+        description: row[descIdx],
+        steps,
+      };
+    });
+  }
+
+  async getNarratives(): Promise<Narrative[]> {
+    this.loadNarratives();
+    return this.cachedNarratives ?? [];
+  }
+
+  async getNarrativeById(id: string): Promise<Narrative | null> {
+    this.loadNarratives();
+    return (this.cachedNarratives ?? []).find((n) => n.id === id) ?? null;
   }
 }
