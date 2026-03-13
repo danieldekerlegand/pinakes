@@ -132,18 +132,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const comparisons = await storage.getWordComparisons(languageIds);
-      res.json(comparisons);
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      if (limit !== undefined) {
+        const paginatedItems = comparisons.slice(offset, offset + limit);
+        res.json({ items: paginatedItems, total: comparisons.length, limit, offset });
+      } else {
+        res.json(comparisons);
+      }
     } catch (error) {
       console.error("Error in /api/word-comparisons endpoint:", error);
       res.status(500).json({ message: "Failed to fetch word comparisons" });
     }
   });
 
-  // Language Word List
+  // Language Word List (with optional pagination)
   app.get("/api/languages/:id/word-list", async (req, res) => {
     try {
       const wordList = await storage.getLanguageWordList(req.params.id);
-      res.json(wordList);
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      if (limit !== undefined) {
+        const paginatedItems = wordList.slice(offset, offset + limit);
+        res.json({ items: paginatedItems, total: wordList.length, limit, offset });
+      } else {
+        res.json(wordList);
+      }
     } catch (error) {
       console.error("Error in /api/languages/:id/word-list endpoint:", error);
       res.status(500).json({ message: "Failed to fetch language word list" });

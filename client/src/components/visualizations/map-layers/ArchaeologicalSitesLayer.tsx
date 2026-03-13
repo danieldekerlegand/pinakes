@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalSiteFeature } from '../../../lib/visualization/geospatial-types';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { MarkerClusterGroup } from './MarkerClusterGroup';
+
+const CLUSTER_THRESHOLD = 200;
 
 interface ArchaeologicalSitesLayerProps {
   features: ArchaeologicalSiteFeature[];
@@ -12,36 +15,57 @@ interface ArchaeologicalSitesLayerProps {
   selectedFeatureId?: string | null;
 }
 
+// Get color based on site type
+const getSiteColor = (siteType: string): string => {
+  const colors: Record<string, string> = {
+    settlement: '#f59e0b', // amber
+    burial: '#ef4444', // red
+    temple: '#8b5cf6', // purple
+    ceremonial: '#8b5cf6', // purple
+    fortification: '#64748b', // slate
+    workshop: '#06b6d4', // cyan
+    unknown: '#9ca3af', // gray
+  };
+  return colors[siteType] || colors.unknown;
+};
+
+// Calculate marker radius based on importance
+const getMarkerRadius = (importance: number): number => {
+  return 4 + (importance / 100) * 8;
+};
+
 export function ArchaeologicalSitesLayer({
   features,
   opacity = 0.8,
   onFeatureClick,
   selectedFeatureId,
 }: ArchaeologicalSitesLayerProps) {
-  // Get color based on site type
-  const getSiteColor = (siteType: string): string => {
-    const colors: Record<string, string> = {
-      settlement: '#f59e0b', // amber
-      burial: '#ef4444', // red
-      temple: '#8b5cf6', // purple
-      ceremonial: '#8b5cf6', // purple
-      fortification: '#64748b', // slate
-      workshop: '#06b6d4', // cyan
-      unknown: '#9ca3af', // gray
-    };
-    return colors[siteType] || colors.unknown;
-  };
-
-  // Calculate marker radius based on importance
-  const getMarkerRadius = (importance: number): number => {
-    // Scale: importance 0-100 -> radius 4-12
-    return 4 + (importance / 100) * 8;
-  };
+  // Use clustering for large datasets
+  const clusterMarkers = useMemo(() => {
+    if (features.length < CLUSTER_THRESHOLD) return null;
+    return features.map((feature) => {
+      const props = feature.properties;
+      const [lng, lat] = feature.geometry.coordinates;
+      return {
+        position: [lat, lng] as [number, number],
+        color: getSiteColor(props.siteType),
+        radius: getMarkerRadius(props.importance),
+        popupContent: `<div class="p-2"><strong>${props.name}</strong><br/>${props.siteType} - ${formatTimePeriod(props.timePeriod.start, props.timePeriod.end)}</div>`,
+        onClick: () => onFeatureClick?.(props.siteId),
+      };
+    });
+  }, [features, onFeatureClick]);
 
   if (features.length === 0) {
     return null;
   }
 
+  // Use clustered rendering for large datasets
+  if (clusterMarkers) {
+    return <MarkerClusterGroup markers={clusterMarkers} maxClusterRadius={60} />;
+  }
+
+  // Standard rendering for smaller datasets
   return (
     <>
       {features.map((feature) => {

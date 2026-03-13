@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
+import { MarkerClusterGroup } from './MarkerClusterGroup';
 
 export interface BattleFeature {
   id: string;
@@ -76,6 +77,21 @@ export function BattlesLayer({
     return Math.abs(year - currentYear) <= 50;
   });
 
+  const CLUSTER_THRESHOLD = 200;
+
+  const clusterMarkers = useMemo(() => {
+    if (visibleBattles.length < CLUSTER_THRESHOLD) return null;
+    return visibleBattles.map((battle) => {
+      const [lat, lng] = battle.coordinates;
+      return {
+        position: [lat, lng] as [number, number],
+        color: '#ef4444',
+        radius: 8,
+        popupContent: `<div class="p-2"><strong>${battle.name}</strong><br/>${battle.date}</div>`,
+      };
+    });
+  }, [visibleBattles]);
+
   if (visibleBattles.length === 0) {
     return null;
   }
@@ -85,6 +101,11 @@ export function BattlesLayer({
     if (year < 0) return `${Math.abs(year)} BCE`;
     return `${year} CE`;
   };
+
+  // Use clustered rendering for large datasets
+  if (clusterMarkers) {
+    return <MarkerClusterGroup markers={clusterMarkers} maxClusterRadius={50} />;
+  }
 
   return (
     <>
