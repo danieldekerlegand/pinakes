@@ -19,7 +19,8 @@ import {
   Languages,
   ArrowLeftRight,
   Zap,
-  Combine
+  Combine,
+  Palette
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -44,6 +45,7 @@ import VerbParadigmsPanel from "@/components/verb-paradigms-panel";
 import LanguageContactsPanel from "@/components/language-contacts-panel";
 import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
+import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
@@ -63,6 +65,7 @@ export default function Dashboard() {
   const [languageContactsOpen, setLanguageContactsOpen] = useState(false);
   const [soundChangesOpen, setSoundChangesOpen] = useState(false);
   const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(false);
+  const [artTraditionsOpen, setArtTraditionsOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
@@ -210,6 +213,16 @@ export default function Dashboard() {
                 title="Sound Changes Explorer"
               >
                 <Zap className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => setArtTraditionsOpen(true)}
+                data-testid="button-art-traditions"
+                title="Art Traditions Explorer"
+              >
+                <Palette className="h-5 w-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -379,6 +392,12 @@ export default function Dashboard() {
       <SoundChangesPanel
         isOpen={soundChangesOpen}
         onClose={() => setSoundChangesOpen(false)}
+      />
+
+      {/* Art Traditions Explorer */}
+      <ArtTraditionsPanel
+        isOpen={artTraditionsOpen}
+        onClose={() => setArtTraditionsOpen(false)}
       />
 
       {/* Correlation Explorer */}

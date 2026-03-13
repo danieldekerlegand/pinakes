@@ -253,6 +253,22 @@ export interface FoodwayEvent {
   culturalImpact: string;
 }
 
+// Art tradition types
+export interface ArtTradition {
+  id: string;
+  name: string;
+  category: string;
+  stylePeriod: string;
+  originDate: number;
+  endDate: number;
+  originCoordinates: { lat: number; lng: number };
+  description: string;
+  associatedCivilizations: string;
+  associatedLanguages: string[];
+  keyFeatures: string[];
+  notableExamples: string[];
+}
+
 // Kinship system types
 export interface KinshipSystem {
   id: string;
@@ -346,6 +362,9 @@ export class TsvStorage {
 
   // Foodway events data cache
   private cachedFoodwayEvents: FoodwayEvent[] | null = null;
+
+  // Art traditions data cache
+  private cachedArtTraditions: ArtTradition[] | null = null;
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
@@ -2572,6 +2591,72 @@ export class TsvStorage {
   }
 
   // ── Kinship Systems ──────────────────────────────────────────────────
+
+  private loadArtTraditions(): void {
+    if (this.cachedArtTraditions) return;
+
+    const text = this.readFileIfExists("lexicons/art-traditions.tsv");
+    if (!text) { this.cachedArtTraditions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const stylePeriodIdx = getIdx(header, "style_period");
+    const originDateIdx = getIdx(header, "origin_date");
+    const endDateIdx = getIdx(header, "end_date");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const descIdx = getIdx(header, "description");
+    const civIdx = header.indexOf("associated_civilizations");
+    const langIdx = getIdx(header, "associated_languages");
+    const featIdx = getIdx(header, "key_features");
+    const examplesIdx = getIdx(header, "notable_examples");
+
+    this.cachedArtTraditions = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx],
+      stylePeriod: row[stylePeriodIdx],
+      originDate: parseInt(row[originDateIdx]) || 0,
+      endDate: parseInt(row[endDateIdx]) || 0,
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      description: row[descIdx],
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      keyFeatures: (() => {
+        try { return JSON.parse(row[featIdx]); } catch { return []; }
+      })() as string[],
+      notableExamples: (() => {
+        try { return JSON.parse(row[examplesIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getArtTraditions(filters?: {
+    category?: string;
+    stylePeriod?: string;
+  }): Promise<ArtTradition[]> {
+    this.loadArtTraditions();
+    let traditions = this.cachedArtTraditions ?? [];
+
+    if (filters?.category) {
+      traditions = traditions.filter((t) => t.category === filters.category);
+    }
+    if (filters?.stylePeriod) {
+      traditions = traditions.filter((t) => t.stylePeriod === filters.stylePeriod);
+    }
+
+    return traditions;
+  }
+
+  async getArtTraditionById(id: string): Promise<ArtTradition | null> {
+    this.loadArtTraditions();
+    return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
 
   private loadKinshipSystems(): void {
     if (this.cachedKinshipSystems) return;

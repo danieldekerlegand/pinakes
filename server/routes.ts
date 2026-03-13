@@ -2068,6 +2068,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/art-traditions - Get all art traditions with optional filtering
+   */
+  app.get("/api/art-traditions", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const stylePeriod = req.query.style_period as string | undefined;
+      const traditions = await storage.getArtTraditions({ category, stylePeriod });
+      res.json({ traditions, count: traditions.length });
+    } catch (error) {
+      console.error("Error fetching art traditions:", error);
+      res.status(500).json({
+        message: "Failed to fetch art traditions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/art-traditions/:id - Get a single art tradition
+   */
+  app.get("/api/art-traditions/:id", async (req, res) => {
+    try {
+      const tradition = await storage.getArtTraditionById(req.params.id);
+      if (!tradition) {
+        return res.status(404).json({ message: "Art tradition not found" });
+      }
+      res.json(tradition);
+    } catch (error) {
+      console.error("Error fetching art tradition:", error);
+      res.status(500).json({
+        message: "Failed to fetch art tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/kinship-systems - Get all kinship systems with optional filtering
    */
   app.get("/api/kinship-systems", async (req, res) => {
