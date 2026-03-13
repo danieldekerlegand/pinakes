@@ -159,34 +159,34 @@ function LanguageFamilyVisualizationContent({
         </div>
 
         <Tabs value={state.currentView} onValueChange={(value) => setView(value as any)}>
-          <TabsList className="grid w-full grid-cols-6 mb-4">
-            <TabsTrigger value="tree" className="flex items-center gap-2">
-              <TreePine className="h-4 w-4" />
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-4" aria-label="Visualization views">
+            <TabsTrigger value="tree" className="flex items-center gap-2" aria-label="Hierarchical Tree view">
+              <TreePine className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Hierarchical Tree</span>
               <span className="sm:hidden">Tree</span>
             </TabsTrigger>
-            <TabsTrigger value="network" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
+            <TabsTrigger value="network" className="flex items-center gap-2" aria-label="Network Graph view">
+              <Network className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Network Graph</span>
               <span className="sm:hidden">Network</span>
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+            <TabsTrigger value="timeline" className="flex items-center gap-2" aria-label="Timeline view">
+              <Clock className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Timeline</span>
               <span className="sm:hidden">Time</span>
             </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
+            <TabsTrigger value="map" className="flex items-center gap-2" aria-label="Geographic Map view">
+              <MapPin className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Geographic Map</span>
               <span className="sm:hidden">Map</span>
             </TabsTrigger>
-            <TabsTrigger value="explorer" className="flex items-center gap-2">
-              <Link2 className="h-4 w-4" />
+            <TabsTrigger value="explorer" className="flex items-center gap-2" aria-label="Cross-Domain Explorer view">
+              <Link2 className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Cross-Domain</span>
               <span className="sm:hidden">Explore</span>
             </TabsTrigger>
-            <TabsTrigger value="contribute" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
+            <TabsTrigger value="contribute" className="flex items-center gap-2" aria-label="Contribute data">
+              <Plus className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Contribute</span>
               <span className="sm:hidden">Add</span>
             </TabsTrigger>
@@ -196,12 +196,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="tree" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading tree visualization</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Hierarchical tree visualization showing ${treeData.length} language families and their descendant languages. Click nodes to explore individual languages.`}>
                   <LanguageTreeView treeData={treeData} onNodeClick={handleNodeClick} />
                 </div>
               </Suspense>
@@ -210,12 +211,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="network" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading network visualization</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Force-directed network graph showing ${networkData.nodes.length} nodes and ${networkData.links.length} connections between language families and languages. Drag nodes to rearrange.`}>
                   <LanguageNetworkView networkData={networkData} onNodeClick={handleNodeClick} />
                 </div>
               </Suspense>
@@ -224,12 +226,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="timeline" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading timeline visualization</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Timeline visualization showing ${timelineData.length} languages and their historical periods. Click events to view language details.`}>
                   <LanguageTimelineView
                     timelineData={timelineData}
                     onEventClick={(id) => handleNodeClick(id, 'language')}
@@ -241,12 +244,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="map" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading map visualization</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Interactive geographic map showing ${mapData.length} languages plotted by their geographic location. Use map controls to zoom and pan. Supports touch gestures on mobile devices.`}>
                   <EnhancedLanguageMapView
                     onFeatureSelect={(id) => handleNodeClick(id, 'language')}
                     selectedFeatureId={vizState.selectedLanguageIds.size > 0 ? Array.from(vizState.selectedLanguageIds)[0] : null}
@@ -258,12 +262,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="explorer" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading cross-domain explorer</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" aria-label="Cross-domain explorer for correlating linguistic, cultural, and geographic data across languages.">
                   <CrossDomainExplorer />
                 </div>
               </Suspense>
@@ -272,12 +277,13 @@ function LanguageFamilyVisualizationContent({
             <TabsContent value="contribute" className="mt-0">
               <Suspense
                 fallback={
-                  <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading contribution panel</span>
                   </div>
                 }
               >
-                <div className="w-full h-[600px]">
+                <div className="w-full h-[400px] md:h-[600px]" aria-label="Contribute new language data and corrections to the database.">
                   <ContributionPanel />
                 </div>
               </Suspense>

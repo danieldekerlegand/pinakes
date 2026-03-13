@@ -56,7 +56,7 @@ export function TimeSlider({
   };
 
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg border p-4 min-w-[600px] max-w-[800px]">
+    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg border p-3 md:p-4 w-[calc(100%-2rem)] md:min-w-[600px] md:max-w-[800px] md:w-auto" role="region" aria-label="Time navigation controls">
       <div className="space-y-3">
         {/* Current Year Display */}
         <div className="text-center">
@@ -79,10 +79,11 @@ export function TimeSlider({
             railStyle={{ backgroundColor: '#e5e7eb', height: 6 }}
             handleStyle={{
               borderColor: '#3b82f6',
-              height: 20,
-              width: 20,
-              marginTop: -7,
+              height: 28,
+              width: 28,
+              marginTop: -11,
               backgroundColor: '#fff',
+              touchAction: 'none',
             }}
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -99,8 +100,10 @@ export function TimeSlider({
             size="sm"
             onClick={onJumpToStart}
             title="Jump to start"
+            aria-label="Jump to earliest time period"
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Step Backward */}
@@ -110,24 +113,27 @@ export function TimeSlider({
             onClick={onStepBackward}
             disabled={currentYear <= minYear}
             title={`Step back ${stepSize} years`}
+            aria-label={`Step back ${stepSize} years`}
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <SkipBack className="h-4 w-4" />
+            <SkipBack className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Play/Pause */}
           <Button
             size="sm"
             onClick={onPlayPause}
-            className="w-20"
+            className="w-20 min-h-[40px] touch-manipulation"
+            aria-label={isPlaying ? "Pause timeline playback" : "Play timeline animation"}
           >
             {isPlaying ? (
               <>
-                <Pause className="h-4 w-4 mr-1" />
+                <Pause className="h-4 w-4 mr-1" aria-hidden="true" />
                 Pause
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-1" />
+                <Play className="h-4 w-4 mr-1" aria-hidden="true" />
                 Play
               </>
             )}
@@ -140,8 +146,10 @@ export function TimeSlider({
             onClick={onStepForward}
             disabled={currentYear >= maxYear}
             title={`Step forward ${stepSize} years`}
+            aria-label={`Step forward ${stepSize} years`}
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <SkipForward className="h-4 w-4" />
+            <SkipForward className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Jump to End */}
@@ -150,8 +158,10 @@ export function TimeSlider({
             size="sm"
             onClick={onJumpToEnd}
             title="Jump to end"
+            aria-label="Jump to latest time period"
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 

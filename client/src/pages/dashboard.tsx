@@ -27,11 +27,14 @@ import {
   Share2,
   Check,
   Link2,
+  MoreVertical,
+  Eye,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
 import { copyToClipboard } from "@/lib/visualization/export-utils";
 import { useVisualization } from "@/contexts/VisualizationContext";
+import { useHighContrast } from "@/hooks/use-high-contrast";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +43,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import StatsOverview from "@/components/stats-overview";
 import FiltersSidebar from "@/components/filters-sidebar";
 // import LanguageTree from "@/components/language-tree"; // Old tree component
@@ -111,6 +120,7 @@ export default function Dashboard() {
   const [linkCopied, setLinkCopied] = useState(false);
   const { toast } = useToast();
   const { state: vizState } = useVisualization();
+  const { highContrast, toggleHighContrast } = useHighContrast();
 
   // Determine which panel is currently open (for URL state)
   const activePanel = useMemo(() => {
@@ -156,17 +166,47 @@ export default function Dashboard() {
     }
   };
 
-  // Cmd/Ctrl+K keyboard shortcut for global search
+  // Keyboard shortcuts: Cmd/Ctrl+K for search, Escape to close panels
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't intercept when typing in inputs
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setGlobalSearchOpen((prev) => !prev);
       }
+
+      // Escape closes any open panel or detail view
+      if (e.key === "Escape") {
+        if (selectedLanguageId) { setSelectedLanguageId(null); return; }
+        if (comparisonOpen) { setComparisonOpen(false); return; }
+        if (distanceAnalyzerOpen) { setDistanceAnalyzerOpen(false); return; }
+        if (phonologyOpen) { setPhonologyOpen(false); return; }
+        if (grammarOpen) { setGrammarOpen(false); return; }
+        if (writingSystemsOpen) { setWritingSystemsOpen(false); return; }
+        if (verbParadigmsOpen) { setVerbParadigmsOpen(false); return; }
+        if (languageContactsOpen) { setLanguageContactsOpen(false); return; }
+        if (soundChangesOpen) { setSoundChangesOpen(false); return; }
+        if (correlationExplorerOpen) { setCorrelationExplorerOpen(false); return; }
+        if (artTraditionsOpen) { setArtTraditionsOpen(false); return; }
+        if (tradeGoodsOpen) { setTradeGoodsOpen(false); return; }
+        if (sidebarOpen) { setSidebarOpen(false); return; }
+      }
+
+      // ? key shows keyboard shortcut help
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        toast({
+          title: "Keyboard Shortcuts",
+          description: "⌘K: Search | Esc: Close panel | ?: This help",
+        });
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, []);
+  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, sidebarOpen]);
 
   // Handle navigation from global search results
   const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
@@ -226,8 +266,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-surface">
+      {/* Skip to content link for keyboard navigation */}
+      <a href="#main-content" className="skip-to-content">Skip to main content</a>
+
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
+      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -237,172 +280,112 @@ export default function Dashboard() {
                 className="md:hidden p-2 text-white hover:bg-blue-700"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 data-testid="button-mobile-menu"
+                aria-label={sidebarOpen ? "Close filters menu" : "Open filters menu"}
+                aria-expanded={sidebarOpen}
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-5" aria-hidden="true" />
               </Button>
               <h1 className="text-xl font-medium" data-testid="text-app-title">
                 Linguistic Family Tree
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <nav className="flex items-center space-x-1 md:space-x-2" aria-label="Main tools">
               <button
                 onClick={() => setGlobalSearchOpen(true)}
                 className="hidden md:flex items-center space-x-2 bg-blue-500 hover:bg-blue-400 text-white/90 rounded-md px-3 py-1.5 text-sm transition-colors w-64 justify-between"
                 data-testid="input-search"
+                aria-label="Search everything (Cmd+K)"
               >
                 <span className="flex items-center space-x-2">
-                  <Search className="h-4 w-4" />
+                  <Search className="h-4 w-4" aria-hidden="true" />
                   <span>Search everything...</span>
                 </span>
                 <kbd className="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-blue-400 bg-blue-600 px-1.5 font-mono text-[10px] font-medium text-white/70">
                   <span className="text-xs">⌘</span>K
                 </kbd>
               </button>
+              {/* Mobile search button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setComparisonOpen(true)}
-                data-testid="button-compare-languages"
-                title="Word Comparison"
+                className="md:hidden p-2 text-white hover:bg-blue-700"
+                onClick={() => setGlobalSearchOpen(true)}
+                aria-label="Search"
               >
-                <GitCompare className="h-5 w-5" />
+                <Search className="h-5 w-5" aria-hidden="true" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setPhonologyOpen(true)}
-                data-testid="button-phonology"
-                title="Phonological Inventory Comparison"
-              >
-                <Music className="h-5 w-5" />
+
+              {/* Always visible: key tools */}
+              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setComparisonOpen(true)} aria-label="Word Comparison" title="Word Comparison"><GitCompare className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setPhonologyOpen(true)} aria-label="Phonological Inventory" title="Phonology"><Music className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setGrammarOpen(true)} aria-label="Grammar Comparison" title="Grammar"><BookOpen className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setWritingSystemsOpen(true)} aria-label="Writing Systems" title="Writing Systems"><Type className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setVerbParadigmsOpen(true)} aria-label="Verb Conjugations" title="Verb Conjugations"><Languages className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setDistanceAnalyzerOpen(true)} aria-label="Linguistic Distance Analyzer" title="Distance Analyzer"><Network className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${highContrast ? 'ring-2 ring-white' : ''}`} onClick={toggleHighContrast} aria-label={highContrast ? "Disable high contrast mode" : "Enable high contrast mode"} aria-pressed={highContrast} title="Toggle high contrast mode">
+                <Eye className="h-5 w-5" aria-hidden="true" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setGrammarOpen(true)}
-                data-testid="button-grammar"
-                title="Grammar Comparison Matrix"
-              >
-                <BookOpen className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-blue-700" onClick={handleCopyLink} aria-label={linkCopied ? "Link copied" : "Copy shareable link"} title="Copy shareable link">
+                {linkCopied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Link2 className="h-5 w-5" aria-hidden="true" />}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setWritingSystemsOpen(true)}
-                data-testid="button-writing-systems"
-                title="Writing Systems Explorer"
-              >
-                <Type className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setVerbParadigmsOpen(true)}
-                data-testid="button-verb-paradigms"
-                title="Verb Conjugation Comparison"
-              >
-                <Languages className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setLanguageContactsOpen(true)}
-                data-testid="button-language-contacts"
-                title="Language Contact Network"
-              >
-                <ArrowLeftRight className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setSoundChangesOpen(true)}
-                data-testid="button-sound-changes"
-                title="Sound Changes Explorer"
-              >
-                <Zap className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setArtTraditionsOpen(true)}
-                data-testid="button-art-traditions"
-                title="Art Traditions Explorer"
-              >
-                <Palette className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setTradeGoodsOpen(true)}
-                data-testid="button-trade-goods"
-                title="Trade Goods Explorer"
-              >
-                <Package className="h-5 w-5" />
-              </Button>
-              <Link href="/stories">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 text-white hover:bg-blue-700"
-                  data-testid="button-stories"
-                  title="Guided Stories"
-                >
-                  <Compass className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setCorrelationExplorerOpen(true)}
-                data-testid="button-correlation-explorer"
-                title="Correlation Explorer"
-              >
-                <Combine className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => setDistanceAnalyzerOpen(true)}
-                data-testid="button-distance-analyzer"
-                title="Linguistic Distance Analyzer"
-              >
-                <Network className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={handleCopyLink}
-                data-testid="button-copy-link"
-                title="Copy shareable link"
-              >
-                {linkCopied ? <Check className="h-5 w-5" /> : <Link2 className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                data-testid="button-settings"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
+
+              {/* Overflow dropdown for remaining tools */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-blue-700" aria-label="More tools">
+                    <MoreVertical className="h-5 w-5" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem className="lg:hidden" onClick={() => setComparisonOpen(true)}>
+                    <GitCompare className="h-4 w-4 mr-2" aria-hidden="true" /> Word Comparison
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="lg:hidden" onClick={() => setPhonologyOpen(true)}>
+                    <Music className="h-4 w-4 mr-2" aria-hidden="true" /> Phonology
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="lg:hidden" onClick={() => setGrammarOpen(true)}>
+                    <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" /> Grammar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="xl:hidden" onClick={() => setWritingSystemsOpen(true)}>
+                    <Type className="h-4 w-4 mr-2" aria-hidden="true" /> Writing Systems
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="xl:hidden" onClick={() => setVerbParadigmsOpen(true)}>
+                    <Languages className="h-4 w-4 mr-2" aria-hidden="true" /> Verb Conjugations
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="xl:hidden" onClick={() => setDistanceAnalyzerOpen(true)}>
+                    <Network className="h-4 w-4 mr-2" aria-hidden="true" /> Distance Analyzer
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguageContactsOpen(true)}>
+                    <ArrowLeftRight className="h-4 w-4 mr-2" aria-hidden="true" /> Language Contacts
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSoundChangesOpen(true)}>
+                    <Zap className="h-4 w-4 mr-2" aria-hidden="true" /> Sound Changes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setArtTraditionsOpen(true)}>
+                    <Palette className="h-4 w-4 mr-2" aria-hidden="true" /> Art Traditions
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTradeGoodsOpen(true)}>
+                    <Package className="h-4 w-4 mr-2" aria-hidden="true" /> Trade Goods
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setCorrelationExplorerOpen(true)}>
+                    <Combine className="h-4 w-4 mr-2" aria-hidden="true" /> Correlation Explorer
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/stories" className="flex items-center">
+                      <Compass className="h-4 w-4 mr-2" aria-hidden="true" /> Guided Stories
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="h-4 w-4 mr-2" aria-hidden="true" /> Settings
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
           </div>
         </div>
       </header>
 
-      <div className={`max-w-7xl mx-auto flex ${selectedLanguageId ? 'mr-96' : ''}`}>
+      <div className={`max-w-7xl mx-auto flex ${selectedLanguageId ? 'lg:mr-96' : ''}`}>
         {/* Sidebar */}
         <FiltersSidebar
           isOpen={sidebarOpen}
@@ -412,7 +395,7 @@ export default function Dashboard() {
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main id="main-content" className="flex-1 p-3 md:p-6" role="main">
           <StatsOverview />
 
           {/* Scraping Progress */}
@@ -571,8 +554,9 @@ export default function Dashboard() {
           className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
           data-testid="button-floating-action"
           title="Scrape New Data"
+          aria-label="Scrape New Data"
         >
-          <Sparkles className="h-6 w-6" />
+          <Sparkles className="h-6 w-6" aria-hidden="true" />
         </Button>
       </div>
 
