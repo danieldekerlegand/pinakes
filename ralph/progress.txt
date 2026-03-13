@@ -644,3 +644,15 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - New layer types must be added to LayerType union in geospatial-types.ts or you get TS2322
   - The languages query for coordinate resolution is shared between language-contacts and kinship-systems layers — use OR in the enabled condition
 ---
+
+## 2026-03-12 - US-054
+- Created lexicons/art-traditions.tsv with 35 art traditions across all major civilizations
+- Columns: id, name, category, style_period, origin_date, end_date, origin_coordinates, description, associated_civilizations, associated_languages, key_features (JSON), notable_examples (JSON)
+- Categories covered: painting, sculpture, architecture, metalwork, textile
+- Includes: Egyptian, Greek, Roman, Byzantine, Romanesque, Gothic, Renaissance, Baroque, Islamic, Chinese, Japanese, Mayan, Aztec, African, Aboriginal, Mughal, Persian, Indian, Rococo, Impressionism, Art Nouveau, Cubism, Zen Gardens, Benin, Tibetan, Pre-Raphaelite, Surrealism, Chinese Calligraphy, Mesoamerican, Silk Road, Norse Viking, Khmer, Ottoman, Ethiopian, Polynesian
+- Files changed: lexicons/art-traditions.tsv (new)
+- **Learnings for future iterations:**
+  - Art traditions TSV has origin_coordinates as JSON objects with lat/lng, similar to music-traditions format
+  - Some traditions have null end_date (still active) — use null not empty string
+  - Language IDs reference languages.tsv codes; use historical language codes (e.g., grc for Ancient Greek, lzh for Literary Chinese)
+---
