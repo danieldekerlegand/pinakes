@@ -680,3 +680,16 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Category values: spice, metal, textile, grain, luxury, animal
   - origin_coordinates uses `{"lat":N,"lng":N}` JSON format (same as art-traditions.tsv)
 ---
+
+## 2026-03-12 - US-057
+- Implemented trade goods TSV loader, API endpoints, and map visualization panel
+- Files changed:
+  - server/tsv-storage.ts - Added TradeGood interface, cached loader, getTradeGoods/getTradeGoodById methods
+  - server/routes.ts - Added GET /api/trade-goods and GET /api/trade-goods/:id endpoints
+  - client/src/components/trade-goods-panel.tsx - New panel with SVG map showing origins + animated trade route flows, cards view, category/time period filters
+  - client/src/pages/dashboard.tsx - Integrated TradeGoodsPanel with Package icon button
+- **Learnings for future iterations:**
+  - Trade goods TSV uses trade_routes as JSON array of route IDs (e.g., "silk-road") that can be cross-referenced with migration-routes.tsv
+  - SVG-based map visualization with equirectangular projection is a lightweight alternative to Leaflet for panel-embedded maps
+  - animateMotion SVG element works well for animated flow along trade route paths
+---

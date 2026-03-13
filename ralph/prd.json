@@ -652,7 +652,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 40,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 5 - US-5.05 API + UI. Reuse migration route rendering for trade route animation."
     },
     {
