@@ -656,3 +656,16 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Some traditions have null end_date (still active) — use null not empty string
   - Language IDs reference languages.tsv codes; use historical language codes (e.g., grc for Ancient Greek, lzh for Literary Chinese)
 ---
+
+## 2026-03-12 - US-055
+- Implemented art traditions TSV loader, API endpoints, and visualization panel
+- Added ArtTradition interface and cached loader in server/tsv-storage.ts
+- Added GET /api/art-traditions (with category/style_period filters) and GET /api/art-traditions/:id routes
+- Created ArtTraditionsPanel component with 3 view modes: timeline (Gantt-chart), map (geographic), and cards
+- Added Palette icon button to dashboard header, wired up panel open/close state
+- Files changed: server/tsv-storage.ts, server/routes.ts, client/src/components/art-traditions-panel.tsx, client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - The art-traditions.tsv uses origin_coordinates as JSON object {lat,lng} unlike some other TSVs that use arrays
+  - Panel components follow consistent pattern: overlay + fixed right panel with header gradient, controls, and scrollable content
+  - Dashboard header is getting crowded with buttons - may need a dropdown menu approach in future
+---
