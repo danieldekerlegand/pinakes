@@ -792,3 +792,27 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - D3 canvas rendering needs manual hit testing (find closest node by distance) since there are no DOM elements to attach events to
   - Pre-existing type errors (20) exist in codebase from geospatial-types.ts, setStyle issues, etc. - not introduced by this story
 ---
+
+## 2026-03-12 - US-064
+- Implemented per-field editing enhancement for the contribution system
+- Created SuggestEditButton component with inline edit dialog (current value → suggested value)
+- Added SuggestEditButton to language detail panel on Family, Status, and Region fields
+- Created ContributorAttribution component showing approved community contributions on data entries
+- Enhanced ContributionService with fieldName/currentValue/suggestedValue fields, CSV export, entity-specific queries
+- Added API endpoints: GET /api/contributions/export (CSV), GET /api/contributions/entity/:type/:id
+- Enhanced ContributionPanel with per-field edit form UI, review dashboard showing field-level diffs, and CSV export button
+- Added "language" as a new ContributionEntityType
+- Files changed:
+  - server/services/contribution-service.ts (per-field fields, CSV export, getByEntity)
+  - server/routes.ts (CSV export and entity contribution endpoints)
+  - client/src/components/SuggestEditButton.tsx (new)
+  - client/src/components/ContributorAttribution.tsx (new)
+  - client/src/components/language-detail-panel.tsx (SuggestEditButton + attribution)
+  - client/src/components/visualizations/ContributionPanel.tsx (per-field form, review dashboard, CSV export)
+- **Learnings for future iterations:**
+  - The existing ContributionService uses JSON files in data/contributions/ — no TSV here
+  - Per-field edits required adding fieldName/currentValue/suggestedValue to the Contribution interface on both server and client
+  - The contribution form needed separate UI flows for per-field edits vs. whole-entity submissions
+  - SuggestEditButton needs onClick stopPropagation to prevent panel closing when clicking in overlay panels
+  - Dialog component from shadcn/ui works well for inline edit forms without needing a separate panel
+---

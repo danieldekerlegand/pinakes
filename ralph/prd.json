@@ -771,7 +771,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 47,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6 - US-6.05. Build on existing contribution system."
     },
     {
