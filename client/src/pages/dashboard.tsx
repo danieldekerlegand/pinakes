@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
@@ -23,9 +23,15 @@ import {
   Combine,
   Palette,
   Package,
-  Compass
+  Compass,
+  Share2,
+  Check,
+  Link2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
+import { copyToClipboard } from "@/lib/visualization/export-utils";
+import { useVisualization } from "@/contexts/VisualizationContext";
 import {
   Dialog,
   DialogContent,
@@ -57,32 +63,98 @@ import ScrapingStatusBar from "@/components/scraping-status-bar";
 import type { ScrapingJob } from "@shared/types";
 
 
+// Panel name mapping for URL state
+const PANEL_MAP: Record<string, string> = {
+  comparison: 'comparison',
+  distance: 'distance',
+  phonology: 'phonology',
+  grammar: 'grammar',
+  writing: 'writing',
+  verbs: 'verbs',
+  contacts: 'contacts',
+  sounds: 'sounds',
+  correlation: 'correlation',
+  art: 'art',
+  trade: 'trade',
+};
+
 export default function Dashboard() {
+  // Parse URL state once on mount for panel/filter initialization
+  const [initialUrlState] = useState(() => parseShareableState());
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(null);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(
+    initialUrlState.langDetail ?? null
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [comparisonOpen, setComparisonOpen] = useState(false);
-  const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(false);
-  const [phonologyOpen, setPhonologyOpen] = useState(false);
-  const [grammarOpen, setGrammarOpen] = useState(false);
-  const [writingSystemsOpen, setWritingSystemsOpen] = useState(false);
-  const [verbParadigmsOpen, setVerbParadigmsOpen] = useState(false);
-  const [languageContactsOpen, setLanguageContactsOpen] = useState(false);
-  const [soundChangesOpen, setSoundChangesOpen] = useState(false);
-  const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(false);
-  const [artTraditionsOpen, setArtTraditionsOpen] = useState(false);
-  const [tradeGoodsOpen, setTradeGoodsOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(initialUrlState.panel === 'comparison');
+  const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(initialUrlState.panel === 'distance');
+  const [phonologyOpen, setPhonologyOpen] = useState(initialUrlState.panel === 'phonology');
+  const [grammarOpen, setGrammarOpen] = useState(initialUrlState.panel === 'grammar');
+  const [writingSystemsOpen, setWritingSystemsOpen] = useState(initialUrlState.panel === 'writing');
+  const [verbParadigmsOpen, setVerbParadigmsOpen] = useState(initialUrlState.panel === 'verbs');
+  const [languageContactsOpen, setLanguageContactsOpen] = useState(initialUrlState.panel === 'contacts');
+  const [soundChangesOpen, setSoundChangesOpen] = useState(initialUrlState.panel === 'sounds');
+  const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(initialUrlState.panel === 'correlation');
+  const [artTraditionsOpen, setArtTraditionsOpen] = useState(initialUrlState.panel === 'art');
+  const [tradeGoodsOpen, setTradeGoodsOpen] = useState(initialUrlState.panel === 'trade');
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
   const [expandAll, setExpandAll] = useState<number>(0);
   const [collapseAll, setCollapseAll] = useState<number>(0);
   const [filters, setFilters] = useState({
-    status: ["living", "endangered"] as string[],
-    region: "all-regions",
+    status: initialUrlState.filterStatus ?? ["living", "endangered"] as string[],
+    region: initialUrlState.filterRegion ?? "all-regions",
     speakers: "any",
   });
+  const [linkCopied, setLinkCopied] = useState(false);
   const { toast } = useToast();
+  const { state: vizState } = useVisualization();
+
+  // Determine which panel is currently open (for URL state)
+  const activePanel = useMemo(() => {
+    if (comparisonOpen) return 'comparison';
+    if (distanceAnalyzerOpen) return 'distance';
+    if (phonologyOpen) return 'phonology';
+    if (grammarOpen) return 'grammar';
+    if (writingSystemsOpen) return 'writing';
+    if (verbParadigmsOpen) return 'verbs';
+    if (languageContactsOpen) return 'contacts';
+    if (soundChangesOpen) return 'sounds';
+    if (correlationExplorerOpen) return 'correlation';
+    if (artTraditionsOpen) return 'art';
+    if (tradeGoodsOpen) return 'trade';
+    return undefined;
+  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen]);
+
+  // Build shareable state and sync to URL
+  const shareableState = useMemo(() => ({
+    view: vizState.currentView,
+    selectedLanguages: Array.from(vizState.selectedLanguageIds),
+    selectedFamilies: Array.from(vizState.selectedFamilyIds),
+    searchQuery: vizState.filters.searchQuery,
+    filterStatus: filters.status,
+    filterRegion: filters.region,
+    year: vizState.temporal.currentYear,
+    panel: activePanel,
+    langDetail: selectedLanguageId ?? undefined,
+  }), [vizState.currentView, vizState.selectedLanguageIds, vizState.selectedFamilyIds, vizState.filters.searchQuery, filters.status, filters.region, vizState.temporal.currentYear, activePanel, selectedLanguageId]);
+
+  useShareableState(shareableState);
+
+  // Copy link handler
+  const handleCopyLink = async () => {
+    const url = generateShareableURL(shareableState);
+    const success = await copyToClipboard(url);
+    if (success) {
+      setLinkCopied(true);
+      toast({ title: "Link copied!", description: "Shareable URL copied to clipboard" });
+      setTimeout(() => setLinkCopied(false), 2000);
+    } else {
+      toast({ title: "Failed to copy", description: "Could not copy link to clipboard", variant: "destructive" });
+    }
+  };
 
   // Cmd/Ctrl+K keyboard shortcut for global search
   useEffect(() => {
@@ -306,6 +378,16 @@ export default function Dashboard() {
                 title="Linguistic Distance Analyzer"
               >
                 <Network className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={handleCopyLink}
+                data-testid="button-copy-link"
+                title="Copy shareable link"
+              >
+                {linkCopied ? <Check className="h-5 w-5" /> : <Link2 className="h-5 w-5" />}
               </Button>
               <Button
                 variant="ghost"
