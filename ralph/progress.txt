@@ -751,3 +751,22 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - The narratives TSV stores steps as a JSON array with snake_case keys (map_center, map_zoom, time_point, etc.) which need camelCase conversion in the loader
   - Dashboard header is getting crowded with icon buttons; future stories may want a dropdown menu or toolbar reorganization
 ---
+
+## 2026-03-12 - US-062
+- Implemented shareable views and deep linking
+- All view state encoded in URL parameters: active view, filters, selected entities, time slider year, open panel, language detail
+- Copy-link button added to dashboard header (Link2 icon, shows checkmark on copy)
+- Loading a shared URL restores exact view state (panels, filters, selections, temporal position)
+- Open Graph and Twitter Card meta tags added to index.html for social previews
+- Files changed:
+  - `client/src/hooks/useShareableState.ts` (new) — URL encode/decode utility, shareable state types, sync hook
+  - `client/src/contexts/VisualizationContext.tsx` — Initialize from URL params (view, selections, filters, year)
+  - `client/src/pages/dashboard.tsx` — Panel/filter state from URL, copy-link button, URL sync via useShareableState
+  - `client/index.html` — Open Graph/Twitter Card meta tags, title, description
+- **Learnings for future iterations:**
+  - Layers/opacities are already persisted separately by useMapLayers hook — new URL params must coexist with existing ones
+  - Use `window.history.replaceState` (not pushState) for state sync to avoid polluting browser history
+  - Use `useRef` flag to skip initial render sync to URL to avoid clobbering URL-restored state
+  - Panel state uses short names (comparison, distance, phonology, etc.) mapped to boolean state variables
+  - Pre-existing TS errors exist — only verify no NEW errors are introduced
+---
