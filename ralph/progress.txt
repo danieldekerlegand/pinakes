@@ -710,3 +710,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - `TradeGood` has no `description` — use `economicSignificance` instead
   - Civilizations/ArchaeologicalSites are GeoJSON features — access props via `feature.properties.name`, `properties.civilizationId`, `properties.siteId`
 ---
+
+## 2026-03-12 - US-059
+- Implemented global search UI with CommandDialog (cmdk-based) overlay
+- Search bar trigger in header with ⌘K shortcut hint, replaces old plain input
+- Debounced typeahead (250ms) calling /api/search endpoint
+- Results grouped by entity type with category-specific icons
+- Recent searches persisted in localStorage (max 5)
+- Clicking language results opens language detail panel; other types show toast or open relevant panels
+- Files changed: client/src/components/global-search-dialog.tsx (new), client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - The CommandDialog from cmdk is already available in the UI library and works great for search/command palettes
+  - The app is a single-page dashboard with no real entity routes - linkPath values from search API are for future use
+  - Pre-existing typecheck errors exist (Leaflet types, geospatial-types, etc.) - not caused by new code
+  - The searchQuery state in dashboard is only used by the old commented-out LanguageTree component
+---
