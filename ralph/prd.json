@@ -721,7 +721,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 44,
-      "passes": false,
+      "passes": true,
       "notes": "Phase 6 - US-6.02 API + UI."
     },
     {

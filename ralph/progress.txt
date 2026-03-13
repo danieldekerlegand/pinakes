@@ -736,3 +736,18 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Each step's highlighted_entities use ISO 639-3 language codes matching languages.tsv
   - Layer config layers field uses layer type strings like "languages", "trade_routes", "migrations", "civilizations", "archaeological_sites"
 ---
+
+## 2026-03-12 - US-061
+- Implemented narratives TSV loader, API endpoints, and guided exploration player
+- Added `Narrative` and `NarrativeStep` interfaces and cached loader to `server/tsv-storage.ts`
+- Added `GET /api/narratives` and `GET /api/narratives/:id` endpoints to `server/routes.ts`
+- Created `client/src/pages/stories.tsx` with narrative listing and step-by-step player UI (next/prev/play/pause controls, progress bar, time/location/entity/layer info badges)
+- Added `/stories` and `/stories/:id` routes to `App.tsx`
+- Added Compass icon navigation button in dashboard header linking to Stories page
+- Files changed: server/tsv-storage.ts, server/routes.ts, client/src/pages/stories.tsx (new), client/src/App.tsx, client/src/pages/dashboard.tsx
+- **Learnings for future iterations:**
+  - wouter routes need both `/stories` and `/stories/:id` registered separately in App.tsx Switch
+  - `useRoute` from wouter returns `[match, params]` tuple for extracting route params
+  - The narratives TSV stores steps as a JSON array with snake_case keys (map_center, map_zoom, time_point, etc.) which need camelCase conversion in the loader
+  - Dashboard header is getting crowded with icon buttons; future stories may want a dropdown menu or toolbar reorganization
+---
