@@ -149,6 +149,23 @@ export interface Religion {
   sources: string[];
 }
 
+// Urheimat hypothesis types
+export interface UrheimatHypothesis {
+  id: string;
+  languageFamilyId: string;
+  hypothesisName: string;
+  proposedRegion: string;
+  proposedCoordinates: { lat: number; lng: number };
+  proposedBoundary: Record<string, unknown>;
+  timeRangeStart: number | null;
+  timeRangeEnd: number | null;
+  supportingEvidence: { linguistic: string[]; archaeological: string[]; genetic: string[] };
+  competingHypotheses: string[];
+  scholarlyConsensusLevel: number;
+  keyProponents: string[];
+  sources: string[];
+}
+
 // Music types
 export interface MusicTradition {
   id: string;
@@ -458,6 +475,9 @@ export class TsvStorage {
 
   // Religion data cache
   private cachedReligions: Religion[] | null = null;
+
+  // Urheimat hypotheses data cache
+  private cachedUrheimatHypotheses: UrheimatHypothesis[] | null = null;
 
   // Phonological inventory data cache
   private cachedPhonologicalInventories: PhonologicalInventory[] | null = null;
@@ -1884,6 +1904,92 @@ export class TsvStorage {
   async getReligion(religionId: string): Promise<Religion | null> {
     this.loadReligions();
     return (this.cachedReligions ?? []).find((r) => r.id === religionId) ?? null;
+  }
+
+  // ============================================================================
+  // Urheimat Hypotheses Data Methods
+  // ============================================================================
+
+  /**
+   * Load urheimat hypotheses from TSV file
+   */
+  private loadUrheimatHypotheses(): void {
+    if (this.cachedUrheimatHypotheses) return;
+
+    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
+    if (!text) { this.cachedUrheimatHypotheses = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const familyIdx = getIdx(header, "language_family_id");
+    const nameIdx = getIdx(header, "hypothesis_name");
+    const regionIdx = header.indexOf("proposed_region");
+    const coordsIdx = header.indexOf("proposed_coordinates");
+    const boundaryIdx = header.indexOf("proposed_boundary");
+    const startIdx = header.indexOf("time_range_start");
+    const endIdx = header.indexOf("time_range_end");
+    const evidenceIdx = header.indexOf("supporting_evidence");
+    const competingIdx = header.indexOf("competing_hypotheses");
+    const consensusIdx = header.indexOf("scholarly_consensus_level");
+    const proponentsIdx = header.indexOf("key_proponents");
+    const srcIdx = header.indexOf("sources");
+
+    const parseJson = <T>(idx: number, row: string[], fallback: T): T => {
+      if (idx < 0 || !row[idx]) return fallback;
+      try { return JSON.parse(row[idx]); } catch { return fallback; }
+    };
+
+    this.cachedUrheimatHypotheses = rows.map((row) => ({
+      id: row[idIdx],
+      languageFamilyId: row[familyIdx],
+      hypothesisName: row[nameIdx],
+      proposedRegion: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      proposedCoordinates: parseJson(coordsIdx, row, { lat: 0, lng: 0 }),
+      proposedBoundary: parseJson(boundaryIdx, row, {}),
+      timeRangeStart: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+        ? parseInt(row[startIdx], 10) : null,
+      timeRangeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+        ? parseInt(row[endIdx], 10) : null,
+      supportingEvidence: parseJson(evidenceIdx, row, { linguistic: [], archaeological: [], genetic: [] }),
+      competingHypotheses: parseJson(competingIdx, row, []),
+      scholarlyConsensusLevel: consensusIdx >= 0 && row[consensusIdx]
+        ? parseFloat(row[consensusIdx]) : 0,
+      keyProponents: parseJson(proponentsIdx, row, []),
+      sources: parseJson(srcIdx, row, []),
+    }));
+  }
+
+  /**
+   * Get urheimat hypotheses with optional filtering
+   */
+  async getUrheimatHypotheses(filters?: {
+    languageFamilyId?: string;
+    consensusMin?: number;
+  }): Promise<UrheimatHypothesis[]> {
+    this.loadUrheimatHypotheses();
+    let hypotheses = this.cachedUrheimatHypotheses ?? [];
+
+    if (filters?.languageFamilyId) {
+      hypotheses = hypotheses.filter((h) =>
+        h.languageFamilyId === filters.languageFamilyId
+      );
+    }
+
+    if (filters?.consensusMin !== undefined) {
+      hypotheses = hypotheses.filter((h) =>
+        h.scholarlyConsensusLevel >= filters.consensusMin!
+      );
+    }
+
+    return hypotheses;
+  }
+
+  /**
+   * Get a single urheimat hypothesis by ID
+   */
+  async getUrheimatHypothesis(id: string): Promise<UrheimatHypothesis | null> {
+    this.loadUrheimatHypotheses();
+    return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
   }
 
   // ============================================================================
