@@ -51,3 +51,30 @@ Completed:
 - Created lexicons/myth-motifs.tsv with 32 motifs across 8 types (cataclysm, cosmology, death-rebirth, archetype, creation, hero, culture-hero, fertility) with cross-cultural examples and deity references
 - Created test/test-mythology-data.ts with 42 validation tests covering schema, JSON parsing, referential integrity, and data quality
 - All tests passing
+
+US-094: Add animated temporal boundary morphing
+
+Completed:
+- Created temporal-boundary-morphing.ts utility module with:
+  - Polygon coordinate interpolation via ring resampling
+  - Ease-in-out cubic easing for smooth transitions
+  - Bracketing snapshot detection for time-based interpolation
+  - Migration particle generation along route geometries
+  - Civilization snapshot grouping and morphed boundary generation
+- Created useTemporalMorphing React hook for managing morphing state
+  - Memoized snapshot grouping and boundary interpolation
+  - requestAnimationFrame-based particle animation loop
+  - Active route filtering by current year
+- Created TemporalMorphingLayer component (Leaflet GeoJSON)
+  - Renders interpolated polygon boundaries
+  - Transition pulse effect during morphing
+  - Popup with morph progress indicator
+- Created MigrationParticleLayer component
+  - Renders animated particles along migration routes using CircleMarker
+  - Opacity/size variation based on route progress
+- Created SplitScreenComparison component
+  - Side panel for comparing two time periods
+  - Year slider for comparison view
+  - Toggle button for map controls
+- Installed vitest, wrote 38 unit tests (all passing)
+- TypeScript type checking passes (no new errors)
