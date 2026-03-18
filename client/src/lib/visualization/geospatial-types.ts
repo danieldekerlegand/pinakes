@@ -170,7 +170,9 @@ export type LayerType =
   | 'foodway-events'
   | 'kinship-systems'
   | 'dance'
-  | 'architectural-styles';
+  | 'architectural-styles'
+  | 'ingredient-origins'
+  | 'cooking-techniques';
 
 export type LayerCategory =
   | 'languages'
@@ -604,6 +606,38 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'ingredient-origins',
+    type: 'ingredient-origins',
+    category: 'cuisines',
+    name: 'Ingredient Origins',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 252,
+    renderStyle: {
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        strokeWeight: 1.5,
+      },
+    },
+  },
+  {
+    id: 'cooking-techniques',
+    type: 'cooking-techniques',
+    category: 'cuisines',
+    name: 'Cooking Techniques',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 253,
+    renderStyle: {
+      marker: {
+        size: 6,
+        opacity: 0.8,
+        strokeWeight: 1.5,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -634,13 +668,13 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'dance', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems', 'architectural-styles'],
+    layers: ['cuisines', 'music', 'dance', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems', 'architectural-styles', 'ingredient-origins', 'cooking-techniques'],
   },
   {
     id: 'trade-economy',
     name: 'Trade & Economy',
     description: 'Trade routes, material culture, and cuisine regions',
-    layers: ['routes', 'cuisines', 'material-culture', 'foodway-events'],
+    layers: ['routes', 'cuisines', 'material-culture', 'foodway-events', 'ingredient-origins', 'cooking-techniques'],
   },
   {
     id: 'genetic-linguistic',

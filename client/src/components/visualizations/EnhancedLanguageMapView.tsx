@@ -36,6 +36,10 @@ import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
 import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
 import { ArchitecturalStylesLayer } from './map-layers/ArchitecturalStylesLayer';
 import type { ArchitecturalStyleFeature } from './map-layers/ArchitecturalStylesLayer';
+import { IngredientOriginsLayer } from './map-layers/IngredientOriginsLayer';
+import type { IngredientOriginFeature } from './map-layers/IngredientOriginsLayer';
+import { CookingTechniquesLayer } from './map-layers/CookingTechniquesLayer';
+import type { CookingTechniqueFeature } from './map-layers/CookingTechniquesLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
@@ -252,6 +256,20 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('architectural-styles'),
   });
 
+  // Fetch ingredient origins data
+  const { data: ingredientOriginsData, isLoading: loadingIngredientOrigins } = useQuery<{ ingredients: IngredientOriginFeature[]; count: number }>({
+    queryKey: ['/api/ingredient-origins', { year: currentYear }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('ingredient-origins'),
+  });
+
+  // Fetch cooking techniques data
+  const { data: cookingTechniquesData, isLoading: loadingCookingTechniques } = useQuery<{ techniques: CookingTechniqueFeature[]; count: number }>({
+    queryKey: ['/api/cooking-techniques', { year: currentYear }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('cooking-techniques'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -370,6 +388,16 @@ export function EnhancedLanguageMapView({
   const allArchitecturalStyles = useMemo(() => {
     return architecturalStylesData?.styles ?? [];
   }, [architecturalStylesData]);
+
+  // Ingredient origins data (already filtered by year on server)
+  const allIngredientOrigins = useMemo(() => {
+    return ingredientOriginsData?.ingredients ?? [];
+  }, [ingredientOriginsData]);
+
+  // Cooking techniques data (already filtered by year on server)
+  const allCookingTechniques = useMemo(() => {
+    return cookingTechniquesData?.techniques ?? [];
+  }, [cookingTechniquesData]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -500,7 +528,9 @@ export function EnhancedLanguageMapView({
     (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
     (loadingFoodwayEvents && isLayerVisible('foodway-events')) ||
     (loadingKinshipSystems && isLayerVisible('kinship-systems')) ||
-    (loadingArchitecturalStyles && isLayerVisible('architectural-styles'));
+    (loadingArchitecturalStyles && isLayerVisible('architectural-styles')) ||
+    (loadingIngredientOrigins && isLayerVisible('ingredient-origins')) ||
+    (loadingCookingTechniques && isLayerVisible('cooking-techniques'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -696,6 +726,26 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('architectural-styles')?.opacity || 0.8}
             onStyleClick={handleFeatureClick}
             selectedStyleId={selectedFeatureId}
+          />
+        )}
+
+        {/* Ingredient Origins Layer */}
+        {isLayerVisible('ingredient-origins') && allIngredientOrigins.length > 0 && (
+          <IngredientOriginsLayer
+            ingredients={allIngredientOrigins}
+            opacity={getLayerConfig('ingredient-origins')?.opacity || 0.8}
+            onIngredientClick={handleFeatureClick}
+            selectedIngredientId={selectedFeatureId}
+          />
+        )}
+
+        {/* Cooking Techniques Layer */}
+        {isLayerVisible('cooking-techniques') && allCookingTechniques.length > 0 && (
+          <CookingTechniquesLayer
+            techniques={allCookingTechniques}
+            opacity={getLayerConfig('cooking-techniques')?.opacity || 0.8}
+            onTechniqueClick={handleFeatureClick}
+            selectedTechniqueId={selectedFeatureId}
           />
         )}
 

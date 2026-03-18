@@ -290,6 +290,7 @@ export interface CuisineItem {
   timeEnd: number | null;
 }
 
+<<<<<<< HEAD
 // Ingredient origin types
 export interface IngredientOrigin {
   id: string;
@@ -318,6 +319,30 @@ export interface CookingTechnique {
   cuisinesUsing: string[];
   relatedTechniques: string[];
   associatedLanguages: string[];
+=======
+// Ingredient Origin types
+export interface IngredientOrigin {
+  id: string;
+  name: string;
+  cuisineId: string;
+  originRegion: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  nativeName: string;
+  description: string;
+}
+
+// Cooking Technique types
+export interface CookingTechnique {
+  id: string;
+  name: string;
+  cuisineId: string;
+  category: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   description: string;
 }
 
@@ -2454,15 +2479,29 @@ export class TsvStorage {
   // Ingredient Origin Data Methods
   // ============================================================================
 
+<<<<<<< HEAD
+=======
+  /**
+   * Load ingredient origins from TSV file
+   */
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   private loadIngredientOrigins(): void {
     if (this.cachedIngredientOrigins) return;
 
     const text = this.readFileIfExists("lexicons/ingredient-origins.tsv");
+<<<<<<< HEAD
     if (!text) { this.cachedIngredientOrigins = []; return; }
+=======
+    if (!text) {
+      this.cachedIngredientOrigins = [];
+      return;
+    }
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const nameIdx = getIdx(header, "name");
+<<<<<<< HEAD
     const categoryIdx = getIdx(header, "category");
     const regionIdx = header.indexOf("origin_region");
     const coordsIdx = header.indexOf("origin_coordinates");
@@ -2500,40 +2539,118 @@ export class TsvStorage {
   async getIngredientOrigins(filters?: {
     category?: string;
     cuisineId?: string;
+=======
+    const cuisineIdIdx = getIdx(header, "cuisine_id");
+    const originRegionIdx = header.indexOf("origin_region");
+    const coordsIdx = header.indexOf("coordinates");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const timeEndIdx = header.indexOf("time_end");
+    const nativeNameIdx = header.indexOf("native_name");
+    const descIdx = header.indexOf("description");
+
+    this.cachedIngredientOrigins = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try {
+          coords = JSON.parse(row[coordsIdx]);
+        } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        cuisineId: row[cuisineIdIdx],
+        originRegion: originRegionIdx >= 0 ? row[originRegionIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: timeOriginIdx >= 0 && row[timeOriginIdx] && row[timeOriginIdx] !== "null"
+          ? parseInt(row[timeOriginIdx], 10)
+          : null,
+        timeEnd: timeEndIdx >= 0 && row[timeEndIdx] && row[timeEndIdx] !== "null"
+          ? parseInt(row[timeEndIdx], 10)
+          : null,
+        nativeName: nativeNameIdx >= 0 ? row[nativeNameIdx] || "" : "",
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get ingredient origins with optional filtering
+   */
+  async getIngredientOrigins(filters?: {
+    cuisineId?: string;
+    year?: number;
+    region?: string;
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   }): Promise<IngredientOrigin[]> {
     this.loadIngredientOrigins();
     let items = this.cachedIngredientOrigins ?? [];
 
+<<<<<<< HEAD
     if (filters?.category) {
       items = items.filter((i) => i.category.toLowerCase() === filters.category!.toLowerCase());
     }
     if (filters?.cuisineId) {
       items = items.filter((i) =>
         i.cuisinesAdopted.some((c) => c.toLowerCase() === filters.cuisineId!.toLowerCase())
+=======
+    if (filters?.cuisineId) {
+      items = items.filter((i) => i.cuisineId === filters.cuisineId);
+    }
+
+    if (filters?.year !== undefined) {
+      items = items.filter((i) => {
+        const start = i.timeOrigin ?? -Infinity;
+        const end = i.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.region) {
+      items = items.filter((i) =>
+        i.originRegion.toLowerCase().includes(filters.region!.toLowerCase())
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
       );
     }
 
     return items;
   }
 
+<<<<<<< HEAD
   async getIngredientOriginById(id: string): Promise<IngredientOrigin | null> {
     this.loadIngredientOrigins();
     return (this.cachedIngredientOrigins ?? []).find((i) => i.id === id) ?? null;
   }
 
+=======
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   // ============================================================================
   // Cooking Technique Data Methods
   // ============================================================================
 
+<<<<<<< HEAD
+=======
+  /**
+   * Load cooking techniques from TSV file
+   */
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   private loadCookingTechniques(): void {
     if (this.cachedCookingTechniques) return;
 
     const text = this.readFileIfExists("lexicons/cooking-techniques.tsv");
+<<<<<<< HEAD
     if (!text) { this.cachedCookingTechniques = []; return; }
+=======
+    if (!text) {
+      this.cachedCookingTechniques = [];
+      return;
+    }
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const nameIdx = getIdx(header, "name");
+<<<<<<< HEAD
     const categoryIdx = getIdx(header, "category");
     const regionIdx = header.indexOf("origin_region");
     const coordsIdx = header.indexOf("origin_coordinates");
@@ -2575,27 +2692,89 @@ export class TsvStorage {
   async getCookingTechniques(filters?: {
     category?: string;
     cuisineId?: string;
+=======
+    const cuisineIdIdx = getIdx(header, "cuisine_id");
+    const categoryIdx = header.indexOf("category");
+    const coordsIdx = header.indexOf("coordinates");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const timeEndIdx = header.indexOf("time_end");
+    const descIdx = header.indexOf("description");
+
+    this.cachedCookingTechniques = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try {
+          coords = JSON.parse(row[coordsIdx]);
+        } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        cuisineId: row[cuisineIdIdx],
+        category: categoryIdx >= 0 ? row[categoryIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: timeOriginIdx >= 0 && row[timeOriginIdx] && row[timeOriginIdx] !== "null"
+          ? parseInt(row[timeOriginIdx], 10)
+          : null,
+        timeEnd: timeEndIdx >= 0 && row[timeEndIdx] && row[timeEndIdx] !== "null"
+          ? parseInt(row[timeEndIdx], 10)
+          : null,
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get cooking techniques with optional filtering
+   */
+  async getCookingTechniques(filters?: {
+    cuisineId?: string;
+    year?: number;
+    category?: string;
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   }): Promise<CookingTechnique[]> {
     this.loadCookingTechniques();
     let items = this.cachedCookingTechniques ?? [];
 
+<<<<<<< HEAD
     if (filters?.category) {
       items = items.filter((t) => t.category.toLowerCase() === filters.category!.toLowerCase());
     }
     if (filters?.cuisineId) {
       items = items.filter((t) =>
         t.cuisinesUsing.some((c) => c.toLowerCase() === filters.cuisineId!.toLowerCase())
+=======
+    if (filters?.cuisineId) {
+      items = items.filter((i) => i.cuisineId === filters.cuisineId);
+    }
+
+    if (filters?.year !== undefined) {
+      items = items.filter((i) => {
+        const start = i.timeOrigin ?? -Infinity;
+        const end = i.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.category) {
+      items = items.filter((i) =>
+        i.category.toLowerCase().includes(filters.category!.toLowerCase())
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
       );
     }
 
     return items;
   }
 
+<<<<<<< HEAD
   async getCookingTechniqueById(id: string): Promise<CookingTechnique | null> {
     this.loadCookingTechniques();
     return (this.cachedCookingTechniques ?? []).find((t) => t.id === id) ?? null;
   }
 
+=======
+>>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
   // ============================================================================
   // Sample Text Data Methods
   // ============================================================================
