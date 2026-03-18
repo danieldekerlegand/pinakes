@@ -92,6 +92,22 @@ export interface MigrationRoute {
   consequences: string;
 }
 
+// Trade route types
+export interface TradeRoute {
+  id: string;
+  name: string;
+  routeType: string;
+  waypoints: Record<string, unknown>;
+  startDate: string;
+  endDate: string;
+  tradedGoods: string[];
+  keyCities: string[];
+  controllingPowers: string[];
+  associatedLanguages: string[];
+  description: string;
+  economicImpact: string;
+}
+
 // Sound change types
 export interface SoundChange {
   id: string;
@@ -240,6 +256,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -420,6 +437,9 @@ export class TsvStorage {
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
+
+  // Trade routes data cache
+  private cachedTradeRoutes: TradeRoute[] | null = null;
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
@@ -2004,18 +2024,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -2039,7 +2047,24 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2162,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2291,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
@@ -2968,6 +2997,81 @@ export class TsvStorage {
   async getTradeGoodById(id: string): Promise<TradeGood | null> {
     this.loadTradeGoods();
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
+  }
+
+  // ── Trade Routes ──────────────────────────────────────────────────
+
+  private loadTradeRoutes(): void {
+    if (this.cachedTradeRoutes) return;
+
+    const text = this.readFileIfExists("lexicons/trade-routes.tsv");
+    if (!text) { this.cachedTradeRoutes = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const routeTypeIdx = header.indexOf("route_type");
+    const waypointsIdx = header.indexOf("waypoints");
+    const startDateIdx = header.indexOf("start_date");
+    const endDateIdx = header.indexOf("end_date");
+    const tradedGoodsIdx = header.indexOf("traded_goods");
+    const keyCitiesIdx = header.indexOf("key_cities");
+    const controllingPowersIdx = header.indexOf("controlling_powers");
+    const langIdx = header.indexOf("associated_languages");
+    const descIdx = header.indexOf("description");
+    const economicImpactIdx = header.indexOf("economic_impact");
+
+    this.cachedTradeRoutes = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      routeType: routeTypeIdx >= 0 ? row[routeTypeIdx] || "" : "",
+      waypoints: (() => {
+        if (waypointsIdx < 0 || !row[waypointsIdx]) return {};
+        try { return JSON.parse(row[waypointsIdx]); } catch { return {}; }
+      })(),
+      startDate: startDateIdx >= 0 ? row[startDateIdx] || "" : "",
+      endDate: endDateIdx >= 0 ? row[endDateIdx] || "" : "",
+      tradedGoods: (() => {
+        if (tradedGoodsIdx < 0 || !row[tradedGoodsIdx]) return [];
+        try { return JSON.parse(row[tradedGoodsIdx]); } catch { return []; }
+      })(),
+      keyCities: (() => {
+        if (keyCitiesIdx < 0 || !row[keyCitiesIdx]) return [];
+        try { return JSON.parse(row[keyCitiesIdx]); } catch { return []; }
+      })(),
+      controllingPowers: (() => {
+        if (controllingPowersIdx < 0 || !row[controllingPowersIdx]) return [];
+        try { return JSON.parse(row[controllingPowersIdx]); } catch { return []; }
+      })(),
+      associatedLanguages: (() => {
+        if (langIdx < 0 || !row[langIdx]) return [];
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      economicImpact: economicImpactIdx >= 0 ? row[economicImpactIdx] || "" : "",
+    }));
+  }
+
+  async getTradeRoutes(routeType?: string, startDate?: string, endDate?: string): Promise<TradeRoute[]> {
+    this.loadTradeRoutes();
+    let routes = this.cachedTradeRoutes ?? [];
+
+    if (routeType) {
+      routes = routes.filter((r) => r.routeType === routeType);
+    }
+    if (startDate) {
+      routes = routes.filter((r) => r.startDate >= startDate);
+    }
+    if (endDate) {
+      routes = routes.filter((r) => r.endDate <= endDate);
+    }
+
+    return routes;
+  }
+
+  async getTradeRouteById(id: string): Promise<TradeRoute | null> {
+    this.loadTradeRoutes();
+    return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
   }
 
   // ── Narratives ──────────────────────────────────────────────────────
