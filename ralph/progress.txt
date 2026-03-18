@@ -323,3 +323,13 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Python script approach with categorized sections makes large data expansions manageable and countable
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
 ---
+
+## 2026-03-18 - US-098
+- Added 11 new guided journey narratives to `lexicons/narratives.tsv` (total: 21 narratives)
+- New narratives: journey_of_coffee, viking_linguistic_trail, persian_literary_empire, dravidian_legacy, greek_scientific_legacy, creole_genesis, uralic_journey, tibetan_himalayan, printing_press_revolution, chinese_characters_across_asia, atlantic_slave_trade_languages
+- Each narrative has 6 steps with map_center, map_zoom, time_point, highlighted_entities, and layer_config
+- Topics span diverse language families, time periods (-7000 BCE to 2000 CE), and geographic regions
+- References Phase 7-9 data layers: languages, trade_routes, migrations, civilizations, religions, archaeological_sites, haplogroups
+- Created `test/test-narratives.ts` with 1395 assertions validating: TSV parsing, unique IDs, required fields, step structure (coordinates, zoom, time), content spot checks, and new + original narrative preservation
+- Files changed: `lexicons/narratives.tsv`, `test/test-narratives.ts` (created)
+---
