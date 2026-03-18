@@ -240,6 +240,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -1242,8 +1243,60 @@ export class TsvStorage {
   }
 
   /**
+   * Load historical routes from migration-routes.tsv and enrich with traded goods
+   */
+  private loadHistoricalRoutes(): void {
+    if (this.cachedHistoricalRoutes) return;
+
+    this.loadMigrationRoutes();
+    this.loadTradeGoods();
+
+    const routes = this.cachedMigrationRoutes ?? [];
+    const goods = this.cachedTradeGoods ?? [];
+
+    // Build reverse lookup: route ID → traded good names
+    const goodsByRoute = new Map<string, string[]>();
+    for (const good of goods) {
+      for (const routeId of good.tradeRoutes) {
+        if (!goodsByRoute.has(routeId)) goodsByRoute.set(routeId, []);
+        goodsByRoute.get(routeId)!.push(good.name);
+      }
+    }
+
+    const validRouteTypes = new Set(['trade', 'migration', 'conquest', 'colonization', 'diaspora', 'pilgrimage', 'communication']);
+
+    this.cachedHistoricalRoutes = routes
+      .filter((r) => r.waypoints && (r.waypoints as { type?: string }).type === 'LineString')
+      .map((r) => {
+        const startYear = parseInt(r.startDate, 10);
+        const endYear = parseInt(r.endDate, 10);
+        const routeType = validRouteTypes.has(r.routeType) ? r.routeType : 'unknown';
+
+        return {
+          type: 'Feature' as const,
+          id: r.id,
+          geometry: r.waypoints as { type: 'LineString'; coordinates: number[][] },
+          properties: {
+            routeId: r.id,
+            name: r.name,
+            routeType: routeType as HistoricalRouteFeature['properties']['routeType'],
+            timePeriod: {
+              start: isNaN(startYear) ? 0 : startYear,
+              end: isNaN(endYear) ? null : endYear,
+              label: `${r.startDate} to ${r.endDate}`,
+            },
+            associatedLanguageIds: r.associatedLanguages,
+            linguisticImpact: r.consequences || undefined,
+            tradedGoods: goodsByRoute.get(r.id) || undefined,
+            direction: r.routeType === 'trade' ? 'bidirectional' as const : 'unidirectional' as const,
+            sources: [],
+          },
+        } as HistoricalRouteFeature;
+      });
+  }
+
+  /**
    * Get historical routes (trade, migration, etc.)
-   * Note: Returns empty until lexicons/historical-routes.tsv is populated
    */
   async getHistoricalRoutes(filters?: {
     timeStart?: number;
@@ -1251,8 +1304,17 @@ export class TsvStorage {
     bbox?: string;
     routeTypes?: string[];
   }): Promise<HistoricalRouteFeature[]> {
-    // No TSV data yet for routes
-    return [];
+    this.loadHistoricalRoutes();
+    let features = this.cachedHistoricalRoutes ?? [];
+
+    features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
+
+    if (filters?.routeTypes && filters.routeTypes.length > 0) {
+      const typeSet = new Set(filters.routeTypes);
+      features = features.filter((f) => typeSet.has(f.properties.routeType));
+    }
+
+    return features;
   }
 
   /**
@@ -2004,18 +2066,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -2039,7 +2089,24 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2204,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2333,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {

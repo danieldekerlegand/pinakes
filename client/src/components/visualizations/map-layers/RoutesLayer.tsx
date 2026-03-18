@@ -51,6 +51,8 @@ export function RoutesLayer({
       trade: '#22c55e', // green
       migration: '#3b82f6', // blue
       conquest: '#ef4444', // red
+      colonization: '#f97316', // orange
+      diaspora: '#eab308', // yellow
       pilgrimage: '#a855f7', // purple
       communication: '#06b6d4', // cyan
       unknown: '#9ca3af', // gray
@@ -65,6 +67,9 @@ export function RoutesLayer({
     }
     if (routeType === 'pilgrimage') {
       return '5, 10'; // Dotted for pilgrimage
+    }
+    if (routeType === 'diaspora') {
+      return '15, 5, 5, 5'; // Dash-dot for diaspora
     }
     return undefined; // Solid for others
   };
