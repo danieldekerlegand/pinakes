@@ -1057,7 +1057,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
-<<<<<<< HEAD
   // Ingredient Origin API Routes
   // ============================================================================
 
@@ -1075,26 +1074,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ingredientOrigins: items,
         count: items.length,
         filters: { category, cuisineId },
-=======
-  // Ingredient Origins API Routes
-  // ============================================================================
-
-  /**
-   * GET /api/ingredient-origins - Get ingredient origins with optional filtering
-   */
-  app.get("/api/ingredient-origins", async (req, res) => {
-    try {
-      const cuisineId = req.query.cuisineId as string | undefined;
-      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
-      const region = req.query.region as string | undefined;
-
-      const ingredients = await storage.getIngredientOrigins({ cuisineId, year, region });
-
-      res.json({
-        ingredients,
-        count: ingredients.length,
-        filters: { cuisineId, year, region },
->>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
       });
     } catch (error) {
       console.error("Error fetching ingredient origins:", error);
@@ -1105,7 +1084,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   /**
    * GET /api/ingredient-origins/:id - Get a single ingredient origin
    */
@@ -1143,27 +1121,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cookingTechniques: items,
         count: items.length,
         filters: { category, cuisineId },
-=======
-  // ============================================================================
-  // Cooking Techniques API Routes
-  // ============================================================================
-
-  /**
-   * GET /api/cooking-techniques - Get cooking techniques with optional filtering
-   */
-  app.get("/api/cooking-techniques", async (req, res) => {
-    try {
-      const cuisineId = req.query.cuisineId as string | undefined;
-      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
-      const category = req.query.category as string | undefined;
-
-      const techniques = await storage.getCookingTechniques({ cuisineId, year, category });
-
-      res.json({
-        techniques,
-        count: techniques.length,
-        filters: { cuisineId, year, category },
->>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
       });
     } catch (error) {
       console.error("Error fetching cooking techniques:", error);
@@ -1174,7 +1131,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   /**
    * GET /api/cooking-techniques/:id - Get a single cooking technique
    */
@@ -1194,8 +1150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-=======
->>>>>>> ralphy/agent-25-1773829472805-k91civ-add-ingredient-origins-and-cooking-techniques-tsv-
+
   // ============================================================================
   // Haplogroup API Routes
   // ============================================================================
@@ -2687,6 +2642,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching architectural style:", error);
       res.status(500).json({
         message: "Failed to fetch architectural style",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/archaeological-cultures - Get all archaeological cultures with optional filtering
+   */
+  app.get("/api/archaeological-cultures", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const language = req.query.language as string | undefined;
+      const timeStart = req.query.time_start ? parseInt(req.query.time_start as string) : undefined;
+      const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string) : undefined;
+      const cultures = await storage.getArchaeologicalCultures({ region, language, timeStart, timeEnd });
+      res.json({ cultures, count: cultures.length });
+    } catch (error) {
+      console.error("Error fetching archaeological cultures:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological cultures",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/archaeological-cultures/:id - Get a single archaeological culture
+   */
+  app.get("/api/archaeological-cultures/:id", async (req, res) => {
+    try {
+      const culture = await storage.getArchaeologicalCultureById(req.params.id);
+      if (!culture) {
+        return res.status(404).json({ message: "Archaeological culture not found" });
+      }
+      res.json(culture);
+    } catch (error) {
+      console.error("Error fetching archaeological culture:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological culture",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

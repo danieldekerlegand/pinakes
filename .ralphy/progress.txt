@@ -132,3 +132,21 @@ Completed:
 - Added GET /api/trade-routes and GET /api/trade-routes/:id API endpoints in server/routes.ts
 - Created test/test-trade-routes.ts with 100 passing assertions
 - Fixed 3 pre-existing syntax errors in tsv-storage.ts (missing closing braces/comments)
+
+US-074: Add archaeological culture detail cards
+
+Completed:
+- Created lexicons/archaeological-cultures.tsv with 64 cultures spanning all major world regions
+  (Yamnaya, Corded Ware, Jōmon, Clovis, Lapita, Olmec, Indus Valley, etc.)
+- Added ArchaeologicalCulture interface and TSV loader to server/tsv-storage.ts
+- Added GET /api/archaeological-cultures endpoint with region/language/time filters
+- Added GET /api/archaeological-cultures/:id endpoint
+- Created client/src/components/archaeological-cultures-panel.tsx with:
+  - Timeline view (Gantt chart with region color coding)
+  - Cards view (expandable detail cards)
+  - Detail sections: material culture, probable languages, haplogroups, characteristics
+  - Interactive predecessor/successor lineage links
+  - Region-based filtering
+- Integrated panel into dashboard (menu item, keyboard shortcut, URL state)
+- Wrote 11 tests covering data integrity, filtering, linkage consistency, coordinate validation
+- All tests pass, Vite build succeeds

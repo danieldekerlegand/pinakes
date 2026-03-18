@@ -403,6 +403,24 @@ export interface FoodwayEvent {
   culturalImpact: string;
 }
 
+// Archaeological culture types
+export interface ArchaeologicalCulture {
+  id: string;
+  name: string;
+  timeOrigin: number;
+  timeEnd: number;
+  region: string;
+  originCoordinates: [number, number];
+  description: string;
+  associatedLanguageIds: string[];
+  associatedHaplogroupIds: string[];
+  materialCultureIds: string[];
+  predecessorCultureIds: string[];
+  successorCultureIds: string[];
+  characteristics: string[];
+  sources: string[];
+}
+
 // Art tradition types
 export interface ArtTradition {
   id: string;
@@ -616,6 +634,9 @@ export class TsvStorage {
 
   // Foodway events data cache
   private cachedFoodwayEvents: FoodwayEvent[] | null = null;
+
+  // Archaeological cultures data cache
+  private cachedArchaeologicalCultures: ArchaeologicalCulture[] | null = null;
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
@@ -3584,6 +3605,97 @@ export class TsvStorage {
   async getFoodwayEventById(id: string): Promise<FoodwayEvent | null> {
     this.loadFoodwayEvents();
     return (this.cachedFoodwayEvents ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  // ── Archaeological Cultures ─────────────────────────────────────────
+
+  private loadArchaeologicalCultures(): void {
+    if (this.cachedArchaeologicalCultures) return;
+
+    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
+    if (!text) { this.cachedArchaeologicalCultures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const timeOriginIdx = getIdx(header, "time_origin");
+    const timeEndIdx = getIdx(header, "time_end");
+    const regionIdx = getIdx(header, "region");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const descIdx = getIdx(header, "description");
+    const langIdx = getIdx(header, "associated_language_ids");
+    const haploIdx = getIdx(header, "associated_haplogroup_ids");
+    const matIdx = getIdx(header, "material_culture_ids");
+    const predIdx = getIdx(header, "predecessor_culture_ids");
+    const succIdx = getIdx(header, "successor_culture_ids");
+    const charIdx = getIdx(header, "characteristics");
+    const srcIdx = getIdx(header, "sources");
+
+    this.cachedArchaeologicalCultures = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      timeOrigin: parseInt(row[timeOriginIdx]) || 0,
+      timeEnd: parseInt(row[timeEndIdx]) || 0,
+      region: row[regionIdx],
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return [0, 0]; }
+      })() as [number, number],
+      description: row[descIdx],
+      associatedLanguageIds: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      associatedHaplogroupIds: (() => {
+        try { return JSON.parse(row[haploIdx]); } catch { return []; }
+      })() as string[],
+      materialCultureIds: (() => {
+        try { return JSON.parse(row[matIdx]); } catch { return []; }
+      })() as string[],
+      predecessorCultureIds: (() => {
+        try { return JSON.parse(row[predIdx]); } catch { return []; }
+      })() as string[],
+      successorCultureIds: (() => {
+        try { return JSON.parse(row[succIdx]); } catch { return []; }
+      })() as string[],
+      characteristics: (() => {
+        try { return JSON.parse(row[charIdx]); } catch { return []; }
+      })() as string[],
+      sources: (() => {
+        try { return JSON.parse(row[srcIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getArchaeologicalCultures(filters?: {
+    region?: string;
+    language?: string;
+    timeStart?: number;
+    timeEnd?: number;
+  }): Promise<ArchaeologicalCulture[]> {
+    this.loadArchaeologicalCultures();
+    let cultures = this.cachedArchaeologicalCultures ?? [];
+
+    if (filters?.region) {
+      const r = filters.region.toLowerCase();
+      cultures = cultures.filter((c) => c.region.toLowerCase().includes(r));
+    }
+    if (filters?.language) {
+      cultures = cultures.filter((c) =>
+        c.associatedLanguageIds.includes(filters.language!)
+      );
+    }
+    if (filters?.timeStart !== undefined) {
+      cultures = cultures.filter((c) => c.timeEnd >= filters.timeStart!);
+    }
+    if (filters?.timeEnd !== undefined) {
+      cultures = cultures.filter((c) => c.timeOrigin <= filters.timeEnd!);
+    }
+
+    return cultures;
+  }
+
+  async getArchaeologicalCultureById(id: string): Promise<ArchaeologicalCulture | null> {
+    this.loadArchaeologicalCultures();
+    return (this.cachedArchaeologicalCultures ?? []).find((c) => c.id === id) ?? null;
   }
 
   // ── Kinship Systems ──────────────────────────────────────────────────
