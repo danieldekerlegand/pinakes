@@ -420,6 +420,40 @@ export interface CulturalLineage {
   sources: string[];
 }
 
+// Literary tradition types
+export interface LiteraryTradition {
+  id: string;
+  name: string;
+  region: string;
+  originDate: number;
+  endDate: number | null;
+  originCoordinates: { lat: number; lng: number };
+  associatedLanguageIds: string[];
+  genreFocus: string[];
+  keyThemes: string[];
+  description: string;
+  notableAuthors: string[];
+  influences: string[];
+  sources: string[];
+}
+
+// Literary work types
+export interface LiteraryWork {
+  id: string;
+  title: string;
+  author: string;
+  traditionId: string;
+  languageId: string;
+  dateComposed: number;
+  datePublished: number | null;
+  genre: string;
+  form: string;
+  description: string;
+  significance: string;
+  originalScript: string;
+  coordinates: { lat: number; lng: number };
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;
@@ -532,6 +566,10 @@ export class TsvStorage {
 
   // Etymology Relations
   private cachedEtymologyRelations: EtymologyRelation[] | null = null;
+
+  // Literary traditions and works
+  private cachedLiteraryTraditions: LiteraryTradition[] | null = null;
+  private cachedLiteraryWorks: LiteraryWork[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -3487,5 +3525,149 @@ export class TsvStorage {
     }
 
     return result;
+  }
+
+  // ── Literary Traditions ──────────────────────────────────────────────
+
+  private loadLiteraryTraditions(): void {
+    if (this.cachedLiteraryTraditions) return;
+
+    const text = this.readFileIfExists("lexicons/literary-traditions.tsv");
+    if (!text) { this.cachedLiteraryTraditions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const regionIdx = getIdx(header, "region");
+    const originDateIdx = getIdx(header, "origin_date");
+    const endDateIdx = getIdx(header, "end_date");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const langIdx = getIdx(header, "associated_language_ids");
+    const genreIdx = getIdx(header, "genre_focus");
+    const themesIdx = getIdx(header, "key_themes");
+    const descIdx = getIdx(header, "description");
+    const authorsIdx = getIdx(header, "notable_authors");
+    const influencesIdx = getIdx(header, "influences");
+    const sourcesIdx = getIdx(header, "sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedLiteraryTraditions = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      region: row[regionIdx],
+      originDate: parseInt(row[originDateIdx]) || 0,
+      endDate: row[endDateIdx] && row[endDateIdx] !== "null" ? parseInt(row[endDateIdx]) : null,
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      associatedLanguageIds: parseArr(langIdx, row),
+      genreFocus: parseArr(genreIdx, row),
+      keyThemes: parseArr(themesIdx, row),
+      description: row[descIdx],
+      notableAuthors: parseArr(authorsIdx, row),
+      influences: parseArr(influencesIdx, row),
+      sources: parseArr(sourcesIdx, row),
+    }));
+  }
+
+  async getLiteraryTraditions(filters?: {
+    region?: string;
+    genre?: string;
+  }): Promise<LiteraryTradition[]> {
+    this.loadLiteraryTraditions();
+    let traditions = this.cachedLiteraryTraditions ?? [];
+
+    if (filters?.region) {
+      traditions = traditions.filter((t) => t.region === filters.region);
+    }
+    if (filters?.genre) {
+      traditions = traditions.filter((t) => t.genreFocus.includes(filters.genre!));
+    }
+
+    return traditions;
+  }
+
+  async getLiteraryTraditionById(id: string): Promise<LiteraryTradition | null> {
+    this.loadLiteraryTraditions();
+    return (this.cachedLiteraryTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ── Literary Works ───────────────────────────────────────────────────
+
+  private loadLiteraryWorks(): void {
+    if (this.cachedLiteraryWorks) return;
+
+    const text = this.readFileIfExists("lexicons/literary-works.tsv");
+    if (!text) { this.cachedLiteraryWorks = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const titleIdx = getIdx(header, "title");
+    const authorIdx = getIdx(header, "author");
+    const tradIdx = getIdx(header, "tradition_id");
+    const langIdx = getIdx(header, "language_id");
+    const composedIdx = getIdx(header, "date_composed");
+    const publishedIdx = getIdx(header, "date_published");
+    const genreIdx = getIdx(header, "genre");
+    const formIdx = getIdx(header, "form");
+    const descIdx = getIdx(header, "description");
+    const sigIdx = getIdx(header, "significance");
+    const scriptIdx = getIdx(header, "original_script");
+    const coordsIdx = getIdx(header, "coordinates");
+
+    this.cachedLiteraryWorks = rows.map((row) => ({
+      id: row[idIdx],
+      title: row[titleIdx],
+      author: row[authorIdx],
+      traditionId: row[tradIdx],
+      languageId: row[langIdx],
+      dateComposed: parseInt(row[composedIdx]) || 0,
+      datePublished: row[publishedIdx] && row[publishedIdx] !== "null" ? parseInt(row[publishedIdx]) : null,
+      genre: row[genreIdx],
+      form: row[formIdx],
+      description: row[descIdx],
+      significance: row[sigIdx],
+      originalScript: row[scriptIdx],
+      coordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+    }));
+  }
+
+  async getLiteraryWorks(filters?: {
+    traditionId?: string;
+    genre?: string;
+    languageId?: string;
+  }): Promise<LiteraryWork[]> {
+    this.loadLiteraryWorks();
+    let works = this.cachedLiteraryWorks ?? [];
+
+    if (filters?.traditionId) {
+      works = works.filter((w) => w.traditionId === filters.traditionId);
+    }
+    if (filters?.genre) {
+      works = works.filter((w) => w.genre === filters.genre);
+    }
+    if (filters?.languageId) {
+      works = works.filter((w) => w.languageId === filters.languageId);
+    }
+
+    return works;
+  }
+
+  async getLiteraryWorkById(id: string): Promise<LiteraryWork | null> {
+    this.loadLiteraryWorks();
+    return (this.cachedLiteraryWorks ?? []).find((w) => w.id === id) ?? null;
+  }
+
+  async getLiteraryTraditionWithWorks(id: string): Promise<{ tradition: LiteraryTradition; works: LiteraryWork[] } | null> {
+    const tradition = await this.getLiteraryTraditionById(id);
+    if (!tradition) return null;
+    const works = await this.getLiteraryWorks({ traditionId: id });
+    return { tradition, works };
   }
 }

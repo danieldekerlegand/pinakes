@@ -2708,7 +2708,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -2883,6 +2882,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/literary-traditions - Get all literary traditions with optional filtering
+   */
+  app.get("/api/literary-traditions", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const genre = req.query.genre as string | undefined;
+      const traditions = await storage.getLiteraryTraditions({ region, genre });
+      res.json({ traditions, count: traditions.length });
+    } catch (error) {
+      console.error("Error fetching literary traditions:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary traditions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/visualizations/chord - Build chord diagram data (language family mutual influences)
    * Query params: yearStart, yearEnd (optional temporal filter)
    */
@@ -2973,6 +2990,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/literary-traditions/:id - Get a single literary tradition with its works
+   */
+  app.get("/api/literary-traditions/:id", async (req, res) => {
+    try {
+      const result = await storage.getLiteraryTraditionWithWorks(req.params.id);
+      if (!result) {
+        return res.status(404).json({ message: "Literary tradition not found" });
+      }
+      res.json({ ...result, workCount: result.works.length });
+    } catch (error) {
+      console.error("Error fetching literary tradition:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/cultural-lineages/descendants/:entityId - Recursively find all descendants
    */
   app.get("/api/cultural-lineages/descendants/:entityId", async (req, res) => {
@@ -2996,6 +3032,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/literary-works - Get all literary works with optional filtering
+   */
+  app.get("/api/literary-works", async (req, res) => {
+    try {
+      const traditionId = req.query.tradition_id as string | undefined;
+      const genre = req.query.genre as string | undefined;
+      const languageId = req.query.language_id as string | undefined;
+      const works = await storage.getLiteraryWorks({ traditionId, genre, languageId });
+      res.json({ works, count: works.length });
+    } catch (error) {
+      console.error("Error fetching literary works:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary works",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/cultural-lineages/:id - Get a single cultural lineage by ID
    */
   app.get("/api/cultural-lineages/:id", async (req, res) => {
@@ -3010,6 +3065,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching cultural lineage:", error);
       res.status(500).json({
         message: "Failed to fetch cultural lineage",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/literary-works/:id - Get a single literary work
+   */
+  app.get("/api/literary-works/:id", async (req, res) => {
+    try {
+      const work = await storage.getLiteraryWorkById(req.params.id);
+      if (!work) {
+        return res.status(404).json({ message: "Literary work not found" });
+      }
+      res.json(work);
+    } catch (error) {
+      console.error("Error fetching literary work:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary work",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

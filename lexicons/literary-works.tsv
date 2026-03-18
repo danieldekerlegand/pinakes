@@ -1,61 +1,23 @@
-id	title	tradition_id	author	language_id	date_composed	genre	significance	translations_count	sources
-lw-001	Kesh Temple Hymn	lit-trad-001	Anonymous	sux	-2600	hymn	One of the oldest surviving literary compositions in any language	5	["Electronic Text Corpus of Sumerian Literature"]
-lw-002	Instructions of Shuruppak	lit-trad-001	Anonymous	sux	-2500	wisdom	Among the earliest known works of literature, a father's advice to his son	4	["Sumerian literary tablets"]
-lw-003	Epic of Gilgamesh	lit-trad-002	Sin-leqi-unninni	akk	-2100	epic	Earliest great work of literature, explores mortality and friendship	45	["Standard Babylonian tablets","George 2003"]
-lw-004	Enuma Elish	lit-trad-002	Anonymous	akk	-1100	mythology	Babylonian creation myth establishing Marduk as supreme deity	20	["Cuneiform tablet collections"]
-lw-005	Story of Sinuhe	lit-trad-003	Anonymous	egy	-1875	narrative	Considered the finest work of ancient Egyptian literature	12	["Papyrus Berlin 3022"]
-lw-006	Book of the Dead	lit-trad-003	Anonymous	egy	-1550	funerary	Essential guide to the afterlife, one of longest-used religious texts	30	["Papyrus of Ani"]
-lw-007	Rigveda	lit-trad-004	Various Rishis	san	-1500	hymn	Oldest known Vedic Sanskrit text, foundational to Hindu tradition	15	["Indological scholarship"]
-lw-008	Upanishads	lit-trad-004	Various	san	-800	philosophy	Core philosophical texts exploring the nature of reality and self	25	["Indological scholarship"]
-lw-009	Atharvaveda	lit-trad-004	Various	san	-1200	hymn	Fourth Veda containing spells, prayers, and philosophical speculation	8	["Vedic studies"]
-lw-010	Iliad	lit-trad-005	Homer	grc	-750	epic	Foundational work of Western literature depicting the Trojan War	120	["Classical scholarship"]
-lw-011	Odyssey	lit-trad-005	Homer	grc	-725	epic	Archetypal journey narrative influencing all subsequent Western literature	110	["Classical scholarship"]
-lw-012	Oresteia	lit-trad-028	Aeschylus	grc	-458	drama	Only surviving complete trilogy of ancient Greek drama	40	["Classical scholarship"]
-lw-013	Oedipus Rex	lit-trad-028	Sophocles	grc	-429	drama	Considered the perfect tragedy by Aristotle, explores fate and knowledge	60	["Classical scholarship"]
-lw-014	Aeneid	lit-trad-006	Virgil	lat	-19	epic	Roman national epic linking Rome to Troy, model for later epics	80	["Classical scholarship"]
-lw-015	Metamorphoses	lit-trad-006	Ovid	lat	8	poetry	Encyclopedic mythological poem, major source for Greek and Roman myths	55	["Classical scholarship"]
-lw-016	De Rerum Natura	lit-trad-006	Lucretius	lat	-55	philosophy	Epicurean philosophical poem on the nature of the universe	25	["Classical scholarship"]
-lw-017	Mahabharata	lit-trad-007	Vyasa	san	-400	epic	Longest epic poem ever composed, contains the Bhagavad Gita	50	["Indological scholarship"]
-lw-018	Ramayana	lit-trad-007	Valmiki	san	-300	epic	Beloved epic of duty and devotion, adapted across all of South and Southeast Asia	60	["Indological scholarship"]
-lw-019	Bhagavad Gita	lit-trad-007	Vyasa	san	-200	philosophy	Central philosophical text of Hinduism on duty, action, and devotion	200	["Indological scholarship"]
-lw-020	Tirukkural	lit-trad-008	Thiruvalluvar	tam	-100	ethics	Universal ethical masterpiece, translated into over 80 languages	82	["Sangam literary scholarship"]
-lw-021	Kuruntokai	lit-trad-008	Various	tam	-200	poetry	Anthology of love poems from the Sangam period	6	["Sangam literary scholarship"]
-lw-022	Song of Roland	lit-trad-009	Anonymous	fro	1100	epic	Oldest surviving major work of French literature, archetypal chanson de geste	30	["Medieval literary scholarship"]
-lw-023	Nibelungenlied	lit-trad-009	Anonymous	gmh	1200	epic	Germanic heroic epic combining history and mythology	25	["Medieval literary scholarship"]
-lw-024	Cantar de Mio Cid	lit-trad-009	Anonymous	osp	1207	epic	Oldest preserved Spanish epic poem celebrating the Reconquista hero	15	["Medieval literary scholarship"]
-lw-025	Beowulf	lit-trad-010	Anonymous	ang	800	epic	Greatest surviving Old English poem, blending heroic and Christian traditions	40	["Anglo-Saxon literary studies"]
-lw-026	The Wanderer	lit-trad-010	Anonymous	ang	900	elegy	Powerful meditation on exile, loss, and the transience of earthly glory	10	["Anglo-Saxon literary studies"]
-lw-027	Mu'allaqat	lit-trad-011	Various	arb	550	poetry	Seven celebrated pre-Islamic odes hung in the Kaaba	15	["Arabic literary scholarship"]
-lw-028	One Thousand and One Nights	lit-trad-011	Anonymous	arb	850	prose	Frame narrative collection influencing world literature across centuries	90	["Arabic literary scholarship"]
-lw-029	Al-Muqaddimah	lit-trad-011	Ibn Khaldun	arb	1377	prose	Pioneering work of historiography and social science	35	["Arabic literary scholarship"]
-lw-030	Prose Edda	lit-trad-012	Snorri Sturluson	non	1220	mythology	Primary source for Norse mythology and poetics	30	["Old Norse literary studies"]
-lw-031	Poetic Edda	lit-trad-012	Anonymous	non	1270	mythology	Collection of Old Norse mythological and heroic poems	25	["Old Norse literary studies"]
-lw-032	Völsunga Saga	lit-trad-012	Anonymous	non	1260	saga	Legendary saga of the Völsung clan, source for Wagner's Ring Cycle	15	["Old Norse literary studies"]
-lw-033	Shahnameh	lit-trad-013	Ferdowsi	fas	1010	epic	Persian national epic of 50000 couplets preserving pre-Islamic Iranian heritage	30	["Persian literary scholarship"]
-lw-034	Rubaiyat	lit-trad-013	Omar Khayyam	fas	1120	poetry	Celebrated quatrains on mortality and pleasure, widely translated	75	["Persian literary scholarship"]
-lw-035	Masnavi	lit-trad-013	Rumi	fas	1258	poetry	Monumental Sufi spiritual poem called the Quran in Persian	40	["Persian literary scholarship"]
-lw-036	Tale of Genji	lit-trad-014	Murasaki Shikibu	jpn	1010	novel	Often considered the world's first novel, masterpiece of court literature	35	["Japanese literary studies"]
-lw-037	Pillow Book	lit-trad-014	Sei Shonagon	jpn	1002	prose	Pioneering work of zuihitsu (essay) form, vivid court observations	20	["Japanese literary studies"]
-lw-038	Man'yoshu	lit-trad-014	Various	jpn	759	poetry	Oldest existing collection of Japanese poetry with 4500 poems	12	["Japanese literary studies"]
-lw-039	Divine Comedy	lit-trad-015	Dante Alighieri	ita	1320	epic	Supreme achievement of medieval literature, shaped the Italian language	100	["Renaissance literary scholarship"]
-lw-040	Decameron	lit-trad-015	Giovanni Boccaccio	ita	1353	prose	Influential frame narrative of 100 tales, model for Renaissance prose	45	["Renaissance literary scholarship"]
-lw-041	Analects of Confucius	lit-trad-016	Disciples of Confucius	cmn	-475	philosophy	Foundational text of Confucianism shaping East Asian civilization	70	["Chinese literary scholarship"]
-lw-042	Dao De Jing	lit-trad-016	Laozi	cmn	-400	philosophy	Core text of Daoism, one of the most translated works in history	250	["Chinese literary scholarship"]
-lw-043	Shi Jing (Book of Songs)	lit-trad-016	Various	cmn	-600	poetry	Oldest collection of Chinese poetry, foundational to literary tradition	20	["Chinese literary scholarship"]
-lw-044	Dream of the Red Chamber	lit-trad-016	Cao Xueqin	cmn	1760	novel	Greatest Chinese novel, intricate portrait of aristocratic family decline	15	["Chinese literary scholarship"]
-lw-045	Popol Vuh	lit-trad-017	Anonymous	myn	1550	mythology	Sacred creation narrative of the K'iche' Maya people	25	["Mesoamerican studies"]
-lw-046	Sundiata	lit-trad-018	Griots	bam	1235	oral_epic	Epic of the founding of the Mali Empire, cornerstone of West African oral tradition	12	["African oral literature studies"]
-lw-047	Epic of Askia Mohammed	lit-trad-018	Griots	son	1500	oral_epic	Epic of the Songhai Empire's greatest ruler	5	["African oral literature studies"]
-lw-048	Torah	lit-trad-019	Various	heb	-600	scripture	Foundation of Judaism and major influence on Christianity and Islam	100	["Biblical scholarship"]
-lw-049	Book of Psalms	lit-trad-019	Various	heb	-500	poetry	Most influential collection of religious poetry in Western tradition	95	["Biblical scholarship"]
-lw-050	Song of Songs	lit-trad-019	Anonymous	heb	-400	poetry	Celebrated love poetry with rich allegorical interpretive tradition	50	["Biblical scholarship"]
-lw-051	Epic of King Gesar	lit-trad-020	Various	bod	1000	oral_epic	Longest epic poem in the world, central to Tibetan cultural identity	8	["Tibetan literary studies"]
-lw-052	Yongbi Eocheon-ga	lit-trad-021	Jeong In-ji	kor	1445	poetry	First work composed in Hangul script, celebrating the Joseon dynasty	3	["Korean literary studies"]
-lw-053	Kalevala	lit-trad-022	Elias Lönnrot	fin	1835	oral_epic	Finnish national epic compiled from oral tradition, inspired Tolkien	40	["Finnish folklore studies"]
-lw-054	Tain Bo Cuailnge	lit-trad-023	Anonymous	gle	700	epic	Central epic of the Ulster Cycle featuring hero Cu Chulainn	10	["Celtic literary studies"]
-lw-055	Book of Invasions	lit-trad-023	Anonymous	gle	1150	mythology	Mythological history of Ireland from creation to the Gaelic settlement	8	["Celtic literary studies"]
-lw-056	Kebra Nagast	lit-trad-024	Anonymous	amh	1322	prose	Ethiopian national saga tracing the Solomonic dynasty's divine lineage	10	["Ethiopian literary studies"]
-lw-057	Book of Dede Korkut	lit-trad-025	Anonymous	tur	1400	oral_epic	Foundational epic of Oghuz Turkic peoples with twelve interconnected tales	12	["Turkic literary studies"]
-lw-058	Hikayat Hang Tuah	lit-trad-026	Anonymous	msa	1700	prose	Greatest Malay literary epic celebrating loyalty and martial prowess	5	["Malay literary studies"]
-lw-059	Cantares Mexicanos	lit-trad-027	Various	nah	1550	poetry	Collection of Nahuatl flower-and-song poems preserving Aztec poetic tradition	8	["Mesoamerican studies"]
-lw-060	Medea	lit-trad-028	Euripides	grc	-431	drama	Radical tragedy exploring betrayal and female agency in ancient Greece	50	["Classical scholarship"]
+id	title	author	tradition_id	language_id	date_composed	date_published	genre	form	description	significance	original_script	coordinates
+lw-001	Mahabharata	Vyasa	lit-trad-001	sanskrit	-400	null	epic	verse	Ancient Indian epic of the Kurukshetra War and the fates of the Kaurava and Pandava princes	One of the longest epic poems ever composed; foundational text of Hindu philosophy	Devanagari	{"lat":28.61,"lng":77.21}
+lw-002	Ramayana	Valmiki	lit-trad-001	sanskrit	-500	null	epic	verse	Epic poem narrating the life of Prince Rama and his quest to rescue his wife Sita	Foundational epic of Indian civilization; influenced literature across Southeast Asia	Devanagari	{"lat":26.45,"lng":80.33}
+lw-003	Iliad	Homer	lit-trad-002	grc	-750	null	epic	verse	Epic poem set during the Trojan War, focusing on the wrath of Achilles	Foundation of Western literature; established conventions of the epic genre	Greek	{"lat":38.42,"lng":26.17}
+lw-004	Odyssey	Homer	lit-trad-002	grc	-725	null	epic	verse	Epic poem following Odysseus's journey home after the Trojan War	Archetypal journey narrative; foundation of Western storytelling	Greek	{"lat":38.42,"lng":26.17}
+lw-005	Oedipus Rex	Sophocles	lit-trad-002	grc	-429	null	tragedy	drama	Tragedy of King Oedipus who fulfills a prophecy that he would kill his father and marry his mother	Considered the perfect tragedy by Aristotle; foundational work of dramatic irony	Greek	{"lat":37.97,"lng":23.72}
+lw-006	Aeneid	Virgil	lit-trad-003	lat	-29	null	epic	verse	Epic poem telling the story of Aeneas's journey from Troy to Italy	Rome's national epic; bridge between Greek and Latin literary traditions	Latin	{"lat":41.90,"lng":12.50}
+lw-007	Metamorphoses	Ovid	lit-trad-003	lat	8	null	mythology	verse	Mythological narrative poem covering transformations from the creation of the world to Julius Caesar	Most influential source of classical mythology in Western literature	Latin	{"lat":41.90,"lng":12.50}
+lw-008	Journey to the West	Wu Cheng'en	lit-trad-004	lzh	1592	1592	novel	prose	Novel following the monk Xuanzang's pilgrimage to obtain Buddhist sutras, accompanied by Sun Wukong	One of the Four Great Classical Novels of Chinese literature	Chinese	{"lat":32.06,"lng":118.80}
+lw-009	Dream of the Red Chamber	Cao Xueqin	lit-trad-004	lzh	1760	1791	novel	prose	Novel depicting the rise and decline of a great aristocratic family during the Qing dynasty	Considered the greatest Chinese novel; pinnacle of Chinese fiction	Chinese	{"lat":39.90,"lng":116.40}
+lw-010	The Mu'allaqat	Various	lit-trad-005	arb	550	null	poetry	verse	Collection of seven pre-Islamic Arabic poems considered the finest of their era	Foundational works of Arabic literary tradition; hung in the Kaaba	Arabic	{"lat":21.42,"lng":39.83}
+lw-011	One Thousand and One Nights	Various	lit-trad-005	arb	800	null	frame narrative	prose	Collection of tales told by Scheherazade to delay her execution	One of the most influential works of world literature; introduced frame narrative	Arabic	{"lat":33.31,"lng":44.37}
+lw-012	The Tale of Genji	Murasaki Shikibu	lit-trad-006	jpn	1010	null	novel	prose	Narrative of the life of Hikaru Genji, son of an ancient Japanese emperor	Often considered the world's first novel; masterwork of Japanese prose	Japanese	{"lat":35.01,"lng":135.77}
+lw-013	The Pillow Book	Sei Shonagon	lit-trad-006	jpn	1002	null	miscellany	prose	Collection of observations, lists, and reflections by a court lady during the Heian period	Pioneered the zuihitsu (essay) genre; vivid portrait of Heian court life	Japanese	{"lat":35.01,"lng":135.77}
+lw-014	Beowulf	Anonymous	lit-trad-007	ang	900	null	epic	verse	Epic poem about the hero Beowulf's battles against monsters Grendel and a dragon	Longest surviving Old English poem; cornerstone of English literary heritage	Anglo-Saxon	{"lat":51.75,"lng":-1.25}
+lw-015	Shahnameh	Ferdowsi	lit-trad-008	fas	1010	null	epic	verse	Epic poem recounting the mythical and historical past of the Persian Empire	National epic of Iran; preserved Persian language and identity	Persian	{"lat":36.30,"lng":59.60}
+lw-016	Masnavi	Rumi	lit-trad-008	fas	1258	null	mystical poetry	verse	Six-volume poem of spiritual teaching through stories and allegories	One of the most influential works of Sufi literature; widely read globally	Persian	{"lat":37.87,"lng":32.49}
+lw-017	Divine Comedy	Dante Alighieri	lit-trad-009	ita	1320	null	allegory	verse	Epic poem describing the author's journey through Hell, Purgatory, and Paradise	Established Italian as a literary language; pinnacle of medieval literature	Italian	{"lat":43.77,"lng":11.25}
+lw-018	Canterbury Tales	Geoffrey Chaucer	lit-trad-009	eng	1400	null	frame narrative	verse	Collection of stories told by pilgrims on their way to Canterbury Cathedral	Established English as a literary language; vivid portrait of medieval society	Middle English	{"lat":51.28,"lng":1.08}
+lw-019	Tirukkural	Thiruvalluvar	lit-trad-010	tam	-100	null	ethics	verse	Collection of 1,330 couplets covering virtue, wealth, and love	Foundational Tamil text; translated into over 40 languages	Tamil	{"lat":13.08,"lng":80.27}
+lw-020	War and Peace	Leo Tolstoy	lit-trad-011	rus	1869	1869	novel	prose	Epic novel interweaving the stories of five aristocratic families during the Napoleonic Wars	Often called the greatest novel ever written; redefined the scope of the novel	Cyrillic	{"lat":55.75,"lng":37.62}
+lw-021	The Brothers Karamazov	Fyodor Dostoevsky	lit-trad-011	rus	1880	1880	novel	prose	Philosophical novel about the moral struggles of three brothers after their father's murder	Considered a pinnacle of world literature; profound exploration of faith and doubt	Cyrillic	{"lat":55.75,"lng":37.62}
+lw-022	Epic of Sundiata	Griots	lit-trad-012	bam	1235	null	epic	oral	Epic of Sundiata Keita, founder of the Mali Empire, transmitted orally by griots	Foundational narrative of the Mandé peoples; exemplar of oral epic tradition	Oral	{"lat":12.65,"lng":-8.00}
