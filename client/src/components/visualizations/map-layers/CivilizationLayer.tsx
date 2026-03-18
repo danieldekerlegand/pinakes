@@ -2,15 +2,16 @@ import React, { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
+import { smoothFeatures, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
 import type { CivilizationFeature } from '../../../lib/visualization/geospatial-types';
-import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
 
 interface CivilizationLayerProps {
   features: CivilizationFeature[];
   opacity?: number;
   onFeatureClick?: (id: string) => void;
   selectedFeatureId?: string | null;
+  smoothBoundaries?: boolean;
+  showGradientEdges?: boolean;
 }
 
 export function CivilizationLayer({
@@ -18,6 +19,8 @@ export function CivilizationLayer({
   opacity = 0.5,
   onFeatureClick,
   selectedFeatureId,
+  smoothBoundaries = true,
+  showGradientEdges = true,
 }: CivilizationLayerProps) {
   // Civilization colors (different from language family colors)
   const getCivilizationColor = (civilizationId: string): string => {
@@ -38,6 +41,50 @@ export function CivilizationLayer({
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Apply spline smoothing to features
+  const smoothedFeatures = useMemo(() => {
+    if (!smoothBoundaries) return features;
+    return smoothFeatures(features, 6, 0.5);
+  }, [features, smoothBoundaries]);
+
+  // Generate gradient edge features for transition zones
+  const gradientEdgeData = useMemo(() => {
+    if (!showGradientEdges) return null;
+
+    const edgeFeatures: Array<{
+      type: 'Feature';
+      geometry: { type: 'Polygon'; coordinates: [number, number][][] };
+      properties: { civilizationId: string; opacityMultiplier: number };
+    }> = [];
+
+    for (const feature of smoothedFeatures) {
+      const coords = feature.geometry.type === 'Polygon'
+        ? [feature.geometry.coordinates[0]]
+        : feature.geometry.type === 'MultiPolygon'
+          ? feature.geometry.coordinates.map((p) => p[0])
+          : [];
+
+      for (const ring of coords) {
+        const gradientRings = generateGradientEdgeRings(ring, 3, 0.3);
+        for (const { ring: edgeRing, opacityMultiplier } of gradientRings) {
+          edgeFeatures.push({
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [edgeRing as [number, number][]] },
+            properties: {
+              civilizationId: feature.properties.civilizationId,
+              opacityMultiplier,
+            },
+          });
+        }
+      }
+    }
+
+    return {
+      type: 'FeatureCollection' as const,
+      features: edgeFeatures,
+    };
+  }, [smoothedFeatures, showGradientEdges]);
+
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
@@ -51,6 +98,20 @@ export function CivilizationLayer({
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.7,
       dashArray: '5, 5', // Dashed border to distinguish from language ranges
+    };
+  };
+
+  // Style for gradient edge features
+  const gradientEdgeStyle = (feature: any): PathOptions => {
+    const props = feature.properties;
+    const civColor = getCivilizationColor(props.civilizationId);
+
+    return {
+      fillColor: civColor,
+      fillOpacity: opacity * 0.15 * props.opacityMultiplier,
+      color: civColor,
+      weight: 0.5,
+      opacity: 0.2 * props.opacityMultiplier,
     };
   };
 
@@ -160,19 +221,30 @@ export function CivilizationLayer({
   // Convert features to GeoJSON FeatureCollection
   const geoJsonData = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: features,
-  }), [features]);
+    features: smoothedFeatures,
+  }), [smoothedFeatures]);
 
   if (features.length === 0) {
     return null;
   }
 
   return (
-    <GeoJSON
-      key={JSON.stringify(features.map(f => f.id))}
-      data={geoJsonData}
-      style={style}
-      onEachFeature={onEachFeature}
-    />
+    <>
+      {/* Gradient edge layers (rendered behind main boundaries) */}
+      {gradientEdgeData && gradientEdgeData.features.length > 0 && (
+        <GeoJSON
+          key={`gradient-${JSON.stringify(features.map(f => f.id))}`}
+          data={gradientEdgeData as any}
+          style={gradientEdgeStyle}
+        />
+      )}
+      {/* Main smoothed boundary layer */}
+      <GeoJSON
+        key={JSON.stringify(features.map(f => f.id))}
+        data={geoJsonData}
+        style={style}
+        onEachFeature={onEachFeature}
+      />
+    </>
   );
 }

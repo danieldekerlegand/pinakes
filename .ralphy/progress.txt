@@ -1,0 +1,15 @@
+US-093: Add organic cultural boundary rendering with spline interpolation
+
+Completed:
+- Created client/src/lib/visualization/spline-interpolation.ts
+  - Catmull-Rom centripetal spline interpolation for polygon rings
+  - smoothRing(), smoothPolygon(), smoothFeature(), smoothFeatures() functions
+  - generateGradientEdgeRings() for transition zone gradient edges
+  - offsetPolygonRing() helper for normal-based polygon offsetting
+- Updated CivilizationLayer.tsx
+  - Applies spline smoothing to boundary polygons (opt-in via smoothBoundaries prop)
+  - Renders gradient edge layers behind main boundaries for transition zones (showGradientEdges prop)
+  - Gradient edges use concentric offset rings with decreasing opacity
+- Updated LanguageRangeLayer.tsx
+  - Applies spline smoothing to language range polygons (opt-in via smoothBoundaries prop)
+- Created test/test-spline-interpolation.ts with 20 tests (34 assertions), all passing
