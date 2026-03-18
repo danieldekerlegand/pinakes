@@ -96,3 +96,26 @@ Completed:
   - Toggle button for map controls
 - Installed vitest, wrote 38 unit tests (all passing)
 - TypeScript type checking passes (no new errors)
+
+US-096: Add map-based boundary drawing contribution tool
+
+Implemented:
+- useDrawingTool hook with polygon/polyline drawing modes, vertex add/remove/move, undo/redo history stack
+- BoundaryDrawingLayer component for rendering drawn shapes and draggable vertex handles on the Leaflet map
+- BoundaryDrawingPanel with drawing mode selection, vertex controls, GeoJSON preview/download, and contribution submission form
+- Added "boundary" entity type to ContributionService with required fields: name, geometry
+- Integrated BoundaryDrawingLayer into EnhancedLanguageMapView with ref-based access for external panels
+- Added "boundary" option to ContributionPanel entity type list
+
+Files created:
+- client/src/components/visualizations/hooks/useDrawingTool.ts
+- client/src/components/visualizations/map-layers/BoundaryDrawingLayer.tsx
+- client/src/components/visualizations/BoundaryDrawingPanel.tsx
+- test/test-boundary-drawing.ts
+
+Files modified:
+- server/services/contribution-service.ts (added boundary entity type)
+- client/src/components/visualizations/ContributionPanel.tsx (added boundary to entity types)
+- client/src/components/visualizations/EnhancedLanguageMapView.tsx (integrated drawing layer)
+
+Tests: 61 passed, 0 failed

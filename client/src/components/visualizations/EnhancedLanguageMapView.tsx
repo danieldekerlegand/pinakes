@@ -33,6 +33,8 @@ import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
 import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
 import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
+import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
+import { useDrawingTool } from './hooks/useDrawingTool';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
   sampleLanguageRanges,
@@ -57,12 +59,24 @@ import 'leaflet/dist/leaflet.css';
 interface EnhancedLanguageMapViewProps {
   onFeatureSelect?: (id: string) => void;
   selectedFeatureId?: string | null;
+  drawingToolRef?: React.MutableRefObject<ReturnType<typeof useDrawingTool> | null>;
 }
 
 export function EnhancedLanguageMapView({
   onFeatureSelect,
   selectedFeatureId,
+  drawingToolRef,
 }: EnhancedLanguageMapViewProps) {
+  // Initialize drawing tool
+  const drawingTool = useDrawingTool();
+
+  // Expose drawing tool via ref for external panels
+  React.useEffect(() => {
+    if (drawingToolRef) {
+      drawingToolRef.current = drawingTool;
+    }
+  }, [drawingToolRef, drawingTool]);
+
   // Initialize hooks
   const {
     state: layerState,
@@ -634,6 +648,9 @@ export function EnhancedLanguageMapView({
             selectedSystemId={selectedFeatureId}
           />
         )}
+
+        {/* Boundary Drawing Layer */}
+        <BoundaryDrawingLayer drawing={drawingTool} />
       </MapContainer>
 
       {/* Layer Controls Panel */}
