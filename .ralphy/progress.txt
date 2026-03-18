@@ -1,0 +1,18 @@
+US-101: Add embed widgets and screenshot export
+
+Completed:
+- Added PNG export with LinguaScrape watermark (bottom-right, semi-transparent badge)
+- Added generateEmbedCode() utility for iframe snippet generation
+- Created /embed page with responsive visualization rendering and dark/light theme support
+- Added embed route to App.tsx router
+- Updated ExportMenu with "Get Embed Code" option and copy-to-clipboard dialog
+- Embed widget supports all 5 view modes: tree, network, timeline, map, explorer
+- Embed widget includes attribution bar ("Powered by LinguaScrape")
+- Added 26 passing tests for embed code generation (test/test-embed-and-export.ts)
+
+Files changed:
+- client/src/lib/visualization/export-utils.ts (watermark, generateEmbedCode)
+- client/src/components/visualizations/shared/ExportMenu.tsx (embed dialog)
+- client/src/pages/embed.tsx (new - embed page)
+- client/src/App.tsx (embed route)
+- test/test-embed-and-export.ts (new - tests)

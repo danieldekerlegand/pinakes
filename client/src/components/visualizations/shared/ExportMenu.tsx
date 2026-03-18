@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, FileDown, FileImage, FileText } from 'lucide-react';
+import { Download, FileDown, FileImage, FileText, Code, Check, Copy } from 'lucide-react';
 import { Button } from '../../ui/button';
 import {
   DropdownMenu,
@@ -8,7 +8,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '../../ui/dropdown-menu';
-import { exportSVG, exportPNG, exportCSV, exportJSON } from '../../../lib/visualization/export-utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../ui/dialog';
+import { exportSVG, exportPNG, exportCSV, exportJSON, generateEmbedCode, copyToClipboard } from '../../../lib/visualization/export-utils';
 import { useToast } from '../../../hooks/use-toast';
 
 interface ExportMenuProps {
@@ -19,7 +26,25 @@ interface ExportMenuProps {
 
 export function ExportMenu({ svgRef, data, currentView }: ExportMenuProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
   const { toast } = useToast();
+
+  const embedCode = generateEmbedCode(window.location.origin, {
+    view: currentView,
+    width: '100%',
+    height: 500,
+    theme: 'light',
+  });
+
+  const handleCopyEmbed = async () => {
+    const success = await copyToClipboard(embedCode);
+    if (success) {
+      setEmbedCopied(true);
+      toast({ title: 'Copied', description: 'Embed code copied to clipboard' });
+      setTimeout(() => setEmbedCopied(false), 2000);
+    }
+  };
 
   const handleExportSVG = async () => {
     if (!svgRef?.current) {
@@ -142,40 +167,76 @@ export function ExportMenu({ svgRef, data, currentView }: ExportMenuProps) {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={isExporting}>
-          <Download className="h-4 w-4 mr-2" />
-          {isExporting ? 'Exporting...' : 'Export'}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {svgRef && (
-          <>
-            <DropdownMenuItem onClick={handleExportSVG}>
-              <FileImage className="h-4 w-4 mr-2" />
-              Export as SVG
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportPNG}>
-              <FileImage className="h-4 w-4 mr-2" />
-              Export as PNG
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        {data && (
-          <>
-            <DropdownMenuItem onClick={handleExportCSV}>
-              <FileText className="h-4 w-4 mr-2" />
-              Export Data as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportJSON}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Export Data as JSON
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" disabled={isExporting}>
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exporting...' : 'Export'}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {svgRef && (
+            <>
+              <DropdownMenuItem onClick={handleExportSVG}>
+                <FileImage className="h-4 w-4 mr-2" />
+                Export as SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPNG}>
+                <FileImage className="h-4 w-4 mr-2" />
+                Export as PNG (with watermark)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {data && (
+            <>
+              <DropdownMenuItem onClick={handleExportCSV}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export Data as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportJSON}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export Data as JSON
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem onClick={() => setEmbedDialogOpen(true)}>
+            <Code className="h-4 w-4 mr-2" />
+            Get Embed Code
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Embed Visualization</DialogTitle>
+            <DialogDescription>
+              Copy the code below to embed this {currentView} visualization on your website.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <pre className="bg-gray-100 rounded-md p-3 text-xs overflow-x-auto whitespace-pre-wrap break-all font-mono">
+                {embedCode}
+              </pre>
+              <Button
+                variant="outline"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={handleCopyEmbed}
+              >
+                {embedCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              The embed is responsive and will adapt to its container width. Adjust the height value in the code as needed.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
