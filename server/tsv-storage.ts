@@ -244,13 +244,13 @@ export interface DanceTradition {
   coordinates: { lat: number; lng: number };
   timeOrigin: number | null;
   timeEnd: number | null;
+  associatedLanguageIds: string[];
   danceType: string;
-  originCulture: string;
-  associatedMusicTraditions: string[];
-  movementCharacteristics: string[];
-  costumeRequirements: string[];
+  associatedMusicTraditionIds: string[];
+  costumes: string[];
+  keyMovements: string[];
   culturalSignificance: string;
-  relatedDances: string[];
+  description: string;
   sources: string[];
 }
 
@@ -611,6 +611,9 @@ export class TsvStorage {
   // Literary traditions and works
   private cachedLiteraryTraditions: LiteraryTradition[] | null = null;
   private cachedLiteraryWorks: LiteraryWork[] | null = null;
+
+  // Dance traditions
+  private cachedDanceTraditions: DanceTradition[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -1934,6 +1937,120 @@ export class TsvStorage {
     }
 
     return instruments;
+  }
+
+  // ============================================================================
+  // Dance Tradition Data Methods
+  // ============================================================================
+
+  /**
+   * Load dance traditions from TSV file
+   */
+  private loadDanceTraditions(): void {
+    if (this.cachedDanceTraditions) return;
+
+    const text = this.readFileIfExists("lexicons/dance-traditions.tsv");
+    if (!text) { this.cachedDanceTraditions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const nativeIdx = header.indexOf("native_name");
+    const regionIdx = header.indexOf("region");
+    const coordsIdx = header.indexOf("coordinates");
+    const startIdx = header.indexOf("time_origin");
+    const endIdx = header.indexOf("time_end");
+    const langIdx = header.indexOf("associated_language_ids");
+    const typeIdx = header.indexOf("dance_type");
+    const musicIdx = header.indexOf("associated_music_tradition_ids");
+    const costumeIdx = header.indexOf("costumes");
+    const moveIdx = header.indexOf("key_movements");
+    const sigIdx = header.indexOf("cultural_significance");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedDanceTraditions = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try { coords = JSON.parse(row[coordsIdx]); } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        nativeName: nativeIdx >= 0 ? row[nativeIdx] || "" : "",
+        region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : null,
+        timeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null,
+        associatedLanguageIds: parseArr(langIdx, row),
+        danceType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+        associatedMusicTraditionIds: parseArr(musicIdx, row),
+        costumes: parseArr(costumeIdx, row),
+        keyMovements: parseArr(moveIdx, row),
+        culturalSignificance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        sources: parseArr(srcIdx, row),
+      };
+    });
+  }
+
+  /**
+   * Get dance traditions with optional filtering
+   */
+  async getDanceTraditions(filters?: {
+    year?: number;
+    region?: string;
+    languageId?: string;
+    danceType?: string;
+  }): Promise<DanceTradition[]> {
+    this.loadDanceTraditions();
+    let traditions = this.cachedDanceTraditions ?? [];
+
+    if (filters?.year !== undefined) {
+      traditions = traditions.filter((t) => {
+        const start = t.timeOrigin ?? -Infinity;
+        const end = t.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.region) {
+      traditions = traditions.filter((t) =>
+        t.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    if (filters?.languageId) {
+      traditions = traditions.filter((t) =>
+        t.associatedLanguageIds.includes(filters.languageId!)
+      );
+    }
+
+    if (filters?.danceType) {
+      traditions = traditions.filter((t) =>
+        t.danceType.toLowerCase() === filters.danceType!.toLowerCase()
+      );
+    }
+
+    return traditions;
+  }
+
+  /**
+   * Get a single dance tradition by ID
+   */
+  async getDanceTraditionById(
+    traditionId: string,
+  ): Promise<DanceTradition | null> {
+    this.loadDanceTraditions();
+    return (this.cachedDanceTraditions ?? []).find((t) => t.id === traditionId) ?? null;
   }
 
   // ============================================================================

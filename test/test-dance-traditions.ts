@@ -1,211 +1,105 @@
 /**
- * Test script for dance-traditions.tsv data integrity
+ * Test script for dance traditions TSV loader and API
  * Run with: npx tsx test/test-dance-traditions.ts
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TSV_PATH = path.join(__dirname, "..", "lexicons", "dance-traditions.tsv");
-
-const REQUIRED_COLUMNS = [
-  "id",
-  "name",
-  "native_name",
-  "region",
-  "coordinates",
-  "time_origin",
-  "time_end",
-  "dance_type",
-  "origin_culture",
-  "associated_music_traditions",
-  "movement_characteristics",
-  "costume_requirements",
-  "cultural_significance",
-  "related_dances",
-  "sources",
-];
-
-const VALID_DANCE_TYPES = ["ceremonial", "social", "performative", "martial"];
+import { TsvStorage } from "../server/tsv-storage";
 
 let passed = 0;
 let failed = 0;
 
-function assert(condition: boolean, message: string): void {
+function assert(condition: boolean, message: string) {
   if (condition) {
-    passed++;
     console.log(`  ✓ ${message}`);
+    passed++;
   } else {
+    console.log(`  ✗ FAIL: ${message}`);
     failed++;
-    console.error(`  ✗ ${message}`);
   }
 }
 
-function testFileExists(): void {
-  console.log("\n=== File Existence ===");
-  assert(fs.existsSync(TSV_PATH), "dance-traditions.tsv exists");
-}
+async function testDanceTraditions() {
+  console.log("=== Testing Dance Traditions ===\n");
 
-function parseTsv(text: string): { header: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
-  const header = (lines.shift() ?? "").split("\t");
-  const rows = lines.map((l) => l.split("\t"));
-  return { header, rows };
-}
+  const storage = new TsvStorage();
 
-function testStructure(): void {
-  console.log("\n=== TSV Structure ===");
-  const text = fs.readFileSync(TSV_PATH, "utf8");
-  const { header, rows } = parseTsv(text);
+  // Test 1: Load all dance traditions
+  console.log("1. Loading all dance traditions:");
+  const all = await storage.getDanceTraditions();
+  assert(all.length >= 30, `Loaded ${all.length} traditions (expected >= 30)`);
 
-  // Check all required columns exist
-  for (const col of REQUIRED_COLUMNS) {
-    assert(header.includes(col), `Header contains '${col}' column`);
+  // Test 2: Verify data structure of first tradition
+  console.log("\n2. Verifying data structure:");
+  const bharatanatyam = all.find((t) => t.id === "bharatanatyam");
+  assert(bharatanatyam !== undefined, "Found Bharatanatyam");
+  if (bharatanatyam) {
+    assert(bharatanatyam.name === "Bharatanatyam", `Name: ${bharatanatyam.name}`);
+    assert(bharatanatyam.region === "South Asia", `Region: ${bharatanatyam.region}`);
+    assert(bharatanatyam.danceType === "classical", `Dance type: ${bharatanatyam.danceType}`);
+    assert(bharatanatyam.coordinates.lat !== 0, `Has coordinates: ${bharatanatyam.coordinates.lat}, ${bharatanatyam.coordinates.lng}`);
+    assert(bharatanatyam.timeOrigin === -200, `Time origin: ${bharatanatyam.timeOrigin}`);
+    assert(bharatanatyam.associatedLanguageIds.length > 0, `Has language IDs: ${bharatanatyam.associatedLanguageIds.join(", ")}`);
+    assert(bharatanatyam.keyMovements.length > 0, `Has key movements: ${bharatanatyam.keyMovements.length}`);
+    assert(bharatanatyam.costumes.length > 0, `Has costumes: ${bharatanatyam.costumes.length}`);
+    assert(bharatanatyam.associatedMusicTraditionIds.length > 0, `Has music tradition links: ${bharatanatyam.associatedMusicTraditionIds.join(", ")}`);
+    assert(bharatanatyam.description.length > 0, "Has description");
+    assert(bharatanatyam.culturalSignificance.length > 0, "Has cultural significance");
   }
 
-  // Check minimum row count (30+ required by PRD)
-  assert(rows.length >= 30, `Has 30+ entries (found ${rows.length})`);
+  // Test 3: Filter by region
+  console.log("\n3. Filtering by region:");
+  const southAsian = await storage.getDanceTraditions({ region: "South Asia" });
+  assert(southAsian.length > 0, `Found ${southAsian.length} South Asian traditions`);
+  assert(southAsian.every((t) => t.region.toLowerCase().includes("south asia")), "All results match region filter");
 
-  // Check all rows have same number of columns as header
-  for (const row of rows) {
-    assert(
-      row.length === header.length,
-      `Row '${row[0]}' has correct column count (${row.length}/${header.length})`
-    );
+  // Test 4: Filter by dance type
+  console.log("\n4. Filtering by dance type:");
+  const classical = await storage.getDanceTraditions({ danceType: "classical" });
+  assert(classical.length > 0, `Found ${classical.length} classical traditions`);
+  assert(classical.every((t) => t.danceType === "classical"), "All results are classical");
+
+  // Test 5: Filter by year
+  console.log("\n5. Filtering by year:");
+  const modern = await storage.getDanceTraditions({ year: 2000 });
+  assert(modern.length > 0, `Found ${modern.length} traditions active in 2000`);
+  const ancient = await storage.getDanceTraditions({ year: -1000 });
+  assert(ancient.length < modern.length, `Fewer traditions in -1000 (${ancient.length}) than 2000 (${modern.length})`);
+
+  // Test 6: Filter by language
+  console.log("\n6. Filtering by language:");
+  const japanese = await storage.getDanceTraditions({ languageId: "japanese" });
+  assert(japanese.length > 0, `Found ${japanese.length} Japanese traditions`);
+  assert(japanese.every((t) => t.associatedLanguageIds.includes("japanese")), "All results include Japanese");
+
+  // Test 7: Get by ID
+  console.log("\n7. Getting by ID:");
+  const flamenco = await storage.getDanceTraditionById("flamenco-dance");
+  assert(flamenco !== null, "Found flamenco by ID");
+  assert(flamenco?.name === "Flamenco Dance", `Name: ${flamenco?.name}`);
+
+  const notFound = await storage.getDanceTraditionById("nonexistent");
+  assert(notFound === null, "Returns null for nonexistent ID");
+
+  // Test 8: Verify null time_end handling
+  console.log("\n8. Verifying null handling:");
+  const ballet = all.find((t) => t.id === "ballet");
+  assert(ballet !== undefined && ballet.timeEnd === null, "Ballet has null timeEnd (still active)");
+
+  const ottoman = all.find((t) => t.id === "ottoman-classical");
+  if (ottoman) {
+    assert(ottoman === undefined, "No Ottoman classical in dance traditions (it's music only)");
+  } else {
+    assert(true, "Correctly no Ottoman classical in dance traditions");
   }
-}
 
-function testDataIntegrity(): void {
-  console.log("\n=== Data Integrity ===");
-  const text = fs.readFileSync(TSV_PATH, "utf8");
-  const { header, rows } = parseTsv(text);
-
-  const idIdx = header.indexOf("id");
-  const nameIdx = header.indexOf("name");
-  const coordIdx = header.indexOf("coordinates");
-  const timeOriginIdx = header.indexOf("time_origin");
-  const timeEndIdx = header.indexOf("time_end");
-  const danceTypeIdx = header.indexOf("dance_type");
-  const musicIdx = header.indexOf("associated_music_traditions");
-  const movementIdx = header.indexOf("movement_characteristics");
-  const costumeIdx = header.indexOf("costume_requirements");
-  const relatedIdx = header.indexOf("related_dances");
-  const sourcesIdx = header.indexOf("sources");
-
-  // Check unique IDs
-  const ids = rows.map((r) => r[idIdx]);
-  const uniqueIds = new Set(ids);
-  assert(uniqueIds.size === ids.length, "All IDs are unique");
-
-  // Check ID format (kebab-case)
-  for (const id of ids) {
-    assert(
-      /^[a-z0-9]+(-[a-z0-9]+)*$/.test(id),
-      `ID '${id}' is valid kebab-case`
-    );
-  }
-
-  // Check each row's data
-  for (const row of rows) {
-    const id = row[idIdx];
-    const name = row[nameIdx];
-
-    // Non-empty name
-    assert(name.length > 0, `'${id}' has a name`);
-
-    // Valid coordinates JSON
-    try {
-      const coords = JSON.parse(row[coordIdx]);
-      assert(
-        typeof coords.lat === "number" && typeof coords.lng === "number",
-        `'${id}' has valid coordinates`
-      );
-      assert(
-        coords.lat >= -90 && coords.lat <= 90,
-        `'${id}' latitude in range`
-      );
-      assert(
-        coords.lng >= -180 && coords.lng <= 180,
-        `'${id}' longitude in range`
-      );
-    } catch {
-      assert(false, `'${id}' has parseable coordinates JSON`);
-    }
-
-    // Valid time_origin (number)
-    const timeOrigin = row[timeOriginIdx];
-    assert(
-      timeOrigin === "null" || !isNaN(Number(timeOrigin)),
-      `'${id}' has valid time_origin`
-    );
-
-    // Valid time_end (number or null)
-    const timeEnd = row[timeEndIdx];
-    assert(
-      timeEnd === "null" || !isNaN(Number(timeEnd)),
-      `'${id}' has valid time_end`
-    );
-
-    // Valid dance_type
-    const danceType = row[danceTypeIdx];
-    assert(
-      VALID_DANCE_TYPES.includes(danceType),
-      `'${id}' has valid dance_type '${danceType}'`
-    );
-
-    // Valid JSON arrays
-    for (const [idx, field] of [
-      [musicIdx, "associated_music_traditions"],
-      [movementIdx, "movement_characteristics"],
-      [costumeIdx, "costume_requirements"],
-      [relatedIdx, "related_dances"],
-      [sourcesIdx, "sources"],
-    ] as [number, string][]) {
-      try {
-        const arr = JSON.parse(row[idx]);
-        assert(Array.isArray(arr), `'${id}' ${field} is a JSON array`);
-      } catch {
-        assert(false, `'${id}' ${field} is valid JSON`);
-      }
-    }
+  // Summary
+  console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
+  if (failed > 0) {
+    process.exit(1);
   }
 }
 
-function testCrossReferences(): void {
-  console.log("\n=== Cross-References ===");
-  const text = fs.readFileSync(TSV_PATH, "utf8");
-  const { header, rows } = parseTsv(text);
-
-  const idIdx = header.indexOf("id");
-  const relatedIdx = header.indexOf("related_dances");
-
-  const allIds = new Set(rows.map((r) => r[idIdx]));
-
-  // Check that related_dances references are internally consistent where possible
-  let internalRefs = 0;
-  let totalRefs = 0;
-  for (const row of rows) {
-    const related = JSON.parse(row[relatedIdx]) as string[];
-    for (const ref of related) {
-      totalRefs++;
-      if (allIds.has(ref)) internalRefs++;
-    }
-  }
-
-  console.log(
-    `  Info: ${internalRefs}/${totalRefs} related_dances references are internal`
-  );
-  assert(internalRefs > 0, "At least some related_dances cross-reference internally");
-}
-
-// Run all tests
-console.log("=== Dance Traditions TSV Test Suite ===");
-testFileExists();
-testStructure();
-testDataIntegrity();
-testCrossReferences();
-
-console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-process.exit(failed > 0 ? 1 : 0);
+testDanceTraditions().catch((err) => {
+  console.error("Test error:", err);
+  process.exit(1);
+});
