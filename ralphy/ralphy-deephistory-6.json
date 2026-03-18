@@ -2,127 +2,127 @@
   "tasks": [
     {
       "title": "Create cultural-lineages.tsv data file",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-066: Create lexicons/cultural-lineages.tsv with 80+ lineage relationships covering PIE, Yamnaya, Bantu, Austronesian, Mesoamerican chains"
     },
     {
       "title": "Add cultural lineages TSV loader and API endpoints",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-067: Add TSV loading, GET /api/cultural-lineages with filters, ancestor/descendant recursive graph traversal endpoints"
     },
     {
       "title": "Create archaeological-cultures.tsv data file",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-068: Create lexicons/archaeological-cultures.tsv with 60+ archaeological cultures (Yamnaya, Corded Ware, Jōmon, Clovis, Lapita, etc.)"
     },
     {
       "title": "Add archaeological cultures TSV loader and API endpoints",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-069: Add TSV loading, GET /api/archaeological-cultures with region/language/time filters"
     },
     {
       "title": "Create urheimat-hypotheses.tsv data file",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-070: Create lexicons/urheimat-hypotheses.tsv with 20+ homeland hypotheses including competing IE theories"
     },
     {
       "title": "Add urheimat hypotheses TSV loader and API endpoints",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-071: Add TSV loading, GET /api/urheimat-hypotheses with language_family/consensus filters"
     },
     {
       "title": "Add Cultural Lineage Explorer visualization",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-072: D3.js directed graph showing lineage chains with temporal positioning, clickable nodes, confidence scores"
     },
     {
       "title": "Add Urheimat hypothesis map overlay",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-073: Map layer with translucent polygons for competing homeland hypotheses, toggle/compare support"
     },
     {
       "title": "Add archaeological culture detail cards",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-074: Rich detail panels showing material culture, probable language, haplogroups, successor/predecessor links"
     },
     {
       "title": "Add archaeological cultures as map layer",
-      "completed": true,
+      "completed": false,
       "parallel_group": 1,
       "description": "US-075: Map layer with temporal filtering, boundary polygons, clustering, integrated with temporal atlas"
     },
     {
       "title": "Expand civilizations to 80+ entries with time-varying boundaries",
-      "completed": true,
+      "completed": false,
       "parallel_group": 2,
       "description": "US-076: Expand civilizations.tsv to 80+ and civilization-boundaries.tsv to 150+ boundary snapshots across all regions"
     },
     {
       "title": "Expand archaeological sites to 150+ entries",
-      "completed": true,
+      "completed": false,
       "parallel_group": 2,
       "description": "US-077: Expand archaeological-sites.tsv to 150+ sites including UNESCO sites, Neolithic transition, Bronze Age collapse"
     },
     {
       "title": "Expand migration routes to 60+ entries",
-      "completed": true,
+      "completed": false,
       "parallel_group": 2,
       "description": "US-078: Expand migration-routes.tsv to 60+ routes covering prehistoric, historical, and colonial/modern routes"
     },
     {
       "title": "Create language-range-polygons.tsv with 100+ entries",
-      "completed": true,
+      "completed": false,
       "parallel_group": 2,
       "description": "US-079: Create lexicons/language-range-polygons.tsv with 100+ historical and modern language boundary polygons"
     },
     {
       "title": "Add language range polygons TSV loader and map layer",
-      "completed": true,
+      "completed": false,
       "parallel_group": 2,
       "description": "US-080: Add TSV loading, API endpoints, and map layer with temporal filtering colored by language family"
     },
     {
       "title": "Create trade-routes.tsv with dedicated trade network data",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-081: Create lexicons/trade-routes.tsv with 20+ routes (Silk Road, Spice Route, Trans-Saharan, etc.) referencing trade-goods"
     },
     {
       "title": "Add trade routes TSV loader, API, and animated map visualization",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-082: Add TSV loading, API endpoints, animated flow map with directional particles and temporal filtering"
     },
     {
       "title": "Create dance-traditions.tsv data file",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-083: Create lexicons/dance-traditions.tsv with 30+ traditions (Bharatanatyam, Flamenco, Capoeira, Haka, etc.)"
     },
     {
       "title": "Add dance traditions TSV loader, API, and map visualization",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-084: Add TSV loading, API endpoints, map visualization with detail panels and music tradition links"
     },
     {
       "title": "Create literary-traditions.tsv and literary-works.tsv data files",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-085: Create two TSV files with 25+ traditions and 40+ foundational texts with influence chains"
     },
     {
       "title": "Add literary traditions/works TSV loaders, API, and visualization",
-      "completed": true,
+      "completed": false,
       "parallel_group": 3,
       "description": "US-086: Add TSV loading, API endpoints, map of emergence points, influence chain directed graph"
     },
