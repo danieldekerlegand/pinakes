@@ -2521,5 +2521,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
+   */
+  app.get("/api/urheimat-hypotheses", async (req, res) => {
+    try {
+      const languageFamily = req.query.language_family as string | undefined;
+      const consensusMin = req.query.consensus_min ? parseInt(req.query.consensus_min as string, 10) : undefined;
+
+      const hypotheses = await storage.getUrheimatHypotheses({
+        languageFamily,
+        consensusMin,
+      });
+
+      res.json({ hypotheses, count: hypotheses.length });
+    } catch (error) {
+      console.error("Error fetching urheimat hypotheses:", error);
+      res.status(500).json({ message: "Failed to fetch urheimat hypotheses" });
+    }
+  });
+
+  /**
+   * GET /api/urheimat-hypotheses/:id - Get a single urheimat hypothesis
+   */
+  app.get("/api/urheimat-hypotheses/:id", async (req, res) => {
+    try {
+      const hypothesis = await storage.getUrheimatHypothesisById(req.params.id);
+      if (!hypothesis) {
+        return res.status(404).json({ message: "Urheimat hypothesis not found" });
+      }
+      res.json(hypothesis);
+    } catch (error) {
+      console.error("Error fetching urheimat hypothesis:", error);
+      res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
+    }
+  });
+
   return server;
 }

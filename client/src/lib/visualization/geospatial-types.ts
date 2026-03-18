@@ -166,7 +166,8 @@ export type LayerType =
   | 'language-contacts'
   | 'genetic-linguistic-correlation'
   | 'foodway-events'
-  | 'kinship-systems';
+  | 'kinship-systems'
+  | 'urheimat-hypotheses';
 
 export type LayerCategory =
   | 'languages'
@@ -567,6 +568,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'urheimat-hypotheses',
+    type: 'urheimat-hypotheses',
+    category: 'languages',
+    name: 'Urheimat Hypotheses',
+    visible: false,
+    opacity: 0.6,
+    zIndex: 95,
+    renderStyle: {
+      polygon: {
+        fillOpacity: 0.35,
+        strokeWeight: 2,
+        strokeOpacity: 0.8,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -604,6 +621,12 @@ export const LAYER_PRESETS: LayerPreset[] = [
     name: 'Trade & Economy',
     description: 'Trade routes, material culture, and cuisine regions',
     layers: ['routes', 'cuisines', 'material-culture', 'foodway-events'],
+  },
+  {
+    id: 'deep-history',
+    name: 'Deep History',
+    description: 'Urheimat hypotheses, archaeological sites, and language ranges',
+    layers: ['urheimat-hypotheses', 'archaeological-sites', 'language-ranges'],
   },
   {
     id: 'genetic-linguistic',

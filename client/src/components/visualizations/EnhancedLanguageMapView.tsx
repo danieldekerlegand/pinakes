@@ -32,6 +32,8 @@ import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
 import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
 import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
 import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
+import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
+import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -219,6 +221,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('kinship-systems'),
   });
 
+  // Fetch urheimat hypotheses data
+  const { data: urheimatData, isLoading: loadingUrheimat } = useQuery<{ hypotheses: UrheimatHypothesisFeature[]; count: number }>({
+    queryKey: ['/api/urheimat-hypotheses'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('urheimat-hypotheses'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -327,6 +336,11 @@ export function EnhancedLanguageMapView({
       return s;
     });
   }, [kinshipSystemsData, languagesForCoords]);
+
+  // Urheimat hypotheses data
+  const allUrheimatHypotheses = useMemo(() => {
+    return urheimatData?.hypotheses ?? [];
+  }, [urheimatData]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -456,7 +470,8 @@ export function EnhancedLanguageMapView({
     (loadingContacts && isLayerVisible('language-contacts')) ||
     (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
     (loadingFoodwayEvents && isLayerVisible('foodway-events')) ||
-    (loadingKinshipSystems && isLayerVisible('kinship-systems'));
+    (loadingKinshipSystems && isLayerVisible('kinship-systems')) ||
+    (loadingUrheimat && isLayerVisible('urheimat-hypotheses'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -632,6 +647,16 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('kinship-systems')?.opacity || 0.8}
             onSystemClick={handleFeatureClick}
             selectedSystemId={selectedFeatureId}
+          />
+        )}
+        {/* Urheimat Hypotheses Layer */}
+        {isLayerVisible('urheimat-hypotheses') && allUrheimatHypotheses.length > 0 && (
+          <UrheimatHypothesisLayer
+            hypotheses={allUrheimatHypotheses}
+            opacity={getLayerConfig('urheimat-hypotheses')?.opacity || 0.6}
+            currentYear={currentYear}
+            onHypothesisClick={handleFeatureClick}
+            selectedHypothesisId={selectedFeatureId}
           />
         )}
       </MapContainer>
