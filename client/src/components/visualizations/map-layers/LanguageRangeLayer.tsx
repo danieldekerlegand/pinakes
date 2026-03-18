@@ -3,6 +3,7 @@ import { GeoJSON, Popup } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import { getFamilyColor } from '../../../lib/visualization/d3-helpers';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
+import { smoothFeatures } from '../../../lib/visualization/spline-interpolation';
 import type { LanguageRangeFeature } from '../../../lib/visualization/geospatial-types';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
@@ -12,6 +13,7 @@ interface LanguageRangeLayerProps {
   opacity?: number;
   onFeatureClick?: (id: string) => void;
   selectedFeatureId?: string | null;
+  smoothBoundaries?: boolean;
 }
 
 export function LanguageRangeLayer({
@@ -19,7 +21,14 @@ export function LanguageRangeLayer({
   opacity = 0.6,
   onFeatureClick,
   selectedFeatureId,
+  smoothBoundaries = true,
 }: LanguageRangeLayerProps) {
+  // Apply spline smoothing to features
+  const smoothedFeatures = useMemo(() => {
+    if (!smoothBoundaries) return features;
+    return smoothFeatures(features, 6, 0.5);
+  }, [features, smoothBoundaries]);
+
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
@@ -129,8 +138,8 @@ export function LanguageRangeLayer({
   // Convert features to GeoJSON FeatureCollection
   const geoJsonData = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: features,
-  }), [features]);
+    features: smoothedFeatures,
+  }), [smoothedFeatures]);
 
   if (features.length === 0) {
     return null;
