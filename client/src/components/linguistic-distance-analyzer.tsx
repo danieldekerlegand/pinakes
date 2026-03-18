@@ -28,7 +28,9 @@ import {
   X,
   Info,
   Compass,
+  Cpu,
 } from "lucide-react";
+import { isUsingWorker } from "@/lib/computation-worker";
 import type { Language } from "@shared/types";
 
 interface LinguisticDistanceAnalyzerProps {
@@ -298,6 +300,10 @@ export default function LinguisticDistanceAnalyzer({
                   </span>
                 )}
               </p>
+              <Badge variant="outline" className="mt-1 text-xs gap-1">
+                <Cpu className="h-3 w-3" />
+                {isUsingWorker() ? 'WebWorker enabled' : 'Main thread'}
+              </Badge>
             </div>
             <button
               onClick={onClose}
