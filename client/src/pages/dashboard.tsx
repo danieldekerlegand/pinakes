@@ -31,6 +31,7 @@ import {
   Link2,
   MoreVertical,
   Eye,
+  Landmark,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
@@ -66,6 +67,7 @@ import LanguageContactsPanel from "@/components/language-contacts-panel";
 import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
 import ArtTraditionsPanel from "@/components/art-traditions-panel";
+import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
 import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
@@ -87,6 +89,7 @@ const PANEL_MAP: Record<string, string> = {
   correlation: 'correlation',
   art: 'art',
   trade: 'trade',
+  archCultures: 'archCultures',
 };
 
 export default function Dashboard() {
@@ -110,6 +113,7 @@ export default function Dashboard() {
   const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(initialUrlState.panel === 'correlation');
   const [artTraditionsOpen, setArtTraditionsOpen] = useState(initialUrlState.panel === 'art');
   const [tradeGoodsOpen, setTradeGoodsOpen] = useState(initialUrlState.panel === 'trade');
+  const [archCulturesOpen, setArchCulturesOpen] = useState(initialUrlState.panel === 'archCultures');
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
@@ -138,8 +142,9 @@ export default function Dashboard() {
     if (correlationExplorerOpen) return 'correlation';
     if (artTraditionsOpen) return 'art';
     if (tradeGoodsOpen) return 'trade';
+    if (archCulturesOpen) return 'archCultures';
     return undefined;
-  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen]);
+  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, archCulturesOpen]);
 
   // Build shareable state and sync to URL
   const shareableState = useMemo(() => ({
@@ -195,6 +200,7 @@ export default function Dashboard() {
         if (correlationExplorerOpen) { setCorrelationExplorerOpen(false); return; }
         if (artTraditionsOpen) { setArtTraditionsOpen(false); return; }
         if (tradeGoodsOpen) { setTradeGoodsOpen(false); return; }
+        if (archCulturesOpen) { setArchCulturesOpen(false); return; }
         if (sidebarOpen) { setSidebarOpen(false); return; }
       }
 
@@ -209,7 +215,7 @@ export default function Dashboard() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, sidebarOpen]);
+  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, archCulturesOpen, sidebarOpen]);
 
   // Handle navigation from global search results
   const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
@@ -221,6 +227,8 @@ export default function Dashboard() {
       setArtTraditionsOpen(true);
     } else if (entityType === "trade-good") {
       setTradeGoodsOpen(true);
+    } else if (entityType === "archaeological-culture") {
+      setArchCulturesOpen(true);
     } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
       // No dedicated panel for these yet - show toast with info
       toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
@@ -390,6 +398,9 @@ export default function Dashboard() {
                   <DropdownMenuItem onClick={() => setTradeGoodsOpen(true)}>
                     <Package className="h-4 w-4 mr-2" aria-hidden="true" /> Trade Goods
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setArchCulturesOpen(true)}>
+                    <Landmark className="h-4 w-4 mr-2" aria-hidden="true" /> Archaeological Cultures
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCorrelationExplorerOpen(true)}>
                     <Combine className="h-4 w-4 mr-2" aria-hidden="true" /> Correlation Explorer
                   </DropdownMenuItem>
@@ -555,6 +566,12 @@ export default function Dashboard() {
       <TradeGoodsPanel
         isOpen={tradeGoodsOpen}
         onClose={() => setTradeGoodsOpen(false)}
+      />
+
+      {/* Archaeological Cultures Explorer */}
+      <ArchaeologicalCulturesPanel
+        isOpen={archCulturesOpen}
+        onClose={() => setArchCulturesOpen(false)}
       />
 
       {/* Correlation Explorer */}

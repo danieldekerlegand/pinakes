@@ -2297,6 +2297,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/archaeological-cultures - Get all archaeological cultures with optional filtering
+   */
+  app.get("/api/archaeological-cultures", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const language = req.query.language as string | undefined;
+      const timeStart = req.query.time_start ? parseInt(req.query.time_start as string) : undefined;
+      const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string) : undefined;
+      const cultures = await storage.getArchaeologicalCultures({ region, language, timeStart, timeEnd });
+      res.json({ cultures, count: cultures.length });
+    } catch (error) {
+      console.error("Error fetching archaeological cultures:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological cultures",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/archaeological-cultures/:id - Get a single archaeological culture
+   */
+  app.get("/api/archaeological-cultures/:id", async (req, res) => {
+    try {
+      const culture = await storage.getArchaeologicalCultureById(req.params.id);
+      if (!culture) {
+        return res.status(404).json({ message: "Archaeological culture not found" });
+      }
+      res.json(culture);
+    } catch (error) {
+      console.error("Error fetching archaeological culture:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological culture",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/kinship-systems - Get all kinship systems with optional filtering
    */
   app.get("/api/kinship-systems", async (req, res) => {
