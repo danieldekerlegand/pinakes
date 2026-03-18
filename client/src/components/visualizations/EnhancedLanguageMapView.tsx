@@ -32,6 +32,8 @@ import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
 import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
 import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
 import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
+import { MythologyLayer } from './map-layers/MythologyLayer';
+import type { DeityFeature } from './map-layers/MythologyLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -155,6 +157,13 @@ export function EnhancedLanguageMapView({
     queryKey: ['/api/religions', { year: currentYear }],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('religions'),
+  });
+
+  // Fetch deities data
+  const { data: deitiesData, isLoading: loadingDeities } = useQuery<{ deities: DeityFeature[]; count: number }>({
+    queryKey: ['/api/deities', { year: currentYear }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('mythology'),
   });
 
   // Fetch battles data
@@ -286,6 +295,11 @@ export function EnhancedLanguageMapView({
   const filteredReligions = useMemo(() => {
     return religionsData?.religions ?? [];
   }, [religionsData]);
+
+  // Deities data
+  const filteredDeities = useMemo(() => {
+    return deitiesData?.deities ?? [];
+  }, [deitiesData]);
 
   // Battles data
   const allBattles = useMemo(() => {
@@ -451,6 +465,7 @@ export function EnhancedLanguageMapView({
     (loadingCuisines && isLayerVisible('cuisines')) ||
     (loadingMusic && isLayerVisible('music')) ||
     (loadingReligions && isLayerVisible('religions')) ||
+    (loadingDeities && isLayerVisible('mythology')) ||
     (loadingBattles && isLayerVisible('battles')) ||
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
     (loadingContacts && isLayerVisible('language-contacts')) ||
@@ -571,6 +586,16 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('religions')?.opacity || 0.8}
             onReligionClick={handleFeatureClick}
             selectedReligionId={selectedFeatureId}
+          />
+        )}
+
+        {/* Mythology Layer */}
+        {isLayerVisible('mythology') && filteredDeities.length > 0 && (
+          <MythologyLayer
+            deities={filteredDeities}
+            opacity={getLayerConfig('mythology')?.opacity || 0.8}
+            onDeityClick={handleFeatureClick}
+            selectedDeityId={selectedFeatureId}
           />
         )}
 

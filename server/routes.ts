@@ -1231,6 +1231,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Mythology API Routes
+  // ============================================================================
+
+  app.get("/api/deities", async (req, res) => {
+    try {
+      const mythology = req.query.mythology as string | undefined;
+      const domain = req.query.domain as string | undefined;
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
+
+      const deities = await storage.getDeities({ mythology, domain, year });
+
+      res.json({
+        deities,
+        count: deities.length,
+        filters: { mythology, domain, year },
+      });
+    } catch (error) {
+      console.error("Error fetching deities:", error);
+      res.status(500).json({
+        message: "Failed to fetch deities",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.get("/api/deities/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deity = await storage.getDeity(id);
+
+      if (!deity) {
+        res.status(404).json({ message: `Deity '${id}' not found` });
+        return;
+      }
+
+      res.json(deity);
+    } catch (error) {
+      console.error("Error fetching deity:", error);
+      res.status(500).json({
+        message: "Failed to fetch deity",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.get("/api/deities/:id/equivalents", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const equivalents = await storage.getDeityEquivalents(id);
+      res.json({ equivalents, count: equivalents.length });
+    } catch (error) {
+      console.error("Error fetching deity equivalents:", error);
+      res.status(500).json({
+        message: "Failed to fetch deity equivalents",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.get("/api/myth-motifs", async (req, res) => {
+    try {
+      const motifType = req.query.motifType as string | undefined;
+      const mythology = req.query.mythology as string | undefined;
+      const region = req.query.region as string | undefined;
+
+      const motifs = await storage.getMythMotifs({ motifType, mythology, region });
+
+      res.json({
+        motifs,
+        count: motifs.length,
+        filters: { motifType, mythology, region },
+      });
+    } catch (error) {
+      console.error("Error fetching myth motifs:", error);
+      res.status(500).json({
+        message: "Failed to fetch myth motifs",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.get("/api/myth-motifs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const motif = await storage.getMythMotif(id);
+
+      if (!motif) {
+        res.status(404).json({ message: `Myth motif '${id}' not found` });
+        return;
+      }
+
+      res.json(motif);
+    } catch (error) {
+      console.error("Error fetching myth motif:", error);
+      res.status(500).json({
+        message: "Failed to fetch myth motif",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.get("/api/deities/:id/motifs", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const motifs = await storage.getMotifsByDeity(id);
+      res.json({ motifs, count: motifs.length });
+    } catch (error) {
+      console.error("Error fetching motifs for deity:", error);
+      res.status(500).json({
+        message: "Failed to fetch motifs for deity",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Cross-Domain Analysis API Routes (Phase 4)
   // ============================================================================
 

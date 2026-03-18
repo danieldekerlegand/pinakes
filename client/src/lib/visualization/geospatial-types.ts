@@ -567,6 +567,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'mythology',
+    type: 'mythology',
+    category: 'religions',
+    name: 'Mythology & Deities',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 280,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.8,
+        strokeWeight: 2,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -597,7 +613,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
+    layers: ['cuisines', 'music', 'religions', 'mythology', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
   },
   {
     id: 'trade-economy',
