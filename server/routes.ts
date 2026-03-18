@@ -2329,6 +2329,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/trade-routes - Get all trade routes
+   */
+  app.get("/api/trade-routes", async (req, res) => {
+    try {
+      const routeType = req.query.route_type as string | undefined;
+      const startDate = req.query.start_date as string | undefined;
+      const endDate = req.query.end_date as string | undefined;
+      const routes = await storage.getTradeRoutes(routeType, startDate, endDate);
+      res.json({
+        routes,
+        count: routes.length,
+      });
+    } catch (error) {
+      console.error("Error fetching trade routes:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade routes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/trade-routes/:id - Get a single trade route
+   */
+  app.get("/api/trade-routes/:id", async (req, res) => {
+    try {
+      const route = await storage.getTradeRouteById(req.params.id);
+      if (!route) {
+        res.status(404).json({ message: `Trade route '${req.params.id}' not found` });
+        return;
+      }
+      res.json(route);
+    } catch (error) {
+      console.error("Error fetching trade route:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/language-contacts - Get all language contact events
    */
   app.get("/api/language-contacts", async (req, res) => {

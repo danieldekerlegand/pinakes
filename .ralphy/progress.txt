@@ -119,3 +119,16 @@ Files modified:
 - client/src/components/visualizations/EnhancedLanguageMapView.tsx (integrated drawing layer)
 
 Tests: 61 passed, 0 failed
+
+US-081: Create trade-routes.tsv with dedicated trade network data
+
+Completed:
+- Created lexicons/trade-routes.tsv with 25 dedicated trade routes
+  - Routes span from -7000 BCE (Lapis Lazuli Route) to 1950 (Tea Horse Road)
+  - 10 land routes, 12 maritime routes, 3 river routes
+  - Each route includes: waypoints (GeoJSON), traded goods (cross-referenced to trade-goods.tsv), key cities, controlling powers, associated languages, description, economic impact
+  - Notable routes: Silk Road, Maritime Spice Route, Trans-Saharan Gold-Salt Trade, Amber Road, Incense Route, Phoenician Mediterranean Network, Viking Eastern Trade Route, Portuguese Cape Route, Arab Indian Ocean Network, Hanseatic League Network, Dutch VOC Spice Network, and more
+- Added TradeRoute interface and TSV loader in server/tsv-storage.ts
+- Added GET /api/trade-routes and GET /api/trade-routes/:id API endpoints in server/routes.ts
+- Created test/test-trade-routes.ts with 100 passing assertions
+- Fixed 3 pre-existing syntax errors in tsv-storage.ts (missing closing braces/comments)
