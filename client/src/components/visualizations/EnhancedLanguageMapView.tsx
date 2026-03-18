@@ -127,6 +127,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('language-ranges'),
   });
 
+  // Fetch language range polygons data (expanded dataset)
+  const { data: languageRangePolygonsData, isLoading: loadingRangePolygons } = useQuery<LanguageRangeCollection>({
+    queryKey: ['/api/map/language-range-polygons'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('language-range-polygons'),
+  });
+
   // Fetch archaeological sites data
   const { data: archaeologicalSitesData, isLoading: loadingSites } = useQuery<ArchaeologicalSiteCollection>({
     queryKey: ['/api/map/archaeological-sites'],
@@ -301,6 +308,10 @@ export function EnhancedLanguageMapView({
     return sampleLanguageRanges;
   }, [languageRangesData]);
 
+  const allLanguageRangePolygons = useMemo(() => {
+    return languageRangePolygonsData?.features ?? [];
+  }, [languageRangePolygonsData]);
+
   const allArchaeologicalSites = useMemo(() => {
     if (archaeologicalSitesData?.features && archaeologicalSitesData.features.length > 0) {
       return archaeologicalSitesData.features;
@@ -439,6 +450,10 @@ export function EnhancedLanguageMapView({
     return filterGeoJSONByTime(allLanguageRanges, currentYear);
   }, [allLanguageRanges, currentYear]);
 
+  const filteredLanguageRangePolygons = useMemo(() => {
+    return filterGeoJSONByTime(allLanguageRangePolygons, currentYear);
+  }, [allLanguageRangePolygons, currentYear]);
+
   const filteredArchaeologicalSites = useMemo(() => {
     return filterGeoJSONByTime(allArchaeologicalSites, currentYear);
   }, [allArchaeologicalSites, currentYear]);
@@ -535,6 +550,7 @@ export function EnhancedLanguageMapView({
   // Check if any enabled layers are loading
   const isLoadingAnyLayer =
     (loadingRanges && isLayerVisible('language-ranges')) ||
+    (loadingRangePolygons && isLayerVisible('language-range-polygons')) ||
     (loadingSites && isLayerVisible('archaeological-sites')) ||
     (loadingCultures && isLayerVisible('archaeological-cultures')) ||
     (loadingCivilizations && isLayerVisible('civilizations')) ||
@@ -584,6 +600,16 @@ export function EnhancedLanguageMapView({
           <LanguageRangeLayer
             features={filteredLanguageRanges}
             opacity={getLayerConfig('language-ranges')?.opacity || 0.6}
+            onFeatureClick={handleFeatureClick}
+            selectedFeatureId={selectedFeatureId}
+          />
+        )}
+
+        {/* Language Range Polygons Layer (expanded dataset) */}
+        {isLayerVisible('language-range-polygons') && filteredLanguageRangePolygons.length > 0 && (
+          <LanguageRangeLayer
+            features={filteredLanguageRangePolygons}
+            opacity={getLayerConfig('language-range-polygons')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={selectedFeatureId}
           />

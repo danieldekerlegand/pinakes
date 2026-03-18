@@ -62,6 +62,15 @@ US-079: Create language-range-polygons.tsv with 100+ entries
 - Created test/test-language-range-polygons.ts with comprehensive validation
 - All 187 test assertions pass
 
+US-080: Add language range polygons TSV loader and map layer
+
+Completed:
+- Added loadLanguageRangePolygons() private loader and getLanguageRangePolygons() public method in server/tsv-storage.ts with support for time, family, and range type filtering
+- Added GET /api/map/language-range-polygons API endpoint in server/routes.ts with timeStart, timeEnd, bbox, familyIds, and rangeType query parameters
+- Added 'language-range-polygons' to LayerType union and DEFAULT_LAYER_CONFIGS in client/src/lib/visualization/geospatial-types.ts
+- Integrated into EnhancedLanguageMapView with data fetching, temporal filtering, and rendering via existing LanguageRangeLayer component
+- Added to linguistic-atlas and genetic-linguistic layer presets
+
 US-091: Create myth-motifs.tsv and deities.tsv data files
 
 Completed:

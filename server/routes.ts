@@ -732,6 +732,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get language range polygons (expanded polygon dataset)
+  app.get("/api/map/language-range-polygons", async (req, res) => {
+    try {
+      const { timeStart, timeEnd, bbox, familyIds, rangeType } = req.query;
+
+      const filters = {
+        timeStart: timeStart ? parseInt(timeStart as string) : undefined,
+        timeEnd: timeEnd ? parseInt(timeEnd as string) : undefined,
+        bbox: bbox as string,
+        familyIds: familyIds ? (Array.isArray(familyIds) ? familyIds as string[] : [familyIds as string]) : undefined,
+        rangeType: rangeType as string | undefined,
+      };
+
+      const features = await storage.getLanguageRangePolygons(filters);
+
+      res.json({
+        type: "FeatureCollection",
+        features,
+        metadata: filters,
+      });
+    } catch (error) {
+      console.error("Error fetching language range polygons:", error);
+      res.status(500).json({
+        message: "Failed to fetch language range polygons",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Get archaeological sites
   app.get("/api/map/archaeological-sites", async (req, res) => {
     try {

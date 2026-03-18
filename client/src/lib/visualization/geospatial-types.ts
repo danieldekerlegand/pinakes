@@ -201,6 +201,7 @@ export interface MaterialCultureDistribution {
 
 export type LayerType =
   | 'language-ranges'
+  | 'language-range-polygons'
   | 'archaeological-sites'
   | 'archaeological-cultures'
   | 'civilizations'
@@ -397,6 +398,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         fillOpacity: 0.3,
         strokeWeight: 2,
         strokeOpacity: 0.8,
+      },
+    },
+  },
+  {
+    id: 'language-range-polygons',
+    type: 'language-range-polygons',
+    category: 'languages',
+    name: 'Language Range Polygons',
+    visible: false,
+    opacity: 0.5,
+    zIndex: 90,
+    renderStyle: {
+      polygon: {
+        fillOpacity: 0.25,
+        strokeWeight: 2,
+        strokeOpacity: 0.7,
       },
     },
   },
@@ -724,7 +741,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'linguistic-atlas',
     name: 'Linguistic Atlas',
     description: 'Language ranges, writing systems, and related archaeology',
-    layers: ['language-ranges', 'archaeological-sites', 'archaeological-cultures'],
+    layers: ['language-ranges', 'language-range-polygons', 'archaeological-sites', 'archaeological-cultures'],
   },
   {
     id: 'political-history',
@@ -748,7 +765,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'genetic-linguistic',
     name: 'Genetic-Linguistic',
     description: 'Haplogroup distributions overlaid with language family ranges',
-    layers: ['language-ranges', 'haplogroups', 'genetic-linguistic-correlation'],
+    layers: ['language-ranges', 'language-range-polygons', 'haplogroups', 'genetic-linguistic-correlation'],
   },
   {
     id: 'all-layers',
