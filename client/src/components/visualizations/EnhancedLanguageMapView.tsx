@@ -32,6 +32,8 @@ import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
 import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
 import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
 import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
+import { ArchitecturalStylesLayer } from './map-layers/ArchitecturalStylesLayer';
+import type { ArchitecturalStyleFeature } from './map-layers/ArchitecturalStylesLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -219,6 +221,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('kinship-systems'),
   });
 
+  // Fetch architectural styles data
+  const { data: architecturalStylesData, isLoading: loadingArchitecturalStyles } = useQuery<{ styles: ArchitecturalStyleFeature[]; count: number }>({
+    queryKey: ['/api/architectural-styles'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('architectural-styles'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -327,6 +336,11 @@ export function EnhancedLanguageMapView({
       return s;
     });
   }, [kinshipSystemsData, languagesForCoords]);
+
+  // Architectural styles data
+  const allArchitecturalStyles = useMemo(() => {
+    return architecturalStylesData?.styles ?? [];
+  }, [architecturalStylesData]);
 
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
@@ -456,7 +470,8 @@ export function EnhancedLanguageMapView({
     (loadingContacts && isLayerVisible('language-contacts')) ||
     (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
     (loadingFoodwayEvents && isLayerVisible('foodway-events')) ||
-    (loadingKinshipSystems && isLayerVisible('kinship-systems'));
+    (loadingKinshipSystems && isLayerVisible('kinship-systems')) ||
+    (loadingArchitecturalStyles && isLayerVisible('architectural-styles'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -632,6 +647,16 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('kinship-systems')?.opacity || 0.8}
             onSystemClick={handleFeatureClick}
             selectedSystemId={selectedFeatureId}
+          />
+        )}
+
+        {/* Architectural Styles Layer */}
+        {isLayerVisible('architectural-styles') && allArchitecturalStyles.length > 0 && (
+          <ArchitecturalStylesLayer
+            styles={allArchitecturalStyles}
+            opacity={getLayerConfig('architectural-styles')?.opacity || 0.8}
+            onStyleClick={handleFeatureClick}
+            selectedStyleId={selectedFeatureId}
           />
         )}
       </MapContainer>

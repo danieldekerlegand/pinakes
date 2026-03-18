@@ -166,7 +166,8 @@ export type LayerType =
   | 'language-contacts'
   | 'genetic-linguistic-correlation'
   | 'foodway-events'
-  | 'kinship-systems';
+  | 'kinship-systems'
+  | 'architectural-styles';
 
 export type LayerCategory =
   | 'languages'
@@ -567,6 +568,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'architectural-styles',
+    type: 'architectural-styles',
+    category: 'culture',
+    name: 'Architectural Styles',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 280,
+    renderStyle: {
+      marker: {
+        size: 10,
+        opacity: 0.8,
+        strokeWeight: 2,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -597,7 +614,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
+    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems', 'architectural-styles'],
   },
   {
     id: 'trade-economy',

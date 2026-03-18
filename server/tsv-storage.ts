@@ -240,6 +240,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -289,6 +290,23 @@ export interface ArtTradition {
   associatedLanguages: string[];
   keyFeatures: string[];
   notableExamples: string[];
+}
+
+// Architectural style types
+export interface ArchitecturalStyle {
+  id: string;
+  name: string;
+  stylePeriod: string;
+  originDate: number;
+  endDate: number;
+  originCoordinates: { lat: number; lng: number };
+  region: string;
+  description: string;
+  associatedCivilizations: string;
+  associatedLanguages: string[];
+  keyFeatures: string[];
+  notableExamples: string[];
+  buildingTypes: string[];
 }
 
 // Trade good types
@@ -417,6 +435,9 @@ export class TsvStorage {
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Architectural styles data cache
+  private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
@@ -2004,6 +2025,32 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const titleIdx = getIdx(header, "title");
+    const textIdx = getIdx(header, "text");
+    const translitIdx = header.indexOf("transliteration");
+    const translationIdx = getIdx(header, "translation_en");
+    const sourceIdx = header.indexOf("source");
+    const dateIdx = header.indexOf("date_composed");
+    const genreIdx = header.indexOf("genre");
+    const scriptIdx = header.indexOf("script");
+
+    this.cachedSampleTexts = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      title: row[titleIdx],
+      text: row[textIdx],
+      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
+      translationEn: row[translationIdx],
+      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
+      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
+      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
+
   // Phonological Inventory Data Methods
   // ============================================================================
 
@@ -2039,6 +2086,7 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
 
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
@@ -2137,7 +2185,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2314,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
@@ -2858,6 +2910,78 @@ export class TsvStorage {
   async getArtTraditionById(id: string): Promise<ArtTradition | null> {
     this.loadArtTraditions();
     return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ── Architectural Styles ────────────────────────────────────────────
+
+  private loadArchitecturalStyles(): void {
+    if (this.cachedArchitecturalStyles) return;
+
+    const text = this.readFileIfExists("lexicons/architectural-styles.tsv");
+    if (!text) { this.cachedArchitecturalStyles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const stylePeriodIdx = getIdx(header, "style_period");
+    const originDateIdx = getIdx(header, "origin_date");
+    const endDateIdx = getIdx(header, "end_date");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const regionIdx = getIdx(header, "region");
+    const descIdx = getIdx(header, "description");
+    const civIdx = header.indexOf("associated_civilizations");
+    const langIdx = getIdx(header, "associated_languages");
+    const featIdx = getIdx(header, "key_features");
+    const examplesIdx = getIdx(header, "notable_examples");
+    const buildingTypesIdx = getIdx(header, "building_types");
+
+    this.cachedArchitecturalStyles = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      stylePeriod: row[stylePeriodIdx],
+      originDate: parseInt(row[originDateIdx]) || 0,
+      endDate: parseInt(row[endDateIdx]) || 0,
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      region: row[regionIdx] || "",
+      description: row[descIdx],
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      keyFeatures: (() => {
+        try { return JSON.parse(row[featIdx]); } catch { return []; }
+      })() as string[],
+      notableExamples: (() => {
+        try { return JSON.parse(row[examplesIdx]); } catch { return []; }
+      })() as string[],
+      buildingTypes: (() => {
+        try { return JSON.parse(row[buildingTypesIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getArchitecturalStyles(filters?: {
+    stylePeriod?: string;
+    region?: string;
+  }): Promise<ArchitecturalStyle[]> {
+    this.loadArchitecturalStyles();
+    let styles = this.cachedArchitecturalStyles ?? [];
+
+    if (filters?.stylePeriod) {
+      styles = styles.filter((s) => s.stylePeriod === filters.stylePeriod);
+    }
+    if (filters?.region) {
+      styles = styles.filter((s) => s.region.toLowerCase().includes(filters.region!.toLowerCase()));
+    }
+
+    return styles;
+  }
+
+  async getArchitecturalStyleById(id: string): Promise<ArchitecturalStyle | null> {
+    this.loadArchitecturalStyles();
+    return (this.cachedArchitecturalStyles ?? []).find((s) => s.id === id) ?? null;
   }
 
   private loadKinshipSystems(): void {
