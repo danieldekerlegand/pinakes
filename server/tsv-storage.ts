@@ -240,6 +240,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -2003,6 +2004,8 @@ export class TsvStorage {
 
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
+    this.cachedSampleTexts = [];
+  }
 
   // Phonological Inventory Data Methods
   // ============================================================================
