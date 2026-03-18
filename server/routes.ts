@@ -2977,6 +2977,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Archaeological Cultures API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/archaeological-cultures - Get archaeological cultures with optional filtering
+   */
+  app.get("/api/archaeological-cultures", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const languageId = req.query.languageId as string | undefined;
+      const timeStart = req.query.timeStart ? parseInt(req.query.timeStart as string, 10) : undefined;
+      const timeEnd = req.query.timeEnd ? parseInt(req.query.timeEnd as string, 10) : undefined;
+
+      const cultures = await storage.getArchaeologicalCultures({ region, languageId, timeStart, timeEnd });
+
+      res.json({
+        cultures,
+        count: cultures.length,
+        filters: { region, languageId, timeStart, timeEnd },
+      });
+    } catch (error) {
+      console.error("Error fetching archaeological cultures:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological cultures",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   /**
    * GET /api/literary-traditions/:id - Get a single literary tradition with its works
    */
@@ -3072,6 +3102,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching literary work:", error);
       res.status(500).json({
         message: "Failed to fetch literary work",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/archaeological-cultures/:id - Get a single archaeological culture by ID
+   */
+  app.get("/api/archaeological-cultures/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const culture = await storage.getArchaeologicalCultureById(id);
+
+      if (!culture) {
+        res.status(404).json({ message: `Archaeological culture '${id}' not found` });
+        return;
+      }
+
+      res.json(culture);
+    } catch (error) {
+      console.error("Error fetching archaeological culture:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological culture",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

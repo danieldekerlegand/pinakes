@@ -166,6 +166,25 @@ export interface UrheimatHypothesis {
   sources: string[];
 }
 
+// Archaeological culture types
+export interface ArchaeologicalCulture {
+  id: string;
+  name: string;
+  region: string;
+  coordinates: { lat: number; lng: number };
+  timePeriodStart: number | null;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string;
+  associatedLanguageIds: string[];
+  associatedCivilizationIds: string[];
+  predecessorCultureId: string;
+  successorCultureIds: string[];
+  materialGoods: string[];
+  description: string;
+  confidence: number;
+  sources: string[];
+}
+
 // Music types
 export interface MusicTradition {
   id: string;
@@ -499,6 +518,9 @@ export class TsvStorage {
 
   // Haplogroup data cache
   private cachedHaplogroups: Haplogroup[] | null = null;
+
+  // Archaeological cultures data cache
+  private cachedArchaeologicalCultures: ArchaeologicalCulture[] | null = null;
 
   // Music data caches
   private cachedMusicTraditions: MusicTradition[] | null = null;
@@ -3654,6 +3676,108 @@ export class TsvStorage {
     if (!tradition) return null;
     const works = await this.getLiteraryWorks({ traditionId: id });
     return { tradition, works };
+  }
 
+  // ============================================================================
+  // Archaeological Cultures
+  // ============================================================================
+
+  private loadArchaeologicalCultures(): void {
+    if (this.cachedArchaeologicalCultures) return;
+
+    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
+    if (!text) { this.cachedArchaeologicalCultures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const regionIdx = header.indexOf("region");
+    const coordsIdx = header.indexOf("coordinates");
+    const startIdx = header.indexOf("time_period_start");
+    const endIdx = header.indexOf("time_period_end");
+    const labelIdx = header.indexOf("time_period_label");
+    const langIdx = header.indexOf("associated_language_ids");
+    const civIdx = header.indexOf("associated_civilization_ids");
+    const predIdx = header.indexOf("predecessor_culture_id");
+    const succIdx = header.indexOf("successor_culture_ids");
+    const goodsIdx = header.indexOf("material_goods");
+    const descIdx = header.indexOf("description");
+    const confIdx = header.indexOf("confidence");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedArchaeologicalCultures = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try { coords = JSON.parse(row[coordsIdx]); } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+        coordinates: coords,
+        timePeriodStart: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : null,
+        timePeriodEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null,
+        timePeriodLabel: labelIdx >= 0 ? row[labelIdx] || "" : "",
+        associatedLanguageIds: parseArr(langIdx, row),
+        associatedCivilizationIds: parseArr(civIdx, row),
+        predecessorCultureId: predIdx >= 0 ? row[predIdx] || "" : "",
+        successorCultureIds: parseArr(succIdx, row),
+        materialGoods: parseArr(goodsIdx, row),
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        confidence: confIdx >= 0 && row[confIdx] ? parseInt(row[confIdx], 10) : 0,
+        sources: parseArr(srcIdx, row),
+      };
+    });
+  }
+
+  async getArchaeologicalCultures(filters?: {
+    region?: string;
+    languageId?: string;
+    timeStart?: number;
+    timeEnd?: number;
+  }): Promise<ArchaeologicalCulture[]> {
+    this.loadArchaeologicalCultures();
+    let cultures = this.cachedArchaeologicalCultures ?? [];
+
+    if (filters?.region) {
+      cultures = cultures.filter((c) =>
+        c.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    if (filters?.languageId) {
+      cultures = cultures.filter((c) =>
+        c.associatedLanguageIds.includes(filters.languageId!)
+      );
+    }
+
+    if (filters?.timeStart !== undefined) {
+      cultures = cultures.filter((c) => {
+        const end = c.timePeriodEnd ?? Infinity;
+        return end >= filters.timeStart!;
+      });
+    }
+
+    if (filters?.timeEnd !== undefined) {
+      cultures = cultures.filter((c) => {
+        const start = c.timePeriodStart ?? -Infinity;
+        return start <= filters.timeEnd!;
+      });
+    }
+
+    return cultures;
+  }
+
+  async getArchaeologicalCultureById(id: string): Promise<ArchaeologicalCulture | null> {
+    this.loadArchaeologicalCultures();
+    return (this.cachedArchaeologicalCultures ?? []).find((c) => c.id === id) ?? null;
   }
 }

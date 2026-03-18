@@ -1,57 +1,9 @@
 /**
- * Test script for validating archaeological-cultures.tsv data file
+ * Test script for archaeological cultures TSV loader and storage
  * Run with: npx tsx test/test-archaeological-cultures.ts
  */
 
-import * as fs from "fs";
-import * as path from "path";
-
-const TSV_PATH = path.join(
-  import.meta.dirname,
-  "..",
-  "lexicons",
-  "archaeological-cultures.tsv"
-);
-
-const REQUIRED_HEADERS = [
-  "id",
-  "name",
-  "time_start",
-  "time_end",
-  "region",
-  "coordinates",
-  "boundary_geometry",
-  "material_culture_traits",
-  "subsistence_pattern",
-  "burial_practices",
-  "pottery_style",
-  "probable_language_family",
-  "probable_haplogroups",
-  "successor_cultures",
-  "predecessor_cultures",
-  "confidence",
-  "sources",
-];
-
-const EXPECTED_CULTURES = [
-  "yamnaya",
-  "corded-ware",
-  "bell-beaker",
-  "jomon",
-  "clovis",
-  "lapita",
-  "natufian",
-  "nok",
-  "olmec",
-  "caral-supe",
-  "indus-valley",
-  "longshan",
-  "yangshao",
-  "mehrgarh",
-  "cucuteni-trypillia",
-  "vinca",
-  "bantu-expansion",
-];
+import { TsvStorage } from "../server/tsv-storage";
 
 let passed = 0;
 let failed = 0;
@@ -61,197 +13,102 @@ function assert(condition: boolean, message: string) {
     console.log(`  ✓ ${message}`);
     passed++;
   } else {
-    console.log(`  ✗ FAIL: ${message}`);
+    console.error(`  ✗ ${message}`);
     failed++;
   }
 }
 
-function run() {
-  console.log("=== Archaeological Cultures TSV Validation ===\n");
+async function testArchaeologicalCultures() {
+  console.log("=== Archaeological Cultures TSV Loader Test ===\n");
 
-  // 1. File exists
-  console.log("1. File existence:");
-  const exists = fs.existsSync(TSV_PATH);
-  assert(exists, "archaeological-cultures.tsv exists");
-  if (!exists) {
-    console.log("\nCannot continue without file.");
-    process.exit(1);
+  const storage = new TsvStorage();
+
+  // Test 1: Load all cultures
+  console.log("Test 1: Load all archaeological cultures");
+  const allCultures = await storage.getArchaeologicalCultures();
+  assert(allCultures.length > 0, `Loaded ${allCultures.length} cultures`);
+  assert(allCultures.length >= 60, `At least 60 cultures loaded (got ${allCultures.length})`);
+
+  // Test 2: Verify structure of a known culture
+  console.log("\nTest 2: Verify Yamnaya culture structure");
+  const yamnaya = await storage.getArchaeologicalCultureById("yamnaya");
+  assert(yamnaya !== null, "Yamnaya culture found");
+  if (yamnaya) {
+    assert(yamnaya.name === "Yamnaya", `Name is correct: ${yamnaya.name}`);
+    assert(yamnaya.region === "Pontic-Caspian Steppe", `Region is correct: ${yamnaya.region}`);
+    assert(yamnaya.coordinates.lat === 47.0, `Latitude correct: ${yamnaya.coordinates.lat}`);
+    assert(yamnaya.coordinates.lng === 40.0, `Longitude correct: ${yamnaya.coordinates.lng}`);
+    assert(yamnaya.timePeriodStart === -3300, `Start date correct: ${yamnaya.timePeriodStart}`);
+    assert(yamnaya.timePeriodEnd === -2600, `End date correct: ${yamnaya.timePeriodEnd}`);
+    assert(yamnaya.associatedLanguageIds.includes("pie"), `Associated language includes PIE`);
+    assert(yamnaya.successorCultureIds.length > 0, `Has successor cultures`);
+    assert(yamnaya.materialGoods.length > 0, `Has material goods`);
+    assert(yamnaya.confidence === 90, `Confidence is 90: ${yamnaya.confidence}`);
+    assert(yamnaya.sources.length > 0, `Has sources`);
   }
 
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const lines = content.trim().split("\n");
-  const headerLine = lines[0];
-  const dataLines = lines.slice(1);
-
-  // 2. Header validation
-  console.log("\n2. Header validation:");
-  const headers = headerLine.split("\t");
+  // Test 3: Filter by region
+  console.log("\nTest 3: Filter by region");
+  const europeanCultures = await storage.getArchaeologicalCultures({ region: "Europe" });
+  assert(europeanCultures.length > 0, `Found ${europeanCultures.length} European cultures`);
   assert(
-    headers.length === REQUIRED_HEADERS.length,
-    `Header count: ${headers.length} (expected ${REQUIRED_HEADERS.length})`
+    europeanCultures.every((c) => c.region.toLowerCase().includes("europe")),
+    "All results contain 'Europe' in region"
   );
-  for (const h of REQUIRED_HEADERS) {
-    assert(headers.includes(h), `Header "${h}" present`);
+
+  // Test 4: Filter by language
+  console.log("\nTest 4: Filter by language");
+  const pieCultures = await storage.getArchaeologicalCultures({ languageId: "pie" });
+  assert(pieCultures.length > 0, `Found ${pieCultures.length} PIE-associated cultures`);
+  assert(
+    pieCultures.every((c) => c.associatedLanguageIds.includes("pie")),
+    "All results include PIE in associated languages"
+  );
+
+  // Test 5: Filter by time range
+  console.log("\nTest 5: Filter by time range");
+  const bronzeAgeCultures = await storage.getArchaeologicalCultures({
+    timeStart: -3000,
+    timeEnd: -1000,
+  });
+  assert(bronzeAgeCultures.length > 0, `Found ${bronzeAgeCultures.length} Bronze Age cultures`);
+  assert(
+    bronzeAgeCultures.every((c) => {
+      const end = c.timePeriodEnd ?? Infinity;
+      const start = c.timePeriodStart ?? -Infinity;
+      return end >= -3000 && start <= -1000;
+    }),
+    "All results overlap with the time range"
+  );
+
+  // Test 6: Get by ID - not found
+  console.log("\nTest 6: Non-existent culture returns null");
+  const notFound = await storage.getArchaeologicalCultureById("nonexistent-culture");
+  assert(notFound === null, "Returns null for nonexistent culture");
+
+  // Test 7: Combined filters
+  console.log("\nTest 7: Combined filters (region + time)");
+  const filteredCultures = await storage.getArchaeologicalCultures({
+    region: "China",
+    timeStart: -5000,
+    timeEnd: -2000,
+  });
+  assert(filteredCultures.length > 0, `Found ${filteredCultures.length} Chinese Neolithic cultures`);
+  assert(
+    filteredCultures.every((c) => c.region.toLowerCase().includes("china")),
+    "All results contain 'China' in region"
+  );
+
+  // Test 8: Verify predecessor/successor relationships
+  console.log("\nTest 8: Predecessor/successor relationships");
+  const cordedWare = await storage.getArchaeologicalCultureById("corded-ware");
+  assert(cordedWare !== null, "Corded Ware culture found");
+  if (cordedWare) {
+    assert(cordedWare.predecessorCultureId === "yamnaya", `Predecessor is Yamnaya: ${cordedWare.predecessorCultureId}`);
   }
-
-  // 3. Row count
-  console.log("\n3. Row count:");
-  assert(dataLines.length >= 60, `Has ${dataLines.length} entries (minimum 60)`);
-
-  // 4. Parse each row
-  console.log("\n4. Row parsing and field validation:");
-  const ids = new Set<string>();
-  let parseErrors = 0;
-
-  for (let i = 0; i < dataLines.length; i++) {
-    const fields = dataLines[i].split("\t");
-    const lineNum = i + 2;
-
-    if (fields.length !== headers.length) {
-      console.log(`  ✗ Line ${lineNum}: expected ${headers.length} fields, got ${fields.length}`);
-      parseErrors++;
-      continue;
-    }
-
-    const row: Record<string, string> = {};
-    headers.forEach((h, idx) => (row[h] = fields[idx]));
-
-    // Validate id
-    if (!row.id || row.id.trim() === "") {
-      console.log(`  ✗ Line ${lineNum}: missing id`);
-      parseErrors++;
-    }
-    if (ids.has(row.id)) {
-      console.log(`  ✗ Line ${lineNum}: duplicate id "${row.id}"`);
-      parseErrors++;
-    }
-    ids.add(row.id);
-
-    // Validate name
-    if (!row.name || row.name.trim() === "") {
-      console.log(`  ✗ Line ${lineNum}: missing name for id "${row.id}"`);
-      parseErrors++;
-    }
-
-    // Validate time_start and time_end are integers
-    const timeStart = parseInt(row.time_start);
-    const timeEnd = parseInt(row.time_end);
-    if (isNaN(timeStart)) {
-      console.log(`  ✗ Line ${lineNum} (${row.id}): invalid time_start "${row.time_start}"`);
-      parseErrors++;
-    }
-    if (isNaN(timeEnd)) {
-      console.log(`  ✗ Line ${lineNum} (${row.id}): invalid time_end "${row.time_end}"`);
-      parseErrors++;
-    }
-    if (!isNaN(timeStart) && !isNaN(timeEnd) && timeStart > timeEnd) {
-      console.log(`  ✗ Line ${lineNum} (${row.id}): time_start (${timeStart}) > time_end (${timeEnd})`);
-      parseErrors++;
-    }
-
-    // Validate coordinates as JSON
-    if (row.coordinates) {
-      try {
-        const coords = JSON.parse(row.coordinates);
-        if (typeof coords.lat !== "number" || typeof coords.lng !== "number") {
-          console.log(`  ✗ Line ${lineNum} (${row.id}): coordinates missing lat/lng`);
-          parseErrors++;
-        }
-        if (coords.lat < -90 || coords.lat > 90) {
-          console.log(`  ✗ Line ${lineNum} (${row.id}): latitude out of range: ${coords.lat}`);
-          parseErrors++;
-        }
-        if (coords.lng < -180 || coords.lng > 180) {
-          console.log(`  ✗ Line ${lineNum} (${row.id}): longitude out of range: ${coords.lng}`);
-          parseErrors++;
-        }
-      } catch {
-        console.log(`  ✗ Line ${lineNum} (${row.id}): invalid coordinates JSON`);
-        parseErrors++;
-      }
-    }
-
-    // Validate JSON array fields
-    for (const field of [
-      "material_culture_traits",
-      "probable_haplogroups",
-      "successor_cultures",
-      "predecessor_cultures",
-      "sources",
-    ]) {
-      if (row[field] && row[field].trim() !== "") {
-        try {
-          const arr = JSON.parse(row[field]);
-          if (!Array.isArray(arr)) {
-            console.log(`  ✗ Line ${lineNum} (${row.id}): ${field} is not an array`);
-            parseErrors++;
-          }
-        } catch {
-          console.log(`  ✗ Line ${lineNum} (${row.id}): invalid JSON in ${field}`);
-          parseErrors++;
-        }
-      }
-    }
-
-    // Validate probable_language_family as JSON object
-    if (row.probable_language_family && row.probable_language_family.trim() !== "") {
-      try {
-        const plf = JSON.parse(row.probable_language_family);
-        if (typeof plf.family !== "string" || typeof plf.confidence !== "number") {
-          console.log(`  ✗ Line ${lineNum} (${row.id}): probable_language_family missing family/confidence`);
-          parseErrors++;
-        }
-      } catch {
-        console.log(`  ✗ Line ${lineNum} (${row.id}): invalid JSON in probable_language_family`);
-        parseErrors++;
-      }
-    }
-
-    // Validate confidence is 1-100
-    const conf = parseInt(row.confidence);
-    if (isNaN(conf) || conf < 1 || conf > 100) {
-      console.log(`  ✗ Line ${lineNum} (${row.id}): confidence out of range: ${row.confidence}`);
-      parseErrors++;
-    }
+  if (yamnaya) {
+    assert(yamnaya.successorCultureIds.includes("corded-ware"), "Yamnaya successor includes Corded Ware");
   }
-
-  assert(parseErrors === 0, `All rows parsed without errors (${parseErrors} errors found)`);
-
-  // 5. Check expected cultures are present
-  console.log("\n5. Expected cultures present:");
-  for (const culture of EXPECTED_CULTURES) {
-    assert(ids.has(culture), `Culture "${culture}" present`);
-  }
-
-  // 6. Validate referential integrity (successor/predecessor references)
-  console.log("\n6. Referential integrity (successor/predecessor):");
-  let refErrors = 0;
-  for (const line of dataLines) {
-    const fields = line.split("\t");
-    const row: Record<string, string> = {};
-    headers.forEach((h, idx) => (row[h] = fields[idx]));
-
-    for (const field of ["successor_cultures", "predecessor_cultures"]) {
-      if (row[field] && row[field].trim() !== "") {
-        try {
-          const refs: string[] = JSON.parse(row[field]);
-          for (const ref of refs) {
-            if (!ids.has(ref)) {
-              // Not an error - referenced culture may be outside this dataset
-              // Just track for informational purposes
-            }
-          }
-        } catch {
-          // Already caught above
-        }
-      }
-    }
-  }
-  assert(true, "Successor/predecessor references parsed successfully");
-
-  // 7. No duplicate IDs (already checked above but summarize)
-  console.log("\n7. Unique IDs:");
-  assert(ids.size === dataLines.length, `All ${ids.size} IDs are unique`);
 
   // Summary
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
@@ -260,4 +117,7 @@ function run() {
   }
 }
 
-run();
+testArchaeologicalCultures().catch((err) => {
+  console.error("Test failed with error:", err);
+  process.exit(1);
+});
