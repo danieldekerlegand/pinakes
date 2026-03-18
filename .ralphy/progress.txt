@@ -1,0 +1,7 @@
+US-091: Create myth-motifs.tsv and deities.tsv data files
+
+Completed:
+- Created lexicons/deities.tsv with 76 deities across 14 pantheons (greek, roman, norse, egyptian, hindu, japanese, yoruba, maya, inca, tengric, celtic, sumerian, aztec, slavic) with syncretism links cross-referencing equivalent deities across traditions
+- Created lexicons/myth-motifs.tsv with 32 motifs across 8 types (cataclysm, cosmology, death-rebirth, archetype, creation, hero, culture-hero, fertility) with cross-cultural examples and deity references
+- Created test/test-mythology-data.ts with 42 validation tests covering schema, JSON parsing, referential integrity, and data quality
+- All tests passing
