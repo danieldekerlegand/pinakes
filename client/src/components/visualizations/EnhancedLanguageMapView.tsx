@@ -43,6 +43,8 @@ import { CookingTechniquesLayer } from './map-layers/CookingTechniquesLayer';
 import type { CookingTechniqueFeature } from './map-layers/CookingTechniquesLayer';
 import { MythologyLayer } from './map-layers/MythologyLayer';
 import type { DeityFeature } from './map-layers/MythologyLayer';
+import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
+import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
@@ -296,6 +298,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('cooking-techniques'),
   });
 
+  // Fetch urheimat hypotheses data
+  const { data: urheimatData, isLoading: loadingUrheimat } = useQuery<{ hypotheses: UrheimatHypothesisFeature[]; count: number }>({
+    queryKey: ['/api/urheimat-hypotheses'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('urheimat-hypotheses'),
+  });
+
   // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
   const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
     queryKey: ['/api/languages'],
@@ -441,6 +450,11 @@ export function EnhancedLanguageMapView({
     return cookingTechniquesData?.techniques ?? [];
   }, [cookingTechniquesData]);
 
+  // Urheimat hypotheses data
+  const allUrheimatHypotheses = useMemo(() => {
+    return urheimatData?.hypotheses ?? [];
+  }, [urheimatData]);
+
   // Build language coordinate map for contacts layer
   const languageCoordsMap = useMemo(() => {
     const map = new Map<string, { id: string; name: string; lat: number; lng: number }>();
@@ -583,7 +597,8 @@ export function EnhancedLanguageMapView({
     (loadingKinshipSystems && isLayerVisible('kinship-systems')) ||
     (loadingArchitecturalStyles && isLayerVisible('architectural-styles')) ||
     (loadingIngredientOrigins && isLayerVisible('ingredient-origins')) ||
-    (loadingCookingTechniques && isLayerVisible('cooking-techniques'));
+    (loadingCookingTechniques && isLayerVisible('cooking-techniques')) ||
+    (loadingUrheimat && isLayerVisible('urheimat-hypotheses'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -829,6 +844,17 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('cooking-techniques')?.opacity || 0.8}
             onTechniqueClick={handleFeatureClick}
             selectedTechniqueId={selectedFeatureId}
+          />
+        )}
+
+        {/* Urheimat Hypotheses Layer */}
+        {isLayerVisible('urheimat-hypotheses') && allUrheimatHypotheses.length > 0 && (
+          <UrheimatHypothesisLayer
+            hypotheses={allUrheimatHypotheses}
+            opacity={getLayerConfig('urheimat-hypotheses')?.opacity || 0.6}
+            currentYear={currentYear}
+            onHypothesisClick={handleFeatureClick}
+            selectedHypothesisId={selectedFeatureId}
           />
         )}
 

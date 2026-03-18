@@ -488,6 +488,27 @@ export interface KinshipSystem {
   associatedCivilizations: string;
 }
 
+// Urheimat hypothesis types
+export interface UrheimatHypothesis {
+  id: string;
+  languageFamilyId: string;
+  hypothesisName: string;
+  proposedRegion: string;
+  proposedCoordinates: { lat: number; lng: number };
+  proposedBoundary: Record<string, unknown>;
+  timeRangeStart: number | null;
+  timeRangeEnd: number | null;
+  supportingEvidence: {
+    linguistic: string[];
+    archaeological: string[];
+    genetic: string[];
+  };
+  competingHypotheses: string[];
+  scholarlyConsensusLevel: number;
+  keyProponents: string[];
+  sources: string[];
+}
+
 // Narrative types
 export interface NarrativeStep {
   text: string;
@@ -670,6 +691,9 @@ export class TsvStorage {
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
+
+  // Urheimat hypotheses data cache
+  private cachedUrheimatHypotheses: UrheimatHypothesis[] | null = null;
 
   // Narratives data cache
   private cachedNarratives: Narrative[] | null = null;
@@ -3039,6 +3063,7 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
+<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3064,6 +3089,49 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
+=======
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const titleIdx = getIdx(header, "title");
+    const textIdx = getIdx(header, "text");
+    const translitIdx = header.indexOf("transliteration");
+    const transEnIdx = header.indexOf("translation_en");
+    const sourceIdx = header.indexOf("source");
+    const dateIdx = header.indexOf("date_composed");
+    const genreIdx = header.indexOf("genre");
+    const scriptIdx = header.indexOf("script");
+
+    this.cachedSampleTexts = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      title: row[titleIdx],
+      text: row[textIdx],
+      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
+      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
+      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
+      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
+      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
+
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+>>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
 
   // ============================================================================
   // Phonological Inventory Data Methods
@@ -4178,6 +4246,7 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
+<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4251,6 +4320,80 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
+=======
+  // ── Urheimat Hypotheses ─────────────────────────────────────────────
+
+  private loadUrheimatHypotheses(): void {
+    if (this.cachedUrheimatHypotheses) return;
+
+    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
+    if (!text) { this.cachedUrheimatHypotheses = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const familyIdx = getIdx(header, "language_family_id");
+    const nameIdx = getIdx(header, "hypothesis_name");
+    const regionIdx = getIdx(header, "proposed_region");
+    const coordsIdx = getIdx(header, "proposed_coordinates");
+    const boundaryIdx = getIdx(header, "proposed_boundary");
+    const startIdx = getIdx(header, "time_range_start");
+    const endIdx = getIdx(header, "time_range_end");
+    const evidenceIdx = getIdx(header, "supporting_evidence");
+    const competingIdx = getIdx(header, "competing_hypotheses");
+    const consensusIdx = getIdx(header, "scholarly_consensus_level");
+    const proponentsIdx = getIdx(header, "key_proponents");
+    const sourcesIdx = getIdx(header, "sources");
+
+    this.cachedUrheimatHypotheses = rows.map((row) => ({
+      id: row[idIdx],
+      languageFamilyId: row[familyIdx],
+      hypothesisName: row[nameIdx],
+      proposedRegion: row[regionIdx],
+      proposedCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      proposedBoundary: (() => {
+        try { return JSON.parse(row[boundaryIdx]); } catch { return {}; }
+      })() as Record<string, unknown>,
+      timeRangeStart: row[startIdx] ? parseInt(row[startIdx], 10) : null,
+      timeRangeEnd: row[endIdx] ? parseInt(row[endIdx], 10) : null,
+      supportingEvidence: (() => {
+        try { return JSON.parse(row[evidenceIdx]); } catch { return { linguistic: [], archaeological: [], genetic: [] }; }
+      })() as { linguistic: string[]; archaeological: string[]; genetic: string[] },
+      competingHypotheses: (() => {
+        try { return JSON.parse(row[competingIdx]); } catch { return []; }
+      })() as string[],
+      scholarlyConsensusLevel: parseInt(row[consensusIdx], 10) || 0,
+      keyProponents: (() => {
+        try { return JSON.parse(row[proponentsIdx]); } catch { return []; }
+      })() as string[],
+      sources: (() => {
+        try { return JSON.parse(row[sourcesIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getUrheimatHypotheses(filters?: {
+    languageFamily?: string;
+    consensusMin?: number;
+  }): Promise<UrheimatHypothesis[]> {
+    this.loadUrheimatHypotheses();
+    let hypotheses = this.cachedUrheimatHypotheses ?? [];
+
+    if (filters?.languageFamily) {
+      hypotheses = hypotheses.filter((h) => h.languageFamilyId === filters.languageFamily);
+    }
+    if (filters?.consensusMin !== undefined) {
+      hypotheses = hypotheses.filter((h) => h.scholarlyConsensusLevel >= filters.consensusMin!);
+    }
+
+    return hypotheses;
+  }
+
+  async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
+    this.loadUrheimatHypotheses();
+    return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
+>>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
   }
 
   // ── Narratives ──────────────────────────────────────────────────────

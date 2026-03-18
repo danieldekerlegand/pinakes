@@ -175,3 +175,24 @@ Completed:
 - Created ComparativeMythologyView component with deity equivalence groups, motif filtering, deity detail panel, and cross-reference matrix
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
+
+US-073: Add Urheimat hypothesis map overlay
+
+Completed:
+- Created lexicons/urheimat-hypotheses.tsv with 34 homeland hypotheses covering 21+ language families
+  - Includes competing theories (IE Steppe vs Anatolian vs Armenian, AA Levant vs Africa vs Sahara, etc.)
+  - Each entry has GeoJSON boundary polygons, time ranges, supporting evidence (linguistic/archaeological/genetic), consensus levels, key proponents, and sources
+- Added UrheimatHypothesis interface and TSV loader to server/tsv-storage.ts
+- Added GET /api/urheimat-hypotheses (with language_family and consensus_min filters) and GET /api/urheimat-hypotheses/:id endpoints to server/routes.ts
+- Added 'urheimat-hypotheses' layer type and config to client/src/lib/visualization/geospatial-types.ts
+  - Added 'deep-history' layer preset combining urheimat hypotheses, archaeological sites, and language ranges
+- Created UrheimatHypothesisLayer.tsx map component with:
+  - Translucent polygon overlays colored by language family
+  - Opacity scaled by scholarly consensus level (higher consensus = more opaque)
+  - Dashed borders for lower-consensus hypotheses
+  - Rich popups showing evidence, proponents, competing hypotheses, and sources
+  - Hover tooltips and selection support
+  - Temporal filtering via time slider
+- Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
+- Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
+- Written comprehensive test suite (84 assertions, all passing)
