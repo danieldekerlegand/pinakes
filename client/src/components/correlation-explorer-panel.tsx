@@ -10,7 +10,9 @@ import {
   ScatterChart,
   ChevronRight,
   Loader2,
+  Cpu,
 } from "lucide-react";
+import { isUsingWorker } from "@/lib/computation-worker";
 import * as d3 from "d3";
 
 // Types matching the server API
@@ -474,6 +476,10 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
               <p className="text-indigo-100 text-sm mt-1">
                 Discover correlations between cultural domains
               </p>
+              <span className="inline-flex items-center gap-1 text-xs text-indigo-200 mt-1">
+                <Cpu className="h-3 w-3" />
+                {isUsingWorker() ? 'WebWorker enabled' : 'Main thread'}
+              </span>
             </div>
             <Button
               variant="ghost"
