@@ -2610,6 +2610,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/architectural-styles - Get all architectural styles with optional filtering
+   */
+  app.get("/api/architectural-styles", async (req, res) => {
+    try {
+      const stylePeriod = req.query.style_period as string | undefined;
+      const region = req.query.region as string | undefined;
+      const styles = await storage.getArchitecturalStyles({ stylePeriod, region });
+      res.json({ styles, count: styles.length });
+    } catch (error) {
+      console.error("Error fetching architectural styles:", error);
+      res.status(500).json({
+        message: "Failed to fetch architectural styles",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/architectural-styles/:id - Get a single architectural style
+   */
+  app.get("/api/architectural-styles/:id", async (req, res) => {
+    try {
+      const style = await storage.getArchitecturalStyleById(req.params.id);
+      if (!style) {
+        return res.status(404).json({ message: "Architectural style not found" });
+      }
+      res.json(style);
+    } catch (error) {
+      console.error("Error fetching architectural style:", error);
+      res.status(500).json({
+        message: "Failed to fetch architectural style",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/kinship-systems - Get all kinship systems with optional filtering
    */
   app.get("/api/kinship-systems", async (req, res) => {

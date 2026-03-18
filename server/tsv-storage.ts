@@ -394,6 +394,23 @@ export interface ArtTradition {
   notableExamples: string[];
 }
 
+// Architectural style types
+export interface ArchitecturalStyle {
+  id: string;
+  name: string;
+  stylePeriod: string;
+  originDate: number;
+  endDate: number;
+  originCoordinates: { lat: number; lng: number };
+  region: string;
+  description: string;
+  associatedCivilizations: string;
+  associatedLanguages: string[];
+  keyFeatures: string[];
+  notableExamples: string[];
+  buildingTypes: string[];
+}
+
 // Trade good types
 export interface TradeGood {
   id: string;
@@ -577,6 +594,9 @@ export class TsvStorage {
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Architectural styles data cache
+  private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
@@ -3453,6 +3473,78 @@ export class TsvStorage {
   async getArtTraditionById(id: string): Promise<ArtTradition | null> {
     this.loadArtTraditions();
     return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ── Architectural Styles ────────────────────────────────────────────
+
+  private loadArchitecturalStyles(): void {
+    if (this.cachedArchitecturalStyles) return;
+
+    const text = this.readFileIfExists("lexicons/architectural-styles.tsv");
+    if (!text) { this.cachedArchitecturalStyles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const stylePeriodIdx = getIdx(header, "style_period");
+    const originDateIdx = getIdx(header, "origin_date");
+    const endDateIdx = getIdx(header, "end_date");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const regionIdx = getIdx(header, "region");
+    const descIdx = getIdx(header, "description");
+    const civIdx = header.indexOf("associated_civilizations");
+    const langIdx = getIdx(header, "associated_languages");
+    const featIdx = getIdx(header, "key_features");
+    const examplesIdx = getIdx(header, "notable_examples");
+    const buildingTypesIdx = getIdx(header, "building_types");
+
+    this.cachedArchitecturalStyles = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      stylePeriod: row[stylePeriodIdx],
+      originDate: parseInt(row[originDateIdx]) || 0,
+      endDate: parseInt(row[endDateIdx]) || 0,
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      region: row[regionIdx] || "",
+      description: row[descIdx],
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      keyFeatures: (() => {
+        try { return JSON.parse(row[featIdx]); } catch { return []; }
+      })() as string[],
+      notableExamples: (() => {
+        try { return JSON.parse(row[examplesIdx]); } catch { return []; }
+      })() as string[],
+      buildingTypes: (() => {
+        try { return JSON.parse(row[buildingTypesIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getArchitecturalStyles(filters?: {
+    stylePeriod?: string;
+    region?: string;
+  }): Promise<ArchitecturalStyle[]> {
+    this.loadArchitecturalStyles();
+    let styles = this.cachedArchitecturalStyles ?? [];
+
+    if (filters?.stylePeriod) {
+      styles = styles.filter((s) => s.stylePeriod === filters.stylePeriod);
+    }
+    if (filters?.region) {
+      styles = styles.filter((s) => s.region.toLowerCase().includes(filters.region!.toLowerCase()));
+    }
+
+    return styles;
+  }
+
+  async getArchitecturalStyleById(id: string): Promise<ArchitecturalStyle | null> {
+    this.loadArchitecturalStyles();
+    return (this.cachedArchitecturalStyles ?? []).find((s) => s.id === id) ?? null;
   }
 
   private loadKinshipSystems(): void {

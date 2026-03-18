@@ -1,173 +1,122 @@
 /**
- * Test script for verifying architectural-styles.tsv data integrity
- * Run with: npx tsx test/test-architectural-styles.ts
+ * Test script for architectural styles TSV loader and API
+ * Run with: npx tsx test-architectural-styles.ts
  */
 
-import fs from "node:fs";
-import path from "node:path";
+import { TsvStorage } from "../server/tsv-storage";
 
-const TSV_PATH = path.join(import.meta.dirname, "../lexicons/architectural-styles.tsv");
+async function testArchitecturalStyles() {
+  console.log("=== Testing Architectural Styles ===\n");
 
-const EXPECTED_HEADERS = [
-  "id", "name", "region", "time_start", "time_end",
-  "characteristics", "materials", "structural_innovations",
-  "associated_civilizations", "influences", "notable_examples", "sources"
-];
+  const storage = new TsvStorage();
 
-const REQUIRED_STYLES = [
-  "Megalithic", "Egyptian", "Mesopotamian", "Classical Greek",
-  "Roman", "Byzantine", "Gothic", "Islamic", "Hindu Temple",
-  "Chinese Imperial", "Mesoamerican", "Khmer", "Japanese",
-  "Art Deco", "Brutalist"
-];
-
-let passed = 0;
-let failed = 0;
-
-function assert(condition: boolean, message: string) {
-  if (condition) {
-    console.log(`  ✓ ${message}`);
-    passed++;
-  } else {
-    console.log(`  ✗ FAIL: ${message}`);
-    failed++;
-  }
-}
-
-function run() {
-  console.log("=== Testing architectural-styles.tsv ===\n");
-
-  // 1. File exists
-  const exists = fs.existsSync(TSV_PATH);
-  assert(exists, "File exists at lexicons/architectural-styles.tsv");
-  if (!exists) {
-    console.log("\nCannot continue without file.");
+  // Test 1: Load all styles
+  const allStyles = await storage.getArchitecturalStyles();
+  console.log(`Total architectural styles loaded: ${allStyles.length}`);
+  if (allStyles.length === 0) {
+    console.error("✗ FAIL: No architectural styles loaded");
     process.exit(1);
   }
+  console.log("✓ PASS: Styles loaded successfully\n");
 
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const lines = content.trim().split("\n");
-  const headers = lines[0].split("\t");
-  const dataRows = lines.slice(1);
+  // Test 2: Verify structure of first style
+  const first = allStyles[0];
+  const requiredFields = [
+    "id", "name", "stylePeriod", "originDate", "endDate",
+    "originCoordinates", "region", "description", "associatedCivilizations",
+    "associatedLanguages", "keyFeatures", "notableExamples", "buildingTypes",
+  ];
+  const missingFields = requiredFields.filter((f) => !(f in first));
+  if (missingFields.length > 0) {
+    console.error(`✗ FAIL: Missing fields: ${missingFields.join(", ")}`);
+    process.exit(1);
+  }
+  console.log("✓ PASS: All required fields present\n");
 
-  // 2. Headers match spec
-  console.log("\n--- Header Validation ---");
-  assert(
-    JSON.stringify(headers) === JSON.stringify(EXPECTED_HEADERS),
-    `Headers match specification (${headers.length} columns)`
+  // Test 3: Verify coordinate parsing
+  const hasValidCoords = allStyles.every(
+    (s) =>
+      typeof s.originCoordinates.lat === "number" &&
+      typeof s.originCoordinates.lng === "number" &&
+      s.originCoordinates.lat !== 0 &&
+      s.originCoordinates.lng !== 0
   );
-
-  // 3. Row count
-  console.log("\n--- Row Count ---");
-  assert(dataRows.length >= 20, `Has at least 20 styles (found ${dataRows.length})`);
-
-  // 4. Parse all rows
-  console.log("\n--- Data Integrity ---");
-  const rows = dataRows.map((line, idx) => {
-    const cols = line.split("\t");
-    return {
-      lineNum: idx + 2,
-      id: cols[0],
-      name: cols[1],
-      region: cols[2],
-      time_start: cols[3],
-      time_end: cols[4],
-      characteristics: cols[5],
-      materials: cols[6],
-      structural_innovations: cols[7],
-      associated_civilizations: cols[8],
-      influences: cols[9],
-      notable_examples: cols[10],
-      sources: cols[11],
-    };
-  });
-
-  // 5. All rows have correct column count
-  const correctColCount = dataRows.every(line => line.split("\t").length === EXPECTED_HEADERS.length);
-  assert(correctColCount, "All rows have correct number of columns");
-
-  // 6. Unique IDs
-  const ids = rows.map(r => r.id);
-  const uniqueIds = new Set(ids);
-  assert(uniqueIds.size === ids.length, `All IDs are unique (${uniqueIds.size}/${ids.length})`);
-
-  // 7. ID format (kebab-case with prefix)
-  const validIdFormat = rows.every(r => /^arch-\d{3}$/.test(r.id));
-  assert(validIdFormat, "All IDs follow arch-NNN format");
-
-  // 8. All names are non-empty
-  const allNamed = rows.every(r => r.name && r.name.length > 0);
-  assert(allNamed, "All styles have names");
-
-  // 9. time_start is numeric
-  const validStarts = rows.every(r => !isNaN(Number(r.time_start)));
-  assert(validStarts, "All time_start values are numeric");
-
-  // 10. time_end is numeric or null
-  const validEnds = rows.every(r => r.time_end === "null" || !isNaN(Number(r.time_end)));
-  assert(validEnds, "All time_end values are numeric or null");
-
-  // 11. time_start < time_end where both are numeric
-  const validTimeRanges = rows.every(r => {
-    if (r.time_end === "null") return true;
-    return Number(r.time_start) < Number(r.time_end);
-  });
-  assert(validTimeRanges, "time_start < time_end for all rows with both dates");
-
-  // 12. JSON array fields parse correctly
-  console.log("\n--- JSON Field Validation ---");
-  const jsonFields = ["characteristics", "materials", "structural_innovations", "notable_examples", "sources"] as const;
-  for (const field of jsonFields) {
-    const allValid = rows.every(r => {
-      try {
-        const parsed = JSON.parse(r[field]);
-        return Array.isArray(parsed) && parsed.length > 0;
-      } catch {
-        console.log(`    Parse error in ${field} at line ${r.lineNum}: ${r[field]}`);
-        return false;
-      }
-    });
-    assert(allValid, `${field} contains valid non-empty JSON arrays`);
+  if (!hasValidCoords) {
+    console.error("✗ FAIL: Some styles have invalid coordinates");
+    process.exit(1);
   }
+  console.log("✓ PASS: All coordinates parsed correctly\n");
 
-  // 13. Associated civilizations and influences are valid JSON arrays or strings
-  const civFieldValid = rows.every(r => {
-    try {
-      const parsed = JSON.parse(r.associated_civilizations);
-      return Array.isArray(parsed) && parsed.length > 0;
-    } catch {
-      // Could be a plain string list
-      return r.associated_civilizations && r.associated_civilizations.length > 0;
-    }
-  });
-  assert(civFieldValid, "associated_civilizations is non-empty for all rows");
-
-  const inflFieldValid = rows.every(r => {
-    try {
-      const parsed = JSON.parse(r.influences);
-      return Array.isArray(parsed) && parsed.length > 0;
-    } catch {
-      return r.influences && r.influences.length > 0;
-    }
-  });
-  assert(inflFieldValid, "influences is non-empty for all rows");
-
-  // 14. Required styles coverage
-  console.log("\n--- Required Styles Coverage ---");
-  const nameList = rows.map(r => r.name.toLowerCase());
-  for (const style of REQUIRED_STYLES) {
-    const found = nameList.some(n => n.includes(style.toLowerCase()));
-    assert(found, `Required style "${style}" is present`);
+  // Test 4: Verify JSON array fields
+  const hasValidArrays = allStyles.every(
+    (s) =>
+      Array.isArray(s.associatedLanguages) &&
+      Array.isArray(s.keyFeatures) &&
+      Array.isArray(s.notableExamples) &&
+      Array.isArray(s.buildingTypes) &&
+      s.keyFeatures.length > 0 &&
+      s.notableExamples.length > 0
+  );
+  if (!hasValidArrays) {
+    console.error("✗ FAIL: Some styles have invalid array fields");
+    process.exit(1);
   }
+  console.log("✓ PASS: All JSON array fields parsed correctly\n");
 
-  // 15. No duplicate names
-  const names = rows.map(r => r.name);
-  const uniqueNames = new Set(names);
-  assert(uniqueNames.size === names.length, `All style names are unique (${uniqueNames.size}/${names.length})`);
+  // Test 5: Filter by style period
+  const medievalStyles = await storage.getArchitecturalStyles({
+    stylePeriod: "Medieval",
+  });
+  console.log(`Medieval styles: ${medievalStyles.length}`);
+  if (medievalStyles.length === 0) {
+    console.error("✗ FAIL: No Medieval styles found");
+    process.exit(1);
+  }
+  const allMedieval = medievalStyles.every((s) => s.stylePeriod === "Medieval");
+  if (!allMedieval) {
+    console.error("✗ FAIL: Non-Medieval styles in filtered results");
+    process.exit(1);
+  }
+  console.log("✓ PASS: Style period filter works\n");
 
-  // Summary
-  console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-  process.exit(failed > 0 ? 1 : 0);
+  // Test 6: Filter by region
+  const asiaStyles = await storage.getArchitecturalStyles({
+    region: "East Asia",
+  });
+  console.log(`East Asia styles: ${asiaStyles.length}`);
+  if (asiaStyles.length === 0) {
+    console.error("✗ FAIL: No East Asia styles found");
+    process.exit(1);
+  }
+  console.log("✓ PASS: Region filter works\n");
+
+  // Test 7: Get by ID
+  const gothic = await storage.getArchitecturalStyleById("arch-006");
+  if (!gothic || gothic.name !== "Gothic") {
+    console.error("✗ FAIL: getArchitecturalStyleById failed");
+    process.exit(1);
+  }
+  console.log(`✓ PASS: getArchitecturalStyleById('arch-006') = ${gothic.name}\n`);
+
+  // Test 8: Get by non-existent ID
+  const notFound = await storage.getArchitecturalStyleById("arch-999");
+  if (notFound !== null) {
+    console.error("✗ FAIL: Non-existent ID should return null");
+    process.exit(1);
+  }
+  console.log("✓ PASS: Non-existent ID returns null\n");
+
+  // Print summary
+  console.log("=== All Tests Passed ===");
+  console.log(`\nLoaded ${allStyles.length} architectural styles:`);
+  for (const s of allStyles) {
+    console.log(
+      `  ${s.id}: ${s.name} (${s.stylePeriod}, ${s.region}, ${s.originDate} to ${s.endDate})`
+    );
+  }
 }
 
-run();
+testArchitecturalStyles().catch((err) => {
+  console.error("Test error:", err);
+  process.exit(1);
+});

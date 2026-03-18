@@ -17,6 +17,7 @@ import type {
   Cuisine,
   CuisineItem,
   ArtTradition,
+  ArchitecturalStyle,
   KinshipSystem,
   TradeGood,
   FoodwayEvent,
@@ -93,6 +94,7 @@ export async function globalSearch(query: string): Promise<SearchResponse> {
     cuisines,
     cuisineItems,
     artTraditions,
+    architecturalStyles,
     kinshipSystems,
     tradeGoods,
     foodwayEvents,
@@ -111,6 +113,7 @@ export async function globalSearch(query: string): Promise<SearchResponse> {
     storage.getCuisines(),
     storage.getCuisineItems(),
     storage.getArtTraditions(),
+    storage.getArchitecturalStyles(),
     storage.getKinshipSystems(),
     storage.getTradeGoods(),
     storage.getFoodwayEvents(),
@@ -293,6 +296,21 @@ export async function globalSearch(query: string): Promise<SearchResponse> {
         displayName: at.name,
         description: at.description?.slice(0, 120) || at.category,
         linkPath: `/art-traditions/${at.id}`,
+        relevance: score,
+      });
+    }
+  }
+
+  // Architectural Styles
+  for (const as_ of architecturalStyles) {
+    const score = bestScore(queryTokens, as_.name, as_.stylePeriod, as_.region, as_.description);
+    if (score > 0) {
+      allResults.push({
+        entityType: "architectural-style",
+        id: as_.id,
+        displayName: as_.name,
+        description: as_.description?.slice(0, 120) || as_.stylePeriod,
+        linkPath: `/architectural-styles/${as_.id}`,
         relevance: score,
       });
     }
