@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import TextAnalyzer from "@/pages/text-analyzer";
 import WordEtymology from "@/pages/word-etymology";
 import StoriesPage from "@/pages/stories";
+import QuizPage from "@/pages/quiz";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/word-etymology" component={WordEtymology} />
       <Route path="/stories" component={StoriesPage} />
       <Route path="/stories/:id" component={StoriesPage} />
+      <Route path="/quiz" component={QuizPage} />
       <Route component={NotFound} />
     </Switch>
   );
