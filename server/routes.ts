@@ -1644,6 +1644,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
   // Phonological Inventories
   // ============================================================================
@@ -1683,7 +1687,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample text:", error);
       res.status(500).json({
         message: "Failed to fetch sample text",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/phonological-inventories/:id - Get a single phonological inventory
    */
   app.get("/api/phonological-inventories/:id", async (req, res) => {
@@ -1718,7 +1727,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching language sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/languages/:id/phonological-inventory - Get inventory for a specific language
    */
   app.get("/api/languages/:id/phonological-inventory", async (req, res) => {
@@ -1765,6 +1779,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
   // Grammar Features Endpoints
   // ============================================================================
@@ -1806,7 +1824,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations for word:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations for word",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/grammar-features/:id - Get a single grammar features entry
    */
   app.get("/api/grammar-features/:id", async (req, res) => {
@@ -1851,7 +1874,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error tracing etymology:", error);
       res.status(500).json({
         message: "Failed to trace etymology",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/languages/:id/grammar-features - Get grammar features for a specific language
    */
   app.get("/api/languages/:id/grammar-features", async (req, res) => {
@@ -1912,7 +1940,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error analyzing text origins:", error);
       res.status(500).json({
         message: "Failed to analyze text origins",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/writing-systems/:id - Get a single writing system
    */
   app.get("/api/writing-systems/:id", async (req, res) => {
@@ -2517,6 +2550,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error comparing text origins:", error);
       res.status(500).json({
         message: "Failed to compare text origins",
+      });
+    }
+  });
+
+  /**
+   * GET /api/literary-traditions - Get all literary traditions with optional filtering
+   */
+  app.get("/api/literary-traditions", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const genre = req.query.genre as string | undefined;
+      const traditions = await storage.getLiteraryTraditions({ region, genre });
+      res.json({ traditions, count: traditions.length });
+    } catch (error) {
+      console.error("Error fetching literary traditions:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary traditions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/literary-traditions/:id - Get a single literary tradition with its works
+   */
+  app.get("/api/literary-traditions/:id", async (req, res) => {
+    try {
+      const result = await storage.getLiteraryTraditionWithWorks(req.params.id);
+      if (!result) {
+        return res.status(404).json({ message: "Literary tradition not found" });
+      }
+      res.json({ ...result, workCount: result.works.length });
+    } catch (error) {
+      console.error("Error fetching literary tradition:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/literary-works - Get all literary works with optional filtering
+   */
+  app.get("/api/literary-works", async (req, res) => {
+    try {
+      const traditionId = req.query.tradition_id as string | undefined;
+      const genre = req.query.genre as string | undefined;
+      const languageId = req.query.language_id as string | undefined;
+      const works = await storage.getLiteraryWorks({ traditionId, genre, languageId });
+      res.json({ works, count: works.length });
+    } catch (error) {
+      console.error("Error fetching literary works:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary works",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/literary-works/:id - Get a single literary work
+   */
+  app.get("/api/literary-works/:id", async (req, res) => {
+    try {
+      const work = await storage.getLiteraryWorkById(req.params.id);
+      if (!work) {
+        return res.status(404).json({ message: "Literary work not found" });
+      }
+      res.json(work);
+    } catch (error) {
+      console.error("Error fetching literary work:", error);
+      res.status(500).json({
+        message: "Failed to fetch literary work",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   });
