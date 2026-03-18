@@ -183,6 +183,25 @@ export interface MusicalInstrument {
   sources: string[];
 }
 
+// Dance tradition types
+export interface DanceTradition {
+  id: string;
+  name: string;
+  nativeName: string;
+  region: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  danceType: string;
+  originCulture: string;
+  associatedMusicTraditions: string[];
+  movementCharacteristics: string[];
+  costumeRequirements: string[];
+  culturalSignificance: string;
+  relatedDances: string[];
+  sources: string[];
+}
+
 // Haplogroup types
 export interface Haplogroup {
   id: string;
