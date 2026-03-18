@@ -3,8 +3,8 @@
  * Run with: npx tsx test-phonetic-weighting.ts
  */
 
-import { calculatePairwiseDistance } from "./server/services/linguistic-distance-calculator";
-import { TsvStorage } from "./server/tsv-storage";
+import { calculatePairwiseDistance } from "../server/services/linguistic-distance-calculator";
+import { TsvStorage } from "../server/tsv-storage";
 
 async function testPhoneticWeighting() {
   console.log("=== Phonetic Feature-Based Weighting Test ===\n");

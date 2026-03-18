@@ -9,6 +9,8 @@ import { ArchaeologicalSitesLayer } from './map-layers/ArchaeologicalSitesLayer'
 import { CivilizationLayer } from './map-layers/CivilizationLayer';
 import { RoutesLayer } from './map-layers/RoutesLayer';
 import { MaterialCultureHeatmap } from './map-layers/MaterialCultureHeatmap';
+import { MaterialCultureWaveLayer } from './map-layers/MaterialCultureWaveLayer';
+import type { MaterialCultureItem } from './map-layers/MaterialCultureWaveLayer';
 import { CuisineLayer } from './map-layers/CuisineLayer';
 import type { CuisineFeature } from './map-layers/CuisineLayer';
 import { MusicTraditionLayer } from './map-layers/MusicTraditionLayer';
@@ -18,6 +20,19 @@ import type { ReligionFeature } from './map-layers/ReligionLayer';
 import { TimeSlider } from './map-layers/TimeSlider';
 import { LayerPanel } from './map-layers/LayerPanel';
 import { MapLegend } from './map-layers/MapLegend';
+import { BattlesLayer } from './map-layers/BattlesLayer';
+import type { BattleFeature } from './map-layers/BattlesLayer';
+import { HaplogroupLayer } from './map-layers/HaplogroupLayer';
+import type { HaplogroupFeature } from './map-layers/HaplogroupLayer';
+import { LanguageContactsLayer } from './map-layers/LanguageContactsLayer';
+import type { LanguageContactFeature } from './map-layers/LanguageContactsLayer';
+import { GeneticLinguisticCorrelationLayer } from './map-layers/GeneticLinguisticCorrelationLayer';
+import type { CorrelationFeature, DivergenceAnnotation } from './map-layers/GeneticLinguisticCorrelationLayer';
+import { FoodwayEventLayer } from './map-layers/FoodwayEventLayer';
+import type { FoodwayEventFeature } from './map-layers/FoodwayEventLayer';
+import { KinshipSystemLayer } from './map-layers/KinshipSystemLayer';
+import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
+import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
   sampleLanguageRanges,
@@ -36,7 +51,6 @@ import type {
   HistoricalRouteFeature,
   HistoricalRouteCollection,
   MaterialCultureDistribution,
-  MaterialCultureCollection,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
 
@@ -60,6 +74,8 @@ export function EnhancedLanguageMapView({
     showCategory,
     hideCategory,
     getLayerConfig,
+    applyPreset,
+    activePresetId,
   } = useMapLayers();
 
   const {
@@ -106,11 +122,18 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('routes'),
   });
 
-  // Fetch material cultures data
-  const { data: materialCulturesData, isLoading: loadingMaterialCultures } = useQuery<MaterialCultureCollection>({
+  // Fetch material cultures heatmap data
+  const { data: materialCulturesData, isLoading: loadingMaterialCultures } = useQuery<{ distributions: MaterialCultureDistribution[]; metadata: unknown }>({
     queryKey: ['/api/map/material-cultures'],
     staleTime: 5 * 60 * 1000,
-    enabled: isLayerVisible('material-cultures'),
+    enabled: isLayerVisible('material-culture-heatmap'),
+  });
+
+  // Fetch material culture items for wave visualization
+  const { data: materialCultureItemsData, isLoading: loadingMaterialCultureItems } = useQuery<{ items: MaterialCultureItem[]; count: number }>({
+    queryKey: ['/api/material-culture'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('material-culture'),
   });
 
   // Fetch cuisines data with temporal filtering
@@ -132,6 +155,81 @@ export function EnhancedLanguageMapView({
     queryKey: ['/api/religions', { year: currentYear }],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('religions'),
+  });
+
+  // Fetch battles data
+  const { data: battlesData, isLoading: loadingBattles } = useQuery<{ battles: BattleFeature[]; count: number }>({
+    queryKey: ['/api/battles'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('battles'),
+  });
+
+  // Fetch haplogroups data
+  const { data: haplogroupsData, isLoading: loadingHaplogroups } = useQuery<{ haplogroups: HaplogroupFeature[]; count: number }>({
+    queryKey: ['/api/haplogroups'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('haplogroups'),
+    select: (data) => {
+      // Transform haplogroup data to include coordinates from geographic_origin
+      const haplogroups = (data.haplogroups || []).map((h: any) => ({
+        id: h.id,
+        name: h.name,
+        haplogroupType: h.haplogroupType || h.haplogroup_type || 'Y-DNA',
+        geographicOrigin: h.geographicOrigin || h.geographic_origin || 'Unknown',
+        timeOrigin: h.timeOrigin || h.time_origin || null,
+        description: h.description || '',
+        associatedLanguageFamilyIds: h.associatedLanguageFamilyIds || h.associated_language_family_ids || [],
+        associatedCivilizationIds: h.associatedCivilizationIds || h.associated_civilization_ids || [],
+        coordinates: { lat: 0, lng: 0 }, // Will be resolved by layer component from geographicOrigin
+      }));
+      return { haplogroups, count: haplogroups.length };
+    },
+  });
+
+  // Fetch language contacts data
+  const { data: languageContactsData, isLoading: loadingContacts } = useQuery<{ contacts: LanguageContactFeature[]; count: number }>({
+    queryKey: ['/api/language-contacts'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('language-contacts'),
+  });
+
+  // Fetch genetic-linguistic correlations
+  const [glcHaplogroupTypeFilter, setGlcHaplogroupTypeFilter] = React.useState<'Y-chromosome' | 'mtDNA' | null>(null);
+  const { data: glcData, isLoading: loadingGlc } = useQuery<{
+    correlations: CorrelationFeature[];
+    divergences: DivergenceAnnotation[];
+    summary: string;
+  }>({
+    queryKey: ['/api/genetic-linguistic-correlations', { haplogroupType: glcHaplogroupTypeFilter }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('genetic-linguistic-correlation'),
+  });
+
+  // Fetch foodway events data
+  const { data: foodwayEventsData, isLoading: loadingFoodwayEvents } = useQuery<{ events: FoodwayEventFeature[]; count: number }>({
+    queryKey: ['/api/foodway-events'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('foodway-events'),
+  });
+
+  // Fetch kinship systems data
+  const { data: kinshipSystemsData, isLoading: loadingKinshipSystems } = useQuery<{ systems: KinshipSystemFeature[]; count: number }>({
+    queryKey: ['/api/kinship-systems'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('kinship-systems'),
+  });
+
+  // Fetch languages for coordinate resolution (needed by language contacts and kinship systems layers)
+  const { data: languagesForCoords } = useQuery<{ id: string; name: string; coordinates: { lat: number; lng: number } | null }[]>({
+    queryKey: ['/api/languages'],
+    staleTime: 10 * 60 * 1000,
+    enabled: isLayerVisible('language-contacts') || isLayerVisible('kinship-systems'),
+    select: (data: any[]) =>
+      data.map((l: any) => ({
+        id: l.id,
+        name: l.name,
+        coordinates: l.coordinates || null,
+      })),
   });
 
   // Use sample data as fallback when API returns empty data
@@ -170,6 +268,10 @@ export function EnhancedLanguageMapView({
     return sampleMaterialCultureDistributions;
   }, [materialCulturesData]);
 
+  const materialCultureItems = useMemo(() => {
+    return materialCultureItemsData?.items ?? [];
+  }, [materialCultureItemsData]);
+
   // Cuisine data (already filtered by year on server)
   const filteredCuisines = useMemo(() => {
     return cuisinesData?.cuisines ?? [];
@@ -184,6 +286,65 @@ export function EnhancedLanguageMapView({
   const filteredReligions = useMemo(() => {
     return religionsData?.religions ?? [];
   }, [religionsData]);
+
+  // Battles data
+  const allBattles = useMemo(() => {
+    return battlesData?.battles ?? [];
+  }, [battlesData]);
+
+  // Haplogroups data
+  const allHaplogroups = useMemo(() => {
+    return haplogroupsData?.haplogroups ?? [];
+  }, [haplogroupsData]);
+
+  // Language contacts data
+  const allLanguageContacts = useMemo(() => {
+    return languageContactsData?.contacts ?? [];
+  }, [languageContactsData]);
+
+  // Genetic-linguistic correlation data
+  const glcCorrelations = useMemo(() => glcData?.correlations ?? [], [glcData]);
+  const glcDivergences = useMemo(() => glcData?.divergences ?? [], [glcData]);
+
+  // Foodway events data
+  const allFoodwayEvents = useMemo(() => {
+    return foodwayEventsData?.events ?? [];
+  }, [foodwayEventsData]);
+
+  // Kinship systems data with coordinate resolution
+  const allKinshipSystems = useMemo(() => {
+    const systems = kinshipSystemsData?.systems ?? [];
+    if (!languagesForCoords || languagesForCoords.length === 0) return systems;
+    const langMap = new Map(languagesForCoords.map((l) => [l.id, l.coordinates]));
+    return systems.map((s) => {
+      // Resolve coordinates from first language with known coordinates
+      for (const langId of s.languageIds) {
+        const coords = langMap.get(langId);
+        if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+          return { ...s, coordinates: coords };
+        }
+      }
+      return s;
+    });
+  }, [kinshipSystemsData, languagesForCoords]);
+
+  // Build language coordinate map for contacts layer
+  const languageCoordsMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; lat: number; lng: number }>();
+    if (languagesForCoords) {
+      for (const lang of languagesForCoords) {
+        if (lang.coordinates && Number.isFinite(lang.coordinates.lat) && Number.isFinite(lang.coordinates.lng)) {
+          map.set(lang.id, {
+            id: lang.id,
+            name: lang.name,
+            lat: lang.coordinates.lat,
+            lng: lang.coordinates.lng,
+          });
+        }
+      }
+    }
+    return map;
+  }, [languagesForCoords]);
 
   // Filter features by current time
   const filteredLanguageRanges = useMemo(() => {
@@ -285,10 +446,17 @@ export function EnhancedLanguageMapView({
     (loadingSites && isLayerVisible('archaeological-sites')) ||
     (loadingCivilizations && isLayerVisible('civilizations')) ||
     (loadingRoutes && isLayerVisible('routes')) ||
-    (loadingMaterialCultures && isLayerVisible('material-cultures')) ||
+    (loadingMaterialCultures && isLayerVisible('material-culture-heatmap')) ||
+    (loadingMaterialCultureItems && isLayerVisible('material-culture')) ||
     (loadingCuisines && isLayerVisible('cuisines')) ||
     (loadingMusic && isLayerVisible('music')) ||
-    (loadingReligions && isLayerVisible('religions'));
+    (loadingReligions && isLayerVisible('religions')) ||
+    (loadingBattles && isLayerVisible('battles')) ||
+    (loadingHaplogroups && isLayerVisible('haplogroups')) ||
+    (loadingContacts && isLayerVisible('language-contacts')) ||
+    (loadingGlc && isLayerVisible('genetic-linguistic-correlation')) ||
+    (loadingFoodwayEvents && isLayerVisible('foodway-events')) ||
+    (loadingKinshipSystems && isLayerVisible('kinship-systems'));
 
   if (isLoadingAnyLayer) {
     return (
@@ -352,14 +520,27 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('routes')?.opacity || 0.7}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={selectedFeatureId}
+            isAnimating={isPlaying}
+          />
+        )}
+
+        {/* Material Culture Wave Layer */}
+        {isLayerVisible('material-culture') && materialCultureItems.length > 0 && (
+          <MaterialCultureWaveLayer
+            items={materialCultureItems}
+            opacity={getLayerConfig('material-culture')?.opacity || 0.7}
+            currentYear={currentYear}
+            onItemClick={handleFeatureClick}
+            selectedItemId={selectedFeatureId}
+            animationEnabled={isPlaying}
           />
         )}
 
         {/* Material Culture Heatmap */}
-        {isLayerVisible('material-cultures') && filteredMaterialCultures.length > 0 && (
+        {isLayerVisible('material-culture-heatmap') && filteredMaterialCultures.length > 0 && (
           <MaterialCultureHeatmap
             distributions={filteredMaterialCultures}
-            opacity={getLayerConfig('material-cultures')?.opacity || 0.6}
+            opacity={getLayerConfig('material-culture-heatmap')?.opacity || 0.6}
           />
         )}
 
@@ -392,6 +573,67 @@ export function EnhancedLanguageMapView({
             selectedReligionId={selectedFeatureId}
           />
         )}
+
+        {/* Battles Layer */}
+        {isLayerVisible('battles') && allBattles.length > 0 && (
+          <BattlesLayer
+            battles={allBattles}
+            currentYear={currentYear}
+            opacity={getLayerConfig('battles')?.opacity || 0.9}
+          />
+        )}
+
+        {/* Haplogroup Layer */}
+        {isLayerVisible('haplogroups') && allHaplogroups.length > 0 && (
+          <HaplogroupLayer
+            haplogroups={allHaplogroups}
+            opacity={getLayerConfig('haplogroups')?.opacity || 0.7}
+            onHaplogroupClick={handleFeatureClick}
+            selectedHaplogroupId={selectedFeatureId}
+          />
+        )}
+        {/* Language Contacts Layer */}
+        {isLayerVisible('language-contacts') && allLanguageContacts.length > 0 && (
+          <LanguageContactsLayer
+            contacts={allLanguageContacts}
+            languageCoords={languageCoordsMap}
+            opacity={getLayerConfig('language-contacts')?.opacity || 0.7}
+            onContactClick={handleFeatureClick}
+            selectedContactId={selectedFeatureId}
+          />
+        )}
+
+        {/* Genetic-Linguistic Correlation Layer */}
+        {isLayerVisible('genetic-linguistic-correlation') && glcCorrelations.length > 0 && (
+          <GeneticLinguisticCorrelationLayer
+            correlations={glcCorrelations}
+            divergences={glcDivergences}
+            opacity={getLayerConfig('genetic-linguistic-correlation')?.opacity || 0.7}
+            haplogroupTypeFilter={glcHaplogroupTypeFilter}
+            onFilterChange={setGlcHaplogroupTypeFilter}
+          />
+        )}
+
+        {/* Foodway Events Layer */}
+        {isLayerVisible('foodway-events') && allFoodwayEvents.length > 0 && (
+          <FoodwayEventLayer
+            events={allFoodwayEvents}
+            opacity={getLayerConfig('foodway-events')?.opacity || 0.8}
+            onEventClick={handleFeatureClick}
+            selectedEventId={selectedFeatureId}
+            isAnimating={isPlaying}
+          />
+        )}
+
+        {/* Kinship Systems Layer */}
+        {isLayerVisible('kinship-systems') && allKinshipSystems.length > 0 && (
+          <KinshipSystemLayer
+            systems={allKinshipSystems}
+            opacity={getLayerConfig('kinship-systems')?.opacity || 0.8}
+            onSystemClick={handleFeatureClick}
+            selectedSystemId={selectedFeatureId}
+          />
+        )}
       </MapContainer>
 
       {/* Layer Controls Panel */}
@@ -404,12 +646,49 @@ export function EnhancedLanguageMapView({
         onHideAll={hideAll}
         onShowCategory={showCategory}
         onHideCategory={hideCategory}
+        onApplyPreset={applyPreset}
+        activePresetId={activePresetId}
       />
+
+      {/* Genetic-Linguistic Haplogroup Type Toggle */}
+      {isLayerVisible('genetic-linguistic-correlation') && (
+        <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg border p-2 flex items-center gap-1.5 text-xs">
+          <span className="font-medium text-gray-700 mr-1">Filter:</span>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === null ? null : null)}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === null ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === 'Y-chromosome' ? null : 'Y-chromosome')}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === 'Y-chromosome' ? 'bg-green-100 text-green-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            Y-DNA
+          </button>
+          <button
+            onClick={() => setGlcHaplogroupTypeFilter(glcHaplogroupTypeFilter === 'mtDNA' ? null : 'mtDNA')}
+            className={`px-2 py-1 rounded ${glcHaplogroupTypeFilter === 'mtDNA' ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            mtDNA
+          </button>
+        </div>
+      )}
 
       {/* Map Legend */}
       <MapLegend
         layerConfigs={layerState.layerConfigs}
         activeLayers={layerState.activeLayers}
+      />
+
+      {/* Timeline Events Sidebar */}
+      <TimelineEventsSidebar
+        currentYear={currentYear}
+        civilizations={filteredCivilizations}
+        routes={filteredRoutes}
+        archaeologicalSites={filteredArchaeologicalSites}
+        battles={allBattles}
+        isVisible={isPlaying || filteredCivilizations.length > 0 || allBattles.length > 0}
       />
 
       {/* Time Slider */}

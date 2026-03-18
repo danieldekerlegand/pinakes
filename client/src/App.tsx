@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import TextAnalyzer from "@/pages/text-analyzer";
 import WordEtymology from "@/pages/word-etymology";
+import StoriesPage from "@/pages/stories";
 
 function Router() {
   return (
@@ -14,6 +15,8 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/text-analyzer" component={TextAnalyzer} />
       <Route path="/word-etymology" component={WordEtymology} />
+      <Route path="/stories" component={StoriesPage} />
+      <Route path="/stories/:id" component={StoriesPage} />
       <Route component={NotFound} />
     </Switch>
   );

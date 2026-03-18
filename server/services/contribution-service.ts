@@ -24,7 +24,8 @@ export type ContributionEntityType =
   | "haplogroup"
   | "civilization"
   | "archaeological-site"
-  | "language-range";
+  | "language-range"
+  | "language";
 
 export interface ContributionSource {
   title: string;
@@ -53,6 +54,11 @@ export interface Contribution {
   sources: ContributionSource[];
   confidence: number; // 1-100
   notes?: string;
+
+  // Per-field edit support
+  fieldName?: string; // Specific field being edited
+  currentValue?: string; // Current value of the field
+  suggestedValue?: string; // Proposed new value
 }
 
 export interface ContributionFilters {
@@ -86,6 +92,7 @@ const REQUIRED_FIELDS: Record<ContributionEntityType, string[]> = {
   "civilization": ["name"],
   "archaeological-site": ["name", "coordinates"],
   "language-range": ["languageId", "geometry"],
+  "language": ["name"],
 };
 
 export interface ValidationResult {
@@ -110,6 +117,11 @@ function validateContribution(data: Partial<Contribution>): ValidationResult {
 
   if (data.action === "edit" && !data.entityId) {
     errors.push("entityId is required for edit contributions");
+  }
+
+  // Per-field edits: if fieldName is provided, suggestedValue is required
+  if (data.fieldName && !data.suggestedValue) {
+    errors.push("suggestedValue is required when fieldName is specified");
   }
 
   if (data.action === "flag" && !data.entityId) {
@@ -228,6 +240,9 @@ export class ContributionService {
       sources: data.sources!,
       confidence: data.confidence ?? 50,
       notes: data.notes,
+      fieldName: data.fieldName,
+      currentValue: data.currentValue,
+      suggestedValue: data.suggestedValue,
     };
 
     this.save(contribution);
@@ -287,6 +302,54 @@ export class ContributionService {
 
     this.save(contribution);
     return contribution;
+  }
+
+  /**
+   * Get contributions for a specific entity
+   */
+  getByEntity(entityType: string, entityId: string): Contribution[] {
+    return this.loadAll().filter(
+      (c) => c.entityType === entityType && c.entityId === entityId && c.status === "approved"
+    );
+  }
+
+  /**
+   * Export all contributions as CSV
+   */
+  exportCsv(): string {
+    const all = this.loadAll();
+    const headers = [
+      "id", "entityType", "action", "status", "submittedAt", "reviewedAt",
+      "contributorName", "entityId", "fieldName", "currentValue", "suggestedValue",
+      "confidence", "notes", "reviewNote", "sources",
+    ];
+    const rows = all.map((c) => [
+      c.id,
+      c.entityType,
+      c.action,
+      c.status,
+      c.submittedAt,
+      c.reviewedAt || "",
+      c.contributorName || "",
+      c.entityId || "",
+      c.fieldName || "",
+      c.currentValue || "",
+      c.suggestedValue || "",
+      String(c.confidence),
+      c.notes || "",
+      c.reviewNote || "",
+      c.sources.map((s) => s.title).join("; "),
+    ]);
+    const escape = (v: string) => {
+      if (v.includes(",") || v.includes('"') || v.includes("\n")) {
+        return `"${v.replace(/"/g, '""')}"`;
+      }
+      return v;
+    };
+    return [
+      headers.join(","),
+      ...rows.map((row) => row.map(escape).join(",")),
+    ].join("\n");
   }
 
   /**

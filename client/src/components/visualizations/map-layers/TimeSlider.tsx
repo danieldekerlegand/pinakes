@@ -46,14 +46,17 @@ export function TimeSlider({
   };
 
   const getEpochLabel = (year: number): string => {
-    if (year < -1000) return 'Ancient';
+    if (year < -3000) return 'Prehistoric';
+    if (year < -1200) return 'Bronze Age';
+    if (year < -500) return 'Iron Age';
     if (year < 500) return 'Classical';
     if (year < 1500) return 'Medieval';
+    if (year < 1800) return 'Early Modern';
     return 'Modern';
   };
 
   return (
-    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg border p-4 min-w-[600px] max-w-[800px]">
+    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white rounded-lg shadow-lg border p-3 md:p-4 w-[calc(100%-2rem)] md:min-w-[600px] md:max-w-[800px] md:w-auto" role="region" aria-label="Time navigation controls">
       <div className="space-y-3">
         {/* Current Year Display */}
         <div className="text-center">
@@ -76,10 +79,11 @@ export function TimeSlider({
             railStyle={{ backgroundColor: '#e5e7eb', height: 6 }}
             handleStyle={{
               borderColor: '#3b82f6',
-              height: 20,
-              width: 20,
-              marginTop: -7,
+              height: 28,
+              width: 28,
+              marginTop: -11,
               backgroundColor: '#fff',
+              touchAction: 'none',
             }}
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -96,8 +100,10 @@ export function TimeSlider({
             size="sm"
             onClick={onJumpToStart}
             title="Jump to start"
+            aria-label="Jump to earliest time period"
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Step Backward */}
@@ -107,24 +113,27 @@ export function TimeSlider({
             onClick={onStepBackward}
             disabled={currentYear <= minYear}
             title={`Step back ${stepSize} years`}
+            aria-label={`Step back ${stepSize} years`}
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <SkipBack className="h-4 w-4" />
+            <SkipBack className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Play/Pause */}
           <Button
             size="sm"
             onClick={onPlayPause}
-            className="w-20"
+            className="w-20 min-h-[40px] touch-manipulation"
+            aria-label={isPlaying ? "Pause timeline playback" : "Play timeline animation"}
           >
             {isPlaying ? (
               <>
-                <Pause className="h-4 w-4 mr-1" />
+                <Pause className="h-4 w-4 mr-1" aria-hidden="true" />
                 Pause
               </>
             ) : (
               <>
-                <Play className="h-4 w-4 mr-1" />
+                <Play className="h-4 w-4 mr-1" aria-hidden="true" />
                 Play
               </>
             )}
@@ -137,8 +146,10 @@ export function TimeSlider({
             onClick={onStepForward}
             disabled={currentYear >= maxYear}
             title={`Step forward ${stepSize} years`}
+            aria-label={`Step forward ${stepSize} years`}
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <SkipForward className="h-4 w-4" />
+            <SkipForward className="h-4 w-4" aria-hidden="true" />
           </Button>
 
           {/* Jump to End */}
@@ -147,8 +158,10 @@ export function TimeSlider({
             size="sm"
             onClick={onJumpToEnd}
             title="Jump to end"
+            aria-label="Jump to latest time period"
+            className="min-w-[40px] min-h-[40px] touch-manipulation"
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -165,10 +178,10 @@ export function TimeSlider({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 yr/s</SelectItem>
-                <SelectItem value="50">50 yr/s</SelectItem>
-                <SelectItem value="100">100 yr/s</SelectItem>
-                <SelectItem value="200">200 yr/s</SelectItem>
+                <SelectItem value="1">1x</SelectItem>
+                <SelectItem value="5">5x</SelectItem>
+                <SelectItem value="10">10x</SelectItem>
+                <SelectItem value="50">50x</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -184,10 +197,10 @@ export function TimeSlider({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 years</SelectItem>
-                <SelectItem value="50">50 years</SelectItem>
-                <SelectItem value="100">100 years</SelectItem>
-                <SelectItem value="200">200 years</SelectItem>
+                <SelectItem value="10">Decade</SelectItem>
+                <SelectItem value="25">25 years</SelectItem>
+                <SelectItem value="50">Half century</SelectItem>
+                <SelectItem value="100">Century</SelectItem>
               </SelectContent>
             </Select>
           </div>

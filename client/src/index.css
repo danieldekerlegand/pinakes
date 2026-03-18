@@ -67,6 +67,65 @@
   --surface-variant: hsl(220, 27%, 12%);
 }
 
+/* High Contrast Mode - WCAG 2.1 AA compliant */
+.high-contrast {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 0%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(0, 0%, 0%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(0, 0%, 0%);
+  --primary: hsl(210, 100%, 30%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-dark: hsl(210, 100%, 20%);
+  --primary-light: hsl(210, 100%, 40%);
+  --secondary: hsl(122, 80%, 25%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(0, 0%, 85%);
+  --muted-foreground: hsl(0, 0%, 20%);
+  --accent: hsl(0, 0%, 85%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 100%, 35%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 0%);
+  --input: hsl(0, 0%, 70%);
+  --ring: hsl(210, 100%, 30%);
+  --success: hsl(122, 80%, 25%);
+  --warning: hsl(38, 100%, 35%);
+  --error: hsl(0, 100%, 35%);
+  --surface: hsl(0, 0%, 100%);
+  --surface-variant: hsl(0, 0%, 95%);
+}
+
+.high-contrast.dark {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 5%);
+  --card-foreground: hsl(0, 0%, 100%);
+  --popover: hsl(0, 0%, 5%);
+  --popover-foreground: hsl(0, 0%, 100%);
+  --primary: hsl(210, 100%, 70%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --primary-dark: hsl(210, 100%, 60%);
+  --primary-light: hsl(210, 100%, 80%);
+  --secondary: hsl(122, 80%, 60%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+  --muted: hsl(0, 0%, 20%);
+  --muted-foreground: hsl(0, 0%, 80%);
+  --accent: hsl(0, 0%, 20%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 100%, 65%);
+  --destructive-foreground: hsl(0, 0%, 0%);
+  --border: hsl(0, 0%, 100%);
+  --input: hsl(0, 0%, 30%);
+  --ring: hsl(210, 100%, 70%);
+  --success: hsl(122, 80%, 60%);
+  --warning: hsl(38, 100%, 65%);
+  --error: hsl(0, 100%, 65%);
+  --surface: hsl(0, 0%, 0%);
+  --surface-variant: hsl(0, 0%, 10%);
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -174,16 +233,58 @@
   .language-status-living {
     @apply bg-success text-white;
   }
-  
+
   .language-status-endangered {
     @apply bg-warning text-white;
   }
-  
+
   .language-status-moribund {
     @apply bg-red-600 text-white;
   }
-  
+
   .language-status-dead {
     @apply bg-gray-600 text-white;
   }
+}
+
+/* Map controls: touch-friendly sizing */
+.leaflet-control-zoom a {
+  width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  font-size: 20px !important;
+  touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+  .leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* Focus visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Skip to content link for keyboard users */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.skip-to-content:focus {
+  left: 0;
+  top: 0;
 }

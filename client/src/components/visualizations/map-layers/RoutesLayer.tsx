@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Polyline, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
@@ -11,6 +11,7 @@ interface RoutesLayerProps {
   opacity?: number;
   onFeatureClick?: (id: string) => void;
   selectedFeatureId?: string | null;
+  isAnimating?: boolean;
 }
 
 export function RoutesLayer({
@@ -18,7 +19,32 @@ export function RoutesLayer({
   opacity = 0.7,
   onFeatureClick,
   selectedFeatureId,
+  isAnimating = false,
 }: RoutesLayerProps) {
+  // Add CSS animation for flowing dash effect
+  const styleRef = useRef<HTMLStyleElement | null>(null);
+
+  useEffect(() => {
+    if (isAnimating && !styleRef.current) {
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes dash-flow {
+          to { stroke-dashoffset: -30; }
+        }
+        .animated-route {
+          animation: dash-flow 1s linear infinite;
+        }
+      `;
+      document.head.appendChild(style);
+      styleRef.current = style;
+    }
+    return () => {
+      if (styleRef.current) {
+        document.head.removeChild(styleRef.current);
+        styleRef.current = null;
+      }
+    };
+  }, [isAnimating]);
   // Get color based on route type
   const getRouteColor = (routeType: string): string => {
     const colors: Record<string, string> = {
@@ -68,7 +94,8 @@ export function RoutesLayer({
               color: isSelected ? '#1d4ed8' : color,
               weight: isSelected ? 5 : 3,
               opacity: isSelected ? 1 : opacity,
-              dashArray: isSelected ? undefined : dashArray,
+              dashArray: isAnimating ? '10, 10' : (isSelected ? undefined : dashArray),
+              className: isAnimating && !isSelected ? 'animated-route' : undefined,
             }}
             eventHandlers={{
               click: () => {

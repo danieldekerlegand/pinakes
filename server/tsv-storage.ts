@@ -16,6 +16,121 @@ import type {
   MaterialCultureDistribution,
 } from "../client/src/lib/visualization/geospatial-types";
 
+// Phonological inventory types
+export interface PhonologicalInventory {
+  id: string;
+  languageId: string;
+  consonants: string[];
+  vowels: string[];
+  tones: string[] | null;
+  phonotacticPatterns: Record<string, unknown>;
+  syllableStructure: string;
+  stressSystem: string;
+}
+
+// Grammar features types
+export interface GrammarFeatures {
+  id: string;
+  languageId: string;
+  wordOrder: string;
+  morphologicalType: string;
+  caseSystem: string[];
+  genderSystem: string[];
+  numberSystem: string[];
+  tenseAspectMood: string[];
+  agreementSystem: string;
+  negationStrategy: string;
+  questionFormation: string;
+  relativeClauseStrategy: string;
+  nounClassCount: number;
+  verbValencyChanges: string[];
+  evidentiality: string;
+  ergativity: string;
+}
+
+// Writing system types
+export interface WritingSystem {
+  id: string;
+  name: string;
+  type: string;
+  direction: string;
+  parentSystemId: string;
+  languageIds: string[];
+  originDate: string;
+  originRegion: string;
+  characterCount: number;
+  sampleCharacters: string;
+  unicodeBlock: string;
+  isActive: boolean;
+}
+
+// Battle types
+export interface Battle {
+  id: string;
+  name: string;
+  date: string;
+  coordinates: [number, number];
+  belligerents: Array<{ name: string; civilization_id: string | null }>;
+  outcome: string;
+  casualtiesEstimate: string;
+  significance: string;
+  associatedLanguageChanges: string;
+  warName: string;
+}
+
+// Migration route types
+export interface MigrationRoute {
+  id: string;
+  name: string;
+  routeType: string;
+  waypoints: Record<string, unknown>;
+  startDate: string;
+  endDate: string;
+  peoples: string[];
+  associatedLanguages: string[];
+  description: string;
+  consequences: string;
+}
+
+// Sound change types
+export interface SoundChange {
+  id: string;
+  name: string;
+  familyId: string;
+  sourceLanguageId: string;
+  targetLanguageId: string;
+  changeRule: string;
+  environment: string;
+  dateRange: string;
+  examples: Array<{ before: string; after: string; meaning: string }>;
+  relatedChanges: string[];
+}
+
+// Language contact types
+export interface LanguageContact {
+  id: string;
+  sourceLanguageId: string;
+  targetLanguageId: string;
+  contactType: string;
+  timePeriod: string;
+  region: string;
+  featuresTransferred: { phonological: string[]; lexical: string[]; grammatical: string[] };
+  exampleFeatures: string;
+  intensity: string;
+}
+
+// Verb paradigm types
+export interface VerbParadigm {
+  id: string;
+  languageId: string;
+  verbConcept: string;
+  infinitiveForm: string;
+  conjugationTable: Record<string, unknown>;
+  irregular: boolean;
+  complexityScore: number;
+  notes: string;
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -125,6 +240,96 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+
+// Material culture types
+export interface MaterialCultureSpreadEvent {
+  date: number;
+  coordinates: [number, number];
+  associatedCivilization: string;
+}
+
+export interface MaterialCulture {
+  id: string;
+  name: string;
+  category: string;
+  originDate: number;
+  originCoordinates: [number, number];
+  spreadData: MaterialCultureSpreadEvent[];
+  description: string;
+  associatedLanguages: string[];
+  significance: string;
+}
+
+export interface FoodwayEvent {
+  id: string;
+  name: string;
+  foodItem: string;
+  originRegion: string;
+  originCoordinates: [number, number];
+  destinationRegion: string;
+  destinationCoordinates: [number, number];
+  date: number;
+  mechanism: string;
+  associatedRouteId: string;
+  description: string;
+  culturalImpact: string;
+}
+
+// Art tradition types
+export interface ArtTradition {
+  id: string;
+  name: string;
+  category: string;
+  stylePeriod: string;
+  originDate: number;
+  endDate: number;
+  originCoordinates: { lat: number; lng: number };
+  description: string;
+  associatedCivilizations: string;
+  associatedLanguages: string[];
+  keyFeatures: string[];
+  notableExamples: string[];
+}
+
+// Trade good types
+export interface TradeGood {
+  id: string;
+  name: string;
+  category: string;
+  originRegion: string;
+  originCoordinates: { lat: number; lng: number };
+  tradeRoutes: string[];
+  timePeriod: string;
+  economicSignificance: string;
+  associatedLanguages: string[];
+}
+
+// Kinship system types
+export interface KinshipSystem {
+  id: string;
+  systemType: string;
+  languageIds: string[];
+  terminology: Record<string, string>;
+  descentRule: string;
+  residenceRule: string;
+  associatedCivilizations: string;
+}
+
+// Narrative types
+export interface NarrativeStep {
+  text: string;
+  mapCenter: [number, number];
+  mapZoom: number;
+  timePoint: number;
+  highlightedEntities: string[];
+  layerConfig: { layers: string[] };
+}
+
+export interface Narrative {
+  id: string;
+  title: string;
+  description: string;
+  steps: NarrativeStep[];
 }
 
 export type TsvStorageConfig = {
@@ -171,6 +376,7 @@ export class TsvStorage {
   private cachedCivilizations: CivilizationFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
   private cachedMaterialCultureDistributions: MaterialCultureDistribution[] | null = null;
+  private cachedMaterialCultures: MaterialCulture[] | null = null;
 
   // Haplogroup data cache
   private cachedHaplogroups: Haplogroup[] | null = null;
@@ -181,6 +387,45 @@ export class TsvStorage {
 
   // Religion data cache
   private cachedReligions: Religion[] | null = null;
+
+  // Phonological inventory data cache
+  private cachedPhonologicalInventories: PhonologicalInventory[] | null = null;
+
+  // Grammar features data cache
+  private cachedGrammarFeatures: GrammarFeatures[] | null = null;
+
+  // Writing systems data cache
+  private cachedWritingSystems: WritingSystem[] | null = null;
+
+  // Verb paradigms data cache
+  private cachedVerbParadigms: VerbParadigm[] | null = null;
+
+  // Battles data cache
+  private cachedBattles: Battle[] | null = null;
+
+  // Migration routes data cache
+  private cachedMigrationRoutes: MigrationRoute[] | null = null;
+
+  // Language contacts data cache
+  private cachedLanguageContacts: LanguageContact[] | null = null;
+
+  // Sound change data cache
+  private cachedSoundChanges: SoundChange[] | null = null;
+
+  // Foodway events data cache
+  private cachedFoodwayEvents: FoodwayEvent[] | null = null;
+
+  // Art traditions data cache
+  private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Trade goods data cache
+  private cachedTradeGoods: TradeGood[] | null = null;
+
+  // Kinship systems data cache
+  private cachedKinshipSystems: KinshipSystem[] | null = null;
+
+  // Narratives data cache
+  private cachedNarratives: Narrative[] | null = null;
 
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
@@ -1011,8 +1256,81 @@ export class TsvStorage {
   }
 
   /**
+   * Load material culture data from TSV file
+   */
+  private loadMaterialCultures(): void {
+    if (this.cachedMaterialCultures) return;
+
+    const text = this.readFileIfExists("lexicons/material-culture.tsv");
+    if (!text) { this.cachedMaterialCultures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const originDateIdx = getIdx(header, "origin_date");
+    const originCoordsIdx = getIdx(header, "origin_coordinates");
+    const spreadIdx = getIdx(header, "spread_data");
+    const descIdx = header.indexOf("description");
+    const langIdx = header.indexOf("associated_languages");
+    const sigIdx = header.indexOf("significance");
+
+    this.cachedMaterialCultures = rows.map((row) => {
+      let originCoords: [number, number] = [0, 0];
+      try { originCoords = JSON.parse(row[originCoordsIdx]); } catch {}
+
+      let spreadData: MaterialCultureSpreadEvent[] = [];
+      try {
+        spreadData = JSON.parse(row[spreadIdx]).map((e: any) => ({
+          date: e.date,
+          coordinates: e.coordinates as [number, number],
+          associatedCivilization: e.associated_civilization || "",
+        }));
+      } catch {}
+
+      const langStr = langIdx >= 0 ? row[langIdx] || "" : "";
+      const associatedLanguages = langStr ? langStr.split(",").map((s: string) => s.trim()) : [];
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        category: row[categoryIdx] || "unknown",
+        originDate: parseInt(row[originDateIdx], 10) || 0,
+        originCoordinates: originCoords,
+        spreadData,
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        associatedLanguages,
+        significance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get all material cultures with optional category filter
+   */
+  async getMaterialCultures(filters?: {
+    category?: string;
+  }): Promise<MaterialCulture[]> {
+    this.loadMaterialCultures();
+    let items = this.cachedMaterialCultures ?? [];
+
+    if (filters?.category) {
+      items = items.filter((mc) => mc.category === filters.category);
+    }
+
+    return items;
+  }
+
+  /**
+   * Get a single material culture by ID
+   */
+  async getMaterialCultureById(id: string): Promise<MaterialCulture | null> {
+    this.loadMaterialCultures();
+    return (this.cachedMaterialCultures ?? []).find((mc) => mc.id === id) ?? null;
+  }
+
+  /**
    * Get material culture distributions for heatmap
-   * Note: Returns empty until lexicons/material-cultures.tsv is populated
    */
   async getMaterialCultureDistributions(filters?: {
     timeStart?: number;
@@ -1020,8 +1338,64 @@ export class TsvStorage {
     bbox?: string;
     cultureTypes?: string[];
   }): Promise<MaterialCultureDistribution[]> {
-    // No TSV data yet for material cultures
-    return [];
+    this.loadMaterialCultures();
+    const cultures = this.cachedMaterialCultures ?? [];
+
+    const distributions: MaterialCultureDistribution[] = [];
+
+    for (const mc of cultures) {
+      if (filters?.cultureTypes && filters.cultureTypes.length > 0) {
+        if (!filters.cultureTypes.includes(mc.category)) continue;
+      }
+
+      // Add origin point
+      const originInRange =
+        (!filters?.timeStart || mc.originDate >= filters.timeStart) &&
+        (!filters?.timeEnd || mc.originDate <= filters.timeEnd);
+
+      if (originInRange) {
+        distributions.push({
+          lat: mc.originCoordinates[0],
+          lng: mc.originCoordinates[1],
+          intensity: 1.0,
+          cultureId: mc.id,
+          timePeriod: {
+            start: mc.originDate,
+            end: mc.spreadData.length > 0
+              ? mc.spreadData[mc.spreadData.length - 1].date
+              : null,
+            label: mc.name,
+          },
+        });
+      }
+
+      // Add spread points
+      for (const spread of mc.spreadData) {
+        const inRange =
+          (!filters?.timeStart || spread.date >= filters.timeStart) &&
+          (!filters?.timeEnd || spread.date <= filters.timeEnd);
+
+        if (inRange) {
+          // Intensity decreases with distance from origin in time
+          const timeDiff = Math.abs(spread.date - mc.originDate);
+          const intensity = Math.max(0.2, 1.0 - timeDiff / 10000);
+
+          distributions.push({
+            lat: spread.coordinates[0],
+            lng: spread.coordinates[1],
+            intensity,
+            cultureId: mc.id,
+            timePeriod: {
+              start: spread.date,
+              end: null,
+              label: `${mc.name} - ${spread.associatedCivilization}`,
+            },
+          });
+        }
+      }
+    }
+
+    return distributions;
   }
 
   // ============================================================================
@@ -1630,6 +2004,18 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -1653,6 +2039,35 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+
+    const consIdx = header.indexOf("consonants");
+    const vowIdx = header.indexOf("vowels");
+    const toneIdx = header.indexOf("tones");
+    const patIdx = header.indexOf("phonotactic_patterns");
+    const syllIdx = header.indexOf("syllable_structure");
+    const stressIdx = header.indexOf("stress_system");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    const parseObj = (idx: number, row: string[]): Record<string, unknown> => {
+      if (idx < 0 || !row[idx]) return {};
+      try { return JSON.parse(row[idx]); } catch { return {}; }
+    };
+
+    this.cachedPhonologicalInventories = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      consonants: parseArr(consIdx, row),
+      vowels: parseArr(vowIdx, row),
+      tones: toneIdx >= 0 && row[toneIdx] && row[toneIdx] !== "null"
+        ? ((): string[] | null => { try { return JSON.parse(row[toneIdx]); } catch { return null; } })()
+        : null,
+      phonotacticPatterns: parseObj(patIdx, row),
+      syllableStructure: syllIdx >= 0 ? row[syllIdx] || "" : "",
+      stressSystem: stressIdx >= 0 ? row[stressIdx] || "" : "",
     }));
   }
 
@@ -1722,6 +2137,89 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+
+   * Get all phonological inventories with optional language_id filter
+   */
+  async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
+    this.loadPhonologicalInventories();
+    let inventories = this.cachedPhonologicalInventories ?? [];
+
+    if (languageId) {
+      inventories = inventories.filter((inv) => inv.languageId === languageId);
+    }
+
+    return inventories;
+  }
+
+  /**
+   * Get a single phonological inventory by ID
+   */
+  async getPhonologicalInventory(id: string): Promise<PhonologicalInventory | null> {
+    this.loadPhonologicalInventories();
+    return (this.cachedPhonologicalInventories ?? []).find((inv) => inv.id === id) ?? null;
+  }
+
+  /**
+   * Get the phonological inventory for a specific language
+   */
+  async getPhonologicalInventoryByLanguage(languageId: string): Promise<PhonologicalInventory | null> {
+    this.loadPhonologicalInventories();
+    return (this.cachedPhonologicalInventories ?? []).find((inv) => inv.languageId === languageId) ?? null;
+  }
+
+  // ============================================================================
+  // Grammar Features Data Methods
+  // ============================================================================
+
+  /**
+   * Load grammar features from TSV file
+   */
+  private loadGrammarFeatures(): void {
+    if (this.cachedGrammarFeatures) return;
+
+    const text = this.readFileIfExists("lexicons/grammar-features.tsv");
+    if (!text) { this.cachedGrammarFeatures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const wordOrderIdx = header.indexOf("word_order");
+    const morphIdx = header.indexOf("morphological_type");
+    const caseIdx = header.indexOf("case_system");
+    const genderIdx = header.indexOf("gender_system");
+    const numberIdx = header.indexOf("number_system");
+    const tamIdx = header.indexOf("tense_aspect_mood");
+    const agreementIdx = header.indexOf("agreement_system");
+    const negationIdx = header.indexOf("negation_strategy");
+    const questionIdx = header.indexOf("question_formation");
+    const relClauseIdx = header.indexOf("relative_clause_strategy");
+    const nounClassIdx = header.indexOf("noun_class_count");
+    const valencyIdx = header.indexOf("verb_valency_changes");
+    const evidentialityIdx = header.indexOf("evidentiality");
+    const ergativityIdx = header.indexOf("ergativity");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedGrammarFeatures = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      wordOrder: wordOrderIdx >= 0 ? row[wordOrderIdx] || "" : "",
+      morphologicalType: morphIdx >= 0 ? row[morphIdx] || "" : "",
+      caseSystem: parseArr(caseIdx, row),
+      genderSystem: parseArr(genderIdx, row),
+      numberSystem: parseArr(numberIdx, row),
+      tenseAspectMood: parseArr(tamIdx, row),
+      agreementSystem: agreementIdx >= 0 ? row[agreementIdx] || "" : "",
+      negationStrategy: negationIdx >= 0 ? row[negationIdx] || "" : "",
+      questionFormation: questionIdx >= 0 ? row[questionIdx] || "" : "",
+      relativeClauseStrategy: relClauseIdx >= 0 ? row[relClauseIdx] || "" : "",
+      nounClassCount: nounClassIdx >= 0 ? parseInt(row[nounClassIdx] || "0", 10) || 0 : 0,
+      verbValencyChanges: parseArr(valencyIdx, row),
+      evidentiality: evidentialityIdx >= 0 ? row[evidentialityIdx] || "" : "",
+      ergativity: ergativityIdx >= 0 ? row[ergativityIdx] || "" : "",
     }));
   }
 
@@ -1763,5 +2261,759 @@ export class TsvStorage {
       (r) => r.sourceWord.toLowerCase() === normalizedWord ||
              r.targetWord.toLowerCase() === normalizedWord
     );
+  }
+
+   * Get all grammar features with optional filters
+   */
+  async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
+    this.loadGrammarFeatures();
+    let features = this.cachedGrammarFeatures ?? [];
+
+    if (languageId) {
+      features = features.filter((f) => f.languageId === languageId);
+    }
+    if (wordOrder) {
+      features = features.filter((f) => f.wordOrder === wordOrder);
+    }
+    if (morphologicalType) {
+      features = features.filter((f) => f.morphologicalType === morphologicalType);
+    }
+
+    return features;
+  }
+
+  /**
+   * Get a single grammar features entry by ID
+   */
+  async getGrammarFeaturesById(id: string): Promise<GrammarFeatures | null> {
+    this.loadGrammarFeatures();
+    return (this.cachedGrammarFeatures ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  /**
+   * Get grammar features for a specific language
+   */
+  async getGrammarFeaturesByLanguage(languageId: string): Promise<GrammarFeatures | null> {
+    this.loadGrammarFeatures();
+    return (this.cachedGrammarFeatures ?? []).find((f) => f.languageId === languageId) ?? null;
+  }
+
+  /**
+   * Load writing systems from TSV file
+   */
+  private loadWritingSystems(): void {
+    if (this.cachedWritingSystems) return;
+
+    const text = this.readFileIfExists("lexicons/writing-systems.tsv");
+    if (!text) { this.cachedWritingSystems = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const typeIdx = header.indexOf("type");
+    const directionIdx = header.indexOf("direction");
+    const parentIdx = header.indexOf("parent_system_id");
+    const langIdsIdx = header.indexOf("language_ids");
+    const originDateIdx = header.indexOf("origin_date");
+    const originRegionIdx = header.indexOf("origin_region");
+    const charCountIdx = header.indexOf("character_count");
+    const sampleIdx = header.indexOf("sample_characters");
+    const unicodeIdx = header.indexOf("unicode_block");
+    const activeIdx = header.indexOf("is_active");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedWritingSystems = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      type: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      direction: directionIdx >= 0 ? row[directionIdx] || "" : "",
+      parentSystemId: parentIdx >= 0 ? row[parentIdx] || "" : "",
+      languageIds: parseArr(langIdsIdx, row),
+      originDate: originDateIdx >= 0 ? row[originDateIdx] || "" : "",
+      originRegion: originRegionIdx >= 0 ? row[originRegionIdx] || "" : "",
+      characterCount: charCountIdx >= 0 ? parseInt(row[charCountIdx] || "0", 10) || 0 : 0,
+      sampleCharacters: sampleIdx >= 0 ? row[sampleIdx] || "" : "",
+      unicodeBlock: unicodeIdx >= 0 ? row[unicodeIdx] || "" : "",
+      isActive: activeIdx >= 0 ? row[activeIdx] === "true" : false,
+    }));
+  }
+
+  /**
+   * Get all writing systems with optional filters
+   */
+  async getWritingSystems(type?: string, direction?: string, isActive?: string): Promise<WritingSystem[]> {
+    this.loadWritingSystems();
+    let systems = this.cachedWritingSystems ?? [];
+
+    if (type) {
+      systems = systems.filter((s) => s.type === type);
+    }
+    if (direction) {
+      systems = systems.filter((s) => s.direction === direction);
+    }
+    if (isActive !== undefined) {
+      const active = isActive === "true";
+      systems = systems.filter((s) => s.isActive === active);
+    }
+
+    return systems;
+  }
+
+  /**
+   * Get a single writing system by ID
+   */
+  async getWritingSystemById(id: string): Promise<WritingSystem | null> {
+    this.loadWritingSystems();
+    return (this.cachedWritingSystems ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  /**
+   * Get all writing systems descended from a given system
+   */
+  async getWritingSystemDescendants(id: string): Promise<WritingSystem[]> {
+    this.loadWritingSystems();
+    const all = this.cachedWritingSystems ?? [];
+    const descendants: WritingSystem[] = [];
+    const queue = [id];
+
+    while (queue.length > 0) {
+      const parentId = queue.shift()!;
+      const children = all.filter((s) => s.parentSystemId === parentId);
+      for (const child of children) {
+        descendants.push(child);
+        queue.push(child.id);
+      }
+    }
+
+    return descendants;
+  }
+
+  /**
+   * Load verb paradigms from TSV file
+   */
+  private loadVerbParadigms(): void {
+    if (this.cachedVerbParadigms) return;
+
+    const text = this.readFileIfExists("lexicons/verb-paradigms.tsv");
+    if (!text) { this.cachedVerbParadigms = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
+    const conceptIdx = header.indexOf("verb_concept");
+    const infinitiveIdx = header.indexOf("infinitive_form");
+    const conjugationIdx = header.indexOf("conjugation_table");
+    const irregularIdx = header.indexOf("irregular");
+    const complexityIdx = header.indexOf("complexity_score");
+    const notesIdx = header.indexOf("notes");
+
+    this.cachedVerbParadigms = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdx],
+      verbConcept: conceptIdx >= 0 ? row[conceptIdx] || "" : "",
+      infinitiveForm: infinitiveIdx >= 0 ? row[infinitiveIdx] || "" : "",
+      conjugationTable: (() => {
+        if (conjugationIdx < 0 || !row[conjugationIdx]) return {};
+        try { return JSON.parse(row[conjugationIdx]); } catch { return {}; }
+      })(),
+      irregular: irregularIdx >= 0 ? row[irregularIdx] === "true" : false,
+      complexityScore: complexityIdx >= 0 ? parseInt(row[complexityIdx] || "0", 10) || 0 : 0,
+      notes: notesIdx >= 0 ? row[notesIdx] || "" : "",
+    }));
+  }
+
+  /**
+   * Get all verb paradigms with optional filters
+   */
+  async getVerbParadigms(languageId?: string, verbConcept?: string): Promise<VerbParadigm[]> {
+    this.loadVerbParadigms();
+    let paradigms = this.cachedVerbParadigms ?? [];
+
+    if (languageId) {
+      paradigms = paradigms.filter((p) => p.languageId === languageId);
+    }
+    if (verbConcept) {
+      paradigms = paradigms.filter((p) => p.verbConcept === verbConcept);
+    }
+
+    return paradigms;
+  }
+
+  /**
+   * Get a single verb paradigm by ID
+   */
+  async getVerbParadigmById(id: string): Promise<VerbParadigm | null> {
+    this.loadVerbParadigms();
+    return (this.cachedVerbParadigms ?? []).find((p) => p.id === id) ?? null;
+  }
+
+  /**
+   * Get verb paradigms for a specific language
+   */
+  async getVerbParadigmsByLanguage(languageId: string): Promise<VerbParadigm[]> {
+    this.loadVerbParadigms();
+    return (this.cachedVerbParadigms ?? []).filter((p) => p.languageId === languageId);
+  }
+
+  // ── Battles ─────────────────────────────────────────────────────────
+
+  private loadBattles(): void {
+    if (this.cachedBattles) return;
+
+    const text = this.readFileIfExists("lexicons/battles.tsv");
+    if (!text) { this.cachedBattles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const dateIdx = header.indexOf("date");
+    const coordIdx = header.indexOf("coordinates");
+    const bellIdx = header.indexOf("belligerents");
+    const outcomeIdx = header.indexOf("outcome");
+    const casualtiesIdx = header.indexOf("casualties_estimate");
+    const sigIdx = header.indexOf("significance");
+    const langChangeIdx = header.indexOf("associated_language_changes");
+    const warIdx = header.indexOf("war_name");
+
+    this.cachedBattles = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      date: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      coordinates: (() => {
+        if (coordIdx < 0 || !row[coordIdx]) return [0, 0] as [number, number];
+        try { return JSON.parse(row[coordIdx]) as [number, number]; } catch { return [0, 0] as [number, number]; }
+      })(),
+      belligerents: (() => {
+        if (bellIdx < 0 || !row[bellIdx]) return [];
+        try { return JSON.parse(row[bellIdx]); } catch { return []; }
+      })(),
+      outcome: outcomeIdx >= 0 ? row[outcomeIdx] || "" : "",
+      casualtiesEstimate: casualtiesIdx >= 0 ? row[casualtiesIdx] || "" : "",
+      significance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+      associatedLanguageChanges: langChangeIdx >= 0 ? row[langChangeIdx] || "" : "",
+      warName: warIdx >= 0 ? row[warIdx] || "" : "",
+    }));
+  }
+
+  async getBattles(warName?: string, startDate?: string, endDate?: string, civilizationId?: string): Promise<Battle[]> {
+    this.loadBattles();
+    let battles = this.cachedBattles ?? [];
+
+    if (warName) {
+      battles = battles.filter((b) => b.warName === warName);
+    }
+    if (startDate) {
+      battles = battles.filter((b) => parseInt(b.date) >= parseInt(startDate));
+    }
+    if (endDate) {
+      battles = battles.filter((b) => parseInt(b.date) <= parseInt(endDate));
+    }
+    if (civilizationId) {
+      battles = battles.filter((b) =>
+        b.belligerents.some((belt) => belt.civilization_id === civilizationId)
+      );
+    }
+
+    return battles;
+  }
+
+  async getBattleById(id: string): Promise<Battle | null> {
+    this.loadBattles();
+    return (this.cachedBattles ?? []).find((b) => b.id === id) ?? null;
+  }
+
+  // ── Migration Routes ──────────────────────────────────────────────
+
+  private loadMigrationRoutes(): void {
+    if (this.cachedMigrationRoutes) return;
+
+    const text = this.readFileIfExists("lexicons/migration-routes.tsv");
+    if (!text) { this.cachedMigrationRoutes = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const routeTypeIdx = header.indexOf("route_type");
+    const waypointsIdx = header.indexOf("waypoints");
+    const startDateIdx = header.indexOf("start_date");
+    const endDateIdx = header.indexOf("end_date");
+    const peoplesIdx = header.indexOf("peoples");
+    const langIdx = header.indexOf("associated_languages");
+    const descIdx = header.indexOf("description");
+    const consequencesIdx = header.indexOf("consequences");
+
+    this.cachedMigrationRoutes = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      routeType: routeTypeIdx >= 0 ? row[routeTypeIdx] || "" : "",
+      waypoints: (() => {
+        if (waypointsIdx < 0 || !row[waypointsIdx]) return {};
+        try { return JSON.parse(row[waypointsIdx]); } catch { return {}; }
+      })(),
+      startDate: startDateIdx >= 0 ? row[startDateIdx] || "" : "",
+      endDate: endDateIdx >= 0 ? row[endDateIdx] || "" : "",
+      peoples: (() => {
+        if (peoplesIdx < 0 || !row[peoplesIdx]) return [];
+        try { return JSON.parse(row[peoplesIdx]); } catch { return []; }
+      })(),
+      associatedLanguages: (() => {
+        if (langIdx < 0 || !row[langIdx]) return [];
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      consequences: consequencesIdx >= 0 ? row[consequencesIdx] || "" : "",
+    }));
+  }
+
+  async getMigrationRoutes(routeType?: string, startDate?: string, endDate?: string): Promise<MigrationRoute[]> {
+    this.loadMigrationRoutes();
+    let routes = this.cachedMigrationRoutes ?? [];
+
+    if (routeType) {
+      routes = routes.filter((r) => r.routeType === routeType);
+    }
+    if (startDate) {
+      routes = routes.filter((r) => r.startDate >= startDate);
+    }
+    if (endDate) {
+      routes = routes.filter((r) => r.endDate <= endDate);
+    }
+
+    return routes;
+  }
+
+  async getMigrationRouteById(id: string): Promise<MigrationRoute | null> {
+    this.loadMigrationRoutes();
+    return (this.cachedMigrationRoutes ?? []).find((r) => r.id === id) ?? null;
+  }
+
+  // ── Language Contacts ──────────────────────────────────────────────
+
+  private loadLanguageContacts(): void {
+    if (this.cachedLanguageContacts) return;
+
+    const text = this.readFileIfExists("lexicons/language-contacts.tsv");
+    if (!text) { this.cachedLanguageContacts = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const srcIdx = header.indexOf("source_language_id");
+    const tgtIdx = header.indexOf("target_language_id");
+    const typeIdx = header.indexOf("contact_type");
+    const periodIdx = header.indexOf("time_period");
+    const regionIdx = header.indexOf("region");
+    const featIdx = header.indexOf("features_transferred");
+    const exampleIdx = header.indexOf("example_features");
+    const intensityIdx = header.indexOf("intensity");
+
+    this.cachedLanguageContacts = rows.map((row) => ({
+      id: row[idIdx],
+      sourceLanguageId: srcIdx >= 0 ? row[srcIdx] || "" : "",
+      targetLanguageId: tgtIdx >= 0 ? row[tgtIdx] || "" : "",
+      contactType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      timePeriod: periodIdx >= 0 ? row[periodIdx] || "" : "",
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      featuresTransferred: (() => {
+        if (featIdx < 0 || !row[featIdx]) return { phonological: [], lexical: [], grammatical: [] };
+        try { return JSON.parse(row[featIdx]); } catch { return { phonological: [], lexical: [], grammatical: [] }; }
+      })(),
+      exampleFeatures: exampleIdx >= 0 ? row[exampleIdx] || "" : "",
+      intensity: intensityIdx >= 0 ? row[intensityIdx] || "" : "",
+    }));
+  }
+
+  async getLanguageContacts(sourceLanguageId?: string, targetLanguageId?: string, contactType?: string, intensity?: string): Promise<LanguageContact[]> {
+    this.loadLanguageContacts();
+    let contacts = this.cachedLanguageContacts ?? [];
+
+    if (sourceLanguageId) {
+      contacts = contacts.filter((c) => c.sourceLanguageId === sourceLanguageId);
+    }
+    if (targetLanguageId) {
+      contacts = contacts.filter((c) => c.targetLanguageId === targetLanguageId);
+    }
+    if (contactType) {
+      contacts = contacts.filter((c) => c.contactType === contactType);
+    }
+    if (intensity) {
+      contacts = contacts.filter((c) => c.intensity === intensity);
+    }
+
+    return contacts;
+  }
+
+  async getLanguageContactById(id: string): Promise<LanguageContact | null> {
+    this.loadLanguageContacts();
+    return (this.cachedLanguageContacts ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  async getLanguageContactsByLanguage(languageId: string): Promise<LanguageContact[]> {
+    this.loadLanguageContacts();
+    return (this.cachedLanguageContacts ?? []).filter(
+      (c) => c.sourceLanguageId === languageId || c.targetLanguageId === languageId
+    );
+  }
+
+  // ── Sound Changes ──────────────────────────────────────────────────
+
+  private loadSoundChanges(): void {
+    if (this.cachedSoundChanges) return;
+
+    const text = this.readFileIfExists("lexicons/sound-changes.tsv");
+    if (!text) { this.cachedSoundChanges = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = header.indexOf("name");
+    const familyIdx = header.indexOf("family_id");
+    const srcIdx = header.indexOf("source_language_id");
+    const tgtIdx = header.indexOf("target_language_id");
+    const ruleIdx = header.indexOf("change_rule");
+    const envIdx = header.indexOf("environment");
+    const dateIdx = header.indexOf("date_range");
+    const exIdx = header.indexOf("examples");
+    const relIdx = header.indexOf("related_changes");
+
+    this.cachedSoundChanges = rows.map((row) => ({
+      id: row[idIdx],
+      name: nameIdx >= 0 ? row[nameIdx] || "" : "",
+      familyId: familyIdx >= 0 ? row[familyIdx] || "" : "",
+      sourceLanguageId: srcIdx >= 0 ? row[srcIdx] || "" : "",
+      targetLanguageId: tgtIdx >= 0 ? row[tgtIdx] || "" : "",
+      changeRule: ruleIdx >= 0 ? row[ruleIdx] || "" : "",
+      environment: envIdx >= 0 ? row[envIdx] || "" : "",
+      dateRange: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      examples: (() => {
+        if (exIdx < 0 || !row[exIdx]) return [];
+        try { return JSON.parse(row[exIdx]); } catch { return []; }
+      })(),
+      relatedChanges: (() => {
+        if (relIdx < 0 || !row[relIdx]) return [];
+        try { return JSON.parse(row[relIdx]); } catch { return []; }
+      })(),
+    }));
+  }
+
+  async getSoundChanges(familyId?: string, sourceLanguageId?: string, targetLanguageId?: string): Promise<SoundChange[]> {
+    this.loadSoundChanges();
+    let changes = this.cachedSoundChanges ?? [];
+
+    if (familyId) {
+      changes = changes.filter((c) => c.familyId === familyId);
+    }
+    if (sourceLanguageId) {
+      changes = changes.filter((c) => c.sourceLanguageId === sourceLanguageId);
+    }
+    if (targetLanguageId) {
+      changes = changes.filter((c) => c.targetLanguageId === targetLanguageId);
+    }
+
+    return changes;
+  }
+
+  async getSoundChangeById(id: string): Promise<SoundChange | null> {
+    this.loadSoundChanges();
+    return (this.cachedSoundChanges ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  // ── Foodway Events ──────────────────────────────────────────────────
+
+  private loadFoodwayEvents(): void {
+    if (this.cachedFoodwayEvents) return;
+
+    const text = this.readFileIfExists("lexicons/foodway-events.tsv");
+    if (!text) { this.cachedFoodwayEvents = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const foodItemIdx = getIdx(header, "food_item");
+    const originRegionIdx = getIdx(header, "origin_region");
+    const originCoordsIdx = getIdx(header, "origin_coordinates");
+    const destRegionIdx = getIdx(header, "destination_region");
+    const destCoordsIdx = getIdx(header, "destination_coordinates");
+    const dateIdx = getIdx(header, "date");
+    const mechanismIdx = header.indexOf("mechanism");
+    const routeIdIdx = header.indexOf("associated_route_id");
+    const descIdx = header.indexOf("description");
+    const impactIdx = header.indexOf("cultural_impact");
+
+    this.cachedFoodwayEvents = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      foodItem: row[foodItemIdx],
+      originRegion: row[originRegionIdx],
+      originCoordinates: (() => {
+        try { return JSON.parse(row[originCoordsIdx]); } catch { return [0, 0]; }
+      })() as [number, number],
+      destinationRegion: row[destRegionIdx],
+      destinationCoordinates: (() => {
+        try { return JSON.parse(row[destCoordsIdx]); } catch { return [0, 0]; }
+      })() as [number, number],
+      date: parseInt(row[dateIdx], 10) || 0,
+      mechanism: mechanismIdx >= 0 ? row[mechanismIdx] || "" : "",
+      associatedRouteId: routeIdIdx >= 0 ? row[routeIdIdx] || "" : "",
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      culturalImpact: impactIdx >= 0 ? row[impactIdx] || "" : "",
+    }));
+  }
+
+  async getFoodwayEvents(filters?: {
+    foodItem?: string;
+    mechanism?: string;
+    dateStart?: number;
+    dateEnd?: number;
+  }): Promise<FoodwayEvent[]> {
+    this.loadFoodwayEvents();
+    let events = this.cachedFoodwayEvents ?? [];
+
+    if (filters?.foodItem) {
+      events = events.filter((e) => e.foodItem.toLowerCase().includes(filters.foodItem!.toLowerCase()));
+    }
+    if (filters?.mechanism) {
+      events = events.filter((e) => e.mechanism === filters.mechanism);
+    }
+    if (filters?.dateStart !== undefined) {
+      events = events.filter((e) => e.date >= filters.dateStart!);
+    }
+    if (filters?.dateEnd !== undefined) {
+      events = events.filter((e) => e.date <= filters.dateEnd!);
+    }
+
+    return events;
+  }
+
+  async getFoodwayEventById(id: string): Promise<FoodwayEvent | null> {
+    this.loadFoodwayEvents();
+    return (this.cachedFoodwayEvents ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  // ── Kinship Systems ──────────────────────────────────────────────────
+
+  private loadArtTraditions(): void {
+    if (this.cachedArtTraditions) return;
+
+    const text = this.readFileIfExists("lexicons/art-traditions.tsv");
+    if (!text) { this.cachedArtTraditions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const stylePeriodIdx = getIdx(header, "style_period");
+    const originDateIdx = getIdx(header, "origin_date");
+    const endDateIdx = getIdx(header, "end_date");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const descIdx = getIdx(header, "description");
+    const civIdx = header.indexOf("associated_civilizations");
+    const langIdx = getIdx(header, "associated_languages");
+    const featIdx = getIdx(header, "key_features");
+    const examplesIdx = getIdx(header, "notable_examples");
+
+    this.cachedArtTraditions = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx],
+      stylePeriod: row[stylePeriodIdx],
+      originDate: parseInt(row[originDateIdx]) || 0,
+      endDate: parseInt(row[endDateIdx]) || 0,
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      description: row[descIdx],
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      keyFeatures: (() => {
+        try { return JSON.parse(row[featIdx]); } catch { return []; }
+      })() as string[],
+      notableExamples: (() => {
+        try { return JSON.parse(row[examplesIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getArtTraditions(filters?: {
+    category?: string;
+    stylePeriod?: string;
+  }): Promise<ArtTradition[]> {
+    this.loadArtTraditions();
+    let traditions = this.cachedArtTraditions ?? [];
+
+    if (filters?.category) {
+      traditions = traditions.filter((t) => t.category === filters.category);
+    }
+    if (filters?.stylePeriod) {
+      traditions = traditions.filter((t) => t.stylePeriod === filters.stylePeriod);
+    }
+
+    return traditions;
+  }
+
+  async getArtTraditionById(id: string): Promise<ArtTradition | null> {
+    this.loadArtTraditions();
+    return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  private loadKinshipSystems(): void {
+    if (this.cachedKinshipSystems) return;
+
+    const text = this.readFileIfExists("lexicons/kinship-systems.tsv");
+    if (!text) { this.cachedKinshipSystems = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const systemTypeIdx = getIdx(header, "system_type");
+    const languageIdsIdx = getIdx(header, "language_ids");
+    const terminologyIdx = getIdx(header, "terminology");
+    const descentRuleIdx = getIdx(header, "descent_rule");
+    const residenceRuleIdx = header.indexOf("residence_rule");
+    const civIdx = header.indexOf("associated_civilizations");
+
+    this.cachedKinshipSystems = rows.map((row) => ({
+      id: row[idIdx],
+      systemType: row[systemTypeIdx],
+      languageIds: (() => {
+        try { return JSON.parse(row[languageIdsIdx]); } catch { return []; }
+      })() as string[],
+      terminology: (() => {
+        try { return JSON.parse(row[terminologyIdx]); } catch { return {}; }
+      })() as Record<string, string>,
+      descentRule: row[descentRuleIdx],
+      residenceRule: residenceRuleIdx >= 0 ? row[residenceRuleIdx] || "" : "",
+      associatedCivilizations: civIdx >= 0 ? row[civIdx] || "" : "",
+    }));
+  }
+
+  async getKinshipSystems(filters?: {
+    systemType?: string;
+    descentRule?: string;
+  }): Promise<KinshipSystem[]> {
+    this.loadKinshipSystems();
+    let systems = this.cachedKinshipSystems ?? [];
+
+    if (filters?.systemType) {
+      systems = systems.filter((s) => s.systemType === filters.systemType);
+    }
+    if (filters?.descentRule) {
+      systems = systems.filter((s) => s.descentRule === filters.descentRule);
+    }
+
+    return systems;
+  }
+
+  async getKinshipSystemById(id: string): Promise<KinshipSystem | null> {
+    this.loadKinshipSystems();
+    return (this.cachedKinshipSystems ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  private loadTradeGoods(): void {
+    if (this.cachedTradeGoods) return;
+
+    const text = this.readFileIfExists("lexicons/trade-goods.tsv");
+    if (!text) { this.cachedTradeGoods = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const regionIdx = getIdx(header, "origin_region");
+    const coordsIdx = getIdx(header, "origin_coordinates");
+    const routesIdx = getIdx(header, "trade_routes");
+    const periodIdx = getIdx(header, "time_period");
+    const sigIdx = getIdx(header, "economic_significance");
+    const langIdx = getIdx(header, "associated_languages");
+
+    this.cachedTradeGoods = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx],
+      originRegion: row[regionIdx],
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      tradeRoutes: (() => {
+        try { return JSON.parse(row[routesIdx]); } catch { return []; }
+      })() as string[],
+      timePeriod: row[periodIdx],
+      economicSignificance: row[sigIdx],
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getTradeGoods(filters?: {
+    category?: string;
+    timePeriod?: string;
+  }): Promise<TradeGood[]> {
+    this.loadTradeGoods();
+    let goods = this.cachedTradeGoods ?? [];
+
+    if (filters?.category) {
+      goods = goods.filter((g) => g.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+    if (filters?.timePeriod) {
+      goods = goods.filter((g) => g.timePeriod.includes(filters.timePeriod!));
+    }
+
+    return goods;
+  }
+
+  async getTradeGoodById(id: string): Promise<TradeGood | null> {
+    this.loadTradeGoods();
+    return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
+  }
+
+  // ── Narratives ──────────────────────────────────────────────────────
+
+  private loadNarratives(): void {
+    if (this.cachedNarratives) return;
+
+    const text = this.readFileIfExists("lexicons/narratives.tsv");
+    if (!text) { this.cachedNarratives = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const titleIdx = getIdx(header, "title");
+    const descIdx = getIdx(header, "description");
+    const stepsIdx = getIdx(header, "steps");
+
+    this.cachedNarratives = rows.map((row) => {
+      let steps: NarrativeStep[] = [];
+      try {
+        const rawSteps = JSON.parse(row[stepsIdx]) as Array<Record<string, unknown>>;
+        steps = rawSteps.map((s) => ({
+          text: (s.text as string) || "",
+          mapCenter: (s.map_center as [number, number]) || [0, 0],
+          mapZoom: (s.map_zoom as number) || 3,
+          timePoint: (s.time_point as number) || 0,
+          highlightedEntities: (s.highlighted_entities as string[]) || [],
+          layerConfig: (s.layer_config as { layers: string[] }) || { layers: [] },
+        }));
+      } catch { /* empty */ }
+
+      return {
+        id: row[idIdx],
+        title: row[titleIdx],
+        description: row[descIdx],
+        steps,
+      };
+    });
+  }
+
+  async getNarratives(): Promise<Narrative[]> {
+    this.loadNarratives();
+    return this.cachedNarratives ?? [];
+  }
+
+  async getNarrativeById(id: string): Promise<Narrative | null> {
+    this.loadNarratives();
+    return (this.cachedNarratives ?? []).find((n) => n.id === id) ?? null;
   }
 }

@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
-import { Layers, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { Layers, ChevronDown, ChevronUp, Eye, EyeOff, Bookmark } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Checkbox } from '../../ui/checkbox';
 import { Card } from '../../ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
 import { Badge } from '../../ui/badge';
 import type { LayerConfig } from '../../../lib/visualization/geospatial-types';
+import { LAYER_PRESETS } from '../../../lib/visualization/geospatial-types';
 import 'rc-slider/assets/index.css';
 
 interface LayerPanelProps {
@@ -18,6 +19,8 @@ interface LayerPanelProps {
   onHideAll: () => void;
   onShowCategory: (category: string) => void;
   onHideCategory: (category: string) => void;
+  onApplyPreset?: (presetId: string) => void;
+  activePresetId?: string | null;
 }
 
 export function LayerPanel({
@@ -29,11 +32,14 @@ export function LayerPanel({
   onHideAll,
   onShowCategory,
   onHideCategory,
+  onApplyPreset,
+  activePresetId,
 }: LayerPanelProps) {
   const [isOpen, setIsOpen] = React.useState(true);
   const [openCategories, setOpenCategories] = React.useState<Set<string>>(
     new Set(['languages']) // Language layers open by default
   );
+  const [showPresets, setShowPresets] = React.useState(false);
 
   // Group layers by category
   const layersByCategory = useMemo(() => {
@@ -69,6 +75,10 @@ export function LayerPanel({
       civilizations: 'bg-purple-500',
       routes: 'bg-green-500',
       culture: 'bg-red-500',
+      cuisines: 'bg-orange-500',
+      music: 'bg-fuchsia-500',
+      religions: 'bg-indigo-500',
+      genetics: 'bg-emerald-500',
     };
     return colors[category] || 'bg-gray-500';
   };
@@ -116,6 +126,45 @@ export function LayerPanel({
               <ChevronUp className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Presets */}
+          {onApplyPreset && (
+            <div className="mb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-between text-xs h-7"
+                onClick={() => setShowPresets(!showPresets)}
+              >
+                <div className="flex items-center gap-1">
+                  <Bookmark className="h-3 w-3" />
+                  <span>Presets</span>
+                  {activePresetId && (
+                    <Badge variant="secondary" className="text-xs h-4 px-1">
+                      {LAYER_PRESETS.find((p) => p.id === activePresetId)?.name}
+                    </Badge>
+                  )}
+                </div>
+                {showPresets ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </Button>
+
+              {showPresets && (
+                <div className="mt-1 space-y-1">
+                  {LAYER_PRESETS.map((preset) => (
+                    <Button
+                      key={preset.id}
+                      variant={activePresetId === preset.id ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-full justify-start text-xs h-7"
+                      onClick={() => onApplyPreset(preset.id)}
+                    >
+                      {preset.name}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Show All / Hide All */}
           <div className="flex gap-2 mb-4">

@@ -3,8 +3,8 @@
  * Run with: npx tsx test-ipa-vs-asjp.ts
  */
 
-import { calculatePairwiseDistance } from "./server/services/linguistic-distance-calculator";
-import { TsvStorage } from "./server/tsv-storage";
+import { calculatePairwiseDistance } from "../server/services/linguistic-distance-calculator";
+import { TsvStorage } from "../server/tsv-storage";
 
 async function testIPAvsASJP() {
   console.log("=== IPA vs ASJP Phonetic Encoding Comparison ===\n");

@@ -66,12 +66,12 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:relative lg:bg-transparent lg:inset-auto lg:z-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:relative lg:bg-transparent lg:inset-auto lg:z-auto" role="dialog" aria-modal="true" aria-label="Filter languages">
       <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-material-3 overflow-y-auto lg:relative lg:w-full lg:shadow-none">
-        <div className="p-6">
+        <aside className="p-6" aria-label="Language filters">
           <div className="flex items-center justify-between mb-6 lg:hidden">
             <div className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-primary" />
+              <Filter className="h-5 w-5 text-primary" aria-hidden="true" />
               <h2 className="text-lg font-medium text-gray-900">Filters</h2>
             </div>
             <Button
@@ -80,8 +80,9 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
               data-testid="button-close-filters"
+              aria-label="Close filters"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </Button>
           </div>
 
@@ -188,7 +189,7 @@ export default function FiltersSidebar({ isOpen, onClose, filters, onFiltersChan
               </Card>
             )}
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

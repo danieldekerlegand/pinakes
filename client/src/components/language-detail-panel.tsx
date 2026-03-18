@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback, type CSSProperties, type ReactElement } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { List as VirtualList } from "react-window";
 import { X, Eye, Download, ChevronUp, ChevronDown, Sparkles, BookOpen, FlaskConical } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -7,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { SuggestEditButton } from "@/components/SuggestEditButton";
+import { ContributorAttribution } from "@/components/ContributorAttribution";
 import type { LanguageWithStats } from "@shared/types";
 
 interface SampleText {
@@ -42,6 +45,27 @@ function getStatusColor(status: string) {
     case 'dead': return 'bg-gray-600 text-white';
     default: return 'bg-gray-400 text-white';
   }
+}
+
+function WordRow({ index, style, words }: { index: number; style: CSSProperties; words: LanguageWord[] }): ReactElement {
+  const word = words[index];
+  return (
+    <div
+      style={style}
+      className={`grid grid-cols-3 text-sm ${index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}`}
+      data-testid={`word-${index}`}
+    >
+      <div className="p-2 text-gray-600 dark:text-gray-400 truncate">
+        {word.baseWord}
+      </div>
+      <div className="p-2 text-gray-900 dark:text-gray-100 font-medium truncate">
+        {word.translation || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
+      </div>
+      <div className="p-2 text-gray-700 dark:text-gray-300 font-mono text-xs truncate">
+        {word.ipa || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
+      </div>
+    </div>
+  );
 }
 
 export default function LanguageDetailPanel({ languageId, onClose }: LanguageDetailPanelProps) {
@@ -187,10 +211,17 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Basic Information</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Family:</span>
-                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-classification">
+                <span className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1" data-testid="text-classification">
                   {language.classification}
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="classification"
+                    fieldLabel="Language Family"
+                    currentValue={language.classification || ''}
+                  />
                 </span>
               </div>
               {language.iso639_1 && (
@@ -203,9 +234,18 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               )}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-                <Badge className={`${getStatusColor(language.status)} text-xs`} data-testid="badge-status">
-                  {language.status}
-                </Badge>
+                <span className="flex items-center gap-1">
+                  <Badge className={`${getStatusColor(language.status)} text-xs`} data-testid="badge-status">
+                    {language.status}
+                  </Badge>
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="status"
+                    fieldLabel="Language Status"
+                    currentValue={language.status || ''}
+                  />
+                </span>
               </div>
             </div>
           </div>
@@ -214,10 +254,17 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
           <div>
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Geographic Distribution</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Region:</span>
-                <span className="text-sm text-gray-900 dark:text-gray-100" data-testid="text-region">
+                <span className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-1" data-testid="text-region">
                   {language.region || 'Unknown'}
+                  <SuggestEditButton
+                    entityType="language"
+                    entityId={languageId}
+                    fieldName="region"
+                    fieldLabel="Region"
+                    currentValue={language.region || ''}
+                  />
                 </span>
               </div>
               {language.countries && language.countries.length > 0 && (
@@ -431,6 +478,9 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             )}
           </div>
 
+          {/* Contributor Attribution */}
+          <ContributorAttribution entityType="language" entityId={languageId} />
+
           {/* Complete Word List */}
           {showWordList && (
             <div>
@@ -455,35 +505,19 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
                   </div>
                 </Card>
               ) : (
-                <Card className="max-h-96 overflow-y-auto">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
-                      <tr>
-                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">English</th>
-                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">{language.name}</th>
-                        <th className="text-left p-2 font-medium text-gray-700 dark:text-gray-300">IPA</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {wordList.map((word, index) => (
-                        <tr
-                          key={word.conceptId}
-                          className={index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}
-                          data-testid={`word-${index}`}
-                        >
-                          <td className="p-2 text-gray-600 dark:text-gray-400">
-                            {word.baseWord}
-                          </td>
-                          <td className="p-2 text-gray-900 dark:text-gray-100 font-medium">
-                            {word.translation || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
-                          </td>
-                          <td className="p-2 text-gray-700 dark:text-gray-300 font-mono text-xs">
-                            {word.ipa || <span className="text-gray-400 dark:text-gray-600 italic">—</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <Card className="overflow-hidden">
+                  <div className="grid grid-cols-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+                    <div className="text-left p-2 text-sm font-medium text-gray-700 dark:text-gray-300">English</div>
+                    <div className="text-left p-2 text-sm font-medium text-gray-700 dark:text-gray-300">{language.name}</div>
+                    <div className="text-left p-2 text-sm font-medium text-gray-700 dark:text-gray-300">IPA</div>
+                  </div>
+                  <VirtualList
+                    style={{ height: Math.min(wordList.length * 36, 384) }}
+                    rowCount={wordList.length}
+                    rowHeight={36}
+                    rowProps={{ words: wordList } as any}
+                    rowComponent={WordRow as any}
+                  />
                 </Card>
               )}
             </div>

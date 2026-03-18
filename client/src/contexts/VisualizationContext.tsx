@@ -6,10 +6,14 @@ import type {
   VisualizationFilters,
   TemporalState,
 } from '../lib/visualization/types';
+import { parseShareableState } from '../hooks/useShareableState';
+
+// Read URL state once at module load
+const urlState = parseShareableState();
 
 // Initial temporal state
 const initialTemporalState: TemporalState = {
-  currentYear: new Date().getFullYear(),
+  currentYear: urlState.year ?? new Date().getFullYear(),
   isPlaying: false,
   playbackSpeed: 100, // years per second
   stepSize: 100,
@@ -20,14 +24,14 @@ const initialTemporalState: TemporalState = {
 
 // Initial state
 const initialState: VisualizationState = {
-  currentView: 'tree',
-  selectedLanguageIds: new Set(),
-  selectedFamilyIds: new Set(),
+  currentView: urlState.view ?? 'tree',
+  selectedLanguageIds: new Set(urlState.selectedLanguages ?? []),
+  selectedFamilyIds: new Set(urlState.selectedFamilies ?? []),
   highlightedNodeId: null,
   filters: {
-    searchQuery: '',
-    status: [],
-    region: '',
+    searchQuery: urlState.searchQuery ?? '',
+    status: urlState.filterStatus ?? [],
+    region: urlState.filterRegion ?? '',
     dataSource: [],
     timeRange: [null, null],
     speakerRange: [null, null],

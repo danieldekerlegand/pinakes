@@ -156,11 +156,17 @@ export type LayerType =
   | 'archaeological-sites'
   | 'civilizations'
   | 'routes'
+  | 'battles'
   | 'material-culture'
   | 'material-culture-heatmap'
   | 'cuisines'
   | 'music'
-  | 'religions';
+  | 'religions'
+  | 'haplogroups'
+  | 'language-contacts'
+  | 'genetic-linguistic-correlation'
+  | 'foodway-events'
+  | 'kinship-systems';
 
 export type LayerCategory =
   | 'languages'
@@ -170,7 +176,8 @@ export type LayerCategory =
   | 'culture'
   | 'cuisines'
   | 'music'
-  | 'religions';
+  | 'religions'
+  | 'genetics';
 
 export interface PolygonStyle {
   fillColor?: string;
@@ -382,6 +389,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
     },
   },
   {
+    id: 'battles',
+    type: 'battles',
+    category: 'archaeology',
+    name: 'Historical Battles',
+    visible: false,
+    opacity: 0.9,
+    zIndex: 300,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.9,
+        strokeWeight: 2,
+      },
+    },
+  },
+  {
     id: 'material-culture',
     type: 'material-culture',
     category: 'culture',
@@ -465,5 +488,133 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         strokeWeight: 2,
       },
     },
+  },
+  {
+    id: 'haplogroups',
+    type: 'haplogroups',
+    category: 'genetics',
+    name: 'Haplogroup Distributions',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 90,
+    renderStyle: {
+      marker: {
+        size: 10,
+        opacity: 0.7,
+        strokeWeight: 2,
+      },
+    },
+  },
+  {
+    id: 'language-contacts',
+    type: 'language-contacts',
+    category: 'languages',
+    name: 'Language Contacts',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 180,
+    renderStyle: {
+      line: {
+        weight: 2,
+        opacity: 0.7,
+      },
+    },
+  },
+  {
+    id: 'genetic-linguistic-correlation',
+    type: 'genetic-linguistic-correlation',
+    category: 'genetics',
+    name: 'Genetic-Linguistic Correlation',
+    visible: false,
+    opacity: 0.7,
+    zIndex: 85,
+    renderStyle: {
+      polygon: {
+        fillOpacity: 0.35,
+        strokeWeight: 2,
+        strokeOpacity: 0.8,
+      },
+    },
+  },
+  {
+    id: 'foodway-events',
+    type: 'foodway-events',
+    category: 'cuisines',
+    name: 'Foodway Events',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 255,
+    renderStyle: {
+      line: {
+        weight: 3,
+        opacity: 0.8,
+      },
+    },
+  },
+  {
+    id: 'kinship-systems',
+    type: 'kinship-systems',
+    category: 'culture',
+    name: 'Kinship Systems',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 275,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.8,
+        strokeWeight: 2,
+      },
+    },
+  },
+];
+
+// ============================================================================
+// Layer Presets
+// ============================================================================
+
+export interface LayerPreset {
+  id: string;
+  name: string;
+  description: string;
+  layers: string[]; // Layer IDs to enable
+}
+
+export const LAYER_PRESETS: LayerPreset[] = [
+  {
+    id: 'linguistic-atlas',
+    name: 'Linguistic Atlas',
+    description: 'Language ranges, writing systems, and related archaeology',
+    layers: ['language-ranges', 'archaeological-sites'],
+  },
+  {
+    id: 'political-history',
+    name: 'Political History',
+    description: 'Civilizations, battles, and conquest routes',
+    layers: ['civilizations', 'battles', 'routes'],
+  },
+  {
+    id: 'cultural-diffusion',
+    name: 'Cultural Diffusion',
+    description: 'Music, religions, cuisines, and material culture',
+    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
+  },
+  {
+    id: 'trade-economy',
+    name: 'Trade & Economy',
+    description: 'Trade routes, material culture, and cuisine regions',
+    layers: ['routes', 'cuisines', 'material-culture', 'foodway-events'],
+  },
+  {
+    id: 'genetic-linguistic',
+    name: 'Genetic-Linguistic',
+    description: 'Haplogroup distributions overlaid with language family ranges',
+    layers: ['language-ranges', 'haplogroups', 'genetic-linguistic-correlation'],
+  },
+  {
+    id: 'all-layers',
+    name: 'All Layers',
+    description: 'Show everything',
+    layers: [], // Special: empty means show all
   },
 ];

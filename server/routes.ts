@@ -14,6 +14,15 @@ import {
 } from "./services/linguistic-distance-calculator";
 import { traceEtymology, traceDescendants } from "./services/etymology-trace";
 import { analyzeTextOrigins } from "./services/text-etymology-analyzer";
+import {
+  computeEnhancedDistance,
+  computePhonologicalDistance,
+  computeGrammaticalDistance,
+  findNearestByDimension,
+  type ComparisonMode,
+  type EnhancedPairwiseResult,
+} from "./services/linguistic-distance-enhanced";
+import { globalSearch } from "./services/global-search";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -125,18 +134,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const comparisons = await storage.getWordComparisons(languageIds);
-      res.json(comparisons);
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      if (limit !== undefined) {
+        const paginatedItems = comparisons.slice(offset, offset + limit);
+        res.json({ items: paginatedItems, total: comparisons.length, limit, offset });
+      } else {
+        res.json(comparisons);
+      }
     } catch (error) {
       console.error("Error in /api/word-comparisons endpoint:", error);
       res.status(500).json({ message: "Failed to fetch word comparisons" });
     }
   });
 
-  // Language Word List
+  // Language Word List (with optional pagination)
   app.get("/api/languages/:id/word-list", async (req, res) => {
     try {
       const wordList = await storage.getLanguageWordList(req.params.id);
-      res.json(wordList);
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      if (limit !== undefined) {
+        const paginatedItems = wordList.slice(offset, offset + limit);
+        res.json({ items: paginatedItems, total: wordList.length, limit, offset });
+      } else {
+        res.json(wordList);
+      }
     } catch (error) {
       console.error("Error in /api/languages/:id/word-list endpoint:", error);
       res.status(500).json({ message: "Failed to fetch language word list" });
@@ -535,6 +560,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Enhanced Linguistic Distance Endpoints (multi-dimensional)
+  // ============================================================================
+
+  // Enhanced pairwise distance with comparison modes
+  app.post("/api/linguistic-distance/enhanced/pairwise", async (req, res) => {
+    try {
+      const { language1Id, language2Id, mode } = req.body;
+
+      if (!language1Id || !language2Id) {
+        return res.status(400).json({
+          message: "Both language1Id and language2Id are required"
+        });
+      }
+
+      const validModes: ComparisonMode[] = ['vocabulary', 'phonological', 'grammatical', 'combined'];
+      const selectedMode: ComparisonMode = validModes.includes(mode) ? mode : 'combined';
+
+      const languages = await storage.getLanguages();
+      const lang1 = languages.find(l => l.id === language1Id);
+      const lang2 = languages.find(l => l.id === language2Id);
+
+      if (!lang1 || !lang2) {
+        return res.status(404).json({ message: "One or both languages not found" });
+      }
+
+      // Get vocabulary distance if needed
+      let vocabDistance: number | undefined;
+      if (selectedMode === 'vocabulary' || selectedMode === 'combined') {
+        try {
+          const pairwise = await calculatePairwiseDistance(lang1, lang2);
+          vocabDistance = pairwise.lexical.ldnd >= 0 ? pairwise.lexical.ldnd : undefined;
+        } catch {
+          // vocabulary data might not be available
+        }
+      }
+
+      const result = await computeEnhancedDistance(language1Id, language2Id, vocabDistance);
+
+      // Build similarity description
+      const descriptions: string[] = [];
+      if (result.distances.grammatical !== null) {
+        const gramSim = Math.round((1 - result.distances.grammatical) * 100);
+        descriptions.push(`${gramSim}% similar grammatically`);
+      }
+      if (result.distances.phonological !== null) {
+        const phonSim = Math.round((1 - result.distances.phonological) * 100);
+        descriptions.push(`${phonSim}% similar phonologically`);
+      }
+      if (result.distances.vocabulary !== null && result.distances.vocabulary >= 0) {
+        const vocabSim = Math.round((1 - result.distances.vocabulary) * 100);
+        descriptions.push(`${vocabSim}% similar in vocabulary`);
+      }
+
+      res.json({
+        ...result,
+        language1: lang1,
+        language2: lang2,
+        mode: selectedMode,
+        description: descriptions.length > 0
+          ? `${lang1.name} and ${lang2.name} are ${descriptions.join(' but ')}`
+          : `Insufficient data to compare ${lang1.name} and ${lang2.name}`,
+      });
+    } catch (error) {
+      console.error("Error calculating enhanced pairwise distance:", error);
+      res.status(500).json({
+        message: "Failed to calculate enhanced distance",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Enhanced nearest neighbors filtered by dimension
+  app.get("/api/linguistic-distance/enhanced/nearest/:languageId", async (req, res) => {
+    try {
+      const { languageId } = req.params;
+      const k = parseInt(req.query.k as string) || 10;
+      const mode = (req.query.mode as ComparisonMode) || 'combined';
+
+      const validModes: ComparisonMode[] = ['vocabulary', 'phonological', 'grammatical', 'combined'];
+      if (!validModes.includes(mode)) {
+        return res.status(400).json({ message: "mode must be one of: vocabulary, phonological, grammatical, combined" });
+      }
+
+      if (k < 1 || k > 100) {
+        return res.status(400).json({ message: "k must be between 1 and 100" });
+      }
+
+      const languages = await storage.getLanguages();
+      const targetLanguage = languages.find(l => l.id === languageId);
+
+      if (!targetLanguage) {
+        return res.status(404).json({ message: "Language not found" });
+      }
+
+      // For vocabulary mode, use existing calculator
+      if (mode === 'vocabulary') {
+        const results = await findNearestLanguages(targetLanguage, languages, k);
+        res.json({
+          targetLanguage,
+          mode,
+          nearestLanguages: results.map(r => ({
+            language: r.language2,
+            distance: r.lexical.ldnd,
+          })),
+          count: results.length,
+        });
+        return;
+      }
+
+      const results = await findNearestByDimension(languageId, mode, k);
+
+      // Resolve language objects
+      const enrichedResults = results.map(r => ({
+        language: languages.find(l => l.id === r.languageId) || { id: r.languageId, name: r.languageId },
+        distance: r.distance,
+      }));
+
+      res.json({
+        targetLanguage,
+        mode,
+        nearestLanguages: enrichedResults,
+        count: enrichedResults.length,
+      });
+    } catch (error) {
+      console.error("Error finding enhanced nearest languages:", error);
+      res.status(500).json({
+        message: "Failed to find nearest languages",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Geospatial Map Data Endpoints
   // ============================================================================
 
@@ -671,6 +829,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching material cultures:", error);
       res.status(500).json({
         message: "Failed to fetch material cultures",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Get all material culture items with optional category filter
+  app.get("/api/material-culture", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const filters = {
+        category: category as string | undefined,
+      };
+      const items = await storage.getMaterialCultures(filters);
+      res.json({ items, count: items.length });
+    } catch (error) {
+      console.error("Error fetching material culture:", error);
+      res.status(500).json({
+        message: "Failed to fetch material culture",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Get a single material culture item by ID
+  app.get("/api/material-culture/:id", async (req, res) => {
+    try {
+      const item = await storage.getMaterialCultureById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Material culture item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching material culture item:", error);
+      res.status(500).json({
+        message: "Failed to fetch material culture item",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1195,6 +1388,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Cross-Domain Correlation API Routes (Phase 4)
+  // ============================================================================
+
+  const { CrossDomainCorrelation } = await import("./services/cross-domain-correlation");
+  const correlation = new CrossDomainCorrelation(storage);
+
+  /**
+   * POST /api/cross-domain/correlate - Compute correlations between two domains
+   */
+  app.post("/api/cross-domain/correlate", async (req, res) => {
+    try {
+      const { domainA, domainB, relationshipType } = req.body;
+      if (!domainA || !domainB || !relationshipType) {
+        res.status(400).json({
+          message: "Missing required fields: domainA, domainB, relationshipType",
+        });
+        return;
+      }
+
+      const result = await correlation.queryCorrelation(domainA, domainB, relationshipType);
+      res.json(result);
+    } catch (error) {
+      console.error("Error computing cross-domain correlation:", error);
+      res.status(500).json({
+        message: "Failed to compute correlation",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cross-domain/prebuilt-queries - Get list of pre-built correlation queries
+   */
+  app.get("/api/cross-domain/prebuilt-queries", async (_req, res) => {
+    try {
+      const queries = correlation.getPrebuiltQueries();
+      res.json({ queries, count: queries.length });
+    } catch (error) {
+      console.error("Error fetching prebuilt queries:", error);
+      res.status(500).json({
+        message: "Failed to fetch prebuilt queries",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Genetic-Linguistic Correlation Routes (Phase 4)
+  // ============================================================================
+
+  const { GeneticLinguisticCorrelationService } = await import("./services/genetic-linguistic-correlation");
+  const geneticLinguistic = new GeneticLinguisticCorrelationService(storage as any);
+
+  /**
+   * GET /api/genetic-linguistic-correlations - Compute genetic-linguistic correlations
+   * Query params: haplogroupType (optional) - 'Y-chromosome' or 'mtDNA'
+   */
+  app.get("/api/genetic-linguistic-correlations", async (req, res) => {
+    try {
+      const haplogroupType = req.query.haplogroupType as string | undefined;
+      const result = await geneticLinguistic.computeCorrelations(haplogroupType);
+      res.json(result);
+    } catch (error) {
+      console.error("Error computing genetic-linguistic correlations:", error);
+      res.status(500).json({
+        message: "Failed to compute genetic-linguistic correlations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Contribution API Routes (Phase 5)
   // ============================================================================
 
@@ -1254,6 +1519,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error listing contributions:", error);
       res.status(500).json({
         message: "Failed to list contributions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/contributions/export - Export contributions as CSV
+   */
+  app.get("/api/contributions/export", async (_req, res) => {
+    try {
+      const csv = contributions.exportCsv();
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=contributions.csv");
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting contributions:", error);
+      res.status(500).json({
+        message: "Failed to export contributions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/contributions/entity/:entityType/:entityId - Get approved contributions for an entity
+   */
+  app.get("/api/contributions/entity/:entityType/:entityId", async (req, res) => {
+    try {
+      const contribs = contributions.getByEntity(req.params.entityType, req.params.entityId);
+      res.json({ contributions: contribs });
+    } catch (error) {
+      console.error("Error getting entity contributions:", error);
+      res.status(500).json({
+        message: "Failed to get entity contributions",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1345,6 +1644,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts",
+
+  // Phonological Inventories
+  // ============================================================================
+
+  /**
+   * GET /api/phonological-inventories - Get all phonological inventories
+   */
+  app.get("/api/phonological-inventories", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const inventories = await storage.getPhonologicalInventories(languageId);
+      res.json({
+        inventories,
+        count: inventories.length,
+      });
+    } catch (error) {
+      console.error("Error fetching phonological inventories:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventories",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1365,6 +1683,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample text:", error);
       res.status(500).json({
         message: "Failed to fetch sample text",
+
+   * GET /api/phonological-inventories/:id - Get a single phonological inventory
+   */
+  app.get("/api/phonological-inventories/:id", async (req, res) => {
+    try {
+      const inventory = await storage.getPhonologicalInventory(req.params.id);
+      if (!inventory) {
+        res.status(404).json({ message: `Phonological inventory '${req.params.id}' not found` });
+        return;
+      }
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching phonological inventory:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventory",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1385,6 +1718,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching language sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts for language",
+
+   * GET /api/languages/:id/phonological-inventory - Get inventory for a specific language
+   */
+  app.get("/api/languages/:id/phonological-inventory", async (req, res) => {
+    try {
+      const inventory = await storage.getPhonologicalInventoryByLanguage(req.params.id);
+      if (!inventory) {
+        res.status(404).json({ message: `No phonological inventory found for language '${req.params.id}'` });
+        return;
+      }
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching phonological inventory for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch phonological inventory for language",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1417,6 +1765,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations",
+
+  // Grammar Features Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/grammar-features - Get all grammar features
+   */
+  app.get("/api/grammar-features", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const wordOrder = req.query.word_order as string | undefined;
+      const morphologicalType = req.query.morphological_type as string | undefined;
+      const features = await storage.getGrammarFeatures(languageId, wordOrder, morphologicalType);
+      res.json({
+        features,
+        count: features.length,
+      });
+    } catch (error) {
+      console.error("Error fetching grammar features:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1437,6 +1806,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations for word:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations for word",
+
+   * GET /api/grammar-features/:id - Get a single grammar features entry
+   */
+  app.get("/api/grammar-features/:id", async (req, res) => {
+    try {
+      const feature = await storage.getGrammarFeaturesById(req.params.id);
+      if (!feature) {
+        res.status(404).json({ message: `Grammar features '${req.params.id}' not found` });
+        return;
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error("Error fetching grammar features:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1467,6 +1851,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error tracing etymology:", error);
       res.status(500).json({
         message: "Failed to trace etymology",
+
+   * GET /api/languages/:id/grammar-features - Get grammar features for a specific language
+   */
+  app.get("/api/languages/:id/grammar-features", async (req, res) => {
+    try {
+      const feature = await storage.getGrammarFeaturesByLanguage(req.params.id);
+      if (!feature) {
+        res.status(404).json({ message: `No grammar features found for language '${req.params.id}'` });
+        return;
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error("Error fetching grammar features for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch grammar features for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/writing-systems - Get all writing systems
+   */
+  app.get("/api/writing-systems", async (req, res) => {
+    try {
+      const type = req.query.type as string | undefined;
+      const direction = req.query.direction as string | undefined;
+      const isActive = req.query.is_active as string | undefined;
+      const systems = await storage.getWritingSystems(type, direction, isActive);
+      res.json({
+        systems,
+        count: systems.length,
+      });
+    } catch (error) {
+      console.error("Error fetching writing systems:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing systems",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -1491,6 +1912,523 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error analyzing text origins:", error);
       res.status(500).json({
         message: "Failed to analyze text origins",
+
+   * GET /api/writing-systems/:id - Get a single writing system
+   */
+  app.get("/api/writing-systems/:id", async (req, res) => {
+    try {
+      const system = await storage.getWritingSystemById(req.params.id);
+      if (!system) {
+        res.status(404).json({ message: `Writing system '${req.params.id}' not found` });
+        return;
+      }
+      res.json(system);
+    } catch (error) {
+      console.error("Error fetching writing system:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing system",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/writing-systems/:id/descendants - Get all descendants of a writing system
+   */
+  app.get("/api/writing-systems/:id/descendants", async (req, res) => {
+    try {
+      const parent = await storage.getWritingSystemById(req.params.id);
+      if (!parent) {
+        res.status(404).json({ message: `Writing system '${req.params.id}' not found` });
+        return;
+      }
+      const descendants = await storage.getWritingSystemDescendants(req.params.id);
+      res.json({
+        parent,
+        descendants,
+        count: descendants.length,
+      });
+    } catch (error) {
+      console.error("Error fetching writing system descendants:", error);
+      res.status(500).json({
+        message: "Failed to fetch writing system descendants",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Verb Paradigms Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/verb-paradigms - Get all verb paradigms
+   */
+  app.get("/api/verb-paradigms", async (req, res) => {
+    try {
+      const languageId = req.query.language_id as string | undefined;
+      const verbConcept = req.query.verb_concept as string | undefined;
+      const paradigms = await storage.getVerbParadigms(languageId, verbConcept);
+      res.json({
+        paradigms,
+        count: paradigms.length,
+      });
+    } catch (error) {
+      console.error("Error fetching verb paradigms:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigms",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/verb-paradigms/:id - Get a single verb paradigm
+   */
+  app.get("/api/verb-paradigms/:id", async (req, res) => {
+    try {
+      const paradigm = await storage.getVerbParadigmById(req.params.id);
+      if (!paradigm) {
+        res.status(404).json({ message: `Verb paradigm '${req.params.id}' not found` });
+        return;
+      }
+      res.json(paradigm);
+    } catch (error) {
+      console.error("Error fetching verb paradigm:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigm",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/verb-paradigms - Get verb paradigms for a specific language
+   */
+  app.get("/api/languages/:id/verb-paradigms", async (req, res) => {
+    try {
+      const paradigms = await storage.getVerbParadigmsByLanguage(req.params.id);
+      if (paradigms.length === 0) {
+        res.status(404).json({ message: `No verb paradigms found for language '${req.params.id}'` });
+        return;
+      }
+      res.json({
+        paradigms,
+        count: paradigms.length,
+      });
+    } catch (error) {
+      console.error("Error fetching verb paradigms for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch verb paradigms for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/battles - Get all battles
+   */
+  app.get("/api/battles", async (req, res) => {
+    try {
+      const warName = req.query.war_name as string | undefined;
+      const startDate = req.query.start_date as string | undefined;
+      const endDate = req.query.end_date as string | undefined;
+      const civilizationId = req.query.civilization_id as string | undefined;
+      const battles = await storage.getBattles(warName, startDate, endDate, civilizationId);
+      res.json({
+        battles,
+        count: battles.length,
+      });
+    } catch (error) {
+      console.error("Error fetching battles:", error);
+      res.status(500).json({
+        message: "Failed to fetch battles",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/battles/:id - Get a single battle
+   */
+  app.get("/api/battles/:id", async (req, res) => {
+    try {
+      const battle = await storage.getBattleById(req.params.id);
+      if (!battle) {
+        res.status(404).json({ message: `Battle '${req.params.id}' not found` });
+        return;
+      }
+      res.json(battle);
+    } catch (error) {
+      console.error("Error fetching battle:", error);
+      res.status(500).json({
+        message: "Failed to fetch battle",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/migration-routes - Get all migration routes
+   */
+  app.get("/api/migration-routes", async (req, res) => {
+    try {
+      const routeType = req.query.route_type as string | undefined;
+      const startDate = req.query.start_date as string | undefined;
+      const endDate = req.query.end_date as string | undefined;
+      const routes = await storage.getMigrationRoutes(routeType, startDate, endDate);
+      res.json({
+        routes,
+        count: routes.length,
+      });
+    } catch (error) {
+      console.error("Error fetching migration routes:", error);
+      res.status(500).json({
+        message: "Failed to fetch migration routes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/migration-routes/:id - Get a single migration route
+   */
+  app.get("/api/migration-routes/:id", async (req, res) => {
+    try {
+      const route = await storage.getMigrationRouteById(req.params.id);
+      if (!route) {
+        res.status(404).json({ message: `Migration route '${req.params.id}' not found` });
+        return;
+      }
+      res.json(route);
+    } catch (error) {
+      console.error("Error fetching migration route:", error);
+      res.status(500).json({
+        message: "Failed to fetch migration route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/language-contacts - Get all language contact events
+   */
+  app.get("/api/language-contacts", async (req, res) => {
+    try {
+      const sourceLanguageId = req.query.source_language_id as string | undefined;
+      const targetLanguageId = req.query.target_language_id as string | undefined;
+      const contactType = req.query.contact_type as string | undefined;
+      const intensity = req.query.intensity as string | undefined;
+      const contacts = await storage.getLanguageContacts(sourceLanguageId, targetLanguageId, contactType, intensity);
+      res.json({
+        contacts,
+        count: contacts.length,
+      });
+    } catch (error) {
+      console.error("Error fetching language contacts:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contacts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/language-contacts/:id - Get a single language contact event
+   */
+  app.get("/api/language-contacts/:id", async (req, res) => {
+    try {
+      const contact = await storage.getLanguageContactById(req.params.id);
+      if (!contact) {
+        res.status(404).json({ message: `Language contact '${req.params.id}' not found` });
+        return;
+      }
+      res.json(contact);
+    } catch (error) {
+      console.error("Error fetching language contact:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contact",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/languages/:id/contacts - Get all contact events involving a specific language
+   */
+  app.get("/api/languages/:id/contacts", async (req, res) => {
+    try {
+      const contacts = await storage.getLanguageContactsByLanguage(req.params.id);
+      if (contacts.length === 0) {
+        res.status(404).json({ message: `No language contacts found for language '${req.params.id}'` });
+        return;
+      }
+      res.json({
+        contacts,
+        count: contacts.length,
+      });
+    } catch (error) {
+      console.error("Error fetching language contacts for language:", error);
+      res.status(500).json({
+        message: "Failed to fetch language contacts for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/sound-changes - Get all sound changes
+   */
+  app.get("/api/sound-changes", async (req, res) => {
+    try {
+      const { family_id, source_language_id, target_language_id } = req.query;
+      const changes = await storage.getSoundChanges(
+        family_id as string | undefined,
+        source_language_id as string | undefined,
+        target_language_id as string | undefined,
+      );
+      res.json({
+        changes,
+        count: changes.length,
+      });
+    } catch (error) {
+      console.error("Error fetching sound changes:", error);
+      res.status(500).json({
+        message: "Failed to fetch sound changes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/sound-changes/:id - Get a single sound change
+   */
+  app.get("/api/sound-changes/:id", async (req, res) => {
+    try {
+      const change = await storage.getSoundChangeById(req.params.id);
+      if (!change) {
+        res.status(404).json({ message: `Sound change '${req.params.id}' not found` });
+        return;
+      }
+      res.json(change);
+    } catch (error) {
+      console.error("Error fetching sound change:", error);
+      res.status(500).json({
+        message: "Failed to fetch sound change",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/foodway-events - Get all foodway events with optional filtering
+   */
+  app.get("/api/foodway-events", async (req, res) => {
+    try {
+      const foodItem = req.query.food_item as string | undefined;
+      const mechanism = req.query.mechanism as string | undefined;
+      const dateStart = req.query.date_start ? parseInt(req.query.date_start as string, 10) : undefined;
+      const dateEnd = req.query.date_end ? parseInt(req.query.date_end as string, 10) : undefined;
+      const events = await storage.getFoodwayEvents({ foodItem, mechanism, dateStart, dateEnd });
+      res.json({ events, count: events.length });
+    } catch (error) {
+      console.error("Error fetching foodway events:", error);
+      res.status(500).json({
+        message: "Failed to fetch foodway events",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/foodway-events/:id - Get a single foodway event
+   */
+  app.get("/api/foodway-events/:id", async (req, res) => {
+    try {
+      const event = await storage.getFoodwayEventById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "Foodway event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching foodway event:", error);
+      res.status(500).json({
+        message: "Failed to fetch foodway event",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/art-traditions - Get all art traditions with optional filtering
+   */
+  app.get("/api/art-traditions", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const stylePeriod = req.query.style_period as string | undefined;
+      const traditions = await storage.getArtTraditions({ category, stylePeriod });
+      res.json({ traditions, count: traditions.length });
+    } catch (error) {
+      console.error("Error fetching art traditions:", error);
+      res.status(500).json({
+        message: "Failed to fetch art traditions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/art-traditions/:id - Get a single art tradition
+   */
+  app.get("/api/art-traditions/:id", async (req, res) => {
+    try {
+      const tradition = await storage.getArtTraditionById(req.params.id);
+      if (!tradition) {
+        return res.status(404).json({ message: "Art tradition not found" });
+      }
+      res.json(tradition);
+    } catch (error) {
+      console.error("Error fetching art tradition:", error);
+      res.status(500).json({
+        message: "Failed to fetch art tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/kinship-systems - Get all kinship systems with optional filtering
+   */
+  app.get("/api/kinship-systems", async (req, res) => {
+    try {
+      const systemType = req.query.system_type as string | undefined;
+      const descentRule = req.query.descent_rule as string | undefined;
+      const systems = await storage.getKinshipSystems({ systemType, descentRule });
+      res.json({ systems, count: systems.length });
+    } catch (error) {
+      console.error("Error fetching kinship systems:", error);
+      res.status(500).json({
+        message: "Failed to fetch kinship systems",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/kinship-systems/:id - Get a single kinship system
+   */
+  app.get("/api/kinship-systems/:id", async (req, res) => {
+    try {
+      const system = await storage.getKinshipSystemById(req.params.id);
+      if (!system) {
+        return res.status(404).json({ message: "Kinship system not found" });
+      }
+      res.json(system);
+    } catch (error) {
+      console.error("Error fetching kinship system:", error);
+      res.status(500).json({
+        message: "Failed to fetch kinship system",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/trade-goods - Get all trade goods with optional filtering
+   */
+  app.get("/api/trade-goods", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const timePeriod = req.query.time_period as string | undefined;
+      const goods = await storage.getTradeGoods({ category, timePeriod });
+      res.json({ goods, count: goods.length });
+    } catch (error) {
+      console.error("Error fetching trade goods:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade goods",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/trade-goods/:id - Get a single trade good
+   */
+  app.get("/api/trade-goods/:id", async (req, res) => {
+    try {
+      const good = await storage.getTradeGoodById(req.params.id);
+      if (!good) {
+        return res.status(404).json({ message: "Trade good not found" });
+      }
+      res.json(good);
+    } catch (error) {
+      console.error("Error fetching trade good:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade good",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Narratives Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/narratives - Get all narratives
+   */
+  app.get("/api/narratives", async (req, res) => {
+    try {
+      const narratives = await storage.getNarratives();
+      res.json({ narratives, count: narratives.length });
+    } catch (error) {
+      console.error("Error fetching narratives:", error);
+      res.status(500).json({
+        message: "Failed to fetch narratives",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/narratives/:id - Get a single narrative with all steps
+   */
+  app.get("/api/narratives/:id", async (req, res) => {
+    try {
+      const narrative = await storage.getNarrativeById(req.params.id);
+      if (!narrative) {
+        return res.status(404).json({ message: "Narrative not found" });
+      }
+      res.json(narrative);
+    } catch (error) {
+      console.error("Error fetching narrative:", error);
+      res.status(500).json({
+        message: "Failed to fetch narrative",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Global Search Endpoint
+  // ============================================================================
+
+  /**
+   * GET /api/search?q=query - Unified search across all data domains
+   */
+  app.get("/api/search", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: "", totalCount: 0 });
+        return;
+      }
+      const result = await globalSearch(q);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in global search:", error);
+      res.status(500).json({
+        message: "Failed to perform search",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
