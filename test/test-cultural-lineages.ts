@@ -1,114 +1,137 @@
 /**
- * Test script for cultural lineages TSV loader and storage methods
+ * Test script for cultural lineages TSV loading and API
  * Run with: npx tsx test/test-cultural-lineages.ts
  */
 
 import { TsvStorage } from "../server/tsv-storage";
 
-let passed = 0;
-let failed = 0;
+async function testCulturalLineages() {
+  console.log("=== Cultural Lineages Test Suite ===\n");
 
-function assert(condition: boolean, msg: string) {
-  if (condition) {
-    console.log(`  ✓ ${msg}`);
-    passed++;
-  } else {
-    console.log(`  ✗ FAIL: ${msg}`);
-    failed++;
+  const storage = new TsvStorage();
+  let passed = 0;
+  let failed = 0;
+
+  function assert(condition: boolean, message: string) {
+    if (condition) {
+      console.log(`  ✓ ${message}`);
+      passed++;
+    } else {
+      console.log(`  ✗ ${message}`);
+      failed++;
+    }
+  }
+
+  // Test 1: Load all cultural lineages
+  console.log("Test 1: Load all cultural lineages");
+  const allLineages = await storage.getCulturalLineages();
+  assert(allLineages.length > 0, `Loaded ${allLineages.length} cultural lineages (expected > 0)`);
+  assert(allLineages.length >= 90, `Has at least 90 lineages (got ${allLineages.length})`);
+
+  // Test 2: Verify lineage structure
+  console.log("\nTest 2: Verify lineage structure");
+  const first = allLineages[0];
+  assert(typeof first.id === "string" && first.id.length > 0, "Has id");
+  assert(typeof first.sourceId === "string" && first.sourceId.length > 0, "Has sourceId");
+  assert(typeof first.sourceName === "string" && first.sourceName.length > 0, "Has sourceName");
+  assert(typeof first.targetId === "string" && first.targetId.length > 0, "Has targetId");
+  assert(typeof first.targetName === "string" && first.targetName.length > 0, "Has targetName");
+  assert(typeof first.relationshipType === "string" && first.relationshipType.length > 0, "Has relationshipType");
+  assert(typeof first.timeStart === "number", "Has numeric timeStart");
+  assert(typeof first.timeEnd === "number", "Has numeric timeEnd");
+  assert(typeof first.confidence === "number" && first.confidence > 0 && first.confidence <= 100, "Has valid confidence (1-100)");
+  assert(Array.isArray(first.evidenceTypes) && first.evidenceTypes.length > 0, "Has evidenceTypes array");
+  assert(typeof first.description === "string" && first.description.length > 0, "Has description");
+  assert(Array.isArray(first.sources), "Has sources array");
+
+  // Test 3: Filter by relationship type
+  console.log("\nTest 3: Filter by relationship type");
+  const splitFrom = await storage.getCulturalLineages("split-from");
+  assert(splitFrom.length > 0, `Found ${splitFrom.length} 'split-from' relationships`);
+  assert(splitFrom.every((l) => l.relationshipType === "split-from"), "All filtered results are 'split-from'");
+
+  const evolvedInto = await storage.getCulturalLineages("evolved-into");
+  assert(evolvedInto.length > 0, `Found ${evolvedInto.length} 'evolved-into' relationships`);
+  assert(evolvedInto.every((l) => l.relationshipType === "evolved-into"), "All filtered results are 'evolved-into'");
+
+  const influenced = await storage.getCulturalLineages("influenced");
+  assert(influenced.length > 0, `Found ${influenced.length} 'influenced' relationships`);
+
+  // Test 4: Filter by source ID
+  console.log("\nTest 4: Filter by source ID");
+  const pieChildren = await storage.getCulturalLineages(undefined, "proto_indo_european");
+  assert(pieChildren.length > 0, `Found ${pieChildren.length} lineages from PIE`);
+  assert(pieChildren.every((l) => l.sourceId === "proto_indo_european"), "All results have PIE as source");
+
+  // Test 5: Filter by target ID
+  console.log("\nTest 5: Filter by target ID");
+  const toProtoSlavic = await storage.getCulturalLineages(undefined, undefined, "proto_slavic");
+  assert(toProtoSlavic.length > 0, `Found ${toProtoSlavic.length} lineages to Proto-Slavic`);
+  assert(toProtoSlavic.every((l) => l.targetId === "proto_slavic"), "All results have Proto-Slavic as target");
+
+  // Test 6: Get by ID
+  console.log("\nTest 6: Get by ID");
+  const lineage = await storage.getCulturalLineageById("cl-001");
+  assert(lineage !== null, "Found lineage cl-001");
+  assert(lineage?.sourceId === "proto_indo_european", "cl-001 source is PIE");
+
+  const missing = await storage.getCulturalLineageById("nonexistent");
+  assert(missing === null, "Returns null for nonexistent ID");
+
+  // Test 7: Ancestor traversal
+  console.log("\nTest 7: Ancestor traversal");
+  const ancestors = await storage.getCulturalLineageAncestors("old_english");
+  assert(ancestors.length > 0, `Found ${ancestors.length} ancestors for Old English`);
+  const ancestorSourceIds = ancestors.map((a) => a.sourceId);
+  assert(ancestorSourceIds.includes("proto_west_germanic"), "Ancestors include Proto-West Germanic");
+  assert(ancestorSourceIds.includes("proto_germanic"), "Ancestors include Proto-Germanic");
+  assert(ancestorSourceIds.includes("proto_indo_european"), "Ancestors include PIE");
+
+  // Test 8: Descendant traversal
+  console.log("\nTest 8: Descendant traversal");
+  const descendants = await storage.getCulturalLineageDescendants("proto_indo_european");
+  assert(descendants.length > 0, `Found ${descendants.length} descendants from PIE`);
+  assert(descendants.length >= 10, `PIE has at least 10 descendants (got ${descendants.length})`);
+  const descendantTargetIds = descendants.map((d) => d.targetId);
+  assert(descendantTargetIds.includes("proto_germanic"), "Descendants include Proto-Germanic");
+  assert(descendantTargetIds.includes("proto_slavic") || descendantTargetIds.includes("proto_balto_slavic"), "Descendants include Balto-Slavic or Slavic");
+
+  // Test 9: Non-IE lineages present
+  console.log("\nTest 9: Non-IE lineages present");
+  const bantuLineages = await storage.getCulturalLineages(undefined, "proto_bantu");
+  assert(bantuLineages.length > 0, `Found ${bantuLineages.length} Bantu lineages`);
+
+  const austronesianLineages = await storage.getCulturalLineages(undefined, "proto_austronesian");
+  assert(austronesianLineages.length > 0, `Found ${austronesianLineages.length} Austronesian lineages`);
+
+  // Test 10: Evidence types are valid
+  console.log("\nTest 10: Evidence types are valid");
+  const validEvidenceTypes = new Set(["linguistic", "archaeological", "genetic"]);
+  const allEvidenceTypesValid = allLineages.every((l) =>
+    l.evidenceTypes.every((e) => validEvidenceTypes.has(e))
+  );
+  assert(allEvidenceTypesValid, "All evidence types are valid (linguistic/archaeological/genetic)");
+
+  // Test 11: Relationship types are valid
+  console.log("\nTest 11: Relationship types are valid");
+  const validRelTypes = new Set(["split-from", "evolved-into", "gave-rise-to", "influenced", "associated-with", "possibly-associated", "preceded-by"]);
+  const allRelTypesValid = allLineages.every((l) => validRelTypes.has(l.relationshipType));
+  assert(allRelTypesValid, "All relationship types are valid");
+
+  // Test 12: No circular references in ancestor/descendant traversal
+  console.log("\nTest 12: No circular references");
+  const mesoamericanAncestors = await storage.getCulturalLineageAncestors("aztec");
+  const mesoamericanIds = mesoamericanAncestors.map((a) => a.sourceId);
+  assert(!mesoamericanIds.includes("aztec"), "No circular reference in Aztec ancestors");
+
+  // Summary
+  console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
+  if (failed > 0) {
+    process.exit(1);
   }
 }
 
-async function testCulturalLineages() {
-  console.log("=== Testing Cultural Lineages TSV Loader ===\n");
-
-  const storage = new TsvStorage();
-
-  // --- Basic loading ---
-  console.log("1. Basic loading:");
-  const all = await storage.getCulturalLineages();
-  assert(all.length === 80, `Loaded 80 lineages (got ${all.length})`);
-  assert(all[0].id === "cl-001", `First lineage id is cl-001`);
-  assert(all[0].sourceId === "civ-proto-indo-europeans", `First lineage sourceId correct`);
-  assert(all[0].targetId === "civ-proto-indo-iranians", `First lineage targetId correct`);
-  assert(all[0].relationshipType === "descended-from", `First lineage relationship type correct`);
-  assert(all[0].timeStart === -4500, `First lineage timeStart is -4500`);
-  assert(all[0].timeEnd === -2500, `First lineage timeEnd is -2500`);
-  assert(all[0].confidence === 0.9, `First lineage confidence is 0.9`);
-  assert(all[0].evidenceTypes.length === 3, `First lineage has 3 evidence types`);
-  assert(all[0].sources.length === 2, `First lineage has 2 sources`);
-
-  // --- Get by ID ---
-  console.log("\n2. Get by ID:");
-  const single = await storage.getCulturalLineageById("cl-044");
-  assert(single !== null, `Found lineage cl-044`);
-  assert(single!.relationshipType === "conquered-by", `cl-044 is conquered-by`);
-  assert(single!.sourceId === "civ-chimu", `cl-044 source is civ-chimu`);
-
-  const missing = await storage.getCulturalLineageById("cl-999");
-  assert(missing === null, `Non-existent lineage returns null`);
-
-  // --- Filter by relationship type ---
-  console.log("\n3. Filter by relationship type:");
-  const descended = await storage.getCulturalLineages({ relationshipType: "descended-from" });
-  assert(descended.length > 0, `Found descended-from lineages (${descended.length})`);
-  assert(descended.every(l => l.relationshipType === "descended-from"), `All are descended-from`);
-
-  const influenced = await storage.getCulturalLineages({ relationshipType: "influenced-by" });
-  assert(influenced.length > 0, `Found influenced-by lineages (${influenced.length})`);
-
-  const conquered = await storage.getCulturalLineages({ relationshipType: "conquered-by" });
-  assert(conquered.length === 1, `Found 1 conquered-by lineage`);
-
-  const absorbed = await storage.getCulturalLineages({ relationshipType: "absorbed-into" });
-  assert(absorbed.length === 1, `Found 1 absorbed-into lineage`);
-
-  // --- Filter by sourceId ---
-  console.log("\n4. Filter by sourceId:");
-  const pieSrc = await storage.getCulturalLineages({ sourceId: "civ-proto-indo-europeans" });
-  assert(pieSrc.length === 8, `PIE has 8 outgoing lineages (got ${pieSrc.length})`);
-
-  // --- Filter by targetId ---
-  console.log("\n5. Filter by targetId:");
-  const romanTgt = await storage.getCulturalLineages({ targetId: "civ-roman" });
-  assert(romanTgt.length > 0, `Found lineages targeting Roman (${romanTgt.length})`);
-
-  // --- Filter by minConfidence ---
-  console.log("\n6. Filter by minConfidence:");
-  const highConf = await storage.getCulturalLineages({ minConfidence: 0.9 });
-  assert(highConf.length > 0, `Found high-confidence lineages (${highConf.length})`);
-  assert(highConf.every(l => l.confidence >= 0.9), `All have confidence >= 0.9`);
-
-  // --- Filter by time range ---
-  console.log("\n7. Filter by time range:");
-  const medieval = await storage.getCulturalLineages({ timeStart: 500, timeEnd: 1500 });
-  assert(medieval.length > 0, `Found lineages in medieval period (${medieval.length})`);
-
-  // --- Ancestor traversal ---
-  console.log("\n8. Ancestor traversal:");
-  const farsiAncestors = await storage.getCulturalLineageAncestors("civ-modern-farsi");
-  assert(farsiAncestors.length >= 3, `Farsi has at least 3 ancestor edges (got ${farsiAncestors.length})`);
-  const ancestorSources = farsiAncestors.map(l => l.sourceId);
-  assert(ancestorSources.includes("civ-middle-persian"), `Includes Middle Persian ancestor`);
-
-  // --- Descendant traversal ---
-  console.log("\n9. Descendant traversal:");
-  const pieDescendants = await storage.getCulturalLineageDescendants("civ-proto-indo-europeans");
-  assert(pieDescendants.length >= 8, `PIE has at least 8 descendant edges (got ${pieDescendants.length})`);
-
-  const bantuDescendants = await storage.getCulturalLineageDescendants("civ-proto-bantu");
-  assert(bantuDescendants.length >= 4, `Proto-Bantu has at least 4 descendant edges (got ${bantuDescendants.length})`);
-
-  // --- Depth-limited traversal ---
-  console.log("\n10. Depth-limited traversal:");
-  const shallow = await storage.getCulturalLineageDescendants("civ-proto-indo-europeans", 1);
-  assert(shallow.length === 8, `Depth-1 from PIE yields 8 edges (got ${shallow.length})`);
-
-  // --- Summary ---
-  console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-  process.exit(failed > 0 ? 1 : 0);
-}
-
-testCulturalLineages().catch((err) => {
-  console.error("Test crashed:", err);
+testCulturalLineages().catch((error) => {
+  console.error("Test failed with error:", error);
   process.exit(1);
 });

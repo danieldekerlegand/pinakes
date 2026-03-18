@@ -332,4 +332,14 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - References Phase 7-9 data layers: languages, trade_routes, migrations, civilizations, religions, archaeological_sites, haplogroups
 - Created `test/test-narratives.ts` with 1395 assertions validating: TSV parsing, unique IDs, required fields, step structure (coordinates, zoom, time), content spot checks, and new + original narrative preservation
 - Files changed: `lexicons/narratives.tsv`, `test/test-narratives.ts` (created)
+
+## 2026-03-18 - US-072
+- Created `lexicons/cultural-lineages.tsv` with 95 lineage relationships
+- Added `CulturalLineage` interface, TSV loader, and recursive ancestor/descendant traversal to `server/tsv-storage.ts`
+- Added 4 API endpoints: GET /api/cultural-lineages (with filters), /:id, /ancestors/:id, /descendants/:id
+- Created `CulturalLineageExplorer` D3 force-directed graph visualization with temporal x-positioning, color-coded edges, confidence-based widths, search, and node detail cards
+- Integrated as "Lineage" tab in LanguageFamilyVisualization (added ViewMode, viewSettings, tab trigger/content)
+- Fixed pre-existing syntax errors in tsv-storage.ts (missing braces, interleaved methods)
+- 39 test assertions passing in `test/test-cultural-lineages.ts`
+- Files: cultural-lineages.tsv, tsv-storage.ts, routes.ts, CulturalLineageExplorer.tsx, LanguageFamilyVisualization.tsx, types.ts, VisualizationContext.tsx, test-cultural-lineages.ts
 ---

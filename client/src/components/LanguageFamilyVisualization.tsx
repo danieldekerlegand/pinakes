@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, Suspense, lazy } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TreePine, Network, Clock, MapPin, Loader2, Link2, Plus } from 'lucide-react';
+import { TreePine, Network, Clock, MapPin, Loader2, Link2, Plus, GitBranch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card } from './ui/card';
 import { VisualizationProvider, useVisualization } from '../contexts/VisualizationContext';
@@ -34,6 +34,9 @@ const CrossDomainExplorer = lazy(() =>
 );
 const ContributionPanel = lazy(() =>
   import('./visualizations/ContributionPanel').then((m) => ({ default: m.ContributionPanel }))
+);
+const CulturalLineageExplorer = lazy(() =>
+  import('./visualizations/CulturalLineageExplorer').then((m) => ({ default: m.CulturalLineageExplorer }))
 );
 
 interface LanguageFamilyVisualizationProps {
@@ -159,7 +162,7 @@ function LanguageFamilyVisualizationContent({
         </div>
 
         <Tabs value={state.currentView} onValueChange={(value) => setView(value as any)}>
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-4" aria-label="Visualization views">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4" aria-label="Visualization views">
             <TabsTrigger value="tree" className="flex items-center gap-2" aria-label="Hierarchical Tree view">
               <TreePine className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Hierarchical Tree</span>
@@ -184,6 +187,11 @@ function LanguageFamilyVisualizationContent({
               <Link2 className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">Cross-Domain</span>
               <span className="sm:hidden">Explore</span>
+            </TabsTrigger>
+            <TabsTrigger value="lineage" className="flex items-center gap-2" aria-label="Cultural Lineage Explorer">
+              <GitBranch className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Lineage</span>
+              <span className="sm:hidden">Lineage</span>
             </TabsTrigger>
             <TabsTrigger value="contribute" className="flex items-center gap-2" aria-label="Contribute data">
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -270,6 +278,21 @@ function LanguageFamilyVisualizationContent({
               >
                 <div className="w-full h-[400px] md:h-[600px]" aria-label="Cross-domain explorer for correlating linguistic, cultural, and geographic data across languages.">
                   <CrossDomainExplorer />
+                </div>
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="lineage" className="mt-0">
+              <Suspense
+                fallback={
+                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+                    <span className="sr-only">Loading cultural lineage explorer</span>
+                  </div>
+                }
+              >
+                <div className="w-full h-[400px] md:h-[600px]" aria-label="Cultural lineage explorer showing directed graph of civilization and language family evolution chains.">
+                  <CulturalLineageExplorer />
                 </div>
               </Suspense>
             </TabsContent>

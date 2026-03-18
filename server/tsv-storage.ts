@@ -400,23 +400,19 @@ export interface Narrative {
   steps: NarrativeStep[];
 }
 
-export type CulturalLineageRelationship =
-  | "descended-from"
-  | "split-from"
-  | "merged-with"
-  | "influenced-by"
-  | "conquered-by"
-  | "absorbed-into";
-
+// Cultural Lineage types
 export interface CulturalLineage {
   id: string;
   sourceId: string;
+  sourceName: string;
   targetId: string;
-  relationshipType: CulturalLineageRelationship;
-  timeStart: number | null;
-  timeEnd: number | null;
+  targetName: string;
+  relationshipType: string;
+  timeStart: number;
+  timeEnd: number;
   confidence: number;
   evidenceTypes: string[];
+  description: string;
   sources: string[];
 }
 
@@ -453,6 +449,7 @@ export interface LiteraryWork {
   originalScript: string;
   coordinates: { lat: number; lng: number };
 }
+
 
 export type TsvStorageConfig = {
   conceptDataPath: string;
@@ -566,6 +563,9 @@ export class TsvStorage {
 
   // Etymology Relations
   private cachedEtymologyRelations: EtymologyRelation[] | null = null;
+
+  // Cultural Lineages
+  private cachedCulturalLineages: CulturalLineage[] | null = null;
 
   // Literary traditions and works
   private cachedLiteraryTraditions: LiteraryTradition[] | null = null;
@@ -3405,68 +3405,53 @@ export class TsvStorage {
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
-    const srcIdx = getIdx(header, "source_id");
-    const tgtIdx = getIdx(header, "target_id");
-    const relIdx = getIdx(header, "relationship_type");
-    const tsIdx = header.indexOf("time_start");
-    const teIdx = header.indexOf("time_end");
+    const srcIdIdx = header.indexOf("source_id");
+    const srcNameIdx = header.indexOf("source_name");
+    const tgtIdIdx = header.indexOf("target_id");
+    const tgtNameIdx = header.indexOf("target_name");
+    const relIdx = header.indexOf("relationship_type");
+    const startIdx = header.indexOf("time_start");
+    const endIdx = header.indexOf("time_end");
     const confIdx = header.indexOf("confidence");
-    const evIdx = header.indexOf("evidence_types");
-    const sourcesIdx = header.indexOf("sources");
-
-    const parseArr = (idx: number, row: string[]): string[] => {
-      if (idx < 0 || !row[idx]) return [];
-      try { return JSON.parse(row[idx]); } catch { return []; }
-    };
+    const evidIdx = header.indexOf("evidence_types");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
 
     this.cachedCulturalLineages = rows.map((row) => ({
       id: row[idIdx],
-      sourceId: row[srcIdx],
-      targetId: row[tgtIdx],
-      relationshipType: row[relIdx] as CulturalLineageRelationship,
-      timeStart: tsIdx >= 0 && row[tsIdx] && row[tsIdx] !== "null"
-        ? parseInt(row[tsIdx], 10) : null,
-      timeEnd: teIdx >= 0 && row[teIdx] && row[teIdx] !== "null"
-        ? parseInt(row[teIdx], 10) : null,
-      confidence: confIdx >= 0 && row[confIdx]
-        ? parseFloat(row[confIdx]) : 0,
-      evidenceTypes: parseArr(evIdx, row),
-      sources: parseArr(sourcesIdx, row),
+      sourceId: srcIdIdx >= 0 ? row[srcIdIdx] || "" : "",
+      sourceName: srcNameIdx >= 0 ? row[srcNameIdx] || "" : "",
+      targetId: tgtIdIdx >= 0 ? row[tgtIdIdx] || "" : "",
+      targetName: tgtNameIdx >= 0 ? row[tgtNameIdx] || "" : "",
+      relationshipType: relIdx >= 0 ? row[relIdx] || "" : "",
+      timeStart: startIdx >= 0 ? parseInt(row[startIdx]) || 0 : 0,
+      timeEnd: endIdx >= 0 ? parseInt(row[endIdx]) || 0 : 0,
+      confidence: confIdx >= 0 ? parseInt(row[confIdx]) || 0 : 0,
+      evidenceTypes: (() => {
+        if (evidIdx < 0 || !row[evidIdx]) return [];
+        try { return JSON.parse(row[evidIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      sources: (() => {
+        if (srcIdx < 0 || !row[srcIdx]) return [];
+        try { return JSON.parse(row[srcIdx]); } catch { return []; }
+      })(),
     }));
   }
 
-  async getCulturalLineages(filters?: {
-    relationshipType?: string;
-    sourceId?: string;
-    targetId?: string;
-    minConfidence?: number;
-    timeStart?: number;
-    timeEnd?: number;
-  }): Promise<CulturalLineage[]> {
+  async getCulturalLineages(relationshipType?: string, sourceId?: string, targetId?: string): Promise<CulturalLineage[]> {
     this.loadCulturalLineages();
     let lineages = this.cachedCulturalLineages ?? [];
 
-    if (filters?.relationshipType) {
-      lineages = lineages.filter((l) => l.relationshipType === filters.relationshipType);
+    if (relationshipType) {
+      lineages = lineages.filter((l) => l.relationshipType === relationshipType);
     }
-    if (filters?.sourceId) {
-      lineages = lineages.filter((l) => l.sourceId === filters.sourceId);
+    if (sourceId) {
+      lineages = lineages.filter((l) => l.sourceId === sourceId);
     }
-    if (filters?.targetId) {
-      lineages = lineages.filter((l) => l.targetId === filters.targetId);
-    }
-    if (filters?.minConfidence !== undefined) {
-      lineages = lineages.filter((l) => l.confidence >= filters.minConfidence!);
-    }
-    if (filters?.timeStart !== undefined) {
-      lineages = lineages.filter((l) =>
-        l.timeEnd === null || l.timeEnd >= filters.timeStart!
-      );
-    }
-    if (filters?.timeEnd !== undefined) {
-      lineages = lineages.filter((l) =>
-        l.timeStart === null || l.timeStart <= filters.timeEnd!
-      );
+    if (targetId) {
+      lineages = lineages.filter((l) => l.targetId === targetId);
+
     }
 
     return lineages;
@@ -3669,5 +3654,6 @@ export class TsvStorage {
     if (!tradition) return null;
     const works = await this.getLiteraryWorks({ traditionId: id });
     return { tradition, works };
+
   }
 }

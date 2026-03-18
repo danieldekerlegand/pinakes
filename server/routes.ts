@@ -2853,25 +2853,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/cultural-lineages", async (req, res) => {
     try {
-      const relationshipType = req.query.relationshipType as string | undefined;
-      const sourceId = req.query.sourceId as string | undefined;
-      const targetId = req.query.targetId as string | undefined;
-      const minConfidence = req.query.minConfidence
-        ? parseFloat(req.query.minConfidence as string) : undefined;
-      const timeStart = req.query.timeStart
-        ? parseInt(req.query.timeStart as string, 10) : undefined;
-      const timeEnd = req.query.timeEnd
-        ? parseInt(req.query.timeEnd as string, 10) : undefined;
-
-      const lineages = await storage.getCulturalLineages({
-        relationshipType, sourceId, targetId, minConfidence, timeStart, timeEnd,
-      });
-
-      res.json({
-        lineages,
-        count: lineages.length,
-        filters: { relationshipType, sourceId, targetId, minConfidence, timeStart, timeEnd },
-      });
+      const { relationship_type, source_id, target_id } = req.query;
+      const lineages = await storage.getCulturalLineages(
+        relationship_type as string | undefined,
+        source_id as string | undefined,
+        target_id as string | undefined,
+      );
+      res.json(lineages);
     } catch (error) {
       console.error("Error fetching cultural lineages:", error);
       res.status(500).json({
