@@ -25,6 +25,12 @@ import {
 import { globalSearch } from "./services/global-search";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
+import {
+  parseNaturalLanguageQuery,
+  spatialSearch,
+  whatWasHere,
+  getQuerySuggestions,
+} from "./services/natural-language-search";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -2894,6 +2900,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Natural Language & Spatial Search Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/search/natural?q=query - Natural language search with temporal-spatial parsing
+   */
+  app.get("/api/search/natural", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: { raw: "" }, totalCount: 0 });
+        return;
+      }
+      const parsed = parseNaturalLanguageQuery(q);
+      const result = await spatialSearch(parsed);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in natural language search:", error);
+      res.status(500).json({
+        message: "Failed to perform natural language search",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   /**
    * GET /api/literary-traditions - Get all literary traditions with optional filtering
    */
@@ -3114,6 +3146,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/search/spatial?lat=X&lng=Y&year=Z&radius=R - Spatial search by coordinates
+   */
+  app.get("/api/search/spatial", async (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lng = parseFloat(req.query.lng as string);
+      if (isNaN(lat) || isNaN(lng)) {
+        res.status(400).json({ message: "lat and lng are required numeric parameters" });
+        return;
+      }
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : null;
+      const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 200;
+      const result = await whatWasHere(lat, lng, isNaN(year as number) ? null : year, radius);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in spatial search:", error);
+      res.status(500).json({
+        message: "Failed to perform spatial search",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/literary-works/:id - Get a single literary work
    */
   app.get("/api/literary-works/:id", async (req, res) => {
@@ -3152,6 +3208,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to fetch archaeological culture",
         error: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  });
+
+  /**
+   * GET /api/search/suggestions?q=partial - Query autocomplete suggestions
+   */
+  app.get("/api/search/suggestions", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      const suggestions = getQuerySuggestions(q || "");
+      res.json({ suggestions });
+    } catch (error) {
+      console.error("Error in search suggestions:", error);
+      res.status(500).json({ message: "Failed to get suggestions" });
     }
   });
 

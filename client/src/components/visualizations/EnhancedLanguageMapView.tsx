@@ -35,6 +35,7 @@ import type { KinshipSystemFeature } from './map-layers/KinshipSystemLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
+import { MapContextMenu } from './map-layers/MapContextMenu';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
   sampleLanguageRanges,
@@ -651,6 +652,12 @@ export function EnhancedLanguageMapView({
 
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
+
+        {/* Map Context Menu (right-click "What was here?") */}
+        <MapContextMenu
+          currentYear={currentYear}
+          onFeatureSelect={handleFeatureClick}
+        />
       </MapContainer>
 
       {/* Layer Controls Panel */}

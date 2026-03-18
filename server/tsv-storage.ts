@@ -2452,6 +2452,8 @@ export class TsvStorage {
 
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
+    this.cachedSampleTexts = [];
+  }
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
