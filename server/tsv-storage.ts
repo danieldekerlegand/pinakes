@@ -219,6 +219,37 @@ export interface CuisineItem {
   timeEnd: number | null;
 }
 
+// Ingredient origin types
+export interface IngredientOrigin {
+  id: string;
+  name: string;
+  category: string;
+  originRegion: string;
+  originCoordinates: { lat: number; lng: number };
+  domesticationDate: number | null;
+  spreadRoutes: string[];
+  cuisinesAdopted: string[];
+  associatedLanguages: string[];
+  modernDistribution: string;
+  description: string;
+}
+
+// Cooking technique types
+export interface CookingTechnique {
+  id: string;
+  name: string;
+  category: string;
+  originRegion: string;
+  originCoordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  originCulture: string;
+  spreadPattern: string[];
+  cuisinesUsing: string[];
+  relatedTechniques: string[];
+  associatedLanguages: string[];
+  description: string;
+}
+
 // Sample Text types
 export interface SampleText {
   id: string;
@@ -240,6 +271,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -430,6 +462,8 @@ export class TsvStorage {
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
   private cachedCuisineItems: CuisineItem[] | null = null;
+  private cachedIngredientOrigins: IngredientOrigin[] | null = null;
+  private cachedCookingTechniques: CookingTechnique[] | null = null;
 
   // Sample Texts
   private cachedSampleTexts: SampleText[] | null = null;
@@ -1992,6 +2026,152 @@ export class TsvStorage {
   }
 
   // ============================================================================
+  // Ingredient Origin Data Methods
+  // ============================================================================
+
+  private loadIngredientOrigins(): void {
+    if (this.cachedIngredientOrigins) return;
+
+    const text = this.readFileIfExists("lexicons/ingredient-origins.tsv");
+    if (!text) { this.cachedIngredientOrigins = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const regionIdx = header.indexOf("origin_region");
+    const coordsIdx = header.indexOf("origin_coordinates");
+    const domDateIdx = header.indexOf("domestication_date");
+    const spreadIdx = header.indexOf("spread_routes");
+    const cuisinesIdx = header.indexOf("cuisines_adopted");
+    const langIdx = header.indexOf("associated_languages");
+    const distIdx = header.indexOf("modern_distribution");
+    const descIdx = header.indexOf("description");
+
+    this.cachedIngredientOrigins = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: categoryIdx >= 0 ? row[categoryIdx] || "" : "",
+      originRegion: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      domesticationDate: domDateIdx >= 0 && row[domDateIdx] && row[domDateIdx] !== "null"
+        ? parseInt(row[domDateIdx], 10) : null,
+      spreadRoutes: (() => {
+        try { return JSON.parse(row[spreadIdx]); } catch { return []; }
+      })() as string[],
+      cuisinesAdopted: (() => {
+        try { return JSON.parse(row[cuisinesIdx]); } catch { return []; }
+      })() as string[],
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      modernDistribution: distIdx >= 0 ? row[distIdx] || "" : "",
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+    }));
+  }
+
+  async getIngredientOrigins(filters?: {
+    category?: string;
+    cuisineId?: string;
+  }): Promise<IngredientOrigin[]> {
+    this.loadIngredientOrigins();
+    let items = this.cachedIngredientOrigins ?? [];
+
+    if (filters?.category) {
+      items = items.filter((i) => i.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+    if (filters?.cuisineId) {
+      items = items.filter((i) =>
+        i.cuisinesAdopted.some((c) => c.toLowerCase() === filters.cuisineId!.toLowerCase())
+      );
+    }
+
+    return items;
+  }
+
+  async getIngredientOriginById(id: string): Promise<IngredientOrigin | null> {
+    this.loadIngredientOrigins();
+    return (this.cachedIngredientOrigins ?? []).find((i) => i.id === id) ?? null;
+  }
+
+  // ============================================================================
+  // Cooking Technique Data Methods
+  // ============================================================================
+
+  private loadCookingTechniques(): void {
+    if (this.cachedCookingTechniques) return;
+
+    const text = this.readFileIfExists("lexicons/cooking-techniques.tsv");
+    if (!text) { this.cachedCookingTechniques = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const regionIdx = header.indexOf("origin_region");
+    const coordsIdx = header.indexOf("origin_coordinates");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const cultureIdx = header.indexOf("origin_culture");
+    const spreadIdx = header.indexOf("spread_pattern");
+    const cuisinesIdx = header.indexOf("cuisines_using");
+    const relatedIdx = header.indexOf("related_techniques");
+    const langIdx = header.indexOf("associated_languages");
+    const descIdx = header.indexOf("description");
+
+    this.cachedCookingTechniques = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: categoryIdx >= 0 ? row[categoryIdx] || "" : "",
+      originRegion: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      originCoordinates: (() => {
+        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
+      })() as { lat: number; lng: number },
+      timeOrigin: timeOriginIdx >= 0 && row[timeOriginIdx] && row[timeOriginIdx] !== "null"
+        ? parseInt(row[timeOriginIdx], 10) : null,
+      originCulture: cultureIdx >= 0 ? row[cultureIdx] || "" : "",
+      spreadPattern: (() => {
+        try { return JSON.parse(row[spreadIdx]); } catch { return []; }
+      })() as string[],
+      cuisinesUsing: (() => {
+        try { return JSON.parse(row[cuisinesIdx]); } catch { return []; }
+      })() as string[],
+      relatedTechniques: (() => {
+        try { return JSON.parse(row[relatedIdx]); } catch { return []; }
+      })() as string[],
+      associatedLanguages: (() => {
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })() as string[],
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+    }));
+  }
+
+  async getCookingTechniques(filters?: {
+    category?: string;
+    cuisineId?: string;
+  }): Promise<CookingTechnique[]> {
+    this.loadCookingTechniques();
+    let items = this.cachedCookingTechniques ?? [];
+
+    if (filters?.category) {
+      items = items.filter((t) => t.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+    if (filters?.cuisineId) {
+      items = items.filter((t) =>
+        t.cuisinesUsing.some((c) => c.toLowerCase() === filters.cuisineId!.toLowerCase())
+      );
+    }
+
+    return items;
+  }
+
+  async getCookingTechniqueById(id: string): Promise<CookingTechnique | null> {
+    this.loadCookingTechniques();
+    return (this.cachedCookingTechniques ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ============================================================================
   // Sample Text Data Methods
   // ============================================================================
 
@@ -2003,18 +2183,6 @@ export class TsvStorage {
 
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
@@ -2039,7 +2207,25 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // ============================================================================
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2323,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2452,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
