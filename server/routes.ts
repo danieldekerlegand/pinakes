@@ -2521,5 +2521,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Cultural Influence Visualizations (Sankey & Chord) ─────────────
+
+  /**
+   * GET /api/visualizations/sankey - Build Sankey diagram data from language contacts
+   * Query params: yearStart, yearEnd (optional temporal filter)
+   */
+  app.get("/api/visualizations/sankey", async (req, res) => {
+    try {
+      const yearStart = req.query.yearStart ? parseInt(req.query.yearStart as string, 10) : undefined;
+      const yearEnd = req.query.yearEnd ? parseInt(req.query.yearEnd as string, 10) : undefined;
+
+      const contacts = await storage.getLanguageContacts();
+      const languages = await storage.getLanguages();
+      const langMap = new Map(languages.map((l) => [l.id, l]));
+
+      // Filter by time period if provided
+      const filtered = contacts.filter((c) => {
+        if (!yearStart && !yearEnd) return true;
+        const match = c.timePeriod.match(/(-?\d+)/);
+        if (!match) return true;
+        const year = parseInt(match[1], 10);
+        if (yearStart !== undefined && year < yearStart) return false;
+        if (yearEnd !== undefined && year > yearEnd) return false;
+        return true;
+      });
+
+      const nodeIds = new Set<string>();
+      const links = filtered.map((c) => {
+        nodeIds.add(c.sourceLanguageId);
+        nodeIds.add(c.targetLanguageId);
+        const intensityValue = c.intensity === "heavy" ? 3 : c.intensity === "moderate" ? 2 : 1;
+        return {
+          source: c.sourceLanguageId,
+          target: c.targetLanguageId,
+          value: intensityValue,
+          contactType: c.contactType,
+          timePeriod: c.timePeriod,
+        };
+      });
+
+      const nodes = Array.from(nodeIds).map((id) => {
+        const lang = langMap.get(id);
+        return {
+          id,
+          name: lang?.name || id,
+          group: lang?.familyId || "unknown",
+        };
+      });
+
+      res.json({ nodes, links });
+    } catch (error) {
+      console.error("Error building sankey data:", error);
+      res.status(500).json({ message: "Failed to build sankey visualization data" });
+    }
+  });
+
+  /**
+   * GET /api/visualizations/chord - Build chord diagram data (language family mutual influences)
+   * Query params: yearStart, yearEnd (optional temporal filter)
+   */
+  app.get("/api/visualizations/chord", async (req, res) => {
+    try {
+      const yearStart = req.query.yearStart ? parseInt(req.query.yearStart as string, 10) : undefined;
+      const yearEnd = req.query.yearEnd ? parseInt(req.query.yearEnd as string, 10) : undefined;
+
+      const contacts = await storage.getLanguageContacts();
+      const languages = await storage.getLanguages();
+      const langMap = new Map(languages.map((l) => [l.id, l]));
+      const families = await storage.getLanguageFamilies();
+      const familyMap = new Map(families.map((f) => [f.id, f.name]));
+
+      // Filter by time period
+      const filtered = contacts.filter((c) => {
+        if (!yearStart && !yearEnd) return true;
+        const match = c.timePeriod.match(/(-?\d+)/);
+        if (!match) return true;
+        const year = parseInt(match[1], 10);
+        if (yearStart !== undefined && year < yearStart) return false;
+        if (yearEnd !== undefined && year > yearEnd) return false;
+        return true;
+      });
+
+      // Aggregate contacts by language family pairs
+      const familyPairs = new Map<string, number>();
+      const familyIds = new Set<string>();
+
+      for (const c of filtered) {
+        const srcLang = langMap.get(c.sourceLanguageId);
+        const tgtLang = langMap.get(c.targetLanguageId);
+        const srcFamily = srcLang?.familyId || "unknown";
+        const tgtFamily = tgtLang?.familyId || "unknown";
+        if (srcFamily === tgtFamily) continue; // skip intra-family contacts
+
+        familyIds.add(srcFamily);
+        familyIds.add(tgtFamily);
+
+        const intensityValue = c.intensity === "heavy" ? 3 : c.intensity === "moderate" ? 2 : 1;
+        const key = `${srcFamily}|${tgtFamily}`;
+        familyPairs.set(key, (familyPairs.get(key) || 0) + intensityValue);
+      }
+
+      const names = Array.from(familyIds).map((id) => familyMap.get(id) || id);
+      const idList = Array.from(familyIds);
+      const n = idList.length;
+      const matrix: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+
+      for (const [key, value] of familyPairs) {
+        const [src, tgt] = key.split("|");
+        const i = idList.indexOf(src);
+        const j = idList.indexOf(tgt);
+        if (i >= 0 && j >= 0) {
+          matrix[i][j] += value;
+          matrix[j][i] += value; // symmetric
+        }
+      }
+
+      res.json({ names, matrix });
+    } catch (error) {
+      console.error("Error building chord data:", error);
+      res.status(500).json({ message: "Failed to build chord visualization data" });
+    }
+  });
+
   return server;
 }

@@ -103,3 +103,35 @@ export type ScrapingJob = {
   wordCount?: number | null;
   apiCallsUsed?: number | null;
 };
+
+// Sankey diagram types for cultural influence flow
+export type SankeyNode = {
+  id: string;
+  name: string;
+  group: string; // e.g. language family or civilization type
+};
+
+export type SankeyLink = {
+  source: string;
+  target: string;
+  value: number;
+  contactType: string;
+  timePeriod: string;
+};
+
+export type SankeyData = {
+  nodes: SankeyNode[];
+  links: SankeyLink[];
+};
+
+// Chord diagram types for mutual language family influences
+export type ChordEntry = {
+  source: string;
+  target: string;
+  value: number;
+};
+
+export type ChordData = {
+  names: string[];
+  matrix: number[][];
+};
