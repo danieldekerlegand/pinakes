@@ -60,6 +60,7 @@ const ENTITY_TYPES = [
   { value: 'religion', label: 'Religion' },
   { value: 'archaeological-site', label: 'Archaeological Site' },
   { value: 'civilization', label: 'Civilization' },
+  { value: 'boundary', label: 'Boundary' },
 ];
 
 const STATUS_COLORS: Record<ContributionStatus, string> = {

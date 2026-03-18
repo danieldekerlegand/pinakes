@@ -25,7 +25,8 @@ export type ContributionEntityType =
   | "civilization"
   | "archaeological-site"
   | "language-range"
-  | "language";
+  | "language"
+  | "boundary";
 
 export interface ContributionSource {
   title: string;
@@ -93,6 +94,7 @@ const REQUIRED_FIELDS: Record<ContributionEntityType, string[]> = {
   "archaeological-site": ["name", "coordinates"],
   "language-range": ["languageId", "geometry"],
   "language": ["name"],
+  "boundary": ["name", "geometry"],
 };
 
 export interface ValidationResult {
