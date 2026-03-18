@@ -2521,5 +2521,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Cultural Lineages ─────────────────────────────────────────────
+
+  app.get("/api/cultural-lineages", async (req, res) => {
+    try {
+      const { relationship_type, source_id, target_id } = req.query;
+      const lineages = await storage.getCulturalLineages(
+        relationship_type as string | undefined,
+        source_id as string | undefined,
+        target_id as string | undefined,
+      );
+      res.json(lineages);
+    } catch (error) {
+      console.error("Error in /api/cultural-lineages:", error);
+      res.status(500).json({ message: "Failed to fetch cultural lineages" });
+    }
+  });
+
+  app.get("/api/cultural-lineages/:id", async (req, res) => {
+    try {
+      const lineage = await storage.getCulturalLineageById(req.params.id);
+      if (!lineage) {
+        return res.status(404).json({ message: "Cultural lineage not found" });
+      }
+      res.json(lineage);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cultural lineage" });
+    }
+  });
+
+  app.get("/api/cultural-lineages/ancestors/:id", async (req, res) => {
+    try {
+      const ancestors = await storage.getCulturalLineageAncestors(req.params.id);
+      res.json(ancestors);
+    } catch (error) {
+      console.error("Error fetching ancestors:", error);
+      res.status(500).json({ message: "Failed to fetch ancestors" });
+    }
+  });
+
+  app.get("/api/cultural-lineages/descendants/:id", async (req, res) => {
+    try {
+      const descendants = await storage.getCulturalLineageDescendants(req.params.id);
+      res.json(descendants);
+    } catch (error) {
+      console.error("Error fetching descendants:", error);
+      res.status(500).json({ message: "Failed to fetch descendants" });
+    }
+  });
+
   return server;
 }

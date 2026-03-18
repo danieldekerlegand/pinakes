@@ -11,7 +11,7 @@ export interface VisualizationFilters {
 }
 
 // View mode type
-export type ViewMode = 'tree' | 'network' | 'timeline' | 'map' | 'explorer' | 'contribute';
+export type ViewMode = 'tree' | 'network' | 'timeline' | 'map' | 'explorer' | 'lineage' | 'contribute';
 
 // Tree visualization types
 export interface TreeNode {

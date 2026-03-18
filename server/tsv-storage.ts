@@ -240,6 +240,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -330,6 +331,22 @@ export interface Narrative {
   title: string;
   description: string;
   steps: NarrativeStep[];
+}
+
+// Cultural Lineage types
+export interface CulturalLineage {
+  id: string;
+  sourceId: string;
+  sourceName: string;
+  targetId: string;
+  targetName: string;
+  relationshipType: string;
+  timeStart: number;
+  timeEnd: number;
+  confidence: number;
+  evidenceTypes: string[];
+  description: string;
+  sources: string[];
 }
 
 export type TsvStorageConfig = {
@@ -436,6 +453,9 @@ export class TsvStorage {
 
   // Etymology Relations
   private cachedEtymologyRelations: EtymologyRelation[] | null = null;
+
+  // Cultural Lineages
+  private cachedCulturalLineages: CulturalLineage[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -2004,18 +2024,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -2039,7 +2047,24 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2162,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2291,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
@@ -3015,5 +3044,111 @@ export class TsvStorage {
   async getNarrativeById(id: string): Promise<Narrative | null> {
     this.loadNarratives();
     return (this.cachedNarratives ?? []).find((n) => n.id === id) ?? null;
+  }
+
+  // ── Cultural Lineages ─────────────────────────────────────────────
+
+  private loadCulturalLineages(): void {
+    if (this.cachedCulturalLineages) return;
+
+    const text = this.readFileIfExists("lexicons/cultural-lineages.tsv");
+    if (!text) { this.cachedCulturalLineages = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const srcIdIdx = header.indexOf("source_id");
+    const srcNameIdx = header.indexOf("source_name");
+    const tgtIdIdx = header.indexOf("target_id");
+    const tgtNameIdx = header.indexOf("target_name");
+    const relIdx = header.indexOf("relationship_type");
+    const startIdx = header.indexOf("time_start");
+    const endIdx = header.indexOf("time_end");
+    const confIdx = header.indexOf("confidence");
+    const evidIdx = header.indexOf("evidence_types");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
+
+    this.cachedCulturalLineages = rows.map((row) => ({
+      id: row[idIdx],
+      sourceId: srcIdIdx >= 0 ? row[srcIdIdx] || "" : "",
+      sourceName: srcNameIdx >= 0 ? row[srcNameIdx] || "" : "",
+      targetId: tgtIdIdx >= 0 ? row[tgtIdIdx] || "" : "",
+      targetName: tgtNameIdx >= 0 ? row[tgtNameIdx] || "" : "",
+      relationshipType: relIdx >= 0 ? row[relIdx] || "" : "",
+      timeStart: startIdx >= 0 ? parseInt(row[startIdx]) || 0 : 0,
+      timeEnd: endIdx >= 0 ? parseInt(row[endIdx]) || 0 : 0,
+      confidence: confIdx >= 0 ? parseInt(row[confIdx]) || 0 : 0,
+      evidenceTypes: (() => {
+        if (evidIdx < 0 || !row[evidIdx]) return [];
+        try { return JSON.parse(row[evidIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      sources: (() => {
+        if (srcIdx < 0 || !row[srcIdx]) return [];
+        try { return JSON.parse(row[srcIdx]); } catch { return []; }
+      })(),
+    }));
+  }
+
+  async getCulturalLineages(relationshipType?: string, sourceId?: string, targetId?: string): Promise<CulturalLineage[]> {
+    this.loadCulturalLineages();
+    let lineages = this.cachedCulturalLineages ?? [];
+
+    if (relationshipType) {
+      lineages = lineages.filter((l) => l.relationshipType === relationshipType);
+    }
+    if (sourceId) {
+      lineages = lineages.filter((l) => l.sourceId === sourceId);
+    }
+    if (targetId) {
+      lineages = lineages.filter((l) => l.targetId === targetId);
+    }
+
+    return lineages;
+  }
+
+  async getCulturalLineageById(id: string): Promise<CulturalLineage | null> {
+    this.loadCulturalLineages();
+    return (this.cachedCulturalLineages ?? []).find((l) => l.id === id) ?? null;
+  }
+
+  async getCulturalLineageAncestors(entityId: string): Promise<CulturalLineage[]> {
+    this.loadCulturalLineages();
+    const all = this.cachedCulturalLineages ?? [];
+    const result: CulturalLineage[] = [];
+    const visited = new Set<string>();
+
+    const traverse = (id: string) => {
+      if (visited.has(id)) return;
+      visited.add(id);
+      const parents = all.filter((l) => l.targetId === id);
+      for (const p of parents) {
+        result.push(p);
+        traverse(p.sourceId);
+      }
+    };
+
+    traverse(entityId);
+    return result;
+  }
+
+  async getCulturalLineageDescendants(entityId: string): Promise<CulturalLineage[]> {
+    this.loadCulturalLineages();
+    const all = this.cachedCulturalLineages ?? [];
+    const result: CulturalLineage[] = [];
+    const visited = new Set<string>();
+
+    const traverse = (id: string) => {
+      if (visited.has(id)) return;
+      visited.add(id);
+      const children = all.filter((l) => l.sourceId === id);
+      for (const c of children) {
+        result.push(c);
+        traverse(c.targetId);
+      }
+    };
+
+    traverse(entityId);
+    return result;
   }
 }

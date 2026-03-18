@@ -58,6 +58,7 @@ const initialState: VisualizationState = {
       markerSize: 'byPopulation',
     },
     explorer: {},
+    lineage: {},
     contribute: {},
   },
   temporal: initialTemporalState,

@@ -323,3 +323,14 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Python script approach with categorized sections makes large data expansions manageable and countable
   - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
 ---
+
+## 2026-03-18 - US-072
+- Created `lexicons/cultural-lineages.tsv` with 95 lineage relationships
+- Added `CulturalLineage` interface, TSV loader, and recursive ancestor/descendant traversal to `server/tsv-storage.ts`
+- Added 4 API endpoints: GET /api/cultural-lineages (with filters), /:id, /ancestors/:id, /descendants/:id
+- Created `CulturalLineageExplorer` D3 force-directed graph visualization with temporal x-positioning, color-coded edges, confidence-based widths, search, and node detail cards
+- Integrated as "Lineage" tab in LanguageFamilyVisualization (added ViewMode, viewSettings, tab trigger/content)
+- Fixed pre-existing syntax errors in tsv-storage.ts (missing braces, interleaved methods)
+- 39 test assertions passing in `test/test-cultural-lineages.ts`
+- Files: cultural-lineages.tsv, tsv-storage.ts, routes.ts, CulturalLineageExplorer.tsx, LanguageFamilyVisualization.tsx, types.ts, VisualizationContext.tsx, test-cultural-lineages.ts
+---
