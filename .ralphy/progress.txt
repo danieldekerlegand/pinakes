@@ -1,0 +1,17 @@
+## US-080: Add language range polygons TSV loader and map layer
+
+### Completed
+- Created `lexicons/language-range-polygons.tsv` with 20 sample entries covering diverse language families (Indo-European, Afro-Asiatic, Sino-Tibetan, Quechuan, Uto-Aztecan, Niger-Congo, Japonic, Dravidian) with both historical and current range types, Polygon and MultiPolygon geometries
+- Added `loadLanguageRangePolygons()` private loader and `getLanguageRangePolygons()` public method in `server/tsv-storage.ts` with support for time, family, and range type filtering
+- Added `GET /api/map/language-range-polygons` API endpoint in `server/routes.ts` with timeStart, timeEnd, bbox, familyIds, and rangeType query parameters
+- Added `'language-range-polygons'` to `LayerType` union and `DEFAULT_LAYER_CONFIGS` in `client/src/lib/visualization/geospatial-types.ts`
+- Integrated into `EnhancedLanguageMapView` with data fetching, temporal filtering, and rendering via existing `LanguageRangeLayer` component
+- Added to `linguistic-atlas` and `genetic-linguistic` layer presets
+- Created comprehensive test suite (`test/test-language-range-polygons.ts`) with 97 passing tests covering loading, structure validation, geometry validation, temporal filtering, family filtering, range type filtering, combined filters, edge cases, confidence values, and unique IDs
+
+### Pre-existing fixes (required for tests to run)
+- Fixed missing closing brace on `EtymologyRelation` interface
+- Fixed incomplete `loadSampleTexts()` method body
+- Fixed interleaved code in `loadPhonologicalInventories()` method
+- Fixed missing `loadEtymologyRelations()` closing
+- Fixed missing `/**` comment opener for `getGrammarFeatures()`

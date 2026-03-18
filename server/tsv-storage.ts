@@ -240,6 +240,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -372,6 +373,7 @@ export class TsvStorage {
 
   // Geospatial data caches
   private cachedLanguageRanges: LanguageRangeFeature[] | null = null;
+  private cachedLanguageRangePolygons: LanguageRangeFeature[] | null = null;
   private cachedArchaeologicalSites: ArchaeologicalSiteFeature[] | null = null;
   private cachedCivilizations: CivilizationFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
@@ -1006,6 +1008,61 @@ export class TsvStorage {
       .filter((f): f is LanguageRangeFeature => f !== null);
   }
 
+  private loadLanguageRangePolygons(): void {
+    if (this.cachedLanguageRangePolygons) return;
+
+    const text = this.readFileIfExists("lexicons/language-range-polygons.tsv");
+    if (!text) { this.cachedLanguageRangePolygons = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdIdx = getIdx(header, "language_id");
+    const famIdIdx = getIdx(header, "family_id");
+    const geoIdx = getIdx(header, "geometry");
+    const typeIdx = getIdx(header, "range_type");
+    const startIdx = header.indexOf("time_period_start");
+    const endIdx = header.indexOf("time_period_end");
+    const labelIdx = header.indexOf("time_period_label");
+    const confIdx = header.indexOf("confidence");
+    const srcIdx = header.indexOf("sources");
+    const notesIdx = header.indexOf("notes");
+
+    this.cachedLanguageRangePolygons = rows
+      .filter((row) => row[geoIdx] && row[geoIdx].trim())
+      .map((row) => {
+        let geometry;
+        try { geometry = JSON.parse(row[geoIdx]); } catch { return null; }
+
+        const tStart = startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : 0;
+        const tEnd = endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null;
+        let sources: string[] = [];
+        if (srcIdx >= 0 && row[srcIdx]) { try { sources = JSON.parse(row[srcIdx]); } catch {} }
+
+        return {
+          type: "Feature" as const,
+          id: row[idIdx],
+          geometry,
+          properties: {
+            languageId: row[langIdIdx],
+            languageName: row[langIdIdx],
+            familyId: row[famIdIdx],
+            familyName: row[famIdIdx],
+            rangeType: (row[typeIdx] || "historical") as any,
+            timePeriod: {
+              start: tStart,
+              end: tEnd,
+              label: labelIdx >= 0 ? row[labelIdx] || "" : "",
+            },
+            confidence: confIdx >= 0 ? parseInt(row[confIdx] || "50", 10) : 50,
+            sources,
+          },
+        } as LanguageRangeFeature;
+      })
+      .filter((f): f is LanguageRangeFeature => f !== null);
+  }
+
   private loadArchaeologicalSites(): void {
     if (this.cachedArchaeologicalSites) return;
 
@@ -1200,6 +1257,33 @@ export class TsvStorage {
     if (filters?.familyIds && filters.familyIds.length > 0) {
       const famSet = new Set(filters.familyIds);
       features = features.filter((f) => famSet.has(f.properties.familyId));
+    }
+
+    return features;
+  }
+
+  /**
+   * Get language range polygons (expanded polygon dataset) with optional filtering
+   */
+  async getLanguageRangePolygons(filters?: {
+    timeStart?: number;
+    timeEnd?: number;
+    bbox?: string;
+    familyIds?: string[];
+    rangeType?: string;
+  }): Promise<LanguageRangeFeature[]> {
+    this.loadLanguageRangePolygons();
+    let features = this.cachedLanguageRangePolygons ?? [];
+
+    features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
+
+    if (filters?.familyIds && filters.familyIds.length > 0) {
+      const famSet = new Set(filters.familyIds);
+      features = features.filter((f) => famSet.has(f.properties.familyId));
+    }
+
+    if (filters?.rangeType) {
+      features = features.filter((f) => f.properties.rangeType === filters.rangeType);
     }
 
     return features;
@@ -2004,6 +2088,28 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdIdx = getIdx(header, "language_id");
+    const titleIdx = header.indexOf("title");
+    const contentIdx = header.indexOf("content");
+    const sourceIdx = header.indexOf("source");
+    const dateIdx = header.indexOf("date_composed");
+    const genreIdx = header.indexOf("genre");
+    const scriptIdx = header.indexOf("script");
+
+    this.cachedSampleTexts = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: row[langIdIdx],
+      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
+      content: contentIdx >= 0 ? row[contentIdx] || "" : "",
+      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
+      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
+      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
+
   // Phonological Inventory Data Methods
   // ============================================================================
 
@@ -2019,27 +2125,6 @@ export class TsvStorage {
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
-    const titleIdx = header.indexOf("title");
-    const textIdx = header.indexOf("text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
-      text: textIdx >= 0 ? row[textIdx] || "" : "",
-      transliteration: translitIdx >= 0 ? (row[translitIdx] || "").trim() : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2222,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2351,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
