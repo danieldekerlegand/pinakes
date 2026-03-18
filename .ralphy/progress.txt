@@ -1,3 +1,21 @@
+US-066: Create cultural-lineages.tsv data file
+
+- Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
+- Schema: id, source_id, target_id, relationship_type, time_start, time_end, confidence, evidence_types, sources
+- Coverage includes:
+  - Proto-Indo-European splits (11 branches including Anatolian, Tocharian, Indo-Aryan, Iranian, Germanic, Celtic, Italic, Balto-Slavic, Graeco-Phrygian, Armenic, Albanian)
+  - Mesopotamian civilization chain (Sumerian → Akkadian → Babylonian/Assyrian → Persian → Sasanian)
+  - Islamic caliphate lineage (Umayyad → Abbasid → Ottoman influences)
+  - Bantu expansion and Niger-Congo splits
+  - Austronesian expansion (Formosan → Malayo-Polynesian → Oceanic → Polynesian)
+  - Sino-Tibetan, Afro-Asiatic, Uralic, Kra-Dai, Hmong-Mien, Dravidian, Na-Dene, Algic, Nilo-Saharan, Pama-Nyungan family splits
+  - Mesoamerican civilizations (Maya, Aztec, Inca)
+  - Chinese dynasty chain (Shang → Han → Tang)
+  - Cross-cultural influences (Greek→Roman, Persian→Greek, Indian→Khmer, etc.)
+- Relationship types used: descended-from, split-from, merged-with, influenced-by, conquered-by
+- All source/target IDs reference existing entities in families.tsv or civilizations.tsv
+- Created test/test-cultural-lineages.ts with 19 validation tests (all passing)
+
 US-093: Add organic cultural boundary rendering with spline interpolation
 
 Completed:
