@@ -1231,6 +1231,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Urheimat Hypotheses API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/urheimat-hypotheses - Get urheimat hypotheses with optional filtering
+   */
+  app.get("/api/urheimat-hypotheses", async (req, res) => {
+    try {
+      const languageFamilyId = req.query.language_family as string | undefined;
+      const consensusMin = req.query.consensus_min
+        ? parseFloat(req.query.consensus_min as string)
+        : undefined;
+
+      const hypotheses = await storage.getUrheimatHypotheses({
+        languageFamilyId,
+        consensusMin,
+      });
+
+      res.json({
+        hypotheses,
+        count: hypotheses.length,
+        filters: { languageFamilyId, consensusMin },
+      });
+    } catch (error) {
+      console.error("Error fetching urheimat hypotheses:", error);
+      res.status(500).json({
+        message: "Failed to fetch urheimat hypotheses",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/urheimat-hypotheses/:id - Get a single urheimat hypothesis by ID
+   */
+  app.get("/api/urheimat-hypotheses/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const hypothesis = await storage.getUrheimatHypothesis(id);
+
+      if (!hypothesis) {
+        res.status(404).json({ message: `Urheimat hypothesis '${id}' not found` });
+        return;
+      }
+
+      res.json(hypothesis);
+    } catch (error) {
+      console.error("Error fetching urheimat hypothesis:", error);
+      res.status(500).json({
+        message: "Failed to fetch urheimat hypothesis",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Cross-Domain Analysis API Routes (Phase 4)
   // ============================================================================
 
