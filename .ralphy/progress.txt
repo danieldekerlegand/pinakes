@@ -32,3 +32,14 @@ Files changed:
 - client/src/pages/embed.tsx (new - embed page)
 - client/src/App.tsx (embed route)
 - test/test-embed-and-export.ts (new - tests)
+
+US-079: Create language-range-polygons.tsv with 100+ entries
+
+- Created lexicons/language-range-polygons.tsv with 133 entries
+- Covers 21 language family groups across all major world regions
+- Includes both current (modern) and historical range polygons
+- All entries have valid GeoJSON Polygon geometries with closed rings
+- 100% referential integrity with languages.tsv and families.tsv
+- Each entry includes confidence scores (60-95), source citations, and notes
+- Created test/test-language-range-polygons.ts with comprehensive validation
+- All 187 test assertions pass
