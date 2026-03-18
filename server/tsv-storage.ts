@@ -183,6 +183,25 @@ export interface MusicalInstrument {
   sources: string[];
 }
 
+// Dance tradition types
+export interface DanceTradition {
+  id: string;
+  name: string;
+  nativeName: string;
+  region: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  associatedLanguageIds: string[];
+  danceType: string;
+  associatedMusicTraditionIds: string[];
+  costumes: string[];
+  keyMovements: string[];
+  culturalSignificance: string;
+  description: string;
+  sources: string[];
+}
+
 // Haplogroup types
 export interface Haplogroup {
   id: string;
@@ -240,6 +259,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -436,6 +456,9 @@ export class TsvStorage {
 
   // Etymology Relations
   private cachedEtymologyRelations: EtymologyRelation[] | null = null;
+
+  // Dance traditions
+  private cachedDanceTraditions: DanceTradition[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -1701,6 +1724,120 @@ export class TsvStorage {
   }
 
   // ============================================================================
+  // Dance Tradition Data Methods
+  // ============================================================================
+
+  /**
+   * Load dance traditions from TSV file
+   */
+  private loadDanceTraditions(): void {
+    if (this.cachedDanceTraditions) return;
+
+    const text = this.readFileIfExists("lexicons/dance-traditions.tsv");
+    if (!text) { this.cachedDanceTraditions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const nativeIdx = header.indexOf("native_name");
+    const regionIdx = header.indexOf("region");
+    const coordsIdx = header.indexOf("coordinates");
+    const startIdx = header.indexOf("time_origin");
+    const endIdx = header.indexOf("time_end");
+    const langIdx = header.indexOf("associated_language_ids");
+    const typeIdx = header.indexOf("dance_type");
+    const musicIdx = header.indexOf("associated_music_tradition_ids");
+    const costumeIdx = header.indexOf("costumes");
+    const moveIdx = header.indexOf("key_movements");
+    const sigIdx = header.indexOf("cultural_significance");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedDanceTraditions = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try { coords = JSON.parse(row[coordsIdx]); } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        nativeName: nativeIdx >= 0 ? row[nativeIdx] || "" : "",
+        region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : null,
+        timeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null,
+        associatedLanguageIds: parseArr(langIdx, row),
+        danceType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+        associatedMusicTraditionIds: parseArr(musicIdx, row),
+        costumes: parseArr(costumeIdx, row),
+        keyMovements: parseArr(moveIdx, row),
+        culturalSignificance: sigIdx >= 0 ? row[sigIdx] || "" : "",
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        sources: parseArr(srcIdx, row),
+      };
+    });
+  }
+
+  /**
+   * Get dance traditions with optional filtering
+   */
+  async getDanceTraditions(filters?: {
+    year?: number;
+    region?: string;
+    languageId?: string;
+    danceType?: string;
+  }): Promise<DanceTradition[]> {
+    this.loadDanceTraditions();
+    let traditions = this.cachedDanceTraditions ?? [];
+
+    if (filters?.year !== undefined) {
+      traditions = traditions.filter((t) => {
+        const start = t.timeOrigin ?? -Infinity;
+        const end = t.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.region) {
+      traditions = traditions.filter((t) =>
+        t.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    if (filters?.languageId) {
+      traditions = traditions.filter((t) =>
+        t.associatedLanguageIds.includes(filters.languageId!)
+      );
+    }
+
+    if (filters?.danceType) {
+      traditions = traditions.filter((t) =>
+        t.danceType.toLowerCase() === filters.danceType!.toLowerCase()
+      );
+    }
+
+    return traditions;
+  }
+
+  /**
+   * Get a single dance tradition by ID
+   */
+  async getDanceTraditionById(
+    traditionId: string,
+  ): Promise<DanceTradition | null> {
+    this.loadDanceTraditions();
+    return (this.cachedDanceTraditions ?? []).find((t) => t.id === traditionId) ?? null;
+  }
+
+  // ============================================================================
   // Religion Data Methods
   // ============================================================================
 
@@ -2004,6 +2141,33 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = header.indexOf("language_id");
+    const titleIdx = header.indexOf("title");
+    const textIdx = header.indexOf("text");
+    const translitIdx = header.indexOf("transliteration");
+    const transEnIdx = header.indexOf("translation_en");
+    const srcIdx = header.indexOf("source");
+    const dateIdx = header.indexOf("date_composed");
+    const genreIdx = header.indexOf("genre");
+    const scriptIdx = header.indexOf("script");
+
+    this.cachedSampleTexts = rows.map((row) => ({
+      id: row[idIdx],
+      languageId: langIdx >= 0 ? row[langIdx] || "" : "",
+      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
+      text: textIdx >= 0 ? row[textIdx] || "" : "",
+      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
+      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
+      source: srcIdx >= 0 ? row[srcIdx] || "" : "",
+      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
+      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
+      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
+
+  // ============================================================================
   // Phonological Inventory Data Methods
   // ============================================================================
 
@@ -2019,27 +2183,6 @@ export class TsvStorage {
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
-    const titleIdx = header.indexOf("title");
-    const textIdx = header.indexOf("text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
-      text: textIdx >= 0 ? row[textIdx] || "" : "",
-      transliteration: translitIdx >= 0 ? (row[translitIdx] || "").trim() : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2280,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2409,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {

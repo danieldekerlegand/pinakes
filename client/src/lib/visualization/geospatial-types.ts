@@ -166,7 +166,8 @@ export type LayerType =
   | 'language-contacts'
   | 'genetic-linguistic-correlation'
   | 'foodway-events'
-  | 'kinship-systems';
+  | 'kinship-systems'
+  | 'dance';
 
 export type LayerCategory =
   | 'languages'
@@ -176,6 +177,7 @@ export type LayerCategory =
   | 'culture'
   | 'cuisines'
   | 'music'
+  | 'dance'
   | 'religions'
   | 'genetics';
 
@@ -474,6 +476,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
     },
   },
   {
+    id: 'dance',
+    type: 'dance',
+    category: 'dance',
+    name: 'Dance Traditions',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 265,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.8,
+        strokeWeight: 2,
+      },
+    },
+  },
+  {
     id: 'religions',
     type: 'religions',
     category: 'religions',
@@ -597,7 +615,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
+    layers: ['cuisines', 'music', 'dance', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems'],
   },
   {
     id: 'trade-economy',

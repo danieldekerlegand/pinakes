@@ -15,6 +15,8 @@ import { CuisineLayer } from './map-layers/CuisineLayer';
 import type { CuisineFeature } from './map-layers/CuisineLayer';
 import { MusicTraditionLayer } from './map-layers/MusicTraditionLayer';
 import type { MusicTraditionFeature } from './map-layers/MusicTraditionLayer';
+import { DanceTraditionLayer } from './map-layers/DanceTraditionLayer';
+import type { DanceTraditionFeature } from './map-layers/DanceTraditionLayer';
 import { ReligionLayer } from './map-layers/ReligionLayer';
 import type { ReligionFeature } from './map-layers/ReligionLayer';
 import { TimeSlider } from './map-layers/TimeSlider';
@@ -150,6 +152,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('music'),
   });
 
+  // Fetch dance traditions data with temporal filtering
+  const { data: danceData, isLoading: loadingDance } = useQuery<{ traditions: DanceTraditionFeature[]; count: number }>({
+    queryKey: ['/api/dance-traditions', { year: currentYear }],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('dance'),
+  });
+
   // Fetch religions data with temporal filtering
   const { data: religionsData, isLoading: loadingReligions } = useQuery<{ religions: ReligionFeature[]; count: number }>({
     queryKey: ['/api/religions', { year: currentYear }],
@@ -281,6 +290,11 @@ export function EnhancedLanguageMapView({
   const filteredMusicTraditions = useMemo(() => {
     return musicData?.traditions ?? [];
   }, [musicData]);
+
+  // Dance tradition data (already filtered by year on server)
+  const filteredDanceTraditions = useMemo(() => {
+    return danceData?.traditions ?? [];
+  }, [danceData]);
 
   // Religion data (already filtered by year on server)
   const filteredReligions = useMemo(() => {
@@ -559,6 +573,16 @@ export function EnhancedLanguageMapView({
           <MusicTraditionLayer
             traditions={filteredMusicTraditions}
             opacity={getLayerConfig('music')?.opacity || 0.8}
+            onTraditionClick={handleFeatureClick}
+            selectedTraditionId={selectedFeatureId}
+          />
+        )}
+
+        {/* Dance Tradition Layer */}
+        {isLayerVisible('dance') && filteredDanceTraditions.length > 0 && (
+          <DanceTraditionLayer
+            traditions={filteredDanceTraditions}
+            opacity={getLayerConfig('dance')?.opacity || 0.8}
             onTraditionClick={handleFeatureClick}
             selectedTraditionId={selectedFeatureId}
           />

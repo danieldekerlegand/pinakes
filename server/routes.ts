@@ -1178,6 +1178,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Dance Tradition API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/dance-traditions - Get dance traditions with optional filtering
+   */
+  app.get("/api/dance-traditions", async (req, res) => {
+    try {
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
+      const region = req.query.region as string | undefined;
+      const languageId = req.query.languageId as string | undefined;
+      const danceType = req.query.danceType as string | undefined;
+
+      const traditions = await storage.getDanceTraditions({ year, region, languageId, danceType });
+
+      res.json({
+        traditions,
+        count: traditions.length,
+        filters: { year, region, languageId, danceType },
+      });
+    } catch (error) {
+      console.error("Error fetching dance traditions:", error);
+      res.status(500).json({
+        message: "Failed to fetch dance traditions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/dance-traditions/:id - Get a single dance tradition
+   */
+  app.get("/api/dance-traditions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const tradition = await storage.getDanceTraditionById(id);
+
+      if (!tradition) {
+        res.status(404).json({ message: `Dance tradition '${id}' not found` });
+        return;
+      }
+
+      res.json(tradition);
+    } catch (error) {
+      console.error("Error fetching dance tradition:", error);
+      res.status(500).json({
+        message: "Failed to fetch dance tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Religion API Routes
   // ============================================================================
 
