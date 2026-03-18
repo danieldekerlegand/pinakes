@@ -7,9 +7,9 @@ import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
   calculateGeographicDistance,
-} from "./server/services/linguistic-distance-calculator";
-import { TsvStorage } from "./server/tsv-storage";
-import type { Language } from "./shared/types";
+} from "../server/services/linguistic-distance-calculator";
+import { TsvStorage } from "../server/tsv-storage";
+import type { Language } from "../shared/types";
 
 async function testDistanceCalculation() {
   console.log("=== Linguistic Distance Calculation Test ===\n");

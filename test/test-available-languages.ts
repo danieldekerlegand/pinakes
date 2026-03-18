@@ -3,8 +3,8 @@
  * Run with: npx tsx test-available-languages.ts
  */
 
-import { getAvailableLanguageIds, calculatePairwiseDistance } from "./server/services/linguistic-distance-calculator";
-import { TsvStorage } from "./server/tsv-storage";
+import { getAvailableLanguageIds, calculatePairwiseDistance } from "../server/services/linguistic-distance-calculator";
+import { TsvStorage } from "../server/tsv-storage";
 
 async function testAvailableLanguages() {
   console.log("=== Testing Available Languages Filter ===\n");

@@ -3,8 +3,8 @@
  * Run with: npx tsx test-all-phonetic-modes.ts
  */
 
-import { calculatePairwiseDistance } from "./server/services/linguistic-distance-calculator";
-import { TsvStorage } from "./server/tsv-storage";
+import { calculatePairwiseDistance } from "../server/services/linguistic-distance-calculator";
+import { TsvStorage } from "../server/tsv-storage";
 
 async function testAllPhoneticModes() {
   console.log("=== Comprehensive Phonetic Mode Comparison ===\n");
