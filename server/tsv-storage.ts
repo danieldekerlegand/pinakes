@@ -11,6 +11,7 @@ import type {
 import type {
   LanguageRangeFeature,
   ArchaeologicalSiteFeature,
+  ArchaeologicalCultureFeature,
   CivilizationFeature,
   HistoricalRouteFeature,
   MaterialCultureDistribution,
@@ -587,6 +588,7 @@ export class TsvStorage {
   // Geospatial data caches
   private cachedLanguageRanges: LanguageRangeFeature[] | null = null;
   private cachedArchaeologicalSites: ArchaeologicalSiteFeature[] | null = null;
+  private cachedArchaeologicalCultures: ArchaeologicalCultureFeature[] | null = null;
   private cachedCivilizations: CivilizationFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
   private cachedMaterialCultureDistributions: MaterialCultureDistribution[] | null = null;
@@ -1319,6 +1321,78 @@ export class TsvStorage {
       .filter((f): f is ArchaeologicalSiteFeature => f !== null);
   }
 
+  private loadArchaeologicalCultures(): void {
+    if (this.cachedArchaeologicalCultures) return;
+
+    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
+    if (!text) { this.cachedArchaeologicalCultures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const regionIdx = header.indexOf("region");
+    const boundaryIdx = header.indexOf("boundary_geometry");
+    const startIdx = header.indexOf("time_period_start");
+    const endIdx = header.indexOf("time_period_end");
+    const labelIdx = header.indexOf("time_period_label");
+    const subsistIdx = header.indexOf("subsistence_pattern");
+    const potteryIdx = header.indexOf("pottery_style");
+    const burialIdx = header.indexOf("burial_practices");
+    const traitsIdx = header.indexOf("material_culture_traits");
+    const langFamIdx = header.indexOf("probable_language_family");
+    const haploIdx = header.indexOf("probable_haplogroups");
+    const predIdx = header.indexOf("predecessor_culture_ids");
+    const succIdx = header.indexOf("successor_culture_ids");
+    const confIdx = header.indexOf("confidence");
+    const srcIdx = header.indexOf("sources");
+    const descIdx = header.indexOf("description");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedArchaeologicalCultures = rows
+      .filter((row) => row[boundaryIdx] && row[boundaryIdx].trim())
+      .map((row) => {
+        let geometry: any;
+        try { geometry = JSON.parse(row[boundaryIdx]); } catch { return null; }
+
+        const tStart = startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : 0;
+        const tEnd = endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null;
+
+        return {
+          type: "Feature" as const,
+          id: row[idIdx],
+          geometry,
+          properties: {
+            cultureId: row[idIdx],
+            name: row[nameIdx],
+            region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+            timePeriod: {
+              start: tStart,
+              end: tEnd,
+              label: labelIdx >= 0 ? row[labelIdx] || "" : "",
+            },
+            subsistencePattern: (subsistIdx >= 0 ? row[subsistIdx] || "unknown" : "unknown") as any,
+            potteryStyle: potteryIdx >= 0 ? row[potteryIdx] || "" : "",
+            burialPractices: burialIdx >= 0 ? row[burialIdx] || "" : "",
+            materialCultureTraits: traitsIdx >= 0 ? row[traitsIdx] || "" : "",
+            probableLanguageFamily: langFamIdx >= 0 ? row[langFamIdx] || "" : "",
+            probableHaplogroups: parseArr(haploIdx, row),
+            predecessorCultureIds: parseArr(predIdx, row),
+            successorCultureIds: parseArr(succIdx, row),
+            confidence: confIdx >= 0 ? parseInt(row[confIdx] || "50", 10) : 50,
+            sources: parseArr(srcIdx, row),
+            description: descIdx >= 0 ? row[descIdx] || "" : "",
+          },
+        } as ArchaeologicalCultureFeature;
+      })
+      .filter((f): f is ArchaeologicalCultureFeature => f !== null);
+  }
+
   private loadCivilizations(): void {
     if (this.cachedCivilizations) return;
 
@@ -1466,6 +1540,29 @@ export class TsvStorage {
     if (filters?.siteTypes && filters.siteTypes.length > 0) {
       const typeSet = new Set(filters.siteTypes);
       features = features.filter((f) => typeSet.has(f.properties.siteType));
+    }
+
+    return features;
+  }
+
+  /**
+   * Get archaeological cultures with optional filtering
+   */
+  async getArchaeologicalCultures(filters?: {
+    timeStart?: number;
+    timeEnd?: number;
+    region?: string;
+  }): Promise<ArchaeologicalCultureFeature[]> {
+    this.loadArchaeologicalCultures();
+    let features = this.cachedArchaeologicalCultures ?? [];
+
+    features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
+
+    if (filters?.region) {
+      const regionLower = filters.region.toLowerCase();
+      features = features.filter((f) =>
+        f.properties.region.toLowerCase().includes(regionLower)
+      );
     }
 
     return features;

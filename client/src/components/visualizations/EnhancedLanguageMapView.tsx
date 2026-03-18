@@ -6,6 +6,7 @@ import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
 import { LanguageRangeLayer } from './map-layers/LanguageRangeLayer';
 import { ArchaeologicalSitesLayer } from './map-layers/ArchaeologicalSitesLayer';
+import { ArchaeologicalCultureLayer } from './map-layers/ArchaeologicalCultureLayer';
 import { CivilizationLayer } from './map-layers/CivilizationLayer';
 import { RoutesLayer } from './map-layers/RoutesLayer';
 import { MaterialCultureHeatmap } from './map-layers/MaterialCultureHeatmap';
@@ -57,6 +58,8 @@ import type {
   LanguageRangeCollection,
   ArchaeologicalSiteFeature,
   ArchaeologicalSiteCollection,
+  ArchaeologicalCultureFeature,
+  ArchaeologicalCultureCollection,
   CivilizationFeature,
   CivilizationCollection,
   HistoricalRouteFeature,
@@ -129,6 +132,13 @@ export function EnhancedLanguageMapView({
     queryKey: ['/api/map/archaeological-sites'],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('archaeological-sites'),
+  });
+
+  // Fetch archaeological cultures data
+  const { data: archaeologicalCulturesData, isLoading: loadingCultures } = useQuery<ArchaeologicalCultureCollection>({
+    queryKey: ['/api/map/archaeological-cultures'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('archaeological-cultures'),
   });
 
   // Fetch civilizations data
@@ -298,6 +308,13 @@ export function EnhancedLanguageMapView({
     return sampleArchaeologicalSites;
   }, [archaeologicalSitesData]);
 
+  const allArchaeologicalCultures = useMemo(() => {
+    if (archaeologicalCulturesData?.features && archaeologicalCulturesData.features.length > 0) {
+      return archaeologicalCulturesData.features;
+    }
+    return [];
+  }, [archaeologicalCulturesData]);
+
   const allCivilizations = useMemo(() => {
     if (civilizationsData?.features && civilizationsData.features.length > 0) {
       return civilizationsData.features;
@@ -426,6 +443,10 @@ export function EnhancedLanguageMapView({
     return filterGeoJSONByTime(allArchaeologicalSites, currentYear);
   }, [allArchaeologicalSites, currentYear]);
 
+  const filteredArchaeologicalCultures = useMemo(() => {
+    return filterGeoJSONByTime(allArchaeologicalCultures, currentYear);
+  }, [allArchaeologicalCultures, currentYear]);
+
   const filteredCivilizations = useMemo(() => {
     return filterGeoJSONByTime(allCivilizations, currentYear);
   }, [allCivilizations, currentYear]);
@@ -515,6 +536,7 @@ export function EnhancedLanguageMapView({
   const isLoadingAnyLayer =
     (loadingRanges && isLayerVisible('language-ranges')) ||
     (loadingSites && isLayerVisible('archaeological-sites')) ||
+    (loadingCultures && isLayerVisible('archaeological-cultures')) ||
     (loadingCivilizations && isLayerVisible('civilizations')) ||
     (loadingRoutes && isLayerVisible('routes')) ||
     (loadingMaterialCultures && isLayerVisible('material-culture-heatmap')) ||
@@ -572,6 +594,16 @@ export function EnhancedLanguageMapView({
           <ArchaeologicalSitesLayer
             features={filteredArchaeologicalSites}
             opacity={getLayerConfig('archaeological-sites')?.opacity || 0.8}
+            onFeatureClick={handleFeatureClick}
+            selectedFeatureId={selectedFeatureId}
+          />
+        )}
+
+        {/* Archaeological Cultures Layer */}
+        {isLayerVisible('archaeological-cultures') && filteredArchaeologicalCultures.length > 0 && (
+          <ArchaeologicalCultureLayer
+            features={filteredArchaeologicalCultures}
+            opacity={getLayerConfig('archaeological-cultures')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={selectedFeatureId}
           />

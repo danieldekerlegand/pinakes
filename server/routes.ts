@@ -760,6 +760,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get archaeological cultures
+  app.get("/api/map/archaeological-cultures", async (req, res) => {
+    try {
+      const { timeStart, timeEnd, region } = req.query;
+
+      const filters = {
+        timeStart: timeStart ? parseInt(timeStart as string) : undefined,
+        timeEnd: timeEnd ? parseInt(timeEnd as string) : undefined,
+        region: region as string | undefined,
+      };
+
+      const features = await storage.getArchaeologicalCultures(filters);
+
+      res.json({
+        type: "FeatureCollection",
+        features,
+        metadata: filters,
+      });
+    } catch (error) {
+      console.error("Error fetching archaeological cultures:", error);
+      res.status(500).json({
+        message: "Failed to fetch archaeological cultures",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Get civilizations with boundaries
   app.get("/api/map/civilizations", async (req, res) => {
     try {
@@ -929,6 +956,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             result[layerType] = {
               type: "FeatureCollection",
               features: await storage.getArchaeologicalSites(filters),
+            };
+            break;
+          case 'archaeological-cultures':
+            result[layerType] = {
+              type: "FeatureCollection",
+              features: await storage.getArchaeologicalCultures(filters),
             };
             break;
           case 'civilizations':
