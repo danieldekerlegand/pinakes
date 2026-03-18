@@ -44,13 +44,56 @@ export function exportSVG(svgElement: SVGSVGElement, filename: string = 'visuali
 }
 
 /**
+ * Draw a watermark on a canvas context
+ */
+function drawWatermark(
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  canvasHeight: number,
+  scale: number
+) {
+  const text = 'LinguaScrape';
+  const padding = 12;
+  const fontSize = 14;
+
+  ctx.save();
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  const metrics = ctx.measureText(text);
+  const textWidth = metrics.width;
+  const textHeight = fontSize;
+
+  // Position at bottom-right
+  const x = canvasWidth / scale - textWidth - padding;
+  const y = canvasHeight / scale - padding;
+
+  // Semi-transparent background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  const bgPadding = 6;
+  ctx.beginPath();
+  ctx.roundRect(
+    x - bgPadding,
+    y - textHeight - bgPadding + 2,
+    textWidth + bgPadding * 2,
+    textHeight + bgPadding * 2,
+    4
+  );
+  ctx.fill();
+
+  // White text
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+/**
  * Export SVG element to PNG file
- * Uses canvas to convert SVG to PNG
+ * Uses canvas to convert SVG to PNG, with optional watermark
  */
 export async function exportPNG(
   svgElement: SVGSVGElement,
   filename: string = 'visualization.png',
-  scale: number = 2 // For higher resolution
+  scale: number = 2,
+  watermark: boolean = true
 ): Promise<boolean> {
   try {
     // Get SVG dimensions
@@ -97,6 +140,11 @@ export async function exportPNG(
 
         // Draw image
         ctx.drawImage(img, 0, 0, width, height);
+
+        // Draw watermark
+        if (watermark) {
+          drawWatermark(ctx, canvas.width, canvas.height, scale);
+        }
 
         // Convert canvas to blob and download
         canvas.toBlob((blob) => {
@@ -223,4 +271,24 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     console.error('Error copying to clipboard:', error);
     return false;
   }
+}
+
+export interface EmbedOptions {
+  view: string;
+  width?: number | string;
+  height?: number | string;
+  theme?: 'light' | 'dark';
+}
+
+/**
+ * Generate an HTML embed snippet for a visualization
+ */
+export function generateEmbedCode(baseUrl: string, options: EmbedOptions): string {
+  const { view, width = '100%', height = 500, theme = 'light' } = options;
+  const params = new URLSearchParams({ view, theme });
+  const src = `${baseUrl}/embed?${params.toString()}`;
+  const widthAttr = typeof width === 'number' ? `${width}px` : width;
+  const heightAttr = typeof height === 'number' ? `${height}px` : height;
+
+  return `<iframe src="${src}" style="width:${widthAttr};height:${heightAttr};border:none;border-radius:8px;" loading="lazy" title="LinguaScrape - ${view} visualization"></iframe>`;
 }
