@@ -110,6 +110,52 @@ export interface HistoricalRouteProperties extends GeoJsonProperties {
 export type HistoricalRouteFeature = Feature<LineString, HistoricalRouteProperties>;
 
 // ============================================================================
+// Archaeological Culture Types
+// ============================================================================
+
+export type SubsistencePattern =
+  | 'hunting-gathering'
+  | 'hunting-gathering with early cultivation'
+  | 'early agriculture'
+  | 'agriculture'
+  | 'agriculture and herding'
+  | 'agriculture and fishing'
+  | 'agriculture, trade'
+  | 'pastoral nomadism'
+  | 'mixed farming'
+  | 'mixed farming and herding'
+  | 'intensive agriculture'
+  | 'irrigation agriculture'
+  | 'intensive irrigation agriculture'
+  | 'millet agriculture'
+  | 'rice agriculture'
+  | 'horticulture and fishing'
+  | 'big-game hunting'
+  | 'bison hunting'
+  | 'hunting, fishing, gathering'
+  | 'unknown';
+
+export interface ArchaeologicalCultureProperties extends GeoJsonProperties {
+  cultureId: string;
+  name: string;
+  region: string;
+  timePeriod: TimePeriod;
+  subsistencePattern: SubsistencePattern;
+  potteryStyle: string;
+  burialPractices: string;
+  materialCultureTraits: string;
+  probableLanguageFamily: string;
+  probableHaplogroups: string[];
+  predecessorCultureIds: string[];
+  successorCultureIds: string[];
+  confidence: number; // 1-100
+  sources: string[];
+  description: string;
+}
+
+export type ArchaeologicalCultureFeature = Feature<Polygon | MultiPolygon, ArchaeologicalCultureProperties>;
+
+// ============================================================================
 // Material Culture Types
 // ============================================================================
 
@@ -154,6 +200,7 @@ export interface MaterialCultureDistribution {
 export type LayerType =
   | 'language-ranges'
   | 'archaeological-sites'
+  | 'archaeological-cultures'
   | 'civilizations'
   | 'routes'
   | 'battles'
@@ -266,6 +313,11 @@ export interface ArchaeologicalSiteCollection {
   features: ArchaeologicalSiteFeature[];
 }
 
+export interface ArchaeologicalCultureCollection {
+  type: 'FeatureCollection';
+  features: ArchaeologicalCultureFeature[];
+}
+
 export interface CivilizationCollection {
   type: 'FeatureCollection';
   features: CivilizationFeature[];
@@ -354,6 +406,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         size: 8,
         opacity: 0.8,
         strokeWeight: 2,
+      },
+    },
+  },
+  {
+    id: 'archaeological-cultures',
+    type: 'archaeological-cultures',
+    category: 'archaeology',
+    name: 'Archaeological Cultures',
+    visible: false,
+    opacity: 0.5,
+    zIndex: 75,
+    renderStyle: {
+      polygon: {
+        fillOpacity: 0.25,
+        strokeWeight: 2,
+        strokeOpacity: 0.7,
       },
     },
   },
@@ -585,7 +653,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'linguistic-atlas',
     name: 'Linguistic Atlas',
     description: 'Language ranges, writing systems, and related archaeology',
-    layers: ['language-ranges', 'archaeological-sites'],
+    layers: ['language-ranges', 'archaeological-sites', 'archaeological-cultures'],
   },
   {
     id: 'political-history',
