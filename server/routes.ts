@@ -809,6 +809,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get trade routes specifically (convenience endpoint filtering by trade type)
+  app.get("/api/trade-routes", async (req, res) => {
+    try {
+      const { timeStart, timeEnd } = req.query;
+
+      const features = await storage.getHistoricalRoutes({
+        timeStart: timeStart ? parseInt(timeStart as string) : undefined,
+        timeEnd: timeEnd ? parseInt(timeEnd as string) : undefined,
+        routeTypes: ["trade"],
+      });
+
+      res.json({
+        type: "FeatureCollection",
+        features,
+        count: features.length,
+      });
+    } catch (error) {
+      console.error("Error fetching trade routes:", error);
+      res.status(500).json({
+        message: "Failed to fetch trade routes",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Get material culture distributions
   app.get("/api/map/material-cultures", async (req, res) => {
     try {

@@ -91,6 +91,8 @@ export type RouteType =
   | 'trade'
   | 'migration'
   | 'conquest'
+  | 'colonization'
+  | 'diaspora'
   | 'pilgrimage'
   | 'communication'
   | 'unknown';
