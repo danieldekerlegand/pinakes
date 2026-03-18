@@ -2521,5 +2521,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================================
+  // Cultural Lineage API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/cultural-lineages - Get all cultural lineages with optional filtering
+   */
+  app.get("/api/cultural-lineages", async (req, res) => {
+    try {
+      const relationshipType = req.query.relationshipType as string | undefined;
+      const sourceId = req.query.sourceId as string | undefined;
+      const targetId = req.query.targetId as string | undefined;
+      const minConfidence = req.query.minConfidence
+        ? parseFloat(req.query.minConfidence as string) : undefined;
+      const timeStart = req.query.timeStart
+        ? parseInt(req.query.timeStart as string, 10) : undefined;
+      const timeEnd = req.query.timeEnd
+        ? parseInt(req.query.timeEnd as string, 10) : undefined;
+
+      const lineages = await storage.getCulturalLineages({
+        relationshipType, sourceId, targetId, minConfidence, timeStart, timeEnd,
+      });
+
+      res.json({
+        lineages,
+        count: lineages.length,
+        filters: { relationshipType, sourceId, targetId, minConfidence, timeStart, timeEnd },
+      });
+    } catch (error) {
+      console.error("Error fetching cultural lineages:", error);
+      res.status(500).json({
+        message: "Failed to fetch cultural lineages",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cultural-lineages/ancestors/:entityId - Recursively find all ancestors
+   */
+  app.get("/api/cultural-lineages/ancestors/:entityId", async (req, res) => {
+    try {
+      const maxDepth = req.query.maxDepth
+        ? parseInt(req.query.maxDepth as string, 10) : 20;
+      const lineages = await storage.getCulturalLineageAncestors(req.params.entityId, maxDepth);
+
+      res.json({
+        entityId: req.params.entityId,
+        lineages,
+        count: lineages.length,
+      });
+    } catch (error) {
+      console.error("Error fetching cultural lineage ancestors:", error);
+      res.status(500).json({
+        message: "Failed to fetch cultural lineage ancestors",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cultural-lineages/descendants/:entityId - Recursively find all descendants
+   */
+  app.get("/api/cultural-lineages/descendants/:entityId", async (req, res) => {
+    try {
+      const maxDepth = req.query.maxDepth
+        ? parseInt(req.query.maxDepth as string, 10) : 20;
+      const lineages = await storage.getCulturalLineageDescendants(req.params.entityId, maxDepth);
+
+      res.json({
+        entityId: req.params.entityId,
+        lineages,
+        count: lineages.length,
+      });
+    } catch (error) {
+      console.error("Error fetching cultural lineage descendants:", error);
+      res.status(500).json({
+        message: "Failed to fetch cultural lineage descendants",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cultural-lineages/:id - Get a single cultural lineage by ID
+   */
+  app.get("/api/cultural-lineages/:id", async (req, res) => {
+    try {
+      const lineage = await storage.getCulturalLineageById(req.params.id);
+      if (!lineage) {
+        res.status(404).json({ message: `Cultural lineage '${req.params.id}' not found` });
+        return;
+      }
+      res.json(lineage);
+    } catch (error) {
+      console.error("Error fetching cultural lineage:", error);
+      res.status(500).json({
+        message: "Failed to fetch cultural lineage",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }
