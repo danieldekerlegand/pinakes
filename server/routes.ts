@@ -1026,6 +1026,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Ingredient Origin API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/ingredient-origins - Get all ingredient origins with optional filtering
+   */
+  app.get("/api/ingredient-origins", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const cuisineId = req.query.cuisineId as string | undefined;
+
+      const items = await storage.getIngredientOrigins({ category, cuisineId });
+
+      res.json({
+        ingredientOrigins: items,
+        count: items.length,
+        filters: { category, cuisineId },
+      });
+    } catch (error) {
+      console.error("Error fetching ingredient origins:", error);
+      res.status(500).json({
+        message: "Failed to fetch ingredient origins",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/ingredient-origins/:id - Get a single ingredient origin
+   */
+  app.get("/api/ingredient-origins/:id", async (req, res) => {
+    try {
+      const item = await storage.getIngredientOriginById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Ingredient origin not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching ingredient origin:", error);
+      res.status(500).json({
+        message: "Failed to fetch ingredient origin",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Cooking Technique API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/cooking-techniques - Get all cooking techniques with optional filtering
+   */
+  app.get("/api/cooking-techniques", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const cuisineId = req.query.cuisineId as string | undefined;
+
+      const items = await storage.getCookingTechniques({ category, cuisineId });
+
+      res.json({
+        cookingTechniques: items,
+        count: items.length,
+        filters: { category, cuisineId },
+      });
+    } catch (error) {
+      console.error("Error fetching cooking techniques:", error);
+      res.status(500).json({
+        message: "Failed to fetch cooking techniques",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/cooking-techniques/:id - Get a single cooking technique
+   */
+  app.get("/api/cooking-techniques/:id", async (req, res) => {
+    try {
+      const item = await storage.getCookingTechniqueById(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Cooking technique not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching cooking technique:", error);
+      res.status(500).json({
+        message: "Failed to fetch cooking technique",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Haplogroup API Routes
   // ============================================================================
 
@@ -1646,7 +1740,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  // ============================================================================
   // Phonological Inventories
   // ============================================================================
 
@@ -1685,7 +1784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching sample text:", error);
       res.status(500).json({
         message: "Failed to fetch sample text",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/phonological-inventories/:id - Get a single phonological inventory
    */
   app.get("/api/phonological-inventories/:id", async (req, res) => {
@@ -1720,7 +1824,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching language sample texts:", error);
       res.status(500).json({
         message: "Failed to fetch sample texts for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/languages/:id/phonological-inventory - Get inventory for a specific language
    */
   app.get("/api/languages/:id/phonological-inventory", async (req, res) => {
@@ -1767,7 +1876,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  // ============================================================================
   // Grammar Features Endpoints
   // ============================================================================
 
@@ -1808,7 +1922,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching etymology relations for word:", error);
       res.status(500).json({
         message: "Failed to fetch etymology relations for word",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/grammar-features/:id - Get a single grammar features entry
    */
   app.get("/api/grammar-features/:id", async (req, res) => {
@@ -1853,7 +1972,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error tracing etymology:", error);
       res.status(500).json({
         message: "Failed to trace etymology",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/languages/:id/grammar-features - Get grammar features for a specific language
    */
   app.get("/api/languages/:id/grammar-features", async (req, res) => {
@@ -1914,7 +2038,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error analyzing text origins:", error);
       res.status(500).json({
         message: "Failed to analyze text origins",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
 
+  /**
    * GET /api/writing-systems/:id - Get a single writing system
    */
   app.get("/api/writing-systems/:id", async (req, res) => {
