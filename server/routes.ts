@@ -1024,6 +1024,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Ingredient Origins API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/ingredient-origins - Get ingredient origins with optional filtering
+   */
+  app.get("/api/ingredient-origins", async (req, res) => {
+    try {
+      const cuisineId = req.query.cuisineId as string | undefined;
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
+      const region = req.query.region as string | undefined;
+
+      const ingredients = await storage.getIngredientOrigins({ cuisineId, year, region });
+
+      res.json({
+        ingredients,
+        count: ingredients.length,
+        filters: { cuisineId, year, region },
+      });
+    } catch (error) {
+      console.error("Error fetching ingredient origins:", error);
+      res.status(500).json({
+        message: "Failed to fetch ingredient origins",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Cooking Techniques API Routes
+  // ============================================================================
+
+  /**
+   * GET /api/cooking-techniques - Get cooking techniques with optional filtering
+   */
+  app.get("/api/cooking-techniques", async (req, res) => {
+    try {
+      const cuisineId = req.query.cuisineId as string | undefined;
+      const year = req.query.year ? parseInt(req.query.year as string, 10) : undefined;
+      const category = req.query.category as string | undefined;
+
+      const techniques = await storage.getCookingTechniques({ cuisineId, year, category });
+
+      res.json({
+        techniques,
+        count: techniques.length,
+        filters: { cuisineId, year, category },
+      });
+    } catch (error) {
+      console.error("Error fetching cooking techniques:", error);
+      res.status(500).json({
+        message: "Failed to fetch cooking techniques",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Haplogroup API Routes
   // ============================================================================
 

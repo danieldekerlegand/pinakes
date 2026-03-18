@@ -219,6 +219,31 @@ export interface CuisineItem {
   timeEnd: number | null;
 }
 
+// Ingredient Origin types
+export interface IngredientOrigin {
+  id: string;
+  name: string;
+  cuisineId: string;
+  originRegion: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  nativeName: string;
+  description: string;
+}
+
+// Cooking Technique types
+export interface CookingTechnique {
+  id: string;
+  name: string;
+  cuisineId: string;
+  category: string;
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  description: string;
+}
+
 // Sample Text types
 export interface SampleText {
   id: string;
@@ -240,6 +265,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -430,6 +456,8 @@ export class TsvStorage {
   // Cuisine data caches
   private cachedCuisines: Cuisine[] | null = null;
   private cachedCuisineItems: CuisineItem[] | null = null;
+  private cachedIngredientOrigins: IngredientOrigin[] | null = null;
+  private cachedCookingTechniques: CookingTechnique[] | null = null;
 
   // Sample Texts
   private cachedSampleTexts: SampleText[] | null = null;
@@ -1992,6 +2020,174 @@ export class TsvStorage {
   }
 
   // ============================================================================
+  // Ingredient Origin Data Methods
+  // ============================================================================
+
+  /**
+   * Load ingredient origins from TSV file
+   */
+  private loadIngredientOrigins(): void {
+    if (this.cachedIngredientOrigins) return;
+
+    const text = this.readFileIfExists("lexicons/ingredient-origins.tsv");
+    if (!text) {
+      this.cachedIngredientOrigins = [];
+      return;
+    }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const cuisineIdIdx = getIdx(header, "cuisine_id");
+    const originRegionIdx = header.indexOf("origin_region");
+    const coordsIdx = header.indexOf("coordinates");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const timeEndIdx = header.indexOf("time_end");
+    const nativeNameIdx = header.indexOf("native_name");
+    const descIdx = header.indexOf("description");
+
+    this.cachedIngredientOrigins = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try {
+          coords = JSON.parse(row[coordsIdx]);
+        } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        cuisineId: row[cuisineIdIdx],
+        originRegion: originRegionIdx >= 0 ? row[originRegionIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: timeOriginIdx >= 0 && row[timeOriginIdx] && row[timeOriginIdx] !== "null"
+          ? parseInt(row[timeOriginIdx], 10)
+          : null,
+        timeEnd: timeEndIdx >= 0 && row[timeEndIdx] && row[timeEndIdx] !== "null"
+          ? parseInt(row[timeEndIdx], 10)
+          : null,
+        nativeName: nativeNameIdx >= 0 ? row[nativeNameIdx] || "" : "",
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get ingredient origins with optional filtering
+   */
+  async getIngredientOrigins(filters?: {
+    cuisineId?: string;
+    year?: number;
+    region?: string;
+  }): Promise<IngredientOrigin[]> {
+    this.loadIngredientOrigins();
+    let items = this.cachedIngredientOrigins ?? [];
+
+    if (filters?.cuisineId) {
+      items = items.filter((i) => i.cuisineId === filters.cuisineId);
+    }
+
+    if (filters?.year !== undefined) {
+      items = items.filter((i) => {
+        const start = i.timeOrigin ?? -Infinity;
+        const end = i.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.region) {
+      items = items.filter((i) =>
+        i.originRegion.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    return items;
+  }
+
+  // ============================================================================
+  // Cooking Technique Data Methods
+  // ============================================================================
+
+  /**
+   * Load cooking techniques from TSV file
+   */
+  private loadCookingTechniques(): void {
+    if (this.cachedCookingTechniques) return;
+
+    const text = this.readFileIfExists("lexicons/cooking-techniques.tsv");
+    if (!text) {
+      this.cachedCookingTechniques = [];
+      return;
+    }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const cuisineIdIdx = getIdx(header, "cuisine_id");
+    const categoryIdx = header.indexOf("category");
+    const coordsIdx = header.indexOf("coordinates");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const timeEndIdx = header.indexOf("time_end");
+    const descIdx = header.indexOf("description");
+
+    this.cachedCookingTechniques = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try {
+          coords = JSON.parse(row[coordsIdx]);
+        } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        cuisineId: row[cuisineIdIdx],
+        category: categoryIdx >= 0 ? row[categoryIdx] || "" : "",
+        coordinates: coords,
+        timeOrigin: timeOriginIdx >= 0 && row[timeOriginIdx] && row[timeOriginIdx] !== "null"
+          ? parseInt(row[timeOriginIdx], 10)
+          : null,
+        timeEnd: timeEndIdx >= 0 && row[timeEndIdx] && row[timeEndIdx] !== "null"
+          ? parseInt(row[timeEndIdx], 10)
+          : null,
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+      };
+    });
+  }
+
+  /**
+   * Get cooking techniques with optional filtering
+   */
+  async getCookingTechniques(filters?: {
+    cuisineId?: string;
+    year?: number;
+    category?: string;
+  }): Promise<CookingTechnique[]> {
+    this.loadCookingTechniques();
+    let items = this.cachedCookingTechniques ?? [];
+
+    if (filters?.cuisineId) {
+      items = items.filter((i) => i.cuisineId === filters.cuisineId);
+    }
+
+    if (filters?.year !== undefined) {
+      items = items.filter((i) => {
+        const start = i.timeOrigin ?? -Infinity;
+        const end = i.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    if (filters?.category) {
+      items = items.filter((i) =>
+        i.category.toLowerCase().includes(filters.category!.toLowerCase())
+      );
+    }
+
+    return items;
+  }
+
+  // ============================================================================
   // Sample Text Data Methods
   // ============================================================================
 
@@ -2003,18 +2199,6 @@ export class TsvStorage {
 
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
 
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
@@ -2039,7 +2223,25 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // ============================================================================
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2137,7 +2339,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2263,6 +2468,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
