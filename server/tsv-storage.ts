@@ -148,6 +148,40 @@ export interface VerbParadigm {
   notes: string;
 }
 
+// Deity types
+export interface Deity {
+  id: string;
+  name: string;
+  nativeName: string;
+  mythology: string;
+  domain: string[];
+  coordinates: { lat: number; lng: number };
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  associatedLanguageIds: string[];
+  equivalentDeityIds: string[];
+  attributes: string[];
+  symbols: string[];
+  description: string;
+  sources: string[];
+}
+
+// Myth motif types
+export interface MythMotif {
+  id: string;
+  name: string;
+  motifType: string;
+  thompsonIndex: string;
+  mythologyIds: string[];
+  associatedDeityIds: string[];
+  region: string;
+  timeOrigin: number | null;
+  timeEnd: number | null;
+  relatedMotifIds: string[];
+  description: string;
+  sources: string[];
+}
+
 // Religion types
 export interface Religion {
   id: string;
@@ -579,6 +613,12 @@ export class TsvStorage {
   // Music data caches
   private cachedMusicTraditions: MusicTradition[] | null = null;
   private cachedMusicalInstruments: MusicalInstrument[] | null = null;
+
+  // Deity data cache
+  private cachedDeities: Deity[] | null = null;
+
+  // Myth motif data cache
+  private cachedMythMotifs: MythMotif[] | null = null;
 
   // Religion data cache
   private cachedReligions: Religion[] | null = null;
@@ -2272,6 +2312,195 @@ export class TsvStorage {
   ): Promise<DanceTradition | null> {
     this.loadDanceTraditions();
     return (this.cachedDanceTraditions ?? []).find((t) => t.id === traditionId) ?? null;
+  }
+
+  // ============================================================================
+  // Deity Data Methods
+  // ============================================================================
+
+  private loadDeities(): void {
+    if (this.cachedDeities) return;
+
+    const text = this.readFileIfExists("lexicons/deities.tsv");
+    if (!text) { this.cachedDeities = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const nativeIdx = header.indexOf("native_name");
+    const mythIdx = header.indexOf("mythology");
+    const domainIdx = header.indexOf("domain");
+    const coordsIdx = header.indexOf("coordinates");
+    const startIdx = header.indexOf("time_origin");
+    const endIdx = header.indexOf("time_end");
+    const langIdx = header.indexOf("associated_language_ids");
+    const equivIdx = header.indexOf("equivalent_deity_ids");
+    const attrIdx = header.indexOf("attributes");
+    const symbolIdx = header.indexOf("symbols");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedDeities = rows.map((row) => {
+      let coords = { lat: 0, lng: 0 };
+      if (coordsIdx >= 0 && row[coordsIdx]) {
+        try { coords = JSON.parse(row[coordsIdx]); } catch {}
+      }
+
+      return {
+        id: row[idIdx],
+        name: row[nameIdx],
+        nativeName: nativeIdx >= 0 ? row[nativeIdx] || "" : "",
+        mythology: mythIdx >= 0 ? row[mythIdx] || "" : "",
+        domain: domainIdx >= 0 && row[domainIdx] ? row[domainIdx].split(",") : [],
+        coordinates: coords,
+        timeOrigin: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+          ? parseInt(row[startIdx], 10) : null,
+        timeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+          ? parseInt(row[endIdx], 10) : null,
+        associatedLanguageIds: parseArr(langIdx, row),
+        equivalentDeityIds: parseArr(equivIdx, row),
+        attributes: parseArr(attrIdx, row),
+        symbols: parseArr(symbolIdx, row),
+        description: descIdx >= 0 ? row[descIdx] || "" : "",
+        sources: parseArr(srcIdx, row),
+      };
+    });
+  }
+
+  async getDeities(filters?: {
+    mythology?: string;
+    domain?: string;
+    year?: number;
+  }): Promise<Deity[]> {
+    this.loadDeities();
+    let deities = this.cachedDeities ?? [];
+
+    if (filters?.mythology) {
+      deities = deities.filter((d) =>
+        d.mythology.toLowerCase() === filters.mythology!.toLowerCase()
+      );
+    }
+
+    if (filters?.domain) {
+      deities = deities.filter((d) =>
+        d.domain.some((dom) => dom.toLowerCase().includes(filters.domain!.toLowerCase()))
+      );
+    }
+
+    if (filters?.year !== undefined) {
+      deities = deities.filter((d) => {
+        const start = d.timeOrigin ?? -Infinity;
+        const end = d.timeEnd ?? Infinity;
+        return filters.year! >= start && filters.year! <= end;
+      });
+    }
+
+    return deities;
+  }
+
+  async getDeity(deityId: string): Promise<Deity | null> {
+    this.loadDeities();
+    return (this.cachedDeities ?? []).find((d) => d.id === deityId) ?? null;
+  }
+
+  // ============================================================================
+  // Myth Motif Data Methods
+  // ============================================================================
+
+  private loadMythMotifs(): void {
+    if (this.cachedMythMotifs) return;
+
+    const text = this.readFileIfExists("lexicons/myth-motifs.tsv");
+    if (!text) { this.cachedMythMotifs = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const typeIdx = header.indexOf("motif_type");
+    const thompsonIdx = header.indexOf("thompson_index");
+    const mythIdx = header.indexOf("mythology_ids");
+    const deityIdx = header.indexOf("associated_deity_ids");
+    const regionIdx = header.indexOf("region");
+    const startIdx = header.indexOf("time_origin");
+    const endIdx = header.indexOf("time_end");
+    const relatedIdx = header.indexOf("related_motif_ids");
+    const descIdx = header.indexOf("description");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    this.cachedMythMotifs = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      motifType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      thompsonIndex: thompsonIdx >= 0 ? row[thompsonIdx] || "" : "",
+      mythologyIds: parseArr(mythIdx, row),
+      associatedDeityIds: parseArr(deityIdx, row),
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      timeOrigin: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
+        ? parseInt(row[startIdx], 10) : null,
+      timeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
+        ? parseInt(row[endIdx], 10) : null,
+      relatedMotifIds: parseArr(relatedIdx, row),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      sources: parseArr(srcIdx, row),
+    }));
+  }
+
+  async getMythMotifs(filters?: {
+    motifType?: string;
+    mythology?: string;
+    region?: string;
+  }): Promise<MythMotif[]> {
+    this.loadMythMotifs();
+    let motifs = this.cachedMythMotifs ?? [];
+
+    if (filters?.motifType) {
+      motifs = motifs.filter((m) => m.motifType === filters.motifType);
+    }
+
+    if (filters?.mythology) {
+      motifs = motifs.filter((m) =>
+        m.mythologyIds.some((id) => id.toLowerCase().includes(filters.mythology!.toLowerCase()))
+      );
+    }
+
+    if (filters?.region) {
+      motifs = motifs.filter((m) =>
+        m.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    return motifs;
+  }
+
+  async getMythMotif(motifId: string): Promise<MythMotif | null> {
+    this.loadMythMotifs();
+    return (this.cachedMythMotifs ?? []).find((m) => m.id === motifId) ?? null;
+  }
+
+  async getDeityEquivalents(deityId: string): Promise<Deity[]> {
+    this.loadDeities();
+    const deity = (this.cachedDeities ?? []).find((d) => d.id === deityId);
+    if (!deity) return [];
+    return (this.cachedDeities ?? []).filter((d) =>
+      deity.equivalentDeityIds.includes(d.id)
+    );
+  }
+
+  async getMotifsByDeity(deityId: string): Promise<MythMotif[]> {
+    this.loadMythMotifs();
+    return (this.cachedMythMotifs ?? []).filter((m) =>
+      m.associatedDeityIds.includes(deityId)
+    );
   }
 
   // ============================================================================

@@ -220,7 +220,8 @@ export type LayerType =
   | 'dance'
   | 'architectural-styles'
   | 'ingredient-origins'
-  | 'cooking-techniques';
+  | 'cooking-techniques'
+  | 'mythology';
 
 export type LayerCategory =
   | 'languages'
@@ -692,6 +693,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
     },
   },
   {
+    id: 'mythology',
+    type: 'mythology',
+    category: 'religions',
+    name: 'Mythology & Deities',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 285,
+    renderStyle: {
+      marker: {
+        size: 8,
+        opacity: 0.8,
+        strokeWeight: 2,
+      },
+    },
+  },
+  {
     id: 'ingredient-origins',
     type: 'ingredient-origins',
     category: 'cuisines',
@@ -753,7 +770,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'cultural-diffusion',
     name: 'Cultural Diffusion',
     description: 'Music, religions, cuisines, and material culture',
-    layers: ['cuisines', 'music', 'dance', 'religions', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems', 'architectural-styles', 'ingredient-origins', 'cooking-techniques'],
+    layers: ['cuisines', 'music', 'dance', 'religions', 'mythology', 'material-culture', 'material-culture-heatmap', 'foodway-events', 'kinship-systems', 'architectural-styles', 'ingredient-origins', 'cooking-techniques'],
   },
   {
     id: 'trade-economy',

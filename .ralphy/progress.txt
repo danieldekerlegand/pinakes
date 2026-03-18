@@ -159,3 +159,19 @@ Completed:
 - Integrated panel into dashboard (menu item, keyboard shortcut, URL state)
 - Wrote 11 tests covering data integrity, filtering, linkage consistency, coordinate validation
 - All tests pass, Vite build succeeds
+
+## Agent 27: Add mythology TSV loaders, API, and comparative visualization
+
+### Completed
+- Created deities.tsv with 16 deities across 10 mythological traditions (Greek, Roman, Norse, Hindu, Egyptian, Mesopotamian, Japanese, Aztec, Slavic)
+- Created myth-motifs.tsv with 15 cross-cultural mythological motifs (flood myth, world tree, dying-rising god, hero quest, thunder god, etc.)
+- Added Deity and MythMotif TypeScript interfaces in tsv-storage.ts
+- Added TSV loaders with filtering (by mythology, domain, year, motif type, region)
+- Added helper methods: getDeityEquivalents(), getMotifsByDeity()
+- Added 7 API endpoints: GET /api/deities, GET /api/deities/:id, GET /api/deities/:id/equivalents, GET /api/myth-motifs, GET /api/myth-motifs/:id, GET /api/deities/:id/motifs
+- Created MythologyLayer map component with deity markers and cross-cultural equivalence connection lines
+- Integrated MythologyLayer into EnhancedLanguageMapView with layer toggle support
+- Added 'mythology' layer config to DEFAULT_LAYER_CONFIGS and cultural-diffusion preset
+- Created ComparativeMythologyView component with deity equivalence groups, motif filtering, deity detail panel, and cross-reference matrix
+- Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
+- Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
