@@ -24,6 +24,7 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
+import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -2522,6 +2523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -2561,6 +2563,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in bulk import:", error);
       res.status(500).json({ message: "Bulk import failed" });
+=======
+  // Quiz & Learning Mode
+  app.get("/api/quiz", async (req, res) => {
+    try {
+      const count = Math.min(Math.max(parseInt(req.query.count as string, 10) || 10, 1), 30);
+      const category = (req.query.category as QuizCategory | "mixed") || "mixed";
+      const difficulty = (req.query.difficulty as Difficulty) || "medium";
+
+      const validCategories = ["mixed", "languages", "families", "grammar", "writing_systems", "geography"];
+      const validDifficulties = ["easy", "medium", "hard"];
+
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({ message: `Invalid category. Must be one of: ${validCategories.join(", ")}` });
+      }
+      if (!validDifficulties.includes(difficulty)) {
+        return res.status(400).json({ message: `Invalid difficulty. Must be one of: ${validDifficulties.join(", ")}` });
+      }
+
+      const session = await generateQuiz(count, category, difficulty);
+      res.json(session);
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      res.status(500).json({ message: "Failed to generate quiz" });
+    }
+  });
+
+  app.post("/api/quiz/score-map", async (req, res) => {
+    try {
+      const { answer, guess, difficulty } = req.body;
+      if (!answer || !guess || !answer.lat || !answer.lng || !guess.lat || !guess.lng) {
+        return res.status(400).json({ message: "answer and guess must have lat and lng" });
+      }
+      const result = scoreMapClick(answer, guess, difficulty || "medium");
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to score map click" });
+>>>>>>> ralphy/agent-34-1773830889284-wuhiw2-add-quiz-and-learning-mode
     }
   });
 

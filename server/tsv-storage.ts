@@ -259,6 +259,7 @@ export interface EtymologyRelation {
   targetWord: string;
   targetLanguage: string;
   relationType: string;
+}
 
 // Material culture types
 export interface MaterialCultureSpreadEvent {
@@ -2023,18 +2024,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -2058,7 +2047,25 @@ export class TsvStorage {
       dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
       genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
+    }));
+  }
 
+  // ============================================================================
+  // Phonological Inventory Data Methods
+  // ============================================================================
+
+  /**
+   * Load phonological inventories from TSV file
+   */
+  private loadPhonologicalInventories(): void {
+    if (this.cachedPhonologicalInventories) return;
+
+    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    if (!text) { this.cachedPhonologicalInventories = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const langIdx = getIdx(header, "language_id");
     const consIdx = header.indexOf("consonants");
     const vowIdx = header.indexOf("vowels");
     const toneIdx = header.indexOf("tones");
@@ -2156,7 +2163,10 @@ export class TsvStorage {
       targetWord: row[tgtWordIdx],
       targetLanguage: row[tgtLangIdx],
       relationType: row[relTypeIdx],
+    }));
+  }
 
+  /**
    * Get all phonological inventories with optional language_id filter
    */
   async getPhonologicalInventories(languageId?: string): Promise<PhonologicalInventory[]> {
@@ -2282,6 +2292,7 @@ export class TsvStorage {
     );
   }
 
+  /**
    * Get all grammar features with optional filters
    */
   async getGrammarFeatures(languageId?: string, wordOrder?: string, morphologicalType?: string): Promise<GrammarFeatures[]> {
