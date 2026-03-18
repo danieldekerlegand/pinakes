@@ -23,6 +23,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { bulkImport, getImportTargets } from "./services/bulk-import";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -2518,6 +2519,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         message: "Failed to compare text origins",
       });
+    }
+  });
+
+  // Bulk CSV/TSV Import
+  app.get("/api/import/targets", async (_req, res) => {
+    try {
+      const targets = await getImportTargets();
+      res.json(targets);
+    } catch (error) {
+      console.error("Error listing import targets:", error);
+      res.status(500).json({ message: "Failed to list import targets" });
+    }
+  });
+
+  app.post("/api/import/bulk", async (req, res) => {
+    try {
+      const { target, content, mode, skipDuplicates } = req.body;
+
+      if (!target || typeof target !== "string") {
+        return res.status(400).json({ message: "Missing required field: target" });
+      }
+      if (!content || typeof content !== "string") {
+        return res.status(400).json({ message: "Missing required field: content" });
+      }
+      if (!mode || !["append", "replace"].includes(mode)) {
+        return res.status(400).json({ message: "Mode must be 'append' or 'replace'" });
+      }
+
+      const result = await bulkImport({
+        target,
+        content,
+        mode,
+        skipDuplicates: skipDuplicates !== false,
+      });
+
+      const hasErrors = result.errors.some(
+        (e) => !e.startsWith("Unmapped columns")
+      );
+      res.status(hasErrors ? 400 : 200).json(result);
+    } catch (error) {
+      console.error("Error in bulk import:", error);
+      res.status(500).json({ message: "Bulk import failed" });
     }
   });
 
