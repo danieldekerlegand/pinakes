@@ -31,12 +31,16 @@ import {
   Link2,
   MoreVertical,
   Eye,
+  Moon,
+  Pause,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
 import { copyToClipboard } from "@/lib/visualization/export-utils";
 import { useVisualization } from "@/contexts/VisualizationContext";
 import { useHighContrast } from "@/hooks/use-high-contrast";
+import { useDarkMode } from "@/hooks/use-dark-mode";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   Dialog,
   DialogContent,
@@ -124,6 +128,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { state: vizState } = useVisualization();
   const { highContrast, toggleHighContrast } = useHighContrast();
+  const { darkMode, toggleDarkMode } = useDarkMode();
+  const { reducedMotion, toggleReducedMotion } = useReducedMotion();
 
   // Determine which panel is currently open (for URL state)
   const activePanel = useMemo(() => {
@@ -345,8 +351,14 @@ export default function Dashboard() {
               <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setWritingSystemsOpen(true)} aria-label="Writing Systems" title="Writing Systems"><Type className="h-5 w-5" aria-hidden="true" /></Button>
               <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setVerbParadigmsOpen(true)} aria-label="Verb Conjugations" title="Verb Conjugations"><Languages className="h-5 w-5" aria-hidden="true" /></Button>
               <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setDistanceAnalyzerOpen(true)} aria-label="Linguistic Distance Analyzer" title="Distance Analyzer"><Network className="h-5 w-5" aria-hidden="true" /></Button>
+              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${darkMode ? 'ring-2 ring-white' : ''}`} onClick={toggleDarkMode} aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"} aria-pressed={darkMode} title="Toggle dark mode">
+                <Moon className="h-5 w-5" aria-hidden="true" />
+              </Button>
               <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${highContrast ? 'ring-2 ring-white' : ''}`} onClick={toggleHighContrast} aria-label={highContrast ? "Disable high contrast mode" : "Enable high contrast mode"} aria-pressed={highContrast} title="Toggle high contrast mode">
                 <Eye className="h-5 w-5" aria-hidden="true" />
+              </Button>
+              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${reducedMotion ? 'ring-2 ring-white' : ''}`} onClick={toggleReducedMotion} aria-label={reducedMotion ? "Enable animations" : "Reduce animations"} aria-pressed={reducedMotion} title="Toggle reduced motion">
+                <Pause className="h-5 w-5" aria-hidden="true" />
               </Button>
               <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-blue-700" onClick={handleCopyLink} aria-label={linkCopied ? "Link copied" : "Copy shareable link"} title="Copy shareable link">
                 {linkCopied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Link2 className="h-5 w-5" aria-hidden="true" />}
