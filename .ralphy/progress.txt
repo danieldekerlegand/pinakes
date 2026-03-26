@@ -1,3 +1,28 @@
+Create grammar feature scraper from WALS and Grambank
+
+Completed:
+- Created server/services/grammar-wals-grambank-scraper.ts
+  - Fetches CLDF data from WALS (cldf-datasets/wals) and Grambank (grambank/grambank) GitHub repos
+  - Parses CSV with proper quoted field handling
+  - Maps WALS language codes and Grambank Glottocodes to ISO 639-3 via their languages.csv files
+  - Filters features to match languages in our lexicons/languages.tsv
+  - Writes long-format TSV output: one row per language-feature pair
+  - Supports resumability (skips already-scraped language+feature combos)
+  - Concurrency guard prevents parallel scraping
+  - Job tracking via jobStore for progress monitoring
+  - WALS area categorization: Phonology, Morphology, Nominal/Verbal Categories, Word Order, Simple/Complex Clauses, Lexicon, Sign Languages
+- Added POST /api/scraping/grammar-wals-grambank route to server/routes.ts
+  - Accepts optional sources (["wals", "grambank"]) and languageIds parameters
+  - Runs scraping in background with job status tracking
+- Created test/test-grammar-wals-grambank-scraper.ts with 49 passing tests
+  - CSV parser: basic, quoted fields, empty, CRLF, WALS format, Grambank format
+  - WALS area mapping: all 9 chapter ranges
+  - TSV output format validation
+  - Integration tests available with --integration flag
+
+Output: lexicons/grammar-features-wals-grambank.tsv
+TSV columns: id, language_id, source, feature_id, feature_name, feature_area, value_id, value_name, iso639_3, glottocode
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
