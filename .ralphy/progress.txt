@@ -196,3 +196,25 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+## Create Glottolog scraper for comprehensive language family tree data
+
+Completed:
+- Created server/services/glottolog-scraper.ts with GlottologScraper class
+  - Fetches language family tree data from Glottolog's REST API (glottolog.org)
+  - Scrapes top-level families, then recursively traverses children
+  - Converts Glottolog languoids to LanguageFamily and Language types
+  - Rate-limited requests (300ms delay) to be respectful to Glottolog servers
+  - Concurrency guard prevents parallel scraping runs
+  - Job tracking integration via jobStore for UI progress display
+  - Writes output to lexicons/glottolog-families.tsv and glottolog-languages.tsv
+  - Supports filtering by family name/ID and limiting max families/depth
+  - Skips dialect-level nodes for tree compactness
+  - Handles missing data gracefully (null coordinates, missing ISO codes, etc.)
+- Added POST /api/scraping/glottolog endpoint in server/routes.ts
+  - Accepts maxFamilies, familyFilter, maxDepth parameters
+  - Returns jobId for progress tracking
+- Created test/test-glottolog-scraper.ts with 50 passing tests
+  - Tests: module imports, response parsing, family/subfamily/language conversion,
+    ISO fallback, coordinate handling, taxonomic level inference, concurrency guard,
+    dialect skipping, slugification, sparse response handling
