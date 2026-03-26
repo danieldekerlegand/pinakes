@@ -1,3 +1,28 @@
+Audit all TSV files for data completeness and coverage gaps
+
+Completed:
+- Created scripts/audit-tsv.ts: comprehensive TSV audit tool that checks:
+  - Row counts and column fill rates for all 43 TSV files (133,713 total rows)
+  - Referential integrity across foreign key relationships (14 FK checks)
+  - Coverage gaps: empty files, low row counts, sparse columns (<30% fill)
+- Created scripts/audit-tsv.test.ts with 13 tests (unit + integration), all passing
+- Created vitest.config.ts for test runner configuration
+- Created scripts/tsconfig.json for TypeScript checking of scripts/
+- Generated audit-report.json with full audit results
+
+Key findings:
+- 3 referential integrity issues found:
+  - sound-changes.tsv references 9 family IDs not in families.tsv
+  - literary-works.tsv references 3 language IDs not in languages.tsv
+  - language-ranges.tsv references 8 language IDs not in languages.tsv
+- 13 coverage gaps identified:
+  - language-ranges.tsv has only 8 rows (vs 133 in language-range-polygons.tsv)
+  - languages.tsv has 8 columns with <30% fill (iso639_1, parent_language_id, time_origin, time_end, classification, historical_context, latitude, longitude)
+  - families.tsv missing total_speakers and language_count (0% fill)
+  - Multiple files have empty time_end columns (cooking-techniques, cuisine-items, cuisines, dance-traditions, ingredient-origins, music-traditions)
+  - phonological-inventories.tsv tones column at 20% fill
+  - literary-works.tsv date_published at 18% fill
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)

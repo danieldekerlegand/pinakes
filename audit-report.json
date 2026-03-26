@@ -1,0 +1,3356 @@
+{
+  "timestamp": "2026-03-26T23:36:11.296Z",
+  "totalFiles": 43,
+  "totalRows": 133713,
+  "files": [
+    {
+      "file": "archaeological-cultures.tsv",
+      "rowCount": 27,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "boundary_geometry",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_start",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_label",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "subsistence_pattern",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "pottery_style",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "burial_practices",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "material_culture_traits",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "probable_language_family",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "probable_haplogroups",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "predecessor_culture_ids",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "successor_culture_ids",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 27,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "archaeological-sites.tsv",
+      "rowCount": 151,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "site_type",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_start",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_label",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_culture_ids",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_civilization_ids",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "excavation_status",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "findings",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "importance",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 151,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "architectural-styles.tsv",
+      "rowCount": 20,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "style_period",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_date",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "end_date",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_civilizations",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_features",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notable_examples",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "building_types",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "art-traditions.tsv",
+      "rowCount": 35,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "category",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "style_period",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_date",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "end_date",
+          "filled": 28,
+          "empty": 7,
+          "fillRate": 0.8
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_civilizations",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_features",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notable_examples",
+          "filled": 35,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "battles.tsv",
+      "rowCount": 53,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "belligerents",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "outcome",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "casualties_estimate",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "significance",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_changes",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "war_name",
+          "filled": 53,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "civilization-boundaries.tsv",
+      "rowCount": 158,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "civilization_id",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "geometry",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_start",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_label",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "boundary_type",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notes",
+          "filled": 158,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "civilizations.tsv",
+      "rowCount": 89,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 55,
+          "empty": 34,
+          "fillRate": 0.6179775280898876
+        },
+        {
+          "name": "time_period_start",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 88,
+          "empty": 1,
+          "fillRate": 0.9887640449438202
+        },
+        {
+          "name": "time_period_label",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "writing_systems",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "political_structure",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "capital",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "population",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "haplogroup_ids",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cuisine_id",
+          "filled": 42,
+          "empty": 47,
+          "fillRate": 0.47191011235955055
+        },
+        {
+          "name": "sources",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 89,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "cuisine_id"
+      ]
+    },
+    {
+      "file": "cooking-techniques.tsv",
+      "rowCount": 42,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cuisine_id",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "category",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 0,
+          "empty": 42,
+          "fillRate": 0
+        },
+        {
+          "name": "description",
+          "filled": 42,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "cuisine-items.tsv",
+      "rowCount": 2100,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 2100,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cuisine_id",
+          "filled": 2100,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 2100,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "food_type",
+          "filled": 2100,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 2100,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 0,
+          "empty": 2100,
+          "fillRate": 0
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "cuisines.tsv",
+      "rowCount": 21,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 0,
+          "empty": 21,
+          "fillRate": 0
+        },
+        {
+          "name": "description",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "cultural-lineages.tsv",
+      "rowCount": 95,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_name",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_name",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "relationship_type",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_start",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "evidence_types",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "dance-traditions.tsv",
+      "rowCount": 32,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 0,
+          "empty": 32,
+          "fillRate": 0
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "dance_type",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_music_tradition_ids",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "costumes",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_movements",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cultural_significance",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "deities.tsv",
+      "rowCount": 76,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "pantheon",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "domain",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "gender",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "syncretism_links",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_religion_ids",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 53,
+          "empty": 23,
+          "fillRate": 0.6973684210526315
+        },
+        {
+          "name": "coordinates",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 76,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "etymology-relations.tsv",
+      "rowCount": 5180,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_word",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_language",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_word",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_language",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "relation_type",
+          "filled": 5180,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "families.tsv",
+      "rowCount": 543,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 543,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 543,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "parent_id",
+          "filled": 418,
+          "empty": 125,
+          "fillRate": 0.7697974217311234
+        },
+        {
+          "name": "description",
+          "filled": 485,
+          "empty": 58,
+          "fillRate": 0.8931860036832413
+        },
+        {
+          "name": "taxonomic_level",
+          "filled": 543,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 485,
+          "empty": 58,
+          "fillRate": 0.8931860036832413
+        },
+        {
+          "name": "total_speakers",
+          "filled": 0,
+          "empty": 543,
+          "fillRate": 0
+        },
+        {
+          "name": "language_count\r",
+          "filled": 0,
+          "empty": 543,
+          "fillRate": 0
+        }
+      ],
+      "sparseColumns": [
+        "total_speakers",
+        "language_count\r"
+      ]
+    },
+    {
+      "file": "foodway-events.tsv",
+      "rowCount": 51,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "food_item",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "destination_region",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "destination_coordinates",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "mechanism",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_route_id",
+          "filled": 38,
+          "empty": 13,
+          "fillRate": 0.7450980392156863
+        },
+        {
+          "name": "description",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cultural_impact",
+          "filled": 51,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "grammar-features.tsv",
+      "rowCount": 105,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "word_order",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "morphological_type",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "case_system",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "gender_system",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "number_system",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "tense_aspect_mood",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "agreement_system",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "negation_strategy",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "question_formation",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "relative_clause_strategy",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "noun_class_count",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "verb_valency_changes",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "evidentiality",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "ergativity",
+          "filled": 105,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "haplogroups.tsv",
+      "rowCount": 62,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "parent_id",
+          "filled": 59,
+          "empty": 3,
+          "fillRate": 0.9516129032258065
+        },
+        {
+          "name": "haplogroup_type",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_family_ids",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_civilization_ids",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "geographic_origin",
+          "filled": 49,
+          "empty": 13,
+          "fillRate": 0.7903225806451613
+        },
+        {
+          "name": "time_origin",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "ingredient-origins.tsv",
+      "rowCount": 41,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "cuisine_id",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 0,
+          "empty": 41,
+          "fillRate": 0
+        },
+        {
+          "name": "native_name",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 41,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "kinship-systems.tsv",
+      "rowCount": 30,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "system_type",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_ids",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "terminology",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "descent_rule",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "residence_rule",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_civilizations",
+          "filled": 30,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "language-contacts.tsv",
+      "rowCount": 95,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_language_id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_language_id",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "contact_type",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "features_transferred",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "example_features",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "intensity",
+          "filled": 95,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "language-range-polygons.tsv",
+      "rowCount": 133,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "family_id",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "geometry",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "range_type",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_start",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 32,
+          "empty": 101,
+          "fillRate": 0.24060150375939848
+        },
+        {
+          "name": "time_period_label",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notes",
+          "filled": 133,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_period_end"
+      ]
+    },
+    {
+      "file": "language-ranges.tsv",
+      "rowCount": 8,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "family_id",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "geometry",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "range_type",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_start",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period_end",
+          "filled": 4,
+          "empty": 4,
+          "fillRate": 0.5
+        },
+        {
+          "name": "time_period_label",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "confidence",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notes",
+          "filled": 8,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "languages.tsv",
+      "rowCount": 1099,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 963,
+          "empty": 136,
+          "fillRate": 0.8762511373976342
+        },
+        {
+          "name": "iso639_1",
+          "filled": 83,
+          "empty": 1016,
+          "fillRate": 0.07552320291173795
+        },
+        {
+          "name": "iso639_2",
+          "filled": 1031,
+          "empty": 68,
+          "fillRate": 0.9381255686988171
+        },
+        {
+          "name": "family_id",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "parent_language_id",
+          "filled": 2,
+          "empty": 1097,
+          "fillRate": 0.0018198362147406734
+        },
+        {
+          "name": "region",
+          "filled": 1002,
+          "empty": 97,
+          "fillRate": 0.9117379435850773
+        },
+        {
+          "name": "countries",
+          "filled": 977,
+          "empty": 122,
+          "fillRate": 0.8889899909008189
+        },
+        {
+          "name": "native_speakers",
+          "filled": 878,
+          "empty": 221,
+          "fillRate": 0.7989080982711556
+        },
+        {
+          "name": "total_speakers",
+          "filled": 894,
+          "empty": 205,
+          "fillRate": 0.813466787989081
+        },
+        {
+          "name": "status",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 72,
+          "empty": 1027,
+          "fillRate": 0.06551410373066424
+        },
+        {
+          "name": "time_end",
+          "filled": 72,
+          "empty": 1027,
+          "fillRate": 0.06551410373066424
+        },
+        {
+          "name": "classification",
+          "filled": 30,
+          "empty": 1069,
+          "fillRate": 0.0272975432211101
+        },
+        {
+          "name": "writing_system",
+          "filled": 922,
+          "empty": 177,
+          "fillRate": 0.8389444949954504
+        },
+        {
+          "name": "is_historical_variant",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "is_dialect",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "chronological_order",
+          "filled": 1099,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "historical_context",
+          "filled": 72,
+          "empty": 1027,
+          "fillRate": 0.06551410373066424
+        },
+        {
+          "name": "latitude",
+          "filled": 97,
+          "empty": 1002,
+          "fillRate": 0.08826205641492266
+        },
+        {
+          "name": "longitude\r",
+          "filled": 97,
+          "empty": 1002,
+          "fillRate": 0.08826205641492266
+        }
+      ],
+      "sparseColumns": [
+        "iso639_1",
+        "parent_language_id",
+        "time_origin",
+        "time_end",
+        "classification",
+        "historical_context",
+        "latitude",
+        "longitude\r"
+      ]
+    },
+    {
+      "file": "literary-traditions.tsv",
+      "rowCount": 12,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_date",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "end_date",
+          "filled": 11,
+          "empty": 1,
+          "fillRate": 0.9166666666666666
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "genre_focus",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_themes",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notable_authors",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "influences",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 12,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "literary-works.tsv",
+      "rowCount": 22,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "title",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "author",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "tradition_id",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date_composed",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date_published",
+          "filled": 4,
+          "empty": 18,
+          "fillRate": 0.18181818181818182
+        },
+        {
+          "name": "genre",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "form",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "significance",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "original_script",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 22,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "date_published"
+      ]
+    },
+    {
+      "file": "material-culture.tsv",
+      "rowCount": 45,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "category",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_date",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "spread_data",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "significance",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "migration-routes.tsv",
+      "rowCount": 62,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "route_type",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "waypoints",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "start_date",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "end_date",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "peoples",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "consequences",
+          "filled": 62,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "music-traditions.tsv",
+      "rowCount": 20,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "region",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 1,
+          "empty": 19,
+          "fillRate": 0.05
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "instruments",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "scales",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "rhythmic_patterns",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "related_traditions",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "musical-instruments.tsv",
+      "rowCount": 25,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "instrument_family",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "construction_materials",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "playing_technique",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_tradition_ids",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "myth-motifs.tsv",
+      "rowCount": 32,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "motif_type",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "atu_index",
+          "filled": 17,
+          "empty": 15,
+          "fillRate": 0.53125
+        },
+        {
+          "name": "description",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "examples",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_religion_ids",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_deity_ids",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "geographic_distribution",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_depth",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 32,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "narratives.tsv",
+      "rowCount": 21,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "title",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "steps",
+          "filled": 21,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "phonological-inventories.tsv",
+      "rowCount": 113,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "consonants",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "vowels",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "tones",
+          "filled": 23,
+          "empty": 90,
+          "fillRate": 0.20353982300884957
+        },
+        {
+          "name": "phonotactic_patterns",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "syllable_structure",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "stress_system",
+          "filled": 113,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "tones"
+      ]
+    },
+    {
+      "file": "religions.tsv",
+      "rowCount": 20,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "native_name",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "religion_type",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "coordinates",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_origin",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_end",
+          "filled": 6,
+          "empty": 14,
+          "fillRate": 0.3
+        },
+        {
+          "name": "sacred_texts",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_language_ids",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "deity_pantheon",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "ritual_practices",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 20,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "time_end"
+      ]
+    },
+    {
+      "file": "sample-texts.tsv",
+      "rowCount": 150,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "title",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "text",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "transliteration",
+          "filled": 51,
+          "empty": 99,
+          "fillRate": 0.34
+        },
+        {
+          "name": "translation_en",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date_composed",
+          "filled": 94,
+          "empty": 56,
+          "fillRate": 0.6266666666666667
+        },
+        {
+          "name": "genre",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "script",
+          "filled": 150,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": [
+        "transliteration"
+      ]
+    },
+    {
+      "file": "sound-changes.tsv",
+      "rowCount": 48,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "family_id",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "source_language_id",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "target_language_id",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "change_rule",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "environment",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "date_range",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "examples",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "related_changes",
+          "filled": 48,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "trade-goods.tsv",
+      "rowCount": 45,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "category",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_coordinates",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "trade_routes",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_period",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "economic_significance",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 45,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "trade-routes.tsv",
+      "rowCount": 25,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "route_type",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "waypoints",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "start_date",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "end_date",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "traded_goods",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_cities",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "controlling_powers",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "associated_languages",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "description",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "economic_impact",
+          "filled": 25,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "urheimat-hypotheses.tsv",
+      "rowCount": 24,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_family_id",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "hypothesis_name",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "proposed_region",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "proposed_coordinates",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "proposed_boundary",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_range_start",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "time_range_end",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "supporting_evidence",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "competing_hypotheses",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "scholarly_consensus_level",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "key_proponents",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sources",
+          "filled": 24,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "verb-paradigms.tsv",
+      "rowCount": 94,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "language_id",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "verb_concept",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "infinitive_form",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "conjugation_table",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "irregular",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "complexity_score",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "notes",
+          "filled": 94,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "words-base.tsv",
+      "rowCount": 1016,
+      "columns": [
+        {
+          "name": "number",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "position_in_ranking",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "ranking_value",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "id_nelex",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "gloss_en",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "gloss_ru",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "annotation_en",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "annotation_en",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "annotation_ru",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "concepticon",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "concepticon_id",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "concepticon_proposed",
+          "filled": 1016,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "comments",
+          "filled": 51,
+          "empty": 965,
+          "fillRate": 0.05019685039370079
+        }
+      ],
+      "sparseColumns": [
+        "comments"
+      ]
+    },
+    {
+      "file": "words.tsv",
+      "rowCount": 121633,
+      "columns": [
+        {
+          "name": "Language_ID",
+          "filled": 121633,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "Glottocode",
+          "filled": 121613,
+          "empty": 20,
+          "fillRate": 0.9998355709388077
+        },
+        {
+          "name": "Concept_ID",
+          "filled": 121633,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "Word_Form",
+          "filled": 121633,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "rawIPA",
+          "filled": 121631,
+          "empty": 2,
+          "fillRate": 0.9999835570938808
+        },
+        {
+          "name": "IPA",
+          "filled": 121631,
+          "empty": 2,
+          "fillRate": 0.9999835570938808
+        },
+        {
+          "name": "ASJP",
+          "filled": 121611,
+          "empty": 22,
+          "fillRate": 0.9998191280326885
+        },
+        {
+          "name": "List",
+          "filled": 121611,
+          "empty": 22,
+          "fillRate": 0.9998191280326885
+        },
+        {
+          "name": "Dolgo",
+          "filled": 121611,
+          "empty": 22,
+          "fillRate": 0.9998191280326885
+        },
+        {
+          "name": "Next_Step",
+          "filled": 121633,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    },
+    {
+      "file": "writing-systems.tsv",
+      "rowCount": 60,
+      "columns": [
+        {
+          "name": "id",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "name",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "type",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "direction",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "parent_system_id",
+          "filled": 45,
+          "empty": 15,
+          "fillRate": 0.75
+        },
+        {
+          "name": "language_ids",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_date",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "origin_region",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "character_count",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        },
+        {
+          "name": "sample_characters",
+          "filled": 42,
+          "empty": 18,
+          "fillRate": 0.7
+        },
+        {
+          "name": "unicode_block",
+          "filled": 58,
+          "empty": 2,
+          "fillRate": 0.9666666666666667
+        },
+        {
+          "name": "is_active",
+          "filled": 60,
+          "empty": 0,
+          "fillRate": 1
+        }
+      ],
+      "sparseColumns": []
+    }
+  ],
+  "referentialIssues": [
+    {
+      "file": "sound-changes.tsv",
+      "column": "family_id",
+      "missingIds": [
+        "indo_european__armenian",
+        "indo_european__baltic",
+        "indo_european__hellenic",
+        "indo_european__indo_iranian",
+        "indo_european__romance",
+        "indo_european__slavic",
+        "japonic__japanese",
+        "sino_tibetan__chinese",
+        "uralic__ugric"
+      ]
+    },
+    {
+      "file": "literary-works.tsv",
+      "column": "language_id",
+      "missingIds": [
+        "fas",
+        "lzh",
+        "sanskrit"
+      ]
+    },
+    {
+      "file": "language-ranges.tsv",
+      "column": "language_id",
+      "missingIds": [
+        "ancient-greek",
+        "arabic",
+        "french",
+        "german",
+        "latin",
+        "mandarin",
+        "old-norse",
+        "spanish"
+      ]
+    }
+  ],
+  "coverageGaps": [
+    {
+      "file": "cooking-techniques.tsv",
+      "issue": "Columns with <30% fill: time_end (0%)"
+    },
+    {
+      "file": "cuisine-items.tsv",
+      "issue": "Columns with <30% fill: time_end (0%)"
+    },
+    {
+      "file": "cuisines.tsv",
+      "issue": "Columns with <30% fill: time_end (0%)"
+    },
+    {
+      "file": "dance-traditions.tsv",
+      "issue": "Columns with <30% fill: time_end (0%)"
+    },
+    {
+      "file": "families.tsv",
+      "issue": "Columns with <30% fill: total_speakers (0%), language_count\r (0%)"
+    },
+    {
+      "file": "ingredient-origins.tsv",
+      "issue": "Columns with <30% fill: time_end (0%)"
+    },
+    {
+      "file": "language-range-polygons.tsv",
+      "issue": "Columns with <30% fill: time_period_end (24%)"
+    },
+    {
+      "file": "language-ranges.tsv",
+      "issue": "Very few rows (8)"
+    },
+    {
+      "file": "languages.tsv",
+      "issue": "Columns with <30% fill: iso639_1 (8%), parent_language_id (0%), time_origin (7%), time_end (7%), classification (3%), historical_context (7%), latitude (9%), longitude\r (9%)"
+    },
+    {
+      "file": "literary-works.tsv",
+      "issue": "Columns with <30% fill: date_published (18%)"
+    },
+    {
+      "file": "music-traditions.tsv",
+      "issue": "Columns with <30% fill: time_end (5%)"
+    },
+    {
+      "file": "phonological-inventories.tsv",
+      "issue": "Columns with <30% fill: tones (20%)"
+    },
+    {
+      "file": "words-base.tsv",
+      "issue": "Columns with <30% fill: comments (5%)"
+    }
+  ]
+}
