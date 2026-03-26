@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -1640,6 +1641,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching motifs for deity:", error);
       res.status(500).json({
         message: "Failed to fetch motifs for deity",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  app.post("/api/scraping/mythology", async (req, res) => {
+    try {
+      const { pantheons } = req.body;
+
+      const job = jobStore.createJob(
+        "mythology",
+        100,
+        "gemini"
+      );
+
+      mythologyScraperTSV
+        .scrapeMythology({
+          pantheons: pantheons || undefined,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Mythology Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Mythology scraping completed: ${result.deities.length} deities, ${result.motifs.length} motifs`
+          );
+        })
+        .catch((error) => {
+          console.error("Mythology scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Mythology scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting mythology scraping:", error);
+      res.status(500).json({
+        message: "Failed to start mythology scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

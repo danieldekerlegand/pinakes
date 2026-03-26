@@ -124,7 +124,7 @@ export class TsvWriter {
   /**
    * Generic TSV writer with atomic operation (write to temp file, then rename)
    */
-  private async writeTSV(
+  async writeTSV(
     filePath: string,
     headers: string[],
     rows: string[][]

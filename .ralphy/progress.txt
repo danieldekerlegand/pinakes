@@ -176,6 +176,30 @@ Completed:
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
 
+US-092: Create mythology and deity scraper with cross-cultural linking
+
+Completed:
+- Created server/services/mythology-scraper-tsv.ts with Gemini AI-powered scraper
+  - scrapeDeitiesForPantheon(): scrapes 10-20 deities per pantheon with structured schema
+  - buildSyncretismLinks(): AI-driven cross-cultural deity equivalence detection with bidirectional linking
+  - scrapeMythMotifs(): scrapes universal myth motifs with cross-cultural examples
+  - writeDeitiesToTsv()/writeMotifsToTsv(): outputs to existing deities.tsv/myth-motifs.tsv format
+  - Supports 18 pantheons: greek, roman, norse, egyptian, hindu, mesopotamian, celtic, japanese, chinese, aztec, maya, yoruba, slavic, polynesian, inuit, zoroastrian, canaanite, hittite
+  - Job tracking integration via jobStore for background scraping
+- Made TsvWriter.writeTSV() public to support direct TSV writing from scraper
+- Added POST /api/scraping/mythology endpoint in server/routes.ts
+  - Accepts optional pantheons filter in request body
+  - Runs scraping in background with job tracking
+- Created test/test-mythology-scraper.ts with 54 tests covering:
+  - Module structure and class exports
+  - API key requirement validation
+  - deities.tsv schema, JSON fields, coordinate validity, syncretism links
+  - myth-motifs.tsv schema, cross-cultural examples, motif type diversity
+  - Cross-cultural linking: 76 deities with links, 218 total links, 182 cross-pantheon links
+  - Zeus <-> Jupiter bidirectional equivalence verification
+- All 54 tests pass, existing mythology data tests (42) still pass
+- No new TypeScript errors introduced
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:
