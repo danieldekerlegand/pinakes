@@ -176,6 +176,35 @@ Completed:
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
 
+US-XXX: Create historical polity/empire scraper from Seshat and Wikipedia
+
+Completed:
+- Created server/services/polity-scraper.ts with PolityScraper class
+  - Fetches polity data from Wikipedia REST API (summaries) and parse API (infobox fields)
+  - Queries Seshat Global History Databank API for population/territory data
+  - 44 pre-configured polities spanning Africa, East/South/Southeast Asia, Middle East, Europe, Americas, Oceania
+  - Includes language mappings, writing systems, political structures, and date ranges for each polity
+  - Deduplicates against existing civilizations.tsv entries before scraping
+  - Rate-limited Wikipedia requests (200ms between calls)
+  - Appends new records to civilizations.tsv in correct TSV format
+  - Job tracking via jobStore for progress monitoring
+- Added POST /api/scraping/polities endpoint in server/routes.ts
+  - Background scraping with progress callbacks
+  - Job status tracking via existing scraping-jobs infrastructure
+- Created test/test-polity-scraper.ts with 47 passing tests
+  - Module export validation
+  - Civilizations TSV data integrity (columns, uniqueness, time periods, JSON fields)
+  - Known polity coverage checks
+  - Regional diversity validation
+  - ID format and TSV field validation
+
+Files created:
+- server/services/polity-scraper.ts
+- test/test-polity-scraper.ts
+
+Files modified:
+- server/routes.ts (added polity scraping import and endpoint)
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:
