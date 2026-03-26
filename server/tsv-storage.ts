@@ -488,6 +488,28 @@ export interface KinshipSystem {
   associatedCivilizations: string;
 }
 
+// Social organization types
+export interface SocialOrganization {
+  id: string;
+  name: string;
+  cultureOrLanguage: string;
+  region: string;
+  politicalStructure: string;
+  stratificationType: string;
+  subsistencePattern: string;
+  marriageSystem: string;
+  descentSystem: string;
+  residencePattern: string;
+  kinshipTerminology: string;
+  propertyInheritance: string;
+  genderRoles: string;
+  ageGrades: string;
+  clanOrMoietySystem: string;
+  timeOrigin: string;
+  timeEnd: string;
+  notes: string;
+}
+
 // Urheimat hypothesis types
 export interface UrheimatHypothesis {
   id: string;
@@ -691,6 +713,9 @@ export class TsvStorage {
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
+
+  // Social organization data cache
+  private cachedSocialOrganization: SocialOrganization[] | null = null;
 
   // Urheimat hypotheses data cache
   private cachedUrheimatHypotheses: UrheimatHypothesis[] | null = null;
@@ -3063,7 +3088,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3089,49 +3113,6 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
-=======
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
-    const titleIdx = getIdx(header, "title");
-    const textIdx = getIdx(header, "text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: row[titleIdx],
-      text: row[textIdx],
-      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-    }));
-  }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
 
   // ============================================================================
   // Phonological Inventory Data Methods
@@ -4188,6 +4169,84 @@ export class TsvStorage {
     return (this.cachedKinshipSystems ?? []).find((s) => s.id === id) ?? null;
   }
 
+  private loadSocialOrganization(): void {
+    if (this.cachedSocialOrganization) return;
+
+    const text = this.readFileIfExists("lexicons/social-organization.tsv");
+    if (!text) { this.cachedSocialOrganization = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const cultureIdx = getIdx(header, "culture_or_language");
+    const regionIdx = getIdx(header, "region");
+    const politicalIdx = getIdx(header, "political_structure");
+    const stratIdx = getIdx(header, "stratification_type");
+    const subsistIdx = getIdx(header, "subsistence_pattern");
+    const marriageIdx = getIdx(header, "marriage_system");
+    const descentIdx = getIdx(header, "descent_system");
+    const residenceIdx = getIdx(header, "residence_pattern");
+    const kinshipIdx = getIdx(header, "kinship_terminology");
+    const propertyIdx = getIdx(header, "property_inheritance");
+    const genderIdx = header.indexOf("gender_roles");
+    const ageIdx = header.indexOf("age_grades");
+    const clanIdx = header.indexOf("clan_or_moiety_system");
+    const timeOriginIdx = header.indexOf("time_origin");
+    const timeEndIdx = header.indexOf("time_end");
+    const notesIdx = header.indexOf("notes");
+
+    this.cachedSocialOrganization = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      cultureOrLanguage: row[cultureIdx],
+      region: row[regionIdx],
+      politicalStructure: row[politicalIdx],
+      stratificationType: row[stratIdx],
+      subsistencePattern: row[subsistIdx],
+      marriageSystem: row[marriageIdx],
+      descentSystem: row[descentIdx],
+      residencePattern: row[residenceIdx],
+      kinshipTerminology: row[kinshipIdx],
+      propertyInheritance: row[propertyIdx],
+      genderRoles: genderIdx >= 0 ? row[genderIdx] || "" : "",
+      ageGrades: ageIdx >= 0 ? row[ageIdx] || "" : "",
+      clanOrMoietySystem: clanIdx >= 0 ? row[clanIdx] || "" : "",
+      timeOrigin: timeOriginIdx >= 0 ? row[timeOriginIdx] || "" : "",
+      timeEnd: timeEndIdx >= 0 ? row[timeEndIdx] || "" : "",
+      notes: notesIdx >= 0 ? row[notesIdx] || "" : "",
+    }));
+  }
+
+  async getSocialOrganization(filters?: {
+    politicalStructure?: string;
+    descentSystem?: string;
+    subsistencePattern?: string;
+    region?: string;
+  }): Promise<SocialOrganization[]> {
+    this.loadSocialOrganization();
+    let orgs = this.cachedSocialOrganization ?? [];
+
+    if (filters?.politicalStructure) {
+      orgs = orgs.filter((o) => o.politicalStructure.toLowerCase().includes(filters.politicalStructure!.toLowerCase()));
+    }
+    if (filters?.descentSystem) {
+      orgs = orgs.filter((o) => o.descentSystem === filters.descentSystem);
+    }
+    if (filters?.subsistencePattern) {
+      orgs = orgs.filter((o) => o.subsistencePattern.toLowerCase().includes(filters.subsistencePattern!.toLowerCase()));
+    }
+    if (filters?.region) {
+      orgs = orgs.filter((o) => o.region.toLowerCase().includes(filters.region!.toLowerCase()));
+    }
+
+    return orgs;
+  }
+
+  async getSocialOrganizationById(id: string): Promise<SocialOrganization | null> {
+    this.loadSocialOrganization();
+    return (this.cachedSocialOrganization ?? []).find((o) => o.id === id) ?? null;
+  }
+
   private loadTradeGoods(): void {
     if (this.cachedTradeGoods) return;
 
@@ -4246,7 +4305,6 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
-<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4320,7 +4378,8 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
-=======
+  }
+
   // ── Urheimat Hypotheses ─────────────────────────────────────────────
 
   private loadUrheimatHypotheses(): void {
@@ -4393,7 +4452,6 @@ export class TsvStorage {
   async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
     this.loadUrheimatHypotheses();
     return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
   }
 
   // ── Narratives ──────────────────────────────────────────────────────

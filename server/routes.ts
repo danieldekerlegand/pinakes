@@ -23,6 +23,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import {
@@ -3089,7 +3090,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3573,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3607,7 +3609,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
+    }
+  });
+
+  /**
+   * GET /api/social-organization - Get all social organization entries with optional filtering
+   */
+  app.get("/api/social-organization", async (req, res) => {
+    try {
+      const politicalStructure = req.query.political_structure as string | undefined;
+      const descentSystem = req.query.descent_system as string | undefined;
+      const subsistencePattern = req.query.subsistence_pattern as string | undefined;
+      const region = req.query.region as string | undefined;
+      const orgs = await storage.getSocialOrganization({ politicalStructure, descentSystem, subsistencePattern, region });
+      res.json({ organizations: orgs, count: orgs.length });
+    } catch (error) {
+      console.error("Error fetching social organization:", error);
+      res.status(500).json({
+        message: "Failed to fetch social organization data",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/social-organization/:id - Get a single social organization entry
+   */
+  app.get("/api/social-organization/:id", async (req, res) => {
+    try {
+      const org = await storage.getSocialOrganizationById(req.params.id);
+      if (!org) {
+        return res.status(404).json({ message: "Social organization entry not found" });
+      }
+      res.json(org);
+    } catch (error) {
+      console.error("Error fetching social organization:", error);
+      res.status(500).json({
+        message: "Failed to fetch social organization entry",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scrape-ethnographic - Trigger ethnographic data scraping
+   */
+  app.post("/api/scrape-ethnographic", async (req, res) => {
+    try {
+      const { type } = req.body as { type?: "kinship" | "social-organization" | "both" };
+      const scrapeType = type || "both";
+
+      const job = jobStore.createJob("ethnographic", 0, "gemini");
+      res.json({ jobId: job.id, message: `Started ethnographic scraping (${scrapeType})` });
+
+      const progressCallback = (progressType: string, message: string) => {
+        console.log(`[ethnographic-scrape] ${progressType}: ${message}`);
+      };
+
+      if (scrapeType === "kinship" || scrapeType === "both") {
+        await ethnographicScraper.scrapeKinshipSystems({ jobId: job.id, progressCallback });
+      }
+      if (scrapeType === "social-organization" || scrapeType === "both") {
+        await ethnographicScraper.scrapeSocialOrganization({ jobId: job.id, progressCallback });
+      }
+    } catch (error) {
+      console.error("Error in ethnographic scraping:", error);
     }
   });
 
