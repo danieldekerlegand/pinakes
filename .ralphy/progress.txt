@@ -176,6 +176,36 @@ Completed:
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
 
+US-XXX: Create writing system scraper from ScriptSource and Unicode CLDR
+
+Completed:
+- Created server/services/writing-system-scraper.ts with WritingSystemScraper class
+  - Fetches script metadata from Unicode CLDR scriptMetadata.json (181 scripts)
+  - Fetches English script names from CLDR localeDisplayNames
+  - Builds script-to-language mappings from CLDR likelySubtags
+  - Enriches script data with Gemini AI (type, origin date, parent scripts, Unicode blocks, etc.)
+  - Merges new scripts with existing writing-systems.tsv data (preserves existing entries)
+  - Atomic TSV write with temp file + rename pattern
+  - Concurrent scraping guard (prevents duplicate runs)
+  - Job tracking via jobStore for UI progress display
+- Added POST /api/scraping/writing-systems route in server/routes.ts
+- Created test/test-writing-system-scraper.ts with 48 passing tests covering:
+  - CLDR metadata fetching and structure validation
+  - CLDR script name fetching
+  - Script-language mapping from likelySubtags
+  - TSV write/read round-trip integrity
+  - ID generation with collision avoidance
+  - Existing writing-systems.tsv data integrity
+
+Files created:
+- server/services/writing-system-scraper.ts
+- test/test-writing-system-scraper.ts
+
+Files modified:
+- server/routes.ts (added import + scraping route)
+
+Tests: 48 passed, 0 failed
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:
