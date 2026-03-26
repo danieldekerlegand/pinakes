@@ -196,3 +196,25 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+US-XXX: Create archaeological site scraper from pleiades.stoa.org and UNESCO
+
+Completed:
+- Created server/services/archaeological-site-scraper.ts with:
+  - ArchaeologicalSiteScraper class for fetching and parsing archaeological site data
+  - Pleiades (pleiades.stoa.org) integration: fetches individual place JSON, extracts coordinates, time periods, place types, and language associations
+  - UNESCO World Heritage Sites: curated dataset of 20 major archaeological World Heritage Sites (Angkor, Machu Picchu, Teotihuacan, Chichen Itza, Great Zimbabwe, Tikal, etc.)
+  - Place type mapping from Pleiades vocabulary to project site_type enum (settlement, city, temple, burial, fortress, cave_art, workshop, ceremonial)
+  - Merge logic to combine new scraped sites with existing TSV data (dedup by name and ID)
+  - TSV read/write with atomic file operations
+  - Rate-limited batch scraping for Pleiades API
+  - 43 notable Pleiades place IDs covering Greece, Italy, Near East, Egypt, Anatolia, and South Asia
+- Created test/test-archaeological-site-scraper.ts with 61 passing tests covering:
+  - Pleiades JSON parsing (coordinates, time periods, language IDs, type mapping)
+  - Null/missing coordinate handling
+  - Fallback coordinate extraction from location geometry
+  - Place type mapping (16 type mapping cases)
+  - UNESCO dataset validation (coordinate ranges, IDs, descriptions, geographic diversity)
+  - Merge logic (duplicate detection by name, preserving existing entries)
+  - TSV round-trip write/read integrity
+  - Notable Pleiades ID validation
