@@ -890,3 +890,18 @@ Completed:
   - Tests grouping by political structure, region, and writing system
   - Tests timeline range coverage and regional diversity
   - Tests TimelineVisualization component contract compliance
+
+## Task 15: Create DeityPantheonGraph using reusable NetworkGraph
+- Created reusable NetworkGraph component (client/src/components/visualizations/NetworkGraph.tsx)
+  - Generic force-directed graph with configurable node colors, link styles, tooltips
+  - Supports drag, zoom/pan, double-click pin, and custom callbacks
+- Created deity-network-transformer (client/src/lib/visualization/deity-network-transformer.ts)
+  - buildDeityNetwork: transforms deity API data into network nodes/links
+  - filterDeityNetwork: filters by selected pantheons
+  - Pantheon hub nodes + deity nodes + syncretism links
+- Created DeityPantheonGraph component (client/src/components/visualizations/DeityPantheonGraph.tsx)
+  - Uses NetworkGraph with deity-specific colors and syncretism visualization
+  - Pantheon filter chips, color-coded by tradition
+  - Dashed lines for cross-cultural syncretism links
+  - Tooltip with domain info and pantheon counts
+- Created 12 tests for deity-network-transformer (all passing)
