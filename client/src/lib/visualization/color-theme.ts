@@ -216,6 +216,17 @@ export const ARCHAEOLOGICAL_SITE_COLORS: Record<string, string> = {
   unknown: '#9ca3af',
 };
 
+export const SETTLEMENT_TYPE_COLORS: Record<string, string> = {
+  'city-state': '#f59e0b',       // amber – urban centers
+  capital: '#ef4444',            // red – political capitals
+  'trading-post': '#10b981',     // green – commerce
+  'religious-center': '#8b5cf6', // purple – sacred sites
+  fortress: '#64748b',           // slate – military
+  port: '#3b82f6',               // blue – maritime
+  colony: '#f97316',             // orange – colonial outposts
+  unknown: '#9ca3af',            // gray – fallback
+};
+
 export const ARCHAEOLOGICAL_CULTURE_PALETTE = [
   '#d97706', // amber-600
   '#dc2626', // red-600
