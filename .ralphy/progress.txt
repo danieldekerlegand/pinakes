@@ -1,3 +1,24 @@
+Create sound change rules scraper from historical linguistics sources
+
+Completed:
+- Created server/services/sound-change-scraper.ts
+  - SoundChangeScraper class using Gemini AI to scrape sound change rules
+  - Supports 12+ language families (Indo-European, Sino-Tibetan, Afroasiatic, Austronesian, Niger-Congo, Uralic, Dravidian, Turkic, Austroasiatic, Tai-Kadai, Japonic, Koreanic)
+  - Structured JSON schema for Gemini responses (name, familyId, changeRule, environment, dateRange, examples, relatedChanges)
+  - Deduplication against existing sound changes by name
+  - Auto-incrementing IDs (sc001, sc002, etc.)
+  - Appends new entries to existing lexicons/sound-changes.tsv
+  - Rate limiting (1s between API calls)
+  - Job tracking via jobStore with progress callbacks
+  - Concurrent scraping prevention
+- Added POST /api/scraping/sound-changes endpoint in server/routes.ts
+  - Accepts optional familyIds array to limit scraping scope
+  - Returns jobId for tracking progress
+  - Runs scraping in background
+- Resolved pre-existing merge conflicts in server/tsv-storage.ts and server/routes.ts
+- Created test/test-sound-change-scraper.ts with 28 tests (all passing)
+  - Tests: TSV loading, structure validation, family/language filtering, ID lookup, scraper instantiation, TSV format verification, JSON field integrity, language family diversity
+
 US-110: Create settlements.tsv and historical settlements scraper
 
 - Created lexicons/settlements.tsv with 563 historical settlements (target was 500+)
