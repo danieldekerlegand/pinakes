@@ -11,6 +11,7 @@ import StoriesPage from "@/pages/stories";
 import EmbedPage from "@/pages/embed";
 import QuizPage from "@/pages/quiz";
 import ScraperDashboard from "@/pages/scraper-dashboard";
+import CivilizationTimeline from "@/pages/civilization-timeline";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/stories/:id" component={StoriesPage} />
       <Route path="/quiz" component={QuizPage} />
       <Route path="/scraper" component={ScraperDashboard} />
+      <Route path="/civilization-timeline" component={CivilizationTimeline} />
       <Route component={NotFound} />
     </Switch>
   );

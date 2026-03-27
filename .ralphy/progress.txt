@@ -838,3 +838,23 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Agent 14: Create CivilizationTimeline view using reusable TimelineVisualization
+
+### Completed
+- Created reusable TimelineVisualization component (client/src/components/visualizations/shared/TimelineVisualization.tsx)
+  - Generic D3-based horizontal timeline with configurable color, tooltip, and grouping
+  - Supports custom getColor and getTooltipContent callbacks
+  - Built-in tooltip rendering, selection highlighting, and responsive sizing
+- Created CivilizationTimeline page (client/src/pages/civilization-timeline.tsx)
+  - Fetches data from /api/map/civilizations endpoint
+  - Transforms CivilizationFeature GeoJSON into TimelineItem format
+  - Supports grouping by political structure, region, or writing system
+  - Region inference from civilization ID and associated language IDs
+  - Loading/error states with navigation back to dashboard
+- Added /civilization-timeline route to App.tsx
+- Created test/test-civilization-timeline.ts with 32 tests (all passing)
+  - Tests data transformation from TSV to timeline items
+  - Tests grouping by political structure, region, and writing system
+  - Tests timeline range coverage and regional diversity
+  - Tests TimelineVisualization component contract compliance
