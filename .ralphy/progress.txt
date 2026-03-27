@@ -977,3 +977,36 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Implement territory overlap visualization with blend modes
+
+Completed:
+- Created client/src/lib/visualization/territory-overlap.ts
+  - hexToRgb/rgbToHex color conversion utilities
+  - blendColors function supporting multiply, screen, overlay, and normal blend modes
+  - blendMultipleColors for sequential blending of N colors
+  - detectOverlaps using Turf.js pairwise intersection with bbox pre-check
+  - Filters out tiny slivers (<1 km²) and non-polygon tangencies
+  - hatchPatternId utility for SVG pattern generation
+- Created client/src/components/visualizations/map-layers/TerritoryOverlapLayer.tsx
+  - Renders detected overlap regions as a GeoJSON layer in a dedicated Leaflet Pane
+  - Applies CSS mix-blend-mode on the pane for GPU-accelerated blending
+  - Computes fill colors via blendMultipleColors based on active blend mode
+  - Popup shows overlap count, source layer IDs, and active blend mode
+- Updated client/src/lib/visualization/geospatial-types.ts
+  - Added BlendMode type ('normal' | 'multiply' | 'screen' | 'overlay')
+  - Added optional blendMode field to LayerConfig interface
+- Updated client/src/components/visualizations/map-layers/LayerPanel.tsx
+  - Added blend mode selector UI with 4 options (Normal, Multiply, Screen, Overlay)
+  - Each option shows tooltip with description
+  - New props: blendMode, onBlendModeChange
+- Updated client/src/components/visualizations/EnhancedLanguageMapView.tsx
+  - Added blendMode state management
+  - Collects active polygon territories (language ranges, civilizations, archaeological cultures)
+  - Passes territories to TerritoryOverlapLayer when ≥2 polygon features exist
+  - Passes blend mode controls to LayerPanel
+- Created client/src/lib/visualization/territory-overlap.test.ts with 22 tests (all passing)
+  - Tests hexToRgb, rgbToHex, blendColors (all modes), blendMultipleColors
+  - Tests detectOverlaps (overlapping, non-overlapping, multiple pairs, same-territory skip)
+  - Tests hatchPatternId determinism
+- All 579 tests passing across 32 test files

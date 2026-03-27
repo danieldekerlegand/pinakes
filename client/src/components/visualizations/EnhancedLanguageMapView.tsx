@@ -46,11 +46,17 @@ import { MythologyLayer } from './map-layers/MythologyLayer';
 import type { DeityFeature } from './map-layers/MythologyLayer';
 import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
+import { TerritoryOverlapLayer } from './map-layers/TerritoryOverlapLayer';
+import type { TerritoryFeature } from '../../lib/visualization/territory-overlap';
+import type { BlendMode } from '../../lib/visualization/geospatial-types';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
+import { getFamilyColor } from '../../lib/visualization/d3-helpers';
+import { CIVILIZATION_PALETTE } from '../../lib/visualization/color-theme';
+import { hashIndex } from '../../lib/visualization/color-theme';
 import {
   sampleLanguageRanges,
   sampleArchaeologicalSites,
@@ -84,6 +90,9 @@ export function EnhancedLanguageMapView({
   selectedFeatureId,
   drawingToolRef,
 }: EnhancedLanguageMapViewProps) {
+  // Blend mode state for territory overlap visualization
+  const [blendMode, setBlendMode] = React.useState<BlendMode>('multiply');
+
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
 
@@ -524,6 +533,65 @@ export function EnhancedLanguageMapView({
     return allMaterialCultures;
   }, [allMaterialCultures]);
 
+  // Collect active polygon territories for overlap detection
+  const overlapTerritories = useMemo((): TerritoryFeature[] => {
+    const territories: TerritoryFeature[] = [];
+
+    if (isLayerVisible('language-ranges')) {
+      for (const f of filteredLanguageRanges) {
+        territories.push({
+          id: `lr-${f.id ?? f.properties.languageId}`,
+          layerId: 'language-ranges',
+          color: getFamilyColor(f.properties.familyId),
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('language-range-polygons')) {
+      for (const f of filteredLanguageRangePolygons) {
+        territories.push({
+          id: `lrp-${f.id ?? f.properties.languageId}`,
+          layerId: 'language-range-polygons',
+          color: getFamilyColor(f.properties.familyId),
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('civilizations')) {
+      for (const f of filteredCivilizations) {
+        const civId = f.properties.civilizationId;
+        const colorIdx = hashIndex(civId, CIVILIZATION_PALETTE.length);
+        territories.push({
+          id: `civ-${f.id ?? civId}`,
+          layerId: 'civilizations',
+          color: CIVILIZATION_PALETTE[colorIdx],
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('archaeological-cultures')) {
+      for (const f of filteredArchaeologicalCultures) {
+        territories.push({
+          id: `ac-${f.id ?? f.properties.cultureId}`,
+          layerId: 'archaeological-cultures',
+          color: '#f59e0b', // amber default for archaeological cultures
+          feature: f as any,
+        });
+      }
+    }
+
+    return territories;
+  }, [
+    isLayerVisible,
+    filteredLanguageRanges,
+    filteredLanguageRangePolygons,
+    filteredCivilizations,
+    filteredArchaeologicalCultures,
+  ]);
+
   // Handle feature clicks
   const handleFeatureClick = useCallback(
     (id: string) => {
@@ -878,6 +946,15 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Territory Overlap Layer */}
+        {overlapTerritories.length >= 2 && (
+          <TerritoryOverlapLayer
+            territories={overlapTerritories}
+            blendMode={blendMode}
+            opacity={0.5}
+          />
+        )}
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -900,6 +977,8 @@ export function EnhancedLanguageMapView({
         onHideCategory={hideCategory}
         onApplyPreset={applyPreset}
         activePresetId={activePresetId}
+        blendMode={blendMode}
+        onBlendModeChange={setBlendMode}
       />
 
       {/* Genetic-Linguistic Haplogroup Type Toggle */}

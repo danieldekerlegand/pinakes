@@ -261,6 +261,12 @@ export type LayerCategory =
   | 'religions'
   | 'genetics';
 
+// ============================================================================
+// Blend Mode Types (for territory overlap visualization)
+// ============================================================================
+
+export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay';
+
 export interface PolygonStyle {
   fillColor?: string;
   fillOpacity: number;
@@ -307,6 +313,7 @@ export interface LayerConfig {
   opacity: number; // 0-1
   zIndex: number;
   renderStyle: RenderStyle;
+  blendMode?: BlendMode; // CSS blend mode for territory overlap visualization
 }
 
 // ============================================================================
