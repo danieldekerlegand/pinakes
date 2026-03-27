@@ -1,3 +1,23 @@
+US-110: Create settlements.tsv and historical settlements scraper
+
+- Created lexicons/settlements.tsv with 563 historical settlements (target was 500+)
+- Schema: id, name, alternate_names, latitude, longitude, type, culture_id, civilization_id, founded_year, abandoned_year, peak_population, notable_features, associated_languages, modern_name, region
+- Coverage spans 25 regions across all continents:
+  - Mesopotamia, Levant, Anatolia, Persia, Egypt, North/East/West/Southern/Central Africa
+  - Mediterranean, Western/Northern/Eastern/Central Europe, British Isles, Iberian Peninsula
+  - South/Southeast/East/Central/Inner Asia, Oceania
+  - Mesoamerica, South America, North America, Caribbean, Arabian Peninsula
+- All 7 settlement types represented: capital (213), religious-center (108), city-state (75), port (64), trading-post (51), fortress (39), colony (14)
+- Built server/services/settlements-scraper.ts with Gemini AI integration
+  - SettlementsScraper class with region-based batch scraping
+  - Resumable scraping with existing ID deduplication
+  - Job status tracking via jobStore
+  - appendSettlements() for incremental TSV updates
+- Created test/test-settlements.ts with 44 passing assertions
+  - Tests: file existence, 500+ entries, header structure, column consistency, unique IDs,
+    valid coordinates, valid types, JSON arrays, founded years, geographic diversity,
+    type diversity, non-empty names, population values, scraper module validation
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
