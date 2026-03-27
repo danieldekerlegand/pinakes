@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { soundChangeScraper } from "./services/sound-change-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -2713,6 +2714,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * POST /api/scraping/sound-changes - Scrape sound change rules from historical linguistics sources
+   */
+  app.post("/api/scraping/sound-changes", async (req, res) => {
+    try {
+      const { familyIds } = req.body;
+
+      const job = jobStore.createJob("sound-changes", familyIds?.length ?? 12, "gemini");
+
+      res.json({
+        message: "Sound change scraping started",
+        jobId: job.id,
+      });
+
+      soundChangeScraper
+        .scrapeSoundChanges({
+          familyIds: familyIds || undefined,
+          jobId: job.id,
+          progressCallback: (progress) => {
+            console.log(`[Sound Changes] ${progress.message}`);
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Sound change scraping completed: ${result.newChanges} new changes (${result.totalScraped} total)`,
+          );
+        })
+        .catch((error) => {
+          console.error("Sound change scraping failed:", error);
+        });
+    } catch (error) {
+      console.error("Error starting sound change scraping:", error);
+      res.status(500).json({
+        message: "Failed to start sound change scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/foodway-events - Get all foodway events with optional filtering
    */
   app.get("/api/foodway-events", async (req, res) => {
@@ -3089,7 +3129,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3612,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3607,7 +3648,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
     }
   });
 
