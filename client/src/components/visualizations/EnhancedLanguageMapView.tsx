@@ -68,6 +68,8 @@ import { getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-theme';
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
+import { useSplitScreen } from './hooks/useSplitScreen';
+import { MapComparisonController, MapComparisonOverlays } from './map-layers/MapComparisonController';
 import {
   sampleLanguageRanges,
   sampleArchaeologicalSites,
@@ -167,6 +169,15 @@ export function EnhancedLanguageMapView({
     jumpToStart,
     jumpToEnd,
   } = useTimeSlider();
+
+  // Split-screen comparison
+  const splitScreen = useSplitScreen(currentYear, timeState.minYear, timeState.maxYear);
+
+  // In blink mode, override the displayed year
+  const [blinkOverrideYear, setBlinkOverrideYear] = React.useState<number | null>(null);
+  const displayYear = splitScreen.state.isActive && splitScreen.state.mode === 'blink'
+    ? splitScreen.activeYear
+    : currentYear;
 
   // Fetch language range data
   const { data: languageRangesData, isLoading: loadingRanges } = useQuery<LanguageRangeCollection>({
@@ -584,30 +595,30 @@ export function EnhancedLanguageMapView({
     clearSelection,
   } = useMapFeatureSelection(featureLookupCollections);
 
-  // Filter features by current time
+  // Filter features by display time (respects blink mode override)
   const filteredLanguageRanges = useMemo(() => {
-    return filterGeoJSONByTime(allLanguageRanges, currentYear);
-  }, [allLanguageRanges, currentYear]);
+    return filterGeoJSONByTime(allLanguageRanges, displayYear);
+  }, [allLanguageRanges, displayYear]);
 
   const filteredLanguageRangePolygons = useMemo(() => {
-    return filterGeoJSONByTime(allLanguageRangePolygons, currentYear);
-  }, [allLanguageRangePolygons, currentYear]);
+    return filterGeoJSONByTime(allLanguageRangePolygons, displayYear);
+  }, [allLanguageRangePolygons, displayYear]);
 
   const filteredArchaeologicalSites = useMemo(() => {
-    return filterGeoJSONByTime(allArchaeologicalSites, currentYear);
-  }, [allArchaeologicalSites, currentYear]);
+    return filterGeoJSONByTime(allArchaeologicalSites, displayYear);
+  }, [allArchaeologicalSites, displayYear]);
 
   const filteredArchaeologicalCultures = useMemo(() => {
-    return filterGeoJSONByTime(allArchaeologicalCultures, currentYear);
-  }, [allArchaeologicalCultures, currentYear]);
+    return filterGeoJSONByTime(allArchaeologicalCultures, displayYear);
+  }, [allArchaeologicalCultures, displayYear]);
 
   const filteredCivilizations = useMemo(() => {
-    return filterGeoJSONByTime(allCivilizations, currentYear);
-  }, [allCivilizations, currentYear]);
+    return filterGeoJSONByTime(allCivilizations, displayYear);
+  }, [allCivilizations, displayYear]);
 
   const filteredRoutes = useMemo(() => {
-    return filterGeoJSONByTime(allRoutes, currentYear);
-  }, [allRoutes, currentYear]);
+    return filterGeoJSONByTime(allRoutes, displayYear);
+  }, [allRoutes, displayYear]);
 
   const filteredMaterialCultures = useMemo(() => {
     // Material cultures don't have a time period directly, filter based on associated period
@@ -1089,6 +1100,18 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Map Comparison Controller (renders comparison layers inside the map) */}
+        <MapComparisonController
+          currentYear={currentYear}
+          minYear={timeState.minYear}
+          maxYear={timeState.maxYear}
+          allCivilizations={allCivilizations}
+          allLanguageRanges={allLanguageRanges}
+          onActiveYearChange={setBlinkOverrideYear}
+          civilizationOpacity={getLayerConfig('civilizations')?.opacity}
+          languageRangeOpacity={getLayerConfig('language-ranges')?.opacity}
+        />
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -1104,6 +1127,27 @@ export function EnhancedLanguageMapView({
         georef={georefTool}
         mapCenter={initialCenter}
         mapZoom={2}
+      />
+
+      {/* Map Comparison Overlays (toggle, divider, control panel) */}
+      <MapComparisonOverlays
+        isActive={splitScreen.state.isActive}
+        mode={splitScreen.state.mode}
+        leftYear={splitScreen.state.leftYear}
+        rightYear={splitScreen.state.rightYear}
+        dividerPosition={splitScreen.state.dividerPosition}
+        blinkInterval={splitScreen.state.blinkInterval}
+        blinkShowingLeft={splitScreen.state.blinkShowingLeft}
+        minYear={timeState.minYear}
+        maxYear={timeState.maxYear}
+        onToggle={splitScreen.toggle}
+        onClose={splitScreen.deactivate}
+        onModeChange={splitScreen.setMode}
+        onLeftYearChange={splitScreen.setLeftYear}
+        onRightYearChange={splitScreen.setRightYear}
+        onDividerPositionChange={splitScreen.setDividerPosition}
+        onBlinkIntervalChange={splitScreen.setBlinkInterval}
+        onSwapYears={splitScreen.swapYears}
       />
 
       {/* Layer Controls Panel */}
