@@ -2476,6 +2476,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * POST /api/verb-paradigms/scrape - Scrape verb paradigms from UniMorph and Wiktionary
+   */
+  app.post("/api/verb-paradigms/scrape", async (req, res) => {
+    try {
+      const { languageIds, verbs, sources } = req.body as {
+        languageIds?: string[];
+        verbs?: string[];
+        sources?: Array<"unimorph" | "wiktionary">;
+      };
+
+      if (!languageIds || !Array.isArray(languageIds) || languageIds.length === 0) {
+        res.status(400).json({ message: "languageIds array is required" });
+        return;
+      }
+
+      const { verbParadigmScraper } = await import("./services/verb-paradigm-scraper");
+
+      const entries = await verbParadigmScraper.scrapeVerbParadigms({
+        languageIds,
+        verbs,
+        sources,
+      });
+
+      const written = await verbParadigmScraper.writeParadigms(entries);
+
+      // Invalidate cache so next read picks up new data
+      (storage as any).cachedVerbParadigms = null;
+
+      res.json({
+        message: `Scraped and wrote ${written} new verb paradigm entries`,
+        count: written,
+        entries: entries.map((e) => ({
+          languageId: e.languageId,
+          verbConcept: e.verbConcept,
+          infinitiveForm: e.infinitiveForm,
+          source: e.source,
+        })),
+      });
+    } catch (error) {
+      console.error("Error scraping verb paradigms:", error);
+      res.status(500).json({
+        message: "Failed to scrape verb paradigms",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/battles - Get all battles
    */
   app.get("/api/battles", async (req, res) => {

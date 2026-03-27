@@ -1,3 +1,28 @@
+Create verb paradigm scraper from UniMorph and Wiktionary
+
+Completed:
+- Created server/services/verb-paradigm-scraper.ts with VerbParadigmScraper class
+  - UniMorph integration: fetches inflection data from GitHub-hosted UniMorph TSV files, parses feature tags (V;PRS;1;SG → present.1sg), builds conjugation tables
+  - Wiktionary integration: queries en.wiktionary.org API, parses wikitext conjugation sections and template parameters (|pres_1sg=hablo → present.1sg)
+  - Deduplication: skips language+verb combos already in verb-paradigms.tsv
+  - Rate limiting (500ms between requests), caching for UniMorph data
+  - Irregularity detection via stem variation analysis
+  - TSV writer: appends new entries with auto-incrementing IDs (vp001, vp002, ...)
+  - 10 default verbs (eat, drink, see, hear, speak, know, come, do, have, want) with multilingual infinitive hints
+  - Language mappings for 30+ languages (ISO→UniMorph and ISO→Wiktionary codes)
+- Added POST /api/verb-paradigms/scrape endpoint in server/routes.ts
+  - Accepts languageIds[], optional verbs[], optional sources[]
+  - Returns scraped entries with count and metadata
+  - Invalidates storage cache after write
+- Created test/test-verb-paradigm-scraper.ts with 29 passing tests covering:
+  - Wikitext conjugation parsing (Spanish, German examples)
+  - Wikilink resolution in template values
+  - Missing/wrong language section handling
+  - Empty input handling
+  - Unknown language code handling
+  - Progress callback firing
+  - TSV write and append operations with ID sequencing
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
