@@ -977,3 +977,41 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Replace basic polygon rendering with GeoJSON-based precise regional boundaries
+
+Completed:
+- Created server/services/boundary-resolver.ts
+  - BoundaryResolver class that resolves named regions to precise GeoJSON boundaries
+  - Loads GeoJSON boundary files from data/boundaries/ and sources/glottolog/
+  - Name-based lookup with case-insensitive matching and alias support
+  - Composite region support (union of multiple regions via @turf/turf)
+  - Geometry simplification with configurable tolerance
+  - Fuzzy search fallback for partial name matches
+  - Well-known composite regions: Fertile Crescent, Mediterranean Basin, Mesopotamia, Levant, Anatolia
+- Added 3 API endpoints in server/routes.ts:
+  - GET /api/map/boundaries/resolve?name= - resolve single region to GeoJSON boundary
+  - POST /api/map/boundaries/resolve-features - batch resolve feature geometries
+  - GET /api/map/boundaries/search?q= - search available boundaries
+- Created client/src/components/visualizations/hooks/useBoundaryResolver.ts
+  - React hook that resolves feature geometries to precise boundaries via API
+  - Client-side caching of resolved boundaries
+  - Abort controller for canceling stale requests
+- Updated CivilizationLayer.tsx:
+  - Added usePreciseBoundaries prop (default: true)
+  - Per-feature boundary resolution: precise GeoJSON used when available, spline smoothing fallback
+  - Precise boundaries render with solid lines (no dashArray), slightly thicker weight
+  - Gradient edges skipped for precisely-resolved boundaries
+  - Popup shows boundary source attribution
+- Updated LanguageRangeLayer.tsx:
+  - Added usePreciseBoundaries prop (default: true)
+  - Per-feature boundary resolution with spline smoothing fallback
+  - Precise boundaries render with slightly thicker weight
+- Updated ArchaeologicalCultureLayer.tsx:
+  - Added usePreciseBoundaries prop (default: true)
+  - Per-feature boundary resolution
+  - Precise boundaries render with solid lines instead of dashed
+- Created server/services/boundary-resolver.test.ts with 20 tests (all passing)
+  - Tests: registerBoundary, resolve by ID/name/alias, composite regions, simplification,
+    GeoJSON file loading, resolveFeature, resolveFeatures, search, MultiPolygon support, fuzzy search
+- All 577 tests passing across 32 test files

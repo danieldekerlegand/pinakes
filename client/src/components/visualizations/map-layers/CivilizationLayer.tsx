@@ -2,9 +2,10 @@ import React, { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
-import { smoothFeatures, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
+import { smoothFeature, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
 import type { CivilizationFeature } from '../../../lib/visualization/geospatial-types';
 import { CIVILIZATION_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
+import { useBoundaryResolver } from '../hooks/useBoundaryResolver';
 
 interface CivilizationLayerProps {
   features: CivilizationFeature[];
@@ -13,6 +14,8 @@ interface CivilizationLayerProps {
   selectedFeatureId?: string | null;
   smoothBoundaries?: boolean;
   showGradientEdges?: boolean;
+  /** Use precise GeoJSON boundaries from boundary resolver when available */
+  usePreciseBoundaries?: boolean;
 }
 
 export function CivilizationLayer({
@@ -22,10 +25,10 @@ export function CivilizationLayer({
   selectedFeatureId,
   smoothBoundaries = true,
   showGradientEdges = true,
+  usePreciseBoundaries = true,
 }: CivilizationLayerProps) {
   // Civilization colors (different from language family colors)
   const getCivilizationColor = (civilizationId: string): string => {
-    // Simple hash to get consistent color per civilization
     let hash = 0;
     for (let i = 0; i < civilizationId.length; i++) {
       hash = civilizationId.charCodeAt(i) + ((hash << 5) - hash);
@@ -33,11 +36,22 @@ export function CivilizationLayer({
     return CIVILIZATION_PALETTE[Math.abs(hash) % CIVILIZATION_PALETTE.length];
   };
 
-  // Apply spline smoothing to features
-  const smoothedFeatures = useMemo(() => {
-    if (!smoothBoundaries) return features;
-    return smoothFeatures(features, 6, 0.5);
-  }, [features, smoothBoundaries]);
+  // Resolve precise GeoJSON boundaries where available
+  const { resolvedFeatures } = useBoundaryResolver(features, {
+    enabled: usePreciseBoundaries,
+    regionNameKey: 'name',
+  });
+
+  // Apply spline smoothing only to features without precise boundaries
+  const processedFeatures = useMemo(() => {
+    return resolvedFeatures.map(feature => {
+      // Skip smoothing for features with resolved precise boundaries
+      if ((feature.properties as any)._boundaryResolved || !smoothBoundaries) {
+        return feature;
+      }
+      return smoothFeature(feature, 6, 0.5);
+    });
+  }, [resolvedFeatures, smoothBoundaries]);
 
   // Generate gradient edge features for transition zones
   const gradientEdgeData = useMemo(() => {
@@ -49,7 +63,10 @@ export function CivilizationLayer({
       properties: { civilizationId: string; opacityMultiplier: number };
     }> = [];
 
-    for (const feature of smoothedFeatures) {
+    for (const feature of processedFeatures) {
+      // Skip gradient edges for precisely-resolved boundaries
+      if ((feature.properties as any)._boundaryResolved) continue;
+
       const coords = feature.geometry.type === 'Polygon'
         ? [feature.geometry.coordinates[0]]
         : feature.geometry.type === 'MultiPolygon'
@@ -75,21 +92,22 @@ export function CivilizationLayer({
       type: 'FeatureCollection' as const,
       features: edgeFeatures,
     };
-  }, [smoothedFeatures, showGradientEdges]);
+  }, [processedFeatures, showGradientEdges]);
 
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const civColor = getCivilizationColor(props.civilizationId);
+    const isPrecise = props._boundaryResolved;
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : civColor,
       fillOpacity: isSelected ? 0.3 : opacity * 0.4,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : civColor,
-      weight: isSelected ? 3 : 2,
+      weight: isSelected ? 3 : (isPrecise ? 2.5 : 2),
       opacity: isSelected ? 1 : 0.7,
-      dashArray: '5, 5', // Dashed border to distinguish from language ranges
+      dashArray: isPrecise ? undefined : '5, 5',
     };
   };
 
@@ -111,7 +129,6 @@ export function CivilizationLayer({
   const onEachFeature = (feature: any, layer: any) => {
     const props = feature.properties;
 
-    // Add popup
     layer.bindPopup(() => {
       const container = document.createElement('div');
       container.className = 'p-2 min-w-[240px]';
@@ -169,6 +186,12 @@ export function CivilizationLayer({
               </div>
             ` : ''}
 
+            ${props._boundarySource ? `
+              <div class="pt-2 border-t">
+                <span class="text-gray-600 text-xs">Boundary: ${props._boundarySource}</span>
+              </div>
+            ` : ''}
+
             ${props.sources && props.sources.length > 0 ? `
               <div class="pt-2 border-t">
                 <span class="text-gray-600 text-xs">
@@ -213,8 +236,8 @@ export function CivilizationLayer({
   // Convert features to GeoJSON FeatureCollection
   const geoJsonData = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: smoothedFeatures,
-  }), [smoothedFeatures]);
+    features: processedFeatures,
+  }), [processedFeatures]);
 
   if (features.length === 0) {
     return null;
@@ -230,7 +253,7 @@ export function CivilizationLayer({
           style={gradientEdgeStyle}
         />
       )}
-      {/* Main smoothed boundary layer */}
+      {/* Main boundary layer - precise GeoJSON where available, smoothed fallback */}
       <GeoJSON
         key={JSON.stringify(features.map(f => f.id))}
         data={geoJsonData}

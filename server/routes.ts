@@ -2,6 +2,7 @@ import path from "node:path";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
 import { writingSystemScraper } from "./services/writing-system-scraper";
@@ -1608,6 +1609,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching civilizations:", error);
       res.status(500).json({
         message: "Failed to fetch civilizations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Resolve a region name to a precise GeoJSON boundary
+  app.get("/api/map/boundaries/resolve", async (req, res) => {
+    try {
+      const { name, simplify } = req.query;
+      if (!name || typeof name !== "string") {
+        return res.status(400).json({ message: "name query parameter is required" });
+      }
+
+      const resolver = await getDefaultBoundaryResolver();
+      const tolerance = simplify ? parseFloat(simplify as string) : undefined;
+      const boundary = resolver.resolve(name, tolerance);
+
+      if (!boundary) {
+        return res.status(404).json({ message: `No boundary found for "${name}"` });
+      }
+
+      res.json({
+        id: boundary.id,
+        name: boundary.name,
+        source: boundary.source,
+        geometry: boundary.geometry,
+      });
+    } catch (error) {
+      console.error("Error resolving boundary:", error);
+      res.status(500).json({
+        message: "Failed to resolve boundary",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Resolve multiple feature geometries with precise boundaries
+  app.post("/api/map/boundaries/resolve-features", async (req, res) => {
+    try {
+      const { features, regionNameKey } = req.body;
+      if (!Array.isArray(features)) {
+        return res.status(400).json({ message: "features array is required in request body" });
+      }
+
+      const resolver = await getDefaultBoundaryResolver();
+      const resolved = resolver.resolveFeatures(features, regionNameKey ?? "name");
+
+      res.json({
+        type: "FeatureCollection",
+        features: resolved,
+      });
+    } catch (error) {
+      console.error("Error resolving feature boundaries:", error);
+      res.status(500).json({
+        message: "Failed to resolve feature boundaries",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Search available boundaries
+  app.get("/api/map/boundaries/search", async (req, res) => {
+    try {
+      const { q, limit } = req.query;
+      const resolver = await getDefaultBoundaryResolver();
+
+      if (q && typeof q === "string") {
+        const results = resolver.search(q, limit ? parseInt(limit as string) : 10);
+        res.json({
+          results: results.map((b) => ({
+            id: b.id,
+            name: b.name,
+            source: b.source,
+          })),
+        });
+      } else {
+        const names = resolver.listBoundaryNames();
+        res.json({ boundaries: names, total: resolver.size });
+      }
+    } catch (error) {
+      console.error("Error searching boundaries:", error);
+      res.status(500).json({
+        message: "Failed to search boundaries",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
