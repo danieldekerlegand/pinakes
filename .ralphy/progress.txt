@@ -591,3 +591,38 @@ Completed:
   - Sort order validation
   - Module structure verification (exports, concurrency guard, Gemini integration)
   - Route registration verification
+
+## Agent 15: Create Gemini-powered batch enrichment pipeline for under-populated TSVs
+
+Completed:
+- Created server/services/batch-enrichment.ts with:
+  - analyzeTsvFiles(): Scans lexicons/ directory to identify under-populated TSV files below a configurable row threshold, calculating population scores and empty field counts per column
+  - runBatchEnrichment(): Orchestrates multi-file enrichment using Google Gemini API with configurable batch sizes, rate limiting (2s between batches), and deduplication against existing entries
+  - enrichSingleFile(): Processes individual TSV files through multiple Gemini API batches, building context-aware prompts that include existing entries to avoid duplicates
+  - Job tracking system (getEnrichmentJob, getAllEnrichmentJobs) for monitoring enrichment progress
+  - Atomic TSV append operations preserving existing data
+  - Global coverage prompting to ensure diverse geographic/cultural representation
+- Added 4 API endpoints in server/routes.ts:
+  - GET /api/enrichment/analyze - Analyze TSV files for under-population with configurable threshold
+  - POST /api/enrichment/batch - Start batch enrichment with target file selection and batch count options
+  - GET /api/enrichment/jobs - List all enrichment jobs
+  - GET /api/enrichment/jobs/:id - Get specific job status
+- Created vitest.config.ts for test infrastructure
+- Created server/services/batch-enrichment.test.ts with 10 tests covering:
+  - TSV file analysis (sorting, threshold, empty field counting, known file identification)
+  - Job creation and status tracking
+  - Job store persistence and retrieval
+  - Missing file handling
+  - API key validation
+  - Progress callback invocation
+  - Entry deduplication against existing IDs
+- All 10 tests passing
+- TypeScript type checking passes (no new errors, only pre-existing merge conflict markers)
+
+Files created:
+- server/services/batch-enrichment.ts
+- server/services/batch-enrichment.test.ts
+- vitest.config.ts
+
+Files modified:
+- server/routes.ts (added batch enrichment import and 4 API endpoints)

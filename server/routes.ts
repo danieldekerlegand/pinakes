@@ -49,6 +49,12 @@ import {
 } from "./services/natural-language-search";
 import { DataValidationService } from "./services/data-validation";
 import { getFreshnessSummary } from "./services/data-freshness";
+import {
+  analyzeTsvFiles,
+  runBatchEnrichment,
+  getEnrichmentJob,
+  getAllEnrichmentJobs,
+} from "./services/batch-enrichment";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -4256,6 +4262,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to download export",
         error: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  });
+
+  // ============================================================================
+  // Batch Enrichment Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/enrichment/analyze - Analyze TSV files for under-population
+   */
+  app.get("/api/enrichment/analyze", async (req, res) => {
+    try {
+      const threshold = parseInt(req.query.threshold as string) || 100;
+      const analysis = analyzeTsvFiles(threshold);
+      res.json({
+        files: analysis,
+        totalUnderPopulated: analysis.length,
+        threshold,
+      });
+    } catch (error) {
+      console.error("Error analyzing TSV files:", error);
+      res.status(500).json({ message: "Failed to analyze TSV files" });
+    }
+  });
+
+  /**
+   * POST /api/enrichment/batch - Start batch enrichment for under-populated TSVs
+   */
+  app.post("/api/enrichment/batch", async (req, res) => {
+    try {
+      const { targetFiles, maxRowThreshold, batchesPerFile } = req.body;
+
+      const job = await runBatchEnrichment({
+        targetFiles,
+        maxRowThreshold: maxRowThreshold || 50,
+        batchesPerFile: batchesPerFile || 4,
+        onProgress: (msg) => console.log(`[Batch Enrichment] ${msg}`),
+      });
+
+      res.json(job);
+    } catch (error) {
+      console.error("Error starting batch enrichment:", error);
+      res.status(500).json({ message: "Failed to start batch enrichment" });
+    }
+  });
+
+  /**
+   * GET /api/enrichment/jobs - List all enrichment jobs
+   */
+  app.get("/api/enrichment/jobs", async (_req, res) => {
+    try {
+      res.json(getAllEnrichmentJobs());
+    } catch (error) {
+      console.error("Error fetching enrichment jobs:", error);
+      res.status(500).json({ message: "Failed to fetch enrichment jobs" });
+    }
+  });
+
+  /**
+   * GET /api/enrichment/jobs/:id - Get enrichment job status
+   */
+  app.get("/api/enrichment/jobs/:id", async (req, res) => {
+    try {
+      const job = getEnrichmentJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ message: "Enrichment job not found" });
+      }
+      res.json(job);
+    } catch (error) {
+      console.error("Error fetching enrichment job:", error);
+      res.status(500).json({ message: "Failed to fetch enrichment job" });
     }
   });
 
