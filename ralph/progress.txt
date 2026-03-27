@@ -343,3 +343,22 @@ Started: Thu Mar 12 00:45:34 CDT 2026
 - 39 test assertions passing in `test/test-cultural-lineages.ts`
 - Files: cultural-lineages.tsv, tsv-storage.ts, routes.ts, CulturalLineageExplorer.tsx, LanguageFamilyVisualization.tsx, types.ts, VisualizationContext.tsx, test-cultural-lineages.ts
 ---
+
+## 2026-03-26 - US-202 / US-216
+- Created reusable `TreeVisualization` component at `client/src/components/visualizations/shared/TreeVisualization.tsx`
+  - Generic typed tree data: accepts `TreeNodeData` with id, label, parentId, children, metadata
+  - Supports horizontal, vertical, and radial tree layouts via `orientation` prop
+  - Customizable node rendering: `nodeColor`, `nodeRadius`, `nodeLabel`, `nodeSubLabel` callbacks
+  - Custom tooltip via `renderTooltip` render prop
+  - Legend support via `legendItems` array
+  - SVG/PNG export, zoom/pan, auto-fit to viewport
+  - Uses existing `useVisualizationResize` hook and `createZoomBehavior` D3 helper
+- Created `WritingSystemEvolutionView` at `client/src/components/visualizations/WritingSystemEvolutionView.tsx`
+  - Uses shared TreeVisualization for rendering
+  - Fetches writing systems from `/api/writing-systems` and builds parent-child tree
+  - Nodes colored by script type (alphabet, abjad, abugida, syllabary, logographic, featural)
+  - Sample glyphs displayed as sub-labels on each node
+  - Detail panel showing origin date, region, unicode block, sample characters, parent/descendant navigation
+  - 11 tests passing covering tree building, color mapping, date formatting, and interface validation
+- Files: TreeVisualization.tsx, WritingSystemEvolutionView.tsx, WritingSystemEvolutionView.test.ts
+---
