@@ -962,3 +962,18 @@ Completed:
 - Updated 6 main visualization components to use centralized theme
 - Updated 20+ map layer components to use centralized theme
 - Created color-theme.test.ts with 45 tests (all passing)
+
+Refactor LanguageNetworkView to use the reusable NetworkGraph
+
+Completed:
+- Refactored client/src/components/visualizations/LanguageNetworkView.tsx
+  - Replaced ~340 lines of inline D3 rendering with delegation to shared NetworkGraph component
+  - Language-specific logic preserved: family coloring, selection/highlight state, node pinning
+  - Maps NetworkData (name field) to GraphData (label field) for NetworkGraph compatibility
+  - Passes styling callbacks: nodeColor, nodeRadius, nodeStroke, nodeStrokeWidth, linkWidth, showLabel, labelFont
+  - Tooltip rendering inlined for NetworkGraph's renderTooltip prop
+  - Preserved onNodeClick(id, type) callback interface for consumers
+  - Double-click pin/unpin behavior preserved via onNodeDoubleClick
+- Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
+  - Tests data mapping, styling logic, and props interface compatibility
+- All 31 visualization tests passing
