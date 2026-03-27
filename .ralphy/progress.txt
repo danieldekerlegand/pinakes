@@ -892,6 +892,18 @@ Completed:
 - Created test/test-tree-visualization.test.ts with 24 tests (all passing)
   - Tests TreeNodeData interface, tree traversal, filtering, search, config, selection
 
+## Task 5: Create reusable SankeyFlow component for flow/influence datasets
+- Created client/src/components/visualizations/SankeyFlow.tsx
+  - Generic reusable Sankey diagram component (not tied to language contacts)
+  - Configurable: colorScheme, nodeColorFn, linkColorFn, tooltip formatters, legend
+  - Supports SankeyFlowNode (id, label, group) and SankeyFlowLink (source, target, value, category, metadata)
+  - Built on d3-sankey with zoom/pan, export (SVG/PNG), and interactive tooltips
+  - Follows existing visualization patterns (useVisualizationResize, createZoomBehavior)
+- Added SankeyFlowNode, SankeyFlowLink, SankeyFlowData types to shared/types.ts
+- Created client/src/components/visualizations/SankeyFlow.test.ts with 18 tests (all passing)
+  - Type contract tests, data transformation tests, color scheme tests
+  - Validates conversion from domain-specific formats to generic SankeyFlowData
+
 ## Agent 10 - Create unified VisualizationContainer wrapper with shared controls
 - Created client/src/components/visualizations/shared/VisualizationContainer.tsx
   - Render-prop pattern providing dimensions, refs, and tooltip helpers
