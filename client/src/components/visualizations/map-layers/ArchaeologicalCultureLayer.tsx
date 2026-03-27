@@ -5,6 +5,11 @@ import { formatTimePeriod } from '../../../lib/visualization/geospatial-transfor
 import type { ArchaeologicalCultureFeature } from '../../../lib/visualization/geospatial-types';
 import { ARCHAEOLOGICAL_CULTURE_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { useBoundaryResolver } from '../hooks/useBoundaryResolver';
+import {
+  type TerritorialFillType,
+  generateInwardGradientRings,
+  territorialClassName,
+} from '../../../lib/visualization/territorial-shading';
 
 interface ArchaeologicalCultureLayerProps {
   features: ArchaeologicalCultureFeature[];
@@ -13,6 +18,7 @@ interface ArchaeologicalCultureLayerProps {
   selectedFeatureId?: string | null;
   /** Use precise GeoJSON boundaries from boundary resolver when available */
   usePreciseBoundaries?: boolean;
+  fillType?: TerritorialFillType;
 }
 
 const getCultureColor = (cultureId: string): string => {
@@ -29,6 +35,7 @@ export function ArchaeologicalCultureLayer({
   onFeatureClick,
   selectedFeatureId,
   usePreciseBoundaries = true,
+  fillType = 'solid',
 }: ArchaeologicalCultureLayerProps) {
   // Resolve precise GeoJSON boundaries where available
   const { resolvedFeatures } = useBoundaryResolver(features, {
@@ -36,19 +43,70 @@ export function ArchaeologicalCultureLayer({
     regionNameKey: 'name',
   });
 
+  // Generate inward gradient rings for core-to-periphery fill
+  const inwardGradientData = useMemo(() => {
+    if (fillType !== 'gradient') return null;
+
+    const gradientFeatures: Array<{
+      type: 'Feature';
+      geometry: { type: 'Polygon'; coordinates: [number, number][][] };
+      properties: { cultureId: string; opacityMultiplier: number };
+    }> = [];
+
+    for (const feature of resolvedFeatures) {
+      const coords =
+        feature.geometry.type === 'Polygon'
+          ? [feature.geometry.coordinates[0]]
+          : feature.geometry.type === 'MultiPolygon'
+            ? feature.geometry.coordinates.map((p) => p[0])
+            : [];
+
+      for (const ring of coords) {
+        const inwardRings = generateInwardGradientRings(ring, 4);
+        for (const { ring: innerRing, opacityMultiplier } of inwardRings) {
+          gradientFeatures.push({
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [innerRing as [number, number][]] },
+            properties: {
+              cultureId: feature.properties.cultureId,
+              opacityMultiplier,
+            },
+          });
+        }
+      }
+    }
+
+    return { type: 'FeatureCollection' as const, features: gradientFeatures };
+  }, [resolvedFeatures, fillType]);
+
+  // Style for inward gradient rings
+  const inwardGradientStyle = (feature: any): PathOptions => {
+    const props = feature.properties;
+    const cultureColor = getCultureColor(props.cultureId);
+    return {
+      fillColor: cultureColor,
+      fillOpacity: opacity * 0.5 * props.opacityMultiplier,
+      color: cultureColor,
+      weight: 0,
+      opacity: 0,
+    };
+  };
+
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const color = getCultureColor(props.cultureId);
     const isPrecise = props._boundaryResolved;
+    const className = territorialClassName(fillType, color);
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : color,
-      fillOpacity: isSelected ? 0.35 : opacity * 0.4,
+      fillOpacity: isSelected ? 0.35 : fillType === 'gradient' ? opacity * 0.15 : opacity * 0.4,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
       weight: isSelected ? 3 : (isPrecise ? 2.5 : 2),
       opacity: isSelected ? 1 : 0.7,
       dashArray: isPrecise ? undefined : '8, 4',
+      ...(className ? { className } : {}),
     };
   };
 
@@ -175,11 +233,21 @@ export function ArchaeologicalCultureLayer({
   }
 
   return (
-    <GeoJSON
-      key={JSON.stringify(features.map(f => f.id))}
-      data={geoJsonData}
-      style={style}
-      onEachFeature={onEachFeature}
-    />
+    <>
+      {/* Inward gradient rings for core-to-periphery fill */}
+      {inwardGradientData && inwardGradientData.features.length > 0 && (
+        <GeoJSON
+          key={`inward-gradient-${JSON.stringify(features.map(f => f.id))}`}
+          data={inwardGradientData as any}
+          style={inwardGradientStyle}
+        />
+      )}
+      <GeoJSON
+        key={JSON.stringify(features.map(f => f.id))}
+        data={geoJsonData}
+        style={style}
+        onEachFeature={onEachFeature}
+      />
+    </>
   );
 }

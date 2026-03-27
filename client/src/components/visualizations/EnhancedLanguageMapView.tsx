@@ -60,6 +60,9 @@ import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
 import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
+import { CIVILIZATION_PALETTE } from '../../lib/visualization/color-theme';
+import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
+import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import {
   sampleLanguageRanges,
   sampleArchaeologicalSites,
@@ -95,6 +98,9 @@ export function EnhancedLanguageMapView({
 }: EnhancedLanguageMapViewProps) {
   // Initialize base map selection
   const { baseMapId, baseMap, setBaseMap, availableMaps } = useBaseMap();
+
+  // Territorial fill type for cultural region shading
+  const [territorialFillType, setTerritorialFillType] = React.useState<TerritorialFillType>('solid');
 
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
@@ -688,6 +694,18 @@ export function EnhancedLanguageMapView({
     (loadingCookingTechniques && isLayerVisible('cooking-techniques')) ||
     (loadingUrheimat && isLayerVisible('urheimat-hypotheses'));
 
+  // Compute pattern specs for TerritorialShadingProvider
+  const territorialPatterns = useMemo(() => {
+    if (territorialFillType === 'solid' || territorialFillType === 'gradient') return [];
+    const colors = new Set<string>();
+    // Collect colors from civilization palette
+    for (const c of CIVILIZATION_PALETTE) colors.add(c);
+    return Array.from(colors).map((color) => ({
+      fillType: territorialFillType,
+      color,
+    }));
+  }, [territorialFillType]);
+
   if (isLoadingAnyLayer) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
@@ -715,6 +733,11 @@ export function EnhancedLanguageMapView({
           maxZoom={baseMap.maxZoom}
         />
 
+        {/* SVG pattern definitions for hatched/striped fills */}
+        {territorialPatterns.length > 0 && (
+          <TerritorialShadingProvider patterns={territorialPatterns} />
+        )}
+
         {/* Language Range Layer */}
         {isLayerVisible('language-ranges') && filteredLanguageRanges.length > 0 && (
           <LanguageRangeLayer
@@ -722,6 +745,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('language-ranges')?.opacity || 0.6}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
+            fillType={territorialFillType}
           />
         )}
 
@@ -732,6 +756,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('language-range-polygons')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
+            fillType={territorialFillType}
           />
         )}
 
@@ -752,6 +777,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('archaeological-cultures')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
+            fillType={territorialFillType}
           />
         )}
 
@@ -762,6 +788,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('civilizations')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
+            fillType={territorialFillType}
           />
         )}
 
@@ -992,6 +1019,22 @@ export function EnhancedLanguageMapView({
         onApplyPreset={applyPreset}
         activePresetId={activePresetId}
       />
+
+      {/* Territorial Fill Type Selector */}
+      {(isLayerVisible('civilizations') || isLayerVisible('archaeological-cultures') || isLayerVisible('language-ranges') || isLayerVisible('language-range-polygons')) && (
+        <div className="absolute top-4 left-[280px] z-[1000] bg-white rounded-lg shadow-lg border p-2 flex items-center gap-1.5 text-xs">
+          <span className="font-medium text-gray-700 mr-1">Fill:</span>
+          {(['solid', 'gradient', 'hatched', 'striped'] as const).map((ft) => (
+            <button
+              key={ft}
+              onClick={() => setTerritorialFillType(ft)}
+              className={`px-2 py-1 rounded capitalize ${territorialFillType === ft ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-600 hover:bg-gray-100'}`}
+            >
+              {ft}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Genetic-Linguistic Haplogroup Type Toggle */}
       {isLayerVisible('genetic-linguistic-correlation') && (

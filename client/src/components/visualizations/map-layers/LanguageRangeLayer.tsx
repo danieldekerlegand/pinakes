@@ -9,6 +9,11 @@ import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { useBoundaryResolver } from '../hooks/useBoundaryResolver';
+import {
+  type TerritorialFillType,
+  generateInwardGradientRings,
+  territorialClassName,
+} from '../../../lib/visualization/territorial-shading';
 
 interface LanguageRangeLayerProps {
   features: LanguageRangeFeature[];
@@ -18,6 +23,7 @@ interface LanguageRangeLayerProps {
   smoothBoundaries?: boolean;
   /** Use precise GeoJSON boundaries from boundary resolver when available */
   usePreciseBoundaries?: boolean;
+  fillType?: TerritorialFillType;
 }
 
 export function LanguageRangeLayer({
@@ -27,6 +33,7 @@ export function LanguageRangeLayer({
   selectedFeatureId,
   smoothBoundaries = true,
   usePreciseBoundaries = true,
+  fillType = 'solid',
 }: LanguageRangeLayerProps) {
   // Resolve precise GeoJSON boundaries where available
   const { resolvedFeatures } = useBoundaryResolver(features, {
@@ -44,19 +51,70 @@ export function LanguageRangeLayer({
     });
   }, [resolvedFeatures, smoothBoundaries]);
 
+  // Generate inward gradient rings for core-to-periphery fill
+  const inwardGradientData = useMemo(() => {
+    if (fillType !== 'gradient') return null;
+
+    const gradientFeatures: Array<{
+      type: 'Feature';
+      geometry: { type: 'Polygon'; coordinates: [number, number][][] };
+      properties: { familyId: string; opacityMultiplier: number };
+    }> = [];
+
+    for (const feature of processedFeatures) {
+      const coords =
+        feature.geometry.type === 'Polygon'
+          ? [feature.geometry.coordinates[0]]
+          : feature.geometry.type === 'MultiPolygon'
+            ? feature.geometry.coordinates.map((p) => p[0])
+            : [];
+
+      for (const ring of coords) {
+        const inwardRings = generateInwardGradientRings(ring, 4);
+        for (const { ring: innerRing, opacityMultiplier } of inwardRings) {
+          gradientFeatures.push({
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [innerRing as [number, number][]] },
+            properties: {
+              familyId: feature.properties.familyId,
+              opacityMultiplier,
+            },
+          });
+        }
+      }
+    }
+
+    return { type: 'FeatureCollection' as const, features: gradientFeatures };
+  }, [processedFeatures, fillType]);
+
+  // Style for inward gradient rings
+  const inwardGradientStyle = (feature: any): PathOptions => {
+    const props = feature.properties;
+    const familyColor = getFamilyColor(props.familyId);
+    return {
+      fillColor: familyColor,
+      fillOpacity: opacity * 0.5 * props.opacityMultiplier,
+      color: familyColor,
+      weight: 0,
+      opacity: 0,
+    };
+  };
+
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const familyColor = getFamilyColor(props.familyId);
     const isPrecise = props._boundaryResolved;
+    const className = territorialClassName(fillType, familyColor);
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : familyColor,
-      fillOpacity: isSelected ? 0.5 : opacity * 0.5,
+      fillOpacity: isSelected ? 0.5 : fillType === 'gradient' ? opacity * 0.15 : opacity * 0.5,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
       weight: isSelected ? 3 : (isPrecise ? 2.5 : 2),
       opacity: isSelected ? 1 : 0.8,
+      ...(className ? { className } : {}),
     };
   };
 
@@ -167,11 +225,21 @@ export function LanguageRangeLayer({
   }
 
   return (
-    <GeoJSON
-      key={JSON.stringify(features.map(f => f.id))}
-      data={geoJsonData}
-      style={style}
-      onEachFeature={onEachFeature}
-    />
+    <>
+      {/* Inward gradient rings for core-to-periphery fill */}
+      {inwardGradientData && inwardGradientData.features.length > 0 && (
+        <GeoJSON
+          key={`inward-gradient-${JSON.stringify(features.map(f => f.id))}`}
+          data={inwardGradientData as any}
+          style={inwardGradientStyle}
+        />
+      )}
+      <GeoJSON
+        key={JSON.stringify(features.map(f => f.id))}
+        data={geoJsonData}
+        style={style}
+        onEachFeature={onEachFeature}
+      />
+    </>
   );
 }
