@@ -838,3 +838,28 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+Create reusable NetworkGraph component for relational datasets
+
+Completed:
+- Created client/src/lib/visualization/network-graph-types.ts
+  - Generic GraphNode, GraphLink, GraphData, SimulationConfig interfaces
+  - GraphNode supports arbitrary extra properties via index signature
+  - GraphData is generic over node/link subtypes for type-safe domain-specific usage
+  - Utility functions: defaultNodeColor (hash-based group coloring), defaultNodeRadius, defaultLabelText
+- Created client/src/components/visualizations/NetworkGraph.tsx
+  - Fully generic, reusable D3 force-directed graph component
+  - Configurable styling via callback props (nodeColor, nodeRadius, nodeStroke, linkColor, linkWidth, etc.)
+  - Automatic Canvas/SVG rendering toggle based on node count threshold (canvasThreshold prop)
+  - Built-in force simulation with configurable SimulationConfig (linkDistance, chargeStrength, etc.)
+  - Zoom/pan support for both Canvas and SVG modes
+  - Custom tooltip support via renderTooltip prop
+  - Node click and double-click callbacks
+  - Label filtering and custom label formatting
+  - Responsive sizing via useVisualizationResize hook
+  - Re-exports types from network-graph-types.ts for convenience
+- Created client/src/components/visualizations/NetworkGraph.test.ts (21 tests, all passing)
+  - Tests GraphNode, GraphLink, GraphData, SimulationConfig type contracts
+  - Tests defaultNodeColor (group hashing, consistency, variety)
+  - Tests defaultNodeRadius and defaultLabelText
+  - Tests generic type composability with custom subtypes
