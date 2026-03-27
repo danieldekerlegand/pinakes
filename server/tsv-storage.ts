@@ -93,6 +93,24 @@ export interface MigrationRoute {
   consequences: string;
 }
 
+// Empire timeline types
+export interface EmpireTimelineEvent {
+  id: string;
+  empireId: string;
+  empireName: string;
+  year: number;
+  eventType: string;
+  territoryChange: string;
+  capital: string;
+  populationEstimate: number | null;
+  ruler: string;
+  governmentType: string;
+  vassalStates: string[];
+  rivalEmpires: string[];
+  associatedLanguageIds: string[];
+  description: string;
+}
+
 // Trade route types
 export interface TradeRoute {
   id: string;
@@ -727,6 +745,9 @@ export class TsvStorage {
 
   // Trade routes data cache
   private cachedTradeRoutes: TradeRoute[] | null = null;
+
+  // Empire timeline data cache
+  private cachedEmpireTimeline: EmpireTimelineEvent[] | null = null;
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
@@ -4990,5 +5011,94 @@ export class TsvStorage {
   async getArchaeologicalCultureById(id: string): Promise<ArchaeologicalCulture | null> {
     this.loadArchaeologicalCultures();
     return (this.cachedArchaeologicalCultures ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  // ── Empire Timeline ──────────────────────────────────────────────────
+
+  private loadEmpireTimeline(): void {
+    if (this.cachedEmpireTimeline) return;
+
+    const text = this.readFileIfExists("lexicons/empires-timeline.tsv");
+    if (!text) {
+      this.cachedEmpireTimeline = [];
+      return;
+    }
+
+    const { header, rows } = parseTsv(text);
+
+    const idIdx = getIdx(header, "id");
+    const empireIdIdx = getIdx(header, "empire_id");
+    const empireNameIdx = header.indexOf("empire_name");
+    const yearIdx = getIdx(header, "year");
+    const eventTypeIdx = header.indexOf("event_type");
+    const territoryChangeIdx = header.indexOf("territory_change");
+    const capitalIdx = header.indexOf("capital");
+    const populationIdx = header.indexOf("population_estimate");
+    const rulerIdx = header.indexOf("ruler");
+    const govTypeIdx = header.indexOf("government_type");
+    const vassalIdx = header.indexOf("vassal_states");
+    const rivalIdx = header.indexOf("rival_empires");
+    const langIdx = header.indexOf("associated_language_ids");
+    const descIdx = header.indexOf("description");
+
+    this.cachedEmpireTimeline = rows.map((row) => ({
+      id: row[idIdx],
+      empireId: row[empireIdIdx],
+      empireName: empireNameIdx >= 0 ? row[empireNameIdx] || "" : "",
+      year: parseInt(row[yearIdx], 10),
+      eventType: eventTypeIdx >= 0 ? row[eventTypeIdx] || "" : "",
+      territoryChange: territoryChangeIdx >= 0 ? row[territoryChangeIdx] || "" : "",
+      capital: capitalIdx >= 0 ? row[capitalIdx] || "" : "",
+      populationEstimate: (() => {
+        if (populationIdx < 0 || !row[populationIdx]) return null;
+        const n = parseInt(row[populationIdx], 10);
+        return isNaN(n) ? null : n;
+      })(),
+      ruler: rulerIdx >= 0 ? row[rulerIdx] || "" : "",
+      governmentType: govTypeIdx >= 0 ? row[govTypeIdx] || "" : "",
+      vassalStates: (() => {
+        if (vassalIdx < 0 || !row[vassalIdx]) return [];
+        try { return JSON.parse(row[vassalIdx]); } catch { return []; }
+      })(),
+      rivalEmpires: (() => {
+        if (rivalIdx < 0 || !row[rivalIdx]) return [];
+        try { return JSON.parse(row[rivalIdx]); } catch { return []; }
+      })(),
+      associatedLanguageIds: (() => {
+        if (langIdx < 0 || !row[langIdx]) return [];
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+    }));
+  }
+
+  async getEmpireTimeline(filters?: {
+    empireId?: string;
+    eventType?: string;
+    yearStart?: number;
+    yearEnd?: number;
+  }): Promise<EmpireTimelineEvent[]> {
+    this.loadEmpireTimeline();
+    let events = this.cachedEmpireTimeline ?? [];
+
+    if (filters?.empireId) {
+      events = events.filter((e) => e.empireId === filters.empireId);
+    }
+    if (filters?.eventType) {
+      events = events.filter((e) => e.eventType === filters.eventType);
+    }
+    if (filters?.yearStart !== undefined) {
+      events = events.filter((e) => e.year >= filters.yearStart!);
+    }
+    if (filters?.yearEnd !== undefined) {
+      events = events.filter((e) => e.year <= filters.yearEnd!);
+    }
+
+    return events;
+  }
+
+  async getEmpireTimelineEventById(id: string): Promise<EmpireTimelineEvent | null> {
+    this.loadEmpireTimeline();
+    return (this.cachedEmpireTimeline ?? []).find((e) => e.id === id) ?? null;
   }
 }
