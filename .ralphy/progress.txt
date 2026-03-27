@@ -1,3 +1,19 @@
+Create reusable DetailDrawer component for entity details
+
+Completed:
+- Created client/src/components/ui/detail-drawer.tsx
+  - DetailDrawer: Root component with overlay, Escape key handling, configurable width (sm/md/lg/xl/full)
+  - DetailDrawerHeader: Icon + title + subtitle + optional close button + optional gradient background + slot for controls
+  - DetailDrawerContent: Scrollable content area with flex-1 overflow-y-auto
+  - DetailDrawerFooter: Fixed bottom area for actions
+  - Dark mode support throughout
+  - data-testid attributes for testing
+  - Accessible: role="dialog", aria-modal="true"
+- Created client/src/components/ui/detail-drawer.test.ts with 13 tests (all passing)
+  - Tests: width configuration, gradient handling, component API contracts
+
+---
+
 Create sound change rules scraper from historical linguistics sources
 
 Completed:
