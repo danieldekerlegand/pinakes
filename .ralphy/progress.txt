@@ -231,7 +231,6 @@ Files created:
 - test/test-language-contact-scraper.ts
 
 Files modified:
-<<<<<<< HEAD
 - server/services/contribution-service.ts (added boundary entity type)
 - client/src/components/visualizations/ContributionPanel.tsx (added boundary to entity types)
 - client/src/components/visualizations/EnhancedLanguageMapView.tsx (integrated drawing layer)
@@ -601,3 +600,29 @@ Files modified:
 - server/routes.ts (added batch enrichment import and 4 API endpoints)
 - server/routes.ts (added import and POST endpoint, resolved merge conflict)
 - server/tsv-storage.ts (resolved 2 merge conflicts)
+
+## Agent 6: Create ethnographic data scraper for kinship and social organization
+
+### Completed
+- Created server/services/ethnographic-scraper.ts with EthnographicScraper class
+  - scrapeKinshipSystems(): Gemini AI-powered scraper for kinship system data across 11 world regions
+  - scrapeSocialOrganization(): Gemini AI-powered scraper for social organization data across 10 anthropological categories
+  - Supports resumable scraping (detects existing IDs to avoid duplicates)
+  - Concurrent execution prevention (isScraping flag)
+  - Progress callbacks and job tracking integration
+  - Appends to existing TSV files (kinship-systems.tsv, social-organization.tsv)
+- Created lexicons/social-organization.tsv with 5 seed entries (Nuer, Trobriand, Maasai, Iroquois, !Kung San)
+  - 18-column schema: id, name, culture_or_language, region, political_structure, stratification_type, subsistence_pattern, marriage_system, descent_system, residence_pattern, kinship_terminology, property_inheritance, gender_roles, age_grades, clan_or_moiety_system, time_origin, time_end, notes
+- Added SocialOrganization interface and TSV loader to server/tsv-storage.ts
+  - getSocialOrganization() with filters: politicalStructure, descentSystem, subsistencePattern, region
+  - getSocialOrganizationById()
+- Added API endpoints to server/routes.ts:
+  - GET /api/social-organization (with optional filters)
+  - GET /api/social-organization/:id
+  - POST /api/scrape-ethnographic (trigger scraping with type=kinship|social-organization|both)
+- Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+- Created test/test-ethnographic-scraper.ts with 43 passing tests covering:
+  - Kinship system loading, structure, filtering, retrieval
+  - Social organization loading, structure, filtering, retrieval
+  - Scraper instantiation and API key validation
+  - Cross-domain data referencing (kinship ↔ social org)
