@@ -466,6 +466,34 @@ Files modified:
 - client/src/App.tsx (added /scraper route)
 - client/src/pages/dashboard.tsx (added Scraper Dashboard nav link)
 
+US-XXX: Create art tradition scraper with style evolution tracking
+
+Completed:
+- Created server/services/art-tradition-scraper.ts with Gemini AI integration
+  - ArtTraditionScraper class with discoverArtTraditions() and discoverStyleEvolutions() methods
+  - Scrapes art traditions across all categories (painting, sculpture, architecture, ceramics, etc.)
+  - Discovers style evolution connections between traditions (direct_evolution, influence, reaction, revival, synthesis)
+  - Supports resumable scraping with existing tradition deduplication
+  - Atomic TSV writes with append support for incremental scraping
+  - Job tracking via jobStore for progress monitoring
+- Created lexicons/art-style-evolutions.tsv with 4 seed evolution connections
+  - Greek Classical → Roman Art, Roman Art → Byzantine Art, Byzantine Art → Renaissance, Greek Classical revival in Renaissance
+  - Schema: id, from_tradition_id, to_tradition_id, transition_type, transition_date, description, key_changes, catalysts
+- Added StyleEvolution interface and TSV loader to server/tsv-storage.ts
+  - getStyleEvolutions() with traditionId and transitionType filters
+  - getStyleEvolutionById() for single evolution lookup
+  - invalidateArtTraditionsCache() for post-scrape cache refresh
+- Added writeGenericTSV() public method to server/services/tsv-writer.ts
+- Added API routes to server/routes.ts:
+  - GET /api/art-style-evolutions (with tradition_id and transition_type filters)
+  - POST /api/scrape/art-traditions (triggers async Gemini-based scraping)
+- Fixed pre-existing merge conflicts in server/tsv-storage.ts and server/routes.ts
+- Created test/test-art-tradition-scraper.ts with 60 passing tests covering:
+  - Art tradition TSV loading, filtering, and data structure validation
+  - Style evolution TSV loading, filtering, and referential integrity
+  - TSV file structure verification (column presence, row consistency)
+  - Scraper validation (API key requirement)
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:

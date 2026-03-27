@@ -485,6 +485,18 @@ export interface ArtTradition {
   notableExamples: string[];
 }
 
+// Art style evolution types
+export interface StyleEvolution {
+  id: string;
+  fromTraditionId: string;
+  toTraditionId: string;
+  transitionType: string;
+  transitionDate: number;
+  description: string;
+  keyChanges: string[];
+  catalysts: string[];
+}
+
 // Architectural style types
 export interface ArchitecturalStyle {
   id: string;
@@ -754,6 +766,9 @@ export class TsvStorage {
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Art style evolutions data cache
+  private cachedStyleEvolutions: StyleEvolution[] | null = null;
 
   // Architectural styles data cache
   private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
@@ -4242,6 +4257,69 @@ export class TsvStorage {
   async getArtTraditionById(id: string): Promise<ArtTradition | null> {
     this.loadArtTraditions();
     return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
+  }
+
+  // ── Art Style Evolutions ──────────────────────────────────────────
+
+  private loadStyleEvolutions(): void {
+    if (this.cachedStyleEvolutions) return;
+
+    const text = this.readFileIfExists("lexicons/art-style-evolutions.tsv");
+    if (!text) { this.cachedStyleEvolutions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const fromIdx = getIdx(header, "from_tradition_id");
+    const toIdx = getIdx(header, "to_tradition_id");
+    const typeIdx = getIdx(header, "transition_type");
+    const dateIdx = getIdx(header, "transition_date");
+    const descIdx = getIdx(header, "description");
+    const changesIdx = getIdx(header, "key_changes");
+    const catalystsIdx = getIdx(header, "catalysts");
+
+    this.cachedStyleEvolutions = rows.map((row) => ({
+      id: row[idIdx],
+      fromTraditionId: row[fromIdx],
+      toTraditionId: row[toIdx],
+      transitionType: row[typeIdx],
+      transitionDate: parseInt(row[dateIdx]) || 0,
+      description: row[descIdx],
+      keyChanges: (() => {
+        try { return JSON.parse(row[changesIdx]); } catch { return []; }
+      })() as string[],
+      catalysts: (() => {
+        try { return JSON.parse(row[catalystsIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getStyleEvolutions(filters?: {
+    traditionId?: string;
+    transitionType?: string;
+  }): Promise<StyleEvolution[]> {
+    this.loadStyleEvolutions();
+    let evolutions = this.cachedStyleEvolutions ?? [];
+
+    if (filters?.traditionId) {
+      evolutions = evolutions.filter(
+        (e) => e.fromTraditionId === filters.traditionId || e.toTraditionId === filters.traditionId
+      );
+    }
+    if (filters?.transitionType) {
+      evolutions = evolutions.filter((e) => e.transitionType === filters.transitionType);
+    }
+
+    return evolutions;
+  }
+
+  async getStyleEvolutionById(id: string): Promise<StyleEvolution | null> {
+    this.loadStyleEvolutions();
+    return (this.cachedStyleEvolutions ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  invalidateArtTraditionsCache(): void {
+    this.cachedArtTraditions = null;
+    this.cachedStyleEvolutions = null;
   }
 
   // ── Architectural Styles ────────────────────────────────────────────

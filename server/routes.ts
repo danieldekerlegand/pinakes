@@ -13,6 +13,7 @@ import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { soundChangeScraper } from "./services/sound-change-scraper";
 import { tradeGoodsScraper } from "./services/trade-goods-scraper";
 import { musicScraper } from "./services/music-scraper";
+import { artTraditionScraper } from "./services/art-tradition-scraper";
 import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
 import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
@@ -3544,6 +3545,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching art tradition:", error);
       res.status(500).json({
         message: "Failed to fetch art tradition",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/art-style-evolutions - Get style evolution connections
+   */
+  app.get("/api/art-style-evolutions", async (req, res) => {
+    try {
+      const traditionId = req.query.tradition_id as string | undefined;
+      const transitionType = req.query.transition_type as string | undefined;
+      const evolutions = await storage.getStyleEvolutions({ traditionId, transitionType });
+      res.json({ evolutions, count: evolutions.length });
+    } catch (error) {
+      console.error("Error fetching style evolutions:", error);
+      res.status(500).json({
+        message: "Failed to fetch style evolutions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scrape/art-traditions - Scrape art traditions with style evolution tracking
+   */
+  app.post("/api/scrape/art-traditions", async (req, res) => {
+    try {
+      const { categories, regions, clearExisting } = req.body || {};
+
+      const job = jobStore.createJob("art-traditions", 0, "gemini");
+
+      res.json({ jobId: job.id, message: "Art tradition scraping started" });
+
+      artTraditionScraper
+        .scrapeArtTraditions({
+          categories,
+          regions,
+          clearExisting,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[art-scraper] ${type}: ${message}`);
+          },
+        })
+        .then(() => {
+          storage.invalidateArtTraditionsCache();
+        })
+        .catch((err) => {
+          console.error("Art tradition scraping failed:", err);
+        });
+    } catch (error) {
+      console.error("Error starting art tradition scraping:", error);
+      res.status(500).json({
+        message: "Failed to start art tradition scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

@@ -123,6 +123,17 @@ export class TsvWriter {
   }
 
   /**
+   * Public generic TSV writer - writes headers and rows to a TSV file atomically
+   */
+  async writeGenericTSV(
+    filePath: string,
+    headers: string[],
+    rows: string[][]
+  ): Promise<void> {
+    await this.writeTSV(filePath, headers, rows);
+  }
+
+  /**
    * Generic TSV writer with atomic operation (write to temp file, then rename)
    */
   async writeTSV(
