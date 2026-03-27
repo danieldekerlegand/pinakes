@@ -977,3 +977,29 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Implement clickable map features with contextual info panels (US-311)
+
+Completed:
+- Created MapFeatureInfoPanel component (client/src/components/visualizations/map-layers/MapFeatureInfoPanel.tsx)
+  - Uses DetailDrawer for a slide-out panel triggered by clicking any map feature
+  - Supports all 18 feature types: language ranges, archaeological sites, archaeological cultures,
+    civilizations, routes, cuisines, music, dance, religions, battles, deities, haplogroups,
+    foodway events, kinship systems, architectural styles, ingredient origins, cooking techniques,
+    urheimat hypotheses
+  - Each feature type has its own detail view with contextual icon, gradient header, and relevant fields
+  - Shared helper components: InfoRow, TagList, Section, SourcesList for consistent layout
+- Created useMapFeatureSelection hook (client/src/components/visualizations/hooks/useMapFeatureSelection.ts)
+  - Manages feature selection state with URL deep-linking (?feature=type:id)
+  - URL updates via history.replaceState (no page navigation)
+  - findFeatureById: searches across all 18 collection types
+  - findFeatureByTypeAndId: optimized lookup with type hint + fallback
+  - encodeFeatureParam/decodeFeatureParam: URL param serialization with proper encoding
+- Integrated into EnhancedLanguageMapView
+  - Built featureLookupCollections memo aggregating all data collections
+  - handleFeatureClick now opens info panel AND notifies parent via onFeatureSelect
+  - activeSelectedFeatureId derives from internal hook state or external prop
+  - MapFeatureInfoPanel rendered as overlay with clearSelection on close
+- Tests: 41 new tests across 2 test files (all passing, 598 total tests)
+  - useMapFeatureSelection.test.ts: URL encoding/decoding, feature lookup by id, lookup by type+id
+  - MapFeatureInfoPanel.test.ts: type discrimination, gradient mapping validation
