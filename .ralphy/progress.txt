@@ -838,3 +838,18 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Agent 4: Create reusable ComparisonTable component
+- Created client/src/components/ui/comparison-table.tsx
+  - Generic TypeScript component for side-by-side data comparison
+  - Supports configurable columns (items to compare) and rows (attributes)
+  - Difference highlighting with highlightDifferences prop
+  - Sticky attribute column for horizontal scrolling
+  - Striped rows option, accessible with ARIA labels
+  - Custom cell rendering via renderCell callback
+  - Handles empty state gracefully
+- Created client/src/components/ui/comparison-table.test.ts with 26 tests (all passing)
+  - cellValuesMatch logic (strings, numbers, booleans, null/undefined, objects)
+  - Column building and value extraction
+  - Difference detection across language comparisons
+  - Edge cases: single column, null values, custom renderers, many columns
