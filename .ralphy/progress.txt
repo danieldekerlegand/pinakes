@@ -863,3 +863,15 @@ Completed:
 - [✓] 2026-03-27 03:44 - Create CrossDomainTimeline combining multiple datasets on one timeline
 - [✓] 2026-03-27 03:44 - Create PhonemeComparisonView using HeatmapGrid and ComparisonTable
 - [✓] 2026-03-26 22:49 - Create GeneticLinguisticParallelView using ParallelCoordinates
+
+## Agent 3: Create reusable TreeVisualization component for hierarchical datasets
+- Created client/src/components/visualizations/TreeVisualization.tsx
+  - Generic TreeNodeData interface with id, name, children, and arbitrary extra props
+  - Supports single root tree or forest (array of roots)
+  - Configurable orientation (horizontal/vertical), colors, sizes, padding, zoom
+  - Function-based node radius/color/label size for dynamic styling per node
+  - Search highlighting, node selection, and highlighted node sets
+  - D3-based rendering with zoom/pan, auto-fit, tooltips
+  - Dark mode support
+- Created test/test-tree-visualization.test.ts with 24 tests (all passing)
+  - Tests TreeNodeData interface, tree traversal, filtering, search, config, selection
