@@ -39,6 +39,7 @@ import {
   validateExportOptions,
   type ExportFormat,
 } from "./services/export-pipeline";
+import { battleScraper } from "./services/battle-scraper";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import {
   parseNaturalLanguageQuery,
@@ -441,6 +442,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting polity scraping:", error);
       res.status(500).json({
         message: "Failed to start polity scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape battles and military history
+  app.post("/api/scraping/battles", async (req, res) => {
+    try {
+      const { clearExisting, eraFilter } = req.body;
+
+      const job = jobStore.createJob("battles", 4, "gemini");
+
+      battleScraper
+        .scrapeBattles({
+          clearExisting: clearExisting || false,
+          eraFilter: eraFilter || undefined,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Battle Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(`Battle scraping completed: ${result.length} battles`);
+        })
+        .catch((error) => {
+          console.error("Battle scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Battle scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting battle scraping:", error);
+      res.status(500).json({
+        message: "Failed to start battle scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

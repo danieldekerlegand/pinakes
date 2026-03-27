@@ -565,3 +565,29 @@ Completed:
   - Custom thresholds, summary aggregation, non-TSV file filtering
   - Integration test against real lexicons/ directory (43 datasets, 133K+ records)
 - All tests passing, no new TypeScript errors
+
+Create battle and military history scraper
+
+Completed:
+- Created server/services/battle-scraper.ts with BattleScraper class
+  - Uses Gemini AI to generate battle data across 4 historical eras (Ancient, Medieval, Early Modern, Modern)
+  - Structured JSON schema for reliable AI output parsing
+  - Resumable scraping: detects existing battle IDs and skips duplicates
+  - Concurrency guard prevents parallel scraping sessions
+  - Atomic TSV writes via temp file + rename
+  - Sorts output chronologically by date
+  - Supports clearExisting and eraFilter options
+  - Job tracking via jobStore for progress monitoring
+- Added POST /api/scraping/battles endpoint in server/routes.ts
+  - Accepts clearExisting (boolean) and eraFilter (string) params
+  - Runs scraping in background with progress callbacks
+  - Returns jobId for status tracking
+- Sorted existing lexicons/battles.tsv data chronologically
+- Created test/test-battle-scraper.ts with 42 passing tests covering:
+  - TSV schema validation (all 10 columns)
+  - Data integrity (unique IDs, no empty required fields)
+  - Date/coordinate/belligerent JSON validation
+  - Historical era coverage verification
+  - Sort order validation
+  - Module structure verification (exports, concurrency guard, Gemini integration)
+  - Route registration verification
