@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
 import { writingSystemScraper } from "./services/writing-system-scraper";
+import { glottologScraper } from "./services/glottolog-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -242,6 +243,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting family scraping:", error);
       res.status(500).json({
         message: "Failed to start scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape language families from Glottolog
+  app.post("/api/scraping/glottolog", async (req, res) => {
+    try {
+      const { maxFamilies, familyFilter, maxDepth } = req.body;
+
+      const job = jobStore.createJob(
+        "glottolog-families",
+        100,
+        "other"
+      );
+
+      glottologScraper
+        .scrapeGlottolog({
+          maxFamilies,
+          familyFilter,
+          maxDepth,
+          jobId: job.id,
+          progressCallback: (type, message, data) => {
+            console.log(`[Glottolog Scraping] ${type}: ${message}`, data || "");
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Glottolog scraping completed: ${result.families.length} families, ${result.languages.length} languages, ${result.totalApiCalls} API calls`
+          );
+        })
+        .catch((error) => {
+          console.error("Glottolog scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Glottolog scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting Glottolog scraping:", error);
+      res.status(500).json({
+        message: "Failed to start Glottolog scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -3245,7 +3300,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3729,7 +3783,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3763,7 +3819,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
     }
   });
 
