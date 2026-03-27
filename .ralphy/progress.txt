@@ -12,6 +12,28 @@ Completed:
 - Created client/src/components/ui/detail-drawer.test.ts with 13 tests (all passing)
   - Tests: width configuration, gradient handling, component API contracts
 
+Create PhonemeComparisonView using HeatmapGrid and ComparisonTable
+
+Completed:
+- Created client/src/components/visualizations/HeatmapGrid.tsx
+  - Reusable grid component for displaying phoneme presence across languages
+  - Supports highlight cells, color-coded items per language, intensity shading
+  - Generic props: rows, columns, data, colors, highlightCells, cornerLabel
+- Created client/src/components/visualizations/ComparisonTable.tsx
+  - Reusable table component for comparing phonological features across languages
+  - Supports color-coded column headers, monospace mode per row, optional footer
+  - Generic props: columns, rows, footer
+- Created client/src/components/visualizations/PhonemeComparisonView.tsx
+  - Main view composing HeatmapGrid and ComparisonTable
+  - Language selection (2-4 languages) with search and badge display
+  - IPA consonant heatmap mapping phonemes to manner/place grid
+  - Summary statistics table (consonant/vowel counts, tones, syllable structure, stress)
+  - Overlap analysis highlighting shared phonemes across selected languages
+  - Uses existing /api/languages and /api/phonological-inventories endpoints
+- Created client/src/components/visualizations/PhonemeComparisonView.test.ts
+  - 15 tests covering heatmap data building, comparison table rows, overlap analysis, highlight cells
+  - All tests passing
+
 ---
 
 Create sound change rules scraper from historical linguistics sources
