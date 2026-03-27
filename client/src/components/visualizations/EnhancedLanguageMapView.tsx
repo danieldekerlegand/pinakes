@@ -56,6 +56,9 @@ import { useDrawingTool } from './hooks/useDrawingTool';
 import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
 import { MapContextMenu } from './map-layers/MapContextMenu';
+import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
+import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
+import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
   sampleLanguageRanges,
@@ -517,6 +520,42 @@ export function EnhancedLanguageMapView({
     return map;
   }, [languagesForCoords]);
 
+  // Build feature lookup collections for the info panel
+  const featureLookupCollections = useMemo<FeatureLookupCollections>(() => ({
+    languageRanges: allLanguageRanges,
+    archaeologicalSites: allArchaeologicalSites,
+    archaeologicalCultures: allArchaeologicalCultures,
+    civilizations: allCivilizations,
+    routes: allRoutes,
+    cuisines: filteredCuisines,
+    music: filteredMusicTraditions,
+    dance: filteredDanceTraditions,
+    religions: filteredReligions,
+    battles: allBattles,
+    deities: filteredDeities,
+    haplogroups: allHaplogroups,
+    foodwayEvents: allFoodwayEvents,
+    kinshipSystems: allKinshipSystems,
+    architecturalStyles: allArchitecturalStyles,
+    ingredientOrigins: allIngredientOrigins,
+    cookingTechniques: allCookingTechniques,
+    urheimatHypotheses: allUrheimatHypotheses,
+  }), [
+    allLanguageRanges, allArchaeologicalSites, allArchaeologicalCultures,
+    allCivilizations, allRoutes, filteredCuisines, filteredMusicTraditions,
+    filteredDanceTraditions, filteredReligions, allBattles, filteredDeities,
+    allHaplogroups, allFoodwayEvents, allKinshipSystems, allArchitecturalStyles,
+    allIngredientOrigins, allCookingTechniques, allUrheimatHypotheses,
+  ]);
+
+  // Feature selection state with URL deep-linking
+  const {
+    selectedFeatureData,
+    selectedFeatureId: internalSelectedFeatureId,
+    selectFeature,
+    clearSelection,
+  } = useMapFeatureSelection(featureLookupCollections);
+
   // Filter features by current time
   const filteredLanguageRanges = useMemo(() => {
     return filterGeoJSONByTime(allLanguageRanges, currentYear);
@@ -548,14 +587,18 @@ export function EnhancedLanguageMapView({
     return allMaterialCultures;
   }, [allMaterialCultures]);
 
-  // Handle feature clicks
+  // Derive the active selected feature ID — internal selection takes priority
+  const activeSelectedFeatureId = internalSelectedFeatureId ?? selectedFeatureId ?? null;
+
+  // Handle feature clicks — open info panel and notify parent
   const handleFeatureClick = useCallback(
     (id: string) => {
+      selectFeature(id);
       if (onFeatureSelect) {
         onFeatureSelect(id);
       }
     },
-    [onFeatureSelect]
+    [onFeatureSelect, selectFeature]
   );
 
   // Keyboard shortcuts
@@ -678,7 +721,7 @@ export function EnhancedLanguageMapView({
             features={filteredLanguageRanges}
             opacity={getLayerConfig('language-ranges')?.opacity || 0.6}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 
@@ -688,7 +731,7 @@ export function EnhancedLanguageMapView({
             features={filteredLanguageRangePolygons}
             opacity={getLayerConfig('language-range-polygons')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 
@@ -698,7 +741,7 @@ export function EnhancedLanguageMapView({
             features={filteredArchaeologicalSites}
             opacity={getLayerConfig('archaeological-sites')?.opacity || 0.8}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 
@@ -708,7 +751,7 @@ export function EnhancedLanguageMapView({
             features={filteredArchaeologicalCultures}
             opacity={getLayerConfig('archaeological-cultures')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 
@@ -718,7 +761,7 @@ export function EnhancedLanguageMapView({
             features={filteredCivilizations}
             opacity={getLayerConfig('civilizations')?.opacity || 0.5}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 
@@ -728,7 +771,7 @@ export function EnhancedLanguageMapView({
             features={filteredRoutes}
             opacity={getLayerConfig('routes')?.opacity || 0.7}
             onFeatureClick={handleFeatureClick}
-            selectedFeatureId={selectedFeatureId}
+            selectedFeatureId={activeSelectedFeatureId}
             isAnimating={isPlaying}
           />
         )}
@@ -1051,6 +1094,12 @@ export function EnhancedLanguageMapView({
           Playing: {currentYear < 0 ? `${Math.abs(currentYear)} BCE` : `${currentYear} CE`}
         </div>
       )}
+
+      {/* Feature Info Panel (Detail Drawer) */}
+      <MapFeatureInfoPanel
+        data={selectedFeatureData}
+        onClose={clearSelection}
+      />
     </div>
   );
 }
