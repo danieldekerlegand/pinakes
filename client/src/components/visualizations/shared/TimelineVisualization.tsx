@@ -10,6 +10,8 @@ export interface TimelineItem {
   groupName: string;
   startYear: number;
   endYear: number | null;
+  color?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface TimelineVisualizationProps<T extends TimelineItem = TimelineItem> {
@@ -35,7 +37,7 @@ export function TimelineVisualization<T extends TimelineItem = TimelineItem>({
   selectedStrokeColor = '#1d4ed8',
   buildTooltip,
   margin = { top: 50, right: 50, bottom: 50, left: 150 },
-  helpText = 'Click bars to select • Hover for details',
+  helpText = 'Click bars to select \u2022 Hover for details',
 }: TimelineVisualizationProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -81,6 +83,17 @@ export function TimelineVisualization<T extends TimelineItem = TimelineItem>({
       .range([0, innerHeight])
       .padding(0.1);
 
+    // Gridlines
+    g.append('g')
+      .attr('class', 'grid')
+      .attr('opacity', 0.1)
+      .call(
+        d3.axisBottom(xScale)
+          .tickSize(innerHeight)
+          .tickFormat(() => '')
+      );
+
+    // Timeline bars
     g.selectAll('.timeline-bar')
       .data(data)
       .join('rect')
@@ -133,6 +146,7 @@ export function TimelineVisualization<T extends TimelineItem = TimelineItem>({
         d3.select(this).attr('opacity', 1);
       });
 
+    // X-axis
     const xAxis = d3.axisBottom(xScale)
       .tickFormat((d) => {
         const year = d as number;
@@ -148,22 +162,17 @@ export function TimelineVisualization<T extends TimelineItem = TimelineItem>({
       .attr('transform', 'rotate(-45)')
       .style('text-anchor', 'end');
 
+    // Y-axis
     g.append('g')
       .attr('class', 'y-axis')
-      .call(d3.axisLeft(yScale));
+      .call(d3.axisLeft(yScale))
+      .selectAll('text')
+      .style('font-size', '11px');
 
-    g.append('g')
-      .attr('class', 'grid')
-      .attr('opacity', 0.1)
-      .call(
-        d3.axisBottom(xScale)
-          .tickSize(innerHeight)
-          .tickFormat(() => '')
-      );
   }, [data, width, height, colorFn, isSelected, isHighlighted, onItemClick, buildTooltip, margin, selectedColor, selectedStrokeColor]);
 
   return (
-    <div ref={containerRef} className="w-full h-full relative bg-gray-50 rounded-lg">
+    <div ref={containerRef} className="w-full h-full relative bg-gray-50 dark:bg-gray-900 rounded-lg">
       <svg
         ref={svgRef}
         width={width}
@@ -176,7 +185,7 @@ export function TimelineVisualization<T extends TimelineItem = TimelineItem>({
         y={tooltip.y}
         visible={tooltip.visible}
       />
-      <div className="absolute bottom-4 left-4 text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+      <div className="absolute bottom-4 left-4 text-xs text-gray-500 bg-white dark:bg-gray-800 px-2 py-1 rounded border">
         {helpText}
       </div>
     </div>

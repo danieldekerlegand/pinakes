@@ -874,3 +874,19 @@ Completed:
 - Created client/src/components/visualizations/shared/TreeVisualization.test.ts (7 tests, all passing)
   - Tests config getChildren, leaf nodes, default values, separation, data wrapping
 - Verified: TypeScript compiles clean, Vite build succeeds, all tests pass
+
+## Agent 14: Create CivilizationTimeline view using reusable TimelineVisualization
+
+### Completed
+- Created CivilizationTimeline page (client/src/pages/civilization-timeline.tsx)
+  - Fetches data from /api/map/civilizations endpoint
+  - Transforms CivilizationFeature GeoJSON into TimelineItem format
+  - Supports grouping by political structure, region, or writing system
+  - Region inference from civilization ID and associated language IDs
+  - Loading/error states with navigation back to dashboard
+- Added /civilization-timeline route to App.tsx
+- Created test/test-civilization-timeline.ts with 32 tests (all passing)
+  - Tests data transformation from TSV to timeline items
+  - Tests grouping by political structure, region, and writing system
+  - Tests timeline range coverage and regional diversity
+  - Tests TimelineVisualization component contract compliance
