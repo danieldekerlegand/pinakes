@@ -838,3 +838,15 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Agent 3: Create reusable TreeVisualization component for hierarchical datasets
+- Created client/src/components/visualizations/TreeVisualization.tsx
+  - Generic TreeNodeData interface with id, name, children, and arbitrary extra props
+  - Supports single root tree or forest (array of roots)
+  - Configurable orientation (horizontal/vertical), colors, sizes, padding, zoom
+  - Function-based node radius/color/label size for dynamic styling per node
+  - Search highlighting, node selection, and highlighted node sets
+  - D3-based rendering with zoom/pan, auto-fit, tooltips
+  - Dark mode support
+- Created test/test-tree-visualization.test.ts with 24 tests (all passing)
+  - Tests TreeNodeData interface, tree traversal, filtering, search, config, selection
