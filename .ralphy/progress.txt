@@ -1135,3 +1135,30 @@ Completed:
   - Responsive sizing via useVisualizationResize hook
 - Created server/services/cross-domain-timeline.test.ts with 12 tests (all passing)
   - Tests data loading, field validation, sort order, domain filtering, year range filtering, empty results, empire span aggregation, battle point events, temporal range accuracy, domain list consistency
+
+US-016: Create TradeNetworkVisualization using reusable SankeyFlow and NetworkGraph
+
+Completed:
+- Created client/src/components/visualizations/shared/SankeyFlow.tsx
+  - Reusable Sankey flow diagram component built on D3 + d3-sankey
+  - Configurable node/link colors, tooltips, click handlers, node width/padding
+  - Zoom and pan support via D3 zoom behavior
+- Created client/src/components/visualizations/shared/NetworkGraph.tsx
+  - Reusable force-directed network graph component built on D3
+  - Configurable node colors, radii, link colors, tooltips, click handlers
+  - Drag behavior for nodes, zoom/pan support
+  - Configurable link distance and charge strength
+- Created client/src/lib/visualization/trade-network-transforms.ts
+  - Pure data transformation functions: buildSankeyData and buildNetworkData
+  - Sankey: region -> trade route -> good category three-column flow
+  - Network: trade routes and goods as nodes with shared-goods connections
+- Created client/src/components/visualizations/TradeNetworkVisualization.tsx
+  - Dual-view component: Sankey flow and Network graph toggle
+  - Category and route type filters
+  - Fetches data from /api/trade-goods and /api/trade-routes endpoints
+  - Color-coded legend for route types and good categories
+- Created client/src/components/visualizations/TradeNetworkVisualization.test.ts
+  - 12 tests covering buildSankeyData and buildNetworkData
+  - Tests node creation, link aggregation, edge cases, empty inputs
+
+Tests: 12 passed, 0 failed

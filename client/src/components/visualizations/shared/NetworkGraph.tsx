@@ -1,13 +1,27 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { useVisualizationResize } from '../hooks/useVisualizationResize';
+import { createZoomBehavior } from '../../../lib/visualization/d3-helpers';
 
 export interface NetworkGraphNode {
   id: string;
-  label: string;
-  category: string;
+  /** Used by musical-tradition-explorer and similar consumers */
+  label?: string;
+  /** Used by musical-tradition-explorer and similar consumers */
+  category?: string;
+  /** Used by trade-network and similar consumers */
+  name?: string;
+  /** Used by trade-network and similar consumers */
+  group?: string;
   size?: number;
   metadata?: Record<string, any>;
+  // D3 force simulation properties
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
 }
 
 export interface NetworkGraphEdge {
@@ -18,25 +32,35 @@ export interface NetworkGraphEdge {
   metadata?: Record<string, any>;
 }
 
+export interface NetworkGraphLink {
+  source: string | NetworkGraphNode;
+  target: string | NetworkGraphNode;
+  value?: number;
+  label?: string;
+}
+
 export interface NetworkGraphProps {
   nodes: NetworkGraphNode[];
-  edges: NetworkGraphEdge[];
+  /** HEAD-style edge data */
+  edges?: NetworkGraphEdge[];
+  /** Incoming-style link data */
+  links?: NetworkGraphLink[];
+  /** Simple color scale by category string (HEAD API) */
   colorScale?: (category: string) => string;
-  onNodeClick?: (node: NetworkGraphNode) => void;
+  /** Function-based node color (incoming API) */
+  nodeColorFn?: (node: NetworkGraphNode) => string;
+  /** Function-based link color (incoming API) */
+  linkColorFn?: (link: NetworkGraphLink) => string;
+  /** Function-based node radius (incoming API) */
+  nodeRadiusFn?: (node: NetworkGraphNode) => number;
+  /** HEAD API: receives the full node object */
+  onNodeClick?: ((node: NetworkGraphNode) => void) | ((nodeId: string) => void);
   selectedNodeId?: string | null;
-  className?: string;
+  formatTooltip?: (type: 'node' | 'link', datum: any) => string;
   linkDistance?: number;
   chargeStrength?: number;
   showLabels?: boolean;
-}
-
-interface SimNode extends NetworkGraphNode {
-  x?: number;
-  y?: number;
-  vx?: number;
-  vy?: number;
-  fx?: number | null;
-  fy?: number | null;
+  className?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -52,104 +76,150 @@ function defaultColorScale(category: string): string {
   return DEFAULT_COLORS[Math.abs(hash) % DEFAULT_COLORS.length];
 }
 
+function getNodeLabel(node: NetworkGraphNode): string {
+  return node.label || node.name || node.id;
+}
+
+function getNodeCategory(node: NetworkGraphNode): string {
+  return node.category || node.group || '';
+}
+
 export function NetworkGraph({
   nodes,
   edges,
+  links,
   colorScale = defaultColorScale,
+  nodeColorFn,
+  linkColorFn,
+  nodeRadiusFn,
   onNodeClick,
   selectedNodeId,
-  className = '',
+  formatTooltip,
   linkDistance = 80,
   chargeStrength = -200,
   showLabels = true,
+  className = '',
 }: NetworkGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const simulationRef = useRef<d3.Simulation<NetworkGraphNode, any> | null>(null);
   const { width, height } = useVisualizationResize(containerRef);
-  const simulationRef = useRef<d3.Simulation<SimNode, any> | null>(null);
-  const [tooltip, setTooltip] = useState<{ node: NetworkGraphNode; x: number; y: number } | null>(null);
 
-  const render = useCallback(() => {
-    if (!svgRef.current || width === 0 || height === 0 || nodes.length === 0) return;
+  const [tooltip, setTooltip] = useState<{
+    content: string;
+    x: number;
+    y: number;
+    visible: boolean;
+  }>({ content: '', x: 0, y: 0, visible: false });
+
+  const hideTooltip = useCallback(() => {
+    setTooltip((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  // Determine which data to use: links (incoming API) or edges (HEAD API) converted to links
+  const resolvedLinks: NetworkGraphLink[] = React.useMemo(() => {
+    if (links) return links;
+    if (edges) return edges.map(e => ({ source: e.source, target: e.target, value: e.weight, label: e.type }));
+    return [];
+  }, [links, edges]);
+
+  const getNodeColor = useCallback((node: NetworkGraphNode): string => {
+    if (nodeColorFn) return nodeColorFn(node);
+    if (selectedNodeId === node.id) return '#3b82f6';
+    return colorScale(getNodeCategory(node));
+  }, [nodeColorFn, colorScale, selectedNodeId]);
+
+  const getNodeRadius = useCallback((node: NetworkGraphNode): number => {
+    if (nodeRadiusFn) return nodeRadiusFn(node);
+    return node.size || 6;
+  }, [nodeRadiusFn]);
+
+  const getDefaultTooltip = useCallback((node: NetworkGraphNode): string => {
+    const label = getNodeLabel(node);
+    const category = getNodeCategory(node);
+    let text = label;
+    if (category) text += `\n${category}`;
+    if (node.metadata) {
+      for (const [k, v] of Object.entries(node.metadata).slice(0, 3)) {
+        text += `\n${k}: ${String(v)}`;
+      }
+    }
+    return text;
+  }, []);
+
+  useEffect(() => {
+    if (!svgRef.current || !nodes.length || width === 0 || height === 0) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const g = svg.append('g');
+    const g = svg.append('g').attr('class', 'network-main');
+    createZoomBehavior(svg, g, 0.1, 4);
 
-    // Zoom
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.1, 8])
-      .on('zoom', (event) => g.attr('transform', event.transform));
-    svg.call(zoom);
+    // Copy nodes/links so D3 can mutate them
+    const simNodes = nodes.map((n) => ({ ...n }));
+    const simLinks = resolvedLinks.map((l) => ({ ...l }));
 
-    // Clone nodes for simulation
-    const simNodes: SimNode[] = nodes.map(n => ({ ...n }));
-    const simEdges = edges.map(e => ({ ...e }));
-
-    const simulation = d3.forceSimulation<SimNode>(simNodes)
-      .force('link', d3.forceLink<SimNode, any>(simEdges)
-        .id((d: SimNode) => d.id)
+    const simulation = d3.forceSimulation<NetworkGraphNode>(simNodes)
+      .force('link', d3.forceLink<NetworkGraphNode, NetworkGraphLink>(simLinks as any)
+        .id((d) => d.id)
         .distance(linkDistance))
       .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: any) => (d.size || 6) + 4));
+      .force('collision', d3.forceCollide<NetworkGraphNode>().radius((d) => getNodeRadius(d) + 2));
 
     simulationRef.current = simulation;
 
     // Links
-    const link = g.append('g')
-      .selectAll('line')
-      .data(simEdges)
+    const link = g.selectAll('.network-link')
+      .data(simLinks)
       .join('line')
-      .attr('stroke', '#cbd5e1')
-      .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', (d: any) => Math.max(1, (d.weight || 1) * 1.5));
+      .attr('class', 'network-link')
+      .attr('stroke', (d) => linkColorFn ? linkColorFn(d as NetworkGraphLink) : '#cbd5e1')
+      .attr('stroke-width', (d: any) => Math.max(1, Math.sqrt(d.value || d.weight || 1)))
+      .attr('stroke-opacity', 0.6);
 
     // Nodes
-    const node = g.append('g')
-      .selectAll<SVGCircleElement, SimNode>('circle')
+    const node = g.selectAll('.network-node')
       .data(simNodes)
       .join('circle')
-      .attr('r', (d) => d.size || 6)
-      .attr('fill', (d) => selectedNodeId === d.id ? '#3b82f6' : colorScale(d.category))
+      .attr('class', 'network-node')
+      .attr('r', (d) => getNodeRadius(d))
+      .attr('fill', (d) => getNodeColor(d))
       .attr('stroke', (d) => selectedNodeId === d.id ? '#1d4ed8' : '#fff')
-      .attr('stroke-width', (d) => selectedNodeId === d.id ? 3 : 1.5)
-      .attr('cursor', 'pointer')
-      .on('click', (_event, d) => onNodeClick?.(d))
-      .on('mouseenter', (event, d) => {
-        setTooltip({ node: d, x: event.pageX, y: event.pageY });
-      })
-      .on('mouseleave', () => setTooltip(null))
-      .call(d3.drag<SVGCircleElement, SimNode>()
-        .on('start', (event, d) => {
+      .attr('stroke-width', (d) => selectedNodeId === d.id ? 3 : 2)
+      .style('cursor', onNodeClick ? 'pointer' : 'default')
+      .call(d3.drag<any, NetworkGraphNode>()
+        .on('start', (event) => {
           if (!event.active) simulation.alphaTarget(0.3).restart();
-          d.fx = d.x;
-          d.fy = d.y;
+          event.subject.fx = event.subject.x;
+          event.subject.fy = event.subject.y;
         })
-        .on('drag', (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
+        .on('drag', (event) => {
+          event.subject.fx = event.x;
+          event.subject.fy = event.y;
         })
-        .on('end', (event, d) => {
+        .on('end', (event) => {
           if (!event.active) simulation.alphaTarget(0);
-          d.fx = null;
-          d.fy = null;
-        }));
+          event.subject.fx = null;
+          event.subject.fy = null;
+        }) as any);
 
     // Labels
-    let labels: d3.Selection<SVGTextElement, SimNode, SVGGElement, unknown> | null = null;
+    let labels: d3.Selection<SVGTextElement, NetworkGraphNode, SVGGElement, unknown> | null = null;
     if (showLabels) {
-      labels = g.append('g')
-        .selectAll<SVGTextElement, SimNode>('text')
+      labels = g.selectAll('.network-label')
         .data(simNodes)
         .join('text')
-        .text(d => d.label.length > 20 ? d.label.slice(0, 17) + '...' : d.label)
-        .attr('font-size', 10)
+        .attr('class', 'network-label')
         .attr('text-anchor', 'middle')
-        .attr('dy', (d) => (d.size || 6) + 14)
+        .attr('font-size', '10px')
         .attr('fill', '#374151')
-        .attr('pointer-events', 'none');
+        .attr('pointer-events', 'none')
+        .text((d) => {
+          const lbl = getNodeLabel(d);
+          return lbl.length > 18 ? lbl.substring(0, 15) + '...' : lbl;
+        }) as any;
     }
 
     simulation.on('tick', () => {
@@ -160,45 +230,51 @@ export function NetworkGraph({
         .attr('y2', (d: any) => d.target.y);
 
       node
-        .attr('cx', d => d.x ?? 0)
-        .attr('cy', d => d.y ?? 0);
+        .attr('cx', (d) => d.x!)
+        .attr('cy', (d) => d.y!);
 
       if (labels) {
         labels
-          .attr('x', d => d.x ?? 0)
-          .attr('y', d => d.y ?? 0);
+          .attr('x', (d: any) => d.x!)
+          .attr('y', (d: any) => d.y! + getNodeRadius(d) + 12);
       }
     });
+
+    // Interactions
+    node
+      .on('click', function (_event, d) {
+        if (onNodeClick) (onNodeClick as any)(d);
+      })
+      .on('mouseover', function (event, d) {
+        const content = formatTooltip
+          ? formatTooltip('node', d)
+          : getDefaultTooltip(d);
+        setTooltip({
+          content,
+          x: event.pageX,
+          y: event.pageY - 10,
+          visible: true,
+        });
+      })
+      .on('mousemove', function (event) {
+        setTooltip((prev) => ({ ...prev, x: event.pageX, y: event.pageY - 10 }));
+      })
+      .on('mouseout', hideTooltip);
 
     return () => {
       simulation.stop();
     };
-  }, [nodes, edges, width, height, colorScale, onNodeClick, selectedNodeId, linkDistance, chargeStrength, showLabels]);
-
-  useEffect(() => {
-    const cleanup = render();
-    return () => cleanup?.();
-  }, [render]);
-
-  useEffect(() => {
-    return () => {
-      simulationRef.current?.stop();
-    };
-  }, []);
+  }, [nodes, resolvedLinks, width, height, getNodeColor, getNodeRadius, onNodeClick, formatTooltip, linkDistance, chargeStrength, showLabels, hideTooltip, linkColorFn, selectedNodeId, getDefaultTooltip]);
 
   return (
-    <div ref={containerRef} className={`relative w-full h-full min-h-[300px] ${className}`}>
-      <svg ref={svgRef} width={width} height={height} className="bg-gray-50 rounded" />
-      {tooltip && (
+    <div ref={containerRef} className={`w-full h-full relative bg-gray-50 rounded-lg min-h-[300px] ${className}`}>
+      <svg ref={svgRef} width={width} height={height} className="w-full h-full" />
+      {tooltip.visible && (
         <div
-          className="fixed z-50 pointer-events-none bg-white border border-gray-200 rounded-lg shadow-lg p-2 text-sm max-w-xs"
-          style={{ left: tooltip.x + 12, top: tooltip.y - 12 }}
+          className="fixed z-50 pointer-events-none rounded-lg border bg-white px-3 py-2 text-sm shadow-md whitespace-pre-line"
+          style={{ left: tooltip.x + 12, top: tooltip.y }}
         >
-          <div className="font-semibold">{tooltip.node.label}</div>
-          <div className="text-xs text-gray-500">{tooltip.node.category}</div>
-          {tooltip.node.metadata && Object.entries(tooltip.node.metadata).slice(0, 3).map(([k, v]) => (
-            <div key={k} className="text-xs text-gray-600">{k}: {String(v)}</div>
-          ))}
+          {tooltip.content}
         </div>
       )}
       {nodes.length === 0 && (
@@ -206,6 +282,9 @@ export function NetworkGraph({
           No data to display
         </div>
       )}
+      <div className="absolute bottom-4 left-4 text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+        Drag nodes · Scroll to zoom · Drag background to pan
+      </div>
     </div>
   );
 }
