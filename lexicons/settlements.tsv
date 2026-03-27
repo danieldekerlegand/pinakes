@@ -1,0 +1,79 @@
+id	name	alternate_names	latitude	longitude	type	culture_id	civilization_id	founded_year	abandoned_year	peak_population	notable_features	associated_languages	modern_name	region
+ur-settlement	Ur	["Tell el-Muqayyar"]	30.9628	46.1031	city-state	sumerian-culture	sumerian-civilization	-3800	-500	65000	["Great Ziggurat","Royal Tombs","Cuneiform tablets"]	["sum"]	Tell el-Muqayyar	Mesopotamia
+uruk-settlement	Uruk	["Warka","Erech"]	31.3225	45.6367	city-state	sumerian-culture	sumerian-civilization	-4000	700	80000	["Eanna temple complex","White Temple","Earliest writing"]	["sum"]	Warka	Mesopotamia
+babylon-settlement	Babylon	["Bab-ilim","Babel"]	32.5364	44.4208	capital	babylonian-culture	babylonian-empire	-2300	275	200000	["Ishtar Gate","Hanging Gardens","Code of Hammurabi"]	["akk"]	Hillah	Mesopotamia
+nineveh-settlement	Nineveh	["Ninua"]	36.3597	43.1531	capital	assyrian-culture	assyrian-empire	-6000	-612	120000	["Library of Ashurbanipal","Kuyunjik mound","Palace reliefs"]	["akk"]	Mosul	Mesopotamia
+persepolis-settlement	Persepolis	["Parsa","Takht-e Jamshid"]	29.9342	52.8914	capital	persian-culture	achaemenid-empire	-515	-330	25000	["Apadana Palace","Gate of All Nations","Throne Hall"]	["peo"]	Marvdasht	Persia
+memphis-settlement	Memphis	["Ineb-Hedj","Men-nefer"]	29.8467	31.2503	capital	egyptian-culture	ancient-egypt	-3100	-332	30000	["Temple of Ptah","Colossus of Ramesses II"]	["egy"]	Mit Rahina	Egypt
+thebes-egypt-settlement	Thebes (Egypt)	["Waset","Luxor"]	25.7000	32.6500	religious-center	egyptian-culture	ancient-egypt	-3200	-27	80000	["Karnak Temple","Valley of the Kings","Luxor Temple"]	["egy"]	Luxor	Egypt
+alexandria-settlement	Alexandria	["Al-Iskandariyya"]	31.2001	29.9187	port	hellenistic-culture	ptolemaic-kingdom	-331	641	500000	["Great Library","Lighthouse of Pharos","Mouseion"]	["grc","egy"]	Alexandria	Egypt
+athens-settlement	Athens	["Athenai","Athina"]	37.9838	23.7275	city-state	greek-culture	ancient-greece	-3000	null	250000	["Parthenon","Agora","Academy of Plato"]	["grc"]	Athens	Greece
+sparta-settlement	Sparta	["Lacedaemon"]	37.0750	22.4297	city-state	greek-culture	ancient-greece	-1000	396	50000	["Military training grounds","Temple of Artemis Orthia"]	["grc"]	Sparti	Greece
+rome-settlement	Rome	["Roma"]	41.9028	12.4964	capital	roman-culture	roman-empire	-753	null	1000000	["Colosseum","Forum Romanum","Pantheon"]	["lat"]	Rome	Italy
+carthage-settlement	Carthage	["Qart-Hadast"]	36.8526	10.3233	port	phoenician-culture	carthaginian-empire	-814	-146	500000	["Tophet","Circular Harbor","Byrsa Hill"]	["phn"]	Tunis	North Africa
+jerusalem-settlement	Jerusalem	["Yerushalayim","Al-Quds"]	31.7683	35.2137	religious-center	israelite-culture	kingdom-of-israel	-3000	null	80000	["Temple Mount","Western Wall","Old City"]	["heb"]	Jerusalem	Levant
+sidon-settlement	Sidon	["Saida"]	33.5633	35.3683	port	phoenician-culture	phoenicia	-4000	null	30000	["Temple of Eshmun","Purple dye production"]	["phn"]	Saida	Levant
+tyre-settlement	Tyre	["Sur","Tyrus"]	33.2705	35.1964	port	phoenician-culture	phoenicia	-2750	null	40000	["Island fortress","Purple dye trade","Alexander's causeway"]	["phn"]	Tyre	Levant
+mohenjo-daro-settlement	Mohenjo-daro	["Mound of the Dead"]	27.3242	68.1386	city-state	indus-valley-culture	indus-valley-civilization	-2500	-1900	40000	["Great Bath","Granary","Grid-plan streets"]	["und"]	Mohenjo-daro	South Asia
+harappa-settlement	Harappa	[]	30.6280	72.8620	city-state	indus-valley-culture	indus-valley-civilization	-2600	-1900	35000	["Citadel mound","Standardized weights","Seals"]	["und"]	Harappa	South Asia
+xian-settlement	Xi'an	["Chang'an"]	34.2658	108.9541	capital	chinese-culture	han-dynasty	-1100	null	400000	["Terracotta Army","City walls","Bell Tower"]	["och"]	Xi'an	East Asia
+anyang-settlement	Anyang	["Yin"]	36.0997	114.3886	capital	shang-culture	shang-dynasty	-1300	-1046	120000	["Oracle bone pits","Royal tombs","Bronze foundries"]	["och"]	Anyang	East Asia
+luoyang-settlement	Luoyang	["Luoyi"]	34.6197	112.4540	capital	chinese-culture	eastern-han	-1036	null	500000	["White Horse Temple","Longmen Grottoes"]	["och"]	Luoyang	East Asia
+pataliputra-settlement	Pataliputra	["Patna"]	25.6115	85.1376	capital	mauryan-culture	maurya-empire	-490	null	350000	["Ashoka's palace","Buddhist monasteries","Pillared hall"]	["pra"]	Patna	South Asia
+taxila-settlement	Taxila	["Takshashila"]	33.7460	72.7997	religious-center	gandharan-culture	maurya-empire	-1000	500	30000	["Dharmarajika stupa","Jaulian monastery","University"]	["pra","grc"]	Taxila	South Asia
+teotihuacan-settlement	Teotihuacan	["City of the Gods"]	19.6925	-98.8431	religious-center	teotihuacan-culture	teotihuacan-civilization	-200	550	125000	["Pyramid of the Sun","Pyramid of the Moon","Avenue of the Dead"]	["nah"]	Teotihuacan	Mesoamerica
+tikal-settlement	Tikal	["Mutal"]	17.2220	-89.6237	city-state	maya-culture	maya-civilization	-400	900	90000	["Temple I","Great Plaza","North Acropolis"]	["myn"]	Tikal	Mesoamerica
+tenochtitlan-settlement	Tenochtitlan	["Mexico-Tenochtitlan"]	19.4326	-99.1332	capital	aztec-culture	aztec-empire	1325	1521	200000	["Templo Mayor","Floating gardens","Causeways"]	["nah"]	Mexico City	Mesoamerica
+cusco-settlement	Cusco	["Qosqo","Qusqu"]	-13.5320	-71.9675	capital	inca-culture	inca-empire	1100	1533	200000	["Sacsayhuaman","Coricancha","Stone masonry"]	["que"]	Cusco	South America
+machu-picchu-settlement	Machu Picchu	["Old Mountain"]	-13.1631	-72.5450	religious-center	inca-culture	inca-empire	1450	1572	750	["Intihuatana","Temple of the Sun","Agricultural terraces"]	["que"]	Machu Picchu	South America
+constantinople-settlement	Constantinople	["Byzantium","Istanbul"]	41.0082	28.9784	capital	byzantine-culture	byzantine-empire	-660	1453	500000	["Hagia Sophia","Hippodrome","Theodosian Walls"]	["grc","ota"]	Istanbul	Anatolia
+antioch-settlement	Antioch	["Antiochia"]	36.2000	36.1500	capital	hellenistic-culture	seleucid-empire	-300	1268	250000	["Daphne suburb","Circus","Christian church"]	["grc","arc"]	Antakya	Levant
+ephesus-settlement	Ephesus	["Efes"]	37.9394	27.3417	religious-center	greek-culture	roman-empire	-1000	1400	250000	["Temple of Artemis","Library of Celsus","Great Theatre"]	["grc","lat"]	Selcuk	Anatolia
+palmyra-settlement	Palmyra	["Tadmor"]	34.5503	38.2686	trading-post	aramaean-culture	roman-empire	-2000	273	150000	["Temple of Bel","Monumental Arch","Colonnade Street"]	["arc","grc"]	Tadmur	Levant
+great-zimbabwe-settlement	Great Zimbabwe	["Dzimba dza mabwe"]	-20.2674	30.9338	capital	shona-culture	kingdom-of-zimbabwe	1100	1450	18000	["Great Enclosure","Hill Complex","Conical Tower"]	["sna"]	Masvingo	Southern Africa
+timbuktu-settlement	Timbuktu	["Tombouctou"]	16.7735	-3.0074	trading-post	songhai-culture	mali-empire	1100	null	100000	["Sankore Mosque","Djinguereber Mosque","Manuscripts"]	["snk","ara"]	Timbuktu	West Africa
+kilwa-settlement	Kilwa Kisiwani	["Kilwa"]	-8.9575	39.5225	port	swahili-culture	kilwa-sultanate	800	1513	20000	["Great Mosque","Husuni Kubwa palace","Coin minting"]	["swh","ara"]	Kilwa Kisiwani	East Africa
+angkor-settlement	Angkor	["Yasodharapura"]	13.4125	103.8670	capital	khmer-culture	khmer-empire	802	1431	750000	["Angkor Wat","Angkor Thom","Bayon Temple"]	["khm"]	Siem Reap	Southeast Asia
+pagan-settlement	Pagan	["Bagan"]	21.1717	94.8585	capital	burmese-culture	pagan-kingdom	849	1297	200000	["Ananda Temple","Shwezigon Pagoda","Thousands of temples"]	["mya"]	Bagan	Southeast Asia
+nara-settlement	Nara	["Heijō-kyō"]	34.6851	135.8049	capital	japanese-culture	nara-period	710	784	100000	["Todai-ji temple","Kasuga shrine","Imperial palace"]	["ojp"]	Nara	East Asia
+kyoto-settlement	Kyoto	["Heian-kyō"]	35.0116	135.7681	capital	japanese-culture	heian-period	794	1868	200000	["Kinkaku-ji","Fushimi Inari","Imperial Palace"]	["jpn"]	Kyoto	East Asia
+samarkand-settlement	Samarkand	["Marakanda"]	39.6542	66.9597	capital	sogdian-culture	timurid-empire	-700	null	500000	["Registan","Bibi-Khanym Mosque","Silk Road hub"]	["sog","fas"]	Samarkand	Central Asia
+merv-settlement	Merv	["Marv","Margiana"]	37.6639	62.1912	trading-post	parthian-culture	seleucid-empire	-500	1221	200000	["Great Kyz Kala","Sultan Sanjar Mausoleum","Silk Road oasis"]	["xpr","fas"]	Mary	Central Asia
+leptis-magna-settlement	Leptis Magna	["Lepcis Magna"]	32.6381	14.2909	port	roman-culture	roman-empire	-1000	647	100000	["Severan Forum","Arch of Septimius Severus","Theater"]	["lat","phn"]	Khoms	North Africa
+pompeii-settlement	Pompeii	["Pompei"]	40.7500	14.4833	city-state	roman-culture	roman-empire	-700	79	20000	["Forum","Amphitheater","Villa of the Mysteries"]	["lat","osc"]	Pompei	Italy
+troy-settlement	Troy	["Ilion","Troia"]	39.9575	26.2389	fortress	trojan-culture	troy	-3000	-85	10000	["City walls","Megaron","Treasure of Priam"]	["grc"]	Hisarlik	Anatolia
+mycenae-settlement	Mycenae	["Mykenai"]	37.7306	22.7572	fortress	mycenaean-culture	mycenaean-greece	-1600	-1100	30000	["Lion Gate","Treasury of Atreus","Cyclopean walls"]	["gmy"]	Mycenae	Greece
+knossos-settlement	Knossos	["Knosos"]	35.2981	25.1631	capital	minoan-culture	minoan-civilization	-2700	-1100	100000	["Palace of Knossos","Frescoes","Bull-leaping art"]	["omn"]	Heraklion	Greece
+hattusha-settlement	Hattusha	["Hattusa","Bogazkoy"]	40.0194	34.6153	capital	hittite-culture	hittite-empire	-1600	-1178	50000	["Lion Gate","Great Temple","Royal archives"]	["hit"]	Bogazkale	Anatolia
+corinth-settlement	Corinth	["Korinthos"]	37.9061	22.8783	city-state	greek-culture	ancient-greece	-900	-146	90000	["Temple of Apollo","Acrocorinth","Diolkos"]	["grc"]	Ancient Corinth	Greece
+jericho-settlement	Jericho	["Yeriho","Ariha"]	31.8711	35.4442	city-state	canaanite-culture	canaan	-9000	null	3000	["Tower of Jericho","Oldest known city walls"]	["heb"]	Jericho	Levant
+catalhoyuk-settlement	Çatalhöyük	["Catal Huyuk"]	37.6661	32.8278	city-state	neolithic-anatolian-culture	neolithic-anatolia	-7500	-5700	8000	["Wall paintings","Goddess figurines","Dense housing"]	["und"]	Çatalhöyük	Anatolia
+damascus-settlement	Damascus	["Dimashq","Al-Sham"]	33.5138	36.2765	capital	aramaean-culture	umayyad-caliphate	-6300	null	100000	["Umayyad Mosque","Straight Street","Ancient walls"]	["arc","ara"]	Damascus	Levant
+aleppo-settlement	Aleppo	["Halab"]	36.2021	37.1343	trading-post	aramaean-culture	amorite-kingdom	-5000	null	100000	["Citadel of Aleppo","Great Mosque","Ancient souks"]	["arc","ara"]	Aleppo	Levant
+varanasi-settlement	Varanasi	["Kashi","Banaras"]	25.3176	83.0184	religious-center	vedic-culture	maurya-empire	-1200	null	200000	["Kashi Vishwanath Temple","Ganges ghats"]	["san","hin"]	Varanasi	South Asia
+ujjain-settlement	Ujjain	["Avantika","Ujjayini"]	23.1793	75.7849	capital	mauryan-culture	maurya-empire	-600	null	50000	["Mahakaleshwar Temple","Astronomical observatory"]	["san","pra"]	Ujjain	South Asia
+chan-chan-settlement	Chan Chan	[]	-8.1058	-79.0747	capital	chimu-culture	chimu-kingdom	850	1470	60000	["Adobe citadels","Tschudi complex","Irrigation canals"]	["que"]	Trujillo	South America
+cahokia-settlement	Cahokia	["Cahokia Mounds"]	38.6554	-90.0615	religious-center	mississippian-culture	mississippian-civilization	600	1350	20000	["Monks Mound","Woodhenge","Grand Plaza"]	["mus"]	Collinsville	North America
+karakorum-settlement	Karakorum	["Kharkhorin"]	47.1977	102.8311	capital	mongol-culture	mongol-empire	1220	1388	30000	["Erdene Zuu monastery","Silver tree fountain"]	["xng"]	Kharkhorin	Central Asia
+ctesiphon-settlement	Ctesiphon	["Tisfun"]	33.0944	44.5819	capital	parthian-culture	sasanian-empire	-120	637	500000	["Taq Kasra arch","Royal palaces"]	["xpr","pal"]	Al-Mada'in	Mesopotamia
+susa-settlement	Susa	["Shush","Shushan"]	32.1928	48.2458	capital	elamite-culture	elam	-4200	-640	60000	["Royal palace","Apadana","Code of Hammurabi stele"]	["elx","peo"]	Shush	Persia
+pasargadae-settlement	Pasargadae	[]	30.1944	53.1681	capital	persian-culture	achaemenid-empire	-546	-330	10000	["Tomb of Cyrus","Audience hall","Royal gardens"]	["peo"]	Pasargadae	Persia
+lhasa-settlement	Lhasa	["Place of the Gods"]	29.6500	91.1000	capital	tibetan-culture	tibetan-empire	637	null	30000	["Potala Palace","Jokhang Temple","Sera Monastery"]	["bod"]	Lhasa	Central Asia
+kaifeng-settlement	Kaifeng	["Bianjing","Daliang"]	34.7972	114.3075	capital	chinese-culture	song-dynasty	-364	null	1000000	["Iron Pagoda","Dragon Pavilion","Jewish community"]	["ltc"]	Kaifeng	East Asia
+hangzhou-settlement	Hangzhou	["Lin'an"]	30.2741	120.1551	capital	chinese-culture	southern-song	-222	null	1000000	["West Lake","Lingyin Temple","Six Harmonies Pagoda"]	["ltc"]	Hangzhou	East Asia
+cordoba-settlement	Córdoba	["Qurtuba"]	37.8882	-4.7794	capital	moorish-culture	umayyad-caliphate-cordoba	-152	null	500000	["Great Mosque","Medina Azahara","Alcázar"]	["ara","osp"]	Córdoba	Iberia
+granada-settlement	Granada	["Gharnata"]	37.1773	-3.5986	capital	moorish-culture	nasrid-kingdom	-500	1492	165000	["Alhambra","Generalife","Albaicín quarter"]	["ara","osp"]	Granada	Iberia
+venice-settlement	Venice	["Venezia"]	45.4408	12.3155	port	venetian-culture	republic-of-venice	421	null	200000	["St. Mark's Basilica","Doge's Palace","Grand Canal"]	["vec","ita"]	Venice	Italy
+novgorod-settlement	Novgorod	["Veliky Novgorod"]	58.5215	31.2755	trading-post	norse-slavic-culture	novgorod-republic	859	null	30000	["Kremlin","St. Sophia Cathedral","Birch bark letters"]	["orv"]	Veliky Novgorod	Eastern Europe
+bruges-settlement	Bruges	["Brugge"]	51.2093	3.2247	trading-post	flemish-culture	county-of-flanders	840	null	125000	["Belfry","Market Square","Canals"]	["dum"]	Bruges	Western Europe
+benin-city-settlement	Benin City	["Edo"]	6.3350	5.6270	capital	edo-culture	kingdom-of-benin	1180	1897	100000	["Royal Palace","Benin Bronzes","City walls"]	["bin"]	Benin City	West Africa
+gao-settlement	Gao	[]	16.2716	-0.0400	capital	songhai-culture	songhai-empire	700	null	75000	["Tomb of Askia","Mosque","Niger River port"]	["ses"]	Gao	West Africa
+lalibela-settlement	Lalibela	["Roha"]	12.0319	39.0475	religious-center	ethiopian-culture	zagwe-dynasty	1181	null	10000	["Rock-hewn churches","Bete Giyorgis","Pilgrimage site"]	["gez","amh"]	Lalibela	East Africa
+aksum-settlement	Aksum	["Axum"]	14.1209	38.7281	capital	aksumite-culture	aksumite-empire	-400	960	20000	["Stelae field","Church of Our Lady Mary of Zion","Royal tombs"]	["gez"]	Axum	East Africa
+borobudur-settlement	Borobudur	[]	-7.6079	110.2038	religious-center	javanese-culture	sailendra-dynasty	750	1100	5000	["Borobudur temple","Buddhist reliefs","Stupa"]	["jav"]	Borobudur	Southeast Asia
+vijayanagara-settlement	Vijayanagara	["Hampi"]	15.3350	76.4600	capital	vijayanagara-culture	vijayanagara-empire	1336	1565	500000	["Virupaksha Temple","Vittala Temple","Royal Enclosure"]	["kan","tel"]	Hampi	South Asia
+bagdad-settlement	Baghdad	["Madinat al-Salam"]	33.3152	44.3661	capital	abbasid-culture	abbasid-caliphate	762	1258	1200000	["House of Wisdom","Round City","Al-Mustansiriya"]	["ara"]	Baghdad	Mesopotamia
+cairo-settlement	Cairo	["Al-Qahira"]	30.0444	31.2357	capital	fatimid-culture	fatimid-caliphate	969	null	500000	["Al-Azhar Mosque","Citadel of Saladin","Khan el-Khalili"]	["ara"]	Cairo	Egypt
+delhi-settlement	Delhi	["Indraprastha"]	28.7041	77.1025	capital	mughal-culture	delhi-sultanate	-1500	null	400000	["Qutub Minar","Red Fort","Jama Masjid"]	["hin","urd","fas"]	Delhi	South Asia
+isfahan-settlement	Isfahan	["Esfahan"]	32.6546	51.6680	capital	persian-culture	safavid-empire	-1600	null	600000	["Naqsh-e Jahan Square","Shah Mosque","Allahverdi Khan Bridge"]	["fas"]	Isfahan	Persia
+bukhara-settlement	Bukhara	["Bukhoro"]	39.7681	64.4556	trading-post	sogdian-culture	samanid-empire	-500	null	300000	["Kalyan Minaret","Ark fortress","Samanid Mausoleum"]	["sog","fas"]	Bukhara	Central Asia
