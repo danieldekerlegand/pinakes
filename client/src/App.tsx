@@ -12,11 +12,13 @@ import StoriesPage from "@/pages/stories";
 import EmbedPage from "@/pages/embed";
 import QuizPage from "@/pages/quiz";
 import ScraperDashboard from "@/pages/scraper-dashboard";
+import DataExplorer from "@/pages/data-explorer";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/explore" component={DataExplorer} />
       <Route path="/embed" component={EmbedPage} />
       <Route path="/text-analyzer" component={TextAnalyzer} />
       <Route path="/word-etymology" component={WordEtymology} />

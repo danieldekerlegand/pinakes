@@ -1063,3 +1063,28 @@ Completed:
   - Uses both NetworkGraph and GeoDistributionMap reusable components
 - Created 28 unit tests (client/src/components/musical-tradition-explorer.test.ts) - all passing
   - Tests data transformations, filtering, formatting, network/geo data building
+
+## Agent 21: Create unified DataExplorer page with visualization picker
+
+### Completed
+- Created client/src/lib/data-explorer-registry.ts
+  - Dataset registry mapping 38 TSV datasets to API endpoints, data shapes, and compatible visualizations
+  - 8 visualization types: table, timeline, tree, network, map, heatmap, sankey, chord
+  - 8 dataset categories: Linguistics, Culture, Religion, History, Trade, Food, Genetics, Architecture
+  - Pure helper functions: getDatasetCategories, getCompatibleVisualizations, getSuggestedVisualization, filterDatasets
+  - Auto-suggestion logic maps data shapes to default visualization types (temporal→timeline, hierarchical→tree, relational→network, geographic→map)
+- Created client/src/pages/data-explorer.tsx
+  - Left sidebar with dataset picker organized by category, search/filter controls
+  - Visualization picker toolbar with tabs for compatible visualization types
+  - Auto-suggested visualization based on dataset's data shape (marked with "auto" badge)
+  - Users can override auto-suggestion by clicking any compatible visualization tab
+  - Table renderer for tabular data display (first 200 rows, 8 columns)
+  - Placeholder renderers for non-table visualization types
+  - Collapsible sidebar, empty state with quick-start dataset suggestions
+  - React Query integration for data fetching
+- Added /explore route in client/src/App.tsx
+- Created client/src/lib/data-explorer-registry.test.ts with 27 tests (all passing)
+  - Tests: registry integrity (unique IDs, valid endpoints, TSV refs, data shapes)
+  - Tests: category extraction, visualization compatibility, auto-suggestion logic
+  - Tests: filtering by category, search query, combined filters, case-insensitivity
+  - Tests: visualization options coverage and completeness
