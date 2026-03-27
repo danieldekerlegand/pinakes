@@ -10,6 +10,7 @@ import WordEtymology from "@/pages/word-etymology";
 import StoriesPage from "@/pages/stories";
 import EmbedPage from "@/pages/embed";
 import QuizPage from "@/pages/quiz";
+import ScraperDashboard from "@/pages/scraper-dashboard";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/stories" component={StoriesPage} />
       <Route path="/stories/:id" component={StoriesPage} />
       <Route path="/quiz" component={QuizPage} />
+      <Route path="/scraper" component={ScraperDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

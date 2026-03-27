@@ -1203,6 +1203,49 @@ export class TsvStorage {
     };
   }
 
+  async getWordCoverageByLanguage(): Promise<Array<{
+    languageId: string;
+    languageName: string;
+    familyId: string;
+    wordCount: number;
+    totalBaseWords: number;
+    coveragePercent: number;
+  }>> {
+    this.loadLanguagesAndFamilies();
+    this.loadBaseWords();
+    this.loadForms();
+
+    const languages = this.cachedLanguages ?? [];
+    const baseWords = this.cachedBaseWords ?? [];
+    const forms = this.cachedForms ?? new Map<string, Map<string, { form: string; ipa: string | null }>>();
+    const totalBaseWords = baseWords.length;
+
+    // Count words per language from forms map
+    const langWordCounts = new Map<string, number>();
+    for (const conceptForms of forms.values()) {
+      for (const langId of conceptForms.keys()) {
+        langWordCounts.set(langId, (langWordCounts.get(langId) ?? 0) + 1);
+      }
+    }
+
+    const coverage = languages
+      .filter(l => !l.isHistoricalVariant && !l.isDialect)
+      .map(lang => {
+        const wordCount = langWordCounts.get(lang.id) ?? 0;
+        return {
+          languageId: lang.id,
+          languageName: lang.name,
+          familyId: lang.familyId,
+          wordCount,
+          totalBaseWords,
+          coveragePercent: totalBaseWords > 0 ? Math.round((wordCount / totalBaseWords) * 100) : 0,
+        };
+      })
+      .sort((a, b) => b.wordCount - a.wordCount);
+
+    return coverage;
+  }
+
   async getWordComparisons(languageIds: string[]): Promise<Array<{
     baseWord: string;
     conceptId: string;
