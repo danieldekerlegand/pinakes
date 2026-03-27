@@ -34,6 +34,7 @@ import {
   Moon,
   Pause,
   Landmark,
+  UtensilsCrossed,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
@@ -74,6 +75,7 @@ import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
+import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
@@ -96,6 +98,7 @@ const PANEL_MAP: Record<string, string> = {
   trade: 'trade',
   literary: 'literary',
   archCultures: 'archCultures',
+  cuisineComparison: 'cuisineComparison',
 };
 
 export default function Dashboard() {
@@ -121,6 +124,7 @@ export default function Dashboard() {
   const [tradeGoodsOpen, setTradeGoodsOpen] = useState(initialUrlState.panel === 'trade');
   const [literaryTraditionsOpen, setLiteraryTraditionsOpen] = useState(initialUrlState.panel === 'literary');
   const [archCulturesOpen, setArchCulturesOpen] = useState(initialUrlState.panel === 'archCultures');
+  const [cuisineComparisonOpen, setCuisineComparisonOpen] = useState(initialUrlState.panel === 'cuisineComparison');
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
   const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
@@ -153,8 +157,9 @@ export default function Dashboard() {
     if (tradeGoodsOpen) return 'trade';
     if (literaryTraditionsOpen) return 'literary';
     if (archCulturesOpen) return 'archCultures';
+    if (cuisineComparisonOpen) return 'cuisineComparison';
     return undefined;
-  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen]);
+  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen, cuisineComparisonOpen]);
 
   // Build shareable state and sync to URL
   const shareableState = useMemo(() => ({
@@ -212,6 +217,7 @@ export default function Dashboard() {
         if (tradeGoodsOpen) { setTradeGoodsOpen(false); return; }
         if (literaryTraditionsOpen) { setLiteraryTraditionsOpen(false); return; }
         if (archCulturesOpen) { setArchCulturesOpen(false); return; }
+        if (cuisineComparisonOpen) { setCuisineComparisonOpen(false); return; }
         if (sidebarOpen) { setSidebarOpen(false); return; }
       }
 
@@ -226,7 +232,7 @@ export default function Dashboard() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen, sidebarOpen]);
+  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen, cuisineComparisonOpen, sidebarOpen]);
 
   // Handle navigation from global search results
   const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
@@ -423,6 +429,9 @@ export default function Dashboard() {
                   <DropdownMenuItem onClick={() => setArchCulturesOpen(true)}>
                     <Landmark className="h-4 w-4 mr-2" aria-hidden="true" /> Archaeological Cultures
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setCuisineComparisonOpen(true)}>
+                    <UtensilsCrossed className="h-4 w-4 mr-2" aria-hidden="true" /> Cuisine Comparison
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCorrelationExplorerOpen(true)}>
                     <Combine className="h-4 w-4 mr-2" aria-hidden="true" /> Correlation Explorer
                   </DropdownMenuItem>
@@ -605,6 +614,12 @@ export default function Dashboard() {
       <ArchaeologicalCulturesPanel
         isOpen={archCulturesOpen}
         onClose={() => setArchCulturesOpen(false)}
+      />
+
+      {/* Cuisine Comparison */}
+      <CuisineComparisonView
+        isOpen={cuisineComparisonOpen}
+        onClose={() => setCuisineComparisonOpen(false)}
       />
 
       {/* Correlation Explorer */}

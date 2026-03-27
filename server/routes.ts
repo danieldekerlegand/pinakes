@@ -4134,6 +4134,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/visualizations/cuisine-sankey - Build Sankey diagram for cuisine connections via shared food types
+   */
+  app.get("/api/visualizations/cuisine-sankey", async (req, res) => {
+    try {
+      const cuisines = await storage.getCuisines({});
+      const items = await storage.getCuisineItems({});
+
+      // Build nodes from cuisines
+      const nodes = cuisines.map((c) => ({
+        id: c.id,
+        name: c.name,
+        group: c.region,
+      }));
+
+      const cuisineIds = new Set(cuisines.map((c) => c.id));
+
+      // Group items by food type to find cross-cuisine connections
+      const itemsByFoodType = new Map<string, string[]>();
+      for (const item of items) {
+        if (!cuisineIds.has(item.cuisineId)) continue;
+        const ft = item.foodType;
+        if (!itemsByFoodType.has(ft)) itemsByFoodType.set(ft, []);
+        itemsByFoodType.get(ft)!.push(item.cuisineId);
+      }
+
+      // Build links between cuisines sharing food types
+      const linkMap = new Map<string, { source: string; target: string; value: number; contactType: string; timePeriod: string }>();
+
+      for (const [foodType, cuisineList] of itemsByFoodType) {
+        const unique = [...new Set(cuisineList)];
+        for (let i = 0; i < unique.length; i++) {
+          for (let j = i + 1; j < unique.length; j++) {
+            const [a, b] = [unique[i], unique[j]].sort();
+            const key = `${a}->${b}`;
+            if (!linkMap.has(key)) {
+              linkMap.set(key, {
+                source: a,
+                target: b,
+                value: 1,
+                contactType: "shared_food_type",
+                timePeriod: foodType,
+              });
+            } else {
+              linkMap.get(key)!.value++;
+            }
+          }
+        }
+      }
+
+      // Also connect cuisines in the same region
+      const cuisinesByRegion = new Map<string, typeof cuisines>();
+      for (const c of cuisines) {
+        if (!cuisinesByRegion.has(c.region)) cuisinesByRegion.set(c.region, []);
+        cuisinesByRegion.get(c.region)!.push(c);
+      }
+
+      for (const [region, regionCuisines] of cuisinesByRegion) {
+        for (let i = 0; i < regionCuisines.length; i++) {
+          for (let j = i + 1; j < regionCuisines.length; j++) {
+            const [a, b] = [regionCuisines[i].id, regionCuisines[j].id].sort();
+            const key = `${a}->${b}`;
+            if (!linkMap.has(key)) {
+              linkMap.set(key, {
+                source: a,
+                target: b,
+                value: 1,
+                contactType: "regional",
+                timePeriod: region,
+              });
+            }
+          }
+        }
+      }
+
+      const links = Array.from(linkMap.values());
+      res.json({ nodes, links });
+    } catch (error) {
+      console.error("Error building cuisine sankey data:", error);
+      res.status(500).json({ message: "Failed to build cuisine sankey visualization data" });
+    }
+  });
+
   // ============================================================================
   // Cultural Lineage API Routes
   // ============================================================================
