@@ -23,6 +23,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import {
@@ -3608,6 +3609,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
 >>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
+    }
+  });
+
+  /**
+   * GET /api/data-quality - Get data quality report for all TSV files
+   */
+  app.get("/api/data-quality", async (_req, res) => {
+    try {
+      const report = generateDataQualityReport();
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating data quality report:", error);
+      res.status(500).json({ message: "Failed to generate data quality report" });
     }
   });
 

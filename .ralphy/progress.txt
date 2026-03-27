@@ -1,3 +1,23 @@
+US-029: Create automated data quality scoring system
+
+Completed:
+- Created server/services/data-quality-scorer.ts with:
+  - Per-file quality scoring: completeness, ID uniqueness, row adequacy
+  - Field-level analysis: fill rate, distinct value count per column
+  - Referential integrity checks across 6 foreign key relationships
+    (languages->families, languages->parent_language, families->parent,
+     grammar-features->languages, phonological-inventories->languages, words->languages)
+  - Overall weighted score combining file scores (70%) and referential integrity (30%)
+- Added GET /api/data-quality endpoint in server/routes.ts
+- Created test/test-data-quality-scorer.ts with 121 passing tests covering:
+  - Report structure validation
+  - File score ranges and types
+  - Known file presence
+  - Language file quality checks
+  - Field quality detail validation
+  - Referential integrity check validation
+  - Score consistency verification
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
