@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { writingSystemScraper } from "./services/writing-system-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -2421,6 +2422,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching grammar features for language:", error);
       res.status(500).json({
         message: "Failed to fetch grammar features for language",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scraping/writing-systems - Scrape writing systems from Unicode CLDR + Gemini
+   */
+  app.post("/api/scraping/writing-systems", async (req, res) => {
+    try {
+      const job = jobStore.createJob("writing-systems", 100, "cldr+gemini");
+
+      writingSystemScraper
+        .scrapeWritingSystems({
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Writing System Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((systems) => {
+          console.log(`Writing system scraping completed: ${systems.length} total systems`);
+        })
+        .catch((error) => {
+          console.error("Writing system scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Writing system scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting writing system scraping:", error);
+      res.status(500).json({
+        message: "Failed to start writing system scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
