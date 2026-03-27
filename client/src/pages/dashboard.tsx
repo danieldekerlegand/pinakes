@@ -16,6 +16,7 @@ import {
   MapPin,
   Music,
   BookOpen,
+  UtensilsCrossed,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +51,7 @@ import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
+import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";

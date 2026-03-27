@@ -905,3 +905,23 @@ Completed:
   - Dashed lines for cross-cultural syncretism links
   - Tooltip with domain info and pantheon counts
 - Created 12 tests for deity-network-transformer (all passing)
+
+## Agent 19: Create CuisineComparisonView using reusable ComparisonTable and SankeyFlow
+
+### Completed
+- Created reusable ComparisonTable component (client/src/components/ui/comparison-table.tsx)
+  - Generic typed component with configurable columns, row selection, click handlers
+  - Uses existing Table UI primitives for consistent styling
+- Created CuisineComparisonView (client/src/components/visualizations/CuisineComparisonView.tsx)
+  - Table view with region filtering, cuisine selection, and food type detail
+  - Sankey flow view using SankeyDiagramVisualization for cuisine relationship visualization
+  - Shared food type matrix showing cross-cuisine comparisons
+  - Region-based color coding and year formatting
+- Added GET /api/visualizations/cuisine-sankey endpoint in routes.ts
+  - Builds Sankey nodes from cuisines grouped by region
+  - Links cuisines via shared food types and regional proximity
+- Integrated CuisineComparisonView into dashboard.tsx
+  - Added menu item, state management, escape handler, URL state persistence
+- Created comparison-table.test.ts with 19 tests (all passing)
+  - Tests region color lookup, year formatting, shared food type computation
+  - Tests cuisine filtering, Sankey link building, and component logic patterns

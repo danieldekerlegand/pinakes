@@ -9,40 +9,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export interface ComparisonColumn<T> {
-  /** Unique key for the column */
+// ─── Side-by-side comparison table (attributes as rows, items as columns) ───
+
+export interface SideBySideComparisonColumn<T> {
   key: string;
-  /** Display label for the column header */
   label: string;
-  /** The data item this column represents */
   data: T;
 }
 
 export interface ComparisonRow<T> {
-  /** Unique key for the row */
   key: string;
-  /** Display label for the row */
   label: string;
-  /** Extract the cell value from a data item */
   getValue: (item: T) => React.ReactNode;
-  /** Optional custom renderer for a cell */
   renderCell?: (value: React.ReactNode, item: T, columnIndex: number) => React.ReactNode;
 }
 
-export interface ComparisonTableProps<T> {
-  /** Columns representing items to compare side-by-side */
-  columns: ComparisonColumn<T>[];
-  /** Rows representing attributes to compare */
+export interface SideBySideComparisonTableProps<T> {
+  columns: SideBySideComparisonColumn<T>[];
   rows: ComparisonRow<T>[];
-  /** Whether to highlight cells that differ across columns */
   highlightDifferences?: boolean;
-  /** Label for the attribute column header */
   attributeLabel?: string;
-  /** Additional class name for the root element */
   className?: string;
-  /** Optional caption for accessibility */
   caption?: string;
-  /** Whether to use striped rows */
   striped?: boolean;
 }
 
@@ -54,7 +42,7 @@ function cellValuesMatch(values: React.ReactNode[]): boolean {
   return stringified.every((s) => s === stringified[0]);
 }
 
-function ComparisonTableInner<T>(
+function SideBySideComparisonTableInner<T>(
   {
     columns,
     rows,
@@ -63,7 +51,7 @@ function ComparisonTableInner<T>(
     className,
     caption,
     striped = false,
-  }: ComparisonTableProps<T>,
+  }: SideBySideComparisonTableProps<T>,
   ref: React.ForwardedRef<HTMLTableElement>
 ) {
   if (columns.length === 0) {
@@ -148,6 +136,76 @@ function ComparisonTableInner<T>(
   );
 }
 
-export const ComparisonTable = React.forwardRef(ComparisonTableInner) as <T>(
-  props: ComparisonTableProps<T> & { ref?: React.ForwardedRef<HTMLTableElement> }
+export const SideBySideComparisonTable = React.forwardRef(SideBySideComparisonTableInner) as <T>(
+  props: SideBySideComparisonTableProps<T> & { ref?: React.ForwardedRef<HTMLTableElement> }
 ) => React.ReactElement;
+
+// ─── Simple data comparison table (items as rows, attributes as columns) ───
+
+export interface ComparisonColumn<T> {
+  key: string;
+  header: string;
+  render: (item: T) => React.ReactNode;
+  className?: string;
+}
+
+export interface ComparisonTableProps<T> {
+  items: T[];
+  columns: ComparisonColumn<T>[];
+  getRowKey: (item: T) => string;
+  onRowClick?: (item: T) => void;
+  selectedKey?: string | null;
+  emptyMessage?: string;
+}
+
+export function ComparisonTable<T>({
+  items,
+  columns,
+  getRowKey,
+  onRowClick,
+  selectedKey,
+  emptyMessage = "No data available",
+}: ComparisonTableProps<T>) {
+  if (items.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8 text-sm">
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {columns.map((col) => (
+            <TableHead key={col.key} className={col.className}>
+              {col.header}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item) => {
+          const key = getRowKey(item);
+          return (
+            <TableRow
+              key={key}
+              className={`${onRowClick ? "cursor-pointer" : ""} ${
+                selectedKey === key ? "bg-blue-50" : ""
+              }`}
+              onClick={() => onRowClick?.(item)}
+              data-state={selectedKey === key ? "selected" : undefined}
+            >
+              {columns.map((col) => (
+                <TableCell key={col.key} className={col.className}>
+                  {col.render(item)}
+                </TableCell>
+              ))}
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
+}
