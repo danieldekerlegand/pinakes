@@ -1,5 +1,14 @@
 import * as d3 from 'd3';
 import type { NetworkNode } from './types';
+import {
+  CORE_PALETTE,
+  LEVEL_BG_COLORS,
+  LEVEL_BORDER_COLORS,
+  STATUS_COLORS,
+  INTERACTION_COLORS,
+  hexToRgba,
+  hashIndex,
+} from './color-theme';
 
 /**
  * Format large numbers for display (e.g., 1500000 -> "1.5M")
@@ -24,78 +33,33 @@ export function formatNumber(num: number | null | undefined): string {
  * Uses a consistent color scale based on family ID
  */
 export function getFamilyColor(familyId: string, opacity: number = 1): string {
-  const colors = [
-    '#3b82f6', // blue
-    '#10b981', // green
-    '#f59e0b', // amber
-    '#ef4444', // red
-    '#8b5cf6', // purple
-    '#ec4899', // pink
-    '#14b8a6', // teal
-    '#f97316', // orange
-    '#6366f1', // indigo
-    '#84cc16', // lime
-  ];
-
-  // Generate consistent index from family ID
-  let hash = 0;
-  for (let i = 0; i < familyId.length; i++) {
-    hash = familyId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % colors.length;
-
+  const index = hashIndex(familyId, CORE_PALETTE.length);
+  const hex = CORE_PALETTE[index];
   if (opacity < 1) {
-    const hex = colors[index];
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    return hexToRgba(hex, opacity);
   }
-
-  return colors[index];
+  return hex;
 }
 
 /**
  * Get color based on tree level (for hierarchical tree)
- * Mimics the existing color scheme from language-tree.tsx
  */
 export function getLevelColor(level: number): string {
-  const colors = [
-    '#dbeafe', // blue-100 (Level 0)
-    '#d1fae5', // green-100 (Level 1)
-    '#fed7aa', // orange-100 (Level 2)
-    '#e5e7eb', // gray-200 (Level 3+)
-  ];
-  return colors[Math.min(level, colors.length - 1)];
+  return LEVEL_BG_COLORS[Math.min(level, LEVEL_BG_COLORS.length - 1)];
 }
 
 /**
  * Get border color based on tree level
  */
 export function getLevelBorderColor(level: number): string {
-  const colors = [
-    '#3b82f6', // blue-500 (Level 0)
-    '#10b981', // green-500 (Level 1)
-    '#f97316', // orange-500 (Level 2)
-    '#6b7280', // gray-500 (Level 3+)
-  ];
-  return colors[Math.min(level, colors.length - 1)];
+  return LEVEL_BORDER_COLORS[Math.min(level, LEVEL_BORDER_COLORS.length - 1)];
 }
 
 /**
  * Get color based on language status
  */
 export function getStatusColor(status: string): string {
-  const statusColors: { [key: string]: string } = {
-    'living': '#10b981', // green
-    'endangered': '#f59e0b', // amber
-    'extinct': '#6b7280', // gray
-    'historical': '#8b5cf6', // purple
-    'constructed': '#3b82f6', // blue
-    'revived': '#14b8a6', // teal
-  };
-
-  return statusColors[status.toLowerCase()] || '#6b7280';
+  return STATUS_COLORS[status.toLowerCase()] ?? INTERACTION_COLORS.defaultFallback;
 }
 
 /**

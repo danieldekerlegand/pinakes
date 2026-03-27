@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { RELIGION_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface ReligionFeature {
   id: string;
@@ -27,15 +28,7 @@ interface ReligionLayerProps {
 
 // Religion type-based color scheme
 const getReligionColor = (religionType: string): string => {
-  const colors: Record<string, string> = {
-    'monotheistic': '#2563eb',   // blue
-    'polytheistic': '#dc2626',   // red
-    'nontheistic': '#16a34a',    // green
-    'animistic': '#d97706',      // amber
-    'philosophical': '#7c3aed',  // violet
-    'dualistic': '#0891b2',      // cyan
-  };
-  return colors[religionType] || '#6b7280';
+  return RELIGION_COLORS[religionType] || INTERACTION_COLORS.defaultFallback;
 };
 
 const formatTimePeriod = (start: number | null, end: number | null): string => {
@@ -72,9 +65,9 @@ export function ReligionLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

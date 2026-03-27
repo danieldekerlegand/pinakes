@@ -2,6 +2,7 @@ import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { MUSIC_REGION_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface MusicTraditionFeature {
   id: string;
@@ -28,28 +29,12 @@ interface MusicTraditionLayerProps {
 
 // Region-based color scheme (musical note inspired)
 const getRegionColor = (region: string): string => {
-  const colors: Record<string, string> = {
-    'East Asia': '#c026d3',     // fuchsia
-    'South Asia': '#e11d48',    // rose
-    'Southeast Asia': '#f59e0b', // amber
-    'Middle East': '#0891b2',   // cyan
-    'West Africa': '#16a34a',   // green
-    'Central Africa': '#65a30d', // lime
-    'Southern Europe': '#2563eb', // blue
-    'Western Europe': '#7c3aed', // violet
-    'North America': '#dc2626',  // red
-    'South America': '#ea580c',  // orange
-    'Central Asia': '#0d9488',   // teal
-    'Caucasus': '#9333ea',       // purple
-    'Oceania': '#0284c7',        // sky
-  };
-
-  for (const [key, color] of Object.entries(colors)) {
+  for (const [key, color] of Object.entries(MUSIC_REGION_COLORS)) {
     if (region.toLowerCase().includes(key.toLowerCase())) {
       return color;
     }
   }
-  return '#6b7280';
+  return INTERACTION_COLORS.defaultFallback;
 };
 
 const formatTimePeriod = (start: number | null, end: number | null): string => {
@@ -86,9 +71,9 @@ export function MusicTraditionLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

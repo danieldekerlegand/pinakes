@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { CircleMarker, Popup, Circle, useMap } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { MATERIAL_CULTURE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface SpreadEvent {
   date: number;
@@ -29,23 +30,8 @@ interface MaterialCultureWaveLayerProps {
   animationEnabled?: boolean;
 }
 
-const categoryColors: Record<string, string> = {
-  pottery: '#d97706',
-  metallurgy: '#6b7280',
-  tools: '#92400e',
-  agriculture: '#16a34a',
-  textiles: '#7c3aed',
-  architecture: '#dc2626',
-  weapons: '#1e293b',
-  writing: '#2563eb',
-  navigation: '#0891b2',
-  printing: '#4f46e5',
-  glasswork: '#06b6d4',
-  unknown: '#9ca3af',
-};
-
 const getCategoryColor = (category: string): string => {
-  return categoryColors[category] || categoryColors.unknown;
+  return MATERIAL_CULTURE_COLORS[category] || MATERIAL_CULTURE_COLORS.unknown || INTERACTION_COLORS.defaultFallback;
 };
 
 const formatYear = (year: number): string => {
@@ -126,7 +112,7 @@ export function MaterialCultureWaveLayer({
               center={[item.originCoordinates[0], item.originCoordinates[1]]}
               radius={isSelected ? 10 : 7}
               pathOptions={{
-                color: '#fff',
+                color: INTERACTION_COLORS.defaultNodeBorder,
                 weight: 2,
                 fillColor: color,
                 fillOpacity: opacity,

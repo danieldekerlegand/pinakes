@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Polyline, CircleMarker, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
+import { FOODWAY_MECHANISM_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { Badge } from '../../ui/badge';
 
 export interface FoodwayEventFeature {
@@ -26,13 +27,6 @@ interface FoodwayEventLayerProps {
   isAnimating?: boolean;
 }
 
-const MECHANISM_COLORS: Record<string, string> = {
-  trade: '#22c55e',        // green
-  colonization: '#ef4444', // red
-  migration: '#3b82f6',    // blue
-  conquest: '#f97316',     // orange
-};
-
 const MECHANISM_DASH: Record<string, string | undefined> = {
   trade: undefined,       // solid
   colonization: '10, 5',  // dashed
@@ -40,7 +34,7 @@ const MECHANISM_DASH: Record<string, string | undefined> = {
 };
 
 function getMechanismColor(mechanism: string): string {
-  return MECHANISM_COLORS[mechanism] ?? '#9ca3af';
+  return FOODWAY_MECHANISM_COLORS[mechanism] ?? INTERACTION_COLORS.defaultFallback;
 }
 
 function getMechanismDash(mechanism: string): string | undefined {
@@ -103,7 +97,7 @@ export function FoodwayEventLayer({
             <Polyline
               positions={positions}
               pathOptions={{
-                color: isSelected ? '#1d4ed8' : color,
+                color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
                 weight: isSelected ? 5 : 3,
                 opacity: isSelected ? 1 : opacity,
                 dashArray: isAnimating ? '10, 10' : (isSelected ? undefined : dashArray),
@@ -173,7 +167,7 @@ export function FoodwayEventLayer({
               center={originPos}
               radius={isSelected ? 7 : 5}
               pathOptions={{
-                color: isSelected ? '#1d4ed8' : color,
+                color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
                 fillColor: color,
                 fillOpacity: 0.9,
                 weight: 2,
@@ -185,7 +179,7 @@ export function FoodwayEventLayer({
               center={destPos}
               radius={isSelected ? 7 : 5}
               pathOptions={{
-                color: isSelected ? '#1d4ed8' : '#fff',
+                color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
                 fillColor: color,
                 fillOpacity: 0.6,
                 weight: 2,

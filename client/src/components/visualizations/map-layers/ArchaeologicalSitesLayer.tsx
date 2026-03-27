@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalSiteFeature } from '../../../lib/visualization/geospatial-types';
+import { ARCHAEOLOGICAL_SITE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { MarkerClusterGroup } from './MarkerClusterGroup';
@@ -17,16 +18,7 @@ interface ArchaeologicalSitesLayerProps {
 
 // Get color based on site type
 const getSiteColor = (siteType: string): string => {
-  const colors: Record<string, string> = {
-    settlement: '#f59e0b', // amber
-    burial: '#ef4444', // red
-    temple: '#8b5cf6', // purple
-    ceremonial: '#8b5cf6', // purple
-    fortification: '#64748b', // slate
-    workshop: '#06b6d4', // cyan
-    unknown: '#9ca3af', // gray
-  };
-  return colors[siteType] || colors.unknown;
+  return ARCHAEOLOGICAL_SITE_COLORS[siteType] || ARCHAEOLOGICAL_SITE_COLORS.unknown;
 };
 
 // Calculate marker radius based on importance
@@ -81,9 +73,9 @@ export function ArchaeologicalSitesLayer({
             center={[lat, lng]}
             radius={isSelected ? radius * 1.5 : radius}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

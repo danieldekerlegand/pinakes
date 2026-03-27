@@ -8,6 +8,7 @@ import {
   getFamilyColor,
   createZoomBehavior,
 } from '../../lib/visualization/d3-helpers';
+import { INTERACTION_COLORS } from '../../lib/visualization/color-theme';
 
 interface LanguageTimelineViewProps {
   timelineData: TimelineEvent[];
@@ -81,12 +82,12 @@ export function LanguageTimelineView({ timelineData, onEventClick }: LanguageTim
       .attr('fill', (d) => {
         const selected = isLanguageSelected(d.id);
         const highlighted = isHighlighted(d.id);
-        if (selected || highlighted) return '#3b82f6';
+        if (selected || highlighted) return INTERACTION_COLORS.selected;
         return getFamilyColor(d.familyId, 0.7);
       })
       .attr('stroke', (d) => {
         const selected = isLanguageSelected(d.id);
-        if (selected) return '#1d4ed8';
+        if (selected) return INTERACTION_COLORS.selectedBorder;
         return 'none';
       })
       .attr('stroke-width', (d) => {

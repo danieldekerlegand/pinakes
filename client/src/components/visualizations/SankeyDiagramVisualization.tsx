@@ -4,6 +4,7 @@ import { sankey, sankeyLinkHorizontal, SankeyNode as D3SankeyNode, SankeyLink as
 import { useVisualizationResize } from './hooks/useVisualizationResize';
 import { createZoomBehavior, getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { exportSVG, exportPNG } from '../../lib/visualization/export-utils';
+import { CONTACT_TYPE_COLORS as CONTACT_COLORS, INTERACTION_COLORS, VIS_TEXT_COLORS } from '../../lib/visualization/color-theme';
 import { Download } from 'lucide-react';
 import type { SankeyData } from '@shared/types';
 
@@ -14,15 +15,6 @@ interface SankeyDiagramVisualizationProps {
 
 type SNode = D3SankeyNode<{ id: string; name: string; group: string }, { contactType: string; timePeriod: string }>;
 type SLink = D3SankeyLink<{ id: string; name: string; group: string }, { contactType: string; timePeriod: string }>;
-
-const CONTACT_COLORS: Record<string, string> = {
-  superstrate: '#ef4444',
-  substrate: '#f59e0b',
-  adstrate: '#3b82f6',
-  creole: '#8b5cf6',
-  pidgin: '#ec4899',
-  borrowing: '#10b981',
-};
 
 export function SankeyDiagramVisualization({ data, onNodeClick }: SankeyDiagramVisualizationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +78,7 @@ export function SankeyDiagramVisualization({ data, onNodeClick }: SankeyDiagramV
       .join('path')
       .attr('d', sankeyLinkHorizontal())
       .attr('fill', 'none')
-      .attr('stroke', (d: any) => CONTACT_COLORS[d.contactType] || '#94a3b8')
+      .attr('stroke', (d: any) => CONTACT_COLORS[d.contactType] || INTERACTION_COLORS.defaultFallback)
       .attr('stroke-opacity', 0.4)
       .attr('stroke-width', (d: any) => Math.max(1, d.width || 1))
       .style('cursor', 'pointer')
@@ -123,7 +115,7 @@ export function SankeyDiagramVisualization({ data, onNodeClick }: SankeyDiagramV
       .attr('width', (d: any) => (d.x1 || 0) - (d.x0 || 0))
       .attr('height', (d: any) => Math.max(1, (d.y1 || 0) - (d.y0 || 0)))
       .attr('fill', (d: any) => getFamilyColor(d.group || d.id))
-      .attr('stroke', '#fff')
+      .attr('stroke', INTERACTION_COLORS.defaultNodeBorder)
       .attr('stroke-width', 1);
 
     node.append('text')
@@ -132,7 +124,7 @@ export function SankeyDiagramVisualization({ data, onNodeClick }: SankeyDiagramV
       .attr('dy', '0.35em')
       .attr('text-anchor', (d: any) => (d.x0 || 0) < innerWidth / 2 ? 'start' : 'end')
       .attr('font-size', '11px')
-      .attr('fill', '#1e293b')
+      .attr('fill', VIS_TEXT_COLORS.darkest)
       .text((d: any) => d.name);
 
     node

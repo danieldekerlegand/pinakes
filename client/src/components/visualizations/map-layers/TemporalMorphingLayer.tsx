@@ -4,6 +4,7 @@ import type { PathOptions } from 'leaflet';
 import type { Feature, Polygon, FeatureCollection } from 'geojson';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { MorphedBoundary } from '../../../lib/visualization/temporal-boundary-morphing';
+import { CIVILIZATION_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface TemporalMorphingLayerProps {
   morphedBoundaries: MorphedBoundary[];
@@ -21,14 +22,11 @@ export function TemporalMorphingLayer({
   showTransitionEffect = true,
 }: TemporalMorphingLayerProps) {
   const getCivilizationColor = (civilizationId: string): string => {
-    const colors = [
-      '#c084fc', '#f472b6', '#fb923c', '#34d399', '#60a5fa', '#a78bfa',
-    ];
     let hash = 0;
     for (let i = 0; i < civilizationId.length; i++) {
       hash = civilizationId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return colors[Math.abs(hash) % colors.length];
+    return CIVILIZATION_PALETTE[Math.abs(hash) % CIVILIZATION_PALETTE.length];
   };
 
   // Convert morphed boundaries to GeoJSON features
@@ -62,9 +60,9 @@ export function TemporalMorphingLayer({
       : 0;
 
     return {
-      fillColor: isSelected ? '#3b82f6' : civColor,
+      fillColor: isSelected ? INTERACTION_COLORS.selected : civColor,
       fillOpacity: isSelected ? 0.3 : (opacity * 0.4 + transitionPulse),
-      color: isSelected ? '#1d4ed8' : civColor,
+      color: isSelected ? INTERACTION_COLORS.selectedBorder : civColor,
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.7,
       dashArray: '5, 5',

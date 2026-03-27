@@ -838,3 +838,15 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+Create consistent color theming system for all visualizations
+
+Completed:
+- Created client/src/lib/visualization/color-theme.ts
+  - Centralized all color palettes: CORE_PALETTE (10 hues), INTERACTION_COLORS, VIS_TEXT_COLORS, NODE_STATE_COLORS
+  - 25+ domain-specific palettes (STATUS_COLORS, CONTACT_TYPE_COLORS, RELIGION_COLORS, MYTHOLOGY_COLORS, etc.)
+  - Utility functions: hexToRgba, hashIndex, paletteColor, domainColor, correlationColor
+- Updated d3-helpers.ts to import from color-theme
+- Updated 6 main visualization components to use centralized theme
+- Updated 20+ map layer components to use centralized theme
+- Created color-theme.test.ts with 45 tests (all passing)

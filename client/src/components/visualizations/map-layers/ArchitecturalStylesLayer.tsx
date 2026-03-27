@@ -2,6 +2,7 @@ import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { ARCHITECTURE_REGION_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface ArchitecturalStyleFeature {
   id: string;
@@ -27,27 +28,12 @@ interface ArchitecturalStylesLayerProps {
 }
 
 const getRegionColor = (region: string): string => {
-  const colors: Record<string, string> = {
-    'North Africa': '#f59e0b',
-    'Southern Europe': '#3b82f6',
-    'Eastern Europe': '#8b5cf6',
-    'Western Europe': '#6366f1',
-    'Middle East': '#10b981',
-    'South Asia': '#f97316',
-    'East Asia': '#ef4444',
-    'Southeast Asia': '#eab308',
-    'Central America': '#14b8a6',
-    'South America': '#ec4899',
-    'West Africa': '#22c55e',
-    'North America': '#a855f7',
-  };
-
-  for (const [key, color] of Object.entries(colors)) {
+  for (const [key, color] of Object.entries(ARCHITECTURE_REGION_COLORS)) {
     if (region.toLowerCase().includes(key.toLowerCase())) {
       return color;
     }
   }
-  return '#6b7280';
+  return INTERACTION_COLORS.defaultFallback;
 };
 
 const formatTimePeriod = (start: number, end: number): string => {
@@ -81,9 +67,9 @@ export function ArchitecturalStylesLayer({
             center={[lat, lng]}
             radius={isSelected ? 14 : 10}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

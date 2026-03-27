@@ -3,6 +3,7 @@ import Slider from 'rc-slider';
 import { Play, Pause, SkipBack, SkipForward, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { SLIDER_COLORS } from '../../../lib/visualization/color-theme';
 import 'rc-slider/assets/index.css';
 
 interface TimeSliderProps {
@@ -75,10 +76,10 @@ export function TimeSlider({
                 onYearChange(value);
               }
             }}
-            trackStyle={{ backgroundColor: '#3b82f6', height: 6 }}
-            railStyle={{ backgroundColor: '#e5e7eb', height: 6 }}
+            trackStyle={{ backgroundColor: SLIDER_COLORS.track, height: 6 }}
+            railStyle={{ backgroundColor: SLIDER_COLORS.rail, height: 6 }}
             handleStyle={{
-              borderColor: '#3b82f6',
+              borderColor: SLIDER_COLORS.track,
               height: 28,
               width: 28,
               marginTop: -11,

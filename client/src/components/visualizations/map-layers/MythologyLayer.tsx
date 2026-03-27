@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup, Polyline } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { MYTHOLOGY_COLORS, INTERACTION_COLORS, VIS_TEXT_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface DeityFeature {
   id: string;
@@ -27,19 +28,7 @@ interface MythologyLayerProps {
 }
 
 const getMythologyColor = (mythology: string): string => {
-  const colors: Record<string, string> = {
-    'greek': '#3b82f6',
-    'roman': '#ef4444',
-    'norse': '#6366f1',
-    'hindu': '#f59e0b',
-    'egyptian': '#d97706',
-    'mesopotamian': '#8b5cf6',
-    'japanese': '#ec4899',
-    'aztec': '#10b981',
-    'slavic': '#06b6d4',
-    'celtic': '#84cc16',
-  };
-  return colors[mythology] || '#6b7280';
+  return MYTHOLOGY_COLORS[mythology] || INTERACTION_COLORS.defaultFallback;
 };
 
 const formatTimePeriod = (start: number | null, end: number | null): string => {
@@ -91,7 +80,7 @@ export function MythologyLayer({
             [to.coordinates.lat, to.coordinates.lng],
           ]}
           pathOptions={{
-            color: '#94a3b8',
+            color: VIS_TEXT_COLORS.muted,
             weight: 1.5,
             opacity: 0.4,
             dashArray: '6 4',
@@ -111,9 +100,9 @@ export function MythologyLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

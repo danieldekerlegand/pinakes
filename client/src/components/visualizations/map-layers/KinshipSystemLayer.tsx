@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { KINSHIP_SYSTEM_COLORS, KINSHIP_TERM_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface KinshipSystemFeature {
   id: string;
@@ -22,17 +23,7 @@ interface KinshipSystemLayerProps {
 
 // Kinship system type color scheme
 const getSystemColor = (systemType: string): string => {
-  const colors: Record<string, string> = {
-    'Eskimo': '#2563eb',        // blue
-    'Hawaiian': '#dc2626',      // red
-    'Sudanese': '#16a34a',      // green
-    'Iroquois': '#d97706',      // amber
-    'Crow': '#7c3aed',          // violet
-    'Omaha': '#0891b2',         // cyan
-    'Dravidian': '#db2777',     // pink
-    'Descriptive': '#65a30d',   // lime
-  };
-  return colors[systemType] || '#6b7280';
+  return KINSHIP_SYSTEM_COLORS[systemType] || INTERACTION_COLORS.defaultFallback;
 };
 
 // Descent rule icons
@@ -48,15 +39,7 @@ const getDescentLabel = (rule: string): string => {
 };
 
 // Kinship term grouping colors for the ego-centric diagram
-const TERM_COLORS: Record<string, string> = {
-  mother: '#ec4899',
-  father: '#3b82f6',
-  sister: '#f472b6',
-  brother: '#60a5fa',
-  aunt: '#a855f7',
-  uncle: '#8b5cf6',
-  cousin: '#f59e0b',
-};
+const TERM_COLORS = KINSHIP_TERM_COLORS;
 
 function KinshipDiagram({ terminology, systemType }: { terminology: Record<string, string>; systemType: string }) {
   const terms = Object.entries(terminology);
@@ -70,7 +53,7 @@ function KinshipDiagram({ terminology, systemType }: { terminology: Record<strin
           <div key={relation} className="flex items-center gap-1.5 text-xs">
             <span
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: TERM_COLORS[relation] || '#9ca3af' }}
+              style={{ backgroundColor: TERM_COLORS[relation] || INTERACTION_COLORS.defaultFallback }}
             />
             <span className="text-gray-500 capitalize">{relation}:</span>
             <span className="font-medium truncate" title={term}>{term}</span>
@@ -105,9 +88,9 @@ export function KinshipSystemLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

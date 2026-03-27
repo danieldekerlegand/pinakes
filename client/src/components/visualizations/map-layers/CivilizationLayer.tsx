@@ -4,6 +4,7 @@ import type { PathOptions } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import { smoothFeatures, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
 import type { CivilizationFeature } from '../../../lib/visualization/geospatial-types';
+import { CIVILIZATION_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface CivilizationLayerProps {
   features: CivilizationFeature[];
@@ -24,21 +25,12 @@ export function CivilizationLayer({
 }: CivilizationLayerProps) {
   // Civilization colors (different from language family colors)
   const getCivilizationColor = (civilizationId: string): string => {
-    const colors = [
-      '#c084fc', // purple-400
-      '#f472b6', // pink-400
-      '#fb923c', // orange-400
-      '#34d399', // emerald-400
-      '#60a5fa', // blue-400
-      '#a78bfa', // violet-400
-    ];
-
     // Simple hash to get consistent color per civilization
     let hash = 0;
     for (let i = 0; i < civilizationId.length; i++) {
       hash = civilizationId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return colors[Math.abs(hash) % colors.length];
+    return CIVILIZATION_PALETTE[Math.abs(hash) % CIVILIZATION_PALETTE.length];
   };
 
   // Apply spline smoothing to features
@@ -92,9 +84,9 @@ export function CivilizationLayer({
     const civColor = getCivilizationColor(props.civilizationId);
 
     return {
-      fillColor: isSelected ? '#3b82f6' : civColor,
+      fillColor: isSelected ? INTERACTION_COLORS.selected : civColor,
       fillOpacity: isSelected ? 0.3 : opacity * 0.4,
-      color: isSelected ? '#1d4ed8' : civColor,
+      color: isSelected ? INTERACTION_COLORS.selectedBorder : civColor,
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.7,
       dashArray: '5, 5', // Dashed border to distinguish from language ranges

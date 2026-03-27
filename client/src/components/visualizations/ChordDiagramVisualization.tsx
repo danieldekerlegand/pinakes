@@ -4,6 +4,7 @@ import { useVisualizationResize } from './hooks/useVisualizationResize';
 import { getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { exportSVG, exportPNG } from '../../lib/visualization/export-utils';
 import { Download } from 'lucide-react';
+import { VIS_TEXT_COLORS } from '../../lib/visualization/color-theme';
 import type { ChordData } from '@shared/types';
 
 interface ChordDiagramVisualizationProps {
@@ -78,7 +79,7 @@ export function ChordDiagramVisualization({ data, onGroupClick }: ChordDiagramVi
         return (d as any).angle > Math.PI ? 'end' : 'start';
       })
       .attr('font-size', '11px')
-      .attr('fill', '#1e293b')
+      .attr('fill', VIS_TEXT_COLORS.darkest)
       .text(function (d) { return data.names[d.index]; });
 
     group

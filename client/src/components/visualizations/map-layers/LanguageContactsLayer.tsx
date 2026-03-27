@@ -2,6 +2,7 @@ import React from 'react';
 import { Polyline, CircleMarker, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import { Badge } from '../../ui/badge';
+import { LANGUAGE_CONTACT_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface LanguageContactFeature {
   id: string;
@@ -35,13 +36,7 @@ interface LanguageContactsLayerProps {
 }
 
 const getContactColor = (contactType: string): string => {
-  const colors: Record<string, string> = {
-    substrate: '#8b5cf6',    // purple
-    superstrate: '#ef4444',  // red
-    adstrate: '#3b82f6',     // blue
-    borrowing: '#22c55e',    // green
-  };
-  return colors[contactType] || '#9ca3af';
+  return LANGUAGE_CONTACT_COLORS[contactType] || INTERACTION_COLORS.defaultFallback;
 };
 
 const getIntensityWeight = (intensity: string): number => {
@@ -119,7 +114,7 @@ export function LanguageContactsLayer({
             key={contact.id}
             positions={positions}
             pathOptions={{
-              color: isSelected ? '#1d4ed8' : color,
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
               weight: isSelected ? weight + 2 : weight,
               opacity: isSelected ? 1 : opacity,
               dashArray: contact.contactType === 'substrate' ? '8, 4' : undefined,
@@ -215,8 +210,8 @@ export function LanguageContactsLayer({
           center={[lang.lat, lang.lng]}
           radius={6}
           pathOptions={{
-            color: '#1e40af',
-            fillColor: '#3b82f6',
+            color: INTERACTION_COLORS.selectedBorder,
+            fillColor: INTERACTION_COLORS.selected,
             fillOpacity: 0.8,
             weight: 2,
           }}

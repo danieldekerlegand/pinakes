@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { HAPLOGROUP_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface HaplogroupFeature {
   id: string;
@@ -23,11 +24,7 @@ interface HaplogroupLayerProps {
 
 // Color by haplogroup type (Y-DNA vs mtDNA)
 const getHaplogroupColor = (type: string): string => {
-  const colors: Record<string, string> = {
-    'Y-DNA': '#16a34a',    // green
-    'mtDNA': '#9333ea',    // purple
-  };
-  return colors[type] || '#6b7280';
+  return HAPLOGROUP_COLORS[type] || INTERACTION_COLORS.defaultFallback;
 };
 
 // Geographic region to approximate coordinates
@@ -105,9 +102,9 @@ export function HaplogroupLayer({
             center={[coords.lat, coords.lng]}
             radius={isSelected ? 14 : 10}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{
