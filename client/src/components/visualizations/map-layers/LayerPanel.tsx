@@ -6,7 +6,7 @@ import { Checkbox } from '../../ui/checkbox';
 import { Card } from '../../ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
 import { Badge } from '../../ui/badge';
-import type { LayerConfig } from '../../../lib/visualization/geospatial-types';
+import type { LayerConfig, BlendMode } from '../../../lib/visualization/geospatial-types';
 import { LAYER_PRESETS } from '../../../lib/visualization/geospatial-types';
 import { SLIDER_COLORS } from '../../../lib/visualization/color-theme';
 import 'rc-slider/assets/index.css';
@@ -18,6 +18,13 @@ const LABEL_LAYERS = [
   { id: 'settlement-labels', name: 'Settlement Labels' },
   { id: 'route-labels', name: 'Route Labels' },
 ] as const;
+
+const BLEND_MODE_OPTIONS: { value: BlendMode; label: string; description: string }[] = [
+  { value: 'normal', label: 'Normal', description: 'Standard alpha compositing' },
+  { value: 'multiply', label: 'Multiply', description: 'Darker overlaps' },
+  { value: 'screen', label: 'Screen', description: 'Brighter overlaps' },
+  { value: 'overlay', label: 'Overlay', description: 'High contrast' },
+];
 
 interface LayerPanelProps {
   layerConfigs: Map<string, LayerConfig>;
@@ -32,6 +39,8 @@ interface LayerPanelProps {
   activePresetId?: string | null;
   enabledLabelLayers?: Set<string>;
   onToggleLabelLayer?: (layerId: string) => void;
+  blendMode?: BlendMode;
+  onBlendModeChange?: (mode: BlendMode) => void;
 }
 
 export function LayerPanel({
@@ -47,6 +56,8 @@ export function LayerPanel({
   activePresetId,
   enabledLabelLayers,
   onToggleLabelLayer,
+  blendMode = 'multiply',
+  onBlendModeChange,
 }: LayerPanelProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [openCategories, setOpenCategories] = React.useState<Set<string>>(
@@ -176,6 +187,29 @@ export function LayerPanel({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Blend Mode Selector */}
+          {onBlendModeChange && (
+            <div className="mb-3">
+              <div className="text-xs font-medium text-gray-700 mb-1.5">Overlap Blend Mode</div>
+              <div className="flex gap-1">
+                {BLEND_MODE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => onBlendModeChange(opt.value)}
+                    className={`flex-1 px-1.5 py-1 text-xs rounded border transition-colors ${
+                      blendMode === opt.value
+                        ? 'bg-blue-100 border-blue-300 text-blue-700 font-medium'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                    title={opt.description}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

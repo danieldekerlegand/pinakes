@@ -48,6 +48,9 @@ import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
+import { TerritoryOverlapLayer } from './map-layers/TerritoryOverlapLayer';
+import type { TerritoryFeature } from '../../lib/visualization/territory-overlap';
+import type { BlendMode } from '../../lib/visualization/geospatial-types';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { BaseMapSelector } from './map-layers/BaseMapSelector';
@@ -61,7 +64,8 @@ import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
 import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
-import { CIVILIZATION_PALETTE } from '../../lib/visualization/color-theme';
+import { getFamilyColor } from '../../lib/visualization/d3-helpers';
+import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-theme';
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import {
@@ -102,6 +106,9 @@ export function EnhancedLanguageMapView({
 
   // Territorial fill type for cultural region shading
   const [territorialFillType, setTerritorialFillType] = React.useState<TerritorialFillType>('solid');
+
+  // Blend mode state for territory overlap visualization
+  const [blendMode, setBlendMode] = React.useState<BlendMode>('multiply');
 
   // Label layer toggles (independent of parent layers)
   const [enabledLabelLayers, setEnabledLabelLayers] = React.useState<Set<string>>(
@@ -611,6 +618,65 @@ export function EnhancedLanguageMapView({
   // Derive the active selected feature ID — internal selection takes priority
   const activeSelectedFeatureId = internalSelectedFeatureId ?? selectedFeatureId ?? null;
 
+  // Collect active polygon territories for overlap detection
+  const overlapTerritories = useMemo((): TerritoryFeature[] => {
+    const territories: TerritoryFeature[] = [];
+
+    if (isLayerVisible('language-ranges')) {
+      for (const f of filteredLanguageRanges) {
+        territories.push({
+          id: `lr-${f.id ?? f.properties.languageId}`,
+          layerId: 'language-ranges',
+          color: getFamilyColor(f.properties.familyId),
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('language-range-polygons')) {
+      for (const f of filteredLanguageRangePolygons) {
+        territories.push({
+          id: `lrp-${f.id ?? f.properties.languageId}`,
+          layerId: 'language-range-polygons',
+          color: getFamilyColor(f.properties.familyId),
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('civilizations')) {
+      for (const f of filteredCivilizations) {
+        const civId = f.properties.civilizationId;
+        const colorIdx = hashIndex(civId, CIVILIZATION_PALETTE.length);
+        territories.push({
+          id: `civ-${f.id ?? civId}`,
+          layerId: 'civilizations',
+          color: CIVILIZATION_PALETTE[colorIdx],
+          feature: f,
+        });
+      }
+    }
+
+    if (isLayerVisible('archaeological-cultures')) {
+      for (const f of filteredArchaeologicalCultures) {
+        territories.push({
+          id: `ac-${f.id ?? f.properties.cultureId}`,
+          layerId: 'archaeological-cultures',
+          color: '#f59e0b', // amber default for archaeological cultures
+          feature: f as any,
+        });
+      }
+    }
+
+    return territories;
+  }, [
+    isLayerVisible,
+    filteredLanguageRanges,
+    filteredLanguageRangePolygons,
+    filteredCivilizations,
+    filteredArchaeologicalCultures,
+  ]);
+
   // Handle feature clicks — open info panel and notify parent
   const handleFeatureClick = useCallback(
     (id: string) => {
@@ -1014,6 +1080,15 @@ export function EnhancedLanguageMapView({
           enabledLabelLayers={enabledLabelLayers}
         />
 
+        {/* Territory Overlap Layer */}
+        {overlapTerritories.length >= 2 && (
+          <TerritoryOverlapLayer
+            territories={overlapTerritories}
+            blendMode={blendMode}
+            opacity={0.5}
+          />
+        )}
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -1045,6 +1120,8 @@ export function EnhancedLanguageMapView({
         activePresetId={activePresetId}
         enabledLabelLayers={enabledLabelLayers}
         onToggleLabelLayer={toggleLabelLayer}
+        blendMode={blendMode}
+        onBlendModeChange={setBlendMode}
       />
 
       {/* Territorial Fill Type Selector */}
