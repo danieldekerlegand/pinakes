@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { cuisineScraper } from "./services/cuisine-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -325,6 +326,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting word scraping:", error);
       res.status(500).json({
         message: "Failed to start word scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape cuisine and food culture data
+  app.post("/api/scraping/cuisines", async (req, res) => {
+    try {
+      const { cuisineFilter } = req.body;
+
+      const job = jobStore.createJob(
+        "cuisines",
+        0,
+        "gemini"
+      );
+
+      cuisineScraper
+        .scrapeCuisines({
+          cuisineFilter: cuisineFilter || undefined,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Cuisine Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Cuisine scraping completed: ${result.cuisines} cuisines, ${result.cuisineItems} items`
+          );
+        })
+        .catch((error) => {
+          console.error("Cuisine scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Cuisine scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting cuisine scraping:", error);
+      res.status(500).json({
+        message: "Failed to start cuisine scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

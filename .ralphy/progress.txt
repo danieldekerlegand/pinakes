@@ -196,3 +196,30 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+Create cuisine and food culture scraper
+
+Completed:
+- Created server/services/cuisine-scraper.ts with CuisineScraper class
+  - Two-phase Gemini AI scraping: discover cuisines, then scrape detail per cuisine
+  - Phase 1 (discoverCuisines): generates 40 world cuisines with native names, coordinates, language associations
+  - Phase 2 (scrapeCuisineDetail): for each cuisine generates 15-25 dishes, 8-15 key ingredients, 5-10 cooking techniques
+  - Skips already-existing cuisines by reading lexicons/cuisines.tsv
+  - Appends to 4 TSV files: cuisines.tsv, cuisine-items.tsv, ingredient-origins.tsv, cooking-techniques.tsv
+  - Atomic writes via temp file + rename pattern
+  - Job tracking via jobStore with progress callbacks
+  - Concurrent scraping guard (static isScraping flag)
+  - Optional cuisineFilter to scrape a single cuisine
+- Added POST /api/scraping/cuisines endpoint in server/routes.ts
+  - Accepts optional cuisineFilter in request body
+  - Returns jobId for progress tracking
+  - Runs scraping in background (non-blocking)
+- Created test/test-cuisine-scraper.ts with 23 tests (all passing)
+  - Tests: slugify, loadExistingCuisineIds, appendToTsv (new/existing/empty), atomic write cleanup, API key validation
+
+Files created:
+- server/services/cuisine-scraper.ts
+- test/test-cuisine-scraper.ts
+
+Files modified:
+- server/routes.ts (import + POST /api/scraping/cuisines route)
