@@ -16,6 +16,7 @@ import {
   Package,
   Users,
 } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 
 interface ArchaeologicalCulture {
   id: string;
@@ -719,6 +720,8 @@ export default function ArchaeologicalCulturesPanel({
               )}
             </div>
           )}
+
+          <VisualizationRecommendations panelType="archaeological-cultures" onClose={onClose} />
         </div>
       </div>
     </>

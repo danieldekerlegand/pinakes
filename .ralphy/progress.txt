@@ -838,3 +838,24 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+Add visualization recommendations to all existing detail panels
+
+Completed:
+- Created client/src/components/VisualizationRecommendations.tsx
+  - Reusable component showing contextual visualization suggestions per panel type
+  - 14 panel types with 3-4 targeted recommendations each
+  - Recommendations include: view mode, label, icon, and contextual reason
+  - Highlights the currently active visualization view
+  - Clicking a recommendation switches the visualization and optionally closes the panel
+  - Dark mode support, compact pill-based UI
+- Added VisualizationRecommendations to all 14 detail panels:
+  - language-detail-panel, phonology-panel, grammar-panel, writing-systems-panel
+  - verb-paradigms-panel, language-contacts-panel, sound-changes-panel
+  - correlation-explorer-panel, art-traditions-panel, literary-traditions-panel
+  - archaeological-cultures-panel, trade-goods-panel, word-comparison
+  - linguistic-distance-analyzer
+- Created client/src/components/VisualizationRecommendations.test.ts with 10 tests (all passing)
+  - Tests: all 14 panel types covered, valid view modes, non-empty labels/reasons,
+    3-4 recommendations per panel, no duplicate views, specific panel recommendations
+- All 119 tests passing, no new TypeScript errors

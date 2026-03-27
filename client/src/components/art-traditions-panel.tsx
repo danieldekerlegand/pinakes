@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, Palette, Filter, ChevronRight, ChevronDown, MapPin, Clock } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 
 interface ArtTradition {
   id: string;
@@ -370,6 +371,8 @@ export default function ArtTraditionsPanel({ isOpen, onClose }: Props) {
               )}
             </div>
           )}
+
+          <VisualizationRecommendations panelType="art-traditions" onClose={onClose} />
         </div>
       </div>
     </>

@@ -12,6 +12,7 @@ import {
   Loader2,
   Cpu,
 } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import { isUsingWorker } from "@/lib/computation-worker";
 import * as d3 from "d3";
 
@@ -802,6 +803,8 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
               </p>
             </div>
           )}
+
+          <VisualizationRecommendations panelType="correlation" onClose={onClose} />
         </div>
       </div>
     </>

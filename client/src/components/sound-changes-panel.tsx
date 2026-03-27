@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, Zap, ChevronRight, ChevronDown, Filter } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 
 interface SoundChange {
   id: string;
@@ -421,6 +422,8 @@ export default function SoundChangesPanel({ isOpen, onClose }: Props) {
               </div>
             </div>
           )}
+
+          <VisualizationRecommendations panelType="sound-changes" onClose={onClose} />
         </div>
       </div>
     </>
