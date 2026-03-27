@@ -84,6 +84,30 @@ export interface CivilizationProperties extends GeoJsonProperties {
 export type CivilizationFeature = Feature<Polygon | MultiPolygon, CivilizationProperties>;
 
 // ============================================================================
+// Empire Timeline Types
+// ============================================================================
+
+export type EmpirePhase = 'founding' | 'rise' | 'expansion' | 'peak' | 'decline' | 'collapse';
+
+export interface EmpireTimelineProperties extends GeoJsonProperties {
+  empireId: string;
+  name: string;
+  phase: EmpirePhase;
+  timePeriod: TimePeriod;
+  capital?: string;
+  territoryKm2?: number;
+  population?: number;
+  keyEvent: string;
+  successorId?: string;
+  predecessorId?: string;
+  associatedLanguageIds: string[];
+  sources: string[];
+  notes?: string;
+}
+
+export type EmpireTimelineFeature = Feature<Polygon | MultiPolygon, EmpireTimelineProperties>;
+
+// ============================================================================
 // Historical Route Types
 // ============================================================================
 
@@ -222,7 +246,8 @@ export type LayerType =
   | 'ingredient-origins'
   | 'cooking-techniques'
   | 'mythology'
-  | 'urheimat-hypotheses';
+  | 'urheimat-hypotheses'
+  | 'empires-timeline';
 
 export type LayerCategory =
   | 'languages'

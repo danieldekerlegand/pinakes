@@ -843,6 +843,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get empires timeline
+  app.get("/api/map/empires-timeline", async (req, res) => {
+    try {
+      const { timeStart, timeEnd, empireId, phase } = req.query;
+
+      const filters = {
+        timeStart: timeStart ? parseInt(timeStart as string) : undefined,
+        timeEnd: timeEnd ? parseInt(timeEnd as string) : undefined,
+        empireId: empireId as string | undefined,
+        phase: phase as string | undefined,
+      };
+
+      const features = await storage.getEmpiresTimeline(filters);
+
+      res.json({
+        type: "FeatureCollection",
+        features,
+        metadata: filters,
+      });
+    } catch (error) {
+      console.error("Error fetching empires timeline:", error);
+      res.status(500).json({
+        message: "Failed to fetch empires timeline",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Get historical routes
   app.get("/api/map/routes", async (req, res) => {
     try {

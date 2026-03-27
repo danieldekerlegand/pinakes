@@ -13,6 +13,7 @@ import type {
   ArchaeologicalSiteFeature,
   ArchaeologicalCultureFeature,
   CivilizationFeature,
+  EmpireTimelineFeature,
   HistoricalRouteFeature,
   MaterialCultureDistribution,
 } from "../client/src/lib/visualization/geospatial-types";
@@ -621,6 +622,7 @@ export class TsvStorage {
   private cachedArchaeologicalSites: ArchaeologicalSiteFeature[] | null = null;
   private cachedArchaeologicalCultures: ArchaeologicalCultureFeature[] | null = null;
   private cachedCivilizations: CivilizationFeature[] | null = null;
+  private cachedEmpiresTimeline: EmpireTimelineFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
   private cachedMaterialCultureDistributions: MaterialCultureDistribution[] | null = null;
   private cachedMaterialCultures: MaterialCulture[] | null = null;
@@ -1701,6 +1703,100 @@ export class TsvStorage {
     this.loadCivilizations();
     let features = this.cachedCivilizations ?? [];
     features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
+    return features;
+  }
+
+  /**
+   * Load empires timeline data
+   */
+  private loadEmpiresTimeline(): void {
+    if (this.cachedEmpiresTimeline) return;
+
+    const text = this.readFileIfExists("lexicons/empires-timeline.tsv");
+    if (!text) { this.cachedEmpiresTimeline = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const empireIdx = getIdx(header, "empire_id");
+    const nameIdx = getIdx(header, "name");
+    const phaseIdx = header.indexOf("phase");
+    const startIdx = header.indexOf("time_start");
+    const endIdx = header.indexOf("time_end");
+    const labelIdx = header.indexOf("time_label");
+    const geoIdx = header.indexOf("geometry");
+    const capIdx = header.indexOf("capital");
+    const areaIdx = header.indexOf("territory_km2");
+    const popIdx = header.indexOf("population");
+    const eventIdx = header.indexOf("key_event");
+    const succIdx = header.indexOf("successor_id");
+    const predIdx = header.indexOf("predecessor_id");
+    const langIdx = header.indexOf("associated_language_ids");
+    const srcIdx = header.indexOf("sources");
+    const notesIdx = header.indexOf("notes");
+
+    const parseArr = (r: string[], idx: number): string[] => {
+      if (idx < 0 || !r[idx]) return [];
+      try { return JSON.parse(r[idx]); } catch { return []; }
+    };
+
+    this.cachedEmpiresTimeline = rows
+      .map((row) => {
+        let geometry;
+        try {
+          geometry = geoIdx >= 0 && row[geoIdx] ? JSON.parse(row[geoIdx]) : null;
+        } catch { geometry = null; }
+        if (!geometry) {
+          geometry = { type: "Polygon" as const, coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
+        }
+
+        const tStart = startIdx >= 0 && row[startIdx] ? parseInt(row[startIdx], 10) : 0;
+        const tEnd = endIdx >= 0 && row[endIdx] && row[endIdx] !== "null" ? parseInt(row[endIdx], 10) : null;
+
+        return {
+          type: "Feature" as const,
+          id: row[idIdx],
+          geometry,
+          properties: {
+            empireId: row[empireIdx],
+            name: row[nameIdx],
+            phase: (phaseIdx >= 0 ? row[phaseIdx] : "peak") as EmpireTimelineFeature["properties"]["phase"],
+            timePeriod: {
+              start: tStart,
+              end: tEnd,
+              label: labelIdx >= 0 ? row[labelIdx] || "" : "",
+            },
+            capital: capIdx >= 0 ? row[capIdx] || undefined : undefined,
+            territoryKm2: areaIdx >= 0 && row[areaIdx] ? parseInt(row[areaIdx], 10) : undefined,
+            population: popIdx >= 0 && row[popIdx] ? parseInt(row[popIdx], 10) : undefined,
+            keyEvent: eventIdx >= 0 ? row[eventIdx] || "" : "",
+            successorId: succIdx >= 0 ? row[succIdx] || undefined : undefined,
+            predecessorId: predIdx >= 0 ? row[predIdx] || undefined : undefined,
+            associatedLanguageIds: parseArr(row, langIdx),
+            sources: parseArr(row, srcIdx),
+            notes: notesIdx >= 0 ? row[notesIdx] || undefined : undefined,
+          },
+        } as EmpireTimelineFeature;
+      });
+  }
+
+  /**
+   * Get empires timeline with optional filtering
+   */
+  async getEmpiresTimeline(filters?: {
+    timeStart?: number;
+    timeEnd?: number;
+    empireId?: string;
+    phase?: string;
+  }): Promise<EmpireTimelineFeature[]> {
+    this.loadEmpiresTimeline();
+    let features = this.cachedEmpiresTimeline ?? [];
+    features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
+    if (filters?.empireId) {
+      features = features.filter((f) => f.properties.empireId === filters!.empireId);
+    }
+    if (filters?.phase) {
+      features = features.filter((f) => f.properties.phase === filters!.phase);
+    }
     return features;
   }
 
