@@ -838,3 +838,19 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Agent 8: Reusable GeoDistributionMap Component
+- Created generic GeoDistributionMap<T> component (client/src/components/visualizations/GeoDistributionMap.tsx)
+  - Accepts any dataset via callback props: getKey, getCoordinates, getMarkerStyle, renderPopup
+  - Supports selection state, legends, auto-fit bounds, configurable zoom
+  - Empty state with customizable messages
+  - Built on react-leaflet (MapContainer, TileLayer, CircleMarker, Popup)
+  - Consistent with existing map components (LanguageMapView, HaplogroupLayer patterns)
+- Extracted utility types and functions to geo-distribution-utils.ts for testability
+  - GeoDataPoint, MarkerStyle, LegendItem types
+  - computeCenter() and computeBounds() pure functions
+- Created GeoDistributionMap.test.ts with 15 tests (all passing)
+  - Tests computeCenter with empty, single, multi-point, and negative coordinate cases
+  - Tests computeBounds conversion and ordering
+  - Tests type contracts for GeoDataPoint, MarkerStyle, LegendItem
+  - Tests common marker style patterns (size by value, selection styling)
