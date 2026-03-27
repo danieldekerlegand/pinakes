@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/co
 import { Badge } from '../../ui/badge';
 import type { LayerConfig } from '../../../lib/visualization/geospatial-types';
 import { LAYER_PRESETS } from '../../../lib/visualization/geospatial-types';
+import { SLIDER_COLORS } from '../../../lib/visualization/color-theme';
 import 'rc-slider/assets/index.css';
 
 interface LayerPanelProps {
@@ -275,10 +276,10 @@ export function LayerPanel({
                                             onOpacityChange(layer.id, value / 100);
                                           }
                                         }}
-                                        trackStyle={{ backgroundColor: '#3b82f6', height: 4 }}
-                                        railStyle={{ backgroundColor: '#e5e7eb', height: 4 }}
+                                        trackStyle={{ backgroundColor: SLIDER_COLORS.track, height: 4 }}
+                                        railStyle={{ backgroundColor: SLIDER_COLORS.rail, height: 4 }}
                                         handleStyle={{
-                                          borderColor: '#3b82f6',
+                                          borderColor: SLIDER_COLORS.track,
                                           height: 14,
                                           width: 14,
                                           marginTop: -5,

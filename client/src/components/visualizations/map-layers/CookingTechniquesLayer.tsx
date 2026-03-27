@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { COOKING_TECHNIQUE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface CookingTechniqueFeature {
   id: string;
@@ -21,17 +22,7 @@ interface CookingTechniquesLayerProps {
 }
 
 const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    'heat': '#ef4444',
-    'fermentation': '#22c55e',
-    'preservation': '#3b82f6',
-    'preparation': '#f97316',
-    'sauce': '#a855f7',
-    'dough': '#eab308',
-    'dairy': '#14b8a6',
-    'beverage': '#6366f1',
-  };
-  return colors[category.toLowerCase()] || '#6b7280';
+  return COOKING_TECHNIQUE_COLORS[category.toLowerCase()] || INTERACTION_COLORS.defaultFallback;
 };
 
 const getCategoryIcon = (category: string): string => {
@@ -74,9 +65,9 @@ export function CookingTechniquesLayer({
             center={[lat, lng]}
             radius={isSelected ? 10 : 6}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 1.5,
             }}
             eventHandlers={{

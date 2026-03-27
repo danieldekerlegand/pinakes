@@ -3,6 +3,7 @@ import { GeoJSON } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalCultureFeature } from '../../../lib/visualization/geospatial-types';
+import { ARCHAEOLOGICAL_CULTURE_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface ArchaeologicalCultureLayerProps {
   features: ArchaeologicalCultureFeature[];
@@ -12,24 +13,11 @@ interface ArchaeologicalCultureLayerProps {
 }
 
 const getCultureColor = (cultureId: string): string => {
-  const colors = [
-    '#d97706', // amber-600
-    '#dc2626', // red-600
-    '#7c3aed', // violet-600
-    '#059669', // emerald-600
-    '#2563eb', // blue-600
-    '#db2777', // pink-600
-    '#ca8a04', // yellow-600
-    '#0891b2', // cyan-600
-    '#9333ea', // purple-600
-    '#ea580c', // orange-600
-  ];
-
   let hash = 0;
   for (let i = 0; i < cultureId.length; i++) {
     hash = cultureId.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return colors[Math.abs(hash) % colors.length];
+  return ARCHAEOLOGICAL_CULTURE_PALETTE[Math.abs(hash) % ARCHAEOLOGICAL_CULTURE_PALETTE.length];
 };
 
 export function ArchaeologicalCultureLayer({
@@ -44,9 +32,9 @@ export function ArchaeologicalCultureLayer({
     const color = getCultureColor(props.cultureId);
 
     return {
-      fillColor: isSelected ? '#3b82f6' : color,
+      fillColor: isSelected ? INTERACTION_COLORS.selected : color,
       fillOpacity: isSelected ? 0.35 : opacity * 0.4,
-      color: isSelected ? '#1d4ed8' : color,
+      color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.7,
       dashArray: '8, 4', // Longer dashes to distinguish from civilizations

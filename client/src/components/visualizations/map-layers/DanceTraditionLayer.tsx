@@ -2,6 +2,7 @@ import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { DANCE_TYPE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface DanceTraditionFeature {
   id: string;
@@ -28,16 +29,7 @@ interface DanceTraditionLayerProps {
 }
 
 const getDanceTypeColor = (danceType: string): string => {
-  const colors: Record<string, string> = {
-    'classical': '#7c3aed',    // violet
-    'folk': '#16a34a',         // green
-    'ceremonial': '#e11d48',   // rose
-    'social': '#f59e0b',       // amber
-    'martial': '#dc2626',      // red
-    'spiritual': '#0891b2',    // cyan
-    'contemporary': '#2563eb', // blue
-  };
-  return colors[danceType.toLowerCase()] ?? '#6b7280';
+  return DANCE_TYPE_COLORS[danceType.toLowerCase()] ?? INTERACTION_COLORS.defaultFallback;
 };
 
 const formatTimePeriod = (start: number | null, end: number | null): string => {
@@ -74,9 +66,9 @@ export function DanceTraditionLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

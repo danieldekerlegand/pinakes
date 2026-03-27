@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { MarkerClusterGroup } from './MarkerClusterGroup';
+import { BATTLE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface BattleFeature {
   id: string;
@@ -85,7 +86,7 @@ export function BattlesLayer({
       const [lat, lng] = battle.coordinates;
       return {
         position: [lat, lng] as [number, number],
-        color: '#ef4444',
+        color: BATTLE_COLORS.fill,
         radius: 8,
         popupContent: `<div class="p-2"><strong>${battle.name}</strong><br/>${battle.date}</div>`,
       };
@@ -123,9 +124,9 @@ export function BattlesLayer({
             center={[lat, lng]}
             radius={isFlashing ? 14 : 8}
             pathOptions={{
-              fillColor: isFlashing ? '#fbbf24' : '#ef4444',
+              fillColor: isFlashing ? INTERACTION_COLORS.flashFill : BATTLE_COLORS.fill,
               fillOpacity: isFlashing ? 1 : opacity * fadeOpacity,
-              color: isFlashing ? '#f59e0b' : '#dc2626',
+              color: isFlashing ? INTERACTION_COLORS.flashBorder : BATTLE_COLORS.border,
               weight: isFlashing ? 4 : 2,
             }}
           >

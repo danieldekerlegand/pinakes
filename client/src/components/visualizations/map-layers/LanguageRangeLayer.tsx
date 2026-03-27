@@ -7,6 +7,7 @@ import { smoothFeatures } from '../../../lib/visualization/spline-interpolation'
 import type { LanguageRangeFeature } from '../../../lib/visualization/geospatial-types';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface LanguageRangeLayerProps {
   features: LanguageRangeFeature[];
@@ -36,9 +37,9 @@ export function LanguageRangeLayer({
     const familyColor = getFamilyColor(props.familyId);
 
     return {
-      fillColor: isSelected ? '#3b82f6' : familyColor,
+      fillColor: isSelected ? INTERACTION_COLORS.selected : familyColor,
       fillOpacity: isSelected ? 0.5 : opacity * 0.5,
-      color: isSelected ? '#1d4ed8' : '#ffffff',
+      color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.8,
     };

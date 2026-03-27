@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { REGION_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface IngredientOriginFeature {
   id: string;
@@ -22,35 +23,12 @@ interface IngredientOriginsLayerProps {
 }
 
 const getRegionColor = (region: string): string => {
-  const colors: Record<string, string> = {
-    'East Asia': '#ef4444',
-    'South Asia': '#f97316',
-    'Southeast Asia': '#eab308',
-    'Middle East': '#84cc16',
-    'East Africa': '#22c55e',
-    'Mediterranean': '#14b8a6',
-    'Central America': '#ec4899',
-    'Mesoamerica': '#ec4899',
-    'South America': '#f43f5e',
-    'Andes': '#f43f5e',
-    'Northern Europe': '#3b82f6',
-    'Central Asia': '#a855f7',
-    'Caucasus': '#a855f7',
-    'Fertile Crescent': '#84cc16',
-    'Africa': '#22c55e',
-    'North Atlantic': '#6366f1',
-    'Japan': '#ef4444',
-    'Greece': '#14b8a6',
-    'Iran': '#84cc16',
-    'Southern China': '#ef4444',
-  };
-
-  for (const [key, color] of Object.entries(colors)) {
+  for (const [key, color] of Object.entries(REGION_COLORS)) {
     if (region.toLowerCase().includes(key.toLowerCase())) {
       return color;
     }
   }
-  return '#6b7280';
+  return INTERACTION_COLORS.defaultFallback;
 };
 
 const formatYear = (year: number) => {
@@ -79,9 +57,9 @@ export function IngredientOriginsLayer({
             center={[lat, lng]}
             radius={isSelected ? 10 : 6}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 1.5,
             }}
             eventHandlers={{

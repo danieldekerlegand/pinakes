@@ -2,6 +2,7 @@ import React from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
+import { REGION_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 export interface CuisineFeature {
   id: string;
@@ -25,27 +26,13 @@ interface CuisineLayerProps {
 
 // Region-based color scheme
 const getRegionColor = (region: string): string => {
-  const colors: Record<string, string> = {
-    'East Asia': '#ef4444', // red
-    'South Asia': '#f97316', // orange
-    'Southeast Asia': '#eab308', // yellow
-    'Middle East': '#84cc16', // lime
-    'East Africa': '#22c55e', // green
-    'Southern Europe': '#14b8a6', // teal
-    'Western Europe': '#3b82f6', // blue
-    'Central Europe': '#6366f1', // indigo
-    'Caucasus': '#a855f7', // purple
-    'North America': '#ec4899', // pink
-    'South America': '#f43f5e', // rose
-  };
-  
   // Find matching region
-  for (const [key, color] of Object.entries(colors)) {
+  for (const [key, color] of Object.entries(REGION_COLORS)) {
     if (region.toLowerCase().includes(key.toLowerCase())) {
       return color;
     }
   }
-  return '#6b7280'; // gray default
+  return INTERACTION_COLORS.defaultFallback;
 };
 
 // Format time period for display
@@ -84,9 +71,9 @@ export function CuisineLayer({
             center={[lat, lng]}
             radius={isSelected ? 12 : 8}
             pathOptions={{
-              fillColor: isSelected ? '#3b82f6' : color,
+              fillColor: isSelected ? INTERACTION_COLORS.selected : color,
               fillOpacity: isSelected ? 0.9 : opacity,
-              color: isSelected ? '#1d4ed8' : '#ffffff',
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
               weight: isSelected ? 3 : 2,
             }}
             eventHandlers={{

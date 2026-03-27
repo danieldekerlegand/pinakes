@@ -5,6 +5,7 @@ import { TreeVisualization } from './shared/TreeVisualization';
 import type { TreeVisualizationConfig } from './shared/TreeVisualization';
 import type { TreeNode, TooltipData } from '../../lib/visualization/types';
 import { getLevelBorderColor } from '../../lib/visualization/d3-helpers';
+import { INTERACTION_COLORS, VIS_TEXT_COLORS } from '../../lib/visualization/color-theme';
 
 interface LanguageTreeViewProps {
   treeData: TreeNode[];
@@ -42,12 +43,12 @@ export function LanguageTreeView({ treeData, onNodeClick }: LanguageTreeViewProp
         .attr('fill', (d) => {
           const selected = d.data.type === 'language' && isLanguageSelected(d.data.id);
           const highlighted = isHighlighted(d.data.id);
-          if (selected || highlighted) return '#3b82f6';
+          if (selected || highlighted) return INTERACTION_COLORS.selected;
           return getLevelBorderColor(d.data.level);
         })
         .attr('stroke', (d) => {
           const selected = d.data.type === 'language' && isLanguageSelected(d.data.id);
-          if (selected) return '#1d4ed8';
+          if (selected) return INTERACTION_COLORS.selectedBorder;
           return '#fff';
         })
         .attr('stroke-width', (d) => {
@@ -64,7 +65,7 @@ export function LanguageTreeView({ treeData, onNodeClick }: LanguageTreeViewProp
         .text((d) => d.data.name)
         .attr('font-size', (d) => (d.data.type === 'family' ? '14px' : '12px'))
         .attr('font-weight', (d) => (d.data.type === 'family' ? 600 : 400))
-        .attr('fill', '#374151');
+        .attr('fill', VIS_TEXT_COLORS.dark);
 
       // Interactions
       nodeGroup

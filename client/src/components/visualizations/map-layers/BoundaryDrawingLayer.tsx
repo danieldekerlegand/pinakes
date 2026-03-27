@@ -2,6 +2,7 @@ import React, { useRef, useCallback } from 'react';
 import { useMapEvents, Polyline, Polygon, CircleMarker, Tooltip } from 'react-leaflet';
 import type { Position } from 'geojson';
 import type { DrawingToolReturn } from '../hooks/useDrawingTool';
+import { BOUNDARY_DRAWING_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
 interface BoundaryDrawingLayerProps {
   drawing: DrawingToolReturn;
@@ -61,8 +62,8 @@ export function BoundaryDrawingLayer({ drawing }: BoundaryDrawingLayerProps) {
   // Convert [lng, lat] positions to [lat, lng] for Leaflet
   const latLngs = state.vertices.map((v) => [v[1], v[0]] as [number, number]);
 
-  const shapeColor = '#3b82f6';
-  const fillColor = '#3b82f680';
+  const shapeColor = BOUNDARY_DRAWING_COLORS.shape;
+  const fillColor = BOUNDARY_DRAWING_COLORS.shapeFill;
 
   return (
     <>
@@ -96,8 +97,8 @@ export function BoundaryDrawingLayer({ drawing }: BoundaryDrawingLayerProps) {
           center={pos}
           radius={state.selectedVertexIndex === i ? 7 : 5}
           pathOptions={{
-            color: state.selectedVertexIndex === i ? '#ef4444' : '#ffffff',
-            fillColor: state.selectedVertexIndex === i ? '#ef4444' : shapeColor,
+            color: state.selectedVertexIndex === i ? BOUNDARY_DRAWING_COLORS.vertexSelected : INTERACTION_COLORS.defaultNodeBorder,
+            fillColor: state.selectedVertexIndex === i ? BOUNDARY_DRAWING_COLORS.vertexSelected : shapeColor,
             fillOpacity: 1,
             weight: 2,
           }}

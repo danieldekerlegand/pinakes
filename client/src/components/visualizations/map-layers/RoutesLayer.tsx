@@ -3,6 +3,7 @@ import { Polyline, Popup } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { HistoricalRouteFeature } from '../../../lib/visualization/geospatial-types';
+import { ROUTE_TYPE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 
@@ -47,17 +48,7 @@ export function RoutesLayer({
   }, [isAnimating]);
   // Get color based on route type
   const getRouteColor = (routeType: string): string => {
-    const colors: Record<string, string> = {
-      trade: '#22c55e', // green
-      migration: '#3b82f6', // blue
-      conquest: '#ef4444', // red
-      colonization: '#f97316', // orange
-      diaspora: '#eab308', // yellow
-      pilgrimage: '#a855f7', // purple
-      communication: '#06b6d4', // cyan
-      unknown: '#9ca3af', // gray
-    };
-    return colors[routeType] || colors.unknown;
+    return ROUTE_TYPE_COLORS[routeType] || ROUTE_TYPE_COLORS.unknown;
   };
 
   // Get dash pattern based on route type
@@ -96,7 +87,7 @@ export function RoutesLayer({
             key={feature.id}
             positions={positions}
             pathOptions={{
-              color: isSelected ? '#1d4ed8' : color,
+              color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
               weight: isSelected ? 5 : 3,
               opacity: isSelected ? 1 : opacity,
               dashArray: isAnimating ? '10, 10' : (isSelected ? undefined : dashArray),

@@ -10,6 +10,7 @@ import {
   createDragBehavior,
   createZoomBehavior,
 } from '../../lib/visualization/d3-helpers';
+import { INTERACTION_COLORS, VIS_TEXT_COLORS } from '../../lib/visualization/color-theme';
 
 const CANVAS_THRESHOLD = 500;
 
@@ -56,7 +57,7 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
     ctx.scale(transform.k, transform.k);
 
     // Draw links
-    ctx.strokeStyle = '#cbd5e0';
+    ctx.strokeStyle = INTERACTION_COLORS.defaultLink;
     ctx.globalAlpha = 0.6;
     for (const link of networkData.links) {
       const source = link.source as any;
@@ -79,16 +80,16 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
       ctx.beginPath();
       ctx.arc(x, y, node.size, 0, 2 * Math.PI);
 
-      ctx.fillStyle = (selected || highlighted) ? '#3b82f6' : getFamilyColor(node.group);
+      ctx.fillStyle = (selected || highlighted) ? INTERACTION_COLORS.selected : getFamilyColor(node.group);
       ctx.fill();
 
-      ctx.strokeStyle = selected ? '#1d4ed8' : isPinned(node.id) ? '#ef4444' : '#ffffff';
+      ctx.strokeStyle = selected ? INTERACTION_COLORS.selectedBorder : isPinned(node.id) ? INTERACTION_COLORS.pinned : INTERACTION_COLORS.defaultNodeBorder;
       ctx.lineWidth = (selected || isPinned(node.id)) ? 3 : 2;
       ctx.stroke();
     }
 
     // Draw labels for family nodes
-    ctx.fillStyle = '#374151';
+    ctx.fillStyle = VIS_TEXT_COLORS.dark;
     ctx.textAlign = 'center';
     for (const node of networkData.nodes) {
       if (node.type !== 'family' && !state.viewSettings.network.showLabels) continue;
@@ -239,7 +240,7 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
       .data(networkData.links)
       .join('line')
       .attr('class', 'link')
-      .attr('stroke', '#cbd5e0')
+      .attr('stroke', INTERACTION_COLORS.defaultLink)
       .attr('stroke-width', (d) => d.type === 'family-child' ? 2 : 1)
       .attr('stroke-opacity', 0.6);
 
@@ -252,14 +253,14 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
       .attr('fill', (d) => {
         const selected = d.type === 'language' && isLanguageSelected(d.id);
         const highlighted = isHighlighted(d.id);
-        if (selected || highlighted) return '#3b82f6';
+        if (selected || highlighted) return INTERACTION_COLORS.selected;
         return getFamilyColor(d.group);
       })
       .attr('stroke', (d) => {
         const selected = d.type === 'language' && isLanguageSelected(d.id);
-        if (selected) return '#1d4ed8';
-        if (isPinned(d.id)) return '#ef4444';
-        return '#fff';
+        if (selected) return INTERACTION_COLORS.selectedBorder;
+        if (isPinned(d.id)) return INTERACTION_COLORS.pinned;
+        return INTERACTION_COLORS.defaultNodeBorder;
       })
       .attr('stroke-width', (d) => {
         const selected = d.type === 'language' && isLanguageSelected(d.id);
@@ -277,7 +278,7 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
       .attr('text-anchor', 'middle')
       .attr('font-size', (d) => d.type === 'family' ? '12px' : '10px')
       .attr('font-weight', (d) => d.type === 'family' ? 600 : 400)
-      .attr('fill', '#374151')
+      .attr('fill', VIS_TEXT_COLORS.dark)
       .attr('pointer-events', 'none')
       .text((d) => d.name.length > 20 ? d.name.substring(0, 17) + '...' : d.name);
 
@@ -293,7 +294,7 @@ export function LanguageNetworkView({ networkData, onNodeClick }: LanguageNetwor
 
           // Update stroke to show pinned state
           d3.select(this)
-            .attr('stroke', isPinned(d.id) ? '#ef4444' : '#fff')
+            .attr('stroke', isPinned(d.id) ? INTERACTION_COLORS.pinned : INTERACTION_COLORS.defaultNodeBorder)
             .attr('stroke-width', isPinned(d.id) ? 3 : 2);
         } else {
           if (onNodeClick) {

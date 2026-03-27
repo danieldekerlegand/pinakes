@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Circle, Popup, Tooltip } from 'react-leaflet';
 import { Badge } from '../../ui/badge';
+import { GENETIC_CORRELATION_COLORS, INTERACTION_COLORS, correlationColor } from '../../../lib/visualization/color-theme';
 
 export interface CorrelationFeature {
   haplogroupId: string;
@@ -106,10 +107,7 @@ function getCoordinatesForRegion(region: string): { lat: number; lng: number } {
 
 // Color based on correlation score (green = high, yellow = medium, red = low/divergence)
 function getCorrelationColor(score: number, isDivergence: boolean): string {
-  if (isDivergence) return '#ef4444'; // red for divergences
-  if (score >= 0.7) return '#22c55e'; // green - strong correlation
-  if (score >= 0.4) return '#eab308'; // yellow - moderate
-  return '#f97316'; // orange - weak
+  return correlationColor(score, isDivergence);
 }
 
 export function GeneticLinguisticCorrelationLayer({
@@ -196,8 +194,8 @@ export function GeneticLinguisticCorrelationLayer({
                     variant="outline"
                     className="text-xs"
                     style={{
-                      borderColor: hapType === 'Y-chromosome' ? '#16a34a' : '#9333ea',
-                      color: hapType === 'Y-chromosome' ? '#16a34a' : '#9333ea',
+                      borderColor: hapType === 'Y-chromosome' ? GENETIC_CORRELATION_COLORS.yChromosome : GENETIC_CORRELATION_COLORS.mtDNA,
+                      color: hapType === 'Y-chromosome' ? GENETIC_CORRELATION_COLORS.yChromosome : GENETIC_CORRELATION_COLORS.mtDNA,
                     }}
                   >
                     {hapType}
@@ -270,9 +268,9 @@ export function GeneticLinguisticCorrelationLayer({
               center={[coords.lat + i * 2, coords.lng + i * 3]}
               radius={80000}
               pathOptions={{
-                fillColor: '#ef4444',
+                fillColor: GENETIC_CORRELATION_COLORS.divergence,
                 fillOpacity: opacity * 0.25,
-                color: '#ef4444',
+                color: GENETIC_CORRELATION_COLORS.divergence,
                 weight: 2,
                 dashArray: '6 3',
                 opacity: opacity * 0.7,

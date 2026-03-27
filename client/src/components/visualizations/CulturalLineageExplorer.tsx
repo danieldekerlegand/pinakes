@@ -45,15 +45,12 @@ interface LineageLink {
   timeEnd: number;
 }
 
-const RELATIONSHIP_COLORS: Record<string, string> = {
-  'split-from': '#3b82f6',
-  'evolved-into': '#10b981',
-  'gave-rise-to': '#f59e0b',
-  'influenced': '#8b5cf6',
-  'associated-with': '#ec4899',
-  'possibly-associated': '#94a3b8',
-  'preceded-by': '#f97316',
-};
+import {
+  RELATIONSHIP_COLORS,
+  NODE_STATE_COLORS,
+  VIS_TEXT_COLORS,
+  INTERACTION_COLORS,
+} from '../../lib/visualization/color-theme';
 
 const RELATIONSHIP_LABELS: Record<string, string> = {
   'split-from': 'Split From',
@@ -253,7 +250,7 @@ export function CulturalLineageExplorer() {
       .data(filteredGraph.links)
       .enter()
       .append('line')
-      .attr('stroke', (d) => RELATIONSHIP_COLORS[d.relationshipType] || '#94a3b8')
+      .attr('stroke', (d) => RELATIONSHIP_COLORS[d.relationshipType] || INTERACTION_COLORS.defaultFallback)
       .attr('stroke-width', (d) => confidenceScale(d.confidence))
       .attr('stroke-opacity', (d) => {
         if (!selectedNode) return 0.6;
@@ -264,7 +261,7 @@ export function CulturalLineageExplorer() {
       .attr('marker-end', (d) => `url(#arrow-${d.relationshipType})`)
       .style('cursor', 'pointer')
       .on('mouseover', function (event, d) {
-        const color = RELATIONSHIP_COLORS[d.relationshipType] || '#94a3b8';
+        const color = RELATIONSHIP_COLORS[d.relationshipType] || INTERACTION_COLORS.defaultFallback;
         d3.select(this).attr('stroke-width', confidenceScale(d.confidence) + 2);
         setTooltip({
           visible: true,
@@ -338,14 +335,14 @@ export function CulturalLineageExplorer() {
     node.append('circle')
       .attr('r', (d) => (d.id === selectedNode ? 12 : 8))
       .attr('fill', (d) => {
-        if (d.id === selectedNode) return '#2563eb';
-        if (highlightedIds.has(d.id)) return '#60a5fa';
-        return '#cbd5e1';
+        if (d.id === selectedNode) return NODE_STATE_COLORS.selectedFill;
+        if (highlightedIds.has(d.id)) return NODE_STATE_COLORS.highlightedFill;
+        return NODE_STATE_COLORS.defaultFill;
       })
       .attr('stroke', (d) => {
-        if (d.id === selectedNode) return '#1d4ed8';
-        if (highlightedIds.has(d.id)) return '#3b82f6';
-        return '#94a3b8';
+        if (d.id === selectedNode) return NODE_STATE_COLORS.selectedStroke;
+        if (highlightedIds.has(d.id)) return NODE_STATE_COLORS.highlightedStroke;
+        return NODE_STATE_COLORS.defaultStroke;
       })
       .attr('stroke-width', (d) => (d.id === selectedNode ? 3 : 1.5))
       .attr('opacity', (d) => {
@@ -359,8 +356,8 @@ export function CulturalLineageExplorer() {
       .attr('dy', 4)
       .attr('font-size', '11px')
       .attr('fill', (d) => {
-        if (!selectedNode) return '#374151';
-        return highlightedIds.has(d.id) ? '#1f2937' : '#9ca3af';
+        if (!selectedNode) return VIS_TEXT_COLORS.dark;
+        return highlightedIds.has(d.id) ? VIS_TEXT_COLORS.darker : VIS_TEXT_COLORS.muted;
       })
       .attr('font-weight', (d) => (d.id === selectedNode ? 'bold' : 'normal'));
 
@@ -376,10 +373,10 @@ export function CulturalLineageExplorer() {
     axisG.call(timeAxis)
       .selectAll('text')
       .attr('font-size', '10px')
-      .attr('fill', '#6b7280');
+      .attr('fill', VIS_TEXT_COLORS.axisLabel);
 
-    axisG.select('.domain').attr('stroke', '#d1d5db');
-    axisG.selectAll('.tick line').attr('stroke', '#e5e7eb');
+    axisG.select('.domain').attr('stroke', VIS_TEXT_COLORS.axisDomain);
+    axisG.selectAll('.tick line').attr('stroke', VIS_TEXT_COLORS.axisTick);
 
     // Simulation tick
     simulation.on('tick', () => {
