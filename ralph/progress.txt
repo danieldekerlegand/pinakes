@@ -1,0 +1,364 @@
+# Ralph Progress Log
+Started: Thu Mar 12 00:45:34 CDT 2026
+
+## Codebase Patterns
+- TSV files live in `lexicons/` directory — all data storage uses TSV format
+- Language IDs in data files must match the `id` column in `lexicons/languages.tsv`
+- Pre-existing typecheck errors exist in visualization and map components — not related to new data work
+- Genre values for sample-texts: prose, poetry, religious, legal, inscription, conversational
+- Language detail panel uses collapsible sections with `enabled: showX` lazy-loading pattern for data queries
+- Old Irish (sga) is not in languages.tsv; used `gle` (Irish) as substitute
+- Classical Chinese is not in languages.tsv; used `och` (Old Chinese) as closest match
+- TSV loader pattern: `parseTsv()` + `getIdx()` (required) / `header.indexOf()` (optional), cache in `private cachedX`, lazy-load in `private loadX()`
+- API route pattern: try/catch, list endpoints return `{ items, count, filters }`, single-item endpoints return object or 404
+- Etymology relation direction: source_word is derived FROM target_word — ancestors go source→target, descendants go target→source
+- Etymology trace uses `traceEtymology`/`traceDescendants` from `server/services/etymology-trace.ts`
+- Missing from languages.tsv: Urdu, Middle English, Old French — use substitutes (kmr for Urdu, arc/goh for ME/OF)
+- TypeScript target doesn't support `\p{L}` regex or `for..of` on Map/Set — use explicit Unicode ranges and `.forEach()` instead
+- TSV files may have `\r\n` line endings — normalize with `sed -i '' 's/\r$//'` when appending data from scripts
+- Text analysis service: `analyzeTextOrigins` from `server/services/text-etymology-analyzer.ts`
+- Routing: `wouter` with `useLocation` hook — `const [, navigate] = useLocation()` for programmatic navigation
+- POST endpoints use `useMutation` with `apiRequest("POST", url, data)` + `res.json()` for response parsing
+- New pages: create in `client/src/pages/`, add route in `App.tsx`, add nav button in dashboard header
+- Recharts: import directly from `recharts` (not via shadcn chart wrapper); use `PieChart` + `Pie` with `innerRadius` for donut charts, `Cell` for colors
+- shadcn Tooltip: import as `UITooltip` when Recharts `Tooltip` is also imported; pattern: `TooltipProvider` > `UITooltip` > `TooltipTrigger asChild` > `TooltipContent`
+- URL search params: use `new URLSearchParams(window.location.search)` — wouter doesn't handle search params natively
+- D3 tree component pattern: `useRef` for SVG, `useVisualizationResize` for responsive sizing, `createZoomBehavior` for pan/zoom, `d3.tree()` + `d3.hierarchy()` for layout
+- Etymology tree page at `/word-etymology` accepts `?word=X&language=Y` URL params for deep linking from other pages
+
+---
+
+## 2026-03-12 - US-001
+- Created `lexicons/sample-texts.tsv` with 56 sample text entries
+- Columns: id, language_id, title, text, transliteration, translation_en, source, date_composed, genre, script
+- 15 major languages with 3 texts each (45 texts): eng, spa, fra, deu, ita, por, rus, arb, cmn, hin, jpn, kor, tur, swa, ell
+- 10 historical/dead languages with 1+ text each (11 texts): lat (2), grc, san, ang, non, got, sux, akk, gle (for Old Irish), och (for Classical Chinese)
+- Files changed: `lexicons/sample-texts.tsv` (created)
+- **Learnings for future iterations:**
+  - `gle` (Irish) was used as a substitute for Old Irish (sga) which doesn't exist in languages.tsv
+  - `och` (Old Chinese) was used for Classical Chinese — no separate Classical Chinese entry exists
+  - Transliteration column is left with a space (" ") for Latin-script languages since empty fields could cause TSV parsing issues
+  - Pre-existing typecheck errors in the codebase are unrelated to data files
+---
+
+## 2026-03-12 - US-002
+- Added `SampleText` interface and TSV loader to `server/tsv-storage.ts`
+- Added three API endpoints:
+  - `GET /api/sample-texts` with optional `language_id`, `genre`, `script` query params
+  - `GET /api/sample-texts/:id` for single text lookup
+  - `GET /api/languages/:id/sample-texts` for all texts by language
+- Files changed: `server/tsv-storage.ts`, `server/routes.ts`
+- **Learnings for future iterations:**
+  - TSV loader pattern: use `parseTsv()` + `getIdx()` for required columns, `header.indexOf()` for optional ones
+  - Cached data pattern: `private cachedX: Type[] | null = null` → `private loadX()` checks cache → `async getX()` calls loader then filters
+  - Routes pattern: wrap in try/catch, return `{ items, count, filters }` for list endpoints
+  - Transliteration field has space padding for Latin-script languages — `.trim()` it when loading
+  - `/api/languages/:id/sample-texts` does NOT conflict with `/api/languages/:id` since Express matches longer paths first
+---
+
+## 2026-03-12 - US-003
+- Added "Sample Texts" collapsible section to `language-detail-panel.tsx`
+- Fetches from `GET /api/languages/:id/sample-texts` using React Query (lazy-loaded on expand)
+- Displays original text with `dir="auto"` for proper Unicode/RTL rendering
+- Shows transliteration below text for non-Latin scripts (only when non-empty after trim)
+- English translation in a toggleable panel per text (using local `expandedTranslations` Set state)
+- Metadata displayed below each text: source, date composed, genre badge, script badge
+- Empty state message when no sample texts exist
+- Files changed: `client/src/components/language-detail-panel.tsx`
+- **Learnings for future iterations:**
+  - The language detail panel is a right-side sliding panel, not a page — keep content compact for the narrow w-96 width
+  - Pattern: lazy-load data sections with `enabled: showX` in useQuery — avoids fetching data for sections user never opens
+  - `dir="auto"` attribute handles bidirectional text (Arabic, Hebrew) rendering automatically
+  - The panel uses collapsible sections (state toggle + conditional render), not shadcn Tabs
+  - Pre-existing typecheck errors remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-004
+- Created `lexicons/etymology-relations.tsv` with 2354 etymological relationships
+- Columns: id, source_word, source_language, target_word, target_language, relation_type
+- Breakdown: 844 etymology, 835 cognate, 356 derived_from, 295 borrowed_from, 24 calque
+- Coverage: English from OE (100+), Latin/French (190+), Old Norse (65+), Greek (85+)
+- 835 cognate relationships across Indo-European (Germanic, Romance, Slavic, Indo-Aryan)
+- 295 borrowing relationships from Arabic, Japanese, Chinese, Korean, Turkish, Persian, Nahuatl, Hawaiian, Swahili, etc.
+- 132 non-Indo-European language relationships
+- Files changed: `lexicons/etymology-relations.tsv` (created)
+- **Learnings for future iterations:**
+  - Python script approach works well for generating large TSV datasets — keeps data organized and countable
+  - Pre-existing typecheck errors remain unchanged in visualization/map components
+  - The `cognate` relation is bidirectional conceptually but stored as a single row (source->target)
+  - Used real etymological data organized by section: OE->Eng, Latin->Romance, Norse->Eng, Greek->Latin->Eng, borrowings by source language
+---
+
+## 2026-03-12 - US-005
+- Added `EtymologyRelation` interface and TSV loader to `server/tsv-storage.ts`
+- Added API endpoints:
+  - `GET /api/etymology-relations` with optional `source_language`, `target_language`, `relation_type` query params
+  - `GET /api/etymology-relations/word/:word` returning all relations for a given word (matches as source or target, case-insensitive)
+- Registered routes in `server/routes.ts`
+- Files changed: `server/tsv-storage.ts`, `server/routes.ts`
+- **Learnings for future iterations:**
+  - The word lookup endpoint matches case-insensitively on both source_word and target_word fields
+  - All columns in etymology-relations.tsv are required (used `getIdx` for all)
+  - Pre-existing typecheck errors remain unchanged — no new errors introduced
+---
+
+## 2026-03-12 - US-006
+- Created `server/services/etymology-trace.ts` with `traceEtymology` and `traceDescendants` functions
+- Both functions recursively follow `derived_from`, `etymology`, and `borrowed_from` relations
+- Circular reference protection via visited-set using `word|language` composite keys
+- Returns tree structure: `{ word, language, relation, children: [...] }`
+- Added `GET /api/etymology-relations/trace/:word` endpoint with optional `?language=` and `?direction=descendants` query params
+- Registered route in `server/routes.ts`
+- Files changed: `server/services/etymology-trace.ts` (created), `server/routes.ts`
+- **Learnings for future iterations:**
+  - Etymology relations are directional: source_word is derived FROM target_word for `derived_from`, `etymology`, `borrowed_from`
+  - Tracing ancestors = follow source→target; tracing descendants = follow target→source
+  - The trace endpoint supports `?direction=descendants` to reverse the trace direction
+  - `cognate` relations are excluded from tracing since they're peer relationships, not parent-child
+  - Route ordering: `/trace/:word` and `/word/:word` don't conflict since Express matches the static segment (`trace` vs `word`) before the param
+---
+
+## 2026-03-12 - US-007
+- Created `server/services/text-etymology-analyzer.ts` with `tokenize` and `analyzeTextOrigins` functions
+- `tokenize(text, language)` splits text into normalized lowercase words, stripping punctuation
+- `analyzeTextOrigins(text, language)` tokenizes text, traces each word to its oldest known ancestor language via etymology relations, groups by origin language with counts and percentages
+- Returns structure: `{ totalWords, analyzedWords, unknownWords, origins: [{ language, languageName, count, percentage, words }] }`
+- Added `POST /api/text-analysis/origins` endpoint accepting `{ text, language }` body
+- Registered route in `server/routes.ts`
+- Files changed: `server/services/text-etymology-analyzer.ts` (created), `server/routes.ts`
+- **Learnings for future iterations:**
+  - TypeScript target doesn't support `\p{L}` Unicode property escapes in regex — use explicit Unicode ranges instead
+  - TypeScript target doesn't support `for..of` on Map/Set — use `.forEach()` instead
+  - Word origin tracing caches per unique word to avoid redundant recursive lookups
+  - The analyzer checks both source and target positions in relations to determine if a word exists in the dataset
+  - Pre-existing typecheck errors (19) remain unchanged in visualization/map components
+---
+
+## 2026-03-12 - US-008
+- Created `client/src/pages/text-analyzer.tsx` with text input, language selector, and analysis results display
+- Added `/text-analyzer` route to `client/src/App.tsx`
+- Added Text Analyzer navigation button (FileText icon) to dashboard header in `client/src/pages/dashboard.tsx`
+- Features: textarea input, language dropdown (fetched from `/api/languages`), analyze button with loading state, results display with origin breakdown
+- Uses `useMutation` for POST `/api/text-analysis/origins` endpoint
+- Files changed: `client/src/pages/text-analyzer.tsx` (created), `client/src/App.tsx`, `client/src/pages/dashboard.tsx`
+- **Learnings for future iterations:**
+  - `wouter` uses `useLocation` hook returning `[location, navigate]` — `navigate("/path")` for programmatic navigation
+  - Dashboard uses `useLocation` from wouter for navigation to other pages
+  - Text Analyzer page is a standalone page (not a modal/dialog) — separate from dashboard layout
+  - `useMutation` from react-query is the pattern for POST endpoints; `apiRequest` + `.json()` for response parsing
+  - Pre-existing typecheck errors (19) remain unchanged
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-009
+- Added Recharts donut chart (PieChart with innerRadius) to Text Analyzer results
+- Each segment colored by origin language with 20-color palette
+- Custom tooltip showing language name, word count, and percentage
+- Legend below chart with colored indicators, word counts, and percentages
+- Clicking a chart segment or legend row expands to show the list of specific words from that origin
+- Summary text showing analyzed vs total words and unknown count
+- Clears expanded state on new analysis
+- Files changed: `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - Recharts PieChart with `innerRadius` creates a donut chart
+  - Use `Cell` components inside `Pie` for per-segment colors
+  - Recharts `onClick` on `Pie` passes the data entry as first argument
+  - Custom `Tooltip content` prop receives `{ active, payload }` — payload[0].payload has the original data object
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-010
+- Extended `analyzeTextOrigins` server service to return `wordDetails` array with per-word origin and full etymology chain
+- Refactored `traceToOrigin` → `traceToOriginWithChain` to return the chain of derivations alongside the origin
+- Added `HighlightedText` component to Text Analyzer page with:
+  - Each word rendered as a hoverable span with colored underline matching donut chart colors
+  - Tooltip showing full etymology chain: `word (Language) → ancestor (Language) → ... → root (Language)`
+  - Unknown words shown in gray with "Unknown origin" tooltip
+  - Text splitting preserves original whitespace and punctuation
+- Used shadcn `Tooltip` component (TooltipProvider/UITooltip/TooltipTrigger/TooltipContent)
+- Files changed: `server/services/text-etymology-analyzer.ts`, `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - shadcn Tooltip uses `TooltipProvider` wrapping, with `UITooltip` > `TooltipTrigger asChild` > `TooltipContent` pattern
+  - Import as `UITooltip` to avoid name collision with Recharts `Tooltip`
+  - Text tokenization on client must match server tokenizer regex for word indices to align
+  - `traceToOriginWithChain` returns both origin and chain, caching per unique word avoids redundant traces
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-011
+- Added "Analyze Etymology" button (FlaskConical icon) to each sample text card in language detail panel
+- Button navigates to `/text-analyzer?text=...&language=...` with URL-encoded text and language ID
+- Text Analyzer reads URL search params on mount, pre-fills text and language fields
+- Auto-triggers analysis via `useEffect` with `useRef` guard to prevent double-firing
+- Files changed: `client/src/components/language-detail-panel.tsx`, `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - wouter doesn't have built-in search param handling — use `new URLSearchParams(window.location.search)` directly
+  - URL params approach is cleaner than navigation state for cross-page pre-filling (survives page refresh)
+  - Use `useRef` flag to guard one-time auto-analysis in `useEffect` to prevent React strict mode double-firing
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-012
+- Created `EtymologyTreeVisualization` D3 component with horizontal tree layout
+  - Nodes labeled with word and language code, colored by language using consistent hash
+  - Edges labeled with relation type (derived_from, etymology, borrowed_from)
+  - Click any node to recenter tree on that word (triggers new trace API call)
+  - Zoom and pan support via `createZoomBehavior`
+  - Auto-fit tree into view on render
+  - Language legend in top-right corner
+  - Custom tooltip on hover showing word, language, and relation
+- Created `word-etymology.tsx` standalone page with:
+  - Word search input + optional language selector
+  - Fetches from `GET /api/etymology-relations/trace/:word`
+  - Dynamic height based on tree node count
+  - URL params support (`?word=X&language=Y`) for deep linking
+  - Auto-trace on page load when pre-filled via URL params
+  - Empty state with search icon prompt
+- Added `/word-etymology` route to `App.tsx`
+- Added "Word Etymology" nav button (BookOpen icon) to dashboard header
+- Made words clickable in Text Analyzer's HighlightedText component:
+  - Click navigates to `/word-etymology?word=X&language=Y`
+  - Tooltip updated to show "Click to see etymology tree" hint
+  - Cursor changed from `cursor-help` to `cursor-pointer`
+- Files changed: `client/src/components/visualizations/EtymologyTreeVisualization.tsx` (created), `client/src/pages/word-etymology.tsx` (created), `client/src/App.tsx`, `client/src/pages/dashboard.tsx`, `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - D3 tree layout: use `d3.tree().size([height, width])` with `d3.linkHorizontal()` for horizontal trees
+  - `d3.hierarchy()` accepts the data directly + children accessor function
+  - Auto-fit: compute `getBBox()` on the group, then calculate scale/translate to center
+  - Language coloring: consistent hash of language code into a color palette works well for dynamic data
+  - For TypeScript compatibility, use `function()` instead of arrow functions in D3 callbacks within `.data().join()` chains
+  - The `EtymologyNode` type mirrors `EtymologyTreeNode` from the server service — both have `{ word, language, relation?, children[] }`
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-013
+- Added SVG and PNG export buttons to the EtymologyTreeVisualization component
+- Reused existing `exportSVG` and `exportPNG` from `client/src/lib/visualization/export-utils.ts`
+- Export buttons positioned in top-left corner of the visualization (non-overlapping with legend in top-right)
+- Uses `lucide-react` Download icon for consistency with project UI patterns
+- Files changed: `client/src/components/visualizations/EtymologyTreeVisualization.tsx`
+- **Learnings for future iterations:**
+  - Export utilities path is `client/src/lib/visualization/export-utils.ts` (not `export.ts` as PRD suggested)
+  - `exportSVG` is synchronous, `exportPNG` is async — handle both in the export handler
+  - Adding export to a D3 visualization is straightforward since the component already has a `svgRef`
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-014
+- Added `POST /api/text-analysis/compare` endpoint to `server/routes.ts`
+- Accepts `{ textA, textB, languageA, languageB }` body
+- Runs both analyses in parallel via `Promise.all`
+- Returns `{ analysisA, analysisB, comparison }` where comparison includes:
+  - `sharedOrigins`: origin languages present in both texts
+  - `uniqueToA` / `uniqueToB`: origin languages exclusive to each text
+  - `differences`: per-language percentage comparison sorted by absolute difference descending
+- Files changed: `server/routes.ts`
+- **Learnings for future iterations:**
+  - Reused `analyzeTextOrigins` directly — no new service file needed for comparison
+  - `Promise.all` works well for running two independent analyses in parallel
+  - Used `Map` + `forEach` pattern (not `for..of`) for TypeScript target compatibility
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+---
+
+## 2026-03-12 - US-015
+- Added "Compare" mode toggle to Text Analyzer page (Analyze / Compare buttons)
+- Compare mode features:
+  - Side-by-side text input areas with independent language selectors
+  - Dual donut charts with synchronized color coding (same origin language = same color in both charts)
+  - `buildSyncedColorMap` function collects all unique origin languages from both analyses and assigns colors consistently
+  - Difference summary sentences: e.g. "Text A has 15.2% more Latin-origin words than Text B"
+  - Full comparison table showing: origin language, Text A %, Text B %, difference, and status (Shared / Only in A / Only in B)
+  - Extracted reusable `DonutChart` and `LanguageSelector` sub-components from existing code
+- Uses `POST /api/text-analysis/compare` endpoint via `useMutation`
+- Container width expands to `max-w-6xl` in compare mode for side-by-side layout
+- Files changed: `client/src/pages/text-analyzer.tsx`
+- **Learnings for future iterations:**
+  - Synchronized colors across two charts: collect all unique language codes from both analyses into one array, assign colors from that unified list
+  - IIFE pattern `{compareMutation.data && (() => { ... })()}` works for inline complex rendering with local variables in JSX
+  - Reusable sub-components (DonutChart, LanguageSelector) keep compare mode DRY with single analysis mode
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+  - Manual browser verification needed (no browser testing tools configured)
+---
+
+## 2026-03-12 - US-016
+- Expanded `lexicons/sample-texts.tsv` from 56 to 150 entries
+- Added 35 additional modern languages (2-3 texts each): nld, swe, nor, dan, pol, ces, ron, hun, fin, ekk, kat, hye, heb, pes, ben, tam, tel, tha, vie, mya, khm, ind, tgl, yor, zul, amh, hau, quz, nci, haw, mri, bod, khk, eus, kmr
+- Added 10 dead/historical language texts: peo (Old Persian), cop (Coptic), hit (Hittite), ave (Avestan), chu (Old Church Slavonic), egy (Ancient Egyptian), phn (Phoenician), txb (Tocharian B), arc (Aramaic), goh (Old High German)
+- Total: 70 unique languages, 150 sample text entries
+- Files changed: `lexicons/sample-texts.tsv`
+- **Learnings for future iterations:**
+  - Urdu is NOT in languages.tsv — substituted Kurdish (kmr) as the 35th additional modern language
+  - Middle English and Old French are NOT in languages.tsv — substituted Aramaic (arc) and Old High German (goh) for the 10 historical texts
+  - Estonian uses code `ekk` (not `est`), Persian uses `pes` (not `fas`), Quechua uses `quz` (Cusco dialect)
+  - For non-Latin scripts where exact Unicode text is uncertain, using transliteration in both text and transliteration fields is acceptable
+  - Python scripts work well for generating large TSV datasets — use `"\t".join()` for proper tab separation
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+---
+
+## 2026-03-12 - US-017
+- Expanded `lexicons/etymology-relations.tsv` from 2354 to 5180 entries (+2826 new entries)
+- Breakdown of new entries:
+  - 200+ Old English → English derived_from (common Germanic-origin words)
+  - 230+ Latin → English etymology (common Latinate vocabulary)
+  - 85 Old French → English etymology, 70 Old Norse → English derived_from
+  - 120 Greek → English etymology
+  - 540 Latin → Romance languages derived_from (108 sets × 5 languages)
+  - 550 Germanic cognate sets (110 sets × 5 pairs)
+  - 66 Arabic, 40 Persian, 70 Sanskrit, 72 Chinese, 35 Japanese borrowings
+  - 270 Slavic cognate sets (90 sets × 3 pairs)
+  - 200+ additional Latin → English etymology, plus Turkish, Nahuatl, Malay, Hawaiian, African borrowings
+- Final counts meeting all acceptance criteria:
+  - Total: 5180 entries (≥5000 ✓), English coverage: 2076+ (≥1000 ✓)
+  - Romance: 592 (≥500 ✓), Germanic: 568 (≥500 ✓)
+  - Borrowings from arb/pes/san/cmn/jpn: 447 (≥300 ✓), Slavic: 506 (≥200 ✓)
+- Files changed: `lexicons/etymology-relations.tsv`
+- **Learnings for future iterations:**
+  - Original TSV had `\r\n` line endings; appending with Python creates `\n` — run `sed -i '' 's/\r$//'` to normalize
+  - Python script approach with categorized sections makes large data expansions manageable and countable
+  - Pre-existing typecheck errors (19) remain unchanged — no new errors introduced
+---
+
+## 2026-03-18 - US-098
+- Added 11 new guided journey narratives to `lexicons/narratives.tsv` (total: 21 narratives)
+- New narratives: journey_of_coffee, viking_linguistic_trail, persian_literary_empire, dravidian_legacy, greek_scientific_legacy, creole_genesis, uralic_journey, tibetan_himalayan, printing_press_revolution, chinese_characters_across_asia, atlantic_slave_trade_languages
+- Each narrative has 6 steps with map_center, map_zoom, time_point, highlighted_entities, and layer_config
+- Topics span diverse language families, time periods (-7000 BCE to 2000 CE), and geographic regions
+- References Phase 7-9 data layers: languages, trade_routes, migrations, civilizations, religions, archaeological_sites, haplogroups
+- Created `test/test-narratives.ts` with 1395 assertions validating: TSV parsing, unique IDs, required fields, step structure (coordinates, zoom, time), content spot checks, and new + original narrative preservation
+- Files changed: `lexicons/narratives.tsv`, `test/test-narratives.ts` (created)
+
+## 2026-03-18 - US-072
+- Created `lexicons/cultural-lineages.tsv` with 95 lineage relationships
+- Added `CulturalLineage` interface, TSV loader, and recursive ancestor/descendant traversal to `server/tsv-storage.ts`
+- Added 4 API endpoints: GET /api/cultural-lineages (with filters), /:id, /ancestors/:id, /descendants/:id
+- Created `CulturalLineageExplorer` D3 force-directed graph visualization with temporal x-positioning, color-coded edges, confidence-based widths, search, and node detail cards
+- Integrated as "Lineage" tab in LanguageFamilyVisualization (added ViewMode, viewSettings, tab trigger/content)
+- Fixed pre-existing syntax errors in tsv-storage.ts (missing braces, interleaved methods)
+- 39 test assertions passing in `test/test-cultural-lineages.ts`
+- Files: cultural-lineages.tsv, tsv-storage.ts, routes.ts, CulturalLineageExplorer.tsx, LanguageFamilyVisualization.tsx, types.ts, VisualizationContext.tsx, test-cultural-lineages.ts
+---
+
+## 2026-03-26 - US-202 / US-216
+- Created reusable `TreeVisualization` component at `client/src/components/visualizations/shared/TreeVisualization.tsx`
+  - Generic typed tree data: accepts `TreeNodeData` with id, label, parentId, children, metadata
+  - Supports horizontal, vertical, and radial tree layouts via `orientation` prop
+  - Customizable node rendering: `nodeColor`, `nodeRadius`, `nodeLabel`, `nodeSubLabel` callbacks
+  - Custom tooltip via `renderTooltip` render prop
+  - Legend support via `legendItems` array
+  - SVG/PNG export, zoom/pan, auto-fit to viewport
+  - Uses existing `useVisualizationResize` hook and `createZoomBehavior` D3 helper
+- Created `WritingSystemEvolutionView` at `client/src/components/visualizations/WritingSystemEvolutionView.tsx`
+  - Uses shared TreeVisualization for rendering
+  - Fetches writing systems from `/api/writing-systems` and builds parent-child tree
+  - Nodes colored by script type (alphabet, abjad, abugida, syllabary, logographic, featural)
+  - Sample glyphs displayed as sub-labels on each node
+  - Detail panel showing origin date, region, unicode block, sample characters, parent/descendant navigation
+  - 11 tests passing covering tree building, color mapping, date formatting, and interface validation
+- Files: TreeVisualization.tsx, WritingSystemEvolutionView.tsx, WritingSystemEvolutionView.test.ts
+---
