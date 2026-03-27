@@ -119,6 +119,25 @@ Completed:
   - Progress callback firing
   - TSV write and append operations with ID sequencing
 
+Create data validation and cross-referencing service
+
+Completed:
+- Created server/services/data-validation.ts with DataValidationService class
+  - Schema validation for 38 TSV data files (required columns, data types, ID uniqueness)
+  - Type checking for number, JSON, JSON-array, coordinates, and boolean fields
+  - Time period consistency checks (end date >= start date)
+  - 60 cross-reference integrity rules across all domains
+  - Validates references between languages, families, civilizations, haplogroups, religions, deities, cuisines, music traditions, archaeological sites/cultures, trade routes, writing systems, literary works, and more
+  - Supports both simple foreign key and JSON-array reference validation
+  - Data summary endpoint for file inventory
+- Added 3 API endpoints in server/routes.ts:
+  - GET /api/data-validation/validate (full validation with optional file filter)
+  - GET /api/data-validation/summary (file inventory)
+  - GET /api/data-validation/cross-references (rule listing)
+- Created test/test-data-validation.ts with 110 passing assertions covering:
+  - Service instantiation, data summary, schema validation, cross-references
+  - Missing file handling, synthetic bad data detection (duplicates, bad types, broken refs)
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)

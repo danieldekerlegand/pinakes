@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -37,6 +38,7 @@ import {
   whatWasHere,
   getQuerySuggestions,
 } from "./services/natural-language-search";
+import { DataValidationService } from "./services/data-validation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -4010,6 +4012,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
+    }
+  });
+
+  // ============================================================================
+  // Data Validation API Routes
+  // ============================================================================
+
+  const validationService = new DataValidationService(
+    path.join(import.meta.dirname, "..", "lexicons")
+  );
+
+  /**
+   * GET /api/data-validation/validate - Run full data validation
+   * Query params: files (comma-separated), skipCrossReferences (boolean)
+   */
+  app.get("/api/data-validation/validate", async (req, res) => {
+    try {
+      const files = req.query.files
+        ? (req.query.files as string).split(",").map((f) => f.trim())
+        : undefined;
+      const skipCrossReferences = req.query.skipCrossReferences === "true";
+
+      const report = await validationService.validate({ files, skipCrossReferences });
+      res.json(report);
+    } catch (error) {
+      console.error("Error running data validation:", error);
+      res.status(500).json({
+        message: "Failed to run data validation",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/data-validation/summary - Get data file summary
+   */
+  app.get("/api/data-validation/summary", async (_req, res) => {
+    try {
+      const summary = validationService.getDataSummary();
+      res.json({ files: summary, totalFiles: summary.length });
+    } catch (error) {
+      console.error("Error fetching data summary:", error);
+      res.status(500).json({
+        message: "Failed to fetch data summary",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/data-validation/cross-references - Get cross-reference rules
+   */
+  app.get("/api/data-validation/cross-references", async (_req, res) => {
+    try {
+      const rules = validationService.getCrossReferenceRules();
+      res.json({ rules, totalRules: rules.length });
+    } catch (error) {
+      console.error("Error fetching cross-reference rules:", error);
+      res.status(500).json({
+        message: "Failed to fetch cross-reference rules",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
