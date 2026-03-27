@@ -29,6 +29,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { grammarWalsGrambankScraper } from "./services/grammar-wals-grambank-scraper";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
@@ -4092,6 +4093,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching data freshness:", error);
       res.status(500).json({ message: "Failed to fetch data freshness" });
+    }
+  });
+
+  /**
+   * GET /api/data-quality - Get data quality report for all TSV files
+   */
+  app.get("/api/data-quality", async (_req, res) => {
+    try {
+      const report = generateDataQualityReport();
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating data quality report:", error);
+      res.status(500).json({ message: "Failed to generate data quality report" });
     }
   });
 
