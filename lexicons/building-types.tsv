@@ -1,0 +1,58 @@
+id	name	category	parent_type_id	description	historical_period	regions	associated_styles	structural_features	cultural_function
+temple	Temple	Religious	religious	A structure dedicated to worship of deities	Ancient to Modern	["Global"]	[]	["altar","sanctuary","processional axis"]	Worship and ritual
+church	Church	Religious	religious	Christian place of worship	Late Antiquity to Modern	["Europe","Americas","Africa"]	[]	["nave","apse","bell tower"]	Christian worship
+cathedral	Cathedral	Religious	church	Principal church of a diocese containing the bishop's seat	Medieval to Modern	["Europe","Americas"]	[]	["nave","transept","choir","flying buttresses"]	Episcopal seat and worship
+mosque	Mosque	Religious	religious	Islamic place of worship and community gathering	7th century to Modern	["Middle East","North Africa","South Asia","Southeast Asia"]	[]	["minaret","mihrab","courtyard","dome"]	Islamic worship and community
+synagogue	Synagogue	Religious	religious	Jewish house of prayer and study	Antiquity to Modern	["Middle East","Europe","Americas"]	[]	["ark","bimah","women's gallery"]	Jewish worship and study
+stupa	Stupa	Religious	religious	Hemispherical Buddhist memorial monument	3rd century BCE to Modern	["South Asia","East Asia","Southeast Asia"]	[]	["dome","harmika","chattra","torana"]	Buddhist reliquary and meditation
+pagoda	Pagoda	Religious	religious	Multi-tiered tower used in Buddhist and other traditions	1st century to Modern	["East Asia","Southeast Asia"]	[]	["tiered roofs","central pillar","bracket sets"]	Buddhist devotion and landmark
+shrine	Shrine	Religious	religious	Sacred site with a structure marking a holy place	Ancient to Modern	["Global"]	[]	["torii gate","haiden","honden"]	Veneration and pilgrimage
+monastery	Monastery	Religious	religious	Residence and workplace for monastic communities	4th century to Modern	["Europe","South Asia","East Asia"]	[]	["cloister","refectory","chapter house","cells"]	Monastic life and scholarship
+madrasa	Madrasa	Religious	religious	Islamic educational institution	10th century to Modern	["Middle East","Central Asia","North Africa"]	[]	["courtyard","iwan","student cells","prayer hall"]	Islamic education
+pyramid	Pyramid	Funerary	funerary	Monumental tomb with triangular or stepped profile	Ancient	["North Africa","Central America"]	[]	["massive stone blocks","burial chamber","processional causeway"]	Royal burial and afterlife preparation
+tomb	Tomb	Funerary	funerary	Structure for housing the remains of the dead	Ancient to Modern	["Global"]	[]	["burial chamber","sarcophagus","memorial inscription"]	Burial and commemoration
+mausoleum	Mausoleum	Funerary	tomb	Grand above-ground tomb for prominent individuals	Classical to Modern	["Global"]	[]	["dome","memorial hall","gardens"]	Elite burial and commemoration
+palace	Palace	Civic	civic	Grand residence of a ruler or head of state	Ancient to Modern	["Global"]	[]	["throne room","audience hall","gardens","courtyards"]	Seat of power and governance
+town-hall	Town Hall	Civic	civic	Administrative center for local government	Medieval to Modern	["Europe","Americas"]	[]	["council chamber","clock tower","public square"]	Municipal governance
+basilica	Basilica	Civic	civic	Large public building for assemblies and law courts	Roman to Modern	["Europe","Americas"]	[]	["nave","aisles","apse","clerestory"]	Public assembly and later worship
+government-building	Government Building	Civic	civic	Structure housing governmental functions	Classical to Modern	["Global"]	[]	["portico","rotunda","legislative chamber"]	State administration
+castle	Castle	Military	military	Fortified residence of a lord or noble	Medieval	["Europe","Middle East","East Asia"]	[]	["keep","curtain wall","moat","battlements"]	Defense and lordly residence
+fortress	Fortress	Military	military	Large military stronghold for defense	Ancient to Modern	["Global"]	[]	["thick walls","bastions","gatehouse","barracks"]	Military defense
+fort	Fort	Military	fortress	Smaller enclosed defensive structure	Ancient to Modern	["Global"]	[]	["ramparts","guard towers","parade ground"]	Garrison and defense
+theater	Theater	Entertainment	entertainment	Structure designed for dramatic performances	Classical to Modern	["Global"]	[]	["stage","auditorium","orchestra pit","proscenium"]	Performing arts
+amphitheater	Amphitheater	Entertainment	theater	Open-air venue with tiered seating surrounding a central arena	Roman	["Europe","North Africa"]	[]	["arena","tiered seating","vomitoria","hypogeum"]	Gladiatorial and public spectacles
+ball-court	Ball Court	Entertainment	entertainment	Enclosed playing field for Mesoamerican ballgame	Pre-Columbian	["Central America"]	[]	["I-shaped court","sloping walls","stone rings"]	Ritual sport
+museum	Museum	Cultural	entertainment	Institution for preserving and exhibiting artifacts	18th century to Modern	["Global"]	[]	["galleries","atrium","conservation labs"]	Cultural preservation and education
+house	House	Residential	residential	Dwelling for a single family or household	Ancient to Modern	["Global"]	[]	["rooms","roof","entrance"]	Domestic habitation
+villa	Villa	Residential	house	Luxurious country or suburban residence	Roman to Modern	["Europe","Americas"]	[]	["gardens","portico","courtyard"]	Elite residence
+apartment	Apartment Building	Residential	residential	Multi-unit residential building	Roman to Modern	["Global"]	[]	["multiple floors","shared entrance","balconies"]	Urban housing
+housing-block	Housing Block	Residential	apartment	Large-scale multi-unit residential complex	20th century	["Global"]	[]	["standardized units","communal spaces","elevator cores"]	Mass housing
+tea-house	Tea House	Residential	residential	Intimate structure for tea ceremony	15th century to Modern	["East Asia"]	[]	["tatami","tokonoma","nijiriguchi"]	Tea ceremony and social gathering
+market	Market Hall	Commercial	commercial	Covered structure for trade and commerce	Ancient to Modern	["Global"]	[]	["stalls","open plan","large roof span"]	Trade and commerce
+caravanserai	Caravanserai	Commercial	commercial	Roadside inn for merchants and travelers along trade routes	10th to 19th century	["Middle East","Central Asia"]	[]	["courtyard","stables","rooms","fortified walls"]	Trade route hospitality
+skyscraper	Skyscraper	Commercial	commercial	Tall multi-story building for offices or mixed use	Late 19th century to Modern	["North America","East Asia","Middle East"]	[]	["steel frame","elevator","curtain wall","setbacks"]	Commerce and urban density
+aqueduct	Aqueduct	Infrastructure	infrastructure	Water conveyance structure using gravity flow	Ancient	["Europe","Middle East"]	[]	["arched spans","channels","settling basins"]	Water supply
+bath	Bathhouse	Infrastructure	infrastructure	Public bathing facility	Roman to Modern	["Europe","Middle East","East Asia"]	[]	["hypocaust","pools","frigidarium","tepidarium"]	Hygiene and social gathering
+step-well	Step Well	Infrastructure	infrastructure	Deep well with steps descending to water level	3rd millennium BCE to Modern	["South Asia"]	[]	["stepped corridor","ornamental galleries","water storage"]	Water access and community gathering
+university	University	Educational	educational	Institution of higher learning with multiple buildings	Medieval to Modern	["Global"]	[]	["quadrangle","library","lecture halls","chapel"]	Higher education and research
+library	Library	Educational	educational	Building for storing and accessing written works	Ancient to Modern	["Global"]	[]	["reading rooms","stacks","catalog system"]	Knowledge preservation
+garden	Formal Garden	Landscape	landscape	Designed outdoor space with organized plantings	Ancient to Modern	["Global"]	[]	["axial layout","water features","parterres"]	Recreation and contemplation
+observatory	Observatory	Scientific	educational	Structure designed for astronomical observation	Ancient to Modern	["Global"]	[]	["dome","sighting instruments","elevated platform"]	Astronomical observation
+gate-tower	Gate Tower	Infrastructure	infrastructure	Monumental entrance structure to a city or compound	Ancient to Modern	["Global"]	[]	["archway","guard chambers","defensive features"]	Access control and ceremony
+triumphal-arch	Triumphal Arch	Commemorative	civic	Monumental arch celebrating military victory	Roman to Modern	["Europe"]	[]	["barrel vault","relief sculpture","inscription"]	Military commemoration
+granary	Granary	Agricultural	agricultural	Structure for storing grain	Ancient to Modern	["Global"]	[]	["elevated floor","ventilation","rodent barriers"]	Food storage
+agricultural-terrace	Agricultural Terrace	Agricultural	agricultural	Stepped landscape modification for farming on slopes	Ancient to Modern	["South America","Southeast Asia","Mediterranean"]	[]	["retaining walls","irrigation channels","stepped platforms"]	Hillside agriculture
+agora	Agora	Civic	civic	Open public space for assembly and commerce in Greek cities	Classical	["Southern Europe"]	[]	["colonnade","open space","surrounding stoas"]	Public assembly and commerce
+stoa	Stoa	Civic	civic	Covered walkway or portico for public use	Classical	["Southern Europe"]	[]	["colonnade","covered walkway","shops"]	Public shelter and commerce
+obelisk	Obelisk	Commemorative	civic	Tall, four-sided tapering monument topped by a pyramidion	Ancient	["North Africa"]	[]	["monolithic stone","pyramidal cap","hieroglyphs"]	Solar worship and commemoration
+pyramid-temple	Pyramid-Temple	Religious	pyramid	Stepped pyramid with temple structure at the summit	Pre-Columbian	["Central America"]	[]	["stepped platform","summit temple","staircase"]	Religious ceremony
+civic-building	Civic Building	Civic	civic	General public building serving civic functions	Renaissance to Modern	["Global"]	[]	["public hall","facade","entrance portico"]	Public administration
+compound	Compound	Residential	residential	Enclosed cluster of buildings forming a household unit	Ancient to Modern	["Africa","South Asia"]	[]	["perimeter wall","courtyard","multiple structures"]	Extended family dwelling
+hotel	Hotel	Commercial	commercial	Building providing lodging for travelers	18th century to Modern	["Global"]	[]	["lobby","guest rooms","dining hall"]	Hospitality
+department-store	Department Store	Commercial	commercial	Large retail establishment with multiple departments	19th century to Modern	["Global"]	[]	["open floor plan","display windows","atrium"]	Retail commerce
+metro-station	Metro Station	Infrastructure	infrastructure	Underground or elevated station for urban rail transit	Late 19th century to Modern	["Global"]	[]	["platform","tunnel","entrance canopy"]	Urban transit
+office-tower	Office Tower	Commercial	skyscraper	Tall building primarily for commercial offices	20th century to Modern	["Global"]	[]	["steel frame","elevator core","curtain wall"]	Commerce
+reservoir	Reservoir	Infrastructure	infrastructure	Artificial body of water for storage and distribution	Ancient to Modern	["Global"]	[]	["dam","embankment","sluice gates"]	Water management
+causeway	Causeway	Infrastructure	infrastructure	Raised path or road across water or low ground	Ancient to Modern	["Global"]	[]	["elevated roadbed","drainage","retaining walls"]	Transportation
+city	City Plan	Infrastructure	infrastructure	Planned urban settlement layout	Ancient to Modern	["Global"]	[]	["grid layout","walls","central plaza"]	Urban habitation
+road-system	Road System	Infrastructure	infrastructure	Network of engineered pathways for travel and trade	Ancient to Modern	["Global"]	[]	["paved surface","drainage","bridges"]	Transportation and trade

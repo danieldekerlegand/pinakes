@@ -626,3 +626,27 @@ Files modified:
   - Social organization loading, structure, filtering, retrieval
   - Scraper instantiation and API key validation
   - Cross-domain data referencing (kinship ↔ social org)
+
+US-XXX: Create architectural styles scraper with building type taxonomy
+
+Completed:
+- Created server/services/architectural-styles-scraper.ts with:
+  - ArchitecturalStylesScraper class using Gemini AI for discovering new styles
+  - 57-entry building type taxonomy organized into 11 categories (Religious, Funerary, Civic, Military, Entertainment, Residential, Commercial, Infrastructure, Educational, Landscape, Agricultural)
+  - Hierarchical parent-child relationships between building types (e.g., cathedral -> church -> religious)
+  - Methods: getBuildingTypeTaxonomy(), getBuildingTypesByCategory(), getBuildingTypeChildren(), scrapeArchitecturalStyles()
+  - Scraper merges new Gemini-discovered styles with existing data, validates building type references
+- Created lexicons/building-types.tsv with 57 building types covering all major architectural categories
+- Normalized building type IDs in existing lexicons/architectural-styles.tsv (spaces -> hyphens for consistency)
+- Added BuildingType interface and TSV loader to server/tsv-storage.ts
+  - loadBuildingTypes(), getBuildingTypes(category filter), getBuildingTypeById()
+  - getArchitecturalStylesByBuildingType() for cross-referencing styles with building types
+- Added API routes to server/routes.ts:
+  - GET /api/building-types (with category filter)
+  - GET /api/building-types/categories
+  - GET /api/building-types/:id
+  - GET /api/architectural-styles/by-building-type/:buildingTypeId
+  - POST /api/architectural-styles/scrape
+- Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+- Created test/test-architectural-styles-scraper.ts with 25 tests (all passing)
+  - Tests: taxonomy completeness, hierarchy integrity, TSV loading, building type filtering, style-to-building-type cross-references, scraper error handling

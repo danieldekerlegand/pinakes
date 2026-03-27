@@ -13,6 +13,7 @@ import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { soundChangeScraper } from "./services/sound-change-scraper";
 import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
+import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
 import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
@@ -3434,6 +3435,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching architectural style:", error);
       res.status(500).json({
         message: "Failed to fetch architectural style",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/architectural-styles/by-building-type/:buildingTypeId - Get styles by building type
+   */
+  app.get("/api/architectural-styles/by-building-type/:buildingTypeId", async (req, res) => {
+    try {
+      const styles = await storage.getArchitecturalStylesByBuildingType(req.params.buildingTypeId);
+      res.json({ styles, count: styles.length });
+    } catch (error) {
+      console.error("Error fetching architectural styles by building type:", error);
+      res.status(500).json({
+        message: "Failed to fetch architectural styles by building type",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/architectural-styles/scrape - Scrape additional architectural styles using Gemini
+   */
+  app.post("/api/architectural-styles/scrape", async (req, res) => {
+    try {
+      const job = jobStore.createJob("architectural-styles", 30, "gemini");
+      res.json({ message: "Architectural styles scraping started", jobId: job.id });
+
+      architecturalStylesScraper.scrapeArchitecturalStyles({
+        jobId: job.id,
+        progressCallback: (type, message) => {
+          console.log(`[architectural-styles-scraper] ${type}: ${message}`);
+        },
+      }).catch((error) => {
+        console.error("Architectural styles scraping failed:", error);
+      });
+    } catch (error) {
+      console.error("Error starting architectural styles scraper:", error);
+      res.status(500).json({
+        message: "Failed to start architectural styles scraper",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/building-types - Get all building types with optional category filter
+   */
+  app.get("/api/building-types", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const types = await storage.getBuildingTypes({ category });
+      res.json({ buildingTypes: types, count: types.length });
+    } catch (error) {
+      console.error("Error fetching building types:", error);
+      res.status(500).json({
+        message: "Failed to fetch building types",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/building-types/categories - Get building type categories
+   */
+  app.get("/api/building-types/categories", async (_req, res) => {
+    try {
+      const categories = architecturalStylesScraper.getBuildingCategories();
+      res.json({ categories, count: categories.length });
+    } catch (error) {
+      console.error("Error fetching building type categories:", error);
+      res.status(500).json({
+        message: "Failed to fetch building type categories",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/building-types/:id - Get a single building type
+   */
+  app.get("/api/building-types/:id", async (req, res) => {
+    try {
+      const buildingType = await storage.getBuildingTypeById(req.params.id);
+      if (!buildingType) {
+        return res.status(404).json({ message: "Building type not found" });
+      }
+      res.json(buildingType);
+    } catch (error) {
+      console.error("Error fetching building type:", error);
+      res.status(500).json({
+        message: "Failed to fetch building type",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

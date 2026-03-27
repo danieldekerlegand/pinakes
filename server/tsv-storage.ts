@@ -464,6 +464,20 @@ export interface ArchitecturalStyle {
   buildingTypes: string[];
 }
 
+// Building type taxonomy
+export interface BuildingType {
+  id: string;
+  name: string;
+  category: string;
+  parentTypeId: string;
+  description: string;
+  historicalPeriod: string;
+  regions: string[];
+  associatedStyles: string[];
+  structuralFeatures: string[];
+  culturalFunction: string;
+}
+
 // Trade good types
 export interface TradeGood {
   id: string;
@@ -704,6 +718,9 @@ export class TsvStorage {
 
   // Architectural styles data cache
   private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
+
+  // Building types data cache
+  private cachedBuildingTypes: BuildingType[] | null = null;
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
@@ -4115,6 +4132,71 @@ export class TsvStorage {
   async getArchitecturalStyleById(id: string): Promise<ArchitecturalStyle | null> {
     this.loadArchitecturalStyles();
     return (this.cachedArchitecturalStyles ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  async getArchitecturalStylesByBuildingType(buildingTypeId: string): Promise<ArchitecturalStyle[]> {
+    this.loadArchitecturalStyles();
+    return (this.cachedArchitecturalStyles ?? []).filter((s) =>
+      s.buildingTypes.includes(buildingTypeId)
+    );
+  }
+
+  // ── Building Types ────────────────────────────────────────────────
+
+  private loadBuildingTypes(): void {
+    if (this.cachedBuildingTypes) return;
+
+    const text = this.readFileIfExists("lexicons/building-types.tsv");
+    if (!text) { this.cachedBuildingTypes = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const parentIdx = getIdx(header, "parent_type_id");
+    const descIdx = getIdx(header, "description");
+    const periodIdx = getIdx(header, "historical_period");
+    const regionsIdx = getIdx(header, "regions");
+    const stylesIdx = getIdx(header, "associated_styles");
+    const featuresIdx = getIdx(header, "structural_features");
+    const functionIdx = getIdx(header, "cultural_function");
+
+    this.cachedBuildingTypes = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx] || "",
+      parentTypeId: row[parentIdx] || "",
+      description: row[descIdx] || "",
+      historicalPeriod: row[periodIdx] || "",
+      regions: (() => {
+        try { return JSON.parse(row[regionsIdx]); } catch { return []; }
+      })() as string[],
+      associatedStyles: (() => {
+        try { return JSON.parse(row[stylesIdx]); } catch { return []; }
+      })() as string[],
+      structuralFeatures: (() => {
+        try { return JSON.parse(row[featuresIdx]); } catch { return []; }
+      })() as string[],
+      culturalFunction: row[functionIdx] || "",
+    }));
+  }
+
+  async getBuildingTypes(filters?: {
+    category?: string;
+  }): Promise<BuildingType[]> {
+    this.loadBuildingTypes();
+    let types = this.cachedBuildingTypes ?? [];
+
+    if (filters?.category) {
+      types = types.filter((t) => t.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+
+    return types;
+  }
+
+  async getBuildingTypeById(id: string): Promise<BuildingType | null> {
+    this.loadBuildingTypes();
+    return (this.cachedBuildingTypes ?? []).find((t) => t.id === id) ?? null;
   }
 
   private loadKinshipSystems(): void {
