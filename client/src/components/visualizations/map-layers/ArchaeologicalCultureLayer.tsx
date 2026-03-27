@@ -4,12 +4,15 @@ import type { PathOptions } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalCultureFeature } from '../../../lib/visualization/geospatial-types';
 import { ARCHAEOLOGICAL_CULTURE_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
+import { useBoundaryResolver } from '../hooks/useBoundaryResolver';
 
 interface ArchaeologicalCultureLayerProps {
   features: ArchaeologicalCultureFeature[];
   opacity?: number;
   onFeatureClick?: (id: string) => void;
   selectedFeatureId?: string | null;
+  /** Use precise GeoJSON boundaries from boundary resolver when available */
+  usePreciseBoundaries?: boolean;
 }
 
 const getCultureColor = (cultureId: string): string => {
@@ -25,19 +28,27 @@ export function ArchaeologicalCultureLayer({
   opacity = 0.5,
   onFeatureClick,
   selectedFeatureId,
+  usePreciseBoundaries = true,
 }: ArchaeologicalCultureLayerProps) {
+  // Resolve precise GeoJSON boundaries where available
+  const { resolvedFeatures } = useBoundaryResolver(features, {
+    enabled: usePreciseBoundaries,
+    regionNameKey: 'name',
+  });
+
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const color = getCultureColor(props.cultureId);
+    const isPrecise = props._boundaryResolved;
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : color,
       fillOpacity: isSelected ? 0.35 : opacity * 0.4,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : color,
-      weight: isSelected ? 3 : 2,
+      weight: isSelected ? 3 : (isPrecise ? 2.5 : 2),
       opacity: isSelected ? 1 : 0.7,
-      dashArray: '8, 4', // Longer dashes to distinguish from civilizations
+      dashArray: isPrecise ? undefined : '8, 4',
     };
   };
 
@@ -109,6 +120,12 @@ export function ArchaeologicalCultureLayer({
               </div>
             ` : ''}
 
+            ${props._boundarySource ? `
+              <div class="pt-2 border-t">
+                <span class="text-gray-600 text-xs">Boundary: ${props._boundarySource}</span>
+              </div>
+            ` : ''}
+
             ${props.sources && props.sources.length > 0 ? `
               <div class="pt-2 border-t">
                 <span class="text-gray-600 text-xs">
@@ -150,8 +167,8 @@ export function ArchaeologicalCultureLayer({
 
   const geoJsonData = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: features,
-  }), [features]);
+    features: resolvedFeatures,
+  }), [resolvedFeatures]);
 
   if (features.length === 0) {
     return null;

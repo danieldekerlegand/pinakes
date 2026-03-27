@@ -3,11 +3,12 @@ import { GeoJSON, Popup } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import { getFamilyColor } from '../../../lib/visualization/d3-helpers';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
-import { smoothFeatures } from '../../../lib/visualization/spline-interpolation';
+import { smoothFeature } from '../../../lib/visualization/spline-interpolation';
 import type { LanguageRangeFeature } from '../../../lib/visualization/geospatial-types';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
+import { useBoundaryResolver } from '../hooks/useBoundaryResolver';
 
 interface LanguageRangeLayerProps {
   features: LanguageRangeFeature[];
@@ -15,6 +16,8 @@ interface LanguageRangeLayerProps {
   onFeatureClick?: (id: string) => void;
   selectedFeatureId?: string | null;
   smoothBoundaries?: boolean;
+  /** Use precise GeoJSON boundaries from boundary resolver when available */
+  usePreciseBoundaries?: boolean;
 }
 
 export function LanguageRangeLayer({
@@ -23,24 +26,36 @@ export function LanguageRangeLayer({
   onFeatureClick,
   selectedFeatureId,
   smoothBoundaries = true,
+  usePreciseBoundaries = true,
 }: LanguageRangeLayerProps) {
-  // Apply spline smoothing to features
-  const smoothedFeatures = useMemo(() => {
-    if (!smoothBoundaries) return features;
-    return smoothFeatures(features, 6, 0.5);
-  }, [features, smoothBoundaries]);
+  // Resolve precise GeoJSON boundaries where available
+  const { resolvedFeatures } = useBoundaryResolver(features, {
+    enabled: usePreciseBoundaries,
+    regionNameKey: 'languageName',
+  });
+
+  // Apply spline smoothing only to features without precise boundaries
+  const processedFeatures = useMemo(() => {
+    return resolvedFeatures.map(feature => {
+      if ((feature.properties as any)._boundaryResolved || !smoothBoundaries) {
+        return feature;
+      }
+      return smoothFeature(feature, 6, 0.5);
+    });
+  }, [resolvedFeatures, smoothBoundaries]);
 
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const familyColor = getFamilyColor(props.familyId);
+    const isPrecise = props._boundaryResolved;
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : familyColor,
       fillOpacity: isSelected ? 0.5 : opacity * 0.5,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : INTERACTION_COLORS.defaultNodeBorder,
-      weight: isSelected ? 3 : 2,
+      weight: isSelected ? 3 : (isPrecise ? 2.5 : 2),
       opacity: isSelected ? 1 : 0.8,
     };
   };
@@ -49,7 +64,6 @@ export function LanguageRangeLayer({
   const onEachFeature = (feature: any, layer: any) => {
     const props = feature.properties;
 
-    // Add popup
     layer.bindPopup(() => {
       const container = document.createElement('div');
       container.className = 'p-2 min-w-[220px]';
@@ -102,6 +116,12 @@ export function LanguageRangeLayer({
                 <span class="font-medium font-mono text-xs">${props.iso639_1 || props.iso639_2}</span>
               </div>
             ` : ''}
+
+            ${props._boundarySource ? `
+              <div class="pt-2 border-t">
+                <span class="text-gray-600 text-xs">Boundary: ${props._boundarySource}</span>
+              </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -139,8 +159,8 @@ export function LanguageRangeLayer({
   // Convert features to GeoJSON FeatureCollection
   const geoJsonData = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: smoothedFeatures,
-  }), [smoothedFeatures]);
+    features: processedFeatures,
+  }), [processedFeatures]);
 
   if (features.length === 0) {
     return null;
@@ -148,7 +168,7 @@ export function LanguageRangeLayer({
 
   return (
     <GeoJSON
-      key={JSON.stringify(features.map(f => f.id))} // Force re-render when features change
+      key={JSON.stringify(features.map(f => f.id))}
       data={geoJsonData}
       style={style}
       onEachFeature={onEachFeature}
