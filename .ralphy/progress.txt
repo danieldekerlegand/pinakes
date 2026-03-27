@@ -697,3 +697,18 @@ Completed:
   - Loads all events, verifies known event fields, JSON array parsing, population parsing
   - Filtering by empire_id, event_type, year range
   - Null handling for non-existent events and empty filter results
+
+## Agent 13: Create empires-timeline.tsv for temporal empire boundaries
+
+Completed:
+- Created lexicons/empires-timeline.tsv with 67 timeline entries across 16 empires
+  - Columns: id, empire_id, name, phase, time_start, time_end, time_label, geometry, capital, territory_km2, population, key_event, successor_id, predecessor_id, associated_language_ids, sources, notes
+  - Empires covered: Roman, Persian (Achaemenid), Mongol, Ottoman, Han, Byzantine, Umayyad, Tang, Mughal, Spanish, British, Inca, Aztec, Abbasid, Qing, Mali
+  - Phases: founding, rise, expansion, peak, decline, collapse with successor/predecessor chains
+  - All entries have GeoJSON Polygon geometries for territorial boundaries at each phase
+  - All empire_ids reference existing civilizations.tsv entries
+- Added EmpireTimelineProperties interface and EmpireTimelineFeature type to geospatial-types.ts
+- Added 'empires-timeline' to LayerType union
+- Added TSV loader (loadEmpiresTimeline) and getter (getEmpiresTimeline) to server/tsv-storage.ts with time, empire, and phase filtering
+- Added GET /api/map/empires-timeline endpoint to server/routes.ts
+- Created test/test-empires-timeline.ts with 36 validation tests (all passing)
