@@ -196,3 +196,23 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+## Agent 14: Add empires-timeline TSV loader and API endpoints
+
+### Completed
+- Created lexicons/empires-timeline.tsv with 26 timeline events across 7 empires
+  - Roman Empire, Akkadian Empire, Mongol Empire, Ottoman Empire, Achaemenid Empire, Han Dynasty, Byzantine Empire
+  - Event types: founding, peak_extent, administrative_change, split, fall, major_conquest, major_loss, contraction, fragmentation
+  - Each entry includes: year, event_type, territory_change, capital, population_estimate, ruler, government_type, vassal_states, rival_empires, associated_language_ids, description
+- Added EmpireTimelineEvent interface and TSV loader to server/tsv-storage.ts
+  - Private loadEmpireTimeline() with caching pattern
+  - Public getEmpireTimeline() with filters: empireId, eventType, yearStart, yearEnd
+  - Public getEmpireTimelineEventById() for single event lookup
+- Added API endpoints to server/routes.ts:
+  - GET /api/empires-timeline (with empire_id, event_type, year_start, year_end query filters)
+  - GET /api/empires-timeline/:id
+- Resolved pre-existing merge conflict markers in tsv-storage.ts and routes.ts
+- Created server/empires-timeline.test.ts with 9 tests (all passing):
+  - Loads all events, verifies known event fields, JSON array parsing, population parsing
+  - Filtering by empire_id, event_type, year range
+  - Null handling for non-existent events and empty filter results

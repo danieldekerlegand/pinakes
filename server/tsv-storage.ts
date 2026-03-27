@@ -93,6 +93,24 @@ export interface MigrationRoute {
   consequences: string;
 }
 
+// Empire timeline types
+export interface EmpireTimelineEvent {
+  id: string;
+  empireId: string;
+  empireName: string;
+  year: number;
+  eventType: string;
+  territoryChange: string;
+  capital: string;
+  populationEstimate: number | null;
+  ruler: string;
+  governmentType: string;
+  vassalStates: string[];
+  rivalEmpires: string[];
+  associatedLanguageIds: string[];
+  description: string;
+}
+
 // Trade route types
 export interface TradeRoute {
   id: string;
@@ -688,6 +706,9 @@ export class TsvStorage {
 
   // Trade routes data cache
   private cachedTradeRoutes: TradeRoute[] | null = null;
+
+  // Empire timeline data cache
+  private cachedEmpireTimeline: EmpireTimelineEvent[] | null = null;
 
   // Kinship systems data cache
   private cachedKinshipSystems: KinshipSystem[] | null = null;
@@ -3063,7 +3084,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3089,49 +3109,6 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
-=======
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
-    const titleIdx = getIdx(header, "title");
-    const textIdx = getIdx(header, "text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: row[titleIdx],
-      text: row[textIdx],
-      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-    }));
-  }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
 
   // ============================================================================
   // Phonological Inventory Data Methods
@@ -4246,7 +4223,6 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
-<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4320,80 +4296,6 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
-=======
-  // ── Urheimat Hypotheses ─────────────────────────────────────────────
-
-  private loadUrheimatHypotheses(): void {
-    if (this.cachedUrheimatHypotheses) return;
-
-    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
-    if (!text) { this.cachedUrheimatHypotheses = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const familyIdx = getIdx(header, "language_family_id");
-    const nameIdx = getIdx(header, "hypothesis_name");
-    const regionIdx = getIdx(header, "proposed_region");
-    const coordsIdx = getIdx(header, "proposed_coordinates");
-    const boundaryIdx = getIdx(header, "proposed_boundary");
-    const startIdx = getIdx(header, "time_range_start");
-    const endIdx = getIdx(header, "time_range_end");
-    const evidenceIdx = getIdx(header, "supporting_evidence");
-    const competingIdx = getIdx(header, "competing_hypotheses");
-    const consensusIdx = getIdx(header, "scholarly_consensus_level");
-    const proponentsIdx = getIdx(header, "key_proponents");
-    const sourcesIdx = getIdx(header, "sources");
-
-    this.cachedUrheimatHypotheses = rows.map((row) => ({
-      id: row[idIdx],
-      languageFamilyId: row[familyIdx],
-      hypothesisName: row[nameIdx],
-      proposedRegion: row[regionIdx],
-      proposedCoordinates: (() => {
-        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
-      })() as { lat: number; lng: number },
-      proposedBoundary: (() => {
-        try { return JSON.parse(row[boundaryIdx]); } catch { return {}; }
-      })() as Record<string, unknown>,
-      timeRangeStart: row[startIdx] ? parseInt(row[startIdx], 10) : null,
-      timeRangeEnd: row[endIdx] ? parseInt(row[endIdx], 10) : null,
-      supportingEvidence: (() => {
-        try { return JSON.parse(row[evidenceIdx]); } catch { return { linguistic: [], archaeological: [], genetic: [] }; }
-      })() as { linguistic: string[]; archaeological: string[]; genetic: string[] },
-      competingHypotheses: (() => {
-        try { return JSON.parse(row[competingIdx]); } catch { return []; }
-      })() as string[],
-      scholarlyConsensusLevel: parseInt(row[consensusIdx], 10) || 0,
-      keyProponents: (() => {
-        try { return JSON.parse(row[proponentsIdx]); } catch { return []; }
-      })() as string[],
-      sources: (() => {
-        try { return JSON.parse(row[sourcesIdx]); } catch { return []; }
-      })() as string[],
-    }));
-  }
-
-  async getUrheimatHypotheses(filters?: {
-    languageFamily?: string;
-    consensusMin?: number;
-  }): Promise<UrheimatHypothesis[]> {
-    this.loadUrheimatHypotheses();
-    let hypotheses = this.cachedUrheimatHypotheses ?? [];
-
-    if (filters?.languageFamily) {
-      hypotheses = hypotheses.filter((h) => h.languageFamilyId === filters.languageFamily);
-    }
-    if (filters?.consensusMin !== undefined) {
-      hypotheses = hypotheses.filter((h) => h.scholarlyConsensusLevel >= filters.consensusMin!);
-    }
-
-    return hypotheses;
-  }
-
-  async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
-    this.loadUrheimatHypotheses();
-    return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
   }
 
   // ── Narratives ──────────────────────────────────────────────────────
@@ -4807,5 +4709,94 @@ export class TsvStorage {
   async getArchaeologicalCultureById(id: string): Promise<ArchaeologicalCulture | null> {
     this.loadArchaeologicalCultures();
     return (this.cachedArchaeologicalCultures ?? []).find((c) => c.id === id) ?? null;
+  }
+
+  // ── Empire Timeline ──────────────────────────────────────────────────
+
+  private loadEmpireTimeline(): void {
+    if (this.cachedEmpireTimeline) return;
+
+    const text = this.readFileIfExists("lexicons/empires-timeline.tsv");
+    if (!text) {
+      this.cachedEmpireTimeline = [];
+      return;
+    }
+
+    const { header, rows } = parseTsv(text);
+
+    const idIdx = getIdx(header, "id");
+    const empireIdIdx = getIdx(header, "empire_id");
+    const empireNameIdx = header.indexOf("empire_name");
+    const yearIdx = getIdx(header, "year");
+    const eventTypeIdx = header.indexOf("event_type");
+    const territoryChangeIdx = header.indexOf("territory_change");
+    const capitalIdx = header.indexOf("capital");
+    const populationIdx = header.indexOf("population_estimate");
+    const rulerIdx = header.indexOf("ruler");
+    const govTypeIdx = header.indexOf("government_type");
+    const vassalIdx = header.indexOf("vassal_states");
+    const rivalIdx = header.indexOf("rival_empires");
+    const langIdx = header.indexOf("associated_language_ids");
+    const descIdx = header.indexOf("description");
+
+    this.cachedEmpireTimeline = rows.map((row) => ({
+      id: row[idIdx],
+      empireId: row[empireIdIdx],
+      empireName: empireNameIdx >= 0 ? row[empireNameIdx] || "" : "",
+      year: parseInt(row[yearIdx], 10),
+      eventType: eventTypeIdx >= 0 ? row[eventTypeIdx] || "" : "",
+      territoryChange: territoryChangeIdx >= 0 ? row[territoryChangeIdx] || "" : "",
+      capital: capitalIdx >= 0 ? row[capitalIdx] || "" : "",
+      populationEstimate: (() => {
+        if (populationIdx < 0 || !row[populationIdx]) return null;
+        const n = parseInt(row[populationIdx], 10);
+        return isNaN(n) ? null : n;
+      })(),
+      ruler: rulerIdx >= 0 ? row[rulerIdx] || "" : "",
+      governmentType: govTypeIdx >= 0 ? row[govTypeIdx] || "" : "",
+      vassalStates: (() => {
+        if (vassalIdx < 0 || !row[vassalIdx]) return [];
+        try { return JSON.parse(row[vassalIdx]); } catch { return []; }
+      })(),
+      rivalEmpires: (() => {
+        if (rivalIdx < 0 || !row[rivalIdx]) return [];
+        try { return JSON.parse(row[rivalIdx]); } catch { return []; }
+      })(),
+      associatedLanguageIds: (() => {
+        if (langIdx < 0 || !row[langIdx]) return [];
+        try { return JSON.parse(row[langIdx]); } catch { return []; }
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+    }));
+  }
+
+  async getEmpireTimeline(filters?: {
+    empireId?: string;
+    eventType?: string;
+    yearStart?: number;
+    yearEnd?: number;
+  }): Promise<EmpireTimelineEvent[]> {
+    this.loadEmpireTimeline();
+    let events = this.cachedEmpireTimeline ?? [];
+
+    if (filters?.empireId) {
+      events = events.filter((e) => e.empireId === filters.empireId);
+    }
+    if (filters?.eventType) {
+      events = events.filter((e) => e.eventType === filters.eventType);
+    }
+    if (filters?.yearStart !== undefined) {
+      events = events.filter((e) => e.year >= filters.yearStart!);
+    }
+    if (filters?.yearEnd !== undefined) {
+      events = events.filter((e) => e.year <= filters.yearEnd!);
+    }
+
+    return events;
+  }
+
+  async getEmpireTimelineEventById(id: string): Promise<EmpireTimelineEvent | null> {
+    this.loadEmpireTimeline();
+    return (this.cachedEmpireTimeline ?? []).find((e) => e.id === id) ?? null;
   }
 }

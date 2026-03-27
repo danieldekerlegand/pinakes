@@ -3089,7 +3089,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3572,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3583,7 +3584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consensusMin = req.query.consensus_min ? parseInt(req.query.consensus_min as string, 10) : undefined;
 
       const hypotheses = await storage.getUrheimatHypotheses({
-        languageFamily,
+        languageFamilyId: languageFamily,
         consensusMin,
       });
 
@@ -3599,7 +3600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/urheimat-hypotheses/:id", async (req, res) => {
     try {
-      const hypothesis = await storage.getUrheimatHypothesisById(req.params.id);
+      const hypothesis = await storage.getUrheimatHypothesis(req.params.id);
       if (!hypothesis) {
         return res.status(404).json({ message: "Urheimat hypothesis not found" });
       }
@@ -3607,7 +3608,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
+    }
+  });
+
+  /**
+   * GET /api/empires-timeline - List empire timeline events with optional filters
+   */
+  app.get("/api/empires-timeline", async (req, res) => {
+    try {
+      const empireId = req.query.empire_id as string | undefined;
+      const eventType = req.query.event_type as string | undefined;
+      const yearStart = req.query.year_start ? parseInt(req.query.year_start as string, 10) : undefined;
+      const yearEnd = req.query.year_end ? parseInt(req.query.year_end as string, 10) : undefined;
+
+      const events = await storage.getEmpireTimeline({ empireId, eventType, yearStart, yearEnd });
+      res.json({ events, count: events.length });
+    } catch (error) {
+      console.error("Error fetching empire timeline:", error);
+      res.status(500).json({ message: "Failed to fetch empire timeline" });
+    }
+  });
+
+  /**
+   * GET /api/empires-timeline/:id - Get a single empire timeline event
+   */
+  app.get("/api/empires-timeline/:id", async (req, res) => {
+    try {
+      const event = await storage.getEmpireTimelineEventById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: "Empire timeline event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching empire timeline event:", error);
+      res.status(500).json({ message: "Failed to fetch empire timeline event" });
     }
   });
 
