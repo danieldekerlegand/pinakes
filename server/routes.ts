@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { artTraditionScraper } from "./services/art-tradition-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -2789,6 +2790,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/art-style-evolutions - Get style evolution connections
+   */
+  app.get("/api/art-style-evolutions", async (req, res) => {
+    try {
+      const traditionId = req.query.tradition_id as string | undefined;
+      const transitionType = req.query.transition_type as string | undefined;
+      const evolutions = await storage.getStyleEvolutions({ traditionId, transitionType });
+      res.json({ evolutions, count: evolutions.length });
+    } catch (error) {
+      console.error("Error fetching style evolutions:", error);
+      res.status(500).json({
+        message: "Failed to fetch style evolutions",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/scrape/art-traditions - Scrape art traditions with style evolution tracking
+   */
+  app.post("/api/scrape/art-traditions", async (req, res) => {
+    try {
+      const { categories, regions, clearExisting } = req.body || {};
+
+      const job = jobStore.createJob("art-traditions", 0, "gemini");
+
+      res.json({ jobId: job.id, message: "Art tradition scraping started" });
+
+      artTraditionScraper
+        .scrapeArtTraditions({
+          categories,
+          regions,
+          clearExisting,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[art-scraper] ${type}: ${message}`);
+          },
+        })
+        .then(() => {
+          storage.invalidateArtTraditionsCache();
+        })
+        .catch((err) => {
+          console.error("Art tradition scraping failed:", err);
+        });
+    } catch (error) {
+      console.error("Error starting art tradition scraping:", error);
+      res.status(500).json({
+        message: "Failed to start art tradition scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/architectural-styles - Get all architectural styles with optional filtering
    */
   app.get("/api/architectural-styles", async (req, res) => {
@@ -3089,7 +3144,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3627,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3607,7 +3663,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
     }
   });
 

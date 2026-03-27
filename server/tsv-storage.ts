@@ -447,6 +447,18 @@ export interface ArtTradition {
   notableExamples: string[];
 }
 
+// Art style evolution types
+export interface StyleEvolution {
+  id: string;
+  fromTraditionId: string;
+  toTraditionId: string;
+  transitionType: string;
+  transitionDate: number;
+  description: string;
+  keyChanges: string[];
+  catalysts: string[];
+}
+
 // Architectural style types
 export interface ArchitecturalStyle {
   id: string;
@@ -679,6 +691,9 @@ export class TsvStorage {
 
   // Art traditions data cache
   private cachedArtTraditions: ArtTradition[] | null = null;
+
+  // Art style evolutions data cache
+  private cachedStyleEvolutions: StyleEvolution[] | null = null;
 
   // Architectural styles data cache
   private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
@@ -3063,7 +3078,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3089,51 +3103,7 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
-=======
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
-    const titleIdx = getIdx(header, "title");
-    const textIdx = getIdx(header, "text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
 
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: row[titleIdx],
-      text: row[textIdx],
-      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-    }));
-  }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
-
-  // ============================================================================
   // Phonological Inventory Data Methods
   // ============================================================================
 
@@ -4064,6 +4034,69 @@ export class TsvStorage {
     return (this.cachedArtTraditions ?? []).find((t) => t.id === id) ?? null;
   }
 
+  // ── Art Style Evolutions ──────────────────────────────────────────
+
+  private loadStyleEvolutions(): void {
+    if (this.cachedStyleEvolutions) return;
+
+    const text = this.readFileIfExists("lexicons/art-style-evolutions.tsv");
+    if (!text) { this.cachedStyleEvolutions = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const fromIdx = getIdx(header, "from_tradition_id");
+    const toIdx = getIdx(header, "to_tradition_id");
+    const typeIdx = getIdx(header, "transition_type");
+    const dateIdx = getIdx(header, "transition_date");
+    const descIdx = getIdx(header, "description");
+    const changesIdx = getIdx(header, "key_changes");
+    const catalystsIdx = getIdx(header, "catalysts");
+
+    this.cachedStyleEvolutions = rows.map((row) => ({
+      id: row[idIdx],
+      fromTraditionId: row[fromIdx],
+      toTraditionId: row[toIdx],
+      transitionType: row[typeIdx],
+      transitionDate: parseInt(row[dateIdx]) || 0,
+      description: row[descIdx],
+      keyChanges: (() => {
+        try { return JSON.parse(row[changesIdx]); } catch { return []; }
+      })() as string[],
+      catalysts: (() => {
+        try { return JSON.parse(row[catalystsIdx]); } catch { return []; }
+      })() as string[],
+    }));
+  }
+
+  async getStyleEvolutions(filters?: {
+    traditionId?: string;
+    transitionType?: string;
+  }): Promise<StyleEvolution[]> {
+    this.loadStyleEvolutions();
+    let evolutions = this.cachedStyleEvolutions ?? [];
+
+    if (filters?.traditionId) {
+      evolutions = evolutions.filter(
+        (e) => e.fromTraditionId === filters.traditionId || e.toTraditionId === filters.traditionId
+      );
+    }
+    if (filters?.transitionType) {
+      evolutions = evolutions.filter((e) => e.transitionType === filters.transitionType);
+    }
+
+    return evolutions;
+  }
+
+  async getStyleEvolutionById(id: string): Promise<StyleEvolution | null> {
+    this.loadStyleEvolutions();
+    return (this.cachedStyleEvolutions ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  invalidateArtTraditionsCache(): void {
+    this.cachedArtTraditions = null;
+    this.cachedStyleEvolutions = null;
+  }
+
   // ── Architectural Styles ────────────────────────────────────────────
 
   private loadArchitecturalStyles(): void {
@@ -4246,7 +4279,6 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
-<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4320,7 +4352,8 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
-=======
+  }
+
   // ── Urheimat Hypotheses ─────────────────────────────────────────────
 
   private loadUrheimatHypotheses(): void {
@@ -4393,7 +4426,6 @@ export class TsvStorage {
   async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
     this.loadUrheimatHypotheses();
     return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
   }
 
   // ── Narratives ──────────────────────────────────────────────────────
