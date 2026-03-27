@@ -126,6 +126,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Word coverage by language (for scraper orchestration dashboard)
+  app.get("/api/scraping/coverage", async (_req, res) => {
+    try {
+      const coverage = await storage.getWordCoverageByLanguage();
+      res.json(coverage);
+    } catch (error) {
+      console.error("Error fetching word coverage:", error);
+      res.status(500).json({ message: "Failed to fetch word coverage" });
+    }
+  });
+
   // Word Comparisons
   app.get("/api/word-comparisons", async (req, res) => {
     try {

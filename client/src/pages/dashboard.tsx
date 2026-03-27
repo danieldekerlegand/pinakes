@@ -431,6 +431,11 @@ export default function Dashboard() {
                       <Compass className="h-4 w-4 mr-2" aria-hidden="true" /> Guided Stories
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/scraper" className="flex items-center">
+                      <Database className="h-4 w-4 mr-2" aria-hidden="true" /> Scraper Dashboard
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="h-4 w-4 mr-2" aria-hidden="true" /> Settings
                   </DropdownMenuItem>

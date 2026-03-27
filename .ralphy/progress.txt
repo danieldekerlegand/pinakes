@@ -176,6 +176,33 @@ Completed:
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
 
+## Agent 27: Create scraper orchestration dashboard
+
+### Completed
+- Created dedicated scraper orchestration dashboard page at /scraper route
+- Added GET /api/scraping/coverage endpoint returning per-language word data coverage stats
+- Added getWordCoverageByLanguage() method to TsvStorage
+- Dashboard features:
+  - Summary cards: active jobs, language coverage, completed/failed counts, base word stats
+  - Active jobs section with real-time progress bars (2s polling)
+  - "Start Scraping" tab: word list scraping (with language search/select) and family scraping triggers
+  - "Data Coverage" tab: table of all languages with word counts, coverage percentages, filterable by scraped/unscraped
+  - "Job History" tab: table of all jobs with status, duration, timestamps
+- Added navigation link in dashboard overflow menu
+- Added route in App.tsx
+- Wrote 22 unit tests for dashboard utility logic (formatDuration, coverage summary, coverage filtering, job categorization)
+- All tests passing (56 total including pre-existing)
+
+Files created:
+- client/src/pages/scraper-dashboard.tsx
+- client/src/pages/scraper-dashboard.test.ts
+
+Files modified:
+- server/tsv-storage.ts (added getWordCoverageByLanguage method)
+- server/routes.ts (added /api/scraping/coverage endpoint)
+- client/src/App.tsx (added /scraper route)
+- client/src/pages/dashboard.tsx (added Scraper Dashboard nav link)
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:
