@@ -977,3 +977,34 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Implement terrain-aware route rendering for trade and migration routes
+
+Completed:
+- Created client/src/lib/visualization/terrain-route-utils.ts
+  - TerrainType classification (land/maritime/river/mixed) using geographic heuristics
+  - Ocean region detection via bounding boxes for major seas (Mediterranean, Arabian Sea, etc.)
+  - River corridor detection for major rivers (Nile, Tigris-Euphrates, Ganges, Yangtze, etc.)
+  - Route segment splitting by terrain type for per-segment styling
+  - Elevation estimation based on proximity to known mountain ranges (Himalayas, Alps, etc.)
+  - Full elevation profile generation with distance, ascent/descent tracking
+  - Terrain-specific line styling (solid for land, dashed for sea, dotted for river)
+  - Terrain labels and icon helpers
+- Created client/src/components/visualizations/map-layers/RouteElevationProfile.tsx
+  - Inline SVG elevation profile chart for route popups
+  - Gradient-filled area chart with min/max elevation and total distance labels
+  - Configurable width, height, and color
+- Enhanced client/src/components/visualizations/map-layers/RoutesLayer.tsx
+  - Added terrainAware prop (default true) for terrain-based route rendering
+  - Routes split into terrain segments with distinct styling per segment
+  - Maritime segments render with dashed lines and ship marker icons (CircleMarker)
+  - River segments render with dotted lines and drop-shadow effect
+  - Land segments render as solid lines
+  - Popup shows terrain type with icon, elevation profile chart, ascent/descent stats
+  - Extracted RoutePopupContent component to avoid duplication
+  - Backward-compatible: terrainAware=false preserves original behavior
+- Created client/src/lib/visualization/terrain-route-utils.test.ts with 46 tests (all passing)
+  - Tests: haversineDistance, isOverWater, isNearRiver, classifyPointTerrain
+  - Tests: classifyRouteTerrain, terrainFromRouteType, splitRouteByTerrain
+  - Tests: estimateElevation, generateElevationProfile
+  - Tests: getTerrainStyle, getTerrainLabel, getTerrainIcon
