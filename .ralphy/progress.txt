@@ -977,3 +977,40 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Implement 2.5D/3D topographic map view using deck.gl (US-304)
+
+Completed:
+- Installed deck.gl, @deck.gl/core, @deck.gl/layers, @deck.gl/geo-layers, @deck.gl/mesh-layers, @deck.gl/react, react-map-gl, maplibre-gl
+- Created client/src/components/visualizations/TopographicMapView.tsx
+  - Full 3D map view using deck.gl with MapLibre GL basemap
+  - TerrainLayer with AWS elevation tiles (Terrarium format) for real terrain
+  - Terrain toggle to enable/disable elevation rendering
+  - GeoJsonLayer for language ranges, archaeological cultures (flat polygons)
+  - GeoJsonLayer with extrusion for civilizations (3D bar-chart-on-map effect)
+  - Extrusion metric selector: population, area, importance
+  - ScatterplotLayer for archaeological sites (color-coded by site type)
+  - PathLayer for historical/trade routes (color-coded by route type)
+  - Camera controls: pitch up/down, bearing rotation, orbit animation, reset view
+  - Pitch/bearing indicator display
+  - Tooltips on hover showing name, time period, population, political structure
+  - Feature click handling with ID extraction
+  - Time slider integration with temporal filtering
+  - Layer panel integration (shared with 2D map)
+  - Fullscreen support
+  - Keyboard shortcuts (space=play, arrows=step, home/end=jump)
+  - All existing layer functionality preserved in 3D mode
+- Added 'map-3d' ViewMode to types.ts and ViewSettings
+- Added TopographicMapView lazy-loaded rendering in LanguageFamilyVisualization.tsx
+- Added 'map-3d' view settings in VisualizationContext initial state
+- Added '3D Map' entry to VisualizationRecommendations.tsx
+- Created client/src/components/visualizations/TopographicMapView.test.ts with 24 tests
+  - ViewState structure and constraints (pitch clamping, bearing wrap)
+  - ExtrusionMetric type validation
+  - hexToRgba color conversion
+  - hashString determinism
+  - Extrusion value calculation (population capping, metric fallbacks)
+  - Terrain elevation decoder math
+  - Tooltip year formatting (BCE/CE, time periods)
+  - ViewMode integration
+- All 34 relevant tests passing

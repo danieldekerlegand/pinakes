@@ -7,7 +7,7 @@ import { describe, it, expect } from "vitest";
  */
 
 // Replicate the types and config from the component for pure unit testing
-type ViewMode = "tree" | "network" | "timeline" | "map" | "explorer" | "lineage" | "contribute";
+type ViewMode = "tree" | "network" | "timeline" | "map" | "map-3d" | "explorer" | "lineage" | "contribute";
 
 type PanelType =
   | "language-detail"

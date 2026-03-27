@@ -36,6 +36,9 @@ const ContributionPanel = lazy(() =>
 const CulturalLineageExplorer = lazy(() =>
   import('./visualizations/CulturalLineageExplorer').then((m) => ({ default: m.CulturalLineageExplorer }))
 );
+const TopographicMapView = lazy(() =>
+  import('./visualizations/TopographicMapView').then((m) => ({ default: m.TopographicMapView }))
+);
 
 interface LanguageFamilyVisualizationProps {
   selectedLanguageId?: string | null;
@@ -47,6 +50,7 @@ const VIEW_LABELS: Record<string, string> = {
   network: 'Network Graph',
   timeline: 'Timeline',
   map: 'Geographic Map',
+  'map-3d': '3D Topographic Map',
   explorer: 'Cross-Domain Explorer',
   lineage: 'Cultural Lineage',
   contribute: 'Contribute Data',
@@ -219,6 +223,17 @@ function LanguageFamilyVisualizationContent({
           <Suspense fallback={<LoadingFallback label="map" />}>
             <div className="w-full h-full">
               <EnhancedLanguageMapView
+                onFeatureSelect={(id) => handleNodeClick(id, 'language')}
+                selectedFeatureId={vizState.selectedLanguageIds.size > 0 ? Array.from(vizState.selectedLanguageIds)[0] : null}
+              />
+            </div>
+          </Suspense>
+        )}
+
+        {currentView === 'map-3d' && (
+          <Suspense fallback={<LoadingFallback label="3D map" />}>
+            <div className="w-full h-full">
+              <TopographicMapView
                 onFeatureSelect={(id) => handleNodeClick(id, 'language')}
                 selectedFeatureId={vizState.selectedLanguageIds.size > 0 ? Array.from(vizState.selectedLanguageIds)[0] : null}
               />

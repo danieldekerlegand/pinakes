@@ -57,6 +57,11 @@ const initialState: VisualizationState = {
       showHeatmap: false,
       markerSize: 'byPopulation',
     },
+    'map-3d': {
+      showTerrain: true,
+      extrusionMetric: 'population',
+      pitch: 45,
+    },
     explorer: {},
     lineage: {},
     contribute: {},
