@@ -838,3 +838,19 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## US-218: Create MusicalTraditionExplorer using reusable NetworkGraph and GeoDistributionMap
+- Created reusable NetworkGraph component (client/src/components/visualizations/shared/NetworkGraph.tsx)
+  - D3 force-directed layout with zoom/pan, drag, tooltips, configurable forces
+  - Generic props: nodes (id, label, category, size, metadata), edges (source, target, weight)
+  - Customizable color scale, node selection, click handlers
+- Created reusable GeoDistributionMap component (client/src/components/visualizations/shared/GeoDistributionMap.tsx)
+  - Leaflet-based embeddable mini-map with auto-bounds, legend, custom popups
+  - Generic props: GeoPoint[] with lat/lng/label/category/metadata
+- Created MusicalTraditionExplorer (client/src/components/musical-tradition-explorer.tsx)
+  - Three view modes: List, Network graph, Geographic map
+  - Search by name, instruments, scales; filter by region
+  - Detail view with instruments, scales, rhythmic patterns, related traditions
+  - Uses both NetworkGraph and GeoDistributionMap reusable components
+- Created 28 unit tests (client/src/components/musical-tradition-explorer.test.ts) - all passing
+  - Tests data transformations, filtering, formatting, network/geo data building
