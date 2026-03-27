@@ -977,3 +977,22 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Implement gradient fill and territorial shading for cultural regions
+
+Completed:
+- Created client/src/lib/visualization/territorial-shading.ts
+  - TerritorialFillType: 'solid' | 'gradient' | 'hatched' | 'striped'
+  - polygonCentroid(): signed-area weighted centroid for accurate center computation
+  - generateInwardGradientRings(): concentric rings from boundary toward centroid with increasing opacity (core-to-periphery gradient)
+  - SVG pattern utilities: createHatchedPatternSVG (diagonal lines), createStripedPatternSVG (vertical stripes)
+  - patternId(), territorialClassName(), buildPatternCSS() for Leaflet SVG integration
+- Created client/src/components/visualizations/map-layers/TerritorialShadingProvider.tsx
+  - Injects SVG <defs> with pattern definitions into Leaflet's SVG renderer
+  - Adds CSS rules to apply patterns via className on GeoJSON path elements
+- Updated CivilizationLayer.tsx: added fillType prop, inward gradient ring generation, pattern className support
+- Updated LanguageRangeLayer.tsx: added fillType prop, inward gradient ring generation, pattern className support
+- Updated ArchaeologicalCultureLayer.tsx: added fillType prop, inward gradient ring generation, pattern className support
+- Updated EnhancedLanguageMapView.tsx: added fill type selector UI, passes fillType to all three layers, integrates TerritorialShadingProvider
+- Created client/src/lib/visualization/territorial-shading.test.ts with 23 tests (all passing)
+  - Tests: polygonCentroid, generateInwardGradientRings, patternId, SVG pattern markup, className generation, CSS rule generation

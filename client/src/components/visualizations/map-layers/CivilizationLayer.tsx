@@ -5,6 +5,11 @@ import { formatTimePeriod } from '../../../lib/visualization/geospatial-transfor
 import { smoothFeatures, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
 import type { CivilizationFeature } from '../../../lib/visualization/geospatial-types';
 import { CIVILIZATION_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
+import {
+  type TerritorialFillType,
+  generateInwardGradientRings,
+  territorialClassName,
+} from '../../../lib/visualization/territorial-shading';
 
 interface CivilizationLayerProps {
   features: CivilizationFeature[];
@@ -13,6 +18,7 @@ interface CivilizationLayerProps {
   selectedFeatureId?: string | null;
   smoothBoundaries?: boolean;
   showGradientEdges?: boolean;
+  fillType?: TerritorialFillType;
 }
 
 export function CivilizationLayer({
@@ -22,6 +28,7 @@ export function CivilizationLayer({
   selectedFeatureId,
   smoothBoundaries = true,
   showGradientEdges = true,
+  fillType = 'solid',
 }: CivilizationLayerProps) {
   // Civilization colors (different from language family colors)
   const getCivilizationColor = (civilizationId: string): string => {
@@ -77,19 +84,70 @@ export function CivilizationLayer({
     };
   }, [smoothedFeatures, showGradientEdges]);
 
+  // Generate inward gradient rings for core-to-periphery fill
+  const inwardGradientData = useMemo(() => {
+    if (fillType !== 'gradient') return null;
+
+    const gradientFeatures: Array<{
+      type: 'Feature';
+      geometry: { type: 'Polygon'; coordinates: [number, number][][] };
+      properties: { civilizationId: string; opacityMultiplier: number };
+    }> = [];
+
+    for (const feature of smoothedFeatures) {
+      const coords =
+        feature.geometry.type === 'Polygon'
+          ? [feature.geometry.coordinates[0]]
+          : feature.geometry.type === 'MultiPolygon'
+            ? feature.geometry.coordinates.map((p) => p[0])
+            : [];
+
+      for (const ring of coords) {
+        const inwardRings = generateInwardGradientRings(ring, 4);
+        for (const { ring: innerRing, opacityMultiplier } of inwardRings) {
+          gradientFeatures.push({
+            type: 'Feature',
+            geometry: { type: 'Polygon', coordinates: [innerRing as [number, number][]] },
+            properties: {
+              civilizationId: feature.properties.civilizationId,
+              opacityMultiplier,
+            },
+          });
+        }
+      }
+    }
+
+    return { type: 'FeatureCollection' as const, features: gradientFeatures };
+  }, [smoothedFeatures, fillType]);
+
+  // Style for inward gradient rings
+  const inwardGradientStyle = (feature: any): PathOptions => {
+    const props = feature.properties;
+    const civColor = getCivilizationColor(props.civilizationId);
+    return {
+      fillColor: civColor,
+      fillOpacity: opacity * 0.5 * props.opacityMultiplier,
+      color: civColor,
+      weight: 0,
+      opacity: 0,
+    };
+  };
+
   // Style function for each feature
   const style = (feature: any): PathOptions => {
     const props = feature.properties;
     const isSelected = selectedFeatureId === feature.id;
     const civColor = getCivilizationColor(props.civilizationId);
+    const className = territorialClassName(fillType, civColor);
 
     return {
       fillColor: isSelected ? INTERACTION_COLORS.selected : civColor,
-      fillOpacity: isSelected ? 0.3 : opacity * 0.4,
+      fillOpacity: isSelected ? 0.3 : fillType === 'gradient' ? opacity * 0.15 : opacity * 0.4,
       color: isSelected ? INTERACTION_COLORS.selectedBorder : civColor,
       weight: isSelected ? 3 : 2,
       opacity: isSelected ? 1 : 0.7,
-      dashArray: '5, 5', // Dashed border to distinguish from language ranges
+      dashArray: '5, 5',
+      ...(className ? { className } : {}),
     };
   };
 
@@ -228,6 +286,14 @@ export function CivilizationLayer({
           key={`gradient-${JSON.stringify(features.map(f => f.id))}`}
           data={gradientEdgeData as any}
           style={gradientEdgeStyle}
+        />
+      )}
+      {/* Inward gradient rings for core-to-periphery fill */}
+      {inwardGradientData && inwardGradientData.features.length > 0 && (
+        <GeoJSON
+          key={`inward-gradient-${JSON.stringify(features.map(f => f.id))}`}
+          data={inwardGradientData as any}
+          style={inwardGradientStyle}
         />
       )}
       {/* Main smoothed boundary layer */}
