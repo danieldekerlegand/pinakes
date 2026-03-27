@@ -838,3 +838,24 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+Create reusable HeatmapGrid component for matrix datasets
+
+Completed:
+- Created client/src/components/visualizations/HeatmapGrid.tsx
+  - Reusable SVG-based heatmap component for matrix data visualization
+  - Supports sequential and diverging color schemes via D3 color scales
+  - Custom color ranges, domain overrides, and value formatting
+  - Responsive cell sizing with useVisualizationResize hook
+  - Interactive tooltips showing row/column labels and values
+  - Cell click callbacks for drill-down interactions
+  - Optional in-cell value display for larger cells
+  - SVG/PNG export via existing export-utils
+  - Rotated column labels, truncated long labels, color legend
+  - Handles null/missing data cells gracefully
+- Created test/test-heatmap-grid.test.ts with 14 tests (all passing)
+  - Tests sequential and diverging color scale generation
+  - Tests null/missing data handling
+  - Tests custom domain and color range overrides
+  - Tests cell size computation with clamping
+  - Tests edge cases: single-cell, large matrices, negative values
