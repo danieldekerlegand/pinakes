@@ -362,3 +362,29 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - 11 tests passing covering tree building, color mapping, date formatting, and interface validation
 - Files: TreeVisualization.tsx, WritingSystemEvolutionView.tsx, WritingSystemEvolutionView.test.ts
 ---
+
+## 2026-03-27 - US-308
+- Created `client/src/lib/visualization/settlement-lifecycle.ts` with pure temporal lifecycle logic
+  - `getLifecycleState(foundedYear, abandonedYear, currentYear)` returns phase and 0-1 visibility
+  - Five lifecycle phases: hidden → founding (fade-in) → active → abandoning (fade-out) → destroyed (burst) → hidden
+  - 50-year transition windows for smooth fade-in/fade-out
+  - 20-year destruction burst window after abandonment
+  - `capitalPulse(currentYear, reducedMotion)` returns sin-wave 0.85-1.0 multiplier for capital pulsing
+  - Respects reduced-motion preference (returns constant 1.0)
+- Created `client/src/components/visualizations/map-layers/SettlementsLayer.tsx`
+  - Renders settlements as CircleMarkers filtered by temporal visibility
+  - Settlements fade in at foundedYear and fade out at abandonedYear
+  - Capitals get pulsing highlight effect via golden border + radius oscillation
+  - Destroyed settlements show brief red burst effect with dashed border and 1.8x radius
+  - Marker size scales with peakPopulation, color derived from civilizationId hash
+  - Popup shows type, period, population, region, notable features, and lifecycle status indicators
+  - Supports marker clustering for large datasets (>150 visible)
+  - Follows existing ArchaeologicalSitesLayer patterns for consistency
+- Created `test/test-settlement-lifecycle.test.ts` with 21 passing tests
+  - Tests all lifecycle phases and transitions
+  - Tests visibility linear interpolation during founding/abandoning
+  - Tests capitalPulse with and without reduced motion
+  - Tests edge cases: null dates, BCE/CE years, exact boundary years
+  - Tests chronological phase ordering with no gaps
+- Files: settlement-lifecycle.ts, SettlementsLayer.tsx, test-settlement-lifecycle.test.ts
+---
