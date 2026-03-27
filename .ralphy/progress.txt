@@ -1,198 +1,34 @@
-US-066: Create cultural-lineages.tsv data file
-
-- Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
-- Schema: id, source_id, target_id, relationship_type, time_start, time_end, confidence, evidence_types, sources
-- Coverage includes:
-  - Proto-Indo-European splits (11 branches including Anatolian, Tocharian, Indo-Aryan, Iranian, Germanic, Celtic, Italic, Balto-Slavic, Graeco-Phrygian, Armenic, Albanian)
-  - Mesopotamian civilization chain (Sumerian → Akkadian → Babylonian/Assyrian → Persian → Sasanian)
-  - Islamic caliphate lineage (Umayyad → Abbasid → Ottoman influences)
-  - Bantu expansion and Niger-Congo splits
-  - Austronesian expansion (Formosan → Malayo-Polynesian → Oceanic → Polynesian)
-  - Sino-Tibetan, Afro-Asiatic, Uralic, Kra-Dai, Hmong-Mien, Dravidian, Na-Dene, Algic, Nilo-Saharan, Pama-Nyungan family splits
-  - Mesoamerican civilizations (Maya, Aztec, Inca)
-  - Chinese dynasty chain (Shang → Han → Tang)
-  - Cross-cultural influences (Greek→Roman, Persian→Greek, Indian→Khmer, etc.)
-- Relationship types used: descended-from, split-from, merged-with, influenced-by, conquered-by
-- All source/target IDs reference existing entities in families.tsv or civilizations.tsv
-- Created test/test-cultural-lineages.ts with 19 validation tests (all passing)
-
-US-093: Add organic cultural boundary rendering with spline interpolation
+US-118: Create language contact events scraper
 
 Completed:
-- Created client/src/lib/visualization/spline-interpolation.ts
-  - Catmull-Rom centripetal spline interpolation for polygon rings
-  - smoothRing(), smoothPolygon(), smoothFeature(), smoothFeatures() functions
-  - generateGradientEdgeRings() for transition zone gradient edges
-  - offsetPolygonRing() helper for normal-based polygon offsetting
-- Updated CivilizationLayer.tsx
-  - Applies spline smoothing to boundary polygons (opt-in via smoothBoundaries prop)
-  - Renders gradient edge layers behind main boundaries for transition zones (showGradientEdges prop)
-  - Gradient edges use concentric offset rings with decreasing opacity
-- Updated LanguageRangeLayer.tsx
-  - Applies spline smoothing to language range polygons (opt-in via smoothBoundaries prop)
-- Created test/test-spline-interpolation.ts with 20 tests (34 assertions), all passing
-
-US-101: Add embed widgets and screenshot export
-
-Completed:
-- Added PNG export with LinguaScrape watermark (bottom-right, semi-transparent badge)
-- Added generateEmbedCode() utility for iframe snippet generation
-- Created /embed page with responsive visualization rendering and dark/light theme support
-- Added embed route to App.tsx router
-- Updated ExportMenu with "Get Embed Code" option and copy-to-clipboard dialog
-- Embed widget supports all 5 view modes: tree, network, timeline, map, explorer
-- Embed widget includes attribution bar ("Powered by LinguaScrape")
-- Added 26 passing tests for embed code generation (test/test-embed-and-export.ts)
-
-Files changed:
-- client/src/lib/visualization/export-utils.ts (watermark, generateEmbedCode)
-- client/src/components/visualizations/shared/ExportMenu.tsx (embed dialog)
-- client/src/pages/embed.tsx (new - embed page)
-- client/src/App.tsx (embed route)
-- test/test-embed-and-export.ts (new - tests)
-
-US-079: Create language-range-polygons.tsv with 100+ entries
-
-- Created lexicons/language-range-polygons.tsv with 133 entries
-- Covers 21 language family groups across all major world regions
-- Includes both current (modern) and historical range polygons
-- All entries have valid GeoJSON Polygon geometries with closed rings
-- 100% referential integrity with languages.tsv and families.tsv
-- Each entry includes confidence scores (60-95), source citations, and notes
-- Created test/test-language-range-polygons.ts with comprehensive validation
-- All 187 test assertions pass
-
-US-080: Add language range polygons TSV loader and map layer
-
-Completed:
-- Added loadLanguageRangePolygons() private loader and getLanguageRangePolygons() public method in server/tsv-storage.ts with support for time, family, and range type filtering
-- Added GET /api/map/language-range-polygons API endpoint in server/routes.ts with timeStart, timeEnd, bbox, familyIds, and rangeType query parameters
-- Added 'language-range-polygons' to LayerType union and DEFAULT_LAYER_CONFIGS in client/src/lib/visualization/geospatial-types.ts
-- Integrated into EnhancedLanguageMapView with data fetching, temporal filtering, and rendering via existing LanguageRangeLayer component
-- Added to linguistic-atlas and genetic-linguistic layer presets
-
-US-091: Create myth-motifs.tsv and deities.tsv data files
-
-Completed:
-- Created lexicons/deities.tsv with 76 deities across 14 pantheons (greek, roman, norse, egyptian, hindu, japanese, yoruba, maya, inca, tengric, celtic, sumerian, aztec, slavic) with syncretism links cross-referencing equivalent deities across traditions
-- Created lexicons/myth-motifs.tsv with 32 motifs across 8 types (cataclysm, cosmology, death-rebirth, archetype, creation, hero, culture-hero, fertility) with cross-cultural examples and deity references
-- Created test/test-mythology-data.ts with 42 validation tests covering schema, JSON parsing, referential integrity, and data quality
-- All tests passing
-
-US-094: Add animated temporal boundary morphing
-
-Completed:
-- Created temporal-boundary-morphing.ts utility module with:
-  - Polygon coordinate interpolation via ring resampling
-  - Ease-in-out cubic easing for smooth transitions
-  - Bracketing snapshot detection for time-based interpolation
-  - Migration particle generation along route geometries
-  - Civilization snapshot grouping and morphed boundary generation
-- Created useTemporalMorphing React hook for managing morphing state
-  - Memoized snapshot grouping and boundary interpolation
-  - requestAnimationFrame-based particle animation loop
-  - Active route filtering by current year
-- Created TemporalMorphingLayer component (Leaflet GeoJSON)
-  - Renders interpolated polygon boundaries
-  - Transition pulse effect during morphing
-  - Popup with morph progress indicator
-- Created MigrationParticleLayer component
-  - Renders animated particles along migration routes using CircleMarker
-  - Opacity/size variation based on route progress
-- Created SplitScreenComparison component
-  - Side panel for comparing two time periods
-  - Year slider for comparison view
-  - Toggle button for map controls
-- Installed vitest, wrote 38 unit tests (all passing)
-- TypeScript type checking passes (no new errors)
-
-US-096: Add map-based boundary drawing contribution tool
-
-Implemented:
-- useDrawingTool hook with polygon/polyline drawing modes, vertex add/remove/move, undo/redo history stack
-- BoundaryDrawingLayer component for rendering drawn shapes and draggable vertex handles on the Leaflet map
-- BoundaryDrawingPanel with drawing mode selection, vertex controls, GeoJSON preview/download, and contribution submission form
-- Added "boundary" entity type to ContributionService with required fields: name, geometry
-- Integrated BoundaryDrawingLayer into EnhancedLanguageMapView with ref-based access for external panels
-- Added "boundary" option to ContributionPanel entity type list
+- Created server/services/language-contact-scraper.ts
+  - Uses Google Gemini AI to generate language contact event data
+  - Supports all 5 contact types: substrate, superstrate, adstrate, creolization, pidginization
+  - Appends new entries to existing lexicons/language-contacts.tsv
+  - Resumable scraping with existing ID detection and next-ID calculation
+  - Batch scraping (50 events per batch) with rate limiting
+  - Concurrent scraping prevention (static isScraping flag)
+  - Job tracking via jobStore integration
+  - Progress callback support for UI updates
+  - Configurable target count (default 300), contact types, and regions
+- Added POST /api/scraping/language-contacts endpoint in server/routes.ts
+  - Accepts contactTypes, regions, targetCount in request body
+  - Returns jobId for tracking progress via existing job management endpoints
+  - Runs scraping in background (non-blocking)
+- Created test/test-language-contact-scraper.ts with 51 passing tests
+  - Data integrity validation (required fields, ID format, valid enums)
+  - Contact filtering tests (by type, intensity, source language, ID, both-direction lookup)
+  - Scraper initialization tests (existing ID detection, API key validation)
+  - Time period format validation
+  - Data coverage checks (regional diversity, language diversity, type/intensity distribution)
+  - Duplicate ID detection
+- Fixed pre-existing merge conflict markers in server/tsv-storage.ts (2 conflicts)
+- Fixed pre-existing merge conflict markers in server/routes.ts (1 conflict)
 
 Files created:
-- client/src/components/visualizations/hooks/useDrawingTool.ts
-- client/src/components/visualizations/map-layers/BoundaryDrawingLayer.tsx
-- client/src/components/visualizations/BoundaryDrawingPanel.tsx
-- test/test-boundary-drawing.ts
+- server/services/language-contact-scraper.ts
+- test/test-language-contact-scraper.ts
 
 Files modified:
-- server/services/contribution-service.ts (added boundary entity type)
-- client/src/components/visualizations/ContributionPanel.tsx (added boundary to entity types)
-- client/src/components/visualizations/EnhancedLanguageMapView.tsx (integrated drawing layer)
-
-Tests: 61 passed, 0 failed
-
-US-081: Create trade-routes.tsv with dedicated trade network data
-
-Completed:
-- Created lexicons/trade-routes.tsv with 25 dedicated trade routes
-  - Routes span from -7000 BCE (Lapis Lazuli Route) to 1950 (Tea Horse Road)
-  - 10 land routes, 12 maritime routes, 3 river routes
-  - Each route includes: waypoints (GeoJSON), traded goods (cross-referenced to trade-goods.tsv), key cities, controlling powers, associated languages, description, economic impact
-  - Notable routes: Silk Road, Maritime Spice Route, Trans-Saharan Gold-Salt Trade, Amber Road, Incense Route, Phoenician Mediterranean Network, Viking Eastern Trade Route, Portuguese Cape Route, Arab Indian Ocean Network, Hanseatic League Network, Dutch VOC Spice Network, and more
-- Added TradeRoute interface and TSV loader in server/tsv-storage.ts
-- Added GET /api/trade-routes and GET /api/trade-routes/:id API endpoints in server/routes.ts
-- Created test/test-trade-routes.ts with 100 passing assertions
-- Fixed 3 pre-existing syntax errors in tsv-storage.ts (missing closing braces/comments)
-
-US-074: Add archaeological culture detail cards
-
-Completed:
-- Created lexicons/archaeological-cultures.tsv with 64 cultures spanning all major world regions
-  (Yamnaya, Corded Ware, Jōmon, Clovis, Lapita, Olmec, Indus Valley, etc.)
-- Added ArchaeologicalCulture interface and TSV loader to server/tsv-storage.ts
-- Added GET /api/archaeological-cultures endpoint with region/language/time filters
-- Added GET /api/archaeological-cultures/:id endpoint
-- Created client/src/components/archaeological-cultures-panel.tsx with:
-  - Timeline view (Gantt chart with region color coding)
-  - Cards view (expandable detail cards)
-  - Detail sections: material culture, probable languages, haplogroups, characteristics
-  - Interactive predecessor/successor lineage links
-  - Region-based filtering
-- Integrated panel into dashboard (menu item, keyboard shortcut, URL state)
-- Wrote 11 tests covering data integrity, filtering, linkage consistency, coordinate validation
-- All tests pass, Vite build succeeds
-
-## Agent 27: Add mythology TSV loaders, API, and comparative visualization
-
-### Completed
-- Created deities.tsv with 16 deities across 10 mythological traditions (Greek, Roman, Norse, Hindu, Egyptian, Mesopotamian, Japanese, Aztec, Slavic)
-- Created myth-motifs.tsv with 15 cross-cultural mythological motifs (flood myth, world tree, dying-rising god, hero quest, thunder god, etc.)
-- Added Deity and MythMotif TypeScript interfaces in tsv-storage.ts
-- Added TSV loaders with filtering (by mythology, domain, year, motif type, region)
-- Added helper methods: getDeityEquivalents(), getMotifsByDeity()
-- Added 7 API endpoints: GET /api/deities, GET /api/deities/:id, GET /api/deities/:id/equivalents, GET /api/myth-motifs, GET /api/myth-motifs/:id, GET /api/deities/:id/motifs
-- Created MythologyLayer map component with deity markers and cross-cultural equivalence connection lines
-- Integrated MythologyLayer into EnhancedLanguageMapView with layer toggle support
-- Added 'mythology' layer config to DEFAULT_LAYER_CONFIGS and cultural-diffusion preset
-- Created ComparativeMythologyView component with deity equivalence groups, motif filtering, deity detail panel, and cross-reference matrix
-- Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
-- Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
-
-US-073: Add Urheimat hypothesis map overlay
-
-Completed:
-- Created lexicons/urheimat-hypotheses.tsv with 34 homeland hypotheses covering 21+ language families
-  - Includes competing theories (IE Steppe vs Anatolian vs Armenian, AA Levant vs Africa vs Sahara, etc.)
-  - Each entry has GeoJSON boundary polygons, time ranges, supporting evidence (linguistic/archaeological/genetic), consensus levels, key proponents, and sources
-- Added UrheimatHypothesis interface and TSV loader to server/tsv-storage.ts
-- Added GET /api/urheimat-hypotheses (with language_family and consensus_min filters) and GET /api/urheimat-hypotheses/:id endpoints to server/routes.ts
-- Added 'urheimat-hypotheses' layer type and config to client/src/lib/visualization/geospatial-types.ts
-  - Added 'deep-history' layer preset combining urheimat hypotheses, archaeological sites, and language ranges
-- Created UrheimatHypothesisLayer.tsx map component with:
-  - Translucent polygon overlays colored by language family
-  - Opacity scaled by scholarly consensus level (higher consensus = more opaque)
-  - Dashed borders for lower-consensus hypotheses
-  - Rich popups showing evidence, proponents, competing hypotheses, and sources
-  - Hover tooltips and selection support
-  - Temporal filtering via time slider
-- Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
-- Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
-- Written comprehensive test suite (84 assertions, all passing)
+- server/routes.ts (added import and POST endpoint, resolved merge conflict)
+- server/tsv-storage.ts (resolved 2 merge conflicts)

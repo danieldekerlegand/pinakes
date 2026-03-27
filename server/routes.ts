@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
 import { jobStore } from "./services/job-store";
+import { languageContactScraper } from "./services/language-contact-scraper";
 import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
@@ -325,6 +326,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting word scraping:", error);
       res.status(500).json({
         message: "Failed to start word scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape language contact events with Gemini AI
+  app.post("/api/scraping/language-contacts", async (req, res) => {
+    try {
+      const { contactTypes, regions, targetCount } = req.body;
+
+      const job = jobStore.createJob(
+        "language-contacts",
+        targetCount || 300,
+        "gemini"
+      );
+
+      languageContactScraper
+        .scrapeLanguageContacts({
+          contactTypes,
+          regions,
+          targetCount: targetCount || 300,
+          jobId: job.id,
+          progressCallback: (type, message, data) => {
+            if (type === "error") {
+              console.error(`Contact scraping error: ${message}`);
+            } else {
+              console.log(`Contact scraping: ${message}`);
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Contact scraping completed: ${result.newEntries} new entries (total: ${result.totalAfter})`
+          );
+        })
+        .catch((error) => {
+          console.error("Contact scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Language contact scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting contact scraping:", error);
+      res.status(500).json({
+        message: "Failed to start language contact scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -3089,7 +3143,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3626,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3607,7 +3662,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
     }
   });
 

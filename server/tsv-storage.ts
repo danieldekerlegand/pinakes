@@ -3063,7 +3063,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3089,49 +3088,6 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
-=======
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
-    const titleIdx = getIdx(header, "title");
-    const textIdx = getIdx(header, "text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: row[titleIdx],
-      text: row[textIdx],
-      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-    }));
-  }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
 
   // ============================================================================
   // Phonological Inventory Data Methods
@@ -4246,7 +4202,6 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
-<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4320,7 +4275,8 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
-=======
+  }
+
   // ── Urheimat Hypotheses ─────────────────────────────────────────────
 
   private loadUrheimatHypotheses(): void {
@@ -4393,7 +4349,6 @@ export class TsvStorage {
   async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
     this.loadUrheimatHypotheses();
     return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
   }
 
   // ── Narratives ──────────────────────────────────────────────────────
