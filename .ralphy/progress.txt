@@ -735,3 +735,27 @@ Completed:
   - GET /api/settlements/:id
 - Resolved pre-existing merge conflict markers in tsv-storage.ts and routes.ts
 - Created test/test-settlements.ts with 50 passing tests covering TSV validation and loader functionality
+
+Create language-specific vocabulary scrapers for under-represented families
+
+Completed:
+- Created server/services/underrepresented-vocab-scraper.ts with:
+  - identifyUnderrepresentedFamilies() function that analyzes families.tsv and languages.tsv to find isolates, small families, endangered, and extinct language families
+  - UnderrepresentedVocabScraper class with tailored Gemini prompts per family type (isolate, small_family, endangered, extinct, unclassified)
+  - 75 Swadesh-style core concepts (pronouns, body parts, nature, kinship, numerals, basic verbs, colors) for cross-linguistic comparison
+  - Strategy-specific batch sizes and delays (smaller batches for rarer languages)
+  - Confidence-based filtering (≥0.5 threshold) to avoid unreliable translations
+  - Resumable scraping via existing tsvWriter integration
+  - Job tracking via jobStore
+- Added API endpoints in server/routes.ts:
+  - GET /api/scraping/underrepresented-families - lists under-represented families with their strategies
+  - POST /api/scraping/underrepresented-vocab - triggers vocabulary scraping with optional familyId, languageId, maxLanguages filters
+- Created vitest.config.ts for server-side test running
+- Created server/services/underrepresented-vocab-scraper.test.ts with 21 tests covering:
+  - Family identification (isolates, small families, extinct, endangered, large family exclusion)
+  - Core concepts validation (75 unique IDs and positions)
+  - Strategy map completeness and ordering
+  - Gemini batch scraping (success, low-confidence filtering, API errors, malformed JSON)
+  - Multi-family scraping, familyId filtering, maxLanguages limiting
+- Also resolved pre-existing merge conflict markers in server/routes.ts and server/tsv-storage.ts
+- All 21 tests passing, no new TypeScript errors

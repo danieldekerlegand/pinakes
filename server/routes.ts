@@ -15,6 +15,10 @@ import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
 import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
 import {
+  identifyUnderrepresentedFamilies,
+  underrepresentedVocabScraper,
+} from "./services/underrepresented-vocab-scraper";
+import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
   findNearestLanguages,
@@ -4606,6 +4610,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Under-represented family vocabulary scraping
+
+  /**
+   * GET /api/scraping/underrepresented-families - List under-represented families and their scraping strategies
+   */
+  app.get("/api/scraping/underrepresented-families", async (_req, res) => {
+    try {
+      const familiesRaw = await storage.getLanguageFamilies();
+      const languagesRaw = await storage.getLanguages();
+
+      const familiesData = familiesRaw.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        parent_id: f.parentId ?? "",
+        description: f.description ?? "",
+        taxonomic_level: f.taxonomicLevel ?? "",
+      }));
+
+      const languagesData = languagesRaw.map((l: any) => ({
+        id: l.id,
+        name: l.name,
+        family_id: l.familyId,
+        status: l.status ?? "living",
+      }));
+
+      const families = identifyUnderrepresentedFamilies(familiesData, languagesData);
+
+      res.json({
+        count: families.length,
+        totalLanguages: families.reduce((sum, f) => sum + f.languages.length, 0),
+        families: families.map((f) => ({
+          familyId: f.familyId,
+          familyName: f.familyName,
+          languageCount: f.languages.length,
+          strategyType: f.strategy.familyType,
+          languages: f.languages,
+        })),
+      });
+    } catch (error) {
+      console.error("Error listing underrepresented families:", error);
+      res.status(500).json({ message: "Failed to list underrepresented families" });
+    }
+  });
+
   /**
    * POST /api/enrichment/batch - Start batch enrichment for under-populated TSVs
    */
@@ -4797,6 +4845,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching settlement:", error);
       res.status(500).json({ message: "Failed to fetch settlement" });
+    }
+  });
+
+  /**
+   * POST /api/scraping/underrepresented-vocab - Scrape vocabulary for under-represented families
+   * Body: { familyId?, languageId?, maxLanguages? }
+   */
+  app.post("/api/scraping/underrepresented-vocab", async (req, res) => {
+    try {
+      const { familyId, languageId, maxLanguages } = req.body;
+
+      const familiesRaw = await storage.getLanguageFamilies();
+      const languagesRaw = await storage.getLanguages();
+
+      const familiesData = familiesRaw.map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        parent_id: f.parentId ?? "",
+        description: f.description ?? "",
+        taxonomic_level: f.taxonomicLevel ?? "",
+      }));
+
+      const languagesData = languagesRaw.map((l: any) => ({
+        id: l.id,
+        name: l.name,
+        family_id: l.familyId,
+        status: l.status ?? "living",
+      }));
+
+      const families = identifyUnderrepresentedFamilies(familiesData, languagesData);
+
+      if (families.length === 0) {
+        return res.status(404).json({ message: "No under-represented families found" });
+      }
+
+      const job = jobStore.createJob(
+        familyId || languageId || "underrepresented",
+        families.reduce((sum, f) => sum + f.languages.length, 0) * 75,
+        "gemini"
+      );
+
+      underrepresentedVocabScraper
+        .scrape(families, {
+          familyId,
+          languageId,
+          maxLanguages: maxLanguages || 10,
+          jobId: job.id,
+          progressCallback: (progress) => {
+            console.log(`[Underrepresented Vocab] ${progress.type}: ${progress.message}`);
+            if (progress.type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: progress.message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Underrepresented vocab scraping completed: ${result.languagesProcessed} languages, ${result.totalWordsScraped} words`
+          );
+        })
+        .catch((error) => {
+          console.error("Underrepresented vocab scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Under-represented vocabulary scraping started",
+        jobId: job.id,
+        targetFamilies: familyId ? 1 : families.length,
+      });
+    } catch (error) {
+      console.error("Error starting underrepresented vocab scraping:", error);
+      res.status(500).json({ message: "Failed to start underrepresented vocab scraping" });
     }
   });
 
