@@ -176,6 +176,31 @@ Completed:
 - Wrote comprehensive tests (test/test-mythology.ts) covering loaders, filters, equivalents, and data integrity
 - Fixed pre-existing syntax issues in tsv-storage.ts (missing closing braces, malformed function boundaries)
 
+US-XXX: Create export pipeline for contributing data back to open datasets
+
+Completed:
+- Created server/services/export-pipeline.ts with:
+  - 5 dataset profiles: languages, phonology, grammar, etymology, writing-systems
+  - Column mapping from internal names to open dataset standards (CLDF/Glottolog conventions)
+  - Export formats: CSV, TSV, JSON, CLDF
+  - Row filtering by column values
+  - File selection within datasets
+  - Metadata generation (title, description, license, source, date, row counts)
+  - Input validation with detailed error messages
+- Added 4 API endpoints in server/routes.ts:
+  - GET /api/export/datasets - list available dataset profiles
+  - GET /api/export/datasets/:id - get specific dataset profile
+  - POST /api/export - export dataset with options (format, filters, file selection)
+  - GET /api/export/download/:dataset/:format - direct file download with query param filters
+- Created test/test-export-pipeline.ts with 71 passing tests covering:
+  - Dataset profile listing and lookup
+  - Option validation (dataset, format, includeFiles)
+  - TSV/CSV/JSON/CLDF format output
+  - Filter application
+  - File selection
+  - Error handling for unknown datasets
+  - Metadata generation
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:

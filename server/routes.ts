@@ -24,6 +24,13 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
+import {
+  exportDataset,
+  getDatasetProfiles,
+  getDatasetProfile,
+  validateExportOptions,
+  type ExportFormat,
+} from "./services/export-pipeline";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import {
   parseNaturalLanguageQuery,
@@ -3608,6 +3615,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
 >>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
+    }
+  });
+
+  /**
+   * GET /api/export/datasets - List available dataset profiles for export
+   */
+  app.get("/api/export/datasets", async (_req, res) => {
+    try {
+      const profiles = getDatasetProfiles();
+      res.json(profiles);
+    } catch (error) {
+      console.error("Error listing export datasets:", error);
+      res.status(500).json({ message: "Failed to list export datasets" });
+    }
+  });
+
+  /**
+   * GET /api/export/datasets/:id - Get a specific dataset profile
+   */
+  app.get("/api/export/datasets/:id", async (req, res) => {
+    try {
+      const profile = getDatasetProfile(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ message: "Dataset not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching export dataset:", error);
+      res.status(500).json({ message: "Failed to fetch export dataset" });
+    }
+  });
+
+  /**
+   * POST /api/export - Export a dataset in the specified format
+   */
+  app.post("/api/export", async (req, res) => {
+    try {
+      const { dataset, format, filters, includeFiles } = req.body;
+
+      const errors = validateExportOptions({ dataset, format: format as ExportFormat, filters, includeFiles });
+      if (errors.length > 0) {
+        return res.status(400).json({ message: "Invalid export options", errors });
+      }
+
+      const result = await exportDataset({ dataset, format: format as ExportFormat, filters, includeFiles });
+      res.json(result);
+    } catch (error) {
+      console.error("Error exporting dataset:", error);
+      res.status(500).json({
+        message: "Failed to export dataset",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/export/download/:dataset/:format - Download a single-file export
+   */
+  app.get("/api/export/download/:dataset/:format", async (req, res) => {
+    try {
+      const { dataset, format } = req.params;
+      const filters: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.query)) {
+        if (key !== "includeFiles" && typeof value === "string") {
+          filters[key] = value;
+        }
+      }
+
+      const includeFiles = typeof req.query.includeFiles === "string"
+        ? req.query.includeFiles.split(",")
+        : undefined;
+
+      const errors = validateExportOptions({ dataset, format: format as ExportFormat, filters, includeFiles });
+      if (errors.length > 0) {
+        return res.status(400).json({ message: "Invalid export options", errors });
+      }
+
+      const result = await exportDataset({ dataset, format: format as ExportFormat, filters, includeFiles });
+
+      if (result.files.length === 0) {
+        return res.status(404).json({ message: "No data to export" });
+      }
+
+      // For single-file downloads, return the first file directly
+      const file = result.files[0];
+      const contentType = format === "json" ? "application/json" : "text/csv";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
+      res.send(file.content);
+    } catch (error) {
+      console.error("Error downloading export:", error);
+      res.status(500).json({
+        message: "Failed to download export",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
