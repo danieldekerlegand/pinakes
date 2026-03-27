@@ -24,6 +24,7 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
+import { grammarWalsGrambankScraper } from "./services/grammar-wals-grambank-scraper";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import {
   parseNaturalLanguageQuery,
@@ -411,6 +412,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating scraping job:", error);
       res.status(500).json({ message: "Failed to update scraping job" });
+    }
+  });
+
+  // Scrape grammar features from WALS and Grambank
+  app.post("/api/scraping/grammar-wals-grambank", async (req, res) => {
+    try {
+      const { sources, languageIds } = req.body;
+
+      const job = jobStore.createJob(
+        "grammar-wals-grambank",
+        0,
+        "wals-grambank"
+      );
+
+      // Start scraping in the background
+      grammarWalsGrambankScraper
+        .scrape({
+          sources: sources || ["wals", "grambank"],
+          languageIds: languageIds || undefined,
+          jobId: job.id,
+          progressCallback: (progress) => {
+            console.log(`[Grammar WALS/Grambank] ${progress.type}: ${progress.message}`);
+            if (progress.type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: progress.message });
+            } else if (progress.type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: progress.message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Grammar WALS/Grambank scraping completed: ${result.totalFeatures} features for ${result.languagesMatched} languages`
+          );
+        })
+        .catch((error) => {
+          console.error("Grammar WALS/Grambank scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Grammar WALS/Grambank scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting grammar WALS/Grambank scraping:", error);
+      res.status(500).json({
+        message: "Failed to start grammar WALS/Grambank scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
