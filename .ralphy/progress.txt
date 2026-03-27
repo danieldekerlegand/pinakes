@@ -356,6 +356,24 @@ Files created:
 Files modified:
 - server/routes.ts (added polity scraping import and endpoint)
 
+US-XXX: Create religions and belief systems scraper
+
+Completed:
+- Created server/services/religion-scraper.ts with ReligionScraper class
+  - Uses Gemini AI to discover and generate religion/belief system data
+  - Scrapes in 3 batches: major/ancient religions, indigenous/folk religions, syncretic/new movements
+  - Reads existing religions.tsv to avoid duplicates (resumable)
+  - Merges new results into existing lexicons/religions.tsv with atomic writes
+  - Follows established scraper patterns (job tracking, progress callbacks, rate limiting)
+- Added POST /api/scraping/religions endpoint in server/routes.ts
+  - Background scraping with job status tracking via JobStore
+  - Progress callback logging for UI display
+- Created test/test-religion-scraper.ts with 32 validation tests (all passing)
+  - Validates religions.tsv schema, column presence, JSON field parsing
+  - Checks coordinate validity, ID uniqueness, religion type diversity
+  - Verifies well-known religions are present
+  - Tests scraper module imports correctly
+
 US-073: Add Urheimat hypothesis map overlay
 
 Completed:
