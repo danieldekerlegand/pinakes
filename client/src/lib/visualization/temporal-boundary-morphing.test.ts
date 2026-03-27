@@ -13,7 +13,12 @@ import {
   generateMorphedBoundaries,
   interpolateAlongRoute,
   generateMigrationParticles,
+  computePolygonCentroid,
+  isPointInPolygon,
+  computeSettlementOverlays,
+  computeEmpireLabels,
   type TemporalSnapshot,
+  type MorphedBoundary,
 } from './temporal-boundary-morphing';
 
 // ============================================================================
@@ -419,5 +424,211 @@ describe('generateMigrationParticles', () => {
     const positions = result.map(p => p.routeProgress);
     const uniquePositions = new Set(positions.map(p => p.toFixed(3)));
     expect(uniquePositions.size).toBe(4);
+  });
+});
+
+// ============================================================================
+// computePolygonCentroid
+// ============================================================================
+
+describe('computePolygonCentroid', () => {
+  it('returns [0,0] for empty ring', () => {
+    const result = computePolygonCentroid([]);
+    expect(result).toEqual([0, 0]);
+  });
+
+  it('returns the point for single-point ring', () => {
+    const result = computePolygonCentroid([[5, 10]]);
+    expect(result[0]).toBeCloseTo(5);
+    expect(result[1]).toBeCloseTo(10);
+  });
+
+  it('computes centroid of a square', () => {
+    const ring: Position[] = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]];
+    const result = computePolygonCentroid(ring);
+    expect(result[0]).toBeCloseTo(5);
+    expect(result[1]).toBeCloseTo(5);
+  });
+
+  it('computes centroid of a rectangle', () => {
+    const ring: Position[] = [[0, 0], [20, 0], [20, 10], [0, 10], [0, 0]];
+    const result = computePolygonCentroid(ring);
+    expect(result[0]).toBeCloseTo(10);
+    expect(result[1]).toBeCloseTo(5);
+  });
+
+  it('handles degenerate polygon (all same point)', () => {
+    const ring: Position[] = [[5, 5], [5, 5], [5, 5]];
+    const result = computePolygonCentroid(ring);
+    expect(result[0]).toBeCloseTo(5);
+    expect(result[1]).toBeCloseTo(5);
+  });
+});
+
+// ============================================================================
+// isPointInPolygon
+// ============================================================================
+
+describe('isPointInPolygon', () => {
+  const square: Position[] = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]];
+
+  it('returns true for point inside polygon', () => {
+    expect(isPointInPolygon([5, 5], square)).toBe(true);
+  });
+
+  it('returns false for point outside polygon', () => {
+    expect(isPointInPolygon([15, 5], square)).toBe(false);
+  });
+
+  it('returns false for point clearly outside', () => {
+    expect(isPointInPolygon([-5, -5], square)).toBe(false);
+  });
+
+  it('returns true for point near center of larger polygon', () => {
+    const ring: Position[] = [[-10, -10], [10, -10], [10, 10], [-10, 10], [-10, -10]];
+    expect(isPointInPolygon([0, 0], ring)).toBe(true);
+  });
+
+  it('returns false for ring with fewer than 3 points', () => {
+    expect(isPointInPolygon([5, 5], [[0, 0], [10, 0]])).toBe(false);
+  });
+
+  it('handles triangle', () => {
+    const triangle: Position[] = [[0, 0], [10, 0], [5, 10], [0, 0]];
+    expect(isPointInPolygon([5, 3], triangle)).toBe(true);
+    expect(isPointInPolygon([9, 9], triangle)).toBe(false);
+  });
+});
+
+// ============================================================================
+// computeSettlementOverlays
+// ============================================================================
+
+describe('computeSettlementOverlays', () => {
+  const mockBoundaries: MorphedBoundary[] = [
+    {
+      coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+      civilizationId: 'rome',
+      progress: 0.5,
+      properties: {
+        civilizationId: 'rome',
+        name: 'Roman Empire',
+        capital: 'Rome',
+        timePeriod: { start: -27, end: 476, label: 'Roman Empire' },
+        associatedLanguageIds: ['latin'],
+        writingSystems: [],
+        sources: [],
+      },
+    },
+  ];
+
+  const settlements = [
+    { id: 's1', name: 'Rome', longitude: 5, latitude: 5, type: 'capital' },
+    { id: 's2', name: 'Athens', longitude: 15, latitude: 5, type: 'city-state' },
+    { id: 's3', name: 'Pompeii', longitude: 3, latitude: 3, type: 'city-state' },
+  ];
+
+  const colorFn = () => '#ff0000';
+
+  it('identifies settlements inside empire boundaries', () => {
+    const result = computeSettlementOverlays(mockBoundaries, settlements, colorFn);
+    const ids = result.map(o => o.settlementId);
+    expect(ids).toContain('s1');
+    expect(ids).toContain('s3');
+    expect(ids).not.toContain('s2');
+  });
+
+  it('flags capital settlements correctly', () => {
+    const result = computeSettlementOverlays(mockBoundaries, settlements, colorFn);
+    const rome = result.find(o => o.settlementId === 's1');
+    const pompeii = result.find(o => o.settlementId === 's3');
+    expect(rome!.isCapital).toBe(true);
+    expect(pompeii!.isCapital).toBe(false);
+  });
+
+  it('returns empty for no settlements', () => {
+    const result = computeSettlementOverlays(mockBoundaries, [], colorFn);
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty for no boundaries', () => {
+    const result = computeSettlementOverlays([], settlements, colorFn);
+    expect(result).toEqual([]);
+  });
+
+  it('assigns empire color to settlements', () => {
+    const result = computeSettlementOverlays(mockBoundaries, settlements, colorFn);
+    for (const overlay of result) {
+      expect(overlay.empireColor).toBe('#ff0000');
+    }
+  });
+});
+
+// ============================================================================
+// computeEmpireLabels
+// ============================================================================
+
+describe('computeEmpireLabels', () => {
+  const mockBoundaries: MorphedBoundary[] = [
+    {
+      coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+      civilizationId: 'rome',
+      progress: 0.5,
+      properties: {
+        civilizationId: 'rome',
+        name: 'Roman Empire',
+        timePeriod: { start: -27, end: 476, label: 'Roman Empire' },
+        associatedLanguageIds: ['latin'],
+        writingSystems: [],
+        sources: [],
+      },
+    },
+    {
+      coordinates: [[[20, 20], [30, 20], [30, 30], [20, 30], [20, 20]]],
+      civilizationId: 'persia',
+      progress: 0.3,
+      properties: {
+        civilizationId: 'persia',
+        name: 'Persian Empire',
+        timePeriod: { start: -550, end: -330, label: 'Persian Empire' },
+        associatedLanguageIds: ['peo'],
+        writingSystems: [],
+        sources: [],
+      },
+    },
+  ];
+
+  const colorFn = (id: string) => id === 'rome' ? '#ff0000' : '#0000ff';
+
+  it('generates a label for each boundary', () => {
+    const labels = computeEmpireLabels(mockBoundaries, colorFn);
+    expect(labels).toHaveLength(2);
+  });
+
+  it('computes centroid positions', () => {
+    const labels = computeEmpireLabels(mockBoundaries, colorFn);
+    const rome = labels.find(l => l.empireId === 'rome')!;
+    expect(rome.centroid[0]).toBeCloseTo(5);
+    expect(rome.centroid[1]).toBeCloseTo(5);
+
+    const persia = labels.find(l => l.empireId === 'persia')!;
+    expect(persia.centroid[0]).toBeCloseTo(25);
+    expect(persia.centroid[1]).toBeCloseTo(25);
+  });
+
+  it('uses empire names from properties', () => {
+    const labels = computeEmpireLabels(mockBoundaries, colorFn);
+    expect(labels.find(l => l.empireId === 'rome')!.name).toBe('Roman Empire');
+    expect(labels.find(l => l.empireId === 'persia')!.name).toBe('Persian Empire');
+  });
+
+  it('assigns correct colors', () => {
+    const labels = computeEmpireLabels(mockBoundaries, colorFn);
+    expect(labels.find(l => l.empireId === 'rome')!.color).toBe('#ff0000');
+    expect(labels.find(l => l.empireId === 'persia')!.color).toBe('#0000ff');
+  });
+
+  it('returns empty for no boundaries', () => {
+    expect(computeEmpireLabels([], colorFn)).toEqual([]);
   });
 });

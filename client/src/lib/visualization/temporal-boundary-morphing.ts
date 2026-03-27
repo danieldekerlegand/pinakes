@@ -30,6 +30,23 @@ export interface MorphedBoundary {
   properties: CivilizationFeature['properties'];
 }
 
+export interface EmpireSettlementOverlay {
+  settlementId: string;
+  name: string;
+  position: [number, number]; // [lng, lat]
+  empireId: string;
+  empireColor: string;
+  isCapital: boolean;
+  type: string;
+}
+
+export interface EmpireLabelInfo {
+  empireId: string;
+  name: string;
+  centroid: [number, number]; // [lng, lat]
+  color: string;
+}
+
 export interface MigrationParticle {
   id: string;
   position: [number, number]; // [lng, lat]
@@ -364,4 +381,132 @@ export function interpolateAlongRoute(
     coordinates[segIdx][0] + t * (coordinates[segIdx + 1][0] - coordinates[segIdx][0]),
     coordinates[segIdx][1] + t * (coordinates[segIdx + 1][1] - coordinates[segIdx][1]),
   ];
+}
+
+// ============================================================================
+// Geometry Utilities for Empire Boundary + Settlement Overlay
+// ============================================================================
+
+/**
+ * Compute the centroid of a polygon ring using the shoelace formula.
+ * Returns [lng, lat].
+ */
+export function computePolygonCentroid(ring: Position[]): [number, number] {
+  if (ring.length === 0) return [0, 0];
+  if (ring.length === 1) return [ring[0][0], ring[0][1]];
+
+  let area = 0;
+  let cx = 0;
+  let cy = 0;
+
+  for (let i = 0; i < ring.length - 1; i++) {
+    const x0 = ring[i][0];
+    const y0 = ring[i][1];
+    const x1 = ring[i + 1][0];
+    const y1 = ring[i + 1][1];
+    const cross = x0 * y1 - x1 * y0;
+    area += cross;
+    cx += (x0 + x1) * cross;
+    cy += (y0 + y1) * cross;
+  }
+
+  area /= 2;
+  if (Math.abs(area) < 1e-10) {
+    // Degenerate polygon - return average of points
+    const sumX = ring.reduce((s, p) => s + p[0], 0);
+    const sumY = ring.reduce((s, p) => s + p[1], 0);
+    return [sumX / ring.length, sumY / ring.length];
+  }
+
+  cx /= 6 * area;
+  cy /= 6 * area;
+  return [cx, cy];
+}
+
+/**
+ * Ray-casting point-in-polygon test.
+ * Tests if a point [lng, lat] is inside a polygon ring.
+ */
+export function isPointInPolygon(point: [number, number], ring: Position[]): boolean {
+  if (ring.length < 3) return false;
+
+  const [px, py] = point;
+  let inside = false;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+
+    const intersect = ((yi > py) !== (yj > py)) &&
+      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+/**
+ * Given morphed empire boundaries and a list of settlements, determine which
+ * settlements fall within each empire boundary. Settlements inherit the
+ * empire's color. Capitals are flagged.
+ */
+export function computeSettlementOverlays(
+  morphedBoundaries: MorphedBoundary[],
+  settlements: Array<{
+    id: string;
+    name: string;
+    longitude: number;
+    latitude: number;
+    type: string;
+  }>,
+  getEmpireColor: (empireId: string) => string
+): EmpireSettlementOverlay[] {
+  const overlays: EmpireSettlementOverlay[] = [];
+
+  for (const settlement of settlements) {
+    const point: [number, number] = [settlement.longitude, settlement.latitude];
+
+    for (const boundary of morphedBoundaries) {
+      const outerRing = boundary.coordinates[0];
+      if (!outerRing || outerRing.length < 3) continue;
+
+      if (isPointInPolygon(point, outerRing)) {
+        const capital = boundary.properties.capital;
+        const isCapital = capital !== undefined &&
+          capital.toLowerCase() === settlement.name.toLowerCase();
+
+        overlays.push({
+          settlementId: settlement.id,
+          name: settlement.name,
+          position: point,
+          empireId: boundary.civilizationId,
+          empireColor: getEmpireColor(boundary.civilizationId),
+          isCapital,
+          type: settlement.type,
+        });
+        break; // A settlement belongs to the first containing empire
+      }
+    }
+  }
+
+  return overlays;
+}
+
+/**
+ * Generate label info (name + centroid position) for each morphed empire boundary.
+ */
+export function computeEmpireLabels(
+  morphedBoundaries: MorphedBoundary[],
+  getEmpireColor: (empireId: string) => string
+): EmpireLabelInfo[] {
+  return morphedBoundaries.map((boundary) => {
+    const outerRing = boundary.coordinates[0] || [];
+    const centroid = computePolygonCentroid(outerRing);
+    return {
+      empireId: boundary.civilizationId,
+      name: boundary.properties.name,
+      centroid,
+      color: getEmpireColor(boundary.civilizationId),
+    };
+  });
 }
