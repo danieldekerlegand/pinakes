@@ -11,6 +11,7 @@ import { religionScraper } from "./services/religion-scraper";
 import { cuisineScraper } from "./services/cuisine-scraper";
 import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { soundChangeScraper } from "./services/sound-change-scraper";
+import { tradeGoodsScraper } from "./services/trade-goods-scraper";
 import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
 import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
@@ -663,6 +664,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting contact scraping:", error);
       res.status(500).json({
         message: "Failed to start language contact scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape trade goods and economic data
+  app.post("/api/scraping/trade-goods", async (_req, res) => {
+    try {
+      const existingGoods = await storage.getTradeGoods();
+      const existingRoutes = await storage.getTradeRoutes();
+
+      const job = jobStore.createJob("trade-goods", 2, "gemini");
+
+      tradeGoodsScraper
+        .scrapeTradeGoods({
+          existingGoods,
+          existingRoutes,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Trade Goods Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Trade goods scraping completed: ${result.goods.length} goods, ${result.routes.length} routes`
+          );
+        })
+        .catch((error) => {
+          console.error("Trade goods scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Trade goods scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting trade goods scraping:", error);
+      res.status(500).json({
+        message: "Failed to start trade goods scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

@@ -179,6 +179,35 @@ Completed:
   - Referential integrity check validation
   - Score consistency verification
 
+US-XXX: Create historical trade goods and economic data scraper
+
+Completed:
+- Created server/services/trade-goods-scraper.ts with:
+  - TradeGoodsScraper class using Gemini AI for data generation
+  - Scrapes trade goods (30 per batch) with categories, coordinates, trade route references, time periods, economic significance, and associated languages
+  - Scrapes trade routes (15 per batch) with GeoJSON waypoints, traded goods, key cities, controlling powers, and associated languages
+  - Concurrent scraping prevention, job tracking, progress callbacks
+  - Merges new data with existing entries, auto-generates sequential IDs
+- Added writeTradeGoodsTSV() and writeTradeRoutesTSV() methods to server/services/tsv-writer.ts
+  - Atomic write with JSON serialization for coordinates, arrays, and GeoJSON
+- Added POST /api/scraping/trade-goods endpoint in server/routes.ts
+  - Background scraping with job tracking via jobStore
+  - Returns jobId for progress monitoring
+- Resolved pre-existing merge conflicts in server/tsv-storage.ts and server/routes.ts
+- Created test/test-trade-goods-scraper.ts with 221 passing assertions:
+  - Trade goods data validation (IDs, fields, coordinates, categories, languages)
+  - Trade routes data validation (IDs, types, waypoints, dates, arrays)
+  - TSV writer round-trip test (write + verify serialization)
+
+Files created:
+- server/services/trade-goods-scraper.ts
+- test/test-trade-goods-scraper.ts
+
+Files modified:
+- server/services/tsv-writer.ts (added trade goods/routes writer methods)
+- server/routes.ts (added scraper endpoint, resolved merge conflicts)
+- server/tsv-storage.ts (resolved merge conflicts)
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
