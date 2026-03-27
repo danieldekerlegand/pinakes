@@ -1,5 +1,39 @@
 Create sound change rules scraper from historical linguistics sources
 
+US-305: Create extruded 3D region visualization for population/power metrics
+
+Completed:
+- Created client/src/lib/visualization/extrusion-utils.ts
+  - Isometric projection: converts [lng, lat] to tilted 2.5D pixel coordinates
+  - Polygon extrusion: shifts polygon vertically to create 3D bar effect
+  - Side face generation with lighting classification
+  - Polygon simplification for performance
+  - buildExtrudedRegions(): full pipeline from GeoJSON input to render-ready ExtrudedRegion objects
+  - Height normalization against max metric value
+  - Back-to-front sorting by centroid latitude for correct painter's algorithm
+  - Color utilities: darkenColor, hexWithAlpha, lerp, formatMetricValue
+  - 5 selectable metrics: population, territory, military, trade, speakers
+- Created client/src/components/visualizations/Extruded3DRegionView.tsx
+  - Canvas-based 3D extruded region rendering with isometric projection
+  - Animated height transitions (ease-out cubic, 600ms) between time periods
+  - Interactive controls: metric selector, tilt angle slider, max height slider
+  - Time slider for scrubbing through historical snapshots
+  - Hit-testing via ray-casting point-in-polygon for hover/click
+  - Tooltips on hover with metric values and metadata
+  - Color-coded legend for all visible regions
+  - Uses VisualizationContainer for consistent layout and export
+- Created test/test-extruded-3d-regions.test.ts with 41 passing tests
+  - projectToIsometric: center mapping, offset calculations, tilt modes
+  - extrudePolygon: height shifting, zero height, X preservation
+  - computeCentroid: averaging, empty/single point edge cases
+  - generateSideFaces: face count, corner count, lighting classification
+  - simplifyPolygon: passthrough, reduction, ring closing
+  - buildExtrudedRegions: normalization, sorting, edge cases, multi-metric
+  - Color utilities: darkenColor, hexWithAlpha
+  - lerp: interpolation with clamping
+  - formatMetricValue: B/M/K formatting
+  - METRIC_LABELS completeness
+
 Completed:
 - Created server/services/sound-change-scraper.ts
   - SoundChangeScraper class using Gemini AI to scrape sound change rules
