@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { religionScraper } from "./services/religion-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -325,6 +326,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting word scraping:", error);
       res.status(500).json({
         message: "Failed to start word scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape religions and belief systems
+  app.post("/api/scraping/religions", async (_req, res) => {
+    try {
+      const job = jobStore.createJob("religions", 3, "gemini");
+
+      religionScraper
+        .scrapeReligions({
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Religion Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(`Religion scraping completed: ${result.religions.length} new religions`);
+        })
+        .catch((error) => {
+          console.error("Religion scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Religion scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting religion scraping:", error);
+      res.status(500).json({
+        message: "Failed to start religion scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
