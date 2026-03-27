@@ -5,6 +5,8 @@ import type { MapPoint } from '../../lib/visualization/types';
 import { getFamilyColor, formatNumber } from '../../lib/visualization/d3-helpers';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { BaseMapSelector } from './map-layers/BaseMapSelector';
+import { useBaseMap } from './hooks/useBaseMap';
 import 'leaflet/dist/leaflet.css';
 
 interface LanguageMapViewProps {
@@ -28,6 +30,7 @@ function FitBounds({ points }: { points: MapPoint[] }) {
 
 export function LanguageMapView({ mapData, onMarkerClick }: LanguageMapViewProps) {
   const { isLanguageSelected, selectLanguage } = useVisualization();
+  const { baseMapId, baseMap, setBaseMap, availableMaps } = useBaseMap();
 
   // Calculate marker size based on speakers
   const getMarkerRadius = (speakers?: number) => {
@@ -77,8 +80,10 @@ export function LanguageMapView({ mapData, onMarkerClick }: LanguageMapViewProps
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={baseMap.id}
+          attribution={baseMap.attribution}
+          url={baseMap.url}
+          maxZoom={baseMap.maxZoom}
         />
 
         <FitBounds points={mapData} />
@@ -183,7 +188,13 @@ export function LanguageMapView({ mapData, onMarkerClick }: LanguageMapViewProps
         })}
       </MapContainer>
 
-      <div className="absolute bottom-4 left-4 z-[1000] text-xs text-gray-500 bg-white px-2 py-1 rounded border shadow-sm">
+      <BaseMapSelector
+        currentBaseMapId={baseMapId}
+        availableMaps={availableMaps}
+        onSelect={setBaseMap}
+      />
+
+      <div className="absolute bottom-4 left-14 z-[1000] text-xs text-gray-500 bg-white px-2 py-1 rounded border shadow-sm">
         Click markers to select • Drag to pan • Scroll to zoom
       </div>
     </div>

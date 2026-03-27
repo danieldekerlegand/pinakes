@@ -2,6 +2,8 @@ import React, { useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { computeCenter, computeBounds } from './geo-distribution-utils';
 import type { GeoDataPoint, MarkerStyle, LegendItem } from './geo-distribution-utils';
+import { BaseMapSelector } from './map-layers/BaseMapSelector';
+import { useBaseMap } from './hooks/useBaseMap';
 import 'leaflet/dist/leaflet.css';
 
 export type { GeoDataPoint, MarkerStyle, LegendItem } from './geo-distribution-utils';
@@ -98,6 +100,8 @@ export function GeoDistributionMap<T>({
   emptyDescription = 'Items need coordinate data to be displayed on the map.',
   className = '',
 }: GeoDistributionMapProps<T>) {
+  const { baseMapId, baseMap, setBaseMap, availableMaps } = useBaseMap();
+
   const points = useMemo(
     () => data.map((item) => getCoordinates(item)),
     [data, getCoordinates]
@@ -132,8 +136,10 @@ export function GeoDistributionMap<T>({
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={baseMap.id}
+          attribution={baseMap.attribution}
+          url={baseMap.url}
+          maxZoom={baseMap.maxZoom}
         />
 
         {fitBounds && <FitBoundsController points={points} padding={fitBoundsPadding} />}
@@ -173,7 +179,13 @@ export function GeoDistributionMap<T>({
         <MapLegend items={legend} title={legendTitle} />
       )}
 
-      <div className="absolute bottom-4 left-4 z-[1000] text-xs text-gray-500 bg-white px-2 py-1 rounded border shadow-sm">
+      <BaseMapSelector
+        currentBaseMapId={baseMapId}
+        availableMaps={availableMaps}
+        onSelect={setBaseMap}
+      />
+
+      <div className="absolute bottom-4 left-14 z-[1000] text-xs text-gray-500 bg-white px-2 py-1 rounded border shadow-sm">
         Click markers to select · Drag to pan · Scroll to zoom
       </div>
     </div>
