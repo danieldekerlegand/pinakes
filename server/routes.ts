@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
+import { tradeGoodsScraper } from "./services/trade-goods-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -325,6 +326,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting word scraping:", error);
       res.status(500).json({
         message: "Failed to start word scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape trade goods and economic data
+  app.post("/api/scraping/trade-goods", async (_req, res) => {
+    try {
+      const existingGoods = await storage.getTradeGoods();
+      const existingRoutes = await storage.getTradeRoutes();
+
+      const job = jobStore.createJob("trade-goods", 2, "gemini");
+
+      tradeGoodsScraper
+        .scrapeTradeGoods({
+          existingGoods,
+          existingRoutes,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Trade Goods Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Trade goods scraping completed: ${result.goods.length} goods, ${result.routes.length} routes`
+          );
+        })
+        .catch((error) => {
+          console.error("Trade goods scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Trade goods scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting trade goods scraping:", error);
+      res.status(500).json({
+        message: "Failed to start trade goods scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -3089,7 +3140,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-<<<<<<< HEAD
   // Bulk CSV/TSV Import
   app.get("/api/import/targets", async (_req, res) => {
     try {
@@ -3573,7 +3623,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-=======
+    }
+  });
+
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering
    */
@@ -3607,7 +3659,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
     }
   });
 

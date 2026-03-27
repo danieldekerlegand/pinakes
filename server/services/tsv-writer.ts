@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Language, LanguageFamily } from "@shared/types";
+import type { TradeGood, TradeRoute } from "../tsv-storage";
 
 export interface WordListEntry {
   conceptId: string;
@@ -308,6 +309,51 @@ export class TsvWriter {
       console.error(`Error reading scraped concept IDs from ${filePath}:`, error);
       return scrapedIds;
     }
+  }
+  async writeTradeGoodsTSV(goods: TradeGood[], filePath: string): Promise<void> {
+    const headers = [
+      "id", "name", "category", "origin_region", "origin_coordinates",
+      "trade_routes", "time_period", "economic_significance", "associated_languages",
+    ];
+
+    const rows = goods.map((good) => [
+      good.id,
+      good.name,
+      good.category,
+      good.originRegion,
+      JSON.stringify(good.originCoordinates),
+      JSON.stringify(good.tradeRoutes),
+      good.timePeriod,
+      good.economicSignificance,
+      JSON.stringify(good.associatedLanguages),
+    ]);
+
+    await this.writeTSV(filePath, headers, rows);
+  }
+
+  async writeTradeRoutesTSV(routes: TradeRoute[], filePath: string): Promise<void> {
+    const headers = [
+      "id", "name", "route_type", "waypoints", "start_date", "end_date",
+      "traded_goods", "key_cities", "controlling_powers", "associated_languages",
+      "description", "economic_impact",
+    ];
+
+    const rows = routes.map((route) => [
+      route.id,
+      route.name,
+      route.routeType,
+      JSON.stringify(route.waypoints),
+      route.startDate,
+      route.endDate,
+      JSON.stringify(route.tradedGoods),
+      JSON.stringify(route.keyCities),
+      JSON.stringify(route.controllingPowers),
+      JSON.stringify(route.associatedLanguages),
+      route.description,
+      route.economicImpact,
+    ]);
+
+    await this.writeTSV(filePath, headers, rows);
   }
 }
 
