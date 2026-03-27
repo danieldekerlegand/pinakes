@@ -977,3 +977,20 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+Create SettlementsLayer map component with rich interactive markers (US-307)
+
+Completed:
+- Created client/src/components/visualizations/map-layers/SettlementsLayer.tsx
+  - Displays settlements as CircleMarker with type-based coloring (city-state, capital, port, etc.)
+  - Marker size scales logarithmically with peak_population (range 5–18px)
+  - Temporal filtering: only shows settlements that existed at currentYear
+  - MarkerClusterGroup clustering for 200+ markers at low zoom
+  - Rich popup: name, alternate names, type badge, civilization, culture, period, population, region, modern name, notable features, languages
+  - Selection highlighting with distinct border/color
+  - onSettlementClick callback for DetailDrawer integration
+- Added SETTLEMENT_TYPE_COLORS to color-theme.ts (8 type-specific colors)
+- Added 'settlements' to LayerType union and DEFAULT_LAYER_CONFIGS in geospatial-types.ts
+- Integrated into EnhancedLanguageMapView.tsx (data fetch, loading state, layer render)
+- Created SettlementsLayer.test.ts with 21 tests (all passing)
+  - Tests: populationToRadius, typeLabel, formatYear, formatPopulation, visibility filter, data shape

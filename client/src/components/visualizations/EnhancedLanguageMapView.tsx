@@ -46,6 +46,8 @@ import { MythologyLayer } from './map-layers/MythologyLayer';
 import type { DeityFeature } from './map-layers/MythologyLayer';
 import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
+import { SettlementsLayer } from './map-layers/SettlementsLayer';
+import type { SettlementFeature } from './map-layers/SettlementsLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
@@ -214,6 +216,13 @@ export function EnhancedLanguageMapView({
     queryKey: ['/api/deities', { year: currentYear }],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('mythology'),
+  });
+
+  // Fetch settlements data
+  const { data: settlementsData, isLoading: loadingSettlements } = useQuery<{ settlements: SettlementFeature[]; count: number }>({
+    queryKey: ['/api/settlements'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('settlements'),
   });
 
   // Fetch battles data
@@ -414,6 +423,11 @@ export function EnhancedLanguageMapView({
     return deitiesData?.deities ?? [];
   }, [deitiesData]);
 
+  // Settlements data
+  const allSettlements = useMemo(() => {
+    return settlementsData?.settlements ?? [];
+  }, [settlementsData]);
+
   // Battles data
   const allBattles = useMemo(() => {
     return battlesData?.battles ?? [];
@@ -609,6 +623,7 @@ export function EnhancedLanguageMapView({
     (loadingMusic && isLayerVisible('music')) ||
     (loadingReligions && isLayerVisible('religions')) ||
     (loadingDeities && isLayerVisible('mythology')) ||
+    (loadingSettlements && isLayerVisible('settlements')) ||
     (loadingBattles && isLayerVisible('battles')) ||
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
     (loadingContacts && isLayerVisible('language-contacts')) ||
@@ -773,6 +788,17 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('mythology')?.opacity || 0.8}
             onDeityClick={handleFeatureClick}
             selectedDeityId={selectedFeatureId}
+          />
+        )}
+
+        {/* Settlements Layer */}
+        {isLayerVisible('settlements') && allSettlements.length > 0 && (
+          <SettlementsLayer
+            settlements={allSettlements}
+            currentYear={currentYear}
+            opacity={getLayerConfig('settlements')?.opacity || 0.9}
+            onSettlementClick={handleFeatureClick}
+            selectedSettlementId={selectedFeatureId}
           />
         )}
 

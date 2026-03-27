@@ -247,7 +247,8 @@ export type LayerType =
   | 'cooking-techniques'
   | 'mythology'
   | 'urheimat-hypotheses'
-  | 'empires-timeline';
+  | 'empires-timeline'
+  | 'settlements';
 
 export type LayerCategory =
   | 'languages'
@@ -763,6 +764,22 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         size: 6,
         opacity: 0.8,
         strokeWeight: 1.5,
+      },
+    },
+  },
+  {
+    id: 'settlements',
+    type: 'settlements',
+    category: 'civilizations',
+    name: 'Historical Settlements',
+    visible: false,
+    opacity: 0.9,
+    zIndex: 310,
+    renderStyle: {
+      marker: {
+        size: 10,
+        opacity: 0.9,
+        strokeWeight: 2,
       },
     },
   },
