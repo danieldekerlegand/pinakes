@@ -12,6 +12,7 @@ import { cuisineScraper } from "./services/cuisine-scraper";
 import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { soundChangeScraper } from "./services/sound-change-scraper";
 import { tradeGoodsScraper } from "./services/trade-goods-scraper";
+import { musicScraper } from "./services/music-scraper";
 import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
 import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
@@ -714,6 +715,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting trade goods scraping:", error);
       res.status(500).json({
         message: "Failed to start trade goods scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape music traditions and instruments with Gemini AI
+  app.post("/api/scraping/music", async (req, res) => {
+    try {
+      // Get existing IDs to inform the scraper
+      const existingTraditions = await storage.getMusicTraditions();
+      const existingInstruments = await storage.getMusicalInstruments();
+
+      const job = jobStore.createJob("music-traditions", 3, "gemini");
+
+      musicScraper
+        .scrapeMusicTraditionsAndInstruments({
+          existingTraditionIds: existingTraditions.map((t: any) => t.id),
+          existingInstrumentIds: existingInstruments.map((i: any) => i.id),
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[Music Scraping] ${type}: ${message}`);
+            if (type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            } else if (type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Music scraping completed: ${result.traditions.length} traditions, ${result.instruments.length} instruments`
+          );
+        })
+        .catch((error) => {
+          console.error("Music scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Music traditions and instruments scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting music scraping:", error);
+      res.status(500).json({
+        message: "Failed to start music scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

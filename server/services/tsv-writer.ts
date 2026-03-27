@@ -355,6 +355,100 @@ export class TsvWriter {
 
     await this.writeTSV(filePath, headers, rows);
   }
+
+  /**
+   * Write music traditions to TSV file with atomic operation
+   */
+  async writeMusicTraditionsTSV(
+    traditions: Array<{
+      id: string;
+      name: string;
+      nativeName: string;
+      region: string;
+      coordinates: { lat: number; lng: number };
+      timeOrigin: number | null;
+      timeEnd: number | null;
+      associatedLanguageIds: string[];
+      instruments: string[];
+      scales: string[];
+      rhythmicPatterns: string[];
+      relatedTraditions: string[];
+      description: string;
+      sources: string[];
+    }>,
+    filePath: string
+  ): Promise<void> {
+    const headers = [
+      "id", "name", "native_name", "region", "coordinates",
+      "time_origin", "time_end", "associated_language_ids", "instruments",
+      "scales", "rhythmic_patterns", "related_traditions", "description", "sources",
+    ];
+
+    const rows = traditions.map((t) => [
+      t.id,
+      t.name,
+      t.nativeName,
+      t.region,
+      JSON.stringify(t.coordinates),
+      t.timeOrigin?.toString() ?? "null",
+      t.timeEnd?.toString() ?? "null",
+      JSON.stringify(t.associatedLanguageIds),
+      JSON.stringify(t.instruments),
+      JSON.stringify(t.scales),
+      JSON.stringify(t.rhythmicPatterns),
+      JSON.stringify(t.relatedTraditions),
+      t.description,
+      JSON.stringify(t.sources),
+    ]);
+
+    await this.writeTSV(filePath, headers, rows);
+  }
+
+  /**
+   * Write musical instruments to TSV file with atomic operation
+   */
+  async writeMusicalInstrumentsTSV(
+    instruments: Array<{
+      id: string;
+      name: string;
+      nativeName: string;
+      instrumentFamily: string;
+      originRegion: string;
+      coordinates: { lat: number; lng: number };
+      timeOrigin: number | null;
+      constructionMaterials: string[];
+      playingTechnique: string;
+      associatedTraditionIds: string[];
+      associatedLanguageIds: string[];
+      description: string;
+      sources: string[];
+    }>,
+    filePath: string
+  ): Promise<void> {
+    const headers = [
+      "id", "name", "native_name", "instrument_family", "origin_region",
+      "coordinates", "time_origin", "construction_materials", "playing_technique",
+      "associated_tradition_ids", "associated_language_ids", "description", "sources",
+    ];
+
+    const rows = instruments.map((i) => [
+      i.id,
+      i.name,
+      i.nativeName,
+      i.instrumentFamily,
+      i.originRegion,
+      JSON.stringify(i.coordinates),
+      i.timeOrigin?.toString() ?? "null",
+      JSON.stringify(i.constructionMaterials),
+      i.playingTechnique,
+      JSON.stringify(i.associatedTraditionIds),
+      JSON.stringify(i.associatedLanguageIds),
+      i.description,
+      JSON.stringify(i.sources),
+    ]);
+
+    await this.writeTSV(filePath, headers, rows);
+  }
 }
 
 export const tsvWriter = new TsvWriter();
