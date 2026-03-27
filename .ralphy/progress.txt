@@ -838,3 +838,25 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Agent 27: MigrationFlowVisualization using SankeyFlow and GeoDistributionMap
+
+### Completed
+- Created client/src/lib/visualization/migration-flow-data.ts
+  - MigrationFlowData types (nodes, links) and GeoMigrationRoute types
+  - Built-in dataset of 12 major historical migration waves (Bantu, Indo-European, Austronesian, Turkic, Arab, Uralic, Na-Dene, Tupi, Polynesian)
+  - buildMigrationFlowData() with optional region group filtering
+  - buildGeoMigrationRoutes() for map rendering with [lng,lat] coordinates
+  - routeFeaturesToFlowData() to convert HistoricalRouteFeature API data
+  - getMigrationGroups() for filter dropdown population
+- Created client/src/components/visualizations/MigrationFlowVisualization.tsx
+  - SankeyFlowPanel: D3 Sankey diagram showing migration flows between regions
+  - GeoDistributionPanel: SVG world projection (Natural Earth) with curved migration routes and directional arrows
+  - Three view modes: Sankey only, Map only, Split (side-by-side)
+  - Region group filtering via dropdown
+  - Zoom/pan on both panels, hover tooltips, color-coded by migration type
+  - SVG/PNG export support
+  - Legend for migration types (migration, conquest, diaspora, colonization, trade)
+- Created client/src/lib/visualization/migration-flow-data.test.ts with 18 tests (all passing)
+  - Tests for buildMigrationFlowData, buildGeoMigrationRoutes, getMigrationGroups, routeFeaturesToFlowData
+  - Validates data integrity, filtering, coordinate ranges, and edge cases
