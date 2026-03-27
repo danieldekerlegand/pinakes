@@ -838,3 +838,24 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Task: Create LinguisticTypologyHeatmap using reusable HeatmapGrid
+
+### Completed
+- Created reusable HeatmapGrid component (client/src/components/visualizations/shared/HeatmapGrid.tsx)
+  - Configurable rows, columns, cells with color scale and tooltips
+  - Supports sm/md/lg cell sizes, custom formatters, click handlers
+  - Sticky row headers, rotated column headers, scroll area
+- Created heatmap-utils.ts (client/src/components/visualizations/shared/heatmap-utils.ts)
+  - Pure utility functions: makeColorScale, encodeFeatureValue, formatFeatureValue
+  - Encodes typological features (word order, morphology, ergativity, etc.) to 0-1 numeric scale
+- Created LinguisticTypologyHeatmap component (client/src/components/visualizations/LinguisticTypologyHeatmap.tsx)
+  - Fetches grammar features from /api/grammar-features and languages from /api/languages
+  - Displays 9 typological features across languages as a color-coded heatmap
+  - Language search filter, feature filter dropdown, configurable max languages (25-200)
+  - Color legend and language count display
+- Created 15 unit tests (client/src/components/visualizations/LinguisticTypologyHeatmap.test.ts)
+  - Tests encodeFeatureValue for numbers, arrays, canonical strings, unknown values
+  - Tests formatFeatureValue for all value types
+  - Tests makeColorScale threshold matching and unsorted input handling
+  - All tests passing
