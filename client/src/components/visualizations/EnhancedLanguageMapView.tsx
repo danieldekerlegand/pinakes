@@ -52,6 +52,7 @@ import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { BaseMapSelector } from './map-layers/BaseMapSelector';
 import { useBaseMap } from './hooks/useBaseMap';
+import { MapLabelsLayer } from './map-layers/MapLabelsLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
@@ -101,6 +102,20 @@ export function EnhancedLanguageMapView({
 
   // Territorial fill type for cultural region shading
   const [territorialFillType, setTerritorialFillType] = React.useState<TerritorialFillType>('solid');
+
+  // Label layer toggles (independent of parent layers)
+  const [enabledLabelLayers, setEnabledLabelLayers] = React.useState<Set<string>>(
+    new Set(['region-labels', 'civilization-labels', 'culture-labels', 'settlement-labels', 'route-labels'])
+  );
+
+  const toggleLabelLayer = React.useCallback((layerId: string) => {
+    setEnabledLabelLayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(layerId)) next.delete(layerId);
+      else next.add(layerId);
+      return next;
+    });
+  }, []);
 
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
@@ -989,6 +1004,16 @@ export function EnhancedLanguageMapView({
         {/* Image Georeferencing Layer */}
         <ImageGeoreferenceLayer georef={georefTool} />
 
+        {/* Map Labels Layer */}
+        <MapLabelsLayer
+          languageRanges={filteredLanguageRanges}
+          civilizations={filteredCivilizations}
+          archaeologicalCultures={filteredArchaeologicalCultures}
+          archaeologicalSites={filteredArchaeologicalSites}
+          routes={filteredRoutes}
+          enabledLabelLayers={enabledLabelLayers}
+        />
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -1018,6 +1043,8 @@ export function EnhancedLanguageMapView({
         onHideCategory={hideCategory}
         onApplyPreset={applyPreset}
         activePresetId={activePresetId}
+        enabledLabelLayers={enabledLabelLayers}
+        onToggleLabelLayer={toggleLabelLayer}
       />
 
       {/* Territorial Fill Type Selector */}

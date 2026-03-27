@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import Slider from 'rc-slider';
-import { Layers, ChevronDown, ChevronUp, Eye, EyeOff, Bookmark } from 'lucide-react';
+import { Layers, ChevronDown, ChevronUp, Eye, EyeOff, Bookmark, Tag } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Checkbox } from '../../ui/checkbox';
 import { Card } from '../../ui/card';
@@ -10,6 +10,14 @@ import type { LayerConfig } from '../../../lib/visualization/geospatial-types';
 import { LAYER_PRESETS } from '../../../lib/visualization/geospatial-types';
 import { SLIDER_COLORS } from '../../../lib/visualization/color-theme';
 import 'rc-slider/assets/index.css';
+
+const LABEL_LAYERS = [
+  { id: 'region-labels', name: 'Region Labels' },
+  { id: 'civilization-labels', name: 'Civilization Labels' },
+  { id: 'culture-labels', name: 'Culture Labels' },
+  { id: 'settlement-labels', name: 'Settlement Labels' },
+  { id: 'route-labels', name: 'Route Labels' },
+] as const;
 
 interface LayerPanelProps {
   layerConfigs: Map<string, LayerConfig>;
@@ -22,6 +30,8 @@ interface LayerPanelProps {
   onHideCategory: (category: string) => void;
   onApplyPreset?: (presetId: string) => void;
   activePresetId?: string | null;
+  enabledLabelLayers?: Set<string>;
+  onToggleLabelLayer?: (layerId: string) => void;
 }
 
 export function LayerPanel({
@@ -35,6 +45,8 @@ export function LayerPanel({
   onHideCategory,
   onApplyPreset,
   activePresetId,
+  enabledLabelLayers,
+  onToggleLabelLayer,
 }: LayerPanelProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [openCategories, setOpenCategories] = React.useState<Set<string>>(
@@ -188,6 +200,40 @@ export function LayerPanel({
               Hide All
             </Button>
           </div>
+
+          {/* Label Toggles */}
+          {enabledLabelLayers && onToggleLabelLayer && (
+            <Collapsible className="mb-3">
+              <div className="border rounded-lg">
+                <CollapsibleTrigger className="w-full p-2 hover:bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-3.5 w-3.5 text-gray-500" />
+                    <span className="font-medium text-sm">Map Labels</span>
+                    <Badge variant="outline" className="text-xs">
+                      {enabledLabelLayers.size}/{LABEL_LAYERS.length}
+                    </Badge>
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-2 border-t bg-gray-50 space-y-1">
+                    {LABEL_LAYERS.map((ll) => (
+                      <div key={ll.id} className="flex items-center gap-2 bg-white rounded p-1.5">
+                        <Checkbox
+                          checked={enabledLabelLayers.has(ll.id)}
+                          onCheckedChange={() => onToggleLabelLayer(ll.id)}
+                          id={`label-${ll.id}`}
+                        />
+                        <label htmlFor={`label-${ll.id}`} className="text-xs cursor-pointer flex-1">
+                          {ll.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          )}
 
           {/* Layer Categories */}
           <div className="space-y-2 max-h-[320px] overflow-y-auto">
