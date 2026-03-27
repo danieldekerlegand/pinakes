@@ -1,0 +1,565 @@
+id	name	alternate_names	latitude	longitude	type	culture_id	civilization_id	founded_year	abandoned_year	peak_population	notable_features	associated_languages	modern_name	region
+ur	Ur	["Urim"]	30.962	46.103	city-state	sumerian	sumerian	-3800		65000	["Great Ziggurat","Royal Tombs","Standard of Ur"]	["sux","akk"]	Tell el-Muqayyar	Mesopotamia
+uruk	Uruk	["Warka","Erech"]	31.322	45.636	city-state	sumerian	sumerian	-4000	700	80000	["White Temple","Eanna District","earliest writing tablets"]	["sux"]	Warka	Mesopotamia
+babylon	Babylon	["Bab-ilim","Babel"]	32.536	44.421	capital		babylonian-empire	-2300		200000	["Ishtar Gate","Hanging Gardens","Etemenanki ziggurat"]	["akk","arc"]	Hillah	Mesopotamia
+nineveh	Nineveh	["Ninua"]	36.359	43.153	capital		assyrian-empire	-6000	612	120000	["Library of Ashurbanipal","Nergal Gate","Palace of Sennacherib"]	["akk"]	Mosul	Mesopotamia
+assur	Assur	["Ashur","Qal'at Sherqat"]	35.457	43.259	capital		assyrian-empire	-2600	-614	100000	["Temple of Ashur","Ziggurat","Old Palace"]	["akk"]	Qal'at Sherqat	Mesopotamia
+lagash	Lagash	["Shirpurla"]	31.414	46.406	city-state	sumerian	sumerian	-4900	-2000	80000	["Stele of the Vultures","Gudea statues"]	["sux"]	Al-Hiba	Mesopotamia
+eridu	Eridu	["Abu Shahrain"]	30.817	45.988	religious-center	sumerian	sumerian	-5400	-600	20000	["Temple of Enki","oldest Sumerian city"]	["sux"]	Abu Shahrain	Mesopotamia
+sippar	Sippar	["Zimbir"]	33.060	44.250	religious-center		babylonian-empire	-3500	-500	40000	["Temple of Shamash","cuneiform tablet archives"]	["akk","sux"]	Abu Habbah	Mesopotamia
+nippur	Nippur	["Nibru"]	32.126	45.233	religious-center	sumerian	sumerian	-5000	800	50000	["Temple of Enlil","scribal schools"]	["sux","akk"]	Nuffar	Mesopotamia
+susa	Susa	["Shushan","Shush"]	32.189	48.244	capital		persian-empire	-4395		100000	["Palace of Darius","Apadana","Code of Hammurabi found here"]	["elx","peo"]	Shush	Mesopotamia
+persepolis	Persepolis	["Parsa","Takht-e Jamshid"]	29.934	52.891	capital		persian-empire	-518	-330	50000	["Apadana Palace","Gate of All Nations","Hall of Hundred Columns"]	["peo"]	Marvdasht	Persia
+pasargadae	Pasargadae	["Pāsārgād"]	30.193	53.167	capital		persian-empire	-546	-330	20000	["Tomb of Cyrus","Palace gardens","earliest four-part garden"]	["peo"]	Pasargad	Persia
+ecbatana	Ecbatana	["Hagmatāna","Hamadan"]	34.799	48.515	capital		persian-empire	-678		50000	["Seven-walled citadel","Median royal palace"]	["peo","xme"]	Hamadan	Persia
+hattusa	Hattusa	["Hattusha","Bogazkoy"]	40.020	34.615	capital	catalhoyuk	hittite-empire	-1600	-1178	50000	["Lion Gate","Great Temple","cuneiform archives"]	["hit"]	Bogazkale	Anatolia
+kanesh	Kanesh	["Kultepe","Karum Kanesh"]	38.850	35.633	trading-post		hittite-empire	-2500	-1500	30000	["Assyrian trading colony","cuneiform tablets"]	["hit","akk"]	Kultepe	Anatolia
+troy	Troy	["Ilion","Troia","Wilusa"]	39.957	26.239	fortress			-3000	500	10000	["Trojan walls","Treasure of Priam","Schliemann excavations"]	["grc"]	Hisarlik	Anatolia
+sardis	Sardis	["Sfard"]	38.488	28.040	capital			-1200	615	100000	["Temple of Artemis","Lydian gold refinery","Pactolus river"]	["xld","grc"]	Sartmustafa	Anatolia
+miletus	Miletus	["Millawanda"]	37.530	27.278	city-state		ancient-greece	-1400	-100	100000	["Theatre","Baths of Faustina","birthplace of philosophy"]	["grc"]	Balat	Anatolia
+ephesus	Ephesus	["Efes"]	37.941	27.342	religious-center		ancient-greece	-1000	1500	250000	["Temple of Artemis","Library of Celsus","Great Theatre"]	["grc","lat"]	Selcuk	Anatolia
+pergamon	Pergamon	["Pergamum","Bergama"]	39.131	27.184	capital		ancient-greece	-281	-133	200000	["Altar of Zeus","Library","Asklepion healing center"]	["grc"]	Bergama	Anatolia
+antioch	Antioch	["Antiochia","Antakya"]	36.200	36.150	capital			-300	1268	500000	["Golden House palace","Forum of Valens","early Christian center"]	["grc","arc","lat"]	Antakya	Levant
+palmyra	Palmyra	["Tadmor"]	34.551	38.267	trading-post			-2000	634	100000	["Temple of Bel","Great Colonnade","Valley of the Tombs"]	["arc","grc"]	Tadmur	Levant
+petra	Petra	["Raqmu"]	30.328	35.441	capital			-312	663	30000	["Al-Khazneh Treasury","Monastery","Siq canyon entrance"]	["arc","grc"]	Wadi Musa	Levant
+tyre	Tyre	["Sor","Tyrus"]	33.271	35.196	port	phoenicia	phoenicia	-2750		50000	["Temples of Melqart","purple dye industry","Alexander's causeway"]	["phn"]	Sur	Levant
+sidon	Sidon	["Saida","Zidon"]	33.558	35.372	port	phoenicia	phoenicia	-4000		40000	["Temple of Eshmun","Royal necropolis","glass production"]	["phn"]	Saida	Levant
+byblos	Byblos	["Gebal","Jubayl"]	34.121	35.648	port	phoenicia	phoenicia	-5000		30000	["Temple of Baalat Gebal","earliest alphabet","Egyptian trade"]	["phn"]	Jbeil	Levant
+ugarit	Ugarit	["Ras Shamra"]	35.601	35.785	port			-6000	-1185	10000	["Royal Palace","cuneiform alphabet","literary archives"]	["uga"]	Ras Shamra	Levant
+ebla	Ebla	["Tell Mardikh"]	35.798	36.798	city-state			-3500	-1600	30000	["Royal Palace","Ebla tablets archive"]	["akk"]	Tell Mardikh	Levant
+mari	Mari	["Tell Hariri"]	34.456	40.888	city-state			-2900	-1761	50000	["Palace of Zimri-Lim","20000 cuneiform tablets"]	["akk","sux"]	Tell Hariri	Mesopotamia
+aleppo	Aleppo	["Halab","Beroea"]	36.199	37.162	trading-post			-5000		100000	["Great Mosque","Citadel of Aleppo","ancient souks"]	["arc","arb"]	Aleppo	Levant
+damascus	Damascus	["Dimashq","Sham"]	33.513	36.292	capital			-6300		100000	["Umayyad Mosque","Straight Street","Citadel"]	["arc","arb"]	Damascus	Levant
+jerusalem	Jerusalem	["Yerushalayim","Al-Quds","Hierosolyma"]	31.768	35.214	religious-center			-3500		80000	["Temple Mount","Western Wall","Church of the Holy Sepulchre"]	["heb","arc","arb"]	Jerusalem	Levant
+jericho	Jericho	["Yeriho","Ariha"]	31.871	35.444	fortress	ppna		-9000		3000	["oldest known city walls","Tower of Jericho","Tell es-Sultan"]	["heb","arc"]	Ariha	Levant
+megiddo	Megiddo	["Armageddon","Tell el-Mutesellim"]	32.585	35.184	fortress			-7000	-586	10000	["Solomonic stables","water tunnel","battle site"]	["heb"]	Tell el-Mutesellim	Levant
+lachish	Lachish	["Tell ed-Duweir"]	31.564	34.849	fortress			-4500	-588	8000	["Assyrian siege reliefs","Lachish letters"]	["heb"]	Tell ed-Duweir	Levant
+samaria	Samaria	["Shomron","Sebaste"]	32.274	35.193	capital			-880	-722	30000	["Ivory Palace","Royal acropolis","Ostraca"]	["heb"]	Sebastia	Levant
+ctesiphon	Ctesiphon	["Tisfun","al-Mada'in"]	33.094	44.581	capital			-120	637	500000	["Taq Kasra arch","Sasanian royal palace"]	["arc","pal"]	Salman Pak	Mesopotamia
+seleucia	Seleucia on the Tigris	["Seleucia"]	33.131	44.524	capital			-305	165	600000	["Seleucid royal quarter","Hellenistic center"]	["grc","arc"]	Tell Umar	Mesopotamia
+kish	Kish	["Tell Uhaimir"]	32.550	44.630	city-state	sumerian	sumerian	-3500	-1500	40000	["Palace complex","earliest Sumerian flood traditions"]	["sux","akk"]	Tell Uhaimir	Mesopotamia
+girsu	Girsu	["Tello"]	31.617	46.162	city-state	sumerian	sumerian	-3000	-2000	40000	["Gudea statues","Eninnu temple"]	["sux"]	Tello	Mesopotamia
+isin	Isin	["Ishan al-Bahriyat"]	31.882	45.266	city-state	sumerian	babylonian-empire	-3000	-1000	30000	["Temple of Gula","Isin-Larsa period"]	["sux","akk"]	Ishan al-Bahriyat	Mesopotamia
+larsa	Larsa	["Tell as-Senkereh"]	31.284	45.850	city-state	sumerian	babylonian-empire	-2900	-1740	40000	["Temple of Shamash","E-babbar"]	["sux","akk"]	Tell as-Senkereh	Mesopotamia
+akkad	Akkad	["Agade"]	33.100	44.100	capital		akkadian-empire	-2334	-2154	50000	["Sargon's capital","center of first empire"]	["akk"]	Unknown	Mesopotamia
+nimrud	Nimrud	["Kalhu","Calah"]	36.098	43.327	capital		assyrian-empire	-1270	-612	75000	["Northwest Palace","Lamassu statues","Nimrud ivories"]	["akk"]	Nimrud	Mesopotamia
+dur-sharrukin	Dur-Sharrukin	["Khorsabad"]	36.510	43.228	capital		assyrian-empire	-717	-705	30000	["Palace of Sargon II","Lamassu gate guardians"]	["akk"]	Khorsabad	Mesopotamia
+harran	Harran	["Carrhae"]	36.864	39.033	religious-center			-2000	1260	20000	["Temple of Sin","last pagan center","Battle of Carrhae"]	["akk","arc"]	Harran	Mesopotamia
+carchemish	Carchemish	["Karkemish"]	36.830	38.010	fortress			-3000	-717	25000	["Neo-Hittite sculptures","Battle of Carchemish"]	["hit","akk"]	Karkamis	Mesopotamia
+gordion	Gordion	["Gordium"]	39.650	31.983	capital			-1200	-189	20000	["Midas Mound","Gordian knot legend"]	["xpg","grc"]	Yassihuyuk	Anatolia
+halicarnassus	Halicarnassus	["Halikarnassos"]	37.038	27.424	city-state		ancient-greece	-650	-200	70000	["Mausoleum","Herodotus birthplace"]	["grc"]	Bodrum	Anatolia
+hattusha-lower	Lower City of Hattusa	["Hattusa lower town"]	40.015	34.610	religious-center	catalhoyuk	hittite-empire	-1650	-1178	20000	["Great Temple of Storm God"]	["hit"]	Bogazkale	Anatolia
+alalakh	Alalakh	["Tell Atchana"]	36.240	36.390	city-state			-2400	-1200	15000	["Palace of Yarim-Lim","cuneiform archives"]	["akk","hur"]	Tell Atchana	Levant
+memphis	Memphis	["Men-nefer","Ineb-hedj"]	29.844	31.250	capital		ancient-egypt	-3100	641	300000	["Temple of Ptah","Colossal Rameses statue","Saqqara necropolis"]	["egy"]	Mit Rahina	Egypt
+thebes-egypt	Thebes	["Waset","Luxor"]	25.700	32.639	capital		ancient-egypt	-3200	-27	80000	["Karnak Temple","Valley of the Kings","Luxor Temple"]	["egy"]	Luxor	Egypt
+alexandria	Alexandria	["Al-Iskandariyah"]	31.200	29.919	capital		ancient-egypt	-331		1000000	["Great Library","Pharos Lighthouse","Serapeum"]	["grc","egy","arb"]	Alexandria	Egypt
+akhetaten	Akhetaten	["Amarna","Tell el-Amarna"]	27.645	30.896	capital		ancient-egypt	-1346	-1332	50000	["Great Temple of Aten","Amarna Letters","Nefertiti bust"]	["egy"]	Tell el-Amarna	Egypt
+heliopolis	Heliopolis	["Iunu","On"]	30.131	31.305	religious-center		ancient-egypt	-3000	640	35000	["Temple of Ra","Ben-Ben stone","obelisks"]	["egy"]	Ain Shams	Egypt
+tanis	Tanis	["Djanet","San el-Hagar"]	30.977	31.882	capital		ancient-egypt	-1070	-30	30000	["Royal necropolis","Great Temple of Amun"]	["egy"]	San el-Hagar	Egypt
+abydos	Abydos	["Abdju"]	26.185	31.919	religious-center		ancient-egypt	-3100	-640	20000	["Temple of Seti I","Osireion","first royal tombs"]	["egy"]	El Araba el Madfuna	Egypt
+elephantine	Elephantine	["Abu","Yebu"]	24.085	32.886	fortress		ancient-egypt	-3000	640	10000	["Nilometer","Temple of Khnum","Jewish papyri"]	["egy"]	Aswan	Egypt
+avaris	Avaris	["Hawara"]	30.787	31.821	capital		ancient-egypt	-1783	-1550	100000	["Hyksos palace","Minoan frescoes"]	["egy"]	Tell el-Dab'a	Egypt
+sais	Sais	["Sau","Sa el-Hagar"]	30.965	30.770	capital		ancient-egypt	-3000	-525	50000	["Temple of Neith","Late Period capital"]	["egy"]	Sa el-Hagar	Egypt
+carthage-city	Carthage	["Qart-hadašt"]	36.852	10.323	capital		carthage	-814	-146	500000	["Ports of Carthage","Tophet","Byrsa citadel"]	["phn","lat"]	Carthage	North Africa
+leptis-magna	Leptis Magna	["Lepcis Magna"]	32.638	14.289	port		roman-empire	-1000	647	80000	["Severan Basilica","Hadrianic Baths","triumphal arch"]	["lat","phn"]	Khoms	North Africa
+sabratha	Sabratha	["Abrotonum"]	32.804	12.485	port		roman-empire	-500	700	40000	["Roman theatre","Punic mausoleum"]	["lat","phn"]	Sabratha	North Africa
+cyrene	Cyrene	["Kyrene","Shahat"]	32.824	21.857	colony		ancient-greece	-631	643	100000	["Temple of Apollo","Agora","birthplace of Eratosthenes"]	["grc","lat"]	Shahhat	North Africa
+volubilis	Volubilis	["Walili"]	34.073	-5.554	colony		roman-empire	-3	-285	20000	["Triumphal arch","mosaics","Capitoline Temple"]	["lat","ber"]	Walili	North Africa
+kairouan	Kairouan	["Al-Qayrawan"]	35.677	10.097	religious-center		umayyad-caliphate	670		100000	["Great Mosque of Kairouan","oldest mosque in Africa"]	["arb"]	Kairouan	North Africa
+fez	Fez	["Fas"]	34.033	-5.000	capital			789		200000	["University of al-Qarawiyyin","Fez medina","Bou Inania Madrasa"]	["arb","ber"]	Fez	North Africa
+marrakesh	Marrakesh	["Marrakech"]	31.630	-8.009	capital			1070		200000	["Koutoubia Mosque","Jemaa el-Fnaa","Saadian Tombs"]	["arb","ber"]	Marrakesh	North Africa
+timbuktu	Timbuktu	["Tombouctou"]	16.773	-3.007	trading-post		mali-empire	1100		100000	["Djinguereber Mosque","Sankore University","manuscript libraries"]	["arb","snk"]	Timbuktu	West Africa
+gao	Gao	["Kawkaw"]	16.271	-0.044	capital		songhai-empire	700		75000	["Tomb of Askia","trade center on Niger"]	["arb","snk"]	Gao	West Africa
+djenne	Djenne	["Djenné-Djenno"]	13.905	-4.555	trading-post		mali-empire	-250		30000	["Great Mosque of Djenne","Djenno-Djenno archaeological site"]	["arb","bam"]	Djenne	West Africa
+algiers	Algiers	["Al-Jaza'ir","Icosium"]	36.753	3.042	port			-944		100000	["Ketchaoua Mosque","Casbah","Ottoman palaces"]	["arb","ber"]	Algiers	North Africa
+tunis	Tunis	["Tunes"]	36.806	10.181	capital			-4000		200000	["Zitouna Mosque","Bardo Museum","medina"]	["arb"]	Tunis	North Africa
+constantine	Constantine	["Cirta","Qacentina"]	36.365	6.615	fortress			-3000		100000	["Bridges of Constantine","Ahmed Bey Palace"]	["arb","ber","lat"]	Constantine	North Africa
+meroe-city	Meroe	["Barwa"]	16.938	33.749	capital		ancient-egypt	-800	350	25000	["Meroitic pyramids","Temple of Amun","iron smelting"]	["xmr"]	Kabushiya	Nubia
+rome	Rome	["Roma"]	41.891	12.492	capital		roman-empire	-753		1000000	["Colosseum","Forum Romanum","Pantheon","Circus Maximus"]	["lat"]	Rome	Mediterranean
+athens	Athens	["Athenai","Athena"]	37.971	23.726	city-state		ancient-greece	-3000		300000	["Acropolis","Parthenon","Agora","Theatre of Dionysus"]	["grc"]	Athens	Mediterranean
+sparta	Sparta	["Lacedaemon","Lakedaimon"]	37.081	22.427	city-state		ancient-greece	-900	396	30000	["Sanctuary of Artemis Orthia","Theatre"]	["grc"]	Sparti	Mediterranean
+corinth	Corinth	["Korinthos"]	37.906	22.880	city-state		ancient-greece	-900	-146	90000	["Temple of Apollo","Lechaion port","Acrocorinth"]	["grc"]	Archaia Korinthos	Mediterranean
+thebes-greece	Thebes	["Thebai","Thivai"]	38.319	23.317	city-state		ancient-greece	-3000	-335	40000	["Cadmeia citadel","Linear B tablets"]	["grc"]	Thiva	Mediterranean
+syracuse	Syracuse	["Syrakousai","Siracusa"]	37.075	15.286	city-state		ancient-greece	-734		500000	["Temple of Athena","Ear of Dionysius","Archimedes home"]	["grc","lat"]	Siracusa	Mediterranean
+pompeii	Pompeii	["Pompeii"]	40.750	14.485	port		roman-empire	-700	79	20000	["Forum","Amphitheatre","Villa of Mysteries","preserved by Vesuvius"]	["lat","osc"]	Pompei	Mediterranean
+ostia	Ostia	["Ostia Antica"]	41.756	12.288	port		roman-empire	-620	-	50000	["Theatre","Forum","warehouses","mosaics"]	["lat"]	Ostia Antica	Mediterranean
+ravenna	Ravenna	["Ravenna"]	44.418	12.196	capital		roman-empire	-89		50000	["Mausoleum of Galla Placidia","San Vitale","Byzantine mosaics"]	["lat","grc"]	Ravenna	Mediterranean
+constantinople	Constantinople	["Byzantium","Istanbul","Konstantiniyye"]	41.013	28.978	capital		byzantine-empire	-667		500000	["Hagia Sophia","Hippodrome","Theodosian Walls","Grand Bazaar"]	["grc","lat","tur"]	Istanbul	Mediterranean
+thessaloniki	Thessaloniki	["Thessalonica","Salonika"]	40.640	22.944	port		byzantine-empire	-315		200000	["Rotunda","White Tower","Byzantine churches"]	["grc"]	Thessaloniki	Mediterranean
+delphi	Delphi	["Delphoi"]	38.482	22.501	religious-center		ancient-greece	-1400	392	5000	["Oracle of Apollo","Temple of Apollo","Theatre","Tholos"]	["grc"]	Delphi	Mediterranean
+olympia	Olympia	["Olympia"]	37.638	21.630	religious-center		ancient-greece	-1100	426	5000	["Temple of Zeus","Olympic Games site","Statue of Zeus"]	["grc"]	Archaia Olympia	Mediterranean
+massalia	Massalia	["Massilia"]	43.296	5.370	colony		ancient-greece	-600		50000	["Greek agora","Old Port","Phocaean colony"]	["grc","lat"]	Marseille	Mediterranean
+tarentum	Tarentum	["Taras","Taranto"]	40.476	17.229	colony		ancient-greece	-706		300000	["Temple of Poseidon","Magna Graecia center"]	["grc","lat"]	Taranto	Mediterranean
+capua	Capua	["Capua"]	41.085	14.213	city-state		roman-empire	-800	456	200000	["Amphitheatre","Spartacus revolt","Campanian culture"]	["lat","osc"]	Santa Maria Capua Vetere	Mediterranean
+mediolanum	Mediolanum	["Mediolanum"]	45.464	9.190	capital		roman-empire	-590		300000	["Imperial palace","San Lorenzo columns","late Roman capital"]	["lat","cel"]	Milan	Mediterranean
+londinium	Londinium	["Augusta"]	51.508	-0.076	capital		roman-empire	47		60000	["Forum","London Wall","amphitheatre","Temple of Mithras"]	["lat","cel"]	London	Northern Europe
+lutetia	Lutetia	["Lutetia Parisiorum"]	48.852	2.349	capital		roman-empire	-52		30000	["Forum","thermal baths","Arenes de Lutece"]	["lat","cel"]	Paris	Northern Europe
+augusta-treverorum	Augusta Treverorum	["Treveris"]	49.756	6.641	capital		roman-empire	-16	475	80000	["Porta Nigra","Imperial Baths","Constantine's basilica"]	["lat","cel"]	Trier	Northern Europe
+colonia-agrippina	Colonia Agrippina	["Colonia"]	50.937	6.960	colony		roman-empire	-38		40000	["Praetorium","Roman aqueduct","Ubii temple"]	["lat","cel"]	Cologne	Northern Europe
+vindobona	Vindobona	["Vienna"]	48.210	16.370	fortress		roman-empire	15		20000	["Legionary camp","Marcus Aurelius' death site"]	["lat","cel"]	Vienna	Northern Europe
+aquileia	Aquileia	["Aquileia"]	45.770	13.369	trading-post		roman-empire	-181	452	100000	["Basilica","Roman forum","port city"]	["lat"]	Aquileia	Mediterranean
+carnuntum	Carnuntum	["Carnuntum"]	48.112	16.860	fortress		roman-empire	6	400	50000	["Legionary fortress","Heidentor triumphal arch"]	["lat","cel"]	Petronell-Carnuntum	Northern Europe
+nicaea	Nicaea	["Nikaia"]	40.430	29.720	city-state		byzantine-empire	-316	1331	40000	["Council of Nicaea site","City walls"]	["grc","lat"]	Iznik	Anatolia
+philippi	Philippi	["Philippoi"]	41.015	24.287	colony		roman-empire	-356	-	15000	["Battle of Philippi site","early Christian church"]	["grc","lat"]	Filippoi	Mediterranean
+brundisium	Brundisium	["Brundusium"]	40.637	17.942	port		roman-empire	-244		100000	["Via Appia terminus","Roman columns"]	["lat"]	Brindisi	Mediterranean
+verona	Verona	["Verona"]	45.439	10.992	fortress		roman-empire	-89		50000	["Arena di Verona","Roman theatre"]	["lat"]	Verona	Mediterranean
+emerita-augusta	Emerita Augusta	["Augusta Emerita"]	38.917	-6.340	colony		roman-empire	-25		50000	["Roman theatre","aqueduct","Temple of Diana"]	["lat"]	Merida	Iberia
+tarraco	Tarraco	["Tarragona"]	41.116	1.252	colony		roman-empire	-218		30000	["Amphitheatre","Roman walls","aqueduct"]	["lat"]	Tarragona	Iberia
+byzantium	Byzantium	["Byzántion"]	41.013	28.978	city-state		ancient-greece	-667	330	40000	["Strategic position on Bosporus","precursor to Constantinople"]	["grc"]	Istanbul	Mediterranean
+heraclea	Heraclea Pontica	["Herakleia"]	41.281	31.416	colony		ancient-greece	-560		20000	["Greek colony on Black Sea"]	["grc"]	Karadeniz Eregli	Anatolia
+mohenjo-daro	Mohenjo-daro	["Mound of the Dead"]	27.329	68.138	city-state	indus-valley	indus-valley	-2500	-1700	50000	["Great Bath","Granary","grid-planned streets","drainage system"]	["und"]	Mohenjo-daro	South Asia
+harappa	Harappa	["Harappa"]	30.631	72.869	city-state	indus-valley	indus-valley	-2600	-1700	40000	["Granaries","worker quarters","cemetery"]	["und"]	Harappa	South Asia
+pataliputra	Pataliputra	["Kusumapura","Pataliputta"]	25.600	85.100	capital		maurya-empire	-490		400000	["Maurya Palace","Ashoka's pillars","Nalanda nearby"]	["san","pli"]	Patna	South Asia
+taxila	Taxila	["Takshashila","Taksasila"]	33.746	72.833	religious-center		maurya-empire	-1000	500	36000	["Dharmarajika stupa","Jaulian monastery","ancient university"]	["san","grc"]	Taxila	South Asia
+varanasi	Varanasi	["Kashi","Benares"]	25.317	83.000	religious-center		maurya-empire	-1200		100000	["Ghats on Ganges","Kashi Vishwanath Temple","oldest living city"]	["san","hin"]	Varanasi	South Asia
+ujjain	Ujjain	["Avantika","Ozene"]	23.183	75.767	capital		maurya-empire	-700		100000	["Mahakaleshwar Temple","astronomical observatory"]	["san","hin"]	Ujjain	South Asia
+mathura	Mathura	["Madhura"]	27.492	77.672	religious-center		maurya-empire	-600		100000	["Gandhara-Mathura art schools","Krishna birthplace"]	["san","hin"]	Mathura	South Asia
+nalanda	Nalanda	["Nalanda"]	25.135	85.443	religious-center		gupta-empire	-427	1197	10000	["Nalanda University","Buddhist monastery","vast library"]	["san","pli"]	Nalanda	South Asia
+vijayanagara	Vijayanagara	["City of Victory"]	15.335	76.460	capital			1336	1565	500000	["Virupaksha Temple","Lotus Mahal","Stone Chariot"]	["san","kan","tel"]	Hampi	South Asia
+delhi	Delhi	["Dilli","Indraprastha","Shahjahanabad"]	28.614	77.209	capital			-1500		400000	["Qutb Minar","Red Fort","Jama Masjid","Humayun's Tomb"]	["hin","urd","per"]	Delhi	South Asia
+agra	Agra	["Akbarabad"]	27.176	78.008	capital			-1504		700000	["Taj Mahal","Agra Fort","Fatehpur Sikri nearby"]	["hin","urd","per"]	Agra	South Asia
+fatehpur-sikri	Fatehpur Sikri	["City of Victory"]	27.094	77.661	capital			1571	1585	40000	["Buland Darwaza","Jama Masjid","Panch Mahal"]	["hin","per"]	Fatehpur Sikri	South Asia
+thanjavur	Thanjavur	["Tanjore"]	10.787	79.138	capital			-300		100000	["Brihadisvara Temple","Chola capital","Maratha palace"]	["tam","san"]	Thanjavur	South Asia
+madurai	Madurai	["Madurai"]	9.925	78.120	capital			-300		200000	["Meenakshi Temple","Pandya capital","Tamil Sangam"]	["tam","san"]	Madurai	South Asia
+anuradhapura	Anuradhapura	["Anuradhapura"]	8.335	80.410	capital			-377	993	100000	["Ruwanwelisaya stupa","Jaya Sri Maha Bodhi","Jetavanaramaya"]	["sin","pli"]	Anuradhapura	South Asia
+polonnaruwa	Polonnaruwa	["Pulatthinagara"]	7.939	81.000	capital			368	1310	50000	["Gal Vihara","Royal Palace","Vatadage"]	["sin","pli"]	Polonnaruwa	South Asia
+sigiriya	Sigiriya	["Lion Rock"]	7.957	80.760	fortress			477	495	10000	["Rock fortress","frescoes","mirror wall","water gardens"]	["sin"]	Sigiriya	South Asia
+lothal	Lothal	["Mound of the Dead"]	22.521	72.250	port	indus-valley	indus-valley	-2400	-1600	15000	["World's earliest known dock","bead factory","fire altars"]	["und"]	Lothal	South Asia
+dholavira	Dholavira	["Kotada"]	23.887	70.215	city-state	indus-valley	indus-valley	-3000	-1500	20000	["Signboard inscription","water reservoirs","stadium"]	["und"]	Dholavira	South Asia
+kalibangan	Kalibangan	["Kalibangan"]	29.472	74.130	city-state	indus-valley	indus-valley	-3500	-1750	10000	["Fire altars","ploughed field","earliest earthquake evidence"]	["und"]	Kalibangan	South Asia
+gandhara-city	Pushkalavati	["Peukelaotis"]	34.150	71.700	capital			-600	200	30000	["Gandhara art center","Buddhist monasteries"]	["san","grc"]	Charsadda	South Asia
+sanchi	Sanchi	["Sanchi"]	23.479	77.740	religious-center		maurya-empire	-300	1200	5000	["Great Stupa","Ashoka pillar","Buddhist monastery"]	["san","pli"]	Sanchi	South Asia
+kanchipuram	Kanchipuram	["Kanchi"]	12.834	79.703	religious-center			-600		100000	["Pallava temples","Kailasanatha Temple","silk weaving center"]	["tam","san"]	Kanchipuram	South Asia
+kushinagar	Kushinagar	["Kushinara"]	26.739	83.890	religious-center		maurya-empire	-500	500	5000	["Buddha's parinirvana site","Mahaparinirvana Temple"]	["san","pli"]	Kushinagar	South Asia
+rajagriha	Rajagriha	["Rajgir"]	25.030	85.417	capital		maurya-empire	-1000	-490	35000	["First Buddhist Council site","Cyclopean walls","Griddhakuta"]	["san","pli"]	Rajgir	South Asia
+kalinga	Dhauli	["Tosali"]	20.210	85.870	fortress		maurya-empire	-300	200	20000	["Ashoka Rock Edicts","Kalinga War site"]	["san","pli"]	Dhauli	South Asia
+sravasti	Sravasti	["Savatthi"]	27.509	82.033	capital		maurya-empire	-600	300	50000	["Jetavana monastery","Buddha preaching site"]	["san","pli"]	Sahet-Mahet	South Asia
+changan	Chang'an	["Xi'an","Hao","Feng"]	34.260	108.940	capital		han-dynasty	-1100		1000000	["Terracotta Army nearby","Big Wild Goose Pagoda","city walls","Silk Road start"]	["cmn"]	Xi'an	East Asia
+luoyang	Luoyang	["Luoyi","Dongdu"]	34.620	112.454	capital		han-dynasty	-1036		500000	["Longmen Grottoes","White Horse Temple","Eastern Han capital"]	["cmn"]	Luoyang	East Asia
+beijing	Beijing	["Peking","Dadu","Khanbaliq","Yanjing"]	39.904	116.407	capital		mongol-empire	-1045		1000000	["Forbidden City","Great Wall nearby","Temple of Heaven","Summer Palace"]	["cmn"]	Beijing	East Asia
+nanjing	Nanjing	["Nanking","Jiankang","Jinling"]	32.061	118.796	capital			-495		1000000	["City Wall","Sun Yat-sen Mausoleum","Confucius Temple"]	["cmn"]	Nanjing	East Asia
+hangzhou	Hangzhou	["Lin'an"]	30.275	120.155	capital		tang-dynasty	-222		1000000	["West Lake","Lingyin Temple","Song Dynasty capital"]	["cmn"]	Hangzhou	East Asia
+kaifeng	Kaifeng	["Bianjing","Bianliang"]	34.797	114.348	capital			-364		1500000	["Iron Pagoda","Dragon Pavilion","Song capital"]	["cmn"]	Kaifeng	East Asia
+chengdu	Chengdu	["Rongcheng"]	30.572	104.066	capital			-316		400000	["Dujiangyan irrigation","Wuhou Shrine","Jinsha site"]	["cmn"]	Chengdu	East Asia
+guangzhou	Guangzhou	["Canton","Panyu"]	23.129	113.264	port		han-dynasty	-214		500000	["Maritime Silk Road port","Nanyue King's tomb","Chen Clan Ancestral Hall"]	["yue"]	Guangzhou	East Asia
+anyang	Anyang	["Yin"]	36.100	114.350	capital	longshan	shang-dynasty	-1300	-1046	120000	["Yinxu ruins","oracle bones","Fu Hao's tomb"]	["cmn"]	Anyang	East Asia
+zhengzhou	Zhengzhou	["Zhengzhou"]	34.747	113.625	capital		shang-dynasty	-1600	-1400	100000	["Shang city walls","bronze workshops"]	["cmn"]	Zhengzhou	East Asia
+nara	Nara	["Heijokyo"]	34.685	135.805	capital			710	784	200000	["Todai-ji","Great Buddha","Kasuga Shrine","Nara Park"]	["jpn"]	Nara	East Asia
+kyoto	Kyoto	["Heian-kyo","Miyako"]	35.012	135.768	capital			794	1868	400000	["Kinkaku-ji","Fushimi Inari","Kiyomizu-dera","Imperial Palace"]	["jpn"]	Kyoto	East Asia
+edo	Edo	["Yedo","Tokyo"]	35.676	139.650	capital			1457		1300000	["Edo Castle","Nihonbashi","Senso-ji"]	["jpn"]	Tokyo	East Asia
+kamakura	Kamakura	["Kamakura"]	35.319	139.551	capital			1185	1333	200000	["Great Buddha","Tsurugaoka Hachimangu","shogunate seat"]	["jpn"]	Kamakura	East Asia
+osaka	Osaka	["Naniwa","Settsu"]	34.694	135.502	port			-645		400000	["Osaka Castle","Shitennoji Temple","merchant center"]	["jpn"]	Osaka	East Asia
+gyeongju	Gyeongju	["Seorabeol","Kumsong"]	35.856	129.225	capital			-57	935	180000	["Bulguksa Temple","Cheomseongdae observatory","Silla royal tombs"]	["kor"]	Gyeongju	East Asia
+kaesong	Kaesong	["Songdo","Songak"]	37.971	126.554	capital			-209	1394	200000	["Goryeo palace","Sungkyunkwan","royal tombs"]	["kor"]	Kaesong	East Asia
+seoul	Seoul	["Hanyang","Hanseong"]	37.566	126.978	capital			-18		200000	["Gyeongbokgung Palace","Changdeokgung","Namdaemun"]	["kor"]	Seoul	East Asia
+pyongyang	Pyongyang	["Pyeongyang"]	39.019	125.738	capital			-2333		200000	["Goguryeo tombs","Taedong Gate","ancient Korean capital"]	["kor"]	Pyongyang	East Asia
+angkor	Angkor	["Yasodharapura"]	13.412	103.860	capital		khmer-empire	802	1431	1000000	["Angkor Wat","Angkor Thom","Bayon","Ta Prohm"]	["khm","san"]	Siem Reap	Southeast Asia
+pagan	Pagan	["Bagan","Arimaddanapura"]	21.172	94.858	capital			849	1297	200000	["Thousands of temples","Ananda Temple","Shwezigon Pagoda"]	["mya"]	Bagan	Southeast Asia
+sukhothai	Sukhothai	["Sukhothai"]	17.017	99.703	capital			1238	1438	80000	["Wat Mahathat","Thai alphabet birthplace","Ramkhamhaeng inscription"]	["tha"]	Sukhothai	Southeast Asia
+ayutthaya	Ayutthaya	["Krung Si Ayutthaya"]	14.353	100.569	capital			1350	1767	1000000	["Wat Phra Si Sanphet","Wat Mahathat","King's Palace"]	["tha"]	Ayutthaya	Southeast Asia
+malacca	Malacca	["Melaka"]	2.196	102.251	port			1400		100000	["A Famosa fort","Sultanate Palace","Strait of Malacca trade"]	["msa","tam","cmn"]	Melaka	Southeast Asia
+palembang	Palembang	["Srivijaya"]	-2.976	104.775	capital			683	1025	100000	["Srivijaya capital","Buddhist learning center","river trade"]	["msa","san"]	Palembang	Southeast Asia
+borobudur-area	Borobudur	["Borobudur"]	-7.607	110.204	religious-center			750	1000	10000	["Borobudur Temple","world's largest Buddhist monument"]	["jav","san"]	Borobudur	Southeast Asia
+prambanan-area	Prambanan	["Prambanan"]	-7.752	110.491	religious-center			850	950	10000	["Prambanan Temple","largest Hindu temple in Java"]	["jav","san"]	Prambanan	Southeast Asia
+majapahit	Trowulan	["Majapahit capital"]	-7.550	112.383	capital			1293	1527	200000	["Majapahit palace","Gapura Wringin Lawang","Candi Tikus"]	["jav","san"]	Trowulan	Southeast Asia
+nan-madol	Nan Madol	["Venice of the Pacific"]	6.844	158.335	religious-center			-200	1628	1000	["Megalithic basalt city","artificial islands","Nan Douwas"]	["pon"]	Nan Madol	Oceania
+hue	Hue	["Phu Xuan"]	16.463	107.590	capital			1306		150000	["Imperial City","Thien Mu Pagoda","Royal Tombs"]	["vie"]	Hue	Southeast Asia
+thang-long	Thang Long	["Hanoi","Dai La"]	21.029	105.852	capital			1010		300000	["Imperial Citadel","Temple of Literature","Ho Chi Minh Mausoleum"]	["vie"]	Hanoi	Southeast Asia
+champa	My Son	["My Son"]	15.764	108.119	religious-center			-200	1471	5000	["Hindu temples","Champa kingdom religious center"]	["cjm","san"]	My Son	Southeast Asia
+mandalay	Mandalay	["Yadanabon"]	21.975	96.083	capital			1857	1885	200000	["Mandalay Palace","Kuthodaw Pagoda","last Burmese royal capital"]	["mya"]	Mandalay	Southeast Asia
+vientiane	Vientiane	["Viangchan"]	17.967	102.613	capital			1560		100000	["That Luang stupa","Patuxai","Ho Phra Keo"]	["lao"]	Vientiane	Southeast Asia
+luang-prabang	Luang Prabang	["Luang Phabang"]	19.884	102.135	capital			1353	1975	30000	["Wat Xieng Thong","Royal Palace","monks alms giving"]	["lao"]	Luang Prabang	Southeast Asia
+cebu-city	Cebu	["Sugbo","Zubu"]	10.293	123.902	port			1565		40000	["Magellan's Cross","Santo Nino Basilica","first Spanish settlement"]	["ceb","spa"]	Cebu	Southeast Asia
+manila-historical	Manila	["Maynilad"]	14.595	120.984	capital			1571		150000	["Intramuros","Fort Santiago","Manila Cathedral"]	["tgl","spa"]	Manila	Southeast Asia
+samarkand	Samarkand	["Marakanda","Afrosiab"]	39.654	66.959	trading-post		mongol-empire	-700		500000	["Registan Square","Bibi-Khanym Mosque","Shah-i-Zinda"]	["sog","per","uzb"]	Samarkand	Central Asia
+bukhara	Bukhara	["Bukhara-i-Sharif"]	39.768	64.422	religious-center		mongol-empire	-500		300000	["Ark fortress","Kalyan Minaret","Lyabi-Hauz"]	["sog","per","uzb"]	Bukhara	Central Asia
+merv	Merv	["Marv","Alexandria Margiana"]	37.664	62.170	trading-post		mongol-empire	-500	1789	500000	["Sultan Sanjar Mausoleum","Great Kyz Kala","oasis city"]	["per"]	Mary	Central Asia
+balkh	Balkh	["Bactra","Bactria"]	36.758	66.898	religious-center			-500	1220	200000	["Mother of Cities","Green Mosque","Buddhist center"]	["per","san","grc"]	Balkh	Central Asia
+karakorum	Karakorum	["Qara Qorum"]	47.193	102.831	capital		mongol-empire	1220	1380	30000	["Mongol capital","Erdene Zuu Monastery nearby"]	["mon"]	Kharkhorin	Central Asia
+kashgar	Kashgar	["Kashi","Shule"]	39.472	75.990	trading-post			-128		100000	["Id Kah Mosque","Silk Road oasis","Afaq Khoja Mausoleum"]	["uig","cmn"]	Kashgar	Central Asia
+dunhuang	Dunhuang	["Shazhou"]	40.142	94.662	religious-center		han-dynasty	-111		30000	["Mogao Caves","Silk Road gateway","Crescent Moon Spring"]	["cmn"]	Dunhuang	Central Asia
+lhasa	Lhasa	["Place of the Gods"]	29.652	91.172	religious-center			-637		50000	["Potala Palace","Jokhang Temple","Barkhor circuit"]	["bod"]	Lhasa	Central Asia
+turpan	Turpan	["Gaochang","Turfan"]	42.942	89.189	trading-post			-100	1300	30000	["Gaochang ruins","Bezeklik caves","Flaming Mountains"]	["uig","cmn"]	Turpan	Central Asia
+khiva	Khiva	["Xiva"]	41.379	60.364	trading-post			-500		40000	["Ichan Kala","Islam Khodja Minaret","Juma Mosque"]	["uzb","per"]	Khiva	Central Asia
+herat	Herat	["Haraiva","Alexandria Ariana"]	34.340	62.200	capital			-330		450000	["Friday Mosque","Citadel","Musalla Complex"]	["per"]	Herat	Central Asia
+nishapur	Nishapur	["Neyshabur"]	36.213	58.796	capital			-3000		400000	["Omar Khayyam's tomb","pottery center","Seljuk capital"]	["per"]	Neyshabur	Central Asia
+ghazni	Ghazni	["Ghazna"]	33.553	68.417	capital			-689		100000	["Ghaznavid capital","Mahmud's tomb","Minaret remains"]	["per"]	Ghazni	Central Asia
+otrar	Otrar	["Farab"]	42.850	68.303	trading-post			-100	1700	50000	["Silk Road city","Mongol invasion trigger"]	["per","tur"]	Otrar	Central Asia
+bamyan	Bamyan	["Bamiyan"]	34.833	67.827	religious-center			-300	1221	20000	["Giant Buddha statues","Buddhist monastery complex"]	["per","san"]	Bamyan	Central Asia
+taklamakan-niya	Niya	["Cadota"]	37.950	82.717	trading-post			-200	800	5000	["Silk Road oasis","Kharosthi documents"]	["san","txb"]	Minfeng	Central Asia
+tashkent	Tashkent	["Chach","Shash"]	41.299	69.240	trading-post			-200		100000	["Khast Imam Complex","Kukeldash Madrasa"]	["uzb","per"]	Tashkent	Central Asia
+great-zimbabwe	Great Zimbabwe	["Dzimba dza mabwe"]	-20.267	30.934	capital		great-zimbabwe	1100	1450	18000	["Great Enclosure","Hill Complex","conical tower"]	["sna"]	Masvingo	Sub-Saharan Africa
+aksum	Aksum	["Axum"]	14.130	38.720	capital			-400	940	50000	["Stelae field","Ark of Covenant church","Queen of Sheba's palace"]	["gez"]	Aksum	East Africa
+lalibela	Lalibela	["Roha"]	12.030	39.043	religious-center			-1000		10000	["Rock-hewn churches","Church of St. George"]	["gez","amh"]	Lalibela	East Africa
+kilwa	Kilwa Kisiwani	["Kilwa"]	-8.957	39.523	port			-800	1513	20000	["Great Mosque","Husuni Kubwa palace","gold trade"]	["swh","arb"]	Kilwa Kisiwani	East Africa
+mogadishu	Mogadishu	["Muqdisho","Hamar"]	2.047	45.318	port			-100		100000	["Arba'a Rukun Mosque","Fakr ad-Din Mosque","Indian Ocean trade"]	["som","arb"]	Mogadishu	East Africa
+mombasa	Mombasa	["Mvita"]	-4.043	39.664	port			-900		50000	["Fort Jesus","Old Town","Indian Ocean trade hub"]	["swh","arb"]	Mombasa	East Africa
+zanzibar-city	Zanzibar City	["Stone Town"]	-6.163	39.188	port			-100		60000	["Stone Town","House of Wonders","Sultan's Palace"]	["swh","arb"]	Zanzibar City	East Africa
+benin-city	Benin City	["Edo"]	6.338	5.627	capital	nok		1180		100000	["Benin Bronzes","Royal Palace","city walls"]	["edo"]	Benin City	West Africa
+ife	Ife	["Ile-Ife"]	7.482	4.556	religious-center	nok		-500		100000	["Ife bronze heads","Ooni's palace","Yoruba sacred city"]	["yor"]	Ile-Ife	West Africa
+kumasi	Kumasi	["Coomassie"]	6.688	-1.623	capital			1680		100000	["Manhyia Palace","Golden Stool","Ashanti capital"]	["aka"]	Kumasi	West Africa
+nok-settlement	Nok	["Nok"]	9.500	8.000	city-state	nok		-900	200	10000	["Terracotta sculptures","early iron smelting"]	["hau"]	Nok	West Africa
+meroe	Meroe	["Barwa"]	16.938	33.749	capital			-750	350	30000	["Meroitic pyramids","iron smelting center","Temple of Amun"]	["xmr"]	Kabushiya	East Africa
+kerma	Kerma	["Kerma"]	19.602	30.410	capital			-2500	-1500	20000	["Western Deffufa","Eastern Deffufa","royal cemetery"]	["xmr"]	Kerma	East Africa
+napata	Napata	["Napata"]	18.532	31.826	capital			-1450	-300	15000	["Jebel Barkal","Temple of Amun","Nubian royal capital"]	["xmr"]	Karima	East Africa
+mapungubwe	Mapungubwe	["Place of the jackal"]	-22.192	29.256	capital			1075	1300	5000	["Gold rhino","hilltop palace","trade center"]	["ven"]	Mapungubwe	Sub-Saharan Africa
+thulamela	Thulamela	["Thulamela"]	-22.433	31.083	fortress			1250	1700	3000	["Stone-walled enclosure","gold artifacts"]	["ven"]	Thulamela	Sub-Saharan Africa
+kano	Kano	["Kano"]	11.996	8.517	trading-post			999		100000	["Kano city walls","Gidan Makama Museum","dyeing pits"]	["hau"]	Kano	West Africa
+timbuktu-city	Timbuktu	["Tombouctou"]	16.773	-3.007	religious-center		songhai-empire	1100		100000	["Sankore Mosque","Djinguereber Mosque","Ahmed Baba Institute"]	["arb","snk"]	Timbuktu	West Africa
+harar	Harar	["Harar Jugol"]	9.314	42.120	religious-center			-700		50000	["Hyena men","82 mosques","walled city"]	["har","arb"]	Harar	East Africa
+gondar	Gondar	["Fasil Ghebbi"]	12.603	37.460	capital			1636	1855	60000	["Royal Enclosure","Fasilides Bath","Debre Berhan Selassie"]	["amh"]	Gondar	East Africa
+engaruka	Engaruka	["Engaruka"]	-2.987	35.953	city-state			-1400	1700	5000	["Terraced irrigation systems","stone houses"]	["irk"]	Engaruka	East Africa
+sofala	Sofala	["Sofala"]	-20.150	34.717	port			-100	1500	10000	["Gold trade port","link to Great Zimbabwe"]	["swh"]	Nova Sofala	East Africa
+jenne-jeno	Jenne-Jeno	["Old Djenne"]	13.900	-4.540	city-state			-250	1400	30000	["Oldest known city in sub-Saharan Africa","iron smelting"]	["bam"]	Djenne	West Africa
+igbo-ukwu	Igbo-Ukwu	["Igbo Ukwu"]	6.020	7.020	religious-center			-100	1000	5000	["Elaborate bronze castings","royal burial"]	["ibo"]	Igbo-Ukwu	West Africa
+begho	Begho	["Beo","Nsoko"]	7.950	-2.550	trading-post			1100	1723	10000	["Gold trade center","trans-Saharan trade"]	["aka"]	Begho	West Africa
+loango	Loango	["Buali"]	-4.650	11.833	port			1550	1883	15000	["Kingdom of Loango capital","Atlantic trade"]	["kon"]	Loango	Sub-Saharan Africa
+mbanza-kongo	Mbanza Kongo	["Sao Salvador"]	-6.267	14.250	capital			1400	1914	100000	["Kongo kingdom capital","Cathedral","Portuguese influence"]	["kon"]	Mbanza Congo	Sub-Saharan Africa
+tenochtitlan	Tenochtitlan	["Mexico-Tenochtitlan"]	19.433	-99.133	capital		aztec-empire	1325	1521	300000	["Templo Mayor","causeways","chinampas","Great Marketplace"]	["nah"]	Mexico City	Mesoamerica
+teotihuacan	Teotihuacan	["City of the Gods"]	19.692	-98.844	capital			-200	550	200000	["Pyramid of the Sun","Pyramid of the Moon","Avenue of the Dead"]	["nah"]	Teotihuacan	Mesoamerica
+chichen-itza	Chichen Itza	["Chi'ch'en Itza"]	20.683	-88.569	religious-center		maya-civilization	600	1200	50000	["El Castillo pyramid","Great Ball Court","Sacred Cenote"]	["yua"]	Chichen Itza	Mesoamerica
+tikal	Tikal	["Yax Mutal"]	17.222	-89.624	city-state		maya-civilization	-600	900	120000	["Temple I","Temple IV","Great Plaza","North Acropolis"]	["yua"]	Tikal	Mesoamerica
+copan	Copan	["Xukpi"]	14.838	-89.141	city-state		maya-civilization	-900	900	25000	["Hieroglyphic Stairway","Great Plaza","ball court"]	["yua"]	Copan	Mesoamerica
+palenque	Palenque	["Lakamha"]	17.484	-92.046	city-state		maya-civilization	-226	800	10000	["Temple of Inscriptions","Pacal's tomb","Palace Tower"]	["yua"]	Palenque	Mesoamerica
+monte-alban	Monte Alban	["Danipaguache"]	17.044	-96.768	city-state		maya-civilization	-500	900	35000	["Main Plaza","Observatory","Danzantes carvings"]	["zap"]	Monte Alban	Mesoamerica
+cusco	Cusco	["Qosqo","Cuzco"]	-13.516	-71.979	capital		inca-empire	1100		200000	["Sacsayhuaman","Qorikancha","Inca stonework"]	["que"]	Cusco	South America
+machu-picchu	Machu Picchu	["Old Mountain"]	-13.163	-72.545	religious-center		inca-empire	1450	1572	750	["Intihuatana stone","Temple of the Sun","agricultural terraces"]	["que"]	Machu Picchu	South America
+chan-chan	Chan Chan	["Chan Chan"]	-8.106	-79.075	capital			900	1470	60000	["Largest adobe city","ciudadelas","Chimu capital"]	["moc"]	Trujillo	South America
+tiwanaku	Tiwanaku	["Tiahuanaco"]	-16.555	-68.673	religious-center			-1580	1000	30000	["Akapana pyramid","Gate of the Sun","Puma Punku"]	["aym"]	Tiwanaku	South America
+caral	Caral	["Norte Chico"]	-10.893	-77.520	city-state			-2600	-2000	3000	["Oldest city in Americas","pyramids","quipu","amphitheatre"]	["und"]	Caral	South America
+cahokia	Cahokia	["Cahokia Mounds"]	38.655	-90.062	city-state			700	1400	40000	["Monks Mound","Woodhenge","stockade","Grand Plaza"]	["sio"]	Collinsville	North America
+mesa-verde	Mesa Verde	["Green Table"]	37.183	-108.489	fortress			600	1300	5000	["Cliff Palace","Balcony House","Pueblo cliff dwellings"]	["ute"]	Mesa Verde	North America
+chaco-canyon	Pueblo Bonito	["Chaco Canyon center"]	36.060	-107.961	religious-center			828	1250	5000	["Great houses","kivas","astronomical alignments","road system"]	["nav"]	Chaco Canyon	North America
+taos-pueblo	Taos Pueblo	["Taos"]	36.438	-105.544	city-state			1000		2000	["Multi-story adobe buildings","oldest inhabited community in US"]	["tao"]	Taos	North America
+poverty-point	Poverty Point	["Poverty Point"]	32.637	-91.409	religious-center			-1700	-1100	5000	["Massive earthwork rings","Bird Mound"]	["und"]	Epps	North America
+la-venta	La Venta	["La Venta"]	18.103	-94.042	religious-center	olmec		-900	-400	18000	["Great Pyramid","colossal heads","Olmec center"]	["miz"]	La Venta	Mesoamerica
+san-lorenzo	San Lorenzo	["San Lorenzo Tenochtitlan"]	17.755	-94.762	capital	olmec		-1500	-900	13000	["Colossal stone heads","earliest Olmec center"]	["miz"]	San Lorenzo	Mesoamerica
+uxmal	Uxmal	["Uxmal"]	20.360	-89.770	city-state		maya-civilization	500	1000	25000	["Pyramid of the Magician","Governor's Palace","Nunnery Quadrangle"]	["yua"]	Uxmal	Mesoamerica
+calakmul	Calakmul	["Kaan","Snake Kingdom"]	18.105	-89.811	city-state		maya-civilization	-600	900	50000	["Structure II pyramid","jade masks","Tikal rival"]	["yua"]	Calakmul	Mesoamerica
+el-mirador	El Mirador	["El Mirador"]	17.755	-89.920	city-state		maya-civilization	-600	150	100000	["La Danta pyramid","earliest Maya superpower"]	["yua"]	El Mirador	Mesoamerica
+tula	Tula	["Tollan"]	20.065	-99.341	capital			900	1150	60000	["Atlantean warrior columns","Toltec capital"]	["nah"]	Tula de Allende	Mesoamerica
+cholula	Cholula	["Cholollan"]	19.058	-98.303	religious-center			-200		50000	["Great Pyramid of Cholula","largest pyramid by volume"]	["nah"]	Cholula	Mesoamerica
+mitla	Mitla	["Lyobaa"]	16.922	-96.365	religious-center		maya-civilization	-100	1521	10000	["Palace of Columns","geometric mosaics","Zapotec-Mixtec"]	["zap"]	Mitla	Mesoamerica
+bonampak	Bonampak	["Painted Walls"]	16.704	-91.065	city-state		maya-civilization	580	800	5000	["Famous murals","battle scenes","Maya painting"]	["yua"]	Bonampak	Mesoamerica
+caracol	Caracol	["Oxwitza"]	16.765	-89.117	city-state		maya-civilization	-600	900	115000	["Caana pyramid","largest Maya site in Belize"]	["yua"]	Caracol	Mesoamerica
+quirigua	Quirigua	["Quirigua"]	15.271	-89.040	city-state		maya-civilization	426	900	10000	["Tallest Maya stelae","zoomorphs"]	["yua"]	Quirigua	Mesoamerica
+sayil	Sayil	["Sayil"]	20.179	-89.657	city-state		maya-civilization	700	1000	10000	["Great Palace","Puuc architecture"]	["yua"]	Sayil	Mesoamerica
+ollantaytambo	Ollantaytambo	["Ollantaytambo"]	-13.258	-72.263	fortress		inca-empire	1440	1540	5000	["Inca fortress","Temple Hill","terraces"]	["que"]	Ollantaytambo	South America
+huanuco-pampa	Huanuco Pampa	["Huanuco Viejo"]	-9.892	-76.834	capital		inca-empire	1460	1540	15000	["Inca administrative center","ushnu platform"]	["que"]	Huanuco Viejo	South America
+vilcashuaman	Vilcashuaman	["Vilcashuaman"]	-13.650	-73.933	religious-center		inca-empire	1400	1540	40000	["Temple of Sun","Inca administrative center"]	["que"]	Vilcashuaman	South America
+chavin-de-huantar	Chavin de Huantar	["Chavin"]	-9.593	-77.177	religious-center			-900	-200	3000	["Lanzon monolith","Raimondi Stele","underground galleries"]	["que"]	Chavin de Huantar	South America
+sipan	Sipan	["Huaca Rajada"]	-6.811	-79.593	religious-center			100	800	5000	["Lord of Sipan's tomb","Moche royal burials"]	["moc"]	Sipan	South America
+wari	Wari	["Huari"]	-13.067	-74.233	capital			600	1000	40000	["Wari Empire capital","D-shaped temples"]	["que"]	Ayacucho	South America
+sechin-bajo	Sechin Bajo	["Sechin"]	-9.467	-78.267	religious-center			-3500	-1500	3000	["Oldest plaza in Americas","stone carvings"]	["und"]	Sechin	South America
+paris	Paris	["Lutetia","Ville Lumiere"]	48.856	2.352	capital			-250		275000	["Notre-Dame","Louvre","Sainte-Chapelle","medieval university"]	["fra","lat"]	Paris	Western Europe
+london	London	["Londinium","Augusta"]	51.507	-0.128	capital			47		100000	["Tower of London","Westminster Abbey","London Bridge"]	["eng","lat"]	London	Western Europe
+venice	Venice	["Venezia","Serenissima"]	45.440	12.316	city-state			421		180000	["St. Mark's Basilica","Doge's Palace","Rialto Bridge","Arsenal"]	["ita","lat"]	Venice	Western Europe
+florence	Florence	["Firenze","Florentia"]	43.773	11.256	city-state			-59		100000	["Duomo","Uffizi","Ponte Vecchio","birthplace of Renaissance"]	["ita","lat"]	Florence	Western Europe
+bruges	Bruges	["Brugge"]	51.209	3.225	trading-post			-200		125000	["Belfry","Market Square","canal system","cloth trade"]	["nld"]	Bruges	Western Europe
+ghent	Ghent	["Gent","Gand"]	51.054	3.717	trading-post			-630		80000	["St. Bavo's Cathedral","Gravensteen Castle","Ghent Altarpiece"]	["nld"]	Ghent	Western Europe
+prague	Prague	["Praha"]	50.076	14.438	capital			-885		100000	["Prague Castle","Charles Bridge","Old Town Square","Jewish Quarter"]	["ces"]	Prague	Central Europe
+krakow	Krakow	["Cracovia","Krakow"]	50.062	19.937	capital			-700		100000	["Wawel Castle","St. Mary's Basilica","Cloth Hall"]	["pol"]	Krakow	Central Europe
+vienna-medieval	Vienna	["Wien","Vindobona"]	48.208	16.374	capital			-500		100000	["St. Stephen's Cathedral","Hofburg Palace","Ringstrasse"]	["deu"]	Vienna	Central Europe
+novgorod	Novgorod	["Veliky Novgorod"]	58.522	31.270	city-state			859	1478	50000	["Kremlin","St. Sophia Cathedral","birch bark letters","trade center"]	["rus"]	Veliky Novgorod	Eastern Europe
+kiev	Kiev	["Kyiv"]	50.450	30.523	capital			-482		100000	["Kyiv Pechersk Lavra","St. Sophia Cathedral","Golden Gate"]	["ukr","rus"]	Kyiv	Eastern Europe
+moscow	Moscow	["Moskva"]	55.756	37.617	capital			1147		200000	["Kremlin","St. Basil's Cathedral","Red Square"]	["rus"]	Moscow	Eastern Europe
+toledo	Toledo	["Tulaytulah","Toletum"]	39.857	-4.024	capital			-192		60000	["Alcazar","Cathedral","sword making","Three Cultures"]	["spa","arb","lat"]	Toledo	Iberia
+cordoba-spain	Cordoba	["Qurtuba"]	37.879	-4.780	capital		umayyad-caliphate	-152		500000	["Mezquita","Alcazar","Medina Azahara","caliphate capital"]	["arb","spa","lat"]	Cordoba	Iberia
+granada	Granada	["Gharnata"]	37.177	-3.599	capital			-756	1492	165000	["Alhambra","Generalife","Albaicin quarter"]	["arb","spa"]	Granada	Iberia
+seville	Seville	["Ishbiliya","Hispalis"]	37.389	-5.984	capital			-206		150000	["Giralda Tower","Alcazar","Cathedral","Torre del Oro"]	["spa","arb","lat"]	Seville	Iberia
+lubeck	Lubeck	["Lubeck"]	53.868	10.687	trading-post			1143		30000	["Holstentor gate","Hanseatic capital","brick Gothic churches"]	["deu"]	Lubeck	Northern Europe
+hamburg	Hamburg	["Hammaburg"]	53.551	9.994	trading-post			-808		40000	["Speicherstadt","Hanseatic city","port"]	["deu"]	Hamburg	Northern Europe
+cologne	Cologne	["Koln","Colonia"]	50.938	6.960	city-state		roman-empire	-38		40000	["Cathedral","Roman-Germanic Museum","Romanesque churches"]	["deu","lat"]	Cologne	Northern Europe
+constantinople-ottoman	Constantinople	["Istanbul"]	41.013	28.978	capital		ottoman-empire	-667		700000	["Hagia Sophia mosque","Topkapi Palace","Suleymaniye Mosque"]	["tur","grc"]	Istanbul	Mediterranean
+siena	Siena	["Siena"]	43.318	11.331	city-state			-900		50000	["Piazza del Campo","Cathedral","Palazzo Pubblico","Palio"]	["ita"]	Siena	Western Europe
+genoa	Genoa	["Genova","Ianua"]	44.407	8.934	port			-500		100000	["Maritime republic","Lanterna lighthouse","Palazzo Ducale"]	["ita","lat"]	Genoa	Western Europe
+pisa	Pisa	["Pisae"]	43.717	10.401	port		roman-empire	-600		40000	["Leaning Tower","Piazza dei Miracoli","maritime republic"]	["ita","lat"]	Pisa	Western Europe
+dubrovnik	Dubrovnik	["Ragusa"]	42.650	18.094	city-state			-614		40000	["City walls","Rector's Palace","Sponza Palace"]	["hrv","ita"]	Dubrovnik	Mediterranean
+split	Split	["Spalatum","Aspalathos"]	43.508	16.440	capital		roman-empire	-305		30000	["Diocletian's Palace","Cathedral of St. Domnius"]	["hrv","lat"]	Split	Mediterranean
+bergen	Bergen	["Bjorgvin"]	60.392	5.324	trading-post			1070		20000	["Bryggen wharf","Hanseatic trading post","Rosenkrantz Tower"]	["nor"]	Bergen	Northern Europe
+uppsala	Uppsala	["Gamla Uppsala"]	59.858	17.638	religious-center			-500		10000	["Temple at Uppsala","royal burial mounds","cathedral"]	["swe"]	Uppsala	Northern Europe
+hedeby	Hedeby	["Haithabu"]	54.490	9.564	trading-post			770	1066	2000	["Viking trading center","Danevirke","rune stones"]	["non"]	Schleswig	Northern Europe
+birka	Birka	["Birka"]	59.333	17.547	trading-post			750	970	1000	["Viking trading post","garrison","burial grounds"]	["non"]	Bjorko	Northern Europe
+ribe	Ribe	["Ribe"]	55.332	8.755	trading-post			-700		5000	["Oldest Scandinavian town","Viking marketplace"]	["dan"]	Ribe	Northern Europe
+mecca	Mecca	["Makkah","Bakkah"]	21.423	39.826	religious-center		umayyad-caliphate	-2000		100000	["Kaaba","Masjid al-Haram","Zamzam Well","Hajj pilgrimage"]	["arb"]	Mecca	Arabian Peninsula
+medina	Medina	["Madinah","Yathrib"]	24.471	39.611	religious-center		umayyad-caliphate	-620		100000	["Prophet's Mosque","Quba Mosque","first Islamic capital"]	["arb"]	Medina	Arabian Peninsula
+baghdad	Baghdad	["Madinat al-Salam"]	33.312	44.366	capital		umayyad-caliphate	762		1500000	["Round City","House of Wisdom","Mustansiriya Madrasa"]	["arb","per"]	Baghdad	Mesopotamia
+cairo	Cairo	["Al-Qahira","Fustat"]	30.044	31.236	capital			969		500000	["Al-Azhar Mosque","Citadel of Saladin","Khan el-Khalili"]	["arb"]	Cairo	Egypt
+isfahan	Isfahan	["Esfahan","Ispahan"]	32.652	51.678	capital		persian-empire	-600		600000	["Naqsh-e Jahan Square","Shah Mosque","Ali Qapu Palace","Si-o-se-pol Bridge"]	["per"]	Isfahan	Persia
+tabriz	Tabriz	["Tauris"]	38.078	46.292	capital			-1500		500000	["Blue Mosque","Tabriz Bazaar","El-Goli","Ilkhanid capital"]	["aze","per"]	Tabriz	Persia
+konya	Konya	["Iconium"]	37.874	32.493	capital			-3000		200000	["Mevlana Museum","Alaeddin Mosque","Seljuk capital"]	["tur","grc"]	Konya	Anatolia
+bursa	Bursa	["Prusa"]	40.183	29.061	capital		ottoman-empire	-202		100000	["Green Mosque","Grand Mosque","first Ottoman capital"]	["tur"]	Bursa	Anatolia
+edirne	Edirne	["Adrianople","Hadrianopolis"]	41.677	26.556	capital		ottoman-empire	-125		100000	["Selimiye Mosque","Beyazid Complex","second Ottoman capital"]	["tur","grc"]	Edirne	Mediterranean
+sanaa	Sanaa	["San'a"]	15.355	44.207	capital			-500		100000	["Old City","Great Mosque","tower houses"]	["arb"]	Sanaa	Arabian Peninsula
+muscat	Muscat	["Masqat"]	23.588	58.382	port			-130		50000	["Al Jalali Fort","Al Mirani Fort","Muttrah Souq"]	["arb"]	Muscat	Arabian Peninsula
+shiraz	Shiraz	["Shiraz"]	29.591	52.584	capital			-2000		200000	["Persepolis nearby","Tomb of Hafez","Nasir al-Mulk Mosque"]	["per"]	Shiraz	Persia
+rayy	Rayy	["Rhages","Rey"]	35.597	51.449	capital			-6000	1220	500000	["Cheshmeh-Ali","Rashkan Castle","ancient Median city"]	["per"]	Rey	Persia
+mosul	Mosul	["al-Mawsil"]	36.340	43.130	trading-post		umayyad-caliphate	-850		100000	["Great Mosque of al-Nuri","muslin textile origin"]	["arb"]	Mosul	Mesopotamia
+basra	Basra	["Al-Basrah"]	30.508	47.783	port		umayyad-caliphate	636		200000	["First Islamic city in Iraq","Sinbad legends","port"]	["arb"]	Basra	Mesopotamia
+kufa	Kufa	["Al-Kufah"]	32.028	44.400	religious-center		umayyad-caliphate	638	1000	200000	["Great Mosque of Kufa","early Islamic learning center"]	["arb"]	Kufa	Mesopotamia
+aleppo-islamic	Aleppo	["Halab"]	36.199	37.162	trading-post		umayyad-caliphate	-5000		200000	["Citadel of Aleppo","Great Mosque","medieval souks"]	["arb"]	Aleppo	Levant
+samarqand-islamic	Samarkand	["Samarqand"]	39.654	66.959	capital		mongol-empire	-700		400000	["Registan","Gur-e-Amir","Bibi-Khanym Mosque","Timur's capital"]	["per","uzb"]	Samarkand	Central Asia
+ghazni-islamic	Ghazni	["Ghazna"]	33.553	68.417	capital			977	1186	100000	["Ghaznavid capital","Mahmud's Court","minaret ruins"]	["per","arb"]	Ghazni	Central Asia
+fes-islamic	Fez	["Fas"]	34.033	-5.000	religious-center		umayyad-caliphate	789		350000	["Al-Qarawiyyin university","Bou Inania","Chouara Tannery"]	["arb","ber"]	Fez	North Africa
+delhi-sultanate	Delhi	["Dilli"]	28.614	77.209	capital			1206	1526	400000	["Qutb Minar","Tughlaqabad Fort","Sultanate capital"]	["per","hin","arb"]	Delhi	South Asia
+palermo	Palermo	["Panormus","Balarm"]	38.116	13.361	capital		roman-empire	-734		350000	["Palatine Chapel","Norman Palace","Arab-Norman architecture"]	["ita","arb","lat"]	Palermo	Mediterranean
+trebizond	Trebizond	["Trabzon","Trapezous"]	41.003	39.717	port		byzantine-empire	-756	1461	50000	["Hagia Sophia of Trebizond","Empire of Trebizond capital"]	["grc","tur"]	Trabzon	Anatolia
+mostar	Mostar	["Mostar"]	43.343	17.808	trading-post		ottoman-empire	1452		20000	["Old Bridge","Koski Mehmed Pasha Mosque"]	["bos","tur"]	Mostar	Mediterranean
+bukhara-islamic	Bukhara	["Bukhara-i-Sharif"]	39.768	64.422	religious-center		umayyad-caliphate	-500		300000	["Ark fortress","Kalyan Minaret","Ismail Samani Mausoleum"]	["per","arb","uzb"]	Bukhara	Central Asia
+suzhou	Suzhou	["Gusu"]	31.299	120.585	city-state		tang-dynasty	-514		500000	["Classical gardens","canals","silk production"]	["cmn"]	Suzhou	East Asia
+quanzhou	Quanzhou	["Zayton"]	24.874	118.676	port		tang-dynasty	-260		200000	["Maritime Silk Road port","Kaiyuan Temple","Luoyang Bridge"]	["nan"]	Quanzhou	East Asia
+xianyang	Xianyang	["Xianyang"]	34.330	108.710	capital			-350	-206	1000000	["Qin Dynasty capital","Terracotta Army","Epang Palace"]	["cmn"]	Xianyang	East Asia
+dali-city	Dali	["Taihe","Yangjumie"]	25.606	100.241	capital			-109		100000	["Three Pagodas","Dali Kingdom capital","Cangshan"]	["cmn"]	Dali	East Asia
+fuzhou	Fuzhou	["Rongcheng"]	26.074	119.296	port		tang-dynasty	-202		200000	["Three Lanes and Seven Alleys","Kaiyuan Temple"]	["nan"]	Fuzhou	East Asia
+lhasa-tibet	Lhasa	["Ra-sa"]	29.652	91.172	capital			-637		30000	["Potala Palace","Jokhang Temple","Sera Monastery"]	["bod"]	Lhasa	East Asia
+taipei-historical	Bangka	["Wanhua","Manka"]	25.038	121.500	trading-post			1709		20000	["Longshan Temple","earliest Taipei settlement"]	["nan","cmn"]	Taipei	East Asia
+heian-kyo	Heian-kyo	["Kyoto"]	35.012	135.768	capital			794	1185	500000	["Heian Palace","imperial court culture","Tale of Genji"]	["jpn"]	Kyoto	East Asia
+hakata	Hakata	["Fukuoka"]	33.590	130.402	port			-57		50000	["Mongol invasion site","trade with Korea and China"]	["jpn"]	Fukuoka	East Asia
+sakai	Sakai	["Sakai"]	34.573	135.483	port			-500		100000	["Medieval free city","tea ceremony center","firearms production"]	["jpn"]	Sakai	East Asia
+nagasaki	Nagasaki	["Nagasaki"]	32.750	129.878	port			1571		60000	["Dutch trading post","Dejima","Glover Garden"]	["jpn","por"]	Nagasaki	East Asia
+hagi	Hagi	["Hagi"]	34.408	131.399	capital			1604	1863	30000	["Mori clan castle","Shoka Sonjuku","Meiji Restoration"]	["jpn"]	Hagi	East Asia
+shenyang	Shenyang	["Mukden","Fengtian"]	41.800	123.430	capital			-300		200000	["Mukden Palace","Manchu capital","Qing dynasty origin"]	["cmn","mnc"]	Shenyang	East Asia
+lijiang	Lijiang	["Dayan"]	26.872	100.226	trading-post			1127		50000	["Old Town","Naxi culture","Jade Dragon Snow Mountain"]	["nxq","cmn"]	Lijiang	East Asia
+yangzhou	Yangzhou	["Guangling"]	32.394	119.412	port		tang-dynasty	-486		500000	["Grand Canal junction","Slender West Lake","Tang culture center"]	["cmn"]	Yangzhou	East Asia
+wuhan-historical	Wuchang	["Hankou","Hanyang"]	30.593	114.305	port			-223		200000	["Yellow Crane Tower","Three Towns","Yangtze port"]	["cmn"]	Wuhan	East Asia
+zhangye	Zhangye	["Ganzhou"]	38.934	100.451	trading-post		han-dynasty	-121		30000	["Giant Buddha Temple","Silk Road oasis"]	["cmn"]	Zhangye	East Asia
+kashgar-city	Kashgar	["Kashi"]	39.472	75.990	trading-post			-128		100000	["Id Kah Mosque","Apak Khoja Mausoleum","Silk Road hub"]	["uig"]	Kashgar	East Asia
+pingyao	Pingyao	["Pingyao"]	37.189	112.176	trading-post			-827		50000	["Ancient city walls","banking center","Rishengchang"]	["cmn"]	Pingyao	East Asia
+gandhara-taxila	Taxila	["Takshashila"]	33.746	72.833	religious-center		maurya-empire	-600	500	36000	["Gandhara art","Buddhist monasteries","ancient university"]	["san","grc"]	Taxila	South Asia
+amaravati	Amaravati	["Dhanyakataka"]	16.573	80.358	religious-center			-200	1300	30000	["Amaravati Stupa","Buddhist center","Satavahana capital"]	["tel","san","pli"]	Amaravati	South Asia
+badami	Badami	["Vatapi"]	15.921	75.684	capital			540	757	30000	["Cave temples","Chalukya capital","rock-cut architecture"]	["kan","san"]	Badami	South Asia
+ellora-area	Ellora	["Verul"]	20.026	75.179	religious-center			600	1000	5000	["Kailasa Temple","Buddhist, Hindu, Jain caves"]	["san","mar"]	Ellora	South Asia
+ajanta-area	Ajanta	["Ajanta"]	20.552	75.700	religious-center			-200	600	2000	["Buddhist cave paintings","Ajanta frescoes"]	["san","pli"]	Ajanta	South Asia
+belur	Belur	["Velapura"]	13.165	75.866	capital			1117	1310	30000	["Chennakeshava Temple","Hoysala capital","soapstone carvings"]	["kan","san"]	Belur	South Asia
+warangal	Warangal	["Orugallu"]	17.978	79.600	capital			1163	1323	100000	["Thousand Pillar Temple","Kakatiya capital","Warangal Fort"]	["tel"]	Warangal	South Asia
+kochi	Kochi	["Cochin"]	9.932	76.267	port			1341		50000	["Chinese fishing nets","Mattancherry Palace","spice trade"]	["mal"]	Kochi	South Asia
+galle	Galle	["Gimhathiththa"]	6.033	80.217	port			-125		30000	["Galle Fort","Dutch colonial architecture","Indian Ocean trade"]	["sin","por","nld"]	Galle	South Asia
+oc-eo	Oc Eo	["Oc Eo"]	10.267	105.150	port			-100	700	20000	["Funan kingdom port","Roman coins found","canal system"]	["khm"]	Oc Eo	Southeast Asia
+srikshetra	Sri Ksetra	["Thayekhittaya"]	18.809	95.291	capital			-500	900	50000	["Pyu city-state","Buddhist temples","cylindrical stupas"]	["mya"]	Hmawza	Southeast Asia
+kedah-bujang	Bujang Valley	["Lembah Bujang"]	5.700	100.450	port			-300	1300	10000	["Hindu-Buddhist temples","earliest civilization in Malaysia"]	["msa","san"]	Merbok	Southeast Asia
+trowulan-majapahit	Trowulan	["Majapahit"]	-7.550	112.383	capital			1293	1527	200000	["Gapura Wringin Lawang","Candi Tikus","Bajang Ratu"]	["jav"]	Trowulan	Southeast Asia
+thaton	Thaton	["Sudhammavati"]	16.920	97.370	port			-300	1057	30000	["Mon kingdom capital","Theravada Buddhism center"]	["mnw","pli"]	Thaton	Southeast Asia
+tondo	Tondo	["Tundun"]	14.617	120.967	port			-900	1589	30000	["Chinese trade contacts","Manila Bay settlement"]	["tgl"]	Manila	Southeast Asia
+dai-viet-hoa-lu	Hoa Lu	["Hoa Lu"]	20.270	105.878	capital			968	1010	20000	["Dinh and Le dynasty capital","temples in limestone karst"]	["vie"]	Hoa Lu	Southeast Asia
+siam-lopburi	Lopburi	["Lavo","Lavapura"]	14.800	100.615	capital			-468		50000	["Khmer-style temples","Phra Prang Sam Yot","Narai's palace"]	["tha","khm"]	Lopburi	Southeast Asia
+muisca-hunza	Hunza	["Tunja"]	5.533	-73.367	capital			600	1539	30000	["Muisca confederation capital","gold working"]	["msc"]	Tunja	South America
+nazca	Cahuachi	["Nazca ceremonial center"]	-14.817	-75.117	religious-center			-100	500	10000	["Nazca Lines nearby","ceremonial mounds"]	["und"]	Nazca	South America
+lambayeque	Tucume	["Tucume"]	-6.514	-79.861	religious-center			1000	1470	20000	["Lambayeque pyramids","Tucume site"]	["moc"]	Tucume	South America
+takalik-abaj	Takalik Abaj	["Abaj Takalik"]	14.642	-91.737	religious-center		maya-civilization	-800	200	10000	["Olmec-Maya transition site","carved monuments"]	["yua"]	El Asintal	Mesoamerica
+kaminaljuyu	Kaminaljuyu	["Kaminaljuyu"]	14.630	-90.565	city-state		maya-civilization	-1500	1200	50000	["Highland Maya center","Teotihuacan influence"]	["yua"]	Guatemala City	Mesoamerica
+tres-zapotes	Tres Zapotes	["Tres Zapotes"]	18.467	-95.433	city-state	olmec		-1500	-50	18000	["Colossal head","Stela C Long Count date"]	["miz"]	Tres Zapotes	Mesoamerica
+xochicalco	Xochicalco	["In the place of the house of flowers"]	18.804	-99.296	fortress			650	900	20000	["Pyramid of the Feathered Serpent","observatory"]	["nah"]	Xochicalco	Mesoamerica
+tajin	El Tajin	["El Tajin"]	20.449	-97.378	religious-center			600	1200	30000	["Pyramid of the Niches","ball courts"]	["top"]	Papantla	Mesoamerica
+etowah	Etowah	["Etowah Mounds"]	34.127	-84.805	religious-center			1000	1550	5000	["Platform mounds","Mississippian culture"]	["mus"]	Cartersville	North America
+moundville	Moundville	["Moundville"]	33.007	-87.628	religious-center			1000	1450	10000	["29 platform mounds","Mississippian culture center"]	["mus"]	Moundville	North America
+spiro	Spiro Mounds	["Spiro"]	35.243	-94.617	religious-center			800	1450	5000	["Craig Mound","Mississippian ceremonial center"]	["mus"]	Spiro	North America
+snaketown	Snaketown	["Skoaquik"]	33.187	-111.900	city-state			-300	1200	2000	["Hohokam center","canal irrigation","ball court"]	["ood"]	Sacaton	North America
+pueblo-grande	Pueblo Grande	["Pueblo Grande"]	33.450	-111.950	city-state			-200	1450	5000	["Hohokam ruins","platform mound","canal system"]	["ood"]	Phoenix	North America
+wupatki	Wupatki	["Wupatki"]	35.517	-111.367	city-state			1100	1250	2000	["Multi-cultural pueblo","ball court"]	["nav"]	Wupatki	North America
+aztalan	Aztalan	["Aztalan"]	43.070	-88.862	fortress			1000	1300	500	["Northernmost Mississippian site","stockade walls"]	["sio"]	Aztalan	North America
+hopewell-settlement	Hopewell	["Hopewell"]	39.375	-83.368	religious-center			-200	500	5000	["Earthworks","mound complex","trade network center"]	["sio"]	Chillicothe	North America
+tingambato	Tingambato	["Tingambato"]	19.514	-101.857	religious-center			450	900	10000	["Stepped pyramid","ball court","Purepecha culture"]	["tsz"]	Tingambato	Mesoamerica
+old-oyo	Old Oyo	["Oyo-Ile"]	8.917	4.317	capital			1300	1836	100000	["Oyo Empire capital","palace complex","cavalry power"]	["yor"]	Old Oyo	West Africa
+sungbo-eredo	Sungbo's Eredo	["Eredo"]	6.900	3.933	fortress			-1000	1000	20000	["Massive earthwork rampart","Ijebu kingdom"]	["yor"]	Eredo	West Africa
+bono-manso	Bono Manso	["Bono-Manso"]	7.833	-1.983	capital			1100	1723	20000	["Bono State capital","gold trade center"]	["aka"]	Bono Manso	West Africa
+tadmekka	Tadmekka	["Es-Souq"]	21.033	1.467	trading-post			-500	1400	5000	["Trans-Saharan trade post","gold weights"]	["tmh"]	Tadmekka	West Africa
+sijilmasa	Sijilmasa	["Sijilmassa"]	31.283	-4.283	trading-post			757	1393	30000	["Trans-Saharan trade gateway","gold-salt trade"]	["arb","ber"]	Rissani	North Africa
+audaghost	Audaghost	["Awdaghust"]	18.083	-9.967	trading-post			-500	1100	20000	["Trans-Saharan trade center","Ghana Empire"]	["ber","arb"]	Tegdaoust	West Africa
+koumbi-saleh	Koumbi Saleh	["Kumbi"]	15.767	-7.967	capital			300	1240	30000	["Ghana Empire capital","stone buildings","dual city"]	["snk","arb"]	Koumbi Saleh	West Africa
+niani	Niani	["Niani"]	11.383	-8.667	capital		mali-empire	1235	1600	20000	["Mali Empire capital","Sundiata Keita's capital"]	["man"]	Niani	West Africa
+surame	Surame	["Surame"]	12.517	5.183	fortress			1500	1806	20000	["Habe city","massive walls","Hausa kingdom"]	["hau"]	Surame	West Africa
+zaria	Zaria	["Zazzau"]	11.067	7.717	capital			1000		100000	["Hausa city-state","Queen Amina's walls"]	["hau"]	Zaria	West Africa
+owo	Owo	["Owo"]	7.200	5.583	city-state			-1200		30000	["Yoruba-Benin cultural link","terracotta art"]	["yor"]	Owo	West Africa
+budapest-aquincum	Aquincum	["Buda"]	47.570	19.050	fortress		roman-empire	41	400	30000	["Legionary fortress","amphitheatre","aqueduct"]	["lat","cel"]	Budapest	Central Europe
+sirmium	Sirmium	["Sirmium"]	44.970	19.612	capital		roman-empire	-14	582	100000	["Imperial residence","Tetrarchy capital"]	["lat"]	Sremska Mitrovica	Central Europe
+salona	Salona	["Salonae"]	43.533	16.483	capital		roman-empire	-119	641	60000	["Diocletian's birthplace","amphitheatre"]	["lat"]	Solin	Mediterranean
+antioch-pisidia	Antioch of Pisidia	["Antiochia"]	38.302	31.197	colony		roman-empire	-280	700	30000	["Roman colony","Pauline church"]	["grc","lat"]	Yalvac	Anatolia
+gortyn	Gortyn	["Gortyna"]	35.062	24.945	capital		roman-empire	-3000	-	30000	["Law Code inscription","Cretan capital"]	["grc","lat"]	Gortyna	Mediterranean
+laodicea	Laodicea on the Lycus	["Laodikeia"]	37.837	29.107	city-state		roman-empire	-261	700	50000	["Theatre","Seven Churches of Asia"]	["grc","lat"]	Denizli	Anatolia
+hierapolis	Hierapolis	["Holy City"]	37.926	29.127	religious-center		roman-empire	-190	1354	50000	["Travertine terraces","Plutonium","necropolis"]	["grc","lat"]	Pamukkale	Anatolia
+baalbek	Baalbek	["Heliopolis"]	34.006	36.204	religious-center		roman-empire	-9000		30000	["Temple of Jupiter","Temple of Bacchus","colossal stones"]	["grc","lat","arb"]	Baalbek	Levant
+bosra	Bosra	["Bostra"]	32.519	36.482	capital		roman-empire	-2000		80000	["Roman theatre","Nabataean capital"]	["arb","grc"]	Bosra	Levant
+gerasa	Gerasa	["Jerash"]	32.281	35.891	city-state		roman-empire	-2000		20000	["Oval Plaza","Temple of Artemis","colonnaded street"]	["grc","lat"]	Jerash	Levant
+gadara	Gadara	["Umm Qais"]	32.656	35.683	city-state		roman-empire	-300		20000	["Theatre","Decapolis city","philosophical center"]	["grc"]	Umm Qais	Levant
+timgad	Timgad	["Thamugadi"]	35.485	6.468	colony		roman-empire	100	700	15000	["Perfect Roman grid plan","Trajan's arch","library"]	["lat"]	Timgad	North Africa
+djemila	Djemila	["Cuicul"]	36.322	5.736	colony		roman-empire	96	-	10000	["Theatre","baptistery","well-preserved Roman town"]	["lat"]	Djemila	North Africa
+tipasa	Tipasa	["Tipaza"]	36.589	2.453	colony		roman-empire	-600	700	20000	["Royal Mauritanian mausoleum","Christian basilica"]	["lat","phn"]	Tipasa	North Africa
+apamea	Apamea	["Afamia"]	35.425	36.400	fortress		roman-empire	-300	1152	500000	["Grand Colonnade","Roman military base"]	["grc","lat"]	Qalaat al-Mudiq	Levant
+dura-europos	Dura-Europos	["Dura"]	34.750	40.730	fortress		roman-empire	-303	256	15000	["Earliest known church","synagogue frescoes","Roman frontier"]	["grc","arc"]	Salhiye	Mesopotamia
+palmyra-roman	Palmyra	["Tadmor"]	34.551	38.267	trading-post		roman-empire	-2000	634	150000	["Temple of Bel","Great Colonnade","Queen Zenobia"]	["arc","grc","lat"]	Tadmur	Levant
+samarra	Samarra	["Surra man Ra'a"]	34.197	43.875	capital		umayyad-caliphate	-5500	892	200000	["Great Mosque spiral minaret","Abbasid capital"]	["arb"]	Samarra	Mesopotamia
+fustat	Fustat	["al-Fustat"]	30.006	31.237	capital		umayyad-caliphate	641	1168	200000	["First Islamic capital of Egypt","Amr ibn al-As Mosque"]	["arb"]	Old Cairo	Egypt
+wasit	Wasit	["Wasit"]	32.200	46.300	capital		umayyad-caliphate	702	1150	100000	["Al-Hajjaj's capital","mint city"]	["arb"]	Wasit	Mesopotamia
+mahdia	Mahdia	["Al-Mahdiyya"]	35.505	11.062	capital			916		30000	["Fatimid capital","Great Mosque","coastal fortress"]	["arb"]	Mahdia	North Africa
+raqqah	Raqqah	["Ar-Raqqah","Callinicum"]	35.950	39.017	capital		umayyad-caliphate	-244	1260	100000	["Abbasid summer capital","Baghdad Gate"]	["arb"]	Raqqa	Levant
+zabid	Zabid	["Zabid"]	14.195	43.316	religious-center			819		50000	["Islamic university","algebra origin city"]	["arb"]	Zabid	Arabian Peninsula
+anjar	Anjar	["Haoush Mousa"]	33.727	35.933	trading-post		umayyad-caliphate	714	744	5000	["Umayyad palace city","colonnaded streets"]	["arb"]	Anjar	Levant
+sijistan	Zarang	["Zaranj"]	30.950	61.867	capital			-500		50000	["Saffarid capital","Sistan region center"]	["per"]	Zaranj	Central Asia
+jam	Jam	["Minaret of Jam"]	34.397	64.516	religious-center			1190	1222	10000	["Minaret of Jam","Ghurid capital"]	["per"]	Shahrak	Central Asia
+sultaniya	Sultaniya	["Sultaniyya"]	36.433	48.800	capital		mongol-empire	1302	1384	30000	["Oljeitu Mausoleum","Ilkhanid capital"]	["per","mon"]	Sultaniyeh	Persia
+ani	Ani	["City of 1001 Churches"]	40.506	43.573	capital			961	1319	200000	["Cathedral","Church of the Redeemer","Armenian capital"]	["hye"]	Ani	Anatolia
+ahlat	Ahlat	["Khlat"]	38.756	42.482	fortress			-1000		30000	["Seljuk cemetery","Lake Van","Kurdish fortress"]	["tur","kur"]	Ahlat	Anatolia
+siraf	Siraf	["Siraf"]	27.667	52.333	port			-300	1070	30000	["Persian Gulf port","maritime trade center"]	["per"]	Bandar Taheri	Persia
+qalhat	Qalhat	["Galhat"]	22.694	59.379	port			-300	1508	20000	["Bibi Maryam mausoleum","Indian Ocean trade"]	["arb"]	Qalhat	Arabian Peninsula
+kilwa-sultanate	Kilwa	["Quiloa"]	-8.957	39.523	port			-800	1513	30000	["Great Mosque","Husuni Kubwa","gold coin minting"]	["swh","arb"]	Kilwa	East Africa
+takht-i-bahi	Takht-i-Bahi	["Throne of Origins"]	34.248	71.943	religious-center			-100	700	5000	["Buddhist monastery","Gandhara sculpture"]	["san","grc"]	Takht-i-Bahi	South Asia
+butkara	Butkara	["Butkara"]	34.725	72.358	religious-center			-300	1000	3000	["Buddhist stupa complex","Gandhara art"]	["san"]	Butkara	South Asia
+gyantse	Gyantse	["Gyangtse"]	28.917	89.600	trading-post			-1400		10000	["Kumbum stupa","Pelkhor Chode Monastery"]	["bod"]	Gyantse	Central Asia
+shigatse	Shigatse	["Xigazê"]	29.267	88.883	religious-center			-1300		20000	["Tashilhunpo Monastery","Panchen Lama seat"]	["bod"]	Shigatse	Central Asia
+kathmandu	Kathmandu	["Kantipur"]	27.717	85.324	capital			-723		50000	["Durbar Square","Swayambhunath","Pashupatinath Temple"]	["new","san"]	Kathmandu	South Asia
+bhaktapur	Bhaktapur	["Bhadgaon"]	27.672	85.428	capital			-889		50000	["55-Window Palace","Nyatapola Temple","Durbar Square"]	["new"]	Bhaktapur	South Asia
+patan-nepal	Patan	["Lalitpur"]	27.676	85.325	capital			-299		50000	["Golden Temple","Mahabouddha Temple","Durbar Square"]	["new","san"]	Lalitpur	South Asia
+bagan-area	Old Bagan	["Bagan"]	21.172	94.858	religious-center			849	1297	200000	["2000+ temples","Shwesandaw Pagoda","Thatbyinnyu Temple"]	["mya","pli"]	Bagan	Southeast Asia
+mrauk-u	Mrauk U	["Mrohaung"]	20.590	93.200	capital			1430	1785	160000	["Shitthaung Temple","Dukkanthein","Arakan capital"]	["mya"]	Mrauk U	Southeast Asia
+ava	Ava	["Inwa"]	21.877	95.975	capital			1364	1839	50000	["Maha Aungmye Bonzan Monastery","Bagaya Monastery"]	["mya"]	Inwa	Southeast Asia
+champassak	Vat Phou	["Wat Phu"]	14.845	105.818	religious-center		khmer-empire	-500	1200	5000	["Hindu temple complex","Khmer architecture"]	["lao","khm"]	Champassak	Southeast Asia
+kotte	Kotte	["Sri Jayawardenepura"]	6.883	79.908	capital			1412		30000	["Sinhalese kingdom capital","Royal Palace"]	["sin"]	Sri Jayawardenepura Kotte	South Asia
+multan	Multan	["Mulasthana"]	30.196	71.475	religious-center			-500		100000	["City of Saints","Sun Temple","Sufi shrines"]	["pan","per"]	Multan	South Asia
+lahore	Lahore	["Lavapuri"]	31.558	74.351	capital			-100		300000	["Lahore Fort","Badshahi Mosque","Shalimar Gardens"]	["pan","per","urd"]	Lahore	South Asia
+thatta	Thatta	["Thatta"]	24.747	67.923	capital			-500		200000	["Makli Necropolis","Shah Jahan Mosque","Sindh capital"]	["snd","arb"]	Thatta	South Asia
+champaner	Champaner	["Champaner-Pavagadh"]	22.485	73.533	capital			-800	1535	50000	["Jami Masjid","Pavagadh fort","Gujarat Sultanate capital"]	["guj","per"]	Champaner	South Asia
+lund	Lund	["Lund"]	55.705	13.193	religious-center			-990		10000	["Lund Cathedral","archbishopric","medieval university"]	["swe","lat"]	Lund	Northern Europe
+visby	Visby	["Visby"]	57.640	18.296	trading-post			-900		10000	["Medieval city wall","Hanseatic trading center","Gothic churches"]	["swe"]	Visby	Northern Europe
+tallinn	Tallinn	["Reval","Kolvan"]	59.437	24.754	trading-post			-1200		15000	["Old Town","Toompea Castle","Hanseatic city"]	["est"]	Tallinn	Northern Europe
+riga	Riga	["Riga"]	56.949	24.105	trading-post			1201		30000	["Riga Castle","Dom Cathedral","Hanseatic city","Art Nouveau"]	["lav","deu"]	Riga	Northern Europe
+gdansk	Gdansk	["Danzig"]	54.352	18.647	port			-997		70000	["Neptun fountain","Long Market","Hanseatic port"]	["pol","deu"]	Gdansk	Northern Europe
+bruges-medieval	Bruges	["Brugge"]	51.209	3.225	trading-post			-200		125000	["Belfry","canals","cloth trade","Hanseatic connection"]	["nld","fra"]	Bruges	Western Europe
+nuremberg	Nuremberg	["Nurnberg"]	49.452	11.077	trading-post		hre	1050		40000	["Kaiserburg Castle","Albrecht Durer's house","trade center"]	["deu"]	Nuremberg	Central Europe
+regensburg	Regensburg	["Ratisbona"]	49.017	12.097	trading-post		hre	-79		30000	["Stone Bridge","Old Town Hall","Danube trade"]	["deu","lat"]	Regensburg	Central Europe
+avignon	Avignon	["Avenio"]	43.949	4.806	religious-center			-539		40000	["Palais des Papes","Pont d'Avignon","papal residence"]	["fra","lat"]	Avignon	Western Europe
+carcassonne	Carcassonne	["Carcaso"]	43.212	2.364	fortress			-100		10000	["Medieval citadel","double-walled fortress"]	["fra","occ"]	Carcassonne	Western Europe
+santiago-compostela	Santiago de Compostela	["Compostela"]	42.880	-8.545	religious-center			-813		20000	["Cathedral","pilgrimage destination","Camino de Santiago"]	["glg","spa"]	Santiago de Compostela	Iberia
+edinburgh	Edinburgh	["Dun Eideann"]	55.953	-3.188	capital			-600		30000	["Edinburgh Castle","Royal Mile","Holyrood Palace"]	["eng","gla"]	Edinburgh	Northern Europe
+york	York	["Eboracum","Jorvik"]	53.960	-1.080	capital		roman-empire	71		30000	["York Minster","Jorvik Viking center","city walls"]	["eng","non","lat"]	York	Northern Europe
+chester	Chester	["Deva Victrix"]	53.190	-2.890	fortress		roman-empire	79		10000	["Roman amphitheatre","city walls","Rows"]	["eng","lat"]	Chester	Northern Europe
+bath	Bath	["Aquae Sulis"]	51.375	-2.360	religious-center		roman-empire	60		10000	["Roman Baths","Temple of Sulis Minerva","hot springs"]	["lat","eng"]	Bath	Northern Europe
+wittenberg	Wittenberg	["Lutherstadt Wittenberg"]	51.866	12.648	religious-center		hre	1180		5000	["Castle Church","Luther's 95 Theses","Reformation birthplace"]	["deu"]	Wittenberg	Central Europe
+amsterdam	Amsterdam	["Amstelredam"]	52.370	4.895	port			1275		200000	["Canal Ring","Dam Square","trading hub"]	["nld"]	Amsterdam	Western Europe
+antwerp	Antwerp	["Anvers","Antwerpen"]	51.220	4.402	port			-200		100000	["Cathedral","Rubens' house","diamond trade","printing center"]	["nld"]	Antwerp	Western Europe
+lisbon	Lisbon	["Lisboa","Olissipo"]	38.722	-9.139	capital			-1200		200000	["Jeronimos Monastery","Belem Tower","Age of Discovery hub"]	["por","lat"]	Lisbon	Iberia
+naples	Naples	["Neapolis","Napoli"]	40.852	14.268	city-state		ancient-greece	-470		400000	["Castel Nuovo","underground Naples","Greek colony"]	["ita","grc"]	Naples	Mediterranean
+aachen	Aachen	["Aix-la-Chapelle","Aquae Granni"]	50.776	6.084	capital		hre	-765		40000	["Aachen Cathedral","Charlemagne's capital","coronation site"]	["deu","lat"]	Aachen	Central Europe
+mainz	Mainz	["Mogontiacum"]	49.993	8.247	religious-center		hre	-13		30000	["Cathedral","Gutenberg's printing press","archbishopric"]	["deu","lat"]	Mainz	Central Europe
+bamberg	Bamberg	["Bamberga"]	49.892	10.886	religious-center		hre	902		15000	["Bamberg Cathedral","Old Town Hall on bridge","bishopric"]	["deu"]	Bamberg	Central Europe
+salzburg	Salzburg	["Iuvavum"]	47.800	13.044	religious-center		hre	-15		20000	["Hohensalzburg Castle","Mozart's birthplace","archbishopric"]	["deu","lat"]	Salzburg	Central Europe
+dubrovnik-medieval	Ragusa	["Dubrovnik"]	42.650	18.094	city-state			1358	1808	40000	["Republic of Ragusa","Stradun","Rector's Palace"]	["hrv","ita","lat"]	Dubrovnik	Mediterranean
+bolgar	Bolgar	["Bulgar"]	54.970	49.050	capital			700	1431	50000	["Volga Bulgaria capital","Great Minaret","Islamic center"]	["tat","arb"]	Bolgar	Eastern Europe
+sarai	Sarai Batu	["Old Sarai"]	47.233	47.400	capital		mongol-empire	1242	1502	600000	["Golden Horde capital","Volga trade center"]	["tat","mon"]	Selitrennoye	Eastern Europe
+tana	Tana	["Azov","Azaq"]	47.113	39.420	trading-post		mongol-empire	-106		30000	["Genoese-Venetian trading colony","Don River mouth"]	["tat","ita"]	Azov	Eastern Europe
+bakhchisarai	Bakhchisarai	["Bakhchysarai"]	44.751	33.881	capital		ottoman-empire	1532		30000	["Khan's Palace","Crimean Khanate capital"]	["crh","tur"]	Bakhchisarai	Eastern Europe
+suzdal	Suzdal	["Suzdal"]	56.422	40.445	capital			1024		10000	["Kremlin","Nativity Cathedral","medieval Russian center"]	["rus"]	Suzdal	Eastern Europe
+vladimir	Vladimir	["Vladimir"]	56.129	40.407	capital			990		30000	["Golden Gate","Dormition Cathedral","Vladimir-Suzdal capital"]	["rus"]	Vladimir	Eastern Europe
+pskov	Pskov	["Pleskov"]	57.819	28.332	fortress			-903		30000	["Pskov Kremlin","Mirozhsky Monastery","republic"]	["rus"]	Pskov	Eastern Europe
+smolensk	Smolensk	["Smolensk"]	54.783	32.045	fortress			-863		40000	["Kremlin walls","Dormition Cathedral","trade center"]	["rus"]	Smolensk	Eastern Europe
+kazan	Kazan	["Qazan"]	55.796	49.106	capital			1005		50000	["Kazan Kremlin","Kul Sharif Mosque","Tatar capital"]	["tat","rus"]	Kazan	Eastern Europe
+trnovo	Tarnovo	["Veliko Tarnovo"]	43.081	25.629	capital			-3000	1393	35000	["Tsarevets fortress","Second Bulgarian Empire capital"]	["bul"]	Veliko Tarnovo	Eastern Europe
+ohrid	Ohrid	["Lychnidos"]	41.112	20.802	religious-center			-353		20000	["St. Sophia","oldest Slavic university","lake setting"]	["mkd","grc"]	Ohrid	Eastern Europe
+dijon	Dijon	["Divio"]	47.322	5.041	capital			-52		30000	["Ducal Palace","Burgundian capital","mustard city"]	["fra"]	Dijon	Western Europe
+rouen	Rouen	["Rotomagus"]	49.443	1.100	capital			-52		30000	["Cathedral","Joan of Arc site","Norman capital"]	["fra","non"]	Rouen	Western Europe
+ghent-medieval	Ghent	["Gent"]	51.054	3.717	city-state			-630		80000	["Gravensteen","St. Bavo's","textile center"]	["nld"]	Ghent	Western Europe
+novgorod-medieval	Veliky Novgorod	["Novgorod the Great"]	58.522	31.270	city-state			859	1478	50000	["Kremlin","St. Sophia","birch bark letters","Hanseatic member"]	["rus"]	Veliky Novgorod	Eastern Europe
+ulaanbaatar-old	Urga	["Da Khuree"]	47.921	106.906	religious-center		mongol-empire	1639		30000	["Gandantegchinlen Monastery","nomadic capital"]	["mon"]	Ulaanbaatar	Central Asia
+old-delhi	Shahjahanabad	["Old Delhi"]	28.656	77.231	capital			1638		500000	["Red Fort","Jama Masjid","Chandni Chowk"]	["urd","per"]	Old Delhi	South Asia
+jaisalmer	Jaisalmer	["Golden City"]	26.913	70.918	fortress			1156		30000	["Jaisalmer Fort","Patwon ki Haveli","desert trade center"]	["raj","hin"]	Jaisalmer	South Asia
+udaipur	Udaipur	["City of Lakes"]	24.585	73.712	capital			1559		60000	["City Palace","Lake Pichola","Jagdish Temple"]	["raj","hin"]	Udaipur	South Asia
+jodhpur	Jodhpur	["Blue City"]	26.292	73.025	capital			1459		80000	["Mehrangarh Fort","Umaid Bhawan Palace"]	["raj","hin"]	Jodhpur	South Asia
+mysore	Mysore	["Mysuru"]	12.296	76.639	capital			1399		150000	["Mysore Palace","Chamundi Hill","Dussehra festival"]	["kan"]	Mysuru	South Asia
+lucknow	Lucknow	["Lakhnau"]	26.846	80.947	capital			1528		600000	["Bara Imambara","Rumi Darwaza","Nawabi architecture"]	["urd","hin"]	Lucknow	South Asia
+ahmedabad	Ahmedabad	["Amdavad"]	23.023	72.571	capital			1411		400000	["Jama Masjid","Adalaj Stepwell","Sidi Saiyyed Mosque"]	["guj"]	Ahmedabad	South Asia
+bijapur	Bijapur	["Vijayapura"]	16.824	75.710	capital			-600		300000	["Gol Gumbaz","Ibrahim Roza","Adil Shahi architecture"]	["kan","per"]	Vijayapura	South Asia
+hampi-settlement	Hampi	["Vijayanagara"]	15.335	76.460	capital			1336	1565	500000	["Vittala Temple","Stone Chariot","Virupaksha Temple"]	["kan","tel","san"]	Hampi	South Asia
+kumbakonam	Kumbakonam	["Kudanthai"]	10.960	79.376	religious-center			-200		40000	["Adi Kumbeswarar Temple","Mahamaham tank","Chola temples"]	["tam"]	Kumbakonam	South Asia
+qianling	Qianling	["Qian County"]	34.580	108.050	religious-center		tang-dynasty	684	684	5000	["Tang Dynasty tombs","Wu Zetian's burial"]	["cmn"]	Qianxian	East Asia
+datong	Datong	["Pingcheng"]	40.077	113.300	capital			-200		200000	["Yungang Grottoes","Hanging Monastery","Northern Wei capital"]	["cmn"]	Datong	East Asia
+kaesong-goryeo	Kaesong	["Songdo"]	37.971	126.554	capital			918	1392	200000	["Goryeo capital","Sungkyunkwan","Manwoldae Palace"]	["kor"]	Kaesong	East Asia
+buyeo	Buyeo	["Sabi"]	36.276	126.908	capital			-538	660	50000	["Baekje capital","Nakhwa Rock","Jeongnimsa Temple"]	["kor"]	Buyeo	East Asia
+hahoe	Hahoe	["Hahoe Village"]	36.541	128.519	city-state			1200		500	["Traditional Korean village","mask dance","clan village"]	["kor"]	Hahoe	East Asia
+johor-lama	Johor Lama	["Kota Batu"]	1.550	104.150	capital			1540	1587	20000	["Johor Sultanate capital","Portuguese conflicts"]	["msa"]	Johor Lama	Southeast Asia
+brunei-old	Kota Batu	["Old Brunei"]	4.950	114.950	capital			1368	1970	30000	["Brunei Sultanate capital","trade with China"]	["msa"]	Bandar Seri Begawan	Southeast Asia
+tuban	Tuban	["Tuban"]	-6.900	112.050	port			1000	1619	20000	["Javanese port","Chinese trade","Islamic center"]	["jav"]	Tuban	Southeast Asia
+gresik	Gresik	["Gresik"]	-7.162	112.654	port			1100		20000	["Malik Ibrahim's tomb","earliest Islamic site in Java"]	["jav","arb"]	Gresik	Southeast Asia
+makassar	Makassar	["Ujung Pandang"]	-5.135	119.423	port			1511		50000	["Fort Rotterdam","Gowa Sultanate","maritime trade"]	["mak","msa"]	Makassar	Southeast Asia
+banten	Banten	["Bantam"]	-6.044	106.156	port			1526	1813	100000	["Banten Sultanate","Grand Mosque","pepper trade"]	["sun","jav"]	Banten	Southeast Asia
+kraton-yogya	Yogyakarta	["Jogja"]	-7.802	110.364	capital			1755		80000	["Kraton palace","Taman Sari","Javanese culture center"]	["jav"]	Yogyakarta	Southeast Asia
+kandy	Kandy	["Maha Nuwara"]	7.294	80.636	capital			1592	1815	40000	["Temple of the Tooth","last Sinhalese kingdom"]	["sin"]	Kandy	South Asia
+kuala-kangsar	Kuala Kangsar	["Kuala Kangsar"]	4.767	100.933	capital			1528		10000	["Perak Sultanate capital","Ubudiah Mosque"]	["msa"]	Kuala Kangsar	Southeast Asia
+melaka-sultanate	Melaka	["Malacca"]	2.196	102.251	capital			1400	1511	100000	["Sultanate of Malacca capital","A Famosa","St. Paul's Hill"]	["msa","tam","arb"]	Melaka	Southeast Asia
+piazza-armerina	Piazza Armerina	["Platia"]	37.381	14.366	fortress		roman-empire	-200		10000	["Villa Romana del Casale","elaborate mosaics"]	["lat"]	Piazza Armerina	Mediterranean
+serdica	Serdica	["Sardica","Triaditza"]	42.697	23.322	capital		roman-empire	-29		100000	["Constantine's favorite city","Rotunda of St. George"]	["lat","grc"]	Sofia	Eastern Europe
+naissus	Naissus	["Nish"]	43.320	21.896	fortress		roman-empire	-279		30000	["Constantine's birthplace","Mediana residence"]	["lat"]	Nis	Eastern Europe
+durostorum	Durostorum	["Dorostol"]	44.114	27.267	fortress		roman-empire	29	700	20000	["Danube frontier fortress","legionary camp"]	["lat"]	Silistra	Eastern Europe
+tomis	Tomis	["Constanta"]	44.176	28.655	colony		roman-empire	-600		30000	["Ovid's exile city","Roman mosaics"]	["grc","lat"]	Constanta	Eastern Europe
+deir-el-medina	Deir el-Medina	["Set Maat"]	25.728	32.602	city-state		ancient-egypt	-1500	-1070	1200	["Workers' village for royal tombs","ostraca"]	["egy"]	Deir el-Medina	Egypt
+abu-simbel	Abu Simbel	["Meha"]	22.337	31.626	religious-center		ancient-egypt	-1264	-1000	500	["Great Temple of Ramesses II","Nefertari's temple"]	["egy"]	Abu Simbel	Egypt
+dendera	Dendera	["Iunet","Tentyris"]	26.142	32.670	religious-center		ancient-egypt	-2500	640	10000	["Temple of Hathor","Dendera zodiac"]	["egy"]	Dendera	Egypt
+edfu	Edfu	["Behdet","Djeba"]	24.978	32.874	religious-center		ancient-egypt	-237	400	20000	["Temple of Horus","best-preserved Egyptian temple"]	["egy"]	Edfu	Egypt
+philae	Philae	["Pilak"]	24.027	32.884	religious-center		ancient-egypt	-380	550	2000	["Temple of Isis","last hieroglyphic inscription"]	["egy"]	Agilkia Island	Egypt
+crocodilopolis	Crocodilopolis	["Shedet","Medinet el-Fayum"]	29.309	30.840	religious-center		ancient-egypt	-4000	-	30000	["Temple of Sobek","Fayum oasis","crocodile cult"]	["egy"]	Faiyum	Egypt
+bubastis	Bubastis	["Per-Bast"]	30.571	31.515	religious-center		ancient-egypt	-2700	-	40000	["Temple of Bastet","cat goddess center"]	["egy"]	Tell Basta	Egypt
+pelusium	Pelusium	["Sin","Farama"]	31.065	32.558	fortress		ancient-egypt	-1000	1117	30000	["Eastern gateway to Egypt","multiple battles"]	["egy","grc"]	Tell el-Farama	Egypt
+punt	Adulis	["Adulis"]	15.267	39.650	port			-800	630	20000	["Aksumite port","Red Sea trade","Periplus mentions"]	["gez"]	Zula	East Africa
+sana-ancient	Marib	["Ma'rib"]	15.417	45.350	capital			-1200	500	50000	["Great Dam of Marib","Sabaean capital","Queen of Sheba"]	["arb"]	Marib	Arabian Peninsula
+socotra-city	Suq	["Hadibo"]	12.650	54.020	port			-100		5000	["Socotra island center","frankincense trade"]	["arb"]	Hadibo	Arabian Peninsula
+zeila	Zeila	["Saylac"]	11.350	43.467	port			-100		10000	["Adal Sultanate port","Red Sea trade"]	["som","arb"]	Zeila	East Africa
+berbera	Berbera	["Barbara"]	10.440	45.017	port			-100		10000	["Somali coast port","ancient Periplus mentions"]	["som"]	Berbera	East Africa
+zimbabwe-khami	Khami	["Khame"]	-20.151	28.375	capital		great-zimbabwe	1450	1683	10000	["Torwa State capital","stone walls","terraces"]	["sna"]	Khami	Sub-Saharan Africa
+zimbabwe-dhlo	Dhlo-Dhlo	["Danangombe"]	-20.050	29.233	capital		great-zimbabwe	1450	1700	5000	["Rozvi State capital","stone architecture"]	["sna"]	Dhlo-Dhlo	Sub-Saharan Africa
+fasil-ghebi	Fasil Ghebbi	["Royal Enclosure"]	12.609	37.468	capital			1636	1855	50000	["Fasilides Castle","Iyasu Palace","Ethiopian Camelot"]	["amh"]	Gondar	East Africa
+debre-damo	Debre Damo	["Debre Damo"]	14.367	39.317	religious-center			-500		500	["Cliff-top monastery","earliest Ethiopian church"]	["gez","tig"]	Debre Damo	East Africa
+yeha	Yeha	["Yeha"]	14.283	39.017	religious-center			-700	-400	5000	["Great Temple of Yeha","pre-Aksumite"]	["gez"]	Yeha	East Africa
+itsukushima	Itsukushima	["Miyajima"]	34.296	132.320	religious-center			593		3000	["Floating torii gate","Itsukushima Shrine"]	["jpn"]	Miyajima	East Asia
+nikko	Nikko	["Nikko"]	36.751	139.600	religious-center			-766		10000	["Toshogu Shrine","Rinnoji Temple","Tokugawa mausoleum"]	["jpn"]	Nikko	East Asia
+koya-san	Koyasan	["Mount Koya"]	34.213	135.587	religious-center			816		5000	["Kongobu-ji","Okunoin cemetery","Shingon Buddhism center"]	["jpn"]	Koyasan	East Asia
+hiraizumi	Hiraizumi	["Hiraizumi"]	38.987	141.114	capital			1094	1189	30000	["Chusonji","Konjikido golden hall","northern Fujiwara seat"]	["jpn"]	Hiraizumi	East Asia
+dazaifu	Dazaifu	["Dazaifu"]	33.520	130.524	capital			663	941	20000	["Government headquarters","Tenmangu Shrine"]	["jpn"]	Dazaifu	East Asia
+gongju	Gongju	["Ungjin"]	36.475	127.119	capital			-475	538	50000	["Baekje capital","Muryeong tomb","Gongsanseong fortress"]	["kor"]	Gongju	East Asia
+jinju	Jinju	["Jinju"]	35.180	128.108	fortress			-500		30000	["Jinjuseong fortress","Korean war heritage"]	["kor"]	Jinju	East Asia
+wuwei	Wuwei	["Liangzhou"]	37.928	102.634	trading-post		han-dynasty	-121		50000	["Flying Horse of Gansu","Silk Road city"]	["cmn"]	Wuwei	East Asia
+jiuquan	Jiuquan	["Suzhou"]	39.743	98.494	fortress		han-dynasty	-121		20000	["Silk Road garrison","Jiayuguan Pass nearby"]	["cmn"]	Jiuquan	East Asia
+kuqa	Kuqa	["Kucha","Qiuci"]	41.730	82.937	religious-center			-200	1000	30000	["Kizil Caves","Tocharian center","Buddhist art"]	["txb"]	Kuqa	Central Asia
+khotan	Khotan	["Hetian","Yutian"]	37.110	79.930	trading-post			-200	1006	30000	["Silk Road jade center","Buddhist kingdom"]	["kho"]	Hotan	Central Asia
+turfan-city	Gaochang	["Karakhoja"]	42.870	89.530	capital			-100	1400	30000	["Gaochang ruins","Bezeklik Caves","Turfan oasis"]	["uig","cmn","txb"]	Turfan	Central Asia
+almaty-old	Almatu	["Alma-Ata"]	43.238	76.946	trading-post			-1000		20000	["Silk Road city","Tian Shan foothills"]	["kaz"]	Almaty	Central Asia
+taxkorgan	Tashkurgan	["Stone Tower"]	37.767	75.217	fortress			-200		5000	["Silk Road junction","Pamir crossing","Stone City"]	["per","cmn"]	Tashkurgan	Central Asia
+bamiyan-city	Bamiyan	["Bamyan"]	34.833	67.827	religious-center			-200	1221	20000	["Giant Buddha niches","Buddhist caves","Silk Road"]	["per"]	Bamiyan	Central Asia
+termez	Termez	["Tirmidh"]	37.224	67.278	trading-post			-300		30000	["Buddhist monastery","Fayaz Tepe","Kushan center"]	["uzb","per"]	Termez	Central Asia
+pendjikent	Pendjikent	["Panjakent"]	39.495	67.607	city-state			-500	722	10000	["Sogdian murals","Zoroastrian center"]	["sog"]	Panjakent	Central Asia
+gonur-depe	Gonur Depe	["Gonur"]	37.560	62.090	religious-center			-2500	-1700	5000	["BMAC center","fire temple","palace complex"]	["und"]	Gonur	Central Asia
+afrasiab	Afrasiab	["Old Samarkand"]	39.670	66.985	city-state			-500	1220	200000	["Sogdian murals","pre-Mongol Samarkand"]	["sog","per"]	Samarkand	Central Asia
+dilmun-city	Qal'at al-Bahrain	["Dilmun"]	26.233	50.520	port			-2300	-600	20000	["Dilmun trading center","Bahrain Fort"]	["und"]	Manama	Arabian Peninsula
+failaka	Failaka	["Ikaros"]	29.433	48.333	trading-post			-2000	-100	5000	["Greek temple","Dilmun-Hellenistic settlement"]	["grc","akk"]	Failaka	Arabian Peninsula
+thaj	Thaj	["Thaj"]	26.817	48.333	trading-post			-300	200	10000	["Eastern Arabian city","gold grave goods"]	["arb"]	Thaj	Arabian Peninsula
+al-ula	Hegra	["Mada'in Saleh","Al-Hijr"]	26.767	37.950	religious-center			-100	106	5000	["Nabataean tombs","rock-cut facades","Hejaz Railway"]	["arb","grc"]	Al-Ula	Arabian Peninsula
+sohar	Sohar	["Suhar"]	24.347	56.748	port			-3000		30000	["Ancient Omani port","copper trade","Sinbad legends"]	["arb"]	Sohar	Arabian Peninsula
+siraf-port	Siraf	["Siraf"]	27.667	52.333	port			-300	1070	30000	["Medieval Persian Gulf emporium","merchant houses"]	["per","arb"]	Taheri	Persia
+aden	Aden	["Adan"]	12.790	45.037	port			-500		80000	["Ancient port","crater harbor","maritime trade hub"]	["arb"]	Aden	Arabian Peninsula
+jeddah	Jeddah	["Jiddah"]	21.486	39.177	port			-500		100000	["Gateway to Mecca","Red Sea port","historic district"]	["arb"]	Jeddah	Arabian Peninsula
+hormuz	Hormuz	["Old Hormuz"]	27.086	56.461	port			-300	1622	40000	["Strait of Hormuz trade","Portuguese fort"]	["per","arb"]	Hormuz Island	Persia
+zabid-yemen	Zabid	["Zabid"]	14.195	43.316	religious-center			819		50000	["Al-Ashairiah Mosque","algebra study center"]	["arb"]	Zabid	Arabian Peninsula
+mocha	Mocha	["Al-Makha"]	13.317	43.250	port			-1500		15000	["Coffee trade origin","Red Sea port"]	["arb"]	Al-Makha	Arabian Peninsula
+musawwarat	Musawwarat es-Sufra	["Musawwarat"]	16.422	33.328	religious-center			-300	350	5000	["Great Enclosure","elephant temple","Meroitic center"]	["xmr"]	Musawwarat	East Africa
+naga-sudan	Naga	["Naqa"]	16.269	33.275	religious-center			-300	350	5000	["Lion Temple","Meroitic kiosk","Amun Temple"]	["xmr"]	Naqa	East Africa
+zanzibar-old	Unguja Ukuu	["Old Zanzibar"]	-6.283	39.367	port			-500	1000	5000	["Earliest Zanzibar settlement","Roman trade beads"]	["swh"]	Unguja Ukuu	East Africa
+pemba	Pemba	["Quanbalu"]	-5.050	39.750	port			-600		5000	["Medieval Swahili site","clove island trade"]	["swh"]	Pemba	East Africa
+pate	Pate	["Pate Island"]	-2.067	41.083	city-state			-700	1800	20000	["Pate Sultanate","Swahili culture center"]	["swh","arb"]	Pate	East Africa
+gedi	Gedi	["Gede"]	-3.309	40.017	city-state			-1000	1600	3000	["Swahili ruins","coral stone houses","mosque"]	["swh"]	Gedi	East Africa
+lamu	Lamu	["Lamu"]	-2.269	40.901	port			-1400		20000	["Swahili architecture","Lamu Fort","dhow building"]	["swh","arb"]	Lamu	East Africa
+teotihuacan-pyramid	Teotihuacan	["Place of the Gods"]	19.692	-98.844	religious-center			-100	550	125000	["Pyramid of the Sun","Moon Pyramid","Avenue of the Dead"]	["nah"]	San Juan Teotihuacan	Mesoamerica
+cantona	Cantona	["Cantona"]	19.550	-97.483	fortress			-600	1050	90000	["Fortified city","ball courts","obsidian trade"]	["nah"]	Cantona	Mesoamerica
+el-tajin-city	El Tajin	["El Tajin"]	20.449	-97.378	city-state			600	1200	30000	["Pyramid of Niches","17 ball courts","Totonac culture"]	["top"]	Papantla	Mesoamerica
+cacaxtla	Cacaxtla	["Cacaxtla"]	19.248	-98.340	fortress			600	1000	10000	["Vivid battle murals","Maya-Central Mexican art fusion"]	["nah"]	Cacaxtla	Mesoamerica
+tzintzuntzan	Tzintzuntzan	["Tzintzuntzan"]	19.626	-101.578	capital			1300	1530	35000	["Purepecha capital","yacatas temples"]	["tsz"]	Tzintzuntzan	Mesoamerica
+kabah	Kabah	["K'ab'ah"]	20.248	-89.660	city-state		maya-civilization	600	1100	10000	["Codz Poop palace","Puuc architecture","sacbe road"]	["yua"]	Kabah	Mesoamerica
+edzna	Edzna	["Itzna"]	19.598	-90.231	city-state		maya-civilization	-600	1500	25000	["Five-story palace","hydraulic system"]	["yua"]	Edzna	Mesoamerica
+yaxchilan	Yaxchilan	["Pa'chan"]	16.900	-90.967	city-state		maya-civilization	-400	810	10000	["River site lintels","bloodletting scenes","Structure 33"]	["yua"]	Yaxchilan	Mesoamerica
+piedras-negras	Piedras Negras	["Yo'k'ib"]	17.167	-91.267	city-state		maya-civilization	-400	810	10000	["Throne monuments","Maya political history"]	["yua"]	Piedras Negras	Mesoamerica
+dos-pilas	Dos Pilas	["Dos Pilas"]	16.483	-90.300	city-state		maya-civilization	648	761	5000	["Hieroglyphic stairway","Tikal offshoot"]	["yua"]	Dos Pilas	Mesoamerica
+cerros	Cerros	["Cerros"]	18.367	-88.383	city-state		maya-civilization	-400	150	3000	["Early Maya temple masks","coastal trade"]	["yua"]	Cerros	Mesoamerica
+nakbe	Nakbe	["Nakbe"]	17.714	-89.833	city-state		maya-civilization	-1000	-100	15000	["Earliest Maya monumental architecture"]	["yua"]	Nakbe	Mesoamerica
+huaca-del-sol	Huaca del Sol	["Cerro Blanco"]	-8.140	-78.990	religious-center			100	700	30000	["Moche capital","largest adobe structure","royal tombs"]	["moc"]	Trujillo	South America
+pachacamac	Pachacamac	["Pachacamac"]	-12.257	-76.897	religious-center		inca-empire	-200	1533	30000	["Temple of the Sun","oracle site","Lima predecessor"]	["que"]	Pachacamac	South America
+huari-wari	Huari	["Wari"]	-13.067	-74.233	capital			600	1000	40000	["D-shaped temples","Wari Empire capital","Ayacucho"]	["que"]	Ayacucho	South America
+kuelap	Kuelap	["Kuelap"]	-6.417	-77.917	fortress			500	1570	3000	["Chachapoya fortress","cloud forest citadel"]	["und"]	Kuelap	South America
+ingapirca	Ingapirca	["Ingapirca"]	-2.546	-78.879	religious-center		inca-empire	1400	1533	5000	["Northernmost major Inca site","Temple of the Sun"]	["que"]	Ingapirca	South America
+sacsayhuaman	Sacsayhuaman	["Saqsaywaman"]	-13.509	-71.982	fortress		inca-empire	1100	1536	5000	["Massive stone walls","Inca citadel above Cusco"]	["que"]	Cusco	South America
+la-plata	Sucre	["La Plata","Chuquisaca"]	-19.035	-65.262	capital			1538		30000	["Colonial capital","Casa de la Libertad"]	["spa","que"]	Sucre	South America
