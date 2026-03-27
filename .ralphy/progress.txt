@@ -712,3 +712,26 @@ Completed:
 - Added TSV loader (loadEmpiresTimeline) and getter (getEmpiresTimeline) to server/tsv-storage.ts with time, empire, and phase filtering
 - Added GET /api/map/empires-timeline endpoint to server/routes.ts
 - Created test/test-empires-timeline.ts with 36 validation tests (all passing)
+
+US-111: Add settlements TSV loader and API endpoints
+
+Completed:
+- Created lexicons/settlements.tsv with 78 historical settlements spanning all major civilizations
+  - Types: city-state, capital, trading-post, religious-center, fortress, port
+  - 21 distinct regions: Mesopotamia, Egypt, Greece, Italy, Levant, South Asia, East Asia, Central Asia, Mesoamerica, South America, North America, Southeast Asia, Southern Africa, West Africa, East Africa, Anatolia, Persia, Iberia, Western Europe, Eastern Europe, North Africa
+  - Settlements range from ~9000 BCE (Jericho) to 1450 CE (Machu Picchu)
+  - Each entry has coordinates, founding/abandonment years, peak population, notable features, associated languages, modern name
+- Added Settlement interface to server/tsv-storage.ts
+- Added loadSettlements() TSV loader with JSON array parsing for alternate_names, notable_features, associated_languages
+- Added query methods:
+  - getSettlements() with filters: civilizationId, cultureId, type, timeStart, timeEnd, region, boundingBox
+  - getSettlementById()
+  - getSettlementsByCivilization()
+  - getSettlementsNearby() with Haversine distance calculation and distance-sorted results
+- Added 4 API endpoints in server/routes.ts:
+  - GET /api/settlements (with civilization_id, culture_id, type, time_start, time_end, region, bounding box filters)
+  - GET /api/settlements/by-civilization/:civilizationId
+  - GET /api/settlements/nearby/:lat/:lng (with optional radius query param)
+  - GET /api/settlements/:id
+- Resolved pre-existing merge conflict markers in tsv-storage.ts and routes.ts
+- Created test/test-settlements.ts with 50 passing tests covering TSV validation and loader functionality

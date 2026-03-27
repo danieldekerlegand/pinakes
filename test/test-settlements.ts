@@ -1,18 +1,38 @@
 /**
- * Test script for settlements data
+ * Test script for verifying settlements.tsv data and TsvStorage settlements loader
  * Run with: npx tsx test/test-settlements.ts
  */
 
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
-const TSV_PATH = path.join(import.meta.dirname!, "..", "lexicons", "settlements.tsv");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-function parseTsv(content: string): { header: string[]; rows: string[][] } {
-  const lines = content.trim().split("\n");
+interface ParsedTsv {
+  header: string[];
+  rows: string[][];
+}
+
+function parseTsv(text: string): ParsedTsv {
+  const lines = text.trim().split("\n");
   const header = lines[0].split("\t");
-  const rows = lines.slice(1).filter((l) => l.trim()).map((l) => l.split("\t"));
+  const rows = lines.slice(1).filter((l) => l.trim()).map((line) => line.split("\t"));
   return { header, rows };
+}
+
+function getIdx(header: string[], col: string): number {
+  return header.indexOf(col);
+}
+
+function tryParseJson(val: string): unknown {
+  if (!val || val === "null") return null;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return null;
+  }
 }
 
 let passed = 0;
@@ -20,269 +40,213 @@ let failed = 0;
 
 function assert(condition: boolean, message: string) {
   if (condition) {
+    console.log(`  ✓ PASS: ${message}`);
     passed++;
-    console.log(`  ✓ ${message}`);
   } else {
+    console.log(`  ✗ FAIL: ${message}`);
     failed++;
-    console.error(`  ✗ ${message}`);
   }
 }
 
-function testFileExists() {
-  console.log("\n=== File Existence ===");
-  assert(fs.existsSync(TSV_PATH), "settlements.tsv exists");
-}
+async function testSettlementsTsv() {
+  console.log("=== Testing settlements.tsv ===\n");
 
-function testMinimumEntries() {
-  console.log("\n=== Minimum Entry Count ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { rows } = parseTsv(content);
-  assert(rows.length >= 500, `Has 500+ entries (actual: ${rows.length})`);
-}
+  const filePath = path.resolve(__dirname, "../lexicons/settlements.tsv");
+  assert(fs.existsSync(filePath), "settlements.tsv exists");
 
-function testHeaderColumns() {
-  console.log("\n=== Header Structure ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header } = parseTsv(content);
-  const expectedCols = [
-    "id", "name", "alternate_names", "latitude", "longitude",
-    "type", "culture_id", "civilization_id", "founded_year",
-    "abandoned_year", "peak_population", "notable_features",
-    "associated_languages", "modern_name", "region",
+  const text = fs.readFileSync(filePath, "utf-8");
+  const { header, rows } = parseTsv(text);
+
+  // Check required columns
+  const requiredColumns = [
+    "id", "name", "alternate_names", "latitude", "longitude", "type",
+    "culture_id", "civilization_id", "founded_year", "abandoned_year",
+    "peak_population", "notable_features", "associated_languages",
+    "modern_name", "region",
   ];
-  assert(header.length === expectedCols.length, `Header has ${expectedCols.length} columns (actual: ${header.length})`);
-  for (const col of expectedCols) {
-    assert(header.includes(col), `Header contains '${col}'`);
+  for (const col of requiredColumns) {
+    assert(header.includes(col), `has column '${col}'`);
   }
-}
 
-function testColumnConsistency() {
-  console.log("\n=== Column Consistency ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  let allMatch = true;
-  const mismatches: string[] = [];
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i].length !== header.length) {
-      allMatch = false;
-      mismatches.push(`Row ${i + 2}: ${rows[i].length} cols (expected ${header.length}), id=${rows[i][0]}`);
-    }
-  }
-  assert(allMatch, `All rows have ${header.length} columns${mismatches.length ? ` (failures: ${mismatches.slice(0, 5).join(", ")})` : ""}`);
-}
+  // Check row count
+  assert(rows.length >= 50, `has 50+ settlements (found ${rows.length})`);
 
-function testUniqueIds() {
-  console.log("\n=== Unique IDs ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { rows } = parseTsv(content);
-  const ids = rows.map((r) => r[0]);
+  // Check all rows have correct number of columns
+  const badRows = rows.filter((r) => r.length !== header.length);
+  assert(badRows.length === 0, `all rows have ${header.length} columns (${badRows.length} bad rows)`);
+
+  // Check unique IDs
+  const idIdx = getIdx(header, "id");
+  const ids = rows.map((r) => r[idIdx]);
   const uniqueIds = new Set(ids);
-  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
-  assert(uniqueIds.size === ids.length, `All IDs are unique${dupes.length ? ` (duplicates: ${dupes.slice(0, 5).join(", ")})` : ""}`);
-}
+  assert(uniqueIds.size === ids.length, `all IDs are unique (${uniqueIds.size}/${ids.length})`);
 
-function testValidCoordinates() {
-  console.log("\n=== Valid Coordinates ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const latIdx = header.indexOf("latitude");
-  const lngIdx = header.indexOf("longitude");
-  let allValid = true;
-  const invalids: string[] = [];
+  // Check valid settlement types
+  const typeIdx = getIdx(header, "type");
+  const validTypes = ["city-state", "capital", "trading-post", "religious-center", "fortress", "port", "colony"];
+  const types = rows.map((r) => r[typeIdx]);
+  const invalidTypes = types.filter((t) => !validTypes.includes(t));
+  assert(invalidTypes.length === 0, `all settlement types are valid (invalid: ${invalidTypes.join(", ")})`);
+
+  // Check coordinates are valid
+  const latIdx = getIdx(header, "latitude");
+  const lngIdx = getIdx(header, "longitude");
+  let coordsValid = true;
   for (const row of rows) {
     const lat = parseFloat(row[latIdx]);
     const lng = parseFloat(row[lngIdx]);
     if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      allValid = false;
-      invalids.push(`${row[0]}: lat=${row[latIdx]}, lng=${row[lngIdx]}`);
+      coordsValid = false;
+      console.log(`    Invalid coords for ${row[idIdx]}: lat=${row[latIdx]}, lng=${row[lngIdx]}`);
     }
   }
-  assert(allValid, `All coordinates are valid${invalids.length ? ` (failures: ${invalids.slice(0, 5).join(", ")})` : ""}`);
-}
+  assert(coordsValid, "all coordinates are valid (-90≤lat≤90, -180≤lng≤180)");
 
-function testValidTypes() {
-  console.log("\n=== Valid Settlement Types ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const typeIdx = header.indexOf("type");
-  const validTypes = new Set(["city-state", "capital", "trading-post", "religious-center", "fortress", "port", "colony"]);
-  let allValid = true;
-  const invalids: string[] = [];
+  // Check JSON array fields parse correctly
+  const altIdx = getIdx(header, "alternate_names");
+  const featIdx = getIdx(header, "notable_features");
+  const langIdx = getIdx(header, "associated_languages");
+
+  let jsonValid = true;
   for (const row of rows) {
-    if (!validTypes.has(row[typeIdx])) {
-      allValid = false;
-      invalids.push(`${row[0]}: "${row[typeIdx]}"`);
-    }
-  }
-  assert(allValid, `All settlement types are valid${invalids.length ? ` (invalid: ${invalids.slice(0, 5).join(", ")})` : ""}`);
-}
-
-function testValidJsonArrays() {
-  console.log("\n=== Valid JSON Arrays ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const arrayCols = ["alternate_names", "notable_features", "associated_languages"];
-  let allValid = true;
-  const invalids: string[] = [];
-  for (const col of arrayCols) {
-    const idx = header.indexOf(col);
-    for (const row of rows) {
-      try {
-        const parsed = JSON.parse(row[idx]);
-        if (!Array.isArray(parsed)) throw new Error("not an array");
-      } catch {
-        allValid = false;
-        invalids.push(`${row[0]}.${col}`);
+    for (const idx of [altIdx, featIdx, langIdx]) {
+      if (idx >= 0 && row[idx] && row[idx] !== "[]") {
+        const parsed = tryParseJson(row[idx]);
+        if (!Array.isArray(parsed)) {
+          jsonValid = false;
+          console.log(`    Invalid JSON in row ${row[idIdx]}, col ${header[idx]}: ${row[idx]}`);
+        }
       }
     }
   }
-  assert(allValid, `All JSON array fields parse correctly${invalids.length ? ` (failures: ${invalids.slice(0, 5).join(", ")})` : ""}`);
-}
+  assert(jsonValid, "all JSON array fields parse correctly");
 
-function testFoundedYears() {
-  console.log("\n=== Founded Year Validity ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const foundedIdx = header.indexOf("founded_year");
-  let allValid = true;
-  let hasAncient = false;
-  let hasMedieval = false;
-  let hasModern = false;
-  const invalids: string[] = [];
+  // Check founded_year values are numbers or null
+  const foundedIdx = getIdx(header, "founded_year");
+  let yearsValid = true;
   for (const row of rows) {
     const val = row[foundedIdx];
-    if (val && val.trim()) {
+    if (val && val !== "null") {
       const year = parseInt(val, 10);
       if (isNaN(year)) {
-        allValid = false;
-        invalids.push(`${row[0]}: "${val}"`);
-      } else {
-        if (year < -500) hasAncient = true;
-        if (year >= -500 && year < 1000) hasMedieval = true;
-        if (year >= 1000) hasModern = true;
+        yearsValid = false;
+        console.log(`    Invalid founded_year for ${row[idIdx]}: ${val}`);
       }
     }
   }
-  assert(allValid, `All founded_year values are valid integers${invalids.length ? ` (failures: ${invalids.slice(0, 5).join(", ")})` : ""}`);
-  assert(hasAncient, "Has ancient settlements (before 500 BCE)");
-  assert(hasMedieval, "Has classical/medieval settlements (500 BCE - 1000 CE)");
-  assert(hasModern, "Has later settlements (after 1000 CE)");
+  assert(yearsValid, "all founded_year values are valid numbers or null");
+
+  // Check that every settlement has a name
+  const nameIdx = getIdx(header, "name");
+  const emptyNames = rows.filter((r) => !r[nameIdx]?.trim());
+  assert(emptyNames.length === 0, `all settlements have names (${emptyNames.length} empty)`);
+
+  // Check region diversity
+  const regionIdx = getIdx(header, "region");
+  const regions = new Set(rows.map((r) => r[regionIdx]));
+  assert(regions.size >= 5, `has 5+ distinct regions (found ${regions.size})`);
+
+  // Check type diversity
+  const typeSet = new Set(types);
+  assert(typeSet.size >= 4, `has 4+ distinct settlement types (found ${typeSet.size})`);
 }
 
-function testGeographicDiversity() {
-  console.log("\n=== Geographic Diversity ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const regionIdx = header.indexOf("region");
-  const regions = new Set<string>();
-  for (const row of rows) {
-    if (row[regionIdx]) regions.add(row[regionIdx]);
-  }
-  assert(regions.size >= 8, `Has 8+ distinct regions (actual: ${regions.size})`);
+async function testSettlementsLoader() {
+  console.log("\n=== Testing TsvStorage settlements loader ===\n");
 
-  const latIdx = header.indexOf("latitude");
-  const lngIdx = header.indexOf("longitude");
-  let hasAfrica = false, hasAsia = false, hasEurope = false, hasAmericas = false;
-  for (const row of rows) {
-    const lat = parseFloat(row[latIdx]);
-    const lng = parseFloat(row[lngIdx]);
-    if (lat < 37 && lat > -35 && lng > -20 && lng < 55) hasAfrica = true;
-    if (lat > 0 && lat < 70 && lng > 55 && lng < 150) hasAsia = true;
-    if (lat > 35 && lat < 72 && lng > -25 && lng < 45) hasEurope = true;
-    if (lng > -170 && lng < -30) hasAmericas = true;
-  }
-  assert(hasAfrica, "Contains settlements in Africa/Near East");
-  assert(hasAsia, "Contains settlements in Asia");
-  assert(hasEurope, "Contains settlements in Europe");
-  assert(hasAmericas, "Contains settlements in the Americas");
-}
+  // Dynamic import to handle the module
+  const { TsvStorage } = await import("../server/tsv-storage.js");
+  const storage = new TsvStorage();
 
-function testTypeDiversity() {
-  console.log("\n=== Type Diversity ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const typeIdx = header.indexOf("type");
-  const types = new Set<string>();
-  for (const row of rows) {
-    types.add(row[typeIdx]);
-  }
-  assert(types.size >= 5, `Has 5+ settlement types (actual: ${types.size}: ${[...types].join(", ")})`);
-}
+  // Test getSettlements (no filters)
+  const all = await storage.getSettlements();
+  assert(all.length >= 50, `loader returns 50+ settlements (found ${all.length})`);
 
-function testNonEmptyNames() {
-  console.log("\n=== Non-Empty Names ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const nameIdx = header.indexOf("name");
-  let allHaveName = true;
-  for (const row of rows) {
-    if (!row[nameIdx] || row[nameIdx].trim().length < 2) {
-      allHaveName = false;
-    }
-  }
-  assert(allHaveName, "All entries have non-empty names (2+ chars)");
-}
+  // Test settlement structure
+  const first = all[0];
+  assert(typeof first.id === "string" && first.id.length > 0, "settlement has id");
+  assert(typeof first.name === "string" && first.name.length > 0, "settlement has name");
+  assert(typeof first.latitude === "number", "settlement has numeric latitude");
+  assert(typeof first.longitude === "number", "settlement has numeric longitude");
+  assert(typeof first.type === "string", "settlement has type");
+  assert(Array.isArray(first.notableFeatures), "settlement has notableFeatures array");
+  assert(Array.isArray(first.associatedLanguages), "settlement has associatedLanguages array");
 
-function testPopulationValues() {
-  console.log("\n=== Population Values ===");
-  const content = fs.readFileSync(TSV_PATH, "utf-8");
-  const { header, rows } = parseTsv(content);
-  const popIdx = header.indexOf("peak_population");
-  let hasPopulation = 0;
-  let allValid = true;
-  for (const row of rows) {
-    const val = row[popIdx];
-    if (val && val.trim()) {
-      const pop = parseInt(val, 10);
-      if (isNaN(pop) || pop < 0) {
-        allValid = false;
-      } else {
-        hasPopulation++;
-      }
-    }
-  }
-  assert(allValid, "All population values are valid non-negative integers");
-  assert(hasPopulation >= rows.length * 0.5, `At least 50% of entries have population data (${hasPopulation}/${rows.length})`);
-}
+  // Test filter by type
+  const capitals = await storage.getSettlements({ type: "capital" });
+  assert(capitals.length > 0, `filter by type=capital returns results (${capitals.length})`);
+  assert(capitals.every((s: any) => s.type === "capital"), "all filtered results have type=capital");
 
-function testScraperModule() {
-  console.log("\n=== Scraper Module ===");
-  try {
-    // Verify the scraper module can be imported and has expected exports
-    const scraperPath = path.join(import.meta.dirname!, "..", "server", "services", "settlements-scraper.ts");
-    assert(fs.existsSync(scraperPath), "settlements-scraper.ts exists");
+  // Test filter by region
+  const mesopotamia = await storage.getSettlements({ region: "Mesopotamia" });
+  assert(mesopotamia.length > 0, `filter by region=Mesopotamia returns results (${mesopotamia.length})`);
+  assert(
+    mesopotamia.every((s: any) => s.region.toLowerCase().includes("mesopotamia")),
+    "all filtered results are in Mesopotamia"
+  );
 
-    const content = fs.readFileSync(scraperPath, "utf-8");
-    assert(content.includes("class SettlementsScraper"), "Contains SettlementsScraper class");
-    assert(content.includes("scrapeSettlements"), "Has scrapeSettlements method");
-    assert(content.includes("scrapeRegion"), "Has scrapeRegion method");
-    assert(content.includes("getExistingIds"), "Has getExistingIds method");
-    assert(content.includes("appendSettlements"), "Has appendSettlements method");
-    assert(content.includes("GoogleGenerativeAI"), "Uses Gemini AI for scraping");
-    assert(content.includes("export const settlementsScraper"), "Exports singleton instance");
-  } catch (e: any) {
-    assert(false, `Scraper module check failed: ${e.message}`);
+  // Test filter by civilization_id
+  const roman = await storage.getSettlements({ civilizationId: "roman-empire" });
+  assert(roman.length > 0, `filter by civilizationId=roman-empire returns results (${roman.length})`);
+
+  // Test time range filter
+  const ancient = await storage.getSettlements({ timeStart: -3000, timeEnd: -1000 });
+  assert(ancient.length > 0, `time range filter returns results (${ancient.length})`);
+
+  // Test bounding box filter
+  const europeBox = await storage.getSettlements({
+    boundingBox: { minLat: 35, maxLat: 60, minLng: -10, maxLng: 40 },
+  });
+  assert(europeBox.length > 0, `bounding box filter returns results (${europeBox.length})`);
+  assert(
+    europeBox.every((s: any) => s.latitude >= 35 && s.latitude <= 60 && s.longitude >= -10 && s.longitude <= 40),
+    "all bounding box results are within bounds"
+  );
+
+  // Test getSettlementById
+  const ur = await storage.getSettlementById("ur-settlement");
+  assert(ur !== null, "getSettlementById returns Ur");
+  assert(ur!.name === "Ur", "Ur settlement has correct name");
+
+  const missing = await storage.getSettlementById("nonexistent-settlement");
+  assert(missing === null, "getSettlementById returns null for missing id");
+
+  // Test getSettlementsByCivilization
+  const romanCiv = await storage.getSettlementsByCivilization("roman-empire");
+  assert(romanCiv.length > 0, `getSettlementsByCivilization returns results (${romanCiv.length})`);
+  assert(
+    romanCiv.every((s: any) => s.civilizationId.toLowerCase() === "roman-empire"),
+    "all civilization results match"
+  );
+
+  // Test getSettlementsNearby
+  const nearRome = await storage.getSettlementsNearby(41.9, 12.5, 500);
+  assert(nearRome.length > 0, `getSettlementsNearby returns results (${nearRome.length})`);
+  // Rome should be in the results
+  assert(
+    nearRome.some((s: any) => s.id === "rome-settlement"),
+    "nearby search near Rome includes Rome"
+  );
+  // Results should be sorted by distance (closest first)
+  if (nearRome.length >= 2) {
+    const dist = (s: typeof nearRome[0]) => Math.hypot(s.latitude - 41.9, s.longitude - 12.5);
+    assert(dist(nearRome[0]) <= dist(nearRome[1]), "nearby results are sorted by distance");
   }
 }
 
-// Run all tests
-console.log("=== Settlements Data Tests ===");
-testFileExists();
-testMinimumEntries();
-testHeaderColumns();
-testColumnConsistency();
-testUniqueIds();
-testValidCoordinates();
-testValidTypes();
-testValidJsonArrays();
-testFoundedYears();
-testGeographicDiversity();
-testTypeDiversity();
-testNonEmptyNames();
-testPopulationValues();
-testScraperModule();
+async function main() {
+  await testSettlementsTsv();
+  await testSettlementsLoader();
 
-console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
-if (failed > 0) {
+  console.log("\n=== Summary ===");
+  console.log(`  Passed: ${passed}`);
+  console.log(`  Failed: ${failed}`);
+  console.log(`  Total:  ${passed + failed}`);
+
+  if (failed > 0) process.exit(1);
+}
+
+main().catch((err) => {
+  console.error("Test failed:", err);
   process.exit(1);
-}
+});

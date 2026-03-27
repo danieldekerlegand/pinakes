@@ -4627,6 +4627,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Settlements endpoints ──────────────────────────────────
+
+  /**
+   * GET /api/settlements - List settlements with optional filters
+   */
+  app.get("/api/settlements", async (req, res) => {
+    try {
+      const civilizationId = req.query.civilization_id as string | undefined;
+      const cultureId = req.query.culture_id as string | undefined;
+      const type = req.query.type as string | undefined;
+      const region = req.query.region as string | undefined;
+      const timeStart = req.query.time_start ? parseInt(req.query.time_start as string, 10) : undefined;
+      const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string, 10) : undefined;
+
+      let boundingBox: { minLat: number; maxLat: number; minLng: number; maxLng: number } | undefined;
+      if (req.query.min_lat && req.query.max_lat && req.query.min_lng && req.query.max_lng) {
+        boundingBox = {
+          minLat: parseFloat(req.query.min_lat as string),
+          maxLat: parseFloat(req.query.max_lat as string),
+          minLng: parseFloat(req.query.min_lng as string),
+          maxLng: parseFloat(req.query.max_lng as string),
+        };
+      }
+
+      const settlements = await storage.getSettlements({
+        civilizationId, cultureId, type, timeStart, timeEnd, region, boundingBox,
+      });
+
+      res.json({ settlements, count: settlements.length });
+    } catch (error) {
+      console.error("Error fetching settlements:", error);
+      res.status(500).json({ message: "Failed to fetch settlements" });
+    }
+  });
+
   /**
    * GET /api/enrichment/jobs - List all enrichment jobs
    */
@@ -4636,6 +4671,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching enrichment jobs:", error);
       res.status(500).json({ message: "Failed to fetch enrichment jobs" });
+    }
+  });
+
+  /**
+   * GET /api/settlements/by-civilization/:civilizationId - Get settlements by civilization
+   */
+  app.get("/api/settlements/by-civilization/:civilizationId", async (req, res) => {
+    try {
+      const settlements = await storage.getSettlementsByCivilization(req.params.civilizationId);
+      res.json({ settlements, count: settlements.length });
+    } catch (error) {
+      console.error("Error fetching settlements by civilization:", error);
+      res.status(500).json({ message: "Failed to fetch settlements by civilization" });
     }
   });
 
@@ -4652,6 +4700,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching enrichment job:", error);
       res.status(500).json({ message: "Failed to fetch enrichment job" });
+    }
+  });
+
+  /**
+   * GET /api/settlements/nearby/:lat/:lng - Find settlements near coordinates
+   */
+  app.get("/api/settlements/nearby/:lat/:lng", async (req, res) => {
+    try {
+      const lat = parseFloat(req.params.lat);
+      const lng = parseFloat(req.params.lng);
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 100;
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+
+      const settlements = await storage.getSettlementsNearby(lat, lng, radius);
+      res.json({ settlements, count: settlements.length, center: { lat, lng }, radiusKm: radius });
+    } catch (error) {
+      console.error("Error fetching nearby settlements:", error);
+      res.status(500).json({ message: "Failed to fetch nearby settlements" });
     }
   });
 
@@ -4712,6 +4781,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching empire timeline event:", error);
       res.status(500).json({ message: "Failed to fetch empire timeline event" });
+    }
+  });
+
+  /**
+   * GET /api/settlements/:id - Get a single settlement
+   */
+  app.get("/api/settlements/:id", async (req, res) => {
+    try {
+      const settlement = await storage.getSettlementById(req.params.id);
+      if (!settlement) {
+        return res.status(404).json({ message: "Settlement not found" });
+      }
+      res.json(settlement);
+    } catch (error) {
+      console.error("Error fetching settlement:", error);
+      res.status(500).json({ message: "Failed to fetch settlement" });
     }
   });
 

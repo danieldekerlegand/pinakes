@@ -450,6 +450,25 @@ export interface ArchaeologicalCulture {
   sources: string[];
 }
 
+// Settlement types
+export interface Settlement {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  latitude: number;
+  longitude: number;
+  type: string;
+  cultureId: string;
+  civilizationId: string;
+  foundedYear: number | null;
+  abandonedYear: number | null;
+  peakPopulation: number | null;
+  notableFeatures: string[];
+  associatedLanguages: string[];
+  modernName: string;
+  region: string;
+}
+
 // Art tradition types
 export interface ArtTradition {
   id: string;
@@ -787,6 +806,9 @@ export class TsvStorage {
 
   // Dance traditions
   private cachedDanceTraditions: DanceTradition[] | null = null;
+
+  // Settlements data cache
+  private cachedSettlements: Settlement[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5196,5 +5218,153 @@ export class TsvStorage {
   async getEmpireTimelineEventById(id: string): Promise<EmpireTimelineEvent | null> {
     this.loadEmpireTimeline();
     return (this.cachedEmpireTimeline ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  // ── Settlements ──────────────────────────────────────────────
+
+  private loadSettlements(): void {
+    if (this.cachedSettlements) return;
+
+    const text = this.readFileIfExists("lexicons/settlements.tsv");
+    if (!text) { this.cachedSettlements = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const altIdx = header.indexOf("alternate_names");
+    const latIdx = header.indexOf("latitude");
+    const lngIdx = header.indexOf("longitude");
+    const typeIdx = header.indexOf("type");
+    const cultureIdx = header.indexOf("culture_id");
+    const civIdx = header.indexOf("civilization_id");
+    const foundedIdx = header.indexOf("founded_year");
+    const abandonedIdx = header.indexOf("abandoned_year");
+    const popIdx = header.indexOf("peak_population");
+    const featuresIdx = header.indexOf("notable_features");
+    const langsIdx = header.indexOf("associated_languages");
+    const modernIdx = header.indexOf("modern_name");
+    const regionIdx = header.indexOf("region");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    const parseYear = (idx: number, row: string[]): number | null => {
+      if (idx < 0 || !row[idx] || row[idx] === "null") return null;
+      const v = parseInt(row[idx], 10);
+      return isNaN(v) ? null : v;
+    };
+
+    this.cachedSettlements = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      alternateNames: parseArr(altIdx, row),
+      latitude: latIdx >= 0 ? parseFloat(row[latIdx]) || 0 : 0,
+      longitude: lngIdx >= 0 ? parseFloat(row[lngIdx]) || 0 : 0,
+      type: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      cultureId: cultureIdx >= 0 ? row[cultureIdx] || "" : "",
+      civilizationId: civIdx >= 0 ? row[civIdx] || "" : "",
+      foundedYear: parseYear(foundedIdx, row),
+      abandonedYear: parseYear(abandonedIdx, row),
+      peakPopulation: popIdx >= 0 && row[popIdx] && row[popIdx] !== "null"
+        ? parseInt(row[popIdx], 10) || null : null,
+      notableFeatures: parseArr(featuresIdx, row),
+      associatedLanguages: parseArr(langsIdx, row),
+      modernName: modernIdx >= 0 ? row[modernIdx] || "" : "",
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+    }));
+  }
+
+  async getSettlements(filters?: {
+    civilizationId?: string;
+    cultureId?: string;
+    type?: string;
+    timeStart?: number;
+    timeEnd?: number;
+    region?: string;
+    boundingBox?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
+  }): Promise<Settlement[]> {
+    this.loadSettlements();
+    let settlements = this.cachedSettlements ?? [];
+
+    if (filters?.civilizationId) {
+      settlements = settlements.filter((s) =>
+        s.civilizationId.toLowerCase() === filters.civilizationId!.toLowerCase()
+      );
+    }
+
+    if (filters?.cultureId) {
+      settlements = settlements.filter((s) =>
+        s.cultureId.toLowerCase() === filters.cultureId!.toLowerCase()
+      );
+    }
+
+    if (filters?.type) {
+      settlements = settlements.filter((s) =>
+        s.type.toLowerCase() === filters.type!.toLowerCase()
+      );
+    }
+
+    if (filters?.region) {
+      settlements = settlements.filter((s) =>
+        s.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+
+    if (filters?.timeStart !== undefined) {
+      settlements = settlements.filter((s) => {
+        const end = s.abandonedYear ?? Infinity;
+        return end >= filters.timeStart!;
+      });
+    }
+
+    if (filters?.timeEnd !== undefined) {
+      settlements = settlements.filter((s) => {
+        const start = s.foundedYear ?? -Infinity;
+        return start <= filters.timeEnd!;
+      });
+    }
+
+    if (filters?.boundingBox) {
+      const bb = filters.boundingBox;
+      settlements = settlements.filter((s) =>
+        s.latitude >= bb.minLat && s.latitude <= bb.maxLat &&
+        s.longitude >= bb.minLng && s.longitude <= bb.maxLng
+      );
+    }
+
+    return settlements;
+  }
+
+  async getSettlementById(id: string): Promise<Settlement | null> {
+    this.loadSettlements();
+    return (this.cachedSettlements ?? []).find((s) => s.id === id) ?? null;
+  }
+
+  async getSettlementsByCivilization(civilizationId: string): Promise<Settlement[]> {
+    this.loadSettlements();
+    return (this.cachedSettlements ?? []).filter((s) =>
+      s.civilizationId.toLowerCase() === civilizationId.toLowerCase()
+    );
+  }
+
+  async getSettlementsNearby(lat: number, lng: number, radiusKm: number = 100): Promise<Settlement[]> {
+    this.loadSettlements();
+    const settlements = this.cachedSettlements ?? [];
+
+    return settlements.filter((s) => {
+      const dLat = (s.latitude - lat) * Math.PI / 180;
+      const dLng = (s.longitude - lng) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat * Math.PI / 180) * Math.cos(s.latitude * Math.PI / 180) *
+        Math.sin(dLng / 2) ** 2;
+      const distKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return distKm <= radiusKm;
+    }).sort((a, b) => {
+      const distA = Math.hypot(a.latitude - lat, a.longitude - lng);
+      const distB = Math.hypot(b.latitude - lat, b.longitude - lng);
+      return distA - distB;
+    });
   }
 }
