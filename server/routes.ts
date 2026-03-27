@@ -5,6 +5,7 @@ import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv
 import { wordListScraper } from "./services/word-list-scraper";
 import { writingSystemScraper } from "./services/writing-system-scraper";
 import { glottologScraper } from "./services/glottolog-scraper";
+import { polityScraper, SESHAT_POLITIES_COUNT } from "./services/polity-scraper";
 import { jobStore } from "./services/job-store";
 import {
   calculatePairwiseDistance,
@@ -382,6 +383,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting word scraping:", error);
       res.status(500).json({
         message: "Failed to start word scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape historical polities/empires from Wikipedia and Seshat
+  app.post("/api/scraping/polities", async (req, res) => {
+    try {
+      const job = jobStore.createJob("polities", SESHAT_POLITIES_COUNT, "wikipedia+seshat");
+
+      polityScraper
+        .scrapePolities({
+          jobId: job.id,
+          progressCallback: (progress) => {
+            console.log(`[Polity Scraping] ${progress.type}: ${progress.message}`);
+            if (progress.type === "progress") {
+              jobStore.updateJob(job.id, { statusMessage: progress.message });
+            } else if (progress.type === "error") {
+              jobStore.updateJob(job.id, { errorMessage: progress.message });
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Polity scraping completed: ${result.newPolities} new, ${result.skippedDuplicates} skipped`
+          );
+        })
+        .catch((error) => {
+          console.error("Polity scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Polity scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting polity scraping:", error);
+      res.status(500).json({
+        message: "Failed to start polity scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
