@@ -196,3 +196,18 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+US-028: Create data freshness and staleness tracking
+
+Completed:
+- Created server/services/data-freshness.ts with:
+  - getDatasetFreshness(): scans lexicons/ TSV files, returns per-file metadata (name, record count, size, last modified, age, staleness classification)
+  - getFreshnessSummary(): aggregates dataset freshness into summary with counts by staleness category, oldest/newest dataset, total records/size
+  - Configurable staleness thresholds (default: fresh ≤7 days, aging ≤30 days, stale >30 days)
+- Added GET /api/data-freshness endpoint in server/routes.ts
+  - Supports optional ?freshDays and ?agingDays query parameters for custom thresholds
+- Created test/test-data-freshness.ts with 35 assertions covering:
+  - Empty/nonexistent directories, basic freshness, staleness classification
+  - Custom thresholds, summary aggregation, non-TSV file filtering
+  - Integration test against real lexicons/ directory (43 datasets, 133K+ records)
+- All tests passing, no new TypeScript errors
