@@ -196,3 +196,25 @@ Completed:
 - Integrated layer into EnhancedLanguageMapView.tsx with data fetching and layer toggle support
 - Fixed pre-existing syntax errors in tsv-storage.ts (missing closing braces in EtymologyRelation interface, loadSampleTexts, loadEtymologyRelations, and getGrammarFeatures)
 - Written comprehensive test suite (84 assertions, all passing)
+
+## Agent 20: Create music traditions and instruments scraper
+
+### Completed
+- Created server/services/music-scraper.ts with MusicScraper class
+  - Uses Google Gemini AI with structured JSON schema for music tradition and instrument generation
+  - Scrapes 40-60 music traditions covering all world regions
+  - Scrapes 60-100 musical instruments across all instrument families
+  - Supports existing ID awareness to avoid duplicates
+  - Job tracking via jobStore for progress monitoring
+  - Concurrent scraping prevention with static isScraping flag
+- Added writeMusicTraditionsTSV() and writeMusicalInstrumentsTSV() methods to TsvWriter
+  - Atomic file writes (temp file → rename)
+  - Proper JSON serialization for arrays and coordinates
+- Added POST /api/scraping/music endpoint in routes.ts
+  - Background scraping with job progress tracking
+  - Returns jobId for status polling
+- Created test/test-music-scraper.ts with 57 tests (all passing)
+  - Tests existing music data loading and filtering
+  - Tests TSV writer round-trip serialization
+  - Tests scraper module import and API key validation
+- Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
