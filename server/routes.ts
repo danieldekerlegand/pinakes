@@ -2069,6 +2069,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   /**
+   * POST /api/scrape/wiktionary-phonology - Scrape phonological inventories from Wiktionary
+   */
+  app.post("/api/scrape/wiktionary-phonology", async (req, res) => {
+    try {
+      const { languageIds } = req.body;
+      let languages = await storage.getLanguages();
+
+      if (languageIds && Array.isArray(languageIds) && languageIds.length > 0) {
+        languages = languages.filter((l: any) => languageIds.includes(l.id));
+      }
+
+      if (languages.length === 0) {
+        return res.status(400).json({ message: "No languages available" });
+      }
+
+      const job = jobStore.createJob("wiktionary-phonology", languages.length, "wiktionary");
+
+      const { wiktionaryPhonologyScraper } = await import("./services/wiktionary-phonology-scraper");
+
+      wiktionaryPhonologyScraper
+        .scrapePhonologies({
+          languages,
+          jobId: job.id,
+          progressCallback: (type: string, message: string) => {
+            console.log(`[Wiktionary Phonology] ${type}: ${message}`);
+          },
+        })
+        .then((result: { scraped: number; failed: number; skipped: number }) => {
+          storage.invalidateCache("phonology");
+          console.log(
+            `Wiktionary phonology scraping complete: ${result.scraped} scraped, ${result.failed} failed, ${result.skipped} skipped`
+          );
+        })
+        .catch((error: unknown) => {
+          console.error("Wiktionary phonology scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Wiktionary phonology scraping started",
+        status: "pending",
+        totalLanguages: languages.length,
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting Wiktionary phonology scraping:", error);
+      res.status(500).json({ message: "Failed to start Wiktionary phonology scraping" });
+    }
+  });
+
+  /**
    * GET /api/phonological-inventories - Get all phonological inventories
    */
   app.get("/api/phonological-inventories", async (req, res) => {

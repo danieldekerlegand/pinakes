@@ -43,6 +43,32 @@ Key findings:
   - phonological-inventories.tsv tones column at 20% fill
   - literary-works.tsv date_published at 18% fill
 
+Create automated Wiktionary scraper for phonological inventories
+
+Completed:
+- Created server/services/wiktionary-phonology-scraper.ts with:
+  - MediaWiki API integration to fetch Wiktionary appendix pages (pronunciation/phonology)
+  - IPA symbol extraction from /.../, [...], and {{IPA|...}} notation in wikitext
+  - Consonant/vowel classification using IPA chart symbol sets
+  - Tone detection with negation handling (skips "no tone" contexts)
+  - Syllable structure and stress system extraction from wikitext
+  - Rate limiting (1 req/sec) and response caching per Wiktionary policy
+  - Language mapping for 50+ languages to their Wiktionary page names
+  - Atomic TSV writing to lexicons/phonological-inventories.tsv
+  - Job tracking integration for progress monitoring
+  - Skips languages that already have inventories
+- Added POST /api/scrape/wiktionary-phonology endpoint in server/routes.ts
+  - Accepts optional languageIds array to filter which languages to scrape
+  - Returns job ID for progress tracking
+- Created test/test-wiktionary-phonology-scraper.ts with 38 tests covering:
+  - IPA symbol extraction (slash notation, bracket notation, IPA templates, wiki markup filtering)
+  - Symbol classification (consonants, vowels, affricates, long vowels)
+  - Tone detection (tonal, non-tonal, numbered tones)
+  - Syllable structure parsing
+  - Stress system detection (fixed, lexical, pitch-accent, penultimate)
+  - Live Wiktionary API integration (English page fetch and parse)
+- All 38 tests passing
+
 US-066: Create cultural-lineages.tsv data file
 
 - Created lexicons/cultural-lineages.tsv with 95 lineage relationships (target was 80+)
