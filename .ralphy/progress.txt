@@ -977,3 +977,24 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+## US-309: Empire Boundary Temporal Morphing with Settlement Overlay
+- Added geometry utilities to client/src/lib/visualization/temporal-boundary-morphing.ts:
+  - computePolygonCentroid: shoelace-formula centroid for positioning empire labels
+  - isPointInPolygon: ray-casting test for settlement containment
+  - computeSettlementOverlays: determines which settlements fall within empire boundaries, flags capitals
+  - computeEmpireLabels: generates label info (name + centroid) for each morphed empire
+  - New types: EmpireSettlementOverlay, EmpireLabelInfo
+- Created client/src/components/visualizations/map-layers/EmpireBoundaryMorphingLayer.tsx:
+  - Renders morphed empire boundaries as GeoJSON polygons with smooth interpolation
+  - Settlement overlay: settlements inside empire boundaries inherit empire color tint
+  - Capital markers: larger radius + gold border + star icon for capital cities
+  - Empire name labels: permanent tooltips at polygon centroids with styled text
+  - Hover/select interaction with popup showing time period, type, capital, morph progress
+  - Configurable: showSettlements, showLabels, showTransitionEffect, opacity
+- Added 24 new tests to temporal-boundary-morphing.test.ts covering all new utilities
+  - computePolygonCentroid: empty, single point, square, rectangle, degenerate
+  - isPointInPolygon: inside, outside, triangle, edge cases
+  - computeSettlementOverlays: containment, capital detection, empty inputs, color assignment
+  - computeEmpireLabels: label generation, centroids, names, colors, empty inputs
+- All 38 tests passing
