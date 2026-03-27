@@ -399,6 +399,89 @@ export interface GeoPoint {
 }
 
 // ============================================================================
+// Base Map Tile Types
+// ============================================================================
+
+export type BaseMapId =
+  | 'osm-standard'
+  | 'osm-topo'
+  | 'stamen-terrain'
+  | 'stamen-toner'
+  | 'esri-world-topo'
+  | 'esri-world-imagery'
+  | 'opentopomap';
+
+export interface BaseMapTile {
+  id: BaseMapId;
+  name: string;
+  description: string;
+  url: string;
+  attribution: string;
+  maxZoom?: number;
+}
+
+export const BASE_MAP_TILES: BaseMapTile[] = [
+  {
+    id: 'osm-standard',
+    name: 'Standard',
+    description: 'OpenStreetMap default style',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  {
+    id: 'opentopomap',
+    name: 'Topographic',
+    description: 'OpenTopoMap with contour lines and elevation shading',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+    maxZoom: 17,
+  },
+  {
+    id: 'stamen-terrain',
+    name: 'Terrain',
+    description: 'Stadia/Stamen terrain with hill shading and natural vegetation colors',
+    url: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18,
+  },
+  {
+    id: 'stamen-toner',
+    name: 'Toner',
+    description: 'High-contrast black and white style',
+    url: 'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 20,
+  },
+  {
+    id: 'esri-world-topo',
+    name: 'ESRI Topographic',
+    description: 'Esri world topographic map with detailed features',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri &mdash; Sources: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI',
+    maxZoom: 19,
+  },
+  {
+    id: 'esri-world-imagery',
+    name: 'Satellite',
+    description: 'Esri satellite imagery',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri &mdash; Sources: Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN',
+    maxZoom: 19,
+  },
+  {
+    id: 'osm-topo',
+    name: 'Cycle Map',
+    description: 'OpenStreetMap with topographic features and cycle routes',
+    url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.cyclosm.org/">CyclOSM</a>',
+    maxZoom: 20,
+  },
+];
+
+export const DEFAULT_BASE_MAP_ID: BaseMapId = 'osm-standard';
+
+// ============================================================================
 // Default Configurations
 // ============================================================================
 

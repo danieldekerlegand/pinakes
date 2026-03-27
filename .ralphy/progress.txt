@@ -977,3 +977,15 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+## Agent 4: Add terrain/topographic base map tile options
+- Added BaseMapId type and BaseMapTile interface to geospatial-types.ts
+- Defined 7 base map tile options: OSM Standard, OpenTopoMap, Stamen Terrain, Stamen Toner, ESRI World Topo, ESRI Satellite, CyclOSM
+- Created useBaseMap hook (client/src/components/visualizations/hooks/useBaseMap.ts) with URL persistence via ?basemap= param
+- Created BaseMapSelector component (client/src/components/visualizations/map-layers/BaseMapSelector.tsx)
+- Updated all 4 map components to use selectable base maps:
+  - EnhancedLanguageMapView.tsx
+  - LanguageMapView.tsx
+  - GeoDistributionMap.tsx
+  - shared/GeoDistributionMap.tsx
+- Created client/src/lib/visualization/base-map-tiles.test.ts with 10 tests (all passing)

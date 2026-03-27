@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { BaseMapSelector } from '../map-layers/BaseMapSelector';
+import { useBaseMap } from '../hooks/useBaseMap';
 import 'leaflet/dist/leaflet.css';
 
 export interface GeoPoint {
@@ -64,6 +66,7 @@ export function GeoDistributionMap({
   showLegend = true,
   renderPopup,
 }: GeoDistributionMapProps) {
+  const { baseMapId, baseMap, setBaseMap, availableMaps } = useBaseMap();
   const categories = useMemo(() => {
     const cats = new Set<string>();
     points.forEach(p => cats.add(p.category));
@@ -86,8 +89,10 @@ export function GeoDistributionMap({
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={baseMap.id}
+          attribution={baseMap.attribution}
+          url={baseMap.url}
+          maxZoom={baseMap.maxZoom}
         />
         <AutoBounds points={points} />
         {points.map((point, idx) => {
@@ -137,6 +142,12 @@ export function GeoDistributionMap({
           ))}
         </div>
       )}
+
+      <BaseMapSelector
+        currentBaseMapId={baseMapId}
+        availableMaps={availableMaps}
+        onSelect={setBaseMap}
+      />
 
       {points.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm z-[1000]">

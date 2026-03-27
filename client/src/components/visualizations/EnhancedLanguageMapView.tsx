@@ -48,6 +48,8 @@ import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
+import { BaseMapSelector } from './map-layers/BaseMapSelector';
+import { useBaseMap } from './hooks/useBaseMap';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -84,6 +86,9 @@ export function EnhancedLanguageMapView({
   selectedFeatureId,
   drawingToolRef,
 }: EnhancedLanguageMapViewProps) {
+  // Initialize base map selection
+  const { baseMapId, baseMap, setBaseMap, availableMaps } = useBaseMap();
+
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
 
@@ -641,8 +646,10 @@ export function EnhancedLanguageMapView({
         className="z-0"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={baseMap.id}
+          attribution={baseMap.attribution}
+          url={baseMap.url}
+          maxZoom={baseMap.maxZoom}
         />
 
         {/* Language Range Layer */}
@@ -931,6 +938,13 @@ export function EnhancedLanguageMapView({
       <MapLegend
         layerConfigs={layerState.layerConfigs}
         activeLayers={layerState.activeLayers}
+      />
+
+      {/* Base Map Selector */}
+      <BaseMapSelector
+        currentBaseMapId={baseMapId}
+        availableMaps={availableMaps}
+        onSelect={setBaseMap}
       />
 
       {/* Timeline Events Sidebar */}
