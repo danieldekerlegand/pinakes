@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import * as d3 from 'd3';
 
 interface LanguageContact {
@@ -468,6 +469,10 @@ export default function LanguageContactsPanel({ isOpen, onClose, embedded }: Lan
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="px-6 pb-4">
+            <VisualizationRecommendations panelType="language-contacts" onClose={onClose} />
           </div>
         </ScrollArea>
       </div>

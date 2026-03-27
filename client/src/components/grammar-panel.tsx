@@ -19,6 +19,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { Language } from "@shared/types";
 
 interface GrammarFeatures {
@@ -439,6 +440,10 @@ export default function GrammarPanel({ isOpen, onClose, embedded }: GrammarPanel
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="px-6 pb-4">
+            <VisualizationRecommendations panelType="grammar" onClose={onClose} />
           </div>
         </ScrollArea>
 

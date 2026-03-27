@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, X, Type, ChevronRight, Calendar, MapPin, Globe } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import * as d3 from "d3";
 
 interface WritingSystem {
@@ -535,6 +536,8 @@ export default function WritingSystemsPanel({ isOpen, onClose, embedded }: Writi
               </div>
             </div>
           )}
+
+          <VisualizationRecommendations panelType="writing-systems" onClose={onClose} />
         </div>
       </div>
   );

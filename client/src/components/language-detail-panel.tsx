@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SuggestEditButton } from "@/components/SuggestEditButton";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { LanguageWithStats } from "@shared/types";
 
 interface SampleText {
@@ -480,6 +481,8 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
           {/* Contributor Attribution */}
           <ContributorAttribution entityType="language" entityId={languageId} />
+
+          <VisualizationRecommendations panelType="language-detail" onClose={onClose} />
 
           {/* Complete Word List */}
           {showWordList && (

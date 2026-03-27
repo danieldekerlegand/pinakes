@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, Package, Filter, ChevronRight, ChevronDown, MapPin, Clock } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 
 interface TradeGood {
   id: string;
@@ -419,6 +420,8 @@ export default function TradeGoodsPanel({ isOpen, onClose, embedded }: Props) {
               )}
             </div>
           )}
+
+          <VisualizationRecommendations panelType="trade-goods" onClose={onClose} />
         </div>
       </div>
   );

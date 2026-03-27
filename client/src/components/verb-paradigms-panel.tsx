@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { Language } from "@shared/types";
 
 interface VerbParadigm {
@@ -479,6 +480,8 @@ export default function VerbParadigmsPanel({ isOpen, onClose, embedded }: VerbPa
                 Available languages may vary by verb concept.
               </div>
             )}
+
+            <VisualizationRecommendations panelType="verb-paradigms" onClose={onClose} />
           </div>
         </ScrollArea>
       </div>

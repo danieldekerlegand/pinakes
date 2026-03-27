@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import {
   Languages,
   GitCompare,
@@ -328,6 +329,8 @@ export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordC
                 <p className="text-gray-600 dark:text-gray-400">Select at least 2 languages to start comparing</p>
               </Card>
             )}
+
+            <VisualizationRecommendations panelType="word-comparison" onClose={onClose} />
           </div>
         </div>
       </div>

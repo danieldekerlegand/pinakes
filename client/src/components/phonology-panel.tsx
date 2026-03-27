@@ -12,6 +12,7 @@ import {
   X,
   Music,
 } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { Language } from "@shared/types";
 
 interface PhonologicalInventory {
@@ -648,6 +649,8 @@ export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyP
                 </p>
               </div>
             )}
+
+            <VisualizationRecommendations panelType="phonology" onClose={onClose} />
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, BookOpen, Filter, ChevronRight, ChevronDown, MapPin, Clock, Feather } from "lucide-react";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 
 interface LiteraryTradition {
   id: string;
@@ -310,6 +311,8 @@ export default function LiteraryTraditionsPanel({ isOpen, onClose, embedded }: P
               )}
             </div>
           )}
+
+          <VisualizationRecommendations panelType="literary-traditions" onClose={onClose} />
         </div>
       </div>
   );

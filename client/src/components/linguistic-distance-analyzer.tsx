@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import {
   RadarChart,
   PolarGrid,
@@ -839,6 +840,8 @@ export default function LinguisticDistanceAnalyzer({
                 </p>
               </Card>
             )}
+
+            <VisualizationRecommendations panelType="linguistic-distance" onClose={onClose} />
           </div>
         </div>
       </div>
