@@ -1088,3 +1088,28 @@ Completed:
   - Tests: category extraction, visualization compatibility, auto-suggestion logic
   - Tests: filtering by category, search query, combined filters, case-insensitivity
   - Tests: visualization options coverage and completeness
+
+## Agent 23: Create CrossDomainTimeline combining multiple datasets on one timeline
+
+### Completed
+- Created server/services/cross-domain-timeline.ts
+  - CrossDomainTimeline service class that normalizes 8 data domains into unified timeline events
+  - Domains: empires, battles, civilizations, migrations, trade routes, art traditions, music traditions, archaeological sites
+  - Empire events aggregated into spans (founding to collapse) from individual timeline events
+  - Battles rendered as point events, other domains as span events
+  - Filtering by domains and year range, sorted by start year
+  - Robust handling of NaN/null year values
+- Added GET /api/cross-domain/timeline endpoint in routes.ts
+  - Query params: domains (comma-separated), yearStart, yearEnd
+  - Returns events array, active domains, temporal range, count
+- Created client/src/components/visualizations/CrossDomainTimeline.tsx
+  - D3-based swim lane timeline with one lane per domain
+  - Color-coded domains with toggle buttons to show/hide each domain
+  - Span events rendered as horizontal bars with row packing to avoid overlap
+  - Point events (battles) rendered as circles
+  - Hover tooltips showing event name, domain, dates, description, languages
+  - Current year indicator line (red dashed) synced with TimeNavigator
+  - Integrated TimeNavigator for playback controls
+  - Responsive sizing via useVisualizationResize hook
+- Created server/services/cross-domain-timeline.test.ts with 12 tests (all passing)
+  - Tests data loading, field validation, sort order, domain filtering, year range filtering, empty results, empire span aggregation, battle point events, temporal range accuracy, domain list consistency

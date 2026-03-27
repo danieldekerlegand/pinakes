@@ -2699,6 +2699,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Cross-Domain Timeline Routes
+  // ============================================================================
+
+  const { CrossDomainTimeline: CrossDomainTimelineService } = await import("./services/cross-domain-timeline");
+  const crossDomainTimeline = new CrossDomainTimelineService(storage);
+
+  /**
+   * GET /api/cross-domain/timeline - Get unified timeline events from multiple datasets
+   */
+  app.get("/api/cross-domain/timeline", async (req, res) => {
+    try {
+      const domains = req.query.domains
+        ? (req.query.domains as string).split(",")
+        : undefined;
+      const yearStart = req.query.yearStart
+        ? parseInt(req.query.yearStart as string, 10)
+        : undefined;
+      const yearEnd = req.query.yearEnd
+        ? parseInt(req.query.yearEnd as string, 10)
+        : undefined;
+
+      const result = await crossDomainTimeline.getTimeline({
+        domains: domains as any,
+        yearStart,
+        yearEnd,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching cross-domain timeline:", error);
+      res.status(500).json({
+        message: "Failed to fetch cross-domain timeline",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Genetic-Linguistic Correlation Routes (Phase 4)
   // ============================================================================
 
