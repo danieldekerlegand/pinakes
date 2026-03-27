@@ -838,3 +838,21 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+Refactor LanguageTimelineView to use reusable TimelineVisualization
+
+Completed:
+- Created client/src/components/visualizations/shared/TimelineVisualization.tsx
+  - Generic reusable timeline component with configurable props
+  - Accepts colorFn, isSelected, isHighlighted, buildTooltip callbacks
+  - Generic type parameter <T extends TimelineItem> for domain-specific data
+  - Configurable margin, helpText, selectedColor, selectedStrokeColor
+  - D3-based horizontal bar timeline with BCE/CE axis formatting, gridlines, y-axis grouping
+- Refactored client/src/components/visualizations/LanguageTimelineView.tsx
+  - Now a thin wrapper that delegates to TimelineVisualization
+  - Provides language-specific colorFn (getFamilyColor), selection/highlight via context
+  - Builds language-specific tooltip data
+  - Maintains identical visual output and API (timelineData, onEventClick props)
+- Created client/src/components/visualizations/shared/TimelineVisualization.test.ts
+  - 16 tests covering: group extraction, year extent calculation, bar width logic,
+    BCE/CE formatting, color/selection callbacks, tooltip builder
