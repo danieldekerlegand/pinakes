@@ -856,3 +856,21 @@ Completed:
 - Created client/src/components/visualizations/shared/TimelineVisualization.test.ts
   - 16 tests covering: group extraction, year extent calculation, bar width logic,
     BCE/CE formatting, color/selection callbacks, tooltip builder
+
+Refactor LanguageTreeView to use reusable TreeVisualization
+
+Completed:
+- Created client/src/components/visualizations/shared/TreeVisualization.tsx
+  - Generic reusable D3 tree component with configurable layout
+  - Handles SVG setup, resize, zoom/pan, tree layout, link rendering, auto-fit
+  - Accepts renderNodes callback for consumer-specific node rendering
+  - Supports array data (wrapped in synthetic root) and single root
+  - Configurable via TreeVisualizationConfig (separation, offsets, link styles, auto-fit scale)
+- Refactored client/src/components/visualizations/LanguageTreeView.tsx
+  - Now uses TreeVisualization instead of managing D3 directly
+  - Moved node rendering (circles, labels, interactions, tooltip) into renderNodes callback
+  - Preserved all existing behavior: selection highlighting, tooltip, click handlers
+  - Reduced from 189 to ~105 lines by extracting common tree infrastructure
+- Created client/src/components/visualizations/shared/TreeVisualization.test.ts (7 tests, all passing)
+  - Tests config getChildren, leaf nodes, default values, separation, data wrapping
+- Verified: TypeScript compiles clean, Vite build succeeds, all tests pass
