@@ -49,6 +49,8 @@ import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisL
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
+import { useImageGeoreference } from './hooks/useImageGeoreference';
+import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import {
@@ -86,6 +88,9 @@ export function EnhancedLanguageMapView({
 }: EnhancedLanguageMapViewProps) {
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
+
+  // Initialize image georeferencing tool
+  const georefTool = useImageGeoreference();
 
   // Expose drawing tool via ref for external panels
   React.useEffect(() => {
@@ -878,6 +883,9 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Image Georeferencing Layer */}
+        <ImageGeoreferenceLayer georef={georefTool} />
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -887,6 +895,13 @@ export function EnhancedLanguageMapView({
           onFeatureSelect={handleFeatureClick}
         />
       </MapContainer>
+
+      {/* Image Georeferencing Panel */}
+      <ImageGeoreferencePanel
+        georef={georefTool}
+        mapCenter={initialCenter}
+        mapZoom={2}
+      />
 
       {/* Layer Controls Panel */}
       <LayerPanel
