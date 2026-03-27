@@ -48,6 +48,7 @@ import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { TimelineEventsSidebar } from './map-layers/TimelineEventsSidebar';
 import { BoundaryDrawingLayer } from './map-layers/BoundaryDrawingLayer';
+import { MapLabelsLayer } from './map-layers/MapLabelsLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -84,6 +85,20 @@ export function EnhancedLanguageMapView({
   selectedFeatureId,
   drawingToolRef,
 }: EnhancedLanguageMapViewProps) {
+  // Label layer toggles (independent of parent layers)
+  const [enabledLabelLayers, setEnabledLabelLayers] = React.useState<Set<string>>(
+    new Set(['region-labels', 'civilization-labels', 'culture-labels', 'settlement-labels', 'route-labels'])
+  );
+
+  const toggleLabelLayer = React.useCallback((layerId: string) => {
+    setEnabledLabelLayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(layerId)) next.delete(layerId);
+      else next.add(layerId);
+      return next;
+    });
+  }, []);
+
   // Initialize drawing tool
   const drawingTool = useDrawingTool();
 
@@ -878,6 +893,16 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Map Labels Layer */}
+        <MapLabelsLayer
+          languageRanges={filteredLanguageRanges}
+          civilizations={filteredCivilizations}
+          archaeologicalCultures={filteredArchaeologicalCultures}
+          archaeologicalSites={filteredArchaeologicalSites}
+          routes={filteredRoutes}
+          enabledLabelLayers={enabledLabelLayers}
+        />
+
         {/* Boundary Drawing Layer */}
         <BoundaryDrawingLayer drawing={drawingTool} />
 
@@ -900,6 +925,8 @@ export function EnhancedLanguageMapView({
         onHideCategory={hideCategory}
         onApplyPreset={applyPreset}
         activePresetId={activePresetId}
+        enabledLabelLayers={enabledLabelLayers}
+        onToggleLabelLayer={toggleLabelLayer}
       />
 
       {/* Genetic-Linguistic Haplogroup Type Toggle */}

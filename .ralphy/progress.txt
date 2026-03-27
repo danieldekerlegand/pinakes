@@ -977,3 +977,27 @@ Completed:
 - Created client/src/components/visualizations/LanguageNetworkView.test.ts with 10 tests (all passing)
   - Tests data mapping, styling logic, and props interface compatibility
 - All 31 visualization tests passing
+
+## Task: Create map annotation and label system (US-312)
+- Created client/src/lib/visualization/map-label-engine.ts — label placement engine with:
+  - Label types: region, settlement, route
+  - Priority system: capitals > major cities > minor settlements (with importance boost)
+  - Collision detection via greedy bounding-box placement
+  - Zoom-level dependent visibility with per-type/rank thresholds
+  - Font size scaling with zoom level (clamped to 8–24px range)
+  - Curved SVG path generation for region labels (follows polygon principal axis)
+  - Full pipeline: filter → project → sort → collision-resolve
+- Created client/src/components/visualizations/map-layers/MapLabelsLayer.tsx — Leaflet SVG overlay component:
+  - Extracts labels from language ranges, civilizations, cultures, sites, and routes
+  - Renders curved textPath labels for regions, point labels for settlements/routes
+  - White halo/shadow for readability over map tiles
+  - Updates on zoom/pan via useMapEvents
+  - Imperatively manages SVG in a custom Leaflet pane (z-index 650)
+- Updated LayerPanel.tsx with "Map Labels" section for independent label toggling
+  - 5 label categories: Region, Civilization, Culture, Settlement, Route
+  - Each toggleable independently from parent data layers
+- Integrated MapLabelsLayer into EnhancedLanguageMapView.tsx
+- Created test/map-label-engine.test.ts with 28 tests covering:
+  - Priority computation, zoom visibility, font scaling, collision detection
+  - Curved path generation, centroid calculation, full placement pipeline
+- All 28 tests passing
