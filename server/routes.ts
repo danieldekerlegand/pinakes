@@ -39,6 +39,7 @@ import {
   getQuerySuggestions,
 } from "./services/natural-language-search";
 import { DataValidationService } from "./services/data-validation";
+import { getFreshnessSummary } from "./services/data-freshness";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -4074,6 +4075,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to fetch cross-reference rules",
         error: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  });
+
+  // Data Freshness Tracking
+  app.get("/api/data-freshness", async (req, res) => {
+    try {
+      const freshDays = req.query.freshDays ? Number(req.query.freshDays) : undefined;
+      const agingDays = req.query.agingDays ? Number(req.query.agingDays) : undefined;
+      const thresholds = freshDays || agingDays
+        ? { freshDays: freshDays ?? 7, agingDays: agingDays ?? 30 }
+        : undefined;
+      const lexiconsDir = path.resolve(process.cwd(), "lexicons");
+      const summary = getFreshnessSummary(lexiconsDir, new Date(), thresholds);
+      res.json(summary);
+    } catch (error) {
+      console.error("Error fetching data freshness:", error);
+      res.status(500).json({ message: "Failed to fetch data freshness" });
     }
   });
 
