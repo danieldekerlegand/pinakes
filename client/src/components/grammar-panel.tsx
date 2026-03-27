@@ -44,6 +44,7 @@ interface GrammarFeatures {
 interface GrammarPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 // Feature category groupings
@@ -185,7 +186,7 @@ function computeSimilarity(a: GrammarFeatures, b: GrammarFeatures): number {
 
 type SortDir = "asc" | "desc";
 
-export default function GrammarPanel({ isOpen, onClose }: GrammarPanelProps) {
+export default function GrammarPanel({ isOpen, onClose, embedded }: GrammarPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [sortFeature, setSortFeature] = useState<string | null>(null);
@@ -193,14 +194,15 @@ export default function GrammarPanel({ isOpen, onClose }: GrammarPanelProps) {
   const [compareA, setCompareA] = useState<string | null>(null);
   const [compareB, setCompareB] = useState<string | null>(null);
 
-  const { data: grammarData = [] } = useQuery<GrammarFeatures[]>({
+  const { data: grammarData = [] } = useQuery<{ features: GrammarFeatures[]; count: number }, Error, GrammarFeatures[]>({
     queryKey: ["/api/grammar-features"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
+    select: (data) => data.features,
   });
 
   const { data: languages = [] } = useQuery<Language[]>({
     queryKey: ["/api/languages"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   // Map languageId -> language name
@@ -263,27 +265,20 @@ export default function GrammarPanel({ isOpen, onClose }: GrammarPanelProps) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-6xl bg-white shadow-xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-blue-600 text-white">
-          <div className="flex items-center space-x-3">
-            <BookOpen className="h-5 w-5" />
-            <h2 className="text-lg font-medium">Grammar Comparison Matrix</h2>
-            <Badge variant="secondary" className="bg-blue-500 text-white">
-              {grammarData.length} languages
-            </Badge>
-          </div>
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed inset-y-0 right-0 w-full max-w-6xl bg-white shadow-xl z-50 flex flex-col"}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-blue-600 text-white">
+        <div className="flex items-center space-x-3">
+          <BookOpen className="h-5 w-5" />
+          <h2 className="text-lg font-medium">Grammar Comparison Matrix</h2>
+          <Badge variant="secondary" className="bg-blue-500 text-white">
+            {grammarData.length} languages
+          </Badge>
+        </div>
+        {!embedded && (
           <Button
             variant="ghost"
             size="sm"
@@ -292,7 +287,8 @@ export default function GrammarPanel({ isOpen, onClose }: GrammarPanelProps) {
           >
             <X className="h-5 w-5" />
           </Button>
-        </div>
+        )}
+      </div>
 
         {/* Controls */}
         <div className="px-6 py-3 border-b bg-gray-50 space-y-3">
@@ -466,6 +462,18 @@ export default function GrammarPanel({ isOpen, onClose }: GrammarPanelProps) {
           </div>
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50"
+        onClick={onClose}
+      />
+      {panelContent}
     </>
   );
 }

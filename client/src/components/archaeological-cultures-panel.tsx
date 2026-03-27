@@ -42,6 +42,7 @@ interface ArchaeologicalCulturesResponse {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 function formatYear(year: number): string {
@@ -91,10 +92,10 @@ function CultureDetail({
   onSelectCulture: (id: string) => void;
 }) {
   const predecessors = allCultures.filter((c) =>
-    culture.predecessorCultureIds.includes(c.id)
+    culture.predecessorCultureIds?.includes(c.id)
   );
   const successors = allCultures.filter((c) =>
-    culture.successorCultureIds.includes(c.id)
+    culture.successorCultureIds?.includes(c.id)
   );
 
   return (
@@ -257,6 +258,7 @@ function CultureDetail({
 export default function ArchaeologicalCulturesPanel({
   isOpen,
   onClose,
+  embedded,
 }: Props) {
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [expandedCulture, setExpandedCulture] = useState<string | null>(null);
@@ -264,7 +266,7 @@ export default function ArchaeologicalCulturesPanel({
 
   const { data } = useQuery<ArchaeologicalCulturesResponse>({
     queryKey: ["/api/archaeological-cultures"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const cultures = data?.cultures ?? [];
@@ -304,27 +306,18 @@ export default function ArchaeologicalCulturesPanel({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const yearToPercent = (year: number) => {
     const range = timelineRange.max - timelineRange.min;
     return ((year - timelineRange.min) / range) * 100;
   };
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-        data-testid="archaeological-cultures-overlay"
-      />
-
-      {/* Panel */}
-      <div
-        className="fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden"
-        data-testid="archaeological-cultures-panel"
-      >
+  const panelContent = (
+    <div
+      className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden"}
+      data-testid="archaeological-cultures-panel"
+    >
         {/* Header */}
         <div className="px-6 py-4 border-b bg-gradient-to-r from-amber-50 to-orange-50 flex-shrink-0">
           <div className="flex justify-between items-start">
@@ -340,6 +333,7 @@ export default function ArchaeologicalCulturesPanel({
                 </p>
               </div>
             </div>
+            {!embedded && (
             <Button
               variant="ghost"
               size="sm"
@@ -348,6 +342,7 @@ export default function ArchaeologicalCulturesPanel({
             >
               <X className="h-5 w-5" />
             </Button>
+            )}
           </div>
 
           {/* Controls */}
@@ -645,8 +640,8 @@ export default function ArchaeologicalCulturesPanel({
                           </div>
 
                           {/* Lineage links */}
-                          {(culture.predecessorCultureIds.length > 0 ||
-                            culture.successorCultureIds.length > 0) && (
+                          {((culture.predecessorCultureIds?.length ?? 0) > 0 ||
+                            (culture.successorCultureIds?.length ?? 0) > 0) && (
                             <div className="mt-3 pt-3 border-t">
                               <p className="text-xs font-medium text-gray-500 mb-2">
                                 Cultural Lineage
@@ -654,7 +649,7 @@ export default function ArchaeologicalCulturesPanel({
                               <div className="flex flex-wrap items-center gap-2 text-xs">
                                 {cultures
                                   .filter((c) =>
-                                    culture.predecessorCultureIds.includes(
+                                    culture.predecessorCultureIds?.includes(
                                       c.id
                                     )
                                   )
@@ -669,18 +664,18 @@ export default function ArchaeologicalCulturesPanel({
                                       {p.name}
                                     </button>
                                   ))}
-                                {culture.predecessorCultureIds.length > 0 && (
+                                {(culture.predecessorCultureIds?.length ?? 0) > 0 && (
                                   <span className="text-gray-400">→</span>
                                 )}
                                 <span className="px-2 py-1 rounded bg-amber-200 font-medium">
                                   {culture.name}
                                 </span>
-                                {culture.successorCultureIds.length > 0 && (
+                                {(culture.successorCultureIds?.length ?? 0) > 0 && (
                                   <span className="text-gray-400">→</span>
                                 )}
                                 {cultures
                                   .filter((c) =>
-                                    culture.successorCultureIds.includes(
+                                    culture.successorCultureIds?.includes(
                                       c.id
                                     )
                                   )
@@ -721,6 +716,21 @@ export default function ArchaeologicalCulturesPanel({
           )}
         </div>
       </div>
+  );
+
+  if (embedded) {
+    return panelContent;
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+        data-testid="archaeological-cultures-overlay"
+      />
+      {panelContent}
     </>
   );
 }

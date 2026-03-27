@@ -49,6 +49,7 @@ interface LiteraryTraditionDetailResponse {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 function formatYear(year: number): string {
@@ -72,14 +73,14 @@ function getRegionColor(region: string): string {
   return REGION_COLORS[region] || "#6b7280";
 }
 
-export default function LiteraryTraditionsPanel({ isOpen, onClose }: Props) {
+export default function LiteraryTraditionsPanel({ isOpen, onClose, embedded }: Props) {
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [expandedTradition, setExpandedTradition] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("timeline");
 
   const { data: litData } = useQuery<LiteraryTraditionsResponse>({
     queryKey: ["/api/literary-traditions"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const traditions = litData?.traditions ?? [];
@@ -111,23 +112,15 @@ export default function LiteraryTraditionsPanel({ isOpen, onClose }: Props) {
     return { min: min - 200, max: max + 200 };
   }, [timelineSorted]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const yearToPercent = (year: number) => {
     const range = timelineRange.max - timelineRange.min;
     return ((year - timelineRange.min) / range) * 100;
   };
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden">
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden"}>
         {/* Header */}
         <div className="px-6 py-4 border-b bg-gradient-to-r from-amber-50 to-orange-50 flex-shrink-0">
           <div className="flex justify-between items-start">
@@ -142,9 +135,11 @@ export default function LiteraryTraditionsPanel({ isOpen, onClose }: Props) {
                 </p>
               </div>
             </div>
+            {!embedded && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
+            )}
           </div>
 
           {/* Controls */}
@@ -317,6 +312,20 @@ export default function LiteraryTraditionsPanel({ isOpen, onClose }: Props) {
           )}
         </div>
       </div>
+  );
+
+  if (embedded) {
+    return panelContent;
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+      {panelContent}
     </>
   );
 }

@@ -28,6 +28,14 @@ export function useVisualizationResize(
 
     updateDimensions();
 
+    // Re-measure after layout in case the element wasn't laid out yet on mount
+    // Double-rAF ensures at least one full layout pass has occurred
+    let rafId = requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
+        updateDimensions();
+      });
+    });
+
     // Create ResizeObserver
     const resizeObserver = new ResizeObserver((entries) => {
       if (timeoutRef.current) {
@@ -45,6 +53,7 @@ export function useVisualizationResize(
     resizeObserver.observe(container);
 
     return () => {
+      cancelAnimationFrame(rafId);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

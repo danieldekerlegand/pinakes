@@ -21,9 +21,10 @@ import type { Language, WordComparison } from "@shared/types";
 interface WordComparisonPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonPanelProps) {
+export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordComparisonPanelProps) {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -106,14 +107,10 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
     .map(lang => lang.name)
     .join(", ");
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
-      <div
-        className="fixed right-0 top-0 h-full w-[900px] max-w-[90vw] bg-white dark:bg-gray-900 shadow-lg flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-[90vw] bg-white dark:bg-gray-900 shadow-lg flex flex-col"} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -125,12 +122,14 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
                 Compare word lists across languages from NorthEuraLex data
               </p>
             </div>
+            {!embedded && (
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <X className="h-5 w-5" />
             </button>
+            )}
           </div>
         </div>
 
@@ -332,6 +331,13 @@ export default function WordComparisonPanel({ isOpen, onClose }: WordComparisonP
           </div>
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+      {panelContent}
     </div>
   );
 }

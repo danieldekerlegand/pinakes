@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Download, Play, Search } from "lucide-react";
+import { Play, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -74,14 +74,12 @@ export default function ScrapingTriggerButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+        <button
+          className="sr-only"
           data-testid="button-trigger-scraping"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Start Word Scraping
-        </Button>
+          aria-hidden="true"
+          tabIndex={-1}
+        />
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>

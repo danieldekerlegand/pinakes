@@ -35,7 +35,7 @@ export function LayerPanel({
   onApplyPreset,
   activePresetId,
 }: LayerPanelProps) {
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
   const [openCategories, setOpenCategories] = React.useState<Set<string>>(
     new Set(['languages']) // Language layers open by default
   );
@@ -109,9 +109,9 @@ export function LayerPanel({
   }
 
   return (
-    <div className="absolute top-4 right-4 z-[1000] w-80">
+    <div className="absolute top-4 right-4 z-[1000] w-72">
       <Card className="bg-white shadow-lg">
-        <div className="p-4">
+        <div className="p-3">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export function LayerPanel({
           </div>
 
           {/* Layer Categories */}
-          <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
             {Array.from(layersByCategory.entries()).map(([category, layers]) => {
               const isExpanded = openCategories.has(category);
               const visibleCount = getCategoryVisibleCount(category);

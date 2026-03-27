@@ -1,47 +1,30 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Link } from "wouter";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Search,
-  Settings,
-  Menu,
-  TreePine,
-  GitCompare,
+  X,
   Sparkles,
   Database,
-  Plus,
-  X,
-  Network,
-  FileText,
+  TreePine,
+  Moon,
+  Filter,
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeft,
+  MapPin,
   Music,
   BookOpen,
-  Type,
-  Languages,
-  ArrowLeftRight,
-  Zap,
-  Combine,
-  Palette,
-  Package,
-  Compass,
-  Share2,
-  Check,
-  Link2,
-  MoreVertical,
-  Eye,
-  Moon,
-  Pause,
-  Landmark,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { parseShareableState, useShareableState, generateShareableURL } from "@/hooks/useShareableState";
 import { copyToClipboard } from "@/lib/visualization/export-utils";
 import { useVisualization } from "@/contexts/VisualizationContext";
-import { useHighContrast } from "@/hooks/use-high-contrast";
 import { useDarkMode } from "@/hooks/use-dark-mode";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import {
   Dialog,
   DialogContent,
@@ -50,16 +33,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import StatsOverview from "@/components/stats-overview";
-import FiltersSidebar from "@/components/filters-sidebar";
-// import LanguageTree from "@/components/language-tree"; // Old tree component
 import { LanguageFamilyVisualization } from "@/components/LanguageFamilyVisualization";
+import { AppSidebar } from "@/components/AppSidebar";
 import LanguageDetailPanel from "@/components/language-detail-panel";
 import WordComparisonPanel from "@/components/word-comparison";
 import LinguisticDistanceAnalyzer from "@/components/linguistic-distance-analyzer";
@@ -70,6 +45,7 @@ import VerbParadigmsPanel from "@/components/verb-paradigms-panel";
 import LanguageContactsPanel from "@/components/language-contacts-panel";
 import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
+import DataOverview from "@/pages/data-overview";
 import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
@@ -78,83 +54,42 @@ import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
 import ScrapingStatusBar from "@/components/scraping-status-bar";
+import TextAnalyzer from "@/pages/text-analyzer";
+import WordEtymology from "@/pages/word-etymology";
 import type { ScrapingJob } from "@shared/types";
-
-
-// Panel name mapping for URL state
-const PANEL_MAP: Record<string, string> = {
-  comparison: 'comparison',
-  distance: 'distance',
-  phonology: 'phonology',
-  grammar: 'grammar',
-  writing: 'writing',
-  verbs: 'verbs',
-  contacts: 'contacts',
-  sounds: 'sounds',
-  correlation: 'correlation',
-  art: 'art',
-  trade: 'trade',
-  literary: 'literary',
-  archCultures: 'archCultures',
-};
+import type { ViewMode } from "@/lib/visualization/types";
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
-  // Parse URL state once on mount for panel/filter initialization
   const [initialUrlState] = useState(() => parseShareableState());
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState<string | null>(
     initialUrlState.langDetail ?? null
   );
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [comparisonOpen, setComparisonOpen] = useState(initialUrlState.panel === 'comparison');
-  const [distanceAnalyzerOpen, setDistanceAnalyzerOpen] = useState(initialUrlState.panel === 'distance');
-  const [phonologyOpen, setPhonologyOpen] = useState(initialUrlState.panel === 'phonology');
-  const [grammarOpen, setGrammarOpen] = useState(initialUrlState.panel === 'grammar');
-  const [writingSystemsOpen, setWritingSystemsOpen] = useState(initialUrlState.panel === 'writing');
-  const [verbParadigmsOpen, setVerbParadigmsOpen] = useState(initialUrlState.panel === 'verbs');
-  const [languageContactsOpen, setLanguageContactsOpen] = useState(initialUrlState.panel === 'contacts');
-  const [soundChangesOpen, setSoundChangesOpen] = useState(initialUrlState.panel === 'sounds');
-  const [correlationExplorerOpen, setCorrelationExplorerOpen] = useState(initialUrlState.panel === 'correlation');
-  const [artTraditionsOpen, setArtTraditionsOpen] = useState(initialUrlState.panel === 'art');
-  const [tradeGoodsOpen, setTradeGoodsOpen] = useState(initialUrlState.panel === 'trade');
-  const [literaryTraditionsOpen, setLiteraryTraditionsOpen] = useState(initialUrlState.panel === 'literary');
-  const [archCulturesOpen, setArchCulturesOpen] = useState(initialUrlState.panel === 'archCultures');
+
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [scrapingMenuOpen, setScrapingMenuOpen] = useState(false);
-  const [wordScrapingOpen, setWordScrapingOpen] = useState(false);
-  const [expandAll, setExpandAll] = useState<number>(0);
-  const [collapseAll, setCollapseAll] = useState<number>(0);
-  const [filters, setFilters] = useState({
-    status: initialUrlState.filterStatus ?? ["living", "endangered"] as string[],
-    region: initialUrlState.filterRegion ?? "all-regions",
-    speakers: "any",
-  });
-  const [linkCopied, setLinkCopied] = useState(false);
-  const { toast } = useToast();
-  const { state: vizState } = useVisualization();
-  const { highContrast, toggleHighContrast } = useHighContrast();
-  const { darkMode, toggleDarkMode } = useDarkMode();
-  const { reducedMotion, toggleReducedMotion } = useReducedMotion();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(
+    initialUrlState.panel ?? null
+  );
+  const [etymologyWord, setEtymologyWord] = useState<string>("");
+  const [etymologyLanguage, setEtymologyLanguage] = useState<string>("");
 
-  // Determine which panel is currently open (for URL state)
-  const activePanel = useMemo(() => {
-    if (comparisonOpen) return 'comparison';
-    if (distanceAnalyzerOpen) return 'distance';
-    if (phonologyOpen) return 'phonology';
-    if (grammarOpen) return 'grammar';
-    if (writingSystemsOpen) return 'writing';
-    if (verbParadigmsOpen) return 'verbs';
-    if (languageContactsOpen) return 'contacts';
-    if (soundChangesOpen) return 'sounds';
-    if (correlationExplorerOpen) return 'correlation';
-    if (artTraditionsOpen) return 'art';
-    if (tradeGoodsOpen) return 'trade';
-    if (literaryTraditionsOpen) return 'literary';
-    if (archCulturesOpen) return 'archCultures';
-    return undefined;
-  }, [comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen]);
+  const { toast } = useToast();
+  const { state: vizState, updateFilters, setView } = useVisualization();
+  const { darkMode, toggleDarkMode } = useDarkMode();
+
+  const handleViewChange = useCallback((view: ViewMode) => {
+    setActiveSection(null);
+    setView(view);
+  }, [setView]);
+
+  const handleNavigateToEtymology = useCallback((word: string, language: string) => {
+    setEtymologyWord(word);
+    setEtymologyLanguage(language);
+    setActiveSection('word-etymology');
+  }, []);
 
   // Build shareable state and sync to URL
   const shareableState = useMemo(() => ({
@@ -162,32 +97,18 @@ export default function Dashboard() {
     selectedLanguages: Array.from(vizState.selectedLanguageIds),
     selectedFamilies: Array.from(vizState.selectedFamilyIds),
     searchQuery: vizState.filters.searchQuery,
-    filterStatus: filters.status,
-    filterRegion: filters.region,
+    filterStatus: vizState.filters.status,
+    filterRegion: vizState.filters.region,
     year: vizState.temporal.currentYear,
-    panel: activePanel,
+    panel: activeSection ?? undefined,
     langDetail: selectedLanguageId ?? undefined,
-  }), [vizState.currentView, vizState.selectedLanguageIds, vizState.selectedFamilyIds, vizState.filters.searchQuery, filters.status, filters.region, vizState.temporal.currentYear, activePanel, selectedLanguageId]);
+  }), [vizState.currentView, vizState.selectedLanguageIds, vizState.selectedFamilyIds, vizState.filters.searchQuery, vizState.filters.status, vizState.filters.region, vizState.temporal.currentYear, activeSection, selectedLanguageId]);
 
   useShareableState(shareableState);
 
-  // Copy link handler
-  const handleCopyLink = async () => {
-    const url = generateShareableURL(shareableState);
-    const success = await copyToClipboard(url);
-    if (success) {
-      setLinkCopied(true);
-      toast({ title: "Link copied!", description: "Shareable URL copied to clipboard" });
-      setTimeout(() => setLinkCopied(false), 2000);
-    } else {
-      toast({ title: "Failed to copy", description: "Could not copy link to clipboard", variant: "destructive" });
-    }
-  };
-
-  // Keyboard shortcuts: Cmd/Ctrl+K for search, Escape to close panels
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Don't intercept when typing in inputs
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
 
@@ -196,57 +117,37 @@ export default function Dashboard() {
         setGlobalSearchOpen((prev) => !prev);
       }
 
-      // Escape closes any open panel or detail view
       if (e.key === "Escape") {
         if (selectedLanguageId) { setSelectedLanguageId(null); return; }
-        if (comparisonOpen) { setComparisonOpen(false); return; }
-        if (distanceAnalyzerOpen) { setDistanceAnalyzerOpen(false); return; }
-        if (phonologyOpen) { setPhonologyOpen(false); return; }
-        if (grammarOpen) { setGrammarOpen(false); return; }
-        if (writingSystemsOpen) { setWritingSystemsOpen(false); return; }
-        if (verbParadigmsOpen) { setVerbParadigmsOpen(false); return; }
-        if (languageContactsOpen) { setLanguageContactsOpen(false); return; }
-        if (soundChangesOpen) { setSoundChangesOpen(false); return; }
-        if (correlationExplorerOpen) { setCorrelationExplorerOpen(false); return; }
-        if (artTraditionsOpen) { setArtTraditionsOpen(false); return; }
-        if (tradeGoodsOpen) { setTradeGoodsOpen(false); return; }
-        if (literaryTraditionsOpen) { setLiteraryTraditionsOpen(false); return; }
-        if (archCulturesOpen) { setArchCulturesOpen(false); return; }
-        if (sidebarOpen) { setSidebarOpen(false); return; }
+        if (activeSection) { setActiveSection(null); return; }
       }
 
-      // ? key shows keyboard shortcut help
-      if (e.key === "?" && !e.metaKey && !e.ctrlKey) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "b") {
         e.preventDefault();
-        toast({
-          title: "Keyboard Shortcuts",
-          description: "⌘K: Search | Esc: Close panel | ?: This help",
-        });
+        setSidebarCollapsed((prev) => !prev);
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [selectedLanguageId, comparisonOpen, distanceAnalyzerOpen, phonologyOpen, grammarOpen, writingSystemsOpen, verbParadigmsOpen, languageContactsOpen, soundChangesOpen, correlationExplorerOpen, artTraditionsOpen, tradeGoodsOpen, literaryTraditionsOpen, archCulturesOpen, sidebarOpen]);
+  }, [selectedLanguageId, activeSection]);
 
   // Handle navigation from global search results
   const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
     if (entityType === "language") {
       setSelectedLanguageId(id);
     } else if (entityType === "writing-system") {
-      setWritingSystemsOpen(true);
+      setActiveSection('writing');
     } else if (entityType === "art-tradition") {
-      setArtTraditionsOpen(true);
+      setActiveSection('art');
     } else if (entityType === "trade-good") {
-      setTradeGoodsOpen(true);
+      setActiveSection('trade');
     } else if (entityType === "literary-tradition" || entityType === "literary-work") {
-      setLiteraryTraditionsOpen(true);
+      setActiveSection('literary');
     } else if (entityType === "archaeological-culture") {
-      setArchCulturesOpen(true);
+      setActiveSection('archCultures');
     } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
-      // No dedicated panel for these yet - show toast with info
       toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
     } else if (entityType === "language-family") {
-      // Could scroll to/highlight in tree - for now toast
       toast({ title: "Language Family", description: id });
     } else {
       toast({ title: entityType.replace(/-/g, " "), description: id });
@@ -256,7 +157,7 @@ export default function Dashboard() {
   // Fetch scraping jobs for progress tracking
   const { data: scrapingJobs = [] } = useQuery<ScrapingJob[]>({
     queryKey: ['/api/scraping-jobs'],
-    refetchInterval: 2000, // Poll every 2 seconds
+    refetchInterval: 2000,
   });
 
   const activeJobs = scrapingJobs.filter(job => job.status === 'running' || job.status === 'pending');
@@ -288,241 +189,262 @@ export default function Dashboard() {
     }
   };
 
+  const handleEnrichment = async (endpoint: string, label: string) => {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) throw new Error(`Failed to start ${label}`);
+
+      const data = await response.json();
+      toast({
+        title: `${label} Started`,
+        description: `Enrichment job started. ${data.totalLanguages ?? ''} languages queued.`,
+      });
+      setScrapingMenuOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to start ${label}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="h-screen flex flex-col bg-surface overflow-hidden">
       {/* Skip to content link for keyboard navigation */}
       <a href="#main-content" className="skip-to-content">Skip to main content</a>
 
-      {/* Header */}
-      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50" role="banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="md:hidden p-2 text-white hover:bg-blue-700"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                data-testid="button-mobile-menu"
-                aria-label={sidebarOpen ? "Close filters menu" : "Open filters menu"}
-                aria-expanded={sidebarOpen}
-              >
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              </Button>
-              <h1 className="text-xl font-medium" data-testid="text-app-title">
-                Linguistic Family Tree
-              </h1>
-            </div>
-            <nav className="flex items-center space-x-1 md:space-x-2" aria-label="Main tools">
-              <button
-                onClick={() => setGlobalSearchOpen(true)}
-                className="hidden md:flex items-center space-x-2 bg-blue-500 hover:bg-blue-400 text-white/90 rounded-md px-3 py-1.5 text-sm transition-colors w-64 justify-between"
-                data-testid="input-search"
-                aria-label="Search everything (Cmd+K)"
-              >
-                <span className="flex items-center space-x-2">
-                  <Search className="h-4 w-4" aria-hidden="true" />
-                  <span>Search everything...</span>
-                </span>
-                <kbd className="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-blue-400 bg-blue-600 px-1.5 font-mono text-[10px] font-medium text-white/70">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
-              </button>
-              {/* Mobile search button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="md:hidden p-2 text-white hover:bg-blue-700"
-                onClick={() => setGlobalSearchOpen(true)}
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" aria-hidden="true" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => navigate("/text-analyzer")}
-                data-testid="button-text-analyzer"
-                title="Text Analyzer"
-              >
-                <FileText className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => navigate("/word-etymology")}
-                data-testid="button-word-etymology"
-                title="Word Etymology"
-              >
-                <BookOpen className="h-5 w-5" />
-              </Button>
+      {/* Header — compact, full-width */}
+      <header className="bg-blue-600 text-white shadow-sm flex-shrink-0 z-50" role="banner">
+        <div className="flex items-center justify-between h-12 px-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              className="p-1.5 rounded-md hover:bg-blue-500 transition-colors"
+              aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              title={`${sidebarCollapsed ? "Show" : "Hide"} sidebar (⌘B)`}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeft className="h-4 w-4" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" />
+              )}
+            </button>
+            <h1 className="text-base font-medium" data-testid="text-app-title">
+              Linguistic Family Tree
+            </h1>
+          </div>
 
-              {/* Always visible: key tools */}
-              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setComparisonOpen(true)} aria-label="Word Comparison" title="Word Comparison"><GitCompare className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setPhonologyOpen(true)} aria-label="Phonological Inventory" title="Phonology"><Music className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className="hidden lg:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setGrammarOpen(true)} aria-label="Grammar Comparison" title="Grammar"><BookOpen className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setWritingSystemsOpen(true)} aria-label="Writing Systems" title="Writing Systems"><Type className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setVerbParadigmsOpen(true)} aria-label="Verb Conjugations" title="Verb Conjugations"><Languages className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className="hidden xl:inline-flex p-2 text-white hover:bg-blue-700" onClick={() => setDistanceAnalyzerOpen(true)} aria-label="Linguistic Distance Analyzer" title="Distance Analyzer"><Network className="h-5 w-5" aria-hidden="true" /></Button>
-              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${darkMode ? 'ring-2 ring-white' : ''}`} onClick={toggleDarkMode} aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"} aria-pressed={darkMode} title="Toggle dark mode">
-                <Moon className="h-5 w-5" aria-hidden="true" />
-              </Button>
-              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${highContrast ? 'ring-2 ring-white' : ''}`} onClick={toggleHighContrast} aria-label={highContrast ? "Disable high contrast mode" : "Enable high contrast mode"} aria-pressed={highContrast} title="Toggle high contrast mode">
-                <Eye className="h-5 w-5" aria-hidden="true" />
-              </Button>
-              <Button variant="ghost" size="sm" className={`p-2 text-white hover:bg-blue-700 ${reducedMotion ? 'ring-2 ring-white' : ''}`} onClick={toggleReducedMotion} aria-label={reducedMotion ? "Enable animations" : "Reduce animations"} aria-pressed={reducedMotion} title="Toggle reduced motion">
-                <Pause className="h-5 w-5" aria-hidden="true" />
-              </Button>
-              <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-blue-700" onClick={handleCopyLink} aria-label={linkCopied ? "Link copied" : "Copy shareable link"} title="Copy shareable link">
-                {linkCopied ? <Check className="h-5 w-5" aria-hidden="true" /> : <Link2 className="h-5 w-5" aria-hidden="true" />}
-              </Button>
-
-              {/* Overflow dropdown for remaining tools */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-2 text-white hover:bg-blue-700" aria-label="More tools">
-                    <MoreVertical className="h-5 w-5" aria-hidden="true" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem className="lg:hidden" onClick={() => setComparisonOpen(true)}>
-                    <GitCompare className="h-4 w-4 mr-2" aria-hidden="true" /> Word Comparison
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="lg:hidden" onClick={() => setPhonologyOpen(true)}>
-                    <Music className="h-4 w-4 mr-2" aria-hidden="true" /> Phonology
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="lg:hidden" onClick={() => setGrammarOpen(true)}>
-                    <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" /> Grammar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="xl:hidden" onClick={() => setWritingSystemsOpen(true)}>
-                    <Type className="h-4 w-4 mr-2" aria-hidden="true" /> Writing Systems
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="xl:hidden" onClick={() => setVerbParadigmsOpen(true)}>
-                    <Languages className="h-4 w-4 mr-2" aria-hidden="true" /> Verb Conjugations
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="xl:hidden" onClick={() => setDistanceAnalyzerOpen(true)}>
-                    <Network className="h-4 w-4 mr-2" aria-hidden="true" /> Distance Analyzer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguageContactsOpen(true)}>
-                    <ArrowLeftRight className="h-4 w-4 mr-2" aria-hidden="true" /> Language Contacts
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSoundChangesOpen(true)}>
-                    <Zap className="h-4 w-4 mr-2" aria-hidden="true" /> Sound Changes
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setArtTraditionsOpen(true)}>
-                    <Palette className="h-4 w-4 mr-2" aria-hidden="true" /> Art Traditions
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLiteraryTraditionsOpen(true)}>
-                    <BookOpen className="h-4 w-4 mr-2" aria-hidden="true" /> Literary Traditions
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTradeGoodsOpen(true)}>
-                    <Package className="h-4 w-4 mr-2" aria-hidden="true" /> Trade Goods
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setArchCulturesOpen(true)}>
-                    <Landmark className="h-4 w-4 mr-2" aria-hidden="true" /> Archaeological Cultures
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setCorrelationExplorerOpen(true)}>
-                    <Combine className="h-4 w-4 mr-2" aria-hidden="true" /> Correlation Explorer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/stories" className="flex items-center">
-                      <Compass className="h-4 w-4 mr-2" aria-hidden="true" /> Guided Stories
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/scraper" className="flex items-center">
-                      <Database className="h-4 w-4 mr-2" aria-hidden="true" /> Scraper Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="h-4 w-4 mr-2" aria-hidden="true" /> Settings
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </nav>
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <button
+              onClick={() => setGlobalSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white/90 rounded-md px-3 py-1 text-sm transition-colors w-56 justify-between"
+              data-testid="input-search"
+              aria-label="Search everything (Cmd+K)"
+            >
+              <span className="flex items-center gap-2">
+                <Search className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Search...</span>
+              </span>
+              <kbd className="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-blue-400 bg-blue-600 px-1.5 font-mono text-[10px] font-medium text-white/70">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </button>
+            {/* Mobile search */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden p-1.5 text-white hover:bg-blue-500"
+              onClick={() => setGlobalSearchOpen(true)}
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            {/* Dark mode */}
+            <button
+              className={`p-1.5 rounded-md hover:bg-blue-500 transition-colors ${darkMode ? 'ring-1 ring-white/50' : ''}`}
+              onClick={toggleDarkMode}
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              title="Toggle dark mode"
+            >
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            </button>
           </div>
         </div>
       </header>
 
-      <div className={`max-w-7xl mx-auto flex ${selectedLanguageId ? 'lg:mr-96' : ''}`}>
+      {/* Filter Bar */}
+      <div className="bg-white border-b border-gray-200 flex-shrink-0 z-40">
+        <div className="flex items-center gap-3 h-9 px-4 text-sm">
+          <Filter className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" aria-hidden="true" />
+
+          {/* Status filter popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-gray-100 text-gray-700 transition-colors text-xs">
+                <span>Status</span>
+                {vizState.filters.status.length > 0 && (
+                  <span className="bg-blue-100 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                    {vizState.filters.status.length}
+                  </span>
+                )}
+                <ChevronDown className="h-3 w-3 text-gray-400" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-52 p-3" align="start">
+              <div className="space-y-2">
+                {[
+                  { id: "living", label: "Living" },
+                  { id: "endangered", label: "Endangered" },
+                  { id: "extinct", label: "Extinct" },
+                  { id: "proto", label: "Proto-language" },
+                  { id: "historical", label: "Historical" },
+                ].map((option) => (
+                  <div key={option.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`filter-status-${option.id}`}
+                      checked={vizState.filters.status.includes(option.id)}
+                      onCheckedChange={(checked) => {
+                        const newStatus = checked
+                          ? [...vizState.filters.status, option.id]
+                          : vizState.filters.status.filter((s: string) => s !== option.id);
+                        updateFilters({ status: newStatus });
+                      }}
+                    />
+                    <label htmlFor={`filter-status-${option.id}`} className="text-sm text-gray-700 cursor-pointer">
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Region filter */}
+          <Select
+            value={vizState.filters.region || "all-regions"}
+            onValueChange={(value) => updateFilters({ region: value === "all-regions" ? "" : value })}
+          >
+            <SelectTrigger className="w-auto h-6 border-0 shadow-none hover:bg-gray-100 text-gray-700 gap-1 px-2 text-xs">
+              <SelectValue placeholder="All Regions" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all-regions">All Regions</SelectItem>
+              {["Europe", "Asia", "Africa", "North America", "South America", "Oceania", "Middle East"].map((region) => (
+                <SelectItem key={region} value={region}>{region}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Active filter pills */}
+          {(vizState.filters.status.length > 0 || vizState.filters.region) && (
+            <>
+              <div className="h-3 w-px bg-gray-300" />
+              {vizState.filters.status.map((s: string) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0.5 rounded-full"
+                >
+                  {s}
+                  <button
+                    onClick={() => updateFilters({ status: vizState.filters.status.filter((x: string) => x !== s) })}
+                    className="hover:text-blue-900"
+                    aria-label={`Remove ${s} filter`}
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              ))}
+              {vizState.filters.region && (
+                <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full">
+                  {vizState.filters.region}
+                  <button
+                    onClick={() => updateFilters({ region: "" })}
+                    className="hover:text-green-900"
+                    aria-label="Remove region filter"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={() => updateFilters({ status: [], region: "" })}
+                className="text-[10px] text-gray-500 hover:text-gray-700"
+              >
+                Clear all
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Main layout: sidebar + content */}
+      <div className="flex-1 flex min-h-0">
         {/* Sidebar */}
-        <FiltersSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          filters={filters}
-          onFiltersChange={setFilters}
-        />
+        {!sidebarCollapsed && (
+          <AppSidebar
+            activeView={vizState.currentView}
+            activeSection={activeSection}
+            onViewChange={handleViewChange}
+            onSectionChange={setActiveSection}
+            onNavigate={navigate}
+          />
+        )}
 
-        {/* Main Content */}
-        <main id="main-content" className="flex-1 p-3 md:p-6" role="main">
-          <StatsOverview />
-
+        {/* Main content area */}
+        <main id="main-content" className="flex-1 flex flex-col min-h-0 min-w-0" role="main">
           {/* Scraping Progress */}
           {activeJobs.length > 0 && (
-            <div className="mt-6">
+            <div className="px-4 pt-3 flex-shrink-0">
               <RealTimeProgress activeJobs={activeJobs} />
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-material-1 mt-8">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900" data-testid="text-tree-title">
-                  Language Family Tree
-                </h2>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary hover:bg-blue-50"
-                    data-testid="button-expand-all"
-                    onClick={() => {
-                      const timestamp = Date.now();
-                      setCollapseAll(0);
-                      setExpandAll(timestamp);
-                    }}
-                  >
-                    Expand All
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary hover:bg-blue-50"
-                    data-testid="button-collapse-all"
-                    onClick={() => {
-                      const timestamp = Date.now();
-                      setExpandAll(0);
-                      setCollapseAll(timestamp);
-                    }}
-                  >
-                    Collapse All
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
+          {/* Content area — render active section, panel, or visualization */}
+          <div className="flex-1 min-h-0">
+            {activeSection === 'text-analyzer' ? (
+              <TextAnalyzer embedded onNavigateToEtymology={handleNavigateToEtymology} />
+            ) : activeSection === 'word-etymology' ? (
+              <WordEtymology key={`${etymologyWord}-${etymologyLanguage}`} embedded initialWord={etymologyWord} initialLanguage={etymologyLanguage} />
+            ) : activeSection === 'comparison' ? (
+              <WordComparisonPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'distance' ? (
+              <LinguisticDistanceAnalyzer isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'phonology' ? (
+              <PhonologyPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'grammar' ? (
+              <GrammarPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'writing' ? (
+              <WritingSystemsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'verbs' ? (
+              <VerbParadigmsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'contacts' ? (
+              <LanguageContactsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'sounds' ? (
+              <SoundChangesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'art' ? (
+              <ArtTraditionsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'literary' ? (
+              <LiteraryTraditionsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'trade' ? (
+              <TradeGoodsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'archCultures' ? (
+              <ArchaeologicalCulturesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'correlation' ? (
+              <CorrelationExplorerPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'data-overview' ? (
+              <DataOverview />
+            ) : (
               <LanguageFamilyVisualization
                 selectedLanguageId={selectedLanguageId}
                 onLanguageSelect={setSelectedLanguageId}
               />
-              {/* Old tree component (commented out - can be restored if needed)
-              <LanguageTree
-                searchQuery={searchQuery}
-                filters={filters}
-                selectedLanguageId={selectedLanguageId}
-                onLanguageSelect={setSelectedLanguageId}
-                onRefresh={() => {
-                  // Refresh the language tree data
-                  window.location.reload();
-                }}
-                expandAll={expandAll}
-                collapseAll={collapseAll}
-              />
-              */}
-            </div>
+            )}
           </div>
         </main>
       </div>
@@ -535,83 +457,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Word Comparison Panel */}
-      <WordComparisonPanel
-        isOpen={comparisonOpen}
-        onClose={() => setComparisonOpen(false)}
-      />
-
-      {/* Linguistic Distance Analyzer */}
-      <LinguisticDistanceAnalyzer
-        isOpen={distanceAnalyzerOpen}
-        onClose={() => setDistanceAnalyzerOpen(false)}
-      />
-
-      {/* Phonological Inventory Comparison */}
-      <PhonologyPanel
-        isOpen={phonologyOpen}
-        onClose={() => setPhonologyOpen(false)}
-      />
-
-      {/* Grammar Comparison Matrix */}
-      <GrammarPanel
-        isOpen={grammarOpen}
-        onClose={() => setGrammarOpen(false)}
-      />
-
-      {/* Writing Systems Explorer */}
-      <WritingSystemsPanel
-        isOpen={writingSystemsOpen}
-        onClose={() => setWritingSystemsOpen(false)}
-      />
-
-      {/* Verb Conjugation Comparison */}
-      <VerbParadigmsPanel
-        isOpen={verbParadigmsOpen}
-        onClose={() => setVerbParadigmsOpen(false)}
-      />
-
-      {/* Language Contact Network */}
-      <LanguageContactsPanel
-        isOpen={languageContactsOpen}
-        onClose={() => setLanguageContactsOpen(false)}
-      />
-
-      {/* Sound Changes Explorer */}
-      <SoundChangesPanel
-        isOpen={soundChangesOpen}
-        onClose={() => setSoundChangesOpen(false)}
-      />
-
-      {/* Art Traditions Explorer */}
-      <ArtTraditionsPanel
-        isOpen={artTraditionsOpen}
-        onClose={() => setArtTraditionsOpen(false)}
-      />
-
-      {/* Literary Traditions Explorer */}
-      <LiteraryTraditionsPanel
-        isOpen={literaryTraditionsOpen}
-        onClose={() => setLiteraryTraditionsOpen(false)}
-      />
-
-      {/* Trade Goods Explorer */}
-      <TradeGoodsPanel
-        isOpen={tradeGoodsOpen}
-        onClose={() => setTradeGoodsOpen(false)}
-      />
-
-      {/* Archaeological Cultures Explorer */}
-      <ArchaeologicalCulturesPanel
-        isOpen={archCulturesOpen}
-        onClose={() => setArchCulturesOpen(false)}
-      />
-
-      {/* Correlation Explorer */}
-      <CorrelationExplorerPanel
-        isOpen={correlationExplorerOpen}
-        onClose={() => setCorrelationExplorerOpen(false)}
-      />
+      {/* Panels are now rendered inline in the main content area above */}
 
       {/* Global Search Dialog */}
       <GlobalSearchDialog
@@ -624,7 +470,7 @@ export default function Dashboard() {
       <div className="fixed bottom-6 right-6 z-40">
         <Button
           onClick={() => setScrapingMenuOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-material-3 transition-all duration-200 hover:scale-105"
+          className="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
           data-testid="button-floating-action"
           title="Scrape New Data"
           aria-label="Scrape New Data"
@@ -672,7 +518,6 @@ export default function Dashboard() {
               className="p-4 cursor-pointer hover:bg-blue-50 border-2 hover:border-blue-300 transition-colors"
               onClick={() => {
                 setScrapingMenuOpen(false);
-                // Open the scraping modal directly by triggering the button click
                 setTimeout(() => {
                   const scrapingButton = document.querySelector('[data-testid="button-trigger-scraping"]') as HTMLButtonElement;
                   scrapingButton?.click();
@@ -697,7 +542,57 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Enrich Existing Data</p>
+            <div className="space-y-2">
+              <Card
+                className="p-3 cursor-pointer hover:bg-emerald-50 border hover:border-emerald-300 transition-colors"
+                onClick={() => handleEnrichment("/api/enrichment/languages", "Language Coordinates & Dates")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-1.5 bg-emerald-100 rounded-lg">
+                    <MapPin className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-900">Enrich Coordinates & Temporal Data</h3>
+                    <p className="text-xs text-gray-500">Add lat/lng and time origin/end to all languages</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                className="p-3 cursor-pointer hover:bg-orange-50 border hover:border-orange-300 transition-colors"
+                onClick={() => handleEnrichment("/api/enrichment/phonology", "Phonological Inventories")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-1.5 bg-orange-100 rounded-lg">
+                    <Music className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-900">Enrich Phonological Inventories</h3>
+                    <p className="text-xs text-gray-500">Add consonant/vowel inventories, syllable structure</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                className="p-3 cursor-pointer hover:bg-indigo-50 border hover:border-indigo-300 transition-colors"
+                onClick={() => handleEnrichment("/api/enrichment/grammar", "Grammar Features")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-1.5 bg-indigo-100 rounded-lg">
+                    <BookOpen className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-gray-900">Enrich Grammar Features</h3>
+                    <p className="text-xs text-gray-500">Add word order, morphology, case/gender systems</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t">
             <Button
               variant="outline"
               onClick={() => setScrapingMenuOpen(false)}
@@ -710,7 +605,7 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Word Scraping Dialog - now opens directly */}
+      {/* Word Scraping Dialog */}
       <ScrapingTriggerButton />
 
       {/* Scraping Status Bar */}

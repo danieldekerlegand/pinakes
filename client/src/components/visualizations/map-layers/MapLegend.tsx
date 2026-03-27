@@ -11,7 +11,7 @@ interface MapLegendProps {
 }
 
 export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegendProps) {
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   // Get only visible layers
   const visibleLayers = useMemo(() => {
@@ -24,7 +24,7 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
 
   if (!isOpen) {
     return (
-      <div className="absolute bottom-20 right-4 z-[1000]">
+      <div className="absolute bottom-4 left-4 z-[1000]">
         <Button
           variant="outline"
           size="sm"
@@ -39,27 +39,11 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
   }
 
   return (
-    <div className="absolute bottom-20 right-4 z-[1000] w-64">
+    <div className="absolute bottom-4 left-4 z-[1000] w-64">
       <Card className="bg-white shadow-lg">
         <div className="p-3">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              <h4 className="font-semibold text-sm">Legend</h4>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="h-6 w-6 p-0"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Legend Items */}
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
+          {/* Legend Items (above header so it expands upward visually) */}
+          <div className="space-y-3 max-h-[300px] overflow-y-auto mb-3">
             {visibleLayers.map((layer) => (
               <div key={layer.id} className="space-y-1">
                 <div className="text-xs font-medium text-gray-700">{layer.name}</div>
@@ -257,6 +241,22 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
               <div>Click features to select</div>
               <div>Hover for details</div>
             </div>
+          </div>
+
+          {/* Header at bottom */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Info className="h-4 w-4" />
+              <h4 className="font-semibold text-sm">Legend</h4>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="h-6 w-6 p-0"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </Card>

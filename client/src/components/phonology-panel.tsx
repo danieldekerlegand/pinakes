@@ -28,6 +28,7 @@ interface PhonologicalInventory {
 interface PhonologyPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 // Standard IPA consonant chart layout
@@ -167,7 +168,7 @@ const LANG_COLORS = [
 
 const MAX_LANGUAGES = 4;
 
-export default function PhonologyPanel({ isOpen, onClose }: PhonologyPanelProps) {
+export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyPanelProps) {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -177,6 +178,7 @@ export default function PhonologyPanel({ isOpen, onClose }: PhonologyPanelProps)
 
   const { data: inventories = [] } = useQuery<PhonologicalInventory[]>({
     queryKey: ["/api/phonological-inventories"],
+    select: (data: any) => data.inventories ?? data,
   });
 
   // Filter languages to only those with phonological data
@@ -264,17 +266,13 @@ export default function PhonologyPanel({ isOpen, onClose }: PhonologyPanelProps)
     return { sharedConsonants: new Set(sharedConsonants), sharedVowels: new Set(sharedVowels) };
   }, [selectedInventories]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const getLangName = (langId: string) =>
     languages.find((l) => l.id === langId)?.name || langId;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
-      <div
-        className="fixed right-0 top-0 h-full w-[1000px] max-w-[95vw] bg-white shadow-lg flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[1000px] max-w-[95vw] bg-white shadow-lg flex flex-col"} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex-shrink-0 border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -287,12 +285,14 @@ export default function PhonologyPanel({ isOpen, onClose }: PhonologyPanelProps)
                 Compare sound systems across languages on IPA charts
               </p>
             </div>
+            {!embedded && (
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
             >
               <X className="h-5 w-5" />
             </button>
+            )}
           </div>
         </div>
 
@@ -651,6 +651,14 @@ export default function PhonologyPanel({ isOpen, onClose }: PhonologyPanelProps)
           </div>
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+      {panelContent}
     </div>
   );
 }

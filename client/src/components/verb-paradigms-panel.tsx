@@ -33,6 +33,7 @@ interface VerbParadigm {
 interface VerbParadigmsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 const LANGUAGE_COLORS = [
@@ -41,7 +42,7 @@ const LANGUAGE_COLORS = [
   { bg: "bg-purple-100", text: "text-purple-800", border: "border-purple-300", cell: "bg-purple-50", header: "bg-purple-600" },
 ];
 
-export default function VerbParadigmsPanel({ isOpen, onClose }: VerbParadigmsPanelProps) {
+export default function VerbParadigmsPanel({ isOpen, onClose, embedded }: VerbParadigmsPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedVerbConcept, setSelectedVerbConcept] = useState<string>("to be");
@@ -202,21 +203,14 @@ export default function VerbParadigmsPanel({ isOpen, onClose }: VerbParadigmsPan
     return labels[person] ?? person;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[900px] max-w-[95vw] bg-white shadow-xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-indigo-600 text-white">
-          <h2 className="text-lg font-semibold">Verb Conjugation Comparison</h2>
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-[95vw] bg-white shadow-xl z-50 flex flex-col"}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-indigo-600 text-white">
+        <h2 className="text-lg font-semibold">Verb Conjugation Comparison</h2>
+        {!embedded && (
           <Button
             variant="ghost"
             size="sm"
@@ -225,7 +219,8 @@ export default function VerbParadigmsPanel({ isOpen, onClose }: VerbParadigmsPan
           >
             <X className="h-5 w-5" />
           </Button>
-        </div>
+        )}
+      </div>
 
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
@@ -487,6 +482,14 @@ export default function VerbParadigmsPanel({ isOpen, onClose }: VerbParadigmsPan
           </div>
         </ScrollArea>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
+      {panelContent}
     </>
   );
 }

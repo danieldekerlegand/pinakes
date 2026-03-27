@@ -321,7 +321,13 @@ function getLanguageName(differences: ComparisonDifference[], languageCode: stri
   return languageCode;
 }
 
-export default function TextAnalyzer() {
+interface TextAnalyzerProps {
+  embedded?: boolean;
+  onNavigateToEtymology?: (word: string, language: string) => void;
+}
+
+export default function TextAnalyzer(props: TextAnalyzerProps & Record<string, any> = {}) {
+  const { embedded, onNavigateToEtymology } = props;
   const [, navigate] = useLocation();
   const autoAnalyzed = useRef(false);
 
@@ -400,29 +406,9 @@ export default function TextAnalyzer() {
     </Select>
   );
 
-  return (
-    <div className="min-h-screen bg-surface">
-      {/* Header */}
-      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={() => navigate("/")}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-medium">Text Analyzer</h1>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 ${mode === "compare" ? "max-w-6xl" : "max-w-4xl"}`}>
-        <Card className="p-6 space-y-6">
+  const content = (
+    <div className={embedded ? "h-full overflow-y-auto p-4" : `mx-auto px-4 sm:px-6 lg:px-8 py-8 ${mode === "compare" ? "max-w-6xl" : "max-w-4xl"}`}>
+      <Card className="p-6 space-y-6">
           <div>
             <h2 className="text-lg font-semibold mb-2">Analyze Text Etymology</h2>
             <p className="text-sm text-muted-foreground">
@@ -595,10 +581,14 @@ export default function TextAnalyzer() {
                     wordDetails={analysisMutation.data.wordDetails}
                     originColorMap={buildOriginColorMap(analysisMutation.data.origins)}
                     onWordClick={(w, lang) => {
-                      const params = new URLSearchParams();
-                      params.set("word", w);
-                      if (lang) params.set("language", lang);
-                      navigate("/word-etymology?" + params.toString());
+                      if (onNavigateToEtymology) {
+                        onNavigateToEtymology(w, lang);
+                      } else {
+                        const params = new URLSearchParams();
+                        params.set("word", w);
+                        if (lang) params.set("language", lang);
+                        navigate("/word-etymology?" + params.toString());
+                      }
                     }}
                   />
                 </div>
@@ -803,6 +793,30 @@ export default function TextAnalyzer() {
           )}
         </Card>
       </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div className="min-h-screen bg-surface">
+      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={() => navigate("/")}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-medium">Text Analyzer</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+      {content}
     </div>
   );
 }

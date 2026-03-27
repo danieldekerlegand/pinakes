@@ -772,6 +772,280 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === Data Enrichment Endpoints ===
+
+  // Enrich languages with coordinates and temporal data
+  app.post("/api/enrichment/languages", async (req, res) => {
+    try {
+      const { fields } = req.body;
+      const validFields = (fields || ['coordinates', 'temporal']).filter(
+        (f: string) => f === 'coordinates' || f === 'temporal'
+      );
+
+      const languages = await storage.getLanguages();
+      if (languages.length === 0) {
+        return res.status(400).json({ message: "No languages available to enrich" });
+      }
+
+      const job = jobStore.createJob("language-enrichment", languages.length, "gemini");
+
+      // Lazy import to avoid circular deps and only load when needed
+      const { languageEnrichmentService } = await import("./services/language-enrichment");
+
+      languageEnrichmentService
+        .enrichLanguages({
+          languages,
+          fields: validFields,
+          jobId: job.id,
+          progressCallback: (type: string, message: string) => {
+            console.log(`[Language Enrichment] ${type}: ${message}`);
+            if (type === 'progress') {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            }
+          },
+        })
+        .then((result: { enriched: number; failed: number }) => {
+          storage.invalidateCache('languages');
+          console.log(`Language enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
+        })
+        .catch((error: unknown) => {
+          console.error("Language enrichment failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Language enrichment started",
+        status: "pending",
+        totalLanguages: languages.length,
+        fields: validFields,
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting language enrichment:", error);
+      res.status(500).json({ message: "Failed to start language enrichment" });
+    }
+  });
+
+  // Enrich phonological inventories
+  app.post("/api/enrichment/phonology", async (req, res) => {
+    try {
+      const languages = await storage.getLanguages();
+      if (languages.length === 0) {
+        return res.status(400).json({ message: "No languages available" });
+      }
+
+      const job = jobStore.createJob("phonology-enrichment", languages.length, "gemini");
+
+      const { phonologyEnrichmentService } = await import("./services/phonology-enrichment");
+
+      phonologyEnrichmentService
+        .enrichPhonologies({
+          languages,
+          jobId: job.id,
+          progressCallback: (type: string, message: string) => {
+            console.log(`[Phonology Enrichment] ${type}: ${message}`);
+            if (type === 'progress') {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            }
+          },
+        })
+        .then((result: { enriched: number; failed: number }) => {
+          storage.invalidateCache('phonology');
+          console.log(`Phonology enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
+        })
+        .catch((error: unknown) => {
+          console.error("Phonology enrichment failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Phonology enrichment started",
+        status: "pending",
+        totalLanguages: languages.length,
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting phonology enrichment:", error);
+      res.status(500).json({ message: "Failed to start phonology enrichment" });
+    }
+  });
+
+  // Enrich grammar features
+  app.post("/api/enrichment/grammar", async (req, res) => {
+    try {
+      const languages = await storage.getLanguages();
+      if (languages.length === 0) {
+        return res.status(400).json({ message: "No languages available" });
+      }
+
+      const job = jobStore.createJob("grammar-enrichment", languages.length, "gemini");
+
+      const { grammarEnrichmentService } = await import("./services/grammar-enrichment");
+
+      grammarEnrichmentService
+        .enrichGrammar({
+          languages,
+          jobId: job.id,
+          progressCallback: (type: string, message: string) => {
+            console.log(`[Grammar Enrichment] ${type}: ${message}`);
+            if (type === 'progress') {
+              jobStore.updateJob(job.id, { statusMessage: message });
+            }
+          },
+        })
+        .then((result: { enriched: number; failed: number }) => {
+          storage.invalidateCache('grammar');
+          console.log(`Grammar enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
+        })
+        .catch((error: unknown) => {
+          console.error("Grammar enrichment failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Grammar enrichment started",
+        status: "pending",
+        totalLanguages: languages.length,
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting grammar enrichment:", error);
+      res.status(500).json({ message: "Failed to start grammar enrichment" });
+    }
+  });
+
+  // Dataset statistics for the Data Overview page
+  // Uses direct file reads to avoid parser failures in storage methods
+  app.get("/api/data/stats", async (_req, res) => {
+    try {
+      const fs = await import("node:fs");
+      const nodePath = await import("node:path");
+      const lexDir = nodePath.resolve(process.cwd(), "lexicons");
+
+      const countRows = (file: string): number => {
+        try {
+          const content = fs.readFileSync(nodePath.join(lexDir, file), "utf8");
+          const lines = content.split("\n").filter((l: string) => l.trim().length > 0);
+          return Math.max(0, lines.length - 1);
+        } catch {
+          return 0;
+        }
+      };
+
+      const languageCoverage = () => {
+        try {
+          const content = fs.readFileSync(nodePath.join(lexDir, "languages.tsv"), "utf8");
+          const lines = content.split("\n").filter((l: string) => l.trim().length > 0);
+          if (lines.length < 2) return { coordinates: 0, temporal: 0, writingSystem: 0 };
+          const header = lines[0].split("\t");
+          const latIdx = header.indexOf("latitude");
+          const lngIdx = header.indexOf("longitude");
+          const originIdx = header.indexOf("originYear");
+          const wsIdx = header.indexOf("writingSystem");
+          let coords = 0, temporal = 0, ws = 0;
+          for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split("\t");
+            if (latIdx >= 0 && lngIdx >= 0 && cols[latIdx]?.trim() && cols[lngIdx]?.trim()) coords++;
+            if (originIdx >= 0 && cols[originIdx]?.trim()) temporal++;
+            if (wsIdx >= 0 && cols[wsIdx]?.trim()) ws++;
+          }
+          return { coordinates: coords, temporal, writingSystem: ws };
+        } catch {
+          return { coordinates: 0, temporal: 0, writingSystem: 0 };
+        }
+      };
+
+      const tsvFiles: { category: string; name: string; file: string; unit?: string; note?: string }[] = [
+        { category: "Linguistics", name: "Language Families", file: "families.tsv" },
+        { category: "Linguistics", name: "Languages", file: "languages.tsv" },
+        { category: "Linguistics", name: "Base Words (Concepts)", file: "words-base.tsv" },
+        { category: "Linguistics", name: "Word Forms", file: "words.tsv", unit: "forms" },
+        { category: "Linguistics", name: "Etymology Relations", file: "etymology-relations.tsv" },
+        { category: "Linguistics", name: "Sample Texts", file: "sample-texts.tsv" },
+        { category: "Linguistics", name: "Phonological Inventories", file: "phonological-inventories.tsv" },
+        { category: "Linguistics", name: "Grammar Features", file: "grammar-features.tsv" },
+        { category: "Linguistics", name: "Writing Systems", file: "writing-systems.tsv" },
+        { category: "Linguistics", name: "Verb Paradigms", file: "verb-paradigms.tsv" },
+        { category: "Linguistics", name: "Language Contacts", file: "language-contacts.tsv" },
+        { category: "Linguistics", name: "Sound Changes", file: "sound-changes.tsv" },
+        { category: "Genetics", name: "Haplogroups", file: "haplogroups.tsv" },
+        { category: "Culture", name: "Art Traditions", file: "art-traditions.tsv" },
+        { category: "Culture", name: "Architectural Styles", file: "architectural-styles.tsv" },
+        { category: "Culture", name: "Literary Traditions", file: "literary-traditions.tsv" },
+        { category: "Culture", name: "Literary Works", file: "literary-works.tsv" },
+        { category: "Culture", name: "Music Traditions", file: "music-traditions.tsv" },
+        { category: "Culture", name: "Musical Instruments", file: "musical-instruments.tsv" },
+        { category: "Culture", name: "Dance Traditions", file: "dance-traditions.tsv" },
+        { category: "Religion", name: "Religions", file: "religions.tsv" },
+        { category: "Religion", name: "Deities", file: "deities.tsv" },
+        { category: "Religion", name: "Myth Motifs", file: "myth-motifs.tsv" },
+        { category: "History", name: "Archaeological Cultures", file: "archaeological-cultures.tsv" },
+        { category: "History", name: "Battles", file: "battles.tsv" },
+        { category: "History", name: "Migration Routes", file: "migration-routes.tsv" },
+        { category: "History", name: "Trade Goods", file: "trade-goods.tsv" },
+        { category: "History", name: "Trade Routes", file: "trade-routes.tsv" },
+        { category: "History", name: "Urheimat Hypotheses", file: "urheimat-hypotheses.tsv" },
+        { category: "History", name: "Civilizations", file: "civilizations.tsv" },
+        { category: "History", name: "Civilization Boundaries", file: "civilization-boundaries.tsv" },
+        { category: "Food", name: "Cuisines", file: "cuisines.tsv" },
+        { category: "Food", name: "Cuisine Items", file: "cuisine-items.tsv" },
+        { category: "Food", name: "Ingredient Origins", file: "ingredient-origins.tsv" },
+        { category: "Food", name: "Cooking Techniques", file: "cooking-techniques.tsv" },
+        { category: "Food", name: "Foodway Events", file: "foodway-events.tsv" },
+        { category: "Culture", name: "Material Culture", file: "material-culture.tsv" },
+        { category: "Social", name: "Kinship Systems", file: "kinship-systems.tsv" },
+        { category: "Social", name: "Cultural Lineages", file: "cultural-lineages.tsv" },
+        { category: "Social", name: "Narratives", file: "narratives.tsv" },
+        { category: "Mythology", name: "Deities", file: "deities.tsv" },
+        { category: "Mythology", name: "Myth Motifs", file: "myth-motifs.tsv" },
+        { category: "Geography", name: "Language Ranges", file: "language-ranges.tsv" },
+        { category: "Geography", name: "Range Polygons", file: "language-range-polygons.tsv" },
+      ];
+
+      // Deduplicate by file name (deities/myth-motifs appear in both Religion and Mythology)
+      const seen = new Set<string>();
+      const uniqueFiles = tsvFiles.filter((f) => {
+        const key = `${f.category}:${f.file}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      const datasets = uniqueFiles.map((entry) => {
+        const count = countRows(entry.file);
+        const result: Record<string, unknown> = {
+          category: entry.category,
+          name: entry.name,
+          count,
+          file: entry.file,
+        };
+        if (entry.unit) result.unit = entry.unit;
+        if (entry.note) result.note = entry.note;
+        if (entry.name === "Languages") {
+          result.coverage = languageCoverage();
+        }
+        return result;
+      });
+
+      res.json({ datasets });
+    } catch (error) {
+      console.error("Error getting data stats:", error);
+      res.status(500).json({ message: "Failed to get data stats" });
+    }
+  });
+
   // Get scraping status (placeholder for now)
   app.get("/api/scraping/status", async (_req, res) => {
     try {

@@ -835,6 +835,33 @@ export class TsvStorage {
     };
   }
 
+  /**
+   * Invalidate cached data so it will be re-read from disk on next access.
+   * Pass specific cache names, or 'all' to clear everything.
+   */
+  invalidateCache(...cacheNames: string[]): void {
+    const clearAll = cacheNames.includes('all');
+    if (clearAll || cacheNames.includes('languages')) {
+      this.cachedLanguages = null;
+      this.cachedFamilies = null;
+      this.cachedFamilyTree = null;
+    }
+    if (clearAll || cacheNames.includes('phonology')) {
+      this.cachedPhonologicalInventories = null;
+    }
+    if (clearAll || cacheNames.includes('grammar')) {
+      this.cachedGrammarFeatures = null;
+    }
+    if (clearAll || cacheNames.includes('writing')) {
+      this.cachedWritingSystems = null;
+    }
+    if (clearAll || cacheNames.includes('words')) {
+      this.cachedForms = null;
+      this.cachedBaseWords = null;
+    }
+    console.log(`Cache invalidated: ${clearAll ? 'all' : cacheNames.join(', ')}`);
+  }
+
   private readFileOrThrow(relOrAbsPath: string): string {
     const candidates: string[] = [];
     if (path.isAbsolute(relOrAbsPath)) {

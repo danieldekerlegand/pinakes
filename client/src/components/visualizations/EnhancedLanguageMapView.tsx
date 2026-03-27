@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { Button } from '../ui/button';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
 import { LanguageRangeLayer } from './map-layers/LanguageRangeLayer';
@@ -252,6 +253,25 @@ export function EnhancedLanguageMapView({
   });
 
   // Fetch genetic-linguistic correlations
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const mapContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = React.useCallback(() => {
+    if (!document.fullscreenElement) {
+      mapContainerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   const [glcHaplogroupTypeFilter, setGlcHaplogroupTypeFilter] = React.useState<'Y-chromosome' | 'mtDNA' | null>(null);
   const { data: glcData, isLoading: loadingGlc } = useQuery<{
     correlations: CorrelationFeature[];
@@ -612,7 +632,7 @@ export function EnhancedLanguageMapView({
   }
 
   return (
-    <div className="w-full h-full relative rounded-lg overflow-hidden">
+    <div ref={mapContainerRef} className={`w-full h-full relative rounded-lg overflow-hidden ${isFullscreen ? 'bg-white' : ''}`}>
       <MapContainer
         center={initialCenter}
         zoom={2}
@@ -922,6 +942,17 @@ export function EnhancedLanguageMapView({
         battles={allBattles}
         isVisible={isPlaying || filteredCivilizations.length > 0 || allBattles.length > 0}
       />
+
+      {/* Fullscreen Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggleFullscreen}
+        className="absolute bottom-4 right-4 z-[1000] bg-white shadow-lg"
+        title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+      </Button>
 
       {/* Time Slider */}
       <TimeSlider

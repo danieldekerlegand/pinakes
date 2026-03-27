@@ -62,6 +62,7 @@ interface PrebuiltQueriesResponse {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 const DOMAINS: { value: DomainType; label: string; color: string }[] = [
@@ -99,7 +100,7 @@ function getDomainColor(domain: DomainType): string {
   return DOMAINS.find((d) => d.value === domain)?.color ?? "#6b7280";
 }
 
-export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
+export default function CorrelationExplorerPanel({ isOpen, onClose, embedded }: Props) {
   const [domainA, setDomainA] = useState<DomainType>("language");
   const [domainB, setDomainB] = useState<DomainType>("civilization");
   const [relationshipType, setRelationshipType] =
@@ -116,7 +117,7 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
 
   const { data: prebuiltData } = useQuery<PrebuiltQueriesResponse>({
     queryKey: ["/api/cross-domain/prebuilt-queries"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const prebuiltQueries = prebuiltData?.queries ?? [];
@@ -453,34 +454,27 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
       .text(`avg: ${mean.toFixed(2)}`);
   }, [result, viewMode]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[950px] bg-white shadow-xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Correlation Explorer
-              </h2>
-              <p className="text-indigo-100 text-sm mt-1">
-                Discover correlations between cultural domains
-              </p>
-              <span className="inline-flex items-center gap-1 text-xs text-indigo-200 mt-1">
-                <Cpu className="h-3 w-3" />
-                {isUsingWorker() ? 'WebWorker enabled' : 'Main thread'}
-              </span>
-            </div>
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[950px] bg-white shadow-xl z-50 flex flex-col"}>
+      {/* Header */}
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Correlation Explorer
+            </h2>
+            <p className="text-indigo-100 text-sm mt-1">
+              Discover correlations between cultural domains
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs text-indigo-200 mt-1">
+              <Cpu className="h-3 w-3" />
+              {isUsingWorker() ? 'WebWorker enabled' : 'Main thread'}
+            </span>
+          </div>
+          {!embedded && (
             <Button
               variant="ghost"
               size="sm"
@@ -489,8 +483,9 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
             >
               <X className="h-5 w-5" />
             </Button>
-          </div>
+          )}
         </div>
+      </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
@@ -804,6 +799,18 @@ export default function CorrelationExplorerPanel({ isOpen, onClose }: Props) {
           )}
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+      {panelContent}
     </>
   );
 }

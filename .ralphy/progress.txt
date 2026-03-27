@@ -838,3 +838,28 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+- [✓] 2026-03-27 02:44 - Create reusable TimelineVisualization component for temporal datasets
+- [✓] 2026-03-27 02:44 - Create reusable NetworkGraph component for relational datasets
+- [✓] 2026-03-27 02:44 - Create reusable TreeVisualization component for hierarchical datasets
+- [✓] 2026-03-27 02:44 - Create reusable ComparisonTable component for side-by-side analysis
+- [✓] 2026-03-27 02:49 - Create reusable SankeyFlow component for flow/influence datasets
+- [✓] 2026-03-27 02:55 - Create reusable ChordDiagram component for mutual relationship datasets
+- [✓] 2026-03-27 02:55 - Create reusable HeatmapGrid component for matrix datasets
+- [✓] 2026-03-27 02:55 - Create reusable GeoDistributionMap component for any mappable dataset
+- [✓] 2026-03-27 02:55 - Create reusable ParallelCoordinates component for multi-dimensional comparison
+- [✓] 2026-03-27 02:58 - Create unified VisualizationContainer wrapper with shared controls
+- [✓] 2026-03-27 03:08 - Refactor LanguageTimelineView to use the reusable TimelineVisualization
+- [✓] 2026-03-27 03:08 - Refactor LanguageNetworkView to use the reusable NetworkGraph
+- [✓] 2026-03-27 03:08 - Refactor LanguageTreeView to use the reusable TreeVisualization
+- [✓] 2026-03-27 03:08 - Create CivilizationTimeline view using reusable TimelineVisualization
+- [✓] 2026-03-27 03:13 - Create DeityPantheonGraph using reusable NetworkGraph
+- [✓] 2026-03-27 03:23 - Create TradeNetworkVisualization using reusable SankeyFlow and NetworkGraph
+- [✓] 2026-03-27 03:23 - Create WritingSystemEvolution tree using reusable TreeVisualization
+- [✓] 2026-03-27 03:23 - Create MusicalTraditionExplorer using reusable NetworkGraph and GeoDistributionMap
+- [✓] 2026-03-27 03:23 - Create CuisineComparisonView using reusable ComparisonTable and SankeyFlow
+- [✓] 2026-03-27 03:30 - Create LinguisticTypologyHeatmap using reusable HeatmapGrid
+- [✓] 2026-03-27 03:44 - Create unified DataExplorer page with visualization picker
+- [✓] 2026-03-27 03:44 - Create reusable DetailDrawer component for entity details
+- [✓] 2026-03-27 03:44 - Create CrossDomainTimeline combining multiple datasets on one timeline
+- [✓] 2026-03-27 03:44 - Create PhonemeComparisonView using HeatmapGrid and ComparisonTable
+- [✓] 2026-03-26 22:49 - Create GeneticLinguisticParallelView using ParallelCoordinates

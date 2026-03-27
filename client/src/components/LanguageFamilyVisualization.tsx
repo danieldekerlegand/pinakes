@@ -1,9 +1,7 @@
 import React, { useMemo, useRef, Suspense, lazy } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { TreePine, Network, Clock, MapPin, Loader2, Link2, Plus, GitBranch } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Card } from './ui/card';
-import { VisualizationProvider, useVisualization } from '../contexts/VisualizationContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useVisualization } from '../contexts/VisualizationContext';
 import { ExportMenu } from './visualizations/shared/ExportMenu';
 import {
   transformToTreeData,
@@ -44,12 +42,32 @@ interface LanguageFamilyVisualizationProps {
   onLanguageSelect?: (languageId: string) => void;
 }
 
+const VIEW_LABELS: Record<string, string> = {
+  tree: 'Hierarchical Tree',
+  network: 'Network Graph',
+  timeline: 'Timeline',
+  map: 'Geographic Map',
+  explorer: 'Cross-Domain Explorer',
+  lineage: 'Cultural Lineage',
+  contribute: 'Contribute Data',
+};
+
+function LoadingFallback({ label }: { label: string }) {
+  return (
+    <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg" role="status">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
+        <span className="text-sm text-gray-500">Loading {label}...</span>
+      </div>
+    </div>
+  );
+}
+
 function LanguageFamilyVisualizationContent({
   selectedLanguageId,
   onLanguageSelect,
 }: LanguageFamilyVisualizationProps) {
-  const { state, setView, selectLanguage, state: vizState } = useVisualization();
-  const treeViewSvgRef = useRef<SVGSVGElement>(null);
+  const { state, selectLanguage, state: vizState } = useVisualization();
   const networkViewSvgRef = useRef<SVGSVGElement>(null);
   const timelineViewSvgRef = useRef<SVGSVGElement>(null);
 
@@ -57,6 +75,15 @@ function LanguageFamilyVisualizationContent({
   const { data: familyTree, isLoading, error } = useQuery<LanguageFamilyWithChildren[]>({
     queryKey: ['/api/language-families/tree'],
   });
+
+  // Prefetch cultural lineages so data is ready when the Lineage tab is opened
+  const queryClient = useQueryClient();
+  React.useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['/api/cultural-lineages'],
+      staleTime: 60 * 1000,
+    });
+  }, [queryClient]);
 
   // Transform data for each view (memoized for performance)
   const treeData = useMemo(() => {
@@ -98,256 +125,136 @@ function LanguageFamilyVisualizationContent({
 
   if (isLoading) {
     return (
-      <Card className="w-full h-[600px] flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
           <p className="text-sm text-gray-600">Loading language families...</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="w-full h-[600px] flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center">
         <div className="text-center p-8">
           <p className="text-red-600 mb-2">Error loading language families</p>
           <p className="text-sm text-gray-600">{(error as Error).message}</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   if (!familyTree || familyTree.length === 0) {
     return (
-      <Card className="w-full h-[600px] flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center">
         <div className="text-center p-8">
           <p className="text-gray-600 mb-2">No language families found</p>
           <p className="text-sm text-gray-500">
             Import language family data to get started.
           </p>
         </div>
-      </Card>
+      </div>
     );
   }
 
+  const currentView = state.currentView;
+  const svgRef = currentView === 'network' ? networkViewSvgRef
+    : currentView === 'timeline' ? timelineViewSvgRef
+    : undefined;
+
+  const exportData = currentView === 'tree' ? treeData
+    : currentView === 'network' ? networkData
+    : currentView === 'timeline' ? timelineData
+    : currentView === 'map' ? mapData
+    : undefined;
+
   return (
-    <Card className="w-full">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Language Family Visualizations</h2>
-          <ExportMenu
-            svgRef={
-              state.currentView === 'tree'
-                ? treeViewSvgRef
-                : state.currentView === 'network'
-                ? networkViewSvgRef
-                : state.currentView === 'timeline'
-                ? timelineViewSvgRef
-                : undefined
-            }
-            data={
-              state.currentView === 'tree'
-                ? treeData
-                : state.currentView === 'network'
-                ? networkData
-                : state.currentView === 'timeline'
-                ? timelineData
-                : state.currentView === 'map'
-                ? mapData
-                : undefined
-            }
-            currentView={state.currentView}
-          />
-        </div>
-
-        <Tabs value={state.currentView} onValueChange={(value) => setView(value as any)}>
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 mb-4" aria-label="Visualization views">
-            <TabsTrigger value="tree" className="flex items-center gap-2" aria-label="Hierarchical Tree view">
-              <TreePine className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Hierarchical Tree</span>
-              <span className="sm:hidden">Tree</span>
-            </TabsTrigger>
-            <TabsTrigger value="network" className="flex items-center gap-2" aria-label="Network Graph view">
-              <Network className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Network Graph</span>
-              <span className="sm:hidden">Network</span>
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="flex items-center gap-2" aria-label="Timeline view">
-              <Clock className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Timeline</span>
-              <span className="sm:hidden">Time</span>
-            </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center gap-2" aria-label="Geographic Map view">
-              <MapPin className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Geographic Map</span>
-              <span className="sm:hidden">Map</span>
-            </TabsTrigger>
-            <TabsTrigger value="explorer" className="flex items-center gap-2" aria-label="Cross-Domain Explorer view">
-              <Link2 className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Cross-Domain</span>
-              <span className="sm:hidden">Explore</span>
-            </TabsTrigger>
-            <TabsTrigger value="lineage" className="flex items-center gap-2" aria-label="Cultural Lineage Explorer">
-              <GitBranch className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Lineage</span>
-              <span className="sm:hidden">Lineage</span>
-            </TabsTrigger>
-            <TabsTrigger value="contribute" className="flex items-center gap-2" aria-label="Contribute data">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Contribute</span>
-              <span className="sm:hidden">Add</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="min-h-[600px]">
-            <TabsContent value="tree" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading tree visualization</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Hierarchical tree visualization showing ${treeData.length} language families and their descendant languages. Click nodes to explore individual languages.`}>
-                  <LanguageTreeView treeData={treeData} onNodeClick={handleNodeClick} />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="network" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading network visualization</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Force-directed network graph showing ${networkData.nodes.length} nodes and ${networkData.links.length} connections between language families and languages. Drag nodes to rearrange.`}>
-                  <LanguageNetworkView networkData={networkData} onNodeClick={handleNodeClick} />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="timeline" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading timeline visualization</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Timeline visualization showing ${timelineData.length} languages and their historical periods. Click events to view language details.`}>
-                  <LanguageTimelineView
-                    timelineData={timelineData}
-                    onEventClick={(id) => handleNodeClick(id, 'language')}
-                  />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="map" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading map visualization</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" role="img" aria-label={`Interactive geographic map showing ${mapData.length} languages plotted by their geographic location. Use map controls to zoom and pan. Supports touch gestures on mobile devices.`}>
-                  <EnhancedLanguageMapView
-                    onFeatureSelect={(id) => handleNodeClick(id, 'language')}
-                    selectedFeatureId={vizState.selectedLanguageIds.size > 0 ? Array.from(vizState.selectedLanguageIds)[0] : null}
-                  />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="explorer" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading cross-domain explorer</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" aria-label="Cross-domain explorer for correlating linguistic, cultural, and geographic data across languages.">
-                  <CrossDomainExplorer />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="lineage" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading cultural lineage explorer</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" aria-label="Cultural lineage explorer showing directed graph of civilization and language family evolution chains.">
-                  <CulturalLineageExplorer />
-                </div>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="contribute" className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="w-full h-[400px] md:h-[600px] flex items-center justify-center bg-gray-50 rounded-lg" role="status">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-600" aria-hidden="true" />
-                    <span className="sr-only">Loading contribution panel</span>
-                  </div>
-                }
-              >
-                <div className="w-full h-[400px] md:h-[600px]" aria-label="Contribute new language data and corrections to the database.">
-                  <ContributionPanel />
-                </div>
-              </Suspense>
-            </TabsContent>
-          </div>
-
-          {/* Statistics footer */}
-          <div className="mt-4 pt-4 border-t flex flex-wrap gap-4 text-sm text-gray-600">
-            <div>
-              <span className="font-medium">{networkData.nodes.filter((n) => n.type === 'family').length}</span> families
-            </div>
-            <div>
-              <span className="font-medium">{networkData.nodes.filter((n) => n.type === 'language').length}</span> languages
-            </div>
-            {timelineData.length > 0 && (
-              <div>
-                <span className="font-medium">{timelineData.length}</span> with temporal data
-              </div>
-            )}
-            {mapData.length > 0 && (
-              <div>
-                <span className="font-medium">{mapData.length}</span> with geographic data
-              </div>
-            )}
+    <div className="w-full h-full flex flex-col">
+      {/* Compact header with export */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-gray-700">
+            {VIEW_LABELS[currentView] || currentView}
+          </h2>
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <span>{networkData.nodes.filter((n) => n.type === 'family').length} families</span>
+            <span>{networkData.nodes.filter((n) => n.type === 'language').length} languages</span>
+            {timelineData.length > 0 && <span>{timelineData.length} with temporal data</span>}
+            {mapData.length > 0 && <span>{mapData.length} with geographic data</span>}
             {state.selectedLanguageIds.size > 0 && (
-              <div className="ml-auto">
-                <span className="font-medium text-blue-600">{state.selectedLanguageIds.size}</span> selected
-              </div>
+              <span className="text-blue-600 font-medium">{state.selectedLanguageIds.size} selected</span>
             )}
           </div>
-        </Tabs>
+        </div>
+        <ExportMenu svgRef={svgRef} data={exportData} currentView={currentView} />
       </div>
-    </Card>
+
+      {/* Visualization content — fills remaining space */}
+      <div className="flex-1 min-h-0">
+        {currentView === 'tree' && (
+          <Suspense fallback={<LoadingFallback label="tree" />}>
+            <LanguageTreeView treeData={treeData} onNodeClick={handleNodeClick} />
+          </Suspense>
+        )}
+
+        {currentView === 'network' && (
+          <Suspense fallback={<LoadingFallback label="network" />}>
+            <div className="w-full h-full">
+              <LanguageNetworkView networkData={networkData} onNodeClick={handleNodeClick} />
+            </div>
+          </Suspense>
+        )}
+
+        {currentView === 'timeline' && (
+          <Suspense fallback={<LoadingFallback label="timeline" />}>
+            <LanguageTimelineView
+              timelineData={timelineData}
+              onEventClick={(id) => handleNodeClick(id, 'language')}
+            />
+          </Suspense>
+        )}
+
+        {currentView === 'map' && (
+          <Suspense fallback={<LoadingFallback label="map" />}>
+            <div className="w-full h-full">
+              <EnhancedLanguageMapView
+                onFeatureSelect={(id) => handleNodeClick(id, 'language')}
+                selectedFeatureId={vizState.selectedLanguageIds.size > 0 ? Array.from(vizState.selectedLanguageIds)[0] : null}
+              />
+            </div>
+          </Suspense>
+        )}
+
+        {currentView === 'explorer' && (
+          <Suspense fallback={<LoadingFallback label="explorer" />}>
+            <div className="w-full h-full">
+              <CrossDomainExplorer />
+            </div>
+          </Suspense>
+        )}
+
+        {currentView === 'lineage' && (
+          <Suspense fallback={<LoadingFallback label="lineage" />}>
+            <div className="w-full h-full">
+              <CulturalLineageExplorer />
+            </div>
+          </Suspense>
+        )}
+
+        {currentView === 'contribute' && (
+          <Suspense fallback={<LoadingFallback label="contribute" />}>
+            <div className="w-full h-full">
+              <ContributionPanel />
+            </div>
+          </Suspense>
+        )}
+      </div>
+    </div>
   );
 }
 
-// Main component wrapped in VisualizationProvider
+// Main component — uses the VisualizationProvider from App.tsx
 export function LanguageFamilyVisualization(props: LanguageFamilyVisualizationProps) {
-  return (
-    <VisualizationProvider>
-      <LanguageFamilyVisualizationContent {...props} />
-    </VisualizationProvider>
-  );
+  return <LanguageFamilyVisualizationContent {...props} />;
 }

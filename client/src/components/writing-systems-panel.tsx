@@ -33,6 +33,7 @@ interface WritingSystem {
 interface WritingSystemsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 // Colors for writing system types
@@ -61,7 +62,7 @@ interface TreeNode {
   data: WritingSystem;
 }
 
-export default function WritingSystemsPanel({ isOpen, onClose }: WritingSystemsPanelProps) {
+export default function WritingSystemsPanel({ isOpen, onClose, embedded }: WritingSystemsPanelProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -72,7 +73,7 @@ export default function WritingSystemsPanel({ isOpen, onClose }: WritingSystemsP
 
   const { data: systemsResponse } = useQuery<{ systems: WritingSystem[]; count: number }>({
     queryKey: ["/api/writing-systems"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const systems = systemsResponse?.systems || [];
@@ -237,26 +238,22 @@ export default function WritingSystemsPanel({ isOpen, onClose }: WritingSystemsP
   }, [treeData]);
 
   useEffect(() => {
-    if (viewMode === "tree" && isOpen) {
+    if (viewMode === "tree" && (isOpen || embedded)) {
       // Small delay for DOM to render
       const timer = setTimeout(renderTree, 100);
       return () => clearTimeout(timer);
     }
   }, [viewMode, isOpen, renderTree]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const getTypeColor = (type: string) => TYPE_COLORS[type] || { bg: "bg-gray-500", text: "text-gray-700", fill: "#6b7280" };
 
   // Get unique types for filter
   const types = Array.from(new Set(systems.map((s) => s.type))).sort();
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
-      <div
-        className="fixed right-0 top-0 h-full w-[1100px] max-w-[95vw] bg-white shadow-lg flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[1100px] max-w-[95vw] bg-white shadow-lg flex flex-col"} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex-shrink-0 border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -269,9 +266,11 @@ export default function WritingSystemsPanel({ isOpen, onClose }: WritingSystemsP
                 Explore script evolution, geographic distribution, and writing system details
               </p>
             </div>
+            {!embedded && (
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <X className="h-5 w-5" />
             </button>
+            )}
           </div>
         </div>
 
@@ -538,6 +537,13 @@ export default function WritingSystemsPanel({ isOpen, onClose }: WritingSystemsP
           )}
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={onClose}>
+      {panelContent}
     </div>
   );
 }

@@ -30,6 +30,7 @@ interface Language {
 interface LanguageContactsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 interface GraphNode extends d3.SimulationNodeDatum {
@@ -58,7 +59,7 @@ const INTENSITY_STROKE: Record<string, number> = {
 const CONTACT_TYPE_OPTIONS = ['all', 'substrate', 'superstrate', 'adstrate'];
 const INTENSITY_OPTIONS = ['all', 'heavy', 'moderate', 'light'];
 
-export default function LanguageContactsPanel({ isOpen, onClose }: LanguageContactsPanelProps) {
+export default function LanguageContactsPanel({ isOpen, onClose, embedded }: LanguageContactsPanelProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [contactTypeFilter, setContactTypeFilter] = useState('all');
   const [intensityFilter, setIntensityFilter] = useState('all');
@@ -67,12 +68,12 @@ export default function LanguageContactsPanel({ isOpen, onClose }: LanguageConta
 
   const { data: contactsData } = useQuery<{ contacts: LanguageContact[]; count: number }>({
     queryKey: ['/api/language-contacts'],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const { data: languagesData } = useQuery<Language[]>({
     queryKey: ['/api/languages'],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const languageMap = useMemo(() => {
@@ -264,29 +265,26 @@ export default function LanguageContactsPanel({ isOpen, onClose }: LanguageConta
     };
   }, [contacts, languageMap]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={onClose} />
-
-      {/* Panel */}
-      <div className="fixed inset-y-0 right-0 w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Language Contact Network</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Horizontal transfer between languages through contact events
-              </p>
-            </div>
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed inset-y-0 right-0 w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col"}>
+      {/* Header */}
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Language Contact Network</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Horizontal transfer between languages through contact events
+            </p>
+          </div>
+          {!embedded && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
-          </div>
+          )}
         </div>
+      </div>
 
         {/* Filters */}
         <div className="px-6 py-3 border-b bg-gray-50 flex flex-wrap gap-3 items-center">
@@ -473,6 +471,15 @@ export default function LanguageContactsPanel({ isOpen, onClose }: LanguageConta
           </div>
         </ScrollArea>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={onClose} />
+      {panelContent}
     </>
   );
 }

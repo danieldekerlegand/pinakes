@@ -16,14 +16,21 @@ import { EtymologyTreeVisualization } from "@/components/visualizations/Etymolog
 import type { EtymologyNode } from "@/components/visualizations/EtymologyTreeVisualization";
 import type { Language } from "@shared/types";
 
-export default function WordEtymology() {
+interface WordEtymologyProps {
+  embedded?: boolean;
+  initialWord?: string;
+  initialLanguage?: string;
+}
+
+export default function WordEtymology(props: WordEtymologyProps & Record<string, any> = {}) {
+  const { embedded, initialWord: propWord, initialLanguage: propLanguage } = props;
   const [, navigate] = useLocation();
   const autoTraced = useRef(false);
 
-  // Read URL params for pre-filled state
-  const searchParams = new URLSearchParams(window.location.search);
-  const initialWord = searchParams.get("word") ?? "";
-  const initialLanguage = searchParams.get("language") ?? "";
+  // Read URL params for pre-filled state (only when not embedded)
+  const searchParams = embedded ? null : new URLSearchParams(window.location.search);
+  const initialWord = propWord ?? searchParams?.get("word") ?? "";
+  const initialLanguage = propLanguage ?? searchParams?.get("language") ?? "";
 
   const [word, setWord] = useState(initialWord);
   const [language, setLanguage] = useState(initialLanguage);
@@ -88,30 +95,10 @@ export default function WordEtymology() {
     if (e.key === "Enter") handleSearch();
   }
 
-  return (
-    <div className="min-h-screen bg-surface">
-      {/* Header */}
-      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-white hover:bg-blue-700"
-                onClick={function() { navigate("/"); }}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-medium">Word Etymology</h1>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Controls */}
-        <Card className="p-4 mb-6">
+  const content = (
+    <div className={embedded ? "h-full flex flex-col overflow-y-auto" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+      {/* Search Controls */}
+      <Card className={`p-4 mb-6 ${embedded ? "mx-4 mt-4 flex-shrink-0" : ""}`}>
           <div className="flex flex-col sm:flex-row gap-3 items-end">
             <div className="flex-1 space-y-1">
               <label className="text-sm font-medium">Word</label>
@@ -124,12 +111,12 @@ export default function WordEtymology() {
             </div>
             <div className="w-48 space-y-1">
               <label className="text-sm font-medium">Language (optional)</label>
-              <Select value={language} onValueChange={setLanguage}>
+              <Select value={language || "__any__"} onValueChange={(v) => setLanguage(v === "__any__" ? "" : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any language</SelectItem>
+                  <SelectItem value="__any__">Any language</SelectItem>
                   {languages
                     .sort(function(a, b) { return a.name.localeCompare(b.name); })
                     .map(function(lang) {
@@ -165,13 +152,13 @@ export default function WordEtymology() {
 
         {/* Tree Visualization */}
         {treeData && (
-          <Card className="overflow-hidden">
+          <Card className={`overflow-hidden ${embedded ? "mx-4" : ""}`}>
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold">
                 Etymology of "{tracedWord}"
                 {tracedLanguage && <span className="text-muted-foreground font-normal"> ({tracedLanguage})</span>}
               </h2>
-              {treeData.children.length === 0 && (
+              {(!treeData.children || treeData.children.length === 0) && (
                 <p className="text-sm text-muted-foreground mt-1">
                   No etymology relations found for this word. Try a different spelling or language.
                 </p>
@@ -197,14 +184,40 @@ export default function WordEtymology() {
           </div>
         )}
       </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div className="min-h-screen bg-surface">
+      <header className="bg-blue-600 text-white shadow-material-2 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 text-white hover:bg-blue-700"
+                onClick={function() { navigate("/"); }}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-medium">Word Etymology</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+      {content}
     </div>
   );
 }
 
 function countTreeNodes(node: EtymologyNode): number {
   let count = 1;
-  node.children.forEach(function(child) {
-    count += countTreeNodes(child);
-  });
+  if (node.children) {
+    node.children.forEach(function(child) {
+      count += countTreeNodes(child);
+    });
+  }
   return count;
 }

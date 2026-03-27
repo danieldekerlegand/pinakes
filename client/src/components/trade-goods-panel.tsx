@@ -25,6 +25,7 @@ interface TradeGoodsResponse {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -53,7 +54,7 @@ function latLngToXY(lat: number, lng: number, width: number, height: number) {
   return { x, y };
 }
 
-export default function TradeGoodsPanel({ isOpen, onClose }: Props) {
+export default function TradeGoodsPanel({ isOpen, onClose, embedded }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<string>("all");
   const [expandedGood, setExpandedGood] = useState<string | null>(null);
@@ -61,7 +62,7 @@ export default function TradeGoodsPanel({ isOpen, onClose }: Props) {
 
   const { data: goodsData } = useQuery<TradeGoodsResponse>({
     queryKey: ["/api/trade-goods"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const goods = goodsData?.goods ?? [];
@@ -89,21 +90,13 @@ export default function TradeGoodsPanel({ isOpen, onClose }: Props) {
     return result;
   }, [goods, selectedCategory, selectedTimePeriod]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const mapWidth = 820;
   const mapHeight = 420;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden">
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden"}>
         {/* Header */}
         <div className="px-6 py-4 border-b bg-gradient-to-r from-amber-50 to-orange-50 flex-shrink-0">
           <div className="flex justify-between items-start">
@@ -118,9 +111,11 @@ export default function TradeGoodsPanel({ isOpen, onClose }: Props) {
                 </p>
               </div>
             </div>
+            {!embedded && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
+            )}
           </div>
 
           {/* Controls */}
@@ -426,6 +421,20 @@ export default function TradeGoodsPanel({ isOpen, onClose }: Props) {
           )}
         </div>
       </div>
+  );
+
+  if (embedded) {
+    return panelContent;
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+      {panelContent}
     </>
   );
 }

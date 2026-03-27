@@ -25,6 +25,7 @@ interface SoundChangesResponse {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  embedded?: boolean;
 }
 
 function parseDateRange(dateRange: string): { start: number; end: number } {
@@ -40,7 +41,7 @@ function formatYear(year: number): string {
   return `${year} CE`;
 }
 
-export default function SoundChangesPanel({ isOpen, onClose }: Props) {
+export default function SoundChangesPanel({ isOpen, onClose, embedded }: Props) {
   const [selectedFamily, setSelectedFamily] = useState<string>("all");
   const [expandedChange, setExpandedChange] = useState<string | null>(null);
   const [selectedExample, setSelectedExample] = useState<{ changeId: string; idx: number } | null>(null);
@@ -48,7 +49,7 @@ export default function SoundChangesPanel({ isOpen, onClose }: Props) {
 
   const { data: soundChangesData } = useQuery<SoundChangesResponse>({
     queryKey: ["/api/sound-changes"],
-    enabled: isOpen,
+    enabled: isOpen || !!embedded,
   });
 
   const changes = soundChangesData?.changes ?? [];
@@ -93,41 +94,35 @@ export default function SoundChangesPanel({ isOpen, onClose }: Props) {
     return { min: min - 200, max: max + 200 };
   }, [timelineSorted]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
   const yearToPercent = (year: number) => {
     const range = timelineRange.max - timelineRange.min;
     return ((year - timelineRange.min) / range) * 100;
   };
 
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-amber-50 to-orange-50 flex-shrink-0">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center space-x-3">
-              <Zap className="h-6 w-6 text-amber-600" />
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Sound Changes
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Explore historical sound shifts across language families
-                </p>
-              </div>
+  const panelContent = (
+    <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[900px] max-w-full bg-white shadow-xl z-50 flex flex-col overflow-hidden"}>
+      {/* Header */}
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-amber-50 to-orange-50 flex-shrink-0">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center space-x-3">
+            <Zap className="h-6 w-6 text-amber-600" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Sound Changes
+              </h2>
+              <p className="text-sm text-gray-600">
+                Explore historical sound shifts across language families
+              </p>
             </div>
+          </div>
+          {!embedded && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>
-          </div>
+          )}
+        </div>
 
           {/* Controls */}
           <div className="flex items-center space-x-4 mt-4">
@@ -423,6 +418,18 @@ export default function SoundChangesPanel({ isOpen, onClose }: Props) {
           )}
         </div>
       </div>
+  );
+
+  if (embedded) return panelContent;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+      {panelContent}
     </>
   );
 }
