@@ -1,3 +1,29 @@
+Implement Mesopotamia city-states showcase demo (US-310)
+
+Completed:
+- Added 21 Mesopotamian empire timeline entries to lexicons/empires-timeline.tsv
+  - Sumerian City-States (3500-2334 BCE): founding, peak, fall
+  - Third Dynasty of Ur (2112-2004 BCE): founding, peak, fall
+  - Old Babylonian Empire (1894-1595 BCE): founding, peak, fall
+  - Kassite Babylonia (1595-1155 BCE): founding, peak, fall
+  - Middle Assyrian Empire (1365-1056 BCE): founding, peak, fall
+  - Neo-Assyrian Empire (911-612 BCE): founding, peak, fall
+  - Neo-Babylonian Empire (626-539 BCE): founding, peak, fall
+- Created client/src/components/mesopotamia-city-states-showcase.tsx
+  - Timeline view: interactive empire bars with expandable event details
+  - Map view: coordinate-based settlement layout with river paths
+  - Cards view: city-state cards with features, languages, populations
+  - Civilization filter dropdown
+  - Settlement deduplication logic
+  - Responsive panel layout (embedded + standalone modes)
+- Created client/src/pages/mesopotamia-showcase.tsx (standalone page wrapper)
+- Registered /mesopotamia route in App.tsx
+- Added 'mesopotamia' activeSection in dashboard.tsx for embedded panel access
+- Created 22 unit tests in mesopotamia-city-states-showcase.test.ts (all passing)
+  - Tests: formatYear, parseJsonArray, empire IDs, colors, filtering, grouping, deduplication, timeline range, coordinate mapping
+
+---
+
 Create sound change rules scraper from historical linguistics sources
 
 US-305: Create extruded 3D region visualization for population/power metrics
