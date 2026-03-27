@@ -11,7 +11,7 @@ export interface VisualizationFilters {
 }
 
 // View mode type
-export type ViewMode = 'tree' | 'network' | 'timeline' | 'map' | 'explorer' | 'lineage' | 'contribute';
+export type ViewMode = 'tree' | 'network' | 'timeline' | 'map' | 'map-3d' | 'explorer' | 'lineage' | 'contribute';
 
 // Tree visualization types
 export interface TreeNode {
@@ -154,7 +154,13 @@ export interface ViewSettings {
     showHeatmap: boolean;
     markerSize: 'fixed' | 'byPopulation';
   };
+  'map-3d': {
+    showTerrain: boolean;
+    extrusionMetric: 'population' | 'area' | 'speakers' | 'importance';
+    pitch: number;
+  };
   explorer: Record<string, never>;
+  lineage: Record<string, never>;
   contribute: Record<string, never>;
 }
 
