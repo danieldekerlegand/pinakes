@@ -218,3 +218,24 @@ Completed:
   - Merge logic (duplicate detection by name, preserving existing entries)
   - TSV round-trip write/read integrity
   - Notable Pleiades ID validation
+
+US-XXX: Create incremental scraping with diff detection
+
+Completed:
+- Created server/services/incremental-scraper.ts with:
+  - diffTsv(): Row-level diff detection between TSV snapshots using a primary key column
+    - Detects added, removed, and modified rows
+    - Reports changed fields for modified rows
+  - ScrapeManifestManager: Tracks last scrape state per file with SHA-256 content hashes
+    - load/save manifest to JSON file (lexicons/.scrape-manifest.json)
+    - hasChanged(): Quick staleness check comparing current file hash to manifest
+    - updateEntry(): Records file state after scrape
+  - incrementalScrape(): Orchestrates the full incremental scrape workflow
+    - Snapshots existing file before scrape
+    - Skips scrape if file unchanged since last manifest entry (unless force=true)
+    - Runs user-provided scrapeFn, diffs old vs new, saves diff to lexicons/.diffs/
+    - Updates manifest after successful scrape
+  - listDiffs(): Retrieves recent diff history for a given TSV file
+- Created test/test-incremental-scraper.ts with 46 passing assertions across 14 test cases
+  - Covers: added/removed/modified row detection, empty content handling, identical content,
+    manifest persistence, change detection, incremental scrape skip/force/diff, diff listing
