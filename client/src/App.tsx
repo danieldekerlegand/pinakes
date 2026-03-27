@@ -14,6 +14,7 @@ import QuizPage from "@/pages/quiz";
 import ScraperDashboard from "@/pages/scraper-dashboard";
 import DataExplorer from "@/pages/data-explorer";
 import CivilizationTimeline from "@/pages/civilization-timeline";
+import MesopotamiaShowcasePage from "@/pages/mesopotamia-showcase";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/quiz" component={QuizPage} />
       <Route path="/scraper" component={ScraperDashboard} />
       <Route path="/civilization-timeline" component={CivilizationTimeline} />
+      <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
       <Route component={NotFound} />
     </Switch>
   );
