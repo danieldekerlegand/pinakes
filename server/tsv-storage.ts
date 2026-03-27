@@ -464,6 +464,20 @@ export interface ArchitecturalStyle {
   buildingTypes: string[];
 }
 
+// Building type taxonomy
+export interface BuildingType {
+  id: string;
+  name: string;
+  category: string;
+  parentTypeId: string;
+  description: string;
+  historicalPeriod: string;
+  regions: string[];
+  associatedStyles: string[];
+  structuralFeatures: string[];
+  culturalFunction: string;
+}
+
 // Trade good types
 export interface TradeGood {
   id: string;
@@ -682,6 +696,9 @@ export class TsvStorage {
 
   // Architectural styles data cache
   private cachedArchitecturalStyles: ArchitecturalStyle[] | null = null;
+
+  // Building types data cache
+  private cachedBuildingTypes: BuildingType[] | null = null;
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
@@ -3063,7 +3080,6 @@ export class TsvStorage {
     const text = this.readFileIfExists("lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
-<<<<<<< HEAD
     const { header, rows } = parseTsv(text);
     const idIdx = getIdx(header, "id");
     const langIdx = getIdx(header, "language_id");
@@ -3089,49 +3105,6 @@ export class TsvStorage {
       script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
     }));
   }
-=======
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
-    const titleIdx = getIdx(header, "title");
-    const textIdx = getIdx(header, "text");
-    const translitIdx = header.indexOf("transliteration");
-    const transEnIdx = header.indexOf("translation_en");
-    const sourceIdx = header.indexOf("source");
-    const dateIdx = header.indexOf("date_composed");
-    const genreIdx = header.indexOf("genre");
-    const scriptIdx = header.indexOf("script");
-
-    this.cachedSampleTexts = rows.map((row) => ({
-      id: row[idIdx],
-      languageId: row[langIdx],
-      title: row[titleIdx],
-      text: row[textIdx],
-      transliteration: translitIdx >= 0 ? row[translitIdx] || "" : "",
-      translationEn: transEnIdx >= 0 ? row[transEnIdx] || "" : "",
-      source: sourceIdx >= 0 ? row[sourceIdx] || "" : "",
-      dateComposed: dateIdx >= 0 ? row[dateIdx] || "" : "",
-      genre: genreIdx >= 0 ? row[genreIdx] || "" : "",
-      script: scriptIdx >= 0 ? row[scriptIdx] || "" : "",
-    }));
-  }
-
-  // Phonological Inventory Data Methods
-  // ============================================================================
-
-  /**
-   * Load phonological inventories from TSV file
-   */
-  private loadPhonologicalInventories(): void {
-    if (this.cachedPhonologicalInventories) return;
-
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
-    if (!text) { this.cachedPhonologicalInventories = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const langIdx = getIdx(header, "language_id");
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
 
   // ============================================================================
   // Phonological Inventory Data Methods
@@ -4136,6 +4109,71 @@ export class TsvStorage {
     return (this.cachedArchitecturalStyles ?? []).find((s) => s.id === id) ?? null;
   }
 
+  async getArchitecturalStylesByBuildingType(buildingTypeId: string): Promise<ArchitecturalStyle[]> {
+    this.loadArchitecturalStyles();
+    return (this.cachedArchitecturalStyles ?? []).filter((s) =>
+      s.buildingTypes.includes(buildingTypeId)
+    );
+  }
+
+  // ── Building Types ────────────────────────────────────────────────
+
+  private loadBuildingTypes(): void {
+    if (this.cachedBuildingTypes) return;
+
+    const text = this.readFileIfExists("lexicons/building-types.tsv");
+    if (!text) { this.cachedBuildingTypes = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const parentIdx = getIdx(header, "parent_type_id");
+    const descIdx = getIdx(header, "description");
+    const periodIdx = getIdx(header, "historical_period");
+    const regionsIdx = getIdx(header, "regions");
+    const stylesIdx = getIdx(header, "associated_styles");
+    const featuresIdx = getIdx(header, "structural_features");
+    const functionIdx = getIdx(header, "cultural_function");
+
+    this.cachedBuildingTypes = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx] || "",
+      parentTypeId: row[parentIdx] || "",
+      description: row[descIdx] || "",
+      historicalPeriod: row[periodIdx] || "",
+      regions: (() => {
+        try { return JSON.parse(row[regionsIdx]); } catch { return []; }
+      })() as string[],
+      associatedStyles: (() => {
+        try { return JSON.parse(row[stylesIdx]); } catch { return []; }
+      })() as string[],
+      structuralFeatures: (() => {
+        try { return JSON.parse(row[featuresIdx]); } catch { return []; }
+      })() as string[],
+      culturalFunction: row[functionIdx] || "",
+    }));
+  }
+
+  async getBuildingTypes(filters?: {
+    category?: string;
+  }): Promise<BuildingType[]> {
+    this.loadBuildingTypes();
+    let types = this.cachedBuildingTypes ?? [];
+
+    if (filters?.category) {
+      types = types.filter((t) => t.category.toLowerCase() === filters.category!.toLowerCase());
+    }
+
+    return types;
+  }
+
+  async getBuildingTypeById(id: string): Promise<BuildingType | null> {
+    this.loadBuildingTypes();
+    return (this.cachedBuildingTypes ?? []).find((t) => t.id === id) ?? null;
+  }
+
   private loadKinshipSystems(): void {
     if (this.cachedKinshipSystems) return;
 
@@ -4246,7 +4284,6 @@ export class TsvStorage {
     return (this.cachedTradeGoods ?? []).find((g) => g.id === id) ?? null;
   }
 
-<<<<<<< HEAD
   // ── Trade Routes ──────────────────────────────────────────────────
 
   private loadTradeRoutes(): void {
@@ -4320,81 +4357,8 @@ export class TsvStorage {
   async getTradeRouteById(id: string): Promise<TradeRoute | null> {
     this.loadTradeRoutes();
     return (this.cachedTradeRoutes ?? []).find((r) => r.id === id) ?? null;
-=======
-  // ── Urheimat Hypotheses ─────────────────────────────────────────────
-
-  private loadUrheimatHypotheses(): void {
-    if (this.cachedUrheimatHypotheses) return;
-
-    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
-    if (!text) { this.cachedUrheimatHypotheses = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const familyIdx = getIdx(header, "language_family_id");
-    const nameIdx = getIdx(header, "hypothesis_name");
-    const regionIdx = getIdx(header, "proposed_region");
-    const coordsIdx = getIdx(header, "proposed_coordinates");
-    const boundaryIdx = getIdx(header, "proposed_boundary");
-    const startIdx = getIdx(header, "time_range_start");
-    const endIdx = getIdx(header, "time_range_end");
-    const evidenceIdx = getIdx(header, "supporting_evidence");
-    const competingIdx = getIdx(header, "competing_hypotheses");
-    const consensusIdx = getIdx(header, "scholarly_consensus_level");
-    const proponentsIdx = getIdx(header, "key_proponents");
-    const sourcesIdx = getIdx(header, "sources");
-
-    this.cachedUrheimatHypotheses = rows.map((row) => ({
-      id: row[idIdx],
-      languageFamilyId: row[familyIdx],
-      hypothesisName: row[nameIdx],
-      proposedRegion: row[regionIdx],
-      proposedCoordinates: (() => {
-        try { return JSON.parse(row[coordsIdx]); } catch { return { lat: 0, lng: 0 }; }
-      })() as { lat: number; lng: number },
-      proposedBoundary: (() => {
-        try { return JSON.parse(row[boundaryIdx]); } catch { return {}; }
-      })() as Record<string, unknown>,
-      timeRangeStart: row[startIdx] ? parseInt(row[startIdx], 10) : null,
-      timeRangeEnd: row[endIdx] ? parseInt(row[endIdx], 10) : null,
-      supportingEvidence: (() => {
-        try { return JSON.parse(row[evidenceIdx]); } catch { return { linguistic: [], archaeological: [], genetic: [] }; }
-      })() as { linguistic: string[]; archaeological: string[]; genetic: string[] },
-      competingHypotheses: (() => {
-        try { return JSON.parse(row[competingIdx]); } catch { return []; }
-      })() as string[],
-      scholarlyConsensusLevel: parseInt(row[consensusIdx], 10) || 0,
-      keyProponents: (() => {
-        try { return JSON.parse(row[proponentsIdx]); } catch { return []; }
-      })() as string[],
-      sources: (() => {
-        try { return JSON.parse(row[sourcesIdx]); } catch { return []; }
-      })() as string[],
-    }));
   }
 
-  async getUrheimatHypotheses(filters?: {
-    languageFamily?: string;
-    consensusMin?: number;
-  }): Promise<UrheimatHypothesis[]> {
-    this.loadUrheimatHypotheses();
-    let hypotheses = this.cachedUrheimatHypotheses ?? [];
-
-    if (filters?.languageFamily) {
-      hypotheses = hypotheses.filter((h) => h.languageFamilyId === filters.languageFamily);
-    }
-    if (filters?.consensusMin !== undefined) {
-      hypotheses = hypotheses.filter((h) => h.scholarlyConsensusLevel >= filters.consensusMin!);
-    }
-
-    return hypotheses;
-  }
-
-  async getUrheimatHypothesisById(id: string): Promise<UrheimatHypothesis | null> {
-    this.loadUrheimatHypotheses();
-    return (this.cachedUrheimatHypotheses ?? []).find((h) => h.id === id) ?? null;
->>>>>>> ralphy/agent-8-1773826977547-zs0206-add-urheimat-hypothesis-map-overlay
-  }
 
   // ── Narratives ──────────────────────────────────────────────────────
 
