@@ -124,6 +124,26 @@ export type SankeyData = {
   links: SankeyLink[];
 };
 
+// Generic reusable Sankey flow types for any flow/influence dataset
+export type SankeyFlowNode = {
+  id: string;
+  label: string;
+  group: string;
+};
+
+export type SankeyFlowLink = {
+  source: string;
+  target: string;
+  value: number;
+  category?: string;
+  metadata?: Record<string, string>;
+};
+
+export type SankeyFlowData = {
+  nodes: SankeyFlowNode[];
+  links: SankeyFlowLink[];
+};
+
 // Chord diagram types for mutual language family influences
 export type ChordEntry = {
   source: string;

@@ -838,3 +838,15 @@ Completed:
   - Tests TSV writer round-trip serialization
   - Tests scraper module import and API key validation
 - Resolved pre-existing merge conflicts in tsv-storage.ts and routes.ts
+
+## Task 5: Create reusable SankeyFlow component for flow/influence datasets
+- Created client/src/components/visualizations/SankeyFlow.tsx
+  - Generic reusable Sankey diagram component (not tied to language contacts)
+  - Configurable: colorScheme, nodeColorFn, linkColorFn, tooltip formatters, legend
+  - Supports SankeyFlowNode (id, label, group) and SankeyFlowLink (source, target, value, category, metadata)
+  - Built on d3-sankey with zoom/pan, export (SVG/PNG), and interactive tooltips
+  - Follows existing visualization patterns (useVisualizationResize, createZoomBehavior)
+- Added SankeyFlowNode, SankeyFlowLink, SankeyFlowData types to shared/types.ts
+- Created client/src/components/visualizations/SankeyFlow.test.ts with 18 tests (all passing)
+  - Type contract tests, data transformation tests, color scheme tests
+  - Validates conversion from domain-specific formats to generic SankeyFlowData
