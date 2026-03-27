@@ -12,6 +12,7 @@ import { cuisineScraper } from "./services/cuisine-scraper";
 import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { soundChangeScraper } from "./services/sound-change-scraper";
 import { jobStore } from "./services/job-store";
+import { languageContactScraper } from "./services/language-contact-scraper";
 import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
@@ -410,6 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+<<<<<<< HEAD
   // Scrape historical polities/empires from Wikipedia and Seshat
   app.post("/api/scraping/polities", async (req, res) => {
     try {
@@ -592,6 +594,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error starting cuisine scraping:", error);
       res.status(500).json({
         message: "Failed to start cuisine scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Scrape language contact events with Gemini AI
+  app.post("/api/scraping/language-contacts", async (req, res) => {
+    try {
+      const { contactTypes, regions, targetCount } = req.body;
+
+      const job = jobStore.createJob(
+        "language-contacts",
+        targetCount || 300,
+        "gemini"
+      );
+
+      languageContactScraper
+        .scrapeLanguageContacts({
+          contactTypes,
+          regions,
+          targetCount: targetCount || 300,
+          jobId: job.id,
+          progressCallback: (type, message, data) => {
+            if (type === "error") {
+              console.error(`Contact scraping error: ${message}`);
+            } else {
+              console.log(`Contact scraping: ${message}`);
+            }
+          },
+        })
+        .then((result) => {
+          console.log(
+            `Contact scraping completed: ${result.newEntries} new entries (total: ${result.totalAfter})`
+          );
+        })
+        .catch((error) => {
+          console.error("Contact scraping failed:", error);
+          jobStore.updateJob(job.id, {
+            status: "failed",
+            errorMessage: error instanceof Error ? error.message : "Unknown error",
+            completedAt: new Date().toISOString(),
+          });
+        });
+
+      res.json({
+        message: "Language contact scraping started",
+        status: "pending",
+        jobId: job.id,
+      });
+    } catch (error) {
+      console.error("Error starting contact scraping:", error);
+      res.status(500).json({
+        message: "Failed to start language contact scraping",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
@@ -4167,6 +4222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching urheimat hypothesis:", error);
       res.status(500).json({ message: "Failed to fetch urheimat hypothesis" });
+<<<<<<< HEAD
 <<<<<<< HEAD
     }
   });
