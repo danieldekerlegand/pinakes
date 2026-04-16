@@ -5726,5 +5726,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Culture Profiles ─────────────────────────────────────────
+
+  /**
+   * GET /api/culture-profiles - List culture profiles with filters
+   */
+  app.get("/api/culture-profiles", async (req, res) => {
+    try {
+      const region = req.query.region as string | undefined;
+      const civilizationId = req.query.civilization_id as string | undefined;
+      const subsistenceType = req.query.subsistence_type as string | undefined;
+      const urbanismLevel = req.query.urbanism_level as string | undefined;
+      const socialOrganization = req.query.social_organization as string | undefined;
+      const technologyLevel = req.query.technology_level as string | undefined;
+      const timeStart = req.query.time_start ? parseInt(req.query.time_start as string, 10) : undefined;
+      const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string, 10) : undefined;
+
+      const profiles = await storage.getCultureProfiles({
+        region, civilizationId, subsistenceType, urbanismLevel,
+        socialOrganization, technologyLevel, timeStart, timeEnd,
+      });
+
+      res.json({ profiles, count: profiles.length });
+    } catch (error) {
+      console.error("Error fetching culture profiles:", error);
+      res.status(500).json({ message: "Failed to fetch culture profiles" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/by-civilization/:civilizationId - Get profiles by civilization
+   */
+  app.get("/api/culture-profiles/by-civilization/:civilizationId", async (req, res) => {
+    try {
+      const profiles = await storage.getCultureProfilesByCivilization(req.params.civilizationId);
+      res.json({ profiles, count: profiles.length });
+    } catch (error) {
+      console.error("Error fetching culture profiles by civilization:", error);
+      res.status(500).json({ message: "Failed to fetch culture profiles by civilization" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/by-location/:lat/:lng - Find profiles near coordinates
+   */
+  app.get("/api/culture-profiles/by-location/:lat/:lng", async (req, res) => {
+    try {
+      const lat = parseFloat(req.params.lat);
+      const lng = parseFloat(req.params.lng);
+      const radius = req.query.radius ? parseFloat(req.query.radius as string) : 500;
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+
+      const profiles = await storage.getCultureProfilesByLocation(lat, lng, radius);
+      res.json({ profiles, count: profiles.length });
+    } catch (error) {
+      console.error("Error fetching culture profiles by location:", error);
+      res.status(500).json({ message: "Failed to fetch culture profiles by location" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id - Get a single culture profile by ID
+   */
+  app.get("/api/culture-profiles/:id", async (req, res) => {
+    try {
+      const profile = await storage.getCultureProfileById(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ message: "Culture profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching culture profile:", error);
+      res.status(500).json({ message: "Failed to fetch culture profile" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id/socio-cultural - Get profile with resolved references
+   */
+  app.get("/api/culture-profiles/:id/socio-cultural", async (req, res) => {
+    try {
+      const result = await storage.getCultureProfileSocioCultural(req.params.id);
+      if (!result) {
+        return res.status(404).json({ message: "Culture profile not found" });
+      }
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching socio-cultural data:", error);
+      res.status(500).json({ message: "Failed to fetch socio-cultural data" });
+    }
+  });
+
   return server;
 }

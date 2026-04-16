@@ -1626,3 +1626,12 @@ Completed:
 - [✓] 2026-04-16 11:53 - Build Cuisine & Foodways section for CultureProfilePanel
 - [✓] 2026-04-16 11:53 - Build Daily Life & Social Organization section for CultureProfilePanel
 - [✓] 2026-04-16 11:53 - Build Military & Warfare section for CultureProfilePanel
+- [✓] 2026-04-16 - Add culture-profiles TSV loader and comprehensive API endpoints
+  - Created lexicons/culture-profiles.tsv with 116 culture profiles spanning 26 regions
+  - Covers all major world civilizations from Gobekli Tepe (-9500) to Qing Dynasty (1912)
+  - Added CultureProfile interface and TSV loader to server/tsv-storage.ts
+  - Added 5 API endpoints: GET /api/culture-profiles (with 8 filters), GET /api/culture-profiles/:id,
+    GET /api/culture-profiles/:id/socio-cultural, GET /api/culture-profiles/by-civilization/:civilizationId,
+    GET /api/culture-profiles/by-location/:lat/:lng
+  - Socio-cultural endpoint resolves language, religion, writing system, and settlement references
+  - Created test/test-culture-profiles.ts with 75 passing tests (data validation + loader tests)

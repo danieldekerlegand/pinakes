@@ -498,6 +498,35 @@ export interface Settlement {
   region: string;
 }
 
+// Culture profile types
+export interface CultureProfile {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  civilizationId: string;
+  archaeologicalCultureId: string;
+  timePeriodStart: number | null;
+  timePeriodEnd: number | null;
+  region: string;
+  summaryDescription: string;
+  socialOrganization: string;
+  subsistenceType: string;
+  urbanismLevel: string;
+  populationEstimate: number | null;
+  technologyLevel: string;
+  associatedLanguageIds: string[];
+  associatedReligionIds: string[];
+  associatedWritingSystemIds: string[];
+  associatedArtTraditionIds: string[];
+  associatedMusicTraditionIds: string[];
+  associatedCuisineId: string;
+  associatedArchitecturalStyleIds: string[];
+  associatedLiteraryTraditionIds: string[];
+  notableSettlements: string[];
+  imageGalleryTags: string[];
+  sources: string[];
+}
+
 // River and water feature types
 export interface RiverWaterFeature {
   id: string;
@@ -893,6 +922,8 @@ export class TsvStorage {
 
   // Daily life cache
   private cachedDailyLife: DailyLife[] | null = null;
+  // Culture profiles cache
+  private cachedCultureProfiles: CultureProfile[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5724,5 +5755,217 @@ export class TsvStorage {
       grouped[entry.category].push(entry);
     }
     return grouped;
+  // ── Culture Profiles ────────────────────────────────────────
+
+  private loadCultureProfiles(): void {
+    if (this.cachedCultureProfiles) return;
+
+    const text = this.readFileIfExists("lexicons/culture-profiles.tsv");
+    if (!text) { this.cachedCultureProfiles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const altIdx = header.indexOf("alternate_names");
+    const civIdx = header.indexOf("civilization_id");
+    const archIdx = header.indexOf("archaeological_culture_id");
+    const startIdx = header.indexOf("time_period_start");
+    const endIdx = header.indexOf("time_period_end");
+    const regionIdx = header.indexOf("region");
+    const descIdx = header.indexOf("summary_description");
+    const socialIdx = header.indexOf("social_organization");
+    const subsIdx = header.indexOf("subsistence_type");
+    const urbanIdx = header.indexOf("urbanism_level");
+    const popIdx = header.indexOf("population_estimate");
+    const techIdx = header.indexOf("technology_level");
+    const langIdx = header.indexOf("associated_language_ids");
+    const relIdx = header.indexOf("associated_religion_ids");
+    const wsIdx = header.indexOf("associated_writing_system_ids");
+    const artIdx = header.indexOf("associated_art_tradition_ids");
+    const musicIdx = header.indexOf("associated_music_tradition_ids");
+    const cuisineIdx = header.indexOf("associated_cuisine_id");
+    const archStyleIdx = header.indexOf("associated_architectural_style_ids");
+    const litIdx = header.indexOf("associated_literary_tradition_ids");
+    const settlementsIdx = header.indexOf("notable_settlements");
+    const tagsIdx = header.indexOf("image_gallery_tags");
+    const srcIdx = header.indexOf("sources");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    const parseYear = (idx: number, row: string[]): number | null => {
+      if (idx < 0 || !row[idx] || row[idx] === "null") return null;
+      const v = parseInt(row[idx], 10);
+      return isNaN(v) ? null : v;
+    };
+
+    this.cachedCultureProfiles = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      alternateNames: parseArr(altIdx, row),
+      civilizationId: civIdx >= 0 ? (row[civIdx] || "").trim() : "",
+      archaeologicalCultureId: archIdx >= 0 ? (row[archIdx] || "").trim() : "",
+      timePeriodStart: parseYear(startIdx, row),
+      timePeriodEnd: parseYear(endIdx, row),
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      summaryDescription: descIdx >= 0 ? row[descIdx] || "" : "",
+      socialOrganization: socialIdx >= 0 ? row[socialIdx] || "" : "",
+      subsistenceType: subsIdx >= 0 ? row[subsIdx] || "" : "",
+      urbanismLevel: urbanIdx >= 0 ? row[urbanIdx] || "" : "",
+      populationEstimate: popIdx >= 0 && row[popIdx] && row[popIdx] !== "null"
+        ? parseInt(row[popIdx], 10) || null : null,
+      technologyLevel: techIdx >= 0 ? row[techIdx] || "" : "",
+      associatedLanguageIds: parseArr(langIdx, row),
+      associatedReligionIds: parseArr(relIdx, row),
+      associatedWritingSystemIds: parseArr(wsIdx, row),
+      associatedArtTraditionIds: parseArr(artIdx, row),
+      associatedMusicTraditionIds: parseArr(musicIdx, row),
+      associatedCuisineId: cuisineIdx >= 0 ? row[cuisineIdx] || "" : "",
+      associatedArchitecturalStyleIds: parseArr(archStyleIdx, row),
+      associatedLiteraryTraditionIds: parseArr(litIdx, row),
+      notableSettlements: parseArr(settlementsIdx, row),
+      imageGalleryTags: parseArr(tagsIdx, row),
+      sources: parseArr(srcIdx, row),
+    }));
+  }
+
+  async getCultureProfiles(filters?: {
+    region?: string;
+    timeStart?: number;
+    timeEnd?: number;
+    civilizationId?: string;
+    subsistenceType?: string;
+    urbanismLevel?: string;
+    socialOrganization?: string;
+    technologyLevel?: string;
+  }): Promise<CultureProfile[]> {
+    this.loadCultureProfiles();
+    let profiles = this.cachedCultureProfiles ?? [];
+
+    if (filters?.region) {
+      profiles = profiles.filter((p) =>
+        p.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+    if (filters?.civilizationId) {
+      profiles = profiles.filter((p) =>
+        p.civilizationId.toLowerCase() === filters.civilizationId!.toLowerCase()
+      );
+    }
+    if (filters?.subsistenceType) {
+      profiles = profiles.filter((p) =>
+        p.subsistenceType.toLowerCase() === filters.subsistenceType!.toLowerCase()
+      );
+    }
+    if (filters?.urbanismLevel) {
+      profiles = profiles.filter((p) =>
+        p.urbanismLevel.toLowerCase() === filters.urbanismLevel!.toLowerCase()
+      );
+    }
+    if (filters?.socialOrganization) {
+      profiles = profiles.filter((p) =>
+        p.socialOrganization.toLowerCase() === filters.socialOrganization!.toLowerCase()
+      );
+    }
+    if (filters?.technologyLevel) {
+      profiles = profiles.filter((p) =>
+        p.technologyLevel.toLowerCase() === filters.technologyLevel!.toLowerCase()
+      );
+    }
+    if (filters?.timeStart !== undefined) {
+      profiles = profiles.filter((p) => {
+        const end = p.timePeriodEnd ?? Infinity;
+        return end >= filters.timeStart!;
+      });
+    }
+    if (filters?.timeEnd !== undefined) {
+      profiles = profiles.filter((p) => {
+        const start = p.timePeriodStart ?? -Infinity;
+        return start <= filters.timeEnd!;
+      });
+    }
+
+    return profiles;
+  }
+
+  async getCultureProfileById(id: string): Promise<CultureProfile | null> {
+    this.loadCultureProfiles();
+    return (this.cachedCultureProfiles ?? []).find((p) => p.id === id) ?? null;
+  }
+
+  async getCultureProfilesByCivilization(civilizationId: string): Promise<CultureProfile[]> {
+    this.loadCultureProfiles();
+    return (this.cachedCultureProfiles ?? []).filter((p) =>
+      p.civilizationId.toLowerCase() === civilizationId.toLowerCase()
+    );
+  }
+
+  async getCultureProfilesByLocation(lat: number, lng: number, radiusKm: number = 500): Promise<CultureProfile[]> {
+    this.loadCultureProfiles();
+    const profiles = this.cachedCultureProfiles ?? [];
+
+    // Get settlements near the location, then match culture profiles by notable settlements
+    this.loadSettlements();
+    const settlements = this.cachedSettlements ?? [];
+    const nearbySettlementNames = new Set<string>();
+
+    for (const s of settlements) {
+      const dLat = (s.latitude - lat) * Math.PI / 180;
+      const dLng = (s.longitude - lng) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat * Math.PI / 180) * Math.cos(s.latitude * Math.PI / 180) *
+        Math.sin(dLng / 2) ** 2;
+      const distKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      if (distKm <= radiusKm) {
+        nearbySettlementNames.add(s.name.toLowerCase());
+      }
+    }
+
+    return profiles.filter((p) =>
+      p.notableSettlements.some((s) => nearbySettlementNames.has(s.toLowerCase()))
+    );
+  }
+
+  async getCultureProfileSocioCultural(id: string): Promise<{
+    profile: CultureProfile;
+    languages: { id: string; name: string }[];
+    religions: { id: string; name: string }[];
+    writingSystems: { id: string; name: string }[];
+    settlements: Settlement[];
+  } | null> {
+    const profile = await this.getCultureProfileById(id);
+    if (!profile) return null;
+
+    // Resolve language references
+    const allLanguages = await this.getLanguages();
+    const languages = profile.associatedLanguageIds
+      .map((lid) => allLanguages.find((l) => l.id === lid))
+      .filter((l): l is Language => l !== null && l !== undefined)
+      .map((l) => ({ id: l.id, name: l.name }));
+
+    // Resolve religion references
+    const allReligions = await this.getReligions();
+    const religions = profile.associatedReligionIds
+      .map((rid) => allReligions.find((r) => r.id === rid))
+      .filter((r): r is NonNullable<typeof r> => r !== null && r !== undefined)
+      .map((r) => ({ id: r.id, name: r.name }));
+
+    // Resolve writing system references
+    const allWs = await this.getWritingSystems();
+    const writingSystems = profile.associatedWritingSystemIds
+      .map((wid) => allWs.find((w) => w.id === wid))
+      .filter((w): w is WritingSystem => w !== null && w !== undefined)
+      .map((w) => ({ id: w.id, name: w.name }));
+
+    // Get associated settlements
+    const allSettlements = await this.getSettlements();
+    const settlements = allSettlements.filter((s) =>
+      profile.notableSettlements.some((ns) => ns.toLowerCase() === s.name.toLowerCase()) ||
+      s.civilizationId === profile.civilizationId
+    );
+
+    return { profile, languages, religions, writingSystems, settlements };
   }
 }
