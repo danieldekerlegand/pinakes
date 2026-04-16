@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
@@ -18,6 +19,7 @@ import { artTraditionScraper } from "./services/art-tradition-scraper";
 import { jobStore } from "./services/job-store";
 import { languageContactScraper } from "./services/language-contact-scraper";
 import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
+import { wikimediaCommonsScraper } from "./services/wikimedia-commons-scraper";
 import {
   identifyUnderrepresentedFamilies,
   underrepresentedVocabScraper,
@@ -6027,6 +6029,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       entityTypes: mediaAssetService.getValidEntityTypes(),
       mediaTypes: mediaAssetService.getValidMediaTypes(),
     });
+  });
+
+  // ── Wikimedia Commons ─────────────────────────────────────────
+
+  /**
+   * POST /api/scrape/wikimedia-commons - Scrape cultural images from Wikimedia Commons
+   */
+  app.post("/api/scrape/wikimedia-commons", async (req, res) => {
+    try {
+      const { categories, maxPerCategory } = req.body || {};
+      const job = jobStore.createJob("wikimedia-commons", 0, "wikimedia-api");
+      res.json({ jobId: job.id, message: "Wikimedia Commons image scraping started" });
+      wikimediaCommonsScraper
+        .scrapeImages({
+          categories,
+          maxPerCategory,
+          jobId: job.id,
+          progressCallback: (type, message) => {
+            console.log(`[wikimedia-commons] ${type}: ${message}`);
+          },
+        })
+        .catch((err) => {
+          console.error("Wikimedia Commons scraping failed:", err);
+        });
+    } catch (error) {
+      console.error("Error starting Wikimedia Commons scraping:", error);
+      res.status(500).json({
+        message: "Failed to start Wikimedia Commons scraping",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/wikimedia-commons-images - Get scraped Wikimedia Commons images
+   */
+  app.get("/api/wikimedia-commons-images", async (req, res) => {
+    try {
+      const culture = req.query.culture as string | undefined;
+      const artifactType = req.query.artifact_type as string | undefined;
+      const region = req.query.region as string | undefined;
+
+      const filePath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      if (!fs.existsSync(filePath)) {
+        return res.json({ images: [], count: 0 });
+      }
+
+      const content = await fs.promises.readFile(filePath, "utf8");
+      const lines = content.split("\n").filter((l) => l.trim() !== "");
+      if (lines.length <= 1) {
+        return res.json({ images: [], count: 0 });
+      }
+
+      const headers = lines[0].split("\t");
+      const getIdx = (name: string) => headers.indexOf(name);
+
+      let images = lines.slice(1).map((line) => {
+        const cols = line.split("\t");
+        return {
+          id: cols[getIdx("id")] || "",
+          title: cols[getIdx("title")] || "",
+          description: cols[getIdx("description")] || "",
+          imageUrl: cols[getIdx("image_url")] || "",
+          thumbUrl: cols[getIdx("thumb_url")] || "",
+          artist: cols[getIdx("artist")] || "",
+          license: cols[getIdx("license")] || "",
+          categories: (() => { try { return JSON.parse(cols[getIdx("categories")] || "[]"); } catch { return []; } })(),
+          coordinates: (() => { try { const v = cols[getIdx("coordinates")]; return v ? JSON.parse(v) : null; } catch { return null; } })(),
+          dateCreated: cols[getIdx("date_created")] || "",
+          associatedCulture: cols[getIdx("associated_culture")] || "",
+          associatedLanguageIds: (() => { try { return JSON.parse(cols[getIdx("associated_language_ids")] || "[]"); } catch { return []; } })(),
+          artifactType: cols[getIdx("artifact_type")] || "",
+          region: cols[getIdx("region")] || "",
+          source: cols[getIdx("source")] || "",
+        };
+      });
+
+      if (culture) {
+        images = images.filter((img) =>
+          img.associatedCulture.toLowerCase().includes(culture.toLowerCase())
+        );
+      }
+      if (artifactType) {
+        images = images.filter((img) =>
+          img.artifactType.toLowerCase() === artifactType.toLowerCase()
+        );
+      }
+      if (region) {
+        images = images.filter((img) =>
+          img.region.toLowerCase().includes(region.toLowerCase())
+        );
+      }
+
+      res.json({ images, count: images.length });
+    } catch (error) {
+      console.error("Error fetching Wikimedia Commons images:", error);
+      res.status(500).json({
+        message: "Failed to fetch Wikimedia Commons images",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   });
 
   return server;
