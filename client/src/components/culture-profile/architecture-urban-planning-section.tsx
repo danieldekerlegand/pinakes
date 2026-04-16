@@ -12,6 +12,8 @@ import {
   MapPin,
   Layers,
 } from "lucide-react";
+import CityLayoutViewer from "@/components/visualizations/CityLayoutViewer";
+import type { CityLayoutData } from "@/components/visualizations/city-layout-utils";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -530,10 +532,30 @@ export default function ArchitectureUrbanPlanningSection({
 
       {/* City Layouts */}
       {cityLayouts.length > 0 && (
-        <div>
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+        <div className="space-y-3">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
             City Layouts ({cityLayouts.length})
           </div>
+          <CityLayoutViewer
+            layouts={cityLayouts.map(
+              (l): CityLayoutData => ({
+                id: l.id,
+                settlementName: l.settlementName,
+                cultureProfileId: l.cultureProfileId,
+                layoutType: l.layoutType,
+                keyFeatures: l.keyFeatures,
+                streetPattern: l.streetPattern,
+                waterManagement: Array.isArray(l.waterManagement)
+                  ? (l.waterManagement as unknown as string[]).join(", ")
+                  : l.waterManagement,
+                fortificationType: l.fortificationType,
+                estimatedAreaHectares: l.estimatedAreaHectares,
+                description: l.description,
+                reconstructionNotes: l.reconstructionNotes,
+                timePeriodLabel: l.settlementName,
+              }),
+            )}
+          />
           <div className="space-y-2">
             {cityLayouts.map((layout) => (
               <CityLayoutCard

@@ -1711,3 +1711,26 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## US-421: Build interactive city layout schematic viewer (2026-04-16)
+- Created client/src/components/visualizations/city-layout-utils.ts with pure placement logic
+  - CityLayoutData, ZoneShape, SchematicGeometry, SchematicDecoration types
+  - FEATURE_COLORS, FEATURE_DESCRIPTIONS, LAYOUT_TYPE_DESCRIPTIONS metadata maps
+  - Helpers: getFeatureColor, getFeatureDescription, formatFeatureLabel, getLayoutDescription
+  - computeSchematic() produces deterministic SVG geometry per layout_type:
+    grid, fortified, radial, citadel, terraced, linear, canal-based, organic fallback
+  - Walls render as boundary, gates as four markers, aqueducts/canals as path decorations
+- Created client/src/components/visualizations/CityLayoutViewer.tsx
+  - Interactive SVG top-down schematic with pan (pointer drag) and zoom (wheel + buttons)
+  - Clickable labeled zones reveal feature descriptions in the footer
+  - Layout selector to switch between multiple settlements / time periods
+  - Reset view button and zoom-level indicator
+  - Accessible (role=img, aria-labels, data-testid hooks)
+- Integrated CityLayoutViewer into culture-profile/architecture-urban-planning-section.tsx
+  - Viewer renders above the existing city layout detail cards
+- Created test/city-layout-viewer.test.ts with 34 passing tests
+  - Utility helpers (label, color, description, case-insensitive layout lookup)
+  - Schematic computation: zones per feature, walls/gates/aqueduct/canal handling,
+    viewBox bounds, determinism, feature priority (temple/palace centered), all layout types
+  - Integration against real lexicons/city-layouts.tsv data
+- All 34 new tests pass, no new TypeScript errors introduced
