@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type {
   BaseWord,
+  CultureProfile,
   Language,
   LanguageFamily,
   LanguageFamilyWithChildren,
