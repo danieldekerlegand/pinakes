@@ -51,6 +51,7 @@ import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
+import ReligionMythologyPanel from "@/components/religion-mythology-panel";
 import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import MesopotamiaCityStatesShowcase from "@/components/mesopotamia-city-states-showcase";
 import GlobalSearchDialog from "@/components/global-search-dialog";
@@ -436,6 +437,8 @@ export default function Dashboard() {
               <LiteraryTraditionsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'trade' ? (
               <TradeGoodsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'religion' ? (
+              <ReligionMythologyPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'archCultures' ? (
               <ArchaeologicalCulturesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'correlation' ? (

@@ -2798,13 +2798,13 @@ export class TsvStorage {
     const idIdx = getIdx(header, "id");
     const nameIdx = getIdx(header, "name");
     const nativeIdx = header.indexOf("native_name");
-    const mythIdx = header.indexOf("mythology");
+    const mythIdx = header.indexOf("mythology") >= 0 ? header.indexOf("mythology") : header.indexOf("pantheon");
     const domainIdx = header.indexOf("domain");
     const coordsIdx = header.indexOf("coordinates");
     const startIdx = header.indexOf("time_origin");
     const endIdx = header.indexOf("time_end");
     const langIdx = header.indexOf("associated_language_ids");
-    const equivIdx = header.indexOf("equivalent_deity_ids");
+    const equivIdx = header.indexOf("equivalent_deity_ids") >= 0 ? header.indexOf("equivalent_deity_ids") : header.indexOf("syncretism_links");
     const attrIdx = header.indexOf("attributes");
     const symbolIdx = header.indexOf("symbols");
     const descIdx = header.indexOf("description");
@@ -2826,7 +2826,7 @@ export class TsvStorage {
         name: row[nameIdx],
         nativeName: nativeIdx >= 0 ? row[nativeIdx] || "" : "",
         mythology: mythIdx >= 0 ? row[mythIdx] || "" : "",
-        domain: domainIdx >= 0 && row[domainIdx] ? row[domainIdx].split(",") : [],
+        domain: parseArr(domainIdx, row),
         coordinates: coords,
         timeOrigin: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
           ? parseInt(row[startIdx], 10) : null,
