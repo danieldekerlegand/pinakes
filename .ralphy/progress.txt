@@ -12,6 +12,34 @@ Completed:
 
 ---
 
+Define CultureProfile data schema and create culture-profiles.tsv (US-400)
+
+Completed:
+- Defined CultureProfile TypeScript interface in server/tsv-storage.ts with 25 fields
+  - Core fields: id, name, alternateNames, civilizationId, archaeologicalCultureId
+  - Temporal/spatial: timePeriodStart, timePeriodEnd, region
+  - Classification enums: socialOrganization, subsistenceType, urbanismLevel, technologyLevel
+  - Cross-references: language, religion, writing system, art, music, cuisine, architecture, literary tradition IDs
+  - Metadata: notableSettlements, imageGalleryTags, sources
+- Created lexicons/culture-profiles.tsv with 124 culture profiles spanning 20 regions
+  - Mesopotamia: Sumerian, Akkadian, Babylonian, Assyrian, Uruk Period, Dilmun
+  - North/East Africa: Egyptian, Carthaginian, Axumite, Kushite, Ethiopian, Punt, Kilwa, Swahili
+  - Mediterranean: Greek, Roman, Byzantine, Minoan, Mycenaean, Etruscan, Nuragic
+  - Middle East: Phoenician, Nabataean, Elamite, Umayyad, Abbasid, Ottoman, Safavid, Seljuk
+  - South Asia: Indus Valley, Maurya, Gupta, Chola, Vijayanagara, Delhi Sultanate, Mughal, Gandhara
+  - East Asia: Shang, Zhou, Qin, Han, Tang, Song, Ming, Qing, Heian/Nara/Tokugawa Japan, Silla/Goryeo/Joseon Korea
+  - Southeast Asia: Khmer, Srivijaya, Majapahit, Ayutthaya, Pagan, Dai Viet, Cham, Funan, Dvaravati
+  - Central Asia: Achaemenid, Sasanian, Parthian, Mongol, Xiongnu, Sogdian, Kushan, Timurid, Scythian
+  - Americas: Olmec, Maya, Aztec, Inca, Tiwanaku, Mississippian, Pueblo, Haudenosaunee, Wari, Chavin, Nazca, Moche, Chimor
+  - Africa: Mali, Songhai, Ghana, Benin, Zulu, Great Zimbabwe, Kongo, Luba, Ife, Nok
+  - Europe: Viking, Celtic, Carolingian, Kievan Rus, Spanish/Portuguese/British Empires
+- All cross-reference IDs validated against existing TSV files
+- Created test/test-culture-profiles.ts (standalone test script, 40 assertions)
+- Created test/test-culture-profiles.test.ts (vitest, 15 test cases)
+- All tests passing
+
+---
+
 Implement Mesopotamia city-states showcase demo (US-310)
 
 Completed:
