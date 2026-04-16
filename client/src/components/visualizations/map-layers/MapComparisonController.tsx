@@ -5,6 +5,7 @@ import { SplitScreenComparison, SplitScreenToggle } from './SplitScreenCompariso
 import { SwipeDivider } from './SwipeDivider';
 import { ComparisonOverlay, useClipDefaultPane } from './ComparisonOverlay';
 import type { CivilizationFeature, LanguageRangeFeature } from '../../../lib/visualization/geospatial-types';
+import type { ComparisonLayerType } from '../hooks/useSplitScreen';
 
 interface MapComparisonControllerProps {
   currentYear: number;
@@ -48,6 +49,8 @@ export function MapComparisonController({
     setBlinkInterval,
     activeYear,
     swapYears,
+    toggleLeftLayer,
+    toggleRightLayer,
   } = useSplitScreen(currentYear, minYear, maxYear);
 
   // Clip default panes when in swipe mode
@@ -75,6 +78,7 @@ export function MapComparisonController({
           languageRanges={allLanguageRanges}
           civilizationOpacity={civilizationOpacity}
           languageRangeOpacity={languageRangeOpacity}
+          visibleLayers={splitState.rightLayers}
         />
       )}
 
@@ -152,6 +156,10 @@ export function MapComparisonOverlays({
   onDividerPositionChange,
   onBlinkIntervalChange,
   onSwapYears,
+  leftLayers,
+  rightLayers,
+  onToggleLeftLayer,
+  onToggleRightLayer,
 }: {
   isActive: boolean;
   mode: 'swipe' | 'blink';
@@ -170,6 +178,10 @@ export function MapComparisonOverlays({
   onDividerPositionChange: (position: number) => void;
   onBlinkIntervalChange: (interval: number) => void;
   onSwapYears: () => void;
+  leftLayers: Set<ComparisonLayerType>;
+  rightLayers: Set<ComparisonLayerType>;
+  onToggleLeftLayer: (layer: ComparisonLayerType) => void;
+  onToggleRightLayer: (layer: ComparisonLayerType) => void;
 }) {
   return (
     <>
@@ -223,6 +235,10 @@ export function MapComparisonOverlays({
         onDividerPositionChange={onDividerPositionChange}
         onBlinkIntervalChange={onBlinkIntervalChange}
         onSwapYears={onSwapYears}
+        leftLayers={leftLayers}
+        rightLayers={rightLayers}
+        onToggleLeftLayer={onToggleLeftLayer}
+        onToggleRightLayer={onToggleRightLayer}
       />
     </>
   );

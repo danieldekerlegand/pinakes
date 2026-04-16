@@ -1084,6 +1084,7 @@ Completed:
 - [✓] 2026-04-16 - Implement custom map marker and icon system (US-320)
 - [✓] 2026-04-16 - Implement map image import and georeferencing tool (US-313)
 - [✓] 2026-04-16 - Create curated historical tour/story mode (US-317)
+- [✓] 2026-04-16 - Create map comparison/split-screen enhancements (US-315)
 
 US-312: Create map annotation and label system
 
@@ -1196,3 +1197,33 @@ Completed:
   - Chronological ordering validation
   - Layer ID validation against known layer IDs
 - All 952 tests pass (47 test files), no new TypeScript errors
+
+US-315: Create map comparison/split-screen enhancements
+
+Completed:
+- Added per-side layer configuration to split-screen comparison mode
+  - Extended SplitScreenState with leftLayers/rightLayers (Set<ComparisonLayerType>)
+  - Added ComparisonLayerType, ALL_COMPARISON_LAYERS, COMPARISON_LAYER_LABELS exports
+  - Added toggleLeftLayer/toggleRightLayer callbacks to useSplitScreen hook
+  - Default: both sides show all comparison layers (civilizations + language-ranges)
+- Updated ComparisonOverlay to accept visibleLayers prop
+  - Conditionally renders civilization and language range layers based on visibility set
+  - Backwards compatible: omitting visibleLayers shows all layers
+- Added layer toggle UI section to SplitScreenComparison panel
+  - Left/Right side checkboxes with blue/orange color-coded headers
+  - Uses ALL_COMPARISON_LAYERS and COMPARISON_LAYER_LABELS for dynamic rendering
+- Wired per-side layer config through MapComparisonController and MapComparisonOverlays
+- Updated EnhancedLanguageMapView to pass layer state and toggle callbacks
+- Added 20 new tests (35 total in useSplitScreen.test.ts)
+  - Per-side layer toggle logic, independence, inverse toggle, empty layers
+  - Comparison layer constants (ALL_COMPARISON_LAYERS, COMPARISON_LAYER_LABELS)
+  - Updated existing tests to include new state fields
+- All 942 tests passing, no new TypeScript errors
+
+Files modified:
+- client/src/components/visualizations/hooks/useSplitScreen.ts
+- client/src/components/visualizations/hooks/useSplitScreen.test.ts
+- client/src/components/visualizations/map-layers/SplitScreenComparison.tsx
+- client/src/components/visualizations/map-layers/MapComparisonController.tsx
+- client/src/components/visualizations/map-layers/ComparisonOverlay.tsx
+- client/src/components/visualizations/EnhancedLanguageMapView.tsx
