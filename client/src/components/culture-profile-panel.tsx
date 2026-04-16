@@ -18,8 +18,10 @@ import {
   Lightbulb,
   ScrollText,
   Building2,
+  TrendingUp,
 } from "lucide-react";
 import type { CultureProfile } from "@shared/types";
+import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
 
 interface CultureProfilePanelProps {
   cultureId: string;
@@ -336,6 +338,9 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               <TabsTrigger value="cuisine" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-cuisine">
                 Cuisine
               </TabsTrigger>
+              <TabsTrigger value="economy" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-economy">
+                Economy
+              </TabsTrigger>
               <TabsTrigger value="daily-life" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-daily-life">
                 Daily Life
               </TabsTrigger>
@@ -369,6 +374,14 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
             </TabsContent>
             <TabsContent value="cuisine">
               <PlaceholderSection title="Cuisine & Foodways" icon={<UtensilsCrossed className="h-8 w-8" />} />
+            </TabsContent>
+            <TabsContent value="economy">
+              <EconomyTradeSection
+                cultureProfileId={profile.id}
+                languageIds={profile.associatedLanguageIds}
+                cultureName={profile.name}
+                region={profile.region}
+              />
             </TabsContent>
             <TabsContent value="daily-life">
               <PlaceholderSection title="Daily Life & Social Organization" icon={<Users className="h-8 w-8" />} />
