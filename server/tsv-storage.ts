@@ -680,6 +680,21 @@ export interface LiteraryWork {
   coordinates: { lat: number; lng: number };
 }
 
+export interface DailyLifeEntry {
+  id: string;
+  cultureProfileId: string;
+  category: string;
+  title: string;
+  description: string;
+  socialClass: string;
+  genderContext: string;
+  ageGroup: string;
+  season: string;
+  timePeriodStart: number | null;
+  timePeriodEnd: number | null;
+  sources: string;
+}
+
 
 export type TsvStorageConfig = {
   conceptDataPath: string;
@@ -845,6 +860,9 @@ export class TsvStorage {
 
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
+
+  // Daily life entries cache
+  private cachedDailyLife: DailyLifeEntry[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5599,5 +5617,96 @@ export class TsvStorage {
   async getRiverWaterById(id: string): Promise<RiverWaterFeature | null> {
     this.loadRiversAndWaters();
     return (this.cachedRiversAndWaters ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  private loadDailyLife(): void {
+    if (this.cachedDailyLife) return;
+
+    const text = this.readFileIfExists("lexicons/daily-life.tsv");
+    if (!text) {
+      this.cachedDailyLife = [];
+      return;
+    }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const cultureProfileIdIdx = getIdx(header, "culture_profile_id");
+    const categoryIdx = header.indexOf("category");
+    const titleIdx = header.indexOf("title");
+    const descIdx = header.indexOf("description");
+    const socialClassIdx = header.indexOf("social_class");
+    const genderContextIdx = header.indexOf("gender_context");
+    const ageGroupIdx = header.indexOf("age_group");
+    const seasonIdx = header.indexOf("season");
+    const timeStartIdx = header.indexOf("time_period_start");
+    const timeEndIdx = header.indexOf("time_period_end");
+    const sourcesIdx = header.indexOf("sources");
+
+    this.cachedDailyLife = rows.map((row) => ({
+      id: row[idIdx],
+      cultureProfileId: row[cultureProfileIdIdx],
+      category: categoryIdx >= 0 ? row[categoryIdx] || "" : "",
+      title: titleIdx >= 0 ? row[titleIdx] || "" : "",
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      socialClass: socialClassIdx >= 0 ? row[socialClassIdx] || "" : "",
+      genderContext: genderContextIdx >= 0 ? row[genderContextIdx] || "" : "",
+      ageGroup: ageGroupIdx >= 0 ? row[ageGroupIdx] || "" : "",
+      season: seasonIdx >= 0 ? row[seasonIdx] || "" : "",
+      timePeriodStart:
+        timeStartIdx >= 0 && row[timeStartIdx] && row[timeStartIdx] !== "null"
+          ? parseInt(row[timeStartIdx], 10)
+          : null,
+      timePeriodEnd:
+        timeEndIdx >= 0 && row[timeEndIdx] && row[timeEndIdx] !== "null"
+          ? parseInt(row[timeEndIdx], 10)
+          : null,
+      sources: sourcesIdx >= 0 ? row[sourcesIdx] || "" : "",
+    }));
+  }
+
+  async getDailyLife(filters?: {
+    cultureProfileId?: string;
+    category?: string;
+    socialClass?: string;
+    genderContext?: string;
+  }): Promise<DailyLifeEntry[]> {
+    this.loadDailyLife();
+    let entries = this.cachedDailyLife ?? [];
+
+    if (filters?.cultureProfileId) {
+      entries = entries.filter((e) => e.cultureProfileId === filters.cultureProfileId);
+    }
+    if (filters?.category) {
+      entries = entries.filter((e) => e.category === filters.category);
+    }
+    if (filters?.socialClass) {
+      entries = entries.filter((e) => e.socialClass === filters.socialClass);
+    }
+    if (filters?.genderContext) {
+      entries = entries.filter((e) => e.genderContext === filters.genderContext);
+    }
+
+    return entries;
+  }
+
+  async getDailyLifeById(id: string): Promise<DailyLifeEntry | null> {
+    this.loadDailyLife();
+    return (this.cachedDailyLife ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  async getDailyLifeByCultureProfile(
+    cultureProfileId: string
+  ): Promise<Record<string, DailyLifeEntry[]>> {
+    this.loadDailyLife();
+    const entries = (this.cachedDailyLife ?? []).filter(
+      (e) => e.cultureProfileId === cultureProfileId
+    );
+    const grouped: Record<string, DailyLifeEntry[]> = {};
+    for (const entry of entries) {
+      const cat = entry.category || "uncategorized";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(entry);
+    }
+    return grouped;
   }
 }

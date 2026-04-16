@@ -5674,5 +5674,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/daily-life - Get daily life entries with optional filtering
+   */
+  app.get("/api/daily-life", async (req, res) => {
+    try {
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const category = req.query.category as string | undefined;
+      const socialClass = req.query.social_class as string | undefined;
+      const genderContext = req.query.gender_context as string | undefined;
+
+      const entries = await storage.getDailyLife({
+        cultureProfileId,
+        category,
+        socialClass,
+        genderContext,
+      });
+
+      res.json({
+        entries,
+        count: entries.length,
+        filters: { cultureProfileId, category, socialClass, genderContext },
+      });
+    } catch (error) {
+      console.error("Error fetching daily life entries:", error);
+      res.status(500).json({
+        message: "Failed to fetch daily life entries",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/daily-life/:id - Get a single daily life entry by ID
+   */
+  app.get("/api/daily-life/:id", async (req, res) => {
+    try {
+      const entry = await storage.getDailyLifeById(req.params.id);
+      if (!entry) {
+        res.status(404).json({ message: `Daily life entry '${req.params.id}' not found` });
+        return;
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching daily life entry:", error);
+      res.status(500).json({
+        message: "Failed to fetch daily life entry",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id/daily-life - Get daily life entries grouped by category
+   */
+  app.get("/api/culture-profiles/:id/daily-life", async (req, res) => {
+    try {
+      const grouped = await storage.getDailyLifeByCultureProfile(req.params.id);
+      const totalEntries = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
+
+      res.json({
+        cultureProfileId: req.params.id,
+        categories: grouped,
+        categoryCount: Object.keys(grouped).length,
+        totalEntries,
+      });
+    } catch (error) {
+      console.error("Error fetching culture profile daily life:", error);
+      res.status(500).json({
+        message: "Failed to fetch culture profile daily life",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   return server;
 }

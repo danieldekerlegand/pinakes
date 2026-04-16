@@ -1540,3 +1540,17 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+## Add daily-life TSV loader and API endpoints (2026-04-16)
+- Added DailyLifeEntry interface to server/tsv-storage.ts
+- Implemented loadDailyLife() private loader with lazy caching
+- Added getDailyLife() with filters: cultureProfileId, category, socialClass, genderContext
+- Added getDailyLifeById() for single entry lookup
+- Added getDailyLifeByCultureProfile() returning entries grouped by category
+- Added API endpoints in server/routes.ts:
+  - GET /api/daily-life (with query filters: culture_profile_id, category, social_class, gender_context)
+  - GET /api/daily-life/:id
+  - GET /api/culture-profiles/:id/daily-life (grouped by category)
+- Created lexicons/daily-life.tsv with 15 seed entries across 7 cultures
+- Created server/daily-life.test.ts with 12 passing tests
+- [✓] 2026-04-16 - Add daily-life TSV loader and API endpoints

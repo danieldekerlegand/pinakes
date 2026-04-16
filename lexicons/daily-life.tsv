@@ -1,0 +1,16 @@
+id	culture_profile_id	category	title	description	social_class	gender_context	age_group	season	time_period_start	time_period_end	sources
+dl-001	sumerian	housing	Mud-brick houses	Common Sumerian dwellings were rectangular mud-brick houses with flat roofs, often two stories with a central courtyard	common	all	all	all	-3500	-2000	Woolley 1934; Crawford 2004
+dl-002	sumerian	diet	Barley bread and beer	Barley was the staple grain; bread and beer were consumed daily by all social classes	common	all	all	all	-3500	-2000	Bottero 2004
+dl-003	sumerian	occupation	Scribal training	Young boys from elite families attended edubba (tablet house) schools to learn cuneiform writing	elite	male	child	all	-3000	-2000	Kramer 1963
+dl-004	egyptian	housing	Workers village at Deir el-Medina	Artisan families lived in small stone houses along narrow streets in planned worker communities	common	all	all	all	-1550	-1070	Meskell 2002
+dl-005	egyptian	clothing	Linen garments	Egyptians wore white linen clothing; elites had finely pleated garments while commoners wore simpler wraps	elite	all	adult	all	-3000	-30	Vogelsang-Eastwood 1993
+dl-006	roman	recreation	Public baths	Romans of all classes visited public bathhouses (thermae) for bathing, socializing, and exercise	common	all	adult	all	-27	476	Fagan 1999
+dl-007	roman	diet	Cena (main meal)	The main Roman meal was eaten in late afternoon; elites reclined on couches for elaborate multi-course dinners	elite	all	adult	all	-200	476	Dalby 2003
+dl-008	roman	commerce	Forum marketplace	Daily commerce centered on the forum, where merchants sold food, pottery, textiles, and other goods	merchant	all	adult	all	-500	476	Holleran 2012
+dl-009	han-chinese	education	Confucian studies	Elite young men studied the Five Classics and practiced calligraphy as preparation for government service	elite	male	child	all	-206	220	Nylan 2001
+dl-010	han-chinese	hygiene	Bathing rituals	Regular bathing was expected; officials received a day off every five days specifically for bathing	elite	all	adult	all	-206	220	Hinsch 2002
+dl-011	viking	clothing	Woolen tunics and cloaks	Vikings wore layered woolen clothing with linen undergarments; brooches indicated social status	common	all	adult	winter	793	1066	Owen-Crocker 2004
+dl-012	viking	occupation	Seasonal farming and raiding	Free men alternated between farming in summer and trading or raiding voyages in warmer months	common	male	adult	summer	793	1066	Brink & Price 2008
+dl-013	aztec	social_customs	Market day at Tlatelolco	The great market operated daily, with 60,000 people trading goods regulated by market judges	common	all	adult	all	1325	1521	Smith 2012
+dl-014	aztec	diet	Maize tortillas and tamales	Maize was prepared as tortillas, tamales, and atole (porridge); chocolate was reserved for elites	common	female	adult	all	1325	1521	Coe 1994
+dl-015	edo-japanese	recreation	Kabuki theater	Townspeople flocked to kabuki performances in licensed theater districts as popular entertainment	common	all	adult	all	1603	1868	Shively 1955
