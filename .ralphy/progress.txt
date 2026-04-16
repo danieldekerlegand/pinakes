@@ -1,3 +1,17 @@
+Create city-layouts.tsv for urban planning and spatial organization
+
+Completed:
+- Created lexicons/city-layouts.tsv with 30 entries covering urban layouts across civilizations
+  - Columns: id, name, civilization_id, settlement_id, layout_type, origin_date, end_date, coordinates, grid_system, major_axes, districts, street_pattern, water_management, fortifications, public_spaces, residential_zones, sacred_precinct, market_areas, population_density, area_hectares, description, associated_languages, sources
+  - Layout types: orthogonal-grid, organic-radial, semi-grid, ceremonial-dispersed, cosmological-grid, zoomorphic, agglutinated, tell-cluster, stone-enclosure, and more
+  - Civilizations covered: Sumerian, Babylonian, Assyrian, Indus Valley, Greek, Roman, Tang/Ming Chinese, Japanese, Aztec, Inca, Maya, Khmer, Byzantine, Mississippian, West African, Mughal, and Neolithic settlements
+  - Geographic coverage: all inhabited continents with coordinates spanning both hemispheres
+  - Each entry includes urban infrastructure details: water management, fortifications, street patterns, districts, public spaces, sacred precincts, and market areas
+- Created scripts/city-layouts.test.ts with 12 tests (all passing)
+  - Tests: file existence, header structure, unique IDs, ID format (cl-NNN), valid coordinates, JSON array fields, date validation, layout type diversity, geographic coverage, sparse column check, description quality, and language references
+
+---
+
 Implement Mesopotamia city-states showcase demo (US-310)
 
 Completed:
