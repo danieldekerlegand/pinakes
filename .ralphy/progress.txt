@@ -1080,6 +1080,7 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+<<<<<<< HEAD
 - [✓] 2026-04-16 01:36 - Create map annotation and label system (US-312)
 - [✓] 2026-04-16 - Implement custom map marker and icon system (US-320)
 - [✓] 2026-04-16 - Implement map image import and georeferencing tool (US-313)
@@ -1411,3 +1412,34 @@ Completed:
   - mergeHeatPoints: multiple arrays, empty arrays, no arguments
   - DENSITY_GRADIENTS: preset keys, gradient stop validation
 - All 965 tests passing (32 new + 933 existing), no new TypeScript errors
+=======
+- [✓] 2026-04-16 - Implement animated timeline playback with narration points
+
+## Implement animated timeline playback with narration points
+
+### Completed
+- Added NarrationPoint type to geospatial-types.ts (id, year, title, description, category)
+- Created narration-points.ts with:
+  - 19 default narration points spanning 3200 BCE to 1991 CE (cuneiform, pyramids, bronze age collapse, Phoenician alphabet, classical Athens, Alexander, Qin unification, Roman peak, fall of Rome, Islamic golden age, Mongols, Black Death, Gutenberg, Columbian exchange, Industrial Revolution, WWI, WWII, internet)
+  - 5 narration categories: political, cultural, linguistic, scientific, military
+  - Utility functions: findNarrationPointsInRange, findNextNarrationPoint, findPreviousNarrationPoint, narrationPointPosition
+- Enhanced useTimeSlider hook:
+  - Accepts optional narrationPoints parameter
+  - Animation loop detects when playback crosses a narration point year
+  - Pauses playback and sets activeNarration state when hitting a narration point
+  - Tracks visited narrations to avoid re-triggering during same playback session
+  - dismissNarration() resumes playback after user reads the card
+  - Visited narrations reset on jumpToStart, reset, or restart from end
+- Updated TimeSlider UI component:
+  - Color-coded narration dot markers on the slider track (political=red, cultural=purple, linguistic=blue, scientific=green, military=amber)
+  - NarrationCard component shows title, year, description with category color accent
+  - Dismiss button closes card and resumes playback
+  - Accessible: role=alert, aria-live=assertive on narration card
+- Wired narration props into EnhancedLanguageMapView and TopographicMapView
+- Created narration-points.test.ts with 20 tests covering:
+  - Default points validation (non-empty, required fields, unique IDs, chronological order)
+  - Range filtering (inclusive, empty, boundary, full range)
+  - Next/previous point finding (strictly greater/less, undefined at bounds)
+  - Position calculation (min=0%, max=100%, midpoint, equal min/max, negative ranges)
+- All 953 tests pass (47 test files), no new TypeScript errors
+>>>>>>> ralphy/agent-5-1776321894134-74yocy-implement-animated-timeline-playback-with-narratio

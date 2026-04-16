@@ -319,6 +319,18 @@ export interface LayerConfig {
 }
 
 // ============================================================================
+// Narration Point Types
+// ============================================================================
+
+export interface NarrationPoint {
+  id: string;
+  year: number;
+  title: string;
+  description: string;
+  category?: 'political' | 'cultural' | 'linguistic' | 'scientific' | 'military';
+}
+
+// ============================================================================
 // Time Slider State
 // ============================================================================
 

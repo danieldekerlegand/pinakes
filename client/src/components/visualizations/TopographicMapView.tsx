@@ -17,6 +17,7 @@ import {
 import { Button } from '../ui/button';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
+import { DEFAULT_NARRATION_POINTS } from '../../lib/visualization/narration-points';
 import { TimeSlider } from './map-layers/TimeSlider';
 import { LayerPanel } from './map-layers/LayerPanel';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -175,6 +176,7 @@ export function TopographicMapView({
     state: timeState,
     currentYear,
     isPlaying,
+    activeNarration,
     toggle,
     setCurrentYear,
     setPlaybackSpeed,
@@ -183,7 +185,8 @@ export function TopographicMapView({
     stepBackward,
     jumpToStart,
     jumpToEnd,
-  } = useTimeSlider();
+    dismissNarration,
+  } = useTimeSlider({}, true, DEFAULT_NARRATION_POINTS);
 
   // ---- Data fetching (same as EnhancedLanguageMapView) ----
   const { data: languageRangesData, isLoading: loadingRanges } = useQuery<LanguageRangeCollection>({
@@ -847,6 +850,8 @@ export function TopographicMapView({
         isPlaying={isPlaying}
         playbackSpeed={timeState.playbackSpeed}
         stepSize={timeState.stepSize}
+        narrationPoints={DEFAULT_NARRATION_POINTS}
+        activeNarration={activeNarration}
         onYearChange={setCurrentYear}
         onPlayPause={toggle}
         onStepForward={stepForward}
@@ -855,6 +860,7 @@ export function TopographicMapView({
         onStepSizeChange={setStepSize}
         onJumpToStart={jumpToStart}
         onJumpToEnd={jumpToEnd}
+        onDismissNarration={dismissNarration}
       />
 
       {/* Playing indicator */}

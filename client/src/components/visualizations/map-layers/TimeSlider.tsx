@@ -1,10 +1,20 @@
 import React from 'react';
 import Slider from 'rc-slider';
-import { Play, Pause, SkipBack, SkipForward, ChevronsLeft, ChevronsRight, ChevronUp, ChevronDown, Clock } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ChevronsLeft, ChevronsRight, ChevronUp, ChevronDown, Clock, X } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { SLIDER_COLORS } from '../../../lib/visualization/color-theme';
+import type { NarrationPoint } from '../../../lib/visualization/geospatial-types';
+import { narrationPointPosition } from '../../../lib/visualization/narration-points';
 import 'rc-slider/assets/index.css';
+
+const CATEGORY_COLORS: Record<string, string> = {
+  political: '#ef4444',
+  cultural: '#8b5cf6',
+  linguistic: '#3b82f6',
+  scientific: '#10b981',
+  military: '#f59e0b',
+};
 
 interface TimeSliderProps {
   currentYear: number;
@@ -13,6 +23,8 @@ interface TimeSliderProps {
   isPlaying: boolean;
   playbackSpeed: number;
   stepSize: number;
+  narrationPoints?: NarrationPoint[];
+  activeNarration?: NarrationPoint | null;
   onYearChange: (year: number) => void;
   onPlayPause: () => void;
   onStepForward: () => void;
@@ -21,6 +33,7 @@ interface TimeSliderProps {
   onStepSizeChange: (size: number) => void;
   onJumpToStart: () => void;
   onJumpToEnd: () => void;
+  onDismissNarration?: () => void;
 }
 
 export function TimeSlider({
@@ -30,6 +43,8 @@ export function TimeSlider({
   isPlaying,
   playbackSpeed,
   stepSize,
+  narrationPoints = [],
+  activeNarration = null,
   onYearChange,
   onPlayPause,
   onStepForward,
@@ -38,6 +53,7 @@ export function TimeSlider({
   onStepSizeChange,
   onJumpToStart,
   onJumpToEnd,
+  onDismissNarration,
 }: TimeSliderProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -89,8 +105,8 @@ export function TimeSlider({
           </Button>
         </div>
 
-        {/* Slider */}
-        <div className="px-1">
+        {/* Slider with narration markers */}
+        <div className="px-1 relative">
           <Slider
             min={minYear}
             max={maxYear}
@@ -111,11 +127,41 @@ export function TimeSlider({
               touchAction: 'none',
             }}
           />
+          {/* Narration point markers */}
+          {narrationPoints.length > 0 && (
+            <div className="absolute top-0 left-0 right-0 h-[4px] pointer-events-none" aria-hidden="true">
+              {narrationPoints.map((point) => {
+                const pct = narrationPointPosition(point.year, minYear, maxYear);
+                const color = CATEGORY_COLORS[point.category || ''] || '#6b7280';
+                return (
+                  <div
+                    key={point.id}
+                    className="absolute top-[-2px] w-2 h-2 rounded-full border border-white"
+                    style={{
+                      left: `${pct}%`,
+                      backgroundColor: color,
+                      transform: 'translateX(-50%)',
+                    }}
+                    title={`${point.title} (${formatYear(point.year)})`}
+                  />
+                );
+              })}
+            </div>
+          )}
           <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
             <span>{formatYear(minYear)}</span>
             <span>{formatYear(maxYear)}</span>
           </div>
         </div>
+
+        {/* Narration info card */}
+        {activeNarration && (
+          <NarrationCard
+            narration={activeNarration}
+            onDismiss={onDismissNarration}
+            formatYear={formatYear}
+          />
+        )}
 
         {/* Controls - compact row */}
         <div className="flex items-center justify-center gap-1">
@@ -165,6 +211,52 @@ export function TimeSlider({
             </Select>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function NarrationCard({
+  narration,
+  onDismiss,
+  formatYear,
+}: {
+  narration: NarrationPoint;
+  onDismiss?: () => void;
+  formatYear: (year: number) => string;
+}) {
+  const color = CATEGORY_COLORS[narration.category || ''] || '#6b7280';
+
+  return (
+    <div
+      className="bg-gray-50 border rounded-md p-2 relative"
+      role="alert"
+      aria-live="assertive"
+      data-testid="narration-card"
+    >
+      <div className="flex items-start gap-2">
+        <div
+          className="w-1 self-stretch rounded-full flex-shrink-0"
+          style={{ backgroundColor: color }}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-gray-900">{narration.title}</span>
+            <span className="text-[10px] text-gray-500">{formatYear(narration.year)}</span>
+          </div>
+          <p className="text-[11px] text-gray-600 mt-0.5 leading-snug">{narration.description}</p>
+        </div>
+        {onDismiss && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-5 w-5 p-0 flex-shrink-0"
+            onClick={onDismiss}
+            aria-label="Dismiss narration and continue playback"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
       </div>
     </div>
   );
