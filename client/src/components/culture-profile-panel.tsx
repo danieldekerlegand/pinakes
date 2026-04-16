@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { CultureProfile } from "@shared/types";
 import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
+import TechnologyInnovationSection from "@/components/culture-profile/technology-innovation-section";
 
 interface CultureProfilePanelProps {
   cultureId: string;
@@ -390,7 +391,10 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               <PlaceholderSection title="Military & Warfare" icon={<Swords className="h-8 w-8" />} />
             </TabsContent>
             <TabsContent value="technology">
-              <PlaceholderSection title="Technology & Innovation" icon={<Lightbulb className="h-8 w-8" />} />
+              <TechnologyInnovationSection
+                cultureProfileId={profile.id}
+                cultureName={profile.name}
+              />
             </TabsContent>
           </Tabs>
         </div>
