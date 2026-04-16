@@ -5457,6 +5457,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/city-layouts - List city layouts with optional filters
+   */
+  app.get("/api/city-layouts", async (req, res) => {
+    try {
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const settlementId = req.query.settlement_id as string | undefined;
+      const layoutType = req.query.layout_type as string | undefined;
+
+      const layouts = await storage.getCityLayouts({ cultureProfileId, settlementId, layoutType });
+      res.json({ layouts, count: layouts.length });
+    } catch (error) {
+      console.error("Error fetching city layouts:", error);
+      res.status(500).json({ message: "Failed to fetch city layouts" });
+    }
+  });
+
+  /**
+   * GET /api/city-layouts/:id - Get a single city layout
+   */
+  app.get("/api/city-layouts/:id", async (req, res) => {
+    try {
+      const layout = await storage.getCityLayoutById(req.params.id);
+      if (!layout) {
+        res.status(404).json({ message: `City layout '${req.params.id}' not found` });
+        return;
+      }
+      res.json(layout);
+    } catch (error) {
+      console.error("Error fetching city layout:", error);
+      res.status(500).json({ message: "Failed to fetch city layout" });
+    }
+  });
+
+  /**
+   * GET /api/social-structures - List social structures with optional filters
+   */
+  app.get("/api/social-structures", async (req, res) => {
+    try {
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const structureType = req.query.structure_type as string | undefined;
+
+      const structures = await storage.getSocialStructures({ cultureProfileId, structureType });
+      res.json({ structures, count: structures.length });
+    } catch (error) {
+      console.error("Error fetching social structures:", error);
+      res.status(500).json({ message: "Failed to fetch social structures" });
+    }
+  });
+
+  /**
+   * GET /api/social-structures/:id - Get a single social structure
+   */
+  app.get("/api/social-structures/:id", async (req, res) => {
+    try {
+      const structure = await storage.getSocialStructureById(req.params.id);
+      if (!structure) {
+        res.status(404).json({ message: `Social structure '${req.params.id}' not found` });
+        return;
+      }
+      res.json(structure);
+    } catch (error) {
+      console.error("Error fetching social structure:", error);
+      res.status(500).json({ message: "Failed to fetch social structure" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id/city-layouts - Get city layouts for a culture profile
+   */
+  app.get("/api/culture-profiles/:id/city-layouts", async (req, res) => {
+    try {
+      const layouts = await storage.getCityLayouts({ cultureProfileId: req.params.id });
+      res.json({ layouts, count: layouts.length });
+    } catch (error) {
+      console.error("Error fetching city layouts for culture profile:", error);
+      res.status(500).json({ message: "Failed to fetch city layouts for culture profile" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id/social-structures - Get social structures for a culture profile
+   */
+  app.get("/api/culture-profiles/:id/social-structures", async (req, res) => {
+    try {
+      const structures = await storage.getSocialStructures({ cultureProfileId: req.params.id });
+      res.json({ structures, count: structures.length });
+    } catch (error) {
+      console.error("Error fetching social structures for culture profile:", error);
+      res.status(500).json({ message: "Failed to fetch social structures for culture profile" });
+    }
+  });
+
+  /**
    * POST /api/scrape-ethnographic - Trigger ethnographic data scraping
    */
   app.post("/api/scrape-ethnographic", async (req, res) => {
