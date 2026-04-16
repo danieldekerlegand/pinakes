@@ -24,6 +24,7 @@ import {
 } from "./services/underrepresented-vocab-scraper";
 import { analyzeMapImage } from "./services/map-image-analyzer";
 import type { FeatureExtractionRequest } from "./services/map-image-analyzer";
+import { MediaAssetService } from "./services/media-asset-service";
 import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
@@ -5672,6 +5673,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const message = error instanceof Error ? error.message : "Failed to analyze map image";
       res.status(500).json({ message });
     }
+  });
+
+  // ── Media Assets ──────────────────────────────────────────────────
+
+  const mediaAssetService = new MediaAssetService(
+    path.resolve(import.meta.dirname, "..", "lexicons")
+  );
+
+  /**
+   * GET /api/media-assets - Get all media assets with optional filtering
+   */
+  app.get("/api/media-assets", async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string | undefined;
+      const entityId = req.query.entity_id as string | undefined;
+      const mediaType = req.query.media_type as string | undefined;
+      const tag = req.query.tag as string | undefined;
+      const assets = await storage.getMediaAssets({ entityType, entityId, mediaType, tag });
+      res.json({ assets, count: assets.length });
+    } catch (error) {
+      console.error("Error fetching media assets:", error);
+      res.status(500).json({
+        message: "Failed to fetch media assets",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/media-assets/:id - Get a single media asset
+   */
+  app.get("/api/media-assets/:id", async (req, res) => {
+    try {
+      const asset = await storage.getMediaAssetById(req.params.id);
+      if (!asset) {
+        return res.status(404).json({ message: "Media asset not found" });
+      }
+      res.json(asset);
+    } catch (error) {
+      console.error("Error fetching media asset:", error);
+      res.status(500).json({
+        message: "Failed to fetch media asset",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/media-assets/entity/:entityType/:entityId - Get media for a specific entity
+   */
+  app.get("/api/media-assets/entity/:entityType/:entityId", async (req, res) => {
+    try {
+      const assets = await storage.getMediaAssetsForEntity(
+        req.params.entityType,
+        req.params.entityId
+      );
+      res.json({ assets, count: assets.length });
+    } catch (error) {
+      console.error("Error fetching entity media assets:", error);
+      res.status(500).json({
+        message: "Failed to fetch entity media assets",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/media-assets - Add a new media asset
+   */
+  app.post("/api/media-assets", async (req, res) => {
+    try {
+      const errors = mediaAssetService.validate(req.body);
+      if (errors.length > 0) {
+        return res.status(400).json({ errors });
+      }
+      const asset = await mediaAssetService.addAsset(req.body);
+      storage.invalidateCache("media");
+      res.status(201).json(asset);
+    } catch (error) {
+      console.error("Error adding media asset:", error);
+      res.status(500).json({
+        message: "Failed to add media asset",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/media-assets/:id - Delete a media asset
+   */
+  app.delete("/api/media-assets/:id", async (req, res) => {
+    try {
+      const deleted = await mediaAssetService.deleteAsset(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Media asset not found" });
+      }
+      storage.invalidateCache("media");
+      res.json({ message: "Media asset deleted" });
+    } catch (error) {
+      console.error("Error deleting media asset:", error);
+      res.status(500).json({
+        message: "Failed to delete media asset",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/media-assets/meta/types - Get valid entity types and media types
+   */
+  app.get("/api/media-assets/meta/types", (_req, res) => {
+    res.json({
+      entityTypes: mediaAssetService.getValidEntityTypes(),
+      mediaTypes: mediaAssetService.getValidMediaTypes(),
+    });
   });
 
   return server;

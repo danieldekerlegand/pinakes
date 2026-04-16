@@ -680,6 +680,24 @@ export interface LiteraryWork {
   coordinates: { lat: number; lng: number };
 }
 
+// Media asset types
+export interface MediaAsset {
+  id: string;
+  entityType: string;
+  entityId: string;
+  mediaType: string;
+  url: string;
+  title: string;
+  description: string;
+  source: string;
+  license: string;
+  attribution: string;
+  mimeType: string;
+  width: number | null;
+  height: number | null;
+  tags: string[];
+  dateAdded: string;
+}
 
 export type TsvStorageConfig = {
   conceptDataPath: string;
@@ -846,6 +864,9 @@ export class TsvStorage {
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
 
+  // Media assets cache
+  private cachedMediaAssets: MediaAsset[] | null = null;
+
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
       conceptDataPath: "lexicons/words-base.tsv",
@@ -879,6 +900,9 @@ export class TsvStorage {
     if (clearAll || cacheNames.includes('words')) {
       this.cachedForms = null;
       this.cachedBaseWords = null;
+    }
+    if (clearAll || cacheNames.includes('media')) {
+      this.cachedMediaAssets = null;
     }
     console.log(`Cache invalidated: ${clearAll ? 'all' : cacheNames.join(', ')}`);
   }
@@ -5599,5 +5623,88 @@ export class TsvStorage {
   async getRiverWaterById(id: string): Promise<RiverWaterFeature | null> {
     this.loadRiversAndWaters();
     return (this.cachedRiversAndWaters ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  // ── Media Assets ──────────────────────────────────────────────────
+
+  private loadMediaAssets(): void {
+    if (this.cachedMediaAssets) return;
+
+    const text = this.readFileIfExists("lexicons/media-assets.tsv");
+    if (!text) { this.cachedMediaAssets = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const entityTypeIdx = getIdx(header, "entity_type");
+    const entityIdIdx = getIdx(header, "entity_id");
+    const mediaTypeIdx = getIdx(header, "media_type");
+    const urlIdx = getIdx(header, "url");
+    const titleIdx = getIdx(header, "title");
+    const descIdx = getIdx(header, "description");
+    const sourceIdx = getIdx(header, "source");
+    const licenseIdx = getIdx(header, "license");
+    const attrIdx = getIdx(header, "attribution");
+    const mimeIdx = getIdx(header, "mime_type");
+    const widthIdx = getIdx(header, "width");
+    const heightIdx = getIdx(header, "height");
+    const tagsIdx = getIdx(header, "tags");
+    const dateIdx = getIdx(header, "date_added");
+
+    this.cachedMediaAssets = rows.map((row) => ({
+      id: row[idIdx],
+      entityType: row[entityTypeIdx],
+      entityId: row[entityIdIdx],
+      mediaType: row[mediaTypeIdx],
+      url: row[urlIdx],
+      title: row[titleIdx],
+      description: row[descIdx],
+      source: row[sourceIdx],
+      license: row[licenseIdx],
+      attribution: row[attrIdx],
+      mimeType: row[mimeIdx],
+      width: row[widthIdx] ? parseInt(row[widthIdx]) || null : null,
+      height: row[heightIdx] ? parseInt(row[heightIdx]) || null : null,
+      tags: (() => {
+        try { return JSON.parse(row[tagsIdx]); } catch { return []; }
+      })() as string[],
+      dateAdded: row[dateIdx],
+    }));
+  }
+
+  async getMediaAssets(filters?: {
+    entityType?: string;
+    entityId?: string;
+    mediaType?: string;
+    tag?: string;
+  }): Promise<MediaAsset[]> {
+    this.loadMediaAssets();
+    let assets = this.cachedMediaAssets ?? [];
+
+    if (filters?.entityType) {
+      assets = assets.filter((a) => a.entityType === filters.entityType);
+    }
+    if (filters?.entityId) {
+      assets = assets.filter((a) => a.entityId === filters.entityId);
+    }
+    if (filters?.mediaType) {
+      assets = assets.filter((a) => a.mediaType === filters.mediaType);
+    }
+    if (filters?.tag) {
+      assets = assets.filter((a) => a.tags.includes(filters.tag!));
+    }
+
+    return assets;
+  }
+
+  async getMediaAssetById(id: string): Promise<MediaAsset | null> {
+    this.loadMediaAssets();
+    return (this.cachedMediaAssets ?? []).find((a) => a.id === id) ?? null;
+  }
+
+  async getMediaAssetsForEntity(entityType: string, entityId: string): Promise<MediaAsset[]> {
+    this.loadMediaAssets();
+    return (this.cachedMediaAssets ?? []).filter(
+      (a) => a.entityType === entityType && a.entityId === entityId
+    );
   }
 }
