@@ -5832,6 +5832,8 @@ export class TsvStorage {
       grouped[entry.category].push(entry);
     }
     return grouped;
+  }
+
   // ── Culture Profiles ────────────────────────────────────────
 
   private loadCultureProfiles(): void {
