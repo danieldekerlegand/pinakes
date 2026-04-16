@@ -248,7 +248,8 @@ export type LayerType =
   | 'mythology'
   | 'urheimat-hypotheses'
   | 'empires-timeline'
-  | 'settlements';
+  | 'settlements'
+  | 'density-heatmap';
 
 export type LayerCategory =
   | 'languages'
@@ -870,6 +871,29 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
         size: 10,
         opacity: 0.9,
         strokeWeight: 2,
+      },
+    },
+  },
+  {
+    id: 'density-heatmap',
+    type: 'density-heatmap',
+    category: 'languages',
+    name: 'Density Heatmap',
+    visible: false,
+    opacity: 0.6,
+    zIndex: 80,
+    renderStyle: {
+      heatmap: {
+        radius: 20,
+        blur: 15,
+        maxZoom: 12,
+        gradient: {
+          0.0: '#0000ff',
+          0.25: '#00ffff',
+          0.5: '#00ff00',
+          0.75: '#ffff00',
+          1.0: '#ff0000',
+        },
       },
     },
   },
