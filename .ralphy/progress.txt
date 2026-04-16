@@ -1711,3 +1711,33 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## US-427: Culture Discovery Feed on Dashboard (2026-04-16)
+- Created client/src/lib/culture-discovery-utils.ts with pure helpers:
+  - CURATED_COLLECTIONS: Ancient River Civilizations, Mesoamerican, Steppe Empires, Maritime, Great Empires, Bronze Age
+  - pickCultureOfTheDay(): deterministic UTC-day rotation over sorted profile list
+  - pickRandomCulture(): injectable rng, excludes recent/current picks, falls back when pool empty
+  - filterProfilesBySearch(): matches name, region, summary, alternate names, notable settlements
+  - loadRecentlyViewed / recordRecentlyViewed / saveRecentlyViewed: localStorage-backed recents capped at 8 entries
+  - resolveProfilesByIds(): resolves ordered id list, skips missing ids
+- Created client/src/components/culture-discovery-feed.tsx with:
+  - Culture of the Day hero card (deterministic per day)
+  - Search bar with live filtering (clears to collections view)
+  - Curated collection grids using CURATED_COLLECTIONS
+  - Recently Viewed section sourced from props or localStorage
+  - Surprise-me button that opens a random culture (avoids current + recents)
+  - Loading skeleton and empty-state handling
+- Wired discovery into client/src/pages/dashboard.tsx:
+  - Added 'Discover Cultures' toggle to filter bar
+  - activeSection === 'discover' renders CultureDiscoveryFeed in main content area
+  - Added selectedCultureId state and CultureProfilePanel integration
+  - Recently viewed state persists via culture-discovery-utils helpers
+  - Escape key prioritizes closing the culture panel
+- Added client/src/lib/culture-discovery-utils.test.ts (29 tests, all passing):
+  - Collection membership (mesoamerican, river civilizations, steppe, maritime)
+  - Culture-of-day determinism, day-over-day rotation, order independence
+  - Random picker exclusion, fallback, rng injection
+  - Search matching by name/region/alternate names/settlements/description
+  - Recently viewed record/cap/load/save/null-storage handling
+  - Profile id resolution order and missing-id handling
+- Tests: new tests pass (29/29); no new TypeScript errors introduced (dashboard pre-existing errors only). Pre-existing failures in test/culture-profile-panel.test.ts and scripts/city-layouts.test.ts are unrelated.
