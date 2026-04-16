@@ -1080,3 +1080,28 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+- [✓] 2026-04-16 01:36 - Create map annotation and label system (US-312)
+
+US-312: Create map annotation and label system
+
+Completed:
+- Created client/src/lib/visualization/map-label-engine.ts (293 lines)
+  - Priority computation: base type priority + settlement rank boost + importance scaling
+  - Constants: LABEL_PRIORITY (region:50, settlement:70, route:30), SETTLEMENT_RANK_BOOST (capital:30, major:15, minor:0)
+  - Zoom-dependent visibility: region@3, route@4, settlement capital@4/major@6/minor@8
+  - Font scaling: base sizes per type (region:14, settlement:12, route:11) with zoom-proportional scaling, clamped to 8-24px
+  - Collision detection: greedy algorithm with screen-space bounding boxes and padding
+  - Curved path generation: SVG quadratic Bézier following polygon principal axis with left-to-right text direction
+  - Full pipeline: placeLabels() combining filter→project→sort→resolve
+- Created client/src/components/visualizations/map-layers/MapLabelsLayer.tsx (351 lines)
+  - Extracts labels from language ranges, civilizations, archaeological cultures, sites, and routes
+  - SVG overlay rendering in custom Leaflet pane (z-index 650)
+  - Curved textPath rendering for region labels with white halo shadows
+  - Point label rendering for settlements and routes with text halos
+  - Re-renders on zoom/pan events
+  - Opacity control support
+- Integrated into EnhancedLanguageMapView.tsx with enabledLabelLayers state
+- Added label layer toggles to LayerPanel.tsx with per-layer checkboxes
+- Created test/map-label-engine.test.ts with 28 tests (all passing)
+  - Priority computation, zoom visibility, font scaling, collision detection
+  - Curved path generation, polygon centroid, full pipeline integration
