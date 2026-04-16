@@ -1378,3 +1378,36 @@ Completed:
   - Bookmark ID generation uniqueness
   - localStorage save/load with mock
 - All 951 tests pass, no new TypeScript errors introduced
+
+## Agent 12: Create map data overlay heatmaps for density visualization
+
+### Completed
+- Created client/src/lib/visualization/density-heatmap-utils.ts
+  - HeatPoint type, DensitySource union type for data source identification
+  - 5 gradient presets: thermal, cool, warm, viridis, monochrome
+  - clampIntensity(), normaliseValues() for data normalization (min-max scaling)
+  - centroidFromGeometry() extracts centroids from Point, Polygon, MultiPolygon
+  - featuresToHeatPoints() converts GeoJSON features to heat points with optional intensity function
+  - coordsToHeatPoints() converts coordinate-bearing objects (lat/lng, latitude/longitude, nested coordinates) to heat points
+  - mergeHeatPoints() combines multiple heat point arrays for multi-source density
+- Created client/src/components/visualizations/map-layers/DensityHeatmapLayer.tsx
+  - Generic density heatmap overlay using leaflet.heat
+  - Accepts multiple data sources: GeoJSON features, coordinate items, raw heat points
+  - Configurable gradient (preset name or custom stops), radius, blur, maxZoom, opacity
+  - Automatic data conversion and merging via density-heatmap-utils
+  - Proper cleanup on unmount and data changes
+- Added 'density-heatmap' to LayerType union in geospatial-types.ts
+- Added density-heatmap LayerConfig in DEFAULT_LAYER_CONFIGS (thermal gradient, z-index 80)
+- Integrated DensityHeatmapLayer into EnhancedLanguageMapView.tsx
+  - Aggregates data from language ranges, archaeological sites, civilizations, cuisines, music, religions, battles, and settlements
+  - Respects layer visibility toggle and opacity controls
+  - Uses heatmap render style config from layer panel
+- Created client/src/lib/visualization/density-heatmap-utils.test.ts with 32 tests
+  - clampIntensity: boundary values, clamping
+  - normaliseValues: empty, identical, normal, negative, single value
+  - centroidFromGeometry: Point, Polygon, MultiPolygon, null/invalid/empty cases
+  - featuresToHeatPoints: uniform intensity, custom intensity function, empty, invalid geometry filtering
+  - coordsToHeatPoints: lat/lng, latitude/longitude, nested coordinates, intensity field, invalid coord filtering
+  - mergeHeatPoints: multiple arrays, empty arrays, no arguments
+  - DENSITY_GRADIENTS: preset keys, gradient stop validation
+- All 965 tests passing (32 new + 933 existing), no new TypeScript errors

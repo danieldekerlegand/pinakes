@@ -82,6 +82,8 @@ import type { MapViewState } from './hooks/useMapBookmarks';
 import { BookmarkPanel } from './map-layers/BookmarkPanel';
 import type { MapBookmark } from '../../lib/visualization/geospatial-types';
 import { MapComparisonController, MapComparisonOverlays } from './map-layers/MapComparisonController';
+import { DensityHeatmapLayer } from './map-layers/DensityHeatmapLayer';
+import type { DensityDataSources } from './map-layers/DensityHeatmapLayer';
 import {
   sampleLanguageRanges,
   sampleArchaeologicalSites,
@@ -786,6 +788,49 @@ export function EnhancedLanguageMapView({
     return allMaterialCultures;
   }, [allMaterialCultures]);
 
+  // Build density heatmap data from all point-like data sources
+  const densityHeatmapSources = useMemo<DensityDataSources>(() => {
+    const allFeatures: Array<{ geometry: { type: string; coordinates: any }; properties: Record<string, any> }> = [];
+    const allCoordItems: Array<Record<string, any>> = [];
+
+    // GeoJSON polygon/point features → centroid heat points
+    if (filteredLanguageRanges.length > 0) {
+      allFeatures.push(...(filteredLanguageRanges as any));
+    }
+    if (filteredArchaeologicalSites.length > 0) {
+      allFeatures.push(...(filteredArchaeologicalSites as any));
+    }
+    if (filteredCivilizations.length > 0) {
+      allFeatures.push(...(filteredCivilizations as any));
+    }
+
+    // Coordinate-bearing items
+    if (filteredCuisines.length > 0) {
+      allCoordItems.push(...filteredCuisines);
+    }
+    if (filteredMusicTraditions.length > 0) {
+      allCoordItems.push(...filteredMusicTraditions);
+    }
+    if (filteredReligions.length > 0) {
+      allCoordItems.push(...filteredReligions);
+    }
+    if (allBattles.length > 0) {
+      allCoordItems.push(...allBattles);
+    }
+    if (allSettlements.length > 0) {
+      allCoordItems.push(...allSettlements);
+    }
+
+    return {
+      features: allFeatures.length > 0 ? allFeatures : undefined,
+      coordItems: allCoordItems.length > 0 ? allCoordItems : undefined,
+    };
+  }, [
+    filteredLanguageRanges, filteredArchaeologicalSites, filteredCivilizations,
+    filteredCuisines, filteredMusicTraditions, filteredReligions,
+    allBattles, allSettlements,
+  ]);
+
   // Derive the active selected feature ID — internal selection takes priority
   const activeSelectedFeatureId = internalSelectedFeatureId ?? selectedFeatureId ?? null;
 
@@ -1126,6 +1171,18 @@ export function EnhancedLanguageMapView({
           <MaterialCultureHeatmap
             distributions={filteredMaterialCultures}
             opacity={getLayerConfig('material-culture-heatmap')?.opacity || 0.6}
+          />
+        )}
+
+        {/* Density Heatmap Overlay */}
+        {isLayerVisible('density-heatmap') && (
+          <DensityHeatmapLayer
+            sources={densityHeatmapSources}
+            radius={getLayerConfig('density-heatmap')?.renderStyle?.heatmap?.radius ?? 20}
+            blur={getLayerConfig('density-heatmap')?.renderStyle?.heatmap?.blur ?? 15}
+            maxZoom={getLayerConfig('density-heatmap')?.renderStyle?.heatmap?.maxZoom ?? 12}
+            gradient={getLayerConfig('density-heatmap')?.renderStyle?.heatmap?.gradient ?? 'thermal'}
+            opacity={getLayerConfig('density-heatmap')?.opacity ?? 0.6}
           />
         )}
 
