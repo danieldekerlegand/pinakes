@@ -1649,3 +1649,18 @@ Completed:
 - Created lexicons/daily-life.tsv with 15 seed entries across 7 cultures
 - Created server/daily-life.test.ts with 12 passing tests
 - [✓] 2026-04-16 - Add daily-life TSV loader and API endpoints
+
+## Agent 5 - Create social-structures.tsv for governance, class, and family systems
+- Created lexicons/social-structures.tsv with 310 entries across 43 cultures
+  - Columns: id, culture_profile_id, structure_type, name, description, key_roles, inheritance_pattern, decision_making, related_kinship_system_id, time_period_start, time_period_end, sources
+  - All 10 structure_type values covered: government (44), class_hierarchy (37), family_structure (39), gender_roles (24), age_grades (5), guilds_associations (15), military_organization (36), religious_hierarchy (39), legal_system (37), education_system (34)
+  - Cultures include: Roman, Greek, Egyptian, Chinese (Han/Song/Qing), Mongol, Ottoman, Persian, Inca, Aztec, Maya, Indian (Maurya/Mughal), Medieval European, Viking, Japanese, Korean, Khmer, African kingdoms, Indigenous peoples, and more
+  - Links to existing kinship-systems.tsv via related_kinship_system_id
+- Added SocialStructure interface and loader to server/tsv-storage.ts
+  - Interface with 12 fields, key_roles parsed as string array from pipe-separated values
+  - loadSocialStructures() private loader with caching
+  - getSocialStructures(filters?) with culture_profile_id and structure_type filters
+  - getSocialStructureById(id) for single lookups
+- Created test/test-social-structures.ts with 37 tests (all passing)
+  - Tests: data loading, structure validation, filtering, ID lookup, enum validation, duplicate detection, culture coverage
+- [✓] 2026-04-16 - Create social-structures.tsv for governance, class, and family systems

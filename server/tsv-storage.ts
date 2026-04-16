@@ -666,6 +666,22 @@ export interface DailyLife {
   sources: string[];
 }
 
+// Social structure types
+export interface SocialStructure {
+  id: string;
+  cultureProfileId: string;
+  structureType: string;
+  name: string;
+  description: string;
+  keyRoles: string[];
+  inheritancePattern: string;
+  decisionMaking: string;
+  relatedKinshipSystemId: string;
+  timePeriodStart: string;
+  timePeriodEnd: string;
+  sources: string;
+}
+
 // Urheimat hypothesis types
 export interface UrheimatHypothesis {
   id: string;
@@ -882,6 +898,9 @@ export class TsvStorage {
 
   // Social organization data cache
   private cachedSocialOrganization: SocialOrganization[] | null = null;
+
+  // Social structures data cache
+  private cachedSocialStructures: SocialStructure[] | null = null;
 
   // Urheimat hypotheses data cache
   private cachedUrheimatHypotheses: UrheimatHypothesis[] | null = null;
@@ -4714,6 +4733,64 @@ export class TsvStorage {
   async getSocialOrganizationById(id: string): Promise<SocialOrganization | null> {
     this.loadSocialOrganization();
     return (this.cachedSocialOrganization ?? []).find((o) => o.id === id) ?? null;
+  }
+
+  private loadSocialStructures(): void {
+    if (this.cachedSocialStructures) return;
+
+    const text = this.readFileIfExists("lexicons/social-structures.tsv");
+    if (!text) { this.cachedSocialStructures = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const cultureIdx = getIdx(header, "culture_profile_id");
+    const typeIdx = getIdx(header, "structure_type");
+    const nameIdx = getIdx(header, "name");
+    const descIdx = getIdx(header, "description");
+    const rolesIdx = getIdx(header, "key_roles");
+    const inheritIdx = getIdx(header, "inheritance_pattern");
+    const decisionIdx = getIdx(header, "decision_making");
+    const kinshipIdx = getIdx(header, "related_kinship_system_id");
+    const startIdx = getIdx(header, "time_period_start");
+    const endIdx = getIdx(header, "time_period_end");
+    const sourcesIdx = getIdx(header, "sources");
+
+    this.cachedSocialStructures = rows.map((row) => ({
+      id: row[idIdx],
+      cultureProfileId: row[cultureIdx],
+      structureType: row[typeIdx],
+      name: row[nameIdx],
+      description: row[descIdx],
+      keyRoles: (row[rolesIdx] || "").split("|").filter(Boolean),
+      inheritancePattern: row[inheritIdx],
+      decisionMaking: row[decisionIdx],
+      relatedKinshipSystemId: row[kinshipIdx] || "",
+      timePeriodStart: row[startIdx] || "",
+      timePeriodEnd: row[endIdx] || "",
+      sources: row[sourcesIdx] || "",
+    }));
+  }
+
+  async getSocialStructures(filters?: {
+    cultureProfileId?: string;
+    structureType?: string;
+  }): Promise<SocialStructure[]> {
+    this.loadSocialStructures();
+    let structures = this.cachedSocialStructures ?? [];
+
+    if (filters?.cultureProfileId) {
+      structures = structures.filter((s) => s.cultureProfileId === filters.cultureProfileId);
+    }
+    if (filters?.structureType) {
+      structures = structures.filter((s) => s.structureType === filters.structureType);
+    }
+
+    return structures;
+  }
+
+  async getSocialStructureById(id: string): Promise<SocialStructure | null> {
+    this.loadSocialStructures();
+    return (this.cachedSocialStructures ?? []).find((s) => s.id === id) ?? null;
   }
 
   private loadTradeGoods(): void {
