@@ -649,6 +649,21 @@ export interface TradeGood {
   associatedLanguages: string[];
 }
 
+// Innovation types (technology, inventions, achievements)
+export interface Innovation {
+  id: string;
+  name: string;
+  category: string;
+  cultureProfileIds: string[];
+  yearInvented: number | null;
+  regionOfOrigin: string;
+  description: string;
+  diffusionPath: string[];
+  relatedInnovations: string[];
+  associatedLanguages: string[];
+  sources: string[];
+}
+
 // Kinship system types
 export interface KinshipSystem {
   id: string;
@@ -1019,6 +1034,8 @@ export class TsvStorage {
   private cachedCultureProfiles: CultureProfile[] | null = null;
   // Media assets cache
   private cachedMediaAssets: MediaAsset[] | null = null;
+  // Innovations data cache
+  private cachedInnovations: Innovation[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -6346,5 +6363,82 @@ export class TsvStorage {
     return (this.cachedMediaAssets ?? []).filter(
       (a) => a.entityType === entityType && a.entityId === entityId
     );
+  }
+
+  // ── Innovations ───────────────────────────────────────────────────
+
+  private loadInnovations(): void {
+    if (this.cachedInnovations) return;
+
+    const text = this.readFileIfExists("lexicons/innovations.tsv");
+    if (!text) { this.cachedInnovations = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const categoryIdx = getIdx(header, "category");
+    const cultureIdx = getIdx(header, "culture_profile_ids");
+    const yearIdx = getIdx(header, "year_invented");
+    const regionIdx = getIdx(header, "region_of_origin");
+    const descIdx = getIdx(header, "description");
+    const diffusionIdx = getIdx(header, "diffusion_path");
+    const relatedIdx = getIdx(header, "related_innovations");
+    const langIdx = getIdx(header, "associated_languages");
+    const sourcesIdx = getIdx(header, "sources");
+
+    const parseJsonArray = (val: string | undefined): string[] => {
+      if (!val) return [];
+      try {
+        const parsed = JSON.parse(val);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    };
+
+    this.cachedInnovations = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      category: row[categoryIdx],
+      cultureProfileIds: parseJsonArray(row[cultureIdx]),
+      yearInvented: (() => {
+        const raw = row[yearIdx];
+        if (!raw) return null;
+        const num = parseInt(raw, 10);
+        return Number.isNaN(num) ? null : num;
+      })(),
+      regionOfOrigin: row[regionIdx] ?? "",
+      description: row[descIdx] ?? "",
+      diffusionPath: parseJsonArray(row[diffusionIdx]),
+      relatedInnovations: parseJsonArray(row[relatedIdx]),
+      associatedLanguages: parseJsonArray(row[langIdx]),
+      sources: parseJsonArray(row[sourcesIdx]),
+    }));
+  }
+
+  async getInnovations(filters?: {
+    category?: string;
+    cultureProfileId?: string;
+  }): Promise<Innovation[]> {
+    this.loadInnovations();
+    let innovations = this.cachedInnovations ?? [];
+
+    if (filters?.category) {
+      innovations = innovations.filter(
+        (i) => i.category.toLowerCase() === filters.category!.toLowerCase()
+      );
+    }
+    if (filters?.cultureProfileId) {
+      innovations = innovations.filter((i) =>
+        i.cultureProfileIds.includes(filters.cultureProfileId!)
+      );
+    }
+
+    return innovations;
+  }
+
+  async getInnovationById(id: string): Promise<Innovation | null> {
+    this.loadInnovations();
+    return (this.cachedInnovations ?? []).find((i) => i.id === id) ?? null;
   }
 }

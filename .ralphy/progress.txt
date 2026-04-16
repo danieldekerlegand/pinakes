@@ -1711,3 +1711,40 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## Technology & Innovation Section for CultureProfilePanel (2026-04-16)
+- Created lexicons/innovations.tsv with 20 seed innovations across 10 categories:
+  - Writing: Cuneiform, Papyrus, Alphabet, Paper, Movable Type Printing
+  - Metallurgy: Bronze, Iron Smelting
+  - Agriculture: Terrace Farming, Chinampa Agriculture
+  - Water Management: Qanat, Archimedes Screw, Aqueducts
+  - Transportation: The Wheel
+  - Astronomy: Astrolabe, Maya Long Count Calendar
+  - Mathematics: Zero and Decimal System
+  - Medicine: Humoral Medicine
+  - Military: Stirrup, Gunpowder
+  - Construction: Roman Concrete
+- Added Innovation interface to server/tsv-storage.ts with fields: id, name, category,
+  cultureProfileIds, yearInvented, regionOfOrigin, description, diffusionPath,
+  relatedInnovations, associatedLanguages, sources
+- Added cachedInnovations cache, loadInnovations(), getInnovations() with filters,
+  getInnovationById() methods to TsvStorage
+- Added API routes to server/routes.ts:
+  - GET /api/innovations (filters: category, culture_profile_id)
+  - GET /api/innovations/:id
+- Created client/src/components/culture-profile/technology-innovation-utils.ts with:
+  - Innovation type
+  - INNOVATION_CATEGORY_COLORS palette
+  - filterInnovationsByCulture, getUniqueInnovationCategories, sortInnovationsByYear
+  - formatInnovationYear, formatCategoryLabel
+- Created client/src/components/culture-profile/technology-innovation-section.tsx:
+  - Overview stats (innovations count, categories count)
+  - Mini-timeline visualization of dated innovations
+  - Category filter dropdown
+  - Expandable InnovationCard with description, diffusion path (chained cultures
+    with arrows), related innovations, sources
+- Wired TechnologyInnovationSection into culture-profile-panel.tsx technology tab
+- Created test/technology-innovation-section.test.ts with 23 passing tests:
+  - Utility function tests (formatting, filtering, sorting, category labels)
+  - Data layer tests (loading, filtering, cross-referencing)
+- All 23 new tests pass; no new TypeScript errors introduced

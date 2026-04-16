@@ -4344,6 +4344,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Innovations Endpoints
+  // ============================================================================
+
+  /**
+   * GET /api/innovations - Get all innovations with optional filtering
+   */
+  app.get("/api/innovations", async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const innovations = await storage.getInnovations({ category, cultureProfileId });
+      res.json({ innovations, count: innovations.length });
+    } catch (error) {
+      console.error("Error fetching innovations:", error);
+      res.status(500).json({
+        message: "Failed to fetch innovations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/innovations/:id - Get a single innovation
+   */
+  app.get("/api/innovations/:id", async (req, res) => {
+    try {
+      const innovation = await storage.getInnovationById(req.params.id);
+      if (!innovation) {
+        return res.status(404).json({ message: "Innovation not found" });
+      }
+      res.json(innovation);
+    } catch (error) {
+      console.error("Error fetching innovation:", error);
+      res.status(500).json({
+        message: "Failed to fetch innovation",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // ============================================================================
   // Narratives Endpoints
   // ============================================================================
 
