@@ -59,6 +59,8 @@ import { MapLabelsLayer } from './map-layers/MapLabelsLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
+import { useMeasurementTool } from './hooks/useMeasurementTool';
+import { MeasurementLayer, MeasurementPanel } from './map-tools/MeasurementTools';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
@@ -131,6 +133,9 @@ export function EnhancedLanguageMapView({
 
   // Initialize image georeferencing tool
   const georefTool = useImageGeoreference();
+
+  // Initialize measurement tool
+  const measurementTool = useMeasurementTool();
 
   // Expose drawing tool via ref for external panels
   React.useEffect(() => {
@@ -1078,6 +1083,9 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* Measurement Layer */}
+        <MeasurementLayer measurement={measurementTool} />
+
         {/* Image Georeferencing Layer */}
         <ImageGeoreferenceLayer georef={georefTool} />
 
@@ -1121,6 +1129,9 @@ export function EnhancedLanguageMapView({
           onFeatureSelect={handleFeatureClick}
         />
       </MapContainer>
+
+      {/* Measurement Panel */}
+      <MeasurementPanel measurement={measurementTool} />
 
       {/* Image Georeferencing Panel */}
       <ImageGeoreferencePanel

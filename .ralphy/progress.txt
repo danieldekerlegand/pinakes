@@ -1080,3 +1080,39 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-321: Create distance measurement and area calculation tools
+
+Completed:
+- Created client/src/lib/visualization/measurement-utils.ts
+  - pointToPointDistance(): geodesic distance between two points (km/miles) using Turf.js
+  - polylineDistance(): total distance along a multi-point path with per-segment breakdown
+  - calculateArea(): polygon area (km², sq mi, acres) and perimeter from vertices
+  - generateIsochrones(): concentric travel-time rings based on historical speeds
+  - Three travel modes: walking (5 km/h), horseback (12 km/h), sailing vessel (8 km/h)
+  - Formatting helpers: formatDistance, formatArea, formatTravelTime
+- Created client/src/components/visualizations/hooks/useMeasurementTool.ts
+  - React hook managing measurement state (mode, points, unit, travel mode)
+  - Three modes: distance, area, isochrone
+  - Auto-recalculates on point add/remove, unit change, travel mode change
+  - Undo (removeLastPoint), clear, and close actions
+- Created client/src/components/visualizations/map-tools/MeasurementTools.tsx
+  - MeasurementLayer: renders inside MapContainer with Leaflet components
+    - Distance mode: dashed polyline with per-segment distance tooltips
+    - Area mode: filled polygon with measurement display
+    - Isochrone mode: concentric rings with travel time/distance labels
+    - Point markers color-coded by active mode
+  - MeasurementPanel: control panel outside MapContainer
+    - Mode toggle buttons (distance/area/isochrone)
+    - Unit selector (km/miles) for distance mode
+    - Travel mode selector (walking/horseback/ship) for isochrone mode
+    - Results display with area, distance, and isochrone breakdowns
+    - Undo and clear actions
+- Integrated into EnhancedLanguageMapView.tsx (import, hook init, layer + panel placement)
+- Created measurement-utils.test.ts with 27 tests (all passing)
+  - Distance: identical points, known cities, unit conversion, polyline segments
+  - Area: vertex count validation, known region area, multiple units, perimeter
+  - Isochrone: ring count, radius=speed*time, sorting, GeoJSON validity, mode speeds
+  - Formatting: sub-unit display, decimal precision, thousands separators, travel time
+- Created useMeasurementTool.test.ts with 7 integration logic tests (all passing)
+- All 34 tests pass, no new TypeScript errors
