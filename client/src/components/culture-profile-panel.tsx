@@ -24,6 +24,12 @@ import type { CultureProfile } from "@shared/types";
 import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
 import TechnologyInnovationSection from "@/components/culture-profile/technology-innovation-section";
 import CultureEvolutionTimelineSection from "@/components/culture-profile/culture-evolution-timeline-section";
+import DailyLifeSocialOrganizationSection from "@/components/daily-life-social-organization-section";
+import { SocialHierarchyView } from "@/components/visualizations/SocialHierarchyView";
+import CultureMediaGallery from "@/components/shared/CultureMediaGallery";
+import { CultureDataCard } from "@/components/shared/CultureDataCard";
+import CultureComparisonView from "@/components/visualizations/CultureComparisonView";
+import { GitCompare } from "lucide-react";
 
 interface CultureProfilePanelProps {
   cultureId: string;
@@ -135,6 +141,18 @@ function SummaryTab({ profile }: { profile: CultureProfile }) {
         {profile.summaryDescription}
       </p>
 
+      {/* Image gallery for this culture (US-420) */}
+      <div data-testid="summary-media-gallery">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Gallery</p>
+        <CultureMediaGallery
+          entityType="culture_profile"
+          entityId={profile.id}
+          layout="grid"
+          showFilters={false}
+          emptyMessage="No images catalogued for this culture yet"
+        />
+      </div>
+
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 gap-2">
         {profile.populationEstimate && (
@@ -205,6 +223,33 @@ function SummaryTab({ profile }: { profile: CultureProfile }) {
         </div>
       )}
 
+      {/* Key aspects rendered as standardized culture data cards (US-425) */}
+      <div data-testid="summary-key-aspects">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Key Aspects</p>
+        <div className="grid grid-cols-1 gap-2">
+          <CultureDataCard
+            id={`${profile.id}-social`}
+            title="Social Organization"
+            category={SOCIAL_ORG_LABELS[profile.socialOrganization] || profile.socialOrganization}
+            icon={<Users className="h-4 w-4" />}
+            description={`A ${(SOCIAL_ORG_LABELS[profile.socialOrganization] || profile.socialOrganization).toLowerCase()} society with a ${(SUBSISTENCE_LABELS[profile.subsistenceType] || profile.subsistenceType).toLowerCase()} economy.`}
+            variant="compact"
+            timePeriodStart={profile.timePeriodStart}
+            timePeriodEnd={profile.timePeriodEnd}
+          />
+          <CultureDataCard
+            id={`${profile.id}-tech`}
+            title="Technology"
+            category={TECH_LABELS[profile.technologyLevel] || profile.technologyLevel}
+            icon={<Lightbulb className="h-4 w-4" />}
+            description={`Material culture centered on ${(TECH_LABELS[profile.technologyLevel] || profile.technologyLevel).toLowerCase()} technology.`}
+            variant="compact"
+            timePeriodStart={profile.timePeriodStart}
+            timePeriodEnd={profile.timePeriodEnd}
+          />
+        </div>
+      </div>
+
       {profile.sources.length > 0 && (
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
           Sources: {profile.sources.join("; ")}
@@ -226,6 +271,7 @@ function PlaceholderSection({ title, icon }: { title: string; icon: React.ReactN
 
 export default function CultureProfilePanel({ cultureId, onClose }: CultureProfilePanelProps) {
   const [activeTab, setActiveTab] = useState("summary");
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const { data: profile, isLoading } = useQuery<CultureProfile>({
     queryKey: ["/api/culture-profiles", cultureId],
@@ -296,9 +342,21 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={onClose} data-testid="culture-panel-close">
-                <X className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCompareOpen(true)}
+                  data-testid="culture-panel-compare"
+                  aria-label="Compare with another culture"
+                  title="Compare with another culture"
+                >
+                  <GitCompare className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={onClose} data-testid="culture-panel-close">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-1.5 mt-3">
@@ -397,7 +455,10 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               />
             </TabsContent>
             <TabsContent value="daily-life">
-              <PlaceholderSection title="Daily Life & Social Organization" icon={<Users className="h-8 w-8" />} />
+              <div className="space-y-6">
+                <SocialHierarchyView cultureProfileId={profile.id} />
+                <DailyLifeSocialOrganizationSection cultureId={profile.id} embedded />
+              </div>
             </TabsContent>
             <TabsContent value="military">
               <PlaceholderSection title="Military & Warfare" icon={<Swords className="h-8 w-8" />} />
@@ -411,6 +472,14 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
           </Tabs>
         </div>
       </div>
+
+      {compareOpen && (
+        <CultureComparisonView
+          isOpen={compareOpen}
+          onClose={() => setCompareOpen(false)}
+          initialCultureIds={[profile.id]}
+        />
+      )}
     </div>
   );
 }
