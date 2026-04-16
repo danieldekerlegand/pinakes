@@ -1080,3 +1080,37 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+Create river and water feature layer
+
+Completed:
+- Created lexicons/rivers-and-waters.tsv with 21 water features
+  - 10 rivers (Nile, Tigris, Euphrates, Indus, Ganges, Yellow River, Yangtze, Danube, Rhine, Amazon, Mekong, Congo, Mississippi)
+  - 4 seas (Mediterranean, Red Sea, Persian Gulf)
+  - 2 lakes (Nile Delta, Dead Sea, Lake Titicaca)
+  - 1 strait (Bosporus)
+  - 1 canal (Suez Canal)
+  - Each entry includes: coordinates, length, region, time period, historical importance, associated civilizations/languages
+- Added RiverWaterFeature types to client/src/lib/visualization/geospatial-types.ts
+  - WaterType, WaterHistoricalImportance, RiverWaterFeature interface
+  - 'rivers-and-waters' LayerType, 'geography' LayerCategory
+  - Layer config in DEFAULT_LAYER_CONFIGS (zIndex: 45, below civilizations)
+  - Added to 'political-history' layer preset
+- Added WATER_TYPE_COLORS and WATER_IMPORTANCE_COLORS to color-theme.ts
+- Added RiverWaterFeature interface, loadRiversAndWaters(), getRiversAndWaters(), getRiverWaterById() to server/tsv-storage.ts
+  - Filters: waterType, region, historicalImportance, timeStart, timeEnd
+- Added GET /api/rivers-and-waters and GET /api/rivers-and-waters/:id endpoints to server/routes.ts
+- Created RiverWaterLayer.tsx map component with:
+  - Polyline rendering for rivers, seas, straits, canals
+  - Polygon rendering for lakes
+  - Color-coded by water type (blue palette)
+  - Line weight scaled by river length
+  - Dashed lines for canals
+  - Time-based visibility filtering
+  - Interactive popups with feature details
+  - Selection highlighting
+  - Tooltips on hover
+- Integrated into EnhancedLanguageMapView.tsx with data fetching and layer toggle
+- Created RiverWaterLayer.test.ts with 16 passing tests
+  - Tests: color mapping, line weight scaling, water type formatting, time-based visibility, data shape validation
+- All 949 tests pass, no new TypeScript errors

@@ -48,6 +48,8 @@ import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
+import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
+import type { RiverWaterFeature } from './map-layers/RiverWaterLayer';
 import { TerritoryOverlapLayer } from './map-layers/TerritoryOverlapLayer';
 import type { TerritoryFeature } from '../../lib/visualization/territory-overlap';
 import type { BlendMode } from '../../lib/visualization/geospatial-types';
@@ -277,6 +279,13 @@ export function EnhancedLanguageMapView({
     enabled: isLayerVisible('settlements'),
   });
 
+  // Fetch rivers and water features data
+  const { data: riversData, isLoading: loadingRivers } = useQuery<{ features: RiverWaterFeature[]; count: number }>({
+    queryKey: ['/api/rivers-and-waters'],
+    staleTime: 5 * 60 * 1000,
+    enabled: isLayerVisible('rivers-and-waters'),
+  });
+
   // Fetch battles data
   const { data: battlesData, isLoading: loadingBattles } = useQuery<{ battles: BattleFeature[]; count: number }>({
     queryKey: ['/api/battles'],
@@ -479,6 +488,11 @@ export function EnhancedLanguageMapView({
   const allSettlements = useMemo(() => {
     return settlementsData?.settlements ?? [];
   }, [settlementsData]);
+
+  // Rivers and water features data
+  const allRiversAndWaters = useMemo(() => {
+    return riversData?.features ?? [];
+  }, [riversData]);
 
   // Battles data
   const allBattles = useMemo(() => {
@@ -775,6 +789,7 @@ export function EnhancedLanguageMapView({
     (loadingReligions && isLayerVisible('religions')) ||
     (loadingDeities && isLayerVisible('mythology')) ||
     (loadingSettlements && isLayerVisible('settlements')) ||
+    (loadingRivers && isLayerVisible('rivers-and-waters')) ||
     (loadingBattles && isLayerVisible('battles')) ||
     (loadingHaplogroups && isLayerVisible('haplogroups')) ||
     (loadingContacts && isLayerVisible('language-contacts')) ||
@@ -870,6 +885,17 @@ export function EnhancedLanguageMapView({
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
             fillType={territorialFillType}
+          />
+        )}
+
+        {/* Rivers & Water Features Layer */}
+        {isLayerVisible('rivers-and-waters') && allRiversAndWaters.length > 0 && (
+          <RiverWaterLayer
+            features={allRiversAndWaters}
+            currentYear={currentYear}
+            opacity={getLayerConfig('rivers-and-waters')?.opacity || 0.8}
+            onFeatureClick={handleFeatureClick}
+            selectedFeatureId={activeSelectedFeatureId}
           />
         )}
 

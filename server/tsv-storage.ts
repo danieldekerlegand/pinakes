@@ -469,6 +469,24 @@ export interface Settlement {
   region: string;
 }
 
+// River and water feature types
+export interface RiverWaterFeature {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  waterType: string;
+  coordinates: [number, number][];
+  lengthKm: number | null;
+  region: string;
+  timeStart: number | null;
+  timeEnd: number | null;
+  historicalImportance: string;
+  associatedCivilizations: string[];
+  associatedLanguages: string[];
+  modernName: string;
+  description: string;
+}
+
 // Art tradition types
 export interface ArtTradition {
   id: string;
@@ -824,6 +842,9 @@ export class TsvStorage {
 
   // Settlements data cache
   private cachedSettlements: Settlement[] | null = null;
+
+  // Rivers and water features cache
+  private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5471,5 +5492,112 @@ export class TsvStorage {
       const distB = Math.hypot(b.latitude - lat, b.longitude - lng);
       return distA - distB;
     });
+  }
+
+  // ── Rivers & Water Features ─────────────────────────────────
+
+  private loadRiversAndWaters(): void {
+    if (this.cachedRiversAndWaters) return;
+
+    const text = this.readFileIfExists("lexicons/rivers-and-waters.tsv");
+    if (!text) { this.cachedRiversAndWaters = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const altIdx = header.indexOf("alternate_names");
+    const typeIdx = header.indexOf("water_type");
+    const coordIdx = header.indexOf("coordinates");
+    const lengthIdx = header.indexOf("length_km");
+    const regionIdx = header.indexOf("region");
+    const timeStartIdx = header.indexOf("time_start");
+    const timeEndIdx = header.indexOf("time_end");
+    const importanceIdx = header.indexOf("historical_importance");
+    const civsIdx = header.indexOf("associated_civilizations");
+    const langsIdx = header.indexOf("associated_languages");
+    const modernIdx = header.indexOf("modern_name");
+    const descIdx = header.indexOf("description");
+
+    const parseArr = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      const raw = row[idx].trim();
+      if (raw.startsWith("[")) {
+        try { return JSON.parse(raw); } catch { return []; }
+      }
+      return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    };
+
+    const parseCoords = (idx: number, row: string[]): [number, number][] => {
+      if (idx < 0 || !row[idx]) return [];
+      try { return JSON.parse(row[idx]); } catch { return []; }
+    };
+
+    const parseYear = (idx: number, row: string[]): number | null => {
+      if (idx < 0 || !row[idx] || row[idx].trim() === "" || row[idx] === "null") return null;
+      const v = parseInt(row[idx], 10);
+      return isNaN(v) ? null : v;
+    };
+
+    this.cachedRiversAndWaters = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      alternateNames: parseArr(altIdx, row),
+      waterType: typeIdx >= 0 ? row[typeIdx] || "" : "",
+      coordinates: parseCoords(coordIdx, row),
+      lengthKm: lengthIdx >= 0 && row[lengthIdx] && row[lengthIdx] !== "null"
+        ? parseInt(row[lengthIdx], 10) || null : null,
+      region: regionIdx >= 0 ? row[regionIdx] || "" : "",
+      timeStart: parseYear(timeStartIdx, row),
+      timeEnd: parseYear(timeEndIdx, row),
+      historicalImportance: importanceIdx >= 0 ? row[importanceIdx] || "" : "",
+      associatedCivilizations: parseArr(civsIdx, row),
+      associatedLanguages: parseArr(langsIdx, row),
+      modernName: modernIdx >= 0 ? row[modernIdx] || "" : "",
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+    }));
+  }
+
+  async getRiversAndWaters(filters?: {
+    waterType?: string;
+    region?: string;
+    timeStart?: number;
+    timeEnd?: number;
+    historicalImportance?: string;
+  }): Promise<RiverWaterFeature[]> {
+    this.loadRiversAndWaters();
+    let features = this.cachedRiversAndWaters ?? [];
+
+    if (filters?.waterType) {
+      features = features.filter((f) =>
+        f.waterType.toLowerCase() === filters.waterType!.toLowerCase()
+      );
+    }
+    if (filters?.region) {
+      features = features.filter((f) =>
+        f.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+    if (filters?.historicalImportance) {
+      features = features.filter((f) =>
+        f.historicalImportance === filters.historicalImportance
+      );
+    }
+    if (filters?.timeStart !== undefined) {
+      features = features.filter((f) =>
+        f.timeEnd === null || f.timeEnd >= filters.timeStart!
+      );
+    }
+    if (filters?.timeEnd !== undefined) {
+      features = features.filter((f) =>
+        f.timeStart === null || f.timeStart <= filters.timeEnd!
+      );
+    }
+
+    return features;
+  }
+
+  async getRiverWaterById(id: string): Promise<RiverWaterFeature | null> {
+    this.loadRiversAndWaters();
+    return (this.cachedRiversAndWaters ?? []).find((f) => f.id === id) ?? null;
   }
 }

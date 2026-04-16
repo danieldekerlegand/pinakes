@@ -220,6 +220,30 @@ export interface MaterialCultureDistribution {
 }
 
 // ============================================================================
+// River & Water Feature Types
+// ============================================================================
+
+export type WaterType = 'river' | 'lake' | 'sea' | 'strait' | 'canal';
+export type WaterHistoricalImportance = 'trade-route' | 'boundary' | 'settlement-hub';
+
+export interface RiverWaterFeature {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  waterType: WaterType;
+  coordinates: [number, number][]; // [lng, lat] pairs
+  lengthKm: number | null;
+  region: string;
+  timeStart: number | null;
+  timeEnd: number | null;
+  historicalImportance: WaterHistoricalImportance | '';
+  associatedCivilizations: string[];
+  associatedLanguages: string[];
+  modernName: string;
+  description: string;
+}
+
+// ============================================================================
 // Layer Configuration Types
 // ============================================================================
 
@@ -248,7 +272,8 @@ export type LayerType =
   | 'mythology'
   | 'urheimat-hypotheses'
   | 'empires-timeline'
-  | 'settlements';
+  | 'settlements'
+  | 'rivers-and-waters';
 
 export type LayerCategory =
   | 'languages'
@@ -260,7 +285,8 @@ export type LayerCategory =
   | 'music'
   | 'dance'
   | 'religions'
-  | 'genetics';
+  | 'genetics'
+  | 'geography';
 
 // ============================================================================
 // Blend Mode Types (for territory overlap visualization)
@@ -889,6 +915,21 @@ export const DEFAULT_LAYER_CONFIGS: LayerConfig[] = [
       },
     },
   },
+  {
+    id: 'rivers-and-waters',
+    type: 'rivers-and-waters',
+    category: 'geography',
+    name: 'Rivers & Water Features',
+    visible: false,
+    opacity: 0.8,
+    zIndex: 45,
+    renderStyle: {
+      line: {
+        weight: 3,
+        opacity: 0.8,
+      },
+    },
+  },
 ];
 
 // ============================================================================
@@ -913,7 +954,7 @@ export const LAYER_PRESETS: LayerPreset[] = [
     id: 'political-history',
     name: 'Political History',
     description: 'Civilizations, battles, and conquest routes',
-    layers: ['civilizations', 'battles', 'routes'],
+    layers: ['civilizations', 'battles', 'routes', 'rivers-and-waters'],
   },
   {
     id: 'cultural-diffusion',

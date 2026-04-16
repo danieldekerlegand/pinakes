@@ -281,6 +281,20 @@ export const GENETIC_CORRELATION_COLORS = {
   mtDNA: '#9333ea',
 } as const;
 
+export const WATER_TYPE_COLORS: Record<string, string> = {
+  river: '#2563eb',       // blue-600
+  lake: '#0ea5e9',        // sky-500
+  sea: '#06b6d4',         // cyan-500
+  strait: '#0891b2',      // cyan-600
+  canal: '#6366f1',       // indigo-500
+};
+
+export const WATER_IMPORTANCE_COLORS: Record<string, string> = {
+  'trade-route': '#f59e0b',   // amber-500
+  boundary: '#ef4444',        // red-500
+  'settlement-hub': '#10b981', // emerald-500
+};
+
 export const BOUNDARY_DRAWING_COLORS = {
   shape: '#3b82f6',
   shapeFill: '#3b82f680',
