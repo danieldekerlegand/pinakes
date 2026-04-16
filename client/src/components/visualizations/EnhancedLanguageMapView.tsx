@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { Loader2, Maximize2, Minimize2, Eye, Keyboard } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
@@ -66,6 +66,10 @@ import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
 import { getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-theme';
+import { useMapPerformance, MapPerformanceTracker } from './hooks/useMapPerformance';
+import { useMapAccessibility } from './hooks/useMapAccessibility';
+import { describeFeature } from '../../lib/visualization/map-accessibility';
+import type { MapFeatureType } from '../../lib/visualization/map-accessibility';
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import { useSplitScreen } from './hooks/useSplitScreen';
@@ -169,6 +173,12 @@ export function EnhancedLanguageMapView({
     jumpToStart,
     jumpToEnd,
   } = useTimeSlider();
+
+  // Performance: viewport culling and level-of-detail
+  const perf = useMapPerformance();
+
+  // Accessibility: high-contrast mode, screen reader, keyboard help
+  const a11y = useMapAccessibility();
 
   // Split-screen comparison
   const splitScreen = useSplitScreen(currentYear, timeState.minYear, timeState.maxYear);
@@ -595,30 +605,40 @@ export function EnhancedLanguageMapView({
     clearSelection,
   } = useMapFeatureSelection(featureLookupCollections);
 
-  // Filter features by display time (respects blink mode override)
+  // Filter features by display time, then apply viewport culling + LOD simplification
   const filteredLanguageRanges = useMemo(() => {
-    return filterGeoJSONByTime(allLanguageRanges, displayYear);
-  }, [allLanguageRanges, displayYear]);
+    const byTime = filterGeoJSONByTime(allLanguageRanges, displayYear);
+    const culled = perf.cullFeatures(byTime);
+    return perf.simplifyPolygons(culled);
+  }, [allLanguageRanges, displayYear, perf.cullFeatures, perf.simplifyPolygons]);
 
   const filteredLanguageRangePolygons = useMemo(() => {
-    return filterGeoJSONByTime(allLanguageRangePolygons, displayYear);
-  }, [allLanguageRangePolygons, displayYear]);
+    const byTime = filterGeoJSONByTime(allLanguageRangePolygons, displayYear);
+    const culled = perf.cullFeatures(byTime);
+    return perf.simplifyPolygons(culled);
+  }, [allLanguageRangePolygons, displayYear, perf.cullFeatures, perf.simplifyPolygons]);
 
   const filteredArchaeologicalSites = useMemo(() => {
-    return filterGeoJSONByTime(allArchaeologicalSites, displayYear);
-  }, [allArchaeologicalSites, displayYear]);
+    const byTime = filterGeoJSONByTime(allArchaeologicalSites, displayYear);
+    return perf.cullFeatures(byTime);
+  }, [allArchaeologicalSites, displayYear, perf.cullFeatures]);
 
   const filteredArchaeologicalCultures = useMemo(() => {
-    return filterGeoJSONByTime(allArchaeologicalCultures, displayYear);
-  }, [allArchaeologicalCultures, displayYear]);
+    const byTime = filterGeoJSONByTime(allArchaeologicalCultures, displayYear);
+    const culled = perf.cullFeatures(byTime);
+    return perf.simplifyPolygons(culled);
+  }, [allArchaeologicalCultures, displayYear, perf.cullFeatures, perf.simplifyPolygons]);
 
   const filteredCivilizations = useMemo(() => {
-    return filterGeoJSONByTime(allCivilizations, displayYear);
-  }, [allCivilizations, displayYear]);
+    const byTime = filterGeoJSONByTime(allCivilizations, displayYear);
+    const culled = perf.cullFeatures(byTime);
+    return perf.simplifyPolygons(culled);
+  }, [allCivilizations, displayYear, perf.cullFeatures, perf.simplifyPolygons]);
 
   const filteredRoutes = useMemo(() => {
-    return filterGeoJSONByTime(allRoutes, displayYear);
-  }, [allRoutes, displayYear]);
+    const byTime = filterGeoJSONByTime(allRoutes, displayYear);
+    return perf.cullFeatures(byTime);
+  }, [allRoutes, displayYear, perf.cullFeatures]);
 
   const filteredMaterialCultures = useMemo(() => {
     // Material cultures don't have a time period directly, filter based on associated period
@@ -699,11 +719,17 @@ export function EnhancedLanguageMapView({
     [onFeatureSelect, selectFeature]
   );
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (timeline + accessibility)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Let accessibility handler try first (h = high-contrast, ? = help)
+      if (a11y.handleAccessibilityKey(e)) {
+        e.preventDefault();
         return;
       }
 
@@ -733,7 +759,7 @@ export function EnhancedLanguageMapView({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd]);
+  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd, a11y.handleAccessibilityKey]);
 
   // Calculate initial map center and zoom
   const initialCenter: [number, number] = useMemo(() => {
@@ -800,24 +826,63 @@ export function EnhancedLanguageMapView({
 
   if (isLoadingAnyLayer) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg" role="status" aria-label="Loading map data">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
           <p className="text-sm text-gray-600">Loading map data...</p>
         </div>
       </div>
     );
   }
 
+  // Total visible feature count for screen reader summary
+  const totalVisibleFeatures = useMemo(() =>
+    filteredLanguageRanges.length + filteredLanguageRangePolygons.length +
+    filteredArchaeologicalSites.length + filteredArchaeologicalCultures.length +
+    filteredCivilizations.length + filteredRoutes.length +
+    filteredCuisines.length + filteredMusicTraditions.length +
+    filteredDanceTraditions.length + filteredReligions.length +
+    filteredDeities.length + allSettlements.length + allBattles.length,
+    [filteredLanguageRanges, filteredLanguageRangePolygons, filteredArchaeologicalSites,
+     filteredArchaeologicalCultures, filteredCivilizations, filteredRoutes,
+     filteredCuisines, filteredMusicTraditions, filteredDanceTraditions,
+     filteredReligions, filteredDeities, allSettlements, allBattles]
+  );
+
+  const visibleLayerCount = useMemo(() =>
+    Array.from(layerState.activeLayers).length,
+    [layerState.activeLayers]
+  );
+
   return (
-    <div ref={mapContainerRef} className={`w-full h-full relative rounded-lg overflow-hidden ${isFullscreen ? 'bg-white' : ''}`}>
+    <div
+      ref={mapContainerRef}
+      className={`w-full h-full relative rounded-lg overflow-hidden ${isFullscreen ? 'bg-white' : ''} ${a11y.highContrast ? 'map-high-contrast' : ''}`}
+      role="application"
+      aria-label="Interactive historical map"
+      aria-roledescription="map"
+    >
+      {/* Screen reader summary (visually hidden) */}
+      <div className="sr-only" aria-live="polite">
+        {visibleLayerCount} layers active, {totalVisibleFeatures} features visible.
+        Current year: {currentYear < 0 ? `${Math.abs(currentYear)} BCE` : `${currentYear} CE`}.
+        Press question mark for keyboard shortcuts.
+      </div>
+
       <MapContainer
         center={initialCenter}
         zoom={2}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
         className="z-0"
+        keyboard={true}
       >
+        {/* Performance: track viewport bounds and zoom for culling/LOD */}
+        <MapPerformanceTracker
+          onViewportChange={perf.setViewport}
+          onZoomChange={perf.setZoom}
+        />
+
         <TileLayer
           key={baseMap.id}
           attribution={baseMap.attribution}
@@ -1232,6 +1297,60 @@ export function EnhancedLanguageMapView({
         isVisible={isPlaying || filteredCivilizations.length > 0 || allBattles.length > 0}
       />
 
+      {/* High-Contrast Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={a11y.toggleHighContrast}
+        className="absolute bottom-4 right-[7.5rem] z-[1000] bg-white shadow-lg"
+        title={a11y.highContrast ? 'Disable high-contrast mode (H)' : 'Enable high-contrast mode (H)'}
+        aria-pressed={a11y.highContrast}
+        aria-label="Toggle high-contrast mode"
+      >
+        <Eye className={`h-4 w-4 ${a11y.highContrast ? 'text-yellow-600' : ''}`} />
+      </Button>
+
+      {/* Keyboard Help Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={a11y.toggleKeyboardHelp}
+        className="absolute bottom-4 right-[4.5rem] z-[1000] bg-white shadow-lg"
+        title="Keyboard shortcuts (?)"
+        aria-label="Show keyboard shortcuts"
+      >
+        <Keyboard className="h-4 w-4" />
+      </Button>
+
+      {/* Keyboard Shortcuts Help Dialog */}
+      {a11y.showKeyboardHelp && (
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1002] bg-white rounded-lg shadow-xl border p-6 max-w-sm w-full"
+          role="dialog"
+          aria-label="Keyboard shortcuts"
+          aria-modal="true"
+        >
+          <h3 className="text-lg font-semibold mb-3">Keyboard Shortcuts</h3>
+          <ul className="space-y-1.5 text-sm">
+            {a11y.keyboardShortcuts.map((s) => (
+              <li key={s.key} className="flex justify-between">
+                <span className="text-gray-600">{s.description}</span>
+                <kbd className="ml-2 px-1.5 py-0.5 bg-gray-100 border rounded text-xs font-mono">{s.key}</kbd>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={a11y.toggleKeyboardHelp}
+            className="mt-4 w-full"
+            aria-label="Close keyboard shortcuts"
+          >
+            Close
+          </Button>
+        </div>
+      )}
+
       {/* Fullscreen Toggle */}
       <Button
         variant="outline"
@@ -1239,6 +1358,7 @@ export function EnhancedLanguageMapView({
         onClick={toggleFullscreen}
         className="absolute bottom-4 right-4 z-[1000] bg-white shadow-lg"
         title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
       >
         {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
       </Button>

@@ -1080,3 +1080,49 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-324: Implement map accessibility and performance optimization
+
+Completed:
+- Created client/src/lib/visualization/map-performance.ts
+  - Viewport culling: featureBounds(), boundsOverlap(), cullToViewport() — filters features to only those intersecting the current map viewport
+  - Level-of-detail: simplifyRing() (Douglas-Peucker algorithm), toleranceForZoom(), simplifyFeature() — coarser polygons at low zoom, full detail at high zoom
+  - TileCache: generic tile-key-based computation cache with TTL and eviction
+  - WebGL threshold: shouldUseWebGL() recommends WebGL rendering for layers with >1000 features
+  - extractCoordinates() for all GeoJSON geometry types
+- Created client/src/lib/visualization/map-accessibility.ts
+  - Screen reader descriptions: describeFeature() builds human-readable descriptions for 11 map feature types
+  - ARIA live region: announceToScreenReader() for dynamic map state announcements
+  - High-contrast mode: two complete palettes (HIGH_CONTRAST_PALETTE, STANDARD_PALETTE) with WCAG-compliant colors
+  - Keyboard navigation: MAP_KEYBOARD_SHORTCUTS definition (11 shortcuts)
+  - describeMapState() for map summary announcements
+  - formatYearForSR() for accessible year formatting (BCE/CE)
+- Created client/src/components/visualizations/hooks/useMapPerformance.ts
+  - Tracks current viewport bounds and zoom level via MapPerformanceTracker component
+  - Provides cullFeatures() and simplifyPolygons() callbacks for use in useMemo chains
+- Created client/src/components/visualizations/hooks/useMapAccessibility.ts
+  - High-contrast mode toggle with localStorage persistence
+  - Keyboard help dialog state
+  - Screen reader announcement helpers (announceYear, announceMapState)
+  - Accessibility keyboard handler (h = high-contrast, ? = help, Escape = close)
+- Integrated into EnhancedLanguageMapView.tsx
+  - MapPerformanceTracker syncs Leaflet moveend/zoomend to performance state
+  - All polygon layers (language ranges, civilizations, archaeological cultures) now get viewport culling + LOD simplification
+  - Point/line layers (sites, routes) get viewport culling
+  - ARIA attributes: role="application", aria-label, aria-roledescription="map"
+  - Screen reader summary (visually hidden, aria-live="polite")
+  - High-contrast toggle button with aria-pressed state
+  - Keyboard shortcuts help dialog (role="dialog", aria-modal)
+  - Loading state has role="status" and aria-label
+  - Accessibility keyboard shortcuts integrated into existing keydown handler
+- Created test/test-map-performance.test.ts with 35 tests
+  - extractCoordinates, featureBounds, boundsOverlap, cullToViewport
+  - simplifyRing, toleranceForZoom, simplifyFeature
+  - TileCache (store, retrieve, evict, clear, viewport key)
+  - WebGL threshold detection
+- Created test/test-map-accessibility.test.ts with 32 tests
+  - formatYearForSR, describeFeature (all types, time ranges, extras)
+  - describeMapState (playing, paused, zoom levels)
+  - Color palettes (keys, hex validation, high-contrast vs standard)
+  - MAP_KEYBOARD_SHORTCUTS (completeness, uniqueness)
+- All 67 tests passing, no new TypeScript errors
