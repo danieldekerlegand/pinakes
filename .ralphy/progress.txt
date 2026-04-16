@@ -1081,6 +1081,7 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
 - [✓] 2026-04-16 01:36 - Create map annotation and label system (US-312)
+- [✓] 2026-04-16 - Implement custom map marker and icon system (US-320)
 
 US-312: Create map annotation and label system
 
@@ -1105,3 +1106,36 @@ Completed:
 - Created test/map-label-engine.test.ts with 28 tests (all passing)
   - Priority computation, zoom visibility, font scaling, collision detection
   - Curved path generation, polygon centroid, full pipeline integration
+
+US-320: Implement custom map marker and icon system
+
+Completed:
+- Created client/src/lib/visualization/map-icons.ts
+  - SVG icon definitions (24x24 viewBox) for 16 icon types across 4 categories:
+    - Settlement types: city, village, port, fortress, temple, mine, farm
+    - Event types: battle, treaty, natural-disaster
+    - Cultural markers: pottery-find, inscription-find, tomb
+    - Route waypoints: waypoint, waypoint-start, waypoint-end
+  - Unified ICON_REGISTRY with getIconDefinition() and getIconsByCategory() lookups
+  - Size scaling system: named sizes (xs/sm/md/lg/xl) and numeric scaling via scaleMarkerSize()
+  - Color theming: each icon has a default color, with override support
+  - SVG generation: buildMarkerSvg() with white background circle, icon path, optional count badge
+  - Count badge support (capped at 99+) for grouped items
+  - Leaflet integration: buildLeafletIconConfig() returns icon URL, size, anchor, popup anchor
+  - Legend helpers: buildLegendEntries() and buildGroupedLegendEntries() for active icon types
+- Created client/src/components/visualizations/map-layers/MapIcons.tsx
+  - MapIconsLayer component: renders Leaflet Marker elements with custom SVG icons
+  - Icon caching system to avoid rebuilding identical L.icon instances per render
+  - MapIconLegend component: displays active icon types grouped by category with SVG previews
+- Updated client/src/components/visualizations/map-layers/MapLegend.tsx
+  - Added activeIconTypes and iconColorOverrides props
+  - Integrated MapIconLegend into the existing legend panel
+- Created test/map-icons.test.ts with 38 passing tests covering:
+  - Icon registry completeness (all 16 types, required fields, valid hex colors)
+  - Icon lookup and category filtering
+  - Size scaling (named sizes, monotonic ordering, interpolation, clamping, zero-range)
+  - SVG generation (valid SVG, default/custom colors, named/numeric sizes, count badges, 99+ cap, fallback for unknown types)
+  - Data URI conversion (format, base64 round-trip)
+  - Leaflet icon config (structure, numeric size adaptation)
+  - Legend entries (valid types, unknown type filtering, color overrides, grouped output)
+- All 971 tests pass, no new TypeScript errors
