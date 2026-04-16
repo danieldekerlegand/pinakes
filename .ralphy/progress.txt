@@ -1688,3 +1688,26 @@ Completed:
   - GET /api/culture-profiles/:id/social-structures
 - Created test/test-city-layouts.ts with 117 passing tests
 - Created test/test-social-structures.ts with 249 passing tests
+
+## Media Assets TSV and Image/Media Management Service (2026-04-16)
+- Created lexicons/media-assets.tsv with 8 seed entries covering art traditions, civilizations, archaeological sites, writing systems, music, and dance
+- Added MediaAsset interface to server/tsv-storage.ts with fields: id, entityType, entityId, mediaType, url, title, description, source, license, attribution, mimeType, width, height, tags, dateAdded
+- Added cachedMediaAssets cache, loadMediaAssets(), getMediaAssets(), getMediaAssetById(), getMediaAssetsForEntity() to TsvStorage
+- Added media cache invalidation support
+- Created server/services/media-asset-service.ts with:
+  - Input validation (entity types, media types, required fields, dimensions)
+  - Auto-incrementing ID generation
+  - TSV read/write via TsvWriter
+  - Add and delete operations
+  - Valid entity types: art_tradition, archaeological_site, civilization, writing_system, music_tradition, dance_tradition, language, etc.
+  - Valid media types: image, audio, video, document
+- Added API routes to server/routes.ts:
+  - GET /api/media-assets (with entity_type, entity_id, media_type, tag filters)
+  - GET /api/media-assets/:id
+  - GET /api/media-assets/entity/:entityType/:entityId
+  - POST /api/media-assets
+  - DELETE /api/media-assets/:id
+  - GET /api/media-assets/meta/types
+- Created test/media-asset-service.test.ts with 18 passing tests
+  - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
+- All 18 tests pass, no new TypeScript errors
