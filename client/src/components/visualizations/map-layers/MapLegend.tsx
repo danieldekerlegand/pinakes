@@ -3,14 +3,19 @@ import { Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import type { LayerConfig } from '../../../lib/visualization/geospatial-types';
+import { MapIconLegend } from './MapIcons';
 
 interface MapLegendProps {
   layerConfigs: Map<string, LayerConfig>;
   activeLayers: Set<string>;
   familyColors?: Map<string, string>;
+  /** Active custom icon types to display in the legend */
+  activeIconTypes?: string[];
+  /** Color overrides for custom icon types */
+  iconColorOverrides?: Record<string, string>;
 }
 
-export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegendProps) {
+export function MapLegend({ layerConfigs, activeLayers, familyColors, activeIconTypes, iconColorOverrides }: MapLegendProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   // Get only visible layers
@@ -235,6 +240,13 @@ export function MapLegend({ layerConfigs, activeLayers, familyColors }: MapLegen
                 )}
               </div>
             ))}
+
+            {/* Custom Icon Types */}
+            {activeIconTypes && activeIconTypes.length > 0 && (
+              <div className="pt-2 border-t">
+                <MapIconLegend activeTypes={activeIconTypes} colorOverrides={iconColorOverrides} />
+              </div>
+            )}
 
             {/* General Info */}
             <div className="pt-2 border-t text-xs text-gray-500">
