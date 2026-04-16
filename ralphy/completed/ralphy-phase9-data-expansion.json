@@ -1,0 +1,190 @@
+{
+  "tasks": [
+    {
+      "title": "Audit all TSV files for data completeness and coverage gaps",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-100: Analyze every TSV file in lexicons/ and produce a detailed report: row counts, column completeness percentages, geographic/temporal coverage gaps, under-represented language families (especially Austronesian, Niger-Congo, Sino-Tibetan, Papuan, Dravidian, Na-Dené, Australian). Output a data-audit.md file in the project root with findings and prioritized recommendations."
+    },
+    {
+      "title": "Create automated Wiktionary scraper for phonological inventories",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-101: Build server/services/phonology-scraper.ts that scrapes phonological inventory data from Wiktionary and PHOIBLE. Should extract consonant/vowel inventories, tone systems, and phonotactic constraints. Target 200+ languages. Add POST /api/scraping/phonology endpoint with resumable job support."
+    },
+    {
+      "title": "Create grammar feature scraper from WALS and Grambank",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-102: Build server/services/grammar-scraper.ts that enriches grammar-features.tsv using WALS Online (World Atlas of Language Structures) and Grambank data. Target features: word order, morphological type, case systems, agreement patterns, evidentiality, ergativity. Cover 300+ languages with proper source attribution."
+    },
+    {
+      "title": "Create writing system scraper from ScriptSource and Unicode CLDR",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-103: Build server/services/writing-systems-scraper.ts that populates writing-systems.tsv from ScriptSource and Unicode CLDR. Include: script name, ISO 15924 code, directionality, parent script, date range, associated languages, sample glyphs, Unicode block ranges. Target all scripts with ISO 15924 codes (200+)."
+    },
+    {
+      "title": "Create Glottolog scraper for comprehensive language family tree data",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-104: Build server/services/glottolog-scraper.ts that scrapes Glottolog's full language classification tree. Enrich families.tsv and languages.tsv with: Glottolog codes, endangerment status (EGIDS scale), coordinates, classification depth, dialect distinctions, language vs dialect status. Target complete coverage of all ~7,000 languages."
+    },
+    {
+      "title": "Create ethnographic data scraper for kinship and social organization",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-105: Build server/services/ethnographic-scraper.ts that enriches kinship-systems.tsv from D-PLACE (Database of Places, Language, Culture, and Environment) and eHRAF. Include: kinship terminology type (Eskimo, Hawaiian, Iroquois, etc.), descent system, residence rules, marriage rules, clan/moiety structures. Target 500+ societies."
+    },
+    {
+      "title": "Create archaeological site scraper from pleiades.stoa.org and UNESCO",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-106: Build server/services/archaeology-scraper.ts that enriches archaeological-sites.tsv from Pleiades (Ancient World gazetteer), UNESCO World Heritage List, and relevant open datasets. Include: precise coordinates, date ranges, site type, excavation history, associated cultures, key finds. Expand to 500+ sites with global coverage."
+    },
+    {
+      "title": "Create historical polity/empire scraper from Seshat and Wikipedia",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-107: Build server/services/polity-scraper.ts that enriches civilizations.tsv using Seshat (Global History Databank) and structured Wikipedia data. Include: polity name, time range, geographic extent (polygon coordinates), capital cities, population estimates, government type, successor/predecessor states, official languages. Expand to 200+ polities with time-varying boundaries."
+    },
+    {
+      "title": "Create mythology and deity scraper with cross-cultural linking",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-108: Build server/services/mythology-scraper.ts that enriches deities.tsv and myth-motifs.tsv. Scrape from Godchecker, theoi.com, and structured Wikipedia data. Include: deity name, culture, domain/function, associated symbols, equivalent deities in other cultures, parent/child relationships in pantheons, associated myth motifs (Thompson Motif-Index). Expand to 1000+ deities across 50+ cultures."
+    },
+    {
+      "title": "Create historical trade goods and economic data scraper",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-109: Build server/services/trade-goods-scraper.ts that enriches trade-goods.tsv and trade-routes.tsv. Source from historical economic databases and Wikipedia's trade route articles. Include: commodity name, origin region, date range of trade, primary trade partners, transport method, cultural significance, modern equivalent. Expand to 300+ trade goods and 100+ routes."
+    },
+    {
+      "title": "Create settlements.tsv and historical settlements scraper",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-110: Create lexicons/settlements.tsv with columns: id, name, alternate_names, latitude, longitude, type (city-state|capital|trading-post|religious-center|fortress|port|colony), culture_id, civilization_id, founded_year, abandoned_year, peak_population, notable_features, associated_languages, modern_name, region. Populate with 500+ settlements spanning all major civilizations. Build server/services/settlements-scraper.ts to enrich from Pleiades, GeoNames historical, and Wikipedia."
+    },
+    {
+      "title": "Add settlements TSV loader and API endpoints",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-111: Add settlements loading to server/tsv-storage.ts. Add GET /api/settlements with filters: civilization_id, culture_id, type, time range, region, bounding box. Add GET /api/settlements/:id. Add GET /api/settlements/by-civilization/:civilizationId. Add GET /api/settlements/nearby/:lat/:lng for proximity search."
+    },
+    {
+      "title": "Create empires-timeline.tsv for temporal empire boundaries",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-112: Create lexicons/empires-timeline.tsv with columns: id, empire_id, year, polygon_coordinates, capital, vassal_states, controlled_settlements, population_estimate, territorial_area_km2, notes. Populate with time-series boundary snapshots for 50+ major empires at key historical moments (founding, peak expansion, major losses, dissolution). Include Sumerian, Akkadian, Assyrian, Babylonian, Persian, Macedonian, Roman, Han, Maurya, Gupta, Umayyad, Mongol, Ottoman, etc."
+    },
+    {
+      "title": "Add empires-timeline TSV loader and API endpoints",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-113: Add empires-timeline loading to server/tsv-storage.ts. Add GET /api/empires-timeline with filters: empire_id, year (returns nearest snapshot), region. Add GET /api/empires-timeline/at-year/:year to get all empire boundaries at a given year. Add GET /api/empires-timeline/:empireId/history for full temporal sequence."
+    },
+    {
+      "title": "Create Gemini-powered batch enrichment pipeline for under-populated TSVs",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-114: Build server/services/batch-enrichment.ts that identifies TSV files with fewer than 50 rows and uses Gemini AI to generate additional high-quality entries. Include: validation against existing entries to avoid duplicates, source attribution marking AI-generated content, confidence scoring, human review queue integration. Add POST /api/enrichment/batch endpoint with configurable target counts per TSV."
+    },
+    {
+      "title": "Create language-specific vocabulary scrapers for under-represented families",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-115: Build server/services/vocabulary-targeted-scraper.ts that specifically targets vocabulary gaps. Analyze words.tsv to find language families with <10 languages having word lists. Prioritize: Niger-Congo (Yoruba, Igbo, Zulu, Swahili, Hausa), Austronesian (Tagalog, Malay, Hawaiian, Maori, Fijian), Sino-Tibetan (Mandarin, Cantonese, Burmese, Tibetan), Dravidian (Tamil, Telugu, Kannada, Malayalam). Target 200-concept Swadesh list minimum per language."
+    },
+    {
+      "title": "Create verb paradigm scraper from UniMorph and Wiktionary",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-116: Build server/services/verb-paradigm-scraper.ts that populates verb-paradigms.tsv from UniMorph database and Wiktionary inflection tables. Include: language, verb class/conjugation type, person/number/tense/mood/aspect/voice combinations, example verb with full paradigm table, irregularity notes. Target 100+ languages with complete paradigm tables."
+    },
+    {
+      "title": "Create sound change rules scraper from historical linguistics sources",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-117: Build server/services/sound-change-scraper.ts that enriches sound-changes.tsv. Scrape from Wikipedia's comparative linguistics articles and Index Diachronica. Include: sound change name, environment, source/target phonemes, language/period, examples, related changes (chain shifts), Grimm's Law and other named laws. Expand to 500+ documented sound changes."
+    },
+    {
+      "title": "Create language contact events scraper",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-118: Build server/services/language-contact-scraper.ts that enriches language-contacts.tsv. Include: contact type (substrate, superstrate, adstrate, creolization, pidginization), donor/recipient languages, borrowed feature types (lexical, phonological, grammatical), historical context, date range, intensity (casual to heavy). Target 300+ documented contact events."
+    },
+    {
+      "title": "Create music traditions and instruments scraper",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-119: Build server/services/music-scraper.ts that enriches music-traditions.tsv and musical-instruments.tsv. Scrape from Garland Encyclopedia of World Music (Wikipedia summaries) and instrument databases. Include: tradition name, region, associated cultures, scale systems, rhythm patterns, vocal/instrumental balance, and for instruments: classification (Sachs-Hornbostel), materials, playing technique, cultural significance. Expand to 200+ traditions and 500+ instruments."
+    },
+    {
+      "title": "Create religions and belief systems scraper",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-120: Build server/services/religion-scraper.ts that enriches religions.tsv. Include: religion name, classification (animism, polytheism, monotheism, nontheistic), founding date, founder, sacred texts, core beliefs, geographic distribution polygons over time, schisms/denominations, associated languages (liturgical), approximate adherent counts by period. Expand to 150+ religious traditions."
+    },
+    {
+      "title": "Create art tradition scraper with style evolution tracking",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-121: Build server/services/art-tradition-scraper.ts that enriches art-traditions.tsv. Include: tradition name, medium (pottery, sculpture, painting, textiles, metalwork), culture/civilization, date range, defining characteristics, predecessor/successor styles, notable examples, geographic distribution. Track style evolution chains (e.g., Minoan → Mycenaean → Archaic Greek → Classical). Expand to 300+ traditions."
+    },
+    {
+      "title": "Create cuisine and food culture scraper",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-122: Build server/services/cuisine-scraper.ts that enriches cuisines.tsv, cuisine-items.tsv, cooking-techniques.tsv, and ingredient-origins.tsv. Scrape from structured Wikipedia cuisine articles. Include: staple ingredients, flavor profiles, foreign influences, taboos, ritual/ceremonial foods, preservation methods. Track Columbian Exchange and Silk Road food diffusion. Expand to 200+ cuisines with 1000+ items."
+    },
+    {
+      "title": "Create battle and military history scraper",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-123: Build server/services/battles-scraper.ts that enriches battles.tsv. Include: battle name, date, coordinates, belligerents (with civilization_ids), commanders, force sizes, casualties, outcome, strategic significance, weapons/tactics used, resulting territorial changes. Expand to 500+ battles spanning antiquity through early modern period."
+    },
+    {
+      "title": "Create architectural styles scraper with building type taxonomy",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-124: Build server/services/architecture-scraper.ts that enriches architectural-styles.tsv. Include: style name, date range, region, defining features (columns, arches, vaults, materials), predecessor/successor styles, notable examples with coordinates, building type (temple, palace, fortification, domestic, funerary), cultural context. Expand to 200+ styles."
+    },
+    {
+      "title": "Create data validation and cross-referencing service",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-125: Build server/services/data-validator.ts that cross-references all TSV files for consistency. Check: language_id references exist in languages.tsv, civilization_id references exist in civilizations.tsv, date ranges are valid and non-overlapping where appropriate, coordinates are valid lat/lng, polygon coordinates form valid geometries. Add GET /api/data/validation-report endpoint."
+    },
+    {
+      "title": "Create scraper orchestration dashboard",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-126: Build a Scraping Dashboard page at /scraping-dashboard that shows: all available scrapers with run/pause/resume controls, progress bars per scraper, data coverage heatmap (geographic and temporal), before/after row counts, error logs, rate limit status. Integrate with existing job-store.ts for state tracking."
+    },
+    {
+      "title": "Create data freshness and staleness tracking",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-127: Add metadata tracking to each TSV file recording: last scrape date, source URLs, row count history, data quality score. Build server/services/data-freshness.ts that computes staleness scores and recommends which datasets need re-scraping. Add GET /api/data/freshness endpoint and integrate with the scraping dashboard."
+    },
+    {
+      "title": "Create automated data quality scoring system",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-128: Build server/services/data-quality.ts that scores each TSV dataset on: completeness (% of non-empty cells), coverage (geographic/temporal distribution), consistency (cross-reference integrity), density (entries per language family or region), freshness (time since last update). Display quality scores on the data overview page with drill-down to specific issues."
+    },
+    {
+      "title": "Create incremental scraping with diff detection",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-129: Enhance all scrapers with incremental update capability. When re-scraping, compare new data against existing rows and only add/update changed entries. Track: new entries added, entries modified, entries unchanged. Preserve user contributions and manual edits. Add --incremental flag to scraping API endpoints."
+    },
+    {
+      "title": "Create export pipeline for contributing data back to open datasets",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-130: Build server/services/data-export.ts that can export LinguaScrape data in standard formats: CLDF (Cross-Linguistic Data Formats) for linguistic data, GeoJSON for geographic data, CSV with standardized headers for general datasets. Include provenance tracking so AI-generated vs human-curated data is clearly distinguished. Add GET /api/export/:dataset/:format endpoints."
+    }
+  ]
+}

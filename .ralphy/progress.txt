@@ -1538,3 +1538,5 @@ Completed:
 - Created RiverWaterLayer.test.ts with 16 passing tests
   - Tests: color mapping, line weight scaling, water type formatting, time-based visibility, data shape validation
 - All 949 tests pass, no new TypeScript errors
+- [✓] 2026-04-16 06:58 - Create river and water feature layer
+- [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization

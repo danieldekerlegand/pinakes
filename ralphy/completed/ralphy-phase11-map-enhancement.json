@@ -1,0 +1,154 @@
+{
+  "tasks": [
+    {
+      "title": "Replace basic polygon rendering with GeoJSON-based precise regional boundaries",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-300: Overhaul the region rendering system in EnhancedLanguageMapView to support high-fidelity GeoJSON boundaries. Replace the current Catmull-Rom spline approximations with actual geographic boundaries sourced from Natural Earth (admin boundaries), GADM, and historical atlases. Create server/services/boundary-resolver.ts that can look up and cache precise boundary polygons for named regions. Support composite regions (e.g., 'Fertile Crescent' = union of multiple modern admin areas)."
+    },
+    {
+      "title": "Implement gradient fill and territorial shading for cultural regions",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-301: Enhance the map rendering to support gradient fills showing core-to-periphery influence. Use SVG pattern fills or canvas gradient rendering within Leaflet. Core regions get full saturation, periphery fades out. Support: solid fill, gradient fill (center-outward), hatched fill (for disputed/uncertain regions), striped fill (for overlapping claims). Apply to civilization, archaeological culture, and language range layers."
+    },
+    {
+      "title": "Implement territory overlap visualization with blend modes",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-302: When multiple territorial layers are active and overlap (e.g., an empire containing city-states, or overlapping language ranges), render overlaps using CSS blend modes or alpha compositing so both territories remain visible. Support: multiply blend (darker overlaps), additive blend (brighter overlaps), side-by-side hatching. Add a layer interaction mode selector to LayerPanel."
+    },
+    {
+      "title": "Add terrain/topographic base map tile options",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-303: Add multiple base map tile options to the map view. Include: standard political map (current), satellite imagery, terrain/topographic with hillshading (Stamen Terrain, Thunderforest Landscape, or Mapbox terrain), historical-style parchment/antique map aesthetic, and a minimal/dark mode. Add a base map selector dropdown to the map controls. Default to terrain view for the enhanced historical experience."
+    },
+    {
+      "title": "Implement 2.5D/3D topographic map view using deck.gl",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-304: Add a 3D map mode using deck.gl (or Mapbox GL JS with terrain) alongside the existing Leaflet 2D map. Include: terrain elevation from Mapbox Terrain-RGB or similar DEM tiles, pitch/bearing controls for viewing angle, camera orbit animation, extruded polygons for regions (height = population or importance), 3D building footprints at high zoom for major historical cities. Toggle between 2D and 3D via a button in the map controls. Preserve all existing layer functionality in 3D mode."
+    },
+    {
+      "title": "Create extruded 3D region visualization for population/power metrics",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-305: In the 3D map view, support extruding territorial polygons to different heights based on selectable metrics: population estimate, territorial area, military strength, trade volume, number of speakers. This creates a 'bar chart on the map' effect where empires/civilizations literally rise and fall as the time slider moves. Include smooth height animation transitions between time periods."
+    },
+    {
+      "title": "Implement terrain-aware route rendering for trade and migration routes",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-306: Enhance route rendering to follow terrain features. Trade routes should follow valleys and mountain passes, sea routes should follow coastlines and prevailing winds. In 3D mode, routes drape over the terrain surface. Add route type visual differentiation: land routes as solid lines on terrain, sea routes as dashed lines over water with ship icons, river routes following river courses. Show elevation profile on route hover."
+    },
+    {
+      "title": "Create SettlementsLayer map component with rich interactive markers",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-307: Build client/src/components/visualizations/map-layers/SettlementsLayer.tsx. Display settlements from settlements.tsv as map markers. Marker icon varies by type: city-state (building icon), capital (star), trading post (scales), religious center (temple), fortress (shield), port (anchor). Marker size scales with peak population. Cluster at low zoom. On click: show popup with name, type, culture, date range, population, notable features. On detailed click: open full DetailDrawer."
+    },
+    {
+      "title": "Implement temporal settlement lifecycle animations",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-308: Animate settlements appearing and disappearing as the time slider moves. Settlements fade in when founded_year is reached and fade out at abandoned_year. Capitals get a pulsing highlight effect. When a settlement changes hands between civilizations (via empires-timeline data), show a brief color transition animation. Destroyed settlements show a brief burst effect."
+    },
+    {
+      "title": "Create empire boundary temporal morphing with settlement overlay",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-309: Enhance the TemporalMorphingLayer to smoothly interpolate between empire boundary snapshots from empires-timeline.tsv. As the user drags the time slider, empire boundaries grow and shrink smoothly (using polygon interpolation). Settlements within the empire boundary automatically inherit the empire's color tint. Show the capital city with a special marker. Display empire name as a label that follows the centroid of the territory."
+    },
+    {
+      "title": "Implement Mesopotamia city-states showcase demo",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-310: Create a curated demo/preset that showcases the Mesopotamian city-states use case. Pre-populate settlements.tsv with: Ur, Uruk, Eridu, Lagash, Nippur, Kish, Akkad, Babylon, Assur, Nineveh, Mari, Ebla, and 20+ more settlements. Pre-populate empires-timeline.tsv with boundary snapshots for: Sumerian city-state period (~3500-2334 BCE), Akkadian Empire (2334-2154 BCE), Third Dynasty of Ur (2112-2004 BCE), Old Babylonian period, Kassite period, Middle Assyrian, Neo-Assyrian, Neo-Babylonian, Achaemenid conquest. Create a 'Mesopotamia' layer preset that activates all relevant layers and zooms to the region."
+    },
+    {
+      "title": "Implement clickable map features with contextual info panels",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-311: Enhance all map layers so that clicking any feature opens a rich contextual panel. For settlements: show full details including associated language, culture, religion, notable figures, and links to related entities. For regions (civilizations, cultures): show summary statistics, contained settlements, languages spoken, trade goods produced, and timeline. For routes: show origin, destination, goods traded, languages along the route. Use the unified DetailDrawer component. Support deep-linking: URL updates with selected feature for shareable links."
+    },
+    {
+      "title": "Create map annotation and label system",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-312: Build a label rendering system for the map that displays region names, settlement names, and route names at appropriate zoom levels. Use collision detection to prevent label overlap. Implement label priority: capitals > major cities > minor settlements. Region labels curve to follow the shape of the territory (similar to how ocean names curve on maps). Label font size scales with zoom level. Labels toggle independently from their parent layer."
+    },
+    {
+      "title": "Implement map image import and georeferencing tool",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-313: Build a tool that lets users drag-and-drop a historical map image onto the LinguaScrape map. The tool provides: image overlay with adjustable opacity, rotation, and scale; control point placement (minimum 3 points) to georeference the image by matching known locations; rubber-sheet transformation to align the image to the map projection. Build client/src/components/visualizations/map-tools/ImageGeoreferencer.tsx."
+    },
+    {
+      "title": "Implement AI-powered map feature extraction from imported images",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-314: Build server/services/map-image-analyzer.ts that uses Gemini vision API to analyze a georeferenced historical map image and extract features. Detect: region boundaries (polygons), settlement locations (points), route lines, labels/text, legend items. Convert detected features into LinguaScrape data format (settlements.tsv entries, boundary polygons, routes). Present extracted features for user review/correction before saving. Build the review UI in client/src/components/visualizations/map-tools/ExtractedFeatureReview.tsx."
+    },
+    {
+      "title": "Create map comparison/split-screen enhancements",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-315: Enhance the existing SplitScreenComparison to support: synchronized pan/zoom between sides, different time periods on each side (e.g., same region in 1000 BCE vs 500 CE), different layer configurations per side, a vertical swipe divider that can be dragged, and a 'blink' comparison mode that rapidly alternates between the two views to highlight differences."
+    },
+    {
+      "title": "Implement animated timeline playback with narration points",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-316: Enhance the TimeSlider with a cinematic playback mode. When playing, the map smoothly animates through time showing: empires rising and falling, settlements appearing and disappearing, trade routes opening and closing, migration arrows flowing. Add 'narration points' - markers on the timeline that pause playback and display an info card explaining the historical significance of that moment (e.g., 'Fall of the Western Roman Empire, 476 CE')."
+    },
+    {
+      "title": "Create curated historical tour/story mode",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-317: Build client/src/components/visualizations/map-tools/StoryMode.tsx that presents guided tours through historical periods. Each tour is a sequence of: map viewport (location + zoom + bearing), time period, active layers, narration text, highlighted features. Create 5 initial tours: 'Rise of Civilization in Mesopotamia', 'The Indo-European Expansion', 'The Silk Road', 'Austronesian Migration', 'The Mediterranean World'. Tours can be played automatically or stepped through manually."
+    },
+    {
+      "title": "Implement geographic search and place name resolution",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-318: Add a search bar to the map view that resolves both modern and historical place names. Build server/services/place-resolver.ts that maps historical names to coordinates (e.g., 'Mesopotamia' → bounding box, 'Uruk' → point, 'Fertile Crescent' → polygon). Integrate with Nominatim/GeoNames for modern names. On search: fly-to the location, highlight matching features, show a brief info card. Support fuzzy matching and autocomplete."
+    },
+    {
+      "title": "Create river and water feature layer",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-319: Build client/src/components/visualizations/map-layers/WaterFeaturesLayer.tsx that renders historically important rivers, lakes, and seas with labels. Include: Tigris, Euphrates, Nile, Indus, Ganges, Yellow River, Yangtze, Danube, Rhine, Amazon, Mississippi, and 40+ more. Rivers are critical for understanding settlement patterns and civilization development. Show river names at appropriate zoom levels. In 3D mode, rivers sit in terrain valleys."
+    },
+    {
+      "title": "Implement custom map marker and icon system",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-320: Build a comprehensive icon system for map markers. Create client/src/components/visualizations/map-layers/MapIcons.tsx with SVG icons for: settlement types (city, village, port, fortress, temple, mine, farm), event types (battle, treaty, natural disaster), cultural markers (pottery find, inscription find, tomb), and route waypoints. Support size scaling, color theming, and optional count badges. Include a legend entry for each active icon type."
+    },
+    {
+      "title": "Create distance measurement and area calculation tools",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-321: Build client/src/components/visualizations/map-tools/MeasurementTools.tsx with: ruler tool for measuring distances between points (in km/miles), area calculation tool for drawing polygons and computing area, and isochrone visualization showing travel time from a point using historical travel speeds (walking, horseback, ship). Useful for understanding why certain trade routes existed or why empires had certain boundaries."
+    },
+    {
+      "title": "Implement map bookmarks and view presets",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-322: Build a bookmark system that lets users save and recall specific map states. A bookmark captures: center coordinates, zoom level, bearing/pitch (3D), active layers with opacity, time slider position, selected features, active filters. Provide 10+ built-in presets: 'Ancient Near East', 'Classical Mediterranean', 'Silk Road', 'Pre-Columbian Americas', 'Ancient India', 'Bronze Age Europe', 'Song Dynasty China', 'West African Empires', 'Polynesian Triangle', 'Viking Age'. Bookmarks stored in localStorage with shareable URL encoding."
+    },
+    {
+      "title": "Create map data overlay heatmaps for density visualization",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-323: Enhance the heatmap capabilities to support any numeric dataset. Build a configurable heatmap generator that can display: language diversity density (languages per area), settlement density over time, trade route density, battle frequency, archaeological site density. Add a heatmap configuration panel to LayerPanel where users select the data source and adjust radius/intensity. Support temporal animation of heatmap evolution."
+    },
+    {
+      "title": "Implement map accessibility and performance optimization",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-324: Ensure the enhanced map is performant and accessible. Implement: WebGL rendering for layers with >1000 features, level-of-detail system (simplified polygons at low zoom, detailed at high zoom), viewport culling (only render visible features), tile-based caching for expensive computations, keyboard navigation for map controls, screen reader descriptions for map features, high-contrast mode option."
+    }
+  ]
+}

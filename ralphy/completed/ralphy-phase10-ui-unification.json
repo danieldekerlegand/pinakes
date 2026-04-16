@@ -1,0 +1,172 @@
+{
+  "tasks": [
+    {
+      "title": "Create reusable TimelineVisualization component for temporal datasets",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-200: Extract and generalize the timeline visualization from LanguageTimelineView into a reusable client/src/components/visualizations/shared/TimelineVisualization.tsx. Accept generic typed data with: id, label, start_year, end_year, category, metadata. Support horizontal and vertical orientations, zoom, pan, era markers, and color-by-category. Reuse for: language evolution timelines, civilization timelines, empire rise/fall, archaeological culture periods, literary tradition periods, music tradition eras, migration events."
+    },
+    {
+      "title": "Create reusable NetworkGraph component for relational datasets",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-201: Extract and generalize from LanguageNetworkView into client/src/components/visualizations/shared/NetworkGraph.tsx. Accept generic nodes (id, label, category, size, metadata) and edges (source, target, type, weight, metadata). Support: force-directed layout, hierarchical layout, radial layout, node clustering, edge bundling, zoom/pan, tooltips, click-to-expand. Reuse for: language family networks, deity pantheon graphs, trade networks, cultural influence networks, sound change chains, kinship system diagrams."
+    },
+    {
+      "title": "Create reusable TreeVisualization component for hierarchical datasets",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-202: Extract and generalize from LanguageTreeView into client/src/components/visualizations/shared/TreeVisualization.tsx. Accept generic tree data with: id, label, parent_id, children, metadata. Support: vertical/horizontal/radial layouts, collapsible nodes, search/highlight, zoom, breadcrumb navigation. Reuse for: language family trees, writing system descent, script evolution, cultural lineage trees, haplogroup trees, architectural style evolution, deity genealogies."
+    },
+    {
+      "title": "Create reusable ComparisonTable component for side-by-side analysis",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-203: Build client/src/components/visualizations/shared/ComparisonTable.tsx for comparing entities side by side. Accept: array of entity objects, column definitions with render functions, highlight-differences mode. Support: 2-6 entity comparison, sticky headers, sortable columns, expandable row groups, color-coded differences, export to CSV. Reuse for: language comparison (phonology, grammar, vocabulary), civilization comparison, deity equivalents, cuisine comparison, musical tradition comparison."
+    },
+    {
+      "title": "Create reusable SankeyFlow component for flow/influence datasets",
+      "completed": true,
+      "parallel_group": 1,
+      "description": "US-204: Extract and generalize from SankeyDiagramVisualization into client/src/components/visualizations/shared/SankeyFlow.tsx. Accept: source/target flow data with magnitudes. Support: horizontal/vertical orientation, node reordering, link highlighting on hover, filtering by flow type, animated flow particles. Reuse for: language contact borrowings, trade good flows, migration flows, cultural influence propagation, ingredient origin diffusion, religious expansion pathways."
+    },
+    {
+      "title": "Create reusable ChordDiagram component for mutual relationship datasets",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-205: Extract and generalize from ChordDiagramVisualization into client/src/components/visualizations/shared/ChordDiagram.tsx. Accept: symmetric relationship matrix with labels and categories. Support: arc highlighting, tooltip with relationship details, category-based coloring, filter by minimum connection strength. Reuse for: language mutual intelligibility, trade partner networks, cultural exchange, deity equivalences across cultures, musical influence patterns."
+    },
+    {
+      "title": "Create reusable HeatmapGrid component for matrix datasets",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-206: Build client/src/components/visualizations/shared/HeatmapGrid.tsx for displaying feature-by-entity matrices. Accept: row labels, column labels, cell values (numeric or categorical), color scale config. Support: row/column sorting (alphabetical, hierarchical clustering), zoom on cell hover, row/column highlighting, value tooltips, dendrograms. Reuse for: linguistic distance matrices, grammar feature comparison across languages, phoneme inventory comparison, WALS feature maps, genetic-linguistic correlation matrices."
+    },
+    {
+      "title": "Create reusable GeoDistributionMap component for any mappable dataset",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-207: Build client/src/components/visualizations/shared/GeoDistributionMap.tsx as a lightweight, embeddable map component for use within panels and detail views (separate from the full EnhancedLanguageMapView). Accept: array of {lat, lng, label, value, category} points or {polygon, label, value, category} regions. Support: auto-zoom to bounds, choropleth coloring, point clustering, simple time slider, legend. Reuse for: embedding mini-maps in any panel showing geographic distribution of that panel's data."
+    },
+    {
+      "title": "Create reusable ParallelCoordinates component for multi-dimensional comparison",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-208: Build client/src/components/visualizations/shared/ParallelCoordinates.tsx for comparing entities across multiple numeric/ordinal dimensions. Accept: array of entities with named numeric fields, axis configurations. Support: axis reordering via drag, brush filtering on any axis, line highlighting, color by category. Reuse for: comparing languages across multiple typological features, comparing civilizations across multiple metrics, cross-domain correlation exploration."
+    },
+    {
+      "title": "Create unified VisualizationContainer wrapper with shared controls",
+      "completed": true,
+      "parallel_group": 2,
+      "description": "US-209: Build client/src/components/visualizations/shared/VisualizationContainer.tsx that wraps any visualization with consistent controls: title bar, fullscreen toggle, export menu (PNG/SVG/CSV), info tooltip explaining the visualization, resize handle, loading/error states. Standardize all existing and new visualizations to use this container for a unified look and feel."
+    },
+    {
+      "title": "Refactor LanguageTimelineView to use the reusable TimelineVisualization",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-210: Refactor client/src/components/visualizations/LanguageTimelineView.tsx to use the new shared TimelineVisualization component. The language-specific data fetching and transformation should remain in this file, but the rendering should delegate to the shared component. Verify all existing functionality is preserved."
+    },
+    {
+      "title": "Refactor LanguageNetworkView to use the reusable NetworkGraph",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-211: Refactor client/src/components/visualizations/LanguageNetworkView.tsx to use the new shared NetworkGraph component. Language-specific logic (family coloring, distance calculations) stays in this wrapper. Verify existing functionality preserved."
+    },
+    {
+      "title": "Refactor LanguageTreeView to use the reusable TreeVisualization",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-212: Refactor client/src/components/visualizations/LanguageTreeView.tsx to use the new shared TreeVisualization component. Language-specific rendering (status colors, speaker counts) stays in the wrapper. Verify existing functionality preserved."
+    },
+    {
+      "title": "Create CivilizationTimeline view using reusable TimelineVisualization",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-213: Build client/src/components/visualizations/CivilizationTimelineView.tsx using the shared TimelineVisualization. Fetch civilizations data and display rise/fall periods, categorized by region (Mesopotamia, Egypt, Indus Valley, China, Mesoamerica, etc.). Show empire overlaps and succession. Clickable bars navigate to civilization detail."
+    },
+    {
+      "title": "Create DeityPantheonGraph using reusable NetworkGraph",
+      "completed": true,
+      "parallel_group": 3,
+      "description": "US-214: Build client/src/components/visualizations/DeityPantheonGraph.tsx using the shared NetworkGraph. Display deity relationships within and across pantheons: parent-child, equivalent deities across cultures, shared myth motifs. Nodes sized by number of associated myths, colored by culture. Edges typed (familial, equivalent, shared-motif)."
+    },
+    {
+      "title": "Create TradeNetworkVisualization using reusable SankeyFlow and NetworkGraph",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-215: Build client/src/components/visualizations/TradeNetworkView.tsx that combines SankeyFlow (showing commodity flows between regions) and NetworkGraph (showing trade partner relationships). Toggle between flow view and network view. Filter by time period, commodity type, and region. Show how trade networks evolved over time."
+    },
+    {
+      "title": "Create WritingSystemEvolution tree using reusable TreeVisualization",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-216: Build client/src/components/visualizations/WritingSystemEvolutionView.tsx using the shared TreeVisualization. Show script descent: Proto-Sinaitic → Phoenician → Greek → Latin/Cyrillic/Coptic, and Brahmi → Devanagari/Thai/Tibetan/etc. Include sample glyphs at each node. Temporal positioning on the tree. Clickable nodes show writing system detail."
+    },
+    {
+      "title": "Create MusicalTraditionExplorer using reusable NetworkGraph and GeoDistributionMap",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-217: Build client/src/components/visualizations/MusicalTraditionExplorer.tsx combining NetworkGraph (showing influence relationships between traditions) with an embedded GeoDistributionMap (showing geographic spread). Filter by instrument family, scale system, or region. Show how musical traditions spread along trade routes."
+    },
+    {
+      "title": "Create CuisineComparisonView using reusable ComparisonTable and SankeyFlow",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-218: Build client/src/components/visualizations/CuisineComparisonView.tsx combining ComparisonTable (comparing ingredient profiles, cooking techniques, flavor profiles) with SankeyFlow (showing ingredient diffusion via Columbian Exchange, Silk Road, etc.). Users select 2-4 cuisines to compare. Highlight shared ingredients and borrowed techniques."
+    },
+    {
+      "title": "Create LinguisticTypologyHeatmap using reusable HeatmapGrid",
+      "completed": true,
+      "parallel_group": 4,
+      "description": "US-219: Build client/src/components/visualizations/LinguisticTypologyHeatmap.tsx using the shared HeatmapGrid. Display a matrix of languages × typological features (from grammar-features.tsv). Support hierarchical clustering to reveal language groupings that correlate with known families. Row sorting by family, region, or computed similarity."
+    },
+    {
+      "title": "Create unified DataExplorer page with visualization picker",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-220: Build client/src/pages/data-explorer.tsx as a unified exploration page. Left sidebar: dataset picker (all TSV types). Right area: auto-suggested visualizations based on data type (temporal → timeline, hierarchical → tree, relational → network, geographic → map, matrix → heatmap). Users can override the auto-suggestion and pick any compatible visualization. Add to main navigation."
+    },
+    {
+      "title": "Create reusable DetailDrawer component for entity details",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-221: Build client/src/components/shared/DetailDrawer.tsx as a slide-out drawer that can display details for any entity type. Accept: entity type, entity id, custom render sections. Include: header with name/type, tabbed sections, related entities list, mini-map for geographic entities, timeline position for temporal entities. Replace ad-hoc detail displays across panels with this unified component."
+    },
+    {
+      "title": "Create CrossDomainTimeline combining multiple datasets on one timeline",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-222: Build client/src/components/visualizations/CrossDomainTimeline.tsx using TimelineVisualization with multiple swim lanes. Each lane represents a dataset: languages, civilizations, archaeological cultures, battles, migrations, literary works, religions. Users toggle lanes on/off. Vertical cursor shows all concurrent events across domains. Reveals correlations like language shifts during empire collapses."
+    },
+    {
+      "title": "Create PhonemeComparisonView using HeatmapGrid and ComparisonTable",
+      "completed": true,
+      "parallel_group": 5,
+      "description": "US-223: Build client/src/components/visualizations/PhonemeComparisonView.tsx combining HeatmapGrid (IPA chart with language presence/absence for each phoneme) and ComparisonTable (side-by-side phoneme inventories). Support family-level aggregation showing common vs rare phonemes per family. Interactive: click a phoneme cell to hear audio sample if available."
+    },
+    {
+      "title": "Add visualization recommendations to all existing detail panels",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-224: Enhance all existing *-panel.tsx components with a 'Visualize' button/section that links to relevant visualizations using the reusable components. E.g., language-detail-panel shows mini-timeline, mini-tree, mini-map; archaeological-cultures-panel shows embedded GeoDistributionMap; literary-traditions-panel shows embedded timeline of works."
+    },
+    {
+      "title": "Create GeneticLinguisticParallelView using ParallelCoordinates",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-225: Build client/src/components/visualizations/GeneticLinguisticParallelView.tsx using ParallelCoordinates. Axes: haplogroup frequency, language family, geographic longitude, geographic latitude, time depth of family, number of speakers. Each line is a language/population. Brush-filter to find populations with specific genetic-linguistic combinations. Reveals whether genetic and linguistic boundaries align."
+    },
+    {
+      "title": "Create MigrationFlowVisualization using SankeyFlow and GeoDistributionMap",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-226: Build client/src/components/visualizations/MigrationFlowView.tsx combining an animated GeoDistributionMap (showing migration routes with moving particles) and SankeyFlow (showing population flow volumes between regions). Time slider controls which migration period is displayed. Include: Bantu expansion, Indo-European migrations, Austronesian expansion, Great Migration, etc."
+    },
+    {
+      "title": "Create consistent color theming system for all visualizations",
+      "completed": true,
+      "parallel_group": 6,
+      "description": "US-227: Build client/src/components/visualizations/shared/colorThemes.ts defining a unified color system. Include: categorical palettes (10, 20, 40 color sets) for language families, civilization regions, data domains; sequential scales for intensity/time; diverging scales for comparison; accessibility-friendly palettes (colorblind safe). Apply consistently across all shared and specific visualization components."
+    }
+  ]
+}
