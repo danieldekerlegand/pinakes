@@ -1,6 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { formatYear } from './useSplitScreen';
-import type { ComparisonMode, SplitScreenState } from './useSplitScreen';
+import { formatYear, ALL_COMPARISON_LAYERS, COMPARISON_LAYER_LABELS } from './useSplitScreen';
+import type { ComparisonMode, ComparisonLayerType, SplitScreenState } from './useSplitScreen';
+
+/** Helper to create a SplitScreenState with default layer sets */
+function makeState(overrides: Omit<SplitScreenState, 'leftLayers' | 'rightLayers'> & {
+  leftLayers?: Set<ComparisonLayerType>;
+  rightLayers?: Set<ComparisonLayerType>;
+}): SplitScreenState {
+  return {
+    leftLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
+    rightLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
+    ...overrides,
+  };
+}
 
 // ============================================================================
 // formatYear utility tests
@@ -38,10 +50,14 @@ describe('SplitScreenState', () => {
       dividerPosition: 50,
       blinkInterval: 1500,
       blinkShowingLeft: true,
+      leftLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
+      rightLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
     };
     expect(state.isActive).toBe(false);
     expect(state.mode).toBe('swipe');
     expect(state.dividerPosition).toBe(50);
+    expect(state.leftLayers.size).toBe(2);
+    expect(state.rightLayers.size).toBe(2);
   });
 
   it('supports swipe mode', () => {
@@ -150,44 +166,29 @@ describe('split screen state logic', () => {
 
   describe('active year computation', () => {
     it('returns left year when blink showing left', () => {
-      const state: SplitScreenState = {
-        isActive: true,
-        mode: 'blink',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: true,
-      };
+      const state = makeState({
+        isActive: true, mode: 'blink', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: true,
+      });
       const activeYear = state.blinkShowingLeft ? state.leftYear : state.rightYear;
       expect(activeYear).toBe(-500);
     });
 
     it('returns right year when blink showing right', () => {
-      const state: SplitScreenState = {
-        isActive: true,
-        mode: 'blink',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: false,
-      };
+      const state = makeState({
+        isActive: true, mode: 'blink', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: false,
+      });
       const activeYear = state.blinkShowingLeft ? state.leftYear : state.rightYear;
       expect(activeYear).toBe(2024);
     });
 
     it('returns currentYear when not in blink mode', () => {
       const currentYear = 1000;
-      const state: SplitScreenState = {
-        isActive: true,
-        mode: 'swipe',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: true,
-      };
+      const state = makeState({
+        isActive: true, mode: 'swipe', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: true,
+      });
       const activeYear = state.isActive && state.mode === 'blink'
         ? (state.blinkShowingLeft ? state.leftYear : state.rightYear)
         : currentYear;
@@ -196,15 +197,10 @@ describe('split screen state logic', () => {
 
     it('returns currentYear when split screen is inactive', () => {
       const currentYear = 1000;
-      const state: SplitScreenState = {
-        isActive: false,
-        mode: 'blink',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: true,
-      };
+      const state = makeState({
+        isActive: false, mode: 'blink', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: true,
+      });
       const activeYear = state.isActive && state.mode === 'blink'
         ? (state.blinkShowingLeft ? state.leftYear : state.rightYear)
         : currentYear;
@@ -214,31 +210,20 @@ describe('split screen state logic', () => {
 
   describe('mode transitions', () => {
     it('activating resets blink showing to left', () => {
-      // Simulate activate behavior
-      const prev: SplitScreenState = {
-        isActive: false,
-        mode: 'blink',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: false, // was showing right before deactivation
-      };
+      const prev = makeState({
+        isActive: false, mode: 'blink', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: false,
+      });
       const activated = { ...prev, isActive: true, blinkShowingLeft: true };
       expect(activated.isActive).toBe(true);
       expect(activated.blinkShowingLeft).toBe(true);
     });
 
     it('deactivating resets blink showing to left', () => {
-      const prev: SplitScreenState = {
-        isActive: true,
-        mode: 'blink',
-        leftYear: -500,
-        rightYear: 2024,
-        dividerPosition: 50,
-        blinkInterval: 1500,
-        blinkShowingLeft: false,
-      };
+      const prev = makeState({
+        isActive: true, mode: 'blink', leftYear: -500, rightYear: 2024,
+        dividerPosition: 50, blinkInterval: 1500, blinkShowingLeft: false,
+      });
       const deactivated = { ...prev, isActive: false, blinkShowingLeft: true };
       expect(deactivated.isActive).toBe(false);
       expect(deactivated.blinkShowingLeft).toBe(true);
@@ -253,11 +238,97 @@ describe('split screen state logic', () => {
         dividerPosition: 50,
         blinkInterval: 1500,
         blinkShowingLeft: false,
+        leftLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
+        rightLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
       };
       const switched = { ...state, mode: 'swipe' as ComparisonMode, blinkShowingLeft: true };
       expect(switched.mode).toBe('swipe');
       expect(switched.leftYear).toBe(-1000);
       expect(switched.rightYear).toBe(500);
     });
+  });
+
+  describe('per-side layer configuration', () => {
+    function toggleLayer(layers: Set<ComparisonLayerType>, layer: ComparisonLayerType): Set<ComparisonLayerType> {
+      const next = new Set(layers);
+      if (next.has(layer)) {
+        next.delete(layer);
+      } else {
+        next.add(layer);
+      }
+      return next;
+    }
+
+    it('defaults to all layers on both sides', () => {
+      const left = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      const right = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      expect(left.has('civilizations')).toBe(true);
+      expect(left.has('language-ranges')).toBe(true);
+      expect(right.has('civilizations')).toBe(true);
+      expect(right.has('language-ranges')).toBe(true);
+    });
+
+    it('toggles a layer off on the left side', () => {
+      const layers = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      const toggled = toggleLayer(layers, 'civilizations');
+      expect(toggled.has('civilizations')).toBe(false);
+      expect(toggled.has('language-ranges')).toBe(true);
+    });
+
+    it('toggles a layer on from empty', () => {
+      const layers = new Set<ComparisonLayerType>();
+      const toggled = toggleLayer(layers, 'language-ranges');
+      expect(toggled.has('language-ranges')).toBe(true);
+      expect(toggled.size).toBe(1);
+    });
+
+    it('toggle is its own inverse', () => {
+      const layers = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      const once = toggleLayer(layers, 'civilizations');
+      const twice = toggleLayer(once, 'civilizations');
+      expect(twice.has('civilizations')).toBe(true);
+      expect(twice.has('language-ranges')).toBe(true);
+    });
+
+    it('left and right sides are independent', () => {
+      const left = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      const right = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      const newLeft = toggleLayer(left, 'civilizations');
+      // Right should be unaffected
+      expect(right.has('civilizations')).toBe(true);
+      expect(newLeft.has('civilizations')).toBe(false);
+    });
+
+    it('can have empty layers on one side', () => {
+      let layers = new Set<ComparisonLayerType>(['civilizations', 'language-ranges']);
+      layers = toggleLayer(layers, 'civilizations');
+      layers = toggleLayer(layers, 'language-ranges');
+      expect(layers.size).toBe(0);
+    });
+  });
+});
+
+// ============================================================================
+// Comparison layer constants tests
+// ============================================================================
+
+describe('comparison layer constants', () => {
+  it('ALL_COMPARISON_LAYERS contains expected layer types', () => {
+    expect(ALL_COMPARISON_LAYERS).toContain('civilizations');
+    expect(ALL_COMPARISON_LAYERS).toContain('language-ranges');
+    expect(ALL_COMPARISON_LAYERS.length).toBe(2);
+  });
+
+  it('COMPARISON_LAYER_LABELS has labels for all layer types', () => {
+    for (const layer of ALL_COMPARISON_LAYERS) {
+      expect(COMPARISON_LAYER_LABELS[layer]).toBeDefined();
+      expect(typeof COMPARISON_LAYER_LABELS[layer]).toBe('string');
+      expect(COMPARISON_LAYER_LABELS[layer].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('has readable label names', () => {
+    expect(COMPARISON_LAYER_LABELS['civilizations']).toBe('Civilizations');
+    expect(COMPARISON_LAYER_LABELS['language-ranges']).toBe('Language Ranges');
   });
 });

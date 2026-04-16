@@ -7,6 +7,7 @@ import type {
   CivilizationFeature,
   LanguageRangeFeature,
 } from '../../../lib/visualization/geospatial-types';
+import type { ComparisonLayerType } from '../hooks/useSplitScreen';
 
 const COMPARISON_PANE = 'comparison-overlay';
 const COMPARISON_PANE_ZINDEX = 450; // Above default overlay pane (400)
@@ -18,6 +19,8 @@ interface ComparisonOverlayProps {
   languageRanges: LanguageRangeFeature[];
   civilizationOpacity?: number;
   languageRangeOpacity?: number;
+  /** Which layer types to show on the comparison (right) side */
+  visibleLayers?: Set<ComparisonLayerType>;
 }
 
 /**
@@ -32,7 +35,10 @@ export function ComparisonOverlay({
   languageRanges,
   civilizationOpacity = 0.5,
   languageRangeOpacity = 0.6,
+  visibleLayers,
 }: ComparisonOverlayProps) {
+  const showCivilizations = !visibleLayers || visibleLayers.has('civilizations');
+  const showLanguageRanges = !visibleLayers || visibleLayers.has('language-ranges');
   const map = useMap();
   const paneCreated = useRef(false);
 
@@ -97,7 +103,7 @@ export function ComparisonOverlay({
       />
 
       {/* Comparison civilizations */}
-      {filteredCivilizations.map((feature) => {
+      {showCivilizations && filteredCivilizations.map((feature) => {
         const color = getCivilizationColor(feature.properties.id || feature.properties.name || '');
         const style: PathOptions = {
           fillColor: color,
@@ -119,7 +125,7 @@ export function ComparisonOverlay({
       })}
 
       {/* Comparison language ranges */}
-      {filteredLanguageRanges.map((feature) => {
+      {showLanguageRanges && filteredLanguageRanges.map((feature) => {
         const style: PathOptions = {
           fillColor: '#3b82f6',
           fillOpacity: languageRangeOpacity * 0.6,

@@ -1148,6 +1148,10 @@ export function EnhancedLanguageMapView({
         onDividerPositionChange={splitScreen.setDividerPosition}
         onBlinkIntervalChange={splitScreen.setBlinkInterval}
         onSwapYears={splitScreen.swapYears}
+        leftLayers={splitScreen.state.leftLayers}
+        rightLayers={splitScreen.state.rightLayers}
+        onToggleLeftLayer={splitScreen.toggleLeftLayer}
+        onToggleRightLayer={splitScreen.toggleRightLayer}
       />
 
       {/* Layer Controls Panel */}

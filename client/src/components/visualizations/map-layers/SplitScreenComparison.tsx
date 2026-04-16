@@ -1,8 +1,8 @@
 import React from 'react';
-import { Columns2, X, ArrowLeftRight, Eye, Timer } from 'lucide-react';
+import { Columns2, X, ArrowLeftRight, Eye, Timer, Layers } from 'lucide-react';
 import { Button } from '../../ui/button';
-import type { ComparisonMode } from '../hooks/useSplitScreen';
-import { formatYear } from '../hooks/useSplitScreen';
+import type { ComparisonMode, ComparisonLayerType } from '../hooks/useSplitScreen';
+import { formatYear, ALL_COMPARISON_LAYERS, COMPARISON_LAYER_LABELS } from '../hooks/useSplitScreen';
 
 interface SplitScreenComparisonProps {
   isOpen: boolean;
@@ -21,6 +21,10 @@ interface SplitScreenComparisonProps {
   onDividerPositionChange: (position: number) => void;
   onBlinkIntervalChange: (interval: number) => void;
   onSwapYears: () => void;
+  leftLayers: Set<ComparisonLayerType>;
+  rightLayers: Set<ComparisonLayerType>;
+  onToggleLeftLayer: (layer: ComparisonLayerType) => void;
+  onToggleRightLayer: (layer: ComparisonLayerType) => void;
 }
 
 export function SplitScreenComparison({
@@ -40,6 +44,10 @@ export function SplitScreenComparison({
   onDividerPositionChange,
   onBlinkIntervalChange,
   onSwapYears,
+  leftLayers,
+  rightLayers,
+  onToggleLeftLayer,
+  onToggleRightLayer,
 }: SplitScreenComparisonProps) {
   if (!isOpen) return null;
 
@@ -194,6 +202,46 @@ export function SplitScreenComparison({
           </div>
         </div>
       )}
+
+      {/* Per-side layer configuration */}
+      <div className="mb-3">
+        <label className="text-xs text-gray-600 mb-1.5 block flex items-center gap-1">
+          <Layers className="h-3 w-3" />
+          Layers per side
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {/* Left side layers */}
+          <div>
+            <span className="text-[10px] text-blue-600 font-medium block mb-1">Left / A</span>
+            {ALL_COMPARISON_LAYERS.map((layer) => (
+              <label key={`left-${layer}`} className="flex items-center gap-1.5 text-[11px] text-gray-700 cursor-pointer mb-0.5">
+                <input
+                  type="checkbox"
+                  checked={leftLayers.has(layer)}
+                  onChange={() => onToggleLeftLayer(layer)}
+                  className="w-3 h-3 rounded accent-blue-600"
+                />
+                {COMPARISON_LAYER_LABELS[layer]}
+              </label>
+            ))}
+          </div>
+          {/* Right side layers */}
+          <div>
+            <span className="text-[10px] text-orange-600 font-medium block mb-1">Right / B</span>
+            {ALL_COMPARISON_LAYERS.map((layer) => (
+              <label key={`right-${layer}`} className="flex items-center gap-1.5 text-[11px] text-gray-700 cursor-pointer mb-0.5">
+                <input
+                  type="checkbox"
+                  checked={rightLayers.has(layer)}
+                  onChange={() => onToggleRightLayer(layer)}
+                  className="w-3 h-3 rounded accent-orange-500"
+                />
+                {COMPARISON_LAYER_LABELS[layer]}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Tips */}
       <div className="text-[10px] text-gray-400 border-t pt-2">

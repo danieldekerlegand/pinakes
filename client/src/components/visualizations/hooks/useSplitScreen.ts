@@ -2,6 +2,16 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 
 export type ComparisonMode = 'swipe' | 'blink';
 
+/** Layer types available for per-side configuration in comparison mode */
+export type ComparisonLayerType = 'civilizations' | 'language-ranges';
+
+export const ALL_COMPARISON_LAYERS: ComparisonLayerType[] = ['civilizations', 'language-ranges'];
+
+export const COMPARISON_LAYER_LABELS: Record<ComparisonLayerType, string> = {
+  'civilizations': 'Civilizations',
+  'language-ranges': 'Language Ranges',
+};
+
 export interface SplitScreenState {
   isActive: boolean;
   mode: ComparisonMode;
@@ -10,6 +20,10 @@ export interface SplitScreenState {
   dividerPosition: number; // 0-100 percentage
   blinkInterval: number; // milliseconds
   blinkShowingLeft: boolean;
+  /** Layer types visible on the left side */
+  leftLayers: Set<ComparisonLayerType>;
+  /** Layer types visible on the right side */
+  rightLayers: Set<ComparisonLayerType>;
 }
 
 const DEFAULT_SPLIT_STATE: SplitScreenState = {
@@ -20,6 +34,8 @@ const DEFAULT_SPLIT_STATE: SplitScreenState = {
   dividerPosition: 50,
   blinkInterval: 1500,
   blinkShowingLeft: true,
+  leftLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
+  rightLayers: new Set<ComparisonLayerType>(['civilizations', 'language-ranges']),
 };
 
 interface UseSplitScreenReturn {
@@ -36,6 +52,10 @@ interface UseSplitScreenReturn {
   activeYear: number;
   /** Swap left and right years */
   swapYears: () => void;
+  /** Toggle a layer type on the left side */
+  toggleLeftLayer: (layer: ComparisonLayerType) => void;
+  /** Toggle a layer type on the right side */
+  toggleRightLayer: (layer: ComparisonLayerType) => void;
 }
 
 export function useSplitScreen(
@@ -46,6 +66,8 @@ export function useSplitScreen(
   const [state, setState] = useState<SplitScreenState>({
     ...DEFAULT_SPLIT_STATE,
     rightYear: currentYear,
+    leftLayers: new Set(DEFAULT_SPLIT_STATE.leftLayers),
+    rightLayers: new Set(DEFAULT_SPLIT_STATE.rightLayers),
   });
 
   const blinkTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -137,6 +159,30 @@ export function useSplitScreen(
     }));
   }, []);
 
+  const toggleLeftLayer = useCallback((layer: ComparisonLayerType) => {
+    setState((prev) => {
+      const next = new Set(prev.leftLayers);
+      if (next.has(layer)) {
+        next.delete(layer);
+      } else {
+        next.add(layer);
+      }
+      return { ...prev, leftLayers: next };
+    });
+  }, []);
+
+  const toggleRightLayer = useCallback((layer: ComparisonLayerType) => {
+    setState((prev) => {
+      const next = new Set(prev.rightLayers);
+      if (next.has(layer)) {
+        next.delete(layer);
+      } else {
+        next.add(layer);
+      }
+      return { ...prev, rightLayers: next };
+    });
+  }, []);
+
   const activeYear =
     state.isActive && state.mode === 'blink'
       ? state.blinkShowingLeft
@@ -156,6 +202,8 @@ export function useSplitScreen(
     setBlinkInterval,
     activeYear,
     swapYears,
+    toggleLeftLayer,
+    toggleRightLayer,
   };
 }
 
