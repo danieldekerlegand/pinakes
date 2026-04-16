@@ -2,103 +2,103 @@
   "tasks": [
     {
       "title": "Define CultureProfile data schema and create culture-profiles.tsv",
-      "completed": false,
+      "completed": true,
       "parallel_group": 1,
       "description": "US-400: Create lexicons/culture-profiles.tsv as the central index linking a culture/civilization to all its socio-cultural dimensions. Columns: id, name, alternate_names, civilization_id, archaeological_culture_id, time_period_start, time_period_end, region, summary_description, social_organization (egalitarian|chiefdom|state|empire), subsistence_type (hunter-gatherer|pastoral|agricultural|maritime|mixed), urbanism_level (nomadic|village|town|city-state|metropolis), population_estimate, technology_level (stone|copper|bronze|iron|steel|industrial), associated_language_ids, associated_religion_ids, associated_writing_system_ids, associated_art_tradition_ids, associated_music_tradition_ids, associated_cuisine_id, associated_architectural_style_ids, associated_literary_tradition_ids, notable_settlements, image_gallery_tags, sources. Populate with 100+ culture profiles spanning all major world regions and time periods."
     },
     {
       "title": "Add culture-profiles TSV loader and comprehensive API endpoints",
-      "completed": false,
+      "completed": true,
       "parallel_group": 1,
       "description": "US-401: Add culture-profiles loading to server/tsv-storage.ts. Add GET /api/culture-profiles with filters: region, time range, civilization_id, subsistence_type, urbanism_level. Add GET /api/culture-profiles/:id returning full profile with resolved references (language names, religion names, etc.). Add GET /api/culture-profiles/:id/socio-cultural returning all associated entities grouped by domain (language, religion, cuisine, architecture, etc.). Add GET /api/culture-profiles/by-civilization/:civilizationId and GET /api/culture-profiles/by-location/:lat/:lng."
     },
     {
       "title": "Create daily-life.tsv for quotidian cultural details",
-      "completed": false,
+      "completed": true,
       "parallel_group": 1,
       "description": "US-402: Create lexicons/daily-life.tsv with columns: id, culture_profile_id, category (housing|clothing|diet|occupation|social_customs|education|commerce|law|recreation|hygiene|transportation|timekeeping), title, description, social_class (elite|common|slave|priestly|military|merchant), gender_context (all|male|female|nonbinary), age_group (child|adult|elder|all), season (all|spring|summer|autumn|winter|wet|dry), time_period_start, time_period_end, sources. Populate with 500+ entries covering daily life across 30+ cultures: Sumerian, Egyptian, Greek, Roman, Han Chinese, Aztec, Inca, Maya, Viking, Medieval European, Edo Japanese, Mughal Indian, Benin Kingdom, Great Zimbabwe, Khmer, etc."
     },
     {
       "title": "Add daily-life TSV loader and API endpoints",
-      "completed": false,
+      "completed": true,
       "parallel_group": 1,
       "description": "US-403: Add daily-life loading to server/tsv-storage.ts. Add GET /api/daily-life with filters: culture_profile_id, category, social_class, gender_context. Add GET /api/daily-life/:id. Add GET /api/culture-profiles/:id/daily-life returning all daily life entries grouped by category."
     },
     {
       "title": "Create social-structures.tsv for governance, class, and family systems",
-      "completed": false,
+      "completed": true,
       "parallel_group": 1,
       "description": "US-404: Create lexicons/social-structures.tsv with columns: id, culture_profile_id, structure_type (government|class_hierarchy|family_structure|gender_roles|age_grades|guilds_associations|military_organization|religious_hierarchy|legal_system|education_system), name, description, key_roles (pipe-separated list of titles/positions), inheritance_pattern (patrilineal|matrilineal|bilateral|primogeniture|elective), decision_making (autocratic|oligarchic|democratic|consensus|theocratic), related_kinship_system_id, time_period_start, time_period_end, sources. Populate with 300+ entries across 40+ cultures."
     },
     {
       "title": "Create city-layouts.tsv for urban planning and spatial organization",
-      "completed": false,
+      "completed": true,
       "parallel_group": 2,
       "description": "US-405: Create lexicons/city-layouts.tsv with columns: id, settlement_id, culture_profile_id, layout_type (grid|organic|radial|linear|citadel|terraced|canal-based|fortified), key_features (pipe-separated: temple_precinct|palace|market|agora|forum|granary|bathhouse|amphitheater|walls|gates|aqueduct|sewers|harbor|necropolis|residential_quarter|industrial_quarter|garden), street_pattern, water_management (canals|aqueducts|cisterns|wells|fountains|sewers|none), fortification_type, estimated_area_hectares, description, reconstruction_notes, sources. Populate with 100+ city layouts: Ur, Mohenjo-daro, Teotihuacan, Athens, Rome, Chang'an, Angkor, Tenochtitlan, Great Zimbabwe, Timbuktu, etc."
     },
     {
       "title": "Add city-layouts and social-structures TSV loaders and API endpoints",
-      "completed": false,
+      "completed": true,
       "parallel_group": 2,
       "description": "US-406: Add both TSV files to server/tsv-storage.ts. Add GET /api/city-layouts with filters: culture_profile_id, settlement_id, layout_type. Add GET /api/city-layouts/:id. Add GET /api/social-structures with filters: culture_profile_id, structure_type. Add GET /api/social-structures/:id. Add GET /api/culture-profiles/:id/city-layouts and GET /api/culture-profiles/:id/social-structures."
     },
     {
       "title": "Create media-assets.tsv and image/media management service",
-      "completed": false,
+      "completed": true,
       "parallel_group": 2,
       "description": "US-407: Create lexicons/media-assets.tsv with columns: id, entity_type (culture_profile|settlement|civilization|archaeological_culture|architectural_style|art_tradition|deity|writing_system|cuisine|musical_instrument), entity_id, media_type (image|illustration|reconstruction|map|diagram|3d_model|video), title, description, source_url, license (public_domain|cc_by|cc_by_sa|fair_use|generated), attribution, tags (pipe-separated), resolution, aspect_ratio, primary (true for the hero image). Build server/services/media-service.ts that resolves media URLs, handles Wikimedia Commons API integration for public domain images, and provides image metadata. Add GET /api/media/:entityType/:entityId and GET /api/media/:id endpoints."
     },
     {
       "title": "Create Wikimedia Commons image scraper for cultural artifacts and sites",
-      "completed": false,
+      "completed": true,
       "parallel_group": 2,
       "description": "US-408: Build server/services/wikimedia-scraper.ts that uses the Wikimedia Commons API to find and catalog relevant images for cultures, settlements, artifacts, architectural styles, and art traditions. Search by: structured categories (e.g., 'Category:Sumerian_art', 'Category:Ancient_Roman_architecture'), keyword queries, and Wikidata Q-IDs. Extract: image URL, license, author, description, coordinates (if geotagged), date. Populate media-assets.tsv with 2000+ curated images. Respect rate limits and license requirements."
     },
     {
       "title": "Create GenAI image generation service for reconstructions",
-      "completed": false,
+      "completed": true,
       "parallel_group": 2,
       "description": "US-409: Build server/services/image-generator.ts that generates historical reconstruction images using Gemini's image generation capabilities (or a configurable image generation API). Generate: city reconstruction views, architectural reconstructions, daily life scenes, artifact reconstructions from descriptions. Each generated image is tagged with 'generated' license type and includes the prompt used. Store prompts in lexicons/genai-prompts.tsv for reproducibility. Add POST /api/media/generate endpoint with parameters: entity_type, entity_id, scene_type, style (realistic|illustrated|watercolor|archaeological_sketch)."
     },
     {
       "title": "Build CultureProfilePanel main detail component",
-      "completed": false,
+      "completed": true,
       "parallel_group": 3,
       "description": "US-410: Build client/src/components/culture-profile-panel.tsx as the primary detail view when a user clicks on a culture/civilization in the map or explorer. Follow the established right-side panel pattern (like language-detail-panel.tsx). Header: culture name, time period badge, region badge, hero image (from media-assets). Navigation: tabbed sections for each socio-cultural domain. Summary tab shows: overview description, quick stats (population, urbanism, technology level, subsistence), mini-timeline showing the culture's position in history, mini-map showing geographic extent. This is the container component that houses all the domain-specific sub-sections."
     },
     {
       "title": "Build Language & Writing section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 3,
       "description": "US-411: Build the Language & Writing tab/section within CultureProfilePanel. Display: associated languages with family tree position, writing system(s) with sample glyphs and script evolution mini-tree, literary works associated with this culture (scrollable cards with title, author, date, genre, excerpt), sample texts in the original script with transliteration and translation. Include images of inscriptions and manuscripts from media-assets. Link each item to its detailed panel view."
     },
     {
       "title": "Build Religion & Mythology section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 3,
       "description": "US-412: Build the Religion & Mythology tab/section within CultureProfilePanel. Display: associated religion(s) with core beliefs summary, pantheon visualization (mini network graph of deities with domains and relationships), key myth motifs with cross-cultural parallels highlighted, religious practices and rituals (from daily-life.tsv religious entries), sacred sites (linked settlements), sacred texts (linked literary works). Include deity images/representations from media-assets. Show cross-cultural deity equivalences as an interactive mapping."
     },
     {
       "title": "Build Architecture & Urban Planning section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 3,
       "description": "US-413: Build the Architecture & Urban Planning tab/section within CultureProfilePanel. Display: associated architectural style(s) with defining features, notable buildings/structures as cards with images, city layout diagrams from city-layouts.tsv showing key features (temple, market, palace, walls, etc.) as an annotated schematic, construction materials and techniques, evolution of architectural style over time (mini-timeline). Support a simple interactive city layout viewer: a schematic top-down view with labeled zones that users can click to learn more about each feature."
     },
     {
       "title": "Build Material Culture & Arts section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 3,
       "description": "US-414: Build the Material Culture & Arts tab/section within CultureProfilePanel. Display: art traditions with image gallery (pottery, sculpture, painting, textiles, metalwork, jewelry), material culture items as categorized cards with images, trade goods produced by this culture, musical traditions with embedded audio samples (if available) or description cards, dance traditions, musical instruments with images and descriptions. Gallery view with filterable grid layout. Each item links to its full detail view."
     },
     {
       "title": "Build Cuisine & Foodways section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 4,
       "description": "US-415: Build the Cuisine & Foodways tab/section within CultureProfilePanel. Display: associated cuisine overview (staple ingredients, flavor profile, influences), signature dishes/items as illustrated cards, cooking techniques with descriptions, ingredient origins map (mini-map showing where key ingredients came from), food-related social customs (from daily-life.tsv diet entries), feasting and ritual food practices, food preservation methods. Show Columbian Exchange or other historical food diffusion impacts where relevant."
     },
     {
       "title": "Build Daily Life & Social Organization section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 4,
       "description": "US-416: Build the Daily Life & Social Organization tab/section within CultureProfilePanel. Display: social hierarchy diagram (class pyramid or concentric circles visualization), governance structure (organizational chart style), family structure and kinship system, gender roles across social classes, daily routine descriptions segmented by social class (elite vs. common), occupations and economic activities, education and knowledge transmission, legal system highlights, recreation and entertainment. Use illustrated cards with social class color coding."
     },
@@ -110,7 +110,7 @@
     },
     {
       "title": "Build Military & Warfare section for CultureProfilePanel",
-      "completed": false,
+      "completed": true,
       "parallel_group": 4,
       "description": "US-418: Build the Military & Warfare tab/section within CultureProfilePanel. Display: military organization (from social-structures.tsv), weapons and armor (from material culture), fortification styles, key battles fought (mini-timeline + map pins), military tactics and innovations, territorial expansion/contraction over time (animated mini-map), notable military leaders. Battle cards show: date, location, belligerents, outcome, significance."
     },
