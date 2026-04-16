@@ -1,3 +1,29 @@
+Create GenAI image generation service for reconstructions (US-409)
+
+Completed:
+- Created server/services/image-generator.ts with:
+  - buildImagePrompt() for constructing detailed historical reconstruction prompts
+  - 4 scene types: city_reconstruction, architectural, daily_life, artifact
+  - 4 art styles: realistic, illustrated, watercolor, archaeological_sketch
+  - generateReconstructionImage() using Gemini API for image generation
+  - TSV prompt storage (append/read) in lexicons/genai-prompts.tsv for reproducibility
+  - Input validation helpers (validateSceneType, validateStyle)
+- Created lexicons/genai-prompts.tsv with header row
+- Added POST /api/media/generate endpoint in server/routes.ts
+  - Validates entityType, entityId, sceneType, style, description
+  - Returns generated image with base64 data, prompt used, and metadata
+- Added GET /api/media/prompts endpoint to retrieve stored prompt records
+- Created test/image-generator.test.ts with 25 tests covering:
+  - Prompt construction for all scene types and styles
+  - Time period and region inclusion/exclusion
+  - Validation of scene types and styles
+  - ID generation uniqueness
+  - TSV prompt storage read/write/escaping
+  - Error handling for missing API key
+- All 25 tests passing
+
+---
+
 Implement Mesopotamia city-states showcase demo (US-310)
 
 Completed:

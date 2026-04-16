@@ -25,6 +25,13 @@ import {
 import { analyzeMapImage } from "./services/map-image-analyzer";
 import type { FeatureExtractionRequest } from "./services/map-image-analyzer";
 import {
+  generateReconstructionImage,
+  readPromptRecords,
+  validateSceneType,
+  validateStyle,
+} from "./services/image-generator";
+import type { ImageGenerationRequest } from "./services/image-generator";
+import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
   findNearestLanguages,
@@ -5670,6 +5677,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error analyzing map image:", error);
       const message = error instanceof Error ? error.message : "Failed to analyze map image";
+      res.status(500).json({ message });
+    }
+  });
+
+  // =========================================================================
+  // GenAI Image Generation
+  // =========================================================================
+
+  /**
+   * POST /api/media/generate - Generate a historical reconstruction image using GenAI
+   */
+  app.post("/api/media/generate", async (req, res) => {
+    try {
+      const { entityType, entityId, sceneType, style, description, timePeriod, region } = req.body;
+
+      if (!entityType || !entityId || !sceneType || !style || !description) {
+        return res.status(400).json({
+          message: "Missing required fields: entityType, entityId, sceneType, style, description",
+        });
+      }
+
+      if (!validateSceneType(sceneType)) {
+        return res.status(400).json({
+          message: "Invalid sceneType. Must be one of: city_reconstruction, architectural, daily_life, artifact",
+        });
+      }
+
+      if (!validateStyle(style)) {
+        return res.status(400).json({
+          message: "Invalid style. Must be one of: realistic, illustrated, watercolor, archaeological_sketch",
+        });
+      }
+
+      const result = await generateReconstructionImage({
+        entityType,
+        entityId,
+        sceneType,
+        style,
+        description,
+        timePeriod,
+        region,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating reconstruction image:", error);
+      const message = error instanceof Error ? error.message : "Failed to generate image";
+      res.status(500).json({ message });
+    }
+  });
+
+  /**
+   * GET /api/media/prompts - Get all stored generation prompts
+   */
+  app.get("/api/media/prompts", async (_req, res) => {
+    try {
+      const prompts = readPromptRecords();
+      res.json({ prompts, count: prompts.length });
+    } catch (error) {
+      console.error("Error reading prompt records:", error);
+      const message = error instanceof Error ? error.message : "Failed to read prompts";
       res.status(500).json({ message });
     }
   });
