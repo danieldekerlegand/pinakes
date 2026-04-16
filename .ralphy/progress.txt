@@ -1080,3 +1080,28 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-313: Implement map image import and georeferencing tool
+
+Completed:
+- Created client/src/components/visualizations/hooks/rubber-sheet-transform.ts
+  - Bowyer-Watson Delaunay triangulation for triangulating control points in image space
+  - Per-triangle exact affine transform computation (no least-squares error)
+  - Barycentric coordinate point-in-triangle test for locating image positions
+  - buildRubberSheetTransform(): builds piecewise affine transform from 4+ control points
+  - applyRubberSheetTransform(): maps image positions through local triangle transforms
+  - computeRubberSheetBounds(): samples grid across image to find geographic extent
+  - Falls back to global affine for points outside the convex hull of control points
+- Updated client/src/components/visualizations/hooks/useImageGeoreference.ts
+  - Added rubberSheetTransform computed property (activates at 4+ control points)
+  - georeferencedBounds now prefers rubber-sheet bounds when available
+  - Exposed rubberSheetTransform in hook return value
+- Updated client/src/components/visualizations/map-tools/ImageGeoreferencer.tsx
+  - Status indicator shows "Rubber-sheet transform" vs "Affine transform" based on point count
+  - Added hint to add 4th point for rubber-sheet when only 3 points placed
+- Created client/src/components/visualizations/hooks/rubber-sheet-transform.test.ts
+  - 15 tests covering: Delaunay triangulation (3-9 points), barycentric coordinates
+    (inside/outside/edge/vertex), rubber-sheet build (3/4/6+ points), transform application
+    (exact control point mapping, interior interpolation, non-linear distortion handling,
+    convex hull fallback), bounds computation (linear and distorted mappings)
+- All 951 tests pass (28 georeferencing-related), no new TypeScript errors

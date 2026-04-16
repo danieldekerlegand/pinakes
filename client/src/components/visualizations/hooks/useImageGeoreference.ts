@@ -1,5 +1,10 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { LatLngBounds, LatLng } from 'leaflet';
+import {
+  buildRubberSheetTransform,
+  computeRubberSheetBounds,
+  type RubberSheetTransform,
+} from './rubber-sheet-transform';
 
 // ============================================================================
 // Types
@@ -286,10 +291,20 @@ export function useImageGeoreference() {
     return computeAffineTransform(state.controlPoints);
   }, [state.controlPoints]);
 
+  // Rubber-sheet (piecewise affine) transform for 4+ control points
+  const rubberSheetTransform = useMemo((): RubberSheetTransform | null => {
+    if (state.controlPoints.length < 4) return null;
+    return buildRubberSheetTransform(state.controlPoints);
+  }, [state.controlPoints]);
+
   const georeferencedBounds = useMemo(() => {
+    // Prefer rubber-sheet bounds when available (4+ points)
+    if (rubberSheetTransform) {
+      return computeRubberSheetBounds(rubberSheetTransform);
+    }
     if (!affineTransform) return null;
     return computeGeoreferencedBounds(affineTransform);
-  }, [affineTransform]);
+  }, [affineTransform, rubberSheetTransform]);
 
   const clearControlPoints = useCallback(() => {
     setState(s => ({ ...s, controlPoints: [], isPlacingControlPoint: false, pendingImagePos: null }));
@@ -312,6 +327,7 @@ export function useImageGeoreference() {
     updateControlPointMapPos,
     clearControlPoints,
     affineTransform,
+    rubberSheetTransform,
     georeferencedBounds,
   };
 }

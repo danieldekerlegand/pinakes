@@ -380,6 +380,11 @@ export function ImageGeoreferencePanel({ georef, mapCenter, mapZoom }: ImageGeor
                   Select an image position, then click the corresponding map location.
                 </p>
               )}
+              {state.controlPoints.length === 3 && georef.affineTransform && !georef.rubberSheetTransform && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Add a 4th point for rubber-sheet transformation (handles non-linear distortion).
+                </p>
+              )}
 
               {/* Placement status */}
               {state.isPlacingControlPoint && (
@@ -460,7 +465,9 @@ export function ImageGeoreferencePanel({ georef, mapCenter, mapZoom }: ImageGeor
                 <div className="mt-2 bg-green-50 border border-green-200 rounded p-2 flex items-center gap-1.5">
                   <Check className="h-3.5 w-3.5 text-green-600" />
                   <span className="text-xs text-green-700 font-medium">
-                    Image georeferenced ({state.controlPoints.length} points)
+                    {georef.rubberSheetTransform
+                      ? `Rubber-sheet transform (${state.controlPoints.length} points)`
+                      : `Affine transform (${state.controlPoints.length} points)`}
                   </span>
                 </div>
               )}
