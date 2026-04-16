@@ -1080,3 +1080,31 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-322: Implement map bookmarks and view presets
+
+Completed:
+- Added MapBookmark interface and VIEW_PRESETS constant to geospatial-types.ts
+  - MapBookmark captures: center (lat/lng), zoom, activeLayers, layerOpacities, year, baseMapId
+  - 10 built-in view presets: Ancient Near East, Classical Mediterranean, Silk Road,
+    Pre-Columbian Americas, Ancient India, Bronze Age Europe, Song Dynasty China,
+    West African Empires, Polynesian Triangle, Viking Age
+- Created useMapBookmarks hook (client/src/components/visualizations/hooks/useMapBookmarks.ts)
+  - localStorage persistence for user bookmarks (save/delete/rename)
+  - URL encoding/decoding for shareable bookmark links
+  - Exposes built-in presets and user bookmarks
+- Created BookmarkPanel UI component (client/src/components/visualizations/map-layers/BookmarkPanel.tsx)
+  - Collapsible panel with "View Presets" and "My Bookmarks" sections
+  - Save current view form (name + description)
+  - Copy shareable link button per bookmark
+  - Delete user bookmarks, year/layer count badges
+- Created MapViewTracker inner component for EnhancedLanguageMapView
+  - Uses react-leaflet useMap/useMapEvents to track center/zoom
+  - Handles flyTo animation when applying bookmarks
+- Integrated bookmark system into EnhancedLanguageMapView
+  - Applies full bookmark state: viewport, layers, opacities, year, base map
+- Created useMapBookmarks.test.ts with 18 passing tests
+  - URL encoding/decoding roundtrip, edge cases
+  - Bookmark ID generation uniqueness
+  - localStorage save/load with mock
+- All 951 tests pass, no new TypeScript errors introduced

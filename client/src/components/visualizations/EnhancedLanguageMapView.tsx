@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -69,6 +69,10 @@ import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-t
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import { useSplitScreen } from './hooks/useSplitScreen';
+import { useMapBookmarks } from './hooks/useMapBookmarks';
+import type { MapViewState } from './hooks/useMapBookmarks';
+import { BookmarkPanel } from './map-layers/BookmarkPanel';
+import type { MapBookmark } from '../../lib/visualization/geospatial-types';
 import { MapComparisonController, MapComparisonOverlays } from './map-layers/MapComparisonController';
 import {
   sampleLanguageRanges,
@@ -91,6 +95,38 @@ import type {
   MaterialCultureDistribution,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
+
+// ---------------------------------------------------------------------------
+// Inner component that provides map view access via useMap()
+// ---------------------------------------------------------------------------
+function MapViewTracker({
+  onViewChange,
+  flyToTarget,
+}: {
+  onViewChange: (center: { lat: number; lng: number }, zoom: number) => void;
+  flyToTarget: { lat: number; lng: number; zoom: number } | null;
+}) {
+  const map = useMap();
+
+  useMapEvents({
+    moveend: () => {
+      const c = map.getCenter();
+      onViewChange({ lat: c.lat, lng: c.lng }, map.getZoom());
+    },
+    zoomend: () => {
+      const c = map.getCenter();
+      onViewChange({ lat: c.lat, lng: c.lng }, map.getZoom());
+    },
+  });
+
+  React.useEffect(() => {
+    if (flyToTarget) {
+      map.flyTo([flyToTarget.lat, flyToTarget.lng], flyToTarget.zoom, { duration: 1.2 });
+    }
+  }, [flyToTarget, map]);
+
+  return null;
+}
 
 interface EnhancedLanguageMapViewProps {
   onFeatureSelect?: (id: string) => void;
@@ -145,6 +181,7 @@ export function EnhancedLanguageMapView({
     isLayerVisible,
     toggleLayer,
     setLayerOpacity,
+    setLayerVisibility,
     showAll,
     hideAll,
     showCategory,
@@ -172,6 +209,72 @@ export function EnhancedLanguageMapView({
 
   // Split-screen comparison
   const splitScreen = useSplitScreen(currentYear, timeState.minYear, timeState.maxYear);
+
+  // Bookmark system
+  const {
+    bookmarks: userBookmarks,
+    builtInPresets,
+    saveBookmark,
+    deleteBookmark,
+    getShareableURL,
+  } = useMapBookmarks();
+
+  // Track current map view (center/zoom) via MapViewTracker
+  const [mapCenter, setMapCenter] = React.useState<{ lat: number; lng: number }>({ lat: 20, lng: 0 });
+  const [mapZoom, setMapZoom] = React.useState(2);
+  const [flyToTarget, setFlyToTarget] = React.useState<{ lat: number; lng: number; zoom: number } | null>(null);
+
+  const handleViewChange = React.useCallback((center: { lat: number; lng: number }, zoom: number) => {
+    setMapCenter(center);
+    setMapZoom(zoom);
+  }, []);
+
+  const currentViewState = React.useMemo((): MapViewState => {
+    const opacities: Record<string, number> = {};
+    layerState.layerConfigs.forEach((config) => {
+      const defaultOpacity = config.opacity;
+      if (defaultOpacity !== undefined) {
+        opacities[config.id] = config.opacity;
+      }
+    });
+    return {
+      center: mapCenter,
+      zoom: mapZoom,
+      activeLayers: Array.from(layerState.activeLayers),
+      layerOpacities: opacities,
+      year: currentYear,
+      baseMapId,
+    };
+  }, [mapCenter, mapZoom, layerState.activeLayers, layerState.layerConfigs, currentYear, baseMapId]);
+
+  const handleApplyBookmark = React.useCallback((bookmark: MapBookmark) => {
+    // Fly to the bookmark's location
+    setFlyToTarget({ lat: bookmark.center.lat, lng: bookmark.center.lng, zoom: bookmark.zoom });
+
+    // Apply layer state
+    hideAll();
+    for (const layerId of bookmark.activeLayers) {
+      setLayerVisibility(layerId, true);
+    }
+    if (bookmark.layerOpacities) {
+      for (const [layerId, opacity] of Object.entries(bookmark.layerOpacities)) {
+        setLayerOpacity(layerId, opacity);
+      }
+    }
+
+    // Apply time
+    if (bookmark.year != null) {
+      setCurrentYear(bookmark.year);
+    }
+
+    // Apply base map
+    if (bookmark.baseMapId) {
+      setBaseMap(bookmark.baseMapId);
+    }
+
+    // Clear flyTo target after a delay so it can be re-triggered
+    setTimeout(() => setFlyToTarget(null), 1500);
+  }, [hideAll, setLayerVisibility, setLayerOpacity, setCurrentYear, setBaseMap]);
 
   // In blink mode, override the displayed year
   const [blinkOverrideYear, setBlinkOverrideYear] = React.useState<number | null>(null);
@@ -825,6 +928,9 @@ export function EnhancedLanguageMapView({
           maxZoom={baseMap.maxZoom}
         />
 
+        {/* Track map center/zoom and handle flyTo for bookmarks */}
+        <MapViewTracker onViewChange={handleViewChange} flyToTarget={flyToTarget} />
+
         {/* SVG pattern definitions for hatched/striped fills */}
         {territorialPatterns.length > 0 && (
           <TerritorialShadingProvider patterns={territorialPatterns} />
@@ -1148,6 +1254,17 @@ export function EnhancedLanguageMapView({
         onDividerPositionChange={splitScreen.setDividerPosition}
         onBlinkIntervalChange={splitScreen.setBlinkInterval}
         onSwapYears={splitScreen.swapYears}
+      />
+
+      {/* Map Bookmarks & View Presets */}
+      <BookmarkPanel
+        builtInPresets={builtInPresets}
+        userBookmarks={userBookmarks}
+        onApplyBookmark={handleApplyBookmark}
+        onSaveBookmark={saveBookmark}
+        onDeleteBookmark={deleteBookmark}
+        onGetShareableURL={getShareableURL}
+        currentViewState={currentViewState}
       />
 
       {/* Layer Controls Panel */}

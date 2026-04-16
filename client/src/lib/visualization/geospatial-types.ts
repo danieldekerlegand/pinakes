@@ -902,6 +902,132 @@ export interface LayerPreset {
   layers: string[]; // Layer IDs to enable
 }
 
+// ============================================================================
+// Map Bookmark Types
+// ============================================================================
+
+export interface MapBookmark {
+  id: string;
+  name: string;
+  description?: string;
+  // Map viewport
+  center: { lat: number; lng: number };
+  zoom: number;
+  // Layer state
+  activeLayers: string[];
+  layerOpacities?: Record<string, number>;
+  // Time state
+  year?: number;
+  // Base map
+  baseMapId?: BaseMapId;
+  // Metadata
+  isBuiltIn: boolean;
+  createdAt?: number; // epoch ms, only for user bookmarks
+}
+
+export const VIEW_PRESETS: MapBookmark[] = [
+  {
+    id: 'ancient-near-east',
+    name: 'Ancient Near East',
+    description: 'Mesopotamia, Egypt, and the Levant in the Bronze Age',
+    center: { lat: 33.0, lng: 44.0 },
+    zoom: 5,
+    activeLayers: ['civilizations', 'settlements', 'archaeological-sites', 'routes'],
+    year: -2000,
+    isBuiltIn: true,
+  },
+  {
+    id: 'classical-mediterranean',
+    name: 'Classical Mediterranean',
+    description: 'Greek and Roman civilizations around the Mediterranean',
+    center: { lat: 38.0, lng: 18.0 },
+    zoom: 5,
+    activeLayers: ['civilizations', 'settlements', 'routes', 'battles', 'language-ranges'],
+    year: -300,
+    isBuiltIn: true,
+  },
+  {
+    id: 'silk-road',
+    name: 'Silk Road',
+    description: 'The great trade routes connecting East and West',
+    center: { lat: 38.0, lng: 65.0 },
+    zoom: 4,
+    activeLayers: ['routes', 'settlements', 'cuisines', 'material-culture'],
+    year: 200,
+    isBuiltIn: true,
+  },
+  {
+    id: 'pre-columbian-americas',
+    name: 'Pre-Columbian Americas',
+    description: 'Civilizations of the Americas before European contact',
+    center: { lat: 15.0, lng: -90.0 },
+    zoom: 4,
+    activeLayers: ['civilizations', 'settlements', 'archaeological-sites', 'language-ranges'],
+    year: 1400,
+    isBuiltIn: true,
+  },
+  {
+    id: 'ancient-india',
+    name: 'Ancient India',
+    description: 'Indus Valley and classical Indian civilizations',
+    center: { lat: 25.0, lng: 78.0 },
+    zoom: 5,
+    activeLayers: ['civilizations', 'settlements', 'religions', 'language-ranges', 'routes'],
+    year: -500,
+    isBuiltIn: true,
+  },
+  {
+    id: 'bronze-age-europe',
+    name: 'Bronze Age Europe',
+    description: 'European cultures during the Bronze Age',
+    center: { lat: 48.0, lng: 15.0 },
+    zoom: 5,
+    activeLayers: ['archaeological-cultures', 'archaeological-sites', 'material-culture', 'routes'],
+    year: -1500,
+    isBuiltIn: true,
+  },
+  {
+    id: 'song-dynasty-china',
+    name: 'Song Dynasty China',
+    description: 'China during the Song Dynasty golden age',
+    center: { lat: 32.0, lng: 115.0 },
+    zoom: 5,
+    activeLayers: ['civilizations', 'settlements', 'routes', 'cuisines', 'cooking-techniques'],
+    year: 1100,
+    isBuiltIn: true,
+  },
+  {
+    id: 'west-african-empires',
+    name: 'West African Empires',
+    description: 'Ghana, Mali, and Songhai empires',
+    center: { lat: 14.0, lng: -5.0 },
+    zoom: 5,
+    activeLayers: ['civilizations', 'settlements', 'routes', 'language-ranges', 'religions'],
+    year: 1300,
+    isBuiltIn: true,
+  },
+  {
+    id: 'polynesian-triangle',
+    name: 'Polynesian Triangle',
+    description: 'Austronesian migration across the Pacific',
+    center: { lat: -15.0, lng: -155.0 },
+    zoom: 4,
+    activeLayers: ['language-ranges', 'routes', 'settlements', 'cuisines'],
+    year: 1000,
+    isBuiltIn: true,
+  },
+  {
+    id: 'viking-age',
+    name: 'Viking Age',
+    description: 'Norse expansion across Europe and the North Atlantic',
+    center: { lat: 58.0, lng: 5.0 },
+    zoom: 4,
+    activeLayers: ['civilizations', 'settlements', 'routes', 'battles', 'language-ranges'],
+    year: 900,
+    isBuiltIn: true,
+  },
+];
+
 export const LAYER_PRESETS: LayerPreset[] = [
   {
     id: 'linguistic-atlas',
