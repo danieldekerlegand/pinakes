@@ -3,6 +3,7 @@ import path from "node:path";
 
 import type {
   BaseWord,
+  CultureProfile,
   Language,
   LanguageFamily,
   LanguageFamilyWithChildren,
@@ -845,6 +846,9 @@ export class TsvStorage {
 
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
+
+  // Culture profiles cache
+  private cachedCultureProfiles: CultureProfile[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5599,5 +5603,110 @@ export class TsvStorage {
   async getRiverWaterById(id: string): Promise<RiverWaterFeature | null> {
     this.loadRiversAndWaters();
     return (this.cachedRiversAndWaters ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  // ── Culture Profiles ───────────────────────────────────────────────
+
+  private loadCultureProfiles(): void {
+    if (this.cachedCultureProfiles) return;
+
+    const text = this.readFileIfExists("lexicons/culture-profiles.tsv");
+    if (!text) { this.cachedCultureProfiles = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "name");
+    const altIdx = header.indexOf("alternate_names");
+    const civIdx = header.indexOf("civilization_id");
+    const archIdx = header.indexOf("archaeological_culture_id");
+    const startIdx = getIdx(header, "time_period_start");
+    const endIdx = getIdx(header, "time_period_end");
+    const regionIdx = getIdx(header, "region");
+    const descIdx = getIdx(header, "summary_description");
+    const socialIdx = header.indexOf("social_organization");
+    const subsIdx = header.indexOf("subsistence_type");
+    const urbanIdx = header.indexOf("urbanism_level");
+    const popIdx = header.indexOf("population_estimate");
+    const techIdx = header.indexOf("technology_level");
+    const langIdx = header.indexOf("associated_language_ids");
+    const relIdx = header.indexOf("associated_religion_ids");
+    const writeIdx = header.indexOf("associated_writing_system_ids");
+    const artIdx = header.indexOf("associated_art_tradition_ids");
+    const musicIdx = header.indexOf("associated_music_tradition_ids");
+    const cuisineIdx = header.indexOf("associated_cuisine_id");
+    const archStyleIdx = header.indexOf("associated_architectural_style_ids");
+    const litIdx = header.indexOf("associated_literary_tradition_ids");
+    const settleIdx = header.indexOf("notable_settlements");
+    const imgIdx = header.indexOf("image_gallery_tags");
+    const srcIdx = header.indexOf("sources");
+
+    const splitPipe = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx] || row[idx].trim() === "") return [];
+      return row[idx].split("|").map((s) => s.trim()).filter(Boolean);
+    };
+
+    this.cachedCultureProfiles = rows.map((row) => ({
+      id: row[idIdx],
+      name: row[nameIdx],
+      alternateNames: splitPipe(altIdx, row),
+      civilizationId: civIdx >= 0 && row[civIdx] ? row[civIdx] || null : null,
+      archaeologicalCultureId: archIdx >= 0 && row[archIdx] ? row[archIdx] || null : null,
+      timePeriodStart: parseInt(row[startIdx]) || 0,
+      timePeriodEnd: parseInt(row[endIdx]) || 0,
+      region: row[regionIdx] || "",
+      summaryDescription: row[descIdx] || "",
+      socialOrganization: (socialIdx >= 0 ? row[socialIdx] : "state") as CultureProfile["socialOrganization"],
+      subsistenceType: (subsIdx >= 0 ? row[subsIdx] : "agricultural") as CultureProfile["subsistenceType"],
+      urbanismLevel: (urbanIdx >= 0 ? row[urbanIdx] : "village") as CultureProfile["urbanismLevel"],
+      populationEstimate: popIdx >= 0 && row[popIdx] ? parseInt(row[popIdx]) || null : null,
+      technologyLevel: (techIdx >= 0 ? row[techIdx] : "stone") as CultureProfile["technologyLevel"],
+      associatedLanguageIds: splitPipe(langIdx, row),
+      associatedReligionIds: splitPipe(relIdx, row),
+      associatedWritingSystemIds: splitPipe(writeIdx, row),
+      associatedArtTraditionIds: splitPipe(artIdx, row),
+      associatedMusicTraditionIds: splitPipe(musicIdx, row),
+      associatedCuisineId: cuisineIdx >= 0 && row[cuisineIdx] ? row[cuisineIdx] || null : null,
+      associatedArchitecturalStyleIds: splitPipe(archStyleIdx, row),
+      associatedLiteraryTraditionIds: splitPipe(litIdx, row),
+      notableSettlements: splitPipe(settleIdx, row),
+      imageGalleryTags: splitPipe(imgIdx, row),
+      sources: splitPipe(srcIdx, row),
+    }));
+  }
+
+  async getCultureProfiles(filters?: {
+    region?: string;
+    timeStart?: number;
+    timeEnd?: number;
+    subsistenceType?: string;
+    urbanismLevel?: string;
+  }): Promise<CultureProfile[]> {
+    this.loadCultureProfiles();
+    let profiles = this.cachedCultureProfiles ?? [];
+
+    if (filters?.region) {
+      profiles = profiles.filter((p) =>
+        p.region.toLowerCase().includes(filters.region!.toLowerCase())
+      );
+    }
+    if (filters?.subsistenceType) {
+      profiles = profiles.filter((p) => p.subsistenceType === filters.subsistenceType);
+    }
+    if (filters?.urbanismLevel) {
+      profiles = profiles.filter((p) => p.urbanismLevel === filters.urbanismLevel);
+    }
+    if (filters?.timeStart !== undefined) {
+      profiles = profiles.filter((p) => p.timePeriodEnd >= filters.timeStart!);
+    }
+    if (filters?.timeEnd !== undefined) {
+      profiles = profiles.filter((p) => p.timePeriodStart <= filters.timeEnd!);
+    }
+
+    return profiles;
+  }
+
+  async getCultureProfileById(id: string): Promise<CultureProfile | null> {
+    this.loadCultureProfiles();
+    return (this.cachedCultureProfiles ?? []).find((p) => p.id === id) ?? null;
   }
 }

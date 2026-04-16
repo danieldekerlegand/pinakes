@@ -1540,3 +1540,29 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+## US-410: Build CultureProfilePanel main detail component
+
+Completed:
+- Defined CultureProfile TypeScript type in shared/types.ts with all fields from PRD (id, name, alternateNames, civilizationId, archaeologicalCultureId, timePeriodStart/End, region, summaryDescription, socialOrganization, subsistenceType, urbanismLevel, populationEstimate, technologyLevel, associated*Ids, notableSettlements, imageGalleryTags, sources)
+- Created lexicons/culture-profiles.tsv with 10 culture profiles: Roman, Greek, Sumerian, Egyptian, Han Chinese, Aztec, Viking, Inca, Maya, Mughal
+- Added CultureProfile TSV loader to server/tsv-storage.ts with:
+  - loadCultureProfiles() private loader with pipe-separated field parsing
+  - getCultureProfiles() with filters: region, timeStart, timeEnd, subsistenceType, urbanismLevel
+  - getCultureProfileById() for single profile lookup
+- Added API endpoints to server/routes.ts:
+  - GET /api/culture-profiles (with query filters)
+  - GET /api/culture-profiles/:id
+- Built CultureProfilePanel component (client/src/components/culture-profile-panel.tsx):
+  - Right-side panel pattern (like language-detail-panel.tsx) at 480px width
+  - Header with culture name, alternate names, time period badge, region badge, tech level badge, social org badge
+  - Gradient header with Landmark icon
+  - Tabbed navigation for 9 domain sections (Summary, Language, Religion, Architecture, Arts, Cuisine, Daily Life, Military, Technology)
+  - Summary tab with: description, quick stats grid (population, urbanism, tech, subsistence), mini-timeline showing historical position, notable settlements, associated languages/religions
+  - Placeholder sections for domain tabs (to be built in US-411 through US-419)
+  - Loading skeleton state, dark mode support, data-testid attributes
+  - Helper functions: formatYear, formatTimePeriod, formatPopulation
+- Created test/culture-profile-panel.test.ts (vitest): 11 tests, all passing
+- Created test/test-culture-profiles.ts (integration): 211 assertions, all passing
+- No new TypeScript errors introduced
+- [✓] 2026-04-16 - Build CultureProfilePanel main detail component

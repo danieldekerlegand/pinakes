@@ -155,3 +155,32 @@ export type ChordData = {
   names: string[];
   matrix: number[][];
 };
+
+// Culture profile types for the culture explorer
+export type CultureProfile = {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  civilizationId: string | null;
+  archaeologicalCultureId: string | null;
+  timePeriodStart: number;
+  timePeriodEnd: number;
+  region: string;
+  summaryDescription: string;
+  socialOrganization: 'egalitarian' | 'chiefdom' | 'state' | 'empire';
+  subsistenceType: 'hunter-gatherer' | 'pastoral' | 'agricultural' | 'maritime' | 'mixed';
+  urbanismLevel: 'nomadic' | 'village' | 'town' | 'city-state' | 'metropolis';
+  populationEstimate: number | null;
+  technologyLevel: 'stone' | 'copper' | 'bronze' | 'iron' | 'steel' | 'industrial';
+  associatedLanguageIds: string[];
+  associatedReligionIds: string[];
+  associatedWritingSystemIds: string[];
+  associatedArtTraditionIds: string[];
+  associatedMusicTraditionIds: string[];
+  associatedCuisineId: string | null;
+  associatedArchitecturalStyleIds: string[];
+  associatedLiteraryTraditionIds: string[];
+  notableSettlements: string[];
+  imageGalleryTags: string[];
+  sources: string[];
+};

@@ -5674,5 +5674,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Culture Profiles ───────────────────────────────────────────────
+
+  app.get("/api/culture-profiles", async (req, res) => {
+    try {
+      const { region, timeStart, timeEnd, subsistenceType, urbanismLevel } = req.query;
+      const profiles = await storage.getCultureProfiles({
+        region: region as string | undefined,
+        timeStart: timeStart ? parseInt(timeStart as string) : undefined,
+        timeEnd: timeEnd ? parseInt(timeEnd as string) : undefined,
+        subsistenceType: subsistenceType as string | undefined,
+        urbanismLevel: urbanismLevel as string | undefined,
+      });
+      res.json({ profiles, count: profiles.length });
+    } catch (error) {
+      console.error("Error fetching culture profiles:", error);
+      res.status(500).json({ message: "Failed to fetch culture profiles" });
+    }
+  });
+
+  app.get("/api/culture-profiles/:id", async (req, res) => {
+    try {
+      const profile = await storage.getCultureProfileById(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ message: "Culture profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching culture profile:", error);
+      res.status(500).json({ message: "Failed to fetch culture profile" });
+    }
+  });
+
   return server;
 }
