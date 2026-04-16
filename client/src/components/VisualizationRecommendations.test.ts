@@ -23,7 +23,8 @@ type PanelType =
   | "archaeological-cultures"
   | "trade-goods"
   | "word-comparison"
-  | "linguistic-distance";
+  | "linguistic-distance"
+  | "military-warfare";
 
 interface Recommendation {
   view: ViewMode;
@@ -116,6 +117,11 @@ const PANEL_RECOMMENDATIONS: Record<PanelType, Recommendation[]> = {
     buildRec("tree", "Phylogenetic grouping"),
     buildRec("map", "Geographic distance overlay"),
   ],
+  "military-warfare": [
+    buildRec("map", "Battle site locations"),
+    buildRec("timeline", "War and battle chronology"),
+    buildRec("network", "Belligerent relationship networks"),
+  ],
 };
 
 const VALID_VIEW_MODES: ViewMode[] = [
@@ -127,18 +133,19 @@ const ALL_PANEL_TYPES: PanelType[] = [
   "verb-paradigms", "language-contacts", "sound-changes", "correlation",
   "art-traditions", "literary-traditions", "archaeological-cultures",
   "trade-goods", "word-comparison", "linguistic-distance",
+  "military-warfare",
 ];
 
 describe("VisualizationRecommendations configuration", () => {
-  it("has recommendations for all 14 panel types", () => {
+  it("has recommendations for all 15 panel types", () => {
     for (const panelType of ALL_PANEL_TYPES) {
       expect(PANEL_RECOMMENDATIONS[panelType]).toBeDefined();
       expect(PANEL_RECOMMENDATIONS[panelType].length).toBeGreaterThan(0);
     }
   });
 
-  it("covers exactly 14 panel types", () => {
-    expect(Object.keys(PANEL_RECOMMENDATIONS)).toHaveLength(14);
+  it("covers exactly 15 panel types", () => {
+    expect(Object.keys(PANEL_RECOMMENDATIONS)).toHaveLength(15);
   });
 
   it("each recommendation has a valid view mode", () => {

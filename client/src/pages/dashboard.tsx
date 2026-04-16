@@ -149,6 +149,8 @@ export default function Dashboard() {
       setActiveSection('literary');
     } else if (entityType === "archaeological-culture") {
       setActiveSection('archCultures');
+    } else if (entityType === "battle") {
+      setActiveSection('military');
     } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
       toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
     } else if (entityType === "language-family") {
@@ -441,6 +443,8 @@ export default function Dashboard() {
               <ReligionMythologyPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'archCultures' ? (
               <ArchaeologicalCulturesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'military' ? (
+              <MilitaryWarfarePanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'correlation' ? (
               <CorrelationExplorerPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'mesopotamia' ? (
