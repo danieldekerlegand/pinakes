@@ -1711,3 +1711,28 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+---
+
+Build social hierarchy visualization component (US-422)
+
+Completed:
+- Created client/src/components/visualizations/social-hierarchy-utils.ts with pure logic:
+  - classifyRole: maps role titles (Emperor, Brahmin, Legionary, etc.) to social class keys via regex patterns
+  - getClassColor: returns color for known social class (ruler, noble, priest, warrior, official, merchant, artisan, farmer, slave, etc.)
+  - getPopulationPercent: approximate demographic share weighted by class (ruler=0.1%, farmer=45%, slave=15%, etc.)
+  - buildHierarchyTiers: aggregates social-structures.tsv rows into ordered pyramid tiers
+  - buildOrgChart: turns a government structure's key_roles into nodes/edges rooted at the head
+  - buildPatronNetwork: builds patron-client graph with authority/patronage edges
+  - pyramidWidths / concentricRadii: layout helpers
+- Created client/src/components/visualizations/SocialHierarchyView.tsx with 4 modes:
+  - Pyramid: trapezoidal tiers sized by rank, color-coded by class, clickable for filtering
+  - Concentric circles: ruler at center, lower classes as outer rings
+  - Org chart: head role at top with subordinate roles beneath
+  - Network graph: patron-client relationships via shared NetworkGraph component
+  - Each tier/node shows label, approximate population %, role count, and role list in legend
+  - Selected class emits onClassSelect callback for cross-filtering daily-life entries
+  - Uses /api/culture-profiles/:id/social-structures endpoint
+- Created client/src/components/visualizations/SocialHierarchyView.test.ts with 32 passing tests
+  - Tests: classifyRole pattern matching, getClassColor, population percent math, tier building/ordering, pyramid/circle layouts, org chart construction, patron network edges
+- All 32 tests pass; no new TypeScript errors introduced
