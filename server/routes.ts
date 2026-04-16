@@ -6037,6 +6037,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/culture-profiles/:id/evolution-events - Timeline events for a culture
+   */
+  app.get("/api/culture-profiles/:id/evolution-events", async (req, res) => {
+    try {
+      const events = await storage.getCultureEventsByCulture(req.params.id);
+      res.json({ cultureProfileId: req.params.id, events, count: events.length });
+    } catch (error) {
+      console.error("Error fetching culture evolution events:", error);
+      res.status(500).json({ message: "Failed to fetch culture evolution events" });
+    }
+  });
+
+  /**
    * GET /api/media-assets/entity/:entityType/:entityId - Get media for a specific entity
    */
   app.get("/api/media-assets/entity/:entityType/:entityId", async (req, res) => {
