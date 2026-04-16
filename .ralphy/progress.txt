@@ -1080,7 +1080,6 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
-<<<<<<< HEAD
 - [✓] 2026-04-16 01:36 - Create map annotation and label system (US-312)
 - [✓] 2026-04-16 - Implement custom map marker and icon system (US-320)
 - [✓] 2026-04-16 - Implement map image import and georeferencing tool (US-313)
@@ -1090,6 +1089,8 @@ Completed:
 - [✓] 2026-04-16 - Implement map accessibility and performance optimization (US-324)
 - [✓] 2026-04-16 - Implement geographic search and place name resolution (US-318)
 - [✓] 2026-04-16 - Implement map bookmarks and view presets (US-322)
+- [✓] 2026-04-16 - Implement animated timeline playback with narration points
+- [✓] 2026-04-16 - Implement AI-powered map feature extraction from imported images (US-314)
 
 US-312: Create map annotation and label system
 
@@ -1412,8 +1413,6 @@ Completed:
   - mergeHeatPoints: multiple arrays, empty arrays, no arguments
   - DENSITY_GRADIENTS: preset keys, gradient stop validation
 - All 965 tests passing (32 new + 933 existing), no new TypeScript errors
-=======
-- [✓] 2026-04-16 - Implement animated timeline playback with narration points
 
 ## Implement animated timeline playback with narration points
 
@@ -1442,4 +1441,66 @@ Completed:
   - Next/previous point finding (strictly greater/less, undefined at bounds)
   - Position calculation (min=0%, max=100%, midpoint, equal min/max, negative ranges)
 - All 953 tests pass (47 test files), no new TypeScript errors
->>>>>>> ralphy/agent-5-1776321894134-74yocy-implement-animated-timeline-playback-with-narratio
+
+US-314: Implement AI-powered map feature extraction from imported images
+
+Completed:
+- Created server/services/map-image-analyzer.ts
+  - Gemini Vision API integration for analyzing georeferenced map images
+  - Extracts 4 feature types: settlements (points), boundaries (polygons), routes (polylines), labels (text)
+  - Structured JSON schema for reliable Gemini output parsing
+  - Coordinate clamping to keep extracted features within georeferenced bounds
+  - Type validation and confidence scoring for all extracted features
+  - Estimates map time period and geographic region from visual cues
+- Added POST /api/map/analyze-image endpoint in server/routes.ts
+  - Accepts base64 image, MIME type, bounds, and optional feature type filters
+  - Input validation for required fields and bounds format
+- Created client/src/components/visualizations/map-tools/extracted-feature-utils.ts
+  - ReviewableFeature and FeatureExtractionState types
+  - resultToReviewableFeatures(): converts API results to reviewable UI items with auto-accept at ≥70% confidence
+  - createInitialExtractionState(): clean state factory
+- Created client/src/components/visualizations/map-tools/ExtractedFeatureReview.tsx
+  - Review panel UI with collapsible sections per feature type (settlements, boundaries, routes, labels)
+  - Individual accept/reject toggles, visibility toggles, and delete buttons
+  - Confidence badges with color-coded thresholds
+  - Bulk accept/reject all actions
+  - Loading, error, and empty states
+  - Map description, time period, and region display
+- Created client/src/components/visualizations/map-tools/ExtractedFeaturesLayer.tsx
+  - Leaflet map layer rendering extracted features with type-specific styling
+  - Color-coded markers, polygons, and polylines by subtype (city/town/port, empire/kingdom, trade/migration)
+  - Visual distinction between accepted and unaccepted features (opacity, dash patterns)
+  - Tooltips with feature name, type, and confidence
+- Created client/src/components/visualizations/hooks/useMapFeatureExtraction.ts
+  - React hook managing extraction state, API calls, and feature review actions
+  - Image URL to base64 conversion for API submission
+  - Toggle accepted/visible, remove, accept all, reject all, dismiss actions
+- Integrated into ImageGeoreferencer panel (ImageGeoreferencer.tsx)
+  - "Extract Features with AI" button appears after image is georeferenced (3+ control points)
+  - Extraction panel embedded within georeferencer controls
+- Integrated into EnhancedLanguageMapView.tsx
+  - ExtractedFeaturesLayer renders on the map alongside georeferenced image
+  - Feature extraction state wired to panel callbacks
+- Created server/services/map-image-analyzer.test.ts with 15 tests
+  - clampCoordinate: within bounds, outside bounds, margin behavior
+  - buildExtractionPrompt: bounds inclusion, feature type listing
+  - validateAndCleanResult: valid data passthrough, confidence clamping, invalid type replacement, missing arrays, coordinate clamping
+  - analyzeMapImage: API key requirement, Gemini call with image data, default feature types, error handling
+- Created client/src/components/visualizations/map-tools/ExtractedFeatureReview.test.ts with 8 tests
+  - createInitialExtractionState: clean state verification
+  - resultToReviewableFeatures: settlement/boundary/route/label conversion, unique IDs, empty result handling, auto-accept threshold (≥0.7)
+- All 23 tests passing, no new TypeScript errors
+
+Files created:
+- server/services/map-image-analyzer.ts
+- server/services/map-image-analyzer.test.ts
+- client/src/components/visualizations/map-tools/ExtractedFeatureReview.tsx
+- client/src/components/visualizations/map-tools/ExtractedFeatureReview.test.ts
+- client/src/components/visualizations/map-tools/ExtractedFeaturesLayer.tsx
+- client/src/components/visualizations/map-tools/extracted-feature-utils.ts
+- client/src/components/visualizations/hooks/useMapFeatureExtraction.ts
+
+Files modified:
+- server/routes.ts (added import and POST /api/map/analyze-image endpoint)
+- client/src/components/visualizations/map-tools/ImageGeoreferencer.tsx (added extraction panel integration)
+- client/src/components/visualizations/EnhancedLanguageMapView.tsx (added extraction hook, layer, and panel wiring)

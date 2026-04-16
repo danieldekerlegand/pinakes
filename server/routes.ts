@@ -22,6 +22,8 @@ import {
   identifyUnderrepresentedFamilies,
   underrepresentedVocabScraper,
 } from "./services/underrepresented-vocab-scraper";
+import { analyzeMapImage } from "./services/map-image-analyzer";
+import type { FeatureExtractionRequest } from "./services/map-image-analyzer";
 import {
   calculatePairwiseDistance,
   calculateDistanceMatrix,
@@ -5603,6 +5605,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error starting underrepresented vocab scraping:", error);
       res.status(500).json({ message: "Failed to start underrepresented vocab scraping" });
+    }
+  });
+
+  /**
+   * POST /api/map/analyze-image - Extract features from a georeferenced map image using AI
+   */
+  app.post("/api/map/analyze-image", async (req, res) => {
+    try {
+      const { imageBase64, mimeType, bounds, featureTypes } = req.body as FeatureExtractionRequest;
+
+      if (!imageBase64 || !mimeType || !bounds) {
+        return res.status(400).json({
+          message: "Missing required fields: imageBase64, mimeType, bounds",
+        });
+      }
+
+      if (!Array.isArray(bounds) || bounds.length !== 2) {
+        return res.status(400).json({ message: "bounds must be [[south, west], [north, east]]" });
+      }
+
+      const result = await analyzeMapImage({ imageBase64, mimeType, bounds, featureTypes });
+      res.json(result);
+    } catch (error) {
+      console.error("Error analyzing map image:", error);
+      const message = error instanceof Error ? error.message : "Failed to analyze map image";
+      res.status(500).json({ message });
     }
   });
 

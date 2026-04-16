@@ -18,6 +18,8 @@ import {
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import type { ImageGeoreferenceReturn, ControlPoint } from '../hooks/useImageGeoreference';
+import { ExtractedFeatureReviewPanel } from './ExtractedFeatureReview';
+import type { FeatureExtractionState } from './ExtractedFeatureReview';
 
 // ============================================================================
 // Image Overlay Layer (rendered inside MapContainer)
@@ -147,9 +149,31 @@ interface ImageGeoreferencePanelProps {
   georef: ImageGeoreferenceReturn;
   mapCenter: [number, number];
   mapZoom: number;
+  extractionState?: FeatureExtractionState;
+  onExtractFeatures?: () => void;
+  onToggleFeatureAccepted?: (id: string) => void;
+  onToggleFeatureVisible?: (id: string) => void;
+  onRemoveFeature?: (id: string) => void;
+  onAcceptAllFeatures?: () => void;
+  onRejectAllFeatures?: () => void;
+  onConfirmFeatures?: () => void;
+  onDismissFeatures?: () => void;
 }
 
-export function ImageGeoreferencePanel({ georef, mapCenter, mapZoom }: ImageGeoreferencePanelProps) {
+export function ImageGeoreferencePanel({
+  georef,
+  mapCenter,
+  mapZoom,
+  extractionState,
+  onExtractFeatures,
+  onToggleFeatureAccepted,
+  onToggleFeatureVisible,
+  onRemoveFeature,
+  onAcceptAllFeatures,
+  onRejectAllFeatures,
+  onConfirmFeatures,
+  onDismissFeatures,
+}: ImageGeoreferencePanelProps) {
   const { state, fileInputRef } = georef;
   const [isMinimized, setIsMinimized] = useState(false);
   const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -480,6 +504,21 @@ export function ImageGeoreferencePanel({ georef, mapCenter, mapZoom }: ImageGeor
                 </div>
               )}
             </div>
+
+            {/* AI Feature Extraction */}
+            {extractionState && onExtractFeatures && state.controlPoints.length >= 3 && georef.affineTransform && (
+              <ExtractedFeatureReviewPanel
+                state={extractionState}
+                onExtract={onExtractFeatures}
+                onToggleAccepted={onToggleFeatureAccepted || (() => {})}
+                onToggleVisible={onToggleFeatureVisible || (() => {})}
+                onRemoveFeature={onRemoveFeature || (() => {})}
+                onAcceptAll={onAcceptAllFeatures || (() => {})}
+                onRejectAll={onRejectAllFeatures || (() => {})}
+                onConfirm={onConfirmFeatures || (() => {})}
+                onDismiss={onDismissFeatures || (() => {})}
+              />
+            )}
 
             {/* Remove Image */}
             <div className="border-t pt-3">
