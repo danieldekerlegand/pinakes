@@ -1711,3 +1711,29 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## US-423: Build culture comparison view for side-by-side analysis (2026-04-16)
+- Created client/src/components/visualizations/culture-comparison-utils.ts with pure helpers:
+  - COMPARISON_DIMENSIONS across 6 categories: Geography, Society, Technology, Language & Writing, Religion, Architecture, Material Culture
+  - formatYear, formatTimePeriod, formatPopulation value formatters
+  - rowMatchState (all-match | partial | all-differ) for highlight color coding
+  - computeSharedTraits for cross-profile intersection of languages, religions, writing systems, art/music/literary traditions, architectural styles
+  - searchProfiles for name/region/alternate-name matching
+  - MIN_COMPARE=2, MAX_COMPARE=4 limits from spec
+- Created client/src/components/visualizations/CultureComparisonView.tsx:
+  - Uses shared SideBySideComparisonTable from @/components/ui/comparison-table
+  - Supports selecting 2-4 cultures via a searchable picker with disabled state when max is reached
+  - Renders comparison grouped by category section
+  - Color-coded match state per row: emerald (all-match), sky (partial), amber (all-differ)
+  - Shared Traits summary badge list showing intersected IDs
+  - Empty state prompts to select at least 2 cultures
+  - Legend explaining the three match states
+- Created client/src/components/visualizations/CultureComparisonView.test.ts with 35 passing tests covering:
+  - Formatter edge cases (BCE/CE, null population, M/K suffixes)
+  - All COMPARISON_DIMENSIONS produce non-empty strings and humanize enums
+  - rowMatchState correctness for match/differ/partial
+  - sharedArrayOverlap intersection semantics
+  - computeSharedTraits intersection across 2-3 profiles
+  - searchProfiles matching by name, region, and alternate names
+  - Category grouping helpers
+- All 35 tests pass, no new TypeScript errors introduced
