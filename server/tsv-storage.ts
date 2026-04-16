@@ -592,6 +592,22 @@ export interface SocialOrganization {
   notes: string;
 }
 
+// Daily life types
+export interface DailyLife {
+  id: string;
+  cultureProfileId: string;
+  category: string;
+  title: string;
+  description: string;
+  socialClass: string;
+  genderContext: string;
+  ageGroup: string;
+  season: string;
+  timePeriodStart: string;
+  timePeriodEnd: string;
+  sources: string[];
+}
+
 // Urheimat hypothesis types
 export interface UrheimatHypothesis {
   id: string;
@@ -845,6 +861,9 @@ export class TsvStorage {
 
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
+
+  // Daily life cache
+  private cachedDailyLife: DailyLife[] | null = null;
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
@@ -5599,5 +5618,82 @@ export class TsvStorage {
   async getRiverWaterById(id: string): Promise<RiverWaterFeature | null> {
     this.loadRiversAndWaters();
     return (this.cachedRiversAndWaters ?? []).find((f) => f.id === id) ?? null;
+  }
+
+  private loadDailyLife(): void {
+    if (this.cachedDailyLife) return;
+
+    const text = this.readFileIfExists("lexicons/daily-life.tsv");
+    if (!text) { this.cachedDailyLife = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const cultureIdx = getIdx(header, "culture_profile_id");
+    const categoryIdx = getIdx(header, "category");
+    const titleIdx = getIdx(header, "title");
+    const descriptionIdx = getIdx(header, "description");
+    const socialClassIdx = getIdx(header, "social_class");
+    const genderIdx = getIdx(header, "gender_context");
+    const ageIdx = getIdx(header, "age_group");
+    const seasonIdx = getIdx(header, "season");
+    const startIdx = getIdx(header, "time_period_start");
+    const endIdx = getIdx(header, "time_period_end");
+    const sourcesIdx = getIdx(header, "sources");
+
+    this.cachedDailyLife = rows.map((row) => ({
+      id: row[idIdx],
+      cultureProfileId: row[cultureIdx],
+      category: row[categoryIdx],
+      title: row[titleIdx],
+      description: row[descriptionIdx],
+      socialClass: row[socialClassIdx],
+      genderContext: row[genderIdx],
+      ageGroup: row[ageIdx],
+      season: row[seasonIdx],
+      timePeriodStart: row[startIdx] || "",
+      timePeriodEnd: row[endIdx] || "",
+      sources: (() => { try { return JSON.parse(row[sourcesIdx] || "[]"); } catch { return []; } })(),
+    }));
+  }
+
+  async getDailyLife(filters?: {
+    cultureProfileId?: string;
+    category?: string;
+    socialClass?: string;
+    genderContext?: string;
+  }): Promise<DailyLife[]> {
+    this.loadDailyLife();
+    let entries = this.cachedDailyLife ?? [];
+
+    if (filters?.cultureProfileId) {
+      entries = entries.filter((e) => e.cultureProfileId === filters.cultureProfileId);
+    }
+    if (filters?.category) {
+      entries = entries.filter((e) => e.category === filters.category);
+    }
+    if (filters?.socialClass) {
+      entries = entries.filter((e) => e.socialClass === filters.socialClass || e.socialClass === "all");
+    }
+    if (filters?.genderContext) {
+      entries = entries.filter((e) => e.genderContext === filters.genderContext || e.genderContext === "all");
+    }
+
+    return entries;
+  }
+
+  async getDailyLifeById(id: string): Promise<DailyLife | null> {
+    this.loadDailyLife();
+    return (this.cachedDailyLife ?? []).find((e) => e.id === id) ?? null;
+  }
+
+  async getDailyLifeByCulture(cultureProfileId: string): Promise<Record<string, DailyLife[]>> {
+    this.loadDailyLife();
+    const entries = (this.cachedDailyLife ?? []).filter((e) => e.cultureProfileId === cultureProfileId);
+    const grouped: Record<string, DailyLife[]> = {};
+    for (const entry of entries) {
+      if (!grouped[entry.category]) grouped[entry.category] = [];
+      grouped[entry.category].push(entry);
+    }
+    return grouped;
   }
 }

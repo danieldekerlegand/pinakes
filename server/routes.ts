@@ -5572,6 +5572,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Daily Life endpoints ──────────────────────
+
+  /**
+   * GET /api/daily-life - List daily life entries with optional filters
+   */
+  app.get("/api/daily-life", async (req, res) => {
+    try {
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const category = req.query.category as string | undefined;
+      const socialClass = req.query.social_class as string | undefined;
+      const genderContext = req.query.gender_context as string | undefined;
+
+      const entries = await storage.getDailyLife({
+        cultureProfileId, category, socialClass, genderContext,
+      });
+
+      res.json({ entries, count: entries.length });
+    } catch (error) {
+      console.error("Error fetching daily life entries:", error);
+      res.status(500).json({ message: "Failed to fetch daily life entries" });
+    }
+  });
+
+  /**
+   * GET /api/daily-life/:id - Get a single daily life entry
+   */
+  app.get("/api/daily-life/:id", async (req, res) => {
+    try {
+      const entry = await storage.getDailyLifeById(req.params.id);
+      if (!entry) {
+        return res.status(404).json({ message: "Daily life entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching daily life entry:", error);
+      res.status(500).json({ message: "Failed to fetch daily life entry" });
+    }
+  });
+
+  /**
+   * GET /api/culture-profiles/:id/daily-life - Get daily life entries grouped by category for a culture
+   */
+  app.get("/api/culture-profiles/:id/daily-life", async (req, res) => {
+    try {
+      const grouped = await storage.getDailyLifeByCulture(req.params.id);
+      res.json({ cultureProfileId: req.params.id, categories: grouped });
+    } catch (error) {
+      console.error("Error fetching daily life by culture:", error);
+      res.status(500).json({ message: "Failed to fetch daily life entries for culture" });
+    }
+  });
+
   /**
    * POST /api/scraping/underrepresented-vocab - Scrape vocabulary for under-represented families
    * Body: { familyId?, languageId?, maxLanguages? }
