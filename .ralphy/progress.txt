@@ -1080,3 +1080,35 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-317: Create curated historical tour/story mode
+
+Completed:
+- Created client/src/components/visualizations/map-tools/story-mode-data.ts
+  - HistoricalTour and TourStep type definitions with map viewport, time period, layers, narration, and highlighted features
+  - 5 curated historical tours:
+    1. Rise of Civilization in Mesopotamia (5000 BCE – 539 BCE, 7 steps)
+    2. The Indo-European Expansion (4500 BCE – 0 CE, 6 steps)
+    3. The Silk Road (200 BCE – 1400 CE, 6 steps)
+    4. Austronesian Migration (3000 BCE – 1300 CE, 6 steps)
+    5. The Mediterranean World (1200 BCE – 1200 CE, 7 steps)
+  - Helper functions: formatTourYear, getTourTimeSpanLabel, getTourStepCount, getTourById
+- Created client/src/components/visualizations/map-tools/StoryMode.tsx
+  - TourSelector: browse and select from available tours with metadata (stops, time span, region)
+  - TourPlayer: step-by-step narration with auto-play (10s interval), previous/next controls, progress dots
+  - Each step triggers map fly-to, time slider update, and layer activation via callback props
+  - Compact overlay panel design (320px wide, positioned top-right)
+- Integrated StoryMode into EnhancedLanguageMapView.tsx
+  - Added MapFlyTo component inside MapContainer for smooth map.flyTo animations
+  - Added BookOpen toggle button next to fullscreen button
+  - StoryMode panel controls map navigation, time slider, and layer visibility
+  - Uses setLayerVisibility for reliable layer toggling (hideAll + setLayerVisibility per step)
+- Created client/src/components/visualizations/map-tools/StoryMode.test.ts with 19 tests
+  - formatTourYear: BCE/CE formatting
+  - getTourTimeSpanLabel: mixed era formatting
+  - getTourStepCount: all tours have ≥5 steps
+  - getTourById: lookup and missing ID handling
+  - CURATED_TOURS: 5 tours, unique IDs, required metadata, valid coordinates/zoom/narration/layers
+  - Chronological ordering validation
+  - Layer ID validation against known layer IDs
+- All 952 tests pass (47 test files), no new TypeScript errors

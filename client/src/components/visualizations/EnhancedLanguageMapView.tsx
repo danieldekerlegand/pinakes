@@ -1,7 +1,7 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { Loader2, Maximize2, Minimize2, BookOpen } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
@@ -59,6 +59,7 @@ import { MapLabelsLayer } from './map-layers/MapLabelsLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
+import { StoryMode } from './map-tools/StoryMode';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
@@ -91,6 +92,17 @@ import type {
   MaterialCultureDistribution,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
+
+/** Rendered inside MapContainer — flies to the given target whenever it changes. */
+function MapFlyTo({ target }: { target: { center: [number, number]; zoom: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo(target.center, target.zoom, { duration: 1.5 });
+    }
+  }, [map, target]);
+  return null;
+}
 
 interface EnhancedLanguageMapViewProps {
   onFeatureSelect?: (id: string) => void;
@@ -145,6 +157,7 @@ export function EnhancedLanguageMapView({
     isLayerVisible,
     toggleLayer,
     setLayerOpacity,
+    setLayerVisibility,
     showAll,
     hideAll,
     showCategory,
@@ -172,6 +185,25 @@ export function EnhancedLanguageMapView({
 
   // Split-screen comparison
   const splitScreen = useSplitScreen(currentYear, timeState.minYear, timeState.maxYear);
+
+  // Story mode state
+  const [showStoryMode, setShowStoryMode] = useState(false);
+  const [flyTarget, setFlyTarget] = useState<{ center: [number, number]; zoom: number } | null>(null);
+
+  const handleStoryNavigate = useCallback((center: [number, number], zoom: number) => {
+    setFlyTarget({ center, zoom });
+  }, []);
+
+  const handleStoryTimeChange = useCallback((year: number) => {
+    setCurrentYear(year);
+  }, [setCurrentYear]);
+
+  const handleStoryLayersChange = useCallback((layers: string[]) => {
+    hideAll();
+    for (const layerId of layers) {
+      setLayerVisibility(layerId, true);
+    }
+  }, [hideAll, setLayerVisibility]);
 
   // In blink mode, override the displayed year
   const [blinkOverrideYear, setBlinkOverrideYear] = React.useState<number | null>(null);
@@ -825,6 +857,9 @@ export function EnhancedLanguageMapView({
           maxZoom={baseMap.maxZoom}
         />
 
+        {/* Story mode fly-to controller */}
+        <MapFlyTo target={flyTarget} />
+
         {/* SVG pattern definitions for hatched/striped fills */}
         {territorialPatterns.length > 0 && (
           <TerritorialShadingProvider patterns={territorialPatterns} />
@@ -1231,6 +1266,27 @@ export function EnhancedLanguageMapView({
         battles={allBattles}
         isVisible={isPlaying || filteredCivilizations.length > 0 || allBattles.length > 0}
       />
+
+      {/* Story Mode Toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowStoryMode((prev) => !prev)}
+        className="absolute bottom-4 right-14 z-[1000] bg-white shadow-lg"
+        title="Historical Tours"
+      >
+        <BookOpen className="h-4 w-4" />
+      </Button>
+
+      {/* Story Mode Panel */}
+      {showStoryMode && (
+        <StoryMode
+          onNavigate={handleStoryNavigate}
+          onTimeChange={handleStoryTimeChange}
+          onLayersChange={handleStoryLayersChange}
+          onClose={() => setShowStoryMode(false)}
+        />
+      )}
 
       {/* Fullscreen Toggle */}
       <Button
