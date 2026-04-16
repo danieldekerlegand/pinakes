@@ -1711,3 +1711,19 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+US-425: Standardized culture data card template system
+- Created client/src/components/shared/CultureDataCard.tsx, a reusable card component for displaying any socio-cultural data point across CultureProfilePanel sections.
+  - Props: id, title, icon, category, timePeriodStart/End, description, image, tags, relatedEntities, detailContent, accentColor, onSelect
+  - Variants: "compact" (list item), "standard" (card grid), "detailed" (full panel) with distinct Tailwind class sets
+  - Expandable detail section with chevron toggle (non-compact variants)
+  - Drag-and-drop support via native HTML5 DnD: draggable prop, onDragStart/onDragOver/onDrop/onDragEnd callbacks, visible GripVertical handle
+  - Uses existing Badge/cn primitives; consistent data-testid attributes for instrumentation
+- Created client/src/components/shared/culture-data-card-utils.ts with pure helpers:
+  - formatTimePeriod: normalizes numeric/string years to BCE/CE ranges, preserves "present" token
+  - moveCard / reorderCards: immutable reorder helpers for drag-and-drop domain prioritization
+  - getVariantClasses: variant-specific class sets
+  - validateCardData: required-field validation (id, title, image.url)
+  - normalizeTags: trim/dedupe (case-insensitive) preserving first-occurrence casing
+- Added test/culture-data-card.test.ts with 30 passing tests covering all utility functions: formatTimePeriod (7), moveCard (5), reorderCards (4), getVariantClasses (4), validateCardData (6), normalizeTags (4)
+- No new TypeScript errors introduced; baseline tsc error count unchanged
