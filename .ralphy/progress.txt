@@ -1080,3 +1080,40 @@ Completed:
 - [✓] 2026-03-27 07:35 - Implement Mesopotamia city-states showcase demo
 - [✓] 2026-03-27 07:35 - Implement clickable map features with contextual info panels
 - [✓] 2026-03-27 08:43 - Implement map image import and georeferencing tool
+
+US-318: Implement geographic search and place name resolution
+
+Completed:
+- Created server/services/place-resolver.ts with PlaceResolver service
+  - Searches settlements (3000+ from TSV), archaeological sites, battles, and 25 known historical regions
+  - Fuzzy matching with token-based scoring: exact match (1.0), prefix (0.9), substring (0.7), token overlap (0.6)
+  - Supports alternate names, modern names, and region aliases (e.g., "Asia Minor" → Anatolia)
+  - Returns point coordinates for settlements/battles/sites, bounding boxes for regions
+  - Nominatim (OpenStreetMap) integration for modern place names with rate limiting (1 req/sec)
+  - Deduplication of results by name + nearby coordinates
+  - searchPlaces(): local-only search for autocomplete speed
+  - searchPlacesWithNominatim(): hybrid search with Nominatim fallback for modern names
+  - autocompletePlaces(): fast prefix-based search for dropdown suggestions
+- Added API endpoints in server/routes.ts:
+  - GET /api/map/places/search?q=query&limit=15 - Full search with Nominatim fallback
+  - GET /api/map/places/autocomplete?q=query&limit=8 - Fast local-only autocomplete
+- Created client/src/components/visualizations/hooks/useMapSearch.ts
+  - React hook with debounced search input (200ms), react-query integration, dropdown state
+  - Manages selected place state and open/close for autocomplete dropdown
+- Created client/src/components/visualizations/map-layers/MapSearchBar.tsx
+  - Search bar positioned at top center of map with autocomplete dropdown
+  - Category icons (MapPin, Landmark, Swords, Globe) with color coding per place type
+  - Fly-to animation on place selection (flyToBounds for regions, flyTo for points)
+  - Info card showing place details, time period, and coordinates
+  - Prevents map interaction when using search (stopPropagation)
+  - Keyboard support (Escape to close), click-outside to close dropdown
+- Integrated MapSearchBar into EnhancedLanguageMapView.tsx inside MapContainer
+- Created server/services/place-resolver.test.ts with 19 tests
+  - Known region search, settlement search by name/alternate name/modern name
+  - Battle and archaeological site search, fuzzy matching and ranking
+  - Case-insensitive matching, limit parameter, time period display
+  - Region alias search, description content, deduplication, bbox geometry
+- Created client/src/components/visualizations/hooks/useMapSearch.test.ts with 7 tests
+  - PlaceResult type contract validation, geometry types, coordinate ranges
+  - API URL construction and special character encoding
+- All 26 tests passing, no new TypeScript errors

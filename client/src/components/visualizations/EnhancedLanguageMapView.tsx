@@ -61,6 +61,7 @@ import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
+import { MapSearchBar } from './map-layers/MapSearchBar';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
 import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -824,6 +825,9 @@ export function EnhancedLanguageMapView({
           url={baseMap.url}
           maxZoom={baseMap.maxZoom}
         />
+
+        {/* Geographic Search Bar */}
+        <MapSearchBar />
 
         {/* SVG pattern definitions for hatched/striped fills */}
         {territorialPatterns.length > 0 && (
