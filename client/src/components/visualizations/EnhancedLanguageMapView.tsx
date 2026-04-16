@@ -5,6 +5,7 @@ import { Loader2, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
+import { DEFAULT_NARRATION_POINTS } from '../../lib/visualization/narration-points';
 import { LanguageRangeLayer } from './map-layers/LanguageRangeLayer';
 import { ArchaeologicalSitesLayer } from './map-layers/ArchaeologicalSitesLayer';
 import { ArchaeologicalCultureLayer } from './map-layers/ArchaeologicalCultureLayer';
@@ -158,6 +159,7 @@ export function EnhancedLanguageMapView({
     state: timeState,
     currentYear,
     isPlaying,
+    activeNarration,
     play,
     pause,
     toggle,
@@ -168,7 +170,8 @@ export function EnhancedLanguageMapView({
     stepBackward,
     jumpToStart,
     jumpToEnd,
-  } = useTimeSlider();
+    dismissNarration,
+  } = useTimeSlider({}, true, DEFAULT_NARRATION_POINTS);
 
   // Split-screen comparison
   const splitScreen = useSplitScreen(currentYear, timeState.minYear, timeState.maxYear);
@@ -1251,6 +1254,8 @@ export function EnhancedLanguageMapView({
         isPlaying={isPlaying}
         playbackSpeed={timeState.playbackSpeed}
         stepSize={timeState.stepSize}
+        narrationPoints={DEFAULT_NARRATION_POINTS}
+        activeNarration={activeNarration}
         onYearChange={setCurrentYear}
         onPlayPause={toggle}
         onStepForward={stepForward}
@@ -1259,6 +1264,7 @@ export function EnhancedLanguageMapView({
         onStepSizeChange={setStepSize}
         onJumpToStart={jumpToStart}
         onJumpToEnd={jumpToEnd}
+        onDismissNarration={dismissNarration}
       />
 
       {/* Instructions Overlay */}

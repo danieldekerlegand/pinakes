@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { TimeSliderState } from '../../../lib/visualization/geospatial-types';
+import type { TimeSliderState, NarrationPoint } from '../../../lib/visualization/geospatial-types';
 import { DEFAULT_TIME_SLIDER_STATE } from '../../../lib/visualization/geospatial-types';
 import { useVisualization } from '../../../contexts/VisualizationContext';
 
@@ -7,6 +7,7 @@ interface UseTimeSliderReturn {
   state: TimeSliderState;
   currentYear: number;
   isPlaying: boolean;
+  activeNarration: NarrationPoint | null;
   play: () => void;
   pause: () => void;
   toggle: () => void;
@@ -19,6 +20,7 @@ interface UseTimeSliderReturn {
   jumpToStart: () => void;
   jumpToEnd: () => void;
   reset: () => void;
+  dismissNarration: () => void;
 }
 
 const FRAME_RATE = 30; // Target 30 FPS for smooth animation
@@ -30,7 +32,8 @@ const MS_PER_FRAME = 1000 / FRAME_RATE;
  */
 export function useTimeSlider(
   initialState: Partial<TimeSliderState> = {},
-  useGlobalState: boolean = true
+  useGlobalState: boolean = true,
+  narrationPoints: NarrationPoint[] = [],
 ): UseTimeSliderReturn {
   // Get global temporal state from VisualizationContext
   const vizContext = useVisualization();
@@ -72,6 +75,12 @@ export function useTimeSlider(
     }
   }, [state, useGlobalState, vizContext]);
 
+  const [activeNarration, setActiveNarration] = useState<NarrationPoint | null>(null);
+  // Track which narration points have been visited in this playback session
+  const visitedNarrationsRef = useRef<Set<string>>(new Set());
+  const narrationPointsRef = useRef(narrationPoints);
+  narrationPointsRef.current = narrationPoints;
+
   const animationRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
 
@@ -95,6 +104,30 @@ export function useTimeSlider(
           prev.maxYear,
           Math.round(prev.currentYear + yearsToAdvance)
         );
+
+        // Check for narration points between current and new year
+        const points = narrationPointsRef.current;
+        const visited = visitedNarrationsRef.current;
+        for (const point of points) {
+          if (
+            !visited.has(point.id) &&
+            point.year > prev.currentYear &&
+            point.year <= newYear
+          ) {
+            // Hit a narration point — pause at that year
+            visited.add(point.id);
+            setActiveNarration(point);
+            if (animationRef.current) {
+              cancelAnimationFrame(animationRef.current);
+              animationRef.current = null;
+            }
+            return {
+              ...prev,
+              currentYear: point.year,
+              isPlaying: false,
+            };
+          }
+        }
 
         // Stop playing if we've reached the end
         if (newYear >= prev.maxYear) {
@@ -126,9 +159,11 @@ export function useTimeSlider(
 
   // Play animation
   const play = useCallback(() => {
+    setActiveNarration(null);
     setState((prev) => {
       // If at the end, restart from beginning
       if (prev.currentYear >= prev.maxYear) {
+        visitedNarrationsRef.current.clear();
         return {
           ...prev,
           currentYear: prev.minYear,
@@ -240,6 +275,8 @@ export function useTimeSlider(
   // Jump to start
   const jumpToStart = useCallback(() => {
     pause();
+    visitedNarrationsRef.current.clear();
+    setActiveNarration(null);
     setState((prev) => ({ ...prev, currentYear: prev.minYear }));
   }, [pause, setState]);
 
@@ -249,9 +286,18 @@ export function useTimeSlider(
     setState((prev) => ({ ...prev, currentYear: prev.maxYear }));
   }, [pause, setState]);
 
+  // Dismiss the active narration card and resume playback
+  const dismissNarration = useCallback(() => {
+    setActiveNarration(null);
+    // Resume playback after dismissing
+    play();
+  }, [play]);
+
   // Reset to initial state
   const reset = useCallback(() => {
     pause();
+    visitedNarrationsRef.current.clear();
+    setActiveNarration(null);
     setState({
       ...DEFAULT_TIME_SLIDER_STATE,
       ...initialState,
@@ -279,6 +325,7 @@ export function useTimeSlider(
     state,
     currentYear: state.currentYear,
     isPlaying: state.isPlaying,
+    activeNarration,
     play,
     pause,
     toggle,
@@ -291,5 +338,6 @@ export function useTimeSlider(
     jumpToStart,
     jumpToEnd,
     reset,
+    dismissNarration,
   };
 }
