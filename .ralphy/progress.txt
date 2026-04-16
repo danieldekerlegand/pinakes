@@ -1712,27 +1712,28 @@ Completed:
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
 
----
-
-Build social hierarchy visualization component (US-422)
-
-Completed:
-- Created client/src/components/visualizations/social-hierarchy-utils.ts with pure logic:
-  - classifyRole: maps role titles (Emperor, Brahmin, Legionary, etc.) to social class keys via regex patterns
-  - getClassColor: returns color for known social class (ruler, noble, priest, warrior, official, merchant, artisan, farmer, slave, etc.)
-  - getPopulationPercent: approximate demographic share weighted by class (ruler=0.1%, farmer=45%, slave=15%, etc.)
-  - buildHierarchyTiers: aggregates social-structures.tsv rows into ordered pyramid tiers
-  - buildOrgChart: turns a government structure's key_roles into nodes/edges rooted at the head
-  - buildPatronNetwork: builds patron-client graph with authority/patronage edges
-  - pyramidWidths / concentricRadii: layout helpers
-- Created client/src/components/visualizations/SocialHierarchyView.tsx with 4 modes:
-  - Pyramid: trapezoidal tiers sized by rank, color-coded by class, clickable for filtering
-  - Concentric circles: ruler at center, lower classes as outer rings
-  - Org chart: head role at top with subordinate roles beneath
-  - Network graph: patron-client relationships via shared NetworkGraph component
-  - Each tier/node shows label, approximate population %, role count, and role list in legend
-  - Selected class emits onClassSelect callback for cross-filtering daily-life entries
-  - Uses /api/culture-profiles/:id/social-structures endpoint
-- Created client/src/components/visualizations/SocialHierarchyView.test.ts with 32 passing tests
-  - Tests: classifyRole pattern matching, getClassColor, population percent math, tier building/ordering, pyramid/circle layouts, org chart construction, patron network edges
-- All 32 tests pass; no new TypeScript errors introduced
+## US-423: Build culture comparison view for side-by-side analysis (2026-04-16)
+- Created client/src/components/visualizations/culture-comparison-utils.ts with pure helpers:
+  - COMPARISON_DIMENSIONS across 6 categories: Geography, Society, Technology, Language & Writing, Religion, Architecture, Material Culture
+  - formatYear, formatTimePeriod, formatPopulation value formatters
+  - rowMatchState (all-match | partial | all-differ) for highlight color coding
+  - computeSharedTraits for cross-profile intersection of languages, religions, writing systems, art/music/literary traditions, architectural styles
+  - searchProfiles for name/region/alternate-name matching
+  - MIN_COMPARE=2, MAX_COMPARE=4 limits from spec
+- Created client/src/components/visualizations/CultureComparisonView.tsx:
+  - Uses shared SideBySideComparisonTable from @/components/ui/comparison-table
+  - Supports selecting 2-4 cultures via a searchable picker with disabled state when max is reached
+  - Renders comparison grouped by category section
+  - Color-coded match state per row: emerald (all-match), sky (partial), amber (all-differ)
+  - Shared Traits summary badge list showing intersected IDs
+  - Empty state prompts to select at least 2 cultures
+  - Legend explaining the three match states
+- Created client/src/components/visualizations/CultureComparisonView.test.ts with 35 passing tests covering:
+  - Formatter edge cases (BCE/CE, null population, M/K suffixes)
+  - All COMPARISON_DIMENSIONS produce non-empty strings and humanize enums
+  - rowMatchState correctness for match/differ/partial
+  - sharedArrayOverlap intersection semantics
+  - computeSharedTraits intersection across 2-3 profiles
+  - searchProfiles matching by name, region, and alternate names
+  - Category grouping helpers
+- All 35 tests pass, no new TypeScript errors introduced
