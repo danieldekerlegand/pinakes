@@ -70,6 +70,9 @@ import { ExtractedFeaturesLayer } from './map-tools/ExtractedFeaturesLayer';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { MapSearchBar } from './map-layers/MapSearchBar';
+import CultureProfilePanel from '../culture-profile-panel';
+import { findCultureProfileIdForFeature } from '../../lib/visualization/culture-profile-lookup';
+import type { CultureProfile } from '@shared/types';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
 import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -769,6 +772,19 @@ export function EnhancedLanguageMapView({
     clearSelection,
   } = useMapFeatureSelection(featureLookupCollections);
 
+  // Culture profiles — used to open CultureProfilePanel when a feature click
+  // maps to a known profile (via civilizationId, archaeologicalCultureId, or id).
+  const { data: cultureProfilesData } = useQuery<{ profiles: CultureProfile[]; count: number }>({
+    queryKey: ['/api/culture-profiles'],
+    staleTime: 5 * 60 * 1000,
+  });
+  const cultureProfiles = useMemo(
+    () => cultureProfilesData?.profiles ?? [],
+    [cultureProfilesData],
+  );
+
+  const [selectedCultureProfileId, setSelectedCultureProfileId] = useState<string | null>(null);
+
   // Filter features by display time, then apply viewport culling + LOD simplification
   const filteredLanguageRanges = useMemo(() => {
     const byTime = filterGeoJSONByTime(allLanguageRanges, displayYear);
@@ -915,15 +931,22 @@ export function EnhancedLanguageMapView({
     filteredArchaeologicalCultures,
   ]);
 
-  // Handle feature clicks — open info panel and notify parent
+  // Handle feature clicks — open info panel and notify parent.
+  // If the clicked feature maps to a CultureProfile (via civilization /
+  // archaeological-culture cross-reference or direct id), also surface the
+  // richer CultureProfilePanel.
   const handleFeatureClick = useCallback(
     (id: string) => {
       selectFeature(id);
+      const cultureId = findCultureProfileIdForFeature(id, cultureProfiles);
+      if (cultureId) {
+        setSelectedCultureProfileId(cultureId);
+      }
       if (onFeatureSelect) {
         onFeatureSelect(id);
       }
     },
-    [onFeatureSelect, selectFeature]
+    [onFeatureSelect, selectFeature, cultureProfiles]
   );
 
   // Keyboard shortcuts (timeline + accessibility)
@@ -1719,6 +1742,15 @@ export function EnhancedLanguageMapView({
         data={selectedFeatureData}
         onClose={clearSelection}
       />
+
+      {/* Culture Profile Panel — opened when a clicked feature resolves to a
+          known CultureProfile (via civilization/arc-culture cross-reference). */}
+      {selectedCultureProfileId && (
+        <CultureProfilePanel
+          cultureId={selectedCultureProfileId}
+          onClose={() => setSelectedCultureProfileId(null)}
+        />
+      )}
     </div>
   );
 }

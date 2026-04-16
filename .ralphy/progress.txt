@@ -1711,3 +1711,24 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## Integrate CultureProfilePanel with Map Click Events (2026-04-16)
+- Created client/src/lib/visualization/culture-profile-lookup.ts exposing
+  findCultureProfileIdForFeature(): resolves a clicked map feature id to a
+  CultureProfile id by checking profile.id, civilizationId, and
+  archaeologicalCultureId. This lets existing map layers (civilizations,
+  archaeological-cultures, etc.) surface the rich CultureProfilePanel without
+  needing a dedicated culture-profile map layer.
+- Wired EnhancedLanguageMapView.tsx to:
+  - Fetch /api/culture-profiles once (5-minute stale time)
+  - Track selectedCultureProfileId state
+  - Call findCultureProfileIdForFeature inside handleFeatureClick so any
+    existing layer click that maps to a known culture profile opens the panel
+  - Render <CultureProfilePanel> next to <MapFeatureInfoPanel>, closed via
+    onClose that resets selectedCultureProfileId
+- Added test/culture-profile-lookup.test.ts with 8 passing tests covering:
+  direct id match, civilizationId match, archaeologicalCultureId match,
+  unknown id, empty id, empty profiles, null-field safety, first-match
+  preference on overlap.
+- No new TypeScript errors introduced; existing unrelated tsc errors (e.g.
+  SettlementFeature import) predate this change.
