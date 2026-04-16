@@ -51,6 +51,7 @@ import ArtTraditionsPanel from "@/components/art-traditions-panel";
 import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
+import MilitaryWarfarePanel from "@/components/military-warfare-panel";
 import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import MesopotamiaCityStatesShowcase from "@/components/mesopotamia-city-states-showcase";
 import GlobalSearchDialog from "@/components/global-search-dialog";
@@ -148,6 +149,8 @@ export default function Dashboard() {
       setActiveSection('literary');
     } else if (entityType === "archaeological-culture") {
       setActiveSection('archCultures');
+    } else if (entityType === "battle") {
+      setActiveSection('military');
     } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
       toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
     } else if (entityType === "language-family") {
@@ -438,6 +441,8 @@ export default function Dashboard() {
               <TradeGoodsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'archCultures' ? (
               <ArchaeologicalCulturesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'military' ? (
+              <MilitaryWarfarePanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'correlation' ? (
               <CorrelationExplorerPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'mesopotamia' ? (

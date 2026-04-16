@@ -1540,3 +1540,12 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+- [✓] 2026-04-16 - Build Military & Warfare section for CultureProfilePanel
+  - Created military-warfare-panel.tsx with timeline and cards views
+  - Battles filterable by war name, color-coded by war, outcome-styled badges
+  - Expandable battle details: belligerents, casualties, location, language impact
+  - Integrated into dashboard.tsx with 'military' section and search navigation
+  - Added military-warfare panel type to VisualizationRecommendations
+  - Created military-warfare-panel.test.ts with 15 tests (formatYear, war colors, outcome styles, filtering)
+  - Updated VisualizationRecommendations.test.ts (14→15 panel types)
+  - All 27 tests pass, no new TypeScript errors

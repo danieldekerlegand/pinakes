@@ -26,7 +26,8 @@ type PanelType =
   | "archaeological-cultures"
   | "trade-goods"
   | "word-comparison"
-  | "linguistic-distance";
+  | "linguistic-distance"
+  | "military-warfare";
 
 interface Recommendation {
   view: ViewMode;
@@ -123,6 +124,11 @@ const PANEL_RECOMMENDATIONS: Record<PanelType, Recommendation[]> = {
     buildRec("network", "Distance-based clustering"),
     buildRec("tree", "Phylogenetic grouping"),
     buildRec("map", "Geographic distance overlay"),
+  ],
+  "military-warfare": [
+    buildRec("map", "Battle site locations"),
+    buildRec("timeline", "War and battle chronology"),
+    buildRec("network", "Belligerent relationship networks"),
   ],
 };
 
