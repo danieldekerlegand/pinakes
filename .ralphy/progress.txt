@@ -1540,3 +1540,13 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+- [✓] 2026-04-16 - Build Material Culture & Arts section for CultureProfilePanel
+  - Created client/src/components/culture-profile/material-culture-arts-section.tsx
+    - Sub-tab navigation: Material Culture, Art Traditions, Music, Dance, Instruments
+    - Filterable by category/instrument family
+    - Expandable cards with full detail views (spread timelines, key features, notable examples, etc.)
+    - Fetches from /api/material-culture, /api/art-traditions, /api/music-traditions, /api/dance-traditions, /api/musical-instruments
+    - Optional languageIds prop to filter data by associated languages
+  - Extracted pure utility functions to material-culture-arts-utils.ts (formatYear, getCategoryColor, filterByCategory, filterByFamily, getUniqueCategories, getUniqueFamilies)
+  - Created material-culture-arts-section.test.ts with 29 passing tests
+    - Tests: formatYear, getCategoryColor, CATEGORY_COLORS, filterByCategory, filterByFamily, getUniqueCategories, getUniqueFamilies
