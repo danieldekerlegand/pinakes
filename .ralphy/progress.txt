@@ -1540,3 +1540,20 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+## Architecture & Urban Planning Section (US-413) - 2026-04-16
+- Created client/src/components/culture-profile/architecture-urban-planning-section.tsx
+  - Section component for CultureProfilePanel showing architectural styles and city layouts
+  - Architectural style cards with expandable details (features, notable structures, building types)
+  - Mini-timeline visualization showing chronological span of architectural styles
+  - City layout cards with urban features grid, street patterns, water management, fortifications
+  - Filtering by architectural style IDs, culture profile ID, or civilization name
+  - Layout type color-coding (grid, organic, radial, citadel, etc.)
+  - Feature icons for urban elements (temple, palace, market, walls, etc.)
+- Created lexicons/city-layouts.tsv with 10 entries (Ur, Mohenjo-daro, Teotihuacan, Athens, Rome, Chang'an, Angkor, Tenochtitlan, Great Zimbabwe, Timbuktu)
+- Added CityLayout interface and TSV loader to server/tsv-storage.ts
+- Added GET /api/city-layouts and GET /api/city-layouts/:id endpoints to server/routes.ts
+- Created architecture-urban-planning-section.test.ts with 26 passing tests
+  - Tests: formatYear, formatPeriod, layout type colors, feature icons/labels, civilization filtering, date sorting, timeline range, year-to-percent calculations
+- All 26 new tests pass, no new TypeScript errors
+- [✓] 2026-04-16 - Build Architecture & Urban Planning section for CultureProfilePanel

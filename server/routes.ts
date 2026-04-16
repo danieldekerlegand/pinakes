@@ -4178,6 +4178,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * GET /api/city-layouts - Get all city layouts with optional filtering
+   */
+  app.get("/api/city-layouts", async (req, res) => {
+    try {
+      const cultureProfileId = req.query.culture_profile_id as string | undefined;
+      const layoutType = req.query.layout_type as string | undefined;
+      const layouts = await storage.getCityLayouts({ cultureProfileId, layoutType });
+      res.json({ layouts, count: layouts.length });
+    } catch (error) {
+      console.error("Error fetching city layouts:", error);
+      res.status(500).json({
+        message: "Failed to fetch city layouts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/city-layouts/:id - Get a single city layout
+   */
+  app.get("/api/city-layouts/:id", async (req, res) => {
+    try {
+      const layout = await storage.getCityLayoutById(req.params.id);
+      if (!layout) {
+        return res.status(404).json({ message: "City layout not found" });
+      }
+      res.json(layout);
+    } catch (error) {
+      console.error("Error fetching city layout:", error);
+      res.status(500).json({
+        message: "Failed to fetch city layout",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
    * GET /api/archaeological-cultures - Get all archaeological cultures with optional filtering
    */
   app.get("/api/archaeological-cultures", async (req, res) => {
