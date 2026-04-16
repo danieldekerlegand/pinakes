@@ -1540,3 +1540,30 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+Build Cuisine & Foodways section for CultureProfilePanel (US-415)
+
+Completed:
+- Created client/src/components/culture-profile/cuisine-foodways-utils.ts
+  - Type definitions: Cuisine, CuisineItem, CookingTechnique, IngredientOrigin, FoodwayEvent
+  - Color maps: REGION_COLORS, TECHNIQUE_CATEGORY_COLORS, FOOD_TYPE_COLORS, MECHANISM_COLORS
+  - Helper functions: formatYear, getRegionColor, getTechniqueCategoryColor, getFoodTypeColor
+  - Filter functions: filterItemsByCuisineId, filterTechniquesByCuisineId, filterIngredientsByCuisineId
+  - Grouping functions: groupItemsByFoodType, groupTechniquesByCategory
+  - Mechanism helpers: getMechanismLabel, getMechanismColor
+- Created client/src/components/culture-profile/cuisine-foodways-section.tsx
+  - Main section component with cuisineId and languageIds props
+  - Cuisine overview cards with name, native name, region, origin date, description, and stats
+  - 4 tabbed sub-sections: Dishes, Techniques, Ingredients, Foodways
+  - Dishes tab: food type filter pills, items grouped by type in a grid layout
+  - Techniques tab: category filter pills, expandable technique cards grouped by category
+  - Ingredients tab: expandable cards showing origin region, date, native name, description
+  - Foodways tab: historical food exchange events with mechanism badges, origin/destination, cultural impact
+  - Data fetched from /api/cuisines, /api/cuisine-items, /api/cooking-techniques, /api/ingredient-origins, /api/foodway-events
+  - Filters associated cuisines by cuisineId or languageIds props
+- Created client/src/components/culture-profile/cuisine-foodways-section.test.ts
+  - 36 tests covering all utility functions
+  - Tests: formatYear, color lookups, filter functions, unique value extraction, grouping, color constant validation
+  - All 36 tests pass
+- No new TypeScript errors introduced
+- [✓] 2026-04-16 - Build Cuisine & Foodways section for CultureProfilePanel
