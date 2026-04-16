@@ -87,6 +87,12 @@ import {
   getEnrichmentJob,
   getAllEnrichmentJobs,
 } from "./services/batch-enrichment";
+import {
+  runCultureProfileEnrichment,
+  getCultureEnrichmentJob,
+  getAllCultureEnrichmentJobs,
+  type EnrichmentDomain,
+} from "./services/culture-profile-enrichment";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
@@ -5388,6 +5394,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error listing underrepresented families:", error);
       res.status(500).json({ message: "Failed to list underrepresented families" });
+    }
+  });
+
+  /**
+   * POST /api/enrichment/culture-profiles - Enrich culture profile supporting TSVs
+   * Generates daily-life, social-structures, and city-layouts entries for the
+   * specified culture profiles using Gemini AI. Returns the job record; clients
+   * can poll GET /api/enrichment/culture-profiles/jobs/:id for progress.
+   */
+  app.post("/api/enrichment/culture-profiles", async (req, res) => {
+    try {
+      const { profileIds, domains, entriesPerDomain } = req.body ?? {};
+
+      const validDomains: EnrichmentDomain[] = ["daily-life", "social-structures", "city-layouts"];
+      let requestedDomains: EnrichmentDomain[] | undefined;
+      if (Array.isArray(domains)) {
+        requestedDomains = domains.filter((d): d is EnrichmentDomain =>
+          validDomains.includes(d as EnrichmentDomain)
+        );
+        if (requestedDomains.length === 0) {
+          return res.status(400).json({
+            message: `domains must contain at least one of: ${validDomains.join(", ")}`,
+          });
+        }
+      }
+
+      let requestedProfileIds: string[] | undefined;
+      if (Array.isArray(profileIds)) {
+        requestedProfileIds = profileIds.filter((id): id is string => typeof id === "string" && id.length > 0);
+      }
+
+      const entriesCount =
+        typeof entriesPerDomain === "number" && entriesPerDomain > 0 && entriesPerDomain <= 25
+          ? entriesPerDomain
+          : undefined;
+
+      const job = await runCultureProfileEnrichment({
+        profileIds: requestedProfileIds,
+        domains: requestedDomains,
+        entriesPerDomain: entriesCount,
+        onProgress: (msg) => console.log(`[Culture Enrichment] ${msg}`),
+      });
+
+      storage.invalidateCache("all");
+      res.json(job);
+    } catch (error) {
+      console.error("Error running culture profile enrichment:", error);
+      res.status(500).json({ message: "Failed to run culture profile enrichment" });
+    }
+  });
+
+  /**
+   * GET /api/enrichment/culture-profiles/jobs - List culture enrichment jobs
+   */
+  app.get("/api/enrichment/culture-profiles/jobs", async (_req, res) => {
+    try {
+      res.json(getAllCultureEnrichmentJobs());
+    } catch (error) {
+      console.error("Error fetching culture enrichment jobs:", error);
+      res.status(500).json({ message: "Failed to fetch culture enrichment jobs" });
+    }
+  });
+
+  /**
+   * GET /api/enrichment/culture-profiles/jobs/:id - Get a single job's status
+   */
+  app.get("/api/enrichment/culture-profiles/jobs/:id", async (req, res) => {
+    try {
+      const job = getCultureEnrichmentJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ message: "Culture enrichment job not found" });
+      }
+      res.json(job);
+    } catch (error) {
+      console.error("Error fetching culture enrichment job:", error);
+      res.status(500).json({ message: "Failed to fetch culture enrichment job" });
     }
   });
 

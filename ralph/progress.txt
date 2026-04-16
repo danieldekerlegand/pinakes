@@ -388,3 +388,22 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Tests chronological phase ordering with no gaps
 - Files: settlement-lifecycle.ts, SettlementsLayer.tsx, test-settlement-lifecycle.test.ts
 ---
+
+## US-428: Create culture profile enrichment scraper
+- Created `server/services/culture-profile-enrichment.ts`
+  - `runCultureProfileEnrichment(options)` enriches daily-life, social-structures, and city-layouts TSVs for specified culture profiles via Gemini AI
+  - Auto-assigns sequential IDs (dl-###, ss-###, cl-###) that do not collide with existing rows
+  - Forces `culture_profile_id` to match the requested profile even if the model returns a different one
+  - Per-domain Gemini prompts include profile name, region, time period, summary, and existing entries so the model produces historically consistent, non-duplicating content with academic source citations
+  - In-memory job store with `getCultureEnrichmentJob(id)` and `getAllCultureEnrichmentJobs()` for progress tracking
+  - Collects per-message progress logs and per-domain errors without aborting sibling profiles
+- Added `POST /api/enrichment/culture-profiles` endpoint to `server/routes.ts`
+  - Accepts `profileIds`, `domains`, and `entriesPerDomain` in the body
+  - Validates domains against the allowed list and entriesPerDomain against a 1-25 range
+  - Invalidates the storage cache after writing so subsequent reads see the new rows
+  - Added companion `GET /api/enrichment/culture-profiles/jobs` and `GET /api/enrichment/culture-profiles/jobs/:id` endpoints
+- Created `server/services/culture-profile-enrichment.test.ts` with 9 passing tests
+  - Covers missing API key, unknown profile IDs, sequential ID assignment, culture_profile_id override, Gemini failure isolation, progress callbacks, and job store tracking
+  - Snapshots and restores all four target TSVs around each test so the real lexicons stay intact
+- Files: server/services/culture-profile-enrichment.ts, server/services/culture-profile-enrichment.test.ts, server/routes.ts
+---
