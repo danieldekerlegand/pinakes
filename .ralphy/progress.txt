@@ -1540,3 +1540,30 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+Build Language & Writing section for CultureProfilePanel (US-411)
+
+Completed:
+- Created client/src/components/culture-language-writing-section.tsx
+  - CultureLanguageWritingSection component accepting languageIds, writingSystemIds, literaryTraditionIds props
+  - LanguageCard: displays language name, native name, status badge, classification, speaker count, writing system
+  - WritingSystemCard: shows type badge, direction, sample glyphs, character count, origin info, expandable script evolution lineage tree
+  - LiteraryWorkCard: title, author, date, genre badge, description excerpt, original script
+  - SampleTextCard: original text with dir="auto", transliteration, collapsible translation toggle
+  - Loading skeleton states for all sections
+  - Empty state with icon when no data available
+  - Fetches from existing APIs: /api/languages, /api/writing-systems, /api/literary-works, /api/sample-texts
+  - Client-side filtering by culture-associated IDs
+  - Ancestor chain resolution for writing system evolution trees (with circular reference protection)
+- Created client/src/components/culture-language-writing-section.test.ts (31 tests)
+  - formatYear: BCE/CE formatting, null handling, string parsing
+  - formatSpeakers: billions/millions/thousands/small/null formatting
+  - filterLanguages: matching, non-matching, empty, partial ID filtering
+  - filterWritingSystems: matching and non-matching ID filtering
+  - filterLiteraryWorks: tradition-based, language-based, combined OR logic filtering
+  - filterSampleTexts: language-based filtering
+  - getAncestors: lineage chain, root systems, missing parents, circular reference safety
+  - Color map coverage for writing types and language statuses
+  - Data integrity checks for required fields
+- All 31 tests pass, no new TypeScript errors
+- [✓] 2026-04-16 - Build Language & Writing section for CultureProfilePanel
