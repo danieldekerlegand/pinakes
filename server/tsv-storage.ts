@@ -698,6 +698,19 @@ export interface DailyLife {
   sources: string[];
 }
 
+// Culture evolution event types
+export interface CultureEvent {
+  id: string;
+  cultureProfileId: string;
+  year: number;
+  lane: string;
+  eventType: string;
+  title: string;
+  description: string;
+  magnitude: string;
+  sources: string[];
+}
+
 // Social structure types
 export interface SocialStructure {
   id: string;
@@ -1015,6 +1028,8 @@ export class TsvStorage {
 
   // Daily life cache
   private cachedDailyLife: DailyLife[] | null = null;
+  // Culture evolution events cache
+  private cachedCultureEvents: CultureEvent[] | null = null;
   // Culture profiles cache
   private cachedCultureProfiles: CultureProfile[] | null = null;
   // Media assets cache
@@ -5971,6 +5986,45 @@ export class TsvStorage {
       grouped[entry.category].push(entry);
     }
     return grouped;
+  }
+
+  // ── Culture Evolution Events ────────────────────────────────
+
+  private loadCultureEvents(): void {
+    if (this.cachedCultureEvents) return;
+
+    const text = this.readFileIfExists("lexicons/culture-events.tsv");
+    if (!text) { this.cachedCultureEvents = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const cultureIdx = getIdx(header, "culture_profile_id");
+    const yearIdx = getIdx(header, "year");
+    const laneIdx = getIdx(header, "lane");
+    const typeIdx = getIdx(header, "event_type");
+    const titleIdx = getIdx(header, "title");
+    const descIdx = getIdx(header, "description");
+    const magIdx = getIdx(header, "magnitude");
+    const srcIdx = header.indexOf("sources");
+
+    this.cachedCultureEvents = rows.map((row) => ({
+      id: row[idIdx],
+      cultureProfileId: row[cultureIdx],
+      year: parseInt(row[yearIdx], 10),
+      lane: row[laneIdx],
+      eventType: row[typeIdx],
+      title: row[titleIdx],
+      description: row[descIdx],
+      magnitude: row[magIdx],
+      sources: (() => { try { return JSON.parse(row[srcIdx] || "[]"); } catch { return []; } })(),
+    }));
+  }
+
+  async getCultureEventsByCulture(cultureProfileId: string): Promise<CultureEvent[]> {
+    this.loadCultureEvents();
+    return (this.cachedCultureEvents ?? [])
+      .filter((e) => e.cultureProfileId === cultureProfileId)
+      .sort((a, b) => a.year - b.year);
   }
 
   // ── Culture Profiles ────────────────────────────────────────

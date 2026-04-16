@@ -388,3 +388,19 @@ Started: Thu Mar 12 00:45:34 CDT 2026
   - Tests chronological phase ordering with no gaps
 - Files: settlement-lifecycle.ts, SettlementsLayer.tsx, test-settlement-lifecycle.test.ts
 ---
+
+## 2026-04-16 - US-424
+- Built `CultureEvolutionTimeline` swim-lane visualization showing socio-cultural changes for a culture
+  - Lanes: political, territory, urbanism, technology, religion, language, economy
+  - Event markers sized by magnitude (major/moderate/minor), color-coded by lane
+  - Draggable year scrubber with live state summary per lane (most recent event up to that year)
+  - Hover/click event markers for titles and a detail card with description
+  - Auto-computed time bounds include both culture profile window and all events
+  - Responsive SVG via `ResizeObserver`; degrades gracefully with zero events
+- Created `lexicons/culture-events.tsv` with 78 evolution events across 17 cultures (Sumerian through Byzantine)
+- Added `CultureEvent` interface + `loadCultureEvents()` + `getCultureEventsByCulture()` to `server/tsv-storage.ts`
+- Added `GET /api/culture-profiles/:id/evolution-events` endpoint
+- Added "Evolution" tab to `CultureProfilePanel` wiring in a new `CultureEvolutionTimelineSection` wrapper
+- 35 vitest assertions passing (utils + data integrity)
+- Files: CultureEvolutionTimeline.tsx, culture-evolution-timeline-section.tsx, culture-evolution-timeline-utils.ts, culture-evolution-timeline-utils.test.ts, culture-events.tsv, test-culture-events.test.ts, tsv-storage.ts, routes.ts, culture-profile-panel.tsx
+---

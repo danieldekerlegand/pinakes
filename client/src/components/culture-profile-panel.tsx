@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { CultureProfile } from "@shared/types";
 import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
+import CultureEvolutionTimelineSection from "@/components/culture-profile/culture-evolution-timeline-section";
 
 interface CultureProfilePanelProps {
   cultureId: string;
@@ -323,6 +324,9 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               <TabsTrigger value="summary" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-summary">
                 Summary
               </TabsTrigger>
+              <TabsTrigger value="evolution" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-evolution">
+                Evolution
+              </TabsTrigger>
               <TabsTrigger value="language" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-language">
                 Language
               </TabsTrigger>
@@ -359,6 +363,14 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="summary">
               <SummaryTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="evolution">
+              <CultureEvolutionTimelineSection
+                cultureProfileId={profile.id}
+                cultureName={profile.name}
+                profileStart={profile.timePeriodStart}
+                profileEnd={profile.timePeriodEnd}
+              />
             </TabsContent>
             <TabsContent value="language">
               <PlaceholderSection title="Language & Writing" icon={<ScrollText className="h-8 w-8" />} />
