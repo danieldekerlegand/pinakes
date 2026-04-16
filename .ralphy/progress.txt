@@ -1711,3 +1711,9 @@ Completed:
 - Created test/media-asset-service.test.ts with 18 passing tests
   - Tests: TSV loading, validation, add/delete, ID auto-increment, TsvStorage integration
 - All 18 tests pass, no new TypeScript errors
+
+## US-417: Economy & Trade section tests (2026-04-16)
+- Added client/src/components/culture-profile/economy-trade-section.test.ts with 22 passing tests
+  - Tests: formatTradeYear (BCE/CE/zero/non-numeric), filterTradeGoodsByLanguages, filterTradeRoutesByLanguages, getUniqueCategories, getUniqueRouteTypes, CATEGORY_COLORS and ROUTE_TYPE_COLORS constants
+- All 22 tests pass; all 113 tests in culture-profile suite pass
+- No TypeScript errors introduced (pre-existing errors in server/tsv-storage.ts and shared/computation.ts are unrelated)
