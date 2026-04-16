@@ -23,6 +23,7 @@ import {
 import type { CultureProfile } from "@shared/types";
 import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
 import TechnologyInnovationSection from "@/components/culture-profile/technology-innovation-section";
+import CultureEvolutionTimelineSection from "@/components/culture-profile/culture-evolution-timeline-section";
 
 interface CultureProfilePanelProps {
   cultureId: string;
