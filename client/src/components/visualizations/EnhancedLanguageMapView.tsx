@@ -59,6 +59,8 @@ import { MapLabelsLayer } from './map-layers/MapLabelsLayer';
 import { useDrawingTool } from './hooks/useDrawingTool';
 import { useImageGeoreference } from './hooks/useImageGeoreference';
 import { ImageGeoreferenceLayer, ImageGeoreferencePanel } from './map-tools/ImageGeoreferencer';
+import { useMapFeatureExtraction } from './hooks/useMapFeatureExtraction';
+import { ExtractedFeaturesLayer } from './map-tools/ExtractedFeaturesLayer';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
@@ -131,6 +133,9 @@ export function EnhancedLanguageMapView({
 
   // Initialize image georeferencing tool
   const georefTool = useImageGeoreference();
+
+  // Initialize AI feature extraction
+  const featureExtraction = useMapFeatureExtraction();
 
   // Expose drawing tool via ref for external panels
   React.useEffect(() => {
@@ -1081,6 +1086,11 @@ export function EnhancedLanguageMapView({
         {/* Image Georeferencing Layer */}
         <ImageGeoreferenceLayer georef={georefTool} />
 
+        {/* AI-Extracted Features Layer */}
+        {featureExtraction.state.reviewableFeatures.length > 0 && (
+          <ExtractedFeaturesLayer features={featureExtraction.state.reviewableFeatures} />
+        )}
+
         {/* Map Labels Layer */}
         <MapLabelsLayer
           languageRanges={filteredLanguageRanges}
@@ -1127,6 +1137,24 @@ export function EnhancedLanguageMapView({
         georef={georefTool}
         mapCenter={initialCenter}
         mapZoom={2}
+        extractionState={featureExtraction.state}
+        onExtractFeatures={() => {
+          const bounds = georefTool.georeferencedBounds || georefTool.state.bounds;
+          if (georefTool.state.imageUrl && bounds) {
+            featureExtraction.extractFeatures(georefTool.state.imageUrl, bounds);
+          }
+        }}
+        onToggleFeatureAccepted={featureExtraction.toggleAccepted}
+        onToggleFeatureVisible={featureExtraction.toggleVisible}
+        onRemoveFeature={featureExtraction.removeFeature}
+        onAcceptAllFeatures={featureExtraction.acceptAll}
+        onRejectAllFeatures={featureExtraction.rejectAll}
+        onConfirmFeatures={() => {
+          // Features are already displayed on the map; confirming is acknowledgment
+          // In the future this could save to TSV storage
+          featureExtraction.dismiss();
+        }}
+        onDismissFeatures={featureExtraction.dismiss}
       />
 
       {/* Map Comparison Overlays (toggle, divider, control panel) */}
