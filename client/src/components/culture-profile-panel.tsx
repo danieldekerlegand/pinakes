@@ -29,6 +29,12 @@ import { SocialHierarchyView } from "@/components/visualizations/SocialHierarchy
 import CultureMediaGallery from "@/components/shared/CultureMediaGallery";
 import { CultureDataCard } from "@/components/shared/CultureDataCard";
 import CultureComparisonView from "@/components/visualizations/CultureComparisonView";
+import CultureLanguageWritingSection from "@/components/culture-language-writing-section";
+import ReligionMythologyPanel from "@/components/religion-mythology-panel";
+import ArchitectureUrbanPlanningSection from "@/components/culture-profile/architecture-urban-planning-section";
+import MaterialCultureArtsSection from "@/components/culture-profile/material-culture-arts-section";
+import CuisineFoodwaysSection from "@/components/culture-profile/cuisine-foodways-section";
+import MilitaryWarfarePanel from "@/components/military-warfare-panel";
 import { GitCompare } from "lucide-react";
 
 interface CultureProfilePanelProps {
@@ -432,19 +438,34 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               />
             </TabsContent>
             <TabsContent value="language">
-              <PlaceholderSection title="Language & Writing" icon={<ScrollText className="h-8 w-8" />} />
+              <CultureLanguageWritingSection
+                languageIds={profile.associatedLanguageIds}
+                writingSystemIds={profile.associatedWritingSystemIds}
+                literaryTraditionIds={profile.associatedLiteraryTraditionIds}
+              />
             </TabsContent>
             <TabsContent value="religion">
-              <PlaceholderSection title="Religion & Mythology" icon={<BookOpen className="h-8 w-8" />} />
+              <ReligionMythologyPanel
+                isOpen
+                embedded
+                onClose={() => setActiveTab("summary")}
+              />
             </TabsContent>
             <TabsContent value="architecture">
-              <PlaceholderSection title="Architecture & Urban Planning" icon={<Building2 className="h-8 w-8" />} />
+              <ArchitectureUrbanPlanningSection
+                architecturalStyleIds={profile.associatedArchitecturalStyleIds}
+                cultureProfileId={profile.id}
+                civilizationName={profile.name}
+              />
             </TabsContent>
             <TabsContent value="arts">
-              <PlaceholderSection title="Material Culture & Arts" icon={<Palette className="h-8 w-8" />} />
+              <MaterialCultureArtsSection languageIds={profile.associatedLanguageIds} />
             </TabsContent>
             <TabsContent value="cuisine">
-              <PlaceholderSection title="Cuisine & Foodways" icon={<UtensilsCrossed className="h-8 w-8" />} />
+              <CuisineFoodwaysSection
+                cuisineId={profile.associatedCuisineId ?? undefined}
+                languageIds={profile.associatedLanguageIds}
+              />
             </TabsContent>
             <TabsContent value="economy">
               <EconomyTradeSection
@@ -461,7 +482,11 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               </div>
             </TabsContent>
             <TabsContent value="military">
-              <PlaceholderSection title="Military & Warfare" icon={<Swords className="h-8 w-8" />} />
+              <MilitaryWarfarePanel
+                isOpen
+                embedded
+                onClose={() => setActiveTab("summary")}
+              />
             </TabsContent>
             <TabsContent value="technology">
               <TechnologyInnovationSection

@@ -53,6 +53,7 @@ import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
 import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
 import TradeGoodsPanel from "@/components/trade-goods-panel";
 import ReligionMythologyPanel from "@/components/religion-mythology-panel";
+import MilitaryWarfarePanel from "@/components/military-warfare-panel";
 import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import MesopotamiaCityStatesShowcase from "@/components/mesopotamia-city-states-showcase";
 import CultureDiscoveryFeed from "@/components/culture-discovery-feed";
