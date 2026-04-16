@@ -10,15 +10,9 @@ import {
   MapPin,
   Users,
   Landmark,
-  BookOpen,
-  Palette,
-  Music,
   UtensilsCrossed,
-  Swords,
   Lightbulb,
-  ScrollText,
   Building2,
-  TrendingUp,
 } from "lucide-react";
 import type { CultureProfile } from "@shared/types";
 import EconomyTradeSection from "@/components/culture-profile/economy-trade-section";
@@ -261,16 +255,6 @@ function SummaryTab({ profile }: { profile: CultureProfile }) {
           Sources: {profile.sources.join("; ")}
         </p>
       )}
-    </div>
-  );
-}
-
-function PlaceholderSection({ title, icon }: { title: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
-      <div className="mb-2">{icon}</div>
-      <p className="text-sm">{title}</p>
-      <p className="text-xs mt-1">Content coming soon</p>
     </div>
   );
 }
