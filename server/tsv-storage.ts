@@ -681,6 +681,24 @@ export interface LiteraryWork {
 }
 
 
+export interface WikimediaCommonsImage {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  thumbUrl: string;
+  artist: string;
+  license: string;
+  categories: string[];
+  coordinates: { lat: number; lng: number } | null;
+  dateCreated: string;
+  associatedCulture: string;
+  associatedLanguageIds: string[];
+  artifactType: string;
+  region: string;
+  source: string;
+}
+
 export type TsvStorageConfig = {
   conceptDataPath: string;
   languageDataPath: string;

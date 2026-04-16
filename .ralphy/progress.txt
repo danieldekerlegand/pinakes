@@ -1540,3 +1540,32 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+## Wikimedia Commons Image Scraper (Agent 9)
+- Created WikimediaCommonsImage interface in server/tsv-storage.ts
+- Created server/services/wikimedia-commons-scraper.ts with WikimediaCommonsScraper class:
+  - Fetches images from Wikimedia Commons API by cultural categories
+  - 25 pre-defined cultural categories (temples, archaeological artifacts, sacred places, etc.)
+  - Category member listing with pagination support
+  - Batch image info fetching (20 per batch with rate limiting)
+  - Cultural metadata inference from titles, descriptions, and categories
+  - Maps images to cultures (Egyptian, Greek, Roman, Japanese, etc.) with language IDs
+  - Artifact type detection (temple, mosque, pottery, sculpture, manuscript, etc.)
+  - HTML cleaning for descriptions and artist fields
+  - Resumable scraping with existing ID deduplication
+  - Atomic TSV write with temp file pattern
+  - Concurrency guard to prevent parallel runs
+  - Job store integration for progress tracking
+- Added POST /api/scrape/wikimedia-commons endpoint in routes.ts
+- Added GET /api/wikimedia-commons-images endpoint with culture, artifact_type, region filters
+- Created server/services/wikimedia-commons-scraper.test.ts with 15 passing tests:
+  - Category member fetching, pagination, limit enforcement
+  - Image info extraction, coordinate handling, HTML cleaning
+  - Batch request splitting for large page ID lists
+  - End-to-end scraping with TSV output verification
+  - Deduplication of existing images
+  - Concurrent scraping prevention
+  - Graceful per-category error handling
+  - Cultural metadata inference from keywords
+- All 15 tests pass, no new TypeScript errors
+- [✓] 2026-04-16 - Create Wikimedia Commons image scraper for cultural artifacts and sites
