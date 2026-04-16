@@ -1540,3 +1540,17 @@ Completed:
 - All 949 tests pass, no new TypeScript errors
 - [✓] 2026-04-16 06:58 - Create river and water feature layer
 - [✓] 2026-04-16 07:06 - Create map data overlay heatmaps for density visualization
+
+## Agent 13: Build Religion & Mythology section for CultureProfilePanel
+- Created religion-mythology-panel.tsx with three tabs: Religions, Deities, Myth Motifs
+  - Timeline view with Gantt-chart bars and Cards view
+  - Filtering by religion type, mythology/pantheon, and motif type
+  - Expandable detail cards showing sacred texts, deity pantheons, ritual practices, domains, attributes, symbols, equivalents, Thompson index
+  - Color-coded using RELIGION_COLORS and MYTHOLOGY_COLORS from centralized color theme
+- Fixed TSV storage bug: deity loader now correctly maps 'pantheon' column (was looking for non-existent 'mythology' column)
+- Fixed TSV storage bug: deity 'syncretism_links' column now correctly maps to equivalentDeityIds
+- Fixed TSV storage bug: deity domain field now uses JSON.parse instead of string split
+- Integrated panel into dashboard.tsx as activeSection='religion'
+- Created test-religion-mythology-panel.ts with data integrity tests (religions, deities, motifs, cross-references, timeline data)
+- All panel tests pass
+- [✓] 2026-04-16 - Build Religion & Mythology section for CultureProfilePanel
