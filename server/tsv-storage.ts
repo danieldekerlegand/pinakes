@@ -527,6 +527,22 @@ export interface CultureProfile {
   sources: string[];
 }
 
+// City layout types
+export interface CityLayout {
+  id: string;
+  settlementId: string;
+  cultureProfileId: string;
+  layoutType: string;
+  keyFeatures: string[];
+  streetPattern: string;
+  waterManagement: string[];
+  fortificationType: string;
+  estimatedAreaHectares: number | null;
+  description: string;
+  reconstructionNotes: string;
+  sources: string;
+}
+
 // River and water feature types
 export interface RiverWaterFeature {
   id: string;
@@ -935,6 +951,9 @@ export class TsvStorage {
 
   // Settlements data cache
   private cachedSettlements: Settlement[] | null = null;
+
+  // City layouts cache
+  private cachedCityLayouts: CityLayout[] | null = null;
 
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
@@ -6046,5 +6065,84 @@ export class TsvStorage {
     );
 
     return { profile, languages, religions, writingSystems, settlements };
+  }
+
+  // ── City Layouts ──────────────────────────────────────────────
+
+  private loadCityLayouts(): void {
+    if (this.cachedCityLayouts) return;
+
+    const text = this.readFileIfExists("lexicons/city-layouts.tsv");
+    if (!text) { this.cachedCityLayouts = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const settlementIdx = header.indexOf("settlement_id");
+    const cultureIdx = header.indexOf("culture_profile_id");
+    const layoutIdx = header.indexOf("layout_type");
+    const featuresIdx = header.indexOf("key_features");
+    const streetIdx = header.indexOf("street_pattern");
+    const waterIdx = header.indexOf("water_management");
+    const fortIdx = header.indexOf("fortification_type");
+    const areaIdx = header.indexOf("estimated_area_hectares");
+    const descIdx = header.indexOf("description");
+    const reconIdx = header.indexOf("reconstruction_notes");
+    const sourcesIdx = header.indexOf("sources");
+
+    const parsePipe = (idx: number, row: string[]): string[] => {
+      if (idx < 0 || !row[idx]) return [];
+      return row[idx].split("|").map((s) => s.trim()).filter(Boolean);
+    };
+
+    this.cachedCityLayouts = rows.map((row) => ({
+      id: row[idIdx],
+      settlementId: settlementIdx >= 0 ? row[settlementIdx] || "" : "",
+      cultureProfileId: cultureIdx >= 0 ? row[cultureIdx] || "" : "",
+      layoutType: layoutIdx >= 0 ? row[layoutIdx] || "" : "",
+      keyFeatures: parsePipe(featuresIdx, row),
+      streetPattern: streetIdx >= 0 ? row[streetIdx] || "" : "",
+      waterManagement: parsePipe(waterIdx, row),
+      fortificationType: fortIdx >= 0 ? row[fortIdx] || "" : "",
+      estimatedAreaHectares: (() => {
+        if (areaIdx < 0 || !row[areaIdx] || row[areaIdx] === "undetermined") return null;
+        const v = parseFloat(row[areaIdx]);
+        return isNaN(v) ? null : v;
+      })(),
+      description: descIdx >= 0 ? row[descIdx] || "" : "",
+      reconstructionNotes: reconIdx >= 0 ? row[reconIdx] || "" : "",
+      sources: sourcesIdx >= 0 ? row[sourcesIdx] || "" : "",
+    }));
+  }
+
+  async getCityLayouts(filters?: {
+    cultureProfileId?: string;
+    settlementId?: string;
+    layoutType?: string;
+  }): Promise<CityLayout[]> {
+    this.loadCityLayouts();
+    let layouts = this.cachedCityLayouts ?? [];
+
+    if (filters?.cultureProfileId) {
+      layouts = layouts.filter((l) =>
+        l.cultureProfileId.toLowerCase() === filters.cultureProfileId!.toLowerCase()
+      );
+    }
+    if (filters?.settlementId) {
+      layouts = layouts.filter((l) =>
+        l.settlementId.toLowerCase() === filters.settlementId!.toLowerCase()
+      );
+    }
+    if (filters?.layoutType) {
+      layouts = layouts.filter((l) =>
+        l.layoutType.toLowerCase() === filters.layoutType!.toLowerCase()
+      );
+    }
+
+    return layouts;
+  }
+
+  async getCityLayoutById(id: string): Promise<CityLayout | null> {
+    this.loadCityLayouts();
+    return (this.cachedCityLayouts ?? []).find((l) => l.id === id) ?? null;
   }
 }

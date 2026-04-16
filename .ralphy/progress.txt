@@ -1664,3 +1664,27 @@ Completed:
 - Created test/test-social-structures.ts with 37 tests (all passing)
   - Tests: data loading, structure validation, filtering, ID lookup, enum validation, duplicate detection, culture coverage
 - [✓] 2026-04-16 - Create social-structures.tsv for governance, class, and family systems
+
+US-406: Add city-layouts and social-structures TSV loaders and API endpoints
+
+Completed:
+- Created lexicons/city-layouts.tsv with 15 city layouts (Ur, Mohenjo-daro, Teotihuacan, Athens, Rome, Chang'an, Angkor, Tenochtitlan, Great Zimbabwe, Timbuktu, Cusco, Jericho, Catalhoyuk, Persepolis, Carthage)
+  - Columns: id, settlement_id, culture_profile_id, layout_type, key_features, street_pattern, water_management, fortification_type, estimated_area_hectares, description, reconstruction_notes, sources
+  - Layout types: grid, organic, radial, citadel, canal-based, terraced
+  - Pipe-separated key_features and water_management fields
+- Created lexicons/social-structures.tsv with 25 social structures across 15 cultures
+  - Columns: id, culture_profile_id, structure_type, name, description, key_roles, inheritance_pattern, decision_making, related_kinship_system_id, time_period_start, time_period_end, sources
+  - Structure types: government, class_hierarchy, legal_system, education_system, religious_hierarchy, military_organization, family_structure
+  - Pipe-separated key_roles field
+- Added CityLayout and SocialStructure interfaces to server/tsv-storage.ts
+- Added loadCityLayouts() and loadSocialStructures() loaders with lazy caching
+- Added getCityLayouts(filters), getCityLayoutById(id), getSocialStructures(filters), getSocialStructureById(id) methods
+- Added 6 API endpoints in server/routes.ts:
+  - GET /api/city-layouts (filters: culture_profile_id, settlement_id, layout_type)
+  - GET /api/city-layouts/:id
+  - GET /api/social-structures (filters: culture_profile_id, structure_type)
+  - GET /api/social-structures/:id
+  - GET /api/culture-profiles/:id/city-layouts
+  - GET /api/culture-profiles/:id/social-structures
+- Created test/test-city-layouts.ts with 117 passing tests
+- Created test/test-social-structures.ts with 249 passing tests
