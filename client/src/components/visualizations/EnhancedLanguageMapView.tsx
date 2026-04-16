@@ -64,6 +64,7 @@ import { useMeasurementTool } from './hooks/useMeasurementTool';
 import { MeasurementLayer, MeasurementPanel } from './map-tools/MeasurementTools';
 import { MapContextMenu } from './map-layers/MapContextMenu';
 import { MapFeatureInfoPanel } from './map-layers/MapFeatureInfoPanel';
+import { MapSearchBar } from './map-layers/MapSearchBar';
 import { useMapFeatureSelection } from './hooks/useMapFeatureSelection';
 import type { FeatureLookupCollections } from './hooks/useMapFeatureSelection';
 import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transformers';
@@ -929,6 +930,9 @@ export function EnhancedLanguageMapView({
 
         {/* Story mode fly-to controller */}
         <MapFlyTo target={flyTarget} />
+
+        {/* Geographic Search Bar */}
+        <MapSearchBar />
 
         {/* SVG pattern definitions for hatched/striped fills */}
         {territorialPatterns.length > 0 && (

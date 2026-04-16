@@ -41,6 +41,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
@@ -1692,6 +1693,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error searching boundaries:", error);
       res.status(500).json({
         message: "Failed to search boundaries",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/map/places/search?q=query&limit=15 - Search places (local + Nominatim)
+   */
+  app.get("/api/map/places/search", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: "" });
+        return;
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 15;
+      const result = await searchPlacesWithNominatim(q, limit);
+      res.json(result);
+    } catch (error) {
+      console.error("Error in place search:", error);
+      res.status(500).json({
+        message: "Failed to search places",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/map/places/autocomplete?q=query&limit=8 - Fast autocomplete (local only)
+   */
+  app.get("/api/map/places/autocomplete", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || q.trim().length < 2) {
+        res.json([]);
+        return;
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+      const results = await autocompletePlaces(q, limit);
+      res.json(results);
+    } catch (error) {
+      console.error("Error in place autocomplete:", error);
+      res.status(500).json({
+        message: "Failed to autocomplete places",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }
