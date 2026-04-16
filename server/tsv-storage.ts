@@ -236,6 +236,35 @@ export interface UrheimatHypothesis {
   sources: string[];
 }
 
+// Culture profile types
+export interface CultureProfile {
+  id: string;
+  name: string;
+  alternateNames: string[];
+  civilizationId: string;
+  archaeologicalCultureId: string;
+  timePeriodStart: number | null;
+  timePeriodEnd: number | null;
+  region: string;
+  summaryDescription: string;
+  socialOrganization: string;
+  subsistenceType: string;
+  urbanismLevel: string;
+  populationEstimate: number | null;
+  technologyLevel: string;
+  associatedLanguageIds: string[];
+  associatedReligionIds: string[];
+  associatedWritingSystemIds: string[];
+  associatedArtTraditionIds: string[];
+  associatedMusicTraditionIds: string[];
+  associatedCuisineId: string;
+  associatedArchitecturalStyleIds: string[];
+  associatedLiteraryTraditionIds: string[];
+  notableSettlements: string[];
+  imageGalleryTags: string[];
+  sources: string[];
+}
+
 // Archaeological culture types
 export interface ArchaeologicalCulture {
   id: string;
