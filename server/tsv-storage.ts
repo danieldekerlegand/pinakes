@@ -621,6 +621,21 @@ export interface BuildingType {
   culturalFunction: string;
 }
 
+// City layout types
+export interface CityLayout {
+  id: string;
+  settlementName: string;
+  cultureProfileId: string;
+  layoutType: string;
+  keyFeatures: string[];
+  streetPattern: string;
+  waterManagement: string;
+  fortificationType: string;
+  estimatedAreaHectares: number;
+  description: string;
+  reconstructionNotes: string;
+}
+
 // Trade good types
 export interface TradeGood {
   id: string;
@@ -936,6 +951,9 @@ export class TsvStorage {
 
   // Building types data cache
   private cachedBuildingTypes: BuildingType[] | null = null;
+
+  // City layouts data cache
+  private cachedCityLayouts: CityLayout[] | null = null;
 
   // Trade goods data cache
   private cachedTradeGoods: TradeGood[] | null = null;
@@ -4606,6 +4624,66 @@ export class TsvStorage {
     return (this.cachedArchitecturalStyles ?? []).filter((s) =>
       s.buildingTypes.includes(buildingTypeId)
     );
+  }
+
+  // ── City Layouts ──────────────────────────────────────────────────
+
+  private loadCityLayouts(): void {
+    if (this.cachedCityLayouts) return;
+
+    const text = this.readFileIfExists("lexicons/city-layouts.tsv");
+    if (!text) { this.cachedCityLayouts = []; return; }
+
+    const { header, rows } = parseTsv(text);
+    const idIdx = getIdx(header, "id");
+    const nameIdx = getIdx(header, "settlement_name");
+    const cultureIdx = getIdx(header, "culture_profile_id");
+    const layoutIdx = getIdx(header, "layout_type");
+    const featIdx = getIdx(header, "key_features");
+    const streetIdx = getIdx(header, "street_pattern");
+    const waterIdx = getIdx(header, "water_management");
+    const fortIdx = getIdx(header, "fortification_type");
+    const areaIdx = getIdx(header, "estimated_area_hectares");
+    const descIdx = getIdx(header, "description");
+    const notesIdx = getIdx(header, "reconstruction_notes");
+
+    this.cachedCityLayouts = rows.map((row) => ({
+      id: row[idIdx],
+      settlementName: row[nameIdx],
+      cultureProfileId: row[cultureIdx] || "",
+      layoutType: row[layoutIdx] || "",
+      keyFeatures: (() => {
+        try { return JSON.parse(row[featIdx]); } catch { return []; }
+      })() as string[],
+      streetPattern: row[streetIdx] || "",
+      waterManagement: row[waterIdx] || "",
+      fortificationType: row[fortIdx] || "",
+      estimatedAreaHectares: parseInt(row[areaIdx]) || 0,
+      description: row[descIdx] || "",
+      reconstructionNotes: row[notesIdx] || "",
+    }));
+  }
+
+  async getCityLayouts(filters?: {
+    cultureProfileId?: string;
+    layoutType?: string;
+  }): Promise<CityLayout[]> {
+    this.loadCityLayouts();
+    let layouts = this.cachedCityLayouts ?? [];
+
+    if (filters?.cultureProfileId) {
+      layouts = layouts.filter((l) => l.cultureProfileId === filters.cultureProfileId);
+    }
+    if (filters?.layoutType) {
+      layouts = layouts.filter((l) => l.layoutType === filters.layoutType);
+    }
+
+    return layouts;
+  }
+
+  async getCityLayoutById(id: string): Promise<CityLayout | null> {
+    this.loadCityLayouts();
+    return (this.cachedCityLayouts ?? []).find((l) => l.id === id) ?? null;
   }
 
   // ── Building Types ────────────────────────────────────────────────
