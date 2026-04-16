@@ -17,6 +17,7 @@ import {
   Music,
   BookOpen,
   UtensilsCrossed,
+  Landmark,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,6 +55,13 @@ import TradeGoodsPanel from "@/components/trade-goods-panel";
 import ReligionMythologyPanel from "@/components/religion-mythology-panel";
 import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import MesopotamiaCityStatesShowcase from "@/components/mesopotamia-city-states-showcase";
+import CultureDiscoveryFeed from "@/components/culture-discovery-feed";
+import CultureProfilePanel from "@/components/culture-profile-panel";
+import {
+  loadRecentlyViewed,
+  recordRecentlyViewed,
+  saveRecentlyViewed,
+} from "@/lib/culture-discovery-utils";
 import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
@@ -79,6 +87,21 @@ export default function Dashboard() {
   );
   const [etymologyWord, setEtymologyWord] = useState<string>("");
   const [etymologyLanguage, setEtymologyLanguage] = useState<string>("");
+  const [selectedCultureId, setSelectedCultureId] = useState<string | null>(null);
+  const [recentlyViewedCultures, setRecentlyViewedCultures] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecentlyViewedCultures(loadRecentlyViewed());
+  }, []);
+
+  const handleSelectCulture = useCallback((cultureId: string) => {
+    setSelectedCultureId(cultureId);
+    setRecentlyViewedCultures((prev) => {
+      const next = recordRecentlyViewed(cultureId, prev);
+      saveRecentlyViewed(next);
+      return next;
+    });
+  }, []);
 
   const { toast } = useToast();
   const { state: vizState, updateFilters, setView } = useVisualization();
@@ -122,6 +145,7 @@ export default function Dashboard() {
       }
 
       if (e.key === "Escape") {
+        if (selectedCultureId) { setSelectedCultureId(null); return; }
         if (selectedLanguageId) { setSelectedLanguageId(null); return; }
         if (activeSection) { setActiveSection(null); return; }
       }
@@ -133,7 +157,7 @@ export default function Dashboard() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [selectedLanguageId, activeSection]);
+  }, [selectedLanguageId, selectedCultureId, activeSection]);
 
   // Handle navigation from global search results
   const handleSearchNavigate = (entityType: string, id: string, _linkPath: string) => {
@@ -287,6 +311,17 @@ export default function Dashboard() {
       {/* Filter Bar */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0 z-40">
         <div className="flex items-center gap-3 h-9 px-4 text-sm">
+          <button
+            type="button"
+            onClick={() => setActiveSection((prev) => (prev === 'discover' ? null : 'discover'))}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs transition-colors ${activeSection === 'discover' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100 text-gray-700'}`}
+            data-testid="button-discover-cultures"
+            aria-pressed={activeSection === 'discover'}
+          >
+            <Landmark className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Discover Cultures</span>
+          </button>
+          <div className="h-3 w-px bg-gray-300" aria-hidden="true" />
           <Filter className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" aria-hidden="true" />
 
           {/* Status filter popover */}
@@ -451,6 +486,11 @@ export default function Dashboard() {
               <MesopotamiaCityStatesShowcase isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'data-overview' ? (
               <DataOverview />
+            ) : activeSection === 'discover' ? (
+              <CultureDiscoveryFeed
+                onSelectCulture={handleSelectCulture}
+                recentlyViewedIds={recentlyViewedCultures}
+              />
             ) : (
               <LanguageFamilyVisualization
                 selectedLanguageId={selectedLanguageId}
@@ -466,6 +506,14 @@ export default function Dashboard() {
         <LanguageDetailPanel
           languageId={selectedLanguageId}
           onClose={() => setSelectedLanguageId(null)}
+        />
+      )}
+
+      {/* Culture Profile Panel */}
+      {selectedCultureId && (
+        <CultureProfilePanel
+          cultureId={selectedCultureId}
+          onClose={() => setSelectedCultureId(null)}
         />
       )}
 
