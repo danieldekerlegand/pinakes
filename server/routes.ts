@@ -5532,6 +5532,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Rivers & Water Features endpoints ──────────────────────
+
+  /**
+   * GET /api/rivers-and-waters - List rivers and water features with optional filters
+   */
+  app.get("/api/rivers-and-waters", async (req, res) => {
+    try {
+      const waterType = req.query.water_type as string | undefined;
+      const region = req.query.region as string | undefined;
+      const historicalImportance = req.query.historical_importance as string | undefined;
+      const timeStart = req.query.time_start ? parseInt(req.query.time_start as string, 10) : undefined;
+      const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string, 10) : undefined;
+
+      const features = await storage.getRiversAndWaters({
+        waterType, region, historicalImportance, timeStart, timeEnd,
+      });
+
+      res.json({ features, count: features.length });
+    } catch (error) {
+      console.error("Error fetching rivers and waters:", error);
+      res.status(500).json({ message: "Failed to fetch rivers and water features" });
+    }
+  });
+
+  /**
+   * GET /api/rivers-and-waters/:id - Get a single river/water feature
+   */
+  app.get("/api/rivers-and-waters/:id", async (req, res) => {
+    try {
+      const feature = await storage.getRiverWaterById(req.params.id);
+      if (!feature) {
+        return res.status(404).json({ message: "River/water feature not found" });
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error("Error fetching river/water feature:", error);
+      res.status(500).json({ message: "Failed to fetch river/water feature" });
+    }
+  });
+
   /**
    * POST /api/scraping/underrepresented-vocab - Scrape vocabulary for under-represented families
    * Body: { familyId?, languageId?, maxLanguages? }
