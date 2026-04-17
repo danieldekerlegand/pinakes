@@ -1737,3 +1737,35 @@ Completed:
   - searchProfiles matching by name, region, and alternate names
   - Category grouping helpers
 - All 35 tests pass, no new TypeScript errors introduced
+
+## US-431: Build interactive cultural artifact viewer (2026-04-16)
+- Created client/src/components/visualizations/artifact-viewer-utils.ts with pure helpers:
+  - Artifact, ArtifactAnnotation, ArtifactProvenance types unified across three source TSVs
+  - normalizeMaterialCulture / normalizeArtTradition / normalizeMusicalInstrument to coerce TSV entities
+  - parseList / parseCoordinates / parseNumber handle JSON, delimiter-separated, and object-shaped inputs
+  - getCategoryColor with partial-keyword matching and a default fallback
+  - getArtifactKindLabel for display labels
+  - formatOriginDate handling BCE/CE and edge cases (null, NaN, year zero)
+  - clampZoom NaN-safe min/max bounding
+  - scoreComparable with kind/category/material/temporal/culture weights, crossCultural demotion
+  - findComparableArtifacts scored ranking with limit guard
+  - describeProvenance composing discovery site, current location, and origin region
+- Created client/src/components/visualizations/ArtifactViewer.tsx:
+  - Deep-zoom image viewer with pointer pan (when zoomed), wheel zoom (clamped 1x-8x), reset
+  - Annotation overlay: clickable normalized-position dots with active highlight + popup
+  - Toggle annotation visibility
+  - Provenance, material/technique, description, significance, tags grid
+  - Sources footer line
+  - Comparable artifacts strip powered by findComparableArtifacts (crossCultural=true)
+  - Collection selector to switch artifacts in-place; calls onArtifactSelect
+  - Graceful empty state, image-error fallback, NaN-safe annotation positioning
+- Created client/src/components/visualizations/ArtifactViewer.test.ts with 31 passing tests covering:
+  - formatOriginDate BCE/CE/null/NaN/year-zero
+  - clampZoom min/max/NaN/in-range
+  - getCategoryColor known/unknown/partial-keyword
+  - getArtifactKindLabel all kinds
+  - normalize* for material culture, art tradition, musical instrument (arrays, JSON-strings, coord objects)
+  - scoreComparable self-ref, category vs kind match, material overlap, temporal proximity, cross-cultural demotion
+  - findComparableArtifacts self-exclusion, limit enforcement, cross-cultural ranking, empty-pool, zero-limit
+  - describeProvenance combined fields, origin-region fallback, empty case
+- All 31 ArtifactViewer tests pass; no new TypeScript errors introduced
