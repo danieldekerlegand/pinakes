@@ -10,6 +10,7 @@ const VALID_ENTITY_TYPES = [
   "archaeological_site",
   "archaeological_culture",
   "civilization",
+  "culture_profile",
   "writing_system",
   "music_tradition",
   "dance_tradition",
