@@ -1737,3 +1737,32 @@ Completed:
   - searchProfiles matching by name, region, and alternate names
   - Category grouping helpers
 - All 35 tests pass, no new TypeScript errors introduced
+
+## Build 3D reconstruction viewer for architectural sites (2026-04-16)
+- Created client/src/components/visualizations/site-reconstruction-utils.ts with pure helpers:
+  - projectIso: yaw-rotated isometric projection of world (x,y,z) to SVG (sx,sy)
+  - isFaceVisible + computeBoxFaces: per-structure face generation with painter's algorithm depth value
+  - sortFacesForRender: ascending-depth sort so far faces render first
+  - shadeColor / faceFillColor: hex color darken/lighten for side vs. top shading
+  - detectFindingKinds: regex-based hint extraction from findings text (palace, pyramid, wall, tower, mound, amphitheater, aqueduct, etc.)
+  - generateBlueprint: deterministic structure list per SiteType (settlement/burial/temple/fortification/workshop/ceremonial/unknown), augmented by finding hints and scaled by importance
+  - computeSceneBounds, pointsToSvg, formatYear, formatPeriod, formatSiteType, siteTypeColor
+- Created client/src/components/visualizations/SiteReconstruction3DViewer.tsx:
+  - SVG-based isometric viewer with no three.js dependency (fits existing bundle)
+  - Site picker tabs when multiple sites are available
+  - Controls: rotate left/right (15° yaw steps), zoom in/out (0.5×-3×)
+  - Renders top + two visible side faces per structure with per-face shading
+  - Ground shadow ellipse, sky-to-amber gradient background
+  - Metadata strip: yaw, zoom, confidence, findings, description
+- Created client/src/components/culture-profile/architecture-3d-reconstruction-utils.ts:
+  - filterSitesForCulture: matches archaeological sites to a culture profile via language-id overlap, settlement-name match, and optional time-period overlap
+  - rankSites: descending importance, alphabetical tiebreaker
+  - toReconstruction: maps GeoJSON feature to viewer Site3DReconstruction shape
+- Created client/src/components/culture-profile/architecture-3d-reconstruction-section.tsx:
+  - Fetches /api/map/archaeological-sites and filters by culture profile inputs (languageIds, notableSettlements, timePeriodStart/End)
+  - Caps at top-6 ranked sites; loading, error, and empty states
+- Wired a new "3D Recon" tab into client/src/components/culture-profile-panel.tsx alongside the existing Architecture tab
+- Created two test files with 53 passing tests:
+  - site-reconstruction-utils.test.ts: projection, face visibility, depth sort, shading, blueprint determinism and scaling, finding-hint regex matching
+  - architecture-3d-reconstruction-section.test.ts: site filtering (language, settlement name, time overlap, null-end handling), ranking tiebreakers, feature->reconstruction mapping
+- All 53 new tests pass; no new TypeScript errors introduced (baseline 146 pre-existing errors unchanged)
