@@ -1,3 +1,37 @@
+Build culture relationship web visualization (US-433)
+
+Completed:
+- Created client/src/lib/visualization/culture-relationship-web.ts
+  - buildCultureRelationshipGraph(): pure transformer turning culture profiles and relationship datasets into a NetworkGraph-compatible graph
+  - Five typed relationship sources with edge-dedup + intensity merging:
+    * lineage (cultural-lineages.tsv, matched via associated language IDs)
+    * linguistic (language-contacts.tsv)
+    * trade (trade-routes.tsv controlling powers via civilization/name match)
+    * conflict (battles.tsv belligerent civilization IDs)
+    * religious (shared associatedReligionIds between profiles)
+  - Temporal filtering: profiles restricted to active time-range; relationships filtered by their own time windows
+  - Node size scales with edge degree; node group = region for clustering
+  - computeTimeBounds() derives inclusive temporal extent across all datasets
+  - RELATIONSHIP_COLORS / RELATIONSHIP_LABELS for consistent edge rendering
+- Created client/src/components/visualizations/CultureRelationshipWeb.tsx
+  - Fetches culture-profiles, cultural-lineages, language-contacts, trade-routes, battles in parallel via useQuery
+  - Built on shared NetworkGraph component (node click, pan/zoom, drag, tooltips)
+  - Toggle chips for each relationship type (color-coded)
+  - Dual-handle time range slider for temporal filtering ("how the network evolved")
+  - Detail panel on node click listing all typed relationships with cross-navigation
+  - Edge color by relationship type; edge width scaled by merged intensity
+- Created client/src/lib/visualization/culture-relationship-web.test.ts with 16 passing tests
+  - parseYear/parseTimePeriod/intensityScore edge cases (negative BCE years, dashed ranges)
+  - Graph construction for all five relationship types
+  - Link deduplication across repeated relationships (intensity aggregation, time-range merging)
+  - Temporal filtering restricts both nodes and links
+  - enabledTypes filter correctly excludes disabled types
+  - Node size scales with degree
+  - Fallback time bounds when datasets are empty
+- Verified no new TypeScript errors (tsc baseline: 146 pre-existing, unchanged)
+
+---
+
 Create city-layouts.tsv for urban planning and spatial organization
 
 Completed:
