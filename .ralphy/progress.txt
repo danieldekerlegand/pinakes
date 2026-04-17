@@ -1771,6 +1771,7 @@ Completed:
   - searchProfiles matching by name, region, and alternate names
   - Category grouping helpers
 - All 35 tests pass, no new TypeScript errors introduced
+<<<<<<< Updated upstream
 
 ## US-431: Build interactive cultural artifact viewer (2026-04-16)
 - Created client/src/components/visualizations/artifact-viewer-utils.ts with pure helpers:
@@ -1866,3 +1867,10 @@ Completed:
   - site-reconstruction-utils.test.ts: projection, face visibility, depth sort, shading, blueprint determinism and scaling, finding-hint regex matching
   - architecture-3d-reconstruction-section.test.ts: site filtering (language, settlement name, time overlap, null-end handling), ranking tiebreakers, feature->reconstruction mapping
 - All 53 new tests pass; no new TypeScript errors introduced (baseline 146 pre-existing errors unchanged)
+=======
+- [✓] 2026-04-17 00:31 - Build 3D reconstruction viewer for architectural sites
+- [✓] 2026-04-17 00:31 - Build GenAI scene generator for cultural visualization
+- [✓] 2026-04-17 00:31 - Build interactive cultural artifact viewer
+- [✓] 2026-04-17 00:31 - Create printable/exportable culture profile reports
+- [✓] 2026-04-17 00:39 - Build culture relationship web visualization
+>>>>>>> Stashed changes
