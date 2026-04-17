@@ -26,6 +26,7 @@ import CultureComparisonView from "@/components/visualizations/CultureComparison
 import CultureLanguageWritingSection from "@/components/culture-language-writing-section";
 import ReligionMythologyPanel from "@/components/religion-mythology-panel";
 import ArchitectureUrbanPlanningSection from "@/components/culture-profile/architecture-urban-planning-section";
+import Architecture3DReconstructionSection from "@/components/culture-profile/architecture-3d-reconstruction-section";
 import MaterialCultureArtsSection from "@/components/culture-profile/material-culture-arts-section";
 import CuisineFoodwaysSection from "@/components/culture-profile/cuisine-foodways-section";
 import MilitaryWarfarePanel from "@/components/military-warfare-panel";
@@ -387,6 +388,9 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               <TabsTrigger value="architecture" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-architecture">
                 Architecture
               </TabsTrigger>
+              <TabsTrigger value="reconstruction" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-reconstruction">
+                3D Recon
+              </TabsTrigger>
               <TabsTrigger value="arts" className="text-xs px-2 py-1 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800" data-testid="tab-arts">
                 Arts
               </TabsTrigger>
@@ -441,6 +445,15 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               <ArchitectureUrbanPlanningSection
                 architecturalStyleIds={profile.associatedArchitecturalStyleIds}
                 cultureProfileId={profile.id}
+                civilizationName={profile.name}
+              />
+            </TabsContent>
+            <TabsContent value="reconstruction">
+              <Architecture3DReconstructionSection
+                languageIds={profile.associatedLanguageIds}
+                notableSettlements={profile.notableSettlements}
+                timePeriodStart={profile.timePeriodStart}
+                timePeriodEnd={profile.timePeriodEnd}
                 civilizationName={profile.name}
               />
             </TabsContent>
