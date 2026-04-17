@@ -81,3 +81,21 @@ Started: Thu Mar 12 02:32:13 CDT 2026
   - Pure helpers: `normalizeLicense`, `getMediaTypeColor`, `getUniqueTags`, `filterByTag`, `filterByMediaType`, `sortImages`, `getAspectRatio`, `clampIndex`, `nextIndex`, `prevIndex`, `clampZoom`
 - 36 passing tests in `client/src/components/shared/image-gallery-utils.test.ts` covering filters, sorting, license normalization, tag extraction, zoom clamping, and carousel wraparound
 - Files: ImageGallery.tsx, image-gallery-utils.ts, image-gallery-utils.test.ts
+
+---
+
+## 2026-04-16 - US-430
+- Built `SceneGenerator` visualization component at `client/src/components/visualizations/SceneGenerator.tsx`
+  - Form controls: scene type (daily_life, ceremony, battle, marketplace, landscape, city, architecture, artifact), style (realistic/illustrated/watercolor/archaeological_sketch), time period, region, specific elements
+  - Calls `POST /api/media/generate` (US-409) via react-query mutation with animated loading progress bar
+  - Displays generated image as a data URL with a clearly-visible "AI-Generated Reconstruction" watermark overlay + style badge
+  - Regenerate button (re-runs mutation with current form), Save to Gallery button posts to `POST /api/media-assets` and invalidates the `culture_profile` media-assets query so the cached scene appears in `CultureMediaGallery`
+  - Clear error state for both generation and save failures
+- Extracted pure logic into `client/src/components/visualizations/scene-generator-utils.ts`
+  - UI scene types map to the four backend scene types (`city_reconstruction`, `architectural`, `daily_life`, `artifact`) so no existing tests/validation break
+  - `buildSceneDescription` composes scene-type-specific phrasing + culture name + optional extra elements
+  - `buildGenerateRequest` falls back to culture's time period/region when the form leaves them blank
+  - `buildCacheAssetPayload` produces a ready-to-save media-asset with a data URL, generated license, watermark attribution, and scene/style/culture tags for reuse
+- Added `"culture_profile"` to `VALID_ENTITY_TYPES` in `server/services/media-asset-service.ts` so generated scenes can be persisted under the culture profile (entity type was already referenced by `culture-profile-panel.tsx` and spec US-407)
+- 24 new passing tests in `client/src/components/visualizations/SceneGenerator.test.ts` covering scene option coverage, UI→backend scene mapping, description composition, form validation, request building with fallbacks, data URL construction, and cache asset payload shape
+- Files: SceneGenerator.tsx, scene-generator-utils.ts, SceneGenerator.test.ts, media-asset-service.ts
