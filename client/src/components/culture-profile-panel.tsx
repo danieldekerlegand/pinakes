@@ -29,6 +29,7 @@ import ArchitectureUrbanPlanningSection from "@/components/culture-profile/archi
 import MaterialCultureArtsSection from "@/components/culture-profile/material-culture-arts-section";
 import CuisineFoodwaysSection from "@/components/culture-profile/cuisine-foodways-section";
 import MilitaryWarfarePanel from "@/components/military-warfare-panel";
+import ExportProfileButton from "@/components/culture-profile/export-profile-button";
 import { GitCompare } from "lucide-react";
 
 interface CultureProfilePanelProps {
@@ -333,6 +334,7 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                <ExportProfileButton profile={profile} />
                 <Button
                   variant="ghost"
                   size="sm"

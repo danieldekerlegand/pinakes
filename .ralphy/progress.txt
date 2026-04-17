@@ -1803,3 +1803,37 @@ Completed:
   - findComparableArtifacts self-exclusion, limit enforcement, cross-cultural ranking, empty-pool, zero-limit
   - describeProvenance combined fields, origin-region fallback, empty case
 - All 31 ArtifactViewer tests pass; no new TypeScript errors introduced
+
+## US-432: Create printable/exportable culture profile reports (2026-04-16)
+- Created client/src/lib/culture-profile-report.ts as a pure HTML report generator:
+  - buildCultureProfileReportHtml(options) returns a complete, self-contained HTML
+    document with embedded print-friendly CSS (A4 @page, @media print) — no heavy
+    PDF dependency required; users use the browser's native Print -> Save as PDF
+  - REPORT_CSS export for reuse in the on-page report viewer
+  - Helpers: formatReportYear, formatReportTimePeriod, formatReportPopulation,
+    humanize* enum label mappers, escapeHtml, buildReportFilename
+  - Renders cover page (name, alt names, time/region/tech/social badges, summary),
+    overview stats grid, historical-position timeline, optional gallery from media
+    assets, socio-cultural pill lists (languages, religions, writing systems, art,
+    music, architectural styles, literary traditions, cuisine), notable settlements,
+    sources, and a footer with shareable URL and generation date
+  - Optional socioCultural input resolves IDs to human-friendly names when available
+- Created client/src/components/culture-profile/export-profile-button.tsx:
+  - Radix dropdown with three actions: Print/Save-as-PDF, Download HTML, Copy share URL
+  - Print opens new window, writes the generated HTML, and triggers window.print()
+  - Download uses Blob + object URL; filename is culture-profile-<slug>.html
+  - Copy uses navigator.clipboard with window.prompt fallback
+- Created client/src/pages/culture-profile-report.tsx as the shareable standalone
+  report route (/culture-profile/:id/report):
+  - Fetches the profile plus media-assets/entity/culture_profile/:id
+  - Renders the generator's body with the report stylesheet for a clean print layout
+- Wired the new route into client/src/App.tsx and added the Export button to the
+  CultureProfilePanel header
+- Created test/culture-profile-report.test.ts with 37 passing tests covering:
+  - All formatter/humanizer edge cases and escapeHtml safety
+  - Filename slugging
+  - Full HTML structure: doctype, title, cover data, stats, timeline, gallery,
+    share URL, sources, generation date, embedded print CSS, data-culture-id
+  - Socio-cultural name resolution takes precedence over raw IDs when supplied
+  - Alternate-name subtitle and cuisine sections handled correctly when absent
+- All 37 new tests pass; total TypeScript error count unchanged (pre-existing only)

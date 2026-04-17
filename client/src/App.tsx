@@ -15,6 +15,7 @@ import ScraperDashboard from "@/pages/scraper-dashboard";
 import DataExplorer from "@/pages/data-explorer";
 import CivilizationTimeline from "@/pages/civilization-timeline";
 import MesopotamiaShowcasePage from "@/pages/mesopotamia-showcase";
+import CultureProfileReportPage from "@/pages/culture-profile-report";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/scraper" component={ScraperDashboard} />
       <Route path="/civilization-timeline" component={CivilizationTimeline} />
       <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
+      <Route path="/culture-profile/:id/report" component={CultureProfileReportPage} />
       <Route component={NotFound} />
     </Switch>
   );
