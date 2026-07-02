@@ -1,0 +1,2 @@
+:START_ID	:END_ID	:TYPE	weight:float	time_start:int	time_end:int	linguascrape_id	source	source_url	retrieved_at	confidence:float
+cs:archaeological-culture:bell-beaker	cs:archaeological-culture:yamnaya	DESCENDS_FROM	0.85				linguascrape			0.85

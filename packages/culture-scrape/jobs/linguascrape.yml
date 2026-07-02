@@ -1,0 +1,12 @@
+# Ingest the LinguaScrape canonical export as a first-class acquisition source.
+# Run with: culturescrape run jobs/linguascrape.yml
+#
+# The single category reads LinguaScrape's nodes/*.tsv + edges/*.tsv export
+# (docs/reconcile-linguascrape.md) through the `linguascrape-export` adapter.
+# Paths resolve against this file's directory, so the category lives one level
+# up in categories/ and output lands under the repo-root out/ tree.
+name: linguascrape
+description: LinguaScrape convergence — ingest its canonical nodes/edges export.
+categories:
+  - ../categories/linguascrape.yml
+output_root: ../out/linguascrape
