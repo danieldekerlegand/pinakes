@@ -103,6 +103,15 @@ for i in $(seq 1 $MAX_ITERATIONS); do
     exit 0
   fi
   
+  # Stop early on a Claude usage/session-limit response instead of burning the remaining
+  # iterations on an agent that can't do any work (the loop would otherwise just retry).
+  if echo "$OUTPUT" | grep -qiE "hit your (session|usage) limit|(session|usage) limit ·|rate limit"; then
+    echo ""
+    echo "Ralph: Claude usage/session limit detected — stopping so iterations aren't wasted."
+    echo "Wait for the limit to reset, then re-run to resume (completed stories are skipped)."
+    exit 2
+  fi
+
   echo "Iteration $i complete. Continuing..."
   sleep 2
 done
