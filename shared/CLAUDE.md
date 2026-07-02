@@ -15,8 +15,12 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   every `lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
   per-column disposition (`target` canonical field / `edge` type / `property` / `drop`).
   Consume via `@shared/lexicon-mapping` (`lexiconMappingByFile`, `nodeFiles`, `edgeFiles`,
-  `assertValidLexiconMapping`). US-003 (edge extraction) reads the `edge` dispositions; US-004
-  (export) reads `target`/`property`. Totality vs the live TSVs is enforced by the test, which
+  `assertValidLexiconMapping`). US-003 (`server/services/canonical-edges.ts`) reads the `edge`
+  dispositions **and** the edge-table `target` dispositions (`:START_ID`/`:END_ID`/`:TYPE`/
+  `time_start`/`confidence`/`source`) to emit `CanonicalEdge` records; free-text relationship
+  vocabularies (e.g. `evolved-into`, `substrate`) are aligned to canonical edge types by the
+  local `EDGE_TYPE_VALUE_MAPS` there. US-004 (export) reads `target`/`property`. Totality vs the
+  live TSVs is enforced by the test, which
   reads headers from `resolve(process.cwd(), "lexicons")` and compares **unique** column names
   (some source headers, e.g. `words-base.tsv`, have duplicate columns).
 
