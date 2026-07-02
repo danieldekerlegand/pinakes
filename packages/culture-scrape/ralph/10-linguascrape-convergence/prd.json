@@ -1,0 +1,119 @@
+{
+  "project": "culture-scrape",
+  "branchName": "ralph/linguascrape-convergence",
+  "description": "LinguaScrape convergence (Python side) — ingest LinguaScrape's canonical nodes/edges export as a first-class acquisition source, reconcile its entities against existing Wikidata-sourced nodes, link its edges through the ontology, express its cross-domain correlations as shared Datalog rules, and load the merged corpus into Neo4j under shared labels/constraints — with QA gates and a reproducible build recipe.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "LinguaScrape source adapter for the canonical export",
+      "description": "As a data engineer, I need culture-scrape to ingest LinguaScrape's canonical nodes/edges TSV export so LinguaScrape becomes a first-class acquisition source.",
+      "acceptanceCriteria": [
+        "Add an ingestion path (extend src/culturescrape/acquire/tabular.py or a thin acquire adapter) that reads the canonical nodes/*.tsv + edges/*.tsv export produced by LinguaScrape tasklist 15 into RawRecords, stamping provenance source='linguascrape'",
+        "Add a job spec jobs/linguascrape.yml describing the ingestion inputs and output_root",
+        "Read a committed fixture export under tests/fixtures/ (no coupling to a live filesystem path)",
+        "Tests pass (pytest), type checks pass (mypy), lint passes (ruff)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Canonical mapping & idempotent csid minting for LinguaScrape entities",
+      "description": "As a data engineer, I need LinguaScrape rows mapped to the canonical schema with stable ids so re-runs are idempotent.",
+      "acceptanceCriteria": [
+        "Extend src/culturescrape/schema/mapper.py (and schema/ids.py) to map LinguaScrape export columns to canonical node/edge fields per docs/data-model.md",
+        "Mint csid deterministically: prefer wikidata_qid when present, else derive from the LinguaScrape id alias so re-ingestion is idempotent",
+        "Retain the original LinguaScrape id as an alias column for round-trip",
+        "Tests assert idempotent csid derivation and correct column mapping on fixtures; mypy + ruff pass"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Reconcile LinguaScrape entities against existing graph nodes",
+      "description": "As a data steward, I need LinguaScrape entities merged with existing Wikidata-sourced nodes so the same entity is one node.",
+      "acceptanceCriteria": [
+        "Parameterize src/culturescrape/schema/reconcile.py to run the cascade over LinguaScrape-origin records: iso639/glottocode for languages; normalized (name, type, region) for cultures/others; fuzzy fallback",
+        "Emit a reconciliation report (matched / new / ambiguous) with confidence; ambiguous candidates are listed and never auto-merged silently",
+        "Merges preserve both sources' provenance",
+        "Tests cover each cascade tier and the ambiguity path on fixtures; mypy + ruff pass"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Ingest LinguaScrape edges into the ontology linker",
+      "description": "As a data engineer, I need LinguaScrape's relationships to become canonical edges that participate in cross-dimensional linking.",
+      "acceptanceCriteria": [
+        "Map LinguaScrape export edge :TYPE values to the canonical edge vocabulary and feed them through src/culturescrape/ontology/linker.py so temporal/geographic/linguistic/genetic linking includes them",
+        "LinguaScrape-origin edges carry time ranges, confidence, and provenance",
+        "src/culturescrape/ontology/metrics.py reports LinguaScrape edge counts by type",
+        "Tests assert edges load and link on fixtures; mypy + ruff pass"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Datalog rules for LinguaScrape cross-domain correlations",
+      "description": "As a researcher, I need LinguaScrape's correlation logic expressed as shared inference rules over the merged graph.",
+      "acceptanceCriteria": [
+        "Add Datalog rules (src/culturescrape/datalog/rules.py + .pl/.dl outputs) porting LinguaScrape's cross-domain and genetic-linguistic correlation logic (e.g. genetic_linguistic_correlation/2, contemporary_with/2 across merged data, transitive descends_from)",
+        "Provide worked examples (src/culturescrape/datalog/examples.py) over a fixture corpus that includes LinguaScrape-origin facts",
+        "Exports valid Prolog (.pl) and Soufflé (.dl)",
+        "Tests validate rule output and derived facts on fixtures; mypy + ruff pass"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Load the merged corpus into Neo4j under shared labels/constraints",
+      "description": "As an integrator, I need LinguaScrape-origin nodes/edges loaded into Neo4j so the app can query them alongside native data.",
+      "acceptanceCriteria": [
+        "src/culturescrape/neo4j/constraints.py ensures csid uniqueness per :LABEL for the merged corpus",
+        "src/culturescrape/neo4j/load_csv.py / admin_import.py load LinguaScrape-origin rows under the same labels and edge types as native nodes",
+        "A smoke test verifies the expected labels and edge types appear (mocked or embedded — no live server required in CI)",
+        "Tests + mypy + ruff pass"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Convergence QA gate for the merged corpus",
+      "description": "As a maintainer, I need QA thresholds so LinguaScrape ingestion cannot silently degrade the corpus.",
+      "acceptanceCriteria": [
+        "Extend src/culturescrape/orchestrate/qa.py to report provenance completeness, dedup rate, unreconciled rate for LinguaScrape-origin rows, and dangling-edge rate",
+        "The gate exits non-zero on regressions beyond configured thresholds",
+        "Emit a human-readable QA report artifact",
+        "Tests cover a clean corpus (pass) and a degraded corpus (fail); mypy + ruff pass"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Reproducible build recipe & convergence docs",
+      "description": "As a contributor, I need a documented, reproducible way to (re)build the LinguaScrape-inclusive corpus.",
+      "acceptanceCriteria": [
+        "jobs/linguascrape.yml (and/or a blueprint) drives an end-to-end `culturescrape run` producing the merged corpus deterministically",
+        "Document the flow (ingest -> reconcile -> link -> Datalog/Neo4j) in packages/culture-scrape/docs/ and cross-link docs/culturescrape-integration.md at the repo root",
+        "The built corpus stays gitignored; a committed manifest records node/edge type counts",
+        "`culturescrape validate` and `culturescrape qa` pass on the output; mypy + ruff pass"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

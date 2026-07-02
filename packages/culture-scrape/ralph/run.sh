@@ -28,19 +28,19 @@ TASKLISTS=(
   "07-gui-explorer"
   "08-corpus-expansion"
   "09-wikidata-integration"
+  "10-linguascrape-convergence"
 )
 
 # Ensure ralphy is available.
 command -v ralphy >/dev/null 2>&1 || { echo "error: 'ralphy' not found on PATH"; exit 1; }
 
-# ralphy auto-commits per task, so a git repo is required.
-if [ ! -d .git ]; then
-  echo "Initializing git repository (ralphy commits after each task)..."
-  git init -b main >/dev/null
-  git config user.email >/dev/null 2>&1 || git config user.email "ralphy@local"
-  git config user.name  >/dev/null 2>&1 || git config user.name  "ralphy"
-  git add -A
-  git commit -m "chore: initial plan, data model, and ralphy tasklists" >/dev/null
+# culture-scrape is vendored inside the LinguaScrape monorepo (no nested .git here).
+# ralphy auto-commits to the enclosing repo, so require an existing git work-tree and
+# NEVER `git init` (that would create a nested repo inside packages/culture-scrape/).
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "error: not inside a git work-tree. Run this from the LinguaScrape monorepo," \
+       "e.g.: ralphy --json packages/culture-scrape/ralph/<n>/tasks.json --claude"
+  exit 1
 fi
 
 # Select which tasklists to run (by 1-based index). No args = all.
