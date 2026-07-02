@@ -23,6 +23,9 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   live TSVs is enforced by the test, which
   reads headers from `resolve(process.cwd(), "lexicons")` and compares **unique** column names
   (some source headers, e.g. `words-base.tsv`, have duplicate columns).
+- **US-004 export** (`scripts/export-for-culturescrape.ts`) consumes the node `target`/`property`
+  dispositions here + `server/services/canonical-edges` to emit `export/culturescrape/` canonical
+  TSVs. See `scripts/CLAUDE.md`.
 
 ## Gotchas
 

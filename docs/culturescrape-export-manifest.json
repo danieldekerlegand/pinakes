@@ -1,0 +1,316 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "linguascrape",
+  "nodeTypes": [
+    {
+      "type": "language",
+      "label": "Language",
+      "file": "nodes/language.tsv",
+      "count": 1061
+    },
+    {
+      "type": "language-family",
+      "label": "LanguageFamily",
+      "file": "nodes/language-family.tsv",
+      "count": 543
+    },
+    {
+      "type": "writing-system",
+      "label": "WritingSystem",
+      "file": "nodes/writing-system.tsv",
+      "count": 60
+    },
+    {
+      "type": "culture",
+      "label": "Culture",
+      "file": "nodes/culture.tsv",
+      "count": 259
+    },
+    {
+      "type": "archaeological-culture",
+      "label": "ArchaeologicalCulture",
+      "file": "nodes/archaeological-culture.tsv",
+      "count": 27
+    },
+    {
+      "type": "urheimat-hypothesis",
+      "label": "UrheimatHypothesis",
+      "file": "nodes/urheimat-hypothesis.tsv",
+      "count": 24
+    },
+    {
+      "type": "religion",
+      "label": "Religion",
+      "file": "nodes/religion.tsv",
+      "count": 20
+    },
+    {
+      "type": "deity",
+      "label": "Deity",
+      "file": "nodes/deity.tsv",
+      "count": 76
+    },
+    {
+      "type": "myth-motif",
+      "label": "MythMotif",
+      "file": "nodes/myth-motif.tsv",
+      "count": 32
+    },
+    {
+      "type": "art-tradition",
+      "label": "ArtTradition",
+      "file": "nodes/art-tradition.tsv",
+      "count": 107
+    },
+    {
+      "type": "literary-tradition",
+      "label": "LiteraryTradition",
+      "file": "nodes/literary-tradition.tsv",
+      "count": 12
+    },
+    {
+      "type": "cuisine",
+      "label": "Cuisine",
+      "file": "nodes/cuisine.tsv",
+      "count": 21
+    },
+    {
+      "type": "ingredient",
+      "label": "Ingredient",
+      "file": "nodes/ingredient.tsv",
+      "count": 2136
+    },
+    {
+      "type": "trade-good",
+      "label": "TradeGood",
+      "file": "nodes/trade-good.tsv",
+      "count": 45
+    },
+    {
+      "type": "battle",
+      "label": "Battle",
+      "file": "nodes/battle.tsv",
+      "count": 53
+    },
+    {
+      "type": "place",
+      "label": "Place",
+      "file": "nodes/place.tsv",
+      "count": 813
+    },
+    {
+      "type": "migration-route",
+      "label": "MigrationRoute",
+      "file": "nodes/migration-route.tsv",
+      "count": 62
+    }
+  ],
+  "edgeTypes": [
+    {
+      "type": "descended-from",
+      "token": "DESCENDS_FROM",
+      "file": "edges/descended-from.tsv",
+      "count": 1577
+    },
+    {
+      "type": "influenced-by",
+      "token": "INFLUENCED_BY",
+      "file": "edges/influenced-by.tsv",
+      "count": 98
+    },
+    {
+      "type": "absorbed-into",
+      "token": "ABSORBED_INTO",
+      "file": "edges/absorbed-into.tsv",
+      "count": 11
+    },
+    {
+      "type": "borrowed-from",
+      "token": "BORROWED_FROM",
+      "file": "edges/borrowed-from.tsv",
+      "count": 660
+    },
+    {
+      "type": "cognate-with",
+      "token": "COGNATE_WITH",
+      "file": "edges/cognate-with.tsv",
+      "count": 1739
+    },
+    {
+      "type": "derived-from",
+      "token": "DERIVED_FROM",
+      "file": "edges/derived-from.tsv",
+      "count": 1259
+    },
+    {
+      "type": "syncretized-with",
+      "token": "SYNCRETIZED_WITH",
+      "file": "edges/syncretized-with.tsv",
+      "count": 182
+    }
+  ],
+  "totals": {
+    "nodes": 5351,
+    "edges": 5526,
+    "nodeTypes": 17,
+    "edgeTypes": 7
+  },
+  "diagnostics": {
+    "skippedNodeRowsMissingId": 0,
+    "duplicateCsids": 44,
+    "ambiguousLinguascrapeIds": 14,
+    "edgesWithUnresolvedEndpoint": 139,
+    "unresolvedEndpointSamples": [
+      {
+        "startId": "ppnb",
+        "endId": "pottery-neolithic",
+        "edgeName": "absorbed-into",
+        "sourceFile": "archaeological-cultures.tsv"
+      },
+      {
+        "startId": "jomon",
+        "endId": "yayoi",
+        "edgeName": "absorbed-into",
+        "sourceFile": "archaeological-cultures.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_anatolian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_tocharian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_indo_iranian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_iranian",
+        "endId": "proto_iranian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_iranian",
+        "endId": "proto_indo_aryan",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_greek",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_italic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_celtic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_germanic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_balto_slavic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_balto_slavic",
+        "endId": "proto_slavic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_balto_slavic",
+        "endId": "proto_baltic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "yamnaya",
+        "endId": "corded_ware",
+        "edgeName": "descended-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "yamnaya",
+        "endId": "afanasievo",
+        "edgeName": "descended-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "corded_ware",
+        "endId": "bell_beaker",
+        "edgeName": "influenced-by",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_berber",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_cushitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "ancient_egyptian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "akkadian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "proto_northwest_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "proto_south_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_niger_congo",
+        "endId": "proto_bantu",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      }
+    ]
+  }
+}

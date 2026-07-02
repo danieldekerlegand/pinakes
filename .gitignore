@@ -7,3 +7,5 @@ vite.config.ts.*
 sources/
 .ralphy
 .ralphy-worktrees
+# US-004 canonical export output (gitignored; manifest snapshot lives in docs/)
+export/culturescrape/

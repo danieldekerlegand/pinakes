@@ -285,3 +285,38 @@ Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
 
 > Note: `words-base.tsv` has a duplicated `annotation_en` header column; the mapping records it
 > once and the validator compares unique column names.
+
+## 7. Canonical export (US-004)
+
+`scripts/export-for-culturescrape.ts` emits LinguaScrape's lexicons in this canonical
+shape so culture-scrape's tabular adapter can ingest them without transformation. Run it
+with `npx tsx scripts/export-for-culturescrape.ts` (build/write API: `buildExport()` is
+pure over a lexicons dir; `writeExport()` / `runExport()` touch the filesystem).
+
+**Output location** — `export/culturescrape/` (gitignored; see `.gitignore`):
+
+```
+export/culturescrape/
+  nodes/<node-type>.tsv   # one file per canonical node type, header = nodeHeaderRow()
+  edges/<edge-type>.tsv   # one file per canonical edge type, header = edgeHeaderRow()
+  manifest.json           # node/edge type counts + diagnostics
+```
+
+A committed snapshot of the manifest lives at
+[`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json).
+
+- **Headers** are the exact typed Neo4j-import rows from §4, so the output validates
+  against `shared/canonical-schema.json` (asserted by `scripts/export-for-culturescrape.test.ts`).
+- **Identity** — `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`;
+  every row keeps its original id in `linguascrape_id` (the US-007 round-trip key). Edge
+  `:START_ID`/`:END_ID` are rewritten from LinguaScrape ids to the csids of exported nodes.
+- **Provenance** — every row is stamped `source = "linguascrape"`; `source_url` /
+  `retrieved_at` are blank here and filled by US-006 (URLs are never fabricated). Edge
+  `confidence` and time ranges carry through from the US-003 extractor; a node with no
+  `confidence` column defaults to `0.5`.
+- **Idempotent** — rows are sorted (nodes by `csid`, edges by `:START_ID/:END_ID/:TYPE`)
+  and no wall-clock is written, so re-runs are byte-identical.
+- **Diagnostics** (never silent) — the manifest reports `skippedNodeRowsMissingId`,
+  `duplicateCsids`, `ambiguousLinguascrapeIds`, and `edgesWithUnresolvedEndpoint` (edges
+  whose endpoint has no exported node are counted + sampled, not emitted, so the output
+  stays `neo4j-admin import`-clean; reconciling those endpoints is US-005's job).
