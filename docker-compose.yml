@@ -1,0 +1,48 @@
+# Local orchestration for LinguaScrape's data-layer integration.
+# Brings up the vendored culture-scrape FastAPI sidecar and a Neo4j graph store.
+# Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
+#
+#   docker compose up -d --build culturescrape neo4j   # sidecar + graph only
+#   npm run dev:full                                    # sidecar + graph + app
+#
+# The LinguaScrape server reads CULTURESCRAPE_API_URL / NEO4J_* from .env
+# (see .env.example) and degrades gracefully when these services are down.
+
+services:
+  culturescrape:
+    build:
+      context: ./packages/culture-scrape
+    ports:
+      - "8800:8800"
+    environment:
+      # Point at a mounted, locally-built corpus to serve real data instead of
+      # the bundled fixture (see the commented volume below).
+      CORPUS: ${CULTURESCRAPE_CORPUS:-tests/fixtures/explorer-corpus}
+    # volumes:
+    #   - ./packages/culture-scrape/out:/app/out:ro   # then set CULTURESCRAPE_CORPUS=out/<job>
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  neo4j:
+    image: neo4j:5
+    ports:
+      - "7474:7474"   # HTTP browser
+      - "7687:7687"   # Bolt (NEO4J_URI=bolt://localhost:7687)
+    environment:
+      # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/linguascrape}
+    volumes:
+      - neo4j-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  neo4j-data:

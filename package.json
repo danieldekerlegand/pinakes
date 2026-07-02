@@ -5,6 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev:full": "./scripts/dev-full.sh",
+    "sidecar:up": "docker compose up -d --build culturescrape neo4j",
+    "sidecar:down": "docker compose stop culturescrape neo4j",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
