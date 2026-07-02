@@ -1,0 +1,620 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "linguascrape",
+  "nodeTypes": [
+    {
+      "type": "language",
+      "label": "Language",
+      "file": "nodes/language.tsv",
+      "count": 1061
+    },
+    {
+      "type": "language-family",
+      "label": "LanguageFamily",
+      "file": "nodes/language-family.tsv",
+      "count": 543
+    },
+    {
+      "type": "writing-system",
+      "label": "WritingSystem",
+      "file": "nodes/writing-system.tsv",
+      "count": 60
+    },
+    {
+      "type": "culture",
+      "label": "Culture",
+      "file": "nodes/culture.tsv",
+      "count": 259
+    },
+    {
+      "type": "archaeological-culture",
+      "label": "ArchaeologicalCulture",
+      "file": "nodes/archaeological-culture.tsv",
+      "count": 27
+    },
+    {
+      "type": "urheimat-hypothesis",
+      "label": "UrheimatHypothesis",
+      "file": "nodes/urheimat-hypothesis.tsv",
+      "count": 24
+    },
+    {
+      "type": "religion",
+      "label": "Religion",
+      "file": "nodes/religion.tsv",
+      "count": 20
+    },
+    {
+      "type": "deity",
+      "label": "Deity",
+      "file": "nodes/deity.tsv",
+      "count": 76
+    },
+    {
+      "type": "myth-motif",
+      "label": "MythMotif",
+      "file": "nodes/myth-motif.tsv",
+      "count": 32
+    },
+    {
+      "type": "art-tradition",
+      "label": "ArtTradition",
+      "file": "nodes/art-tradition.tsv",
+      "count": 107
+    },
+    {
+      "type": "literary-tradition",
+      "label": "LiteraryTradition",
+      "file": "nodes/literary-tradition.tsv",
+      "count": 12
+    },
+    {
+      "type": "cuisine",
+      "label": "Cuisine",
+      "file": "nodes/cuisine.tsv",
+      "count": 21
+    },
+    {
+      "type": "ingredient",
+      "label": "Ingredient",
+      "file": "nodes/ingredient.tsv",
+      "count": 2136
+    },
+    {
+      "type": "trade-good",
+      "label": "TradeGood",
+      "file": "nodes/trade-good.tsv",
+      "count": 45
+    },
+    {
+      "type": "battle",
+      "label": "Battle",
+      "file": "nodes/battle.tsv",
+      "count": 53
+    },
+    {
+      "type": "place",
+      "label": "Place",
+      "file": "nodes/place.tsv",
+      "count": 813
+    },
+    {
+      "type": "migration-route",
+      "label": "MigrationRoute",
+      "file": "nodes/migration-route.tsv",
+      "count": 62
+    }
+  ],
+  "edgeTypes": [
+    {
+      "type": "descended-from",
+      "token": "DESCENDS_FROM",
+      "file": "edges/descended-from.tsv",
+      "count": 1577
+    },
+    {
+      "type": "influenced-by",
+      "token": "INFLUENCED_BY",
+      "file": "edges/influenced-by.tsv",
+      "count": 98
+    },
+    {
+      "type": "absorbed-into",
+      "token": "ABSORBED_INTO",
+      "file": "edges/absorbed-into.tsv",
+      "count": 11
+    },
+    {
+      "type": "borrowed-from",
+      "token": "BORROWED_FROM",
+      "file": "edges/borrowed-from.tsv",
+      "count": 660
+    },
+    {
+      "type": "cognate-with",
+      "token": "COGNATE_WITH",
+      "file": "edges/cognate-with.tsv",
+      "count": 1739
+    },
+    {
+      "type": "derived-from",
+      "token": "DERIVED_FROM",
+      "file": "edges/derived-from.tsv",
+      "count": 1259
+    },
+    {
+      "type": "syncretized-with",
+      "token": "SYNCRETIZED_WITH",
+      "file": "edges/syncretized-with.tsv",
+      "count": 182
+    }
+  ],
+  "totals": {
+    "nodes": 5351,
+    "edges": 5526,
+    "nodeTypes": 17,
+    "edgeTypes": 7
+  },
+  "diagnostics": {
+    "skippedNodeRowsMissingId": 0,
+    "duplicateCsids": 44,
+    "ambiguousLinguascrapeIds": 14,
+    "edgesWithUnresolvedEndpoint": 139,
+    "unresolvedEndpointSamples": [
+      {
+        "startId": "ppnb",
+        "endId": "pottery-neolithic",
+        "edgeName": "absorbed-into",
+        "sourceFile": "archaeological-cultures.tsv"
+      },
+      {
+        "startId": "jomon",
+        "endId": "yayoi",
+        "edgeName": "absorbed-into",
+        "sourceFile": "archaeological-cultures.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_anatolian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_tocharian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_indo_iranian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_iranian",
+        "endId": "proto_iranian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_iranian",
+        "endId": "proto_indo_aryan",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_greek",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_italic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_celtic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_germanic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_indo_european",
+        "endId": "proto_balto_slavic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_balto_slavic",
+        "endId": "proto_slavic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_balto_slavic",
+        "endId": "proto_baltic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "yamnaya",
+        "endId": "corded_ware",
+        "edgeName": "descended-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "yamnaya",
+        "endId": "afanasievo",
+        "edgeName": "descended-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "corded_ware",
+        "endId": "bell_beaker",
+        "edgeName": "influenced-by",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_berber",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "proto_cushitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_afroasiatic",
+        "endId": "ancient_egyptian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "akkadian",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "proto_northwest_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_semitic",
+        "endId": "proto_south_semitic",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      },
+      {
+        "startId": "proto_niger_congo",
+        "endId": "proto_bantu",
+        "edgeName": "split-from",
+        "sourceFile": "cultural-lineages.tsv"
+      }
+    ]
+  },
+  "provenance": {
+    "node": {
+      "fields": [
+        "source",
+        "source_url",
+        "source_query",
+        "retrieved_at",
+        "confidence"
+      ],
+      "total": 5351,
+      "byType": [
+        {
+          "type": "language",
+          "count": 1061,
+          "nonEmpty": {
+            "source": 1061,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 1061
+          }
+        },
+        {
+          "type": "language-family",
+          "count": 543,
+          "nonEmpty": {
+            "source": 543,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 543
+          }
+        },
+        {
+          "type": "writing-system",
+          "count": 60,
+          "nonEmpty": {
+            "source": 60,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 60
+          }
+        },
+        {
+          "type": "culture",
+          "count": 259,
+          "nonEmpty": {
+            "source": 259,
+            "source_url": 0,
+            "source_query": 259,
+            "retrieved_at": 0,
+            "confidence": 259
+          }
+        },
+        {
+          "type": "archaeological-culture",
+          "count": 27,
+          "nonEmpty": {
+            "source": 27,
+            "source_url": 0,
+            "source_query": 27,
+            "retrieved_at": 0,
+            "confidence": 27
+          }
+        },
+        {
+          "type": "urheimat-hypothesis",
+          "count": 24,
+          "nonEmpty": {
+            "source": 24,
+            "source_url": 0,
+            "source_query": 24,
+            "retrieved_at": 0,
+            "confidence": 24
+          }
+        },
+        {
+          "type": "religion",
+          "count": 20,
+          "nonEmpty": {
+            "source": 20,
+            "source_url": 0,
+            "source_query": 20,
+            "retrieved_at": 0,
+            "confidence": 20
+          }
+        },
+        {
+          "type": "deity",
+          "count": 76,
+          "nonEmpty": {
+            "source": 76,
+            "source_url": 0,
+            "source_query": 76,
+            "retrieved_at": 0,
+            "confidence": 76
+          }
+        },
+        {
+          "type": "myth-motif",
+          "count": 32,
+          "nonEmpty": {
+            "source": 32,
+            "source_url": 0,
+            "source_query": 32,
+            "retrieved_at": 0,
+            "confidence": 32
+          }
+        },
+        {
+          "type": "art-tradition",
+          "count": 107,
+          "nonEmpty": {
+            "source": 107,
+            "source_url": 0,
+            "source_query": 52,
+            "retrieved_at": 0,
+            "confidence": 107
+          }
+        },
+        {
+          "type": "literary-tradition",
+          "count": 12,
+          "nonEmpty": {
+            "source": 12,
+            "source_url": 0,
+            "source_query": 12,
+            "retrieved_at": 0,
+            "confidence": 12
+          }
+        },
+        {
+          "type": "cuisine",
+          "count": 21,
+          "nonEmpty": {
+            "source": 21,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 21
+          }
+        },
+        {
+          "type": "ingredient",
+          "count": 2136,
+          "nonEmpty": {
+            "source": 2136,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 2136
+          }
+        },
+        {
+          "type": "trade-good",
+          "count": 45,
+          "nonEmpty": {
+            "source": 45,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 45
+          }
+        },
+        {
+          "type": "battle",
+          "count": 53,
+          "nonEmpty": {
+            "source": 53,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 53
+          }
+        },
+        {
+          "type": "place",
+          "count": 813,
+          "nonEmpty": {
+            "source": 813,
+            "source_url": 0,
+            "source_query": 151,
+            "retrieved_at": 0,
+            "confidence": 813
+          }
+        },
+        {
+          "type": "migration-route",
+          "count": 62,
+          "nonEmpty": {
+            "source": 62,
+            "source_url": 0,
+            "source_query": 0,
+            "retrieved_at": 0,
+            "confidence": 62
+          }
+        }
+      ],
+      "nonEmpty": {
+        "source": 5351,
+        "source_url": 0,
+        "source_query": 653,
+        "retrieved_at": 0,
+        "confidence": 5351
+      }
+    },
+    "edge": {
+      "fields": [
+        "source",
+        "source_url",
+        "retrieved_at",
+        "confidence"
+      ],
+      "total": 5526,
+      "byType": [
+        {
+          "type": "descended-from",
+          "count": 1577,
+          "nonEmpty": {
+            "source": 1577,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 1577
+          }
+        },
+        {
+          "type": "influenced-by",
+          "count": 98,
+          "nonEmpty": {
+            "source": 98,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 98
+          }
+        },
+        {
+          "type": "absorbed-into",
+          "count": 11,
+          "nonEmpty": {
+            "source": 11,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 11
+          }
+        },
+        {
+          "type": "borrowed-from",
+          "count": 660,
+          "nonEmpty": {
+            "source": 660,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 660
+          }
+        },
+        {
+          "type": "cognate-with",
+          "count": 1739,
+          "nonEmpty": {
+            "source": 1739,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 1739
+          }
+        },
+        {
+          "type": "derived-from",
+          "count": 1259,
+          "nonEmpty": {
+            "source": 1259,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 1259
+          }
+        },
+        {
+          "type": "syncretized-with",
+          "count": 182,
+          "nonEmpty": {
+            "source": 182,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 182
+          }
+        }
+      ],
+      "nonEmpty": {
+        "source": 5526,
+        "source_url": 0,
+        "retrieved_at": 0,
+        "confidence": 5526
+      },
+      "citationsWithoutCanonicalColumn": 208
+    },
+    "flags": [
+      "node.source_url: 0/5351 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/5351 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 653/5351 rows preserve the original LinguaScrape citation.",
+      "edge.source_url: 0/5526 edges carry a URL; left blank, never fabricated.",
+      "edge.retrieved_at: 0/5526 edges carry a retrieval timestamp; left blank, never fabricated.",
+      "edge.citationsWithoutCanonicalColumn: 208 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+    ]
+  }
+}

@@ -1,8 +1,16 @@
 # culture-scrape ↔ LinguaScrape: Data-Layer Convergence Plan
 
-**Status:** Design / planning · **Last updated:** 2026-07-02
+**Status:** Data-layer convergence **implemented** (US-001…US-008) · **Last updated:** 2026-07-02
 **Decision:** Align the two data layers on a shared canonical schema with Neo4j/Datalog as
 the correlation system-of-record. **Do not** rewrite the LinguaScrape backend to Python.
+
+This doc is the *architecture / rationale* view. The concrete, machine-readable contract —
+node/edge types, exact column headers, the per-lexicon mapping, export/reconcile/write-back/QA
+behaviour — lives in [`docs/canonical-schema.md`](./canonical-schema.md), backed by
+[`shared/canonical-schema.json`](../shared/canonical-schema.json) and
+[`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json). When the two disagree, the
+machine-readable schema wins. §7–§10 below map each convergence capability to the code and to the
+section of `canonical-schema.md` that specifies it.
 
 ---
 
@@ -29,21 +37,24 @@ store), which a TS service speaks as well as a Python one (Neo4j ships a first-c
 - What stays best in TS: interactive visualizations, and CPU-domain compute that is already
   written and tested (linguistic distance / LDND+IPA, etymology tracing, phonetic weighting).
 
-## 3. Current-state gap analysis
+## 3. Gap analysis → what the data layer now delivers
 
-Full alignment requires six layers to match. LinguaScrape is already close in the ones that matter:
+Full alignment requires six layers to match. The **Status** column records how the
+data-layer-convergence work (US-001…US-008) closed each gap; the code lives under `scripts/`,
+`shared/`, and `server/services/`, specified in `docs/canonical-schema.md`.
 
-| Layer | culture-scrape | LinguaScrape today | Work |
+| Layer | culture-scrape | LinguaScrape today | Status |
 |---|---|---|---|
-| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → normalized(name,lang,type) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | Reconcile via culture-scrape's cascade; ISO codes are a real language join key |
-| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …), 137k rows | Map each domain TSV → a canonical node type |
-| **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **Near 1:1** — extract edges from existing columns |
-| **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | Extend provenance to all origin rows |
-| **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | Migrate correlation to Cypher/Datalog; keep domain compute in TS |
-| **Ontology / dimensions** | temporal / geographic / linguistic / genetic | explorer dims: temporal/spatial/relational/hierarchical/categorical | Map the two dimension vocabularies |
+| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid minted `cs:<node-type>:<linguascrape-id>`; `linguascrape_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts` (US-005). |
+| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `shared/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
+| **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
+| **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="linguascrape"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
+| **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`packages/culture-scrape/`) + `graph-app-integration`. CPU-domain compute stays TS. |
+| **Ontology / dimensions** | temporal / geographic / linguistic / genetic | explorer dims: temporal/spatial/relational/hierarchical/categorical | **Contract ratified** — canonical dimension columns (`time_start`/`time_end`/`period`, `lat`/`lon`/`*_id`, `language_code`/`script`) defined in the schema; explorer-adapter mapping is downstream UI work. |
 
 **Key insight:** `cultural-lineages.tsv` is already a hand-built edge table. culture-scrape
-generalizes exactly that pattern across every domain.
+generalizes exactly that pattern across every domain — and the edge extractor now generalizes it
+across LinguaScrape's embedded FK columns too.
 
 ## 4. Target architecture
 
@@ -104,31 +115,129 @@ either side and commit atomically — there is **no cross-repo split**. Work sti
 `packages/culture-scrape/`, driven by its own Ralph PRD. Everything references this doc as the
 source of truth.
 
-## 7. Phased convergence
+## 7. The convergence toolchain (what's built)
 
-1. **Contract** — ratify the canonical node/edge schema + id/provenance scheme (this doc + a
-   machine-readable schema + per-TSV mapping table).
-2. **Ingest** — culture-scrape ingests LinguaScrape `lexicons/*.tsv` (tabular adapter + mapping),
-   extracting edges from `cultural-lineages`, family/parent links, and predecessor/successor ids.
-3. **Reconcile** — merge LinguaScrape entities with Wikidata-sourced nodes (ISO for languages;
-   name+type+region for cultures); log ambiguity; never silently mis-link.
-4. **Store** — load the unified corpus into Neo4j under shared labels/constraints; materialize
-   Datalog inference (including ported LinguaScrape correlations).
-5. **Consume** — LinguaScrape gains a Neo4j TS driver layer + proxy; correlation queries migrate
-   from in-memory TS to Cypher/Datalog incrementally; domain compute stays TS.
-6. **Write-back** — human-curated LinguaScrape edits export to TSV and re-ingest; a QA gate
-   detects drift (id overlap, unreconciled rate, schema changes).
+The data-layer-convergence PRD delivered these artifacts. Each is specified in a section of
+[`docs/canonical-schema.md`](./canonical-schema.md) and typecheck-clean under
+`scripts/tsconfig.json` (note: `scripts/` is excluded from root `npm run check` — see
+`scripts/CLAUDE.md`).
 
-## 8. Non-goals
+| Story | Capability | Code | Spec |
+|---|---|---|---|
+| US-001 | Canonical node/edge schema (17 node types, 14 edge types), identity + provenance columns | `shared/canonical-schema.json` (+ `.ts` types/validators) | §1–§5 |
+| US-002 | Mapping of all 57 `lexicons/*.tsv` → canonical node/edge type, per-column disposition | `shared/lexicon-mapping.json` (+ `.ts`) | §6 |
+| US-003 | Edge extraction from whole-file edge tables + embedded FK columns | `server/services/canonical-edges.ts` | §6.4 |
+| US-004 | Export lexicons to canonical `nodes/*.tsv` + `edges/*.tsv` (idempotent, import-clean) | `scripts/export-for-culturescrape.ts` | §7 |
+| US-005 | Reconciliation keys + dry-run bucket report (matched / ambiguous / likely-new) | `scripts/reconciliation-report.ts` | §8 |
+| US-006 | Provenance on 100% of exported rows + per-type coverage metric | `scripts/export-for-culturescrape.ts` (`provenance` block) | §4.3, §7 |
+| US-007 | Bidirectional write-back (graph → lexicons), conflict-safe, ambiguous-id-safe | `scripts/import-from-culturescrape.ts` | §9 |
+| US-008 | Network-free QA gate: id-overlap, unreconciled rate, provenance, **schema-drift hard-fail** | `scripts/convergence-qa.ts` | §10 |
+
+**Live snapshot** (committed): the export produces **5,351 nodes** across 17 node types and
+**5,526 edges** across 7 edge types — see [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json)
+and [`docs/reconciliation-report.json`](./reconciliation-report.json). The `export/culturescrape/`
+tree itself is gitignored (regenerate with the CLIs below).
+
+## 8. End-to-end data flow
+
+The round trip, with the exact command and artifact at each hop:
+
+```
+ lexicons/*.tsv  (source of truth, human-curated)
+      │
+      │ 1. EXPORT   npx tsx scripts/export-for-culturescrape.ts
+      ▼
+ export/culturescrape/nodes/<node-type>.tsv + edges/<edge-type>.tsv + manifest.json
+      │              (source="linguascrape" provenance; csid = cs:<node-type>:<linguascrape-id>)
+      │
+      │ 2. RECONCILE (dry-run, network-free)   npx tsx scripts/reconciliation-report.ts
+      ▼              → keys.tsv + report.json  (matched / ambiguous / likely-new buckets)
+      │
+      │ 3. INGEST + RECONCILE + LOAD  (Python — packages/culture-scrape/)
+      ▼   tabular adapter → normalize → reconcile.py/merge.py → Neo4j load → Datalog
+ shared graph  (Neo4j nodes/edges under shared labels + Datalog inference facts)
+      │
+      │ 4. CONSUME  (LinguaScrape TS)
+      ▼   Neo4j TS driver (relational/graph queries) + FastAPI proxy (search / Datalog)
+ LinguaScrape app  (UnifiedExplorer adapters, graph views, provenance UI)
+      │
+      │ 5. WRITE-BACK  npx tsx scripts/import-from-culturescrape.ts  [--overwrite]
+      ▼   reads enriched canonical nodes/*.tsv → fills blank lexicon cells (gap-fill only)
+ lexicons/*.tsv   (enriched; conflicts reported, never silently resolved)
+
+ GATE (any time, CI):  npx tsx scripts/convergence-qa.ts   # exits 1 on schema/id drift
+```
+
+- **Steps 1, 2, 5, GATE are TypeScript in this repo** (`scripts/`). Step 3 is Python under
+  `packages/culture-scrape/`; step 4 is the LinguaScrape app + the `graph-app-integration` PRD.
+- **TSV is the source of truth at both ends.** Nothing in the graph is authoritative for a
+  human-curated lexicon column — the graph enriches blanks and owns edges (see §10).
+- **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/
+  `retrieved_at`/`confidence`; the original citation rides in the node `source_query`.
+
+## 9. Add a new LinguaScrape domain to the graph
+
+To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
+
+1. **Map the file** in [`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json): add an
+   entry with a `kind` (`node` / `edge` / `attribute` / `excluded`) and, for a `node`/`edge`
+   file, a `node` type from `shared/canonical-schema.json`. If the domain needs a node type that
+   doesn't exist yet, add it to `nodeTypes` (or an edge to `edgeTypes`) in the canonical schema
+   **and** to the §1/§2 tables in `canonical-schema.md` first.
+2. **Give every column a disposition** (`target` / `edge` / `property` / `drop`). Follow the
+   naming conventions in `canonical-schema.md` §6.2 (`id → linguascrape_id`, `name → name`,
+   `sources → source`, `latitude/longitude → lat/lon`, …). A `drop` needs a documented `reason`.
+3. **Embedded relationships** (FK columns like `parent_id`, `*_culture_ids`): give them the
+   `edge` disposition and, if the target `:TYPE` value vocabulary is free-text, add it to the
+   `EDGE_TYPE_VALUE_MAPS` in `server/services/canonical-edges.ts` (US-003).
+4. **Run the mapping validator:** `npx vitest run shared/lexicon-mapping.test.ts` — it asserts
+   totality (all `lexicons/*.tsv` accounted for) and that every referenced column is real.
+5. **Regenerate the export & snapshots:**
+   `npx tsx scripts/export-for-culturescrape.ts` then
+   `npx tsx scripts/reconciliation-report.ts`, and refresh the committed snapshots
+   (`docs/culturescrape-export-manifest.json`, `docs/reconciliation-report.json`) — the
+   live-corpus tests assert the snapshots match a fresh build.
+6. **Add reconciliation keys** if the domain has a global anchor (a language code, a Getty/Wikidata
+   id if ever present); otherwise it lands as `likely-new` and is fine.
+7. **Run the gate:** `npx tsx scripts/convergence-qa.ts` must exit `0` (no drift).
+8. **Python side:** if the new node/edge type needs bespoke reconcile/ontology handling, cross-link
+   the work under `packages/culture-scrape/` (see §10) — the tabular adapter ingests the new
+   `nodes/`/`edges/` files without code changes as long as headers match the canonical schema.
+
+## 10. Which side owns which step
+
+| Step | Owner (runtime / location) | Reference |
+|---|---|---|
+| Canonical schema + lexicon mapping (contract) | **shared** — `shared/`, `docs/` | `canonical-schema.md` §1–§6 |
+| Export / reconcile dry-run / write-back / QA gate | **LinguaScrape (TS)** — `scripts/`, `server/services/` | `canonical-schema.md` §7–§10 |
+| Tabular ingestion, reconcile/merge, ontology linking, Neo4j load, Datalog rules | **culture-scrape (Python)** — `packages/culture-scrape/` | see below |
+| Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **LinguaScrape (TS)** — `server/`, `client/` | `graph-app-integration` PRD |
+
+Python-side cross-links (same repo, `packages/culture-scrape/`):
+
+- **Ingesting the export:** [`docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)
+  — how the export flows through reconcile, and which side owns each merge decision.
+- **Reconciliation cascade:** `src/culturescrape/schema/reconcile.py` (QID lookup) +
+  `merge.py` (clustering/merge); see [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md).
+- **Typed import headers:** `src/culturescrape/schema/headers.py` — the canonical column contract
+  in §4 deliberately mirrors these so the export is `neo4j-admin import`-clean.
+- **Neo4j / Datalog:** [`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md),
+  [`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md),
+  [`docs/ontology.md`](../packages/culture-scrape/docs/ontology.md).
+- **Python-side Ralph PRDs:** `packages/culture-scrape/ralph/` (acquisition, schema/entity-resolution,
+  ontology-linking, neo4j-converter, datalog-exporter, …).
+
+## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.
 - Abandoning TSV — it remains the portable source of truth on both sides.
 - Moving CPU-domain compute (linguistic distance, etymology) out of TS.
 
-## 9. Ralph PRDs
+## 12. Ralph PRDs
 
 The work is driven by [Ralph](../docs/ralph-workflow.md) PRDs under `tasks/ralph/` (run via
 `scripts/ralph/run-all.sh`). Convergence-related PRDs, in dependency order:
-`data-layer-convergence` → `linguascrape-convergence-python` (Python side) → `graph-app-integration`.
+`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side) →
+`graph-app-integration`.
 The remaining roadmap PRDs (`data-acquisition`, `narrative-education`, `platform-infra`,
 `speculative`) build on them.
