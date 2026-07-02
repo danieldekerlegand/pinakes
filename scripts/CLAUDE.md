@@ -85,6 +85,31 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   shape and keep cells raw, so an unedited file re-serialises identically (only changed files are
   written back).
 
+## Convergence QA gate (US-008)
+
+`convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the
+existing pure builders — `buildExport` (§export) for the manifest + provenance coverage and
+`buildReconciliation` (§reconciliation) for the id-overlap / unreconciled numbers — so there is
+**one** source of truth per metric; don't recompute them here. `detectDrift(lexiconsDir)` is the
+cheap gate (header reads only, no export build): it runs `assertValidCanonicalSchema` +
+`assertValidLexiconMapping`, checks the export's provenance columns still exist, flags any
+`lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
+`buildConvergenceQA` adds the metrics; `runQA` returns `{ report, exitCode }` (`1` on drift).
+
+- **Only drift fails the gate** (`report.ok === false` ⇒ non-zero exit). The id-overlap /
+  unreconciled / provenance numbers are informational — never threshold them into a hard failure.
+- **A directory is a corpus, not a full-mapping assertion.** Column drift is only checked for
+  files actually present, so a fixture with a subset of the mapped files is clean — a mapped file
+  being *absent* is not drift (only present-but-unmapped, or a renamed column, is). This is what
+  lets the drift tests use tiny fixtures instead of copying the whole live corpus.
+- **Fixture trick for a clean mapped file:** build its header from
+  `lexiconMappingByFile(file).columns.map(c => c.column)` so it matches the mapping exactly (no
+  false `missing-source-column`). Drop one column to simulate a rename; add an extra `*.tsv` to
+  simulate an unmapped file. See `convergence-qa.test.ts`.
+- Artifact (`convergence-qa.{json,md}`) lands in the gitignored `export/culturescrape/convergence/`
+  tree — no committed snapshot (the metrics track the live corpus, so a snapshot would need
+  constant re-sync). CI runbook: `docs/canonical-schema.md` §10.
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on

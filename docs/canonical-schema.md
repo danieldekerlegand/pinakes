@@ -452,3 +452,58 @@ thing the graph may fill; anything already curated wins until a human opts into 
 - **Contribution-system edits** (human curation in the LinguaScrape app) are authoritative for
   the curated columns and flow **out** via the next export; they are never overwritten by an
   unattended inbound sync.
+
+## 10. Convergence QA gate & drift detection (US-008)
+
+[`scripts/convergence-qa.ts`](../scripts/convergence-qa.ts) is a single, network-free health
+check that both projects run to catch schema / id drift **before** it reaches the shared graph.
+Run it with `npx tsx scripts/convergence-qa.ts`. `buildConvergenceQA(lexiconsDir)` /
+`detectDrift(lexiconsDir)` are pure; `writeConvergenceQA` / `runQA` do the filesystem side. The
+artifact (`convergence-qa.json` + human-readable `convergence-qa.md`) lands in the gitignored
+`export/culturescrape/convergence/` tree.
+
+### 10.1 What it reports
+
+| Signal | Meaning | Source |
+|---|---|---|
+| **id-overlap** | Nodes carrying a global anchor that overlaps culture-scrape's identity space (the reconciliation dry-run's `matched`), plus LinguaScrape-internal id-collision counts (`duplicateCsids`, `ambiguousLinguascrapeIds`, unresolved edge endpoints) | export manifest (§7) + reconciliation report (§8) |
+| **unreconciled rate** | `(ambiguous + likely-new) / nodes` — the share of exported nodes that will **not** collapse onto an existing node | reconciliation report (§8) |
+| **provenance completeness** | Per node/edge family, the non-blank rate of each required provenance column | export coverage report (§4.3, US-006) |
+| **schema drift** | The drift findings below | canonical schema (§5) + lexicon mapping (§6) + live headers |
+
+### 10.2 What fails the gate
+
+**Only drift fails** — `runQA` exits non-zero (`1`) when `detectDrift` returns any of:
+
+- `schema-invalid` — `canonical-schema.json` no longer validates (`assertValidCanonicalSchema`);
+- `mapping-invalid` — `lexicon-mapping.json` no longer validates (`assertValidLexiconMapping`);
+  a **renamed canonical column** surfaces here as a mapping `target` pointing at a field that no
+  longer exists;
+- `canonical-column-missing` — a canonical **provenance** column the export writes disappeared;
+- `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `shared/lexicon-mapping.json`;
+- `missing-source-column` — a mapped column that no longer exists in its live TSV header.
+
+The id-overlap / unreconciled / provenance numbers are reported for humans but never fail the
+build on their own (they drift gradually and belong to review, not a hard gate). A directory is
+treated faithfully as a *corpus*: only files actually present are checked for column drift, so a
+mapped file being absent is **not** drift.
+
+### 10.3 Running it in CI
+
+Add a step that runs the gate and lets its exit code fail the job:
+
+```yaml
+# .github/workflows/convergence.yml (or an existing CI job)
+- name: Convergence QA gate
+  run: npx tsx scripts/convergence-qa.ts   # exits 1 on drift → fails the build
+- name: Upload convergence report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: convergence-qa
+    path: export/culturescrape/convergence/
+```
+
+The CLI prints a one-line summary (`PASS`/`FAIL`, node count, id-overlap %, unreconciled %, drift
+count) and, on failure, one line per drift issue to stderr. The uploaded artifact is the
+machine-readable + Markdown report for the run.
