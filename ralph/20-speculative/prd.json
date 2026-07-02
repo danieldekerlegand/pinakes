@@ -1,0 +1,161 @@
+{
+  "project": "LinguaScrape",
+  "branchName": "ralph/speculative",
+  "description": "Speculative & long-term vision — Phase 14: DNA-to-culture mapping, audio/IPA & music playback, AI-powered insights (narrative, anomaly, hypothesis generation) over the shared graph, AR/VR, and the living-dataset workflow. Mostly greenfield; each story scopes to the delta over existing building blocks (haplogroup correlation, media-asset audio, Gemini client, languageStatus).",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "DNA-to-culture ancestry mapper",
+      "description": "As a user, I want to upload my DNA results and see associated cultures, languages, and cuisines so I can explore my heritage — processed privately.",
+      "acceptanceCriteria": [
+        "Add a client-side 23andMe/AncestryDNA file parser (all processing in-browser; nothing uploaded/stored)",
+        "Map extracted haplogroups to cultures/languages via HaplogroupFeature.associatedLanguageFamilyIds/associatedCivilizationIds and server/services/genetic-linguistic-correlation.ts",
+        "Render a 'your ancestors likely spoke / ate / lived among…' view with confidence and clear caveats",
+        "vitest tests cover the parser + mapping on synthetic fixtures; `npm run check` passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "IPA pronunciation audio playback",
+      "description": "As a learner, I want to hear IPA pronunciations so language data is audible, not just textual.",
+      "acceptanceCriteria": [
+        "Add audio playback for IPA strings / word forms in phonology-panel.tsx and word-comparison.tsx (TTS/IPA synthesis or recorded clips via media-asset-service.ts)",
+        "Playback controls are accessible and respect reduced-motion/autoplay preferences",
+        "Graceful fallback when no audio is available",
+        "vitest/component tests cover the playback control; `npm run check` passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Music & instrument audio in the media gallery",
+      "description": "As a user, I want to hear musical tradition and instrument clips so cultural media is richer.",
+      "acceptanceCriteria": [
+        "Surface mediaType:'audio' assets (already supported in server/services/media-asset-service.ts) in CultureMediaGallery.tsx with an audio player",
+        "Instruments/music traditions link to their audio clips; player supports playlist/sequence",
+        "Attribution/provenance shown for each clip",
+        "component tests cover audio rendering; `npm run check` passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "\"Sound of a language family\" sequence player",
+      "description": "As a learner, I want to hear related languages in sequence (and reconstructed proto-forms) so I can perceive family resemblance.",
+      "acceptanceCriteria": [
+        "Add a sequence player that plays pronunciations across a language family in genealogical order",
+        "Support optional reconstructed proto-language audio (e.g. Proto-Indo-European) where available, clearly labeled reconstructed/speculative",
+        "Reuse the IPA playback from US-002",
+        "component tests cover sequence ordering; `npm run check` passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "AI 'explain the connection' narrative generator",
+      "description": "As a user, I want an AI explanation of how two entities are connected so relationships are understandable.",
+      "acceptanceCriteria": [
+        "Add an endpoint that, given two entities, traverses the shared graph (tasklist 16) + Datalog inference and uses the existing Gemini client to generate a sourced narrative explanation",
+        "Explanations cite the underlying edges/facts and their provenance; clearly labeled AI-generated",
+        "Handle no-path and low-confidence cases honestly",
+        "vitest tests mock the LLM + graph; `npm run check` passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Anomaly detection for unexpected cultural similarities",
+      "description": "As a researcher, I want the system to surface unexpected cross-cultural similarities so I can find leads for undiscovered contact.",
+      "acceptanceCriteria": [
+        "Add an analysis that scans the shared graph/cross-domain data for statistically unexpected similarities (shared motifs, pottery styles, haplogroup+trait co-occurrence) between distant cultures",
+        "Rank anomalies by surprise/confidence with supporting evidence and provenance",
+        "Results are clearly framed as hypotheses, not conclusions",
+        "vitest tests cover the scoring on fixtures; `npm run check` passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Automated hypothesis & site-location generation",
+      "description": "As a researcher, I want generated hypotheses (including where undiscovered sites might be) so the tool suggests research directions.",
+      "acceptanceCriteria": [
+        "Generate hypotheses from the graph (e.g. 'cultures A/B/C share pottery + haplogroup markers -> possible common ancestor') and predict likely undiscovered site regions from migration/settlement patterns",
+        "Each hypothesis carries evidence, confidence, and is clearly labeled speculative; distinct from the curated urheimat-hypotheses dataset",
+        "Predictions render as map overlays with uncertainty",
+        "vitest tests cover hypothesis generation on fixtures; `npm run check` passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "AR historical-layer overlay",
+      "description": "As a mobile user, I want to point my phone at a location and see historical layers so history is experienced in place.",
+      "acceptanceCriteria": [
+        "Add a WebXR/AR mode that overlays historical map layers for the user's location on the camera view",
+        "Gracefully feature-detect and fall back on unsupported devices",
+        "Layers reuse the existing temporal map data",
+        "build/unit checks cover feature detection + layer selection; `npm run check` passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "VR globe & virtual museum",
+      "description": "As a user, I want an immersive 3D globe and 3D artifacts so I can explore space, time, and material culture.",
+      "acceptanceCriteria": [
+        "Add a three.js/WebXR 3D globe with time-space fly-through following migration paths (deck.gl mesh layers are available)",
+        "Add a virtual museum rendering glTF/3D artifact models where public-domain models exist",
+        "Toggle between flat map, globe, and museum; degrade gracefully without WebXR",
+        "build/unit checks cover scene setup; `npm run check` passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Endangered-language dashboard & field-research workflow",
+      "description": "As a researcher, I want preservation-status tracking and a field-update workflow so the dataset reflects living linguistic reality.",
+      "acceptanceCriteria": [
+        "Add an endangered-language dashboard driven by the existing languageStatus field (living/endangered/extinct) with preservation metrics",
+        "Add a field-research update workflow (structured, attributed edits from researchers) building on the contribution pipeline",
+        "Status changes are versioned/changelogged (tasklist 18 US-010)",
+        "vitest tests cover status aggregation + field-update submission; `npm run check` passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Living dataset: discovery ingestion & DOI snapshots",
+      "description": "As a maintainer, I want ongoing discovery ingestion and citable snapshots so the dataset stays current and academically usable.",
+      "acceptanceCriteria": [
+        "Add a workflow to ingest newly published discoveries (via culture-scrape scheduled acquisition, packages/culture-scrape/) with review",
+        "Produce periodic versioned dataset snapshots with DOIs (aligning with tasklist 18 US-011) and an annual release cadence",
+        "Freshness/versioning surfaced in the UI (building on data-freshness.ts)",
+        "vitest tests cover the ingestion + snapshot metadata; `npm run check` passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

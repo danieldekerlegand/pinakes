@@ -21,10 +21,14 @@ Each tasklist directory holds:
 |----|----------|-------------|-------|------------|--------|
 | 15 | Data-layer convergence (shared canonical schema) | `15-data-layer-convergence/tasks.json` | 9 | — | ✅ authored |
 | 16 | Graph app integration (Neo4j SoR + FastAPI proxy) | `16-graph-app-integration/tasks.json` | 12 | 15 | ✅ authored |
-| 17 | Data acquisition — in-app contribution tools (Phase 11) | `17-data-acquisition/tasks.json` | — | 16 | ⬜ planned |
-| 18 | Narrative & educational features (Phase 12) | `18-narrative-education/tasks.json` | — | — | ⬜ planned |
-| 19 | Platform & infrastructure (Phase 13) | `19-platform-infra/tasks.json` | — | 15 | ⬜ planned |
-| 20 | Speculative & long-term vision (Phase 14) | `20-speculative/tasks.json` | — | 18 | ⬜ planned |
+| 17 | Data acquisition — remaining Phase 11 gaps | `17-data-acquisition/tasks.json` | 12 | 16 | ✅ authored |
+| 18 | Narrative & educational features — Phase 12 gaps | `18-narrative-education/tasks.json` | 11 | 16 | ✅ authored |
+| 19 | Platform & infrastructure — Phase 13 gaps | `19-platform-infra/tasks.json` | 12 | 15 | ✅ authored |
+| 20 | Speculative & long-term vision — Phase 14 gaps | `20-speculative/tasks.json` | 11 | 18 | ✅ authored |
+
+> Tasklists 17–20 contain **only verified gaps** — items an audit confirmed are already built
+> (e.g. bulk import, Glottolog/WALS, curated journeys, NL search, dark mode, deck.gl) are excluded.
+> The Python-side convergence companion is `packages/culture-scrape/ralph/10-linguascrape-convergence`.
 
 > **Python side (same repo):** culture-scrape is vendored in-repo at
 > **`packages/culture-scrape/`**, so the Python-side ingestion, reconciliation, and Datalog

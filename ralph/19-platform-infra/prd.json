@@ -1,0 +1,176 @@
+{
+  "project": "LinguaScrape",
+  "branchName": "ralph/platform-infra",
+  "description": "Platform & infrastructure — the remaining Phase 13 gaps: analytical indexing, graph-traversal workers, server-side tiling, faceted search, collections & annotations, map export, full keyboard/mobile a11y, PWA/offline, and i18n. Excludes already-done deck.gl rendering, distance-matrix workers, NL search, autocomplete, embed, shareable URLs, dark mode, reduced motion.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "DuckDB analytical index over the TSVs",
+      "description": "As a developer, I want a runtime analytical index so heavy tabular/faceted queries are fast, complementing the Neo4j graph store.",
+      "acceptanceCriteria": [
+        "Add a runtime DuckDB (or SQLite) index built over lexicons/*.tsv at startup for complex tabular/aggregate queries; TSV remains the source of truth",
+        "Route heavy tabular queries (faceting, aggregates) through the index; graph/correlation queries continue to use Neo4j (tasklist 16)",
+        "Index rebuilds are incremental and documented; no change to the TSV write path",
+        "vitest tests cover query parity between index and in-memory results; `npm run check` passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Graph-traversal WebWorker task",
+      "description": "As a developer, I want graph traversal off the main thread so large neighborhood/path queries stay responsive.",
+      "acceptanceCriteria": [
+        "Add a graph/BFS/DFS task variant to the ComputationTask union (shared/computation.ts) and the worker (client/src/workers/computation.worker.ts)",
+        "Expose it via the existing use-computation-worker hook",
+        "Pure traversal logic lives in shared/computation.ts and is unit-tested",
+        "vitest tests cover traversal correctness; `npm run check` passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Server-side viewport/bbox map API",
+      "description": "As a user, I want the map to load only what's in view so large datasets stay fast end-to-end.",
+      "acceptanceCriteria": [
+        "Add bbox/zoom query params to the map data endpoints so the server returns only features intersecting the viewport",
+        "Wire the client viewport culling (client/src/lib/visualization/map-performance.ts) to request tiles/bbox from the server",
+        "Responses are bounded and paginated; whole-FeatureCollection responses are no longer required for large layers",
+        "vitest tests cover bbox filtering; `npm run check` passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Progressive summary/detail loading",
+      "description": "As a user, I want summaries first and details on demand so initial load is fast.",
+      "acceptanceCriteria": [
+        "Add summary endpoints returning lightweight records, with detail-on-demand endpoints for full entity data",
+        "Client fetches summaries first and hydrates detail lazily (React Query), with skeleton states",
+        "Documented summary/detail contract per domain",
+        "vitest tests cover the summary vs detail shapes; `npm run check` passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Faceted global search",
+      "description": "As a user, I want faceted search results so I can filter by domain and attributes.",
+      "acceptanceCriteria": [
+        "Extend server/services/global-search.ts SearchResponse with facet counts (per entity type and key attributes) and filter-by-facet params",
+        "Update client/src/components/global-search-dialog.tsx to render facet counts and apply facet filters",
+        "Faceting works with the DuckDB index (US-001) where beneficial",
+        "vitest tests cover facet counts + filtering; `npm run check` passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Generalized related-entities suggestions",
+      "description": "As a user, I want 'related entities' on every detail panel so I can explore connections everywhere.",
+      "acceptanceCriteria": [
+        "Generalize the RelatedEntity pattern (currently in CultureDataCard.tsx) to a shared component/hook usable by all detail panels",
+        "Related entities are sourced from the shared graph (tasklist 16) and/or cross-domain proximity, with provenance",
+        "Wire it into language, civilization, battle, religion, and other detail panels",
+        "vitest tests cover the shared related-entities component; `npm run check` passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Collaborative collections",
+      "description": "As a user, I want to curate collections of entities so I can group them around a theme and share them.",
+      "acceptanceCriteria": [
+        "Add a collections API (create/list/get/update/delete) and persistence (TSV or index) with ownership",
+        "Add a collections UI to add/remove entities and view a collection; collections are shareable via URL",
+        "Collections reference entities by stable id (tasklist 18 US-009)",
+        "vitest tests cover collection CRUD; `npm run check` passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "User annotations & notes on entities",
+      "description": "As a user, I want to attach notes/annotations to entities so I can record my own observations.",
+      "acceptanceCriteria": [
+        "Add an annotations API and persistence keyed by entity id + user",
+        "Add annotation UI on detail panels (create/edit/delete), clearly separated from authoritative data",
+        "Annotations are private by default with an option to share",
+        "vitest tests cover annotation CRUD; `npm run check` passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Map/canvas screenshot export",
+      "description": "As a user, I want to export the current map view as an image so I can use it in presentations.",
+      "acceptanceCriteria": [
+        "Extend client/src/lib/visualization/export-utils.ts to capture Leaflet/deck.gl map views (canvas/dom capture), not just SVG viz",
+        "Exported images include the existing attribution watermark",
+        "Support PNG at high resolution",
+        "vitest tests cover the export path with a mocked canvas; `npm run check` passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Full keyboard navigation & touch/gesture a11y",
+      "description": "As a keyboard or touch user, I want to navigate map entities and all viz modes so the app is fully accessible.",
+      "acceptanceCriteria": [
+        "Add arrow-key traversal across interactive map features (building on useMapAccessibility.ts) with focus indicators and SR announcements",
+        "Add explicit touch/gesture handling and complete the responsive layout audit across all visualization modes (use-mobile hook applied systematically)",
+        "Keyboard shortcuts documented and discoverable",
+        "vitest tests cover keyboard traversal logic; `npm run check` passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "PWA & offline support",
+      "description": "As a mobile user, I want an installable, offline-capable app so I can use cached data without a connection.",
+      "acceptanceCriteria": [
+        "Add a web app manifest and a service worker (e.g. vite-plugin-pwa/workbox) caching the app shell and selected datasets",
+        "The app is installable and serves cached data offline with a clear offline indicator",
+        "Cache invalidation strategy documented",
+        "vitest/build checks cover manifest + SW registration; `npm run check` passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Internationalization (i18n, RTL, calendars, native scripts)",
+      "description": "As a non-English user, I want a localized UI so the app is usable in my language and script.",
+      "acceptanceCriteria": [
+        "Add an i18n framework (react-i18next or similar) and externalize UI strings, starting with a scaffold + one non-English locale",
+        "Add app-wide RTL layout support (not just script-sample dir attributes) for Arabic/Hebrew/Farsi",
+        "Add localized date/calendar formatting via Intl (Islamic/Chinese calendars) alongside BCE/CE",
+        "Display entity names in native scripts + romanization consistently across domains",
+        "vitest tests cover locale switching + RTL + calendar formatting; `npm run check` passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
