@@ -44,17 +44,8 @@ import PhonologyPanel from "@/components/phonology-panel";
 import GrammarPanel from "@/components/grammar-panel";
 import WritingSystemsPanel from "@/components/writing-systems-panel";
 import VerbParadigmsPanel from "@/components/verb-paradigms-panel";
-import LanguageContactsPanel from "@/components/language-contacts-panel";
-import SoundChangesPanel from "@/components/sound-changes-panel";
 import CorrelationExplorerPanel from "@/components/correlation-explorer-panel";
 import DataOverview from "@/pages/data-overview";
-import ArtTraditionsPanel from "@/components/art-traditions-panel";
-import LiteraryTraditionsPanel from "@/components/literary-traditions-panel";
-import ArchaeologicalCulturesPanel from "@/components/archaeological-cultures-panel";
-import TradeGoodsPanel from "@/components/trade-goods-panel";
-import ReligionMythologyPanel from "@/components/religion-mythology-panel";
-import MilitaryWarfarePanel from "@/components/military-warfare-panel";
-import CuisineComparisonView from "@/components/visualizations/CuisineComparisonView";
 import MesopotamiaCityStatesShowcase from "@/components/mesopotamia-city-states-showcase";
 import CultureDiscoveryFeed from "@/components/culture-discovery-feed";
 import CultureProfilePanel from "@/components/culture-profile-panel";
@@ -63,6 +54,9 @@ import {
   recordRecentlyViewed,
   saveRecentlyViewed,
 } from "@/lib/culture-discovery-utils";
+import UnifiedExplorer from "@/components/explorer/UnifiedExplorer";
+import { ADAPTERS, getVisualization } from "@/lib/visualization/adapters/registry";
+import { compatibleAdapters } from "@/lib/visualization/adapters/compatibility";
 import GlobalSearchDialog from "@/components/global-search-dialog";
 import ScrapingTriggerButton from "@/components/scraping-trigger-button";
 import RealTimeProgress from "@/components/real-time-progress";
@@ -90,6 +84,8 @@ export default function Dashboard() {
   const [etymologyLanguage, setEtymologyLanguage] = useState<string>("");
   const [selectedCultureId, setSelectedCultureId] = useState<string | null>(null);
   const [recentlyViewedCultures, setRecentlyViewedCultures] = useState<string[]>([]);
+  const [exploreInitialAdapterId, setExploreInitialAdapterId] = useState<string | undefined>(undefined);
+  const [topLevelAdapterId, setTopLevelAdapterId] = useState<string>("language-families");
 
   useEffect(() => {
     setRecentlyViewedCultures(loadRecentlyViewed());
@@ -112,6 +108,21 @@ export default function Dashboard() {
     setActiveSection(null);
     setView(view);
   }, [setView]);
+
+  // Adapters compatible with the current top-level visualization, used to
+  // populate the dataset selector and to auto-fallback when the user picks a
+  // view incompatible with the currently-selected dataset.
+  const topLevelCompatibleAdapters = useMemo(() => {
+    const viz = getVisualization(vizState.currentView);
+    if (!viz) return ADAPTERS;
+    return compatibleAdapters(viz, ADAPTERS);
+  }, [vizState.currentView]);
+
+  useEffect(() => {
+    if (!topLevelCompatibleAdapters.some((a) => a.id === topLevelAdapterId)) {
+      setTopLevelAdapterId("language-families");
+    }
+  }, [topLevelCompatibleAdapters, topLevelAdapterId]);
 
   const handleNavigateToEtymology = useCallback((word: string, language: string) => {
     setEtymologyWord(word);
@@ -167,15 +178,20 @@ export default function Dashboard() {
     } else if (entityType === "writing-system") {
       setActiveSection('writing');
     } else if (entityType === "art-tradition") {
-      setActiveSection('art');
+      setExploreInitialAdapterId('art-traditions');
+      setActiveSection('explore');
     } else if (entityType === "trade-good") {
-      setActiveSection('trade');
+      setExploreInitialAdapterId('trade-goods');
+      setActiveSection('explore');
     } else if (entityType === "literary-tradition" || entityType === "literary-work") {
-      setActiveSection('literary');
+      setExploreInitialAdapterId('literary-traditions');
+      setActiveSection('explore');
     } else if (entityType === "archaeological-culture") {
-      setActiveSection('archCultures');
+      setExploreInitialAdapterId('archaeological-cultures');
+      setActiveSection('explore');
     } else if (entityType === "battle") {
-      setActiveSection('military');
+      setExploreInitialAdapterId('battles');
+      setActiveSection('explore');
     } else if (entityType === "music-tradition" || entityType === "musical-instrument") {
       toast({ title: `${entityType}: ${id}`, description: `Navigate to ${_linkPath}` });
     } else if (entityType === "language-family") {
@@ -323,6 +339,28 @@ export default function Dashboard() {
             <span>Discover Cultures</span>
           </button>
           <div className="h-3 w-px bg-gray-300" aria-hidden="true" />
+
+          {/* Dataset selector — filtered to adapters compatible with the current view */}
+          <span className="text-[10px] uppercase tracking-wider text-gray-400 flex-shrink-0">Data</span>
+          <Select
+            value={topLevelAdapterId}
+            onValueChange={(value) => setTopLevelAdapterId(value)}
+          >
+            <SelectTrigger className="w-auto h-6 border border-gray-200 shadow-none hover:bg-gray-50 text-gray-700 gap-1 px-2 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {topLevelCompatibleAdapters.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {topLevelAdapterId === "language-families" && (
+            <>
+          <div className="h-3 w-px bg-gray-300" aria-hidden="true" />
           <Filter className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" aria-hidden="true" />
 
           {/* Status filter popover */}
@@ -422,6 +460,8 @@ export default function Dashboard() {
               </button>
             </>
           )}
+            </>
+          )}
         </div>
       </div>
 
@@ -465,26 +505,12 @@ export default function Dashboard() {
               <WritingSystemsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'verbs' ? (
               <VerbParadigmsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'contacts' ? (
-              <LanguageContactsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'sounds' ? (
-              <SoundChangesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'art' ? (
-              <ArtTraditionsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'literary' ? (
-              <LiteraryTraditionsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'trade' ? (
-              <TradeGoodsPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'religion' ? (
-              <ReligionMythologyPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'archCultures' ? (
-              <ArchaeologicalCulturesPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
-            ) : activeSection === 'military' ? (
-              <MilitaryWarfarePanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'correlation' ? (
               <CorrelationExplorerPanel isOpen={true} onClose={() => setActiveSection(null)} embedded />
             ) : activeSection === 'mesopotamia' ? (
               <MesopotamiaCityStatesShowcase isOpen={true} onClose={() => setActiveSection(null)} embedded />
+            ) : activeSection === 'explore' ? (
+              <UnifiedExplorer initialAdapterId={exploreInitialAdapterId} />
             ) : activeSection === 'data-overview' ? (
               <DataOverview />
             ) : activeSection === 'discover' ? (
@@ -492,10 +518,17 @@ export default function Dashboard() {
                 onSelectCulture={handleSelectCulture}
                 recentlyViewedIds={recentlyViewedCultures}
               />
-            ) : (
+            ) : topLevelAdapterId === 'language-families' ? (
               <LanguageFamilyVisualization
                 selectedLanguageId={selectedLanguageId}
                 onLanguageSelect={setSelectedLanguageId}
+              />
+            ) : (
+              <UnifiedExplorer
+                key={`${topLevelAdapterId}-${vizState.currentView}`}
+                initialAdapterId={topLevelAdapterId}
+                initialVizId={vizState.currentView}
+                hidePicker
               />
             )}
           </div>

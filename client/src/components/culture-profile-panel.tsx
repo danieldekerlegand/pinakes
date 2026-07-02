@@ -24,12 +24,12 @@ import CultureMediaGallery from "@/components/shared/CultureMediaGallery";
 import { CultureDataCard } from "@/components/shared/CultureDataCard";
 import CultureComparisonView from "@/components/visualizations/CultureComparisonView";
 import CultureLanguageWritingSection from "@/components/culture-language-writing-section";
-import ReligionMythologyPanel from "@/components/religion-mythology-panel";
+import ReligionMythologySection from "@/components/culture-profile/religion-mythology-section";
 import ArchitectureUrbanPlanningSection from "@/components/culture-profile/architecture-urban-planning-section";
 import Architecture3DReconstructionSection from "@/components/culture-profile/architecture-3d-reconstruction-section";
 import MaterialCultureArtsSection from "@/components/culture-profile/material-culture-arts-section";
 import CuisineFoodwaysSection from "@/components/culture-profile/cuisine-foodways-section";
-import MilitaryWarfarePanel from "@/components/military-warfare-panel";
+import MilitaryWarfareSection from "@/components/culture-profile/military-warfare-section";
 import ExportProfileButton from "@/components/culture-profile/export-profile-button";
 import { GitCompare } from "lucide-react";
 
@@ -435,10 +435,9 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               />
             </TabsContent>
             <TabsContent value="religion">
-              <ReligionMythologyPanel
-                isOpen
-                embedded
-                onClose={() => setActiveTab("summary")}
+              <ReligionMythologySection
+                religionIds={profile.associatedReligionIds ?? []}
+                cultureName={profile.name}
               />
             </TabsContent>
             <TabsContent value="architecture">
@@ -481,10 +480,9 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
               </div>
             </TabsContent>
             <TabsContent value="military">
-              <MilitaryWarfarePanel
-                isOpen
-                embedded
-                onClose={() => setActiveTab("summary")}
+              <MilitaryWarfareSection
+                civilizationId={profile.civilizationId}
+                cultureName={profile.name}
               />
             </TabsContent>
             <TabsContent value="technology">

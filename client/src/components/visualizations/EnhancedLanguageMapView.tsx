@@ -1055,18 +1055,10 @@ export function EnhancedLanguageMapView({
     }));
   }, [territorialFillType]);
 
-  if (isLoadingAnyLayer) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg" role="status" aria-label="Loading map data">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
-          <p className="text-sm text-gray-600">Loading map data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Total visible feature count for screen reader summary
+  // Total visible feature count for screen reader summary.
+  // Must be declared BEFORE the early-return below — otherwise React's
+  // Rules of Hooks fire when isLoadingAnyLayer flips false and these hooks
+  // are encountered for the first time mid-tree.
   const totalVisibleFeatures = useMemo(() =>
     filteredLanguageRanges.length + filteredLanguageRangePolygons.length +
     filteredArchaeologicalSites.length + filteredArchaeologicalCultures.length +
@@ -1084,6 +1076,17 @@ export function EnhancedLanguageMapView({
     Array.from(layerState.activeLayers).length,
     [layerState.activeLayers]
   );
+
+  if (isLoadingAnyLayer) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg" role="status" aria-label="Loading map data">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" aria-hidden="true" />
+          <p className="text-sm text-gray-600">Loading map data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

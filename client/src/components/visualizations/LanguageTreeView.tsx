@@ -25,9 +25,18 @@ export function LanguageTreeView({ treeData, onNodeClick }: LanguageTreeViewProp
   const config = useMemo<TreeVisualizationConfig<TreeNode>>(
     () => ({
       getChildren: (d) => d.children,
+      getId: (d) => d.id,
       skipRoot: true,
       linkOffsetX: 150,
       linkOffsetY: 50,
+      // Fixed per-row spacing prevents label overlap regardless of tree size.
+      // 22px is enough vertical for the 12-14px label font; 220px horizontal
+      // gives room for "Proto-Indo-European"-length names plus a pill icon.
+      nodeSize: [22, 220],
+      collapsible: true,
+      // Show all top-level families on first render; their children are
+      // hidden until the user clicks. Keeps the initial view scannable.
+      initialCollapsedDepth: 1,
     }),
     []
   );
@@ -67,7 +76,9 @@ export function LanguageTreeView({ treeData, onNodeClick }: LanguageTreeViewProp
         .attr('font-weight', (d) => (d.data.type === 'family' ? 600 : 400))
         .attr('fill', VIS_TEXT_COLORS.dark);
 
-      // Interactions
+      // Interactions — TreeVisualization will override 'click' on internal
+      // nodes to toggle collapse. This handler stays effective for leaves
+      // (languages); on internal family nodes, the click toggles children.
       nodeGroup
         .on('click', function (event, d) {
           event.stopPropagation();
@@ -112,6 +123,7 @@ export function LanguageTreeView({ treeData, onNodeClick }: LanguageTreeViewProp
       data={treeData}
       config={config}
       renderNodes={renderNodes}
+      helpText="Click a family to expand • Scroll to zoom • Drag to pan"
     >
       <VisualizationTooltip
         data={tooltip.data}
