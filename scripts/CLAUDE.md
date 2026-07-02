@@ -34,6 +34,29 @@ emitted (keeps output `neo4j-admin import`-clean). Output is idempotent (rows so
 wall-clock written). Combined `*coordinates` JSON cells (`{"lat":..,"lng":..}`) split into
 `lat`/`lon`.
 
+## Provenance propagation (US-006)
+
+The export stamps all four provenance columns on **every** node and edge (values may be
+blank, the column is always present). Rules:
+
+- `source` = `linguascrape` (acquisition-source id) on 100% of rows — the reconciler
+  anchor **and** culture-scrape's `validate.py` requires a non-empty `source`.
+- The lexicon column mapped to canonical `source` actually holds **bibliographic
+  citations**, not the adapter id. `parseCitation()` reshapes it (JSON array → `"; "`-joined)
+  and it is preserved into the node **`source_query`** column — never dropped. `source` is
+  in `PROVENANCE_FORCED_FIELDS` so the citation column is *not* read as `source`; it is read
+  explicitly via `mapping.columns.find(c => c.target === "source")`.
+- `source_url` = `deriveSourceUrl(...)`, which returns the first real `http(s)` URL found
+  in the citation/cells, else `""`. **Never fabricate a URL.** Live corpus: 0 rows have one.
+- `retrieved_at` = `""` (LinguaScrape records no retrieval timestamp).
+- Edges have **no `source_query`** column (culture-scrape's edge schema omits it), so an
+  edge that carried a citation is counted in `manifest.provenance.edge.citationsWithoutCanonicalColumn`
+  (never silently dropped; embedded-FK edges keep it on the host node's `source_query`).
+- **Coverage metric** = `manifest.provenance` (per-type non-blank counts for each
+  provenance column + a human-readable `flags` list). It is deterministic (integer counts,
+  no wall-clock), so it lives in the committed manifest snapshot and is asserted against a
+  fresh build by a live test — re-run the export CLI after any change touching provenance.
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on

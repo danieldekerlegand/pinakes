@@ -8,9 +8,13 @@ import {
   runExport,
   mintCsid,
   parseCoordinates,
+  parseCitation,
+  deriveSourceUrl,
   normaliseConfidence,
   EXPORT_SOURCE,
   DEFAULT_NODE_CONFIDENCE,
+  NODE_PROVENANCE_FIELDS,
+  EDGE_PROVENANCE_FIELDS,
 } from "./export-for-culturescrape";
 import {
   nodeHeaderRow,
@@ -290,6 +294,156 @@ describe("export-for-culturescrape (US-004)", () => {
           .split("\n");
         expect(lines.length - 1).toBe(nt.count);
       }
+    });
+  });
+});
+
+describe("provenance propagation (US-006)", () => {
+  describe("pure helpers", () => {
+    it("preserves JSON-array and plain citations, never fabricates", () => {
+      expect(parseCitation('["Kuijt 2002","Cauvin 2000"]')).toBe(
+        "Kuijt 2002; Cauvin 2000",
+      );
+      expect(parseCitation("Homer Iliad")).toBe("Homer Iliad");
+      expect(parseCitation("")).toBe("");
+      expect(parseCitation("[]")).toBe("");
+    });
+
+    it("derives a source_url only from a real URL, else blank", () => {
+      expect(deriveSourceUrl("see https://example.org/x for detail")).toBe(
+        "https://example.org/x",
+      );
+      expect(deriveSourceUrl("http://a.test/1", "https://b.test/2")).toBe(
+        "http://a.test/1",
+      );
+      // No URL present → blank (never fabricated).
+      expect(deriveSourceUrl("Homer Iliad", "")).toBe("");
+      expect(deriveSourceUrl()).toBe("");
+    });
+  });
+
+  // An archaeological-culture whose `sources` is a citation list (no URL) plus a
+  // deity whose `sources` embeds a real URL — exercises both preservation paths.
+  const fixture = () =>
+    makeFixtureDir({
+      "archaeological-cultures.tsv": [
+        [
+          "id", "name", "region", "coordinates", "boundary_geometry",
+          "time_period_start", "time_period_end", "time_period_label",
+          "subsistence_pattern", "pottery_style", "burial_practices",
+          "material_culture_traits", "probable_language_family",
+          "probable_haplogroups", "predecessor_culture_ids",
+          "successor_culture_ids", "confidence", "sources", "description",
+        ],
+        [
+          "ppnb", "PPNB", "Levant", "", "", "-8700", "-6900", "", "", "", "",
+          "", "", "", "[]", "[]", "80", '["Kuijt 2002","Cauvin 2000"]', "desc",
+        ],
+      ],
+      "deities.tsv": [
+        ["id", "name", "culture", "domain", "description", "sources"],
+        [
+          "zeus", "Zeus", "Greek", "sky",
+          "king of the gods", '["Hesiod https://example.org/theogony"]',
+        ],
+      ],
+    });
+
+  it("preserves the original citation in source_query, keeps source=linguascrape", () => {
+    const dir = fixture();
+    try {
+      const { nodeGroups } = buildExport(dir);
+      const q = (field: string) =>
+        CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
+      const ppnb = nodeGroups.get("archaeological-culture")![0];
+      expect(ppnb[q("source")]).toBe(EXPORT_SOURCE);
+      expect(ppnb[q("source_query")]).toBe("Kuijt 2002; Cauvin 2000");
+      // No URL in the citation → source_url blank (never fabricated).
+      expect(ppnb[q("source_url")]).toBe("");
+      expect(ppnb[q("retrieved_at")]).toBe("");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("derives source_url from a citation that embeds a real URL", () => {
+    const dir = fixture();
+    try {
+      const { nodeGroups } = buildExport(dir);
+      const q = (field: string) =>
+        CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
+      const zeus = nodeGroups.get("deity")![0];
+      expect(zeus[q("source_url")]).toBe("https://example.org/theogony");
+      expect(zeus[q("source_query")]).toBe("Hesiod https://example.org/theogony");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("reports per-type provenance coverage + flags in the manifest", () => {
+    const dir = fixture();
+    try {
+      const { manifest } = buildExport(dir);
+      const prov = manifest.provenance;
+      // `source` is present on 100% of rows ("no fact without a source").
+      expect(prov.node.nonEmpty.source).toBe(prov.node.total);
+      // One of the two nodes has a citation → source_query non-empty count.
+      expect(prov.node.nonEmpty.source_query).toBeGreaterThan(0);
+      expect(prov.node.fields).toEqual([...NODE_PROVENANCE_FIELDS]);
+      expect(prov.edge.fields).toEqual([...EDGE_PROVENANCE_FIELDS]);
+      // Flags surface the blank-but-expected columns (never-fabricated URLs, etc.).
+      expect(prov.flags.some((f) => f.startsWith("node.retrieved_at:"))).toBe(true);
+      expect(prov.flags.some((f) => f.startsWith("node.source_query:"))).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  describe("live corpus", () => {
+    it("every exported row carries all provenance columns (AC4)", () => {
+      const { nodeGroups, edgeGroups } = buildExport();
+      const nCols = CANONICAL_SCHEMA.node.columns.length;
+      const eCols = CANONICAL_SCHEMA.edge.columns.length;
+      const nSource = CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === "source");
+      const nConf = CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === "confidence");
+      const eSource = CANONICAL_SCHEMA.edge.columns.findIndex((c) => c.field === "source");
+      const eConf = CANONICAL_SCHEMA.edge.columns.findIndex((c) => c.field === "confidence");
+
+      let nodeRows = 0;
+      for (const rows of nodeGroups.values()) {
+        for (const row of rows) {
+          expect(row).toHaveLength(nCols);
+          expect(row[nSource]).toBe(EXPORT_SOURCE); // 100% carry a source
+          const conf = Number(row[nConf]);
+          expect(conf).toBeGreaterThanOrEqual(0);
+          expect(conf).toBeLessThanOrEqual(1);
+          nodeRows += 1;
+        }
+      }
+      let edgeRows = 0;
+      for (const rows of edgeGroups.values()) {
+        for (const row of rows) {
+          expect(row).toHaveLength(eCols);
+          expect(row[eSource]).toBe(EXPORT_SOURCE);
+          const conf = Number(row[eConf]);
+          expect(conf).toBeGreaterThanOrEqual(0);
+          expect(conf).toBeLessThanOrEqual(1);
+          edgeRows += 1;
+        }
+      }
+      expect(nodeRows).toBeGreaterThan(0);
+      expect(edgeRows).toBeGreaterThan(0);
+    });
+
+    it("committed manifest snapshot matches a fresh build's provenance coverage", () => {
+      const fresh = buildExport();
+      const snapshot = JSON.parse(
+        fs.readFileSync(
+          path.resolve(import.meta.dirname, "..", "docs", "culturescrape-export-manifest.json"),
+          "utf8",
+        ),
+      );
+      expect(snapshot.provenance).toEqual(fresh.manifest.provenance);
     });
   });
 });

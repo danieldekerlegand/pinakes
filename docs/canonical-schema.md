@@ -147,6 +147,20 @@ and every edge** — the column must always be present, though `source_url` may 
 when no URL is derivable (never fabricated; flagged instead). `nodeProvenanceColumns()`
 / `edgeProvenanceColumns()` expose the list programmatically.
 
+The export (§7) applies these rules concretely:
+
+- **`source`** = `linguascrape` (the acquisition-source id) on 100% of rows — "no fact
+  without a source", matching culture-scrape's `validate.py`.
+- **`source_query`** (node only) preserves the *original* LinguaScrape bibliographic
+  `sources` citation — it is never dropped. Edges have no `source_query` column, so an
+  edge that carried a citation is counted in `provenance.edge.citationsWithoutCanonicalColumn`
+  (embedded-FK edges keep the citation on their host node's `source_query`).
+- **`source_url`** is filled only when a real `http(s)` URL is present in the source
+  data; otherwise blank and flagged. URLs are **never fabricated**.
+- **`retrieved_at`** is blank — LinguaScrape records no retrieval timestamp.
+- The manifest's `provenance` block reports per-type non-blank counts for every
+  provenance column plus a human-readable `flags` list (US-006 coverage metric).
+
 ## 5. Validation
 
 - **Compile time:** `shared/canonical-schema.ts` asserts the JSON against the
@@ -310,10 +324,13 @@ A committed snapshot of the manifest lives at
 - **Identity** — `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`;
   every row keeps its original id in `linguascrape_id` (the US-007 round-trip key). Edge
   `:START_ID`/`:END_ID` are rewritten from LinguaScrape ids to the csids of exported nodes.
-- **Provenance** — every row is stamped `source = "linguascrape"`; `source_url` /
-  `retrieved_at` are blank here and filled by US-006 (URLs are never fabricated). Edge
-  `confidence` and time ranges carry through from the US-003 extractor; a node with no
-  `confidence` column defaults to `0.5`.
+- **Provenance (US-006)** — every node and edge carries all four provenance columns.
+  `source = "linguascrape"` on 100% of rows; the original LinguaScrape citation is
+  preserved in the node `source_query` (never dropped); `source_url` is derived only from
+  a real URL in the data (never fabricated) and otherwise blank + flagged; `retrieved_at`
+  is blank (LinguaScrape records none). The manifest's `provenance` block reports per-type
+  completeness + flags. Edge `confidence` and time ranges carry through from the US-003
+  extractor; a node with no `confidence` column defaults to `0.5`.
 - **Idempotent** — rows are sorted (nodes by `csid`, edges by `:START_ID/:END_ID/:TYPE`)
   and no wall-clock is written, so re-runs are byte-identical.
 - **Diagnostics** (never silent) — the manifest reports `skippedNodeRowsMissingId`,

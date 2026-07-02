@@ -13,10 +13,14 @@
  * canonical schema (US-001) — `nodeHeaderRow()` / `edgeHeaderRow()` — so the output
  * validates against that schema and imports with `neo4j-admin import` directly.
  *
- * Provenance: every row is stamped `source = "linguascrape"` (the acquisition-source
- * identifier culture-scrape's reconciler keys on). `source_url` / `retrieved_at` are
- * left blank here and filled by US-006 (provenance propagation); URLs are never
- * fabricated. Edge `confidence` / time ranges are carried through from US-003.
+ * Provenance (US-006): every node and edge carries all four provenance columns —
+ * `source`, `source_url`, `retrieved_at`, `confidence` (values may be blank, the column
+ * is always present). `source = "linguascrape"` is the acquisition-source id the
+ * reconciler keys on; the *original* LinguaScrape bibliographic `sources` citations are
+ * preserved (never dropped) in the node `source_query` column. `source_url` is derived
+ * only when a real URL is present in the data — URLs are never fabricated — otherwise it
+ * is left blank and flagged. `retrieved_at` is blank (LinguaScrape records no retrieval
+ * timestamp). The manifest carries a per-type provenance-completeness coverage report.
  *
  * Identity: `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`
  * (the id scheme's `cs:<type>:<local>` format), so re-runs are byte-identical
@@ -65,12 +69,34 @@ export const EXPORT_SOURCE = "linguascrape";
  */
 export const DEFAULT_NODE_CONFIDENCE = 0.5;
 
-/** Fields the export forces rather than copying from a lexicon column. */
+/**
+ * Fields the export forces rather than copying from a lexicon column. `source` is
+ * force-set to {@link EXPORT_SOURCE}; the lexicon column mapped to canonical `source`
+ * actually holds bibliographic citations, which US-006 re-homes into `source_query`.
+ */
 const PROVENANCE_FORCED_FIELDS: ReadonlySet<string> = new Set([
   "source",
   "source_url",
+  "source_query",
   "retrieved_at",
 ]);
+
+/** Provenance fields present on every exported node row (US-006 coverage). */
+export const NODE_PROVENANCE_FIELDS = [
+  "source",
+  "source_url",
+  "source_query",
+  "retrieved_at",
+  "confidence",
+] as const;
+
+/** Provenance fields present on every exported edge row (US-006 coverage). */
+export const EDGE_PROVENANCE_FIELDS = [
+  "source",
+  "source_url",
+  "retrieved_at",
+  "confidence",
+] as const;
 
 /** An unresolved edge endpoint, retained (bounded) for the manifest. */
 export interface UnresolvedEndpoint {
@@ -78,6 +104,39 @@ export interface UnresolvedEndpoint {
   readonly endId: string;
   readonly edgeName: string;
   readonly sourceFile: string;
+}
+
+/** Non-empty counts for the provenance columns of one node/edge type. */
+export interface ProvenanceTypeCoverage {
+  readonly type: string;
+  readonly count: number;
+  /** field name → number of rows whose value is non-blank. */
+  readonly nonEmpty: Readonly<Record<string, number>>;
+}
+
+/** Per-family provenance completeness (US-006). */
+export interface ProvenanceFamilyCoverage {
+  readonly fields: readonly string[];
+  readonly total: number;
+  readonly byType: readonly ProvenanceTypeCoverage[];
+  /** field name → non-blank count across every row of the family. */
+  readonly nonEmpty: Readonly<Record<string, number>>;
+}
+
+/** Provenance coverage report attached to the manifest (US-006). */
+export interface ProvenanceCoverage {
+  readonly node: ProvenanceFamilyCoverage;
+  readonly edge: ProvenanceFamilyCoverage & {
+    /**
+     * Edges that carried an original bibliographic citation for which the canonical
+     * edge schema has no column (it has no `source_query`). These are never silently
+     * dropped: embedded-FK edges preserve the citation on the host node's
+     * `source_query`; this count flags the residue for review.
+     */
+    readonly citationsWithoutCanonicalColumn: number;
+  };
+  /** Human-readable notes on blank-but-expected columns (never-fabricated URLs, etc.). */
+  readonly flags: readonly string[];
 }
 
 /** Per-type export summary written to the manifest. */
@@ -109,6 +168,7 @@ export interface ExportManifest {
     readonly edgesWithUnresolvedEndpoint: number;
     readonly unresolvedEndpointSamples: readonly UnresolvedEndpoint[];
   };
+  readonly provenance: ProvenanceCoverage;
 }
 
 /** In-memory result of a build: grouped rows (in canonical column order) + manifest. */
@@ -183,6 +243,47 @@ export function parseCoordinates(
   return null;
 }
 
+/**
+ * Parse a LinguaScrape citation cell into a single preserved string. Many lexicons
+ * store `sources` as a JSON array (`["Kuijt 2002","Cauvin 2000"]`); those are joined
+ * with `"; "`. A plain string is returned trimmed; empty ⇒ `""`. This never drops the
+ * original citation — it only reshapes it for the `source_query` column (US-006).
+ */
+export function parseCitation(value: string): string {
+  if (value === "") return "";
+  if (value.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((s): s is string => typeof s === "string" && s.trim() !== "")
+          .map((s) => s.trim())
+          .join("; ");
+      }
+    } catch {
+      // fall through to the raw value
+    }
+  }
+  return value.trim();
+}
+
+/** Matches the first `http(s)` URL in a string. */
+const URL_PATTERN = /https?:\/\/[^\s"'<>]+/i;
+
+/**
+ * Derive a `source_url` from the first real `http(s)` URL found in any candidate
+ * string (a citation, a raw cell, …). Returns `""` when none is present — the export
+ * **never fabricates** a URL (US-006), it only surfaces one that already exists.
+ */
+export function deriveSourceUrl(...candidates: string[]): string {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const match = candidate.match(URL_PATTERN);
+    if (match) return match[0];
+  }
+  return "";
+}
+
 /** Mint a deterministic canonical id: `cs:<node-type>:<linguascrape-id>`. */
 export function mintCsid(nodeType: string, linguascrapeId: string): string {
   return `cs:${nodeType}:${linguascrapeId}`;
@@ -238,6 +339,11 @@ function buildNodesForFile(
   );
   const coordIdx = coordCol ? headers.indexOf(coordCol.column) : -1;
 
+  // The lexicon column mapped to canonical `source` holds bibliographic citations,
+  // not the acquisition-source id — preserve it into `source_query` (US-006).
+  const citationCol = mapping.columns.find((c) => c.target === "source");
+  const citationIdx = citationCol ? headers.indexOf(citationCol.column) : -1;
+
   const group = nodeGroups.get(nodeType) ?? [];
 
   for (const row of rows) {
@@ -277,9 +383,14 @@ function buildNodesForFile(
       }
     }
 
-    // Forced provenance (US-004): source identifier now; url/retrieved_at in US-006.
+    // Provenance (US-006): `source` = acquisition-source id (reconciler anchor);
+    // the original LinguaScrape citation is preserved in `source_query` and never
+    // dropped; `source_url` is derived only from a real URL (never fabricated);
+    // `retrieved_at` is blank (LinguaScrape records no retrieval timestamp).
+    const citation = citationIdx >= 0 ? parseCitation(cell(row, citationIdx)) : "";
     record.set("source", EXPORT_SOURCE);
-    record.set("source_url", "");
+    record.set("source_query", citation);
+    record.set("source_url", deriveSourceUrl(citation));
     record.set("retrieved_at", "");
     record.set(
       "confidence",
@@ -330,6 +441,8 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
   const unresolvedSamples: UnresolvedEndpoint[] = [];
   let unresolvedCount = 0;
 
+  let edgeCitationsWithoutColumn = 0;
+
   const { edges } = extractAllCanonicalEdges(lexiconsDir);
   for (const e of edges) {
     const startCsid = idIndex.get(e.startId);
@@ -347,6 +460,14 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
       continue;
     }
 
+    // The extractor's `provenance.source` is the original citation, or the source
+    // file name when the row carried none. A real citation has no canonical edge
+    // column (edges have no `source_query`); flag it rather than drop it silently.
+    const edgeCitation = e.provenance.source;
+    if (edgeCitation !== "" && edgeCitation !== e.sourceFile) {
+      edgeCitationsWithoutColumn += 1;
+    }
+
     const record = new Map<string, string>();
     record.set(":START_ID", startCsid);
     record.set(":END_ID", endCsid);
@@ -355,7 +476,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set("time_end", e.timeEnd === null ? "" : String(e.timeEnd));
     record.set("linguascrape_id", e.linguascrapeId ?? "");
     record.set("source", EXPORT_SOURCE);
-    record.set("source_url", "");
+    record.set("source_url", deriveSourceUrl(e.provenance.sourceUrl, edgeCitation));
     record.set("retrieved_at", "");
     record.set("confidence", String(e.provenance.confidence));
 
@@ -377,15 +498,107 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     });
   }
 
+  const provenance = buildProvenanceCoverage(
+    nodeGroups,
+    edgeGroups,
+    edgeCitationsWithoutColumn,
+  );
+
   const manifest = buildManifest(
     nodeGroups,
     edgeGroups,
     nodeCounters,
     unresolvedCount,
     unresolvedSamples,
+    provenance,
   );
 
   return { nodeGroups, edgeGroups, manifest };
+}
+
+/** Count, per type (in schema order), how many rows have a non-blank value per field. */
+function familyCoverage(
+  family: "node" | "edge",
+  groups: Map<string, string[][]>,
+  fields: readonly string[],
+): ProvenanceFamilyCoverage {
+  const fieldIdx = new Map(
+    fields.map((f) => [
+      f,
+      CANONICAL_SCHEMA[family].columns.findIndex((c) => c.field === f),
+    ]),
+  );
+  const typeOrder =
+    family === "node" ? CANONICAL_SCHEMA.nodeTypes : CANONICAL_SCHEMA.edgeTypes;
+  const totalNonEmpty: Record<string, number> = Object.fromEntries(
+    fields.map((f) => [f, 0]),
+  );
+  const byType: ProvenanceTypeCoverage[] = [];
+  let total = 0;
+
+  for (const t of typeOrder) {
+    const rows = groups.get(t.name);
+    if (rows === undefined) continue;
+    const nonEmpty: Record<string, number> = Object.fromEntries(
+      fields.map((f) => [f, 0]),
+    );
+    for (const row of rows) {
+      for (const f of fields) {
+        const idx = fieldIdx.get(f)!;
+        if (idx >= 0 && (row[idx] ?? "") !== "") {
+          nonEmpty[f] += 1;
+          totalNonEmpty[f] += 1;
+        }
+      }
+    }
+    total += rows.length;
+    byType.push({ type: t.name, count: rows.length, nonEmpty });
+  }
+
+  return { fields: [...fields], total, byType, nonEmpty: totalNonEmpty };
+}
+
+/** Assemble the US-006 provenance-completeness report (per node/edge type + flags). */
+function buildProvenanceCoverage(
+  nodeGroups: Map<string, string[][]>,
+  edgeGroups: Map<string, string[][]>,
+  edgeCitationsWithoutColumn: number,
+): ProvenanceCoverage {
+  const node = familyCoverage("node", nodeGroups, NODE_PROVENANCE_FIELDS);
+  const edgeBase = familyCoverage("edge", edgeGroups, EDGE_PROVENANCE_FIELDS);
+  const edge = { ...edgeBase, citationsWithoutCanonicalColumn: edgeCitationsWithoutColumn };
+
+  const flags: string[] = [];
+  if (node.nonEmpty.source_url === 0) {
+    flags.push(
+      `node.source_url: 0/${node.total} rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.`,
+    );
+  }
+  if (node.nonEmpty.retrieved_at === 0) {
+    flags.push(
+      `node.retrieved_at: 0/${node.total} rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.`,
+    );
+  }
+  flags.push(
+    `node.source_query: ${node.nonEmpty.source_query}/${node.total} rows preserve the original LinguaScrape citation.`,
+  );
+  if (edge.nonEmpty.source_url === 0) {
+    flags.push(
+      `edge.source_url: 0/${edge.total} edges carry a URL; left blank, never fabricated.`,
+    );
+  }
+  if (edge.nonEmpty.retrieved_at === 0) {
+    flags.push(
+      `edge.retrieved_at: 0/${edge.total} edges carry a retrieval timestamp; left blank, never fabricated.`,
+    );
+  }
+  if (edge.citationsWithoutCanonicalColumn > 0) {
+    flags.push(
+      `edge.citationsWithoutCanonicalColumn: ${edge.citationsWithoutCanonicalColumn} edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query.`,
+    );
+  }
+
+  return { node, edge, flags };
 }
 
 /** Assemble the manifest from grouped rows + counters (type order follows the schema). */
@@ -399,6 +612,7 @@ function buildManifest(
   },
   unresolvedCount: number,
   unresolvedSamples: readonly UnresolvedEndpoint[],
+  provenance: ProvenanceCoverage,
 ): ExportManifest {
   const nodeTypes = CANONICAL_SCHEMA.nodeTypes
     .filter((t) => nodeGroups.has(t.name))
@@ -438,6 +652,7 @@ function buildManifest(
       edgesWithUnresolvedEndpoint: unresolvedCount,
       unresolvedEndpointSamples: unresolvedSamples,
     },
+    provenance,
   };
 }
 
