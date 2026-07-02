@@ -57,6 +57,34 @@ blank, the column is always present). Rules:
   no wall-clock), so it lives in the committed manifest snapshot and is asserted against a
   fresh build by a live test — re-run the export CLI after any change touching provenance.
 
+## Bidirectional write-back (US-007)
+
+`import-from-culturescrape.ts` is the **return leg** of the export: it reads the enriched
+canonical node TSVs (`<canonicalDir>/nodes/<type>.tsv`) and writes graph-derived facts back
+into `lexicons/*.tsv` via the **reverse** of the US-002 `target` map. `buildWriteBack(canonicalDir,
+lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
+`writeWriteBack`/`runWriteBack` do the filesystem side. Report →
+`export/culturescrape/writeback/report.json` (gitignored). Full contract + ownership table:
+[`docs/canonical-schema.md` §9](../docs/canonical-schema.md).
+
+- **Only fills blanks by default** (enrichment). A differing curated cell is a **conflict** —
+  reported (`report.conflicts`), never silently resolved; `{overwrite:true}` / `--overwrite`
+  is the only way to apply it (still logged as a conflict).
+- **`NON_WRITEBACK_FIELDS`** (identity + all provenance/confidence columns) are never written —
+  LinguaScrape owns curated columns; the graph owns edges + external-authority enrichment.
+- **GOTCHA — `linguascrape_id` is NOT globally unique** in the live corpus. The same id recurs
+  *within* a file (`languages.tsv` uses `abe` for two distinct languages) **and across files of
+  the same node type** (`mohenjo-daro` is in both `archaeological-sites.tsv` and `settlements.tsv`,
+  both → `place`). The export dedups to one canonical row, so any write keyed on such an id could
+  land on the wrong row. The write-back therefore counts each id **across the whole node type**
+  (not per file) and **skips** any id with count > 1 (or a duplicated canonical id), reporting it
+  in `report.ambiguousIds`. This is what makes the round-trip lossless — never widen the write to
+  ambiguous ids without a stronger key. A live-corpus test asserts the real export→import is a
+  0-change / 0-conflict no-op.
+- **Byte-faithful rewrite:** `readLexiconFile`/`serializeLexiconFile` preserve EOL + trailing-newline
+  shape and keep cells raw, so an unedited file re-serialises identically (only changed files are
+  written back).
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on

@@ -385,3 +385,70 @@ Each node is classified into exactly one **bucket**:
 `duplicateCsidsDropped`) and `byType` roll-ups. See
 [`packages/culture-scrape/docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)
 for how to feed the export into culture-scrape's reconcile step.
+
+## 9. Bidirectional write-back & field ownership (US-007)
+
+The export (§7) is the **outbound** leg (lexicons → canonical → graph).
+[`scripts/import-from-culturescrape.ts`](../scripts/import-from-culturescrape.ts) is the
+**return** leg: it reads the *enriched* canonical node TSVs culture-scrape hands back
+(graph-derived values, filled gaps) and writes those facts into the lexicon rows they came
+from, so the two stores do not drift and `lexicons/*.tsv` stays a complete,
+graph-independent source of truth. Run it with `npx tsx scripts/import-from-culturescrape.ts`
+(add `--overwrite` to apply graph values over curated ones; see below).
+`buildWriteBack(canonicalDir, lexiconsDir)` is pure; `writeWriteBack` / `runWriteBack` touch
+the filesystem. The report lands at `export/culturescrape/writeback/report.json` (gitignored).
+
+### 9.1 Write-back rules (conservative by default)
+
+- **Join key = `linguascrape_id`.** A canonical node is matched back to a lexicon row by the
+  original LinguaScrape id (the reverse of the §7 csid minting). Only canonical fields with a
+  real reverse `lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
+  writeable ("where a canonical→lexicon mapping exists").
+- **Enrichment (gap fill).** A *blank* lexicon cell for which the graph supplies a value is
+  filled. This is the only edit applied by default.
+- **Conflict (never silently resolved).** A lexicon cell that already holds a *different*
+  value is a conflict: it is **reported** (`report.conflicts`), and the curated value is
+  **kept**. `--overwrite` / `{ overwrite: true }` is the only way to apply the incoming value,
+  and even then the override is still listed as a conflict for the audit trail.
+- **Ambiguous join key (skipped, reported).** `linguascrape_id` is **not globally unique** in
+  the live corpus — e.g. `languages.tsv` reuses `abe` for both *Western Abenaki* and *Great
+  Andamanese*, and `mohenjo-daro` appears in both `archaeological-sites.tsv` and
+  `settlements.tsv` (both → `place`). Because such an id cannot address a single lexicon row,
+  the export dedups it to one canonical row and the write-back **skips it entirely** (never
+  writes), surfacing it in `report.ambiguousIds` (with `lexiconRows` / `canonicalAmbiguous`).
+  This is what keeps "no data loss" true: the write-back never risks writing one entity's
+  facts into another entity's row.
+- **No-op round-trip.** A pure export→import with no graph enrichment changes nothing: every
+  writeable cell already matches, so no lexicon file is rewritten (asserted by
+  `import-from-culturescrape.test.ts`, including a live-corpus round-trip).
+- **Edges are graph-owned.** Relationships are never written back into lexicon FK columns — an
+  edge has no lexicon row identity to target (see the ownership table below).
+
+### 9.2 Field ownership — who is authoritative
+
+| Field group | Authoritative side | Write-back disposition |
+|---|---|---|
+| Identity (`csid`, `linguascrape_id`, `:LABEL`) | LinguaScrape (ids) / schema (label) | Never written (join key / structural) |
+| Core descriptive fields with a lexicon column (`name`, `aliases`, `language_code`, `script`, `region`, `time_start`/`time_end`, `lat`/`lon`, `description`, …) | **LinguaScrape (human-curated)** | Filled only when blank; disagreements are conflicts, kept unless `--overwrite` |
+| Provenance & confidence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`) | **LinguaScrape** (see `NON_WRITEBACK_FIELDS`) | Never written — LinguaScrape owns citations/confidence; the graph's `source`/`confidence` are for triage only |
+| Relationships / edges | **culture-scrape graph** (correlation system-of-record) | Not written back to lexicons at all |
+| Graph-only enrichments with **no** lexicon column (external ids like `wikidata_qid`/`getty_id`, graph-derived metrics) | culture-scrape graph | No lexicon home → stay in the graph (surfaced, not written) |
+
+Rule of thumb: **LinguaScrape owns the CPU-domain / curated columns; the graph owns
+correlation (edges) and external-authority enrichment.** A blank curated cell is the only
+thing the graph may fill; anything already curated wins until a human opts into `--overwrite`.
+
+### 9.3 Sync cadence & ownership process
+
+- **Outbound** (lexicons → graph): run the export (§7) whenever lexicons change; feed
+  `export/culturescrape/` into culture-scrape's reconcile + load. This is the frequent path.
+- **Inbound** (graph → lexicons): run the write-back **on demand**, after a graph enrichment
+  pass produces new facts — not on every graph write. Review `report.json` first:
+  - `enrichments` are safe gap-fills and can be committed as a data PR.
+  - `conflicts` require a human decision per field; re-run with `--overwrite` only for fields
+    the graph is meant to win (rare), otherwise fix the source and re-export.
+  - `ambiguousIds` flag id-collisions to clean up in the lexicons (dedupe ids) before those
+    rows can round-trip.
+- **Contribution-system edits** (human curation in the LinguaScrape app) are authoritative for
+  the curated columns and flow **out** via the next export; they are never overwritten by an
+  unattended inbound sync.
