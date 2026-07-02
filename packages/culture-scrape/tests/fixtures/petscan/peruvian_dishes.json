@@ -1,0 +1,37 @@
+{
+  "n": "result",
+  "a": {
+    "query": "https://petscan.wmcloud.org/?language=es&project=wikipedia&categories=Gastronom%C3%ADa+de+Per%C3%BA&depth=2&combination=subset&format=json&doit=1",
+    "querytime_sec": 0.42
+  },
+  "*": [
+    {
+      "n": "combination",
+      "a": {
+        "type": "subset",
+        "*": [
+          {
+            "id": 207058,
+            "namespace": 0,
+            "title": "Ceviche",
+            "len": 12345,
+            "touched": "20250601000000",
+            "nstext": "",
+            "metadata": {
+              "wikidata": "Q207058"
+            }
+          },
+          {
+            "id": 2734670,
+            "namespace": 0,
+            "title": "Lomo saltado",
+            "len": 6789,
+            "touched": "20250601000000",
+            "nstext": "",
+            "metadata": {}
+          }
+        ]
+      }
+    }
+  ]
+}

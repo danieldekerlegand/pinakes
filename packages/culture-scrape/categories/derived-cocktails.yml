@@ -1,0 +1,20 @@
+# Genetic (cultural-lineage) category: cocktails and the cocktails they derive from.
+# "Genetic" here means cultural derivation, not biology. Demonstrates the genetic
+# dimension on the one open structured source confirmed ingestible with no new
+# adapter code — Wikidata's `based on` (P144) derivation links.
+# Source evaluation: docs/sources-genetic.md. Schema: docs/data-model.md.
+id: derived-cocktails
+label: Cocktail;CulturalArtifact
+description: Cocktails and the earlier cocktails they are derived from
+source:
+  type: wikidata-sparql
+  query: |
+    SELECT ?item ?itemLabel ?basis ?basisLabel WHERE {
+      ?item wdt:P31 wd:Q134768 .                 # instance of: cocktail
+      ?item wdt:P144 ?basis .                     # based on (cultural derivation)
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    }
+dimensions: [genetic]
+links:
+  - type: DERIVED_FROM
+    to: entity

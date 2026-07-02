@@ -1,0 +1,10 @@
+:START_ID	:END_ID	:TYPE	weight:float	source
+cs:dish:tiradito	cs:dish:ceviche	DERIVED_FROM		wikidata
+cs:dish:nikkei-ceviche	cs:dish:tiradito	DERIVED_FROM		wikidata
+cs:dish:nikkei-ceviche	cs:dish:kinilaw	INFLUENCED_BY		wikidata
+cs:dish:ceviche	cs:place:lima	LOCATED_IN	0.9	wikidata
+cs:dish:tiradito	cs:place:lima	LOCATED_IN	0.9	wikidata
+cs:place:lima	cs:place:peru	LOCATED_IN		wikidata
+cs:place:peru	cs:place:south-america	LOCATED_IN		wikidata
+cs:event:inca-expansion	cs:event:columbian-exchange	CONTEMPORARY_WITH		wikidata
+cs:dish:ceviche	cs:event:inca-expansion	CONTEMPORARY_WITH		wikidata

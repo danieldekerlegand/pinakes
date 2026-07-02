@@ -1,0 +1,67 @@
+# Sports, games & pastimes — verified Wikidata classes for the culture corpus.
+#
+# 10 classes, ~7,908 entities. Each count was verified live against the
+# Wikidata Query Service (2026-06): `instance of` (P31) for the
+# `wikidata_class` stubs and the transitive `subclass of` (P279+) tree for the
+# `subclass_of` stub (martial-arts). The count after each entry is that
+# observed value. Classes resolving to zero entities are not shipped.
+#
+# Generate:  culturescrape generate blueprints/sports-games.yml \
+#                --out categories --job jobs/sports-games.yml
+defaults:
+  label: Game;CulturalArtifact
+  dimensions: [temporal, geographic, linguistic, genetic]
+  links:
+    - {type: ORIGINATES_FROM, to: place}
+    - {type: VARIANT_OF, to: game}
+    - {type: DERIVED_FROM, to: game}
+categories:
+  # — Sports & competition —
+  - id: sports
+    name: "sport"
+    label: Sport;CulturalArtifact
+    wikidata_class: Q31629  # type of sport — ~835
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: sport}
+      - {type: DERIVED_FROM, to: sport}
+  - id: team-sports
+    name: "team sport"
+    label: Sport;CulturalArtifact
+    wikidata_class: Q216048  # team sport — ~56
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: sport}
+      - {type: DERIVED_FROM, to: sport}
+  - id: traditional-sports
+    name: "traditional sport"
+    label: Sport;CulturalArtifact
+    wikidata_class: Q21654660  # traditional sport — ~31
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: sport}
+      - {type: DERIVED_FROM, to: sport}
+  # — Martial arts (the styles are modelled as subclasses of "martial arts") —
+  - id: martial-arts
+    description: Martial arts and their codified styles
+    label: MartialArt;CulturalArtifact
+    subclass_of: Q11417  # martial arts (P279+ tree) — ~452
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: martial-art}
+      - {type: DERIVED_FROM, to: martial-art}
+  # — Games (board, card, dice, tabletop, traditional) —
+  - {id: board-games, name: "board game", wikidata_class: Q131436}  # ~3,963
+  - {id: card-games, name: "card game", wikidata_class: Q142714}  # ~1,233
+  - {id: dice-games, name: "dice game", wikidata_class: Q1515156}  # ~104
+  - {id: tabletop-games, name: "tabletop game", wikidata_class: Q3244175}  # ~266
+  - {id: traditional-games, name: "traditional game", wikidata_class: Q676977}  # ~84
+  # — Toys —
+  - id: toys
+    name: "toy"
+    label: Toy;CulturalArtifact
+    wikidata_class: Q11422  # toy — ~884
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: toy}
+      - {type: DERIVED_FROM, to: toy}

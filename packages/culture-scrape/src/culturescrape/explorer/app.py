@@ -1,0 +1,581 @@
+"""The explorer FastAPI application factory.
+
+:func:`create_app` builds a read-only app bound to one corpus *source* (a job
+output root or a bare corpus directory). It owns the app shell, the shared nav,
+the overview page, and the browse-and-search views: paginated node/edge tables
+(filterable by ``:LABEL`` / ``:TYPE`` and by free text on name / csid) and the
+per-node detail page. Later stories register the remaining views (completeness,
+metrics, graph, Datalog) on the app this returns.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from culturescrape.explorer.actions import category_actions
+from culturescrape.explorer.data import (
+    SEARCH_LIMIT,
+    STATUS_ORDER,
+    CategoryStatus,
+    Corpus,
+    Neighborhood,
+    dimension_for,
+    display,
+    first_label,
+    load_corpus,
+    scalar,
+)
+from culturescrape.explorer.datalog import Datalog
+from culturescrape.explorer.links import resolve_links
+from culturescrape.explorer.live import (
+    LiveNeighborhood,
+    Neo4jLive,
+    load_queries,
+)
+from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
+from culturescrape.schema.headers import Column
+from culturescrape.schema.tsvio import Row, column_key
+
+#: Directory holding the Jinja2 templates the views render.
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+#: Rows shown per page in the node/edge tables.
+PAGE_SIZE = 50
+
+#: Below this largest-component fraction the metrics view flags fragmentation.
+#: Overridable per request via the ``threshold`` query parameter.
+FRAGMENTATION_THRESHOLD = 0.9
+
+#: Hop radius the graph view requests when expanding around a clicked node.
+GRAPH_DEPTH = 1
+
+#: Upper bound on the neighborhood depth the JSON API will honour.
+MAX_GRAPH_DEPTH = 4
+
+#: Upper bound on the number of global-search hits a request may ask for.
+MAX_SEARCH_LIMIT = 200
+
+#: Sortable completeness columns: query value -> (heading, sort key).
+COMPLETENESS_SORTS: dict[str, tuple[str, Callable[[CategoryStatus], Any]]] = {
+    "status": ("Status", lambda s: (STATUS_ORDER.get(s.status, 99), s.category_id)),
+    "category": ("Category", lambda s: s.category_id),
+    "nodes": ("Nodes", lambda s: (s.node_count, s.category_id)),
+    "edges": ("Edges", lambda s: (s.edge_count, s.category_id)),
+    "violations": ("QA violations", lambda s: (len(s.violations), s.category_id)),
+    "last_run": ("Last run", lambda s: (s.last_run, s.category_id)),
+}
+
+
+@dataclass(frozen=True)
+class View:
+    """One entry in the explorer's navigation bar."""
+
+    label: str
+    path: str
+
+
+#: The explorer's views, in nav order. Routes are wired up by later stories;
+#: the overview ("/") is the only one this module serves.
+VIEWS: tuple[View, ...] = (
+    View("Overview", "/"),
+    View("Search", "/search"),
+    View("Tables", "/nodes"),
+    View("Completeness", "/completeness"),
+    View("Metrics", "/metrics"),
+    View("Graph", "/graph"),
+    View("Neo4j", "/neo4j"),
+    View("Datalog", "/datalog"),
+)
+
+
+def create_app(
+    source: str | Path,
+    *,
+    live: Neo4jLive | None = None,
+    datalog: Datalog | None = None,
+) -> FastAPI:
+    """Build the read-only explorer app for the corpus at *source*.
+
+    *live* is the optional handle to a connected Neo4j database; when omitted one
+    is built from the standard ``NEO4J_*`` environment variables. When it is
+    configured the graph view and the Cypher console talk to the live store;
+    otherwise everything falls back to the canonical TSV.
+
+    *datalog* is the optional handle on the symbolic layer; when omitted one is
+    built for this corpus, using the ``swipl`` on PATH (queries are linted offline
+    when it is absent).
+
+    Raises:
+        CorpusError: If *source* holds no readable corpus (from
+            :func:`~culturescrape.explorer.data.load_corpus`).
+    """
+    source = Path(source)
+    corpus: Corpus = load_corpus(source)
+    live = live if live is not None else Neo4jLive()
+    datalog = datalog if datalog is not None else Datalog(corpus.corpus_dir)
+    queries = load_queries()
+    app = FastAPI(title="culture-scrape explorer")
+    templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+    app.state.source = source
+    app.state.templates = templates
+    app.state.corpus = corpus
+    app.state.live = live
+    app.state.datalog = datalog
+
+    @app.get("/")
+    def index(request: Request) -> Response:
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "node_count": len(corpus.nodes.rows),
+                "edge_count": len(corpus.edges.rows),
+                "label_count": len(corpus.labels()),
+            },
+        )
+
+    @app.get("/search")
+    def search(request: Request, q: str = "", limit: int = SEARCH_LIMIT) -> Response:
+        limit = min(max(limit, 1), MAX_SEARCH_LIMIT)
+        hits = corpus.search(q, limit)
+        results = [
+            {
+                "csid": hit.csid,
+                "name": hit.name,
+                "label": hit.label,
+                "qid": hit.qid,
+                "field": hit.field,
+                "tsv": f"/nodes/{hit.csid}",
+                "graph": resolve_links(hit.csid).graph,
+            }
+            for hit in hits
+        ]
+        return templates.TemplateResponse(
+            request,
+            "search.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "q": q,
+                "results": results,
+            },
+        )
+
+    @app.get("/nodes")
+    def nodes(
+        request: Request, label: str = "", q: str = "", page: int = 1
+    ) -> Response:
+        rows = corpus.nodes_for_label(label) if label else list(corpus.nodes.rows)
+        if q:
+            needle = q.casefold()
+            rows = [
+                row
+                for row in rows
+                if needle in scalar(row, "name").casefold()
+                or needle in scalar(row, "csid").casefold()
+            ]
+        window = _Page(rows, page)
+        headers, body = _present(corpus.nodes.columns, window.rows, {"csid"})
+        return templates.TemplateResponse(
+            request,
+            "nodes.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "labels": corpus.labels(),
+                "label": label,
+                "q": q,
+                "headers": headers,
+                "rows": body,
+                "page": window,
+                "query": _query(label=label, q=q),
+            },
+        )
+
+    @app.get("/edges")
+    def edges(
+        request: Request, type: str = "", q: str = "", page: int = 1
+    ) -> Response:
+        rows = corpus.edges_for_type(type) if type else list(corpus.edges.rows)
+        if q:
+            needle = q.casefold()
+            rows = [
+                row
+                for row in rows
+                if needle in scalar(row, ":START_ID").casefold()
+                or needle in scalar(row, ":END_ID").casefold()
+            ]
+        window = _Page(rows, page)
+        headers, body = _present(
+            corpus.edges.columns, window.rows, {":START_ID", ":END_ID"}
+        )
+        return templates.TemplateResponse(
+            request,
+            "edges.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "types": corpus.types(),
+                "type": type,
+                "q": q,
+                "headers": headers,
+                "rows": body,
+                "page": window,
+                "query": _query(type=type, q=q),
+            },
+        )
+
+    @app.get("/nodes/{csid:path}")
+    def node_detail(request: Request, csid: str) -> Response:
+        row = corpus.node(csid)
+        if row is None:
+            return templates.TemplateResponse(
+                request,
+                "node_missing.html",
+                {"source": corpus.name, "views": VIEWS, "csid": csid},
+                status_code=404,
+            )
+        out_edges, in_edges = corpus.incident_edges(csid)
+        return templates.TemplateResponse(
+            request,
+            "node_detail.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "csid": csid,
+                "name": scalar(row, "name"),
+                "links": resolve_links(csid),
+                "cells": [
+                    (column.header, display(row, column_key(column)))
+                    for column in corpus.nodes.columns
+                ],
+                "outgoing": [_incident(corpus, e, ":END_ID") for e in out_edges],
+                "incoming": [_incident(corpus, e, ":START_ID") for e in in_edges],
+            },
+        )
+
+    @app.get("/completeness")
+    def completeness(
+        request: Request, status: str = "", sort: str = "status"
+    ) -> Response:
+        rows = corpus.completeness()
+        statuses = sorted(
+            {r.status for r in rows}, key=lambda s: STATUS_ORDER.get(s, 99)
+        )
+        if status:
+            rows = [r for r in rows if r.status == status]
+        sort = sort if sort in COMPLETENESS_SORTS else "status"
+        rows = sorted(rows, key=COMPLETENESS_SORTS[sort][1])
+        return templates.TemplateResponse(
+            request,
+            "completeness.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "qa": corpus.qa,
+                "rows": rows,
+                "statuses": statuses,
+                "status": status,
+                "sort": sort,
+                "status_qs": f"&status={status}" if status else "",
+            },
+        )
+
+    @app.get("/completeness/{category_id}")
+    def category_action_view(request: Request, category_id: str) -> Response:
+        actions = category_actions(corpus, category_id)
+        if actions is None:
+            return templates.TemplateResponse(
+                request,
+                "category_missing.html",
+                {"source": corpus.name, "views": VIEWS, "category_id": category_id},
+                status_code=404,
+            )
+        return templates.TemplateResponse(
+            request,
+            "category_actions.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "actions": actions,
+            },
+        )
+
+    @app.get("/metrics")
+    def metrics(
+        request: Request, threshold: float = FRAGMENTATION_THRESHOLD
+    ) -> Response:
+        m = corpus.metrics
+        threshold = min(max(threshold, 0.0), 1.0)
+        fragmented = m is not None and m.largest_component_fraction < threshold
+        return templates.TemplateResponse(
+            request,
+            "metrics.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "metrics": m,
+                "threshold": threshold,
+                "fragmented": fragmented,
+            },
+        )
+
+    @app.get("/graph")
+    def graph(request: Request, csid: str = "", depth: int = GRAPH_DEPTH) -> Response:
+        # Default to the first node so the view always has something to draw.
+        if not csid and corpus.nodes.rows:
+            csid = scalar(corpus.nodes.rows[0], "csid")
+        depth = min(max(depth, 0), MAX_GRAPH_DEPTH)
+        seed = corpus.node(csid)
+        return templates.TemplateResponse(
+            request,
+            "graph.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "csid": csid,
+                "name": scalar(seed, "name") if seed is not None else "",
+                "found": seed is not None,
+                "depth": depth,
+                "max_depth": MAX_GRAPH_DEPTH,
+                "backend": "Neo4j" if live.configured() else "canonical TSV",
+                "nodes": [
+                    {"csid": scalar(row, "csid"), "name": scalar(row, "name")}
+                    for row in corpus.nodes.rows
+                ],
+            },
+        )
+
+    @app.get("/api/graph/{csid:path}")
+    def graph_api(csid: str, depth: int = GRAPH_DEPTH) -> Response:
+        depth = min(max(depth, 0), MAX_GRAPH_DEPTH)
+        # Prefer the live graph when one is connected; on any driver/connection
+        # failure fall through to the TSV-backed neighborhood so the view works.
+        if live.configured():
+            try:
+                live_hood = live.neighborhood(csid, depth)
+            except Exception:  # noqa: BLE001 - any driver failure -> TSV fallback
+                live_hood = _UNAVAILABLE
+            if live_hood is not _UNAVAILABLE:
+                if live_hood is None:
+                    return JSONResponse(
+                        {"error": f"unknown csid: {csid}"}, status_code=404
+                    )
+                return JSONResponse(_live_graph_payload(live_hood))
+        hood = corpus.neighborhood(csid, depth)
+        if hood is None:
+            return JSONResponse({"error": f"unknown csid: {csid}"}, status_code=404)
+        return JSONResponse(_graph_payload(corpus, hood))
+
+    @app.get("/neo4j")
+    def neo4j_console(request: Request, query: str = "", csid: str = "") -> Response:
+        selected = next((q for q in queries if q.name == query), None)
+        # A csid deep-link from a node detail focuses that entity's node: show
+        # the by-csid locator and, when a live database is connected, run it.
+        focus_node = corpus.node(csid) if csid else None
+        focus = resolve_links(csid) if focus_node is not None else None
+        result = None
+        error = None
+        ran = False
+        run = bool(request.query_params.get("run"))
+        if focus is not None and run:
+            ran = True
+            try:
+                result = live.run(focus.neo4j_cypher)
+            except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
+                error = str(exc)
+            except Exception as exc:  # noqa: BLE001 - surface connection failures
+                error = f"Could not reach Neo4j: {exc}"
+        elif selected is not None and run:
+            ran = True
+            params = {p: request.query_params.get(p, "") for p in selected.params}
+            try:
+                result = live.run(selected.cypher, params)
+            except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
+                error = str(exc)
+            except Exception as exc:  # noqa: BLE001 - surface connection failures
+                error = f"Could not reach Neo4j: {exc}"
+        return templates.TemplateResponse(
+            request,
+            "neo4j.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "configured": live.configured(),
+                "status": live.status_message(),
+                "queries": queries,
+                "selected": selected,
+                "focus": focus,
+                "focus_name": scalar(focus_node, "name") if focus_node else "",
+                "result": result,
+                "error": error,
+                "ran": ran,
+                "values": {
+                    p: request.query_params.get(p, "")
+                    for p in (selected.params if selected else ())
+                },
+            },
+        )
+
+    @app.get("/datalog")
+    def datalog_console(
+        request: Request, query: str = "", goal: str = ""
+    ) -> Response:
+        examples = datalog.examples()
+        selected = datalog.example(query) if query else None
+        # An ad-hoc goal takes precedence over a selected example when both are
+        # present; otherwise the selected example's own source is what runs.
+        source = goal or (selected.source if selected is not None else "")
+        outcome = None
+        if request.query_params.get("run") and source:
+            outcome = datalog.run(source)
+        return templates.TemplateResponse(
+            request,
+            "datalog.html",
+            {
+                "source": corpus.name,
+                "views": VIEWS,
+                "available": datalog.available(),
+                "status": datalog.status_message(),
+                "examples": examples,
+                "selected": selected,
+                "goal": goal,
+                "outcome": outcome,
+            },
+        )
+
+    return app
+
+
+#: Sentinel marking a live neighborhood lookup that failed and should fall back.
+_UNAVAILABLE: Any = object()
+
+
+def _graph_payload(corpus: Corpus, hood: Neighborhood) -> dict[str, Any]:
+    """Cytoscape ``elements`` for *hood*: nodes carry their primary ``:LABEL``,
+    edges their ``:TYPE`` and ontology dimension for styling."""
+    nodes = [
+        {
+            "data": {
+                "id": scalar(row, "csid"),
+                "name": scalar(row, "name") or scalar(row, "csid"),
+                "label": first_label(row),
+                "labels": display(row, ":LABEL"),
+                "center": scalar(row, "csid") == hood.center,
+            }
+        }
+        for row in hood.nodes
+    ]
+    edges = [
+        {
+            "data": {
+                "id": f"e{index}",
+                "source": scalar(edge, ":START_ID"),
+                "target": scalar(edge, ":END_ID"),
+                "type": scalar(edge, ":TYPE"),
+                "dimension": dimension_for(scalar(edge, ":TYPE")),
+            }
+        }
+        for index, edge in enumerate(hood.edges)
+    ]
+    return {
+        "center": hood.center,
+        "depth": hood.depth,
+        "backend": "tsv",
+        "nodes": nodes,
+        "edges": edges,
+    }
+
+
+def _live_graph_payload(hood: LiveNeighborhood) -> dict[str, Any]:
+    """Cytoscape ``elements`` for a live neighborhood, matching the TSV payload."""
+    nodes = [
+        {
+            "data": {
+                "id": node.csid,
+                "name": node.name or node.csid,
+                "label": node.labels[0] if node.labels else "",
+                "labels": "; ".join(node.labels),
+                "center": node.csid == hood.center,
+            }
+        }
+        for node in hood.nodes
+    ]
+    edges = [
+        {
+            "data": {
+                "id": f"e{index}",
+                "source": edge.start,
+                "target": edge.end,
+                "type": edge.type,
+                "dimension": dimension_for(edge.type),
+            }
+        }
+        for index, edge in enumerate(hood.edges)
+    ]
+    return {
+        "center": hood.center,
+        "depth": hood.depth,
+        "backend": "neo4j",
+        "nodes": nodes,
+        "edges": edges,
+    }
+
+
+class _Page:
+    """A 1-based slice of *rows* sized to :data:`PAGE_SIZE` for the table views."""
+
+    def __init__(self, rows: list[Row], page: int) -> None:
+        self.total = len(rows)
+        self.pages = max(1, -(-self.total // PAGE_SIZE))
+        self.number = min(max(page, 1), self.pages)
+        start = (self.number - 1) * PAGE_SIZE
+        self.rows = rows[start : start + PAGE_SIZE]
+        self.has_prev = self.number > 1
+        self.has_next = self.number < self.pages
+
+
+def _present(
+    columns: tuple[Column, ...], rows: list[Row], link_keys: set[str]
+) -> tuple[list[str], list[list[dict[str, str]]]]:
+    """Headers plus display cells for *rows*; cells under *link_keys* deep-link.
+
+    Each cell is ``{"text": ..., "href": ...}``; ``href`` is empty unless the
+    column is a csid-bearing key whose value names an existing node.
+    """
+    keys = [column_key(c) for c in columns]
+    headers = [c.header for c in columns]
+    body: list[list[dict[str, str]]] = []
+    for row in rows:
+        cells: list[dict[str, str]] = []
+        for key in keys:
+            text = display(row, key)
+            href = f"/nodes/{text}" if key in link_keys and text else ""
+            cells.append({"text": text, "href": href})
+        body.append(cells)
+    return headers, body
+
+
+def _incident(corpus: Corpus, edge: Row, endpoint: str) -> dict[str, str]:
+    """Describe one incident *edge* from a node's view: its type and the other end."""
+    other = scalar(edge, endpoint)
+    target = corpus.node(other)
+    return {
+        "type": scalar(edge, ":TYPE"),
+        "csid": other,
+        "name": scalar(target, "name") if target is not None else "",
+    }
+
+
+def _query(**params: str) -> str:
+    """A querystring of the non-empty *params* (page added by the template)."""
+    return "".join(f"&{key}={value}" for key, value in params.items() if value)

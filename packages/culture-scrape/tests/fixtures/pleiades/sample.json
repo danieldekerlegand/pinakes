@@ -1,0 +1,27 @@
+{
+  "@context": "https://pleiades.stoa.org/contexts/place.jsonld",
+  "@graph": [
+    {
+      "id": "423025",
+      "title": "Roma",
+      "uri": "https://pleiades.stoa.org/places/423025",
+      "reprPoint": [12.486948, 41.890101],
+      "connections": [
+        {"connectsTo": "https://pleiades.stoa.org/places/413005", "connectionType": "connection"},
+        {"connectsTo": "https://pleiades.stoa.org/places/413000"}
+      ],
+      "references": [
+        {"accessURI": "https://www.wikidata.org/wiki/Q220"}
+      ]
+    },
+    {
+      "id": "413005",
+      "name": "Ostia",
+      "reprLat": "41.7556",
+      "reprLong": "12.2917",
+      "connections": [
+        {"connectsTo": "https://pleiades.stoa.org/places/423025"}
+      ]
+    }
+  ]
+}

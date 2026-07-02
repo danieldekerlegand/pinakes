@@ -1,0 +1,6 @@
+name: bad-job
+unexpected_key: nope
+categories:
+  - ../categories/invalid_missing_keys.yml
+stages: [acquire, teleport, acquire]
+output_root: out/bad

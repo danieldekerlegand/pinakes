@@ -1,0 +1,102 @@
+# Living traditions & nature — verified Wikidata classes for the culture corpus.
+#
+# 9 classes, ~14,979 entities. Each class's `instance of` (P31) count was
+# verified live against the Wikidata Query Service (2026-06); the count after
+# each entry is that observed value. Classes resolving to zero entities are not
+# shipped.
+#
+# The domain captures the *enacted* and *cultivated* side of culture — the
+# practices people perform and the life they have shaped — rather than made
+# objects. It deliberately avoids colliding with the general festival/ritual
+# classes already shipped by the myth-religion domain, choosing the
+# tradition-bearing, calendrical sub-classes instead. Two link families run
+# through it:
+#   * Calendrical and seasonal practices (traditional/harvest festivals,
+#     ceremonies, rites of passage, dances) mint the temporal axis:
+#     PART_OF_PERIOD (which named period or season a practice belongs to) and
+#     CONTEMPORARY_WITH (practices that overlap in time), plus ORIGINATES_FROM
+#     for geographic rooting.
+#   * Cultivated life (domesticated breeds, plant cultivars) and folklore
+#     creatures mint DERIVED_FROM / VARIANT_OF lineage, again rooted with
+#     ORIGINATES_FROM.
+#
+# Generate:  culturescrape generate blueprints/living-traditions.yml \
+#                --out categories --job jobs/living-traditions.yml
+defaults:
+  label: LivingTradition;CulturalArtifact
+  dimensions: [temporal, geographic, linguistic, genetic]
+  links:
+    - {type: ORIGINATES_FROM, to: place}
+categories:
+  # — Calendrical & seasonal practices (temporal axis) —
+  - id: traditional-festivals
+    name: "traditional festival"
+    label: Festival;Event
+    wikidata_class: Q12287732  # traditional festival — ~7
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: PART_OF_PERIOD, to: period}
+      - {type: CONTEMPORARY_WITH, to: festival}
+  - id: harvest-festivals
+    name: "harvest festival"
+    label: Festival;Event
+    wikidata_class: Q2304773  # harvest festival — ~24
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: PART_OF_PERIOD, to: period}
+      - {type: CONTEMPORARY_WITH, to: festival}
+  - id: ceremonies
+    name: "ceremony"
+    label: Ceremony;Event
+    wikidata_class: Q2627975  # ceremony — ~342
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: PART_OF_PERIOD, to: period}
+      - {type: CONTEMPORARY_WITH, to: ceremony}
+  - id: rites-of-passage
+    name: "rite of passage"
+    label: Rite;Event
+    wikidata_class: Q1131696  # rite of passage — ~27
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: PART_OF_PERIOD, to: period}
+      - {type: CONTEMPORARY_WITH, to: rite}
+  - id: dances
+    name: "dance"
+    label: Dance;Event
+    wikidata_class: Q107357104  # type of dance — ~3,670
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: PART_OF_PERIOD, to: period}
+      - {type: CONTEMPORARY_WITH, to: dance}
+  # — Cultivated & domesticated life (genetic lineage) —
+  - id: breeds
+    name: "breed"
+    label: Breed;CulturalArtifact
+    wikidata_class: Q38829  # breed — ~112
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: DERIVED_FROM, to: breed}
+  - id: cultivars
+    name: "cultivar"
+    label: Cultivar;CulturalArtifact
+    wikidata_class: Q4886  # cultivar — ~9,805
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: DERIVED_FROM, to: cultivar}
+  # — Medicinal & healing traditions —
+  - id: healing-traditions
+    name: "system of traditional medicine"
+    label: HealingTradition;Concept
+    wikidata_class: Q771035  # traditional medicine — ~29
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: CONTEMPORARY_WITH, to: healing-tradition}
+  # — Folklore creatures —
+  - id: folklore-creatures
+    name: "mythical creature"
+    label: FolkloreCreature;CulturalArtifact
+    wikidata_class: Q2239243  # mythical creature — ~963
+    links:
+      - {type: ORIGINATES_FROM, to: place}
+      - {type: VARIANT_OF, to: folklore-creature}

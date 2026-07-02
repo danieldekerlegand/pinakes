@@ -1,0 +1,29 @@
+# Visual art — verified Wikidata classes for the culture corpus.
+#
+# 14 classes, ~292,228 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  culturescrape generate blueprints/visual-art.yml \
+#                --out categories --job jobs/visual-art.yml
+defaults:
+  label: Artwork;CulturalArtifact
+  dimensions: [temporal, geographic]
+  links:
+    - {type: CREATED_BY, to: person}
+    - {type: ORIGINATES_FROM, to: place}
+categories:
+  - {id: sculptures, name: "sculpture", wikidata_class: Q860861}  # ~127,434
+  - {id: drawings, name: "drawing", wikidata_class: Q93184}  # ~126,281
+  - {id: frescoes, name: "fresco", wikidata_class: Q22669139}  # ~2,226
+  - {id: mosaics, name: "mosaic", wikidata_class: Q133067}  # ~1,683
+  - {id: tapestries, name: "tapestry", wikidata_class: Q184296}  # ~1,503
+  - {id: altarpieces, name: "altarpiece", wikidata_class: Q15711026}  # ~395
+  - {id: triptychs, name: "triptych", wikidata_class: Q79218}  # ~1,729
+  - {id: stained-glass-windows, name: "stained-glass window", wikidata_class: Q21061279}  # ~3,817
+  - {id: engravings, name: "engraving", wikidata_class: Q11835431}  # ~11,944
+  - {id: manuscript-illuminations, name: "manuscript illumination", wikidata_class: Q8362}  # ~502
+  - {id: icons, name: "icon", wikidata_class: Q132137}  # ~1,383
+  - {id: art-movements, name: "art movement", wikidata_class: Q968159}  # ~977
+  - {id: etching-prints, name: "etching print", wikidata_class: Q18218093}  # ~8,982
+  - {id: lithograph-prints, name: "lithograph print", wikidata_class: Q15123870}  # ~3,372

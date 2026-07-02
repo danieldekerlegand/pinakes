@@ -1,0 +1,53 @@
+{
+  "dataset": "peruvian-dishes",
+  "node_count": 4,
+  "edge_count": 3,
+  "ok": false,
+  "gates": [
+    {
+      "key": "row_count",
+      "label": "row count",
+      "value": 4.0,
+      "threshold": 1.0,
+      "direction": "min",
+      "passed": true,
+      "detail": "4 node(s)"
+    },
+    {
+      "key": "duplicate_rate",
+      "label": "duplicate rate (post-dedup)",
+      "value": 0.0,
+      "threshold": 0.0,
+      "direction": "max",
+      "passed": true,
+      "detail": "nodes sharing a strong identity key"
+    },
+    {
+      "key": "provenance_completeness",
+      "label": "provenance completeness",
+      "value": 0.0,
+      "threshold": 1.0,
+      "direction": "min",
+      "passed": false,
+      "detail": "rows with source+source_url+retrieved_at"
+    },
+    {
+      "key": "dangling_edge_rate",
+      "label": "dangling-edge rate",
+      "value": 0.0,
+      "threshold": 0.0,
+      "direction": "max",
+      "passed": true,
+      "detail": "edges referencing an unknown csid"
+    },
+    {
+      "key": "unreconciled_rate",
+      "label": "unreconciled-entity rate",
+      "value": 1.0,
+      "threshold": 1.0,
+      "direction": "max",
+      "passed": true,
+      "detail": "nodes with no wikidata_qid or getty_id"
+    }
+  ]
+}

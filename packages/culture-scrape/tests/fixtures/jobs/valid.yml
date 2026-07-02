@@ -1,0 +1,6 @@
+name: seed-corpus
+description: A small multi-domain corpus run.
+categories:
+  - ../categories/valid.yml
+stages: [export, acquire, normalize]
+output_root: out/seed-corpus

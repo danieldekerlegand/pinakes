@@ -1,0 +1,9 @@
+id: bad-values
+label: Dish
+description: Invalid source type, unknown dimension, malformed link, and a stray key
+source:
+  type: carrier-pigeon
+dimensions: [temporal, culinary]
+links:
+  - type: ORIGINATES_FROM
+unexpected_key: nope

@@ -1,0 +1,19 @@
+# The seed corpus: a real, multi-domain run that exercises every dimension and
+# source adapter end to end. Load with culturescrape.orchestrate.load_job().
+# Schema: docs/data-model.md; pipeline stages: PLAN.md ("data flow").
+#
+# Paths resolve against this file's directory, so the categories live one level
+# up in categories/ and outputs land under the repo-root out/ tree.
+name: seed-corpus
+description: Multi-domain seed corpus spanning dishes, sculptures, monuments, battles, languages, games, inventions, dress, and festivals.
+categories:
+  - ../categories/peruvian-dishes.yml          # geographic/temporal/linguistic via wikidata-sparql
+  - ../categories/italian-sculptures.yml       # creator + place links via wikidata-sparql
+  - ../categories/german-architectural-monuments.yml  # heritage monuments via wikidata-sparql
+  - ../categories/us-civil-war-battles.yml     # category-tree traversal via petscan
+  - ../categories/indo-european-languages.yml  # linguistic language-family dataset
+  - ../categories/board-games.yml              # sports/games domain (T8 corpus expansion)
+  - ../categories/inventions.yml               # science/technology domain (T8 corpus expansion)
+  - ../categories/clothing.yml                 # material-culture/dress domain (T8 corpus expansion)
+  - ../categories/traditional-festivals.yml    # living-traditions/nature domain (T8 corpus expansion)
+output_root: ../out/seed-corpus

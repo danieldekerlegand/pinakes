@@ -1,0 +1,34 @@
+{
+  "categories": [
+    {
+      "id": "andean-context",
+      "label": "Place;Event",
+      "source": "wikidata",
+      "node_count": 5,
+      "edge_count": 3,
+      "dimensions": ["geographic", "temporal"],
+      "last_run": "2026-06-18T09:30:00",
+      "provenance": {
+        "adapter": "wikidata",
+        "sources": ["wikidata"],
+        "records": 5,
+        "errors": 0
+      }
+    },
+    {
+      "id": "peruvian-dishes",
+      "label": "Dish",
+      "source": "wikidata",
+      "node_count": 4,
+      "edge_count": 3,
+      "dimensions": ["genetic"],
+      "last_run": "2026-06-18T09:30:00",
+      "provenance": {
+        "adapter": "wikidata",
+        "sources": ["wikidata"],
+        "records": 4,
+        "errors": 0
+      }
+    }
+  ]
+}

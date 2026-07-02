@@ -1,0 +1,202 @@
+{
+  "project": "culture-scrape",
+  "branchName": "ralph/acquisition-engine",
+  "description": "Core acquisition engine — structured-first source adapters (Wikidata SPARQL, PetScan, official dumps, residual wikitext via mwparserfromhell, generic HTTP fallback) that fetch sweeping cultural/historical/linguistic categories into raw rows with full provenance, behind a uniform adapter interface with caching, rate-limiting, and category-spec input.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Scaffold the culturescrape Python package",
+      "description": "As a developer, I need an installable package skeleton so every later subsystem has a home.",
+      "acceptanceCriteria": [
+        "Create pyproject.toml with package name 'culturescrape', Python >=3.11, and dev deps: pytest, mypy, ruff",
+        "Create src/culturescrape/__init__.py and src/culturescrape/acquire/__init__.py",
+        "`pip install -e .` succeeds in a clean venv",
+        "Type checks pass (mypy)",
+        "Lint passes (ruff)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Define the RawRecord and Provenance data classes",
+      "description": "As a developer, I need a uniform in-memory representation of an acquired row plus its provenance before normalization.",
+      "acceptanceCriteria": [
+        "Define a frozen dataclass Provenance(source, source_url, source_query, retrieved_at, confidence)",
+        "Define a dataclass RawRecord(fields: dict[str,str], provenance: Provenance)",
+        "retrieved_at is an ISO-8601 UTC string; confidence is a float in [0,1]",
+        "Tests pass (pytest) covering construction and validation of out-of-range confidence",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Define the SourceAdapter abstract interface and registry",
+      "description": "As a developer, I want every source behind one interface so the orchestrator can call them uniformly.",
+      "acceptanceCriteria": [
+        "Define abstract base SourceAdapter with method fetch(category_spec) -> Iterator[RawRecord]",
+        "Define a register/lookup registry keyed by adapter id (e.g. 'wikidata-sparql', 'petscan')",
+        "Adapters declare a name and the category-spec source.type they handle",
+        "Tests pass (pytest) verifying registry lookup raises a clear error for unknown adapter ids",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Implement the category-spec YAML loader",
+      "description": "As a user, I want to declare a category in YAML so a category becomes a reproducible input.",
+      "acceptanceCriteria": [
+        "Parse categories/<name>.yml matching the schema in docs/data-model.md (id, label, description, source, dimensions, links)",
+        "Validate required fields and raise a clear error listing missing/invalid keys",
+        "Loader returns a typed CategorySpec dataclass",
+        "Tests pass (pytest) with a valid fixture and at least two invalid fixtures",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Build an HTTP client with on-disk caching and rate-limiting",
+      "description": "As a developer, I need polite, reproducible network access so adapters are testable and don't hammer endpoints.",
+      "acceptanceCriteria": [
+        "Implement a client wrapping requests with a configurable per-host rate limit and exponential backoff on 429/5xx",
+        "Responses cached on disk keyed by (url, params); cache hits skip the network",
+        "A configurable User-Agent string identifies the project (per Wikimedia policy)",
+        "Tests pass (pytest) using a mocked transport: cache hit avoids a second call; 429 triggers backoff then retry",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Implement the Wikidata SPARQL adapter",
+      "description": "As a user, I want categories defined by a SPARQL query so 'every Peruvian dish' is a query, not a scrape.",
+      "acceptanceCriteria": [
+        "POST/GET the query in category_spec.source.query to query.wikidata.org/sparql with format=json via the cached HTTP client",
+        "Map each SPARQL binding row to a RawRecord, preserving the item QID and all selected variables",
+        "Set provenance.source='wikidata', source_url to the item URI, source_query to the SPARQL text",
+        "Tests pass (pytest) against a recorded SPARQL JSON fixture (no live network)",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Implement the PetScan adapter",
+      "description": "As a user, I want to pull Wikipedia category-tree membership lists so categories that live as wiki categories are first-class.",
+      "acceptanceCriteria": [
+        "Call petscan.wmcloud.org with the spec's PetScan parameters (categories, depth, combination, optional WDQS) requesting format=json",
+        "Map each result page/item to a RawRecord including title, pageid, and Wikidata QID when present",
+        "Set provenance.source='petscan' with the PetScan query URL recorded in source_query",
+        "Tests pass (pytest) against a recorded PetScan JSON fixture",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Implement the wikitext adapter using mwparserfromhell",
+      "description": "As a user, I want to extract rows from 'List of...' wikitables and infoboxes that SPARQL/PetScan cannot reach.",
+      "acceptanceCriteria": [
+        "Fetch raw wikitext for a page via the MediaWiki API (cached client)",
+        "Use mwparserfromhell to extract rows from the first matching wikitable and/or named template parameters specified in the category spec",
+        "Each extracted row becomes a RawRecord with provenance.source='wikitext' and the page URL",
+        "Tests pass (pytest) parsing a recorded wikitext fixture containing a table and an infobox",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Implement the dump adapter for Getty and Pleiades",
+      "description": "As a user, I want to ingest official bulk dumps so authoritative vocabularies can anchor entities.",
+      "acceptanceCriteria": [
+        "Read a local Getty N-Triples dump and emit RawRecords for AAT/TGN/ULAN entries (id, preferred label, type)",
+        "Read a local Pleiades JSON/CSV export and emit RawRecords for places (id, name, lat, lon, cross-links)",
+        "Provenance records source='getty_aat'|'getty_tgn'|'getty_ulan'|'pleiades' and the record URI; respect ODC-By attribution by storing the license string",
+        "Tests pass (pytest) against small recorded dump fixtures for both sources",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Implement a generic HTTP/HTML fallback adapter",
+      "description": "As a user, I want a last-resort adapter for categories that only exist as prose/tables on non-wiki sites.",
+      "acceptanceCriteria": [
+        "Given a URL and a CSS/XPath row+field selector spec, extract rows into RawRecords via the cached client",
+        "Adapter is clearly marked best-effort; sets a lower default confidence and source='http'",
+        "Robots.txt is checked and respected before fetching",
+        "Tests pass (pytest) against a recorded HTML fixture",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Add a fetch CLI command",
+      "description": "As a user, I want to run a single category from the command line and see raw records written to disk.",
+      "acceptanceCriteria": [
+        "Add console entrypoint `culturescrape fetch <category.yml> --out <dir>`",
+        "Command selects the adapter from source.type, runs fetch, and writes raw records as JSON-lines with provenance",
+        "Running the command on a fixture-backed category produces a non-empty .jsonl output file",
+        "Tests pass (pytest) invoking the CLI with a mocked adapter",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Add structured logging and a per-run acquisition report",
+      "description": "As a user, I want to see what was fetched, from where, and what failed so runs are auditable.",
+      "acceptanceCriteria": [
+        "Emit structured logs (record count, cache hit/miss, retries, errors) per adapter run",
+        "Write a run report (JSON) summarizing category id, adapter, row count, distinct sources, and error count",
+        "Failures in one record do not abort the whole run; they are counted and logged",
+        "Tests pass (pytest) asserting the report counts match a fixture run",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Document adapters and add three example category specs",
+      "description": "As a user, I want runnable examples so I can model my own categories.",
+      "acceptanceCriteria": [
+        "Add categories/ examples: peruvian-dishes (wikidata-sparql), us-civil-war-battles (petscan), italian-sculptures (wikidata-sparql)",
+        "Add docs/acquisition.md describing each adapter, its source.type, and required spec fields",
+        "Each example category validates against the loader (US-004)",
+        "Tests pass (pytest) validating all example specs load without error",
+        "Lint passes (ruff)"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

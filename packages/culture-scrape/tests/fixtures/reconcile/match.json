@@ -1,0 +1,20 @@
+{
+  "q0": {
+    "result": [
+      {
+        "id": "Q207058",
+        "name": "ceviche",
+        "score": 98.5,
+        "match": true,
+        "type": [{ "id": "Q746549", "name": "dish" }]
+      },
+      {
+        "id": "Q3505473",
+        "name": "Ceviche (film)",
+        "score": 41.0,
+        "match": false,
+        "type": [{ "id": "Q11424", "name": "film" }]
+      }
+    ]
+  }
+}

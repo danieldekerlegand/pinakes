@@ -1,0 +1,24 @@
+# Small Getty dump excerpt for exercising label+type anchoring.
+# Covers each vocabulary, a normalization case (casing/whitespace), and an
+# intra-vocabulary label collision that must read as ambiguous.
+
+# --- AAT concept: frescoes (paintings) ---
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#Concept> .
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/2004/02/skos/core#prefLabel> "Frescoes (Paintings)"@en .
+
+# --- AAT collision: two distinct concepts share the label "mercury" ---
+<http://vocab.getty.edu/aat/300011099> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#Concept> .
+<http://vocab.getty.edu/aat/300011099> <http://www.w3.org/2004/02/skos/core#prefLabel> "mercury"@en .
+<http://vocab.getty.edu/aat/300312000> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#Concept> .
+<http://vocab.getty.edu/aat/300312000> <http://www.w3.org/2004/02/skos/core#prefLabel> "Mercury"@en .
+
+# --- TGN place: Roma ---
+<http://vocab.getty.edu/tgn/7000874> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#AdminPlaceConcept> .
+<http://vocab.getty.edu/tgn/7000874> <http://www.w3.org/2004/02/skos/core#prefLabel> "Roma"@it .
+
+# --- ULAN agent: Diego Rivera (label given in natural order to match a node) ---
+<http://vocab.getty.edu/ulan/500002600> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#PersonConcept> .
+<http://vocab.getty.edu/ulan/500002600> <http://www.w3.org/2004/02/skos/core#prefLabel> "Diego Rivera"@en .
+
+# --- A foreign-namespace triple the dump adapter must skip ---
+<http://example.org/thing/1> <http://www.w3.org/2004/02/skos/core#prefLabel> "Not a Getty entity"@en .

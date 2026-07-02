@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Metrics · culture-scrape explorer{% endblock %}
+{% block head %}
+  <style>
+    .cards { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
+    .card { border: 1px solid #8884; border-radius: 6px; padding: .6rem .9rem; min-width: 8rem; }
+    .card .value { font-size: 1.6rem; font-weight: 600; }
+    .card .label { opacity: .7; font-size: .85rem; }
+    .flag { border: 1px solid #c62828; background: #c6282814; color: #c62828;
+            border-radius: 6px; padding: .6rem .9rem; margin: 1rem 0; font-weight: 600; }
+    .ok { color: #2e7d32; }
+    .breakdowns { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .breakdowns table { width: auto; min-width: 16rem; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>Graph metrics</h1>
+  <p class="muted">The corpus's shape and fragmentation, from <code>metrics.json</code>.</p>
+
+  {% if metrics is none %}
+  <p class="muted">No metrics available for this corpus.</p>
+  {% else %}
+  {% if fragmented %}
+  <p class="flag">⚠ Fragmented: the largest component holds only
+    {{ "%.0f%%" | format(metrics.largest_component_fraction * 100) }} of nodes
+    (below the {{ "%.0f%%" | format(threshold * 100) }} threshold).</p>
+  {% else %}
+  <p class="muted ok">✓ Well-connected: the largest component holds
+    {{ "%.0f%%" | format(metrics.largest_component_fraction * 100) }} of nodes
+    (threshold {{ "%.0f%%" | format(threshold * 100) }}).</p>
+  {% endif %}
+
+  <div class="cards">
+    <div class="card"><div class="value">{{ metrics.node_count }}</div><div class="label">nodes</div></div>
+    <div class="card"><div class="value">{{ metrics.edge_count }}</div><div class="label">edges</div></div>
+    <div class="card"><div class="value">{{ "%.2f" | format(metrics.edges_per_node) }}</div><div class="label">edges / node</div></div>
+    <div class="card"><div class="value">{{ metrics.component_count }}</div><div class="label">components</div></div>
+    <div class="card"><div class="value">{{ "%.0f%%" | format(metrics.largest_component_fraction * 100) }}</div><div class="label">largest component ({{ metrics.largest_component_size }} nodes)</div></div>
+  </div>
+
+  <form method="get" action="/metrics">
+    <label>Fragmentation threshold
+      <input type="number" name="threshold" min="0" max="1" step="0.05"
+             value="{{ "%.2f" | format(threshold) }}">
+    </label>
+    <button type="submit">Apply</button>
+  </form>
+
+  <div class="breakdowns">
+    <div>
+      <h2>Edges by dimension</h2>
+      {% if metrics.edges_by_dimension %}
+      <table>
+        <thead><tr><th>Dimension</th><th>Edges</th></tr></thead>
+        <tbody>
+          {% for dim, count in metrics.edges_by_dimension.items() %}
+          <tr><td>{{ dim }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="muted">—</p>{% endif %}
+    </div>
+    <div>
+      <h2>Edges by :TYPE</h2>
+      {% if metrics.edges_by_type %}
+      <table>
+        <thead><tr><th>:TYPE</th><th>Edges</th></tr></thead>
+        <tbody>
+          {% for type_, count in metrics.edges_by_type.items() %}
+          <tr><td class="mono">{{ type_ }}</td><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="muted">—</p>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}

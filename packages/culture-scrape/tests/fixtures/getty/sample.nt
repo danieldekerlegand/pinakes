@@ -1,0 +1,22 @@
+# Small hand-built excerpt mimicking the Getty AAT/TGN/ULAN N-Triples dumps.
+# One subject per vocabulary, interleaved with label nodes and a foreign
+# triple that the adapter must ignore.
+
+# --- AAT concept: frescoes (paintings) ---
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#Concept> .
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/2004/02/skos/core#prefLabel> "frescoes (paintings)"@en .
+<http://vocab.getty.edu/aat/300132410> <http://www.w3.org/2004/02/skos/core#scopeNote> _:note1 .
+_:note1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "Refers to paintings executed on wet plaster." .
+
+# --- TGN place: Roma (with a quote to exercise literal escaping) ---
+<http://vocab.getty.edu/tgn/7000874> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#AdminPlaceConcept> .
+<http://vocab.getty.edu/tgn/7000874> <http://www.w3.org/2004/02/skos/core#prefLabel> "Roma (\"the eternal city\")"@it .
+<http://vocab.getty.edu/tgn/7000874> <http://www.w3.org/2003/01/geo/wgs84_pos#lat> "41.9"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+
+# --- ULAN agent: Rivera, Diego ---
+<http://vocab.getty.edu/ulan/500002600> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://vocab.getty.edu/ontology#PersonConcept> .
+<http://vocab.getty.edu/ulan/500002600> <http://www.w3.org/2004/02/skos/core#prefLabel> "Rivera, Diego" .
+
+# --- A foreign-namespace triple the adapter must skip ---
+<http://example.org/thing/1> <http://www.w3.org/2004/02/skos/core#prefLabel> "Not a Getty entity"@en .

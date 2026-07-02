@@ -1,0 +1,22 @@
+csid:ID	:LABEL	name	time_start:int	time_end:int	source
+cs:dish:ceviche	Dish;CulturalArtifact	Ceviche			wikidata
+cs:dish:tiradito	Dish	Tiradito			wikidata
+cs:dish:kinilaw	Dish	Kinilaw			wikidata
+cs:dish:nikkei-ceviche	Dish	Nikkei ceviche			wikidata
+cs:place:lima	Place	Lima			wikidata
+cs:place:peru	Place	Peru			wikidata
+cs:place:south-america	Place	South America			wikidata
+cs:event:inca-expansion	Event	Inca expansion	1438	1533	wikidata
+cs:event:columbian-exchange	Event	Columbian exchange	1492	1700	wikidata
+cs:period:spring	Period	Spring			wikidata
+cs:festival:holi	Festival	Holi			wikidata
+cs:festival:hanami	Festival	Hanami			wikidata
+cs:game:chess	Game	Chess			wikidata
+cs:game:shogi	Game	Shogi			wikidata
+cs:game:xiangqi	Game	Xiangqi			wikidata
+cs:invention:telephone	Invention	Telephone			wikidata
+cs:invention:mobile-phone	Invention	Mobile phone			wikidata
+cs:invention:smartphone	Invention	Smartphone			wikidata
+cs:clothing:kimono	Clothing	Kimono			wikidata
+cs:material:silk	Material	Silk			wikidata
+cs:material:cotton	Material	Cotton			wikidata

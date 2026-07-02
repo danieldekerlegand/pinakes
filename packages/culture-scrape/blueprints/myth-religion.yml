@@ -1,0 +1,26 @@
+# Myth, religion & ritual — verified Wikidata classes for the culture corpus.
+#
+# 12 classes, ~13,568 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  culturescrape generate blueprints/myth-religion.yml \
+#                --out categories --job jobs/myth-religion.yml
+defaults:
+  label: Concept;CulturalArtifact
+  dimensions: [geographic, linguistic]
+  links:
+    - {type: ORIGINATES_FROM, to: place}
+categories:
+  - {id: deities, name: "deity", wikidata_class: Q178885}  # ~1,822
+  - {id: goddesses, name: "goddess", wikidata_class: Q205985}  # ~562
+  - {id: mythical-creatures, name: "mythical creature", wikidata_class: Q2239243}  # ~963
+  - {id: demons, name: "demon", wikidata_class: Q177413}  # ~208
+  - {id: legendary-figures, name: "legendary figure", wikidata_class: Q13002315}  # ~729
+  - {id: religions, name: "religion", wikidata_class: Q9174}  # ~300
+  - {id: mythologies, name: "mythology", wikidata_class: Q9134}  # ~61
+  - {id: religious-texts, name: "religious text", wikidata_class: Q179461}  # ~734
+  - {id: rituals, name: "ritual", wikidata_class: Q189819}  # ~488
+  - {id: festivals, name: "festival", wikidata_class: Q132241}  # ~5,803
+  - {id: religious-organizations, name: "religious organization", wikidata_class: Q1530022}  # ~1,314
+  - {id: places-of-worship, name: "place of worship", wikidata_class: Q1370598}  # ~584

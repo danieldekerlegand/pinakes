@@ -1,0 +1,20 @@
+{
+  "q0": {
+    "result": [
+      {
+        "id": "Q62",
+        "name": "San Francisco",
+        "score": 91.0,
+        "match": false,
+        "type": [{ "id": "Q515", "name": "city" }]
+      },
+      {
+        "id": "Q1353",
+        "name": "San Francisco",
+        "score": 89.0,
+        "match": false,
+        "type": [{ "id": "Q515", "name": "city" }]
+      }
+    ]
+  }
+}

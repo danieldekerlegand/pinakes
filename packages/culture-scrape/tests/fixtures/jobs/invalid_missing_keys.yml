@@ -1,0 +1,2 @@
+description: A job missing its name, categories, and output_root.
+stages: [acquire]

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Datalog · culture-scrape explorer{% endblock %}
+{% block head %}
+  <style>
+    .status { padding: .5rem .7rem; border-radius: 6px; border: 1px solid #8884;
+              margin: .8rem 0; font-size: .9rem; }
+    .status.live { border-color: #2ca02c88; }
+    .queries { display: grid; gap: .6rem; margin: 1rem 0; }
+    .queries a { text-decoration: none; }
+    .query { border: 1px solid #8884; border-radius: 6px; padding: .6rem .8rem; }
+    .query.selected { border-color: #1f77b4; }
+    .query .focus { opacity: .7; font-size: .82rem; margin-top: .3rem; }
+    .adhoc textarea { width: 100%; font-family: ui-monospace, monospace;
+                      font-size: .85rem; padding: .5rem; box-sizing: border-box; }
+    .error { color: #b00020; white-space: pre-wrap; }
+    .problems { color: #b06000; }
+    pre.prolog { background: #8881; padding: .6rem .8rem; border-radius: 6px;
+                 overflow-x: auto; font-size: .82rem; white-space: pre-wrap; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>Datalog</h1>
+  <p class="muted">List and run the shipped <code>datalog/examples/*.pl</code>
+    queries against a <code>graph.pl</code> projected from this corpus, or enter
+    an ad-hoc goal. Queries run through SWI-Prolog when it is installed; otherwise
+    they are linted offline.</p>
+
+  <div class="status{% if available %} live{% endif %}">{{ status }}</div>
+
+  <div class="queries">
+    {% for e in examples %}
+    <a href="/datalog?query={{ e.slug }}">
+      <div class="query{% if selected and e.slug == selected.slug %} selected{% endif %}">
+        <strong class="mono">{{ e.slug }}.pl</strong> — {{ e.title }}
+        {% if e.focus %}<div class="focus">{{ e.focus }}</div>{% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if selected %}
+  <h2 class="mono">{{ selected.slug }}.pl</h2>
+  <pre class="prolog">{{ selected.source }}</pre>
+  <form method="get" action="/datalog">
+    <input type="hidden" name="query" value="{{ selected.slug }}">
+    <button type="submit" name="run" value="1">Run query</button>
+  </form>
+  {% endif %}
+
+  <h2>Ad-hoc goal</h2>
+  <p class="muted">A query defining <code>main/0</code> that prints its answer
+    rows (tab-separated), run the same way as a shipped example.</p>
+  <form class="adhoc" method="get" action="/datalog">
+    <textarea name="goal" rows="6"
+      placeholder="% describe the query&#10;main :- forall(derived_from(X, Y), format('~w\t~w~n', [X, Y])).">{{ goal }}</textarea>
+    <p><button type="submit" name="run" value="1">Run goal</button></p>
+  </form>
+
+  {% if outcome %}
+  <h2>Result</h2>
+  {% if not outcome.ran %}
+    <p class="muted">{{ outcome.reason }}</p>
+    {% if outcome.problems %}
+    <p class="problems">Offline lint found {{ outcome.problems | length }}
+      problem{{ "" if outcome.problems | length == 1 else "s" }}:</p>
+    <ul class="problems">
+      {% for p in outcome.problems %}<li>{{ p }}</li>{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Offline lint: clean — this query would run once swipl is installed.</p>
+    {% endif %}
+  {% elif outcome.error %}
+    <p class="error">{{ outcome.error }}</p>
+  {% else %}
+    <p class="muted">{{ outcome.rows | length }}
+      row{{ "" if outcome.rows | length == 1 else "s" }}</p>
+    {% if outcome.rows %}
+    <table>
+      <tbody>
+        {% for row in outcome.rows %}
+        <tr>{% for cell in row %}<td class="mono">{{ cell }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No rows returned.</p>
+    {% endif %}
+  {% endif %}
+  {% endif %}
+{% endblock %}

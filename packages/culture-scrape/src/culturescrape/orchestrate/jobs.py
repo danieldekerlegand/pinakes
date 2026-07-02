@@ -1,0 +1,203 @@
+"""End-to-end pipeline jobs loaded from ``jobs/<name>.yml``.
+
+A *job* declares how one or more categories run through the pipeline: which
+category specs to process, which ordered stages to run
+(``acquire -> normalize -> link -> export``), and where each stage writes its
+output. Declaring it in YAML makes a whole-corpus run reproducible and
+version-controlled, the same way a ``categories/<name>.yml`` makes one
+acquisition reproducible.
+
+:func:`load_job` parses one such file, validates it — including every
+referenced category spec — and returns a typed :class:`Job`. Validation is
+exhaustive: every problem found is reported together in a single
+:class:`JobConfigError`.
+
+Relative paths (the referenced categories and ``output_root``) resolve against
+the job file's own directory, so a job is self-contained wherever the repo
+lives.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
+
+from culturescrape.acquire.categories import (
+    CategorySpec,
+    CategorySpecError,
+    load_category,
+)
+
+#: Pipeline stages in canonical execution order (see ``PLAN.md`` data flow).
+STAGE_ORDER = ("acquire", "normalize", "link", "export")
+#: Stages a job may request; the same set, for membership tests.
+VALID_STAGES = frozenset(STAGE_ORDER)
+
+_REQUIRED_KEYS = ("name", "categories", "output_root")
+_OPTIONAL_KEYS = ("description", "stages")
+_ALLOWED_KEYS = frozenset(_REQUIRED_KEYS + _OPTIONAL_KEYS)
+
+
+class JobConfigError(ValueError):
+    """Raised when a job file is unreadable or fails validation."""
+
+
+@dataclass(frozen=True)
+class Job:
+    """A parsed, validated ``jobs/<name>.yml`` document.
+
+    Attributes:
+        name: Stable job id (e.g. ``seed-corpus``).
+        description: Human-readable gloss (may be empty).
+        categories: The category specs to process, in declaration order.
+        stages: Stages to run, in canonical :data:`STAGE_ORDER` (a subset).
+        output_root: Directory under which per-stage outputs are written.
+    """
+
+    name: str
+    description: str
+    categories: tuple[CategorySpec, ...]
+    stages: tuple[str, ...]
+    output_root: Path
+
+    def output_dir(self, stage: str) -> Path:
+        """Return the output directory for *stage* under :attr:`output_root`.
+
+        Raises:
+            ValueError: If *stage* is not one of this job's :attr:`stages`.
+        """
+        if stage not in self.stages:
+            raise ValueError(
+                f"stage {stage!r} is not run by job {self.name!r}; "
+                f"runs: {', '.join(self.stages)}"
+            )
+        return self.output_root / stage
+
+
+def load_job(path: str | Path) -> Job:
+    """Load and validate the job declared in *path*.
+
+    Raises:
+        JobConfigError: If the file cannot be read, is not valid YAML, or does
+            not match the schema. The message lists every problem found,
+            including failures in any referenced category spec.
+    """
+    path = Path(path)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise JobConfigError(f"cannot read job file {path}: {exc}") from exc
+    try:
+        raw = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise JobConfigError(f"{path}: invalid YAML: {exc}") from exc
+    return _parse(raw, path)
+
+
+def _parse(raw: object, path: Path) -> Job:
+    if not isinstance(raw, dict):
+        raise JobConfigError(
+            f"{path}: expected a YAML mapping at the top level, got "
+            f"{type(raw).__name__}"
+        )
+
+    errors: list[str] = []
+
+    unknown = sorted(set(raw) - _ALLOWED_KEYS)
+    if unknown:
+        errors.append(f"unknown keys: {', '.join(map(str, unknown))}")
+    missing = [key for key in _REQUIRED_KEYS if key not in raw]
+    if missing:
+        errors.append(f"missing required keys: {', '.join(missing)}")
+
+    if "name" in raw and not _is_nonempty_str(raw["name"]):
+        errors.append("'name' must be a non-empty string")
+
+    description = raw.get("description", "")
+    if "description" in raw and not isinstance(description, str):
+        errors.append("'description' must be a string")
+        description = ""
+
+    stages = _parse_stages(raw.get("stages"), errors)
+    categories = (
+        _parse_categories(raw.get("categories"), path, errors)
+        if "categories" in raw
+        else ()
+    )
+    output_root = (
+        _parse_output_root(raw.get("output_root"), path, errors)
+        if "output_root" in raw
+        else None
+    )
+
+    if errors:
+        raise JobConfigError(
+            f"{path}: invalid job config:\n  - " + "\n  - ".join(errors)
+        )
+
+    assert output_root is not None  # guaranteed: missing key would have errored
+    return Job(
+        name=str(raw["name"]),
+        description=str(description),
+        categories=categories,
+        stages=stages,
+        output_root=output_root,
+    )
+
+
+def _parse_stages(value: object, errors: list[str]) -> tuple[str, ...]:
+    if value is None:  # omitted: run the full pipeline
+        return STAGE_ORDER
+    if not isinstance(value, list) or not all(isinstance(s, str) for s in value):
+        errors.append("'stages' must be a list of strings")
+        return ()
+    if not value:
+        errors.append("'stages' must list at least one stage")
+    invalid = [s for s in value if s not in VALID_STAGES]
+    if invalid:
+        errors.append(
+            f"invalid stages: {', '.join(invalid)}; valid: "
+            f"{', '.join(STAGE_ORDER)}"
+        )
+    duplicates = sorted({s for s in value if value.count(s) > 1})
+    if duplicates:
+        errors.append(f"duplicate stages: {', '.join(duplicates)}")
+    return tuple(s for s in STAGE_ORDER if s in value)
+
+
+def _parse_categories(
+    value: object, path: Path, errors: list[str]
+) -> tuple[CategorySpec, ...]:
+    if not isinstance(value, list):
+        errors.append("'categories' must be a list of category file paths")
+        return ()
+    if not value:
+        errors.append("'categories' must list at least one category")
+        return ()
+    base = path.parent
+    specs: list[CategorySpec] = []
+    for index, item in enumerate(value):
+        if not _is_nonempty_str(item):
+            errors.append(f"categories[{index}] must be a non-empty string path")
+            continue
+        ref = Path(item)
+        resolved = ref if ref.is_absolute() else base / ref
+        try:
+            specs.append(load_category(resolved))
+        except CategorySpecError as exc:
+            errors.append(f"categories[{index}] ({item}): {exc}")
+    return tuple(specs)
+
+
+def _parse_output_root(value: object, path: Path, errors: list[str]) -> Path | None:
+    if not _is_nonempty_str(value):
+        errors.append("'output_root' must be a non-empty string path")
+        return None
+    ref = Path(str(value))
+    return ref if ref.is_absolute() else path.parent / ref
+
+
+def _is_nonempty_str(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())

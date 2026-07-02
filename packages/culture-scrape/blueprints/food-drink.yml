@@ -1,0 +1,28 @@
+# Food & drink — verified Wikidata classes for the culture corpus.
+#
+# 14 classes, ~8,752 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  culturescrape generate blueprints/food-drink.yml \
+#                --out categories --job jobs/food-drink.yml
+defaults:
+  label: Dish;CulturalArtifact
+  dimensions: [temporal, geographic, linguistic]
+  links:
+    - {type: ORIGINATES_FROM, to: place}
+categories:
+  - {id: dishes, name: "dish", wikidata_class: Q746549}  # ~3,238
+  - {id: cheeses, name: "cheese", wikidata_class: Q10943}  # ~174
+  - {id: cocktails, name: "cocktail", wikidata_class: Q134768}  # ~163
+  - {id: breads, name: "bread", wikidata_class: Q7802}  # ~206
+  - {id: soups, name: "soup", wikidata_class: Q41415}  # ~118
+  - {id: desserts, name: "dessert", wikidata_class: Q182940}  # ~492
+  - {id: sausages, name: "sausage", wikidata_class: Q131419}  # ~52
+  - {id: alcoholic-beverages, name: "alcoholic beverage", wikidata_class: Q154}  # ~192
+  - {id: condiments, name: "condiment", wikidata_class: Q2596997}  # ~66
+  - {id: sauces, name: "sauce", wikidata_class: Q178359}  # ~101
+  - {id: pastries, name: "pastry", wikidata_class: Q477248}  # ~174
+  - {id: drinks, name: "drink", wikidata_class: Q40050}  # ~637
+  - {id: candies, name: "candy", wikidata_class: Q185583}  # ~138
+  - {id: wines, name: "wine", wikidata_class: Q282}  # ~3,001

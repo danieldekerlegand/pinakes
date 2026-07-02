@@ -1,0 +1,172 @@
+{
+  "project": "culture-scrape",
+  "branchName": "ralph/orchestration-seedcorpus",
+  "description": "Orchestration, seed corpus & QA — a job runner that drives many categories end-to-end (acquire -> normalize -> link -> export) with scheduling, incremental re-runs, a catalog, and quality gates, then proves the whole system by building a real multi-domain seed corpus (dishes, sculptures, monuments, battles, languages) and validating the resulting graph.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Define a pipeline job model and config",
+      "description": "As a developer, I need to declare an end-to-end job so categories run reproducibly through every stage.",
+      "acceptanceCriteria": [
+        "Define a Job config (one or more category specs, target stages: acquire/normalize/link/export, output paths)",
+        "Jobs are declared in a jobs/<name>.yml and validated on load with clear errors",
+        "A Job dataclass exposes the ordered stages to run",
+        "Tests pass (pytest) loading valid and invalid job configs",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Implement the pipeline runner",
+      "description": "As a user, I want a single runner that chains acquire -> normalize -> link -> export so I don't wire stages by hand.",
+      "acceptanceCriteria": [
+        "Runner executes the stages from US-001 in order, passing each stage's output dir to the next, calling the modules from Tasklists 1-5",
+        "A stage failure stops that job with a clear error and a non-zero exit, leaving completed stage outputs intact",
+        "Per-stage timing and row counts are recorded",
+        "Tests pass (pytest) running a fixture job end-to-end with adapters mocked",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Implement incremental / idempotent re-runs",
+      "description": "As a user, I want re-running a job to update only what changed so large corpora are cheap to refresh.",
+      "acceptanceCriteria": [
+        "Each stage records an input fingerprint; a stage is skipped when inputs are unchanged unless --force is given",
+        "Re-running an unchanged job performs no network calls and reports 'up to date'",
+        "Updated source data triggers re-normalization and re-linking only for affected categories",
+        "Tests pass (pytest) asserting a second run is a no-op and a changed input triggers re-processing",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Run categories concurrently with backpressure",
+      "description": "As a user, I want many categories processed in parallel within polite limits so large corpora finish quickly.",
+      "acceptanceCriteria": [
+        "Acquire stages for independent categories run concurrently up to a configurable worker cap",
+        "Per-host rate limits from the acquisition client are respected across concurrent workers",
+        "A failure in one category does not abort the others; a final summary lists per-category status",
+        "Tests pass (pytest) running multiple fixture categories concurrently with a stubbed adapter",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Build a dataset catalog",
+      "description": "As a user, I want an index of every category and its stats so the corpus is discoverable.",
+      "acceptanceCriteria": [
+        "Maintain catalog.json listing each category: id, label, source, node/edge counts, dimensions covered, last run timestamp, provenance summary",
+        "Catalog is regenerated/updated after each job run",
+        "Provide `culturescrape catalog` to print the catalog as a table",
+        "Tests pass (pytest) asserting catalog entries match a fixture run",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Implement quality gates",
+      "description": "As a user, I want automated QA so low-quality scrapes are flagged before they pollute the graph.",
+      "acceptanceCriteria": [
+        "Gates check: minimum row count vs expected, max duplicate rate post-dedup, provenance completeness, dangling-edge rate, and unreconciled-entity rate",
+        "Each gate has a configurable threshold; violations are reported and (optionally) fail the run",
+        "A QA report (JSON + printed summary) is written per job",
+        "Tests pass (pytest) for a passing fixture and a fixture that trips each gate",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Author the seed-corpus job specs",
+      "description": "As a user, I want real multi-domain categories defined so the system is exercised on actual data.",
+      "acceptanceCriteria": [
+        "Add jobs/seed-corpus.yml referencing category specs for at least: Peruvian dishes, Italian sculptures, German architectural monuments, American Civil War battles, and a language-family dataset",
+        "Each category specifies its source (wikidata-sparql/petscan/dump), dimensions, and link types",
+        "All seed category specs validate against the loaders",
+        "Tests pass (pytest) validating every seed category and the job spec load",
+        "Lint passes (ruff)"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Run the seed corpus and produce graph + exports",
+      "description": "As a user, I want the seed corpus actually built so I have a real dataset and proof the pipeline works end to end.",
+      "acceptanceCriteria": [
+        "Running the seed-corpus job produces canonical TSV (nodes + edges), passes schema validation, and passes the quality gates",
+        "Generate the Neo4j import script and the Datalog (.pl/.dl) exports for the seed corpus",
+        "Connectivity metrics show the seed corpus is one largely-connected component (largest component above a documented threshold)",
+        "Tests pass (pytest) on a recorded/fixture-backed subset so the run is reproducible offline in CI",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Add a top-level run CLI and unify the command surface",
+      "description": "As a user, I want one entrypoint to run jobs so the whole system is operable from the command line.",
+      "acceptanceCriteria": [
+        "Add `culturescrape run <job.yml> [--stages ...] [--force] [--workers N]` orchestrating everything",
+        "`culturescrape --help` lists all subcommands (fetch, normalize, link, to-neo4j, from-neo4j, to-datalog, run, catalog, validate)",
+        "Running the seed job via the CLI reproduces the US-008 outputs",
+        "Tests pass (pytest) invoking `run` on a fixture job",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Add scheduled refresh support",
+      "description": "As a user, I want corpora refreshed on a schedule so data stays current without manual runs.",
+      "acceptanceCriteria": [
+        "Provide a `culturescrape run --since <duration>` mode plus a documented cron/systemd-timer example invoking it",
+        "Scheduled runs use incremental mode (US-003) so unchanged categories are skipped",
+        "A run log records what was refreshed and what was skipped",
+        "Tests pass (pytest) asserting the --since flag selects only stale categories on a fixture catalog",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Write the end-to-end documentation and quickstart",
+      "description": "As a new user, I want a quickstart so I can go from zero to a queryable graph.",
+      "acceptanceCriteria": [
+        "docs/quickstart.md walks through: install, define a category, run the pipeline, import to Neo4j, export to Datalog, and run an example query",
+        "README.md links the quickstart, the six tasklists, PLAN.md, and the data model",
+        "All commands in the quickstart are covered by a smoke test on the fixture corpus",
+        "Tests pass (pytest) for the quickstart smoke test",
+        "Lint passes (ruff)"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

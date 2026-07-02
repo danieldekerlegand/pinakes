@@ -1,0 +1,66 @@
+{
+  "project": "culture-scrape",
+  "description": "Ontology & cross-dimensional linking — defines the relationship-type vocabulary and infers edges across the temporal, geographic, linguistic, and genetic/derivation dimensions, including a dedicated discovery effort for the under-sourced linguistic and genetic dimensions, turning a flat set of category nodes into a dense connected network.",
+  "tasks": [
+    {
+      "title": "T3-US-001: Define the relationship-type ontology as data",
+      "description": "As a developer, I want the edge vocabulary defined formally so linkers and exporters share one source of truth.\n\nAcceptance criteria (all must be met before marking complete):\n- Encode the ontology from docs/data-model.md (LOCATED_IN, CONTEMPORARY_WITH, DESCENDS_FROM, DERIVED_FROM, etc.) as a typed registry with each type's domain, range, dimension, and symmetry/transitivity flags\n- Provide a lookup API and a validator that rejects edges whose :TYPE is not registered\n- Tests pass (pytest) for lookup, unknown-type rejection, and symmetry/transitivity flags\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-002: Define the Linker interface and pipeline",
+      "description": "As a developer, I want pluggable linkers so each dimension's inference is isolated and composable.\n\nAcceptance criteria (all must be met before marking complete):\n- Define abstract Linker with link(nodes, edges) -> new_edges and a registry by dimension\n- A pipeline runs registered linkers in order and appends inferred edges, never mutating source rows\n- Inferred edges are tagged with source='inferred:<linker>' and a confidence\n- Tests pass (pytest) running two stub linkers through the pipeline\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-003: Implement the geographic linker (LOCATED_IN / ORIGINATES_FROM)",
+      "description": "As a user, I want entities connected to places so the network is geographically navigable.\n\nAcceptance criteria (all must be met before marking complete):\n- Create or reuse place nodes from place_qid / tgn_id / pleiades_id and link entities via LOCATED_IN and ORIGINATES_FROM\n- Where only lat/lon exist, attach to the nearest known place within a configurable radius and flag lower confidence\n- Emit ADJACENT_TO edges between places sharing a containment/border relation when available from source data\n- Tests pass (pytest) on a fixture of entities with QIDs, coords-only, and TGN ids\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-004: Implement the temporal linker (CONTEMPORARY_WITH / PRECEDES / PART_OF_PERIOD)",
+      "description": "As a user, I want entities connected in time so I can explore what coexisted or preceded what.\n\nAcceptance criteria (all must be met before marking complete):\n- Emit CONTEMPORARY_WITH between entities with overlapping [time_start,time_end] spans (configurable overlap threshold)\n- Emit PRECEDES/FOLLOWS for non-overlapping ordered events\n- Emit PART_OF_PERIOD linking entities to named period nodes, creating period nodes idempotently\n- Guard against combinatorial explosion: contemporaneity is only computed within a shared facet (category/region) unless explicitly widened\n- Tests pass (pytest) for overlap, ordering, and the explosion guard\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-005: Discover and document open linguistic data sources",
+      "description": "As a researcher, I need vetted linguistic sources because the prior-art research found none confirmed.\n\nAcceptance criteria (all must be met before marking complete):\n- Evaluate and document candidate sources (Glottolog, WALS, PHOIBLE, Wiktionary etymology, Wikidata language-family properties) for coverage, format, and license in docs/sources-linguistic.md\n- Pick at least one ingestible source and add a category spec / dump adapter config for it\n- Record which Wikidata properties express DESCENDS_FROM / BORROWED_FROM / COGNATE_WITH\n- Tests pass (pytest) validating the new linguistic category spec loads\n- Lint passes (ruff)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-006: Implement the linguistic linker (DESCENDS_FROM / BORROWED_FROM / COGNATE_WITH / SPOKEN_IN)",
+      "description": "As a user, I want language and term relationships so etymological and language-family connections are queryable.\n\nAcceptance criteria (all must be met before marking complete):\n- Build language-family DESCENDS_FROM edges from the source chosen in US-005\n- Emit SPOKEN_IN edges linking languages to places\n- Emit BORROWED_FROM / COGNATE_WITH edges for terms when etymology data is present\n- Tests pass (pytest) on a fixture language-family tree producing a connected DESCENDS_FROM chain\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-007: Discover and document genetic/derivation data sources",
+      "description": "As a researcher, I need vetted cultural-lineage sources because the prior-art research found none confirmed.\n\nAcceptance criteria (all must be met before marking complete):\n- Document in docs/sources-genetic.md the meaning of the 'genetic' dimension here (cultural lineage/derivation, not biology) and candidate sources (Wikidata 'derived from'/'influenced by'/'based on' properties; domain lineage datasets)\n- Enumerate the Wikidata property ids used for DERIVED_FROM / INFLUENCED_BY / VARIANT_OF\n- Add a category-spec snippet showing how to pull derivation edges from Wikidata\n- Tests pass (pytest) validating that snippet loads\n- Lint passes (ruff)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-008: Implement the genetic/derivation linker (DERIVED_FROM / INFLUENCED_BY / VARIANT_OF)",
+      "description": "As a user, I want cultural-lineage edges so I can trace how dishes, styles, and artifacts descend from one another.\n\nAcceptance criteria (all must be met before marking complete):\n- Map the Wikidata properties from US-007 to DERIVED_FROM / INFLUENCED_BY / VARIANT_OF edges between existing nodes\n- Skip edges whose endpoints are not in the node set and log the count skipped\n- Populate the denormalized derived_from_csid convenience column on nodes where a single primary ancestor exists\n- Tests pass (pytest) on a fixture with derivation statements producing the expected edges\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-009: Implement cross-category entity stitching",
+      "description": "As a user, I want the same entity appearing in multiple categories to be one node so categories interconnect.\n\nAcceptance criteria (all must be met before marking complete):\n- When two category outputs contain nodes with the same csid, merge them (reusing the resolution logic) so categories share entities\n- Shared entities retain MEMBER_OF_CATEGORY edges to every category they belong to\n- A report lists cross-category shared entities and their categories\n- Tests pass (pytest) stitching two fixture categories that share an entity\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-010: Add graph connectivity metrics",
+      "description": "As a user, I want to measure how dense/connected the network is so I can tell whether linking is working.\n\nAcceptance criteria (all must be met before marking complete):\n- Compute node count, edge count, edges-per-node, connected-component count, and largest-component fraction over a TSV dataset\n- Break down edge counts by dimension and :TYPE\n- Output a metrics JSON and a short printed summary\n- Tests pass (pytest) asserting metrics on a known fixture graph\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-011: Add a link CLI command",
+      "description": "As a user, I want one command that enriches canonical TSV with all inferred cross-dimensional edges.\n\nAcceptance criteria (all must be met before marking complete):\n- Add `culturescrape link <dir> --dimensions temporal,geographic,linguistic,genetic --out <dir>`\n- Command runs the linker pipeline and writes augmented edge files plus a connectivity-metrics report\n- Running on a fixture dataset increases edge count and passes schema validation\n- Tests pass (pytest) invoking the CLI on a fixture\n- Type checks pass (mypy)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    },
+    {
+      "title": "T3-US-012: Document the ontology and linking model",
+      "description": "As a user, I want the relationship vocabulary and inference rules documented so the network is interpretable.\n\nAcceptance criteria (all must be met before marking complete):\n- docs/ontology.md lists every :TYPE with domain/range/dimension/symmetry/transitivity and the inference rule that produces it\n- Include a diagram (text/mermaid) of how dimensions interconnect entities\n- Each documented inference rule references the test that exercises it\n- Tests pass (pytest) for the referenced rule tests\n- Lint passes (ruff)\n\nProject context: culture-scrape — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/culturescrape/). This story belongs to tasklist 'ralph/ontology-linking'.",
+      "completed": true
+    }
+  ]
+}

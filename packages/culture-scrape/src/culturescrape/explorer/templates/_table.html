@@ -1,0 +1,23 @@
+{# Shared node/edge table body: headers, linked cells, and pager.
+   Expects: headers (list), rows (list of cells {text, href}), page (_Page), query. #}
+<table>
+  <thead><tr>{% for h in headers %}<th class="mono">{{ h }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    {% for cells in rows %}
+    <tr>
+      {% for cell in cells %}
+      <td>{% if cell.href %}<a href="{{ cell.href }}">{{ cell.text }}</a>{% else %}{{ cell.text }}{% endif %}</td>
+      {% endfor %}
+    </tr>
+    {% else %}
+    <tr><td class="muted" colspan="{{ headers|length or 1 }}">No rows.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if page.pages > 1 %}
+<p class="muted">
+  {% if page.has_prev %}<a href="{{ request.url.path }}?page={{ page.number - 1 }}{{ query }}">‹ prev</a>{% else %}<span>‹ prev</span>{% endif %}
+  · page {{ page.number }} of {{ page.pages }} ·
+  {% if page.has_next %}<a href="{{ request.url.path }}?page={{ page.number + 1 }}{{ query }}">next ›</a>{% else %}<span>next ›</span>{% endif %}
+</p>
+{% endif %}

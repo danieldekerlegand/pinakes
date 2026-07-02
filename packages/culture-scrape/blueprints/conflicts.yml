@@ -1,0 +1,28 @@
+# Conflicts & historical events — verified Wikidata classes for the culture corpus.
+#
+# 14 classes, ~38,269 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  culturescrape generate blueprints/conflicts.yml \
+#                --out categories --job jobs/conflicts.yml
+defaults:
+  label: Event
+  dimensions: [temporal, geographic]
+  links:
+    - {type: LOCATED_IN, to: place}
+categories:
+  - {id: battles, name: "battle", wikidata_class: Q178561}  # ~18,415
+  - {id: sieges, name: "siege", wikidata_class: Q188055}  # ~3,846
+  - {id: wars, name: "war", wikidata_class: Q198}  # ~1,775
+  - {id: revolutions, name: "revolution", wikidata_class: Q10931}  # ~190
+  - {id: rebellions, name: "rebellion", wikidata_class: Q124734}  # ~1,634
+  - {id: coups-detat, name: "coup d'état", wikidata_class: Q45382}  # ~485
+  - {id: treaties, name: "treaty", wikidata_class: Q131569}  # ~3,629
+  - {id: massacres, name: "massacre", wikidata_class: Q3199915}  # ~2,674
+  - {id: military-operations, name: "military operation", wikidata_class: Q645883}  # ~3,046
+  - {id: civil-wars, name: "civil war", wikidata_class: Q8465}  # ~348
+  - {id: naval-battles, name: "naval battle", wikidata_class: Q1261499}  # ~1,259
+  - {id: peace-treaties, name: "peace treaty", wikidata_class: Q625298}  # ~714
+  - {id: insurgencies, name: "insurgency", wikidata_class: Q1323212}  # ~133
+  - {id: genocides, name: "genocide", wikidata_class: Q41397}  # ~121

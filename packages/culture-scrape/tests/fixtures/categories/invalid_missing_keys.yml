@@ -1,0 +1,3 @@
+id: broken-category
+description: Missing label, source, and dimensions
+dimensions: [temporal]

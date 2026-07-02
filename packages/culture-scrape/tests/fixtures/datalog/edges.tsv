@@ -1,0 +1,4 @@
+:START_ID	:END_ID	:TYPE	weight:float	source
+cs:dish:Q42	cs:place:Q123	LOCATED_IN	0.9	wikidata
+cs:dish:Q99	cs:dish:Q42	DERIVED_FROM		wikidata
+cs:place:Q123	cs:place:Q200	ADJACENT_TO	0.5	pleiades

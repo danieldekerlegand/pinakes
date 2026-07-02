@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ actions.category_id }} · culture-scrape explorer{% endblock %}
+{% block head %}
+  <style>
+    .status { font-weight: 600; text-transform: capitalize; }
+    .status.complete { color: #2e7d32; }
+    .status.incomplete { color: #b26a00; }
+    .status.failed { color: #c62828; }
+    .status.never_run { color: #6a1b9a; }
+    pre.cmd { background: #8881; padding: .6rem .8rem; border-radius: 4px;
+              overflow-x: auto; margin: .2rem 0; }
+    .cmd-block { margin: .8rem 0; }
+    .cmd-block .note { margin: 0 0 .15rem; }
+    .artifacts li.absent { opacity: .55; }
+    .artifacts .badge { font-size: .8em; }
+  </style>
+{% endblock %}
+{% block content %}
+  <p class="muted"><a href="/completeness">← Completeness</a></p>
+  <h1 class="mono">{{ actions.category_id }}</h1>
+  <p>
+    <span class="status {{ actions.status }}">{{ actions.status.replace("_", " ") }}</span>
+    {% if actions.label %}<span class="muted">({{ actions.label }})</span>{% endif %}
+    {% if actions.reasons %}
+    <span class="muted">— {{ actions.reasons | join("; ") }}</span>{% endif %}
+  </p>
+
+  <h2>Commands</h2>
+  <p class="muted">Copy-pasteable — run these in the project directory; nothing
+    is executed from the browser. The job spec
+    <code>{{ actions.job_spec }}</code> follows the conventional
+    <code>jobs/&lt;name&gt;.yml</code> location.</p>
+  {% for cmd in actions.commands %}
+  <div class="cmd-block">
+    <p class="note"><strong>{{ cmd.label }}</strong> — {{ cmd.note }}</p>
+    <pre class="cmd"><code>{{ cmd.text }}</code></pre>
+  </div>
+  {% endfor %}
+
+  <h2>Artifacts</h2>
+  <p class="muted">Located under the job output root
+    <code>{{ actions.output_root }}</code>.</p>
+  <ul class="artifacts">
+    {% for art in actions.artifacts %}
+    <li class="{{ 'present' if art.present else 'absent' }}">
+      {{ art.label }}: <code>{{ art.path }}</code>
+      <span class="badge muted">{{ "present" if art.present else "not built" }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <h2>Last scheduled refresh</h2>
+  {% if actions.refresh %}
+  <p>{{ actions.refresh.timestamp or "—" }}
+    <span class="muted">(cutoff {{ actions.refresh.cutoff or "—" }})</span></p>
+  {% if actions.refresh.decision %}
+  <p>This category: <span class="mono">{{ actions.refresh.decision }}</span></p>
+  {% endif %}
+  <p class="muted">
+    Refreshed: {{ actions.refresh.refreshed | join(", ") or "—" }}<br>
+    Skipped: {{ actions.refresh.skipped | join(", ") or "—" }}
+  </p>
+  {% else %}
+  <p class="muted">No <code>refresh-log.jsonl</code> under the job output root yet
+    (run <code>culturescrape run --since …</code> to start one).</p>
+  {% endif %}
+{% endblock %}

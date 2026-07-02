@@ -1,0 +1,10 @@
+csid:ID	:LABEL	name	wikidata_qid	time_start:int	time_end:int	source
+cs:dish:ceviche	Dish;CulturalArtifact	Ceviche	Q207681			wikidata
+cs:dish:tiradito	Dish	Tiradito	Q7807712			wikidata
+cs:dish:kinilaw	Dish	Kinilaw	Q3197775			wikidata
+cs:dish:nikkei-ceviche	Dish	Nikkei ceviche				wikidata
+cs:place:lima	Place	Lima	Q2868			wikidata
+cs:place:peru	Place	Peru	Q419			wikidata
+cs:place:south-america	Place	South America	Q18			wikidata
+cs:event:inca-expansion	Event	Inca expansion		1438	1533	wikidata
+cs:event:columbian-exchange	Event	Columbian exchange		1492	1700	wikidata

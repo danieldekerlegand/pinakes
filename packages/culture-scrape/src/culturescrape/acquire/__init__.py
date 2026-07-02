@@ -1,0 +1,191 @@
+"""Acquisition subsystem: source adapters that fetch raw category rows."""
+
+from culturescrape.acquire.adapters import (
+    SourceAdapter,
+    UnknownAdapterError,
+    get_adapter,
+    register,
+    registered_ids,
+)
+from culturescrape.acquire.categories import (
+    VALID_DIMENSIONS,
+    VALID_SOURCE_TYPES,
+    CategorySpec,
+    CategorySpecError,
+    Link,
+    SourceSpec,
+    load_category,
+)
+from culturescrape.acquire.factory import AdapterSelectionError, build_adapter
+from culturescrape.acquire.getty import (
+    GETTY_LICENSE,
+    GETTY_NAMESPACES,
+    GettyDumpAdapter,
+    GettyDumpError,
+)
+from culturescrape.acquire.html import (
+    DEFAULT_HTML_CONFIDENCE,
+    FIELD_PREFIX,
+    HtmlScrapeAdapter,
+    HtmlScrapeError,
+)
+from culturescrape.acquire.http import (
+    DEFAULT_USER_AGENT,
+    HttpClient,
+    HttpResponse,
+    HttpStats,
+    RequestsTransport,
+    Transport,
+)
+from culturescrape.acquire.petscan import (
+    PETSCAN_ENDPOINT,
+    PetScanAdapter,
+    PetScanError,
+)
+from culturescrape.acquire.pleiades import (
+    PLEIADES_LICENSE,
+    PLEIADES_PLACE_URI,
+    PleiadesDumpAdapter,
+    PleiadesDumpError,
+)
+from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.acquire.run import RunReport, run_acquisition
+from culturescrape.acquire.wikidata import (
+    WIKIDATA_SPARQL_ENDPOINT,
+    WikidataSparqlAdapter,
+    WikidataSparqlError,
+    fetch_count,
+)
+from culturescrape.acquire.wikidata_dump import (
+    DumpReadStats,
+    WikidataDumpError,
+    claim_entity_ids,
+    iter_entities,
+    open_dump,
+)
+from culturescrape.acquire.wikidata_dump_adapter import (
+    WIKIDATA_ENTITY_PREFIX,
+    WikidataDumpAdapter,
+    WikidataDumpAdapterError,
+)
+from culturescrape.acquire.wikidata_dump_index import (
+    INDEX_FORMAT,
+    INDEX_VERSION,
+    DumpFingerprint,
+    DumpIndex,
+    DumpIndexError,
+    build_index,
+    default_index_path,
+    dump_fingerprint,
+    load_index,
+)
+from culturescrape.acquire.wikidata_enrich import (
+    ENRICHED_KEY,
+    EnrichmentReport,
+    build_qid_lookup,
+    corpus_qids,
+    enrich_nodes,
+    entity_named_languages,
+    resolve_dump_version,
+)
+from culturescrape.acquire.wikidata_hydration import (
+    DEFAULT_PROFILE,
+    LANGUAGE_PROFILE,
+    PROFILES,
+    HydrationProfile,
+    PropertyMapping,
+    UnknownProfileError,
+    ValueKind,
+    get_profile,
+    hydrate_entity,
+)
+from culturescrape.acquire.wikitext import (
+    MEDIAWIKI_API_PATH,
+    WikitextAdapter,
+    WikitextError,
+)
+from culturescrape.acquire.writer import record_to_jsonl, write_records
+
+__all__ = [
+    "DEFAULT_HTML_CONFIDENCE",
+    "DEFAULT_PROFILE",
+    "DEFAULT_USER_AGENT",
+    "ENRICHED_KEY",
+    "FIELD_PREFIX",
+    "INDEX_FORMAT",
+    "INDEX_VERSION",
+    "LANGUAGE_PROFILE",
+    "PROFILES",
+    "GETTY_LICENSE",
+    "GETTY_NAMESPACES",
+    "MEDIAWIKI_API_PATH",
+    "PETSCAN_ENDPOINT",
+    "PLEIADES_LICENSE",
+    "PLEIADES_PLACE_URI",
+    "WIKIDATA_ENTITY_PREFIX",
+    "WIKIDATA_SPARQL_ENDPOINT",
+    "VALID_DIMENSIONS",
+    "VALID_SOURCE_TYPES",
+    "AdapterSelectionError",
+    "CategorySpec",
+    "CategorySpecError",
+    "DumpFingerprint",
+    "DumpIndex",
+    "DumpIndexError",
+    "DumpReadStats",
+    "EnrichmentReport",
+    "HydrationProfile",
+    "PropertyMapping",
+    "UnknownProfileError",
+    "ValueKind",
+    "GettyDumpAdapter",
+    "GettyDumpError",
+    "HtmlScrapeAdapter",
+    "HtmlScrapeError",
+    "HttpClient",
+    "HttpResponse",
+    "HttpStats",
+    "Link",
+    "PetScanAdapter",
+    "PetScanError",
+    "PleiadesDumpAdapter",
+    "PleiadesDumpError",
+    "Provenance",
+    "RawRecord",
+    "RequestsTransport",
+    "RunReport",
+    "SourceAdapter",
+    "SourceSpec",
+    "Transport",
+    "UnknownAdapterError",
+    "WikidataDumpAdapter",
+    "WikidataDumpAdapterError",
+    "WikidataDumpError",
+    "WikidataSparqlAdapter",
+    "WikidataSparqlError",
+    "WikitextAdapter",
+    "WikitextError",
+    "build_adapter",
+    "build_index",
+    "build_qid_lookup",
+    "claim_entity_ids",
+    "corpus_qids",
+    "default_index_path",
+    "dump_fingerprint",
+    "enrich_nodes",
+    "entity_named_languages",
+    "fetch_count",
+    "get_adapter",
+    "get_profile",
+    "hydrate_entity",
+    "iter_entities",
+    "load_category",
+    "load_index",
+    "open_dump",
+    "resolve_dump_version",
+    "record_to_jsonl",
+    "register",
+    "registered_ids",
+    "run_acquisition",
+    "write_records",
+]

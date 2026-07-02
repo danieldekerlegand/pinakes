@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "culturescrape"
+version = "0.1.0"
+description = "TSV-first, multi-domain aggregation engine for cultural, socio-historical, and linguistic data."
+readme = "PLAN.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "PyYAML>=6",
+    "cssselect>=1.2",
+    "lxml>=5",
+    "mwparserfromhell>=0.6",
+    "requests>=2.31",
+]
+
+[project.scripts]
+culturescrape = "culturescrape.cli:main"
+
+[project.optional-dependencies]
+neo4j = [
+    "neo4j>=5",
+]
+gui = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "jinja2>=3.1",
+    "httpx>=0.27",
+]
+dev = [
+    "pytest>=8",
+    "mypy>=1.8",
+    "ruff>=0.4",
+    "lxml-stubs>=0.5",
+    "types-PyYAML>=6",
+    "types-requests>=2.31",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"culturescrape.explorer" = ["templates/*.html"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+
+# The optional ``neo4j`` driver is absent unless the extra is installed; the
+# converter imports it lazily, so missing stubs must not fail core type checks.
+[[tool.mypy.overrides]]
+module = ["neo4j", "neo4j.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

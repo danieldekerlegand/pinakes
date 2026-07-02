@@ -1,0 +1,4 @@
+csid:ID	:LABEL	name	lang	time_start:int	lat:float	lon:float	language_code	period	derived_from_csid	source
+cs:dish:Q42	Dish;CulturalArtifact	Ceviche	es		-12.04	-77.04	spa			wikidata
+cs:battle:Q47	Battle	Battle of Thermopylae	en	-480				Antiquity		petscan
+cs:dish:Q99	Dish	Tiradito	es		-12.0		spa		cs:dish:Q42	wikidata

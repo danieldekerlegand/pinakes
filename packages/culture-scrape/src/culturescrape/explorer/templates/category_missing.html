@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Not found · culture-scrape explorer{% endblock %}
+{% block content %}
+  <p class="muted"><a href="/completeness">‹ Completeness</a></p>
+  <h1>Category not found</h1>
+  <p>No category <span class="mono">{{ category_id }}</span> has actions in this
+    corpus (it may be absent, or this source is a bare corpus dataset with no job
+    output root).</p>
+{% endblock %}

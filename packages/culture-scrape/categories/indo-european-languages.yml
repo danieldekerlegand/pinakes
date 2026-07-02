@@ -1,0 +1,22 @@
+# Linguistic category: Indo-European languages and the ancestors they descend from.
+# Demonstrates the linguistic dimension on the one open structured source confirmed
+# ingestible with no new adapter code — Wikidata's language-family (subclass-of) tree.
+# Source evaluation: docs/sources-linguistic.md. Schema: docs/data-model.md.
+id: indo-european-languages
+label: Language
+description: Indo-European languages and the ancestor languages they descend from
+source:
+  type: wikidata-sparql
+  query: |
+    SELECT ?item ?itemLabel ?parent ?parentLabel ?iso639_3 ?glottocode WHERE {
+      ?item wdt:P31 wd:Q34770 .                  # instance of: language
+      ?item wdt:P279+ wd:Q19860 .                # subclass of (transitively): Indo-European
+      ?item wdt:P279 ?parent .                    # direct ancestor language / family
+      OPTIONAL { ?item wdt:P220 ?iso639_3 . }     # ISO 639-3 code
+      OPTIONAL { ?item wdt:P1394 ?glottocode . }  # Glottolog code
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    }
+dimensions: [linguistic]
+links:
+  - type: DESCENDS_FROM
+    to: language

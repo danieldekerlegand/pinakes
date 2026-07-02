@@ -1,0 +1,4 @@
+csid:ID	:LABEL	name	lang	wikidata_qid	getty_id	aliases	description	time_start:int	time_end:int	time_start_iso	period	lat:float	lon:float	place_qid	tgn_id	pleiades_id	language_code	script	etymology	derived_from_csid	source	source_url	source_query	retrieved_at	confidence:float	extra
+cs:dish:Q207058	Dish	ceviche	en	Q207058																	wikidata	http://www.wikidata.org/entity/Q207058	wikidata-sparql P31 Q746549	2026-06-01T00:00:00Z	1.0	
+cs:dish:Q2734670	Dish	lomo saltado	en	Q2734670																	wikidata	http://www.wikidata.org/entity/Q2734670	wikidata-sparql P31 Q746549	2026-06-01T00:00:00Z	1.0	
+cs:dish:Q3037464	Dish	tiradito	en	Q3037464																	wikidata	http://www.wikidata.org/entity/Q3037464	wikidata-sparql P31 Q746549	2026-06-01T00:00:00Z	1.0	

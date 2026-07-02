@@ -1,0 +1,142 @@
+{
+  "project": "culture-scrape",
+  "branchName": "ralph/datalog-exporter",
+  "description": "Prolog/Datalog exporter — projects the canonical TSV graph into engine-agnostic logical facts and ships runnable rule sets and example queries for both SWI-Prolog (interactive research querying via pyswip) and Souffle (high-performance bulk Datalog), enabling symbolic inference over the cultural network. This is the least-charted path; treat as original engineering.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add the datalog exporter module and define the fact model",
+      "description": "As a developer, I need a canonical, engine-neutral fact representation before targeting any specific engine.",
+      "acceptanceCriteria": [
+        "Create src/culturescrape/datalog/__init__.py and define a Fact dataclass (predicate, args, optional source)",
+        "Document the predicate schema in docs/datalog.md: node/3+, instance_of/2, rel/3 (or typed predicates per :TYPE), and dimension facts (time_start/2, located_in/2, descends_from/2, ...)",
+        "Provide a function to safely render an atom (quoting/escaping identifiers and string literals validly for Prolog and Datalog)",
+        "Tests pass (pytest) for atom escaping incl. quotes, spaces, and unicode",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Map node TSV rows to facts",
+      "description": "As a developer, I want every node row to become well-formed facts so entities exist in the logic program.",
+      "acceptanceCriteria": [
+        "Each node emits node(Csid, Type, Name) plus one fact per populated dimension column (e.g. time_start(Csid, Year), located_at(Csid, Lat, Lon), language_code(Csid, Code))",
+        "csids are turned into valid lowercase atoms or quoted atoms deterministically; mapping is reversible-documented",
+        "Null/empty columns emit no fact (no nulls in the logic program)",
+        "Tests pass (pytest) mapping a fixture node file to the expected fact set",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Map edge TSV rows to facts",
+      "description": "As a developer, I want every edge to become a relation fact so the graph structure is in logic.",
+      "acceptanceCriteria": [
+        "Each edge emits a typed predicate per :TYPE (e.g. located_in(A,B), derived_from(A,B)) and also a generic rel(Type,A,B) for uniform queries",
+        "Predicate names are derived from :TYPE via a documented, collision-free lowercasing scheme",
+        "Edge weight/confidence is exposed via an optional companion fact (e.g. rel_conf(Type,A,B,Conf))",
+        "Tests pass (pytest) mapping a fixture edge file to expected facts",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Emit a SWI-Prolog program (.pl)",
+      "description": "As a researcher, I want a loadable Prolog file so I can query the network interactively.",
+      "acceptanceCriteria": [
+        "Write facts to a .pl file with appropriate :- discontiguous/:- dynamic declarations so SWI-Prolog loads it without warnings",
+        "File loads cleanly via swipl in a smoke test (skipped automatically if swipl is not installed, with the skip reason logged)",
+        "A header comment documents the predicate schema",
+        "Tests pass (pytest): the generated .pl parses; the swipl load test passes or is skipped",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Emit a Souffle program (.dl) with type declarations",
+      "description": "As a data miner, I want a Souffle datalog file so I can run high-performance bulk inference.",
+      "acceptanceCriteria": [
+        "Generate a .dl file with .decl declarations for every predicate, .input/.output directives, and facts loaded from generated .facts TSV files (Souffle's native format)",
+        "souffle compiles/runs the program in a smoke test (skipped automatically if souffle is not installed, with the skip reason logged)",
+        "Generated .facts files reuse the strict TSV writer so they are lossless",
+        "Tests pass (pytest): generated .dl is well-formed; the souffle run test passes or is skipped",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Author a shared rule library for derived relations",
+      "description": "As a researcher, I want inference rules so the logic layer adds value beyond the raw facts.",
+      "acceptanceCriteria": [
+        "Define rules (in both Prolog and Souffle syntax) for: transitive descends_from (ancestor/2), transitive located_in (within_region/2), contemporary_with as symmetric closure, and an influenced_transitively/2 over derived_from/influenced_by",
+        "Each rule has a documented intended meaning and a worked example query",
+        "Rules are stored as templates so they attach to any generated program",
+        "Tests pass (pytest) checking the rule text is emitted into both .pl and .dl outputs",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Validate inference equivalence across engines on a fixture",
+      "description": "As a user, I want confidence that Prolog and Souffle agree so results are trustworthy.",
+      "acceptanceCriteria": [
+        "On a fixture graph, run the same query (e.g. ancestor/2 closure) in swipl and souffle and assert identical result sets",
+        "Test skips gracefully (with logged reason) if either engine is unavailable, but runs in CI when both are present",
+        "Differences, if any, are reported with the diverging tuples",
+        "Tests pass (pytest) for the equivalence check (or skip with reason)",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Add a to-datalog CLI command",
+      "description": "As a user, I want one command that turns canonical TSV into a ready logic program.",
+      "acceptanceCriteria": [
+        "Add `culturescrape to-datalog <dir> --engine swipl|souffle|both --rules --out <dir>`",
+        "Command emits facts (+ rules when --rules) for the selected engine(s) and prints a load/run hint",
+        "Running on a fixture dataset produces a .pl and/or .dl that passes the relevant well-formedness test",
+        "Tests pass (pytest) invoking the CLI for each engine option",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Ship example logic queries and document the workflow",
+      "description": "As a researcher, I want runnable example queries and docs so the symbolic layer is usable on day one.",
+      "acceptanceCriteria": [
+        "Add datalog/examples with queries: full ancestry of a dish, all entities within a region transitively, contemporaries of an event, shortest influence chain between two artifacts",
+        "docs/datalog.md documents the predicate schema, the csid<->atom mapping, how to load in swipl, how to run in souffle, and the example queries with expected output shape",
+        "Each example references a test (or doctest) that runs it on the fixture when the engine is available",
+        "Tests pass (pytest) for the example harness (skipping engine-specific parts when unavailable)",
+        "Lint passes (ruff)"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

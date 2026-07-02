@@ -1,0 +1,21 @@
+# Example category. Load with culturescrape.acquire.load_category().
+# Schema: docs/data-model.md ("Category specification (input)"); adapter: docs/acquisition.md.
+#
+# Battles of the American Civil War live as a Wikipedia *category tree* rather
+# than a clean Wikidata class, so PetScan traverses the tree and resolves each
+# page to its Wikidata QID.
+id: us-civil-war-battles
+label: Battle;Event
+description: Every battle of the American Civil War
+source:
+  type: petscan
+  params:
+    language: en
+    project: wikipedia
+    categories: Battles of the American Civil War
+    depth: 3
+    combination: subset
+dimensions: [temporal, geographic]
+links:
+  - type: LOCATED_IN
+    to: place

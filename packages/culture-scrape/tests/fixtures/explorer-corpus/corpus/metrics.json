@@ -1,0 +1,19 @@
+{
+  "node_count": 9,
+  "edge_count": 9,
+  "edges_per_node": 1.0,
+  "component_count": 1,
+  "largest_component_size": 9,
+  "largest_component_fraction": 1.0,
+  "edges_by_dimension": {
+    "genetic": 3,
+    "geographic": 4,
+    "temporal": 2
+  },
+  "edges_by_type": {
+    "CONTEMPORARY_WITH": 2,
+    "DERIVED_FROM": 2,
+    "INFLUENCED_BY": 1,
+    "LOCATED_IN": 4
+  }
+}
