@@ -320,3 +320,51 @@ A committed snapshot of the manifest lives at
   `duplicateCsids`, `ambiguousLinguascrapeIds`, and `edgesWithUnresolvedEndpoint` (edges
   whose endpoint has no exported node are counted + sampled, not emitted, so the output
   stays `neo4j-admin import`-clean; reconciling those endpoints is US-005's job).
+
+## 8. Reconciliation keys & dry-run report (US-005)
+
+culture-scrape merges the *same* real-world thing acquired from different sources onto one
+graph node by a strict **cascade** of identity signals (strongest first — see
+`packages/culture-scrape/src/culturescrape/schema/reconcile.py` and `.../merge.py`):
+
+| # | Signal | Meaning |
+|---|--------|---------|
+| 1 | `wikidata_qid` | The QID *is* the identity. |
+| 2 | `getty_id` | A shared Getty (TGN/AAT/ULAN) subject. |
+| 3 | **language code** (`iso639_1`/`iso639_2`/`glottocode`, via `language_code`) | A globally-unique code for a language. |
+| 4 | exact `(name, type, region)` | Same normalized name, node type, and region. |
+| 5 | fuzzy `name` | Same type/region, name similarity above a threshold. |
+
+LinguaScrape rows carry **no** `wikidata_qid`/`getty_id` (steps 1–2 are inert for our data),
+so `scripts/reconciliation-report.ts` emits the keys the reconciler actually keys on —
+language codes for languages, and the normalized `(name, type, region)` blocking key for
+every other domain — and estimates, **without touching the network or the live graph**, how
+the export would land. Run it with `npx tsx scripts/reconciliation-report.ts`
+(`buildReconciliation()` is pure over a lexicons dir; `writeReconciliation()` /
+`runReport()` touch the filesystem).
+
+**Output** — under the gitignored export tree, plus a committed snapshot:
+
+```
+export/culturescrape/reconciliation/
+  keys.tsv      # one row per exported node: csid, ls id, iso codes, region, name_key, bucket
+  report.json   # full dry-run report (all ambiguity groups)
+docs/reconciliation-report.json   # committed snapshot (ambiguities bounded to 50)
+```
+
+Each node is classified into exactly one **bucket**:
+
+- **matched** — carries a deterministic global anchor (a language code today; a QID/getty id
+  if ever present) that resolves the same entity every time → collapses onto an existing node.
+- **ambiguous** — its blocking key collides with another *distinct* exported node, so the
+  reconciler cannot auto-pick one. These are listed with their competing candidates (and each
+  candidate's `confidence`) and are **never auto-merged** — a human (or step 1–2 evidence)
+  must decide. Example: iso639_1 `hmn` is shared by *Hmong Njua* and *Hmong Daw* (distinct
+  iso639-3 languages under one macro-code), so both are flagged, not merged.
+- **likely-new** — a unique name-anchored key with no global anchor; probably mints a new node
+  (or fuzzy-matches downstream at step 5).
+
+`report.json` also carries `keyCoverage` (language iso/glottocode coverage, region coverage,
+`duplicateCsidsDropped`) and `byType` roll-ups. See
+[`packages/culture-scrape/docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)
+for how to feed the export into culture-scrape's reconcile step.

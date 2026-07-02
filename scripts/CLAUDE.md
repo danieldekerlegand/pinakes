@@ -33,3 +33,20 @@ node pass — endpoints with no exported node are counted + sampled in the manif
 emitted (keeps output `neo4j-admin import`-clean). Output is idempotent (rows sorted, no
 wall-clock written). Combined `*coordinates` JSON cells (`{"lat":..,"lng":..}`) split into
 `lat`/`lon`.
+
+## Reconciliation dry-run (US-005)
+
+`reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on
+(language `iso639_1`/`iso639_2`/glottocode; normalized `(name, type, region)` for
+everything else) and a **dry-run** estimate — no network, no live graph — of how the
+export lands: `matched` (global anchor), `likely-new` (unique name key), or `ambiguous`
+(blocking-key collision, listed with competing candidates, **never auto-merged**). Output:
+`export/culturescrape/reconciliation/{keys.tsv,report.json}` (gitignored) + a committed
+snapshot `docs/reconciliation-report.json` (ambiguities bounded to 50). `buildReconciliation()`
+is pure over a lexicons dir; it reuses `mintCsid`/`normaliseConfidence` from
+`export-for-culturescrape.ts`. **Gotcha:** the committed snapshot is asserted against the live
+corpus by a test — re-run the CLI (`npx tsx scripts/reconciliation-report.ts`) after any
+change that shifts node counts/keys, or that live test fails. Region is read from the first
+header ending in `region` (`region`/`origin_region`/`proposed_region`); LinguaScrape has no
+glottocode column today, so language matching rests on the ISO codes. See
+`packages/culture-scrape/docs/reconcile-linguascrape.md`.
