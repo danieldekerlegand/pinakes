@@ -126,7 +126,9 @@ gated_check() {
 _vitest_out() {
   local out=""
   for _try in 1 2 3; do
-    out="$( cd "$REPO" && npx vitest run "$@" 2>&1 )"
+    # NO_COLOR so vitest's summary line isn't wrapped in ANSI codes (v4 colors even when its
+    # output is captured, not a TTY); strip any residual escapes so the summary regex matches.
+    out="$( cd "$REPO" && NO_COLOR=1 FORCE_COLOR=0 npx vitest run "$@" 2>&1 | perl -pe 's/\e\[[0-9;]*m//g' )"
     printf '%s\n' "$out" | grep -qE 'Tests[[:space:]]+[0-9]+ (passed|failed)' && break
     echo "    (vitest: no summary — retry $_try/3)" >&2
   done
@@ -157,10 +159,10 @@ verify_branch() {
   local files; files="$(git -C "$REPO" diff --name-only main...HEAD)"
   [ -z "$files" ] && { echo "  verify: no diff vs main"; return 0; }
   # Web app (TypeScript): typecheck the project if any TS changed; run changed vitest specs.
-  if echo "$files" | grep -qE '^(client|server|shared)/.*\.(ts|tsx)$'; then
+  if echo "$files" | grep -qE '^(client|server|shared|scripts)/.*\.(ts|tsx)$'; then
     gated_check "typecheck (tsc)" 'cd "$REPO" && npx tsc --noEmit' _norm_tsc || return 1
   fi
-  local tst; tst="$(echo "$files" | grep -E '^(client|server|shared|test)/.*\.test\.ts$')"
+  local tst; tst="$(echo "$files" | grep -E '^(client|server|shared|scripts|test)/.*\.test\.ts$')"
   if [ -n "$tst" ]; then
     # shellcheck disable=SC2086
     gated_vitest "changed tests" $tst || return 1
