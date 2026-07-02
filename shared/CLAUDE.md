@@ -11,6 +11,14 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
 - Column contracts mirror culture-scrape's Neo4j-import headers
   (`packages/culture-scrape/.../schema/headers.py`). Prose + mapping tables live in
   `docs/canonical-schema.md`.
+- `lexicon-mapping.json` (US-002) is the machine-readable **lexicon → canonical** map:
+  every `lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
+  per-column disposition (`target` canonical field / `edge` type / `property` / `drop`).
+  Consume via `@shared/lexicon-mapping` (`lexiconMappingByFile`, `nodeFiles`, `edgeFiles`,
+  `assertValidLexiconMapping`). US-003 (edge extraction) reads the `edge` dispositions; US-004
+  (export) reads `target`/`property`. Totality vs the live TSVs is enforced by the test, which
+  reads headers from `resolve(process.cwd(), "lexicons")` and compares **unique** column names
+  (some source headers, e.g. `words-base.tsv`, have duplicate columns).
 
 ## Gotchas
 

@@ -157,8 +157,131 @@ when no URL is derivable (never fabricated; flagged instead). `nodeProvenanceCol
 - **Python side:** validate exported headers against `shared/canonical-schema.json`
   before ingestion (US-004/US-008).
 
-## 6. Per-lexicon mapping table
+## 6. Per-lexicon mapping table (US-002)
 
-The mapping from each of the 57 `lexicons/*.tsv` to a node/edge type and column-by-column
-field mapping is ratified in **US-002** (this section is its home). Until then, see the
-gap analysis in [`culturescrape-integration.md` §3](./culturescrape-integration.md).
+The mapping from each of the 57 `lexicons/*.tsv` to a canonical node/edge type is ratified
+here and, machine-readably, in [`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json)
+(typed accessors in `shared/lexicon-mapping.ts`; totality + real-column checks in
+`shared/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
+human-readable summary — the JSON carries the full column-by-column disposition.
+
+### 6.1 File `kind`s
+
+Each file declares one `kind`:
+
+- **node** — rows become canonical nodes of the declared node type.
+- **edge** — rows become canonical edges (`:START_ID`/`:END_ID`/`:TYPE` present); `node` is `null`.
+- **attribute** — describes/attaches to a host node via a foreign key (e.g. `language_id`);
+  not a standalone canonical node in v1. Columns are retained as properties for a later pass.
+- **excluded** — operational / presentation / asset table, not part of the shared graph;
+  all columns dropped.
+
+### 6.2 Column dispositions
+
+Every source column carries exactly one disposition:
+
+- **target** → a canonical field (a node field for node files, an edge field for edge files).
+- **edge** → an embedded relationship extracted as a canonical edge in US-003.
+- **property** → no dedicated canonical field; retained as an extra Neo4j property / future field.
+- **drop** → not carried into the canonical model (each has a documented `reason`).
+
+Convention across node files: `id → linguascrape_id` (alias), `name/hypothesis_name → name`,
+`native_name/alternate_names → aliases`, `description/summary_description → description`,
+`sources → source`, `confidence → confidence`, `*_start/origin_date/time_origin → time_start`,
+`*_end/end_date → time_end`, `*_label/style_period/time_period → period`,
+`latitude/longitude → lat/lon`. Combined `coordinates` strings are kept as `property` and split
+into `lat`/`lon` by the export (US-004). Loose `associated_*` id lists are kept as `property`
+(candidate edges for a later pass); only directional foreign keys become edges.
+
+### 6.3 File → node/edge type
+
+| File | kind | node type / edge role |
+| --- | --- | --- |
+| `languages.tsv` | node | language |
+| `families.tsv` | node | language-family |
+| `writing-systems.tsv` | node | writing-system |
+| `civilizations.tsv` | node | culture |
+| `culture-profiles.tsv` | node | culture |
+| `archaeological-cultures.tsv` | node | archaeological-culture |
+| `archaeological-sites.tsv` | node | place |
+| `settlements.tsv` | node | place |
+| `rivers-and-waters.tsv` | node | place |
+| `urheimat-hypotheses.tsv` | node | urheimat-hypothesis |
+| `religions.tsv` | node | religion |
+| `deities.tsv` | node | deity |
+| `myth-motifs.tsv` | node | myth-motif |
+| `art-traditions.tsv` | node | art-tradition |
+| `architectural-styles.tsv` | node | art-tradition |
+| `dance-traditions.tsv` | node | art-tradition |
+| `music-traditions.tsv` | node | art-tradition |
+| `literary-traditions.tsv` | node | literary-tradition |
+| `cuisines.tsv` | node | cuisine |
+| `cuisine-items.tsv` | node | ingredient |
+| `ingredient-origins.tsv` | node | ingredient |
+| `trade-goods.tsv` | node | trade-good |
+| `battles.tsv` | node | battle |
+| `migration-routes.tsv` | node | migration-route |
+| `cultural-lineages.tsv` | edge | `relationship_type` → edge `:TYPE` (descended-from, influenced-by, absorbed-into, …) |
+| `art-style-evolutions.tsv` | edge | `transition_type` → derived-from / influenced-by |
+| `etymology-relations.tsv` | edge | `relation_type` → borrowed-from / cognate-with / derived-from (between language nodes) |
+| `language-contacts.tsv` | edge | `contact_type` → influenced-by / borrowed-from |
+| `building-types.tsv` | attribute | typology → art-tradition / place |
+| `city-layouts.tsv` | attribute | → place (`settlement_id`) |
+| `civilization-boundaries.tsv` | attribute | → culture (`civilization_id`) |
+| `cooking-techniques.tsv` | attribute | → cuisine (`cuisine_id`) |
+| `culture-events.tsv` | attribute | → culture (`culture_profile_id`) |
+| `daily-life.tsv` | attribute | → culture (`culture_profile_id`) |
+| `empires-timeline.tsv` | attribute | → culture (`empire_id`) |
+| `foodway-events.tsv` | attribute | diffusion event (candidate migration/derived-from edges) |
+| `grammar-features.tsv` | attribute | → language (`language_id`) |
+| `haplogroups.tsv` | attribute | genetic (no v1 node type) |
+| `innovations.tsv` | attribute | innovation (no v1 node type) |
+| `kinship-systems.tsv` | attribute | → language / culture (`language_ids`) |
+| `language-range-polygons.tsv` | attribute | → language (`language_id`) |
+| `language-ranges.tsv` | attribute | → language (`language_id`) |
+| `literary-works.tsv` | attribute | → literary-tradition (`tradition_id`) |
+| `material-culture.tsv` | attribute | artifact class (overlaps trade-good) |
+| `musical-instruments.tsv` | attribute | → art-tradition (`associated_tradition_ids`) |
+| `phonological-inventories.tsv` | attribute | → language (`language_id`) |
+| `sample-texts.tsv` | attribute | → language (`language_id`) |
+| `social-organization.tsv` | attribute | → culture / language (`culture_or_language`) |
+| `social-structures.tsv` | attribute | → culture (`culture_profile_id`) |
+| `sound-changes.tsv` | attribute | → language pair (candidate descended-from annotation) |
+| `trade-routes.tsv` | attribute | route (no v1 node type; distinct from migration-route) |
+| `verb-paradigms.tsv` | attribute | → language (`language_id`) |
+| `words.tsv` | attribute | → language (word forms; feed etymology edges) |
+| `words-base.tsv` | attribute | Concepticon base concept list (reference vocab) |
+| `genai-prompts.tsv` | excluded | GenAI prompt operational table |
+| `media-assets.tsv` | excluded | media asset registry (presentation-only) |
+| `narratives.tsv` | excluded | guided-tour narrative content |
+
+### 6.4 Embedded relationships → edges (US-003 targets)
+
+| File.column | Canonical edge |
+| --- | --- |
+| `families.parent_id` | descended-from |
+| `languages.family_id` | descended-from |
+| `languages.parent_language_id` | descended-from |
+| `writing-systems.parent_system_id` | descended-from |
+| `archaeological-cultures.predecessor_culture_ids` | descended-from |
+| `archaeological-cultures.successor_culture_ids` | absorbed-into |
+| `deities.syncretism_links` | syncretized-with |
+| `cultural-lineages` (whole file) | `relationship_type` → edge `:TYPE` |
+| `art-style-evolutions` (whole file) | `transition_type` → edge `:TYPE` |
+| `etymology-relations` (whole file) | `relation_type` → edge `:TYPE` |
+| `language-contacts` (whole file) | `contact_type` → edge `:TYPE` |
+
+### 6.5 Columns with no canonical home
+
+Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
+
+- **Kept as property** — the majority: domain-specific descriptive columns
+  (e.g. `pottery_style`, `word_order`, `deity_pantheon`), loose `associated_*` id lists,
+  combined `coordinates` strings, and secondary reconciliation keys (`iso639_2`). These ride
+  along as extra Neo4j properties and are candidates for future canonical fields.
+- **Dropped (with reason)** — presentation/pipeline-only columns: `culture-events.lane` and
+  `culture-profiles.image_gallery_tags` (UI), `words.Next_Step` (pipeline marker), and every
+  column of the three `excluded` files.
+
+> Note: `words-base.tsv` has a duplicated `annotation_en` header column; the mapping records it
+> once and the validator compares unique column names.
