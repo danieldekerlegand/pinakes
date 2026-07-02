@@ -1,0 +1,142 @@
+{
+  "project": "LinguaScrape",
+  "branchName": "ralph/data-layer-convergence",
+  "description": "Data-layer convergence — ratify the shared canonical node/edge schema, prepare LinguaScrape's lexicons for ingestion into culture-scrape's Neo4j/Datalog graph, and establish reconciliation, provenance, and bidirectional TSV write-back so both datasets become one correlatable body of knowledge (TSV stays source of truth; no language rewrite).",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Ratify the shared canonical schema contract",
+      "description": "As an architect, I need a single canonical node/edge schema both projects target so entities and relationships mean the same thing everywhere.",
+      "acceptanceCriteria": [
+        "Author docs/canonical-schema.md defining node types (language, language-family, writing-system, culture, archaeological-culture, urheimat-hypothesis, religion, deity, myth-motif, art-tradition, literary-tradition, cuisine, ingredient, trade-good, battle, place, migration-route) and edge types (descended-from, split-from, merged-with, influenced-by, conquered-by, absorbed-into, spoken-in, located-in, contemporary-with, part-of-period, borrowed-from, cognate-with, derived-from, syncretized-with)",
+        "Define the identity scheme: csid primary; anchors wikidata_qid, iso639_3/glottocode (languages), pleiades_id/tgn_id (places); LinguaScrape id retained as an alias column",
+        "Define mandatory provenance columns (source, source_url, retrieved_at, confidence) matching culture-scrape's data model",
+        "Emit a machine-readable schema (JSON or YAML) checked into shared/ so both repos can validate against it",
+        "Type checks pass (`npm run check`)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Map every LinguaScrape lexicon TSV to canonical node/edge types",
+      "description": "As a data engineer, I need an explicit mapping from each lexicons/*.tsv to the canonical model so ingestion is deterministic and reviewable.",
+      "acceptanceCriteria": [
+        "Produce a mapping table (in docs/canonical-schema.md or a machine-readable sidecar) covering all 57 lexicons/*.tsv: which file -> which node type, which columns -> which canonical fields",
+        "Explicitly map edge-bearing files: cultural-lineages.tsv (source_id/target_id/relationship_type -> edges), families.tsv parent_id, languages.tsv family_id/parent_language_id, archaeological-cultures.tsv predecessor/successor_culture_ids",
+        "Identify columns with no canonical home and decide keep-as-property vs drop (documented)",
+        "A vitest test validates the mapping is total (every lexicons/*.tsv is accounted for) and references only real column names",
+        "Type checks pass (`npm run check`)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Edge-extraction helper for LinguaScrape's embedded relationships",
+      "description": "As a data engineer, I need a TS utility that extracts canonical edges from LinguaScrape's embedded relationship columns so the graph gets first-class relationships.",
+      "acceptanceCriteria": [
+        "Create server/services/canonical-edges.ts that reads lexicons and emits canonical edge records (start_id, end_id, type, time_start, time_end, confidence, provenance)",
+        "Cover: cultural-lineages relationship_type -> edge :TYPE; family_id/parent_id -> belongs-to/descended-from; parent_language_id -> descended-from; predecessor/successor_culture_ids -> descended-from/absorbed-into",
+        "Preserve confidence and sources onto each edge as provenance; default confidence documented where absent",
+        "vitest tests assert correct edge extraction from fixture TSVs including time ranges and provenance",
+        "Type checks pass (`npm run check`)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Export LinguaScrape lexicons in culture-scrape's ingestion-ready format",
+      "description": "As an integrator, I need LinguaScrape data emitted in a shape culture-scrape's tabular adapter can ingest so LinguaScrape becomes an acquisition source.",
+      "acceptanceCriteria": [
+        "Add scripts/export-for-culturescrape.ts that writes canonical-shaped nodes/*.tsv + edges/*.tsv (typed headers) from lexicons, stamped with source='linguascrape' provenance",
+        "Output validates against the machine-readable canonical schema from US-001",
+        "The export is reproducible and idempotent (stable csid-alias ordering); output location documented and gitignored",
+        "A committed manifest lists node/edge type counts produced",
+        "vitest test runs the export against fixtures and validates headers + provenance"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Reconciliation keys & report for cross-dataset entity merging",
+      "description": "As a data steward, I need LinguaScrape entities to carry the keys culture-scrape's reconciler uses so the same entity becomes one graph node.",
+      "acceptanceCriteria": [
+        "Emit reconciliation keys in the export: iso639_1/iso639_2 (and glottocode where available) for languages; normalized (name, type, region) for cultures and other domains",
+        "Produce a dry-run reconciliation report estimating matches vs likely-new nodes vs ambiguous, using culture-scrape's cascade order (documented)",
+        "Ambiguous candidates are listed with their competing matches and confidence; never auto-merged silently",
+        "vitest tests cover key emission and the ambiguity report on fixtures",
+        "Document how to feed this into culture-scrape's reconcile step under packages/culture-scrape/ (same repo)"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Provenance propagation across all origin rows",
+      "description": "As a researcher, I need every LinguaScrape-origin fact to carry provenance so trust and citation survive into the shared graph.",
+      "acceptanceCriteria": [
+        "Ensure the export stamps source, source_url (where derivable), retrieved_at, and confidence on every node and edge",
+        "Preserve original LinguaScrape 'sources' values; do not fabricate URLs — leave blank when unknown and flag",
+        "A coverage metric reports provenance completeness per node/edge type",
+        "vitest test asserts 100% of exported rows carry the required provenance columns (values may be blank but columns present)",
+        "Type checks pass (`npm run check`)"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Bidirectional TSV write-back path",
+      "description": "As a maintainer, I need human-curated edits and graph-derived enrichments to round-trip through TSV so neither store drifts and core data survives without the graph.",
+      "acceptanceCriteria": [
+        "Add a documented round-trip: LinguaScrape contribution-system edits export to canonical TSV; culture-scrape derived/enriched facts import back into lexicons where a canonical->lexicon mapping exists",
+        "Write-back never overwrites human-curated values without an explicit flag; provenance columns are preserved",
+        "A round-trip vitest test asserts export->import produces no data loss on fixtures",
+        "Conflicts (same field, different source) are reported, not silently resolved",
+        "Document the sync cadence and ownership (which side is authoritative per field)"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Convergence QA gate & drift detection",
+      "description": "As a maintainer, I need an automated check that the two datasets stay aligned so schema or id drift is caught early.",
+      "acceptanceCriteria": [
+        "Add a QA script (scripts/convergence-qa.ts) reporting id-overlap, unreconciled rate, provenance completeness, and schema drift vs the machine-readable canonical schema",
+        "The check exits non-zero on drift (missing/renamed canonical columns, unmapped lexicon files)",
+        "Output a human-readable convergence report artifact",
+        "vitest tests cover a clean corpus (pass) and a drifted corpus (fail)",
+        "Document how to run it in CI"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Convergence design doc, mapping reference & runbook",
+      "description": "As a contributor, I need the convergence documented so I can add a new domain to the shared graph and tune reconciliation.",
+      "acceptanceCriteria": [
+        "Update docs/culturescrape-integration.md and docs/canonical-schema.md to match the code from US-001..US-008 (exact column and file names)",
+        "Document the end-to-end flow: lexicons -> export -> culture-scrape ingest/reconcile -> Neo4j/Datalog -> LinguaScrape queries -> write-back",
+        "Provide a 'add a new LinguaScrape domain to the graph' checklist",
+        "Cross-link the Python-side work under packages/culture-scrape/ (same repo) and state which side owns which step",
+        "Docs reviewed for accuracy against the machine-readable schema"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
