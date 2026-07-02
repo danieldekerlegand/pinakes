@@ -90,18 +90,19 @@ generalizes exactly that pattern across every domain.
 
 culture-scrape is **vendored into this repo at `packages/culture-scrape/`** (a fresh copy of its
 tracked files — its 105-commit upstream history is intentionally *not* imported, so LinguaScrape's
-history stays clean). Because both projects now live in one repo, `ralphy` can modify either side
-and commit atomically — there is **no cross-repo split**. Work still splits by *language/runtime*:
+history stays clean). Because both projects now live in one repo, a single Ralph run can modify
+either side and commit atomically — there is **no cross-repo split**. Work still splits by
+*language/runtime*:
 
 | Work | Runtime | Location |
 |---|---|---|
-| Canonical schema contract doc + machine-readable schema | shared | `docs/`, `shared/`, authored by `ralph/15` |
-| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `packages/culture-scrape/` (its own `ralph/` tasklists live at `packages/culture-scrape/ralph/`) |
-| Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `client/`, authored by `ralph/15`–`16` |
+| Canonical schema contract doc + machine-readable schema | shared | `docs/`, `shared/`, PRD `tasks/ralph/data-layer-convergence.json` |
+| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `packages/culture-scrape/`, PRD `tasks/ralph/linguascrape-convergence-python.json` |
+| Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `client/`, PRDs `tasks/ralph/{data-layer-convergence,graph-app-integration}.json` |
 
-→ The Python-side ingestion/reconciliation/Datalog work is now an in-repo concern under
-`packages/culture-scrape/`; it can be driven by a dedicated LinguaScrape `ralph/` tasklist or by
-culture-scrape's own vendored tasklists. Everything references this doc as the source of truth.
+→ The Python-side ingestion/reconciliation/Datalog work is an in-repo concern under
+`packages/culture-scrape/`, driven by its own Ralph PRD. Everything references this doc as the
+source of truth.
 
 ## 7. Phased convergence
 
@@ -124,8 +125,10 @@ culture-scrape's own vendored tasklists. Everything references this doc as the s
 - Abandoning TSV — it remains the portable source of truth on both sides.
 - Moving CPU-domain compute (linguistic distance, etymology) out of TS.
 
-## 9. Ralph tasklists
+## 9. Ralph PRDs
 
-See `ralph/README.md`. Convergence is tasklist **15** (foundation + shared schema, LinguaScrape
-side), app graph consumption is **16**; the Python-side ingestion/reconciliation/Datalog work lives
-in-repo under **`packages/culture-scrape/`** (its own tasklists at `packages/culture-scrape/ralph/`).
+The work is driven by [Ralph](../docs/ralph-workflow.md) PRDs under `tasks/ralph/` (run via
+`scripts/ralph/run-all.sh`). Convergence-related PRDs, in dependency order:
+`data-layer-convergence` → `linguascrape-convergence-python` (Python side) → `graph-app-integration`.
+The remaining roadmap PRDs (`data-acquisition`, `narrative-education`, `platform-infra`,
+`speculative`) build on them.

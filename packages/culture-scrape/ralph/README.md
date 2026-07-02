@@ -15,15 +15,6 @@ Each tasklist directory holds:
 | 4 | Neo4j bidirectional converter | `04-neo4j-converter/tasks.json` | 9 | 2 |
 | 5 | Prolog/Datalog exporter | `05-datalog-exporter/tasks.json` | 9 | 2, 3 |
 | 6 | Orchestration, seed corpus & QA | `06-orchestration-seedcorpus/tasks.json` | 11 | 1–5 |
-| 10 | LinguaScrape convergence (ingest/reconcile/link/Datalog/Neo4j) | `10-linguascrape-convergence/tasks.json` | 8 | 1–6 |
-
-(Tasklists 07–09 — GUI explorer, corpus expansion, Wikidata integration — also exist on disk.)
-
-> **Vendored in a monorepo.** culture-scrape is vendored into the LinguaScrape repo at
-> `packages/culture-scrape/` (no nested `.git`). Tasklist **10** is the Python-side companion
-> to LinguaScrape's `ralph/15` (data-layer convergence); see `docs/culturescrape-integration.md`
-> at the repo root. Drive tasklists from the **monorepo root** so ralphy commits to the enclosing
-> repo, e.g. `ralphy --json packages/culture-scrape/ralph/10-linguascrape-convergence/tasks.json --claude`.
 
 ## Run them
 

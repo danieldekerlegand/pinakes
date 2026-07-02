@@ -1,0 +1,6 @@
+# Ralph runtime state — swapped per-PRD by run-all.sh, must not block branch checkouts
+prd.json
+progress.txt
+.last-branch
+archive/
+snapshots/
