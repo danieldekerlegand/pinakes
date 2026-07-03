@@ -12,6 +12,7 @@ import { SuggestEditButton } from "@/components/SuggestEditButton";
 import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
 import { RelatedEntities } from "@/components/shared/RelatedEntities";
 import { AddToCollectionButton } from "@/components/collections/AddToCollectionButton";
+import { EntityAnnotations } from "@/components/annotations/EntityAnnotations";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { LanguageWithStats } from "@shared/types";
@@ -503,6 +504,16 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             />
           </div>
           <RelatedEntities
+            entity={{
+              type: "language",
+              id: languageId,
+              name: language.name,
+              region: language.region ?? undefined,
+            }}
+          />
+
+          {/* User notes & annotations (US-008) — private by default, separate from curated data */}
+          <EntityAnnotations
             entity={{
               type: "language",
               id: languageId,

@@ -60,6 +60,27 @@ as params so CRUD is unit-tested with no fs/clock.
   CollectionStore(tmpDir)` (`fs.mkdtempSync`) instead of `vi.mock`-ing storage —
   simpler than the summaries/graph mock pattern when the service owns its own fs.
 
+## User annotations & notes — `services/annotations.ts` + `routes/annotations.ts`
+
+`/api/annotations/*` (US-008) is per-user free-text notes on entities — the same
+JSON-per-record + injectable-store + soft-owner pattern as collections (above), so
+copy that shape. Differences to know:
+
+- **Keyed by (entity `stableId` + owner)**, not by a top-level record id you hold.
+  Lookups are `GET /api/annotations?entity=cs:<type>:<id>` (or `?type=&id=`); the
+  route resolves the stable id and `store.listForEntity(stableId, owner)` returns
+  the owner's own notes **plus** everyone's *public* notes (pure
+  `visibleAnnotations`, own-first then newest-updated).
+- **Private by default; sharing = flip `visibility` to `public`** (`PATCH`). There is
+  no share-token (unlike collections) — a public note is simply visible to any viewer
+  of that entity.
+- **Never leak another user's owner id.** Every outgoing annotation goes through
+  pure `toView(annotation, viewer)` → owner-free `AnnotationView` with an
+  `editable` boolean (`canEdit`), used uniformly by list/get/create/patch responses.
+- Store throws `AnnotationAccessError` (→ 403) on a non-owner mutate; `canView`
+  gate returns 403 on a private read by a non-owner. Route test uses the injectable
+  `new AnnotationStore(tmpDir)` (same as collections).
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:

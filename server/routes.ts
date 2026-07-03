@@ -64,6 +64,7 @@ import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCollectionRoutes } from "./routes/collections";
+import { registerAnnotationRoutes } from "./routes/annotations";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -116,6 +117,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.
   registerCollectionRoutes(app);
+
+  // User annotations & notes routes (/api/annotations/*, US-008) — free-text notes
+  // on entities (stable-id references), private by default with an option to share.
+  registerAnnotationRoutes(app);
 
 
   // Language Families

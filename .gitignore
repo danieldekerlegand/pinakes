@@ -11,3 +11,5 @@ sources/
 export/culturescrape/
 # US-007 collaborative collections — user runtime data (JSON per collection)
 data/collections/
+# US-008 user annotations — user runtime data (JSON per annotation)
+data/annotations/
