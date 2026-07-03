@@ -226,6 +226,16 @@ for entry in "${ORDER[@]}"; do
 
   "$DIR/ralph.sh" --tool "$TOOL" "$iters" || true   # don't abort the chain on non-zero exit
 
+  # A session-limit stop can interrupt a story mid-edit, leaving uncommitted tracked changes
+  # that would block the NEXT run's clean-tree precondition. Checkpoint them on the branch so a
+  # plain re-run just works; the resuming agent finishes that story on top of the checkpoint.
+  # (scripts/ralph/{prd.json,progress.txt,...} are gitignored, so `git add -A` never stages them.)
+  if [ -n "$(git -C "$REPO" status --porcelain)" ]; then
+    git -C "$REPO" add -A
+    git -C "$REPO" commit -q -m "wip($name): checkpoint interrupted work" || true
+    echo "  checkpointed uncommitted work on $branch"
+  fi
+
   remaining="$(jq '[.userStories[]|select(.passes==false)]|length' "$DIR/prd.json" 2>/dev/null || echo '?')"
   total="$(jq '.userStories|length' "$DIR/prd.json" 2>/dev/null || echo '?')"
   done_n=$(( total - remaining )) 2>/dev/null || done_n='?'
@@ -236,7 +246,10 @@ for entry in "${ORDER[@]}"; do
   if [ "$remaining" != "0" ]; then
     echo "!! $name INCOMPLETE ($done_n/$total; $remaining failing) on $branch"
     SUMMARY+=("$name: INCOMPLETE $done_n/$total ($branch)")
-    [ "$STOP_ON_INCOMPLETE" = "1" ] && { echo "!! stopping (STOP_ON_INCOMPLETE=1)."; break; }
+    # Return to main (the branch's progress is committed/checkpointed) so the next plain
+    # `run-all.sh` passes its on-main precondition and auto-resumes this PRD from its snapshot.
+    git -C "$REPO" checkout main >/dev/null 2>&1 || true
+    [ "$STOP_ON_INCOMPLETE" = "1" ] && { echo "!! stopping (STOP_ON_INCOMPLETE=1). Re-run ./scripts/ralph/run-all.sh to resume."; break; }
     echo; continue
   fi
 
