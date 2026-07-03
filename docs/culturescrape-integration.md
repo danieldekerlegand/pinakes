@@ -245,6 +245,7 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/search?q=&limit=` | sidecar `/search` | `{ query, results[] }` | empty `q` → `{ query:"", results:[] }` without hitting the sidecar |
 | `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
 | `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
+| `GET /api/graph/overview?limit=` | Neo4j `getGraphOverview` | `{ nodes[], edges[] }` | bounded snapshot (first `limit` nodes + edges among them; `limit` clamped 1..1000, default 250) powering the shared-graph explorer dataset (US-008) |
 | `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
 | `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
@@ -281,6 +282,20 @@ transforms in `client/src/lib/graph/neighborhood-graph.ts` (nodes coloured/typed
 `:LABEL`, edges labelled by `:TYPE`), and renders it with the shared force-directed
 `NetworkGraph`. Depth is adjustable 1–3; loading, empty, and graph-unavailable states are all
 handled. The heavy d3 renderer is code-split into its own chunk so it only loads on open.
+
+**Shared-graph explorer dataset (US-008).** The shared graph is exposed through the existing
+adapter-driven UnifiedExplorer as the **"Shared Culture Graph"** dataset
+(`client/src/lib/visualization/adapters/culturescrape.adapter.ts`, registered in
+`registry.ts`). Its `endpoint` is `GET /api/graph/overview`; `unwrap` pairs each node with
+its incident edges, and `project` maps the `{ nodes, edges }` payload into **all five**
+explorer dimensions — relational (nodes coloured by `:LABEL`, links by `:TYPE`), hierarchical
+(a containment/descent forest derived from parent-type edges like `DESCENDS_FROM` / `PART_OF`),
+temporal (`time_start`/`time_end`), spatial (coordinates), and categorical. Because it declares
+every dimension it renders through every Generic\* visualization (Tree, Timeline, Map, 3D Map,
+Network, Lineage, Table). `filterableFacets` expose entity type (`:LABEL`), time period (500-year
+bands) and region; `detail` builds a `DetailDescriptor` including provenance (source, source_url,
+retrieved_at, confidence) so graph facts stay attributable. Pure transforms are unit-tested in
+`culturescrape.adapter.test.ts`.
 
 ## 11. Non-goals
 

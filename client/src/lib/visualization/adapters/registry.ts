@@ -12,6 +12,7 @@ import { archaeologicalCulturesAdapter } from "./archaeological-cultures.adapter
 import { battlesAdapter } from "./battles.adapter";
 import { soundChangesAdapter } from "./sound-changes.adapter";
 import { languageContactsAdapter } from "./language-contacts.adapter";
+import { culturescrapeAdapter } from "./culturescrape.adapter";
 
 export const ADAPTERS: DatasetAdapter[] = [
   languageFamiliesAdapter as DatasetAdapter,
@@ -26,6 +27,7 @@ export const ADAPTERS: DatasetAdapter[] = [
   mythMotifsAdapter as DatasetAdapter,
   battlesAdapter as DatasetAdapter,
   tradeGoodsAdapter as DatasetAdapter,
+  culturescrapeAdapter as DatasetAdapter,
 ];
 
 export function getAdapter(id: string): DatasetAdapter | undefined {

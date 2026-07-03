@@ -53,6 +53,14 @@ export interface GraphEdge {
   properties: Record<string, unknown>;
 }
 
+/** A bounded snapshot of the graph — a set of nodes and the edges among them. */
+export interface GraphSnapshot {
+  /** the sampled nodes (capped by the overview limit). */
+  nodes: GraphNode[];
+  /** every edge whose endpoints are both in {@link GraphSnapshot.nodes}. */
+  edges: GraphEdge[];
+}
+
 /** A node plus its surrounding sub-graph out to a bounded traversal depth. */
 export interface Neighborhood {
   /** the focus node the neighborhood is centered on. */
@@ -87,6 +95,9 @@ export class GraphUnavailableError extends Error {
 
 const MIN_DEPTH = 1;
 const MAX_DEPTH = 3;
+/** Default and hard cap on the number of nodes an overview snapshot returns. */
+const DEFAULT_OVERVIEW_LIMIT = 250;
+const MAX_OVERVIEW_LIMIT = 1_000;
 /** How long a positive/negative availability probe is trusted, in ms. */
 const AVAILABILITY_TTL_MS = 5_000;
 
@@ -270,6 +281,70 @@ export async function getNode(csid: string): Promise<GraphNode | null> {
   const record = result.records[0];
   if (!record) return null;
   return projectNode(record.get("n") as Neo4jNode);
+}
+
+/** Clamp a requested overview node cap into the supported 1..MAX range. */
+export function clampOverviewLimit(limit: number): number {
+  if (!Number.isFinite(limit)) return DEFAULT_OVERVIEW_LIMIT;
+  return Math.min(MAX_OVERVIEW_LIMIT, Math.max(1, Math.trunc(limit)));
+}
+
+/**
+ * Fetch a bounded snapshot of the graph — the first `limit` nodes plus every
+ * edge whose endpoints both fall inside that set. Powers the shared-graph
+ * dataset in the UnifiedExplorer, which needs a node/edge payload (not a
+ * node-centred neighborhood). Returns an empty snapshot for an empty graph.
+ * @throws {GraphUnavailableError} when Neo4j cannot be reached.
+ */
+export async function getGraphOverview(
+  limit = DEFAULT_OVERVIEW_LIMIT,
+): Promise<GraphSnapshot> {
+  const clamped = clampOverviewLimit(limit);
+  const cypher = `
+    MATCH (n)
+    WITH n LIMIT $limit
+    WITH collect(n) AS ns
+    UNWIND ns AS n
+    OPTIONAL MATCH (n)-[r]->(m)
+    WHERE m IN ns
+    WITH ns, collect(DISTINCT r) AS rs
+    RETURN ns AS nodes, rs AS rels
+  `;
+  const result = await runRead(cypher, { limit: neo4j.int(clamped) });
+  return buildSnapshot(result);
+}
+
+function buildSnapshot(result: QueryResult): GraphSnapshot {
+  const record = result.records[0];
+  if (!record) return { nodes: [], edges: [] };
+
+  const rawNodes = ((record.get("nodes") as Neo4jNode[]) ?? []).filter(Boolean);
+  const nodeByElementId = new Map<string, Neo4jNode>();
+  for (const n of rawNodes) nodeByElementId.set(n.elementId, n);
+
+  const csidByElementId = new Map<string, string>();
+  const nodes: GraphNode[] = [];
+  for (const n of Array.from(nodeByElementId.values())) {
+    const projected = projectNode(n);
+    csidByElementId.set(n.elementId, projected.csid);
+    nodes.push(projected);
+  }
+
+  const rawRels = ((record.get("rels") as Neo4jRelationship[]) ?? []).filter(
+    Boolean,
+  );
+  const edgesById = new Map<string, GraphEdge>();
+  for (const rel of rawRels) {
+    if (
+      nodeByElementId.has(rel.startNodeElementId) &&
+      nodeByElementId.has(rel.endNodeElementId)
+    ) {
+      const edge = projectEdge(rel, csidByElementId);
+      edgesById.set(edge.id, edge);
+    }
+  }
+
+  return { nodes, edges: Array.from(edgesById.values()) };
 }
 
 /** Clamp a requested traversal depth into the supported 1..3 range. */

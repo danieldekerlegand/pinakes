@@ -15,6 +15,7 @@ import type { Server } from "node:http";
 const mocks = vi.hoisted(() => ({
   getNode: vi.fn(),
   getNeighborhood: vi.fn(),
+  getGraphOverview: vi.fn(),
   graphIsAvailable: vi.fn(),
   search: vi.fn(),
   metrics: vi.fn(),
@@ -28,6 +29,7 @@ vi.mock("../services/graph-store", async (importOriginal) => {
     ...actual, // keep the real GraphUnavailableError + clampDepth
     getNode: mocks.getNode,
     getNeighborhood: mocks.getNeighborhood,
+    getGraphOverview: mocks.getGraphOverview,
     isAvailable: mocks.graphIsAvailable,
   };
 });
@@ -206,6 +208,45 @@ describe("GET /api/graph/neighborhood/:id", () => {
     const { status, body } = await get(
       "/api/graph/neighborhood/cs:dish:paella",
     );
+    expect(status).toBe(503);
+    expect(body.available).toBe(false);
+  });
+});
+
+// ── GET /api/graph/overview ─────────────────────────────────────────────────
+
+describe("GET /api/graph/overview", () => {
+  const SNAPSHOT = {
+    nodes: [NODE, { csid: "cs:region:iberia", labels: ["Region"], name: "Iberia", properties: {} }],
+    edges: [
+      { id: "e1", type: "ORIGINATES_IN", startCsid: "cs:dish:paella", endCsid: "cs:region:iberia", properties: {} },
+    ],
+  };
+
+  it("returns the graph snapshot on success", async () => {
+    mocks.getGraphOverview.mockResolvedValue(SNAPSHOT);
+    const { status, body } = await get("/api/graph/overview");
+    expect(status).toBe(200);
+    expect(body.nodes).toHaveLength(2);
+    expect(body.edges).toHaveLength(1);
+    expect(mocks.getGraphOverview).toHaveBeenCalledWith(undefined);
+  });
+
+  it("passes a numeric limit through", async () => {
+    mocks.getGraphOverview.mockResolvedValue({ nodes: [], edges: [] });
+    await get("/api/graph/overview?limit=50");
+    expect(mocks.getGraphOverview).toHaveBeenCalledWith(50);
+  });
+
+  it("ignores a non-positive limit (uses the default)", async () => {
+    mocks.getGraphOverview.mockResolvedValue({ nodes: [], edges: [] });
+    await get("/api/graph/overview?limit=0");
+    expect(mocks.getGraphOverview).toHaveBeenCalledWith(undefined);
+  });
+
+  it("returns 503 { available:false } when Neo4j is unavailable", async () => {
+    mocks.getGraphOverview.mockRejectedValue(new GraphUnavailableError());
+    const { status, body } = await get("/api/graph/overview");
     expect(status).toBe(503);
     expect(body.available).toBe(false);
   });

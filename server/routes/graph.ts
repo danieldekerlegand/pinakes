@@ -123,6 +123,23 @@ export function registerGraphRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/graph/overview?limit= — a bounded `{ nodes, edges }` snapshot of the
+   * shared graph, powering the shared-graph dataset in the UnifiedExplorer
+   * (US-008). Backed by Neo4j; 503 when the graph is unavailable.
+   */
+  app.get("/api/graph/overview", async (req: Request, res: Response) => {
+    const limitRaw = Number(req.query.limit);
+    const limit =
+      Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
+    try {
+      const snapshot = await graphStore.getGraphOverview(limit);
+      res.json(snapshot);
+    } catch (error) {
+      handleError(res, "graph overview", error);
+    }
+  });
+
+  /**
    * GET /api/graph/metrics — graph-level metrics from the sidecar. 503 when the
    * sidecar is unavailable.
    */
