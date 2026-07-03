@@ -20,6 +20,21 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
+
+`/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the
+detail record, paginated `offset`/`limit`); `/api/summaries/:domain/:id` (or the
+canonical `/api/<domain>/:id`) returns the full record. The projection +
+pagination is **pure** (`services/entity-summary.ts` — `SUMMARY_CONTRACTS`,
+`summarizeEntity`, `paginate`, `summarizeList`); the route just maps a domain to
+its storage fetcher in `DOMAIN_FETCHERS`. Summary is **always a strict subset of
+detail** (contract fields led by `id`+`name`), so the two-step load is lossless.
+Add a domain by declaring `fields`/`detailEndpoint` in `SUMMARY_CONTRACTS` + a
+fetcher in `DOMAIN_FETCHERS`. Gotcha: `getCivilizations()` returns GeoJSON
+`CivilizationFeature[]` (would need `.properties` projection) — it is excluded
+(use the map bbox API instead); every other `get<Entity>()` returns flat rows.
+Full contract table: `docs/progressive-loading.md`.
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:

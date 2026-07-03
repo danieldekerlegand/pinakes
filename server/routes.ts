@@ -62,6 +62,7 @@ import {
 import { federatedSearch } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
+import { registerSummaryRoutes } from "./routes/summaries";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -106,6 +107,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
   // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.
   registerAnalyticsRoutes(app);
+
+  // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
+  // per-domain list records; detail hydrated on demand from /api/<domain>/:id.
+  registerSummaryRoutes(app);
 
 
   // Language Families

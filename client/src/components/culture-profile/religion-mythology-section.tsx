@@ -1,15 +1,31 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronDown, Sparkles } from "lucide-react";
 
-interface Religion {
+import {
+  useEntitySummaries,
+  useEntityDetail,
+} from "@/hooks/use-progressive-entity";
+
+/**
+ * Progressive summary/detail loading (US-004): the collapsed card renders from a
+ * lightweight `/api/summaries/religions` row (header fields only); the heavy
+ * detail (description, pantheon, sacred texts, practices) is hydrated from
+ * `/api/religions/:id` only when a card is expanded, behind a skeleton.
+ */
+
+/** Lightweight row from `/api/summaries/religions` — enough for the collapsed header. */
+interface ReligionSummary {
   id: string;
   name: string;
-  nativeName: string;
+  nativeName?: string | null;
   religionType: string;
   originRegion: string;
   timeOrigin: number | null;
   timeEnd: number | null;
+}
+
+/** Full record from `/api/religions/:id` — hydrated lazily on expand. */
+interface ReligionDetail extends ReligionSummary {
   sacredTexts: string[];
   deityPantheon: string[];
   ritualPractices: string[];
@@ -26,8 +42,26 @@ function formatYear(year: number): string {
   return `${year} CE`;
 }
 
-function ReligionCard({ religion }: { religion: Religion }) {
+/** Pulse skeleton shown while a card's full detail is being fetched. */
+function ReligionDetailSkeleton() {
+  return (
+    <div className="space-y-2 animate-pulse" aria-hidden="true">
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+    </div>
+  );
+}
+
+function ReligionCard({ religion }: { religion: ReligionSummary }) {
   const [expanded, setExpanded] = useState(false);
+  // Detail-on-demand: fetches only once the card is expanded (US-004).
+  const { data: detail, isLoading: isLoadingDetail } = useEntityDetail<ReligionDetail>(
+    "religions",
+    religion.id,
+    { enabled: expanded },
+  );
+
   const period =
     religion.timeOrigin !== null
       ? `${formatYear(religion.timeOrigin)} – ${
@@ -66,32 +100,40 @@ function ReligionCard({ religion }: { religion: Religion }) {
       </button>
       {expanded && (
         <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30 space-y-2 text-xs">
-          {religion.description && (
-            <p className="text-gray-700 dark:text-gray-300">{religion.description}</p>
-          )}
-          {religion.deityPantheon.length > 0 && (
-            <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400">Pantheon:</span>{" "}
-              <span className="text-gray-700 dark:text-gray-300">
-                {religion.deityPantheon.join(", ")}
-              </span>
-            </div>
-          )}
-          {religion.sacredTexts.length > 0 && (
-            <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400">Sacred texts:</span>{" "}
-              <span className="text-gray-700 dark:text-gray-300">
-                {religion.sacredTexts.join(", ")}
-              </span>
-            </div>
-          )}
-          {religion.ritualPractices.length > 0 && (
-            <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400">Practices:</span>{" "}
-              <span className="text-gray-700 dark:text-gray-300">
-                {religion.ritualPractices.join(", ")}
-              </span>
-            </div>
+          {isLoadingDetail || !detail ? (
+            <ReligionDetailSkeleton />
+          ) : (
+            <>
+              {detail.description && (
+                <p className="text-gray-700 dark:text-gray-300">{detail.description}</p>
+              )}
+              {detail.deityPantheon.length > 0 && (
+                <div>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">Pantheon:</span>{" "}
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {detail.deityPantheon.join(", ")}
+                  </span>
+                </div>
+              )}
+              {detail.sacredTexts.length > 0 && (
+                <div>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">
+                    Sacred texts:
+                  </span>{" "}
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {detail.sacredTexts.join(", ")}
+                  </span>
+                </div>
+              )}
+              {detail.ritualPractices.length > 0 && (
+                <div>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">Practices:</span>{" "}
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {detail.ritualPractices.join(", ")}
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -100,15 +142,15 @@ function ReligionCard({ religion }: { religion: Religion }) {
 }
 
 export default function ReligionMythologySection({ religionIds, cultureName }: Props) {
-  const { data, isLoading } = useQuery<{ religions: Religion[] }>({
-    queryKey: ["/api/religions"],
+  // Fetch lightweight summaries first (US-004); detail is hydrated per-card on expand.
+  const { data, isLoading } = useEntitySummaries<ReligionSummary>("religions", {
     enabled: religionIds.length > 0,
   });
 
   const matched = useMemo(() => {
-    if (!data?.religions) return [];
+    if (!data?.summaries) return [];
     const idSet = new Set(religionIds);
-    return data.religions.filter((r) => idSet.has(r.id));
+    return data.summaries.filter((r) => idSet.has(r.id));
   }, [data, religionIds]);
 
   if (religionIds.length === 0) {
