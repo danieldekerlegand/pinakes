@@ -5,6 +5,7 @@ import {
   useEntitySummaries,
   useEntityDetail,
 } from "@/hooks/use-progressive-entity";
+import { RelatedEntities } from "@/components/shared/RelatedEntities";
 
 /**
  * Progressive summary/detail loading (US-004): the collapsed card renders from a
@@ -133,6 +134,17 @@ function ReligionCard({ religion }: { religion: ReligionSummary }) {
                   </span>
                 </div>
               )}
+              {/* Related entities from the shared graph (US-006) */}
+              <RelatedEntities
+                entity={{
+                  type: "religion",
+                  id: religion.id,
+                  name: religion.name,
+                  region: religion.originRegion,
+                }}
+                limit={6}
+                className="pt-2"
+              />
             </>
           )}
         </div>

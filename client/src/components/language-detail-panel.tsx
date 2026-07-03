@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SuggestEditButton } from "@/components/SuggestEditButton";
 import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
+import { RelatedEntities } from "@/components/shared/RelatedEntities";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { LanguageWithStats } from "@shared/types";
@@ -488,6 +489,16 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
               </div>
             )}
           </div>
+
+          {/* Related entities from the shared graph (US-006) */}
+          <RelatedEntities
+            entity={{
+              type: "language",
+              id: languageId,
+              name: language.name,
+              region: language.region ?? undefined,
+            }}
+          />
 
           {/* Contributor Attribution */}
           <ContributorAttribution entityType="language" entityId={languageId} />
