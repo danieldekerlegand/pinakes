@@ -50,6 +50,32 @@ OVERFLOW_KEY = "extra"
 #: the exact lexicon row it came from even after its ``csid`` is (re)minted.
 LINGUASCRAPE_ID_KEY = "linguascrape_id"
 
+#: LinguaScrape export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
+#:
+#: LinguaScrape emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
+#: already registered in :mod:`culturescrape.ontology.registry` and map to
+#: themselves, so a fed-in edge participates directly in cross-dimensional
+#: linking. The two LinguaScrape-specific tokens fold onto the closest registered
+#: canonical type so no non-canonical ``:TYPE`` ever enters the merged graph:
+#:
+#: * ``ABSORBED_INTO`` (a culture merged into a larger one) -> ``PART_OF`` — the
+#:   absorbed entity becomes a component of the absorbing whole (transitive);
+#: * ``SYNCRETIZED_WITH`` (two traditions blended) -> ``VARIANT_OF`` — a symmetric
+#:   equivalence between the blended forms.
+#:
+#: Every value here is a registered canonical ``:TYPE`` (asserted by the ontology
+#: tests); an edge token absent from this map is rejected by
+#: :func:`map_linguascrape_edge` rather than passed through un-canonicalised.
+LINGUASCRAPE_EDGE_TYPE_MAP: dict[str, str] = {
+    "DESCENDS_FROM": "DESCENDS_FROM",
+    "INFLUENCED_BY": "INFLUENCED_BY",
+    "BORROWED_FROM": "BORROWED_FROM",
+    "COGNATE_WITH": "COGNATE_WITH",
+    "DERIVED_FROM": "DERIVED_FROM",
+    "ABSORBED_INTO": "PART_OF",
+    "SYNCRETIZED_WITH": "VARIANT_OF",
+}
+
 #: Canonical scalar columns copied straight from a (renamed) source field.
 #: Typed and derived columns (csid, :LABEL, lat/lon, time_*, provenance) are
 #: handled explicitly and are deliberately absent here.
@@ -273,12 +299,16 @@ def map_linguascrape_node(record: RawRecord) -> Row:
 def map_linguascrape_edge(record: RawRecord) -> Row:
     """Map a LinguaScrape export edge *record* to a canonical edge row.
 
-    Structural endpoints and ``:TYPE`` are required; ``weight``, the temporal
-    range, and the ``linguascrape_id`` alias ride through when present, and
-    provenance is carried off the record.
+    Structural endpoints and ``:TYPE`` are required; the ``:TYPE`` token is
+    translated to the canonical ontology vocabulary via
+    :data:`LINGUASCRAPE_EDGE_TYPE_MAP` so the edge participates in
+    cross-dimensional linking, and ``weight``, the temporal range, and the
+    ``linguascrape_id`` alias ride through when present. Provenance (source,
+    confidence, time range) is carried off the record.
 
     Raises:
-        MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank.
+        MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank,
+            or the ``:TYPE`` is not a known LinguaScrape edge token.
     """
     fields = {key: normalize_text(value) for key, value in record.fields.items()}
     row: Row = {}
@@ -286,7 +316,7 @@ def map_linguascrape_edge(record: RawRecord) -> Row:
         value = fields.get(key, "").strip()
         if not value:
             raise MapperError(f"LinguaScrape edge row is missing {key!r}")
-        row[key] = value
+        row[key] = _canonical_edge_type(value) if key == ":TYPE" else value
 
     for key in ("weight", "time_start", "time_end"):
         value = fields.get(key, "").strip()
@@ -352,6 +382,24 @@ def _linguascrape_type(shipped_csid: str, label: str) -> str:
         except IdError:
             pass  # malformed shipped csid — fall back to the label
     return normalize_type(label)
+
+
+def _canonical_edge_type(token: str) -> str:
+    """Translate a LinguaScrape edge ``:TYPE`` to the canonical vocabulary.
+
+    Raises:
+        MapperError: If *token* is not a known LinguaScrape edge type — a token
+            outside :data:`LINGUASCRAPE_EDGE_TYPE_MAP` would enter the graph as a
+            non-canonical ``:TYPE``, so it is rejected loudly rather than passed
+            through.
+    """
+    try:
+        return LINGUASCRAPE_EDGE_TYPE_MAP[token]
+    except KeyError:
+        known = ", ".join(sorted(LINGUASCRAPE_EDGE_TYPE_MAP))
+        raise MapperError(
+            f"unknown LinguaScrape edge :TYPE {token!r} (known: {known})"
+        ) from None
 
 
 def _carry_edge_provenance(record: RawRecord, row: Row) -> None:

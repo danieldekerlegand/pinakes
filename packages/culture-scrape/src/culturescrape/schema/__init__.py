@@ -50,6 +50,7 @@ from culturescrape.schema.ids import (
     normalize_type,
 )
 from culturescrape.schema.mapper import (
+    LINGUASCRAPE_EDGE_TYPE_MAP,
     LINGUASCRAPE_ID_KEY,
     OVERFLOW_KEY,
     MapperError,
@@ -150,6 +151,7 @@ __all__ = [
     "EDGE_PROPERTY_TYPES",
     "ESCAPE",
     "INSTANCE_OF",
+    "LINGUASCRAPE_EDGE_TYPE_MAP",
     "LINGUASCRAPE_ID_KEY",
     "MEMBER_OF_CATEGORY",
     "MERGE_KEY",

@@ -43,6 +43,12 @@ from culturescrape.schema.tsvio import Row, TsvError, read_rows
 #: Dimension bucket for an edge whose ``:TYPE`` the ontology does not register.
 UNKNOWN_DIMENSION = "unknown"
 
+#: Provenance ``source`` id LinguaScrape-origin edges carry (mirrors
+#: :data:`culturescrape.acquire.linguascrape.LINGUASCRAPE_SOURCE`). Native edges
+#: carry their own source and inferred edges ``inferred:<linker>``, so filtering
+#: on this id isolates the edges LinguaScrape contributed to the merged corpus.
+LINGUASCRAPE_SOURCE = "linguascrape"
+
 
 @dataclass(frozen=True)
 class GraphMetrics:
@@ -166,6 +172,38 @@ def metrics_for_dataset(directory: str | Path) -> GraphMetrics:
     """Read the dataset under *directory* and compute its :class:`GraphMetrics`."""
     nodes, edges = read_dataset(directory)
     return compute_metrics(nodes, edges)
+
+
+def edges_by_type_for_source(
+    edges: Sequence[Edge], source: str
+) -> dict[str, int]:
+    """Count *edges* whose provenance ``source`` is *source*, keyed by ``:TYPE``.
+
+    Only edges carrying the exact *source* provenance are counted, so an inferred
+    edge (``source='inferred:<linker>'``) or a native edge is excluded. The result
+    is sorted by ``:TYPE`` for a stable report.
+    """
+    counts: Counter[str] = Counter()
+    for edge in edges:
+        if _scalar(edge, "source") == source:
+            counts[_scalar(edge, ":TYPE")] += 1
+    return dict(sorted(counts.items()))
+
+
+def linguascrape_edges_by_type(edges: Sequence[Edge]) -> dict[str, int]:
+    """Count the LinguaScrape-origin *edges* by canonical ``:TYPE`` (US-004).
+
+    A thin wrapper over :func:`edges_by_type_for_source` for
+    :data:`LINGUASCRAPE_SOURCE` — the report that tells a maintainer how many
+    edges of each type LinguaScrape contributed to the merged corpus.
+    """
+    return edges_by_type_for_source(edges, LINGUASCRAPE_SOURCE)
+
+
+def dataset_linguascrape_edges_by_type(directory: str | Path) -> dict[str, int]:
+    """Read the dataset under *directory* and report its LinguaScrape edges."""
+    _, edges = read_dataset(directory)
+    return linguascrape_edges_by_type(edges)
 
 
 def to_json(metrics: GraphMetrics) -> str:
