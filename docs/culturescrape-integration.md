@@ -1,6 +1,7 @@
 # culture-scrape ↔ LinguaScrape: Data-Layer Convergence Plan
 
-**Status:** Data-layer convergence **implemented** (US-001…US-008) · **Last updated:** 2026-07-02
+**Status:** Data-layer convergence **implemented** (US-001…US-008) · app-side graph
+integration **implemented** (`graph-app-integration` US-001…US-011) · **Last updated:** 2026-07-03
 **Decision:** Align the two data layers on a shared canonical schema with Neo4j/Datalog as
 the correlation system-of-record. **Do not** rewrite the LinguaScrape backend to Python.
 
@@ -359,6 +360,112 @@ its Run buttons disable with an explanatory tooltip when the sidecar is offline 
 degradation (success + unavailable) is covered by `server/routes/graph.test.ts`; the pure preset /
 result-normalisation logic by `client/src/lib/graph/research-console.test.ts`.
 
+## 10c. App-side runbook (run · deploy · extend)
+
+The `graph-app-integration` PRD (US-001…US-011) wires the shared graph into the running app.
+This section is the operator/contributor runbook for that integration: how to configure it, run
+it locally, deploy it, and extend it. It is accurate against the code as of US-001…US-011.
+
+### Environment variables
+
+All graph config lives in `.env` (copy from [`.env.example`](../.env.example)). The server reads
+these; the app **degrades gracefully** and runs local-only when they are absent or the services are
+down (see the degradation contract in §10b).
+
+| Var | Read by | Default | Purpose |
+| --- | --- | --- | --- |
+| `CULTURESCRAPE_API_URL` | `server/services/culturescrape-client.ts` | `http://localhost:8800` | Base URL of the FastAPI sidecar (search / metrics / datalog / cypher). |
+| `CULTURESCRAPE_ENABLED` | `culturescrape-client.ts` | `true` | Falsey ⇒ `isAvailable()` returns false, sidecar-backed features disable without errors. |
+| `CULTURESCRAPE_TIMEOUT_MS` | `culturescrape-client.ts` | `10000` | Per-request timeout for the sidecar HTTP client. |
+| `CULTURESCRAPE_CORPUS` | docker-compose (`culturescrape` service) | `tests/fixtures/explorer-corpus` | Corpus the sidecar serves; point at a mounted built corpus for real data. |
+| `NEO4J_URI` | `server/services/graph-store.ts` | `bolt://localhost:7687` | Bolt endpoint of the shared graph store. |
+| `NEO4J_USER` / `NEO4J_PASSWORD` | `graph-store.ts` | `neo4j` / *(empty)* | Neo4j credentials. |
+| `NEO4J_AUTH` | docker-compose (`neo4j` service) | `neo4j/linguascrape` | `user/password` for the container; **must equal** `NEO4J_USER`/`NEO4J_PASSWORD`. |
+| `NEO4J_DATABASE` | `graph-store.ts` | `neo4j` | Target database name. |
+| `NEO4J_QUERY_TIMEOUT_MS` / `NEO4J_CONNECTION_TIMEOUT_MS` | `graph-store.ts` | `10000` / `5000` | Driver query + connection-acquisition timeouts. |
+| `NEO4J_MAX_POOL_SIZE` | `graph-store.ts` | `50` | Connection-pool ceiling. |
+| `GRAPH_HEALTH_TTL_MS` | `server/services/graph-health.ts` | `5000` | TTL of the cached `/api/graph/status` verdict. |
+
+### Local development
+
+- **App only (no graph)** — `npm run dev`. Graph-dependent UI (the "Show in graph" button, the
+  Shared Culture Graph explorer dataset, the `/advanced-tools` console, graph search hits) is
+  disabled with an explanatory tooltip; everything else works. Nothing needs Docker.
+- **App + sidecar + Neo4j** — `npm run dev:full` (`scripts/dev-full.sh`). Starts the
+  `culturescrape` and `neo4j` docker-compose services detached, waits for the sidecar health
+  endpoint, then runs `npm run dev` in the foreground and stops the services on exit. Requires
+  Docker; if the sidecar/graph never come up the app still starts and degrades.
+- **Just the services** — `npm run sidecar:up` (build + start `culturescrape` + `neo4j`) and
+  `npm run sidecar:down`. Useful when running the app from an IDE.
+
+`docker-compose.yml` defines two services: `culturescrape` (built from `packages/culture-scrape/`,
+port **8800**) and `neo4j` (`neo4j:5`, HTTP **7474** / Bolt **7687**). Neo4j sits behind the
+`graph` compose profile (it is heavy) so a bare `docker compose up` starts only the sidecar; the
+scripts above name both services explicitly, or use `docker compose --profile graph up`. Verify
+reachability: `curl -sf http://localhost:8800/` (sidecar) and open `http://localhost:7474`
+(Neo4j browser).
+
+### Production deployment
+
+The app is deployed as today (`npm run build` → `npm start`, a single Express+static bundle). The
+graph integration adds **two out-of-process dependencies** that the server reaches over the network:
+
+1. **Neo4j** — a managed instance (Aura or self-hosted). Set `NEO4J_URI` (use `neo4j+s://` for
+   TLS in prod), `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`. The driver is lazily created,
+   pooled, and torn down on `SIGTERM`/`SIGINT` (`closeGraphStore()` in `server/index.ts`).
+2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` (the `packages/culture-scrape/`
+   Dockerfile) as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
+   `CULTURESCRAPE_API_URL` to its internal URL. Keep it on the private network — the browser never
+   talks to it directly (all access is proxied through `/api/graph/*`).
+
+Both are **optional at runtime**: if either is unset or unreachable the server logs it, answers the
+affected routes with 503 `{ available:false }`, and the client hides/disables graph UI (§10b). So a
+deploy without the graph stack is a valid, degraded-but-working configuration. Health for
+monitoring: `GET /api/graph/status` (always 200; `{ available, neo4j, sidecar, checkedAt }`).
+
+### Add a new proxied / graph endpoint
+
+To surface a new shared-graph capability at the app origin:
+
+1. **Pick the backend.** Relational/graph traversal → add a typed method to
+   `server/services/graph-store.ts` (parameterized Cypher, coerce Neo4j `Integer`s at the boundary,
+   throw `GraphUnavailableError` when the driver is down). A sidecar-served capability (search,
+   metrics, datalog, cypher, completeness) → add a **zod-validated** wrapper to
+   `server/services/culturescrape-client.ts` (throw `CultureScrapeUnavailableError` for
+   transport/timeout/5xx/disabled, `CultureScrapeError` for 4xx/malformed).
+2. **Add the route** in `server/routes/graph.ts` under `registerGraphRoutes`. Reuse the shared
+   `handleError()` so `GraphUnavailableError`/`CultureScrapeUnavailableError` → **503**
+   `{ available:false, error, detail }` and `CultureScrapeError` → **502**. For a body-consuming
+   `POST`, attach the route-scoped `jsonBody` middleware (see the datalog/cypher routes). Never let
+   an unreachable backend crash the process.
+3. **Test it** in `server/routes/graph.test.ts`: add the new service fn to both the
+   `vi.hoisted(mocks)` object and the matching `vi.mock(…, importOriginal)` return (so the real
+   error classes survive for `instanceof`), then exercise success **and** the unavailable path over
+   real HTTP.
+4. **Gate the UI** on the right backend with `<GraphFeatureGate backend="neo4j"|"sidecar"|"any">`
+   (`client/src/components/graph/GraphFeatureGate.tsx`) so the feature disables with a tooltip when
+   its backend is offline.
+5. **Document the row** in the §10b route catalog (method, backend, success shape, degradation).
+
+To add a whole new **dataset** to the shared graph instead, see §9 (map the lexicon file, regenerate
+the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pattern (§10b, US-008).
+
+### Cross-links
+
+- **Convergence (data-layer) work — LinguaScrape-side tasklist 15:** the export / reconcile /
+  write-back / QA toolchain (§7) is driven by
+  [`tasks/ralph/completed/data-layer-convergence.json`](../tasks/ralph/completed/data-layer-convergence.json),
+  specified in [`docs/canonical-schema.md`](./canonical-schema.md). It produces the canonical
+  `nodes/`/`edges/` TSVs this integration consumes once loaded into Neo4j.
+- **Python-side convergence — tasklist 16:**
+  [`tasks/ralph/completed/linguascrape-convergence-python.json`](../tasks/ralph/completed/linguascrape-convergence-python.json)
+  and the vendored engine under [`packages/culture-scrape/`](../packages/culture-scrape/) —
+  ingestion ([`docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)),
+  Neo4j load ([`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md)) and Datalog
+  ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
+  (`mypy` / `pytest` / `ruff`), not the app's.
+- **This app-side PRD:** `tasks/ralph/graph-app-integration.json` (US-001…US-012).
+
 ## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.
@@ -369,7 +476,8 @@ result-normalisation logic by `client/src/lib/graph/research-console.test.ts`.
 
 The work is driven by [Ralph](../docs/ralph-workflow.md) PRDs under `tasks/ralph/` (run via
 `scripts/ralph/run-all.sh`). Convergence-related PRDs, in dependency order:
-`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side) →
-`graph-app-integration`.
+`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side,
+**implemented**) → `graph-app-integration` (app-side graph integration, **implemented**, §10b/§10c).
+The first two now live in `tasks/ralph/completed/`; the app-side runbook is §10c.
 The remaining roadmap PRDs (`data-acquisition`, `narrative-education`, `platform-infra`,
 `speculative`) build on them.
