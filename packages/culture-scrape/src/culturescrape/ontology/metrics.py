@@ -174,6 +174,22 @@ def metrics_for_dataset(directory: str | Path) -> GraphMetrics:
     return compute_metrics(nodes, edges)
 
 
+def nodes_by_label(nodes: Sequence[Node]) -> dict[str, int]:
+    """Count *nodes* by their primary ``:LABEL`` (the node type), sorted by label.
+
+    The primary label is a node's first non-empty ``:LABEL`` value — the same
+    key :func:`culturescrape.schema.pipeline.write_result` files a node under — so
+    this reports one count per canonical node-type file. Nodes with no label are
+    skipped (they cannot be filed), mirroring the writer.
+    """
+    counts: Counter[str] = Counter()
+    for node in nodes:
+        label = _primary_label(node)
+        if label:
+            counts[label] += 1
+    return dict(sorted(counts.items()))
+
+
 def edges_by_type_for_source(
     edges: Sequence[Edge], source: str
 ) -> dict[str, int]:
@@ -260,3 +276,15 @@ def _scalar(row: Row, key: str) -> str:
     """The scalar value at *key*, stripped (a multi-value list is not scalar)."""
     value = row.get(key)
     return value.strip() if isinstance(value, str) else ""
+
+
+def _primary_label(node: Node) -> str:
+    """The node's first non-empty ``:LABEL`` value (its type), or ``""``."""
+    labels = node.get(":LABEL")
+    if isinstance(labels, list):
+        for label in labels:
+            if label.strip():
+                return label.strip()
+    elif isinstance(labels, str) and labels.strip():
+        return labels.strip()
+    return ""

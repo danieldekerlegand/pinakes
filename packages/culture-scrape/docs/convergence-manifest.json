@@ -1,0 +1,20 @@
+{
+  "job": "linguascrape",
+  "node_count": 6,
+  "edge_count": 6,
+  "nodes_by_label": {
+    "ArchaeologicalCulture": 2,
+    "Language": 2,
+    "Period": 2
+  },
+  "edges_by_type": {
+    "CONTEMPORARY_WITH": 1,
+    "DESCENDS_FROM": 1,
+    "FOLLOWS": 1,
+    "PART_OF_PERIOD": 2,
+    "PRECEDES": 1
+  },
+  "linguascrape_edges_by_type": {
+    "DESCENDS_FROM": 1
+  }
+}

@@ -1,12 +1,23 @@
-# Ingest the LinguaScrape canonical export as a first-class acquisition source.
-# Run with: culturescrape run jobs/linguascrape.yml
+# Ingest the LinguaScrape canonical export as a first-class acquisition source,
+# then stitch + link + export it as a self-contained convergence corpus.
+# Run end to end with: culturescrape run jobs/linguascrape.yml
 #
 # The single category reads LinguaScrape's nodes/*.tsv + edges/*.tsv export
 # (docs/reconcile-linguascrape.md) through the `linguascrape-export` adapter.
 # Paths resolve against this file's directory, so the category lives one level
 # up in categories/ and output lands under the repo-root out/ tree.
+#
+# The two relaxed floors below suit a LinguaScrape-only convergence corpus (see
+# docs/convergence-build.md): its rows carry the canonical `source` stamp but no
+# external `source_url` (LinguaScrape records none), so the generic provenance
+# floor is relaxed — provenance is still enforced by the LinguaScrape provenance
+# QA gate — and a small single-domain corpus need not reach the multi-domain
+# seed corpus's connectivity. A truly merged corpus (native Wikidata + this
+# source) meets both defaults and can drop these overrides.
 name: linguascrape
 description: LinguaScrape convergence — ingest its canonical nodes/edges export.
 categories:
   - ../categories/linguascrape.yml
 output_root: ../out/linguascrape
+min_provenance_completeness: 0.0
+min_component_fraction: 0.5

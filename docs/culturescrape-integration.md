@@ -170,6 +170,11 @@ The round trip, with the exact command and artifact at each hop:
 
 - **Steps 1, 2, 5, GATE are TypeScript in this repo** (`scripts/`). Step 3 is Python under
   `packages/culture-scrape/`; step 4 is the LinguaScrape app + the `graph-app-integration` PRD.
+- **Step 3 is itself a one-command, offline, reproducible recipe:** `culturescrape run
+  jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus — ingest → reconcile →
+  link → Datalog/Neo4j — from the committed fixture export, with a committed manifest
+  (`packages/culture-scrape/docs/convergence-manifest.json`) asserted against a fresh build in
+  CI. See [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
 - **TSV is the source of truth at both ends.** Nothing in the graph is authoritative for a
   human-curated lexicon column — the graph enriches blanks and owns edges (see §10).
 - **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/

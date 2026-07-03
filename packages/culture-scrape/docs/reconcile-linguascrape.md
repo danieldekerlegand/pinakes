@@ -147,3 +147,13 @@ Each gate has a configurable threshold on `GateThresholds` (also settable via
 --fail-on-violation` (or a `QaPolicy(fail_on_violation=True)` in a job) makes the gate exit
 non-zero on any violation. Every QA run emits both a machine-readable JSON report
 (`<id>.qa.json`) and a human-readable Markdown artifact (`<id>.qa.md`, `--markdown-out`).
+
+## Reproducible build (US-008)
+
+The whole flow above is packaged as a one-command, offline, deterministic recipe:
+`culturescrape run jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus from
+the committed fixture export and generates its Neo4j + Datalog exports. A committed
+[`docs/convergence-manifest.json`](convergence-manifest.json) records the node/edge type
+counts and is asserted against a fresh build in CI. See
+[`convergence-build.md`](convergence-build.md) for the full recipe, the relaxed corpus
+floors it declares, and how to re-sync the manifest.

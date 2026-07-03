@@ -14,6 +14,8 @@ from culturescrape.orchestrate.corpus import (
     CorpusBuild,
     CorpusBuildError,
     build_corpus,
+    corpus_component_fraction,
+    corpus_qa_policy,
 )
 from culturescrape.orchestrate.jobs import (
     STAGE_ORDER,
@@ -21,6 +23,11 @@ from culturescrape.orchestrate.jobs import (
     Job,
     JobConfigError,
     load_job,
+)
+from culturescrape.orchestrate.manifest import (
+    CorpusManifest,
+    build_manifest,
+    manifest_for_dataset,
 )
 from culturescrape.orchestrate.qa import (
     GateResult,
@@ -57,6 +64,7 @@ __all__ = [
     "CategoryRun",
     "CorpusBuild",
     "CorpusBuildError",
+    "CorpusManifest",
     "DurationError",
     "GateResult",
     "GateThresholds",
@@ -69,11 +77,15 @@ __all__ = [
     "QaReport",
     "RefreshSelection",
     "StageResult",
+    "build_manifest",
     "build_corpus",
+    "corpus_component_fraction",
+    "corpus_qa_policy",
     "evaluate",
     "evaluate_directory",
     "load_catalog",
     "load_job",
+    "manifest_for_dataset",
     "parse_duration",
     "render_table",
     "run_job",

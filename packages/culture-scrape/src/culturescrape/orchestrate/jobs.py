@@ -36,7 +36,12 @@ STAGE_ORDER = ("acquire", "normalize", "link", "export")
 VALID_STAGES = frozenset(STAGE_ORDER)
 
 _REQUIRED_KEYS = ("name", "categories", "output_root")
-_OPTIONAL_KEYS = ("description", "stages")
+_OPTIONAL_KEYS = (
+    "description",
+    "stages",
+    "min_provenance_completeness",
+    "min_component_fraction",
+)
 _ALLOWED_KEYS = frozenset(_REQUIRED_KEYS + _OPTIONAL_KEYS)
 
 
@@ -54,6 +59,15 @@ class Job:
         categories: The category specs to process, in declaration order.
         stages: Stages to run, in canonical :data:`STAGE_ORDER` (a subset).
         output_root: Directory under which per-stage outputs are written.
+        min_provenance_completeness: Optional override for the corpus QA
+            provenance-completeness floor (``None`` keeps the default). A corpus
+            built entirely from a source that carries no external ``source_url``
+            (e.g. a LinguaScrape-only convergence corpus) relaxes this — the
+            source-of-record provenance is still enforced by the LinguaScrape
+            provenance gate.
+        min_component_fraction: Optional override for the connectivity floor
+            (``None`` keeps the default). A small single-domain fixture corpus
+            need not reach the multi-domain seed corpus's connectivity.
     """
 
     name: str
@@ -61,6 +75,8 @@ class Job:
     categories: tuple[CategorySpec, ...]
     stages: tuple[str, ...]
     output_root: Path
+    min_provenance_completeness: float | None = None
+    min_component_fraction: float | None = None
 
     def output_dir(self, stage: str) -> Path:
         """Return the output directory for *stage* under :attr:`output_root`.
@@ -120,6 +136,13 @@ def _parse(raw: object, path: Path) -> Job:
         errors.append("'description' must be a string")
         description = ""
 
+    min_provenance = _parse_fraction(
+        raw.get("min_provenance_completeness"), "min_provenance_completeness", errors
+    )
+    min_component = _parse_fraction(
+        raw.get("min_component_fraction"), "min_component_fraction", errors
+    )
+
     stages = _parse_stages(raw.get("stages"), errors)
     categories = (
         _parse_categories(raw.get("categories"), path, errors)
@@ -144,6 +167,8 @@ def _parse(raw: object, path: Path) -> Job:
         categories=categories,
         stages=stages,
         output_root=output_root,
+        min_provenance_completeness=min_provenance,
+        min_component_fraction=min_component,
     )
 
 
@@ -189,6 +214,20 @@ def _parse_categories(
         except CategorySpecError as exc:
             errors.append(f"categories[{index}] ({item}): {exc}")
     return tuple(specs)
+
+
+def _parse_fraction(value: object, key: str, errors: list[str]) -> float | None:
+    """Parse an optional ``[0, 1]`` fraction override, or ``None`` when omitted."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        errors.append(f"{key!r} must be a number between 0 and 1")
+        return None
+    number = float(value)
+    if not 0.0 <= number <= 1.0:
+        errors.append(f"{key!r} must be between 0 and 1, got {number}")
+        return None
+    return number
 
 
 def _parse_output_root(value: object, path: Path, errors: list[str]) -> Path | None:

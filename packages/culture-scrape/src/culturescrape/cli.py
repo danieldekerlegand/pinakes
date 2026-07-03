@@ -60,6 +60,8 @@ from culturescrape.orchestrate.corpus import (
     CorpusBuild,
     CorpusBuildError,
     build_corpus,
+    corpus_component_fraction,
+    corpus_qa_policy,
 )
 from culturescrape.orchestrate.generate import BlueprintError, generate
 from culturescrape.orchestrate.jobs import (
@@ -866,7 +868,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if set(job.stages) == set(STAGE_ORDER):
         try:
             build = build_corpus(
-                job, force=args.force, force_ids=force_ids, workers=args.workers
+                job,
+                force=args.force,
+                force_ids=force_ids,
+                workers=args.workers,
+                qa=corpus_qa_policy(job),
+                min_component_fraction=corpus_component_fraction(job),
             )
         except CorpusBuildError as exc:
             return _fail(str(exc))
