@@ -23,6 +23,22 @@ A merge that would unite two **different** non-empty `wikidata_qid` (or `getty_i
 *refused* — an explicit identifier conflict means the rows are distinct things, however
 alike their names.
 
+Because LinguaScrape rows ship no QID (steps 1–2 are inert on first ingest), the
+`reconcile.reconcile_linguascrape(incoming, existing)` entry point runs an **offline**
+form of the cascade over just steps 3–5 — no network, no live graph. For each incoming
+row it classifies against an index of the existing corpus:
+
+- **matched** — exactly one existing node clears a tier (`language_code`, then exact
+  `(name, type, region)`, then fuzzy name). The incoming row is merged onto that node,
+  keeping its identity (`csid`/`wikidata_qid`) and **concatenating both sources'**
+  provenance; the enriched, load-safe rows come back on `report.rows`.
+- **ambiguous** — two or more rival nodes clear the tier. The row is **never** merged: it
+  is listed on `report.ambiguous` (with its competing candidates) and *withheld* from
+  `report.rows` for human triage.
+- **new** — no tier fires; the row stands as its own node.
+
+Every emitted row records its decision under the `reconcile_local` overflow key.
+
 ## What LinguaScrape ships (and what it does not)
 
 LinguaScrape rows arrive with **no** `wikidata_qid` / `getty_id`, so steps 1–2 are inert on
