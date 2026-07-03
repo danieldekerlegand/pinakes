@@ -1,6 +1,7 @@
 # culture-scrape ↔ LinguaScrape: Data-Layer Convergence Plan
 
-**Status:** Data-layer convergence **implemented** (US-001…US-008) · **Last updated:** 2026-07-02
+**Status:** Data-layer convergence **implemented** (US-001…US-008) · app-side graph
+integration **implemented** (`graph-app-integration` US-001…US-011) · **Last updated:** 2026-07-03
 **Decision:** Align the two data layers on a shared canonical schema with Neo4j/Datalog as
 the correlation system-of-record. **Do not** rewrite the LinguaScrape backend to Python.
 
@@ -232,6 +233,239 @@ Python-side cross-links (same repo, `packages/culture-scrape/`):
 - **Python-side Ralph PRDs:** `packages/culture-scrape/ralph/` (acquisition, schema/entity-resolution,
   ontology-linking, neo4j-converter, datalog-exporter, …).
 
+## 10b. App-side graph API routes (`/api/graph/*`)
+
+The browser talks only to the LinguaScrape origin. `server/routes/graph.ts`
+(`registerGraphRoutes`, wired in `server/routes.ts`) exposes a first-party proxy over
+the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
+(`server/services/graph-store.ts`); search/metrics run through the FastAPI sidecar client
+(`server/services/culturescrape-client.ts`).
+
+| Method & path | Backend | Success | Notes |
+| --- | --- | --- | --- |
+| `GET /api/graph/search?q=&limit=` | sidecar `/search` | `{ query, results[] }` | empty `q` → `{ query:"", results:[] }` without hitting the sidecar |
+| `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
+| `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
+| `GET /api/graph/overview?limit=` | Neo4j `getGraphOverview` | `{ nodes[], edges[] }` | bounded snapshot (first `limit` nodes + edges among them; `limit` clamped 1..1000, default 250) powering the shared-graph explorer dataset (US-008) |
+| `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
+| `POST /api/graph/datalog` | sidecar `/datalog` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
+| `POST /api/graph/cypher` | sidecar `/neo4j` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
+| `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
+| `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
+
+**Degradation contract.** When a backend is unreachable the query routes answer
+**HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
+(`GraphUnavailableError` / `CultureScrapeUnavailableError` → 503). A malformed/unusable
+upstream response (`CultureScrapeError`) maps to **502**. `/api/graph/status` is itself a
+health probe and always returns 200 so the client can gate graph-dependent UI (US-005).
+
+**Health & graceful degradation (US-005).** `/api/graph/status` delegates to
+`server/services/graph-health.ts` (`getGraphHealth()`), which aggregates both backends'
+`isAvailable()` into one verdict, pull-through cached for `GRAPH_HEALTH_TTL_MS` (default 5s)
+so a burst of probes issues at most one round of checks. On the client, the
+`useGraphAvailability()` hook (`client/src/hooks/use-graph-availability.tsx`) polls that
+route (30s interval, `retry:false`, fails closed) and exposes `{ available, neo4j, sidecar,
+isEnabled(backend), unavailableReason(backend) }`. Graph-dependent UI wraps its
+trigger/tab in `<GraphFeatureGate backend=… mode="disable"|"hide">`
+(`client/src/components/graph/GraphFeatureGate.tsx`), which dims + tooltips (or hides) the
+feature when its backend is offline. Pure decision logic lives in
+`client/src/lib/graph/availability.ts` (`isGraphFeatureEnabled` / `graphUnavailableReason`).
+
+Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
+with both services module-mocked and exercises every route including the unavailable path.
+
+**Neighborhood visualization (US-007).** Entity detail panels (language, culture profile)
+carry a `<ShowInGraphButton entity={{ type, id, name, region }}>`
+(`client/src/components/graph/ShowInGraphButton.tsx`). The trigger is gated on the `neo4j`
+backend via `GraphFeatureGate`; clicking it opens a dialog that resolves the entity to a
+csid through `GET /api/graph/resolve` (US-006) and then `React.lazy`-loads
+`GraphNeighborhoodView` (`client/src/components/graph/GraphNeighborhoodView.tsx`). That view
+fetches `GET /api/graph/neighborhood/:id?depth=`, projects the payload through the pure
+transforms in `client/src/lib/graph/neighborhood-graph.ts` (nodes coloured/typed by first
+`:LABEL`, edges labelled by `:TYPE`), and renders it with the shared force-directed
+`NetworkGraph`. Depth is adjustable 1–3; loading, empty, and graph-unavailable states are all
+handled. The heavy d3 renderer is code-split into its own chunk so it only loads on open.
+
+**Shared-graph explorer dataset (US-008).** The shared graph is exposed through the existing
+adapter-driven UnifiedExplorer as the **"Shared Culture Graph"** dataset
+(`client/src/lib/visualization/adapters/culturescrape.adapter.ts`, registered in
+`registry.ts`). Its `endpoint` is `GET /api/graph/overview`; `unwrap` pairs each node with
+its incident edges, and `project` maps the `{ nodes, edges }` payload into **all five**
+explorer dimensions — relational (nodes coloured by `:LABEL`, links by `:TYPE`), hierarchical
+(a containment/descent forest derived from parent-type edges like `DESCENDS_FROM` / `PART_OF`),
+temporal (`time_start`/`time_end`), spatial (coordinates), and categorical. Because it declares
+every dimension it renders through every Generic\* visualization (Tree, Timeline, Map, 3D Map,
+Network, Lineage, Table). `filterableFacets` expose entity type (`:LABEL`), time period (500-year
+bands) and region; `detail` builds a `DetailDescriptor` including provenance (source, source_url,
+retrieved_at, confidence) so graph facts stay attributable. Pure transforms are unit-tested in
+`culturescrape.adapter.test.ts`.
+
+**Federated global search (US-009).** The unified search box (`GET /api/search`,
+`server/services/global-search.ts`, dialog `client/src/components/global-search-dialog.tsx`)
+merges local-corpus hits with shared-graph hits from the sidecar `/search`. `federatedSearch`
+runs the existing `globalSearch` (local) and the culture-scrape client `search` in sequence;
+`mergeGraphResults` combines them:
+
+- **Ranking.** Local hits keep their fuzzy token score (`[0, 1]`). A graph hit that matched an
+  authoritative field (`csid` / `wikidata_qid`) ranks `1.0`; a name-only match ranks by the same
+  fuzzy scorer against the query (floored at `0.4` so a real hit is never dropped). Both sets are
+  merged and sorted by relevance descending, capped at 50.
+- **Dedup by csid alias.** Each local result is resolved to its csid via the US-006 resolver
+  (`getGraphResolver`); any graph hit sharing that csid is dropped — the **local result wins**
+  because it carries an in-app navigable link. Duplicate csids inside the sidecar payload are
+  also collapsed.
+- **Graceful degradation.** If the sidecar is unavailable, disabled, or returns a malformed
+  payload, the graph error is swallowed and the query returns **local-only** results — no error
+  is surfaced to the user.
+- Each result carries a `source: "local" | "graph"` badge; graph results additionally carry
+  `csid`, `confidence`, and a `provenance` object (`source`, `qid`, `matchField`, `graphLink`)
+  rendered in the dialog. Merge/dedup/ranking + the local-only fallback are unit-tested in
+  `server/services/global-search.test.ts` (no storage / network / Neo4j).
+
+**Provenance & confidence surfacing (US-010).** Graph facts carry the culture-scrape
+provenance columns as node/edge properties (`source`, `source_url`, `retrieved_at`,
+`confidence`). The pure module `client/src/lib/graph/provenance.ts` normalises these into a
+`Provenance` record and holds the display logic:
+
+- **Sourced vs derived.** `classifyProvenance` marks a fact **sourced** when it carries a
+  citation URL or a non-inference `source`, and **derived** when its `source` is an inference
+  marker (`inference` / `datalog` / `derived` / `computed` / `correlation`) or it has nothing to
+  cite. The Datalog layer is a *derived* view of the TSV source of truth, so materialised
+  edges/nodes read as derived.
+- **Low-confidence flag.** `isLowConfidence` flags `confidence ≤ 0.5`; `formatConfidence`
+  renders a rounded percent.
+- **Safe links.** `safeExternalUrl` only returns `http(s)` URLs, so the source link is rendered
+  as `<a target="_blank" rel="noopener noreferrer">` and never an unsafe scheme.
+
+The reusable components live in `client/src/components/graph/Provenance.tsx`: `<ProvenanceBadge>`
+(compact sourced/derived pill + confidence chip) and `<ProvenanceList>` (full breakdown with the
+safe source link). They are used in the explorer detail panel (`UnifiedExplorer` renders
+`DetailDescriptor.provenance` via `<ProvenanceList>`; the culturescrape adapter's `detail`
+supplies it) and in the graph neighborhood view (root-node `<ProvenanceBadge>`). The pure
+classification/formatting logic is unit-tested in `client/src/lib/graph/provenance.test.ts` (the
+repo has no jsdom, so the "component tests" exercise that module — same convention as US-007/008).
+
+**Datalog/Cypher research console (US-011).** An advanced, experimental surface at
+`/advanced-tools` (`client/src/pages/advanced-tools.tsx`) — intentionally **not** linked from the
+primary navigation — lets a researcher run read-only inference queries against the shared graph:
+Datalog goals over culture-scrape's rule set (`POST /api/graph/datalog`) and Cypher reads against
+Neo4j (`POST /api/graph/cypher`). It ships example presets (`contemporary_with/2`, `same_region/2`
+via `within_region/2`, and transitive `descends_from` via `ancestor/2` for Datalog; `descends_from`
+edges and a language sample for Cypher — `client/src/lib/graph/research-console.ts`). Queries are
+**read-only** on both sides: the UI states it and the server rejects Cypher write clauses with 400
+before the sidecar is called. Sidecar errors are surfaced, not swallowed — a Datalog lint
+`error`/`reason` (e.g. when `swipl` is absent) renders in the panel, and a Cypher syntax error comes
+back as 502 with its detail. The whole tool is wrapped in `<GraphFeatureGate backend="sidecar">` so
+its Run buttons disable with an explanatory tooltip when the sidecar is offline (US-005). Route
+degradation (success + unavailable) is covered by `server/routes/graph.test.ts`; the pure preset /
+result-normalisation logic by `client/src/lib/graph/research-console.test.ts`.
+
+## 10c. App-side runbook (run · deploy · extend)
+
+The `graph-app-integration` PRD (US-001…US-011) wires the shared graph into the running app.
+This section is the operator/contributor runbook for that integration: how to configure it, run
+it locally, deploy it, and extend it. It is accurate against the code as of US-001…US-011.
+
+### Environment variables
+
+All graph config lives in `.env` (copy from [`.env.example`](../.env.example)). The server reads
+these; the app **degrades gracefully** and runs local-only when they are absent or the services are
+down (see the degradation contract in §10b).
+
+| Var | Read by | Default | Purpose |
+| --- | --- | --- | --- |
+| `CULTURESCRAPE_API_URL` | `server/services/culturescrape-client.ts` | `http://localhost:8800` | Base URL of the FastAPI sidecar (search / metrics / datalog / cypher). |
+| `CULTURESCRAPE_ENABLED` | `culturescrape-client.ts` | `true` | Falsey ⇒ `isAvailable()` returns false, sidecar-backed features disable without errors. |
+| `CULTURESCRAPE_TIMEOUT_MS` | `culturescrape-client.ts` | `10000` | Per-request timeout for the sidecar HTTP client. |
+| `CULTURESCRAPE_CORPUS` | docker-compose (`culturescrape` service) | `tests/fixtures/explorer-corpus` | Corpus the sidecar serves; point at a mounted built corpus for real data. |
+| `NEO4J_URI` | `server/services/graph-store.ts` | `bolt://localhost:7687` | Bolt endpoint of the shared graph store. |
+| `NEO4J_USER` / `NEO4J_PASSWORD` | `graph-store.ts` | `neo4j` / *(empty)* | Neo4j credentials. |
+| `NEO4J_AUTH` | docker-compose (`neo4j` service) | `neo4j/linguascrape` | `user/password` for the container; **must equal** `NEO4J_USER`/`NEO4J_PASSWORD`. |
+| `NEO4J_DATABASE` | `graph-store.ts` | `neo4j` | Target database name. |
+| `NEO4J_QUERY_TIMEOUT_MS` / `NEO4J_CONNECTION_TIMEOUT_MS` | `graph-store.ts` | `10000` / `5000` | Driver query + connection-acquisition timeouts. |
+| `NEO4J_MAX_POOL_SIZE` | `graph-store.ts` | `50` | Connection-pool ceiling. |
+| `GRAPH_HEALTH_TTL_MS` | `server/services/graph-health.ts` | `5000` | TTL of the cached `/api/graph/status` verdict. |
+
+### Local development
+
+- **App only (no graph)** — `npm run dev`. Graph-dependent UI (the "Show in graph" button, the
+  Shared Culture Graph explorer dataset, the `/advanced-tools` console, graph search hits) is
+  disabled with an explanatory tooltip; everything else works. Nothing needs Docker.
+- **App + sidecar + Neo4j** — `npm run dev:full` (`scripts/dev-full.sh`). Starts the
+  `culturescrape` and `neo4j` docker-compose services detached, waits for the sidecar health
+  endpoint, then runs `npm run dev` in the foreground and stops the services on exit. Requires
+  Docker; if the sidecar/graph never come up the app still starts and degrades.
+- **Just the services** — `npm run sidecar:up` (build + start `culturescrape` + `neo4j`) and
+  `npm run sidecar:down`. Useful when running the app from an IDE.
+
+`docker-compose.yml` defines two services: `culturescrape` (built from `packages/culture-scrape/`,
+port **8800**) and `neo4j` (`neo4j:5`, HTTP **7474** / Bolt **7687**). Neo4j sits behind the
+`graph` compose profile (it is heavy) so a bare `docker compose up` starts only the sidecar; the
+scripts above name both services explicitly, or use `docker compose --profile graph up`. Verify
+reachability: `curl -sf http://localhost:8800/` (sidecar) and open `http://localhost:7474`
+(Neo4j browser).
+
+### Production deployment
+
+The app is deployed as today (`npm run build` → `npm start`, a single Express+static bundle). The
+graph integration adds **two out-of-process dependencies** that the server reaches over the network:
+
+1. **Neo4j** — a managed instance (Aura or self-hosted). Set `NEO4J_URI` (use `neo4j+s://` for
+   TLS in prod), `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`. The driver is lazily created,
+   pooled, and torn down on `SIGTERM`/`SIGINT` (`closeGraphStore()` in `server/index.ts`).
+2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` (the `packages/culture-scrape/`
+   Dockerfile) as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
+   `CULTURESCRAPE_API_URL` to its internal URL. Keep it on the private network — the browser never
+   talks to it directly (all access is proxied through `/api/graph/*`).
+
+Both are **optional at runtime**: if either is unset or unreachable the server logs it, answers the
+affected routes with 503 `{ available:false }`, and the client hides/disables graph UI (§10b). So a
+deploy without the graph stack is a valid, degraded-but-working configuration. Health for
+monitoring: `GET /api/graph/status` (always 200; `{ available, neo4j, sidecar, checkedAt }`).
+
+### Add a new proxied / graph endpoint
+
+To surface a new shared-graph capability at the app origin:
+
+1. **Pick the backend.** Relational/graph traversal → add a typed method to
+   `server/services/graph-store.ts` (parameterized Cypher, coerce Neo4j `Integer`s at the boundary,
+   throw `GraphUnavailableError` when the driver is down). A sidecar-served capability (search,
+   metrics, datalog, cypher, completeness) → add a **zod-validated** wrapper to
+   `server/services/culturescrape-client.ts` (throw `CultureScrapeUnavailableError` for
+   transport/timeout/5xx/disabled, `CultureScrapeError` for 4xx/malformed).
+2. **Add the route** in `server/routes/graph.ts` under `registerGraphRoutes`. Reuse the shared
+   `handleError()` so `GraphUnavailableError`/`CultureScrapeUnavailableError` → **503**
+   `{ available:false, error, detail }` and `CultureScrapeError` → **502**. For a body-consuming
+   `POST`, attach the route-scoped `jsonBody` middleware (see the datalog/cypher routes). Never let
+   an unreachable backend crash the process.
+3. **Test it** in `server/routes/graph.test.ts`: add the new service fn to both the
+   `vi.hoisted(mocks)` object and the matching `vi.mock(…, importOriginal)` return (so the real
+   error classes survive for `instanceof`), then exercise success **and** the unavailable path over
+   real HTTP.
+4. **Gate the UI** on the right backend with `<GraphFeatureGate backend="neo4j"|"sidecar"|"any">`
+   (`client/src/components/graph/GraphFeatureGate.tsx`) so the feature disables with a tooltip when
+   its backend is offline.
+5. **Document the row** in the §10b route catalog (method, backend, success shape, degradation).
+
+To add a whole new **dataset** to the shared graph instead, see §9 (map the lexicon file, regenerate
+the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pattern (§10b, US-008).
+
+### Cross-links
+
+- **Convergence (data-layer) work — LinguaScrape-side tasklist 15:** the export / reconcile /
+  write-back / QA toolchain (§7) is driven by
+  [`tasks/ralph/completed/data-layer-convergence.json`](../tasks/ralph/completed/data-layer-convergence.json),
+  specified in [`docs/canonical-schema.md`](./canonical-schema.md). It produces the canonical
+  `nodes/`/`edges/` TSVs this integration consumes once loaded into Neo4j.
+- **Python-side convergence — tasklist 16:**
+  [`tasks/ralph/completed/linguascrape-convergence-python.json`](../tasks/ralph/completed/linguascrape-convergence-python.json)
+  and the vendored engine under [`packages/culture-scrape/`](../packages/culture-scrape/) —
+  ingestion ([`docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)),
+  Neo4j load ([`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md)) and Datalog
+  ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
+  (`mypy` / `pytest` / `ruff`), not the app's.
+- **This app-side PRD:** `tasks/ralph/graph-app-integration.json` (US-001…US-012).
+
 ## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.
@@ -242,7 +476,8 @@ Python-side cross-links (same repo, `packages/culture-scrape/`):
 
 The work is driven by [Ralph](../docs/ralph-workflow.md) PRDs under `tasks/ralph/` (run via
 `scripts/ralph/run-all.sh`). Convergence-related PRDs, in dependency order:
-`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side) →
-`graph-app-integration`.
+`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side,
+**implemented**) → `graph-app-integration` (app-side graph integration, **implemented**, §10b/§10c).
+The first two now live in `tasks/ralph/completed/`; the app-side runbook is §10c.
 The remaining roadmap PRDs (`data-acquisition`, `narrative-education`, `platform-infra`,
 `speculative`) build on them.

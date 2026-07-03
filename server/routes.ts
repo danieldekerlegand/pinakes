@@ -58,7 +58,8 @@ import {
   type ComparisonMode,
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
-import { globalSearch } from "./services/global-search";
+import { federatedSearch } from "./services/global-search";
+import { registerGraphRoutes } from "./routes/graph";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -96,8 +97,11 @@ import {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
-  
-  
+
+  // First-party shared-graph proxy routes (/api/graph/*, US-004).
+  registerGraphRoutes(app);
+
+
   // Language Families
   app.get("/api/language-families", async (req, res) => {
     try {
@@ -4434,7 +4438,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   /**
-   * GET /api/search?q=query - Unified search across all data domains
+   * GET /api/search?q=query - Unified (federated) search across all data domains.
+   * Merges local corpus results with shared-graph hits, degrading to local-only
+   * when the graph is unavailable (see federatedSearch).
    */
   app.get("/api/search", async (req, res) => {
     try {
@@ -4443,7 +4449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ results: [], query: "", totalCount: 0 });
         return;
       }
-      const result = await globalSearch(q);
+      const result = await federatedSearch(q);
       res.json(result);
     } catch (error) {
       console.error("Error in global search:", error);

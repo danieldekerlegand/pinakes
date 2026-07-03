@@ -27,7 +27,15 @@ import {
   Pickaxe,
   MapPin,
   Sparkles,
+  Share2,
 } from "lucide-react";
+
+interface GraphProvenance {
+  source: string;
+  qid?: string;
+  matchField?: string;
+  graphLink?: string | null;
+}
 
 interface SearchResult {
   entityType: string;
@@ -36,6 +44,10 @@ interface SearchResult {
   description: string;
   linkPath: string;
   relevance: number;
+  source?: "local" | "graph";
+  csid?: string;
+  confidence?: number;
+  provenance?: GraphProvenance;
 }
 
 interface SearchResponse {
@@ -101,6 +113,22 @@ const ENTITY_LABELS: Record<string, string> = {
   civilization: "Civilizations",
   "archaeological-site": "Archaeological Sites",
 };
+
+/** Small pill distinguishing local-corpus results from shared-graph hits. */
+function SourceBadge({ result }: { result: SearchResult }) {
+  if (result.source === "graph") {
+    return (
+      <span className="shrink-0 rounded-sm bg-purple-100 px-1 py-0 text-[10px] font-medium uppercase tracking-wide text-purple-700">
+        Graph
+      </span>
+    );
+  }
+  return (
+    <span className="shrink-0 rounded-sm bg-muted px-1 py-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      Local
+    </span>
+  );
+}
 
 /** Detect if a query looks like a natural language question */
 function isNaturalLanguageQuery(q: string): boolean {
@@ -385,14 +413,37 @@ export default function GlobalSearchDialog({
                     value={`${result.entityType}-${result.id}-${result.displayName}`}
                     onSelect={() => handleSelect(result)}
                   >
-                    {ENTITY_ICONS[result.entityType] || (
-                      <Search className="h-4 w-4" />
+                    {result.source === "graph" ? (
+                      <Share2 className="h-4 w-4 text-purple-500" />
+                    ) : (
+                      ENTITY_ICONS[result.entityType] || (
+                        <Search className="h-4 w-4" />
+                      )
                     )}
-                    <div className="flex flex-col">
-                      <span className="font-medium">{result.displayName}</span>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-medium flex items-center gap-1.5">
+                        <span className="truncate">{result.displayName}</span>
+                        <SourceBadge result={result} />
+                      </span>
                       {result.description && (
                         <span className="text-xs text-muted-foreground">
                           {result.description}
+                        </span>
+                      )}
+                      {result.source === "graph" && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          {result.provenance?.source && (
+                            <span>{result.provenance.source}</span>
+                          )}
+                          {result.provenance?.qid && (
+                            <span className="font-mono">{result.provenance.qid}</span>
+                          )}
+                          {typeof result.confidence === "number" &&
+                            result.confidence < 1 && (
+                              <span>
+                                {Math.round(result.confidence * 100)}% match
+                              </span>
+                            )}
                         </span>
                       )}
                     </div>

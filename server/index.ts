@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { closeGraphStore } from "./services/graph-store";
 
 const app = express();
 app.use(express.json());
@@ -65,4 +66,15 @@ app.use((req, res, next) => {
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
+
+  // Graceful shutdown: release the Neo4j driver's connection pool so the
+  // process exits cleanly (see server/services/graph-store.ts).
+  const shutdown = (signal: string) => {
+    log(`received ${signal}, shutting down`);
+    server.close(() => {
+      void closeGraphStore().finally(() => process.exit(0));
+    });
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 })();

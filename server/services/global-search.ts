@@ -22,6 +22,25 @@ import type {
   TradeGood,
   FoodwayEvent,
 } from "../tsv-storage";
+import * as culturescrape from "./culturescrape-client";
+import type { SearchHit } from "./culturescrape-client";
+import { getGraphResolver } from "./graph-resolver";
+import type { GraphResolver } from "./graph-resolver";
+
+/** Where a search result originated: the local TSV corpus or the shared graph. */
+export type SearchSource = "local" | "graph";
+
+/** Provenance/confidence attached to a shared-graph search hit. */
+export interface GraphProvenance {
+  /** Human label for the origin, e.g. `"culture-scrape graph"`. */
+  source: string;
+  /** Wikidata QID when the node carries one. */
+  qid?: string;
+  /** Which field matched in the sidecar (`csid` / `wikidata_qid` / `name`). */
+  matchField?: string;
+  /** Relative link to the node's graph view, when the sidecar could resolve one. */
+  graphLink?: string | null;
+}
 
 export interface SearchResult {
   entityType: string;
@@ -30,6 +49,14 @@ export interface SearchResult {
   description: string;
   linkPath: string;
   relevance: number;
+  /** Origin of the result; local corpus unless it came from the shared graph. */
+  source: SearchSource;
+  /** Shared-graph id — set on graph hits, and on local hits that resolve to a csid. */
+  csid?: string;
+  /** 0–1 confidence for a graph hit (1.0 for an exact csid/QID field match). */
+  confidence?: number;
+  /** Provenance for graph hits so the UI can attribute the fact. */
+  provenance?: GraphProvenance;
 }
 
 export interface SearchResponse {
@@ -37,6 +64,9 @@ export interface SearchResponse {
   query: string;
   totalCount: number;
 }
+
+/** A local hit before it is stamped with its `source`/graph metadata. */
+type LocalHit = Omit<SearchResult, "source" | "csid" | "confidence" | "provenance">;
 
 /** Simple fuzzy match: checks if all query tokens appear in the text (case-insensitive) */
 function fuzzyMatch(text: string, queryTokens: string[]): number {
@@ -78,7 +108,7 @@ export async function globalSearch(query: string): Promise<SearchResponse> {
   }
 
   const queryTokens = trimmed.toLowerCase().split(/\s+/);
-  const allResults: SearchResult[] = [];
+  const allResults: LocalHit[] = [];
 
   // Search all domains in parallel
   const [
@@ -403,11 +433,146 @@ export async function globalSearch(query: string): Promise<SearchResponse> {
 
   // Sort by relevance descending, limit to 50
   allResults.sort((a, b) => b.relevance - a.relevance);
-  const top = allResults.slice(0, 50);
+  const top = allResults
+    .slice(0, 50)
+    .map((r): SearchResult => ({ ...r, source: "local" }));
 
   return {
     results: top,
     query: trimmed,
     totalCount: allResults.length,
+  };
+}
+
+// ── Federated search (local corpus + shared graph) ───────────────────────────
+
+/** How many graph hits to request from the sidecar per federated query. */
+const GRAPH_SEARCH_LIMIT = 25;
+
+/** Map a sidecar `:LABEL` to the app's hyphenated entityType convention. */
+function labelToEntityType(label: string): string {
+  return label.trim().toLowerCase().replace(/[\s_]+/g, "-");
+}
+
+/**
+ * Merge shared-graph hits into an already-computed local result set.
+ *
+ * **Ranking strategy.** Local hits keep their fuzzy token score (`[0, 1]`). A
+ * graph hit that matched an authoritative field (`csid` / `wikidata_qid`) ranks
+ * `1.0`; a name match ranks by the same fuzzy scorer against the query (never
+ * below a small floor so a real hit is not dropped). The two sets are merged and
+ * sorted by relevance descending, capped at 50.
+ *
+ * **Dedup.** An entity present in both stores is matched by **csid alias**: each
+ * local result is resolved to its csid via the US-006 resolver, and any graph
+ * hit sharing that csid is dropped (the local result wins — it carries an
+ * in-app navigable link). Duplicate csids within the sidecar payload are also
+ * collapsed. Pure and deterministic.
+ */
+export function mergeGraphResults(
+  localResults: SearchResult[],
+  graphHits: SearchHit[],
+  resolver: Pick<GraphResolver, "resolve">,
+  query: string,
+): { results: SearchResult[]; graphCount: number } {
+  // Resolve each local result to its csid so we can dedup graph hits against it.
+  const localCsids = new Set<string>();
+  const stampedLocal = localResults.map((r): SearchResult => {
+    const resolved = resolver.resolve({
+      type: r.entityType,
+      id: r.id,
+      name: r.displayName,
+    });
+    if (resolved) {
+      localCsids.add(resolved.csid);
+      return { ...r, csid: resolved.csid };
+    }
+    return r;
+  });
+
+  const queryTokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const seenGraphCsids = new Set<string>();
+  const graphResults: SearchResult[] = [];
+  for (const hit of graphHits) {
+    if (localCsids.has(hit.csid)) continue; // present in both → deduped, local wins
+    if (seenGraphCsids.has(hit.csid)) continue; // sidecar-side duplicate guard
+    seenGraphCsids.add(hit.csid);
+
+    const exact = hit.field === "csid" || hit.field === "wikidata_qid";
+    const relevance = exact ? 1 : Math.max(fuzzyMatch(hit.name, queryTokens), 0.4);
+    graphResults.push({
+      entityType: labelToEntityType(hit.label),
+      id: hit.csid,
+      displayName: hit.name,
+      description: hit.label,
+      linkPath: hit.graph ?? "",
+      relevance,
+      source: "graph",
+      csid: hit.csid,
+      confidence: exact ? 1 : relevance,
+      provenance: {
+        source: "culture-scrape graph",
+        qid: hit.qid || undefined,
+        matchField: hit.field || undefined,
+        graphLink: hit.graph,
+      },
+    });
+  }
+
+  const merged = [...stampedLocal, ...graphResults].sort(
+    (a, b) => b.relevance - a.relevance,
+  );
+  return { results: merged.slice(0, 50), graphCount: graphResults.length };
+}
+
+/** Injectable dependencies for {@link federatedSearch} (defaults wire the real services). */
+export interface FederatedSearchDeps {
+  /** Local corpus search (defaults to {@link globalSearch}). */
+  localSearch: (query: string) => Promise<SearchResponse>;
+  /** Shared-graph search (defaults to the culture-scrape sidecar client). */
+  graphSearch: (query: string, limit?: number) => Promise<culturescrape.SearchResponse>;
+  /** Entity → csid resolver for dedup (defaults to the lexicon-backed singleton). */
+  resolver: Pick<GraphResolver, "resolve">;
+}
+
+/**
+ * Federated global search: local corpus results merged with shared-graph hits.
+ *
+ * Degrades to **local-only** whenever the graph is unavailable, disabled, or
+ * returns a malformed payload — the sidecar failure is swallowed and never
+ * surfaced to the user (the local results still come back). See
+ * {@link mergeGraphResults} for the ranking/dedup contract.
+ */
+export async function federatedSearch(
+  query: string,
+  deps: Partial<FederatedSearchDeps> = {},
+): Promise<SearchResponse> {
+  const localSearch = deps.localSearch ?? globalSearch;
+  const graphSearch = deps.graphSearch ?? culturescrape.search;
+
+  const trimmed = query.trim();
+  const local = await localSearch(trimmed);
+  if (!trimmed) return local;
+
+  let graphHits: SearchHit[];
+  try {
+    const resp = await graphSearch(trimmed, GRAPH_SEARCH_LIMIT);
+    graphHits = resp.results;
+  } catch {
+    // Graph unavailable / disabled / malformed: silently degrade to local-only.
+    return local;
+  }
+
+  const resolver = deps.resolver ?? getGraphResolver();
+  const { results, graphCount } = mergeGraphResults(
+    local.results,
+    graphHits,
+    resolver,
+    trimmed,
+  );
+  return {
+    results,
+    query: trimmed,
+    totalCount: local.totalCount + graphCount,
   };
 }

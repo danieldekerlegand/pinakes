@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SuggestEditButton } from "@/components/SuggestEditButton";
+import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { LanguageWithStats } from "@shared/types";
@@ -355,6 +356,15 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
                   Export CSV
                 </Button>
               )}
+              <ShowInGraphButton
+                entity={{
+                  type: "language",
+                  id: languageId,
+                  name: language.name,
+                  region: language.region ?? undefined,
+                }}
+                className="w-full justify-start"
+              />
             </div>
           </div>
 

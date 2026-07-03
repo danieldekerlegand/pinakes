@@ -9,6 +9,7 @@ import {
 } from "@/lib/visualization/adapters/registry";
 import { compatibleVisualizations } from "@/lib/visualization/adapters/compatibility";
 import type { DetailDescriptor } from "@/lib/visualization/adapters/types";
+import { ProvenanceList } from "@/components/graph/Provenance";
 import { DatasetVisualizationPicker } from "./DatasetVisualizationPicker";
 
 // URL params owned by the explorer. Namespaced ("ds", "viz", "dsq", "f.<key>")
@@ -346,6 +347,12 @@ export default function UnifiedExplorer({
                   </div>
                 ))}
               </dl>
+              {selected.descriptor.provenance && (
+                <ProvenanceList
+                  provenance={selected.descriptor.provenance}
+                  className="mt-4"
+                />
+              )}
             </div>
           </aside>
         )}
