@@ -3,7 +3,11 @@
 # Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
 #
 #   docker compose up -d --build culturescrape neo4j   # sidecar + graph only
+#   docker compose --profile graph up -d               # same, via the `graph` profile
 #   npm run dev:full                                    # sidecar + graph + app
+#
+# neo4j sits behind the `graph` profile (it is heavy), so a bare
+# `docker compose up` starts only the sidecar; the scripts above start both.
 #
 # The LinguaScrape server reads CULTURESCRAPE_API_URL / NEO4J_* from .env
 # (see .env.example) and degrades gracefully when these services are down.
@@ -29,6 +33,11 @@ services:
 
   neo4j:
     image: neo4j:5
+    # Behind the `graph` profile so a bare `docker compose up` stays lightweight
+    # (sidecar only). It still starts when named explicitly — which the
+    # `sidecar:up` npm script and scripts/dev-full.sh both do — or via
+    # `docker compose --profile graph up`.
+    profiles: ["graph"]
     ports:
       - "7474:7474"   # HTTP browser
       - "7687:7687"   # Bolt (NEO4J_URI=bolt://localhost:7687)
