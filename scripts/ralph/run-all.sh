@@ -7,7 +7,7 @@
 #
 # Per-PRD lifecycle:
 #   1. Skip if already complete+merged (completed/<name>.json carries mergedToMain).
-#   2. Seed prd.json (RESUME=1 → from a partial snapshot; else the template).
+#   2. Seed prd.json (auto-resume from a partial snapshot if one exists; RESUME=0 → template).
 #   3. Run ralph.sh.
 #   4. Snapshot the passes-state to scripts/ralph/snapshots/<name>.json (gitignored).
 #   5. If complete AND AUTO_MERGE_MAIN: run a baselined verification gate (typecheck +
@@ -20,14 +20,16 @@
 #   ./scripts/ralph/run-all.sh                          # all pending, in order
 #   ./scripts/ralph/run-all.sh graph-app-integration    # a subset
 #   AUTO_MERGE_MAIN=0 ./scripts/ralph/run-all.sh ...     # complete but don't merge
-#   RESUME=1 ./scripts/ralph/run-all.sh <name>           # resume a partial run
+#   ./scripts/ralph/run-all.sh <name>                    # auto-resumes a partial run
+#   RESUME=0 ./scripts/ralph/run-all.sh <name>           # force a fresh restart instead
 #
 # Env vars:
 #   TOOL=claude|amp        AI tool (default: claude)
 #   AUTO_MERGE_MAIN=0      disable auto-merge; leave each completed branch for review. Default 1.
 #   NO_VERIFY=1            skip the pre-merge verification gate (NOT advised). Default 0.
 #   STOP_ON_INCOMPLETE=0   keep going past an incomplete / failed-verify / conflicted PRD. Default 1.
-#   RESUME=1               seed from a partial snapshot instead of restarting. Default 0.
+#   RESUME=0               force a FRESH restart of a partial PRD (default is auto-resume
+#                          from the partial snapshot if one exists).
 #   FORCE=1                skip the clean-tree / on-main precondition check.
 #   STRICT_VERIFY=1        fail on any failure instead of only NEW-vs-main failures. Default 0.
 #
@@ -44,7 +46,7 @@ TOOL="${TOOL:-claude}"
 AUTO_MERGE_MAIN="${AUTO_MERGE_MAIN:-1}"
 NO_VERIFY="${NO_VERIFY:-0}"
 STOP_ON_INCOMPLETE="${STOP_ON_INCOMPLETE:-1}"
-RESUME="${RESUME:-0}"
+RESUME="${RESUME:-1}"   # auto-resume partial PRDs by default; RESUME=0 forces a fresh restart
 FORCE="${FORCE:-0}"
 STRICT_VERIFY="${STRICT_VERIFY:-0}"
 
@@ -213,10 +215,10 @@ for entry in "${ORDER[@]}"; do
   echo "  branch: $branch   max-iters: $iters"
 
   seed="$json"
-  if [ "$RESUME" = "1" ] && [ -f "$snap" ] \
+  if [ "$RESUME" != "0" ] && [ -f "$snap" ] \
      && [ "$(jq '[.userStories[]|select(.passes)]|length' "$snap" 2>/dev/null || echo 0)" -gt 0 ] \
      && [ "$(jq '[.userStories[]|select(.passes==false)]|length' "$snap" 2>/dev/null || echo 1)" -gt 0 ]; then
-    seed="$snap"; echo "  RESUME: seeding from $seed"
+    seed="$snap"; echo "  resuming from snapshot: $seed"
   fi
   cp "$seed" "$DIR/prd.json"
   echo "$branch" > "$DIR/.last-branch"
