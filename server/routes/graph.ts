@@ -11,7 +11,7 @@
  * `{ available: false }` body and never crash the process. A malformed upstream
  * response (schema failure / non-JSON) maps to 502; a missing node maps to 404.
  */
-import type { Express, Request, Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import * as graphStore from "../services/graph-store";
 import { GraphUnavailableError } from "../services/graph-store";
 import * as culturescrape from "../services/culturescrape-client";
@@ -59,6 +59,23 @@ function parseDepth(raw: unknown): number {
   const n = Number(raw);
   return Number.isFinite(n) ? graphStore.clampDepth(n) : 1;
 }
+
+/**
+ * Cypher write clauses. The research console (US-011) is read-only: the browser
+ * states it and the server enforces it, so a mutating query is rejected before it
+ * ever reaches the sidecar rather than relying on the sidecar's own guard.
+ */
+const CYPHER_WRITE_CLAUSES =
+  /\b(CREATE|MERGE|DELETE|SET|REMOVE|DROP|FOREACH|LOAD\s+CSV)\b/i;
+
+/** True when `query` contains no write clause and can be run read-only. */
+function isReadOnlyCypher(query: string): boolean {
+  return !CYPHER_WRITE_CLAUSES.test(query);
+}
+
+// JSON body parser scoped to the console POST routes, so they work whether or not
+// a global body parser is installed (it is, in server/index.ts).
+const jsonBody = express.json();
 
 /**
  * Register the `/api/graph/*` routes on the given Express app. Kept as a
@@ -180,6 +197,63 @@ export function registerGraphRoutes(app: Express): void {
       res.json({ resolved });
     } catch (error) {
       handleError(res, "graph entity resolution", error);
+    }
+  });
+
+  /**
+   * POST /api/graph/datalog — run a read-only Datalog inference query through the
+   * sidecar's `/datalog` console (US-011). Body: `{ goal }` for an ad-hoc `main/0`
+   * goal, or `{ example }` to run one of the sidecar's shipped example slugs; at
+   * least one is required (400 otherwise). The sidecar's own outcome — including a
+   * lint `error`/`reason` when SWI-Prolog is absent — is passed straight through so
+   * problems are surfaced, not swallowed. 503 when the sidecar is unavailable.
+   */
+  app.post("/api/graph/datalog", jsonBody, async (req: Request, res: Response) => {
+    const body = (req.body ?? {}) as { goal?: unknown; example?: unknown };
+    const goal = typeof body.goal === "string" ? body.goal.trim() : "";
+    const example = typeof body.example === "string" ? body.example.trim() : "";
+    if (!goal && !example) {
+      res.status(400).json({ error: "a datalog goal or example is required" });
+      return;
+    }
+    try {
+      const result = await culturescrape.datalog({
+        goal: goal || undefined,
+        example: example || undefined,
+      });
+      res.json(result);
+    } catch (error) {
+      handleError(res, "datalog query", error);
+    }
+  });
+
+  /**
+   * POST /api/graph/cypher — run a read-only Cypher query through the sidecar's
+   * `/neo4j` console (US-011). Body: `{ query }`. The query is rejected with 400
+   * when it is empty or contains a write clause (CREATE/MERGE/DELETE/SET/…), so the
+   * console cannot mutate the shared graph. A sidecar error (e.g. a syntax error)
+   * comes back as 502 with its detail, not swallowed; 503 when it is unavailable.
+   */
+  app.post("/api/graph/cypher", jsonBody, async (req: Request, res: Response) => {
+    const body = (req.body ?? {}) as { query?: unknown };
+    const query = typeof body.query === "string" ? body.query.trim() : "";
+    if (!query) {
+      res.status(400).json({ error: "a cypher query is required" });
+      return;
+    }
+    if (!isReadOnlyCypher(query)) {
+      res.status(400).json({
+        error: "the research console is read-only",
+        detail:
+          "write clauses (CREATE, MERGE, DELETE, SET, REMOVE, DROP, FOREACH, LOAD CSV) are not permitted",
+      });
+      return;
+    }
+    try {
+      const result = await culturescrape.cypher(query);
+      res.json(result);
+    } catch (error) {
+      handleError(res, "cypher query", error);
     }
   });
 

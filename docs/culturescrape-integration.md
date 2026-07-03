@@ -247,6 +247,8 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
 | `GET /api/graph/overview?limit=` | Neo4j `getGraphOverview` | `{ nodes[], edges[] }` | bounded snapshot (first `limit` nodes + edges among them; `limit` clamped 1..1000, default 250) powering the shared-graph explorer dataset (US-008) |
 | `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
+| `POST /api/graph/datalog` | sidecar `/datalog` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
+| `POST /api/graph/cypher` | sidecar `/neo4j` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
 | `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
@@ -341,6 +343,21 @@ safe source link). They are used in the explorer detail panel (`UnifiedExplorer`
 supplies it) and in the graph neighborhood view (root-node `<ProvenanceBadge>`). The pure
 classification/formatting logic is unit-tested in `client/src/lib/graph/provenance.test.ts` (the
 repo has no jsdom, so the "component tests" exercise that module — same convention as US-007/008).
+
+**Datalog/Cypher research console (US-011).** An advanced, experimental surface at
+`/advanced-tools` (`client/src/pages/advanced-tools.tsx`) — intentionally **not** linked from the
+primary navigation — lets a researcher run read-only inference queries against the shared graph:
+Datalog goals over culture-scrape's rule set (`POST /api/graph/datalog`) and Cypher reads against
+Neo4j (`POST /api/graph/cypher`). It ships example presets (`contemporary_with/2`, `same_region/2`
+via `within_region/2`, and transitive `descends_from` via `ancestor/2` for Datalog; `descends_from`
+edges and a language sample for Cypher — `client/src/lib/graph/research-console.ts`). Queries are
+**read-only** on both sides: the UI states it and the server rejects Cypher write clauses with 400
+before the sidecar is called. Sidecar errors are surfaced, not swallowed — a Datalog lint
+`error`/`reason` (e.g. when `swipl` is absent) renders in the panel, and a Cypher syntax error comes
+back as 502 with its detail. The whole tool is wrapped in `<GraphFeatureGate backend="sidecar">` so
+its Run buttons disable with an explanatory tooltip when the sidecar is offline (US-005). Route
+degradation (success + unavailable) is covered by `server/routes/graph.test.ts`; the pure preset /
+result-normalisation logic by `client/src/lib/graph/research-console.test.ts`.
 
 ## 11. Non-goals
 

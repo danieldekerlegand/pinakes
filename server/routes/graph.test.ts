@@ -19,6 +19,8 @@ const mocks = vi.hoisted(() => ({
   graphIsAvailable: vi.fn(),
   search: vi.fn(),
   metrics: vi.fn(),
+  datalog: vi.fn(),
+  cypher: vi.fn(),
   clientIsAvailable: vi.fn(),
   resolve: vi.fn(),
 }));
@@ -41,6 +43,8 @@ vi.mock("../services/culturescrape-client", async (importOriginal) => {
     ...actual, // keep the real CultureScrape*Error classes
     search: mocks.search,
     metrics: mocks.metrics,
+    datalog: mocks.datalog,
+    cypher: mocks.cypher,
     isAvailable: mocks.clientIsAvailable,
   };
 });
@@ -92,6 +96,18 @@ beforeEach(() => {
 
 async function get(path: string): Promise<{ status: number; body: any }> {
   const res = await fetch(`${baseUrl}${path}`);
+  return { status: res.status, body: await res.json() };
+}
+
+async function post(
+  path: string,
+  json: unknown,
+): Promise<{ status: number; body: any }> {
+  const res = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(json),
+  });
   return { status: res.status, body: await res.json() };
 }
 
@@ -314,6 +330,120 @@ describe("GET /api/graph/resolve", () => {
     const { status } = await get("/api/graph/resolve?id=lat");
     expect(status).toBe(400);
     expect(mocks.resolve).not.toHaveBeenCalled();
+  });
+});
+
+// ── POST /api/graph/datalog ─────────────────────────────────────────────────
+
+describe("POST /api/graph/datalog", () => {
+  const OUTCOME = {
+    ran: true,
+    rows: [["cs:language:pie"], ["cs:language:proto-celtic"]],
+    problems: [],
+    error: null,
+    reason: null,
+  };
+
+  it("runs an ad-hoc goal and returns the outcome", async () => {
+    mocks.datalog.mockResolvedValue(OUTCOME);
+    const { status, body } = await post("/api/graph/datalog", {
+      goal: "main :- ancestor('cs:language:gaulish', A), format(\"~w~n\",[A]).",
+    });
+    expect(status).toBe(200);
+    expect(body.rows).toHaveLength(2);
+    expect(mocks.datalog).toHaveBeenCalledWith({
+      goal: expect.stringContaining("ancestor"),
+      example: undefined,
+    });
+  });
+
+  it("runs a named example slug", async () => {
+    mocks.datalog.mockResolvedValue(OUTCOME);
+    await post("/api/graph/datalog", { example: "language-descent" });
+    expect(mocks.datalog).toHaveBeenCalledWith({
+      goal: undefined,
+      example: "language-descent",
+    });
+  });
+
+  it("surfaces a sidecar lint error/reason instead of swallowing it", async () => {
+    mocks.datalog.mockResolvedValue({
+      ran: false,
+      rows: [],
+      problems: ["undefined predicate foo/1"],
+      error: null,
+      reason: "swipl not found, so the query was linted offline but not run.",
+    });
+    const { status, body } = await post("/api/graph/datalog", { goal: "main :- foo." });
+    expect(status).toBe(200);
+    expect(body.ran).toBe(false);
+    expect(body.reason).toMatch(/swipl/);
+  });
+
+  it("400s when neither goal nor example is provided", async () => {
+    const { status } = await post("/api/graph/datalog", {});
+    expect(status).toBe(400);
+    expect(mocks.datalog).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
+    mocks.datalog.mockRejectedValue(new CultureScrapeUnavailableError("down"));
+    const { status, body } = await post("/api/graph/datalog", { example: "x" });
+    expect(status).toBe(503);
+    expect(body.available).toBe(false);
+  });
+});
+
+// ── POST /api/graph/cypher ──────────────────────────────────────────────────
+
+describe("POST /api/graph/cypher", () => {
+  const RESULT = {
+    columns: ["n.name"],
+    rows: [["Paella"], ["Ceviche"]],
+  };
+
+  it("runs a read-only query and returns columns + rows", async () => {
+    mocks.cypher.mockResolvedValue(RESULT);
+    const { status, body } = await post("/api/graph/cypher", {
+      query: "MATCH (n:Dish) RETURN n.name LIMIT 25",
+    });
+    expect(status).toBe(200);
+    expect(body.columns).toEqual(["n.name"]);
+    expect(body.rows).toHaveLength(2);
+    expect(mocks.cypher).toHaveBeenCalledWith("MATCH (n:Dish) RETURN n.name LIMIT 25");
+  });
+
+  it("400s a write query without hitting the sidecar", async () => {
+    const { status, body } = await post("/api/graph/cypher", {
+      query: "MATCH (n) DETACH DELETE n",
+    });
+    expect(status).toBe(400);
+    expect(body.error).toMatch(/read-only/i);
+    expect(mocks.cypher).not.toHaveBeenCalled();
+  });
+
+  it("400s an empty query", async () => {
+    const { status } = await post("/api/graph/cypher", { query: "   " });
+    expect(status).toBe(400);
+    expect(mocks.cypher).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a sidecar syntax error as 502 (not swallowed)", async () => {
+    mocks.cypher.mockRejectedValue(new CultureScrapeError("invalid syntax", 400));
+    const { status, body } = await post("/api/graph/cypher", {
+      query: "MATCH (n) RETURN nope(",
+    });
+    expect(status).toBe(502);
+    expect(body.detail).toMatch(/invalid syntax/);
+  });
+
+  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
+    mocks.cypher.mockRejectedValue(new CultureScrapeUnavailableError());
+    const { status, body } = await post("/api/graph/cypher", {
+      query: "MATCH (n) RETURN n LIMIT 1",
+    });
+    expect(status).toBe(503);
+    expect(body.available).toBe(false);
   });
 });
 
