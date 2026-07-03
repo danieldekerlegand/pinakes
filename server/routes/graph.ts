@@ -20,6 +20,7 @@ import {
   CultureScrapeUnavailableError,
 } from "../services/culturescrape-client";
 import { getGraphHealth } from "../services/graph-health";
+import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 
 /**
  * Map a caught error to an Express response, preserving the graceful-degradation
@@ -131,6 +132,37 @@ export function registerGraphRoutes(app: Express): void {
       res.json(metrics);
     } catch (error) {
       handleError(res, "graph metrics", error);
+    }
+  });
+
+  /**
+   * GET /api/graph/resolve?type=&id=&name=&region= — resolve a LinguaScrape
+   * entity ref to its shared-graph csid (US-006) so "Show in graph" affordances
+   * can jump into the neighborhood view. Backed by the convergence alias table,
+   * which is loaded from the local lexicons and so does NOT depend on Neo4j —
+   * resolution succeeds even while the graph itself is offline. Always 200 with
+   * `{ resolved: { csid, confidence, method } | null }`; `null` covers both a
+   * no-match and an ambiguous match (which the resolver refuses to guess at).
+   */
+  app.get("/api/graph/resolve", (req: Request, res: Response) => {
+    const type = typeof req.query.type === "string" ? req.query.type.trim() : "";
+    if (!type) {
+      res.status(400).json({ error: "type is required" });
+      return;
+    }
+    const str = (v: unknown): string | undefined =>
+      typeof v === "string" && v.trim() ? v.trim() : undefined;
+    const ref: EntityRef = {
+      type,
+      id: str(req.query.id),
+      name: str(req.query.name),
+      region: str(req.query.region),
+    };
+    try {
+      const resolved = getGraphResolver().resolve(ref);
+      res.json({ resolved });
+    } catch (error) {
+      handleError(res, "graph entity resolution", error);
     }
   });
 

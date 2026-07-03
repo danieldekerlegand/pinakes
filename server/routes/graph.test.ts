@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   search: vi.fn(),
   metrics: vi.fn(),
   clientIsAvailable: vi.fn(),
+  resolve: vi.fn(),
 }));
 
 vi.mock("../services/graph-store", async (importOriginal) => {
@@ -39,6 +40,16 @@ vi.mock("../services/culturescrape-client", async (importOriginal) => {
     search: mocks.search,
     metrics: mocks.metrics,
     isAvailable: mocks.clientIsAvailable,
+  };
+});
+
+vi.mock("../services/graph-resolver", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../services/graph-resolver")>();
+  return {
+    ...actual,
+    // Resolver is lexicon-backed; stub it so the route test doesn't read disk.
+    getGraphResolver: () => ({ resolve: mocks.resolve, reverse: vi.fn(), size: 0 }),
   };
 });
 
@@ -226,6 +237,42 @@ describe("GET /api/graph/metrics", () => {
     const { status, body } = await get("/api/graph/metrics");
     expect(status).toBe(503);
     expect(body.available).toBe(false);
+  });
+});
+
+// ── GET /api/graph/resolve ──────────────────────────────────────────────────
+
+describe("GET /api/graph/resolve", () => {
+  it("resolves an entity ref to a csid", async () => {
+    mocks.resolve.mockReturnValue({
+      csid: "cs:language:lat",
+      confidence: 1,
+      method: "alias",
+    });
+    const { status, body } = await get(
+      "/api/graph/resolve?type=language&id=lat&name=Latin",
+    );
+    expect(status).toBe(200);
+    expect(body.resolved.csid).toBe("cs:language:lat");
+    expect(mocks.resolve).toHaveBeenCalledWith({
+      type: "language",
+      id: "lat",
+      name: "Latin",
+      region: undefined,
+    });
+  });
+
+  it("returns resolved:null for a no-match/ambiguous ref", async () => {
+    mocks.resolve.mockReturnValue(null);
+    const { status, body } = await get("/api/graph/resolve?type=language&name=Klingon");
+    expect(status).toBe(200);
+    expect(body.resolved).toBeNull();
+  });
+
+  it("400s when type is missing", async () => {
+    const { status } = await get("/api/graph/resolve?id=lat");
+    expect(status).toBe(400);
+    expect(mocks.resolve).not.toHaveBeenCalled();
   });
 });
 

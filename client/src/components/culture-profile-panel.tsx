@@ -24,6 +24,7 @@ import CultureMediaGallery from "@/components/shared/CultureMediaGallery";
 import { CultureDataCard } from "@/components/shared/CultureDataCard";
 import CultureComparisonView from "@/components/visualizations/CultureComparisonView";
 import CultureLanguageWritingSection from "@/components/culture-language-writing-section";
+import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
 import ReligionMythologySection from "@/components/culture-profile/religion-mythology-section";
 import ArchitectureUrbanPlanningSection from "@/components/culture-profile/architecture-urban-planning-section";
 import Architecture3DReconstructionSection from "@/components/culture-profile/architecture-3d-reconstruction-section";
@@ -335,6 +336,16 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                <ShowInGraphButton
+                  entity={{
+                    type: "culture",
+                    id: profile.id,
+                    name: profile.name,
+                    region: profile.region ?? undefined,
+                  }}
+                  size="icon"
+                  label=""
+                />
                 <ExportProfileButton profile={profile} />
                 <Button
                   variant="ghost"

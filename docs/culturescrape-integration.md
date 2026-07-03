@@ -246,6 +246,7 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
 | `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
 | `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
+| `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
 **Degradation contract.** When a backend is unreachable the query routes answer
@@ -268,6 +269,18 @@ feature when its backend is offline. Pure decision logic lives in
 
 Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
 with both services module-mocked and exercises every route including the unavailable path.
+
+**Neighborhood visualization (US-007).** Entity detail panels (language, culture profile)
+carry a `<ShowInGraphButton entity={{ type, id, name, region }}>`
+(`client/src/components/graph/ShowInGraphButton.tsx`). The trigger is gated on the `neo4j`
+backend via `GraphFeatureGate`; clicking it opens a dialog that resolves the entity to a
+csid through `GET /api/graph/resolve` (US-006) and then `React.lazy`-loads
+`GraphNeighborhoodView` (`client/src/components/graph/GraphNeighborhoodView.tsx`). That view
+fetches `GET /api/graph/neighborhood/:id?depth=`, projects the payload through the pure
+transforms in `client/src/lib/graph/neighborhood-graph.ts` (nodes coloured/typed by first
+`:LABEL`, edges labelled by `:TYPE`), and renders it with the shared force-directed
+`NetworkGraph`. Depth is adjustable 1–3; loading, empty, and graph-unavailable states are all
+handled. The heavy d3 renderer is code-split into its own chunk so it only loads on open.
 
 ## 11. Non-goals
 
