@@ -1,5 +1,6 @@
 import type { ComponentType, LazyExoticComponent } from "react";
 import type { ViewMode, VisualizationState } from "../types";
+import type { Provenance } from "@/lib/graph/provenance";
 
 export type Dimension =
   | "temporal"
@@ -93,6 +94,8 @@ export interface DetailDescriptor {
   title: string;
   subtitle?: string;
   fields: Array<{ label: string; value: string | number | string[] | null }>;
+  /** Where the entity's facts came from — rendered as a <ProvenanceList> (US-010). */
+  provenance?: Provenance;
 }
 
 export interface DatasetAdapter<TRaw = unknown> {

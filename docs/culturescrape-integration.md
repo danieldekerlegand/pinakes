@@ -319,6 +319,29 @@ runs the existing `globalSearch` (local) and the culture-scrape client `search` 
   rendered in the dialog. Merge/dedup/ranking + the local-only fallback are unit-tested in
   `server/services/global-search.test.ts` (no storage / network / Neo4j).
 
+**Provenance & confidence surfacing (US-010).** Graph facts carry the culture-scrape
+provenance columns as node/edge properties (`source`, `source_url`, `retrieved_at`,
+`confidence`). The pure module `client/src/lib/graph/provenance.ts` normalises these into a
+`Provenance` record and holds the display logic:
+
+- **Sourced vs derived.** `classifyProvenance` marks a fact **sourced** when it carries a
+  citation URL or a non-inference `source`, and **derived** when its `source` is an inference
+  marker (`inference` / `datalog` / `derived` / `computed` / `correlation`) or it has nothing to
+  cite. The Datalog layer is a *derived* view of the TSV source of truth, so materialised
+  edges/nodes read as derived.
+- **Low-confidence flag.** `isLowConfidence` flags `confidence ≤ 0.5`; `formatConfidence`
+  renders a rounded percent.
+- **Safe links.** `safeExternalUrl` only returns `http(s)` URLs, so the source link is rendered
+  as `<a target="_blank" rel="noopener noreferrer">` and never an unsafe scheme.
+
+The reusable components live in `client/src/components/graph/Provenance.tsx`: `<ProvenanceBadge>`
+(compact sourced/derived pill + confidence chip) and `<ProvenanceList>` (full breakdown with the
+safe source link). They are used in the explorer detail panel (`UnifiedExplorer` renders
+`DetailDescriptor.provenance` via `<ProvenanceList>`; the culturescrape adapter's `detail`
+supplies it) and in the graph neighborhood view (root-node `<ProvenanceBadge>`). The pure
+classification/formatting logic is unit-tested in `client/src/lib/graph/provenance.test.ts` (the
+repo has no jsdom, so the "component tests" exercise that module — same convention as US-007/008).
+
 ## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.

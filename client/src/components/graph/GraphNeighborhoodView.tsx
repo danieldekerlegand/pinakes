@@ -11,6 +11,8 @@ import {
   isEmptyNeighborhood,
   type NeighborhoodPayload,
 } from "@/lib/graph/neighborhood-graph";
+import { ProvenanceBadge } from "@/components/graph/Provenance";
+import { extractProvenance } from "@/lib/graph/provenance";
 
 /**
  * Renders an entity's shared-graph neighborhood (US-007) by fetching
@@ -52,6 +54,7 @@ export default function GraphNeighborhoodView({
 
   const graph = data ? toNetworkGraph(data) : null;
   const legend = data ? labelLegend(data) : [];
+  const rootProvenance = data ? extractProvenance(data.root.properties) : null;
 
   return (
     <div className="flex flex-col gap-3 h-full min-h-[420px]" data-testid="graph-neighborhood-view">
@@ -60,6 +63,7 @@ export default function GraphNeighborhoodView({
         <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           <Network className="h-4 w-4" />
           {title ?? "Graph neighborhood"}
+          <ProvenanceBadge provenance={rootProvenance} />
         </div>
         <div className="flex items-center gap-1" role="group" aria-label="Traversal depth">
           <span className="text-xs text-gray-500 mr-1">Depth</span>

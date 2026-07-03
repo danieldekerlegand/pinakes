@@ -178,15 +178,16 @@ describe("culturescrapeAdapter.project — filtering", () => {
 });
 
 describe("culturescrapeAdapter.detail", () => {
-  it("surfaces provenance fields", () => {
+  it("surfaces provenance as a structured descriptor", () => {
     const paella = rows().find((r) => r.node.csid === "cs:dish:paella")!;
     const detail = culturescrapeAdapter.detail!(paella);
     expect(detail.title).toBe("Paella");
-    const byLabel = Object.fromEntries(detail.fields.map((f) => [f.label, f.value]));
-    expect(byLabel["Source"]).toBe("Cookbook of Valencia");
-    expect(byLabel["Source URL"]).toBe("https://example.org/paella");
-    expect(byLabel["Retrieved at"]).toBe("2026-01-01");
-    expect(byLabel["Confidence"]).toBe("0.9");
+    expect(detail.provenance).toEqual({
+      source: "Cookbook of Valencia",
+      sourceUrl: "https://example.org/paella",
+      retrievedAt: "2026-01-01",
+      confidence: 0.9,
+    });
   });
 });
 

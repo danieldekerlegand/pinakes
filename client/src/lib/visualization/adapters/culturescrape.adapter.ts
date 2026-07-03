@@ -32,6 +32,7 @@ import {
   type GraphEdgePayload,
   type GraphNodePayload,
 } from "@/lib/graph/neighborhood-graph";
+import { extractProvenance } from "@/lib/graph/provenance";
 
 /** The `{ nodes, edges }` snapshot returned by `GET /api/graph/overview`. */
 export interface GraphOverviewResponse {
@@ -327,10 +328,8 @@ export const culturescrapeAdapter: DatasetAdapter<GraphEntityRow> = {
   ],
   project,
   detail: (row) => {
-    const p = row.node.properties;
     const start = startYearOf(row.node);
     const end = endYearOf(row.node);
-    const confidence = propNum(p, ["confidence"]);
     return {
       title: displayName(row.node),
       subtitle: `${primaryLabel(row.node)} · ${row.node.csid}`,
@@ -343,15 +342,9 @@ export const culturescrapeAdapter: DatasetAdapter<GraphEntityRow> = {
         },
         { label: "Region", value: regionOf(row.node) },
         { label: "Connections", value: row.incidentEdges.length },
-        // Provenance — where this fact came from, so it can be trusted/cited.
-        { label: "Source", value: propStr(p, ["source"]) },
-        { label: "Source URL", value: propStr(p, ["source_url"]) },
-        { label: "Retrieved at", value: propStr(p, ["retrieved_at"]) },
-        {
-          label: "Confidence",
-          value: confidence === null ? null : `${confidence}`,
-        },
       ],
+      // Where this fact came from, so it can be trusted/cited (US-010).
+      provenance: extractProvenance(row.node.properties),
     };
   },
 };
