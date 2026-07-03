@@ -8,6 +8,12 @@ import { describe, it, expect, vi } from "vitest";
 import {
   mergeGraphResults,
   federatedSearch,
+  computeFacets,
+  combineFacets,
+  matchesFilters,
+  applyFacetFilters,
+  parseSearchFilters,
+  emptyFacets,
   type SearchResult,
   type SearchResponse,
 } from "./global-search";
@@ -122,6 +128,126 @@ describe("mergeGraphResults", () => {
     expect(hit.relevance).toBeLessThanOrEqual(1);
     expect(hit.confidence).toBe(hit.relevance);
   });
+
+  it("returns graph-only facets over the deduped result set", () => {
+    const hits = [
+      graphHit({ csid: "cs:culture:elam", name: "Elam", label: "Culture" }),
+      graphHit({ csid: "cs:culture:hittite", name: "Hittite", label: "Culture" }),
+      graphHit({ csid: "cs:language:akk", name: "Akkadian", label: "Language" }),
+    ];
+    const { facets } = mergeGraphResults([], hits, NO_RESOLVE, "a");
+    expect(facets.entityType).toEqual([
+      { value: "culture", count: 2 },
+      { value: "language", count: 1 },
+    ]);
+    expect(facets.source).toEqual([{ value: "graph", count: 3 }]);
+  });
+
+  it("applies an entityType filter to graph results but keeps full facets", () => {
+    const hits = [
+      graphHit({ csid: "cs:culture:elam", name: "Elam", label: "Culture" }),
+      graphHit({ csid: "cs:language:akk", name: "Akkadian", label: "Language" }),
+    ];
+    const { results, graphCount, facets } = mergeGraphResults(
+      [],
+      hits,
+      NO_RESOLVE,
+      "a",
+      { entityTypes: ["culture"] },
+    );
+    expect(graphCount).toBe(1);
+    expect(results.every((r) => r.entityType === "culture")).toBe(true);
+    // facets still reflect the full (unfiltered) universe
+    expect(facets.entityType).toEqual([
+      { value: "culture", count: 1 },
+      { value: "language", count: 1 },
+    ]);
+  });
+});
+
+// ── Faceting helpers (pure) ───────────────────────────────────────────────────
+
+describe("computeFacets", () => {
+  it("counts entityType + source, sorted by count desc then value asc", () => {
+    const facets = computeFacets([
+      { entityType: "language", source: "local" },
+      { entityType: "language", source: "local" },
+      { entityType: "battle", source: "graph" },
+    ]);
+    expect(facets.entityType).toEqual([
+      { value: "language", count: 2 },
+      { value: "battle", count: 1 },
+    ]);
+    expect(facets.source).toEqual([
+      { value: "local", count: 2 },
+      { value: "graph", count: 1 },
+    ]);
+  });
+
+  it("ignores empty/undefined values", () => {
+    const facets = computeFacets([
+      { entityType: "", source: "local" },
+      { entityType: "battle", source: undefined as unknown as "local" },
+    ]);
+    expect(facets.entityType).toEqual([{ value: "battle", count: 1 }]);
+    expect(facets.source).toEqual([{ value: "local", count: 1 }]);
+  });
+});
+
+describe("combineFacets", () => {
+  it("sums counts per value across two facet sets", () => {
+    const a = { entityType: [{ value: "language", count: 2 }], source: [{ value: "local", count: 2 }] };
+    const b = {
+      entityType: [{ value: "language", count: 1 }, { value: "culture", count: 3 }],
+      source: [{ value: "graph", count: 1 }],
+    };
+    const merged = combineFacets(a, b);
+    expect(merged.entityType).toEqual([
+      { value: "culture", count: 3 },
+      { value: "language", count: 3 },
+    ]);
+    expect(merged.source).toEqual([
+      { value: "local", count: 2 },
+      { value: "graph", count: 1 },
+    ]);
+  });
+});
+
+describe("matchesFilters / applyFacetFilters", () => {
+  const rows: SearchResult[] = [
+    localResult({ entityType: "language", source: "local" }),
+    localResult({ entityType: "battle", source: "local", id: "b1" }),
+    { ...localResult({ id: "g1" }), entityType: "culture", source: "graph" },
+  ];
+
+  it("empty filters match everything", () => {
+    expect(applyFacetFilters(rows, {})).toHaveLength(3);
+    expect(matchesFilters(rows[0], {})).toBe(true);
+  });
+
+  it("filters by entityType (OR within dimension)", () => {
+    const kept = applyFacetFilters(rows, { entityTypes: ["language", "culture"] });
+    expect(kept.map((r) => r.entityType)).toEqual(["language", "culture"]);
+  });
+
+  it("filters by source, AND-ed with entityType", () => {
+    expect(applyFacetFilters(rows, { sources: ["graph"] })).toHaveLength(1);
+    expect(applyFacetFilters(rows, { entityTypes: ["language"], sources: ["graph"] })).toHaveLength(0);
+  });
+});
+
+describe("parseSearchFilters", () => {
+  it("splits comma-separated types + sources and drops blanks/unknowns", () => {
+    expect(parseSearchFilters({ types: "language, battle ,", sources: "graph,bogus" })).toEqual({
+      entityTypes: ["language", "battle"],
+      sources: ["graph"],
+    });
+  });
+
+  it("returns an empty object when no params are present", () => {
+    expect(parseSearchFilters({})).toEqual({});
+    expect(parseSearchFilters({ types: 42 as unknown as string })).toEqual({});
+  });
 });
 
 // ── federatedSearch (dependency-injected) ─────────────────────────────────────
@@ -143,7 +269,7 @@ describe("federatedSearch", () => {
         }),
     );
 
-    const res = await federatedSearch("akk", {
+    const res = await federatedSearch("akk", {}, {
       localSearch,
       graphSearch,
       resolver: NO_RESOLVE,
@@ -157,7 +283,7 @@ describe("federatedSearch", () => {
   it("degrades to local-only (no error surfaced) when the graph search throws", async () => {
     const graphSearch = vi.fn(() => Promise.reject(new Error("sidecar down")));
 
-    const res = await federatedSearch("akk", {
+    const res = await federatedSearch("akk", {}, {
       localSearch,
       graphSearch,
       resolver: NO_RESOLVE,
@@ -170,12 +296,61 @@ describe("federatedSearch", () => {
 
   it("returns the empty local response without probing the graph for a blank query", async () => {
     const graphSearch = vi.fn();
-    const res = await federatedSearch("   ", {
+    const res = await federatedSearch("   ", {}, {
       localSearch: () => Promise.resolve({ results: [], query: "", totalCount: 0 }),
       graphSearch,
       resolver: NO_RESOLVE,
     });
     expect(res.results).toHaveLength(0);
     expect(graphSearch).not.toHaveBeenCalled();
+  });
+
+  it("combines local + graph facets and echoes the applied filters", async () => {
+    const localWithFacets: SearchResponse = {
+      results: [localResult()],
+      query: "a",
+      totalCount: 1,
+      facets: {
+        entityType: [{ value: "language", count: 1 }],
+        source: [{ value: "local", count: 1 }],
+      },
+      filters: {},
+    };
+    const graphSearch = vi.fn(
+      (): Promise<GraphSearchResponse> =>
+        Promise.resolve({
+          query: "a",
+          results: [graphHit({ csid: "cs:culture:elam", name: "Elam", label: "Culture" })],
+        }),
+    );
+
+    const res = await federatedSearch("a", { entityTypes: ["language", "culture"] }, {
+      localSearch: (_q, filters) => Promise.resolve({ ...localWithFacets, filters: filters ?? {} }),
+      graphSearch,
+      resolver: NO_RESOLVE,
+    });
+
+    expect(res.facets?.entityType).toEqual(
+      expect.arrayContaining([
+        { value: "language", count: 1 },
+        { value: "culture", count: 1 },
+      ]),
+    );
+    expect(res.facets?.source).toEqual(
+      expect.arrayContaining([
+        { value: "local", count: 1 },
+        { value: "graph", count: 1 },
+      ]),
+    );
+    expect(res.filters).toEqual({ entityTypes: ["language", "culture"] });
+  });
+
+  it("falls back to empty facets when the local response omits them", async () => {
+    const res = await federatedSearch("a", {}, {
+      localSearch: () => Promise.resolve({ results: [], query: "a", totalCount: 0 }),
+      graphSearch: () => Promise.resolve({ query: "a", results: [] }),
+      resolver: NO_RESOLVE,
+    });
+    expect(res.facets).toEqual(emptyFacets());
   });
 });

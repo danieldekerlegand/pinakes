@@ -29,6 +29,12 @@ import {
   Sparkles,
   Share2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  buildSearchUrl,
+  toggleFacetValue,
+  type SearchFacets,
+} from "@/lib/search-facets";
 
 interface GraphProvenance {
   source: string;
@@ -54,6 +60,7 @@ interface SearchResponse {
   results: SearchResult[];
   query: string;
   totalCount: number;
+  facets?: SearchFacets;
 }
 
 interface SpatialResult {
@@ -155,6 +162,8 @@ export default function GlobalSearchDialog({
 }: GlobalSearchDialogProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [facets, setFacets] = useState<SearchFacets | null>(null);
+  const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [spatialResults, setSpatialResults] = useState<SpatialResult[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -220,6 +229,8 @@ export default function GlobalSearchDialog({
     if (!trimmed) {
       setResults([]);
       setSpatialResults([]);
+      setFacets(null);
+      setTypeFilters([]);
       setSearchMode("keyword");
       return;
     }
@@ -241,15 +252,17 @@ export default function GlobalSearchDialog({
             const data: SpatialSearchResponse = await res.json();
             setSpatialResults(data.results);
             setResults([]);
+            setFacets(null);
           }
         } else {
-          // Standard keyword search
+          // Standard keyword search (faceted: filter by entity type)
           const res = await fetch(
-            `/api/search?q=${encodeURIComponent(trimmed)}`
+            buildSearchUrl(trimmed, { entityTypes: typeFilters })
           );
           if (res.ok) {
             const data: SearchResponse = await res.json();
             setResults(data.results);
+            setFacets(data.facets ?? null);
             setSpatialResults([]);
           }
         }
@@ -263,7 +276,7 @@ export default function GlobalSearchDialog({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query]);
+  }, [query, typeFilters]);
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -272,6 +285,8 @@ export default function GlobalSearchDialog({
       setResults([]);
       setSpatialResults([]);
       setSuggestions([]);
+      setFacets(null);
+      setTypeFilters([]);
       setSearchMode("keyword");
     }
   }, [open]);
@@ -340,6 +355,52 @@ export default function GlobalSearchDialog({
             Natural language search active
           </div>
         )}
+
+        {/* Facet filters — narrow keyword results by entity type */}
+        {!loading &&
+          trimmedQuery &&
+          searchMode === "keyword" &&
+          facets &&
+          facets.entityType.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 border-b px-3 py-2">
+              <span className="mr-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Filter
+              </span>
+              {facets.entityType.map((facet) => {
+                const active = typeFilters.includes(facet.value);
+                return (
+                  <button
+                    key={facet.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setTypeFilters((prev) => toggleFacetValue(prev, facet.value))
+                    }
+                    className={cn(
+                      "flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-muted/50 text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <span>{ENTITY_LABELS[facet.value] || facet.value}</span>
+                    <span className={cn("tabular-nums", active ? "opacity-90" : "opacity-70")}>
+                      {facet.count}
+                    </span>
+                  </button>
+                );
+              })}
+              {typeFilters.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTypeFilters([])}
+                  className="ml-0.5 text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
 
         {/* Autocomplete suggestions */}
         {!loading && trimmedQuery && suggestions.length > 0 && !hasResults && (

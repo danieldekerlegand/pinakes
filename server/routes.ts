@@ -59,7 +59,7 @@ import {
   type ComparisonMode,
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
-import { federatedSearch } from "./services/global-search";
+import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
@@ -4464,7 +4464,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ results: [], query: "", totalCount: 0 });
         return;
       }
-      const result = await federatedSearch(q);
+      // `types` / `sources` (comma-separated) narrow results by facet.
+      const filters = parseSearchFilters(req.query);
+      const result = await federatedSearch(q, filters);
       res.json(result);
     } catch (error) {
       console.error("Error in global search:", error);

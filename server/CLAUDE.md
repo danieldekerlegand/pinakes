@@ -47,6 +47,27 @@ import) so it is trivially unit-tested. Gotchas: features whose geometry yields 
 bbox is a no-op (full layer). Client side sends the bbox via the React Query key, not a
 manual fetch — see `client/src/lib/visualization/map-performance.ts` `viewportParams()`.
 
+## Faceted global search — `services/global-search.ts`
+
+`/api/search` is federated (local corpus + shared graph) **and** faceted. Facet
+counts (per `entityType` + `source`) and filter params live in pure helpers:
+`computeFacets`/`combineFacets`/`matchesFilters`/`applyFacetFilters`/
+`parseSearchFilters`/`emptyFacets`, plus `SearchFacets`/`SearchFilters` types.
+
+- Facets are computed over the **full, unfiltered** match set *before*
+  filtering/slicing so chip counts stay stable while a filter is active;
+  `totalCount` is the **filtered** count.
+- Signature gotcha: `federatedSearch(query, filters?, deps?)` — `filters` is the
+  2nd positional arg (deps is 3rd). `globalSearch(query, filters?)`,
+  `mergeGraphResults(..., filters?)` follow suit. Grep before changing.
+- `mergeGraphResults` returns graph-**only** facets (over the deduped, unfiltered
+  graph subset); `federatedSearch` `combineFacets(local, graph)`. Dedup runs
+  before faceting so a graph hit duplicating a local result is counted once.
+- Route parses `?types=a,b&sources=local,graph` via `parseSearchFilters(req.query)`.
+- **Not** wired to the DuckDB index: search-result facets must reflect the in-TS
+  fuzzy-scored subset. Corpus-wide faceting is a different feature and already
+  lives at `/api/analytics/facets/:table/:column` (see analytical index below).
+
 ## Lazy-singleton services
 
 External-backend / expensive services follow the `graph-store.ts` pattern: a
