@@ -297,6 +297,28 @@ bands) and region; `detail` builds a `DetailDescriptor` including provenance (so
 retrieved_at, confidence) so graph facts stay attributable. Pure transforms are unit-tested in
 `culturescrape.adapter.test.ts`.
 
+**Federated global search (US-009).** The unified search box (`GET /api/search`,
+`server/services/global-search.ts`, dialog `client/src/components/global-search-dialog.tsx`)
+merges local-corpus hits with shared-graph hits from the sidecar `/search`. `federatedSearch`
+runs the existing `globalSearch` (local) and the culture-scrape client `search` in sequence;
+`mergeGraphResults` combines them:
+
+- **Ranking.** Local hits keep their fuzzy token score (`[0, 1]`). A graph hit that matched an
+  authoritative field (`csid` / `wikidata_qid`) ranks `1.0`; a name-only match ranks by the same
+  fuzzy scorer against the query (floored at `0.4` so a real hit is never dropped). Both sets are
+  merged and sorted by relevance descending, capped at 50.
+- **Dedup by csid alias.** Each local result is resolved to its csid via the US-006 resolver
+  (`getGraphResolver`); any graph hit sharing that csid is dropped — the **local result wins**
+  because it carries an in-app navigable link. Duplicate csids inside the sidecar payload are
+  also collapsed.
+- **Graceful degradation.** If the sidecar is unavailable, disabled, or returns a malformed
+  payload, the graph error is swallowed and the query returns **local-only** results — no error
+  is surfaced to the user.
+- Each result carries a `source: "local" | "graph"` badge; graph results additionally carry
+  `csid`, `confidence`, and a `provenance` object (`source`, `qid`, `matchField`, `graphLink`)
+  rendered in the dialog. Merge/dedup/ranking + the local-only fallback are unit-tested in
+  `server/services/global-search.test.ts` (no storage / network / Neo4j).
+
 ## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.
