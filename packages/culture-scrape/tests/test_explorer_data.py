@@ -31,13 +31,13 @@ def test_loads_a_bare_corpus_directory() -> None:
     corpus = load_corpus(SAMPLE)
 
     assert isinstance(corpus, Corpus)
-    assert len(corpus.nodes.rows) == 21
-    assert len(corpus.edges.rows) == 17
+    assert len(corpus.nodes.rows) == 27
+    assert len(corpus.edges.rows) == 23
     assert corpus.job_root is None  # a bare corpus, not a job root
     assert corpus.catalog is None
     # Metrics are computed from the dataset when no metrics.json is present.
     assert corpus.metrics is not None
-    assert corpus.metrics.node_count == 21
+    assert corpus.metrics.node_count == 27
 
 
 def test_lookups_by_csid_label_and_type() -> None:
@@ -48,7 +48,7 @@ def test_lookups_by_csid_label_and_type() -> None:
     assert first_label(ceviche) == "Dish"
 
     assert "Place" in corpus.labels()
-    assert len(corpus.nodes_for_label("Place")) == 3
+    assert len(corpus.nodes_for_label("Place")) == 4
     assert "LOCATED_IN" in corpus.types()
     assert corpus.edges_for_type("LOCATED_IN")
 

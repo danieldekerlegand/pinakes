@@ -7,8 +7,10 @@ intended meaning, a worked example query, the base predicates it reads, and the
 Horn clauses themselves — that *attaches* to any generated program so the same
 derived relations are available whichever engine a researcher loads.
 
-Five rules ship in :data:`RULES`, each a closure over the base ontology
-(``docs/data-model.md``):
+Seven rules ship in :data:`RULES`. The first five are closures over the base
+ontology (``docs/data-model.md``); the last two port LinguaScrape's cross-domain
+and genetic–linguistic correlation logic (T-LS-US-005) so those correlations
+become derived, queryable facts over the merged graph:
 
 * :data:`ANCESTOR` — ``ancestor/2``, the transitive closure of ``descends_from``;
 * :data:`WITHIN_REGION` — ``within_region/2``, the transitive closure of
@@ -18,7 +20,15 @@ Five rules ship in :data:`RULES`, each a closure over the base ontology
 * :data:`INFLUENCED_TRANSITIVELY` — ``influenced_transitively/2``, the transitive
   closure of ``derived_from`` ∪ ``influenced_by``;
 * :data:`COMPONENT_OF` — ``component_of/2``, the transitive closure of
-  ``part_of``.
+  ``part_of``;
+* :data:`SAME_REGION` — ``same_region/2``, entities that share an enclosing
+  region (both ``within_region`` the same place) — the geographic half of the
+  cross-domain correlation;
+* :data:`GENETIC_LINGUISTIC_CORRELATION` —
+  ``genetic_linguistic_correlation/2``, a haplogroup and a language correlated
+  by originating from / being spoken in the same region (the symbolic core of
+  LinguaScrape's genetic–linguistic correlation; the numeric overlap score stays
+  a CPU-domain computation in the TypeScript engine).
 
 **Why one clause text serves both dialects.** A pure Horn rule — a head and a
 body of positive literals over *variables* — is written identically in ISO-Prolog
@@ -183,6 +193,52 @@ COMPONENT_OF = Rule(
     ),
 )
 
+SAME_REGION = Rule(
+    name="same_region",
+    intent=(
+        "same_region(X, Y): X and Y sit within a common region — both reach the "
+        "same enclosing place through within_region/2 (the transitive closure of "
+        "located_in). It is the geographic half of LinguaScrape's cross-domain "
+        "correlation: entities co-located in one region are candidates to be "
+        "correlated across dimensions. The relation is reflexive (a node shares "
+        "its own region) and symmetric, so a caller filters X = Y when only "
+        "distinct pairs are wanted."
+    ),
+    example=(
+        "?- same_region('cs:dish:Q42', X).   % everything sharing the dish's region\n"
+        "With located_in('cs:dish:Q42', 'cs:place:Q123') and "
+        "located_in('cs:culture:Q7', 'cs:place:Q123'), both lie within Q123, so\n"
+        "X = 'cs:dish:Q42' ; X = 'cs:culture:Q7'."
+    ),
+    depends=("within_region",),
+    clauses=("same_region(X, Y) :- within_region(X, R), within_region(Y, R).",),
+)
+
+GENETIC_LINGUISTIC_CORRELATION = Rule(
+    name="genetic_linguistic_correlation",
+    intent=(
+        "genetic_linguistic_correlation(H, L): a genetic entity H (a haplogroup) "
+        "and a linguistic entity L (a language or language family) are correlated "
+        "because H originates from the same region L is spoken in — the symbolic "
+        "core of LinguaScrape's genetic–linguistic correlation. The numeric "
+        "overlap score (region-polygon intersection, notable divergences) stays a "
+        "CPU-domain computation in the TypeScript engine; the logic layer derives "
+        "only the qualitative pairing, so one query surfaces every "
+        "genetics/language co-occurrence over the merged graph."
+    ),
+    example=(
+        "?- genetic_linguistic_correlation('cs:haplogroup:r1b', L).\n"
+        "With originates_from('cs:haplogroup:r1b', 'cs:place:western-europe') and "
+        "spoken_in('cs:language:proto-celtic', 'cs:place:western-europe') yields\n"
+        "L = 'cs:language:proto-celtic'."
+    ),
+    depends=("originates_from", "spoken_in"),
+    clauses=(
+        "genetic_linguistic_correlation(X, Y) :- "
+        "originates_from(X, R), spoken_in(Y, R).",
+    ),
+)
+
 #: The shared rule library, attached to a program by passing it as ``rules=`` to
 #: the emitters (:func:`culturescrape.datalog.render_program`,
 #: :func:`culturescrape.datalog.render_souffle_program`).
@@ -192,6 +248,8 @@ RULES: tuple[Rule, ...] = (
     CONTEMPORARY,
     INFLUENCED_TRANSITIVELY,
     COMPONENT_OF,
+    SAME_REGION,
+    GENETIC_LINGUISTIC_CORRELATION,
 )
 
 
@@ -243,8 +301,10 @@ __all__ = [
     "ARITY",
     "COMPONENT_OF",
     "CONTEMPORARY",
+    "GENETIC_LINGUISTIC_CORRELATION",
     "INFLUENCED_TRANSITIVELY",
     "RULES",
+    "SAME_REGION",
     "WITHIN_REGION",
     "Rule",
     "render_rule",

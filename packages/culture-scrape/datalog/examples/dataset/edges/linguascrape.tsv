@@ -1,0 +1,7 @@
+:START_ID	:END_ID	:TYPE	source
+cs:language:proto-celtic	cs:language:pie	DESCENDS_FROM	linguascrape
+cs:language:gaulish	cs:language:proto-celtic	DESCENDS_FROM	linguascrape
+cs:haplogroup:r1b	cs:place:western-europe	ORIGINATES_FROM	linguascrape
+cs:language:proto-celtic	cs:place:western-europe	SPOKEN_IN	linguascrape
+cs:language:gaulish	cs:place:western-europe	SPOKEN_IN	linguascrape
+cs:language:gaulish	cs:event:la-tene	CONTEMPORARY_WITH	linguascrape

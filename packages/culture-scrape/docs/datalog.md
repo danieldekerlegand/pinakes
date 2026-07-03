@@ -340,6 +340,14 @@ Every rule relation is **binary over csids**.
 | `contemporary/2` | symmetric `contemporary_with/2` | `contemporary(X, Y)` — `X` and `Y` overlap in time, queryable from either endpoint |
 | `influenced_transitively/2` | transitive `derived_from/2` ∪ `influenced_by/2` | `influenced_transitively(X, Y)` — `Y` is a direct or indirect cultural forebear of `X` |
 | `component_of/2` | transitive `part_of/2` | `component_of(X, Y)` — `X` is a component of whole `Y` through any chain of part-of containments |
+| `same_region/2` | co-location via `within_region/2` | `same_region(X, Y)` — `X` and `Y` share an enclosing region (reflexive, symmetric); the geographic half of the cross-domain correlation |
+| `genetic_linguistic_correlation/2` | `originates_from/2` ⋈ `spoken_in/2` on region | `genetic_linguistic_correlation(H, L)` — a haplogroup `H` and a language `L` correlate because `H` originates in the region `L` is spoken in |
+
+The last two port LinguaScrape's cross-domain and genetic–linguistic correlation
+logic into the shared graph (T-LS-US-005). `genetic_linguistic_correlation/2`
+derives only the *qualitative* pairing; the numeric overlap score (region-polygon
+intersection, notable divergences) stays a CPU-domain computation in the
+TypeScript engine, per `docs/culturescrape-integration.md`.
 
 `contemporary/2` is a **new** predicate rather than a self-mirroring clause on
 `contemporary_with/2`: in Prolog a clause `contemporary_with(X, Y) :-
@@ -433,7 +441,7 @@ one on that dataset in SWI-Prolog (skipping when `swipl` is absent):
 ```python
 >>> from culturescrape.datalog.examples import EXAMPLES
 >>> [example.slug for example in EXAMPLES]
-['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition']
+['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition', 'genetic-linguistic-correlation', 'language-descent']
 
 ```
 
@@ -455,8 +463,14 @@ $ swipl -q -g main -t halt /tmp/eg/graph.pl datalog/examples/ancestry-of-dish.pl
 | `game-family-variants.pl` | the variant family of a game | symmetric closure of `variant_of/2` (`VARIANT_OF`) | the game's family, one csid per line — `cs:game:shogi`, `cs:game:xiangqi` |
 | `invention-lineage.pl` | the derivation lineage below an invention | transitive `derived_from/2` (`DERIVED_FROM`) with depth | each descendant and its depth, tab-separated — `cs:invention:mobile-phone  1`, `cs:invention:smartphone  2` |
 | `material-composition.pl` | the materials an artifact is made of | `made_of/2` (`MADE_OF`) | the artifact's materials, one csid per line — `cs:material:silk`, `cs:material:cotton` |
+| `genetic-linguistic-correlation.pl` | the languages a haplogroup correlates with | `genetic_linguistic_correlation/2` | each correlated language, one csid per line — `cs:language:proto-celtic`, `cs:language:gaulish` |
+| `language-descent.pl` | the full ancestry of a language | transitive `ancestor/2` (`DESCENDS_FROM`) | each ancestor, one csid per line — `cs:language:proto-celtic`, `cs:language:pie` |
 
-The last four mirror the per-domain `cypher/*.cypher` queries, one per new
+The last two run over **LinguaScrape-origin** facts merged into the dataset
+(`source: linguascrape`), exercising the ported correlation rules and the base
+transitive closure across the merged graph.
+
+The four before them mirror the per-domain `cypher/*.cypher` queries, one per new
 corpus-expansion signature relationship, each reaching only the typed predicate
 the exporter emits for that registered `:TYPE`. The first three base queries are
 closures from the rule library, so in Soufflé the same

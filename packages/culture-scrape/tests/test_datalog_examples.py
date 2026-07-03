@@ -43,6 +43,8 @@ EXPECTED_SLUGS = {
     "game-family-variants",
     "invention-lineage",
     "material-composition",
+    "genetic-linguistic-correlation",
+    "language-descent",
 }
 
 #: Base facts each example depends on; their presence makes the offline layer a
@@ -63,6 +65,12 @@ REQUIRED_BASE_FACTS = [
     Fact("derived_from", ("cs:invention:smartphone", "cs:invention:mobile-phone")),
     Fact("made_of", ("cs:clothing:kimono", "cs:material:silk")),
     Fact("made_of", ("cs:clothing:kimono", "cs:material:cotton")),
+    # LinguaScrape-origin facts the correlation examples query (source: linguascrape).
+    Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:western-europe")),
+    Fact("spoken_in", ("cs:language:proto-celtic", "cs:place:western-europe")),
+    Fact("spoken_in", ("cs:language:gaulish", "cs:place:western-europe")),
+    Fact("descends_from", ("cs:language:gaulish", "cs:language:proto-celtic")),
+    Fact("descends_from", ("cs:language:proto-celtic", "cs:language:pie")),
 ]
 
 
