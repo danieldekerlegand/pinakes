@@ -86,6 +86,42 @@ def _healthy() -> tuple[list[Row], list[Row]]:
     return nodes, edges
 
 
+def _ls_node(csid: str, *, ls_id: str, source: str = "linguascrape", **kw: str) -> Row:
+    """A LinguaScrape-origin node: canonical row + a ``linguascrape_id`` alias."""
+    row = _node(csid, source=source, **kw)
+    row["linguascrape_id"] = ls_id
+    return row
+
+
+def _ls_edge(
+    start: str,
+    end: str,
+    rel_type: str = "DESCENDS_FROM",
+    *,
+    ls_id: str = "e",
+    source: str = "linguascrape",
+    **kw: str,
+) -> Row:
+    """A LinguaScrape-origin edge carrying a ``linguascrape_id`` alias."""
+    row = _edge(start, end, rel_type, source=source, **kw)
+    row["linguascrape_id"] = ls_id
+    return row
+
+
+def _merged_clean() -> tuple[list[Row], list[Row]]:
+    """A merged corpus: one native node/edge plus reconciled LinguaScrape rows."""
+    nodes = [
+        _node("cs:dish:Q1", qid="Q1"),
+        _ls_node("cs:lang:Q2", ls_id="pie", qid="Q2"),
+        _ls_node("cs:lang:gaul", ls_id="gaulish", getty="aat:1"),
+    ]
+    edges = [
+        _edge("cs:dish:Q1", "cs:lang:Q2"),
+        _ls_edge("cs:lang:gaul", "cs:lang:Q2", ls_id="e1"),
+    ]
+    return nodes, edges
+
+
 def _gate(report: QaReport, key: str) -> GateResult:
     return next(gate for gate in report.gates if gate.key == key)
 
@@ -179,6 +215,93 @@ def test_partly_reconciled_rate_is_a_fraction() -> None:
     assert _gate(report, "unreconciled_rate").value == pytest.approx(0.5)
 
 
+# --- LinguaScrape-scoped gates (US-007) -------------------------------------
+
+
+def test_native_only_corpus_has_no_linguascrape_gates() -> None:
+    report = evaluate(*_healthy())
+    assert not any(gate.key.startswith("linguascrape_") for gate in report.gates)
+
+
+def test_merged_clean_corpus_passes_every_gate() -> None:
+    report = evaluate(*_merged_clean())
+    assert report.ok
+    ls_keys = [g.key for g in report.gates if g.key.startswith("linguascrape_")]
+    assert ls_keys == [
+        "linguascrape_provenance_completeness",
+        "linguascrape_duplicate_rate",
+        "linguascrape_dangling_edge_rate",
+        "linguascrape_unreconciled_rate",
+    ]
+
+
+def test_linguascrape_row_recognised_by_merged_source_token() -> None:
+    # A reconcile-merged node keeps no alias but carries the joined source.
+    nodes = [_node("cs:lang:m", qid="Q1", source="wikidata;linguascrape")]
+    report = evaluate(nodes, [])
+    assert any(gate.key.startswith("linguascrape_") for gate in report.gates)
+
+
+def test_linguascrape_provenance_gate_trips_when_stamp_dropped() -> None:
+    # Both rows are LinguaScrape-origin (alias present); one lost its source stamp.
+    nodes = [
+        _ls_node("cs:lang:a", ls_id="a", qid="Q1"),
+        _ls_node("cs:lang:b", ls_id="b", qid="Q2", source=""),
+    ]
+    report = evaluate(nodes, [])
+    gate = _gate(report, "linguascrape_provenance_completeness")
+    assert not gate.passed
+    assert gate.value == pytest.approx(0.5)
+
+
+def test_linguascrape_duplicate_gate_trips_on_shared_qid() -> None:
+    nodes, edges = _merged_clean()
+    nodes.append(_ls_node("cs:lang:Q2-dup", ls_id="pie2", qid="Q2"))
+    report = evaluate(nodes, edges)
+    gate = _gate(report, "linguascrape_duplicate_rate")
+    assert not gate.passed
+    # Three LinguaScrape nodes, one duplicate QID.
+    assert gate.value == pytest.approx(1 / 3)
+
+
+def test_linguascrape_dangling_gate_trips_on_unknown_endpoint() -> None:
+    nodes, edges = _merged_clean()
+    edges.append(_ls_edge("cs:lang:Q2", "cs:lang:missing", ls_id="e2"))
+    report = evaluate(nodes, edges)
+    gate = _gate(report, "linguascrape_dangling_edge_rate")
+    assert not gate.passed
+    assert gate.value == pytest.approx(0.5)
+
+
+def test_linguascrape_dangling_gate_allows_edge_into_native_node() -> None:
+    # A LinguaScrape edge may legitimately point at a native node.
+    nodes = [_node("cs:dish:Q1", qid="Q1"), _ls_node("cs:lang:Q2", ls_id="pie")]
+    edges = [_ls_edge("cs:lang:Q2", "cs:dish:Q1", ls_id="e1")]
+    report = evaluate(nodes, edges)
+    assert _gate(report, "linguascrape_dangling_edge_rate").value == 0.0
+
+
+def test_linguascrape_unreconciled_gate_trips_when_tightened() -> None:
+    nodes = [
+        _ls_node("cs:lang:a", ls_id="a"),
+        _ls_node("cs:lang:b", ls_id="b", qid="Q9"),
+    ]
+    report = evaluate(
+        nodes, [], GateThresholds(max_linguascrape_unreconciled_rate=0.0)
+    )
+    gate = _gate(report, "linguascrape_unreconciled_rate")
+    assert not gate.passed
+    assert gate.value == pytest.approx(0.5)
+
+
+def test_linguascrape_from_dict_overrides_ls_thresholds() -> None:
+    thresholds = GateThresholds.from_dict(
+        {"max_linguascrape_dangling_edge_rate": 0.25}
+    )
+    assert thresholds.max_linguascrape_dangling_edge_rate == 0.25
+    assert thresholds.min_linguascrape_provenance_completeness == 1.0
+
+
 # --- empty input ------------------------------------------------------------
 
 
@@ -226,6 +349,21 @@ def test_summary_marks_pass_and_fail() -> None:
     assert "[PASS] dangling-edge rate" in summary
 
 
+def test_render_markdown_lists_every_gate() -> None:
+    report = evaluate(*_merged_clean())
+    markdown = report.render_markdown()
+    assert markdown.startswith("# QA report")
+    assert "LinguaScrape provenance completeness" in markdown
+    assert "| Gate | Result | Value | Bound | Detail |" in markdown
+
+
+def test_write_markdown_emits_human_readable_artifact(tmp_path: Path) -> None:
+    report = evaluate(*_merged_clean())
+    out = report.write_markdown(tmp_path / "qa.md")
+    assert out.is_file()
+    assert "LinguaScrape dangling-edge rate" in out.read_text(encoding="utf-8")
+
+
 # --- directory reader -------------------------------------------------------
 
 
@@ -267,6 +405,31 @@ def test_cli_qa_fails_on_violation_when_requested(tmp_path: Path) -> None:
 
 def test_cli_qa_rejects_non_directory(tmp_path: Path) -> None:
     assert main(["qa", str(tmp_path / "nope")]) == 2
+
+
+def test_cli_qa_fails_on_degraded_linguascrape_corpus(tmp_path: Path) -> None:
+    # One extra LinguaScrape-origin (source='linguascrape') node reconciled to
+    # nothing. Default thresholds are permissive, so the corpus passes; tightening
+    # only the LinguaScrape unreconciled bound trips that gate alone.
+    nodes, edges = _healthy()
+    nodes.append(_node("cs:lang:x", source="linguascrape"))
+    _write_dataset(tmp_path, nodes, edges)
+    md = tmp_path / "qa.md"
+    assert main(["qa", str(tmp_path), "--markdown-out", str(md)]) == 0
+    assert md.is_file()
+    assert "LinguaScrape unreconciled-entity rate" in md.read_text(encoding="utf-8")
+    assert (
+        main(
+            [
+                "qa",
+                str(tmp_path),
+                "--max-linguascrape-unreconciled-rate",
+                "0.0",
+                "--fail-on-violation",
+            ]
+        )
+        == 1
+    )
 
 
 # --- runner integration -----------------------------------------------------

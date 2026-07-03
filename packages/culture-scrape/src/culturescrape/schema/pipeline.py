@@ -38,10 +38,19 @@ from culturescrape.schema.anchor import GettyIndex, anchor_rows
 from culturescrape.schema.categorize import categorize_rows
 from culturescrape.schema.headers import EdgeSchema
 from culturescrape.schema.ids import IdError, normalize_type
-from culturescrape.schema.mapper import map_records, node_schema
+from culturescrape.schema.mapper import (
+    map_linguascrape_records,
+    map_records,
+    node_schema,
+)
 from culturescrape.schema.merge import DEFAULT_FUZZY_THRESHOLD, merge_rows
 from culturescrape.schema.reconcile import WikidataReconciler, reconcile_rows
 from culturescrape.schema.tsvio import Row, write_edge_rows, write_node_rows
+
+#: Acquisition adapter whose records already ship the shared canonical shape, so
+#: normalization takes the short LinguaScrape path (map + dedup, no field-rename
+#: or category/type synthesis) rather than the generic mapper.
+LINGUASCRAPE_EXPORT_ADAPTER = "linguascrape-export"
 
 
 class PipelineError(ValueError):
@@ -129,7 +138,17 @@ def normalize_records(
     *reconciler* is given; otherwise the run is offline and deterministic. The
     returned rows are unsorted — :func:`write_result` imposes the canonical
     order on write.
+
+    A LinguaScrape export category (``source.params.adapter ==
+    ``linguascrape-export``) takes a shorter path: its records already ship the
+    canonical shape (their own ``:LABEL`` / ``csid`` / ``:TYPE``), so they are
+    mapped via :func:`~culturescrape.schema.mapper.map_linguascrape_records`,
+    split into nodes and edges, and the nodes are deduped — no field rename,
+    anchoring, reconciliation, or category/type synthesis.
     """
+    if _is_linguascrape_export(category):
+        return _normalize_linguascrape(records, fuzzy_threshold=fuzzy_threshold)
+
     rows = map_records(records, category)  # map + normalize
     if getty_index is not None:
         anchor_rows(rows, getty_index)
@@ -140,6 +159,30 @@ def normalize_records(
     return NormalizationResult(
         nodes=[*merged, *categorization.nodes], edges=categorization.edges
     )
+
+
+def _is_linguascrape_export(category: CategorySpec) -> bool:
+    """Whether *category* is ingested through the LinguaScrape export adapter."""
+    return category.source.params.get("adapter") == LINGUASCRAPE_EXPORT_ADAPTER
+
+
+def _normalize_linguascrape(
+    records: Iterable[RawRecord], *, fuzzy_threshold: float
+) -> NormalizationResult:
+    """Normalize LinguaScrape export records (already canonically shaped).
+
+    Records are mapped via
+    :func:`~culturescrape.schema.mapper.map_linguascrape_records` — which re-mints
+    each ``csid`` deterministically (QID- then ``linguascrape_id``-anchored) so a
+    re-run is idempotent — then split into node rows (carrying a ``:LABEL``) and
+    edge rows (carrying a ``:TYPE``). Node rows are deduped; edge rows pass
+    through unchanged, ready for corpus-level stitching and linking.
+    """
+    rows = map_linguascrape_records(records)
+    node_rows = [row for row in rows if ":LABEL" in row]
+    edge_rows = [row for row in rows if ":TYPE" in row]
+    merged = merge_rows(node_rows, fuzzy_threshold=fuzzy_threshold)
+    return NormalizationResult(nodes=merged, edges=edge_rows)
 
 
 def write_result(

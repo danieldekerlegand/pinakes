@@ -29,14 +29,16 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from enum import Enum
 from typing import Any
 
 from culturescrape.acquire.http import HttpClient
-from culturescrape.schema.ids import IdError, mint_csid
-from culturescrape.schema.mapper import OVERFLOW_KEY
+from culturescrape.schema.ids import IdError, mint_csid, normalize_name
+from culturescrape.schema.mapper import LINGUASCRAPE_ID_KEY, OVERFLOW_KEY
+from culturescrape.schema.merge import PROVENANCE_TEXT_COLUMNS
 from culturescrape.schema.tsvio import Row
 
 LOGGER = logging.getLogger("culturescrape.schema.reconcile")
@@ -321,3 +323,404 @@ def _record_decision(row: Row, result: ReconciliationResult) -> None:
         record["qid"] = result.qid
     data[RECONCILIATION_KEY] = record
     row[OVERFLOW_KEY] = json.dumps(data, ensure_ascii=False, sort_keys=True)
+
+
+# --- Offline reconciliation of LinguaScrape-origin rows --------------------
+#
+# The Wikidata reconciler above answers "which QID is this name?" over the
+# network. LinguaScrape rows arrive *without* a QID
+# (``docs/reconcile-linguascrape.md``), so their identity has to be settled
+# against the nodes already in the corpus using only local signals. This is that
+# offline cascade: for each incoming LinguaScrape row it looks for the existing
+# node it denotes by a strict precedence — a shared language code
+# (iso639/glottocode), then an exact normalized ``(name, type, region)``, then a
+# fuzzy name within one type/region — and reports each row as *matched*, *new*,
+# or *ambiguous*.
+#
+# A single clear candidate is a **match**: the incoming row is merged onto the
+# existing node, keeping the node's identity and concatenating *both* sources'
+# provenance. Two or more rival candidates are **ambiguous**: the row is never
+# merged silently — it is listed with its competing candidates for human triage.
+# No candidate at all is **new**: the row stands as its own node.
+
+#: Default minimum normalized-name similarity (0–1) for the local fuzzy tier.
+DEFAULT_LOCAL_FUZZY_THRESHOLD = 0.85
+
+#: Reserved key under a row's overflow JSON holding the local-reconcile decision.
+RECONCILIATION_LOCAL_KEY = "reconcile_local"
+
+
+class LocalMatchTier(Enum):
+    """Which cascade signal identified a candidate, strongest precedence first."""
+
+    LANGUAGE_CODE = "language_code"
+    NAME_REGION = "name_region"
+    FUZZY_NAME = "fuzzy_name"
+
+
+class LocalOutcome(Enum):
+    """The outcome of reconciling one LinguaScrape row against the corpus."""
+
+    MATCHED = "matched"
+    NEW = "new"
+    AMBIGUOUS = "ambiguous"
+
+
+#: Match confidence stamped per exact cascade tier (fuzzy carries its own ratio).
+_TIER_SCORE: dict[LocalMatchTier, float] = {
+    LocalMatchTier.LANGUAGE_CODE: 1.0,
+    LocalMatchTier.NAME_REGION: 0.95,
+}
+
+
+@dataclass(frozen=True)
+class LocalCandidate:
+    """One existing node an incoming row might denote, with its match strength."""
+
+    csid: str
+    name: str
+    tier: LocalMatchTier
+    score: float
+
+
+@dataclass(frozen=True)
+class LocalReconciliation:
+    """The decision for one incoming LinguaScrape row.
+
+    ``matched_csid`` is set only when ``outcome`` is
+    :attr:`~LocalOutcome.MATCHED`. ``confidence`` is the strength of the best
+    candidate considered (``0.0`` when the row is new). ``candidates`` keeps the
+    rival existing nodes, best first — on an ambiguous decision this is the list
+    a human triages; it is never auto-merged.
+    """
+
+    csid: str
+    name: str
+    outcome: LocalOutcome
+    tier: LocalMatchTier | None
+    matched_csid: str | None
+    confidence: float
+    candidates: tuple[LocalCandidate, ...]
+
+
+@dataclass(frozen=True)
+class LocalReconciliationReport:
+    """The full result of :func:`reconcile_linguascrape`.
+
+    ``results`` holds one :class:`LocalReconciliation` per incoming row, in input
+    order. ``rows`` holds the rows safe to load into the corpus — each matched
+    row merged onto its existing node (both provenances preserved) and each new
+    row as-is; **ambiguous rows are deliberately omitted** so nothing is merged
+    without human review (they remain listed under :attr:`ambiguous`).
+    """
+
+    results: tuple[LocalReconciliation, ...]
+    rows: tuple[Row, ...]
+
+    @property
+    def matched(self) -> tuple[LocalReconciliation, ...]:
+        return tuple(r for r in self.results if r.outcome is LocalOutcome.MATCHED)
+
+    @property
+    def new(self) -> tuple[LocalReconciliation, ...]:
+        return tuple(r for r in self.results if r.outcome is LocalOutcome.NEW)
+
+    @property
+    def ambiguous(self) -> tuple[LocalReconciliation, ...]:
+        return tuple(r for r in self.results if r.outcome is LocalOutcome.AMBIGUOUS)
+
+    def counts(self) -> dict[str, int]:
+        """Return the number of rows in each outcome bucket."""
+        return {
+            outcome.value: sum(1 for r in self.results if r.outcome is outcome)
+            for outcome in LocalOutcome
+        }
+
+
+def reconcile_linguascrape(
+    incoming: Iterable[Row],
+    existing: Iterable[Row],
+    *,
+    fuzzy_threshold: float = DEFAULT_LOCAL_FUZZY_THRESHOLD,
+) -> LocalReconciliationReport:
+    """Reconcile LinguaScrape-origin *incoming* rows against *existing* nodes.
+
+    Each incoming row runs the offline cascade against an index of the existing
+    corpus (language code → exact ``(name, type, region)`` → fuzzy name) and is
+    classified :attr:`~LocalOutcome.MATCHED`, :attr:`~LocalOutcome.NEW`, or
+    :attr:`~LocalOutcome.AMBIGUOUS`. A match is merged onto its existing node,
+    preserving both sources' provenance; a new row passes through; an ambiguous
+    row is held back for triage (never auto-merged). The decision is recorded in
+    every emitted row's overflow JSON under :data:`RECONCILIATION_LOCAL_KEY`.
+    """
+    index = _ExistingIndex(list(existing))
+    results: list[LocalReconciliation] = []
+    rows: list[Row] = []
+    for row in incoming:
+        candidates = index.candidates(row, fuzzy_threshold)
+        outcome, tier, matched_csid, confidence = _decide_local(candidates)
+        results.append(
+            LocalReconciliation(
+                csid=_cell(row, "csid"),
+                name=_cell(row, "name"),
+                outcome=outcome,
+                tier=tier,
+                matched_csid=matched_csid,
+                confidence=confidence,
+                candidates=candidates,
+            )
+        )
+        if outcome is LocalOutcome.MATCHED and matched_csid is not None:
+            target = index.by_csid[matched_csid]
+            rows.append(_merge_local(target, row, tier, matched_csid, confidence))
+        elif outcome is LocalOutcome.NEW:
+            rows.append(_record_local(dict(row), outcome, None, None, confidence))
+    return LocalReconciliationReport(tuple(results), tuple(rows))
+
+
+class _ExistingIndex:
+    """Blocking index over the existing corpus for the offline cascade."""
+
+    def __init__(self, rows: Sequence[Row]) -> None:
+        self.by_csid: dict[str, Row] = {}
+        self._by_code: dict[str, list[str]] = {}
+        self._by_name_region: dict[tuple[str, str, str], list[str]] = {}
+        self._blocks: dict[tuple[str, str], list[tuple[str, str]]] = {}
+        for row in rows:
+            csid = _cell(row, "csid")
+            if not csid or csid in self.by_csid:
+                continue
+            self.by_csid[csid] = row
+            code = _language_code(row)
+            if code:
+                self._by_code.setdefault(code, []).append(csid)
+            key = _name_region_key(row)
+            if key is not None:
+                self._by_name_region.setdefault(key, []).append(csid)
+                block = (key[1], key[2])
+                self._blocks.setdefault(block, []).append((key[0], csid))
+
+    def candidates(
+        self, row: Row, fuzzy_threshold: float
+    ) -> tuple[LocalCandidate, ...]:
+        """Return the candidate existing nodes for *row*, best tier first."""
+        code = _language_code(row)
+        if code:
+            hits = self._by_code.get(code)
+            if hits:
+                return self._exact(hits, LocalMatchTier.LANGUAGE_CODE)
+        key = _name_region_key(row)
+        if key is not None:
+            hits = self._by_name_region.get(key)
+            if hits:
+                return self._exact(hits, LocalMatchTier.NAME_REGION)
+        return self._fuzzy(row, fuzzy_threshold)
+
+    def _exact(
+        self, csids: Sequence[str], tier: LocalMatchTier
+    ) -> tuple[LocalCandidate, ...]:
+        score = _TIER_SCORE[tier]
+        return tuple(
+            LocalCandidate(csid, _cell(self.by_csid[csid], "name"), tier, score)
+            for csid in csids
+        )
+
+    def _fuzzy(
+        self, row: Row, threshold: float
+    ) -> tuple[LocalCandidate, ...]:
+        norm = _norm_name(row)
+        if not norm:
+            return ()
+        block = self._blocks.get((_type_of(row), _region(row)), [])
+        scored: list[LocalCandidate] = []
+        for cand_name, csid in block:
+            ratio = SequenceMatcher(None, norm, cand_name).ratio()
+            if ratio >= threshold:
+                name = _cell(self.by_csid[csid], "name")
+                scored.append(
+                    LocalCandidate(csid, name, LocalMatchTier.FUZZY_NAME, ratio)
+                )
+        scored.sort(key=lambda c: (-c.score, c.csid))
+        return tuple(scored)
+
+
+def _decide_local(
+    candidates: tuple[LocalCandidate, ...],
+) -> tuple[LocalOutcome, LocalMatchTier | None, str | None, float]:
+    """Reduce ranked *candidates* to an outcome, tier, matched csid, confidence."""
+    if not candidates:
+        return LocalOutcome.NEW, None, None, 0.0
+    top = candidates[0]
+    if len({c.csid for c in candidates}) == 1:
+        return LocalOutcome.MATCHED, top.tier, top.csid, top.score
+    return LocalOutcome.AMBIGUOUS, top.tier, None, top.score
+
+
+def _merge_local(
+    target: Row,
+    incoming: Row,
+    tier: LocalMatchTier | None,
+    matched_csid: str,
+    confidence: float,
+) -> Row:
+    """Merge *incoming* onto the existing *target*, preserving both provenance.
+
+    The target's identity (``csid``, ``wikidata_qid``) is kept; blank value
+    columns are enriched from the incoming row; labels and aliases are unioned;
+    and every provenance column is concatenated so neither source is lost.
+    """
+    merged: Row = dict(target)
+    for key, value in incoming.items():
+        if key in _MERGE_RESERVED:
+            continue
+        if not merged.get(key):
+            merged[key] = value
+
+    merged[":LABEL"] = _union_labels(target, incoming)
+    canonical = _cell(merged, "name")
+    merged["aliases"] = _union_aliases(target, incoming, canonical)
+    for column in PROVENANCE_TEXT_COLUMNS:
+        joined = _PROVENANCE_SEP.join(
+            _unique(v for v in (_cell(target, column), _cell(incoming, column)) if v)
+        )
+        if joined:
+            merged[column] = joined
+    merged["confidence"] = repr(max(_confidence(target), _confidence(incoming)))
+
+    alias = _cell(incoming, LINGUASCRAPE_ID_KEY)
+    if alias and not _cell(target, LINGUASCRAPE_ID_KEY):
+        merged[LINGUASCRAPE_ID_KEY] = alias
+
+    return _record_local(merged, LocalOutcome.MATCHED, tier, matched_csid, confidence)
+
+
+def _record_local(
+    row: Row,
+    outcome: LocalOutcome,
+    tier: LocalMatchTier | None,
+    matched_csid: str | None,
+    confidence: float,
+) -> Row:
+    """Record the local-reconcile decision in *row*'s overflow JSON; return it."""
+    data = _decode_overflow(row)
+    record: dict[str, Any] = {
+        "outcome": outcome.value,
+        "confidence": confidence,
+    }
+    if tier is not None:
+        record["tier"] = tier.value
+    if matched_csid is not None:
+        record["matched_csid"] = matched_csid
+    data[RECONCILIATION_LOCAL_KEY] = record
+    row[OVERFLOW_KEY] = json.dumps(data, ensure_ascii=False, sort_keys=True)
+    return row
+
+
+#: Separator used to concatenate provenance values from a merged pair.
+_PROVENANCE_SEP = ";"
+
+#: Row keys the merge handles explicitly (identity + provenance); every other
+#: column is a value column whose blank target cell is enriched from incoming.
+_MERGE_RESERVED = frozenset(
+    {
+        "csid",
+        ":LABEL",
+        "aliases",
+        "confidence",
+        "wikidata_qid",
+        "getty_id",
+        OVERFLOW_KEY,
+        LINGUASCRAPE_ID_KEY,
+        *PROVENANCE_TEXT_COLUMNS,
+    }
+)
+
+
+def _cell(row: Row, key: str) -> str:
+    """The stripped scalar value at *key*, or ``""`` (lists are not scalars)."""
+    value = row.get(key)
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _type_of(row: Row) -> str:
+    """The row's casefolded primary ``:LABEL`` (node type), or ``""``."""
+    label = _primary_label(row)
+    return label.casefold() if label else ""
+
+
+def _language_code(row: Row) -> str:
+    """The row's casefolded ``language_code`` (iso639/glottocode), or ``""``."""
+    return _cell(row, "language_code").casefold()
+
+
+def _region(row: Row) -> str:
+    """The row's casefolded ``region`` blocking value (``""`` when unknown).
+
+    Read from a ``region`` cell if present, else from a ``region`` field carried
+    in the overflow JSON — the canonical schema has no dedicated column, so a
+    row without either simply blocks on ``(name, type)`` alone.
+    """
+    region = _cell(row, "region")
+    if not region:
+        extra = _decode_overflow(row).get("region")
+        if isinstance(extra, str):
+            region = extra.strip()
+    return region.casefold()
+
+
+def _norm_name(row: Row) -> str:
+    name = _cell(row, "name")
+    return normalize_name(name) if name else ""
+
+
+def _name_region_key(row: Row) -> tuple[str, str, str] | None:
+    """The exact ``(norm_name, type, region)`` blocking key, or ``None``."""
+    norm = _norm_name(row)
+    if not norm:
+        return None
+    return (norm, _type_of(row), _region(row))
+
+
+def _union_labels(target: Row, incoming: Row) -> list[str]:
+    collected: list[str] = []
+    for row in (target, incoming):
+        labels = row.get(":LABEL")
+        if isinstance(labels, list):
+            collected.extend(labels)
+    return _unique(collected)
+
+
+def _union_aliases(target: Row, incoming: Row, canonical: str) -> list[str]:
+    """Union both rows' aliases and the incoming name, minus the kept name."""
+    collected: list[str] = []
+    for row in (target, incoming):
+        aliases = row.get("aliases")
+        if isinstance(aliases, list):
+            collected.extend(aliases)
+        collected.append(_cell(row, "name"))
+    return [a for a in _unique(collected) if a and a != canonical]
+
+
+def _confidence(row: Row) -> float:
+    try:
+        return float(_cell(row, "confidence"))
+    except ValueError:
+        return 0.0
+
+
+def _decode_overflow(row: Row) -> dict[str, Any]:
+    """Decode a row's overflow JSON object, or ``{}`` if absent/unusable."""
+    raw = row.get(OVERFLOW_KEY)
+    if isinstance(raw, str) and raw:
+        loaded = json.loads(raw)
+        if isinstance(loaded, dict):
+            return loaded
+    return {}
+
+
+def _unique(values: Iterable[str]) -> list[str]:
+    """Distinct *values* in first-seen order."""
+    seen: dict[str, None] = {}
+    for value in values:
+        seen.setdefault(value, None)
+    return list(seen)

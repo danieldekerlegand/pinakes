@@ -31,13 +31,17 @@ from culturescrape.datalog.rules import (
     ANCESTOR,
     COMPONENT_OF,
     CONTEMPORARY,
+    GENETIC_LINGUISTIC_CORRELATION,
     INFLUENCED_TRANSITIVELY,
+    SAME_REGION,
     WITHIN_REGION,
 )
 
 #: A fact base exercising every rule's closure: a two-step descends_from chain,
 #: a two-step located_in containment, a one-directional contemporary_with edge,
-#: and a derived_from→influenced_by influence chain.
+#: a derived_from→influenced_by influence chain, and — for the LinguaScrape
+#: correlation rules — a haplogroup originating in the region a language is
+#: spoken in.
 RULE_FACTS = [
     Fact("descends_from", ("cs:lang:spa", "cs:lang:lat")),
     Fact("descends_from", ("cs:lang:lat", "cs:lang:itc")),
@@ -48,6 +52,8 @@ RULE_FACTS = [
     Fact("influenced_by", ("cs:dish:Q42", "cs:dish:Q07")),
     Fact("part_of", ("cs:part:Q11", "cs:part:Q12")),
     Fact("part_of", ("cs:part:Q12", "cs:part:Q13")),
+    Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:Q123")),
+    Fact("spoken_in", ("cs:lang:gaulish", "cs:place:Q123")),
 ]
 
 
@@ -61,6 +67,8 @@ def test_library_defines_the_required_derived_relations() -> None:
         "contemporary",
         "influenced_transitively",
         "component_of",
+        "same_region",
+        "genetic_linguistic_correlation",
     ]
 
 
@@ -101,7 +109,16 @@ def test_pl_declares_derived_and_base_rule_predicates() -> None:
     # A rule body over a base relation the graph never populates must still be
     # declared, so querying it answers false rather than raising.
     program = render_program([], rules=RULES)
-    for name in ("ancestor", "within_region", "contemporary", "descends_from"):
+    for name in (
+        "ancestor",
+        "within_region",
+        "contemporary",
+        "descends_from",
+        "same_region",
+        "genetic_linguistic_correlation",
+        "originates_from",
+        "spoken_in",
+    ):
         assert f":- discontiguous {name}/2." in program
         assert f":- dynamic {name}/2." in program
 
@@ -194,6 +211,9 @@ _CLOSURE_GOALS = (
     "contemporary('cs:dish:Q42', 'cs:battle:Q47')",  # symmetric closure
     "influenced_transitively('cs:dish:Q99', 'cs:dish:Q07')",  # union closure
     "component_of('cs:part:Q11', 'cs:part:Q13')",  # transitive part_of
+    "same_region('cs:dish:Q42', 'cs:place:Q123')",  # co-located via within_region
+    # haplogroup origin ∩ language spoken region → correlation
+    "genetic_linguistic_correlation('cs:haplogroup:r1b', 'cs:lang:gaulish')",
 )
 
 
@@ -267,5 +287,7 @@ def test_all_rule_constants_are_referenced() -> None:
         CONTEMPORARY,
         INFLUENCED_TRANSITIVELY,
         COMPONENT_OF,
+        SAME_REGION,
+        GENETIC_LINGUISTIC_CORRELATION,
     }
     assert set(RULES) == named

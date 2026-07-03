@@ -23,6 +23,22 @@ A merge that would unite two **different** non-empty `wikidata_qid` (or `getty_i
 *refused* — an explicit identifier conflict means the rows are distinct things, however
 alike their names.
 
+Because LinguaScrape rows ship no QID (steps 1–2 are inert on first ingest), the
+`reconcile.reconcile_linguascrape(incoming, existing)` entry point runs an **offline**
+form of the cascade over just steps 3–5 — no network, no live graph. For each incoming
+row it classifies against an index of the existing corpus:
+
+- **matched** — exactly one existing node clears a tier (`language_code`, then exact
+  `(name, type, region)`, then fuzzy name). The incoming row is merged onto that node,
+  keeping its identity (`csid`/`wikidata_qid`) and **concatenating both sources'**
+  provenance; the enriched, load-safe rows come back on `report.rows`.
+- **ambiguous** — two or more rival nodes clear the tier. The row is **never** merged: it
+  is listed on `report.ambiguous` (with its competing candidates) and *withheld* from
+  `report.rows` for human triage.
+- **new** — no tier fires; the row stands as its own node.
+
+Every emitted row records its decision under the `reconcile_local` overflow key.
+
 ## What LinguaScrape ships (and what it does not)
 
 LinguaScrape rows arrive with **no** `wikidata_qid` / `getty_id`, so steps 1–2 are inert on
@@ -75,3 +91,69 @@ network or a live graph, so the ingest can be reviewed before it runs:
 
 The dry-run never mutates the graph; it only tells you what the real reconcile step above is
 likely to do, so surprises surface in review rather than in Neo4j.
+
+## Edges into the ontology (US-004)
+
+LinguaScrape edge rows are ingested as first-class canonical edges so they participate in
+cross-dimensional linking alongside native inferred edges:
+
+- **`:TYPE` is canonicalised at map time.** `map_linguascrape_edge` translates the export's
+  edge token through `LINGUASCRAPE_EDGE_TYPE_MAP` (`schema/mapper.py`) to a **registered**
+  ontology `:TYPE`. Five tokens map to themselves (`DESCENDS_FROM`, `INFLUENCED_BY`,
+  `BORROWED_FROM`, `COGNATE_WITH`, `DERIVED_FROM`); the two LinguaScrape-specific tokens fold
+  onto the closest canonical type — `ABSORBED_INTO → PART_OF` (transitive containment) and
+  `SYNCRETIZED_WITH → VARIANT_OF` (symmetric equivalence). A token outside the map is
+  **rejected** (`MapperError`), never passed through un-canonicalised. Every map *value* is
+  asserted registered by `tests/test_linguascrape_ontology.py`.
+- **Provenance rides the edge.** The mapped edge carries its `time_start`/`time_end` range,
+  `confidence`, `weight`, `source='linguascrape'`, and the `linguascrape_id` round-trip alias.
+- **Feed through the linker unchanged.** A mapped edge is a valid `Edge` row, so it is passed
+  straight into `ontology.run.run_linkers(nodes, edges, ...)` as input; the linkers see it
+  (e.g. the structural linker dedups against it) and inferred edges compose over it. Input
+  edges are never re-tagged, so a LinguaScrape edge keeps `source='linguascrape'` while
+  inferred ones get `source='inferred:<linker>'`.
+- **Report by type.** `ontology.metrics.linguascrape_edges_by_type(edges)` (and the
+  `edges_by_type_for_source(edges, source)` it wraps) counts the LinguaScrape-origin edges by
+  canonical `:TYPE`, filtering on the `source` provenance so inferred/native edges are
+  excluded.
+
+## Convergence QA gate (US-007)
+
+Once LinguaScrape rows are merged into the corpus, `orchestrate/qa.py` guards against a
+LinguaScrape ingestion silently degrading it. The five base gates (row count, duplicate
+rate, provenance completeness, dangling-edge rate, unreconciled rate) grade the whole
+dataset; four **LinguaScrape-scoped** gates are appended whenever the corpus actually
+contains LinguaScrape-origin rows (a native-only corpus keeps the five base gates
+unchanged):
+
+- **`linguascrape_provenance_completeness`** (min) — fraction of LinguaScrape-origin rows
+  still carrying the `linguascrape` source stamp. A row identified as LinguaScrape-origin
+  whose `source` no longer names it has lost its provenance in the merge.
+- **`linguascrape_duplicate_rate`** (max) — post-dedup duplicate fraction among
+  LinguaScrape nodes (same strong identity key: `wikidata_qid` > `getty_id` > normalized
+  name tuple).
+- **`linguascrape_dangling_edge_rate`** (max) — fraction of LinguaScrape edges whose
+  endpoint names no known csid. Checked against **every** node, since a LinguaScrape edge
+  may legitimately point at a native node.
+- **`linguascrape_unreconciled_rate`** (max) — fraction of LinguaScrape nodes merged to no
+  external-authority id. Permissive (`1.0`) by default; tighten it for a reconciling run.
+
+A row is **LinguaScrape-origin** if it retains a `linguascrape_id` alias *or* a
+`linguascrape` token in its (possibly merge-concatenated `wikidata;linguascrape`) `source`
+provenance — the identity survives a reconcile merge.
+
+Each gate has a configurable threshold on `GateThresholds` (also settable via
+`GateThresholds.from_dict` and the `culturescrape qa --*` flags). `culturescrape qa
+--fail-on-violation` (or a `QaPolicy(fail_on_violation=True)` in a job) makes the gate exit
+non-zero on any violation. Every QA run emits both a machine-readable JSON report
+(`<id>.qa.json`) and a human-readable Markdown artifact (`<id>.qa.md`, `--markdown-out`).
+
+## Reproducible build (US-008)
+
+The whole flow above is packaged as a one-command, offline, deterministic recipe:
+`culturescrape run jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus from
+the committed fixture export and generates its Neo4j + Datalog exports. A committed
+[`docs/convergence-manifest.json`](convergence-manifest.json) records the node/edge type
+counts and is asserted against a fresh build in CI. See
+[`convergence-build.md`](convergence-build.md) for the full recipe, the relaxed corpus
+floors it declares, and how to re-sync the manifest.

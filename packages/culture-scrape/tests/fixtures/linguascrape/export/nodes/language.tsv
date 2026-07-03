@@ -1,0 +1,3 @@
+csid:ID	:LABEL	name	lang	wikidata_qid	getty_id	aliases	description	linguascrape_id	time_start:int	time_end:int	time_start_iso	period	lat:float	lon:float	place_qid	tgn_id	pleiades_id	language_code	script	etymology	derived_from_csid	source	source_url	source_query	retrieved_at	confidence:float
+cs:language:aap	Language	Arara (Para)				Ugorongmo		aap	1000									aap	Latin			linguascrape		Ethnologue; Glottolog		0.5
+cs:language:pie	Language	Proto-Indo-European					Reconstructed ancestor	pie	-4500									ine-pro				linguascrape		Mallory 1989		0.8

@@ -37,6 +37,11 @@ from culturescrape.acquire.http import (
     RequestsTransport,
     Transport,
 )
+from culturescrape.acquire.linguascrape import (
+    LINGUASCRAPE_SOURCE,
+    LinguaScrapeExportAdapter,
+    LinguaScrapeExportError,
+)
 from culturescrape.acquire.petscan import (
     PETSCAN_ENDPOINT,
     PetScanAdapter,
@@ -115,6 +120,7 @@ __all__ = [
     "INDEX_FORMAT",
     "INDEX_VERSION",
     "LANGUAGE_PROFILE",
+    "LINGUASCRAPE_SOURCE",
     "PROFILES",
     "GETTY_LICENSE",
     "GETTY_NAMESPACES",
@@ -145,6 +151,8 @@ __all__ = [
     "HttpClient",
     "HttpResponse",
     "HttpStats",
+    "LinguaScrapeExportAdapter",
+    "LinguaScrapeExportError",
     "Link",
     "PetScanAdapter",
     "PetScanError",

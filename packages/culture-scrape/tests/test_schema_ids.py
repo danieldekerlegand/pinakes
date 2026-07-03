@@ -5,6 +5,7 @@ import pytest
 from culturescrape.schema import (
     CSID_PREFIX,
     IdError,
+    csid_type,
     mint_csid,
     normalize_name,
     normalize_qid,
@@ -28,6 +29,52 @@ def test_qid_accepts_entity_uri() -> None:
 def test_qid_wins_over_name() -> None:
     # When a QID is known it is the identity; the name is ignored entirely.
     assert mint_csid("dish", qid="Q42", name="anything") == "cs:dish:Q42"
+
+
+def test_alias_anchored_format() -> None:
+    # A source-local id is used verbatim (no slug, no hash) as the local part.
+    assert mint_csid("language", alias="aap") == "cs:language:aap"
+
+
+def test_alias_anchored_preserves_kebab_type() -> None:
+    # A kebab node type survives, so the id matches the export's cs:<type>:<id>.
+    assert (
+        mint_csid("archaeological-culture", alias="bell-beaker")
+        == "cs:archaeological-culture:bell-beaker"
+    )
+
+
+def test_alias_minting_is_deterministic() -> None:
+    assert mint_csid("language", alias="pie") == mint_csid("language", alias="pie")
+
+
+def test_qid_wins_over_alias() -> None:
+    # When a QID is known it is the identity; the alias is ignored entirely.
+    assert mint_csid("language", qid="Q42", alias="aap") == "cs:language:Q42"
+
+
+def test_alias_wins_over_name() -> None:
+    assert mint_csid("dish", alias="ceviche-01", name="Ceviche") == "cs:dish:ceviche-01"
+
+
+def test_empty_alias_rejected() -> None:
+    with pytest.raises(IdError):
+        mint_csid("language", alias="   ")
+
+
+def test_csid_type_extracts_type_segment() -> None:
+    assert (
+        csid_type("cs:archaeological-culture:bell-beaker")
+        == "archaeological-culture"
+    )
+    assert csid_type("cs:language:aap") == "language"
+    assert csid_type("cs:person:Q42") == "person"
+
+
+def test_csid_type_rejects_malformed() -> None:
+    for bad in ("", "language:aap", "cs:language", "notacsid"):
+        with pytest.raises(IdError):
+            csid_type(bad)
 
 
 def test_name_anchored_format() -> None:

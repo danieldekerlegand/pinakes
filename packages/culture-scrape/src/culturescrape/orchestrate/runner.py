@@ -74,6 +74,7 @@ from culturescrape.orchestrate.fingerprint import (
 )
 from culturescrape.orchestrate.jobs import Job
 from culturescrape.orchestrate.qa import (
+    QA_REPORT_MD_SUFFIX,
     QA_REPORT_SUFFIX,
     QaPolicy,
     evaluate_directory,
@@ -325,9 +326,10 @@ def _run_qa(
     The dataset graded is the category's ``link`` output if it has one, else its
     ``normalize`` output — the same dataset the catalog measures. A category that
     produced neither has nothing to grade and is skipped. The report is always
-    written to ``<output_root>/qa/<category-id>.qa.json``; when
-    ``qa.fail_on_violation`` is set and a gate trips, a :class:`PipelineRunError`
-    is raised so the category is recorded as failed.
+    written to ``<output_root>/qa/<category-id>.qa.json`` (machine view) and
+    ``<category-id>.qa.md`` (human view); when ``qa.fail_on_violation`` is set and
+    a gate trips, a :class:`PipelineRunError` is raised so the category is
+    recorded as failed.
     """
     by_stage = {result.stage: result for result in results}
     dataset = by_stage.get("link") or by_stage.get("normalize")
@@ -335,7 +337,9 @@ def _run_qa(
         return
 
     report = evaluate_directory(dataset.output_dir, qa.thresholds)
-    report.write(job.output_root / "qa" / f"{spec.id}{QA_REPORT_SUFFIX}")
+    qa_dir = job.output_root / "qa"
+    report.write(qa_dir / f"{spec.id}{QA_REPORT_SUFFIX}")
+    report.write_markdown(qa_dir / f"{spec.id}{QA_REPORT_MD_SUFFIX}")
 
     level = logging.WARNING if report.violations else logging.INFO
     logger.log(

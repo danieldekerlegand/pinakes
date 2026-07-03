@@ -34,6 +34,17 @@ exporter emits for that registered :TYPE:
 * :data:`MATERIAL_COMPOSITION` — ``material-composition.pl``: an artifact's
   materials, via ``made_of/2`` (``MADE_OF``).
 
+Two more run over LinguaScrape-origin facts in the merged dataset
+(``source: linguascrape``), exercising the correlation rules ported from
+LinguaScrape (T-LS-US-005):
+
+* :data:`GENETIC_LINGUISTIC_CORRELATION` —
+  ``genetic-linguistic-correlation.pl``: the languages a haplogroup correlates
+  with, via ``genetic_linguistic_correlation/2`` (shared origin/spoken region);
+* :data:`LANGUAGE_DESCENT` — ``language-descent.pl``: a language's full ancestry,
+  via the transitive ``ancestor/2`` closure running over LinguaScrape
+  ``descends_from`` edges.
+
 Each query file defines a ``main/0`` that prints its answer rows tab-separated,
 so :func:`run_example` can load a generated ``graph.pl`` alongside the file and
 collect the result as a set of tuples — the *expected output shape* recorded in
@@ -175,6 +186,30 @@ MATERIAL_COMPOSITION = Example(
     ),
 )
 
+GENETIC_LINGUISTIC_CORRELATION = Example(
+    slug="genetic-linguistic-correlation",
+    title="Genetic–linguistic correlation of a haplogroup",
+    focus="genetic_linguistic_correlation/2 (shared origin/spoken region)",
+    expected=frozenset(
+        {
+            ("cs:language:proto-celtic",),
+            ("cs:language:gaulish",),
+        }
+    ),
+)
+
+LANGUAGE_DESCENT = Example(
+    slug="language-descent",
+    title="Full ancestry of a language",
+    focus="ancestor/2 (transitive descends_from over LinguaScrape edges)",
+    expected=frozenset(
+        {
+            ("cs:language:proto-celtic",),
+            ("cs:language:pie",),
+        }
+    ),
+)
+
 #: The shipped examples, in the order they appear in ``docs/datalog.md``: the
 #: four base closures first, then one per-domain query per new corpus-expansion
 #: signature relationship (T8 — mirroring the new ``cypher/*.cypher`` queries).
@@ -187,6 +222,8 @@ EXAMPLES: tuple[Example, ...] = (
     GAME_FAMILY_VARIANTS,
     INVENTION_LINEAGE,
     MATERIAL_COMPOSITION,
+    GENETIC_LINGUISTIC_CORRELATION,
+    LANGUAGE_DESCENT,
 )
 
 #: Predicates a query file may legitimately reference from the projection: the
@@ -309,8 +346,10 @@ __all__ = [
     "EXAMPLES_DIRNAME",
     "FESTIVALS_IN_PERIOD",
     "GAME_FAMILY_VARIANTS",
+    "GENETIC_LINGUISTIC_CORRELATION",
     "INVENTION_LINEAGE",
     "KNOWN_PREDICATES",
+    "LANGUAGE_DESCENT",
     "MATERIAL_COMPOSITION",
     "SHORTEST_CHAIN",
     "WITHIN_REGION",

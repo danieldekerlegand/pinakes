@@ -43,6 +43,12 @@ from culturescrape.schema.tsvio import Row, TsvError, read_rows
 #: Dimension bucket for an edge whose ``:TYPE`` the ontology does not register.
 UNKNOWN_DIMENSION = "unknown"
 
+#: Provenance ``source`` id LinguaScrape-origin edges carry (mirrors
+#: :data:`culturescrape.acquire.linguascrape.LINGUASCRAPE_SOURCE`). Native edges
+#: carry their own source and inferred edges ``inferred:<linker>``, so filtering
+#: on this id isolates the edges LinguaScrape contributed to the merged corpus.
+LINGUASCRAPE_SOURCE = "linguascrape"
+
 
 @dataclass(frozen=True)
 class GraphMetrics:
@@ -168,6 +174,54 @@ def metrics_for_dataset(directory: str | Path) -> GraphMetrics:
     return compute_metrics(nodes, edges)
 
 
+def nodes_by_label(nodes: Sequence[Node]) -> dict[str, int]:
+    """Count *nodes* by their primary ``:LABEL`` (the node type), sorted by label.
+
+    The primary label is a node's first non-empty ``:LABEL`` value — the same
+    key :func:`culturescrape.schema.pipeline.write_result` files a node under — so
+    this reports one count per canonical node-type file. Nodes with no label are
+    skipped (they cannot be filed), mirroring the writer.
+    """
+    counts: Counter[str] = Counter()
+    for node in nodes:
+        label = _primary_label(node)
+        if label:
+            counts[label] += 1
+    return dict(sorted(counts.items()))
+
+
+def edges_by_type_for_source(
+    edges: Sequence[Edge], source: str
+) -> dict[str, int]:
+    """Count *edges* whose provenance ``source`` is *source*, keyed by ``:TYPE``.
+
+    Only edges carrying the exact *source* provenance are counted, so an inferred
+    edge (``source='inferred:<linker>'``) or a native edge is excluded. The result
+    is sorted by ``:TYPE`` for a stable report.
+    """
+    counts: Counter[str] = Counter()
+    for edge in edges:
+        if _scalar(edge, "source") == source:
+            counts[_scalar(edge, ":TYPE")] += 1
+    return dict(sorted(counts.items()))
+
+
+def linguascrape_edges_by_type(edges: Sequence[Edge]) -> dict[str, int]:
+    """Count the LinguaScrape-origin *edges* by canonical ``:TYPE`` (US-004).
+
+    A thin wrapper over :func:`edges_by_type_for_source` for
+    :data:`LINGUASCRAPE_SOURCE` — the report that tells a maintainer how many
+    edges of each type LinguaScrape contributed to the merged corpus.
+    """
+    return edges_by_type_for_source(edges, LINGUASCRAPE_SOURCE)
+
+
+def dataset_linguascrape_edges_by_type(directory: str | Path) -> dict[str, int]:
+    """Read the dataset under *directory* and report its LinguaScrape edges."""
+    _, edges = read_dataset(directory)
+    return linguascrape_edges_by_type(edges)
+
+
 def to_json(metrics: GraphMetrics) -> str:
     """Render *metrics* as a stable, indented JSON document."""
     return json.dumps(
@@ -222,3 +276,15 @@ def _scalar(row: Row, key: str) -> str:
     """The scalar value at *key*, stripped (a multi-value list is not scalar)."""
     value = row.get(key)
     return value.strip() if isinstance(value, str) else ""
+
+
+def _primary_label(node: Node) -> str:
+    """The node's first non-empty ``:LABEL`` value (its type), or ``""``."""
+    labels = node.get(":LABEL")
+    if isinstance(labels, list):
+        for label in labels:
+            if label.strip():
+                return label.strip()
+    elif isinstance(labels, str) and labels.strip():
+        return labels.strip()
+    return ""

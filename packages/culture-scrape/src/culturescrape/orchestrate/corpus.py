@@ -70,6 +70,7 @@ from culturescrape.ontology.stitch import (
     stitch_categories,
 )
 from culturescrape.orchestrate.jobs import Job
+from culturescrape.orchestrate.manifest import build_manifest
 from culturescrape.orchestrate.qa import (
     GateThresholds,
     QaPolicy,
@@ -127,6 +128,31 @@ _CORPUS_STAGES = ("acquire", "normalize")
 
 class CorpusBuildError(RuntimeError):
     """Raised when a corpus cannot be acquired, validated, or fails its gates."""
+
+
+def corpus_qa_policy(job: Job, base: QaPolicy = DEFAULT_CORPUS_QA) -> QaPolicy:
+    """The QA policy for *job*, applying its ``min_provenance_completeness`` override.
+
+    A job may relax the corpus provenance floor (e.g. a LinguaScrape-only corpus,
+    whose rows carry no external ``source_url``; see ``docs/convergence-build.md``);
+    every other threshold and the ``fail_on_violation`` flag come from *base*.
+    """
+    if job.min_provenance_completeness is None:
+        return base
+    return replace(
+        base,
+        thresholds=replace(
+            base.thresholds,
+            min_provenance_completeness=job.min_provenance_completeness,
+        ),
+    )
+
+
+def corpus_component_fraction(job: Job) -> float:
+    """The connectivity floor for *job*: its override, else the default."""
+    if job.min_component_fraction is None:
+        return DEFAULT_MIN_COMPONENT_FRACTION
+    return job.min_component_fraction
 
 
 @dataclass(frozen=True)
@@ -212,6 +238,9 @@ def build_corpus(
 
     metrics = metrics_for_dataset(dataset_dir)
     (dataset_dir / "metrics.json").write_text(to_json(metrics) + "\n", encoding="utf-8")
+    build_manifest(job.name, linked.nodes, linked.edges).write(
+        dataset_dir / "manifest.json"
+    )
     report = evaluate_directory(dataset_dir, qa.thresholds)
     report.write(dataset_dir / "qa.json")
     (dataset_dir / "shared.txt").write_text(
