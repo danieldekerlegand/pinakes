@@ -43,6 +43,7 @@ vi.mock("../services/culturescrape-client", async (importOriginal) => {
 });
 
 import { registerGraphRoutes } from "./graph";
+import { resetGraphHealthCache } from "../services/graph-health";
 import { GraphUnavailableError } from "../services/graph-store";
 import {
   CultureScrapeError,
@@ -71,6 +72,9 @@ afterAll(async () => {
 
 beforeEach(() => {
   for (const spy of Object.values(mocks)) spy.mockReset();
+  // /status delegates to the short-cached graph-health service; clear it so each
+  // test's mocked availability is re-probed rather than served from cache.
+  resetGraphHealthCache();
 });
 
 async function get(path: string): Promise<{ status: number; body: any }> {
@@ -233,14 +237,15 @@ describe("GET /api/graph/status", () => {
     mocks.clientIsAvailable.mockResolvedValue(true);
     const { status, body } = await get("/api/graph/status");
     expect(status).toBe(200);
-    expect(body).toEqual({ available: true, neo4j: true, sidecar: true });
+    expect(body).toMatchObject({ available: true, neo4j: true, sidecar: true });
+    expect(typeof body.checkedAt).toBe("number");
   });
 
   it("reports available when only one backend is up", async () => {
     mocks.graphIsAvailable.mockResolvedValue(false);
     mocks.clientIsAvailable.mockResolvedValue(true);
     const { body } = await get("/api/graph/status");
-    expect(body).toEqual({ available: true, neo4j: false, sidecar: true });
+    expect(body).toMatchObject({ available: true, neo4j: false, sidecar: true });
   });
 
   it("reports unavailable when both backends are down (still 200)", async () => {
@@ -248,7 +253,7 @@ describe("GET /api/graph/status", () => {
     mocks.clientIsAvailable.mockResolvedValue(false);
     const { status, body } = await get("/api/graph/status");
     expect(status).toBe(200);
-    expect(body).toEqual({ available: false, neo4j: false, sidecar: false });
+    expect(body).toMatchObject({ available: false, neo4j: false, sidecar: false });
   });
 
   it("never crashes when an availability probe rejects", async () => {
@@ -256,6 +261,6 @@ describe("GET /api/graph/status", () => {
     mocks.clientIsAvailable.mockResolvedValue(true);
     const { status, body } = await get("/api/graph/status");
     expect(status).toBe(200);
-    expect(body).toEqual({ available: true, neo4j: false, sidecar: true });
+    expect(body).toMatchObject({ available: true, neo4j: false, sidecar: true });
   });
 });

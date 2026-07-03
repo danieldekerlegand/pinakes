@@ -246,13 +246,25 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
 | `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
 | `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
-| `GET /api/graph/status` | both | `{ available, neo4j, sidecar }` | always **200**; `available = neo4j \|\| sidecar` |
+| `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
 **Degradation contract.** When a backend is unreachable the query routes answer
 **HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
 (`GraphUnavailableError` / `CultureScrapeUnavailableError` → 503). A malformed/unusable
 upstream response (`CultureScrapeError`) maps to **502**. `/api/graph/status` is itself a
 health probe and always returns 200 so the client can gate graph-dependent UI (US-005).
+
+**Health & graceful degradation (US-005).** `/api/graph/status` delegates to
+`server/services/graph-health.ts` (`getGraphHealth()`), which aggregates both backends'
+`isAvailable()` into one verdict, pull-through cached for `GRAPH_HEALTH_TTL_MS` (default 5s)
+so a burst of probes issues at most one round of checks. On the client, the
+`useGraphAvailability()` hook (`client/src/hooks/use-graph-availability.tsx`) polls that
+route (30s interval, `retry:false`, fails closed) and exposes `{ available, neo4j, sidecar,
+isEnabled(backend), unavailableReason(backend) }`. Graph-dependent UI wraps its
+trigger/tab in `<GraphFeatureGate backend=… mode="disable"|"hide">`
+(`client/src/components/graph/GraphFeatureGate.tsx`), which dims + tooltips (or hides) the
+feature when its backend is offline. Pure decision logic lives in
+`client/src/lib/graph/availability.ts` (`isGraphFeatureEnabled` / `graphUnavailableReason`).
 
 Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
 with both services module-mocked and exercises every route including the unavailable path.

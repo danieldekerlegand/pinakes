@@ -19,6 +19,7 @@ import {
   CultureScrapeError,
   CultureScrapeUnavailableError,
 } from "../services/culturescrape-client";
+import { getGraphHealth } from "../services/graph-health";
 
 /**
  * Map a caught error to an Express response, preserving the graceful-degradation
@@ -134,15 +135,14 @@ export function registerGraphRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/graph/status — availability of both backends. Always 200 (it is a
-   * health probe, not itself graph-dependent); `available` is true when either
-   * backend is reachable, with the per-backend flags for finer-grained UI gating.
+   * GET /api/graph/status — availability of both backends, via the aggregated
+   * graph-health service (short-cached). Always 200 (it is a health probe, not
+   * itself graph-dependent); `available` is true when either backend is
+   * reachable, with the per-backend flags for finer-grained UI gating and a
+   * `checkedAt` timestamp so clients can reason about staleness.
    */
   app.get("/api/graph/status", async (_req: Request, res: Response) => {
-    const [neo4j, sidecar] = await Promise.all([
-      graphStore.isAvailable().catch(() => false),
-      culturescrape.isAvailable().catch(() => false),
-    ]);
-    res.json({ available: neo4j || sidecar, neo4j, sidecar });
+    const health = await getGraphHealth();
+    res.json(health);
   });
 }
