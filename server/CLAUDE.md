@@ -20,6 +20,18 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Map viewport/bbox culling — `services/geo-bbox.ts`
+
+Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
+`const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));`
+then return `features` and merge `meta` into the response `metadata`. Accepts
+`bbox=west,south,east,north` (swapped corners auto-normalized), `zoom`, `limit`, `offset`.
+The module is **pure + dependency-free** (structural GeoJSON types, no Express/storage
+import) so it is trivially unit-tested. Gotchas: features whose geometry yields no bounds
+(geometry-less/malformed) are conservatively **kept**, never dropped; a missing/garbage
+bbox is a no-op (full layer). Client side sends the bbox via the React Query key, not a
+manual fetch — see `client/src/lib/visualization/map-performance.ts` `viewportParams()`.
+
 ## Lazy-singleton services
 
 External-backend / expensive services follow the `graph-store.ts` pattern: a
