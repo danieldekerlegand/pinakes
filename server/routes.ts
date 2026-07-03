@@ -4,6 +4,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
+import { applyViewport, viewportOptionsFromQuery } from "./services/geo-bbox";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
 import { writingSystemScraper } from "./services/writing-system-scraper";
@@ -1521,12 +1522,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         familyIds: familyIds ? (Array.isArray(familyIds) ? familyIds as string[] : [familyIds as string]) : undefined,
       };
 
-      const features = await storage.getLanguageRanges(filters);
+      const allFeatures = await storage.getLanguageRanges(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching language ranges:", error);
@@ -1550,12 +1552,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rangeType: rangeType as string | undefined,
       };
 
-      const features = await storage.getLanguageRangePolygons(filters);
+      const allFeatures = await storage.getLanguageRangePolygons(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching language range polygons:", error);
@@ -1578,12 +1581,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         siteTypes: siteTypes ? (Array.isArray(siteTypes) ? siteTypes as string[] : [siteTypes as string]) : undefined,
       };
 
-      const features = await storage.getArchaeologicalSites(filters);
+      const allFeatures = await storage.getArchaeologicalSites(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching archaeological sites:", error);
@@ -1632,12 +1636,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bbox: bbox as string,
       };
 
-      const features = await storage.getCivilizations(filters);
+      const allFeatures = await storage.getCivilizations(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching civilizations:", error);

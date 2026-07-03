@@ -79,6 +79,7 @@ import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transfor
 import { getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-theme';
 import { useMapPerformance, MapPerformanceTracker } from './hooks/useMapPerformance';
+import { viewportParams } from '../../lib/visualization/map-performance';
 import { useMapAccessibility } from './hooks/useMapAccessibility';
 import { describeFeature } from '../../lib/visualization/map-accessibility';
 import type { MapFeatureType } from '../../lib/visualization/map-accessibility';
@@ -344,23 +345,28 @@ export function EnhancedLanguageMapView({
     ? splitScreen.activeYear
     : currentYear;
 
+  // Server-side viewport culling: pass the current bbox/zoom so the API returns
+  // only features intersecting the viewport (empty until the map first settles,
+  // in which case the server returns the full layer). See map-performance.ts.
+  const viewportKey = viewportParams(perf.viewport, perf.zoom);
+
   // Fetch language range data
   const { data: languageRangesData, isLoading: loadingRanges } = useQuery<LanguageRangeCollection>({
-    queryKey: ['/api/map/language-ranges'],
+    queryKey: ['/api/map/language-ranges', viewportKey],
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: isLayerVisible('language-ranges'),
   });
 
   // Fetch language range polygons data (expanded dataset)
   const { data: languageRangePolygonsData, isLoading: loadingRangePolygons } = useQuery<LanguageRangeCollection>({
-    queryKey: ['/api/map/language-range-polygons'],
+    queryKey: ['/api/map/language-range-polygons', viewportKey],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('language-range-polygons'),
   });
 
   // Fetch archaeological sites data
   const { data: archaeologicalSitesData, isLoading: loadingSites } = useQuery<ArchaeologicalSiteCollection>({
-    queryKey: ['/api/map/archaeological-sites'],
+    queryKey: ['/api/map/archaeological-sites', viewportKey],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('archaeological-sites'),
   });
