@@ -383,6 +383,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="path to write the QA report JSON to (default: print summary only)",
     )
     qa.add_argument(
+        "--markdown-out",
+        type=Path,
+        default=None,
+        help="path to write the human-readable Markdown QA artifact to",
+    )
+    qa.add_argument(
         "--fail-on-violation",
         action="store_true",
         help="exit non-zero when any gate is violated (default: report only)",
@@ -420,6 +426,34 @@ def _build_parser() -> argparse.ArgumentParser:
         default=GateThresholds.max_unreconciled_rate,
         help="maximum fraction of unreconciled nodes "
         f"(default: {GateThresholds.max_unreconciled_rate})",
+    )
+    qa.add_argument(
+        "--min-linguascrape-provenance-completeness",
+        type=float,
+        default=GateThresholds.min_linguascrape_provenance_completeness,
+        help="minimum fraction of LinguaScrape-origin rows keeping the source "
+        f"stamp (default: {GateThresholds.min_linguascrape_provenance_completeness})",
+    )
+    qa.add_argument(
+        "--max-linguascrape-duplicate-rate",
+        type=float,
+        default=GateThresholds.max_linguascrape_duplicate_rate,
+        help="maximum post-dedup duplicate fraction among LinguaScrape nodes "
+        f"(default: {GateThresholds.max_linguascrape_duplicate_rate})",
+    )
+    qa.add_argument(
+        "--max-linguascrape-dangling-edge-rate",
+        type=float,
+        default=GateThresholds.max_linguascrape_dangling_edge_rate,
+        help="maximum fraction of dangling LinguaScrape edges "
+        f"(default: {GateThresholds.max_linguascrape_dangling_edge_rate})",
+    )
+    qa.add_argument(
+        "--max-linguascrape-unreconciled-rate",
+        type=float,
+        default=GateThresholds.max_linguascrape_unreconciled_rate,
+        help="maximum fraction of unreconciled LinguaScrape nodes "
+        f"(default: {GateThresholds.max_linguascrape_unreconciled_rate})",
     )
     qa.set_defaults(handler=_cmd_qa)
 
@@ -899,11 +933,20 @@ def _cmd_qa(args: argparse.Namespace) -> int:
         min_provenance_completeness=args.min_provenance_completeness,
         max_dangling_edge_rate=args.max_dangling_edge_rate,
         max_unreconciled_rate=args.max_unreconciled_rate,
+        min_linguascrape_provenance_completeness=(
+            args.min_linguascrape_provenance_completeness
+        ),
+        max_linguascrape_duplicate_rate=args.max_linguascrape_duplicate_rate,
+        max_linguascrape_dangling_edge_rate=args.max_linguascrape_dangling_edge_rate,
+        max_linguascrape_unreconciled_rate=args.max_linguascrape_unreconciled_rate,
     )
     report = evaluate_directory(directory, thresholds)
     if args.out is not None:
         report.write(args.out)
         print(f"wrote QA report to {args.out}")
+    if args.markdown_out is not None:
+        report.write_markdown(args.markdown_out)
+        print(f"wrote QA report to {args.markdown_out}")
     print(report.render_summary())
     if report.violations and args.fail_on_violation:
         return 1

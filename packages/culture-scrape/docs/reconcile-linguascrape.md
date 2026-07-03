@@ -116,3 +116,34 @@ cross-dimensional linking alongside native inferred edges:
   `edges_by_type_for_source(edges, source)` it wraps) counts the LinguaScrape-origin edges by
   canonical `:TYPE`, filtering on the `source` provenance so inferred/native edges are
   excluded.
+
+## Convergence QA gate (US-007)
+
+Once LinguaScrape rows are merged into the corpus, `orchestrate/qa.py` guards against a
+LinguaScrape ingestion silently degrading it. The five base gates (row count, duplicate
+rate, provenance completeness, dangling-edge rate, unreconciled rate) grade the whole
+dataset; four **LinguaScrape-scoped** gates are appended whenever the corpus actually
+contains LinguaScrape-origin rows (a native-only corpus keeps the five base gates
+unchanged):
+
+- **`linguascrape_provenance_completeness`** (min) — fraction of LinguaScrape-origin rows
+  still carrying the `linguascrape` source stamp. A row identified as LinguaScrape-origin
+  whose `source` no longer names it has lost its provenance in the merge.
+- **`linguascrape_duplicate_rate`** (max) — post-dedup duplicate fraction among
+  LinguaScrape nodes (same strong identity key: `wikidata_qid` > `getty_id` > normalized
+  name tuple).
+- **`linguascrape_dangling_edge_rate`** (max) — fraction of LinguaScrape edges whose
+  endpoint names no known csid. Checked against **every** node, since a LinguaScrape edge
+  may legitimately point at a native node.
+- **`linguascrape_unreconciled_rate`** (max) — fraction of LinguaScrape nodes merged to no
+  external-authority id. Permissive (`1.0`) by default; tighten it for a reconciling run.
+
+A row is **LinguaScrape-origin** if it retains a `linguascrape_id` alias *or* a
+`linguascrape` token in its (possibly merge-concatenated `wikidata;linguascrape`) `source`
+provenance — the identity survives a reconcile merge.
+
+Each gate has a configurable threshold on `GateThresholds` (also settable via
+`GateThresholds.from_dict` and the `culturescrape qa --*` flags). `culturescrape qa
+--fail-on-violation` (or a `QaPolicy(fail_on_violation=True)` in a job) makes the gate exit
+non-zero on any violation. Every QA run emits both a machine-readable JSON report
+(`<id>.qa.json`) and a human-readable Markdown artifact (`<id>.qa.md`, `--markdown-out`).
