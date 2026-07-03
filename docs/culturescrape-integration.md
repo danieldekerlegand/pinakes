@@ -232,6 +232,31 @@ Python-side cross-links (same repo, `packages/culture-scrape/`):
 - **Python-side Ralph PRDs:** `packages/culture-scrape/ralph/` (acquisition, schema/entity-resolution,
   ontology-linking, neo4j-converter, datalog-exporter, …).
 
+## 10b. App-side graph API routes (`/api/graph/*`)
+
+The browser talks only to the LinguaScrape origin. `server/routes/graph.ts`
+(`registerGraphRoutes`, wired in `server/routes.ts`) exposes a first-party proxy over
+the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
+(`server/services/graph-store.ts`); search/metrics run through the FastAPI sidecar client
+(`server/services/culturescrape-client.ts`).
+
+| Method & path | Backend | Success | Notes |
+| --- | --- | --- | --- |
+| `GET /api/graph/search?q=&limit=` | sidecar `/search` | `{ query, results[] }` | empty `q` → `{ query:"", results:[] }` without hitting the sidecar |
+| `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
+| `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
+| `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
+| `GET /api/graph/status` | both | `{ available, neo4j, sidecar }` | always **200**; `available = neo4j \|\| sidecar` |
+
+**Degradation contract.** When a backend is unreachable the query routes answer
+**HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
+(`GraphUnavailableError` / `CultureScrapeUnavailableError` → 503). A malformed/unusable
+upstream response (`CultureScrapeError`) maps to **502**. `/api/graph/status` is itself a
+health probe and always returns 200 so the client can gate graph-dependent UI (US-005).
+
+Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
+with both services module-mocked and exercises every route including the unavailable path.
+
 ## 11. Non-goals
 
 - Rewriting LinguaScrape's backend or frontend language.

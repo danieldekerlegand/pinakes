@@ -59,6 +59,7 @@ import {
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
 import { globalSearch } from "./services/global-search";
+import { registerGraphRoutes } from "./routes/graph";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -96,8 +97,11 @@ import {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
-  
-  
+
+  // First-party shared-graph proxy routes (/api/graph/*, US-004).
+  registerGraphRoutes(app);
+
+
   // Language Families
   app.get("/api/language-families", async (req, res) => {
     try {
