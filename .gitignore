@@ -9,3 +9,5 @@ sources/
 .ralphy-worktrees
 # US-004 canonical export output (gitignored; manifest snapshot lives in docs/)
 export/culturescrape/
+# US-007 collaborative collections — user runtime data (JSON per collection)
+data/collections/

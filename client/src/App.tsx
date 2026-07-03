@@ -19,6 +19,7 @@ import CultureProfileReportPage from "@/pages/culture-profile-report";
 // Advanced/experimental graph research console — intentionally NOT linked from the
 // primary navigation; reachable only via its direct route (US-011).
 import AdvancedToolsPage from "@/pages/advanced-tools";
+import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
 
 function Router() {
   return (
@@ -36,6 +37,10 @@ function Router() {
       <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
       <Route path="/culture-profile/:id/report" component={CultureProfileReportPage} />
       <Route path="/advanced-tools" component={AdvancedToolsPage} />
+      {/* Collaborative collections (US-007) — list/detail + read-only share view. */}
+      <Route path="/collections" component={CollectionsPage} />
+      <Route path="/collections/:id" component={CollectionsPage} />
+      <Route path="/shared/collection/:token" component={SharedCollectionPage} />
       <Route component={NotFound} />
     </Switch>
   );

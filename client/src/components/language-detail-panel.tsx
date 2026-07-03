@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { SuggestEditButton } from "@/components/SuggestEditButton";
 import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
 import { RelatedEntities } from "@/components/shared/RelatedEntities";
+import { AddToCollectionButton } from "@/components/collections/AddToCollectionButton";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import type { LanguageWithStats } from "@shared/types";
@@ -490,7 +491,17 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             )}
           </div>
 
-          {/* Related entities from the shared graph (US-006) */}
+          {/* Add-to-collection + related entities from the shared graph (US-006/US-007) */}
+          <div className="flex justify-end">
+            <AddToCollectionButton
+              entity={{
+                type: "language",
+                id: languageId,
+                name: language.name,
+                region: language.region ?? undefined,
+              }}
+            />
+          </div>
           <RelatedEntities
             entity={{
               type: "language",

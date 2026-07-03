@@ -35,6 +35,31 @@ fetcher in `DOMAIN_FETCHERS`. Gotcha: `getCivilizations()` returns GeoJSON
 (use the map bbox API instead); every other `get<Entity>()` returns flat rows.
 Full contract table: `docs/progressive-loading.md`.
 
+## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
+
+`/api/collections/*` (US-007) is user-curated groups of entities. **Persistence
+is JSON-per-record on disk** (like `contribution-service.ts`) — one file under the
+**gitignored** `data/collections/` — via a `CollectionStore` class, but every
+mutation/validation/ownership rule is a **pure** function (`createCollection`,
+`applyCollectionUpdate`, `addCollectionItem`, `removeCollectionItem`, `canView`,
+`canEdit`, `toShareView`, `validateCollectionInput`) taking `id`/`shareToken`/`now`
+as params so CRUD is unit-tested with no fs/clock.
+
+- **No auth** → ownership is a soft, opaque owner id resolved by `resolveOwner(req)`:
+  `x-owner-id` header → `?owner=` query → body `owner`, default `"anonymous"`. The
+  client persists a per-browser id in localStorage (`lib/collections.getOwnerId`).
+- **Entities are referenced by stable id** `cs:<type>:<id>` (`stableEntityId`,
+  mirrors `graph-resolver.mintCsid`) — dedup + remove key on it.
+- **Sharing** = an unguessable `shareToken`; `GET /api/collections/shared/:token`
+  returns the owner-free `toShareView` regardless of visibility. Register that
+  two-segment route before `/:id`.
+- Store methods throw `CollectionAccessError` (→ 403) on a non-owner mutate and
+  return `null` for a missing id (→ 404); the route maps both.
+- **Route test pattern without a storage mock:** `registerCollectionRoutes(app,
+  store)` takes an **injectable** store, so the test passes a `new
+  CollectionStore(tmpDir)` (`fs.mkdtempSync`) instead of `vi.mock`-ing storage —
+  simpler than the summaries/graph mock pattern when the service owns its own fs.
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
