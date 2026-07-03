@@ -284,7 +284,8 @@ def apply_load_csv(
     try:
         with handle.session() as session:
             for stmt in statements:
-                session.run(stmt.cypher, **{FILE_PARAM: stmt.file_url})
+                params: dict[str, Any] = {FILE_PARAM: stmt.file_url}
+                session.run(stmt.cypher, **params)
     finally:
         if owned:
             handle.close()
