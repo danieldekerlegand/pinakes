@@ -1,0 +1,44 @@
+{
+  "resources": [
+    {
+      "id": 391847,
+      "title": "Snaketown Excavation Records",
+      "url": "https://core.tdar.org/document/391847",
+      "description": "Hohokam settlement in the Gila River valley, Arizona.",
+      "latitude": 33.1836,
+      "longitude": -111.9075,
+      "startDate": 300,
+      "endDate": 1100,
+      "culturalTerms": ["Hohokam"],
+      "siteTypeKeywords": ["Habitation Site", "Ballcourt"]
+    },
+    {
+      "id": 402511,
+      "title": "Chaco Canyon Great House Survey",
+      "detailUrl": "https://core.tdar.org/collection/402511",
+      "description": "Ancestral Puebloan monumental architecture.",
+      "minimumLatitude": 36.05,
+      "maximumLatitude": 36.07,
+      "minimumLongitude": -107.97,
+      "maximumLongitude": -107.95,
+      "startDate": 850,
+      "endDate": 1250,
+      "culturalTerms": ["Ancestral Puebloan", "Chacoan"],
+      "siteType": "Great House"
+    },
+    {
+      "id": 999001,
+      "title": "Uncoordinated Report",
+      "url": "https://core.tdar.org/document/999001",
+      "description": "A report with no spatial coverage.",
+      "startDate": 1000,
+      "endDate": 1200
+    },
+    {
+      "id": 999002,
+      "url": "https://core.tdar.org/document/999002",
+      "latitude": 40.0,
+      "longitude": -105.0
+    }
+  ]
+}

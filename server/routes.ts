@@ -70,6 +70,7 @@ import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
+import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -158,6 +159,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // land in the contribution review queue with Wikidata provenance. Progress
   // streams via the existing jobStore (GET /api/scraping-jobs).
   registerCultureScrapeAcquisitionRoutes(app);
+
+  // Open Context / tDAR archaeological acquisition routes
+  // (/api/scraping/archaeology, US-007) — complement the Pleiades path with two
+  // external archaeological authorities. Acquired sites (coordinates, time
+  // ranges, associated cultures, provenance) land in the contribution review
+  // queue — never a live TSV write. Progress streams via the jobStore.
+  registerArchaeologyAcquisitionRoutes(app);
 
 
   // Language Families

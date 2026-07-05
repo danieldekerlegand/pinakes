@@ -241,6 +241,39 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
   Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
 
+## Open Context / tDAR archaeological acquisition — adapters in `services/archaeological-site-scraper.ts` + `routes/archaeological-acquisition.ts`
+
+`POST /api/scraping/archaeology` (US-007) acquires archaeological sites from two
+external authorities (**Open Context**, **tDAR**) that complement the existing
+Pleiades/UNESCO paths in the same file; `GET /api/scraping/archaeology/sources`
+lists them. Same background-job + contribution-queue shape as culture-scrape
+(US-005) — differences to know:
+
+- **Adapters live in `archaeological-site-scraper.ts`** (per the story's file
+  contract) but follow the current injectable-deps + fixtures pattern, not the
+  older `ArchaeologicalSiteScraper` class's direct `fetch`. Each source is a pure
+  mapper — `openContextToScrapedSite(feature)` / `tdarToScrapedSite(resource)` →
+  `ScrapedSite | null` — plus an injectable `ArchaeologyDeps`
+  (`fetchOpenContext`/`fetchTdar`); `liveArchaeologyDeps` hits the real REST APIs.
+  Tests pass fixture-backed deps reading `services/fixtures/archaeological/*.json`.
+- **Every externally-scraped site carries `SiteProvenance` `{source, sourceId,
+  sourceUrl}`** (added to `ScrapedSite`, optional so the curated UNESCO dataset is
+  unaffected). Open Context coords are GeoJSON `[lng,lat]`; tDAR uses explicit
+  `latitude`/`longitude` else the bounding-box centroid. Cultures come from an
+  explicit list (`cultures`/`culturalTerms`) else the context-path leaf, slugified.
+- **Sites land in the contribution review queue** as `archaeological-site` adds
+  (which requires a truthy `coordinates`) — never a live TSV write. `siteToContribution`
+  returns `null` when name/coords are missing, flags `entityData.source=<adapter>`
+  + `autoDerived:true`/`aiGenerated:false`, confidence clamped 1..99. `runArchaeologicalAcquisition`
+  (pure over an injectable `ContributionService` + deps) fetches + enqueues and
+  returns `{acquired, queued, skipped, contributionIds}`.
+- **Progress streams through the existing `jobStore`** (`languageId='archaeology:<source>'`,
+  `dataSource='other'`); the route creates a job, runs the acquisition
+  fire-and-forget, maps `onProgress`. **Route test hook:** `onJobSettled(jobId,
+  result, error)` awaits the background job deterministically. POST returns **202**;
+  **400** on unknown source / non-positive limit. Client entry: the "Archaeological
+  Sites (Open Context / tDAR)" card in `client/src/pages/scraper-dashboard.tsx`.
+
 ## Place resolution — `services/place-resolver.ts`
 
 Maps historical + modern place names to coordinates from local TSV (settlements /

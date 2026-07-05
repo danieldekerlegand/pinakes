@@ -1,11 +1,35 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import type {
+  Contribution,
+  ContributionService,
+} from "./contribution-service";
+
 /**
  * Archaeological Site Scraper
  * Fetches archaeological site data from Pleiades (pleiades.stoa.org) and
  * UNESCO World Heritage Sites, converts to the project's TSV format.
+ *
+ * US-007 adds Open Context and tDAR adapters that complement the Pleiades path:
+ * both normalize to {@link ScrapedSite} with coordinates, time ranges,
+ * associated cultures, and {@link SiteProvenance}, and land in the contribution
+ * review queue (never a live TSV write) via {@link runArchaeologicalAcquisition}.
  */
+
+/**
+ * Where an externally-scraped site came from. Every record acquired from an
+ * external adapter (Open Context, tDAR, …) carries one so a reviewer can trace
+ * it back to the authority.
+ */
+export interface SiteProvenance {
+  /** Adapter id: `pleiades` | `unesco` | `open-context` | `tdar`. */
+  source: string;
+  /** The authority's stable identifier for the record (URI / accession id). */
+  sourceId: string;
+  /** A resolvable URL for the record, when the authority exposes one. */
+  sourceUrl: string;
+}
 
 export interface ScrapedSite {
   id: string;
@@ -24,6 +48,8 @@ export interface ScrapedSite {
   confidence: number;
   sources: string[];
   description: string;
+  /** External-authority provenance (absent for the curated UNESCO dataset). */
+  provenance?: SiteProvenance;
 }
 
 interface PleiadesPlace {
@@ -832,3 +858,519 @@ const UNESCO_ARCHAEOLOGICAL_SITES: Omit<ScrapedSite, "id">[] = [
 ];
 
 export const archaeologicalSiteScraper = new ArchaeologicalSiteScraper();
+
+// ============================================================================
+// Open Context / tDAR adapters (US-007)
+// ----------------------------------------------------------------------------
+// Two external archaeological authorities complement the Pleiades path above.
+// Each adapter is a pure mapper (raw API record → ScrapedSite | null) plus an
+// injectable network boundary (`ArchaeologyDeps`) so the pipeline is unit-tested
+// against recorded fixtures — no live network. Acquired sites carry coordinates,
+// time ranges, associated cultures, and provenance, and land in the contribution
+// review queue (never a live TSV write).
+// ============================================================================
+
+export type ArchaeologySourceId = "open-context" | "tdar";
+
+export interface ArchaeologySource {
+  id: ArchaeologySourceId;
+  label: string;
+  description: string;
+  homepage: string;
+}
+
+export const ARCHAEOLOGY_SOURCES: Record<ArchaeologySourceId, ArchaeologySource> = {
+  "open-context": {
+    id: "open-context",
+    label: "Open Context",
+    description:
+      "Open-access archaeological data & publications (opencontext.org); GeoJSON search API.",
+    homepage: "https://opencontext.org",
+  },
+  tdar: {
+    id: "tdar",
+    label: "tDAR (Digital Antiquity)",
+    description:
+      "The Digital Archaeological Record (core.tdar.org); site records with spatial + temporal coverage.",
+    homepage: "https://core.tdar.org",
+  },
+};
+
+export function listArchaeologySources(): ArchaeologySource[] {
+  return Object.values(ARCHAEOLOGY_SOURCES);
+}
+
+export function resolveArchaeologySource(
+  source: string | undefined,
+): ArchaeologySource | undefined {
+  if (!source) return undefined;
+  return (ARCHAEOLOGY_SOURCES as Record<string, ArchaeologySource>)[source];
+}
+
+/** Map a free-text site/culture keyword to our site_type enum, else "unknown". */
+function mapKeywordSiteType(keywords: string[]): string {
+  for (const kw of keywords) {
+    const normalized = kw.toLowerCase().trim();
+    if (PLEIADES_SITE_TYPE_MAP[normalized]) return PLEIADES_SITE_TYPE_MAP[normalized];
+    // A few extra archaeological synonyms not in the Pleiades map.
+    if (/burial|grave|mound|barrow/.test(normalized)) return "burial";
+    if (/settlement|habitation|dwelling|village|hamlet/.test(normalized)) return "settlement";
+    if (/temple|shrine|ritual|ceremon/.test(normalized)) return "temple";
+    if (/fort|citadel|defensive|rampart/.test(normalized)) return "fortress";
+    if (/rock.?art|petroglyph|pictograph|cave/.test(normalized)) return "cave_art";
+    if (/workshop|kiln|quarry|mine|production/.test(normalized)) return "workshop";
+    if (/city|urban|town/.test(normalized)) return "city";
+  }
+  return "unknown";
+}
+
+/** Slugify a culture name into a stable id (`Ancestral Puebloan` → `ancestral-puebloan`). */
+function slugifyCulture(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// ── Open Context (GeoJSON search API) ─────────────────────────────────────────
+
+/** A GeoJSON feature from the Open Context search API (`/query/.json`). */
+export interface OpenContextFeature {
+  type?: string;
+  geometry?: { type?: string; coordinates?: number[] } | null;
+  properties?: {
+    label?: string;
+    uri?: string;
+    href?: string;
+    id?: string;
+    category?: string | string[];
+    "context label"?: string;
+    "early bce/ce"?: number;
+    "late bce/ce"?: number;
+    "item category"?: string;
+    snippet?: string;
+    cultures?: string[];
+  };
+}
+
+export interface OpenContextResponse {
+  type?: string;
+  features?: OpenContextFeature[];
+}
+
+/**
+ * Map one Open Context feature → a {@link ScrapedSite}, or `null` when it lacks a
+ * name or usable point coordinates.
+ */
+export function openContextToScrapedSite(
+  feature: OpenContextFeature,
+): ScrapedSite | null {
+  const props = feature.properties ?? {};
+  const name = (props.label ?? "").trim();
+  if (!name) return null;
+
+  const coords = feature.geometry?.coordinates;
+  if (!coords || coords.length < 2) return null;
+  const lng = Number(coords[0]);
+  const lat = Number(coords[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  if (lat === 0 && lng === 0) return null;
+
+  const start =
+    typeof props["early bce/ce"] === "number" ? props["early bce/ce"] : null;
+  const end =
+    typeof props["late bce/ce"] === "number" ? props["late bce/ce"] : null;
+
+  const categories: string[] = Array.isArray(props.category)
+    ? props.category
+    : props.category
+    ? [props.category]
+    : [];
+  if (props["item category"]) categories.push(props["item category"]);
+
+  // Cultures: explicit list, else the leaf of the context path (e.g. "Turkey/Çatalhöyük").
+  const cultureNames = Array.isArray(props.cultures) ? props.cultures.slice() : [];
+  const contextLabel = (props["context label"] ?? "").trim();
+  if (cultureNames.length === 0 && contextLabel) {
+    const leaf = contextLabel.split("/").map((s) => s.trim()).filter(Boolean).pop();
+    if (leaf) cultureNames.push(leaf);
+  }
+  const associatedCultureIds = Array.from(
+    new Set(cultureNames.map(slugifyCulture).filter(Boolean)),
+  );
+
+  const uri = (props.uri ?? props.href ?? props.id ?? "").trim();
+  const sourceUrl = (props.href ?? props.uri ?? "").trim();
+
+  return {
+    id: slugify("opencontext", name),
+    name,
+    coordinates: { lat, lng },
+    siteType: mapKeywordSiteType([...categories, name]),
+    timePeriodStart: start,
+    timePeriodEnd: end,
+    timePeriodLabel: formatTimePeriodLabel(start, end),
+    associatedLanguageIds: [],
+    associatedCultureIds,
+    associatedCivilizationIds: [],
+    excavationStatus: "unknown",
+    findings: [],
+    importance: 50,
+    confidence: 65,
+    sources: ["Open Context", sourceUrl].filter(Boolean),
+    description: (props.snippet ?? "").trim(),
+    provenance: {
+      source: "open-context",
+      sourceId: uri,
+      sourceUrl: sourceUrl || uri,
+    },
+  };
+}
+
+// ── tDAR (resource records with spatial + temporal coverage) ──────────────────
+
+/** A tDAR resource record (from its search/resource API). */
+export interface TdarResource {
+  id?: string | number;
+  title?: string;
+  url?: string;
+  detailUrl?: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  minimumLatitude?: number;
+  maximumLatitude?: number;
+  minimumLongitude?: number;
+  maximumLongitude?: number;
+  startDate?: number;
+  endDate?: number;
+  culturalTerms?: string[];
+  siteTypeKeywords?: string[];
+  siteType?: string;
+}
+
+export interface TdarResponse {
+  resources?: TdarResource[];
+}
+
+/** Resolve a tDAR record's point: explicit lat/lng, else the bounding-box centroid. */
+function tdarCoordinates(
+  resource: TdarResource,
+): { lat: number; lng: number } | null {
+  let lat: number | null = null;
+  let lng: number | null = null;
+  if (typeof resource.latitude === "number" && typeof resource.longitude === "number") {
+    lat = resource.latitude;
+    lng = resource.longitude;
+  } else if (
+    typeof resource.minimumLatitude === "number" &&
+    typeof resource.maximumLatitude === "number" &&
+    typeof resource.minimumLongitude === "number" &&
+    typeof resource.maximumLongitude === "number"
+  ) {
+    lat = (resource.minimumLatitude + resource.maximumLatitude) / 2;
+    lng = (resource.minimumLongitude + resource.maximumLongitude) / 2;
+  }
+  if (lat == null || lng == null) return null;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  if (lat === 0 && lng === 0) return null;
+  return { lat, lng };
+}
+
+/**
+ * Map one tDAR resource → a {@link ScrapedSite}, or `null` when it lacks a title
+ * or usable coordinates.
+ */
+export function tdarToScrapedSite(resource: TdarResource): ScrapedSite | null {
+  const name = (resource.title ?? "").trim();
+  if (!name) return null;
+
+  const coordinates = tdarCoordinates(resource);
+  if (!coordinates) return null;
+
+  const start = typeof resource.startDate === "number" ? resource.startDate : null;
+  const end = typeof resource.endDate === "number" ? resource.endDate : null;
+
+  const cultures = (resource.culturalTerms ?? []).map((c) => c.trim()).filter(Boolean);
+  const associatedCultureIds = Array.from(
+    new Set(cultures.map(slugifyCulture).filter(Boolean)),
+  );
+
+  const siteTypeKeywords = [
+    ...(resource.siteType ? [resource.siteType] : []),
+    ...(resource.siteTypeKeywords ?? []),
+  ];
+
+  const sourceId = resource.id != null ? String(resource.id) : "";
+  const sourceUrl = (resource.url ?? resource.detailUrl ?? "").trim();
+
+  return {
+    id: slugify("tdar", sourceId || name),
+    name,
+    coordinates,
+    siteType: mapKeywordSiteType([...siteTypeKeywords, name]),
+    timePeriodStart: start,
+    timePeriodEnd: end,
+    timePeriodLabel: formatTimePeriodLabel(start, end),
+    associatedLanguageIds: [],
+    associatedCultureIds,
+    associatedCivilizationIds: [],
+    excavationStatus: "unknown",
+    findings: [],
+    importance: 50,
+    confidence: 60,
+    sources: ["tDAR", sourceUrl].filter(Boolean),
+    description: (resource.description ?? "").trim(),
+    provenance: {
+      source: "tdar",
+      sourceId,
+      sourceUrl,
+    },
+  };
+}
+
+// ── Injectable network boundary + live deps ───────────────────────────────────
+
+export interface ArchaeologyFetchContext {
+  query?: string;
+  limit?: number;
+  signal?: AbortSignal;
+}
+
+/**
+ * The network boundary for the external adapters. Tests inject fixture-backed
+ * deps; `liveArchaeologyDeps` hits the real APIs.
+ */
+export interface ArchaeologyDeps {
+  fetchOpenContext(context: ArchaeologyFetchContext): Promise<OpenContextResponse>;
+  fetchTdar(context: ArchaeologyFetchContext): Promise<TdarResponse>;
+}
+
+export class ArchaeologyAcquisitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ArchaeologyAcquisitionError";
+  }
+}
+
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(url, {
+    signal,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) {
+    throw new ArchaeologyAcquisitionError(
+      `fetch ${url} failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return (await response.json()) as T;
+}
+
+export const liveArchaeologyDeps: ArchaeologyDeps = {
+  async fetchOpenContext({ query, limit, signal }) {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    params.set("rows", String(limit && limit > 0 ? Math.min(limit, 100) : 25));
+    params.set("type", "subjects");
+    const url = `https://opencontext.org/query/.json?${params.toString()}`;
+    return fetchJson<OpenContextResponse>(url, signal);
+  },
+  async fetchTdar({ query, limit, signal }) {
+    const params = new URLSearchParams();
+    if (query) params.set("query", query);
+    params.set("recordsPerPage", String(limit && limit > 0 ? Math.min(limit, 100) : 25));
+    const url = `https://core.tdar.org/api/lookup/resource?${params.toString()}`;
+    return fetchJson<TdarResponse>(url, signal);
+  },
+};
+
+/** Fetch + normalize sites from one external source. */
+export async function scrapeArchaeologySource(
+  source: ArchaeologySourceId,
+  context: ArchaeologyFetchContext,
+  deps: ArchaeologyDeps = liveArchaeologyDeps,
+): Promise<ScrapedSite[]> {
+  if (source === "open-context") {
+    const data = await deps.fetchOpenContext(context);
+    return (data.features ?? [])
+      .map(openContextToScrapedSite)
+      .filter((s): s is ScrapedSite => s !== null);
+  }
+  const data = await deps.fetchTdar(context);
+  return (data.resources ?? [])
+    .map(tdarToScrapedSite)
+    .filter((s): s is ScrapedSite => s !== null);
+}
+
+// ── Contribution mapping + orchestration ──────────────────────────────────────
+
+/** Clamp a 0..100 confidence to 1..99 (< 100 ⇒ always reads as "needs review"). */
+function toContributionConfidence(confidence: number): number {
+  const value = Number.isFinite(confidence) ? confidence : 50;
+  return Math.max(1, Math.min(99, Math.round(value)));
+}
+
+/**
+ * Map a {@link ScrapedSite} → a `Partial<Contribution>` for the review queue, or
+ * `null` when it is missing the required name/coordinates. Filed as an
+ * `archaeological-site` `add`, flagged `autoDerived` with source provenance so a
+ * reviewer (US-009) promotes it — never a live TSV write.
+ */
+export function siteToContribution(
+  site: ScrapedSite,
+): Partial<Contribution> | null {
+  if (!site.name || !site.coordinates) return null;
+  const { lat, lng } = site.coordinates;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  const provenance = site.provenance;
+  const entityData: Record<string, unknown> = {
+    name: site.name,
+    coordinates: site.coordinates,
+    siteType: site.siteType,
+    timePeriodStart: site.timePeriodStart,
+    timePeriodEnd: site.timePeriodEnd,
+    timePeriodLabel: site.timePeriodLabel,
+    associatedLanguageIds: site.associatedLanguageIds,
+    associatedCultureIds: site.associatedCultureIds,
+    associatedCivilizationIds: site.associatedCivilizationIds,
+    description: site.description,
+    // Provenance + review flags (mirrors US-005 auto-derived acquisitions).
+    source: provenance?.source ?? "archaeological-scraper",
+    sourceId: provenance?.sourceId,
+    sourceUrl: provenance?.sourceUrl,
+    autoDerived: true,
+    aiGenerated: false,
+  };
+
+  const sourceLabel = provenance
+    ? ARCHAEOLOGY_SOURCES[provenance.source as ArchaeologySourceId]?.label ??
+      provenance.source
+    : "archaeological scraper";
+
+  return {
+    entityType: "archaeological-site",
+    action: "add",
+    entityData,
+    sources: [
+      {
+        title: `${site.name} — ${sourceLabel}`,
+        url: provenance?.sourceUrl || undefined,
+        license: "See source",
+      },
+    ],
+    confidence: toContributionConfidence(site.confidence),
+    notes: `Acquired from ${sourceLabel}; awaiting review.`,
+  };
+}
+
+export interface ArchaeologyAcquisitionProgress {
+  phase: "starting" | "fetching" | "queueing" | "done";
+  message: string;
+  acquired: number;
+  queued: number;
+  skipped: number;
+  total?: number;
+}
+
+export interface ArchaeologyAcquisitionResult {
+  source: ArchaeologySourceId;
+  acquired: number;
+  queued: number;
+  skipped: number;
+  contributionIds: string[];
+}
+
+export interface RunArchaeologyAcquisitionOptions {
+  source: ArchaeologySourceId;
+  contributions: ContributionService;
+  deps?: ArchaeologyDeps;
+  query?: string;
+  limit?: number;
+  signal?: AbortSignal;
+  onProgress?: (progress: ArchaeologyAcquisitionProgress) => void;
+}
+
+/**
+ * Run one archaeological acquisition end to end: fetch + normalize via the
+ * source adapter, then map + enqueue each site into the contribution review
+ * queue. Returns per-run counts.
+ */
+export async function runArchaeologicalAcquisition(
+  options: RunArchaeologyAcquisitionOptions,
+): Promise<ArchaeologyAcquisitionResult> {
+  const {
+    source,
+    contributions,
+    deps = liveArchaeologyDeps,
+    query,
+    limit,
+    signal,
+    onProgress,
+  } = options;
+  const label = ARCHAEOLOGY_SOURCES[source].label;
+
+  onProgress?.({
+    phase: "starting",
+    message: `Starting acquisition from ${label}`,
+    acquired: 0,
+    queued: 0,
+    skipped: 0,
+  });
+
+  const sites = await scrapeArchaeologySource(source, { query, limit, signal }, deps);
+
+  onProgress?.({
+    phase: "fetching",
+    message: `Fetched ${sites.length} site(s) from ${label}`,
+    acquired: sites.length,
+    queued: 0,
+    skipped: 0,
+    total: sites.length,
+  });
+
+  let queued = 0;
+  let skipped = 0;
+  const contributionIds: string[] = [];
+
+  for (let i = 0; i < sites.length; i++) {
+    if (signal?.aborted) break;
+    const draft = siteToContribution(sites[i]);
+    if (!draft) {
+      skipped++;
+      continue;
+    }
+    const { contribution } = contributions.submit(draft);
+    if (contribution) {
+      queued++;
+      contributionIds.push(contribution.id);
+    } else {
+      skipped++;
+    }
+    if ((i + 1) % 25 === 0 || i === sites.length - 1) {
+      onProgress?.({
+        phase: "queueing",
+        message: `Queued ${queued} / ${sites.length} for review (${skipped} skipped)`,
+        acquired: sites.length,
+        queued,
+        skipped,
+        total: sites.length,
+      });
+    }
+  }
+
+  onProgress?.({
+    phase: "done",
+    message: `Acquisition complete: ${queued} queued for review, ${skipped} skipped`,
+    acquired: sites.length,
+    queued,
+    skipped,
+    total: sites.length,
+  });
+
+  return { source, acquired: sites.length, queued, skipped, contributionIds };
+}
