@@ -70,7 +70,7 @@ import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
-import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
+import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
@@ -1827,6 +1827,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in place autocomplete:", error);
       res.status(500).json({
         message: "Failed to autocomplete places",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/map/places/resolve?q=query&limit=10 - Resolve a place to canonical
+   * records (name, lat/lng, geonames_id). Prefers GeoNames for standardized
+   * naming and falls back to Nominatim; results carry provenance.
+   */
+  app.get("/api/map/places/resolve", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: "", source: null });
+        return;
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const result = await resolvePlace(q, limit);
+      res.json(result);
+    } catch (error) {
+      console.error("Error resolving place:", error);
+      res.status(500).json({
+        message: "Failed to resolve place",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

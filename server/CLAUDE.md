@@ -241,6 +241,41 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
   Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
 
+## Place resolution — `services/place-resolver.ts`
+
+Maps historical + modern place names to coordinates from local TSV (settlements /
+sites / battles), known regions, and **external geocoders**. External geocoding
+(US-006) **prefers GeoNames** (standardized naming + a stable `geonamesId`) and
+**falls back to Nominatim/OSM**; every externally-resolved result carries
+`provenance: { source, sourceId, sourceUrl }`.
+
+- **Network is behind an injectable `PlaceResolverDeps`** (`fetchGeoNames` +
+  `fetchNominatim`); tests pass fixture-backed deps reading
+  `services/fixtures/place-resolver/*.json` — no live fetch. Default `liveDeps`
+  hit the real REST APIs. `searchPlacesWithNominatim(q, limit, deps?)`,
+  `queryExternalPlaces(q, limit, deps?)`, and `resolvePlace(q, limit, deps?)` all
+  take the injectable deps as a **trailing optional** arg (default `liveDeps`), so
+  existing 2-arg callers are unaffected.
+- **GeoNames needs a free username** (`GEONAMES_USERNAME` env). When unset,
+  `liveDeps.fetchGeoNames` **throws**, which makes the resolver fall back to
+  Nominatim — the app works out-of-the-box with no GeoNames account. GeoNames also
+  signals quota/errors in a **200 body** under `status` (not a non-2xx code), so
+  `liveDeps` throws on `data.status` too. Fallback semantics: GeoNames throws OR
+  returns `[]` ⇒ Nominatim; both fail ⇒ `[]` / `source: null`.
+- **Pure mappers are unit-tested directly**: `geoNamesToPlaceResult` /
+  `nominatimToPlaceResult` (→ search `PlaceResult`, GeoNames relevance 0.68 > the
+  0.6 Nominatim base so it outranks), and `geoNamesToCanonical` /
+  `nominatimToCanonical` (→ `CanonicalPlaceRecord` with `geonamesId` — the GeoNames
+  id or `null` on the Nominatim fallback). GeoNames feature category is `"geonames"`.
+- **Route:** `GET /api/map/places/resolve?q=&limit=` → `CanonicalPlaceResponse`
+  (`{ results, query, source }`) — the standardized-record endpoint (name, lat/lng,
+  `geonamesId`, provenance). The fuzzy `/api/map/places/search` +
+  `/autocomplete` endpoints are unchanged (search now merges GeoNames-preferred
+  external hits behind the same fallback).
+- **Nominatim bbox order gotcha:** Nominatim returns `boundingbox` as
+  `[south, north, west, east]`; `nominatimBbox` re-orders it to the app's
+  `[south, west, north, east]`.
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
