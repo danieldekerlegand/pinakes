@@ -67,6 +67,7 @@ import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { registerTimelineEventRoutes } from "./routes/timeline-event";
+import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -134,6 +135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // review queue with provenance source='user-authored'; a reviewer promotes
   // them into culture-events.tsv later.
   registerTimelineEventRoutes(app);
+
+  // Relationship-builder routes (/api/relationships/edge, US-003) — typed edges
+  // authored by dragging one entity onto another land in the contribution
+  // review queue with provenance source='user-authored'; a reviewer promotes
+  // them into cultural-lineages.tsv later. Duplicate/self edges are rejected.
+  registerRelationshipEdgeRoutes(app);
 
 
   // Language Families

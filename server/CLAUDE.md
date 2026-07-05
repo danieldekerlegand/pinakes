@@ -136,6 +136,37 @@ copy it for any "author temporal data in-app" feature:
   `xToYear`/`yearToX`), mounted via an "Add entry" toggle in
   `culture-profile/culture-evolution-timeline-section.tsx`.
 
+## Relationship-builder authoring — `services/relationship-edge.ts` + `routes/relationship-edge.ts`
+
+`POST /api/relationships/edge` (US-003) takes a typed edge authored by dragging
+one entity onto another (source, target, relationship_type, time range,
+confidence) and lands it in the **contribution review queue** (never a direct TSV
+write) with provenance `entityData.source = 'user-authored'`; a reviewer promotes
+it into `cultural-lineages.tsv`. Same pure-service + injectable-route shape as
+timeline-event/drawn-geometry — differences to know:
+
+- **Vocabulary is the canonical edge vocabulary**, not a local list:
+  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@shared/canonical-schema`
+  `CANONICAL_SCHEMA.edgeTypes` (14 kebab names + Neo4j tokens). Reuse it for any
+  "pick a relationship type" UI so authored edges stay export-compatible.
+- **Dedup is enforced server-side against corpus + queue.** The route builds the
+  existing-edge set from `extractAllCanonicalEdges(lexiconsDir)` (`services/canonical-edges`,
+  ~5.6k edges live) **plus** every queued `relationship` contribution, then the
+  pure `validateRelationshipEdge(input, existing)` rejects a duplicate
+  `(sourceId, targetId, relationshipType)` triple. **Direction matters** —
+  `A→B` and `B→A` are distinct; dedup key is `edgeKey()` (trim-normalized ids).
+- **Self edges** (`sourceId === targetId`) are rejected in the validator.
+- **Status codes:** 201 (queued, returns a `relationship` confirmation summary
+  with the Neo4j token), **409** on a duplicate (`duplicate: true`), 400 on other
+  validation errors (self edge, non-canonical type, inverted range).
+- Route takes injectable `{ contributions, lexiconsDir }` — tests point both at
+  temp dirs (seed a `cultural-lineages.tsv` in the temp lexicons dir to exercise
+  corpus dedup). Added `relationship` to `ContributionEntityType` +
+  `REQUIRED_FIELDS` (`["sourceId","targetId","relationshipType"]`).
+- Client entry: `client/src/components/visualizations/RelationshipBuilderPanel.tsx`
+  (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
+  a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
