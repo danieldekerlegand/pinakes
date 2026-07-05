@@ -48,6 +48,40 @@ export interface CorrelationEntry {
 }
 
 // ============================================================================
+// Graph traversal types
+// ============================================================================
+
+export type TraversalAlgorithm = 'bfs' | 'dfs';
+
+export interface GraphTraversalInput {
+  /**
+   * Directed edges as `[from, to]` pairs. Neighbor order follows insertion
+   * order so traversals are deterministic. Duplicate edges are harmless.
+   */
+  edges: [string, string][];
+  /** When false, each edge is treated as bidirectional. */
+  directed: boolean;
+  /** Node to start from. Always the first node visited (even if isolated). */
+  source: string;
+  /** Optional node to search for; when reached the traversal stops early. */
+  target?: string | null;
+  /** Optional hop limit from the source; nodes deeper than this are not expanded. */
+  maxDepth?: number | null;
+  algorithm: TraversalAlgorithm;
+}
+
+export interface GraphTraversalResult {
+  /** Nodes in the order they were visited. */
+  order: string[];
+  /** Depth (hop count for BFS, discovery depth for DFS) of each visited node from the source. */
+  distances: Record<string, number>;
+  /** Path from source to target (inclusive) when a reachable target was given, else null. */
+  path: string[] | null;
+  /** True when the target was reached, or when no target was requested. */
+  reached: boolean;
+}
+
+// ============================================================================
 // Worker message types
 // ============================================================================
 
@@ -83,6 +117,10 @@ export type ComputationTask =
   | {
       type: 'correlationGeographic';
       payload: { entitiesA: CorrelationEntity[]; entitiesB: CorrelationEntity[] };
+    }
+  | {
+      type: 'graphTraversal';
+      payload: GraphTraversalInput;
     };
 
 export interface ComputationRequest {
@@ -369,6 +407,132 @@ export function computeGeographicOverlap(
 }
 
 // ============================================================================
+// Graph traversal (pure BFS/DFS over an adjacency list)
+// ============================================================================
+
+/**
+ * Build an adjacency list from edge pairs. Neighbor lists preserve edge
+ * insertion order for deterministic traversal. Nodes that only appear as an
+ * edge target are still registered (with an empty neighbor list).
+ */
+export function buildAdjacency(
+  edges: [string, string][],
+  directed: boolean,
+): Map<string, string[]> {
+  const adj = new Map<string, string[]>();
+  const ensure = (node: string): string[] => {
+    let list = adj.get(node);
+    if (!list) {
+      list = [];
+      adj.set(node, list);
+    }
+    return list;
+  };
+
+  for (const [from, to] of edges) {
+    ensure(from).push(to);
+    if (directed) {
+      ensure(to);
+    } else {
+      ensure(to).push(from);
+    }
+  }
+
+  return adj;
+}
+
+/**
+ * Traverse a graph from a source node using BFS or DFS.
+ *
+ * - BFS `distances` are exact shortest hop counts in the unweighted graph, and
+ *   a returned `path` is a shortest path.
+ * - DFS `distances` are discovery depths and `path` follows the DFS tree.
+ *
+ * The source is always visited first. When `target` is given the traversal
+ * stops as soon as the target is dequeued/popped. `maxDepth` caps expansion so
+ * nodes at that depth are visited but not expanded further.
+ */
+export function traverseGraph(input: GraphTraversalInput): GraphTraversalResult {
+  const { edges, directed, source, algorithm } = input;
+  const target = input.target ?? null;
+  const maxDepth = input.maxDepth ?? null;
+
+  const adj = buildAdjacency(edges, directed);
+  const order: string[] = [];
+  const distances: Record<string, number> = {};
+  const predecessor: Record<string, string | null> = {};
+  const visited = new Set<string>();
+  let reached = target === null;
+
+  if (algorithm === 'bfs') {
+    visited.add(source);
+    distances[source] = 0;
+    predecessor[source] = null;
+    const queue: string[] = [source];
+    let head = 0;
+
+    while (head < queue.length) {
+      const node = queue[head++];
+      order.push(node);
+      if (target !== null && node === target) {
+        reached = true;
+        break;
+      }
+      const depth = distances[node];
+      if (maxDepth !== null && depth >= maxDepth) continue;
+
+      for (const nb of adj.get(node) ?? []) {
+        if (!visited.has(nb)) {
+          visited.add(nb);
+          distances[nb] = depth + 1;
+          predecessor[nb] = node;
+          queue.push(nb);
+        }
+      }
+    }
+  } else {
+    // Iterative DFS. Neighbors are pushed in reverse so they pop in edge order.
+    const stack: { node: string; depth: number; pred: string | null }[] = [
+      { node: source, depth: 0, pred: null },
+    ];
+
+    while (stack.length > 0) {
+      const { node, depth, pred } = stack.pop()!;
+      if (visited.has(node)) continue;
+      visited.add(node);
+      distances[node] = depth;
+      predecessor[node] = pred;
+      order.push(node);
+      if (target !== null && node === target) {
+        reached = true;
+        break;
+      }
+      if (maxDepth !== null && depth >= maxDepth) continue;
+
+      const neighbors = adj.get(node) ?? [];
+      for (let i = neighbors.length - 1; i >= 0; i--) {
+        const nb = neighbors[i];
+        if (!visited.has(nb)) {
+          stack.push({ node: nb, depth: depth + 1, pred: node });
+        }
+      }
+    }
+  }
+
+  let path: string[] | null = null;
+  if (target !== null && reached && visited.has(target)) {
+    path = [];
+    let cur: string | null | undefined = target;
+    while (cur !== null && cur !== undefined) {
+      path.unshift(cur);
+      cur = predecessor[cur];
+    }
+  }
+
+  return { order, distances, path, reached };
+}
+
+// ============================================================================
 // Task executor (used by worker and fallback)
 // ============================================================================
 
@@ -396,5 +560,8 @@ export function executeTask(task: ComputationTask): unknown {
 
     case 'correlationGeographic':
       return computeGeographicOverlap(task.payload.entitiesA, task.payload.entitiesB);
+
+    case 'graphTraversal':
+      return traverseGraph(task.payload);
   }
 }

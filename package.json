@@ -21,6 +21,7 @@
     "@deck.gl/layers": "^9.2.11",
     "@deck.gl/mesh-layers": "^9.2.11",
     "@deck.gl/react": "^9.2.11",
+    "@duckdb/node-api": "^1.5.4-r.1",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",

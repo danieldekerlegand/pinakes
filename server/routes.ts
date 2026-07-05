@@ -4,6 +4,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
+import { applyViewport, viewportOptionsFromQuery } from "./services/geo-bbox";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
 import { wordListScraper } from "./services/word-list-scraper";
 import { writingSystemScraper } from "./services/writing-system-scraper";
@@ -58,8 +59,12 @@ import {
   type ComparisonMode,
   type EnhancedPairwiseResult,
 } from "./services/linguistic-distance-enhanced";
-import { federatedSearch } from "./services/global-search";
+import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
+import { registerAnalyticsRoutes } from "./routes/analytics";
+import { registerSummaryRoutes } from "./routes/summaries";
+import { registerCollectionRoutes } from "./routes/collections";
+import { registerAnnotationRoutes } from "./routes/annotations";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -100,6 +105,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
+
+  // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
+  // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.
+  registerAnalyticsRoutes(app);
+
+  // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
+  // per-domain list records; detail hydrated on demand from /api/<domain>/:id.
+  registerSummaryRoutes(app);
+
+  // Collaborative collections routes (/api/collections/*, US-007) — user-curated
+  // groups of entities (stable-id references) with soft ownership + URL sharing.
+  registerCollectionRoutes(app);
+
+  // User annotations & notes routes (/api/annotations/*, US-008) — free-text notes
+  // on entities (stable-id references), private by default with an option to share.
+  registerAnnotationRoutes(app);
 
 
   // Language Families
@@ -1516,12 +1537,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         familyIds: familyIds ? (Array.isArray(familyIds) ? familyIds as string[] : [familyIds as string]) : undefined,
       };
 
-      const features = await storage.getLanguageRanges(filters);
+      const allFeatures = await storage.getLanguageRanges(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching language ranges:", error);
@@ -1545,12 +1567,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rangeType: rangeType as string | undefined,
       };
 
-      const features = await storage.getLanguageRangePolygons(filters);
+      const allFeatures = await storage.getLanguageRangePolygons(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching language range polygons:", error);
@@ -1573,12 +1596,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         siteTypes: siteTypes ? (Array.isArray(siteTypes) ? siteTypes as string[] : [siteTypes as string]) : undefined,
       };
 
-      const features = await storage.getArchaeologicalSites(filters);
+      const allFeatures = await storage.getArchaeologicalSites(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching archaeological sites:", error);
@@ -1627,12 +1651,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bbox: bbox as string,
       };
 
-      const features = await storage.getCivilizations(filters);
+      const allFeatures = await storage.getCivilizations(filters);
+      const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));
 
       res.json({
         type: "FeatureCollection",
         features,
-        metadata: filters,
+        metadata: { ...filters, ...meta },
       });
     } catch (error) {
       console.error("Error fetching civilizations:", error);
@@ -4449,7 +4474,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ results: [], query: "", totalCount: 0 });
         return;
       }
-      const result = await federatedSearch(q);
+      // `types` / `sources` (comma-separated) narrow results by facet.
+      const filters = parseSearchFilters(req.query);
+      const result = await federatedSearch(q, filters);
       res.json(result);
     } catch (error) {
       console.error("Error in global search:", error);

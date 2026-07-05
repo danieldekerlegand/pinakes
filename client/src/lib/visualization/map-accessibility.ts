@@ -217,6 +217,20 @@ export const MAP_KEYBOARD_SHORTCUTS: KeyboardNavAction[] = [
 ];
 
 /**
+ * Feature-navigation shortcuts, active only while feature navigation mode is
+ * engaged (press `n` to enter/exit). Kept separate from the timeline shortcuts
+ * above because they rebind the arrow keys to spatial feature traversal.
+ */
+export const MAP_FEATURE_NAV_SHORTCUTS: KeyboardNavAction[] = [
+  { key: 'n', label: 'Feature Navigation', description: 'Enter or exit keyboard navigation of map features' },
+  { key: 'Arrow keys', label: 'Move Focus', description: 'Move focus to the nearest feature north/south/east/west' },
+  { key: '[ / ]', label: 'Prev / Next Feature', description: 'Step to the previous or next feature in order' },
+  { key: 'Home / End', label: 'First / Last Feature', description: 'Focus the first or last feature' },
+  { key: 'Enter', label: 'Open Feature', description: 'Open the focused feature’s details' },
+  { key: 'Escape', label: 'Exit Navigation', description: 'Leave feature navigation mode' },
+];
+
+/**
  * Build a summary description of the current map state for screen readers.
  */
 export function describeMapState(params: {

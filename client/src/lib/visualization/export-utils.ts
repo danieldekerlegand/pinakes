@@ -171,6 +171,146 @@ export async function exportPNG(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Map / canvas view export (Leaflet tiles + deck.gl / canvas overlays)
+// ---------------------------------------------------------------------------
+
+/**
+ * A drawable map layer: a `<canvas>` (deck.gl WebGL, Leaflet canvas renderer,
+ * heat layers) or a loaded Leaflet tile `<img>`, positioned relative to the
+ * capture container in CSS pixels.
+ */
+export interface MapLayerSource {
+  element: CanvasImageSource;
+  rect: { left: number; top: number; width: number; height: number };
+}
+
+/**
+ * Collect the drawable layers inside a map container in DOM/paint order:
+ * `<canvas>` elements and loaded Leaflet tile `<img>` elements. Positions are
+ * taken from `getBoundingClientRect` (so CSS transforms on Leaflet panes are
+ * accounted for) and expressed relative to the container. Unloaded/broken
+ * images and zero-size elements are skipped.
+ */
+export function collectMapLayers(container: HTMLElement): MapLayerSource[] {
+  const containerRect = container.getBoundingClientRect();
+  const layers: MapLayerSource[] = [];
+  const nodes = container.querySelectorAll<HTMLCanvasElement | HTMLImageElement>(
+    'canvas, img.leaflet-tile'
+  );
+  nodes.forEach((el) => {
+    if (el.tagName === 'IMG') {
+      const img = el as HTMLImageElement;
+      // A tile that hasn't finished loading (or failed) can't be rasterized
+      if (!img.complete || img.naturalWidth === 0) return;
+    }
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+    layers.push({
+      element: el,
+      rect: {
+        left: r.left - containerRect.left,
+        top: r.top - containerRect.top,
+        width: r.width,
+        height: r.height,
+      },
+    });
+  });
+  return layers;
+}
+
+/**
+ * Draw pre-collected map layers onto a 2D context. The context is assumed to be
+ * pre-scaled (via `ctx.scale`) so coordinates are in CSS pixels. A layer that
+ * cannot be drawn (e.g. a tainted or empty WebGL source) is skipped rather than
+ * aborting the whole capture.
+ */
+export function drawMapLayers(ctx: CanvasRenderingContext2D, layers: MapLayerSource[]) {
+  for (const { element, rect } of layers) {
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    try {
+      ctx.drawImage(element, rect.left, rect.top, rect.width, rect.height);
+    } catch (error) {
+      // An un-rasterizable source shouldn't abort the whole capture
+      console.warn('Skipping un-capturable map layer', error);
+    }
+  }
+}
+
+export interface MapCaptureOptions {
+  /** Device-pixel multiplier for high-resolution output (default 2) */
+  scale?: number;
+  /** Draw the LinguaScrape attribution watermark (default true) */
+  watermark?: boolean;
+  /** Fill colour behind transparent tiles (default 'white') */
+  background?: string;
+}
+
+/**
+ * Composite a map container (Leaflet tiles + deck.gl/canvas overlays) onto a
+ * single high-resolution canvas, with the LinguaScrape watermark. Returns the
+ * canvas, or `null` if a 2D context is unavailable.
+ */
+export function captureMapToCanvas(
+  container: HTMLElement,
+  options: MapCaptureOptions = {}
+): HTMLCanvasElement | null {
+  const { scale = 2, watermark = true, background = 'white' } = options;
+  const rect = container.getBoundingClientRect();
+  const width = Math.max(1, rect.width);
+  const height = Math.max(1, rect.height);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  // Draw everything in CSS-pixel coordinates; the scale handles resolution.
+  ctx.scale(scale, scale);
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
+
+  drawMapLayers(ctx, collectMapLayers(container));
+
+  if (watermark) {
+    drawWatermark(ctx, canvas.width, canvas.height, scale);
+  }
+
+  return canvas;
+}
+
+/**
+ * Export the current map view as a high-resolution PNG with watermark.
+ * Captures Leaflet tiles and deck.gl/canvas overlays via canvas compositing.
+ */
+export async function exportMapPNG(
+  container: HTMLElement,
+  filename: string = 'map.png',
+  scale: number = 2,
+  watermark: boolean = true
+): Promise<boolean> {
+  try {
+    const canvas = captureMapToCanvas(container, { scale, watermark });
+    if (!canvas) {
+      throw new Error('Could not get canvas context');
+    }
+    return await new Promise<boolean>((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          downloadBlob(blob, filename);
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      }, 'image/png');
+    });
+  } catch (error) {
+    console.error('Error exporting map PNG:', error);
+    return false;
+  }
+}
+
 /**
  * Export data to CSV format
  */

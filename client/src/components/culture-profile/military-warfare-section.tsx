@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronDown, Swords } from "lucide-react";
+import { RelatedEntities } from "@/components/shared/RelatedEntities";
 
 interface Belligerent {
   name: string;
@@ -105,6 +106,12 @@ function BattleCard({ battle, civilizationId }: { battle: Battle; civilizationId
               </span>
             </div>
           )}
+          {/* Related entities from the shared graph (US-006) */}
+          <RelatedEntities
+            entity={{ type: "battle", id: battle.id, name: battle.name }}
+            limit={6}
+            className="pt-2"
+          />
         </div>
       )}
     </div>

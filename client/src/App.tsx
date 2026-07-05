@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { VisualizationProvider } from "@/contexts/VisualizationContext";
+import { I18nProvider } from "@/contexts/I18nContext";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import TextAnalyzer from "@/pages/text-analyzer";
@@ -19,6 +20,8 @@ import CultureProfileReportPage from "@/pages/culture-profile-report";
 // Advanced/experimental graph research console — intentionally NOT linked from the
 // primary navigation; reachable only via its direct route (US-011).
 import AdvancedToolsPage from "@/pages/advanced-tools";
+import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
   return (
@@ -36,6 +39,10 @@ function Router() {
       <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
       <Route path="/culture-profile/:id/report" component={CultureProfileReportPage} />
       <Route path="/advanced-tools" component={AdvancedToolsPage} />
+      {/* Collaborative collections (US-007) — list/detail + read-only share view. */}
+      <Route path="/collections" component={CollectionsPage} />
+      <Route path="/collections/:id" component={CollectionsPage} />
+      <Route path="/shared/collection/:token" component={SharedCollectionPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -44,12 +51,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <VisualizationProvider>
-          <Toaster />
-          <Router />
-        </VisualizationProvider>
-      </TooltipProvider>
+      <I18nProvider>
+        <TooltipProvider>
+          <VisualizationProvider>
+            <Toaster />
+            <OfflineIndicator />
+            <Router />
+          </VisualizationProvider>
+        </TooltipProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

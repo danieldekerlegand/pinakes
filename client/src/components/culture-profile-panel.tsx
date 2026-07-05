@@ -25,6 +25,7 @@ import { CultureDataCard } from "@/components/shared/CultureDataCard";
 import CultureComparisonView from "@/components/visualizations/CultureComparisonView";
 import CultureLanguageWritingSection from "@/components/culture-language-writing-section";
 import { ShowInGraphButton } from "@/components/graph/ShowInGraphButton";
+import { RelatedEntities } from "@/components/shared/RelatedEntities";
 import ReligionMythologySection from "@/components/culture-profile/religion-mythology-section";
 import ArchitectureUrbanPlanningSection from "@/components/culture-profile/architecture-urban-planning-section";
 import Architecture3DReconstructionSection from "@/components/culture-profile/architecture-3d-reconstruction-section";
@@ -429,6 +430,16 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsContent value="summary">
               <SummaryTab profile={profile} />
+              {/* Related entities from the shared graph (US-006) */}
+              <RelatedEntities
+                entity={{
+                  type: "culture",
+                  id: profile.id,
+                  name: profile.name,
+                  region: profile.region ?? undefined,
+                }}
+                className="mt-6"
+              />
             </TabsContent>
             <TabsContent value="evolution">
               <CultureEvolutionTimelineSection

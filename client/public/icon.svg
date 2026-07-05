@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LinguaScrape">
+  <rect width="512" height="512" rx="96" fill="#0b1020"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#6ea8fe" stroke-width="14"/>
+  <ellipse cx="256" cy="256" rx="70" ry="150" fill="none" stroke="#6ea8fe" stroke-width="14"/>
+  <line x1="106" y1="256" x2="406" y2="256" stroke="#6ea8fe" stroke-width="14"/>
+  <path d="M124 190 h264 M124 322 h264" fill="none" stroke="#6ea8fe" stroke-width="12"/>
+  <text x="256" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="72" fill="#e6edff">Aא文</text>
+</svg>

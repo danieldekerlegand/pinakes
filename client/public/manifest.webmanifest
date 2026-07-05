@@ -1,0 +1,29 @@
+{
+  "name": "LinguaScrape — Linguistic Family Tree Explorer",
+  "short_name": "LinguaScrape",
+  "description": "Explore the world's languages, their families, phonological inventories, grammar systems, writing systems, and cultural connections through interactive visualizations.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "reference", "science"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

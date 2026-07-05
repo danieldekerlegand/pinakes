@@ -76,6 +76,41 @@ export function cullToViewport<T extends Feature>(features: T[], viewport: Bound
 }
 
 // ---------------------------------------------------------------------------
+// Server-side viewport requests
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialize a viewport to the `west,south,east,north` bbox string understood by
+ * the `/api/map/*` endpoints (see server/services/geo-bbox.ts). Coordinates are
+ * rounded to 5 decimal places (~1m) so identical viewports produce identical
+ * cache keys.
+ */
+export function bboxToParam(b: BoundingBox): string {
+  const f = (n: number) => Number(n.toFixed(5)).toString();
+  return `${f(b.west)},${f(b.south)},${f(b.east)},${f(b.north)}`;
+}
+
+/**
+ * Build the query-param object appended to a map data request's React Query key
+ * so the server culls to the current viewport. Returns an empty object when the
+ * viewport is unknown (initial mount) — the server then returns the full layer,
+ * matching the pre-viewport behavior. The object shape is consumed by
+ * `getQueryFn` (client/src/lib/queryClient.ts), which turns object query-key
+ * parts into URL query params.
+ */
+export function viewportParams(
+  viewport: BoundingBox | null,
+  zoom?: number,
+  limit?: number,
+): Record<string, string> {
+  if (!viewport) return {};
+  const params: Record<string, string> = { bbox: bboxToParam(viewport) };
+  if (typeof zoom === 'number' && Number.isFinite(zoom)) params.zoom = String(Math.round(zoom));
+  if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) params.limit = String(Math.floor(limit));
+  return params;
+}
+
+// ---------------------------------------------------------------------------
 // Level-of-Detail Polygon Simplification
 // ---------------------------------------------------------------------------
 

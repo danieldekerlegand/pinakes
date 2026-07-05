@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { closeGraphStore } from "./services/graph-store";
+import { getAnalyticalIndex, closeAnalyticalIndex } from "./services/analytical-index";
 
 const app = express();
 app.use(express.json());
@@ -65,6 +66,12 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '3050', 10);
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    // Warm the runtime analytical index (US-001) so the first faceted/aggregate
+    // request isn't paying the build cost. Non-fatal: a failure here just defers
+    // the build to first use and never blocks serving.
+    getAnalyticalIndex()
+      .then((index) => log(`analytical index ready (${index.tables().length} tables)`))
+      .catch((err) => log(`analytical index warm-up deferred: ${String(err)}`));
   });
 
   // Graceful shutdown: release the Neo4j driver's connection pool so the
@@ -72,7 +79,9 @@ app.use((req, res, next) => {
   const shutdown = (signal: string) => {
     log(`received ${signal}, shutting down`);
     server.close(() => {
-      void closeGraphStore().finally(() => process.exit(0));
+      void Promise.allSettled([closeGraphStore(), closeAnalyticalIndex()]).finally(
+        () => process.exit(0),
+      );
     });
   };
   process.on("SIGTERM", () => shutdown("SIGTERM"));

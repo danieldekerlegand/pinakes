@@ -1,8 +1,9 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Maximize2, Minimize2, BookOpen, Eye, Keyboard } from 'lucide-react';
+import { Loader2, Maximize2, Minimize2, BookOpen, Eye, Keyboard, Camera } from 'lucide-react';
 import { Button } from '../ui/button';
+import { exportMapPNG } from '../../lib/visualization/export-utils';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
 import { DEFAULT_NARRATION_POINTS } from '../../lib/visualization/narration-points';
@@ -79,9 +80,12 @@ import { filterGeoJSONByTime } from '../../lib/visualization/geospatial-transfor
 import { getFamilyColor } from '../../lib/visualization/d3-helpers';
 import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-theme';
 import { useMapPerformance, MapPerformanceTracker } from './hooks/useMapPerformance';
+import { viewportParams } from '../../lib/visualization/map-performance';
 import { useMapAccessibility } from './hooks/useMapAccessibility';
-import { describeFeature } from '../../lib/visualization/map-accessibility';
+import { useMapFeatureNavigation } from './hooks/useMapFeatureNavigation';
+import { describeFeature, MAP_FEATURE_NAV_SHORTCUTS } from '../../lib/visualization/map-accessibility';
 import type { MapFeatureType } from '../../lib/visualization/map-accessibility';
+import type { NavigableFeature } from '../../lib/visualization/map-feature-traversal';
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import { useSplitScreen } from './hooks/useSplitScreen';
@@ -113,6 +117,27 @@ import type {
   MaterialCultureDistribution,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
+
+/**
+ * Extract a representative [lng, lat] point from any GeoJSON geometry, used to
+ * anchor keyboard (spatial) feature traversal. Returns null for empty/missing
+ * geometry.
+ */
+function representativePoint(geometry: any): [number, number] | null {
+  if (!geometry) return null;
+  const firstCoord = (coords: any): [number, number] | null => {
+    if (!Array.isArray(coords)) return null;
+    if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+      return [coords[0], coords[1]];
+    }
+    for (const c of coords) {
+      const r = firstCoord(c);
+      if (r) return r;
+    }
+    return null;
+  };
+  return firstCoord(geometry.coordinates);
+}
 
 /** Rendered inside MapContainer — flies to the given target whenever it changes. */
 function MapFlyTo({ target }: { target: { center: [number, number]; zoom: number } | null }) {
@@ -344,23 +369,28 @@ export function EnhancedLanguageMapView({
     ? splitScreen.activeYear
     : currentYear;
 
+  // Server-side viewport culling: pass the current bbox/zoom so the API returns
+  // only features intersecting the viewport (empty until the map first settles,
+  // in which case the server returns the full layer). See map-performance.ts.
+  const viewportKey = viewportParams(perf.viewport, perf.zoom);
+
   // Fetch language range data
   const { data: languageRangesData, isLoading: loadingRanges } = useQuery<LanguageRangeCollection>({
-    queryKey: ['/api/map/language-ranges'],
+    queryKey: ['/api/map/language-ranges', viewportKey],
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: isLayerVisible('language-ranges'),
   });
 
   // Fetch language range polygons data (expanded dataset)
   const { data: languageRangePolygonsData, isLoading: loadingRangePolygons } = useQuery<LanguageRangeCollection>({
-    queryKey: ['/api/map/language-range-polygons'],
+    queryKey: ['/api/map/language-range-polygons', viewportKey],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('language-range-polygons'),
   });
 
   // Fetch archaeological sites data
   const { data: archaeologicalSitesData, isLoading: loadingSites } = useQuery<ArchaeologicalSiteCollection>({
-    queryKey: ['/api/map/archaeological-sites'],
+    queryKey: ['/api/map/archaeological-sites', viewportKey],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('archaeological-sites'),
   });
@@ -488,6 +518,18 @@ export function EnhancedLanguageMapView({
   // Fetch genetic-linguistic correlations
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const [isExportingImage, setIsExportingImage] = React.useState(false);
+  const exportMapImage = React.useCallback(async () => {
+    if (!mapContainerRef.current) return;
+    setIsExportingImage(true);
+    try {
+      const year = currentYear < 0 ? `${Math.abs(currentYear)}bce` : `${currentYear}ce`;
+      await exportMapPNG(mapContainerRef.current, `linguascrape-map-${year}.png`);
+    } finally {
+      setIsExportingImage(false);
+    }
+  }, [currentYear]);
 
   const toggleFullscreen = React.useCallback(() => {
     if (!document.fullscreenElement) {
@@ -949,6 +991,63 @@ export function EnhancedLanguageMapView({
     [onFeatureSelect, selectFeature, cultureProfiles]
   );
 
+  // Build the flat list of keyboard-navigable features from the currently
+  // visible layers. Each feature carries a representative point so arrow-key
+  // (spatial) traversal works; ids match what handleFeatureClick expects.
+  const navigableFeatures = useMemo<NavigableFeature[]>(() => {
+    const out: NavigableFeature[] = [];
+    const pushGeo = (
+      items: any[],
+      type: MapFeatureType,
+      getId: (f: any) => string | undefined,
+      getName: (f: any) => string | undefined,
+    ) => {
+      for (const f of items) {
+        const id = getId(f);
+        if (!id) continue;
+        const pt = representativePoint(f.geometry);
+        if (!pt) continue;
+        out.push({
+          id,
+          name: getName(f) || id,
+          type,
+          lng: pt[0],
+          lat: pt[1],
+        });
+      }
+    };
+
+    if (isLayerVisible('language-ranges')) {
+      pushGeo(filteredLanguageRanges, 'language-range',
+        (f) => f.properties?.languageId || f.id,
+        (f) => f.properties?.languageName || f.properties?.name);
+    }
+    if (isLayerVisible('archaeological-sites')) {
+      pushGeo(filteredArchaeologicalSites, 'archaeological-site',
+        (f) => f.properties?.siteId || f.id,
+        (f) => f.properties?.name || f.properties?.siteName);
+    }
+    if (isLayerVisible('civilizations')) {
+      pushGeo(filteredCivilizations, 'civilization',
+        (f) => f.properties?.civilizationId || f.id,
+        (f) => f.properties?.name || f.properties?.civilizationName);
+    }
+    return out;
+  }, [
+    isLayerVisible,
+    filteredLanguageRanges,
+    filteredArchaeologicalSites,
+    filteredCivilizations,
+  ]);
+
+  const featureNav = useMapFeatureNavigation(navigableFeatures, {
+    onSelect: (f) => handleFeatureClick(f.id),
+  });
+  const focusedNavFeature = useMemo(
+    () => navigableFeatures.find((f) => f.id === featureNav.focusedId) ?? null,
+    [navigableFeatures, featureNav.focusedId],
+  );
+
   // Keyboard shortcuts (timeline + accessibility)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -959,6 +1058,12 @@ export function EnhancedLanguageMapView({
 
       // Let accessibility handler try first (h = high-contrast, ? = help)
       if (a11y.handleAccessibilityKey(e)) {
+        e.preventDefault();
+        return;
+      }
+
+      // Feature navigation mode intercepts arrow keys / Enter / etc.
+      if (featureNav.handleFeatureNavKey(e)) {
         e.preventDefault();
         return;
       }
@@ -989,7 +1094,7 @@ export function EnhancedLanguageMapView({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd, a11y.handleAccessibilityKey]);
+  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd, a11y.handleAccessibilityKey, featureNav.handleFeatureNavKey]);
 
   // Calculate initial map center and zoom
   const initialCenter: [number, number] = useMemo(() => {
@@ -1628,6 +1733,19 @@ export function EnhancedLanguageMapView({
         />
       )}
 
+      {/* Export Map Image */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={exportMapImage}
+        disabled={isExportingImage}
+        className="absolute bottom-4 right-[10.5rem] z-[1000] bg-white shadow-lg"
+        title="Export map as PNG image"
+        aria-label="Export map as PNG image"
+      >
+        {isExportingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+      </Button>
+
       {/* High-Contrast Toggle */}
       <Button
         variant="outline"
@@ -1653,6 +1771,23 @@ export function EnhancedLanguageMapView({
         <Keyboard className="h-4 w-4" />
       </Button>
 
+      {/* Feature-navigation focus indicator (visible + SR status) */}
+      {featureNav.navActive && (
+        <div
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-blue-600 text-white text-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 pointer-events-none"
+          role="status"
+        >
+          <span className="font-medium">Feature nav</span>
+          <span className="opacity-90">
+            {focusedNavFeature
+              ? `${focusedNavFeature.name}`
+              : navigableFeatures.length === 0
+                ? 'no features'
+                : 'use arrow keys'}
+          </span>
+        </div>
+      )}
+
       {/* Keyboard Shortcuts Help Dialog */}
       {a11y.showKeyboardHelp && (
         <div
@@ -1664,6 +1799,15 @@ export function EnhancedLanguageMapView({
           <h3 className="text-lg font-semibold mb-3">Keyboard Shortcuts</h3>
           <ul className="space-y-1.5 text-sm">
             {a11y.keyboardShortcuts.map((s) => (
+              <li key={s.key} className="flex justify-between">
+                <span className="text-gray-600">{s.description}</span>
+                <kbd className="ml-2 px-1.5 py-0.5 bg-gray-100 border rounded text-xs font-mono">{s.key}</kbd>
+              </li>
+            ))}
+          </ul>
+          <h4 className="text-sm font-semibold mt-4 mb-2">Feature Navigation</h4>
+          <ul className="space-y-1.5 text-sm">
+            {MAP_FEATURE_NAV_SHORTCUTS.map((s) => (
               <li key={s.key} className="flex justify-between">
                 <span className="text-gray-600">{s.description}</span>
                 <kbd className="ml-2 px-1.5 py-0.5 bg-gray-100 border rounded text-xs font-mono">{s.key}</kbd>
