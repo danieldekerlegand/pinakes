@@ -20,6 +20,36 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
+
+The contribution endpoints (previously inline in `routes.ts`) now live in
+`routes/contributions.ts` (`registerContributionRoutes(app, {contributions?,
+writeGuard?})`). US-011 hardened the **write** side; reads stay open.
+
+- **Write endpoints** (`POST /api/contributions`, `PATCH /api/contributions/:id/review`)
+  are wrapped with `createContributionWriteGuard()` middleware = API-key auth +
+  per-key fixed-window rate limiting. Reads (`GET /api/contributions*`) are
+  unguarded. The guard is **injectable** on the register options so route tests
+  pass one built over a fixed `config`/`limiter`/`now` (see `contributions.test.ts`).
+- **Backward-compatible by default (mirrors `GEONAMES_USERNAME`):** with
+  `CONTRIBUTION_API_KEYS` **unset**, `authenticate()` returns `{ok:true, key:null}`
+  → auth disabled, writes open (the existing client keeps working out-of-the-box).
+  Set the env var (comma-separated `key` or `key:label`) to *require* a valid key
+  via `X-API-Key` or `Authorization: Bearer <key>`. Missing key ⇒ **401**, unknown
+  key ⇒ **403**, over quota ⇒ **429** (with `Retry-After` + `X-RateLimit-*` headers).
+  Key comparison is constant-time (`crypto.timingSafeEqual`, length-guarded).
+- **`api-auth.ts` is pure/injectable**: `parseApiKeys`/`loadApiAuthConfig` (env),
+  `extractApiKey`/`authenticate` (pure), and `RateLimiter` — a fixed-window counter
+  whose `check(identity, now)` takes the clock as a param, so rate-limit windows are
+  deterministically unit-testable. Rate-limit identity = the presenting key (authed)
+  else `req.ip`. Env: `CONTRIBUTION_RATE_LIMIT_{MAX,WINDOW_MS}` (default 60/60000).
+- **OpenAPI spec** is published at `GET /api/openapi.json` (open) and built by the
+  pure `services/openapi-spec.ts` `buildOpenApiSpec()`; a committed snapshot lives
+  at `docs/openapi.json` and is asserted byte-equal by `openapi-spec.test.ts`.
+  **Gotcha:** after editing the spec, regenerate the snapshot
+  (`npx tsx -e "..writeFileSync('docs/openapi.json', JSON.stringify(buildOpenApiSpec(),null,2)+'\n')"`)
+  or that parity test fails.
+
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the
