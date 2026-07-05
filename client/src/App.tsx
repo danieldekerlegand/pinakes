@@ -20,6 +20,7 @@ import CultureProfileReportPage from "@/pages/culture-profile-report";
 // primary navigation; reachable only via its direct route (US-011).
 import AdvancedToolsPage from "@/pages/advanced-tools";
 import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
   return (
@@ -52,6 +53,7 @@ function App() {
       <TooltipProvider>
         <VisualizationProvider>
           <Toaster />
+          <OfflineIndicator />
           <Router />
         </VisualizationProvider>
       </TooltipProvider>
