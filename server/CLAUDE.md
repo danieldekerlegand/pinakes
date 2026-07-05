@@ -81,6 +81,32 @@ copy that shape. Differences to know:
   gate returns 403 on a private read by a non-owner. Route test uses the injectable
   `new AnnotationStore(tmpDir)` (same as collections).
 
+## Drawn-geometry authoring — `services/drawn-geometry.ts` + `routes/drawn-geometry.ts`
+
+`POST /api/map/drawn-geometry` (US-001) takes a GeoJSON **Polygon or LineString**
+drawn on the map and lands it in the **contribution review queue** (never a
+direct TSV write) with provenance `entityData.source = 'user-drawn'`. Pattern to
+reuse for any "author geometry in-app" feature:
+
+- The service is **pure** (no fs/express): `validateGeometry` (structural GeoJSON
+  — closed rings ≥4 positions, LineString ≥2, `[lng,lat]` within world bounds),
+  `validateDrawnGeometry` (adds entity association + non-inverted time range +
+  target/geometry-kind agreement), `serializeGeometry` (canonical JSON string
+  matching a TSV `geometry`/`waypoints` cell), and `drawnGeometryToContribution`
+  (→ `Partial<Contribution>`). Unit-test these directly; no server needed.
+- `DrawnGeometryTarget` (`boundary`/`language-range` = Polygon; `trade-route`/
+  `migration-route` = LineString) maps 1:1 onto `ContributionEntityType` — those
+  last two were **added** to the enum + `REQUIRED_FIELDS` in
+  `contribution-service.ts` so routes can queue too. Extend both together.
+- Route takes an **injectable** `ContributionService` (default `new
+  ContributionService()`), so the test points it at a `mkdtempSync` dir — same
+  pattern as collections/annotations.
+- For `language-range`, `associatedEntityId` is mirrored into
+  `entityData.languageId` to satisfy that type's required fields.
+- Client entry point is `client/src/components/visualizations/BoundaryDrawingPanel
+  .tsx` (uses the existing `useDrawingTool` hook); it posts the `DrawnGeometryInput`
+  shape (geometry + target + associatedEntityId + timePeriodStart/End).
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:

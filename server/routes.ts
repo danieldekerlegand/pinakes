@@ -65,6 +65,7 @@ import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
+import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -121,6 +122,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User annotations & notes routes (/api/annotations/*, US-008) — free-text notes
   // on entities (stable-id references), private by default with an option to share.
   registerAnnotationRoutes(app);
+
+  // Drawn-geometry authoring routes (/api/map/drawn-geometry, US-001) — polygons
+  // & lines drawn on the map land in the contribution review queue with
+  // provenance source='user-drawn'; a reviewer promotes them into TSV later.
+  registerDrawnGeometryRoutes(app);
 
 
   // Language Families
