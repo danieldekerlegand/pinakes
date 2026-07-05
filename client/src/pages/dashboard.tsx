@@ -27,6 +27,8 @@ import { parseShareableState, useShareableState, generateShareableURL } from "@/
 import { copyToClipboard } from "@/lib/visualization/export-utils";
 import { useVisualization } from "@/contexts/VisualizationContext";
 import { useDarkMode } from "@/hooks/use-dark-mode";
+import { useI18n } from "@/contexts/I18nContext";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import {
   Dialog,
   DialogContent,
@@ -103,6 +105,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { state: vizState, updateFilters, setView } = useVisualization();
   const { darkMode, toggleDarkMode } = useDarkMode();
+  const { t } = useI18n();
 
   const handleViewChange = useCallback((view: ViewMode) => {
     setActiveSection(null);
@@ -272,8 +275,8 @@ export default function Dashboard() {
             <button
               onClick={() => setSidebarCollapsed((prev) => !prev)}
               className="p-1.5 rounded-md hover:bg-blue-500 transition-colors"
-              aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-              title={`${sidebarCollapsed ? "Show" : "Hide"} sidebar (⌘B)`}
+              aria-label={sidebarCollapsed ? t("settings.showSidebar") : t("settings.hideSidebar")}
+              title={`${sidebarCollapsed ? t("settings.showSidebar") : t("settings.hideSidebar")} (⌘B)`}
             >
               {sidebarCollapsed ? (
                 <PanelLeft className="h-4 w-4" />
@@ -282,7 +285,7 @@ export default function Dashboard() {
               )}
             </button>
             <h1 className="text-base font-medium" data-testid="text-app-title">
-              Linguistic Family Tree
+              {t("app.title")}
             </h1>
           </div>
 
@@ -292,11 +295,11 @@ export default function Dashboard() {
               onClick={() => setGlobalSearchOpen(true)}
               className="hidden md:flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white/90 rounded-md px-3 py-1 text-sm transition-colors w-56 justify-between"
               data-testid="input-search"
-              aria-label="Search everything (Cmd+K)"
+              aria-label={`${t("action.searchEverything")} (Cmd+K)`}
             >
               <span className="flex items-center gap-2">
                 <Search className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Search...</span>
+                <span>{t("action.search")}</span>
               </span>
               <kbd className="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-blue-400 bg-blue-600 px-1.5 font-mono text-[10px] font-medium text-white/70">
                 <span className="text-xs">⌘</span>K
@@ -312,12 +315,14 @@ export default function Dashboard() {
             >
               <Search className="h-4 w-4" aria-hidden="true" />
             </Button>
+            {/* Language / locale */}
+            <LocaleSwitcher />
             {/* Dark mode */}
             <button
               className={`p-1.5 rounded-md hover:bg-blue-500 transition-colors ${darkMode ? 'ring-1 ring-white/50' : ''}`}
               onClick={toggleDarkMode}
               aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-              title="Toggle dark mode"
+              title={t("settings.darkMode")}
             >
               <Moon className="h-4 w-4" aria-hidden="true" />
             </button>

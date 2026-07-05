@@ -15,6 +15,7 @@ import { AddToCollectionButton } from "@/components/collections/AddToCollectionB
 import { EntityAnnotations } from "@/components/annotations/EntityAnnotations";
 import { ContributorAttribution } from "@/components/ContributorAttribution";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
+import { formatEntityName } from "@/lib/i18n";
 import type { LanguageWithStats } from "@shared/types";
 
 interface SampleText {
@@ -182,6 +183,14 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
 
   if (!language) return null;
 
+  // Native-script name shown beside the romanized label, with its own text
+  // direction (RTL-aware) derived from the language's ISO code (US-012 i18n).
+  const displayName = formatEntityName({
+    name: language.name,
+    native: language.nativeName,
+    languageCode: language.iso639_1,
+  });
+
   // Calculate completion percentage based on available translations
   const wordsWithTranslation = wordList.filter(w => w.translation !== null).length;
   const completionPercentage = wordList.length > 0
@@ -199,6 +208,16 @@ export default function LanguageDetailPanel({ languageId, onClose }: LanguageDet
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid={`text-detail-title-${language.name.toLowerCase()}`}>
                 {language.name}
+                {displayName.native && (
+                  <span
+                    className="ml-2 text-gray-500 dark:text-gray-400 font-normal"
+                    lang={language.iso639_1 || undefined}
+                    dir={displayName.nativeDir}
+                    data-testid="text-detail-native-name"
+                  >
+                    {displayName.native}
+                  </span>
+                )}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {language.classification}
