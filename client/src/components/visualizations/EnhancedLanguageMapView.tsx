@@ -1,8 +1,9 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Maximize2, Minimize2, BookOpen, Eye, Keyboard } from 'lucide-react';
+import { Loader2, Maximize2, Minimize2, BookOpen, Eye, Keyboard, Camera } from 'lucide-react';
 import { Button } from '../ui/button';
+import { exportMapPNG } from '../../lib/visualization/export-utils';
 import { useMapLayers } from './hooks/useMapLayers';
 import { useTimeSlider } from './hooks/useTimeSlider';
 import { DEFAULT_NARRATION_POINTS } from '../../lib/visualization/narration-points';
@@ -494,6 +495,18 @@ export function EnhancedLanguageMapView({
   // Fetch genetic-linguistic correlations
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const [isExportingImage, setIsExportingImage] = React.useState(false);
+  const exportMapImage = React.useCallback(async () => {
+    if (!mapContainerRef.current) return;
+    setIsExportingImage(true);
+    try {
+      const year = currentYear < 0 ? `${Math.abs(currentYear)}bce` : `${currentYear}ce`;
+      await exportMapPNG(mapContainerRef.current, `linguascrape-map-${year}.png`);
+    } finally {
+      setIsExportingImage(false);
+    }
+  }, [currentYear]);
 
   const toggleFullscreen = React.useCallback(() => {
     if (!document.fullscreenElement) {
@@ -1633,6 +1646,19 @@ export function EnhancedLanguageMapView({
           onClose={() => setShowStoryMode(false)}
         />
       )}
+
+      {/* Export Map Image */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={exportMapImage}
+        disabled={isExportingImage}
+        className="absolute bottom-4 right-[10.5rem] z-[1000] bg-white shadow-lg"
+        title="Export map as PNG image"
+        aria-label="Export map as PNG image"
+      >
+        {isExportingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+      </Button>
 
       {/* High-Contrast Toggle */}
       <Button
