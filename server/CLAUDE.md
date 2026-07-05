@@ -196,6 +196,41 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   as needs-review). Route: 201 `{ draft, contribution }`, 400 on a bad URL /
   unsupported entityType, **502** on a source/network failure.
 
+## LLM text extractor — `services/text-extractor.ts` + `routes/text-extractor.ts`
+
+`POST /api/extract/text` (US-008) turns a pasted paragraph into structured
+**drafts** — entities (name/description/coordinates/dates, each a 0..1
+`FieldValue`) + relationships between them — and queues **one contribution per
+entity** in the review queue flagged `entityData.aiGenerated/autoDerived` +
+`source='ai-extracted'`. Never a live write; a reviewer (US-009) promotes. Reuse
+notes (mirrors url-extractor US-004, but multi-entity + LLM):
+
+- **Uses the existing Gemini client** — same `@google/generative-ai`
+  `responseSchema` pattern as `map-image-analyzer.ts` (`GEMINI_MODEL`, default
+  `gemini-3-pro-preview`). The LLM call is behind an injectable
+  `TextExtractorDeps.extract(text) → RawTextExtraction`; tests pass fixture-backed
+  deps reading `services/fixtures/text-extractor/*.json` — **no live model call,
+  no API key**. Default `liveDeps` builds the model + parses the JSON response.
+- **Per-field confidence**: the raw schema carries a per-field confidence
+  (`descriptionConfidence`, `coordinatesConfidence`, `startYearConfidence`, …);
+  `normalizeExtraction` (pure) wraps each present field as `FieldValue<T>`,
+  **falling a missing field confidence back to the entity's name confidence**, and
+  drops blank-name entities / coordinate-incomplete / dedups+self-drops relations.
+- **Entity-type resolution is queue-safe.** `resolveContributionEntityType(rawType,
+  hasCoords)` maps the LLM's free-text kind to a `ContributionEntityType` whose
+  required fields we can guarantee: name-only types (`civilization` default,
+  `language`, `historical-figure`, `trade-good`) plus `archaeological-site`
+  **only when coordinates are present** (it requires `coordinates`). **Religion
+  falls back to `civilization`** — `religion` needs a `religionType` free text
+  can't guarantee.
+- **Relationships attach to an entity's contribution** (`extractionToContributions`,
+  pure): to the *source* entity if it's among the extracted entities, else the
+  *target*, else dropped from contributions (still present in the returned
+  `result`). `overallConfidence` = mean field confidence → 1..99 (always < 100).
+- Route: injectable `{ contributions, deps }`; **201** `{ result, contributions,
+  warnings }`, **400** on empty text, **502** on a model failure. Backend-only per
+  the ACs (no UI required — the review UI is US-009).
+
 ## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
 
 `POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata

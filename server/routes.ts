@@ -69,6 +69,7 @@ import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
+import { registerTextExtractorRoutes } from "./routes/text-extractor";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
@@ -151,6 +152,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // flagged aiGenerated/autoDerived; a reviewer promotes it later. Wikidata
   // resolves via the single-entity REST endpoint (no TS SPARQL client).
   registerUrlExtractorRoutes(app);
+
+  // LLM text-extraction route (/api/extract/text, US-008) — a pasted paragraph
+  // becomes structured entity/date/relationship drafts (each field with a
+  // confidence, flagged AI-generated) that land in the contribution review
+  // queue (US-009); never a live write. Uses the existing Gemini client.
+  registerTextExtractorRoutes(app);
 
   // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
   // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
