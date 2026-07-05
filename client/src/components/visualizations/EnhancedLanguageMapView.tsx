@@ -82,8 +82,10 @@ import { CIVILIZATION_PALETTE, hashIndex } from '../../lib/visualization/color-t
 import { useMapPerformance, MapPerformanceTracker } from './hooks/useMapPerformance';
 import { viewportParams } from '../../lib/visualization/map-performance';
 import { useMapAccessibility } from './hooks/useMapAccessibility';
-import { describeFeature } from '../../lib/visualization/map-accessibility';
+import { useMapFeatureNavigation } from './hooks/useMapFeatureNavigation';
+import { describeFeature, MAP_FEATURE_NAV_SHORTCUTS } from '../../lib/visualization/map-accessibility';
 import type { MapFeatureType } from '../../lib/visualization/map-accessibility';
+import type { NavigableFeature } from '../../lib/visualization/map-feature-traversal';
 import { TerritorialShadingProvider } from './map-layers/TerritorialShadingProvider';
 import type { TerritorialFillType } from '../../lib/visualization/territorial-shading';
 import { useSplitScreen } from './hooks/useSplitScreen';
@@ -115,6 +117,27 @@ import type {
   MaterialCultureDistribution,
 } from '../../lib/visualization/geospatial-types';
 import 'leaflet/dist/leaflet.css';
+
+/**
+ * Extract a representative [lng, lat] point from any GeoJSON geometry, used to
+ * anchor keyboard (spatial) feature traversal. Returns null for empty/missing
+ * geometry.
+ */
+function representativePoint(geometry: any): [number, number] | null {
+  if (!geometry) return null;
+  const firstCoord = (coords: any): [number, number] | null => {
+    if (!Array.isArray(coords)) return null;
+    if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+      return [coords[0], coords[1]];
+    }
+    for (const c of coords) {
+      const r = firstCoord(c);
+      if (r) return r;
+    }
+    return null;
+  };
+  return firstCoord(geometry.coordinates);
+}
 
 /** Rendered inside MapContainer — flies to the given target whenever it changes. */
 function MapFlyTo({ target }: { target: { center: [number, number]; zoom: number } | null }) {
@@ -968,6 +991,63 @@ export function EnhancedLanguageMapView({
     [onFeatureSelect, selectFeature, cultureProfiles]
   );
 
+  // Build the flat list of keyboard-navigable features from the currently
+  // visible layers. Each feature carries a representative point so arrow-key
+  // (spatial) traversal works; ids match what handleFeatureClick expects.
+  const navigableFeatures = useMemo<NavigableFeature[]>(() => {
+    const out: NavigableFeature[] = [];
+    const pushGeo = (
+      items: any[],
+      type: MapFeatureType,
+      getId: (f: any) => string | undefined,
+      getName: (f: any) => string | undefined,
+    ) => {
+      for (const f of items) {
+        const id = getId(f);
+        if (!id) continue;
+        const pt = representativePoint(f.geometry);
+        if (!pt) continue;
+        out.push({
+          id,
+          name: getName(f) || id,
+          type,
+          lng: pt[0],
+          lat: pt[1],
+        });
+      }
+    };
+
+    if (isLayerVisible('language-ranges')) {
+      pushGeo(filteredLanguageRanges, 'language-range',
+        (f) => f.properties?.languageId || f.id,
+        (f) => f.properties?.languageName || f.properties?.name);
+    }
+    if (isLayerVisible('archaeological-sites')) {
+      pushGeo(filteredArchaeologicalSites, 'archaeological-site',
+        (f) => f.properties?.siteId || f.id,
+        (f) => f.properties?.name || f.properties?.siteName);
+    }
+    if (isLayerVisible('civilizations')) {
+      pushGeo(filteredCivilizations, 'civilization',
+        (f) => f.properties?.civilizationId || f.id,
+        (f) => f.properties?.name || f.properties?.civilizationName);
+    }
+    return out;
+  }, [
+    isLayerVisible,
+    filteredLanguageRanges,
+    filteredArchaeologicalSites,
+    filteredCivilizations,
+  ]);
+
+  const featureNav = useMapFeatureNavigation(navigableFeatures, {
+    onSelect: (f) => handleFeatureClick(f.id),
+  });
+  const focusedNavFeature = useMemo(
+    () => navigableFeatures.find((f) => f.id === featureNav.focusedId) ?? null,
+    [navigableFeatures, featureNav.focusedId],
+  );
+
   // Keyboard shortcuts (timeline + accessibility)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -978,6 +1058,12 @@ export function EnhancedLanguageMapView({
 
       // Let accessibility handler try first (h = high-contrast, ? = help)
       if (a11y.handleAccessibilityKey(e)) {
+        e.preventDefault();
+        return;
+      }
+
+      // Feature navigation mode intercepts arrow keys / Enter / etc.
+      if (featureNav.handleFeatureNavKey(e)) {
         e.preventDefault();
         return;
       }
@@ -1008,7 +1094,7 @@ export function EnhancedLanguageMapView({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd, a11y.handleAccessibilityKey]);
+  }, [toggle, stepBackward, stepForward, jumpToStart, jumpToEnd, a11y.handleAccessibilityKey, featureNav.handleFeatureNavKey]);
 
   // Calculate initial map center and zoom
   const initialCenter: [number, number] = useMemo(() => {
@@ -1685,6 +1771,23 @@ export function EnhancedLanguageMapView({
         <Keyboard className="h-4 w-4" />
       </Button>
 
+      {/* Feature-navigation focus indicator (visible + SR status) */}
+      {featureNav.navActive && (
+        <div
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-[1001] bg-blue-600 text-white text-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 pointer-events-none"
+          role="status"
+        >
+          <span className="font-medium">Feature nav</span>
+          <span className="opacity-90">
+            {focusedNavFeature
+              ? `${focusedNavFeature.name}`
+              : navigableFeatures.length === 0
+                ? 'no features'
+                : 'use arrow keys'}
+          </span>
+        </div>
+      )}
+
       {/* Keyboard Shortcuts Help Dialog */}
       {a11y.showKeyboardHelp && (
         <div
@@ -1696,6 +1799,15 @@ export function EnhancedLanguageMapView({
           <h3 className="text-lg font-semibold mb-3">Keyboard Shortcuts</h3>
           <ul className="space-y-1.5 text-sm">
             {a11y.keyboardShortcuts.map((s) => (
+              <li key={s.key} className="flex justify-between">
+                <span className="text-gray-600">{s.description}</span>
+                <kbd className="ml-2 px-1.5 py-0.5 bg-gray-100 border rounded text-xs font-mono">{s.key}</kbd>
+              </li>
+            ))}
+          </ul>
+          <h4 className="text-sm font-semibold mt-4 mb-2">Feature Navigation</h4>
+          <ul className="space-y-1.5 text-sm">
+            {MAP_FEATURE_NAV_SHORTCUTS.map((s) => (
               <li key={s.key} className="flex justify-between">
                 <span className="text-gray-600">{s.description}</span>
                 <kbd className="ml-2 px-1.5 py-0.5 bg-gray-100 border rounded text-xs font-mono">{s.key}</kbd>
