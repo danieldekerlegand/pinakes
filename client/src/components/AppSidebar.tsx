@@ -24,6 +24,7 @@ import {
   Library,
   Brain,
   Hammer,
+  ClipboardCheck,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -89,6 +90,7 @@ const ROUTE_ITEMS: RouteItem[] = [
   { path: "/quiz", label: "Quiz", icon: Brain },
   { path: "/civilization-timeline", label: "Civilizations", icon: Clock },
   { path: "/scraper", label: "Scraper", icon: Hammer },
+  { path: "/ai-review", label: "AI Review", icon: ClipboardCheck },
 ];
 
 export function AppSidebar({

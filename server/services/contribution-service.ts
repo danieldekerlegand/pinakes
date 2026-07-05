@@ -66,6 +66,23 @@ export interface Contribution {
   fieldName?: string; // Specific field being edited
   currentValue?: string; // Current value of the field
   suggestedValue?: string; // Proposed new value
+
+  // AI-extraction review support (US-009). AI-extracted drafts (US-004/US-008)
+  // carry these first-class so the review workflow doesn't have to dig into
+  // entityData. `aiGenerated`/`aiSource`/`perFieldConfidence` are hoisted from
+  // entityData at submit time; the rest are recorded when a reviewer acts.
+  aiGenerated?: boolean;
+  aiSource?: string;
+  perFieldConfidence?: Record<string, number>;
+  reviewer?: string; // Human who reviewed the AI draft
+  fieldReviews?: Record<string, { decision: "accept" | "edit" | "reject"; value?: unknown }>;
+  promotion?: {
+    file: string;
+    targetId: string;
+    aiSource: string;
+    reviewer: string;
+    reviewedAt: string;
+  };
 }
 
 export interface ContributionFilters {
@@ -241,6 +258,22 @@ export class ContributionService {
       return { validation };
     }
 
+    // Hoist AI-extraction flags out of entityData so the review workflow
+    // (US-009) can treat them as first-class without digging into entityData.
+    const entityData = data.entityData!;
+    const aiGenerated =
+      data.aiGenerated ?? entityData.aiGenerated === true ? true : undefined;
+    const aiSource =
+      data.aiSource ??
+      (typeof entityData.source === "string" && aiGenerated
+        ? (entityData.source as string)
+        : undefined);
+    const perFieldConfidence =
+      data.perFieldConfidence ??
+      (entityData.perFieldConfidence && typeof entityData.perFieldConfidence === "object"
+        ? (entityData.perFieldConfidence as Record<string, number>)
+        : undefined);
+
     const contribution: Contribution = {
       id: this.generateId(),
       entityType: data.entityType!,
@@ -250,13 +283,16 @@ export class ContributionService {
       contributorName: data.contributorName,
       contributorEmail: data.contributorEmail,
       entityId: data.entityId,
-      entityData: data.entityData!,
+      entityData,
       sources: data.sources!,
       confidence: data.confidence ?? 50,
       notes: data.notes,
       fieldName: data.fieldName,
       currentValue: data.currentValue,
       suggestedValue: data.suggestedValue,
+      aiGenerated,
+      aiSource,
+      perFieldConfidence,
     };
 
     this.save(contribution);
@@ -313,6 +349,37 @@ export class ContributionService {
     contribution.status = decision;
     contribution.reviewedAt = new Date().toISOString();
     contribution.reviewNote = note;
+
+    this.save(contribution);
+    return contribution;
+  }
+
+  /**
+   * Record the outcome of an AI-draft field-level review (US-009): the human
+   * reviewer, their per-field decisions, the final status, and — when approved
+   * and promoted — the resulting TSV promotion record. The actual promotion to
+   * `lexicons/*.tsv` is done by `ai-review.promoteContribution` (kept out of
+   * this service so it stays lexicon-agnostic); pass the record here to persist.
+   */
+  recordAiReview(
+    id: string,
+    update: {
+      status: "approved" | "rejected";
+      reviewer: string;
+      fieldReviews?: Contribution["fieldReviews"];
+      promotion?: Contribution["promotion"];
+      note?: string;
+    },
+  ): Contribution | null {
+    const contribution = this.get(id);
+    if (!contribution) return null;
+
+    contribution.status = update.status;
+    contribution.reviewer = update.reviewer;
+    contribution.reviewedAt = new Date().toISOString();
+    if (update.fieldReviews) contribution.fieldReviews = update.fieldReviews;
+    if (update.promotion) contribution.promotion = update.promotion;
+    if (update.note !== undefined) contribution.reviewNote = update.note;
 
     this.save(contribution);
     return contribution;

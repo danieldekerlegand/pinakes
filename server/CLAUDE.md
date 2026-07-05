@@ -231,6 +231,49 @@ notes (mirrors url-extractor US-004, but multi-entity + LLM):
   warnings }`, **400** on empty text, **502** on a model failure. Backend-only per
   the ACs (no UI required — the review UI is US-009).
 
+## AI-extraction review queue — `services/ai-review.ts` + `routes/ai-review.ts`
+
+`/api/ai-review` (US-009) is the **promotion** leg for AI-generated drafts (the URL
+extractor US-004 + text extractor US-008): a human accepts/edits/rejects each field,
+and an approved draft is written into `lexicons/*.tsv` with provenance recording BOTH
+the AI source and the reviewer. This is where "US-009 promotes" (referenced across the
+extractor notes) actually happens.
+
+- **AI drafts are flagged first-class now.** `ContributionService.submit` **hoists**
+  `entityData.{aiGenerated,source,perFieldConfidence}` onto the `Contribution` as
+  `aiGenerated`/`aiSource`/`perFieldConfidence` (extractors still write them into
+  entityData, so this is backward-compatible). `isAiDraft(c)` = `entityData.aiGenerated
+  === true`. New optional `Contribution` fields `reviewer`/`fieldReviews`/`promotion`
+  record the review outcome; `recordAiReview(id, {status, reviewer, fieldReviews?,
+  promotion?, note?})` persists it (kept lexicon-agnostic — it does NOT do the TSV write).
+- **The service is pure over an injectable `lexiconsDir` + `now`** (unit-tested with
+  `mkdtempSync` temp dirs — no live lexicon write, no wall-clock). `projectDraft(c)` →
+  a field-level review view (metadata keys stripped; each content field carries its
+  0..1 `perFieldConfidence` + a `lowConfidence` flag vs `LOW_CONFIDENCE_THRESHOLD=0.5`).
+  `applyFieldReviews(c, decisions)` → accepted content (accept keeps, edit replaces,
+  reject drops) + a `fieldReviews` record. `validateAcceptedDraft(type, data)` guards
+  required fields (e.g. a rejected `name`). `promoteContribution({...})` appends the row.
+- **Promotion targets are a small `entityType → {file, header, map}` table** (only the
+  name-only + coord AI types: `civilization`→civilizations, `language`→languages,
+  `archaeological-site`→archaeological-sites, `trade-good`→trade-goods; `historical-figure`
+  has **no** TSV so it's non-promotable — `isPromotable(type)` is false and approve → 400).
+  The generated `id` is a `slugify(name)` de-duped against the file's existing ids
+  (`sparta`, `sparta-2`, …). **Provenance is written two ways:** inlined into the target's
+  `sources` column when it has one (string-array shape preserved:
+  `["AI-extracted via <source>; reviewed by <reviewer>"]`) **and** a structured row in a
+  companion `contribution-provenance.tsv` ledger (uniform regardless of the target's
+  columns — contribution_id, entity_type, target_file, target_id, ai_source, reviewer,
+  reviewed_at, confidence). Coordinates serialise as the corpus's `{"lat":..,"lng":..}`
+  JSON cell; `language` splits them to `latitude`/`longitude`.
+- **Route** (injectable `{contributions, lexiconsDir}`): `GET /api/ai-review` lists AI
+  drafts as review views (non-AI contributions filtered out); `GET /api/ai-review/:id`;
+  `PATCH /api/ai-review/:id` body `{decision:'approved'|'rejected', reviewer, fields?, note?}`
+  where `fields` is `Record<field, {decision:'accept'|'edit'|'reject', value?}>`. **200**
+  with the updated view (`promotion` populated on approve); **400** on bad decision /
+  missing reviewer / rejected-required-field / non-promotable type; **404** for an unknown
+  or non-AI draft. Client entry: the `/ai-review` page (`client/src/pages/ai-review.tsx`),
+  linked in `AppSidebar`.
+
 ## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
 
 `POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata

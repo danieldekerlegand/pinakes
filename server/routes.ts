@@ -70,6 +70,7 @@ import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerTextExtractorRoutes } from "./routes/text-extractor";
+import { registerAiReviewRoutes } from "./routes/ai-review";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
@@ -158,6 +159,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // confidence, flagged AI-generated) that land in the contribution review
   // queue (US-009); never a live write. Uses the existing Gemini client.
   registerTextExtractorRoutes(app);
+
+  // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
+  // field-level review workflow for AI-generated drafts (US-004/US-008): a human
+  // accepts/edits/rejects each field (low-confidence fields flagged), and an
+  // approved draft is promoted into lexicons/*.tsv with provenance recording both
+  // the AI source and the human reviewer.
+  registerAiReviewRoutes(app);
 
   // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
   // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of

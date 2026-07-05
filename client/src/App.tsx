@@ -21,6 +21,7 @@ import CultureProfileReportPage from "@/pages/culture-profile-report";
 // primary navigation; reachable only via its direct route (US-011).
 import AdvancedToolsPage from "@/pages/advanced-tools";
 import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
+import AiReviewPage from "@/pages/ai-review";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -43,6 +44,8 @@ function Router() {
       <Route path="/collections" component={CollectionsPage} />
       <Route path="/collections/:id" component={CollectionsPage} />
       <Route path="/shared/collection/:token" component={SharedCollectionPage} />
+      {/* AI-extraction review queue (US-009) — accept/edit/reject AI drafts. */}
+      <Route path="/ai-review" component={AiReviewPage} />
       <Route component={NotFound} />
     </Switch>
   );
