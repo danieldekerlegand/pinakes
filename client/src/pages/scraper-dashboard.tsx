@@ -39,6 +39,7 @@ import {
   Globe,
   BarChart3,
   RefreshCw,
+  Boxes,
 } from "lucide-react";
 
 type WordCoverage = {
@@ -48,6 +49,15 @@ type WordCoverage = {
   wordCount: number;
   totalBaseWords: number;
   coveragePercent: number;
+};
+
+type CultureScrapeCategory = {
+  domain: string;
+  id: string;
+  label: string;
+  description: string;
+  entityType: string;
+  wikidataClass: string;
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -95,6 +105,8 @@ export default function ScraperDashboard() {
   const [languageSearch, setLanguageSearch] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState("");
   const [coverageFilter, setCoverageFilter] = useState<"all" | "scraped" | "unscraped">("all");
+  const [selectedCsDomain, setSelectedCsDomain] = useState("");
+  const [csLimit, setCsLimit] = useState("500");
 
   // Queries
   const { data: jobs = [], isLoading: jobsLoading } = useQuery<ScrapingJob[]>({
@@ -122,6 +134,12 @@ export default function ScraperDashboard() {
     queryKey: ["/api/languages"],
     staleTime: STALE_TIMES.static,
   });
+
+  const { data: csCategoriesData } = useQuery<{ categories: CultureScrapeCategory[] }>({
+    queryKey: ["/api/scraping/culturescrape/categories"],
+    staleTime: STALE_TIMES.static,
+  });
+  const cultureScrapeCategories = csCategoriesData?.categories ?? [];
 
   // Mutations
   const wordScrapeMutation = useMutation({
@@ -154,6 +172,23 @@ export default function ScraperDashboard() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to start family scraping.", variant: "destructive" });
+    },
+  });
+
+  const cultureScrapeMutation = useMutation({
+    mutationFn: async ({ domain, limit }: { domain: string; limit?: number }) => {
+      const res = await apiRequest("POST", "/api/scraping/culturescrape", { domain, limit });
+      return res.json();
+    },
+    onSuccess: (_data, { domain }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scraping-jobs"] });
+      toast({
+        title: "Acquisition Started",
+        description: `culture-scrape Wikidata acquisition queued for ${domain}.`,
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to start culture-scrape acquisition.", variant: "destructive" });
     },
   });
 
@@ -193,6 +228,13 @@ export default function ScraperDashboard() {
     const lang = availableLanguages.find((l) => l.id === selectedLanguageId);
     if (!lang) return;
     wordScrapeMutation.mutate({ languageId: lang.id, languageName: lang.name });
+  };
+
+  const handleStartCultureScrape = () => {
+    if (!selectedCsDomain) return;
+    const parsed = Number(csLimit);
+    const limit = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : undefined;
+    cultureScrapeMutation.mutate({ domain: selectedCsDomain, limit });
   };
 
   return (
@@ -448,6 +490,72 @@ export default function ScraperDashboard() {
                       <>
                         <Play className="h-4 w-4 mr-2" />
                         Start Family Scraping
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* culture-scrape Wikidata Acquisition (US-005) */}
+              <Card data-testid="culturescrape-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Boxes className="h-5 w-5" />
+                    Wikidata Bulk Acquisition
+                  </CardTitle>
+                  <CardDescription>
+                    Trigger culture-scrape's Wikidata SPARQL acquisition of civilizations,
+                    sites, figures, and trade goods. Records enter the contribution review
+                    queue with provenance — never the live dataset directly.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Domain</label>
+                    <Select value={selectedCsDomain} onValueChange={setSelectedCsDomain}>
+                      <SelectTrigger data-testid="culturescrape-domain-select">
+                        <SelectValue placeholder="Choose a domain..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cultureScrapeCategories.map((cat) => (
+                          <SelectItem key={cat.domain} value={cat.domain}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedCsDomain && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {cultureScrapeCategories.find((c) => c.domain === selectedCsDomain)?.description}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Max records (limit)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={csLimit}
+                      onChange={(e) => setCsLimit(e.target.value)}
+                      placeholder="e.g. 500"
+                      data-testid="culturescrape-limit"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleStartCultureScrape}
+                    disabled={!selectedCsDomain || cultureScrapeMutation.isPending}
+                    className="w-full"
+                    data-testid="start-culturescrape"
+                  >
+                    {cultureScrapeMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Start Wikidata Acquisition
                       </>
                     )}
                   </Button>

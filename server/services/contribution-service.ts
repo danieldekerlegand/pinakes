@@ -24,6 +24,8 @@ export type ContributionEntityType =
   | "haplogroup"
   | "civilization"
   | "archaeological-site"
+  | "historical-figure"
+  | "trade-good"
   | "language-range"
   | "language"
   | "boundary"
@@ -96,6 +98,8 @@ const REQUIRED_FIELDS: Record<ContributionEntityType, string[]> = {
   "haplogroup": ["name"],
   "civilization": ["name"],
   "archaeological-site": ["name", "coordinates"],
+  "historical-figure": ["name"],
+  "trade-good": ["name"],
   "language-range": ["languageId", "geometry"],
   "language": ["name"],
   "boundary": ["name", "geometry"],

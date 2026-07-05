@@ -196,6 +196,51 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   as needs-review). Route: 201 `{ draft, contribution }`, 400 on a bad URL /
   unsupported entityType, **502** on a source/network failure.
 
+## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
+
+`POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata
+SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods);
+`GET /api/scraping/culturescrape/categories` lists them. Reuse notes for any
+"trigger a background scraper from the dashboard" feature:
+
+- **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
+  (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
+  matching `packages/culture-scrape/categories/*.yml`) to a temp file and spawns
+  `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
+  `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
+  `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
+  `<id>.jsonl` records + `<id>.report.json`. Single-**entity** lookups still use the
+  REST `Special:EntityData` endpoint (`url-extractor.ts`); only bulk **sets** shell out.
+- **The runner is an injectable boundary** (`CultureScrapeJobRunner.runFetch`) so
+  the whole pipeline is unit-tested with a fake returning recorded `RawRecord`s —
+  no subprocess, no network. `runAcquisitionJob` (pure over runner + an injectable
+  `ContributionService`) fetches then maps each record → `Partial<Contribution>`
+  and enqueues it; it returns `{acquired, queued, skipped, contributionIds, report}`.
+- **Acquired records land in the contribution review queue**, never a live TSV
+  write — flagged `entityData.source='culturescrape-wikidata'` + `autoDerived:true`
+  (`aiGenerated:false` — it's a structured source, not an LLM), confidence clamped
+  to 1..99 so it reads as needs-review. `recordToContribution` returns `null` to
+  **skip** a row with no label (Wikidata's label service echoes the QID for
+  unlabeled items — filter `name === qid`) or a missing required coordinate.
+- **`RawRecord` shape** (culture-scrape `.jsonl`): `{fields:{item,itemLabel,image,
+  coord,qid}, provenance:{source,source_url,source_query,retrieved_at,confidence,
+  license}}`. `coord` is WKT `Point(lng lat)` — `parseWktPoint` → `{lat,lng}`
+  (note the lng/lat order swap).
+- **Coordinate-required domains** (sites → `archaeological-site`, which needs a
+  truthy `coordinates`) bind `wdt:P625` as a **required** triple in the SPARQL so
+  every returned row has one; other domains make it OPTIONAL. Added
+  `historical-figure` + `trade-good` (both `["name"]`) to `ContributionEntityType`
+  + `REQUIRED_FIELDS`; `civilization` (name-only) is reused for civilizations.
+- **Progress streams through the existing `jobStore`** (dashboard polls
+  `GET /api/scraping-jobs` every 2s) — the route creates a job
+  (`languageId='culturescrape:<domain>'`, `dataSource='other'`), runs
+  `runAcquisitionJob` fire-and-forget, and maps `onProgress` →
+  `updateJob({statusMessage, completedWords=queued, failedWords=skipped, totalWords})`.
+  **Route test hook:** `onJobSettled(jobId, result, error)` lets a test await the
+  background job deterministically instead of polling. POST returns **202**; **400**
+  on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
+  Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:

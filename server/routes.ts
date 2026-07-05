@@ -69,6 +69,7 @@ import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
+import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -149,6 +150,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // flagged aiGenerated/autoDerived; a reviewer promotes it later. Wikidata
   // resolves via the single-entity REST endpoint (no TS SPARQL client).
   registerUrlExtractorRoutes(app);
+
+  // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
+  // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
+  // civilizations/sites/figures/trade-goods from the scraper dashboard. Bulk
+  // SPARQL stays culture-scrape's job (no TS SPARQL client); acquired records
+  // land in the contribution review queue with Wikidata provenance. Progress
+  // streams via the existing jobStore (GET /api/scraping-jobs).
+  registerCultureScrapeAcquisitionRoutes(app);
 
 
   // Language Families
