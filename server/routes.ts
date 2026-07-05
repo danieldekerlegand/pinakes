@@ -68,6 +68,7 @@ import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
+import { registerRelationshipSuggestionRoutes } from "./routes/relationship-suggestions";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerTextExtractorRoutes } from "./routes/text-extractor";
 import { registerAiReviewRoutes } from "./routes/ai-review";
@@ -146,6 +147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // review queue with provenance source='user-authored'; a reviewer promotes
   // them into cultural-lineages.tsv later. Duplicate/self edges are rejected.
   registerRelationshipEdgeRoutes(app);
+
+  // Authoring-time suggested-relationship routes (/api/relationships/suggestions,
+  // US-010) — when a contributor creates/edits an entity, surface the most
+  // likely relationships (ranked by the cross-domain temporal/spatial/linguistic
+  // proximity math) with rationale + confidence. Suggestions NEVER auto-create an
+  // edge; the contributor confirms one via POST /api/relationships/edge (US-003).
+  registerRelationshipSuggestionRoutes(app);
 
   // URL-paste extractor route (/api/extract/url, US-004) — a pasted Wikipedia/
   // Wikidata URL becomes a structured entity draft (name/coords/dates/relations

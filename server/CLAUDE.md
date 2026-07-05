@@ -167,6 +167,40 @@ timeline-event/drawn-geometry — differences to know:
   (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
   a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
 
+## Authoring-time suggested relationships — `services/relationship-suggestions.ts` + `routes/relationship-suggestions.ts`
+
+`/api/relationships/suggestions` (US-010) surfaces the *most likely* relationships
+when a contributor creates/edits an entity — ranked by the same proximity math the
+cross-domain services use (`cross-domain-analysis.ts`): **linguistic** (Jaccard of
+associated language ids), **temporal** (overlap share of the shorter span), **spatial**
+(haversine distance and/or region match). It **only ranks** — never creates an edge; the
+contributor confirms one via `POST /api/relationships/edge` (US-003).
+
+- **Service is pure** (no fs/express/storage). `computeProximity(source, candidate, opts?)`
+  → a `Proximity` with per-dimension scores **plus `applicable` flags** (a dimension is
+  applicable only when *both* entities carry its data). `combinedConfidence(proximity)`
+  weights only the **applicable** dims (so a coord-less language isn't diluted to a
+  misleading low score) and caps at **95** — a suggestion always reads "confirm me", never
+  "trust me". `suggestRelationshipType` picks a canonical edge name from the dominant
+  signal + entity types (language↔language→`cognate-with`, temporal→`contemporary-with`,
+  spatial-to-place→`located-in`, else `influenced-by`). `suggestRelationships(source,
+  candidates, existingEdges, opts?)` ranks, excludes self + pairs already connected **in
+  either direction** (undirected `pairKey`), and packages a ready-to-submit
+  `RelationshipEdgeInput` on each. Pass a fixed `opts.now` in tests for deterministic
+  open-ended spans.
+- **Route** takes injectable `{ loadEntities, loadExistingEdges }` (defaults: all
+  cross-domain entities + languages from storage; corpus canonical edges via
+  `extractAllCanonicalEdges`) so route tests run with in-memory fakes — no storage/fs.
+  `GET ?entityId=&entityType=&limit=&minConfidence=` (400 no id, 404 not found);
+  `POST { id, name, entityType, ...draft }` for an entity **not yet saved** (authoring
+  time). The default existing-edge loader is wrapped in try/catch — a missing lexicons dir
+  degrades to "no exclusions", never a 500.
+- Client entry: a "Suggested for <entity>" section in
+  `client/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
+  source is chosen; each row shows the target, canonical type, confidence, and rationale
+  chips, with a **Use** button that only *pre-fills* the composer (the contributor still
+  clicks Create). The client query treats a 404 as "no suggestions".
+
 ## URL-paste extractor — `services/url-extractor.ts` + `routes/url-extractor.ts`
 
 `POST /api/extract/url` (US-004) turns a pasted **Wikipedia/Wikidata** URL into a

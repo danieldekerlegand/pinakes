@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Check, Link2, X } from 'lucide-react';
+import { ArrowRight, Check, Link2, Sparkles, X } from 'lucide-react';
 
 /**
  * Relationship builder (US-003) — drag one entity onto another to author a
@@ -40,10 +40,44 @@ interface Confirmation {
   confidence: number;
 }
 
+interface SuggestionRationale {
+  kind: 'linguistic' | 'temporal' | 'spatial';
+  score: number;
+  detail: string;
+}
+
+interface SuggestedRelationship {
+  targetId: string;
+  targetName: string;
+  targetType: string;
+  relationshipType: string;
+  relationshipToken: string;
+  confidence: number;
+  rationale: SuggestionRationale[];
+  edge: {
+    relationshipType: string;
+    timeStart: number | null;
+    timeEnd: number | null;
+    confidence: number;
+  };
+}
+
+interface SuggestionsResponse {
+  source: { id: string; name: string; entityType: string };
+  count: number;
+  suggestions: SuggestedRelationship[];
+}
+
 interface Props {
   entities: RelationshipEntity[];
   onSubmitted?: () => void;
 }
+
+const RATIONALE_ICON: Record<SuggestionRationale['kind'], string> = {
+  linguistic: '🗣',
+  temporal: '⏳',
+  spatial: '📍',
+};
 
 function labelFor(type: string): string {
   return type
@@ -73,6 +107,40 @@ export default function RelationshipBuilderPanel({ entities, onSubmitted }: Prop
   });
 
   const relationshipTypes = options?.relationshipTypes ?? [];
+
+  // Authoring-time suggestions (US-010): once a source entity is chosen, surface
+  // the most likely relationships (ranked by temporal/spatial/linguistic
+  // proximity). These NEVER auto-create an edge — "Use" only pre-fills the
+  // composer; the contributor still confirms via "Create relationship".
+  const { data: suggestionData, isFetching: loadingSuggestions } = useQuery<SuggestionsResponse>({
+    queryKey: ['/api/relationships/suggestions', { entityId: source?.id, limit: 6, minConfidence: 15 }],
+    enabled: !!source,
+    staleTime: 60 * 1000,
+    // The source may not exist in the cross-domain corpus (404) — treat that as
+    // "no suggestions" rather than an error.
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        entityId: source!.id,
+        limit: '6',
+        minConfidence: '15',
+      });
+      const res = await fetch(`/api/relationships/suggestions?${params.toString()}`);
+      if (!res.ok) return { source: { id: source!.id, name: source!.name, entityType: '' }, count: 0, suggestions: [] };
+      return res.json();
+    },
+  });
+
+  const suggestions = suggestionData?.suggestions ?? [];
+
+  const applySuggestion = (s: SuggestedRelationship) => {
+    setTarget({ id: s.targetId, name: s.targetName });
+    setRelationshipType(s.edge.relationshipType);
+    setTimeStart(s.edge.timeStart != null ? String(s.edge.timeStart) : '');
+    setTimeEnd(s.edge.timeEnd != null ? String(s.edge.timeEnd) : '');
+    setConfidence(String(s.edge.confidence));
+    setConfirmation(null);
+    setError(null);
+  };
 
   const filteredEntities = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -340,6 +408,55 @@ export default function RelationshipBuilderPanel({ entities, onSubmitted }: Prop
                   </span>
                 )}
                 <span className="text-green-600"> · {confirmation.confidence}% confidence</span>
+              </div>
+            </div>
+          )}
+
+          {source && (suggestions.length > 0 || loadingSuggestions) && (
+            <div className="mt-1 border-t pt-2" data-testid="relationship-suggestions">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                Suggested for {source.name}
+                {loadingSuggestions && <span className="text-gray-400">· finding…</span>}
+              </div>
+              <div className="mt-1.5 flex flex-col gap-1.5">
+                {suggestions.map((s) => (
+                  <div
+                    key={`${s.targetId}-${s.relationshipType}`}
+                    className="rounded border border-gray-200 bg-gray-50 p-2 text-xs"
+                    data-testid="relationship-suggestion"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-800">{s.targetName}</span>{' '}
+                        <span className="text-gray-500">— {labelFor(s.relationshipType)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-gray-500">{s.confidence}%</span>
+                        <button
+                          onClick={() => applySuggestion(s)}
+                          className="rounded bg-blue-600 px-2 py-0.5 text-white hover:bg-blue-700"
+                          data-testid="relationship-suggestion-use"
+                        >
+                          Use
+                        </button>
+                      </div>
+                    </div>
+                    {s.rationale.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {s.rationale.map((r) => (
+                          <span
+                            key={r.kind}
+                            className="rounded bg-white border border-gray-200 px-1.5 py-0.5 text-[10px] text-gray-600"
+                            title={r.detail}
+                          >
+                            {RATIONALE_ICON[r.kind]} {r.detail}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
