@@ -107,6 +107,35 @@ reuse for any "author geometry in-app" feature:
   .tsx` (uses the existing `useDrawingTool` hook); it posts the `DrawnGeometryInput`
   shape (geometry + target + associatedEntityId + timePeriodStart/End).
 
+## Timeline-event authoring — `services/timeline-event.ts` + `routes/timeline-event.ts`
+
+`POST /api/timeline/event` (US-002) takes an **event** (single year) or **period**
+(dated range) authored on the temporal axis and lands it in the **contribution
+review queue** (never a direct TSV write) with provenance
+`entityData.source = 'user-authored'`. Same shape as drawn-geometry (above) —
+copy it for any "author temporal data in-app" feature:
+
+- Service is **pure** (no fs/express): `validateTimelineEvent(input, bounds?)`
+  (entity association + lane/magnitude vocab + in-bounds, non-inverted range;
+  `bounds` intersects the global `[TIMELINE_MIN_YEAR=-50000, TIMELINE_MAX_YEAR=2100]`),
+  `serializeTimelineEvent` (→ the `culture-events.tsv` row shape, `year` = start),
+  `timelineEventToContribution` (→ `Partial<Contribution>`). Unit-test directly.
+- **`event` vs `period`**: an `event` must have no divergent end (`timePeriodEnd`
+  null or == start); a `period` **requires** `timePeriodEnd >= start`. Both the
+  serialized row and the culture-events loader use a single `year` column, so the
+  full range lives only on the queued `entityData` for a reviewer.
+- Added `timeline-event` to `ContributionEntityType` + `REQUIRED_FIELDS`
+  (`["title","cultureProfileId","lane"]`). **Gotcha:** keep required-field keys
+  **non-numeric** — the contribution service checks `entityData[field]` truthiness,
+  so a numeric field of `0` (e.g. year 0) would spuriously fail. Validate numbers
+  in the service instead.
+- Route takes an **injectable** `ContributionService`; test points it at a
+  `mkdtempSync` dir (same as collections/drawn-geometry).
+- Client entry point: `client/src/components/visualizations/TimelineEventAuthoringPanel
+  .tsx` (a clickable SVG axis reusing `culture-evolution-timeline-utils`
+  `xToYear`/`yearToX`), mounted via an "Add entry" toggle in
+  `culture-profile/culture-evolution-timeline-section.tsx`.
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:

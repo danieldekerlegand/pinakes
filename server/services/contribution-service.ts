@@ -28,7 +28,8 @@ export type ContributionEntityType =
   | "language"
   | "boundary"
   | "trade-route"
-  | "migration-route";
+  | "migration-route"
+  | "timeline-event";
 
 export interface ContributionSource {
   title: string;
@@ -99,6 +100,7 @@ const REQUIRED_FIELDS: Record<ContributionEntityType, string[]> = {
   "boundary": ["name", "geometry"],
   "trade-route": ["name", "geometry"],
   "migration-route": ["name", "geometry"],
+  "timeline-event": ["title", "cultureProfileId", "lane"],
 };
 
 export interface ValidationResult {

@@ -66,6 +66,7 @@ import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
+import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -127,6 +128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // & lines drawn on the map land in the contribution review queue with
   // provenance source='user-drawn'; a reviewer promotes them into TSV later.
   registerDrawnGeometryRoutes(app);
+
+  // Timeline-event authoring routes (/api/timeline/event, US-002) — events &
+  // period markers authored on the temporal axis land in the contribution
+  // review queue with provenance source='user-authored'; a reviewer promotes
+  // them into culture-events.tsv later.
+  registerTimelineEventRoutes(app);
 
 
   // Language Families
