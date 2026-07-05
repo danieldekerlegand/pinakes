@@ -68,6 +68,7 @@ import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
 import { registerTimelineEventRoutes } from "./routes/timeline-event";
 import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
+import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -141,6 +142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // review queue with provenance source='user-authored'; a reviewer promotes
   // them into cultural-lineages.tsv later. Duplicate/self edges are rejected.
   registerRelationshipEdgeRoutes(app);
+
+  // URL-paste extractor route (/api/extract/url, US-004) — a pasted Wikipedia/
+  // Wikidata URL becomes a structured entity draft (name/coords/dates/relations
+  // with per-field confidence) that lands in the contribution review queue
+  // flagged aiGenerated/autoDerived; a reviewer promotes it later. Wikidata
+  // resolves via the single-entity REST endpoint (no TS SPARQL client).
+  registerUrlExtractorRoutes(app);
 
 
   // Language Families

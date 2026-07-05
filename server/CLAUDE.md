@@ -167,6 +167,35 @@ timeline-event/drawn-geometry — differences to know:
   (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
   a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
 
+## URL-paste extractor — `services/url-extractor.ts` + `routes/url-extractor.ts`
+
+`POST /api/extract/url` (US-004) turns a pasted **Wikipedia/Wikidata** URL into a
+structured entity **draft** (name, description, coordinates, dates,
+relationships, each with a 0..1 confidence) and lands it in the **contribution
+review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-derived'`
+— never a live write. Reuse notes:
+
+- **Single-entity resolution is NOT SPARQL.** A pasted URL is one entity, so
+  Wikidata is resolved via the REST endpoint `Special:EntityData/<QID>.json`
+  (`liveDeps.fetchWikidataEntity`), not the Query Service. The statement →
+  field vocabulary (P571 inception→start year, P625→lat/lng, P144/P737/P279→
+  relationships, …) is kept **aligned with culture-scrape's hydration profile**
+  (`packages/culture-scrape/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
+  acquisition stays culture-scrape's job (US-005) — don't add a TS SPARQL client.
+- **Network is behind an injectable `UrlExtractorDeps`** (`fetchWikidataEntity` +
+  `fetchWikipediaPage`); tests pass fixture-backed deps reading
+  `services/fixtures/url-extractor/*.json` (recorded WD entity + WP summary
+  payloads) — no live fetch. Default `liveDeps` hit the real REST APIs.
+- **Wikipedia flow**: resolve the article → its `wikibase_item` QID via the REST
+  summary endpoint, then extract from that Wikidata entity (WP summary `extract`
+  overrides the WD description). No item ⇒ a summary-only draft.
+- Pure helpers are unit-tested directly: `parseSourceUrl`, `parseWikidataYear`
+  (BCE = negative), `draftFromWikidataEntity`, `draftToContribution` (defaults
+  `entityType='civilization'` — name-only-safe; route whitelists a few overrides),
+  `overallConfidence` (mean field confidence → 1..99, always < 100 so drafts read
+  as needs-review). Route: 201 `{ draft, contribution }`, 400 on a bad URL /
+  unsupported entityType, **502** on a source/network failure.
+
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
