@@ -25,6 +25,7 @@ import {
   Brain,
   Hammer,
   ClipboardCheck,
+  Dna,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -91,6 +92,7 @@ const ROUTE_ITEMS: RouteItem[] = [
   { path: "/civilization-timeline", label: "Civilizations", icon: Clock },
   { path: "/scraper", label: "Scraper", icon: Hammer },
   { path: "/ai-review", label: "AI Review", icon: ClipboardCheck },
+  { path: "/ancestry", label: "Ancestry (DNA)", icon: Dna },
 ];
 
 export function AppSidebar({

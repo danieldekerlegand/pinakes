@@ -80,6 +80,7 @@ import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
 import { registerChangelogRoutes } from "./routes/changelog";
 import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
+import { registerAncestryRoutes } from "./routes/ancestry";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
@@ -143,6 +144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // resolve a permanent entity id to its canonical descriptor (name, canonical URL,
   // stable cs: id); backs the /entity/:domain/:id landing page.
   registerEntityResolverRoutes(app);
+
+  // DNA-to-culture ancestry mapping routes (/api/ancestry/*, US-001) — map the Y-DNA
+  // haplogroup ids a raw-DNA file was reduced to *in the browser* onto associated
+  // languages/cultures/cuisines; raw genotypes never leave the client.
+  registerAncestryRoutes(app);
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.

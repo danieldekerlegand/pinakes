@@ -629,6 +629,36 @@ counts (per `entityType` + `source`) and filter params live in pure helpers:
   fuzzy-scored subset. Corpus-wide faceting is a different feature and already
   lives at `/api/analytics/facets/:table/:column` (see analytical index below).
 
+## DNA-to-culture ancestry mapping — `services/genetic-linguistic-correlation.ts` + `routes/ancestry.ts`
+
+`POST /api/ancestry/map` (US-001) takes the **Y-DNA haplogroup ids** a user's raw-DNA
+file was reduced to *in the browser* (only the ids — never the raw genotypes — are sent)
+and returns the languages/cultures/cuisines that ancestry is associated with, plus fixed
+caveats. `GET /api/ancestry/haplogroups` lists the reference haplogroups. The raw-DNA
+**parser + haplogroup inference are client-side** (`client/src/lib/dna/*`) — that is the
+privacy guarantee; the server only enriches non-identifying ids.
+
+- **The mapping is pure** in `genetic-linguistic-correlation.ts` (`mapHaplogroupsToAncestry(ids,
+  data)` over an injectable `AncestryMapperData` — no storage/clock), unit-tested on synthetic
+  fixtures (`services/ancestry-mapper.test.ts`). It builds `spoke` (language families via
+  `Haplogroup.associatedLanguageFamilyIds`), `livedAmong` (civilizations via
+  `associatedCivilizationIds`), and `ate` (an **indirect** chain family → its languages →
+  cuisines citing them, so capped at lower confidence). Confidence rises with the number of
+  matched haplogroups supporting an association (`supportConfidence`, capped 0.85). Always
+  returns `ANCESTRY_CAVEATS`.
+- **Gotcha — id vs name mismatch:** haplogroup rows reference families/civs by bare
+  name-slug (`germanic`, `celts`) but the corpus keys them by namespaced id
+  (`indo_european__germanic`). The mapper resolves by exact id **then** a
+  `normalizeAssocKey(name)` fallback ("Italo-Celtic" → "italo-celtic"); without this the map
+  is empty against live data. Reuse `normalizeAssocKey` for any bare-name → corpus-id join.
+- **Route** (`routes/ancestry.ts`) takes an injectable `loadData` (default assembles the
+  minimal shape from live storage: haplogroups/families/languages/civilizations[.properties]/
+  cuisines) so route tests run with in-memory fakes — no storage/fs. **400** on
+  missing/empty `haplogroupIds`. Client entry: the `/ancestry` page
+  (`client/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
+  **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
+  "no Y data" state client-side.
+
 ## Lazy-singleton services
 
 External-backend / expensive services follow the `graph-store.ts` pattern: a

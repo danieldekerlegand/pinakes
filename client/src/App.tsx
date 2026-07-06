@@ -24,6 +24,7 @@ import EntityPage from "@/pages/entity";
 import AdvancedToolsPage from "@/pages/advanced-tools";
 import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
 import AiReviewPage from "@/pages/ai-review";
+import AncestryPage from "@/pages/ancestry";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -53,6 +54,9 @@ function Router() {
       <Route path="/shared/collection/:token" component={SharedCollectionPage} />
       {/* AI-extraction review queue (US-009) — accept/edit/reject AI drafts. */}
       <Route path="/ai-review" component={AiReviewPage} />
+      {/* DNA-to-culture ancestry mapper (US-001) — in-browser raw-DNA parsing +
+          haplogroup inference; only haplogroup ids are sent to /api/ancestry/map. */}
+      <Route path="/ancestry" component={AncestryPage} />
       <Route component={NotFound} />
     </Switch>
   );
