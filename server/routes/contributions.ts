@@ -18,11 +18,14 @@ import type { Express, RequestHandler } from "express";
 import { ContributionService, type ContributionStatus } from "../services/contribution-service";
 import { createContributionWriteGuard } from "../services/api-auth";
 import { buildOpenApiSpec } from "../services/openapi-spec";
+import { ChangelogStore, type ChangeType } from "../services/changelog";
 
 export interface ContributionRoutesOptions {
   contributions?: ContributionService;
   /** Guard applied to write endpoints. Defaults to env-configured auth + rate limit. */
   writeGuard?: RequestHandler;
+  /** Changelog store — an approved add/edit is logged here (US-010). */
+  changelog?: ChangelogStore;
 }
 
 export function registerContributionRoutes(
@@ -31,6 +34,7 @@ export function registerContributionRoutes(
 ): void {
   const contributions = options.contributions ?? new ContributionService();
   const writeGuard = options.writeGuard ?? createContributionWriteGuard();
+  const changelog = options.changelog ?? new ChangelogStore();
 
   /**
    * GET /api/openapi.json - Published OpenAPI spec for the contribution + read API.
@@ -183,6 +187,29 @@ export function registerContributionRoutes(
       if (!contribution) {
         res.status(404).json({ message: `Contribution '${req.params.id}' not found` });
         return;
+      }
+
+      // Log an approved add/edit into the changelog (US-010). Flags aren't data
+      // edits, so they're not logged. Never fail the review if logging throws.
+      if (decision === "approved" && (contribution.action === "add" || contribution.action === "edit")) {
+        try {
+          const nameField = (contribution.entityData as Record<string, unknown>)?.name;
+          changelog.record({
+            domain: contribution.entityType,
+            changeType: (contribution.action === "add" ? "added" : "modified") as ChangeType,
+            targetId: contribution.entityId,
+            entityName: typeof nameField === "string" ? nameField : undefined,
+            source: "contribution",
+            sourceUrl: contribution.sources?.[0]?.url,
+            contributionId: contribution.id,
+            reviewer: contribution.reviewer,
+            confidence: contribution.confidence,
+            fields: contribution.fieldName ? [contribution.fieldName] : undefined,
+            summary: note,
+          });
+        } catch (error) {
+          console.error("Failed to record changelog entry for approved contribution:", error);
+        }
       }
 
       res.json(contribution);

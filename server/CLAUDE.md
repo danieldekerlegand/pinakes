@@ -20,6 +20,28 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Data changelog / versioning — `services/changelog.ts` + `routes/changelog.ts`
+
+`GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=` (US-010) is a
+browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` aggregates it.
+
+- **All record-shape / filtering / stats logic is pure** (`changelog.ts`, no fs/clock):
+  `validateChangelogInput`, `makeChangelogEntry(input, id, timestamp)` (trims + drops empty
+  optionals), `withinDateRange` (a **date-only `to` bound is inclusive of the whole day** —
+  `T23:59:59.999Z`), `filterChangelog` (newest-first, NO pagination so callers get the full
+  filtered set for `total`/stats), `paginateChangelog`, `computeChangelogStats`. Unit-test these.
+- **`ChangelogStore`** is the fs boundary — one JSON file per entry under an injectable dir
+  (default **gitignored** `data/changelog/`), same JSON-per-record shape as
+  `contribution-service`/`collections`. `record(input, {id?, now?})` (id/clock injectable for
+  deterministic tests), `list(filters)→{entries,total}`, `all()`, `stats(filters)`.
+- **The pipeline logs approved edits, not raw submissions.** The same store instance is created
+  once in `registerRoutes` and passed as `{changelog}` to BOTH `registerContributionRoutes`
+  (logs an approved `add`→`added` / `edit`→`modified`; flags are not logged) AND
+  `registerAiReviewRoutes` (logs a promotion → `added`, `source:'ai-review'`, with the target
+  TSV file/id + reviewer). Logging is wrapped in try/catch so it **never fails the review**.
+  A route test shares one `ChangelogStore` across all three route groups to assert the
+  integration end-to-end (approve → GET /api/changelog shows the entry).
+
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
 
 US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on
@@ -88,6 +110,37 @@ writeGuard?})`). US-011 hardened the **write** side; reads stay open.
   (`npx tsx -e "..writeFileSync('docs/openapi.json', JSON.stringify(buildOpenApiSpec(),null,2)+'\n')"`)
   or that parity test fails.
 
+## Versioned dataset releases + public dataset API — `services/export-pipeline.ts` + `routes/dataset-releases.ts`
+
+US-011 (this PRD) adds **citable, versioned snapshots** of the whole open corpus on top of
+the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI spec):
+`GET /api/dataset/release` (metadata only — version/DOI/license/row counts),
+`GET /api/dataset/full` (full download: all profiles + metadata as a JSON attachment),
+`POST /api/dataset/release` (mint a new versioned release).
+
+- **Semver + snapshot assembly is pure** in `export-pipeline.ts` (unit-test directly, no
+  fs/clock/network): `parseSemver`/`formatSemver`/`bumpVersion`, `determineVersionBump`
+  (**removals ⇒ major, additions ⇒ minor, else patch**) + `nextVersionFromChangelog`,
+  and `assembleSnapshotMetadata(exports, opts)` → `DatasetSnapshotMetadata` (version, DOI,
+  license, per-dataset + total row/file counts). `buildDatasetSnapshot(options)` orchestrates:
+  it reuses `exportDataset` per profile, so it reads the real `lexicons/` (integration-test it
+  against the live corpus — assert `metadata.totalRows === sum(files.rowCount)`, not a
+  hard-coded count that drifts). Version precedence: explicit `version` › changelog-derived
+  (`previousVersion` + `changeCounts`) › `DATASET_RELEASE_VERSION` (`1.0.0`).
+- **DOI minting is injectable** (`DoiMinter.mint(metadata) → {doi,doiUrl} | null`). Default
+  is `nullDoiMinter` (DOI stays null) so releases work with no Zenodo account — same
+  out-of-the-box pattern as `GEONAMES_USERNAME`. `createZenodoDoiMinter({token?, sandbox?,
+  fetchImpl?})` reserves a DOI via the Zenodo deposition API; **`mint → null` when no
+  `ZENODO_TOKEN`**, and network is behind the injectable `fetchImpl` (test it with a fake).
+  The route is wired with `createZenodoDoiMinter()` but only `POST` mints.
+- **Version derives from the shared `ChangelogStore`.** The route takes injectable
+  `{changelog, doiMinter}`; `POST` reads `changelog.stats().byChangeType` → `ChangeCounts`
+  and bumps `previousVersion` (body, default `1.0.0`) unless an explicit `version` is given.
+  Route test seeds a temp-dir `ChangelogStore` + a fake minter — no network.
+- **Gotcha:** editing the OpenAPI spec (these endpoints are documented there) means
+  regenerating `docs/openapi.json` — see the OpenAPI note above, else `openapi-spec.test.ts`
+  fails.
+
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the
@@ -102,6 +155,60 @@ fetcher in `DOMAIN_FETCHERS`. Gotcha: `getCivilizations()` returns GeoJSON
 `CivilizationFeature[]` (would need `.properties` projection) — it is excluded
 (use the map bbox API instead); every other `get<Entity>()` returns flat rows.
 Full contract table: `docs/progressive-loading.md`.
+
+## Citation export — `services/citation-export.ts` + `routes/citations.ts`
+
+`GET /api/citations/:domain/:id?format=bibtex|ris|csljson` (US-008) downloads an academic
+citation for one entity, built from its `sources[]`. `GET /api/citations` lists the
+domains + formats.
+
+- **The generator is pure** (`citation-export.ts`, no fs/express/storage): it takes a
+  normalized `CitableEntity` (`entityType`/`id`/`name`/`sources`/`year`/`region`/`url`) and
+  emits `entityToBibtex`/`entityToRis`/`entityToCslJson` (+ `renderCitation` → `{content,
+  contentType, filename}`). Unit-test these directly.
+- **Sources are free text.** `parseEntitySources(raw)` coerces the cell (real `string[]`,
+  a JSON-array string `'["a","b"]'`, or a single string) → `string[]`; `parseSourceString`
+  recovers `author`/`year` (a trailing 3–4 digit year, 100–2100) + `url` from each, else a
+  `title`-only entry — **never drops a source**. Cite keys read `id-author-year`
+  (`minoan-evans-1921`), collisions get an index suffix.
+- **AC3 (missing/partial sources) is handled by design:** every export leads with a
+  **record entry** citing the LinguaScrape entity record itself (dataset publisher
+  `DATASET_PUBLISHER`), so an entity with zero sources still yields a usable citation.
+- **Route** takes injectable `fetchers` (`{domain: {urlPath, fetch(id)→CitableEntity|null}}`)
+  so route tests run with in-memory fakes (no storage/fs). Default fetchers cover the
+  sources-bearing domains (`culture-profiles`, `civilizations`, `deities`,
+  `archaeological-sites`) — **note GeoJSON domains read `.properties`** (civilization id =
+  `properties.civilizationId`, site id = `properties.siteId`). The entity URL is derived
+  from the request host + `urlPath`. Streams `attachment; filename="<slug>.<ext>"`; **404**
+  unknown domain/id, **400** unknown format. Client entry: a "Cite" dropdown
+  (`client/src/components/culture-profile/cite-button.tsx`) next to the Export button in
+  `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
+
+## Canonical per-entity URLs — `services/entity-resolver.ts` + `routes/entity-resolver.ts`
+
+`GET /api/entity/:domain/:id` (US-009) resolves a **permanent** entity id to its
+canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:` id,
+`citable`, an optional richer `viewPath`). `GET /api/entities` lists the domains + the
+`/entity/:domain/:id` template. Backs the client landing page `client/src/pages/entity.tsx`.
+
+- **The id ⇄ path mapping is pure** (`entity-resolver.ts`, no fs/express/storage):
+  `ENTITY_DOMAINS` registry (kebab domain → `{label, entityType, citable, citationDomain?,
+  viewPath?}`), `canonicalEntityPath`/`parseCanonicalEntityPath` (round-trips, url-encodes
+  ids, tolerates origin/trailing-slash/query, returns `null` on unknown domain), `stableEntityId`
+  (`cs:<entityType>:<id>`, mirrors `graph-resolver.mintCsid`), and `describeEntity(domain,
+  record, origin?)` → the `ResolvedEntity`. Unit-test these directly.
+- **Entity domains are app-native (singular)**, matching storage/citation domain naming —
+  BUT **`citationDomain` differs** (citations use the *plural* `culture-profiles`/`deities`/
+  `civilizations`/`archaeological-sites`). The client passes `entity.citationDomain` (not
+  `entity.domain`) to `CiteButton`, else `/api/citations/deity/...` would 404. Only those four
+  are `citable`.
+- **Route** takes injectable `fetchers` (`{domain: (id)→EntityRecordLite|null}`) so tests run
+  with in-memory fakes (no storage/fs); overrides **merge over** the default storage fetchers.
+  Default fetchers read flat rows directly / GeoJSON via `.properties` (civ id
+  `properties.civilizationId`, site id `properties.siteId`) — same boundary as citations.
+  **Gotcha:** name fields aren't uniform — `UrheimatHypothesis` uses `hypothesisName`
+  (not `name`); a loosely-typed `field(record,key)` reader avoids widening the storage types.
+  **404** unknown domain/id (graceful — AC3), **500** only on an unexpected throw.
 
 ## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
 

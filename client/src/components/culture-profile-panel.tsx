@@ -33,6 +33,7 @@ import MaterialCultureArtsSection from "@/components/culture-profile/material-cu
 import CuisineFoodwaysSection from "@/components/culture-profile/cuisine-foodways-section";
 import MilitaryWarfareSection from "@/components/culture-profile/military-warfare-section";
 import ExportProfileButton from "@/components/culture-profile/export-profile-button";
+import CiteButton from "@/components/culture-profile/cite-button";
 import { GitCompare } from "lucide-react";
 
 interface CultureProfilePanelProps {
@@ -348,6 +349,7 @@ export default function CultureProfilePanel({ cultureId, onClose }: CultureProfi
                   label=""
                 />
                 <ExportProfileButton profile={profile} />
+                <CiteButton domain="culture-profiles" entityId={profile.id} filename={profile.name} />
                 <Button
                   variant="ghost"
                   size="sm"

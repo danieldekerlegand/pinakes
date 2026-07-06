@@ -102,6 +102,19 @@ async function testGenerateQuiz() {
   console.log("\n--- Question count ---");
   const smallQuiz = await generateQuiz(3, "mixed", "easy");
   assert(smallQuiz.questions.length <= 3, `Requested 3, got ${smallQuiz.questions.length} (<= 3)`);
+
+  // Test: dish-origin (cuisine) map-click questions (US-004)
+  console.log("\n--- Dish-origin (cuisine) questions ---");
+  const cuisineQuiz = await generateQuiz(5, "cuisine", "medium");
+  assert(cuisineQuiz.questions.length > 0, `Cuisine quiz generated ${cuisineQuiz.questions.length} questions`);
+  for (const q of cuisineQuiz.questions) {
+    assert(q.category === "cuisine", `Cuisine question category is 'cuisine' (got '${q.category}')`);
+    assert(q.type === "map_click", `Cuisine question is a map_click (got '${q.type}')`);
+    const ans = q.answer as { lat: number; lng: number };
+    assert(typeof ans.lat === "number" && typeof ans.lng === "number", "Dish answer has lat/lng coordinates");
+    assert(!(ans.lat === 0 && ans.lng === 0), "Dish origin is not the {0,0} sentinel");
+    assert(q.question.includes("dish"), "Dish question text references the dish");
+  }
 }
 
 function testScoreMapClick() {

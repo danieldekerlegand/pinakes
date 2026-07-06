@@ -63,6 +63,8 @@ import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
+import { registerCitationRoutes } from "./routes/citations";
+import { registerEntityResolverRoutes } from "./routes/entity-resolver";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
@@ -76,6 +78,9 @@ import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-a
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
+import { registerChangelogRoutes } from "./routes/changelog";
+import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
+import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -86,6 +91,7 @@ import {
   getDatasetProfiles,
   getDatasetProfile,
   validateExportOptions,
+  createZenodoDoiMinter,
   type ExportFormat,
 } from "./services/export-pipeline";
 import { battleScraper } from "./services/battle-scraper";
@@ -114,6 +120,10 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
+  // Shared data changelog (US-010). One store instance so the contribution +
+  // ai-review pipelines record into the same log that /api/changelog reads.
+  const changelog = new ChangelogStore();
+
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
 
@@ -124,6 +134,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
   // per-domain list records; detail hydrated on demand from /api/<domain>/:id.
   registerSummaryRoutes(app);
+
+  // Citation export routes (/api/citations/*, US-008) — download an entity's
+  // sources[] as BibTeX/RIS/CSL-JSON for academic citation.
+  registerCitationRoutes(app);
+
+  // Canonical per-entity URL resolver routes (/api/entity/:domain/:id, US-009) —
+  // resolve a permanent entity id to its canonical descriptor (name, canonical URL,
+  // stable cs: id); backs the /entity/:domain/:id landing page.
+  registerEntityResolverRoutes(app);
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.
@@ -175,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // accepts/edits/rejects each field (low-confidence fields flagged), and an
   // approved draft is promoted into lexicons/*.tsv with provenance recording both
   // the AI source and the human reviewer.
-  registerAiReviewRoutes(app);
+  registerAiReviewRoutes(app, { changelog });
 
   // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
   // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
@@ -3043,7 +3062,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Write endpoints (POST /api/contributions, PATCH .../:id/review) are guarded
   // by API-key auth + per-key rate limiting; read endpoints stay open. The
   // OpenAPI spec is published at GET /api/openapi.json. See routes/contributions.ts.
-  registerContributionRoutes(app);
+  registerContributionRoutes(app, { changelog });
+
+  // ============================================================================
+  // Data versioning & changelog (US-010)
+  // ============================================================================
+  // A browsable, filterable audit log of dataset changes. The contribution +
+  // ai-review pipelines record approved edits into the shared `changelog` store
+  // above; GET /api/changelog[/stats] exposes it filterable by domain + date.
+  registerChangelogRoutes(app, { changelog });
+
+  // ============================================================================
+  // Versioned dataset releases + public dataset API (US-011)
+  // ============================================================================
+  // Citable, versioned snapshots of the whole open corpus (semver derived from
+  // the shared changelog, optional Zenodo DOI) + a full-dataset download endpoint.
+  // GET/POST /api/dataset/release and GET /api/dataset/full; documented in the
+  // OpenAPI spec. Default nullDoiMinter keeps DOI minting off without a token.
+  registerDatasetReleaseRoutes(app, {
+    changelog,
+    doiMinter: createZenodoDoiMinter(),
+  });
 
   // ============================================================================
   // Community verification & culture stewardship (US-012)

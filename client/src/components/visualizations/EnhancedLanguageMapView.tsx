@@ -48,6 +48,33 @@ import { MythologyLayer } from './map-layers/MythologyLayer';
 import type { DeityFeature } from './map-layers/MythologyLayer';
 import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
+import { WhatIfScenarioLayer } from './map-layers/WhatIfScenarioLayer';
+import { WhatIfScenarioControl } from './map-layers/WhatIfScenarioControl';
+import {
+  loadScenarios,
+  getScenarioById,
+  toggleScenario,
+  affectedLayersFor,
+  scenarioAppliesAtYear,
+} from '../../lib/visualization/what-if-scenarios';
+import { UrheimatHypothesisControl } from './map-layers/UrheimatHypothesisControl';
+import {
+  loadHypothesisRouteLinks,
+  toggleHypothesis,
+  getHypothesisById,
+  selectRoutesForHypothesis,
+  partitionRoutes,
+} from '../../lib/visualization/urheimat-hypotheses';
+import { CounterfactualTradeRoutesLayer } from './map-layers/CounterfactualTradeRoutesLayer';
+import { CounterfactualTradeRoutesControl } from './map-layers/CounterfactualTradeRoutesControl';
+import {
+  loadCounterfactualRoutes,
+  toggleCounterfactualRoute,
+  selectAllCounterfactualRoutes,
+  clearCounterfactualRoutes,
+  activeCounterfactualRoutes,
+  routeAppliesAtYear,
+} from '../../lib/visualization/counterfactual-trade-routes';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
 import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
@@ -281,6 +308,96 @@ export function EnhancedLanguageMapView({
   // Story mode state
   const [showStoryMode, setShowStoryMode] = useState(false);
   const [flyTarget, setFlyTarget] = useState<{ center: [number, number]; zoom: number } | null>(null);
+
+  // What-If scenario overlays (US-001) — data-driven speculative overlays.
+  const whatIfScenarios = useMemo(() => loadScenarios(), []);
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const activeScenario = getScenarioById(whatIfScenarios, activeScenarioId);
+  // Layers we auto-revealed for the active scenario, so we can restore them on clear.
+  const scenarioAutoEnabledRef = React.useRef<string[]>([]);
+
+  const restoreScenarioLayers = useCallback(() => {
+    for (const layerId of scenarioAutoEnabledRef.current) {
+      setLayerVisibility(layerId, false);
+    }
+    scenarioAutoEnabledRef.current = [];
+  }, [setLayerVisibility]);
+
+  const handleSelectScenario = useCallback(
+    (id: string) => {
+      const next = toggleScenario(activeScenarioId, id);
+      // Restore any layers a previous scenario revealed before switching.
+      restoreScenarioLayers();
+      setActiveScenarioId(next);
+      if (next) {
+        const scenario = getScenarioById(whatIfScenarios, next);
+        // View-only adjustment: reveal affected base layers for comparison.
+        // Never mutates the underlying datasets.
+        const toReveal = affectedLayersFor(scenario).filter((l) => !isLayerVisible(l));
+        toReveal.forEach((l) => setLayerVisibility(l, true));
+        scenarioAutoEnabledRef.current = toReveal;
+      }
+    },
+    [activeScenarioId, whatIfScenarios, restoreScenarioLayers, isLayerVisible, setLayerVisibility],
+  );
+
+  const handleClearScenario = useCallback(() => {
+    restoreScenarioLayers();
+    setActiveScenarioId(null);
+  }, [restoreScenarioLayers]);
+
+  // Alternative-Urheimat migration toggle (US-002) — switch between competing homeland
+  // hypotheses; the active one drives which migration routes highlight vs dim.
+  const hypothesisRouteLinks = useMemo(() => loadHypothesisRouteLinks(), []);
+  const [activeHypothesisId, setActiveHypothesisId] = useState<string | null>(null);
+  // Layers we auto-revealed for the active hypothesis, so we can restore them on clear.
+  const hypothesisAutoEnabledRef = React.useRef<string[]>([]);
+
+  const restoreHypothesisLayers = useCallback(() => {
+    for (const layerId of hypothesisAutoEnabledRef.current) {
+      setLayerVisibility(layerId, false);
+    }
+    hypothesisAutoEnabledRef.current = [];
+  }, [setLayerVisibility]);
+
+  const handleSelectHypothesis = useCallback(
+    (id: string) => {
+      const next = toggleHypothesis(activeHypothesisId, id);
+      restoreHypothesisLayers();
+      setActiveHypothesisId(next);
+      if (next) {
+        // View-only: reveal the routes + hypotheses layers so the effect is visible.
+        const toReveal = ['routes', 'urheimat-hypotheses'].filter((l) => !isLayerVisible(l));
+        toReveal.forEach((l) => setLayerVisibility(l, true));
+        hypothesisAutoEnabledRef.current = toReveal;
+      }
+    },
+    [activeHypothesisId, restoreHypothesisLayers, isLayerVisible, setLayerVisibility],
+  );
+
+  const handleClearHypothesis = useCallback(() => {
+    restoreHypothesisLayers();
+    setActiveHypothesisId(null);
+  }, [restoreHypothesisLayers]);
+
+  // Counterfactual trade routes (US-003) — speculative "what-if economic geography"
+  // overlays, a SEPARATE dataset from the real trade routes, toggled independently.
+  const counterfactualRoutes = useMemo(() => loadCounterfactualRoutes(), []);
+  const [activeCounterfactualIds, setActiveCounterfactualIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  const handleToggleCounterfactual = useCallback((id: string) => {
+    setActiveCounterfactualIds((prev) => toggleCounterfactualRoute(prev, id));
+  }, []);
+
+  const handleSelectAllCounterfactual = useCallback(() => {
+    setActiveCounterfactualIds(selectAllCounterfactualRoutes(counterfactualRoutes));
+  }, [counterfactualRoutes]);
+
+  const handleClearCounterfactual = useCallback(() => {
+    setActiveCounterfactualIds(clearCounterfactualRoutes());
+  }, []);
 
   const handleStoryNavigate = useCallback((center: [number, number], zoom: number) => {
     setFlyTarget({ center, zoom });
@@ -862,6 +979,19 @@ export function EnhancedLanguageMapView({
     return perf.cullFeatures(byTime);
   }, [allRoutes, displayYear, perf.cullFeatures]);
 
+  // Urheimat-hypothesis route emphasis (US-002): the active hypothesis highlights the
+  // migration routes it implies and dims the rest. Empty when no hypothesis is active.
+  const activeHypothesis = useMemo(
+    () => getHypothesisById(allUrheimatHypotheses, activeHypothesisId),
+    [allUrheimatHypotheses, activeHypothesisId],
+  );
+  const highlightedRouteIds = useMemo(() => {
+    const selection = selectRoutesForHypothesis(activeHypothesis, hypothesisRouteLinks);
+    if (!selection.hypothesisId) return [] as string[];
+    const routeIds = filteredRoutes.map((r) => r.properties.routeId);
+    return partitionRoutes(routeIds, selection).highlighted;
+  }, [activeHypothesis, hypothesisRouteLinks, filteredRoutes]);
+
   const filteredMaterialCultures = useMemo(() => {
     // Material cultures don't have a time period directly, filter based on associated period
     // For now, show all material cultures (they're already point data with implicit time)
@@ -1316,6 +1446,7 @@ export function EnhancedLanguageMapView({
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
             isAnimating={isPlaying}
+            highlightedRouteIds={highlightedRouteIds}
           />
         )}
 
@@ -1510,7 +1641,22 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('urheimat-hypotheses')?.opacity || 0.6}
             currentYear={currentYear}
             onHypothesisClick={handleFeatureClick}
-            selectedHypothesisId={selectedFeatureId}
+            selectedHypothesisId={activeHypothesisId ?? selectedFeatureId}
+          />
+        )}
+
+        {/* What-If Scenario Overlay (US-001) — speculative, rendered over real layers */}
+        {activeScenario && scenarioAppliesAtYear(activeScenario, currentYear) && (
+          <WhatIfScenarioLayer scenario={activeScenario} opacity={0.5} />
+        )}
+
+        {/* Counterfactual Trade Routes (US-003) — speculative, separate from real routes */}
+        {activeCounterfactualIds.size > 0 && (
+          <CounterfactualTradeRoutesLayer
+            routes={activeCounterfactualRoutes(counterfactualRoutes, activeCounterfactualIds).filter(
+              (r) => routeAppliesAtYear(r, currentYear),
+            )}
+            opacity={0.85}
           />
         )}
 
@@ -1732,6 +1878,31 @@ export function EnhancedLanguageMapView({
           onClose={() => setShowStoryMode(false)}
         />
       )}
+
+      {/* What-If Scenario Control + persistent speculative banner (US-001) */}
+      <WhatIfScenarioControl
+        scenarios={whatIfScenarios}
+        activeScenarioId={activeScenarioId}
+        onSelectScenario={handleSelectScenario}
+        onClear={handleClearScenario}
+      />
+
+      {/* Alternative-Urheimat migration toggle (US-002) */}
+      <UrheimatHypothesisControl
+        hypotheses={allUrheimatHypotheses}
+        activeHypothesisId={activeHypothesisId}
+        onSelectHypothesis={handleSelectHypothesis}
+        onClear={handleClearHypothesis}
+      />
+
+      {/* Counterfactual trade-route overlays (US-003) */}
+      <CounterfactualTradeRoutesControl
+        routes={counterfactualRoutes}
+        activeRouteIds={activeCounterfactualIds}
+        onToggleRoute={handleToggleCounterfactual}
+        onSelectAll={handleSelectAllCounterfactual}
+        onClear={handleClearCounterfactual}
+      />
 
       {/* Export Map Image */}
       <Button
