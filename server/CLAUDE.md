@@ -110,6 +110,37 @@ writeGuard?})`). US-011 hardened the **write** side; reads stay open.
   (`npx tsx -e "..writeFileSync('docs/openapi.json', JSON.stringify(buildOpenApiSpec(),null,2)+'\n')"`)
   or that parity test fails.
 
+## Versioned dataset releases + public dataset API — `services/export-pipeline.ts` + `routes/dataset-releases.ts`
+
+US-011 (this PRD) adds **citable, versioned snapshots** of the whole open corpus on top of
+the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI spec):
+`GET /api/dataset/release` (metadata only — version/DOI/license/row counts),
+`GET /api/dataset/full` (full download: all profiles + metadata as a JSON attachment),
+`POST /api/dataset/release` (mint a new versioned release).
+
+- **Semver + snapshot assembly is pure** in `export-pipeline.ts` (unit-test directly, no
+  fs/clock/network): `parseSemver`/`formatSemver`/`bumpVersion`, `determineVersionBump`
+  (**removals ⇒ major, additions ⇒ minor, else patch**) + `nextVersionFromChangelog`,
+  and `assembleSnapshotMetadata(exports, opts)` → `DatasetSnapshotMetadata` (version, DOI,
+  license, per-dataset + total row/file counts). `buildDatasetSnapshot(options)` orchestrates:
+  it reuses `exportDataset` per profile, so it reads the real `lexicons/` (integration-test it
+  against the live corpus — assert `metadata.totalRows === sum(files.rowCount)`, not a
+  hard-coded count that drifts). Version precedence: explicit `version` › changelog-derived
+  (`previousVersion` + `changeCounts`) › `DATASET_RELEASE_VERSION` (`1.0.0`).
+- **DOI minting is injectable** (`DoiMinter.mint(metadata) → {doi,doiUrl} | null`). Default
+  is `nullDoiMinter` (DOI stays null) so releases work with no Zenodo account — same
+  out-of-the-box pattern as `GEONAMES_USERNAME`. `createZenodoDoiMinter({token?, sandbox?,
+  fetchImpl?})` reserves a DOI via the Zenodo deposition API; **`mint → null` when no
+  `ZENODO_TOKEN`**, and network is behind the injectable `fetchImpl` (test it with a fake).
+  The route is wired with `createZenodoDoiMinter()` but only `POST` mints.
+- **Version derives from the shared `ChangelogStore`.** The route takes injectable
+  `{changelog, doiMinter}`; `POST` reads `changelog.stats().byChangeType` → `ChangeCounts`
+  and bumps `previousVersion` (body, default `1.0.0`) unless an explicit `version` is given.
+  Route test seeds a temp-dir `ChangelogStore` + a fake minter — no network.
+- **Gotcha:** editing the OpenAPI spec (these endpoints are documented there) means
+  regenerating `docs/openapi.json` — see the OpenAPI note above, else `openapi-spec.test.ts`
+  fails.
+
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the

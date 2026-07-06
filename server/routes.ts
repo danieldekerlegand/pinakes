@@ -79,6 +79,7 @@ import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-ac
 import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
 import { registerChangelogRoutes } from "./routes/changelog";
+import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
@@ -90,6 +91,7 @@ import {
   getDatasetProfiles,
   getDatasetProfile,
   validateExportOptions,
+  createZenodoDoiMinter,
   type ExportFormat,
 } from "./services/export-pipeline";
 import { battleScraper } from "./services/battle-scraper";
@@ -3069,6 +3071,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ai-review pipelines record approved edits into the shared `changelog` store
   // above; GET /api/changelog[/stats] exposes it filterable by domain + date.
   registerChangelogRoutes(app, { changelog });
+
+  // ============================================================================
+  // Versioned dataset releases + public dataset API (US-011)
+  // ============================================================================
+  // Citable, versioned snapshots of the whole open corpus (semver derived from
+  // the shared changelog, optional Zenodo DOI) + a full-dataset download endpoint.
+  // GET/POST /api/dataset/release and GET /api/dataset/full; documented in the
+  // OpenAPI spec. Default nullDoiMinter keeps DOI minting off without a token.
+  registerDatasetReleaseRoutes(app, {
+    changelog,
+    doiMinter: createZenodoDoiMinter(),
+  });
 
   // ============================================================================
   // Community verification & culture stewardship (US-012)

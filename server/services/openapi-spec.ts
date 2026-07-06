@@ -62,17 +62,58 @@ export function buildOpenApiSpec(): Record<string, unknown> {
     },
   };
 
+  const datasetReleaseMetadataSchema = {
+    type: "object",
+    description:
+      "Metadata for a versioned dataset release: semver version, DOI, license, and row counts.",
+    properties: {
+      title: { type: "string" },
+      description: { type: "string" },
+      version: {
+        type: "string",
+        description: "Semver version of this release.",
+        example: "1.0.0",
+      },
+      releaseDate: { type: "string", format: "date-time" },
+      doi: {
+        type: "string",
+        nullable: true,
+        description: "Minted DOI (null when DOI minting is disabled).",
+      },
+      doiUrl: { type: "string", nullable: true, format: "uri" },
+      license: { type: "string", example: "CC-BY-4.0" },
+      source: { type: "string" },
+      format: { type: "string", enum: ["cldf", "csv", "tsv", "json"] },
+      fileCount: { type: "integer" },
+      totalRows: { type: "integer" },
+      datasets: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            name: { type: "string" },
+            fileCount: { type: "integer" },
+            totalRows: { type: "integer" },
+          },
+        },
+      },
+    },
+  };
+
   return {
     openapi: "3.0.3",
     info: {
-      title: "LinguaScrape Contribution API",
-      version: "1.0.0",
+      title: "LinguaScrape Public API",
+      version: "1.1.0",
       description:
-        "Programmatic contribution + read API. Write endpoints require an API key " +
-        "(via the 'X-API-Key' header or 'Authorization: Bearer <key>') when the " +
-        "server is configured with CONTRIBUTION_API_KEYS, and are rate-limited per " +
-        "key. Read endpoints are open. Submitted contributions enter a review queue; " +
-        "they are never written to the live dataset unreviewed.",
+        "Programmatic contribution + read API plus a versioned public dataset API. " +
+        "Contribution write endpoints require an API key (via the 'X-API-Key' header " +
+        "or 'Authorization: Bearer <key>') when the server is configured with " +
+        "CONTRIBUTION_API_KEYS, and are rate-limited per key. Read endpoints are open. " +
+        "Submitted contributions enter a review queue; they are never written to the " +
+        "live dataset unreviewed. The dataset API exposes citable, versioned snapshots " +
+        "(semver + optional DOI) and a full-dataset download endpoint.",
     },
     servers: [{ url: "/", description: "This LinguaScrape instance" }],
     components: {
@@ -91,10 +132,119 @@ export function buildOpenApiSpec(): Record<string, unknown> {
       },
       schemas: {
         ContributionInput: contributionSchema,
+        DatasetReleaseMetadata: datasetReleaseMetadataSchema,
         Error: errorSchema,
       },
     },
     paths: {
+      "/api/dataset/release": {
+        get: {
+          summary: "Current dataset release metadata (version, DOI, license, row counts).",
+          tags: ["Dataset"],
+          security: [],
+          parameters: [
+            {
+              name: "format",
+              in: "query",
+              schema: { type: "string", enum: ["cldf", "csv", "tsv", "json"] },
+            },
+            {
+              name: "datasets",
+              in: "query",
+              description: "Comma-separated dataset profile ids (default: all).",
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Release metadata.",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/DatasetReleaseMetadata" },
+                },
+              },
+            },
+            "400": {
+              description: "Invalid request.",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/Error" } },
+              },
+            },
+          },
+        },
+        post: {
+          summary: "Mint a new versioned dataset release (semver + changelog + DOI).",
+          tags: ["Dataset"],
+          security: [],
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    version: {
+                      type: "string",
+                      description: "Explicit semver; overrides changelog-derived versioning.",
+                    },
+                    previousVersion: { type: "string" },
+                    format: { type: "string", enum: ["cldf", "csv", "tsv", "json"] },
+                    datasets: { type: "array", items: { type: "string" } },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "201": {
+              description: "The minted release metadata.",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/DatasetReleaseMetadata" },
+                },
+              },
+            },
+            "400": {
+              description: "Invalid request.",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/Error" } },
+              },
+            },
+          },
+        },
+      },
+      "/api/dataset/full": {
+        get: {
+          summary: "Download the full dataset (all profiles + release metadata).",
+          tags: ["Dataset"],
+          security: [],
+          parameters: [
+            {
+              name: "format",
+              in: "query",
+              schema: { type: "string", enum: ["cldf", "csv", "tsv", "json"] },
+            },
+            {
+              name: "datasets",
+              in: "query",
+              description: "Comma-separated dataset profile ids (default: all).",
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "A downloadable JSON bundle: { metadata, files[] }.",
+              content: { "application/json": { schema: { type: "object" } } },
+            },
+            "400": {
+              description: "Invalid request.",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/Error" } },
+              },
+            },
+          },
+        },
+      },
       "/api/openapi.json": {
         get: {
           summary: "This OpenAPI document.",
