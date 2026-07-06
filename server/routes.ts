@@ -62,6 +62,7 @@ import {
 import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
+import { registerAnomalyRoutes } from "./routes/anomaly-detection";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCitationRoutes } from "./routes/citations";
@@ -133,6 +134,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // traverse the shared graph + Datalog between two entities and generate a sourced,
   // AI-labelled narrative of how they are connected.
   registerConnectionNarrativeRoutes(app);
+
+  // Anomaly-detection routes (GET /api/anomalies, US-006) — scan the cross-domain
+  // corpus for statistically unexpected similarities between distant, unrelated
+  // cultures (rare shared scales/pottery/motifs), ranked as research hypotheses.
+  registerAnomalyRoutes(app);
 
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
   // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.

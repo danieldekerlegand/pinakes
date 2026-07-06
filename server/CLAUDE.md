@@ -20,6 +20,40 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Anomaly detection — `services/anomaly-detection.ts` + `routes/anomaly-detection.ts`
+
+`GET /api/anomalies?domains=&minSurprise=&limit=` (US-006) scans the cross-domain corpus for
+**statistically unexpected** similarities between distant, unrelated cultures — a rare shared
+musical scale, pottery style, or art motif turning up on opposite sides of the world — and
+returns them ranked by *surprise*, each framed as a hypothesis with evidence + provenance.
+Backend-only (no UI required by the ACs).
+
+- **The engine is pure + generic** (`anomaly-detection.ts`, no fs/express/storage/clock).
+  It operates over a domain-agnostic `CultureNode {id,name,domain,coordinates?,region?,
+  groupIds?,features[],sources?}`; a `NodeFeature` is `{type,key,label}` namespaced by `type`.
+  `detectAnomalies(nodes, opts?)` scans all pairs and returns ranked `CulturalAnomaly`s.
+  Unit-test the scoring directly on synthetic fixtures.
+- **Surprise = rarity × separation.** `computeFeaturePrevalence` counts each node once per
+  feature; `featureRarity(prevalence,total)` = normalized self-information `-log2(freq)/log2(N)`
+  (rarer ⇒ higher, **universal features score 0 and are skipped**). `separation(a,b)` is the
+  great-circle distance when both have coords (else a region/group-mismatch proxy). A pair's
+  `surpriseScore` = `min(1, maxSharedRarity + multiShareBoost) × separation.factor`.
+- **Expected similarities are structurally excluded** — never anomalies: a pair that **shares
+  a `groupIds` entry** (same language/lineage) or is **geographically near** (< `nearKm`, def
+  1500) returns `null`. That is what makes a surviving result genuinely *unexpected*.
+- **Honesty is built in (AC3):** every result carries `speculative:true`, a plain-language
+  `hypothesis`, and the result carries `ANOMALY_DISCLAIMER`. `confidence` (≤ 0.9) reflects how
+  well-*documented* the observation is (shared-feature count + provenance + coords), separate
+  from `surpriseScore` (how unexpected). `provenance` = deduped union of the two nodes' sources.
+- **Route** takes injectable `loadNodes` (tests pass in-memory fakes — no storage/fs). The
+  default loader projects the storage domains that carry **both coordinates and distinctive
+  trait arrays**: music-tradition (scales/rhythms/instruments), art-tradition (key features +
+  category), material-culture (category, e.g. pottery). `groupIds` = associated language ids.
+  **Gotcha:** `MaterialCulture.originCoordinates` is a `[lat,lng]` **tuple** while music/art use
+  `{lat,lng}` objects — the loader normalizes. Live corpus → ~100 nodes; myth-motif and
+  haplogroup signals are supported by the generic engine but their current storage projections
+  lack per-culture coordinates, so feeding them richly is a future data task.
+
 ## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
 
 `POST /api/graph/explain` (US-005) explains how two entities are connected: it finds the
