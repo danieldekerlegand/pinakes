@@ -27,6 +27,7 @@ import AiReviewPage from "@/pages/ai-review";
 import AncestryPage from "@/pages/ancestry";
 import HypothesesPage from "@/pages/hypotheses";
 import ArHistoryPage from "@/pages/ar-history";
+import ImmersivePage from "@/pages/immersive";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -66,6 +67,10 @@ function Router() {
       {/* AR historical-layer overlay (US-008) — WebXR/geolocation feature-detected;
           overlays nearby temporal-map layers on the camera view, radar fallback. */}
       <Route path="/ar-history" component={ArHistoryPage} />
+      {/* Immersive globe & virtual museum (US-009) — WebGL2/WebXR feature-detected
+          three-way toggle (flat map / 3D globe fly-through / artifact gallery);
+          degrades to the flat map without WebGL2. */}
+      <Route path="/immersive" component={ImmersivePage} />
       <Route component={NotFound} />
     </Switch>
   );

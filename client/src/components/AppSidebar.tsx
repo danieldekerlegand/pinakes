@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
   Dna,
   FlaskConical,
+  Globe,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -95,6 +96,7 @@ const ROUTE_ITEMS: RouteItem[] = [
   { path: "/ai-review", label: "AI Review", icon: ClipboardCheck },
   { path: "/ancestry", label: "Ancestry (DNA)", icon: Dna },
   { path: "/hypotheses", label: "Hypotheses", icon: FlaskConical },
+  { path: "/immersive", label: "Immersive (3D)", icon: Globe },
 ];
 
 export function AppSidebar({
