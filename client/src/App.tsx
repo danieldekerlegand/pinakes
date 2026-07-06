@@ -26,6 +26,7 @@ import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
 import AiReviewPage from "@/pages/ai-review";
 import AncestryPage from "@/pages/ancestry";
 import HypothesesPage from "@/pages/hypotheses";
+import ArHistoryPage from "@/pages/ar-history";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -62,6 +63,9 @@ function Router() {
           speculative leads: shared-ancestry clusters + predicted undiscovered-site
           regions rendered as map overlays with uncertainty. */}
       <Route path="/hypotheses" component={HypothesesPage} />
+      {/* AR historical-layer overlay (US-008) — WebXR/geolocation feature-detected;
+          overlays nearby temporal-map layers on the camera view, radar fallback. */}
+      <Route path="/ar-history" component={ArHistoryPage} />
       <Route component={NotFound} />
     </Switch>
   );
