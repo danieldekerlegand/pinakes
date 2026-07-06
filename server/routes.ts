@@ -64,6 +64,7 @@ import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCitationRoutes } from "./routes/citations";
+import { registerEntityResolverRoutes } from "./routes/entity-resolver";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
@@ -129,6 +130,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Citation export routes (/api/citations/*, US-008) — download an entity's
   // sources[] as BibTeX/RIS/CSL-JSON for academic citation.
   registerCitationRoutes(app);
+
+  // Canonical per-entity URL resolver routes (/api/entity/:domain/:id, US-009) —
+  // resolve a permanent entity id to its canonical descriptor (name, canonical URL,
+  // stable cs: id); backs the /entity/:domain/:id landing page.
+  registerEntityResolverRoutes(app);
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.

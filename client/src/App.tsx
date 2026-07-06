@@ -18,6 +18,7 @@ import DataExplorer from "@/pages/data-explorer";
 import CivilizationTimeline from "@/pages/civilization-timeline";
 import MesopotamiaShowcasePage from "@/pages/mesopotamia-showcase";
 import CultureProfileReportPage from "@/pages/culture-profile-report";
+import EntityPage from "@/pages/entity";
 // Advanced/experimental graph research console — intentionally NOT linked from the
 // primary navigation; reachable only via its direct route (US-011).
 import AdvancedToolsPage from "@/pages/advanced-tools";
@@ -42,6 +43,9 @@ function Router() {
       <Route path="/civilization-timeline" component={CivilizationTimeline} />
       <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
       <Route path="/culture-profile/:id/report" component={CultureProfileReportPage} />
+      {/* Canonical, citable per-entity URLs (US-009) — one permanent route for every
+          major entity type; resolves via /api/entity/:domain/:id, 404s gracefully. */}
+      <Route path="/entity/:domain/:id" component={EntityPage} />
       <Route path="/advanced-tools" component={AdvancedToolsPage} />
       {/* Collaborative collections (US-007) — list/detail + read-only share view. */}
       <Route path="/collections" component={CollectionsPage} />

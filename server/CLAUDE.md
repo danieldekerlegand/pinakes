@@ -131,6 +131,32 @@ domains + formats.
   (`client/src/components/culture-profile/cite-button.tsx`) next to the Export button in
   `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
 
+## Canonical per-entity URLs — `services/entity-resolver.ts` + `routes/entity-resolver.ts`
+
+`GET /api/entity/:domain/:id` (US-009) resolves a **permanent** entity id to its
+canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:` id,
+`citable`, an optional richer `viewPath`). `GET /api/entities` lists the domains + the
+`/entity/:domain/:id` template. Backs the client landing page `client/src/pages/entity.tsx`.
+
+- **The id ⇄ path mapping is pure** (`entity-resolver.ts`, no fs/express/storage):
+  `ENTITY_DOMAINS` registry (kebab domain → `{label, entityType, citable, citationDomain?,
+  viewPath?}`), `canonicalEntityPath`/`parseCanonicalEntityPath` (round-trips, url-encodes
+  ids, tolerates origin/trailing-slash/query, returns `null` on unknown domain), `stableEntityId`
+  (`cs:<entityType>:<id>`, mirrors `graph-resolver.mintCsid`), and `describeEntity(domain,
+  record, origin?)` → the `ResolvedEntity`. Unit-test these directly.
+- **Entity domains are app-native (singular)**, matching storage/citation domain naming —
+  BUT **`citationDomain` differs** (citations use the *plural* `culture-profiles`/`deities`/
+  `civilizations`/`archaeological-sites`). The client passes `entity.citationDomain` (not
+  `entity.domain`) to `CiteButton`, else `/api/citations/deity/...` would 404. Only those four
+  are `citable`.
+- **Route** takes injectable `fetchers` (`{domain: (id)→EntityRecordLite|null}`) so tests run
+  with in-memory fakes (no storage/fs); overrides **merge over** the default storage fetchers.
+  Default fetchers read flat rows directly / GeoJSON via `.properties` (civ id
+  `properties.civilizationId`, site id `properties.siteId`) — same boundary as citations.
+  **Gotcha:** name fields aren't uniform — `UrheimatHypothesis` uses `hypothesisName`
+  (not `name`); a loosely-typed `field(record,key)` reader avoids widening the storage types.
+  **404** unknown domain/id (graceful — AC3), **500** only on an unexpected throw.
+
 ## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
 
 `/api/collections/*` (US-007) is user-curated groups of entities. **Persistence
