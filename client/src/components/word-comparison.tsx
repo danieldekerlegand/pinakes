@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
 import IpaAudioButton from "@/components/IpaAudioButton";
+import FamilySoundSequence from "@/components/FamilySoundSequence";
 import {
   Languages,
   GitCompare,
@@ -18,7 +19,8 @@ import {
   Search,
   X
 } from "lucide-react";
-import type { Language, WordComparison } from "@shared/types";
+import type { Language, LanguageFamily, WordComparison } from "@shared/types";
+import type { OrderableLanguage } from "@/lib/audio/family-sequence";
 
 interface WordComparisonPanelProps {
   isOpen: boolean;
@@ -29,10 +31,16 @@ interface WordComparisonPanelProps {
 export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordComparisonPanelProps) {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sequenceConceptId, setSequenceConceptId] = useState<string>("");
 
   // Fetch available languages
   const { data: languages = [] } = useQuery<Language[]>({
     queryKey: ['/api/languages'],
+  });
+
+  // Family tree drives the genealogical ordering of the "Sound of the family" player.
+  const { data: families = [] } = useQuery<LanguageFamily[]>({
+    queryKey: ['/api/language-families'],
   });
 
   // Fetch word comparisons when languages are selected
@@ -108,6 +116,49 @@ export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordC
     .filter(lang => selectedLanguages.includes(lang.id))
     .map(lang => lang.name)
     .join(", ");
+
+  // ── "Sound of a language family" sequence player (US-004) ──────────────────
+  const selectedLangObjects = useMemo(
+    () => languages.filter(lang => selectedLanguages.includes(lang.id)),
+    [languages, selectedLanguages],
+  );
+  const orderableLanguages = useMemo<OrderableLanguage[]>(
+    () =>
+      selectedLangObjects.map(lang => ({
+        id: lang.id,
+        name: lang.name,
+        familyId: lang.familyId,
+        parentLanguageId: lang.parentLanguageId,
+        chronologicalOrder: lang.chronologicalOrder,
+      })),
+    [selectedLangObjects],
+  );
+  const conceptKey = (c: WordComparison) => c.conceptId ?? c.baseWord;
+  const activeComparison = useMemo(() => {
+    if (!comparisons || comparisons.length === 0) return undefined;
+    return (
+      comparisons.find(c => conceptKey(c) === sequenceConceptId) ?? comparisons[0]
+    );
+  }, [comparisons, sequenceConceptId]);
+  const sequenceContent = useCallback(
+    (lang: OrderableLanguage) => {
+      const translation = activeComparison?.translations[lang.id];
+      const language = languages.find(l => l.id === lang.id);
+      if (translation && typeof translation === "object") {
+        return {
+          form: translation.form ?? undefined,
+          ipa: translation.ipa ?? undefined,
+          lang: language?.iso639_1 ?? undefined,
+        };
+      }
+      return {
+        form: (translation as string | undefined) ?? undefined,
+        ipa: undefined,
+        lang: language?.iso639_1 ?? undefined,
+      };
+    },
+    [activeComparison, languages],
+  );
 
   if (!isOpen && !embedded) return null;
 
@@ -254,6 +305,34 @@ export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordC
                   </Label>
                   {comparisons && <Badge variant="outline">{comparisons.length} words</Badge>}
                 </div>
+
+                {comparisons && comparisons.length > 0 && activeComparison && (
+                  <div className="mb-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="sequence-concept" className="text-xs text-gray-600 dark:text-gray-400">
+                        Concept
+                      </Label>
+                      <select
+                        id="sequence-concept"
+                        className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900"
+                        value={conceptKey(activeComparison)}
+                        onChange={(e) => setSequenceConceptId(e.target.value)}
+                      >
+                        {comparisons.map((c) => (
+                          <option key={conceptKey(c)} value={conceptKey(c)}>
+                            {c.baseWord}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <FamilySoundSequence
+                      languages={orderableLanguages}
+                      families={families}
+                      content={sequenceContent}
+                      conceptLabel={activeComparison.baseWord}
+                    />
+                  </div>
+                )}
 
                 {isLoadingComparisons ? (
                   <div className="flex items-center justify-center p-8">
