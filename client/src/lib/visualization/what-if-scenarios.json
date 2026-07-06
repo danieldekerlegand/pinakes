@@ -1,0 +1,74 @@
+{
+  "scenarios": [
+    {
+      "id": "bronze-age-collapse-averted",
+      "title": "What if the Bronze Age Collapse hadn't happened?",
+      "summary": "A counterfactual in which the Late Bronze Age palatial systems of the eastern Mediterranean survive the c. 1200 BCE crisis, letting the Hittite, Mycenaean and Ugaritic networks continue.",
+      "category": "counterfactual",
+      "affectedLayers": ["civilizations", "routes", "archaeological-sites"],
+      "timeRange": { "start": -1250, "end": -800 },
+      "overlays": [
+        {
+          "id": "hittite-persists",
+          "kind": "polygon",
+          "label": "Hittite Empire persists",
+          "note": "Central Anatolia remains a unified Hittite state rather than fragmenting into Neo-Hittite city-states.",
+          "coordinates": [[[31.0, 41.0], [37.0, 41.5], [39.5, 39.0], [36.0, 37.0], [31.5, 37.5], [31.0, 41.0]]]
+        },
+        {
+          "id": "mycenaean-persists",
+          "kind": "polygon",
+          "label": "Mycenaean palaces endure",
+          "note": "The Aegean palatial economy survives instead of giving way to the Greek Dark Age.",
+          "coordinates": [[[21.5, 38.5], [24.0, 39.0], [24.5, 36.5], [22.0, 36.5], [21.5, 38.5]]]
+        },
+        {
+          "id": "tin-route-continues",
+          "kind": "line",
+          "label": "Tin trade route continues",
+          "note": "Long-distance tin exchange from the east keeps supplying Mediterranean bronze workshops.",
+          "coordinates": [[44.0, 33.0], [36.0, 36.0], [30.0, 37.0], [23.0, 38.0]]
+        },
+        {
+          "id": "ugarit-survives",
+          "kind": "marker",
+          "label": "Ugarit survives",
+          "note": "The cosmopolitan port of Ugarit is never destroyed and remains a hub of alphabetic literacy.",
+          "coordinates": [35.78, 35.6]
+        }
+      ],
+      "sources": [
+        "Cline, E. H. (2014). 1177 B.C.: The Year Civilization Collapsed.",
+        "Speculative educational overlay — not a scholarly reconstruction."
+      ]
+    },
+    {
+      "id": "no-indo-european-expansion",
+      "title": "What if the Indo-European expansion had stalled?",
+      "summary": "A counterfactual in which steppe pastoralist expansions do not spread Indo-European languages across Europe and South Asia, leaving pre-existing language families dominant.",
+      "category": "counterfactual",
+      "affectedLayers": ["language-ranges", "urheimat-hypotheses"],
+      "timeRange": { "start": -3000, "end": 0 },
+      "overlays": [
+        {
+          "id": "old-european-survives",
+          "kind": "polygon",
+          "label": "Pre-Indo-European Europe endures",
+          "note": "Neolithic 'Old European' language families persist across the continent instead of being replaced.",
+          "coordinates": [[[-8.0, 43.0], [15.0, 46.0], [25.0, 45.0], [22.0, 38.0], [-6.0, 37.0], [-8.0, 43.0]]]
+        },
+        {
+          "id": "dravidian-north",
+          "kind": "polygon",
+          "label": "Dravidian languages remain across South Asia",
+          "note": "Without Indo-Aryan migration, Dravidian and other pre-existing families cover the whole subcontinent.",
+          "coordinates": [[[68.0, 35.0], [88.0, 32.0], [90.0, 8.0], [72.0, 8.0], [68.0, 35.0]]]
+        }
+      ],
+      "sources": [
+        "Anthony, D. W. (2007). The Horse, the Wheel, and Language.",
+        "Speculative educational overlay — not a scholarly reconstruction."
+      ]
+    }
+  ]
+}

@@ -48,6 +48,15 @@ import { MythologyLayer } from './map-layers/MythologyLayer';
 import type { DeityFeature } from './map-layers/MythologyLayer';
 import { UrheimatHypothesisLayer } from './map-layers/UrheimatHypothesisLayer';
 import type { UrheimatHypothesisFeature } from './map-layers/UrheimatHypothesisLayer';
+import { WhatIfScenarioLayer } from './map-layers/WhatIfScenarioLayer';
+import { WhatIfScenarioControl } from './map-layers/WhatIfScenarioControl';
+import {
+  loadScenarios,
+  getScenarioById,
+  toggleScenario,
+  affectedLayersFor,
+  scenarioAppliesAtYear,
+} from '../../lib/visualization/what-if-scenarios';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
 import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
@@ -281,6 +290,43 @@ export function EnhancedLanguageMapView({
   // Story mode state
   const [showStoryMode, setShowStoryMode] = useState(false);
   const [flyTarget, setFlyTarget] = useState<{ center: [number, number]; zoom: number } | null>(null);
+
+  // What-If scenario overlays (US-001) — data-driven speculative overlays.
+  const whatIfScenarios = useMemo(() => loadScenarios(), []);
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const activeScenario = getScenarioById(whatIfScenarios, activeScenarioId);
+  // Layers we auto-revealed for the active scenario, so we can restore them on clear.
+  const scenarioAutoEnabledRef = React.useRef<string[]>([]);
+
+  const restoreScenarioLayers = useCallback(() => {
+    for (const layerId of scenarioAutoEnabledRef.current) {
+      setLayerVisibility(layerId, false);
+    }
+    scenarioAutoEnabledRef.current = [];
+  }, [setLayerVisibility]);
+
+  const handleSelectScenario = useCallback(
+    (id: string) => {
+      const next = toggleScenario(activeScenarioId, id);
+      // Restore any layers a previous scenario revealed before switching.
+      restoreScenarioLayers();
+      setActiveScenarioId(next);
+      if (next) {
+        const scenario = getScenarioById(whatIfScenarios, next);
+        // View-only adjustment: reveal affected base layers for comparison.
+        // Never mutates the underlying datasets.
+        const toReveal = affectedLayersFor(scenario).filter((l) => !isLayerVisible(l));
+        toReveal.forEach((l) => setLayerVisibility(l, true));
+        scenarioAutoEnabledRef.current = toReveal;
+      }
+    },
+    [activeScenarioId, whatIfScenarios, restoreScenarioLayers, isLayerVisible, setLayerVisibility],
+  );
+
+  const handleClearScenario = useCallback(() => {
+    restoreScenarioLayers();
+    setActiveScenarioId(null);
+  }, [restoreScenarioLayers]);
 
   const handleStoryNavigate = useCallback((center: [number, number], zoom: number) => {
     setFlyTarget({ center, zoom });
@@ -1514,6 +1560,11 @@ export function EnhancedLanguageMapView({
           />
         )}
 
+        {/* What-If Scenario Overlay (US-001) — speculative, rendered over real layers */}
+        {activeScenario && scenarioAppliesAtYear(activeScenario, currentYear) && (
+          <WhatIfScenarioLayer scenario={activeScenario} opacity={0.5} />
+        )}
+
         {/* Measurement Layer */}
         <MeasurementLayer measurement={measurementTool} />
 
@@ -1732,6 +1783,14 @@ export function EnhancedLanguageMapView({
           onClose={() => setShowStoryMode(false)}
         />
       )}
+
+      {/* What-If Scenario Control + persistent speculative banner (US-001) */}
+      <WhatIfScenarioControl
+        scenarios={whatIfScenarios}
+        activeScenarioId={activeScenarioId}
+        onSelectScenario={handleSelectScenario}
+        onClear={handleClearScenario}
+      />
 
       {/* Export Map Image */}
       <Button
