@@ -63,6 +63,7 @@ import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
+import { registerCitationRoutes } from "./routes/citations";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
 import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
@@ -124,6 +125,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
   // per-domain list records; detail hydrated on demand from /api/<domain>/:id.
   registerSummaryRoutes(app);
+
+  // Citation export routes (/api/citations/*, US-008) — download an entity's
+  // sources[] as BibTeX/RIS/CSL-JSON for academic citation.
+  registerCitationRoutes(app);
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.

@@ -103,6 +103,34 @@ fetcher in `DOMAIN_FETCHERS`. Gotcha: `getCivilizations()` returns GeoJSON
 (use the map bbox API instead); every other `get<Entity>()` returns flat rows.
 Full contract table: `docs/progressive-loading.md`.
 
+## Citation export — `services/citation-export.ts` + `routes/citations.ts`
+
+`GET /api/citations/:domain/:id?format=bibtex|ris|csljson` (US-008) downloads an academic
+citation for one entity, built from its `sources[]`. `GET /api/citations` lists the
+domains + formats.
+
+- **The generator is pure** (`citation-export.ts`, no fs/express/storage): it takes a
+  normalized `CitableEntity` (`entityType`/`id`/`name`/`sources`/`year`/`region`/`url`) and
+  emits `entityToBibtex`/`entityToRis`/`entityToCslJson` (+ `renderCitation` → `{content,
+  contentType, filename}`). Unit-test these directly.
+- **Sources are free text.** `parseEntitySources(raw)` coerces the cell (real `string[]`,
+  a JSON-array string `'["a","b"]'`, or a single string) → `string[]`; `parseSourceString`
+  recovers `author`/`year` (a trailing 3–4 digit year, 100–2100) + `url` from each, else a
+  `title`-only entry — **never drops a source**. Cite keys read `id-author-year`
+  (`minoan-evans-1921`), collisions get an index suffix.
+- **AC3 (missing/partial sources) is handled by design:** every export leads with a
+  **record entry** citing the LinguaScrape entity record itself (dataset publisher
+  `DATASET_PUBLISHER`), so an entity with zero sources still yields a usable citation.
+- **Route** takes injectable `fetchers` (`{domain: {urlPath, fetch(id)→CitableEntity|null}}`)
+  so route tests run with in-memory fakes (no storage/fs). Default fetchers cover the
+  sources-bearing domains (`culture-profiles`, `civilizations`, `deities`,
+  `archaeological-sites`) — **note GeoJSON domains read `.properties`** (civilization id =
+  `properties.civilizationId`, site id = `properties.siteId`). The entity URL is derived
+  from the request host + `urlPath`. Streams `attachment; filename="<slug>.<ext>"`; **404**
+  unknown domain/id, **400** unknown format. Client entry: a "Cite" dropdown
+  (`client/src/components/culture-profile/cite-button.tsx`) next to the Export button in
+  `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
+
 ## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
 
 `/api/collections/*` (US-007) is user-curated groups of entities. **Persistence
