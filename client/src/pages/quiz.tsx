@@ -27,7 +27,11 @@ import {
   Flame,
   Sparkles,
   Trash2,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   addResult,
   browserStorage,
@@ -41,6 +45,11 @@ import {
   suggestDifficulty,
   type QuizResult,
 } from "@/lib/quiz-progress";
+import {
+  quizResultShareUrl,
+  resultShareText,
+  type ShareableQuizResult,
+} from "@/lib/quiz-share";
 
 type Difficulty = "easy" | "medium" | "hard";
 type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine" | "civilizations" | "mixed";
@@ -488,12 +497,16 @@ function MapClickQuestion({
 function QuizResults({
   results,
   questions,
+  shareResult,
   onRestart,
 }: {
   results: AnswerResult[];
   questions: QuizQuestion[];
+  shareResult: ShareableQuizResult | null;
   onRestart: () => void;
 }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
   const correct = results.filter(r => r.correct).length;
   const total = results.length;
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
@@ -504,6 +517,30 @@ function QuizResults({
     if (pct >= 60) return "Good job! Keep learning.";
     if (pct >= 40) return "Not bad! There's more to discover.";
     return "Keep practicing — the world of languages awaits!";
+  };
+
+  const handleShare = async () => {
+    if (!shareResult) return;
+    const url = quizResultShareUrl(shareResult, window.location.origin);
+    const label = CATEGORY_LABELS[shareResult.category] || shareResult.category;
+    const text = resultShareText(shareResult, label);
+    // Prefer the native share sheet (mobile), fall back to clipboard.
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "LinguaScrape Quiz", text, url });
+        return;
+      }
+    } catch {
+      // user dismissed the share sheet — fall through to clipboard
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+      toast({ title: "Share link copied", description: text });
+    } catch {
+      toast({ title: "Couldn't copy link", description: url });
+    }
   };
 
   return (
@@ -531,10 +568,18 @@ function QuizResults({
           </div>
         ))}
       </div>
-      <Button onClick={onRestart} size="lg" className="gap-2">
-        <RotateCcw className="w-4 h-4" />
-        Try Again
-      </Button>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Button onClick={onRestart} size="lg" className="gap-2">
+          <RotateCcw className="w-4 h-4" />
+          Try Again
+        </Button>
+        {shareResult && (
+          <Button onClick={handleShare} size="lg" variant="outline" className="gap-2">
+            {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+            {copied ? "Link copied" : "Share result"}
+          </Button>
+        )}
+      </div>
     </Card>
   );
 }
@@ -895,7 +940,22 @@ export default function QuizPage() {
               </Button>
             </Link>
           </div>
-          <QuizResults results={results} questions={questions} onRestart={handleRestart} />
+          <QuizResults
+            results={results}
+            questions={questions}
+            shareResult={
+              results.length > 0
+                ? {
+                    category: session?.category ?? category,
+                    difficulty: (session?.difficulty ?? difficulty) as Difficulty,
+                    correct: results.filter((r) => r.correct).length,
+                    total: results.length,
+                    timestamp: Date.now(),
+                  }
+                : null
+            }
+            onRestart={handleRestart}
+          />
           {history.length > 0 && (
             <div className="flex items-center justify-center gap-4 mt-6 text-sm">
               <span className="flex items-center gap-1.5 text-orange-400">

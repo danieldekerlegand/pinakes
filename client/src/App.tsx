@@ -12,6 +12,7 @@ import WordEtymology from "@/pages/word-etymology";
 import StoriesPage from "@/pages/stories";
 import EmbedPage from "@/pages/embed";
 import QuizPage from "@/pages/quiz";
+import SharedQuizResultPage from "@/pages/shared-quiz-result";
 import ScraperDashboard from "@/pages/scraper-dashboard";
 import DataExplorer from "@/pages/data-explorer";
 import CivilizationTimeline from "@/pages/civilization-timeline";
@@ -35,6 +36,8 @@ function Router() {
       <Route path="/stories" component={StoriesPage} />
       <Route path="/stories/:id" component={StoriesPage} />
       <Route path="/quiz" component={QuizPage} />
+      {/* Read-only shared quiz result (US-007) — score summary embedded in the token. */}
+      <Route path="/shared/quiz/:token" component={SharedQuizResultPage} />
       <Route path="/scraper" component={ScraperDashboard} />
       <Route path="/civilization-timeline" component={CivilizationTimeline} />
       <Route path="/mesopotamia" component={MesopotamiaShowcasePage} />
