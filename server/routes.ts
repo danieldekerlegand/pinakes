@@ -63,6 +63,7 @@ import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
 import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
 import { registerAnomalyRoutes } from "./routes/anomaly-detection";
+import { registerHypothesisRoutes } from "./routes/hypotheses";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCitationRoutes } from "./routes/citations";
@@ -139,6 +140,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // corpus for statistically unexpected similarities between distant, unrelated
   // cultures (rare shared scales/pottery/motifs), ranked as research hypotheses.
   registerAnomalyRoutes(app);
+
+  // Automated hypothesis & site-location generation (GET /api/hypotheses, US-007) —
+  // generated, explicitly-speculative leads: clusters of distant unrelated cultures
+  // sharing a rare trait (possible common ancestor) + undiscovered-site regions
+  // predicted from gaps along migration corridors (with an uncertainty radius).
+  registerHypothesisRoutes(app);
 
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
   // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.

@@ -54,6 +54,41 @@ Backend-only (no UI required by the ACs).
   haplogroup signals are supported by the generic engine but their current storage projections
   lack per-culture coordinates, so feeding them richly is a future data task.
 
+## Automated hypothesis & site-location generation — `services/hypothesis-generation.ts` + `routes/hypotheses.ts`
+
+`GET /api/hypotheses?minMembers=&minRarity=&minGapKm=&limit=` (US-007) returns two families of
+**generated, explicitly-speculative** research leads: **common-ancestor hypotheses** (clusters of
+≥3 distant, unrelated cultures sharing the same rare trait) and **undiscovered-site-region
+predictions** (gaps along migration corridors far from any known site, each with an uncertainty
+radius). The response also carries a `geojson` FeatureCollection for the map overlay.
+
+- **The engine is pure + reuses the US-006 anomaly primitives** (`hypothesis-generation.ts`
+  imports `computeFeaturePrevalence`/`featureRarity`/`featureKey`/`haversineKm` from
+  `anomaly-detection.ts` and re-exports `CultureNode`/`NodeFeature`). It generalizes the pairwise
+  anomaly to **n-way clusters**: `generateAncestorHypotheses` anchors on rare traits (prevalence in
+  `[minMembers, maxAnchorPrevalence]`, rarity ≥ `minRarity`), **structurally excludes** same-lineage
+  clusters (`allShareAGroup`) and geographically-close ones (`maxSpreadKm < minSpreadKm`), dedups
+  identical member sets, and gathers EVERY rare trait the whole membership shares as evidence
+  (`traitsSharedByAll` = trait-key intersection). Every result is `speculative:true` +
+  `generated:true`; `confidence` (≤0.9) rises with independent shared traits + members + provenance.
+- **Site prediction = corridor-gap heuristic.** `predictSiteRegions(corridors, knownSites, opts)`
+  samples each corridor's **waypoints AND leg midpoints** (`sampleCorridor` — a long straight leg
+  hides a gap in its middle), keeps points with `nearestKnownKm ≥ minGapKm`, dedups by ~1° cell,
+  and emits `center` + `uncertaintyRadiusKm` (= gap×0.5, clamped to `maxUncertaintyKm`) + confidence.
+  **Gotcha:** an empty `knownSites` set makes `nearestKnownKm` return `Infinity`; that maps to a
+  capped `NO_KNOWN_SITE_GAP_KM` (a corridor with zero recorded sites is the *strongest* lead, not
+  dropped). `sitePredictionsToGeoJSON` → a `[lng,lat]` FeatureCollection with `uncertaintyRadiusKm`.
+- **Route** takes injectable `{loadNodes, loadCorridors, loadKnownSites}` (tests pass in-memory
+  fakes — no storage/fs). Defaults: nodes = the same music/art/material projection as
+  `routes/anomaly-detection.ts` (keep in sync); corridors = migration routes via `waypointsToPoints`
+  (parses the GeoJSON LineString `[lng,lat]` → `{lat,lng}`); known sites = archaeological-sites
+  (`geometry.coordinates` `[lng,lat]`) + settlements (flat `latitude`/`longitude`). **500** only on a
+  loader throw. These leads are **distinct from the curated `urheimat-hypotheses` dataset**
+  (`DISTINCT_FROM_CURATED` note; never overwrite it). Client entry: the `/hypotheses` page
+  (`client/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
+  with uncertainty** (radius = `uncertaintyRadiusKm`); the styling math is pure in
+  `client/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
+
 ## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
 
 `POST /api/graph/explain` (US-005) explains how two entities are connected: it finds the

@@ -25,6 +25,7 @@ import AdvancedToolsPage from "@/pages/advanced-tools";
 import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
 import AiReviewPage from "@/pages/ai-review";
 import AncestryPage from "@/pages/ancestry";
+import HypothesesPage from "@/pages/hypotheses";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -57,6 +58,10 @@ function Router() {
       {/* DNA-to-culture ancestry mapper (US-001) — in-browser raw-DNA parsing +
           haplogroup inference; only haplogroup ids are sent to /api/ancestry/map. */}
       <Route path="/ancestry" component={AncestryPage} />
+      {/* Automated hypothesis & site-location generation (US-007) — generated,
+          speculative leads: shared-ancestry clusters + predicted undiscovered-site
+          regions rendered as map overlays with uncertainty. */}
+      <Route path="/hypotheses" component={HypothesesPage} />
       <Route component={NotFound} />
     </Switch>
   );
