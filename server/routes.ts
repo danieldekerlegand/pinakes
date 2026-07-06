@@ -65,7 +65,18 @@ import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCollectionRoutes } from "./routes/collections";
 import { registerAnnotationRoutes } from "./routes/annotations";
-import { searchPlacesWithNominatim, autocompletePlaces } from "./services/place-resolver";
+import { registerDrawnGeometryRoutes } from "./routes/drawn-geometry";
+import { registerTimelineEventRoutes } from "./routes/timeline-event";
+import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
+import { registerRelationshipSuggestionRoutes } from "./routes/relationship-suggestions";
+import { registerUrlExtractorRoutes } from "./routes/url-extractor";
+import { registerTextExtractorRoutes } from "./routes/text-extractor";
+import { registerAiReviewRoutes } from "./routes/ai-review";
+import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
+import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
+import { registerContributionRoutes } from "./routes/contributions";
+import { registerCommunityVerificationRoutes } from "./routes/community-verification";
+import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
@@ -121,6 +132,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User annotations & notes routes (/api/annotations/*, US-008) — free-text notes
   // on entities (stable-id references), private by default with an option to share.
   registerAnnotationRoutes(app);
+
+  // Drawn-geometry authoring routes (/api/map/drawn-geometry, US-001) — polygons
+  // & lines drawn on the map land in the contribution review queue with
+  // provenance source='user-drawn'; a reviewer promotes them into TSV later.
+  registerDrawnGeometryRoutes(app);
+
+  // Timeline-event authoring routes (/api/timeline/event, US-002) — events &
+  // period markers authored on the temporal axis land in the contribution
+  // review queue with provenance source='user-authored'; a reviewer promotes
+  // them into culture-events.tsv later.
+  registerTimelineEventRoutes(app);
+
+  // Relationship-builder routes (/api/relationships/edge, US-003) — typed edges
+  // authored by dragging one entity onto another land in the contribution
+  // review queue with provenance source='user-authored'; a reviewer promotes
+  // them into cultural-lineages.tsv later. Duplicate/self edges are rejected.
+  registerRelationshipEdgeRoutes(app);
+
+  // Authoring-time suggested-relationship routes (/api/relationships/suggestions,
+  // US-010) — when a contributor creates/edits an entity, surface the most
+  // likely relationships (ranked by the cross-domain temporal/spatial/linguistic
+  // proximity math) with rationale + confidence. Suggestions NEVER auto-create an
+  // edge; the contributor confirms one via POST /api/relationships/edge (US-003).
+  registerRelationshipSuggestionRoutes(app);
+
+  // URL-paste extractor route (/api/extract/url, US-004) — a pasted Wikipedia/
+  // Wikidata URL becomes a structured entity draft (name/coords/dates/relations
+  // with per-field confidence) that lands in the contribution review queue
+  // flagged aiGenerated/autoDerived; a reviewer promotes it later. Wikidata
+  // resolves via the single-entity REST endpoint (no TS SPARQL client).
+  registerUrlExtractorRoutes(app);
+
+  // LLM text-extraction route (/api/extract/text, US-008) — a pasted paragraph
+  // becomes structured entity/date/relationship drafts (each field with a
+  // confidence, flagged AI-generated) that land in the contribution review
+  // queue (US-009); never a live write. Uses the existing Gemini client.
+  registerTextExtractorRoutes(app);
+
+  // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
+  // field-level review workflow for AI-generated drafts (US-004/US-008): a human
+  // accepts/edits/rejects each field (low-confidence fields flagged), and an
+  // approved draft is promoted into lexicons/*.tsv with provenance recording both
+  // the AI source and the human reviewer.
+  registerAiReviewRoutes(app);
+
+  // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
+  // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
+  // civilizations/sites/figures/trade-goods from the scraper dashboard. Bulk
+  // SPARQL stays culture-scrape's job (no TS SPARQL client); acquired records
+  // land in the contribution review queue with Wikidata provenance. Progress
+  // streams via the existing jobStore (GET /api/scraping-jobs).
+  registerCultureScrapeAcquisitionRoutes(app);
+
+  // Open Context / tDAR archaeological acquisition routes
+  // (/api/scraping/archaeology, US-007) — complement the Pleiades path with two
+  // external archaeological authorities. Acquired sites (coordinates, time
+  // ranges, associated cultures, provenance) land in the contribution review
+  // queue — never a live TSV write. Progress streams via the jobStore.
+  registerArchaeologyAcquisitionRoutes(app);
 
 
   // Language Families
@@ -1795,6 +1865,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * GET /api/map/places/resolve?q=query&limit=10 - Resolve a place to canonical
+   * records (name, lat/lng, geonames_id). Prefers GeoNames for standardized
+   * naming and falls back to Nominatim; results carry provenance.
+   */
+  app.get("/api/map/places/resolve", async (req, res) => {
+    try {
+      const q = req.query.q as string | undefined;
+      if (!q || !q.trim()) {
+        res.json({ results: [], query: "", source: null });
+        return;
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const result = await resolvePlace(q, limit);
+      res.json(result);
+    } catch (error) {
+      console.error("Error resolving place:", error);
+      res.status(500).json({
+        message: "Failed to resolve place",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
   // Get empires timeline
   app.get("/api/map/empires-timeline", async (req, res) => {
     try {
@@ -2944,166 +3038,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
-  // Contribution API Routes (Phase 5)
+  // Contribution API Routes (Phase 5; hardened public API US-011)
   // ============================================================================
+  // Write endpoints (POST /api/contributions, PATCH .../:id/review) are guarded
+  // by API-key auth + per-key rate limiting; read endpoints stay open. The
+  // OpenAPI spec is published at GET /api/openapi.json. See routes/contributions.ts.
+  registerContributionRoutes(app);
 
-  const { ContributionService } = await import("./services/contribution-service");
-  const contributions = new ContributionService();
-
-  /**
-   * POST /api/contributions - Submit a new contribution
-   */
-  app.post("/api/contributions", async (req, res) => {
-    try {
-      const result = contributions.submit(req.body);
-
-      if (!result.validation.valid) {
-        res.status(400).json({
-          message: "Validation failed",
-          errors: result.validation.errors,
-          warnings: result.validation.warnings,
-        });
-        return;
-      }
-
-      res.status(201).json({
-        contribution: result.contribution,
-        warnings: result.validation.warnings,
-      });
-    } catch (error) {
-      console.error("Error submitting contribution:", error);
-      res.status(500).json({
-        message: "Failed to submit contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions - List contributions with filtering
-   */
-  app.get("/api/contributions", async (req, res) => {
-    try {
-      const status = req.query.status as string | undefined;
-      const entityType = req.query.entityType as string | undefined;
-      const action = req.query.action as string | undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-
-      const result = contributions.list({
-        status: status as any,
-        entityType: entityType as any,
-        action: action as any,
-        limit,
-        offset,
-      });
-
-      res.json(result);
-    } catch (error) {
-      console.error("Error listing contributions:", error);
-      res.status(500).json({
-        message: "Failed to list contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/export - Export contributions as CSV
-   */
-  app.get("/api/contributions/export", async (_req, res) => {
-    try {
-      const csv = contributions.exportCsv();
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", "attachment; filename=contributions.csv");
-      res.send(csv);
-    } catch (error) {
-      console.error("Error exporting contributions:", error);
-      res.status(500).json({
-        message: "Failed to export contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/entity/:entityType/:entityId - Get approved contributions for an entity
-   */
-  app.get("/api/contributions/entity/:entityType/:entityId", async (req, res) => {
-    try {
-      const contribs = contributions.getByEntity(req.params.entityType, req.params.entityId);
-      res.json({ contributions: contribs });
-    } catch (error) {
-      console.error("Error getting entity contributions:", error);
-      res.status(500).json({
-        message: "Failed to get entity contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/stats - Get contribution statistics
-   */
-  app.get("/api/contributions/stats", async (req, res) => {
-    try {
-      const stats = contributions.stats();
-      res.json(stats);
-    } catch (error) {
-      console.error("Error getting contribution stats:", error);
-      res.status(500).json({
-        message: "Failed to get contribution stats",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/:id - Get a single contribution
-   */
-  app.get("/api/contributions/:id", async (req, res) => {
-    try {
-      const contribution = contributions.get(req.params.id);
-      if (!contribution) {
-        res.status(404).json({ message: `Contribution '${req.params.id}' not found` });
-        return;
-      }
-      res.json(contribution);
-    } catch (error) {
-      console.error("Error getting contribution:", error);
-      res.status(500).json({
-        message: "Failed to get contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * PATCH /api/contributions/:id/review - Review (approve/reject) a contribution
-   */
-  app.patch("/api/contributions/:id/review", async (req, res) => {
-    try {
-      const { decision, note } = req.body;
-      if (!decision || !["approved", "rejected"].includes(decision)) {
-        res.status(400).json({ message: "decision must be 'approved' or 'rejected'" });
-        return;
-      }
-
-      const contribution = contributions.review(req.params.id, decision, note);
-      if (!contribution) {
-        res.status(404).json({ message: `Contribution '${req.params.id}' not found` });
-        return;
-      }
-
-      res.json(contribution);
-    } catch (error) {
-      console.error("Error reviewing contribution:", error);
-      res.status(500).json({
-        message: "Failed to review contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  // ============================================================================
+  // Community verification & culture stewardship (US-012)
+  // ============================================================================
+  // Multi-confirmation (N distinct reviewers verify a contribution before it
+  // goes live; a domain steward lowers the bar) + an "adopt a culture" ownership
+  // model. See routes/community-verification.ts.
+  registerCommunityVerificationRoutes(app);
 
   // ============================================================================
   // Sample Texts

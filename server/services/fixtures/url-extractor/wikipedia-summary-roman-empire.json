@@ -1,0 +1,10 @@
+{
+  "title": "Roman Empire",
+  "displaytitle": "Roman Empire",
+  "extract": "The Roman Empire was the post-Republican state of ancient Rome.",
+  "wikibase_item": "Q2277",
+  "coordinates": { "lat": 41.9, "lon": 12.5 },
+  "content_urls": {
+    "desktop": { "page": "https://en.wikipedia.org/wiki/Roman_Empire" }
+  }
+}

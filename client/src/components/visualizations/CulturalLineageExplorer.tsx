@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Search, Info } from 'lucide-react';
+import { Loader2, Search, Info, Link2 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { useVisualizationResize } from './hooks/useVisualizationResize';
+import RelationshipBuilderPanel from './RelationshipBuilderPanel';
 
 interface CulturalLineage {
   id: string;
@@ -109,6 +110,7 @@ export function CulturalLineageExplorer() {
   const { width, height } = useVisualizationResize(containerRef);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [showBuilder, setShowBuilder] = useState(false);
   const [tooltip, setTooltip] = useState<{
     visible: boolean;
     x: number;
@@ -459,7 +461,29 @@ export function CulturalLineageExplorer() {
             Clear selection
           </button>
         )}
+        <button
+          onClick={() => setShowBuilder((v) => !v)}
+          className={`ml-auto flex items-center gap-1 text-xs px-2 py-1 rounded border ${
+            showBuilder
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'text-blue-600 border-blue-300 hover:bg-blue-50'
+          }`}
+          data-testid="relationship-builder-toggle"
+        >
+          <Link2 className="h-3.5 w-3.5" />
+          {showBuilder ? 'Close builder' : 'Build relationship'}
+        </button>
       </div>
+
+      {/* Relationship builder (US-003) — drag one entity onto another to author
+          a typed edge; queued for review, never a direct TSV write. */}
+      {showBuilder && (
+        <div className="border-b bg-gray-50">
+          <RelationshipBuilderPanel
+            entities={graph.nodes.map((n) => ({ id: n.id, name: n.name }))}
+          />
+        </div>
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 px-4 py-1.5 border-b bg-gray-50 text-xs">

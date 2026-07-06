@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TrendingUp, Plus } from "lucide-react";
 import CultureEvolutionTimeline from "@/components/visualizations/CultureEvolutionTimeline";
+import { TimelineEventAuthoringPanel } from "@/components/visualizations/TimelineEventAuthoringPanel";
+import { Button } from "@/components/ui/button";
 import type { CultureEvent } from "./culture-evolution-timeline-utils";
 import { formatYearRange } from "./culture-evolution-timeline-utils";
 
@@ -23,6 +26,9 @@ export default function CultureEvolutionTimelineSection({
   profileStart,
   profileEnd,
 }: Props) {
+  const queryClient = useQueryClient();
+  const [authoring, setAuthoring] = useState(false);
+
   const { data, isLoading, isError } = useQuery<EventsResponse>({
     queryKey: ["/api/culture-profiles", cultureProfileId, "evolution-events"],
     queryFn: async () => {
@@ -64,7 +70,7 @@ export default function CultureEvolutionTimelineSection({
     <div className="space-y-3" data-testid="culture-evolution-section">
       <div className="flex items-start gap-2">
         <TrendingUp className="h-4 w-4 text-indigo-500 flex-shrink-0 mt-0.5" />
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
             {cultureName} evolution
           </p>
@@ -73,7 +79,37 @@ export default function CultureEvolutionTimelineSection({
             {events.length === 1 ? "" : "s"}
           </p>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setAuthoring((v) => !v)}
+          data-testid="timeline-add-entry-toggle"
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          {authoring ? "Close" : "Add entry"}
+        </Button>
       </div>
+
+      {authoring && (
+        <div className="border border-indigo-200 dark:border-indigo-800 rounded-lg">
+          <TimelineEventAuthoringPanel
+            cultureProfileId={cultureProfileId}
+            cultureName={cultureName}
+            axisStart={profileStart}
+            axisEnd={profileEnd}
+            onClose={() => setAuthoring(false)}
+            onSubmitted={() => {
+              queryClient.invalidateQueries({
+                queryKey: [
+                  "/api/culture-profiles",
+                  cultureProfileId,
+                  "evolution-events",
+                ],
+              });
+            }}
+          />
+        </div>
+      )}
 
       {events.length === 0 ? (
         <div

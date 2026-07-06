@@ -1,6 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchPlaces, autocompletePlaces, searchPlacesWithNominatim } from './place-resolver';
-import type { PlaceResult } from './place-resolver';
+import fs from 'fs';
+import path from 'path';
+import {
+  searchPlaces,
+  autocompletePlaces,
+  searchPlacesWithNominatim,
+  geoNamesToPlaceResult,
+  nominatimToPlaceResult,
+  geoNamesToCanonical,
+  nominatimToCanonical,
+  queryExternalPlaces,
+  resolvePlace,
+} from './place-resolver';
+import type {
+  PlaceResult,
+  GeoNamesResult,
+  NominatimResult,
+  PlaceResolverDeps,
+} from './place-resolver';
 
 // Mock the storage module to return test data
 vi.mock('../storage', () => ({
@@ -253,6 +270,192 @@ describe('Place Resolver', () => {
       // south < north, west < east
       expect(region!.bbox![0]).toBeLessThan(region!.bbox![2]);
       expect(region!.bbox![1]).toBeLessThan(region!.bbox![3]);
+    });
+  });
+});
+
+// ── US-006: GeoNames adapter + canonical resolve API ───────────────────────────
+
+const FIXTURES = path.join(__dirname, 'fixtures', 'place-resolver');
+
+function loadGeoNames(file: string): GeoNamesResult[] {
+  const raw = JSON.parse(fs.readFileSync(path.join(FIXTURES, file), 'utf-8')) as {
+    geonames?: GeoNamesResult[];
+    status?: { message: string; value: number };
+  };
+  // Live liveDeps throws on a `status` body (quota/error); mirror that here.
+  if (raw.status) throw new Error(`GeoNames error: ${raw.status.message}`);
+  return raw.geonames ?? [];
+}
+
+function loadNominatim(file: string): NominatimResult[] {
+  return JSON.parse(
+    fs.readFileSync(path.join(FIXTURES, file), 'utf-8'),
+  ) as NominatimResult[];
+}
+
+/** Fixture-backed deps with per-call overrides — no live network. */
+function fixtureDeps(overrides: Partial<PlaceResolverDeps> = {}): PlaceResolverDeps {
+  return {
+    async fetchGeoNames() {
+      return loadGeoNames('geonames-athens.json');
+    },
+    async fetchNominatim() {
+      return loadNominatim('nominatim-athens.json');
+    },
+    ...overrides,
+  };
+}
+
+describe('GeoNames adapter (US-006)', () => {
+  describe('geoNamesToPlaceResult', () => {
+    it('maps a GeoNames record with a stable id + provenance', () => {
+      const [athens] = loadGeoNames('geonames-athens.json');
+      const r = geoNamesToPlaceResult(athens, 0);
+      expect(r.id).toBe('geonames-264371');
+      expect(r.name).toBe('Athens');
+      expect(r.category).toBe('geonames');
+      expect(r.lat).toBeCloseTo(37.98376);
+      expect(r.lng).toBeCloseTo(23.72784);
+      expect(r.provenance).toEqual({
+        source: 'geonames',
+        sourceId: '264371',
+        sourceUrl: 'https://www.geonames.org/264371',
+      });
+      // GeoNames outranks Nominatim's base 0.6.
+      expect(r.relevance).toBeGreaterThan(0.6);
+    });
+
+    it('ranks later results lower', () => {
+      const items = loadGeoNames('geonames-athens.json');
+      const first = geoNamesToPlaceResult(items[0], 0);
+      const second = geoNamesToPlaceResult(items[1], 1);
+      expect(first.relevance).toBeGreaterThan(second.relevance);
+    });
+  });
+
+  describe('nominatimToPlaceResult', () => {
+    it('maps a Nominatim record with provenance + bbox', () => {
+      const [athens] = loadNominatim('nominatim-athens.json');
+      const r = nominatimToPlaceResult(athens, 0);
+      expect(r.id).toBe('nominatim-12345678');
+      expect(r.name).toBe('Athens');
+      expect(r.category).toBe('modern');
+      expect(r.geometryType).toBe('bbox');
+      // boundingbox [south, north, west, east] → [south, west, north, east]
+      expect(r.bbox).toEqual([37.913789, 23.682851, 38.044787, 23.790994]);
+      expect(r.provenance?.source).toBe('nominatim');
+      expect(r.provenance?.sourceId).toBe('12345678');
+    });
+  });
+
+  describe('canonical mappers', () => {
+    it('geoNamesToCanonical carries geonamesId', () => {
+      const [athens] = loadGeoNames('geonames-athens.json');
+      const c = geoNamesToCanonical(athens);
+      expect(c.geonamesId).toBe(264371);
+      expect(c.name).toBe('Athens');
+      expect(c.countryName).toBe('Greece');
+      expect(c.featureType).toBe('capital of a political entity');
+      expect(c.provenance.source).toBe('geonames');
+    });
+
+    it('nominatimToCanonical has a null geonamesId', () => {
+      const [athens] = loadNominatim('nominatim-athens.json');
+      const c = nominatimToCanonical(athens);
+      expect(c.geonamesId).toBeNull();
+      expect(c.provenance.source).toBe('nominatim');
+      expect(c.bbox).toBeDefined();
+    });
+  });
+
+  describe('queryExternalPlaces (prefer GeoNames, fall back to Nominatim)', () => {
+    it('prefers GeoNames when it returns results', async () => {
+      const out = await queryExternalPlaces('Athens', 10, fixtureDeps());
+      expect(out.length).toBeGreaterThan(0);
+      expect(out.every((r) => r.provenance?.source === 'geonames')).toBe(true);
+    });
+
+    it('falls back to Nominatim when GeoNames throws (e.g. quota exceeded)', async () => {
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          return loadGeoNames('geonames-quota-exceeded.json'); // throws
+        },
+      });
+      const out = await queryExternalPlaces('Athens', 10, deps);
+      expect(out.length).toBe(1);
+      expect(out[0].provenance?.source).toBe('nominatim');
+    });
+
+    it('falls back to Nominatim when GeoNames returns nothing', async () => {
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          return [];
+        },
+      });
+      const out = await queryExternalPlaces('Athens', 10, deps);
+      expect(out[0].provenance?.source).toBe('nominatim');
+    });
+
+    it('returns [] when both geocoders fail', async () => {
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          throw new Error('down');
+        },
+        async fetchNominatim() {
+          throw new Error('down');
+        },
+      });
+      expect(await queryExternalPlaces('Athens', 10, deps)).toEqual([]);
+    });
+  });
+
+  describe('resolvePlace (canonical resolve API)', () => {
+    it('returns canonical GeoNames records with geonames_id', async () => {
+      const res = await resolvePlace('Athens', 10, fixtureDeps());
+      expect(res.source).toBe('geonames');
+      expect(res.results[0].geonamesId).toBe(264371);
+      expect(res.results[0].name).toBe('Athens');
+      expect(res.results[0].lat).toBeCloseTo(37.98376);
+      expect(res.results[0].provenance.sourceId).toBe('264371');
+    });
+
+    it('falls back to Nominatim (null geonames_id) when GeoNames unavailable', async () => {
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          throw new Error('GEONAMES_USERNAME not configured');
+        },
+      });
+      const res = await resolvePlace('Athens', 10, deps);
+      expect(res.source).toBe('nominatim');
+      expect(res.results[0].geonamesId).toBeNull();
+    });
+
+    it('returns an empty resolution for a blank query without hitting the network', async () => {
+      let called = false;
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          called = true;
+          return [];
+        },
+      });
+      const res = await resolvePlace('   ', 10, deps);
+      expect(res).toEqual({ results: [], query: '', source: null });
+      expect(called).toBe(false);
+    });
+
+    it('reports source=null when both geocoders fail', async () => {
+      const deps = fixtureDeps({
+        async fetchGeoNames() {
+          throw new Error('down');
+        },
+        async fetchNominatim() {
+          throw new Error('down');
+        },
+      });
+      const res = await resolvePlace('Athens', 10, deps);
+      expect(res.source).toBeNull();
+      expect(res.results).toEqual([]);
     });
   });
 });

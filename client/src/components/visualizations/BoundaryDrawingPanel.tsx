@@ -10,11 +10,21 @@ import { Badge } from '../ui/badge';
 import type { DrawingToolReturn } from './hooks/useDrawingTool';
 import type { DrawingMode } from './hooks/useDrawingTool';
 
-const BOUNDARY_ENTITY_TYPES = [
+// Drawing targets, split by geometry kind. Polygon shapes describe areas; line
+// shapes describe paths. Each maps 1:1 onto a geometry-bearing TSV and onto the
+// server's `DrawnGeometryTarget` (see server/services/drawn-geometry.ts).
+const POLYGON_TARGETS = [
+  { value: 'boundary', label: 'Civilization Boundary' },
   { value: 'language-range', label: 'Language Range' },
-  { value: 'civilization', label: 'Civilization Boundary' },
-  { value: 'boundary', label: 'General Boundary' },
 ];
+const LINE_TARGETS = [
+  { value: 'trade-route', label: 'Trade Route' },
+  { value: 'migration-route', label: 'Migration Path' },
+];
+
+function targetsForMode(mode: DrawingMode) {
+  return mode === 'polygon' ? POLYGON_TARGETS : LINE_TARGETS;
+}
 
 interface BoundaryDrawingPanelProps {
   drawing: DrawingToolReturn;
@@ -24,9 +34,12 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
   const { state, startDrawing, stopDrawing, clearDrawing, removeVertex, undo, redo, canUndo, canRedo, toGeoJSON } = drawing;
   const queryClient = useQueryClient();
 
-  const [entityType, setEntityType] = useState('boundary');
+  const [target, setTarget] = useState('boundary');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [associatedEntityId, setAssociatedEntityId] = useState('');
+  const [timePeriodStart, setTimePeriodStart] = useState('');
+  const [timePeriodEnd, setTimePeriodEnd] = useState('');
   const [sourceTitle, setSourceTitle] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [confidence, setConfidence] = useState(70);
@@ -34,9 +47,17 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
   const [errors, setErrors] = useState<string[]>([]);
   const [exportedGeoJSON, setExportedGeoJSON] = useState<string | null>(null);
 
+  // Keep the selected target consistent with the active geometry kind: a
+  // polygon can only be a boundary/language-range, a line only a route.
+  const availableTargets = targetsForMode(state.mode);
+  if (!availableTargets.some((t) => t.value === target)) {
+    // Reset during render is safe here — availableTargets always has entries.
+    setTarget(availableTargets[0].value);
+  }
+
   const submitMutation = useMutation({
     mutationFn: async (data: unknown) => {
-      const res = await fetch('/api/contributions', {
+      const res = await fetch('/api/map/drawn-geometry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -52,6 +73,9 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
       stopDrawing();
       setName('');
       setDescription('');
+      setAssociatedEntityId('');
+      setTimePeriodStart('');
+      setTimePeriodEnd('');
       setSourceTitle('');
       setSourceUrl('');
       setErrors([]);
@@ -94,17 +118,32 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
       return;
     }
 
+    const localErrors: string[] = [];
+    if (!name.trim()) localErrors.push('Name is required');
+    if (!associatedEntityId.trim()) localErrors.push('Associated entity ID is required');
+    if (timePeriodStart.trim() === '' || Number.isNaN(Number(timePeriodStart))) {
+      localErrors.push('Start year is required (negative = BCE)');
+    }
+    const endProvided = timePeriodEnd.trim() !== '';
+    if (endProvided && Number.isNaN(Number(timePeriodEnd))) {
+      localErrors.push('End year must be a number');
+    }
+    if (localErrors.length > 0) {
+      setErrors(localErrors);
+      return;
+    }
+
     submitMutation.mutate({
-      entityType,
-      action: 'add',
-      entityData: {
-        name,
-        description,
-        geometry: geojson.geometry,
-        drawingMode: state.mode,
-      },
-      sources: sourceTitle ? [{ title: sourceTitle, url: sourceUrl || undefined }] : [],
+      geometry: geojson.geometry,
+      target,
+      name: name.trim(),
+      associatedEntityId: associatedEntityId.trim(),
+      timePeriodStart: Number(timePeriodStart),
+      timePeriodEnd: endProvided ? Number(timePeriodEnd) : null,
+      timePeriodLabel: description || undefined,
+      description: description || undefined,
       confidence,
+      sources: sourceTitle ? [{ title: sourceTitle, url: sourceUrl || undefined }] : undefined,
       contributorName: contributorName || undefined,
     });
   };
@@ -244,14 +283,14 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
         <p className="text-sm font-medium text-gray-700">Submit as Contribution</p>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1">Entity Type</label>
+          <label className="text-sm font-medium text-gray-700 block mb-1">Target</label>
           <select
-            value={entityType}
-            onChange={(e) => setEntityType(e.target.value)}
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
             className="w-full border rounded-md px-3 py-2 text-sm"
           >
-            {BOUNDARY_ENTITY_TYPES.map((et) => (
-              <option key={et.value} value={et.value}>{et.label}</option>
+            {availableTargets.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </div>
@@ -264,6 +303,48 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
             placeholder="e.g., Bantu language range"
             required
           />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">
+            Associated Entity ID <span className="text-red-500">*</span>
+          </label>
+          <Input
+            value={associatedEntityId}
+            onChange={(e) => setAssociatedEntityId(e.target.value)}
+            placeholder="e.g., roman-empire, eng, tr-001"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            The existing entity this geometry belongs to.
+          </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">
+            Time Range <span className="text-red-500">*</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={timePeriodStart}
+              onChange={(e) => setTimePeriodStart(e.target.value)}
+              placeholder="Start year"
+              className="flex-1"
+              required
+            />
+            <span className="text-gray-400 text-sm">to</span>
+            <Input
+              type="number"
+              value={timePeriodEnd}
+              onChange={(e) => setTimePeriodEnd(e.target.value)}
+              placeholder="End year (optional)"
+              className="flex-1"
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Use negative years for BCE (e.g., -200). Leave end blank for a single point in time.
+          </p>
         </div>
 
         <div>
@@ -336,7 +417,7 @@ export function BoundaryDrawingPanel({ drawing }: BoundaryDrawingPanelProps) {
           ) : (
             <Send className="h-4 w-4 mr-2" />
           )}
-          Submit Boundary
+          Submit Geometry
         </Button>
       </form>
     </div>

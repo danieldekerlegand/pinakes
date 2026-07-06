@@ -1,0 +1,55 @@
+{
+  "entities": [
+    {
+      "name": "Roman Empire",
+      "entityType": "civilization",
+      "confidence": 0.95,
+      "description": "Ancient Mediterranean empire centered on Rome.",
+      "descriptionConfidence": 0.8,
+      "startYear": -27,
+      "startYearConfidence": 0.85,
+      "endYear": 476,
+      "endYearConfidence": 0.7
+    },
+    {
+      "name": "Latin",
+      "entityType": "language",
+      "confidence": 0.9,
+      "description": "The language of ancient Rome."
+    },
+    {
+      "name": "Pompeii",
+      "entityType": "archaeological site",
+      "confidence": 0.88,
+      "latitude": 40.7497,
+      "longitude": 14.4869,
+      "coordinatesConfidence": 0.92,
+      "startYear": -700
+    },
+    {
+      "name": "  ",
+      "entityType": "noise",
+      "confidence": 0.1
+    }
+  ],
+  "relationships": [
+    {
+      "source": "French",
+      "target": "Latin",
+      "type": "descended-from",
+      "confidence": 0.75
+    },
+    {
+      "source": "Pompeii",
+      "target": "Roman Empire",
+      "type": "located-in",
+      "confidence": 0.8
+    },
+    {
+      "source": "Pompeii",
+      "target": "Roman Empire",
+      "type": "located-in",
+      "confidence": 0.6
+    }
+  ]
+}

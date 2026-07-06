@@ -1,0 +1,51 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.8281, 37.6669] },
+      "properties": {
+        "label": "Çatalhöyük East Mound",
+        "uri": "https://opencontext.org/subjects/catalhoyuk-east",
+        "href": "https://opencontext.org/subjects/catalhoyuk-east",
+        "id": "catalhoyuk-east",
+        "category": ["Site"],
+        "context label": "Asia/Turkey/Çatalhöyük",
+        "early bce/ce": -7100,
+        "late bce/ce": -5700,
+        "snippet": "Neolithic tell settlement in south-central Anatolia."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [35.4444, 31.7683] },
+      "properties": {
+        "label": "Jericho Tell es-Sultan",
+        "uri": "https://opencontext.org/subjects/jericho",
+        "href": "https://opencontext.org/subjects/jericho",
+        "id": "jericho",
+        "category": "settlement",
+        "context label": "Asia/Levant/Jericho",
+        "early bce/ce": -9000,
+        "late bce/ce": -1500,
+        "cultures": ["Natufian", "Pre-Pottery Neolithic"],
+        "snippet": "One of the oldest continuously inhabited settlements."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [0, 0] },
+      "properties": {
+        "label": "Unlocatable record",
+        "uri": "https://opencontext.org/subjects/nowhere"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [12.4, 41.9] },
+      "properties": {
+        "uri": "https://opencontext.org/subjects/no-label"
+      }
+    }
+  ]
+}

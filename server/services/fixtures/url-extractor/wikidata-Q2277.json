@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "Q2277": {
+      "id": "Q2277",
+      "labels": {
+        "en": { "language": "en", "value": "Roman Empire" },
+        "fr": { "language": "fr", "value": "Empire romain" }
+      },
+      "descriptions": {
+        "en": {
+          "language": "en",
+          "value": "empire in ancient Rome centred on the Mediterranean"
+        }
+      },
+      "claims": {
+        "P31": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": { "value": { "id": "Q48349" }, "type": "wikibase-entityid" }
+            }
+          }
+        ],
+        "P625": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": { "latitude": 41.9, "longitude": 12.5, "precision": 0.1, "globe": "http://www.wikidata.org/entity/Q2" },
+                "type": "globecoordinate"
+              }
+            }
+          }
+        ],
+        "P571": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": { "time": "-0027-01-01T00:00:00Z", "precision": 9 },
+                "type": "time"
+              }
+            }
+          }
+        ],
+        "P576": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": { "time": "+0476-01-01T00:00:00Z", "precision": 9 },
+                "type": "time"
+              }
+            }
+          }
+        ],
+        "P737": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": { "value": { "id": "Q1747689" }, "type": "wikibase-entityid" }
+            }
+          }
+        ],
+        "P361": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": { "value": { "id": "Q1747689" }, "type": "wikibase-entityid" }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -5,7 +5,14 @@
  * Sources:
  *   1. Local TSV data: settlements, archaeological sites, battles
  *   2. Known regions: well-known historical regions with coordinates/bounding boxes
- *   3. Nominatim (OpenStreetMap): modern place name geocoding
+ *   3. GeoNames: standardized place names + stable geonames_id (preferred external)
+ *   4. Nominatim (OpenStreetMap): modern place name geocoding (fallback)
+ *
+ * For external geocoding the resolver **prefers GeoNames** (standardized naming and
+ * a stable `geonamesId`) and **falls back to Nominatim** when GeoNames is
+ * unavailable / unconfigured / returns nothing. Every externally-resolved result
+ * carries {@link PlaceProvenance}. Network access is behind the injectable
+ * {@link PlaceResolverDeps} so tests drive it with recorded fixtures (no live fetch).
  *
  * Supports fuzzy matching, autocomplete, and multiple geometry types
  * (point, bounding box).
@@ -17,11 +24,27 @@ import { storage } from "../storage";
 
 export type PlaceGeometryType = "point" | "bbox";
 
+/** Where an externally-resolved place came from (GeoNames / Nominatim / OSM). */
+export interface PlaceProvenance {
+  /** Authority the record was resolved from. */
+  source: "geonames" | "nominatim";
+  /** Stable id within that authority (geonameId or Nominatim place_id), as a string. */
+  sourceId: string;
+  /** Canonical URL for the record when derivable. */
+  sourceUrl?: string;
+}
+
 export interface PlaceResult {
   id: string;
   name: string;
   /** Category of the place source */
-  category: "settlement" | "archaeological-site" | "battle" | "region" | "modern";
+  category:
+    | "settlement"
+    | "archaeological-site"
+    | "battle"
+    | "region"
+    | "modern"
+    | "geonames";
   /** Geometry type */
   geometryType: PlaceGeometryType;
   /** Center point coordinates */
@@ -35,11 +58,39 @@ export interface PlaceResult {
   timePeriod?: string;
   /** Relevance score 0-1 */
   relevance: number;
+  /** Provenance for externally-resolved (GeoNames/Nominatim) results. */
+  provenance?: PlaceProvenance;
 }
 
 export interface PlaceSearchResponse {
   results: PlaceResult[];
   query: string;
+}
+
+/**
+ * A standardized, canonical place record returned by the resolve API — carries
+ * `geonamesId` when resolved via GeoNames (null on the Nominatim fallback).
+ */
+export interface CanonicalPlaceRecord {
+  name: string;
+  lat: number;
+  lng: number;
+  /** GeoNames id when resolved via GeoNames; `null` on the Nominatim fallback. */
+  geonamesId: number | null;
+  /** Country name when the authority provides it. */
+  countryName?: string;
+  /** Feature type / class label when available (e.g. `capital of a country`). */
+  featureType?: string;
+  /** Bounding box [south, west, north, east] when the authority provides one. */
+  bbox?: [number, number, number, number];
+  provenance: PlaceProvenance;
+}
+
+export interface CanonicalPlaceResponse {
+  results: CanonicalPlaceRecord[];
+  query: string;
+  /** Which authority produced the results (`null` when none resolved). */
+  source: "geonames" | "nominatim" | null;
 }
 
 // ── Known Regions with bounding boxes ──────────────────────────
@@ -231,27 +282,73 @@ export async function searchPlaces(query: string, limit: number = 15): Promise<P
   return { results: deduped.slice(0, limit), query: trimmed };
 }
 
-/** Search with Nominatim fallback for modern place names */
+/**
+ * Search with an external geocoder fallback for modern place names. Prefers
+ * GeoNames (standardized naming + `geonamesId`) and falls back to Nominatim, then
+ * merges with the local results. `deps` is injectable so tests use recorded
+ * fixtures; production defaults to {@link liveDeps}.
+ */
 export async function searchPlacesWithNominatim(
   query: string,
   limit: number = 15,
+  deps: PlaceResolverDeps = liveDeps,
 ): Promise<PlaceSearchResponse> {
   const local = await searchPlaces(query, limit);
 
-  // If we have good local results, skip Nominatim
+  // If we have good local results, skip the external geocoder
   if (local.results.length >= 3 && local.results[0].relevance >= 0.7) {
     return local;
   }
 
-  // Try Nominatim for modern place names
+  const external = await queryExternalPlaces(
+    query,
+    Math.max(5, limit - local.results.length),
+    deps,
+  );
+  if (external.length === 0) return local;
+
+  const combined = [...local.results, ...external];
+  combined.sort((a, b) => b.relevance - a.relevance);
+  return { results: deduplicateResults(combined).slice(0, limit), query };
+}
+
+/**
+ * Resolve a query to canonical place records (name, lat/lng, geonames_id).
+ * Prefers GeoNames for standardized naming and falls back to Nominatim; every
+ * record carries provenance. `deps` is injectable for fixture-backed tests.
+ */
+export async function resolvePlace(
+  query: string,
+  limit: number = 10,
+  deps: PlaceResolverDeps = liveDeps,
+): Promise<CanonicalPlaceResponse> {
+  const trimmed = query.trim();
+  if (!trimmed) return { results: [], query: "", source: null };
+
+  // 1. Prefer GeoNames — standardized naming + stable geonamesId.
   try {
-    const nominatimResults = await queryNominatim(query, Math.max(5, limit - local.results.length));
-    const combined = [...local.results, ...nominatimResults];
-    combined.sort((a, b) => b.relevance - a.relevance);
-    return { results: deduplicateResults(combined).slice(0, limit), query };
+    const gn = await deps.fetchGeoNames(trimmed, limit);
+    if (gn.length > 0) {
+      return {
+        results: gn.map(geoNamesToCanonical),
+        query: trimmed,
+        source: "geonames",
+      };
+    }
   } catch {
-    // Nominatim may be rate-limited or unavailable; return local only
-    return local;
+    // GeoNames unconfigured / rate-limited / down — fall through to Nominatim.
+  }
+
+  // 2. Fall back to Nominatim (OpenStreetMap).
+  try {
+    const nom = await deps.fetchNominatim(trimmed, limit);
+    return {
+      results: nom.map(nominatimToCanonical),
+      query: trimmed,
+      source: nom.length > 0 ? "nominatim" : null,
+    };
+  } catch {
+    return { results: [], query: trimmed, source: null };
   }
 }
 
@@ -264,68 +361,217 @@ export async function autocompletePlaces(query: string, limit: number = 8): Prom
   return response.results;
 }
 
-// ── Nominatim integration ──────────────────────────────────────
+// ── External geocoders (GeoNames preferred, Nominatim fallback) ─────────────────
 
-let lastNominatimCall = 0;
-const NOMINATIM_RATE_LIMIT_MS = 1100; // Nominatim requires >= 1 req/sec
-
-async function queryNominatim(query: string, limit: number): Promise<PlaceResult[]> {
-  // Rate-limit to comply with Nominatim usage policy
-  const now = Date.now();
-  const waitMs = NOMINATIM_RATE_LIMIT_MS - (now - lastNominatimCall);
-  if (waitMs > 0) {
-    await new Promise((r) => setTimeout(r, waitMs));
-  }
-  lastNominatimCall = Date.now();
-
-  const params = new URLSearchParams({
-    q: query,
-    format: "json",
-    limit: String(limit),
-    addressdetails: "1",
-  });
-
-  const url = `https://nominatim.openstreetmap.org/search?${params}`;
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "LinguaScrape/1.0 (historical-linguistics-research)",
-    },
-  });
-
-  if (!response.ok) return [];
-
-  const data = (await response.json()) as NominatimResult[];
-  return data.map((item, i) => {
-    const bbox: [number, number, number, number] | undefined = item.boundingbox
-      ? [
-          parseFloat(item.boundingbox[0]),
-          parseFloat(item.boundingbox[2]),
-          parseFloat(item.boundingbox[1]),
-          parseFloat(item.boundingbox[3]),
-        ]
-      : undefined;
-
-    return {
-      id: `nominatim-${item.place_id}`,
-      name: item.display_name.split(",")[0].trim(),
-      category: "modern" as const,
-      geometryType: bbox ? ("bbox" as const) : ("point" as const),
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon),
-      bbox,
-      description: item.display_name,
-      relevance: 0.6 - i * 0.05, // Slightly below local results
-    };
-  });
+/** Raw GeoNames `searchJSON` result (subset used here). */
+export interface GeoNamesResult {
+  geonameId: number;
+  name: string;
+  toponymName?: string;
+  lat: string;
+  lng: string;
+  /** Feature-code label, e.g. `capital of a country`. */
+  fcodeName?: string;
+  countryName?: string;
+  adminName1?: string;
 }
 
-interface NominatimResult {
+/** Raw Nominatim `search` result (subset used here). */
+export interface NominatimResult {
   place_id: number;
   display_name: string;
   lat: string;
   lon: string;
   boundingbox?: string[];
 }
+
+/**
+ * Injectable network boundary for external geocoders. Tests pass a fixture-backed
+ * implementation; production uses {@link liveDeps}.
+ */
+export interface PlaceResolverDeps {
+  /** GeoNames standardized-name search (preferred). */
+  fetchGeoNames(query: string, limit: number): Promise<GeoNamesResult[]>;
+  /** Nominatim / OSM search (fallback). */
+  fetchNominatim(query: string, limit: number): Promise<NominatimResult[]>;
+}
+
+const GEONAMES_URL = "https://www.geonames.org/";
+
+/** Nominatim boundingbox [south, north, west, east] → [south, west, north, east]. */
+function nominatimBbox(
+  boundingbox: string[] | undefined,
+): [number, number, number, number] | undefined {
+  if (!boundingbox || boundingbox.length < 4) return undefined;
+  return [
+    parseFloat(boundingbox[0]),
+    parseFloat(boundingbox[2]),
+    parseFloat(boundingbox[1]),
+    parseFloat(boundingbox[3]),
+  ];
+}
+
+// ── Pure mappers (raw authority record → PlaceResult / CanonicalPlaceRecord) ────
+
+/** GeoNames record → search {@link PlaceResult} (with provenance). */
+export function geoNamesToPlaceResult(item: GeoNamesResult, i: number): PlaceResult {
+  return {
+    id: `geonames-${item.geonameId}`,
+    name: item.name,
+    category: "geonames",
+    geometryType: "point",
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lng),
+    description: [item.fcodeName, item.adminName1, item.countryName]
+      .filter(Boolean)
+      .join(" · ") || "GeoNames place",
+    // Preferred over Nominatim (0.6): standardized naming ranks slightly higher.
+    relevance: 0.68 - i * 0.05,
+    provenance: {
+      source: "geonames",
+      sourceId: String(item.geonameId),
+      sourceUrl: `${GEONAMES_URL}${item.geonameId}`,
+    },
+  };
+}
+
+/** Nominatim record → search {@link PlaceResult} (with provenance). */
+export function nominatimToPlaceResult(item: NominatimResult, i: number): PlaceResult {
+  const bbox = nominatimBbox(item.boundingbox);
+  return {
+    id: `nominatim-${item.place_id}`,
+    name: item.display_name.split(",")[0].trim(),
+    category: "modern",
+    geometryType: bbox ? "bbox" : "point",
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lon),
+    bbox,
+    description: item.display_name,
+    relevance: 0.6 - i * 0.05, // Slightly below local + GeoNames results
+    provenance: {
+      source: "nominatim",
+      sourceId: String(item.place_id),
+      sourceUrl: `https://www.openstreetmap.org/?place_id=${item.place_id}`,
+    },
+  };
+}
+
+/** GeoNames record → canonical resolve record (carries `geonamesId`). */
+export function geoNamesToCanonical(item: GeoNamesResult): CanonicalPlaceRecord {
+  return {
+    name: item.name,
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lng),
+    geonamesId: item.geonameId,
+    countryName: item.countryName,
+    featureType: item.fcodeName,
+    provenance: {
+      source: "geonames",
+      sourceId: String(item.geonameId),
+      sourceUrl: `${GEONAMES_URL}${item.geonameId}`,
+    },
+  };
+}
+
+/** Nominatim record → canonical resolve record (`geonamesId` is null). */
+export function nominatimToCanonical(item: NominatimResult): CanonicalPlaceRecord {
+  return {
+    name: item.display_name.split(",")[0].trim(),
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lon),
+    geonamesId: null,
+    bbox: nominatimBbox(item.boundingbox),
+    provenance: {
+      source: "nominatim",
+      sourceId: String(item.place_id),
+      sourceUrl: `https://www.openstreetmap.org/?place_id=${item.place_id}`,
+    },
+  };
+}
+
+/**
+ * Query external geocoders for a modern place name — GeoNames first (preferred),
+ * Nominatim as fallback. Returns ranked {@link PlaceResult}s with provenance.
+ */
+export async function queryExternalPlaces(
+  query: string,
+  limit: number,
+  deps: PlaceResolverDeps = liveDeps,
+): Promise<PlaceResult[]> {
+  // 1. Prefer GeoNames.
+  try {
+    const gn = await deps.fetchGeoNames(query, limit);
+    if (gn.length > 0) return gn.map(geoNamesToPlaceResult);
+  } catch {
+    // Fall through to Nominatim.
+  }
+  // 2. Fall back to Nominatim.
+  try {
+    return (await deps.fetchNominatim(query, limit)).map(nominatimToPlaceResult);
+  } catch {
+    return [];
+  }
+}
+
+// ── Live network implementation ─────────────────────────────────────────────────
+
+const USER_AGENT = "LinguaScrape/1.0 (historical-linguistics-research)";
+
+let lastNominatimCall = 0;
+const NOMINATIM_RATE_LIMIT_MS = 1100; // Nominatim requires >= 1 req/sec
+
+/** Live deps hitting the real GeoNames / Nominatim REST APIs. */
+export const liveDeps: PlaceResolverDeps = {
+  async fetchGeoNames(query: string, limit: number): Promise<GeoNamesResult[]> {
+    // GeoNames requires a (free) username; without one, throw so we fall back.
+    const username = process.env.GEONAMES_USERNAME;
+    if (!username) {
+      throw new Error("GEONAMES_USERNAME not configured");
+    }
+    const params = new URLSearchParams({
+      q: query,
+      maxRows: String(limit),
+      style: "MEDIUM",
+      orderby: "relevance",
+      username,
+    });
+    const response = await fetch(
+      `https://secure.geonames.org/searchJSON?${params}`,
+      { headers: { "User-Agent": USER_AGENT } },
+    );
+    if (!response.ok) throw new Error(`GeoNames returned ${response.status}`);
+    const data = (await response.json()) as {
+      geonames?: GeoNamesResult[];
+      status?: { message: string; value: number };
+    };
+    // GeoNames signals quota/errors in a 200 body under `status`.
+    if (data.status) throw new Error(`GeoNames error: ${data.status.message}`);
+    return data.geonames ?? [];
+  },
+
+  async fetchNominatim(query: string, limit: number): Promise<NominatimResult[]> {
+    // Rate-limit to comply with Nominatim usage policy.
+    const now = Date.now();
+    const waitMs = NOMINATIM_RATE_LIMIT_MS - (now - lastNominatimCall);
+    if (waitMs > 0) {
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+    lastNominatimCall = Date.now();
+
+    const params = new URLSearchParams({
+      q: query,
+      format: "json",
+      limit: String(limit),
+      addressdetails: "1",
+    });
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      { headers: { "User-Agent": USER_AGENT } },
+    );
+    if (!response.ok) return [];
+    return (await response.json()) as NominatimResult[];
+  },
+};
 
 // ── Helpers ────────────────────────────────────────────────────
 

@@ -20,6 +20,74 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
+
+US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on
+top of the contribution queue. Endpoints (all open, unguarded):
+`POST /api/contributions/:id/confirm` (independent confirmation),
+`GET /api/contributions/:id/verification`, `GET /api/stewardship[?domain=]`,
+`POST /api/stewardship/adopt`, `POST /api/stewardship/release`.
+
+- **The threshold logic is pure** in `community-verification.ts` (no fs/clock/express;
+  the ACs require tests for it → `community-verification.test.ts`). `addConfirmation`
+  **dedups by reviewer** (`reviewerKey` = trim+lowercase — repeated confirmations are
+  no-ops; independence is the point). A contribution is **verified** once
+  `distinctReviewers >= requiredConfirmations`, where `requiredConfirmations` drops
+  from `threshold` (default 3) to `stewardThreshold` (default 1) **once any steward of
+  the domain confirms** — so a domain steward can verify single-handedly.
+  `computeConfidence` ramps from the base toward `VERIFIED_CONFIDENCE=99` with
+  progress and **never lowers** the base. Config via `loadVerificationConfig(env)`
+  (`VERIFICATION_THRESHOLD` / `VERIFICATION_STEWARD_THRESHOLD`; steward clamped ≤ full).
+- **`ContributionService.confirm(id, {reviewer,isSteward,domain,config,now})`** is the
+  persistence/orchestration boundary: preserves the pre-confirmation confidence in a new
+  optional `baseConfidence` field (so recompute is **idempotent** — don't recompute off
+  the already-mutated `confidence`), sets `confidence`, and on verify flips
+  `status→approved` + `verified`/`verifiedAt` and records `stewardAttribution`. **Rejects
+  self-confirmation** (reviewer === `contributorName`) and dedup (`added:false`+`reason`).
+- **Stewardship** (`stewardship.ts`): pure model (`adoptDomain`/`releaseDomain`/
+  `isStewardOf`/`stewardsForDomain`, `now` a param, idempotent adopt) + a
+  `StewardshipStore` persisting **one `stewards.json`** under an injectable dir (default
+  `data/stewardship`) — same JSON-on-disk shape as collections. Domains are normalized
+  kebab (`normalizeDomain`); `resolveContributionDomain(c)` maps a contribution → its
+  domain (explicit `entityData.culturalDomain` → civilization `name` → entityType).
+- **Route** takes injectable `{contributions, stewards, config, now}`; it resolves the
+  contribution's domain, checks `stewards.isSteward(reviewer, domain)`, and passes
+  `isSteward` into `confirm`. Confirm status codes: **200** ok, **400** missing reviewer
+  / self-confirm, **404** unknown, **409** duplicate reviewer. Client entry: a "Confirm"
+  button + verification badges in the Review tab of
+  `client/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
+  (adopt-a-culture form + list).
+
+## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
+
+The contribution endpoints (previously inline in `routes.ts`) now live in
+`routes/contributions.ts` (`registerContributionRoutes(app, {contributions?,
+writeGuard?})`). US-011 hardened the **write** side; reads stay open.
+
+- **Write endpoints** (`POST /api/contributions`, `PATCH /api/contributions/:id/review`)
+  are wrapped with `createContributionWriteGuard()` middleware = API-key auth +
+  per-key fixed-window rate limiting. Reads (`GET /api/contributions*`) are
+  unguarded. The guard is **injectable** on the register options so route tests
+  pass one built over a fixed `config`/`limiter`/`now` (see `contributions.test.ts`).
+- **Backward-compatible by default (mirrors `GEONAMES_USERNAME`):** with
+  `CONTRIBUTION_API_KEYS` **unset**, `authenticate()` returns `{ok:true, key:null}`
+  → auth disabled, writes open (the existing client keeps working out-of-the-box).
+  Set the env var (comma-separated `key` or `key:label`) to *require* a valid key
+  via `X-API-Key` or `Authorization: Bearer <key>`. Missing key ⇒ **401**, unknown
+  key ⇒ **403**, over quota ⇒ **429** (with `Retry-After` + `X-RateLimit-*` headers).
+  Key comparison is constant-time (`crypto.timingSafeEqual`, length-guarded).
+- **`api-auth.ts` is pure/injectable**: `parseApiKeys`/`loadApiAuthConfig` (env),
+  `extractApiKey`/`authenticate` (pure), and `RateLimiter` — a fixed-window counter
+  whose `check(identity, now)` takes the clock as a param, so rate-limit windows are
+  deterministically unit-testable. Rate-limit identity = the presenting key (authed)
+  else `req.ip`. Env: `CONTRIBUTION_RATE_LIMIT_{MAX,WINDOW_MS}` (default 60/60000).
+- **OpenAPI spec** is published at `GET /api/openapi.json` (open) and built by the
+  pure `services/openapi-spec.ts` `buildOpenApiSpec()`; a committed snapshot lives
+  at `docs/openapi.json` and is asserted byte-equal by `openapi-spec.test.ts`.
+  **Gotcha:** after editing the spec, regenerate the snapshot
+  (`npx tsx -e "..writeFileSync('docs/openapi.json', JSON.stringify(buildOpenApiSpec(),null,2)+'\n')"`)
+  or that parity test fails.
+
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the
@@ -80,6 +148,346 @@ copy that shape. Differences to know:
 - Store throws `AnnotationAccessError` (→ 403) on a non-owner mutate; `canView`
   gate returns 403 on a private read by a non-owner. Route test uses the injectable
   `new AnnotationStore(tmpDir)` (same as collections).
+
+## Drawn-geometry authoring — `services/drawn-geometry.ts` + `routes/drawn-geometry.ts`
+
+`POST /api/map/drawn-geometry` (US-001) takes a GeoJSON **Polygon or LineString**
+drawn on the map and lands it in the **contribution review queue** (never a
+direct TSV write) with provenance `entityData.source = 'user-drawn'`. Pattern to
+reuse for any "author geometry in-app" feature:
+
+- The service is **pure** (no fs/express): `validateGeometry` (structural GeoJSON
+  — closed rings ≥4 positions, LineString ≥2, `[lng,lat]` within world bounds),
+  `validateDrawnGeometry` (adds entity association + non-inverted time range +
+  target/geometry-kind agreement), `serializeGeometry` (canonical JSON string
+  matching a TSV `geometry`/`waypoints` cell), and `drawnGeometryToContribution`
+  (→ `Partial<Contribution>`). Unit-test these directly; no server needed.
+- `DrawnGeometryTarget` (`boundary`/`language-range` = Polygon; `trade-route`/
+  `migration-route` = LineString) maps 1:1 onto `ContributionEntityType` — those
+  last two were **added** to the enum + `REQUIRED_FIELDS` in
+  `contribution-service.ts` so routes can queue too. Extend both together.
+- Route takes an **injectable** `ContributionService` (default `new
+  ContributionService()`), so the test points it at a `mkdtempSync` dir — same
+  pattern as collections/annotations.
+- For `language-range`, `associatedEntityId` is mirrored into
+  `entityData.languageId` to satisfy that type's required fields.
+- Client entry point is `client/src/components/visualizations/BoundaryDrawingPanel
+  .tsx` (uses the existing `useDrawingTool` hook); it posts the `DrawnGeometryInput`
+  shape (geometry + target + associatedEntityId + timePeriodStart/End).
+
+## Timeline-event authoring — `services/timeline-event.ts` + `routes/timeline-event.ts`
+
+`POST /api/timeline/event` (US-002) takes an **event** (single year) or **period**
+(dated range) authored on the temporal axis and lands it in the **contribution
+review queue** (never a direct TSV write) with provenance
+`entityData.source = 'user-authored'`. Same shape as drawn-geometry (above) —
+copy it for any "author temporal data in-app" feature:
+
+- Service is **pure** (no fs/express): `validateTimelineEvent(input, bounds?)`
+  (entity association + lane/magnitude vocab + in-bounds, non-inverted range;
+  `bounds` intersects the global `[TIMELINE_MIN_YEAR=-50000, TIMELINE_MAX_YEAR=2100]`),
+  `serializeTimelineEvent` (→ the `culture-events.tsv` row shape, `year` = start),
+  `timelineEventToContribution` (→ `Partial<Contribution>`). Unit-test directly.
+- **`event` vs `period`**: an `event` must have no divergent end (`timePeriodEnd`
+  null or == start); a `period` **requires** `timePeriodEnd >= start`. Both the
+  serialized row and the culture-events loader use a single `year` column, so the
+  full range lives only on the queued `entityData` for a reviewer.
+- Added `timeline-event` to `ContributionEntityType` + `REQUIRED_FIELDS`
+  (`["title","cultureProfileId","lane"]`). **Gotcha:** keep required-field keys
+  **non-numeric** — the contribution service checks `entityData[field]` truthiness,
+  so a numeric field of `0` (e.g. year 0) would spuriously fail. Validate numbers
+  in the service instead.
+- Route takes an **injectable** `ContributionService`; test points it at a
+  `mkdtempSync` dir (same as collections/drawn-geometry).
+- Client entry point: `client/src/components/visualizations/TimelineEventAuthoringPanel
+  .tsx` (a clickable SVG axis reusing `culture-evolution-timeline-utils`
+  `xToYear`/`yearToX`), mounted via an "Add entry" toggle in
+  `culture-profile/culture-evolution-timeline-section.tsx`.
+
+## Relationship-builder authoring — `services/relationship-edge.ts` + `routes/relationship-edge.ts`
+
+`POST /api/relationships/edge` (US-003) takes a typed edge authored by dragging
+one entity onto another (source, target, relationship_type, time range,
+confidence) and lands it in the **contribution review queue** (never a direct TSV
+write) with provenance `entityData.source = 'user-authored'`; a reviewer promotes
+it into `cultural-lineages.tsv`. Same pure-service + injectable-route shape as
+timeline-event/drawn-geometry — differences to know:
+
+- **Vocabulary is the canonical edge vocabulary**, not a local list:
+  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@shared/canonical-schema`
+  `CANONICAL_SCHEMA.edgeTypes` (14 kebab names + Neo4j tokens). Reuse it for any
+  "pick a relationship type" UI so authored edges stay export-compatible.
+- **Dedup is enforced server-side against corpus + queue.** The route builds the
+  existing-edge set from `extractAllCanonicalEdges(lexiconsDir)` (`services/canonical-edges`,
+  ~5.6k edges live) **plus** every queued `relationship` contribution, then the
+  pure `validateRelationshipEdge(input, existing)` rejects a duplicate
+  `(sourceId, targetId, relationshipType)` triple. **Direction matters** —
+  `A→B` and `B→A` are distinct; dedup key is `edgeKey()` (trim-normalized ids).
+- **Self edges** (`sourceId === targetId`) are rejected in the validator.
+- **Status codes:** 201 (queued, returns a `relationship` confirmation summary
+  with the Neo4j token), **409** on a duplicate (`duplicate: true`), 400 on other
+  validation errors (self edge, non-canonical type, inverted range).
+- Route takes injectable `{ contributions, lexiconsDir }` — tests point both at
+  temp dirs (seed a `cultural-lineages.tsv` in the temp lexicons dir to exercise
+  corpus dedup). Added `relationship` to `ContributionEntityType` +
+  `REQUIRED_FIELDS` (`["sourceId","targetId","relationshipType"]`).
+- Client entry: `client/src/components/visualizations/RelationshipBuilderPanel.tsx`
+  (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
+  a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
+
+## Authoring-time suggested relationships — `services/relationship-suggestions.ts` + `routes/relationship-suggestions.ts`
+
+`/api/relationships/suggestions` (US-010) surfaces the *most likely* relationships
+when a contributor creates/edits an entity — ranked by the same proximity math the
+cross-domain services use (`cross-domain-analysis.ts`): **linguistic** (Jaccard of
+associated language ids), **temporal** (overlap share of the shorter span), **spatial**
+(haversine distance and/or region match). It **only ranks** — never creates an edge; the
+contributor confirms one via `POST /api/relationships/edge` (US-003).
+
+- **Service is pure** (no fs/express/storage). `computeProximity(source, candidate, opts?)`
+  → a `Proximity` with per-dimension scores **plus `applicable` flags** (a dimension is
+  applicable only when *both* entities carry its data). `combinedConfidence(proximity)`
+  weights only the **applicable** dims (so a coord-less language isn't diluted to a
+  misleading low score) and caps at **95** — a suggestion always reads "confirm me", never
+  "trust me". `suggestRelationshipType` picks a canonical edge name from the dominant
+  signal + entity types (language↔language→`cognate-with`, temporal→`contemporary-with`,
+  spatial-to-place→`located-in`, else `influenced-by`). `suggestRelationships(source,
+  candidates, existingEdges, opts?)` ranks, excludes self + pairs already connected **in
+  either direction** (undirected `pairKey`), and packages a ready-to-submit
+  `RelationshipEdgeInput` on each. Pass a fixed `opts.now` in tests for deterministic
+  open-ended spans.
+- **Route** takes injectable `{ loadEntities, loadExistingEdges }` (defaults: all
+  cross-domain entities + languages from storage; corpus canonical edges via
+  `extractAllCanonicalEdges`) so route tests run with in-memory fakes — no storage/fs.
+  `GET ?entityId=&entityType=&limit=&minConfidence=` (400 no id, 404 not found);
+  `POST { id, name, entityType, ...draft }` for an entity **not yet saved** (authoring
+  time). The default existing-edge loader is wrapped in try/catch — a missing lexicons dir
+  degrades to "no exclusions", never a 500.
+- Client entry: a "Suggested for <entity>" section in
+  `client/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
+  source is chosen; each row shows the target, canonical type, confidence, and rationale
+  chips, with a **Use** button that only *pre-fills* the composer (the contributor still
+  clicks Create). The client query treats a 404 as "no suggestions".
+
+## URL-paste extractor — `services/url-extractor.ts` + `routes/url-extractor.ts`
+
+`POST /api/extract/url` (US-004) turns a pasted **Wikipedia/Wikidata** URL into a
+structured entity **draft** (name, description, coordinates, dates,
+relationships, each with a 0..1 confidence) and lands it in the **contribution
+review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-derived'`
+— never a live write. Reuse notes:
+
+- **Single-entity resolution is NOT SPARQL.** A pasted URL is one entity, so
+  Wikidata is resolved via the REST endpoint `Special:EntityData/<QID>.json`
+  (`liveDeps.fetchWikidataEntity`), not the Query Service. The statement →
+  field vocabulary (P571 inception→start year, P625→lat/lng, P144/P737/P279→
+  relationships, …) is kept **aligned with culture-scrape's hydration profile**
+  (`packages/culture-scrape/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
+  acquisition stays culture-scrape's job (US-005) — don't add a TS SPARQL client.
+- **Network is behind an injectable `UrlExtractorDeps`** (`fetchWikidataEntity` +
+  `fetchWikipediaPage`); tests pass fixture-backed deps reading
+  `services/fixtures/url-extractor/*.json` (recorded WD entity + WP summary
+  payloads) — no live fetch. Default `liveDeps` hit the real REST APIs.
+- **Wikipedia flow**: resolve the article → its `wikibase_item` QID via the REST
+  summary endpoint, then extract from that Wikidata entity (WP summary `extract`
+  overrides the WD description). No item ⇒ a summary-only draft.
+- Pure helpers are unit-tested directly: `parseSourceUrl`, `parseWikidataYear`
+  (BCE = negative), `draftFromWikidataEntity`, `draftToContribution` (defaults
+  `entityType='civilization'` — name-only-safe; route whitelists a few overrides),
+  `overallConfidence` (mean field confidence → 1..99, always < 100 so drafts read
+  as needs-review). Route: 201 `{ draft, contribution }`, 400 on a bad URL /
+  unsupported entityType, **502** on a source/network failure.
+
+## LLM text extractor — `services/text-extractor.ts` + `routes/text-extractor.ts`
+
+`POST /api/extract/text` (US-008) turns a pasted paragraph into structured
+**drafts** — entities (name/description/coordinates/dates, each a 0..1
+`FieldValue`) + relationships between them — and queues **one contribution per
+entity** in the review queue flagged `entityData.aiGenerated/autoDerived` +
+`source='ai-extracted'`. Never a live write; a reviewer (US-009) promotes. Reuse
+notes (mirrors url-extractor US-004, but multi-entity + LLM):
+
+- **Uses the existing Gemini client** — same `@google/generative-ai`
+  `responseSchema` pattern as `map-image-analyzer.ts` (`GEMINI_MODEL`, default
+  `gemini-3-pro-preview`). The LLM call is behind an injectable
+  `TextExtractorDeps.extract(text) → RawTextExtraction`; tests pass fixture-backed
+  deps reading `services/fixtures/text-extractor/*.json` — **no live model call,
+  no API key**. Default `liveDeps` builds the model + parses the JSON response.
+- **Per-field confidence**: the raw schema carries a per-field confidence
+  (`descriptionConfidence`, `coordinatesConfidence`, `startYearConfidence`, …);
+  `normalizeExtraction` (pure) wraps each present field as `FieldValue<T>`,
+  **falling a missing field confidence back to the entity's name confidence**, and
+  drops blank-name entities / coordinate-incomplete / dedups+self-drops relations.
+- **Entity-type resolution is queue-safe.** `resolveContributionEntityType(rawType,
+  hasCoords)` maps the LLM's free-text kind to a `ContributionEntityType` whose
+  required fields we can guarantee: name-only types (`civilization` default,
+  `language`, `historical-figure`, `trade-good`) plus `archaeological-site`
+  **only when coordinates are present** (it requires `coordinates`). **Religion
+  falls back to `civilization`** — `religion` needs a `religionType` free text
+  can't guarantee.
+- **Relationships attach to an entity's contribution** (`extractionToContributions`,
+  pure): to the *source* entity if it's among the extracted entities, else the
+  *target*, else dropped from contributions (still present in the returned
+  `result`). `overallConfidence` = mean field confidence → 1..99 (always < 100).
+- Route: injectable `{ contributions, deps }`; **201** `{ result, contributions,
+  warnings }`, **400** on empty text, **502** on a model failure. Backend-only per
+  the ACs (no UI required — the review UI is US-009).
+
+## AI-extraction review queue — `services/ai-review.ts` + `routes/ai-review.ts`
+
+`/api/ai-review` (US-009) is the **promotion** leg for AI-generated drafts (the URL
+extractor US-004 + text extractor US-008): a human accepts/edits/rejects each field,
+and an approved draft is written into `lexicons/*.tsv` with provenance recording BOTH
+the AI source and the reviewer. This is where "US-009 promotes" (referenced across the
+extractor notes) actually happens.
+
+- **AI drafts are flagged first-class now.** `ContributionService.submit` **hoists**
+  `entityData.{aiGenerated,source,perFieldConfidence}` onto the `Contribution` as
+  `aiGenerated`/`aiSource`/`perFieldConfidence` (extractors still write them into
+  entityData, so this is backward-compatible). `isAiDraft(c)` = `entityData.aiGenerated
+  === true`. New optional `Contribution` fields `reviewer`/`fieldReviews`/`promotion`
+  record the review outcome; `recordAiReview(id, {status, reviewer, fieldReviews?,
+  promotion?, note?})` persists it (kept lexicon-agnostic — it does NOT do the TSV write).
+- **The service is pure over an injectable `lexiconsDir` + `now`** (unit-tested with
+  `mkdtempSync` temp dirs — no live lexicon write, no wall-clock). `projectDraft(c)` →
+  a field-level review view (metadata keys stripped; each content field carries its
+  0..1 `perFieldConfidence` + a `lowConfidence` flag vs `LOW_CONFIDENCE_THRESHOLD=0.5`).
+  `applyFieldReviews(c, decisions)` → accepted content (accept keeps, edit replaces,
+  reject drops) + a `fieldReviews` record. `validateAcceptedDraft(type, data)` guards
+  required fields (e.g. a rejected `name`). `promoteContribution({...})` appends the row.
+- **Promotion targets are a small `entityType → {file, header, map}` table** (only the
+  name-only + coord AI types: `civilization`→civilizations, `language`→languages,
+  `archaeological-site`→archaeological-sites, `trade-good`→trade-goods; `historical-figure`
+  has **no** TSV so it's non-promotable — `isPromotable(type)` is false and approve → 400).
+  The generated `id` is a `slugify(name)` de-duped against the file's existing ids
+  (`sparta`, `sparta-2`, …). **Provenance is written two ways:** inlined into the target's
+  `sources` column when it has one (string-array shape preserved:
+  `["AI-extracted via <source>; reviewed by <reviewer>"]`) **and** a structured row in a
+  companion `contribution-provenance.tsv` ledger (uniform regardless of the target's
+  columns — contribution_id, entity_type, target_file, target_id, ai_source, reviewer,
+  reviewed_at, confidence). Coordinates serialise as the corpus's `{"lat":..,"lng":..}`
+  JSON cell; `language` splits them to `latitude`/`longitude`.
+- **Route** (injectable `{contributions, lexiconsDir}`): `GET /api/ai-review` lists AI
+  drafts as review views (non-AI contributions filtered out); `GET /api/ai-review/:id`;
+  `PATCH /api/ai-review/:id` body `{decision:'approved'|'rejected', reviewer, fields?, note?}`
+  where `fields` is `Record<field, {decision:'accept'|'edit'|'reject', value?}>`. **200**
+  with the updated view (`promotion` populated on approve); **400** on bad decision /
+  missing reviewer / rejected-required-field / non-promotable type; **404** for an unknown
+  or non-AI draft. Client entry: the `/ai-review` page (`client/src/pages/ai-review.tsx`),
+  linked in `AppSidebar`.
+
+## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
+
+`POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata
+SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods);
+`GET /api/scraping/culturescrape/categories` lists them. Reuse notes for any
+"trigger a background scraper from the dashboard" feature:
+
+- **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
+  (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
+  matching `packages/culture-scrape/categories/*.yml`) to a temp file and spawns
+  `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
+  `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
+  `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
+  `<id>.jsonl` records + `<id>.report.json`. Single-**entity** lookups still use the
+  REST `Special:EntityData` endpoint (`url-extractor.ts`); only bulk **sets** shell out.
+- **The runner is an injectable boundary** (`CultureScrapeJobRunner.runFetch`) so
+  the whole pipeline is unit-tested with a fake returning recorded `RawRecord`s —
+  no subprocess, no network. `runAcquisitionJob` (pure over runner + an injectable
+  `ContributionService`) fetches then maps each record → `Partial<Contribution>`
+  and enqueues it; it returns `{acquired, queued, skipped, contributionIds, report}`.
+- **Acquired records land in the contribution review queue**, never a live TSV
+  write — flagged `entityData.source='culturescrape-wikidata'` + `autoDerived:true`
+  (`aiGenerated:false` — it's a structured source, not an LLM), confidence clamped
+  to 1..99 so it reads as needs-review. `recordToContribution` returns `null` to
+  **skip** a row with no label (Wikidata's label service echoes the QID for
+  unlabeled items — filter `name === qid`) or a missing required coordinate.
+- **`RawRecord` shape** (culture-scrape `.jsonl`): `{fields:{item,itemLabel,image,
+  coord,qid}, provenance:{source,source_url,source_query,retrieved_at,confidence,
+  license}}`. `coord` is WKT `Point(lng lat)` — `parseWktPoint` → `{lat,lng}`
+  (note the lng/lat order swap).
+- **Coordinate-required domains** (sites → `archaeological-site`, which needs a
+  truthy `coordinates`) bind `wdt:P625` as a **required** triple in the SPARQL so
+  every returned row has one; other domains make it OPTIONAL. Added
+  `historical-figure` + `trade-good` (both `["name"]`) to `ContributionEntityType`
+  + `REQUIRED_FIELDS`; `civilization` (name-only) is reused for civilizations.
+- **Progress streams through the existing `jobStore`** (dashboard polls
+  `GET /api/scraping-jobs` every 2s) — the route creates a job
+  (`languageId='culturescrape:<domain>'`, `dataSource='other'`), runs
+  `runAcquisitionJob` fire-and-forget, and maps `onProgress` →
+  `updateJob({statusMessage, completedWords=queued, failedWords=skipped, totalWords})`.
+  **Route test hook:** `onJobSettled(jobId, result, error)` lets a test await the
+  background job deterministically instead of polling. POST returns **202**; **400**
+  on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
+  Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
+
+## Open Context / tDAR archaeological acquisition — adapters in `services/archaeological-site-scraper.ts` + `routes/archaeological-acquisition.ts`
+
+`POST /api/scraping/archaeology` (US-007) acquires archaeological sites from two
+external authorities (**Open Context**, **tDAR**) that complement the existing
+Pleiades/UNESCO paths in the same file; `GET /api/scraping/archaeology/sources`
+lists them. Same background-job + contribution-queue shape as culture-scrape
+(US-005) — differences to know:
+
+- **Adapters live in `archaeological-site-scraper.ts`** (per the story's file
+  contract) but follow the current injectable-deps + fixtures pattern, not the
+  older `ArchaeologicalSiteScraper` class's direct `fetch`. Each source is a pure
+  mapper — `openContextToScrapedSite(feature)` / `tdarToScrapedSite(resource)` →
+  `ScrapedSite | null` — plus an injectable `ArchaeologyDeps`
+  (`fetchOpenContext`/`fetchTdar`); `liveArchaeologyDeps` hits the real REST APIs.
+  Tests pass fixture-backed deps reading `services/fixtures/archaeological/*.json`.
+- **Every externally-scraped site carries `SiteProvenance` `{source, sourceId,
+  sourceUrl}`** (added to `ScrapedSite`, optional so the curated UNESCO dataset is
+  unaffected). Open Context coords are GeoJSON `[lng,lat]`; tDAR uses explicit
+  `latitude`/`longitude` else the bounding-box centroid. Cultures come from an
+  explicit list (`cultures`/`culturalTerms`) else the context-path leaf, slugified.
+- **Sites land in the contribution review queue** as `archaeological-site` adds
+  (which requires a truthy `coordinates`) — never a live TSV write. `siteToContribution`
+  returns `null` when name/coords are missing, flags `entityData.source=<adapter>`
+  + `autoDerived:true`/`aiGenerated:false`, confidence clamped 1..99. `runArchaeologicalAcquisition`
+  (pure over an injectable `ContributionService` + deps) fetches + enqueues and
+  returns `{acquired, queued, skipped, contributionIds}`.
+- **Progress streams through the existing `jobStore`** (`languageId='archaeology:<source>'`,
+  `dataSource='other'`); the route creates a job, runs the acquisition
+  fire-and-forget, maps `onProgress`. **Route test hook:** `onJobSettled(jobId,
+  result, error)` awaits the background job deterministically. POST returns **202**;
+  **400** on unknown source / non-positive limit. Client entry: the "Archaeological
+  Sites (Open Context / tDAR)" card in `client/src/pages/scraper-dashboard.tsx`.
+
+## Place resolution — `services/place-resolver.ts`
+
+Maps historical + modern place names to coordinates from local TSV (settlements /
+sites / battles), known regions, and **external geocoders**. External geocoding
+(US-006) **prefers GeoNames** (standardized naming + a stable `geonamesId`) and
+**falls back to Nominatim/OSM**; every externally-resolved result carries
+`provenance: { source, sourceId, sourceUrl }`.
+
+- **Network is behind an injectable `PlaceResolverDeps`** (`fetchGeoNames` +
+  `fetchNominatim`); tests pass fixture-backed deps reading
+  `services/fixtures/place-resolver/*.json` — no live fetch. Default `liveDeps`
+  hit the real REST APIs. `searchPlacesWithNominatim(q, limit, deps?)`,
+  `queryExternalPlaces(q, limit, deps?)`, and `resolvePlace(q, limit, deps?)` all
+  take the injectable deps as a **trailing optional** arg (default `liveDeps`), so
+  existing 2-arg callers are unaffected.
+- **GeoNames needs a free username** (`GEONAMES_USERNAME` env). When unset,
+  `liveDeps.fetchGeoNames` **throws**, which makes the resolver fall back to
+  Nominatim — the app works out-of-the-box with no GeoNames account. GeoNames also
+  signals quota/errors in a **200 body** under `status` (not a non-2xx code), so
+  `liveDeps` throws on `data.status` too. Fallback semantics: GeoNames throws OR
+  returns `[]` ⇒ Nominatim; both fail ⇒ `[]` / `source: null`.
+- **Pure mappers are unit-tested directly**: `geoNamesToPlaceResult` /
+  `nominatimToPlaceResult` (→ search `PlaceResult`, GeoNames relevance 0.68 > the
+  0.6 Nominatim base so it outranks), and `geoNamesToCanonical` /
+  `nominatimToCanonical` (→ `CanonicalPlaceRecord` with `geonamesId` — the GeoNames
+  id or `null` on the Nominatim fallback). GeoNames feature category is `"geonames"`.
+- **Route:** `GET /api/map/places/resolve?q=&limit=` → `CanonicalPlaceResponse`
+  (`{ results, query, source }`) — the standardized-record endpoint (name, lat/lng,
+  `geonamesId`, provenance). The fuzzy `/api/map/places/search` +
+  `/autocomplete` endpoints are unchanged (search now merges GeoNames-preferred
+  external hits behind the same fallback).
+- **Nominatim bbox order gotcha:** Nominatim returns `boundingbox` as
+  `[south, north, west, east]`; `nominatimBbox` re-orders it to the app's
+  `[south, west, north, east]`.
 
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 

@@ -1,0 +1,25 @@
+{
+  "totalResultsCount": 2,
+  "geonames": [
+    {
+      "geonameId": 264371,
+      "name": "Athens",
+      "toponymName": "Athens",
+      "lat": "37.98376",
+      "lng": "23.72784",
+      "fcodeName": "capital of a political entity",
+      "countryName": "Greece",
+      "adminName1": "Attica"
+    },
+    {
+      "geonameId": 4179574,
+      "name": "Athens",
+      "toponymName": "Athens",
+      "lat": "33.96095",
+      "lng": "-83.37794",
+      "fcodeName": "seat of a second-order administrative division",
+      "countryName": "United States",
+      "adminName1": "Georgia"
+    }
+  ]
+}

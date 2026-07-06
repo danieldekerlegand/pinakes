@@ -39,6 +39,7 @@ import {
   Globe,
   BarChart3,
   RefreshCw,
+  Boxes,
 } from "lucide-react";
 
 type WordCoverage = {
@@ -48,6 +49,22 @@ type WordCoverage = {
   wordCount: number;
   totalBaseWords: number;
   coveragePercent: number;
+};
+
+type CultureScrapeCategory = {
+  domain: string;
+  id: string;
+  label: string;
+  description: string;
+  entityType: string;
+  wikidataClass: string;
+};
+
+type ArchaeologySource = {
+  id: string;
+  label: string;
+  description: string;
+  homepage: string;
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -95,6 +112,11 @@ export default function ScraperDashboard() {
   const [languageSearch, setLanguageSearch] = useState("");
   const [selectedLanguageId, setSelectedLanguageId] = useState("");
   const [coverageFilter, setCoverageFilter] = useState<"all" | "scraped" | "unscraped">("all");
+  const [selectedCsDomain, setSelectedCsDomain] = useState("");
+  const [csLimit, setCsLimit] = useState("500");
+  const [selectedArchSource, setSelectedArchSource] = useState("");
+  const [archQuery, setArchQuery] = useState("");
+  const [archLimit, setArchLimit] = useState("50");
 
   // Queries
   const { data: jobs = [], isLoading: jobsLoading } = useQuery<ScrapingJob[]>({
@@ -122,6 +144,18 @@ export default function ScraperDashboard() {
     queryKey: ["/api/languages"],
     staleTime: STALE_TIMES.static,
   });
+
+  const { data: csCategoriesData } = useQuery<{ categories: CultureScrapeCategory[] }>({
+    queryKey: ["/api/scraping/culturescrape/categories"],
+    staleTime: STALE_TIMES.static,
+  });
+  const cultureScrapeCategories = csCategoriesData?.categories ?? [];
+
+  const { data: archSourcesData } = useQuery<{ sources: ArchaeologySource[] }>({
+    queryKey: ["/api/scraping/archaeology/sources"],
+    staleTime: STALE_TIMES.static,
+  });
+  const archaeologySources = archSourcesData?.sources ?? [];
 
   // Mutations
   const wordScrapeMutation = useMutation({
@@ -154,6 +188,40 @@ export default function ScraperDashboard() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to start family scraping.", variant: "destructive" });
+    },
+  });
+
+  const cultureScrapeMutation = useMutation({
+    mutationFn: async ({ domain, limit }: { domain: string; limit?: number }) => {
+      const res = await apiRequest("POST", "/api/scraping/culturescrape", { domain, limit });
+      return res.json();
+    },
+    onSuccess: (_data, { domain }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scraping-jobs"] });
+      toast({
+        title: "Acquisition Started",
+        description: `culture-scrape Wikidata acquisition queued for ${domain}.`,
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to start culture-scrape acquisition.", variant: "destructive" });
+    },
+  });
+
+  const archaeologyScrapeMutation = useMutation({
+    mutationFn: async ({ source, query, limit }: { source: string; query?: string; limit?: number }) => {
+      const res = await apiRequest("POST", "/api/scraping/archaeology", { source, query, limit });
+      return res.json();
+    },
+    onSuccess: (_data, { source }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scraping-jobs"] });
+      toast({
+        title: "Acquisition Started",
+        description: `Archaeological site acquisition queued for ${source}.`,
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to start archaeological acquisition.", variant: "destructive" });
     },
   });
 
@@ -193,6 +261,21 @@ export default function ScraperDashboard() {
     const lang = availableLanguages.find((l) => l.id === selectedLanguageId);
     if (!lang) return;
     wordScrapeMutation.mutate({ languageId: lang.id, languageName: lang.name });
+  };
+
+  const handleStartCultureScrape = () => {
+    if (!selectedCsDomain) return;
+    const parsed = Number(csLimit);
+    const limit = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : undefined;
+    cultureScrapeMutation.mutate({ domain: selectedCsDomain, limit });
+  };
+
+  const handleStartArchaeology = () => {
+    if (!selectedArchSource) return;
+    const parsed = Number(archLimit);
+    const limit = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : undefined;
+    const query = archQuery.trim() || undefined;
+    archaeologyScrapeMutation.mutate({ source: selectedArchSource, query, limit });
   };
 
   return (
@@ -448,6 +531,147 @@ export default function ScraperDashboard() {
                       <>
                         <Play className="h-4 w-4 mr-2" />
                         Start Family Scraping
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* culture-scrape Wikidata Acquisition (US-005) */}
+              <Card data-testid="culturescrape-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Boxes className="h-5 w-5" />
+                    Wikidata Bulk Acquisition
+                  </CardTitle>
+                  <CardDescription>
+                    Trigger culture-scrape's Wikidata SPARQL acquisition of civilizations,
+                    sites, figures, and trade goods. Records enter the contribution review
+                    queue with provenance — never the live dataset directly.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Domain</label>
+                    <Select value={selectedCsDomain} onValueChange={setSelectedCsDomain}>
+                      <SelectTrigger data-testid="culturescrape-domain-select">
+                        <SelectValue placeholder="Choose a domain..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cultureScrapeCategories.map((cat) => (
+                          <SelectItem key={cat.domain} value={cat.domain}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedCsDomain && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {cultureScrapeCategories.find((c) => c.domain === selectedCsDomain)?.description}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Max records (limit)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={csLimit}
+                      onChange={(e) => setCsLimit(e.target.value)}
+                      placeholder="e.g. 500"
+                      data-testid="culturescrape-limit"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleStartCultureScrape}
+                    disabled={!selectedCsDomain || cultureScrapeMutation.isPending}
+                    className="w-full"
+                    data-testid="start-culturescrape"
+                  >
+                    {cultureScrapeMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Start Wikidata Acquisition
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Open Context / tDAR archaeological acquisition (US-007) */}
+              <Card data-testid="archaeology-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Boxes className="h-5 w-5" />
+                    Archaeological Sites (Open Context / tDAR)
+                  </CardTitle>
+                  <CardDescription>
+                    Acquire archaeological sites — coordinates, time ranges, and associated
+                    cultures — from Open Context or tDAR. Records enter the contribution
+                    review queue with provenance — never the live dataset directly.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Source</label>
+                    <Select value={selectedArchSource} onValueChange={setSelectedArchSource}>
+                      <SelectTrigger data-testid="archaeology-source-select">
+                        <SelectValue placeholder="Choose a source..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {archaeologySources.map((src) => (
+                          <SelectItem key={src.id} value={src.id}>
+                            {src.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedArchSource && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {archaeologySources.find((s) => s.id === selectedArchSource)?.description}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Search query (optional)</label>
+                    <Input
+                      value={archQuery}
+                      onChange={(e) => setArchQuery(e.target.value)}
+                      placeholder="e.g. Neolithic Anatolia"
+                      data-testid="archaeology-query"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Max records (limit)</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={archLimit}
+                      onChange={(e) => setArchLimit(e.target.value)}
+                      placeholder="e.g. 50"
+                      data-testid="archaeology-limit"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleStartArchaeology}
+                    disabled={!selectedArchSource || archaeologyScrapeMutation.isPending}
+                    className="w-full"
+                    data-testid="start-archaeology"
+                  >
+                    {archaeologyScrapeMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Start Archaeological Acquisition
                       </>
                     )}
                   </Button>
