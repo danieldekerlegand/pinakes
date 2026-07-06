@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
-type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine" | "mixed";
+type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine" | "civilizations" | "mixed";
 
 interface QuizQuestion {
   id: string;
@@ -602,6 +602,7 @@ export default function QuizPage() {
                   <SelectItem value="writing_systems">Writing Systems</SelectItem>
                   <SelectItem value="geography">Geography</SelectItem>
                   <SelectItem value="cuisine">Cuisine & Dishes</SelectItem>
+                  <SelectItem value="civilizations">Civilizations (Chronology)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -699,6 +700,7 @@ export default function QuizPage() {
     writing_systems: "Writing Systems",
     geography: "Geography",
     cuisine: "Cuisine & Dishes",
+    civilizations: "Civilizations (Chronology)",
   };
 
   return (
