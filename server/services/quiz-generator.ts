@@ -3,7 +3,7 @@ import type { Language, LanguageFamily } from "@shared/types";
 
 export type QuestionType = "multiple_choice" | "drag_sort" | "map_click";
 export type Difficulty = "easy" | "medium" | "hard";
-export type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography";
+export type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine";
 
 export interface QuizQuestion {
   id: string;
@@ -124,6 +124,42 @@ async function generateMapClickQuestion(difficulty: Difficulty): Promise<QuizQue
   };
 }
 
+function hasValidCoords(coords: { lat: number; lng: number } | undefined | null): coords is { lat: number; lng: number } {
+  if (!coords) return false;
+  const { lat, lng } = coords;
+  if (typeof lat !== "number" || typeof lng !== "number") return false;
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return false;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false;
+  // Reject the {lat:0,lng:0} sentinel used for missing/unparseable coordinates.
+  return !(lat === 0 && lng === 0);
+}
+
+async function generateDishOriginQuestion(difficulty: Difficulty): Promise<QuizQuestion | null> {
+  const cuisines = await storage.getCuisines();
+  const dishes = await storage.getCuisineItems();
+
+  // Only cuisines with real origin coordinates can anchor a map-click answer.
+  const cuisineMap = new Map(cuisines.filter(c => hasValidCoords(c.coordinates)).map(c => [c.id, c]));
+
+  const candidates = dishes.filter(d => d.name && cuisineMap.has(d.cuisineId));
+  if (candidates.length === 0) return null;
+
+  const dish = pickRandom(candidates, 1)[0];
+  const cuisine = cuisineMap.get(dish.cuisineId)!;
+  const coords = cuisine.coordinates;
+
+  return {
+    id: makeId(),
+    type: "map_click",
+    category: "cuisine",
+    difficulty,
+    question: `Click on the map where the dish "${dish.name}" (${cuisine.name} cuisine) originated.`,
+    answer: { lat: coords.lat, lng: coords.lng },
+    hint: cuisine.region ? `It comes from the ${cuisine.region} culinary tradition.` : undefined,
+    explanation: `${dish.name} originated in ${cuisine.region || cuisine.name} (${cuisine.name} cuisine).`,
+  };
+}
+
 async function generateWordOrderQuestion(difficulty: Difficulty): Promise<QuizQuestion | null> {
   const grammarFeatures = await storage.getGrammarFeatures();
   if (grammarFeatures.length < 4) return null;
@@ -232,6 +268,7 @@ const generators: Record<QuizCategory, Array<(d: Difficulty) => Promise<QuizQues
   grammar: [generateWordOrderQuestion],
   writing_systems: [generateWritingSystemQuestion],
   geography: [generateMapClickQuestion, generateRegionQuestion],
+  cuisine: [generateDishOriginQuestion],
 };
 
 export async function generateQuiz(

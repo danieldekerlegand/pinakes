@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 
 type Difficulty = "easy" | "medium" | "hard";
-type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "mixed";
+type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine" | "mixed";
 
 interface QuizQuestion {
   id: string;
@@ -601,6 +601,7 @@ export default function QuizPage() {
                   <SelectItem value="grammar">Grammar</SelectItem>
                   <SelectItem value="writing_systems">Writing Systems</SelectItem>
                   <SelectItem value="geography">Geography</SelectItem>
+                  <SelectItem value="cuisine">Cuisine & Dishes</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -697,6 +698,7 @@ export default function QuizPage() {
     grammar: "Grammar",
     writing_systems: "Writing Systems",
     geography: "Geography",
+    cuisine: "Cuisine & Dishes",
   };
 
   return (
