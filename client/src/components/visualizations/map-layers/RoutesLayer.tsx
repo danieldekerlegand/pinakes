@@ -26,7 +26,18 @@ interface RoutesLayerProps {
   selectedFeatureId?: string | null;
   isAnimating?: boolean;
   terrainAware?: boolean;
+  /**
+   * Route ids to emphasise (US-002 hypothesis-driven selection). When non-empty, these
+   * routes are boosted and any route NOT in the set is dimmed. Empty/undefined = no
+   * emphasis (all routes render normally).
+   */
+  highlightedRouteIds?: string[];
 }
+
+// Opacity multiplier applied to routes dimmed by an active hypothesis selection.
+const DIMMED_OPACITY_FACTOR = 0.15;
+// Extra stroke weight for routes an active hypothesis highlights.
+const HIGHLIGHT_WEIGHT_BONUS = 2;
 
 interface ProcessedRoute {
   feature: HistoricalRouteFeature;
@@ -45,8 +56,20 @@ export function RoutesLayer({
   selectedFeatureId,
   isAnimating = false,
   terrainAware = true,
+  highlightedRouteIds,
 }: RoutesLayerProps) {
   const styleRef = useRef<HTMLStyleElement | null>(null);
+
+  // Hypothesis-driven emphasis (US-002): when a selection is active, highlighted routes
+  // are boosted and all others dimmed. No selection ⇒ every route renders 'normal'.
+  const emphasisFor = useMemo(() => {
+    const highlighted = new Set(highlightedRouteIds ?? []);
+    const active = highlighted.size > 0;
+    return (routeId: string): 'highlight' | 'dim' | 'normal' => {
+      if (!active) return 'normal';
+      return highlighted.has(routeId) ? 'highlight' : 'dim';
+    };
+  }, [highlightedRouteIds]);
 
   useEffect(() => {
     if (!styleRef.current) {
@@ -112,6 +135,11 @@ export function RoutesLayer({
         const props = feature.properties;
         const isSelected = selectedFeatureId === feature.id;
         const baseColor = getRouteColor(props.routeType);
+        const emphasis = emphasisFor(props.routeId);
+        // Dim non-selected routes when a hypothesis is active; boost highlighted ones.
+        // A directly-selected route always renders at full emphasis.
+        const dimFactor = emphasis === 'dim' && !isSelected ? DIMMED_OPACITY_FACTOR : 1;
+        const weightBonus = emphasis === 'highlight' && !isSelected ? HIGHLIGHT_WEIGHT_BONUS : 0;
 
         if (terrainAware && segments.length > 1) {
           // Render each terrain segment separately with terrain-specific styling
@@ -129,11 +157,11 @@ export function RoutesLayer({
                       positions={positions}
                       pathOptions={{
                         color: isSelected ? INTERACTION_COLORS.selectedBorder : baseColor,
-                        weight: isSelected ? 5 : segStyle.weight,
-                        opacity: isSelected ? 1 : opacity * segStyle.opacity,
+                        weight: isSelected ? 5 : segStyle.weight + weightBonus,
+                        opacity: isSelected ? 1 : opacity * segStyle.opacity * dimFactor,
                         dashArray: isAnimating ? '10, 10' : (isSelected ? undefined : segStyle.dashArray),
                         lineCap: segStyle.lineCap,
-                        className: isAnimating && !isSelected
+                        className: isAnimating && !isSelected && emphasis !== 'dim'
                           ? 'animated-route'
                           : segStyle.className,
                       }}
@@ -146,7 +174,7 @@ export function RoutesLayer({
                         },
                         mouseout: function() {
                           if (!isSelected) {
-                            this.setStyle({ weight: segStyle.weight, opacity: opacity * segStyle.opacity });
+                            this.setStyle({ weight: segStyle.weight + weightBonus, opacity: opacity * segStyle.opacity * dimFactor });
                           }
                         },
                       }}
@@ -205,11 +233,11 @@ export function RoutesLayer({
               positions={positions}
               pathOptions={{
                 color: isSelected ? INTERACTION_COLORS.selectedBorder : baseColor,
-                weight: isSelected ? 5 : segStyle.weight,
-                opacity: isSelected ? 1 : opacity * segStyle.opacity,
+                weight: isSelected ? 5 : segStyle.weight + weightBonus,
+                opacity: isSelected ? 1 : opacity * segStyle.opacity * dimFactor,
                 dashArray: isAnimating ? '10, 10' : (isSelected ? undefined : dashArray),
                 lineCap: segStyle.lineCap,
-                className: isAnimating && !isSelected ? 'animated-route' : undefined,
+                className: isAnimating && !isSelected && emphasis !== 'dim' ? 'animated-route' : undefined,
               }}
               eventHandlers={{
                 click: () => onFeatureClick?.(props.routeId),
@@ -220,7 +248,7 @@ export function RoutesLayer({
                 },
                 mouseout: function() {
                   if (!isSelected) {
-                    this.setStyle({ weight: segStyle.weight, opacity: opacity * segStyle.opacity });
+                    this.setStyle({ weight: segStyle.weight + weightBonus, opacity: opacity * segStyle.opacity * dimFactor });
                   }
                 },
               }}

@@ -57,6 +57,14 @@ import {
   affectedLayersFor,
   scenarioAppliesAtYear,
 } from '../../lib/visualization/what-if-scenarios';
+import { UrheimatHypothesisControl } from './map-layers/UrheimatHypothesisControl';
+import {
+  loadHypothesisRouteLinks,
+  toggleHypothesis,
+  getHypothesisById,
+  selectRoutesForHypothesis,
+  partitionRoutes,
+} from '../../lib/visualization/urheimat-hypotheses';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
 import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
@@ -327,6 +335,40 @@ export function EnhancedLanguageMapView({
     restoreScenarioLayers();
     setActiveScenarioId(null);
   }, [restoreScenarioLayers]);
+
+  // Alternative-Urheimat migration toggle (US-002) — switch between competing homeland
+  // hypotheses; the active one drives which migration routes highlight vs dim.
+  const hypothesisRouteLinks = useMemo(() => loadHypothesisRouteLinks(), []);
+  const [activeHypothesisId, setActiveHypothesisId] = useState<string | null>(null);
+  // Layers we auto-revealed for the active hypothesis, so we can restore them on clear.
+  const hypothesisAutoEnabledRef = React.useRef<string[]>([]);
+
+  const restoreHypothesisLayers = useCallback(() => {
+    for (const layerId of hypothesisAutoEnabledRef.current) {
+      setLayerVisibility(layerId, false);
+    }
+    hypothesisAutoEnabledRef.current = [];
+  }, [setLayerVisibility]);
+
+  const handleSelectHypothesis = useCallback(
+    (id: string) => {
+      const next = toggleHypothesis(activeHypothesisId, id);
+      restoreHypothesisLayers();
+      setActiveHypothesisId(next);
+      if (next) {
+        // View-only: reveal the routes + hypotheses layers so the effect is visible.
+        const toReveal = ['routes', 'urheimat-hypotheses'].filter((l) => !isLayerVisible(l));
+        toReveal.forEach((l) => setLayerVisibility(l, true));
+        hypothesisAutoEnabledRef.current = toReveal;
+      }
+    },
+    [activeHypothesisId, restoreHypothesisLayers, isLayerVisible, setLayerVisibility],
+  );
+
+  const handleClearHypothesis = useCallback(() => {
+    restoreHypothesisLayers();
+    setActiveHypothesisId(null);
+  }, [restoreHypothesisLayers]);
 
   const handleStoryNavigate = useCallback((center: [number, number], zoom: number) => {
     setFlyTarget({ center, zoom });
@@ -908,6 +950,19 @@ export function EnhancedLanguageMapView({
     return perf.cullFeatures(byTime);
   }, [allRoutes, displayYear, perf.cullFeatures]);
 
+  // Urheimat-hypothesis route emphasis (US-002): the active hypothesis highlights the
+  // migration routes it implies and dims the rest. Empty when no hypothesis is active.
+  const activeHypothesis = useMemo(
+    () => getHypothesisById(allUrheimatHypotheses, activeHypothesisId),
+    [allUrheimatHypotheses, activeHypothesisId],
+  );
+  const highlightedRouteIds = useMemo(() => {
+    const selection = selectRoutesForHypothesis(activeHypothesis, hypothesisRouteLinks);
+    if (!selection.hypothesisId) return [] as string[];
+    const routeIds = filteredRoutes.map((r) => r.properties.routeId);
+    return partitionRoutes(routeIds, selection).highlighted;
+  }, [activeHypothesis, hypothesisRouteLinks, filteredRoutes]);
+
   const filteredMaterialCultures = useMemo(() => {
     // Material cultures don't have a time period directly, filter based on associated period
     // For now, show all material cultures (they're already point data with implicit time)
@@ -1362,6 +1417,7 @@ export function EnhancedLanguageMapView({
             onFeatureClick={handleFeatureClick}
             selectedFeatureId={activeSelectedFeatureId}
             isAnimating={isPlaying}
+            highlightedRouteIds={highlightedRouteIds}
           />
         )}
 
@@ -1556,7 +1612,7 @@ export function EnhancedLanguageMapView({
             opacity={getLayerConfig('urheimat-hypotheses')?.opacity || 0.6}
             currentYear={currentYear}
             onHypothesisClick={handleFeatureClick}
-            selectedHypothesisId={selectedFeatureId}
+            selectedHypothesisId={activeHypothesisId ?? selectedFeatureId}
           />
         )}
 
@@ -1790,6 +1846,14 @@ export function EnhancedLanguageMapView({
         activeScenarioId={activeScenarioId}
         onSelectScenario={handleSelectScenario}
         onClear={handleClearScenario}
+      />
+
+      {/* Alternative-Urheimat migration toggle (US-002) */}
+      <UrheimatHypothesisControl
+        hypotheses={allUrheimatHypotheses}
+        activeHypothesisId={activeHypothesisId}
+        onSelectHypothesis={handleSelectHypothesis}
+        onClear={handleClearHypothesis}
       />
 
       {/* Export Map Image */}
