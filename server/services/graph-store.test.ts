@@ -294,6 +294,59 @@ describe("getCorrelations", () => {
   });
 });
 
+// ── findPath ─────────────────────────────────────────────────────────────────
+
+describe("findPath", () => {
+  it("clamps path length into the 1..6 range", () => {
+    expect(graphStore.clampPathLength(0)).toBe(1);
+    expect(graphStore.clampPathLength(4)).toBe(4);
+    expect(graphStore.clampPathLength(99)).toBe(6);
+    expect(graphStore.clampPathLength(Number.NaN)).toBe(4);
+  });
+
+  it("projects the ordered nodes and edges of the shortest path", async () => {
+    const spa = fakeNode("n0", ["Language"], { csid: "cs:language:spa", name: "Spanish" });
+    const lat = fakeNode("n1", ["Language"], { csid: "cs:language:lat", name: "Latin" });
+    const pie = fakeNode("n2", ["Language"], { csid: "cs:language:pie", name: "PIE" });
+    mockState.runQueue = [
+      {
+        records: [
+          record({
+            pathNodes: [spa, lat, pie],
+            pathRels: [
+              fakeRel("r0", "DESCENDS_FROM", "n0", "n1", { weight: 0.9 }),
+              fakeRel("r1", "DESCENDS_FROM", "n1", "n2", { source: "Comparative method" }),
+            ],
+          }),
+        ],
+      },
+    ];
+    const path = await graphStore.findPath("cs:language:spa", "cs:language:pie");
+    expect(path?.from.csid).toBe("cs:language:spa");
+    expect(path?.to.csid).toBe("cs:language:pie");
+    expect(path?.nodes.map((n) => n.csid)).toEqual([
+      "cs:language:spa",
+      "cs:language:lat",
+      "cs:language:pie",
+    ]);
+    expect(path?.length).toBe(2);
+    expect(path?.edges[0]).toMatchObject({ type: "DESCENDS_FROM", weight: 0.9, startCsid: "cs:language:spa" });
+    expect(path?.edges[1].properties).toMatchObject({ source: "Comparative method" });
+  });
+
+  it("returns null when there is no connecting path", async () => {
+    mockState.runQueue = [{ records: [] }];
+    expect(await graphStore.findPath("cs:a", "cs:b")).toBeNull();
+  });
+
+  it("throws GraphUnavailableError when the driver fails", async () => {
+    mockState.runQueue = [new Error("ServiceUnavailable")];
+    await expect(graphStore.findPath("cs:a", "cs:b")).rejects.toBeInstanceOf(
+      graphStore.GraphUnavailableError,
+    );
+  });
+});
+
 // ── isAvailable ──────────────────────────────────────────────────────────────
 
 describe("isAvailable", () => {

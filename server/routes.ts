@@ -61,6 +61,9 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
+import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
+import { registerAnomalyRoutes } from "./routes/anomaly-detection";
+import { registerHypothesisRoutes } from "./routes/hypotheses";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCitationRoutes } from "./routes/citations";
@@ -80,6 +83,9 @@ import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
 import { registerChangelogRoutes } from "./routes/changelog";
 import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
+import { registerAncestryRoutes } from "./routes/ancestry";
+import { registerLanguagePreservationRoutes } from "./routes/language-preservation";
+import { registerLivingDatasetRoutes } from "./routes/living-dataset";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
@@ -127,6 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
 
+  // AI "explain the connection" narrative route (POST /api/graph/explain, US-005) —
+  // traverse the shared graph + Datalog between two entities and generate a sourced,
+  // AI-labelled narrative of how they are connected.
+  registerConnectionNarrativeRoutes(app);
+
+  // Anomaly-detection routes (GET /api/anomalies, US-006) — scan the cross-domain
+  // corpus for statistically unexpected similarities between distant, unrelated
+  // cultures (rare shared scales/pottery/motifs), ranked as research hypotheses.
+  registerAnomalyRoutes(app);
+
+  // Automated hypothesis & site-location generation (GET /api/hypotheses, US-007) —
+  // generated, explicitly-speculative leads: clusters of distant unrelated cultures
+  // sharing a rare trait (possible common ancestor) + undiscovered-site regions
+  // predicted from gaps along migration corridors (with an uncertainty radius).
+  registerHypothesisRoutes(app);
+
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
   // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.
   registerAnalyticsRoutes(app);
@@ -143,6 +165,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // resolve a permanent entity id to its canonical descriptor (name, canonical URL,
   // stable cs: id); backs the /entity/:domain/:id landing page.
   registerEntityResolverRoutes(app);
+
+  // DNA-to-culture ancestry mapping routes (/api/ancestry/*, US-001) — map the Y-DNA
+  // haplogroup ids a raw-DNA file was reduced to *in the browser* onto associated
+  // languages/cultures/cuisines; raw genotypes never leave the client.
+  registerAncestryRoutes(app);
+
+  // Endangered-language dashboard + field-research workflow (/api/languages/preservation,
+  // /api/languages/field-update, US-010) — preservation-status aggregation over the corpus,
+  // plus attributed, sourced field updates that ride the contribution pipeline and are
+  // recorded in the shared changelog. Same `changelog` store as the other pipelines.
+  registerLanguagePreservationRoutes(app, { changelog });
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.
@@ -3080,6 +3113,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET/POST /api/dataset/release and GET /api/dataset/full; documented in the
   // OpenAPI spec. Default nullDoiMinter keeps DOI minting off without a token.
   registerDatasetReleaseRoutes(app, {
+    changelog,
+    doiMinter: createZenodoDoiMinter(),
+  });
+
+  // ============================================================================
+  // Living dataset: discovery ingestion & DOI snapshots (US-011, speculative)
+  // ============================================================================
+  // The lifecycle layer that keeps the corpus current + citable: a scheduled
+  // discovery-ingestion pass (culture-scrape bulk acquisition → review queue),
+  // an annual versioned-release cadence (reuses the snapshot builder + DOI minter),
+  // and a freshness/versioning status feed. GET /api/living-dataset/status,
+  // POST /api/living-dataset/{ingest,release}. See routes/living-dataset.ts.
+  registerLivingDatasetRoutes(app, {
     changelog,
     doiMinter: createZenodoDoiMinter(),
   });

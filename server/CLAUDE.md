@@ -20,6 +20,110 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Anomaly detection — `services/anomaly-detection.ts` + `routes/anomaly-detection.ts`
+
+`GET /api/anomalies?domains=&minSurprise=&limit=` (US-006) scans the cross-domain corpus for
+**statistically unexpected** similarities between distant, unrelated cultures — a rare shared
+musical scale, pottery style, or art motif turning up on opposite sides of the world — and
+returns them ranked by *surprise*, each framed as a hypothesis with evidence + provenance.
+Backend-only (no UI required by the ACs).
+
+- **The engine is pure + generic** (`anomaly-detection.ts`, no fs/express/storage/clock).
+  It operates over a domain-agnostic `CultureNode {id,name,domain,coordinates?,region?,
+  groupIds?,features[],sources?}`; a `NodeFeature` is `{type,key,label}` namespaced by `type`.
+  `detectAnomalies(nodes, opts?)` scans all pairs and returns ranked `CulturalAnomaly`s.
+  Unit-test the scoring directly on synthetic fixtures.
+- **Surprise = rarity × separation.** `computeFeaturePrevalence` counts each node once per
+  feature; `featureRarity(prevalence,total)` = normalized self-information `-log2(freq)/log2(N)`
+  (rarer ⇒ higher, **universal features score 0 and are skipped**). `separation(a,b)` is the
+  great-circle distance when both have coords (else a region/group-mismatch proxy). A pair's
+  `surpriseScore` = `min(1, maxSharedRarity + multiShareBoost) × separation.factor`.
+- **Expected similarities are structurally excluded** — never anomalies: a pair that **shares
+  a `groupIds` entry** (same language/lineage) or is **geographically near** (< `nearKm`, def
+  1500) returns `null`. That is what makes a surviving result genuinely *unexpected*.
+- **Honesty is built in (AC3):** every result carries `speculative:true`, a plain-language
+  `hypothesis`, and the result carries `ANOMALY_DISCLAIMER`. `confidence` (≤ 0.9) reflects how
+  well-*documented* the observation is (shared-feature count + provenance + coords), separate
+  from `surpriseScore` (how unexpected). `provenance` = deduped union of the two nodes' sources.
+- **Route** takes injectable `loadNodes` (tests pass in-memory fakes — no storage/fs). The
+  default loader projects the storage domains that carry **both coordinates and distinctive
+  trait arrays**: music-tradition (scales/rhythms/instruments), art-tradition (key features +
+  category), material-culture (category, e.g. pottery). `groupIds` = associated language ids.
+  **Gotcha:** `MaterialCulture.originCoordinates` is a `[lat,lng]` **tuple** while music/art use
+  `{lat,lng}` objects — the loader normalizes. Live corpus → ~100 nodes; myth-motif and
+  haplogroup signals are supported by the generic engine but their current storage projections
+  lack per-culture coordinates, so feeding them richly is a future data task.
+
+## Automated hypothesis & site-location generation — `services/hypothesis-generation.ts` + `routes/hypotheses.ts`
+
+`GET /api/hypotheses?minMembers=&minRarity=&minGapKm=&limit=` (US-007) returns two families of
+**generated, explicitly-speculative** research leads: **common-ancestor hypotheses** (clusters of
+≥3 distant, unrelated cultures sharing the same rare trait) and **undiscovered-site-region
+predictions** (gaps along migration corridors far from any known site, each with an uncertainty
+radius). The response also carries a `geojson` FeatureCollection for the map overlay.
+
+- **The engine is pure + reuses the US-006 anomaly primitives** (`hypothesis-generation.ts`
+  imports `computeFeaturePrevalence`/`featureRarity`/`featureKey`/`haversineKm` from
+  `anomaly-detection.ts` and re-exports `CultureNode`/`NodeFeature`). It generalizes the pairwise
+  anomaly to **n-way clusters**: `generateAncestorHypotheses` anchors on rare traits (prevalence in
+  `[minMembers, maxAnchorPrevalence]`, rarity ≥ `minRarity`), **structurally excludes** same-lineage
+  clusters (`allShareAGroup`) and geographically-close ones (`maxSpreadKm < minSpreadKm`), dedups
+  identical member sets, and gathers EVERY rare trait the whole membership shares as evidence
+  (`traitsSharedByAll` = trait-key intersection). Every result is `speculative:true` +
+  `generated:true`; `confidence` (≤0.9) rises with independent shared traits + members + provenance.
+- **Site prediction = corridor-gap heuristic.** `predictSiteRegions(corridors, knownSites, opts)`
+  samples each corridor's **waypoints AND leg midpoints** (`sampleCorridor` — a long straight leg
+  hides a gap in its middle), keeps points with `nearestKnownKm ≥ minGapKm`, dedups by ~1° cell,
+  and emits `center` + `uncertaintyRadiusKm` (= gap×0.5, clamped to `maxUncertaintyKm`) + confidence.
+  **Gotcha:** an empty `knownSites` set makes `nearestKnownKm` return `Infinity`; that maps to a
+  capped `NO_KNOWN_SITE_GAP_KM` (a corridor with zero recorded sites is the *strongest* lead, not
+  dropped). `sitePredictionsToGeoJSON` → a `[lng,lat]` FeatureCollection with `uncertaintyRadiusKm`.
+- **Route** takes injectable `{loadNodes, loadCorridors, loadKnownSites}` (tests pass in-memory
+  fakes — no storage/fs). Defaults: nodes = the same music/art/material projection as
+  `routes/anomaly-detection.ts` (keep in sync); corridors = migration routes via `waypointsToPoints`
+  (parses the GeoJSON LineString `[lng,lat]` → `{lat,lng}`); known sites = archaeological-sites
+  (`geometry.coordinates` `[lng,lat]`) + settlements (flat `latitude`/`longitude`). **500** only on a
+  loader throw. These leads are **distinct from the curated `urheimat-hypotheses` dataset**
+  (`DISTINCT_FROM_CURATED` note; never overwrite it). Client entry: the `/hypotheses` page
+  (`client/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
+  with uncertainty** (radius = `uncertaintyRadiusKm`); the styling math is pure in
+  `client/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
+
+## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
+
+`POST /api/graph/explain` (US-005) explains how two entities are connected: it finds the
+shortest connecting path in the shared graph, augments it with Datalog inference, and asks
+the **existing Gemini client** to write a short, **sourced** narrative. Backend-only (no UI
+required by the ACs), same graceful-degradation contract as `/api/graph/*`.
+
+- **`graph-store.findPath(fromCsid, toCsid, maxLength=4)`** (new) returns a `GraphPath`
+  (`{from,to,nodes[],edges[],length}`) via Cypher `shortestPath`, ordered from → to; `null`
+  for no path OR a missing endpoint (one query — the route resolves refs first, so a null is
+  reported as "no connection"). `clampPathLength` bounds 1..6. Same fake-driver test harness
+  as the other queries (`nodes(p)`/`relationships(p)` projected via a `csidByElementId` map).
+- **The narrative core is pure + injectable** (`connection-narrative.ts`, no fs/express):
+  `extractPathEvidence(path)` lifts each edge into oriented, provenance-bearing
+  `ConnectionEvidence` (source/source_url/confidence read from edge `weight` then props);
+  `pathConfidence(evidence)` = **product** of per-edge confidences (unweighted edges get a
+  0.7 neutral prior); `buildNarrativePrompt(...)` hands the LLM **only** the evidence and
+  forbids fabrication; `factsToEvidence` renders Datalog rows. `explainConnection(from, to,
+  deps)` orchestrates over injectable `{findPath, llm, inferFacts?}`.
+- **Honesty is structural (AC3):** when there is **no path AND no inferred fact**, the LLM is
+  **never called** — the result is a non-AI `{connected:false, aiGenerated:false}` "no
+  connection found" message. Low aggregate confidence sets `lowConfidence` (< 0.4) so the UI
+  can hedge. `aiGenerated` is only `true` when the prose actually came from the model.
+- **Datalog inference is best-effort + degrades to `[]`.** The route's default `inferFacts`
+  asks the sidecar's `/datalog` console whether the two csids are related by `ancestor`
+  (both directions); any failure (sidecar down, no SWI-Prolog, lint error) is swallowed —
+  `explainConnection` also wraps it in `safeInfer`. The graph path is the primary evidence.
+- **Route** takes injectable `{resolver, findPath, llm, inferFacts}` so tests run with no
+  live Neo4j / model / sidecar (real `express()` + `app.listen(0)`). Each endpoint in the
+  body is a `{csid}` **or** an entity ref `{type,id?,name?,region?}` resolved via
+  `getGraphResolver()`. **400** unresolvable ref / same-entity / no csid-or-type; **503**
+  `{available:false}` on `GraphUnavailableError`; **502** when the model fails after a path
+  was found. `liveNarrativeLlm` mirrors the text-extractor Gemini pattern (`GEMINI_MODEL`,
+  `responseSchema`, `JSON.parse(result.response.text())`).
+
 ## Data changelog / versioning — `services/changelog.ts` + `routes/changelog.ts`
 
 `GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=` (US-010) is a
@@ -41,6 +145,42 @@ browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` a
   TSV file/id + reviewer). Logging is wrapped in try/catch so it **never fails the review**.
   A route test shares one `ChangelogStore` across all three route groups to assert the
   integration end-to-end (approve → GET /api/changelog shows the entry).
+
+## Endangered-language dashboard + field-research — `services/language-preservation.ts` + `routes/language-preservation.ts`
+
+US-010 (this PRD) adds a preservation-status dashboard + an attributed field-update workflow.
+`GET /api/languages/preservation[?watchlistLimit=]` → the dashboard aggregation;
+`POST /api/languages/field-update` → a researcher's structured status/speaker update.
+
+- **The `status` column is free-text and messy** (`living`, `Critically Endangered`,
+  `definiteley endangered` [sic], `vulnerable`, `revitalizing`, blanks). `normalizeStatus(raw)`
+  (pure) maps every observed spelling onto a canonical UNESCO-style **`VitalityLevel`**
+  (`VITALITY_LEVELS` ladder, rank 0 living → 9 extinct), each carrying a coarse
+  `PreservationCategory` (`living | endangered | extinct | unknown`). Unrecognized/blank ⇒
+  `unknown` (never mis-bucketed as living). **Gotcha:** `tsv-storage.getLanguages` defaults a
+  blank `status` cell to `"living"` (`r[idxStatus] ?? "living"`), so live data shows ~0 `unknown`
+  even though the raw TSV has blank rows — `unknown` mostly matters for injected/test data.
+- `computePreservationMetrics(languages, {watchlistLimit=25})` (pure) → `{total, classified,
+  byCategory, vitality[] (ordered by risk, only present levels, with share), endangermentRate
+  (= endangered/(living+endangered)), speakersAtRisk (Σ totalSpeakers in endangered), regions[]
+  (per-region, sorted most-at-risk first), watchlist[] (most-endangered still-spoken langs,
+  highest-rank then fewest-speakers; extinct + unknown excluded)}`. Unit-test directly.
+- **Field-research = a `language` edit contribution + a changelog entry.** `validateFieldUpdate`
+  requires attribution (`researcherName`), ≥1 source, and ≥1 real change (`changedFields`).
+  `buildFieldUpdateContribution` → `Partial<Contribution>` (`entityType:'language'`, `action:'edit'`,
+  `entityData.source='field-research'`+`fieldResearch:true`; single-field changes fill the per-field
+  `fieldName`/`currentValue`/`suggestedValue` triple). It **rides the contribution review pipeline**
+  (queued pending, never a live TSV write). **AC3 design choice:** the route ALSO records the status
+  change in the **shared `ChangelogStore`** at *submission* time (`source:'field-research'`, reviewer =
+  the researcher) so status changes are versioned/browsable immediately — this is distinct from the
+  approve-time `source:'contribution'` entry the standard PATCH review path logs later. Logging is
+  try/catch-wrapped (never fails the submit).
+- **Route** takes injectable `{loadLanguages, contributions, changelog}` (wired with the same shared
+  `changelog` as the other pipelines in `registerRoutes`); tests use an in-memory loader + temp-dir
+  `ContributionService`/`ChangelogStore` (no storage/fs). **400** validation, **404** unknown
+  `languageId` (the route loads languages to enrich name/currentStatus + reject unknown ids). Client
+  entry: the `/endangered-languages` page (`client/src/pages/endangered-languages.tsx`), linked in
+  `AppSidebar` (`ShieldAlert`).
 
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
 
@@ -140,6 +280,38 @@ the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI 
 - **Gotcha:** editing the OpenAPI spec (these endpoints are documented there) means
   regenerating `docs/openapi.json` — see the OpenAPI note above, else `openapi-spec.test.ts`
   fails.
+
+## Living dataset: discovery ingestion & DOI snapshots — `services/living-dataset.ts` + `routes/living-dataset.ts`
+
+US-011 (speculative PRD) is the **lifecycle layer** that keeps the corpus current + citable.
+It *composes* existing building blocks — it adds no new SPARQL client, snapshot builder, or
+freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (dashboard feed),
+`POST /api/living-dataset/ingest` (scheduled discovery pass), `POST /api/living-dataset/release`
+(mint a versioned DOI snapshot).
+
+- **All decision logic is pure** (`living-dataset.ts`, clock is a param): `computeReleaseCadence`
+  (**annual**, `RELEASE_CADENCE_DAYS=365`; never-released ⇒ due, else next = last + interval) →
+  `{dueNow, nextReleaseDate, daysUntilDue}`; `computeIngestionSchedule(ingestions, now,
+  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors culture-scrape's
+  `orchestrate/schedule.py` `select_stale` idea — an unparseable/absent timestamp ⇒ due);
+  `selectDueDomains`; `currentReleaseFrom` (latest recorded release, else the seed `1.0.0` default).
+- **`LivingDatasetStore`** is the only fs boundary — one `state.json` (`{ingestions, releases}`)
+  under an injectable dir (default the **gitignored** `data/living-dataset/`), same JSON-on-disk
+  shape as the other `data/*` stores; unparseable/missing file ⇒ empty state.
+- **Ingest = scheduled culture-scrape acquisition.** The route reuses `runAcquisitionJob`
+  (`culturescrape-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
+  in the review queue (never a live write), then stamps `store.recordIngestion(domain, now)`. A
+  per-domain runner failure is **collected in `errors[]`, never aborts the pass**. Body:
+  `{domains?, force?, limit?}` (default limit 50); **400** only on an unknown requested domain.
+- **Release = reuse `buildDatasetSnapshot`** (semver from the shared changelog, injectable DOI
+  minter) + `store.recordRelease(...)` so the annual cadence advances. Same version precedence as
+  `dataset-releases.ts` (explicit › changelog-derived › seed).
+- **Route** takes injectable `{store, contributions, runner, doiMinter, changelog, lexiconsDir,
+  now}` — tests drive it with temp-dir stores + a fake runner + fake minter + injected clock (no
+  Python/network/Zenodo). Wired in `registerRoutes` sharing the same `changelog` + a
+  `createZenodoDoiMinter()`. **These endpoints are NOT in `docs/openapi.json`** (the spec-parity
+  test only covers what's declared there — no regen needed). Client entry: the `/living-dataset`
+  page (`client/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
 
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
@@ -628,6 +800,36 @@ counts (per `entityType` + `source`) and filter params live in pure helpers:
 - **Not** wired to the DuckDB index: search-result facets must reflect the in-TS
   fuzzy-scored subset. Corpus-wide faceting is a different feature and already
   lives at `/api/analytics/facets/:table/:column` (see analytical index below).
+
+## DNA-to-culture ancestry mapping — `services/genetic-linguistic-correlation.ts` + `routes/ancestry.ts`
+
+`POST /api/ancestry/map` (US-001) takes the **Y-DNA haplogroup ids** a user's raw-DNA
+file was reduced to *in the browser* (only the ids — never the raw genotypes — are sent)
+and returns the languages/cultures/cuisines that ancestry is associated with, plus fixed
+caveats. `GET /api/ancestry/haplogroups` lists the reference haplogroups. The raw-DNA
+**parser + haplogroup inference are client-side** (`client/src/lib/dna/*`) — that is the
+privacy guarantee; the server only enriches non-identifying ids.
+
+- **The mapping is pure** in `genetic-linguistic-correlation.ts` (`mapHaplogroupsToAncestry(ids,
+  data)` over an injectable `AncestryMapperData` — no storage/clock), unit-tested on synthetic
+  fixtures (`services/ancestry-mapper.test.ts`). It builds `spoke` (language families via
+  `Haplogroup.associatedLanguageFamilyIds`), `livedAmong` (civilizations via
+  `associatedCivilizationIds`), and `ate` (an **indirect** chain family → its languages →
+  cuisines citing them, so capped at lower confidence). Confidence rises with the number of
+  matched haplogroups supporting an association (`supportConfidence`, capped 0.85). Always
+  returns `ANCESTRY_CAVEATS`.
+- **Gotcha — id vs name mismatch:** haplogroup rows reference families/civs by bare
+  name-slug (`germanic`, `celts`) but the corpus keys them by namespaced id
+  (`indo_european__germanic`). The mapper resolves by exact id **then** a
+  `normalizeAssocKey(name)` fallback ("Italo-Celtic" → "italo-celtic"); without this the map
+  is empty against live data. Reuse `normalizeAssocKey` for any bare-name → corpus-id join.
+- **Route** (`routes/ancestry.ts`) takes an injectable `loadData` (default assembles the
+  minimal shape from live storage: haplogroups/families/languages/civilizations[.properties]/
+  cuisines) so route tests run with in-memory fakes — no storage/fs. **400** on
+  missing/empty `haplogroupIds`. Client entry: the `/ancestry` page
+  (`client/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
+  **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
+  "no Y data" state client-side.
 
 ## Lazy-singleton services
 

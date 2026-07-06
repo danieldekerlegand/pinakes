@@ -17,3 +17,5 @@ data/annotations/
 data/stewardship/
 # US-010 data changelog — runtime audit log (JSON per change entry)
 data/changelog/
+# US-011 living dataset — runtime state (ingestion timestamps + release history)
+data/living-dataset/

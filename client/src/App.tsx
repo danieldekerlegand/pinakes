@@ -24,6 +24,12 @@ import EntityPage from "@/pages/entity";
 import AdvancedToolsPage from "@/pages/advanced-tools";
 import CollectionsPage, { SharedCollectionPage } from "@/pages/collections";
 import AiReviewPage from "@/pages/ai-review";
+import AncestryPage from "@/pages/ancestry";
+import HypothesesPage from "@/pages/hypotheses";
+import ArHistoryPage from "@/pages/ar-history";
+import ImmersivePage from "@/pages/immersive";
+import EndangeredLanguagesPage from "@/pages/endangered-languages";
+import LivingDatasetPage from "@/pages/living-dataset";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -53,6 +59,28 @@ function Router() {
       <Route path="/shared/collection/:token" component={SharedCollectionPage} />
       {/* AI-extraction review queue (US-009) — accept/edit/reject AI drafts. */}
       <Route path="/ai-review" component={AiReviewPage} />
+      {/* DNA-to-culture ancestry mapper (US-001) — in-browser raw-DNA parsing +
+          haplogroup inference; only haplogroup ids are sent to /api/ancestry/map. */}
+      <Route path="/ancestry" component={AncestryPage} />
+      {/* Automated hypothesis & site-location generation (US-007) — generated,
+          speculative leads: shared-ancestry clusters + predicted undiscovered-site
+          regions rendered as map overlays with uncertainty. */}
+      <Route path="/hypotheses" component={HypothesesPage} />
+      {/* AR historical-layer overlay (US-008) — WebXR/geolocation feature-detected;
+          overlays nearby temporal-map layers on the camera view, radar fallback. */}
+      <Route path="/ar-history" component={ArHistoryPage} />
+      {/* Immersive globe & virtual museum (US-009) — WebGL2/WebXR feature-detected
+          three-way toggle (flat map / 3D globe fly-through / artifact gallery);
+          degrades to the flat map without WebGL2. */}
+      <Route path="/immersive" component={ImmersivePage} />
+      {/* Endangered-language dashboard & field-research workflow (US-010) —
+          preservation-status aggregation over the corpus + attributed, sourced field
+          updates that ride the contribution pipeline and are logged to the changelog. */}
+      <Route path="/endangered-languages" component={EndangeredLanguagesPage} />
+      {/* Living dataset: discovery ingestion & DOI snapshots (US-011, speculative) —
+          freshness/versioning dashboard, a scheduled culture-scrape ingestion pass
+          (→ review queue), and an annual versioned-release cadence with DOIs. */}
+      <Route path="/living-dataset" component={LivingDatasetPage} />
       <Route component={NotFound} />
     </Switch>
   );

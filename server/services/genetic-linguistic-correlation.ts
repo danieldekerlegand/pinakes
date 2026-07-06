@@ -127,6 +127,234 @@ function findRegionBounds(region: string): { lat: [number, number]; lng: [number
   return null;
 }
 
+// ---------------------------------------------------------------------------
+// DNA-to-culture ancestry mapping (US-001)
+// ---------------------------------------------------------------------------
+//
+// Given the Y-DNA haplogroup ids a user's raw-DNA export was reduced to *in the
+// browser* (only the haplogroup ids — never the raw genotypes — reach the server),
+// map them to the cultures, languages, and cuisines their deep paternal ancestry is
+// associated with, using `Haplogroup.associatedLanguageFamilyIds` /
+// `associatedCivilizationIds`. This is deliberately exploratory: confidence is modest
+// and the result always carries clear caveats (see `ANCESTRY_CAVEATS`).
+
+/** Minimal, storage-agnostic data the mapper reads (kept small so it is easy to test). */
+export interface AncestryMapperData {
+  haplogroups: {
+    id: string;
+    name: string;
+    geographicOrigin: string;
+    timeOrigin: number | null;
+    associatedLanguageFamilyIds: string[];
+    associatedCivilizationIds: string[];
+  }[];
+  families: { id: string; name: string; region?: string | null }[];
+  languages: { id: string; name: string; familyId: string }[];
+  civilizations: { id: string; name: string }[];
+  cuisines: { id: string; name: string; region: string; associatedLanguageIds: string[] }[];
+}
+
+export interface AncestryLanguageResult {
+  familyId: string;
+  familyName: string;
+  region: string | null;
+  confidence: number; // 0-1
+  sampleLanguages: string[];
+  viaHaplogroups: string[]; // haplogroup names supporting this association
+}
+
+export interface AncestryCultureResult {
+  civilizationId: string;
+  name: string;
+  confidence: number;
+  viaHaplogroups: string[];
+}
+
+export interface AncestryCuisineResult {
+  cuisineId: string;
+  name: string;
+  region: string;
+  confidence: number;
+}
+
+export interface AncestryMappingResult {
+  matchedHaplogroups: { id: string; name: string; geographicOrigin: string; timeOrigin: number | null }[];
+  unmatchedHaplogroupIds: string[];
+  spoke: AncestryLanguageResult[];
+  livedAmong: AncestryCultureResult[];
+  ate: AncestryCuisineResult[];
+  divergences: { haplogroupName: string; languageFamilyName: string; annotation: string }[];
+  caveats: string[];
+  summary: string;
+}
+
+/** Fixed, always-shown caveats — heritage is probabilistic and mostly learned, not genetic. */
+export const ANCESTRY_CAVEATS: string[] = [
+  "Your raw genetic data was processed entirely in your browser and was never uploaded or stored.",
+  "Haplogroups trace only your deep paternal (Y-DNA) line — a single thread of your ancestry, not your whole genome or recent family history.",
+  "A shared haplogroup reflects broad population-genetic patterns; it does not mean you descend directly from, or belong to, any of these cultures.",
+  "Language, cuisine, and culture are learned and shared, not inherited in DNA — these associations are exploratory prompts for research, not statements about your identity.",
+  "Genetics and language often diverge (populations adopt new languages without replacing their genes), so treat every match as a starting point for further reading.",
+];
+
+/** Normalize a name/id to a comparable slug ("Italo-Celtic" → "italo-celtic"). */
+function normalizeAssocKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Confidence for an association supported by `n` matched haplogroups, from a base. */
+function supportConfidence(base: number, n: number, cap: number): number {
+  const value = base + 0.1 * Math.max(0, n - 1);
+  return Math.round(Math.min(cap, value) * 100) / 100;
+}
+
+/**
+ * Map a set of inferred haplogroup ids to the languages, cultures, and cuisines their
+ * carriers are associated with. Pure over `data` (no storage/clock), so it is unit-tested
+ * directly on synthetic fixtures.
+ */
+export function mapHaplogroupsToAncestry(
+  haplogroupIds: string[],
+  data: AncestryMapperData,
+): AncestryMappingResult {
+  const wanted = new Set(haplogroupIds.map((id) => id.trim().toLowerCase()).filter(Boolean));
+  const haploById = new Map(data.haplogroups.map((h) => [h.id.toLowerCase(), h]));
+
+  // Haplogroup rows reference families/civilizations by bare name-slug (e.g. "germanic",
+  // "celts"), whereas the corpus keys them by namespaced id (e.g. `indo_european__germanic`).
+  // Resolve by exact id first, then by a normalized-name fallback so the real data maps.
+  const familyById = new Map(data.families.map((f) => [f.id, f]));
+  const familyByName = new Map<string, AncestryMapperData["families"][number]>();
+  for (const f of data.families) {
+    const key = normalizeAssocKey(f.name);
+    if (key && !familyByName.has(key)) familyByName.set(key, f);
+  }
+  const civById = new Map(data.civilizations.map((c) => [c.id, c]));
+  const civByName = new Map<string, AncestryMapperData["civilizations"][number]>();
+  for (const c of data.civilizations) {
+    const key = normalizeAssocKey(c.name);
+    if (key && !civByName.has(key)) civByName.set(key, c);
+  }
+  const resolveFamily = (raw: string) => familyById.get(raw) ?? familyByName.get(normalizeAssocKey(raw)) ?? null;
+  const resolveCiv = (raw: string) => civById.get(raw) ?? civByName.get(normalizeAssocKey(raw)) ?? null;
+
+  const matched = Array.from(wanted)
+    .map((id) => haploById.get(id))
+    .filter((h): h is AncestryMapperData["haplogroups"][number] => Boolean(h));
+  const matchedIds = new Set(matched.map((h) => h.id.toLowerCase()));
+  const unmatchedHaplogroupIds = Array.from(wanted).filter((id) => !matchedIds.has(id));
+
+  // Aggregate language families → supporting haplogroups (keyed by resolved corpus id).
+  const familySupport = new Map<string, Set<string>>(); // familyId → haplogroup names
+  const resolvedFamilyById = new Map<string, AncestryMapperData["families"][number]>();
+  const civSupport = new Map<string, Set<string>>();
+  const resolvedCivById = new Map<string, AncestryMapperData["civilizations"][number]>();
+  for (const h of matched) {
+    for (const rawFid of h.associatedLanguageFamilyIds) {
+      const family = resolveFamily(rawFid);
+      if (!family) continue;
+      resolvedFamilyById.set(family.id, family);
+      (familySupport.get(family.id) ?? familySupport.set(family.id, new Set()).get(family.id)!).add(h.name);
+    }
+    for (const rawCid of h.associatedCivilizationIds) {
+      const civ = resolveCiv(rawCid);
+      if (!civ) continue;
+      resolvedCivById.set(civ.id, civ);
+      (civSupport.get(civ.id) ?? civSupport.set(civ.id, new Set()).get(civ.id)!).add(h.name);
+    }
+  }
+
+  // Languages grouped by family for the "spoke" sample list.
+  const languagesByFamily = new Map<string, string[]>();
+  for (const lang of data.languages) {
+    const list = languagesByFamily.get(lang.familyId) ?? languagesByFamily.set(lang.familyId, []).get(lang.familyId)!;
+    if (list.length < 5) list.push(lang.name);
+  }
+
+  const spoke: AncestryLanguageResult[] = Array.from(familySupport.entries()).map(([fid, support]) => {
+    const family = resolvedFamilyById.get(fid)!;
+    return {
+      familyId: fid,
+      familyName: family.name,
+      region: family.region ?? null,
+      confidence: supportConfidence(0.4, support.size, 0.85),
+      sampleLanguages: languagesByFamily.get(fid) ?? [],
+      viaHaplogroups: Array.from(support).sort(),
+    };
+  });
+  spoke.sort((a, b) => b.confidence - a.confidence || a.familyName.localeCompare(b.familyName));
+
+  const livedAmong: AncestryCultureResult[] = Array.from(civSupport.entries()).map(([cid, support]) => ({
+    civilizationId: cid,
+    name: resolvedCivById.get(cid)!.name,
+    confidence: supportConfidence(0.4, support.size, 0.85),
+    viaHaplogroups: Array.from(support).sort(),
+  }));
+  livedAmong.sort((a, b) => b.confidence - a.confidence || a.name.localeCompare(b.name));
+
+  // Cuisine ("ate") is an *indirect* chain: family → its languages → cuisines that cite
+  // those languages, so its confidence is capped lower than the direct associations.
+  const familyLanguageIds = new Set<string>();
+  const supportedFamilyIds = Array.from(familySupport.keys());
+  for (const fid of supportedFamilyIds) {
+    for (const lang of data.languages) {
+      if (lang.familyId === fid) familyLanguageIds.add(lang.id);
+    }
+  }
+  const ate: AncestryCuisineResult[] = [];
+  for (const cuisine of data.cuisines) {
+    const overlap = cuisine.associatedLanguageIds.filter((id) => familyLanguageIds.has(id));
+    if (overlap.length === 0) continue;
+    ate.push({
+      cuisineId: cuisine.id,
+      name: cuisine.name,
+      region: cuisine.region,
+      confidence: supportConfidence(0.3, overlap.length, 0.65),
+    });
+  }
+  ate.sort((a, b) => b.confidence - a.confidence || a.name.localeCompare(b.name));
+
+  // Notable genetics ↔ language divergences relevant to the matched haplogroups.
+  const divergences: { haplogroupName: string; languageFamilyName: string; annotation: string }[] = [];
+  for (const h of matched) {
+    for (const div of NOTABLE_DIVERGENCES) {
+      if (!h.id.toLowerCase().includes(div.haplogroupPattern)) continue;
+      const family = data.families.find(
+        (f) =>
+          f.id.toLowerCase().includes(div.languageFamilyPattern) ||
+          normalizeAssocKey(f.name).includes(div.languageFamilyPattern),
+      );
+      if (!family) continue;
+      if (divergences.some((d) => d.haplogroupName === h.name && d.languageFamilyName === family.name)) continue;
+      divergences.push({ haplogroupName: h.name, languageFamilyName: family.name, annotation: div.annotation });
+    }
+  }
+
+  const summary =
+    matched.length === 0
+      ? "None of the supplied haplogroups matched the reference dataset, so no cultural associations could be drawn."
+      : `Your ${matched.length === 1 ? "haplogroup is" : "haplogroups are"} associated with ${spoke.length} language ${spoke.length === 1 ? "family" : "families"}, ${livedAmong.length} historical ${livedAmong.length === 1 ? "culture" : "cultures"}, and ${ate.length} ${ate.length === 1 ? "cuisine" : "cuisines"}. These are exploratory associations — see the caveats.`;
+
+  return {
+    matchedHaplogroups: matched.map((h) => ({
+      id: h.id,
+      name: h.name,
+      geographicOrigin: h.geographicOrigin,
+      timeOrigin: h.timeOrigin,
+    })),
+    unmatchedHaplogroupIds,
+    spoke,
+    livedAmong,
+    ate,
+    divergences,
+    caveats: ANCESTRY_CAVEATS,
+    summary,
+  };
+}
+
 export class GeneticLinguisticCorrelationService {
   constructor(private storage: TsvStorage) {}
 

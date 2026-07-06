@@ -61,6 +61,20 @@ export interface GraphSnapshot {
   edges: GraphEdge[];
 }
 
+/** A shortest connecting path between two nodes in the graph. */
+export interface GraphPath {
+  /** the start node (`from` csid). */
+  from: GraphNode;
+  /** the end node (`to` csid). */
+  to: GraphNode;
+  /** every node on the path, ordered from `from` to `to` (inclusive). */
+  nodes: GraphNode[];
+  /** every edge on the path, ordered from `from` to `to`. */
+  edges: GraphEdge[];
+  /** number of hops (edges) on the path. */
+  length: number;
+}
+
 /** A node plus its surrounding sub-graph out to a bounded traversal depth. */
 export interface Neighborhood {
   /** the focus node the neighborhood is centered on. */
@@ -95,6 +109,9 @@ export class GraphUnavailableError extends Error {
 
 const MIN_DEPTH = 1;
 const MAX_DEPTH = 3;
+/** Default and hard cap on shortest-path length (hops) for {@link findPath}. */
+const DEFAULT_PATH_LENGTH = 4;
+const MAX_PATH_LENGTH = 6;
 /** Default and hard cap on the number of nodes an overview snapshot returns. */
 const DEFAULT_OVERVIEW_LIMIT = 250;
 const MAX_OVERVIEW_LIMIT = 1_000;
@@ -481,4 +498,62 @@ export async function getCorrelations(
       ...(weight !== undefined ? { weight } : {}),
     };
   });
+}
+
+/** Clamp a requested shortest-path length into the supported 1..MAX range. */
+export function clampPathLength(length: number): number {
+  if (!Number.isFinite(length)) return DEFAULT_PATH_LENGTH;
+  return Math.min(MAX_PATH_LENGTH, Math.max(MIN_DEPTH, Math.trunc(length)));
+}
+
+/**
+ * Find the shortest connecting path between two nodes (by csid), up to
+ * `maxLength` hops (clamped to 1..6). Returns `null` when either endpoint is
+ * missing or no path within the bound exists — the caller distinguishes these
+ * two only by first checking existence, which keeps this a single query. The
+ * returned nodes/edges are ordered from `from` to `to`.
+ * @throws {GraphUnavailableError} when Neo4j cannot be reached.
+ */
+export async function findPath(
+  fromCsid: string,
+  toCsid: string,
+  maxLength = DEFAULT_PATH_LENGTH,
+): Promise<GraphPath | null> {
+  const clamped = clampPathLength(maxLength);
+  // The bound is validated above so it is never attacker-controlled
+  // interpolation; the csids stay parameters.
+  const cypher = `
+    MATCH (a {csid: $from}), (b {csid: $to})
+    MATCH p = shortestPath((a)-[*1..${clamped}]-(b))
+    RETURN nodes(p) AS pathNodes, relationships(p) AS pathRels
+  `;
+  const result = await runRead(cypher, { from: fromCsid, to: toCsid });
+  return buildPath(result);
+}
+
+function buildPath(result: QueryResult): GraphPath | null {
+  const record = result.records[0];
+  if (!record) return null;
+
+  const rawNodes = ((record.get("pathNodes") as Neo4jNode[]) ?? []).filter(Boolean);
+  if (rawNodes.length === 0) return null;
+
+  const csidByElementId = new Map<string, string>();
+  const nodes: GraphNode[] = [];
+  for (const n of rawNodes) {
+    const projected = projectNode(n);
+    csidByElementId.set(n.elementId, projected.csid);
+    nodes.push(projected);
+  }
+
+  const rawRels = ((record.get("pathRels") as Neo4jRelationship[]) ?? []).filter(Boolean);
+  const edges = rawRels.map((rel) => projectEdge(rel, csidByElementId));
+
+  return {
+    from: nodes[0],
+    to: nodes[nodes.length - 1],
+    nodes,
+    edges,
+    length: edges.length,
+  };
 }

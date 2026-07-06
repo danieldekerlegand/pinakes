@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { ImageGallery } from "./ImageGallery";
+import { CultureAudioGallery } from "./CultureAudioGallery";
 import type { GalleryImage } from "./image-gallery-utils";
+import { partitionMedia, toAudioClip } from "./audio-gallery-utils";
 
 interface MediaAsset {
   id: string;
@@ -80,16 +82,31 @@ export function CultureMediaGallery({
     );
   }
 
-  const images = (data?.assets ?? []).map(toGalleryImage);
+  // Audio assets (music traditions, instrument clips) can't render as <img>
+  // thumbnails — split them out to a dedicated player (US-003).
+  const { audio, images: imageAssets } = partitionMedia(data?.assets ?? []);
+  const images = imageAssets.map(toGalleryImage);
+  const clips = audio.map(toAudioClip);
 
   return (
-    <ImageGallery
-      images={images}
-      layout={layout}
-      emptyMessage={emptyMessage}
-      className={className}
-      showFilters={showFilters}
-    />
+    <div className={className}>
+      {clips.length > 0 && (
+        <CultureAudioGallery
+          clips={clips}
+          title="Music & instrument clips"
+          className="mb-4"
+        />
+      )}
+      {/* Skip the "no images" placeholder when the culture only has audio. */}
+      {(images.length > 0 || clips.length === 0) && (
+        <ImageGallery
+          images={images}
+          layout={layout}
+          emptyMessage={emptyMessage}
+          showFilters={showFilters}
+        />
+      )}
+    </div>
   );
 }
 
