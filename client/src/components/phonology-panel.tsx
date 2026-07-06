@@ -13,6 +13,7 @@ import {
   Music,
 } from "lucide-react";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
+import { useSpeechController } from "@/lib/audio/use-speech-controller";
 import type { Language } from "@shared/types";
 
 interface PhonologicalInventory {
@@ -172,6 +173,7 @@ const MAX_LANGUAGES = 4;
 export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyPanelProps) {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const speech = useSpeechController();
 
   const { data: languages = [] } = useQuery<Language[]>({
     queryKey: ["/api/languages"],
@@ -271,6 +273,14 @@ export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyP
 
   const getLangName = (langId: string) =>
     languages.find((l) => l.id === langId)?.name || langId;
+
+  // Best-effort playback of an individual IPA phoneme via speech synthesis.
+  // Isolated phonemes are hard for TTS engines, so this is a hint, not a
+  // guarantee — it silently no-ops when speech is unsupported.
+  const playPhoneme = (phoneme: string, langId: string) => {
+    const iso = languages.find((l) => l.id === langId)?.iso639_1 ?? undefined;
+    speech.play({ ipa: phoneme, lang: iso });
+  };
 
   const panelContent = (
     <div className={embedded ? "h-full flex flex-col bg-white" : "fixed right-0 top-0 h-full w-[1000px] max-w-[95vw] bg-white shadow-lg flex flex-col"} onClick={embedded ? undefined : (e) => e.stopPropagation()}>
@@ -479,13 +489,23 @@ export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyP
                                   {cellPhonemes.length > 0 && (
                                     <div className="flex flex-wrap justify-center gap-0.5">
                                       {cellPhonemes.map((p, i) => (
-                                        <span
+                                        <button
+                                          type="button"
                                           key={`${p.phoneme}-${p.langIndex}-${i}`}
-                                          className={`inline-block rounded px-0.5 text-white text-[11px] font-mono ${LANG_COLORS[p.langIndex].bg}`}
-                                          title={`${p.phoneme} - ${getLangName(selectedLanguages[p.langIndex])}`}
+                                          onClick={() =>
+                                            playPhoneme(p.phoneme, selectedLanguages[p.langIndex])
+                                          }
+                                          disabled={!speech.supported}
+                                          className={`inline-block rounded px-0.5 text-white text-[11px] font-mono ${LANG_COLORS[p.langIndex].bg} ${speech.supported ? "cursor-pointer hover:brightness-110" : "cursor-default"}`}
+                                          title={
+                                            speech.supported
+                                              ? `Play ${p.phoneme} — ${getLangName(selectedLanguages[p.langIndex])}`
+                                              : `${p.phoneme} - ${getLangName(selectedLanguages[p.langIndex])}`
+                                          }
+                                          aria-label={`Play pronunciation of ${p.phoneme} in ${getLangName(selectedLanguages[p.langIndex])}`}
                                         >
                                           {p.phoneme}
-                                        </span>
+                                        </button>
                                       ))}
                                     </div>
                                   )}
@@ -511,6 +531,11 @@ export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyP
                       </div>
                     )}
                   </div>
+                  {speech.supported && (
+                    <p className="mt-2 text-[11px] text-gray-400">
+                      🔊 Click any phoneme to hear it (synthesized, best-effort).
+                    </p>
+                  )}
                 </Card>
 
                 {/* Vowel Trapezoid Chart */}
@@ -586,8 +611,33 @@ export default function PhonologyPanel({ isOpen, onClose, embedded }: PhonologyP
                         const isSharedVowel =
                           overlapAnalysis && overlapAnalysis.sharedVowels.has(v.phoneme);
 
+                        const vowelLangId = selectedLanguages[v.langIndex];
                         return (
-                          <g key={`${v.phoneme}-${v.langIndex}-${i}`}>
+                          <g
+                            key={`${v.phoneme}-${v.langIndex}-${i}`}
+                            role={speech.supported ? "button" : undefined}
+                            tabIndex={speech.supported ? 0 : undefined}
+                            aria-label={`Play pronunciation of ${v.phoneme} in ${getLangName(vowelLangId)}`}
+                            style={{ cursor: speech.supported ? "pointer" : "default" }}
+                            onClick={
+                              speech.supported
+                                ? () => playPhoneme(v.phoneme, vowelLangId)
+                                : undefined
+                            }
+                            onKeyDown={
+                              speech.supported
+                                ? (e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      playPhoneme(v.phoneme, vowelLangId);
+                                    }
+                                  }
+                                : undefined
+                            }
+                          >
+                            {speech.supported && (
+                              <title>{`Play ${v.phoneme} — ${getLangName(vowelLangId)}`}</title>
+                            )}
                             {isSharedVowel && (
                               <circle
                                 cx={xPos}

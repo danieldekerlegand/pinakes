@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import VisualizationRecommendations from "@/components/VisualizationRecommendations";
+import IpaAudioButton from "@/components/IpaAudioButton";
 import {
   Languages,
   GitCompare,
@@ -293,7 +294,15 @@ export default function WordComparisonPanel({ isOpen, onClose, embedded }: WordC
                                     return [
                                       <td key={`${lang.id}-form`} className="p-2">
                                         {form ? (
-                                          <span className="text-gray-900 dark:text-gray-100">{form}</span>
+                                          <span className="inline-flex items-center gap-1">
+                                            <span className="text-gray-900 dark:text-gray-100">{form}</span>
+                                            <IpaAudioButton
+                                              form={form ?? undefined}
+                                              ipa={ipa ?? undefined}
+                                              lang={lang.iso639_1 ?? undefined}
+                                              label={`${comparison.baseWord} in ${lang.name}`}
+                                            />
+                                          </span>
                                         ) : (
                                           <span className="text-gray-400 dark:text-gray-600 italic">—</span>
                                         )}
