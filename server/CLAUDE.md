@@ -146,6 +146,42 @@ browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` a
   A route test shares one `ChangelogStore` across all three route groups to assert the
   integration end-to-end (approve → GET /api/changelog shows the entry).
 
+## Endangered-language dashboard + field-research — `services/language-preservation.ts` + `routes/language-preservation.ts`
+
+US-010 (this PRD) adds a preservation-status dashboard + an attributed field-update workflow.
+`GET /api/languages/preservation[?watchlistLimit=]` → the dashboard aggregation;
+`POST /api/languages/field-update` → a researcher's structured status/speaker update.
+
+- **The `status` column is free-text and messy** (`living`, `Critically Endangered`,
+  `definiteley endangered` [sic], `vulnerable`, `revitalizing`, blanks). `normalizeStatus(raw)`
+  (pure) maps every observed spelling onto a canonical UNESCO-style **`VitalityLevel`**
+  (`VITALITY_LEVELS` ladder, rank 0 living → 9 extinct), each carrying a coarse
+  `PreservationCategory` (`living | endangered | extinct | unknown`). Unrecognized/blank ⇒
+  `unknown` (never mis-bucketed as living). **Gotcha:** `tsv-storage.getLanguages` defaults a
+  blank `status` cell to `"living"` (`r[idxStatus] ?? "living"`), so live data shows ~0 `unknown`
+  even though the raw TSV has blank rows — `unknown` mostly matters for injected/test data.
+- `computePreservationMetrics(languages, {watchlistLimit=25})` (pure) → `{total, classified,
+  byCategory, vitality[] (ordered by risk, only present levels, with share), endangermentRate
+  (= endangered/(living+endangered)), speakersAtRisk (Σ totalSpeakers in endangered), regions[]
+  (per-region, sorted most-at-risk first), watchlist[] (most-endangered still-spoken langs,
+  highest-rank then fewest-speakers; extinct + unknown excluded)}`. Unit-test directly.
+- **Field-research = a `language` edit contribution + a changelog entry.** `validateFieldUpdate`
+  requires attribution (`researcherName`), ≥1 source, and ≥1 real change (`changedFields`).
+  `buildFieldUpdateContribution` → `Partial<Contribution>` (`entityType:'language'`, `action:'edit'`,
+  `entityData.source='field-research'`+`fieldResearch:true`; single-field changes fill the per-field
+  `fieldName`/`currentValue`/`suggestedValue` triple). It **rides the contribution review pipeline**
+  (queued pending, never a live TSV write). **AC3 design choice:** the route ALSO records the status
+  change in the **shared `ChangelogStore`** at *submission* time (`source:'field-research'`, reviewer =
+  the researcher) so status changes are versioned/browsable immediately — this is distinct from the
+  approve-time `source:'contribution'` entry the standard PATCH review path logs later. Logging is
+  try/catch-wrapped (never fails the submit).
+- **Route** takes injectable `{loadLanguages, contributions, changelog}` (wired with the same shared
+  `changelog` as the other pipelines in `registerRoutes`); tests use an in-memory loader + temp-dir
+  `ContributionService`/`ChangelogStore` (no storage/fs). **400** validation, **404** unknown
+  `languageId` (the route loads languages to enrich name/currentStatus + reject unknown ids). Client
+  entry: the `/endangered-languages` page (`client/src/pages/endangered-languages.tsx`), linked in
+  `AppSidebar` (`ShieldAlert`).
+
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
 
 US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on

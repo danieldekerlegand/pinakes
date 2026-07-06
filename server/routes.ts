@@ -84,6 +84,7 @@ import { registerCommunityVerificationRoutes } from "./routes/community-verifica
 import { registerChangelogRoutes } from "./routes/changelog";
 import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
 import { registerAncestryRoutes } from "./routes/ancestry";
+import { registerLanguagePreservationRoutes } from "./routes/language-preservation";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
@@ -168,6 +169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // haplogroup ids a raw-DNA file was reduced to *in the browser* onto associated
   // languages/cultures/cuisines; raw genotypes never leave the client.
   registerAncestryRoutes(app);
+
+  // Endangered-language dashboard + field-research workflow (/api/languages/preservation,
+  // /api/languages/field-update, US-010) — preservation-status aggregation over the corpus,
+  // plus attributed, sourced field updates that ride the contribution pipeline and are
+  // recorded in the shared changelog. Same `changelog` store as the other pipelines.
+  registerLanguagePreservationRoutes(app, { changelog });
 
   // Collaborative collections routes (/api/collections/*, US-007) — user-curated
   // groups of entities (stable-id references) with soft ownership + URL sharing.

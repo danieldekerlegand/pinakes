@@ -28,6 +28,7 @@ import AncestryPage from "@/pages/ancestry";
 import HypothesesPage from "@/pages/hypotheses";
 import ArHistoryPage from "@/pages/ar-history";
 import ImmersivePage from "@/pages/immersive";
+import EndangeredLanguagesPage from "@/pages/endangered-languages";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -71,6 +72,10 @@ function Router() {
           three-way toggle (flat map / 3D globe fly-through / artifact gallery);
           degrades to the flat map without WebGL2. */}
       <Route path="/immersive" component={ImmersivePage} />
+      {/* Endangered-language dashboard & field-research workflow (US-010) —
+          preservation-status aggregation over the corpus + attributed, sourced field
+          updates that ride the contribution pipeline and are logged to the changelog. */}
+      <Route path="/endangered-languages" component={EndangeredLanguagesPage} />
       <Route component={NotFound} />
     </Switch>
   );

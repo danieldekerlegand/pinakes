@@ -28,6 +28,7 @@ import {
   Dna,
   FlaskConical,
   Globe,
+  ShieldAlert,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -97,6 +98,7 @@ const ROUTE_ITEMS: RouteItem[] = [
   { path: "/ancestry", label: "Ancestry (DNA)", icon: Dna },
   { path: "/hypotheses", label: "Hypotheses", icon: FlaskConical },
   { path: "/immersive", label: "Immersive (3D)", icon: Globe },
+  { path: "/endangered-languages", label: "Endangered Langs", icon: ShieldAlert },
 ];
 
 export function AppSidebar({
