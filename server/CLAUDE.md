@@ -20,6 +20,28 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Data changelog / versioning — `services/changelog.ts` + `routes/changelog.ts`
+
+`GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=` (US-010) is a
+browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` aggregates it.
+
+- **All record-shape / filtering / stats logic is pure** (`changelog.ts`, no fs/clock):
+  `validateChangelogInput`, `makeChangelogEntry(input, id, timestamp)` (trims + drops empty
+  optionals), `withinDateRange` (a **date-only `to` bound is inclusive of the whole day** —
+  `T23:59:59.999Z`), `filterChangelog` (newest-first, NO pagination so callers get the full
+  filtered set for `total`/stats), `paginateChangelog`, `computeChangelogStats`. Unit-test these.
+- **`ChangelogStore`** is the fs boundary — one JSON file per entry under an injectable dir
+  (default **gitignored** `data/changelog/`), same JSON-per-record shape as
+  `contribution-service`/`collections`. `record(input, {id?, now?})` (id/clock injectable for
+  deterministic tests), `list(filters)→{entries,total}`, `all()`, `stats(filters)`.
+- **The pipeline logs approved edits, not raw submissions.** The same store instance is created
+  once in `registerRoutes` and passed as `{changelog}` to BOTH `registerContributionRoutes`
+  (logs an approved `add`→`added` / `edit`→`modified`; flags are not logged) AND
+  `registerAiReviewRoutes` (logs a promotion → `added`, `source:'ai-review'`, with the target
+  TSV file/id + reviewer). Logging is wrapped in try/catch so it **never fails the review**.
+  A route test shares one `ChangelogStore` across all three route groups to assert the
+  integration end-to-end (approve → GET /api/changelog shows the entry).
+
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
 
 US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on

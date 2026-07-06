@@ -78,6 +78,8 @@ import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-a
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
+import { registerChangelogRoutes } from "./routes/changelog";
+import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -115,6 +117,10 @@ import {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
+
+  // Shared data changelog (US-010). One store instance so the contribution +
+  // ai-review pipelines record into the same log that /api/changelog reads.
+  const changelog = new ChangelogStore();
 
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
@@ -186,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // accepts/edits/rejects each field (low-confidence fields flagged), and an
   // approved draft is promoted into lexicons/*.tsv with provenance recording both
   // the AI source and the human reviewer.
-  registerAiReviewRoutes(app);
+  registerAiReviewRoutes(app, { changelog });
 
   // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
   // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
@@ -3054,7 +3060,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Write endpoints (POST /api/contributions, PATCH .../:id/review) are guarded
   // by API-key auth + per-key rate limiting; read endpoints stay open. The
   // OpenAPI spec is published at GET /api/openapi.json. See routes/contributions.ts.
-  registerContributionRoutes(app);
+  registerContributionRoutes(app, { changelog });
+
+  // ============================================================================
+  // Data versioning & changelog (US-010)
+  // ============================================================================
+  // A browsable, filterable audit log of dataset changes. The contribution +
+  // ai-review pipelines record approved edits into the shared `changelog` store
+  // above; GET /api/changelog[/stats] exposes it filterable by domain + date.
+  registerChangelogRoutes(app, { changelog });
 
   // ============================================================================
   // Community verification & culture stewardship (US-012)

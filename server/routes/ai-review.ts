@@ -20,6 +20,7 @@
 import type { Express } from "express";
 import path from "path";
 import { ContributionService } from "../services/contribution-service";
+import { ChangelogStore } from "../services/changelog";
 import {
   applyFieldReviews,
   AiReviewError,
@@ -34,11 +35,14 @@ export interface AiReviewRouteOptions {
   contributions?: ContributionService;
   /** Directory holding `lexicons/*.tsv` (default: repo `lexicons`). */
   lexiconsDir?: string;
+  /** Changelog store — an approved promotion is logged here (US-010). */
+  changelog?: ChangelogStore;
 }
 
 export function registerAiReviewRoutes(app: Express, options: AiReviewRouteOptions = {}): void {
   const contributions = options.contributions ?? new ContributionService();
   const lexiconsDir = options.lexiconsDir ?? path.resolve("lexicons");
+  const changelog = options.changelog ?? new ChangelogStore();
 
   /**
    * GET /api/ai-review?status=pending
@@ -137,6 +141,27 @@ export function registerAiReviewRoutes(app: Express, options: AiReviewRouteOptio
         return res.status(400).json({ message: error.message });
       }
       throw error;
+    }
+
+    // Log the approved edit into the changelog (US-010). A promotion always
+    // appends a new row, so the change type is "added". Never fail the review
+    // if changelog recording throws.
+    try {
+      changelog.record({
+        domain: contribution.entityType,
+        changeType: "added",
+        targetFile: promotion.file,
+        targetId: promotion.targetId,
+        entityName: typeof applied.acceptedData.name === "string" ? applied.acceptedData.name : undefined,
+        source: "ai-review",
+        sourceUrl: contribution.aiSource ?? undefined,
+        contributionId: contribution.id,
+        reviewer: body.reviewer,
+        confidence: contribution.confidence,
+        summary: `Promoted AI draft (${contribution.aiSource ?? "unknown"}) into ${promotion.file}`,
+      });
+    } catch (error) {
+      console.error("Failed to record changelog entry for promotion:", error);
     }
 
     const updated = contributions.recordAiReview(req.params.id, {
