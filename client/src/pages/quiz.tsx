@@ -4,6 +4,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -22,10 +24,37 @@ import {
   RotateCcw,
   ChevronRight,
   Lightbulb,
+  Flame,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
+import {
+  addResult,
+  browserStorage,
+  categoryMastery,
+  clearHistory as clearQuizHistory,
+  loadAutoScale,
+  loadHistory,
+  newResultId,
+  overallStats,
+  saveAutoScale,
+  suggestDifficulty,
+  type QuizResult,
+} from "@/lib/quiz-progress";
 
 type Difficulty = "easy" | "medium" | "hard";
 type QuizCategory = "languages" | "families" | "grammar" | "writing_systems" | "geography" | "cuisine" | "civilizations" | "mixed";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  languages: "Languages",
+  families: "Language Families",
+  grammar: "Grammar",
+  writing_systems: "Writing Systems",
+  geography: "Geography",
+  cuisine: "Cuisine & Dishes",
+  civilizations: "Civilizations (Chronology)",
+  mixed: "Mixed (All Categories)",
+};
 
 interface QuizQuestion {
   id: string;
@@ -510,6 +539,120 @@ function QuizResults({
   );
 }
 
+// --- Progress / streaks view ---
+
+function StatTile({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="bg-gray-800/60 rounded-lg p-3 text-center">
+      <div className={`text-2xl font-bold ${accent ?? "text-white"}`}>{value}</div>
+      <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function ProgressPanel({
+  history,
+  onClear,
+}: {
+  history: QuizResult[];
+  onClear: () => void;
+}) {
+  if (history.length === 0) return null;
+
+  const stats = overallStats(history, Date.now());
+  const mastery = categoryMastery(history);
+  const recent = history.slice(0, 5);
+
+  const formatDate = (ts: number) =>
+    new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+  return (
+    <Card className="bg-gray-900 border-gray-700 p-6 space-y-6 mt-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-lg font-semibold text-white">Your Progress</h2>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClear}
+          className="text-gray-500 hover:text-red-400"
+        >
+          <Trash2 className="w-3.5 h-3.5 mr-1" />
+          Clear
+        </Button>
+      </div>
+
+      {/* Streaks + headline stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatTile
+          label="Day streak"
+          value={`${stats.dayStreak}🔥`}
+          accent="text-orange-400"
+        />
+        <StatTile label="Win streak" value={`${stats.winStreak}`} accent="text-green-400" />
+        <StatTile label="Accuracy" value={`${stats.accuracyPct}%`} accent="text-blue-400" />
+        <StatTile label="Quizzes" value={`${stats.attempts}`} />
+      </div>
+
+      {/* Per-category mastery */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-300 mb-2">Category Mastery</h3>
+        <div className="space-y-2">
+          {mastery.map((m) => (
+            <div key={m.category} className="flex items-center gap-3">
+              <span className="text-sm text-gray-300 w-40 truncate">
+                {CATEGORY_LABELS[m.category] || m.category}
+              </span>
+              <div className="flex-1">
+                <Progress value={m.accuracyPct} className="h-2" />
+              </div>
+              <span className="text-xs text-gray-400 w-24 text-right">
+                {m.accuracyPct}% · {m.attempts} play{m.attempts === 1 ? "" : "s"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent history */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-300 mb-2">Recent Quizzes</h3>
+        <div className="space-y-1">
+          {recent.map((r) => {
+            const pct = r.total > 0 ? Math.round((r.correct / r.total) * 100) : 0;
+            return (
+              <div
+                key={r.id}
+                className="flex items-center justify-between text-sm py-1.5 px-2 rounded bg-gray-800/40"
+              >
+                <span className="text-gray-300 truncate">
+                  {CATEGORY_LABELS[r.category] || r.category}
+                </span>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <span className="text-xs text-gray-500 capitalize">{r.difficulty}</span>
+                  <span className="text-xs text-gray-500">{formatDate(r.timestamp)}</span>
+                  <Badge
+                    variant="outline"
+                    className={
+                      pct >= 60
+                        ? "border-green-600 text-green-400"
+                        : "border-red-600 text-red-400"
+                    }
+                  >
+                    {r.correct}/{r.total}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // --- Main page ---
 
 export default function QuizPage() {
@@ -520,6 +663,27 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<AnswerResult[]>([]);
   const [finished, setFinished] = useState(false);
+  const [history, setHistory] = useState<QuizResult[]>(() => loadHistory(browserStorage()));
+  const [autoScale, setAutoScale] = useState<boolean>(() => loadAutoScale(browserStorage()));
+
+  // Adaptive difficulty: when enabled, recompute the suggested difficulty from
+  // recent performance whenever the category, history, or toggle changes.
+  useEffect(() => {
+    if (!autoScale) return;
+    setDifficulty((cur) =>
+      suggestDifficulty(history, cur, category === "mixed" ? undefined : category),
+    );
+  }, [autoScale, category, history]);
+
+  const handleToggleAutoScale = (enabled: boolean) => {
+    setAutoScale(enabled);
+    saveAutoScale(browserStorage(), enabled);
+  };
+
+  const handleClearHistory = () => {
+    clearQuizHistory(browserStorage());
+    setHistory([]);
+  };
 
   const { data: session, isLoading, refetch } = useQuery<QuizSession>({
     queryKey: ["/api/quiz", { count: questionCount, category, difficulty }],
@@ -539,12 +703,28 @@ export default function QuizPage() {
   const questions = session?.questions || [];
   const currentQuestion = questions[currentIndex];
 
+  const persistResult = (finalResults: AnswerResult[]) => {
+    const total = finalResults.length;
+    if (total === 0) return;
+    const correctCount = finalResults.filter((r) => r.correct).length;
+    const result: QuizResult = {
+      id: newResultId(),
+      category: session?.category ?? category,
+      difficulty: (session?.difficulty ?? difficulty) as Difficulty,
+      correct: correctCount,
+      total,
+      timestamp: Date.now(),
+    };
+    setHistory(addResult(browserStorage(), result));
+  };
+
   const handleAnswer = (correct: boolean, selected: unknown) => {
     const newResults = [...results, { correct, selectedAnswer: selected }];
     setResults(newResults);
 
     if (currentIndex + 1 >= questions.length) {
       setFinished(true);
+      persistResult(newResults);
     } else {
       setCurrentIndex(currentIndex + 1);
     }
@@ -609,7 +789,11 @@ export default function QuizPage() {
 
             <div>
               <label className="text-sm text-gray-400 mb-2 block">Difficulty</label>
-              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+              <Select
+                value={difficulty}
+                onValueChange={(v) => setDifficulty(v as Difficulty)}
+                disabled={autoScale}
+              >
                 <SelectTrigger className="bg-gray-800 border-gray-600">
                   <SelectValue />
                 </SelectTrigger>
@@ -619,6 +803,30 @@ export default function QuizPage() {
                   <SelectItem value="hard">Hard</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="flex items-center justify-between mt-3">
+                <label
+                  htmlFor="adaptive-difficulty"
+                  className="text-sm text-gray-400 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  Adaptive difficulty
+                  {autoScale && (
+                    <span className="text-xs text-purple-300 capitalize">
+                      (→ {difficulty})
+                    </span>
+                  )}
+                </label>
+                <Switch
+                  id="adaptive-difficulty"
+                  checked={autoScale}
+                  onCheckedChange={handleToggleAutoScale}
+                />
+              </div>
+              {autoScale && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Difficulty adjusts automatically based on your recent scores.
+                </p>
+              )}
             </div>
 
             <div>
@@ -641,6 +849,8 @@ export default function QuizPage() {
               Start Quiz
             </Button>
           </Card>
+
+          <ProgressPanel history={history} onClear={handleClearHistory} />
         </div>
       </div>
     );
@@ -686,6 +896,18 @@ export default function QuizPage() {
             </Link>
           </div>
           <QuizResults results={results} questions={questions} onRestart={handleRestart} />
+          {history.length > 0 && (
+            <div className="flex items-center justify-center gap-4 mt-6 text-sm">
+              <span className="flex items-center gap-1.5 text-orange-400">
+                <Flame className="w-4 h-4" />
+                {overallStats(history, Date.now()).dayStreak}-day streak
+              </span>
+              <span className="text-gray-500">·</span>
+              <span className="text-gray-400">
+                {history.length} quiz{history.length === 1 ? "" : "zes"} completed
+              </span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -693,15 +915,6 @@ export default function QuizPage() {
 
   // Active question
   const progressPct = ((currentIndex) / questions.length) * 100;
-  const categoryLabel: Record<string, string> = {
-    languages: "Languages",
-    families: "Language Families",
-    grammar: "Grammar",
-    writing_systems: "Writing Systems",
-    geography: "Geography",
-    cuisine: "Cuisine & Dishes",
-    civilizations: "Civilizations (Chronology)",
-  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -725,7 +938,7 @@ export default function QuizPage() {
           <Card className="bg-gray-900 border-gray-700 p-6 space-y-6">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span className="px-2 py-0.5 rounded bg-gray-800">
-                {categoryLabel[currentQuestion.category] || currentQuestion.category}
+                {CATEGORY_LABELS[currentQuestion.category] || currentQuestion.category}
               </span>
               <span className="px-2 py-0.5 rounded bg-gray-800 capitalize">
                 {currentQuestion.difficulty}
