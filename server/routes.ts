@@ -61,6 +61,7 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
+import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerSummaryRoutes } from "./routes/summaries";
 import { registerCitationRoutes } from "./routes/citations";
@@ -127,6 +128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
+
+  // AI "explain the connection" narrative route (POST /api/graph/explain, US-005) —
+  // traverse the shared graph + Datalog between two entities and generate a sourced,
+  // AI-labelled narrative of how they are connected.
+  registerConnectionNarrativeRoutes(app);
 
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
   // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.

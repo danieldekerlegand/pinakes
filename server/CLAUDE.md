@@ -20,6 +20,41 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
+
+`POST /api/graph/explain` (US-005) explains how two entities are connected: it finds the
+shortest connecting path in the shared graph, augments it with Datalog inference, and asks
+the **existing Gemini client** to write a short, **sourced** narrative. Backend-only (no UI
+required by the ACs), same graceful-degradation contract as `/api/graph/*`.
+
+- **`graph-store.findPath(fromCsid, toCsid, maxLength=4)`** (new) returns a `GraphPath`
+  (`{from,to,nodes[],edges[],length}`) via Cypher `shortestPath`, ordered from → to; `null`
+  for no path OR a missing endpoint (one query — the route resolves refs first, so a null is
+  reported as "no connection"). `clampPathLength` bounds 1..6. Same fake-driver test harness
+  as the other queries (`nodes(p)`/`relationships(p)` projected via a `csidByElementId` map).
+- **The narrative core is pure + injectable** (`connection-narrative.ts`, no fs/express):
+  `extractPathEvidence(path)` lifts each edge into oriented, provenance-bearing
+  `ConnectionEvidence` (source/source_url/confidence read from edge `weight` then props);
+  `pathConfidence(evidence)` = **product** of per-edge confidences (unweighted edges get a
+  0.7 neutral prior); `buildNarrativePrompt(...)` hands the LLM **only** the evidence and
+  forbids fabrication; `factsToEvidence` renders Datalog rows. `explainConnection(from, to,
+  deps)` orchestrates over injectable `{findPath, llm, inferFacts?}`.
+- **Honesty is structural (AC3):** when there is **no path AND no inferred fact**, the LLM is
+  **never called** — the result is a non-AI `{connected:false, aiGenerated:false}` "no
+  connection found" message. Low aggregate confidence sets `lowConfidence` (< 0.4) so the UI
+  can hedge. `aiGenerated` is only `true` when the prose actually came from the model.
+- **Datalog inference is best-effort + degrades to `[]`.** The route's default `inferFacts`
+  asks the sidecar's `/datalog` console whether the two csids are related by `ancestor`
+  (both directions); any failure (sidecar down, no SWI-Prolog, lint error) is swallowed —
+  `explainConnection` also wraps it in `safeInfer`. The graph path is the primary evidence.
+- **Route** takes injectable `{resolver, findPath, llm, inferFacts}` so tests run with no
+  live Neo4j / model / sidecar (real `express()` + `app.listen(0)`). Each endpoint in the
+  body is a `{csid}` **or** an entity ref `{type,id?,name?,region?}` resolved via
+  `getGraphResolver()`. **400** unresolvable ref / same-entity / no csid-or-type; **503**
+  `{available:false}` on `GraphUnavailableError`; **502** when the model fails after a path
+  was found. `liveNarrativeLlm` mirrors the text-extractor Gemini pattern (`GEMINI_MODEL`,
+  `responseSchema`, `JSON.parse(result.response.text())`).
+
 ## Data changelog / versioning — `services/changelog.ts` + `routes/changelog.ts`
 
 `GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=` (US-010) is a
