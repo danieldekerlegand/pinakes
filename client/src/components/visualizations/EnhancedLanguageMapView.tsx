@@ -65,6 +65,16 @@ import {
   selectRoutesForHypothesis,
   partitionRoutes,
 } from '../../lib/visualization/urheimat-hypotheses';
+import { CounterfactualTradeRoutesLayer } from './map-layers/CounterfactualTradeRoutesLayer';
+import { CounterfactualTradeRoutesControl } from './map-layers/CounterfactualTradeRoutesControl';
+import {
+  loadCounterfactualRoutes,
+  toggleCounterfactualRoute,
+  selectAllCounterfactualRoutes,
+  clearCounterfactualRoutes,
+  activeCounterfactualRoutes,
+  routeAppliesAtYear,
+} from '../../lib/visualization/counterfactual-trade-routes';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
 import type { SettlementFeature } from './map-layers/SettlementsLayer';
 import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
@@ -369,6 +379,25 @@ export function EnhancedLanguageMapView({
     restoreHypothesisLayers();
     setActiveHypothesisId(null);
   }, [restoreHypothesisLayers]);
+
+  // Counterfactual trade routes (US-003) — speculative "what-if economic geography"
+  // overlays, a SEPARATE dataset from the real trade routes, toggled independently.
+  const counterfactualRoutes = useMemo(() => loadCounterfactualRoutes(), []);
+  const [activeCounterfactualIds, setActiveCounterfactualIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  const handleToggleCounterfactual = useCallback((id: string) => {
+    setActiveCounterfactualIds((prev) => toggleCounterfactualRoute(prev, id));
+  }, []);
+
+  const handleSelectAllCounterfactual = useCallback(() => {
+    setActiveCounterfactualIds(selectAllCounterfactualRoutes(counterfactualRoutes));
+  }, [counterfactualRoutes]);
+
+  const handleClearCounterfactual = useCallback(() => {
+    setActiveCounterfactualIds(clearCounterfactualRoutes());
+  }, []);
 
   const handleStoryNavigate = useCallback((center: [number, number], zoom: number) => {
     setFlyTarget({ center, zoom });
@@ -1621,6 +1650,16 @@ export function EnhancedLanguageMapView({
           <WhatIfScenarioLayer scenario={activeScenario} opacity={0.5} />
         )}
 
+        {/* Counterfactual Trade Routes (US-003) — speculative, separate from real routes */}
+        {activeCounterfactualIds.size > 0 && (
+          <CounterfactualTradeRoutesLayer
+            routes={activeCounterfactualRoutes(counterfactualRoutes, activeCounterfactualIds).filter(
+              (r) => routeAppliesAtYear(r, currentYear),
+            )}
+            opacity={0.85}
+          />
+        )}
+
         {/* Measurement Layer */}
         <MeasurementLayer measurement={measurementTool} />
 
@@ -1854,6 +1893,15 @@ export function EnhancedLanguageMapView({
         activeHypothesisId={activeHypothesisId}
         onSelectHypothesis={handleSelectHypothesis}
         onClear={handleClearHypothesis}
+      />
+
+      {/* Counterfactual trade-route overlays (US-003) */}
+      <CounterfactualTradeRoutesControl
+        routes={counterfactualRoutes}
+        activeRouteIds={activeCounterfactualIds}
+        onToggleRoute={handleToggleCounterfactual}
+        onSelectAll={handleSelectAllCounterfactual}
+        onClear={handleClearCounterfactual}
       />
 
       {/* Export Map Image */}

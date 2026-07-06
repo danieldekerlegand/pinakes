@@ -1,0 +1,63 @@
+{
+  "routes": [
+    {
+      "id": "cf-silk-road-to-the-americas",
+      "name": "Silk Road to the Americas",
+      "summary": "A counterfactual maritime extension of the Silk Road across the Pacific, linking Tang/Song China directly to Mesoamerica centuries before Columbus.",
+      "premise": "What if trans-Pacific navigation had matured a millennium early, carrying silk and porcelain to the Maya and Mexica in exchange for cacao, maize and turquoise?",
+      "goods": ["silk", "porcelain", "cacao", "maize", "turquoise"],
+      "timeRange": { "start": 700, "end": 1400 },
+      "path": [
+        [121.5, 31.2],
+        [140.0, 35.0],
+        [170.0, 40.0],
+        [-160.0, 30.0],
+        [-124.0, 40.0],
+        [-105.0, 23.0],
+        [-89.6, 19.4]
+      ],
+      "sources": [
+        "Speculative educational overlay — not a historical trade route.",
+        "Menzies, G. (2002). 1421: The Year China Discovered the World (a contested popular hypothesis)."
+      ]
+    },
+    {
+      "id": "cf-trans-saharan-to-brazil",
+      "name": "Trans-Atlantic Gold Route",
+      "summary": "A counterfactual continuation of the Trans-Saharan gold trade across the Atlantic from the Mali Empire to the South American coast.",
+      "premise": "What if Mansa Musa's rumoured Atlantic fleets had reached Brazil, extending the West African gold-and-salt economy into the New World?",
+      "goods": ["gold", "salt", "kola nuts", "brazilwood"],
+      "timeRange": { "start": 1200, "end": 1500 },
+      "path": [
+        [-8.0, 12.6],
+        [-17.5, 14.7],
+        [-30.0, 5.0],
+        [-40.0, -5.0],
+        [-43.2, -22.9]
+      ],
+      "sources": [
+        "Speculative educational overlay — not a historical trade route.",
+        "Based on the disputed traditions of Abu Bakr II's Atlantic expeditions."
+      ]
+    },
+    {
+      "id": "cf-polar-amber-road",
+      "name": "Polar Amber Road",
+      "summary": "A counterfactual Arctic trade corridor linking Baltic amber producers to Siberian and North Pacific networks over an ice-free polar route.",
+      "premise": "What if a warmer early-medieval Arctic had opened a navigable polar road, tying Norse, Finno-Ugric and Siberian traders into one amber-and-fur network?",
+      "goods": ["amber", "furs", "walrus ivory", "iron"],
+      "timeRange": { "start": 800, "end": 1200 },
+      "path": [
+        [19.0, 54.4],
+        [30.0, 64.0],
+        [60.0, 71.0],
+        [100.0, 74.0],
+        [140.0, 72.0],
+        [160.0, 68.0]
+      ],
+      "sources": [
+        "Speculative educational overlay — not a historical trade route."
+      ]
+    }
+  ]
+}
