@@ -20,6 +20,44 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
+
+US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on
+top of the contribution queue. Endpoints (all open, unguarded):
+`POST /api/contributions/:id/confirm` (independent confirmation),
+`GET /api/contributions/:id/verification`, `GET /api/stewardship[?domain=]`,
+`POST /api/stewardship/adopt`, `POST /api/stewardship/release`.
+
+- **The threshold logic is pure** in `community-verification.ts` (no fs/clock/express;
+  the ACs require tests for it → `community-verification.test.ts`). `addConfirmation`
+  **dedups by reviewer** (`reviewerKey` = trim+lowercase — repeated confirmations are
+  no-ops; independence is the point). A contribution is **verified** once
+  `distinctReviewers >= requiredConfirmations`, where `requiredConfirmations` drops
+  from `threshold` (default 3) to `stewardThreshold` (default 1) **once any steward of
+  the domain confirms** — so a domain steward can verify single-handedly.
+  `computeConfidence` ramps from the base toward `VERIFIED_CONFIDENCE=99` with
+  progress and **never lowers** the base. Config via `loadVerificationConfig(env)`
+  (`VERIFICATION_THRESHOLD` / `VERIFICATION_STEWARD_THRESHOLD`; steward clamped ≤ full).
+- **`ContributionService.confirm(id, {reviewer,isSteward,domain,config,now})`** is the
+  persistence/orchestration boundary: preserves the pre-confirmation confidence in a new
+  optional `baseConfidence` field (so recompute is **idempotent** — don't recompute off
+  the already-mutated `confidence`), sets `confidence`, and on verify flips
+  `status→approved` + `verified`/`verifiedAt` and records `stewardAttribution`. **Rejects
+  self-confirmation** (reviewer === `contributorName`) and dedup (`added:false`+`reason`).
+- **Stewardship** (`stewardship.ts`): pure model (`adoptDomain`/`releaseDomain`/
+  `isStewardOf`/`stewardsForDomain`, `now` a param, idempotent adopt) + a
+  `StewardshipStore` persisting **one `stewards.json`** under an injectable dir (default
+  `data/stewardship`) — same JSON-on-disk shape as collections. Domains are normalized
+  kebab (`normalizeDomain`); `resolveContributionDomain(c)` maps a contribution → its
+  domain (explicit `entityData.culturalDomain` → civilization `name` → entityType).
+- **Route** takes injectable `{contributions, stewards, config, now}`; it resolves the
+  contribution's domain, checks `stewards.isSteward(reviewer, domain)`, and passes
+  `isSteward` into `confirm`. Confirm status codes: **200** ok, **400** missing reviewer
+  / self-confirm, **404** unknown, **409** duplicate reviewer. Client entry: a "Confirm"
+  button + verification badges in the Review tab of
+  `client/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
+  (adopt-a-culture form + list).
+
 ## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
 
 The contribution endpoints (previously inline in `routes.ts`) now live in

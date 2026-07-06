@@ -42,6 +42,26 @@ interface Contribution {
   fieldName?: string;
   currentValue?: string;
   suggestedValue?: string;
+  // Community verification (US-012)
+  confirmations?: { reviewer: string; confirmedAt: string; isSteward?: boolean }[];
+  verified?: boolean;
+  stewardAttribution?: { steward: string; domain: string }[];
+}
+
+interface VerificationState {
+  distinctReviewers: number;
+  required: number;
+  verified: boolean;
+  confidence: number;
+  stewardConfirmed: boolean;
+  stewards: string[];
+}
+
+interface StewardAdoption {
+  steward: string;
+  domain: string;
+  adoptedAt: string;
+  note?: string;
 }
 
 interface ContributionStats {
@@ -384,11 +404,17 @@ function ContributionForm({ onSuccess }: { onSuccess?: () => void }) {
 function ReviewQueue() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('pending');
+  const [reviewer, setReviewer] = useState('');
 
   const { data, isLoading } = useQuery<{ contributions: Contribution[]; total: number }>({
     queryKey: ['/api/contributions', { status: statusFilter }],
     staleTime: 10 * 1000,
   });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/contributions'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/contributions/stats'] });
+  };
 
   const reviewMutation = useMutation({
     mutationFn: async ({ id, decision, note }: { id: string; decision: string; note?: string }) => {
@@ -399,14 +425,40 @@ function ReviewQueue() {
       });
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/contributions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/contributions/stats'] });
+    onSuccess: invalidate,
+  });
+
+  // Independent confirmation (US-012 multi-confirmation).
+  const confirmMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/contributions/${id}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewer: reviewer.trim() || 'anonymous' }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Confirmation failed');
+      return json as { verification: VerificationState };
     },
+    onSuccess: invalidate,
   });
 
   return (
     <div className="space-y-3">
+      {/* Reviewer identity for independent confirmations */}
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-medium text-gray-600 shrink-0" htmlFor="cv-reviewer">
+          Reviewing as
+        </label>
+        <Input
+          id="cv-reviewer"
+          value={reviewer}
+          onChange={(e) => setReviewer(e.target.value)}
+          placeholder="your name (for confirmations)"
+          className="h-8 max-w-xs text-sm"
+        />
+      </div>
+
       {/* Filter tabs */}
       <div className="flex gap-2">
         {['pending', 'approved', 'rejected', 'all'].map((s) => (
@@ -505,9 +557,46 @@ function ReviewQueue() {
                 </p>
               )}
 
+              {/* Multi-confirmation progress (US-012) */}
+              {(() => {
+                const count = contrib.confirmations?.length ?? 0;
+                if (count === 0 && !contrib.verified) return null;
+                const hasSteward = (contrib.confirmations ?? []).some((c) => c.isSteward);
+                return (
+                  <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
+                    <Badge
+                      variant="outline"
+                      className={contrib.verified ? 'border-green-300 text-green-700' : ''}
+                    >
+                      {contrib.verified
+                        ? `Verified (${count} confirmation${count === 1 ? '' : 's'})`
+                        : `${count} confirmation${count === 1 ? '' : 's'}`}
+                    </Badge>
+                    {hasSteward && (
+                      <Badge className="bg-purple-600 text-white">steward-confirmed</Badge>
+                    )}
+                    {(contrib.stewardAttribution ?? []).length > 0 && (
+                      <span className="text-gray-500">
+                        stewards: {(contrib.stewardAttribution ?? []).map((s) => s.steward).join(', ')}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Review actions */}
               {contrib.status === 'pending' && (
-                <div className="flex gap-2 mt-2 pt-2 border-t">
+                <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => confirmMutation.mutate(contrib.id)}
+                    disabled={confirmMutation.isPending}
+                    title="Independently confirm — N distinct reviewers verify a contribution before it goes live"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Confirm
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -540,6 +629,136 @@ function ReviewQueue() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Stewardship — "adopt a culture" (US-012)
+// ============================================================================
+
+function StewardshipTab() {
+  const queryClient = useQueryClient();
+  const [steward, setSteward] = useState('');
+  const [domain, setDomain] = useState('');
+  const [error, setError] = useState('');
+
+  const { data } = useQuery<{ adoptions: StewardAdoption[]; total: number }>({
+    queryKey: ['/api/stewardship'],
+    staleTime: 15 * 1000,
+  });
+
+  const adoptMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/stewardship/adopt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ steward: steward.trim(), domain: domain.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Adoption failed');
+      return json;
+    },
+    onSuccess: () => {
+      setDomain('');
+      setError('');
+      queryClient.invalidateQueries({ queryKey: ['/api/stewardship'] });
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const releaseMutation = useMutation({
+    mutationFn: async (a: StewardAdoption) => {
+      await fetch('/api/stewardship/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ steward: a.steward, domain: a.domain }),
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/stewardship'] }),
+  });
+
+  const adoptions = data?.adoptions ?? [];
+
+  return (
+    <div className="space-y-4 max-w-lg">
+      <div>
+        <h3 className="font-semibold text-lg mb-1">Adopt a Culture</h3>
+        <p className="text-sm text-gray-500">
+          Stewards adopt a cultural domain (a culture, region, or entity type). A steward's
+          confirmation carries extra weight — it can verify a contribution in that domain on its
+          own, so data quality scales with domain expertise.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">Steward name</label>
+          <Input value={steward} onChange={(e) => setSteward(e.target.value)} placeholder="your name" />
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">Cultural domain</label>
+          <Input
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            placeholder="e.g., Maya, Roman Empire, language"
+          />
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-600 flex items-center gap-1">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" /> {error}
+        </p>
+      )}
+
+      <Button
+        onClick={() => {
+          if (!steward.trim() || !domain.trim()) {
+            setError('Steward and domain are required');
+            return;
+          }
+          adoptMutation.mutate();
+        }}
+        disabled={adoptMutation.isPending}
+      >
+        {adoptMutation.isPending ? (
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        ) : (
+          <Plus className="h-4 w-4 mr-2" />
+        )}
+        Adopt domain
+      </Button>
+
+      <div className="border-t pt-3">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Current stewards ({adoptions.length})</h4>
+        {adoptions.length === 0 ? (
+          <p className="text-sm text-gray-500">No domains adopted yet.</p>
+        ) : (
+          <div className="space-y-1">
+            {adoptions.map((a) => (
+              <div
+                key={`${a.steward}:${a.domain}`}
+                className="flex items-center justify-between gap-2 border rounded-md px-3 py-1.5 text-sm bg-white"
+              >
+                <span>
+                  <span className="font-medium">{a.steward}</span>{' '}
+                  <Badge variant="outline" className="text-xs">{a.domain}</Badge>
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700 h-7"
+                  onClick={() => releaseMutation.mutate(a)}
+                  disabled={releaseMutation.isPending}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -595,7 +814,7 @@ export function ContributionPanel() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-2 mx-4 mt-4" style={{ maxWidth: '300px' }}>
+        <TabsList className="grid w-full grid-cols-3 mx-4 mt-4" style={{ maxWidth: '440px' }}>
           <TabsTrigger value="submit" className="flex items-center gap-1.5">
             <Plus className="h-4 w-4" />
             Contribute
@@ -608,6 +827,10 @@ export function ContributionPanel() {
                 {stats.pending}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="stewardship" className="flex items-center gap-1.5">
+            <CheckCircle2 className="h-4 w-4" />
+            Stewardship
           </TabsTrigger>
         </TabsList>
 
@@ -633,8 +856,18 @@ export function ContributionPanel() {
                 <h3 className="font-semibold text-lg mb-1">Review Dashboard</h3>
                 <p className="text-sm text-gray-500 mb-4">
                   Review pending contributions. Per-field edits show the specific change proposed.
+                  Independent confirmations from distinct reviewers verify a contribution before it
+                  goes live.
                 </p>
                 <ReviewQueue />
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="stewardship" className="mt-0 h-full">
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <StewardshipTab />
               </div>
             </ScrollArea>
           </TabsContent>

@@ -13,3 +13,5 @@ export/culturescrape/
 data/collections/
 # US-008 user annotations — user runtime data (JSON per annotation)
 data/annotations/
+# US-012 culture stewardship — user runtime data (stewards.json)
+data/stewardship/

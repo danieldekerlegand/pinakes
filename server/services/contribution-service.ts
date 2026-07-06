@@ -8,6 +8,16 @@
 
 import fs from "fs";
 import path from "path";
+import {
+  addConfirmation,
+  computeConfidence,
+  isVerified,
+  summarizeVerification,
+  DEFAULT_VERIFICATION_CONFIG,
+  type Confirmation,
+  type VerificationConfig,
+  type VerificationState,
+} from "./community-verification";
 
 // ============================================================================
 // Types
@@ -83,6 +93,17 @@ export interface Contribution {
     reviewer: string;
     reviewedAt: string;
   };
+
+  // Community verification (US-012). Independent confirmations from distinct
+  // reviewers raise `confidence` and, once the threshold is met, verify the
+  // contribution (`verified`/`verifiedAt`, status → approved). `baseConfidence`
+  // preserves the pre-confirmation confidence so recomputation is idempotent;
+  // `stewardAttribution` records which steward(s) of the domain vouched.
+  confirmations?: Confirmation[];
+  baseConfidence?: number;
+  verified?: boolean;
+  verifiedAt?: string;
+  stewardAttribution?: { steward: string; domain: string }[];
 }
 
 export interface ContributionFilters {
@@ -383,6 +404,100 @@ export class ContributionService {
 
     this.save(contribution);
     return contribution;
+  }
+
+  /**
+   * Record an independent confirmation from a distinct reviewer (US-012).
+   *
+   * Each confirmation raises the contribution's confidence (ramping from the
+   * preserved `baseConfidence`) and, once enough distinct reviewers agree, marks
+   * the contribution `verified` and approves it. A steward of the contribution's
+   * domain lowers the required-reviewer bar; their attribution is recorded with
+   * provenance. Dedups repeated confirmations and rejects self-confirmation.
+   *
+   * Returns `null` for an unknown id; otherwise the updated contribution and its
+   * verification state, plus `added:false`/`reason` when the confirmation was a
+   * no-op (duplicate reviewer or self-confirmation).
+   */
+  confirm(
+    id: string,
+    input: {
+      reviewer: string;
+      isSteward?: boolean;
+      domain?: string;
+      note?: string;
+      config?: VerificationConfig;
+      now?: string;
+    },
+  ):
+    | { contribution: Contribution; verification: VerificationState; added: boolean; reason?: string }
+    | null {
+    const contribution = this.get(id);
+    if (!contribution) return null;
+
+    const config = input.config ?? DEFAULT_VERIFICATION_CONFIG;
+    const now = input.now ?? new Date().toISOString();
+    const base = contribution.baseConfidence ?? contribution.confidence;
+    contribution.baseConfidence = base;
+    const existing = contribution.confirmations ?? [];
+
+    // Reject self-confirmation — independence is the point.
+    if (
+      contribution.contributorName &&
+      contribution.contributorName.trim().toLowerCase() === input.reviewer.trim().toLowerCase()
+    ) {
+      return {
+        contribution,
+        verification: summarizeVerification(base, existing, config),
+        added: false,
+        reason: "self",
+      };
+    }
+
+    const result = addConfirmation(existing, {
+      reviewer: input.reviewer.trim(),
+      confirmedAt: now,
+      isSteward: input.isSteward === true ? true : undefined,
+      domain: input.isSteward ? input.domain : undefined,
+      note: input.note,
+    });
+
+    if (!result.added) {
+      return {
+        contribution,
+        verification: summarizeVerification(base, existing, config),
+        added: false,
+        reason: result.reason,
+      };
+    }
+
+    contribution.confirmations = result.confirmations;
+    contribution.confidence = computeConfidence(base, result.confirmations, config);
+
+    if (isVerified(result.confirmations, config)) {
+      contribution.verified = true;
+      if (!contribution.verifiedAt) contribution.verifiedAt = now;
+      if (contribution.status === "pending") {
+        contribution.status = "approved";
+        contribution.reviewedAt = now;
+      }
+    }
+
+    // Record steward attribution with provenance (each steward's own domain).
+    const stewardConfirmations = result.confirmations.filter((c) => c.isSteward);
+    if (stewardConfirmations.length > 0) {
+      contribution.stewardAttribution = stewardConfirmations.map((c) => ({
+        steward: c.reviewer.trim(),
+        domain: c.domain ?? input.domain ?? "",
+      }));
+    }
+
+    this.save(contribution);
+    return {
+      contribution,
+      verification: summarizeVerification(base, result.confirmations, config),
+      added: true,
+    };
   }
 
   /**

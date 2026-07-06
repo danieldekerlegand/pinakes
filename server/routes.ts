@@ -75,6 +75,7 @@ import { registerAiReviewRoutes } from "./routes/ai-review";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { registerContributionRoutes } from "./routes/contributions";
+import { registerCommunityVerificationRoutes } from "./routes/community-verification";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
@@ -3043,6 +3044,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // by API-key auth + per-key rate limiting; read endpoints stay open. The
   // OpenAPI spec is published at GET /api/openapi.json. See routes/contributions.ts.
   registerContributionRoutes(app);
+
+  // ============================================================================
+  // Community verification & culture stewardship (US-012)
+  // ============================================================================
+  // Multi-confirmation (N distinct reviewers verify a contribution before it
+  // goes live; a domain steward lowers the bar) + an "adopt a culture" ownership
+  // model. See routes/community-verification.ts.
+  registerCommunityVerificationRoutes(app);
 
   // ============================================================================
   // Sample Texts
