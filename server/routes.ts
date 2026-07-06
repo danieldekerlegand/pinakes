@@ -85,6 +85,7 @@ import { registerChangelogRoutes } from "./routes/changelog";
 import { registerDatasetReleaseRoutes } from "./routes/dataset-releases";
 import { registerAncestryRoutes } from "./routes/ancestry";
 import { registerLanguagePreservationRoutes } from "./routes/language-preservation";
+import { registerLivingDatasetRoutes } from "./routes/living-dataset";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { generateDataQualityReport } from "./services/data-quality-scorer";
@@ -3112,6 +3113,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET/POST /api/dataset/release and GET /api/dataset/full; documented in the
   // OpenAPI spec. Default nullDoiMinter keeps DOI minting off without a token.
   registerDatasetReleaseRoutes(app, {
+    changelog,
+    doiMinter: createZenodoDoiMinter(),
+  });
+
+  // ============================================================================
+  // Living dataset: discovery ingestion & DOI snapshots (US-011, speculative)
+  // ============================================================================
+  // The lifecycle layer that keeps the corpus current + citable: a scheduled
+  // discovery-ingestion pass (culture-scrape bulk acquisition → review queue),
+  // an annual versioned-release cadence (reuses the snapshot builder + DOI minter),
+  // and a freshness/versioning status feed. GET /api/living-dataset/status,
+  // POST /api/living-dataset/{ingest,release}. See routes/living-dataset.ts.
+  registerLivingDatasetRoutes(app, {
     changelog,
     doiMinter: createZenodoDoiMinter(),
   });

@@ -99,6 +99,7 @@ const ROUTE_ITEMS: RouteItem[] = [
   { path: "/hypotheses", label: "Hypotheses", icon: FlaskConical },
   { path: "/immersive", label: "Immersive (3D)", icon: Globe },
   { path: "/endangered-languages", label: "Endangered Langs", icon: ShieldAlert },
+  { path: "/living-dataset", label: "Living Dataset", icon: Library },
 ];
 
 export function AppSidebar({

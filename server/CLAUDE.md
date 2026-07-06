@@ -281,6 +281,38 @@ the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI 
   regenerating `docs/openapi.json` — see the OpenAPI note above, else `openapi-spec.test.ts`
   fails.
 
+## Living dataset: discovery ingestion & DOI snapshots — `services/living-dataset.ts` + `routes/living-dataset.ts`
+
+US-011 (speculative PRD) is the **lifecycle layer** that keeps the corpus current + citable.
+It *composes* existing building blocks — it adds no new SPARQL client, snapshot builder, or
+freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (dashboard feed),
+`POST /api/living-dataset/ingest` (scheduled discovery pass), `POST /api/living-dataset/release`
+(mint a versioned DOI snapshot).
+
+- **All decision logic is pure** (`living-dataset.ts`, clock is a param): `computeReleaseCadence`
+  (**annual**, `RELEASE_CADENCE_DAYS=365`; never-released ⇒ due, else next = last + interval) →
+  `{dueNow, nextReleaseDate, daysUntilDue}`; `computeIngestionSchedule(ingestions, now,
+  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors culture-scrape's
+  `orchestrate/schedule.py` `select_stale` idea — an unparseable/absent timestamp ⇒ due);
+  `selectDueDomains`; `currentReleaseFrom` (latest recorded release, else the seed `1.0.0` default).
+- **`LivingDatasetStore`** is the only fs boundary — one `state.json` (`{ingestions, releases}`)
+  under an injectable dir (default the **gitignored** `data/living-dataset/`), same JSON-on-disk
+  shape as the other `data/*` stores; unparseable/missing file ⇒ empty state.
+- **Ingest = scheduled culture-scrape acquisition.** The route reuses `runAcquisitionJob`
+  (`culturescrape-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
+  in the review queue (never a live write), then stamps `store.recordIngestion(domain, now)`. A
+  per-domain runner failure is **collected in `errors[]`, never aborts the pass**. Body:
+  `{domains?, force?, limit?}` (default limit 50); **400** only on an unknown requested domain.
+- **Release = reuse `buildDatasetSnapshot`** (semver from the shared changelog, injectable DOI
+  minter) + `store.recordRelease(...)` so the annual cadence advances. Same version precedence as
+  `dataset-releases.ts` (explicit › changelog-derived › seed).
+- **Route** takes injectable `{store, contributions, runner, doiMinter, changelog, lexiconsDir,
+  now}` — tests drive it with temp-dir stores + a fake runner + fake minter + injected clock (no
+  Python/network/Zenodo). Wired in `registerRoutes` sharing the same `changelog` + a
+  `createZenodoDoiMinter()`. **These endpoints are NOT in `docs/openapi.json`** (the spec-parity
+  test only covers what's declared there — no regen needed). Client entry: the `/living-dataset`
+  page (`client/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
+
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the

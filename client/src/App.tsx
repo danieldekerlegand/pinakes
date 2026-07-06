@@ -29,6 +29,7 @@ import HypothesesPage from "@/pages/hypotheses";
 import ArHistoryPage from "@/pages/ar-history";
 import ImmersivePage from "@/pages/immersive";
 import EndangeredLanguagesPage from "@/pages/endangered-languages";
+import LivingDatasetPage from "@/pages/living-dataset";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 function Router() {
@@ -76,6 +77,10 @@ function Router() {
           preservation-status aggregation over the corpus + attributed, sourced field
           updates that ride the contribution pipeline and are logged to the changelog. */}
       <Route path="/endangered-languages" component={EndangeredLanguagesPage} />
+      {/* Living dataset: discovery ingestion & DOI snapshots (US-011, speculative) —
+          freshness/versioning dashboard, a scheduled culture-scrape ingestion pass
+          (→ review queue), and an annual versioned-release cadence with DOIs. */}
+      <Route path="/living-dataset" component={LivingDatasetPage} />
       <Route component={NotFound} />
     </Switch>
   );
