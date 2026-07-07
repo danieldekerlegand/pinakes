@@ -1,6 +1,10 @@
 node_modules
 dist
 .DS_Store
+# Secrets — never commit (use .env.example as the template). See docs note on rotation.
+.env
+.env.local
+.env.*.local
 server/public
 vite.config.ts.*
 *.tar.gz
