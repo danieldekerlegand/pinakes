@@ -175,7 +175,9 @@ The round trip, with the exact command and artifact at each hop:
   jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus — ingest → reconcile →
   link → Datalog/Neo4j — from the committed fixture export, with a committed manifest
   (`packages/culture-scrape/docs/convergence-manifest.json`) asserted against a fresh build in
-  CI. See [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+  CI. The full operational recipe — build the *live* corpus, load Neo4j, materialize Datalog,
+  smoke-test from the app, plus refresh cadence and the add-a-domain checklist — is the
+  runbook [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
 - **TSV is the source of truth at both ends.** Nothing in the graph is authoritative for a
   human-curated lexicon column — the graph enriches blanks and owns edges (see §10).
 - **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/
@@ -209,6 +211,10 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
 8. **Python side:** if the new node/edge type needs bespoke reconcile/ontology handling, cross-link
    the work under `packages/culture-scrape/` (see §10) — the tabular adapter ingests the new
    `nodes/`/`edges/` files without code changes as long as headers match the canonical schema.
+
+Steps 1–8 map the domain; to then land it in the **live** graph (rebuild the full corpus →
+load Neo4j → materialize Datalog → smoke-test from the app), follow the operational runbook
+[`convergence-build.md` "Add a new domain to the live graph"](../packages/culture-scrape/docs/convergence-build.md).
 
 ## 10. Which side owns which step
 

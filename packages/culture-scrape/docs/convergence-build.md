@@ -1,11 +1,70 @@
-# Reproducible convergence build (US-008)
+# Corpus rebuild & graph-refresh runbook (US-008)
 
-This is the documented, one-command recipe that (re)builds the LinguaScrape-inclusive
-corpus from the committed fixture export — deterministically, offline, and CI-runnable.
-It ties together every earlier convergence step: **ingest → reconcile → link →
-Datalog/Neo4j**. For the design behind each step see
-[`reconcile-linguascrape.md`](reconcile-linguascrape.md) and the repo-root
-[`docs/culturescrape-integration.md`](../../../docs/culturescrape-integration.md).
+This is **the** operational runbook for the LinguaScrape ↔ culture-scrape convergence:
+how to (re)build the merged corpus, load it into Neo4j, materialize the Datalog
+inference layer, and prove the live app talks to the stack — end to end, with the exact
+commands. It also records the **refresh cadence** and the **"add a new domain to the live
+graph" checklist**.
+
+Two audiences read this doc:
+
+- **Just want a deterministic, offline, CI-runnable rebuild?** Run [the one
+  command](#the-one-command) — it (re)builds the corpus from the committed fixture export.
+- **Operating the real, live graph?** Follow [the full pipeline](#the-full-pipeline-at-a-glance)
+  (US-001 → US-005): build the *full* corpus from the live lexicons, load Neo4j, materialize
+  Datalog, and smoke-test from the app.
+
+**Where the pieces are documented** (this runbook stitches them together):
+
+- **Contract** — the shared node/edge schema every step targets:
+  [`docs/canonical-schema.md`](../../../docs/canonical-schema.md).
+- **Design & data flow** — why convergence works this way, plus the round-trip diagram and
+  the "add a new LinguaScrape domain" mapping steps:
+  [`docs/culturescrape-integration.md`](../../../docs/culturescrape-integration.md)
+  (§8 end-to-end data flow, §9 add-a-domain, §10 which side owns which step).
+- **Per-step design** — [`reconcile-linguascrape.md`](reconcile-linguascrape.md) (ingest/merge),
+  [`neo4j.md`](neo4j.md) (load), [`datalog.md`](datalog.md) (inference).
+
+## The full pipeline at a glance
+
+The live-graph refresh is five phases. Each maps to a story and to a detailed section
+below; run them in order. Steps 1–2 are TypeScript at the repo root; steps 3–5 are the
+Python engine under `packages/culture-scrape/` (paths below are relative to that package
+root unless noted). The design-level round trip is
+[`culturescrape-integration.md` §8](../../../docs/culturescrape-integration.md).
+
+| # | Phase | Command | Detail |
+|---|---|---|---|
+| 1 | **Export** the live lexicons → canonical TSV | `npx tsx scripts/export-for-culturescrape.ts` *(repo root)* | [full corpus (US-001)](#the-full-publishable-corpus-us-001) |
+| — | **Reconcile** dry-run (optional preview) | `npx tsx scripts/reconciliation-report.ts` *(repo root)* | [§8](../../../docs/culturescrape-integration.md) |
+| 2 | **Build** the corpus (acquire → normalize → reconcile/link → export) | `uv run culturescrape run jobs/linguascrape-full.yml` | [US-001](#the-full-publishable-corpus-us-001) |
+| — | **Validate + QA** the output | `uv run culturescrape validate out/linguascrape-full/corpus` | [US-001](#the-full-publishable-corpus-us-001) |
+| 3 | **Publish** the versioned artifact (`.tar.gz` + SHA-256 manifest) | `uv run culturescrape package out/linguascrape-full/corpus --out dist --name linguascrape-full-corpus` | [US-001](#the-full-publishable-corpus-us-001) |
+| 4 | **Load** into Neo4j (constraints/indexes + idempotent MERGE) | `uv run culturescrape to-neo4j out/linguascrape-full/corpus --mode loadcsv` | [US-002](#load-the-corpus-into-neo4j-us-002) |
+| — | **Smoke** the load (counts by type) | `uv run culturescrape neo4j-counts` | [US-002](#load-the-corpus-into-neo4j-us-002) |
+| 5 | **Materialize** Datalog inference | `uv run culturescrape datalog-materialize out/linguascrape-full/corpus` | [US-004](#materialize-datalog-inference-at-scale-us-004) |
+| 6 | **Prove** the app talks to the live stack | `npm run dev:full` then `npm run smoke:graph` *(repo root)* | [US-005](#end-to-end-live-graph-smoke-test-us-005) |
+
+The rest of this doc drills into each phase. If you only need a deterministic offline
+rebuild of the small fixture corpus (for CI / a quick sanity check), the next section is
+all you need.
+
+## Refresh cadence
+
+- **On any lexicon or mapping change** that shifts the corpus shape (a new/edited
+  `lexicons/*.tsv` row, a `shared/lexicon-mapping.json` change, a new linker): re-run
+  phases 1–2, then re-sync the committed fingerprints — `docs/convergence-manifest.json`
+  (fixture build) and/or `docs/corpus-release-manifest.json` (full build). The snapshot
+  tests fail in CI otherwise (see [The committed manifest](#the-committed-manifest)).
+- **On a corpus rebuild for the live graph**: run the full pipeline (phases 1–6). The
+  Neo4j load (phase 4) is **idempotent** — `MERGE` on `csid` + `IF NOT EXISTS` constraints
+  mean re-loading never duplicates nodes, so a refresh is always safe to re-run.
+- **Datalog materialization (phase 5) is derived, not stored** — it is recomputed from the
+  corpus each refresh; there is nothing to migrate. Re-sync
+  `docs/datalog-materialization-manifest.json` if the derived counts move.
+- **CI runs the fixture path only** (offline, deterministic): `culturescrape run
+  jobs/linguascrape.yml` + the manifest snapshot test. The full/live path (phases 1–6)
+  needs the live lexicons, Neo4j, and Docker, so it is an operator step, not a CI gate.
 
 ## The one command
 
@@ -286,3 +345,45 @@ When the sidecar is down but Neo4j is up it still probes a node via the Neo4j-ba
 Config: `SMOKE_GRAPH_URL` (default `http://localhost:$PORT`, `PORT` default `3050`)
 and `SMOKE_GRAPH_TIMEOUT_MS` (default `15000`). Type-check the script with
 `npx tsc -p scripts/tsconfig.json`.
+
+## Add a new domain to the live graph
+
+Bringing a new (or newly-relevant) `lexicons/<file>.tsv` into the *live* graph is the
+mapping work in [`culturescrape-integration.md` §9](../../../docs/culturescrape-integration.md)
+followed by one full-pipeline refresh. The checklist:
+
+1. **Map & disposition the file** — add it to
+   [`shared/lexicon-mapping.json`](../../../shared/lexicon-mapping.json) (a `kind` + a
+   canonical `node`/`edge` type) and give every column a disposition, following the naming
+   conventions in [`canonical-schema.md` §6](../../../docs/canonical-schema.md). If it needs a
+   node/edge type that doesn't exist yet, add it to
+   [`shared/canonical-schema.json`](../../../shared/canonical-schema.json) **and** the §1/§2
+   tables in `canonical-schema.md` first. (Full steps: integration §9 items 1–4.)
+2. **Validate the mapping:** `npx vitest run shared/lexicon-mapping.test.ts` — asserts every
+   `lexicons/*.tsv` is accounted for and every referenced column is real.
+3. **Re-export + refresh snapshots:** `npx tsx scripts/export-for-culturescrape.ts`, then
+   `npx tsx scripts/reconciliation-report.ts`; re-sync the committed
+   `docs/culturescrape-export-manifest.json` / `docs/reconciliation-report.json`.
+4. **Run the QA gate:** `npx tsx scripts/convergence-qa.ts` must exit `0` (no schema/id drift).
+5. **Rebuild the corpus** through phases 1–3 above (the tabular adapter ingests the new
+   `nodes/`/`edges/` files with no Python code change as long as the headers match the
+   canonical schema). Re-sync `docs/corpus-release-manifest.json` and, if the fixture shape
+   changed, `docs/convergence-manifest.json`.
+6. **Reload & re-materialize:** phases 4–5 — `to-neo4j --mode loadcsv` (idempotent) then
+   `datalog-materialize`. New `:LABEL`s are picked up automatically (per-label constraints are
+   derived from the corpus's `:LABEL` cells — see [US-002](#load-the-corpus-into-neo4j-us-002)).
+7. **Prove it end-to-end:** phase 6 — `npm run smoke:graph` against the running stack; search
+   should now return hits for the new domain and its node/neighborhood resolve.
+8. **Python-side handling (only if needed):** bespoke reconcile/ontology logic for the new type
+   lives under `packages/culture-scrape/` — see integration §10 and
+   [`reconcile-linguascrape.md`](reconcile-linguascrape.md).
+
+## Cross-links
+
+- [`docs/canonical-schema.md`](../../../docs/canonical-schema.md) — the shared node/edge
+  contract every phase targets (the *what*).
+- [`docs/culturescrape-integration.md`](../../../docs/culturescrape-integration.md) — the
+  convergence design, §8 end-to-end data flow, §9 add-a-domain, §10 ownership (the *why* and
+  *where*).
+- [`neo4j.md`](neo4j.md) · [`datalog.md`](datalog.md) · [`reconcile-linguascrape.md`](reconcile-linguascrape.md)
+  · [`ontology.md`](ontology.md) — per-step engine references.
