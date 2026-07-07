@@ -52,22 +52,19 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 
 # PRD run order (dependency-aware) and max iterations each (stories + buffer).
 # Only PENDING PRDs are listed; merged PRDs are recorded under tasks/ralph/completed/
-# (skipped here). Dependencies:
-#   - data-layer-convergence (shared schema + LinguaScrape canonical export) is first.
-#   - linguascrape-convergence-python (Python ingest/reconcile/Datalog/Neo4j load) needs the export.
-#   - graph-app-integration (TS app queries the shared graph) needs the graph loaded.
-#   - data-acquisition / narrative-education build on the graph; platform-infra on convergence;
-#     speculative (AI insights over the graph) runs last.
+# (skipped automatically even if listed here).
+#
+# Roadmap Phases 7-14 + the culture-scrape convergence are complete (see
+# tasks/ralph/completed/ and docs/prd-linguascrape-deep-history-roadmap.md). These are the
+# first Phase-15 PRDs:
+#   - operationalize-graph: build/publish the corpus, load Neo4j, expose the sidecar JSON
+#     API, materialize Datalog, and query the live graph end-to-end (Python + TS).
+#   - security-hardening: server-side key proxy, secret scanning, tsc-green, e2e/browser verify.
 ORDER=(
-  "data-layer-convergence:12"
-  "linguascrape-convergence-python:11"
-  "graph-app-integration:15"
-  "platform-infra:15"
-  "data-acquisition:15"
-  "narrative-education:14"
-  "speculative:14"
+  "operationalize-graph:11"
+  "security-hardening:11"
 )
-ALL_NAMES="data-layer-convergence linguascrape-convergence-python graph-app-integration platform-infra data-acquisition narrative-education speculative"
+ALL_NAMES="operationalize-graph security-hardening"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then
