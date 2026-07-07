@@ -253,3 +253,36 @@ by `datalog-materialize` (the manifest counts) and, when an engine is present, b
 well-formed by `tests/test_cli_datalog.py`. Example queries with their expected shapes are in
 [`docs/datalog.md`](datalog.md) — "Materializing inference at scale (US-004)" and the shipped
 `datalog/examples/*.pl`.
+
+## End-to-end live-graph smoke test (US-005)
+
+US-001..US-004 build, load, and materialize the graph; this last step proves the
+**app** actually talks to the live stack (not a mock). From the repo root, with the
+full stack up:
+
+```bash
+npm run dev:full        # app + culture-scrape sidecar + Neo4j (needs Docker)
+# in another shell:
+npm run smoke:graph     # or: npx tsx scripts/smoke-graph.ts
+```
+
+`scripts/smoke-graph.ts` hits the first-party `/api/graph/*` routes on the running
+LinguaScrape server and asserts each returns **real, non-empty** data:
+
+| Check | Route | Assertion |
+|---|---|---|
+| `status` | `GET /api/graph/status` | `available` (a backend is reachable) |
+| `metrics` | `GET /api/graph/metrics` | `node_count > 0` (sidecar) |
+| `search` | `GET /api/graph/search?q=…` | ≥ 1 hit; its `csid` feeds the node checks (sidecar) |
+| `node/:id` | `GET /api/graph/node/:id` | the node resolves by `csid` (Neo4j) |
+| `neighborhood/:id` | `GET /api/graph/neighborhood/:id` | ≥ 1 node in the sub-graph (Neo4j) |
+
+**Graceful degradation.** With nothing up it prints a clear *"stack down"* message
+and exits `0` (absent services are not a failure); a check only **fails the run
+(exit 1)** when a backend is up but returns empty/wrong data — a genuine regression.
+When the sidecar is down but Neo4j is up it still probes a node via the Neo4j-backed
+`/api/graph/overview` fallback, and reports any un-runnable check as *skipped*.
+
+Config: `SMOKE_GRAPH_URL` (default `http://localhost:$PORT`, `PORT` default `3050`)
+and `SMOKE_GRAPH_TIMEOUT_MS` (default `15000`). Type-check the script with
+`npx tsc -p scripts/tsconfig.json`.

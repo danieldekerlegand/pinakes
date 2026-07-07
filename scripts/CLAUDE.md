@@ -21,6 +21,27 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
   and put filesystem writes in a thin `writeExport`/`runExport` wrapper — tests then drive
   the core with temp-dir fixtures (`fs.mkdtempSync`) and assert without touching real output.
 
+## Live-graph smoke test (US-005)
+
+`smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data
+transform) — it probes the running app's `/api/graph/*` routes and asserts real,
+non-empty data (`npm run smoke:graph`, docs in
+`packages/culture-scrape/docs/convergence-build.md` "US-005"). Reusable shape for any
+"hit the live app and check it" script:
+
+- **Never throw on a down backend.** Every `fetch` is wrapped so a transport failure
+  (`ECONNREFUSED`, timeout via `AbortController`) becomes a `{reached:false}` result,
+  not an unhandled rejection. The CLI catches at the top and prints a clear message.
+- **Exit-code contract:** `0` = passed **or** gracefully skipped (stack down — absent
+  services are not a failure); `1` = a backend was **up** but a check returned
+  empty/wrong data (a real regression). This lets it run locally with nothing up.
+- Response **types are imported** from the server services (`graph-health`,
+  `graph-store`, `culturescrape-client`) via `import type` — parity with the routes,
+  erased at runtime. It imports no runtime server code, so it starts instantly.
+- It discovers a real node `csid` from `/search` (sidecar), falling back to
+  `/overview` (Neo4j) so the node/neighborhood checks can still run when only one
+  backend is up.
+
 ## Canonical export (US-004)
 
 `export-for-culturescrape.ts` emits `export/culturescrape/{nodes,edges}/<type>.tsv`
