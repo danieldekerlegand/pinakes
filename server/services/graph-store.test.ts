@@ -189,6 +189,41 @@ describe("getNode", () => {
   });
 });
 
+// ── getNodesByLabel ──────────────────────────────────────────────────────────
+
+describe("getNodesByLabel", () => {
+  it("projects every node carrying a label", async () => {
+    mockState.runQueue = [
+      {
+        records: [
+          record({
+            n: fakeNode("el-1", ["Language"], { csid: "cs:language:lat", name: "Latin" }),
+          }),
+          record({
+            n: fakeNode("el-2", ["Language"], { csid: "cs:language:grc", name: "Greek" }),
+          }),
+        ],
+      },
+    ];
+    const nodes = await graphStore.getNodesByLabel("Language");
+    expect(nodes.map((n) => n.csid)).toEqual(["cs:language:lat", "cs:language:grc"]);
+    expect(nodes[0].name).toBe("Latin");
+  });
+
+  it("returns an empty array when no node carries the label", async () => {
+    mockState.runQueue = [{ records: [] }];
+    expect(await graphStore.getNodesByLabel("Cuisine")).toEqual([]);
+  });
+
+  it("rejects an unsafe label without touching the driver", async () => {
+    await expect(graphStore.getNodesByLabel("Bad Label; MATCH")).rejects.toBeInstanceOf(
+      graphStore.GraphUnavailableError,
+    );
+    // No query was queued/consumed — the guard runs before any Cypher.
+    expect(mockState.runQueue).toEqual([]);
+  });
+});
+
 // ── getNeighborhood ──────────────────────────────────────────────────────────
 
 describe("getNeighborhood", () => {

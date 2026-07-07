@@ -6,6 +6,33 @@ of it into Prolog (`.pl`) and Soufflé (`.dl`). The layers stack:
 `rules.py` (shared inference rules) → `prolog.py`/`souffle.py` (emit) →
 `export.py` (`collect_facts` + `export_dataset`) → `examples.py` (shipped `.pl`
 queries + offline linter). `culturescrape to-datalog … --rules` attaches `RULES`.
+`materialize.py` (`materialize`/`summarize`) is the **engine-free evaluator** that
+computes the rules' derived extension without swipl/souffle.
+
+## Materializing rules without an engine (US-004)
+
+`materialize(facts, rules=RULES)` runs a naive-fixpoint Datalog evaluator over the
+projected `Fact`s and returns each rule head's derived tuple set; `summarize(...)`
+adds the base-relation counts and yields a `MaterializationSummary` whose
+`to_json()` is what `culturescrape datalog-materialize <dataset> --json` writes.
+Use it to count/validate the four US-004 targets (`contemporary`, `same_region`,
+`ancestor` = transitive `descends_from`, `genetic_linguistic_correlation`) in CI —
+no engine is installed. Constraints the evaluator relies on (and that any new rule
+must keep, same as the emitters): **every predicate is binary** (`ARITY == 2`) and
+bodies are **pure Horn** over variables (upper-case-initial / `_`) or constants. A
+non-binary literal or a fact-shaped clause raises `MaterializeError`.
+
+- The full-corpus derivation is a committed **release record**
+  (`docs/datalog-materialization-manifest.json`), not a CI-tested snapshot — the
+  corpus is gitignored and its bytes are non-reproducible (like
+  `docs/corpus-release-manifest.json`). Regenerate it with the CLI after a rebuild.
+- `genetic_linguistic_correlation` derives **0 over the LinguaScrape-only corpus**
+  (no genetics/haplogroup source → no `originates_from`/`spoken_in` edges). It is
+  exercised on the bundled fixture, which carries ported `source: linguascrape`
+  genetics facts. Don't "fix" the 0 — it's a data property, not a bug.
+- Tests pin the evaluator's exact extensions on the small bundled dataset
+  (`tests/test_datalog_materialize.py`); those counts are stable because the fixture
+  node/edge counts are themselves pinned (see the shared-fixture GOTCHA below).
 
 ## Adding an inference rule
 

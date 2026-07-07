@@ -175,7 +175,9 @@ The round trip, with the exact command and artifact at each hop:
   jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus — ingest → reconcile →
   link → Datalog/Neo4j — from the committed fixture export, with a committed manifest
   (`packages/culture-scrape/docs/convergence-manifest.json`) asserted against a fresh build in
-  CI. See [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+  CI. The full operational recipe — build the *live* corpus, load Neo4j, materialize Datalog,
+  smoke-test from the app, plus refresh cadence and the add-a-domain checklist — is the
+  runbook [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
 - **TSV is the source of truth at both ends.** Nothing in the graph is authoritative for a
   human-curated lexicon column — the graph enriches blanks and owns edges (see §10).
 - **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/
@@ -209,6 +211,10 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
 8. **Python side:** if the new node/edge type needs bespoke reconcile/ontology handling, cross-link
    the work under `packages/culture-scrape/` (see §10) — the tabular adapter ingests the new
    `nodes/`/`edges/` files without code changes as long as headers match the canonical schema.
+
+Steps 1–8 map the domain; to then land it in the **live** graph (rebuild the full corpus →
+load Neo4j → materialize Datalog → smoke-test from the app), follow the operational runbook
+[`convergence-build.md` "Add a new domain to the live graph"](../packages/culture-scrape/docs/convergence-build.md).
 
 ## 10. Which side owns which step
 
@@ -252,6 +258,15 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `POST /api/graph/cypher` | sidecar `/neo4j` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
 | `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
+
+**Sidecar JSON contract (US-003).** The FastAPI explorer's `/search`, `/metrics`, and
+`/completeness` views content-negotiate on `Accept`: a browser gets the HTML explorer, and
+the TS client's `Accept: application/json` (same URLs) gets JSON with the shapes
+`culturescrape-client.ts` models — `/search` → `{ query, results[] }` (`SearchHit` rows),
+`/metrics` → `culturescrape.ontology.metrics.to_json` (a corpus with no readable metrics
+answers a zeroed document), `/completeness` → `{ qa, rows[] }`. The two representations are
+built from the same corpus data (parity); the negotiation lives in
+`packages/culture-scrape/src/culturescrape/explorer/app.py` (`_wants_json`).
 
 **Degradation contract.** When a backend is unreachable the query routes answer
 **HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
@@ -385,6 +400,7 @@ down (see the degradation contract in §10b).
 | `NEO4J_QUERY_TIMEOUT_MS` / `NEO4J_CONNECTION_TIMEOUT_MS` | `graph-store.ts` | `10000` / `5000` | Driver query + connection-acquisition timeouts. |
 | `NEO4J_MAX_POOL_SIZE` | `graph-store.ts` | `50` | Connection-pool ceiling. |
 | `GRAPH_HEALTH_TTL_MS` | `server/services/graph-health.ts` | `5000` | TTL of the cached `/api/graph/status` verdict. |
+| `CORRELATION_GRAPH_ENABLED` | `server/services/cross-domain-correlation-graph.ts` | *(off)* | Truthy ⇒ `POST /api/cross-domain/correlate` serves graph-eligible domains from Neo4j (US-007, §10d), falling back to the in-memory path when the graph is down. |
 
 ### Local development
 
@@ -465,6 +481,35 @@ the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pa
   ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
   (`mypy` / `pytest` / `ruff`), not the app's.
 - **This app-side PRD:** `tasks/ralph/graph-app-integration.json` (US-001…US-012).
+
+## 10d. Migrating a correlation from in-memory TS to the graph (US-007)
+
+The first correlation moved off the bespoke in-memory TSV joins and onto the shared
+graph is the **cross-domain correlation** (`POST /api/cross-domain/correlate`). This is
+the template for retiring the remaining hand-rolled joins (`cross-domain-correlation.ts`,
+`genetic-linguistic-correlation.ts`) as the live graph fills in.
+
+- **The scoring is a single pure core, shared by both paths.**
+  `cross-domain-correlation.ts` exposes `scoreCorrelations` (co-occurrence Jaccard /
+  temporal-overlap / geographic) + `rankCorrelations` (sort → top-50 → summary), and the
+  in-memory `CrossDomainCorrelation.queryCorrelation` now just loads entities from
+  `TsvStorage` and calls them. The graph path
+  (`cross-domain-correlation-graph.ts`) loads the **same** `DomainEntity` shape from Neo4j
+  via `graph-store.getNodesByLabel(<:LABEL>)` and calls the identical core. Because the
+  math is shared, the two paths produce **bit-identical** ranked results on a shared
+  fixture — that is the parity guarantee (`cross-domain-correlation-graph.test.ts`).
+- **Domain → `:LABEL` map** (`DOMAIN_LABELS`): `language→Language`, `cuisine→Cuisine`,
+  `religion→Religion`, `civilization→Culture`. `music`/`haplogroup` are LinguaScrape-only
+  domains with no graph node type, so a query touching them is not graph-eligible and
+  always uses the in-memory path. Node props project as: `linguascrape_id`→id (fallback
+  csid), `lat`/`lon`→coordinates, `time_start`/`time_end`, `region`, and
+  `associated_language_ids`→`languageIds`.
+- **Feature-flagged + degrades cleanly.** `correlateWithGraphFallback` is the single
+  decision point the route calls: it uses the graph only when
+  `CORRELATION_GRAPH_ENABLED` is truthy **and** both domains are graph-eligible **and**
+  Neo4j is reachable; a `GraphUnavailableError` (graph down, or a non-graph domain) falls
+  back to the in-memory path. The flag is **off by default**, so the app keeps serving the
+  in-memory path out of the box. The response carries a `source: "graph" | "memory"` field.
 
 ## 11. Non-goals
 

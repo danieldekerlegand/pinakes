@@ -11,6 +11,7 @@ so each run is auditable.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from collections.abc import Sequence
@@ -37,16 +38,19 @@ from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
     DatalogExportError,
     Engine,
+    collect_facts,
     engines_for_choice,
     export_dataset,
 )
+from culturescrape.datalog.materialize import MaterializeError, summarize
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
 from culturescrape.neo4j.admin_import import (
     AdminImportError,
     generate_import_script,
 )
+from culturescrape.neo4j.counts import count_summary
 from culturescrape.neo4j.export import Neo4jExportError, export_to_tsv
-from culturescrape.neo4j.load_csv import apply_load_csv
+from culturescrape.neo4j.load_csv import load_corpus
 from culturescrape.ontology.metrics import (
     metrics_for_dataset,
     read_dataset,
@@ -285,7 +289,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="directory the admin-import script and transformed copies are "
         "written to (admin mode only; default: <directory>)",
     )
+    to_neo4j.add_argument(
+        "--no-constraints",
+        action="store_true",
+        help="loadcsv mode: skip applying csid constraints/indexes before the "
+        "load (default: apply the global + per-label constraints first)",
+    )
     to_neo4j.set_defaults(handler=_cmd_to_neo4j)
+
+    neo4j_counts = subparsers.add_parser(
+        "neo4j-counts",
+        help="print node/edge counts by type from the connected Neo4j graph",
+    )
+    neo4j_counts.set_defaults(handler=_cmd_neo4j_counts)
 
     from_neo4j = subparsers.add_parser(
         "from-neo4j",
@@ -327,6 +343,24 @@ def _build_parser() -> argparse.ArgumentParser:
         help="directory the .pl and/or .dl program is written to",
     )
     to_datalog.set_defaults(handler=_cmd_to_datalog)
+
+    datalog_materialize = subparsers.add_parser(
+        "datalog-materialize",
+        help="materialise the inference rules over a dataset and count them "
+        "(engine-free)",
+    )
+    datalog_materialize.add_argument(
+        "directory",
+        type=Path,
+        help="dataset root holding nodes/ and edges/ .tsv files",
+    )
+    datalog_materialize.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the base/derived count manifest to this path as JSON",
+    )
+    datalog_materialize.set_defaults(handler=_cmd_datalog_materialize)
 
     run = subparsers.add_parser(
         "run",
@@ -798,9 +832,13 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
                 f"{len(plan.edge_files)} edge file(s))"
             )
         else:
-            statements = apply_load_csv(directory)
+            report = load_corpus(
+                directory, constraints=not args.no_constraints
+            )
             print(
-                f"ran {len(statements)} LOAD CSV statement(s) against Neo4j"
+                f"applied {len(report.constraints)} constraint/index "
+                f"statement(s) and ran {len(report.statements)} LOAD CSV "
+                f"statement(s) against Neo4j"
             )
     except (
         AdminImportError,
@@ -808,6 +846,20 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
         Neo4jDriverNotInstalled,
     ) as exc:
         return _fail(str(exc))
+    return 0
+
+
+def _cmd_neo4j_counts(args: argparse.Namespace) -> int:
+    try:
+        summary = count_summary()
+    except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
+        return _fail(str(exc))
+    print(f"node counts by label (total {summary.node_total}):")
+    for label, count in summary.nodes_by_label.items():
+        print(f"  {label}: {count}")
+    print(f"edge counts by type (total {summary.edge_total}):")
+    for edge_type, count in summary.edges_by_type.items():
+        print(f"  {edge_type}: {count}")
     return 0
 
 
@@ -844,6 +896,28 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
     for engine in engines:
         label = "load" if engine is Engine.SWIPL else "run"
         print(f"  {label}: {result.load_hint(engine)}")
+    return 0
+
+
+def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
+    try:
+        facts = collect_facts(args.directory)
+        summary = summarize(facts)
+    except (DatalogExportError, MaterializeError) as exc:
+        return _fail(str(exc))
+
+    print(f"base relations read ({len(summary.base_relations)}):")
+    for predicate, count in summary.base_relations.items():
+        print(f"  {predicate}: {count}")
+    print(f"derived relations (total {summary.derived_total}):")
+    for predicate, count in summary.derived_relations.items():
+        print(f"  {predicate}: {count}")
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(
+            json.dumps(summary.to_json(), indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"wrote manifest to {args.json}")
     return 0
 
 

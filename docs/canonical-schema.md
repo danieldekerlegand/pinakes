@@ -18,6 +18,12 @@ exports are import-compatible with `neo4j-admin import` **without transformation
 > side, `shared/canonical-schema.json` is the artifact to validate exported node/edge
 > TSV headers against. Both repos read the *same file*; do not fork it.
 
+> **How to operationalize it.** This doc is the *contract*; the end-to-end operational
+> recipe that turns lexicons into a live, queryable graph (export → build → publish →
+> Neo4j load → Datalog materialize → app smoke-test, plus refresh cadence and the
+> add-a-domain checklist) is the runbook
+> [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+
 ---
 
 ## 1. Node types

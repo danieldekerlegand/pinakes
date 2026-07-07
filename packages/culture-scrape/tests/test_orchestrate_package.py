@@ -48,6 +48,42 @@ def test_package_writes_archive_and_manifest(tmp_path: Path) -> None:
     assert result.digest.startswith("sha256:")
 
 
+def test_manifest_records_node_and_edge_type_counts(tmp_path: Path) -> None:
+    # When the corpus carries a CorpusManifest, the published manifest surfaces
+    # its per-type breakdown so a downloader sees each :LABEL / :TYPE's share.
+    root = _job_root(tmp_path)
+    _write(
+        root / "corpus" / "manifest.json",
+        json.dumps(
+            {
+                "node_count": 1,
+                "edge_count": 1,
+                "nodes_by_label": {"Language": 1},
+                "edges_by_type": {"BORROWED_FROM": 1},
+            }
+        ),
+    )
+    manifest = json.loads(
+        package_corpus(root, tmp_path / "dist").manifest.read_text("utf-8")
+    )
+    assert manifest["nodes_by_label"] == {"Language": 1}
+    assert manifest["edges_by_type"] == {"BORROWED_FROM": 1}
+
+
+def test_manifest_type_counts_default_empty_without_a_corpus_manifest(
+    tmp_path: Path,
+) -> None:
+    # The bare metrics.json fixture has no CorpusManifest, so the type maps are
+    # present-but-empty rather than absent (a stable manifest shape).
+    manifest = json.loads(
+        package_corpus(_job_root(tmp_path), tmp_path / "dist").manifest.read_text(
+            "utf-8"
+        )
+    )
+    assert manifest["nodes_by_label"] == {}
+    assert manifest["edges_by_type"] == {}
+
+
 def test_manifest_records_counts_hashes_and_sorted_files(tmp_path: Path) -> None:
     result = package_corpus(_job_root(tmp_path), tmp_path / "dist")
 

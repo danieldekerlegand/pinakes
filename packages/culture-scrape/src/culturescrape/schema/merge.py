@@ -119,6 +119,35 @@ def merge_rows(
     return out
 
 
+def merged_csid_remap(rows: Iterable[Row]) -> dict[str, str]:
+    """Map each csid a merge collapsed away to its surviving primary csid.
+
+    :func:`merge_rows` keeps one canonical row per cluster and records every
+    original member under :data:`MERGE_KEY` in the survivor's overflow JSON. An
+    edge built *before* the dedup still names a non-primary member's csid, so it
+    would dangle once that member is gone; this returns ``{lost: primary}`` for
+    every merged-away member (identity pairs omitted) so a caller can redirect
+    such endpoints onto the survivor. Singleton (unmerged) rows contribute
+    nothing, so the result is empty when no merge happened.
+    """
+    remap: dict[str, str] = {}
+    for row in rows:
+        record = _overflow(row).get(MERGE_KEY)
+        if not isinstance(record, dict):
+            continue
+        primary = record.get("primary")
+        members = record.get("members")
+        if not isinstance(primary, str) or not primary:
+            continue
+        if not isinstance(members, list):
+            continue
+        for member in members:
+            csid = member.get("csid") if isinstance(member, dict) else None
+            if isinstance(csid, str) and csid and csid != primary:
+                remap[csid] = primary
+    return remap
+
+
 class _Clusters:
     """Union-find over row indices that refuses identifier-conflicting merges.
 

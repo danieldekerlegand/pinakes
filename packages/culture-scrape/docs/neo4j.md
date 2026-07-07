@@ -122,8 +122,12 @@ requires APOC and a running server:
 
 ```sh
 culturescrape to-neo4j ./dataset --mode loadcsv
-# ran N LOAD CSV statement(s) against Neo4j
+# applied M constraint/index statement(s) and ran N LOAD CSV statement(s) against Neo4j
 ```
+
+The load first applies the global **and** per-label `csid` constraints/indexes
+(see [Constraint setup](#constraint-setup)); pass `--no-constraints` to skip that
+step.
 
 To inspect the Cypher before running it, generate the script instead:
 
@@ -173,6 +177,27 @@ PosixPath('dataset/neo4j-constraints.cypher')
 cypher-shell -u neo4j -p "$NEO4J_PASSWORD" -f ./dataset/neo4j-constraints.cypher
 ```
 
+### Per-label constraints and indexes
+
+On top of the global `Entity` anchor, a corpus also gets a **per-label** `csid`
+uniqueness constraint (whose backing index doubles as a label-scoped `csid` lookup
+key) and a per-label `name` index, for exactly the labels the corpus carries.
+`dataset_node_labels` reads them from the `:LABEL` cells; `all_constraint_statements`
+prepends the three global statements to the per-label ones:
+
+```pycon
+>>> from culturescrape.neo4j.constraints import label_constraint_statements
+>>> for statement in label_constraint_statements(["Language"]):
+...     print(statement.splitlines()[0])
+CREATE CONSTRAINT csid_unique_Language IF NOT EXISTS
+CREATE INDEX Language_name IF NOT EXISTS
+
+```
+
+`to-neo4j --mode loadcsv` applies all of these (global + per-label) **before** the
+load, so every `MERGE` lands as an index lookup. Pass `--no-constraints` to skip
+them (e.g. when they are already in place).
+
 ## Export: graph → TSV
 
 `from-neo4j` streams every node and relationship over the Bolt connection and
@@ -204,6 +229,37 @@ trip unchanged. The guarantee is proven against a live graph in
 culturescrape to-neo4j ./dataset --mode loadcsv
 culturescrape from-neo4j --out ./roundtrip
 diff -r ./dataset/nodes ./roundtrip/nodes && diff -r ./dataset/edges ./roundtrip/edges
+```
+
+## Smoke: counts by type
+
+After a load, the cheapest proof the graph holds what the corpus manifest claims
+is a pair of grouped counts — nodes per label and relationships per `:TYPE`. The
+`neo4j-counts` command runs both against the connected database and prints them:
+
+```sh
+culturescrape neo4j-counts
+# node counts by label (total 5285):
+#   Entity: 5285
+#   Ingredient: 2076
+#   ...
+# edge counts by type (total ...):
+#   FOLLOWS: ...
+#   ...
+```
+
+Every node carries the shared `Entity` anchor, so its tally equals the total node
+count — compare it (and each label/type tally) against the corpus manifest's
+`nodes_by_label` / `edges_by_type` fingerprint to confirm the load is complete.
+The same two queries ship as documented smoke files
+`cypher/node-counts-by-label.cypher` and `cypher/edge-counts-by-type.cypher`, and
+as constants for programmatic use:
+
+```pycon
+>>> from culturescrape.neo4j.counts import NODE_COUNT_QUERY
+>>> print(NODE_COUNT_QUERY.splitlines()[0])
+MATCH (n)
+
 ```
 
 ## Example queries
@@ -242,7 +298,7 @@ runtime. All of them pass:
 ```pycon
 >>> from culturescrape.neo4j.queries import iter_queries, lint_query
 >>> sorted(path.name for path in iter_queries())
-['contemporary-with.cypher', 'festivals-in-period.cypher', 'game-family-variants.cypher', 'invention-lineage.cypher', 'language-family-tree.cypher', 'material-composition.cypher', 'originates-from-region.cypher', 'shortest-cultural-path.cypher']
+['contemporary-with.cypher', 'edge-counts-by-type.cypher', 'festivals-in-period.cypher', 'game-family-variants.cypher', 'invention-lineage.cypher', 'language-family-tree.cypher', 'material-composition.cypher', 'node-counts-by-label.cypher', 'originates-from-region.cypher', 'shortest-cultural-path.cypher']
 >>> all(lint_query(path.read_text(encoding="utf-8")) == [] for path in iter_queries())
 True
 

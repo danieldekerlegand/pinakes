@@ -18,12 +18,39 @@ from culturescrape.neo4j.constraints import (
     NAME_INDEX,
     SCRIPT_NAME,
     WIKIDATA_QID_INDEX,
+    all_constraint_statements,
     apply_constraints,
     constraint_statements,
+    dataset_node_labels,
     generate_constraints_script,
+    label_constraint_statements,
 )
+from culturescrape.schema.headers import NodeSchema
+from culturescrape.schema.tsvio import write_node_rows
 
 EMPTY_ENV: dict[str, str] = {}
+
+
+def _corpus(root: Path) -> Path:
+    """Write a two-label node corpus (Language, ArchaeologicalCulture) under *root*."""
+    schema = NodeSchema.canonical()
+    write_node_rows(
+        root / "nodes" / "language.tsv",
+        schema,
+        [{":LABEL": ["Language"], "csid": "cs:language:en", "name": "English"}],
+    )
+    write_node_rows(
+        root / "nodes" / "archaeologicalculture.tsv",
+        schema,
+        [
+            {
+                ":LABEL": ["ArchaeologicalCulture"],
+                "csid": "cs:archaeological-culture:yamnaya",
+                "name": "Yamnaya",
+            }
+        ],
+    )
+    return root
 
 
 def test_csid_constraint_is_unique_and_idempotent() -> None:
@@ -63,6 +90,54 @@ def test_out_dir_is_created(tmp_path: Path) -> None:
     script = generate_constraints_script(out)
     assert script.exists()
     assert script.parent == out
+
+
+def test_label_constraints_are_per_label_and_idempotent() -> None:
+    statements = label_constraint_statements(["Language", "ArchaeologicalCulture"])
+    # Two statements per label (csid uniqueness constraint + name index), sorted.
+    assert statements == (
+        "CREATE CONSTRAINT csid_unique_ArchaeologicalCulture IF NOT EXISTS\n"
+        "FOR (n:ArchaeologicalCulture) REQUIRE n.csid IS UNIQUE;",
+        "CREATE INDEX ArchaeologicalCulture_name IF NOT EXISTS\n"
+        "FOR (n:ArchaeologicalCulture) ON (n.name);",
+        "CREATE CONSTRAINT csid_unique_Language IF NOT EXISTS\n"
+        "FOR (n:Language) REQUIRE n.csid IS UNIQUE;",
+        "CREATE INDEX Language_name IF NOT EXISTS\n"
+        "FOR (n:Language) ON (n.name);",
+    )
+    assert all("IF NOT EXISTS" in stmt for stmt in statements)
+
+
+def test_label_constraints_dedupe_labels() -> None:
+    assert label_constraint_statements(["Language", "Language"]) == (
+        label_constraint_statements(["Language"])
+    )
+
+
+def test_dataset_node_labels_reads_label_cells(tmp_path: Path) -> None:
+    corpus = _corpus(tmp_path / "corpus")
+    assert dataset_node_labels(corpus) == ("ArchaeologicalCulture", "Language")
+
+
+def test_all_constraint_statements_extends_global_with_per_label(
+    tmp_path: Path,
+) -> None:
+    corpus = _corpus(tmp_path / "corpus")
+    statements = all_constraint_statements(corpus)
+    # The three global statements come first, unchanged.
+    assert statements[:3] == constraint_statements()
+    # Then the per-label ones for exactly the corpus's labels.
+    assert statements[3:] == label_constraint_statements(
+        ("ArchaeologicalCulture", "Language")
+    )
+
+
+def test_apply_constraints_accepts_explicit_statements() -> None:
+    driver: Any = _FakeDriver()
+    explicit = label_constraint_statements(["Language"])
+    applied = apply_constraints(driver=driver, statements=explicit)
+    assert applied == explicit
+    assert driver.run_statements == list(explicit)
 
 
 class _FakeSession:

@@ -28,7 +28,7 @@ produces byte-identical TSV.
 from __future__ import annotations
 
 import json
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -43,7 +43,11 @@ from culturescrape.schema.mapper import (
     map_records,
     node_schema,
 )
-from culturescrape.schema.merge import DEFAULT_FUZZY_THRESHOLD, merge_rows
+from culturescrape.schema.merge import (
+    DEFAULT_FUZZY_THRESHOLD,
+    merge_rows,
+    merged_csid_remap,
+)
 from culturescrape.schema.reconcile import WikidataReconciler, reconcile_rows
 from culturescrape.schema.tsvio import Row, write_edge_rows, write_node_rows
 
@@ -175,14 +179,53 @@ def _normalize_linguascrape(
     :func:`~culturescrape.schema.mapper.map_linguascrape_records` — which re-mints
     each ``csid`` deterministically (QID- then ``linguascrape_id``-anchored) so a
     re-run is idempotent — then split into node rows (carrying a ``:LABEL``) and
-    edge rows (carrying a ``:TYPE``). Node rows are deduped; edge rows pass
-    through unchanged, ready for corpus-level stitching and linking.
+    edge rows (carrying a ``:TYPE``). Node rows are deduped, and each edge is
+    redirected onto the surviving csid of any endpoint the dedup collapsed
+    (:func:`_redirect_edges`) so no edge is left dangling.
     """
     rows = map_linguascrape_records(records)
     node_rows = [row for row in rows if ":LABEL" in row]
     edge_rows = [row for row in rows if ":TYPE" in row]
     merged = merge_rows(node_rows, fuzzy_threshold=fuzzy_threshold)
-    return NormalizationResult(nodes=merged, edges=edge_rows)
+    edges = _redirect_edges(edge_rows, merged)
+    return NormalizationResult(nodes=merged, edges=edges)
+
+
+def _redirect_edges(edges: Sequence[Row], nodes: Sequence[Row]) -> list[Row]:
+    """Redirect LinguaScrape edge endpoints onto merge survivors.
+
+    Dedup (:func:`~culturescrape.schema.merge.merge_rows`) collapses duplicate
+    LinguaScrape nodes to one csid per real-world thing, but the export's edges
+    were minted against the pre-dedup csids, so an endpoint that lost out to a
+    merge would dangle and fail :mod:`~culturescrape.schema.validate` (breaking
+    ``neo4j-admin import`` downstream). Each ``:START_ID`` / ``:END_ID`` is
+    rewritten through the merge remap; an edge is dropped when — even after the
+    redirect — an endpoint names no surviving node, or the redirect turns it into
+    a self-loop (the two entities it joined are now one node, so it says nothing).
+    """
+    remap = merged_csid_remap(nodes)
+    surviving = {
+        csid for row in nodes if isinstance((csid := row.get("csid")), str) and csid
+    }
+    redirected: list[Row] = []
+    for edge in edges:
+        start = _redirect_endpoint(edge, ":START_ID", remap)
+        end = _redirect_endpoint(edge, ":END_ID", remap)
+        if start not in surviving or end not in surviving or start == end:
+            continue
+        redirected.append(edge)
+    return redirected
+
+
+def _redirect_endpoint(edge: Row, key: str, remap: dict[str, str]) -> str:
+    """Rewrite *edge*'s *key* endpoint through *remap* in place; return its csid."""
+    value = edge.get(key)
+    if not isinstance(value, str):
+        return ""
+    mapped = remap.get(value, value)
+    if mapped != value:
+        edge[key] = mapped
+    return mapped
 
 
 def write_result(

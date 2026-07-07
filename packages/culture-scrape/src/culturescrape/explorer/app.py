@@ -10,6 +10,7 @@ metrics, graph, Datalog) on the app this returns.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,7 @@ from culturescrape.explorer.data import (
     CategoryStatus,
     Corpus,
     Neighborhood,
+    QaSummary,
     dimension_for,
     display,
     first_label,
@@ -40,6 +42,8 @@ from culturescrape.explorer.live import (
     load_queries,
 )
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
+from culturescrape.ontology.metrics import GraphMetrics
+from culturescrape.ontology.metrics import to_json as metrics_to_json
 from culturescrape.schema.headers import Column
 from culturescrape.schema.tsvio import Row, column_key
 
@@ -159,6 +163,8 @@ def create_app(
             }
             for hit in hits
         ]
+        if _wants_json(request):
+            return JSONResponse({"query": q, "results": results})
         return templates.TemplateResponse(
             request,
             "search.html",
@@ -275,6 +281,8 @@ def create_app(
             rows = [r for r in rows if r.status == status]
         sort = sort if sort in COMPLETENESS_SORTS else "status"
         rows = sorted(rows, key=COMPLETENESS_SORTS[sort][1])
+        if _wants_json(request):
+            return JSONResponse(_completeness_json(corpus.qa, rows))
         return templates.TemplateResponse(
             request,
             "completeness.html",
@@ -317,6 +325,8 @@ def create_app(
         m = corpus.metrics
         threshold = min(max(threshold, 0.0), 1.0)
         fragmented = m is not None and m.largest_component_fraction < threshold
+        if _wants_json(request):
+            return JSONResponse(_metrics_json(m))
         return templates.TemplateResponse(
             request,
             "metrics.html",
@@ -458,6 +468,78 @@ def create_app(
 
 #: Sentinel marking a live neighborhood lookup that failed and should fall back.
 _UNAVAILABLE: Any = object()
+
+#: A zeroed metrics document — the JSON body a corpus with no readable metrics
+#: answers, mirroring the "no metrics available" HTML state so the shape stays
+#: valid for the TS client.
+_EMPTY_METRICS = GraphMetrics(
+    node_count=0,
+    edge_count=0,
+    edges_per_node=0.0,
+    component_count=0,
+    largest_component_size=0,
+    largest_component_fraction=0.0,
+    edges_by_dimension={},
+    edges_by_type={},
+)
+
+
+def _wants_json(request: Request) -> bool:
+    """Whether the caller wants a JSON representation rather than HTML.
+
+    The search / metrics / completeness views content-negotiate on ``Accept``:
+    the first-party TS client (``server/services/culturescrape-client.ts``)
+    requests them with ``Accept: application/json`` while browsers ask for
+    ``text/html``, so the same URL answers both the HTML explorer and the API
+    with parity data.
+    """
+    return "application/json" in request.headers.get("accept", "")
+
+
+def _metrics_json(metrics: GraphMetrics | None) -> dict[str, Any]:
+    """The metrics view's JSON body, mirroring ``ontology.metrics.to_json``.
+
+    Reuses that renderer so the JSON never drifts from the canonical metrics
+    shape; a corpus with no readable metrics answers the zeroed document.
+    """
+    payload: dict[str, Any] = json.loads(metrics_to_json(metrics or _EMPTY_METRICS))
+    return payload
+
+
+def _qa_json(qa: QaSummary | None) -> dict[str, Any] | None:
+    """The corpus-wide QA digest as JSON, or ``None`` when it was never graded."""
+    if qa is None:
+        return None
+    return {
+        "ok": qa.ok,
+        "node_count": qa.node_count,
+        "edge_count": qa.edge_count,
+        "violations": list(qa.violations),
+        "failed_keys": list(qa.failed_keys),
+    }
+
+
+def _category_json(status: CategoryStatus) -> dict[str, Any]:
+    """One completeness row as JSON (tuples flattened to lists)."""
+    return {
+        "category_id": status.category_id,
+        "label": status.label,
+        "status": status.status,
+        "node_count": status.node_count,
+        "edge_count": status.edge_count,
+        "violations": list(status.violations),
+        "last_run": status.last_run,
+        "errors": status.errors,
+        "provenance_complete": status.provenance_complete,
+        "reasons": list(status.reasons),
+    }
+
+
+def _completeness_json(
+    qa: QaSummary | None, rows: list[CategoryStatus]
+) -> dict[str, Any]:
+    """The completeness dashboard's JSON body: the QA digest plus category rows."""
+    return {"qa": _qa_json(qa), "rows": [_category_json(row) for row in rows]}
 
 
 def _graph_payload(corpus: Corpus, hood: Neighborhood) -> dict[str, Any]:

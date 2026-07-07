@@ -17,6 +17,7 @@ from culturescrape.schema import (
     MergeReason,
     Row,
     merge_rows,
+    merged_csid_remap,
 )
 
 
@@ -242,3 +243,31 @@ def test_existing_overflow_is_preserved_through_a_merge() -> None:
 
 def test_empty_input_returns_empty() -> None:
     assert merge_rows([]) == []
+
+
+# --- merged_csid_remap: redirect map for edge endpoints --------------------
+
+
+def test_merged_csid_remap_maps_losers_to_the_primary() -> None:
+    # Two rows name one thing (exact name) so one csid is collapsed; the remap
+    # lets a caller redirect edges that still name the merged-away csid.
+    merged = merge_rows(
+        [
+            _row("cs:dish:a", name="Ceviche"),
+            _row("cs:dish:b", name="Ceviche"),
+        ]
+    )
+    assert len(merged) == 1
+    primary = merged[0]["csid"]
+    remap = merged_csid_remap(merged)
+    loser = "cs:dish:b" if primary == "cs:dish:a" else "cs:dish:a"
+    assert remap == {loser: primary}
+
+
+def test_merged_csid_remap_is_empty_without_merges() -> None:
+    # Distinct rows pass through unmerged, so nothing is redirected.
+    merged = merge_rows(
+        [_row("cs:dish:a", name="Ceviche"), _row("cs:dish:b", name="Bronze")]
+    )
+    assert len(merged) == 2
+    assert merged_csid_remap(merged) == {}
