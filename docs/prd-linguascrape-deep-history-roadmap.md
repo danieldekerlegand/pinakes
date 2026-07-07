@@ -8,38 +8,51 @@ The ultimate goal: **given any modern culture, trace its origins back through mi
 
 ---
 
-## Current State (March 2026)
+## Current State (July 2026)
 
-### Completed
-- 1,100+ languages with family trees, IPA lexicons (10M+ words), and geographic coordinates
-- 6 visualization modes: hierarchical tree, force-directed network, timeline, geographic map, cross-domain explorer, contribution system
-- Linguistic analysis: distance calculator (LDND + IPA+), word comparison, etymology explorer, phonological inventories (112 languages), grammar features (105 languages)
-- Cultural domains: 21 cuisines, 20 music traditions, 25 instruments, 20 religions, 62 haplogroups
-- Cross-domain relationship engine (128 unified entities, relationship scoring)
-- Time slider with animated playback (10,000 BCE → present)
-- Contribution system with review queue
-- Sample texts for 50+ languages, 5,000+ etymological relationships
+**The entire roadmap below (Phases 7–14) is implemented and merged to `main`**, delivered in two
+waves: the earlier `ralphy` batches (Phases 7–10, archived under `docs/archive/ralphy/`) and the
+Ralph PRD runs (Phases 11–14 + the cross-cutting culture-scrape data-layer convergence, recorded in
+`tasks/ralph/completed/`). See the ✅ markers on each phase header and the Completion Status table
+below. The March-2026 "Known Gaps" (3 archaeological sites, 2 civilizations, no migration routes, no
+organic boundaries, no lineage model, missing cultural domains) are all closed.
 
-### In Progress (Ralph Phase 2-6)
-- Grammar comparison matrix UI
-- Writing systems data and explorer
-- Verb paradigm comparisons
+### Delivered
+- **Phase 7 — Deep-history lineage engine:** cultural-lineage DAG, archaeological-cultures database,
+  urheimat hypotheses, the Cultural Lineage Explorer — "Yamnaya → Persians" is traversable.
+- **Phase 8 — Massive data expansion:** civilizations, archaeological sites, migration routes,
+  language-range polygons, trade networks.
+- **Phase 9 — New cultural domains:** dance, literature, architecture, writing systems, expanded
+  cuisine, kinship/social systems, comparative mythology, genetics — surfaced via the adapter-driven
+  CultureProfile panels.
+- **Phase 10 — Advanced map & visualization:** organic spline boundaries, animated temporal atlas,
+  3D globe, Sankey/chord/treemap relationship views, heatmaps — plus the UnifiedExplorer adapter refactor.
+- **Phase 11 — Data acquisition:** in-app map/timeline/relationship authoring, URL/text extractors,
+  GeoNames + Open Context/tDAR pipelines, AI-assisted entry with a review queue, a hardened contribution API.
+- **Phase 12 — Narrative & education:** what-if/counterfactual overlays, new quiz types, persistent +
+  shareable results, BibTeX/citation export, stable entity URLs, versioned DOI dataset releases.
+- **Phase 13 — Platform & infrastructure:** DuckDB analytical index, graph-traversal worker,
+  server-side bbox tiling, faceted search, collections & annotations, PWA/offline, i18n/RTL.
+- **Phase 14 — Speculative & long-term:** DNA-to-culture mapper, IPA/music audio, AI
+  explain/anomaly/hypothesis generation, AR/VR, living-dataset ingestion.
+- **culture-scrape convergence (cross-cutting, new since March 2026):** the vendored culture-scrape
+  Python engine (`packages/culture-scrape/`) now shares one canonical node/edge schema with the
+  lexicons; LinguaScrape exports and reconciles into it and queries the shared **Neo4j + Datalog**
+  graph as the correlation system-of-record. See `docs/culturescrape-integration.md`.
 
-### Known Gaps
-- Archaeological sites: only 3 entries (need 500+)
-- Civilizations: only 2 entries (need 100+)
-- Language range polygons: stub data only
-- No migration route data integrated
-- Map cannot render organic cultural/linguistic boundaries (only simple polygons)
-- No mechanism for showing cultural evolution over time (A → B → C lineages)
-- No prehistoric archaeological culture data
-- Cultural domains missing: dance, literature, architecture, dress, economics, kinship
+### Not yet hardened (see "What's Next — Phase 15+")
+Everything above is implemented, unit-tested, and merged — but much of it is **not yet
+production-verified**: several UI stories were gated on unit tests rather than browser runs; some
+speculative features ship with graceful fallbacks pending real audio/3D assets; the sidecar's JSON
+API and a fully-populated Neo4j corpus remain operational work; and `npm run check` still reports
+145 pre-existing `tsc` errors to clean up.
 
 ---
 
 ## Roadmap
 
-### Phase 7: Deep History & Cultural Lineage Engine
+### Phase 7: Deep History & Cultural Lineage Engine ✅ COMPLETE
+*(delivered by the archived `ralphy-deephistory-6` batch)*
 
 **The core differentiator.** Build the infrastructure to model how cultures evolve, split, merge, and influence each other over time. This is the backbone that makes "Yamnaya → Persians" possible.
 
@@ -80,7 +93,8 @@ The ultimate goal: **given any modern culture, trace its origins back through mi
 
 ---
 
-### Phase 8: Massive Data Expansion
+### Phase 8: Massive Data Expansion ✅ COMPLETE
+*(delivered by the archived `ralphy-phase9-data-expansion` batch)*
 
 #### 8.1 Civilizations (Target: 150+)
 Expand from 2 to 150+ civilizations with time-varying boundaries:
@@ -120,7 +134,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 9: New Cultural Domains
+### Phase 9: New Cultural Domains ✅ COMPLETE
+*(delivered by the archived `ralphy-phase12-culture-explorer` batch)*
 
 #### 9.1 Dance Traditions
 - `lexicons/dance-traditions.tsv`: id, name, region, origin_culture, time_origin, dance_type (ceremonial, social, performative, martial), associated_music_traditions, movement_characteristics, costume_requirements, cultural_significance, related_dances, sources
@@ -175,7 +190,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 10: Advanced Map & Visualization
+### Phase 10: Advanced Map & Visualization ✅ COMPLETE
+*(delivered by the archived `ralphy-phase10-ui-unification` + `ralphy-phase11-map-enhancement` batches and the UnifiedExplorer refactor)*
 
 #### 10.1 Organic Cultural Boundaries
 **Pain point: the map currently can't render the curvy, organic boundaries typical of linguistic/cultural maps.**
@@ -223,7 +239,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 11: Data Acquisition & Scraping
+### Phase 11: Data Acquisition & Scraping ✅ COMPLETE
+*(Ralph PRD `data-acquisition`, 12 stories, merged @577a209)*
 
 #### 11.1 In-App Data Contribution Tools
 - **Map-based boundary drawing tool:** Click to draw polygons/lines directly on the map to define cultural regions, trade routes, migration paths
@@ -252,7 +269,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 12: Narrative & Educational Features
+### Phase 12: Narrative & Educational Features ✅ COMPLETE
+*(Ralph PRD `narrative-education`, 11 stories, merged @ce4ef9f)*
 
 #### 12.1 Guided Journeys
 - Curated narrative paths through the data, e.g.:
@@ -289,7 +307,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 13: Platform & Infrastructure
+### Phase 13: Platform & Infrastructure ✅ COMPLETE
+*(Ralph PRD `platform-infra`, 12 stories, merged @963c07b)*
 
 #### 13.1 Performance at Scale
 - Migrate to SQLite/DuckDB for complex queries when data exceeds TSV performance limits
@@ -329,7 +348,8 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-### Phase 14: Speculative & Long-term Vision
+### Phase 14: Speculative & Long-term Vision ✅ COMPLETE
+*(Ralph PRD `speculative`, 11 stories, merged @ed5a7f2 — several features ship with fallbacks pending real audio/3D assets)*
 
 #### 14.1 DNA-to-Culture Mapper
 - Upload 23andMe/AncestryDNA results → see which historical cultures, languages, and cuisines are associated with your genetic heritage
@@ -361,18 +381,59 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-## Priority Matrix
+## Completion Status
 
-| Phase | Impact | Effort | Priority |
-|-------|--------|--------|----------|
-| **7: Deep History & Lineage Engine** | Very High | High | **1 — Core differentiator** |
-| **8: Massive Data Expansion** | Very High | Very High | **2 — Nothing works without data** |
-| **10: Advanced Map & Viz** | High | High | **3 — Organic boundaries are critical** |
-| **9: New Cultural Domains** | High | High | **4 — Breadth of coverage** |
-| **11: Data Acquisition** | High | Medium | **5 — Scalable data entry** |
-| **12: Narrative & Education** | Medium | Medium | **6 — User engagement** |
-| **13: Platform & Infra** | Medium | High | **7 — Scale when needed** |
-| **14: Speculative** | Low-Medium | Very High | **8 — Long-term vision** |
+All eight roadmap phases are implemented and merged to `main`.
+
+| Phase | Delivered by | Merge |
+|-------|-------------|-------|
+| 7: Deep History & Lineage Engine | `ralphy-deephistory-6` (archived) | ✅ |
+| 8: Massive Data Expansion | `ralphy-phase9-data-expansion` (archived) | ✅ |
+| 9: New Cultural Domains | `ralphy-phase12-culture-explorer` (archived) | ✅ |
+| 10: Advanced Map & Viz | `ralphy-phase10/11` + UnifiedExplorer refactor (archived) | ✅ |
+| 11: Data Acquisition | Ralph `data-acquisition` (12) | @577a209 |
+| 12: Narrative & Education | Ralph `narrative-education` (11) | @ce4ef9f |
+| 13: Platform & Infra | Ralph `platform-infra` (12) | @963c07b |
+| 14: Speculative | Ralph `speculative` (11) | @ed5a7f2 |
+| *Convergence:* data-layer schema | Ralph `data-layer-convergence` (9) | @4dbf943 |
+| *Convergence:* Python ingest/graph | Ralph `linguascrape-convergence-python` (8) | @10cb3f1 |
+| *Convergence:* app graph integration | Ralph `graph-app-integration` (12) | @dbed995 |
+
+The Ralph PRD templates were retired to `tasks/ralph/completed/`; the workflow is documented in
+`docs/ralph-workflow.md`.
+
+---
+
+## What's Next — Phase 15+
+
+The original roadmap (Phases 7–14) is exhausted. Everything is *implemented*; the next horizon is
+turning it into a **verified, populated, production-grade** atlas, then extending outward.
+
+### 15. Operationalize the convergence (highest priority)
+The convergence *machinery* exists; the *live graph* does not yet.
+- Build and publish the full culture-scrape corpus (its language blueprint alone targets ~16k
+  entities) and load it into Neo4j; run the Datalog inference at scale.
+- Expose the sidecar's **JSON API** — several explorer/search endpoints still render HTML; only
+  `GET /api/graph/{csid}` returns JSON today (Python-side work in `packages/culture-scrape/`).
+- Migrate the remaining in-memory TS correlations to Cypher/Datalog and retire the duplicates.
+
+### 16. Hardening & production readiness
+- **Rotate the exposed `.env` secrets, untrack the file, and purge it from git history** (urgent).
+- Clear the 145 pre-existing `tsc` errors so `npm run check` is green globally.
+- **Browser/e2e verification** of the UI stories that were gated on unit tests (graph views,
+  explorer adapter, quizzes, DNA mapper, AR/VR) — many need a real `npm run dev:full` pass.
+- Source real assets for the speculative fallbacks: IPA/music audio clips, glTF artifact models.
+
+### 17. Data & content at scale
+- Populate the expanded domains with real breadth (dance, literature, architecture, kinship, etc.).
+- Author rich content for the data-driven features: guided journeys, what-if scenarios, quiz banks.
+- Publish the first versioned dataset snapshot with a DOI (the machinery landed in Phase 12).
+
+### 18. New horizons (candidate future roadmap)
+- Public launch: performance/SEO, onboarding, accessibility audit against WCAG.
+- Community & social: shared collections, discussion, reputation on contributions.
+- Native/mobile app or PWA polish; offline-first field-research mode.
+- ML-driven discovery: surface non-obvious cross-cultural links from the graph automatically.
 
 ---
 
@@ -389,4 +450,4 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 ---
 
-*Last updated: March 12, 2026*
+*Last updated: July 3, 2026 — Phases 7–14 + culture-scrape convergence complete; see "What's Next — Phase 15+".*
