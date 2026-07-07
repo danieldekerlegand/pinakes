@@ -19,4 +19,16 @@ Representative client-facing proxy endpoints (the client posts content, the serv
 
 **Regression guard:** `server/security/gemini-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GEMINI*`, (2) no `client/` source references a Gemini key / the `@google/generative-ai` SDK / the raw `generativelanguage.googleapis.com` endpoint, and (3) the `/api/extract/text` proxy serves a keyless client request (LLM mocked) without echoing any key.
 
-<!-- US-002 (Google Translate proxy), US-003 (secret scanning), US-006/US-007 (e2e/browser verification) sections land as those stories complete. -->
+### Google Translate (US-002)
+
+Translation is proxied server-side. The client calls **`POST /api/translate`** with `{ text, to, from? }`; the server (`server/services/translate.ts` + `server/routes/translate.ts`) makes the upstream Google Translation v2 call using the server-side **`GOOGLE_TRANSLATE_API_KEY`**. The key never reaches the browser.
+
+- **Client:** `client/src/lib/scraping.ts`'s `GoogleTranslateAPI` posts to `/api/translate` and no longer reads any `process.env` / `VITE_` key. A `503` (no key configured) or `502` (upstream failure) degrades gracefully to the next translation source.
+- **Server contract:** `200 { translation, source, from, to }`; `400` invalid body (missing `text`/`to`); `502` upstream failure; `503` when no server-side key is configured (translation is optional — the app runs without it, mirroring `GEONAMES_USERNAME`).
+- **Injectable boundary:** the network call is behind `TranslateDeps` and the key is injectable, so `server/routes/translate.test.ts` exercises the proxy with a fake upstream and **no real key** (asserts the server-side key is used and never echoed back).
+
+**Config:** `.env.example` declares `GOOGLE_TRANSLATE_API_KEY` (server) and the old `VITE_GOOGLE_TRANSLATE_API_KEY` was **removed**. Never reintroduce a `VITE_`-prefixed translate var.
+
+**Regression guard:** `server/security/translate-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GOOGLE_TRANSLATE*`, and (2) no `client/` source references a translate key or the raw `translation.googleapis.com` endpoint.
+
+<!-- US-003 (secret scanning), US-006/US-007 (e2e/browser verification) sections land as those stories complete. -->

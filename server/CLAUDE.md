@@ -20,6 +20,23 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## Server-side key proxies (Gemini US-001, Google Translate US-002)
+
+Third-party API keys are **server-side only** — never `VITE_`-prefixed (Vite inlines those
+into the browser bundle). The client posts content to an Express proxy; the server holds the
+key and makes the upstream call. Full posture: `docs/SECURITY.md`.
+
+- **Translate** (`services/translate.ts` + `routes/translate.ts`): `POST /api/translate`
+  `{text,to,from?}` reads `GOOGLE_TRANSLATE_API_KEY` (never a `VITE_` var). Network is behind an
+  injectable `TranslateDeps` + injectable key so tests use a fake upstream and **no real key**.
+  **Optional-key pattern** (like `GEONAMES_USERNAME`): no key ⇒ **503** and the client
+  (`client/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
+  502 upstream failure.
+- **Invariant guards** (`server/security/{gemini,translate}-proxy.test.ts`) scan `.env.example`
+  + all `client/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
+  explanatory comments must not contain the literal `VITE_*` / provider-endpoint strings, or the
+  guard fails on itself — reword them.
+
 ## Anomaly detection — `services/anomaly-detection.ts` + `routes/anomaly-detection.ts`
 
 `GET /api/anomalies?domains=&minSurprise=&limit=` (US-006) scans the cross-domain corpus for
