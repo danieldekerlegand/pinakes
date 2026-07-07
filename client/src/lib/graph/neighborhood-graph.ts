@@ -152,3 +152,36 @@ export function isEmptyNeighborhood(
   if (!neighborhood) return true;
   return neighborhood.nodes.length <= 1 && neighborhood.edges.length === 0;
 }
+
+// ── View-state selection ─────────────────────────────────────────────────────
+
+/**
+ * Which body {@link GraphNeighborhoodView} renders, in priority order:
+ * `"loading"` while the query is in flight, `"unavailable"` when the graph is
+ * down (the query errored, e.g. a 503 from Neo4j being offline), `"empty"` when
+ * the node exists but has no neighbours to draw, and `"ready"` once there is a
+ * graph to render. Kept pure + DOM-free so the state machine is unit-testable
+ * from a mocked neighborhood without a jsdom render.
+ */
+export type NeighborhoodViewState = "loading" | "unavailable" | "empty" | "ready";
+
+/** The async flags {@link neighborhoodViewState} decides from (react-query's). */
+export interface NeighborhoodQueryState {
+  isLoading: boolean;
+  isError: boolean;
+  data: NeighborhoodPayload | undefined | null;
+}
+
+/**
+ * Decide the neighborhood view state from the query flags + payload. Loading
+ * wins over everything (we have no data yet), then an error means the graph is
+ * unavailable, then a lone/absent root is empty, else it is ready to draw.
+ */
+export function neighborhoodViewState(
+  query: NeighborhoodQueryState,
+): NeighborhoodViewState {
+  if (query.isLoading) return "loading";
+  if (query.isError) return "unavailable";
+  if (isEmptyNeighborhood(query.data)) return "empty";
+  return "ready";
+}

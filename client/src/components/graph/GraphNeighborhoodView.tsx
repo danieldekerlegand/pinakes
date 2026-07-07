@@ -8,7 +8,7 @@ import {
   toNetworkGraph,
   labelLegend,
   labelColor,
-  isEmptyNeighborhood,
+  neighborhoodViewState,
   type NeighborhoodPayload,
 } from "@/lib/graph/neighborhood-graph";
 import { ProvenanceBadge } from "@/components/graph/Provenance";
@@ -52,6 +52,7 @@ export default function GraphNeighborhoodView({
     retry: false,
   });
 
+  const viewState = neighborhoodViewState({ isLoading, isError, data });
   const graph = data ? toNetworkGraph(data) : null;
   const legend = data ? labelLegend(data) : [];
   const rootProvenance = data ? extractProvenance(data.root.properties) : null;
@@ -100,7 +101,7 @@ export default function GraphNeighborhoodView({
 
       {/* Body */}
       <div className="flex-1 min-h-[320px]">
-        {isLoading ? (
+        {viewState === "loading" ? (
           <div
             className="flex h-full min-h-[320px] items-center justify-center text-gray-400 gap-2 text-sm"
             data-testid="graph-loading"
@@ -108,7 +109,7 @@ export default function GraphNeighborhoodView({
             <Loader2 className="h-4 w-4 animate-spin" />
             Loading graph…
           </div>
-        ) : isError ? (
+        ) : viewState === "unavailable" ? (
           <div
             className="flex h-full min-h-[320px] flex-col items-center justify-center text-center text-gray-500 gap-2 text-sm"
             data-testid="graph-unavailable"
@@ -117,7 +118,7 @@ export default function GraphNeighborhoodView({
             <p>The shared graph is unavailable right now.</p>
             <p className="text-xs text-gray-400">Graph features will return automatically once it is back online.</p>
           </div>
-        ) : isEmptyNeighborhood(data) ? (
+        ) : viewState === "empty" ? (
           <div
             className="flex h-full min-h-[320px] flex-col items-center justify-center text-center text-gray-400 gap-1 text-sm"
             data-testid="graph-empty"

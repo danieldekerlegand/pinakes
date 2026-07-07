@@ -7,6 +7,7 @@ import {
   toNetworkGraph,
   labelLegend,
   isEmptyNeighborhood,
+  neighborhoodViewState,
   type NeighborhoodPayload,
 } from "./neighborhood-graph";
 
@@ -151,5 +152,46 @@ describe("isEmptyNeighborhood", () => {
   });
   it("is not empty when there are neighbours", () => {
     expect(isEmptyNeighborhood(NEIGHBORHOOD)).toBe(false);
+  });
+});
+
+describe("neighborhoodViewState", () => {
+  const loneRoot: NeighborhoodPayload = {
+    depth: 1,
+    root: NEIGHBORHOOD.root,
+    nodes: [NEIGHBORHOOD.root],
+    edges: [],
+  };
+
+  it("is 'loading' while the query is in flight (even with stale data)", () => {
+    expect(
+      neighborhoodViewState({ isLoading: true, isError: false, data: undefined }),
+    ).toBe("loading");
+    // Loading wins over everything else — we have no fresh answer yet.
+    expect(
+      neighborhoodViewState({ isLoading: true, isError: true, data: NEIGHBORHOOD }),
+    ).toBe("loading");
+  });
+
+  it("is 'unavailable' when the graph query errored (e.g. Neo4j 503)", () => {
+    expect(
+      neighborhoodViewState({ isLoading: false, isError: true, data: undefined }),
+    ).toBe("unavailable");
+  });
+
+  it("is 'empty' for a resolved node with no neighbours", () => {
+    expect(
+      neighborhoodViewState({ isLoading: false, isError: false, data: loneRoot }),
+    ).toBe("empty");
+    // A missing payload (no error, not loading) is also nothing to draw.
+    expect(
+      neighborhoodViewState({ isLoading: false, isError: false, data: null }),
+    ).toBe("empty");
+  });
+
+  it("is 'ready' once there is a neighbourhood to render", () => {
+    expect(
+      neighborhoodViewState({ isLoading: false, isError: false, data: NEIGHBORHOOD }),
+    ).toBe("ready");
   });
 });
