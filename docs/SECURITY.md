@@ -31,4 +31,62 @@ Translation is proxied server-side. The client calls **`POST /api/translate`** w
 
 **Regression guard:** `server/security/translate-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GOOGLE_TRANSLATE*`, and (2) no `client/` source references a translate key or the raw `translation.googleapis.com` endpoint.
 
-<!-- US-003 (secret scanning), US-006/US-007 (e2e/browser verification) sections land as those stories complete. -->
+## Secret scanning (US-003)
+
+A guard blocks committing `.env` files or key-like / high-entropy secrets — so a
+credential can never re-enter the tree the way the original `.env` did. It is a
+self-contained TypeScript scanner (no external binary to install), run two ways:
+
+- **Pre-commit hook** — `.githooks/pre-commit` runs `npm run secret-scan:staged`,
+  which scans only the **staged** content (the exact blobs about to be committed).
+  A hit aborts the commit.
+- **CI** — `.github/workflows/secret-scan.yml` runs `npm run secret-scan` on every
+  push / pull request, scanning the **entire tracked tree** and failing the build
+  on any finding.
+
+### Setup
+
+Installing the hook is a one-liner, and the `prepare` npm script runs it
+automatically after `npm install`:
+
+```sh
+git config core.hooksPath .githooks     # done for you by `npm install` (prepare script)
+```
+
+### Running it locally
+
+```sh
+npm run secret-scan          # scan the whole tracked tree (what CI runs)
+npm run secret-scan:staged   # scan only staged changes (what the hook runs)
+```
+
+Exit `0` = clean, `1` = secrets found (each finding is printed with the file,
+line, rule, and a **masked** excerpt so the report itself never re-leaks the
+secret).
+
+### What it detects
+
+- Any real `.env` file by path (`.env`, `.env.production`, …) — templates
+  (`.env.example`, `*.sample`, `*.template`) are intentionally allowed.
+- Provider-prefixed keys: AWS access-key ids (`AKIA…`), Google API keys
+  (`AIza…`), OpenAI/Anthropic `sk-…`, GitHub `ghp_…`, Slack `xox…`, Google OAuth
+  `GOCSPX-…`.
+- `-----BEGIN … PRIVATE KEY-----` blocks.
+- A secret-named variable (`api_key`, `secret`, `token`, `password`, …) assigned a
+  **high-entropy** value (≥ 3.5 bits/char, ≥ 20 chars, mixed character classes).
+  Placeholders (`process.env.*`, `${…}`, `changeme`, `your-key-here`, empty
+  strings) and low-entropy dictionary words are deliberately not flagged, which is
+  what keeps the whole current tree passing.
+
+### False positives
+
+Two escape hatches (mirroring gitleaks): append an inline `secret-scan:allow`
+comment to a known-safe sample line, or add the path to the allowlist in
+`scripts/secret-scan.ts`. In a genuine emergency a commit can bypass the hook with
+`git commit --no-verify` (CI still scans the full tree).
+
+The pure core `scanForSecrets(files)` is filesystem/network-free and covered by
+`scripts/secret-scan.test.ts` — including a **planted-secret** case that proves the
+scanner trips on a real leak while passing on ordinary source.
+
+<!-- US-006/US-007 (e2e/browser verification) sections land as those stories complete. -->

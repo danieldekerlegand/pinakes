@@ -1,0 +1,8 @@
+#!/bin/sh
+# Secret-scan pre-commit hook (US-003). Blocks committing .env files or key-like /
+# high-entropy secrets. Install once: `git config core.hooksPath .githooks`
+# (the `prepare` npm script does this automatically after `npm install`).
+#
+# Bypass in a genuine emergency with `git commit --no-verify` — but prefer an
+# inline `secret-scan:allow` comment or a path allowlist entry (see docs/SECURITY.md).
+exec npx tsx scripts/secret-scan.ts --staged
