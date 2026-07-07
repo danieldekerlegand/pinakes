@@ -34,6 +34,7 @@ from culturescrape.schema import (
     write_edge_rows,
     write_node_rows,
 )
+from culturescrape.schema.pipeline import normalize_records
 from culturescrape.schema.tsvio import Row
 
 #: The committed fixture export (no coupling to a live filesystem path).
@@ -293,3 +294,79 @@ def test_fixture_edges_round_trip_through_tsv(tmp_path: Path) -> None:
     _, back = read_rows(path)
     assert back[0][":TYPE"] == "DESCENDS_FROM"
     assert back[0][":START_ID"] == "cs:archaeological-culture:bell-beaker"
+
+
+# --- normalize: dedup redirects edges off merged-away nodes -----------------
+
+
+def _lingua_category() -> CategorySpec:
+    """A category routed down the LinguaScrape export normalize path."""
+    return CategorySpec(
+        id="linguascrape-full",
+        label="Entity",
+        description="the live LinguaScrape export",
+        source=SourceSpec(
+            type="dump", query="unused", params={"adapter": "linguascrape-export"}
+        ),
+        dimensions=("linguistic",),
+        links=(),
+    )
+
+
+def _lingua_record(fields: dict[str, str]) -> RawRecord:
+    return RawRecord(fields=fields, provenance=_provenance())
+
+
+def test_normalize_redirects_edges_off_merged_away_nodes() -> None:
+    # Two Language rows name one real-world thing (same name), so dedup collapses
+    # one csid; an edge that still points at the collapsed csid must be redirected
+    # onto the survivor — not left dangling, which would fail schema validation
+    # downstream (the live-corpus bug this guards against).
+    records = [
+        _lingua_record(
+            {"csid": "cs:language:a", ":LABEL": "Language", "name": "Testish",
+             "linguascrape_id": "a"}
+        ),
+        _lingua_record(
+            {"csid": "cs:language:b", ":LABEL": "Language", "name": "Testish",
+             "linguascrape_id": "b"}
+        ),
+        _lingua_record(
+            {"csid": "cs:language:c", ":LABEL": "Language", "name": "Other",
+             "linguascrape_id": "c"}
+        ),
+        _lingua_record(
+            {":START_ID": "cs:language:c", ":END_ID": "cs:language:b",
+             ":TYPE": "BORROWED_FROM"}
+        ),
+    ]
+    result = normalize_records(records, _lingua_category())
+
+    surviving = {row["csid"] for row in result.nodes}
+    assert len(result.nodes) == 2  # a and b collapsed into one survivor
+    assert len(result.edges) == 1  # the edge survived (redirected, not dropped)
+    edge = result.edges[0]
+    assert edge[":START_ID"] in surviving
+    assert edge[":END_ID"] in surviving  # was cs:language:b → now the survivor
+
+
+def test_normalize_drops_edges_that_redirect_to_a_self_loop() -> None:
+    # An edge between two rows that merge into ONE node says nothing once they are
+    # the same node, so it is dropped rather than emitted as a self-loop.
+    records = [
+        _lingua_record(
+            {"csid": "cs:language:a", ":LABEL": "Language", "name": "Testish",
+             "linguascrape_id": "a"}
+        ),
+        _lingua_record(
+            {"csid": "cs:language:b", ":LABEL": "Language", "name": "Testish",
+             "linguascrape_id": "b"}
+        ),
+        _lingua_record(
+            {":START_ID": "cs:language:a", ":END_ID": "cs:language:b",
+             ":TYPE": "BORROWED_FROM"}
+        ),
+    ]
+    result = normalize_records(records, _lingua_category())
+    assert len(result.nodes) == 1
+    assert result.edges == []

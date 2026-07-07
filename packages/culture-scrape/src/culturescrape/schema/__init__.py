@@ -69,6 +69,7 @@ from culturescrape.schema.merge import (
     MERGE_KEY,
     MergeReason,
     merge_rows,
+    merged_csid_remap,
 )
 from culturescrape.schema.normalize import (
     DEFAULT_FIELD_MAP,
@@ -221,6 +222,7 @@ __all__ = [
     "map_record",
     "map_records",
     "merge_rows",
+    "merged_csid_remap",
     "mint_csid",
     "node_schema",
     "normalize_fields",

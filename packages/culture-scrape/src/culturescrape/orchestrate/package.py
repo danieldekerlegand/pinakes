@@ -90,11 +90,14 @@ def package_corpus(
     digest = _digest(entries)
     name = name or source.name
     node_count, edge_count = _counts(source, members)
+    nodes_by_label, edges_by_type = _type_counts(source, members)
 
     manifest: dict[str, Any] = {
         "name": name,
         "node_count": node_count,
         "edge_count": edge_count,
+        "nodes_by_label": nodes_by_label,
+        "edges_by_type": edges_by_type,
         "digest": digest,
         "files": [
             {"path": entry.path, "sha256": entry.sha256, "bytes": entry.bytes}
@@ -185,6 +188,38 @@ def _counts(source: Path, members: Sequence[str]) -> tuple[int | None, int | Non
         node_count if isinstance(node_count, int) else None,
         edge_count if isinstance(edge_count, int) else None,
     )
+
+
+def _type_counts(
+    source: Path, members: Sequence[str]
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Read node/edge *type* counts from the corpus ``manifest.json`` if present.
+
+    The corpus manifest (:class:`~culturescrape.orchestrate.manifest.CorpusManifest`)
+    records ``nodes_by_label`` / ``edges_by_type`` — the per-type fingerprint a
+    published artifact should carry so a downloader sees what each :LABEL / :TYPE
+    contributes without unpacking the bundle. Absent or unreadable ⇒ empty maps.
+    """
+    base = source / "corpus" if "corpus" in members else source
+    manifest_path = base / "manifest.json"
+    if not manifest_path.is_file():
+        return {}, {}
+    try:
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}, {}
+    return _int_map(data.get("nodes_by_label")), _int_map(data.get("edges_by_type"))
+
+
+def _int_map(value: Any) -> dict[str, int]:
+    """Coerce a manifest field to a ``{str: int}`` map, dropping bad entries."""
+    if not isinstance(value, dict):
+        return {}
+    return {
+        key: count
+        for key, count in value.items()
+        if isinstance(key, str) and isinstance(count, int)
+    }
 
 
 def _write_archive(

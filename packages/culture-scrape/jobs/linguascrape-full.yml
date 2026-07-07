@@ -1,0 +1,24 @@
+# Build the FULL, publishable LinguaScrape convergence corpus from the live
+# canonical export (US-001), as opposed to jobs/linguascrape.yml which ingests
+# the committed 6-row fixture for a deterministic CI build.
+#
+# Run end to end (from the package root) with:
+#   npx --prefix ../.. tsx ../../scripts/export-for-culturescrape.ts  # refresh the export
+#   uv run culturescrape run jobs/linguascrape-full.yml               # build the corpus
+#   uv run culturescrape validate out/linguascrape-full/corpus        # schema-validate it
+#   uv run culturescrape package out/linguascrape-full --out dist     # publish tar.gz + manifest
+# See docs/convergence-build.md for the full runbook.
+#
+# The two relaxed floors mirror jobs/linguascrape.yml: LinguaScrape rows carry
+# the canonical `source` stamp but no external `source_url`, so the generic
+# provenance floor is relaxed (the LinguaScrape provenance QA gate still enforces
+# it), and a single-source convergence corpus need not reach the multi-domain
+# seed corpus's connectivity. A truly merged corpus (native Wikidata + this
+# source) meets both defaults and can drop these overrides.
+name: linguascrape-full
+description: LinguaScrape convergence (full) — ingest the live canonical export.
+categories:
+  - ../categories/linguascrape-full.yml
+output_root: ../out/linguascrape-full
+min_provenance_completeness: 0.0
+min_component_fraction: 0.5
