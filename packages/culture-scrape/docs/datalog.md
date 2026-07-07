@@ -483,3 +483,50 @@ region's members. The shortest-chain query reconstructs a *path* by iterative
 deepening, which is a Prolog idiom; in Soufflé reachability is available as the
 `influenced_transitively` closure, but the minimal route is left to the
 interactive engine.
+
+## Materializing inference at scale (US-004)
+
+Loading a generated `graph.pl`/`graph.dl` into an engine materializes the derived
+relations — but neither `swipl` nor `souffle` is installed in CI, and the full
+corpus program is ~1 GB. `culturescrape.datalog.materialize` computes each rule's
+extension **engine-free**: a small naive-fixpoint evaluator over the projected
+facts, so the four US-004 inference targets can be produced, counted, and
+validated without an engine. `culturescrape datalog-materialize <dataset>` prints
+the base-relation counts the rules read and the derived-relation counts, and
+`--json <path>` writes them as a manifest:
+
+```python
+>>> from culturescrape.datalog.export import collect_facts
+>>> from culturescrape.datalog.examples import dataset_dir
+>>> from culturescrape.datalog.materialize import summarize
+>>> summary = summarize(collect_facts(dataset_dir()))
+>>> summary.derived_relations["ancestor"]                       # transitive descends_from
+3
+>>> summary.derived_relations["same_region"]                    # co-location join
+16
+>>> summary.derived_relations["contemporary"]                   # symmetric contemporary_with
+6
+>>> summary.derived_relations["genetic_linguistic_correlation"] # origin ⋈ spoken region
+2
+
+```
+
+Over the **full LinguaScrape corpus** (`out/linguascrape-full/corpus`) the four
+targets materialize to (recorded in `docs/datalog-materialization-manifest.json`):
+
+| Target relation | Derived tuples | Base relation read |
+|---|---|---|
+| `contemporary/2` (symmetric `contemporary_with/2`) | 1,010,490 | `contemporary_with` (505,245) |
+| `same_region/2` (co-location via `within_region/2`) | 2,219 | `located_in` (475) |
+| `ancestor/2` (transitive `descends_from/2`) | 2,770 | `descends_from` (1,468) |
+| `genetic_linguistic_correlation/2` | 0 | `originates_from`/`spoken_in` (0) |
+
+`genetic_linguistic_correlation/2` derives **0** over the LinguaScrape-only corpus
+because LinguaScrape ships no genetics domain (no haplogroup source, so no
+`originates_from`/`spoken_in` edges). The rule is exercised — and its expected
+shape recorded — on the bundled fixture, which carries the ported LinguaScrape
+genetics facts (`source: linguascrape`); it materializes on any merged corpus that
+adds a genetics source. The other three run non-trivially over the live graph.
+Storing the ~1 M symmetric `contemporary` closure as edges would dominate the
+corpus, so it stays **derived** in the logic layer rather than materialized into
+TSV — the point of keeping the closure a rule.

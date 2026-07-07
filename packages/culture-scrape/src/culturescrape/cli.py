@@ -11,6 +11,7 @@ so each run is auditable.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from collections.abc import Sequence
@@ -37,9 +38,11 @@ from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
     DatalogExportError,
     Engine,
+    collect_facts,
     engines_for_choice,
     export_dataset,
 )
+from culturescrape.datalog.materialize import MaterializeError, summarize
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
 from culturescrape.neo4j.admin_import import (
     AdminImportError,
@@ -340,6 +343,24 @@ def _build_parser() -> argparse.ArgumentParser:
         help="directory the .pl and/or .dl program is written to",
     )
     to_datalog.set_defaults(handler=_cmd_to_datalog)
+
+    datalog_materialize = subparsers.add_parser(
+        "datalog-materialize",
+        help="materialise the inference rules over a dataset and count them "
+        "(engine-free)",
+    )
+    datalog_materialize.add_argument(
+        "directory",
+        type=Path,
+        help="dataset root holding nodes/ and edges/ .tsv files",
+    )
+    datalog_materialize.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the base/derived count manifest to this path as JSON",
+    )
+    datalog_materialize.set_defaults(handler=_cmd_datalog_materialize)
 
     run = subparsers.add_parser(
         "run",
@@ -875,6 +896,28 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
     for engine in engines:
         label = "load" if engine is Engine.SWIPL else "run"
         print(f"  {label}: {result.load_hint(engine)}")
+    return 0
+
+
+def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
+    try:
+        facts = collect_facts(args.directory)
+        summary = summarize(facts)
+    except (DatalogExportError, MaterializeError) as exc:
+        return _fail(str(exc))
+
+    print(f"base relations read ({len(summary.base_relations)}):")
+    for predicate, count in summary.base_relations.items():
+        print(f"  {predicate}: {count}")
+    print(f"derived relations (total {summary.derived_total}):")
+    for predicate, count in summary.derived_relations.items():
+        print(f"  {predicate}: {count}")
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(
+            json.dumps(summary.to_json(), indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"wrote manifest to {args.json}")
     return 0
 
 

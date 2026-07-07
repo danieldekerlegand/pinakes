@@ -1,0 +1,25 @@
+{
+  "job": "linguascrape-full",
+  "built_from": "out/linguascrape-full/corpus (jobs/linguascrape-full.yml) -> culturescrape datalog-materialize",
+  "note": "Release record for the materialised Datalog inference over the full LinguaScrape convergence corpus (US-004). 'base_relations' counts the edge predicates the shared rules read; 'derived_relations' is the engine-free fixpoint extension of each rule (culturescrape.datalog.materialize). These TYPE counts are the DETERMINISTIC fingerprint of the derivation over this corpus; they track the live corpus, so regenerate with the command in docs/convergence-build.md 'Materialize Datalog inference at scale (US-004)' after any rebuild. The corpus and its corpus-datalog export are gitignored. genetic_linguistic_correlation is 0 here because LinguaScrape ships no genetics domain (no haplogroup source); the rule materialises on a merged corpus that includes one -- see the shipped genetic-linguistic-correlation example over the bundled fixture.",
+  "base_relations": {
+    "contemporary_with": 505245,
+    "descends_from": 1468,
+    "located_in": 475,
+    "influenced_by": 97,
+    "derived_from": 13,
+    "part_of": 10,
+    "originates_from": 0,
+    "spoken_in": 0
+  },
+  "derived_relations": {
+    "contemporary": 1010490,
+    "ancestor": 2770,
+    "same_region": 2219,
+    "within_region": 868,
+    "influenced_transitively": 503,
+    "component_of": 10,
+    "genetic_linguistic_correlation": 0
+  },
+  "derived_total": 1016860
+}

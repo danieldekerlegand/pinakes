@@ -204,3 +204,52 @@ each label/type tally against `docs/corpus-release-manifest.json`'s `nodes_by_la
 `cypher/node-counts-by-label.cypher` and `cypher/edge-counts-by-type.cypher` to run under
 `cypher-shell`. The load is **idempotent** — `MERGE` on `csid` and `IF NOT EXISTS` constraints
 mean re-running `to-neo4j --mode loadcsv` leaves counts unchanged.
+
+## Materialize Datalog inference at scale (US-004)
+
+The `run` job already writes a rule-bearing Datalog export beside the corpus at
+`out/linguascrape-full/corpus-datalog/` (`graph.pl` + `graph.dl` + one `.facts` per relation,
+built with `--rules`, so the shared inference library is attached). To (re)build it standalone:
+
+```bash
+cd packages/culture-scrape
+uv run culturescrape to-datalog out/linguascrape-full/corpus --engine both --rules \
+  --out out/linguascrape-full/corpus-datalog
+```
+
+Loading that program into `swipl`/`souffle` materializes the derived relations, but neither
+engine is in CI and `graph.pl` is ~1 GB. `datalog-materialize` computes each rule's extension
+**engine-free** (naive fixpoint over the projected facts) and records the base/derived counts:
+
+```bash
+uv run culturescrape datalog-materialize out/linguascrape-full/corpus \
+  --json docs/datalog-materialization-manifest.json
+# base relations read (8): contemporary_with: 505245 / descends_from: 1468 / located_in: 475 / ...
+# derived relations (total 1016860): contemporary: 1010490 / ancestor: 2770 / same_region: 2219 / ...
+```
+
+The four US-004 targets over the full corpus (fingerprint committed in
+`docs/datalog-materialization-manifest.json`):
+
+| Target | Derived tuples | Notes |
+|---|---|---|
+| `contemporary/2` (symmetric `contemporary_with/2`) | 1,010,490 | derived in the logic layer, **not** stored as edges |
+| `ancestor/2` (transitive `descends_from/2`) | 2,770 | full language/culture descent closure |
+| `same_region/2` (co-location via `within_region/2`) | 2,219 | geographic half of the cross-domain correlation |
+| `genetic_linguistic_correlation/2` | 0 | empty here — LinguaScrape ships no genetics domain |
+
+`genetic_linguistic_correlation/2` is 0 because the LinguaScrape-only corpus has no haplogroup
+source (no `originates_from`/`spoken_in` edges); it materializes on a merged corpus that adds
+one, and its expected shape is exercised on the bundled fixture (which carries the ported
+`source: linguascrape` genetics facts). This is also why storing the ~1 M `contemporary`
+closure as edges is avoided — the closure stays a **derived** relation in Datalog rather than
+being materialized back into TSV (the `PRECEDES`/`FOLLOWS` note above is the same principle).
+
+**Validation.** `culturescrape validate out/linguascrape-full/corpus` (the schema/QA gate from
+US-001) covers the base facts the export projects; the derived layer is validated engine-free
+by `datalog-materialize` (the manifest counts) and, when an engine is present, by the
+`swipl`-gated example tests in `tests/test_datalog_examples.py` /
+`tests/test_datalog_linguascrape.py`. The exported `graph.pl`/`graph.dl` are asserted
+well-formed by `tests/test_cli_datalog.py`. Example queries with their expected shapes are in
+[`docs/datalog.md`](datalog.md) — "Materializing inference at scale (US-004)" and the shipped
+`datalog/examples/*.pl`.

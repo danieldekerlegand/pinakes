@@ -9,6 +9,7 @@ is verified to produce a loadable program (not merely a file).
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 from pathlib import Path
@@ -175,3 +176,42 @@ def test_dataset_without_nodes_fails(
 
     assert code == 2
     assert "no nodes" in capsys.readouterr().err
+
+
+# --- datalog-materialize ----------------------------------------------------
+
+
+def test_materialize_prints_base_and_derived_counts(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dataset = tmp_path / "data"
+    _dataset(dataset)
+
+    code = cli.main(["datalog-materialize", str(dataset)])
+
+    assert code == 0
+    stdout = capsys.readouterr().out
+    assert "base relations read" in stdout
+    assert "derived relations (total" in stdout
+
+
+def test_materialize_writes_a_manifest(tmp_path: Path) -> None:
+    dataset = tmp_path / "data"
+    _dataset(dataset)
+    manifest = tmp_path / "out" / "materialization.json"
+
+    code = cli.main(["datalog-materialize", str(dataset), "--json", str(manifest)])
+
+    assert code == 0
+    body = json.loads(manifest.read_text(encoding="utf-8"))
+    assert set(body) == {"base_relations", "derived_relations", "derived_total"}
+    # Every rule head is materialised (present in the derived section).
+    from culturescrape.datalog.rules import RULES
+
+    assert {rule.name for rule in RULES} <= set(body["derived_relations"])
+    assert body["derived_total"] == sum(body["derived_relations"].values())
+
+
+def test_materialize_missing_directory_fails(tmp_path: Path) -> None:
+    code = cli.main(["datalog-materialize", str(tmp_path / "nope")])
+    assert code == 2
