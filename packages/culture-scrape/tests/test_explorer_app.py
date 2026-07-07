@@ -769,3 +769,125 @@ def test_search_is_advertised_in_the_nav() -> None:
     client = TestClient(create_app(FIXTURE_ROOT))
 
     assert 'href="/search"' in client.get("/").text
+
+
+# --- JSON content negotiation for the TS sidecar client (T15-US-003) ---------
+
+#: The header the first-party TS client sends to ask for JSON over HTML.
+JSON_ACCEPT = {"Accept": "application/json"}
+
+
+def test_search_returns_json_matching_the_client_shape() -> None:
+    client = TestClient(create_app(FIXTURE_ROOT))
+
+    response = client.get("/search", params={"q": "ceviche"}, headers=JSON_ACCEPT)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/json")
+    body = response.json()
+    assert body["query"] == "ceviche"
+    assert body["results"], "expected at least one hit"
+    hit = body["results"][0]
+    # Every field the SearchHitSchema models is present.
+    assert set(hit) == {"csid", "name", "label", "qid", "field", "tsv", "graph"}
+    assert hit["csid"].startswith("cs:")
+    assert hit["tsv"] == f"/nodes/{hit['csid']}"
+    # Parity: the JSON hit is the same node the HTML view links to.
+    html = client.get("/search", params={"q": "ceviche"}).text
+    assert hit["csid"] in html
+
+
+def test_metrics_returns_json_matching_the_client_shape() -> None:
+    client = TestClient(create_app(FIXTURE_ROOT))
+
+    response = client.get("/metrics", headers=JSON_ACCEPT)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/json")
+    body = response.json()
+    assert set(body) == {
+        "node_count",
+        "edge_count",
+        "edges_per_node",
+        "component_count",
+        "largest_component_size",
+        "largest_component_fraction",
+        "edges_by_dimension",
+        "edges_by_type",
+    }
+    # Parity with the fixture metrics the HTML view renders.
+    assert body["node_count"] > 0
+    assert "geographic" in body["edges_by_dimension"]
+    assert "LOCATED_IN" in body["edges_by_type"]
+
+
+def test_metrics_json_is_zeroed_when_unavailable(tmp_path: Path) -> None:
+    # A corpus whose metrics.json is unreadable still answers a valid JSON shape.
+    corpus = tmp_path / "broken"
+    (corpus / "nodes").mkdir(parents=True)
+    (corpus / "edges").mkdir()
+    _write(corpus / "metrics.json", "{ not valid json")
+    client = TestClient(create_app(corpus))
+
+    body = client.get("/metrics", headers=JSON_ACCEPT).json()
+
+    assert body["node_count"] == 0
+    assert body["edges_per_node"] == 0.0
+    assert body["edges_by_dimension"] == {}
+    assert body["edges_by_type"] == {}
+
+
+def test_completeness_returns_json_matching_the_client_shape() -> None:
+    client = TestClient(create_app(FIXTURE_ROOT))
+
+    response = client.get("/completeness", headers=JSON_ACCEPT)
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/json")
+    body = response.json()
+    assert set(body) == {"qa", "rows"}
+    assert body["qa"] is None or set(body["qa"]) == {
+        "ok",
+        "node_count",
+        "edge_count",
+        "violations",
+        "failed_keys",
+    }
+    assert body["rows"], "expected at least one category row"
+    row = body["rows"][0]
+    assert set(row) == {
+        "category_id",
+        "label",
+        "status",
+        "node_count",
+        "edge_count",
+        "violations",
+        "last_run",
+        "errors",
+        "provenance_complete",
+        "reasons",
+    }
+    # Parity: the categories the HTML dashboard lists are in the JSON.
+    ids = {r["category_id"] for r in body["rows"]}
+    assert {"peruvian-dishes", "andean-context"} <= ids
+
+
+def test_completeness_json_honours_the_status_filter() -> None:
+    client = TestClient(create_app(FIXTURE_ROOT))
+
+    body = client.get(
+        "/completeness", params={"status": "incomplete"}, headers=JSON_ACCEPT
+    ).json()
+
+    assert body["rows"], "the fixture has an incomplete category"
+    assert all(r["status"] == "incomplete" for r in body["rows"])
+
+
+def test_views_still_render_html_without_the_json_accept_header() -> None:
+    # Content negotiation must not regress the HTML explorer (default Accept).
+    client = TestClient(create_app(FIXTURE_ROOT))
+
+    for path in ("/search", "/metrics", "/completeness"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/html")

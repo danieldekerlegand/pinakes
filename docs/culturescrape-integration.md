@@ -253,6 +253,15 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
+**Sidecar JSON contract (US-003).** The FastAPI explorer's `/search`, `/metrics`, and
+`/completeness` views content-negotiate on `Accept`: a browser gets the HTML explorer, and
+the TS client's `Accept: application/json` (same URLs) gets JSON with the shapes
+`culturescrape-client.ts` models — `/search` → `{ query, results[] }` (`SearchHit` rows),
+`/metrics` → `culturescrape.ontology.metrics.to_json` (a corpus with no readable metrics
+answers a zeroed document), `/completeness` → `{ qa, rows[] }`. The two representations are
+built from the same corpus data (parity); the negotiation lives in
+`packages/culture-scrape/src/culturescrape/explorer/app.py` (`_wants_json`).
+
 **Degradation contract.** When a backend is unreachable the query routes answer
 **HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
 (`GraphUnavailableError` / `CultureScrapeUnavailableError` → 503). A malformed/unusable
