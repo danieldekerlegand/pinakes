@@ -831,6 +831,31 @@ privacy guarantee; the server only enriches non-identifying ids.
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 
+## Migrating a correlation to the graph — `services/cross-domain-correlation-graph.ts`
+
+US-007 is the template for retiring a bespoke in-memory TS join in favor of the shared
+Neo4j graph, feature-flagged with a clean fallback. The first migration is the
+cross-domain correlation (`POST /api/cross-domain/correlate`).
+
+- **Parity comes from a shared pure scorer, not from reproducing float math in Cypher.**
+  `cross-domain-correlation.ts` exports the scoring/ranking as pure functions
+  (`scoreCorrelations`, `rankCorrelations`, `computeCoOccurrence`/`…Temporal…`/`…Geographic…`,
+  `haversineKm`) over a `DomainEntity`; both the in-memory `CrossDomainCorrelation.queryCorrelation`
+  and the graph path call the **same** functions. The graph path only swaps the entity
+  *source* (Neo4j `getNodesByLabel(<:LABEL>)` → project node props into `DomainEntity`), so on
+  a shared fixture the two paths are **bit-identical**. (Don't try to re-derive JS `Math.round`
+  in Cypher — banker's-rounding differences make exact parity fragile.)
+- **`getNodesByLabel(label)`** (new, `graph-store.ts`) validates the label against the
+  identifier charset (a `:LABEL` can't be a Cypher param) and `MATCH (n:Label) RETURN n`.
+  Same fake-driver harness as the other queries.
+- **One decision point:** `correlateWithGraphFallback(domainA, domainB, rel, fallback, deps?, env?)`
+  uses the graph only when `CORRELATION_GRAPH_ENABLED` is truthy **and** both domains map to a
+  graph `:LABEL` (`DOMAIN_LABELS` — `music`/`haplogroup` have none) **and** Neo4j is reachable;
+  a `GraphUnavailableError` (or ineligible domain) runs the injected `fallback` (the in-memory
+  path). Flag is **off by default**. Response gains `source: "graph" | "memory"`. All deps
+  (`loadNodesByLabel`, `nowYear`, `env`) are injectable so the parity + fallback tests need no
+  live Neo4j (`cross-domain-correlation-graph.test.ts`).
+
 ## Lazy-singleton services
 
 External-backend / expensive services follow the `graph-store.ts` pattern: a

@@ -2984,10 +2984,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   const { CrossDomainCorrelation } = await import("./services/cross-domain-correlation");
+  const { correlateWithGraphFallback } = await import(
+    "./services/cross-domain-correlation-graph"
+  );
   const correlation = new CrossDomainCorrelation(storage);
 
   /**
-   * POST /api/cross-domain/correlate - Compute correlations between two domains
+   * POST /api/cross-domain/correlate - Compute correlations between two domains.
+   * When CORRELATION_GRAPH_ENABLED is set and the domains exist in the shared
+   * graph, this is served from Neo4j (US-007); otherwise (and if the graph is
+   * unreachable) it degrades to the in-memory TSV path. The `source` field
+   * reports which path answered.
    */
   app.post("/api/cross-domain/correlate", async (req, res) => {
     try {
@@ -2999,8 +3006,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
 
-      const result = await correlation.queryCorrelation(domainA, domainB, relationshipType);
-      res.json(result);
+      const { result, source } = await correlateWithGraphFallback(
+        domainA,
+        domainB,
+        relationshipType,
+        () => correlation.queryCorrelation(domainA, domainB, relationshipType),
+      );
+      res.json({ ...result, source });
     } catch (error) {
       console.error("Error computing cross-domain correlation:", error);
       res.status(500).json({

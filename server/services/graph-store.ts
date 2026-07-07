@@ -300,6 +300,25 @@ export async function getNode(csid: string): Promise<GraphNode | null> {
   return projectNode(record.get("n") as Neo4jNode);
 }
 
+/**
+ * Return every node carrying the given `:LABEL` (e.g. `Language`, `Culture`),
+ * projected into plain {@link GraphNode}s. Powers the graph-backed cross-domain
+ * correlation (US-007), which loads a whole domain's entities and scores them
+ * with the same pure functions the in-memory path uses.
+ *
+ * A `:LABEL` cannot be a Cypher parameter, so the label is validated against the
+ * schema-safe identifier charset before it is inlined — it can never inject.
+ * @throws {GraphUnavailableError} when Neo4j cannot be reached, or the label is
+ *   not a valid identifier.
+ */
+export async function getNodesByLabel(label: string): Promise<GraphNode[]> {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(label)) {
+    throw new GraphUnavailableError(`invalid node label: ${label}`);
+  }
+  const result = await runRead(`MATCH (n:${label}) RETURN n`, {});
+  return result.records.map((record) => projectNode(record.get("n") as Neo4jNode));
+}
+
 /** Clamp a requested overview node cap into the supported 1..MAX range. */
 export function clampOverviewLimit(limit: number): number {
   if (!Number.isFinite(limit)) return DEFAULT_OVERVIEW_LIMIT;

@@ -394,6 +394,7 @@ down (see the degradation contract in §10b).
 | `NEO4J_QUERY_TIMEOUT_MS` / `NEO4J_CONNECTION_TIMEOUT_MS` | `graph-store.ts` | `10000` / `5000` | Driver query + connection-acquisition timeouts. |
 | `NEO4J_MAX_POOL_SIZE` | `graph-store.ts` | `50` | Connection-pool ceiling. |
 | `GRAPH_HEALTH_TTL_MS` | `server/services/graph-health.ts` | `5000` | TTL of the cached `/api/graph/status` verdict. |
+| `CORRELATION_GRAPH_ENABLED` | `server/services/cross-domain-correlation-graph.ts` | *(off)* | Truthy ⇒ `POST /api/cross-domain/correlate` serves graph-eligible domains from Neo4j (US-007, §10d), falling back to the in-memory path when the graph is down. |
 
 ### Local development
 
@@ -474,6 +475,35 @@ the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pa
   ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
   (`mypy` / `pytest` / `ruff`), not the app's.
 - **This app-side PRD:** `tasks/ralph/graph-app-integration.json` (US-001…US-012).
+
+## 10d. Migrating a correlation from in-memory TS to the graph (US-007)
+
+The first correlation moved off the bespoke in-memory TSV joins and onto the shared
+graph is the **cross-domain correlation** (`POST /api/cross-domain/correlate`). This is
+the template for retiring the remaining hand-rolled joins (`cross-domain-correlation.ts`,
+`genetic-linguistic-correlation.ts`) as the live graph fills in.
+
+- **The scoring is a single pure core, shared by both paths.**
+  `cross-domain-correlation.ts` exposes `scoreCorrelations` (co-occurrence Jaccard /
+  temporal-overlap / geographic) + `rankCorrelations` (sort → top-50 → summary), and the
+  in-memory `CrossDomainCorrelation.queryCorrelation` now just loads entities from
+  `TsvStorage` and calls them. The graph path
+  (`cross-domain-correlation-graph.ts`) loads the **same** `DomainEntity` shape from Neo4j
+  via `graph-store.getNodesByLabel(<:LABEL>)` and calls the identical core. Because the
+  math is shared, the two paths produce **bit-identical** ranked results on a shared
+  fixture — that is the parity guarantee (`cross-domain-correlation-graph.test.ts`).
+- **Domain → `:LABEL` map** (`DOMAIN_LABELS`): `language→Language`, `cuisine→Cuisine`,
+  `religion→Religion`, `civilization→Culture`. `music`/`haplogroup` are LinguaScrape-only
+  domains with no graph node type, so a query touching them is not graph-eligible and
+  always uses the in-memory path. Node props project as: `linguascrape_id`→id (fallback
+  csid), `lat`/`lon`→coordinates, `time_start`/`time_end`, `region`, and
+  `associated_language_ids`→`languageIds`.
+- **Feature-flagged + degrades cleanly.** `correlateWithGraphFallback` is the single
+  decision point the route calls: it uses the graph only when
+  `CORRELATION_GRAPH_ENABLED` is truthy **and** both domains are graph-eligible **and**
+  Neo4j is reachable; a `GraphUnavailableError` (graph down, or a non-graph domain) falls
+  back to the in-memory path. The flag is **off by default**, so the app keeps serving the
+  in-memory path out of the box. The response carries a `source: "graph" | "memory"` field.
 
 ## 11. Non-goals
 
