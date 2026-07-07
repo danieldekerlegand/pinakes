@@ -164,3 +164,43 @@ registered `transitive=True`, so their full closure is intended to be *derived* 
 (US-004), not stored — a future optimization is to have the linker emit only adjacent
 ordering edges and leave transitivity to the Datalog rules. This does not affect correctness:
 `validate` and every QA gate pass on the output.
+
+## Load the corpus into Neo4j (US-002)
+
+With the full corpus built (US-001 above), load it into a running Neo4j (see
+`docker-compose.yml` / `npm run dev:full` at the repo root for a local instance; APOC is
+required for the incremental path). The operator's reference is [`docs/neo4j.md`](neo4j.md);
+the exact commands for the full corpus are:
+
+```bash
+cd packages/culture-scrape
+export NEO4J_URI='bolt://localhost:7687' NEO4J_USER='neo4j' NEO4J_PASSWORD='...'
+
+# First load into a FRESH, stopped DB — fastest; bulk neo4j-admin import.
+# Apply the schema constraints/indexes first (global + per-label), then import:
+uv run culturescrape to-neo4j out/linguascrape-full/corpus --mode admin \
+  --out out/linguascrape-full/corpus-neo4j
+#   ...then run the emitted corpus-neo4j/neo4j-admin-import.sh with the server stopped.
+
+# Every load AFTER the first — incremental, idempotent LOAD CSV against the RUNNING DB.
+# This applies the global Entity csid constraint + a per-label csid constraint and name
+# index for each of the 18 labels (39 statements) BEFORE the MERGE-based load, so re-running
+# never duplicates nodes. Pass --no-constraints once they are already in place.
+uv run culturescrape to-neo4j out/linguascrape-full/corpus --mode loadcsv
+# applied 39 constraint/index statement(s) and ran N LOAD CSV statement(s) against Neo4j
+```
+
+**Smoke query — counts by type.** Prove the graph holds what the corpus manifest claims:
+
+```bash
+uv run culturescrape neo4j-counts
+# node counts by label (total 5285):  Entity: 5285 / Ingredient: 2076 / ...
+# edge counts by type (total ...):    FOLLOWS: ... / ...
+```
+
+Every node carries the shared `Entity` anchor, so its tally is the total node count; compare
+each label/type tally against `docs/corpus-release-manifest.json`'s `nodes_by_label` /
+`edges_by_type` fingerprint. The same two queries ship as
+`cypher/node-counts-by-label.cypher` and `cypher/edge-counts-by-type.cypher` to run under
+`cypher-shell`. The load is **idempotent** — `MERGE` on `csid` and `IF NOT EXISTS` constraints
+mean re-running `to-neo4j --mode loadcsv` leaves counts unchanged.

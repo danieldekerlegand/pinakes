@@ -166,7 +166,7 @@ def test_to_neo4j_admin_on_empty_dataset_fails(tmp_path: Path) -> None:
 # --- to-neo4j: loadcsv mode (mocked driver) --------------------------------
 
 
-def test_to_neo4j_loadcsv_runs_statements_against_driver(
+def test_to_neo4j_loadcsv_applies_constraints_then_loads(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -181,13 +181,74 @@ def test_to_neo4j_loadcsv_runs_statements_against_driver(
     exit_code = cli.main(["to-neo4j", str(dataset), "--mode", "loadcsv"])
 
     assert exit_code == 0
+    cyphers = [cypher for cypher, _ in calls]
+    # Constraints/indexes are applied before the load lands.
+    global_constraint = next(c for c in cyphers if "csid_unique IF NOT EXISTS" in c)
+    per_label = next(c for c in cyphers if "csid_unique_Dish IF NOT EXISTS" in c)
+    load = [c for c in cyphers if "LOAD CSV WITH HEADERS" in c]
+    assert cyphers.index(global_constraint) < cyphers.index(load[0])
+    assert cyphers.index(per_label) < cyphers.index(load[0])
     # One LOAD CSV statement per file (node before edge), each bound to $file.
-    assert len(calls) == 2
-    assert all("LOAD CSV WITH HEADERS" in cypher for cypher, _ in calls)
-    assert all("file" in params for _, params in calls)
+    assert len(load) == 2
+    assert all("file" in params for c, params in calls if "LOAD CSV" in c)
     # An owned driver is closed when the run completes.
     assert driver.closed is True
-    assert "ran 2 LOAD CSV statement(s)" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "constraint/index statement(s)" in out
+    assert "ran 2 LOAD CSV statement(s)" in out
+
+
+def test_to_neo4j_loadcsv_no_constraints_skips_constraints(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    dataset = tmp_path / "data"
+    _dataset(dataset)
+
+    calls: list[tuple[str, dict[str, Any]]] = []
+    driver = _FakeDriver(_RecordingSession(calls))
+    monkeypatch.setattr(load_csv_mod, "connect", lambda *a, **k: driver)
+
+    exit_code = cli.main(
+        ["to-neo4j", str(dataset), "--mode", "loadcsv", "--no-constraints"]
+    )
+
+    assert exit_code == 0
+    # Only the LOAD CSV statements run; no CREATE CONSTRAINT/INDEX.
+    assert all("CREATE CONSTRAINT" not in c for c, _ in calls)
+    assert all("CREATE INDEX" not in c for c, _ in calls)
+    assert len(calls) == 2
+    assert "applied 0 constraint/index statement(s)" in capsys.readouterr().out
+
+
+def test_neo4j_counts_prints_node_and_edge_counts(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from culturescrape.neo4j import counts as counts_mod
+    from culturescrape.neo4j.counts import EDGE_COUNT_QUERY, NODE_COUNT_QUERY
+
+    results = {
+        NODE_COUNT_QUERY: [
+            {"label": ENTITY_LABEL, "count": 3},
+            {"label": "Dish", "count": 2},
+            {"label": "Region", "count": 1},
+        ],
+        EDGE_COUNT_QUERY: [{"type": "ORIGINATES_FROM", "count": 4}],
+    }
+    driver = _FakeDriver(_ReplaySession(results))
+    monkeypatch.setattr(counts_mod, "connect", lambda *a, **k: driver)
+
+    exit_code = cli.main(["neo4j-counts"])
+
+    assert exit_code == 0
+    out = capsys.readouterr().out
+    assert "node counts by label (total 3):" in out
+    assert "Dish: 2" in out
+    assert "edge counts by type (total 4):" in out
+    assert "ORIGINATES_FROM: 4" in out
+    assert driver.closed is True
 
 
 # --- from-neo4j: export (mocked driver) ------------------------------------

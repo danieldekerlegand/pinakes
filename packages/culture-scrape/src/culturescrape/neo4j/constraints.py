@@ -15,15 +15,24 @@ and supporting indexes on ``wikidata_qid`` and ``name`` — to a runnable
 :func:`apply_constraints` to run them against a connected database via the
 optional driver (see :mod:`culturescrape.neo4j`). ``IF NOT EXISTS`` makes every
 statement safe to re-run.
+
+On top of the global anchor, :func:`label_constraint_statements` derives a
+**per-label** ``csid`` uniqueness constraint (each backed by a per-label ``csid``
+lookup index) and a per-label ``name`` index for the concrete node labels a
+corpus actually carries (:func:`dataset_node_labels`). These are additive: the
+global ``Entity`` constraint remains the primary guarantee, while the per-label
+constraints/indexes give label-scoped ``MERGE``/lookup its own backing index.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from culturescrape.neo4j import connect
+from culturescrape.neo4j.admin_import import discover_dataset
+from culturescrape.schema.tsvio import read_rows
 
 if TYPE_CHECKING:
     from neo4j import Driver
@@ -58,6 +67,74 @@ def constraint_statements() -> tuple[str, ...]:
         f"FOR (n:{ENTITY_LABEL}) ON (n.wikidata_qid);",
         f"CREATE INDEX {NAME_INDEX} IF NOT EXISTS\n"
         f"FOR (n:{ENTITY_LABEL}) ON (n.name);",
+    )
+
+
+def _label_csid_constraint(label: str) -> str:
+    """Idempotent per-*label* ``csid`` uniqueness constraint (backs a csid index)."""
+    return (
+        f"CREATE CONSTRAINT csid_unique_{label} IF NOT EXISTS\n"
+        f"FOR (n:{label}) REQUIRE n.csid IS UNIQUE;"
+    )
+
+
+def _label_name_index(label: str) -> str:
+    """Idempotent per-*label* ``name`` lookup index."""
+    return (
+        f"CREATE INDEX {label}_name IF NOT EXISTS\n"
+        f"FOR (n:{label}) ON (n.name);"
+    )
+
+
+def label_constraint_statements(labels: Iterable[str]) -> tuple[str, ...]:
+    """Return per-label ``csid`` constraints + ``name`` indexes for *labels*.
+
+    For each distinct label (sorted for a deterministic order), a ``csid``
+    uniqueness constraint — whose backing index doubles as a label-scoped ``csid``
+    lookup key — followed by a ``name`` lookup index. Every statement is
+    ``IF NOT EXISTS`` so re-running is a no-op. The global ``Entity`` constraint
+    from :func:`constraint_statements` remains the primary uniqueness guarantee;
+    these narrow it to the concrete labels the corpus carries.
+    """
+    statements: list[str] = []
+    for label in sorted(set(labels)):
+        statements.append(_label_csid_constraint(label))
+        statements.append(_label_name_index(label))
+    return tuple(statements)
+
+
+def dataset_node_labels(directory: str | Path) -> tuple[str, ...]:
+    """Return the distinct node ``:LABEL`` tokens present under *directory*.
+
+    Reads every ``nodes/*.tsv`` file's ``:LABEL`` cells (a node may carry more
+    than one ``;``-separated label) and returns the sorted, de-duplicated set —
+    the concrete labels :func:`label_constraint_statements` should constrain.
+
+    Raises:
+        AdminImportError: If *directory* holds no ``nodes/*.tsv`` files.
+    """
+    node_files, _ = discover_dataset(directory)
+    labels: set[str] = set()
+    for path in node_files:
+        _, rows = read_rows(path)
+        for row in rows:
+            cell = row.get(":LABEL", [])
+            if isinstance(cell, list):
+                labels.update(str(label) for label in cell)
+            elif cell:
+                labels.add(str(cell))
+    return tuple(sorted(labels))
+
+
+def all_constraint_statements(directory: str | Path) -> tuple[str, ...]:
+    """Return the global constraints/indexes plus the per-label ones for *directory*.
+
+    The global ``Entity`` anchor and its ``wikidata_qid``/``name`` indexes come
+    first (see :func:`constraint_statements`), followed by the per-label ``csid``
+    constraints and ``name`` indexes for every label the corpus carries.
+    """
+    return constraint_statements() + label_constraint_statements(
+        dataset_node_labels(directory)
     )
 
 
@@ -98,18 +175,21 @@ def apply_constraints(
     *,
     env: Mapping[str, str] | None = None,
     driver: Driver | None = None,
+    statements: tuple[str, ...] | None = None,
 ) -> tuple[str, ...]:
     """Apply the constraint/index statements to a connected database.
 
-    Runs each statement from :func:`constraint_statements` in its own session.
-    When *driver* is given it is used as-is (and left open for the caller);
-    otherwise a driver is opened from *config*/*env* via
-    :func:`culturescrape.neo4j.connect` and closed before returning.
+    Runs each statement in its own session. *statements* defaults to the global
+    :func:`constraint_statements`; pass :func:`all_constraint_statements` to also
+    apply the per-label constraints/indexes. When *driver* is given it is used
+    as-is (and left open for the caller); otherwise a driver is opened from
+    *config*/*env* via :func:`culturescrape.neo4j.connect` and closed before
+    returning.
 
     Returns:
         The statements that were executed, in order.
     """
-    statements = constraint_statements()
+    statements = constraint_statements() if statements is None else statements
     owned = driver is None
     handle = connect(config, env=env) if driver is None else driver
     try:
@@ -128,8 +208,11 @@ __all__ = [
     "NAME_INDEX",
     "SCRIPT_NAME",
     "WIKIDATA_QID_INDEX",
+    "all_constraint_statements",
     "apply_constraints",
     "constraint_statements",
+    "dataset_node_labels",
     "generate_constraints_script",
+    "label_constraint_statements",
     "render_script",
 ]

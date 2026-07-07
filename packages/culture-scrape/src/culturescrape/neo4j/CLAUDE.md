@@ -8,6 +8,30 @@ merged corpus mixing sources (native Wikidata + `source='linguascrape'`) flows t
 one path with no source special-casing. Convergence = both sources' rows share a
 per-label node file / per-`:TYPE` edge file; the loader neither knows nor cares.
 
+## Turnkey load + smoke (US-002)
+
+- `load_csv.load_corpus(dir, driver=…, constraints=True)` is the one call `to-neo4j
+  --mode loadcsv` uses: it opens **one** driver, applies constraints (global +
+  per-label) then runs `apply_load_csv` on it, and returns a `LoadReport`. Pass a
+  driver to reuse it; the constraint + load helpers never close a driver they were
+  handed (`owned` guard), so `load_corpus` owns the lifecycle.
+- **Per-label constraints are additive, not a replacement.** The global `Entity`
+  `csid` uniqueness constraint stays the primary guarantee;
+  `constraints.all_constraint_statements(dir)` = the 3 global statements +
+  `label_constraint_statements(dataset_node_labels(dir))` (a per-label `csid`
+  constraint + `name` index for each label). `dataset_node_labels` reads the real
+  labels from the `:LABEL` **cells** — node **filenames are lowercased** in the
+  live corpus (`language.tsv` → label `Language`), so never derive a label from a
+  file stem.
+- `counts.count_summary(driver=…)` runs the two smoke queries (`NODE_COUNT_QUERY`
+  `UNWIND labels(n)`, `EDGE_COUNT_QUERY` `type(r)`) in one session → `CountSummary`.
+  `node_total` reads the `Entity` tally (labels overlap — never sum
+  `nodes_by_label`); `edge_total` sums (`:TYPE`s don't overlap). CLI: `neo4j-counts`.
+- **Adding a `cypher/*.cypher` file touches two doctests:** `docs/neo4j.md` lists
+  every shipped query by name (`iter_queries()`), and `test_neo4j_queries.py` lints
+  them all — a new file must reference only `DEFINED_LABELS`/`DEFINED_TYPES` (the
+  count queries use none), carry a `//` comment, and balance brackets.
+
 ## The four legs
 
 - `constraints.py` — one `csid` uniqueness constraint anchored on the shared

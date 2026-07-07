@@ -41,6 +41,7 @@ from culturescrape.neo4j.load_csv import (
     FILE_PARAM,
     apply_load_csv,
     build_statements,
+    load_corpus,
 )
 from culturescrape.schema.headers import EdgeSchema, NodeSchema
 from culturescrape.schema.tsvio import read_rows, write_edge_rows, write_node_rows
@@ -298,6 +299,38 @@ def test_reload_of_merged_corpus_is_idempotent(tmp_path: Path) -> None:
     driver: Any = graph
     apply_load_csv(corpus, driver=driver)
     apply_load_csv(corpus, driver=driver)  # second pass must not duplicate
+
+    assert len(graph.nodes) == len(_LANGUAGES) + len(_CULTURES)
+    assert len(graph.edges) == len(_EDGES)
+
+
+def test_load_corpus_applies_per_label_constraints_then_loads(tmp_path: Path) -> None:
+    """load_corpus applies global + per-label constraints, then MERGE-loads."""
+    corpus = tmp_path / "corpus"
+    _write_merged_corpus(corpus)
+
+    graph = _EmbeddedGraph()
+    driver: Any = graph
+    report = load_corpus(corpus, driver=driver)
+
+    # Per-label constraints cover exactly the merged corpus's labels.
+    joined = "\n".join(report.constraints)
+    assert "csid_unique_Language IF NOT EXISTS" in joined
+    assert "csid_unique_ArchaeologicalCulture IF NOT EXISTS" in joined
+    # The load still lands the nodes and edges under their shared labels.
+    assert "Language" in graph.nodes["cs:language:pie"]["labels"]
+    assert len(report.statements) == 3  # 2 node files + 1 edge file
+
+
+def test_load_corpus_is_idempotent(tmp_path: Path) -> None:
+    """Re-running load_corpus MERGEs, so node/edge counts are unchanged."""
+    corpus = tmp_path / "corpus"
+    _write_merged_corpus(corpus)
+
+    graph = _EmbeddedGraph()
+    driver: Any = graph
+    load_corpus(corpus, driver=driver)
+    load_corpus(corpus, driver=driver)  # second pass must not duplicate
 
     assert len(graph.nodes) == len(_LANGUAGES) + len(_CULTURES)
     assert len(graph.edges) == len(_EDGES)

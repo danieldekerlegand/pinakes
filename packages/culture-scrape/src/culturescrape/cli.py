@@ -45,8 +45,9 @@ from culturescrape.neo4j.admin_import import (
     AdminImportError,
     generate_import_script,
 )
+from culturescrape.neo4j.counts import count_summary
 from culturescrape.neo4j.export import Neo4jExportError, export_to_tsv
-from culturescrape.neo4j.load_csv import apply_load_csv
+from culturescrape.neo4j.load_csv import load_corpus
 from culturescrape.ontology.metrics import (
     metrics_for_dataset,
     read_dataset,
@@ -285,7 +286,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="directory the admin-import script and transformed copies are "
         "written to (admin mode only; default: <directory>)",
     )
+    to_neo4j.add_argument(
+        "--no-constraints",
+        action="store_true",
+        help="loadcsv mode: skip applying csid constraints/indexes before the "
+        "load (default: apply the global + per-label constraints first)",
+    )
     to_neo4j.set_defaults(handler=_cmd_to_neo4j)
+
+    neo4j_counts = subparsers.add_parser(
+        "neo4j-counts",
+        help="print node/edge counts by type from the connected Neo4j graph",
+    )
+    neo4j_counts.set_defaults(handler=_cmd_neo4j_counts)
 
     from_neo4j = subparsers.add_parser(
         "from-neo4j",
@@ -798,9 +811,13 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
                 f"{len(plan.edge_files)} edge file(s))"
             )
         else:
-            statements = apply_load_csv(directory)
+            report = load_corpus(
+                directory, constraints=not args.no_constraints
+            )
             print(
-                f"ran {len(statements)} LOAD CSV statement(s) against Neo4j"
+                f"applied {len(report.constraints)} constraint/index "
+                f"statement(s) and ran {len(report.statements)} LOAD CSV "
+                f"statement(s) against Neo4j"
             )
     except (
         AdminImportError,
@@ -808,6 +825,20 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
         Neo4jDriverNotInstalled,
     ) as exc:
         return _fail(str(exc))
+    return 0
+
+
+def _cmd_neo4j_counts(args: argparse.Namespace) -> int:
+    try:
+        summary = count_summary()
+    except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
+        return _fail(str(exc))
+    print(f"node counts by label (total {summary.node_total}):")
+    for label, count in summary.nodes_by_label.items():
+        print(f"  {label}: {count}")
+    print(f"edge counts by type (total {summary.edge_total}):")
+    for edge_type, count in summary.edges_by_type.items():
+        print(f"  {edge_type}: {count}")
     return 0
 
 

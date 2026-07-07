@@ -37,7 +37,11 @@ from culturescrape.neo4j.admin_import import (
 
 if TYPE_CHECKING:
     from neo4j import Driver
-from culturescrape.neo4j.constraints import ENTITY_LABEL
+from culturescrape.neo4j.constraints import (
+    ENTITY_LABEL,
+    all_constraint_statements,
+    apply_constraints,
+)
 from culturescrape.schema.headers import (
     EdgeSchema,
     IdColumn,
@@ -292,6 +296,53 @@ def apply_load_csv(
     return statements
 
 
+@dataclass(frozen=True)
+class LoadReport:
+    """What a :func:`load_corpus` run applied against the live database."""
+
+    constraints: tuple[str, ...]
+    statements: tuple[CypherStatement, ...]
+
+
+def load_corpus(
+    directory: str | Path,
+    *,
+    config: Mapping[str, Any] | None = None,
+    env: Mapping[str, str] | None = None,
+    driver: Driver | None = None,
+    constraints: bool = True,
+) -> LoadReport:
+    """Load *directory* into Neo4j, optionally applying constraints/indexes first.
+
+    Opens a single driver (or reuses the caller's), applies the global **and**
+    per-label ``csid`` constraints + lookup indexes
+    (:func:`~culturescrape.neo4j.constraints.all_constraint_statements`) when
+    *constraints* is true so the ``MERGE``-based load lands as index lookups, then
+    runs the idempotent ``LOAD CSV`` statements (:func:`apply_load_csv`). The
+    constraint statements and the load are ``IF NOT EXISTS`` / ``MERGE`` so the
+    whole flow is safe to re-run without duplicating nodes. When *driver* is given
+    it is used as-is (left open for the caller); otherwise a driver is opened from
+    *config*/*env* and closed before returning.
+
+    Returns:
+        A :class:`LoadReport` of the constraint statements and the load
+        statements that were executed.
+    """
+    owned = driver is None
+    handle = connect(config, env=env) if driver is None else driver
+    try:
+        applied: tuple[str, ...] = ()
+        if constraints:
+            applied = apply_constraints(
+                driver=handle, statements=all_constraint_statements(directory)
+            )
+        statements = apply_load_csv(directory, driver=handle)
+    finally:
+        if owned:
+            handle.close()
+    return LoadReport(constraints=applied, statements=statements)
+
+
 __all__ = [
     "ARRAY_DELIMITER",
     "FIELD_TERMINATOR",
@@ -299,7 +350,9 @@ __all__ = [
     "SCRIPT_NAME",
     "CypherStatement",
     "LoadCsvPlan",
+    "LoadReport",
     "apply_load_csv",
+    "load_corpus",
     "build_statements",
     "edge_cypher",
     "generate_load_script",
