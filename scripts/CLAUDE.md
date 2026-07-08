@@ -385,6 +385,25 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
   tree — no committed snapshot (the metrics track the live corpus, so a snapshot would need
   constant re-sync). CI runbook: `docs/canonical-schema.md` §10.
 
+## Coverage report vs roadmap targets (US-008)
+
+`coverage-report.ts` compares actual lexicon row counts against the roadmap /
+data-population **targets** per domain and flags any domain still under target. It emits two
+committed artifacts — `docs/coverage-report.json` (deterministic, no timestamp; asserted
+against the live corpus by `server/services/data-quality-scorer.test.ts`) and
+`docs/coverage-report.md` (human table). Re-run `npx tsx scripts/coverage-report.ts` after any
+data change that moves a target domain's count, or the parity test fails.
+
+- **Targets + comparison live in the service, not here.** `ROADMAP_TARGETS`, the pure
+  `computeCoverage(rowCounts)`, and `buildCoverageReport(lexiconsDir)` are exported from
+  `server/services/data-quality-scorer.ts` so `/api/data-quality` and this committed report are
+  **one source of truth**. The script is just the deterministic file-writer + Markdown renderer.
+- **Two target kinds:** `kind: "roadmap"` = the hard §8/§15 numbers from
+  docs/prd-linguascrape-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
+  the US-003..005 stories set for domains the roadmap describes only qualitatively
+  ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
+  to `ROADMAP_TARGETS` and regenerate the committed report.
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on
