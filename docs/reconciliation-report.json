@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 6273,
+    "nodes": 6667,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 5049
+    "likelyNew": 5443
   },
   "byType": [
     {
@@ -24,10 +24,10 @@
     },
     {
       "type": "art-tradition",
-      "count": 107,
+      "count": 237,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 107
+      "likelyNew": 237
     },
     {
       "type": "battle",
@@ -52,10 +52,10 @@
     },
     {
       "type": "deity",
-      "count": 76,
+      "count": 206,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 76
+      "likelyNew": 206
     },
     {
       "type": "ingredient",
@@ -80,10 +80,10 @@
     },
     {
       "type": "literary-tradition",
-      "count": 12,
+      "count": 62,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 12
+      "likelyNew": 62
     },
     {
       "type": "migration-route",
@@ -94,10 +94,10 @@
     },
     {
       "type": "myth-motif",
-      "count": 32,
+      "count": 61,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 32
+      "likelyNew": 61
     },
     {
       "type": "place",
@@ -129,10 +129,10 @@
     },
     {
       "type": "writing-system",
-      "count": 60,
+      "count": 115,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 60
+      "likelyNew": 115
     }
   ],
   "keyCoverage": {
@@ -141,7 +141,7 @@
       "withIso639": 993,
       "withGlottocode": 0
     },
-    "withRegion": 2613,
+    "withRegion": 2648,
     "duplicateCsidsDropped": 44
   },
   "ambiguities": [

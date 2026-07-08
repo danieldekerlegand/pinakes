@@ -87,7 +87,12 @@
         { "column": "associated_languages", "property": true },
         { "column": "key_features", "property": true },
         { "column": "notable_examples", "property": true },
-        { "column": "building_types", "property": true }
+        { "column": "building_types", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -388,7 +393,11 @@
         { "column": "key_movements", "property": true },
         { "column": "cultural_significance", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -409,7 +418,11 @@
         { "column": "time_end", "target": "time_end" },
         { "column": "coordinates", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -697,7 +710,11 @@
         { "column": "description", "target": "description" },
         { "column": "notable_authors", "property": true },
         { "column": "influences", "property": true },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -840,7 +857,11 @@
         { "column": "associated_deity_ids", "property": true },
         { "column": "geographic_distribution", "property": true },
         { "column": "time_depth", "property": true },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -1148,7 +1169,12 @@
         { "column": "character_count", "property": true },
         { "column": "sample_characters", "property": true },
         { "column": "unicode_block", "property": true },
-        { "column": "is_active", "property": true }
+        { "column": "is_active", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     }
   ]

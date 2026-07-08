@@ -18,7 +18,7 @@
       "type": "writing-system",
       "label": "WritingSystem",
       "file": "nodes/writing-system.tsv",
-      "count": 60
+      "count": 115
     },
     {
       "type": "culture",
@@ -48,25 +48,25 @@
       "type": "deity",
       "label": "Deity",
       "file": "nodes/deity.tsv",
-      "count": 76
+      "count": 206
     },
     {
       "type": "myth-motif",
       "label": "MythMotif",
       "file": "nodes/myth-motif.tsv",
-      "count": 32
+      "count": 61
     },
     {
       "type": "art-tradition",
       "label": "ArtTradition",
       "file": "nodes/art-tradition.tsv",
-      "count": 107
+      "count": 237
     },
     {
       "type": "literary-tradition",
       "label": "LiteraryTradition",
       "file": "nodes/literary-tradition.tsv",
-      "count": 12
+      "count": 62
     },
     {
       "type": "cuisine",
@@ -146,12 +146,12 @@
       "type": "syncretized-with",
       "token": "SYNCRETIZED_WITH",
       "file": "edges/syncretized-with.tsv",
-      "count": 182
+      "count": 206
     }
   ],
   "totals": {
-    "nodes": 6273,
-    "edges": 5689,
+    "nodes": 6667,
+    "edges": 5713,
     "nodeTypes": 17,
     "edgeTypes": 7
   },
@@ -322,7 +322,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 6273,
+      "total": 6667,
       "byType": [
         {
           "type": "language",
@@ -348,13 +348,13 @@
         },
         {
           "type": "writing-system",
-          "count": 60,
+          "count": 115,
           "nonEmpty": {
-            "source": 60,
+            "source": 115,
             "source_url": 0,
-            "source_query": 0,
+            "source_query": 55,
             "retrieved_at": 0,
-            "confidence": 60
+            "confidence": 115
           }
         },
         {
@@ -403,46 +403,46 @@
         },
         {
           "type": "deity",
-          "count": 76,
+          "count": 206,
           "nonEmpty": {
-            "source": 76,
+            "source": 206,
             "source_url": 0,
-            "source_query": 76,
+            "source_query": 206,
             "retrieved_at": 0,
-            "confidence": 76
+            "confidence": 206
           }
         },
         {
           "type": "myth-motif",
-          "count": 32,
+          "count": 61,
           "nonEmpty": {
-            "source": 32,
+            "source": 61,
             "source_url": 0,
-            "source_query": 32,
+            "source_query": 61,
             "retrieved_at": 0,
-            "confidence": 32
+            "confidence": 61
           }
         },
         {
           "type": "art-tradition",
-          "count": 107,
+          "count": 237,
           "nonEmpty": {
-            "source": 107,
+            "source": 237,
             "source_url": 0,
-            "source_query": 52,
+            "source_query": 182,
             "retrieved_at": 0,
-            "confidence": 107
+            "confidence": 237
           }
         },
         {
           "type": "literary-tradition",
-          "count": 12,
+          "count": 62,
           "nonEmpty": {
-            "source": 12,
+            "source": 62,
             "source_url": 0,
-            "source_query": 12,
+            "source_query": 62,
             "retrieved_at": 0,
-            "confidence": 12
+            "confidence": 62
           }
         },
         {
@@ -513,11 +513,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 6273,
+        "source": 6667,
         "source_url": 0,
-        "source_query": 1575,
+        "source_query": 1969,
         "retrieved_at": 0,
-        "confidence": 6273
+        "confidence": 6667
       }
     },
     "edge": {
@@ -527,7 +527,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5689,
+      "total": 5713,
       "byType": [
         {
           "type": "descended-from",
@@ -591,30 +591,30 @@
         },
         {
           "type": "syncretized-with",
-          "count": 182,
+          "count": 206,
           "nonEmpty": {
-            "source": 182,
+            "source": 206,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 182
+            "confidence": 206
           }
         }
       ],
       "nonEmpty": {
-        "source": 5689,
+        "source": 5713,
         "source_url": 0,
         "retrieved_at": 0,
-        "confidence": 5689
+        "confidence": 5713
       },
-      "citationsWithoutCanonicalColumn": 371
+      "citationsWithoutCanonicalColumn": 395
     },
     "flags": [
-      "node.source_url: 0/6273 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/6273 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
-      "node.source_query: 1575/6273 rows preserve the original LinguaScrape citation.",
-      "edge.source_url: 0/5689 edges carry a URL; left blank, never fabricated.",
-      "edge.retrieved_at: 0/5689 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.citationsWithoutCanonicalColumn: 371 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+      "node.source_url: 0/6667 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/6667 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 1969/6667 rows preserve the original LinguaScrape citation.",
+      "edge.source_url: 0/5713 edges carry a URL; left blank, never fabricated.",
+      "edge.retrieved_at: 0/5713 edges carry a retrieval timestamp; left blank, never fabricated.",
+      "edge.citationsWithoutCanonicalColumn: 395 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
     ]
   }
 }

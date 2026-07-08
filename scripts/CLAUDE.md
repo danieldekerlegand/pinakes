@@ -281,6 +281,40 @@ its own committed `scripts/data/<lexicon>-additions.tsv`; write back with `--add
   attribution gate; export/reconcile ignore it. Cuisine/ingredient are node files — their new
   provenance columns are ordinary `target`s and land in the export/graph.
 
+## Cultural-breadth acquire — `acquire-cultural-domains.ts` (US-005)
+
+Same `DOMAINS[]` shape as `acquire-food-drink.ts`, extended to five newer cultural domains:
+`writing-systems` (Q8192), `deities` (Q178885), `architectural-styles` (Q32880),
+`dance-traditions` (subclasses of dance Q11401/folk-dance Q201022), `literary-traditions`
+(literary movement Q2198855). `myth-motifs` is NOT here — the narrative-motif class (Q1697305)
+is polluted with modern tropes, so it is hand-curated in `curate-myth-motifs.ts` (route-style).
+Two reuse rules it adds beyond the food-drink script:
+
+- **GOTCHA — share ONE `usedIds` set across all domains in a run.** When several domains are
+  acquired in one invocation *before any write-back*, each domain's per-domain re-read of the
+  lexicons can't see a sibling domain's just-minted ids (the additions TSVs aren't on disk yet),
+  so two domains mint the same generic id (`romanticism` as both art-tradition + literary-tradition,
+  `oduduwa` as both writing-system + deity) → a global `ambiguousLinguascrapeIds` regression. `main`
+  now seeds one `usedIds` set from every node lexicon and threads it through every `curate` call;
+  the earlier-listed domain in `DOMAINS` keeps the bare id, the later one gets the `-<slugFallback>`
+  suffix. (Names still dedup per node type via `nameSiblings` — art-tradition spans architectural
+  + dance + art + music-traditions, so both those `nameSiblings` list all four.)
+- **Verify a Wikidata class QID before trusting a class count.** `Q184356` looked like "folk dance"
+  by a mislabelled count query but is actually *radio telescope* — the acquire returned telescopes.
+  Always confirm the class label (`SELECT ?l WHERE { wd:QXXXX rdfs:label ?l }`) or sample a few
+  results before wiring a class in. Dances are modelled as **subclasses** of dance, not instances,
+  and music genres are mis-filed under dance — exclude `FILTER NOT EXISTS { ?s wdt:P279* wd:Q188451 }`.
+- **Cross-domain edges via `P460`.** Deities carry a `syncretism_links` → `syncretized-with` edge:
+  Wikidata `P460` ("said to be the same as") is resolved in a post-mint pass to the minted ids of
+  OTHER deities in the same batch (in-corpus only, `edgeColumn` on the `DomainConfig`), so every
+  edge lands and `edgesWithUnresolvedEndpoint` never regresses (same idea as US-003 P155/P156).
+
+`curate-myth-motifs.ts` is the offline analogue (like `curate-route-additions.ts`): ~29 hand-picked
+cross-cultural motifs, each anchored to a **verified** Wikidata QID (resolved via `wbsearchentities`
+and confirmed against the entity description — filter search hits whose description signals
+myth/folklore, since top-1 is noisy: it returned video games/films/plants for many terms). Fixed
+`RETRIEVED_AT` for a deterministic file; write back with the same `--add-rows` path.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the
