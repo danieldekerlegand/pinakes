@@ -211,7 +211,11 @@
         { "column": "haplogroup_ids", "property": true },
         { "column": "cuisine_id", "property": true },
         { "column": "sources", "target": "source" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {

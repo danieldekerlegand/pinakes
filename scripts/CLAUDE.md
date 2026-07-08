@@ -137,6 +137,34 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   shape and keep cells raw, so an unedited file re-serialises identically (only changed files are
   written back).
 
+## New-row additions (US-003, data-population pilot)
+
+Same file also grows the corpus: `--add-cultures [file]` **appends** curated,
+reconciliation-*new* civilizations into `lexicons/civilizations.tsv` (default input:
+committed `scripts/data/civilizations-additions.tsv`, derived from the US-002 acquired
+corpus). `buildCultureAdditions(parsedFile, candidates)` is pure; `runCultureAdditions` /
+`loadCultureAdditions` do the fs side. Report →
+`export/culturescrape/writeback/civilizations-additions-report.json` (gitignored); committed
+summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md).
+
+- **Append-only, never rewrites a curated row** — so no curated cell can be clobbered by
+  construction. A candidate is **skipped** on duplicate `wikidata_qid` or normalised name, and
+  an id that collides with a *different* existing row is a **conflict** (never appended). This
+  makes the CLI **idempotent** — a second run adds 0 (dedup by the qid it just wrote), and the
+  file is byte-identical.
+- **`ensureColumns`** extends the target header with any missing provenance column
+  (`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`) and pads every existing row with a
+  blank cell so the grid stays rectangular. Those four are mapped as `target`s in
+  `lexicon-mapping.json` — and are all in `NON_WRITEBACK_FIELDS` (+ `wikidata_qid` added there),
+  so the export→import round-trip stays a **no-op** (export force-blanks `source_url`/`retrieved_at`
+  and copies `wikidata_qid`/`confidence`; import never writes any of them back).
+- **GOTCHA — after changing any `lexicons/*.tsv` row/column count, regenerate BOTH committed
+  snapshots** or their live-corpus parity tests fail: `npx tsx scripts/export-for-culturescrape.ts`
+  (→ `docs/culturescrape-export-manifest.json`) **and** `npx tsx scripts/reconciliation-report.ts`
+  (→ `docs/reconciliation-report.json`). Adding a mapped column also needs its
+  `shared/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
+  won't catch that; `shared/lexicon-mapping.test.ts` will.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the
