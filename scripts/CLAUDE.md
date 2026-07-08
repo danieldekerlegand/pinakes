@@ -211,6 +211,49 @@ TSV is the network-free source of truth the write-back + gate replay — CI neve
   `90`, not `0.9`) — the export's `normaliseConfidence` maps `>1 → /100`, so both scales converge
   to 0–1 canonically, but keep a single column internally consistent.
 
+`acquire-archaeological-cultures.ts` (US-003) is the sibling for `archaeological-culture` nodes
+(Wikidata `Q465299`, ranked by sitelinks). Two extra lessons it encodes:
+
+- **Coordinates are OPTIONAL for cultures** — a culture is a *region*, so only ~10% of `Q465299`
+  items carry `P625`. Don't gate on coordinates the way the sites script does; the `coordinates`
+  column is a property and may be blank.
+- **Dedup ids across the WHOLE corpus, not just the same node type.** The export's
+  `ambiguousLinguascrapeIds` diagnostic keys on the raw `linguascrape_id` across **every** node
+  type (`idIndex` in `export-for-culturescrape.ts`), so a generic culture id like `sumer`/`vedas`
+  colliding with a *civilization*/*place* id of the same string is a ratchet regression the gate
+  blocks — even though the csids differ (`cs:archaeological-culture:sumer` ≠ `cs:culture:sumer`).
+  `loadExisting` therefore seeds the used-id set from **all** `kind === "node"` files and suffixes
+  a collision (`sumer` → `sumer-culture` → `sumer-<qid>`). (Names still dedup per-type — a culture
+  and a civilization may share a name; reconciliation keys on `(name, type, region)`.) This is a
+  stricter rule than the sites script's per-`place`-type dedup.
+- **Embedded edges must resolve to real nodes.** Predecessor/successor (Wikidata `P155`/`P156`)
+  are mapped to the *minted ids of other acquired cultures in the same batch* — only in-corpus
+  targets are written, so every `descended-from`/`absorbed-into` edge lands (the gate's
+  `edgesWithUnresolvedEndpoint` ratchet never regresses). Build a `qid → minted-id` map in a first
+  pass, then resolve the FK columns in a second pass.
+
+## Curated (non-networked) additions — `curate-route-additions.ts` (US-003)
+
+Not every domain is bulk-acquirable. Migration & trade routes need real **geometry** (a GeoJSON
+`LineString` of waypoints) Wikidata doesn't carry, and their Wikidata classes are inconsistent
+(`Q131569` "human migration" is polluted with treaties). So `curate-route-additions.ts` is the
+offline analogue of an acquire script: it holds **hand-curated** route records — each anchored to a
+**verified Wikidata QID** (resolved via the `wbsearchentities` REST API and confirmed against the
+entity description) so every row still carries genuine provenance — and emits the committed
+`scripts/data/{migration,trade}-routes-additions.tsv`. Write the TSV from a JS array via a header +
+per-record cell map (never hand-type TSV with many JSON columns — one stray tab breaks the grid).
+
+- **`--add-rows` now also ensures a `sources` column.** `buildCultureAdditions` calls
+  `ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"])`, so a target lexicon with no
+  citation column today (migration-routes / trade-routes) gets one, and every appended row records
+  its `sources` cell (required by the attribution gate, which needs a column mapped to canonical
+  `source`). Files that already have `sources` are untouched.
+- **An `attribute`-kind file can still be gated.** `trade-routes.tsv` is `kind: attribute` (no
+  canonical node/edge — it's not in `nodeFiles()`/`edgeFiles()`), but mapping its provenance
+  columns as `target`s is valid (the mapping validator allows `target` on any kind) and makes the
+  attribution gate enforce provenance on its imported rows. The export/reconciliation ignore it
+  (they only process node files), so this is free rigor with no side effects.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the

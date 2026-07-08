@@ -38,7 +38,10 @@
         { "column": "successor_culture_ids", "edge": "absorbed-into" },
         { "column": "confidence", "target": "confidence" },
         { "column": "sources", "target": "source" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" }
       ]
     },
     {
@@ -757,7 +760,12 @@
         { "column": "peoples", "property": true },
         { "column": "associated_languages", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "consequences", "property": true }
+        { "column": "consequences", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -1027,7 +1035,12 @@
         { "column": "controlling_powers", "property": true },
         { "column": "associated_languages", "property": true },
         { "column": "description", "property": true },
-        { "column": "economic_impact", "property": true }
+        { "column": "economic_impact", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {

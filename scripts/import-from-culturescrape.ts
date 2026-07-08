@@ -638,7 +638,11 @@ export function buildCultureAdditions(
   target: LexiconFile,
   candidates: readonly CultureAddition[],
 ): { file: LexiconFile; report: AdditionsReport } {
-  ensureColumns(target, ADDITION_PROVENANCE_COLUMNS);
+  // Ensure the four provenance columns AND a bibliographic `sources` column exist, so a
+  // target that carries no citation column today (e.g. migration-routes / trade-routes)
+  // still records every appended row's source. Files that already have `sources` are
+  // unchanged (ensureColumns only appends missing columns).
+  ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"]);
 
   const idIdx = target.headers.indexOf("id");
   const nameIdx = target.headers.indexOf("name");

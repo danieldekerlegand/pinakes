@@ -9,18 +9,18 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 5831,
+    "nodes": 6123,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 4607
+    "likelyNew": 4899
   },
   "byType": [
     {
       "type": "archaeological-culture",
-      "count": 27,
+      "count": 277,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 27
+      "likelyNew": 277
     },
     {
       "type": "art-tradition",
@@ -87,10 +87,10 @@
     },
     {
       "type": "migration-route",
-      "count": 62,
+      "count": 104,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 62
+      "likelyNew": 104
     },
     {
       "type": "myth-motif",

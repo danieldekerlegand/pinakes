@@ -30,7 +30,7 @@
       "type": "archaeological-culture",
       "label": "ArchaeologicalCulture",
       "file": "nodes/archaeological-culture.tsv",
-      "count": 27
+      "count": 277
     },
     {
       "type": "urheimat-hypothesis",
@@ -102,7 +102,7 @@
       "type": "migration-route",
       "label": "MigrationRoute",
       "file": "nodes/migration-route.tsv",
-      "count": 62
+      "count": 104
     }
   ],
   "edgeTypes": [
@@ -110,19 +110,19 @@
       "type": "descended-from",
       "token": "DESCENDS_FROM",
       "file": "edges/descended-from.tsv",
-      "count": 1577
+      "count": 1649
     },
     {
       "type": "influenced-by",
       "token": "INFLUENCED_BY",
       "file": "edges/influenced-by.tsv",
-      "count": 98
+      "count": 99
     },
     {
       "type": "absorbed-into",
       "token": "ABSORBED_INTO",
       "file": "edges/absorbed-into.tsv",
-      "count": 11
+      "count": 101
     },
     {
       "type": "borrowed-from",
@@ -150,8 +150,8 @@
     }
   ],
   "totals": {
-    "nodes": 5831,
-    "edges": 5526,
+    "nodes": 6123,
+    "edges": 5689,
     "nodeTypes": 17,
     "edgeTypes": 7
   },
@@ -159,7 +159,7 @@
     "skippedNodeRowsMissingId": 0,
     "duplicateCsids": 44,
     "ambiguousLinguascrapeIds": 16,
-    "edgesWithUnresolvedEndpoint": 139,
+    "edgesWithUnresolvedEndpoint": 138,
     "unresolvedEndpointSamples": [
       {
         "startId": "ppnb",
@@ -322,7 +322,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5831,
+      "total": 6123,
       "byType": [
         {
           "type": "language",
@@ -370,13 +370,13 @@
         },
         {
           "type": "archaeological-culture",
-          "count": 27,
+          "count": 277,
           "nonEmpty": {
-            "source": 27,
+            "source": 277,
             "source_url": 0,
-            "source_query": 27,
+            "source_query": 277,
             "retrieved_at": 0,
-            "confidence": 27
+            "confidence": 277
           }
         },
         {
@@ -502,22 +502,22 @@
         },
         {
           "type": "migration-route",
-          "count": 62,
+          "count": 104,
           "nonEmpty": {
-            "source": 62,
+            "source": 104,
             "source_url": 0,
-            "source_query": 0,
+            "source_query": 42,
             "retrieved_at": 0,
-            "confidence": 62
+            "confidence": 104
           }
         }
       ],
       "nonEmpty": {
-        "source": 5831,
+        "source": 6123,
         "source_url": 0,
-        "source_query": 1133,
+        "source_query": 1425,
         "retrieved_at": 0,
-        "confidence": 5831
+        "confidence": 6123
       }
     },
     "edge": {
@@ -527,36 +527,36 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5526,
+      "total": 5689,
       "byType": [
         {
           "type": "descended-from",
-          "count": 1577,
+          "count": 1649,
           "nonEmpty": {
-            "source": 1577,
+            "source": 1649,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 1577
+            "confidence": 1649
           }
         },
         {
           "type": "influenced-by",
-          "count": 98,
+          "count": 99,
           "nonEmpty": {
-            "source": 98,
+            "source": 99,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 98
+            "confidence": 99
           }
         },
         {
           "type": "absorbed-into",
-          "count": 11,
+          "count": 101,
           "nonEmpty": {
-            "source": 11,
+            "source": 101,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 11
+            "confidence": 101
           }
         },
         {
@@ -601,20 +601,20 @@
         }
       ],
       "nonEmpty": {
-        "source": 5526,
+        "source": 5689,
         "source_url": 0,
         "retrieved_at": 0,
-        "confidence": 5526
+        "confidence": 5689
       },
-      "citationsWithoutCanonicalColumn": 208
+      "citationsWithoutCanonicalColumn": 371
     },
     "flags": [
-      "node.source_url: 0/5831 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/5831 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
-      "node.source_query: 1133/5831 rows preserve the original LinguaScrape citation.",
-      "edge.source_url: 0/5526 edges carry a URL; left blank, never fabricated.",
-      "edge.retrieved_at: 0/5526 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.citationsWithoutCanonicalColumn: 208 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+      "node.source_url: 0/6123 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/6123 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 1425/6123 rows preserve the original LinguaScrape citation.",
+      "edge.source_url: 0/5689 edges carry a URL; left blank, never fabricated.",
+      "edge.retrieved_at: 0/5689 edges carry a retrieval timestamp; left blank, never fabricated.",
+      "edge.citationsWithoutCanonicalColumn: 371 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
     ]
   }
 }
