@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { Polyline, Popup, CircleMarker, Tooltip } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
+import type { LatLngExpression, Path } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { HistoricalRouteFeature } from '../../../lib/visualization/geospatial-types';
 import { ROUTE_TYPE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
@@ -167,12 +167,12 @@ export function RoutesLayer({
                       }}
                       eventHandlers={{
                         click: () => onFeatureClick?.(props.routeId),
-                        mouseover: function() {
+                        mouseover: function (this: Path) {
                           if (!isSelected) {
                             this.setStyle({ weight: 5, opacity: opacity * 1.2 });
                           }
                         },
-                        mouseout: function() {
+                        mouseout: function (this: Path) {
                           if (!isSelected) {
                             this.setStyle({ weight: segStyle.weight + weightBonus, opacity: opacity * segStyle.opacity * dimFactor });
                           }
@@ -241,12 +241,12 @@ export function RoutesLayer({
               }}
               eventHandlers={{
                 click: () => onFeatureClick?.(props.routeId),
-                mouseover: function() {
+                mouseover: function (this: Path) {
                   if (!isSelected) {
                     this.setStyle({ weight: 5, opacity: opacity * 1.2 });
                   }
                 },
-                mouseout: function() {
+                mouseout: function (this: Path) {
                   if (!isSelected) {
                     this.setStyle({ weight: segStyle.weight + weightBonus, opacity: opacity * segStyle.opacity * dimFactor });
                   }

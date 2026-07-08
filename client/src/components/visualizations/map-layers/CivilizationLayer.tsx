@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
-import type { PathOptions } from 'leaflet';
+import type { PathOptions, Path } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import { smoothFeature, generateGradientEdgeRings } from '../../../lib/visualization/spline-interpolation';
 import type { CivilizationFeature } from '../../../lib/visualization/geospatial-types';
@@ -272,7 +272,7 @@ export function CivilizationLayer({
     });
 
     // Hover effects
-    layer.on('mouseover', function() {
+    layer.on('mouseover', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.6,
@@ -281,7 +281,7 @@ export function CivilizationLayer({
       }
     });
 
-    layer.on('mouseout', function() {
+    layer.on('mouseout', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.4,

@@ -2,16 +2,25 @@
 
 ## Quality-gate reality (read first)
 
-- **`npm run check` (`tsc`) is NOT clean on `main`** — there are ~145 pre-existing
-  errors (bulk in `server/tsv-storage.ts` and `server/routes.ts`). The practical
-  gate is therefore **"my touched files add zero errors, and the total count does
-  not rise"**, not "tsc is green". Verify with:
-  `npm run check 2>&1 | grep "error TS" | grep -E "<files you touched>"` → expect
-  none, and confirm the total error count is unchanged from baseline.
-- **No `target` in `tsconfig.json`** ⇒ TS defaults to a low target with
-  `downlevelIteration` off. **Spreading a Map/Set iterator fails** (`TS2802`,
-  e.g. `[...map.keys()]`, `[...map.entries()]`). Use `Array.from(map.keys())`
-  instead. Spreading a plain **array** is fine.
+- **`npm run check` (`tsc`) is now CLEAN — 0 errors — and the gate is STRICT.**
+  History: the baseline was ~145 pre-existing errors; US-004 cleared the 48 in
+  `server/tsv-storage.ts` (→97), and **US-005 drove the remaining 97 → 0**. Going
+  forward, "type checks pass" is literal: **any** new `error TS` you introduce fails
+  the gate. Verify with `npm run check 2>&1 | grep "error TS" | wc -l` → expect **0**
+  (delete `node_modules/typescript/tsbuildinfo` first if the incremental cache looks
+  stale — it can under-report after large edits).
+- **`tsconfig.json` sets `"target": "ES2020"`** (added in US-005), so spreading /
+  `for..of`-ing a Map/Set iterator is fine now (the old `TS2802` "downlevelIteration"
+  gotcha is gone). `tsc` only type-checks (`noEmit`); Vite/esbuild does the real build,
+  so the target affects checking only, not runtime.
+- **Duplicate class members (last-wins gotcha):** `tsv-storage.ts` had triplicated
+  interfaces/cache fields/methods from bad merges. At runtime JS keeps the **last**
+  duplicate; but `tsc` type-checks *call sites* against the **first** duplicate's
+  signature — so a route calling `getUrheimatHypotheses({languageFamilyId})` compiled
+  (matched an early dead copy) while the live method actually read `languageFamily` and
+  silently ignored the arg. When deduping, **keep the last copy** (preserves runtime) and
+  expect call-site errors to surface elsewhere — those reveal real latent no-op bugs; fix
+  the call by aligning to the surviving signature (pass the same value under the right key).
 
 ## Route registration
 
@@ -19,6 +28,23 @@ New route groups live in `server/routes/<area>.ts` exporting
 `register<Area>Routes(app: Express): void`, called from `registerRoutes` in
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
+
+## Server-side key proxies (Gemini US-001, Google Translate US-002)
+
+Third-party API keys are **server-side only** — never `VITE_`-prefixed (Vite inlines those
+into the browser bundle). The client posts content to an Express proxy; the server holds the
+key and makes the upstream call. Full posture: `docs/SECURITY.md`.
+
+- **Translate** (`services/translate.ts` + `routes/translate.ts`): `POST /api/translate`
+  `{text,to,from?}` reads `GOOGLE_TRANSLATE_API_KEY` (never a `VITE_` var). Network is behind an
+  injectable `TranslateDeps` + injectable key so tests use a fake upstream and **no real key**.
+  **Optional-key pattern** (like `GEONAMES_USERNAME`): no key ⇒ **503** and the client
+  (`client/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
+  502 upstream failure.
+- **Invariant guards** (`server/security/{gemini,translate}-proxy.test.ts`) scan `.env.example`
+  + all `client/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
+  explanatory comments must not contain the literal `VITE_*` / provider-endpoint strings, or the
+  guard fails on itself — reword them.
 
 ## Anomaly detection — `services/anomaly-detection.ts` + `routes/anomaly-detection.ts`
 

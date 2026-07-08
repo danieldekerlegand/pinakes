@@ -2,11 +2,12 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { NetworkGraph } from './NetworkGraph';
-import type { NetworkNode, NetworkLink, TooltipData } from '../../lib/visualization/types';
 import {
   buildDeityNetwork,
   filterDeityNetwork,
   type DeityData,
+  type DeityNode,
+  type DeityLink,
 } from '../../lib/visualization/deity-network-transformer';
 
 const PANTHEON_COLORS: Record<string, string> = {
@@ -60,53 +61,52 @@ export function DeityPantheonGraph({ onDeitySelect }: DeityPantheonGraphProps) {
     });
   }, []);
 
-  const nodeColor = useCallback((node: NetworkNode) => getPantheonColor(node.group), []);
+  const nodeColor = useCallback((node: DeityNode) => getPantheonColor(node.group), []);
 
   const nodeStroke = useCallback(
-    (node: NetworkNode) => (node.type === 'family' ? '#1f2937' : '#fff'),
+    (node: DeityNode) => (node.type === 'family' ? '#1f2937' : '#fff'),
     [],
   );
 
   const linkColor = useCallback(
-    (link: NetworkLink) => (link.type === 'language-family' ? '#f59e0b' : '#cbd5e0'),
-    [],
-  );
-
-  const linkDasharray = useCallback(
-    (link: NetworkLink) => (link.type === 'language-family' ? '4 3' : undefined),
+    (link: DeityLink) => (link.type === 'language-family' ? '#f59e0b' : '#cbd5e0'),
     [],
   );
 
   const linkWidth = useCallback(
-    (link: NetworkLink) => (link.type === 'language-family' ? 1.5 : 1),
+    (link: DeityLink) => (link.type === 'language-family' ? 1.5 : 1),
     [],
   );
 
-  const tooltipContent = useCallback(
-    (node: NetworkNode): TooltipData => {
+  const renderTooltip = useCallback(
+    (node: DeityNode): React.ReactNode => {
       if (node.type === 'family') {
         const count = deities.filter((d) => d.mythology === node.group).length;
-        return {
-          id: node.id,
-          name: node.name,
-          type: 'family',
-          languageCount: count,
-        };
+        return (
+          <div>
+            <div className="font-semibold">{node.name}</div>
+            <div className="text-xs text-gray-500">{count} deities</div>
+          </div>
+        );
       }
       const deity = deities.find((d) => d.id === node.id);
-      return {
-        id: node.id,
-        name: node.name,
-        type: 'language',
-        familyName: node.group.charAt(0).toUpperCase() + node.group.slice(1),
-        region: deity?.domain.join(', '),
-      };
+      return (
+        <div>
+          <div className="font-semibold">{node.name}</div>
+          <div className="text-xs text-gray-500">
+            {node.group.charAt(0).toUpperCase() + node.group.slice(1)}
+          </div>
+          {deity?.domain?.length ? (
+            <div className="text-xs text-gray-500">{deity.domain.join(', ')}</div>
+          ) : null}
+        </div>
+      );
     },
     [deities],
   );
 
   const handleNodeClick = useCallback(
-    (node: NetworkNode) => {
+    (node: DeityNode) => {
       if (node.type === 'family') {
         togglePantheon(node.group);
       } else if (onDeitySelect) {
@@ -172,17 +172,15 @@ export function DeityPantheonGraph({ onDeitySelect }: DeityPantheonGraphProps) {
 
       {/* Graph */}
       <div className="flex-1 min-h-0">
-        <NetworkGraph
+        <NetworkGraph<DeityNode, DeityLink>
           data={filteredNetwork}
           nodeColor={nodeColor}
           nodeStroke={nodeStroke}
           linkColor={linkColor}
-          linkDasharray={linkDasharray}
           linkWidth={linkWidth}
-          tooltipContent={tooltipContent}
-          showLabels={filteredNetwork.nodes.length < 40}
-          linkDistance={120}
-          chargeStrength={-400}
+          renderTooltip={renderTooltip}
+          showLabel={() => filteredNetwork.nodes.length < 40}
+          simulationConfig={{ linkDistance: 120, chargeStrength: -400 }}
           onNodeClick={handleNodeClick}
           statusText={`${deities.length} deities • ${fullNetwork.pantheons.length} pantheons • ${syncretismCount} syncretism links`}
         />

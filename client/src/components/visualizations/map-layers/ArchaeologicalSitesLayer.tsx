@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
+import type { Path } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalSiteFeature } from '../../../lib/visualization/geospatial-types';
 import { ARCHAEOLOGICAL_SITE_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
@@ -84,7 +85,7 @@ export function ArchaeologicalSitesLayer({
                   onFeatureClick(props.siteId);
                 }
               },
-              mouseover: function() {
+              mouseover: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({
                     fillOpacity: opacity * 1.2,
@@ -92,7 +93,7 @@ export function ArchaeologicalSitesLayer({
                   });
                 }
               },
-              mouseout: function() {
+              mouseout: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({
                     fillOpacity: opacity,

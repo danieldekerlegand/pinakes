@@ -21,6 +21,37 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
   and put filesystem writes in a thin `writeExport`/`runExport` wrapper — tests then drive
   the core with temp-dir fixtures (`fs.mkdtempSync`) and assert without touching real output.
 
+## Secret scanning (US-003)
+
+`secret-scan.ts` is the commit-time / CI guard against leaked credentials. Same
+shape as the other scripts: a **pure core** (`scanForSecrets(files: {path,content}[])
+→ Finding[]`, filesystem/network-free, so tests drive it with in-memory files) +
+thin git wrappers (`collectStagedFiles` reads `git show :<path>` blobs;
+`collectTrackedFiles` reads `git ls-files` working-tree content). CLI: no args =
+full-tree scan (`npm run secret-scan`, CI mode); `--staged` = staged-only
+(`npm run secret-scan:staged`, what the hook runs). Exit `1` on any finding.
+
+- **Wiring:** pre-commit hook at `.githooks/pre-commit` (installed by the
+  `prepare` npm script → `git config core.hooksPath .githooks`, so it also arms on
+  a fresh `npm install`); CI at `.github/workflows/secret-scan.yml`. Full setup +
+  rule list in `docs/SECURITY.md` "Secret scanning".
+- **Rules are high-confidence on purpose.** Provider-prefixed keys, private-key
+  blocks, and secret-named assignments gated on Shannon entropy (≥ 3.5 bits/char,
+  ≥ 20 chars, mixed char classes). This is what lets a full-tree scan of all 1400+
+  tracked files pass clean (weak values like `.env.example`'s
+  `NEO4J_PASSWORD=linguascrape` are low-entropy dictionary words → not flagged).
+- **`.env` is a PATH rule, not content** — any real `.env*` file is blocked
+  regardless of content; templates (`.env.example`, `*.sample`, `*.template`) are
+  allowlisted.
+- **GOTCHA — provider regexes are exact-length + `\b`-anchored.** e.g. AWS is
+  `AKIA` + exactly 16 caps, Google is `AIza` + exactly 35 chars; a test fixture
+  one char too long fails the trailing `\b`. Build planted-secret fixtures from
+  fragments (never a literal key) so this file — and the scanner (which contains
+  the rule patterns) — are self-allowlisted and don't trip the tree scan.
+- **Escape hatches:** inline `secret-scan:allow` comment on a line, or add the path
+  to `ALLOWLISTED_PATHS` in the script. Findings mask the match (`AKIA…LE`) so the
+  report never re-leaks the secret.
+
 ## Live-graph smoke test (US-005)
 
 `smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data

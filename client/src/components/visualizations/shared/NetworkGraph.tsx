@@ -268,7 +268,7 @@ export function NetworkGraph({
 
   return (
     <div ref={containerRef} className={`w-full h-full relative bg-gray-50 rounded-lg min-h-[300px] ${className}`}>
-      <svg ref={svgRef} width={width} height={height} className="w-full h-full" />
+      <svg ref={svgRef} width={width} height={height} className="w-full h-full" data-testid="network-graph-svg" />
       {tooltip.visible && (
         <div
           className="fixed z-50 pointer-events-none rounded-lg border bg-white px-3 py-2 text-sm shadow-md whitespace-pre-line"

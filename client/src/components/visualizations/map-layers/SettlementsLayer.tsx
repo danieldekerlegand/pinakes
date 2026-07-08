@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { CircleMarker, Popup } from 'react-leaflet';
+import type { Path } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import {
   CIVILIZATION_PALETTE,
@@ -175,12 +176,12 @@ export function SettlementsLayer({
             }}
             eventHandlers={{
               click: () => onSettlementClick?.(s.id),
-              mouseover: function () {
+              mouseover: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({ fillOpacity: Math.min(1, finalOpacity * 1.3), weight: 3 });
                 }
               },
-              mouseout: function () {
+              mouseout: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({
                     fillOpacity: isSelected ? 0.9 : finalOpacity,

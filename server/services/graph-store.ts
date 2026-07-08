@@ -264,6 +264,15 @@ async function runRead(
   cypher: string,
   params: Record<string, unknown>,
 ): Promise<QueryResult> {
+  // Fast-fail when the graph is unreachable. Without this a read waits out the
+  // driver's full connection/retry window (~15s with the default timeouts)
+  // before surfacing an error, so a UI backed by a read (e.g. the explorer's
+  // shared-graph adapter) hangs on "Loading…" instead of degrading promptly.
+  // The probe is cached (AVAILABILITY_TTL_MS), so a burst of reads shares one
+  // connectivity check.
+  if (!(await isAvailable())) {
+    throw new GraphUnavailableError();
+  }
   const cfg = readConfig();
   const session = getDriver().session({
     database: cfg.database,

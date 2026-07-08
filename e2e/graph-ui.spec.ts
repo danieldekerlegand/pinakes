@@ -283,8 +283,9 @@ test.describe("graph UI renders against a (mocked) live shared graph", () => {
     const kind = page.getByTestId("provenance-kind").first();
     await expect(kind).toBeVisible();
     await expect(kind).toHaveAttribute("data-kind", "sourced");
-    // The force graph mounted its SVG (nodes to draw).
-    await expect(view.locator("svg")).toBeVisible();
+    // The force graph mounted its own SVG (nodes to draw) — target it by testid
+    // so we don't match the inline lucide icons that also render inside the view.
+    await expect(view.getByTestId("network-graph-svg")).toBeVisible();
 
     await page.screenshot({ path: `${SHOTS}/up-neighborhood.png` });
   });

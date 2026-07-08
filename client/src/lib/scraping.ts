@@ -29,22 +29,24 @@ class GoogleTranslateAPI implements TranslationSource {
   priority = 2;
 
   async translate(word: string, fromLang: string, toLang: string): Promise<string | null> {
-    // In a real implementation, this would call the Google Translate API
-    // using the API key from environment variables
-    
-    const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY || process.env.VITE_GOOGLE_TRANSLATE_API_KEY;
-    
-    if (!apiKey) {
-      console.warn("Google Translate API key not found");
-      return null;
-    }
-
+    // The Google Translate key is SERVER-SIDE ONLY (see docs/SECURITY.md). The client
+    // never holds it — translation is proxied through POST /api/translate, which reads
+    // the server-side key. A 503 means no key is configured (translation optional);
+    // we fall through to the next source.
     try {
-      // Mock implementation for now
-      await new Promise(resolve => setTimeout(resolve, 150));
-      return Math.random() < 0.85 ? `${word}_google_${toLang}` : null;
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: word, from: fromLang, to: toLang }),
+      });
+      if (!res.ok) {
+        // 503 (no key) / 502 (upstream) — degrade to the next translation source.
+        return null;
+      }
+      const data = (await res.json()) as { translation: string | null };
+      return data.translation;
     } catch (error) {
-      console.error("Google Translate API error:", error);
+      console.error("Google Translate proxy error:", error);
       return null;
     }
   }

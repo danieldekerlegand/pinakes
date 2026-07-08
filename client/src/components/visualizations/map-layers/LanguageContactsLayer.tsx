@@ -1,6 +1,6 @@
 import React from 'react';
 import { Polyline, CircleMarker, Popup } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
+import type { LatLngExpression, Path } from 'leaflet';
 import { Badge } from '../../ui/badge';
 import { LANGUAGE_CONTACT_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 
@@ -121,12 +121,12 @@ export function LanguageContactsLayer({
             }}
             eventHandlers={{
               click: () => onContactClick?.(contact.id),
-              mouseover: function () {
+              mouseover: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({ weight: weight + 2, opacity: 1 });
                 }
               },
-              mouseout: function () {
+              mouseout: function (this: Path) {
                 if (!isSelected) {
                   this.setStyle({ weight, opacity });
                 }

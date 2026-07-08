@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import * as d3 from 'd3';
 import { useQuery } from '@tanstack/react-query';
-import { TreeVisualization, type TreeNodeData } from './shared/TreeVisualization';
+import { TreeVisualization, type TreeNodeData, type TreeVisualizationConfig } from './shared/TreeVisualization';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { X, Calendar, MapPin, Globe, Type } from 'lucide-react';
@@ -45,6 +46,12 @@ function formatOriginDate(date: string): string {
 
 export function WritingSystemEvolutionView() {
   const [selectedSystem, setSelectedSystem] = useState<WritingSystem | null>(null);
+  const [tooltip, setTooltip] = useState<{
+    node: TreeNodeData | null;
+    x: number;
+    y: number;
+    visible: boolean;
+  }>({ node: null, x: 0, y: 0, visible: false });
 
   const { data: systemsResponse, isLoading } = useQuery<{ systems: WritingSystem[]; count: number }>({
     queryKey: ['/api/writing-systems'],
@@ -154,6 +161,65 @@ export function WritingSystemEvolutionView() {
     });
   }, [systems]);
 
+  const config = useMemo<TreeVisualizationConfig<TreeNodeData>>(() => ({
+    getChildren: (d) => d.children,
+    getId: (d) => d.id,
+    // Render the (possibly synthetic) root too, matching the prior behavior.
+    skipRoot: false,
+    linkOffsetX: 150,
+    linkOffsetY: 50,
+  }), []);
+
+  const renderNodes = useCallback(
+    (
+      nodeGroup: d3.Selection<SVGGElement, d3.HierarchyPointNode<TreeNodeData>, SVGGElement, unknown>,
+    ) => {
+      nodeGroup
+        .append('circle')
+        .attr('r', (d) => getNodeRadius(d.data, d.depth))
+        .attr('fill', (d) => getNodeColor(d.data))
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2);
+
+      nodeGroup
+        .append('text')
+        .attr('dy', '.31em')
+        .attr('x', (d) => (d.children ? -12 : 12))
+        .attr('text-anchor', (d) => (d.children ? 'end' : 'start'))
+        .text((d) => d.data.label)
+        .attr('font-size', '12px')
+        .attr('font-weight', 500)
+        .attr('fill', '#1f2937');
+
+      nodeGroup
+        .append('text')
+        .attr('dy', '1.5em')
+        .attr('x', (d) => (d.children ? -12 : 12))
+        .attr('text-anchor', (d) => (d.children ? 'end' : 'start'))
+        .text((d) => getSubLabel(d.data) ?? '')
+        .attr('font-size', '10px')
+        .attr('font-family', 'serif')
+        .attr('fill', '#9ca3af');
+
+      nodeGroup
+        .style('cursor', 'pointer')
+        .on('click', function (event, d) {
+          event.stopPropagation();
+          handleNodeClick(d.data);
+        })
+        .on('mouseover', function (event, d) {
+          setTooltip({ node: d.data, x: event.pageX, y: event.pageY - 10, visible: true });
+        })
+        .on('mousemove', function (event) {
+          setTooltip((prev) => ({ ...prev, x: event.pageX, y: event.pageY - 10 }));
+        })
+        .on('mouseout', function () {
+          setTooltip((prev) => ({ ...prev, visible: false }));
+        });
+    },
+    [getNodeColor, getNodeRadius, getSubLabel, handleNodeClick],
+  );
+
   if (isLoading) {
     return (
       <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -173,17 +239,35 @@ export function WritingSystemEvolutionView() {
   return (
     <div className="w-full h-full flex">
       <div className={`flex-1 min-w-0 ${selectedSystem ? 'border-r' : ''}`}>
-        <TreeVisualization
+        <TreeVisualization<TreeNodeData>
           data={treeData}
-          orientation="horizontal"
-          nodeColor={getNodeColor}
-          nodeRadius={getNodeRadius}
-          nodeSubLabel={getSubLabel}
-          onNodeClick={handleNodeClick}
-          renderTooltip={renderNodeTooltip}
-          legendItems={legendItems}
-          exportFilename="writing-system-evolution"
-        />
+          config={config}
+          renderNodes={renderNodes}
+          helpText="Click a script for details • Scroll to zoom • Drag to pan"
+        >
+          {/* Legend */}
+          <div className="absolute top-2 right-2 bg-white/90 border rounded p-2 text-xs space-y-1">
+            {legendItems.map((item) => (
+              <div key={item.label} className="flex items-center gap-1">
+                <span
+                  className="inline-block w-3 h-3 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Hover tooltip */}
+          {tooltip.visible && tooltip.node && (
+            <div
+              className="fixed z-50 pointer-events-none bg-white border rounded shadow-lg p-2 text-sm max-w-xs"
+              style={{ left: tooltip.x, top: tooltip.y }}
+            >
+              {renderNodeTooltip(tooltip.node)}
+            </div>
+          )}
+        </TreeVisualization>
       </div>
 
       {/* Detail panel */}

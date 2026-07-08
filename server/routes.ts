@@ -34,12 +34,6 @@ import {
   validateSceneType,
   validateStyle,
 } from "./services/image-generator";
-import {
-  generateReconstructionImage,
-  readPromptRecords,
-  validateSceneType,
-  validateStyle,
-} from "./services/image-generator";
 import type { ImageGenerationRequest } from "./services/image-generator";
 import {
   calculatePairwiseDistance,
@@ -76,6 +70,7 @@ import { registerRelationshipEdgeRoutes } from "./routes/relationship-edge";
 import { registerRelationshipSuggestionRoutes } from "./routes/relationship-suggestions";
 import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerTextExtractorRoutes } from "./routes/text-extractor";
+import { registerTranslateRoutes } from "./routes/translate";
 import { registerAiReviewRoutes } from "./routes/ai-review";
 import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
@@ -221,6 +216,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // confidence, flagged AI-generated) that land in the contribution review
   // queue (US-009); never a live write. Uses the existing Gemini client.
   registerTextExtractorRoutes(app);
+
+  // Translation proxy route (/api/translate, US-002) — translates a string via
+  // Google Translate using the SERVER-SIDE GOOGLE_TRANSLATE_API_KEY. The key is
+  // never shipped to the client (no VITE_-prefixed key); the client calls this
+  // proxy. Returns 503 when no key is configured (translation optional).
+  registerTranslateRoutes(app);
 
   // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
   // field-level review workflow for AI-generated drafts (US-004/US-008): a human
@@ -2614,7 +2615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : undefined;
 
       const hypotheses = await storage.getUrheimatHypotheses({
-        languageFamilyId,
+        languageFamily: languageFamilyId,
         consensusMin,
       });
 
@@ -4319,7 +4320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const language = req.query.language as string | undefined;
       const timeStart = req.query.time_start ? parseInt(req.query.time_start as string) : undefined;
       const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string) : undefined;
-      const cultures = await storage.getArchaeologicalCultures({ region, language, timeStart, timeEnd });
+      const cultures = await storage.getArchaeologicalCultures({ region, languageId: language, timeStart, timeEnd });
       res.json({ cultures, count: cultures.length });
     } catch (error) {
       console.error("Error fetching archaeological cultures:", error);
@@ -5197,7 +5198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consensusMin = req.query.consensus_min ? parseInt(req.query.consensus_min as string, 10) : undefined;
 
       const hypotheses = await storage.getUrheimatHypotheses({
-        languageFamilyId: languageFamily,
+        languageFamily,
         consensusMin,
       });
 

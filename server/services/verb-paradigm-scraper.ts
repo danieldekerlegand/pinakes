@@ -79,7 +79,7 @@ const LANG_TO_WIKTIONARY: Record<string, string> = {
 };
 
 // Default verb concepts to scrape (matches existing data pattern)
-const DEFAULT_VERBS = [
+const DEFAULT_VERBS: { concept: string; hints: Record<string, string> }[] = [
   { concept: "to eat", hints: { eng: "eat", spa: "comer", fra: "manger", deu: "essen", ita: "mangiare", por: "comer", rus: "есть", tur: "yemek" } },
   { concept: "to drink", hints: { eng: "drink", spa: "beber", fra: "boire", deu: "trinken", ita: "bere", por: "beber", rus: "пить", tur: "içmek" } },
   { concept: "to see", hints: { eng: "see", spa: "ver", fra: "voir", deu: "sehen", ita: "vedere", por: "ver", rus: "видеть", tur: "görmek" } },

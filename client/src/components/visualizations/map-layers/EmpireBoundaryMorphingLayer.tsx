@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { GeoJSON, CircleMarker, Tooltip, Popup } from 'react-leaflet';
-import type { PathOptions } from 'leaflet';
+import type { PathOptions, Path } from 'leaflet';
 import type { Feature, Polygon, FeatureCollection } from 'geojson';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { MorphedBoundary, EmpireSettlementOverlay, EmpireLabelInfo } from '../../../lib/visualization/temporal-boundary-morphing';
@@ -146,13 +146,13 @@ export function EmpireBoundaryMorphingLayer({
       }
     });
 
-    layer.on('mouseover', function () {
+    layer.on('mouseover', function (this: Path) {
       if (props._civilizationId !== selectedFeatureId) {
         this.setStyle({ fillOpacity: opacity * 0.6, weight: 3 });
       }
     });
 
-    layer.on('mouseout', function () {
+    layer.on('mouseout', function (this: Path) {
       if (props._civilizationId !== selectedFeatureId) {
         this.setStyle({ fillOpacity: opacity * 0.4, weight: 2 });
       }

@@ -9,7 +9,7 @@ import {
   transformToMapData,
 } from '../lib/visualization/data-transformers';
 import type { ViewMode } from '../lib/visualization/types';
-import type { LanguageFamilyWithChildren } from '../../shared/types';
+import type { LanguageFamilyWithChildren } from '@shared/types';
 
 const LanguageTreeView = lazy(() =>
   import('../components/visualizations/LanguageTreeView').then((m) => ({ default: m.LanguageTreeView }))

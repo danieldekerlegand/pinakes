@@ -1,4 +1,4 @@
-import type { NetworkNode, NetworkLink } from './types';
+import type { GraphNode, GraphLink } from './network-graph-types';
 
 export interface DeityData {
   id: string;
@@ -9,9 +9,23 @@ export interface DeityData {
   equivalentDeityIds: string[];
 }
 
+/** A deity-network node — extends the generic GraphNode with deity-specific fields. */
+export interface DeityNode extends GraphNode {
+  name: string;
+  type: 'family' | 'language';
+  group: string;
+  level: number;
+  size: number;
+}
+
+/** A deity-network link — extends the generic GraphLink with a relationship kind. */
+export interface DeityLink extends GraphLink {
+  type: 'family-child' | 'language-family';
+}
+
 export interface DeityNetworkData {
-  nodes: NetworkNode[];
-  links: NetworkLink[];
+  nodes: DeityNode[];
+  links: DeityLink[];
   pantheons: string[];
 }
 
@@ -22,8 +36,8 @@ export interface DeityNetworkData {
  * - Syncretism links connect equivalent deities across pantheons
  */
 export function buildDeityNetwork(deities: DeityData[]): DeityNetworkData {
-  const nodes: NetworkNode[] = [];
-  const links: NetworkLink[] = [];
+  const nodes: DeityNode[] = [];
+  const links: DeityLink[] = [];
   const pantheonSet = new Set<string>();
 
   // Collect pantheons
@@ -35,9 +49,11 @@ export function buildDeityNetwork(deities: DeityData[]): DeityNetworkData {
   // Create pantheon hub nodes
   for (const pantheon of pantheons) {
     const count = deities.filter((d) => d.mythology === pantheon).length;
+    const pantheonLabel = pantheon.charAt(0).toUpperCase() + pantheon.slice(1);
     nodes.push({
       id: `pantheon-${pantheon}`,
-      name: pantheon.charAt(0).toUpperCase() + pantheon.slice(1),
+      label: pantheonLabel,
+      name: pantheonLabel,
       type: 'family',
       group: pantheon,
       level: 0,
@@ -49,6 +65,7 @@ export function buildDeityNetwork(deities: DeityData[]): DeityNetworkData {
   for (const deity of deities) {
     nodes.push({
       id: deity.id,
+      label: deity.name,
       name: deity.name,
       type: 'language', // reuse the existing type union for node styling
       group: deity.mythology,

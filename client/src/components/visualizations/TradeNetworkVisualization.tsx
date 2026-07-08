@@ -181,8 +181,8 @@ export function TradeNetworkVisualization({ isOpen = true }: TradeNetworkVisuali
             nodes={networkData.nodes}
             links={networkData.links}
             nodeColorFn={(node) => {
-              if (node.id.startsWith('route:')) return getRouteTypeColor(node.group);
-              return getCategoryColor(node.group);
+              if (node.id.startsWith('route:')) return getRouteTypeColor(node.group ?? '');
+              return getCategoryColor(node.group ?? '');
             }}
             linkColorFn={(link) => {
               const srcId = typeof link.source === 'string' ? link.source : link.source.id;

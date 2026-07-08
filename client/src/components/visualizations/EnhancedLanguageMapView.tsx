@@ -76,7 +76,7 @@ import {
   routeAppliesAtYear,
 } from '../../lib/visualization/counterfactual-trade-routes';
 import { SettlementsLayer } from './map-layers/SettlementsLayer';
-import type { SettlementFeature } from './map-layers/SettlementsLayer';
+import type { Settlement } from './map-layers/SettlementsLayer';
 import { RiverWaterLayer } from './map-layers/RiverWaterLayer';
 import type { RiverWaterFeature } from './map-layers/RiverWaterLayer';
 import { TerritoryOverlapLayer } from './map-layers/TerritoryOverlapLayer';
@@ -583,7 +583,7 @@ export function EnhancedLanguageMapView({
   });
 
   // Fetch settlements data
-  const { data: settlementsData, isLoading: loadingSettlements } = useQuery<{ settlements: SettlementFeature[]; count: number }>({
+  const { data: settlementsData, isLoading: loadingSettlements } = useQuery<{ settlements: Settlement[]; count: number }>({
     queryKey: ['/api/settlements'],
     staleTime: 5 * 60 * 1000,
     enabled: isLayerVisible('settlements'),
