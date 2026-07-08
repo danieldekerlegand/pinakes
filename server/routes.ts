@@ -2621,7 +2621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : undefined;
 
       const hypotheses = await storage.getUrheimatHypotheses({
-        languageFamilyId,
+        languageFamily: languageFamilyId,
         consensusMin,
       });
 
@@ -4326,7 +4326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const language = req.query.language as string | undefined;
       const timeStart = req.query.time_start ? parseInt(req.query.time_start as string) : undefined;
       const timeEnd = req.query.time_end ? parseInt(req.query.time_end as string) : undefined;
-      const cultures = await storage.getArchaeologicalCultures({ region, language, timeStart, timeEnd });
+      const cultures = await storage.getArchaeologicalCultures({ region, languageId: language, timeStart, timeEnd });
       res.json({ cultures, count: cultures.length });
     } catch (error) {
       console.error("Error fetching archaeological cultures:", error);
@@ -5204,7 +5204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const consensusMin = req.query.consensus_min ? parseInt(req.query.consensus_min as string, 10) : undefined;
 
       const hypotheses = await storage.getUrheimatHypotheses({
-        languageFamilyId: languageFamily,
+        languageFamily,
         consensusMin,
       });
 

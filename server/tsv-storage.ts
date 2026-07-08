@@ -3,7 +3,6 @@ import path from "node:path";
 
 import type {
   BaseWord,
-  CultureProfile,
   Language,
   LanguageFamily,
   LanguageFamilyWithChildren,
@@ -12,7 +11,6 @@ import type {
 import type {
   LanguageRangeFeature,
   ArchaeologicalSiteFeature,
-  ArchaeologicalCultureFeature,
   CivilizationFeature,
   EmpireTimelineFeature,
   HistoricalRouteFeature,
@@ -462,23 +460,6 @@ export interface FoodwayEvent {
   culturalImpact: string;
 }
 
-// Archaeological culture types
-export interface ArchaeologicalCulture {
-  id: string;
-  name: string;
-  timeOrigin: number;
-  timeEnd: number;
-  region: string;
-  originCoordinates: [number, number];
-  description: string;
-  associatedLanguageIds: string[];
-  associatedHaplogroupIds: string[];
-  materialCultureIds: string[];
-  predecessorCultureIds: string[];
-  successorCultureIds: string[];
-  characteristics: string[];
-  sources: string[];
-}
 
 // Settlement types
 export interface Settlement {
@@ -499,34 +480,6 @@ export interface Settlement {
   region: string;
 }
 
-// Culture profile types
-export interface CultureProfile {
-  id: string;
-  name: string;
-  alternateNames: string[];
-  civilizationId: string;
-  archaeologicalCultureId: string;
-  timePeriodStart: number | null;
-  timePeriodEnd: number | null;
-  region: string;
-  summaryDescription: string;
-  socialOrganization: string;
-  subsistenceType: string;
-  urbanismLevel: string;
-  populationEstimate: number | null;
-  technologyLevel: string;
-  associatedLanguageIds: string[];
-  associatedReligionIds: string[];
-  associatedWritingSystemIds: string[];
-  associatedArtTraditionIds: string[];
-  associatedMusicTraditionIds: string[];
-  associatedCuisineId: string;
-  associatedArchitecturalStyleIds: string[];
-  associatedLiteraryTraditionIds: string[];
-  notableSettlements: string[];
-  imageGalleryTags: string[];
-  sources: string[];
-}
 
 // City layout types
 export interface CityLayout {
@@ -621,20 +574,6 @@ export interface BuildingType {
   culturalFunction: string;
 }
 
-// City layout types
-export interface CityLayout {
-  id: string;
-  settlementName: string;
-  cultureProfileId: string;
-  layoutType: string;
-  keyFeatures: string[];
-  streetPattern: string;
-  waterManagement: string;
-  fortificationType: string;
-  estimatedAreaHectares: number;
-  description: string;
-  reconstructionNotes: string;
-}
 
 // Trade good types
 export interface TradeGood {
@@ -742,26 +681,6 @@ export interface SocialStructure {
   sources: string;
 }
 
-// Urheimat hypothesis types
-export interface UrheimatHypothesis {
-  id: string;
-  languageFamilyId: string;
-  hypothesisName: string;
-  proposedRegion: string;
-  proposedCoordinates: { lat: number; lng: number };
-  proposedBoundary: Record<string, unknown>;
-  timeRangeStart: number | null;
-  timeRangeEnd: number | null;
-  supportingEvidence: {
-    linguistic: string[];
-    archaeological: string[];
-    genetic: string[];
-  };
-  competingHypotheses: string[];
-  scholarlyConsensusLevel: number;
-  keyProponents: string[];
-  sources: string[];
-}
 
 // Narrative types
 export interface NarrativeStep {
@@ -909,7 +828,6 @@ export class TsvStorage {
   private cachedLanguageRanges: LanguageRangeFeature[] | null = null;
   private cachedLanguageRangePolygons: LanguageRangeFeature[] | null = null;
   private cachedArchaeologicalSites: ArchaeologicalSiteFeature[] | null = null;
-  private cachedArchaeologicalCultures: ArchaeologicalCultureFeature[] | null = null;
   private cachedCivilizations: CivilizationFeature[] | null = null;
   private cachedEmpiresTimeline: EmpireTimelineFeature[] | null = null;
   private cachedHistoricalRoutes: HistoricalRouteFeature[] | null = null;
@@ -919,8 +837,6 @@ export class TsvStorage {
   // Haplogroup data cache
   private cachedHaplogroups: Haplogroup[] | null = null;
 
-  // Archaeological cultures data cache
-  private cachedArchaeologicalCultures: ArchaeologicalCulture[] | null = null;
 
   // Music data caches
   private cachedMusicTraditions: MusicTradition[] | null = null;
@@ -1001,8 +917,6 @@ export class TsvStorage {
   // Social structures data cache
   private cachedSocialStructures: SocialStructure[] | null = null;
 
-  // Urheimat hypotheses data cache
-  private cachedUrheimatHypotheses: UrheimatHypothesis[] | null = null;
 
   // Narratives data cache
   private cachedNarratives: Narrative[] | null = null;
@@ -1022,8 +936,6 @@ export class TsvStorage {
   // Etymology Relations
   private cachedEtymologyRelations: EtymologyRelation[] | null = null;
 
-  // Cultural Lineages
-  private cachedCulturalLineages: CulturalLineage[] | null = null;
 
   // Literary traditions and works
   private cachedLiteraryTraditions: LiteraryTradition[] | null = null;
@@ -1035,8 +947,6 @@ export class TsvStorage {
   // Settlements data cache
   private cachedSettlements: Settlement[] | null = null;
 
-  // City layouts cache
-  private cachedCityLayouts: CityLayout[] | null = null;
 
   // Rivers and water features cache
   private cachedRiversAndWaters: RiverWaterFeature[] | null = null;
@@ -1539,8 +1449,8 @@ export class TsvStorage {
 
     // Count words per language from forms map
     const langWordCounts = new Map<string, number>();
-    for (const conceptForms of forms.values()) {
-      for (const langId of conceptForms.keys()) {
+    for (const conceptForms of Array.from(forms.values())) {
+      for (const langId of Array.from(conceptForms.keys())) {
         langWordCounts.set(langId, (langWordCounts.get(langId) ?? 0) + 1);
       }
     }
@@ -1818,78 +1728,6 @@ export class TsvStorage {
       .filter((f): f is ArchaeologicalSiteFeature => f !== null);
   }
 
-  private loadArchaeologicalCultures(): void {
-    if (this.cachedArchaeologicalCultures) return;
-
-    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
-    if (!text) { this.cachedArchaeologicalCultures = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const nameIdx = getIdx(header, "name");
-    const regionIdx = header.indexOf("region");
-    const boundaryIdx = header.indexOf("boundary_geometry");
-    const startIdx = header.indexOf("time_period_start");
-    const endIdx = header.indexOf("time_period_end");
-    const labelIdx = header.indexOf("time_period_label");
-    const subsistIdx = header.indexOf("subsistence_pattern");
-    const potteryIdx = header.indexOf("pottery_style");
-    const burialIdx = header.indexOf("burial_practices");
-    const traitsIdx = header.indexOf("material_culture_traits");
-    const langFamIdx = header.indexOf("probable_language_family");
-    const haploIdx = header.indexOf("probable_haplogroups");
-    const predIdx = header.indexOf("predecessor_culture_ids");
-    const succIdx = header.indexOf("successor_culture_ids");
-    const confIdx = header.indexOf("confidence");
-    const srcIdx = header.indexOf("sources");
-    const descIdx = header.indexOf("description");
-
-    const parseArr = (idx: number, row: string[]): string[] => {
-      if (idx < 0 || !row[idx]) return [];
-      try { return JSON.parse(row[idx]); } catch { return []; }
-    };
-
-    this.cachedArchaeologicalCultures = rows
-      .filter((row) => row[boundaryIdx] && row[boundaryIdx].trim())
-      .map((row) => {
-        let geometry: any;
-        try { geometry = JSON.parse(row[boundaryIdx]); } catch { return null; }
-
-        const tStart = startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
-          ? parseInt(row[startIdx], 10) : 0;
-        const tEnd = endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
-          ? parseInt(row[endIdx], 10) : null;
-
-        return {
-          type: "Feature" as const,
-          id: row[idIdx],
-          geometry,
-          properties: {
-            cultureId: row[idIdx],
-            name: row[nameIdx],
-            region: regionIdx >= 0 ? row[regionIdx] || "" : "",
-            timePeriod: {
-              start: tStart,
-              end: tEnd,
-              label: labelIdx >= 0 ? row[labelIdx] || "" : "",
-            },
-            subsistencePattern: (subsistIdx >= 0 ? row[subsistIdx] || "unknown" : "unknown") as any,
-            potteryStyle: potteryIdx >= 0 ? row[potteryIdx] || "" : "",
-            burialPractices: burialIdx >= 0 ? row[burialIdx] || "" : "",
-            materialCultureTraits: traitsIdx >= 0 ? row[traitsIdx] || "" : "",
-            probableLanguageFamily: langFamIdx >= 0 ? row[langFamIdx] || "" : "",
-            probableHaplogroups: parseArr(haploIdx, row),
-            predecessorCultureIds: parseArr(predIdx, row),
-            successorCultureIds: parseArr(succIdx, row),
-            confidence: confIdx >= 0 ? parseInt(row[confIdx] || "50", 10) : 50,
-            sources: parseArr(srcIdx, row),
-            description: descIdx >= 0 ? row[descIdx] || "" : "",
-          },
-        } as ArchaeologicalCultureFeature;
-      })
-      .filter((f): f is ArchaeologicalCultureFeature => f !== null);
-  }
-
   private loadCivilizations(): void {
     if (this.cachedCivilizations) return;
 
@@ -2064,29 +1902,6 @@ export class TsvStorage {
     if (filters?.siteTypes && filters.siteTypes.length > 0) {
       const typeSet = new Set(filters.siteTypes);
       features = features.filter((f) => typeSet.has(f.properties.siteType));
-    }
-
-    return features;
-  }
-
-  /**
-   * Get archaeological cultures with optional filtering
-   */
-  async getArchaeologicalCultures(filters?: {
-    timeStart?: number;
-    timeEnd?: number;
-    region?: string;
-  }): Promise<ArchaeologicalCultureFeature[]> {
-    this.loadArchaeologicalCultures();
-    let features = this.cachedArchaeologicalCultures ?? [];
-
-    features = this.filterByTime(features, filters?.timeStart, filters?.timeEnd);
-
-    if (filters?.region) {
-      const regionLower = filters.region.toLowerCase();
-      features = features.filter((f) =>
-        f.properties.region.toLowerCase().includes(regionLower)
-      );
     }
 
     return features;
@@ -3136,80 +2951,6 @@ export class TsvStorage {
   // ============================================================================
   // Urheimat Hypotheses Data Methods
   // ============================================================================
-
-  /**
-   * Load urheimat hypotheses from TSV file
-   */
-  private loadUrheimatHypotheses(): void {
-    if (this.cachedUrheimatHypotheses) return;
-
-    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
-    if (!text) { this.cachedUrheimatHypotheses = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const familyIdx = getIdx(header, "language_family_id");
-    const nameIdx = getIdx(header, "hypothesis_name");
-    const regionIdx = header.indexOf("proposed_region");
-    const coordsIdx = header.indexOf("proposed_coordinates");
-    const boundaryIdx = header.indexOf("proposed_boundary");
-    const startIdx = header.indexOf("time_range_start");
-    const endIdx = header.indexOf("time_range_end");
-    const evidenceIdx = header.indexOf("supporting_evidence");
-    const competingIdx = header.indexOf("competing_hypotheses");
-    const consensusIdx = header.indexOf("scholarly_consensus_level");
-    const proponentsIdx = header.indexOf("key_proponents");
-    const srcIdx = header.indexOf("sources");
-
-    const parseJson = <T>(idx: number, row: string[], fallback: T): T => {
-      if (idx < 0 || !row[idx]) return fallback;
-      try { return JSON.parse(row[idx]); } catch { return fallback; }
-    };
-
-    this.cachedUrheimatHypotheses = rows.map((row) => ({
-      id: row[idIdx],
-      languageFamilyId: row[familyIdx],
-      hypothesisName: row[nameIdx],
-      proposedRegion: regionIdx >= 0 ? row[regionIdx] || "" : "",
-      proposedCoordinates: parseJson(coordsIdx, row, { lat: 0, lng: 0 }),
-      proposedBoundary: parseJson(boundaryIdx, row, {}),
-      timeRangeStart: startIdx >= 0 && row[startIdx] && row[startIdx] !== "null"
-        ? parseInt(row[startIdx], 10) : null,
-      timeRangeEnd: endIdx >= 0 && row[endIdx] && row[endIdx] !== "null"
-        ? parseInt(row[endIdx], 10) : null,
-      supportingEvidence: parseJson(evidenceIdx, row, { linguistic: [], archaeological: [], genetic: [] }),
-      competingHypotheses: parseJson(competingIdx, row, []),
-      scholarlyConsensusLevel: consensusIdx >= 0 && row[consensusIdx]
-        ? parseFloat(row[consensusIdx]) : 0,
-      keyProponents: parseJson(proponentsIdx, row, []),
-      sources: parseJson(srcIdx, row, []),
-    }));
-  }
-
-  /**
-   * Get urheimat hypotheses with optional filtering
-   */
-  async getUrheimatHypotheses(filters?: {
-    languageFamilyId?: string;
-    consensusMin?: number;
-  }): Promise<UrheimatHypothesis[]> {
-    this.loadUrheimatHypotheses();
-    let hypotheses = this.cachedUrheimatHypotheses ?? [];
-
-    if (filters?.languageFamilyId) {
-      hypotheses = hypotheses.filter((h) =>
-        h.languageFamilyId === filters.languageFamilyId
-      );
-    }
-
-    if (filters?.consensusMin !== undefined) {
-      hypotheses = hypotheses.filter((h) =>
-        h.scholarlyConsensusLevel >= filters.consensusMin!
-      );
-    }
-
-    return hypotheses;
-  }
 
   /**
    * Get a single urheimat hypothesis by ID
@@ -4357,97 +4098,6 @@ export class TsvStorage {
     return (this.cachedFoodwayEvents ?? []).find((e) => e.id === id) ?? null;
   }
 
-  // ── Archaeological Cultures ─────────────────────────────────────────
-
-  private loadArchaeologicalCultures(): void {
-    if (this.cachedArchaeologicalCultures) return;
-
-    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
-    if (!text) { this.cachedArchaeologicalCultures = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const nameIdx = getIdx(header, "name");
-    const timeOriginIdx = getIdx(header, "time_origin");
-    const timeEndIdx = getIdx(header, "time_end");
-    const regionIdx = getIdx(header, "region");
-    const coordsIdx = getIdx(header, "origin_coordinates");
-    const descIdx = getIdx(header, "description");
-    const langIdx = getIdx(header, "associated_language_ids");
-    const haploIdx = getIdx(header, "associated_haplogroup_ids");
-    const matIdx = getIdx(header, "material_culture_ids");
-    const predIdx = getIdx(header, "predecessor_culture_ids");
-    const succIdx = getIdx(header, "successor_culture_ids");
-    const charIdx = getIdx(header, "characteristics");
-    const srcIdx = getIdx(header, "sources");
-
-    this.cachedArchaeologicalCultures = rows.map((row) => ({
-      id: row[idIdx],
-      name: row[nameIdx],
-      timeOrigin: parseInt(row[timeOriginIdx]) || 0,
-      timeEnd: parseInt(row[timeEndIdx]) || 0,
-      region: row[regionIdx],
-      originCoordinates: (() => {
-        try { return JSON.parse(row[coordsIdx]); } catch { return [0, 0]; }
-      })() as [number, number],
-      description: row[descIdx],
-      associatedLanguageIds: (() => {
-        try { return JSON.parse(row[langIdx]); } catch { return []; }
-      })() as string[],
-      associatedHaplogroupIds: (() => {
-        try { return JSON.parse(row[haploIdx]); } catch { return []; }
-      })() as string[],
-      materialCultureIds: (() => {
-        try { return JSON.parse(row[matIdx]); } catch { return []; }
-      })() as string[],
-      predecessorCultureIds: (() => {
-        try { return JSON.parse(row[predIdx]); } catch { return []; }
-      })() as string[],
-      successorCultureIds: (() => {
-        try { return JSON.parse(row[succIdx]); } catch { return []; }
-      })() as string[],
-      characteristics: (() => {
-        try { return JSON.parse(row[charIdx]); } catch { return []; }
-      })() as string[],
-      sources: (() => {
-        try { return JSON.parse(row[srcIdx]); } catch { return []; }
-      })() as string[],
-    }));
-  }
-
-  async getArchaeologicalCultures(filters?: {
-    region?: string;
-    language?: string;
-    timeStart?: number;
-    timeEnd?: number;
-  }): Promise<ArchaeologicalCulture[]> {
-    this.loadArchaeologicalCultures();
-    let cultures = this.cachedArchaeologicalCultures ?? [];
-
-    if (filters?.region) {
-      const r = filters.region.toLowerCase();
-      cultures = cultures.filter((c) => c.region.toLowerCase().includes(r));
-    }
-    if (filters?.language) {
-      cultures = cultures.filter((c) =>
-        c.associatedLanguageIds.includes(filters.language!)
-      );
-    }
-    if (filters?.timeStart !== undefined) {
-      cultures = cultures.filter((c) => c.timeEnd >= filters.timeStart!);
-    }
-    if (filters?.timeEnd !== undefined) {
-      cultures = cultures.filter((c) => c.timeOrigin <= filters.timeEnd!);
-    }
-
-    return cultures;
-  }
-
-  async getArchaeologicalCultureById(id: string): Promise<ArchaeologicalCulture | null> {
-    this.loadArchaeologicalCultures();
-    return (this.cachedArchaeologicalCultures ?? []).find((c) => c.id === id) ?? null;
-  }
-
   // ── Kinship Systems ──────────────────────────────────────────────────
 
   private loadArtTraditions(): void {
@@ -4656,66 +4306,6 @@ export class TsvStorage {
     return (this.cachedArchitecturalStyles ?? []).filter((s) =>
       s.buildingTypes.includes(buildingTypeId)
     );
-  }
-
-  // ── City Layouts ──────────────────────────────────────────────────
-
-  private loadCityLayouts(): void {
-    if (this.cachedCityLayouts) return;
-
-    const text = this.readFileIfExists("lexicons/city-layouts.tsv");
-    if (!text) { this.cachedCityLayouts = []; return; }
-
-    const { header, rows } = parseTsv(text);
-    const idIdx = getIdx(header, "id");
-    const nameIdx = getIdx(header, "settlement_name");
-    const cultureIdx = getIdx(header, "culture_profile_id");
-    const layoutIdx = getIdx(header, "layout_type");
-    const featIdx = getIdx(header, "key_features");
-    const streetIdx = getIdx(header, "street_pattern");
-    const waterIdx = getIdx(header, "water_management");
-    const fortIdx = getIdx(header, "fortification_type");
-    const areaIdx = getIdx(header, "estimated_area_hectares");
-    const descIdx = getIdx(header, "description");
-    const notesIdx = getIdx(header, "reconstruction_notes");
-
-    this.cachedCityLayouts = rows.map((row) => ({
-      id: row[idIdx],
-      settlementName: row[nameIdx],
-      cultureProfileId: row[cultureIdx] || "",
-      layoutType: row[layoutIdx] || "",
-      keyFeatures: (() => {
-        try { return JSON.parse(row[featIdx]); } catch { return []; }
-      })() as string[],
-      streetPattern: row[streetIdx] || "",
-      waterManagement: row[waterIdx] || "",
-      fortificationType: row[fortIdx] || "",
-      estimatedAreaHectares: parseInt(row[areaIdx]) || 0,
-      description: row[descIdx] || "",
-      reconstructionNotes: row[notesIdx] || "",
-    }));
-  }
-
-  async getCityLayouts(filters?: {
-    cultureProfileId?: string;
-    layoutType?: string;
-  }): Promise<CityLayout[]> {
-    this.loadCityLayouts();
-    let layouts = this.cachedCityLayouts ?? [];
-
-    if (filters?.cultureProfileId) {
-      layouts = layouts.filter((l) => l.cultureProfileId === filters.cultureProfileId);
-    }
-    if (filters?.layoutType) {
-      layouts = layouts.filter((l) => l.layoutType === filters.layoutType);
-    }
-
-    return layouts;
-  }
-
-  async getCityLayoutById(id: string): Promise<CityLayout | null> {
-    this.loadCityLayouts();
-    return (this.cachedCityLayouts ?? []).find((l) => l.id === id) ?? null;
   }
 
   // ── Building Types ────────────────────────────────────────────────

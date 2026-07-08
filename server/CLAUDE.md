@@ -2,16 +2,26 @@
 
 ## Quality-gate reality (read first)
 
-- **`npm run check` (`tsc`) is NOT clean on `main`** — there are ~145 pre-existing
-  errors (bulk in `server/tsv-storage.ts` and `server/routes.ts`). The practical
-  gate is therefore **"my touched files add zero errors, and the total count does
-  not rise"**, not "tsc is green". Verify with:
+- **`npm run check` (`tsc`) is NOT yet clean on this branch** — the baseline was
+  ~145 pre-existing errors. **US-004 cleared all 48 in `server/tsv-storage.ts`**
+  (deduplicated triplicated interfaces/fields/methods — see below), so the count is
+  now **97** (bulk in `server/routes.ts`, plus `shared/computation.ts` etc.; US-005
+  finishes the rest). Until then the practical gate is **"my touched files add zero
+  errors, and the total count does not rise"**, not "tsc is green". Verify with:
   `npm run check 2>&1 | grep "error TS" | grep -E "<files you touched>"` → expect
   none, and confirm the total error count is unchanged from baseline.
 - **No `target` in `tsconfig.json`** ⇒ TS defaults to a low target with
-  `downlevelIteration` off. **Spreading a Map/Set iterator fails** (`TS2802`,
-  e.g. `[...map.keys()]`, `[...map.entries()]`). Use `Array.from(map.keys())`
-  instead. Spreading a plain **array** is fine.
+  `downlevelIteration` off. **Spreading OR `for..of`-ing a Map/Set iterator fails**
+  (`TS2802`, e.g. `[...map.keys()]`, `for (const x of map.values())`). Use
+  `Array.from(map.values())` instead. Spreading/iterating a plain **array** is fine.
+- **Duplicate class members (last-wins gotcha):** `tsv-storage.ts` had triplicated
+  interfaces/cache fields/methods from bad merges. At runtime JS keeps the **last**
+  duplicate; but `tsc` type-checks *call sites* against the **first** duplicate's
+  signature — so a route calling `getUrheimatHypotheses({languageFamilyId})` compiled
+  (matched an early dead copy) while the live method actually read `languageFamily` and
+  silently ignored the arg. When deduping, **keep the last copy** (preserves runtime) and
+  expect call-site errors to surface elsewhere — those reveal real latent no-op bugs; fix
+  the call by aligning to the surviving signature (pass the same value under the right key).
 
 ## Route registration
 
