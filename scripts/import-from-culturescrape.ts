@@ -544,7 +544,18 @@ export const ADDITION_PROVENANCE_COLUMNS = [
   "confidence",
 ] as const;
 
-/** One curated, reconciliation-"new" culture to append to the lexicon. */
+/** Core columns every addition carries; any other column in the file is domain-specific `extra`. */
+const ADDITION_CORE_COLUMNS = [
+  "id",
+  "name",
+  "wikidata_qid",
+  "source_url",
+  "retrieved_at",
+  "confidence",
+  "sources",
+] as const;
+
+/** One curated, reconciliation-"new" row to append to the lexicon. */
 export interface CultureAddition {
   readonly id: string;
   readonly name: string;
@@ -554,6 +565,12 @@ export interface CultureAddition {
   readonly confidence: string;
   /** Bibliographic sources cell (a JSON-array string, e.g. `["Wikidata"]`). */
   readonly sources: string;
+  /**
+   * Domain-specific columns (e.g. `coordinates`, `site_type`, `description`), keyed by column
+   * name. Each is written only if the target lexicon actually has that column, so one code path
+   * serves every domain — see {@link buildCultureAdditions}.
+   */
+  readonly extra?: Readonly<Record<string, string>>;
 }
 
 /** A candidate that was not appended, with why. */
@@ -681,6 +698,10 @@ export function buildCultureAdditions(
     setByName(row, "source_url", c.source_url);
     setByName(row, "retrieved_at", c.retrieved_at);
     setByName(row, "confidence", c.confidence);
+    // Domain-specific columns (only those the target lexicon actually has).
+    for (const [col, value] of Object.entries(c.extra ?? {})) {
+      setByName(row, col, value);
+    }
     target.rows.push(row);
     target.changed = true;
 
@@ -718,8 +739,12 @@ export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
     const i = headers.indexOf(name);
     return i >= 0 ? (row[i] ?? "").trim() : "";
   };
+  const coreSet = new Set<string>(ADDITION_CORE_COLUMNS);
+  const extraColumns = headers.filter((h) => h !== "" && !coreSet.has(h));
   return lines.slice(1).map((line) => {
     const row = line.split("\t");
+    const extra: Record<string, string> = {};
+    for (const col of extraColumns) extra[col] = at(row, col);
     return {
       id: at(row, "id"),
       name: at(row, "name"),
@@ -728,6 +753,7 @@ export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
       retrieved_at: at(row, "retrieved_at"),
       confidence: at(row, "confidence") || "1.0",
       sources: at(row, "sources") || '["Wikidata"]',
+      extra,
     };
   });
 }
@@ -762,20 +788,43 @@ export function runCultureAdditions(
     fs.writeFileSync(path.join(lexiconsDir, targetFile), serializeLexiconFile(built.file));
   }
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(outDir, "civilizations-additions-report.json"),
-    additionsReportJson(built.report),
-  );
+  // Report name mirrors the target lexicon (civilizations.tsv → civilizations-additions-report.json).
+  const reportName = `${targetFile.replace(/\.tsv$/, "")}-additions-report.json`;
+  fs.writeFileSync(path.join(outDir, reportName), additionsReportJson(built.report));
   return built;
 }
 
 // CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
 // Default: enrichment write-back (`--overwrite` applies incoming over curated).
 // `--add-cultures [file]`: append curated new cultures into civilizations.tsv (US-003).
+// `--add-rows <file> --target <lexicon.tsv>`: generic append into any node lexicon (US-002+).
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const argv = process.argv.slice(2);
   const addFlag = argv.indexOf("--add-cultures");
-  if (addFlag >= 0) {
+  const addRowsFlag = argv.indexOf("--add-rows");
+  const flagValue = (name: string): string | undefined => {
+    const i = argv.indexOf(name);
+    if (i < 0) return undefined;
+    const v = argv[i + 1];
+    return v && !v.startsWith("--") ? v : undefined;
+  };
+  if (addRowsFlag >= 0) {
+    const additionsFile = flagValue("--add-rows");
+    const targetFile = flagValue("--target");
+    if (additionsFile === undefined || targetFile === undefined) {
+      // eslint-disable-next-line no-console
+      console.error("usage: import-from-culturescrape --add-rows <file> --target <lexicon.tsv>");
+      process.exit(1);
+    }
+    const { report } = runCultureAdditions({ additionsFile, targetFile });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Row additions (${report.file}): ${totals.candidates} candidates → ` +
+        `${totals.added} added, ${totals.skipped} skipped, ${totals.conflicts} conflicts, ` +
+        `${totals.updated} updated; rows ${totals.rowsBefore} → ${totals.rowsAfter}.`,
+    );
+  } else if (addFlag >= 0) {
     const next = argv[addFlag + 1];
     const additionsFile = next && !next.startsWith("--") ? next : DEFAULT_ADDITIONS_FILE;
     const { report } = runCultureAdditions({ additionsFile });

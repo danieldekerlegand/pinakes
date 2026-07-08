@@ -96,7 +96,7 @@
       "type": "place",
       "label": "Place",
       "file": "nodes/place.tsv",
-      "count": 813
+      "count": 1212
     },
     {
       "type": "migration-route",
@@ -150,7 +150,7 @@
     }
   ],
   "totals": {
-    "nodes": 5432,
+    "nodes": 5831,
     "edges": 5526,
     "nodeTypes": 17,
     "edgeTypes": 7
@@ -322,7 +322,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5432,
+      "total": 5831,
       "byType": [
         {
           "type": "language",
@@ -491,13 +491,13 @@
         },
         {
           "type": "place",
-          "count": 813,
+          "count": 1212,
           "nonEmpty": {
-            "source": 813,
+            "source": 1212,
             "source_url": 0,
-            "source_query": 151,
+            "source_query": 550,
             "retrieved_at": 0,
-            "confidence": 813
+            "confidence": 1212
           }
         },
         {
@@ -513,11 +513,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 5432,
+        "source": 5831,
         "source_url": 0,
-        "source_query": 734,
+        "source_query": 1133,
         "retrieved_at": 0,
-        "confidence": 5432
+        "confidence": 5831
       }
     },
     "edge": {
@@ -609,9 +609,9 @@
       "citationsWithoutCanonicalColumn": 208
     },
     "flags": [
-      "node.source_url: 0/5432 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/5432 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
-      "node.source_query: 734/5432 rows preserve the original LinguaScrape citation.",
+      "node.source_url: 0/5831 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/5831 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 1133/5831 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5526 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5526 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.citationsWithoutCanonicalColumn: 208 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."

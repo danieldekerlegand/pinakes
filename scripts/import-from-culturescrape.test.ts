@@ -468,6 +468,58 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
         fs.rmSync(outDir, { recursive: true, force: true });
       }
     });
+
+    it("writes domain-specific extra columns into an arbitrary target lexicon (US-002)", () => {
+      // A site lexicon that already has domain columns (coordinates/site_type) but no provenance.
+      const lexiconsDir = makeFixtureDir({
+        "archaeological-sites.tsv": [
+          ["id", "name", "coordinates", "site_type", "confidence", "sources", "description"],
+          ["pompeii-site", "Pompeii", '{"lat":40.75,"lng":14.48}', "settlement", "95", "[]", "Roman city"],
+        ],
+      });
+      const additionsFile = path.join(lexiconsDir, "site-additions.tsv");
+      fs.writeFileSync(
+        additionsFile,
+        [
+          ["id", "name", "coordinates", "site_type", "description",
+            "confidence", "sources", "wikidata_qid", "source_url", "retrieved_at"],
+          ["merv", "Merv", '{"lat":37.66,"lng":62.19}', "", "Archaeological site in Turkmenistan.",
+            "90", '["Wikidata"]', "Q193325", "http://www.wikidata.org/entity/Q193325", "2026-07-08T00:00:00Z"],
+        ].map((r) => r.join("\t")).join("\n") + "\n",
+      );
+      const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-add-out-"));
+      try {
+        const { report } = runCultureAdditions({
+          additionsFile,
+          targetFile: "archaeological-sites.tsv",
+          lexiconsDir,
+          outDir,
+        });
+        expect(report.totals).toMatchObject({ added: 1, skipped: 0, conflicts: 0 });
+
+        const lines = fs
+          .readFileSync(path.join(lexiconsDir, "archaeological-sites.tsv"), "utf8")
+          .split(/\r?\n/)
+          .filter((l) => l.trim() !== "");
+        const headers = lines[0].split("\t");
+        const merv = Object.fromEntries(
+          headers.map((h, i) => [h, lines[lines.length - 1].split("\t")[i] ?? ""]),
+        );
+        // Domain-specific extra columns landed on the new row.
+        expect(merv.coordinates).toBe('{"lat":37.66,"lng":62.19}');
+        expect(merv.description).toBe("Archaeological site in Turkmenistan.");
+        // Full provenance too.
+        expect(merv.wikidata_qid).toBe("Q193325");
+        expect(merv.source_url).toBe("http://www.wikidata.org/entity/Q193325");
+        // The report file name is derived from the target lexicon.
+        expect(
+          fs.existsSync(path.join(outDir, "archaeological-sites-additions-report.json")),
+        ).toBe(true);
+      } finally {
+        fs.rmSync(lexiconsDir, { recursive: true, force: true });
+        fs.rmSync(outDir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe("live corpus", () => {

@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 5432,
+    "nodes": 5831,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 4208
+    "likelyNew": 4607
   },
   "byType": [
     {
@@ -101,10 +101,10 @@
     },
     {
       "type": "place",
-      "count": 813,
+      "count": 1212,
       "matched": 0,
       "ambiguous": 149,
-      "likelyNew": 664
+      "likelyNew": 1063
     },
     {
       "type": "religion",

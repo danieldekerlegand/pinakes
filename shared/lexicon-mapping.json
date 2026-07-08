@@ -61,7 +61,10 @@
         { "column": "importance", "property": true },
         { "column": "confidence", "target": "confidence" },
         { "column": "sources", "target": "source" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" }
       ]
     },
     {

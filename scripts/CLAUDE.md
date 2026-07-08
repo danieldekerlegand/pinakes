@@ -158,6 +158,23 @@ corpus). `buildCultureAdditions(parsedFile, candidates)` is pure; `runCultureAdd
 `export/culturescrape/writeback/civilizations-additions-report.json` (gitignored); committed
 summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md).
 
+- **Generic path — `--add-rows <file> --target <lexicon.tsv>`** (data-population at scale,
+  US-002+): same append-only/idempotent machinery for **any** node lexicon, not just
+  civilizations. The additions TSV may carry **domain-specific columns** beyond the core
+  provenance set (`id`/`name`/`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`);
+  any header that also exists in the target lexicon is written via `CultureAddition.extra`
+  (`loadCultureAdditions` collects the non-core columns; `buildCultureAdditions` sets each only
+  if the target has that column). Report name is derived from the target
+  (`<lexicon>-additions-report.json`). Used for archaeological-sites (coordinates/site_type/
+  time_period/description). Acquisition + curation for that domain lives in
+  `acquire-archaeological-sites.ts` (see §acquire below).
+- **GOTCHA — reconcile against the WHOLE node type, not one file.** csid = `cs:<node>:<id>`,
+  so reusing an id already used by another lexicon of the same node type collapses two nodes
+  into one on export → a `duplicateCsids` regression the QA gate blocks (caught adding sites vs
+  `settlements.tsv`/`rivers-and-waters.tsv`, all `place`). The acquire step dedups new ids **and
+  names** across every `node === "place"` file (derived from `lexicon-mapping.json`), never just
+  the target file.
+
 - **Append-only, never rewrites a curated row** — so no curated cell can be clobbered by
   construction. A candidate is **skipped** on duplicate `wikidata_qid` or normalised name, and
   an id that collides with a *different* existing row is a **conflict** (never appended). This
@@ -175,6 +192,24 @@ summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md)
   (→ `docs/reconciliation-report.json`). Adding a mapped column also needs its
   `shared/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
   won't catch that; `shared/lexicon-mapping.test.ts` will.
+
+## Domain acquisition (US-002, data-population at scale)
+
+`acquire-archaeological-sites.ts` is the per-domain **acquire → reconcile → curate** step
+(runbook steps 3–5): the one networked script. It queries Wikidata WDQS (`Q839954`
+archaeological site, ranked by `wikibase:sitelinks` as a notability floor), collapses
+multi-value bindings per QID (earliest inception), reconciles against the existing `place`
+lexicons, and writes a committed `scripts/data/<domain>-additions.tsv` with **full provenance
+on every row** (`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`). The committed
+TSV is the network-free source of truth the write-back + gate replay — CI never hits Wikidata.
+
+- **WDQS gotcha:** POST the query (form-encoded), read as text then `JSON.parse` (a timeout can
+  return HTTP 200 with an HTML/partial body — retry with backoff, don't assume `res.ok` ⇒ JSON).
+  Avoid `OPTIONAL { ?s wdt:P31 ?type }` cross-products + `ORDER BY` in one query — it times out at
+  ~55s; filter by a sitelinks floor and sort client-side instead.
+- `confidence` is written on the lexicon's **own scale** (sites use 0–100, so acquired rows get
+  `90`, not `0.9`) — the export's `normaliseConfidence` maps `>1 → /100`, so both scales converge
+  to 0–1 canonically, but keep a single column internally consistent.
 
 ## Convergence QA gate (US-008)
 
