@@ -89,4 +89,59 @@ The pure core `scanForSecrets(files)` is filesystem/network-free and covered by
 `scripts/secret-scan.test.ts` — including a **planted-secret** case that proves the
 scanner trips on a real leak while passing on ordinary source.
 
-<!-- US-006/US-007 (e2e/browser verification) sections land as those stories complete. -->
+## End-to-end verification (US-006)
+
+Automated browser coverage guards the core UI flows against regressions (the kind
+that unit tests miss because they never mount the real page). The smoke lives in
+[`e2e/smoke.spec.ts`](../e2e/smoke.spec.ts) and runs under Playwright.
+
+### What it covers
+
+Four core flows in headless Chromium against a real dev build:
+
+1. **Dashboard shell** — the app boots and the primary navigation mounts (proves
+   the React tree renders without a fatal error).
+2. **Map** — switching to the "Map" view mounts the Leaflet canvas
+   (`.leaflet-container`); tiles are not required, so it passes with no network.
+3. **UnifiedExplorer** — the "Explore" section loads a dataset over the real
+   client → Express → TSV path and renders its item count.
+4. **Graph feature** — `/advanced-tools` (the graph research console) opens, and
+   the graph-dependent "Run" trigger is present either live or as the
+   `GraphFeatureGate` disabled-with-tooltip affordance. **The shared graph (Neo4j
+   + culture-scrape sidecar) is optional**: the smoke asserts graceful degradation
+   rather than requiring a live graph, so it runs the same locally and in CI.
+
+### Running it
+
+```bash
+npm install                       # once — installs @playwright/test
+npx playwright install chromium   # once — downloads the browser
+npm run test:e2e                  # boots `npm run dev` and runs the smoke
+```
+
+Add `--headed` or `--ui` to watch it locally. Config is
+[`playwright.config.ts`](../playwright.config.ts): it starts the dev server on
+`E2E_PORT` (default `3055`, separate from the usual `3050` so it won't collide
+with a running dev server), reuses an already-running server locally, and spins up
+its own in CI.
+
+### In CI
+
+[`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) runs on every push/PR:
+`npm ci` → `npx playwright install --with-deps chromium` → `npm run test:e2e`
+(headless, with retries; the HTML report is uploaded as an artifact on failure).
+No external services are provisioned — the graph stays down and the smoke asserts
+the degraded affordance.
+
+### Regression found & fixed
+
+Writing the smoke surfaced a pre-existing infinite render loop in
+`global-search-dialog.tsx`: an effect listed `typeFilters` in its dependency array
+and reset it to a fresh `[]` on the empty-query path, so the new array reference
+re-triggered the effect on every run. It fired on mount (the query starts empty),
+pegging the main thread and starving the lazy map view's Suspense commit so the
+map never rendered. Fixed by bailing out via the functional updater when the value
+is already empty (stable reference). This is exactly the class of bug e2e coverage
+exists to catch.
+
+<!-- US-007 (deferred graph-UI browser verification) section lands as that story completes. -->

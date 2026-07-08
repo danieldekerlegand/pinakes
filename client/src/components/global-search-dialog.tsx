@@ -230,7 +230,11 @@ export default function GlobalSearchDialog({
       setResults([]);
       setSpatialResults([]);
       setFacets(null);
-      setTypeFilters([]);
+      // `typeFilters` is a dependency of this effect, so writing a fresh `[]`
+      // unconditionally would re-trigger the effect on every run (new array
+      // reference) → infinite render loop. Bail out via the functional updater
+      // when it's already empty so the reference (and thus the dep) is stable.
+      setTypeFilters((prev) => (prev.length ? [] : prev));
       setSearchMode("keyword");
       return;
     }
