@@ -23,6 +23,12 @@ export type Language = {
   nativeSpeakers?: number | null;
   totalSpeakers?: number | null;
   status: string;
+  /**
+   * Sourced UNESCO endangerment vitality (US-006 language-breadth enrichment), acquired from
+   * Wikidata P1999 with full provenance. Distinct from the free-text `status`; the
+   * endangered-language dashboard prefers it when present. Blank/absent when unsourced.
+   */
+  endangermentStatus?: string | null;
   timeOrigin?: string | null;
   timeEnd?: string | null;
   classification?: string | null;

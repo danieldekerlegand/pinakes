@@ -38,7 +38,10 @@
         { "column": "successor_culture_ids", "edge": "absorbed-into" },
         { "column": "confidence", "target": "confidence" },
         { "column": "sources", "target": "source" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" }
       ]
     },
     {
@@ -61,7 +64,10 @@
         { "column": "importance", "property": true },
         { "column": "confidence", "target": "confidence" },
         { "column": "sources", "target": "source" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" }
       ]
     },
     {
@@ -81,7 +87,12 @@
         { "column": "associated_languages", "property": true },
         { "column": "key_features", "property": true },
         { "column": "notable_examples", "property": true },
-        { "column": "building_types", "property": true }
+        { "column": "building_types", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -231,7 +242,12 @@
         { "column": "coordinates", "property": true },
         { "column": "time_origin", "property": true },
         { "column": "time_end", "property": true },
-        { "column": "description", "property": true }
+        { "column": "description", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -261,7 +277,12 @@
         { "column": "associated_language_ids", "property": true },
         { "column": "time_origin", "target": "time_start" },
         { "column": "time_end", "target": "time_end" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -372,7 +393,11 @@
         { "column": "key_movements", "property": true },
         { "column": "cultural_significance", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -393,7 +418,11 @@
         { "column": "time_end", "target": "time_end" },
         { "column": "coordinates", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -538,7 +567,12 @@
         { "column": "time_origin", "target": "time_start" },
         { "column": "time_end", "target": "time_end" },
         { "column": "native_name", "target": "aliases" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -656,7 +690,13 @@
         { "column": "chronological_order", "property": true },
         { "column": "historical_context", "property": true },
         { "column": "latitude", "target": "lat" },
-        { "column": "longitude", "target": "lon" }
+        { "column": "longitude", "target": "lon" },
+        { "column": "endangerment_status", "property": true, "note": "sourced UNESCO vitality (US-006 enrichment); dashboard prefers it over free-text status" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -676,7 +716,11 @@
         { "column": "description", "target": "description" },
         { "column": "notable_authors", "property": true },
         { "column": "influences", "property": true },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -754,7 +798,12 @@
         { "column": "peoples", "property": true },
         { "column": "associated_languages", "property": true },
         { "column": "description", "target": "description" },
-        { "column": "consequences", "property": true }
+        { "column": "consequences", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -814,7 +863,11 @@
         { "column": "associated_deity_ids", "property": true },
         { "column": "geographic_distribution", "property": true },
         { "column": "time_depth", "property": true },
-        { "column": "sources", "target": "source" }
+        { "column": "sources", "target": "source" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" }
       ]
     },
     {
@@ -1024,7 +1077,12 @@
         { "column": "controlling_powers", "property": true },
         { "column": "associated_languages", "property": true },
         { "column": "description", "property": true },
-        { "column": "economic_impact", "property": true }
+        { "column": "economic_impact", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -1117,7 +1175,12 @@
         { "column": "character_count", "property": true },
         { "column": "sample_characters", "property": true },
         { "column": "unicode_block", "property": true },
-        { "column": "is_active", "property": true }
+        { "column": "is_active", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     }
   ]

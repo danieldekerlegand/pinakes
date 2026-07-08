@@ -1,0 +1,175 @@
+{
+  "domains": [
+    {
+      "domain": "civilizations",
+      "file": "civilizations.tsv",
+      "actual": 170,
+      "target": 150,
+      "targetLabel": "150+",
+      "kind": "roadmap",
+      "source": "roadmap §8.1 / §15",
+      "met": true,
+      "percentOfTarget": 1.133
+    },
+    {
+      "domain": "archaeological-sites",
+      "file": "archaeological-sites.tsv",
+      "actual": 550,
+      "target": 500,
+      "targetLabel": "500+",
+      "kind": "roadmap",
+      "source": "roadmap §8.2 / §15",
+      "met": true,
+      "percentOfTarget": 1.1
+    },
+    {
+      "domain": "archaeological-cultures",
+      "file": "archaeological-cultures.tsv",
+      "actual": 277,
+      "target": 200,
+      "targetLabel": "200+",
+      "kind": "roadmap",
+      "source": "roadmap §15",
+      "met": true,
+      "percentOfTarget": 1.385
+    },
+    {
+      "domain": "migration-routes",
+      "file": "migration-routes.tsv",
+      "actual": 104,
+      "target": 100,
+      "targetLabel": "100+",
+      "kind": "roadmap",
+      "source": "roadmap §8.3 / §15",
+      "met": true,
+      "percentOfTarget": 1.04
+    },
+    {
+      "domain": "cuisines",
+      "file": "cuisines.tsv",
+      "actual": 101,
+      "target": 80,
+      "targetLabel": "80+",
+      "kind": "roadmap",
+      "source": "roadmap §15",
+      "met": true,
+      "percentOfTarget": 1.263
+    },
+    {
+      "domain": "language-range-polygons",
+      "file": "language-range-polygons.tsv",
+      "actual": 133,
+      "target": 200,
+      "targetLabel": "200+",
+      "kind": "roadmap",
+      "source": "roadmap §8.4",
+      "met": false,
+      "percentOfTarget": 0.665
+    },
+    {
+      "domain": "trade-routes",
+      "file": "trade-routes.tsv",
+      "actual": 39,
+      "target": 30,
+      "targetLabel": "expanded (30+)",
+      "kind": "breadth",
+      "source": "US-003 breadth (roadmap: named corridors)",
+      "met": true,
+      "percentOfTarget": 1.3
+    },
+    {
+      "domain": "ingredient-origins",
+      "file": "ingredient-origins.tsv",
+      "actual": 111,
+      "target": 100,
+      "targetLabel": "100+",
+      "kind": "breadth",
+      "source": "US-004 food-drink breadth",
+      "met": true,
+      "percentOfTarget": 1.11
+    },
+    {
+      "domain": "cooking-techniques",
+      "file": "cooking-techniques.tsv",
+      "actual": 92,
+      "target": 80,
+      "targetLabel": "80+",
+      "kind": "breadth",
+      "source": "US-004 food-drink breadth",
+      "met": true,
+      "percentOfTarget": 1.15
+    },
+    {
+      "domain": "writing-systems",
+      "file": "writing-systems.tsv",
+      "actual": 115,
+      "target": 100,
+      "targetLabel": "100+",
+      "kind": "breadth",
+      "source": "US-005 breadth",
+      "met": true,
+      "percentOfTarget": 1.15
+    },
+    {
+      "domain": "deities",
+      "file": "deities.tsv",
+      "actual": 206,
+      "target": 200,
+      "targetLabel": "200+",
+      "kind": "breadth",
+      "source": "US-005 breadth",
+      "met": true,
+      "percentOfTarget": 1.03
+    },
+    {
+      "domain": "architectural-styles",
+      "file": "architectural-styles.tsv",
+      "actual": 90,
+      "target": 90,
+      "targetLabel": "90+",
+      "kind": "breadth",
+      "source": "US-005 breadth",
+      "met": true,
+      "percentOfTarget": 1
+    },
+    {
+      "domain": "dance-traditions",
+      "file": "dance-traditions.tsv",
+      "actual": 92,
+      "target": 90,
+      "targetLabel": "90+",
+      "kind": "breadth",
+      "source": "US-005 breadth",
+      "met": true,
+      "percentOfTarget": 1.022
+    },
+    {
+      "domain": "literary-traditions",
+      "file": "literary-traditions.tsv",
+      "actual": 62,
+      "target": 50,
+      "targetLabel": "50+ (foundational corpus)",
+      "kind": "breadth",
+      "source": "US-005 breadth (roadmap: foundational corpus)",
+      "met": true,
+      "percentOfTarget": 1.24
+    },
+    {
+      "domain": "myth-motifs",
+      "file": "myth-motifs.tsv",
+      "actual": 61,
+      "target": 60,
+      "targetLabel": "60+",
+      "kind": "breadth",
+      "source": "US-005 breadth",
+      "met": true,
+      "percentOfTarget": 1.017
+    }
+  ],
+  "domainsMet": 14,
+  "domainsUnderTarget": 1,
+  "underTarget": [
+    "language-range-polygons"
+  ],
+  "allMet": false
+}

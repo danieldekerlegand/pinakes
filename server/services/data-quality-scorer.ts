@@ -39,6 +39,112 @@ export interface DataQualityReport {
   totalRows: number;
   files: FileQualityScore[];
   referentialIntegrity: ReferentialCheck[];
+  coverage: CoverageReport;
+}
+
+/**
+ * A domain's population target.
+ *
+ * `kind: "roadmap"` targets are the hard numbers from the deep-history roadmap
+ * (docs/prd-linguascrape-deep-history-roadmap.md §8 / §15). `kind: "breadth"`
+ * targets are the credible-breadth goals the data-population stories set for the
+ * newer cultural domains the roadmap describes only qualitatively
+ * ("foundational corpus", "credible breadth"); `source` records where each came from.
+ */
+export interface RoadmapTarget {
+  domain: string;
+  file: string;
+  target: number;
+  targetLabel: string;
+  kind: "roadmap" | "breadth";
+  source: string;
+}
+
+export interface DomainCoverage {
+  domain: string;
+  file: string;
+  actual: number;
+  target: number;
+  targetLabel: string;
+  kind: "roadmap" | "breadth";
+  source: string;
+  met: boolean;
+  percentOfTarget: number;
+}
+
+export interface CoverageReport {
+  domains: DomainCoverage[];
+  domainsMet: number;
+  domainsUnderTarget: number;
+  underTarget: string[];
+  allMet: boolean;
+}
+
+/**
+ * Roadmap / data-population targets per domain. Ordered as the roadmap §15 table
+ * lists them (hard roadmap targets first, then the story-breadth domains).
+ * Kept in sync with docs/prd-linguascrape-deep-history-roadmap.md.
+ */
+export const ROADMAP_TARGETS: RoadmapTarget[] = [
+  { domain: "civilizations", file: "civilizations.tsv", target: 150, targetLabel: "150+", kind: "roadmap", source: "roadmap §8.1 / §15" },
+  { domain: "archaeological-sites", file: "archaeological-sites.tsv", target: 500, targetLabel: "500+", kind: "roadmap", source: "roadmap §8.2 / §15" },
+  { domain: "archaeological-cultures", file: "archaeological-cultures.tsv", target: 200, targetLabel: "200+", kind: "roadmap", source: "roadmap §15" },
+  { domain: "migration-routes", file: "migration-routes.tsv", target: 100, targetLabel: "100+", kind: "roadmap", source: "roadmap §8.3 / §15" },
+  { domain: "cuisines", file: "cuisines.tsv", target: 80, targetLabel: "80+", kind: "roadmap", source: "roadmap §15" },
+  { domain: "language-range-polygons", file: "language-range-polygons.tsv", target: 200, targetLabel: "200+", kind: "roadmap", source: "roadmap §8.4" },
+  { domain: "trade-routes", file: "trade-routes.tsv", target: 30, targetLabel: "expanded (30+)", kind: "breadth", source: "US-003 breadth (roadmap: named corridors)" },
+  { domain: "ingredient-origins", file: "ingredient-origins.tsv", target: 100, targetLabel: "100+", kind: "breadth", source: "US-004 food-drink breadth" },
+  { domain: "cooking-techniques", file: "cooking-techniques.tsv", target: 80, targetLabel: "80+", kind: "breadth", source: "US-004 food-drink breadth" },
+  { domain: "writing-systems", file: "writing-systems.tsv", target: 100, targetLabel: "100+", kind: "breadth", source: "US-005 breadth" },
+  { domain: "deities", file: "deities.tsv", target: 200, targetLabel: "200+", kind: "breadth", source: "US-005 breadth" },
+  { domain: "architectural-styles", file: "architectural-styles.tsv", target: 90, targetLabel: "90+", kind: "breadth", source: "US-005 breadth" },
+  { domain: "dance-traditions", file: "dance-traditions.tsv", target: 90, targetLabel: "90+", kind: "breadth", source: "US-005 breadth" },
+  { domain: "literary-traditions", file: "literary-traditions.tsv", target: 50, targetLabel: "50+ (foundational corpus)", kind: "breadth", source: "US-005 breadth (roadmap: foundational corpus)" },
+  { domain: "myth-motifs", file: "myth-motifs.tsv", target: 60, targetLabel: "60+", kind: "breadth", source: "US-005 breadth" },
+];
+
+/**
+ * Pure: compares actual row counts (keyed by lexicon file) against ROADMAP_TARGETS.
+ * A domain missing from `rowCounts` scores 0 actual. Deterministic (no clock/fs).
+ */
+export function computeCoverage(rowCounts: Record<string, number>): CoverageReport {
+  const domains: DomainCoverage[] = ROADMAP_TARGETS.map((t) => {
+    const actual = rowCounts[t.file] ?? 0;
+    const met = actual >= t.target;
+    const percentOfTarget = t.target > 0 ? Math.round((actual / t.target) * 1000) / 1000 : 1;
+    return {
+      domain: t.domain,
+      file: t.file,
+      actual,
+      target: t.target,
+      targetLabel: t.targetLabel,
+      kind: t.kind,
+      source: t.source,
+      met,
+      percentOfTarget,
+    };
+  });
+  const underTarget = domains.filter((d) => !d.met).map((d) => d.domain);
+  return {
+    domains,
+    domainsMet: domains.length - underTarget.length,
+    domainsUnderTarget: underTarget.length,
+    underTarget,
+    allMet: underTarget.length === 0,
+  };
+}
+
+/**
+ * Reads the target lexicons from `lexiconsDir` and builds a deterministic coverage
+ * report (no timestamp) — the committed-report + `/api/data-quality` source of truth.
+ */
+export function buildCoverageReport(lexiconsDir: string): CoverageReport {
+  const rowCounts: Record<string, number> = {};
+  for (const t of ROADMAP_TARGETS) {
+    const filePath = path.join(lexiconsDir, t.file);
+    rowCounts[t.file] = fs.existsSync(filePath) ? parseTsvFile(filePath).rows.length : 0;
+  }
+  return computeCoverage(rowCounts);
 }
 
 const FOREIGN_KEY_MAP: Array<{
@@ -209,6 +315,11 @@ export function generateDataQualityReport(): DataQualityReport {
   // Overall: 70% average file score, 30% referential integrity
   const overallScore = Math.round((avgFileScore * 0.7 + refIntegrityScore * 0.3) * 10000) / 10000;
 
+  // Coverage vs roadmap targets (reuses the row counts just computed above).
+  const rowCounts: Record<string, number> = {};
+  for (const f of fileScores) rowCounts[f.file] = f.rowCount;
+  const coverage = computeCoverage(rowCounts);
+
   return {
     timestamp: new Date().toISOString(),
     overallScore,
@@ -216,6 +327,7 @@ export function generateDataQualityReport(): DataQualityReport {
     totalRows,
     files: fileScores,
     referentialIntegrity,
+    coverage,
   };
 }
 

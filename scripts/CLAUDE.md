@@ -148,6 +148,39 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   shape and keep cells raw, so an unedited file re-serialises identically (only changed files are
   written back).
 
+## Column enrichment of existing rows (US-006, language ranges/endangerment)
+
+The **third** write-back mode in `import-from-culturescrape.ts`, alongside the export-driven
+write-back and `--add-rows`: `--enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]`
+fills **blank cells on EXISTING rows** from a curated enrichment TSV (it does NOT append rows).
+Use it when a domain is already populated and you're back-filling a *property* (e.g. sourced
+UNESCO endangerment status onto `languages.tsv`). `buildEnrichment(target, records, {keyColumn,
+overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Report →
+`export/culturescrape/writeback/<lexicon>-enrichment-report.json` (gitignored).
+
+- **Same conservatism as the write-back:** fills a blank target cell only; a differing curated
+  cell is a **conflict** (reported, never resolved unless `--overwrite`). Existing rows are never
+  appended to, and the join key must address **exactly one** row — a key matching 0 rows is
+  `unmatched`, >1 is `ambiguous`; both are reported and skipped, never guessed.
+- **No dead columns:** a probed enrichment column that is blank in *every* record (e.g.
+  `range_geojson` — Wikidata has no inline range polygons for our corpus) is NOT added to the
+  target header. Only columns with ≥1 non-blank value are written (`ensureColumns` pads the rest).
+- **Provenance rides along:** every written enrichment column carries its provenance columns
+  (`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`) on the same row, so the
+  attribution gate enforces sourcing on the enriched rows. Map those columns as `target`s (and the
+  enriched property, e.g. `endangerment_status`, as a `property`) in `lexicon-mapping.json`.
+- **Acquire side:** `acquire-language-status.ts` is the networked step (Wikidata `P1999` UNESCO
+  status, keyed by ISO-639-3 in the `iso639_2` column). Like the write-back, it only enriches rows
+  whose ISO **and** id are unique in the corpus (26 ISO codes / 30 ids recur — e.g. `abe` is two
+  languages); an ambiguous key can't address one row, so it's skipped. Committed output
+  `scripts/data/language-enrichment.tsv` is the network-free replay source.
+- **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
+  free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
+  (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
+  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written),
+  NOT `@shared/schema` (Drizzle) — add the field there and read it in `tsv-storage.ts`'s
+  `getLanguages` parse.
+
 ## New-row additions (US-003, data-population pilot)
 
 Same file also grows the corpus: `--add-cultures [file]` **appends** curated,
@@ -157,6 +190,23 @@ corpus). `buildCultureAdditions(parsedFile, candidates)` is pure; `runCultureAdd
 `loadCultureAdditions` do the fs side. Report →
 `export/culturescrape/writeback/civilizations-additions-report.json` (gitignored); committed
 summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md).
+
+- **Generic path — `--add-rows <file> --target <lexicon.tsv>`** (data-population at scale,
+  US-002+): same append-only/idempotent machinery for **any** node lexicon, not just
+  civilizations. The additions TSV may carry **domain-specific columns** beyond the core
+  provenance set (`id`/`name`/`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`);
+  any header that also exists in the target lexicon is written via `CultureAddition.extra`
+  (`loadCultureAdditions` collects the non-core columns; `buildCultureAdditions` sets each only
+  if the target has that column). Report name is derived from the target
+  (`<lexicon>-additions-report.json`). Used for archaeological-sites (coordinates/site_type/
+  time_period/description). Acquisition + curation for that domain lives in
+  `acquire-archaeological-sites.ts` (see §acquire below).
+- **GOTCHA — reconcile against the WHOLE node type, not one file.** csid = `cs:<node>:<id>`,
+  so reusing an id already used by another lexicon of the same node type collapses two nodes
+  into one on export → a `duplicateCsids` regression the QA gate blocks (caught adding sites vs
+  `settlements.tsv`/`rivers-and-waters.tsv`, all `place`). The acquire step dedups new ids **and
+  names** across every `node === "place"` file (derived from `lexicon-mapping.json`), never just
+  the target file.
 
 - **Append-only, never rewrites a curated row** — so no curated cell can be clobbered by
   construction. A candidate is **skipped** on duplicate `wikidata_qid` or normalised name, and
@@ -176,6 +226,128 @@ summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md)
   `shared/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
   won't catch that; `shared/lexicon-mapping.test.ts` will.
 
+## Domain acquisition (US-002, data-population at scale)
+
+`acquire-archaeological-sites.ts` is the per-domain **acquire → reconcile → curate** step
+(runbook steps 3–5): the one networked script. It queries Wikidata WDQS (`Q839954`
+archaeological site, ranked by `wikibase:sitelinks` as a notability floor), collapses
+multi-value bindings per QID (earliest inception), reconciles against the existing `place`
+lexicons, and writes a committed `scripts/data/<domain>-additions.tsv` with **full provenance
+on every row** (`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`). The committed
+TSV is the network-free source of truth the write-back + gate replay — CI never hits Wikidata.
+
+- **WDQS gotcha:** POST the query (form-encoded), read as text then `JSON.parse` (a timeout can
+  return HTTP 200 with an HTML/partial body — retry with backoff, don't assume `res.ok` ⇒ JSON).
+  Avoid `OPTIONAL { ?s wdt:P31 ?type }` cross-products + `ORDER BY` in one query — it times out at
+  ~55s; filter by a sitelinks floor and sort client-side instead.
+- `confidence` is written on the lexicon's **own scale** (sites use 0–100, so acquired rows get
+  `90`, not `0.9`) — the export's `normaliseConfidence` maps `>1 → /100`, so both scales converge
+  to 0–1 canonically, but keep a single column internally consistent.
+
+`acquire-archaeological-cultures.ts` (US-003) is the sibling for `archaeological-culture` nodes
+(Wikidata `Q465299`, ranked by sitelinks). Two extra lessons it encodes:
+
+- **Coordinates are OPTIONAL for cultures** — a culture is a *region*, so only ~10% of `Q465299`
+  items carry `P625`. Don't gate on coordinates the way the sites script does; the `coordinates`
+  column is a property and may be blank.
+- **Dedup ids across the WHOLE corpus, not just the same node type.** The export's
+  `ambiguousLinguascrapeIds` diagnostic keys on the raw `linguascrape_id` across **every** node
+  type (`idIndex` in `export-for-culturescrape.ts`), so a generic culture id like `sumer`/`vedas`
+  colliding with a *civilization*/*place* id of the same string is a ratchet regression the gate
+  blocks — even though the csids differ (`cs:archaeological-culture:sumer` ≠ `cs:culture:sumer`).
+  `loadExisting` therefore seeds the used-id set from **all** `kind === "node"` files and suffixes
+  a collision (`sumer` → `sumer-culture` → `sumer-<qid>`). (Names still dedup per-type — a culture
+  and a civilization may share a name; reconciliation keys on `(name, type, region)`.) This is a
+  stricter rule than the sites script's per-`place`-type dedup.
+- **Embedded edges must resolve to real nodes.** Predecessor/successor (Wikidata `P155`/`P156`)
+  are mapped to the *minted ids of other acquired cultures in the same batch* — only in-corpus
+  targets are written, so every `descended-from`/`absorbed-into` edge lands (the gate's
+  `edgesWithUnresolvedEndpoint` ratchet never regresses). Build a `qid → minted-id` map in a first
+  pass, then resolve the FK columns in a second pass.
+
+## Curated (non-networked) additions — `curate-route-additions.ts` (US-003)
+
+Not every domain is bulk-acquirable. Migration & trade routes need real **geometry** (a GeoJSON
+`LineString` of waypoints) Wikidata doesn't carry, and their Wikidata classes are inconsistent
+(`Q131569` "human migration" is polluted with treaties). So `curate-route-additions.ts` is the
+offline analogue of an acquire script: it holds **hand-curated** route records — each anchored to a
+**verified Wikidata QID** (resolved via the `wbsearchentities` REST API and confirmed against the
+entity description) so every row still carries genuine provenance — and emits the committed
+`scripts/data/{migration,trade}-routes-additions.tsv`. Write the TSV from a JS array via a header +
+per-record cell map (never hand-type TSV with many JSON columns — one stray tab breaks the grid).
+
+- **`--add-rows` now also ensures a `sources` column.** `buildCultureAdditions` calls
+  `ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"])`, so a target lexicon with no
+  citation column today (migration-routes / trade-routes) gets one, and every appended row records
+  its `sources` cell (required by the attribution gate, which needs a column mapped to canonical
+  `source`). Files that already have `sources` are untouched.
+- **An `attribute`-kind file can still be gated.** `trade-routes.tsv` is `kind: attribute` (no
+  canonical node/edge — it's not in `nodeFiles()`/`edgeFiles()`), but mapping its provenance
+  columns as `target`s is valid (the mapping validator allows `target` on any kind) and makes the
+  attribution gate enforce provenance on its imported rows. The export/reconciliation ignore it
+  (they only process node files), so this is free rigor with no side effects.
+
+## Multi-domain acquire — `acquire-food-drink.ts` (US-004)
+
+Some blueprints cover several sibling lexicons that share the same acquire machinery. Rather
+than a script per lexicon, `acquire-food-drink.ts` drives **three** food-drink domains from one
+`DOMAINS` config array — `cuisines` (node `cuisine`, Wikidata `Q1968435`), `ingredient-origins`
+(node `ingredient`, `Q25403900`) and `cooking-techniques` (attribute, `Q1039303`) — each with its
+own class, target lexicon, column list, name-dedup siblings, sitelink floor + limit, and a
+`buildCells(mergedItem)` closure. `npx tsx scripts/acquire-food-drink.ts [--domain cuisines|
+ingredients|techniques] [--limit N] [--min-sitelinks N]` (no `--domain` ⇒ all three). Each emits
+its own committed `scripts/data/<lexicon>-additions.tsv`; write back with `--add-rows` as usual.
+
+- **`nameSiblings` must list every lexicon of the same node type**, not just the target — e.g.
+  ingredients dedup names across BOTH `ingredient-origins.tsv` and `cuisine-items.tsv` (both node
+  `ingredient`), or a Wikidata "rice" would duplicate a curated one in the sibling file and the
+  csid dedup would regress. Ids still dedup across the whole corpus (all `kind==="node"` files) +
+  the target's own ids (so an **attribute** target like cooking-techniques, absent from the node
+  set, still gets unique appended ids).
+- **Strip class-suffix noise from labels before reconciling.** Wikidata cuisine labels are
+  "Italian cuisine" / "cuisine of the United States"; `cuisineName()` reduces them to "Italian" /
+  "United States" so they reconcile against the seed lexicon's bare names (else all 21 seeds
+  re-appear as duplicates-not-caught). Do the label→name normalisation in `buildCells`, and dedup
+  on that display name, not the raw label.
+- Same attribute-file rigor as trade-routes: cooking-techniques is `kind: attribute`, so its
+  provenance columns are mapped as `target`s (`sources`→`source`, etc.) purely to arm the
+  attribution gate; export/reconcile ignore it. Cuisine/ingredient are node files — their new
+  provenance columns are ordinary `target`s and land in the export/graph.
+
+## Cultural-breadth acquire — `acquire-cultural-domains.ts` (US-005)
+
+Same `DOMAINS[]` shape as `acquire-food-drink.ts`, extended to five newer cultural domains:
+`writing-systems` (Q8192), `deities` (Q178885), `architectural-styles` (Q32880),
+`dance-traditions` (subclasses of dance Q11401/folk-dance Q201022), `literary-traditions`
+(literary movement Q2198855). `myth-motifs` is NOT here — the narrative-motif class (Q1697305)
+is polluted with modern tropes, so it is hand-curated in `curate-myth-motifs.ts` (route-style).
+Two reuse rules it adds beyond the food-drink script:
+
+- **GOTCHA — share ONE `usedIds` set across all domains in a run.** When several domains are
+  acquired in one invocation *before any write-back*, each domain's per-domain re-read of the
+  lexicons can't see a sibling domain's just-minted ids (the additions TSVs aren't on disk yet),
+  so two domains mint the same generic id (`romanticism` as both art-tradition + literary-tradition,
+  `oduduwa` as both writing-system + deity) → a global `ambiguousLinguascrapeIds` regression. `main`
+  now seeds one `usedIds` set from every node lexicon and threads it through every `curate` call;
+  the earlier-listed domain in `DOMAINS` keeps the bare id, the later one gets the `-<slugFallback>`
+  suffix. (Names still dedup per node type via `nameSiblings` — art-tradition spans architectural
+  + dance + art + music-traditions, so both those `nameSiblings` list all four.)
+- **Verify a Wikidata class QID before trusting a class count.** `Q184356` looked like "folk dance"
+  by a mislabelled count query but is actually *radio telescope* — the acquire returned telescopes.
+  Always confirm the class label (`SELECT ?l WHERE { wd:QXXXX rdfs:label ?l }`) or sample a few
+  results before wiring a class in. Dances are modelled as **subclasses** of dance, not instances,
+  and music genres are mis-filed under dance — exclude `FILTER NOT EXISTS { ?s wdt:P279* wd:Q188451 }`.
+- **Cross-domain edges via `P460`.** Deities carry a `syncretism_links` → `syncretized-with` edge:
+  Wikidata `P460` ("said to be the same as") is resolved in a post-mint pass to the minted ids of
+  OTHER deities in the same batch (in-corpus only, `edgeColumn` on the `DomainConfig`), so every
+  edge lands and `edgesWithUnresolvedEndpoint` never regresses (same idea as US-003 P155/P156).
+
+`curate-myth-motifs.ts` is the offline analogue (like `curate-route-additions.ts`): ~29 hand-picked
+cross-cultural motifs, each anchored to a **verified** Wikidata QID (resolved via `wbsearchentities`
+and confirmed against the entity description — filter search hits whose description signals
+myth/folklore, since top-1 is noisy: it returned video games/films/plants for many terms). Fixed
+`RETRIEVED_AT` for a deterministic file; write back with the same `--add-rows` path.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the
@@ -187,8 +359,20 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
 `lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
 `buildConvergenceQA` adds the metrics; `runQA` returns `{ report, exitCode }` (`1` on drift).
 
-- **Only drift fails the gate** (`report.ok === false` ⇒ non-zero exit). The id-overlap /
-  unreconciled / provenance numbers are informational — never threshold them into a hard failure.
+- **Three hard checks fail the gate** (`report.ok === false` ⇒ non-zero exit), since US-001:
+  (1) **drift** (as above); (2) **attribution** (`detectAttributionGaps`) — any acquisition-imported
+  row (non-blank `wikidata_qid`-mapped cell) missing `source`/`source_url`/`retrieved_at`/`confidence`;
+  it reads the **lexicons**, NOT the export (which force-blanks `source_url`/`retrieved_at`), and uses
+  the per-file mapping so it generalises across domains without hard-coded column names; (3) **dedup
+  regression** (`detectRegressions`) — a monotone ratchet against `docs/convergence-qa-baseline.json`
+  (`duplicateCsids`, `ambiguousLinguascrapeIds`, `edgesWithUnresolvedEndpoint`, reconciliation
+  `ambiguous`). The id-overlap / unreconciled / provenance-coverage numbers stay informational.
+- **GOTCHA — the dedup ratchet is a baseline, not a zero.** The live corpus already has
+  `duplicateCsids=44`, `ambiguousLinguascrapeIds=16`, `edgesWithUnresolvedEndpoint=139` (legit
+  cross-file id reuse), so an absolute `=== 0` would be red on day one. After a data change that
+  *legitimately* moves these, re-baseline with `npm run convergence-qa:baseline`
+  (`--write-baseline`) — a live-corpus test asserts `report.regressions === []` on `main`, so a stale
+  baseline fails CI. Run `npm run convergence-qa` before committing any data change.
 - **A directory is a corpus, not a full-mapping assertion.** Column drift is only checked for
   files actually present, so a fixture with a subset of the mapped files is clean — a mapped file
   being *absent* is not drift (only present-but-unmapped, or a renamed column, is). This is what
@@ -200,6 +384,25 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
 - Artifact (`convergence-qa.{json,md}`) lands in the gitignored `export/culturescrape/convergence/`
   tree — no committed snapshot (the metrics track the live corpus, so a snapshot would need
   constant re-sync). CI runbook: `docs/canonical-schema.md` §10.
+
+## Coverage report vs roadmap targets (US-008)
+
+`coverage-report.ts` compares actual lexicon row counts against the roadmap /
+data-population **targets** per domain and flags any domain still under target. It emits two
+committed artifacts — `docs/coverage-report.json` (deterministic, no timestamp; asserted
+against the live corpus by `server/services/data-quality-scorer.test.ts`) and
+`docs/coverage-report.md` (human table). Re-run `npx tsx scripts/coverage-report.ts` after any
+data change that moves a target domain's count, or the parity test fails.
+
+- **Targets + comparison live in the service, not here.** `ROADMAP_TARGETS`, the pure
+  `computeCoverage(rowCounts)`, and `buildCoverageReport(lexiconsDir)` are exported from
+  `server/services/data-quality-scorer.ts` so `/api/data-quality` and this committed report are
+  **one source of truth**. The script is just the deterministic file-writer + Markdown renderer.
+- **Two target kinds:** `kind: "roadmap"` = the hard §8/§15 numbers from
+  docs/prd-linguascrape-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
+  the US-003..005 stories set for domains the roadmap describes only qualitatively
+  ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
+  to `ROADMAP_TARGETS` and regenerate the committed report.
 
 ## Reconciliation dry-run (US-005)
 

@@ -1,42 +1,112 @@
-id	name	cuisine_id	origin_region	coordinates	time_origin	time_end	native_name	description
-rice-chinese	Rice	chinese	East Asia	{"lat":30.0,"lng":115.0}	-7000	null	稻	Staple grain domesticated in the Yangtze River valley
-soy-chinese	Soybean	chinese	East Asia	{"lat":40.0,"lng":117.0}	-5000	null	大豆	Protein-rich legume central to Chinese cuisine
-ginger-chinese	Ginger	chinese	Southeast Asia	{"lat":15.0,"lng":100.0}	-3000	null	姜	Aromatic rhizome used in cooking and medicine
-teff-ethiopian	Teff	ethiopian	East Africa	{"lat":9.0,"lng":38.5}	-4000	null	ጤፍ	Tiny grain native to Ethiopia used for injera
-berbere-ethiopian	Berbere Spice	ethiopian	East Africa	{"lat":9.0,"lng":40.0}	-1000	null	በርበሬ	Complex spice blend foundational to Ethiopian cooking
-wheat-french	Wheat	french	Fertile Crescent	{"lat":36.0,"lng":40.0}	-8000	null	Blé	Ancient grain forming basis of French bread tradition
-butter-french	Butter	french	Northern Europe	{"lat":48.0,"lng":-2.0}	-2000	null	Beurre	Dairy product central to French culinary technique
-grape-french	Grape	french	Caucasus	{"lat":42.0,"lng":44.0}	-6000	null	Raisin	Fruit cultivated for wine and cooking
-walnut-georgian	Walnut	georgian	Central Asia	{"lat":42.0,"lng":43.5}	-5000	null	ნიგოზი	Tree nut essential to Georgian cuisine
-pomegranate-georgian	Pomegranate	georgian	Iran	{"lat":32.0,"lng":53.0}	-3000	null	ბროწეული	Fruit used for sauces and garnishes in Georgian cooking
-potato-german	Potato	german	South America	{"lat":-15.0,"lng":-70.0}	-8000	null	Kartoffel	Tuber adopted in Germany after Columbian exchange
-olive-greek	Olive	greek	Mediterranean	{"lat":37.0,"lng":22.0}	-5000	null	Ελιά	Ancient Mediterranean fruit and oil source
-feta-greek	Feta Cheese	greek	Greece	{"lat":39.0,"lng":22.0}	-1000	null	Φέτα	Brined curd cheese from sheep and goat milk
-paprika-hungarian	Paprika	hungarian	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	Paprika	Capsicum pepper introduced to Hungary via Ottoman trade
-turmeric-indian	Turmeric	indian	South Asia	{"lat":20.0,"lng":78.0}	-4500	null	हल्दी	Golden spice with anti-inflammatory properties
-cumin-indian	Cumin	indian	Eastern Mediterranean	{"lat":35.0,"lng":38.0}	-3000	null	जीरा	Seed spice essential to Indian curry blends
-cardamom-indian	Cardamom	indian	South India	{"lat":10.0,"lng":77.0}	-3000	null	इलायची	Aromatic seed pod used in savory and sweet dishes
-galangal-indonesian	Galangal	indonesian	Southeast Asia	{"lat":-5.0,"lng":110.0}	-3000	null	Lengkuas	Rhizome related to ginger used in Indonesian cuisine
-coconut-indonesian	Coconut	indonesian	Southeast Asia	{"lat":-2.0,"lng":115.0}	-4000	null	Kelapa	Versatile palm fruit used for milk, oil, and flesh
-saffron-iranian	Saffron	iranian	Greece/Iran	{"lat":35.0,"lng":52.0}	-3000	null	زعفران	World's most expensive spice from crocus flowers
-barberry-iranian	Barberry	iranian	Iran	{"lat":36.0,"lng":52.0}	-2000	null	زرشک	Tart dried berry used in Persian rice dishes
-tomato-italian	Tomato	italian	South America	{"lat":-12.0,"lng":-77.0}	-7000	null	Pomodoro	New World fruit that transformed Italian cuisine
-basil-italian	Basil	italian	South Asia	{"lat":20.0,"lng":80.0}	-3000	null	Basilico	Aromatic herb sacred in Indian and Mediterranean cultures
-dashi-japanese	Kombu (Dashi)	japanese	Japan	{"lat":42.0,"lng":140.0}	-300	null	昆布	Seaweed base for Japanese stock (dashi)
-wasabi-japanese	Wasabi	japanese	Japan	{"lat":35.0,"lng":138.0}	-700	null	山葵	Pungent root used as condiment in Japanese cuisine
-gochugaru-korean	Gochugaru	korean	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	고추가루	Korean red pepper flakes introduced via trade
-sesame-korean	Sesame	korean	Africa	{"lat":10.0,"lng":30.0}	-3000	null	참깨	Ancient oilseed used extensively in Korean cooking
-corn-mexican	Corn (Maize)	mexican	Mesoamerica	{"lat":17.0,"lng":-96.0}	-9000	null	Maíz	Staple grain domesticated in southern Mexico
-chili-mexican	Chili Pepper	mexican	Mesoamerica	{"lat":20.0,"lng":-100.0}	-7500	null	Chile	Capsicum peppers native to the Americas
-cacao-mexican	Cacao	mexican	Mesoamerica	{"lat":18.0,"lng":-92.0}	-3900	null	Cacao	Source of chocolate, sacred to Mesoamerican cultures
-quinoa-peruvian	Quinoa	peruvian	Andes	{"lat":-15.0,"lng":-70.0}	-5000	null	Quinua	High-protein pseudocereal from the Andes
-aji-peruvian	Ají Amarillo	peruvian	South America	{"lat":-12.0,"lng":-77.0}	-6000	null	Ají	Yellow chili pepper essential to Peruvian cuisine
-beetroot-polish	Beetroot	polish	Mediterranean	{"lat":38.0,"lng":22.0}	-2000	null	Burak	Root vegetable central to borscht and Polish cuisine
-cod-portuguese	Salt Cod	portuguese	North Atlantic	{"lat":60.0,"lng":-25.0}	1000	null	Bacalhau	Preserved fish that became Portugal's national ingredient
-olive-spanish	Olive Oil	spanish	Mediterranean	{"lat":37.5,"lng":-4.0}	-5000	null	Aceite de oliva	Spain is world's largest olive oil producer
-lemongrass-thai	Lemongrass	thai	Southeast Asia	{"lat":15.0,"lng":101.0}	-2000	null	ตะไคร้	Aromatic grass essential to Thai soups and curries
-fish-sauce-thai	Fish Sauce	thai	Southeast Asia	{"lat":13.0,"lng":100.0}	-500	null	น้ำปลา	Fermented fish condiment providing umami
-yogurt-turkish	Yogurt	turkish	Central Asia	{"lat":40.0,"lng":35.0}	-5000	null	Yoğurt	Fermented dairy product originating from Turkic peoples
-sumac-turkish	Sumac	turkish	Middle East	{"lat":37.0,"lng":36.0}	-2000	null	Sumak	Tart spice from dried berries used across Turkish cuisine
-fish-sauce-vietnamese	Fish Sauce	vietnamese	Southeast Asia	{"lat":12.0,"lng":109.0}	-500	null	Nước mắm	Fermented anchovy sauce fundamental to Vietnamese cooking
-star-anise-vietnamese	Star Anise	vietnamese	Southern China	{"lat":22.0,"lng":108.0}	-2000	null	Hoa hồi	Aromatic spice essential to phở broth
+id	name	cuisine_id	origin_region	coordinates	time_origin	time_end	native_name	description	wikidata_qid	source_url	retrieved_at	confidence	sources
+rice-chinese	Rice	chinese	East Asia	{"lat":30.0,"lng":115.0}	-7000	null	稻	Staple grain domesticated in the Yangtze River valley					
+soy-chinese	Soybean	chinese	East Asia	{"lat":40.0,"lng":117.0}	-5000	null	大豆	Protein-rich legume central to Chinese cuisine					
+ginger-chinese	Ginger	chinese	Southeast Asia	{"lat":15.0,"lng":100.0}	-3000	null	姜	Aromatic rhizome used in cooking and medicine					
+teff-ethiopian	Teff	ethiopian	East Africa	{"lat":9.0,"lng":38.5}	-4000	null	ጤፍ	Tiny grain native to Ethiopia used for injera					
+berbere-ethiopian	Berbere Spice	ethiopian	East Africa	{"lat":9.0,"lng":40.0}	-1000	null	በርበሬ	Complex spice blend foundational to Ethiopian cooking					
+wheat-french	Wheat	french	Fertile Crescent	{"lat":36.0,"lng":40.0}	-8000	null	Blé	Ancient grain forming basis of French bread tradition					
+butter-french	Butter	french	Northern Europe	{"lat":48.0,"lng":-2.0}	-2000	null	Beurre	Dairy product central to French culinary technique					
+grape-french	Grape	french	Caucasus	{"lat":42.0,"lng":44.0}	-6000	null	Raisin	Fruit cultivated for wine and cooking					
+walnut-georgian	Walnut	georgian	Central Asia	{"lat":42.0,"lng":43.5}	-5000	null	ნიგოზი	Tree nut essential to Georgian cuisine					
+pomegranate-georgian	Pomegranate	georgian	Iran	{"lat":32.0,"lng":53.0}	-3000	null	ბროწეული	Fruit used for sauces and garnishes in Georgian cooking					
+potato-german	Potato	german	South America	{"lat":-15.0,"lng":-70.0}	-8000	null	Kartoffel	Tuber adopted in Germany after Columbian exchange					
+olive-greek	Olive	greek	Mediterranean	{"lat":37.0,"lng":22.0}	-5000	null	Ελιά	Ancient Mediterranean fruit and oil source					
+feta-greek	Feta Cheese	greek	Greece	{"lat":39.0,"lng":22.0}	-1000	null	Φέτα	Brined curd cheese from sheep and goat milk					
+paprika-hungarian	Paprika	hungarian	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	Paprika	Capsicum pepper introduced to Hungary via Ottoman trade					
+turmeric-indian	Turmeric	indian	South Asia	{"lat":20.0,"lng":78.0}	-4500	null	हल्दी	Golden spice with anti-inflammatory properties					
+cumin-indian	Cumin	indian	Eastern Mediterranean	{"lat":35.0,"lng":38.0}	-3000	null	जीरा	Seed spice essential to Indian curry blends					
+cardamom-indian	Cardamom	indian	South India	{"lat":10.0,"lng":77.0}	-3000	null	इलायची	Aromatic seed pod used in savory and sweet dishes					
+galangal-indonesian	Galangal	indonesian	Southeast Asia	{"lat":-5.0,"lng":110.0}	-3000	null	Lengkuas	Rhizome related to ginger used in Indonesian cuisine					
+coconut-indonesian	Coconut	indonesian	Southeast Asia	{"lat":-2.0,"lng":115.0}	-4000	null	Kelapa	Versatile palm fruit used for milk, oil, and flesh					
+saffron-iranian	Saffron	iranian	Greece/Iran	{"lat":35.0,"lng":52.0}	-3000	null	زعفران	World's most expensive spice from crocus flowers					
+barberry-iranian	Barberry	iranian	Iran	{"lat":36.0,"lng":52.0}	-2000	null	زرشک	Tart dried berry used in Persian rice dishes					
+tomato-italian	Tomato	italian	South America	{"lat":-12.0,"lng":-77.0}	-7000	null	Pomodoro	New World fruit that transformed Italian cuisine					
+basil-italian	Basil	italian	South Asia	{"lat":20.0,"lng":80.0}	-3000	null	Basilico	Aromatic herb sacred in Indian and Mediterranean cultures					
+dashi-japanese	Kombu (Dashi)	japanese	Japan	{"lat":42.0,"lng":140.0}	-300	null	昆布	Seaweed base for Japanese stock (dashi)					
+wasabi-japanese	Wasabi	japanese	Japan	{"lat":35.0,"lng":138.0}	-700	null	山葵	Pungent root used as condiment in Japanese cuisine					
+gochugaru-korean	Gochugaru	korean	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	고추가루	Korean red pepper flakes introduced via trade					
+sesame-korean	Sesame	korean	Africa	{"lat":10.0,"lng":30.0}	-3000	null	참깨	Ancient oilseed used extensively in Korean cooking					
+corn-mexican	Corn (Maize)	mexican	Mesoamerica	{"lat":17.0,"lng":-96.0}	-9000	null	Maíz	Staple grain domesticated in southern Mexico					
+chili-mexican	Chili Pepper	mexican	Mesoamerica	{"lat":20.0,"lng":-100.0}	-7500	null	Chile	Capsicum peppers native to the Americas					
+cacao-mexican	Cacao	mexican	Mesoamerica	{"lat":18.0,"lng":-92.0}	-3900	null	Cacao	Source of chocolate, sacred to Mesoamerican cultures					
+quinoa-peruvian	Quinoa	peruvian	Andes	{"lat":-15.0,"lng":-70.0}	-5000	null	Quinua	High-protein pseudocereal from the Andes					
+aji-peruvian	Ají Amarillo	peruvian	South America	{"lat":-12.0,"lng":-77.0}	-6000	null	Ají	Yellow chili pepper essential to Peruvian cuisine					
+beetroot-polish	Beetroot	polish	Mediterranean	{"lat":38.0,"lng":22.0}	-2000	null	Burak	Root vegetable central to borscht and Polish cuisine					
+cod-portuguese	Salt Cod	portuguese	North Atlantic	{"lat":60.0,"lng":-25.0}	1000	null	Bacalhau	Preserved fish that became Portugal's national ingredient					
+olive-spanish	Olive Oil	spanish	Mediterranean	{"lat":37.5,"lng":-4.0}	-5000	null	Aceite de oliva	Spain is world's largest olive oil producer					
+lemongrass-thai	Lemongrass	thai	Southeast Asia	{"lat":15.0,"lng":101.0}	-2000	null	ตะไคร้	Aromatic grass essential to Thai soups and curries					
+fish-sauce-thai	Fish Sauce	thai	Southeast Asia	{"lat":13.0,"lng":100.0}	-500	null	น้ำปลา	Fermented fish condiment providing umami					
+yogurt-turkish	Yogurt	turkish	Central Asia	{"lat":40.0,"lng":35.0}	-5000	null	Yoğurt	Fermented dairy product originating from Turkic peoples					
+sumac-turkish	Sumac	turkish	Middle East	{"lat":37.0,"lng":36.0}	-2000	null	Sumak	Tart spice from dried berries used across Turkish cuisine					
+fish-sauce-vietnamese	Fish Sauce	vietnamese	Southeast Asia	{"lat":12.0,"lng":109.0}	-500	null	Nước mắm	Fermented anchovy sauce fundamental to Vietnamese cooking					
+star-anise-vietnamese	Star Anise	vietnamese	Southern China	{"lat":22.0,"lng":108.0}	-2000	null	Hoa hồi	Aromatic spice essential to phở broth					
+agar	agar		Asia	{"lat":35,"lng":108}				thickening agent used in microbiology and food	Q177998	http://www.wikidata.org/entity/Q177998	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+almond	almond							edible seed of the almond tree	Q184357	http://www.wikidata.org/entity/Q184357	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+almond-milk	almond milk							plant milk manufactured from almonds	Q975953	http://www.wikidata.org/entity/Q975953	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+alpinia-galanga	Alpinia galanga							species of plant	Q402971	http://www.wikidata.org/entity/Q402971	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+aquafaba	aquafaba		France	{"lat":47,"lng":2}				residual water from cooking chickpea	Q19820584	http://www.wikidata.org/entity/Q19820584	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+arenga-pinnata	Arenga pinnata							species of plant	Q227984	http://www.wikidata.org/entity/Q227984	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+baker-s-yeast	baker's yeast							strains of yeast commonly used as a leavening agent in baking	Q911712	http://www.wikidata.org/entity/Q911712	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+baking-powder	baking powder							dry chemical leavening agent	Q29476	http://www.wikidata.org/entity/Q29476	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+barley-malt-syrup	barley malt syrup							food additive	Q3485291	http://www.wikidata.org/entity/Q3485291	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bean	bean							seed of several plants in the legume family	Q379813	http://www.wikidata.org/entity/Q379813	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bleak	bleak							species of fish	Q200473	http://www.wikidata.org/entity/Q200473	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+boiled-egg	boiled egg							egg dish	Q1062531	http://www.wikidata.org/entity/Q1062531	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+carp	carp							species of fish	Q2751223	http://www.wikidata.org/entity/Q2751223	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+carrageenan	carrageenan							binding food additive made from seaweed	Q421991	http://www.wikidata.org/entity/Q421991	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+chicken-egg	chicken egg							egg from chicken	Q15260613	http://www.wikidata.org/entity/Q15260613	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+chocolate-liquor	chocolate liquor							pure cocoa mass in liquid, semi-liquid, solid or semi-solid form	Q1721876	http://www.wikidata.org/entity/Q1721876	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cinnamon	cinnamon							spice obtained from the inner bark of several tree species from the genus Cinnamomum	Q28165	http://www.wikidata.org/entity/Q28165	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cocoa-powder	cocoa powder							mixture of many substances remaining after cocoa butter is extracted from cacao beans	Q1062396	http://www.wikidata.org/entity/Q1062396	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+coconut-milk	coconut milk							liquid that comes from the grated meat of a coconut	Q841779	http://www.wikidata.org/entity/Q841779	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+corn-starch	corn starch							starch derived from the corn grain	Q3393961	http://www.wikidata.org/entity/Q3393961	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+curry-powder	curry powder							spice mix	Q1144935	http://www.wikidata.org/entity/Q1144935	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cyclocybe-aegerita	Cyclocybe aegerita							species of fungus	Q27668537	http://www.wikidata.org/entity/Q27668537	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cymbopogon	Cymbopogon							genus of plants	Q5727732	http://www.wikidata.org/entity/Q5727732	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+egg-as-food	egg as food							edible animal product	Q93189	http://www.wikidata.org/entity/Q93189	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+egg-white	egg white							clear liquid contained within an egg	Q796758	http://www.wikidata.org/entity/Q796758	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+egg-yolk	egg yolk							part of an egg which feeds the developing embryo (for egg yolks from chickens specifically use Q14523825)	Q181409	http://www.wikidata.org/entity/Q181409	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+elephantopus-scaber	Elephantopus scaber							species of plant	Q1039719	http://www.wikidata.org/entity/Q1039719	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+flour	flour							powder which is made by grinding cereal grains	Q36465	http://www.wikidata.org/entity/Q36465	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+frog-legs	frog legs							delicacies of French and Cantonese cuisine	Q1258910	http://www.wikidata.org/entity/Q1258910	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+glucose-syrup	glucose syrup		Russian Empire	{"lat":58.65,"lng":70.1167}				syrup made from the hydrolysis of starch	Q14770547	http://www.wikidata.org/entity/Q14770547	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ham	ham							processed pork leg foodstuff	Q170486	http://www.wikidata.org/entity/Q170486	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+hazelnut	hazelnut							nut of the common hazel, Corylus avellana	Q578307	http://www.wikidata.org/entity/Q578307	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+honey	honey							sweet food made by bees mostly using nectar from flowers	Q10987	http://www.wikidata.org/entity/Q10987	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+isinglass	isinglass							substance obtained from the dried swim bladders of fish	Q1255331	http://www.wikidata.org/entity/Q1255331	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+liver-as-food	liver as food							liver meat used as food	Q1470283	http://www.wikidata.org/entity/Q1470283	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+maize-flour	maize flour							flour made from dried maize (corn)	Q110184114	http://www.wikidata.org/entity/Q110184114	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+mustard-seed	mustard seed							small round seeds of various mustard plants	Q1937700	http://www.wikidata.org/entity/Q1937700	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+mytilus-edulis	Mytilus edulis							species of mollusc	Q27855	http://www.wikidata.org/entity/Q27855	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+nut	nut							dry, edible fruit or seed which usually has a high fat content	Q3320037	http://www.wikidata.org/entity/Q3320037	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+nutmeg	nutmeg							spice from trees in the genus Myristica	Q83165	http://www.wikidata.org/entity/Q83165	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+nutritional-yeast	nutritional yeast							type of deactivated yeast	Q1786540	http://www.wikidata.org/entity/Q1786540	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+oat-milk	oat milk							type of plant milk	Q20972637	http://www.wikidata.org/entity/Q20972637	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+oyster	oyster							salt-water bivalve mollusc	Q107411	http://www.wikidata.org/entity/Q107411	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+palm-oil	palm oil							edible and biocombustible vegetable oil from fruit of oil palms	Q231458	http://www.wikidata.org/entity/Q231458	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+peanut	peanut							seed from Arachis hypogaea	Q3621199	http://www.wikidata.org/entity/Q3621199	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+peppercorn	peppercorn							spice	Q3143131	http://www.wikidata.org/entity/Q3143131	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+persipan	persipan		Germany	{"lat":51,"lng":10}				material used in confectionery, similar to marzipan but made with apricot or peach kernels instead of almonds	Q1929741	http://www.wikidata.org/entity/Q1929741	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+plum	plum							fruit; use Q6401215 for the taxon; Q13223298 for the species	Q12372598	http://www.wikidata.org/entity/Q12372598	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+pumpkin	pumpkin							orange (yellow, green) winter squash native to North America	Q165308	http://www.wikidata.org/entity/Q165308	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+raisin	raisin		Iran	{"lat":32,"lng":53}				dried grape	Q13186	http://www.wikidata.org/entity/Q13186	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ras-el-hanout	ras el hanout		Maghreb	{"lat":30,"lng":5}				food spice	Q1067261	http://www.wikidata.org/entity/Q1067261	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+rhodophyta	Rhodophyta							division of algae, red algae	Q103169	http://www.wikidata.org/entity/Q103169	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+rice-flour	rice flour							form of flour made from finely milled rice	Q1269205	http://www.wikidata.org/entity/Q1269205	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+roux	roux		France	{"lat":47,"lng":2}				simple and basic cooking sauce made with butter (or other fat) and flour	Q746427	http://www.wikidata.org/entity/Q746427	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+sea-salt	sea salt							salt produced from the evaporation of seawater	Q282694	http://www.wikidata.org/entity/Q282694	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+semolina	semolina							coarse, purified wheat middlings of durum wheat	Q381350	http://www.wikidata.org/entity/Q381350	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+sichuan-pepper	Sichuan pepper							spice, crude drug	Q756800	http://www.wikidata.org/entity/Q756800	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+starch	starch							carbohydrate consisting of a large number of glucose units joined by glycosidic bond	Q41534	http://www.wikidata.org/entity/Q41534	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+sunflower-oil	sunflower oil							oil pressed from the seed of Helianthus annuus	Q94787	http://www.wikidata.org/entity/Q94787	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tamarindus-indica	Tamarindus indica							species of plant, Tamarind	Q80235	http://www.wikidata.org/entity/Q80235	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tofu	tofu		China	{"lat":35,"lng":105}				soy-based food used as a protein source	Q177378	http://www.wikidata.org/entity/Q177378	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tomato-juice	tomato juice		United States	{"lat":39.828175,"lng":-98.5795}				beverage made from tomatoes	Q787325	http://www.wikidata.org/entity/Q787325	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tomato-paste	tomato paste							paste made from tomatoes	Q1499073	http://www.wikidata.org/entity/Q1499073	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+triticum	Triticum							genus of plants (focus on taxonomy here, not on agriculture)	Q12106	http://www.wikidata.org/entity/Q12106	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+vanilla-sugar	vanilla sugar							ingredient used in desserts	Q3492989	http://www.wikidata.org/entity/Q3492989	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+wheat-flour	wheat flour							powder made from the grinding of wheat used for human consumption	Q2249305	http://www.wikidata.org/entity/Q2249305	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+whey	whey							liquid remaining after milk has been curdled and strained	Q185009	http://www.wikidata.org/entity/Q185009	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+whole-wheat-flour	whole-wheat flour							basic food ingredient, derived by grinding or mashing the whole grain of wheat	Q13225835	http://www.wikidata.org/entity/Q13225835	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+yeast	yeast							informal group of fungi	Q45422	http://www.wikidata.org/entity/Q45422	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+yeast-extract	yeast extract		Germany	{"lat":51,"lng":10}				food	Q1593672	http://www.wikidata.org/entity/Q1593672	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]

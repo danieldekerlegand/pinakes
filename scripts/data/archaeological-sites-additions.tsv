@@ -1,0 +1,401 @@
+id	name	coordinates	site_type	time_period_start	time_period_end	time_period_label	description	confidence	sources	wikidata_qid	source_url	retrieved_at
+abdah	Abdah	{"lat":30.795,"lng":34.775}					Archaeological site in Israel.	90	["Wikidata"]	Q791665	http://www.wikidata.org/entity/Q791665	2026-07-08T10:31:36.248Z
+abu-mena	Abu Mena	{"lat":30.84105,"lng":29.66349}					Archaeological site in Egypt.	90	["Wikidata"]	Q9278	http://www.wikidata.org/entity/Q9278	2026-07-08T10:31:36.248Z
+abu-rawash	Abu Rawash	{"lat":30.032222222,"lng":31.074722222}					Archaeological site in Egypt.	90	["Wikidata"]	Q335278	http://www.wikidata.org/entity/Q335278	2026-07-08T10:31:36.248Z
+abusir	Abusir	{"lat":29.896111111,"lng":31.203611111}					Archaeological site in Egypt.	90	["Wikidata"]	Q336098	http://www.wikidata.org/entity/Q336098	2026-07-08T10:31:36.248Z
+acrocorinth	Acrocorinth	{"lat":37.89142,"lng":22.870921}		-700		Founded 700 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q420810	http://www.wikidata.org/entity/Q420810	2026-07-08T10:31:36.248Z
+adab	Adab	{"lat":31.95,"lng":45.966667}					Archaeological site in Iraq.	90	["Wikidata"]	Q346445	http://www.wikidata.org/entity/Q346445	2026-07-08T10:31:36.248Z
+aelia-capitolina	Aelia Capitolina	{"lat":31.775689,"lng":35.23104}					Archaeological site in Israel.	90	["Wikidata"]	Q1250874	http://www.wikidata.org/entity/Q1250874	2026-07-08T10:31:36.248Z
+ai-khanoum	Ai-Khanoum	{"lat":37.166388888,"lng":69.410833333}					Archaeological site in Afghanistan.	90	["Wikidata"]	Q857845	http://www.wikidata.org/entity/Q857845	2026-07-08T10:31:36.248Z
+ajloun	Ajloun	{"lat":32.3325,"lng":35.751666666}					Archaeological site in Jordan.	90	["Wikidata"]	Q1141858	http://www.wikidata.org/entity/Q1141858	2026-07-08T10:31:36.248Z
+akhmim	Akhmim	{"lat":26.564166666,"lng":31.746111111}					Archaeological site in Egypt.	90	["Wikidata"]	Q340572	http://www.wikidata.org/entity/Q340572	2026-07-08T10:31:36.248Z
+al-hirah	Al-Hirah	{"lat":31.98,"lng":44.39}					Archaeological site in Iraq.	90	["Wikidata"]	Q310799	http://www.wikidata.org/entity/Q310799	2026-07-08T10:31:36.248Z
+al-khazneh	Al Khazneh	{"lat":30.32206,"lng":35.45145}		100		Founded 100 CE	Archaeological site in Jordan.	90	["Wikidata"]	Q1259626	http://www.wikidata.org/entity/Q1259626	2026-07-08T10:31:36.248Z
+al-maghtas	Al Maghtas	{"lat":31.837222222,"lng":35.550277777}					Archaeological site in Jordan.	90	["Wikidata"]	Q12193567	http://www.wikidata.org/entity/Q12193567	2026-07-08T10:31:36.248Z
+alacahoyuk	Alacahöyük	{"lat":40.233895,"lng":34.695575}					Archaeological site in Turkey.	90	["Wikidata"]	Q558861	http://www.wikidata.org/entity/Q558861	2026-07-08T10:31:36.248Z
+alesia	Alesia	{"lat":47.539166666,"lng":4.500555555}					Archaeological site in France.	90	["Wikidata"]	Q835966	http://www.wikidata.org/entity/Q835966	2026-07-08T10:31:36.248Z
+alodia	Alodia	{"lat":17.65,"lng":33.983333}		600		Founded 600 CE	Archaeological site in Sudan.	90	["Wikidata"]	Q449639	http://www.wikidata.org/entity/Q449639	2026-07-08T10:31:36.248Z
+amarna	Amarna	{"lat":27.661666666,"lng":30.905555555}		-1352		Founded 1352 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q5736	http://www.wikidata.org/entity/Q5736	2026-07-08T10:31:36.248Z
+ambohimanga	Ambohimanga	{"lat":-18.759167,"lng":47.562778}					Archaeological site in Madagascar.	90	["Wikidata"]	Q458167	http://www.wikidata.org/entity/Q458167	2026-07-08T10:31:36.248Z
+amphitheater-of-nimes	Amphitheater of Nîmes	{"lat":43.83489,"lng":4.35963}		90		Founded 90 CE	Archaeological site in France.	90	["Wikidata"]	Q179656	http://www.wikidata.org/entity/Q179656	2026-07-08T10:31:36.248Z
+ancient-abdera	Ancient Abdera	{"lat":40.933714,"lng":24.973299}		-700		Founded 700 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q132527193	http://www.wikidata.org/entity/Q132527193	2026-07-08T10:31:36.248Z
+ancient-agora-of-athens	Ancient Agora of Athens	{"lat":37.975,"lng":23.7225}					Archaeological site in Greece.	90	["Wikidata"]	Q395367	http://www.wikidata.org/entity/Q395367	2026-07-08T10:31:36.248Z
+ancient-theatre-of-epidaurus	Ancient Theatre of Epidaurus	{"lat":37.596111111,"lng":23.079166666}					Archaeological site in Greece.	90	["Wikidata"]	Q608198	http://www.wikidata.org/entity/Q608198	2026-07-08T10:31:36.248Z
+angkor-thom	Angkor Thom	{"lat":13.443302,"lng":103.859682}					Archaeological site in Cambodia.	90	["Wikidata"]	Q223665	http://www.wikidata.org/entity/Q223665	2026-07-08T10:31:36.248Z
+anshan-persia	Anshan Persia	{"lat":30.011666666,"lng":52.407777777}		-3999		Founded 3999 BCE	Archaeological site in Iran.	90	["Wikidata"]	Q569107	http://www.wikidata.org/entity/Q569107	2026-07-08T10:31:36.248Z
+aphrodisias	Aphrodisias	{"lat":37.708333333,"lng":28.723611111}					Archaeological site in Turkey.	90	["Wikidata"]	Q618495	http://www.wikidata.org/entity/Q618495	2026-07-08T10:31:36.248Z
+aqua-appia	Aqua Appia	{"lat":41.887846,"lng":12.480973}		-311		Founded 311 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q278579	http://www.wikidata.org/entity/Q278579	2026-07-08T10:31:36.248Z
+ara-pacis	Ara Pacis	{"lat":41.906388888,"lng":12.475555555}		-8		Founded 8 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q623612	http://www.wikidata.org/entity/Q623612	2026-07-08T10:31:36.248Z
+arch-of-constantine	Arch of Constantine	{"lat":41.889828,"lng":12.490605}					Archaeological site in Italy.	90	["Wikidata"]	Q5786	http://www.wikidata.org/entity/Q5786	2026-07-08T10:31:36.248Z
+arch-of-septimius-severus-roman-forum	Arch of Septimius Severus (Roman Forum)	{"lat":41.892777777,"lng":12.484722222}		203		Founded 203 CE	Archaeological site in Italy.	90	["Wikidata"]	Q162353	http://www.wikidata.org/entity/Q162353	2026-07-08T10:31:36.248Z
+arch-of-titus	Arch of Titus	{"lat":41.890717,"lng":12.488585}		82		Founded 82 CE	Archaeological site in Italy.	90	["Wikidata"]	Q723887	http://www.wikidata.org/entity/Q723887	2026-07-08T10:31:36.248Z
+arkaim	Arkaim	{"lat":52.64926,"lng":59.5715}					Archaeological site in Russia.	90	["Wikidata"]	Q672602	http://www.wikidata.org/entity/Q672602	2026-07-08T10:31:36.248Z
+arslantepe	Arslantepe	{"lat":38.38194444,"lng":38.36111111}					Archaeological site in Turkey.	90	["Wikidata"]	Q705132	http://www.wikidata.org/entity/Q705132	2026-07-08T10:31:36.248Z
+arwad	Arwad	{"lat":34.858397,"lng":35.859448}					Archaeological site in Syria.	90	["Wikidata"]	Q377802	http://www.wikidata.org/entity/Q377802	2026-07-08T10:31:36.248Z
+aspendos	Aspendos	{"lat":36.9382,"lng":31.1732}					Archaeological site in Turkey.	90	["Wikidata"]	Q633757	http://www.wikidata.org/entity/Q633757	2026-07-08T10:31:36.248Z
+assos	Assos	{"lat":39.491621,"lng":26.339656}					Archaeological site in Turkey.	90	["Wikidata"]	Q744631	http://www.wikidata.org/entity/Q744631	2026-07-08T10:31:36.248Z
+asyut	Asyut	{"lat":27.186944444,"lng":31.171388888}		-3099		Founded 3099 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q29962	http://www.wikidata.org/entity/Q29962	2026-07-08T10:31:36.248Z
+aurelian-walls	Aurelian Walls	{"lat":41.873292,"lng":12.498955}		271		Founded 271 CE	Archaeological site in Italy.	90	["Wikidata"]	Q625149	http://www.wikidata.org/entity/Q625149	2026-07-08T10:31:36.248Z
+aysen-region	Aysén Region	{"lat":-45.57,"lng":-72.066111111}					Archaeological site in Chile.	90	["Wikidata"]	Q2181	http://www.wikidata.org/entity/Q2181	2026-07-08T10:31:36.248Z
+badari-culture	Badari culture	{"lat":27,"lng":31.41667}					Archaeological site in Egypt.	90	["Wikidata"]	Q798844	http://www.wikidata.org/entity/Q798844	2026-07-08T10:31:36.248Z
+balasagun	Balasagun	{"lat":42.74759,"lng":75.248425}					Archaeological site in Kyrgyzstan.	90	["Wikidata"]	Q1764282	http://www.wikidata.org/entity/Q1764282	2026-07-08T10:31:36.248Z
+banteay-srei	Banteay Srei	{"lat":13.59888275,"lng":103.96285057}		967		Founded 967 CE	Archaeological site in Cambodia.	90	["Wikidata"]	Q790099	http://www.wikidata.org/entity/Q790099	2026-07-08T10:31:36.248Z
+baphuon	Baphuon	{"lat":13.443767,"lng":103.856169}		1060		Founded 1060 CE	Archaeological site in Cambodia.	90	["Wikidata"]	Q790118	http://www.wikidata.org/entity/Q790118	2026-07-08T10:31:36.248Z
+basilica-aemilia	Basilica Aemilia	{"lat":41.89259,"lng":12.48614}		-178		Founded 178 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q522924	http://www.wikidata.org/entity/Q522924	2026-07-08T10:31:36.248Z
+basilica-julia	Basilica Julia	{"lat":41.89195,"lng":12.48478}					Archaeological site in Italy.	90	["Wikidata"]	Q616271	http://www.wikidata.org/entity/Q616271	2026-07-08T10:31:36.248Z
+basilica-of-maxentius	Basilica of Maxentius	{"lat":41.891944444,"lng":12.488333333}		312		Founded 312 CE	Archaeological site in Italy.	90	["Wikidata"]	Q371921	http://www.wikidata.org/entity/Q371921	2026-07-08T10:31:36.248Z
+bat-al-khutm-and-al-ayn-archaeological-sites	Bat, Al-Khutm and Al-Ayn archaeological sites	{"lat":23.27,"lng":56.745}					Archaeological site in Oman.	90	["Wikidata"]	Q25496	http://www.wikidata.org/entity/Q25496	2026-07-08T10:31:36.248Z
+baths-of-caracalla	Baths of Caracalla	{"lat":41.880264,"lng":12.492764}		216		Founded 216 CE	Archaeological site in Italy.	90	["Wikidata"]	Q502098	http://www.wikidata.org/entity/Q502098	2026-07-08T10:31:36.248Z
+baths-of-diocletian	Baths of Diocletian	{"lat":41.90277778,"lng":12.49833333}					Archaeological site in Italy.	90	["Wikidata"]	Q836108	http://www.wikidata.org/entity/Q836108	2026-07-08T10:31:36.248Z
+baths-of-trajan	Baths of Trajan	{"lat":41.891867,"lng":12.496281}					Archaeological site in Italy.	90	["Wikidata"]	Q599035	http://www.wikidata.org/entity/Q599035	2026-07-08T10:31:36.248Z
+bayon	Bayon	{"lat":13.441252,"lng":103.858738}					Archaeological site in Cambodia.	90	["Wikidata"]	Q654024	http://www.wikidata.org/entity/Q654024	2026-07-08T10:31:36.248Z
+beit-she-arim-national-park	Beit She'arim National Park	{"lat":32.704166666,"lng":35.128055555}		1936		Founded 1936 CE	Archaeological site in Israel.	90	["Wikidata"]	Q830805	http://www.wikidata.org/entity/Q830805	2026-07-08T10:31:36.248Z
+beni-hasan	Beni Hasan	{"lat":27.931388888,"lng":30.875280555}					Archaeological site in Egypt.	90	["Wikidata"]	Q817286	http://www.wikidata.org/entity/Q817286	2026-07-08T10:31:36.248Z
+bent-pyramid	Bent Pyramid	{"lat":29.790277777,"lng":31.209166666}		-2699		Founded 2699 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q459608	http://www.wikidata.org/entity/Q459608	2026-07-08T10:31:36.248Z
+berenice-troglodytica	Berenice Troglodytica	{"lat":23.943055555,"lng":35.489444444}					Archaeological site in Egypt.	90	["Wikidata"]	Q819050	http://www.wikidata.org/entity/Q819050	2026-07-08T10:31:36.248Z
+bethsaida	Bethsaida	{"lat":32.90995,"lng":35.63053611}					Archaeological site in Israel.	90	["Wikidata"]	Q501773	http://www.wikidata.org/entity/Q501773	2026-07-08T10:31:36.248Z
+bezeklik-thousand-buddha-caves	Bezeklik Thousand Buddha Caves	{"lat":42.955427,"lng":89.539726}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q980774	http://www.wikidata.org/entity/Q980774	2026-07-08T10:31:36.248Z
+bhimbetka-rock-shelters	Bhimbetka rock shelters	{"lat":22.93863333,"lng":77.61438056}					Archaeological site in India.	90	["Wikidata"]	Q331603	http://www.wikidata.org/entity/Q331603	2026-07-08T10:31:36.248Z
+bibracte	Bibracte	{"lat":46.9244,"lng":4.035}		-200		Founded 200 BCE	Archaeological site in France.	90	["Wikidata"]	Q650053	http://www.wikidata.org/entity/Q650053	2026-07-08T10:31:36.248Z
+blombos-cave	Blombos Cave	{"lat":-34.414444444,"lng":21.2225}					Archaeological site in South Africa.	90	["Wikidata"]	Q884971	http://www.wikidata.org/entity/Q884971	2026-07-08T10:31:36.248Z
+bolghar-gord	Bolghar Gord	{"lat":54.977391,"lng":49.054257}					Archaeological site in Russia.	90	["Wikidata"]	Q2486263	http://www.wikidata.org/entity/Q2486263	2026-07-08T10:31:36.248Z
+borobudur-temple	Borobudur Temple	{"lat":-7.60793,"lng":110.20384}		800		Founded 800 CE	Archaeological site in Indonesia.	90	["Wikidata"]	Q42798	http://www.wikidata.org/entity/Q42798	2026-07-08T10:31:36.248Z
+borsippa	Borsippa	{"lat":32.391997222,"lng":44.341688888}					Archaeological site in Iraq.	90	["Wikidata"]	Q625134	http://www.wikidata.org/entity/Q625134	2026-07-08T10:31:36.248Z
+bru-na-boinne	Brú na Bóinne	{"lat":53.69284,"lng":-6.44932}		-3499		Founded 3499 BCE	Archaeological site in Ireland.	90	["Wikidata"]	Q339489	http://www.wikidata.org/entity/Q339489	2026-07-08T10:31:36.248Z
+buddhas-of-bamiyan	Buddhas of Bamiyan	{"lat":34.832041666,"lng":67.826802777}					Archaeological site in Afghanistan.	90	["Wikidata"]	Q484458	http://www.wikidata.org/entity/Q484458	2026-07-08T10:31:36.248Z
+buhen	Buhen	{"lat":21.91666667,"lng":31.28333333}					Archaeological site in Sudan.	90	["Wikidata"]	Q1002656	http://www.wikidata.org/entity/Q1002656	2026-07-08T10:31:36.248Z
+buto	Buto	{"lat":31.196388888,"lng":30.744722222}					Archaeological site in Egypt.	90	["Wikidata"]	Q739278	http://www.wikidata.org/entity/Q739278	2026-07-08T10:31:36.248Z
+caernarfon-castle	Caernarfon Castle	{"lat":53.139306,"lng":-4.276889}		1283		Founded 1283 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q275128	http://www.wikidata.org/entity/Q275128	2026-07-08T10:31:36.248Z
+calydon	Calydon	{"lat":38.372548,"lng":21.533275}					Archaeological site in Greece.	90	["Wikidata"]	Q750313	http://www.wikidata.org/entity/Q750313	2026-07-08T10:31:36.248Z
+cannae	Cannae	{"lat":41.296388888,"lng":16.151666666}					Archaeological site in Italy.	90	["Wikidata"]	Q568611	http://www.wikidata.org/entity/Q568611	2026-07-08T10:31:36.248Z
+canopus	Canopus	{"lat":31.3,"lng":30.08333333}					Archaeological site in Egypt.	90	["Wikidata"]	Q1145180	http://www.wikidata.org/entity/Q1145180	2026-07-08T10:31:36.248Z
+capernaum	Capernaum	{"lat":32.881111111,"lng":35.575}		-200		Founded 200 BCE	Archaeological site in Israel.	90	["Wikidata"]	Q59174	http://www.wikidata.org/entity/Q59174	2026-07-08T10:31:36.248Z
+capital-cities-and-tombs-of-the-ancient-koguryo-kingdom	Capital Cities and Tombs of the Ancient Koguryo Kingdom	{"lat":41.15694444,"lng":126.18722222}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q134873	http://www.wikidata.org/entity/Q134873	2026-07-08T10:31:36.248Z
+cardiff-castle	Cardiff Castle	{"lat":51.482309,"lng":-3.1811056}		1080		Founded 1080 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q1035742	http://www.wikidata.org/entity/Q1035742	2026-07-08T10:31:36.248Z
+carnac-stones	Carnac stones	{"lat":47.593333333,"lng":-3.079722222}					Archaeological site in France.	90	["Wikidata"]	Q833850	http://www.wikidata.org/entity/Q833850	2026-07-08T10:31:36.248Z
+casas-grandes	Casas Grandes	{"lat":30.37583,"lng":-107.95556}					Archaeological site in Mexico.	90	["Wikidata"]	Q853265	http://www.wikidata.org/entity/Q853265	2026-07-08T10:31:36.248Z
+cave-of-altamira-and-paleolithic-cave-art-of-northern-spain	Cave of Altamira and Paleolithic Cave Art of Northern Spain	{"lat":43.3825,"lng":-4.11611111}		1985		Founded 1985 CE	Archaeological site in Spain.	90	["Wikidata"]	Q899302	http://www.wikidata.org/entity/Q899302	2026-07-08T10:31:36.248Z
+cavern-of-the-patriarchs	Cavern of the Patriarchs	{"lat":31.524672222,"lng":35.110758333}					Archaeological site in Palestine.	90	["Wikidata"]	Q204200	http://www.wikidata.org/entity/Q204200	2026-07-08T10:31:36.248Z
+chankillo	Chankillo	{"lat":-9.55666667,"lng":-78.23583333}		-299		Founded 299 BCE	Archaeological site in Peru.	90	["Wikidata"]	Q1062357	http://www.wikidata.org/entity/Q1062357	2026-07-08T10:31:36.248Z
+chersonesus	Chersonesus	{"lat":44.611627,"lng":33.493302}					Archaeological site in Ukraine.	90	["Wikidata"]	Q638445	http://www.wikidata.org/entity/Q638445	2026-07-08T10:31:36.248Z
+chogha-zanbil	Chogha Zanbil	{"lat":32.008333333,"lng":48.520833333}					Archaeological site in Iran.	90	["Wikidata"]	Q4523	http://www.wikidata.org/entity/Q4523	2026-07-08T10:31:36.248Z
+chongoni-rock-art-area	Chongoni Rock Art Area	{"lat":-14.293333333,"lng":34.279166666}					Archaeological site in Malawi.	90	["Wikidata"]	Q832262	http://www.wikidata.org/entity/Q832262	2026-07-08T10:31:36.248Z
+church-of-all-nations	Church of All Nations	{"lat":31.779227,"lng":35.239628}		1924		Founded 1924 CE	Archaeological site in Israel.	90	["Wikidata"]	Q1331689	http://www.wikidata.org/entity/Q1331689	2026-07-08T10:31:36.248Z
+circus-maximus	Circus Maximus	{"lat":41.8859,"lng":12.4857}		-550		Founded 550 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q207808	http://www.wikidata.org/entity/Q207808	2026-07-08T10:31:36.248Z
+citadel-of-salah-ed-din	Citadel of Salah Ed-Din	{"lat":35.595833,"lng":36.057222}					Archaeological site in Syria.	90	["Wikidata"]	Q277531	http://www.wikidata.org/entity/Q277531	2026-07-08T10:31:36.248Z
+ciudad-perdida	Ciudad Perdida	{"lat":11.037997222,"lng":-73.925191666}					Archaeological site in Colombia.	90	["Wikidata"]	Q1094367	http://www.wikidata.org/entity/Q1094367	2026-07-08T10:31:36.248Z
+cloaca-maxima	Cloaca Maxima	{"lat":41.888888888,"lng":12.480277777}					Archaeological site in Italy.	90	["Wikidata"]	Q746102	http://www.wikidata.org/entity/Q746102	2026-07-08T10:31:36.248Z
+coba	Coba	{"lat":20.4898,"lng":-87.7251}					Archaeological site in Mexico.	90	["Wikidata"]	Q1104936	http://www.wikidata.org/entity/Q1104936	2026-07-08T10:31:36.248Z
+colonia-iulia-urbs-triumphalis-tarraco	Colonia Iulia Urbs Triumphalis Tarraco	{"lat":41.116477777,"lng":1.255230555}					Archaeological site in Spain.	90	["Wikidata"]	Q1501940	http://www.wikidata.org/entity/Q1501940	2026-07-08T10:31:36.248Z
+colophon	Colophon	{"lat":38.11555556,"lng":27.14222222}		-1100		Founded 1100 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q1142488	http://www.wikidata.org/entity/Q1142488	2026-07-08T10:31:36.248Z
+colossi-of-memnon	Colossi of Memnon	{"lat":25.720555555,"lng":32.610555555}					Archaeological site in Egypt.	90	["Wikidata"]	Q750209	http://www.wikidata.org/entity/Q750209	2026-07-08T10:31:36.248Z
+coricancha	Coricancha	{"lat":-13.520111,"lng":-71.975722}		1201		Founded 1201 CE	Archaeological site in Peru.	90	["Wikidata"]	Q817594	http://www.wikidata.org/entity/Q817594	2026-07-08T10:31:36.248Z
+cumae	Cumae	{"lat":40.848611,"lng":14.053611}					Archaeological site in Italy.	90	["Wikidata"]	Q243456	http://www.wikidata.org/entity/Q243456	2026-07-08T10:31:36.248Z
+curia-julia	Curia Julia	{"lat":41.892930555,"lng":12.485402777}					Archaeological site in Italy.	90	["Wikidata"]	Q1144514	http://www.wikidata.org/entity/Q1144514	2026-07-08T10:31:36.248Z
+cyzicus	Cyzicus	{"lat":40.387777777,"lng":27.870555555}					Archaeological site in Turkey.	90	["Wikidata"]	Q615449	http://www.wikidata.org/entity/Q615449	2026-07-08T10:31:36.248Z
+dahshur	Dahshur	{"lat":29.8,"lng":31.233333333}		-2588		Founded 2588 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q685414	http://www.wikidata.org/entity/Q685414	2026-07-08T10:31:36.248Z
+danevirke	Danevirke	{"lat":54.4775,"lng":9.486666666}		600		Founded 600 CE	Archaeological site in Germany.	90	["Wikidata"]	Q689454	http://www.wikidata.org/entity/Q689454	2026-07-08T10:31:36.248Z
+dazu-rock-carvings	Dazu Rock Carvings	{"lat":29.713333333,"lng":105.706944444}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q651278	http://www.wikidata.org/entity/Q651278	2026-07-08T10:31:36.248Z
+dead-cities	Dead Cities	{"lat":36.33416667,"lng":36.84416667}					Archaeological site in Syria.	90	["Wikidata"]	Q393841	http://www.wikidata.org/entity/Q393841	2026-07-08T10:31:36.248Z
+deir-el-bahari	Deir el-Bahari	{"lat":25.7375,"lng":32.6075}					Archaeological site in Egypt.	90	["Wikidata"]	Q373909	http://www.wikidata.org/entity/Q373909	2026-07-08T10:31:36.248Z
+dendera-temple-complex	Dendera Temple complex	{"lat":26.141667,"lng":32.670278}					Archaeological site in Egypt.	90	["Wikidata"]	Q735254	http://www.wikidata.org/entity/Q735254	2026-07-08T10:31:36.248Z
+derinkuyu-underground-city	Derinkuyu underground city	{"lat":38.373403,"lng":34.735034}					Archaeological site in Turkey.	90	["Wikidata"]	Q1328958	http://www.wikidata.org/entity/Q1328958	2026-07-08T10:31:36.248Z
+didyma	Didyma	{"lat":37.385,"lng":27.25638889}					Archaeological site in Turkey.	90	["Wikidata"]	Q671358	http://www.wikidata.org/entity/Q671358	2026-07-08T10:31:36.248Z
+dodona	Dodona	{"lat":39.546389,"lng":20.787778}					Archaeological site in Greece.	90	["Wikidata"]	Q382317	http://www.wikidata.org/entity/Q382317	2026-07-08T10:31:36.248Z
+domus-aurea	Domus Aurea	{"lat":41.891388888,"lng":12.495277777}		64		Founded 64 CE	Archaeological site in Italy.	90	["Wikidata"]	Q622438	http://www.wikidata.org/entity/Q622438	2026-07-08T10:31:36.248Z
+dorestad	Dorestad	{"lat":51.975,"lng":5.34}					Archaeological site in Netherlands.	90	["Wikidata"]	Q739353	http://www.wikidata.org/entity/Q739353	2026-07-08T10:31:36.248Z
+dover-castle	Dover Castle	{"lat":51.128268,"lng":1.3235035}		1179		Founded 1179 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q950970	http://www.wikidata.org/entity/Q950970	2026-07-08T10:31:36.248Z
+dur-kurigalzu	Dur-Kurigalzu	{"lat":33.35372,"lng":44.20229}					Archaeological site in Iraq.	90	["Wikidata"]	Q622719	http://www.wikidata.org/entity/Q622719	2026-07-08T10:31:36.248Z
+dvin	Dvin	{"lat":40.004444444,"lng":44.578333333}		335		Founded 335 CE	Archaeological site in Armenia.	90	["Wikidata"]	Q429059	http://www.wikidata.org/entity/Q429059	2026-07-08T10:31:36.248Z
+edessa	Edessa	{"lat":37.176482,"lng":38.776168}		-301		Founded 301 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q1190403	http://www.wikidata.org/entity/Q1190403	2026-07-08T10:31:36.248Z
+edinburgh-castle	Edinburgh Castle	{"lat":55.9487,"lng":-3.20073}		1200		Founded 1200 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q212065	http://www.wikidata.org/entity/Q212065	2026-07-08T10:31:36.248Z
+egyptian-pyramids	Egyptian pyramids	{"lat":29.9725,"lng":31.128333333}					Archaeological site in Egypt.	90	["Wikidata"]	Q175582	http://www.wikidata.org/entity/Q175582	2026-07-08T10:31:36.248Z
+ekron	Ekron	{"lat":31.778888888,"lng":34.851111111}					Archaeological site in Israel.	90	["Wikidata"]	Q1323557	http://www.wikidata.org/entity/Q1323557	2026-07-08T10:31:36.248Z
+el-fuerte-de-samaipata	El Fuerte de Samaipata	{"lat":-18.178355555,"lng":-63.818988888}					Archaeological site in Bolivia.	90	["Wikidata"]	Q876451	http://www.wikidata.org/entity/Q876451	2026-07-08T10:31:36.248Z
+el-fustat	El-Fustat	{"lat":30.005,"lng":31.2375}		641		Founded 641 CE	Archaeological site in Egypt.	90	["Wikidata"]	Q839456	http://www.wikidata.org/entity/Q839456	2026-07-08T10:31:36.248Z
+el-quseir	El-Quseir	{"lat":26.109072222,"lng":34.275997222}					Archaeological site in Egypt.	90	["Wikidata"]	Q310751	http://www.wikidata.org/entity/Q310751	2026-07-08T10:31:36.248Z
+elis	Elis	{"lat":37.892222222,"lng":21.374444444}		-1099		Founded 1099 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q217667	http://www.wikidata.org/entity/Q217667	2026-07-08T10:31:36.248Z
+epidaurus	Epidaurus	{"lat":37.63328,"lng":23.160067}					Archaeological site in Greece.	90	["Wikidata"]	Q233576	http://www.wikidata.org/entity/Q233576	2026-07-08T10:31:36.248Z
+erebuni-fortress	Erebuni Fortress	{"lat":40.140647,"lng":44.537949}		-781		Founded 781 BCE	Archaeological site in Armenia.	90	["Wikidata"]	Q733610	http://www.wikidata.org/entity/Q733610	2026-07-08T10:31:36.248Z
+erechtheion	Erechtheion	{"lat":37.972083333,"lng":23.726527777}		-500		Founded 500 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q242741	http://www.wikidata.org/entity/Q242741	2026-07-08T10:31:36.248Z
+eshnunna	Eshnunna	{"lat":33.75,"lng":44.75}					Archaeological site in Iraq.	90	["Wikidata"]	Q375685	http://www.wikidata.org/entity/Q375685	2026-07-08T10:31:36.248Z
+esna	Esna	{"lat":25.293333,"lng":32.556389}					Archaeological site in Egypt.	90	["Wikidata"]	Q626031	http://www.wikidata.org/entity/Q626031	2026-07-08T10:31:36.248Z
+etemenanki	Etemenanki	{"lat":32.536388888,"lng":44.420833333}					Archaeological site in Iraq.	90	["Wikidata"]	Q285788	http://www.wikidata.org/entity/Q285788	2026-07-08T10:31:36.248Z
+externsteine	Externsteine	{"lat":51.868888888,"lng":8.9175}					Archaeological site in Germany.	90	["Wikidata"]	Q319172	http://www.wikidata.org/entity/Q319172	2026-07-08T10:31:36.248Z
+fort-ross	Fort Ross	{"lat":38.514444444,"lng":-123.243611111}		1812		Founded 1812 CE	Archaeological site in United States.	90	["Wikidata"]	Q1278115	http://www.wikidata.org/entity/Q1278115	2026-07-08T10:31:36.248Z
+forum-of-augustus	Forum of Augustus	{"lat":41.894166666,"lng":12.486666666}					Archaeological site in Italy.	90	["Wikidata"]	Q770797	http://www.wikidata.org/entity/Q770797	2026-07-08T10:31:36.248Z
+forum-of-caesar	Forum of Caesar	{"lat":41.894008,"lng":12.484936}		-45		Founded 45 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q856968	http://www.wikidata.org/entity/Q856968	2026-07-08T10:31:36.248Z
+gamla-uppsala	Gamla Uppsala	{"lat":59.894444444,"lng":17.638888888}					Archaeological site in Sweden.	90	["Wikidata"]	Q433032	http://www.wikidata.org/entity/Q433032	2026-07-08T10:31:36.248Z
+garni-temple	Garni Temple	{"lat":40.112,"lng":44.729}		50		Founded 50 CE	Archaeological site in Armenia.	90	["Wikidata"]	Q684072	http://www.wikidata.org/entity/Q684072	2026-07-08T10:31:36.248Z
+gath	Gath	{"lat":31.69972,"lng":34.84694}					Archaeological site in Israel.	90	["Wikidata"]	Q1348441	http://www.wikidata.org/entity/Q1348441	2026-07-08T10:31:36.248Z
+gezer	Gezer	{"lat":31.859872,"lng":34.919644}					Archaeological site in Israel.	90	["Wikidata"]	Q1466687	http://www.wikidata.org/entity/Q1466687	2026-07-08T10:31:36.248Z
+ggantija	Ġgantija	{"lat":36.047265,"lng":14.269095}		-3599		Founded 3599 BCE	Archaeological site in Malta.	90	["Wikidata"]	Q216862	http://www.wikidata.org/entity/Q216862	2026-07-08T10:31:36.248Z
+girga	Girga	{"lat":26.338333333,"lng":31.891666666}					Archaeological site in Egypt.	90	["Wikidata"]	Q749187	http://www.wikidata.org/entity/Q749187	2026-07-08T10:31:36.248Z
+goa-gajah	Goa Gajah	{"lat":-8.523389,"lng":115.286333}					Archaeological site in Indonesia.	90	["Wikidata"]	Q2037360	http://www.wikidata.org/entity/Q2037360	2026-07-08T10:31:36.248Z
+goguryeo-tombs	Goguryeo tombs	{"lat":38.863055555,"lng":125.415}					Archaeological site in North Korea.	90	["Wikidata"]	Q277525	http://www.wikidata.org/entity/Q277525	2026-07-08T10:31:36.248Z
+golconda	Golconda	{"lat":17.383336111,"lng":78.404169444}					Archaeological site in India.	90	["Wikidata"]	Q4141623	http://www.wikidata.org/entity/Q4141623	2026-07-08T10:31:36.248Z
+gonio	Gonio	{"lat":41.57433333,"lng":41.57231667}					Archaeological site in Georgia.	90	["Wikidata"]	Q944813	http://www.wikidata.org/entity/Q944813	2026-07-08T10:31:36.248Z
+goreme-national-park	Göreme National Park	{"lat":38.652777777,"lng":34.863055555}					Archaeological site in Turkey.	90	["Wikidata"]	Q620593	http://www.wikidata.org/entity/Q620593	2026-07-08T10:31:36.248Z
+gorham-s-cave	Gorham's Cave	{"lat":36.120771,"lng":-5.342395}					Archaeological site in United Kingdom.	90	["Wikidata"]	Q1355749	http://www.wikidata.org/entity/Q1355749	2026-07-08T10:31:36.248Z
+gracanica-monastery	Gračanica monastery	{"lat":42.598333333,"lng":21.193333333}		1315		Founded 1315 CE	Archaeological site in Serbia.	90	["Wikidata"]	Q1137661	http://www.wikidata.org/entity/Q1137661	2026-07-08T10:31:36.248Z
+grand-palace	Grand Palace	{"lat":13.750138888,"lng":100.492027777}		1782		Founded 1782 CE	Archaeological site in Thailand.	90	["Wikidata"]	Q873769	http://www.wikidata.org/entity/Q873769	2026-07-08T10:31:36.248Z
+great-mosque-of-samarra	Great Mosque of Samarra	{"lat":34.206195,"lng":43.87985}		848		Founded 848 CE	Archaeological site in Iraq.	90	["Wikidata"]	Q593115	http://www.wikidata.org/entity/Q593115	2026-07-08T10:31:36.248Z
+great-pyramid-of-cholula	Great Pyramid of Cholula	{"lat":19.0575,"lng":-98.301944}		-299		Founded 299 BCE	Archaeological site in Mexico.	90	["Wikidata"]	Q1417475	http://www.wikidata.org/entity/Q1417475	2026-07-08T10:31:36.248Z
+great-pyramid-of-giza	Great Pyramid of Giza	{"lat":29.97915,"lng":31.13422}		-2559		Founded 2559 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q37200	http://www.wikidata.org/entity/Q37200	2026-07-08T10:31:36.248Z
+gundeshapur	Gundeshapur	{"lat":32.283333333,"lng":48.516666666}		271		Founded 271 CE	Archaeological site in Iran.	90	["Wikidata"]	Q1302971	http://www.wikidata.org/entity/Q1302971	2026-07-08T10:31:36.248Z
+gyeongju-historic-areas	Gyeongju Historic Areas	{"lat":35.78888889,"lng":129.22666667}					Archaeological site in South Korea.	90	["Wikidata"]	Q495241	http://www.wikidata.org/entity/Q495241	2026-07-08T10:31:36.248Z
+hadrian-s-library	Hadrian's Library	{"lat":37.975556,"lng":23.726111}					Archaeological site in Greece.	90	["Wikidata"]	Q1455447	http://www.wikidata.org/entity/Q1455447	2026-07-08T10:31:36.248Z
+hadrian-s-villa	Hadrian's Villa	{"lat":41.941944,"lng":12.775278}					Archaeological site in Italy.	90	["Wikidata"]	Q272777	http://www.wikidata.org/entity/Q272777	2026-07-08T10:31:36.248Z
+harlech-castle	Harlech Castle	{"lat":52.860004,"lng":-4.1091644}		1283		Founded 1283 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q540964	http://www.wikidata.org/entity/Q540964	2026-07-08T10:31:36.248Z
+hatra	Hatra	{"lat":35.588055555,"lng":42.718333333}					Archaeological site in Iraq.	90	["Wikidata"]	Q466614	http://www.wikidata.org/entity/Q466614	2026-07-08T10:31:36.248Z
+head-smashed-in-buffalo-jump	Head-Smashed-In Buffalo Jump	{"lat":49.7494,"lng":-113.625}					Archaeological site in Canada.	90	["Wikidata"]	Q683110	http://www.wikidata.org/entity/Q683110	2026-07-08T10:31:36.248Z
+heracleion	Heracleion	{"lat":31.304167,"lng":30.100556}					Archaeological site in Egypt.	90	["Wikidata"]	Q1607758	http://www.wikidata.org/entity/Q1607758	2026-07-08T10:31:36.248Z
+heraion-of-samos	Heraion of Samos	{"lat":37.67194444,"lng":26.88555556}					Archaeological site in Greece.	90	["Wikidata"]	Q841207	http://www.wikidata.org/entity/Q841207	2026-07-08T10:31:36.248Z
+herakleopolis-magna	Herakleopolis Magna	{"lat":29.085556,"lng":30.934444}					Archaeological site in Egypt.	90	["Wikidata"]	Q249480	http://www.wikidata.org/entity/Q249480	2026-07-08T10:31:36.248Z
+hermopolis	Hermopolis	{"lat":27.774438888,"lng":30.801111111}					Archaeological site in Egypt.	90	["Wikidata"]	Q732908	http://www.wikidata.org/entity/Q732908	2026-07-08T10:31:36.248Z
+herodium	Herodium	{"lat":31.66583,"lng":35.24139}		-14		Founded 14 BCE	Archaeological site in West Bank.	90	["Wikidata"]	Q913099	http://www.wikidata.org/entity/Q913099	2026-07-08T10:31:36.248Z
+hill-of-tara	Hill of Tara	{"lat":53.5775,"lng":-6.611944444}					Archaeological site in Ireland.	90	["Wikidata"]	Q543155	http://www.wikidata.org/entity/Q543155	2026-07-08T10:31:36.248Z
+hippo-regius	Hippo Regius	{"lat":36.883651,"lng":7.755129}					Archaeological site in Algeria.	90	["Wikidata"]	Q858024	http://www.wikidata.org/entity/Q858024	2026-07-08T10:31:36.248Z
+house-of-the-virgin-mary	House of the Virgin Mary	{"lat":37.911527777,"lng":27.333972222}		100		Founded 100 CE	Archaeological site in Turkey.	90	["Wikidata"]	Q135779	http://www.wikidata.org/entity/Q135779	2026-07-08T10:31:36.248Z
+hovgarden	Hovgården	{"lat":59.36,"lng":17.52}					Archaeological site in Sweden.	90	["Wikidata"]	Q1916655	http://www.wikidata.org/entity/Q1916655	2026-07-08T10:31:36.248Z
+hypogeum-of-al-saflieni	Hypogeum of Ħal Saflieni	{"lat":35.869558333,"lng":14.506883333}					Archaeological site in Malta.	90	["Wikidata"]	Q755514	http://www.wikidata.org/entity/Q755514	2026-07-08T10:31:36.248Z
+igel-column	Igel Column	{"lat":49.7092,"lng":6.54944}					Archaeological site in Germany.	90	["Wikidata"]	Q338834	http://www.wikidata.org/entity/Q338834	2026-07-08T10:31:36.248Z
+imperial-fora	Imperial fora	{"lat":41.89444444,"lng":12.48555556}					Archaeological site in Italy.	90	["Wikidata"]	Q216568	http://www.wikidata.org/entity/Q216568	2026-07-08T10:31:36.248Z
+independence-hall	Independence Hall	{"lat":39.948888888,"lng":-75.15}		1753		Founded 1753 CE	Archaeological site in United States.	90	["Wikidata"]	Q390028	http://www.wikidata.org/entity/Q390028	2026-07-08T10:31:36.248Z
+iron-pillar-of-delhi	iron pillar of Delhi	{"lat":28.524655555,"lng":77.185069444}		500		Founded 500 CE	Archaeological site in India.	90	["Wikidata"]	Q543419	http://www.wikidata.org/entity/Q543419	2026-07-08T10:31:36.248Z
+isker	Isker	{"lat":58.14942,"lng":68.52048}					Archaeological site in Russia.	90	["Wikidata"]	Q1815305	http://www.wikidata.org/entity/Q1815305	2026-07-08T10:31:36.248Z
+istakhr	Istakhr	{"lat":29.981666666,"lng":52.909444444}					Archaeological site in Iran.	90	["Wikidata"]	Q862251	http://www.wikidata.org/entity/Q862251	2026-07-08T10:31:36.248Z
+italica	Italica	{"lat":37.44119,"lng":-6.0445003}		-205		Founded 205 BCE	Archaeological site in Spain.	90	["Wikidata"]	Q658893	http://www.wikidata.org/entity/Q658893	2026-07-08T10:31:36.248Z
+iwami-ginzan-silver-mine	Iwami Ginzan Silver Mine	{"lat":35.107222,"lng":132.4375}		1527		Founded 1527 CE	Archaeological site in Japan.	90	["Wikidata"]	Q174139	http://www.wikidata.org/entity/Q174139	2026-07-08T10:31:36.248Z
+jarmo	Jarmo	{"lat":35.555797222,"lng":44.930291666}		-7090		Founded 7090 BCE	Archaeological site in Iraq.	90	["Wikidata"]	Q1000577	http://www.wikidata.org/entity/Q1000577	2026-07-08T10:31:36.248Z
+jebel-barkal	Jebel Barkal	{"lat":18.5368,"lng":31.8276}					Archaeological site in Sudan.	90	["Wikidata"]	Q499019	http://www.wikidata.org/entity/Q499019	2026-07-08T10:31:36.248Z
+jebel-irhoud	Jebel Irhoud	{"lat":31.854980555,"lng":-8.872505555}					Archaeological site in Morocco.	90	["Wikidata"]	Q846913	http://www.wikidata.org/entity/Q846913	2026-07-08T10:31:36.248Z
+jesus-de-tavarangue	Jesús de Tavarangüé	{"lat":-27.056,"lng":-55.753}					Archaeological site in Paraguay.	90	["Wikidata"]	Q318338	http://www.wikidata.org/entity/Q318338	2026-07-08T10:31:36.248Z
+joya-de-ceren	Joya de Cerén	{"lat":13.827494444,"lng":-89.356158333}					Archaeological site in El Salvador.	90	["Wikidata"]	Q27985	http://www.wikidata.org/entity/Q27985	2026-07-08T10:31:36.248Z
+kadesh	Kadesh	{"lat":34.5576,"lng":36.52}					Archaeological site in Syria.	90	["Wikidata"]	Q690035	http://www.wikidata.org/entity/Q690035	2026-07-08T10:31:36.248Z
+kamarina	Kamarina	{"lat":36.872287,"lng":14.447788}		-598		Founded 598 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q854843	http://www.wikidata.org/entity/Q854843	2026-07-08T10:31:36.248Z
+kapilavastu	Kapilavastu	{"lat":27.576455,"lng":83.054978}					Archaeological site in India.	90	["Wikidata"]	Q30610827	http://www.wikidata.org/entity/Q30610827	2026-07-08T10:31:36.248Z
+kapova-cave	Kapova Cave	{"lat":53.044444444,"lng":57.063888888}		1965		Founded 1965 CE	Archaeological site in Russia.	90	["Wikidata"]	Q1643788	http://www.wikidata.org/entity/Q1643788	2026-07-08T10:31:36.248Z
+karnak-temple-complex	Karnak Temple Complex	{"lat":25.718333333,"lng":32.658333333}		-1899		Founded 1899 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q522862	http://www.wikidata.org/entity/Q522862	2026-07-08T10:31:36.248Z
+kerkouane	Kerkouane	{"lat":36.946388888,"lng":11.099166666}					Archaeological site in Tunisia.	90	["Wikidata"]	Q538061	http://www.wikidata.org/entity/Q538061	2026-07-08T10:31:36.248Z
+keros	Keros	{"lat":36.891388888,"lng":25.648611111}					Archaeological site in Greece.	90	["Wikidata"]	Q546109	http://www.wikidata.org/entity/Q546109	2026-07-08T10:31:36.248Z
+khirokitia	Khirokitia	{"lat":34.796725,"lng":33.343719444}		-7000		Founded 7000 BCE	Archaeological site in Cyprus.	90	["Wikidata"]	Q385086	http://www.wikidata.org/entity/Q385086	2026-07-08T10:31:36.248Z
+klazomenai	Klazomenai	{"lat":38.373889,"lng":26.785278}					Archaeological site in Turkey.	90	["Wikidata"]	Q536598	http://www.wikidata.org/entity/Q536598	2026-07-08T10:31:36.248Z
+knidos	Knidos	{"lat":36.685833,"lng":27.375}		-1099		Founded 1099 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q690575	http://www.wikidata.org/entity/Q690575	2026-07-08T10:31:36.248Z
+koh-ker	Koh Ker	{"lat":13.78333333,"lng":104.53333333}					Archaeological site in Cambodia.	90	["Wikidata"]	Q1778458	http://www.wikidata.org/entity/Q1778458	2026-07-08T10:31:36.248Z
+kondoa-rock-art-sites	Kondoa Rock Art Sites	{"lat":-4.72444,"lng":35.83389}					Archaeological site in Tanzania.	90	["Wikidata"]	Q1404282	http://www.wikidata.org/entity/Q1404282	2026-07-08T10:31:36.248Z
+konigsberg	Königsberg	{"lat":54.711472222,"lng":20.509305555}		1255		Founded 1255 CE	Archaeological site in Nazi Germany.	90	["Wikidata"]	Q4120832	http://www.wikidata.org/entity/Q4120832	2026-07-08T10:31:36.248Z
+konigsberg-castle	Königsberg Castle	{"lat":54.710342,"lng":20.509558}		1255		Founded 1255 CE	Archaeological site in Russia.	90	["Wikidata"]	Q571409	http://www.wikidata.org/entity/Q571409	2026-07-08T10:31:36.248Z
+konye-urgench	Konye-Urgench	{"lat":42.316666666,"lng":59.158611111}					Archaeological site in Turkmenistan.	90	["Wikidata"]	Q48472	http://www.wikidata.org/entity/Q48472	2026-07-08T10:31:36.248Z
+kultepe	Kültepe	{"lat":38.85,"lng":35.633333333}					Archaeological site in Turkey.	90	["Wikidata"]	Q538605	http://www.wikidata.org/entity/Q538605	2026-07-08T10:31:36.248Z
+kv2	KV2	{"lat":25.44,"lng":32.36}					Archaeological site in Egypt.	90	["Wikidata"]	Q1347523	http://www.wikidata.org/entity/Q1347523	2026-07-08T10:31:36.248Z
+la-santisima-trinidad-del-parana	La Santísima Trinidad del Paraná	{"lat":-27.132,"lng":-55.702}					Archaeological site in Paraguay.	90	["Wikidata"]	Q1366015	http://www.wikidata.org/entity/Q1366015	2026-07-08T10:31:36.248Z
+laetoli	Laetoli	{"lat":-2.99622,"lng":35.3524}					Archaeological site in Tanzania.	90	["Wikidata"]	Q672146	http://www.wikidata.org/entity/Q672146	2026-07-08T10:31:36.248Z
+lake-bled	Lake Bled	{"lat":46.364444444,"lng":14.094722222}					Archaeological site in Slovenia.	90	["Wikidata"]	Q648902	http://www.wikidata.org/entity/Q648902	2026-07-08T10:31:36.248Z
+las-medulas	Las Médulas	{"lat":42.458699,"lng":-6.759002}					Archaeological site in Spain.	90	["Wikidata"]	Q696803	http://www.wikidata.org/entity/Q696803	2026-07-08T10:31:36.248Z
+layer-pyramid	Layer Pyramid	{"lat":29.932778,"lng":31.161111}					Archaeological site in Egypt.	90	["Wikidata"]	Q740691	http://www.wikidata.org/entity/Q740691	2026-07-08T10:31:36.248Z
+leshan-giant-buddha	Leshan Giant Buddha	{"lat":29.546944444,"lng":103.76925}		803		Founded 803 CE	Archaeological site in People's Republic of China.	90	["Wikidata"]	Q205131	http://www.wikidata.org/entity/Q205131	2026-07-08T10:31:36.248Z
+letoon	Letoon	{"lat":36.331944444,"lng":29.289722222}					Archaeological site in Turkey.	90	["Wikidata"]	Q703480	http://www.wikidata.org/entity/Q703480	2026-07-08T10:31:36.248Z
+library-of-celsus	Library of Celsus	{"lat":37.939138888,"lng":27.34075}					Archaeological site in Turkey.	90	["Wikidata"]	Q744406	http://www.wikidata.org/entity/Q744406	2026-07-08T10:31:36.248Z
+lisht	Lisht	{"lat":29.570277777,"lng":31.231111111}					Archaeological site in Egypt.	90	["Wikidata"]	Q287779	http://www.wikidata.org/entity/Q287779	2026-07-08T10:31:36.248Z
+lyceum	Lyceum	{"lat":37.97402,"lng":23.74334}		-334		Founded 334 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q1160664	http://www.wikidata.org/entity/Q1160664	2026-07-08T10:31:36.248Z
+m-zab	M'zab	{"lat":32.487222222,"lng":3.681388888}					Archaeological site in Algeria.	90	["Wikidata"]	Q724484	http://www.wikidata.org/entity/Q724484	2026-07-08T10:31:36.248Z
+ma-arrat-nu-man	Ma'arrat Nu'man	{"lat":35.643333333,"lng":36.668333333}					Archaeological site in Syria.	90	["Wikidata"]	Q728226	http://www.wikidata.org/entity/Q728226	2026-07-08T10:31:36.248Z
+maaloula	Maaloula	{"lat":33.844166666,"lng":36.546666666}					Archaeological site in Syria.	90	["Wikidata"]	Q740804	http://www.wikidata.org/entity/Q740804	2026-07-08T10:31:36.248Z
+madinat-al-zahra	Madinat Al-Zahra	{"lat":37.886080468,"lng":-4.867785472}		1000		Founded 1000 CE	Archaeological site in Spain.	90	["Wikidata"]	Q211252	http://www.wikidata.org/entity/Q211252	2026-07-08T10:31:36.248Z
+maes-howe	Maes Howe	{"lat":58.9966,"lng":-3.1882}					Archaeological site in United Kingdom.	90	["Wikidata"]	Q507076	http://www.wikidata.org/entity/Q507076	2026-07-08T10:31:36.248Z
+maison-carree	Maison Carrée	{"lat":43.838194,"lng":4.356111}					Archaeological site in France.	90	["Wikidata"]	Q677659	http://www.wikidata.org/entity/Q677659	2026-07-08T10:31:36.248Z
+manbij	Manbij	{"lat":36.533333333,"lng":37.95}					Archaeological site in Syria.	90	["Wikidata"]	Q1146939	http://www.wikidata.org/entity/Q1146939	2026-07-08T10:31:36.248Z
+mangazeya	Mangazeya	{"lat":66.689441,"lng":82.253343}		1601		Founded 1601 CE	Archaeological site in Russia.	90	["Wikidata"]	Q174072	http://www.wikidata.org/entity/Q174072	2026-07-08T10:31:36.248Z
+mangup	Mangup	{"lat":44.593055555,"lng":33.801388888}					Archaeological site in Ukraine.	90	["Wikidata"]	Q988400	http://www.wikidata.org/entity/Q988400	2026-07-08T10:31:36.248Z
+mantineia	Mantineia	{"lat":37.616619,"lng":22.391896}					Archaeological site in Greece.	90	["Wikidata"]	Q1160195	http://www.wikidata.org/entity/Q1160195	2026-07-08T10:31:36.248Z
+margat	Margat	{"lat":35.151111,"lng":35.949167}		1062		Founded 1062 CE	Archaeological site in Syria.	90	["Wikidata"]	Q906516	http://www.wikidata.org/entity/Q906516	2026-07-08T10:31:36.248Z
+masada	Masada	{"lat":31.315555555,"lng":35.353888888}					Archaeological site in Israel.	90	["Wikidata"]	Q186312	http://www.wikidata.org/entity/Q186312	2026-07-08T10:31:36.248Z
+mausoleum-of-augustus	Mausoleum of Augustus	{"lat":41.90611,"lng":12.47639}		-27		Founded 27 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q770847	http://www.wikidata.org/entity/Q770847	2026-07-08T10:31:36.248Z
+mausoleum-of-the-first-qin-emperor	Mausoleum of the First Qin Emperor	{"lat":34.38166667,"lng":109.25388889}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q910180	http://www.wikidata.org/entity/Q910180	2026-07-08T10:31:36.248Z
+mawangdui	Mawangdui	{"lat":28.208611,"lng":113.021667}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q1196056	http://www.wikidata.org/entity/Q1196056	2026-07-08T10:31:36.248Z
+maya-ruins-of-tulum	Maya Ruins of Tulum	{"lat":20.214722222,"lng":-87.428888888}					Archaeological site in Mexico.	90	["Wikidata"]	Q725883	http://www.wikidata.org/entity/Q725883	2026-07-08T10:31:36.248Z
+mayapan	Mayapan	{"lat":20.629444444,"lng":-89.460555555}					Archaeological site in Mexico.	90	["Wikidata"]	Q567966	http://www.wikidata.org/entity/Q567966	2026-07-08T10:31:36.248Z
+medinet-habu	Medinet Habu	{"lat":25.72,"lng":32.600833}					Archaeological site in Egypt.	90	["Wikidata"]	Q932622	http://www.wikidata.org/entity/Q932622	2026-07-08T10:31:36.248Z
+megalithic-temples-of-malta	Megalithic Temples of Malta	{"lat":36.04916667,"lng":14.26944444}		-3599		Founded 3599 BCE	Archaeological site in Malta.	90	["Wikidata"]	Q753383	http://www.wikidata.org/entity/Q753383	2026-07-08T10:31:36.248Z
+meidum	Meidum	{"lat":29.372448,"lng":31.172034}					Archaeological site in Egypt.	90	["Wikidata"]	Q1066424	http://www.wikidata.org/entity/Q1066424	2026-07-08T10:31:36.248Z
+mendes	Mendes	{"lat":30.956280555,"lng":31.5172}					Archaeological site in Egypt.	90	["Wikidata"]	Q1427162	http://www.wikidata.org/entity/Q1427162	2026-07-08T10:31:36.248Z
+mesa-verde-national-park	Mesa Verde National Park	{"lat":37.260375,"lng":-108.494444}		1906		Founded 1906 CE	Archaeological site in United States.	90	["Wikidata"]	Q237128	http://www.wikidata.org/entity/Q237128	2026-07-08T10:31:36.248Z
+minaret-of-jam	Minaret of Jam	{"lat":34.396386,"lng":64.515888}		1194		Founded 1194 CE	Archaeological site in Afghanistan.	90	["Wikidata"]	Q192981	http://www.wikidata.org/entity/Q192981	2026-07-08T10:31:36.248Z
+mnajdra	Mnajdra	{"lat":35.826666666,"lng":14.436388888}					Archaeological site in Malta.	90	["Wikidata"]	Q584366	http://www.wikidata.org/entity/Q584366	2026-07-08T10:31:36.248Z
+mozia	Mozia	{"lat":37.868333333,"lng":12.468611111}					Archaeological site in Italy.	90	["Wikidata"]	Q962184	http://www.wikidata.org/entity/Q962184	2026-07-08T10:31:36.248Z
+myra	Myra	{"lat":36.259166666,"lng":29.985277777}					Archaeological site in Turkey.	90	["Wikidata"]	Q652024	http://www.wikidata.org/entity/Q652024	2026-07-08T10:31:36.248Z
+mystras	Mystras	{"lat":37.074,"lng":22.3673}					Archaeological site in Greece.	90	["Wikidata"]	Q19053	http://www.wikidata.org/entity/Q19053	2026-07-08T10:31:36.248Z
+nalanda-mahavihara	Nalanda Mahavihara	{"lat":25.136797222,"lng":85.443827777}					Archaeological site in India.	90	["Wikidata"]	Q216243	http://www.wikidata.org/entity/Q216243	2026-07-08T10:31:36.248Z
+naqada	Naqada	{"lat":25.901666666,"lng":32.724166666}					Archaeological site in Egypt.	90	["Wikidata"]	Q959859	http://www.wikidata.org/entity/Q959859	2026-07-08T10:31:36.248Z
+naqsh-e-rustam	Naqsh-e Rustam	{"lat":29.988888888,"lng":52.874722222}					Archaeological site in Iran.	90	["Wikidata"]	Q648705	http://www.wikidata.org/entity/Q648705	2026-07-08T10:31:36.248Z
+naucratis	Naucratis	{"lat":30.9,"lng":30.616667}					Archaeological site in Egypt.	90	["Wikidata"]	Q137721	http://www.wikidata.org/entity/Q137721	2026-07-08T10:31:36.248Z
+nekhen	Nekhen	{"lat":25.097222222,"lng":32.779444444}					Archaeological site in Egypt.	90	["Wikidata"]	Q278988	http://www.wikidata.org/entity/Q278988	2026-07-08T10:31:36.248Z
+nemea	Nemea	{"lat":37.808962,"lng":22.710279}					Archaeological site in Greece.	90	["Wikidata"]	Q748108	http://www.wikidata.org/entity/Q748108	2026-07-08T10:31:36.248Z
+nemrut	Nemrut	{"lat":38.62257,"lng":42.24668}					Archaeological site in Turkey.	90	["Wikidata"]	Q948747	http://www.wikidata.org/entity/Q948747	2026-07-08T10:31:36.248Z
+niah-national-park	Niah National Park	{"lat":3.813889,"lng":113.781389}		1974		Founded 1974 CE	Archaeological site in Malaysia.	90	["Wikidata"]	Q1984562	http://www.wikidata.org/entity/Q1984562	2026-07-08T10:31:36.248Z
+nicomedia	Nicomedia	{"lat":40.7625,"lng":29.9175}		-263		Founded 263 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q209349	http://www.wikidata.org/entity/Q209349	2026-07-08T10:31:36.248Z
+nicopolis	Nicopolis	{"lat":39.00933,"lng":20.73353}		-28		Founded 28 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q943637	http://www.wikidata.org/entity/Q943637	2026-07-08T10:31:36.248Z
+nisa	Nisa	{"lat":37.951147222,"lng":58.212408333}					Archaeological site in Turkmenistan.	90	["Wikidata"]	Q854672	http://www.wikidata.org/entity/Q854672	2026-07-08T10:31:36.248Z
+north-acomita-village	North Acomita Village	{"lat":35.067777777,"lng":-107.565277777}					Archaeological site in United States.	90	["Wikidata"]	Q1237840	http://www.wikidata.org/entity/Q1237840	2026-07-08T10:31:36.248Z
+nuzi	Nuzi	{"lat":35.302494444,"lng":44.247622222}					Archaeological site in Iraq.	90	["Wikidata"]	Q584605	http://www.wikidata.org/entity/Q584605	2026-07-08T10:31:36.248Z
+offa-s-dyke	Offa's Dyke	{"lat":52.344,"lng":-3.049}					Archaeological site in United Kingdom.	90	["Wikidata"]	Q1127343	http://www.wikidata.org/entity/Q1127343	2026-07-08T10:31:36.248Z
+olbia	Olbia	{"lat":46.7,"lng":31.9}		-700		Founded 700 BCE	Archaeological site in Ukraine.	90	["Wikidata"]	Q1143233	http://www.wikidata.org/entity/Q1143233	2026-07-08T10:31:36.248Z
+olynthus	Olynthus	{"lat":40.29275,"lng":23.354527777}					Archaeological site in Greece.	90	["Wikidata"]	Q1141669	http://www.wikidata.org/entity/Q1141669	2026-07-08T10:31:36.248Z
+our-lady-of-promise	Our Lady of Promise	{"lat":42.211388888,"lng":20.735833333}					Archaeological site in Serbia.	90	["Wikidata"]	Q890652	http://www.wikidata.org/entity/Q890652	2026-07-08T10:31:36.248Z
+oxyrhynchus	Oxyrhynchus	{"lat":28.53611111,"lng":30.65555556}					Archaeological site in Egypt.	90	["Wikidata"]	Q622640	http://www.wikidata.org/entity/Q622640	2026-07-08T10:31:36.248Z
+paestum	Paestum	{"lat":40.422631,"lng":15.005569}		-599		Founded 599 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q329967	http://www.wikidata.org/entity/Q329967	2026-07-08T10:31:36.248Z
+palatine-hill	Palatine Hill	{"lat":41.888333333,"lng":12.486944444}					Archaeological site in Italy.	90	["Wikidata"]	Q200642	http://www.wikidata.org/entity/Q200642	2026-07-08T10:31:36.248Z
+panama-viejo	Panamá Viejo	{"lat":9.0068286,"lng":-79.485149}					Archaeological site in Panama.	90	["Wikidata"]	Q712335	http://www.wikidata.org/entity/Q712335	2026-07-08T10:31:36.248Z
+patara	Patara	{"lat":36.260278,"lng":29.314167}		-800		Founded 800 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q233121	http://www.wikidata.org/entity/Q233121	2026-07-08T10:31:36.248Z
+pattadakal-group-of-monuments	Pattadakal Group of Monuments	{"lat":15.948333333,"lng":75.816666666}		800		Founded 800 CE	Archaeological site in India.	90	["Wikidata"]	Q817250	http://www.wikidata.org/entity/Q817250	2026-07-08T10:31:36.248Z
+pella	Pella	{"lat":40.760033,"lng":22.525642}					Archaeological site in Greece.	90	["Wikidata"]	Q213679	http://www.wikidata.org/entity/Q213679	2026-07-08T10:31:36.248Z
+pella-q167993	Pella	{"lat":32.450001,"lng":35.616669}					Archaeological site in Jordan.	90	["Wikidata"]	Q167993	http://www.wikidata.org/entity/Q167993	2026-07-08T10:31:36.248Z
+pembroke-castle	Pembroke Castle	{"lat":51.676944444,"lng":-4.920555555}		1093		Founded 1093 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q1422235	http://www.wikidata.org/entity/Q1422235	2026-07-08T10:31:36.248Z
+perge	Perge	{"lat":36.962229,"lng":30.855068}		-999		Founded 999 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q719815	http://www.wikidata.org/entity/Q719815	2026-07-08T10:31:36.248Z
+perperikon	Perperikon	{"lat":41.714722,"lng":25.465278}					Archaeological site in Bulgaria.	90	["Wikidata"]	Q1943549	http://www.wikidata.org/entity/Q1943549	2026-07-08T10:31:36.248Z
+phaistos	Phaistos	{"lat":35.05123,"lng":24.814267}		-3000		Founded 3000 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q249707	http://www.wikidata.org/entity/Q249707	2026-07-08T10:31:36.248Z
+phanagoria	Phanagoria	{"lat":45.278059,"lng":36.974881}		-542		Founded 542 BCE	Archaeological site in Russia.	90	["Wikidata"]	Q1344411	http://www.wikidata.org/entity/Q1344411	2026-07-08T10:31:36.248Z
+pharaoh-s-island	Pharaoh's Island	{"lat":29.462838888,"lng":34.86005}					Archaeological site in Egypt.	90	["Wikidata"]	Q933219	http://www.wikidata.org/entity/Q933219	2026-07-08T10:31:36.248Z
+phocaea	Phocaea	{"lat":38.6675,"lng":26.758055555}					Archaeological site in Turkey.	90	["Wikidata"]	Q428732	http://www.wikidata.org/entity/Q428732	2026-07-08T10:31:36.248Z
+pi-ramesses	Pi-Ramesses	{"lat":30.79937,"lng":31.834217}		-1277		Founded 1277 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q937930	http://www.wikidata.org/entity/Q937930	2026-07-08T10:31:36.248Z
+plain-of-jars	Plain of Jars	{"lat":19.431111111,"lng":103.1525}					Archaeological site in Laos.	90	["Wikidata"]	Q870258	http://www.wikidata.org/entity/Q870258	2026-07-08T10:31:36.248Z
+platonic-academy	Platonic Academy	{"lat":37.992359,"lng":23.708059}		-386		Founded 386 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q193093	http://www.wikidata.org/entity/Q193093	2026-07-08T10:31:36.248Z
+pnyx	Pnyx	{"lat":37.971666666,"lng":23.719444444}					Archaeological site in Greece.	90	["Wikidata"]	Q1125096	http://www.wikidata.org/entity/Q1125096	2026-07-08T10:31:36.248Z
+poggiomarino	Poggiomarino	{"lat":40.8,"lng":14.55}					Archaeological site in Italy.	90	["Wikidata"]	Q72356	http://www.wikidata.org/entity/Q72356	2026-07-08T10:31:36.248Z
+pool-of-bethesda	Pool of Bethesda	{"lat":31.781388888,"lng":35.235833333}					Archaeological site in Israel.	90	["Wikidata"]	Q831297	http://www.wikidata.org/entity/Q831297	2026-07-08T10:31:36.248Z
+porta-maggiore	Porta Maggiore	{"lat":41.8914573,"lng":12.5152419}					Archaeological site in Italy.	90	["Wikidata"]	Q751318	http://www.wikidata.org/entity/Q751318	2026-07-08T10:31:36.248Z
+postojna-cave	Postojna Cave	{"lat":45.78276,"lng":14.20366}					Archaeological site in Slovenia.	90	["Wikidata"]	Q15903	http://www.wikidata.org/entity/Q15903	2026-07-08T10:31:36.248Z
+preah-vihear-temple	Preah Vihear Temple	{"lat":14.390555555,"lng":104.680277777}		893		Founded 893 CE	Archaeological site in Cambodia.	90	["Wikidata"]	Q45949	http://www.wikidata.org/entity/Q45949	2026-07-08T10:31:36.248Z
+prehistoric-rock-art-sites-in-the-coa-valley	Prehistoric Rock Art Sites in the Côa Valley	{"lat":41.03333333,"lng":-7.11666667}					Archaeological site in Portugal.	90	["Wikidata"]	Q552106	http://www.wikidata.org/entity/Q552106	2026-07-08T10:31:36.248Z
+priene	Priene	{"lat":37.659722,"lng":27.297778}		-999		Founded 999 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q142819	http://www.wikidata.org/entity/Q142819	2026-07-08T10:31:36.248Z
+pula-arena	Pula Arena	{"lat":44.873,"lng":13.85}		-26		Founded 26 BCE	Archaeological site in Croatia.	90	["Wikidata"]	Q474998	http://www.wikidata.org/entity/Q474998	2026-07-08T10:31:36.248Z
+pumapunku	Pumapunku	{"lat":-16.561388888,"lng":-68.679444444}					Archaeological site in Bolivia.	90	["Wikidata"]	Q665223	http://www.wikidata.org/entity/Q665223	2026-07-08T10:31:36.248Z
+pyramid-of-cestius	Pyramid of Cestius	{"lat":41.876489,"lng":12.480898}		-11		Founded 11 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q725404	http://www.wikidata.org/entity/Q725404	2026-07-08T10:31:36.248Z
+pyramid-of-djoser	Pyramid of Djoser	{"lat":29.871111111,"lng":31.216666666}		-2639		Founded 2639 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q192418	http://www.wikidata.org/entity/Q192418	2026-07-08T10:31:36.248Z
+pyramid-of-khafre	Pyramid of Khafre	{"lat":29.976,"lng":31.130972}					Archaeological site in Egypt.	90	["Wikidata"]	Q208358	http://www.wikidata.org/entity/Q208358	2026-07-08T10:31:36.248Z
+pyramid-of-menkaure	Pyramid of Menkaure	{"lat":29.9725,"lng":31.128333}		-2510		Founded 2510 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q238623	http://www.wikidata.org/entity/Q238623	2026-07-08T10:31:36.248Z
+pyramid-of-sahure	Pyramid of Sahure	{"lat":29.897777777,"lng":31.203333333}		-2480		Founded 2480 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q131820	http://www.wikidata.org/entity/Q131820	2026-07-08T10:31:36.248Z
+pyramid-of-the-moon	Pyramid of the Moon	{"lat":19.6996,"lng":-98.844}					Archaeological site in Mexico.	90	["Wikidata"]	Q29240	http://www.wikidata.org/entity/Q29240	2026-07-08T10:31:36.248Z
+pyramid-of-the-sun	Pyramid of the Sun	{"lat":19.6925,"lng":-98.8438}					Archaeological site in Mexico.	90	["Wikidata"]	Q29238	http://www.wikidata.org/entity/Q29238	2026-07-08T10:31:36.248Z
+pyramids-of-guimar	Pyramids of Güímar	{"lat":28.320833333,"lng":-16.413611111}					Archaeological site in Spain.	90	["Wikidata"]	Q619588	http://www.wikidata.org/entity/Q619588	2026-07-08T10:31:36.248Z
+qal-at-bani-hammad	Qal'at Bani Hammad	{"lat":35.813888888,"lng":4.793333333}		1007		Founded 1007 CE	Archaeological site in Algeria.	90	["Wikidata"]	Q500367	http://www.wikidata.org/entity/Q500367	2026-07-08T10:31:36.248Z
+qatna	Qatna	{"lat":34.835,"lng":36.865833333}		-3299		Founded 3299 BCE	Archaeological site in Syria.	90	["Wikidata"]	Q630734	http://www.wikidata.org/entity/Q630734	2026-07-08T10:31:36.248Z
+qift	Qift	{"lat":26,"lng":32.816666666}					Archaeological site in Egypt.	90	["Wikidata"]	Q935454	http://www.wikidata.org/entity/Q935454	2026-07-08T10:31:36.248Z
+qumran	Qumran	{"lat":31.741900825,"lng":35.459944301}		-103		Founded 103 BCE	Archaeological site in Palestine.	90	["Wikidata"]	Q223399	http://www.wikidata.org/entity/Q223399	2026-07-08T10:31:36.248Z
+ramesseum	Ramesseum	{"lat":25.727777777,"lng":32.610555555}					Archaeological site in Egypt.	90	["Wikidata"]	Q311581	http://www.wikidata.org/entity/Q311581	2026-07-08T10:31:36.248Z
+red-pyramid	Red Pyramid	{"lat":29.808333333,"lng":31.205833333}		-2589		Founded 2589 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q135332	http://www.wikidata.org/entity/Q135332	2026-07-08T10:31:36.248Z
+ring-of-brodgar	Ring of Brodgar	{"lat":59.0014818,"lng":-3.2297227}					Archaeological site in United Kingdom.	90	["Wikidata"]	Q643631	http://www.wikidata.org/entity/Q643631	2026-07-08T10:31:36.248Z
+rock-carvings-in-tanum	Rock Carvings in Tanum	{"lat":58.69995,"lng":11.33641}					Archaeological site in Sweden.	90	["Wikidata"]	Q1761052	http://www.wikidata.org/entity/Q1761052	2026-07-08T10:31:36.248Z
+rock-of-cashel	Rock of Cashel	{"lat":52.52,"lng":-7.89}					Archaeological site in Ireland.	90	["Wikidata"]	Q1255597	http://www.wikidata.org/entity/Q1255597	2026-07-08T10:31:36.248Z
+rock-paintings-of-hua-mountain	Rock Paintings of Hua Mountain	{"lat":22.248327,"lng":107.042276}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q1632877	http://www.wikidata.org/entity/Q1632877	2026-07-08T10:31:36.248Z
+roman-amphitheatre-of-durres	Roman amphitheatre of Durrës	{"lat":41.312191,"lng":19.445263}					Archaeological site in Albania.	90	["Wikidata"]	Q779868	http://www.wikidata.org/entity/Q779868	2026-07-08T10:31:36.248Z
+roman-forum	Roman Forum	{"lat":41.8922,"lng":12.4852}		-800		Founded 800 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q180212	http://www.wikidata.org/entity/Q180212	2026-07-08T10:31:36.248Z
+rostra	rostra	{"lat":41.892638888,"lng":12.484611111}					Archaeological site in Italy.	90	["Wikidata"]	Q426372	http://www.wikidata.org/entity/Q426372	2026-07-08T10:31:36.248Z
+salt	Salt	{"lat":32.039166666,"lng":35.727222222}					Archaeological site in Jordan.	90	["Wikidata"]	Q867586	http://www.wikidata.org/entity/Q867586	2026-07-08T10:31:36.248Z
+samannud	Samannud	{"lat":30.96222222,"lng":31.2425}					Archaeological site in Egypt.	90	["Wikidata"]	Q1243772	http://www.wikidata.org/entity/Q1243772	2026-07-08T10:31:36.248Z
+sambor-prei-kuk	Sambor Prei Kuk	{"lat":12.867283,"lng":105.040025}					Archaeological site in Cambodia.	90	["Wikidata"]	Q1818746	http://www.wikidata.org/entity/Q1818746	2026-07-08T10:31:36.248Z
+sammallahdenmaki	Sammallahdenmäki	{"lat":61.11767375,"lng":21.7751687}					Archaeological site in Finland.	90	["Wikidata"]	Q239748	http://www.wikidata.org/entity/Q239748	2026-07-08T10:31:36.248Z
+samosata	Samosata	{"lat":37.57955,"lng":38.481316666}					Archaeological site in Turkey.	90	["Wikidata"]	Q1026347	http://www.wikidata.org/entity/Q1026347	2026-07-08T10:31:36.248Z
+san-ignacio-mini	San Ignacio Miní	{"lat":-27.255306,"lng":-55.5315}					Archaeological site in Argentina.	90	["Wikidata"]	Q868799	http://www.wikidata.org/entity/Q868799	2026-07-08T10:31:36.248Z
+sangiran	Sangiran	{"lat":-7.45,"lng":110.85}					Archaeological site in Indonesia.	90	["Wikidata"]	Q842328	http://www.wikidata.org/entity/Q842328	2026-07-08T10:31:36.248Z
+saqqara	Saqqara	{"lat":29.85,"lng":31.233333333}					Archaeological site in Egypt.	90	["Wikidata"]	Q192134	http://www.wikidata.org/entity/Q192134	2026-07-08T10:31:36.248Z
+saqsaywaman	Saqsaywaman	{"lat":-13.507778,"lng":-71.982222}					Archaeological site in Peru.	90	["Wikidata"]	Q828336	http://www.wikidata.org/entity/Q828336	2026-07-08T10:31:36.248Z
+sarkel	Sarkel	{"lat":47.705,"lng":42.273056}		834		Founded 834 CE	Archaeological site in Russia.	90	["Wikidata"]	Q1068190	http://www.wikidata.org/entity/Q1068190	2026-07-08T10:31:36.248Z
+sarmizegetusa-regia	Sarmizegetusa Regia	{"lat":45.62277778,"lng":23.31027778}					Archaeological site in Romania.	90	["Wikidata"]	Q739802	http://www.wikidata.org/entity/Q739802	2026-07-08T10:31:36.248Z
+sassi-di-matera	Sassi di Matera	{"lat":40.6667,"lng":16.6083}					Archaeological site in Italy.	90	["Wikidata"]	Q2350404	http://www.wikidata.org/entity/Q2350404	2026-07-08T10:31:36.248Z
+seleucia-q1136681	Seleucia	{"lat":33.137222,"lng":44.517222}		-304		Founded 304 BCE	Archaeological site in Iraq.	90	["Wikidata"]	Q1136681	http://www.wikidata.org/entity/Q1136681	2026-07-08T10:31:36.248Z
+sepphoris	Sepphoris	{"lat":32.75411,"lng":35.283791}					Archaeological site in Israel.	90	["Wikidata"]	Q1132798	http://www.wikidata.org/entity/Q1132798	2026-07-08T10:31:36.248Z
+seri-bahlol	Seri Bahlol	{"lat":34.255475,"lng":71.950688888}					Archaeological site in Pakistan.	90	["Wikidata"]	Q1511531	http://www.wikidata.org/entity/Q1511531	2026-07-08T10:31:36.248Z
+servian-wall	Servian Wall	{"lat":41.901666666,"lng":12.501666666}		-350		Founded 350 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q281330	http://www.wikidata.org/entity/Q281330	2026-07-08T10:31:36.248Z
+shahba	Shahba	{"lat":32.85388889,"lng":36.62944444}					Archaeological site in Syria.	90	["Wikidata"]	Q926336	http://www.wikidata.org/entity/Q926336	2026-07-08T10:31:36.248Z
+shahr-e-sukhteh	Shahr-e Sukhteh	{"lat":30.595277777,"lng":61.331944444}					Archaeological site in Iran.	90	["Wikidata"]	Q1025825	http://www.wikidata.org/entity/Q1025825	2026-07-08T10:31:36.248Z
+shanidar-cave	Shanidar Cave	{"lat":36.8006,"lng":44.2433}					Archaeological site in Iraq.	90	["Wikidata"]	Q909799	http://www.wikidata.org/entity/Q909799	2026-07-08T10:31:36.248Z
+shechem	Shechem	{"lat":32.21361111,"lng":35.28194444}					Archaeological site in Canaan.	90	["Wikidata"]	Q7951237	http://www.wikidata.org/entity/Q7951237	2026-07-08T10:31:36.248Z
+shiloh	Shiloh	{"lat":32.05570278,"lng":35.28953611}					Archaeological site in Israel.	90	["Wikidata"]	Q985542	http://www.wikidata.org/entity/Q985542	2026-07-08T10:31:36.248Z
+shravasti	Shravasti	{"lat":27.517073,"lng":82.050619}					Archaeological site in India.	90	["Wikidata"]	Q2594448	http://www.wikidata.org/entity/Q2594448	2026-07-08T10:31:36.248Z
+shuruppak	Shuruppak	{"lat":31.777363888,"lng":45.509761111}					Archaeological site in Iraq.	90	["Wikidata"]	Q392725	http://www.wikidata.org/entity/Q392725	2026-07-08T10:31:36.248Z
+sicyon	Sicyon	{"lat":37.984104,"lng":22.711145}		-2000		Founded 2000 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q368628	http://www.wikidata.org/entity/Q368628	2026-07-08T10:31:36.248Z
+skopje-fortress	Skopje Fortress	{"lat":42,"lng":21.434444444}					Archaeological site in North Macedonia.	90	["Wikidata"]	Q1262367	http://www.wikidata.org/entity/Q1262367	2026-07-08T10:31:36.248Z
+smyrna	Smyrna	{"lat":38.423889,"lng":27.142778}					Archaeological site in Byzantine Empire.	90	["Wikidata"]	Q1379299	http://www.wikidata.org/entity/Q1379299	2026-07-08T10:31:36.248Z
+songo-mnara	Songo Mnara	{"lat":-9.039422777,"lng":39.551702222}					Archaeological site in Tanzania.	90	["Wikidata"]	Q2301527	http://www.wikidata.org/entity/Q2301527	2026-07-08T10:31:36.248Z
+sounion	Sounion	{"lat":37.64897,"lng":24.0301}					Archaeological site in Greece.	90	["Wikidata"]	Q1136637	http://www.wikidata.org/entity/Q1136637	2026-07-08T10:31:36.248Z
+stabiae	Stabiae	{"lat":40.703055555,"lng":14.498888888}					Archaeological site in Italy.	90	["Wikidata"]	Q547910	http://www.wikidata.org/entity/Q547910	2026-07-08T10:31:36.248Z
+stageira	Stageira	{"lat":40.593031,"lng":23.79204}		-654		Founded 654 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q846127	http://www.wikidata.org/entity/Q846127	2026-07-08T10:31:36.248Z
+stari-ras	Stari Ras	{"lat":43.128342,"lng":20.415669}					Archaeological site in Serbia.	90	["Wikidata"]	Q917814	http://www.wikidata.org/entity/Q917814	2026-07-08T10:31:36.248Z
+sterkfontein	Sterkfontein	{"lat":-26.01604,"lng":27.73456}					Archaeological site in South Africa.	90	["Wikidata"]	Q1476862	http://www.wikidata.org/entity/Q1476862	2026-07-08T10:31:36.248Z
+stone-spheres-of-costa-rica	Stone spheres of Costa Rica	{"lat":8.91138889,"lng":-83.4775}					Archaeological site in Costa Rica.	90	["Wikidata"]	Q282275	http://www.wikidata.org/entity/Q282275	2026-07-08T10:31:36.248Z
+stones-of-stenness	Stones of Stenness	{"lat":58.993888888,"lng":-3.208055555}					Archaeological site in United Kingdom.	90	["Wikidata"]	Q1478558	http://www.wikidata.org/entity/Q1478558	2026-07-08T10:31:36.248Z
+su-nuraxi-di-barumini	Su Nuraxi di Barumini	{"lat":39.7028565,"lng":8.9998843}					Archaeological site in Italy.	90	["Wikidata"]	Q253241	http://www.wikidata.org/entity/Q253241	2026-07-08T10:31:36.248Z
+sumela-monastery	Sümela Monastery	{"lat":40.69,"lng":39.65833333}		386		Founded 386 CE	Archaeological site in Turkey.	90	["Wikidata"]	Q1419157	http://www.wikidata.org/entity/Q1419157	2026-07-08T10:31:36.248Z
+suwayda	Suwayda	{"lat":32.7,"lng":36.566666666}					Archaeological site in Syria.	90	["Wikidata"]	Q311099	http://www.wikidata.org/entity/Q311099	2026-07-08T10:31:36.248Z
+suyab	Suyab	{"lat":42.8,"lng":75.2667}					Archaeological site in Kyrgyzstan.	90	["Wikidata"]	Q413452	http://www.wikidata.org/entity/Q413452	2026-07-08T10:31:36.248Z
+sybaris	Sybaris	{"lat":39.716564,"lng":16.493696}		-719		Founded 719 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q220583	http://www.wikidata.org/entity/Q220583	2026-07-08T10:31:36.248Z
+tabularium	Tabularium	{"lat":41.892777777,"lng":12.483611111}		-77		Founded 77 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q568342	http://www.wikidata.org/entity/Q568342	2026-07-08T10:31:36.248Z
+tadrart-acacus	Tadrart Acacus	{"lat":24.833429166,"lng":10.333319444}					Archaeological site in Libya.	90	["Wikidata"]	Q308807	http://www.wikidata.org/entity/Q308807	2026-07-08T10:31:36.248Z
+tajin-veracruz	Tajín Veracruz	{"lat":20.448058333,"lng":-97.378241666}					Archaeological site in Mexico.	90	["Wikidata"]	Q753895	http://www.wikidata.org/entity/Q753895	2026-07-08T10:31:36.248Z
+takht-e-soleyman	Takht-e Soleyman	{"lat":36.604722222,"lng":47.234166666}					Archaeological site in Iran.	90	["Wikidata"]	Q115253	http://www.wikidata.org/entity/Q115253	2026-07-08T10:31:36.248Z
+tamgaly	Tamgaly	{"lat":43.803333333,"lng":75.535}					Archaeological site in Kazakhstan.	90	["Wikidata"]	Q943327	http://www.wikidata.org/entity/Q943327	2026-07-08T10:31:36.248Z
+tanais	Tanais	{"lat":47.270556,"lng":39.341389}		-300		Founded 300 BCE	Archaeological site in Russia.	90	["Wikidata"]	Q1153416	http://www.wikidata.org/entity/Q1153416	2026-07-08T10:31:36.248Z
+taq-i-kisra	Taq-i Kisra	{"lat":33.093722222,"lng":44.580722222}					Archaeological site in Iraq.	90	["Wikidata"]	Q1486703	http://www.wikidata.org/entity/Q1486703	2026-07-08T10:31:36.248Z
+tarxien-temples	Tarxien Temples	{"lat":35.869166666,"lng":14.511944444}					Archaeological site in Malta.	90	["Wikidata"]	Q1064331	http://www.wikidata.org/entity/Q1064331	2026-07-08T10:31:36.248Z
+tegea	Tegea	{"lat":37.464359,"lng":22.428524}					Archaeological site in Greece.	90	["Wikidata"]	Q645234	http://www.wikidata.org/entity/Q645234	2026-07-08T10:31:36.248Z
+tel-hazor	Tel Hazor	{"lat":33.018333333,"lng":35.569166666}					Archaeological site in Israel.	90	["Wikidata"]	Q740138	http://www.wikidata.org/entity/Q740138	2026-07-08T10:31:36.248Z
+tel-megiddo	Tel Megiddo	{"lat":32.585277777,"lng":35.184444444}		-6999		Founded 6999 BCE	Archaeological site in Israel.	90	["Wikidata"]	Q208379	http://www.wikidata.org/entity/Q208379	2026-07-08T10:31:36.248Z
+temple-of-antoninus-and-faustina	Temple of Antoninus and Faustina	{"lat":41.892138888,"lng":12.486688888}		142		Founded 142 CE	Archaeological site in Italy.	90	["Wikidata"]	Q752555	http://www.wikidata.org/entity/Q752555	2026-07-08T10:31:36.248Z
+temple-of-apollo-epicurius-in-bassae	Temple of Apollo Epicurius in Bassae	{"lat":37.429655,"lng":21.900387}		-419		Founded 419 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q38278862	http://www.wikidata.org/entity/Q38278862	2026-07-08T10:31:36.248Z
+temple-of-athena-nike	Temple of Athena Nike	{"lat":37.9715,"lng":23.7249}		-425		Founded 425 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q384813	http://www.wikidata.org/entity/Q384813	2026-07-08T10:31:36.248Z
+temple-of-baalshamin	Temple of Baalshamin	{"lat":34.553297,"lng":38.270467}					Archaeological site in Syria.	90	["Wikidata"]	Q20871005	http://www.wikidata.org/entity/Q20871005	2026-07-08T10:31:36.248Z
+temple-of-bel	Temple of Bel	{"lat":34.547,"lng":38.274}					Archaeological site in Syria.	90	["Wikidata"]	Q797481	http://www.wikidata.org/entity/Q797481	2026-07-08T10:31:36.248Z
+temple-of-concord	Temple of Concord	{"lat":41.892930555,"lng":12.484244444}					Archaeological site in Italy.	90	["Wikidata"]	Q828143	http://www.wikidata.org/entity/Q828143	2026-07-08T10:31:36.248Z
+temple-of-edfu	Temple of Edfu	{"lat":24.977777777,"lng":32.873333333}					Archaeological site in Egypt.	90	["Wikidata"]	Q613037	http://www.wikidata.org/entity/Q613037	2026-07-08T10:31:36.248Z
+temple-of-jupiter-optimus-maximus	Temple of Jupiter Optimus Maximus	{"lat":41.892175,"lng":12.481689}		-508		Founded 508 BCE	Archaeological site in Italy.	90	["Wikidata"]	Q586468	http://www.wikidata.org/entity/Q586468	2026-07-08T10:31:36.248Z
+temple-of-kom-ombo	Temple of Kom Ombo	{"lat":24.451944444,"lng":32.928055555}					Archaeological site in Egypt.	90	["Wikidata"]	Q1243401	http://www.wikidata.org/entity/Q1243401	2026-07-08T10:31:36.248Z
+temple-of-olympian-zeus	Temple of Olympian Zeus	{"lat":37.969372222,"lng":23.733077777}					Archaeological site in Greece.	90	["Wikidata"]	Q1123019	http://www.wikidata.org/entity/Q1123019	2026-07-08T10:31:36.248Z
+temple-of-peace	Temple of Peace	{"lat":41.892622,"lng":12.487611}		71		Founded 71 CE	Archaeological site in Italy.	90	["Wikidata"]	Q1456939	http://www.wikidata.org/entity/Q1456939	2026-07-08T10:31:36.248Z
+temple-of-portunus	Temple of Portunus	{"lat":41.88926,"lng":12.480908}					Archaeological site in Italy.	90	["Wikidata"]	Q849241	http://www.wikidata.org/entity/Q849241	2026-07-08T10:31:36.248Z
+temple-of-vesta	Temple of Vesta	{"lat":41.891707,"lng":12.486206}					Archaeological site in Italy.	90	["Wikidata"]	Q753791	http://www.wikidata.org/entity/Q753791	2026-07-08T10:31:36.248Z
+temple-of-zeus-in-olympia	Temple of Zeus in Olympia	{"lat":37.63786111,"lng":21.63}		-400		Founded 400 BCE	Archaeological site in Greece.	90	["Wikidata"]	Q197019	http://www.wikidata.org/entity/Q197019	2026-07-08T10:31:36.248Z
+templo-mayor	Templo Mayor	{"lat":19.435,"lng":-99.131389}		1325		Founded 1325 CE	Archaeological site in Mexico.	90	["Wikidata"]	Q774021	http://www.wikidata.org/entity/Q774021	2026-07-08T10:31:36.248Z
+teos	Teos	{"lat":38.199104,"lng":26.837477}					Archaeological site in Turkey.	90	["Wikidata"]	Q17586	http://www.wikidata.org/entity/Q17586	2026-07-08T10:31:36.248Z
+tepe-sialk	Tepe Sialk	{"lat":33.968888888,"lng":51.404722222}		-7000		Founded 7000 BCE	Archaeological site in Iran.	90	["Wikidata"]	Q1581555	http://www.wikidata.org/entity/Q1581555	2026-07-08T10:31:36.248Z
+the-great-sphinx	The Great Sphinx	{"lat":29.97527,"lng":31.13768}		-2559		Founded 2559 BCE	Archaeological site in Egypt.	90	["Wikidata"]	Q130958	http://www.wikidata.org/entity/Q130958	2026-07-08T10:31:36.248Z
+theatre-of-dionysus	Theatre of Dionysus	{"lat":37.970404,"lng":23.727777}					Archaeological site in Greece.	90	["Wikidata"]	Q1227044	http://www.wikidata.org/entity/Q1227044	2026-07-08T10:31:36.248Z
+theatre-of-marcellus	Theatre of Marcellus	{"lat":41.891911,"lng":12.479483}					Archaeological site in Italy.	90	["Wikidata"]	Q659138	http://www.wikidata.org/entity/Q659138	2026-07-08T10:31:36.248Z
+theatre-of-thorikos	Theatre of Thorikos	{"lat":37.738028,"lng":24.05375}					Archaeological site in Greece.	90	["Wikidata"]	Q46812956	http://www.wikidata.org/entity/Q46812956	2026-07-08T10:31:36.248Z
+thermopylae	Thermopylae	{"lat":38.795555555,"lng":22.536666666}					Archaeological site in Greece.	90	["Wikidata"]	Q194450	http://www.wikidata.org/entity/Q194450	2026-07-08T10:31:36.248Z
+thespiae	Thespiae	{"lat":38.303559,"lng":23.158322}					Archaeological site in Greece.	90	["Wikidata"]	Q1141295	http://www.wikidata.org/entity/Q1141295	2026-07-08T10:31:36.248Z
+thyatira	Thyatira	{"lat":38.920833333,"lng":27.841666666}					Archaeological site in Turkey.	90	["Wikidata"]	Q1135603	http://www.wikidata.org/entity/Q1135603	2026-07-08T10:31:36.248Z
+tigranocerta	Tigranocerta	{"lat":38.14222222,"lng":41.00138889}		-77		Founded 77 BCE	Archaeological site in Turkey.	90	["Wikidata"]	Q720583	http://www.wikidata.org/entity/Q720583	2026-07-08T10:31:36.248Z
+timna-valley	Timna valley	{"lat":29.78777778,"lng":34.98888889}					Archaeological site in Israel.	90	["Wikidata"]	Q1973199	http://www.wikidata.org/entity/Q1973199	2026-07-08T10:31:36.248Z
+tiryns	Tiryns	{"lat":37.599444444,"lng":22.799722222}					Archaeological site in Greece.	90	["Wikidata"]	Q217379	http://www.wikidata.org/entity/Q217379	2026-07-08T10:31:36.248Z
+tmutarakan	Tmutarakan	{"lat":45.21907,"lng":36.71406}		600		Founded 600 CE	Archaeological site in Byzantine Empire.	90	["Wikidata"]	Q910505	http://www.wikidata.org/entity/Q910505	2026-07-08T10:31:36.248Z
+tower-of-london	Tower of London	{"lat":51.5082,"lng":-0.076198055}		1066		Founded 1066 CE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q62378	http://www.wikidata.org/entity/Q62378	2026-07-08T10:31:36.248Z
+trajan-s-column	Trajan's Column	{"lat":41.895833333,"lng":12.484166666}		113		Founded 113 CE	Archaeological site in Italy.	90	["Wikidata"]	Q192784	http://www.wikidata.org/entity/Q192784	2026-07-08T10:31:36.248Z
+trajan-s-market	Trajan's Market	{"lat":41.895611,"lng":12.486194}		113		Founded 113 CE	Archaeological site in Italy.	90	["Wikidata"]	Q478642	http://www.wikidata.org/entity/Q478642	2026-07-08T10:31:36.248Z
+tsodilo	Tsodilo	{"lat":-18.771666666,"lng":21.754166666}					Archaeological site in Botswana.	90	["Wikidata"]	Q214007	http://www.wikidata.org/entity/Q214007	2026-07-08T10:31:36.248Z
+tulasas	Tulasas	{"lat":20.063472222,"lng":-99.341138888}					Archaeological site in Mexico.	90	["Wikidata"]	Q568672	http://www.wikidata.org/entity/Q568672	2026-07-08T10:31:36.248Z
+tusculum	Tusculum	{"lat":41.798333333,"lng":12.710833333}					Archaeological site in Italy.	90	["Wikidata"]	Q754314	http://www.wikidata.org/entity/Q754314	2026-07-08T10:31:36.248Z
+tusi-sites	Tusi Sites	{"lat":28.998611111,"lng":109.966944444}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q19852428	http://www.wikidata.org/entity/Q19852428	2026-07-08T10:31:36.248Z
+uffington-white-horse	Uffington White Horse	{"lat":51.5777,"lng":-1.56675}		-1000		Founded 1000 BCE	Archaeological site in United Kingdom.	90	["Wikidata"]	Q1056493	http://www.wikidata.org/entity/Q1056493	2026-07-08T10:31:36.248Z
+umm-ar-rasas	Umm ar-Rasas	{"lat":31.499722222,"lng":35.919722222}					Archaeological site in Jordan.	90	["Wikidata"]	Q822842	http://www.wikidata.org/entity/Q822842	2026-07-08T10:31:36.248Z
+umm-el-qa-ab	Umm el-Qa'ab	{"lat":26.174913,"lng":31.9078587}					Archaeological site in Egypt.	90	["Wikidata"]	Q853955	http://www.wikidata.org/entity/Q853955	2026-07-08T10:31:36.248Z
+umma	Umma	{"lat":31.6674,"lng":45.8877}					Archaeological site in Iraq.	90	["Wikidata"]	Q740952	http://www.wikidata.org/entity/Q740952	2026-07-08T10:31:36.248Z
+uplistsikhe	Uplistsikhe	{"lat":41.966664,"lng":44.207505}		-2000		Founded 2000 BCE	Archaeological site in Georgia.	90	["Wikidata"]	Q1351318	http://www.wikidata.org/entity/Q1351318	2026-07-08T10:31:36.248Z
+utica	Utica	{"lat":37.056527777,"lng":10.062258333}		-1101		Founded 1101 BCE	Archaeological site in Tunisia.	90	["Wikidata"]	Q166523	http://www.wikidata.org/entity/Q166523	2026-07-08T10:31:36.248Z
+vaishali	Vaishali	{"lat":25.986594444,"lng":85.125591666}					Archaeological site in India.	90	["Wikidata"]	Q1509463	http://www.wikidata.org/entity/Q1509463	2026-07-08T10:31:36.248Z
+valle-dei-templi	Valle dei Templi	{"lat":37.28972222,"lng":13.59}					Archaeological site in Italy.	90	["Wikidata"]	Q636774	http://www.wikidata.org/entity/Q636774	2026-07-08T10:31:36.248Z
+valley-of-the-queens	Valley of the Queens	{"lat":25.7275,"lng":32.593055555}					Archaeological site in Egypt.	90	["Wikidata"]	Q260386	http://www.wikidata.org/entity/Q260386	2026-07-08T10:31:36.248Z
+valongo-wharf	Valongo Wharf	{"lat":-22.897111,"lng":-43.187394}		1811		Founded 1811 CE	Archaeological site in Brazil.	90	["Wikidata"]	Q20048515	http://www.wikidata.org/entity/Q20048515	2026-07-08T10:31:36.248Z
+veii	Veii	{"lat":42.023888888,"lng":12.401388888}					Archaeological site in Italy.	90	["Wikidata"]	Q677935	http://www.wikidata.org/entity/Q677935	2026-07-08T10:31:36.248Z
+verona-arena	Verona Arena	{"lat":45.438888888,"lng":10.994444444}					Archaeological site in Italy.	90	["Wikidata"]	Q641556	http://www.wikidata.org/entity/Q641556	2026-07-08T10:31:36.248Z
+vikramasila-university	Vikramaśīla University	{"lat":25.3244,"lng":87.2867}					Archaeological site in India.	90	["Wikidata"]	Q1634624	http://www.wikidata.org/entity/Q1634624	2026-07-08T10:31:36.248Z
+vilcabamba	Vilcabamba	{"lat":-12.902777777,"lng":-73.205833333}		1539		Founded 1539 CE	Archaeological site in Peru.	90	["Wikidata"]	Q827432	http://www.wikidata.org/entity/Q827432	2026-07-08T10:31:36.248Z
+villa-of-the-papyri	Villa of the Papyri	{"lat":40.806666666,"lng":14.345555555}					Archaeological site in Italy.	90	["Wikidata"]	Q1347586	http://www.wikidata.org/entity/Q1347586	2026-07-08T10:31:36.248Z
+villa-romana-del-casale	Villa Romana del Casale	{"lat":37.364723,"lng":14.334553}					Archaeological site in Italy.	90	["Wikidata"]	Q505617	http://www.wikidata.org/entity/Q505617	2026-07-08T10:31:36.248Z
+visoki-decani	Visoki Dečani	{"lat":42.546944444,"lng":20.266388888}		1335		Founded 1335 CE	Archaeological site in Serbia.	90	["Wikidata"]	Q849517	http://www.wikidata.org/entity/Q849517	2026-07-08T10:31:36.248Z
+western-wall	Western Wall	{"lat":31.776947222,"lng":35.23425}		-18		Founded 18 BCE	Archaeological site in Palestine.	90	["Wikidata"]	Q134821	http://www.wikidata.org/entity/Q134821	2026-07-08T10:31:36.248Z
+xanadu	Xanadu	{"lat":42.358021111,"lng":116.185158888}					Archaeological site in People's Republic of China.	90	["Wikidata"]	Q471765	http://www.wikidata.org/entity/Q471765	2026-07-08T10:31:36.248Z
+xanthos	Xanthos	{"lat":36.362742,"lng":29.327378}					Archaeological site in Turkey.	90	["Wikidata"]	Q464936	http://www.wikidata.org/entity/Q464936	2026-07-08T10:31:36.248Z
+zakros	Zakros	{"lat":35.098055555,"lng":26.261388888}					Archaeological site in Greece.	90	["Wikidata"]	Q60218	http://www.wikidata.org/entity/Q60218	2026-07-08T10:31:36.248Z
+zubarah	Zubarah	{"lat":25.9833949,"lng":51.0272187}					Archaeological site in Qatar.	90	["Wikidata"]	Q2727469	http://www.wikidata.org/entity/Q2727469	2026-07-08T10:31:36.248Z

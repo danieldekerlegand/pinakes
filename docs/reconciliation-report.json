@@ -9,25 +9,25 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 5432,
+    "nodes": 6667,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 4208
+    "likelyNew": 5443
   },
   "byType": [
     {
       "type": "archaeological-culture",
-      "count": 27,
+      "count": 277,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 27
+      "likelyNew": 277
     },
     {
       "type": "art-tradition",
-      "count": 107,
+      "count": 237,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 107
+      "likelyNew": 237
     },
     {
       "type": "battle",
@@ -38,10 +38,10 @@
     },
     {
       "type": "cuisine",
-      "count": 21,
+      "count": 101,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 21
+      "likelyNew": 101
     },
     {
       "type": "culture",
@@ -52,17 +52,17 @@
     },
     {
       "type": "deity",
-      "count": 76,
+      "count": 206,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 76
+      "likelyNew": 206
     },
     {
       "type": "ingredient",
-      "count": 2136,
+      "count": 2206,
       "matched": 0,
       "ambiguous": 37,
-      "likelyNew": 2099
+      "likelyNew": 2169
     },
     {
       "type": "language",
@@ -80,31 +80,31 @@
     },
     {
       "type": "literary-tradition",
-      "count": 12,
-      "matched": 0,
-      "ambiguous": 0,
-      "likelyNew": 12
-    },
-    {
-      "type": "migration-route",
       "count": 62,
       "matched": 0,
       "ambiguous": 0,
       "likelyNew": 62
     },
     {
-      "type": "myth-motif",
-      "count": 32,
+      "type": "migration-route",
+      "count": 104,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 32
+      "likelyNew": 104
+    },
+    {
+      "type": "myth-motif",
+      "count": 61,
+      "matched": 0,
+      "ambiguous": 0,
+      "likelyNew": 61
     },
     {
       "type": "place",
-      "count": 813,
+      "count": 1212,
       "matched": 0,
       "ambiguous": 149,
-      "likelyNew": 664
+      "likelyNew": 1063
     },
     {
       "type": "religion",
@@ -129,10 +129,10 @@
     },
     {
       "type": "writing-system",
-      "count": 60,
+      "count": 115,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 60
+      "likelyNew": 115
     }
   ],
   "keyCoverage": {
@@ -141,7 +141,7 @@
       "withIso639": 993,
       "withGlottocode": 0
     },
-    "withRegion": 2603,
+    "withRegion": 2648,
     "duplicateCsidsDropped": 44
   },
   "ambiguities": [
@@ -174,35 +174,35 @@
           "linguascrapeId": "qug",
           "name": "Chimborazo Highland Quichua",
           "region": "Central Ecuador",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quh",
           "linguascrapeId": "quh",
           "name": "South Bolivian Quechua",
           "region": "Bolivia",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quy",
           "linguascrapeId": "quy",
           "name": "Ayacucho Quechua",
           "region": "Southern Peru",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quz",
           "linguascrapeId": "quz",
           "name": "Cusco Quechua",
           "region": "Southern Peru",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:qvi",
           "linguascrapeId": "qvi",
           "name": "Imbabura Highland Quichua",
           "region": "Northern Ecuador",
-          "confidence": 0.5
+          "confidence": 0.9
         }
       ]
     },

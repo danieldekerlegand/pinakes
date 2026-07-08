@@ -479,7 +479,11 @@ artifact (`convergence-qa.json` + human-readable `convergence-qa.md`) lands in t
 
 ### 10.2 What fails the gate
 
-**Only drift fails** — `runQA` exits non-zero (`1`) when `detectDrift` returns any of:
+`runQA` exits non-zero (`1`) — `report.ok === false` — when **any** of three hard checks trips.
+Since US-001 (data-population), the gate is the attribution / QA guard for scaled data, not just
+a schema-drift check.
+
+**1. Schema drift** — `detectDrift` returns any of:
 
 - `schema-invalid` — `canonical-schema.json` no longer validates (`assertValidCanonicalSchema`);
 - `mapping-invalid` — `lexicon-mapping.json` no longer validates (`assertValidLexiconMapping`);
@@ -489,27 +493,40 @@ artifact (`convergence-qa.json` + human-readable `convergence-qa.md`) lands in t
 - `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `shared/lexicon-mapping.json`;
 - `missing-source-column` — a mapped column that no longer exists in its live TSV header.
 
-The id-overlap / unreconciled / provenance numbers are reported for humans but never fail the
-build on their own (they drift gradually and belong to review, not a hard gate). A directory is
+**2. Attribution** (`detectAttributionGaps`) — every **acquisition-imported** row must carry full
+provenance. A row is imported iff its `wikidata_qid`-mapped cell is non-blank; each such row must
+have a non-blank `source`, `source_url`, `retrieved_at`, and `confidence` (the columns are named
+per file by `shared/lexicon-mapping.json`, so this generalises across domains). It reads the
+**lexicons** (source of truth) — *not* the canonical export, which force-blanks
+`source_url`/`retrieved_at`. Files with no `wikidata_qid` mapping have no imported rows (all
+curated seed) and are skipped.
+
+**3. Dedup / reconciliation regression** (`detectRegressions`) — a monotone ratchet against
+`docs/convergence-qa-baseline.json`. The gate fails if `duplicateCsids`,
+`ambiguousLinguascrapeIds`, `edgesWithUnresolvedEndpoint`, or reconciliation `ambiguous` climbs
+**above** its committed ceiling. Scaled data may hold or lower these freely; a legitimate increase
+is re-baselined deliberately — `npx tsx scripts/convergence-qa.ts --write-baseline` (or
+`npm run convergence-qa:baseline`) — which is the reviewed act that keeps a bulk import from
+silently regressing dedup. An absent baseline disables only this check.
+
+The id-overlap / unreconciled / provenance-coverage numbers are still reported for humans but
+never fail the build on their own (they drift gradually and belong to review). A directory is
 treated faithfully as a *corpus*: only files actually present are checked for column drift, so a
 mapped file being absent is **not** drift.
 
 ### 10.3 Running it in CI
 
-Add a step that runs the gate and lets its exit code fail the job:
+The gate ships as [`.github/workflows/convergence-qa.yml`](../.github/workflows/convergence-qa.yml),
+which runs on every push / PR. Two jobs:
 
-```yaml
-# .github/workflows/convergence.yml (or an existing CI job)
-- name: Convergence QA gate
-  run: npx tsx scripts/convergence-qa.ts   # exits 1 on drift → fails the build
-- name: Upload convergence report
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: convergence-qa
-    path: export/culturescrape/convergence/
-```
+- **`convergence-qa`** (TS) — `npm run check`, `npx tsc -p scripts/tsconfig.json`, the
+  convergence-qa unit tests, then `npm run convergence-qa` (the gate; exits `1` on any of the three
+  failures above).
+- **`culture-scrape`** (Python) — `uv run ruff check .`, `uv run mypy src`, `uv run pytest` in
+  `packages/culture-scrape/`.
 
-The CLI prints a one-line summary (`PASS`/`FAIL`, node count, id-overlap %, unreconciled %, drift
-count) and, on failure, one line per drift issue to stderr. The uploaded artifact is the
-machine-readable + Markdown report for the run.
+So a data change lands green only when **TS + Python** checks pass. Locally the equivalents are
+`npm run convergence-qa` and the `packages/culture-scrape` toolchain. The CLI prints a one-line
+summary (`PASS`/`FAIL`, node count, id-overlap %, unreconciled %, and drift / attribution /
+regression issue counts) and, on failure, one line per issue to stderr. The per-domain data
+workflow that this gate guards is [`data-population-runbook.md`](./data-population-runbook.md).

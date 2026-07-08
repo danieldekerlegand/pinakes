@@ -1,22 +1,102 @@
-id	name	native_name	region	coordinates	associated_language_ids	time_origin	time_end	description
-chinese	Chinese	中国菜	East Asia	{"lat":35.86,"lng":104.19}	["chinese","mandarin","cantonese"]	-2000	null	One of the world's oldest and most diverse culinary traditions
-ethiopian	Ethiopian	የኢትዮጵያ ምግብ	East Africa	{"lat":9.14,"lng":40.49}	["amharic","oromo"]	-1000	null	Ancient cuisine featuring injera and spiced stews
-french	French	Cuisine française	Western Europe	{"lat":46.23,"lng":2.21}	["french"]	800	null	Refined European cuisine known for technique and sauces
-georgian	Georgian	ქართული სამზარეულო	Caucasus	{"lat":42.32,"lng":43.36}	["georgian"]	-500	null	Ancient Caucasian cuisine with unique spices and cheese breads
-german	German	Deutsche Küche	Central Europe	{"lat":51.17,"lng":10.45}	["german"]	500	null	Hearty Central European cuisine with meats and breads
-greek	Greek	Ελληνική κουζίνα	Southern Europe	{"lat":39.07,"lng":21.82}	["greek"]	-1500	null	Mediterranean cuisine with olive oil, herbs, and seafood
-hungarian	Hungarian	Magyar konyha	Central Europe	{"lat":47.16,"lng":19.50}	["hungarian"]	896	null	Paprika-rich cuisine blending Eastern and Western influences
-indian	Indian	भारतीय व्यंजन	South Asia	{"lat":20.59,"lng":78.96}	["hindi","tamil","bengali","gujarati"]	-3000	null	Diverse subcontinent cuisine with complex spice blends
-indonesian	Indonesian	Masakan Indonesia	Southeast Asia	{"lat":-0.79,"lng":113.92}	["indonesian","javanese"]	-500	null	Archipelago cuisine blending indigenous and trade influences
-iranian	Iranian	غذاهای ایرانی	Middle East	{"lat":32.43,"lng":53.69}	["persian","farsi"]	-2500	null	Ancient Persian cuisine with rice, saffron, and dried fruits
-italian	Italian	Cucina italiana	Southern Europe	{"lat":41.87,"lng":12.57}	["italian"]	-500	null	Mediterranean cuisine celebrated for pasta, pizza, and regional diversity
-japanese	Japanese	日本料理	East Asia	{"lat":36.20,"lng":138.25}	["japanese"]	-300	null	Refined cuisine emphasizing seasonality and presentation
-korean	Korean	한국 요리	East Asia	{"lat":35.91,"lng":127.77}	["korean"]	-57	null	Fermented foods and balanced flavors from the Korean peninsula
-mexican	Mexican	Cocina mexicana	North America	{"lat":23.63,"lng":-102.55}	["spanish","nahuatl"]	-7000	null	Ancient Mesoamerican cuisine blended with Spanish influences
-peruvian	Peruvian	Comida peruana	South America	{"lat":-9.19,"lng":-75.02}	["spanish","quechua"]	-3000	null	Diverse cuisine from Andes, coast, and Amazon
-polish	Polish	Kuchnia polska	Central Europe	{"lat":51.92,"lng":19.15}	["polish"]	966	null	Hearty Central European fare with soups and dumplings
-portuguese	Portuguese	Cozinha portuguesa	Western Europe	{"lat":39.40,"lng":-8.22}	["portuguese"]	1100	null	Maritime cuisine with seafood and global influences
-spanish	Spanish	Cocina española	Western Europe	{"lat":40.46,"lng":-3.75}	["spanish"]	-500	null	Regional cuisines united by olive oil and Mediterranean ingredients
-thai	Thai	อาหารไทย	Southeast Asia	{"lat":15.87,"lng":100.99}	["thai"]	1238	null	Balanced cuisine with sweet, sour, salty, and spicy flavors
-turkish	Turkish	Türk mutfağı	Middle East	{"lat":38.96,"lng":35.24}	["turkish"]	1000	null	Ottoman-influenced cuisine bridging Europe and Asia
-vietnamese	Vietnamese	Ẩm thực Việt Nam	Southeast Asia	{"lat":14.06,"lng":108.28}	["vietnamese"]	-500	null	Fresh, herb-forward cuisine with French colonial influences
+id	name	native_name	region	coordinates	associated_language_ids	time_origin	time_end	description	wikidata_qid	source_url	retrieved_at	confidence	sources
+chinese	Chinese	中国菜	East Asia	{"lat":35.86,"lng":104.19}	["chinese","mandarin","cantonese"]	-2000	null	One of the world's oldest and most diverse culinary traditions					
+ethiopian	Ethiopian	የኢትዮጵያ ምግብ	East Africa	{"lat":9.14,"lng":40.49}	["amharic","oromo"]	-1000	null	Ancient cuisine featuring injera and spiced stews					
+french	French	Cuisine française	Western Europe	{"lat":46.23,"lng":2.21}	["french"]	800	null	Refined European cuisine known for technique and sauces					
+georgian	Georgian	ქართული სამზარეულო	Caucasus	{"lat":42.32,"lng":43.36}	["georgian"]	-500	null	Ancient Caucasian cuisine with unique spices and cheese breads					
+german	German	Deutsche Küche	Central Europe	{"lat":51.17,"lng":10.45}	["german"]	500	null	Hearty Central European cuisine with meats and breads					
+greek	Greek	Ελληνική κουζίνα	Southern Europe	{"lat":39.07,"lng":21.82}	["greek"]	-1500	null	Mediterranean cuisine with olive oil, herbs, and seafood					
+hungarian	Hungarian	Magyar konyha	Central Europe	{"lat":47.16,"lng":19.50}	["hungarian"]	896	null	Paprika-rich cuisine blending Eastern and Western influences					
+indian	Indian	भारतीय व्यंजन	South Asia	{"lat":20.59,"lng":78.96}	["hindi","tamil","bengali","gujarati"]	-3000	null	Diverse subcontinent cuisine with complex spice blends					
+indonesian	Indonesian	Masakan Indonesia	Southeast Asia	{"lat":-0.79,"lng":113.92}	["indonesian","javanese"]	-500	null	Archipelago cuisine blending indigenous and trade influences					
+iranian	Iranian	غذاهای ایرانی	Middle East	{"lat":32.43,"lng":53.69}	["persian","farsi"]	-2500	null	Ancient Persian cuisine with rice, saffron, and dried fruits					
+italian	Italian	Cucina italiana	Southern Europe	{"lat":41.87,"lng":12.57}	["italian"]	-500	null	Mediterranean cuisine celebrated for pasta, pizza, and regional diversity					
+japanese	Japanese	日本料理	East Asia	{"lat":36.20,"lng":138.25}	["japanese"]	-300	null	Refined cuisine emphasizing seasonality and presentation					
+korean	Korean	한국 요리	East Asia	{"lat":35.91,"lng":127.77}	["korean"]	-57	null	Fermented foods and balanced flavors from the Korean peninsula					
+mexican	Mexican	Cocina mexicana	North America	{"lat":23.63,"lng":-102.55}	["spanish","nahuatl"]	-7000	null	Ancient Mesoamerican cuisine blended with Spanish influences					
+peruvian	Peruvian	Comida peruana	South America	{"lat":-9.19,"lng":-75.02}	["spanish","quechua"]	-3000	null	Diverse cuisine from Andes, coast, and Amazon					
+polish	Polish	Kuchnia polska	Central Europe	{"lat":51.92,"lng":19.15}	["polish"]	966	null	Hearty Central European fare with soups and dumplings					
+portuguese	Portuguese	Cozinha portuguesa	Western Europe	{"lat":39.40,"lng":-8.22}	["portuguese"]	1100	null	Maritime cuisine with seafood and global influences					
+spanish	Spanish	Cocina española	Western Europe	{"lat":40.46,"lng":-3.75}	["spanish"]	-500	null	Regional cuisines united by olive oil and Mediterranean ingredients					
+thai	Thai	อาหารไทย	Southeast Asia	{"lat":15.87,"lng":100.99}	["thai"]	1238	null	Balanced cuisine with sweet, sour, salty, and spicy flavors					
+turkish	Turkish	Türk mutfağı	Middle East	{"lat":38.96,"lng":35.24}	["turkish"]	1000	null	Ottoman-influenced cuisine bridging Europe and Asia					
+vietnamese	Vietnamese	Ẩm thực Việt Nam	Southeast Asia	{"lat":14.06,"lng":108.28}	["vietnamese"]	-500	null	Fresh, herb-forward cuisine with French colonial influences					
+afghan	Afghan			{"lat":33,"lng":66}				culinary traditions of Afghanistan	Q383096	http://www.wikidata.org/entity/Q383096	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+albanian	Albanian			{"lat":41,"lng":20}				culinary traditions of Albania	Q1199173	http://www.wikidata.org/entity/Q1199173	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+algerian	Algerian			{"lat":28,"lng":1}				culinary traditions of Algeria	Q3006881	http://www.wikidata.org/entity/Q3006881	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ancient-egyptian-cuisine	Ancient Egyptian			{"lat":29.8,"lng":31.3}				сuisine of Ancient Egyptian culture	Q432535	http://www.wikidata.org/entity/Q432535	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ancient-roman	Ancient Roman			{"lat":41.89,"lng":12.48}				food preparation styles of the civilization	Q1368949	http://www.wikidata.org/entity/Q1368949	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+argentine	Argentine			{"lat":-34,"lng":-64}				culinary traditions of Argentina	Q579500	http://www.wikidata.org/entity/Q579500	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+armenian	Armenian			{"lat":40.383333,"lng":44.95}				culinary traditions of Armenia	Q684343	http://www.wikidata.org/entity/Q684343	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+australian	Australian			{"lat":-25,"lng":133}				culinary traditions of Australia	Q783010	http://www.wikidata.org/entity/Q783010	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+austrian	Austrian			{"lat":48,"lng":14}				culinary traditions of Austria	Q42029	http://www.wikidata.org/entity/Q42029	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+azerbaijani	Azerbaijani			{"lat":40.3,"lng":47.7}				culinary traditions of Azerbaijan	Q1996684	http://www.wikidata.org/entity/Q1996684	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+belarusian	Belarusian			{"lat":53.528333333,"lng":28.046666666}				culinary traditions of Belarus	Q1850480	http://www.wikidata.org/entity/Q1850480	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+belgium	Belgium			{"lat":50.641111111,"lng":4.668055555}				culinary traditions of Belgium	Q792312	http://www.wikidata.org/entity/Q792312	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bhutanese	Bhutanese			{"lat":27.45,"lng":90.5}				culinary traditions of Bhutan	Q2564183	http://www.wikidata.org/entity/Q2564183	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bolivian	Bolivian			{"lat":-17.056869611,"lng":-64.991228611}				culinary traditions of Bolivia	Q3006895	http://www.wikidata.org/entity/Q3006895	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bosnia-and-herzegovina	Bosnia and Herzegovina			{"lat":44,"lng":18}				culinary traditions of Bosnia and Herzegovina	Q1330959	http://www.wikidata.org/entity/Q1330959	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+brazilian	Brazilian			{"lat":-14,"lng":-53}				culinary traditions of Brazil	Q614394	http://www.wikidata.org/entity/Q614394	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+british	British			{"lat":54.6,"lng":-2}				culinary traditions of the United Kingdom	Q918277	http://www.wikidata.org/entity/Q918277	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+bulgarian	Bulgarian			{"lat":42.75,"lng":25.5}				culinary traditions of Bulgaria	Q387580	http://www.wikidata.org/entity/Q387580	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+burmese	Burmese			{"lat":22,"lng":96}				culinary traditions of Burma	Q1187275	http://www.wikidata.org/entity/Q1187275	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cambodian	Cambodian			{"lat":12.5,"lng":105}				culinary traditions of Cambodia	Q139430	http://www.wikidata.org/entity/Q139430	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+canadian	Canadian			{"lat":56,"lng":-109}				culinary traditions of Canada	Q1324207	http://www.wikidata.org/entity/Q1324207	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+chilean	Chilean			{"lat":-33,"lng":-71}				culinary traditions of Chile	Q1145205	http://www.wikidata.org/entity/Q1145205	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+croatian	Croatian			{"lat":45.25,"lng":15.466667}				culinary traditions of Croatia	Q1789628	http://www.wikidata.org/entity/Q1789628	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cuban	Cuban			{"lat":22,"lng":-79.5}				culinary traditions of Cuba	Q1328358	http://www.wikidata.org/entity/Q1328358	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+cypriot	Cypriot			{"lat":35,"lng":33}				culinary traditions of Cyprus	Q245932	http://www.wikidata.org/entity/Q245932	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+czech	Czech			{"lat":50,"lng":15}				culinary traditions of the Czechia	Q871595	http://www.wikidata.org/entity/Q871595	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+danish	Danish			{"lat":56,"lng":10}				culinary traditions of Denmark	Q1196267	http://www.wikidata.org/entity/Q1196267	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+dutch	Dutch			{"lat":52.316666666,"lng":5.55}				cooking traditions in the Netherlands	Q1988266	http://www.wikidata.org/entity/Q1988266	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+egyptian	Egyptian			{"lat":27,"lng":29}				culinary traditions of Egypt	Q1346230	http://www.wikidata.org/entity/Q1346230	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+estonian	Estonian			{"lat":59,"lng":26}				culinary traditions of Estonia	Q1069518	http://www.wikidata.org/entity/Q1069518	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+filipino	Filipino			{"lat":12,"lng":123}				culinary traditions of the Philippines	Q1520796	http://www.wikidata.org/entity/Q1520796	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+finnish	Finnish			{"lat":65,"lng":27}				culinary traditions of Finland	Q40606	http://www.wikidata.org/entity/Q40606	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ghanaian	Ghanaian			{"lat":7.9465,"lng":-1.0232}				culinary traditions of Ghana	Q1072146	http://www.wikidata.org/entity/Q1072146	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+icelandic	Icelandic			{"lat":65,"lng":-19}				culinary traditions of Iceland	Q492236	http://www.wikidata.org/entity/Q492236	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+iraqi	Iraqi			{"lat":33,"lng":43}				culinary traditions of Iraq	Q1036498	http://www.wikidata.org/entity/Q1036498	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+israeli	Israeli			{"lat":31,"lng":35}				culinary traditions of Israel	Q62458	http://www.wikidata.org/entity/Q62458	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+jordanian	Jordanian			{"lat":31.2,"lng":36.5}				culinary traditions of Jordan	Q2915172	http://www.wikidata.org/entity/Q2915172	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+kazakh	Kazakh			{"lat":48,"lng":68}				culinary traditions of Kazakhstan	Q388672	http://www.wikidata.org/entity/Q388672	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+kyrgyz	Kyrgyz			{"lat":41,"lng":75}				culinary traditions of Kyrgyzstan	Q5361328	http://www.wikidata.org/entity/Q5361328	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+lao-cuisine	Lao			{"lat":18.2,"lng":104.1}				culinary traditions of Laos	Q1372774	http://www.wikidata.org/entity/Q1372774	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+latvian	Latvian			{"lat":57,"lng":25}				culinary traditions of Latvia	Q1193132	http://www.wikidata.org/entity/Q1193132	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+lebanese	Lebanese			{"lat":33.833333,"lng":35.766667}				culinary traditions of Lebanon	Q929239	http://www.wikidata.org/entity/Q929239	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+libyan	Libyan			{"lat":27,"lng":17}				culinary traditions of Libya	Q16147806	http://www.wikidata.org/entity/Q16147806	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+lithuanian	Lithuanian			{"lat":55.2,"lng":24}				culinary traditions of Lithuania	Q19360432	http://www.wikidata.org/entity/Q19360432	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+luxembourger	Luxembourger			{"lat":49.77,"lng":6.13}				culinary traditions of Luxembourg	Q1146380	http://www.wikidata.org/entity/Q1146380	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+macedonian	Macedonian			{"lat":41.65,"lng":21.716667}				culinary traditions of North Macedonia	Q1199032	http://www.wikidata.org/entity/Q1199032	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+malagasy	Malagasy			{"lat":-20,"lng":47}				culinary traditions of Madagascar	Q34160	http://www.wikidata.org/entity/Q34160	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+malaysian	Malaysian			{"lat":3.7805111,"lng":102.314361666}				culinary traditions of Malaysia	Q772247	http://www.wikidata.org/entity/Q772247	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+maldivian	Maldivian			{"lat":4.18,"lng":73.51}				culinary traditions of the Maldives	Q5924685	http://www.wikidata.org/entity/Q5924685	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+maltese	Maltese			{"lat":35.9,"lng":14.4}				culinary traditions of Malta	Q1246463	http://www.wikidata.org/entity/Q1246463	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+moldovan	Moldovan			{"lat":47.25,"lng":28.516667}				culinary traditions of Moldova	Q1551510	http://www.wikidata.org/entity/Q1551510	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+mongolian	Mongolian			{"lat":46,"lng":105}				culinary traditions of Mongolia	Q1156753	http://www.wikidata.org/entity/Q1156753	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+montenegrin	Montenegrin			{"lat":42.766667,"lng":19.216667}				culinary traditions of Montenegro	Q776546	http://www.wikidata.org/entity/Q776546	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+moroccan	Moroccan							Culinary traditions of Morocco	Q1150262	http://www.wikidata.org/entity/Q1150262	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+nepalese	Nepalese			{"lat":28,"lng":84}				culinary traditions of Nepal	Q1194855	http://www.wikidata.org/entity/Q1194855	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+new-zealand	New Zealand			{"lat":-41.2,"lng":174}				culinary traditions of New Zealand	Q4115061	http://www.wikidata.org/entity/Q4115061	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+nigerian	Nigerian			{"lat":9,"lng":8}				culinary traditions of Nigeria	Q7033037	http://www.wikidata.org/entity/Q7033037	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+norwegian	Norwegian			{"lat":59.933333333,"lng":10.683333333}				culinary traditions of Norway	Q1196234	http://www.wikidata.org/entity/Q1196234	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ottoman-empire-cuisine	Ottoman Empire			{"lat":41,"lng":29}				cuisines of the Ottoman Empire	Q2459950	http://www.wikidata.org/entity/Q2459950	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+pakistani	Pakistani			{"lat":30,"lng":71}				culinary traditions of Pakistan	Q1089120	http://www.wikidata.org/entity/Q1089120	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+palestinian	Palestinian			{"lat":32,"lng":35.25}				culinary traditions of Palestine	Q1154594	http://www.wikidata.org/entity/Q1154594	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+romanian	Romanian			{"lat":46,"lng":25}				culinary traditions of Romania	Q265309	http://www.wikidata.org/entity/Q265309	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+serbian	Serbian			{"lat":43.95,"lng":20.933333333}				culinary traditions of Serbia	Q1199030	http://www.wikidata.org/entity/Q1199030	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+singaporean	Singaporean			{"lat":1.3,"lng":103.8}				culinary traditions of Singapore	Q136726	http://www.wikidata.org/entity/Q136726	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+slovak	Slovak			{"lat":48.7,"lng":19.7}				culinary traditions of Slovakia	Q954489	http://www.wikidata.org/entity/Q954489	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+slovenian	Slovenian			{"lat":46,"lng":15}				culinary traditions of Slovenia	Q3277325	http://www.wikidata.org/entity/Q3277325	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+somali	Somali			{"lat":6,"lng":47}				culinary traditions of Somalia	Q846538	http://www.wikidata.org/entity/Q846538	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+south-african	South African			{"lat":-29,"lng":24}				culinary traditions of South Africa	Q1196175	http://www.wikidata.org/entity/Q1196175	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+sri-lankan	Sri Lankan			{"lat":7,"lng":81}				culinary traditions of Sri Lanka	Q2234037	http://www.wikidata.org/entity/Q2234037	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+swedish	Swedish			{"lat":61,"lng":15}				culinary traditions of Sweden	Q35623	http://www.wikidata.org/entity/Q35623	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+swiss	Swiss			{"lat":46.798562,"lng":8.231973}				culinary traditions of Switzerland	Q13497	http://www.wikidata.org/entity/Q13497	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+syrian	Syrian			{"lat":35.216667,"lng":38.583333}				culinary traditions of Syria	Q4119264	http://www.wikidata.org/entity/Q4119264	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+taiwanese	Taiwanese			{"lat":24,"lng":121}				culinary traditions of Taiwan	Q707908	http://www.wikidata.org/entity/Q707908	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tajik	Tajik			{"lat":38.583333,"lng":71.366667}				culinary traditions of Tajikistan	Q3006994	http://www.wikidata.org/entity/Q3006994	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+tunisian	Tunisian			{"lat":34,"lng":10}				culinary traditions of Tunisia	Q1328433	http://www.wikidata.org/entity/Q1328433	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+turkmen	Turkmen			{"lat":39,"lng":60}				food and drink in Turkmenistan	Q2345196	http://www.wikidata.org/entity/Q2345196	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+ukrainian	Ukrainian			{"lat":49,"lng":32}				culinary traditions of Ukraine	Q1503789	http://www.wikidata.org/entity/Q1503789	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+united-states	United States			{"lat":39.828175,"lng":-98.5795}				culinary traditions of the United States	Q40578	http://www.wikidata.org/entity/Q40578	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+uzbekistan	Uzbekistan			{"lat":41,"lng":66}				culinary traditions of Uzbekistan	Q1640414	http://www.wikidata.org/entity/Q1640414	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
+yemeni	Yemeni			{"lat":15.5,"lng":48}				culinary traditions of Yemen	Q1324604	http://www.wikidata.org/entity/Q1324604	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]

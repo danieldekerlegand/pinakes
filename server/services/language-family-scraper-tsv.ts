@@ -395,6 +395,7 @@ Guidelines:
           nativeSpeakers: lang.nativeSpeakers || null,
           totalSpeakers: lang.totalSpeakers || null,
           status: lang.status || "living",
+          endangermentStatus: null,
           timeOrigin: null,
           timeEnd: null,
           classification: null,

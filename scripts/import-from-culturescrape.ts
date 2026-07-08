@@ -544,7 +544,18 @@ export const ADDITION_PROVENANCE_COLUMNS = [
   "confidence",
 ] as const;
 
-/** One curated, reconciliation-"new" culture to append to the lexicon. */
+/** Core columns every addition carries; any other column in the file is domain-specific `extra`. */
+const ADDITION_CORE_COLUMNS = [
+  "id",
+  "name",
+  "wikidata_qid",
+  "source_url",
+  "retrieved_at",
+  "confidence",
+  "sources",
+] as const;
+
+/** One curated, reconciliation-"new" row to append to the lexicon. */
 export interface CultureAddition {
   readonly id: string;
   readonly name: string;
@@ -554,6 +565,12 @@ export interface CultureAddition {
   readonly confidence: string;
   /** Bibliographic sources cell (a JSON-array string, e.g. `["Wikidata"]`). */
   readonly sources: string;
+  /**
+   * Domain-specific columns (e.g. `coordinates`, `site_type`, `description`), keyed by column
+   * name. Each is written only if the target lexicon actually has that column, so one code path
+   * serves every domain — see {@link buildCultureAdditions}.
+   */
+  readonly extra?: Readonly<Record<string, string>>;
 }
 
 /** A candidate that was not appended, with why. */
@@ -621,7 +638,11 @@ export function buildCultureAdditions(
   target: LexiconFile,
   candidates: readonly CultureAddition[],
 ): { file: LexiconFile; report: AdditionsReport } {
-  ensureColumns(target, ADDITION_PROVENANCE_COLUMNS);
+  // Ensure the four provenance columns AND a bibliographic `sources` column exist, so a
+  // target that carries no citation column today (e.g. migration-routes / trade-routes)
+  // still records every appended row's source. Files that already have `sources` are
+  // unchanged (ensureColumns only appends missing columns).
+  ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"]);
 
   const idIdx = target.headers.indexOf("id");
   const nameIdx = target.headers.indexOf("name");
@@ -681,6 +702,10 @@ export function buildCultureAdditions(
     setByName(row, "source_url", c.source_url);
     setByName(row, "retrieved_at", c.retrieved_at);
     setByName(row, "confidence", c.confidence);
+    // Domain-specific columns (only those the target lexicon actually has).
+    for (const [col, value] of Object.entries(c.extra ?? {})) {
+      setByName(row, col, value);
+    }
     target.rows.push(row);
     target.changed = true;
 
@@ -718,8 +743,12 @@ export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
     const i = headers.indexOf(name);
     return i >= 0 ? (row[i] ?? "").trim() : "";
   };
+  const coreSet = new Set<string>(ADDITION_CORE_COLUMNS);
+  const extraColumns = headers.filter((h) => h !== "" && !coreSet.has(h));
   return lines.slice(1).map((line) => {
     const row = line.split("\t");
+    const extra: Record<string, string> = {};
+    for (const col of extraColumns) extra[col] = at(row, col);
     return {
       id: at(row, "id"),
       name: at(row, "name"),
@@ -728,6 +757,7 @@ export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
       retrieved_at: at(row, "retrieved_at"),
       confidence: at(row, "confidence") || "1.0",
       sources: at(row, "sources") || '["Wikidata"]',
+      extra,
     };
   });
 }
@@ -735,6 +765,250 @@ export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
 /** Serialise an additions report to JSON (trailing newline). */
 export function additionsReportJson(report: AdditionsReport): string {
   return JSON.stringify(report, null, 2) + "\n";
+}
+
+// ---------------------------------------------------------------------------
+// Column enrichment of EXISTING rows (US-006)
+//
+// The write-back above enriches from the canonical export (keyed by linguascrape_id). The
+// language-breadth story needs a sibling that enriches existing lexicon rows from a curated,
+// committed enrichment TSV keyed by an arbitrary column (`id` by default) — e.g. Wikidata
+// UNESCO endangerment status matched to `languages.tsv` by the corpus id. It shares the
+// write-back's conservatism:
+//   * Fills a BLANK target cell only (enrichment). A differing curated cell is a conflict —
+//     reported, never resolved (unless `overwrite`). Existing rows are never appended to.
+//   * The join key must address exactly one row: an enrichment row whose key matches 0 rows
+//     is `unmatched`; a key that matches >1 target rows is `ambiguous` — both are reported
+//     and skipped, never guessed (mirrors the write-back's ambiguous-id rule).
+//   * A probed-but-empty column (every enrichment row blank for it — e.g. `range_geojson`
+//     when Wikidata has no geoshape) is NOT added to the target: no dead columns.
+//   * Every enrichment column that IS written carries its provenance columns on the same
+//     row, so the attribution gate enforces sourcing on the enriched rows.
+// ---------------------------------------------------------------------------
+
+/** A curated enrichment record: the key value plus column → value for the columns to fill. */
+export interface EnrichmentRecord {
+  /** The join-key cell value (e.g. the corpus `id`). */
+  readonly key: string;
+  /** Non-key column → its enrichment value (blank values are ignored). */
+  readonly values: Readonly<Record<string, string>>;
+}
+
+/** One applied enrichment edit (a blank target cell filled, or an overwritten conflict). */
+export interface EnrichmentChange {
+  readonly key: string;
+  readonly column: string;
+  readonly oldValue: string;
+  readonly newValue: string;
+  readonly kind: "enrichment" | "overwrite";
+}
+
+/** A curated enrichment value disagreeing with an existing (curated) target cell. */
+export interface EnrichmentConflict {
+  readonly key: string;
+  readonly column: string;
+  readonly curatedValue: string;
+  readonly incomingValue: string;
+}
+
+/** The enrichment report (deterministic; ordered for stable diffs). */
+export interface EnrichmentReport {
+  readonly file: string;
+  readonly keyColumn: string;
+  readonly overwrite: boolean;
+  readonly totals: {
+    readonly records: number;
+    readonly matched: number;
+    readonly enrichments: number;
+    readonly overwrites: number;
+    readonly conflicts: number;
+    /** Enrichment records whose key matched no target row. */
+    readonly unmatched: number;
+    /** Enrichment records whose key matched more than one target row (skipped). */
+    readonly ambiguous: number;
+    /** Columns present in the enrichment file but blank in every record (never added). */
+    readonly skippedEmptyColumns: number;
+  };
+  readonly changes: readonly EnrichmentChange[];
+  readonly conflicts: readonly EnrichmentConflict[];
+  readonly unmatchedKeys: readonly string[];
+  readonly ambiguousKeys: readonly string[];
+  readonly skippedEmptyColumns: readonly string[];
+}
+
+/**
+ * Enrich existing rows of `target` from curated `records`, keyed by `keyColumn`. Pure (mutates
+ * + returns the in-memory file + a report); {@link runEnrichment} does the filesystem side.
+ */
+export function buildEnrichment(
+  target: LexiconFile,
+  records: readonly EnrichmentRecord[],
+  opts: { keyColumn?: string; overwrite?: boolean } = {},
+): { file: LexiconFile; report: EnrichmentReport } {
+  const keyColumn = opts.keyColumn ?? "id";
+  const overwrite = opts.overwrite ?? false;
+
+  // Columns the records propose to fill (any non-key column appearing in the file), and which
+  // of them carry at least one non-blank value — only the latter are written (no dead columns).
+  const proposed = new Set<string>();
+  for (const rec of records) {
+    for (const col of Object.keys(rec.values)) {
+      if (col !== keyColumn) proposed.add(col);
+    }
+  }
+  const nonEmpty = new Set<string>();
+  for (const rec of records) {
+    for (const [col, value] of Object.entries(rec.values)) {
+      if (col !== keyColumn && value.trim() !== "") nonEmpty.add(col);
+    }
+  }
+  const skippedEmptyColumns = [...proposed].filter((c) => !nonEmpty.has(c)).sort();
+  const writeColumns = [...nonEmpty].sort();
+
+  // Ensure the written columns exist on the target (pads rows to stay rectangular).
+  ensureColumns(target, writeColumns);
+
+  const keyIdx = target.headers.indexOf(keyColumn);
+  const colIdx = new Map(writeColumns.map((c) => [c, target.headers.indexOf(c)]));
+
+  // Index target rows by key; count occurrences to detect ambiguous keys.
+  const rowsByKey = new Map<string, string[][]>();
+  if (keyIdx >= 0) {
+    for (const row of target.rows) {
+      const k = cell(row, keyIdx);
+      if (k === "") continue;
+      const list = rowsByKey.get(k) ?? [];
+      list.push(row);
+      rowsByKey.set(k, list);
+    }
+  }
+
+  const changes: EnrichmentChange[] = [];
+  const conflicts: EnrichmentConflict[] = [];
+  const unmatchedKeys: string[] = [];
+  const ambiguousKeys: string[] = [];
+  let matched = 0;
+  let enrichments = 0;
+  let overwriteCount = 0;
+
+  for (const rec of records) {
+    const key = rec.key.trim();
+    if (key === "") continue;
+    const rows = rowsByKey.get(key);
+    if (rows === undefined || rows.length === 0) {
+      unmatchedKeys.push(key);
+      continue;
+    }
+    if (rows.length > 1) {
+      ambiguousKeys.push(key);
+      continue; // key does not address a single row — skip, never guess.
+    }
+    matched += 1;
+    const row = rows[0];
+    for (const col of writeColumns) {
+      const incoming = (rec.values[col] ?? "").trim();
+      if (incoming === "") continue;
+      const idx = colIdx.get(col) ?? -1;
+      if (idx < 0) continue;
+      const current = cell(row, idx);
+      if (current === incoming) continue; // already agrees (idempotent).
+      if (current === "") {
+        setCell(row, idx, sanitize(incoming));
+        target.changed = true;
+        enrichments += 1;
+        changes.push({ key, column: col, oldValue: "", newValue: sanitize(incoming), kind: "enrichment" });
+      } else {
+        conflicts.push({ key, column: col, curatedValue: current, incomingValue: incoming });
+        if (overwrite) {
+          setCell(row, idx, sanitize(incoming));
+          target.changed = true;
+          overwriteCount += 1;
+          changes.push({ key, column: col, oldValue: current, newValue: sanitize(incoming), kind: "overwrite" });
+        }
+      }
+    }
+  }
+
+  changes.sort((a, b) => cmp(a.key, b.key) || cmp(a.column, b.column));
+  conflicts.sort((a, b) => cmp(a.key, b.key) || cmp(a.column, b.column));
+  unmatchedKeys.sort();
+  ambiguousKeys.sort();
+
+  const report: EnrichmentReport = {
+    file: target.file,
+    keyColumn,
+    overwrite,
+    totals: {
+      records: records.length,
+      matched,
+      enrichments,
+      overwrites: overwriteCount,
+      conflicts: conflicts.length,
+      unmatched: unmatchedKeys.length,
+      ambiguous: ambiguousKeys.length,
+      skippedEmptyColumns: skippedEmptyColumns.length,
+    },
+    changes,
+    conflicts,
+    unmatchedKeys,
+    ambiguousKeys,
+    skippedEmptyColumns,
+  };
+  return { file: target, report };
+}
+
+/** Parse a curated enrichment TSV (header-addressed) into {@link EnrichmentRecord}s. */
+export function loadEnrichmentFile(enrichmentFile: string, keyColumn = "id"): EnrichmentRecord[] {
+  const content = fs.readFileSync(enrichmentFile, "utf8");
+  const lines = content.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length === 0) return [];
+  const headers = lines[0].split("\t").map((h) => h.trim());
+  const keyIdx = headers.indexOf(keyColumn);
+  if (keyIdx < 0) throw new Error(`Enrichment file has no '${keyColumn}' column: ${enrichmentFile}`);
+  return lines.slice(1).map((line) => {
+    const cells = line.split("\t");
+    const values: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      if (h !== "" && h !== keyColumn) values[h] = (cells[i] ?? "").trim();
+    });
+    return { key: (cells[keyIdx] ?? "").trim(), values };
+  });
+}
+
+/** Serialise an enrichment report to JSON (trailing newline). */
+export function enrichmentReportJson(report: EnrichmentReport): string {
+  return JSON.stringify(report, null, 2) + "\n";
+}
+
+/** Build + write a column enrichment into the target lexicon; report to the gitignored tree. */
+export function runEnrichment(
+  opts: {
+    enrichmentFile: string;
+    targetFile: string;
+    keyColumn?: string;
+    overwrite?: boolean;
+    lexiconsDir?: string;
+    outDir?: string;
+  },
+): { file: LexiconFile; report: EnrichmentReport } {
+  const keyColumn = opts.keyColumn ?? "id";
+  const lexiconsDir = opts.lexiconsDir ?? LEXICONS_DIR;
+  const outDir = opts.outDir ?? WRITEBACK_DIR;
+
+  const parsed = readLexiconFile(path.join(lexiconsDir, opts.targetFile), opts.targetFile);
+  if (parsed === null) {
+    throw new Error(`Target lexicon not found or empty: ${opts.targetFile}`);
+  }
+  const records = loadEnrichmentFile(opts.enrichmentFile, keyColumn);
+  const built = buildEnrichment(parsed, records, { keyColumn, overwrite: opts.overwrite });
+
+  if (built.file.changed) {
+    fs.writeFileSync(path.join(lexiconsDir, opts.targetFile), serializeLexiconFile(built.file));
+  }
+  fs.mkdirSync(outDir, { recursive: true });
+  const reportName = `${opts.targetFile.replace(/\.tsv$/, "")}-enrichment-report.json`;
+  fs.writeFileSync(path.join(outDir, reportName), enrichmentReportJson(built.report));
+  return built;
 }
 
 /** Build + write culture additions into the target lexicon; report to the gitignored tree. */
@@ -762,20 +1036,68 @@ export function runCultureAdditions(
     fs.writeFileSync(path.join(lexiconsDir, targetFile), serializeLexiconFile(built.file));
   }
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(outDir, "civilizations-additions-report.json"),
-    additionsReportJson(built.report),
-  );
+  // Report name mirrors the target lexicon (civilizations.tsv → civilizations-additions-report.json).
+  const reportName = `${targetFile.replace(/\.tsv$/, "")}-additions-report.json`;
+  fs.writeFileSync(path.join(outDir, reportName), additionsReportJson(built.report));
   return built;
 }
 
 // CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
 // Default: enrichment write-back (`--overwrite` applies incoming over curated).
 // `--add-cultures [file]`: append curated new cultures into civilizations.tsv (US-003).
+// `--add-rows <file> --target <lexicon.tsv>`: generic append into any node lexicon (US-002+).
+// `--enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]`: fill blank cells on
+//   EXISTING rows from a curated enrichment TSV (US-006 language ranges/endangerment).
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const argv = process.argv.slice(2);
   const addFlag = argv.indexOf("--add-cultures");
-  if (addFlag >= 0) {
+  const addRowsFlag = argv.indexOf("--add-rows");
+  const enrichFlag = argv.indexOf("--enrich");
+  const flagValue = (name: string): string | undefined => {
+    const i = argv.indexOf(name);
+    if (i < 0) return undefined;
+    const v = argv[i + 1];
+    return v && !v.startsWith("--") ? v : undefined;
+  };
+  if (enrichFlag >= 0) {
+    const enrichmentFile = flagValue("--enrich");
+    const targetFile = flagValue("--target");
+    if (enrichmentFile === undefined || targetFile === undefined) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "usage: import-from-culturescrape --enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]",
+      );
+      process.exit(1);
+    }
+    const keyColumn = flagValue("--key") ?? "id";
+    const overwrite = argv.includes("--overwrite");
+    const { report } = runEnrichment({ enrichmentFile, targetFile, keyColumn, overwrite });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Enrichment (${report.file}, key='${report.keyColumn}'): ${totals.records} records → ` +
+        `${totals.matched} matched, ${totals.enrichments} cells filled, ${totals.overwrites} overwrites, ` +
+        `${totals.conflicts} conflicts${overwrite ? "" : " (reported, not applied)"}, ` +
+        `${totals.unmatched} unmatched, ${totals.ambiguous} ambiguous, ` +
+        `${totals.skippedEmptyColumns} empty column(s) skipped.`,
+    );
+  } else if (addRowsFlag >= 0) {
+    const additionsFile = flagValue("--add-rows");
+    const targetFile = flagValue("--target");
+    if (additionsFile === undefined || targetFile === undefined) {
+      // eslint-disable-next-line no-console
+      console.error("usage: import-from-culturescrape --add-rows <file> --target <lexicon.tsv>");
+      process.exit(1);
+    }
+    const { report } = runCultureAdditions({ additionsFile, targetFile });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Row additions (${report.file}): ${totals.candidates} candidates → ` +
+        `${totals.added} added, ${totals.skipped} skipped, ${totals.conflicts} conflicts, ` +
+        `${totals.updated} updated; rows ${totals.rowsBefore} → ${totals.rowsAfter}.`,
+    );
+  } else if (addFlag >= 0) {
     const next = argv[addFlag + 1];
     const additionsFile = next && !next.startsWith("--") ? next : DEFAULT_ADDITIONS_FILE;
     const { report } = runCultureAdditions({ additionsFile });
