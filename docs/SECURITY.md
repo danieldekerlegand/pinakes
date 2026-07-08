@@ -1,6 +1,6 @@
 # Security & Hardening
 
-Tracks the hardening work in the roadmap's [§16 "Hardening & production readiness"](./prd-linguascrape-deep-history-roadmap.md#16-hardening--production-readiness). This document grows as the `ralph/security-hardening` stories land (US-001…US-008).
+Tracks the `ralph/security-hardening` work (US-001…US-008), cross-linked from the roadmap's [Phase-15 status → Hardening](./prd-linguascrape-deep-history-roadmap.md#phase-15-status-so-far) bullet.
 
 ## API keys are server-side only
 
@@ -144,4 +144,83 @@ map never rendered. Fixed by bailing out via the functional updater when the val
 is already empty (stable reference). This is exactly the class of bug e2e coverage
 exists to catch.
 
-<!-- US-007 (deferred graph-UI browser verification) section lands as that story completes. -->
+## Graph-UI browser verification (US-007)
+
+Four graph-dependent UI features were merged gated only on unit tests. US-007
+confirms them in a real browser via [`e2e/graph-ui.spec.ts`](../e2e/graph-ui.spec.ts),
+which exercises each feature in **both** graph-up and graph-down states so the
+degraded affordances are proven, not assumed. As with the smoke, **no live Neo4j
+or sidecar is required**: the graph-up path is produced by intercepting
+`/api/graph/*` and `/api/search` at the Playwright network boundary, and the
+graph-down path just lets the real server return its unavailable responses.
+
+### What it verifies
+
+1. **Graph neighborhood view** — the force-directed graph renders
+   (`data-testid="network-graph-svg"` on [`shared/NetworkGraph.tsx`](../client/src/components/visualizations/shared/NetworkGraph.tsx)),
+   with the Depth 1/2/3 controls and the provenance (`SOURCED`) badge.
+2. **Explorer graph adapter** — the "Shared Culture Graph" dataset loads its item
+   count when the graph is up, and shows a prompt "Failed to load" when it is down
+   (rather than hanging).
+3. **Federated search** — a purple **Graph** source badge + culture-scrape
+   provenance appears when up; local-only hits when down.
+4. **`GraphFeatureGate`** — the "Show in graph" button and the research-console
+   trigger render **disabled with an offline/unavailable tooltip** when the graph
+   is down (the affordance called out in the acceptance criteria).
+
+Result: **11/11 passing** (7 graph-ui + 4 smoke), screenshots under
+`test-results/graph-ui/`.
+
+### Fixes surfaced by the verification
+
+- **`/api/graph/overview` slow-fail (~15s):** graph reads waited out the Neo4j
+  driver's retry window when the graph was down, so the explorer adapter hung past
+  the test timeout. Fixed by fast-failing in
+  [`server/services/graph-store.ts`](../server/services/graph-store.ts) `runRead`
+  via the cached `isAvailable()` probe (now <1ms). Any graph-backed UI now
+  degrades promptly.
+- **Invisible explorer error on cold deep-link:** on a `?panel=explore&ds=…` mount
+  the flex content pane resolved to 0 height, hiding the loading/error states.
+  Fixed with a `min-h` floor in
+  [`UnifiedExplorer.tsx`](../client/src/components/explorer/UnifiedExplorer.tsx).
+
+### Running it
+
+```bash
+npx playwright test e2e/graph-ui.spec.ts   # both graph-up and graph-down states
+```
+
+## Typecheck as a verification gate (US-004 / US-005)
+
+The global `tsc` check is part of the hardening posture: a green typecheck is what
+makes "types pass" a literal, enforceable gate rather than a baseline of noise.
+US-004 cleared the largest offender (`server/tsv-storage.ts`) and US-005 cleared
+the remainder, so **`npm run check` now reports 0 errors** (down from ~145
+pre-existing). Treat it as **strict** going forward — a new type error is a
+regression to fix, not a baseline to grow. The `verify` gate can rely on it
+literally.
+
+> **Branch note:** these fixes live on `ralph/security-hardening`. On `main` the
+> ~145 errors still exist until this branch merges; run `npm run check` on the
+> feature branch to see the green state.
+
+## Story → posture map
+
+Where each hardening story lands against the roadmap's
+[Phase-15 → Hardening](./prd-linguascrape-deep-history-roadmap.md#phase-15-status-so-far) bullet:
+
+| Story | Hardening outcome | Addresses |
+| --- | --- | --- |
+| US-001 | Gemini key server-side only (proxy) | key exposure / rotation |
+| US-002 | Google Translate key server-side only (proxy) | key exposure / rotation |
+| US-003 | Secret scanning (pre-commit + CI) blocks re-committing secrets | key exposure |
+| US-004 / US-005 | `npm run check` green — strict typecheck gate | clear the 145 `tsc` errors |
+| US-006 | Playwright e2e smoke for core flows | browser/e2e verification |
+| US-007 | Graph-UI browser verification (up + down states) | browser/e2e verification |
+| US-008 | This document | — |
+
+**Out of scope / human-only:** rotating the previously-exposed `.env` secrets and
+purging the file from git history are manual operations (the untrack + `.gitignore`
+are already done). Sourcing real fallback assets (audio clips, glTF models) and
+building/loading the full culture-scrape corpus are roadmap §15 (data population)
+and §16 (production-verification) work, not security hardening.

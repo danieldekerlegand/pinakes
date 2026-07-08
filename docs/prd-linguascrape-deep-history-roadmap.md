@@ -415,11 +415,11 @@ into a **populated, verified, production-grade** atlas.
 - ✅ **Operationalize the convergence** — `operationalize-graph`, merged @55747b2. Live pipeline
   end-to-end; sidecar JSON API exposed; a first correlation migrated off in-memory TS onto the graph.
   *Caveat:* the graph currently holds only the ~5.4k existing **seed** entities — see §15.
-- 🟡 **Hardening** — `security-hardening`, in progress. Done: server-side key proxy for Gemini +
-  Google Translate, commit-time/CI secret scanning, `npm run check` green (on branch), `.env`
-  untracked + gitignored, Playwright e2e smoke. Remaining: browser-verify the graph UI (US-007),
-  security docs (US-008). **Human-only, still open:** rotate the exposed keys and purge `.env` from
-  git history + force-push.
+- ✅ **Hardening** — `security-hardening`, complete (US-001…US-008). Server-side key proxy for
+  Gemini + Google Translate, commit-time/CI secret scanning, `npm run check` green (on branch),
+  `.env` untracked + gitignored, Playwright e2e smoke, graph-UI browser verification (up + down
+  states), and the [security & verification docs](./SECURITY.md). **Human-only, still open:** rotate
+  the exposed keys and purge `.env` from git history + force-push.
 
 ### 15. Data population at scale — **THE priority**
 The single highest-leverage gap. Most domains sit at **15–60% of their roadmap targets**, and the
