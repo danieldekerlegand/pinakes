@@ -1,46 +1,4 @@
 id	name	cuisine_id	category	coordinates	time_origin	time_end	description	wikidata_qid	source_url	retrieved_at	confidence	sources
-wok-frying	Wok Stir-Frying	chinese	heat	{"lat":28.0,"lng":113.0}	-200	null	High-heat quick cooking in a rounded wok					
-steaming-chinese	Steaming	chinese	heat	{"lat":30.0,"lng":114.0}	-5000	null	Gentle cooking over boiling water using bamboo steamers					
-injera-ferment	Injera Fermentation	ethiopian	fermentation	{"lat":9.0,"lng":38.5}	-1000	null	Wild yeast fermentation of teff batter for 2-3 days					
-wet-wat-stewing	Wet (Stew) Cooking	ethiopian	heat	{"lat":9.0,"lng":40.0}	-1000	null	Slow-simmered stews with berbere spice base					
-sauteing-french	Sautéing	french	heat	{"lat":48.86,"lng":2.35}	800	null	Quick pan-cooking in butter or oil over high heat					
-confit-french	Confit	french	preservation	{"lat":43.6,"lng":1.44}	1200	null	Slow-cooking and preserving meat in its own fat					
-sous-vide	Sous Vide	french	heat	{"lat":48.86,"lng":2.35}	1974	null	Vacuum-sealed low-temperature water bath cooking					
-tkemali-sauce	Tkemali Sauce Making	georgian	sauce	{"lat":42.0,"lng":43.5}	-500	null	Tart plum sauce preparation with herbs and spices					
-cheese-stretching	Sulguni Stretching	georgian	dairy	{"lat":42.5,"lng":42.0}	-300	null	Hot-water stretching technique for Georgian cheese					
-smoking-german	Smoking (Räuchern)	german	preservation	{"lat":52.5,"lng":13.4}	-2000	null	Cold and hot smoking of meats and fish					
-sauerkraut-ferment	Sauerkraut Fermentation	german	fermentation	{"lat":51.0,"lng":10.0}	-300	null	Lacto-fermentation of shredded cabbage					
-grilling-greek	Souvlaki Grilling	greek	heat	{"lat":37.97,"lng":23.72}	-1500	null	Skewered meat grilling over charcoal					
-phyllo-making	Phyllo Dough Making	greek	dough	{"lat":39.0,"lng":22.0}	-500	null	Paper-thin dough sheets stretched by hand					
-roux-hungarian	Rántás (Roux)	hungarian	sauce	{"lat":47.5,"lng":19.04}	1200	null	Fat and flour base thickening for Hungarian stews					
-tandoori-indian	Tandoori Cooking	indian	heat	{"lat":28.61,"lng":77.21}	-3000	null	Clay oven cooking at extreme high temperatures					
-tempering-indian	Tadka (Tempering)	indian	heat	{"lat":20.0,"lng":78.0}	-2000	null	Blooming whole spices in hot oil or ghee					
-bumbu-grinding	Bumbu Paste Grinding	indonesian	preparation	{"lat":-6.2,"lng":106.85}	-500	null	Stone-ground spice paste base for Indonesian dishes					
-banana-leaf-wrap	Banana Leaf Wrapping	indonesian	heat	{"lat":-7.5,"lng":110.0}	-2000	null	Steaming or grilling food wrapped in banana leaves					
-tahdig-rice	Tahdig (Crispy Rice)	iranian	heat	{"lat":35.69,"lng":51.39}	-1500	null	Intentional crisping of rice crust at bottom of pot					
-khoresh-braising	Khoresh Braising	iranian	heat	{"lat":32.65,"lng":51.68}	-2000	null	Slow-braised stew with fruit and meat combinations					
-pasta-making	Fresh Pasta Making	italian	dough	{"lat":44.49,"lng":11.34}	-500	null	Hand-rolled egg and flour dough in various shapes					
-al-dente	Al Dente Cooking	italian	heat	{"lat":41.9,"lng":12.5}	100	null	Precise pasta cooking to retain firm bite					
-sushi-rice	Sushi Rice Seasoning	japanese	preparation	{"lat":35.68,"lng":139.69}	-300	null	Vinegared rice preparation with precise technique					
-fermentation-miso	Miso Fermentation	japanese	fermentation	{"lat":36.0,"lng":140.0}	-700	null	Months-long koji mold fermentation of soybeans					
-kimchi-ferment	Kimchi Fermentation	korean	fermentation	{"lat":37.57,"lng":126.98}	-37	null	Lacto-fermentation of salted vegetables with gochugaru					
-bibimbap-assembly	Bibimbap Assembly	korean	preparation	{"lat":35.15,"lng":128.07}	1800	null	Arranged rice bowl with seasoned vegetables and gochujang					
-nixtamalization	Nixtamalization	mexican	preparation	{"lat":19.43,"lng":-99.13}	-1500	null	Alkaline processing of corn with lime water					
-mole-making	Mole Sauce Making	mexican	sauce	{"lat":17.06,"lng":-96.72}	-500	null	Complex sauce blending dozens of ingredients including chocolate					
-ceviche-curing	Ceviche Citrus Curing	peruvian	preservation	{"lat":-12.04,"lng":-77.03}	-2000	null	Raw fish denatured by citrus acid					
-pachamanca-earth	Pachamanca Earth Oven	peruvian	heat	{"lat":-12.0,"lng":-75.0}	-3000	null	Underground hot-stone cooking from Inca tradition					
-pierogi-folding	Pierogi Folding	polish	dough	{"lat":51.1,"lng":17.04}	1200	null	Stuffed dumpling shaping and sealing technique					
-bigos-stewing	Bigos (Hunter's Stew)	polish	heat	{"lat":52.23,"lng":21.01}	1500	null	Multi-day sauerkraut and meat stew reheated for depth					
-bacalhau-salting	Bacalhau Salt-Curing	portuguese	preservation	{"lat":38.72,"lng":-9.14}	1100	null	Extended salt-curing and drying of cod fish					
-cataplana-steaming	Cataplana Steaming	portuguese	heat	{"lat":37.02,"lng":-7.93}	1400	null	Sealed copper clam-shell vessel for steaming seafood					
-sofrito-spanish	Sofrito	spanish	heat	{"lat":41.39,"lng":2.17}	-500	null	Slow-cooked aromatic base of tomatoes, onion, and garlic					
-paella-socarrat	Paella Socarrat	spanish	heat	{"lat":39.47,"lng":-0.38}	1500	null	Intentional crispy rice crust at bottom of paella pan					
-mortar-pounding	Mortar Pounding	thai	preparation	{"lat":13.75,"lng":100.5}	-2000	null	Stone mortar and pestle for curry pastes and salads					
-coconut-cracking	Coconut Milk Extraction	thai	preparation	{"lat":7.88,"lng":98.39}	-1000	null	Grating and pressing fresh coconut for milk					
-kebab-grilling	Kebab Grilling	turkish	heat	{"lat":39.93,"lng":32.85}	-1000	null	Skewered meat grilling over charcoal or wood fire					
-turkish-coffee	Turkish Coffee Brewing	turkish	beverage	{"lat":41.01,"lng":28.98}	1450	null	Finely ground coffee simmered in a cezve with cardamom					
-pho-broth	Phở Broth Simmering	vietnamese	heat	{"lat":21.03,"lng":105.85}	1900	null	Long-simmered bone broth with charred aromatics					
-banh-mi-baking	Bánh Mì Baking	vietnamese	dough	{"lat":10.82,"lng":106.63}	1880	null	French-influenced baguette adapted with rice flour					
 al-dente-technique	al dente						way to cook pasta	Q181570	http://www.wikidata.org/entity/Q181570	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 baking	baking						food production method using prolonged dry heat acting by convection	Q720398	http://www.wikidata.org/entity/Q720398	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 basting	basting						This method of cooking is usually associated with roasting.	Q2425803	http://www.wikidata.org/entity/Q2425803	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]

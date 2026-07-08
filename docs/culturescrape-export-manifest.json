@@ -72,13 +72,13 @@
       "type": "cuisine",
       "label": "Cuisine",
       "file": "nodes/cuisine.tsv",
-      "count": 21
+      "count": 101
     },
     {
       "type": "ingredient",
       "label": "Ingredient",
       "file": "nodes/ingredient.tsv",
-      "count": 2136
+      "count": 2206
     },
     {
       "type": "trade-good",
@@ -150,7 +150,7 @@
     }
   ],
   "totals": {
-    "nodes": 6123,
+    "nodes": 6273,
     "edges": 5689,
     "nodeTypes": 17,
     "edgeTypes": 7
@@ -322,7 +322,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 6123,
+      "total": 6273,
       "byType": [
         {
           "type": "language",
@@ -447,24 +447,24 @@
         },
         {
           "type": "cuisine",
-          "count": 21,
+          "count": 101,
           "nonEmpty": {
-            "source": 21,
+            "source": 101,
             "source_url": 0,
-            "source_query": 0,
+            "source_query": 80,
             "retrieved_at": 0,
-            "confidence": 21
+            "confidence": 101
           }
         },
         {
           "type": "ingredient",
-          "count": 2136,
+          "count": 2206,
           "nonEmpty": {
-            "source": 2136,
+            "source": 2206,
             "source_url": 0,
-            "source_query": 0,
+            "source_query": 70,
             "retrieved_at": 0,
-            "confidence": 2136
+            "confidence": 2206
           }
         },
         {
@@ -513,11 +513,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 6123,
+        "source": 6273,
         "source_url": 0,
-        "source_query": 1425,
+        "source_query": 1575,
         "retrieved_at": 0,
-        "confidence": 6123
+        "confidence": 6273
       }
     },
     "edge": {
@@ -609,9 +609,9 @@
       "citationsWithoutCanonicalColumn": 371
     },
     "flags": [
-      "node.source_url: 0/6123 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/6123 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
-      "node.source_query: 1425/6123 rows preserve the original LinguaScrape citation.",
+      "node.source_url: 0/6273 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/6273 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 1575/6273 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5689 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5689 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.citationsWithoutCanonicalColumn: 371 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."

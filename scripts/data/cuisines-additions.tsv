@@ -1,25 +1,4 @@
 id	name	native_name	region	coordinates	associated_language_ids	time_origin	time_end	description	wikidata_qid	source_url	retrieved_at	confidence	sources
-chinese	Chinese	中国菜	East Asia	{"lat":35.86,"lng":104.19}	["chinese","mandarin","cantonese"]	-2000	null	One of the world's oldest and most diverse culinary traditions					
-ethiopian	Ethiopian	የኢትዮጵያ ምግብ	East Africa	{"lat":9.14,"lng":40.49}	["amharic","oromo"]	-1000	null	Ancient cuisine featuring injera and spiced stews					
-french	French	Cuisine française	Western Europe	{"lat":46.23,"lng":2.21}	["french"]	800	null	Refined European cuisine known for technique and sauces					
-georgian	Georgian	ქართული სამზარეულო	Caucasus	{"lat":42.32,"lng":43.36}	["georgian"]	-500	null	Ancient Caucasian cuisine with unique spices and cheese breads					
-german	German	Deutsche Küche	Central Europe	{"lat":51.17,"lng":10.45}	["german"]	500	null	Hearty Central European cuisine with meats and breads					
-greek	Greek	Ελληνική κουζίνα	Southern Europe	{"lat":39.07,"lng":21.82}	["greek"]	-1500	null	Mediterranean cuisine with olive oil, herbs, and seafood					
-hungarian	Hungarian	Magyar konyha	Central Europe	{"lat":47.16,"lng":19.50}	["hungarian"]	896	null	Paprika-rich cuisine blending Eastern and Western influences					
-indian	Indian	भारतीय व्यंजन	South Asia	{"lat":20.59,"lng":78.96}	["hindi","tamil","bengali","gujarati"]	-3000	null	Diverse subcontinent cuisine with complex spice blends					
-indonesian	Indonesian	Masakan Indonesia	Southeast Asia	{"lat":-0.79,"lng":113.92}	["indonesian","javanese"]	-500	null	Archipelago cuisine blending indigenous and trade influences					
-iranian	Iranian	غذاهای ایرانی	Middle East	{"lat":32.43,"lng":53.69}	["persian","farsi"]	-2500	null	Ancient Persian cuisine with rice, saffron, and dried fruits					
-italian	Italian	Cucina italiana	Southern Europe	{"lat":41.87,"lng":12.57}	["italian"]	-500	null	Mediterranean cuisine celebrated for pasta, pizza, and regional diversity					
-japanese	Japanese	日本料理	East Asia	{"lat":36.20,"lng":138.25}	["japanese"]	-300	null	Refined cuisine emphasizing seasonality and presentation					
-korean	Korean	한국 요리	East Asia	{"lat":35.91,"lng":127.77}	["korean"]	-57	null	Fermented foods and balanced flavors from the Korean peninsula					
-mexican	Mexican	Cocina mexicana	North America	{"lat":23.63,"lng":-102.55}	["spanish","nahuatl"]	-7000	null	Ancient Mesoamerican cuisine blended with Spanish influences					
-peruvian	Peruvian	Comida peruana	South America	{"lat":-9.19,"lng":-75.02}	["spanish","quechua"]	-3000	null	Diverse cuisine from Andes, coast, and Amazon					
-polish	Polish	Kuchnia polska	Central Europe	{"lat":51.92,"lng":19.15}	["polish"]	966	null	Hearty Central European fare with soups and dumplings					
-portuguese	Portuguese	Cozinha portuguesa	Western Europe	{"lat":39.40,"lng":-8.22}	["portuguese"]	1100	null	Maritime cuisine with seafood and global influences					
-spanish	Spanish	Cocina española	Western Europe	{"lat":40.46,"lng":-3.75}	["spanish"]	-500	null	Regional cuisines united by olive oil and Mediterranean ingredients					
-thai	Thai	อาหารไทย	Southeast Asia	{"lat":15.87,"lng":100.99}	["thai"]	1238	null	Balanced cuisine with sweet, sour, salty, and spicy flavors					
-turkish	Turkish	Türk mutfağı	Middle East	{"lat":38.96,"lng":35.24}	["turkish"]	1000	null	Ottoman-influenced cuisine bridging Europe and Asia					
-vietnamese	Vietnamese	Ẩm thực Việt Nam	Southeast Asia	{"lat":14.06,"lng":108.28}	["vietnamese"]	-500	null	Fresh, herb-forward cuisine with French colonial influences					
 afghan	Afghan			{"lat":33,"lng":66}				culinary traditions of Afghanistan	Q383096	http://www.wikidata.org/entity/Q383096	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 albanian	Albanian			{"lat":41,"lng":20}				culinary traditions of Albania	Q1199173	http://www.wikidata.org/entity/Q1199173	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 algerian	Algerian			{"lat":28,"lng":1}				culinary traditions of Algeria	Q3006881	http://www.wikidata.org/entity/Q3006881	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]

@@ -1,45 +1,4 @@
 id	name	cuisine_id	origin_region	coordinates	time_origin	time_end	native_name	description	wikidata_qid	source_url	retrieved_at	confidence	sources
-rice-chinese	Rice	chinese	East Asia	{"lat":30.0,"lng":115.0}	-7000	null	稻	Staple grain domesticated in the Yangtze River valley					
-soy-chinese	Soybean	chinese	East Asia	{"lat":40.0,"lng":117.0}	-5000	null	大豆	Protein-rich legume central to Chinese cuisine					
-ginger-chinese	Ginger	chinese	Southeast Asia	{"lat":15.0,"lng":100.0}	-3000	null	姜	Aromatic rhizome used in cooking and medicine					
-teff-ethiopian	Teff	ethiopian	East Africa	{"lat":9.0,"lng":38.5}	-4000	null	ጤፍ	Tiny grain native to Ethiopia used for injera					
-berbere-ethiopian	Berbere Spice	ethiopian	East Africa	{"lat":9.0,"lng":40.0}	-1000	null	በርበሬ	Complex spice blend foundational to Ethiopian cooking					
-wheat-french	Wheat	french	Fertile Crescent	{"lat":36.0,"lng":40.0}	-8000	null	Blé	Ancient grain forming basis of French bread tradition					
-butter-french	Butter	french	Northern Europe	{"lat":48.0,"lng":-2.0}	-2000	null	Beurre	Dairy product central to French culinary technique					
-grape-french	Grape	french	Caucasus	{"lat":42.0,"lng":44.0}	-6000	null	Raisin	Fruit cultivated for wine and cooking					
-walnut-georgian	Walnut	georgian	Central Asia	{"lat":42.0,"lng":43.5}	-5000	null	ნიგოზი	Tree nut essential to Georgian cuisine					
-pomegranate-georgian	Pomegranate	georgian	Iran	{"lat":32.0,"lng":53.0}	-3000	null	ბროწეული	Fruit used for sauces and garnishes in Georgian cooking					
-potato-german	Potato	german	South America	{"lat":-15.0,"lng":-70.0}	-8000	null	Kartoffel	Tuber adopted in Germany after Columbian exchange					
-olive-greek	Olive	greek	Mediterranean	{"lat":37.0,"lng":22.0}	-5000	null	Ελιά	Ancient Mediterranean fruit and oil source					
-feta-greek	Feta Cheese	greek	Greece	{"lat":39.0,"lng":22.0}	-1000	null	Φέτα	Brined curd cheese from sheep and goat milk					
-paprika-hungarian	Paprika	hungarian	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	Paprika	Capsicum pepper introduced to Hungary via Ottoman trade					
-turmeric-indian	Turmeric	indian	South Asia	{"lat":20.0,"lng":78.0}	-4500	null	हल्दी	Golden spice with anti-inflammatory properties					
-cumin-indian	Cumin	indian	Eastern Mediterranean	{"lat":35.0,"lng":38.0}	-3000	null	जीरा	Seed spice essential to Indian curry blends					
-cardamom-indian	Cardamom	indian	South India	{"lat":10.0,"lng":77.0}	-3000	null	इलायची	Aromatic seed pod used in savory and sweet dishes					
-galangal-indonesian	Galangal	indonesian	Southeast Asia	{"lat":-5.0,"lng":110.0}	-3000	null	Lengkuas	Rhizome related to ginger used in Indonesian cuisine					
-coconut-indonesian	Coconut	indonesian	Southeast Asia	{"lat":-2.0,"lng":115.0}	-4000	null	Kelapa	Versatile palm fruit used for milk, oil, and flesh					
-saffron-iranian	Saffron	iranian	Greece/Iran	{"lat":35.0,"lng":52.0}	-3000	null	زعفران	World's most expensive spice from crocus flowers					
-barberry-iranian	Barberry	iranian	Iran	{"lat":36.0,"lng":52.0}	-2000	null	زرشک	Tart dried berry used in Persian rice dishes					
-tomato-italian	Tomato	italian	South America	{"lat":-12.0,"lng":-77.0}	-7000	null	Pomodoro	New World fruit that transformed Italian cuisine					
-basil-italian	Basil	italian	South Asia	{"lat":20.0,"lng":80.0}	-3000	null	Basilico	Aromatic herb sacred in Indian and Mediterranean cultures					
-dashi-japanese	Kombu (Dashi)	japanese	Japan	{"lat":42.0,"lng":140.0}	-300	null	昆布	Seaweed base for Japanese stock (dashi)					
-wasabi-japanese	Wasabi	japanese	Japan	{"lat":35.0,"lng":138.0}	-700	null	山葵	Pungent root used as condiment in Japanese cuisine					
-gochugaru-korean	Gochugaru	korean	Central America	{"lat":19.0,"lng":-99.0}	-7000	null	고추가루	Korean red pepper flakes introduced via trade					
-sesame-korean	Sesame	korean	Africa	{"lat":10.0,"lng":30.0}	-3000	null	참깨	Ancient oilseed used extensively in Korean cooking					
-corn-mexican	Corn (Maize)	mexican	Mesoamerica	{"lat":17.0,"lng":-96.0}	-9000	null	Maíz	Staple grain domesticated in southern Mexico					
-chili-mexican	Chili Pepper	mexican	Mesoamerica	{"lat":20.0,"lng":-100.0}	-7500	null	Chile	Capsicum peppers native to the Americas					
-cacao-mexican	Cacao	mexican	Mesoamerica	{"lat":18.0,"lng":-92.0}	-3900	null	Cacao	Source of chocolate, sacred to Mesoamerican cultures					
-quinoa-peruvian	Quinoa	peruvian	Andes	{"lat":-15.0,"lng":-70.0}	-5000	null	Quinua	High-protein pseudocereal from the Andes					
-aji-peruvian	Ají Amarillo	peruvian	South America	{"lat":-12.0,"lng":-77.0}	-6000	null	Ají	Yellow chili pepper essential to Peruvian cuisine					
-beetroot-polish	Beetroot	polish	Mediterranean	{"lat":38.0,"lng":22.0}	-2000	null	Burak	Root vegetable central to borscht and Polish cuisine					
-cod-portuguese	Salt Cod	portuguese	North Atlantic	{"lat":60.0,"lng":-25.0}	1000	null	Bacalhau	Preserved fish that became Portugal's national ingredient					
-olive-spanish	Olive Oil	spanish	Mediterranean	{"lat":37.5,"lng":-4.0}	-5000	null	Aceite de oliva	Spain is world's largest olive oil producer					
-lemongrass-thai	Lemongrass	thai	Southeast Asia	{"lat":15.0,"lng":101.0}	-2000	null	ตะไคร้	Aromatic grass essential to Thai soups and curries					
-fish-sauce-thai	Fish Sauce	thai	Southeast Asia	{"lat":13.0,"lng":100.0}	-500	null	น้ำปลา	Fermented fish condiment providing umami					
-yogurt-turkish	Yogurt	turkish	Central Asia	{"lat":40.0,"lng":35.0}	-5000	null	Yoğurt	Fermented dairy product originating from Turkic peoples					
-sumac-turkish	Sumac	turkish	Middle East	{"lat":37.0,"lng":36.0}	-2000	null	Sumak	Tart spice from dried berries used across Turkish cuisine					
-fish-sauce-vietnamese	Fish Sauce	vietnamese	Southeast Asia	{"lat":12.0,"lng":109.0}	-500	null	Nước mắm	Fermented anchovy sauce fundamental to Vietnamese cooking					
-star-anise-vietnamese	Star Anise	vietnamese	Southern China	{"lat":22.0,"lng":108.0}	-2000	null	Hoa hồi	Aromatic spice essential to phở broth					
 agar	agar		Asia	{"lat":35,"lng":108}				thickening agent used in microbiology and food	Q177998	http://www.wikidata.org/entity/Q177998	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 almond	almond							edible seed of the almond tree	Q184357	http://www.wikidata.org/entity/Q184357	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]
 almond-milk	almond milk							plant milk manufactured from almonds	Q975953	http://www.wikidata.org/entity/Q975953	2026-07-08T11:08:32.444Z	0.8	["Wikidata"]

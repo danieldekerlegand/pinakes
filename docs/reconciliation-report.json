@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 6123,
+    "nodes": 6273,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 4899
+    "likelyNew": 5049
   },
   "byType": [
     {
@@ -38,10 +38,10 @@
     },
     {
       "type": "cuisine",
-      "count": 21,
+      "count": 101,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 21
+      "likelyNew": 101
     },
     {
       "type": "culture",
@@ -59,10 +59,10 @@
     },
     {
       "type": "ingredient",
-      "count": 2136,
+      "count": 2206,
       "matched": 0,
       "ambiguous": 37,
-      "likelyNew": 2099
+      "likelyNew": 2169
     },
     {
       "type": "language",
@@ -141,7 +141,7 @@
       "withIso639": 993,
       "withGlottocode": 0
     },
-    "withRegion": 2603,
+    "withRegion": 2613,
     "duplicateCsidsDropped": 44
   },
   "ambiguities": [

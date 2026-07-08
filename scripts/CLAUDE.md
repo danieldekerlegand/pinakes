@@ -254,6 +254,33 @@ per-record cell map (never hand-type TSV with many JSON columns — one stray ta
   attribution gate enforce provenance on its imported rows. The export/reconciliation ignore it
   (they only process node files), so this is free rigor with no side effects.
 
+## Multi-domain acquire — `acquire-food-drink.ts` (US-004)
+
+Some blueprints cover several sibling lexicons that share the same acquire machinery. Rather
+than a script per lexicon, `acquire-food-drink.ts` drives **three** food-drink domains from one
+`DOMAINS` config array — `cuisines` (node `cuisine`, Wikidata `Q1968435`), `ingredient-origins`
+(node `ingredient`, `Q25403900`) and `cooking-techniques` (attribute, `Q1039303`) — each with its
+own class, target lexicon, column list, name-dedup siblings, sitelink floor + limit, and a
+`buildCells(mergedItem)` closure. `npx tsx scripts/acquire-food-drink.ts [--domain cuisines|
+ingredients|techniques] [--limit N] [--min-sitelinks N]` (no `--domain` ⇒ all three). Each emits
+its own committed `scripts/data/<lexicon>-additions.tsv`; write back with `--add-rows` as usual.
+
+- **`nameSiblings` must list every lexicon of the same node type**, not just the target — e.g.
+  ingredients dedup names across BOTH `ingredient-origins.tsv` and `cuisine-items.tsv` (both node
+  `ingredient`), or a Wikidata "rice" would duplicate a curated one in the sibling file and the
+  csid dedup would regress. Ids still dedup across the whole corpus (all `kind==="node"` files) +
+  the target's own ids (so an **attribute** target like cooking-techniques, absent from the node
+  set, still gets unique appended ids).
+- **Strip class-suffix noise from labels before reconciling.** Wikidata cuisine labels are
+  "Italian cuisine" / "cuisine of the United States"; `cuisineName()` reduces them to "Italian" /
+  "United States" so they reconcile against the seed lexicon's bare names (else all 21 seeds
+  re-appear as duplicates-not-caught). Do the label→name normalisation in `buildCells`, and dedup
+  on that display name, not the raw label.
+- Same attribute-file rigor as trade-routes: cooking-techniques is `kind: attribute`, so its
+  provenance columns are mapped as `target`s (`sources`→`source`, etc.) purely to arm the
+  attribution gate; export/reconcile ignore it. Cuisine/ingredient are node files — their new
+  provenance columns are ordinary `target`s and land in the export/graph.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the

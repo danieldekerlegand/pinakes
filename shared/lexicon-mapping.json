@@ -237,7 +237,12 @@
         { "column": "coordinates", "property": true },
         { "column": "time_origin", "property": true },
         { "column": "time_end", "property": true },
-        { "column": "description", "property": true }
+        { "column": "description", "property": true },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -267,7 +272,12 @@
         { "column": "associated_language_ids", "property": true },
         { "column": "time_origin", "target": "time_start" },
         { "column": "time_end", "target": "time_end" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
@@ -544,7 +554,12 @@
         { "column": "time_origin", "target": "time_start" },
         { "column": "time_end", "target": "time_end" },
         { "column": "native_name", "target": "aliases" },
-        { "column": "description", "target": "description" }
+        { "column": "description", "target": "description" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {
