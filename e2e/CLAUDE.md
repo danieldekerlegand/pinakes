@@ -10,7 +10,27 @@ exercised **both** graph-down (real server, no mocks → graceful degradation) a
 graph-up (`/api/graph/*` + `/api/search` intercepted at the network boundary, the
 same fixture approach the vitest suites use).
 
+`civilizations.spec.ts` = the data-population pilot verification (US-005): the
+expanded civilizations corpus renders on the **map** (via the `layers=` URL
+preset), in the **UnifiedExplorer** (the `ds=civilizations` adapter), and in the
+**detail panel with provenance** (`provenance-list` + `provenance-source-link`).
+All TSV-backed, so it needs no graph.
+
 ## Conventions & gotchas
+
+- **Preset a map layer via the URL, don't drive the LayerPanel.** Map layers are
+  off-by-default and toggling one means opening the panel + expanding a collapsed
+  category. Instead `goto("/?view=map&layers=<layerId>")` — `useMapLayers` reads
+  the `layers=` param and marks those visible on load, firing the layer's data
+  query. `view=map` (a top-level `ViewMode`) opens the map, NOT `panel=map`.
+- **Clicking a UnifiedExplorer Table row: use `dispatchEvent("click")`, not
+  `.click()`.** The `GenericExplorer` rows live in a scroll container under a
+  sticky filter toolbar; a coordinate click either lands on the toolbar overlay
+  ("intercepts pointer events") or the row resolves "outside of the viewport".
+  `page.getByRole("row", {name}).dispatchEvent("click")` fires the row's
+  `onSelect` handler directly, bypassing actionability. (Deep-linking with `ds=`
+  also leaves the dataset picker expanded over the content — fine for DOM
+  assertions, but full-page screenshots capture the picker, not the detail aside.)
 
 - **`*.spec.ts` here, `*.test.ts` everywhere else.** vitest's `include` is
   `**/*.test.ts` and Playwright's `testMatch` is `*.spec.ts`, so the two runners

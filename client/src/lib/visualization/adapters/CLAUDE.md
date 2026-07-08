@@ -42,6 +42,31 @@ The repo has **no jsdom/testing-library** (vitest env=node, `include=**/*.test.t
 "Adapter tests" test the pure `unwrap`/`project`/`detail` functions and
 `compatibleVisualizations`, not DOM rendering. See `culturescrape.adapter.test.ts`.
 
+## GeoJSON-endpoint adapter (`civilizations.adapter.ts`)
+
+The civilizations dataset is the only adapter whose `endpoint` returns a GeoJSON
+`FeatureCollection` (`/api/map/civilizations`) rather than a `{rows}` envelope —
+so `unwrap` reads `resp.features`, and every projection/`detail` works over the
+feature's `.properties`. Reuse notes for any map-GeoJSON dataset:
+
+- **`payload: feature` on every dimension** (temporal/spatial/categorical) so
+  `detail(feature)` is uniform regardless of which viz the click came from.
+- **Provenance in `detail()`**: `detail` returns a `provenance: Provenance`
+  (`@/lib/graph/provenance`) so the UnifiedExplorer renders `<ProvenanceList>`
+  (`data-testid="provenance-list"`). Build it from the row's own columns
+  (Wikidata `wikidataQid`/`sourceUrl`/`retrievedAt`/`confidence`, else fall back
+  to `sources[0]`); return `undefined` when nothing is attributable so the panel
+  omits the block. This is what surfaces the US-003 write-back provenance in-app.
+- **Placeholder geometry**: `server/tsv-storage.ts` stamps a tiny
+  `[[[0,0],[0,1],[1,1],[1,0],[0,0]]]` polygon for a civ with no curated boundary.
+  The adapter's `isPlaceholderGeometry` drops those from the **spatial** projection
+  only (they'd all pile at ~[0.5,0.5]); they still appear in temporal/categorical.
+- **The map-layer type is shared client↔server**: `CivilizationProperties`
+  (`geospatial-types.ts`) is imported by `server/tsv-storage.ts`, so a new
+  server-emitted field must be added there as an OPTIONAL property first (else the
+  server `tsc` breaks). The loader only emits a provenance column when the header
+  has it — so adding a `lexicons/civilizations.tsv` column is enough.
+
 ## Shared-graph adapter (`culturescrape.adapter.ts`)
 
 Fetches `/api/graph/overview` (`{nodes, edges}` from Neo4j). Reuses the US-007

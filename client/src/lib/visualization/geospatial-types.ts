@@ -79,6 +79,13 @@ export interface CivilizationProperties extends NonNullable<GeoJsonProperties> {
   capital?: string;
   population?: number; // Estimated population at peak
   sources: string[];
+  description?: string; // Short prose description, when curated
+  // Provenance columns (US-003 write-back): where an acquired civilization came
+  // from. Present on Wikidata-acquired rows, blank on hand-curated ones.
+  wikidataQid?: string; // e.g. "Q4752820"
+  sourceUrl?: string; // canonical Wikidata entity URL
+  retrievedAt?: string; // ISO acquisition timestamp
+  confidence?: number; // 0–1 acquisition confidence
 }
 
 export type CivilizationFeature = Feature<Polygon | MultiPolygon, CivilizationProperties>;

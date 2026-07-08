@@ -19,11 +19,21 @@ services:
     ports:
       - "8800:8800"
     environment:
-      # Point at a mounted, locally-built corpus to serve real data instead of
-      # the bundled fixture (see the commented volume below).
+      # Serve real data by pointing CORPUS at the mounted LinguaScrape canonical
+      # export (below): `CULTURESCRAPE_CORPUS=/corpus`. This is the SAME bare
+      # corpus (nodes/ + edges/) that `to-neo4j export/culturescrape` loads into
+      # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
+      # what makes `npm run smoke:graph` green end to end (US-005). Left at the
+      # bundled 9-node fixture by default so a bare `docker compose up` (no export
+      # built yet) still starts cleanly.
       CORPUS: ${CULTURESCRAPE_CORPUS:-tests/fixtures/explorer-corpus}
-    # volumes:
-    #   - ./packages/culture-scrape/out:/app/out:ro   # then set CULTURESCRAPE_CORPUS=out/<job>
+    volumes:
+      # The gitignored canonical export (produced by
+      # `npx tsx scripts/export-for-culturescrape.ts`). `load_corpus` reads a bare
+      # `nodes/`+`edges/` directory, so this dir is directly servable. Read-only;
+      # unused until CULTURESCRAPE_CORPUS=/corpus. Mounting `${PWD}` (the repo
+      # root) subpath keeps parity with the neo4j service's `${PWD}` mount.
+      - ${PWD}/export/culturescrape:/corpus:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/')"]
       interval: 5s

@@ -72,6 +72,17 @@ non-empty data (`npm run smoke:graph`, docs in
 - It discovers a real node `csid` from `/search` (sidecar), falling back to
   `/overview` (Neo4j) so the node/neighborhood checks can still run when only one
   backend is up.
+- **GOTCHA — the sidecar and Neo4j must serve the SAME corpus or the cross-backend
+  `node/:id` check 404s.** `discoverCsid` takes a csid from the **sidecar** search
+  then looks it up in **Neo4j**; if the sidecar is on its bundled 9-node demo
+  fixture (the `CORPUS` default) while Neo4j holds the LinguaScrape export
+  (loaded by `to-neo4j export/culturescrape`), the csid doesn't exist in Neo4j and
+  the smoke fails. To run a fully green smoke: point the sidecar at the same bare
+  corpus — `docker-compose.yml` mounts the gitignored `export/culturescrape` at
+  `/corpus:ro`, so bring the stack up with `CULTURESCRAPE_CORPUS=/corpus docker
+  compose up -d culturescrape neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
+  directly). Default stays the demo fixture so a bare `docker compose up` still
+  starts when no export has been built.
 
 ## Canonical export (US-004)
 
