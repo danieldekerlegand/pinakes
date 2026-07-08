@@ -44,8 +44,23 @@ services:
     environment:
       # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/linguascrape}
+      # APOC is required by the incremental `culturescrape to-neo4j --mode loadcsv`
+      # path: node labels are reattached with apoc.create.addLabels and edges are
+      # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in
+      # core Cypher). The neo4j:5 image fetches the bundled apoc plugin from this var.
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
+      NEO4J_dbms_security_procedures_allowlist: "apoc.*"
+      # `LOAD CSV FROM file://<abs-path>` reads the corpus TSVs by their host path;
+      # allow absolute file: URLs and mount the repo read-only at its real path so
+      # the URLs `to-neo4j` emits (Path.resolve().as_uri()) resolve inside the container.
+      NEO4J_dbms_security_allow__csv__import__from__file__urls: "true"
+      # Point the import-dir root at `/` so `file://<abs-path>` resolves to the real
+      # absolute path (the default `import` jail would resolve it under <neo4j>/import).
+      NEO4J_server_directories_import: "/"
     volumes:
       - neo4j-data:/data
+      - ${PWD}:${PWD}:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
       interval: 10s

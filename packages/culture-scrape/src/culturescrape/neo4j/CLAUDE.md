@@ -8,6 +8,24 @@ merged corpus mixing sources (native Wikidata + `source='linguascrape'`) flows t
 one path with no source special-casing. Convergence = both sources' rows share a
 per-label node file / per-`:TYPE` edge file; the loader neither knows nor cares.
 
+## Running `loadcsv` against the dockerized Neo4j (repo `docker-compose.yml`)
+
+The stock `neo4j:5` service in the repo's `docker-compose.yml` cannot run
+`--mode loadcsv` out of the box — the `neo4j` service now sets four things that the
+loader needs (all committed there, so `docker compose up -d neo4j` is enough):
+
+- **APOC** (`NEO4J_PLUGINS: '["apoc"]'` + `procedures_unrestricted/_allowlist: "apoc.*"`)
+  — nodes use `apoc.create.addLabels`, edges use `apoc.merge.relationship`. Verify with
+  `docker exec … cypher-shell -u neo4j -p … "RETURN apoc.version()"`.
+- **Absolute `file://` CSV import.** The loader binds each file as
+  `Path.resolve().as_uri()` → `file://<host-abs-path>`, so the DB must read that exact
+  path. Three settings together: `allow__csv__import__from__file__urls: "true"`, a
+  read-only `${PWD}:${PWD}:ro` bind mount (container path == host path), **and**
+  `NEO4J_server_directories_import: "/"`. That last one is the gotcha — the default
+  `import`-dir jail makes Neo4j resolve `file:///abs` *under* `<neo4j>/import`; setting
+  the root to `/` lifts the jail while keeping the file-URL guard. (Setting the env var
+  to `""` does **not** work — the neo4j docker entrypoint skips empty values.)
+
 ## Turnkey load + smoke (US-002)
 
 - `load_csv.load_corpus(dir, driver=…, constraints=True)` is the one call `to-neo4j
