@@ -282,19 +282,19 @@ export default function UnifiedExplorer({
       <div className="flex-1 min-h-0 flex">
         <div className="flex-1 min-w-0">
           {isLoading && (
-            <div className="flex h-full items-center justify-center text-sm text-gray-500">
+            <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-gray-500">
               Loading {adapter.name}…
             </div>
           )}
           {error && (
-            <div className="flex h-full items-center justify-center text-sm text-red-600">
+            <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-red-600">
               Failed to load: {(error as Error).message}
             </div>
           )}
           {!isLoading && !error && projections && Component && (
             <Suspense
               fallback={
-                <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                <div className="flex h-full min-h-[240px] items-center justify-center text-sm text-gray-500">
                   Loading visualization…
                 </div>
               }

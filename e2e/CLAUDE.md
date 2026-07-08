@@ -1,7 +1,14 @@
-# e2e/ — Playwright browser smoke (US-006)
+# e2e/ — Playwright browser smoke (US-006) + graph-UI verification (US-007)
 
 Headless-Chromium coverage of the core UI flows. Runner is `@playwright/test`
 (separate from vitest): `npm run test:e2e`. Config: `../playwright.config.ts`.
+
+`smoke.spec.ts` = the core-flow smoke (US-006). `graph-ui.spec.ts` = browser
+verification of the four graph-dependent features (US-007): the neighborhood
+view, the explorer graph adapter, federated search, and the provenance UI — each
+exercised **both** graph-down (real server, no mocks → graceful degradation) and
+graph-up (`/api/graph/*` + `/api/search` intercepted at the network boundary, the
+same fixture approach the vitest suites use).
 
 ## Conventions & gotchas
 
@@ -34,3 +41,17 @@ Headless-Chromium coverage of the core UI flows. Runner is `@playwright/test`
   (`setX([])`/`setX({})`) on some branch loops forever, because the new reference
   re-satisfies the dep. Fix with a functional updater that returns `prev`
   unchanged when there's nothing to do: `setX(prev => prev.length ? [] : prev)`.
+- **The force graph's SVG has `data-testid="network-graph-svg"`** (both
+  `visualizations/shared/NetworkGraph.tsx` — used by the graph neighborhood view —
+  and the neighborhood also renders lucide icon `<svg>`s). Target the graph by
+  that testid, never `locator("svg")`, or you hit a strict-mode multi-match.
+- **Graph reads fast-fail (US-007 fix).** `graph-store.runRead` now pre-checks the
+  cached `isAvailable()` probe, so a read against a down graph 503s in <1ms instead
+  of waiting out the driver's ~15s retry window. That is what lets the explorer
+  graph adapter show its "Failed to load" state promptly when the graph is down —
+  before, it hung on "Loading…" past the test timeout.
+- **`UnifiedExplorer` status messages have a `min-h-[240px]` floor.** The
+  loading/error/suspense divs use `h-full`; on a cold deep-link mount
+  (`?panel=explore&ds=…`) the flex content pane can resolve to 0 height, hiding the
+  message (Playwright `toBeVisible` → "hidden"). The floor keeps the graph-down
+  error legible to users and the test.
