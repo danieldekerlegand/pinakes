@@ -406,34 +406,51 @@ The Ralph PRD templates were retired to `tasks/ralph/completed/`; the workflow i
 
 ## What's Next — Phase 15+
 
-The original roadmap (Phases 7–14) is exhausted. Everything is *implemented*; the next horizon is
-turning it into a **verified, populated, production-grade** atlas, then extending outward.
+Phases 7–14 are implemented, and the first Phase-15 PRD (`operationalize-graph`) is merged: the
+convergence pipeline runs end-to-end — corpus build → Neo4j load → Datalog inference → sidecar JSON
+API → app graph views. **The atlas *engine* is complete.** The remaining work turns a working engine
+into a **populated, verified, production-grade** atlas.
 
-### 15. Operationalize the convergence (highest priority)
-The convergence *machinery* exists; the *live graph* does not yet.
-- Build and publish the full culture-scrape corpus (its language blueprint alone targets ~16k
-  entities) and load it into Neo4j; run the Datalog inference at scale.
-- Expose the sidecar's **JSON API** — several explorer/search endpoints still render HTML; only
-  `GET /api/graph/{csid}` returns JSON today (Python-side work in `packages/culture-scrape/`).
-- Migrate the remaining in-memory TS correlations to Cypher/Datalog and retire the duplicates.
+### Phase-15 status so far
+- ✅ **Operationalize the convergence** — `operationalize-graph`, merged @55747b2. Live pipeline
+  end-to-end; sidecar JSON API exposed; a first correlation migrated off in-memory TS onto the graph.
+  *Caveat:* the graph currently holds only the ~5.4k existing **seed** entities — see §15.
+- 🟡 **Hardening** — `security-hardening`, in progress. Done: server-side key proxy for Gemini +
+  Google Translate, commit-time/CI secret scanning, `npm run check` green (on branch), `.env`
+  untracked + gitignored, Playwright e2e smoke. Remaining: browser-verify the graph UI (US-007),
+  security docs (US-008). **Human-only, still open:** rotate the exposed keys and purge `.env` from
+  git history + force-push.
 
-### 16. Hardening & production readiness
-- **Rotate the exposed `.env` secrets, untrack the file, and purge it from git history** (urgent).
-- Clear the 145 pre-existing `tsc` errors so `npm run check` is green globally.
-- **Browser/e2e verification** of the UI stories that were gated on unit tests (graph views,
-  explorer adapter, quizzes, DNA mapper, AR/VR) — many need a real `npm run dev:full` pass.
-- Source real assets for the speculative fallbacks: IPA/music audio clips, glTF artifact models.
+### 15. Data population at scale — **THE priority**
+The single highest-leverage gap. Most domains sit at **15–60% of their roadmap targets**, and the
+live graph is *seeded*, not *populated*. culture-scrape's Wikidata blueprints (built, verified
+against WDQS, targeting 10³–10⁵ entities per class) are the tool — and they have **never been run to
+expand the atlas**. This is Guiding Principle #5 ("Data over features") in action.
 
-### 17. Data & content at scale
-- Populate the expanded domains with real breadth (dance, literature, architecture, kinship, etc.).
-- Author rich content for the data-driven features: guided journeys, what-if scenarios, quiz banks.
-- Publish the first versioned dataset snapshot with a DOI (the machinery landed in Phase 12).
+| Domain | Actual | Target |
+|---|---|---|
+| civilizations | 89 | 150+ |
+| archaeological sites | 151 | 500+ |
+| archaeological cultures | 27 | 200+ |
+| migration routes | 62 | 100+ |
+| trade routes | 25 | Silk/Spice/Incense/… |
+| cuisines | 21 | 80+ |
+| literary traditions | 12 | foundational corpus |
 
-### 18. New horizons (candidate future roadmap)
-- Public launch: performance/SEO, onboarding, accessibility audit against WCAG.
-- Community & social: shared collections, discussion, reputation on contributions.
-- Native/mobile app or PWA polish; offline-first field-research mode.
-- ML-driven discovery: surface non-obvious cross-cultural links from the graph automatically.
+Approach: **pilot one domain end-to-end first** (`data-population-pilot` — civilizations), proving
+the acquisition → reconcile → write-back → graph → UI pipeline lands real data; then scale the
+proven pipeline across domains (`data-population`) behind a curation + attribution + QA gate
+(Guiding Principle #8: academic credibility — every row keeps its source/license/provenance).
+
+### 16. Production-verification pass (after data is real)
+A full `npm run dev:full` + `smoke:graph` + Playwright run against the **populated** graph; confirm
+the unit-test-gated UI works with real data; source real assets for the speculative fallbacks
+(IPA/music audio, glTF artifact models); publish the first versioned DOI dataset snapshot.
+
+### 17. New horizons (future roadmap)
+Public launch (performance/SEO, onboarding, WCAG audit); community & social (shared collections,
+discussion, contribution reputation); native/mobile & offline field-research mode; ML-driven
+discovery of non-obvious cross-cultural links from the graph.
 
 ---
 
@@ -450,4 +467,4 @@ The convergence *machinery* exists; the *live graph* does not yet.
 
 ---
 
-*Last updated: July 3, 2026 — Phases 7–14 + culture-scrape convergence complete; see "What's Next — Phase 15+".*
+*Last updated: July 7, 2026 — Phases 7–14 + convergence + `operationalize-graph` complete; `security-hardening` in progress. Next priority: **data population at scale** (see §15).*

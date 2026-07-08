@@ -57,14 +57,15 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 # Roadmap Phases 7-14 + the culture-scrape convergence are complete (see
 # tasks/ralph/completed/ and docs/prd-linguascrape-deep-history-roadmap.md). These are the
 # first Phase-15 PRDs:
-#   - operationalize-graph: build/publish the corpus, load Neo4j, expose the sidecar JSON
-#     API, materialize Datalog, and query the live graph end-to-end (Python + TS).
 #   - security-hardening: server-side key proxy, secret scanning, tsc-green, e2e/browser verify.
+#   - data-population-pilot: prove the acquisition→graph→UI pipeline on ONE domain (civilizations).
+#   - data-population: scale the proven pipeline to hit the roadmap's per-domain targets (§15).
 ORDER=(
-  "operationalize-graph:11"
   "security-hardening:11"
+  "data-population-pilot:9"
+  "data-population:13"
 )
-ALL_NAMES="operationalize-graph security-hardening"
+ALL_NAMES="security-hardening data-population-pilot data-population"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then
