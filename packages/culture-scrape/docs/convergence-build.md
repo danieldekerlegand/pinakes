@@ -37,7 +37,7 @@ root unless noted). The design-level round trip is
 |---|---|---|---|
 | 1 | **Export** the live lexicons → canonical TSV | `npx tsx scripts/export-for-culturescrape.ts` *(repo root)* | [full corpus (US-001)](#the-full-publishable-corpus-us-001) |
 | — | **Reconcile** dry-run (optional preview) | `npx tsx scripts/reconciliation-report.ts` *(repo root)* | [§8](../../../docs/culturescrape-integration.md) |
-| 2 | **Build** the corpus (acquire → normalize → reconcile/link → export) | `uv run culturescrape run jobs/linguascrape-full.yml` | [US-001](#the-full-publishable-corpus-us-001) |
+| 2 | **Build** the corpus (acquire → normalize → reconcile/link → export) | `uv run culturescrape run jobs/linguascrape-full.yml --force` *(--force after a re-export; stage fingerprints skip a stale corpus otherwise)* | [US-001](#the-full-publishable-corpus-us-001) |
 | — | **Validate + QA** the output | `uv run culturescrape validate out/linguascrape-full/corpus` | [US-001](#the-full-publishable-corpus-us-001) |
 | 3 | **Publish** the versioned artifact (`.tar.gz` + SHA-256 manifest) | `uv run culturescrape package out/linguascrape-full/corpus --out dist --name linguascrape-full-corpus` | [US-001](#the-full-publishable-corpus-us-001) |
 | 4 | **Load** into Neo4j (constraints/indexes + idempotent MERGE) | `uv run culturescrape to-neo4j out/linguascrape-full/corpus --mode loadcsv` | [US-002](#load-the-corpus-into-neo4j-us-002) |
@@ -168,9 +168,13 @@ the fixture, so the fixture-pinned snapshot test is untouched.
 #    repo-root export/culturescrape/{nodes,edges}). Run from the repo root:
 npx tsx scripts/export-for-culturescrape.ts
 
-# 2. Build the full corpus (acquire → normalize → link → export). From the package root:
+# 2. Build the full corpus (acquire → normalize → link → export). From the package root.
+#    GOTCHA: `run` fingerprints each stage and SKIPS ones it thinks are up to date. A
+#    fresh export (step 1) does NOT reliably invalidate the acquire fingerprint, so a bare
+#    `run` can report "job up to date" and re-emit the STALE corpus (old node counts). After
+#    re-exporting, always rebuild with --force so acquire/normalize re-read the new export:
 cd packages/culture-scrape
-uv run culturescrape run jobs/linguascrape-full.yml
+uv run culturescrape run jobs/linguascrape-full.yml --force
 
 # 3. Validate + QA the output (the build already runs both; re-check independently):
 uv run culturescrape validate out/linguascrape-full/corpus
