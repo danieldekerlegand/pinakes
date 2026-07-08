@@ -2,18 +2,17 @@
 
 ## Quality-gate reality (read first)
 
-- **`npm run check` (`tsc`) is NOT yet clean on this branch** — the baseline was
-  ~145 pre-existing errors. **US-004 cleared all 48 in `server/tsv-storage.ts`**
-  (deduplicated triplicated interfaces/fields/methods — see below), so the count is
-  now **97** (bulk in `server/routes.ts`, plus `shared/computation.ts` etc.; US-005
-  finishes the rest). Until then the practical gate is **"my touched files add zero
-  errors, and the total count does not rise"**, not "tsc is green". Verify with:
-  `npm run check 2>&1 | grep "error TS" | grep -E "<files you touched>"` → expect
-  none, and confirm the total error count is unchanged from baseline.
-- **No `target` in `tsconfig.json`** ⇒ TS defaults to a low target with
-  `downlevelIteration` off. **Spreading OR `for..of`-ing a Map/Set iterator fails**
-  (`TS2802`, e.g. `[...map.keys()]`, `for (const x of map.values())`). Use
-  `Array.from(map.values())` instead. Spreading/iterating a plain **array** is fine.
+- **`npm run check` (`tsc`) is now CLEAN — 0 errors — and the gate is STRICT.**
+  History: the baseline was ~145 pre-existing errors; US-004 cleared the 48 in
+  `server/tsv-storage.ts` (→97), and **US-005 drove the remaining 97 → 0**. Going
+  forward, "type checks pass" is literal: **any** new `error TS` you introduce fails
+  the gate. Verify with `npm run check 2>&1 | grep "error TS" | wc -l` → expect **0**
+  (delete `node_modules/typescript/tsbuildinfo` first if the incremental cache looks
+  stale — it can under-report after large edits).
+- **`tsconfig.json` sets `"target": "ES2020"`** (added in US-005), so spreading /
+  `for..of`-ing a Map/Set iterator is fine now (the old `TS2802` "downlevelIteration"
+  gotcha is gone). `tsc` only type-checks (`noEmit`); Vite/esbuild does the real build,
+  so the target affects checking only, not runtime.
 - **Duplicate class members (last-wins gotcha):** `tsv-storage.ts` had triplicated
   interfaces/cache fields/methods from bad merges. At runtime JS keeps the **last**
   duplicate; but `tsc` type-checks *call sites* against the **first** duplicate's

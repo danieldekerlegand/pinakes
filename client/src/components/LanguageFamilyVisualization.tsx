@@ -9,7 +9,7 @@ import {
   transformToTimelineData,
   transformToMapData,
 } from '../lib/visualization/data-transformers';
-import type { LanguageFamilyWithChildren } from '../../shared/types';
+import type { LanguageFamilyWithChildren } from '@shared/types';
 
 // Lazy load visualization components for better performance
 const LanguageTreeView = lazy(() =>

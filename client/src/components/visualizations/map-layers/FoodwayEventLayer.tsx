@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Polyline, CircleMarker, Popup } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
+import type { LatLngExpression, Path } from 'leaflet';
 import { FOODWAY_MECHANISM_COLORS, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
 import { Badge } from '../../ui/badge';
 
@@ -105,12 +105,12 @@ export function FoodwayEventLayer({
               }}
               eventHandlers={{
                 click: () => onEventClick?.(event.id),
-                mouseover: function () {
+                mouseover: function (this: Path) {
                   if (!isSelected) {
                     this.setStyle({ weight: 5, opacity: opacity * 1.2 });
                   }
                 },
-                mouseout: function () {
+                mouseout: function (this: Path) {
                   if (!isSelected) {
                     this.setStyle({ weight: 3, opacity });
                   }

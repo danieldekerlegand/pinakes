@@ -3,6 +3,19 @@ import * as d3 from 'd3';
 import { useVisualizationResize } from '../hooks/useVisualizationResize';
 import { createZoomBehavior } from '../../../lib/visualization/d3-helpers';
 
+/**
+ * Generic hierarchical node shape used by tree-oriented consumers
+ * (e.g. WritingSystemEvolutionView) that build a parent/child tree from flat
+ * records. `metadata` carries consumer-specific per-node data for rendering.
+ */
+export interface TreeNodeData {
+  id: string;
+  label: string;
+  parentId?: string | null;
+  children?: TreeNodeData[];
+  metadata?: Record<string, any>;
+}
+
 export interface TreeVisualizationConfig<T> {
   /** Extract children from a node */
   getChildren: (d: T) => T[] | undefined;

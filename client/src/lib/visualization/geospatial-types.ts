@@ -16,7 +16,7 @@ export interface TimePeriod {
 
 export type RangeType = 'current' | 'historical' | 'reconstructed';
 
-export interface LanguageRangeProperties extends GeoJsonProperties {
+export interface LanguageRangeProperties extends NonNullable<GeoJsonProperties> {
   languageId: string;
   languageName: string;
   nativeName?: string;
@@ -48,7 +48,7 @@ export type SiteType =
   | 'ceremonial'
   | 'unknown';
 
-export interface ArchaeologicalSiteProperties extends GeoJsonProperties {
+export interface ArchaeologicalSiteProperties extends NonNullable<GeoJsonProperties> {
   siteId: string;
   name: string;
   siteType: SiteType;
@@ -68,7 +68,7 @@ export type ArchaeologicalSiteFeature = Feature<Point, ArchaeologicalSitePropert
 // Civilization Types
 // ============================================================================
 
-export interface CivilizationProperties extends GeoJsonProperties {
+export interface CivilizationProperties extends NonNullable<GeoJsonProperties> {
   civilizationId: string;
   name: string;
   nativeName?: string;
@@ -89,7 +89,7 @@ export type CivilizationFeature = Feature<Polygon | MultiPolygon, CivilizationPr
 
 export type EmpirePhase = 'founding' | 'rise' | 'expansion' | 'peak' | 'decline' | 'collapse';
 
-export interface EmpireTimelineProperties extends GeoJsonProperties {
+export interface EmpireTimelineProperties extends NonNullable<GeoJsonProperties> {
   empireId: string;
   name: string;
   phase: EmpirePhase;
@@ -121,7 +121,7 @@ export type RouteType =
   | 'communication'
   | 'unknown';
 
-export interface HistoricalRouteProperties extends GeoJsonProperties {
+export interface HistoricalRouteProperties extends NonNullable<GeoJsonProperties> {
   routeId: string;
   name: string;
   routeType: RouteType;
@@ -161,7 +161,7 @@ export type SubsistencePattern =
   | 'hunting, fishing, gathering'
   | 'unknown';
 
-export interface ArchaeologicalCultureProperties extends GeoJsonProperties {
+export interface ArchaeologicalCultureProperties extends NonNullable<GeoJsonProperties> {
   cultureId: string;
   name: string;
   region: string;
@@ -195,7 +195,7 @@ export type CultureType =
   | 'weapons'
   | 'unknown';
 
-export interface MaterialCultureProperties extends GeoJsonProperties {
+export interface MaterialCultureProperties extends NonNullable<GeoJsonProperties> {
   cultureId: string;
   name: string;
   cultureType: CultureType;

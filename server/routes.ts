@@ -34,12 +34,6 @@ import {
   validateSceneType,
   validateStyle,
 } from "./services/image-generator";
-import {
-  generateReconstructionImage,
-  readPromptRecords,
-  validateSceneType,
-  validateStyle,
-} from "./services/image-generator";
 import type { ImageGenerationRequest } from "./services/image-generator";
 import {
   calculatePairwiseDistance,

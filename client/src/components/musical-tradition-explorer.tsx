@@ -264,7 +264,7 @@ export default function MusicalTraditionExplorer({ isOpen, onClose, embedded }: 
                       edges={networkData.edges}
                       colorScale={getRegionColor}
                       selectedNodeId={selectedTraditionId}
-                      onNodeClick={node => setSelectedTraditionId(
+                      onNodeClick={(node: NetworkGraphNode) => setSelectedTraditionId(
                         selectedTraditionId === node.id ? null : node.id
                       )}
                       linkDistance={100}

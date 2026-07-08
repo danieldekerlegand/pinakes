@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { GeoJSON } from 'react-leaflet';
-import type { PathOptions } from 'leaflet';
+import type { PathOptions, Path } from 'leaflet';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import type { ArchaeologicalCultureFeature } from '../../../lib/visualization/geospatial-types';
 import { ARCHAEOLOGICAL_CULTURE_PALETTE, INTERACTION_COLORS } from '../../../lib/visualization/color-theme';
@@ -204,7 +204,7 @@ export function ArchaeologicalCultureLayer({
       }
     });
 
-    layer.on('mouseover', function() {
+    layer.on('mouseover', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.6,
@@ -213,7 +213,7 @@ export function ArchaeologicalCultureLayer({
       }
     });
 
-    layer.on('mouseout', function() {
+    layer.on('mouseout', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.4,

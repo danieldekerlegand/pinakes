@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { GeoJSON, Popup } from 'react-leaflet';
-import type { PathOptions } from 'leaflet';
+import type { PathOptions, Path } from 'leaflet';
 import { getFamilyColor } from '../../../lib/visualization/d3-helpers';
 import { formatTimePeriod } from '../../../lib/visualization/geospatial-transformers';
 import { smoothFeature } from '../../../lib/visualization/spline-interpolation';
@@ -195,7 +195,7 @@ export function LanguageRangeLayer({
     });
 
     // Hover effects
-    layer.on('mouseover', function() {
+    layer.on('mouseover', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.7,
@@ -204,7 +204,7 @@ export function LanguageRangeLayer({
       }
     });
 
-    layer.on('mouseout', function() {
+    layer.on('mouseout', function (this: Path) {
       if (feature.id !== selectedFeatureId) {
         this.setStyle({
           fillOpacity: opacity * 0.5,
