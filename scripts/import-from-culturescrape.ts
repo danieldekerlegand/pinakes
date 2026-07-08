@@ -54,6 +54,7 @@ export const NON_WRITEBACK_FIELDS: ReadonlySet<string> = new Set([
   "csid",
   ":LABEL",
   "linguascrape_id",
+  "wikidata_qid",
   "source",
   "source_url",
   "source_query",
@@ -131,8 +132,9 @@ export interface WriteBackReport {
 /** A parsed lexicon file with enough state to rewrite it byte-faithfully. */
 interface LexiconFile {
   readonly file: string;
-  readonly headerLine: string;
-  readonly headers: string[];
+  /** Mutable: the additions path may extend the header with provenance columns. */
+  headerLine: string;
+  headers: string[];
   /** Data cells, kept raw (untrimmed) so an unchanged file re-serialises identically. */
   readonly rows: string[][];
   readonly eol: string;
@@ -503,18 +505,298 @@ export function runWriteBack(
   return built;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
-// `--overwrite` applies incoming values over curated ones (default: gaps only).
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
-  const overwrite = process.argv.includes("--overwrite");
-  const { report } = runWriteBack({ overwrite });
-  const { totals } = report;
-  // eslint-disable-next-line no-console
-  console.log(
-    `Write-back: ${totals.nodesMatched} nodes matched → ${totals.enrichments} enrichments, ` +
-      `${totals.overwrites} overwrites, ${totals.conflicts} conflicts` +
-      `${overwrite ? "" : " (reported, not applied)"}, ` +
-      `${totals.skippedAmbiguousIds} ambiguous ids skipped; ` +
-      `${totals.filesChanged} lexicon files changed. source anchor: ${EXPORT_SOURCE}.`,
+// ---------------------------------------------------------------------------
+// New-culture additions (US-003)
+//
+// The write-back above ENRICHES existing lexicon rows from the graph return. The
+// data-population pilot also needs the absent-row case: entities that were acquired and
+// reconciled as **new** (no lexicon row yet) must be APPENDED as fresh, curated rows —
+// without touching a single existing (human-curated) cell.
+//
+// This is deliberately append-only and conservative:
+//   * Existing rows are never rewritten (appends only), so a curated cell can never be
+//     clobbered — a disagreement with an incoming value is impossible by construction.
+//   * A candidate is skipped (never appended) when it duplicates an existing row by
+//     `wikidata_qid`, by normalised name, or when its id collides with a different
+//     existing row (reported as a conflict) — so re-running the import is idempotent.
+//   * Every appended row carries provenance columns (`wikidata_qid`, `source_url`,
+//     `retrieved_at`, `confidence`) + a bibliographic `sources` cell (Guiding Principle
+//     #8). The target header is extended with any missing provenance column first, and
+//     every existing row padded with a blank cell so the grid stays rectangular.
+// ---------------------------------------------------------------------------
+
+/** Default curated candidate file the CLI reads (committed; derived from the acquired corpus). */
+export const DEFAULT_ADDITIONS_FILE = path.join(
+  REPO_ROOT,
+  "scripts",
+  "data",
+  "civilizations-additions.tsv",
+);
+
+/** Default target lexicon the additions land in. */
+export const ADDITIONS_TARGET_FILE = "civilizations.tsv";
+
+/** Provenance columns every appended culture row must carry (added to the header if absent). */
+export const ADDITION_PROVENANCE_COLUMNS = [
+  "wikidata_qid",
+  "source_url",
+  "retrieved_at",
+  "confidence",
+] as const;
+
+/** One curated, reconciliation-"new" culture to append to the lexicon. */
+export interface CultureAddition {
+  readonly id: string;
+  readonly name: string;
+  readonly wikidata_qid: string;
+  readonly source_url: string;
+  readonly retrieved_at: string;
+  readonly confidence: string;
+  /** Bibliographic sources cell (a JSON-array string, e.g. `["Wikidata"]`). */
+  readonly sources: string;
+}
+
+/** A candidate that was not appended, with why. */
+export interface AdditionSkip {
+  readonly name: string;
+  readonly wikidata_qid: string;
+  readonly reason: "duplicate-qid" | "duplicate-name" | "invalid";
+}
+
+/** A candidate whose id collided with a *different* existing row (never appended). */
+export interface AdditionConflict {
+  readonly id: string;
+  readonly name: string;
+  readonly existingName: string;
+}
+
+/** The additions report (deterministic; ordered for stable diffs). */
+export interface AdditionsReport {
+  readonly file: string;
+  readonly totals: {
+    readonly candidates: number;
+    readonly added: number;
+    /** Always 0 — additions are append-only, so no existing (curated) row is updated. */
+    readonly updated: number;
+    readonly skipped: number;
+    readonly conflicts: number;
+    readonly rowsBefore: number;
+    readonly rowsAfter: number;
+  };
+  readonly added: readonly { id: string; name: string; wikidata_qid: string }[];
+  readonly skipped: readonly AdditionSkip[];
+  readonly conflicts: readonly AdditionConflict[];
+}
+
+/** Normalise a name for duplicate detection (lowercase, strip diacritics + punctuation). */
+function normaliseName(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/** Extend a file's header with any missing columns, padding every row to stay rectangular. */
+function ensureColumns(f: LexiconFile, columns: readonly string[]): void {
+  let extended = false;
+  for (const c of columns) {
+    if (f.headers.includes(c)) continue;
+    f.headers.push(c);
+    extended = true;
+  }
+  if (!extended) return;
+  for (const row of f.rows) {
+    while (row.length < f.headers.length) row.push("");
+  }
+  f.headerLine = f.headers.join("\t");
+  f.changed = true;
+}
+
+/**
+ * Append curated `candidates` to a parsed lexicon file as new rows. Pure (mutates + returns
+ * the in-memory file + a report); {@link runCultureAdditions} does the filesystem side.
+ */
+export function buildCultureAdditions(
+  target: LexiconFile,
+  candidates: readonly CultureAddition[],
+): { file: LexiconFile; report: AdditionsReport } {
+  ensureColumns(target, ADDITION_PROVENANCE_COLUMNS);
+
+  const idIdx = target.headers.indexOf("id");
+  const nameIdx = target.headers.indexOf("name");
+  const qidIdx = target.headers.indexOf("wikidata_qid");
+
+  // Index existing rows for duplicate / id-collision detection.
+  const existingIds = new Map<string, string>(); // id → its row's name
+  const existingQids = new Set<string>();
+  const existingNames = new Set<string>(); // normalised
+  for (const row of target.rows) {
+    const id = cell(row, idIdx);
+    if (id !== "") existingIds.set(id, cell(row, nameIdx));
+    const q = cell(row, qidIdx);
+    if (q !== "") existingQids.add(q);
+    const nm = cell(row, nameIdx);
+    if (nm !== "") existingNames.add(normaliseName(nm));
+  }
+
+  const rowsBefore = target.rows.length;
+  const added: { id: string; name: string; wikidata_qid: string }[] = [];
+  const skipped: AdditionSkip[] = [];
+  const conflicts: AdditionConflict[] = [];
+
+  const setByName = (row: string[], column: string, value: string): void => {
+    const i = target.headers.indexOf(column);
+    if (i >= 0) row[i] = sanitize(value);
+  };
+
+  for (const c of candidates) {
+    const id = c.id.trim();
+    const name = c.name.trim();
+    const qid = c.wikidata_qid.trim();
+    if (id === "" || name === "") {
+      skipped.push({ name, wikidata_qid: qid, reason: "invalid" });
+      continue;
+    }
+    if (qid !== "" && existingQids.has(qid)) {
+      skipped.push({ name, wikidata_qid: qid, reason: "duplicate-qid" });
+      continue;
+    }
+    const nn = normaliseName(name);
+    if (existingNames.has(nn)) {
+      skipped.push({ name, wikidata_qid: qid, reason: "duplicate-name" });
+      continue;
+    }
+    if (existingIds.has(id)) {
+      // The slug collides with a *different* curated row — never overwrite it.
+      conflicts.push({ id, name, existingName: existingIds.get(id) ?? "" });
+      continue;
+    }
+
+    const row = new Array<string>(target.headers.length).fill("");
+    setByName(row, "id", id);
+    setByName(row, "name", name);
+    setByName(row, "sources", c.sources);
+    setByName(row, "wikidata_qid", qid);
+    setByName(row, "source_url", c.source_url);
+    setByName(row, "retrieved_at", c.retrieved_at);
+    setByName(row, "confidence", c.confidence);
+    target.rows.push(row);
+    target.changed = true;
+
+    existingIds.set(id, name);
+    if (qid !== "") existingQids.add(qid);
+    existingNames.add(nn);
+    added.push({ id, name, wikidata_qid: qid });
+  }
+
+  const report: AdditionsReport = {
+    file: target.file,
+    totals: {
+      candidates: candidates.length,
+      added: added.length,
+      updated: 0,
+      skipped: skipped.length,
+      conflicts: conflicts.length,
+      rowsBefore,
+      rowsAfter: target.rows.length,
+    },
+    added,
+    skipped,
+    conflicts,
+  };
+  return { file: target, report };
+}
+
+/** Parse a curated additions TSV (header-addressed) into {@link CultureAddition}s. */
+export function loadCultureAdditions(additionsFile: string): CultureAddition[] {
+  const content = fs.readFileSync(additionsFile, "utf8");
+  const lines = content.split(/\r?\n/).filter((l) => l.trim() !== "");
+  if (lines.length === 0) return [];
+  const headers = lines[0].split("\t").map((h) => h.trim());
+  const at = (row: string[], name: string): string => {
+    const i = headers.indexOf(name);
+    return i >= 0 ? (row[i] ?? "").trim() : "";
+  };
+  return lines.slice(1).map((line) => {
+    const row = line.split("\t");
+    return {
+      id: at(row, "id"),
+      name: at(row, "name"),
+      wikidata_qid: at(row, "wikidata_qid"),
+      source_url: at(row, "source_url"),
+      retrieved_at: at(row, "retrieved_at"),
+      confidence: at(row, "confidence") || "1.0",
+      sources: at(row, "sources") || '["Wikidata"]',
+    };
+  });
+}
+
+/** Serialise an additions report to JSON (trailing newline). */
+export function additionsReportJson(report: AdditionsReport): string {
+  return JSON.stringify(report, null, 2) + "\n";
+}
+
+/** Build + write culture additions into the target lexicon; report to the gitignored tree. */
+export function runCultureAdditions(
+  opts: {
+    additionsFile?: string;
+    targetFile?: string;
+    lexiconsDir?: string;
+    outDir?: string;
+  } = {},
+): { file: LexiconFile; report: AdditionsReport } {
+  const additionsFile = opts.additionsFile ?? DEFAULT_ADDITIONS_FILE;
+  const targetFile = opts.targetFile ?? ADDITIONS_TARGET_FILE;
+  const lexiconsDir = opts.lexiconsDir ?? LEXICONS_DIR;
+  const outDir = opts.outDir ?? WRITEBACK_DIR;
+
+  const parsed = readLexiconFile(path.join(lexiconsDir, targetFile), targetFile);
+  if (parsed === null) {
+    throw new Error(`Target lexicon not found or empty: ${targetFile}`);
+  }
+  const candidates = loadCultureAdditions(additionsFile);
+  const built = buildCultureAdditions(parsed, candidates);
+
+  if (built.file.changed) {
+    fs.writeFileSync(path.join(lexiconsDir, targetFile), serializeLexiconFile(built.file));
+  }
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(outDir, "civilizations-additions-report.json"),
+    additionsReportJson(built.report),
   );
+  return built;
+}
+
+// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// Default: enrichment write-back (`--overwrite` applies incoming over curated).
+// `--add-cultures [file]`: append curated new cultures into civilizations.tsv (US-003).
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
+  const argv = process.argv.slice(2);
+  const addFlag = argv.indexOf("--add-cultures");
+  if (addFlag >= 0) {
+    const next = argv[addFlag + 1];
+    const additionsFile = next && !next.startsWith("--") ? next : DEFAULT_ADDITIONS_FILE;
+    const { report } = runCultureAdditions({ additionsFile });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Culture additions (${report.file}): ${totals.candidates} candidates → ` +
+        `${totals.added} added, ${totals.skipped} skipped, ${totals.conflicts} conflicts, ` +
+        `${totals.updated} updated; rows ${totals.rowsBefore} → ${totals.rowsAfter}.`,
+    );
+  } else {
+    const overwrite = argv.includes("--overwrite");
+    const { report } = runWriteBack({ overwrite });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Write-back: ${totals.nodesMatched} nodes matched → ${totals.enrichments} enrichments, ` +
+        `${totals.overwrites} overwrites, ${totals.conflicts} conflicts` +
+        `${overwrite ? "" : " (reported, not applied)"}, ` +
+        `${totals.skippedAmbiguousIds} ambiguous ids skipped; ` +
+        `${totals.filesChanged} lexicon files changed. source anchor: ${EXPORT_SOURCE}.`,
+    );
+  }
 }

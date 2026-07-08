@@ -26,6 +26,28 @@ at the dropped csid orphaned. `_normalize_linguascrape` therefore calls
 that still dangles or has become a self-loop. **If you add another path that keeps
 pre-existing edges across a `merge_rows` call, redirect them the same way.**
 
+## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
+
+`lexicon_reconcile.py` is the thin data layer that folds a domain acquired from
+Wikidata into the corpus without duplicating what LinguaScrape already curates — it
+wraps `reconcile.reconcile_linguascrape`'s offline cascade (it adds **no** matching
+logic). Used by `scripts/reconcile_civilizations.py` (the civilizations pilot, US-002).
+
+- **`read_corpus_nodes`** loads a built `<corpus>/nodes/<type>.tsv` as reconciler
+  `Row`s: strips Neo4j header suffixes (`csid:ID`→`csid`), wraps `:LABEL` in a list,
+  drops empty cells. **GOTCHA — it drops the overflow (`extra`) column.** A stitched
+  corpus stores the merge-provenance JSON there, and that cell is *not* re-parseable in
+  isolation (`_decode_overflow` → `JSONDecodeError`), so carrying it onto a reconciler
+  row makes `_region`/the cascade blow up. The cascade never needs it — drop it.
+- **`read_lexicon_nodes`** loads a raw `lexicons/*.tsv` as the *existing* side: mints a
+  QID-free `csid` from the row `id` (alias-anchored) or name, tags the canonical
+  `:LABEL`, and — only if a `region_column` is given — supplies the region blocking key
+  via the row's overflow JSON (the canonical schema has no `region` column).
+- **Stricter fuzzy floor.** Pass `fuzzy_threshold` well above the library default
+  (0.85 → the module default 0.93) for cross-source name matching: a *wrong* merge
+  silently corrupts a curated node (German Empire→Roman Empire fuzzes 0.88), whereas a
+  missed match only surfaces a duplicate for triage. Prefer `new` over a bad merge.
+
 ## Determinism boundary
 
 Node/edge **counts** and the `nodes_by_label`/`edges_by_type` fingerprint

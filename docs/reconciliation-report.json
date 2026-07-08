@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 5351,
+    "nodes": 5432,
     "matched": 982,
     "ambiguous": 242,
-    "likelyNew": 4127
+    "likelyNew": 4208
   },
   "byType": [
     {
@@ -45,10 +45,10 @@
     },
     {
       "type": "culture",
-      "count": 259,
+      "count": 340,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 259
+      "likelyNew": 340
     },
     {
       "type": "deity",

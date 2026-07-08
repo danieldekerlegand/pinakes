@@ -24,7 +24,7 @@
       "type": "culture",
       "label": "Culture",
       "file": "nodes/culture.tsv",
-      "count": 259
+      "count": 340
     },
     {
       "type": "archaeological-culture",
@@ -150,7 +150,7 @@
     }
   ],
   "totals": {
-    "nodes": 5351,
+    "nodes": 5432,
     "edges": 5526,
     "nodeTypes": 17,
     "edgeTypes": 7
@@ -158,7 +158,7 @@
   "diagnostics": {
     "skippedNodeRowsMissingId": 0,
     "duplicateCsids": 44,
-    "ambiguousLinguascrapeIds": 14,
+    "ambiguousLinguascrapeIds": 16,
     "edgesWithUnresolvedEndpoint": 139,
     "unresolvedEndpointSamples": [
       {
@@ -322,7 +322,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5351,
+      "total": 5432,
       "byType": [
         {
           "type": "language",
@@ -359,13 +359,13 @@
         },
         {
           "type": "culture",
-          "count": 259,
+          "count": 340,
           "nonEmpty": {
-            "source": 259,
+            "source": 340,
             "source_url": 0,
-            "source_query": 259,
+            "source_query": 340,
             "retrieved_at": 0,
-            "confidence": 259
+            "confidence": 340
           }
         },
         {
@@ -513,11 +513,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 5351,
+        "source": 5432,
         "source_url": 0,
-        "source_query": 653,
+        "source_query": 734,
         "retrieved_at": 0,
-        "confidence": 5351
+        "confidence": 5432
       }
     },
     "edge": {
@@ -609,9 +609,9 @@
       "citationsWithoutCanonicalColumn": 208
     },
     "flags": [
-      "node.source_url: 0/5351 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/5351 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
-      "node.source_query: 653/5351 rows preserve the original LinguaScrape citation.",
+      "node.source_url: 0/5432 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
+      "node.retrieved_at: 0/5432 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
+      "node.source_query: 734/5432 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5526 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5526 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.citationsWithoutCanonicalColumn: 208 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."

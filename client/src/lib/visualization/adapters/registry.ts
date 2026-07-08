@@ -9,6 +9,7 @@ import { deitiesAdapter } from "./deities.adapter";
 import { mythMotifsAdapter } from "./myth-motifs.adapter";
 import { literaryTraditionsAdapter } from "./literary-traditions.adapter";
 import { archaeologicalCulturesAdapter } from "./archaeological-cultures.adapter";
+import { civilizationsAdapter } from "./civilizations.adapter";
 import { battlesAdapter } from "./battles.adapter";
 import { soundChangesAdapter } from "./sound-changes.adapter";
 import { languageContactsAdapter } from "./language-contacts.adapter";
@@ -20,6 +21,7 @@ export const ADAPTERS: DatasetAdapter[] = [
   languageContactsAdapter as DatasetAdapter,
   culturalLineagesAdapter as DatasetAdapter,
   archaeologicalCulturesAdapter as DatasetAdapter,
+  civilizationsAdapter as DatasetAdapter,
   artTraditionsAdapter as DatasetAdapter,
   literaryTraditionsAdapter as DatasetAdapter,
   religionsAdapter as DatasetAdapter,

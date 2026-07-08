@@ -1774,6 +1774,11 @@ export class TsvStorage {
     const capIdx = header.indexOf("capital");
     const popIdx = header.indexOf("population");
     const srcIdx = header.indexOf("sources");
+    const descIdx = header.indexOf("description");
+    const qidIdx = header.indexOf("wikidata_qid");
+    const srcUrlIdx = header.indexOf("source_url");
+    const retrievedIdx = header.indexOf("retrieved_at");
+    const confIdx = header.indexOf("confidence");
 
     const parseArr = (r: string[], idx: number): string[] => {
       if (idx < 0 || !r[idx]) return [];
@@ -1815,6 +1820,14 @@ export class TsvStorage {
             capital: capIdx >= 0 ? row[capIdx] || undefined : undefined,
             population: popIdx >= 0 && row[popIdx] ? parseInt(row[popIdx], 10) : undefined,
             sources: parseArr(row, srcIdx),
+            description: descIdx >= 0 ? row[descIdx] || undefined : undefined,
+            wikidataQid: qidIdx >= 0 ? row[qidIdx] || undefined : undefined,
+            sourceUrl: srcUrlIdx >= 0 ? row[srcUrlIdx] || undefined : undefined,
+            retrievedAt: retrievedIdx >= 0 ? row[retrievedIdx] || undefined : undefined,
+            confidence:
+              confIdx >= 0 && row[confIdx] && Number.isFinite(Number(row[confIdx]))
+                ? Number(row[confIdx])
+                : undefined,
           },
         } as CivilizationFeature;
       });

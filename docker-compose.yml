@@ -19,11 +19,21 @@ services:
     ports:
       - "8800:8800"
     environment:
-      # Point at a mounted, locally-built corpus to serve real data instead of
-      # the bundled fixture (see the commented volume below).
+      # Serve real data by pointing CORPUS at the mounted LinguaScrape canonical
+      # export (below): `CULTURESCRAPE_CORPUS=/corpus`. This is the SAME bare
+      # corpus (nodes/ + edges/) that `to-neo4j export/culturescrape` loads into
+      # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
+      # what makes `npm run smoke:graph` green end to end (US-005). Left at the
+      # bundled 9-node fixture by default so a bare `docker compose up` (no export
+      # built yet) still starts cleanly.
       CORPUS: ${CULTURESCRAPE_CORPUS:-tests/fixtures/explorer-corpus}
-    # volumes:
-    #   - ./packages/culture-scrape/out:/app/out:ro   # then set CULTURESCRAPE_CORPUS=out/<job>
+    volumes:
+      # The gitignored canonical export (produced by
+      # `npx tsx scripts/export-for-culturescrape.ts`). `load_corpus` reads a bare
+      # `nodes/`+`edges/` directory, so this dir is directly servable. Read-only;
+      # unused until CULTURESCRAPE_CORPUS=/corpus. Mounting `${PWD}` (the repo
+      # root) subpath keeps parity with the neo4j service's `${PWD}` mount.
+      - ${PWD}/export/culturescrape:/corpus:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/')"]
       interval: 5s
@@ -44,8 +54,23 @@ services:
     environment:
       # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/linguascrape}
+      # APOC is required by the incremental `culturescrape to-neo4j --mode loadcsv`
+      # path: node labels are reattached with apoc.create.addLabels and edges are
+      # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in
+      # core Cypher). The neo4j:5 image fetches the bundled apoc plugin from this var.
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
+      NEO4J_dbms_security_procedures_allowlist: "apoc.*"
+      # `LOAD CSV FROM file://<abs-path>` reads the corpus TSVs by their host path;
+      # allow absolute file: URLs and mount the repo read-only at its real path so
+      # the URLs `to-neo4j` emits (Path.resolve().as_uri()) resolve inside the container.
+      NEO4J_dbms_security_allow__csv__import__from__file__urls: "true"
+      # Point the import-dir root at `/` so `file://<abs-path>` resolves to the real
+      # absolute path (the default `import` jail would resolve it under <neo4j>/import).
+      NEO4J_server_directories_import: "/"
     volumes:
       - neo4j-data:/data
+      - ${PWD}:${PWD}:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
       interval: 10s

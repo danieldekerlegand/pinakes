@@ -36,9 +36,9 @@ downstream. See [`docs/acquisition.md`](docs/acquisition.md) for obtaining a dum
 building the membership index, rich hydration, and dump-backed enrichment.
 
 The [`blueprints/`](blueprints/) directory holds a library of verified domain
-blueprints — visual art, architecture, conflicts, myth & religion, food & drink,
-language, music, sports & games, science & technology, material culture, and
-living traditions — eleven domains expanding into 111 categories of live-verified
+blueprints — visual art, architecture, civilizations, conflicts, myth & religion,
+food & drink, language, music, sports & games, science & technology, material
+culture, and living traditions — twelve domains expanding into 119 categories of live-verified
 Wikidata classes. Generate and run a whole domain with
 `culturescrape generate blueprints/<domain>.yml --out categories --job jobs/<domain>.yml`;
 see [`docs/blueprints.md`](docs/blueprints.md) for the catalog and authoring guide.

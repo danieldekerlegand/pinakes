@@ -6,6 +6,8 @@ import {
   buildWriteBack,
   serializeLexiconFile,
   NON_WRITEBACK_FIELDS,
+  runCultureAdditions,
+  ADDITION_PROVENANCE_COLUMNS,
 } from "./import-from-culturescrape";
 import { buildExport, writeExport } from "./export-for-culturescrape";
 import { CANONICAL_SCHEMA } from "@shared/canonical-schema";
@@ -323,6 +325,149 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  describe("new-culture additions (US-003)", () => {
+    /** A civilizations.tsv fixture (no provenance columns yet) + a candidate additions TSV. */
+    function additionsFixture(candidateRows: string[][]): {
+      lexiconsDir: string;
+      additionsFile: string;
+      outDir: string;
+    } {
+      const lexiconsDir = makeFixtureDir({
+        "civilizations.tsv": [
+          ["id", "name", "native_name", "time_period_start", "sources", "description"],
+          ["roman-empire", "Roman Empire", "Imperium Romanum", "-27", '["Records"]', "Rome"],
+          ["ancient-greece", "Ancient Greece", "", "-800", "[]", "Greek city-states"],
+        ],
+      });
+      const additionsFile = path.join(lexiconsDir, "additions.tsv");
+      const header = [
+        "id", "name", "wikidata_qid", "wikidata_class",
+        "source_url", "retrieved_at", "confidence", "sources",
+      ];
+      fs.writeFileSync(
+        additionsFile,
+        [header, ...candidateRows].map((r) => r.join("\t")).join("\n") + "\n",
+      );
+      const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-add-out-"));
+      return { lexiconsDir, additionsFile, outDir };
+    }
+
+    const civ = (
+      dir: string,
+    ): { headers: string[]; rows: Record<string, string>[] } => {
+      const lines = fs
+        .readFileSync(path.join(dir, "civilizations.tsv"), "utf8")
+        .split(/\r?\n/)
+        .filter((l) => l.trim() !== "");
+      const headers = lines[0].split("\t");
+      const rows = lines.slice(1).map((l) => {
+        const cells = l.split("\t");
+        return Object.fromEntries(headers.map((h, i) => [h, cells[i] ?? ""]));
+      });
+      return { headers, rows };
+    };
+
+    it("appends new rows with provenance columns; extends the header; preserves curated rows", () => {
+      const { lexiconsDir, additionsFile, outDir } = additionsFixture([
+        ["babylonia", "Babylonia", "Q47690", "ancient-civilization",
+          "http://www.wikidata.org/entity/Q47690", "2026-07-08T00:00:00Z", "1.0", '["Wikidata"]'],
+        ["elam", "Elam", "Q35355", "civilization",
+          "http://www.wikidata.org/entity/Q35355", "2026-07-08T00:00:00Z", "1.0", '["Wikidata"]'],
+      ]);
+      try {
+        const { report } = runCultureAdditions({ additionsFile, lexiconsDir, outDir });
+
+        expect(report.totals).toMatchObject({
+          candidates: 2, added: 2, skipped: 0, conflicts: 0, updated: 0,
+          rowsBefore: 2, rowsAfter: 4,
+        });
+
+        const { headers, rows } = civ(lexiconsDir);
+        // Header gained every provenance column.
+        for (const col of ADDITION_PROVENANCE_COLUMNS) expect(headers).toContain(col);
+
+        // A curated row is byte-preserved in its own cells and simply padded with blanks.
+        const roman = rows.find((r) => r.id === "roman-empire")!;
+        expect(roman.name).toBe("Roman Empire");
+        expect(roman.native_name).toBe("Imperium Romanum");
+        expect(roman.wikidata_qid).toBe("");
+        expect(roman.confidence).toBe("");
+
+        // A new row carries full provenance.
+        const babylon = rows.find((r) => r.id === "babylonia")!;
+        expect(babylon).toMatchObject({
+          name: "Babylonia",
+          wikidata_qid: "Q47690",
+          source_url: "http://www.wikidata.org/entity/Q47690",
+          retrieved_at: "2026-07-08T00:00:00Z",
+          confidence: "1.0",
+          sources: '["Wikidata"]',
+        });
+
+        // The report JSON landed in the out dir.
+        const onDisk = JSON.parse(
+          fs.readFileSync(path.join(outDir, "civilizations-additions-report.json"), "utf8"),
+        );
+        expect(onDisk.totals.added).toBe(2);
+      } finally {
+        fs.rmSync(lexiconsDir, { recursive: true, force: true });
+        fs.rmSync(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it("dedups by wikidata_qid and by normalised name; reports id collisions as conflicts", () => {
+      const { lexiconsDir, additionsFile, outDir } = additionsFixture([
+        // duplicate by qid is moot (existing rows have none); duplicate by NAME:
+        ["ancient-greece-2", "ancient greece", "Q11772", "civilization",
+          "http://www.wikidata.org/entity/Q11772", "", "1.0", '["Wikidata"]'],
+        // id collides with a curated row but is a different entity → conflict, never appended.
+        ["roman-empire", "Western Roman Empire", "Q201038", "empire",
+          "http://www.wikidata.org/entity/Q201038", "", "1.0", '["Wikidata"]'],
+        // a genuinely new one that should be added.
+        ["elam", "Elam", "Q35355", "civilization",
+          "http://www.wikidata.org/entity/Q35355", "", "1.0", '["Wikidata"]'],
+      ]);
+      try {
+        const { report } = runCultureAdditions({ additionsFile, lexiconsDir, outDir });
+
+        expect(report.totals.added).toBe(1);
+        expect(report.totals.skipped).toBe(1);
+        expect(report.totals.conflicts).toBe(1);
+        expect(report.skipped[0]).toMatchObject({ name: "ancient greece", reason: "duplicate-name" });
+        expect(report.conflicts[0]).toMatchObject({
+          id: "roman-empire", name: "Western Roman Empire", existingName: "Roman Empire",
+        });
+        // The curated roman-empire row is untouched (not overwritten by the collision).
+        const roman = civ(lexiconsDir).rows.find((r) => r.id === "roman-empire")!;
+        expect(roman.name).toBe("Roman Empire");
+      } finally {
+        fs.rmSync(lexiconsDir, { recursive: true, force: true });
+        fs.rmSync(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it("is idempotent — re-running appends nothing (dedup by the qid it just wrote)", () => {
+      const { lexiconsDir, additionsFile, outDir } = additionsFixture([
+        ["elam", "Elam", "Q35355", "civilization",
+          "http://www.wikidata.org/entity/Q35355", "", "1.0", '["Wikidata"]'],
+      ]);
+      try {
+        const first = runCultureAdditions({ additionsFile, lexiconsDir, outDir });
+        expect(first.report.totals.added).toBe(1);
+        const after1 = fs.readFileSync(path.join(lexiconsDir, "civilizations.tsv"), "utf8");
+
+        const second = runCultureAdditions({ additionsFile, lexiconsDir, outDir });
+        expect(second.report.totals.added).toBe(0);
+        expect(second.report.totals.skipped).toBe(1);
+        const after2 = fs.readFileSync(path.join(lexiconsDir, "civilizations.tsv"), "utf8");
+        expect(after2).toBe(after1); // byte-identical — a true no-op
+      } finally {
+        fs.rmSync(lexiconsDir, { recursive: true, force: true });
+        fs.rmSync(outDir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe("live corpus", () => {

@@ -27,8 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BLUEPRINTS = sorted(iter_blueprints(REPO_ROOT / "blueprints"))
 SHIPPED_JOBS = sorted((REPO_ROOT / "jobs").glob("*.yml"))
 #: The catalog count documented in docs/blueprints.md and README.md, summed over
-#: the eleven verified domains (the ``example`` worked example is excluded).
-DOCUMENTED_DOMAIN_CATEGORIES = 111
+#: the twelve verified domains (the ``example`` worked example is excluded).
+DOCUMENTED_DOMAIN_CATEGORIES = 119
 
 
 def test_catalog_directories_are_not_empty() -> None:
@@ -40,7 +40,7 @@ def test_catalog_directories_are_not_empty() -> None:
 
 def test_documented_category_count_matches_the_catalog() -> None:
     """The category total in docs/blueprints.md and README.md cannot drift from
-    what the eleven verified domain blueprints actually expand to."""
+    what the twelve verified domain blueprints actually expand to."""
     total = sum(
         len(load_blueprint(p)) for p in BLUEPRINTS if p.stem != "example"
     )
