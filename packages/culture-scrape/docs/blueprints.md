@@ -15,7 +15,7 @@ in [`docs/data-model.md`](data-model.md).
 
 ## The shipped library
 
-Eleven verified domain blueprints ship today, expanding to **111 categories**
+Twelve verified domain blueprints ship today, expanding to **119 categories**
 across the corpus. Every class was verified live against the Wikidata Query
 Service (the `# ~N` entity count after each stub is that observed value);
 classes that resolve to zero entities are not shipped.
@@ -23,6 +23,7 @@ classes that resolve to zero entities are not shipped.
 | Blueprint | Categories | Dimensions | Signature relationships |
 |---|---:|---|---|
 | [`architecture`](../blueprints/architecture.yml) | 14 | temporal, geographic | `LOCATED_IN` |
+| [`civilizations`](../blueprints/civilizations.yml) | 8 | temporal, geographic | `LOCATED_IN` |
 | [`conflicts`](../blueprints/conflicts.yml) | 14 | temporal, geographic | `LOCATED_IN` |
 | [`food-drink`](../blueprints/food-drink.yml) | 14 | temporal, geographic, linguistic | `ORIGINATES_FROM` |
 | [`language`](../blueprints/language.yml) | 5 | geographic, linguistic | — (taxonomy only) |
