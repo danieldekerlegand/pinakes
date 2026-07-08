@@ -187,8 +187,20 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
 `lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
 `buildConvergenceQA` adds the metrics; `runQA` returns `{ report, exitCode }` (`1` on drift).
 
-- **Only drift fails the gate** (`report.ok === false` ⇒ non-zero exit). The id-overlap /
-  unreconciled / provenance numbers are informational — never threshold them into a hard failure.
+- **Three hard checks fail the gate** (`report.ok === false` ⇒ non-zero exit), since US-001:
+  (1) **drift** (as above); (2) **attribution** (`detectAttributionGaps`) — any acquisition-imported
+  row (non-blank `wikidata_qid`-mapped cell) missing `source`/`source_url`/`retrieved_at`/`confidence`;
+  it reads the **lexicons**, NOT the export (which force-blanks `source_url`/`retrieved_at`), and uses
+  the per-file mapping so it generalises across domains without hard-coded column names; (3) **dedup
+  regression** (`detectRegressions`) — a monotone ratchet against `docs/convergence-qa-baseline.json`
+  (`duplicateCsids`, `ambiguousLinguascrapeIds`, `edgesWithUnresolvedEndpoint`, reconciliation
+  `ambiguous`). The id-overlap / unreconciled / provenance-coverage numbers stay informational.
+- **GOTCHA — the dedup ratchet is a baseline, not a zero.** The live corpus already has
+  `duplicateCsids=44`, `ambiguousLinguascrapeIds=16`, `edgesWithUnresolvedEndpoint=139` (legit
+  cross-file id reuse), so an absolute `=== 0` would be red on day one. After a data change that
+  *legitimately* moves these, re-baseline with `npm run convergence-qa:baseline`
+  (`--write-baseline`) — a live-corpus test asserts `report.regressions === []` on `main`, so a stale
+  baseline fails CI. Run `npm run convergence-qa` before committing any data change.
 - **A directory is a corpus, not a full-mapping assertion.** Column drift is only checked for
   files actually present, so a fixture with a subset of the mapped files is clean — a mapped file
   being *absent* is not drift (only present-but-unmapped, or a renamed column, is). This is what

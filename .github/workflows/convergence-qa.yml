@@ -1,0 +1,54 @@
+name: convergence-qa
+
+# Data-population attribution / QA gate (US-001). Enforces two hard rules on every
+# push so scaled cultural/historical data stays credible:
+#   1. Attribution — every acquisition-imported lexicon row (a row carrying a
+#      `wikidata_qid`) must have full provenance (source / source_url / retrieved_at /
+#      confidence). Reads lexicons/*.tsv, the source of truth.
+#   2. Regression ratchet — dedup / reconciliation metrics may not climb above the
+#      committed ceilings in docs/convergence-qa-baseline.json.
+# Plus the existing schema-drift check. Both projects' toolchains run here so a data
+# change lands green only when TS + Python checks pass. Runbook:
+# docs/data-population-runbook.md. Gate internals: docs/canonical-schema.md §10.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  convergence-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck (web app)
+        run: npm run check
+      - name: Typecheck (scripts)
+        run: npx tsc -p scripts/tsconfig.json
+      - name: Convergence-QA unit tests
+        run: npx vitest run scripts/convergence-qa.test.ts
+      - name: Attribution / dedup / drift gate
+        run: npm run convergence-qa
+
+  culture-scrape:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/culture-scrape
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Sync Python deps
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Typecheck (mypy)
+        run: uv run mypy src
+      - name: Tests (pytest)
+        run: uv run pytest

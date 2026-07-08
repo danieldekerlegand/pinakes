@@ -6,10 +6,18 @@ import { lexiconMappingByFile } from "@shared/lexicon-mapping";
 import {
   buildConvergenceQA,
   detectDrift,
+  detectAttributionGaps,
+  detectRegressions,
   formatMarkdown,
+  loadBaseline,
   reportJson,
   writeConvergenceQA,
   runQA,
+  IMPORT_MARKER_TARGET,
+  REQUIRED_IMPORT_PROVENANCE_TARGETS,
+  type IdentityMetrics,
+  type ReconciliationMetrics,
+  type RegressionBaseline,
 } from "./convergence-qa";
 
 /** The real corpus — the clean baseline the gate must pass on. */
@@ -88,6 +96,161 @@ describe("convergence-qa (US-008)", () => {
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
+    });
+  });
+
+  /**
+   * Write a mapped node file with a header of exactly the mapped columns and the given
+   * data rows (each a `column → value` map; unset columns are blank). Lets a test control
+   * the import marker + provenance cells for the attribution gate.
+   */
+  function writeMappedFileWithRows(
+    dir: string,
+    file: string,
+    rows: Record<string, string>[],
+  ): void {
+    const mapping = lexiconMappingByFile(file);
+    if (mapping === undefined) throw new Error(`no mapping for ${file}`);
+    const header = mapping.columns.map((c) => c.column);
+    const body = rows.map((r) => header.map((c) => r[c] ?? "").join("\t"));
+    fs.writeFileSync(path.join(dir, file), [header.join("\t"), ...body].join("\n") + "\n");
+  }
+
+  /** Column in a mapped file that carries a given canonical target. */
+  function columnFor(file: string, target: string): string {
+    const col = lexiconMappingByFile(file)?.columns.find((c) => c.target === target)?.column;
+    if (col === undefined) throw new Error(`${file} has no column for target ${target}`);
+    return col;
+  }
+
+  describe("detectAttributionGaps (US-001)", () => {
+    it("requires source + source_url + retrieved_at + confidence on imported rows", () => {
+      expect([...REQUIRED_IMPORT_PROVENANCE_TARGETS]).toEqual([
+        "source",
+        "source_url",
+        "retrieved_at",
+        "confidence",
+      ]);
+    });
+
+    it("no gaps on the real corpus (every imported row is provenanced)", () => {
+      expect(detectAttributionGaps(REAL_LEXICONS)).toEqual([]);
+    });
+
+    it("flags an imported row missing a required provenance field", () => {
+      const dir = tmpDir();
+      try {
+        const marker = columnFor("civilizations.tsv", IMPORT_MARKER_TARGET);
+        const url = columnFor("civilizations.tsv", "source_url");
+        const full: Record<string, string> = {
+          id: "acme",
+          name: "Acme",
+          [marker]: "Q1",
+          [columnFor("civilizations.tsv", "source")]: '["Wikidata"]',
+          [url]: "http://www.wikidata.org/entity/Q1",
+          [columnFor("civilizations.tsv", "retrieved_at")]: "2026-07-08T00:00:00Z",
+          [columnFor("civilizations.tsv", "confidence")]: "1.0",
+        };
+        // A second imported row missing source_url; plus a curated (no-marker) blank row.
+        const missingUrl = { ...full, id: "beta", name: "Beta", [url]: "" };
+        const curated = { id: "seed", name: "Seed" };
+        writeMappedFileWithRows(dir, "civilizations.tsv", [full, missingUrl, curated]);
+
+        const gaps = detectAttributionGaps(dir);
+        expect(gaps).toHaveLength(1);
+        expect(gaps[0].file).toBe("civilizations.tsv");
+        expect(gaps[0].rowId).toBe("beta");
+        expect(gaps[0].missing).toContain("source_url");
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("ignores curated rows (no import marker → provenance not required)", () => {
+      const dir = tmpDir();
+      try {
+        writeMappedFileWithRows(dir, "civilizations.tsv", [
+          { id: "seed", name: "Seed" }, // no wikidata_qid, all provenance blank — fine.
+        ]);
+        expect(detectAttributionGaps(dir)).toEqual([]);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("skips files with no import-marker column (all curated)", () => {
+      const dir = tmpDir();
+      try {
+        // cuisines.tsv has no wikidata_qid mapping → no imported rows possible.
+        writeCleanMappedFile(dir, "cuisines.tsv", "thai");
+        expect(detectAttributionGaps(dir)).toEqual([]);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe("detectRegressions (US-001)", () => {
+    const id = (over: Partial<IdentityMetrics> = {}): IdentityMetrics => ({
+      nodes: 100,
+      anchoredOverlap: 10,
+      overlapRate: 0.1,
+      duplicateCsids: 44,
+      ambiguousLinguascrapeIds: 16,
+      edgesWithUnresolvedEndpoint: 139,
+      ...over,
+    });
+    const recon = (over: Partial<ReconciliationMetrics> = {}): ReconciliationMetrics => ({
+      nodes: 100,
+      matched: 10,
+      ambiguous: 242,
+      likelyNew: 20,
+      unreconciledRate: 0.5,
+      ...over,
+    });
+    const baseline: RegressionBaseline = {
+      duplicateCsids: 44,
+      ambiguousLinguascrapeIds: 16,
+      edgesWithUnresolvedEndpoint: 139,
+      reconciliationAmbiguous: 242,
+    };
+
+    it("no issue when metrics sit at or below baseline", () => {
+      expect(detectRegressions(id(), recon(), baseline)).toEqual([]);
+      expect(
+        detectRegressions(id({ duplicateCsids: 40 }), recon({ ambiguous: 200 }), baseline),
+      ).toEqual([]);
+    });
+
+    it("flags a metric that exceeded its ceiling", () => {
+      const issues = detectRegressions(id({ duplicateCsids: 45 }), recon(), baseline);
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({ metric: "duplicateCsids", baseline: 44, current: 45 });
+    });
+
+    it("no ratchet when the baseline is absent", () => {
+      expect(detectRegressions(id({ duplicateCsids: 999 }), recon(), undefined)).toEqual([]);
+    });
+  });
+
+  describe("committed baseline", () => {
+    it("loads and covers every ratcheted metric", () => {
+      const b = loadBaseline();
+      expect(b).toBeDefined();
+      for (const k of [
+        "duplicateCsids",
+        "ambiguousLinguascrapeIds",
+        "edgesWithUnresolvedEndpoint",
+        "reconciliationAmbiguous",
+      ] as const) {
+        expect(typeof b?.[k]).toBe("number");
+      }
+    });
+
+    it("the live corpus sits at or below the committed baseline", () => {
+      // The gate must be green on `main`: no metric may exceed its committed ceiling.
+      const report = buildConvergenceQA(REAL_LEXICONS);
+      expect(report.regressions).toEqual([]);
     });
   });
 
