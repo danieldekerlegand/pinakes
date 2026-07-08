@@ -42,6 +42,18 @@ COMPLETED="$SRC/completed"     # git-tracked records of merged PRDs
 SNAP="$DIR/snapshots"          # gitignored per-PRD runtime snapshots (resume source)
 mkdir -p "$COMPLETED" "$SNAP"
 
+# Single-driver lock. Two git drivers on one repo (a second run-all, OR an interactive
+# agent doing checkouts/commits) share .git/HEAD and the working tree and WILL corrupt each
+# other's commits/branches. Refuse to start if a lock is already held.
+LOCK="$DIR/.run-all.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "ERROR: another Ralph driver appears to be active (lock: $LOCK)." >&2
+  echo "       Never run two drivers on one repo. If you are certain none is running:" >&2
+  echo "         rmdir '$LOCK'" >&2
+  exit 1
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+
 TOOL="${TOOL:-claude}"
 AUTO_MERGE_MAIN="${AUTO_MERGE_MAIN:-1}"
 NO_VERIFY="${NO_VERIFY:-0}"

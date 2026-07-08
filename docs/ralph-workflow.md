@@ -3,6 +3,14 @@
 LinguaScrape uses the **Ralph** long-running-agent loop to work through PRDs autonomously.
 It replaces the earlier `ralphy` JSON-tasklist tooling (archived under `docs/archive/ralphy/`).
 
+> ⚠️ **One git driver at a time.** Never run `run-all.sh` while another driver is mutating the
+> same repo — a second `run-all`, **or an interactive Claude/agent session doing checkouts or
+> commits**. They share `.git/HEAD` and the working tree, so concurrent drivers corrupt each
+> other's commits and branches (this has happened: a merge landed on the wrong branch). `run-all.sh`
+> now holds a `scripts/ralph/.run-all.lock` and refuses to start if one is held, but the lock can't
+> see an interactive session — so while a loop is running, **don't also ask an assistant to touch
+> git in that repo.** Stop the loop first (`Ctrl-C`, or `pkill -f ralph.sh`).
+
 ## Layout
 
 ```

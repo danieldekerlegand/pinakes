@@ -4,3 +4,4 @@ progress.txt
 .last-branch
 archive/
 snapshots/
+.run-all.lock/
