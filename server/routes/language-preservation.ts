@@ -39,7 +39,9 @@ async function loadPreservationLanguages(): Promise<PreservationLanguage[]> {
     id: l.id,
     name: l.name,
     region: l.region ?? null,
-    status: l.status ?? null,
+    // Prefer the sourced UNESCO endangerment status (US-006 enrichment) when present so the
+    // dashboard reflects the attributed vitality; fall back to the free-text `status` otherwise.
+    status: (l.endangermentStatus ?? "").trim() || l.status || null,
     familyId: l.familyId ?? null,
     nativeSpeakers: l.nativeSpeakers ?? null,
     totalSpeakers: l.totalSpeakers ?? null,

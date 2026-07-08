@@ -261,7 +261,7 @@ function serialize(rows: readonly EnrichmentRow[]): string {
   const header = [...ENRICHMENT_COLUMNS];
   const lines = [header.join("\t")];
   for (const r of rows) {
-    lines.push(header.map((h) => (r as Record<string, string>)[h] ?? "").join("\t"));
+    lines.push(header.map((h) => (r as unknown as Record<string, string>)[h] ?? "").join("\t"));
   }
   return lines.join("\n") + "\n";
 }

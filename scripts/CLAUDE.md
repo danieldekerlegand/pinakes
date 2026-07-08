@@ -148,6 +148,39 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   shape and keep cells raw, so an unedited file re-serialises identically (only changed files are
   written back).
 
+## Column enrichment of existing rows (US-006, language ranges/endangerment)
+
+The **third** write-back mode in `import-from-culturescrape.ts`, alongside the export-driven
+write-back and `--add-rows`: `--enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]`
+fills **blank cells on EXISTING rows** from a curated enrichment TSV (it does NOT append rows).
+Use it when a domain is already populated and you're back-filling a *property* (e.g. sourced
+UNESCO endangerment status onto `languages.tsv`). `buildEnrichment(target, records, {keyColumn,
+overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Report →
+`export/culturescrape/writeback/<lexicon>-enrichment-report.json` (gitignored).
+
+- **Same conservatism as the write-back:** fills a blank target cell only; a differing curated
+  cell is a **conflict** (reported, never resolved unless `--overwrite`). Existing rows are never
+  appended to, and the join key must address **exactly one** row — a key matching 0 rows is
+  `unmatched`, >1 is `ambiguous`; both are reported and skipped, never guessed.
+- **No dead columns:** a probed enrichment column that is blank in *every* record (e.g.
+  `range_geojson` — Wikidata has no inline range polygons for our corpus) is NOT added to the
+  target header. Only columns with ≥1 non-blank value are written (`ensureColumns` pads the rest).
+- **Provenance rides along:** every written enrichment column carries its provenance columns
+  (`wikidata_qid`/`source_url`/`retrieved_at`/`confidence`/`sources`) on the same row, so the
+  attribution gate enforces sourcing on the enriched rows. Map those columns as `target`s (and the
+  enriched property, e.g. `endangerment_status`, as a `property`) in `lexicon-mapping.json`.
+- **Acquire side:** `acquire-language-status.ts` is the networked step (Wikidata `P1999` UNESCO
+  status, keyed by ISO-639-3 in the `iso639_2` column). Like the write-back, it only enriches rows
+  whose ISO **and** id are unique in the corpus (26 ISO codes / 30 ids recur — e.g. `abe` is two
+  languages); an ambiguous key can't address one row, so it's skipped. Committed output
+  `scripts/data/language-enrichment.tsv` is the network-free replay source.
+- **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
+  free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
+  (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
+  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written),
+  NOT `@shared/schema` (Drizzle) — add the field there and read it in `tsv-storage.ts`'s
+  `getLanguages` parse.
+
 ## New-row additions (US-003, data-population pilot)
 
 Same file also grows the corpus: `--add-cultures [file]` **appends** curated,

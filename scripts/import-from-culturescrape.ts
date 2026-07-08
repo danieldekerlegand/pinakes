@@ -1046,17 +1046,42 @@ export function runCultureAdditions(
 // Default: enrichment write-back (`--overwrite` applies incoming over curated).
 // `--add-cultures [file]`: append curated new cultures into civilizations.tsv (US-003).
 // `--add-rows <file> --target <lexicon.tsv>`: generic append into any node lexicon (US-002+).
+// `--enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]`: fill blank cells on
+//   EXISTING rows from a curated enrichment TSV (US-006 language ranges/endangerment).
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const argv = process.argv.slice(2);
   const addFlag = argv.indexOf("--add-cultures");
   const addRowsFlag = argv.indexOf("--add-rows");
+  const enrichFlag = argv.indexOf("--enrich");
   const flagValue = (name: string): string | undefined => {
     const i = argv.indexOf(name);
     if (i < 0) return undefined;
     const v = argv[i + 1];
     return v && !v.startsWith("--") ? v : undefined;
   };
-  if (addRowsFlag >= 0) {
+  if (enrichFlag >= 0) {
+    const enrichmentFile = flagValue("--enrich");
+    const targetFile = flagValue("--target");
+    if (enrichmentFile === undefined || targetFile === undefined) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "usage: import-from-culturescrape --enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]",
+      );
+      process.exit(1);
+    }
+    const keyColumn = flagValue("--key") ?? "id";
+    const overwrite = argv.includes("--overwrite");
+    const { report } = runEnrichment({ enrichmentFile, targetFile, keyColumn, overwrite });
+    const { totals } = report;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Enrichment (${report.file}, key='${report.keyColumn}'): ${totals.records} records → ` +
+        `${totals.matched} matched, ${totals.enrichments} cells filled, ${totals.overwrites} overwrites, ` +
+        `${totals.conflicts} conflicts${overwrite ? "" : " (reported, not applied)"}, ` +
+        `${totals.unmatched} unmatched, ${totals.ambiguous} ambiguous, ` +
+        `${totals.skippedEmptyColumns} empty column(s) skipped.`,
+    );
+  } else if (addRowsFlag >= 0) {
     const additionsFile = flagValue("--add-rows");
     const targetFile = flagValue("--target");
     if (additionsFile === undefined || targetFile === undefined) {

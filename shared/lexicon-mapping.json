@@ -690,7 +690,13 @@
         { "column": "chronological_order", "property": true },
         { "column": "historical_context", "property": true },
         { "column": "latitude", "target": "lat" },
-        { "column": "longitude", "target": "lon" }
+        { "column": "longitude", "target": "lon" },
+        { "column": "endangerment_status", "property": true, "note": "sourced UNESCO vitality (US-006 enrichment); dashboard prefers it over free-text status" },
+        { "column": "wikidata_qid", "target": "wikidata_qid" },
+        { "column": "source_url", "target": "source_url" },
+        { "column": "retrieved_at", "target": "retrieved_at" },
+        { "column": "confidence", "target": "confidence" },
+        { "column": "sources", "target": "source" }
       ]
     },
     {

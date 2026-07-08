@@ -8,6 +8,8 @@ import {
   NON_WRITEBACK_FIELDS,
   runCultureAdditions,
   ADDITION_PROVENANCE_COLUMNS,
+  runEnrichment,
+  loadEnrichmentFile,
 } from "./import-from-culturescrape";
 import { buildExport, writeExport } from "./export-for-culturescrape";
 import { CANONICAL_SCHEMA } from "@shared/canonical-schema";
@@ -540,6 +542,148 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
       } finally {
         fs.rmSync(canon, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("column enrichment of existing rows (US-006)", () => {
+    /** A languages-shaped target lexicon + a curated enrichment TSV written to a temp dir. */
+    function enrichFixture(enrichmentRows: string[][]): {
+      lexiconsDir: string;
+      enrichmentFile: string;
+      outDir: string;
+    } {
+      const lexiconsDir = makeFixtureDir({
+        "languages.tsv": [
+          ["id", "name", "status"],
+          ["fra", "French", "living"],
+          ["cor", "Cornish", ""], // blank status — enrichment may fill it.
+          ["dup", "Dup A", "living"],
+          ["dup", "Dup B", "living"], // ambiguous key: two rows share `dup`.
+        ],
+      });
+      const enrichmentFile = path.join(lexiconsDir, "language-enrichment.tsv");
+      const header = [
+        "id", "endangerment_status", "range_geojson", "wikidata_qid",
+        "source_url", "retrieved_at", "confidence", "sources",
+      ];
+      fs.writeFileSync(
+        enrichmentFile,
+        [header, ...enrichmentRows].map((r) => r.join("\t")).join("\n") + "\n",
+      );
+      const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-enrich-out-"));
+      return { lexiconsDir, enrichmentFile, outDir };
+    }
+
+    const langs = (dir: string): Record<string, string>[] => {
+      const lines = fs
+        .readFileSync(path.join(dir, "languages.tsv"), "utf8")
+        .split(/\r?\n/)
+        .filter((l) => l.trim() !== "");
+      const headers = lines[0].split("\t");
+      return lines.slice(1).map((l) => {
+        const cells = l.split("\t");
+        return Object.fromEntries(headers.map((h, i) => [h, cells[i] ?? ""]));
+      });
+    };
+
+    const enrichRow = (
+      id: string,
+      status: string,
+      qid: string,
+    ): string[] => [
+      id, status, "" /* range_geojson always blank */, qid,
+      `http://www.wikidata.org/entity/${qid}`, "2026-07-08T00:00:00Z", "0.9",
+      '["UNESCO Atlas"]',
+    ];
+
+    it("fills blank cells on matched rows, adds provenance columns, skips the all-empty column", () => {
+      const { lexiconsDir, enrichmentFile, outDir } = enrichFixture([
+        enrichRow("fra", "vulnerable", "Q150"),
+        enrichRow("cor", "critically endangered", "Q25289"),
+      ]);
+      const { report } = runEnrichment({ enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir });
+
+      expect(report.totals.matched).toBe(2);
+      expect(report.totals.enrichments).toBe(12); // 2 rows × 6 written columns.
+      expect(report.totals.conflicts).toBe(0);
+      // range_geojson is blank in every record → never added to the target.
+      expect(report.skippedEmptyColumns).toContain("range_geojson");
+
+      const rows = langs(lexiconsDir);
+      const headers = fs.readFileSync(path.join(lexiconsDir, "languages.tsv"), "utf8").split("\n")[0];
+      expect(headers).not.toContain("range_geojson");
+      expect(headers).toContain("endangerment_status");
+      expect(headers).toContain("wikidata_qid");
+
+      const fra = rows.find((r) => r.id === "fra" && r.name === "French")!;
+      expect(fra.endangerment_status).toBe("vulnerable");
+      expect(fra.wikidata_qid).toBe("Q150");
+      expect(fra.source_url).toBe("http://www.wikidata.org/entity/Q150");
+      expect(fra.confidence).toBe("0.9");
+      // Curated `status` column is untouched.
+      expect(fra.status).toBe("living");
+    });
+
+    it("is idempotent — a second run fills nothing and reports no changes", () => {
+      const { lexiconsDir, enrichmentFile, outDir } = enrichFixture([enrichRow("fra", "vulnerable", "Q150")]);
+      runEnrichment({ enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir });
+      const first = fs.readFileSync(path.join(lexiconsDir, "languages.tsv"), "utf8");
+      const { report } = runEnrichment({ enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir });
+      expect(report.totals.enrichments).toBe(0);
+      expect(fs.readFileSync(path.join(lexiconsDir, "languages.tsv"), "utf8")).toBe(first);
+    });
+
+    it("skips an ambiguous key (>1 target rows) and an unmatched key, never guessing", () => {
+      const { lexiconsDir, enrichmentFile, outDir } = enrichFixture([
+        enrichRow("dup", "extinct", "Q999"), // matches two rows → ambiguous.
+        enrichRow("zzz", "extinct", "Q000"), // matches nothing → unmatched.
+      ]);
+      const { report } = runEnrichment({ enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir });
+      expect(report.totals.matched).toBe(0);
+      expect(report.ambiguousKeys).toEqual(["dup"]);
+      expect(report.unmatchedKeys).toEqual(["zzz"]);
+      // Neither `dup` row was touched.
+      expect(langs(lexiconsDir).filter((r) => r.wikidata_qid === "Q999")).toHaveLength(0);
+    });
+
+    it("reports a differing curated cell as a conflict (not applied) unless --overwrite", () => {
+      // Seed `cor` with a status, then a differing enrichment status is a conflict on `status`…
+      // but we only ever fill blank cells; the enrichment writes to endangerment_status, so to
+      // exercise a conflict we enrich a column that already has a value.
+      const lexiconsDir = makeFixtureDir({
+        "languages.tsv": [
+          ["id", "name", "endangerment_status"],
+          ["fra", "French", "living"], // already has a value in the enriched column.
+        ],
+      });
+      const enrichmentFile = path.join(lexiconsDir, "e.tsv");
+      fs.writeFileSync(
+        enrichmentFile,
+        [["id", "endangerment_status"], ["fra", "vulnerable"]].map((r) => r.join("\t")).join("\n") + "\n",
+      );
+      const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-enrich-out-"));
+
+      const reported = runEnrichment({ enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir });
+      expect(reported.report.totals.conflicts).toBe(1);
+      expect(reported.report.totals.enrichments).toBe(0);
+      expect(langs(lexiconsDir)[0].endangerment_status).toBe("living"); // curated value preserved.
+
+      const applied = runEnrichment({
+        enrichmentFile, targetFile: "languages.tsv", lexiconsDir, outDir, overwrite: true,
+      });
+      expect(applied.report.totals.overwrites).toBe(1);
+      expect(langs(lexiconsDir)[0].endangerment_status).toBe("vulnerable");
+    });
+
+    it("loadEnrichmentFile parses header-addressed records keyed by the id column", () => {
+      const { enrichmentFile } = enrichFixture([enrichRow("fra", "vulnerable", "Q150")]);
+      const records = loadEnrichmentFile(enrichmentFile);
+      expect(records).toHaveLength(1);
+      expect(records[0].key).toBe("fra");
+      expect(records[0].values.endangerment_status).toBe("vulnerable");
+      expect(records[0].values.wikidata_qid).toBe("Q150");
+      // The key column is not echoed into `values`.
+      expect(records[0].values.id).toBeUndefined();
     });
   });
 });

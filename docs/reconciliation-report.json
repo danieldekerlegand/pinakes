@@ -174,35 +174,35 @@
           "linguascrapeId": "qug",
           "name": "Chimborazo Highland Quichua",
           "region": "Central Ecuador",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quh",
           "linguascrapeId": "quh",
           "name": "South Bolivian Quechua",
           "region": "Bolivia",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quy",
           "linguascrapeId": "quy",
           "name": "Ayacucho Quechua",
           "region": "Southern Peru",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:quz",
           "linguascrapeId": "quz",
           "name": "Cusco Quechua",
           "region": "Southern Peru",
-          "confidence": 0.5
+          "confidence": 0.9
         },
         {
           "csid": "cs:language:qvi",
           "linguascrapeId": "qvi",
           "name": "Imbabura Highland Quichua",
           "region": "Northern Ecuador",
-          "confidence": 0.5
+          "confidence": 0.9
         }
       ]
     },

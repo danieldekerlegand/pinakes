@@ -1096,6 +1096,7 @@ export class TsvStorage {
       const idxNativeSpeakers = header.indexOf("native_speakers");
       const idxTotalSpeakers = header.indexOf("total_speakers");
       const idxStatus = getIdx(header, "status");
+      const idxEndangermentStatus = header.indexOf("endangerment_status");
       const idxTimeOrigin = header.indexOf("time_origin");
       const idxTimeEnd = header.indexOf("time_end");
       const idxClassification = header.indexOf("classification");
@@ -1131,6 +1132,7 @@ export class TsvStorage {
           nativeSpeakers: idxNativeSpeakers >= 0 ? (Number(r[idxNativeSpeakers]) || null) : null,
           totalSpeakers: idxTotalSpeakers >= 0 ? (Number(r[idxTotalSpeakers]) || null) : null,
           status: r[idxStatus] ?? "living",
+          endangermentStatus: idxEndangermentStatus >= 0 ? (r[idxEndangermentStatus] || null) : null,
           timeOrigin: idxTimeOrigin >= 0 ? (r[idxTimeOrigin] || null) : null,
           timeEnd: idxTimeEnd >= 0 ? (r[idxTimeEnd] || null) : null,
           classification: idxClassification >= 0 ? (r[idxClassification] || null) : null,
