@@ -66,18 +66,40 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 # Only PENDING PRDs are listed; merged PRDs are recorded under tasks/ralph/completed/
 # (skipped automatically even if listed here).
 #
-# Roadmap Phases 7-14 + the culture-scrape convergence are complete (see
-# tasks/ralph/completed/ and docs/prd-linguascrape-deep-history-roadmap.md). These are the
-# first Phase-15 PRDs:
-#   - security-hardening: server-side key proxy, secret scanning, tsc-green, e2e/browser verify.
-#   - data-population-pilot: prove the acquisition→graph→UI pipeline on ONE domain (civilizations).
-#   - data-population: scale the proven pipeline to hit the roadmap's per-domain targets (§15).
+# Roadmap Phases 7-15 (incl. security-hardening, data-population-pilot, data-population)
+# are complete (see tasks/ralph/completed/ and docs/prd-linguascrape-deep-history-roadmap.md).
+# These are the NEUROSYMBOLIC_ROADMAP.md PRDs (repo root), in dependency order:
+#   - symbolic-engine-truth:      Phase 0 — real engines in CI/sidecar, rel_conf confidence fix,
+#                                 provenance propagation, QID-anchored csids, id burndown.
+#   - scale-ready-conversion:     Phase 1 — temporal edges become rules (kills the O(n^2) blowup),
+#                                 streaming emitters, schema v1.1 (edge citations + SPDX license).
+#   - first-ml-loop:              Phase 2 — ml/ workspace + DVC/MLflow, triples + splits, PyKEEN
+#                                 baselines, ProbLog emitter, logical-consistency CI ratchet.
+#   - wikidata-dump-slice:        Phase 3a — real dump slice, SQLite index, blueprint builds,
+#                                 richer hydration, incremental updates, scale report.
+#                                 OPERATOR: US-001 needs provisioned disk/bandwidth (see PRD).
+#   - tiered-trust-corpus:        Phase 3b — confidence rubric, auto-admission graph corpus
+#                                 (never writes lexicons/), QID backfill, tier surfacing.
+#   - source-breadth-cldf:        Phase 4a — Glottolog/WALS/PHOIBLE/Lexibank/kaikki ingestion,
+#                                 license-partitioned packaging.
+#   - rules-layer:                Phase 4b — P279 taxonomy, P2302 property constraints, schema
+#                                 constraints as violation rules, rules registry, YAGO eval.
+#   - graphrag-and-training-data: Phase 5a — vector index + hybrid retrieval, verbalization +
+#                                 KGQA dataset generators, KGQA eval, QLoRA pipeline + runbook.
+#   - scallop-pilot:              Phase 5b — Scallop rule-guided link prediction, DeepProbLog
+#                                 feasibility comparison + go/no-go.
 ORDER=(
-  "security-hardening:11"
-  "data-population-pilot:9"
-  "data-population:13"
+  "symbolic-engine-truth:13"
+  "scale-ready-conversion:9"
+  "first-ml-loop:9"
+  "wikidata-dump-slice:11"
+  "tiered-trust-corpus:8"
+  "source-breadth-cldf:9"
+  "rules-layer:9"
+  "graphrag-and-training-data:9"
+  "scallop-pilot:8"
 )
-ALL_NAMES="security-hardening data-population-pilot data-population"
+ALL_NAMES="symbolic-engine-truth scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then
