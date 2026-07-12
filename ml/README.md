@@ -149,6 +149,36 @@ block records the counts the mitigation covers (reverse-direction pairs,
 multi-relation pairs, symmetric-reverse triples) so the justification travels with
 the dataset.
 
+## PyKEEN baselines (US-003)
+
+The first statistical models — TransE / ComplEx / RotatE knowledge-graph
+embeddings trained on the committed splits. They establish the **metric floor**
+every future corpus-growth and neurosymbolic result is judged against.
+
+```bash
+cd ml
+uv run --project . dvc pull                 # fetch the DVC-tracked splits (repo root)
+uv run linguascrape-train-baselines         # or: python -m linguascrape_ml.train_baselines
+# trains all three (CPU/MPS), logs MRR + Hits@{1,3,10} to MLflow, writes:
+#   docs/ml-baselines.md                      (committed — metrics + corpus/split hashes)
+#   ml/data/embeddings/<model>/entity_embeddings.npy (+ metadata.json; DVC-tracked)
+# then re-pin the artifacts:  cd .. && uv run --project ml dvc add ml/data && dvc push
+```
+
+- **Full runs are local-only** (heavy, CPU/MPS). CI only *smoke-trains* a tiny
+  in-memory fixture for one epoch (`tests/test_baselines.py`) — no full training in CI.
+- **Reproducible by construction:** a pinned seed + the committed `entities.tsv`/
+  `relations.tsv` as the shared entity/relation id map, so a rerun on the same device
+  produces byte-identical metrics → `docs/ml-baselines.md` is a git no-op unless the
+  corpus or hyperparameters change. The committed doc records the exact corpus DVC md5
+  and the split-manifest sha256 the metrics were measured on.
+- The metrics are a **deliberately conservative floor**: the corpus is small/sparse and
+  the leakage-safe pair grouping leaves many test entities unseen in training. Corpus
+  growth (the point of Phase 3) should move them up. Tune with `--embedding-dim` /
+  `--num-epochs` / `--models` / `--device` (defaults: dim 64, 100 epochs, all three, cpu).
+- Trained entity embeddings are row-aligned to `ml/data/triples/entities.tsv` (index
+  order), so reuse (GraphRAG, the Scallop pilot) joins on that file directly.
+
 ## Layout
 
 ```
@@ -160,12 +190,18 @@ ml/
 │   ├── __init__.py
 │   ├── tracking.py          # MLflow file-backend wiring (start_run helper)
 │   ├── triples.py           # US-002 pure core: load/split/manifest triples
-│   └── export_triples.py    # US-002 CLI: write dataset + manifest, log to MLflow
+│   ├── export_triples.py    # US-002 CLI: write dataset + manifest, log to MLflow
+│   ├── baselines.py         # US-003 core: load factories, train, extract metrics, render doc
+│   └── train_baselines.py   # US-003 CLI: train TransE/ComplEx/RotatE, MLflow, embeddings, doc
 ├── tests/
 │   ├── test_smoke.py        # import smoke + MLflow file-backend logging test
-│   └── test_triples.py      # exporter unit tests + live-corpus snapshot gate
+│   ├── test_triples.py      # exporter unit tests + live-corpus snapshot gate
+│   └── test_baselines.py    # baselines: doc render + tiny-fixture train smoke + live gate
 ├── manifests/
 │   └── triples-split-manifest.json   # committed split manifest (counts + hashes)
 └── data/                    # DVC-tracked datasets/artifacts (git-ignored)
-    └── triples/             # triples + splits + vocab (US-002)
+    ├── triples/             # triples + splits + vocab (US-002)
+    └── embeddings/          # trained entity embeddings per model (US-003)
 ```
+
+Committed metrics live in [`docs/ml-baselines.md`](../docs/ml-baselines.md).

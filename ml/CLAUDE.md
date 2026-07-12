@@ -47,6 +47,35 @@ The shape every dataset/metric deliverable follows:
   (symmetric `COGNATE_WITH`/`SYNCRETIZED_WITH`), cross-relation, and reverse-direction
   duplicates never straddle train/valid/test.
 
+## PyKEEN baselines (US-003)
+
+- **Shared vocab id map is mandatory.** Load every split with `TriplesFactory.from_path(
+  …, entity_to_id=, relation_to_id=)` built from the committed `entities.tsv`/
+  `relations.tsv` (`load_label_to_id`). This makes the id space (a) cover entities that
+  the leakage-safe pair split leaves only in valid/test, and (b) identical across models
+  and reruns — the prerequisite for filtered eval AND for embeddings that stay row-aligned
+  to `entities.tsv` index order. Never let each factory derive its own ids.
+- **Reproducibility = `random_seed` (`BASELINE_SEED`) + CPU device.** PyKEEN's
+  `random_seed` pins torch/numpy/python RNGs, so a rerun yields byte-identical metrics →
+  `docs/ml-baselines.md` is a git no-op unless the corpus/hyperparameters change. The doc
+  renderer (`render_baselines_doc`) is PURE (no wall-clock) and unit-tested; it records the
+  corpus DVC md5 (`read_dvc_md5` parses `export/culturescrape.dvc`) + manifest/triples
+  sha256 as "the version these metrics were measured on". Don't put the `ml/data` md5 in
+  the doc — it's circular (adding the embeddings changes it after the doc is written).
+- **torch/pykeen/numpy imported LAZILY inside functions** (module top stays light so
+  `import linguascrape_ml` doesn't pull the heavy stack). numpy is NOT a declared dep — it
+  rides in transitively via torch/pykeen (same as pandas for `from_path`), so `uv.lock`
+  is unchanged and CI's `uv sync --frozen` stays green.
+- **CI smoke trains; full runs don't.** US-003's `test_baselines.py` runs a tiny in-memory
+  1-epoch train (dim 2) that DOES execute in the `ml/**` CI (the "smoke-tested on a tiny
+  fixture" acceptance) — distinct from the earlier "no training in CI" stance, which still
+  holds for the *full* 100-epoch runs (local-only). The live gate (`load_split_factories`
+  on the real splits) is `skipif not (ml/data/triples/train.tsv).exists()` → skips in CI.
+- ComplEx/RotatE entity representations are genuinely `complex64`; `entity_embeddings`
+  returns them as-is (`np.save` round-trips complex) and the dtype is recorded in each
+  model's `metadata.json`. Embeddings land under `ml/data/embeddings/<model>/` — the same
+  DVC-tracked `ml/data` tree, so re-pin with `dvc add ml/data && dvc push` after a run.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

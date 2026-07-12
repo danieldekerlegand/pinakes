@@ -39,6 +39,8 @@ dependencies = [
 [project.scripts]
 # US-002 reproducer — also runnable as `python -m linguascrape_ml.export_triples`.
 linguascrape-export-triples = "linguascrape_ml.export_triples:main"
+# US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
+linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
 
 [project.optional-dependencies]
 dev = [
