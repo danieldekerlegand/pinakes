@@ -327,10 +327,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     to_datalog.add_argument(
         "--engine",
-        choices=["swipl", "souffle", "both"],
+        choices=["swipl", "souffle", "problog", "both"],
         default="both",
-        help="target engine(s): swipl (.pl), souffle (.dl), or both "
-        "(default: both)",
+        help="target engine(s): swipl (.pl), souffle (.dl), problog "
+        "(annotated .problog.pl), or both (swipl+souffle; default: both)",
     )
     to_datalog.add_argument(
         "--rules",

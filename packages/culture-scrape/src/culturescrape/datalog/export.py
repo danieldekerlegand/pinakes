@@ -24,6 +24,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from culturescrape.datalog import Fact, edge_file_facts, node_file_facts
+from culturescrape.datalog.problog import (
+    PROBLOG_PROGRAM_NAME,
+    collect_problog_facts,
+    write_problog_program,
+)
 from culturescrape.datalog.prolog import write_program
 from culturescrape.datalog.rules import RULES, Rule
 from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME, write_souffle_program
@@ -40,19 +45,24 @@ class DatalogExportError(ValueError):
 class Engine(enum.Enum):
     """A logic engine the projection can target.
 
-    The ``value`` is the ``--engine`` token a user types (``swipl``/``souffle``);
-    ``both`` on the command line expands to the full pair, not a member here.
+    The ``value`` is the ``--engine`` token a user types
+    (``swipl``/``souffle``/``problog``); ``both`` on the command line expands to
+    the SWI-Prolog + Soufflé pair, not a member here. ProbLog is selected on its
+    own (``--engine problog``) — it is the probabilistic on-ramp, not part of the
+    default deterministic pair.
     """
 
     SWIPL = "swipl"
     SOUFFLE = "souffle"
+    PROBLOG = "problog"
 
 
 def engines_for_choice(choice: str) -> tuple[Engine, ...]:
     """Expand an ``--engine`` token into the engines to emit, in stable order.
 
-    ``"swipl"`` / ``"souffle"`` select one engine; ``"both"`` selects the pair
-    (SWI-Prolog first, then Soufflé). An unknown token raises.
+    ``"swipl"`` / ``"souffle"`` / ``"problog"`` select one engine; ``"both"``
+    selects the deterministic pair (SWI-Prolog first, then Soufflé — ProbLog is
+    opt-in, not part of ``both``). An unknown token raises.
 
         >>> engines_for_choice("both")
         (<Engine.SWIPL: 'swipl'>, <Engine.SOUFFLE: 'souffle'>)
@@ -63,7 +73,7 @@ def engines_for_choice(choice: str) -> tuple[Engine, ...]:
         return (Engine(choice),)
     except ValueError:
         raise DatalogExportError(
-            f"unknown engine {choice!r} (choose from swipl, souffle, both)"
+            f"unknown engine {choice!r} (choose from swipl, souffle, problog, both)"
         ) from None
 
 
@@ -84,6 +94,10 @@ class ExportResult:
         path = self.programs[engine]
         if engine is Engine.SWIPL:
             return f"swipl {path}"
+        if engine is Engine.PROBLOG:
+            # ProbLog runs the program (grounding + inference) once a query is
+            # added to it; the CLI ships with `pip install problog`.
+            return f"problog {path}"
         # Soufflé loads facts from, and writes outputs into, the program's dir.
         directory = path.parent
         return f"souffle {path} -F {directory} -D {directory}"
@@ -166,14 +180,21 @@ def export_dataset(
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
     programs: dict[Engine, Path] = {}
-    # Each streaming writer returns the fact count it emitted; both engines see
-    # the same stream, so any one is authoritative (avoids a separate len() pass
-    # over the corpus).
+    # Each streaming writer returns the fact count it emitted; every engine sees
+    # the same number of edge/node facts, so any one is authoritative (avoids a
+    # separate len() pass over the corpus). ProbLog counts one clause per
+    # projected fact too — the confidence rides on the edge relation, not as an
+    # extra fact — so its count matches the deterministic engines'.
     fact_count = 0
     for engine in engines:
         if engine is Engine.SWIPL:
             program = out_dir / PROLOG_PROGRAM_NAME
             fact_count = write_program(program, facts, rules)
+        elif engine is Engine.PROBLOG:
+            program = out_dir / PROBLOG_PROGRAM_NAME
+            fact_count = write_problog_program(
+                program, collect_problog_facts(directory), rules
+            )
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
             fact_count = write_souffle_program(out_dir, facts, rules)
@@ -183,6 +204,7 @@ def export_dataset(
 
 
 __all__ = [
+    "PROBLOG_PROGRAM_NAME",
     "PROLOG_PROGRAM_NAME",
     "DatalogExportError",
     "Engine",

@@ -37,6 +37,10 @@ dev = [
     "lxml-stubs>=0.5",
     "types-PyYAML>=6",
     "types-requests>=2.31",
+    # The ProbLog dialect emitter itself needs no runtime dep (it only writes
+    # text); problog is a *test* dependency — CI computes a marginal probability
+    # over a fixture export to prove the emitted syntax is valid ProbLog.
+    "problog>=2.2",
 ]
 
 [tool.setuptools.packages.find]
@@ -54,6 +58,12 @@ files = ["src", "tests"]
 # converter imports it lazily, so missing stubs must not fail core type checks.
 [[tool.mypy.overrides]]
 module = ["neo4j", "neo4j.*"]
+ignore_missing_imports = true
+
+# problog ships no type stubs; only the test suite imports it (to validate the
+# emitted ProbLog syntax), never the library code, so treat it as untyped.
+[[tool.mypy.overrides]]
+module = ["problog", "problog.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

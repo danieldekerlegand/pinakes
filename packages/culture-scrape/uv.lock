@@ -222,6 +222,7 @@ dependencies = [
 dev = [
     { name = "lxml-stubs" },
     { name = "mypy" },
+    { name = "problog" },
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-pyyaml" },
@@ -248,6 +249,7 @@ requires-dist = [
     { name = "mwparserfromhell", specifier = ">=0.6" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8" },
     { name = "neo4j", marker = "extra == 'neo4j'", specifier = ">=5" },
+    { name = "problog", marker = "extra == 'dev'", specifier = ">=2.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pyyaml", specifier = ">=6" },
     { name = "requests", specifier = ">=2.31" },
@@ -733,6 +735,18 @@ wheels = [
 ]
 
 [[package]]
+name = "problog"
+version = "2.2.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c3/f5/2934220eaf6aa3e50df314cc8ce7f1f14f583d7fa323f94035ab11e300d2/problog-2.2.10.tar.gz", hash = "sha256:03e498d5a18fc9335f1dc4f901d85d49b32d31bb43c77583917316e62de26ff8", size = 1563720, upload-time = "2026-03-18T09:37:30.206Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ad/e8/f26cd12f0c5f3adb9842ae4a7fc851cf97b27d10168ca2f248cfa04085a1/problog-2.2.10-py3-none-any.whl", hash = "sha256:d579916096790e13da143f276daa04f4c55e71ae7f3eaf0d1a0c7028409faa4d", size = 1972830, upload-time = "2026-03-18T09:37:28.806Z" },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.13.4"
 source = { registry = "https://pypi.org/simple" }
@@ -976,6 +990,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/10/9b/5f14927848d2fd4aa891fd88d883788c5a7baba561c7874732364045708c/ruff-0.15.20-py3-none-win32.whl", hash = "sha256:ed65ef510e43a137207e0f01cfcf998aeddb1aeeda5c9d35023e910284d7cf21", size = 10857322, upload-time = "2026-06-25T17:20:28.612Z" },
     { url = "https://files.pythonhosted.org/packages/fa/f0/fe47c501f9dea92a26d788ff98bb5d92ed4cb4c88792c5c88af6b697dc8e/ruff-0.15.20-py3-none-win_amd64.whl", hash = "sha256:a525c81c70fb0380344dd1d8745d8cc1c890b7fc94a58d5a07bd8eb9557b8415", size = 11993274, upload-time = "2026-06-25T17:20:31.871Z" },
     { url = "https://files.pythonhosted.org/packages/d7/2b/9555445e1201d92b3195f45cdb153a0b68f24e0a4273f6e3d5ab46e212bb/ruff-0.15.20-py3-none-win_arm64.whl", hash = "sha256:2f5b2a6d614e8700388806a14996c40fab2c47b819ef57d790a34878858ed9ca", size = 11343498, upload-time = "2026-06-25T17:20:35.03Z" },
+]
+
+[[package]]
+name = "setuptools"
+version = "83.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
 ]
 
 [[package]]

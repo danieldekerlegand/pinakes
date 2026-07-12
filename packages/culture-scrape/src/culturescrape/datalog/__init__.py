@@ -214,6 +214,16 @@ from culturescrape.datalog.equivalence import (  # noqa: E402
     souffle_tuples,
 )
 from culturescrape.datalog.nodes import node_facts, node_file_facts  # noqa: E402
+from culturescrape.datalog.problog import (  # noqa: E402
+    PROBLOG_PROGRAM_NAME,
+    AnnotatedFact,
+    ProblogError,
+    annotate_edge_group,
+    collect_problog_facts,
+    render_annotated_fact,
+    render_problog_program,
+    write_problog_program,
+)
 from culturescrape.datalog.prolog import render_program, write_program  # noqa: E402
 from culturescrape.datalog.rules import (  # noqa: E402
     RULES,
@@ -231,15 +241,20 @@ from culturescrape.datalog.souffle import (  # noqa: E402
 )
 
 __all__ = [
+    "PROBLOG_PROGRAM_NAME",
     "SOUFFLE_PROGRAM_NAME",
+    "AnnotatedFact",
     "Atom",
     "DatalogError",
     "RULES",
     "Dialect",
     "Divergence",
     "Fact",
+    "ProblogError",
     "Relation",
     "Rule",
+    "annotate_edge_group",
+    "collect_problog_facts",
     "compare_relation",
     "edge_facts",
     "edge_file_facts",
@@ -247,9 +262,11 @@ __all__ = [
     "node_file_facts",
     "predicate_for_type",
     "prolog_tuples",
+    "render_annotated_fact",
     "render_atom",
     "render_fact",
     "render_predicate",
+    "render_problog_program",
     "render_program",
     "render_rule",
     "render_souffle_program",
@@ -257,6 +274,7 @@ __all__ = [
     "run_souffle",
     "souffle_relations",
     "souffle_tuples",
+    "write_problog_program",
     "write_program",
     "write_souffle_facts",
     "write_souffle_program",
