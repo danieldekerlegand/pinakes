@@ -107,8 +107,18 @@ ORDER=(
 #     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
 #     (operator); baseline model Qwen2.5-3B-Instruct (matches Insimul's local-AI deployment).
 #  "slm-pilot:10"            # frozen eval protocol + QLoRA pipeline + 3B baseline fine-tune + GGUF parity + Insimul handoff + go/no-go report
+# --- Analyzer bridge (the media-bridge mapping spec) — UNCOMMENT once its deps have merged:
+#     US-001 anytime (extends the insimul-bridge registry, or creates it); US-002 needs
+#     scale-ready-conversion; US-003 needs tiered-trust-corpus; US-004 needs graphrag machinery;
+#     US-005 needs first-ml-loop. Coordinate with the Analyzer-side counterpart
+#     (~/Development/analyzer/tasks/ralph/linguascrape-bridge.json, after its predicate-layer).
+#  "analyzer-bridge:9"          # registry extension + entity-grounding snapshot + analyzer adapter (asset nodes, personal tier) + file-web Datalog/Neo4j/GraphRAG + edit-ops datasets/eval
+# --- Analyzer SLM pilot (the media-bridge mapping spec Phase E) — PROVISIONAL; re-ground before running.
+#     Needs slm-pilot (validated pipeline) + analyzer-bridge US-005 (edit-ops datasets) merged;
+#     deployment target: Ollama-served GGUF (Analyzer's model_client speaks ollama/<model> natively).
+#  "edit-ops-slm-pilot:10"   # frozen eval (apply_ops oracle) + pipeline reuse + fine-tune + GGUF/Ollama parity + Analyzer handoff + go/no-go
 )
-ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
+ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot analyzer-bridge edit-ops-slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then
