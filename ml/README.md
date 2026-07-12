@@ -179,6 +179,43 @@ uv run linguascrape-train-baselines         # or: python -m linguascrape_ml.trai
 - Trained entity embeddings are row-aligned to `ml/data/triples/entities.tsv` (index
   order), so reuse (GraphRAG, the Scallop pilot) joins on that file directly.
 
+## Logical-consistency ratchet (US-005)
+
+The differentiating benefit of the symbolic layer: a model's predictions are
+*checked against the rules*. `linguascrape_ml.consistency` (pure) scores three
+violation families over a predictions triples file:
+
+- **descent cycles** — `DESCENDS_FROM` must be a DAG (Tarjan SCC; self-loops + mutual
+  + longer cycles);
+- **canonical-schema type breaches** — endpoint node types (read off the
+  `cs:<node-type>:<id>` csid) vs each edge's `from`/`to` sets in
+  [`shared/canonical-schema.json`](../shared/canonical-schema.json) (empty ⇒
+  unconstrained);
+- **asymmetry violations** — antisymmetric relations (descent/derivation) predicted in
+  both directions or as a self-loop (`COGNATE_WITH`/`SYNCRETIZED_WITH` are symmetric,
+  excluded).
+
+`train-baselines` (above) also emits each model's top-`k` (default 1) head/tail
+completions of every test query to **`ml/predictions/<model>.tsv`** (committed to git —
+small + reproducible), evaluates them, writes the ratchet baseline
+`ml/manifests/consistency-baseline.json`, and reports the counts in the same
+`docs/ml-baselines.md`.
+
+```bash
+cd ml
+uv run linguascrape-check-consistency          # the CI gate: recompute vs baseline
+uv run linguascrape-check-consistency --write-baseline   # deliberate re-baseline
+```
+
+- **The ratchet runs in CI** (pytest `test_committed_predictions_pass_the_ratchet` +
+  the explicit `ml-ci.yml` step) — pure over the *committed* predictions + baseline +
+  schema, **no torch**, exactly like the TS `convergence-qa` drift gate over committed
+  lexicons. A monotone gate: a later model may hold or lower any count, never exceed it
+  without a deliberate, documented re-baseline.
+- Predictions are regenerated only by the local-only `train-baselines` run (needs the
+  trained model); `--write-baseline` is the retraining-free escape hatch (the checks are
+  pure over whatever predictions are committed).
+
 ## Layout
 
 ```
@@ -191,14 +228,19 @@ ml/
 │   ├── tracking.py          # MLflow file-backend wiring (start_run helper)
 │   ├── triples.py           # US-002 pure core: load/split/manifest triples
 │   ├── export_triples.py    # US-002 CLI: write dataset + manifest, log to MLflow
-│   ├── baselines.py         # US-003 core: load factories, train, extract metrics, render doc
-│   └── train_baselines.py   # US-003 CLI: train TransE/ComplEx/RotatE, MLflow, embeddings, doc
+│   ├── baselines.py         # US-003 core: load factories, train, metrics, predictions, doc
+│   ├── train_baselines.py   # US-003/005 CLI: train, MLflow, embeddings, predictions, doc
+│   ├── consistency.py       # US-005 pure core: rule checks + ratchet compare
+│   └── check_consistency.py # US-005 CLI: the pure CI ratchet (no torch)
 ├── tests/
 │   ├── test_smoke.py        # import smoke + MLflow file-backend logging test
 │   ├── test_triples.py      # exporter unit tests + live-corpus snapshot gate
-│   └── test_baselines.py    # baselines: doc render + tiny-fixture train smoke + live gate
+│   ├── test_baselines.py    # baselines: doc render + tiny-fixture train smoke + live gate
+│   └── test_consistency.py  # rule checks + committed-artifact ratchet (runs in CI)
+├── predictions/             # committed baseline predictions per model (US-005)
 ├── manifests/
-│   └── triples-split-manifest.json   # committed split manifest (counts + hashes)
+│   ├── triples-split-manifest.json   # committed split manifest (counts + hashes)
+│   └── consistency-baseline.json     # committed consistency ratchet baseline (US-005)
 └── data/                    # DVC-tracked datasets/artifacts (git-ignored)
     ├── triples/             # triples + splits + vocab (US-002)
     └── embeddings/          # trained entity embeddings per model (US-003)

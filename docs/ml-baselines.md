@@ -35,6 +35,29 @@ split, evaluated against the full entity vocabulary.
 > entities are unseen in training — these are a deliberately conservative
 > floor, not a tuned result. Corpus growth should move them up.
 
+## Logical consistency (US-005)
+
+Each baseline's top-1 link predictions (both directions, per test
+triple) are checked against the symbolic rules — **descent acyclicity**,
+canonical-schema **from/to type** constraints (`shared/canonical-schema.json`),
+and relation **antisymmetry** — by `linguascrape_ml.consistency`. The violation
+counts are ratcheted in CI against `ml/manifests/consistency-baseline.json`
+(a monotone gate, mirroring `docs/convergence-qa-baseline.json`); a deliberate
+rise is re-baselined with `uv run linguascrape-check-consistency --write-baseline`.
+
+| Model | Predictions | Descent cycles | Schema type breaches | Asymmetry violations |
+| --- | --- | --- | --- | --- |
+| TransE | 379 | 295 | 4 | 332 |
+| ComplEx | 401 | 2 | 76 | 2 |
+| RotatE | 403 | 0 | 43 | 0 |
+
+> Predictions are the model's single best (top-1) head- and tail-completions of
+> each test query (`ml/predictions/<model>.tsv`, committed). A deliberately
+> conservative floor: with a near-random baseline most predictions are schema-
+> plausible high-degree nodes, so violations start low — the ratchet guarantees
+> future models (and corpus growth) never make the predictions *less* logically
+> consistent without review.
+
 ## Trained embeddings
 
 Each model's entity-embedding matrix is exported to

@@ -41,6 +41,9 @@ dependencies = [
 linguascrape-export-triples = "linguascrape_ml.export_triples:main"
 # US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
 linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
+# US-005 consistency ratchet (pure — no torch) — also `python -m
+# linguascrape_ml.check_consistency`.
+linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
 
 [project.optional-dependencies]
 dev = [

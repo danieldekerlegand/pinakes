@@ -76,6 +76,42 @@ The shape every dataset/metric deliverable follows:
   model's `metadata.json`. Embeddings land under `ml/data/embeddings/<model>/` — the same
   DVC-tracked `ml/data` tree, so re-pin with `dvc add ml/data && dvc push` after a run.
 
+## Logical-consistency ratchet (US-005)
+
+- **`consistency.py` is pure** (no torch — imports only `triples.Triple` + stdlib), so
+  the CI ratchet recomputes violation counts from committed files without the heavy
+  stack. Three checks: descent acyclicity (`DESCENDS_FROM` DAG via iterative Tarjan
+  SCC — self-loops + SCC>1), canonical-schema `from`/`to` type breaches (endpoint node
+  type read off the `cs:<node-type>:<id>` csid; an **empty** `from`/`to` list in
+  `shared/canonical-schema.json` ⇒ unconstrained ⇒ `None` ⇒ that end is *not* checked),
+  and antisymmetry (mutual/self on the descent+derivation relations;
+  `COGNATE_WITH`/`SYNCRETIZED_WITH` are symmetric and excluded). Source the type
+  constraints from the machine-readable schema — never hard-code them.
+- **Predictions are committed to GIT, not DVC.** `ml/predictions/<model>.tsv` (top-`k`
+  head+tail completions of each test query, default `k=1`) is small + reproducible, and
+  being in git is what makes the ratchet a *real* CI gate (pure recompute over committed
+  inputs — same shape as the TS `convergence-qa` gate over committed lexicons). Contrast
+  with embeddings, which are large/binary → DVC. `ml/.gitignore` ignores `/data`, not
+  `/predictions`, so predictions are tracked automatically.
+- **Two CLIs, one doc writer.** `train-baselines` (local-only, has the trained models)
+  generates predictions + writes the baseline + the unified `docs/ml-baselines.md`
+  (metrics *and* consistency, so they're "reported together"). `check-consistency` is
+  the pure ratchet: recompute vs `manifests/consistency-baseline.json`, exit 1 on any
+  category exceeding baseline; `--write-baseline` is the retraining-free re-baseline
+  escape hatch. Both derive the baseline from the same pure checks over identical
+  committed predictions → identical bytes, so they never diverge.
+- **`generate_predictions` needs the `PipelineResult`, not just embeddings** (PyKEEN
+  `predict_target` scores through the full model). So `train_baselines` calls
+  `run_pipeline` directly and builds the `BaselineOutcome` inline, rather than
+  `train_baseline` (which discards the result). `testing.triples` is the labeled ndarray.
+- **The committed-artifact ratchet test is the CI gate** — it recomputes over
+  `ml/predictions/*.tsv` + the committed baseline + schema (all git-tracked, present in
+  CI) AND asserts the baseline equals a fresh `build_baseline` over those predictions, so
+  a hand-loosened baseline is caught. The `generate_predictions` live gate is
+  `skipif ml/data absent` (skips in CI). Predictions + metrics are byte-reproducible
+  (pinned seed, CPU) → a rerun is a git no-op; `ml/data`/embeddings are unchanged by
+  US-005 (same training) so no DVC re-pin.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

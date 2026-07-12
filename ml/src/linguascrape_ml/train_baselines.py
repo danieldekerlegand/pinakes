@@ -29,9 +29,19 @@ from linguascrape_ml.baselines import (
     DEFAULT_MODELS,
     DEFAULT_NUM_EPOCHS,
     BaselineOutcome,
+    entity_embeddings,
+    extract_metrics,
+    generate_predictions,
     load_split_factories,
     render_baselines_doc,
-    train_baseline,
+    run_pipeline,
+)
+from linguascrape_ml.consistency import (
+    ConsistencyReport,
+    build_baseline,
+    evaluate_consistency,
+    load_edge_constraints,
+    render_predictions,
 )
 
 # ml/ workspace root and repo root, resolved from this file's location.
@@ -42,6 +52,12 @@ DEFAULT_DATA_DIR = _ML_ROOT / "data" / "triples"
 DEFAULT_EMBEDDINGS_DIR = _ML_ROOT / "data" / "embeddings"
 DEFAULT_MANIFEST = _ML_ROOT / "manifests" / "triples-split-manifest.json"
 DEFAULT_DOC = _REPO_ROOT / "docs" / "ml-baselines.md"
+# Predictions are committed to git (small, snapshot) so the consistency ratchet
+# runs in CI without torch; the consistency baseline mirrors the split manifest.
+DEFAULT_PREDICTIONS_DIR = _ML_ROOT / "predictions"
+DEFAULT_CONSISTENCY_BASELINE = _ML_ROOT / "manifests" / "consistency-baseline.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_TOP_K = 1
 _EXPORT_DVC = _REPO_ROOT / "export" / "culturescrape.dvc"
 
 
@@ -97,7 +113,9 @@ def save_embeddings(embeddings_dir: Path, outcome: BaselineOutcome, meta: dict) 
     return model_dir
 
 
-def _log_to_mlflow(outcome: BaselineOutcome, meta: dict) -> None:
+def _log_to_mlflow(
+    outcome: BaselineOutcome, meta: dict, consistency: dict[str, int] | None = None
+) -> None:
     """Log one baseline run (params + the committed metrics) to MLflow."""
     import mlflow
 
@@ -115,6 +133,8 @@ def _log_to_mlflow(outcome: BaselineOutcome, meta: dict) -> None:
         for key, value in outcome.metrics.items():
             # MLflow metric names can't contain '@' — normalise hits@k -> hits_at_k.
             mlflow.log_metric(key.replace("@", "_at_"), value)
+        for key, value in (consistency or {}).items():
+            mlflow.log_metric(f"consistency_{key}", value)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -132,6 +152,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--embedding-dim", type=int, default=DEFAULT_EMBEDDING_DIM)
     parser.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     parser.add_argument("--seed", type=int, default=BASELINE_SEED)
+    parser.add_argument(
+        "--predictions-dir", type=Path, default=DEFAULT_PREDICTIONS_DIR
+    )
+    parser.add_argument(
+        "--consistency-baseline", type=Path, default=DEFAULT_CONSISTENCY_BASELINE
+    )
+    parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA)
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=DEFAULT_TOP_K,
+        help="Top-k head/tail completions per test query committed as predictions.",
+    )
     parser.add_argument(
         "--device",
         default="cpu",
@@ -155,12 +188,15 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     training, validation, testing = load_split_factories(args.data_dir)
+    constraints = load_edge_constraints(args.schema)
 
     outcomes: list[BaselineOutcome] = []
+    reports: list[ConsistencyReport] = []
+    args.predictions_dir.mkdir(parents=True, exist_ok=True)
     for model in args.models:
         print(f"training {model} (dim={args.embedding_dim}, epochs={args.num_epochs}, "
               f"device={args.device}) …")
-        outcome = train_baseline(
+        result = run_pipeline(
             model,
             training,
             validation,
@@ -170,15 +206,47 @@ def main(argv: list[str] | None = None) -> int:
             num_epochs=args.num_epochs,
             device=args.device,
         )
+        outcome = BaselineOutcome(
+            model=model,
+            metrics=extract_metrics(result),
+            embeddings=entity_embeddings(result),
+            embedding_dim=args.embedding_dim,
+            num_epochs=args.num_epochs,
+            seed=args.seed,
+            device=args.device,
+        )
         outcomes.append(outcome)
         model_dir = save_embeddings(args.embeddings_dir, outcome, meta)
         m = outcome.metrics
         print(f"  MRR={m['mrr']:.4f} Hits@1={m['hits@1']:.4f} "
               f"Hits@3={m['hits@3']:.4f} Hits@10={m['hits@10']:.4f}")
         print(f"  embeddings -> {model_dir}")
-        if not args.no_mlflow:
-            _log_to_mlflow(outcome, meta)
 
+        # Logical-consistency ratchet (US-005): commit the model's top-k predictions
+        # + evaluate them against the symbolic rules.
+        predictions = generate_predictions(result, testing, top_k=args.top_k)
+        pred_path = args.predictions_dir / f"{model.lower()}.tsv"
+        pred_path.write_text(render_predictions(predictions), encoding="utf-8")
+        report = evaluate_consistency(model, predictions, constraints)
+        reports.append(report)
+        c = report.counts
+        print(f"  predictions -> {pred_path} ({report.num_predictions})")
+        print(f"  consistency: cycles={c['descentCycles']} "
+              f"type_breaches={c['schemaTypeBreaches']} "
+              f"asymmetry={c['asymmetryViolations']}")
+
+        if not args.no_mlflow:
+            _log_to_mlflow(outcome, meta, report.counts)
+
+    # Committed consistency ratchet baseline (mirrors the split manifest / QA gate).
+    baseline = build_baseline(reports)
+    args.consistency_baseline.parent.mkdir(parents=True, exist_ok=True)
+    args.consistency_baseline.write_text(
+        json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(f"consistency baseline -> {args.consistency_baseline}")
+
+    consistency_rows = [r.as_dict() for r in reports]
     doc = render_baselines_doc(
         outcomes,
         corpus_md5=meta["corpus_md5"],
@@ -188,6 +256,8 @@ def main(argv: list[str] | None = None) -> int:
         split_counts={
             n: manifest["splits"][n]["triples"] for n in ("train", "valid", "test")
         },
+        consistency=consistency_rows,
+        predictions_top_k=args.top_k,
     )
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")

@@ -32,6 +32,8 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     from pykeen.pipeline import PipelineResult
     from pykeen.triples import TriplesFactory
 
+    from linguascrape_ml.triples import Triple
+
 # The three canonical baselines, in the order they appear in the metrics doc.
 # TransE (translational), ComplEx (bilinear, complex), RotatE (rotation in complex
 # space) span the classic KGE model families — a fair spread for a first floor.
@@ -208,6 +210,48 @@ def train_baseline(
     )
 
 
+def generate_predictions(
+    result: PipelineResult,
+    testing: TriplesFactory,
+    *,
+    top_k: int = 1,
+) -> list[Triple]:
+    """The model's top-``k`` head- and tail-completions of each test query.
+
+    For every test triple ``(h, r, t)`` this scores the tail query ``(h, r, ?)`` and
+    the head query ``(?, r, t)`` over the full entity vocabulary and keeps the ``k``
+    best-ranked completions in each direction. The union (deduplicated, sorted) is the
+    model's *predicted* edge set — the input the logical-consistency checker
+    (:mod:`linguascrape_ml.consistency`) ratchets. ``top_k=1`` (the single best guess)
+    keeps the committed predictions file small + stable.
+
+    Torch/pykeen are imported lazily here so ``import linguascrape_ml`` stays light.
+    """
+    from pykeen.predict import predict_target
+
+    from linguascrape_ml.triples import Triple
+
+    preds: set[Triple] = set()
+    tail_seen: set[tuple[str, str]] = set()
+    head_seen: set[tuple[str, str]] = set()
+    for head, rel, tail in testing.triples:
+        if (head, rel) not in tail_seen:
+            tail_seen.add((head, rel))
+            df = predict_target(
+                model=result.model, head=head, relation=rel, triples_factory=testing
+            ).df
+            for label in df["tail_label"].head(top_k):
+                preds.add(Triple(relation=rel, head=head, tail=str(label)))
+        if (rel, tail) not in head_seen:
+            head_seen.add((rel, tail))
+            df = predict_target(
+                model=result.model, relation=rel, tail=tail, triples_factory=testing
+            ).df
+            for label in df["head_label"].head(top_k):
+                preds.add(Triple(relation=rel, head=str(label), tail=tail))
+    return sorted(preds)
+
+
 def _fmt(value: float) -> str:
     """Metric formatting for the committed doc — 4 dp, so reruns diff cleanly."""
     return f"{value:.4f}"
@@ -221,6 +265,8 @@ def render_baselines_doc(
     triples_sha256: str,
     counts: dict[str, int],
     split_counts: dict[str, int],
+    consistency: list[dict[str, object]] | None = None,
+    predictions_top_k: int | None = None,
 ) -> str:
     """Render the committed ``docs/ml-baselines.md`` — a **pure** function of numbers.
 
@@ -228,6 +274,11 @@ def render_baselines_doc(
     byte-identical doc (a git no-op) and an unintended metric/corpus change shows up
     as a clean diff. Hyperparameters are read off the first outcome (the CLI trains
     every model with the same seed/dim/epochs/device).
+
+    ``consistency`` (US-005) is an optional list of per-model rows
+    (``{"model", "numPredictions", "counts": {descentCycles, schemaTypeBreaches,
+    asymmetryViolations}}``); when supplied, the logical-consistency counts are
+    reported in the same doc, alongside the link-prediction metrics.
     """
     head = outcomes[0]
     lines: list[str] = [
@@ -279,6 +330,52 @@ def render_baselines_doc(
         "> entities are unseen in training — these are a deliberately conservative",
         "> floor, not a tuned result. Corpus growth should move them up.",
         "",
+    ]
+    if consistency is not None:
+        top_k = predictions_top_k if predictions_top_k is not None else 1
+        lines += [
+            "## Logical consistency (US-005)",
+            "",
+            f"Each baseline's top-{top_k} link predictions (both directions, per test",
+            "triple) are checked against the symbolic rules — **descent acyclicity**,",
+            "canonical-schema **from/to type** constraints"
+            " (`shared/canonical-schema.json`),",
+            "and relation **antisymmetry** — by"
+            " `linguascrape_ml.consistency`. The violation",
+            "counts are ratcheted in CI against"
+            " `ml/manifests/consistency-baseline.json`",
+            "(a monotone gate, mirroring `docs/convergence-qa-baseline.json`); a"
+            " deliberate",
+            "rise is re-baselined with"
+            " `uv run linguascrape-check-consistency --write-baseline`.",
+            "",
+            "| Model | Predictions | Descent cycles | Schema type breaches |"
+            " Asymmetry violations |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+        for row in consistency:
+            c = row["counts"]  # type: ignore[index]
+            lines.append(
+                f"| {row['model']} | {row['numPredictions']} |"
+                f" {c['descentCycles']} | {c['schemaTypeBreaches']} |"  # type: ignore[index]
+                f" {c['asymmetryViolations']} |"  # type: ignore[index]
+            )
+        lines += [
+            "",
+            "> Predictions are the model's single best (top-1) head- and"
+            " tail-completions of",
+            "> each test query (`ml/predictions/<model>.tsv`, committed). A"
+            " deliberately",
+            "> conservative floor: with a near-random baseline most predictions are"
+            " schema-",
+            "> plausible high-degree nodes, so violations start low — the ratchet"
+            " guarantees",
+            "> future models (and corpus growth) never make the predictions"
+            " *less* logically",
+            "> consistent without review.",
+            "",
+        ]
+    lines += [
         "## Trained embeddings",
         "",
         "Each model's entity-embedding matrix is exported to",

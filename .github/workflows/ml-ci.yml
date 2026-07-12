@@ -41,3 +41,7 @@ jobs:
         run: uv run ruff check .
       - name: Tests (pytest smoke)
         run: uv run pytest
+      - name: Logical-consistency ratchet (US-005)
+        # Pure over the committed predictions + baseline + canonical schema (no
+        # training) — a monotone gate mirroring the TS convergence-qa ratchet.
+        run: uv run linguascrape-check-consistency
