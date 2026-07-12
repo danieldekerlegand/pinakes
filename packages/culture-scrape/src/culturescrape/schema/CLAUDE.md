@@ -1,5 +1,18 @@
 # schema/ — map → anchor → reconcile → dedup → edges
 
+## `tsvio` — streaming reader (T-SR-US-002)
+
+`open_rows(path) -> (columns, Iterator[Row])` is the streaming reader: it reads the
+**header eagerly** (columns + any malformed-header `TsvError` surface on the call)
+then yields one decoded `Row` per physical line, keeping the file open until the
+iterator is drained. `read_rows` is now just the eager `list(open_rows(...))`
+wrapper — same return shape, same fail-fast on a wrong cell count (the `list()`
+drains it). Use `open_rows` for dump-scale files (the datalog projection does);
+`read_rows` when you want the whole file. A physical `\n` is only ever a row
+terminator (the writer escapes `\n`→`\\n` in values), and files are read in
+universal-newline mode, so `_strip_eol` removing one trailing `\n` reproduces
+`text.split("\n")` byte-for-byte.
+
 The normalization pipeline (`pipeline.normalize_records`) turns raw acquisition
 records into the canonical node/edge TSV family. Two paths:
 

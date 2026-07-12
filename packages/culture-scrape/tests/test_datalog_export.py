@@ -57,7 +57,7 @@ def test_export_returns_fact_count_and_program_paths(tmp_path: Path) -> None:
     out = tmp_path / "out"
     result = export_dataset(dataset, out, (Engine.SWIPL, Engine.SOUFFLE))
 
-    assert result.fact_count == len(collect_facts(dataset))
+    assert result.fact_count == sum(1 for _ in collect_facts(dataset))
     assert result.programs[Engine.SWIPL] == out / PROLOG_PROGRAM_NAME
     assert result.programs[Engine.SOUFFLE] == out / SOUFFLE_PROGRAM_NAME
 

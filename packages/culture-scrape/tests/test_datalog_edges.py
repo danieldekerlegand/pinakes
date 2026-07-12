@@ -182,7 +182,7 @@ def test_canonical_confidence_reaches_both_dialects(tmp_path: Path) -> None:
     edges = tmp_path / "edges.tsv"
     edges.write_text(f"{header}\n{row}\n", encoding="utf-8")
 
-    facts = edge_file_facts(edges)
+    facts = list(edge_file_facts(edges))
     (conf,) = [f for f in facts if f.predicate == "rel_conf"]
     assert conf.args == ("borrowed_from", "cs:language:arb", "cs:language:eng", 0.8)
 

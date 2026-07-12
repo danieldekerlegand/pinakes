@@ -22,7 +22,7 @@ write and reported in file order on read, keeping files git-diffable and
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from pathlib import Path
 
 from culturescrape.schema.headers import (
@@ -243,8 +243,25 @@ def write_edge_rows(
     return write_rows(path, schema.columns, ordered)
 
 
-def read_rows(path: str | Path) -> tuple[tuple[Column, ...], list[Row]]:
-    """Read *path* written by :func:`write_rows` back to columns and rows.
+def _strip_eol(line: str) -> str:
+    """Drop the single trailing ``\\n`` a physical line carries, if any.
+
+    Matches ``text.split("\\n")`` semantics exactly: the writer escapes any
+    ``\\n`` inside a value, so a physical newline is only ever a row terminator.
+    Files are read in universal-newline mode, so ``\\r\\n`` is already ``\\n``.
+    """
+    return line[:-1] if line.endswith("\n") else line
+
+
+def open_rows(path: str | Path) -> tuple[tuple[Column, ...], Iterator[Row]]:
+    """Stream *path* written by :func:`write_rows`: header now, rows lazily.
+
+    The header line is read eagerly (so *columns* — and any malformed-header
+    error — are available immediately), then a generator yields one decoded
+    :data:`Row` per physical line without ever materialising the whole file.
+    The generator keeps the file open until it is exhausted (or closed), so the
+    projection layer (:mod:`culturescrape.datalog`) can process a dump-scale file
+    a row at a time. :func:`read_rows` is the eager ``list(...)`` wrapper.
 
     Physical newlines separate rows and physical tabs separate columns; because
     the writer escapes both inside values, this split is unambiguous. Each cell
@@ -252,26 +269,49 @@ def read_rows(path: str | Path) -> tuple[tuple[Column, ...], list[Row]]:
     multi-value column.
     """
     path = Path(path)
-    text = path.read_text(encoding="utf-8")
-    lines = text.split("\n")
-    if lines and lines[-1] == "":
-        lines.pop()  # trailing newline after the last row
-    if not lines:
-        raise TsvError(f"{path} has no header line")
-    columns = tuple(parse_column(cell) for cell in lines[0].split(DELIMITER))
+    handle = path.open(encoding="utf-8")
+    try:
+        header = handle.readline()
+        if header == "":
+            raise TsvError(f"{path} has no header line")
+        columns = tuple(
+            parse_column(cell) for cell in _strip_eol(header).split(DELIMITER)
+        )
+    except BaseException:
+        handle.close()
+        raise
     keys = [column_key(c) for c in columns]
-    rows: list[Row] = []
-    for lineno, line in enumerate(lines[1:], start=2):
-        cells = line.split(DELIMITER)
-        if len(cells) != len(keys):
-            raise TsvError(
-                f"{path}:{lineno} has {len(cells)} cells, expected {len(keys)}"
-            )
-        row: Row = {}
-        for key, cell in zip(keys, cells, strict=True):
-            if key in MULTI_VALUE_KEYS:
-                row[key] = decode_values(cell)
-            else:
-                row[key] = decode_value(cell)
-        rows.append(row)
-    return columns, rows
+
+    def _rows() -> Iterator[Row]:
+        lineno = 1
+        try:
+            for raw in handle:
+                lineno += 1
+                cells = _strip_eol(raw).split(DELIMITER)
+                if len(cells) != len(keys):
+                    raise TsvError(
+                        f"{path}:{lineno} has {len(cells)} cells, "
+                        f"expected {len(keys)}"
+                    )
+                row: Row = {}
+                for key, cell in zip(keys, cells, strict=True):
+                    if key in MULTI_VALUE_KEYS:
+                        row[key] = decode_values(cell)
+                    else:
+                        row[key] = decode_value(cell)
+                yield row
+        finally:
+            handle.close()
+
+    return columns, _rows()
+
+
+def read_rows(path: str | Path) -> tuple[tuple[Column, ...], list[Row]]:
+    """Read *path* written by :func:`write_rows` back to columns and rows.
+
+    The eager wrapper over :func:`open_rows`: it drains the streaming row
+    iterator into a list, so a caller that wants the whole file at once (and the
+    same fail-fast on a wrong cell count) keeps the original behaviour.
+    """
+    columns, rows = open_rows(path)
+    return columns, list(rows)

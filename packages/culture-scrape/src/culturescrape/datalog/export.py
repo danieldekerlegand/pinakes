@@ -19,7 +19,7 @@ written.
 from __future__ import annotations
 
 import enum
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -89,12 +89,38 @@ class ExportResult:
         return f"souffle {path} -F {directory} -D {directory}"
 
 
-def collect_facts(directory: str | Path) -> list[Fact]:
-    """Project every node and edge row under *directory* into facts.
+@dataclass(frozen=True)
+class _DatasetFacts:
+    """A re-iterable, lazy stream of a dataset's projected facts.
 
-    Reads ``nodes/*.tsv`` then ``edges/*.tsv`` (each sorted by filename, so the
-    output is deterministic) and concatenates their projected facts. Node files
-    come first so entity-defining facts precede the edges that reference them.
+    Iterating it re-reads the files from disk (``nodes/*.tsv`` then
+    ``edges/*.tsv``, each in filename order) and yields facts one at a time, so
+    the whole corpus is never materialised. It is deliberately re-iterable (each
+    ``iter()`` reopens the files): the streaming emitters pass over the facts
+    more than once (signatures/types, then rows), and each pass costs a fresh
+    disk read rather than a resident fact list.
+    """
+
+    node_files: tuple[Path, ...]
+    edge_files: tuple[Path, ...]
+
+    def __iter__(self) -> Iterator[Fact]:
+        for path in self.node_files:
+            yield from node_file_facts(path)
+        for path in self.edge_files:
+            yield from edge_file_facts(path)
+
+
+def collect_facts(directory: str | Path) -> _DatasetFacts:
+    """Project every node and edge row under *directory* into a fact stream.
+
+    Discovers ``nodes/*.tsv`` then ``edges/*.tsv`` (each sorted by filename, so
+    the output is deterministic) and returns a re-iterable :class:`_DatasetFacts`
+    that yields their projected facts lazily — node files first, so
+    entity-defining facts precede the edges that reference them. The directory is
+    validated eagerly (so a bad dataset fails on the call, not mid-iteration);
+    the rows themselves are read only when the stream is iterated, and never held
+    whole in memory.
 
     Raises:
         DatalogExportError: If *directory* is not a directory or holds no
@@ -103,17 +129,11 @@ def collect_facts(directory: str | Path) -> list[Fact]:
     directory = Path(directory)
     if not directory.is_dir():
         raise DatalogExportError(f"{directory} is not a directory")
-    node_files = sorted((directory / "nodes").glob("*.tsv"))
-    edge_files = sorted((directory / "edges").glob("*.tsv"))
+    node_files = tuple(sorted((directory / "nodes").glob("*.tsv")))
+    edge_files = tuple(sorted((directory / "edges").glob("*.tsv")))
     if not node_files:
         raise DatalogExportError(f"{directory} holds no nodes/*.tsv to project")
-
-    facts: list[Fact] = []
-    for path in node_files:
-        facts.extend(node_file_facts(path))
-    for path in edge_files:
-        facts.extend(edge_file_facts(path))
-    return facts
+    return _DatasetFacts(node_files, edge_files)
 
 
 def export_dataset(
@@ -146,16 +166,20 @@ def export_dataset(
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
     programs: dict[Engine, Path] = {}
+    # Each streaming writer returns the fact count it emitted; both engines see
+    # the same stream, so any one is authoritative (avoids a separate len() pass
+    # over the corpus).
+    fact_count = 0
     for engine in engines:
         if engine is Engine.SWIPL:
             program = out_dir / PROLOG_PROGRAM_NAME
-            write_program(program, facts, rules)
+            fact_count = write_program(program, facts, rules)
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
-            write_souffle_program(out_dir, facts, rules)
+            fact_count = write_souffle_program(out_dir, facts, rules)
         programs[engine] = program
 
-    return ExportResult(fact_count=len(facts), programs=programs)
+    return ExportResult(fact_count=fact_count, programs=programs)
 
 
 __all__ = [

@@ -9,6 +9,32 @@ queries + offline linter). `culturescrape to-datalog … --rules` attaches `RULE
 `materialize.py` (`materialize`/`summarize`) is the **engine-free evaluator** that
 computes the rules' derived extension without swipl/souffle.
 
+## The export is streaming, not slurping (T-SR-US-002)
+
+Peak memory is bounded by ONE row + the small per-predicate type/signature table,
+never the corpus. Keep it that way when editing the emit path:
+
+- **`collect_facts(dir)` returns a re-iterable lazy stream** (`_DatasetFacts`), NOT
+  a list — `for f in collect_facts(...)` re-reads `nodes/*.tsv` then `edges/*.tsv`
+  each time. `node_file_facts`/`edge_file_facts` are **generators** now (they
+  `yield from` per row via `schema.tsvio.open_rows`); don't `+`-concatenate them or
+  call `len()` — wrap in `list(...)` / `sum(1 for _ in ...)` if you truly need eager.
+- **The streaming writers iterate the fact source MORE THAN ONCE** (prolog:
+  signatures then clauses; souffle: type inference then row sharding; souffle_program
+  also renders the `.dl`). So they REQUIRE a re-iterable source (a list, or
+  `collect_facts`), never a one-shot generator — the docstrings say so. Each pass is a
+  fresh disk read (IO for RAM); `export_dataset` running both engines re-reads ~5×.
+- **Byte-identity is the invariant.** `write_program` streams line-by-line to the
+  file but must stay byte-for-byte equal to `render_program` — both build the SAME
+  line sequence via shared `_preamble_lines`/`_rule_lines`, and `write(line+"\n")`
+  per line == `"\n".join(lines)+"\n"`. `write_souffle_facts` writes rows to per-relation
+  handles in fact order == the old grouped order (rows within a file keep source
+  order). Tests `write_* == render_*` enforce this — never let them drift.
+- **Validate the O(1) property empirically**, not by eyeballing: a `tracemalloc`
+  peak over a synthetic corpus at 12k/120k/1.2M facts must stay flat (~2.3 MB) while
+  `graph.pl` grows to 55 MB. The old list+join path was 606 MB at 1.2 M facts. See
+  the table in `docs/datalog.md` "Streaming, not slurping".
+
 ## Materializing rules without an engine (US-004)
 
 `materialize(facts, rules=RULES)` runs a naive-fixpoint Datalog evaluator over the

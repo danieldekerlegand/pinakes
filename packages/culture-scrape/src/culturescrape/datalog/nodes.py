@@ -23,7 +23,7 @@ renders to the same atom, so the projection is idempotent.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 from culturescrape.datalog import Atom, DatalogError, Fact
@@ -34,7 +34,7 @@ from culturescrape.schema.headers import (
     PropertyColumn,
     PropertyType,
 )
-from culturescrape.schema.tsvio import Row, read_rows
+from culturescrape.schema.tsvio import Row, open_rows
 
 #: Scalar dimension columns and the binary predicate each projects to. ``lat``
 #: and ``lon`` are absent here: they are emitted jointly as ``located_at/3``.
@@ -117,19 +117,18 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
     return facts
 
 
-def node_file_facts(path: str | Path) -> list[Fact]:
-    """Read a node TSV file at *path* and project every row to facts.
+def node_file_facts(path: str | Path) -> Iterator[Fact]:
+    """Stream a node TSV file at *path*, projecting each row to facts.
 
     The header is validated as a node schema (``:ID``, ``:LABEL``, ``name``)
-    before projection, so a malformed file fails fast rather than emitting
-    ill-typed facts.
+    before any row is read, so a malformed file fails fast rather than emitting
+    ill-typed facts. Rows are read one at a time (:func:`open_rows`) and their
+    facts yielded lazily, so a dump-scale file never lands whole in memory.
     """
-    columns, rows = read_rows(path)
+    columns, rows = open_rows(path)
     schema = NodeSchema(tuple(columns))
-    facts: list[Fact] = []
     for row in rows:
-        facts.extend(node_facts(schema.columns, row))
-    return facts
+        yield from node_facts(schema.columns, row)
 
 
 __all__ = ["node_facts", "node_file_facts"]

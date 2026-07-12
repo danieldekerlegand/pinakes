@@ -23,11 +23,12 @@ Every fact carries the row's ``source`` as provenance, mirroring node facts.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 from culturescrape.datalog import DatalogError, Fact
 from culturescrape.schema.headers import EdgeSchema
-from culturescrape.schema.tsvio import Row, read_rows
+from culturescrape.schema.tsvio import Row, open_rows
 
 #: A well-formed edge ``:TYPE``: SCREAMING_SNAKE_CASE per ``docs/data-model.md``
 #: (``LOCATED_IN``, ``DERIVED_FROM``, …).
@@ -104,19 +105,18 @@ def edge_facts(row: Row) -> list[Fact]:
     return facts
 
 
-def edge_file_facts(path: str | Path) -> list[Fact]:
-    """Read an edge TSV file at *path* and project every row to facts.
+def edge_file_facts(path: str | Path) -> Iterator[Fact]:
+    """Stream an edge TSV file at *path*, projecting each row to facts.
 
     The header is validated as an edge schema (``:START_ID``, ``:END_ID``,
-    ``:TYPE``) before projection, so a malformed file fails fast rather than
-    emitting ill-typed facts.
+    ``:TYPE``) before any row is read, so a malformed file fails fast rather than
+    emitting ill-typed facts. Rows are read one at a time (:func:`open_rows`) and
+    their facts yielded lazily, so a dump-scale file never lands whole in memory.
     """
-    columns, rows = read_rows(path)
+    columns, rows = open_rows(path)
     EdgeSchema(tuple(columns))  # validate the header; raises on a malformed file
-    facts: list[Fact] = []
     for row in rows:
-        facts.extend(edge_facts(row))
-    return facts
+        yield from edge_facts(row)
 
 
 __all__ = ["edge_facts", "edge_file_facts", "predicate_for_type"]

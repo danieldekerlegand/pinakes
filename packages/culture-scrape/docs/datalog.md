@@ -30,6 +30,42 @@ It prints a copy-pasteable load/run hint for each engine — `swipl <out>/graph.
 for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé. The
 underlying orchestration lives in `culturescrape.datalog.export`.
 
+### Streaming, not slurping (T-SR-US-002)
+
+The export is **streaming end to end**, so peak memory is bounded by a single row
+(plus the small per-predicate type/signature table), not by the corpus size:
+
+- `collect_facts(<dir>)` returns a re-iterable lazy stream (`_DatasetFacts`), not a
+  list — iterating it re-reads `nodes/*.tsv` then `edges/*.tsv` a row at a time via
+  the streaming reader `schema.tsvio.open_rows` (`read_rows` is the eager
+  `list(...)` wrapper over it).
+- `prolog.write_program` streams clauses straight to the file (two passes over the
+  stream: signatures, then facts) instead of building one `"\n".join(...)` program
+  string. `render_program` is retained for tests and emits the **byte-identical**
+  text in memory.
+- `souffle.write_souffle_facts` shards each fact to a per-relation `<pred>.facts`
+  handle in one pass (an `ExitStack` of open handles) instead of grouping every
+  fact into an in-memory dict; the `.dl` is bounded by the relation count, so it
+  stays a small string.
+- The Neo4j-side export (`neo4j.export.export_to_tsv`) streams nodes then edges in
+  **separate** cursor passes, so the two label/`:TYPE` shards never reside at once.
+
+Measured peak Python heap (`tracemalloc`) for `export_dataset(..., both, rules)` on
+a synthetic corpus, streaming vs. the old list-and-join path:
+
+| facts | `graph.pl` | old peak heap | streaming peak heap |
+|------:|-----------:|--------------:|--------------------:|
+| 12 k | 0.52 MB | 5.6 MB | 2.5 MB |
+| 120 k | 5.3 MB | 59 MB | 2.3 MB |
+| 1.2 M | 55 MB | **606 MB** | **2.3 MB** |
+
+The old path was O(corpus) — it held the whole `Fact` list **and** the whole
+program string; the streaming path is flat. Extrapolated to the pre-US-001
+1.19 GB `graph.pl` (11.2 M lines) the old peak would have been ~13 GB. The
+full-corpus before/after (`/usr/bin/time -v`) is recorded at the T-SR-US-005
+rebuild benchmark; the corpus is gitignored and not reproducible locally, so the
+figures above are the synthetic-corpus demonstration of the same O(1) property.
+
 ## Installing the engines (SWI-Prolog + Soufflé)
 
 The projection above needs no engine, but *running* the generated program — the

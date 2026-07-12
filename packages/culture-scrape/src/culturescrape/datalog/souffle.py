@@ -30,6 +30,7 @@ and every ``.facts`` file into one directory, ready for
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -237,28 +238,39 @@ def write_souffle_facts(path: str | Path, facts: Iterable[Fact]) -> dict[str, in
     files are lossless; each file is headerless, as Soufflé's native fact format
     expects. Facts keep their given order (the source TSV is already canonically
     sorted).
+
+    *facts* is iterated twice — once to infer the per-relation attribute types
+    (:func:`souffle_relations`), once to shard each fact to its relation's file —
+    so pass a re-iterable source (a list, or :func:`collect_facts`), not a
+    one-shot generator. Only one open handle per relation (plus the type table)
+    is held; the facts are never buffered in memory, so a dump-scale relation
+    streams straight to disk.
     """
-    facts = list(facts)
     relations = souffle_relations(facts)
-    grouped: dict[str, list[Fact]] = {relation.predicate: [] for relation in relations}
-    for fact in facts:
-        grouped[fact.predicate].append(fact)
+    types = {relation.predicate: relation.types for relation in relations}
+    counts = {relation.predicate: 0 for relation in relations}
 
     directory = Path(path)
     directory.mkdir(parents=True, exist_ok=True)
-    counts: dict[str, int] = {}
-    for relation in relations:
-        rows = grouped[relation.predicate]
-        out = directory / f"{relation.predicate}.facts"
-        with out.open("w", encoding="utf-8", newline="") as handle:
-            for fact in rows:
-                cells = [
-                    _render_cell(arg, col_type)
-                    for arg, col_type in zip(fact.args, relation.types, strict=True)
-                ]
-                handle.write(DELIMITER.join(cells))
-                handle.write("\n")
-        counts[relation.predicate] = len(rows)
+    with contextlib.ExitStack() as stack:
+        handles = {
+            relation.predicate: stack.enter_context(
+                (directory / f"{relation.predicate}.facts").open(
+                    "w", encoding="utf-8", newline=""
+                )
+            )
+            for relation in relations
+        }
+        for fact in facts:
+            col_types = types[fact.predicate]
+            cells = [
+                _render_cell(arg, col_type)
+                for arg, col_type in zip(fact.args, col_types, strict=True)
+            ]
+            handle = handles[fact.predicate]
+            handle.write(DELIMITER.join(cells))
+            handle.write("\n")
+            counts[fact.predicate] += 1
     return counts
 
 
@@ -271,15 +283,20 @@ def write_souffle_program(
     when supplied) and every ``<predicate>.facts`` file into *path*, and returns
     the total fact count. The directory is then ready for
     ``souffle <path>/graph.dl -F <path>``.
+
+    The ``.dl`` is bounded by the number of relations (not facts), so it is
+    rendered in memory; the fact rows are streamed by :func:`write_souffle_facts`.
+    *facts* is iterated more than once (declarations, then sharding), so pass a
+    re-iterable source (a list, or :func:`collect_facts`), not a one-shot
+    generator.
     """
-    facts = list(facts)
     directory = Path(path)
     directory.mkdir(parents=True, exist_ok=True)
     (directory / SOUFFLE_PROGRAM_NAME).write_text(
         render_souffle_program(facts, rules), encoding="utf-8"
     )
-    write_souffle_facts(directory, facts)
-    return len(facts)
+    counts = write_souffle_facts(directory, facts)
+    return sum(counts.values())
 
 
 __all__ = [
