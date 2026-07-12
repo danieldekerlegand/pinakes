@@ -12,7 +12,7 @@
       "type": "language-family",
       "label": "LanguageFamily",
       "file": "nodes/language-family.tsv",
-      "count": 543
+      "count": 636
     },
     {
       "type": "writing-system",
@@ -24,13 +24,13 @@
       "type": "culture",
       "label": "Culture",
       "file": "nodes/culture.tsv",
-      "count": 340
+      "count": 341
     },
     {
       "type": "archaeological-culture",
       "label": "ArchaeologicalCulture",
       "file": "nodes/archaeological-culture.tsv",
-      "count": 277
+      "count": 286
     },
     {
       "type": "urheimat-hypothesis",
@@ -48,7 +48,7 @@
       "type": "deity",
       "label": "Deity",
       "file": "nodes/deity.tsv",
-      "count": 206
+      "count": 230
     },
     {
       "type": "myth-motif",
@@ -110,19 +110,25 @@
       "type": "descended-from",
       "token": "DESCENDS_FROM",
       "file": "edges/descended-from.tsv",
-      "count": 1649
+      "count": 1683
+    },
+    {
+      "type": "split-from",
+      "token": "SPLIT_FROM",
+      "file": "edges/split-from.tsv",
+      "count": 47
     },
     {
       "type": "influenced-by",
       "token": "INFLUENCED_BY",
       "file": "edges/influenced-by.tsv",
-      "count": 99
+      "count": 103
     },
     {
       "type": "absorbed-into",
       "token": "ABSORBED_INTO",
       "file": "edges/absorbed-into.tsv",
-      "count": 101
+      "count": 103
     },
     {
       "type": "borrowed-from",
@@ -146,169 +152,152 @@
       "type": "syncretized-with",
       "token": "SYNCRETIZED_WITH",
       "file": "edges/syncretized-with.tsv",
-      "count": 206
+      "count": 242
     }
   ],
   "totals": {
-    "nodes": 6667,
-    "edges": 5713,
+    "nodes": 6794,
+    "edges": 5836,
     "nodeTypes": 17,
-    "edgeTypes": 7
+    "edgeTypes": 8
   },
   "diagnostics": {
     "skippedNodeRowsMissingId": 0,
     "duplicateCsids": 44,
     "ambiguousLinguascrapeIds": 16,
-    "edgesWithUnresolvedEndpoint": 138,
-    "unresolvedEndpointSamples": [
+    "edgesWithUnresolvedEndpoint": 0,
+    "unresolvedEndpointSamples": [],
+    "stubNodesMinted": 127,
+    "stubNodesByType": {
+      "archaeological-culture": 9,
+      "culture": 1,
+      "deity": 24,
+      "language-family": 93
+    },
+    "stubNodeSamples": [
       {
-        "startId": "ppnb",
-        "endId": "pottery-neolithic",
-        "edgeName": "absorbed-into",
+        "linguascrapeId": "pottery-neolithic",
+        "type": "archaeological-culture",
         "sourceFile": "archaeological-cultures.tsv"
       },
       {
-        "startId": "jomon",
-        "endId": "yayoi",
-        "edgeName": "absorbed-into",
+        "linguascrapeId": "yayoi",
+        "type": "archaeological-culture",
         "sourceFile": "archaeological-cultures.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_anatolian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_indo_european",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_tocharian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_anatolian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_indo_iranian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_tocharian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_iranian",
-        "endId": "proto_iranian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_indo_iranian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_iranian",
-        "endId": "proto_indo_aryan",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_iranian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_greek",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_indo_aryan",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_italic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_greek",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_celtic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_italic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_germanic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_celtic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_indo_european",
-        "endId": "proto_balto_slavic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_germanic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_balto_slavic",
-        "endId": "proto_slavic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_balto_slavic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_balto_slavic",
-        "endId": "proto_baltic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_slavic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "yamnaya",
-        "endId": "corded_ware",
-        "edgeName": "descended-from",
+        "linguascrapeId": "proto_baltic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "yamnaya",
-        "endId": "afanasievo",
-        "edgeName": "descended-from",
+        "linguascrapeId": "corded_ware",
+        "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "corded_ware",
-        "endId": "bell_beaker",
-        "edgeName": "influenced-by",
+        "linguascrapeId": "afanasievo",
+        "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_afroasiatic",
-        "endId": "proto_semitic",
-        "edgeName": "split-from",
+        "linguascrapeId": "bell_beaker",
+        "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_afroasiatic",
-        "endId": "proto_berber",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_afroasiatic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_afroasiatic",
-        "endId": "proto_cushitic",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_semitic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_afroasiatic",
-        "endId": "ancient_egyptian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_berber",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_semitic",
-        "endId": "akkadian",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_cushitic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_semitic",
-        "endId": "proto_northwest_semitic",
-        "edgeName": "split-from",
+        "linguascrapeId": "ancient_egyptian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_semitic",
-        "endId": "proto_south_semitic",
-        "edgeName": "split-from",
+        "linguascrapeId": "akkadian",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "startId": "proto_niger_congo",
-        "endId": "proto_bantu",
-        "edgeName": "split-from",
+        "linguascrapeId": "proto_northwest_semitic",
+        "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       }
     ]
@@ -322,7 +311,7 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 6667,
+      "total": 6794,
       "byType": [
         {
           "type": "language",
@@ -337,13 +326,13 @@
         },
         {
           "type": "language-family",
-          "count": 543,
+          "count": 636,
           "nonEmpty": {
-            "source": 543,
+            "source": 636,
             "source_url": 0,
             "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 543
+            "confidence": 636
           }
         },
         {
@@ -359,24 +348,24 @@
         },
         {
           "type": "culture",
-          "count": 340,
+          "count": 341,
           "nonEmpty": {
-            "source": 340,
+            "source": 341,
             "source_url": 81,
             "source_query": 340,
             "retrieved_at": 81,
-            "confidence": 340
+            "confidence": 341
           }
         },
         {
           "type": "archaeological-culture",
-          "count": 277,
+          "count": 286,
           "nonEmpty": {
-            "source": 277,
+            "source": 286,
             "source_url": 250,
             "source_query": 277,
             "retrieved_at": 250,
-            "confidence": 277
+            "confidence": 286
           }
         },
         {
@@ -403,13 +392,13 @@
         },
         {
           "type": "deity",
-          "count": 206,
+          "count": 230,
           "nonEmpty": {
-            "source": 206,
+            "source": 230,
             "source_url": 130,
             "source_query": 206,
             "retrieved_at": 130,
-            "confidence": 206
+            "confidence": 230
           }
         },
         {
@@ -513,11 +502,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 6667,
+        "source": 6794,
         "source_url": 1892,
         "source_query": 2545,
         "retrieved_at": 1892,
-        "confidence": 6667
+        "confidence": 6794
       }
     },
     "edge": {
@@ -527,36 +516,46 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 5713,
+      "total": 5836,
       "byType": [
         {
           "type": "descended-from",
-          "count": 1649,
+          "count": 1683,
           "nonEmpty": {
-            "source": 1649,
+            "source": 1683,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 1649
+            "confidence": 1683
+          }
+        },
+        {
+          "type": "split-from",
+          "count": 47,
+          "nonEmpty": {
+            "source": 47,
+            "source_url": 0,
+            "retrieved_at": 0,
+            "confidence": 47
           }
         },
         {
           "type": "influenced-by",
-          "count": 99,
+          "count": 103,
           "nonEmpty": {
-            "source": 99,
+            "source": 103,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 99
+            "confidence": 103
           }
         },
         {
           "type": "absorbed-into",
-          "count": 101,
+          "count": 103,
           "nonEmpty": {
-            "source": 101,
+            "source": 103,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 101
+            "confidence": 103
           }
         },
         {
@@ -591,28 +590,28 @@
         },
         {
           "type": "syncretized-with",
-          "count": 206,
+          "count": 242,
           "nonEmpty": {
-            "source": 206,
+            "source": 242,
             "source_url": 0,
             "retrieved_at": 0,
-            "confidence": 206
+            "confidence": 242
           }
         }
       ],
       "nonEmpty": {
-        "source": 5713,
+        "source": 5836,
         "source_url": 0,
         "retrieved_at": 0,
-        "confidence": 5713
+        "confidence": 5836
       },
-      "citationsWithoutCanonicalColumn": 971
+      "citationsWithoutCanonicalColumn": 1094
     },
     "flags": [
-      "node.source_query: 2545/6667 rows preserve the original LinguaScrape citation.",
-      "edge.source_url: 0/5713 edges carry a URL; left blank, never fabricated.",
-      "edge.retrieved_at: 0/5713 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.citationsWithoutCanonicalColumn: 971 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+      "node.source_query: 2545/6794 rows preserve the original LinguaScrape citation.",
+      "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
+      "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
+      "edge.citationsWithoutCanonicalColumn: 1094 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
     ]
   }
 }

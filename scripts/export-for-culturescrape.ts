@@ -114,6 +114,13 @@ export interface UnresolvedEndpoint {
   readonly sourceFile: string;
 }
 
+/** An auto-generated needs-curation stub node minted for an unresolved endpoint (US-007). */
+export interface StubNodeSample {
+  readonly linguascrapeId: string;
+  readonly type: string;
+  readonly sourceFile: string;
+}
+
 /** Non-empty counts for the provenance columns of one node/edge type. */
 export interface ProvenanceTypeCoverage {
   readonly type: string;
@@ -175,6 +182,15 @@ export interface ExportManifest {
     readonly ambiguousLinguascrapeIds: number;
     readonly edgesWithUnresolvedEndpoint: number;
     readonly unresolvedEndpointSamples: readonly UnresolvedEndpoint[];
+    /**
+     * Needs-curation stub nodes minted for edge endpoints with no real node (US-007),
+     * so the referencing edges reach the export instead of being dropped. Each stub
+     * carries {@link STUB_NEEDS_CURATION_NOTE} + confidence `0`; a follow-up curation
+     * pass replaces them with real typed nodes.
+     */
+    readonly stubNodesMinted: number;
+    readonly stubNodesByType: Readonly<Record<string, number>>;
+    readonly stubNodeSamples: readonly StubNodeSample[];
   };
   readonly provenance: ProvenanceCoverage;
 }
@@ -308,6 +324,60 @@ export function mintCsid(
   const local = qid !== "" ? qid : linguascrapeId;
   return `cs:${nodeType}:${local}`;
 }
+
+/**
+ * Recover the node-type slug from a minted csid (`cs:<type>:<local>`). The type
+ * slug carries hyphens but never a colon, and the local id/QID never does, so the
+ * middle `:`-segment is the type. Returns `""` for a malformed csid.
+ */
+export function nodeTypeFromCsid(csid: string): string {
+  const parts = csid.split(":");
+  return parts.length >= 3 ? parts[1] : "";
+}
+
+/**
+ * Turn a LinguaScrape id into a human-readable display name for a stub node —
+ * `proto_indo_european` → `Proto Indo European`. Used only for auto-generated
+ * needs-curation stubs (US-007); real nodes keep their curated `name`.
+ */
+export function humanizeId(id: string): string {
+  return id
+    .split(/[_\-\s]+/)
+    .filter((w) => w.length > 0)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/**
+ * Default node type for a stub minted when BOTH endpoints of an edge are unresolved
+ * (so neither's type can be borrowed). Keyed by the edge's source lexicon — the
+ * dominant kind of entity that file's edges connect. When one endpoint *is* a real
+ * node, its type is borrowed instead (see {@link buildExport}); this table is the
+ * both-unresolved fallback only. Any file not listed falls back to
+ * {@link DEFAULT_STUB_TYPE}.
+ */
+const STUB_TYPE_BY_SOURCE_FILE: Readonly<Record<string, string>> = {
+  "cultural-lineages.tsv": "language-family",
+  "deities.tsv": "deity",
+  "archaeological-cultures.tsv": "archaeological-culture",
+  "writing-systems.tsv": "writing-system",
+  "etymology-relations.tsv": "language",
+  "language-contacts.tsv": "language",
+  "art-style-evolutions.tsv": "art-tradition",
+};
+
+/** Fallback stub node type when no per-file default nor a borrowable endpoint exists. */
+const DEFAULT_STUB_TYPE = "culture";
+
+/**
+ * `description` stamped on every auto-generated stub node so a curator (and any graph
+ * consumer) can tell it apart from a real curated node. Confidence is set to `0` for
+ * the same reason.
+ */
+export const STUB_NEEDS_CURATION_NOTE =
+  "[needs-curation] Auto-generated stub node for an unresolved edge endpoint; requires curation into a real typed node.";
+
+const MAX_STUB_SAMPLES = 25;
 
 /** Serialise a canonical record (field→value) into a row in the schema's column order. */
 function orderRow(
@@ -481,10 +551,73 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
 
   let edgeCitationsWithoutColumn = 0;
 
+  // US-007: mint a flagged needs-curation stub node for an edge endpoint that has
+  // no real exported node, so the referencing edge reaches the export instead of
+  // being counted-and-dropped. Idempotent per id (first mint wins, later references
+  // reuse it via `idIndex`) so the same endpoint never yields two csids. Returns the
+  // stub's csid, or `undefined` when the type is unknown or the csid would collide
+  // (extremely rare — the edge then stays genuinely unresolved).
+  let stubNodesMinted = 0;
+  const stubNodesByType = new Map<string, number>();
+  const stubNodeSamples: StubNodeSample[] = [];
+  const mintStub = (
+    id: string,
+    stubType: string,
+    sourceFile: string,
+  ): string | undefined => {
+    const existing = idIndex.get(id);
+    if (existing !== undefined) return existing;
+    const typeInfo = nodeTypeByName(stubType);
+    if (typeInfo === undefined) return undefined;
+    const csid = mintCsid(stubType, id);
+    if (seenCsids.has(csid)) return undefined;
+    seenCsids.add(csid);
+
+    const record = new Map<string, string>();
+    record.set("csid", csid);
+    record.set(":LABEL", typeInfo.label);
+    record.set("name", humanizeId(id));
+    record.set("linguascrape_id", id);
+    record.set("description", STUB_NEEDS_CURATION_NOTE);
+    record.set("source", EXPORT_SOURCE);
+    record.set("source_url", "");
+    record.set("source_query", "");
+    record.set("retrieved_at", "");
+    record.set("confidence", "0");
+
+    const group = nodeGroups.get(stubType) ?? [];
+    group.push(orderRow(CANONICAL_SCHEMA.node.columns, record));
+    nodeGroups.set(stubType, group);
+    idIndex.set(id, csid);
+
+    stubNodesMinted += 1;
+    stubNodesByType.set(stubType, (stubNodesByType.get(stubType) ?? 0) + 1);
+    if (stubNodeSamples.length < MAX_STUB_SAMPLES) {
+      stubNodeSamples.push({ linguascrapeId: id, type: stubType, sourceFile });
+    }
+    return csid;
+  };
+
   const { edges } = extractAllCanonicalEdges(lexiconsDir);
   for (const e of edges) {
-    const startCsid = idIndex.get(e.startId);
-    const endCsid = idIndex.get(e.endId);
+    let startCsid = idIndex.get(e.startId);
+    let endCsid = idIndex.get(e.endId);
+    // Borrow the counterpart's node type when it is a real node; else fall back to
+    // the edge source file's default type (both endpoints unresolved).
+    if (startCsid === undefined) {
+      const stubType =
+        endCsid !== undefined
+          ? nodeTypeFromCsid(endCsid)
+          : STUB_TYPE_BY_SOURCE_FILE[e.sourceFile] ?? DEFAULT_STUB_TYPE;
+      startCsid = mintStub(e.startId, stubType, e.sourceFile);
+    }
+    if (endCsid === undefined) {
+      const stubType =
+        startCsid !== undefined
+          ? nodeTypeFromCsid(startCsid)
+          : STUB_TYPE_BY_SOURCE_FILE[e.sourceFile] ?? DEFAULT_STUB_TYPE;
+      endCsid = mintStub(e.endId, stubType, e.sourceFile);
+    }
     if (startCsid === undefined || endCsid === undefined) {
       unresolvedCount += 1;
       if (unresolvedSamples.length < MAX_UNRESOLVED_SAMPLES) {
@@ -549,6 +682,15 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     unresolvedCount,
     unresolvedSamples,
     provenance,
+    {
+      minted: stubNodesMinted,
+      byType: Object.fromEntries(
+        [...stubNodesByType.entries()].sort((a, b) =>
+          a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
+        ),
+      ),
+      samples: stubNodeSamples,
+    },
   );
 
   return { nodeGroups, edgeGroups, manifest };
@@ -651,6 +793,11 @@ function buildManifest(
   unresolvedCount: number,
   unresolvedSamples: readonly UnresolvedEndpoint[],
   provenance: ProvenanceCoverage,
+  stubNodes: {
+    minted: number;
+    byType: Readonly<Record<string, number>>;
+    samples: readonly StubNodeSample[];
+  },
 ): ExportManifest {
   const nodeTypes = CANONICAL_SCHEMA.nodeTypes
     .filter((t) => nodeGroups.has(t.name))
@@ -689,6 +836,9 @@ function buildManifest(
       ambiguousLinguascrapeIds: nodeCounters.ambiguousIds,
       edgesWithUnresolvedEndpoint: unresolvedCount,
       unresolvedEndpointSamples: unresolvedSamples,
+      stubNodesMinted: stubNodes.minted,
+      stubNodesByType: stubNodes.byType,
+      stubNodeSamples: stubNodes.samples,
     },
     provenance,
   };

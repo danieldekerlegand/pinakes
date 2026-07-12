@@ -110,6 +110,29 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
   The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
   `linguascrape_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
 
+- **Unresolved edge endpoints mint flagged stub nodes, not dropped edges (US-007).** An edge
+  whose start/end id has no exported node used to be counted-and-dropped
+  (`edgesWithUnresolvedEndpoint`). Now `buildExport` mints a **needs-curation stub node** for
+  that id so the edge is recovered. Chosen over hand-curating ~128 missing rows because it is
+  deterministic, network-free, and self-contained (one story); the stubs carry
+  `STUB_NEEDS_CURATION_NOTE` in `description` + `confidence=0` + `name = humanizeId(id)`, and a
+  follow-up curation pass replaces them with real typed nodes (many are id-space mismatches —
+  `cultural-lineages.tsv` writes flat `proto_indo_european`, `families.tsv` the hierarchical
+  `indo_european`). Stub **type** is borrowed from the resolved counterpart endpoint when there
+  is one, else `STUB_TYPE_BY_SOURCE_FILE[sourceFile]` (both endpoints unresolved), else
+  `DEFAULT_STUB_TYPE` (`culture`). Minted **once per id** (`idIndex` first-wins), so no
+  `ambiguousLinguascrapeIds` / `duplicateCsids` regression — only `edgesWithUnresolvedEndpoint`
+  moves (→0; re-baseline `docs/convergence-qa-baseline.json`). Manifest gains
+  `diagnostics.stubNodes{Minted,ByType,Samples}`. Stubs have no lexicon row, so the write-back
+  round-trip still no-ops (import keys on `linguascrape_id`; a stub id matches nothing → skipped).
+  `reconciliation-report.json` reads **lexicons**, not the export, so it is unchanged by stubs.
+
+- **GOTCHA — a literal `"null"` FK cell is not an id.** `writing-systems.tsv` writes the string
+  `"null"` in `parent_system_id` for a root script; `canonical-edges.ts` now treats
+  `""`/`null`/`none`/`n/a`/`undefined` (case-insensitive, `isBlankId`) as a blank endpoint in
+  both `splitIdList` and the edge-table start/end guard, so no phantom `descended-from → null`
+  edge is emitted (was 15 of the dropped edges).
+
 ## Provenance propagation (US-006)
 
 The export stamps all four provenance columns on **every** node and edge (values may be

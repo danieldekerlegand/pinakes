@@ -215,6 +215,31 @@ describe("canonical edge extraction (US-003)", () => {
       expect(succ.provenance.source).toBe("Kuijt 2002; Cauvin 2000");
     });
 
+    it("treats a literal 'null'/'none' FK placeholder as no edge (US-007)", () => {
+      // writing-systems.tsv stores a literal "null" in parent_system_id for a root
+      // script; no descended-from edge to a phantom `null` node must be created.
+      const headers = [
+        "id", "name", "type", "direction", "parent_system_id", "language_ids",
+        "origin_date", "origin_region", "character_count", "sample_characters",
+        "unicode_block", "is_active", "wikidata_qid", "source_url",
+        "retrieved_at", "confidence", "sources",
+      ];
+      const rows = [
+        ["ws_root", "Hangul", "alphabet", "ltr", "null", "[]", "1443", "Korea",
+          "", "", "", "true", "", "", "", "", "[]"],
+        ["ws_child", "Child", "alphabet", "ltr", "ws_root", "[]", "1500", "Korea",
+          "", "", "", "true", "", "", "", "", "[]"],
+        ["ws_none", "Other", "alphabet", "ltr", "NONE", "[]", "1600", "Korea",
+          "", "", "", "true", "", "", "", "", "[]"],
+      ];
+      const { edges } = extractEdgesFromLexicon("writing-systems.tsv", headers, rows);
+      // Only the real ws_child → ws_root parent edge survives.
+      expect(edges).toHaveLength(1);
+      expect(edges[0].startId).toBe("ws_child");
+      expect(edges[0].endId).toBe("ws_root");
+      expect(edges.every((e) => e.endId.toLowerCase() !== "null")).toBe(true);
+    });
+
     it("extracts deities.syncretism_links as syncretized-with", () => {
       const headers = [
         "id", "name", "native_name", "pantheon", "domain", "gender",

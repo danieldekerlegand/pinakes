@@ -148,6 +148,24 @@ function cell(row: string[], idx: number): string {
   return (row[idx] ?? "").trim();
 }
 
+/**
+ * Placeholder tokens some lexicons write to mean "no id" (e.g. `writing-systems.tsv`
+ * stores a literal `"null"` in `parent_system_id` for a root script). Treated as a
+ * blank endpoint — never a real node id — so no dangling edge to a phantom `null`
+ * node is emitted.
+ */
+const BLANK_ID_SENTINELS: ReadonlySet<string> = new Set([
+  "null",
+  "none",
+  "n/a",
+  "undefined",
+]);
+
+/** True when an id cell is empty or a placeholder standing in for "no value". */
+function isBlankId(value: string): boolean {
+  return value === "" || BLANK_ID_SENTINELS.has(value.toLowerCase());
+}
+
 /** Column index of the file's single column carrying a given canonical `target`. */
 function indexForTarget(
   mapping: LexiconFileMapping,
@@ -216,7 +234,7 @@ function splitIdList(value: string): string[] {
         return parsed
           .filter((s): s is string => typeof s === "string")
           .map((s) => s.trim())
-          .filter((s) => s !== "");
+          .filter((s) => !isBlankId(s));
       }
     } catch {
       // fall through
@@ -225,7 +243,7 @@ function splitIdList(value: string): string[] {
   return value
     .split(/[,;]/)
     .map((s) => s.trim())
-    .filter((s) => s !== "");
+    .filter((s) => !isBlankId(s));
 }
 
 /** Build a {@link CanonicalEdge}, resolving the canonical `:TYPE` token. */
@@ -275,7 +293,7 @@ function extractEdgeTable(
   for (const row of rows) {
     const startId = cell(row, startIdx);
     const endId = cell(row, endIdx);
-    if (startId === "" || endId === "") {
+    if (isBlankId(startId) || isBlankId(endId)) {
       skipped.push({ sourceFile: file, reason: "missing-endpoint" });
       continue;
     }

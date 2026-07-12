@@ -2,6 +2,6 @@
   "//": "Convergence-QA dedup/reconciliation regression baseline (US-001). A monotone ratchet: scaled data may hold or lower these, never exceed them without a deliberate, reviewed re-baseline. Regenerate: npx tsx scripts/convergence-qa.ts --write-baseline",
   "duplicateCsids": 44,
   "ambiguousLinguascrapeIds": 16,
-  "edgesWithUnresolvedEndpoint": 139,
+  "edgesWithUnresolvedEndpoint": 0,
   "reconciliationAmbiguous": 242
 }
