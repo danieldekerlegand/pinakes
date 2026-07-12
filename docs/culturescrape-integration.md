@@ -46,7 +46,7 @@ data-layer-convergence work (US-001…US-008) closed each gap; the code lives un
 
 | Layer | culture-scrape | LinguaScrape today | Status |
 |---|---|---|---|
-| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid minted `cs:<node-type>:<linguascrape-id>`; `linguascrape_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts` (US-005). |
+| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid QID-anchored `cs:<node-type>:<QID>` when a row carries a `wikidata_qid`, else `cs:<node-type>:<linguascrape-id>` (US-005); `linguascrape_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts`. |
 | **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `shared/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
 | **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
 | **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="linguascrape"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
@@ -149,7 +149,7 @@ The round trip, with the exact command and artifact at each hop:
       │ 1. EXPORT   npx tsx scripts/export-for-culturescrape.ts
       ▼
  export/culturescrape/nodes/<node-type>.tsv + edges/<edge-type>.tsv + manifest.json
-      │              (source="linguascrape" provenance; csid = cs:<node-type>:<linguascrape-id>)
+      │              (source="linguascrape" provenance; csid = cs:<node-type>:<QID>, else <linguascrape-id>)
       │
       │ 2. RECONCILE (dry-run, network-free)   npx tsx scripts/reconciliation-report.ts
       ▼              → keys.tsv + report.json  (matched / ambiguous / likely-new buckets)

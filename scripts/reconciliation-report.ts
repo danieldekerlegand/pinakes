@@ -217,6 +217,7 @@ export function buildReconciliationKeys(
     if (headers.length === 0) continue;
 
     const idIdx = targetColIndex(file, headers, "linguascrape_id");
+    const qidIdx = targetColIndex(file, headers, "wikidata_qid");
     const nameIdx = targetColIndex(file, headers, "name");
     const confIdx = targetColIndex(file, headers, "confidence");
     const iso1Idx = headerIndex(headers, "iso639_1");
@@ -227,7 +228,7 @@ export function buildReconciliationKeys(
     for (const row of rows) {
       const lsId = cell(row, idIdx);
       if (lsId === "") continue;
-      const csid = mintCsid(node, lsId);
+      const csid = mintCsid(node, lsId, cell(row, qidIdx));
       if (seenCsids.has(csid)) {
         duplicateCsidsDropped += 1;
         continue;

@@ -44,6 +44,19 @@ describe("export-for-culturescrape (US-004)", () => {
       expect(mintCsid("language", "french")).toBe("cs:language:french");
     });
 
+    it("anchors the csid on a known Wikidata QID, else falls back to the id (US-005)", () => {
+      // Non-blank QID → cs:<type>:<QID> (the same entity carries one id everywhere).
+      expect(mintCsid("language", "french", "Q150")).toBe("cs:language:Q150");
+      // Blank / whitespace-only QID → readable linguascrape-id fallback.
+      expect(mintCsid("language", "french", "")).toBe("cs:language:french");
+      expect(mintCsid("language", "french", "  ")).toBe("cs:language:french");
+      expect(mintCsid("language", "french")).toBe("cs:language:french");
+      // QID is trimmed so a padded cell still anchors cleanly.
+      expect(mintCsid("civilization", "sumer", " Q35355 ")).toBe(
+        "cs:civilization:Q35355",
+      );
+    });
+
     it("parses JSON and bare coordinate cells, rejects garbage", () => {
       expect(parseCoordinates('{"lat":31.8,"lng":35.2}')).toEqual({
         lat: 31.8,
@@ -220,6 +233,52 @@ describe("export-for-culturescrape (US-004)", () => {
           endId: "ghost_b",
           edgeName: "split-from",
         });
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("anchors csids on a QID and re-points edge endpoints to them (US-005)", () => {
+      // ppnb carries a Wikidata QID (→ cs:...:Q123); ppna has none (→ readable id).
+      // ppnb's predecessor edge must re-point onto ppnb's QID-anchored csid.
+      const dir = makeFixtureDir({
+        "archaeological-cultures.tsv": [
+          [
+            "id", "name", "region", "coordinates", "boundary_geometry",
+            "time_period_start", "time_period_end", "time_period_label",
+            "subsistence_pattern", "pottery_style", "burial_practices",
+            "material_culture_traits", "probable_language_family",
+            "probable_haplogroups", "predecessor_culture_ids",
+            "successor_culture_ids", "confidence", "sources", "description",
+            "wikidata_qid",
+          ],
+          [
+            "ppnb", "PPNB", "Levant", "", "", "-8700", "-6900", "", "", "", "",
+            "", "", "", '["ppna"]', "[]", "80", '["Kuijt 2002"]', "desc", "Q123",
+          ],
+          [
+            "ppna", "PPNA", "Levant", "", "", "-9500", "-8700", "", "", "", "",
+            "", "", "", "[]", "[]", "", "[]", "desc", "",
+          ],
+        ],
+      });
+      try {
+        const { nodeGroups, edgeGroups } = buildExport(dir);
+        const arch = nodeGroups.get("archaeological-culture")!;
+        // QID row → cs:<type>:<QID>; the linguascrape_id alias is unchanged.
+        const ppnb = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppnb")!;
+        expect(ppnb[nodeCol("csid")]).toBe("cs:archaeological-culture:Q123");
+        expect(ppnb[nodeCol("wikidata_qid")]).toBe("Q123");
+        // No-QID row → readable fallback.
+        const ppna = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppna")!;
+        expect(ppna[nodeCol("csid")]).toBe("cs:archaeological-culture:ppna");
+
+        // The predecessor edge (ppnb→ppna) re-points its start onto the QID csid.
+        const descends = edgeGroups.get("descended-from")!;
+        const edge = descends.find(
+          (r) => r[edgeCol(":END_ID")] === "cs:archaeological-culture:ppna",
+        )!;
+        expect(edge[edgeCol(":START_ID")]).toBe("cs:archaeological-culture:Q123");
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }

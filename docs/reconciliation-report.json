@@ -170,38 +170,38 @@
       "key": "qu",
       "candidates": [
         {
-          "csid": "cs:language:qug",
+          "csid": "cs:language:Q12953845",
           "linguascrapeId": "qug",
           "name": "Chimborazo Highland Quichua",
           "region": "Central Ecuador",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quh",
+          "csid": "cs:language:Q1307730",
           "linguascrapeId": "quh",
           "name": "South Bolivian Quechua",
           "region": "Bolivia",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quy",
+          "csid": "cs:language:Q25559701",
+          "linguascrapeId": "qvi",
+          "name": "Imbabura Highland Quichua",
+          "region": "Northern Ecuador",
+          "confidence": 0.9
+        },
+        {
+          "csid": "cs:language:Q35145",
           "linguascrapeId": "quy",
           "name": "Ayacucho Quechua",
           "region": "Southern Peru",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quz",
+          "csid": "cs:language:Q35147",
           "linguascrapeId": "quz",
           "name": "Cusco Quechua",
           "region": "Southern Peru",
-          "confidence": 0.9
-        },
-        {
-          "csid": "cs:language:qvi",
-          "linguascrapeId": "qvi",
-          "name": "Imbabura Highland Quichua",
-          "region": "Northern Ecuador",
           "confidence": 0.9
         }
       ]

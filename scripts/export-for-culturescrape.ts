@@ -24,10 +24,13 @@
  * is never fabricated, and a row with no timestamp stays blank. The manifest carries a
  * per-type provenance-completeness coverage report.
  *
- * Identity: `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`
- * (the id scheme's `cs:<type>:<local>` format), so re-runs are byte-identical
- * (idempotent). Every row also retains its original `linguascrape_id` (the round-trip
- * key for US-007). Edge endpoints are rewritten from LinguaScrape ids to the csids of
+ * Identity: `csid` is minted deterministically (the id scheme's `cs:<type>:<local>`
+ * format), so re-runs are byte-identical (idempotent). Per the `idScheme` in
+ * `shared/canonical-schema.json`, a known Wikidata QID is the identity, so a row with a
+ * non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (US-005); a row without one
+ * falls back to `cs:<node-type>:<linguascrape-id>`. Every row also retains its original
+ * `linguascrape_id` (the round-trip key for US-007). Edge endpoints are rewritten from
+ * LinguaScrape ids to the csids of
  * the exported nodes; an edge whose endpoint has no exported node is not emitted
  * (dangling endpoints would break `neo4j-admin import`) and is counted + sampled in
  * the manifest rather than silently dropped.
@@ -289,9 +292,21 @@ export function deriveSourceUrl(...candidates: string[]): string {
   return "";
 }
 
-/** Mint a deterministic canonical id: `cs:<node-type>:<linguascrape-id>`. */
-export function mintCsid(nodeType: string, linguascrapeId: string): string {
-  return `cs:${nodeType}:${linguascrapeId}`;
+/**
+ * Mint a deterministic canonical id (US-005). Per the `idScheme` in
+ * `shared/canonical-schema.json`, a known Wikidata QID **is** the identity, so a row
+ * carrying a non-blank `wikidata_qid` mints `cs:<node-type>:<QID>`; a row without one
+ * falls back to the readable `cs:<node-type>:<linguascrape-id>`. QID-anchoring makes
+ * the same entity carry the same csid regardless of which pipeline exported it.
+ */
+export function mintCsid(
+  nodeType: string,
+  linguascrapeId: string,
+  wikidataQid?: string,
+): string {
+  const qid = (wikidataQid ?? "").trim();
+  const local = qid !== "" ? qid : linguascrapeId;
+  return `cs:${nodeType}:${local}`;
 }
 
 /** Serialise a canonical record (field→value) into a row in the schema's column order. */
@@ -361,6 +376,8 @@ function buildNodesForFile(
 
   const group = nodeGroups.get(nodeType) ?? [];
 
+  const qidIdxForFile = targetIdx.get("wikidata_qid") ?? -1;
+
   for (const row of rows) {
     const idIdxForFile = targetIdx.get("linguascrape_id") ?? -1;
     const lsId = cell(row, idIdxForFile);
@@ -368,7 +385,9 @@ function buildNodesForFile(
       counters.skippedMissingId += 1;
       continue;
     }
-    const csid = mintCsid(nodeType, lsId);
+    // US-005: a known QID is the identity; rows without one keep the readable id.
+    const rowQid = cell(row, qidIdxForFile);
+    const csid = mintCsid(nodeType, lsId, rowQid);
     if (seenCsids.has(csid)) {
       counters.duplicateCsids += 1;
       continue;

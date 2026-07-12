@@ -90,12 +90,25 @@ non-empty data (`npm run smoke:graph`, docs in
 (gitignored) + `manifest.json`, and a committed manifest snapshot at
 `docs/culturescrape-export-manifest.json`. It reuses `@shared/lexicon-mapping` (node
 `target`/`property` dispositions) and `server/services/canonical-edges`
-(`extractAllCanonicalEdges`) for edges. csid = `cs:<node-type>:<linguascrape-id>`; edge
-endpoints are rewritten to node csids via a `linguascrape_id → csid` index built during the
-node pass — endpoints with no exported node are counted + sampled in the manifest, never
-emitted (keeps output `neo4j-admin import`-clean). Output is idempotent (rows sorted, no
-wall-clock written). Combined `*coordinates` JSON cells (`{"lat":..,"lng":..}`) split into
-`lat`/`lon`.
+(`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
+non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
+`shared/canonical-schema.json` `idScheme`); a row without one falls back to
+`cs:<node-type>:<linguascrape-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
+`wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
+`targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
+snapshots agree. Edge endpoints are rewritten to node csids via a `linguascrape_id → csid`
+index built during the node pass (so QID-anchoring re-points edges for free — endpoints are
+still keyed on `linguascrape_id`, which is unchanged) — endpoints with no exported node are
+counted + sampled in the manifest, never emitted (keeps output `neo4j-admin import`-clean).
+Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinates` JSON cells
+(`{"lat":..,"lng":..}`) split into `lat`/`lon`.
+
+- **GOTCHA — QID-anchoring is snapshot-neutral for the export MANIFEST but not the
+  reconciliation report.** The manifest holds only counts + lsId-keyed unresolved samples (no
+  csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
+  lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
+  The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
+  `linguascrape_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
 
 ## Provenance propagation (US-006)
 

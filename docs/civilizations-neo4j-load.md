@@ -6,6 +6,15 @@ into the live Neo4j graph via the incremental, idempotent `culturescrape to-neo4
 (never `CREATE`) behind an `Entity.csid` uniqueness constraint plus per-label constraints/
 indexes, so re-running it does not duplicate nodes or relationships.
 
+> **csid migration (US-005).** This snapshot predates QID-anchored ids. The export now
+> mints `cs:<type>:<QID>` for any row with a non-blank `wikidata_qid` (only rows without a
+> QID keep `cs:<type>:<linguascrape-id>`; see `shared/canonical-schema.json` `idScheme`).
+> Because the load `MERGE`s on `csid`, the first load after this change **re-keys** every
+> QID-bearing node onto its new csid rather than updating the old linguascrape-id-anchored
+> node. To migrate an already-populated graph, wipe and reload from the fresh export (the
+> load is idempotent, so a clean reload is the supported path) rather than merging on top of
+> the old ids — otherwise the pre-migration nodes are orphaned under their stale csids.
+
 ## What ran
 
 The corpus is the canonical export of the source-of-truth lexicons (which now carry the 170
