@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linguascrape-ml"
+version = "0.1.0"
+description = "ML / neurosymbolic workspace for LinguaScrape — triples export, PyKEEN baselines, ProbLog, DVC + MLflow (NEUROSYMBOLIC_ROADMAP.md Phase 2)."
+readme = "README.md"
+# Kept a separate uv workspace from packages/culture-scrape so the sidecar
+# Docker image stays slim (no torch/pykeen). Pinned to 3.11 — the ML stack
+# (pykeen/torch wheels) lags the newest interpreters.
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    # Statistical / embedding stack. torch ships MPS on Apple Silicon and CPU
+    # everywhere else — pykeen picks the device at runtime (no code change).
+    "torch>=2.2",
+    "pykeen>=1.10",
+    # Probabilistic logic — pure-Python, no engine install (the DeepProbLog on-ramp).
+    "problog>=2.2",
+    # Text embeddings for GraphRAG / entity descriptions (Phase 5), and the HF
+    # datasets format for fine-tuning generators.
+    "sentence-transformers>=2.2",
+    "datasets>=2.14",
+    # Experiment tracking (local file backend) + dataset/artifact versioning.
+    "mlflow>=2.9",
+    "dvc>=3.0",
+]
+
+# NOTE — scallopy (neurosymbolic pilot, roadmap Phase 5.4) is intentionally NOT a
+# declared dependency: its only published wheel (0.1.0) is cp39-only, so it does
+# not resolve on this workspace's Python 3.11 and uv locks all extras into one
+# universal lock (a broken extra breaks the whole sync). It is a Phase-5 concern,
+# not needed for the Phase-2 loop; install it manually into the venv when the
+# pilot starts (`uv pip install scallopy`, on a compatible interpreter). Keeping
+# it out keeps the core env — the CI import smoke torch/pykeen/problog — green.
+
+[project.scripts]
+# US-002 reproducer — also runnable as `python -m linguascrape_ml.export_triples`.
+linguascrape-export-triples = "linguascrape_ml.export_triples:main"
+# US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
+linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
+# US-005 consistency ratchet (pure — no torch) — also `python -m
+# linguascrape_ml.check_consistency`.
+linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.4",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

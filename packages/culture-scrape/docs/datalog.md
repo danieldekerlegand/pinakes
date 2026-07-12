@@ -17,18 +17,21 @@ root (holding `nodes/*.tsv` and `edges/*.tsv`) and it writes a ready-to-load
 program for one or both engines:
 
 ```console
-$ culturescrape to-datalog <dir> --engine swipl|souffle|both --rules --out <dir>
+$ culturescrape to-datalog <dir> --engine swipl|souffle|problog|both --rules --out <dir>
 ```
 
 - `--engine` selects the target(s): `swipl` writes `graph.pl`, `souffle` writes
-  `graph.dl` plus one `<predicate>.facts` file per relation, `both` (the
-  default) writes each side by side into `--out`.
+  `graph.dl` plus one `<predicate>.facts` file per relation, `problog` writes an
+  annotated `graph.problog.pl` (see [ProbLog export](#problog-probabilistic-export)),
+  and `both` (the default) writes the SWI-Prolog + Soufflé pair side by side into
+  `--out`. ProbLog is opt-in (`--engine problog`), not part of `both`.
 - `--rules` attaches the shared inference-rule library (see below) to whichever
   program(s) are written.
 
 It prints a copy-pasteable load/run hint for each engine — `swipl <out>/graph.pl`
-for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé. The
-underlying orchestration lives in `culturescrape.datalog.export`.
+for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé,
+`problog <out>/graph.problog.pl` for ProbLog. The underlying orchestration lives
+in `culturescrape.datalog.export`.
 
 ### Streaming, not slurping (T-SR-US-002)
 
@@ -416,6 +419,58 @@ With the `.dl` and `.facts` in one directory, run:
 souffle graph.dl -F <dir-holding-the-.facts> -D <output-dir>
 ```
 
+## ProbLog probabilistic export
+
+ProbLog (<https://dtai.cs.kuleuven.be/problog/>) is Prolog with **annotated
+facts** — a fact may carry a probability, written `0.8::edge(a, b).`. It is the
+third engine target and the probabilistic on-ramp to DeepProbLog, which consumes
+the same syntax. `culturescrape.datalog.write_problog_program` emits a single
+`graph.problog.pl`. Two things distinguish it from the plain `.pl`:
+
+- **Confidence becomes probability.** An edge's `confidence` (the strength
+  `rel_conf/4` carries) is lifted onto the edge relation itself: `rel(t, A, B)` and
+  the typed `t(A, B)` are emitted as `W::…`. A confidence of `1.0` — or an absent
+  one — is a *certain* fact, written unannotated. Node, dimension and provenance
+  facts are always certain; the `rel_conf/4` / `rel_source/4` companions stay
+  certain too (they are metadata about the edge, not the edge). So a ProbLog query
+  returns a marginal probability that propagates the graph's per-edge confidences.
+
+```python
+>>> from culturescrape.datalog import AnnotatedFact, Fact, render_annotated_fact
+>>> render_annotated_fact(AnnotatedFact(Fact("rel", ("located_in", "cs:a", "cs:b")), 0.8))
+"0.8::rel(located_in, 'cs:a', 'cs:b')."
+>>> render_annotated_fact(AnnotatedFact(Fact("rel", ("located_in", "cs:a", "cs:b")), 1.0))
+"rel(located_in, 'cs:a', 'cs:b')."
+
+```
+
+- **No Prolog directives.** ProbLog's parser rejects `:- dynamic` /
+  `:- discontiguous` / `:- table` (they raise `ParseError`), so the program is just
+  a comment header, the facts, and — with `--rules` — the shared Horn rules. The
+  rules are ProbLog-compatible *verbatim*: a pure Horn clause and the comparison
+  guards (`<`, `>`, `>=`) parse and evaluate identically, so `render_rule` in the
+  Prolog dialect is reused unchanged. Because ProbLog raises `UnknownClause` when a
+  query grounds through a predicate that has **no** clauses (and has no `:- dynamic`
+  to pre-declare one), attaching rules also emits a never-firing stub
+  (`pred(_, _) :- fail.`) for every base predicate the rules read, so a query over
+  an unpopulated base relation answers `false` (probability `0`) rather than
+  erroring — the ProbLog analogue of the SWI `:- dynamic` declaration.
+
+To run it, append a `query(...)` (and optional `evidence(...)`) to the emitted
+program and evaluate with the `problog` pip package:
+
+```
+$ problog graph.problog.pl        # or: query(within_region('cs:a', X)).
+```
+
+`tests/test_datalog_problog.py` proves the emitted syntax is valid ProbLog by
+computing a marginal over a fixture export — a two-hop `located_in` chain of
+confidences `0.9` and `0.8` yields `within_region/2` marginal `0.72`, so the
+confidences multiply along the derived containment. Recursive rules over a
+*probabilistic* cyclic base relation (e.g. `influenced_transitively` over the
+mutually-cyclic `influenced_by`) can be expensive to ground in ProbLog; query the
+structural closures over acyclic relations, or add `evidence`, for tractable runs.
+
 ## Inference rules
 
 The raw facts are only the graph; the **rules layer** is what makes the logic
@@ -430,10 +485,11 @@ how *constants* are quoted, and a rule has none. The temporal rules additionally
 use **comparison body literals**, but only the operators `<` and `>=`, which are
 byte-identical arithmetic goals in SWI-Prolog and native numeric constraints in
 Soufflé (the asymmetric spellings `=<` / `!=` are deliberately avoided). So each
-rule's clause text is **shared verbatim** across both outputs; the engines differ
-only in the scaffolding around the clauses (Prolog's `:- dynamic`/`:-
-discontiguous`/`:- table` directives, Soufflé's `.decl`/`.output`), which the
-emitters add automatically.
+rule's clause text is **shared verbatim** across all three outputs; the engines
+differ only in the scaffolding around the clauses (Prolog's `:- dynamic`/`:-
+discontiguous`/`:- table` directives, Soufflé's `.decl`/`.output`, ProbLog's
+never-firing `pred(_, _) :- fail.` base-predicate stubs — see [ProbLog
+export](#problog-probabilistic-export)), which the emitters add automatically.
 
 Every rule *predicate* literal is **binary over csids** (a comparison literal such
 as `Ex < Sy` is not a predicate goal and carries no relation).

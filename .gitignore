@@ -13,6 +13,9 @@ sources/
 .ralphy-worktrees
 # US-004 canonical export output (gitignored; manifest snapshot lives in docs/)
 export/culturescrape/
+# DVC local remote (NEUROSYMBOLIC_ROADMAP Phase 2 / ml US-001) — the actual bytes
+# for DVC-tracked builds live here; the committed pointers are the *.dvc files.
+dvc-storage/
 # US-007 collaborative collections — user runtime data (JSON per collection)
 data/collections/
 # US-008 user annotations — user runtime data (JSON per annotation)

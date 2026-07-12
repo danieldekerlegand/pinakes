@@ -1,0 +1,20 @@
+{
+  "//": "Logical-consistency ratchet baseline (ml US-005). A monotone gate over the committed PyKEEN baseline predictions (ml/predictions/<model>.tsv): descent-cycle / canonical-schema-type / antisymmetry violation counts may hold or lower, never exceed, without a deliberate re-baseline. Regenerate: uv run linguascrape-check-consistency --write-baseline",
+  "models": {
+    "complex": {
+      "asymmetryViolations": 2,
+      "descentCycles": 2,
+      "schemaTypeBreaches": 76
+    },
+    "rotate": {
+      "asymmetryViolations": 0,
+      "descentCycles": 0,
+      "schemaTypeBreaches": 43
+    },
+    "transe": {
+      "asymmetryViolations": 332,
+      "descentCycles": 295,
+      "schemaTypeBreaches": 4
+    }
+  }
+}

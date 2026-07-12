@@ -103,6 +103,45 @@ a comparison over a still-unbound variable is an unsafe rule and also raises.
   (`tests/test_datalog_materialize.py`); those counts are stable because the fixture
   node/edge counts are themselves pinned (see the shared-fixture GOTCHA below).
 
+## ProbLog probabilistic emitter (US-004)
+
+`problog.py` is the third engine target (`to-datalog --engine problog` →
+`graph.problog.pl`). ProbLog is Prolog-with-annotated-facts, so it **reuses**
+`render_fact(..., Dialect.PROLOG)` for atom quoting/escaping — the only new syntax
+is the `W::` probability prefix. Design rules if you touch it:
+
+- **Confidence → probability on the EDGE relation.** `annotate_edge_group` lifts
+  the `rel_conf/4` confidence onto `rel/3` and the typed `t/2` (`W::rel(...)`);
+  companions (`rel_conf/4`, `rel_source/4`) and all node/dimension facts stay
+  **certain** (unannotated). Confidence `1.0` or absent → unannotated (there's no
+  point writing `1.0::`). Out-of-`[0,1]` → `ProblogError` (validate, don't emit
+  invalid syntax — same philosophy as `render_predicate`).
+- **ProbLog has NO directives.** `:- dynamic`/`:- discontiguous`/`:- table` all
+  raise `ParseError` in the pure-Python problog parser — the program is header +
+  facts + rules only. Verified empirically before relying on it.
+- **GOTCHA — ProbLog raises `UnknownClause` when a query grounds through a
+  zero-clause predicate**, and there's no `:- dynamic` to pre-declare one. So with
+  `--rules`, `_base_predicate_stubs` emits `pred(_, _) :- fail.` for every base
+  predicate the rules read that isn't itself a rule head (a never-firing clause =
+  "defined but empty"). This is the ProbLog analogue of prolog.py's `:- dynamic`.
+  Without it, a query over e.g. `originates_from`/`spoken_in` on a sparse graph
+  errors instead of answering `0`.
+- **Rules are ProbLog-compatible verbatim** — the shared Horn clauses AND the
+  comparison guards (`<`, `>`, `>=`) parse/evaluate identically, so `render_rule`
+  in the Prolog dialect is reused. Recursive closures over a *probabilistic cyclic*
+  base relation can be expensive to ground; that's a query-time concern, not the
+  emitter's — it just emits the rules.
+- **No double-pass / signatures.** Unlike prolog.py (which iterates twice for
+  directive signatures), problog needs no directives → single pass; `write_ ==
+  render_` byte-identity still holds via a shared line list.
+- **`problog` is a TEST dep** (in the `dev` extra + a `[[tool.mypy.overrides]]`
+  ignore-missing-imports, mirroring neo4j). The emitter imports NOTHING from
+  problog — it only writes text. Tests `pytest.importorskip("problog")` and
+  compute a marginal over a fixture (the CI "problog computes a marginal" gate).
+- **`collect_problog_facts` reuses `export.collect_facts`** for discovery/validation
+  (imported lazily inside the fn to avoid an import cycle: export imports problog).
+  `Engine.PROBLOG` is opt-in — `engines_for_choice("both")` stays swipl+souffle.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its
