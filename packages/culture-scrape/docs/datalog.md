@@ -112,7 +112,7 @@ binary predicate per `:TYPE` — the two are interchangeable views:
 |---|---|
 | `rel/3` | `rel(Type, Start, End)` — generic edge with the type as data |
 | `located_in/2`, `originates_from/2`, `created_by/2`, … | typed projection of a single `:TYPE` |
-| `rel_conf/4` | `rel_conf(Type, Start, End, Weight)` — optional edge strength/confidence |
+| `rel_conf/4` | `rel_conf(Type, Start, End, Conf)` — optional edge confidence (falls back to legacy `weight`) |
 
 ### Dimension facts
 
@@ -181,9 +181,11 @@ idempotent.
 - `rel(t, A, B)` — the **generic** view, so every edge is reachable by one
   uniform query (`rel(Type, A, B)`);
 - `t(A, B)` — the **typed** view, one binary predicate per `:TYPE`;
-- `rel_conf(t, A, B, Weight)` — an optional companion exposing the edge
-  `weight` (its strength/confidence), emitted **only** when that column is
-  populated, so the base relations stay arity-stable.
+- `rel_conf(t, A, B, Conf)` — an optional companion exposing the edge's
+  **confidence** (its strength), emitted **only** when a strength is populated,
+  so the base relations stay arity-stable. The value is the canonical
+  `confidence` column; the legacy `weight` column is a fallback used only when
+  `confidence` is blank but `weight` is genuinely populated.
 
 Both views carry the **same atom** for the type, so a query pivots between them
 freely: `rel(located_in, A, B)` mirrors `located_in(A, B)`. Each fact carries
@@ -209,12 +211,12 @@ rejected rather than silently colliding.
 
 ```
 
-A weighted edge yields all three facts; the type atom is shared across the
-generic and typed views, and `rel_conf` carries the numeric weight:
+A confidence-bearing edge yields all three facts; the type atom is shared across
+the generic and typed views, and `rel_conf` carries the numeric confidence:
 
 ```python
 >>> row = {":START_ID": "cs:dish:Q42", ":END_ID": "cs:place:Q123",
-...        ":TYPE": "LOCATED_IN", "weight": "0.9", "source": "wikidata"}
+...        ":TYPE": "LOCATED_IN", "confidence": "0.9", "source": "wikidata"}
 >>> for fact in edge_facts(row):
 ...     print(fact.render())
 rel(located_in, 'cs:dish:Q42', 'cs:place:Q123').  % source: wikidata

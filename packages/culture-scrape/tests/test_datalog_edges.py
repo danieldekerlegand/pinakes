@@ -12,7 +12,10 @@ from culturescrape.datalog import (
     edge_facts,
     edge_file_facts,
     predicate_for_type,
+    render_program,
+    write_souffle_facts,
 )
+from culturescrape.schema.headers import EdgeSchema, render_edge_header
 from culturescrape.schema.tsvio import Row
 
 FIXTURE = Path(__file__).parent / "fixtures" / "datalog" / "edges.tsv"
@@ -92,6 +95,47 @@ def test_weight_is_exposed_via_a_rel_conf_companion() -> None:
     assert conf.render() == "rel_conf(adjacent_to, 'cs:a:Q1', 'cs:b:Q2', 0.75)."
 
 
+def test_confidence_is_projected_into_rel_conf() -> None:
+    # The canonical `confidence` column is the source of the strength companion.
+    row = _row(
+        **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "BORROWED_FROM"},
+        confidence="0.8",
+    )
+    (conf,) = [f for f in edge_facts(row) if f.predicate == "rel_conf"]
+    assert conf.args == ("borrowed_from", "cs:a:Q1", "cs:b:Q2", 0.8)
+
+
+def test_confidence_takes_precedence_over_weight() -> None:
+    # When both are present, the canonical confidence wins over legacy weight.
+    row = _row(
+        **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "ADJACENT_TO"},
+        weight="0.3",
+        confidence="0.9",
+    )
+    (conf,) = [f for f in edge_facts(row) if f.predicate == "rel_conf"]
+    assert conf.args == ("adjacent_to", "cs:a:Q1", "cs:b:Q2", 0.9)
+
+
+def test_weight_is_fallback_when_confidence_blank() -> None:
+    # A populated weight still projects when confidence is absent/blank.
+    row = _row(
+        **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "ADJACENT_TO"},
+        weight="0.5",
+        confidence="",
+    )
+    (conf,) = [f for f in edge_facts(row) if f.predicate == "rel_conf"]
+    assert conf.args == ("adjacent_to", "cs:a:Q1", "cs:b:Q2", 0.5)
+
+
+def test_blank_confidence_and_weight_emit_no_rel_conf() -> None:
+    row = _row(
+        **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "DERIVED_FROM"},
+        weight="",
+        confidence="",
+    )
+    assert not [f for f in edge_facts(row) if f.predicate == "rel_conf"]
+
+
 def test_source_rides_along_as_provenance() -> None:
     row = _row(
         **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "LOCATED_IN"},
@@ -110,3 +154,51 @@ def test_missing_type_is_rejected() -> None:
     row = _row(**{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": ""})
     with pytest.raises(DatalogError):
         edge_facts(row)
+
+
+def test_canonical_confidence_reaches_both_dialects(tmp_path: Path) -> None:
+    """A canonical edge row with confidence 0.8 emits 0.8 in rel_conf/4 in
+    BOTH the SWI-Prolog program and the Soufflé ``.facts`` (US-003 regression).
+
+    The live corpus leaves ``weight`` blank and carries strength only on the
+    canonical ``confidence`` column, so this guards against rel_conf/4 going
+    empty at the export boundary again.
+    """
+    header = render_edge_header(EdgeSchema.canonical())
+    # A canonical row: blank weight, confidence 0.8 (as the real corpus ships).
+    row = "\t".join(
+        {
+            ":START_ID": "cs:language:arb",
+            ":END_ID": "cs:language:eng",
+            ":TYPE": "BORROWED_FROM",
+            "weight:float": "",
+            "source": "linguascrape",
+            "source_url": "",
+            "retrieved_at": "",
+            "confidence:float": "0.8",
+        }[cell]
+        for cell in header.split("\t")
+    )
+    edges = tmp_path / "edges.tsv"
+    edges.write_text(f"{header}\n{row}\n", encoding="utf-8")
+
+    facts = edge_file_facts(edges)
+    (conf,) = [f for f in facts if f.predicate == "rel_conf"]
+    assert conf.args == ("borrowed_from", "cs:language:arb", "cs:language:eng", 0.8)
+
+    # SWI-Prolog: the clause carries the confidence verbatim.
+    assert (
+        "rel_conf(borrowed_from, 'cs:language:arb', 'cs:language:eng', 0.8)."
+        in render_program(facts)
+    )
+
+    # Soufflé: the rel_conf.facts row's last (float) cell is the confidence.
+    facts_dir = tmp_path / "souffle"
+    facts_dir.mkdir()
+    write_souffle_facts(facts_dir, facts)
+    rel_conf_lines = (
+        (facts_dir / "rel_conf.facts").read_text(encoding="utf-8").splitlines()
+    )
+    assert rel_conf_lines == [
+        "borrowed_from\tcs:language:arb\tcs:language:eng\t0.8"
+    ]
