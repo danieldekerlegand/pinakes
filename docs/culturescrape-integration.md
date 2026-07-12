@@ -134,8 +134,8 @@ The data-layer-convergence PRD delivered these artifacts. Each is specified in a
 | US-007 | Bidirectional write-back (graph → lexicons), conflict-safe, ambiguous-id-safe | `scripts/import-from-culturescrape.ts` | §9 |
 | US-008 | Network-free QA gate: id-overlap, unreconciled rate, provenance, **schema-drift hard-fail** | `scripts/convergence-qa.ts` | §10 |
 
-**Live snapshot** (committed): the export produces **5,351 nodes** across 17 node types and
-**5,526 edges** across 7 edge types — see [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json)
+**Live snapshot** (committed): the export produces **6,835 nodes** across 17 node types and
+**5,836 edges** across 8 edge types — see [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json)
 and [`docs/reconciliation-report.json`](./reconciliation-report.json). The `export/culturescrape/`
 tree itself is gitignored (regenerate with the CLIs below).
 

@@ -1,0 +1,75 @@
+# culture-scrape fork policy — one source of truth
+
+**Status:** Canonical decision, 2026-07-12 (Phase 0 item 0.9 / US-009).
+**TL;DR:** `packages/culture-scrape/` in this monorepo is the **single canonical copy**
+of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo is
+**diverged and behind** — it is **archived**, not synced. Do all Python engine work here.
+
+## 1. Why there are two copies
+
+culture-scrape began as a standalone Python repo (`~/Development/culture-scrape`) and was
+**vendored** into LinguaScrape at `packages/culture-scrape/` so the two projects could
+co-evolve without a package-publish round trip (see `docs/culturescrape-integration.md`).
+The vendored copy carries **no nested `.git`** — it is an ordinary subtree of this
+monorepo, so every commit to it lands in LinguaScrape's history. That was the right call
+for velocity, but it created the classic vendored-fork hazard: the vendored copy moved
+ahead while the standalone repo stood still, and there was **no sync mechanism** to
+reconcile them. A diverged fork of the core engine is pure risk — this document retires
+that risk on paper and states the procedure.
+
+## 2. The decision
+
+- **`packages/culture-scrape/` is canonical.** All future Python engine changes
+  (acquisition adapters, datalog/neo4j emitters, rules, materializer) land here and are
+  reviewed + tested via this repo's toolchain (`uv run mypy src` / `uv run pytest` /
+  `uv run ruff check .` from `packages/culture-scrape/`, plus the `convergence-qa.yml`
+  CI job).
+- **The standalone `~/Development/culture-scrape` repo is archived, not merged back.**
+  It is behind on every axis below and has no changes the vendored copy lacks that are
+  worth recovering. Archiving (rather than a git-subtree re-sync) is chosen because:
+  1. The divergence is **one-directional** — the vendored copy is strictly ahead; there
+     is nothing to pull *from* the standalone repo.
+  2. A live subtree link would re-open the two-way-sync hazard this policy exists to close.
+  3. The standalone repo is **not present on the maintainer's machine** (verified
+     2026-07-12) and is not referenced by any build, CI job, or Docker image here.
+
+  Archive procedure (do once, when convenient — not required for correctness here since the
+  repo is already absent): tag the standalone repo `archived-superseded-by-linguascrape`,
+  push the tag, and set its README to point at `packages/culture-scrape/` as canonical, or
+  simply move it to cold storage. **Do not delete history** — keep it as a provenance record
+  of the pre-vendor era.
+
+## 3. Enumerated divergence (vendored ahead of standalone)
+
+The vendored copy is ahead by these pieces (audited 2026-07-11, roadmap §2 finding 9;
+re-confirmed against the tree 2026-07-12). The standalone repo lacks all of them.
+
+| Divergence | Where (in `packages/culture-scrape/`) | What it is |
+|---|---|---|
+| **Engine-free materializer** | `src/culturescrape/datalog/materialize.py` | Naive-fixpoint Datalog evaluator (`materialize`/`summarize`) that computes the rules' derived extension **without** swipl/souffle — computed 1,044,372 derived tuples over the full corpus. Vendored-only. |
+| **Neo4j counts helper** | `src/culturescrape/neo4j/counts.py` | Label/relationship-count reporting over the loaded graph. Vendored-only. |
+| **2 extra inference rules** | `src/culturescrape/datalog/rules.py` | Standalone ships **5** rules; the vendored copy ships **7** (`RULES`). The two extra port LinguaScrape's cross-domain logic: `same_region/2` (geographic correlation) and `genetic_linguistic_correlation/2` (the symbolic core of the genetic↔linguistic correlation). |
+| **LinguaScrape acquisition adapter** | `src/culturescrape/acquire/linguascrape.py` | Reads a LinguaScrape canonical export (`nodes/*.tsv` + `edges/*.tsv`) from disk and emits `RawRecord`s, making LinguaScrape a first-class acquisition source alongside Wikidata/Getty/PetScan. Vendored-only. |
+| **~20 modified modules** | across `src/culturescrape/` (~84 Python modules total) | Bug fixes + capabilities added while vendored — e.g. `datalog/edges.py` `rel_conf/4` confidence projection (US-003), `datalog/prolog.py` tabling of recursive closures for cyclic base relations (US-002), `datalog/souffle.py`/`run_souffle` output-dir fixes, plus adapter/schema tweaks. These are validated by this repo's CI and documented in `packages/culture-scrape/docs/engine-validation.md`. |
+
+**Nested-git note:** `packages/culture-scrape/` has no `.git` (verified). Never
+re-introduce one — a nested repo would silently detach these files from LinguaScrape's
+history and re-create the fork.
+
+## 4. Working rule for future changes
+
+- **Edit here.** Any culture-scrape change is a normal commit in this monorepo under
+  `packages/culture-scrape/`. Do **not** touch `~/Development/culture-scrape`.
+- **Never re-vendor from the standalone repo.** It is behind; copying from it would
+  regress the divergence above.
+- If a genuine third-party fork of culture-scrape ever needs upstreaming, do it via an
+  explicit `git subtree` split of `packages/culture-scrape/` (one-directional export),
+  reviewed like any other release — but that is out of scope until an external consumer
+  exists.
+
+## 5. Related docs
+
+- `docs/culturescrape-integration.md` — the integration design + live export snapshot.
+- `packages/culture-scrape/docs/engine-validation.md` — the first real-engine run + the
+  fixes the vendored modules carry.
+- `NEUROSYMBOLIC_ROADMAP.md` §Phase 0 — the status table this policy closes (item 0.9).

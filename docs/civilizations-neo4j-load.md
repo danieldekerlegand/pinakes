@@ -1,5 +1,17 @@
 # Civilizations Neo4j load & smoke query (US-004)
 
+> **Historical intermediate snapshot.** This document records the *first* civilizations
+> Neo4j load (US-004) and its then-current export counts (**5,432 nodes / 5,526 edges**,
+> 7 edge types). Those numbers are frozen at that point in time and have since moved: the
+> live export is now **6,835 nodes / 5,836 edges across 8 edge types** (see
+> [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json), the
+> authoritative live snapshot). The **procedure** below (MERGE-on-`csid`, idempotent
+> LOAD CSV, the docker-compose Neo4j additions) is still current and reusable; only the
+> inline counts are a period record, not a live figure. See also the csid-migration note
+> just below. For the canonical Phase-0 status and the fork policy, see
+> [`../NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md) and
+> [`docs/culturescrape-fork-policy.md`](./culturescrape-fork-policy.md).
+
 The expanded civilizations (`lexicons/civilizations.tsv`, 170 rows after US-003) loaded
 into the live Neo4j graph via the incremental, idempotent `culturescrape to-neo4j
 --mode loadcsv` path, so the running app queries real breadth. The load is `MERGE`-on-`csid`
