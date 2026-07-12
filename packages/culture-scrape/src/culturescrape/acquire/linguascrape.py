@@ -18,14 +18,16 @@ rows carry their ``csid`` / ``:LABEL`` and the ``linguascrape_id`` round-trip
 alias; edge rows carry ``:START_ID`` / ``:END_ID`` / ``:TYPE`` — the structural
 columns downstream uses to tell the two apart.
 
-Every row's five provenance columns (``source``, ``source_url``,
-``source_query``, ``retrieved_at``, ``confidence``) are lifted out of the field
-map into the record's :class:`~culturescrape.acquire.records.Provenance` (that is
-where :func:`culturescrape.schema.mapper.map_record` reads them). The ``source``
-is stamped :data:`LINGUASCRAPE_SOURCE` — the acquisition-source id the reconciler
+Every row's provenance columns (``source``, ``source_url``, ``source_query``,
+``retrieved_at``, ``confidence``, and — canonical schema v1.1 / US-003 — the
+per-record SPDX ``license``) are lifted out of the field map into the record's
+:class:`~culturescrape.acquire.records.Provenance` (that is where
+:func:`culturescrape.schema.mapper.map_record` reads them). The ``source`` is
+stamped :data:`LINGUASCRAPE_SOURCE` — the acquisition-source id the reconciler
 keys on — regardless of what the file carries, and ``retrieved_at`` is stamped
 with the ingestion clock when the export leaves it blank (LinguaScrape records no
-retrieval timestamp).
+retrieval timestamp). A row-level ``license`` cell takes precedence over the
+export-level ``license`` param.
 
 Configuration (all under ``source.params`` unless noted):
 
@@ -68,7 +70,14 @@ DEFAULT_CONFIDENCE = 1.0
 #: :func:`culturescrape.schema.mapper.map_record` reads provenance from there, so
 #: leaving these in ``fields`` would duplicate them into the overflow column.
 _PROVENANCE_COLUMNS = frozenset(
-    {"source", "source_url", "source_query", "retrieved_at", "confidence"}
+    {
+        "source",
+        "source_url",
+        "source_query",
+        "retrieved_at",
+        "confidence",
+        "license",
+    }
 )
 
 
@@ -195,7 +204,9 @@ class LinguaScrapeExportAdapter(SourceAdapter):
             source_query=row.get("source_query", ""),
             retrieved_at=row.get("retrieved_at") or retrieved_at,
             confidence=_confidence(row.get("confidence")),
-            license=license_,
+            # Canonical schema v1.1 (US-003) carries a per-record SPDX license; a
+            # row-level `license` cell wins, else the export-level default (params).
+            license=(row.get("license") or "").strip() or license_,
         )
         return RawRecord(fields=fields, provenance=provenance)
 

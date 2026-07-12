@@ -115,7 +115,11 @@ sources and are never overwritten by acquisition (Guiding Principle #8).
 When adding a new dataset:
 
 1. Record the source, license, and access date in this file
-2. Add a `source_license` field to the TSV if the file mixes sources
+2. Add a `source_license` field to the TSV if the file mixes sources. The canonical
+   export (schema **v1.1**, US-003) also stamps a per-record SPDX `license` column on every
+   exported node and edge, resolved from the record's `source` via the `SOURCE_LICENSES`
+   registry in `scripts/export-for-culturescrape.ts` — extend that registry when a new source
+   with a distinct licence lands (e.g. a CC-BY-SA source: Glottolog / Wiktionary / PHOIBLE).
 3. Prefer CC0 or CC-BY sources
 4. If using CC-BY-SA data, note that derivatives must also be CC-BY-SA
 5. Never commit proprietary data to this repository

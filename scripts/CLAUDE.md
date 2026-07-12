@@ -52,6 +52,40 @@ full-tree scan (`npm run secret-scan`, CI mode); `--staged` = staged-only
   to `ALLOWLISTED_PATHS` in the script. Findings mask the match (`AKIA…LE`) so the
   report never re-leaks the secret.
 
+### Per-record SPDX license + edge citations (canonical schema v1.1, US-003)
+
+The export stamps a `license` column on **every** node and edge and a `source_query`
+citation column on **edges** (nodes already had one). Both are v1.1 additions to
+`shared/canonical-schema.json` (role `provenance`; `license` required, edge `source_query`
+optional). Rules:
+
+- **`license` is resolved from the record's `source` via `SOURCE_LICENSES`** (a registry in
+  `export-for-culturescrape.ts`, `source id → SPDX`), defaulting to `DEFAULT_LICENSE`
+  (`CC-BY-4.0`). The TS export stamps `source = linguascrape` on every row, so today every
+  exported record is `CC-BY-4.0`; the registry is the forward-looking mechanism (e.g.
+  `wikidata → CC0-1.0`, `wiktionary → CC-BY-SA-4.0`) that fires when culture-scrape's own
+  acquisition paths stamp a different `source` — land it **before** the first share-alike
+  source, not after.
+- **Edge citations stop being dropped.** Previously an edge citation had no canonical column
+  (`provenance.edge.citationsWithoutCanonicalColumn` counted the residue, ~1,094). Now the
+  extractor's real citation (`e.provenance.source` when ≠ the source-file fallback) is written
+  to the edge `source_query`, so the residue is permanently `0`.
+- **Both are in `PROVENANCE_FORCED_FIELDS`** (skipped by the generic `target`→column loop and
+  set explicitly) and in `NODE_/EDGE_PROVENANCE_FIELDS` (so the manifest coverage + the
+  convergence-QA drift check see them). `license` is also in the importer's
+  `NON_WRITEBACK_FIELDS` (graph-owned; never written back to lexicons).
+- **Python lockstep:** culture-scrape's `linguascrape-export` adapter already lifts
+  `source_query`/`license` into `Provenance` (its `_PROVENANCE_COLUMNS`); a row-level `license`
+  cell wins over the export-level `license` param. culture-scrape's OWN `headers.py`
+  `NodeSchema/EdgeSchema.canonical()` were deliberately **not** changed (they already diverge
+  from the TS export header, and touching them cascades into its neo4j export + categorizer +
+  ~6 tests) — the adapter parses the extra columns fine (plain string columns).
+- **GOTCHA — `export-for-culturescrape.ts` contains literal NUL bytes** (`\x00`) as the edge
+  sort-key separator, so plain `grep` reports it as a binary file — use `grep -a` / `rg --text`.
+- After any change here, regenerate `docs/culturescrape-export-manifest.json`
+  (`npx tsx scripts/export-for-culturescrape.ts`) and run `npm run convergence-qa` — a
+  live-corpus test asserts `snapshot.provenance` equals a fresh build's.
+
 ## Live-graph smoke test (US-005)
 
 `smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data

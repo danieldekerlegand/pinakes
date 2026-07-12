@@ -69,6 +69,50 @@ export const DOC_MANIFEST_PATH = path.join(
 export const EXPORT_SOURCE = "linguascrape";
 
 /**
+ * SPDX license for the curated LinguaScrape corpus (US-003). The corpus is a
+ * hand-curated aggregate distributed under CC-BY; even its Wikidata-anchored rows
+ * are redistributed as part of this attributed corpus. A source whose records carry
+ * a genuinely different license (a future CC-BY-SA source) is listed in
+ * {@link SOURCE_LICENSES} and takes precedence via {@link licenseForSource}.
+ */
+export const DEFAULT_LICENSE = "CC-BY-4.0";
+
+/**
+ * Per-source SPDX license registry (US-003). Maps a provenance-`source` id to the
+ * SPDX identifier its records are distributed under, so share-alike obligations
+ * travel **per record** once the first CC-BY-SA source (Glottolog / Wiktionary /
+ * PHOIBLE) lands — retrofitting the column afterwards is far more painful. The
+ * TS export stamps `source = linguascrape` on every row today, so every exported
+ * record resolves to {@link DEFAULT_LICENSE}; culture-scrape's own acquisition
+ * paths stamp their source id (e.g. `wikidata`) and inherit the mapped license.
+ * Extend this table when a new source is added; an unlisted source falls back to
+ * {@link DEFAULT_LICENSE}. SPDX identifiers per https://spdx.org/licenses/.
+ */
+export const SOURCE_LICENSES: Readonly<Record<string, string>> = {
+  linguascrape: DEFAULT_LICENSE,
+  wikidata: "CC0-1.0",
+  glottolog: "CC-BY-4.0",
+  wals: "CC-BY-4.0",
+  phoible: "CC-BY-SA-3.0",
+  lexibank: "CC-BY-4.0",
+  wiktionary: "CC-BY-SA-4.0",
+  kaikki: "CC-BY-SA-4.0",
+  geonames: "CC-BY-4.0",
+  dbpedia: "CC-BY-SA-3.0",
+  conceptnet: "CC-BY-SA-4.0",
+};
+
+/**
+ * Resolve the SPDX license for a record from its provenance-`source` id via the
+ * per-source {@link SOURCE_LICENSES} registry; an unregistered source falls back
+ * to {@link DEFAULT_LICENSE}. Every exported node and edge carries the result in
+ * its `license` column (canonical schema v1.1).
+ */
+export function licenseForSource(source: string): string {
+  return SOURCE_LICENSES[source] ?? DEFAULT_LICENSE;
+}
+
+/**
  * Confidence for a node whose lexicon row carries no confidence value — mid-scale
  * ("present but unverified"), matching {@link DEFAULT_EDGE_CONFIDENCE} on the edge side.
  */
@@ -87,23 +131,30 @@ const PROVENANCE_FORCED_FIELDS: ReadonlySet<string> = new Set([
   "source_url",
   "source_query",
   "retrieved_at",
+  "license",
 ]);
 
-/** Provenance fields present on every exported node row (US-006 coverage). */
+/** Provenance fields present on every exported node row (US-006 coverage + US-003 license). */
 export const NODE_PROVENANCE_FIELDS = [
   "source",
   "source_url",
   "source_query",
   "retrieved_at",
   "confidence",
+  "license",
 ] as const;
 
-/** Provenance fields present on every exported edge row (US-006 coverage). */
+/**
+ * Provenance fields present on every exported edge row. Canonical schema v1.1
+ * (US-003) added `source_query` (edge citations stop being dropped) and `license`.
+ */
 export const EDGE_PROVENANCE_FIELDS = [
   "source",
   "source_url",
+  "source_query",
   "retrieved_at",
   "confidence",
+  "license",
 ] as const;
 
 /** An unresolved edge endpoint, retained (bounded) for the manifest. */
@@ -143,10 +194,10 @@ export interface ProvenanceCoverage {
   readonly node: ProvenanceFamilyCoverage;
   readonly edge: ProvenanceFamilyCoverage & {
     /**
-     * Edges that carried an original bibliographic citation for which the canonical
-     * edge schema has no column (it has no `source_query`). These are never silently
-     * dropped: embedded-FK edges preserve the citation on the host node's
-     * `source_query`; this count flags the residue for review.
+     * Edges that carried an original bibliographic citation with no canonical column
+     * to hold it. Canonical schema v1.1 (US-003) added a `source_query` column to the
+     * edge family, so every citation now has a home and this residue is permanently 0
+     * (kept for manifest back-compat / regression detection).
      */
     readonly citationsWithoutCanonicalColumn: number;
   };
@@ -504,6 +555,8 @@ function buildNodesForFile(
       "confidence",
       String(normaliseConfidence(record.get("confidence") ?? "")),
     );
+    // US-003: per-record SPDX license, resolved from the record's source id.
+    record.set("license", licenseForSource(EXPORT_SOURCE));
 
     group.push(orderRow(CANONICAL_SCHEMA.node.columns, record));
 
@@ -549,7 +602,9 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
   const unresolvedSamples: UnresolvedEndpoint[] = [];
   let unresolvedCount = 0;
 
-  let edgeCitationsWithoutColumn = 0;
+  // Canonical schema v1.1 (US-003) gave edges a `source_query` column, so an edge
+  // citation always has a canonical home now — the residue count is permanently 0.
+  const edgeCitationsWithoutColumn = 0;
 
   // US-007: mint a flagged needs-curation stub node for an edge endpoint that has
   // no real exported node, so the referencing edge reaches the export instead of
@@ -584,6 +639,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set("source_query", "");
     record.set("retrieved_at", "");
     record.set("confidence", "0");
+    record.set("license", licenseForSource(EXPORT_SOURCE));
 
     const group = nodeGroups.get(stubType) ?? [];
     group.push(orderRow(CANONICAL_SCHEMA.node.columns, record));
@@ -632,12 +688,11 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     }
 
     // The extractor's `provenance.source` is the original citation, or the source
-    // file name when the row carried none. A real citation has no canonical edge
-    // column (edges have no `source_query`); flag it rather than drop it silently.
-    const edgeCitation = e.provenance.source;
-    if (edgeCitation !== "" && edgeCitation !== e.sourceFile) {
-      edgeCitationsWithoutColumn += 1;
-    }
+    // file name when the row carried none. Canonical schema v1.1 (US-003) gives
+    // edges a `source_query` column, so the real citation is now preserved there
+    // instead of being dropped — the `citationsWithoutCanonicalColumn` residue is 0.
+    const edgeCitation =
+      e.provenance.source !== e.sourceFile ? e.provenance.source : "";
 
     const record = new Map<string, string>();
     record.set(":START_ID", startCsid);
@@ -648,8 +703,10 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set("linguascrape_id", e.linguascrapeId ?? "");
     record.set("source", EXPORT_SOURCE);
     record.set("source_url", deriveSourceUrl(e.provenance.sourceUrl, edgeCitation));
+    record.set("source_query", edgeCitation);
     record.set("retrieved_at", "");
     record.set("confidence", String(e.provenance.confidence));
+    record.set("license", licenseForSource(EXPORT_SOURCE));
 
     const group = edgeGroups.get(e.edgeName) ?? [];
     group.push(orderRow(CANONICAL_SCHEMA.edge.columns, record));
@@ -772,11 +829,20 @@ function buildProvenanceCoverage(
       `edge.retrieved_at: 0/${edge.total} edges carry a retrieval timestamp; left blank, never fabricated.`,
     );
   }
+  // US-003: edges gained a source_query column, so an edge citation is never dropped
+  // (citationsWithoutCanonicalColumn is 0). Report how many edges preserve one.
+  flags.push(
+    `edge.source_query: ${edge.nonEmpty.source_query}/${edge.total} edges preserve their original citation (canonical schema v1.1 — previously dropped).`,
+  );
   if (edge.citationsWithoutCanonicalColumn > 0) {
     flags.push(
-      `edge.citationsWithoutCanonicalColumn: ${edge.citationsWithoutCanonicalColumn} edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query.`,
+      `edge.citationsWithoutCanonicalColumn: ${edge.citationsWithoutCanonicalColumn} edges carried an original citation with no canonical column.`,
     );
   }
+  // Per-record SPDX license (US-003) — every node and edge carries one.
+  flags.push(
+    `license: ${node.nonEmpty.license}/${node.total} nodes and ${edge.nonEmpty.license}/${edge.total} edges carry an SPDX license (source-derived; default ${DEFAULT_LICENSE}).`,
+  );
 
   return { node, edge, flags };
 }
