@@ -6,7 +6,7 @@
       "type": "language",
       "label": "Language",
       "file": "nodes/language.tsv",
-      "count": 1061
+      "count": 1099
     },
     {
       "type": "language-family",
@@ -78,7 +78,7 @@
       "type": "ingredient",
       "label": "Ingredient",
       "file": "nodes/ingredient.tsv",
-      "count": 2206
+      "count": 2208
     },
     {
       "type": "trade-good",
@@ -96,7 +96,7 @@
       "type": "place",
       "label": "Place",
       "file": "nodes/place.tsv",
-      "count": 1212
+      "count": 1213
     },
     {
       "type": "migration-route",
@@ -156,15 +156,15 @@
     }
   ],
   "totals": {
-    "nodes": 6794,
+    "nodes": 6835,
     "edges": 5836,
     "nodeTypes": 17,
     "edgeTypes": 8
   },
   "diagnostics": {
     "skippedNodeRowsMissingId": 0,
-    "duplicateCsids": 44,
-    "ambiguousLinguascrapeIds": 16,
+    "duplicateCsids": 0,
+    "ambiguousLinguascrapeIds": 0,
     "edgesWithUnresolvedEndpoint": 0,
     "unresolvedEndpointSamples": [],
     "stubNodesMinted": 127,
@@ -311,17 +311,17 @@
         "retrieved_at",
         "confidence"
       ],
-      "total": 6794,
+      "total": 6835,
       "byType": [
         {
           "type": "language",
-          "count": 1061,
+          "count": 1099,
           "nonEmpty": {
-            "source": 1061,
+            "source": 1099,
             "source_url": 576,
             "source_query": 576,
             "retrieved_at": 576,
-            "confidence": 1061
+            "confidence": 1099
           }
         },
         {
@@ -447,13 +447,13 @@
         },
         {
           "type": "ingredient",
-          "count": 2206,
+          "count": 2208,
           "nonEmpty": {
-            "source": 2206,
+            "source": 2208,
             "source_url": 70,
             "source_query": 70,
             "retrieved_at": 70,
-            "confidence": 2206
+            "confidence": 2208
           }
         },
         {
@@ -480,13 +480,13 @@
         },
         {
           "type": "place",
-          "count": 1212,
+          "count": 1213,
           "nonEmpty": {
-            "source": 1212,
+            "source": 1213,
             "source_url": 399,
             "source_query": 550,
             "retrieved_at": 399,
-            "confidence": 1212
+            "confidence": 1213
           }
         },
         {
@@ -502,11 +502,11 @@
         }
       ],
       "nonEmpty": {
-        "source": 6794,
+        "source": 6835,
         "source_url": 1892,
         "source_query": 2545,
         "retrieved_at": 1892,
-        "confidence": 6794
+        "confidence": 6835
       }
     },
     "edge": {
@@ -608,7 +608,7 @@
       "citationsWithoutCanonicalColumn": 1094
     },
     "flags": [
-      "node.source_query: 2545/6794 rows preserve the original LinguaScrape citation.",
+      "node.source_query: 2545/6835 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.citationsWithoutCanonicalColumn: 1094 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."

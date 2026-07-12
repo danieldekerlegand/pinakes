@@ -1,6 +1,6 @@
 id	name	alternate_names	latitude	longitude	type	culture_id	civilization_id	founded_year	abandoned_year	peak_population	notable_features	associated_languages	modern_name	region
 ur	Ur	["Urim"]	30.962	46.103	city-state	sumerian	sumerian	-3800		65000	["Great Ziggurat","Royal Tombs","Standard of Ur"]	["sux","akk"]	Tell el-Muqayyar	Mesopotamia
-uruk	Uruk	["Warka","Erech"]	31.322	45.636	city-state	sumerian	sumerian	-4000	700	80000	["White Temple","Eanna District","earliest writing tablets"]	["sux"]	Warka	Mesopotamia
+uruk-city	Uruk	["Warka","Erech"]	31.322	45.636	city-state	sumerian	sumerian	-4000	700	80000	["White Temple","Eanna District","earliest writing tablets"]	["sux"]	Warka	Mesopotamia
 babylon	Babylon	["Bab-ilim","Babel"]	32.536	44.421	capital		babylonian-empire	-2300		200000	["Ishtar Gate","Hanging Gardens","Etemenanki ziggurat"]	["akk","arc"]	Hillah	Mesopotamia
 nineveh	Nineveh	["Ninua"]	36.359	43.153	capital		assyrian-empire	-6000	612	120000	["Library of Ashurbanipal","Nergal Gate","Palace of Sennacherib"]	["akk"]	Mosul	Mesopotamia
 assur	Assur	["Ashur","Qal'at Sherqat"]	35.457	43.259	capital		assyrian-empire	-2600	-614	100000	["Temple of Ashur","Ziggurat","Old Palace"]	["akk"]	Qal'at Sherqat	Mesopotamia
@@ -27,7 +27,7 @@ sidon	Sidon	["Saida","Zidon"]	33.558	35.372	port	phoenicia	phoenicia	-4000		4000
 byblos	Byblos	["Gebal","Jubayl"]	34.121	35.648	port	phoenicia	phoenicia	-5000		30000	["Temple of Baalat Gebal","earliest alphabet","Egyptian trade"]	["phn"]	Jbeil	Levant
 ugarit	Ugarit	["Ras Shamra"]	35.601	35.785	port			-6000	-1185	10000	["Royal Palace","cuneiform alphabet","literary archives"]	["uga"]	Ras Shamra	Levant
 ebla	Ebla	["Tell Mardikh"]	35.798	36.798	city-state			-3500	-1600	30000	["Royal Palace","Ebla tablets archive"]	["akk"]	Tell Mardikh	Levant
-mari	Mari	["Tell Hariri"]	34.456	40.888	city-state			-2900	-1761	50000	["Palace of Zimri-Lim","20000 cuneiform tablets"]	["akk","sux"]	Tell Hariri	Mesopotamia
+mari-city	Mari	["Tell Hariri"]	34.456	40.888	city-state			-2900	-1761	50000	["Palace of Zimri-Lim","20000 cuneiform tablets"]	["akk","sux"]	Tell Hariri	Mesopotamia
 aleppo	Aleppo	["Halab","Beroea"]	36.199	37.162	trading-post			-5000		100000	["Great Mosque","Citadel of Aleppo","ancient souks"]	["arc","arb"]	Aleppo	Levant
 damascus	Damascus	["Dimashq","Sham"]	33.513	36.292	capital			-6300		100000	["Umayyad Mosque","Straight Street","Citadel"]	["arc","arb"]	Damascus	Levant
 jerusalem	Jerusalem	["Yerushalayim","Al-Quds","Hierosolyma"]	31.768	35.214	religious-center			-3500		80000	["Temple Mount","Western Wall","Church of the Holy Sepulchre"]	["heb","arc","arb"]	Jerusalem	Levant
@@ -107,15 +107,15 @@ emerita-augusta	Emerita Augusta	["Augusta Emerita"]	38.917	-6.340	colony		roman-
 tarraco	Tarraco	["Tarragona"]	41.116	1.252	colony		roman-empire	-218		30000	["Amphitheatre","Roman walls","aqueduct"]	["lat"]	Tarragona	Iberia
 byzantium	Byzantium	["Byzántion"]	41.013	28.978	city-state		ancient-greece	-667	330	40000	["Strategic position on Bosporus","precursor to Constantinople"]	["grc"]	Istanbul	Mediterranean
 heraclea	Heraclea Pontica	["Herakleia"]	41.281	31.416	colony		ancient-greece	-560		20000	["Greek colony on Black Sea"]	["grc"]	Karadeniz Eregli	Anatolia
-mohenjo-daro	Mohenjo-daro	["Mound of the Dead"]	27.329	68.138	city-state	indus-valley	indus-valley	-2500	-1700	50000	["Great Bath","Granary","grid-planned streets","drainage system"]	["und"]	Mohenjo-daro	South Asia
-harappa	Harappa	["Harappa"]	30.631	72.869	city-state	indus-valley	indus-valley	-2600	-1700	40000	["Granaries","worker quarters","cemetery"]	["und"]	Harappa	South Asia
+mohenjo-daro-city	Mohenjo-daro	["Mound of the Dead"]	27.329	68.138	city-state	indus-valley	indus-valley-civ	-2500	-1700	50000	["Great Bath","Granary","grid-planned streets","drainage system"]	["und"]	Mohenjo-daro	South Asia
+harappa	Harappa	["Harappa"]	30.631	72.869	city-state	indus-valley	indus-valley-civ	-2600	-1700	40000	["Granaries","worker quarters","cemetery"]	["und"]	Harappa	South Asia
 pataliputra	Pataliputra	["Kusumapura","Pataliputta"]	25.600	85.100	capital		maurya-empire	-490		400000	["Maurya Palace","Ashoka's pillars","Nalanda nearby"]	["san","pli"]	Patna	South Asia
 taxila	Taxila	["Takshashila","Taksasila"]	33.746	72.833	religious-center		maurya-empire	-1000	500	36000	["Dharmarajika stupa","Jaulian monastery","ancient university"]	["san","grc"]	Taxila	South Asia
 varanasi	Varanasi	["Kashi","Benares"]	25.317	83.000	religious-center		maurya-empire	-1200		100000	["Ghats on Ganges","Kashi Vishwanath Temple","oldest living city"]	["san","hin"]	Varanasi	South Asia
 ujjain	Ujjain	["Avantika","Ozene"]	23.183	75.767	capital		maurya-empire	-700		100000	["Mahakaleshwar Temple","astronomical observatory"]	["san","hin"]	Ujjain	South Asia
 mathura	Mathura	["Madhura"]	27.492	77.672	religious-center		maurya-empire	-600		100000	["Gandhara-Mathura art schools","Krishna birthplace"]	["san","hin"]	Mathura	South Asia
 nalanda	Nalanda	["Nalanda"]	25.135	85.443	religious-center		gupta-empire	-427	1197	10000	["Nalanda University","Buddhist monastery","vast library"]	["san","pli"]	Nalanda	South Asia
-vijayanagara	Vijayanagara	["City of Victory"]	15.335	76.460	capital			1336	1565	500000	["Virupaksha Temple","Lotus Mahal","Stone Chariot"]	["san","kan","tel"]	Hampi	South Asia
+vijayanagara-city	Vijayanagara	["City of Victory"]	15.335	76.460	capital			1336	1565	500000	["Virupaksha Temple","Lotus Mahal","Stone Chariot"]	["san","kan","tel"]	Hampi	South Asia
 delhi	Delhi	["Dilli","Indraprastha","Shahjahanabad"]	28.614	77.209	capital			-1500		400000	["Qutb Minar","Red Fort","Jama Masjid","Humayun's Tomb"]	["hin","urd","per"]	Delhi	South Asia
 agra	Agra	["Akbarabad"]	27.176	78.008	capital			-1504		700000	["Taj Mahal","Agra Fort","Fatehpur Sikri nearby"]	["hin","urd","per"]	Agra	South Asia
 fatehpur-sikri	Fatehpur Sikri	["City of Victory"]	27.094	77.661	capital			1571	1585	40000	["Buland Darwaza","Jama Masjid","Panch Mahal"]	["hin","per"]	Fatehpur Sikri	South Asia
@@ -124,9 +124,9 @@ madurai	Madurai	["Madurai"]	9.925	78.120	capital			-300		200000	["Meenakshi Temp
 anuradhapura	Anuradhapura	["Anuradhapura"]	8.335	80.410	capital			-377	993	100000	["Ruwanwelisaya stupa","Jaya Sri Maha Bodhi","Jetavanaramaya"]	["sin","pli"]	Anuradhapura	South Asia
 polonnaruwa	Polonnaruwa	["Pulatthinagara"]	7.939	81.000	capital			368	1310	50000	["Gal Vihara","Royal Palace","Vatadage"]	["sin","pli"]	Polonnaruwa	South Asia
 sigiriya	Sigiriya	["Lion Rock"]	7.957	80.760	fortress			477	495	10000	["Rock fortress","frescoes","mirror wall","water gardens"]	["sin"]	Sigiriya	South Asia
-lothal	Lothal	["Mound of the Dead"]	22.521	72.250	port	indus-valley	indus-valley	-2400	-1600	15000	["World's earliest known dock","bead factory","fire altars"]	["und"]	Lothal	South Asia
-dholavira	Dholavira	["Kotada"]	23.887	70.215	city-state	indus-valley	indus-valley	-3000	-1500	20000	["Signboard inscription","water reservoirs","stadium"]	["und"]	Dholavira	South Asia
-kalibangan	Kalibangan	["Kalibangan"]	29.472	74.130	city-state	indus-valley	indus-valley	-3500	-1750	10000	["Fire altars","ploughed field","earliest earthquake evidence"]	["und"]	Kalibangan	South Asia
+lothal	Lothal	["Mound of the Dead"]	22.521	72.250	port	indus-valley	indus-valley-civ	-2400	-1600	15000	["World's earliest known dock","bead factory","fire altars"]	["und"]	Lothal	South Asia
+dholavira	Dholavira	["Kotada"]	23.887	70.215	city-state	indus-valley	indus-valley-civ	-3000	-1500	20000	["Signboard inscription","water reservoirs","stadium"]	["und"]	Dholavira	South Asia
+kalibangan	Kalibangan	["Kalibangan"]	29.472	74.130	city-state	indus-valley	indus-valley-civ	-3500	-1750	10000	["Fire altars","ploughed field","earliest earthquake evidence"]	["und"]	Kalibangan	South Asia
 gandhara-city	Pushkalavati	["Peukelaotis"]	34.150	71.700	capital			-600	200	30000	["Gandhara art center","Buddhist monasteries"]	["san","grc"]	Charsadda	South Asia
 sanchi	Sanchi	["Sanchi"]	23.479	77.740	religious-center		maurya-empire	-300	1200	5000	["Great Stupa","Ashoka pillar","Buddhist monastery"]	["san","pli"]	Sanchi	South Asia
 kanchipuram	Kanchipuram	["Kanchi"]	12.834	79.703	religious-center			-600		100000	["Pallava temples","Kailasanatha Temple","silk weaving center"]	["tam","san"]	Kanchipuram	South Asia
@@ -156,12 +156,12 @@ pyongyang	Pyongyang	["Pyeongyang"]	39.019	125.738	capital			-2333		200000	["Gogu
 angkor	Angkor	["Yasodharapura"]	13.412	103.860	capital		khmer-empire	802	1431	1000000	["Angkor Wat","Angkor Thom","Bayon","Ta Prohm"]	["khm","san"]	Siem Reap	Southeast Asia
 pagan	Pagan	["Bagan","Arimaddanapura"]	21.172	94.858	capital			849	1297	200000	["Thousands of temples","Ananda Temple","Shwezigon Pagoda"]	["mya"]	Bagan	Southeast Asia
 sukhothai	Sukhothai	["Sukhothai"]	17.017	99.703	capital			1238	1438	80000	["Wat Mahathat","Thai alphabet birthplace","Ramkhamhaeng inscription"]	["tha"]	Sukhothai	Southeast Asia
-ayutthaya	Ayutthaya	["Krung Si Ayutthaya"]	14.353	100.569	capital			1350	1767	1000000	["Wat Phra Si Sanphet","Wat Mahathat","King's Palace"]	["tha"]	Ayutthaya	Southeast Asia
+ayutthaya-city	Ayutthaya	["Krung Si Ayutthaya"]	14.353	100.569	capital			1350	1767	1000000	["Wat Phra Si Sanphet","Wat Mahathat","King's Palace"]	["tha"]	Ayutthaya	Southeast Asia
 malacca	Malacca	["Melaka"]	2.196	102.251	port			1400		100000	["A Famosa fort","Sultanate Palace","Strait of Malacca trade"]	["msa","tam","cmn"]	Melaka	Southeast Asia
 palembang	Palembang	["Srivijaya"]	-2.976	104.775	capital			683	1025	100000	["Srivijaya capital","Buddhist learning center","river trade"]	["msa","san"]	Palembang	Southeast Asia
 borobudur-area	Borobudur	["Borobudur"]	-7.607	110.204	religious-center			750	1000	10000	["Borobudur Temple","world's largest Buddhist monument"]	["jav","san"]	Borobudur	Southeast Asia
 prambanan-area	Prambanan	["Prambanan"]	-7.752	110.491	religious-center			850	950	10000	["Prambanan Temple","largest Hindu temple in Java"]	["jav","san"]	Prambanan	Southeast Asia
-majapahit	Trowulan	["Majapahit capital"]	-7.550	112.383	capital			1293	1527	200000	["Majapahit palace","Gapura Wringin Lawang","Candi Tikus"]	["jav","san"]	Trowulan	Southeast Asia
+majapahit-city	Trowulan	["Majapahit capital"]	-7.550	112.383	capital			1293	1527	200000	["Majapahit palace","Gapura Wringin Lawang","Candi Tikus"]	["jav","san"]	Trowulan	Southeast Asia
 nan-madol	Nan Madol	["Venice of the Pacific"]	6.844	158.335	religious-center			-200	1628	1000	["Megalithic basalt city","artificial islands","Nan Douwas"]	["pon"]	Nan Madol	Oceania
 hue	Hue	["Phu Xuan"]	16.463	107.590	capital			1306		150000	["Imperial City","Thien Mu Pagoda","Royal Tombs"]	["vie"]	Hue	Southeast Asia
 thang-long	Thang Long	["Hanoi","Dai La"]	21.029	105.852	capital			1010		300000	["Imperial Citadel","Temple of Literature","Ho Chi Minh Mausoleum"]	["vie"]	Hanoi	Southeast Asia
@@ -188,7 +188,7 @@ otrar	Otrar	["Farab"]	42.850	68.303	trading-post			-100	1700	50000	["Silk Road c
 bamyan	Bamyan	["Bamiyan"]	34.833	67.827	religious-center			-300	1221	20000	["Giant Buddha statues","Buddhist monastery complex"]	["per","san"]	Bamyan	Central Asia
 taklamakan-niya	Niya	["Cadota"]	37.950	82.717	trading-post			-200	800	5000	["Silk Road oasis","Kharosthi documents"]	["san","txb"]	Minfeng	Central Asia
 tashkent	Tashkent	["Chach","Shash"]	41.299	69.240	trading-post			-200		100000	["Khast Imam Complex","Kukeldash Madrasa"]	["uzb","per"]	Tashkent	Central Asia
-great-zimbabwe	Great Zimbabwe	["Dzimba dza mabwe"]	-20.267	30.934	capital		great-zimbabwe	1100	1450	18000	["Great Enclosure","Hill Complex","conical tower"]	["sna"]	Masvingo	Sub-Saharan Africa
+great-zimbabwe-city	Great Zimbabwe	["Dzimba dza mabwe"]	-20.267	30.934	capital		great-zimbabwe	1100	1450	18000	["Great Enclosure","Hill Complex","conical tower"]	["sna"]	Masvingo	Sub-Saharan Africa
 aksum	Aksum	["Axum"]	14.130	38.720	capital			-400	940	50000	["Stelae field","Ark of Covenant church","Queen of Sheba's palace"]	["gez"]	Aksum	East Africa
 lalibela	Lalibela	["Roha"]	12.030	39.043	religious-center			-1000		10000	["Rock-hewn churches","Church of St. George"]	["gez","amh"]	Lalibela	East Africa
 kilwa	Kilwa Kisiwani	["Kilwa"]	-8.957	39.523	port			-800	1513	20000	["Great Mosque","Husuni Kubwa palace","gold trade"]	["swh","arb"]	Kilwa Kisiwani	East Africa
@@ -200,7 +200,7 @@ ife	Ife	["Ile-Ife"]	7.482	4.556	religious-center	nok		-500		100000	["Ife bronze 
 kumasi	Kumasi	["Coomassie"]	6.688	-1.623	capital			1680		100000	["Manhyia Palace","Golden Stool","Ashanti capital"]	["aka"]	Kumasi	West Africa
 nok-settlement	Nok	["Nok"]	9.500	8.000	city-state	nok		-900	200	10000	["Terracotta sculptures","early iron smelting"]	["hau"]	Nok	West Africa
 meroe	Meroe	["Barwa"]	16.938	33.749	capital			-750	350	30000	["Meroitic pyramids","iron smelting center","Temple of Amun"]	["xmr"]	Kabushiya	East Africa
-kerma	Kerma	["Kerma"]	19.602	30.410	capital			-2500	-1500	20000	["Western Deffufa","Eastern Deffufa","royal cemetery"]	["xmr"]	Kerma	East Africa
+kerma-city	Kerma	["Kerma"]	19.602	30.410	capital			-2500	-1500	20000	["Western Deffufa","Eastern Deffufa","royal cemetery"]	["xmr"]	Kerma	East Africa
 napata	Napata	["Napata"]	18.532	31.826	capital			-1450	-300	15000	["Jebel Barkal","Temple of Amun","Nubian royal capital"]	["xmr"]	Karima	East Africa
 mapungubwe	Mapungubwe	["Place of the jackal"]	-22.192	29.256	capital			1075	1300	5000	["Gold rhino","hilltop palace","trade center"]	["ven"]	Mapungubwe	Sub-Saharan Africa
 thulamela	Thulamela	["Thulamela"]	-22.433	31.083	fortress			1250	1700	3000	["Stone-walled enclosure","gold artifacts"]	["ven"]	Thulamela	Sub-Saharan Africa
@@ -225,7 +225,7 @@ monte-alban	Monte Alban	["Danipaguache"]	17.044	-96.768	city-state		maya-civiliz
 cusco	Cusco	["Qosqo","Cuzco"]	-13.516	-71.979	capital		inca-empire	1100		200000	["Sacsayhuaman","Qorikancha","Inca stonework"]	["que"]	Cusco	South America
 machu-picchu	Machu Picchu	["Old Mountain"]	-13.163	-72.545	religious-center		inca-empire	1450	1572	750	["Intihuatana stone","Temple of the Sun","agricultural terraces"]	["que"]	Machu Picchu	South America
 chan-chan	Chan Chan	["Chan Chan"]	-8.106	-79.075	capital			900	1470	60000	["Largest adobe city","ciudadelas","Chimu capital"]	["moc"]	Trujillo	South America
-tiwanaku	Tiwanaku	["Tiahuanaco"]	-16.555	-68.673	religious-center			-1580	1000	30000	["Akapana pyramid","Gate of the Sun","Puma Punku"]	["aym"]	Tiwanaku	South America
+tiwanaku-city	Tiwanaku	["Tiahuanaco"]	-16.555	-68.673	religious-center			-1580	1000	30000	["Akapana pyramid","Gate of the Sun","Puma Punku"]	["aym"]	Tiwanaku	South America
 caral	Caral	["Norte Chico"]	-10.893	-77.520	city-state			-2600	-2000	3000	["Oldest city in Americas","pyramids","quipu","amphitheatre"]	["und"]	Caral	South America
 cahokia	Cahokia	["Cahokia Mounds"]	38.655	-90.062	city-state			700	1400	40000	["Monks Mound","Woodhenge","stockade","Grand Plaza"]	["sio"]	Collinsville	North America
 mesa-verde	Mesa Verde	["Green Table"]	37.183	-108.489	fortress			600	1300	5000	["Cliff Palace","Balcony House","Pueblo cliff dwellings"]	["ute"]	Mesa Verde	North America
@@ -249,7 +249,7 @@ huanuco-pampa	Huanuco Pampa	["Huanuco Viejo"]	-9.892	-76.834	capital		inca-empir
 vilcashuaman	Vilcashuaman	["Vilcashuaman"]	-13.650	-73.933	religious-center		inca-empire	1400	1540	40000	["Temple of Sun","Inca administrative center"]	["que"]	Vilcashuaman	South America
 chavin-de-huantar	Chavin de Huantar	["Chavin"]	-9.593	-77.177	religious-center			-900	-200	3000	["Lanzon monolith","Raimondi Stele","underground galleries"]	["que"]	Chavin de Huantar	South America
 sipan	Sipan	["Huaca Rajada"]	-6.811	-79.593	religious-center			100	800	5000	["Lord of Sipan's tomb","Moche royal burials"]	["moc"]	Sipan	South America
-wari	Wari	["Huari"]	-13.067	-74.233	capital			600	1000	40000	["Wari Empire capital","D-shaped temples"]	["que"]	Ayacucho	South America
+wari-city	Wari	["Huari"]	-13.067	-74.233	capital			600	1000	40000	["Wari Empire capital","D-shaped temples"]	["que"]	Ayacucho	South America
 sechin-bajo	Sechin Bajo	["Sechin"]	-9.467	-78.267	religious-center			-3500	-1500	3000	["Oldest plaza in Americas","stone carvings"]	["und"]	Sechin	South America
 paris	Paris	["Lutetia","Ville Lumiere"]	48.856	2.352	capital			-250		275000	["Notre-Dame","Louvre","Sainte-Chapelle","medieval university"]	["fra","lat"]	Paris	Western Europe
 london	London	["Londinium","Augusta"]	51.507	-0.128	capital			47		100000	["Tower of London","Westminster Abbey","London Bridge"]	["eng","lat"]	London	Western Europe
@@ -301,7 +301,7 @@ aleppo-islamic	Aleppo	["Halab"]	36.199	37.162	trading-post		umayyad-caliphate	-5
 samarqand-islamic	Samarkand	["Samarqand"]	39.654	66.959	capital		mongol-empire	-700		400000	["Registan","Gur-e-Amir","Bibi-Khanym Mosque","Timur's capital"]	["per","uzb"]	Samarkand	Central Asia
 ghazni-islamic	Ghazni	["Ghazna"]	33.553	68.417	capital			977	1186	100000	["Ghaznavid capital","Mahmud's Court","minaret ruins"]	["per","arb"]	Ghazni	Central Asia
 fes-islamic	Fez	["Fas"]	34.033	-5.000	religious-center		umayyad-caliphate	789		350000	["Al-Qarawiyyin university","Bou Inania","Chouara Tannery"]	["arb","ber"]	Fez	North Africa
-delhi-sultanate	Delhi	["Dilli"]	28.614	77.209	capital			1206	1526	400000	["Qutb Minar","Tughlaqabad Fort","Sultanate capital"]	["per","hin","arb"]	Delhi	South Asia
+delhi-city	Delhi	["Dilli"]	28.614	77.209	capital			1206	1526	400000	["Qutb Minar","Tughlaqabad Fort","Sultanate capital"]	["per","hin","arb"]	Delhi	South Asia
 palermo	Palermo	["Panormus","Balarm"]	38.116	13.361	capital		roman-empire	-734		350000	["Palatine Chapel","Norman Palace","Arab-Norman architecture"]	["ita","arb","lat"]	Palermo	Mediterranean
 trebizond	Trebizond	["Trabzon","Trapezous"]	41.003	39.717	port		byzantine-empire	-756	1461	50000	["Hagia Sophia of Trebizond","Empire of Trebizond capital"]	["grc","tur"]	Trabzon	Anatolia
 mostar	Mostar	["Mostar"]	43.343	17.808	trading-post		ottoman-empire	1452		20000	["Old Bridge","Koski Mehmed Pasha Mosque"]	["bos","tur"]	Mostar	Mediterranean
@@ -411,7 +411,7 @@ bhaktapur	Bhaktapur	["Bhadgaon"]	27.672	85.428	capital			-889		50000	["55-Window
 patan-nepal	Patan	["Lalitpur"]	27.676	85.325	capital			-299		50000	["Golden Temple","Mahabouddha Temple","Durbar Square"]	["new","san"]	Lalitpur	South Asia
 bagan-area	Old Bagan	["Bagan"]	21.172	94.858	religious-center			849	1297	200000	["2000+ temples","Shwesandaw Pagoda","Thatbyinnyu Temple"]	["mya","pli"]	Bagan	Southeast Asia
 mrauk-u	Mrauk U	["Mrohaung"]	20.590	93.200	capital			1430	1785	160000	["Shitthaung Temple","Dukkanthein","Arakan capital"]	["mya"]	Mrauk U	Southeast Asia
-ava	Ava	["Inwa"]	21.877	95.975	capital			1364	1839	50000	["Maha Aungmye Bonzan Monastery","Bagaya Monastery"]	["mya"]	Inwa	Southeast Asia
+ava-city	Ava	["Inwa"]	21.877	95.975	capital			1364	1839	50000	["Maha Aungmye Bonzan Monastery","Bagaya Monastery"]	["mya"]	Inwa	Southeast Asia
 champassak	Vat Phou	["Wat Phu"]	14.845	105.818	religious-center		khmer-empire	-500	1200	5000	["Hindu temple complex","Khmer architecture"]	["lao","khm"]	Champassak	Southeast Asia
 kotte	Kotte	["Sri Jayawardenepura"]	6.883	79.908	capital			1412		30000	["Sinhalese kingdom capital","Royal Palace"]	["sin"]	Sri Jayawardenepura Kotte	South Asia
 multan	Multan	["Mulasthana"]	30.196	71.475	religious-center			-500		100000	["City of Saints","Sun Temple","Sufi shrines"]	["pan","per"]	Multan	South Asia

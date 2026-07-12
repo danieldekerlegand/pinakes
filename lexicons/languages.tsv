@@ -330,8 +330,8 @@ guarijio	Guarijio	Warihó			uto_aztecan__taracahitic		Sonora, Chihuahua	Mexico	2
 crn	Cora	Náayeri		crn	uto_aztecan__corachol		Nayarit	Mexico	21000	30000	living	1500			Latin	false	false	0		0	0							
 hch	Huichol	Wixárika		hch	uto_aztecan__corachol		Nayarit, Jalisco	Mexico	45000	50000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q35575	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1491"]	Q35575	huic1243
 nah	Huasteca Nahuatl	Macehualtlahtolli		nah	uto_aztecan__nahuan		Huasteca	Mexico	450000	500000	living	1500			Latin	false	false	0		0	0							
-nah	Guerrero Nahuatl	Nahuatlahtolli		nah	uto_aztecan__nahuan		Guerrero	Mexico	150000	160000	living	1500			Latin	false	false	0		0	0							
-nah	Central Nahuatl	Nawatlahtolli		nah	uto_aztecan__nahuan		Central Mexico	Mexico	40000	45000	living	1500			Latin	false	false	0		0	0							
+guerrero-nahuatl	Guerrero Nahuatl	Nahuatlahtolli		nah	uto_aztecan__nahuan		Guerrero	Mexico	150000	160000	living	1500			Latin	false	false	0		0	0							
+central-nahuatl	Central Nahuatl	Nawatlahtolli		nah	uto_aztecan__nahuan		Central Mexico	Mexico	40000	45000	living	1500			Latin	false	false	0		0	0							
 ppl	Pipil	Nawat		ppl	uto_aztecan__nahuan		El Salvador	El Salvador	200	3000	living	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q1186896	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1860"]	Q1186896	pipi1250
 tli	Tlingit	Lingít		tli	na_dene__tlingit		Pacific Northwest	United States;Canada	500	1500	endangered	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q27792	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 278"]	Q27792	tlin1245
 eyak	Eyak	I•ya•q			na_dene__eyak_athabaskan		Alaska	United States			extinct	1000	2008		Latin	false	false	0		0	0							
@@ -369,7 +369,7 @@ chy	Cheyenne	Tsėhésenėstsestȯtse		chy	algic__plains_algonquian		North Americ
 arp	Arapaho	Hinónoʼeitíít		arp	algic__plains_algonquian		North America	United States	1000	1000	living	1500			Latin	false	false	0		0	0	0.9	severely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56417	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1454"]	Q56417	arap1274
 ats	Gros Ventre	A'aninin		ats	algic__plains_algonquian		North America	United States			extinct	1500	2007		Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56628	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 764"]	Q56628	gros1243
 cre	Plains Cree	nêhiyawêwin	cr	cre	algic__central_algonquian		North America	Canada	34000	40000	living	1500			Canadian Aboriginal Syllabics	false	false	0		0	0							
-cre	Swampy Cree	nêhinawêwin		cre	algic__central_algonquian		North America	Canada	45000	50000	living	1500			Canadian Aboriginal Syllabics	false	false	0		0	0							
+swampy-cree	Swampy Cree	nêhinawêwin		cre	algic__central_algonquian		North America	Canada	45000	50000	living	1500			Canadian Aboriginal Syllabics	false	false	0		0	0							
 oji	Ojibwe	Anishinaabemowin	oj	oji	algic__central_algonquian		North America	Canada;United States	50000	80000	living	1000			Canadian Aboriginal Syllabics	false	false	0		0	0	0.9	severely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33875	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 767"]	Q33875	ojib1241
 pot	Potawatomi	Bodéwadmimwen		pot	algic__central_algonquian		North America	United States;Canada	50	150	living	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56749	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1531"]	Q56749	pota1247
 mez	Menominee	Omāēqnomenew		mez	algic__central_algonquian		North America	United States	35	100	living	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q13363	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 766"]	Q13363	meno1252
@@ -432,7 +432,7 @@ cox	Nanti	Nanti		cox	arawakan__campa		Amazon	Peru	450	450	living	1500				false	f
 brg	Baure	Baure		brg	arawakan__southern_maipurean		Beni	Bolivia	60	1000	living	1600			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2839722	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1919"]	Q2839722	baur1253
 unk	Enawene Nawe	Enawenê-Nawê		unk	arawakan__southern_maipurean		Mato Grosso	Brazil	500	500	living	1974				false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3307184	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1820"]	Q3307184	enaw1238
 gym	Ngäbere	Ngäbere		gym	chibchan__isthmic		Panama and Costa Rica	Panama;Costa Rica	170000	260000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3915581	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1883"]	Q3915581	ngab1239
-cub	Guna	Dulegaya		cub	chibchan__isthmic		Panama and Colombia	Panama;Colombia	60000	65000	living	1500			Latin	false	false	0		0	0							
+guna	Guna	Dulegaya		cub	chibchan__isthmic		Panama and Colombia	Panama;Colombia	60000	65000	living	1500			Latin	false	false	0		0	0							
 bzd	Bribri	Bribri		bzd	chibchan__isthmic		Costa Rica	Costa Rica	6000	11000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q28400	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1903"]	Q28400	brib1243
 cjp	Cabécar	Cabécar		cjp	chibchan__isthmic		Costa Rica	Costa Rica	9000	13000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q27878	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1875"]	Q27878	cabe1245
 sab	Buglere	Buglere		sab	chibchan__isthmic		Panama	Panama	2500	3000	living	1500			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3368506	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1900"]	Q3368506	bugl1243
@@ -478,9 +478,9 @@ xra	Krahô	Craô		xra	macro_je__northern_je		Tocantins	Brazil	2900	2900	Vulnerab
 kre	Panará	Panará		kre	macro_je__northern_je		Mato Grosso/Pará	Brazil	600	600	Vulnerable	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3361895	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 642"]	Q3361895	pana1307
 suy	Suyá	Kĩsêdjê		suy	macro_je__northern_je		Mato Grosso	Brazil	350	400	Vulnerable	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3505859	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1238"]	Q3505859	suya1243
 kpj	Karajá	Iny Rybè		kpj	macro_je__karaja		Goiás/Tocantins	Brazil	3000	3200	Vulnerable	1500			Latin	false	false	0		0	0							
-jav	Javaé	Itya		jav	macro_je__karaja		Tocantins	Brazil	1500	1500	Vulnerable	1500			Latin	false	false	0		0	0							
+javae	Javaé	Itya		jav	macro_je__karaja		Tocantins	Brazil	1500	1500	Vulnerable	1500			Latin	false	false	0		0	0							
 bor	Bororo	Boe Wadáru		bor	macro_je__bororoan		Mato Grosso	Brazil	1400	1400	Endangered	1000			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q32986	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1805"]	Q32986	boro1282
-umu	Umutina	Umutina		umu	macro_je__bororoan		Mato Grosso	Brazil			Extinct	1000	1995		Latin	false	false	0		0	0							
+umutina	Umutina	Umutina		umu	macro_je__bororoan		Mato Grosso	Brazil			Extinct	1000	1995		Latin	false	false	0		0	0							
 mbl	Maxakalí	Tikmũ'ũn		mbl	macro_je__maxakalian		Minas Gerais	Brazil	1200	1200	Vulnerable	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3029682	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 628"]	Q3029682	maxa1247
 kqq	Krenak	Borun		kqq	macro_je__krenak		Minas Gerais	Brazil	10	50	Critically Endangered	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q6436747	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1880"]	Q6436747	kren1239
 rkb	Rikbaktsa	Rikbaktsa		rkb	macro_je__rikbaktsa		Mato Grosso	Brazil	1100	1100	Endangered	1000			Latin	false	false	0		0	0	0.9	severely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2585357	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1819"]	Q2585357	rikb1245
@@ -501,7 +501,7 @@ pbh	Panare	E'ñepa		pbh	cariban__venezuelan_carib		Bolívar	Venezuela	3500	4000	
 waw	Waiwai	Waiwai		waw	cariban__parukotoan		Amazon Basin	Guyana;Brazil	2000	3000	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56632	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 318"]	Q56632	waiw1244
 hix	Hixkaryana	Hixkaryána		hix	cariban__parukotoan		Nhamundá River	Brazil	600	600	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56522	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1668"]	Q56522	hixk1239
 kui	Kuikuro	Kuikuro		kui	cariban__southern_carib		Xingu Indigenous Park	Brazil	600	650	living	1000			Latin	false	false	0		0	0							
-kui	Kalapalo	Kalapalo		kui	cariban__southern_carib		Xingu Indigenous Park	Brazil	400	400	living	1000			Latin	false	false	0		0	0							
+kalapalo	Kalapalo	Kalapalo		kui	cariban__southern_carib		Xingu Indigenous Park	Brazil	400	400	living	1000			Latin	false	false	0		0	0							
 bkq	Bakairi	Kurâ		bkq	cariban__southern_carib		Mato Grosso	Brazil	900	950	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56846	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1781"]	Q56846	baka1277
 apy	Apalaí	Apalaí		apy	cariban__guianan_carib		Paru Leste River	Brazil	450	450	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2736980	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 761"]	Q2736980	apal1257
 txi	Ikpeng	Ikpeng		txi	cariban__southern_carib		Xingu Indigenous Park	Brazil	460	460	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q9344891	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1239"]	Q9344891	ikpe1245
@@ -509,7 +509,7 @@ atr	Waimiri-Atroari	Kinja		atr	cariban__guianan_carib		Roraima, Amazonas	Brazil	
 aap	Arara (Pará)	Ugôrongmó		aap	cariban__southern_carib		Pará	Brazil	300	300	living	1000			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56807	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1665"]	Q56807	para1310
 tmz	Tamanaku	Tamanaku		tmz	cariban__venezuelan_carib		Orinoco	Venezuela			extinct	1500	1900		Latin	false	false	0		0	0							
 aym	Central Aymara	Aymar aru	ay	aym	aymaran__southern_aymaran		Altiplano	Bolivia;Peru;Argentina	1677100	2000000	Living	1000			Latin	false	false	0		0	0							
-aym	Southern Aymara	Aymar aru	ay	aym	aymaran__southern_aymaran		Southern Peru	Peru	219000	220000	Living	1000			Latin	false	false	0		0	0							
+southern-aymara	Southern Aymara	Aymar aru	ay	aym	aymaran__southern_aymaran		Southern Peru	Peru	219000	220000	Living	1000			Latin	false	false	0		0	0							
 jaqaru	Jaqaru	Jaqaru			aymaran__central_aymaran		Yauyos	Peru	740	740	Endangered	500			Latin	false	false	0		0	0							
 kawki	Kawki	Kawki			aymaran__central_aymaran		Yauyos	Peru	10	10	Critically Endangered	500			Latin	false	false	0		0	0							
 arn	Mapudungun	Mapudungun		arn	araucanian__araucanian		Southern South America	Chile;Argentina	260000	300000	Living	500			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33730	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1754"]	Q33730	mapu1245
@@ -554,7 +554,7 @@ coo	Comox-Sliammon	ʔayʔajʊθəm		coo	salishan__central_salish		British Columb
 hur	Halkomelem	Halq'eméylem		hur	salishan__central_salish		British Columbia	Canada	225	500	Endangered	1000			Latin	false	false	0		0	0	0.9	severely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q35388	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 258"]	Q35388	halk1245
 lut	Lushootseed	dxʷləšucid		lut	salishan__central_salish		Washington	United States		300	Reawakening	1000	2008		Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33658	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 793"]	Q33658	lush1252
 squ	Squamish	Sḵwx̱wú7mesh		squ	salishan__central_salish		British Columbia	Canada	7	450	Critically Endangered	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2484579	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2383"]	Q2484579	squa1248
-nok	Nooksack	Lhéchelesem		nok	salishan__central_salish		Washington	United States		10	Dormant	1000	1977		Latin	false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3343396	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 958"]	Q3343396	nook1247
+nooksack	Nooksack	Lhéchelesem		nok	salishan__central_salish		Washington	United States		10	Dormant	1000	1977		Latin	false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3343396	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 958"]	Q3343396	nook1247
 sec	Sechelt	Sháshíshálh		sec	salishan__central_salish		British Columbia	Canada	4	150	Critically Endangered	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q7442898	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2376"]	Q7442898	sech1246
 str	Northern Straits	Lək̓ʷəŋín̓əŋ		str	salishan__central_salish		British Columbia, Washington	Canada;United States	15	60	Critically Endangered	1000			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q36444	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2385"]	Q36444	stra1244
 clm	Klallam	Nəxʷsƛ̓ay̓əmúcən		clm	salishan__central_salish		Washington	United States		250	Reawakening	1000	2014		Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33404	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 792"]	Q33404	clal1241
@@ -615,19 +615,19 @@ zoh	Chimalapa Zoque	Angpø'n		zoh	mixe_zoque__zoquean		Oaxaca	Mexico	4500	4500	l
 zoq	Tabasco Zoque	Nuumte Oote		zoq	mixe_zoque__zoquean		Tabasco	Mexico	5	5	critically endangered	1500			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q323325	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 913"]	Q323325	taba1264
 jto	Jitotol Zoque	O'de püt		jto	mixe_zoque__zoquean		Chiapas	Mexico	1500	1500	living	1500			Latin	false	false	0		0	0							
 tot	Highland Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	120000	120000	Vulnerable	1500			Latin	false	false	0		0	0							
-tot	Papantla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	80000	80000	Vulnerable	1500			Latin	false	false	0		0	0							
-tot	Xicotepec de Juárez Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3000	3000	Definitely endangered	1500			Latin	false	false	0		0	0							
-tot	Filomeno Mata Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	15000	15000	Vulnerable	1500			Latin	false	false	0		0	0							
-tot	Coyutla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	48000	48000	Vulnerable	1500			Latin	false	false	0		0	0							
-tot	Upper Necaxa Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3400	3400	Definitely endangered	1500			Latin	false	false	0		0	0							
-tot	Tecpatlán Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	540	540	Definitely endangered	1500			Latin	false	false	0		0	0							
-tot	Ozumatlán Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	1500	1500	Definitely endangered	1500			Latin	false	false	0		0	0							
-tot	Yecuatla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	130	130	Severely endangered	1500			Latin	false	false	0		0	0							
+papantla-totonac	Papantla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	80000	80000	Vulnerable	1500			Latin	false	false	0		0	0							
+xicotepec-de-juarez-totonac	Xicotepec de Juárez Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3000	3000	Definitely endangered	1500			Latin	false	false	0		0	0							
+filomeno-mata-totonac	Filomeno Mata Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	15000	15000	Vulnerable	1500			Latin	false	false	0		0	0							
+coyutla-totonac	Coyutla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	48000	48000	Vulnerable	1500			Latin	false	false	0		0	0							
+upper-necaxa-totonac	Upper Necaxa Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	3400	3400	Definitely endangered	1500			Latin	false	false	0		0	0							
+tecpatlan-totonac	Tecpatlán Totonac	Totonacu		tot	totonacan__totonac		Puebla, Mexico	Mexico	540	540	Definitely endangered	1500			Latin	false	false	0		0	0							
+ozumatlan-totonac	Ozumatlán Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	1500	1500	Definitely endangered	1500			Latin	false	false	0		0	0							
+yecuatla-totonac	Yecuatla Totonac	Totonacu		tot	totonacan__totonac		Veracruz, Mexico	Mexico	130	130	Severely endangered	1500			Latin	false	false	0		0	0							
 huehuetla_tepehua	Huehuetla Tepehua	Lhiimaqalhqama'			totonacan__tepehua		Hidalgo, Mexico	Mexico	1500	1500	Definitely endangered	1500			Latin	false	false	0		0	0							
 tlachichilco_tepehua	Tlachichilco Tepehua	Maqalhqama'			totonacan__tepehua		Veracruz, Mexico	Mexico	3000	3000	Definitely endangered	1500			Latin	false	false	0		0	0							
 pisaflores_tepehua	Pisaflores Tepehua	Lhima'alh'ama'			totonacan__tepehua		Veracruz, Mexico	Mexico	4000	4000	Severely endangered	1500			Latin	false	false	0		0	0							
-bam	Bambara	Bamanankan	bm	bam	mande__manding		West Africa	Mali;Burkina Faso;Senegal	5000000	14000000	living	1200			Latin, N'Ko	false	false	0		0	0							
-dyu	Dyula	Julakan		dyu	mande__manding		West Africa	Côte d'Ivoire;Burkina Faso	1500000	12000000	living	1500			Latin, N'Ko, Arabic	false	false	0		0	0							
+bam-manding	Bambara	Bamanankan	bm	bam	mande__manding		West Africa	Mali;Burkina Faso;Senegal	5000000	14000000	living	1200			Latin, N'Ko	false	false	0		0	0							
+dyu-manding	Dyula	Julakan		dyu	mande__manding		West Africa	Côte d'Ivoire;Burkina Faso	1500000	12000000	living	1500			Latin, N'Ko, Arabic	false	false	0		0	0							
 mnk	Mandinka	Mandinka		mnk	mande__manding		West Africa	Senegal;Gambia;Guinea-Bissau	1300000	1500000	living	1200			Latin, Arabic	false	false	0		0	0							
 emk	Maninka, Eastern	Maninkakan		emk	mande__manding		West Africa	Guinea;Mali	3300000	4000000	living	1200			Latin, N'Ko, Arabic	false	false	0		0	0							
 snk	Soninke	Soninkanxe	sn	snk	mande__soninke_bozo		West Africa	Mali;Senegal;Mauritania;Gambia	2200000	2500000	living	500			Latin, Arabic	false	false	0		0	0							
@@ -645,9 +645,9 @@ goa	Guro	Kweni		goa	mande__southern_mande		West Africa	Côte d'Ivoire	500000	500
 bib	Bisa	Bissa		bib	mande__east_mande		West Africa	Burkina Faso;Ghana	600000	600000	living	1000			Latin	false	false	0		0	0							
 boz	Bozo, Tieyaxo	Tiéyaxo		boz	mande__soninke_bozo		West Africa	Mali	170000	170000	living	1000			Latin	false	false	0		0	0							
 bqc	Boko	Boko		bqc	mande__east_mande		West Africa	Benin;Nigeria	150000	150000	living	1000			Latin	false	false	0		0	0							
-san	San	Samo			mande__east_mande		West Africa	Burkina Faso	250000	250000	living	1000			Latin	false	false	0		0	0							
-dje	Zarma	Zarma Ciine		dje	songhay__southern_songhay		West Africa	Niger;Nigeria;Burkina Faso;Mali	3500000	5000000	living	1000			Latin	false	false	0		0	0							
-ses	Koyraboro Senni	Koyraboro Senni		ses	songhay__southern_songhay		West Africa	Mali	400000	430000	living	1000			Latin	false	false	0		0	0							
+san-mande	San	Samo			mande__east_mande		West Africa	Burkina Faso	250000	250000	living	1000			Latin	false	false	0		0	0							
+dje-southern-songhay	Zarma	Zarma Ciine		dje	songhay__southern_songhay		West Africa	Niger;Nigeria;Burkina Faso;Mali	3500000	5000000	living	1000			Latin	false	false	0		0	0							
+ses-southern-songhay	Koyraboro Senni	Koyraboro Senni		ses	songhay__southern_songhay		West Africa	Mali	400000	430000	living	1000			Latin	false	false	0		0	0							
 khq	Koyra Chiini	Koyra Chiini		khq	songhay__southern_songhay		West Africa	Mali	200000	200000	living	1000			Latin	false	false	0		0	0							
 ddn	Dendi	Dendi		ddn	songhay__southern_songhay		West Africa	Benin;Niger	30000	100000	living	1000			Latin	false	false	0		0	0							
 dsq	Tadaksahak	Tadaksahak		dsq	songhay__northern_songhay		West Africa	Mali	100000	100000	living	1000			Latin	false	false	0		0	0							
@@ -658,7 +658,7 @@ tst	Tondi Songway Kiini	Tondi Songway Kiini		tst	songhay__southern_songhay		West
 tda	Tagdal	Tagdal		tda	songhay__northern_songhay		West Africa	Niger	27000	27000	living	1000				false	false	0		0	0							
 djenne_chiini	Djenne Chiini	Djenné Chiini			songhay__southern_songhay		West Africa	Mali			living	1000			Latin	false	false	0		0	0							
 khi	Khoekhoe	Khoekhoegowab		khi	khoe__khoekhoe		Southern Africa	Namibia;South Africa;Botswana	200000	250000	living	1000			Latin	false	false	0		0	0							
-khi	Hai||om	Hai||om		khi	khoe__khoekhoe		Northern Namibia	Namibia	16000	16000	living	1000			Latin	false	false	0		0	0							
+haiom	Hai||om	Hai||om		khi	khoe__khoekhoe		Northern Namibia	Namibia	16000	16000	living	1000			Latin	false	false	0		0	0							
 kqz	Korana	!Ora		kqz	khoe__khoekhoe		South Africa	South Africa			extinct	1650	1980		Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2756709	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 133"]	Q2756709	kora1292
 xii	Xiri	Xiri		xii	khoe__khoekhoe		South Africa	South Africa			extinct	1650	2000		Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q36876	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1442"]	Q36876	xiri1242
 nhr	Naro	Naro		nhr	khoe__west_kalahari_khoe		Ghanzi District	Botswana;Namibia	14000	14000	living	1800			Latin	false	false	0		0	0							
@@ -669,7 +669,7 @@ shg	Shua	Shua		shg	khoe__east_kalahari_khoe		Nata River Basin	Botswana	6000	6000
 hio	Tsoa	Tsoa		hio	khoe__east_kalahari_khoe		Eastern Kalahari	Botswana;Zimbabwe	5000	5000	living	1800			Latin	false	false	0		0	0							
 tyu	Kua	Kua		tyu	khoe__east_kalahari_khoe		Central Kalahari	Botswana	800	800	living	1800			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3832933	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1419"]	Q3832933	kuaa1238
 dnc	Danisi	Danisi		dnc	khoe__east_kalahari_khoe		Nata River	Botswana			living	1800			Latin	false	false	0		0	0							
-hio	Tshwa	Tshwa		hio	khoe__east_kalahari_khoe		Eastern Kalahari	Botswana;Zimbabwe	6000	6000	living	1800			Latin	false	false	0		0	0							
+tshwa	Tshwa	Tshwa		hio	khoe__east_kalahari_khoe		Eastern Kalahari	Botswana;Zimbabwe	6000	6000	living	1800			Latin	false	false	0		0	0							
 kwz	Kwadi	Kwadi		kwz	khoe__kwadi		Namibe Province	Angola			extinct	1800	1981			false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2364661	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 124"]	Q2364661	kwad1244
 eini	Eini	Eini			khoe__khoekhoe		Orange River	South Africa			extinct	1700	1920			false	false	0		0	0							
 hnh	Ani	||Ani		hnh	khoe__west_kalahari_khoe		Okavango Delta	Botswana	1000	1000	living	1800			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3832982	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1396"]	Q3832982	anii1246
@@ -900,10 +900,10 @@ tcy	Tulu	Tuḷu		tcy	dravidian__south_dravidian		South India	India	2000000	20000
 xmf	Mingrelian	მარგალური		xmf	kartvelian__georgian_zan		Georgia	Georgia	344000	500000	living	1800			Georgian	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q13359	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1057"]	Q13359	ming1252
 lzz	Laz	Lazuri		lzz	kartvelian__georgian_zan		Georgia, Turkey	Turkey;Georgia	20000	30000	endangered	1800			Georgian, Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q1160372	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1056"]	Q1160372	lazz1240
 sva	Svan	ლუშნუ ნინ		sva	kartvelian__svan		Georgia	Georgia	15000	30000	endangered	-2000			Georgian	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q34067	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1058"]	Q34067	svan1243
-xal	Kalmyk	Хальмг келн		xal	mongolic__western_mongolic		Russia	Russia	80000	100000	endangered	1630			Cyrillic	false	false	0		0	0							
+xal-western	Kalmyk	Хальмг келн		xal	mongolic__western_mongolic		Russia	Russia	80000	100000	endangered	1630			Cyrillic	false	false	0		0	0							
 mvf	Peripheral Mongolian	Монгол		mvf	mongolic__eastern_mongolic		China	China	5000000	5000000	living	1500			Mongolian, Latin	false	false	0		0	0							
 dta	Daur	Дагуур		dta	mongolic__eastern_mongolic		China	China	96000	96000	endangered	1600			Cyrillic, Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q32430	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 450"]	Q32430	daur1238
-evn	Even	Эвэды		evn	tungusic__northern_tungusic		Russia	Russia	5700	22000	endangered	1000			Cyrillic	false	false	0		0	0							
+even	Even	Эвэды		evn	tungusic__northern_tungusic		Russia	Russia	5700	22000	endangered	1000			Cyrillic	false	false	0		0	0							
 neg	Negidal	Элькэн бэйэнин		neg	tungusic__northern_tungusic		Russia	Russia	120	500	critically endangered	1500			Cyrillic	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33676	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 490"]	Q33676	negi1245
 ulc	Ulch	Нани		ulc	tungusic__southern_tungusic		Russia	Russia	100	2800	critically endangered	1500			Cyrillic	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q13239	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 506"]	Q13239	ulch1241
 oaa	Orok	Уйльта		oaa	tungusic__southern_tungusic		Russia	Russia	47	400	critically endangered	1500			Cyrillic	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33928	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 493"]	Q33928	orok1265
@@ -982,7 +982,7 @@ acu	Achuar-Shiwiar	Achuar		acu	jivaroan__shuar_achuar		Ecuador, Peru	Ecuador;Per
 hub	Huambisa	Wampis		hub	jivaroan__awajun_wampis		Peru	Peru	10000	10000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q1526037	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 735"]	Q1526037	huam1247
 agr	Aguaruna	Awajún		agr	jivaroan__awajun_wampis		Peru	Peru	55000	55000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q1526530	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 734"]	Q1526530	agua1253
 zro	Záparo	Sápara		zro	zaparoan__zaparoan_languages		Ecuador	Ecuador	1	5	critically endangered	1500			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q10206	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 668"]	Q10206	zapa1253
-arb	Arabela	Chiripuno		arb	zaparoan__zaparoan_languages		Peru	Peru	50	100	critically endangered	1500			Latin	false	false	0		0	0							
+arabela	Arabela	Chiripuno		arb	zaparoan__zaparoan_languages		Peru	Peru	50	100	critically endangered	1500			Latin	false	false	0		0	0							
 iqu	Iquito	Iíkitu		iqu	zaparoan__zaparoan_languages		Peru	Peru	25	150	critically endangered	1500			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2669184	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 727"]	Q2669184	iqui1243
 hto	Witoto	Mɨnɨka		hto	witotoan__witotoan_languages		Colombia, Peru	Colombia;Peru	7000	7000	endangered	1500			Latin	false	false	0		0	0							
 oca	Ocaina	Ocaina		oca	witotoan__witotoan_languages		Peru	Peru	50	100	critically endangered	1500			Latin	false	false	0		0	0	0.9	severely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3182577	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2054"]	Q3182577	ocai1244
@@ -990,7 +990,7 @@ noy	Nonuya	Nónɨya		noy	witotoan__witotoan_languages		Colombia	Colombia	150	200
 tob	Toba	Qom		tob	guaicuruan__northern_guaicuruan		Argentina	Argentina	60000	60000	living	1500			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3113756	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 659"]	Q3113756	toba1269
 plg	Pilagá	Pilagá		plg	guaicuruan__northern_guaicuruan		Argentina	Argentina	5000	5000	endangered	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2748259	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 646"]	Q2748259	pila1245
 moc	Mocoví	Moqoit		moc	guaicuruan__northern_guaicuruan		Argentina	Argentina	4500	4500	endangered	1500			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3027906	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 632"]	Q3027906	moco1246
-gvc	Kadiwéu	Kadiwéu		gvc	guaicuruan__southern_guaicuruan		Brazil	Brazil	1500	2000	endangered	1500			Latin	false	false	0		0	0							
+kadiweu	Kadiwéu	Kadiwéu		gvc	guaicuruan__southern_guaicuruan		Brazil	Brazil	1500	2000	endangered	1500			Latin	false	false	0		0	0							
 mzh	Wichí Lhamtés Güisnay	Wichí		mzh	matacoan__matacoan_languages		Argentina	Argentina	40000	40000	living	1500			Latin	false	false	0		0	0							
 cta	Chorote	Iyojwa'ja		cta	matacoan__matacoan_languages		Argentina, Paraguay	Argentina;Paraguay	2000	2000	endangered	1500			Latin	false	false	0		0	0	0.9	definitely endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q7687853	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 957"]	Q7687853	tata1258
 cag	Nivaclé	Nivaclé		cag	matacoan__matacoan_languages		Paraguay	Paraguay	15000	15000	living	1500			Latin	false	false	0		0	0	0.9	vulnerable	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3182557	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2189"]	Q3182557	niva1238
@@ -1020,7 +1020,7 @@ was	Washo	Wá:šiw		was	washo__washo_language		United States	United States	20	10
 yuk	Yuki	Ukomno'm		yuk	yukian__yuki_wappo		United States	United States			extinct	1800	1990		Latin	false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q36993	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 849"]	Q36993	yuki1243
 wao	Wappo	Wappo		wao	yukian__yuki_wappo		United States	United States			extinct	1800	1990		Latin	false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q56530	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 850"]	Q56530	wapp1239
 chs	Chumash	Chumash		chs	chumashan__chumashan_languages		United States	United States			extinct	1769	1965		Latin	false	false	0		0	0							
-ess	Esselen	Esselen		ess	esselen__esselen_language		United States	United States			extinct	1770	1939		Latin	false	false	0		0	0							
+esselen-language	Esselen	Esselen		ess	esselen__esselen_language		United States	United States			extinct	1770	1939		Latin	false	false	0		0	0							
 sln	Salinan	Salinan		sln	salinan__salinan_language		United States	United States			extinct	1770	1958		Latin	false	false	0		0	0							
 sux	Sumerian	𒅴𒂠		sux	sumerian__sumerian_language		Iraq	Iraq			extinct	-3100	-1800		Cuneiform	false	false	0	Earliest written language	31	46							
 elx	Elamite	Hatamti		elx	elamite__elamite_language		Iran	Iran			extinct	-2800	300		Elamite cuneiform	false	false	0		0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q35470	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)"]	Q35470	elam1244
@@ -1028,7 +1028,7 @@ xhu	Hurrian	Hurwohe		xhu	hurro_urartian__hurrian		Syria, Turkey	Syria;Turkey;Ira
 xur	Urartian	Biainili		xur	hurro_urartian__urartian		Armenia	Armenia;Turkey			extinct	-900	-600		Cuneiform	false	false	0		0	0							
 htx	Hattic	Hattic		htx	hattic__hattic_language		Turkey	Turkey			extinct	-2500	-2000		Cuneiform	false	false	0		0	0							
 ett	Etruscan	Rasenna		ett	etruscan__etruscan_language		Italy	Italy			extinct	-700	100		Etruscan alphabet	false	false	0		0	0							
-abe	Great Andamanese	Aka-Jeru		abe	andamanese__great_andamanese		India	India	50	50	critically endangered	1858			Latin	false	false	0		0	0							
+great-andamanese	Great Andamanese	Aka-Jeru		abe	andamanese__great_andamanese		India	India	50	50	critically endangered	1858			Latin	false	false	0		0	0							
 anq	Jarawa	Aong		anq	andamanese__ongan		India	India	400	400	endangered	1858			None	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2475526	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1364"]	Q2475526	jara1245
 oon	Onge	Onge		oon	andamanese__ongan		India	India	100	100	critically endangered	1858			Latin	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q2475551	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 2455"]	Q2475551	onge1236
 kgg	Kusunda	Kusunda		kgg	kusunda__kusunda_language		Nepal	Nepal	1	8	critically endangered	1848			Devanagari	false	false	0		0	0	0.9	critically endangered	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q33630	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)","UNESCO Atlas language id 1259"]	Q33630	kusu1250
@@ -1052,7 +1052,7 @@ psl	Proto-Slavic	*Praslovьnьskъ		sla-pro	indo_european__balto_slavic		Eastern
 pce	Proto-Celtic	*Keltoi		cel-pro	indo_european__celtic		Central Europe				extinct	-1300	-500	reconstructed		true	false	2	Reconstructed ancestor of all Celtic languages	0	0							
 ine	Proto-Italic	*Proto-Italic		itc-pro	indo_european__italic		Italian Peninsula				extinct	-1500	-700	reconstructed		true	false	2	Reconstructed ancestor of Italic languages	0	0							
 iir	Proto-Indo-Iranian	*Proto-Indo-Iranian		iir-pro	indo_european		Central Asia				extinct	-2000	-1500	reconstructed		true	false	2	Reconstructed ancestor of Indo-Iranian languages	0	0							
-lat	Latin	Lingua Latina	la	lat	indo_european__italic		Roman Empire	Italy			extinct	-700	1500	Classical Latin	Latin	true	false	3	Classical language of ancient Rome	0	0							
+lat-classical	Latin	Lingua Latina	la	lat	indo_european__italic		Roman Empire	Italy			extinct	-700	1500	Classical Latin	Latin	true	false	3	Classical language of ancient Rome	0	0							
 grc	Ancient Greek	Ἑλληνική (Hellēnikḗ)		grc	indo_european__graeco_phrygian		Ancient Greece	Greece			extinct	-800	600	Ancient Greek	Greek	true	false	3	Classical language of ancient Greece	0	0							
 ang	Old English	Ænglisc		ang	indo_european__germanic	eng	Anglo-Saxon England	United Kingdom			extinct	450	1150		Latin	true	false	4	Ancestor of Modern English	0	0							
 non	Old Norse	Norrœnt mál		non	indo_european__germanic		Scandinavia	Norway;Sweden;Denmark;Iceland			extinct	700	1350		Runic, Latin	true	false	4	Ancestor of North Germanic languages	0	0							
@@ -1065,14 +1065,14 @@ san	Sanskrit	संस्कृतम् (Saṃskṛtam)	sa	san	indo_european__i
 pli	Pali	पालि (Pāli)	pi	pli	indo_european__indo_aryan		Ancient India	India;Sri Lanka			extinct	-500	1000		Brahmi, Devanagari	true	false	4	Language of early Buddhist texts	0	0							
 pra	Prakrit	𑀧𑀸𑀓𑀤		pra	indo_european__indo_aryan		Ancient India	India			extinct	-600	1000		Brahmi	true	false	4	Middle Indo-Aryan vernacular languages	0	0							
 xcl	Classical Armenian	Գրաբար (Grabar)		xcl	indo_european__armenic		Armenia	Armenia			extinct	400	1200		Armenian	true	false	4	Classical form of Armenian	0	0							
-got	Gothic	𐌲𐌿𐍄𐌹𐍃𐌺		got	indo_european__germanic		Eastern Europe	Ukraine;Romania			extinct	300	900		Gothic	true	false	4	Earliest attested Germanic language	0	0							
+got-classical	Gothic	𐌲𐌿𐍄𐌹𐍃𐌺		got	indo_european__germanic		Eastern Europe	Ukraine;Romania			extinct	300	900		Gothic	true	false	4	Earliest attested Germanic language	0	0							
 pst	Proto-Sino-Tibetan	*PST		sit-pro	sino_tibetan		East Asia				extinct	-4500	-2500	reconstructed		true	false	1	Reconstructed ancestor of Sino-Tibetan languages	0	0							
 och	Old Chinese	上古漢語		och	sino_tibetan__sinitic		Ancient China	China			extinct	-1000	200		Oracle Bone Script, Bronze Script	true	false	4	Archaic form of Chinese	0	0							
 ltc	Middle Chinese	中古漢語		ltc	sino_tibetan__sinitic		Medieval China	China			extinct	600	1200		Chinese characters	true	false	5	Medieval form of Chinese	0	0							
 obt	Old Tibetan	བོད་སྐད་རྙིང་པ		obt	sino_tibetan__bodish		Tibet	China			extinct	650	1100		Tibetan	true	false	4	Classical form of Tibetan	0	0	0.9	extinct	2026-07-08T11:44:14.709Z	http://www.wikidata.org/entity/Q3558112	["UNESCO Atlas of the World's Languages in Danger (via Wikidata P1999)"]	Q3558112	oldb1248
 paa	Proto-Austronesian	*PAN		map-pro	austronesian		Taiwan				extinct	-3500	-2500	reconstructed		true	false	1	Reconstructed ancestor of Austronesian languages	0	0							
 pmp	Proto-Malayo-Polynesian	*PMP		poz-pro	austronesian		Maritime Southeast Asia				extinct	-2500	-1500	reconstructed		true	false	2	Reconstructed ancestor of Malayo-Polynesian languages	0	0							
-poc	Proto-Oceanic	*POc		pqe-pro	austronesian		Western Pacific				extinct	-1500	-1000	reconstructed		true	false	3	Reconstructed ancestor of Oceanic languages	0	0							
+proto-oceanic	Proto-Oceanic	*POc		pqe-pro	austronesian		Western Pacific				extinct	-1500	-1000	reconstructed		true	false	3	Reconstructed ancestor of Oceanic languages	0	0							
 poz	Proto-Polynesian	*PPn		pqe-pol	austronesian		Central Pacific				extinct	-1000	-500	reconstructed		true	false	4	Reconstructed ancestor of Polynesian languages	0	0							
 pnc	Proto-Niger-Congo	*PNC		nic-pro	niger_congo		West Africa				extinct	-7000	-3000	reconstructed		true	false	1	Reconstructed ancestor of Niger-Congo languages	0	0							
 bnt	Proto-Bantu	*PB		bnt-pro	niger_congo__bantu		Central Africa				extinct	-3000	-1000	reconstructed		true	false	2	Reconstructed ancestor of Bantu languages	0	0							
@@ -1084,17 +1084,17 @@ xgn	Proto-Mongolic	*PM		xgn-pro	mongolic		Mongolia				extinct	-500	1000	reconstr
 xwo	Written Oirat	ᡆᡕᡅᠷᠠᡑ		xwo	mongolic__western_mongolic		Mongolia	Mongolia;Russia			extinct	1600	1900		Clear Script	true	false	4	Classical Oirat literary language	0	0							
 tut	Proto-Tungusic	*PTu		tuw-pro	tungusic		Manchuria				extinct	-500	500	reconstructed		true	false	1	Reconstructed ancestor of Tungusic languages	0	0							
 dra	Proto-Dravidian	*PD		dra-pro	dravidian		South India				extinct	-2500	-1000	reconstructed		true	false	1	Reconstructed ancestor of Dravidian languages	0	0							
-tam	Old Tamil	தமிழ் (Tamiḻ)		tam-old	dravidian__south_dravidian		South India	India			extinct	-300	700		Tamil-Brahmi, Grantha	true	false	4	Classical form of Tamil	0	0							
+old-tamil	Old Tamil	தமிழ் (Tamiḻ)		tam-old	dravidian__south_dravidian		South India	India			extinct	-300	700		Tamil-Brahmi, Grantha	true	false	4	Classical form of Tamil	0	0							
 afa	Proto-Afro-Asiatic	*PAA		afa-pro	afro_asiatic		Northeast Africa				extinct	-10000	-5000	reconstructed		true	false	1	Reconstructed ancestor of Afro-Asiatic languages	0	0							
 sem	Proto-Semitic	*PS		sem-pro	afro_asiatic__semitic		Middle East				extinct	-3750	-2000	reconstructed		true	false	2	Reconstructed ancestor of Semitic languages	0	0							
-akk	Akkadian	𒀝𒅗𒁺𒌑		akk	afro_asiatic__semitic		Mesopotamia	Iraq			extinct	-2500	100		Cuneiform	true	false	4	Earliest attested Semitic language	0	0							
-arc	Aramaic	ܐܪܡܝܐ (Arāmāyā)		arc	afro_asiatic__semitic		Middle East	Syria;Iraq;Iran		500000	endangered	-1100	1200	Classical Aramaic	Aramaic	true	false	4	Classical language of the ancient Near East	0	0							
-egy	Ancient Egyptian	𓂋𓏺𓈖𓆎𓅓𓏏𓊖		egy	afro_asiatic__egyptian		Ancient Egypt	Egypt			extinct	-3000	-700		Egyptian Hieroglyphs	true	false	4	Language of ancient Egypt	0	0							
-cop	Coptic	Ⲙⲉⲧⲣⲉⲙ̀ⲛⲭⲏⲙⲓ		cop	afro_asiatic__egyptian		Egypt	Egypt		500	endangered	200	1600	Coptic	Coptic	true	false	5	Latest stage of Egyptian language	0	0							
+akk-classical	Akkadian	𒀝𒅗𒁺𒌑		akk	afro_asiatic__semitic		Mesopotamia	Iraq			extinct	-2500	100		Cuneiform	true	false	4	Earliest attested Semitic language	0	0							
+arc-classical	Aramaic	ܐܪܡܝܐ (Arāmāyā)		arc	afro_asiatic__semitic		Middle East	Syria;Iraq;Iran		500000	endangered	-1100	1200	Classical Aramaic	Aramaic	true	false	4	Classical language of the ancient Near East	0	0							
+egy-classical	Ancient Egyptian	𓂋𓏺𓈖𓆎𓅓𓏏𓊖		egy	afro_asiatic__egyptian		Ancient Egypt	Egypt			extinct	-3000	-700		Egyptian Hieroglyphs	true	false	4	Language of ancient Egypt	0	0							
+cop-classical	Coptic	Ⲙⲉⲧⲣⲉⲙ̀ⲛⲭⲏⲙⲓ		cop	afro_asiatic__egyptian		Egypt	Egypt		500	endangered	200	1600	Coptic	Coptic	true	false	5	Latest stage of Egyptian language	0	0							
 paa-na	Proto-Algonquian	*PA		alg-pro	algic		Great Lakes				extinct	-1000	500	reconstructed		true	false	2	Reconstructed ancestor of Algonquian languages	0	0							
 pua	Proto-Uto-Aztecan	*PUA		azc-pro	uto_aztecan		Western North America				extinct	-3000	-1000	reconstructed		true	false	1	Reconstructed ancestor of Uto-Aztecan languages	0	0							
 nci	Classical Nahuatl	Nāhuatlahtōlli		nci	uto_aztecan		Central Mexico	Mexico			extinct	1200	1700		Latin	true	false	4	Classical form of Nahuatl	0	0							
 pmy	Proto-Mayan	*PM		myn-pro	mayan		Mesoamerica				extinct	-2000	-500	reconstructed		true	false	1	Reconstructed ancestor of Mayan languages	0	0							
-myn	Classical Mayan	𐤀𐤇𐤀𐤅		myn-cla	mayan		Maya region	Mexico;Guatemala			extinct	200	900		Mayan hieroglyphs	true	false	4	Classical language of Maya civilization	0	0							
+classical-mayan	Classical Mayan	𐤀𐤇𐤀𐤅		myn-cla	mayan		Maya region	Mexico;Guatemala			extinct	200	900		Mayan hieroglyphs	true	false	4	Classical language of Maya civilization	0	0							
 xqa	Proto-Quechuan	*PQ		qwe-pro	quechuan		Andes				extinct	-1000	1200	reconstructed		true	false	1	Reconstructed ancestor of Quechuan languages	0	0							
 qwc	Classical Quechua	Qhapaq Simi		qwc	quechuan		Inca Empire	Peru			extinct	1200	1600		Latin	true	false	4	Classical language of Inca Empire	0	0							

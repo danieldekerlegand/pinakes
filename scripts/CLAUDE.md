@@ -495,3 +495,52 @@ enrichment write-back: `import-from-culturescrape --enrich <file> --target langu
   provenance (a deliberate coverage rise). The reconciliation report reads glottocode by a
   column-name regex (`/glotto/i`), not via the canonical mapping, so `withGlottocode` populates
   from the property column.
+
+## Identity dedupe migration — `dedupe-identity.ts` (US-008)
+
+The one-shot, idempotent, byte-faithful migration that burned the export's 44 duplicate
+csids (`cs:<type>:<id>` collisions = same `id` reused by ≥2 nodes of ONE type) and 16
+ambiguous `linguascrape_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
+It edits `lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
+targeted cells change) and is safe to re-run (a row whose old id is already gone is skipped).
+Reusable rules for any future id-collision cleanup:
+
+- **The two metrics are driven ONLY by the node `id` column.** duplicateCsids = same-type
+  same-id; ambiguousLinguascrapeIds = same raw id across types. So the fix is always a node
+  `id` rename or a row delete — nothing else moves them. `id` renames do NOT touch the
+  reconciliation `ambiguous` metric (languages key on iso639_1/iso639_2/glottocode, everything
+  else on (name,type,region) — never `id`).
+- **Rename, don't delete, to avoid clobbering curated data.** Keep BOTH near-duplicate rows
+  with distinct ids (`-classical` for `is_historical_variant=true` entries, `-manding`/`-western`
+  for a language duplicated under two family hierarchies, a name-slug for a distinct language that
+  mis-shares an ISO/collective code — the 9 Totonac lects all carried `iso639_2=tot`). Only
+  delete a row that is **byte-identical** to its twin (3 cuisine-items rows here).
+- **Keep the id on the FK/edge-referenced side; rename the leaf.** Every original id must still
+  resolve to a kept node so no edge is orphaned into a needs-curation stub (US-007) and the 6
+  referential-integrity FKs (`data-quality-scorer.ts` `FOREIGN_KEY_MAP`:
+  languages.family_id/parent_language_id, families.parent_id, grammar-features/phonological-
+  inventories/words → languages.id) stay 100%. For a cross-type pair, the referencing COLUMN
+  disambiguates the type (`civilization_id`→culture, `archaeological_culture_id`→arch-culture,
+  `families.parent_id`→family, `language_id`/`Language_ID`→language), so re-point precisely.
+  Only the renamed node's own references need following: e.g. keeping the Nok archaeological
+  culture but renaming the Nooksack *language* means re-pointing grammar-features/phonological-
+  inventories `language_id` (the language FKs) but nothing else.
+- **The EDGE-endpoint columns are the ones that mint stubs if orphaned** (from
+  `shared/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
+  predecessor/successor_culture_ids, cultural-lineages source_id/target_id (**polymorphic** — any
+  node type), deities.syncretism_links, etymology-relations + language-contacts endpoints,
+  families.parent_id, languages.family_id/parent_language_id, writing-systems.parent_system_id.
+  `associated_*`/`culture_id`/`pantheon` are **property** columns (not FKs, not edges) — not gate-
+  checked, so they re-resolve to the kept same-id node harmlessly.
+- **VERIFY EMPIRICALLY, twice.** New ids can collide with EXISTING ones (here `esselen`,
+  `mohenjo-daro-settlement`, and an existing `indus-valley-civilization` archaeological culture
+  all pre-existed — the first slug choices regressed). After the migration re-run the
+  duplicate/ambiguous diagnostic AND the export, and watch `diagnostics.{duplicateCsids,
+  ambiguousLinguascrapeIds,edgesWithUnresolvedEndpoint,stubNodesMinted}` (stubs must NOT rise).
+- **Recovering dropped rows RAISES reconciliation `ambiguous`.** The 44 duplicate-csid rows were
+  being silently dropped from BOTH the export and reconciliation (`buildReconciliationKeys`
+  `duplicateCsidsDropped`). Making them distinct surfaces them in reconciliation, where near-dups
+  sharing an ISO/collective code legitimately block-collide → `reconciliationAmbiguous` rose
+  242→302. That is a **deliberate, explained** re-baseline of `docs/convergence-qa-baseline.json`
+  (`npm run convergence-qa:baseline`), not a regression to hide. Lowering it is a follow-up
+  glottocode/ISO-enrichment task.
