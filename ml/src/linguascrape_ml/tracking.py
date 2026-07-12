@@ -20,9 +20,10 @@ so a caller never has to touch ``mlflow.set_tracking_uri`` directly.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from mlflow import ActiveRun
@@ -41,14 +42,22 @@ def default_tracking_uri() -> str:
 
 
 def tracking_uri() -> str:
-    """Resolve the tracking URI: ``MLFLOW_TRACKING_URI`` if set, else the file backend."""
+    """Tracking URI: ``MLFLOW_TRACKING_URI`` if set, else the file backend."""
     return os.environ.get("MLFLOW_TRACKING_URI") or default_tracking_uri()
 
 
 def configure_tracking(experiment: str = DEFAULT_EXPERIMENT) -> str:
-    """Point MLflow at the resolved tracking URI + experiment. Returns the URI."""
+    """Point MLflow at the resolved tracking URI + experiment. Returns the URI.
+
+    The local file backend is intentional (no server/DB — reproducible + CI-safe).
+    MLflow >=3 puts the file store in "maintenance mode" and raises unless
+    ``MLFLOW_ALLOW_FILE_STORE=true``; that env var is its sanctioned opt-out for
+    workflows (like ours) that require the file backend, so opt in by default here
+    while still letting an explicit caller value win via ``setdefault``.
+    """
     import mlflow
 
+    os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
     uri = tracking_uri()
     mlflow.set_tracking_uri(uri)
     mlflow.set_experiment(experiment)
@@ -59,7 +68,7 @@ def configure_tracking(experiment: str = DEFAULT_EXPERIMENT) -> str:
 def start_run(
     run_name: str | None = None,
     experiment: str = DEFAULT_EXPERIMENT,
-) -> Iterator["ActiveRun"]:
+) -> Iterator[ActiveRun]:
     """Configure tracking + open an MLflow run as a context manager."""
     import mlflow
 

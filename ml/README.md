@@ -57,6 +57,11 @@ with start_run(run_name="transe-baseline"):   # configures URI + experiment, ope
     mlflow.log_metric("mrr", 0.31)
 ```
 
+The helper also opts into MLflow's file backend (`MLFLOW_ALLOW_FILE_STORE=true`,
+via `setdefault`) — MLflow ≥3 puts the file store in "maintenance mode" and
+raises without that opt-out. We require the file backend (no server/DB, so runs
+stay reproducible and CI-safe), so the helper sets it for you.
+
 Runs group under the `linguascrape-baselines` experiment. Browse them with
 `uv run mlflow ui` (defaults to the same file store) → http://127.0.0.1:5000.
 `mlruns/` is git-ignored — metrics that must be preserved are committed to

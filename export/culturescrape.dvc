@@ -1,0 +1,6 @@
+outs:
+- md5: e418c976755c57876e0be1438c6295b7.dir
+  size: 2801195
+  nfiles: 31
+  hash: md5
+  path: culturescrape

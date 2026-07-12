@@ -1,0 +1,43 @@
+name: ml-ci
+
+# ml/ workspace smoke gate (NEUROSYMBOLIC_ROADMAP.md Phase 2 / ml US-001).
+# Keeps the neurosymbolic ML env importable + lint/test-clean WITHOUT training in
+# CI: the statistical stack (torch/pykeen/problog) is heavy and full baseline runs
+# are local-only (MPS/CPU on the dev machine). This job proves the env resolves
+# from the committed uv.lock and the tracking helper works; datasets/metrics
+# reproducibility is enforced separately by DVC pointers + committed split
+# manifests (US-002+), not by this smoke.
+#
+# Scoped to ml/ changes so it does not tax unrelated pushes. The heavy torch wheel
+# download is expected — this is imports-only, no model training.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "ml/**"
+      - ".github/workflows/ml-ci.yml"
+  pull_request:
+    paths:
+      - "ml/**"
+      - ".github/workflows/ml-ci.yml"
+
+jobs:
+  ml-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Sync ML deps (frozen lock, incl. dev tooling)
+        # --frozen installs exactly the committed uv.lock so the smoke matches
+        # the pinned env; --extra dev adds ruff + pytest.
+        run: uv sync --frozen --extra dev
+      - name: Import smoke (torch / pykeen / problog — no training)
+        run: uv run python -c 'import torch, pykeen, problog; print("ml env OK", torch.__version__)'
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Tests (pytest smoke)
+        run: uv run pytest
