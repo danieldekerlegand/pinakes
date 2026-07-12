@@ -33,10 +33,13 @@ from culturescrape.datalog.equivalence import Tuple
 #: facts never state directly, so the cross-engine check compares non-empty
 #: closures (see the ``prolog`` non-empty assertion below): a transitive
 #: descends_from / located_in / part_of chain, a one-directional contemporary_with
-#: edge (the mirror is derived), a mixed influence chain, two entities sharing an
-#: enclosing region (same_region), and a haplogroup/language co-located in one
-#: region (genetic_linguistic_correlation). Every rule head must appear here — a
-#: rule with no base facts would close to the empty set and trip that assertion.
+#: edge (the mirror is derived), dated spans that overlap (Q47/Q42 →
+#: ``contemporary``) and that are disjoint (Q42 before Q99 → ``precedes`` /
+#: ``follows``), a mixed influence chain, two entities sharing an enclosing region
+#: (same_region), and a haplogroup/language co-located in one region
+#: (genetic_linguistic_correlation). Every rule head must appear here — a rule with
+#: no base facts would close to the empty set and trip that assertion. The dated
+#: facts carry numeric values so Soufflé types time_start/time_end as ``number``.
 EQUIV_FACTS = [
     Fact("descends_from", ("cs:lang:spa", "cs:lang:lat")),
     Fact("descends_from", ("cs:lang:lat", "cs:lang:itc")),
@@ -50,6 +53,12 @@ EQUIV_FACTS = [
     Fact("part_of", ("cs:part:Q12", "cs:part:Q13")),
     Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:western-europe")),
     Fact("spoken_in", ("cs:language:proto-celtic", "cs:place:western-europe")),
+    Fact("time_start", ("cs:battle:Q47", 100)),
+    Fact("time_end", ("cs:battle:Q47", 200)),
+    Fact("time_start", ("cs:dish:Q42", 150)),
+    Fact("time_end", ("cs:dish:Q42", 300)),
+    Fact("time_start", ("cs:dish:Q99", 400)),
+    Fact("time_end", ("cs:dish:Q99", 500)),
 ]
 
 

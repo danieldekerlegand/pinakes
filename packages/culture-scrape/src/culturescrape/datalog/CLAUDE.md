@@ -15,12 +15,16 @@ computes the rules' derived extension without swipl/souffle.
 projected `Fact`s and returns each rule head's derived tuple set; `summarize(...)`
 adds the base-relation counts and yields a `MaterializationSummary` whose
 `to_json()` is what `culturescrape datalog-materialize <dataset> --json` writes.
-Use it to count/validate the four US-004 targets (`contemporary`, `same_region`,
-`ancestor` = transitive `descends_from`, `genetic_linguistic_correlation`) in CI —
-no engine is installed. Constraints the evaluator relies on (and that any new rule
-must keep, same as the emitters): **every predicate is binary** (`ARITY == 2`) and
-bodies are **pure Horn** over variables (upper-case-initial / `_`) or constants. A
-non-binary literal or a fact-shaped clause raises `MaterializeError`.
+Use it to count/validate the inference targets (`contemporary`/`precedes`/`follows`
+over time bounds, `same_region`, `ancestor` = transitive `descends_from`,
+`genetic_linguistic_correlation`) in CI — no engine is installed. Constraints the
+evaluator relies on (and that any new rule must keep, same as the emitters): every
+**predicate** literal is binary (`ARITY == 2`) and bodies are Horn over variables
+(upper-case-initial / `_`) or constants, **plus comparison guards** (`Ex < Sy`) —
+the evaluator keeps fact args in their native type so numeric comparisons are
+numeric, and applies the guards as a filter once their operands are bound. A
+non-binary *predicate* literal or a fact-shaped clause raises `MaterializeError`;
+a comparison over a still-unbound variable is an unsafe rule and also raises.
 
 - The full-corpus derivation is a committed **release record**
   (`docs/datalog-materialization-manifest.json`), not a CI-tested snapshot — the
@@ -37,11 +41,20 @@ non-binary literal or a fact-shaped clause raises `MaterializeError`.
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its
-`__all__`). A rule is a **pure Horn clause** — head + positive literals over
-*variables only*. No constants, and **no inequality/negation** (`X != Y` is
-Soufflé-only, `X \= Y` is Prolog-only): the clause text must be byte-identical in
-both dialects, which `test_rule_clause_text_is_shared_verbatim_across_dialects`
-enforces. `depends=` lists the predicates the body reads so the emitters declare
+`__all__`). A rule is a Horn clause — head + positive predicate literals over
+*variables only* (no constants). **Comparison body literals are allowed** (the
+temporal rules `contemporary`/`precedes`/`follows` guard on `Ex < Sy` / `Ex >= Sy`
+over `time_start`/`time_end`), but ONLY the dialect-shared operators `<`, `>`,
+`>=` — these are byte-identical arithmetic goals in SWI-Prolog and native numeric
+constraints in Soufflé. Do NOT use the asymmetric spellings: `=<` (Prolog) vs `<=`
+(Soufflé), or `\==`/`\=` (Prolog) vs `!=` (Soufflé) — they'd break the
+byte-identical clause text that `test_rule_clause_text_is_shared_verbatim_across_dialects`
+enforces. Need distinctness (avoid a reflexive self-pair)? Make the rule reflexive
++ documented (like `same_region`/`contemporary`) and filter `X = Y` in the *query*,
+not the rule. A comparison needs its operands bound by an earlier predicate literal
+(a Soufflé/Prolog safety rule): list the `time_start`/`time_end` goals *before* the
+comparison. `depends=` must still name the base predicates the comparisons read
+(e.g. `time_start`, `time_end`) so the emitters declare them. `depends=` lists the predicates the body reads so the emitters declare
 them even when the graph has no such facts (a rule body over an unpopulated base
 relation must answer `false`, not error). A rule head may read *another rule's*
 head (e.g. `same_region` reads `within_region`); listing that derived predicate in

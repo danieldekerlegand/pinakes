@@ -109,11 +109,19 @@ exercises that rule. `dom → rng` is the domain/range as `:LABEL` tokens.
 
 ### Temporal — [`temporal.py`](../src/culturescrape/ontology/temporal.py)
 
+The linker mints only `PART_OF_PERIOD` (and the period nodes it links to). Since
+T-SR-US-001 the pairwise `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` relations are
+**not materialised** — materialising every co-dated pair was quadratic (5.57M of
+5.58M corpus edges) — they are derived on demand by the arithmetic Datalog rules
+(`datalog/rules.py`: `contemporary`/`precedes`/`follows`) over the `time_start` /
+`time_end` facts. The `:TYPE`s stay registered so an authored `CONTEMPORARY_WITH`
+edge is still valid input; the rows below note where each relation now lives.
+
 | `:TYPE` | dom → rng | sym | trans | Inference rule | Test |
 |---|---|:--:|:--:|---|---|
-| `CONTEMPORARY_WITH` | entity ↔ entity | ✔ | | Two entities sharing a facet whose `(time_start, time_end)` spans overlap by ≥ `min_overlap_years` (overlap is not transitive). | `test_ontology_temporal.py::test_contemporary_with_for_overlapping_spans` |
-| `PRECEDES` | entity → entity | | ✔ | Two faceted entities whose spans are disjoint: the earlier `PRECEDES` the later. | `test_ontology_temporal.py::test_precedes_and_follows_for_disjoint_spans` |
-| `FOLLOWS` | entity → entity | | ✔ | Inverse of `PRECEDES`: the later entity `FOLLOWS` the earlier. | `test_ontology_temporal.py::test_precedes_and_follows_for_disjoint_spans` |
+| `CONTEMPORARY_WITH` | entity ↔ entity | ✔ | | *Derived, not stored* — the `contemporary/2` rule: spans overlap (`time_end(X) >= time_start(Y)` both ways) or an authored edge joins them; reflexive + symmetric. | `test_datalog_materialize.py::test_contemporary_unions_time_overlap_and_authored_edges` |
+| `PRECEDES` | entity → entity | | ✔ | *Derived, not stored* — the `precedes/2` rule: `time_end(X) < time_start(Y)`. | `test_datalog_materialize.py::test_precedes_and_follows_derive_from_disjoint_spans` |
+| `FOLLOWS` | entity → entity | | ✔ | *Derived, not stored* — the `follows/2` rule: inverse of `precedes/2`. | `test_datalog_materialize.py::test_precedes_and_follows_derive_from_disjoint_spans` |
 | `PART_OF_PERIOD` | entity → period | | | A node's `period` cell resolves to a period node, minted idempotently from the name (reused if it already exists). | `test_ontology_temporal.py::test_part_of_period_creates_period_node_idempotently` |
 
 ### Linguistic — [`linguistic.py`](../src/culturescrape/ontology/linguistic.py)

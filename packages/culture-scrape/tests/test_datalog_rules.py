@@ -32,8 +32,10 @@ from culturescrape.datalog.rules import (
     ARITY,
     COMPONENT_OF,
     CONTEMPORARY,
+    FOLLOWS,
     GENETIC_LINGUISTIC_CORRELATION,
     INFLUENCED_TRANSITIVELY,
+    PRECEDES,
     SAME_REGION,
     WITHIN_REGION,
     is_recursive,
@@ -42,9 +44,12 @@ from culturescrape.datalog.rules import (
 
 #: A fact base exercising every rule's closure: a two-step descends_from chain,
 #: a two-step located_in containment, a one-directional contemporary_with edge,
-#: a derived_from→influenced_by influence chain, and — for the LinguaScrape
-#: correlation rules — a haplogroup originating in the region a language is
-#: spoken in.
+#: a derived_from→influenced_by influence chain, dated spans (time_start/time_end)
+#: for the arithmetic temporal rules — Q47 overlaps Q42, and Q07 is strictly later
+#: so Q42 precedes Q07 — and, for the LinguaScrape correlation rules, a haplogroup
+#: originating in the region a language is spoken in. Dated facts carry numeric
+#: values so Soufflé types time_start/time_end as `number` and the `<`/`>=` guards
+#: compile.
 RULE_FACTS = [
     Fact("descends_from", ("cs:lang:spa", "cs:lang:lat")),
     Fact("descends_from", ("cs:lang:lat", "cs:lang:itc")),
@@ -57,6 +62,12 @@ RULE_FACTS = [
     Fact("part_of", ("cs:part:Q12", "cs:part:Q13")),
     Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:Q123")),
     Fact("spoken_in", ("cs:lang:gaulish", "cs:place:Q123")),
+    Fact("time_start", ("cs:battle:Q47", 100)),
+    Fact("time_end", ("cs:battle:Q47", 200)),
+    Fact("time_start", ("cs:dish:Q42", 150)),
+    Fact("time_end", ("cs:dish:Q42", 300)),
+    Fact("time_start", ("cs:dish:Q07", 400)),
+    Fact("time_end", ("cs:dish:Q07", 500)),
 ]
 
 
@@ -68,6 +79,8 @@ def test_library_defines_the_required_derived_relations() -> None:
         "ancestor",
         "within_region",
         "contemporary",
+        "precedes",
+        "follows",
         "influenced_transitively",
         "component_of",
         "same_region",
@@ -137,6 +150,32 @@ def test_pl_declares_derived_and_base_rule_predicates() -> None:
         assert f":- table {name}/2." in program
         assert f":- dynamic {name}/2." not in program
         assert f":- discontiguous {name}/2." not in program
+
+
+def test_temporal_rules_are_arithmetic_over_time_bounds() -> None:
+    # contemporary/precedes derive from time_start/time_end (no stored edge);
+    # contemporary also honours an authored contemporary_with edge.
+    assert "time_start" in CONTEMPORARY.depends
+    assert "time_end" in CONTEMPORARY.depends
+    assert "contemporary_with" in CONTEMPORARY.depends
+    assert PRECEDES.depends == ("time_end", "time_start")
+    assert FOLLOWS.depends == ("precedes",)
+    # Only the dialect-shared comparison operators are used, so the clause text
+    # stays byte-identical across Prolog and Soufflé (checked generically above).
+    joined = " ".join(c for r in (CONTEMPORARY, PRECEDES) for c in r.clauses)
+    assert " < " in joined and " >= " in joined
+    for forbidden in (" =< ", " <= ", " != ", " \\== "):
+        assert forbidden not in joined
+    # None of the temporal rules is recursive, so all stay dynamic (not tabled).
+    for rule in (CONTEMPORARY, PRECEDES, FOLLOWS):
+        assert not is_recursive(rule)
+
+
+def test_pl_declares_temporal_rule_predicates_as_dynamic() -> None:
+    program = render_program([], rules=RULES)
+    for name in ("contemporary", "precedes", "follows", "time_start", "time_end"):
+        assert f":- dynamic {name}/2." in program
+        assert f":- table {name}/2." not in program
 
 
 def test_is_recursive_flags_only_transitive_closure_rules() -> None:
@@ -239,7 +278,9 @@ SWIPL = shutil.which("swipl")
 _CLOSURE_GOALS = (
     "ancestor('cs:lang:spa', 'cs:lang:itc')",  # transitive descends_from
     "within_region('cs:dish:Q42', 'cs:place:Q200')",  # transitive located_in
-    "contemporary('cs:dish:Q42', 'cs:battle:Q47')",  # symmetric closure
+    "contemporary('cs:dish:Q42', 'cs:battle:Q47')",  # overlap via time + edge
+    "precedes('cs:dish:Q42', 'cs:dish:Q07')",  # time_end(Q42) < time_start(Q07)
+    "follows('cs:dish:Q07', 'cs:dish:Q42')",  # inverse of precedes
     "influenced_transitively('cs:dish:Q99', 'cs:dish:Q07')",  # union closure
     "component_of('cs:part:Q11', 'cs:part:Q13')",  # transitive part_of
     "same_region('cs:dish:Q42', 'cs:place:Q123')",  # co-located via within_region
@@ -316,6 +357,8 @@ def test_all_rule_constants_are_referenced() -> None:
         ANCESTOR,
         WITHIN_REGION,
         CONTEMPORARY,
+        PRECEDES,
+        FOLLOWS,
         INFLUENCED_TRANSITIVELY,
         COMPONENT_OF,
         SAME_REGION,

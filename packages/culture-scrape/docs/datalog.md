@@ -363,19 +363,25 @@ become available whichever engine a researcher loads.
 
 A pure Horn rule (a head and a body of positive literals over **variables**) is
 written identically in ISO-Prolog and in Soufflé — the dialects diverge only on
-how *constants* are quoted, and a rule has none. So each rule's clause text is
-**shared verbatim** across both outputs; the engines differ only in the
-scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`/`:-
-table` directives, Soufflé's `.decl`/`.output`), which the emitters add
-automatically.
+how *constants* are quoted, and a rule has none. The temporal rules additionally
+use **comparison body literals**, but only the operators `<` and `>=`, which are
+byte-identical arithmetic goals in SWI-Prolog and native numeric constraints in
+Soufflé (the asymmetric spellings `=<` / `!=` are deliberately avoided). So each
+rule's clause text is **shared verbatim** across both outputs; the engines differ
+only in the scaffolding around the clauses (Prolog's `:- dynamic`/`:-
+discontiguous`/`:- table` directives, Soufflé's `.decl`/`.output`), which the
+emitters add automatically.
 
-Every rule relation is **binary over csids**.
+Every rule *predicate* literal is **binary over csids** (a comparison literal such
+as `Ex < Sy` is not a predicate goal and carries no relation).
 
 | Derived predicate | Closure of | Intended meaning |
 |---|---|---|
 | `ancestor/2` | transitive `descends_from/2` | `ancestor(X, Y)` — language `Y` is a (possibly indirect) ancestor of language `X` |
 | `within_region/2` | transitive `located_in/2` | `within_region(X, Y)` — `X` lies inside region `Y` through any chain of containments |
-| `contemporary/2` | symmetric `contemporary_with/2` | `contemporary(X, Y)` — `X` and `Y` overlap in time, queryable from either endpoint |
+| `contemporary/2` | span overlap over `time_start/2` + `time_end/2` (∪ authored `contemporary_with/2`) | `contemporary(X, Y)` — `X` and `Y` overlap in time (`time_end(X) >= time_start(Y)` both ways) or are joined by an authored edge; reflexive + symmetric |
+| `precedes/2` | ordering over `time_end/2` + `time_start/2` | `precedes(X, Y)` — `X`'s span ends strictly before `Y`'s begins (`time_end(X) < time_start(Y)`) |
+| `follows/2` | inverse of `precedes/2` | `follows(X, Y)` — `X` comes entirely after `Y` (`Y precedes X`) |
 | `influenced_transitively/2` | transitive `derived_from/2` ∪ `influenced_by/2` | `influenced_transitively(X, Y)` — `Y` is a direct or indirect cultural forebear of `X` |
 | `component_of/2` | transitive `part_of/2` | `component_of(X, Y)` — `X` is a component of whole `Y` through any chain of part-of containments |
 | `same_region/2` | co-location via `within_region/2` | `same_region(X, Y)` — `X` and `Y` share an enclosing region (reflexive, symmetric); the geographic half of the cross-domain correlation |
@@ -387,10 +393,14 @@ derives only the *qualitative* pairing; the numeric overlap score (region-polygo
 intersection, notable divergences) stays a CPU-domain computation in the
 TypeScript engine, per `docs/culturescrape-integration.md`.
 
-`contemporary/2` is a **new** predicate rather than a self-mirroring clause on
-`contemporary_with/2`: in Prolog a clause `contemporary_with(X, Y) :-
-contemporary_with(Y, X).` would loop, so a distinct head keeps the symmetric
-closure terminating while still agreeing with Soufflé's fixpoint.
+**Temporal relations are rules, not stored edges (T-SR-US-001).** Materialising
+pairwise `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` is quadratic — 5.57M of 5.58M
+corpus edges at 6.7k nodes — so the ontology's temporal linker no longer emits
+them (it keeps only `PART_OF_PERIOD`). `contemporary`/`precedes`/`follows` are
+instead derived on demand from the `time_start/2` and `time_end/2` dimension facts
+every node projects; an entity must carry **both** bounds to be
+ordered/overlapped. `contemporary/2` is reflexive (a span overlaps itself) and
+symmetric, so a caller filters `X = Y` for distinct pairs.
 
 A distinct head is not enough for the **transitive-closure** rules, though: their
 base relations can themselves be cyclic. `descends_from` carries a data-error
@@ -470,12 +480,14 @@ X = 'cs:place:Q123' ;
 X = 'cs:place:Q200'.
 ```
 
-Given the single edge `contemporary_with('cs:battle:Q47', 'cs:dish:Q42')`, the
-mirror holds though no edge was stored in that direction:
+Given the dated spans `time_start('cs:event:inca-expansion', 1438)`,
+`time_end(…, 1533)` and `time_start('cs:event:columbian-exchange', 1492)`,
+`time_end(…, 1700)`, the overlap is derived arithmetically (the query filters the
+reflexive self-match):
 
 ```prolog
-?- contemporary('cs:dish:Q42', X).
-X = 'cs:battle:Q47'.
+?- contemporary('cs:event:inca-expansion', X), X \== 'cs:event:inca-expansion'.
+X = 'cs:event:columbian-exchange'.
 ```
 
 Given `derived_from('cs:dish:Q99', 'cs:dish:Q42')` and
@@ -551,7 +563,8 @@ relations — but the full corpus program is ~1 GB, and the engine-free path sta
 useful even now that CI carries the engines (see "Installing the engines" above),
 because it is fast and needs no engine at all. `culturescrape.datalog.materialize`
 computes each rule's extension **engine-free**: a small naive-fixpoint evaluator
-over the projected facts, so the four US-004 inference targets can be produced,
+over the projected facts (including the comparison guards of the arithmetic
+temporal rules, since T-SR-US-001), so every inference target can be produced,
 counted, and validated without an engine. `culturescrape datalog-materialize <dataset>` prints
 the base-relation counts the rules read and the derived-relation counts, and
 `--json <path>` writes them as a manifest:
@@ -565,29 +578,28 @@ the base-relation counts the rules read and the derived-relation counts, and
 3
 >>> summary.derived_relations["same_region"]                    # co-location join
 16
->>> summary.derived_relations["contemporary"]                   # symmetric contemporary_with
-6
+>>> summary.derived_relations["contemporary"]                   # span overlap ∪ authored edge
+8
 >>> summary.derived_relations["genetic_linguistic_correlation"] # origin ⋈ spoken region
 2
 
 ```
 
-Over the **full LinguaScrape corpus** (`out/linguascrape-full/corpus`) the four
-targets materialize to (recorded in `docs/datalog-materialization-manifest.json`):
+The committed full-corpus figures in `docs/datalog-materialization-manifest.json`
+predate T-SR-US-001 — they were taken when `contemporary` read the (now-removed)
+stored `contemporary_with` edges. Regenerate the manifest after the next full
+rebuild (the T-SR-US-005 benchmark); the shape after the change is:
 
-| Target relation | Derived tuples | Base relation read |
-|---|---|---|
-| `contemporary/2` (symmetric `contemporary_with/2`) | 1,010,490 | `contemporary_with` (505,245) |
-| `same_region/2` (co-location via `within_region/2`) | 2,219 | `located_in` (475) |
-| `ancestor/2` (transitive `descends_from/2`) | 2,770 | `descends_from` (1,468) |
-| `genetic_linguistic_correlation/2` | 0 | `originates_from`/`spoken_in` (0) |
-
-`genetic_linguistic_correlation/2` derives **0** over the LinguaScrape-only corpus
-because LinguaScrape ships no genetics domain (no haplogroup source, so no
-`originates_from`/`spoken_in` edges). The rule is exercised — and its expected
-shape recorded — on the bundled fixture, which carries the ported LinguaScrape
-genetics facts (`source: linguascrape`); it materializes on any merged corpus that
-adds a genetics source. The other three run non-trivially over the live graph.
-Storing the ~1 M symmetric `contemporary` closure as edges would dominate the
-corpus, so it stays **derived** in the logic layer rather than materialized into
-TSV — the point of keeping the closure a rule.
+- `contemporary/2` now derives from `time_start/2` + `time_end/2` (∪ any authored
+  `contemporary_with` edge), and `precedes/2` / `follows/2` from the same bounds.
+  **Materialising** these over the full corpus reproduces the O(n²) extension —
+  every overlapping/ordered pair of dated entities — which is precisely why they
+  are kept as **on-demand rules**, not stored edges: the ~1 GB stored temporal
+  edge set is gone, and an engine (or the materialiser) derives the pairs only for
+  the entities a query actually reaches.
+- `same_region/2` and `ancestor/2` are unchanged (co-location / transitive
+  descent). `genetic_linguistic_correlation/2` derives **0** over the
+  LinguaScrape-only corpus (no genetics domain — no
+  `originates_from`/`spoken_in` edges); it is exercised on the bundled fixture,
+  which carries ported `source: linguascrape` genetics facts, and materializes on
+  any merged corpus that adds a genetics source.

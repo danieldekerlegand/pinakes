@@ -490,9 +490,12 @@ function buildNeighborhood(result: QueryResult, depth: number): Neighborhood | n
 
 /**
  * Return the entities directly correlated with a focus node. When `relationship`
- * is given, only edges of that `:TYPE` are followed (e.g. `CONTEMPORARY_WITH`,
- * `SAME_REGION`); otherwise every direct relationship is returned. Ordered by
- * descending edge weight, then name.
+ * is given, only edges of that `:TYPE` are followed (e.g. `LOCATED_IN`,
+ * `DESCENDS_FROM`); otherwise every direct relationship is returned. (Pairwise
+ * temporal relations — `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` — are no longer
+ * stored as edges; they are derived on demand by the culture-scrape Datalog
+ * rules, so a query for one returns an empty array here.) Ordered by descending
+ * edge weight, then name.
  * @throws {GraphUnavailableError} when Neo4j cannot be reached.
  */
 export async function getCorrelations(

@@ -10,11 +10,18 @@ module is the general version: a small, dependency-free Datalog evaluator that
 by naive fixpoint, so the four inference targets can be produced, counted, and
 validated at scale without an engine.
 
-The evaluator is deliberately narrow to the shape the rule library actually uses
-(``ARITY == 2`` — every predicate relates two csids) and pure-Horn bodies of
-positive binary literals over variables (a leading upper-case letter or ``_``)
-and, if ever needed, constants. It rebuilds a per-predicate index each round and
-joins body literals by binding propagation, so a two-literal join
+The evaluator is deliberately narrow to the shape the rule library actually uses:
+every *predicate* literal relates two terms (``ARITY == 2``), bodies are positive
+Horn goals over variables (a leading upper-case letter or ``_``) and constants,
+plus — since T-SR-US-001 — **comparison literals** (``Ex < Sy``, ``Ex >= Sy``).
+A comparison is not a predicate goal (it carries no relation, so the arity-2
+constraint does not apply to it); it is evaluated as a numeric filter once its
+operands are bound by the predicate literals, which is what lets the temporal
+rules (``contemporary``/``precedes``/``follows``) derive from ``time_start`` /
+``time_end`` facts without a stored edge. The evaluator keeps fact arguments in
+their native type (an int year stays an int) so those comparisons are numeric.
+It rebuilds a per-predicate index each round and joins body literals by binding
+propagation, so a two-literal join
 (``same_region(X, Y) :- within_region(X, R), within_region(Y, R)``) is grouped on
 the shared region rather than scanned as a cross product. Recursion
 (``ancestor``, ``within_region``, ``influenced_transitively``) converges when a
@@ -29,19 +36,27 @@ is the manifest body the ``datalog-materialize`` CLI writes and
 
 from __future__ import annotations
 
+import operator
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
-from culturescrape.datalog import Fact
+from culturescrape.datalog import Atom, Fact
 from culturescrape.datalog.rules import ARITY, RULES, Rule
 
-#: A materialised binary tuple: one csid per argument position.
-Pair = tuple[str, str]
+#: A materialised binary tuple: one term per argument position. Rule heads always
+#: bind csids (strings), but fact arguments keep their native type (an int year),
+#: so a tuple element may be a str, int, or float during evaluation.
+Pair = tuple[Atom, Atom]
 
 #: A parsed body/head literal: predicate name and its two argument tokens (each a
 #: variable — upper-case-initial or ``_`` — or a constant).
 _Literal = tuple[str, tuple[str, str]]
+
+#: A parsed comparison literal: ``(left_token, op, right_token)`` (e.g. the
+#: ``Ex < Sy`` guard of the temporal rules). Not a predicate goal — it filters
+#: bindings numerically once both operands are bound.
+_Comparison = tuple[str, str, str]
 
 #: ``head(A, B) :- l1, l2, ....`` split into the head text and the body text.
 _CLAUSE_RE = re.compile(r"\A(?P<head>[^:]+?):-\s*(?P<body>.+?)\.\s*\Z", re.DOTALL)
@@ -49,6 +64,29 @@ _CLAUSE_RE = re.compile(r"\A(?P<head>[^:]+?):-\s*(?P<body>.+?)\.\s*\Z", re.DOTAL
 _LITERAL_RE = re.compile(r"\A(?P<pred>[a-z][a-zA-Z0-9_]*)\((?P<args>[^()]*)\)\Z")
 #: A token that is a logic *variable* (Prolog convention): upper-case-initial or ``_``.
 _VARIABLE_RE = re.compile(r"\A(?:[A-Z_][A-Za-z0-9_]*)\Z")
+#: A comparison literal ``left <op> right`` — operands are single whitespace-free
+#: tokens (a variable, a number, or a constant). Multi-character operators are
+#: listed before their single-character prefixes so the longest match wins.
+_COMPARISON_RE = re.compile(
+    r"\A(?P<left>\S+)\s*(?P<op>=<|>=|<=|==|\\==|!=|\\=|<|>|=)\s*(?P<right>\S+)\Z"
+)
+
+#: Comparison operator token → the Python predicate that evaluates it. Both the
+#: Soufflé spellings (``<=``, ``!=``, ``=``) and the Prolog ones (``=<``, ``\=``,
+#: ``\==``) map to the same semantics so a rule written for either dialect
+#: materialises identically.
+_COMPARATORS: dict[str, Callable[[Atom, Atom], bool]] = {
+    "<": operator.lt,
+    ">": operator.gt,
+    ">=": operator.ge,
+    "<=": operator.le,
+    "=<": operator.le,
+    "==": operator.eq,
+    "=": operator.eq,
+    "!=": operator.ne,
+    "\\=": operator.ne,
+    "\\==": operator.ne,
+}
 
 
 class MaterializeError(ValueError):
@@ -68,33 +106,118 @@ def _parse_literal(text: str) -> _Literal:
     return match["pred"], (args[0], args[1])
 
 
-def _parse_clause(clause: str) -> tuple[_Literal, tuple[_Literal, ...]]:
-    """Parse a ``head :- body.`` clause into its head literal and body literals.
+def _split_body(body: str) -> list[str]:
+    """Split a clause body into its literals, honouring nested parentheses.
 
-    Splits the body on the top-level commas *between* literals (each literal is a
-    ``pred(a, b)`` with exactly one internal comma) and parses each part. Raises
-    :class:`MaterializeError` for a fact (no ``:-``) or a non-binary literal.
+    A predicate literal (``time_start(Y, Sy)``) carries an internal comma at paren
+    depth 1; a comparison literal (``Ex < Sy``) carries none. Splitting only on
+    commas at depth 0 keeps each literal intact regardless of its internal commas.
+    """
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for char in body:
+        if char in "([":
+            depth += 1
+        elif char in ")]":
+            depth -= 1
+        if char == "," and depth == 0:
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+    if current:
+        parts.append("".join(current))
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _parse_clause(
+    clause: str,
+) -> tuple[_Literal, tuple[_Literal, ...], tuple[_Comparison, ...]]:
+    """Parse a ``head :- body.`` clause into head, predicate literals, comparisons.
+
+    The body is split into its literals at top-level commas (:func:`_split_body`);
+    each part is either a ``pred(a, b)`` predicate goal or a comparison
+    (``left <op> right``). Raises :class:`MaterializeError` for a fact (no ``:-``)
+    or a part that is neither shape.
     """
     match = _CLAUSE_RE.match(clause.strip())
     if match is None:
         raise MaterializeError(f"not a rule clause: {clause!r}")
     head = _parse_literal(match["head"])
-    # Each literal contains exactly one internal comma, so the literal separators
-    # are every *other* comma: split into ``pred(a, b)`` chunks two commas apart.
-    tokens = [tok.strip() for tok in match["body"].split(",")]
-    if len(tokens) % ARITY != 0:
-        raise MaterializeError(f"malformed rule body in {clause!r}")
     body: list[_Literal] = []
-    for i in range(0, len(tokens), ARITY):
-        body.append(_parse_literal(", ".join(tokens[i : i + ARITY])))
-    return head, tuple(body)
+    comparisons: list[_Comparison] = []
+    for part in _split_body(match["body"]):
+        comparison = _COMPARISON_RE.match(part)
+        if comparison is not None and "(" not in part:
+            comparisons.append(
+                (comparison["left"], comparison["op"], comparison["right"])
+            )
+        else:
+            body.append(_parse_literal(part))
+    return head, tuple(body), tuple(comparisons)
 
 
 def _is_variable(token: str) -> bool:
     return bool(_VARIABLE_RE.match(token))
 
 
-def _resolve(token: str, binding: dict[str, str]) -> str | None:
+def _as_number(value: Atom) -> Atom:
+    """Coerce *value* to a number when it reads as one, else return it unchanged.
+
+    Fact arguments keep their native type, so a year is already an ``int``; a
+    numeric *constant* written in a clause (``-1200``) arrives as a ``str`` and is
+    parsed here so the comparison is numeric, not lexical.
+    """
+    if isinstance(value, (int, float)):
+        return value
+    try:
+        return int(value)
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
+
+
+def _comparison_operand(token: str, binding: dict[str, Atom]) -> Atom:
+    """Resolve a comparison operand *token* to a comparable value under *binding*.
+
+    A variable must already be bound (a comparison over a still-free variable is
+    an unsafe rule); a constant is coerced to a number when it reads as one.
+    """
+    if _is_variable(token):
+        if token not in binding:
+            raise MaterializeError(
+                f"comparison operand {token!r} is unbound (unsafe rule)"
+            )
+        return _as_number(binding[token])
+    return _as_number(token)
+
+
+def _satisfies(comparisons: tuple[_Comparison, ...], binding: dict[str, Atom]) -> bool:
+    """Whether every comparison holds under *binding*.
+
+    Operands that resolve to values of different, incomparable types (a number vs
+    a string) fail the comparison rather than raising — the join simply drops that
+    binding, matching an engine that finds no matching tuple.
+    """
+    for left, op, right in comparisons:
+        lhs = _comparison_operand(left, binding)
+        rhs = _comparison_operand(right, binding)
+        try:
+            if not _COMPARATORS[op](lhs, rhs):
+                return False
+        except TypeError:
+            return False
+    return True
+
+
+#: Per-predicate indexes: tuples by their first element and by their second.
+_Index = tuple[dict[Atom, list[Atom]], dict[Atom, list[Atom]]]
+
+
+def _resolve(token: str, binding: dict[str, Atom]) -> Atom | None:
     """The known value of *token* under *binding*, or ``None`` if still free.
 
     A constant resolves to itself; a bound variable to its value; an unbound
@@ -105,7 +228,7 @@ def _resolve(token: str, binding: dict[str, str]) -> str | None:
     return binding.get(token)
 
 
-def _unify(binding: dict[str, str], token: str, value: str) -> dict[str, str] | None:
+def _unify(binding: dict[str, Atom], token: str, value: Atom) -> dict[str, Atom] | None:
     """Extend *binding* so *token* equals *value*, or ``None`` on a clash.
 
     A constant token must equal *value*; a variable is bound if free, else must
@@ -121,10 +244,10 @@ def _unify(binding: dict[str, str], token: str, value: str) -> dict[str, str] | 
     return extended
 
 
-def _index(pairs: set[Pair]) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+def _index(pairs: set[Pair]) -> _Index:
     """Index *pairs* by first and by second element for narrowed lookups."""
-    by_first: dict[str, list[str]] = {}
-    by_second: dict[str, list[str]] = {}
+    by_first: dict[Atom, list[Atom]] = {}
+    by_second: dict[Atom, list[Atom]] = {}
     for a, b in pairs:
         by_first.setdefault(a, []).append(b)
         by_second.setdefault(b, []).append(a)
@@ -133,9 +256,9 @@ def _index(pairs: set[Pair]) -> tuple[dict[str, list[str]], dict[str, list[str]]
 
 def _candidates(
     literal: _Literal,
-    binding: dict[str, str],
+    binding: dict[str, Atom],
     store: dict[str, set[Pair]],
-    indexes: dict[str, tuple[dict[str, list[str]], dict[str, list[str]]]],
+    indexes: dict[str, _Index],
 ) -> Iterable[Pair]:
     """The tuples of *literal*'s predicate that can match under *binding*.
 
@@ -159,14 +282,20 @@ def _candidates(
 def _derive_head(
     head: _Literal,
     body: tuple[_Literal, ...],
+    comparisons: tuple[_Comparison, ...],
     store: dict[str, set[Pair]],
-    indexes: dict[str, tuple[dict[str, list[str]], dict[str, list[str]]]],
+    indexes: dict[str, _Index],
 ) -> set[Pair]:
-    """All head tuples one clause derives from the current *store*."""
-    bindings: list[dict[str, str]] = [{}]
+    """All head tuples one clause derives from the current *store*.
+
+    Predicate literals are joined by binding propagation; the *comparisons* then
+    filter the surviving bindings (their operands are bound by the literals), so a
+    guard like ``Ex < Sy`` keeps only the tuples that satisfy it.
+    """
+    bindings: list[dict[str, Atom]] = [{}]
     for literal in body:
         _pred, (a, b) = literal
-        nxt: list[dict[str, str]] = []
+        nxt: list[dict[str, Atom]] = []
         for binding in bindings:
             for x, y in _candidates(literal, binding, store, indexes):
                 after_a = _unify(binding, a, x)
@@ -176,6 +305,8 @@ def _derive_head(
                 if after_b is not None:
                     nxt.append(after_b)
         bindings = nxt
+    if comparisons:
+        bindings = [b for b in bindings if _satisfies(comparisons, b)]
     ha, hb = head[1]
     return {(binding[ha], binding[hb]) for binding in bindings}
 
@@ -225,13 +356,16 @@ def materialize(
     inference the rules add is returned.
 
     Raises:
-        MaterializeError: If a rule clause is not a binary pure-Horn clause.
+        MaterializeError: If a rule clause is not a binary Horn clause (predicate
+            literals plus optional comparison guards).
     """
     rules = tuple(rules)
     store: dict[str, set[Pair]] = {}
     for fact in facts:
         if len(fact.args) == ARITY:
-            pair = (str(fact.args[0]), str(fact.args[1]))
+            # Keep the arguments' native type so comparison guards (Ex < Sy) over
+            # numeric dimension facts (time_start/time_end) are numeric, not lexical.
+            pair = (fact.args[0], fact.args[1])
             store.setdefault(fact.predicate, set()).add(pair)
 
     heads = {rule.name for rule in rules}
@@ -243,9 +377,9 @@ def materialize(
     while changed:
         changed = False
         indexes = {pred: _index(pairs) for pred, pairs in store.items()}
-        for head, body in clauses:
+        for head, body, comparisons in clauses:
             head_pred = head[0]
-            derived = _derive_head(head, body, store, indexes)
+            derived = _derive_head(head, body, comparisons, store, indexes)
             new = derived - store[head_pred]
             if new:
                 store[head_pred] |= new

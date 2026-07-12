@@ -23,7 +23,10 @@ from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME
 _FIXTURES = Path(__file__).parent / "fixtures" / "datalog"
 
 # A Prolog clause or directive, mirroring tests/test_datalog_prolog.py.
-_CLAUSE_RE = re.compile(r"^[a-z][A-Za-z0-9_]*\(.*\)\.(\s+%.*)?$")
+# A fact (`pred(...).`) or a rule (`head(...) :- body.`); the body may end in a
+# comparison literal (`Ex >= Sy.`) rather than a parenthesised goal, so the line
+# is only required to start with a functor application and end with a period.
+_CLAUSE_RE = re.compile(r"^[a-z][A-Za-z0-9_]*\(.*\.(\s+%.*)?$")
 _DIRECTIVE_RE = re.compile(
     r"^:- (discontiguous|dynamic|table) [a-z][A-Za-z0-9_]*/\d+\.$"
 )

@@ -28,11 +28,27 @@ export interface ConsolePreset {
 export const DATALOG_PRESETS: ConsolePreset[] = [
   {
     label: "contemporary_with/2",
-    description: "Everything contemporary with an event (symmetric closure).",
+    description:
+      "Everything contemporary with an event — derived on demand by the " +
+      "contemporary/2 rule from the time_start/time_end bounds (the pairwise " +
+      "CONTEMPORARY_WITH edge is no longer stored). Reflexive, so the query " +
+      "filters the event itself out.",
     query: `main :-
     forall(
-        contemporary('cs:event:inca-expansion', Other),
+        ( contemporary('cs:event:inca-expansion', Other),
+          Other \\== 'cs:event:inca-expansion' ),
         format("~w~n", [Other])
+    ).`,
+  },
+  {
+    label: "precedes/2",
+    description:
+      "Everything an event strictly precedes — derived on demand by the " +
+      "precedes/2 rule (time_end(X) < time_start(Y)); no stored PRECEDES edge.",
+    query: `main :-
+    forall(
+        precedes('cs:event:inca-expansion', Later),
+        format("~w~n", [Later])
     ).`,
   },
   {

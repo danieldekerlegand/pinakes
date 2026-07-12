@@ -101,9 +101,12 @@ def test_link_increases_edges_and_validates(
     assert "0 -> " in captured  # input had no edges; linking added some
 
     # Augmented edge files exist for inferences the canonical schema can drive:
-    # geographic (place_qid), temporal (spans + period), linguistic (SPOKEN_IN).
+    # geographic (place_qid), temporal (period → PART_OF_PERIOD), linguistic
+    # (SPOKEN_IN). Pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS are no longer
+    # materialised (T-SR-US-001) — they are derived on demand by the Datalog
+    # rules over time_start/time_end — so no contemporary-with.tsv is written.
     assert (out / "edges" / "located-in.tsv").is_file()
-    assert (out / "edges" / "contemporary-with.tsv").is_file()
+    assert not (out / "edges" / "contemporary-with.tsv").exists()
     assert (out / "edges" / "part-of-period.tsv").is_file()
     assert (out / "edges" / "spoken-in.tsv").is_file()
 
@@ -131,9 +134,9 @@ def test_link_only_selected_dimension_runs(tmp_path: Path) -> None:
     ) == 0
 
     # Only the geographic linker ran: its LOCATED_IN edge is present, but the
-    # temporal linker's CONTEMPORARY_WITH is not.
+    # temporal linker's PART_OF_PERIOD is not.
     assert (out / "edges" / "located-in.tsv").is_file()
-    assert not (out / "edges" / "contemporary-with.tsv").exists()
+    assert not (out / "edges" / "part-of-period.tsv").exists()
 
 
 def test_link_unknown_dimension_errors(
