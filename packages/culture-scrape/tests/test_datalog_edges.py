@@ -25,7 +25,7 @@ def test_fixture_file_maps_to_the_expected_fact_set() -> None:
     facts = set(edge_file_facts(FIXTURE))
 
     expected = {
-        # LOCATED_IN with a weight -> generic + typed + rel_conf companion.
+        # LOCATED_IN with a weight -> generic + typed + rel_conf + rel_source.
         Fact("rel", ("located_in", "cs:dish:Q42", "cs:place:Q123"), source="wikidata"),
         Fact("located_in", ("cs:dish:Q42", "cs:place:Q123"), source="wikidata"),
         Fact(
@@ -33,9 +33,19 @@ def test_fixture_file_maps_to_the_expected_fact_set() -> None:
             ("located_in", "cs:dish:Q42", "cs:place:Q123", 0.9),
             source="wikidata",
         ),
+        Fact(
+            "rel_source",
+            ("located_in", "cs:dish:Q42", "cs:place:Q123", "wikidata"),
+            source="wikidata",
+        ),
         # DERIVED_FROM without a weight -> no rel_conf companion.
         Fact("rel", ("derived_from", "cs:dish:Q99", "cs:dish:Q42"), source="wikidata"),
         Fact("derived_from", ("cs:dish:Q99", "cs:dish:Q42"), source="wikidata"),
+        Fact(
+            "rel_source",
+            ("derived_from", "cs:dish:Q99", "cs:dish:Q42", "wikidata"),
+            source="wikidata",
+        ),
         # ADJACENT_TO with a weight.
         Fact(
             "rel", ("adjacent_to", "cs:place:Q123", "cs:place:Q200"), source="pleiades"
@@ -44,6 +54,11 @@ def test_fixture_file_maps_to_the_expected_fact_set() -> None:
         Fact(
             "rel_conf",
             ("adjacent_to", "cs:place:Q123", "cs:place:Q200", 0.5),
+            source="pleiades",
+        ),
+        Fact(
+            "rel_source",
+            ("adjacent_to", "cs:place:Q123", "cs:place:Q200", "pleiades"),
             source="pleiades",
         ),
     }
@@ -142,6 +157,24 @@ def test_source_rides_along_as_provenance() -> None:
         source="wikidata",
     )
     assert all(f.source == "wikidata" for f in edge_facts(row))
+
+
+def test_source_is_exposed_via_a_queryable_rel_source_companion() -> None:
+    # The provenance is a queryable fact (mirroring rel_conf/4), not only a comment.
+    row = _row(
+        **{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "LOCATED_IN"},
+        source="wikidata",
+    )
+    (prov,) = [f for f in edge_facts(row) if f.predicate == "rel_source"]
+    assert prov.args == ("located_in", "cs:a:Q1", "cs:b:Q2", "wikidata")
+    assert prov.render() == (
+        "rel_source(located_in, 'cs:a:Q1', 'cs:b:Q2', wikidata).  % source: wikidata"
+    )
+
+
+def test_blank_source_emits_no_rel_source() -> None:
+    row = _row(**{":START_ID": "cs:a:Q1", ":END_ID": "cs:b:Q2", ":TYPE": "LOCATED_IN"})
+    assert not [f for f in edge_facts(row) if f.predicate == "rel_source"]
 
 
 def test_missing_endpoint_is_rejected() -> None:

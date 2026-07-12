@@ -35,6 +35,34 @@ never the corpus. Keep it that way when editing the emit path:
   `graph.pl` grows to 55 MB. The old list+join path was 606 MB at 1.2 M facts. See
   the table in `docs/datalog.md` "Streaming, not slurping".
 
+## Queryable provenance facts (T-SR-US-004)
+
+Every projected fact keeps its `source` as a trailing `% source:` / `// source:`
+comment (arity-stable), but a comment can't be queried. So `nodes.py`/`edges.py`
+**also** emit provenance as first-class facts, one per row that carries a source:
+
+- `source(Csid, Source)` — appended by `node_facts` (keyed by csid).
+- `rel_source(Type, Start, End, Source)` — appended by `edge_facts`, mirroring the
+  `rel_conf/4` companion (same `predicate_for_type` type atom as `rel`/`rel_conf`).
+
+Rules that matter when touching these:
+- **A blank `source` emits neither fact** (`if source is not None:`), same "no null
+  reaches the logic program" rule as the dimension/`rel_conf` companions.
+- **The provenance fact itself carries `source=source`**, so it renders with the
+  (redundant-but-uniform) trailing comment and the "every fact carries its source"
+  invariant holds — `test_source_rides_along_as_provenance` asserts it, so don't
+  switch it to `source=None`. Its `render()` is `source('cs:x', wikidata).  % source: wikidata`.
+- **No emitter/materializer change needed.** `prolog.py`/`souffle.py` render any
+  `Fact` and declare `(name, arity)` from the facts present; `materialize.py` stores
+  `source/2` harmlessly (it's not a rule head, so it's dropped from the result) and
+  skips `rel_source/4` (only binary facts are stored). `souffle_relations` types
+  both as all-`symbol`.
+- **`source`/`rel_source` are in `examples.KNOWN_PREDICATES`**, so a query naming
+  them lints clean (`entities-by-source.pl` joins `source/2` to `node/3`).
+- These are additive: the fixture fact-set tests (`test_datalog_{nodes,edges}.py`)
+  pin exact sets, so adding/removing a projected fact means updating those sets and
+  the `edge_facts` render doctest in `docs/datalog.md`.
+
 ## Materializing rules without an engine (US-004)
 
 `materialize(facts, rules=RULES)` runs a naive-fixpoint Datalog evaluator over the

@@ -123,7 +123,10 @@ provenance `source`:
 Arguments are strings (symbolic constants), ints, or floats. The `source` is
 recorded so that — per the data model's "no fact without a source" rule — the
 provenance survives into the logic program, emitted as a trailing comment that
-keeps the predicate's arity stable.
+keeps the predicate's arity stable. That comment is human-readable but *not*
+queryable, so the projection **also** emits provenance as first-class facts —
+`source(Csid, Source)` for entities and `rel_source(Type, Start, End, Source)` for
+edges (see [Provenance](#provenance)) — which a query can filter or join on.
 
 ## Predicate schema
 
@@ -149,6 +152,23 @@ binary predicate per `:TYPE` — the two are interchangeable views:
 | `rel/3` | `rel(Type, Start, End)` — generic edge with the type as data |
 | `located_in/2`, `originates_from/2`, `created_by/2`, … | typed projection of a single `:TYPE` |
 | `rel_conf/4` | `rel_conf(Type, Start, End, Conf)` — optional edge confidence (falls back to legacy `weight`) |
+| `rel_source/4` | `rel_source(Type, Start, End, Source)` — optional edge provenance (see [Provenance](#provenance)) |
+
+### Provenance
+
+Every fact keeps its `source` as a trailing `% source:` comment (arity-stable),
+but a comment can't be queried. So the projection *also* emits provenance as
+first-class facts, letting a query filter or join on where a fact came from:
+
+| Predicate | Meaning |
+|---|---|
+| `source/2` | `source(Csid, Source)` — the acquisition source of an entity, keyed by csid (one per node row that carries a source) |
+| `rel_source/4` | `rel_source(Type, Start, End, Source)` — the acquisition source of an edge, mirroring `rel_conf/4` (one per edge row that carries a source) |
+
+A blank `source` emits neither fact, so no null reaches the logic program. Join
+`source/2` to `node/3` to list a source's entities (`entities-by-source.pl`), or
+`rel_source/4` to `rel_conf/4` to read an edge's provenance alongside its
+confidence.
 
 ### Dimension facts
 
@@ -186,7 +206,9 @@ and `node_facts` projects a single decoded row. Each row yields:
   | `derived_from_csid` | `derived_from/2` |
 
 An **empty cell emits no fact**, so the logic program contains no nulls. Each
-emitted fact carries the row's `source` column as provenance.
+emitted fact carries the row's `source` column as provenance, and a row with a
+source also yields a queryable `source(Csid, Source)` fact (see
+[Provenance](#provenance)).
 
 ### The csid ↔ atom mapping
 
@@ -222,6 +244,9 @@ idempotent.
   so the base relations stay arity-stable. The value is the canonical
   `confidence` column; the legacy `weight` column is a fallback used only when
   `confidence` is blank but `weight` is genuinely populated.
+- `rel_source(t, A, B, Source)` — an optional companion exposing the edge's
+  **provenance** as a queryable fact (mirroring `rel_conf/4`), emitted **only**
+  when the row carries a source (see [Provenance](#provenance)).
 
 Both views carry the **same atom** for the type, so a query pivots between them
 freely: `rel(located_in, A, B)` mirrors `located_in(A, B)`. Each fact carries
@@ -247,8 +272,9 @@ rejected rather than silently colliding.
 
 ```
 
-A confidence-bearing edge yields all three facts; the type atom is shared across
-the generic and typed views, and `rel_conf` carries the numeric confidence:
+A confidence-bearing, sourced edge yields all four facts; the type atom is shared
+across the generic and typed views, `rel_conf` carries the numeric confidence, and
+`rel_source` carries the provenance as a queryable fact:
 
 ```python
 >>> row = {":START_ID": "cs:dish:Q42", ":END_ID": "cs:place:Q123",
@@ -258,6 +284,7 @@ the generic and typed views, and `rel_conf` carries the numeric confidence:
 rel(located_in, 'cs:dish:Q42', 'cs:place:Q123').  % source: wikidata
 located_in('cs:dish:Q42', 'cs:place:Q123').  % source: wikidata
 rel_conf(located_in, 'cs:dish:Q42', 'cs:place:Q123', 0.9).  % source: wikidata
+rel_source(located_in, 'cs:dish:Q42', 'cs:place:Q123', wikidata).  % source: wikidata
 
 ```
 
@@ -549,7 +576,7 @@ one on that dataset in SWI-Prolog (skipping when `swipl` is absent):
 ```python
 >>> from culturescrape.datalog.examples import EXAMPLES
 >>> [example.slug for example in EXAMPLES]
-['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition', 'genetic-linguistic-correlation', 'language-descent']
+['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition', 'genetic-linguistic-correlation', 'language-descent', 'entities-by-source']
 
 ```
 
@@ -573,10 +600,14 @@ $ swipl -q -g main -t halt /tmp/eg/graph.pl datalog/examples/ancestry-of-dish.pl
 | `material-composition.pl` | the materials an artifact is made of | `made_of/2` (`MADE_OF`) | the artifact's materials, one csid per line — `cs:material:silk`, `cs:material:cotton` |
 | `genetic-linguistic-correlation.pl` | the languages a haplogroup correlates with | `genetic_linguistic_correlation/2` | each correlated language, one csid per line — `cs:language:proto-celtic`, `cs:language:gaulish` |
 | `language-descent.pl` | the full ancestry of a language | transitive `ancestor/2` (`DESCENDS_FROM`) | each ancestor, one csid per line — `cs:language:proto-celtic`, `cs:language:pie` |
+| `entities-by-source.pl` | the entities a source contributed | `source/2` (provenance keyed by csid) joined to `node/3` | each entity `csid<TAB>name` — `cs:language:pie  Proto-Indo-European`, … (the six `linguascrape` rows) |
 
-The last two run over **LinguaScrape-origin** facts merged into the dataset
-(`source: linguascrape`), exercising the ported correlation rules and the base
-transitive closure across the merged graph.
+The two closure examples above `entities-by-source` run over **LinguaScrape-origin**
+facts merged into the dataset (`source: linguascrape`), exercising the ported
+correlation rules and the base transitive closure across the merged graph.
+`entities-by-source` shows provenance is a first-class query target: `source/2`
+(and its edge sibling `rel_source/4`) make where each fact came from queryable, not
+just a trailing comment.
 
 The four before them mirror the per-domain `cypher/*.cypher` queries, one per new
 corpus-expansion signature relationship, each reaching only the typed predicate

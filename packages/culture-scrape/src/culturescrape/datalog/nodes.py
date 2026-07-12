@@ -88,6 +88,12 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
     Emits ``node/3`` and an ``instance_of/2`` per label, then one fact for each
     populated dimension column. Empty cells are skipped, so no null ever reaches
     the logic program. Every fact carries the row's ``source`` as provenance.
+
+    When the row carries a ``source``, an extra ``source(Csid, Source)`` fact is
+    emitted — the *queryable* form of the provenance that otherwise survives only
+    as each clause's trailing comment. Keyed by csid, it lets a query join on
+    where an entity came from (``source(C, wikidata), node(C, T, N)``); a blank
+    source emits none, so no null reaches the logic program.
     """
     id_key = next(c.name for c in columns if isinstance(c, IdColumn))
     types = {c.name: c.type for c in columns if isinstance(c, PropertyColumn)}
@@ -101,6 +107,8 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
 
     facts = [Fact("node", (csid, labels[0], name), source=source)]
     facts += [Fact("instance_of", (csid, label), source=source) for label in labels]
+    if source is not None:
+        facts.append(Fact("source", (csid, source), source=source))
 
     lat, lon = _scalar(row, "lat"), _scalar(row, "lon")
     if lat and lon:

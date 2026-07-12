@@ -14,6 +14,10 @@ interchangeable views plus an optional strength companion:
   base relations stay arity-stable. The canonical ``confidence`` column is the
   source; the legacy ``weight`` column is a fallback used only when ``confidence``
   is blank but ``weight`` is genuinely populated.
+* ``rel_source(t, A, B, Source)`` — an optional companion exposing the edge's
+  **provenance** as a *queryable* fact (mirroring ``rel_conf/4``), so a query can
+  filter or join edges by where they came from rather than only reading the
+  trailing ``% source:`` comment; emitted only when the row carries a source.
 
 The generic and typed views use the *same* atom for the type — ``rel(located_in,
 A, B)`` mirrors ``located_in(A, B)`` — so a query can pivot between them freely.
@@ -77,7 +81,8 @@ def edge_facts(row: Row) -> list[Fact]:
     ``confidence`` column, falling back to ``weight`` only when ``confidence`` is
     blank and ``weight`` is genuinely populated; when neither is populated no
     companion is emitted, so no null reaches the logic program. Every fact carries
-    the row's ``source`` as provenance.
+    the row's ``source`` as provenance, and when a source is present a
+    ``rel_source/4`` companion exposes it as a queryable fact.
     """
     start = _scalar(row, ":START_ID")
     end = _scalar(row, ":END_ID")
@@ -101,6 +106,11 @@ def edge_facts(row: Row) -> list[Fact]:
         facts.append(
             Fact("rel_conf", (predicate, start, end, float(strength)), source=source)
         )
+
+    # Expose the provenance as a queryable companion (mirrors rel_conf/4); a
+    # blank source emits none, so no null reaches the logic program.
+    if source is not None:
+        facts.append(Fact("rel_source", (predicate, start, end, source), source=source))
 
     return facts
 
