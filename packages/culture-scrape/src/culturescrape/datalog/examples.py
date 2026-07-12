@@ -45,6 +45,14 @@ LinguaScrape (T-LS-US-005):
   via the transitive ``ancestor/2`` closure running over LinguaScrape
   ``descends_from`` edges.
 
+One more makes provenance itself a query target (US-004): the ``source/2`` fact
+keyed by csid (the queryable form of the trailing ``% source:`` comment) joined to
+``node/3`` for the display name —
+
+* :data:`ENTITIES_BY_SOURCE` — ``entities-by-source.pl``: the entities a named
+  acquisition source contributed, via ``source/2`` (its edge sibling is
+  ``rel_source/4``).
+
 Each query file defines a ``main/0`` that prints its answer rows tab-separated,
 so :func:`run_example` can load a generated ``graph.pl`` alongside the file and
 collect the result as a set of tuples — the *expected output shape* recorded in
@@ -210,6 +218,22 @@ LANGUAGE_DESCENT = Example(
     ),
 )
 
+ENTITIES_BY_SOURCE = Example(
+    slug="entities-by-source",
+    title="The entities a source contributed, by provenance",
+    focus="source/2 (queryable provenance keyed by csid), joined to node/3",
+    expected=frozenset(
+        {
+            ("cs:haplogroup:r1b", "Haplogroup R1b"),
+            ("cs:language:pie", "Proto-Indo-European"),
+            ("cs:language:proto-celtic", "Proto-Celtic"),
+            ("cs:language:gaulish", "Gaulish"),
+            ("cs:place:western-europe", "Western Europe"),
+            ("cs:event:la-tene", "La Tène culture"),
+        }
+    ),
+)
+
 #: The shipped examples, in the order they appear in ``docs/datalog.md``: the
 #: four base closures first, then one per-domain query per new corpus-expansion
 #: signature relationship (T8 — mirroring the new ``cypher/*.cypher`` queries).
@@ -224,6 +248,7 @@ EXAMPLES: tuple[Example, ...] = (
     MATERIAL_COMPOSITION,
     GENETIC_LINGUISTIC_CORRELATION,
     LANGUAGE_DESCENT,
+    ENTITIES_BY_SOURCE,
 )
 
 #: Predicates a query file may legitimately reference from the projection: the
@@ -237,6 +262,7 @@ KNOWN_PREDICATES: frozenset[str] = frozenset(
     | {dependency for rule in RULES for dependency in rule.depends}
     | {predicate_for_type(rel.name) for rel in relation_types()}
     | {"node", "instance_of", "subclass_of", "rel", "rel_conf", "located_at"}
+    | {"source", "rel_source"}  # queryable provenance facts (US-004)
 )
 
 #: A clause that defines the :data:`ENTRY_POINT` predicate (``main :- ...``).
@@ -341,6 +367,7 @@ __all__ = [
     "ANCESTRY",
     "CONTEMPORARIES",
     "DATASET_DIRNAME",
+    "ENTITIES_BY_SOURCE",
     "ENTRY_POINT",
     "EXAMPLES",
     "EXAMPLES_DIRNAME",

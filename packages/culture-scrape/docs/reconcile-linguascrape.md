@@ -100,9 +100,11 @@ cross-dimensional linking alongside native inferred edges:
 - **`:TYPE` is canonicalised at map time.** `map_linguascrape_edge` translates the export's
   edge token through `LINGUASCRAPE_EDGE_TYPE_MAP` (`schema/mapper.py`) to a **registered**
   ontology `:TYPE`. Five tokens map to themselves (`DESCENDS_FROM`, `INFLUENCED_BY`,
-  `BORROWED_FROM`, `COGNATE_WITH`, `DERIVED_FROM`); the two LinguaScrape-specific tokens fold
-  onto the closest canonical type — `ABSORBED_INTO → PART_OF` (transitive containment) and
-  `SYNCRETIZED_WITH → VARIANT_OF` (symmetric equivalence). A token outside the map is
+  `BORROWED_FROM`, `COGNATE_WITH`, `DERIVED_FROM`); the three LinguaScrape-specific tokens fold
+  onto the closest canonical type — `ABSORBED_INTO → PART_OF` (transitive containment),
+  `SYNCRETIZED_WITH → VARIANT_OF` (symmetric equivalence), and `SPLIT_FROM → DESCENDS_FROM`
+  (genealogical divergence, the same home the `evolved-into`/`gave-rise-to` lineage edges
+  fold onto). A token outside the map is
   **rejected** (`MapperError`), never passed through un-canonicalised. Every map *value* is
   asserted registered by `tests/test_linguascrape_ontology.py`.
 - **Provenance rides the edge.** The mapped edge carries its `time_start`/`time_end` range,

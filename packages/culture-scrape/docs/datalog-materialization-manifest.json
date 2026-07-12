@@ -1,25 +1,28 @@
 {
   "job": "linguascrape-full",
-  "built_from": "out/linguascrape-full/corpus (jobs/linguascrape-full.yml) -> culturescrape datalog-materialize",
-  "note": "Release record for the materialised Datalog inference over the full LinguaScrape convergence corpus (US-004). 'base_relations' counts the edge predicates the shared rules read; 'derived_relations' is the engine-free fixpoint extension of each rule (culturescrape.datalog.materialize). These TYPE counts are the DETERMINISTIC fingerprint of the derivation over this corpus; they track the live corpus, so regenerate with the command in docs/convergence-build.md 'Materialize Datalog inference at scale (US-004)' after any rebuild. The corpus and its corpus-datalog export are gitignored. genetic_linguistic_correlation is 0 here because LinguaScrape ships no genetics domain (no haplogroup source); the rule materialises on a merged corpus that includes one -- see the shipped genetic-linguistic-correlation example over the bundled fixture.",
+  "built_from": "out/linguascrape-full/corpus (jobs/linguascrape-full.yml) -> culturescrape datalog-materialize --exclude contemporary precedes follows",
+  "note": "Release record for the materialised Datalog inference over the full LinguaScrape convergence corpus, regenerated at the Phase-1 full-rebuild benchmark (US-005) against the post-US-001 edge model. 'base_relations' counts the edge predicates the shared rules read; 'derived_relations' is the engine-free fixpoint extension of each STRUCTURAL rule (culturescrape.datalog.materialize). These TYPE counts are the DETERMINISTIC fingerprint of the derivation over this corpus; they track the live corpus, so regenerate with the command in docs/convergence-build.md 'Materialize Datalog inference at scale (US-004)' after any rebuild. The corpus and its corpus-datalog export are gitignored. 'engine_only' lists the arithmetic temporal rules (contemporary/precedes/follows): US-001 turned these from stored O(n^2) edges into rules over time_start/time_end, so the engine-free naive-fixpoint evaluator would recompute their ~10^6-pair span-overlap join every round -- intractable at full scale (the pre-US-001 manifest recorded contemporary=1037028 only because contemporary_with was then a 518514-edge stored base relation). They are validated engine-side (the CI cross-engine equivalence test over fixtures) and by the materializer over the small bundled fixture; a real swipl/souffle derives them lazily at query time. genetic_linguistic_correlation is 0 here because LinguaScrape ships no genetics domain (no haplogroup source); the rule materialises on a merged corpus that includes one -- see the shipped genetic-linguistic-correlation example over the bundled fixture.",
   "base_relations": {
-    "contemporary_with": 518514,
-    "descends_from": 922,
+    "descends_from": 1642,
     "located_in": 873,
-    "influenced_by": 26,
-    "part_of": 10,
-    "derived_from": 7,
+    "influenced_by": 102,
+    "part_of": 101,
+    "derived_from": 13,
     "originates_from": 0,
     "spoken_in": 0
   },
   "derived_relations": {
-    "contemporary": 1037028,
     "same_region": 3825,
+    "ancestor": 3279,
     "within_region": 1753,
-    "ancestor": 1670,
-    "influenced_transitively": 86,
-    "component_of": 10,
+    "influenced_transitively": 510,
+    "component_of": 468,
     "genetic_linguistic_correlation": 0
   },
-  "derived_total": 1044372
+  "derived_total": 9835,
+  "engine_only": [
+    "contemporary",
+    "follows",
+    "precedes"
+  ]
 }

@@ -45,6 +45,7 @@ EXPECTED_SLUGS = {
     "material-composition",
     "genetic-linguistic-correlation",
     "language-descent",
+    "entities-by-source",
 }
 
 #: Base facts each example depends on; their presence makes the offline layer a
@@ -71,6 +72,13 @@ REQUIRED_BASE_FACTS = [
     Fact("spoken_in", ("cs:language:gaulish", "cs:place:western-europe")),
     Fact("descends_from", ("cs:language:gaulish", "cs:language:proto-celtic")),
     Fact("descends_from", ("cs:language:proto-celtic", "cs:language:pie")),
+    # Queryable provenance (US-004): entities-by-source joins source/2 to node/3.
+    Fact("source", ("cs:haplogroup:r1b", "linguascrape")),
+    Fact("source", ("cs:language:pie", "linguascrape")),
+    Fact("source", ("cs:language:proto-celtic", "linguascrape")),
+    Fact("source", ("cs:language:gaulish", "linguascrape")),
+    Fact("source", ("cs:place:western-europe", "linguascrape")),
+    Fact("source", ("cs:event:la-tene", "linguascrape")),
 ]
 
 

@@ -115,9 +115,12 @@ def test_smoke_yields_expected_links(tmp_path: Path) -> None:
     assert types["LOCATED_IN"] == 3
     # genetic: tiradito "based on" (P144) ceviche → one DERIVED_FROM.
     assert types["DERIVED_FROM"] == 1
-    # temporal: shared/ordered inception years → overlap + ordering edges.
-    assert types["CONTEMPORARY_WITH"] >= 1
-    assert types["PRECEDES"] >= 1
+    # temporal: inception years are stored on the nodes as time_start/time_end,
+    # but pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS are no longer materialised
+    # (T-SR-US-001) — they are derived on demand by the Datalog rules over those
+    # bounds, so none is stored here.
+    assert types["CONTEMPORARY_WITH"] == 0
+    assert types["PRECEDES"] == 0
 
 
 def test_smoke_records_dump_version_in_provenance(tmp_path: Path) -> None:

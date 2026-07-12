@@ -55,13 +55,18 @@ LINGUASCRAPE_ID_KEY = "linguascrape_id"
 #: LinguaScrape emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
 #: already registered in :mod:`culturescrape.ontology.registry` and map to
 #: themselves, so a fed-in edge participates directly in cross-dimensional
-#: linking. The two LinguaScrape-specific tokens fold onto the closest registered
-#: canonical type so no non-canonical ``:TYPE`` ever enters the merged graph:
+#: linking. The three LinguaScrape-specific tokens fold onto the closest
+#: registered canonical type so no non-canonical ``:TYPE`` ever enters the merged
+#: graph:
 #:
 #: * ``ABSORBED_INTO`` (a culture merged into a larger one) -> ``PART_OF`` — the
 #:   absorbed entity becomes a component of the absorbing whole (transitive);
 #: * ``SYNCRETIZED_WITH`` (two traditions blended) -> ``VARIANT_OF`` — a symmetric
-#:   equivalence between the blended forms.
+#:   equivalence between the blended forms;
+#: * ``SPLIT_FROM`` (a language/lineage diverged from a common ancestor) ->
+#:   ``DESCENDS_FROM`` — genealogical descent, the same canonical home
+#:   LinguaScrape's ``evolved-into``/``gave-rise-to`` lineage edges already fold
+#:   onto (a divergence *is* a descent event).
 #:
 #: Every value here is a registered canonical ``:TYPE`` (asserted by the ontology
 #: tests); an edge token absent from this map is rejected by
@@ -74,6 +79,7 @@ LINGUASCRAPE_EDGE_TYPE_MAP: dict[str, str] = {
     "DERIVED_FROM": "DERIVED_FROM",
     "ABSORBED_INTO": "PART_OF",
     "SYNCRETIZED_WITH": "VARIANT_OF",
+    "SPLIT_FROM": "DESCENDS_FROM",
 }
 
 #: Canonical scalar columns copied straight from a (renamed) source field.

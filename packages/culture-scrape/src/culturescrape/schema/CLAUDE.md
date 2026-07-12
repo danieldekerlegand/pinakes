@@ -1,5 +1,18 @@
 # schema/ — map → anchor → reconcile → dedup → edges
 
+## `tsvio` — streaming reader (T-SR-US-002)
+
+`open_rows(path) -> (columns, Iterator[Row])` is the streaming reader: it reads the
+**header eagerly** (columns + any malformed-header `TsvError` surface on the call)
+then yields one decoded `Row` per physical line, keeping the file open until the
+iterator is drained. `read_rows` is now just the eager `list(open_rows(...))`
+wrapper — same return shape, same fail-fast on a wrong cell count (the `list()`
+drains it). Use `open_rows` for dump-scale files (the datalog projection does);
+`read_rows` when you want the whole file. A physical `\n` is only ever a row
+terminator (the writer escapes `\n`→`\\n` in values), and files are read in
+universal-newline mode, so `_strip_eol` removing one trailing `\n` reproduces
+`text.split("\n")` byte-for-byte.
+
 The normalization pipeline (`pipeline.normalize_records`) turns raw acquisition
 records into the canonical node/edge TSV family. Two paths:
 
@@ -25,6 +38,26 @@ at the dropped csid orphaned. `_normalize_linguascrape` therefore calls
 `MERGE_KEY` record every survivor carries in its overflow JSON) and drops any edge
 that still dangles or has become a self-loop. **If you add another path that keeps
 pre-existing edges across a `merge_rows` call, redirect them the same way.**
+
+## Gotcha: `LINGUASCRAPE_EDGE_TYPE_MAP` must cover EVERY exported edge `:TYPE`
+
+`mapper.py`'s `LINGUASCRAPE_EDGE_TYPE_MAP` (identity for the five registered tokens,
+folds for the LinguaScrape-specific ones — `ABSORBED_INTO→PART_OF`,
+`SYNCRETIZED_WITH→VARIANT_OF`, `SPLIT_FROM→DESCENDS_FROM`) must list **every** edge
+`:TYPE` the TS export can emit, or `_normalize_linguascrape` rejects the whole build
+(`unknown LinguaScrape edge :TYPE '<TOKEN>'`). The export's edge vocabulary lives on
+the TS side in `shared/canonical-schema.json` `edgeTypes[].type` — when a **new
+canonical edge type** is added there (US-005 found `SPLIT_FROM` had been added to the
+schema but never registered here, silently breaking the full rebuild since), add the
+matching token to this map: identity if it names a registered ontology `:TYPE`
+(`ontology/registry.py`), else fold onto the closest registered one. `SPLIT_FROM`
+folds onto `DESCENDS_FROM` — the same home LinguaScrape's `evolved-into`/`gave-rise-to`
+lineage edges already use; the direction is taken as-is from the source row
+(`:START_ID`=source_id=ancestor), matching those siblings. The fixture-only
+`test_convergence_build.py` won't catch a missing token if the fixture export lacks
+that edge type — the **full** `jobs/linguascrape-full.yml` rebuild is the only thing
+that exercises the live edge vocabulary. `test_linguascrape_ontology.py` pins that
+every map value is registered + one fold assertion per token.
 
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 

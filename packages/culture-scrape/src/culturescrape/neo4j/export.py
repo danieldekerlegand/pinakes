@@ -121,20 +121,32 @@ def _edge_row(
     return _scalar(edge_type), row
 
 
-def _group(driver: Driver) -> tuple[dict[str, list[_Row]], dict[str, list[_Row]]]:
-    """Stream the graph and bucket rows by node label and edge type."""
+def _group_nodes(driver: Driver) -> dict[str, list[_Row]]:
+    """Stream every node over the cursor, bucketed by primary type label.
+
+    Buffering per label is unavoidable — the file is written in canonical
+    ``csid`` sort order and the cursor returns nodes unordered — but it is the
+    *only* per-label shard held: edges are streamed in a separate pass
+    (:func:`_group_edges`) so nodes and edges never reside at once.
+    """
     nodes: dict[str, list[_Row]] = {}
-    edges: dict[str, list[_Row]] = {}
     with driver.session() as session:
         for record in session.run(NODE_QUERY):
             label, row = _node_row(record["labels"], record["props"])
             nodes.setdefault(label, []).append(row)
+    return nodes
+
+
+def _group_edges(driver: Driver) -> dict[str, list[_Row]]:
+    """Stream every relationship over the cursor, bucketed by ``:TYPE``."""
+    edges: dict[str, list[_Row]] = {}
+    with driver.session() as session:
         for record in session.run(EDGE_QUERY):
             edge_type, row = _edge_row(
                 record["start"], record["end"], record["type"], record["props"]
             )
             edges.setdefault(edge_type, []).append(row)
-    return nodes, edges
+    return edges
 
 
 def export_to_tsv(
@@ -146,41 +158,44 @@ def export_to_tsv(
 ) -> ExportResult:
     """Export a connected Neo4j graph to canonical TSV under *out_dir*.
 
-    Streams every node and relationship over the driver cursor, groups them into
-    ``<out_dir>/nodes/<label>.tsv`` and ``<out_dir>/edges/<type>.tsv``, and writes
-    each group with the canonical schema header and canonical sort order. When
-    *driver* is given it is used as-is (and left open for the caller); otherwise a
-    driver is opened from *config*/*env* via
-    :func:`culturescrape.neo4j.connect` and closed before returning.
+    Streams every node and relationship over the driver cursor and writes them,
+    sharded, into ``<out_dir>/nodes/<label>.tsv`` and ``<out_dir>/edges/<type>.tsv``
+    with the canonical schema header and canonical sort order. Nodes and edges
+    are streamed and written in **separate passes**, so the node buckets are
+    released before the edge buckets are read — peak memory is the larger of the
+    two label/type shards, not the whole graph at once. When *driver* is given it
+    is used as-is (and left open for the caller); otherwise a driver is opened
+    from *config*/*env* via :func:`culturescrape.neo4j.connect` and closed before
+    returning.
 
     Returns:
         An :class:`ExportResult` listing the files written and row counts.
     """
     out_path = Path(out_dir)
+    node_schema = NodeSchema.canonical()
+    edge_schema = EdgeSchema.canonical()
     owned = driver is None
     handle = connect(config, env=env) if driver is None else driver
     try:
-        nodes, edges = _group(handle)
+        nodes = _group_nodes(handle)
+        node_files: list[Path] = []
+        node_count = 0
+        for label in sorted(nodes):
+            path = out_path / "nodes" / f"{label}.tsv"
+            node_count += write_node_rows(path, node_schema, nodes[label])
+            node_files.append(path)
+        del nodes  # release node shards before reading edges
+
+        edges = _group_edges(handle)
+        edge_files: list[Path] = []
+        edge_count = 0
+        for edge_type in sorted(edges):
+            path = out_path / "edges" / f"{edge_type}.tsv"
+            edge_count += write_edge_rows(path, edge_schema, edges[edge_type])
+            edge_files.append(path)
     finally:
         if owned:
             handle.close()
-
-    node_schema = NodeSchema.canonical()
-    edge_schema = EdgeSchema.canonical()
-
-    node_files: list[Path] = []
-    node_count = 0
-    for label in sorted(nodes):
-        path = out_path / "nodes" / f"{label}.tsv"
-        node_count += write_node_rows(path, node_schema, nodes[label])
-        node_files.append(path)
-
-    edge_files: list[Path] = []
-    edge_count = 0
-    for edge_type in sorted(edges):
-        path = out_path / "edges" / f"{edge_type}.tsv"
-        edge_count += write_edge_rows(path, edge_schema, edges[edge_type])
-        edge_files.append(path)
 
     return ExportResult(
         node_files=tuple(node_files),

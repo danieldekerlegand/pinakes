@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "source": "linguascrape",
   "nodeTypes": [
     {
@@ -309,7 +309,8 @@
         "source_url",
         "source_query",
         "retrieved_at",
-        "confidence"
+        "confidence",
+        "license"
       ],
       "total": 6835,
       "byType": [
@@ -321,7 +322,8 @@
             "source_url": 576,
             "source_query": 576,
             "retrieved_at": 576,
-            "confidence": 1099
+            "confidence": 1099,
+            "license": 1099
           }
         },
         {
@@ -332,7 +334,8 @@
             "source_url": 0,
             "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 636
+            "confidence": 636,
+            "license": 636
           }
         },
         {
@@ -343,7 +346,8 @@
             "source_url": 55,
             "source_query": 55,
             "retrieved_at": 55,
-            "confidence": 115
+            "confidence": 115,
+            "license": 115
           }
         },
         {
@@ -354,7 +358,8 @@
             "source_url": 81,
             "source_query": 340,
             "retrieved_at": 81,
-            "confidence": 341
+            "confidence": 341,
+            "license": 341
           }
         },
         {
@@ -365,7 +370,8 @@
             "source_url": 250,
             "source_query": 277,
             "retrieved_at": 250,
-            "confidence": 286
+            "confidence": 286,
+            "license": 286
           }
         },
         {
@@ -376,7 +382,8 @@
             "source_url": 0,
             "source_query": 24,
             "retrieved_at": 0,
-            "confidence": 24
+            "confidence": 24,
+            "license": 24
           }
         },
         {
@@ -387,7 +394,8 @@
             "source_url": 0,
             "source_query": 20,
             "retrieved_at": 0,
-            "confidence": 20
+            "confidence": 20,
+            "license": 20
           }
         },
         {
@@ -398,7 +406,8 @@
             "source_url": 130,
             "source_query": 206,
             "retrieved_at": 130,
-            "confidence": 230
+            "confidence": 230,
+            "license": 230
           }
         },
         {
@@ -409,7 +418,8 @@
             "source_url": 29,
             "source_query": 61,
             "retrieved_at": 29,
-            "confidence": 61
+            "confidence": 61,
+            "license": 61
           }
         },
         {
@@ -420,7 +430,8 @@
             "source_url": 130,
             "source_query": 182,
             "retrieved_at": 130,
-            "confidence": 237
+            "confidence": 237,
+            "license": 237
           }
         },
         {
@@ -431,7 +442,8 @@
             "source_url": 50,
             "source_query": 62,
             "retrieved_at": 50,
-            "confidence": 62
+            "confidence": 62,
+            "license": 62
           }
         },
         {
@@ -442,7 +454,8 @@
             "source_url": 80,
             "source_query": 80,
             "retrieved_at": 80,
-            "confidence": 101
+            "confidence": 101,
+            "license": 101
           }
         },
         {
@@ -453,7 +466,8 @@
             "source_url": 70,
             "source_query": 70,
             "retrieved_at": 70,
-            "confidence": 2208
+            "confidence": 2208,
+            "license": 2208
           }
         },
         {
@@ -464,7 +478,8 @@
             "source_url": 0,
             "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 45
+            "confidence": 45,
+            "license": 45
           }
         },
         {
@@ -475,7 +490,8 @@
             "source_url": 0,
             "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 53
+            "confidence": 53,
+            "license": 53
           }
         },
         {
@@ -486,7 +502,8 @@
             "source_url": 399,
             "source_query": 550,
             "retrieved_at": 399,
-            "confidence": 1213
+            "confidence": 1213,
+            "license": 1213
           }
         },
         {
@@ -497,7 +514,8 @@
             "source_url": 42,
             "source_query": 42,
             "retrieved_at": 42,
-            "confidence": 104
+            "confidence": 104,
+            "license": 104
           }
         }
       ],
@@ -506,15 +524,18 @@
         "source_url": 1892,
         "source_query": 2545,
         "retrieved_at": 1892,
-        "confidence": 6835
+        "confidence": 6835,
+        "license": 6835
       }
     },
     "edge": {
       "fields": [
         "source",
         "source_url",
+        "source_query",
         "retrieved_at",
-        "confidence"
+        "confidence",
+        "license"
       ],
       "total": 5836,
       "byType": [
@@ -524,8 +545,10 @@
           "nonEmpty": {
             "source": 1683,
             "source_url": 0,
+            "source_query": 695,
             "retrieved_at": 0,
-            "confidence": 1683
+            "confidence": 1683,
+            "license": 1683
           }
         },
         {
@@ -534,8 +557,10 @@
           "nonEmpty": {
             "source": 47,
             "source_url": 0,
+            "source_query": 47,
             "retrieved_at": 0,
-            "confidence": 47
+            "confidence": 47,
+            "license": 47
           }
         },
         {
@@ -544,8 +569,10 @@
           "nonEmpty": {
             "source": 103,
             "source_url": 0,
+            "source_query": 7,
             "retrieved_at": 0,
-            "confidence": 103
+            "confidence": 103,
+            "license": 103
           }
         },
         {
@@ -554,8 +581,10 @@
           "nonEmpty": {
             "source": 103,
             "source_url": 0,
+            "source_query": 103,
             "retrieved_at": 0,
-            "confidence": 103
+            "confidence": 103,
+            "license": 103
           }
         },
         {
@@ -564,8 +593,10 @@
           "nonEmpty": {
             "source": 660,
             "source_url": 0,
+            "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 660
+            "confidence": 660,
+            "license": 660
           }
         },
         {
@@ -574,8 +605,10 @@
           "nonEmpty": {
             "source": 1739,
             "source_url": 0,
+            "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 1739
+            "confidence": 1739,
+            "license": 1739
           }
         },
         {
@@ -584,8 +617,10 @@
           "nonEmpty": {
             "source": 1259,
             "source_url": 0,
+            "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 1259
+            "confidence": 1259,
+            "license": 1259
           }
         },
         {
@@ -594,24 +629,29 @@
           "nonEmpty": {
             "source": 242,
             "source_url": 0,
+            "source_query": 242,
             "retrieved_at": 0,
-            "confidence": 242
+            "confidence": 242,
+            "license": 242
           }
         }
       ],
       "nonEmpty": {
         "source": 5836,
         "source_url": 0,
+        "source_query": 1094,
         "retrieved_at": 0,
-        "confidence": 5836
+        "confidence": 5836,
+        "license": 5836
       },
-      "citationsWithoutCanonicalColumn": 1094
+      "citationsWithoutCanonicalColumn": 0
     },
     "flags": [
       "node.source_query: 2545/6835 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.citationsWithoutCanonicalColumn: 1094 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+      "edge.source_query: 1094/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",
+      "license: 6835/6835 nodes and 5836/5836 edges carry an SPDX license (source-derived; default CC-BY-4.0)."
     ]
   }
 }

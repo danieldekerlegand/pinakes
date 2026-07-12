@@ -29,7 +29,7 @@ EDGES = Path(__file__).parent / "fixtures" / "datalog" / "edges.tsv"
 
 
 def _fixture_facts() -> list[Fact]:
-    return node_file_facts(NODES) + edge_file_facts(EDGES)
+    return list(node_file_facts(NODES)) + list(edge_file_facts(EDGES))
 
 
 # --- type inference ---------------------------------------------------------

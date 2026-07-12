@@ -14,6 +14,10 @@ interchangeable views plus an optional strength companion:
   base relations stay arity-stable. The canonical ``confidence`` column is the
   source; the legacy ``weight`` column is a fallback used only when ``confidence``
   is blank but ``weight`` is genuinely populated.
+* ``rel_source(t, A, B, Source)`` — an optional companion exposing the edge's
+  **provenance** as a *queryable* fact (mirroring ``rel_conf/4``), so a query can
+  filter or join edges by where they came from rather than only reading the
+  trailing ``% source:`` comment; emitted only when the row carries a source.
 
 The generic and typed views use the *same* atom for the type — ``rel(located_in,
 A, B)`` mirrors ``located_in(A, B)`` — so a query can pivot between them freely.
@@ -23,11 +27,12 @@ Every fact carries the row's ``source`` as provenance, mirroring node facts.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 from culturescrape.datalog import DatalogError, Fact
 from culturescrape.schema.headers import EdgeSchema
-from culturescrape.schema.tsvio import Row, read_rows
+from culturescrape.schema.tsvio import Row, open_rows
 
 #: A well-formed edge ``:TYPE``: SCREAMING_SNAKE_CASE per ``docs/data-model.md``
 #: (``LOCATED_IN``, ``DERIVED_FROM``, …).
@@ -76,7 +81,8 @@ def edge_facts(row: Row) -> list[Fact]:
     ``confidence`` column, falling back to ``weight`` only when ``confidence`` is
     blank and ``weight`` is genuinely populated; when neither is populated no
     companion is emitted, so no null reaches the logic program. Every fact carries
-    the row's ``source`` as provenance.
+    the row's ``source`` as provenance, and when a source is present a
+    ``rel_source/4`` companion exposes it as a queryable fact.
     """
     start = _scalar(row, ":START_ID")
     end = _scalar(row, ":END_ID")
@@ -101,22 +107,26 @@ def edge_facts(row: Row) -> list[Fact]:
             Fact("rel_conf", (predicate, start, end, float(strength)), source=source)
         )
 
+    # Expose the provenance as a queryable companion (mirrors rel_conf/4); a
+    # blank source emits none, so no null reaches the logic program.
+    if source is not None:
+        facts.append(Fact("rel_source", (predicate, start, end, source), source=source))
+
     return facts
 
 
-def edge_file_facts(path: str | Path) -> list[Fact]:
-    """Read an edge TSV file at *path* and project every row to facts.
+def edge_file_facts(path: str | Path) -> Iterator[Fact]:
+    """Stream an edge TSV file at *path*, projecting each row to facts.
 
     The header is validated as an edge schema (``:START_ID``, ``:END_ID``,
-    ``:TYPE``) before projection, so a malformed file fails fast rather than
-    emitting ill-typed facts.
+    ``:TYPE``) before any row is read, so a malformed file fails fast rather than
+    emitting ill-typed facts. Rows are read one at a time (:func:`open_rows`) and
+    their facts yielded lazily, so a dump-scale file never lands whole in memory.
     """
-    columns, rows = read_rows(path)
+    columns, rows = open_rows(path)
     EdgeSchema(tuple(columns))  # validate the header; raises on a malformed file
-    facts: list[Fact] = []
     for row in rows:
-        facts.extend(edge_facts(row))
-    return facts
+        yield from edge_facts(row)
 
 
 __all__ = ["edge_facts", "edge_file_facts", "predicate_for_type"]

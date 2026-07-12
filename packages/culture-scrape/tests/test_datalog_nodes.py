@@ -32,6 +32,7 @@ def test_fixture_file_maps_to_the_expected_fact_set() -> None:
         Fact("node", ("cs:dish:Q42", "Dish", "Ceviche"), source="wikidata"),
         Fact("instance_of", ("cs:dish:Q42", "Dish"), source="wikidata"),
         Fact("instance_of", ("cs:dish:Q42", "CulturalArtifact"), source="wikidata"),
+        Fact("source", ("cs:dish:Q42", "wikidata"), source="wikidata"),
         Fact("located_at", ("cs:dish:Q42", -12.04, -77.04), source="wikidata"),
         Fact("language_code", ("cs:dish:Q42", "spa"), source="wikidata"),
         # cs:battle:Q47 — BCE year (int), named period; no coords/language.
@@ -41,11 +42,13 @@ def test_fixture_file_maps_to_the_expected_fact_set() -> None:
             source="petscan",
         ),
         Fact("instance_of", ("cs:battle:Q47", "Battle"), source="petscan"),
+        Fact("source", ("cs:battle:Q47", "petscan"), source="petscan"),
         Fact("time_start", ("cs:battle:Q47", -480), source="petscan"),
         Fact("part_of_period", ("cs:battle:Q47", "Antiquity"), source="petscan"),
         # cs:dish:Q99 — derived_from edge pointer; lone lat (no lon) is dropped.
         Fact("node", ("cs:dish:Q99", "Dish", "Tiradito"), source="wikidata"),
         Fact("instance_of", ("cs:dish:Q99", "Dish"), source="wikidata"),
+        Fact("source", ("cs:dish:Q99", "wikidata"), source="wikidata"),
         Fact("language_code", ("cs:dish:Q99", "spa"), source="wikidata"),
         Fact("derived_from", ("cs:dish:Q99", "cs:dish:Q42"), source="wikidata"),
     }
@@ -83,6 +86,7 @@ def test_empty_columns_emit_no_fact() -> None:
     assert facts == [
         Fact("node", ("cs:dish:Q1", "Dish", "X"), source="wikidata"),
         Fact("instance_of", ("cs:dish:Q1", "Dish"), source="wikidata"),
+        Fact("source", ("cs:dish:Q1", "wikidata"), source="wikidata"),
     ]
 
 
@@ -125,6 +129,20 @@ def test_csid_is_carried_verbatim_and_quoted_reversibly() -> None:
     # ...and renders to a deterministic quoted atom in each dialect.
     assert node.render() == "node('cs:dish:Q42', 'Dish', 'Ceviche')."
     assert node.render(Dialect.DATALOG) == 'node("cs:dish:Q42", "Dish", "Ceviche").'
+
+
+def test_source_is_projected_as_a_queryable_fact() -> None:
+    # The provenance is a queryable source/2 fact keyed by csid, not only a comment.
+    row = _row(csid="cs:d:Q1", **{":LABEL": ["Dish"]}, name="X", source="wikidata")
+    (prov,) = [f for f in node_facts(COLUMNS, row) if f.predicate == "source"]
+    assert prov.args == ("cs:d:Q1", "wikidata")
+    # The queryable fact still carries the provenance comment (arity stays 2).
+    assert prov.render() == "source('cs:d:Q1', wikidata).  % source: wikidata"
+
+
+def test_blank_source_emits_no_source_fact() -> None:
+    row = _row(csid="cs:d:Q1", **{":LABEL": ["Dish"]}, name="X", source="")
+    assert not [f for f in node_facts(COLUMNS, row) if f.predicate == "source"]
 
 
 def test_a_node_without_labels_is_rejected() -> None:

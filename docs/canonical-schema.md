@@ -130,9 +130,10 @@ cell `name` / `name:int` / `name:float`.
 | `derived_from_csid` | dimension | denormalized pointer (also a `derived-from` edge) |
 | `source` | **provenance** | adapter id — `linguascrape` for LinguaScrape rows |
 | `source_url` | **provenance** | canonical URL/URI (blank when unknown) |
-| `source_query` | provenance | query/page that produced the row |
+| `source_query` | provenance | query/page/citation that produced the row |
 | `retrieved_at` | **provenance** | ISO-8601 UTC timestamp |
 | `confidence:float` | **provenance** | 0–1 |
+| `license` | **provenance** | SPDX id (schema v1.1) — the record's distribution licence |
 
 ### Edge columns (`edges/<type>.tsv`)
 
@@ -144,23 +145,31 @@ cell `name` / `name:int` / `name:float`.
 | `weight:float` | dimension | optional strength |
 | `time_start:int`, `time_end:int` | dimension | when the relation held |
 | `linguascrape_id` | alias | original lexicon row id (round-trip key) |
-| `source`, `source_url`, `retrieved_at`, `confidence:float` | **provenance** | same as nodes |
+| `source`, `source_url`, `source_query`, `retrieved_at`, `confidence:float`, `license` | **provenance** | same as nodes; `source_query` (edge citation) + `license` added in schema **v1.1** |
 
-### Mandatory provenance (US-006)
+### Mandatory provenance (US-006 + US-003)
 
-`source`, `source_url`, `retrieved_at`, and `confidence` are **required on every node
-and every edge** — the column must always be present, though `source_url` may be blank
-when no URL is derivable (never fabricated; flagged instead). `nodeProvenanceColumns()`
-/ `edgeProvenanceColumns()` expose the list programmatically.
+`source`, `source_url`, `retrieved_at`, `confidence`, and (schema **v1.1**, US-003) the SPDX
+`license` are **required on every node and every edge** — the column must always be present,
+though `source_url` may be blank when no URL is derivable (never fabricated; flagged instead).
+`nodeProvenanceColumns()` / `edgeProvenanceColumns()` expose the list programmatically.
 
 The export (§7) applies these rules concretely:
 
 - **`source`** = `linguascrape` (the acquisition-source id) on 100% of rows — "no fact
   without a source", matching culture-scrape's `validate.py`.
-- **`source_query`** (node only) preserves the *original* LinguaScrape bibliographic
-  `sources` citation — it is never dropped. Edges have no `source_query` column, so an
-  edge that carried a citation is counted in `provenance.edge.citationsWithoutCanonicalColumn`
-  (embedded-FK edges keep the citation on their host node's `source_query`).
+- **`source_query`** preserves the *original* LinguaScrape bibliographic `sources` citation
+  — it is never dropped. Schema **v1.1** added `source_query` to the **edge** family too, so
+  an edge that carried a citation now keeps it (the earlier
+  `provenance.edge.citationsWithoutCanonicalColumn` residue is now permanently `0`).
+- **`license`** (schema **v1.1**) is an SPDX identifier resolved from the record's `source`
+  via the per-source registry `SOURCE_LICENSES` (`scripts/export-for-culturescrape.ts`);
+  `linguascrape` → `CC-BY-4.0` (the curated-corpus default), `wikidata` → `CC0-1.0`,
+  `wiktionary`/`kaikki` → `CC-BY-SA-4.0`, `phoible` → `CC-BY-SA-3.0`, … Landing the column
+  **before** the first share-alike source means attribution/share-alike obligations travel
+  per record without a painful retrofit. culture-scrape's `linguascrape-export` adapter lifts
+  a row-level `license` cell into `Provenance.license` (a row cell wins over the export-level
+  `license` param).
 - **`source_url`** is filled only when a real `http(s)` URL is present in the source
   data; otherwise blank and flagged. URLs are **never fabricated**.
 - **`retrieved_at`** is blank — LinguaScrape records no retrieval timestamp.
@@ -330,12 +339,13 @@ A committed snapshot of the manifest lives at
 - **Identity** — `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`;
   every row keeps its original id in `linguascrape_id` (the US-007 round-trip key). Edge
   `:START_ID`/`:END_ID` are rewritten from LinguaScrape ids to the csids of exported nodes.
-- **Provenance (US-006)** — every node and edge carries all four provenance columns.
-  `source = "linguascrape"` on 100% of rows; the original LinguaScrape citation is
-  preserved in the node `source_query` (never dropped); `source_url` is derived only from
-  a real URL in the data (never fabricated) and otherwise blank + flagged; `retrieved_at`
-  is blank (LinguaScrape records none). The manifest's `provenance` block reports per-type
-  completeness + flags. Edge `confidence` and time ranges carry through from the US-003
+- **Provenance (US-006 + US-003)** — every node and edge carries its provenance columns.
+  `source = "linguascrape"` on 100% of rows; the original LinguaScrape citation is preserved
+  in the `source_query` column — for **nodes and (schema v1.1) edges** — never dropped;
+  every row also carries an SPDX **`license`** resolved from its `source` (schema v1.1);
+  `source_url` is derived only from a real URL in the data (never fabricated) and otherwise
+  blank + flagged; `retrieved_at` is blank (LinguaScrape records none). The manifest's
+  `provenance` block reports per-type completeness + flags. Edge `confidence` and time ranges carry through from the US-003
   extractor; a node with no `confidence` column defaults to `0.5`.
 - **Idempotent** — rows are sorted (nodes by `csid`, edges by `:START_ID/:END_ID/:TYPE`)
   and no wall-clock is written, so re-runs are byte-identical.
@@ -436,7 +446,7 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
 |---|---|---|
 | Identity (`csid`, `linguascrape_id`, `:LABEL`) | LinguaScrape (ids) / schema (label) | Never written (join key / structural) |
 | Core descriptive fields with a lexicon column (`name`, `aliases`, `language_code`, `script`, `region`, `time_start`/`time_end`, `lat`/`lon`, `description`, …) | **LinguaScrape (human-curated)** | Filled only when blank; disagreements are conflicts, kept unless `--overwrite` |
-| Provenance & confidence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`) | **LinguaScrape** (see `NON_WRITEBACK_FIELDS`) | Never written — LinguaScrape owns citations/confidence; the graph's `source`/`confidence` are for triage only |
+| Provenance, confidence & licence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`, `license`) | **LinguaScrape** (see `NON_WRITEBACK_FIELDS`) | Never written — LinguaScrape owns citations/confidence/licence; the graph's `source`/`confidence` are for triage only |
 | Relationships / edges | **culture-scrape graph** (correlation system-of-record) | Not written back to lexicons at all |
 | Graph-only enrichments with **no** lexicon column (external ids like `wikidata_qid`/`getty_id`, graph-derived metrics) | culture-scrape graph | No lexicon home → stay in the graph (surfaced, not written) |
 

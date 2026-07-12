@@ -102,8 +102,15 @@ describe("canonical schema contract (US-001)", () => {
     );
   });
 
-  it("mandates the four provenance columns on nodes and edges", () => {
-    const required = ["source", "source_url", "retrieved_at", "confidence"];
+  it("mandates the required provenance columns on nodes and edges (incl. v1.1 license)", () => {
+    // v1.1.0 adds a per-record SPDX `license` to the mandatory provenance set.
+    const required = [
+      "source",
+      "source_url",
+      "retrieved_at",
+      "confidence",
+      "license",
+    ];
     expect(nodeProvenanceColumns()).toEqual(required);
     expect(edgeProvenanceColumns()).toEqual(required);
     for (const family of [
@@ -113,6 +120,26 @@ describe("canonical schema contract (US-001)", () => {
       for (const name of required) {
         expect(family.find((c) => c.field === name)?.required).toBe(true);
       }
+    }
+  });
+
+  it("is schema v1.1.0 with edge citations + per-record license (US-003)", () => {
+    expect(CANONICAL_SCHEMA.version).toBe("1.1.0");
+    // Edges now carry a source_query citation column (role provenance, optional).
+    const edgeSourceQuery = CANONICAL_SCHEMA.edge.columns.find(
+      (c) => c.field === "source_query",
+    );
+    expect(edgeSourceQuery?.role).toBe("provenance");
+    expect(edgeSourceQuery?.required).toBe(false);
+    // Both families carry an SPDX `license` provenance column.
+    for (const family of [
+      CANONICAL_SCHEMA.node.columns,
+      CANONICAL_SCHEMA.edge.columns,
+    ]) {
+      const license = family.find((c) => c.field === "license");
+      expect(license?.role).toBe("provenance");
+      expect(license?.type).toBe("string");
+      expect(license?.required).toBe(true);
     }
   });
 

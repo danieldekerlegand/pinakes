@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "culture-scrape ↔ LinguaScrape canonical node/edge schema",
   "description": "The single canonical data contract both projects target. Node and edge column contracts mirror culture-scrape's typed Neo4j-import headers (packages/culture-scrape/src/culturescrape/schema/headers.py) so LinguaScrape exports are import-compatible without transformation. See docs/canonical-schema.md for the prose specification and the per-lexicon mapping table.",
   "delimiter": "\t",
@@ -43,7 +43,8 @@
       { "field": "source_url", "header": "source_url", "type": "string", "role": "provenance", "required": true },
       { "field": "source_query", "header": "source_query", "type": "string", "role": "provenance", "required": false },
       { "field": "retrieved_at", "header": "retrieved_at", "type": "string", "role": "provenance", "required": true },
-      { "field": "confidence", "header": "confidence:float", "type": "float", "role": "provenance", "required": true }
+      { "field": "confidence", "header": "confidence:float", "type": "float", "role": "provenance", "required": true },
+      { "field": "license", "header": "license", "type": "string", "role": "provenance", "required": true }
     ]
   },
   "edge": {
@@ -57,13 +58,15 @@
       { "field": "linguascrape_id", "header": "linguascrape_id", "type": "string", "role": "alias", "required": false },
       { "field": "source", "header": "source", "type": "string", "role": "provenance", "required": true },
       { "field": "source_url", "header": "source_url", "type": "string", "role": "provenance", "required": true },
+      { "field": "source_query", "header": "source_query", "type": "string", "role": "provenance", "required": false },
       { "field": "retrieved_at", "header": "retrieved_at", "type": "string", "role": "provenance", "required": true },
-      { "field": "confidence", "header": "confidence:float", "type": "float", "role": "provenance", "required": true }
+      { "field": "confidence", "header": "confidence:float", "type": "float", "role": "provenance", "required": true },
+      { "field": "license", "header": "license", "type": "string", "role": "provenance", "required": true }
     ]
   },
   "provenanceColumns": {
-    "node": ["source", "source_url", "retrieved_at", "confidence"],
-    "edge": ["source", "source_url", "retrieved_at", "confidence"]
+    "node": ["source", "source_url", "retrieved_at", "confidence", "license"],
+    "edge": ["source", "source_url", "retrieved_at", "confidence", "license"]
   },
   "nodeTypes": [
     { "name": "language", "label": "Language", "description": "A natural language or genealogical language node." },

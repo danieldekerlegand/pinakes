@@ -23,7 +23,7 @@ renders to the same atom, so the projection is idempotent.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 from culturescrape.datalog import Atom, DatalogError, Fact
@@ -34,7 +34,7 @@ from culturescrape.schema.headers import (
     PropertyColumn,
     PropertyType,
 )
-from culturescrape.schema.tsvio import Row, read_rows
+from culturescrape.schema.tsvio import Row, open_rows
 
 #: Scalar dimension columns and the binary predicate each projects to. ``lat``
 #: and ``lon`` are absent here: they are emitted jointly as ``located_at/3``.
@@ -88,6 +88,12 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
     Emits ``node/3`` and an ``instance_of/2`` per label, then one fact for each
     populated dimension column. Empty cells are skipped, so no null ever reaches
     the logic program. Every fact carries the row's ``source`` as provenance.
+
+    When the row carries a ``source``, an extra ``source(Csid, Source)`` fact is
+    emitted — the *queryable* form of the provenance that otherwise survives only
+    as each clause's trailing comment. Keyed by csid, it lets a query join on
+    where an entity came from (``source(C, wikidata), node(C, T, N)``); a blank
+    source emits none, so no null reaches the logic program.
     """
     id_key = next(c.name for c in columns if isinstance(c, IdColumn))
     types = {c.name: c.type for c in columns if isinstance(c, PropertyColumn)}
@@ -101,6 +107,8 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
 
     facts = [Fact("node", (csid, labels[0], name), source=source)]
     facts += [Fact("instance_of", (csid, label), source=source) for label in labels]
+    if source is not None:
+        facts.append(Fact("source", (csid, source), source=source))
 
     lat, lon = _scalar(row, "lat"), _scalar(row, "lon")
     if lat and lon:
@@ -117,19 +125,18 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
     return facts
 
 
-def node_file_facts(path: str | Path) -> list[Fact]:
-    """Read a node TSV file at *path* and project every row to facts.
+def node_file_facts(path: str | Path) -> Iterator[Fact]:
+    """Stream a node TSV file at *path*, projecting each row to facts.
 
     The header is validated as a node schema (``:ID``, ``:LABEL``, ``name``)
-    before projection, so a malformed file fails fast rather than emitting
-    ill-typed facts.
+    before any row is read, so a malformed file fails fast rather than emitting
+    ill-typed facts. Rows are read one at a time (:func:`open_rows`) and their
+    facts yielded lazily, so a dump-scale file never lands whole in memory.
     """
-    columns, rows = read_rows(path)
+    columns, rows = open_rows(path)
     schema = NodeSchema(tuple(columns))
-    facts: list[Fact] = []
     for row in rows:
-        facts.extend(node_facts(schema.columns, row))
-    return facts
+        yield from node_facts(schema.columns, row)
 
 
 __all__ = ["node_facts", "node_file_facts"]

@@ -9,23 +9,92 @@ queries + offline linter). `culturescrape to-datalog … --rules` attaches `RULE
 `materialize.py` (`materialize`/`summarize`) is the **engine-free evaluator** that
 computes the rules' derived extension without swipl/souffle.
 
+## The export is streaming, not slurping (T-SR-US-002)
+
+Peak memory is bounded by ONE row + the small per-predicate type/signature table,
+never the corpus. Keep it that way when editing the emit path:
+
+- **`collect_facts(dir)` returns a re-iterable lazy stream** (`_DatasetFacts`), NOT
+  a list — `for f in collect_facts(...)` re-reads `nodes/*.tsv` then `edges/*.tsv`
+  each time. `node_file_facts`/`edge_file_facts` are **generators** now (they
+  `yield from` per row via `schema.tsvio.open_rows`); don't `+`-concatenate them or
+  call `len()` — wrap in `list(...)` / `sum(1 for _ in ...)` if you truly need eager.
+- **The streaming writers iterate the fact source MORE THAN ONCE** (prolog:
+  signatures then clauses; souffle: type inference then row sharding; souffle_program
+  also renders the `.dl`). So they REQUIRE a re-iterable source (a list, or
+  `collect_facts`), never a one-shot generator — the docstrings say so. Each pass is a
+  fresh disk read (IO for RAM); `export_dataset` running both engines re-reads ~5×.
+- **Byte-identity is the invariant.** `write_program` streams line-by-line to the
+  file but must stay byte-for-byte equal to `render_program` — both build the SAME
+  line sequence via shared `_preamble_lines`/`_rule_lines`, and `write(line+"\n")`
+  per line == `"\n".join(lines)+"\n"`. `write_souffle_facts` writes rows to per-relation
+  handles in fact order == the old grouped order (rows within a file keep source
+  order). Tests `write_* == render_*` enforce this — never let them drift.
+- **Validate the O(1) property empirically**, not by eyeballing: a `tracemalloc`
+  peak over a synthetic corpus at 12k/120k/1.2M facts must stay flat (~2.3 MB) while
+  `graph.pl` grows to 55 MB. The old list+join path was 606 MB at 1.2 M facts. See
+  the table in `docs/datalog.md` "Streaming, not slurping".
+
+## Queryable provenance facts (T-SR-US-004)
+
+Every projected fact keeps its `source` as a trailing `% source:` / `// source:`
+comment (arity-stable), but a comment can't be queried. So `nodes.py`/`edges.py`
+**also** emit provenance as first-class facts, one per row that carries a source:
+
+- `source(Csid, Source)` — appended by `node_facts` (keyed by csid).
+- `rel_source(Type, Start, End, Source)` — appended by `edge_facts`, mirroring the
+  `rel_conf/4` companion (same `predicate_for_type` type atom as `rel`/`rel_conf`).
+
+Rules that matter when touching these:
+- **A blank `source` emits neither fact** (`if source is not None:`), same "no null
+  reaches the logic program" rule as the dimension/`rel_conf` companions.
+- **The provenance fact itself carries `source=source`**, so it renders with the
+  (redundant-but-uniform) trailing comment and the "every fact carries its source"
+  invariant holds — `test_source_rides_along_as_provenance` asserts it, so don't
+  switch it to `source=None`. Its `render()` is `source('cs:x', wikidata).  % source: wikidata`.
+- **No emitter/materializer change needed.** `prolog.py`/`souffle.py` render any
+  `Fact` and declare `(name, arity)` from the facts present; `materialize.py` stores
+  `source/2` harmlessly (it's not a rule head, so it's dropped from the result) and
+  skips `rel_source/4` (only binary facts are stored). `souffle_relations` types
+  both as all-`symbol`.
+- **`source`/`rel_source` are in `examples.KNOWN_PREDICATES`**, so a query naming
+  them lints clean (`entities-by-source.pl` joins `source/2` to `node/3`).
+- These are additive: the fixture fact-set tests (`test_datalog_{nodes,edges}.py`)
+  pin exact sets, so adding/removing a projected fact means updating those sets and
+  the `edge_facts` render doctest in `docs/datalog.md`.
+
 ## Materializing rules without an engine (US-004)
 
 `materialize(facts, rules=RULES)` runs a naive-fixpoint Datalog evaluator over the
 projected `Fact`s and returns each rule head's derived tuple set; `summarize(...)`
 adds the base-relation counts and yields a `MaterializationSummary` whose
 `to_json()` is what `culturescrape datalog-materialize <dataset> --json` writes.
-Use it to count/validate the four US-004 targets (`contemporary`, `same_region`,
-`ancestor` = transitive `descends_from`, `genetic_linguistic_correlation`) in CI —
-no engine is installed. Constraints the evaluator relies on (and that any new rule
-must keep, same as the emitters): **every predicate is binary** (`ARITY == 2`) and
-bodies are **pure Horn** over variables (upper-case-initial / `_`) or constants. A
-non-binary literal or a fact-shaped clause raises `MaterializeError`.
+Use it to count/validate the inference targets (`contemporary`/`precedes`/`follows`
+over time bounds, `same_region`, `ancestor` = transitive `descends_from`,
+`genetic_linguistic_correlation`) in CI — no engine is installed. Constraints the
+evaluator relies on (and that any new rule must keep, same as the emitters): every
+**predicate** literal is binary (`ARITY == 2`) and bodies are Horn over variables
+(upper-case-initial / `_`) or constants, **plus comparison guards** (`Ex < Sy`) —
+the evaluator keeps fact args in their native type so numeric comparisons are
+numeric, and applies the guards as a filter once their operands are bound. A
+non-binary *predicate* literal or a fact-shaped clause raises `MaterializeError`;
+a comparison over a still-unbound variable is an unsafe rule and also raises.
 
 - The full-corpus derivation is a committed **release record**
   (`docs/datalog-materialization-manifest.json`), not a CI-tested snapshot — the
   corpus is gitignored and its bytes are non-reproducible (like
   `docs/corpus-release-manifest.json`). Regenerate it with the CLI after a rebuild.
+- **The temporal rules are `--exclude`d from the full-corpus manifest (US-005).**
+  `contemporary`/`precedes`/`follows` derive from `time_start`/`time_end` (US-001).
+  The naive-fixpoint materialiser recomputes their ~O(n²) span-overlap join **every
+  round**, so at full-corpus scale (~1k dated entities → ~10⁶ pairs) it does not
+  finish in minutes — the very explosion US-001 removed from stored edges. Regenerate
+  with `datalog-materialize --exclude contemporary precedes follows`; the excluded
+  heads are recorded under `engine_only` in the manifest JSON and a real swipl/souffle
+  derives them lazily. The structural rules (`same_region`/`ancestor`/`within_region`/
+  `influenced_transitively`/`component_of`) materialise in ~1 s and stay in the manifest.
+  `--exclude` rejects an unknown head; without it the CLI materialises every rule (the
+  small-fixture path — tests + doctests — is unchanged).
 - `genetic_linguistic_correlation` derives **0 over the LinguaScrape-only corpus**
   (no genetics/haplogroup source → no `originates_from`/`spoken_in` edges). It is
   exercised on the bundled fixture, which carries ported `source: linguascrape`
@@ -37,11 +106,20 @@ non-binary literal or a fact-shaped clause raises `MaterializeError`.
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its
-`__all__`). A rule is a **pure Horn clause** — head + positive literals over
-*variables only*. No constants, and **no inequality/negation** (`X != Y` is
-Soufflé-only, `X \= Y` is Prolog-only): the clause text must be byte-identical in
-both dialects, which `test_rule_clause_text_is_shared_verbatim_across_dialects`
-enforces. `depends=` lists the predicates the body reads so the emitters declare
+`__all__`). A rule is a Horn clause — head + positive predicate literals over
+*variables only* (no constants). **Comparison body literals are allowed** (the
+temporal rules `contemporary`/`precedes`/`follows` guard on `Ex < Sy` / `Ex >= Sy`
+over `time_start`/`time_end`), but ONLY the dialect-shared operators `<`, `>`,
+`>=` — these are byte-identical arithmetic goals in SWI-Prolog and native numeric
+constraints in Soufflé. Do NOT use the asymmetric spellings: `=<` (Prolog) vs `<=`
+(Soufflé), or `\==`/`\=` (Prolog) vs `!=` (Soufflé) — they'd break the
+byte-identical clause text that `test_rule_clause_text_is_shared_verbatim_across_dialects`
+enforces. Need distinctness (avoid a reflexive self-pair)? Make the rule reflexive
++ documented (like `same_region`/`contemporary`) and filter `X = Y` in the *query*,
+not the rule. A comparison needs its operands bound by an earlier predicate literal
+(a Soufflé/Prolog safety rule): list the `time_start`/`time_end` goals *before* the
+comparison. `depends=` must still name the base predicates the comparisons read
+(e.g. `time_start`, `time_end`) so the emitters declare them. `depends=` lists the predicates the body reads so the emitters declare
 them even when the graph has no such facts (a rule body over an unpopulated base
 relation must answer `false`, not error). A rule head may read *another rule's*
 head (e.g. `same_region` reads `within_region`); listing that derived predicate in

@@ -60,6 +60,7 @@ export const NON_WRITEBACK_FIELDS: ReadonlySet<string> = new Set([
   "source_query",
   "retrieved_at",
   "confidence",
+  "license",
 ]);
 
 /** One applied write-back edit (enrichment or, under `overwrite`, a resolved conflict). */

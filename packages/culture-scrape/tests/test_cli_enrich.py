@@ -51,12 +51,16 @@ def test_enrich_fills_attributes_and_links_every_dimension(tmp_path: Path) -> No
     # Provenance: the row records it was enriched from the dump.
     assert "enriched" in json.loads(ceviche["extra"])  # type: ignore[arg-type]
 
-    # Every targeted dimension produced registered edges.
+    # The geographic/genetic/linguistic linkers produced registered edges.
     by_type = {str(e[":TYPE"]) for e in edges}
     assert "LOCATED_IN" in by_type  # geographic
     assert "DERIVED_FROM" in by_type  # genetic
     assert "NAMED_IN" in by_type  # linguistic (multilingual names)
-    assert {"CONTEMPORARY_WITH", "PRECEDES"} & by_type  # temporal
+    # The temporal dimension is enriched onto the nodes as spans (asserted above:
+    # ceviche.time_start == "1535"), but pairwise CONTEMPORARY_WITH/PRECEDES are no
+    # longer materialised (T-SR-US-001) — they are derived on demand by the Datalog
+    # rules. This corpus carries no `period` cell, so no PART_OF_PERIOD edge either.
+    assert not ({"CONTEMPORARY_WITH", "PRECEDES", "FOLLOWS"} & by_type)
 
 
 def test_enrich_metrics_show_the_added_links(tmp_path: Path) -> None:
@@ -66,7 +70,11 @@ def test_enrich_metrics_show_the_added_links(tmp_path: Path) -> None:
     # The label-only baseline had no edges; enrichment + linking adds them.
     assert metrics["edge_count"] > 0
     dims = metrics["edges_by_dimension"]
-    assert {"geographic", "temporal", "linguistic", "genetic"} <= set(dims)
+    # Temporal edges are no longer materialised from spans (T-SR-US-001) and this
+    # corpus has no periods, so "temporal" is absent from the stored edges — it is
+    # answered on demand by the contemporary/precedes/follows Datalog rules.
+    assert {"geographic", "linguistic", "genetic"} <= set(dims)
+    assert "temporal" not in dims
 
 
 def test_enrich_is_idempotent(tmp_path: Path) -> None:

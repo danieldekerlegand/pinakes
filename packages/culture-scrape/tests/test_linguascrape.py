@@ -158,6 +158,27 @@ def test_license_is_stamped_when_configured() -> None:
     assert {r.provenance.license for r in records} == {"CC-BY-4.0"}
 
 
+def test_per_row_license_column_is_lifted_and_overrides_the_param(
+    tmp_path: Path,
+) -> None:
+    # Canonical schema v1.1 (US-003): a row-level `license` cell wins over the
+    # export-level license param and is lifted into Provenance, not overflow fields.
+    header = (
+        "csid:ID\t:LABEL\tname\tlinguascrape_id\t"
+        "source\tsource_url\tsource_query\tretrieved_at\tconfidence:float\tlicense"
+    )
+    root = _write_export(
+        tmp_path,
+        nodes={
+            "language": f"{header}\n"
+            "cs:language:xx\tLanguage\tX\txx\tlinguascrape\t\t\t\t0.5\tCC0-1.0"
+        },
+    )
+    (record,) = _fetch(_spec(str(root), {"license": "CC-BY-4.0"}))
+    assert record.provenance.license == "CC0-1.0"  # row cell overrides the param
+    assert "license" not in record.fields  # lifted into Provenance, not overflow
+
+
 def test_confidence_defaults_when_blank(tmp_path: Path) -> None:
     root = _write_export(
         tmp_path,

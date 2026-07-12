@@ -65,9 +65,13 @@ def test_hydration_drives_temporal_geographic_and_genetic_edges() -> None:
         hydrate="default",
         transitive="true",
     )
-    # temporal: inception years give overlap + ordering edges.
-    assert types["CONTEMPORARY_WITH"] >= 1
-    assert types["PRECEDES"] >= 1
+    # temporal: inception years are hydrated onto the nodes as time_start/time_end,
+    # but pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS are no longer materialised
+    # (T-SR-US-001) — they are derived on demand by the Datalog rules over those
+    # bounds, so no such edge is stored here.
+    assert types["CONTEMPORARY_WITH"] == 0
+    assert types["PRECEDES"] == 0
+    assert types["FOLLOWS"] == 0
     # geographic: country of origin resolves to a place, one LOCATED_IN per dish.
     assert types["LOCATED_IN"] == 3
     # genetic: "based on" (P144) resolves to a dish in the set.

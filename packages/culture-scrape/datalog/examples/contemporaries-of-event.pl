@@ -1,12 +1,15 @@
 % Contemporaries of an event.
 %
-% Everything that overlaps an event in time — the symmetric closure of the
-% contemporary_with edge, computed by the contemporary/2 rule. Because the rule
-% mirrors the stored edge, a contemporary is returned even when the edge was
-% recorded from the other endpoint. Load alongside a graph.pl built with --rules.
+% Everything that overlaps an event in time, computed by the contemporary/2 rule.
+% The rule derives overlap arithmetically from the time_start/time_end bounds
+% (time_end(X) >= time_start(Y) both ways) and also honours any explicitly
+% authored contemporary_with edge, so a contemporary is returned whether it was
+% dated or asserted, and from either endpoint. contemporary/2 is reflexive (a span
+% overlaps itself), so the query filters the event out of its own answers. Load
+% alongside a graph.pl built with --rules.
 %
 % Interactive form (after `swipl graph.pl`):
-%   ?- contemporary('cs:event:inca-expansion', Other).
+%   ?- contemporary('cs:event:inca-expansion', Other), Other \== 'cs:event:inca-expansion'.
 %
 % Run on the bundled example dataset:
 %   culturescrape to-datalog datalog/examples/dataset \
@@ -20,6 +23,7 @@
 
 main :-
     forall(
-        contemporary('cs:event:inca-expansion', Other),
+        ( contemporary('cs:event:inca-expansion', Other),
+          Other \== 'cs:event:inca-expansion' ),
         format("~w~n", [Other])
     ).

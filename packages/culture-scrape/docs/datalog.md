@@ -30,6 +30,42 @@ It prints a copy-pasteable load/run hint for each engine — `swipl <out>/graph.
 for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé. The
 underlying orchestration lives in `culturescrape.datalog.export`.
 
+### Streaming, not slurping (T-SR-US-002)
+
+The export is **streaming end to end**, so peak memory is bounded by a single row
+(plus the small per-predicate type/signature table), not by the corpus size:
+
+- `collect_facts(<dir>)` returns a re-iterable lazy stream (`_DatasetFacts`), not a
+  list — iterating it re-reads `nodes/*.tsv` then `edges/*.tsv` a row at a time via
+  the streaming reader `schema.tsvio.open_rows` (`read_rows` is the eager
+  `list(...)` wrapper over it).
+- `prolog.write_program` streams clauses straight to the file (two passes over the
+  stream: signatures, then facts) instead of building one `"\n".join(...)` program
+  string. `render_program` is retained for tests and emits the **byte-identical**
+  text in memory.
+- `souffle.write_souffle_facts` shards each fact to a per-relation `<pred>.facts`
+  handle in one pass (an `ExitStack` of open handles) instead of grouping every
+  fact into an in-memory dict; the `.dl` is bounded by the relation count, so it
+  stays a small string.
+- The Neo4j-side export (`neo4j.export.export_to_tsv`) streams nodes then edges in
+  **separate** cursor passes, so the two label/`:TYPE` shards never reside at once.
+
+Measured peak Python heap (`tracemalloc`) for `export_dataset(..., both, rules)` on
+a synthetic corpus, streaming vs. the old list-and-join path:
+
+| facts | `graph.pl` | old peak heap | streaming peak heap |
+|------:|-----------:|--------------:|--------------------:|
+| 12 k | 0.52 MB | 5.6 MB | 2.5 MB |
+| 120 k | 5.3 MB | 59 MB | 2.3 MB |
+| 1.2 M | 55 MB | **606 MB** | **2.3 MB** |
+
+The old path was O(corpus) — it held the whole `Fact` list **and** the whole
+program string; the streaming path is flat. Extrapolated to the pre-US-001
+1.19 GB `graph.pl` (11.2 M lines) the old peak would have been ~13 GB. The
+full-corpus before/after (`/usr/bin/time -v`) is recorded at the T-SR-US-005
+rebuild benchmark; the corpus is gitignored and not reproducible locally, so the
+figures above are the synthetic-corpus demonstration of the same O(1) property.
+
 ## Installing the engines (SWI-Prolog + Soufflé)
 
 The projection above needs no engine, but *running* the generated program — the
@@ -87,7 +123,10 @@ provenance `source`:
 Arguments are strings (symbolic constants), ints, or floats. The `source` is
 recorded so that — per the data model's "no fact without a source" rule — the
 provenance survives into the logic program, emitted as a trailing comment that
-keeps the predicate's arity stable.
+keeps the predicate's arity stable. That comment is human-readable but *not*
+queryable, so the projection **also** emits provenance as first-class facts —
+`source(Csid, Source)` for entities and `rel_source(Type, Start, End, Source)` for
+edges (see [Provenance](#provenance)) — which a query can filter or join on.
 
 ## Predicate schema
 
@@ -113,6 +152,23 @@ binary predicate per `:TYPE` — the two are interchangeable views:
 | `rel/3` | `rel(Type, Start, End)` — generic edge with the type as data |
 | `located_in/2`, `originates_from/2`, `created_by/2`, … | typed projection of a single `:TYPE` |
 | `rel_conf/4` | `rel_conf(Type, Start, End, Conf)` — optional edge confidence (falls back to legacy `weight`) |
+| `rel_source/4` | `rel_source(Type, Start, End, Source)` — optional edge provenance (see [Provenance](#provenance)) |
+
+### Provenance
+
+Every fact keeps its `source` as a trailing `% source:` comment (arity-stable),
+but a comment can't be queried. So the projection *also* emits provenance as
+first-class facts, letting a query filter or join on where a fact came from:
+
+| Predicate | Meaning |
+|---|---|
+| `source/2` | `source(Csid, Source)` — the acquisition source of an entity, keyed by csid (one per node row that carries a source) |
+| `rel_source/4` | `rel_source(Type, Start, End, Source)` — the acquisition source of an edge, mirroring `rel_conf/4` (one per edge row that carries a source) |
+
+A blank `source` emits neither fact, so no null reaches the logic program. Join
+`source/2` to `node/3` to list a source's entities (`entities-by-source.pl`), or
+`rel_source/4` to `rel_conf/4` to read an edge's provenance alongside its
+confidence.
 
 ### Dimension facts
 
@@ -150,7 +206,9 @@ and `node_facts` projects a single decoded row. Each row yields:
   | `derived_from_csid` | `derived_from/2` |
 
 An **empty cell emits no fact**, so the logic program contains no nulls. Each
-emitted fact carries the row's `source` column as provenance.
+emitted fact carries the row's `source` column as provenance, and a row with a
+source also yields a queryable `source(Csid, Source)` fact (see
+[Provenance](#provenance)).
 
 ### The csid ↔ atom mapping
 
@@ -186,6 +244,9 @@ idempotent.
   so the base relations stay arity-stable. The value is the canonical
   `confidence` column; the legacy `weight` column is a fallback used only when
   `confidence` is blank but `weight` is genuinely populated.
+- `rel_source(t, A, B, Source)` — an optional companion exposing the edge's
+  **provenance** as a queryable fact (mirroring `rel_conf/4`), emitted **only**
+  when the row carries a source (see [Provenance](#provenance)).
 
 Both views carry the **same atom** for the type, so a query pivots between them
 freely: `rel(located_in, A, B)` mirrors `located_in(A, B)`. Each fact carries
@@ -211,8 +272,9 @@ rejected rather than silently colliding.
 
 ```
 
-A confidence-bearing edge yields all three facts; the type atom is shared across
-the generic and typed views, and `rel_conf` carries the numeric confidence:
+A confidence-bearing, sourced edge yields all four facts; the type atom is shared
+across the generic and typed views, `rel_conf` carries the numeric confidence, and
+`rel_source` carries the provenance as a queryable fact:
 
 ```python
 >>> row = {":START_ID": "cs:dish:Q42", ":END_ID": "cs:place:Q123",
@@ -222,6 +284,7 @@ the generic and typed views, and `rel_conf` carries the numeric confidence:
 rel(located_in, 'cs:dish:Q42', 'cs:place:Q123').  % source: wikidata
 located_in('cs:dish:Q42', 'cs:place:Q123').  % source: wikidata
 rel_conf(located_in, 'cs:dish:Q42', 'cs:place:Q123', 0.9).  % source: wikidata
+rel_source(located_in, 'cs:dish:Q42', 'cs:place:Q123', wikidata).  % source: wikidata
 
 ```
 
@@ -363,19 +426,25 @@ become available whichever engine a researcher loads.
 
 A pure Horn rule (a head and a body of positive literals over **variables**) is
 written identically in ISO-Prolog and in Soufflé — the dialects diverge only on
-how *constants* are quoted, and a rule has none. So each rule's clause text is
-**shared verbatim** across both outputs; the engines differ only in the
-scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`/`:-
-table` directives, Soufflé's `.decl`/`.output`), which the emitters add
-automatically.
+how *constants* are quoted, and a rule has none. The temporal rules additionally
+use **comparison body literals**, but only the operators `<` and `>=`, which are
+byte-identical arithmetic goals in SWI-Prolog and native numeric constraints in
+Soufflé (the asymmetric spellings `=<` / `!=` are deliberately avoided). So each
+rule's clause text is **shared verbatim** across both outputs; the engines differ
+only in the scaffolding around the clauses (Prolog's `:- dynamic`/`:-
+discontiguous`/`:- table` directives, Soufflé's `.decl`/`.output`), which the
+emitters add automatically.
 
-Every rule relation is **binary over csids**.
+Every rule *predicate* literal is **binary over csids** (a comparison literal such
+as `Ex < Sy` is not a predicate goal and carries no relation).
 
 | Derived predicate | Closure of | Intended meaning |
 |---|---|---|
 | `ancestor/2` | transitive `descends_from/2` | `ancestor(X, Y)` — language `Y` is a (possibly indirect) ancestor of language `X` |
 | `within_region/2` | transitive `located_in/2` | `within_region(X, Y)` — `X` lies inside region `Y` through any chain of containments |
-| `contemporary/2` | symmetric `contemporary_with/2` | `contemporary(X, Y)` — `X` and `Y` overlap in time, queryable from either endpoint |
+| `contemporary/2` | span overlap over `time_start/2` + `time_end/2` (∪ authored `contemporary_with/2`) | `contemporary(X, Y)` — `X` and `Y` overlap in time (`time_end(X) >= time_start(Y)` both ways) or are joined by an authored edge; reflexive + symmetric |
+| `precedes/2` | ordering over `time_end/2` + `time_start/2` | `precedes(X, Y)` — `X`'s span ends strictly before `Y`'s begins (`time_end(X) < time_start(Y)`) |
+| `follows/2` | inverse of `precedes/2` | `follows(X, Y)` — `X` comes entirely after `Y` (`Y precedes X`) |
 | `influenced_transitively/2` | transitive `derived_from/2` ∪ `influenced_by/2` | `influenced_transitively(X, Y)` — `Y` is a direct or indirect cultural forebear of `X` |
 | `component_of/2` | transitive `part_of/2` | `component_of(X, Y)` — `X` is a component of whole `Y` through any chain of part-of containments |
 | `same_region/2` | co-location via `within_region/2` | `same_region(X, Y)` — `X` and `Y` share an enclosing region (reflexive, symmetric); the geographic half of the cross-domain correlation |
@@ -387,10 +456,14 @@ derives only the *qualitative* pairing; the numeric overlap score (region-polygo
 intersection, notable divergences) stays a CPU-domain computation in the
 TypeScript engine, per `docs/culturescrape-integration.md`.
 
-`contemporary/2` is a **new** predicate rather than a self-mirroring clause on
-`contemporary_with/2`: in Prolog a clause `contemporary_with(X, Y) :-
-contemporary_with(Y, X).` would loop, so a distinct head keeps the symmetric
-closure terminating while still agreeing with Soufflé's fixpoint.
+**Temporal relations are rules, not stored edges (T-SR-US-001).** Materialising
+pairwise `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` is quadratic — 5.57M of 5.58M
+corpus edges at 6.7k nodes — so the ontology's temporal linker no longer emits
+them (it keeps only `PART_OF_PERIOD`). `contemporary`/`precedes`/`follows` are
+instead derived on demand from the `time_start/2` and `time_end/2` dimension facts
+every node projects; an entity must carry **both** bounds to be
+ordered/overlapped. `contemporary/2` is reflexive (a span overlaps itself) and
+symmetric, so a caller filters `X = Y` for distinct pairs.
 
 A distinct head is not enough for the **transitive-closure** rules, though: their
 base relations can themselves be cyclic. `descends_from` carries a data-error
@@ -470,12 +543,14 @@ X = 'cs:place:Q123' ;
 X = 'cs:place:Q200'.
 ```
 
-Given the single edge `contemporary_with('cs:battle:Q47', 'cs:dish:Q42')`, the
-mirror holds though no edge was stored in that direction:
+Given the dated spans `time_start('cs:event:inca-expansion', 1438)`,
+`time_end(…, 1533)` and `time_start('cs:event:columbian-exchange', 1492)`,
+`time_end(…, 1700)`, the overlap is derived arithmetically (the query filters the
+reflexive self-match):
 
 ```prolog
-?- contemporary('cs:dish:Q42', X).
-X = 'cs:battle:Q47'.
+?- contemporary('cs:event:inca-expansion', X), X \== 'cs:event:inca-expansion'.
+X = 'cs:event:columbian-exchange'.
 ```
 
 Given `derived_from('cs:dish:Q99', 'cs:dish:Q42')` and
@@ -501,7 +576,7 @@ one on that dataset in SWI-Prolog (skipping when `swipl` is absent):
 ```python
 >>> from culturescrape.datalog.examples import EXAMPLES
 >>> [example.slug for example in EXAMPLES]
-['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition', 'genetic-linguistic-correlation', 'language-descent']
+['ancestry-of-dish', 'entities-within-region', 'contemporaries-of-event', 'shortest-influence-chain', 'festivals-in-period', 'game-family-variants', 'invention-lineage', 'material-composition', 'genetic-linguistic-correlation', 'language-descent', 'entities-by-source']
 
 ```
 
@@ -525,10 +600,14 @@ $ swipl -q -g main -t halt /tmp/eg/graph.pl datalog/examples/ancestry-of-dish.pl
 | `material-composition.pl` | the materials an artifact is made of | `made_of/2` (`MADE_OF`) | the artifact's materials, one csid per line — `cs:material:silk`, `cs:material:cotton` |
 | `genetic-linguistic-correlation.pl` | the languages a haplogroup correlates with | `genetic_linguistic_correlation/2` | each correlated language, one csid per line — `cs:language:proto-celtic`, `cs:language:gaulish` |
 | `language-descent.pl` | the full ancestry of a language | transitive `ancestor/2` (`DESCENDS_FROM`) | each ancestor, one csid per line — `cs:language:proto-celtic`, `cs:language:pie` |
+| `entities-by-source.pl` | the entities a source contributed | `source/2` (provenance keyed by csid) joined to `node/3` | each entity `csid<TAB>name` — `cs:language:pie  Proto-Indo-European`, … (the six `linguascrape` rows) |
 
-The last two run over **LinguaScrape-origin** facts merged into the dataset
-(`source: linguascrape`), exercising the ported correlation rules and the base
-transitive closure across the merged graph.
+The two closure examples above `entities-by-source` run over **LinguaScrape-origin**
+facts merged into the dataset (`source: linguascrape`), exercising the ported
+correlation rules and the base transitive closure across the merged graph.
+`entities-by-source` shows provenance is a first-class query target: `source/2`
+(and its edge sibling `rel_source/4`) make where each fact came from queryable, not
+just a trailing comment.
 
 The four before them mirror the per-domain `cypher/*.cypher` queries, one per new
 corpus-expansion signature relationship, each reaching only the typed predicate
@@ -551,7 +630,8 @@ relations — but the full corpus program is ~1 GB, and the engine-free path sta
 useful even now that CI carries the engines (see "Installing the engines" above),
 because it is fast and needs no engine at all. `culturescrape.datalog.materialize`
 computes each rule's extension **engine-free**: a small naive-fixpoint evaluator
-over the projected facts, so the four US-004 inference targets can be produced,
+over the projected facts (including the comparison guards of the arithmetic
+temporal rules, since T-SR-US-001), so every inference target can be produced,
 counted, and validated without an engine. `culturescrape datalog-materialize <dataset>` prints
 the base-relation counts the rules read and the derived-relation counts, and
 `--json <path>` writes them as a manifest:
@@ -565,29 +645,33 @@ the base-relation counts the rules read and the derived-relation counts, and
 3
 >>> summary.derived_relations["same_region"]                    # co-location join
 16
->>> summary.derived_relations["contemporary"]                   # symmetric contemporary_with
-6
+>>> summary.derived_relations["contemporary"]                   # span overlap ∪ authored edge
+8
 >>> summary.derived_relations["genetic_linguistic_correlation"] # origin ⋈ spoken region
 2
 
 ```
 
-Over the **full LinguaScrape corpus** (`out/linguascrape-full/corpus`) the four
-targets materialize to (recorded in `docs/datalog-materialization-manifest.json`):
+The committed full-corpus figures in `docs/datalog-materialization-manifest.json`
+were **regenerated at the T-SR-US-005 rebuild benchmark** (2026-07-12) against the
+post-US-001 edge model — the pre-US-001 record read `contemporary` off the
+(now-removed) stored `contemporary_with` edges. The shape after the change:
 
-| Target relation | Derived tuples | Base relation read |
-|---|---|---|
-| `contemporary/2` (symmetric `contemporary_with/2`) | 1,010,490 | `contemporary_with` (505,245) |
-| `same_region/2` (co-location via `within_region/2`) | 2,219 | `located_in` (475) |
-| `ancestor/2` (transitive `descends_from/2`) | 2,770 | `descends_from` (1,468) |
-| `genetic_linguistic_correlation/2` | 0 | `originates_from`/`spoken_in` (0) |
-
-`genetic_linguistic_correlation/2` derives **0** over the LinguaScrape-only corpus
-because LinguaScrape ships no genetics domain (no haplogroup source, so no
-`originates_from`/`spoken_in` edges). The rule is exercised — and its expected
-shape recorded — on the bundled fixture, which carries the ported LinguaScrape
-genetics facts (`source: linguascrape`); it materializes on any merged corpus that
-adds a genetics source. The other three run non-trivially over the live graph.
-Storing the ~1 M symmetric `contemporary` closure as edges would dominate the
-corpus, so it stays **derived** in the logic layer rather than materialized into
-TSV — the point of keeping the closure a rule.
+- `contemporary/2` now derives from `time_start/2` + `time_end/2` (∪ any authored
+  `contemporary_with` edge), and `precedes/2` / `follows/2` from the same bounds.
+  **Materialising** these over the full corpus reproduces the O(n²) extension —
+  every overlapping/ordered pair of dated entities — which is precisely why they
+  are kept as **on-demand rules**, not stored edges: the ~1 GB stored temporal
+  edge set is gone, and an engine (or the materialiser) derives the pairs only for
+  the entities a query actually reaches. Because the engine-free naive-fixpoint
+  materialiser would recompute that ~10⁶-pair join every round, the full-corpus
+  manifest is generated with `datalog-materialize --exclude contemporary precedes
+  follows` and records those three heads under `engine_only`; a real `swipl`/
+  `souffle` derives them lazily, and the CI equivalence test + the materialiser
+  over the bundled fixture validate the logic.
+- `same_region/2` and `ancestor/2` are unchanged (co-location / transitive
+  descent). `genetic_linguistic_correlation/2` derives **0** over the
+  LinguaScrape-only corpus (no genetics domain — no
+  `originates_from`/`spoken_in` edges); it is exercised on the bundled fixture,
+  which carries ported `source: linguascrape` genetics facts, and materializes on
+  any merged corpus that adds a genetics source.

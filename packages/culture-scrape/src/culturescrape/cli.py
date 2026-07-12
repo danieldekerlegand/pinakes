@@ -43,6 +43,7 @@ from culturescrape.datalog.export import (
     export_dataset,
 )
 from culturescrape.datalog.materialize import MaterializeError, summarize
+from culturescrape.datalog.rules import RULES
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
 from culturescrape.neo4j.admin_import import (
     AdminImportError,
@@ -359,6 +360,20 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help="write the base/derived count manifest to this path as JSON",
+    )
+    datalog_materialize.add_argument(
+        "--exclude",
+        nargs="+",
+        default=None,
+        metavar="RULE",
+        help="rule head(s) to skip. The engine-free evaluator materialises a "
+        "relation by naive fixpoint, so the arithmetic temporal rules "
+        "(contemporary/precedes/follows) recompute their ~O(n^2) span-overlap "
+        "join every round — intractable at full-corpus scale (the very "
+        "explosion US-001 removed from stored edges). Skip them here and leave "
+        "them engine-only (a real swipl/souffle derives them lazily); the "
+        "structural rules stay materialised. Excluded heads are recorded under "
+        "'engine_only' in the manifest.",
     )
     datalog_materialize.set_defaults(handler=_cmd_datalog_materialize)
 
@@ -900,9 +915,19 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
 
 
 def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
+    exclude = tuple(args.exclude or ())
+    known_heads = {rule.name for rule in RULES}
+    unknown = [name for name in exclude if name not in known_heads]
+    if unknown:
+        return _fail(
+            f"--exclude names unknown rule head(s): {', '.join(sorted(unknown))} "
+            f"(known: {', '.join(sorted(known_heads))})"
+        )
+    rules = tuple(rule for rule in RULES if rule.name not in exclude)
+
     try:
         facts = collect_facts(args.directory)
-        summary = summarize(facts)
+        summary = summarize(facts, rules)
     except (DatalogExportError, MaterializeError) as exc:
         return _fail(str(exc))
 
@@ -912,10 +937,15 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
     print(f"derived relations (total {summary.derived_total}):")
     for predicate, count in summary.derived_relations.items():
         print(f"  {predicate}: {count}")
+    if exclude:
+        print(f"engine-only (not materialised): {', '.join(sorted(exclude))}")
     if args.json is not None:
+        payload = summary.to_json()
+        if exclude:
+            payload["engine_only"] = sorted(exclude)
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(
-            json.dumps(summary.to_json(), indent=2) + "\n", encoding="utf-8"
+            json.dumps(payload, indent=2) + "\n", encoding="utf-8"
         )
         print(f"wrote manifest to {args.json}")
     return 0
