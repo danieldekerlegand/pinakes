@@ -32,6 +32,14 @@
 #                          from the partial snapshot if one exists).
 #   FORCE=1                skip the clean-tree / on-main precondition check.
 #   STRICT_VERIFY=1        fail on any failure instead of only NEW-vs-main failures. Default 0.
+#   AUTO_RECOVER=0         disable auto-recovery of a stranded ralph/* branch. Default 1
+#                          (preserve any WIP as a commit on that branch, then switch to main).
+#
+# Per-PRD loop knobs (environment, passed through to ralph.sh — see there for detail):
+#   STALL_LIMIT / HARD_MAX / RATE_LIMIT_RETRY / RATE_LIMIT_WAIT / RATE_LIMIT_MAX_WAITS
+#   MAX_ITERATIONS is now a SOFT budget: ralph.sh extends past it while a PRD keeps
+#   making progress (a story passes or a commit lands), and on a session/usage limit
+#   it sleeps until reset and resumes the same story instead of aborting.
 #
 set -uo pipefail
 
@@ -134,8 +142,20 @@ if [ "$#" -gt 0 ]; then
 fi
 
 # Precondition: clean tree, on main (Ralph branches each PRD from main).
+# A run killed mid-ralph (SIGKILL, crash) can strand the repo on a ralph/* branch,
+# often with WIP. AUTO_RECOVER (default on) PRESERVES that WIP as a commit on its
+# branch and switches back to main, so a plain re-run resumes instead of erroring.
+AUTO_RECOVER="${AUTO_RECOVER:-1}"
 if [ "$FORCE" != "1" ]; then
   cur="$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+  if [ "$AUTO_RECOVER" = "1" ] && printf '%s' "$cur" | grep -q '^ralph/'; then
+    if [ -n "$(git -C "$REPO" status --porcelain)" ]; then
+      git -C "$REPO" add -A \
+        && git -C "$REPO" commit -q -m "wip: auto-preserved by run-all before restart (was on $cur)" \
+        && echo "  ↻ auto-preserved uncommitted WIP as a commit on $cur"
+    fi
+    git -C "$REPO" checkout main >/dev/null 2>&1 && { cur=main; echo "  ↻ switched back to main"; }
+  fi
   if [ -n "$(git -C "$REPO" status --porcelain --untracked-files=no)" ]; then
     echo "ERROR: uncommitted tracked changes — commit/stash first, or re-run with FORCE=1." >&2
     git -C "$REPO" status --short | head; exit 1
