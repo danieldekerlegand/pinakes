@@ -653,9 +653,9 @@ the base-relation counts the rules read and the derived-relation counts, and
 ```
 
 The committed full-corpus figures in `docs/datalog-materialization-manifest.json`
-predate T-SR-US-001 — they were taken when `contemporary` read the (now-removed)
-stored `contemporary_with` edges. Regenerate the manifest after the next full
-rebuild (the T-SR-US-005 benchmark); the shape after the change is:
+were **regenerated at the T-SR-US-005 rebuild benchmark** (2026-07-12) against the
+post-US-001 edge model — the pre-US-001 record read `contemporary` off the
+(now-removed) stored `contemporary_with` edges. The shape after the change:
 
 - `contemporary/2` now derives from `time_start/2` + `time_end/2` (∪ any authored
   `contemporary_with` edge), and `precedes/2` / `follows/2` from the same bounds.
@@ -663,7 +663,12 @@ rebuild (the T-SR-US-005 benchmark); the shape after the change is:
   every overlapping/ordered pair of dated entities — which is precisely why they
   are kept as **on-demand rules**, not stored edges: the ~1 GB stored temporal
   edge set is gone, and an engine (or the materialiser) derives the pairs only for
-  the entities a query actually reaches.
+  the entities a query actually reaches. Because the engine-free naive-fixpoint
+  materialiser would recompute that ~10⁶-pair join every round, the full-corpus
+  manifest is generated with `datalog-materialize --exclude contemporary precedes
+  follows` and records those three heads under `engine_only`; a real `swipl`/
+  `souffle` derives them lazily, and the CI equivalence test + the materialiser
+  over the bundled fixture validate the logic.
 - `same_region/2` and `ancestor/2` are unchanged (co-location / transitive
   descent). `genetic_linguistic_correlation/2` derives **0** over the
   LinguaScrape-only corpus (no genetics domain — no

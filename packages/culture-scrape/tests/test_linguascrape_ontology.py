@@ -5,7 +5,7 @@ into a canonical edge row; this module pins the two things that make such an edg
 *participate* in the shared graph:
 
 * its ``:TYPE`` is translated to the canonical ontology vocabulary
-  (:data:`LINGUASCRAPE_EDGE_TYPE_MAP`) — five tokens map to themselves, the two
+  (:data:`LINGUASCRAPE_EDGE_TYPE_MAP`) — five tokens map to themselves, the three
   LinguaScrape-specific ones fold onto a registered canonical type, and an
   unknown token is rejected rather than passed through un-canonicalised; and
 * the mapped edge, carrying its time range / confidence / provenance, flows
@@ -103,6 +103,11 @@ def test_absorbed_into_folds_onto_part_of() -> None:
 def test_syncretized_with_folds_onto_variant_of() -> None:
     row = map_linguascrape_edge(_edge_record("SYNCRETIZED_WITH"))
     assert row[":TYPE"] == "VARIANT_OF"
+
+
+def test_split_from_folds_onto_descends_from() -> None:
+    row = map_linguascrape_edge(_edge_record("SPLIT_FROM"))
+    assert row[":TYPE"] == "DESCENDS_FROM"
 
 
 def test_unknown_edge_type_is_rejected() -> None:

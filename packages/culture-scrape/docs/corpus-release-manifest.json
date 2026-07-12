@@ -1,20 +1,20 @@
 {
   "job": "linguascrape-full",
-  "built_from": "export/culturescrape (scripts/export-for-culturescrape.ts) -> jobs/linguascrape-full.yml",
-  "note": "Release record for the full LinguaScrape convergence corpus (US-001; refreshed for the US-002..US-006 data-population expansions, US-007). node/edge counts and nodes_by_label/edges_by_type are the DETERMINISTIC corpus fingerprint; 'digest' and per-file 'sha256' pin THIS point-in-time bundle (edge/node 'retrieved_at' carries the ingestion wall-clock, so the bytes are not reproducible across builds). Regenerate with the commands in docs/convergence-build.md; the tar.gz itself is gitignored (dist/).",
+  "built_from": "export/culturescrape (scripts/export-for-culturescrape.ts) -> jobs/linguascrape-full.yml -> culturescrape package",
+  "note": "Release record for the full LinguaScrape convergence corpus, regenerated at the Phase-1 full-rebuild benchmark (US-005) against the post-US-001 edge model. edge_count dropped 5576745 -> 3548 (a ~1570x reduction): US-001 turned the pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS edges (99.98% of the old total, one per co-dated pair) into arithmetic Datalog rules over time_start/time_end, so only semantic edges (descent/influence/borrowing/containment/period membership) are now stored; the temporal layer is derived on demand. node/edge counts and nodes_by_label/edges_by_type are the DETERMINISTIC corpus fingerprint; 'digest' and per-file 'sha256' pin THIS point-in-time bundle (edge/node 'retrieved_at' carries the ingestion wall-clock, so the bytes are not reproducible across builds). Regenerate with the commands in docs/convergence-build.md 'Full-rebuild benchmark (US-005)'; the tar.gz itself is gitignored (dist/).",
   "artifact": "linguascrape-full-corpus.tar.gz",
-  "node_count": 6710,
-  "edge_count": 5576745,
+  "node_count": 6848,
+  "edge_count": 3548,
   "nodes_by_label": {
-    "ArchaeologicalCulture": 276,
+    "ArchaeologicalCulture": 281,
     "ArtTradition": 230,
     "Battle": 49,
     "Cuisine": 101,
-    "Culture": 295,
-    "Deity": 205,
+    "Culture": 296,
+    "Deity": 228,
     "Ingredient": 2146,
-    "Language": 1041,
-    "LanguageFamily": 462,
+    "Language": 1068,
+    "LanguageFamily": 544,
     "LiteraryTradition": 53,
     "MigrationRoute": 97,
     "MythMotif": 61,
@@ -26,188 +26,380 @@
     "WritingSystem": 113
   },
   "edges_by_type": {
-    "BORROWED_FROM": 14,
-    "COGNATE_WITH": 13,
-    "CONTEMPORARY_WITH": 518514,
-    "DERIVED_FROM": 7,
-    "DESCENDS_FROM": 922,
-    "FOLLOWS": 2527843,
-    "INFLUENCED_BY": 26,
+    "BORROWED_FROM": 50,
+    "COGNATE_WITH": 27,
+    "DERIVED_FROM": 13,
+    "DESCENDS_FROM": 1642,
+    "INFLUENCED_BY": 102,
     "LOCATED_IN": 873,
-    "PART_OF": 10,
+    "PART_OF": 101,
     "PART_OF_PERIOD": 498,
-    "PRECEDES": 2527843,
-    "VARIANT_OF": 182
+    "VARIANT_OF": 242
   },
-  "digest": "sha256:7ebf3733665a9f1f6534523b630a08fc7abd09943d99ddb869cf0994cde920d3",
+  "digest": "sha256:5f89c5ac2658079897ee0912a00e697b2dbb572e8102926c11978412a2dde37f",
   "files": [
     {
-      "path": "edges/borrowed-from.tsv",
-      "sha256": "c870e4332f1b2156e9aea91d596453fba7b5ae57ca9caacbbfe286168dc8a74a",
-      "bytes": 1474
+      "path": "catalog.json",
+      "sha256": "cd316eca796989f1aaa966caac18a82c537e21c9a2152b936ac0d7ca96e7eb7c",
+      "bytes": 494
     },
     {
-      "path": "edges/cognate-with.tsv",
-      "sha256": "b734eeabdd180d66b0fd0579822e330346e8372515ef1be8a040adfce958c553",
-      "bytes": 1355
+      "path": "corpus-datalog/borrowed_from.facts",
+      "sha256": "661175849310a480896da77dc3e27d942e2ce37b9ea258df91ab1ec73449170a",
+      "bytes": 1716
     },
     {
-      "path": "edges/contemporary-with.tsv",
-      "sha256": "c3cfc9922b0873112a112827188483a6b1e04bf8e1c8c26c575c876c39f5f068",
-      "bytes": 51413406
+      "path": "corpus-datalog/cognate_with.facts",
+      "sha256": "b5d7f12ee3166c3476687108abc4a32e0dcf990b27fd333cf9071b63b8ae5f37",
+      "bytes": 895
     },
     {
-      "path": "edges/derived-from.tsv",
-      "sha256": "d90c3961510e9689f83e70d97600891a7ac41fac62d73b1f2c224a3ef38ce909",
-      "bytes": 823
+      "path": "corpus-datalog/derived_from.facts",
+      "sha256": "3bd42c58aee8c8d4e728e25807c2cd19c98049be19a11e60d4c0f969ef738191",
+      "bytes": 481
     },
     {
-      "path": "edges/descends-from.tsv",
-      "sha256": "a689f3c2e495daecb5497096b5aa282479930d9ead134abb5e10e0986ecdfec7",
-      "bytes": 118275
+      "path": "corpus-datalog/descends_from.facts",
+      "sha256": "a2d7409e8da13004f623e554d4d4d868cb1e28d559c57eae5f2bcc01318b2818",
+      "bytes": 102891
     },
     {
-      "path": "edges/follows.tsv",
-      "sha256": "e897525a42fe0c5b2a63d3b890b9a831e71d2cb217b3494a33c061b09d68480f",
-      "bytes": 232009163
+      "path": "corpus-datalog/graph.dl",
+      "sha256": "c3547eaacd1604144f3eb2a10d459068610f42a0134ed12c115ecd13c9c2c552",
+      "bytes": 10303
     },
     {
-      "path": "edges/influenced-by.tsv",
-      "sha256": "67acb50ab47ddfdc7a216fae422c87f9d693766d35727682cee9d3cee4c6e03f",
-      "bytes": 2708
+      "path": "corpus-datalog/graph.pl",
+      "sha256": "2c02318677176d890dff87ad050f6130422f793d9a786054e0a425882702d6a2",
+      "bytes": 4082020
     },
     {
-      "path": "edges/located-in.tsv",
-      "sha256": "615f9410d3be234eff239b23d9194a79b5e85d9d4ed75daaff4a2e0a031394b2",
-      "bytes": 67274
+      "path": "corpus-datalog/influenced_by.facts",
+      "sha256": "8037fb95f8cdaf0a9b8ad0711176f301b07ce0b2c1176aafec7c1278615fd887",
+      "bytes": 3668
     },
     {
-      "path": "edges/part-of-period.tsv",
-      "sha256": "743d6fb8fbab0aff942a7a8d6c7ed8c2fae967926e05faaa74c11267abbc5205",
-      "bytes": 54472
+      "path": "corpus-datalog/instance_of.facts",
+      "sha256": "1a8f76d483f0817d286c3422a5867f54f090a14bc840de4c3fcf51d12876ca9f",
+      "bytes": 263543
     },
     {
-      "path": "edges/part-of.tsv",
-      "sha256": "04a7d11bdded42023e6e8d44467aa53ffe8ed2370feb5a12bd49e13ebe9daa01",
-      "bytes": 1398
+      "path": "corpus-datalog/language_code.facts",
+      "sha256": "e45d91fe7eca2de55c9ffc24ff55b20d68f0d0253d5baca5ba042fe9153b212a",
+      "bytes": 1700
     },
     {
-      "path": "edges/precedes.tsv",
-      "sha256": "bf3570076f9e089bf2cd180e52def4f33e11ac4bc7072b02c575b86297b6b3ab",
-      "bytes": 234537006
+      "path": "corpus-datalog/located_at.facts",
+      "sha256": "9221251352245f0bb87671c88d41fbfe6c7e79d8fac76b7170652969e53aa496",
+      "bytes": 84826
     },
     {
-      "path": "edges/variant-of.tsv",
-      "sha256": "e939c63c6fedf2c5b859c4b35e085fd8c7a000f4befcea5ead9fd29465b9fa7f",
-      "bytes": 17283
+      "path": "corpus-datalog/located_in.facts",
+      "sha256": "d94971c1432696d9efab929abb61ac67cc402db3d69e299584f7dd8251b23b08",
+      "bytes": 34100
     },
     {
-      "path": "manifest.json",
-      "sha256": "9876954261685f07413c199dfb5fe005639ea83076f9db87111c1f67df0f22a9",
-      "bytes": 1050
+      "path": "corpus-datalog/node.facts",
+      "sha256": "debca2eea78d7a521e198971bd8fc3e5dd00939dbd122df4a986fcfbf80c23a6",
+      "bytes": 347924
     },
     {
-      "path": "metrics.json",
-      "sha256": "930c7e9b2d29eaecf45e4c3288a247c3df800a7bbeb92dcafa77736f8fe29578",
-      "bytes": 665
+      "path": "corpus-datalog/part_of.facts",
+      "sha256": "4e4e3cf30f5247f54fefe3d8a50bdb5d06cc830e05ea230a399876b763abf9c9",
+      "bytes": 6924
     },
     {
-      "path": "nodes/archaeologicalculture.tsv",
-      "sha256": "f068af30803f63e9c05c66e3394944b17fac53b84fb0885ab45cfa4b457e0483",
-      "bytes": 69580
+      "path": "corpus-datalog/part_of_period.facts",
+      "sha256": "0f9d39dc9520db1e071827407cd31e2bb206feee2b95e12f64edd3aa40939c46",
+      "bytes": 85772
     },
     {
-      "path": "nodes/arttradition.tsv",
-      "sha256": "cd539828f4da6bf476812bf7a7a297b99f44969b4af9c76ce11941d92e8d04de",
-      "bytes": 60098
+      "path": "corpus-datalog/rel.facts",
+      "sha256": "1c8b51f05fc66439eebf1090cd6b5f3c1ce177f98597df6b9537903f0bf740d7",
+      "bytes": 239026
     },
     {
-      "path": "nodes/battle.tsv",
-      "sha256": "569e7f243747d448be7a833c85527c70df4de4f2469af790d7cbce9d08005bdb",
+      "path": "corpus-datalog/rel_conf.facts",
+      "sha256": "8d1d269f5678c3746ef81e7485cc5d3799d539d1b6a3b9ca69ceea0c3e54650d",
+      "bytes": 253267
+    },
+    {
+      "path": "corpus-datalog/rel_source.facts",
+      "sha256": "52b4a3447459cc886dc06c644ba77321088f2d1cd5885b82efbb0b68c49ceda7",
+      "bytes": 293751
+    },
+    {
+      "path": "corpus-datalog/script.facts",
+      "sha256": "ad1506e36c0986e61fe1f58d600b9336167d84d4332a30606b01cf46ac133aca",
+      "bytes": 23593
+    },
+    {
+      "path": "corpus-datalog/source.facts",
+      "sha256": "6a74632c0d9c69bd7e80aeb88b654fe9fd1f5f4d14e6443a2ee9796fd558ca6a",
+      "bytes": 283856
+    },
+    {
+      "path": "corpus-datalog/time_end.facts",
+      "sha256": "b5f2aa206984eb659cb472531ada97054460aee0e5bb7bdab004927c928b9478",
+      "bytes": 29383
+    },
+    {
+      "path": "corpus-datalog/time_start.facts",
+      "sha256": "a0dcf8eccd01effcdc52d9d70ab45cda674fe124ed0ab3ba3f939824832eacbb",
+      "bytes": 147037
+    },
+    {
+      "path": "corpus-datalog/variant_of.facts",
+      "sha256": "435e4aea6b21813eafc8b3ca6b6cd7264f462970636498a2dd70fcd90580480c",
+      "bytes": 7701
+    },
+    {
+      "path": "corpus-neo4j/neo4j-admin-import.sh",
+      "sha256": "aab1eb9e0104275661068127e14c20ed21a45c6d1179c7a7fcb444dba35c76bd",
+      "bytes": 4367
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/archaeologicalculture.tsv",
+      "sha256": "ea5ac06c564d3aca7faa11a16f9b5bc8bb175616897e1a987ee9eda93d2df714",
+      "bytes": 82907
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/arttradition.tsv",
+      "sha256": "62c386528107b66365a9dccdf3591a344ed9ef63a1ea2536cfbc9f67d89eafb6",
+      "bytes": 64260
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/battle.tsv",
+      "sha256": "657af82d17da726fda90ccda10dcccc391c9363739e4fcee986cbe263441cf87",
+      "bytes": 8888
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/cuisine.tsv",
+      "sha256": "1966e5715f771187df9511ffda685f643820f19f7066ba0db8d51848396857fa",
+      "bytes": 20140
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/culture.tsv",
+      "sha256": "3d98a64b2ab3714d855156e80ccaa6f02b04f5c200490f99e6ff85670f7a3ed2",
+      "bytes": 123779
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/deity.tsv",
+      "sha256": "c908bfb9fe891977f278e209ec5fc62b24b49919fd67aa217d6b0f0054905313",
+      "bytes": 46930
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/ingredient.tsv",
+      "sha256": "942c55d4368a14b9774460f7cc7036f05e757c5019dcb433806d93d92b0f355d",
+      "bytes": 330423
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/language.tsv",
+      "sha256": "affdcc980a867decc9f748bcb738f44ef641f1590979eea07eff519e98e1f496",
+      "bytes": 244455
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/languagefamily.tsv",
+      "sha256": "3319b902ace405eb40a7ea3c24535e4a4bb573265918f63d4ba820fc3b36cfe4",
+      "bytes": 190594
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/literarytradition.tsv",
+      "sha256": "d6eb721cafb9017acdc4354e1c8cf98b5635c55a6e677d81dbb3a71c2add0774",
+      "bytes": 18143
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/migrationroute.tsv",
+      "sha256": "9137ba787ce0ed07173b4f9253b956d3c155eeba6827ec527005e8f9b119c2ed",
+      "bytes": 32155
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/mythmotif.tsv",
+      "sha256": "622e7d095ffef097d4877586169654fb69a133ea817cf40e519d7dca17594cd7",
+      "bytes": 17066
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/period.tsv",
+      "sha256": "93dfc6b1f20f77d7da84da11affdcb1c0cd078717ee4b308fd79f55d538be2a3",
+      "bytes": 61695
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/place.tsv",
+      "sha256": "b8cd91064fb2def1b066695220aa1bcefcc1e37294737ff99bd0800d5d4c1a0a",
+      "bytes": 312235
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/religion.tsv",
+      "sha256": "28226a0ca7c7746e5406cdb0d22546a8fa26c76ac4fc2e1ba9765ffe7892623a",
+      "bytes": 5033
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/tradegood.tsv",
+      "sha256": "456da285530866b7dac05bb4145365a43e507dc0df7b84856722c96a50ecd0b6",
+      "bytes": 6368
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/urheimathypothesis.tsv",
+      "sha256": "0425897b763a74c30d2031318bf70b7da5c53784528612cae8ffde548960c65c",
+      "bytes": 8636
+    },
+    {
+      "path": "corpus-neo4j/neo4j-import/nodes/writingsystem.tsv",
+      "sha256": "cfef52d4c314b7dc554a221cb40888a7bc074c273da4f4a9a4ec9f8859b6e852",
+      "bytes": 18542
+    },
+    {
+      "path": "corpus/edges/borrowed-from.tsv",
+      "sha256": "92d6043f20497b66c0e2bd33233d94eaa6983d9b2f19a2f50b00a7b94b0cf580",
+      "bytes": 5101
+    },
+    {
+      "path": "corpus/edges/cognate-with.tsv",
+      "sha256": "1badbb47e53b5475e7c3f5f8ba923549a54425f29c7eb002a3643927ee3f932c",
+      "bytes": 2735
+    },
+    {
+      "path": "corpus/edges/derived-from.tsv",
+      "sha256": "1df58bc505a9c185ebdcb8f6c7c35d45be61df5e5c761ba519f78f6e64e7daf9",
+      "bytes": 1411
+    },
+    {
+      "path": "corpus/edges/descends-from.tsv",
+      "sha256": "7b4b393d6297385fcf555697fdb613d18d9ac8c6e326eaf95c85945c69ec9385",
+      "bytes": 211390
+    },
+    {
+      "path": "corpus/edges/influenced-by.tsv",
+      "sha256": "ac435cbdc692715a08758e32b6ec6cc98d440ecf361eca0efd5252ef819b21aa",
+      "bytes": 10487
+    },
+    {
+      "path": "corpus/edges/located-in.tsv",
+      "sha256": "b92ebc3a873b4278cd557b0c156dab480ce68ecbf1052199fe1a74112ac0257c",
+      "bytes": 67359
+    },
+    {
+      "path": "corpus/edges/part-of-period.tsv",
+      "sha256": "c5d99fb40e13a31b39a41b22a6673d8b987af982247151c541bf5a34e65ada88",
+      "bytes": 54476
+    },
+    {
+      "path": "corpus/edges/part-of.tsv",
+      "sha256": "80af51f151c8593d23299d66c135738c5421f467a45d187cf426c7c0dd01e9e2",
+      "bytes": 13074
+    },
+    {
+      "path": "corpus/edges/variant-of.tsv",
+      "sha256": "15eae61ee8264c078238d855ecd6086f5cf89db0999d4ba7007403c2a5ccc48e",
+      "bytes": 23032
+    },
+    {
+      "path": "corpus/manifest.json",
+      "sha256": "cd0893c5dd980045c962050aa0b06261fcf64a32d41c6394e13c57f99297657e",
+      "bytes": 973
+    },
+    {
+      "path": "corpus/metrics.json",
+      "sha256": "b018ed8d65e1f3cb0e68d97c0c44d6e4596698f2ffccc5abc2b23aa3027c633a",
+      "bytes": 584
+    },
+    {
+      "path": "corpus/nodes/archaeologicalculture.tsv",
+      "sha256": "3cd6e5d49d8f002a1806ecf2d938454ccaf9182e2f69d649a7a29c3f8d50fe37",
+      "bytes": 82898
+    },
+    {
+      "path": "corpus/nodes/arttradition.tsv",
+      "sha256": "1af1de38e9c6d64a40f626697b479638aaff329a9b1b309458307183e4be30b8",
+      "bytes": 64251
+    },
+    {
+      "path": "corpus/nodes/battle.tsv",
+      "sha256": "72b01209589c546569b361a586bf9c123a3b027d555a93901f68f1339247100f",
       "bytes": 8879
     },
     {
-      "path": "nodes/cuisine.tsv",
-      "sha256": "82818d6744195459a598528e50bd0a1036ba48c17f339b9f16d3d22b098fbb0c",
-      "bytes": 17685
+      "path": "corpus/nodes/cuisine.tsv",
+      "sha256": "d381338ef5606864c65991251ea014c0b30235c5efdc12ee049210493481a074",
+      "bytes": 20131
     },
     {
-      "path": "nodes/culture.tsv",
-      "sha256": "8a7cb3fc8f31fd18808634303b47be323b53801d8b1430ebb63d69724cbb7aa4",
-      "bytes": 120227
+      "path": "corpus/nodes/culture.tsv",
+      "sha256": "739e7d6e8656061fe8cd205a7446656b7bad52066c2a144c1504d7a0e93a7679",
+      "bytes": 123770
     },
     {
-      "path": "nodes/deity.tsv",
-      "sha256": "3a7e2b2648e30dbee9cde2adfca61d2f0e3158ef8998ae5ffae344f61481a322",
-      "bytes": 37074
+      "path": "corpus/nodes/deity.tsv",
+      "sha256": "665eccc672de03b9ac0e9e9dafa9e03d146c9476cfe28e0452bba566ac92c1f8",
+      "bytes": 46921
     },
     {
-      "path": "nodes/ingredient.tsv",
-      "sha256": "d2821bc0ec0af4209ac5ce5b9126c4a8cc11185006c962be923495c2af0864cd",
-      "bytes": 326910
+      "path": "corpus/nodes/ingredient.tsv",
+      "sha256": "df51cffe650995fadf34f8acc17aaa9d3768239f540d76c5543c542b11803d52",
+      "bytes": 330414
     },
     {
-      "path": "nodes/language.tsv",
-      "sha256": "0542f9355a85606ce0ab3137a116a1f49b7602c8020e9e7bec30a4e10c17d0e7",
-      "bytes": 211267
+      "path": "corpus/nodes/language.tsv",
+      "sha256": "d9b429e5d9d5f792fe72ad8194c5a9f2831df100194e2bc82272e57b3865255c",
+      "bytes": 244446
     },
     {
-      "path": "nodes/languagefamily.tsv",
-      "sha256": "e9e85baa90991ccf046b6c9513ce73d6a525494353c4660e91476230c93df195",
-      "bytes": 160236
+      "path": "corpus/nodes/languagefamily.tsv",
+      "sha256": "a4fcb4c5794bf24dbe8cfc4c9c44e721fdc470156289d720b9ffd38e8b196b26",
+      "bytes": 190585
     },
     {
-      "path": "nodes/literarytradition.tsv",
-      "sha256": "fd3e9ef19022e97f2b6aa05118a0961798c3273b8b89a502374972a4ea1174e3",
-      "bytes": 16722
+      "path": "corpus/nodes/literarytradition.tsv",
+      "sha256": "d426e436191f3cda8c355c6335679cdb45054117fb51df12f8c0639428f64a40",
+      "bytes": 18134
     },
     {
-      "path": "nodes/migrationroute.tsv",
-      "sha256": "af41e6c201bc808e0a984dacdcebfee57403328c9e1cd2c9dff7078545249514",
-      "bytes": 31008
+      "path": "corpus/nodes/migrationroute.tsv",
+      "sha256": "90edd200c19e05ee5989e928cd923f809f091aa8bbc6dc2a3a9639e1ad7c7d51",
+      "bytes": 32146
     },
     {
-      "path": "nodes/mythmotif.tsv",
-      "sha256": "1e7ea044875fc4d6bbff7a155c374ff1d7000331ba72a6f525baad7cfce1ba6c",
-      "bytes": 16297
+      "path": "corpus/nodes/mythmotif.tsv",
+      "sha256": "f78f046377c54053be95eff4a033f3be6b554fdec2b201cf79475f332ce56160",
+      "bytes": 17057
     },
     {
-      "path": "nodes/period.tsv",
+      "path": "corpus/nodes/period.tsv",
       "sha256": "0a7a58dfdbf783feae4fc9a6c61a89f91acd5d1f512a2f83eaadb88a60131630",
       "bytes": 61686
     },
     {
-      "path": "nodes/place.tsv",
-      "sha256": "4609571e144085c9084137be368670ddb0786da95800f154ed1474302a1547c0",
-      "bytes": 299582
+      "path": "corpus/nodes/place.tsv",
+      "sha256": "6c5eec30331c6c4cfd5c2b9ff49bfe01de971fc906746520ede44c7d32586e9a",
+      "bytes": 312226
     },
     {
-      "path": "nodes/religion.tsv",
-      "sha256": "7807d5dd6e0ba414d4e214208ecae783a212b87bb5cb3211d07b23c573572d36",
+      "path": "corpus/nodes/religion.tsv",
+      "sha256": "d8d59df5a0f5769d3b5466a46065f091d7524179513bda890b45cd1cc99f47f4",
       "bytes": 5024
     },
     {
-      "path": "nodes/tradegood.tsv",
-      "sha256": "878d86f092daf06b6df9891752fbd4adc5c683a9a62ea4738a0708db72346a51",
+      "path": "corpus/nodes/tradegood.tsv",
+      "sha256": "6846897df43f08e015843c53a4bdb4c64bd357db0414c9b57e8848ebc1978888",
       "bytes": 6359
     },
     {
-      "path": "nodes/urheimathypothesis.tsv",
-      "sha256": "12e8783a3fb9fc3c3d6182624db6c08b84a4accb35ea5ca08891f981e41f32d0",
+      "path": "corpus/nodes/urheimathypothesis.tsv",
+      "sha256": "6117e613a6afe591e1bc6e4a12cbcbf7bad1c7423218ba299dbf674654c3f0b5",
       "bytes": 8627
     },
     {
-      "path": "nodes/writingsystem.tsv",
-      "sha256": "3c9aa10a032384b1fcb5377911ffa6c87bdcb10bb645fcd090f24d3a58f2784c",
-      "bytes": 16793
+      "path": "corpus/nodes/writingsystem.tsv",
+      "sha256": "77dea1bd5be3432c23acb9a12e6b2af541312b1d62e7b8973a26b3548c18badc",
+      "bytes": 18533
     },
     {
-      "path": "qa.json",
-      "sha256": "c98a534c34515ed2014483b2dc9c4c5c4e0993a35bf511e5ab4d35c03428db2d",
-      "bytes": 2410
+      "path": "corpus/qa.json",
+      "sha256": "de4b5e88a23fcb46d42b3e529bc682a1ab75cba7d975931eafd9492428d973d7",
+      "bytes": 2423
     },
     {
-      "path": "shared.txt",
+      "path": "corpus/shared.txt",
       "sha256": "51847018fb9e1849339bf7583b0668672495ea4fadb954dab54fb215675e03dc",
       "bytes": 42
     }

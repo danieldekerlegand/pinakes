@@ -39,6 +39,26 @@ at the dropped csid orphaned. `_normalize_linguascrape` therefore calls
 that still dangles or has become a self-loop. **If you add another path that keeps
 pre-existing edges across a `merge_rows` call, redirect them the same way.**
 
+## Gotcha: `LINGUASCRAPE_EDGE_TYPE_MAP` must cover EVERY exported edge `:TYPE`
+
+`mapper.py`'s `LINGUASCRAPE_EDGE_TYPE_MAP` (identity for the five registered tokens,
+folds for the LinguaScrape-specific ones — `ABSORBED_INTO→PART_OF`,
+`SYNCRETIZED_WITH→VARIANT_OF`, `SPLIT_FROM→DESCENDS_FROM`) must list **every** edge
+`:TYPE` the TS export can emit, or `_normalize_linguascrape` rejects the whole build
+(`unknown LinguaScrape edge :TYPE '<TOKEN>'`). The export's edge vocabulary lives on
+the TS side in `shared/canonical-schema.json` `edgeTypes[].type` — when a **new
+canonical edge type** is added there (US-005 found `SPLIT_FROM` had been added to the
+schema but never registered here, silently breaking the full rebuild since), add the
+matching token to this map: identity if it names a registered ontology `:TYPE`
+(`ontology/registry.py`), else fold onto the closest registered one. `SPLIT_FROM`
+folds onto `DESCENDS_FROM` — the same home LinguaScrape's `evolved-into`/`gave-rise-to`
+lineage edges already use; the direction is taken as-is from the source row
+(`:START_ID`=source_id=ancestor), matching those siblings. The fixture-only
+`test_convergence_build.py` won't catch a missing token if the fixture export lacks
+that edge type — the **full** `jobs/linguascrape-full.yml` rebuild is the only thing
+that exercises the live edge vocabulary. `test_linguascrape_ontology.py` pins that
+every map value is registered + one fold assertion per token.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

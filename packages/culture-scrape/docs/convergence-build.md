@@ -280,34 +280,48 @@ uv run culturescrape to-datalog out/linguascrape-full/corpus --engine both --rul
   --out out/linguascrape-full/corpus-datalog
 ```
 
-Loading that program into `swipl`/`souffle` materializes the derived relations, but `graph.pl`
-is ~1 GB. `datalog-materialize` computes each rule's extension **engine-free** (naive fixpoint
-over the projected facts) and records the base/derived counts — fast, and independent of the
-engines even though CI now installs them (see `docs/datalog.md`, "Installing the engines"):
+Loading that program into `swipl`/`souffle` materializes the derived relations. Since Phase 1
+(US-001) `graph.pl` is **3.9 MB** (was 1.19 GB — the pairwise temporal edges are gone).
+`datalog-materialize` computes each rule's extension **engine-free** (naive fixpoint over the
+projected facts) and records the base/derived counts — fast, and independent of the engines even
+though CI now installs them (see `docs/datalog.md`, "Installing the engines"):
 
 ```bash
 uv run culturescrape datalog-materialize out/linguascrape-full/corpus \
+  --exclude contemporary precedes follows \
   --json docs/datalog-materialization-manifest.json
-# base relations read (8): contemporary_with: 505245 / descends_from: 1468 / located_in: 475 / ...
-# derived relations (total 1016860): contemporary: 1010490 / ancestor: 2770 / same_region: 2219 / ...
+# base relations read (7): descends_from: 1642 / located_in: 873 / influenced_by: 102 / ...
+# derived relations (total 9835): same_region: 3825 / ancestor: 3279 / within_region: 1753 / ...
+# engine-only (not materialised): contemporary, follows, precedes
 ```
 
-The four US-004 targets over the full corpus (fingerprint committed in
+**Why `--exclude` the temporal rules.** US-001 turned `contemporary/2`/`precedes/2`/`follows/2`
+into arithmetic rules over `time_start`/`time_end` instead of stored edges. The engine-free
+evaluator materializes a relation by naive fixpoint, so it would recompute their ~10⁶-pair
+span-overlap join **every round** — the very O(n²) explosion US-001 removed from storage (the
+pre-US-001 manifest could list `contemporary=1,037,028` only because `contemporary_with` was
+then a 518k-edge *stored* base relation). At full-corpus scale that does not complete in minutes,
+so the manifest skips those three heads and records them under `engine_only`; a real `swipl`/
+`souffle` derives them lazily at query time, and the CI cross-engine equivalence test +
+`datalog-materialize` over the small bundled fixture validate the logic.
+
+The structural targets over the full corpus (fingerprint committed in
 `docs/datalog-materialization-manifest.json`):
 
 | Target | Derived tuples | Notes |
 |---|---|---|
-| `contemporary/2` (symmetric `contemporary_with/2`) | 1,010,490 | derived in the logic layer, **not** stored as edges |
-| `ancestor/2` (transitive `descends_from/2`) | 2,770 | full language/culture descent closure |
-| `same_region/2` (co-location via `within_region/2`) | 2,219 | geographic half of the cross-domain correlation |
+| `same_region/2` (co-location via `within_region/2`) | 3,825 | geographic half of the cross-domain correlation |
+| `ancestor/2` (transitive `descends_from/2`) | 3,279 | full language/culture descent closure |
+| `within_region/2` (transitive `located_in/2`) | 1,753 | region containment closure |
+| `influenced_transitively/2` | 510 | transitive `influenced_by/2` |
+| `component_of/2` | 468 | transitive `part_of/2` |
 | `genetic_linguistic_correlation/2` | 0 | empty here — LinguaScrape ships no genetics domain |
+| `contemporary/2`, `precedes/2`, `follows/2` | *engine-only* | derived on demand over `time_start`/`time_end`; not materialized engine-free at scale |
 
 `genetic_linguistic_correlation/2` is 0 because the LinguaScrape-only corpus has no haplogroup
 source (no `originates_from`/`spoken_in` edges); it materializes on a merged corpus that adds
 one, and its expected shape is exercised on the bundled fixture (which carries the ported
-`source: linguascrape` genetics facts). This is also why storing the ~1 M `contemporary`
-closure as edges is avoided — the closure stays a **derived** relation in Datalog rather than
-being materialized back into TSV (the `PRECEDES`/`FOLLOWS` note above is the same principle).
+`source: linguascrape` genetics facts).
 
 **Validation.** `culturescrape validate out/linguascrape-full/corpus` (the schema/QA gate from
 US-001) covers the base facts the export projects; the derived layer is validated engine-free
@@ -317,6 +331,58 @@ by `datalog-materialize` (the manifest counts) and, when an engine is present, b
 well-formed by `tests/test_cli_datalog.py`. Example queries with their expected shapes are in
 [`docs/datalog.md`](datalog.md) — "Materializing inference at scale (US-004)" and the shipped
 `datalog/examples/*.pl`.
+
+## Full-rebuild benchmark (Phase 1, scale-ready `US-005`)
+
+The honest post-Phase-1 numbers proving the conversion layer is scale-ready. The **one-command
+full rebuild** — export → link → to-datalog (both dialects) → Neo4j import script — is:
+
+```bash
+# 1. refresh the canonical export (repo root)
+npx tsx scripts/export-for-culturescrape.ts
+# 2. build + link + project (Neo4j script + graph.pl/graph.dl) in one command
+cd packages/culture-scrape
+uv run culturescrape run jobs/linguascrape-full.yml --force
+```
+
+Measured on the dev machine (Linux, 2026-07-12; `swipl`/`souffle` absent locally so the
+engine-load probe is CI-gated — see below):
+
+| Metric | Before Phase 1 | After Phase 1 (measured) | Target | |
+|---|---|---|---|---|
+| **Full rebuild wall-clock** | hours (never completed at 1.19 GB) | **~42 s** (export 0.5 s + build 41.6 s) | < 10 min | ✅ |
+| **`graph.pl` size** | 1.19 GB / 11.2 M lines | **3.9 MB** (`graph.dl` 12 KB) | < 50 MB | ✅ (≈300×) |
+| **Stored edges** | 5,576,745 | **3,548** | — | ≈1,570× fewer |
+| **Datalog facts projected** | — | **45,022** | — | |
+| **Nodes** | 6,710 | 6,848 | — | (data-population growth) |
+| **Materialization manifest regen** | — | **~1.0 s** (structural rules; temporal engine-only) | — | ✅ |
+
+The edge collapse is US-001: pairwise `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` (99.98% of the old
+total, one edge per co-dated pair) are now arithmetic Datalog rules over `time_start`/`time_end`,
+derived on demand. Only semantic edges (descent / influence / borrowing / containment / period
+membership) are stored.
+
+**Connectivity is honestly lower now.** The stored graph's largest component is **17%**
+(1,136/6,848 nodes) — the old `CONTEMPORARY_WITH` blob fused everything into one artificial giant
+component (~100%). The `min_component_fraction` floor in `jobs/linguascrape-full.yml` was lowered
+0.5 → 0.12 to reflect the post-US-001 model; the temporal layer reconnects co-dated entities at
+query time via `contemporary/2`, it just isn't a *stored* edge. The strict LinguaScrape gates
+(provenance = 1.0, duplicate/dangling = 0) still pass unchanged.
+
+**Regenerated committed manifests** (release records, not CI-asserted — the corpus is gitignored
+and its bytes carry ingestion wall-clock): `docs/corpus-release-manifest.json` (edge_count
+5,576,745 → 3,548) and `docs/datalog-materialization-manifest.json` (post-US-001 structural counts +
+`engine_only` for the temporal heads).
+
+**Engine load + `contemporary/2` probe.** `swipl`/`souffle` are absent on the dev machine (as on
+every prior story), so a real-engine load of the new `graph.pl` runs in **CI** (the engine-gated
+tests in `tests/test_datalog_*` + the cross-engine equivalence suite; the first real swipl load of
+the corpus is recorded in [`engine-validation.md`](engine-validation.md)). The `contemporary/2`
+rule logic is spot-checked engine-free against real co-dated corpus entities: over the actual spans
+`indus-valley [-3300,-1300]`, `ancient-egypt [-3100,-30]`, `sumer-uruk [-4000,-3100]`,
+`ghana [300,1200]`, the rule derives `contemporary` for every overlapping pair
+(indus↔egypt, sumer↔egypt, sumer↔indus) and for **no** disjoint pair (ghana↔anything) — matching
+the known chronology.
 
 ## End-to-end live-graph smoke test (US-005)
 

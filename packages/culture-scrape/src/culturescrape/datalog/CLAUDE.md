@@ -84,6 +84,17 @@ a comparison over a still-unbound variable is an unsafe rule and also raises.
   (`docs/datalog-materialization-manifest.json`), not a CI-tested snapshot — the
   corpus is gitignored and its bytes are non-reproducible (like
   `docs/corpus-release-manifest.json`). Regenerate it with the CLI after a rebuild.
+- **The temporal rules are `--exclude`d from the full-corpus manifest (US-005).**
+  `contemporary`/`precedes`/`follows` derive from `time_start`/`time_end` (US-001).
+  The naive-fixpoint materialiser recomputes their ~O(n²) span-overlap join **every
+  round**, so at full-corpus scale (~1k dated entities → ~10⁶ pairs) it does not
+  finish in minutes — the very explosion US-001 removed from stored edges. Regenerate
+  with `datalog-materialize --exclude contemporary precedes follows`; the excluded
+  heads are recorded under `engine_only` in the manifest JSON and a real swipl/souffle
+  derives them lazily. The structural rules (`same_region`/`ancestor`/`within_region`/
+  `influenced_transitively`/`component_of`) materialise in ~1 s and stay in the manifest.
+  `--exclude` rejects an unknown head; without it the CLI materialises every rule (the
+  small-fixture path — tests + doctests — is unchanged).
 - `genetic_linguistic_correlation` derives **0 over the LinguaScrape-only corpus**
   (no genetics/haplogroup source → no `originates_from`/`spoken_in` edges). It is
   exercised on the bundled fixture, which carries ported `source: linguascrape`

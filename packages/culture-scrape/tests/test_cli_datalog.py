@@ -220,3 +220,48 @@ def test_materialize_writes_a_manifest(tmp_path: Path) -> None:
 def test_materialize_missing_directory_fails(tmp_path: Path) -> None:
     code = cli.main(["datalog-materialize", str(tmp_path / "nope")])
     assert code == 2
+
+
+def test_materialize_exclude_skips_heads_and_records_engine_only(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dataset = tmp_path / "data"
+    _dataset(dataset)
+    manifest = tmp_path / "out" / "materialization.json"
+
+    code = cli.main(
+        [
+            "datalog-materialize",
+            str(dataset),
+            "--exclude",
+            "contemporary",
+            "precedes",
+            "follows",
+            "--json",
+            str(manifest),
+        ]
+    )
+
+    assert code == 0
+    assert "engine-only (not materialised): contemporary, follows, precedes" in (
+        capsys.readouterr().out
+    )
+    body = json.loads(manifest.read_text(encoding="utf-8"))
+    assert body["engine_only"] == ["contemporary", "follows", "precedes"]
+    # The excluded heads are absent from the derived section; the rest remain.
+    from culturescrape.datalog.rules import RULES
+
+    derived = set(body["derived_relations"])
+    assert {"contemporary", "precedes", "follows"}.isdisjoint(derived)
+    assert {rule.name for rule in RULES} - {
+        "contemporary",
+        "precedes",
+        "follows",
+    } <= derived
+
+
+def test_materialize_exclude_unknown_head_fails(tmp_path: Path) -> None:
+    dataset = tmp_path / "data"
+    _dataset(dataset)
+    code = cli.main(["datalog-materialize", str(dataset), "--exclude", "nope"])
+    assert code == 2

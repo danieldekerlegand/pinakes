@@ -9,16 +9,29 @@
 #   uv run culturescrape package out/linguascrape-full --out dist     # publish tar.gz + manifest
 # See docs/convergence-build.md for the full runbook.
 #
-# The two relaxed floors mirror jobs/linguascrape.yml: LinguaScrape rows carry
+# The relaxed floors mirror jobs/linguascrape.yml: LinguaScrape rows carry
 # the canonical `source` stamp but no external `source_url`, so the generic
 # provenance floor is relaxed (the LinguaScrape provenance QA gate still enforces
 # it), and a single-source convergence corpus need not reach the multi-domain
 # seed corpus's connectivity. A truly merged corpus (native Wikidata + this
 # source) meets both defaults and can drop these overrides.
+#
+# `min_component_fraction` was lowered from 0.5 to 0.12 in Phase 1 (US-005). Before
+# US-001 the temporal linker materialised a pairwise CONTEMPORARY_WITH edge for
+# EVERY co-dated pair — 99.98% of all edges — which fused the whole corpus into one
+# artificial giant component (~1.0 connectivity). US-001 made the temporal relations
+# (`contemporary/2` / `precedes/2` / `follows/2`) *rule-derived* over `time_start`/
+# `time_end`, so they no longer inflate the STORED graph; the derived layer reconnects
+# co-dated entities on demand at query time. The stored graph's real semantic
+# connectivity (descent / influence / borrowing / geographic containment) is
+# genuinely lower — the full-corpus rebuild measures the largest component at ~17%
+# (1136/6848 nodes). 0.12 is an honest floor that still fails on a genuine collapse
+# while reflecting the post-US-001 edge model. See docs/convergence-build.md
+# "Full-rebuild benchmark (US-005)".
 name: linguascrape-full
 description: LinguaScrape convergence (full) — ingest the live canonical export.
 categories:
   - ../categories/linguascrape-full.yml
 output_root: ../out/linguascrape-full
 min_provenance_completeness: 0.0
-min_component_fraction: 0.5
+min_component_fraction: 0.12
