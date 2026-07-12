@@ -98,8 +98,17 @@ ORDER=(
   "rules-layer:9"
   "graphrag-and-training-data:9"
   "scallop-pilot:8"
+# --- Cross-project bridge (INSIMUL_SYNC_PLAN.md) — UNCOMMENT once its deps have merged:
+#     US-001 anytime; US-002 needs scale-ready-conversion; US-003 needs tiered-trust-corpus;
+#     US-004/005 need first-ml-loop. Coordinate with the Insimul-side counterpart
+#     (~/Development/workspace/tasks/ralph/linguascrape-bridge.json).
+#  "insimul-bridge:9"        # predicate-mapping registry + grounding-pack exporter + insimul adapter (schema v1.2, synthetic tier) + VESPACE adherence tier + dataset generators
+# --- SLM pilot (INSIMUL_SYNC_PLAN.md Phase D) — PROVISIONAL; re-ground before running.
+#     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
+#     (operator); baseline model Qwen2.5-3B-Instruct (matches Insimul's local-AI deployment).
+#  "slm-pilot:10"            # frozen eval protocol + QLoRA pipeline + 3B baseline fine-tune + GGUF parity + Insimul handoff + go/no-go report
 )
-ALL_NAMES="symbolic-engine-truth scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
+ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then
