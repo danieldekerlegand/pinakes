@@ -17,10 +17,12 @@
  * `source`, `source_url`, `retrieved_at`, `confidence` (values may be blank, the column
  * is always present). `source = "linguascrape"` is the acquisition-source id the
  * reconciler keys on; the *original* LinguaScrape bibliographic `sources` citations are
- * preserved (never dropped) in the node `source_query` column. `source_url` is derived
- * only when a real URL is present in the data — URLs are never fabricated — otherwise it
- * is left blank and flagged. `retrieved_at` is blank (LinguaScrape records no retrieval
- * timestamp). The manifest carries a per-type provenance-completeness coverage report.
+ * preserved (never dropped) in the node `source_query` column. `source_url` and
+ * `retrieved_at` propagate verbatim from the lexicon row when the acquisition step
+ * recorded them (US-004: ~1.9k acquired rows carry a Wikidata entity URL + timestamp);
+ * `source_url` otherwise falls back to a URL embedded in the citation, else blank — a URL
+ * is never fabricated, and a row with no timestamp stays blank. The manifest carries a
+ * per-type provenance-completeness coverage report.
  *
  * Identity: `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`
  * (the id scheme's `cs:<type>:<local>` format), so re-runs are byte-identical
@@ -70,9 +72,12 @@ export const EXPORT_SOURCE = "linguascrape";
 export const DEFAULT_NODE_CONFIDENCE = 0.5;
 
 /**
- * Fields the export forces rather than copying from a lexicon column. `source` is
- * force-set to {@link EXPORT_SOURCE}; the lexicon column mapped to canonical `source`
- * actually holds bibliographic citations, which US-006 re-homes into `source_query`.
+ * Provenance fields the export handles explicitly rather than copying through the
+ * generic `target`→column loop. `source` is force-set to {@link EXPORT_SOURCE} (the
+ * lexicon column mapped to canonical `source` actually holds bibliographic citations,
+ * which US-006 re-homes into `source_query`); `source_url`/`retrieved_at` are read from
+ * their mapped lexicon columns with the US-004 propagation rules (verbatim, never
+ * fabricated) so they need custom handling too.
  */
 const PROVENANCE_FORCED_FIELDS: ReadonlySet<string> = new Set([
   "source",
@@ -344,6 +349,16 @@ function buildNodesForFile(
   const citationCol = mapping.columns.find((c) => c.target === "source");
   const citationIdx = citationCol ? headers.indexOf(citationCol.column) : -1;
 
+  // Provenance the acquisition scripts stamp on the lexicon row (US-004): a real
+  // Wikidata entity URL + retrieval timestamp. These survive verbatim into the
+  // export; a row without them stays blank (they are never fabricated). Both are
+  // in PROVENANCE_FORCED_FIELDS (excluded from the generic `targetIdx`) so they are
+  // read explicitly here — source_url with a citation-embedded-URL fallback.
+  const sourceUrlCol = mapping.columns.find((c) => c.target === "source_url");
+  const sourceUrlIdx = sourceUrlCol ? headers.indexOf(sourceUrlCol.column) : -1;
+  const retrievedAtCol = mapping.columns.find((c) => c.target === "retrieved_at");
+  const retrievedAtIdx = retrievedAtCol ? headers.indexOf(retrievedAtCol.column) : -1;
+
   const group = nodeGroups.get(nodeType) ?? [];
 
   for (const row of rows) {
@@ -383,15 +398,19 @@ function buildNodesForFile(
       }
     }
 
-    // Provenance (US-006): `source` = acquisition-source id (reconciler anchor);
-    // the original LinguaScrape citation is preserved in `source_query` and never
-    // dropped; `source_url` is derived only from a real URL (never fabricated);
-    // `retrieved_at` is blank (LinguaScrape records no retrieval timestamp).
+    // Provenance: `source` = acquisition-source id (reconciler anchor); the
+    // original LinguaScrape citation is preserved in `source_query` and never
+    // dropped (US-006). `source_url`/`retrieved_at` (US-004): a URL/timestamp the
+    // acquisition step recorded on the row survives verbatim; when the row carries
+    // no URL we fall back to one embedded in the citation, else blank — a URL is
+    // never fabricated.
     const citation = citationIdx >= 0 ? parseCitation(cell(row, citationIdx)) : "";
+    const rowSourceUrl = sourceUrlIdx >= 0 ? cell(row, sourceUrlIdx) : "";
+    const rowRetrievedAt = retrievedAtIdx >= 0 ? cell(row, retrievedAtIdx) : "";
     record.set("source", EXPORT_SOURCE);
     record.set("source_query", citation);
-    record.set("source_url", deriveSourceUrl(citation));
-    record.set("retrieved_at", "");
+    record.set("source_url", rowSourceUrl || deriveSourceUrl(citation));
+    record.set("retrieved_at", rowRetrievedAt);
     record.set(
       "confidence",
       String(normaliseConfidence(record.get("confidence") ?? "")),

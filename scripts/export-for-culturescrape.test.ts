@@ -380,6 +380,59 @@ describe("provenance propagation (US-006)", () => {
     }
   });
 
+  it("propagates a lexicon source_url/retrieved_at verbatim; blank stays blank (US-004)", () => {
+    // archaeological-cultures maps `source_url`/`retrieved_at` columns. One row is
+    // acquired (carries a Wikidata entity URL + timestamp), one is curated without.
+    const dir = makeFixtureDir({
+      "archaeological-cultures.tsv": [
+        [
+          "id", "name", "region", "coordinates", "boundary_geometry",
+          "time_period_start", "time_period_end", "time_period_label",
+          "subsistence_pattern", "pottery_style", "burial_practices",
+          "material_culture_traits", "probable_language_family",
+          "probable_haplogroups", "predecessor_culture_ids",
+          "successor_culture_ids", "confidence", "sources", "description",
+          "source_url", "retrieved_at",
+        ],
+        [
+          "clovis", "Clovis", "Americas", "", "", "-13050", "-12750", "", "",
+          "", "", "", "", "", "[]", "[]", "90", "[]", "desc",
+          "https://www.wikidata.org/entity/Q484725", "2026-01-15",
+        ],
+        [
+          "ppna", "PPNA", "Levant", "", "", "-9500", "-8700", "", "", "", "",
+          "", "", "", "[]", "[]", "", "[]", "desc", "", "",
+        ],
+      ],
+    });
+    try {
+      const { nodeGroups, manifest } = buildExport(dir);
+      const q = (field: string) =>
+        CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
+      const rows = nodeGroups.get("archaeological-culture")!;
+      const byId = (id: string) =>
+        rows.find((r) => r[q("linguascrape_id")] === id)!;
+
+      // Acquired row: URL + timestamp survive verbatim (not fabricated, not dropped).
+      const clovis = byId("clovis");
+      expect(clovis[q("source_url")]).toBe(
+        "https://www.wikidata.org/entity/Q484725",
+      );
+      expect(clovis[q("retrieved_at")]).toBe("2026-01-15");
+
+      // Curated row without provenance: both stay blank (never fabricated).
+      const ppna = byId("ppna");
+      expect(ppna[q("source_url")]).toBe("");
+      expect(ppna[q("retrieved_at")]).toBe("");
+
+      // Coverage now rises above zero for both columns.
+      expect(manifest.provenance.node.nonEmpty.source_url).toBe(1);
+      expect(manifest.provenance.node.nonEmpty.retrieved_at).toBe(1);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("reports per-type provenance coverage + flags in the manifest", () => {
     const dir = fixture();
     try {

@@ -109,9 +109,19 @@ blank, the column is always present). Rules:
   and it is preserved into the node **`source_query`** column — never dropped. `source` is
   in `PROVENANCE_FORCED_FIELDS` so the citation column is *not* read as `source`; it is read
   explicitly via `mapping.columns.find(c => c.target === "source")`.
-- `source_url` = `deriveSourceUrl(...)`, which returns the first real `http(s)` URL found
-  in the citation/cells, else `""`. **Never fabricate a URL.** Live corpus: 0 rows have one.
-- `retrieved_at` = `""` (LinguaScrape records no retrieval timestamp).
+- `source_url` = the lexicon row's mapped `source_url` column **verbatim** when present
+  (US-004: ~1.9k acquired rows carry a Wikidata entity URL), else `deriveSourceUrl(...)`
+  (first real `http(s)` URL embedded in the citation/cells), else `""`. **Never fabricate a
+  URL.** `retrieved_at` = the row's mapped `retrieved_at` column verbatim, else `""`.
+- **US-004 propagation:** `source_url`/`retrieved_at` are in `PROVENANCE_FORCED_FIELDS` (so the
+  generic `target`→column loop skips them) and are read **explicitly** in `buildNodesForFile`
+  from `mapping.columns.find(c => c.target === "source_url" | "retrieved_at")`. The 15 acquire
+  lexicons map both columns; node coverage in the manifest is ~1,868 each (fewer than the 1,932
+  populated lexicon rows: `trade-routes.tsv` is `kind: attribute` = not exported, plus dropped
+  duplicate/missing-id rows). Edges carry no lexicon URL (their source files don't map the
+  columns), so edge `source_url`/`retrieved_at` stay `0` — the export change is node-only.
+  The `node.source_url`/`node.retrieved_at` "0/N … left blank" flags now only appear when a
+  build genuinely has zero (e.g. a fixture without the columns).
 - Edges have **no `source_query`** column (culture-scrape's edge schema omits it), so an
   edge that carried a citation is counted in `manifest.provenance.edge.citationsWithoutCanonicalColumn`
   (never silently dropped; embedded-FK edges keep it on the host node's `source_query`).

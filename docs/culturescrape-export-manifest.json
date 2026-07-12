@@ -329,9 +329,9 @@
           "count": 1061,
           "nonEmpty": {
             "source": 1061,
-            "source_url": 0,
+            "source_url": 552,
             "source_query": 552,
-            "retrieved_at": 0,
+            "retrieved_at": 552,
             "confidence": 1061
           }
         },
@@ -351,9 +351,9 @@
           "count": 115,
           "nonEmpty": {
             "source": 115,
-            "source_url": 0,
+            "source_url": 55,
             "source_query": 55,
-            "retrieved_at": 0,
+            "retrieved_at": 55,
             "confidence": 115
           }
         },
@@ -362,9 +362,9 @@
           "count": 340,
           "nonEmpty": {
             "source": 340,
-            "source_url": 0,
+            "source_url": 81,
             "source_query": 340,
-            "retrieved_at": 0,
+            "retrieved_at": 81,
             "confidence": 340
           }
         },
@@ -373,9 +373,9 @@
           "count": 277,
           "nonEmpty": {
             "source": 277,
-            "source_url": 0,
+            "source_url": 250,
             "source_query": 277,
-            "retrieved_at": 0,
+            "retrieved_at": 250,
             "confidence": 277
           }
         },
@@ -406,9 +406,9 @@
           "count": 206,
           "nonEmpty": {
             "source": 206,
-            "source_url": 0,
+            "source_url": 130,
             "source_query": 206,
-            "retrieved_at": 0,
+            "retrieved_at": 130,
             "confidence": 206
           }
         },
@@ -417,9 +417,9 @@
           "count": 61,
           "nonEmpty": {
             "source": 61,
-            "source_url": 0,
+            "source_url": 29,
             "source_query": 61,
-            "retrieved_at": 0,
+            "retrieved_at": 29,
             "confidence": 61
           }
         },
@@ -428,9 +428,9 @@
           "count": 237,
           "nonEmpty": {
             "source": 237,
-            "source_url": 0,
+            "source_url": 130,
             "source_query": 182,
-            "retrieved_at": 0,
+            "retrieved_at": 130,
             "confidence": 237
           }
         },
@@ -439,9 +439,9 @@
           "count": 62,
           "nonEmpty": {
             "source": 62,
-            "source_url": 0,
+            "source_url": 50,
             "source_query": 62,
-            "retrieved_at": 0,
+            "retrieved_at": 50,
             "confidence": 62
           }
         },
@@ -450,9 +450,9 @@
           "count": 101,
           "nonEmpty": {
             "source": 101,
-            "source_url": 0,
+            "source_url": 80,
             "source_query": 80,
-            "retrieved_at": 0,
+            "retrieved_at": 80,
             "confidence": 101
           }
         },
@@ -461,9 +461,9 @@
           "count": 2206,
           "nonEmpty": {
             "source": 2206,
-            "source_url": 0,
+            "source_url": 70,
             "source_query": 70,
-            "retrieved_at": 0,
+            "retrieved_at": 70,
             "confidence": 2206
           }
         },
@@ -494,9 +494,9 @@
           "count": 1212,
           "nonEmpty": {
             "source": 1212,
-            "source_url": 0,
+            "source_url": 399,
             "source_query": 550,
-            "retrieved_at": 0,
+            "retrieved_at": 399,
             "confidence": 1212
           }
         },
@@ -505,18 +505,18 @@
           "count": 104,
           "nonEmpty": {
             "source": 104,
-            "source_url": 0,
+            "source_url": 42,
             "source_query": 42,
-            "retrieved_at": 0,
+            "retrieved_at": 42,
             "confidence": 104
           }
         }
       ],
       "nonEmpty": {
         "source": 6667,
-        "source_url": 0,
+        "source_url": 1868,
         "source_query": 2521,
-        "retrieved_at": 0,
+        "retrieved_at": 1868,
         "confidence": 6667
       }
     },
@@ -609,8 +609,6 @@
       "citationsWithoutCanonicalColumn": 947
     },
     "flags": [
-      "node.source_url: 0/6667 rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.",
-      "node.retrieved_at: 0/6667 rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.",
       "node.source_query: 2521/6667 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5713 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5713 edges carry a retrieval timestamp; left blank, never fabricated.",
