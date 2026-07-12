@@ -48,6 +48,21 @@ head (e.g. `same_region` reads `within_region`); listing that derived predicate 
 `depends` is fine — it only ensures declaration. Every rule relation is binary
 (`ARITY = 2`); the emitters assume this.
 
+**Recursive rules are TABLED in Prolog, not dynamic.** A rule whose head appears
+in its own body (a transitive closure — `ancestor`, `within_region`,
+`influenced_transitively`, `component_of`) does **not terminate** under naive SWI
+SLD resolution when the base relation has a cycle. Real-corpus cycles exist:
+`descends_from` has a data-error cycle (clovis↔folsom) and `influenced_by` is
+*legitimately* cyclic (mutual influence, eng↔fra …). `rules.is_recursive` detects
+these and `prolog.py` emits `:- table head/2.` for them (a tabled predicate must
+NOT also be `:- dynamic` — SWI forbids it), so swipl computes the least fixpoint
+and matches Soufflé (verified in `docs/engine-validation.md`). Soufflé needs
+nothing — its set semantics handle cycles. So a NEW recursive rule is tabled
+automatically; a non-recursive head (symmetric/join, e.g. `contemporary`,
+`same_region`) stays dynamic. Don't add a visited-list/`\=` to a Prolog closure
+to stop the loop — that breaks the byte-identical-clause-text invariant; tabling
+is the dialect-local fix.
+
 Adding a rule means updating, in lockstep:
 - `tests/test_datalog_rules.py` — the exact `RULES` name list, the
   `{constants} == set(RULES)` set, and (to exercise the closure) `RULE_FACTS` +

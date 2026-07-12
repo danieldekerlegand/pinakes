@@ -24,7 +24,9 @@ _FIXTURES = Path(__file__).parent / "fixtures" / "datalog"
 
 # A Prolog clause or directive, mirroring tests/test_datalog_prolog.py.
 _CLAUSE_RE = re.compile(r"^[a-z][A-Za-z0-9_]*\(.*\)\.(\s+%.*)?$")
-_DIRECTIVE_RE = re.compile(r"^:- (discontiguous|dynamic) [a-z][A-Za-z0-9_]*/\d+\.$")
+_DIRECTIVE_RE = re.compile(
+    r"^:- (discontiguous|dynamic|table) [a-z][A-Za-z0-9_]*/\d+\.$"
+)
 # A Soufflé declaration / I/O directive, mirroring tests/test_datalog_souffle.py.
 _DECL_RE = re.compile(
     r"^\.decl [a-z][A-Za-z0-9_]*\((x\d+: (symbol|number|float)(, )?)+\)$"

@@ -29,12 +29,15 @@ from culturescrape.datalog import (
 )
 from culturescrape.datalog.rules import (
     ANCESTOR,
+    ARITY,
     COMPONENT_OF,
     CONTEMPORARY,
     GENETIC_LINGUISTIC_CORRELATION,
     INFLUENCED_TRANSITIVELY,
     SAME_REGION,
     WITHIN_REGION,
+    is_recursive,
+    tabled_signatures,
 )
 
 #: A fact base exercising every rule's closure: a two-step descends_from chain,
@@ -109,9 +112,9 @@ def test_pl_declares_derived_and_base_rule_predicates() -> None:
     # A rule body over a base relation the graph never populates must still be
     # declared, so querying it answers false rather than raising.
     program = render_program([], rules=RULES)
+    # Non-recursive derived heads and every base relation are dynamic +
+    # discontiguous, so an unpopulated relation answers false instead of raising.
     for name in (
-        "ancestor",
-        "within_region",
         "contemporary",
         "descends_from",
         "same_region",
@@ -121,6 +124,34 @@ def test_pl_declares_derived_and_base_rule_predicates() -> None:
     ):
         assert f":- discontiguous {name}/2." in program
         assert f":- dynamic {name}/2." in program
+    # Recursive (transitive-closure) heads are TABLED instead — SLD resolution
+    # loops on a cyclic base relation, so they must not be dynamic (SWI forbids
+    # tabling a dynamic procedure). See rules.is_recursive / tabled_signatures.
+    recursive_heads = (
+        "ancestor",
+        "within_region",
+        "influenced_transitively",
+        "component_of",
+    )
+    for name in recursive_heads:
+        assert f":- table {name}/2." in program
+        assert f":- dynamic {name}/2." not in program
+        assert f":- discontiguous {name}/2." not in program
+
+
+def test_is_recursive_flags_only_transitive_closure_rules() -> None:
+    # A rule is recursive iff its head predicate appears in its own body — the
+    # transitive closures. The symmetric/join rules are not.
+    recursive = {ANCESTOR, WITHIN_REGION, INFLUENCED_TRANSITIVELY, COMPONENT_OF}
+    for rule in RULES:
+        assert is_recursive(rule) is (rule in recursive), rule.name
+
+
+def test_tabled_signatures_are_the_recursive_heads() -> None:
+    assert tabled_signatures(RULES) == {
+        (rule.name, ARITY)
+        for rule in (ANCESTOR, WITHIN_REGION, INFLUENCED_TRANSITIVELY, COMPONENT_OF)
+    }
 
 
 def test_pl_documents_each_rule_intent_and_example() -> None:

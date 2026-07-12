@@ -363,8 +363,9 @@ A pure Horn rule (a head and a body of positive literals over **variables**) is
 written identically in ISO-Prolog and in Soufflé — the dialects diverge only on
 how *constants* are quoted, and a rule has none. So each rule's clause text is
 **shared verbatim** across both outputs; the engines differ only in the
-scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`
-directives, Soufflé's `.decl`/`.output`), which the emitters add automatically.
+scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`/`:-
+table` directives, Soufflé's `.decl`/`.output`), which the emitters add
+automatically.
 
 Every rule relation is **binary over csids**.
 
@@ -389,6 +390,18 @@ TypeScript engine, per `docs/culturescrape-integration.md`.
 contemporary_with(Y, X).` would loop, so a distinct head keeps the symmetric
 closure terminating while still agreeing with Soufflé's fixpoint.
 
+A distinct head is not enough for the **transitive-closure** rules, though: their
+base relations can themselves be cyclic. `descends_from` carries a data-error
+cycle (`clovis` ↔ `folsom`, see `docs/engine-validation.md`) and `influenced_by`
+is *legitimately* cyclic — mutual influence (`eng` ↔ `fra`, `arb` ↔ `heb`, …) is
+real — so naive SLD evaluation of `ancestor`/`influenced_transitively` loops
+forever in SWI-Prolog. The Prolog emitter therefore declares every **recursive**
+rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`)
+`:- table` instead of `:- dynamic`: SLG resolution computes the least fixpoint and
+terminates, producing exactly Soufflé's tuple set (verified on the full corpus —
+`docs/engine-validation.md`). This is a Prolog-only concern; Soufflé's set
+semantics handle cycles natively, so the shared clause text is untouched.
+
 ### Attaching the rules
 
 Passing `rules=RULES` appends a documented rules section — each rule's intended
@@ -407,11 +420,21 @@ True
 
 In Prolog the rule's derived **and** base predicates are declared, so a query
 over a base relation the current graph never populated answers `false` instead
-of raising an existence error:
+of raising an existence error. A base relation is `:- dynamic`; a **recursive**
+derived head (a transitive closure) is instead `:- table`d — SWI-Prolog's naive
+SLD resolution does not terminate on a closure rule when the base relation
+carries a cycle (`descends_from` has a data-error cycle; `influenced_by` is
+legitimately cyclic — mutual influence), and tabling (SLG resolution) computes
+the least fixpoint and terminates, matching Soufflé. A tabled predicate must not
+also be `:- dynamic` (SWI forbids tabling a dynamic procedure):
 
 ```python
->>> ":- dynamic ancestor/2." in pl and ":- dynamic descends_from/2." in pl
+>>> ":- dynamic descends_from/2." in pl   # base relation
 True
+>>> ":- table ancestor/2." in pl          # recursive derived head
+True
+>>> ":- dynamic ancestor/2." in pl        # ...never both
+False
 
 ```
 
