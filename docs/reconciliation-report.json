@@ -139,7 +139,7 @@
     "languages": {
       "total": 1061,
       "withIso639": 993,
-      "withGlottocode": 0
+      "withGlottocode": 576
     },
     "withRegion": 2648,
     "duplicateCsidsDropped": 44

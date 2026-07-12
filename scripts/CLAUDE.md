@@ -440,6 +440,35 @@ is pure over a lexicons dir; it reuses `mintCsid`/`normaliseConfidence` from
 `export-for-culturescrape.ts`. **Gotcha:** the committed snapshot is asserted against the live
 corpus by a test — re-run the CLI (`npx tsx scripts/reconciliation-report.ts`) after any
 change that shifts node counts/keys, or that live test fails. Region is read from the first
-header ending in `region` (`region`/`origin_region`/`proposed_region`); LinguaScrape has no
-glottocode column today, so language matching rests on the ISO codes. See
+header ending in `region` (`region`/`origin_region`/`proposed_region`). Language matching
+uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
+`languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
+report's `keyCoverage.languages.withGlottocode` tracks it). See
 `packages/culture-scrape/docs/reconcile-linguascrape.md`.
+
+## Language glottocode enrichment (US-006)
+
+`acquire-language-glottocode.ts` is the per-domain **acquire → enrich** step for the
+`glottocode` column on `languages.tsv` (language identity must not rest solely on ISO codes —
+macro-code collisions like `hmn`). Same shape as `acquire-language-status.ts`: the one
+networked step, emitting a committed replay TSV (`scripts/data/language-glottocode-enrichment
+.tsv`) the write-back + gate operate on (CI never hits Wikidata). Apply it with the generic
+enrichment write-back: `import-from-culturescrape --enrich <file> --target languages.tsv`.
+
+- **Two glottocode sources, Wikidata-first.** Wikidata **P1394** (`glottolog code`) keyed by the
+  row's `wikidata_qid` is primary (every QID-bearing corpus language resolves one); `words.tsv`
+  `Glottocode` (LexiBank/CLDF, joined by the `iso639_2` ISO-639-3 slot) is the fallback for
+  rows with **no** QID. A QID row always resolves via Wikidata, so words.tsv only adds a handful.
+- **Provenance rule avoids write-back conflicts.** A Wikidata-sourced glottocode inherits the
+  target row's *existing* Wikidata provenance (its QID/`source_url` are already stamped), so the
+  enrichment record carries **only** `glottocode` — re-stamping `retrieved_at`/`sources` would
+  conflict with the endangerment enrichment's UNESCO provenance and be *reported*. A words.tsv-only
+  (no-QID) row has blank provenance, so it *is* stamped with Glottolog provenance (its first
+  sourced datum). Net: `--enrich` lands 0 conflicts.
+- **`glottocode` is mapped as `property`** in `lexicon-mapping.json` (mirrors `iso639_2` — a
+  secondary reconciliation key with no dedicated canonical field), so it is NOT in the export node
+  header (`nodeHeaderRow` is fixed) and the export manifest's node columns are unchanged. The only
+  manifest movement is the 24 words.tsv rows gaining `source_url`/`retrieved_at`/`source_query`
+  provenance (a deliberate coverage rise). The reconciliation report reads glottocode by a
+  column-name regex (`/glotto/i`), not via the canonical mapping, so `withGlottocode` populates
+  from the property column.

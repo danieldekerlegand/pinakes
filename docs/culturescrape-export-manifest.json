@@ -329,9 +329,9 @@
           "count": 1061,
           "nonEmpty": {
             "source": 1061,
-            "source_url": 552,
-            "source_query": 552,
-            "retrieved_at": 552,
+            "source_url": 576,
+            "source_query": 576,
+            "retrieved_at": 576,
             "confidence": 1061
           }
         },
@@ -514,9 +514,9 @@
       ],
       "nonEmpty": {
         "source": 6667,
-        "source_url": 1868,
-        "source_query": 2521,
-        "retrieved_at": 1868,
+        "source_url": 1892,
+        "source_query": 2545,
+        "retrieved_at": 1892,
         "confidence": 6667
       }
     },
@@ -606,13 +606,13 @@
         "retrieved_at": 0,
         "confidence": 5713
       },
-      "citationsWithoutCanonicalColumn": 947
+      "citationsWithoutCanonicalColumn": 971
     },
     "flags": [
-      "node.source_query: 2521/6667 rows preserve the original LinguaScrape citation.",
+      "node.source_query: 2545/6667 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5713 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5713 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.citationsWithoutCanonicalColumn: 947 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
+      "edge.citationsWithoutCanonicalColumn: 971 edges carried an original citation, but the canonical edge schema has no citation column; embedded-FK edges preserve it on the host node's source_query."
     ]
   }
 }
