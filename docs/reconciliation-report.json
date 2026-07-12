@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 6667,
-    "matched": 982,
-    "ambiguous": 242,
-    "likelyNew": 5443
+    "nodes": 6708,
+    "matched": 966,
+    "ambiguous": 302,
+    "likelyNew": 5440
   },
   "byType": [
     {
@@ -59,16 +59,16 @@
     },
     {
       "type": "ingredient",
-      "count": 2206,
+      "count": 2208,
       "matched": 0,
-      "ambiguous": 37,
-      "likelyNew": 2169
+      "ambiguous": 41,
+      "likelyNew": 2167
     },
     {
       "type": "language",
-      "count": 1061,
-      "matched": 982,
-      "ambiguous": 11,
+      "count": 1099,
+      "matched": 966,
+      "ambiguous": 65,
       "likelyNew": 68
     },
     {
@@ -101,10 +101,10 @@
     },
     {
       "type": "place",
-      "count": 1212,
+      "count": 1213,
       "matched": 0,
-      "ambiguous": 149,
-      "likelyNew": 1063
+      "ambiguous": 151,
+      "likelyNew": 1062
     },
     {
       "type": "religion",
@@ -137,14 +137,334 @@
   ],
   "keyCoverage": {
     "languages": {
-      "total": 1061,
-      "withIso639": 993,
-      "withGlottocode": 0
+      "total": 1099,
+      "withIso639": 1031,
+      "withGlottocode": 576
     },
-    "withRegion": 2648,
-    "duplicateCsidsDropped": 44
+    "withRegion": 2687,
+    "duplicateCsidsDropped": 0
   },
   "ambiguities": [
+    {
+      "keyType": "language-code",
+      "key": "abe",
+      "candidates": [
+        {
+          "csid": "cs:language:abe",
+          "linguascrapeId": "abe",
+          "name": "Western Abenaki",
+          "region": "North America",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:great-andamanese",
+          "linguascrapeId": "great-andamanese",
+          "name": "Great Andamanese",
+          "region": "India",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "akk",
+      "candidates": [
+        {
+          "csid": "cs:language:akk",
+          "linguascrapeId": "akk",
+          "name": "Akkadian",
+          "region": "Mesopotamia",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:akk-classical",
+          "linguascrapeId": "akk-classical",
+          "name": "Akkadian",
+          "region": "Mesopotamia",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "arb",
+      "candidates": [
+        {
+          "csid": "cs:language:arabela",
+          "linguascrapeId": "arabela",
+          "name": "Arabela",
+          "region": "Peru",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:arb",
+          "linguascrapeId": "arb",
+          "name": "Standard Arabic",
+          "region": "",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "arc",
+      "candidates": [
+        {
+          "csid": "cs:language:arc",
+          "linguascrapeId": "arc",
+          "name": "Aramaic",
+          "region": "Middle East",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:arc-classical",
+          "linguascrapeId": "arc-classical",
+          "name": "Aramaic",
+          "region": "Middle East",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "ay",
+      "candidates": [
+        {
+          "csid": "cs:language:aym",
+          "linguascrapeId": "aym",
+          "name": "Central Aymara",
+          "region": "Altiplano",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:southern-aymara",
+          "linguascrapeId": "southern-aymara",
+          "name": "Southern Aymara",
+          "region": "Southern Peru",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "bm",
+      "candidates": [
+        {
+          "csid": "cs:language:bam",
+          "linguascrapeId": "bam",
+          "name": "Bambara",
+          "region": "West Africa",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:bam-manding",
+          "linguascrapeId": "bam-manding",
+          "name": "Bambara",
+          "region": "West Africa",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "cop",
+      "candidates": [
+        {
+          "csid": "cs:language:cop",
+          "linguascrapeId": "cop",
+          "name": "Coptic",
+          "region": "Egypt",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:cop-classical",
+          "linguascrapeId": "cop-classical",
+          "name": "Coptic",
+          "region": "Egypt",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "cub",
+      "candidates": [
+        {
+          "csid": "cs:language:cub",
+          "linguascrapeId": "cub",
+          "name": "Cubeo",
+          "region": "Vaupés Region",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:guna",
+          "linguascrapeId": "guna",
+          "name": "Guna",
+          "region": "Panama and Colombia",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "dje",
+      "candidates": [
+        {
+          "csid": "cs:language:dje",
+          "linguascrapeId": "dje",
+          "name": "Zarma",
+          "region": "West Africa",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:dje-southern-songhay",
+          "linguascrapeId": "dje-southern-songhay",
+          "name": "Zarma",
+          "region": "West Africa",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "dyu",
+      "candidates": [
+        {
+          "csid": "cs:language:dyu",
+          "linguascrapeId": "dyu",
+          "name": "Dyula",
+          "region": "West Africa",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:dyu-manding",
+          "linguascrapeId": "dyu-manding",
+          "name": "Dyula",
+          "region": "West Africa",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "egy",
+      "candidates": [
+        {
+          "csid": "cs:language:egy",
+          "linguascrapeId": "egy",
+          "name": "Ancient Egyptian",
+          "region": "Egypt",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:egy-classical",
+          "linguascrapeId": "egy-classical",
+          "name": "Ancient Egyptian",
+          "region": "Ancient Egypt",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "ess",
+      "candidates": [
+        {
+          "csid": "cs:language:ess",
+          "linguascrapeId": "ess",
+          "name": "Central Siberian Yupik",
+          "region": "",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:esselen-language",
+          "linguascrapeId": "esselen-language",
+          "name": "Esselen",
+          "region": "United States",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "evn",
+      "candidates": [
+        {
+          "csid": "cs:language:even",
+          "linguascrapeId": "even",
+          "name": "Even",
+          "region": "Russia",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:evn",
+          "linguascrapeId": "evn",
+          "name": "Evenki",
+          "region": "",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "got",
+      "candidates": [
+        {
+          "csid": "cs:language:got",
+          "linguascrapeId": "got",
+          "name": "Gothic",
+          "region": "Europe",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:got-classical",
+          "linguascrapeId": "got-classical",
+          "name": "Gothic",
+          "region": "Eastern Europe",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "gvc",
+      "candidates": [
+        {
+          "csid": "cs:language:gvc",
+          "linguascrapeId": "gvc",
+          "name": "Guanano",
+          "region": "Vaupés Region",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:kadiweu",
+          "linguascrapeId": "kadiweu",
+          "name": "Kadiwéu",
+          "region": "Brazil",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "hio",
+      "candidates": [
+        {
+          "csid": "cs:language:hio",
+          "linguascrapeId": "hio",
+          "name": "Tsoa",
+          "region": "Eastern Kalahari",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:tshwa",
+          "linguascrapeId": "tshwa",
+          "name": "Tshwa",
+          "region": "Eastern Kalahari",
+          "confidence": 0.5
+        }
+      ]
+    },
     {
       "keyType": "language-code",
       "key": "hmn",
@@ -167,42 +487,129 @@
     },
     {
       "keyType": "language-code",
+      "key": "khi",
+      "candidates": [
+        {
+          "csid": "cs:language:haiom",
+          "linguascrapeId": "haiom",
+          "name": "Hai||om",
+          "region": "Northern Namibia",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:khi",
+          "linguascrapeId": "khi",
+          "name": "Khoekhoe",
+          "region": "Southern Africa",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "kui",
+      "candidates": [
+        {
+          "csid": "cs:language:kalapalo",
+          "linguascrapeId": "kalapalo",
+          "name": "Kalapalo",
+          "region": "Xingu Indigenous Park",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:kui",
+          "linguascrapeId": "kui",
+          "name": "Kuikuro",
+          "region": "Xingu Indigenous Park",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "nah",
+      "candidates": [
+        {
+          "csid": "cs:language:central-nahuatl",
+          "linguascrapeId": "central-nahuatl",
+          "name": "Central Nahuatl",
+          "region": "Central Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:guerrero-nahuatl",
+          "linguascrapeId": "guerrero-nahuatl",
+          "name": "Guerrero Nahuatl",
+          "region": "Guerrero",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:nah",
+          "linguascrapeId": "nah",
+          "name": "Huasteca Nahuatl",
+          "region": "Huasteca",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
       "key": "qu",
       "candidates": [
         {
-          "csid": "cs:language:qug",
+          "csid": "cs:language:Q12953845",
           "linguascrapeId": "qug",
           "name": "Chimborazo Highland Quichua",
           "region": "Central Ecuador",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quh",
+          "csid": "cs:language:Q1307730",
           "linguascrapeId": "quh",
           "name": "South Bolivian Quechua",
           "region": "Bolivia",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quy",
+          "csid": "cs:language:Q25559701",
+          "linguascrapeId": "qvi",
+          "name": "Imbabura Highland Quichua",
+          "region": "Northern Ecuador",
+          "confidence": 0.9
+        },
+        {
+          "csid": "cs:language:Q35145",
           "linguascrapeId": "quy",
           "name": "Ayacucho Quechua",
           "region": "Southern Peru",
           "confidence": 0.9
         },
         {
-          "csid": "cs:language:quz",
+          "csid": "cs:language:Q35147",
           "linguascrapeId": "quz",
           "name": "Cusco Quechua",
           "region": "Southern Peru",
           "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "ses",
+      "candidates": [
+        {
+          "csid": "cs:language:ses",
+          "linguascrapeId": "ses",
+          "name": "Koyraboro Senni",
+          "region": "West Africa",
+          "confidence": 0.5
         },
         {
-          "csid": "cs:language:qvi",
-          "linguascrapeId": "qvi",
-          "name": "Imbabura Highland Quichua",
-          "region": "Northern Ecuador",
-          "confidence": 0.9
+          "csid": "cs:language:ses-southern-songhay",
+          "linguascrapeId": "ses-southern-songhay",
+          "name": "Koyraboro Senni",
+          "region": "West Africa",
+          "confidence": 0.5
         }
       ]
     },
@@ -242,6 +649,115 @@
           "linguascrapeId": "sus",
           "name": "Susu",
           "region": "West Africa",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "tot",
+      "candidates": [
+        {
+          "csid": "cs:language:coyutla-totonac",
+          "linguascrapeId": "coyutla-totonac",
+          "name": "Coyutla Totonac",
+          "region": "Veracruz, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:filomeno-mata-totonac",
+          "linguascrapeId": "filomeno-mata-totonac",
+          "name": "Filomeno Mata Totonac",
+          "region": "Veracruz, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:ozumatlan-totonac",
+          "linguascrapeId": "ozumatlan-totonac",
+          "name": "Ozumatlán Totonac",
+          "region": "Veracruz, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:papantla-totonac",
+          "linguascrapeId": "papantla-totonac",
+          "name": "Papantla Totonac",
+          "region": "Veracruz, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:tecpatlan-totonac",
+          "linguascrapeId": "tecpatlan-totonac",
+          "name": "Tecpatlán Totonac",
+          "region": "Puebla, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:tot",
+          "linguascrapeId": "tot",
+          "name": "Highland Totonac",
+          "region": "Puebla, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:upper-necaxa-totonac",
+          "linguascrapeId": "upper-necaxa-totonac",
+          "name": "Upper Necaxa Totonac",
+          "region": "Puebla, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:xicotepec-de-juarez-totonac",
+          "linguascrapeId": "xicotepec-de-juarez-totonac",
+          "name": "Xicotepec de Juárez Totonac",
+          "region": "Puebla, Mexico",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:yecuatla-totonac",
+          "linguascrapeId": "yecuatla-totonac",
+          "name": "Yecuatla Totonac",
+          "region": "Veracruz, Mexico",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "umu",
+      "candidates": [
+        {
+          "csid": "cs:language:umu",
+          "linguascrapeId": "umu",
+          "name": "Munsee",
+          "region": "North America",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:umutina",
+          "linguascrapeId": "umutina",
+          "name": "Umutina",
+          "region": "Mato Grosso",
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "keyType": "language-code",
+      "key": "xal",
+      "candidates": [
+        {
+          "csid": "cs:language:xal",
+          "linguascrapeId": "xal",
+          "name": "Kalmyk",
+          "region": "",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:language:xal-western",
+          "linguascrapeId": "xal-western",
+          "name": "Kalmyk",
+          "region": "Russia",
           "confidence": 0.5
         }
       ]
@@ -740,474 +1256,7 @@
           "confidence": 0.5
         }
       ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "ceviche | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:mexican-ceviche",
-          "linguascrapeId": "mexican-ceviche",
-          "name": "Ceviche",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:peruvian-ceviche",
-          "linguascrapeId": "peruvian-ceviche",
-          "name": "Ceviche",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "chai | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:indian-chai",
-          "linguascrapeId": "indian-chai",
-          "name": "Chai",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:iranian-chai",
-          "linguascrapeId": "iranian-chai",
-          "name": "Chai",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "chan chan | place | south america",
-      "candidates": [
-        {
-          "csid": "cs:place:chan-chan",
-          "linguascrapeId": "chan-chan",
-          "name": "Chan Chan",
-          "region": "South America",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:chan-chan-settlement",
-          "linguascrapeId": "chan-chan-settlement",
-          "name": "Chan Chan",
-          "region": "South America",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "chorizo | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:mexican-chorizo",
-          "linguascrapeId": "mexican-chorizo",
-          "name": "Chorizo",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:spanish-chorizo",
-          "linguascrapeId": "spanish-chorizo",
-          "name": "Chorizo",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "constantinople | place | mediterranean",
-      "candidates": [
-        {
-          "csid": "cs:place:constantinople",
-          "linguascrapeId": "constantinople",
-          "name": "Constantinople",
-          "region": "Mediterranean",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:constantinople-ottoman",
-          "linguascrapeId": "constantinople-ottoman",
-          "name": "Constantinople",
-          "region": "Mediterranean",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "ctesiphon | place | mesopotamia",
-      "candidates": [
-        {
-          "csid": "cs:place:ctesiphon",
-          "linguascrapeId": "ctesiphon",
-          "name": "Ctesiphon",
-          "region": "Mesopotamia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:ctesiphon-settlement",
-          "linguascrapeId": "ctesiphon-settlement",
-          "name": "Ctesiphon",
-          "region": "Mesopotamia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "cusco | place | south america",
-      "candidates": [
-        {
-          "csid": "cs:place:cusco",
-          "linguascrapeId": "cusco",
-          "name": "Cusco",
-          "region": "South America",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:cusco-settlement",
-          "linguascrapeId": "cusco-settlement",
-          "name": "Cusco",
-          "region": "South America",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "damascus | place | levant",
-      "candidates": [
-        {
-          "csid": "cs:place:damascus",
-          "linguascrapeId": "damascus",
-          "name": "Damascus",
-          "region": "Levant",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:damascus-settlement",
-          "linguascrapeId": "damascus-settlement",
-          "name": "Damascus",
-          "region": "Levant",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "delhi | place | south asia",
-      "candidates": [
-        {
-          "csid": "cs:place:delhi",
-          "linguascrapeId": "delhi",
-          "name": "Delhi",
-          "region": "South Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:delhi-settlement",
-          "linguascrapeId": "delhi-settlement",
-          "name": "Delhi",
-          "region": "South Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:delhi-sultanate",
-          "linguascrapeId": "delhi-sultanate",
-          "name": "Delhi",
-          "region": "South Asia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "edamame | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:chinese-edamame",
-          "linguascrapeId": "chinese-edamame",
-          "name": "Edamame",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:japanese-edamame",
-          "linguascrapeId": "japanese-edamame",
-          "name": "Edamame",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "el tajin | place | mesoamerica",
-      "candidates": [
-        {
-          "csid": "cs:place:el-tajin-city",
-          "linguascrapeId": "el-tajin-city",
-          "name": "El Tajin",
-          "region": "Mesoamerica",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:tajin",
-          "linguascrapeId": "tajin",
-          "name": "El Tajin",
-          "region": "Mesoamerica",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "ephesus | place | anatolia",
-      "candidates": [
-        {
-          "csid": "cs:place:ephesus",
-          "linguascrapeId": "ephesus",
-          "name": "Ephesus",
-          "region": "Anatolia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:ephesus-settlement",
-          "linguascrapeId": "ephesus-settlement",
-          "name": "Ephesus",
-          "region": "Anatolia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "fez | place | north africa",
-      "candidates": [
-        {
-          "csid": "cs:place:fes-islamic",
-          "linguascrapeId": "fes-islamic",
-          "name": "Fez",
-          "region": "North Africa",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:fez",
-          "linguascrapeId": "fez",
-          "name": "Fez",
-          "region": "North Africa",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "fish sauce | ingredient | southeast asia",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:fish-sauce-thai",
-          "linguascrapeId": "fish-sauce-thai",
-          "name": "Fish Sauce",
-          "region": "Southeast Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:fish-sauce-vietnamese",
-          "linguascrapeId": "fish-sauce-vietnamese",
-          "name": "Fish Sauce",
-          "region": "Southeast Asia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "gao | place | west africa",
-      "candidates": [
-        {
-          "csid": "cs:place:gao",
-          "linguascrapeId": "gao",
-          "name": "Gao",
-          "region": "West Africa",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:gao-settlement",
-          "linguascrapeId": "gao-settlement",
-          "name": "Gao",
-          "region": "West Africa",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "ghazni | place | central asia",
-      "candidates": [
-        {
-          "csid": "cs:place:ghazni",
-          "linguascrapeId": "ghazni",
-          "name": "Ghazni",
-          "region": "Central Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:ghazni-islamic",
-          "linguascrapeId": "ghazni-islamic",
-          "name": "Ghazni",
-          "region": "Central Asia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "ghent | place | western europe",
-      "candidates": [
-        {
-          "csid": "cs:place:ghent",
-          "linguascrapeId": "ghent",
-          "name": "Ghent",
-          "region": "Western Europe",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:ghent-medieval",
-          "linguascrapeId": "ghent-medieval",
-          "name": "Ghent",
-          "region": "Western Europe",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "granada | place | iberia",
-      "candidates": [
-        {
-          "csid": "cs:place:granada",
-          "linguascrapeId": "granada",
-          "name": "Granada",
-          "region": "Iberia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:granada-settlement",
-          "linguascrapeId": "granada-settlement",
-          "name": "Granada",
-          "region": "Iberia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "halva | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:greek-halva",
-          "linguascrapeId": "greek-halva",
-          "name": "Halva",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:iranian-halva",
-          "linguascrapeId": "iranian-halva",
-          "name": "Halva",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "hangzhou | place | east asia",
-      "candidates": [
-        {
-          "csid": "cs:place:hangzhou",
-          "linguascrapeId": "hangzhou",
-          "name": "Hangzhou",
-          "region": "East Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:hangzhou-settlement",
-          "linguascrapeId": "hangzhou-settlement",
-          "name": "Hangzhou",
-          "region": "East Asia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "harappa | place | south asia",
-      "candidates": [
-        {
-          "csid": "cs:place:harappa",
-          "linguascrapeId": "harappa",
-          "name": "Harappa",
-          "region": "South Asia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:harappa-settlement",
-          "linguascrapeId": "harappa-settlement",
-          "name": "Harappa",
-          "region": "South Asia",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "horchata | ingredient | ",
-      "candidates": [
-        {
-          "csid": "cs:ingredient:mexican-horchata",
-          "linguascrapeId": "mexican-horchata",
-          "name": "Horchata",
-          "region": "",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:ingredient:spanish-horchata",
-          "linguascrapeId": "spanish-horchata",
-          "name": "Horchata",
-          "region": "",
-          "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "name-type-region",
-      "key": "isfahan | place | persia",
-      "candidates": [
-        {
-          "csid": "cs:place:isfahan",
-          "linguascrapeId": "isfahan",
-          "name": "Isfahan",
-          "region": "Persia",
-          "confidence": 0.5
-        },
-        {
-          "csid": "cs:place:isfahan-settlement",
-          "linguascrapeId": "isfahan-settlement",
-          "name": "Isfahan",
-          "region": "Persia",
-          "confidence": 0.5
-        }
-      ]
     }
   ],
-  "ambiguityGroupCount": 113
+  "ambiguityGroupCount": 139
 }

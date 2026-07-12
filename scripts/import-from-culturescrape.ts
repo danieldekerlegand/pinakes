@@ -287,9 +287,11 @@ export function buildWriteBack(
 
   // Pass 1 — parse every node file and count each `linguascrape_id` across the whole node
   // *type* (not just within one file). The same id can appear in more than one lexicon file
-  // that maps to the same type (e.g. `mohenjo-daro` is in both `archaeological-sites.tsv`
+  // that maps to the same type (historically `mohenjo-daro` was in both `archaeological-sites.tsv`
   // and `settlements.tsv` → both `place`), which the export dedups to one canonical row.
-  // Such a key cannot address a single lexicon row, so it must be skipped, not written.
+  // Such a key cannot address a single lexicon row, so it must be skipped, not written. US-008
+  // burned every such collision to zero, but this guard stays to keep the round-trip lossless
+  // if future data reintroduces one.
   interface ParsedNodeFile {
     readonly file: string;
     readonly node: string;

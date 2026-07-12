@@ -17,15 +17,20 @@
  * `source`, `source_url`, `retrieved_at`, `confidence` (values may be blank, the column
  * is always present). `source = "linguascrape"` is the acquisition-source id the
  * reconciler keys on; the *original* LinguaScrape bibliographic `sources` citations are
- * preserved (never dropped) in the node `source_query` column. `source_url` is derived
- * only when a real URL is present in the data — URLs are never fabricated — otherwise it
- * is left blank and flagged. `retrieved_at` is blank (LinguaScrape records no retrieval
- * timestamp). The manifest carries a per-type provenance-completeness coverage report.
+ * preserved (never dropped) in the node `source_query` column. `source_url` and
+ * `retrieved_at` propagate verbatim from the lexicon row when the acquisition step
+ * recorded them (US-004: ~1.9k acquired rows carry a Wikidata entity URL + timestamp);
+ * `source_url` otherwise falls back to a URL embedded in the citation, else blank — a URL
+ * is never fabricated, and a row with no timestamp stays blank. The manifest carries a
+ * per-type provenance-completeness coverage report.
  *
- * Identity: `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`
- * (the id scheme's `cs:<type>:<local>` format), so re-runs are byte-identical
- * (idempotent). Every row also retains its original `linguascrape_id` (the round-trip
- * key for US-007). Edge endpoints are rewritten from LinguaScrape ids to the csids of
+ * Identity: `csid` is minted deterministically (the id scheme's `cs:<type>:<local>`
+ * format), so re-runs are byte-identical (idempotent). Per the `idScheme` in
+ * `shared/canonical-schema.json`, a known Wikidata QID is the identity, so a row with a
+ * non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (US-005); a row without one
+ * falls back to `cs:<node-type>:<linguascrape-id>`. Every row also retains its original
+ * `linguascrape_id` (the round-trip key for US-007). Edge endpoints are rewritten from
+ * LinguaScrape ids to the csids of
  * the exported nodes; an edge whose endpoint has no exported node is not emitted
  * (dangling endpoints would break `neo4j-admin import`) and is counted + sampled in
  * the manifest rather than silently dropped.
@@ -70,9 +75,12 @@ export const EXPORT_SOURCE = "linguascrape";
 export const DEFAULT_NODE_CONFIDENCE = 0.5;
 
 /**
- * Fields the export forces rather than copying from a lexicon column. `source` is
- * force-set to {@link EXPORT_SOURCE}; the lexicon column mapped to canonical `source`
- * actually holds bibliographic citations, which US-006 re-homes into `source_query`.
+ * Provenance fields the export handles explicitly rather than copying through the
+ * generic `target`→column loop. `source` is force-set to {@link EXPORT_SOURCE} (the
+ * lexicon column mapped to canonical `source` actually holds bibliographic citations,
+ * which US-006 re-homes into `source_query`); `source_url`/`retrieved_at` are read from
+ * their mapped lexicon columns with the US-004 propagation rules (verbatim, never
+ * fabricated) so they need custom handling too.
  */
 const PROVENANCE_FORCED_FIELDS: ReadonlySet<string> = new Set([
   "source",
@@ -103,6 +111,13 @@ export interface UnresolvedEndpoint {
   readonly startId: string;
   readonly endId: string;
   readonly edgeName: string;
+  readonly sourceFile: string;
+}
+
+/** An auto-generated needs-curation stub node minted for an unresolved endpoint (US-007). */
+export interface StubNodeSample {
+  readonly linguascrapeId: string;
+  readonly type: string;
   readonly sourceFile: string;
 }
 
@@ -167,6 +182,15 @@ export interface ExportManifest {
     readonly ambiguousLinguascrapeIds: number;
     readonly edgesWithUnresolvedEndpoint: number;
     readonly unresolvedEndpointSamples: readonly UnresolvedEndpoint[];
+    /**
+     * Needs-curation stub nodes minted for edge endpoints with no real node (US-007),
+     * so the referencing edges reach the export instead of being dropped. Each stub
+     * carries {@link STUB_NEEDS_CURATION_NOTE} + confidence `0`; a follow-up curation
+     * pass replaces them with real typed nodes.
+     */
+    readonly stubNodesMinted: number;
+    readonly stubNodesByType: Readonly<Record<string, number>>;
+    readonly stubNodeSamples: readonly StubNodeSample[];
   };
   readonly provenance: ProvenanceCoverage;
 }
@@ -284,10 +308,76 @@ export function deriveSourceUrl(...candidates: string[]): string {
   return "";
 }
 
-/** Mint a deterministic canonical id: `cs:<node-type>:<linguascrape-id>`. */
-export function mintCsid(nodeType: string, linguascrapeId: string): string {
-  return `cs:${nodeType}:${linguascrapeId}`;
+/**
+ * Mint a deterministic canonical id (US-005). Per the `idScheme` in
+ * `shared/canonical-schema.json`, a known Wikidata QID **is** the identity, so a row
+ * carrying a non-blank `wikidata_qid` mints `cs:<node-type>:<QID>`; a row without one
+ * falls back to the readable `cs:<node-type>:<linguascrape-id>`. QID-anchoring makes
+ * the same entity carry the same csid regardless of which pipeline exported it.
+ */
+export function mintCsid(
+  nodeType: string,
+  linguascrapeId: string,
+  wikidataQid?: string,
+): string {
+  const qid = (wikidataQid ?? "").trim();
+  const local = qid !== "" ? qid : linguascrapeId;
+  return `cs:${nodeType}:${local}`;
 }
+
+/**
+ * Recover the node-type slug from a minted csid (`cs:<type>:<local>`). The type
+ * slug carries hyphens but never a colon, and the local id/QID never does, so the
+ * middle `:`-segment is the type. Returns `""` for a malformed csid.
+ */
+export function nodeTypeFromCsid(csid: string): string {
+  const parts = csid.split(":");
+  return parts.length >= 3 ? parts[1] : "";
+}
+
+/**
+ * Turn a LinguaScrape id into a human-readable display name for a stub node —
+ * `proto_indo_european` → `Proto Indo European`. Used only for auto-generated
+ * needs-curation stubs (US-007); real nodes keep their curated `name`.
+ */
+export function humanizeId(id: string): string {
+  return id
+    .split(/[_\-\s]+/)
+    .filter((w) => w.length > 0)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/**
+ * Default node type for a stub minted when BOTH endpoints of an edge are unresolved
+ * (so neither's type can be borrowed). Keyed by the edge's source lexicon — the
+ * dominant kind of entity that file's edges connect. When one endpoint *is* a real
+ * node, its type is borrowed instead (see {@link buildExport}); this table is the
+ * both-unresolved fallback only. Any file not listed falls back to
+ * {@link DEFAULT_STUB_TYPE}.
+ */
+const STUB_TYPE_BY_SOURCE_FILE: Readonly<Record<string, string>> = {
+  "cultural-lineages.tsv": "language-family",
+  "deities.tsv": "deity",
+  "archaeological-cultures.tsv": "archaeological-culture",
+  "writing-systems.tsv": "writing-system",
+  "etymology-relations.tsv": "language",
+  "language-contacts.tsv": "language",
+  "art-style-evolutions.tsv": "art-tradition",
+};
+
+/** Fallback stub node type when no per-file default nor a borrowable endpoint exists. */
+const DEFAULT_STUB_TYPE = "culture";
+
+/**
+ * `description` stamped on every auto-generated stub node so a curator (and any graph
+ * consumer) can tell it apart from a real curated node. Confidence is set to `0` for
+ * the same reason.
+ */
+export const STUB_NEEDS_CURATION_NOTE =
+  "[needs-curation] Auto-generated stub node for an unresolved edge endpoint; requires curation into a real typed node.";
+
+const MAX_STUB_SAMPLES = 25;
 
 /** Serialise a canonical record (field→value) into a row in the schema's column order. */
 function orderRow(
@@ -344,7 +434,19 @@ function buildNodesForFile(
   const citationCol = mapping.columns.find((c) => c.target === "source");
   const citationIdx = citationCol ? headers.indexOf(citationCol.column) : -1;
 
+  // Provenance the acquisition scripts stamp on the lexicon row (US-004): a real
+  // Wikidata entity URL + retrieval timestamp. These survive verbatim into the
+  // export; a row without them stays blank (they are never fabricated). Both are
+  // in PROVENANCE_FORCED_FIELDS (excluded from the generic `targetIdx`) so they are
+  // read explicitly here — source_url with a citation-embedded-URL fallback.
+  const sourceUrlCol = mapping.columns.find((c) => c.target === "source_url");
+  const sourceUrlIdx = sourceUrlCol ? headers.indexOf(sourceUrlCol.column) : -1;
+  const retrievedAtCol = mapping.columns.find((c) => c.target === "retrieved_at");
+  const retrievedAtIdx = retrievedAtCol ? headers.indexOf(retrievedAtCol.column) : -1;
+
   const group = nodeGroups.get(nodeType) ?? [];
+
+  const qidIdxForFile = targetIdx.get("wikidata_qid") ?? -1;
 
   for (const row of rows) {
     const idIdxForFile = targetIdx.get("linguascrape_id") ?? -1;
@@ -353,7 +455,9 @@ function buildNodesForFile(
       counters.skippedMissingId += 1;
       continue;
     }
-    const csid = mintCsid(nodeType, lsId);
+    // US-005: a known QID is the identity; rows without one keep the readable id.
+    const rowQid = cell(row, qidIdxForFile);
+    const csid = mintCsid(nodeType, lsId, rowQid);
     if (seenCsids.has(csid)) {
       counters.duplicateCsids += 1;
       continue;
@@ -383,15 +487,19 @@ function buildNodesForFile(
       }
     }
 
-    // Provenance (US-006): `source` = acquisition-source id (reconciler anchor);
-    // the original LinguaScrape citation is preserved in `source_query` and never
-    // dropped; `source_url` is derived only from a real URL (never fabricated);
-    // `retrieved_at` is blank (LinguaScrape records no retrieval timestamp).
+    // Provenance: `source` = acquisition-source id (reconciler anchor); the
+    // original LinguaScrape citation is preserved in `source_query` and never
+    // dropped (US-006). `source_url`/`retrieved_at` (US-004): a URL/timestamp the
+    // acquisition step recorded on the row survives verbatim; when the row carries
+    // no URL we fall back to one embedded in the citation, else blank — a URL is
+    // never fabricated.
     const citation = citationIdx >= 0 ? parseCitation(cell(row, citationIdx)) : "";
+    const rowSourceUrl = sourceUrlIdx >= 0 ? cell(row, sourceUrlIdx) : "";
+    const rowRetrievedAt = retrievedAtIdx >= 0 ? cell(row, retrievedAtIdx) : "";
     record.set("source", EXPORT_SOURCE);
     record.set("source_query", citation);
-    record.set("source_url", deriveSourceUrl(citation));
-    record.set("retrieved_at", "");
+    record.set("source_url", rowSourceUrl || deriveSourceUrl(citation));
+    record.set("retrieved_at", rowRetrievedAt);
     record.set(
       "confidence",
       String(normaliseConfidence(record.get("confidence") ?? "")),
@@ -443,10 +551,73 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
 
   let edgeCitationsWithoutColumn = 0;
 
+  // US-007: mint a flagged needs-curation stub node for an edge endpoint that has
+  // no real exported node, so the referencing edge reaches the export instead of
+  // being counted-and-dropped. Idempotent per id (first mint wins, later references
+  // reuse it via `idIndex`) so the same endpoint never yields two csids. Returns the
+  // stub's csid, or `undefined` when the type is unknown or the csid would collide
+  // (extremely rare — the edge then stays genuinely unresolved).
+  let stubNodesMinted = 0;
+  const stubNodesByType = new Map<string, number>();
+  const stubNodeSamples: StubNodeSample[] = [];
+  const mintStub = (
+    id: string,
+    stubType: string,
+    sourceFile: string,
+  ): string | undefined => {
+    const existing = idIndex.get(id);
+    if (existing !== undefined) return existing;
+    const typeInfo = nodeTypeByName(stubType);
+    if (typeInfo === undefined) return undefined;
+    const csid = mintCsid(stubType, id);
+    if (seenCsids.has(csid)) return undefined;
+    seenCsids.add(csid);
+
+    const record = new Map<string, string>();
+    record.set("csid", csid);
+    record.set(":LABEL", typeInfo.label);
+    record.set("name", humanizeId(id));
+    record.set("linguascrape_id", id);
+    record.set("description", STUB_NEEDS_CURATION_NOTE);
+    record.set("source", EXPORT_SOURCE);
+    record.set("source_url", "");
+    record.set("source_query", "");
+    record.set("retrieved_at", "");
+    record.set("confidence", "0");
+
+    const group = nodeGroups.get(stubType) ?? [];
+    group.push(orderRow(CANONICAL_SCHEMA.node.columns, record));
+    nodeGroups.set(stubType, group);
+    idIndex.set(id, csid);
+
+    stubNodesMinted += 1;
+    stubNodesByType.set(stubType, (stubNodesByType.get(stubType) ?? 0) + 1);
+    if (stubNodeSamples.length < MAX_STUB_SAMPLES) {
+      stubNodeSamples.push({ linguascrapeId: id, type: stubType, sourceFile });
+    }
+    return csid;
+  };
+
   const { edges } = extractAllCanonicalEdges(lexiconsDir);
   for (const e of edges) {
-    const startCsid = idIndex.get(e.startId);
-    const endCsid = idIndex.get(e.endId);
+    let startCsid = idIndex.get(e.startId);
+    let endCsid = idIndex.get(e.endId);
+    // Borrow the counterpart's node type when it is a real node; else fall back to
+    // the edge source file's default type (both endpoints unresolved).
+    if (startCsid === undefined) {
+      const stubType =
+        endCsid !== undefined
+          ? nodeTypeFromCsid(endCsid)
+          : STUB_TYPE_BY_SOURCE_FILE[e.sourceFile] ?? DEFAULT_STUB_TYPE;
+      startCsid = mintStub(e.startId, stubType, e.sourceFile);
+    }
+    if (endCsid === undefined) {
+      const stubType =
+        startCsid !== undefined
+          ? nodeTypeFromCsid(startCsid)
+          : STUB_TYPE_BY_SOURCE_FILE[e.sourceFile] ?? DEFAULT_STUB_TYPE;
+      endCsid = mintStub(e.endId, stubType, e.sourceFile);
+    }
     if (startCsid === undefined || endCsid === undefined) {
       unresolvedCount += 1;
       if (unresolvedSamples.length < MAX_UNRESOLVED_SAMPLES) {
@@ -511,6 +682,15 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     unresolvedCount,
     unresolvedSamples,
     provenance,
+    {
+      minted: stubNodesMinted,
+      byType: Object.fromEntries(
+        [...stubNodesByType.entries()].sort((a, b) =>
+          a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
+        ),
+      ),
+      samples: stubNodeSamples,
+    },
   );
 
   return { nodeGroups, edgeGroups, manifest };
@@ -613,6 +793,11 @@ function buildManifest(
   unresolvedCount: number,
   unresolvedSamples: readonly UnresolvedEndpoint[],
   provenance: ProvenanceCoverage,
+  stubNodes: {
+    minted: number;
+    byType: Readonly<Record<string, number>>;
+    samples: readonly StubNodeSample[];
+  },
 ): ExportManifest {
   const nodeTypes = CANONICAL_SCHEMA.nodeTypes
     .filter((t) => nodeGroups.has(t.name))
@@ -651,6 +836,9 @@ function buildManifest(
       ambiguousLinguascrapeIds: nodeCounters.ambiguousIds,
       edgesWithUnresolvedEndpoint: unresolvedCount,
       unresolvedEndpointSamples: unresolvedSamples,
+      stubNodesMinted: stubNodes.minted,
+      stubNodesByType: stubNodes.byType,
+      stubNodeSamples: stubNodes.samples,
     },
     provenance,
   };

@@ -27,7 +27,12 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from culturescrape.datalog import Dialect, Fact
-from culturescrape.datalog.rules import Rule, render_rule, rule_signatures
+from culturescrape.datalog.rules import (
+    Rule,
+    render_rule,
+    rule_signatures,
+    tabled_signatures,
+)
 
 #: The ``%``-comment header documenting the emitted predicate schema. It is
 #: static (the full vocabulary the projection can emit) rather than derived from
@@ -87,11 +92,27 @@ def render_program(facts: Iterable[Fact], rules: Iterable[Rule] = ()) -> str:
     rules = list(rules)
     signatures = sorted(set(_signatures(facts)) | rule_signatures(rules))
 
+    # Recursive derived predicates (transitive closures) are TABLED, not dynamic.
+    # SWI-Prolog's naive SLD resolution does not terminate on a closure rule when
+    # the base relation carries a cycle (descends_from has a data-error cycle;
+    # influenced_by is legitimately cyclic — mutual influence), so a full
+    # enumeration of ancestor/influenced_transitively loops. Tabling (SLG
+    # resolution) computes the least fixpoint and terminates, matching Soufflé's
+    # set semantics. It is a Prolog-only directive — the shared clause text and the
+    # Soufflé emitter are untouched — and a tabled predicate must NOT also be
+    # `:- dynamic` (SWI forbids tabling a dynamic procedure).
+    tabled = sorted(tabled_signatures(rules))
+    tabled_set = set(tabled)
+    declared = [sig for sig in signatures if sig not in tabled_set]
+
     lines = [_HEADER, ""]
-    if signatures:
-        lines += [f":- discontiguous {name}/{arity}." for name, arity in signatures]
+    if tabled:
+        lines += [f":- table {name}/{arity}." for name, arity in tabled]
         lines.append("")
-        lines += [f":- dynamic {name}/{arity}." for name, arity in signatures]
+    if declared:
+        lines += [f":- discontiguous {name}/{arity}." for name, arity in declared]
+        lines.append("")
+        lines += [f":- dynamic {name}/{arity}." for name, arity in declared]
         lines.append("")
     lines += [fact.render(Dialect.PROLOG) for fact in facts]
 

@@ -241,7 +241,6 @@ french-rillettes	french	Rillettes	Appetizer	1200	null
 french-tapenade	french	Tapenade	Spread/Dip	1200	null
 french-anchoade	french	Anchoïade	Spread/Dip	1200	null
 french-pistou	french	Pistou	Sauce	1200	null
-french-bouillabaisse	french	Bouillabaisse	Soup/Stew	1200	null
 french-soupe-de-poisson	french	Soupe de Poisson	Soup	800	null
 french-vichyssoise	french	Vichyssoise	Soup	800	null
 french-potage-saint-germain	french	Potage Saint-Germain	Soup	800	null
@@ -989,8 +988,7 @@ iranian-reshteh-polo	iranian	Reshteh Polo	Rice Dish	-1000	null
 iranian-havij-polo	iranian	Havij Polo	Rice Dish	-1000	null
 iranian-shevid-baghali-polo	iranian	Shevid Baghali Polo	Rice Dish	-1000	null
 iranian-mahi-polo	iranian	Mahi Polo	Rice Dish	-1000	null
-iranian-eshkeneh	iranian	Eshkeneh	Soup	-1000	null
-iranian-kufteh-tabrizi	iranian	Kufteh Tabrizi	Soup	-1000	null
+iranian-kufteh-tabrizi-2	iranian	Kufteh Tabrizi	Soup	-1000	null
 iranian-sherbet	iranian	Sherbet	Beverage	-1000	null
 iranian-sekanjabin	iranian	Sekanjabin	Beverage	-1000	null
 iranian-khakshir	iranian	Khakshir	Beverage	-1000	null
@@ -1250,7 +1248,7 @@ korean-ssamjang	korean	Ssamjang	Sauce	500	null
 korean-yangnyeom	korean	Yangnyeom	Sauce	500	null
 korean-banchan	korean	Banchan	Side Dish	500	null
 korean-namul	korean	Namul	Side Dish	500	null
-korean-japchae	korean	Japchae	Side Dish	500	null
+korean-japchae-2	korean	Japchae	Side Dish	500	null
 korean-kongnamul-muchim	korean	Kongnamul Muchim	Side Dish	500	null
 korean-sukjunamul	korean	Sukjunamul	Side Dish	500	null
 korean-sigeumchi-namul	korean	Sigeumchi Namul	Side Dish	500	null
@@ -2057,7 +2055,6 @@ vietnamese-com-ga-hoi-an	vietnamese	Com Ga Hoi An	Rice Dish	500	null
 vietnamese-com-suon	vietnamese	Com Suon	Rice Dish	500	null
 vietnamese-com-bo	vietnamese	Com Bo	Rice Dish	500	null
 vietnamese-bot-chien	vietnamese	Bot Chien	Fried Cake	500	null
-vietnamese-banh-trang-tron	vietnamese	Banh Trang Tron	Salad	500	null
 vietnamese-banh-trang-cuon-thit-heo	vietnamese	Banh Trang Cuon Thit Heo	Wrap	500	null
 vietnamese-banh-da-cua	vietnamese	Banh Da Cua	Noodle Soup	500	null
 vietnamese-banh-duc	vietnamese	Banh Duc	Rice Cake	500	null

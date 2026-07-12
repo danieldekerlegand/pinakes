@@ -29,17 +29,27 @@ from culturescrape.datalog import (
 )
 from culturescrape.datalog.equivalence import Tuple
 
-#: A fact base whose every derived relation has tuples the raw facts never state
-#: directly: a transitive descends_from / located_in chain, a one-directional
-#: contemporary_with edge (the mirror is derived), and a mixed influence chain.
+#: A fact base whose every derived relation in :data:`RULES` has tuples the raw
+#: facts never state directly, so the cross-engine check compares non-empty
+#: closures (see the ``prolog`` non-empty assertion below): a transitive
+#: descends_from / located_in / part_of chain, a one-directional contemporary_with
+#: edge (the mirror is derived), a mixed influence chain, two entities sharing an
+#: enclosing region (same_region), and a haplogroup/language co-located in one
+#: region (genetic_linguistic_correlation). Every rule head must appear here — a
+#: rule with no base facts would close to the empty set and trip that assertion.
 EQUIV_FACTS = [
     Fact("descends_from", ("cs:lang:spa", "cs:lang:lat")),
     Fact("descends_from", ("cs:lang:lat", "cs:lang:itc")),
     Fact("located_in", ("cs:dish:Q42", "cs:place:Q123")),
     Fact("located_in", ("cs:place:Q123", "cs:place:Q200")),
+    Fact("located_in", ("cs:culture:Q7", "cs:place:Q123")),
     Fact("contemporary_with", ("cs:battle:Q47", "cs:dish:Q42")),
     Fact("derived_from", ("cs:dish:Q99", "cs:dish:Q42")),
     Fact("influenced_by", ("cs:dish:Q42", "cs:dish:Q07")),
+    Fact("part_of", ("cs:part:Q11", "cs:part:Q12")),
+    Fact("part_of", ("cs:part:Q12", "cs:part:Q13")),
+    Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:western-europe")),
+    Fact("spoken_in", ("cs:language:proto-celtic", "cs:place:western-europe")),
 ]
 
 

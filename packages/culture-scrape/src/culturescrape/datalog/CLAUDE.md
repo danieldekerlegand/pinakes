@@ -48,6 +48,21 @@ head (e.g. `same_region` reads `within_region`); listing that derived predicate 
 `depends` is fine — it only ensures declaration. Every rule relation is binary
 (`ARITY = 2`); the emitters assume this.
 
+**Recursive rules are TABLED in Prolog, not dynamic.** A rule whose head appears
+in its own body (a transitive closure — `ancestor`, `within_region`,
+`influenced_transitively`, `component_of`) does **not terminate** under naive SWI
+SLD resolution when the base relation has a cycle. Real-corpus cycles exist:
+`descends_from` has a data-error cycle (clovis↔folsom) and `influenced_by` is
+*legitimately* cyclic (mutual influence, eng↔fra …). `rules.is_recursive` detects
+these and `prolog.py` emits `:- table head/2.` for them (a tabled predicate must
+NOT also be `:- dynamic` — SWI forbids it), so swipl computes the least fixpoint
+and matches Soufflé (verified in `docs/engine-validation.md`). Soufflé needs
+nothing — its set semantics handle cycles. So a NEW recursive rule is tabled
+automatically; a non-recursive head (symmetric/join, e.g. `contemporary`,
+`same_region`) stays dynamic. Don't add a visited-list/`\=` to a Prolog closure
+to stop the loop — that breaks the byte-identical-clause-text invariant; tabling
+is the dialect-local fix.
+
 Adding a rule means updating, in lockstep:
 - `tests/test_datalog_rules.py` — the exact `RULES` name list, the
   `{constants} == set(RULES)` set, and (to exercise the closure) `RULE_FACTS` +
@@ -80,10 +95,19 @@ node/edge counts are pinned elsewhere:** `tests/test_explorer_data.py` asserts
 those counts too. Keep new subgraphs disjoint from existing example anchors
 (csids/regions) or you'll change other examples' expected outputs.
 
-## No logic engine in CI
+## Logic engines in CI (US-001)
 
-Neither `swipl` nor `souffle` is installed, so every runnable smoke test is
-`@pytest.mark.skipif`-gated. Validate rule *logic* engine-free by evaluating the
-rule body directly over the projected facts and comparing to the `Example.expected`
-set (see `tests/test_datalog_linguascrape.py`), and keep a swipl-gated test that
-agrees with that derivation for when an engine is present.
+As of US-001 both engines ARE installed where the suite runs: the `culture-scrape`
+CI job (`.github/workflows/convergence-qa.yml`, pinned to `ubuntu-22.04` so the
+souffle-lang apt repo's libffi7 .deb installs) and the sidecar `Dockerfile` (swipl
+via apt; souffle built from source in a `souffle-build` stage — Debian has no
+souffle package). So the `@pytest.mark.skipif(SWIPL/SOUFFLE is None, …)` smoke tests
+now **execute** in CI rather than skipping. The gates stay — they detect the engine
+via `shutil.which` so the suite still passes on a machine without them (local dev,
+the engine-free `datalog-materialize` path).
+
+Still validate rule *logic* engine-free (evaluate the rule body directly over the
+projected facts vs the `Example.expected` set — see `tests/test_datalog_linguascrape.py`)
+so the logic is checked even without an engine, and keep the engine-gated test that
+agrees with that derivation for when an engine is present. Install locally: see
+`docs/datalog.md`, "Installing the engines".

@@ -30,6 +30,41 @@ It prints a copy-pasteable load/run hint for each engine — `swipl <out>/graph.
 for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé. The
 underlying orchestration lives in `culturescrape.datalog.export`.
 
+## Installing the engines (SWI-Prolog + Soufflé)
+
+The projection above needs no engine, but *running* the generated program — the
+`/datalog` console, the shipped example queries, and the cross-engine
+equivalence harness — needs `swipl` and/or `souffle` on `PATH`. Both are now
+installed in CI (the `culture-scrape` job in `.github/workflows/convergence-qa.yml`)
+and in the sidecar image (`Dockerfile`), so the previously `skipif`-gated engine
+tests execute there. To run them locally:
+
+**macOS (Homebrew):**
+
+```console
+$ brew install swi-prolog
+$ brew install souffle          # tap: souffle-lang/homebrew-souffle if needed
+```
+
+**Debian / Ubuntu:**
+
+```console
+$ sudo apt-get install -y swi-prolog
+# Soufflé is not in the Ubuntu/Debian archive; use the official apt repo
+# (Ubuntu only — its .deb needs libffi7, present on 22.04 but not 24.04):
+$ wget -qO- https://souffle-lang.github.io/ppa/souffle-key.public \
+    | sudo gpg --dearmor -o /usr/share/keyrings/souffle-archive-keyring.gpg
+$ echo "deb [signed-by=/usr/share/keyrings/souffle-archive-keyring.gpg] https://souffle-lang.github.io/ppa/ubuntu/ stable main" \
+    | sudo tee /etc/apt/sources.list.d/souffle.list
+$ sudo apt-get update && sudo apt-get install -y souffle
+```
+
+On distros without a working apt `souffle` (Debian, Ubuntu 24.04), build it from
+source — see [souffle-lang.github.io/build](https://souffle-lang.github.io/build)
+(the sidecar `Dockerfile` does exactly this in its `souffle-build` stage). Verify
+with `swipl --version` and `souffle --version`. With neither engine present the
+runnable tests skip with a logged reason and the console lints offline instead.
+
 ```python
 >>> from culturescrape.datalog import Fact, Dialect, render_atom
 
@@ -77,7 +112,7 @@ binary predicate per `:TYPE` — the two are interchangeable views:
 |---|---|
 | `rel/3` | `rel(Type, Start, End)` — generic edge with the type as data |
 | `located_in/2`, `originates_from/2`, `created_by/2`, … | typed projection of a single `:TYPE` |
-| `rel_conf/4` | `rel_conf(Type, Start, End, Weight)` — optional edge strength/confidence |
+| `rel_conf/4` | `rel_conf(Type, Start, End, Conf)` — optional edge confidence (falls back to legacy `weight`) |
 
 ### Dimension facts
 
@@ -146,9 +181,11 @@ idempotent.
 - `rel(t, A, B)` — the **generic** view, so every edge is reachable by one
   uniform query (`rel(Type, A, B)`);
 - `t(A, B)` — the **typed** view, one binary predicate per `:TYPE`;
-- `rel_conf(t, A, B, Weight)` — an optional companion exposing the edge
-  `weight` (its strength/confidence), emitted **only** when that column is
-  populated, so the base relations stay arity-stable.
+- `rel_conf(t, A, B, Conf)` — an optional companion exposing the edge's
+  **confidence** (its strength), emitted **only** when a strength is populated,
+  so the base relations stay arity-stable. The value is the canonical
+  `confidence` column; the legacy `weight` column is a fallback used only when
+  `confidence` is blank but `weight` is genuinely populated.
 
 Both views carry the **same atom** for the type, so a query pivots between them
 freely: `rel(located_in, A, B)` mirrors `located_in(A, B)`. Each fact carries
@@ -174,12 +211,12 @@ rejected rather than silently colliding.
 
 ```
 
-A weighted edge yields all three facts; the type atom is shared across the
-generic and typed views, and `rel_conf` carries the numeric weight:
+A confidence-bearing edge yields all three facts; the type atom is shared across
+the generic and typed views, and `rel_conf` carries the numeric confidence:
 
 ```python
 >>> row = {":START_ID": "cs:dish:Q42", ":END_ID": "cs:place:Q123",
-...        ":TYPE": "LOCATED_IN", "weight": "0.9", "source": "wikidata"}
+...        ":TYPE": "LOCATED_IN", "confidence": "0.9", "source": "wikidata"}
 >>> for fact in edge_facts(row):
 ...     print(fact.render())
 rel(located_in, 'cs:dish:Q42', 'cs:place:Q123').  % source: wikidata
@@ -328,8 +365,9 @@ A pure Horn rule (a head and a body of positive literals over **variables**) is
 written identically in ISO-Prolog and in Soufflé — the dialects diverge only on
 how *constants* are quoted, and a rule has none. So each rule's clause text is
 **shared verbatim** across both outputs; the engines differ only in the
-scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`
-directives, Soufflé's `.decl`/`.output`), which the emitters add automatically.
+scaffolding around the clauses (Prolog's `:- dynamic`/`:- discontiguous`/`:-
+table` directives, Soufflé's `.decl`/`.output`), which the emitters add
+automatically.
 
 Every rule relation is **binary over csids**.
 
@@ -354,6 +392,18 @@ TypeScript engine, per `docs/culturescrape-integration.md`.
 contemporary_with(Y, X).` would loop, so a distinct head keeps the symmetric
 closure terminating while still agreeing with Soufflé's fixpoint.
 
+A distinct head is not enough for the **transitive-closure** rules, though: their
+base relations can themselves be cyclic. `descends_from` carries a data-error
+cycle (`clovis` ↔ `folsom`, see `docs/engine-validation.md`) and `influenced_by`
+is *legitimately* cyclic — mutual influence (`eng` ↔ `fra`, `arb` ↔ `heb`, …) is
+real — so naive SLD evaluation of `ancestor`/`influenced_transitively` loops
+forever in SWI-Prolog. The Prolog emitter therefore declares every **recursive**
+rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`)
+`:- table` instead of `:- dynamic`: SLG resolution computes the least fixpoint and
+terminates, producing exactly Soufflé's tuple set (verified on the full corpus —
+`docs/engine-validation.md`). This is a Prolog-only concern; Soufflé's set
+semantics handle cycles natively, so the shared clause text is untouched.
+
 ### Attaching the rules
 
 Passing `rules=RULES` appends a documented rules section — each rule's intended
@@ -372,11 +422,21 @@ True
 
 In Prolog the rule's derived **and** base predicates are declared, so a query
 over a base relation the current graph never populated answers `false` instead
-of raising an existence error:
+of raising an existence error. A base relation is `:- dynamic`; a **recursive**
+derived head (a transitive closure) is instead `:- table`d — SWI-Prolog's naive
+SLD resolution does not terminate on a closure rule when the base relation
+carries a cycle (`descends_from` has a data-error cycle; `influenced_by` is
+legitimately cyclic — mutual influence), and tabling (SLG resolution) computes
+the least fixpoint and terminates, matching Soufflé. A tabled predicate must not
+also be `:- dynamic` (SWI forbids tabling a dynamic procedure):
 
 ```python
->>> ":- dynamic ancestor/2." in pl and ":- dynamic descends_from/2." in pl
+>>> ":- dynamic descends_from/2." in pl   # base relation
 True
+>>> ":- table ancestor/2." in pl          # recursive derived head
+True
+>>> ":- dynamic ancestor/2." in pl        # ...never both
+False
 
 ```
 
@@ -487,11 +547,12 @@ interactive engine.
 ## Materializing inference at scale (US-004)
 
 Loading a generated `graph.pl`/`graph.dl` into an engine materializes the derived
-relations — but neither `swipl` nor `souffle` is installed in CI, and the full
-corpus program is ~1 GB. `culturescrape.datalog.materialize` computes each rule's
-extension **engine-free**: a small naive-fixpoint evaluator over the projected
-facts, so the four US-004 inference targets can be produced, counted, and
-validated without an engine. `culturescrape datalog-materialize <dataset>` prints
+relations — but the full corpus program is ~1 GB, and the engine-free path stays
+useful even now that CI carries the engines (see "Installing the engines" above),
+because it is fast and needs no engine at all. `culturescrape.datalog.materialize`
+computes each rule's extension **engine-free**: a small naive-fixpoint evaluator
+over the projected facts, so the four US-004 inference targets can be produced,
+counted, and validated without an engine. `culturescrape datalog-materialize <dataset>` prints
 the base-relation counts the rules read and the derived-relation counts, and
 `--json <path>` writes them as a manifest:
 

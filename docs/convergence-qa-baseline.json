@@ -1,7 +1,8 @@
 {
   "//": "Convergence-QA dedup/reconciliation regression baseline (US-001). A monotone ratchet: scaled data may hold or lower these, never exceed them without a deliberate, reviewed re-baseline. Regenerate: npx tsx scripts/convergence-qa.ts --write-baseline",
-  "duplicateCsids": 44,
-  "ambiguousLinguascrapeIds": 16,
-  "edgesWithUnresolvedEndpoint": 139,
-  "reconciliationAmbiguous": 242
+  "//us-008": "US-008 burned duplicateCsids 44→0 and ambiguousLinguascrapeIds 16→0 by renaming/merging the colliding lexicon rows (scripts/dedupe-identity.ts). reconciliationAmbiguous rose 242→302 as a DELIBERATE, expected side effect: the 44 previously duplicate-csid rows were being silently dropped from reconciliation too; recovering them as distinct nodes surfaces the pre-existing ambiguity that several of them (historical-variant entries + languages sharing an ISO/collective code, e.g. the 9 Totonac lects all carrying iso639_2=tot) block-collide on the language-code key. Lowering it further is a follow-up glottocode/ISO-enrichment task, not an identity-split bug.",
+  "duplicateCsids": 0,
+  "ambiguousLinguascrapeIds": 0,
+  "edgesWithUnresolvedEndpoint": 0,
+  "reconciliationAmbiguous": 302
 }

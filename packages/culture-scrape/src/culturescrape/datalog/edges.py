@@ -9,9 +9,11 @@ interchangeable views plus an optional strength companion:
   data so every edge is reachable by a single uniform query;
 * ``t(A, B)`` — the **typed** view, one binary predicate per ``:TYPE`` (``t`` is
   :func:`predicate_for_type`, e.g. ``located_in``/``derived_from``);
-* ``rel_conf(t, A, B, W)`` — an optional companion exposing the edge ``weight``
-  (its strength/confidence), emitted only when that column is populated so the
-  base relations stay arity-stable.
+* ``rel_conf(t, A, B, W)`` — an optional companion exposing the edge's
+  **confidence** (its strength), emitted only when a strength is populated so the
+  base relations stay arity-stable. The canonical ``confidence`` column is the
+  source; the legacy ``weight`` column is a fallback used only when ``confidence``
+  is blank but ``weight`` is genuinely populated.
 
 The generic and typed views use the *same* atom for the type — ``rel(located_in,
 A, B)`` mirrors ``located_in(A, B)`` — so a query can pivot between them freely.
@@ -70,8 +72,10 @@ def edge_facts(row: Row) -> list[Fact]:
     """Project one decoded edge *row* into its facts.
 
     Emits the generic ``rel/3`` and the typed ``<type>/2`` for the edge, plus
-    ``rel_conf/4`` when the ``weight`` column is populated. An empty ``weight``
-    emits no companion, so no null reaches the logic program. Every fact carries
+    ``rel_conf/4`` carrying the edge's strength. The strength is the canonical
+    ``confidence`` column, falling back to ``weight`` only when ``confidence`` is
+    blank and ``weight`` is genuinely populated; when neither is populated no
+    companion is emitted, so no null reaches the logic program. Every fact carries
     the row's ``source`` as provenance.
     """
     start = _scalar(row, ":START_ID")
@@ -90,10 +94,11 @@ def edge_facts(row: Row) -> list[Fact]:
         Fact(predicate, (start, end), source=source),
     ]
 
-    weight = _scalar(row, "weight")
-    if weight:  # optional strength/confidence; empty cell emits no companion
+    # Prefer the canonical confidence; fall back to a populated legacy weight.
+    strength = _scalar(row, "confidence") or _scalar(row, "weight")
+    if strength:  # optional strength; a blank cell emits no companion
         facts.append(
-            Fact("rel_conf", (predicate, start, end, float(weight)), source=source)
+            Fact("rel_conf", (predicate, start, end, float(strength)), source=source)
         )
 
     return facts

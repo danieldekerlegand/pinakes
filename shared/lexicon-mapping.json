@@ -674,6 +674,7 @@
         { "column": "native_name", "target": "aliases" },
         { "column": "iso639_1", "target": "language_code" },
         { "column": "iso639_2", "property": true, "note": "secondary ISO code; reconciliation key (US-005)" },
+        { "column": "glottocode", "property": true, "note": "Glottolog languoid id; reconciliation key resilient to ISO macro-code collisions (US-006)" },
         { "column": "family_id", "edge": "descended-from" },
         { "column": "parent_language_id", "edge": "descended-from" },
         { "column": "region", "property": true },

@@ -253,6 +253,37 @@ RULES: tuple[Rule, ...] = (
 )
 
 
+def is_recursive(rule: Rule) -> bool:
+    """Whether *rule*'s head predicate appears in any of its own clause bodies.
+
+    A recursive rule is a transitive/fixpoint closure (``ancestor`` reads
+    ``ancestor``, ``within_region`` reads ``within_region``, …). Naive Prolog
+    (SLD) evaluation of such a rule does **not terminate** when the base relation
+    contains a cycle — ``descends_from`` carries a data-error cycle and
+    ``influenced_by`` is legitimately cyclic (mutual influence), so a full
+    enumeration of ``ancestor``/``influenced_transitively`` loops forever. The
+    Prolog emitter therefore *tables* these predicates (SLG resolution computes
+    the least fixpoint and terminates, matching Soufflé's set semantics). A
+    non-recursive rule (the symmetric ``contemporary``, the join ``same_region``,
+    ``genetic_linguistic_correlation``) terminates without tabling.
+    """
+    for clause in rule.clauses:
+        _head, sep, body = clause.partition(":-")
+        if sep and f"{rule.name}(" in body:
+            return True
+    return False
+
+
+def tabled_signatures(rules: Iterable[Rule]) -> set[tuple[str, int]]:
+    """The ``(predicate, arity)`` of every recursive rule head in *rules*.
+
+    These are the derived predicates the Prolog emitter must declare ``:- table``
+    (rather than ``:- dynamic``) so a cyclic base relation cannot make evaluation
+    loop. See :func:`is_recursive`.
+    """
+    return {(rule.name, ARITY) for rule in rules if is_recursive(rule)}
+
+
 def rule_signatures(rules: Iterable[Rule]) -> set[tuple[str, int]]:
     """The ``(predicate, arity)`` pairs the *rules* define and read.
 
@@ -307,6 +338,8 @@ __all__ = [
     "SAME_REGION",
     "WITHIN_REGION",
     "Rule",
+    "is_recursive",
     "render_rule",
     "rule_signatures",
+    "tabled_signatures",
 ]

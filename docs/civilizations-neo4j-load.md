@@ -1,10 +1,31 @@
 # Civilizations Neo4j load & smoke query (US-004)
 
+> **Historical intermediate snapshot.** This document records the *first* civilizations
+> Neo4j load (US-004) and its then-current export counts (**5,432 nodes / 5,526 edges**,
+> 7 edge types). Those numbers are frozen at that point in time and have since moved: the
+> live export is now **6,835 nodes / 5,836 edges across 8 edge types** (see
+> [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json), the
+> authoritative live snapshot). The **procedure** below (MERGE-on-`csid`, idempotent
+> LOAD CSV, the docker-compose Neo4j additions) is still current and reusable; only the
+> inline counts are a period record, not a live figure. See also the csid-migration note
+> just below. For the canonical Phase-0 status and the fork policy, see
+> [`../NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md) and
+> [`docs/culturescrape-fork-policy.md`](./culturescrape-fork-policy.md).
+
 The expanded civilizations (`lexicons/civilizations.tsv`, 170 rows after US-003) loaded
 into the live Neo4j graph via the incremental, idempotent `culturescrape to-neo4j
 --mode loadcsv` path, so the running app queries real breadth. The load is `MERGE`-on-`csid`
 (never `CREATE`) behind an `Entity.csid` uniqueness constraint plus per-label constraints/
 indexes, so re-running it does not duplicate nodes or relationships.
+
+> **csid migration (US-005).** This snapshot predates QID-anchored ids. The export now
+> mints `cs:<type>:<QID>` for any row with a non-blank `wikidata_qid` (only rows without a
+> QID keep `cs:<type>:<linguascrape-id>`; see `shared/canonical-schema.json` `idScheme`).
+> Because the load `MERGE`s on `csid`, the first load after this change **re-keys** every
+> QID-bearing node onto its new csid rather than updating the old linguascrape-id-anchored
+> node. To migrate an already-populated graph, wipe and reload from the fresh export (the
+> load is idempotent, so a clean reload is the supported path) rather than merging on top of
+> the old ids — otherwise the pre-migration nodes are orphaned under their stale csids.
 
 ## What ran
 

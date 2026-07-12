@@ -36,16 +36,38 @@ jobs:
         run: npm run convergence-qa
 
   culture-scrape:
-    runs-on: ubuntu-latest
+    # Pinned to 22.04 (jammy): the official souffle-lang apt repo ships a .deb
+    # that depends on libffi7, which exists on jammy but not on ubuntu-latest
+    # (24.04 / noble ships libffi8). This lets swipl + souffle install via plain
+    # apt so the engine-gated Datalog tests execute instead of skipping.
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: packages/culture-scrape
     steps:
       - uses: actions/checkout@v4
+      - name: Install logic engines (swi-prolog + souffle)
+        # swi-prolog is in the Ubuntu archive; souffle is not, so add the
+        # official souffle-lang apt repo. With both present the previously
+        # skipif-gated engine tests (tests/test_datalog_*.py) actually run.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends swi-prolog wget gnupg ca-certificates
+          wget -qO- https://souffle-lang.github.io/ppa/souffle-key.public \
+            | sudo gpg --dearmor -o /usr/share/keyrings/souffle-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/souffle-archive-keyring.gpg] https://souffle-lang.github.io/ppa/ubuntu/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/souffle.list
+          sudo apt-get update
+          sudo apt-get install -y souffle
+          swipl --version
+          souffle --version
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Sync Python deps
-        run: uv sync --frozen
+        # --all-extras pulls the dev tooling (ruff/mypy/pytest) plus the gui
+        # (fastapi/uvicorn) and neo4j extras mypy --strict needs to typecheck the
+        # explorer app; the bare `uv sync` installs only the runtime deps.
+        run: uv sync --frozen --all-extras
       - name: Lint (ruff)
         run: uv run ruff check .
       - name: Typecheck (mypy)

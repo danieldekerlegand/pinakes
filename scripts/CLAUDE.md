@@ -90,12 +90,48 @@ non-empty data (`npm run smoke:graph`, docs in
 (gitignored) + `manifest.json`, and a committed manifest snapshot at
 `docs/culturescrape-export-manifest.json`. It reuses `@shared/lexicon-mapping` (node
 `target`/`property` dispositions) and `server/services/canonical-edges`
-(`extractAllCanonicalEdges`) for edges. csid = `cs:<node-type>:<linguascrape-id>`; edge
-endpoints are rewritten to node csids via a `linguascrape_id → csid` index built during the
-node pass — endpoints with no exported node are counted + sampled in the manifest, never
-emitted (keeps output `neo4j-admin import`-clean). Output is idempotent (rows sorted, no
-wall-clock written). Combined `*coordinates` JSON cells (`{"lat":..,"lng":..}`) split into
-`lat`/`lon`.
+(`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
+non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
+`shared/canonical-schema.json` `idScheme`); a row without one falls back to
+`cs:<node-type>:<linguascrape-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
+`wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
+`targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
+snapshots agree. Edge endpoints are rewritten to node csids via a `linguascrape_id → csid`
+index built during the node pass (so QID-anchoring re-points edges for free — endpoints are
+still keyed on `linguascrape_id`, which is unchanged) — endpoints with no exported node are
+counted + sampled in the manifest, never emitted (keeps output `neo4j-admin import`-clean).
+Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinates` JSON cells
+(`{"lat":..,"lng":..}`) split into `lat`/`lon`.
+
+- **GOTCHA — QID-anchoring is snapshot-neutral for the export MANIFEST but not the
+  reconciliation report.** The manifest holds only counts + lsId-keyed unresolved samples (no
+  csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
+  lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
+  The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
+  `linguascrape_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
+
+- **Unresolved edge endpoints mint flagged stub nodes, not dropped edges (US-007).** An edge
+  whose start/end id has no exported node used to be counted-and-dropped
+  (`edgesWithUnresolvedEndpoint`). Now `buildExport` mints a **needs-curation stub node** for
+  that id so the edge is recovered. Chosen over hand-curating ~128 missing rows because it is
+  deterministic, network-free, and self-contained (one story); the stubs carry
+  `STUB_NEEDS_CURATION_NOTE` in `description` + `confidence=0` + `name = humanizeId(id)`, and a
+  follow-up curation pass replaces them with real typed nodes (many are id-space mismatches —
+  `cultural-lineages.tsv` writes flat `proto_indo_european`, `families.tsv` the hierarchical
+  `indo_european`). Stub **type** is borrowed from the resolved counterpart endpoint when there
+  is one, else `STUB_TYPE_BY_SOURCE_FILE[sourceFile]` (both endpoints unresolved), else
+  `DEFAULT_STUB_TYPE` (`culture`). Minted **once per id** (`idIndex` first-wins), so no
+  `ambiguousLinguascrapeIds` / `duplicateCsids` regression — only `edgesWithUnresolvedEndpoint`
+  moves (→0; re-baseline `docs/convergence-qa-baseline.json`). Manifest gains
+  `diagnostics.stubNodes{Minted,ByType,Samples}`. Stubs have no lexicon row, so the write-back
+  round-trip still no-ops (import keys on `linguascrape_id`; a stub id matches nothing → skipped).
+  `reconciliation-report.json` reads **lexicons**, not the export, so it is unchanged by stubs.
+
+- **GOTCHA — a literal `"null"` FK cell is not an id.** `writing-systems.tsv` writes the string
+  `"null"` in `parent_system_id` for a root script; `canonical-edges.ts` now treats
+  `""`/`null`/`none`/`n/a`/`undefined` (case-insensitive, `isBlankId`) as a blank endpoint in
+  both `splitIdList` and the edge-table start/end guard, so no phantom `descended-from → null`
+  edge is emitted (was 15 of the dropped edges).
 
 ## Provenance propagation (US-006)
 
@@ -109,9 +145,19 @@ blank, the column is always present). Rules:
   and it is preserved into the node **`source_query`** column — never dropped. `source` is
   in `PROVENANCE_FORCED_FIELDS` so the citation column is *not* read as `source`; it is read
   explicitly via `mapping.columns.find(c => c.target === "source")`.
-- `source_url` = `deriveSourceUrl(...)`, which returns the first real `http(s)` URL found
-  in the citation/cells, else `""`. **Never fabricate a URL.** Live corpus: 0 rows have one.
-- `retrieved_at` = `""` (LinguaScrape records no retrieval timestamp).
+- `source_url` = the lexicon row's mapped `source_url` column **verbatim** when present
+  (US-004: ~1.9k acquired rows carry a Wikidata entity URL), else `deriveSourceUrl(...)`
+  (first real `http(s)` URL embedded in the citation/cells), else `""`. **Never fabricate a
+  URL.** `retrieved_at` = the row's mapped `retrieved_at` column verbatim, else `""`.
+- **US-004 propagation:** `source_url`/`retrieved_at` are in `PROVENANCE_FORCED_FIELDS` (so the
+  generic `target`→column loop skips them) and are read **explicitly** in `buildNodesForFile`
+  from `mapping.columns.find(c => c.target === "source_url" | "retrieved_at")`. The 15 acquire
+  lexicons map both columns; node coverage in the manifest is ~1,868 each (fewer than the 1,932
+  populated lexicon rows: `trade-routes.tsv` is `kind: attribute` = not exported, plus dropped
+  duplicate/missing-id rows). Edges carry no lexicon URL (their source files don't map the
+  columns), so edge `source_url`/`retrieved_at` stay `0` — the export change is node-only.
+  The `node.source_url`/`node.retrieved_at` "0/N … left blank" flags now only appear when a
+  build genuinely has zero (e.g. a fixture without the columns).
 - Edges have **no `source_query`** column (culture-scrape's edge schema omits it), so an
   edge that carried a citation is counted in `manifest.provenance.edge.citationsWithoutCanonicalColumn`
   (never silently dropped; embedded-FK edges keep it on the host node's `source_query`).
@@ -417,6 +463,84 @@ is pure over a lexicons dir; it reuses `mintCsid`/`normaliseConfidence` from
 `export-for-culturescrape.ts`. **Gotcha:** the committed snapshot is asserted against the live
 corpus by a test — re-run the CLI (`npx tsx scripts/reconciliation-report.ts`) after any
 change that shifts node counts/keys, or that live test fails. Region is read from the first
-header ending in `region` (`region`/`origin_region`/`proposed_region`); LinguaScrape has no
-glottocode column today, so language matching rests on the ISO codes. See
+header ending in `region` (`region`/`origin_region`/`proposed_region`). Language matching
+uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
+`languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
+report's `keyCoverage.languages.withGlottocode` tracks it). See
 `packages/culture-scrape/docs/reconcile-linguascrape.md`.
+
+## Language glottocode enrichment (US-006)
+
+`acquire-language-glottocode.ts` is the per-domain **acquire → enrich** step for the
+`glottocode` column on `languages.tsv` (language identity must not rest solely on ISO codes —
+macro-code collisions like `hmn`). Same shape as `acquire-language-status.ts`: the one
+networked step, emitting a committed replay TSV (`scripts/data/language-glottocode-enrichment
+.tsv`) the write-back + gate operate on (CI never hits Wikidata). Apply it with the generic
+enrichment write-back: `import-from-culturescrape --enrich <file> --target languages.tsv`.
+
+- **Two glottocode sources, Wikidata-first.** Wikidata **P1394** (`glottolog code`) keyed by the
+  row's `wikidata_qid` is primary (every QID-bearing corpus language resolves one); `words.tsv`
+  `Glottocode` (LexiBank/CLDF, joined by the `iso639_2` ISO-639-3 slot) is the fallback for
+  rows with **no** QID. A QID row always resolves via Wikidata, so words.tsv only adds a handful.
+- **Provenance rule avoids write-back conflicts.** A Wikidata-sourced glottocode inherits the
+  target row's *existing* Wikidata provenance (its QID/`source_url` are already stamped), so the
+  enrichment record carries **only** `glottocode` — re-stamping `retrieved_at`/`sources` would
+  conflict with the endangerment enrichment's UNESCO provenance and be *reported*. A words.tsv-only
+  (no-QID) row has blank provenance, so it *is* stamped with Glottolog provenance (its first
+  sourced datum). Net: `--enrich` lands 0 conflicts.
+- **`glottocode` is mapped as `property`** in `lexicon-mapping.json` (mirrors `iso639_2` — a
+  secondary reconciliation key with no dedicated canonical field), so it is NOT in the export node
+  header (`nodeHeaderRow` is fixed) and the export manifest's node columns are unchanged. The only
+  manifest movement is the 24 words.tsv rows gaining `source_url`/`retrieved_at`/`source_query`
+  provenance (a deliberate coverage rise). The reconciliation report reads glottocode by a
+  column-name regex (`/glotto/i`), not via the canonical mapping, so `withGlottocode` populates
+  from the property column.
+
+## Identity dedupe migration — `dedupe-identity.ts` (US-008)
+
+The one-shot, idempotent, byte-faithful migration that burned the export's 44 duplicate
+csids (`cs:<type>:<id>` collisions = same `id` reused by ≥2 nodes of ONE type) and 16
+ambiguous `linguascrape_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
+It edits `lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
+targeted cells change) and is safe to re-run (a row whose old id is already gone is skipped).
+Reusable rules for any future id-collision cleanup:
+
+- **The two metrics are driven ONLY by the node `id` column.** duplicateCsids = same-type
+  same-id; ambiguousLinguascrapeIds = same raw id across types. So the fix is always a node
+  `id` rename or a row delete — nothing else moves them. `id` renames do NOT touch the
+  reconciliation `ambiguous` metric (languages key on iso639_1/iso639_2/glottocode, everything
+  else on (name,type,region) — never `id`).
+- **Rename, don't delete, to avoid clobbering curated data.** Keep BOTH near-duplicate rows
+  with distinct ids (`-classical` for `is_historical_variant=true` entries, `-manding`/`-western`
+  for a language duplicated under two family hierarchies, a name-slug for a distinct language that
+  mis-shares an ISO/collective code — the 9 Totonac lects all carried `iso639_2=tot`). Only
+  delete a row that is **byte-identical** to its twin (3 cuisine-items rows here).
+- **Keep the id on the FK/edge-referenced side; rename the leaf.** Every original id must still
+  resolve to a kept node so no edge is orphaned into a needs-curation stub (US-007) and the 6
+  referential-integrity FKs (`data-quality-scorer.ts` `FOREIGN_KEY_MAP`:
+  languages.family_id/parent_language_id, families.parent_id, grammar-features/phonological-
+  inventories/words → languages.id) stay 100%. For a cross-type pair, the referencing COLUMN
+  disambiguates the type (`civilization_id`→culture, `archaeological_culture_id`→arch-culture,
+  `families.parent_id`→family, `language_id`/`Language_ID`→language), so re-point precisely.
+  Only the renamed node's own references need following: e.g. keeping the Nok archaeological
+  culture but renaming the Nooksack *language* means re-pointing grammar-features/phonological-
+  inventories `language_id` (the language FKs) but nothing else.
+- **The EDGE-endpoint columns are the ones that mint stubs if orphaned** (from
+  `shared/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
+  predecessor/successor_culture_ids, cultural-lineages source_id/target_id (**polymorphic** — any
+  node type), deities.syncretism_links, etymology-relations + language-contacts endpoints,
+  families.parent_id, languages.family_id/parent_language_id, writing-systems.parent_system_id.
+  `associated_*`/`culture_id`/`pantheon` are **property** columns (not FKs, not edges) — not gate-
+  checked, so they re-resolve to the kept same-id node harmlessly.
+- **VERIFY EMPIRICALLY, twice.** New ids can collide with EXISTING ones (here `esselen`,
+  `mohenjo-daro-settlement`, and an existing `indus-valley-civilization` archaeological culture
+  all pre-existed — the first slug choices regressed). After the migration re-run the
+  duplicate/ambiguous diagnostic AND the export, and watch `diagnostics.{duplicateCsids,
+  ambiguousLinguascrapeIds,edgesWithUnresolvedEndpoint,stubNodesMinted}` (stubs must NOT rise).
+- **Recovering dropped rows RAISES reconciliation `ambiguous`.** The 44 duplicate-csid rows were
+  being silently dropped from BOTH the export and reconciliation (`buildReconciliationKeys`
+  `duplicateCsidsDropped`). Making them distinct surfaces them in reconciliation, where near-dups
+  sharing an ISO/collective code legitimately block-collide → `reconciliationAmbiguous` rose
+  242→302. That is a **deliberate, explained** re-baseline of `docs/convergence-qa-baseline.json`
+  (`npm run convergence-qa:baseline`), not a regression to hide. Lowering it is a follow-up
+  glottocode/ISO-enrichment task.

@@ -536,9 +536,10 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
         expect(report.totals.conflicts).toBe(0);
         expect(report.totals.filesChanged).toBe(0);
         expect(report.totals.nodesMatched).toBeGreaterThan(0);
-        // The corpus reuses some ids (e.g. `mohenjo-daro` across place files); those are
-        // safely skipped and surfaced, never written.
-        expect(report.totals.skippedAmbiguousIds).toBeGreaterThan(0);
+        // US-008 burned every duplicate/ambiguous linguascrape_id to zero (a within-node-type
+        // id reuse IS a duplicate csid), so the write-back no longer has to skip any ambiguous
+        // id — it round-trips the whole corpus cleanly.
+        expect(report.totals.skippedAmbiguousIds).toBe(0);
       } finally {
         fs.rmSync(canon, { recursive: true, force: true });
       }

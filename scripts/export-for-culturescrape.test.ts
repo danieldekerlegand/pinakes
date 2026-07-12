@@ -11,6 +11,9 @@ import {
   parseCitation,
   deriveSourceUrl,
   normaliseConfidence,
+  humanizeId,
+  nodeTypeFromCsid,
+  STUB_NEEDS_CURATION_NOTE,
   EXPORT_SOURCE,
   DEFAULT_NODE_CONFIDENCE,
   NODE_PROVENANCE_FIELDS,
@@ -44,6 +47,19 @@ describe("export-for-culturescrape (US-004)", () => {
       expect(mintCsid("language", "french")).toBe("cs:language:french");
     });
 
+    it("anchors the csid on a known Wikidata QID, else falls back to the id (US-005)", () => {
+      // Non-blank QID → cs:<type>:<QID> (the same entity carries one id everywhere).
+      expect(mintCsid("language", "french", "Q150")).toBe("cs:language:Q150");
+      // Blank / whitespace-only QID → readable linguascrape-id fallback.
+      expect(mintCsid("language", "french", "")).toBe("cs:language:french");
+      expect(mintCsid("language", "french", "  ")).toBe("cs:language:french");
+      expect(mintCsid("language", "french")).toBe("cs:language:french");
+      // QID is trimmed so a padded cell still anchors cleanly.
+      expect(mintCsid("civilization", "sumer", " Q35355 ")).toBe(
+        "cs:civilization:Q35355",
+      );
+    });
+
     it("parses JSON and bare coordinate cells, rejects garbage", () => {
       expect(parseCoordinates('{"lat":31.8,"lng":35.2}')).toEqual({
         lat: 31.8,
@@ -58,6 +74,18 @@ describe("export-for-culturescrape (US-004)", () => {
       expect(normaliseConfidence("80")).toBeCloseTo(0.8);
       expect(normaliseConfidence("0.9")).toBeCloseTo(0.9);
       expect(normaliseConfidence("")).toBe(DEFAULT_NODE_CONFIDENCE);
+    });
+
+    it("humanises an id into a readable stub name (US-007)", () => {
+      expect(humanizeId("proto_indo_european")).toBe("Proto Indo European");
+      expect(humanizeId("corded_ware")).toBe("Corded Ware");
+      expect(humanizeId("bell-beaker")).toBe("Bell Beaker");
+    });
+
+    it("recovers the node type from a csid (US-007)", () => {
+      expect(nodeTypeFromCsid("cs:language-family:proto_x")).toBe("language-family");
+      expect(nodeTypeFromCsid("cs:deity:Q1234")).toBe("deity");
+      expect(nodeTypeFromCsid("malformed")).toBe("");
     });
   });
 
@@ -200,26 +228,166 @@ describe("export-for-culturescrape (US-004)", () => {
       }
     });
 
-    it("reports (never emits) edges whose endpoint has no exported node", () => {
-      // A dedicated edge table referencing ids that are not exported nodes.
+    it("mints flagged stub nodes for unresolved endpoints so the edge is recovered (US-007)", () => {
+      // A dedicated edge table referencing ids that are not exported nodes: BOTH
+      // endpoints are unresolved, so both fall to the source file's default type
+      // (cultural-lineages.tsv → language-family).
       const dir = makeFixtureDir({
         "cultural-lineages.tsv": [
           ["id", "source_id", "source_name", "target_id", "target_name",
             "relationship_type", "time_start", "time_end", "confidence",
             "evidence_types", "description", "sources"],
-          ["cl1", "ghost_a", "A", "ghost_b", "B", "split-from", "", "", "50",
+          ["cl1", "proto_x", "X", "proto_y", "Y", "split-from", "", "", "50",
             "[]", "d", "[]"],
+        ],
+      });
+      try {
+        const { nodeGroups, edgeGroups, manifest } = buildExport(dir);
+        // The edge is now emitted (recovered), not dropped.
+        const split = edgeGroups.get("split-from")!;
+        expect(split).toHaveLength(1);
+        expect(split[0][edgeCol(":START_ID")]).toBe("cs:language-family:proto_x");
+        expect(split[0][edgeCol(":END_ID")]).toBe("cs:language-family:proto_y");
+
+        // Both endpoints were minted as flagged needs-curation stub nodes.
+        const fams = nodeGroups.get("language-family")!;
+        const stubX = fams.find((r) => r[nodeCol("linguascrape_id")] === "proto_x")!;
+        expect(stubX[nodeCol("csid")]).toBe("cs:language-family:proto_x");
+        expect(stubX[nodeCol("name")]).toBe("Proto X");
+        expect(stubX[nodeCol("description")]).toBe(STUB_NEEDS_CURATION_NOTE);
+        expect(stubX[nodeCol("confidence")]).toBe("0");
+        expect(stubX[nodeCol("source")]).toBe(EXPORT_SOURCE);
+
+        expect(manifest.diagnostics.edgesWithUnresolvedEndpoint).toBe(0);
+        expect(manifest.diagnostics.unresolvedEndpointSamples).toEqual([]);
+        expect(manifest.diagnostics.stubNodesMinted).toBe(2);
+        expect(manifest.diagnostics.stubNodesByType).toEqual({ "language-family": 2 });
+        expect(manifest.diagnostics.stubNodeSamples).toContainEqual({
+          linguascrapeId: "proto_x",
+          type: "language-family",
+          sourceFile: "cultural-lineages.tsv",
+        });
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("borrows a stub's type from the resolved counterpart, and mints each id once", () => {
+      // yamnaya is a real archaeological-culture; its successor corded_ware has no
+      // node, so the stub borrows archaeological-culture (not the file default).
+      // corded_ware is referenced by two edges but minted only once.
+      const dir = makeFixtureDir({
+        "archaeological-cultures.tsv": [
+          [
+            "id", "name", "region", "coordinates", "boundary_geometry",
+            "time_period_start", "time_period_end", "time_period_label",
+            "subsistence_pattern", "pottery_style", "burial_practices",
+            "material_culture_traits", "probable_language_family",
+            "probable_haplogroups", "predecessor_culture_ids",
+            "successor_culture_ids", "confidence", "sources", "description",
+          ],
+          [
+            "yamnaya", "Yamnaya", "Steppe", "", "", "-3300", "-2600", "", "", "",
+            "", "", "", "", "[]", '["corded_ware","corded_ware"]', "80",
+            '["Anthony 2007"]', "desc",
+          ],
+        ],
+      });
+      try {
+        const { nodeGroups, edgeGroups, manifest } = buildExport(dir);
+        const arch = nodeGroups.get("archaeological-culture")!;
+        const stub = arch.filter((r) => r[nodeCol("linguascrape_id")] === "corded_ware");
+        // Minted exactly once despite two successor references.
+        expect(stub).toHaveLength(1);
+        expect(stub[0][nodeCol("csid")]).toBe("cs:archaeological-culture:corded_ware");
+        expect(stub[0][nodeCol("description")]).toBe(STUB_NEEDS_CURATION_NOTE);
+        expect(manifest.diagnostics.stubNodesMinted).toBe(1);
+        expect(manifest.diagnostics.stubNodesByType).toEqual({
+          "archaeological-culture": 1,
+        });
+        // The recovered successor edge (successor_culture_ids → absorbed-into)
+        // points at the stub.
+        const absorbed = edgeGroups.get("absorbed-into")!;
+        expect(
+          absorbed.some(
+            (r) =>
+              r[edgeCol(":START_ID")] === "cs:archaeological-culture:yamnaya" &&
+              r[edgeCol(":END_ID")] === "cs:archaeological-culture:corded_ware",
+          ),
+        ).toBe(true);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("does not emit a phantom edge to a literal 'null' parent (writing-systems)", () => {
+      // A root writing system stores the literal string "null" for parent_system_id;
+      // no descended-from edge to a phantom `null` node is created (US-007 data fix).
+      const dir = makeFixtureDir({
+        "writing-systems.tsv": [
+          [
+            "id", "name", "type", "direction", "parent_system_id", "language_ids",
+            "origin_date", "origin_region", "character_count", "sample_characters",
+            "unicode_block", "is_active", "wikidata_qid", "source_url",
+            "retrieved_at", "confidence", "sources",
+          ],
+          [
+            "ws_root", "Hangul", "alphabet", "ltr", "null", "[]", "1443", "Korea",
+            "", "", "", "true", "", "", "", "", "[]",
+          ],
         ],
       });
       try {
         const { edgeGroups, manifest } = buildExport(dir);
         expect(edgeGroups.size).toBe(0);
-        expect(manifest.diagnostics.edgesWithUnresolvedEndpoint).toBe(1);
-        expect(manifest.diagnostics.unresolvedEndpointSamples[0]).toMatchObject({
-          startId: "ghost_a",
-          endId: "ghost_b",
-          edgeName: "split-from",
-        });
+        expect(manifest.diagnostics.edgesWithUnresolvedEndpoint).toBe(0);
+        expect(manifest.diagnostics.stubNodesMinted).toBe(0);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("anchors csids on a QID and re-points edge endpoints to them (US-005)", () => {
+      // ppnb carries a Wikidata QID (→ cs:...:Q123); ppna has none (→ readable id).
+      // ppnb's predecessor edge must re-point onto ppnb's QID-anchored csid.
+      const dir = makeFixtureDir({
+        "archaeological-cultures.tsv": [
+          [
+            "id", "name", "region", "coordinates", "boundary_geometry",
+            "time_period_start", "time_period_end", "time_period_label",
+            "subsistence_pattern", "pottery_style", "burial_practices",
+            "material_culture_traits", "probable_language_family",
+            "probable_haplogroups", "predecessor_culture_ids",
+            "successor_culture_ids", "confidence", "sources", "description",
+            "wikidata_qid",
+          ],
+          [
+            "ppnb", "PPNB", "Levant", "", "", "-8700", "-6900", "", "", "", "",
+            "", "", "", '["ppna"]', "[]", "80", '["Kuijt 2002"]', "desc", "Q123",
+          ],
+          [
+            "ppna", "PPNA", "Levant", "", "", "-9500", "-8700", "", "", "", "",
+            "", "", "", "[]", "[]", "", "[]", "desc", "",
+          ],
+        ],
+      });
+      try {
+        const { nodeGroups, edgeGroups } = buildExport(dir);
+        const arch = nodeGroups.get("archaeological-culture")!;
+        // QID row → cs:<type>:<QID>; the linguascrape_id alias is unchanged.
+        const ppnb = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppnb")!;
+        expect(ppnb[nodeCol("csid")]).toBe("cs:archaeological-culture:Q123");
+        expect(ppnb[nodeCol("wikidata_qid")]).toBe("Q123");
+        // No-QID row → readable fallback.
+        const ppna = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppna")!;
+        expect(ppna[nodeCol("csid")]).toBe("cs:archaeological-culture:ppna");
+
+        // The predecessor edge (ppnb→ppna) re-points its start onto the QID csid.
+        const descends = edgeGroups.get("descended-from")!;
+        const edge = descends.find(
+          (r) => r[edgeCol(":END_ID")] === "cs:archaeological-culture:ppna",
+        )!;
+        expect(edge[edgeCol(":START_ID")]).toBe("cs:archaeological-culture:Q123");
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
@@ -375,6 +543,59 @@ describe("provenance propagation (US-006)", () => {
       const zeus = nodeGroups.get("deity")![0];
       expect(zeus[q("source_url")]).toBe("https://example.org/theogony");
       expect(zeus[q("source_query")]).toBe("Hesiod https://example.org/theogony");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("propagates a lexicon source_url/retrieved_at verbatim; blank stays blank (US-004)", () => {
+    // archaeological-cultures maps `source_url`/`retrieved_at` columns. One row is
+    // acquired (carries a Wikidata entity URL + timestamp), one is curated without.
+    const dir = makeFixtureDir({
+      "archaeological-cultures.tsv": [
+        [
+          "id", "name", "region", "coordinates", "boundary_geometry",
+          "time_period_start", "time_period_end", "time_period_label",
+          "subsistence_pattern", "pottery_style", "burial_practices",
+          "material_culture_traits", "probable_language_family",
+          "probable_haplogroups", "predecessor_culture_ids",
+          "successor_culture_ids", "confidence", "sources", "description",
+          "source_url", "retrieved_at",
+        ],
+        [
+          "clovis", "Clovis", "Americas", "", "", "-13050", "-12750", "", "",
+          "", "", "", "", "", "[]", "[]", "90", "[]", "desc",
+          "https://www.wikidata.org/entity/Q484725", "2026-01-15",
+        ],
+        [
+          "ppna", "PPNA", "Levant", "", "", "-9500", "-8700", "", "", "", "",
+          "", "", "", "[]", "[]", "", "[]", "desc", "", "",
+        ],
+      ],
+    });
+    try {
+      const { nodeGroups, manifest } = buildExport(dir);
+      const q = (field: string) =>
+        CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
+      const rows = nodeGroups.get("archaeological-culture")!;
+      const byId = (id: string) =>
+        rows.find((r) => r[q("linguascrape_id")] === id)!;
+
+      // Acquired row: URL + timestamp survive verbatim (not fabricated, not dropped).
+      const clovis = byId("clovis");
+      expect(clovis[q("source_url")]).toBe(
+        "https://www.wikidata.org/entity/Q484725",
+      );
+      expect(clovis[q("retrieved_at")]).toBe("2026-01-15");
+
+      // Curated row without provenance: both stay blank (never fabricated).
+      const ppna = byId("ppna");
+      expect(ppna[q("source_url")]).toBe("");
+      expect(ppna[q("retrieved_at")]).toBe("");
+
+      // Coverage now rises above zero for both columns.
+      expect(manifest.provenance.node.nonEmpty.source_url).toBe(1);
+      expect(manifest.provenance.node.nonEmpty.retrieved_at).toBe(1);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
