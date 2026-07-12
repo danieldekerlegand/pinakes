@@ -1,0 +1,49 @@
+{
+  "counts": {
+    "entities": 2057,
+    "relations": 8,
+    "triples": 2267
+  },
+  "excludedRelations": [
+    "CONTEMPORARY_WITH",
+    "FOLLOWS",
+    "PRECEDES"
+  ],
+  "leakage": {
+    "multiRelationPairs": 20,
+    "reverseDirectionPairs": 258,
+    "symmetricReverseTriples": 130,
+    "unorderedPairGroups": 2114
+  },
+  "ratios": {
+    "test": 0.1,
+    "train": 0.8,
+    "valid": 0.1
+  },
+  "relationCounts": {
+    "ABSORBED_INTO": 103,
+    "BORROWED_FROM": 50,
+    "COGNATE_WITH": 27,
+    "DERIVED_FROM": 13,
+    "DESCENDS_FROM": 1683,
+    "INFLUENCED_BY": 102,
+    "SPLIT_FROM": 47,
+    "SYNCRETIZED_WITH": 242
+  },
+  "seed": 20260712,
+  "splits": {
+    "test": {
+      "sha256": "42bc6a8f05f26099c0894ab824ec9d8d3614107e9f7e834c521a1cb0a50d415d",
+      "triples": 225
+    },
+    "train": {
+      "sha256": "175e917166541c52b6a3573c25457a721381059999dad01fbd63b84b9b6bcb01",
+      "triples": 1815
+    },
+    "valid": {
+      "sha256": "226be11e72929acd47b6f2baebd59192f2d84a53a25c304abdd1a0e7917ba186",
+      "triples": 227
+    }
+  },
+  "triplesSha256": "c799a6f1767e0e876c7b3f18ed7ec4031fa2af0d3c68420e0101aa07059ff2bb"
+}

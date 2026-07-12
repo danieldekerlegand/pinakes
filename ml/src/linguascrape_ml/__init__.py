@@ -14,10 +14,22 @@ from linguascrape_ml.tracking import (
     start_run,
     tracking_uri,
 )
+from linguascrape_ml.triples import (
+    EXCLUDED_RELATIONS,
+    Triple,
+    build_manifest,
+    load_triples,
+    split_triples,
+)
 
 __all__ = [
     "DEFAULT_EXPERIMENT",
+    "EXCLUDED_RELATIONS",
+    "Triple",
+    "build_manifest",
     "default_tracking_uri",
+    "load_triples",
+    "split_triples",
     "start_run",
     "tracking_uri",
     "__version__",

@@ -36,6 +36,10 @@ dependencies = [
 # pilot starts (`uv pip install scallopy`, on a compatible interpreter). Keeping
 # it out keeps the core env — the CI import smoke torch/pykeen/problog — green.
 
+[project.scripts]
+# US-002 reproducer — also runnable as `python -m linguascrape_ml.export_triples`.
+linguascrape-export-triples = "linguascrape_ml.export_triples:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
