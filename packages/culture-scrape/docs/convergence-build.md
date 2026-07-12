@@ -280,9 +280,10 @@ uv run culturescrape to-datalog out/linguascrape-full/corpus --engine both --rul
   --out out/linguascrape-full/corpus-datalog
 ```
 
-Loading that program into `swipl`/`souffle` materializes the derived relations, but neither
-engine is in CI and `graph.pl` is ~1 GB. `datalog-materialize` computes each rule's extension
-**engine-free** (naive fixpoint over the projected facts) and records the base/derived counts:
+Loading that program into `swipl`/`souffle` materializes the derived relations, but `graph.pl`
+is ~1 GB. `datalog-materialize` computes each rule's extension **engine-free** (naive fixpoint
+over the projected facts) and records the base/derived counts — fast, and independent of the
+engines even though CI now installs them (see `docs/datalog.md`, "Installing the engines"):
 
 ```bash
 uv run culturescrape datalog-materialize out/linguascrape-full/corpus \

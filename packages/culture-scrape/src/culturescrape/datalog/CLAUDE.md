@@ -80,10 +80,19 @@ node/edge counts are pinned elsewhere:** `tests/test_explorer_data.py` asserts
 those counts too. Keep new subgraphs disjoint from existing example anchors
 (csids/regions) or you'll change other examples' expected outputs.
 
-## No logic engine in CI
+## Logic engines in CI (US-001)
 
-Neither `swipl` nor `souffle` is installed, so every runnable smoke test is
-`@pytest.mark.skipif`-gated. Validate rule *logic* engine-free by evaluating the
-rule body directly over the projected facts and comparing to the `Example.expected`
-set (see `tests/test_datalog_linguascrape.py`), and keep a swipl-gated test that
-agrees with that derivation for when an engine is present.
+As of US-001 both engines ARE installed where the suite runs: the `culture-scrape`
+CI job (`.github/workflows/convergence-qa.yml`, pinned to `ubuntu-22.04` so the
+souffle-lang apt repo's libffi7 .deb installs) and the sidecar `Dockerfile` (swipl
+via apt; souffle built from source in a `souffle-build` stage — Debian has no
+souffle package). So the `@pytest.mark.skipif(SWIPL/SOUFFLE is None, …)` smoke tests
+now **execute** in CI rather than skipping. The gates stay — they detect the engine
+via `shutil.which` so the suite still passes on a machine without them (local dev,
+the engine-free `datalog-materialize` path).
+
+Still validate rule *logic* engine-free (evaluate the rule body directly over the
+projected facts vs the `Example.expected` set — see `tests/test_datalog_linguascrape.py`)
+so the logic is checked even without an engine, and keep the engine-gated test that
+agrees with that derivation for when an engine is present. Install locally: see
+`docs/datalog.md`, "Installing the engines".

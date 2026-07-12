@@ -88,8 +88,12 @@ def run_souffle(
     Executes ``souffle <program_dir>/<program_name> -F <program_dir> -D
     <output_dir>``, materialising every ``.output`` relation as a ``.csv`` under
     *output_dir*. Raises :class:`RuntimeError` if ``souffle`` exits non-zero.
+
+    *output_dir* is created if absent — Soufflé's ``-D`` requires the directory to
+    already exist (it errors "output directory ... does not exist" otherwise).
     """
     program_dir = Path(program_dir)
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         [
             souffle,

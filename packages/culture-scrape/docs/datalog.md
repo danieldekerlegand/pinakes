@@ -30,6 +30,41 @@ It prints a copy-pasteable load/run hint for each engine — `swipl <out>/graph.
 for SWI-Prolog, `souffle <out>/graph.dl -F <out> -D <out>` for Soufflé. The
 underlying orchestration lives in `culturescrape.datalog.export`.
 
+## Installing the engines (SWI-Prolog + Soufflé)
+
+The projection above needs no engine, but *running* the generated program — the
+`/datalog` console, the shipped example queries, and the cross-engine
+equivalence harness — needs `swipl` and/or `souffle` on `PATH`. Both are now
+installed in CI (the `culture-scrape` job in `.github/workflows/convergence-qa.yml`)
+and in the sidecar image (`Dockerfile`), so the previously `skipif`-gated engine
+tests execute there. To run them locally:
+
+**macOS (Homebrew):**
+
+```console
+$ brew install swi-prolog
+$ brew install souffle          # tap: souffle-lang/homebrew-souffle if needed
+```
+
+**Debian / Ubuntu:**
+
+```console
+$ sudo apt-get install -y swi-prolog
+# Soufflé is not in the Ubuntu/Debian archive; use the official apt repo
+# (Ubuntu only — its .deb needs libffi7, present on 22.04 but not 24.04):
+$ wget -qO- https://souffle-lang.github.io/ppa/souffle-key.public \
+    | sudo gpg --dearmor -o /usr/share/keyrings/souffle-archive-keyring.gpg
+$ echo "deb [signed-by=/usr/share/keyrings/souffle-archive-keyring.gpg] https://souffle-lang.github.io/ppa/ubuntu/ stable main" \
+    | sudo tee /etc/apt/sources.list.d/souffle.list
+$ sudo apt-get update && sudo apt-get install -y souffle
+```
+
+On distros without a working apt `souffle` (Debian, Ubuntu 24.04), build it from
+source — see [souffle-lang.github.io/build](https://souffle-lang.github.io/build)
+(the sidecar `Dockerfile` does exactly this in its `souffle-build` stage). Verify
+with `swipl --version` and `souffle --version`. With neither engine present the
+runnable tests skip with a logged reason and the console lints offline instead.
+
 ```python
 >>> from culturescrape.datalog import Fact, Dialect, render_atom
 
@@ -487,11 +522,12 @@ interactive engine.
 ## Materializing inference at scale (US-004)
 
 Loading a generated `graph.pl`/`graph.dl` into an engine materializes the derived
-relations — but neither `swipl` nor `souffle` is installed in CI, and the full
-corpus program is ~1 GB. `culturescrape.datalog.materialize` computes each rule's
-extension **engine-free**: a small naive-fixpoint evaluator over the projected
-facts, so the four US-004 inference targets can be produced, counted, and
-validated without an engine. `culturescrape datalog-materialize <dataset>` prints
+relations — but the full corpus program is ~1 GB, and the engine-free path stays
+useful even now that CI carries the engines (see "Installing the engines" above),
+because it is fast and needs no engine at all. `culturescrape.datalog.materialize`
+computes each rule's extension **engine-free**: a small naive-fixpoint evaluator
+over the projected facts, so the four US-004 inference targets can be produced,
+counted, and validated without an engine. `culturescrape datalog-materialize <dataset>` prints
 the base-relation counts the rules read and the derived-relation counts, and
 `--json <path>` writes them as a manifest:
 
