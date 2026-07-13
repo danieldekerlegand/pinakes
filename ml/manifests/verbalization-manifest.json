@@ -27,7 +27,7 @@
     "CC-BY-4.0": 9084
   },
   "seed": 20260713,
-  "sha256": "f0726e14f70a5a1e831a591f11025e6e31f917cbe0d2d20567f579948bff2cc3",
+  "sha256": "079d2f64180ff9fe62a70a69f1859de6f8b141b333a3a9b9d979c27db3b1d739",
   "skipped": {
     "unknownEndpointNode": 0
   },
@@ -37,16 +37,16 @@
     "borrowed_from.1": 30,
     "cognate_with.0": 13,
     "cognate_with.1": 14,
-    "dated.0": 2547,
-    "dated.1": 2429,
+    "dated.0": 2538,
+    "dated.1": 2438,
     "derived_from.0": 10,
     "derived_from.1": 3,
     "descends_from.0": 880,
     "descends_from.1": 803,
     "influenced_by.0": 57,
     "influenced_by.1": 45,
-    "located_at.0": 948,
-    "located_at.1": 893,
+    "located_at.0": 941,
+    "located_at.1": 900,
     "split_from.0": 29,
     "split_from.1": 18,
     "syncretized_with.0": 242

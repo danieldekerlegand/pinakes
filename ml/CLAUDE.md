@@ -29,6 +29,19 @@ The shape every dataset/metric deliverable follows:
   `Path(__file__).resolve().parents[2]` is the repo root (parents[1] = `ml/`). From
   a `src/linguascrape_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
   `.parent`). Off-by-one here silently skips the live gate.
+- **GOTCHA — build/regenerate the manifest against the CANONICAL DVC corpus, not a
+  locally-drifted `export/culturescrape`.** A prior scale-up (QID backfill / dedupe) or an
+  aborted `npx tsx scripts/export-for-culturescrape.ts` can leave `export/culturescrape`
+  modified vs the committed `export/culturescrape.dvc` hash (`uv run --project ml dvc status
+  export/culturescrape.dvc` shows "modified"). A committed manifest built on that drifted tree
+  is NOT reproducible by anyone who `dvc pull`s the canonical corpus. Symptom: one live gate
+  passes while a sibling fails against the SAME export (the sibling's manifest was regenerated
+  on the drift). Fix before regenerating any manifest: `uv run --project ml dvc checkout
+  --force export/culturescrape.dvc` (the extra `manifest.json`/`convergence/`/`reconciliation/`/
+  `writeback/` files are gitignored scratch — `--force` is safe), then rebuild + `dvc add
+  ml/data && dvc push`. Attribute-template selection hashes on `node.csid`, so a QID-driven
+  csid change reshuffles a few `dated.*`/`located_at.*` counts (edge counts stay put — edges
+  dedup on the csid triple, which is unchanged).
 
 ## Training-data generators (Phase 5 US-002; US-003 reuses the shape)
 
