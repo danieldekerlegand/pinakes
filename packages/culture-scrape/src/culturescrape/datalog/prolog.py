@@ -75,14 +75,19 @@ def _signatures(facts: Iterable[Fact]) -> list[tuple[str, int]]:
 
 
 def _preamble_lines(
-    signatures: Iterable[tuple[str, int]], tabled: list[tuple[str, int]]
+    signatures: Iterable[tuple[str, int]],
+    tabled: list[tuple[str, int]],
+    fact_signatures: Iterable[tuple[str, int]] = (),
 ) -> list[str]:
     """The header + directive lines preceding the fact clauses.
 
     *signatures* is every ``(predicate, arity)`` the program declares; *tabled*
-    is the subset that is recursive (tabled, never dynamic — see below). The
-    result is a small list (bounded by the number of predicates, not facts), so
-    both the streaming writer and :func:`render_program` build it eagerly.
+    is the subset that is recursive (tabled, never dynamic — see below);
+    *fact_signatures* is the subset that carries projected base facts (so a
+    predicate that is *both* tabled and fact-bearing still gets a
+    ``:- discontiguous`` — its facts are interleaved by row). The result is a
+    small list (bounded by the number of predicates, not facts), so both the
+    streaming writer and :func:`render_program` build it eagerly.
 
     Recursive derived predicates (transitive closures) are TABLED, not dynamic.
     SWI-Prolog's naive SLD resolution does not terminate on a closure rule when
@@ -93,16 +98,31 @@ def _preamble_lines(
     set semantics. It is a Prolog-only directive — the shared clause text and the
     Soufflé emitter are untouched — and a tabled predicate must NOT also be
     ``:- dynamic`` (SWI forbids tabling a dynamic procedure).
+
+    One rule head is *also* a base relation: ``instance_of/2`` is projected as
+    facts (a node's :LABEL) and closed by the P279 taxonomy rule
+    (``instance_of(X, C) :- instance_of(X, D), subclass_of(D, C)``). It is tabled
+    (the rule is recursive) yet its facts are interleaved with the other row
+    facts, so it needs ``:- discontiguous`` even though it must not be
+    ``:- dynamic`` — hence *fact_signatures* keeps the two disjoint sets straight.
     """
     tabled_set = set(tabled)
+    fact_set = set(fact_signatures)
     declared = [sig for sig in signatures if sig not in tabled_set]
+    # A tabled predicate that also carries facts (instance_of) is discontiguous
+    # too; appended after the non-tabled block so a fact-only + rule-less program
+    # (no such overlap) keeps its byte-for-byte previous output.
+    discontiguous = declared + [
+        sig for sig in tabled if sig in fact_set and sig not in declared
+    ]
     lines = [_HEADER, ""]
     if tabled:
         lines += [f":- table {name}/{arity}." for name, arity in tabled]
         lines.append("")
-    if declared:
-        lines += [f":- discontiguous {name}/{arity}." for name, arity in declared]
+    if discontiguous:
+        lines += [f":- discontiguous {name}/{arity}." for name, arity in discontiguous]
         lines.append("")
+    if declared:
         lines += [f":- dynamic {name}/{arity}." for name, arity in declared]
         lines.append("")
     return lines
@@ -130,9 +150,10 @@ def _write_program(handle: TextIO, facts: Iterable[Fact], rules: list[Rule]) -> 
     followed by ``\\n``, which is byte-for-byte ``"\\n".join(lines) + "\\n"`` —
     exactly what :func:`render_program` produces.
     """
-    signatures = sorted(set(_signatures(facts)) | rule_signatures(rules))
+    fact_signatures = _signatures(facts)
+    signatures = sorted(set(fact_signatures) | rule_signatures(rules))
     tabled = sorted(tabled_signatures(rules))
-    for line in _preamble_lines(signatures, tabled):
+    for line in _preamble_lines(signatures, tabled, fact_signatures):
         handle.write(line)
         handle.write("\n")
     count = 0
@@ -166,9 +187,10 @@ def render_program(facts: Iterable[Fact], rules: Iterable[Rule] = ()) -> str:
     """
     facts = list(facts)
     rules = list(rules)
-    signatures = sorted(set(_signatures(facts)) | rule_signatures(rules))
+    fact_signatures = _signatures(facts)
+    signatures = sorted(set(fact_signatures) | rule_signatures(rules))
     tabled = sorted(tabled_signatures(rules))
-    lines = _preamble_lines(signatures, tabled)
+    lines = _preamble_lines(signatures, tabled, fact_signatures)
     lines += [fact.render(Dialect.PROLOG) for fact in facts]
     lines += _rule_lines(rules)
     return "\n".join(lines) + "\n"

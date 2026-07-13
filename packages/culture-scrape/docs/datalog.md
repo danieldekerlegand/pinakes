@@ -505,8 +505,9 @@ as `Ex < Sy` is not a predicate goal and carries no relation).
 | `component_of/2` | transitive `part_of/2` | `component_of(X, Y)` — `X` is a component of whole `Y` through any chain of part-of containments |
 | `same_region/2` | co-location via `within_region/2` | `same_region(X, Y)` — `X` and `Y` share an enclosing region (reflexive, symmetric); the geographic half of the cross-domain correlation |
 | `genetic_linguistic_correlation/2` | `originates_from/2` ⋈ `spoken_in/2` on region | `genetic_linguistic_correlation(H, L)` — a haplogroup `H` and a language `L` correlate because `H` originates in the region `L` is spoken in |
+| `instance_of/2` | (recursive) base `instance_of` typing over `subclass_of/2` | `instance_of(X, C)` — `X` is transitively an instance of class `C`: a leaf-class entity answers for every ancestor class the Wikidata P279 taxonomy places above it. Its head is *also* a base relation (the projected `:LABEL` facts seed it) — see [Class taxonomy](#class-taxonomy-p279-rules-layer-us-001) |
 
-The last two port LinguaScrape's cross-domain and genetic–linguistic correlation
+The middle two port LinguaScrape's cross-domain and genetic–linguistic correlation
 logic into the shared graph (T-LS-US-005). `genetic_linguistic_correlation/2`
 derives only the *qualitative* pairing; the numeric overlap score (region-polygon
 intersection, notable divergences) stays a CPU-domain computation in the
@@ -527,11 +528,36 @@ cycle (`clovis` ↔ `folsom`, see `docs/engine-validation.md`) and `influenced_b
 is *legitimately* cyclic — mutual influence (`eng` ↔ `fra`, `arb` ↔ `heb`, …) is
 real — so naive SLD evaluation of `ancestor`/`influenced_transitively` loops
 forever in SWI-Prolog. The Prolog emitter therefore declares every **recursive**
-rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`)
-`:- table` instead of `:- dynamic`: SLG resolution computes the least fixpoint and
-terminates, producing exactly Soufflé's tuple set (verified on the full corpus —
-`docs/engine-validation.md`). This is a Prolog-only concern; Soufflé's set
-semantics handle cycles natively, so the shared clause text is untouched.
+rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`,
+and `instance_of` — the P279 closure below) `:- table` instead of `:- dynamic`:
+SLG resolution computes the least fixpoint and terminates, producing exactly
+Soufflé's tuple set (verified on the full corpus — `docs/engine-validation.md`).
+This is a Prolog-only concern; Soufflé's set semantics handle cycles natively, so
+the shared clause text is untouched. `instance_of` is the one recursive head that
+*also* carries base facts, so the Prolog emitter gives it `:- table` **and** `:-
+discontiguous` (its `:LABEL` facts are interleaved by row) but never `:- dynamic`.
+
+### Class taxonomy (P279) — rules-layer US-001
+
+`instance_of/2` closes **class membership** over a taxonomy the graph does not
+otherwise carry: `instance_of(X, C) :- instance_of(X, D), subclass_of(D, C)`. The
+base `instance_of` half is a node's `:LABEL`; the `subclass_of` half is acquired
+from **Wikidata's `P279` (*subclass of*) hierarchy** — either a WDQS `wdt:P279*`
+query or the on-disk dump index — by
+[`culturescrape.acquire.taxonomy`](../src/culturescrape/acquire/taxonomy.py). It
+resolves the *direct* subclass relations among the corpus's `:LABEL` node types
+(the classes that back them — `ArchaeologicalCulture` ⊂ `Culture`,
+`LiteraryTradition` ⊂ `ArtTradition`) into a small, provenanced replay artifact
+[`datalog/taxonomy/subclass_of.tsv`](../src/culturescrape/datalog/taxonomy/subclass_of.tsv)
+(`source`/`source_url`/`retrieved_at`/`confidence` per row, network-free in CI).
+[`culturescrape.datalog.taxonomy`](../src/culturescrape/datalog/taxonomy.py)
+projects it back to `subclass_of/2` facts, which `collect_facts(dir,
+include_taxonomy=True)` appends — **opt-in, coupled to `--rules`** (the facts only
+earn their keep with the closure rule), so a rule-less export is byte-for-byte
+unchanged. Only *direct* edges are stored: the recursion climbs each chain one hop
+at a time through the derived `instance_of`, so a 3-level chain `A ⊂ B ⊂ C` needs
+only `A→B` and `B→C`. The datalog materialiser attaches the taxonomy too, so the
+committed manifest counts the derived ancestor memberships.
 
 ### Attaching the rules
 

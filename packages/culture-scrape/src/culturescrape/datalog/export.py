@@ -32,6 +32,7 @@ from culturescrape.datalog.problog import (
 from culturescrape.datalog.prolog import write_program
 from culturescrape.datalog.rules import RULES, Rule
 from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME, write_souffle_program
+from culturescrape.datalog.taxonomy import subclass_file_facts
 
 #: Filename of the generated SWI-Prolog program inside the output directory
 #: (parallel to :data:`~culturescrape.datalog.SOUFFLE_PROGRAM_NAME` for Soufflé).
@@ -117,15 +118,23 @@ class _DatasetFacts:
 
     node_files: tuple[Path, ...]
     edge_files: tuple[Path, ...]
+    #: When set, the committed P279 taxonomy is appended as ``subclass_of/2``
+    #: facts (so the class-membership closure rule has its base relation). It is
+    #: opt-in — the rule-less export is byte-for-byte unchanged.
+    include_taxonomy: bool = False
 
     def __iter__(self) -> Iterator[Fact]:
         for path in self.node_files:
             yield from node_file_facts(path)
         for path in self.edge_files:
             yield from edge_file_facts(path)
+        if self.include_taxonomy:
+            yield from subclass_file_facts()
 
 
-def collect_facts(directory: str | Path) -> _DatasetFacts:
+def collect_facts(
+    directory: str | Path, *, include_taxonomy: bool = False
+) -> _DatasetFacts:
     """Project every node and edge row under *directory* into a fact stream.
 
     Discovers ``nodes/*.tsv`` then ``edges/*.tsv`` (each sorted by filename, so
@@ -135,6 +144,12 @@ def collect_facts(directory: str | Path) -> _DatasetFacts:
     validated eagerly (so a bad dataset fails on the call, not mid-iteration);
     the rows themselves are read only when the stream is iterated, and never held
     whole in memory.
+
+    When *include_taxonomy* is set, the committed Wikidata P279 taxonomy
+    (:mod:`culturescrape.datalog.taxonomy`) is appended as ``subclass_of/2`` facts
+    so the ``instance_of`` closure rule has its base relation. It is opt-in
+    because the ``subclass_of`` facts are only meaningful *with* the rules — the
+    default fact stream (and every count pinned against it) is unchanged.
 
     Raises:
         DatalogExportError: If *directory* is not a directory or holds no
@@ -147,7 +162,7 @@ def collect_facts(directory: str | Path) -> _DatasetFacts:
     edge_files = tuple(sorted((directory / "edges").glob("*.tsv")))
     if not node_files:
         raise DatalogExportError(f"{directory} holds no nodes/*.tsv to project")
-    return _DatasetFacts(node_files, edge_files)
+    return _DatasetFacts(node_files, edge_files, include_taxonomy=include_taxonomy)
 
 
 def export_dataset(
@@ -174,7 +189,9 @@ def export_dataset(
     if not engines:
         raise DatalogExportError("no engine selected")
 
-    facts = collect_facts(directory)
+    # The taxonomy rides with the rules: subclass_of/2 facts only earn their keep
+    # when the instance_of closure rule is attached to consume them.
+    facts = collect_facts(directory, include_taxonomy=include_rules)
     rules: tuple[Rule, ...] = RULES if include_rules else ()
 
     out_dir = Path(out)

@@ -1,0 +1,3 @@
+child	parent	child_qid	parent_qid	source	source_url	retrieved_at	confidence
+ArchaeologicalCulture	Culture	Q465299	Q11042	wikidata	https://www.wikidata.org/wiki/Q465299	2026-07-13T00:00:00Z	0.9
+LiteraryTradition	ArtTradition	Q2198855	Q968159	wikidata	https://www.wikidata.org/wiki/Q2198855	2026-07-13T00:00:00Z	0.9

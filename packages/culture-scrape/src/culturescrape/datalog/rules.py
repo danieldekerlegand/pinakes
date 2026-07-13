@@ -7,11 +7,12 @@ intended meaning, a worked example query, the base predicates it reads, and the
 Horn clauses themselves — that *attaches* to any generated program so the same
 derived relations are available whichever engine a researcher loads.
 
-Ten rules ship in :data:`RULES`. Five are closures over the base ontology
+Eleven rules ship in :data:`RULES`. Five are closures over the base ontology
 (``docs/data-model.md``); three derive the **temporal relations arithmetically**
-from the time bounds (so they need no stored edge — see below); the last two port
+from the time bounds (so they need no stored edge — see below); two port
 LinguaScrape's cross-domain and genetic–linguistic correlation logic (T-LS-US-005)
-so those correlations become derived, queryable facts over the merged graph:
+so those correlations become derived, queryable facts over the merged graph; and
+the last closes **class membership** over the P279 taxonomy (rules-layer US-001):
 
 * :data:`ANCESTOR` — ``ancestor/2``, the transitive closure of ``descends_from``;
 * :data:`WITHIN_REGION` — ``within_region/2``, the transitive closure of
@@ -33,7 +34,13 @@ so those correlations become derived, queryable facts over the merged graph:
   ``genetic_linguistic_correlation/2``, a haplogroup and a language correlated
   by originating from / being spoken in the same region (the symbolic core of
   LinguaScrape's genetic–linguistic correlation; the numeric overlap score stays
-  a CPU-domain computation in the TypeScript engine).
+  a CPU-domain computation in the TypeScript engine);
+* :data:`INSTANCE_OF` — ``instance_of/2``, the transitive closure of the base
+  ``instance_of`` typing over ``subclass_of/2`` (``instance_of(X, C) :-
+  instance_of(X, D), subclass_of(D, C)``). Its head is *also* a base relation
+  (the projected ``:LABEL`` facts seed it), so an entity of a leaf class answers
+  ``instance_of`` for every ancestor class the Wikidata P279 taxonomy places
+  above it (see :mod:`culturescrape.datalog.taxonomy`).
 
 **Temporal relations are rules, not stored edges (T-SR-US-001).** Materialising
 pairwise ``CONTEMPORARY_WITH`` / ``PRECEDES`` / ``FOLLOWS`` is quadratic — 5.57M
@@ -307,6 +314,32 @@ GENETIC_LINGUISTIC_CORRELATION = Rule(
     ),
 )
 
+INSTANCE_OF = Rule(
+    name="instance_of",
+    intent=(
+        "instance_of(X, C): entity X is (transitively) an instance of class C — "
+        "the closure of the base instance_of/2 typing (a node's :LABEL) over the "
+        "subclass_of/2 taxonomy Wikidata's P279 hierarchy supplies. An entity "
+        "typed with a leaf class thereby answers instance_of for every ancestor "
+        "class the taxonomy places above it, so a query for a broad type reaches "
+        "the entities of all its subclasses without enumerating them. This is the "
+        "one rule whose head is also a base relation (the projected :LABEL facts "
+        "seed it); the recursion climbs the subclass chain one hop at a time, so "
+        "direct subclass_of edges suffice and no transitive closure of "
+        "subclass_of need be stored."
+    ),
+    example=(
+        "?- instance_of('cs:archaeological-culture:Q1', C).   % every class it is in\n"
+        "With instance_of('cs:archaeological-culture:Q1', 'ArchaeologicalCulture') "
+        "and subclass_of('ArchaeologicalCulture', 'Culture') yields\n"
+        "C = 'ArchaeologicalCulture' ; C = 'Culture'."
+    ),
+    depends=("instance_of", "subclass_of"),
+    clauses=(
+        "instance_of(X, C) :- instance_of(X, D), subclass_of(D, C).",
+    ),
+)
+
 #: The shared rule library, attached to a program by passing it as ``rules=`` to
 #: the emitters (:func:`culturescrape.datalog.render_program`,
 #: :func:`culturescrape.datalog.render_souffle_program`).
@@ -320,6 +353,7 @@ RULES: tuple[Rule, ...] = (
     COMPONENT_OF,
     SAME_REGION,
     GENETIC_LINGUISTIC_CORRELATION,
+    INSTANCE_OF,
 )
 
 
@@ -405,6 +439,7 @@ __all__ = [
     "FOLLOWS",
     "GENETIC_LINGUISTIC_CORRELATION",
     "INFLUENCED_TRANSITIVELY",
+    "INSTANCE_OF",
     "PRECEDES",
     "RULES",
     "SAME_REGION",

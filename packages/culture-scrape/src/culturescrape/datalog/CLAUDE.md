@@ -142,6 +142,49 @@ is the `W::` probability prefix. Design rules if you touch it:
   (imported lazily inside the fn to avoid an import cycle: export imports problog).
   `Engine.PROBLOG` is opt-in — `engines_for_choice("both")` stays swipl+souffle.
 
+## Class taxonomy: subclass_of/2 + the EDB∪IDB instance_of closure (rules-layer US-001)
+
+`instance_of/2` is the one rule whose head is **also a base relation** — nodes
+project `instance_of(Csid, Label)` facts (a `:LABEL`) AND the rule
+`instance_of(X, C) :- instance_of(X, D), subclass_of(D, C)` extends it up the P279
+taxonomy. Consequences every emitter/materialiser already handles (don't re-break):
+
+- **Prolog:** a recursive head with facts is `:- table` **+** `:- discontiguous`
+  (facts interleave by row) but **never** `:- dynamic` (SWI forbids dynamic+table).
+  `prolog._preamble_lines` takes `fact_signatures` to keep the two sets straight —
+  a tabled sig that is also a fact sig lands in the discontiguous block. A rule-less
+  or fact-less program is byte-for-byte unchanged (the overlap only fires when
+  instance_of facts AND `RULES` are both present).
+- **Soufflé:** the fact block already emits `.decl`/`.input`/`.output instance_of`;
+  `_render_rules` skips re-declaring a predicate already `declared` by facts, so the
+  relation is loaded (`.input`) AND derived (rule) — the standard Soufflé EDB∪IDB
+  union. Verified by the `souffle`-gated closure test in `test_datalog_taxonomy.py`.
+- **Materialiser:** `materialize` seeds the store with base facts then adds derived
+  tuples to the SAME head set, so `derived_relations["instance_of"]` is base ∪
+  closure (base `:LABEL` typing PLUS ancestor memberships) — expected, noted in the
+  manifest. `_base_relations` = deps − heads, so `instance_of` (a head) is not
+  double-counted as a base relation; `subclass_of` is.
+
+The `subclass_of` facts come from a **committed replay artifact**
+(`datalog/taxonomy/subclass_of.tsv`, provenanced), NOT the corpus:
+`datalog/taxonomy.py` reads it, `acquire/taxonomy.py` extracts it from Wikidata
+P279 (WDQS `wdt:P279*` **or** the dump index's `class_closure`) among the corpus's
+`:LABEL` classes (`CORPUS_CLASS_QIDS`). Only **direct** label→label edges are
+stored — the recursion climbs each chain one hop at a time through the *derived*
+`instance_of`, so a 3-level chain needs only its two direct hops. Regenerate the
+artifact from the extractor (a fixture ancestor-lookup encodes the real P279 facts;
+`test_extractor_reproduces_the_committed_artifact` ties the two together).
+
+- **Opt-in, coupled to `--rules`.** `collect_facts(dir, include_taxonomy=True)`
+  appends the subclass_of facts; `export_dataset(include_rules=True)` and
+  `datalog-materialize` set it. Default is off, so every count pinned against the
+  plain fact stream (`test_datalog_export`, the fixture node/edge counts) is
+  unchanged — the taxonomy facts only appear WITH the closure rule that consumes them.
+- **New backing class?** Add the `:LABEL → class QID` entry to `CORPUS_CLASS_QIDS`
+  (omit a label whose Wikidata class is ambiguous — the taxonomy is only as sound as
+  this map), re-extract, and re-commit the TSV. `subclass_of` is already in
+  `examples.KNOWN_PREDICATES`, so a query naming it lints clean.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its

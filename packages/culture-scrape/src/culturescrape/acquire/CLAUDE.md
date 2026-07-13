@@ -82,6 +82,34 @@ rejected as "not a … index" (opening it as SQLite fails → `DumpIndexError`).
   the measurements (runbook §"Building the class-membership index"). The `skipif`-gated
   `test_wikidata_dump_index_smoke.py` builds it over a real slice into a tmp dir when one is present.
 
+## P279 class taxonomy extractor (`taxonomy.py`, rules-layer US-001)
+
+`taxonomy.py` is NOT a `SourceAdapter` — it is a standalone extractor (like
+`wikidata_slice.py`) that reads Wikidata's `P279` *subclass of* hierarchy for the
+corpus's node **classes** (`CORPUS_CLASS_QIDS`, a `:LABEL → class QID` map) and
+emits the direct `subclass_of` relations among them. It feeds the datalog
+class-membership closure (`src/culturescrape/datalog/taxonomy.py` reads the
+committed artifact; see that package's CLAUDE.md).
+
+- **Two paths, one abstraction.** Both `sparql_ancestor_lookup(http)` (WDQS
+  `wdt:P279*`, through the shared polite `HttpClient`) and `dump_ancestor_lookup(
+  index, universe)` (the on-disk `DumpIndex.class_closure`, inverted over the small
+  seed universe — no dump rescan) return an `AncestorLookup` (`qid → P279*
+  ancestors`). `subclass_edges(lookup, ...)` turns either into the same
+  `SubclassEdge` set, so the SPARQL and dump paths agree (a test asserts it).
+- **Direct-edge reduction.** `subclass_edges` keeps only the direct label→label
+  hops (drops `A→C` when `A→B→C` exists among the seeds) — the datalog rule
+  re-derives the transitive links one hop at a time, so storing the closure would
+  be redundant.
+- **Committed replay artifact, network-free CI.** `write_subclass_tsv` writes
+  `datalog/taxonomy/subclass_of.tsv` (full provenance per row); CI reads it, never
+  Wikidata. Regenerate from the extractor with a fixture ancestor-lookup encoding
+  the real P279 facts (`test_extractor_reproduces_the_committed_artifact` pins the
+  two together). A label whose Wikidata class is ambiguous is **omitted** from
+  `CORPUS_CLASS_QIDS`, never guessed — the taxonomy is only as sound as that map.
+- Imports `SubclassEdge` from `culturescrape.datalog.taxonomy` (acquire→datalog is
+  fine; datalog never imports acquire, so no cycle).
+
 ## Content-fingerprint dump diff (`wikidata_diff.py`, US-006)
 
 `diff_dumps(old, new)` classifies every QID as added / changed / removed / unchanged by

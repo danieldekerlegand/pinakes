@@ -1176,7 +1176,9 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
     rules = tuple(rule for rule in RULES if rule.name not in exclude)
 
     try:
-        facts = collect_facts(args.directory)
+        # Include the P279 taxonomy so the instance_of closure rule has its
+        # subclass_of base relation (mirrors export_dataset's rule-bearing path).
+        facts = collect_facts(args.directory, include_taxonomy=True)
         summary = summarize(facts, rules)
     except (DatalogExportError, MaterializeError) as exc:
         return _fail(str(exc))
