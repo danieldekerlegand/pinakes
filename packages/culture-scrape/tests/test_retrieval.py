@@ -97,7 +97,11 @@ def _handler(cypher: str, params: dict[str, Any]) -> list[dict[str, Any]]:
         ]
     if "RETURN DISTINCT n.csid AS csid" in cypher:
         return [
-            {"csid": "cs:culture:sumer", "name": "Sumer", "labels": ["Entity", "Culture"]},
+            {
+                "csid": "cs:culture:sumer",
+                "name": "Sumer",
+                "labels": ["Entity", "Culture"],
+            },
             {"csid": "cs:place:uruk", "name": "Uruk", "labels": ["Entity", "Place"]},
         ]
     if "type(r) AS type" in cypher:

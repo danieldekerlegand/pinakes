@@ -26,7 +26,6 @@ from culturescrape.neo4j.vector_index import (
     vector_index_statement,
 )
 
-
 # --- Pure helpers -----------------------------------------------------------
 
 
@@ -134,7 +133,12 @@ class _FakeDriver:
 
 
 NODES = [
-    {"csid": "cs:culture:sumer", "name": "Sumer", "aliases": "Shumer", "description": "civ"},
+    {
+        "csid": "cs:culture:sumer",
+        "name": "Sumer",
+        "aliases": "Shumer",
+        "description": "civ",
+    },
     {"csid": "cs:place:uruk", "name": "Uruk", "aliases": "", "description": ""},
     {"csid": "cs:place:blank", "name": "", "aliases": "", "description": ""},
 ]
