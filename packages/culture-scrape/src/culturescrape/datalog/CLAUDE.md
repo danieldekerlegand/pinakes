@@ -267,6 +267,44 @@ translate from resolved labels alone. Attached behind `to-datalog --schema-const
   `schema/edge_constraints.tsv` (tied to the live schema) and `schema/rules_registry.tsv` (tied to
   the generator) after a schema change; both are `pyproject` package-data (`datalog/schema/*.tsv`).
 
+## Provenanced rules registry (rules-layer US-004)
+
+`registry.py` **wraps** the three rule sources — curated `RULES`, the P2302
+property-constraint rules (`constraints.py`), the schema violation rules
+(`schema_constraints.py`) — into ONE provenanced, validated table committed at
+`datalog/rules_registry.tsv` (package-data). It's the governance layer facts already
+have (`source`/`source_url`/`retrieved_at`/`confidence`/`version`/`status` per rule).
+
+- **Generated + committed, pinned by a test.** `build_registry()` aggregates the three
+  sources deterministically (curated in-code + the two committed replay artifacts);
+  `test_committed_registry_matches_a_fresh_build` pins the TSV. Regenerate after ANY
+  rule/provenance change: `culturescrape rules-registry --regenerate` (a `_cmd_*`
+  refuses to write if validation fails). Columns: `rule_id, layer, head, clause_prolog,
+  clause_souffle, depends, source, source_url, retrieved_at, confidence, version, status`.
+- **`rules.py` stays the curated CLAUSE source** (its `Rule.intent`/`.example` drive the
+  emitted comment blocks — don't reconstruct curated Rules from the registry or you lose
+  them). The registry wraps them with metadata; `CURATED_RULE_META` (keyed by head) is
+  the in-code status/version source, default = all `active`.
+- **The QA gate is `validate_registry(entries) -> [RegistryProblem]`** (run in CI +
+  `culturescrape rules-registry`): parseable clauses (balanced; head + `pred(args)`/
+  comparison-guard body), known predicates (per-entry: rule heads ∪ `_ALWAYS_KNOWN` ∪
+  `examples.KNOWN_PREDICATES` ∪ the entry's own `depends` — so a Soufflé `!from_ok_t`
+  negation is "known" because `from_ok_t` is another registry head, and a schema edge
+  predicate is known because the entry `depends` on it), no arity conflicts (a pred at
+  two arities anywhere). Clause cells may hold MULTIPLE `.`-terminated clauses — split on
+  `.` is safe (registry clauses carry no other dots: variables + quoted `:LABEL`s only).
+  Import `KNOWN_PREDICATES` LAZILY inside the fn (avoid an import-time cycle via examples).
+- **The exporter CONSUMES the registry** through `active_curated_rules()` — `export.py`
+  attaches it instead of `RULES` directly, dropping any curated rule whose status ≠
+  `active`. Default = all active ⇒ byte-identical output (no existing test moved). Flip a
+  head's status in `CURATED_RULE_META` to retire it without deleting its clauses. The
+  property/schema layers already gate their own emission on `status=="active"`.
+- **Status lifecycle** `proposed → active → retired` (+ `redundant` = a generated clause
+  that duplicates a curated one; the constraints layer marks these). `VALID_STATUSES`
+  pins the set; docs/rules-registry.md describes it. The per-layer draft registries
+  (`constraints/rules_registry.tsv`, `schema/rules_registry.tsv`) still exist as each
+  layer's own artifact — the unified registry is the governance aggregate over them.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its

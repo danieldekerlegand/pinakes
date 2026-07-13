@@ -31,7 +31,8 @@ from culturescrape.datalog.problog import (
     write_problog_program,
 )
 from culturescrape.datalog.prolog import write_program
-from culturescrape.datalog.rules import RULES, Rule
+from culturescrape.datalog.registry import active_curated_rules
+from culturescrape.datalog.rules import Rule
 from culturescrape.datalog.schema_constraints import (
     schema_constraint_file_rules,
 )
@@ -223,7 +224,12 @@ def export_dataset(
     # kinds of constraint need it too.
     attach_rules = include_rules or include_constraints or include_schema_constraints
     facts = collect_facts(directory, include_taxonomy=attach_rules)
-    base_rules: tuple[Rule, ...] = RULES if attach_rules else ()
+    # The curated closures are attached through the rules registry's status gate
+    # (rules-layer US-004): only rules whose registry status is ``active`` are emitted,
+    # so a retired curated rule is withdrawn without deleting its ``rules.py`` clauses.
+    # With the default governance metadata every curated rule is active, so the emitted
+    # program is byte-for-byte unchanged.
+    base_rules: tuple[Rule, ...] = active_curated_rules() if attach_rules else ()
     prolog_rules = base_rules
     souffle_rules = base_rules
     if include_constraints:

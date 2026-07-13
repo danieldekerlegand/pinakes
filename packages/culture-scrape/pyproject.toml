@@ -48,7 +48,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "culturescrape.explorer" = ["templates/*.html"]
-"culturescrape.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv"]
+"culturescrape.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv", "rules_registry.tsv"]
 
 [tool.mypy]
 python_version = "3.11"

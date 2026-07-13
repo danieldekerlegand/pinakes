@@ -867,3 +867,37 @@ post-US-001 edge model — the pre-US-001 record read `contemporary` off the
   `originates_from`/`spoken_in` edges); it is exercised on the bundled fixture,
   which carries ported `source: linguascrape` genetics facts, and materializes on
   any merged corpus that adds a genetics source.
+
+## Provenanced rules registry (rules-layer US-004)
+
+Facts carry `source`/`source_url`/`retrieved_at`/`confidence` and pass a QA gate;
+rules now do too. `datalog/registry.py` **wraps** the three rule sources — the curated
+`rules.py` closures, the Wikidata P2302 property-constraint rules (US-002) and the
+canonical-schema violation rules (US-003) — into one provenanced, validated table,
+committed at `datalog/rules_registry.tsv` and regenerated with `culturescrape
+rules-registry --regenerate`. Each row carries a `rule_id`, the head/body clause text
+per dialect (`clause_prolog`/`clause_souffle`), `depends`, `source`, `source_url`,
+`retrieved_at`, `confidence`, `version` and a lifecycle `status`.
+
+`validate_registry` is the QA gate (run in CI and by `culturescrape rules-registry`):
+every clause parses, every predicate is known (a rule head, a base projection
+relation, or a declared dependency), and no predicate is used at two arities. The
+exporter **consumes** the registry through `registry.active_curated_rules()` — a curated
+rule flipped to `retired` in `CURATED_RULE_META` is withdrawn from the emitted program
+without deleting its `rules.py` clauses (the constraint/schema layers already gate their
+own emission on `status == "active"`). See `docs/rules-registry.md` for the lifecycle.
+
+```python
+>>> from culturescrape.datalog.registry import build_registry, validate_registry
+>>> entries = build_registry()
+>>> validate_registry(entries)                       # the QA gate: no problems
+[]
+>>> sorted({entry.layer for entry in entries})       # all three rule sources
+['canonical-schema', 'curated', 'wikidata-property']
+>>> by_id = {entry.rule_id: entry for entry in entries}
+>>> by_id['curated-ancestor'].source                 # a migrated hand-written rule
+'curated'
+>>> by_id['curated-ancestor'].status
+'active'
+
+```

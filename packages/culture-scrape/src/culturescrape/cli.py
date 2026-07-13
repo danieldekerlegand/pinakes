@@ -49,6 +49,13 @@ from culturescrape.datalog.export import (
     export_dataset,
 )
 from culturescrape.datalog.materialize import MaterializeError, summarize
+from culturescrape.datalog.registry import (
+    REGISTRY_TSV,
+    build_registry,
+    load_registry,
+    validate_registry,
+    write_registry,
+)
 from culturescrape.datalog.rules import RULES
 from culturescrape.datalog.schema_constraints import (
     SchemaConstraintError,
@@ -443,6 +450,26 @@ def _build_parser() -> argparse.ArgumentParser:
         "relation's count exceeds its baseline (a new relation counts as baseline 0)",
     )
     schema_constraints.set_defaults(handler=_cmd_schema_constraints)
+
+    rules_registry = subparsers.add_parser(
+        "rules-registry",
+        help="validate the provenanced rules registry (parseable clauses, known "
+        "predicates, no arity conflicts) — the rules-layer QA gate — and print a "
+        "summary; --regenerate rewrites the committed registry from the rule sources",
+    )
+    rules_registry.add_argument(
+        "--regenerate",
+        action="store_true",
+        help="rebuild the committed registry TSV from the curated/property/schema "
+        "rule sources (run after changing any rule or its provenance)",
+    )
+    rules_registry.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the validated registry as JSON (rule rows + any problems)",
+    )
+    rules_registry.set_defaults(handler=_cmd_rules_registry)
 
     run = subparsers.add_parser(
         "run",
@@ -1304,6 +1331,61 @@ def _cmd_schema_constraints(args: argparse.Namespace) -> int:
                 f"{len(regressions)} schema-violation relation(s) exceeded the baseline"
             )
         print(f"ratchet ok (baseline {args.baseline})")
+    return 0
+
+
+def _cmd_rules_registry(args: argparse.Namespace) -> int:
+    if args.regenerate:
+        entries = build_registry()
+        problems = validate_registry(entries)
+        if problems:
+            for problem in problems:
+                print(f"PROBLEM {problem.rule_id}: {problem.problem}")
+            return _fail(
+                f"refusing to regenerate: {len(problems)} registry problem(s)"
+            )
+        count = write_registry(entries, REGISTRY_TSV)
+        print(f"regenerated {count} rule(s) to {REGISTRY_TSV}")
+        return 0
+
+    # Validate the committed registry — the QA gate. Also confirm it is in sync with a
+    # fresh build (a drifted committed TSV means someone edited a rule without
+    # regenerating), so `rules-registry` alone catches both malformed and stale rows.
+    committed = load_registry()
+    problems = validate_registry(committed)
+    from collections import Counter
+
+    by_layer = Counter(entry.layer for entry in committed)
+    by_status = Counter(entry.status for entry in committed)
+    print(f"rules registry: {len(committed)} rule(s)")
+    for layer, count in sorted(by_layer.items()):
+        print(f"  layer {layer}: {count}")
+    for status, count in sorted(by_status.items()):
+        print(f"  status {status}: {count}")
+
+    fresh = build_registry()
+    if committed != fresh:
+        problems = [*problems]
+        print("DRIFT the committed registry differs from a fresh build")
+
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "rules": [entry.to_row() for entry in committed],
+            "problems": [
+                {"rule_id": p.rule_id, "problem": p.problem} for p in problems
+            ],
+        }
+        args.json.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote registry to {args.json}")
+
+    if problems:
+        for problem in problems:
+            print(f"PROBLEM {problem.rule_id}: {problem.problem}")
+        return _fail(f"{len(problems)} registry problem(s)")
+    if committed != fresh:
+        return _fail("committed registry is stale (run rules-registry --regenerate)")
+    print("registry ok (well-formed, in sync)")
     return 0
 
 
