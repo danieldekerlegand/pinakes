@@ -559,6 +559,54 @@ at a time through the derived `instance_of`, so a 3-level chain `A ⊂ B ⊂ C` 
 only `A→B` and `B→C`. The datalog materialiser attaches the taxonomy too, so the
 committed manifest counts the derived ancestor memberships.
 
+### Property constraints (P2302) — rules-layer US-002
+
+Where the taxonomy acquires *type* rules, this layer acquires **relation** rules from
+**Wikidata's property constraints (`P2302`)** — machine-readable axioms about the very
+properties the edge vocabulary is built from.
+[`culturescrape.acquire.constraints`](../src/culturescrape/acquire/constraints.py) fetches
+each mapped property's constraint statements (a WDQS `p:P2302` query) and resolves them
+against the corpus — property PID → edge `:TYPE`, an inverse constraint's target property
+→ its `:TYPE`, a type constraint's class QID → node `:LABEL` — into the provenanced replay
+artifact
+[`datalog/constraints/property_constraints.tsv`](../src/culturescrape/datalog/constraints/property_constraints.tsv)
+(network-free in CI).
+[`culturescrape.datalog.constraints`](../src/culturescrape/datalog/constraints.py)
+`translate`s each into a rule (or reports it):
+
+| Constraint | Rule | Engines |
+| --- | --- | --- |
+| **symmetric** (`Q21510862`) | `t(X, Y) :- t(Y, X).` — a bidirectional derivation | all (self-recursive → tabled) |
+| **inverse** (`Q21510855`) | `t(X, Y) :- u(Y, X).` — an inverse derivation (when `u` is in the vocabulary) | Soufflé only |
+| **subject/value-type** (`Q21503250`/`Q21510865`) | `t_subject_type_violation(X, Y) :- t(X, Y), !instance_of(X, "C").` — an integrity rule enumerating violations (value-type negates on `Y`) | Soufflé only |
+
+Inverse *pairs* are mutually recursive (`t :- u` and `u :- t`), which Soufflé's set
+semantics evaluate to a fixpoint but naive SWI SLD resolution would loop on (the
+cross-rule recursion is invisible to the single-rule tabling heuristic), and the integrity
+rules use stratified negation-as-failure over the `instance_of` closure — so both are
+Soufflé-only, matching US-003's violation-rules direction. A constraint whose type is none
+of these, or whose inverse property / type class is outside the corpus vocabulary, is
+**skipped and reported** (a `SkippedConstraint`), never guessed. Each translated rule
+carries the provenance of its constraint statement (`constraint_statement_id`,
+`retrieved_at`, `source`, `confidence`) into the draft rules registry
+[`datalog/constraints/rules_registry.tsv`](../src/culturescrape/datalog/constraints/rules_registry.tsv)
+(rules-layer US-004, draft form). The export attaches them behind `--constraints` (which
+also loads the taxonomy closure the integrity rules negate over):
+
+```python
+>>> from culturescrape.datalog.constraints import constraint_file_rules
+>>> result = constraint_file_rules()
+>>> sorted({rule.kind for rule in result.rules})
+['subject-type', 'symmetric', 'value-type']
+>>> len(result.skipped)   # a contemporary constraint + an out-of-vocabulary inverse
+2
+>>> [rule.name for rule in result.prolog_rules()]   # Prolog: symmetric derivations only
+['adjacent_to']
+>>> sorted(rule.name for rule in result.souffle_rules())
+['adjacent_to', 'adjacent_to_subject_type_violation', 'adjacent_to_value_type_violation']
+
+```
+
 ### Attaching the rules
 
 Passing `rules=RULES` appends a documented rules section — each rule's intended

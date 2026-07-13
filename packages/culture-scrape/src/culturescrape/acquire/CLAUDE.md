@@ -110,6 +110,34 @@ committed artifact; see that package's CLAUDE.md).
 - Imports `SubclassEdge` from `culturescrape.datalog.taxonomy` (acquire→datalog is
   fine; datalog never imports acquire, so no cycle).
 
+## P2302 property-constraint extractor (`constraints.py`, rules-layer US-002)
+
+`constraints.py` is the sibling of `taxonomy.py` for **relation** rules: it reads
+Wikidata's `P2302` *property constraint* statements for the corpus's edge vocabulary
+(`EDGE_PROPERTY_PIDS`, a `:TYPE → property PID` map — conservative like
+`CORPUS_CLASS_QIDS`) and writes the provenanced replay artifact
+`datalog/constraints/property_constraints.tsv` the datalog translator reads back.
+
+- **All Wikidata↔corpus resolution happens HERE, baked into the artifact** — so
+  `datalog/constraints.py` needs no `acquire` import (no cycle). The extractor resolves
+  the property PID → edge `:TYPE`, an inverse constraint's target PID → its `:TYPE`
+  (`""` when out of vocabulary), and a type constraint's class QID → node `:LABEL`
+  (reusing `taxonomy.CORPUS_CLASS_QIDS`; `""` when the class isn't a corpus backing
+  class). The translator then translates-or-skips from those resolved columns alone.
+- **SPARQL-only** (there is no dump path — constraints are statements on the property
+  *entity*, which the P31/P279 dump index doesn't hold). `sparql_constraint_lookup(http)`
+  runs one `p:P2302` query per property through the shared polite `HttpClient` and
+  **merges the optional qualifier rows** a single statement spans (`P2306` inverse
+  property, `P2308`/`P2309` class + relation) keyed by statement id.
+- **Statement ids are the provenance** (`PID$GUID` shape). Offline they can't be
+  derived, so the committed artifact uses stable `PID$slug` placeholders (documented);
+  a live re-extraction fills the real GUIDs. Same fixture-reproduces-committed test as
+  taxonomy (`test_extractor_reproduces_the_committed_artifact`).
+- **Extend `EDGE_PROPERTY_PIDS`** only with a `:TYPE` whose single backing Wikidata
+  property is unambiguous — every mapped `:TYPE` must be a registered `RelationType`
+  (a test asserts it). Re-extract + re-commit BOTH `property_constraints.tsv` and the
+  translated `rules_registry.tsv` after any change.
+
 ## Content-fingerprint dump diff (`wikidata_diff.py`, US-006)
 
 `diff_dumps(old, new)` classifies every QID as added / changed / removed / unchanged by

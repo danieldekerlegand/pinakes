@@ -360,6 +360,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="attach the shared inference-rule library to the program(s)",
     )
     to_datalog.add_argument(
+        "--constraints",
+        action="store_true",
+        help="attach the rules translated from Wikidata property constraints "
+        "(P2302): symmetric derivations (all engines), inverse derivations and "
+        "subject/value-type integrity rules (Soufflé). Loads the P279 taxonomy the "
+        "integrity rules negate over.",
+    )
+    to_datalog.add_argument(
         "--out",
         required=True,
         type=Path,
@@ -1148,12 +1156,21 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
     try:
         engines = engines_for_choice(args.engine)
         result = export_dataset(
-            args.directory, args.out, engines, include_rules=args.rules
+            args.directory,
+            args.out,
+            engines,
+            include_rules=args.rules,
+            include_constraints=args.constraints,
         )
     except DatalogExportError as exc:
         return _fail(str(exc))
 
-    rules_note = " with rules" if args.rules else ""
+    notes = []
+    if args.rules:
+        notes.append("rules")
+    if args.constraints:
+        notes.append("constraints")
+    rules_note = f" with {' + '.join(notes)}" if notes else ""
     print(
         f"projected {result.fact_count} fact(s){rules_note} to {args.out} "
         f"for {', '.join(engine.value for engine in engines)}"

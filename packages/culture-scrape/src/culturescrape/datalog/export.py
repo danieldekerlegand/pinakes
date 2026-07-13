@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from culturescrape.datalog import Fact, edge_file_facts, node_file_facts
+from culturescrape.datalog.constraints import constraint_file_rules
 from culturescrape.datalog.problog import (
     PROBLOG_PROGRAM_NAME,
     collect_problog_facts,
@@ -171,6 +172,7 @@ def export_dataset(
     engines: Iterable[Engine],
     *,
     include_rules: bool = False,
+    include_constraints: bool = False,
 ) -> ExportResult:
     """Export the dataset at *directory* to a logic program under *out*.
 
@@ -181,6 +183,18 @@ def export_dataset(
     files). When *include_rules* is set, the shared inference library
     (:data:`~culturescrape.datalog.RULES`) is attached to every program.
 
+    When *include_constraints* is set, the rules translated from Wikidata property
+    constraints (:mod:`culturescrape.datalog.constraints`, rules-layer US-002) are
+    attached — and, because the subject/value-type integrity rules negate over the
+    **transitive** ``instance_of`` membership, the shared rule library (the P279
+    closure and its taxonomy facts) is attached alongside them even without
+    *include_rules*. The constraint rules are **engine-specific**: SWI-Prolog receives
+    only the symmetric derivations (self-recursive, so tabled and terminating), while
+    Soufflé also receives the inverse derivations and the subject/value-type integrity
+    rules (mutually-recursive inverse pairs and stratified negation are Soufflé's
+    domain — see the module docstring). ProbLog is the probabilistic on-ramp and
+    receives no constraint rules.
+
     Raises:
         DatalogExportError: If *engines* is empty, or the dataset cannot be read
             (see :func:`collect_facts`).
@@ -190,9 +204,17 @@ def export_dataset(
         raise DatalogExportError("no engine selected")
 
     # The taxonomy rides with the rules: subclass_of/2 facts only earn their keep
-    # when the instance_of closure rule is attached to consume them.
-    facts = collect_facts(directory, include_taxonomy=include_rules)
-    rules: tuple[Rule, ...] = RULES if include_rules else ()
+    # when the instance_of closure rule is attached to consume them — and the
+    # integrity rules negate over that same closure, so constraints need it too.
+    attach_rules = include_rules or include_constraints
+    facts = collect_facts(directory, include_taxonomy=attach_rules)
+    base_rules: tuple[Rule, ...] = RULES if attach_rules else ()
+    prolog_rules = base_rules
+    souffle_rules = base_rules
+    if include_constraints:
+        translation = constraint_file_rules()
+        prolog_rules = base_rules + translation.prolog_rules()
+        souffle_rules = base_rules + translation.souffle_rules()
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -206,15 +228,15 @@ def export_dataset(
     for engine in engines:
         if engine is Engine.SWIPL:
             program = out_dir / PROLOG_PROGRAM_NAME
-            fact_count = write_program(program, facts, rules)
+            fact_count = write_program(program, facts, prolog_rules)
         elif engine is Engine.PROBLOG:
             program = out_dir / PROBLOG_PROGRAM_NAME
             fact_count = write_problog_program(
-                program, collect_problog_facts(directory), rules
+                program, collect_problog_facts(directory), base_rules
             )
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
-            fact_count = write_souffle_program(out_dir, facts, rules)
+            fact_count = write_souffle_program(out_dir, facts, souffle_rules)
         programs[engine] = program
 
     return ExportResult(fact_count=fact_count, programs=programs)

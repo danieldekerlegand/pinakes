@@ -185,6 +185,53 @@ artifact from the extractor (a fixture ancestor-lookup encodes the real P279 fac
   this map), re-extract, and re-commit the TSV. `subclass_of` is already in
   `examples.KNOWN_PREDICATES`, so a query naming it lints clean.
 
+## Property-constraint rules: symmetric / inverse / integrity (rules-layer US-002)
+
+`constraints.py` translates Wikidata `P2302` property constraints into rules, read
+from the committed replay artifact `datalog/constraints/property_constraints.tsv`
+(written by `acquire/constraints.py`; all Wikidata↔corpus resolution is baked into
+its columns, so `datalog` never imports `acquire`). `translate()` →
+`TranslationResult(rules, skipped)`; `constraint_file_rules()` loads+translates the
+committed artifact. Emitted behind `to-datalog --constraints` / `export_dataset(
+include_constraints=True)`.
+
+- **A `ConstraintRule` is NOT a `Rule`** — it carries provenance (`constraint_statement_id`,
+  `retrieved_at`, source/confidence, `status`) and **per-engine** clause tuples, and
+  yields a plain `Rule` via `.prolog_rule()` / `.souffle_rule()` (either may be `None`).
+  This is how a rule reaches ONE engine with dialect-specific text (negation) while
+  reusing all the existing emitter machinery — the emitters render any `Rule` verbatim,
+  so a `Rule` whose clause is `... :- t(X,Y), !instance_of(Y,"C").` emits fine for
+  Soufflé, and the byte-identical-across-dialects invariant (a test over `RULES` only)
+  is untouched because these rules are not in `RULES`.
+- **Three translations, engine split:** *symmetric* (`Q21510862`) → `t(X,Y):-t(Y,X).`
+  to BOTH engines (self-recursive → auto-tabled in Prolog, safe); *inverse* (`Q21510855`)
+  → `t(X,Y):-u(Y,X).` **Soufflé-only** (an inverse pair mutually recurses `t:-u`,`u:-t`;
+  Soufflé fixpoints it, but untabled SWI SLD would loop — the single-rule `is_recursive`
+  tabling heuristic can't see cross-rule recursion); *subject/value-type*
+  (`Q21503250`/`Q21510865`) → a violation head `t_{subject,value}_type_violation(X,Y):-
+  t(X,Y), !instance_of({X,Y},"C").` **Soufflé-only** (stratified negation over the
+  `instance_of` closure). So `export_dataset` passes DIFFERENT rule sets per engine
+  (`translation.prolog_rules()` = symmetric only; `.souffle_rules()` = all active).
+- **`--constraints` implies the rule library** (`attach_rules = include_rules or
+  include_constraints`) because the integrity rules negate over the *transitive*
+  `instance_of` — the P279 closure + taxonomy facts must be present. ProbLog gets the
+  base `RULES` but no constraint rules (it has no negation / no `:- table`).
+- **Skipped-and-reported, never guessed:** an untranslatable constraint type, an inverse
+  whose target property isn't in `EDGE_PROPERTY_PIDS` (blank `inverse_edge_type`), or a
+  type constraint whose class isn't a corpus `:LABEL` (blank `class_label`) → a
+  `SkippedConstraint`. A generated clause that duplicates a curated `RULES` clause is
+  marked `status="redundant"` and excluded from emission (dedup via `curated=` set).
+- **Draft rules registry (US-004 draft):** `render_rules_registry()` → committed
+  `datalog/constraints/rules_registry.tsv` (rule id + per-dialect clauses + provenance +
+  status). Regenerate it AND `property_constraints.tsv` together (a test pins the
+  registry to `constraint_file_rules()`); the two `.tsv`s are in
+  `pyproject` package-data (`datalog/constraints/*.tsv`).
+- **Materialiser covers the positive kinds only** — symmetric/inverse are positive Horn
+  (fixpoint-safe), so `materialize(facts, [cr.souffle_rule()])` derives them engine-free
+  in tests; the violation rules use negation and are validated by the souffle-gated smoke
+  (`test_souffle_detects_a_value_type_violation`) — engines aren't installed locally, so
+  reason about stratification and lean on that CI-gated test.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its
