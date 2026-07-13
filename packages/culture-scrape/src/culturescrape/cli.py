@@ -74,7 +74,7 @@ from culturescrape.orchestrate.corpus import (
     corpus_component_fraction,
     corpus_qa_policy,
 )
-from culturescrape.orchestrate.generate import BlueprintError, generate
+from culturescrape.orchestrate.generate import BlueprintError, DumpSource, generate
 from culturescrape.orchestrate.jobs import (
     STAGE_ORDER,
     Job,
@@ -553,6 +553,46 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help="HTTP cache directory for --verify (default: <out>/.http-cache)",
+    )
+    gen.add_argument(
+        "--dump",
+        type=Path,
+        default=None,
+        help="retarget every wikidata_class stub at this local Wikidata dump/slice "
+        "(source.type wikidata-dump), so the blueprint acquires fully offline; "
+        "see docs/wikidata-dump-runbook.md",
+    )
+    gen.add_argument(
+        "--index",
+        type=Path,
+        default=None,
+        help="dump-mode class-membership index beside the dump "
+        "(default: the conventional <dump>.index.sqlite3 sidecar or a full scan)",
+    )
+    gen.add_argument(
+        "--hydrate",
+        default=None,
+        help="dump-mode hydration profile every category opts into "
+        "(e.g. 'default'; omit for label-only SPARQL parity)",
+    )
+    gen.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="dump mode: select direct P31 instances only "
+        "(default: P31/P279* transitive, matching build-slice)",
+    )
+    gen.add_argument(
+        "--min-component-fraction",
+        type=float,
+        default=None,
+        help="write this corpus connectivity floor into the generated --job "
+        "(relax it for a single-domain dump slice that legitimately fragments)",
+    )
+    gen.add_argument(
+        "--min-provenance-completeness",
+        type=float,
+        default=None,
+        help="write this corpus provenance floor into the generated --job",
     )
     gen.set_defaults(handler=_cmd_generate)
 
@@ -1117,6 +1157,16 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         cache_dir: Path = args.cache_dir or args.out / ".http-cache"
         count_fn = partial(fetch_count, HttpClient(cache_dir=cache_dir))
+    dump: DumpSource | None = None
+    if args.dump is not None:
+        dump = DumpSource(
+            path=args.dump,
+            index=args.index,
+            hydrate=args.hydrate,
+            transitive=not args.no_transitive,
+        )
+    elif args.index is not None or args.hydrate is not None:
+        return _fail("--index/--hydrate require --dump (dump mode)")
     try:
         result = generate(
             args.blueprint,
@@ -1125,6 +1175,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             force=args.force,
             verify=args.verify,
             count_fn=count_fn,
+            dump=dump,
+            min_component_fraction=args.min_component_fraction,
+            min_provenance_completeness=args.min_provenance_completeness,
         )
     except (BlueprintError, WikidataSparqlError) as exc:
         return _fail(str(exc))

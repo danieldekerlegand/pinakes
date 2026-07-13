@@ -33,6 +33,15 @@ Each stub names exactly one source: ``wikidata_class`` (instance-of a class),
 ``subclass_of`` (the transitive subclass taxonomy under a class), ``query`` (raw
 SPARQL), or ``petscan`` (a Wikipedia category tree). Per-stub ``label`` /
 ``dimensions`` / ``links`` override the defaults.
+
+**Dump mode.** Passing a :class:`DumpSource` to :func:`generate` /
+:func:`build_specs` retargets every ``wikidata_class`` stub at a **local Wikidata
+dump** (``source.type: wikidata-dump``) instead of the live Query Service, so a
+whole blueprint acquires fully offline from a dump slice (see
+``docs/wikidata-dump-runbook.md`` and the US-003 food-drink proof). The generated
+job may carry relaxed corpus floors (``min_component_fraction`` /
+``min_provenance_completeness``) — a single-domain slice legitimately fragments
+below the multi-domain seed corpus's connectivity.
 """
 
 from __future__ import annotations
@@ -95,6 +104,35 @@ class BlueprintError(ValueError):
 
 
 @dataclass(frozen=True)
+class DumpSource:
+    """Binds a blueprint's class stubs to a local Wikidata dump.
+
+    When given to :func:`generate` / :func:`build_specs`, every ``wikidata_class``
+    stub expands to a ``wikidata-dump`` source that selects the class's members
+    from *path* (resolving membership through *index* when set, else a full dump
+    scan), rather than a live ``wikidata-sparql`` query — so the blueprint builds
+    offline from a dump slice. Only ``wikidata_class`` stubs are expressible as
+    dump class-membership; a ``subclass_of`` / ``query`` / ``petscan`` stub is
+    rejected in dump mode.
+
+    Attributes:
+        path: The local dump/slice the adapter reads (never downloaded).
+        index: An optional prebuilt class-membership index beside the dump; when
+            unset the adapter uses the conventional sidecar or a full scan.
+        hydrate: The hydration profile to opt every category into (e.g.
+            ``'default'``), or ``None`` for label-only SPARQL parity.
+        transitive: Whether to also keep instances of each class's ``P279``
+            subclasses (the ``P31/P279*`` idiom the slice was composed with);
+            defaults to ``True`` to mirror ``build-slice``.
+    """
+
+    path: Path
+    index: Path | None = None
+    hydrate: str | None = None
+    transitive: bool = True
+
+
+@dataclass(frozen=True)
 class GenerateResult:
     """What a :func:`generate` run produced."""
 
@@ -103,8 +141,13 @@ class GenerateResult:
     job: Path | None
 
 
-def load_blueprint(path: str | Path) -> tuple[CategorySpec, ...]:
+def load_blueprint(
+    path: str | Path, *, dump: DumpSource | None = None
+) -> tuple[CategorySpec, ...]:
     """Load *path* and return the validated category specs it expands to.
+
+    Pass *dump* to retarget every ``wikidata_class`` stub at a local dump
+    (``wikidata-dump`` source) instead of the live Query Service.
 
     Raises:
         BlueprintError: If the file cannot be read, is not valid YAML, or any
@@ -119,11 +162,11 @@ def load_blueprint(path: str | Path) -> tuple[CategorySpec, ...]:
         raw = yaml.safe_load(text)
     except yaml.YAMLError as exc:
         raise BlueprintError(f"{path}: invalid YAML: {exc}") from exc
-    return build_specs(raw, source=str(path))
+    return build_specs(raw, source=str(path), dump=dump)
 
 
 def build_specs(
-    raw: object, *, source: str = "<blueprint>"
+    raw: object, *, source: str = "<blueprint>", dump: DumpSource | None = None
 ) -> tuple[CategorySpec, ...]:
     """Expand a parsed blueprint *raw* into validated :class:`CategorySpec`s.
 
@@ -153,7 +196,7 @@ def build_specs(
     seen: set[str] = set()
     for index, stub in enumerate(stubs):
         label = _stub_label(stub, index)
-        mapping = _expand_stub(stub, defaults, label, errors)
+        mapping = _expand_stub(stub, defaults, label, errors, dump)
         if mapping is None:
             continue
         cid = mapping["id"]
@@ -188,6 +231,9 @@ def generate(
     force: bool = False,
     verify: bool = False,
     count_fn: CountFn | None = None,
+    dump: DumpSource | None = None,
+    min_component_fraction: float | None = None,
+    min_provenance_completeness: float | None = None,
 ) -> GenerateResult:
     """Expand *blueprint* into ``<out_dir>/<id>.yml`` files (and an optional job).
 
@@ -204,6 +250,13 @@ def generate(
         count_fn: Runs one SPARQL ``COUNT`` query and returns the count;
             required when *verify* is set (the CLI wires it to the Query
             Service). Ignored otherwise.
+        dump: When set, retarget every ``wikidata_class`` stub at this local dump
+            (``wikidata-dump`` source) so the blueprint acquires offline.
+        min_component_fraction: When set, written to the generated job so the
+            corpus connectivity floor is relaxed (a single-domain dump slice
+            legitimately fragments below the multi-domain seed corpus's 90%).
+        min_provenance_completeness: When set, written to the generated job to
+            relax the corpus provenance floor.
 
     Raises:
         BlueprintError: If the blueprint is invalid, a class stub fails count
@@ -211,7 +264,7 @@ def generate(
     """
     blueprint = Path(blueprint)
     out_dir = Path(out_dir)
-    specs = load_blueprint(blueprint)
+    specs = load_blueprint(blueprint, dump=dump)
     if verify:
         if count_fn is None:
             raise BlueprintError("verification requires a count function")
@@ -235,7 +288,14 @@ def generate(
 
     job_path: Path | None = None
     if job is not None:
-        job_path = _write_job(Path(job), blueprint.stem, written, force=force)
+        job_path = _write_job(
+            Path(job),
+            blueprint.stem,
+            written,
+            force=force,
+            min_component_fraction=min_component_fraction,
+            min_provenance_completeness=min_provenance_completeness,
+        )
 
     return GenerateResult(
         blueprint=blueprint, categories=tuple(written), job=job_path
@@ -349,6 +409,7 @@ def _expand_stub(
     defaults: Mapping[str, Any],
     label: str,
     errors: list[str],
+    dump: DumpSource | None = None,
 ) -> dict[str, Any] | None:
     """Merge one stub with *defaults* into a category mapping, or ``None``."""
     before = len(errors)
@@ -365,7 +426,11 @@ def _expand_stub(
         errors.append(f"{label}: 'id' must be a lowercase-hyphenated string")
 
     description = _stub_description(stub, label, errors)
-    source = _build_source(stub, label, errors)
+    source = (
+        _build_dump_source(stub, label, errors, dump)
+        if dump is not None
+        else _build_source(stub, label, errors)
+    )
 
     mapping: dict[str, Any] = {}
     if isinstance(cid, str):
@@ -434,6 +499,46 @@ def _build_source(
     return {"type": "wikidata-sparql", "query": query}
 
 
+def _build_dump_source(
+    stub: Mapping[str, Any], label: str, errors: list[str], dump: DumpSource
+) -> dict[str, Any] | None:
+    """Expand a class stub into a ``wikidata-dump`` source over *dump*.
+
+    Only a ``wikidata_class`` stub is expressible as dump class-membership: the
+    adapter selects a class's ``P31`` instances (plus, transitively, instances of
+    its ``P279`` subclasses). A ``subclass_of`` / ``query`` / ``petscan`` stub has
+    no dump equivalent and is rejected, naming the stub.
+    """
+    present = [key for key in _SOURCE_SELECTORS if key in stub]
+    if len(present) != 1:
+        errors.append(
+            f"{label}: set exactly one source selector "
+            f"({', '.join(_SOURCE_SELECTORS)}); found {len(present)}"
+        )
+        return None
+    selector = present[0]
+    if selector != "wikidata_class":
+        errors.append(
+            f"{label}: dump mode supports only 'wikidata_class' stubs, not "
+            f"{selector!r} (a dump selects class membership, not a raw query)"
+        )
+        return None
+
+    qid = stub[selector]
+    if not isinstance(qid, str) or not _QID_RE.match(qid):
+        errors.append(f"{label}: '{selector}' must be a Wikidata id like 'Q42'")
+        return None
+
+    params: dict[str, Any] = {"path": str(dump.path), "class": qid}
+    if dump.transitive:
+        params["transitive"] = "true"
+    if dump.index is not None:
+        params["index"] = str(dump.index)
+    if dump.hydrate:
+        params["hydrate"] = dump.hydrate
+    return {"type": "wikidata-dump", "params": params}
+
+
 def _petscan_source(
     value: object, label: str, errors: list[str]
 ) -> dict[str, Any] | None:
@@ -489,9 +594,20 @@ def _spec_to_mapping(spec: CategorySpec) -> dict[str, Any]:
 
 
 def _write_job(
-    job_path: Path, name: str, categories: Sequence[Path], *, force: bool
+    job_path: Path,
+    name: str,
+    categories: Sequence[Path],
+    *,
+    force: bool,
+    min_component_fraction: float | None = None,
+    min_provenance_completeness: float | None = None,
 ) -> Path:
-    """Write a runnable job listing *categories*, paths relative to the job."""
+    """Write a runnable job listing *categories*, paths relative to the job.
+
+    *min_component_fraction* / *min_provenance_completeness*, when given, are
+    written as the job's corpus-floor overrides (dump mode relaxes them for a
+    single-domain slice).
+    """
     if job_path.exists() and not force:
         raise BlueprintError(f"{job_path} already exists; pass force=True to overwrite")
     job_path.parent.mkdir(parents=True, exist_ok=True)
@@ -500,12 +616,16 @@ def _write_job(
     # Mirror the shipped seed job: outputs land in a sibling `out/` tree one
     # level up from the jobs directory (e.g. jobs/x.yml -> ../out/x).
     output_root = _relative(base.parent / "out" / name, base)
-    mapping = {
+    mapping: dict[str, Any] = {
         "name": name,
         "description": f"Generated from {name} blueprint.",
         "categories": rels,
         "output_root": output_root,
     }
+    if min_component_fraction is not None:
+        mapping["min_component_fraction"] = min_component_fraction
+    if min_provenance_completeness is not None:
+        mapping["min_provenance_completeness"] = min_provenance_completeness
     header = (
         f"# Generated by `culturescrape generate` from the {name} blueprint.\n"
         f"# Run with: culturescrape run {job_path}\n"

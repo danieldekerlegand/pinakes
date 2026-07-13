@@ -196,3 +196,109 @@ CULTURESCRAPE_WIKIDATA_SLICE=out/wikidata/wikidata-20260712-blueprint-slice.json
 
 The fixture-based dump tests (`test_wikidata_dump*.py`) stay green regardless —
 this runbook adds a real-data path without touching the committed fixture.
+
+---
+
+## Building a whole blueprint from the slice, offline (US-003)
+
+Once a slice (Recipe A/B/C) and its index exist, a whole blueprint builds end to
+end **with no network** — acquire → normalize → stitch → link → export → QA —
+producing a canonical corpus, a Neo4j bulk-import script, and a Datalog program.
+The lever is `generate`'s **dump mode**: `--dump` retargets every
+`wikidata_class` stub at the local slice (`source.type: wikidata-dump`) instead of
+the live Query Service.
+
+```bash
+cd packages/culture-scrape
+SLICE=$(pwd)/out/wikidata/wikidata-20260712-blueprint-slice.json.gz
+
+# 1. Expand the blueprint into dump-sourced categories + a runnable job.
+#    Use ABSOLUTE paths for --dump/--index so the categories resolve from anywhere.
+uv run culturescrape generate blueprints/food-drink.yml \
+  --dump  "$SLICE" \
+  --index "$SLICE.index.sqlite3" \
+  --hydrate default \
+  --out out/food-drink-dump/categories \
+  --job jobs/food-drink-dump.yml \
+  --force
+# (--min-component-fraction / --min-provenance-completeness are written into the
+#  job if you need to relax the corpus floors; food-drink needs neither — see below.)
+
+# 2. Run the whole pipeline offline. The dump adapter opens no connection.
+uv run culturescrape run jobs/food-drink-dump.yml --workers 4
+```
+
+The generated job carries no floor overrides — the single food-drink domain
+clears the **default** corpus gates (connectivity ≥ 90%, provenance ≥ 50%,
+zero duplicates, zero dangling edges), because its entities interconnect through
+the linker-minted shared **place** hubs (`ORIGINATES_FROM`/`LOCATED_IN` off each
+dish's country of origin). A more scattered single domain may legitimately
+fragment below 90% — relax it with `--min-component-fraction` and record the
+rationale, per the seed-corpus precedent.
+
+### Recorded build — reference slice (2026-07-12)
+
+All 14 food-drink classes, from the 5,691-entity API-composed slice
+(`out/wikidata/wikidata-20260712-blueprint-slice.json.gz`), on a warm index:
+
+| stage | measurement |
+| --- | --- |
+| acquire (14 categories) | **972** member entities selected; **146.2 s CPU** summed / **~46 s wall** at 4 workers |
+| normalize (14 categories) | **2,943** node+edge rows; **5.3 s CPU** summed |
+| stitch + link + export (corpus) | inline; total build **45.9 s wall** |
+| **corpus** | **1,062 nodes / 2,655 edges**; largest component **99.91%** (1,061/1,062) |
+| peak memory | **71 MB** RSS · **9.7 MB** Python-object peak (`tracemalloc`) — streaming, bounded by the flush buffer, not the slice |
+| Neo4j | `corpus-neo4j/neo4j-admin-import.sh` (4 node files, edge files) generated |
+| Datalog | **15,702** facts projected (`corpus-datalog/`, swipl + souffle) |
+| QA | all corpus gates **pass** (provenance 0.99, 0 duplicates, 0 dangling edges) |
+
+**Scale note (feeds US-007).** Acquire dominates: **146 s of CPU** for a 5,691-entity
+slice, because each of the 14 categories independently streams the *entire* slice
+(14 full passes). The index makes membership an O(1) lookup, but `iter_entities`
+still reads every line per category. At full-dump scale this is 14 × ~100 M-entity
+passes — the first thing to fix for the next scale step (one grouped pass, or a
+membership-partitioned reader). Memory does **not** grow with the slice, so the
+blocker is throughput, not RAM.
+
+### A real engine answers a smoke query
+
+The engine-free Datalog evaluator materialises the inference rules over the built
+corpus (a real fixpoint, no swipl/souffle needed) — excluding the arithmetic
+temporal rules, which are intractable to materialise and are derived lazily by a
+real engine:
+
+```bash
+uv run culturescrape datalog-materialize out/food-drink/corpus \
+  --exclude contemporary precedes follows
+# base:  located_in: 723 ...
+# derived (total 88,230):  same_region: 87,507 · within_region: 723 ...
+```
+
+### Reconciliation against curated rows
+
+The corpus is reconciled against the nearest overlapping LinguaScrape lexicon with
+the offline cascade (`reconcile_corpus_against_lexicon`; language code → exact
+`(name, type, region)` → fuzzy name, ambiguous rows **never** auto-merged):
+
+| corpus (dish) vs curated | matched | new | ambiguous | union distinct |
+| --- | --- | --- | --- | --- |
+| 960 named dish nodes vs `lexicons/cuisines.tsv` (101 rows) | 0 | 960 | 0 | 1,061 |
+
+The zero-match result is honest and expected: LinguaScrape curates **cuisines**
+(e.g. "Italian cuisine"), not individual dishes, so there is no identity overlap
+to damage — every dish stands as its own `new` node and nothing is auto-merged.
+A domain that *does* overlap a curated lexicon (US-004's language / myth-religion)
+will report real `matched` counts; ambiguous rows are always withheld for triage.
+
+### Verifying offline (skipif-gated)
+
+`tests/test_blueprint_food_drink_dump_smoke.py` proves this path end to end where a
+real slice is present: it expands a 2-class food-drink subset in dump mode, builds
+the corpus with an HTTP factory that **raises** (any network call fails the test),
+and asserts the corpus validates, clears the QA gates, is connected, exports Neo4j
++ Datalog, answers the engine smoke query, and reconciles. On a fresh checkout with
+no slice it is skipped.
+
+```bash
+uv run pytest tests/test_blueprint_food_drink_dump_smoke.py -q
+```
