@@ -165,7 +165,7 @@ function sanitize(value: string): string {
  * Parse a lexicon TSV, preserving the exact line ending + trailing-newline shape so an
  * unedited file re-serialises byte-for-byte. Returns `null` for a missing/empty file.
  */
-function readLexiconFile(filePath: string, file: string): LexiconFile | null {
+export function readLexiconFile(filePath: string, file: string): LexiconFile | null {
   if (!fs.existsSync(filePath)) return null;
   const content = fs.readFileSync(filePath, "utf8");
   if (content.trim() === "") return null;

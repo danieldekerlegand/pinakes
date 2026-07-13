@@ -85,6 +85,8 @@ export interface ReconciliationKey {
   readonly label: string;
   readonly name: string;
   readonly region: string;
+  /** Normalized `wikidata_qid` (`Q…`), `""` when the row carries no QID. */
+  readonly wikidataQid: string;
   readonly iso639_1: string;
   readonly iso639_2: string;
   readonly glottocode: string;
@@ -133,6 +135,8 @@ export interface ReconciliationReport {
       readonly withIso639: number;
       readonly withGlottocode: number;
     };
+    /** Nodes carrying a global `wikidata_qid` anchor (matched via cascade step 1). */
+    readonly withWikidataQid: number;
     readonly withRegion: number;
     readonly duplicateCsidsDropped: number;
   };
@@ -189,6 +193,12 @@ function headerIndex(headers: string[], name: string): number {
   return headers.findIndex((h) => h.toLowerCase() === lower);
 }
 
+/** Normalize a `wikidata_qid` cell to `Q<digits>`, or `""` when it is not a QID. */
+export function normalizeQid(value: string): string {
+  const q = value.trim().toUpperCase();
+  return /^Q\d+$/.test(q) ? q : "";
+}
+
 /** First header whose name ends in `region` (region/origin_region/proposed_region). */
 function regionColIndex(headers: string[]): number {
   return headers.findIndex((h) => /(^|_)region$/i.test(h));
@@ -237,6 +247,7 @@ export function buildReconciliationKeys(
 
       const name = cell(row, nameIdx);
       const region = cell(row, regionIdx);
+      const wikidataQid = normalizeQid(cell(row, qidIdx));
       const iso639_1 = cell(row, iso1Idx);
       const iso639_2 = cell(row, iso2Idx);
       const glottocode = cell(row, glottoIdx);
@@ -253,6 +264,7 @@ export function buildReconciliationKeys(
         label: typeInfo.label,
         name,
         region,
+        wikidataQid,
         iso639_1,
         iso639_2,
         glottocode,
@@ -277,11 +289,16 @@ export function buildReconciliationReport(
   keys: readonly ReconciliationKey[],
   duplicateCsidsDropped: number,
 ): BuiltReconciliation {
-  // Blocking buckets. Anchored nodes block on their language code; every other
-  // node blocks on its (name, type, region) key. Precedence: anchor over name.
+  // Blocking buckets, in cascade precedence: a `wikidata_qid` is a *global* anchor (the QID
+  // IS the entity — cascade step 1), so a QID-bearing node reconciles deterministically and
+  // is `matched` regardless of any name collision. A node with no QID but a language code
+  // blocks on that code; every other node blocks on its (name, type, region) key.
   const langBuckets = new Map<string, ReconciliationKey[]>();
   const nameBuckets = new Map<string, ReconciliationKey[]>();
   for (const k of keys) {
+    if (k.wikidataQid !== "") {
+      continue; // QID anchor — never blocks on a weaker key.
+    }
     if (k.languageAnchor !== "") {
       push(langBuckets, k.languageAnchor, k);
     } else if (k.nameKey !== "") {
@@ -291,7 +308,11 @@ export function buildReconciliationReport(
 
   const classified: ReconciliationKey[] = keys.map((k) => {
     let bucket: ReconciliationBucket;
-    if (k.languageAnchor !== "") {
+    if (k.wikidataQid !== "") {
+      // A QID resolves the same Wikidata entity every time; two nodes sharing a QID are the
+      // same entity (collapsed by reconcile_shared_qids), not a blocking ambiguity.
+      bucket = "matched";
+    } else if (k.languageAnchor !== "") {
       bucket = (langBuckets.get(k.languageAnchor)?.length ?? 0) > 1 ? "ambiguous" : "matched";
     } else if (k.nameKey !== "") {
       bucket = (nameBuckets.get(k.nameKey)?.length ?? 0) > 1 ? "ambiguous" : "likely-new";
@@ -366,6 +387,7 @@ function buildReport(
   let languagesTotal = 0;
   let languagesWithIso = 0;
   let languagesWithGlotto = 0;
+  let withWikidataQid = 0;
   let withRegion = 0;
 
   for (const k of keys) {
@@ -393,6 +415,7 @@ function buildReport(
       if (k.iso639_1 !== "" || k.iso639_2 !== "") languagesWithIso += 1;
       if (k.glottocode !== "") languagesWithGlotto += 1;
     }
+    if (k.wikidataQid !== "") withWikidataQid += 1;
     if (k.region !== "") withRegion += 1;
   }
 
@@ -412,6 +435,7 @@ function buildReport(
         withIso639: languagesWithIso,
         withGlottocode: languagesWithGlotto,
       },
+      withWikidataQid,
       withRegion,
       duplicateCsidsDropped,
     },
@@ -429,6 +453,7 @@ export const KEYS_HEADER: readonly string[] = [
   "node_type",
   "name",
   "region",
+  "wikidata_qid",
   "iso639_1",
   "iso639_2",
   "glottocode",
@@ -447,6 +472,7 @@ function keyRow(k: ReconciliationKey): string {
     k.nodeType,
     sani(k.name),
     sani(k.region),
+    k.wikidataQid,
     k.iso639_1,
     k.iso639_2,
     k.glottocode,
