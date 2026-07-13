@@ -40,6 +40,23 @@ presence of `:LABEL` vs `:TYPE`. The `linguascrape_id` alias column rides throug
 schema live on the TS side (`scripts/export-for-culturescrape.ts`,
 `shared/canonical-schema.ts`); see `docs/reconcile-linguascrape.md`.
 
+## Real-data dump slices (`wikidata_slice.py`, not an adapter)
+
+`wikidata_slice.py` is a standalone **builder**, not a `SourceAdapter`: it composes
+a real, bounded Wikidata slice in the **exact `latest-all` dump framing**
+`wikidata_dump.iter_entities` reads (bare `[`, one entity/line, trailing comma on
+all but the last, bare `]`) so the dump stack can run on genuine bytes without the
+~90 GB download. `build_slice()` resolves member QIDs per blueprint class via WDQS
+(`P31/P279*`), fetches full entity JSON via `wbgetentities` in batches of 50, dedupes
+across classes (first class wins), and writes a `<out>.manifest.json` sidecar with
+`source: wikidata-api-composed` provenance. All I/O goes through the shared
+`HttpClient` (cached/retried/User-Agent-identified). CLI: `culturescrape build-slice`.
+Gotchas: name the output `…YYYYMMDD…` so `dump_version()` records the date; output
+lands under `out/` (gitignored — commit the manifest, never the slice); the
+`skipif`-gated smoke test (`test_wikidata_slice_smoke.py`) only runs when a real
+slice is present. Full recipe (plus the streamed `wikibase-dump-filter` and full-dump
+variants): `docs/wikidata-dump-runbook.md`.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

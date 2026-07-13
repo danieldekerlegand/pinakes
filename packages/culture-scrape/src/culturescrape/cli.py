@@ -34,6 +34,12 @@ from culturescrape.acquire.wikidata_enrich import (
     resolve_dump_version,
 )
 from culturescrape.acquire.wikidata_hydration import UnknownProfileError, get_profile
+from culturescrape.acquire.wikidata_slice import (
+    SliceClass,
+    WikidataSliceError,
+    blueprint_classes,
+    build_slice,
+)
 from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
     DatalogExportError,
@@ -606,6 +612,44 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     index_wikidata.set_defaults(handler=_cmd_index_wikidata)
 
+    build_slice_cmd = subparsers.add_parser(
+        "build-slice",
+        help="compose a real, bounded Wikidata dump slice from blueprint classes "
+        "via the live APIs (polite; no ~90 GB download)",
+    )
+    build_slice_cmd.add_argument(
+        "blueprints",
+        nargs="+",
+        type=Path,
+        help="blueprint .yml file(s) whose wikidata_class stubs seed the slice "
+        "(e.g. blueprints/food-drink.yml blueprints/language.yml)",
+    )
+    build_slice_cmd.add_argument(
+        "--out",
+        required=True,
+        type=Path,
+        help="path to write the slice to; name it with a YYYYMMDD so provenance "
+        "records the data's date (e.g. out/wikidata/wikidata-20260712-slice.json.gz)",
+    )
+    build_slice_cmd.add_argument(
+        "--limit-per-class",
+        type=int,
+        default=200,
+        help="max members to draw from each class (politeness bound; default: 200)",
+    )
+    build_slice_cmd.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="select direct P31 instances only (default: P31/P279* transitive)",
+    )
+    build_slice_cmd.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=None,
+        help="HTTP cache directory (default: <out-dir>/.http-cache)",
+    )
+    build_slice_cmd.set_defaults(handler=_cmd_build_slice)
+
     catalog = subparsers.add_parser(
         "catalog",
         help="print the corpus catalog (every category and its stats) as a table",
@@ -1141,6 +1185,40 @@ def _cmd_index_wikidata(args: argparse.Namespace) -> int:
         f"{len(index.subclasses)} subclass edge(s) -> {out}"
     )
     return 0
+
+
+def _cmd_build_slice(args: argparse.Namespace) -> int:
+    transitive = not args.no_transitive
+    classes: list[SliceClass] = []
+    try:
+        for blueprint in args.blueprints:
+            classes.extend(blueprint_classes(blueprint, transitive=transitive))
+    except WikidataSliceError as exc:
+        return _fail(str(exc))
+
+    out: Path = args.out
+    cache_dir: Path = args.cache_dir or out.parent / ".http-cache"
+    http = HttpClient(cache_dir=cache_dir)
+    try:
+        manifest = build_slice(
+            http, classes, out, limit_per_class=args.limit_per_class
+        )
+    except WikidataSliceError as exc:
+        return _fail(str(exc))
+
+    print(
+        f"wrote {manifest.entity_total} entit(ies) from {len(classes)} class(es) "
+        f"to {out} (v{manifest.dump_version}); "
+        f"manifest at {out.with_name(out.name + '.manifest.json')}"
+    )
+    for domain, detail in manifest.as_dict()["domains"].items():
+        print(f"  {domain}: {detail['obtained']} entit(ies)")
+    stats = http.stats
+    print(
+        f"  http: {stats.cache_hits} cache hit(s), "
+        f"{stats.cache_misses} miss(es), {stats.retries} retr(ies)"
+    )
+    return 2 if manifest.entity_total == 0 else 0
 
 
 def _cmd_catalog(args: argparse.Namespace) -> int:
