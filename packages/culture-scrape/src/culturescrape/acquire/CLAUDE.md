@@ -40,6 +40,83 @@ presence of `:LABEL` vs `:TYPE`. The `linguascrape_id` alias column rides throug
 schema live on the TS side (`scripts/export-for-culturescrape.ts`,
 `shared/canonical-schema.ts`); see `docs/reconcile-linguascrape.md`.
 
+## Real-data dump slices (`wikidata_slice.py`, not an adapter)
+
+`wikidata_slice.py` is a standalone **builder**, not a `SourceAdapter`: it composes
+a real, bounded Wikidata slice in the **exact `latest-all` dump framing**
+`wikidata_dump.iter_entities` reads (bare `[`, one entity/line, trailing comma on
+all but the last, bare `]`) so the dump stack can run on genuine bytes without the
+~90 GB download. `build_slice()` resolves member QIDs per blueprint class via WDQS
+(`P31/P279*`), fetches full entity JSON via `wbgetentities` in batches of 50, dedupes
+across classes (first class wins), and writes a `<out>.manifest.json` sidecar with
+`source: wikidata-api-composed` provenance. All I/O goes through the shared
+`HttpClient` (cached/retried/User-Agent-identified). CLI: `culturescrape build-slice`.
+Gotchas: name the output `…YYYYMMDD…` so `dump_version()` records the date; output
+lands under `out/` (gitignored — commit the manifest, never the slice); the
+`skipif`-gated smoke test (`test_wikidata_slice_smoke.py`) only runs when a real
+slice is present. Full recipe (plus the streamed `wikibase-dump-filter` and full-dump
+variants): `docs/wikidata-dump-runbook.md`.
+
+## Class-membership index (`wikidata_dump_index.py`, on-disk SQLite KV — US-002)
+
+The dump adapter resolves class membership (`P31` / transitive `P279*`) from a precomputed
+**SQLite** KV store beside the dump (`<dump>.index.sqlite3`, stdlib `sqlite3` — no dependency),
+built once by `culturescrape index-wikidata <dump>` / `build_index()`. This replaced the retired
+in-memory JSON sidecar (`INDEX_VERSION` bumped 1→2); a JSON file handed to `load_index` is now
+rejected as "not a … index" (opening it as SQLite fails → `DumpIndexError`).
+
+- **Two tables, one streaming pass:** `instances(class, member)` (P31) and `subclasses(parent,
+  child)` (P279). Rows are buffered and `executemany`-flushed every `_FLUSH_ROWS` (50k), and the
+  lookup indexes (`idx_instances_class`, `idx_instances_member`, `idx_subclasses_parent`) are
+  created **after** the bulk insert — so build memory is bounded by the buffer, not the dump
+  (measured 4.4 MB peak / 2.48 s / 0.58 MB index for the 5,691-entity reference slice).
+- **Memory-bounded lookups:** `member_qids(roots, transitive)` walks the `P279*` closure via
+  indexed `subclasses_of` queries (no second full dump scan) then unions members per class;
+  `classes_of(qid)` reads the `idx_instances_member` index directly (no whole-index inversion).
+  Query the store via the public methods — `members_of`/`subclasses_of`/`member_qids`/
+  `classes_of` + `class_count`/`subclass_parent_count` — not raw dict attributes (there are none).
+- **`DumpIndex` owns a live connection:** `close()` it (or use it as a context manager). The dump
+  **fingerprint** (name/size/`YYYYMMDD`) lives in the `meta` table; `load_index` recomputes it and
+  refuses an index built from a different dump. `default_index_path` → `<dump>.index.sqlite3`.
+- Same real-data discipline as the slice: the `.sqlite3` file is gitignored (`out/*`) — commit only
+  the measurements (runbook §"Building the class-membership index"). The `skipif`-gated
+  `test_wikidata_dump_index_smoke.py` builds it over a real slice into a tmp dir when one is present.
+
+## Content-fingerprint dump diff (`wikidata_diff.py`, US-006)
+
+`diff_dumps(old, new)` classifies every QID as added / changed / removed / unchanged by
+comparing **content fingerprints** — `entity_fingerprint` hashes a canonical (sorted-key)
+JSON projection of `_CONTENT_KEYS` (`labels`/`descriptions`/`aliases`/`claims`/`sitelinks`)
+only, so a re-export that merely bumped revision metadata (`lastrevid`/`modified`/`pageid`)
+hashes identically and does **not** read as a change. `fingerprint_dump` streams a dump into
+a `{qid: hash}` map (memory bounded by the map, not the dump); `write_delta_dump(new, qids,
+out)` carves just those QIDs into the same `latest-all` framing the reader accepts. This is the
+"which entities changed" primitive the incremental upsert (`orchestrate/incremental.py`) drives.
+Gotcha: a diff re-scans **both** whole slices — fine at slice scale, but a full-dump diff wants
+a stored fingerprint manifest, not a re-scan (US-007 scale note).
+
+## Hydration profiles (`wikidata_hydration.py`) — single vs rich extraction (US-005)
+
+A `PropertyMapping` reads a Wikidata property into a canonical source field. It keeps
+the **single best-rank** value by default (preferred > normal, deprecated dropped, first
+statement/qualifier snak wins) — this is the parity behaviour and must stay the default.
+Opt-in richer extraction:
+
+- `multi=True` collects **every** distinct value across all ranked statements (deduped,
+  best-rank first) into the `;` multi-value encoding; with `qualifier=`/`reference=` it
+  reads *every* qualifier/reference snak per statement, not just the first.
+- `reference="P854"` lifts a statement's citations (reference-URL snaks) into the field —
+  references land in an **overflow field** (e.g. `references`), i.e. the mapper's `extra`
+  JSON, not `provenance.source_url` (the adapter sets that to the entity URI).
+- **GOTCHA — a multi-value field must target a downstream-safe column.** Only `aliases` is
+  split back into a list by `schema/mapper.py`; every other field is a scalar, and the
+  dimension refs (`place_qid`/`parent_qid`/`script`/…) feed linkers that resolve **one**
+  QID. So a `Q1;Q2` in `place_qid` breaks linking. Pattern: keep the single-value mapping
+  for the linker AND add a parallel `multi` mapping to a **new overflow field**
+  (`parent_qid` + `parent_qids`, `place_qid` + `spoken_in_qids`) — linkers keep their one
+  value, the corpus keeps the whole set in `extra`. `LANGUAGE_PROFILE` is the worked example.
+- `DEFAULT_PROFILE` opts into nothing (single-value), so plain dump builds stay byte-identical.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

@@ -20,9 +20,12 @@ import pytest
 from culturescrape import cli
 from culturescrape.acquire import HttpClient, HttpResponse, fetch_count
 from culturescrape.acquire.categories import CategorySpec, load_category
+from culturescrape.acquire.factory import build_adapter
+from culturescrape.acquire.wikidata_dump_adapter import WikidataDumpAdapter
 from culturescrape.orchestrate.generate import (
     BlueprintError,
     CountFn,
+    DumpSource,
     build_specs,
     generate,
     verify_counts,
@@ -219,6 +222,144 @@ def test_cli_generate_reports_blueprint_errors(
 
     assert exit_code == 2
     assert "error:" in capsys.readouterr().err
+
+
+# --- Dump mode (offline acquisition from a local slice, US-003) --------------
+
+
+def _dump() -> DumpSource:
+    return DumpSource(
+        path=Path("out/wikidata/slice.json.gz"),
+        index=Path("out/wikidata/slice.json.gz.index.sqlite3"),
+        hydrate="default",
+    )
+
+
+def test_dump_mode_expands_class_to_wikidata_dump_source() -> None:
+    spec = _only_dump(_blueprint(id="dishes", name="dish", wikidata_class="Q746549"))
+    assert spec.source.type == "wikidata-dump"
+    assert spec.source.query is None
+    params = dict(spec.source.params)
+    assert params["path"] == "out/wikidata/slice.json.gz"
+    assert params["class"] == "Q746549"
+    assert params["transitive"] == "true"  # mirrors build-slice's P31/P279*
+    assert params["index"] == "out/wikidata/slice.json.gz.index.sqlite3"
+    assert params["hydrate"] == "default"
+
+
+def test_dump_mode_no_transitive_and_no_index_omits_them() -> None:
+    dump = DumpSource(path=Path("slice.json"), transitive=False)
+    (spec,) = build_specs(
+        _blueprint(id="dishes", name="dish", wikidata_class="Q746549"), dump=dump
+    )
+    params = dict(spec.source.params)
+    assert "transitive" not in params
+    assert "index" not in params
+    assert "hydrate" not in params
+    assert params == {"path": "slice.json", "class": "Q746549"}
+
+
+@pytest.mark.parametrize(
+    "stub, needle",
+    [
+        ({"id": "x", "description": "d", "subclass_of": "Q1"}, "only 'wikidata_class'"),
+        ({"id": "x", "name": "y", "query": "SELECT"}, "only 'wikidata_class'"),
+        (
+            {"id": "x", "name": "y", "petscan": {"categories": "C"}},
+            "only 'wikidata_class'",
+        ),
+    ],
+)
+def test_dump_mode_rejects_non_class_selectors(
+    stub: dict[str, object], needle: str
+) -> None:
+    with pytest.raises(BlueprintError, match=needle):
+        build_specs(_blueprint(**stub), dump=_dump())
+
+
+def test_dump_mode_category_round_trips_and_needs_no_network(tmp_path: Path) -> None:
+    """A generated dump category loads and builds a dump adapter — no HTTP."""
+    blueprint = tmp_path / "food.yml"
+    blueprint.write_text(
+        "defaults: {label: Dish, dimensions: [temporal]}\n"
+        "categories:\n"
+        "  - {id: dishes, name: dish, wikidata_class: Q746549}\n",
+        encoding="utf-8",
+    )
+    result = generate(
+        blueprint,
+        tmp_path / "categories",
+        job=tmp_path / "food.job.yml",
+        dump=_dump(),
+        min_component_fraction=0.1,
+    )
+    (category,) = result.categories
+    spec = load_category(category)
+    assert spec.source.type == "wikidata-dump"
+
+    def no_network() -> HttpClient:
+        raise AssertionError("dump generation must not build a network client")
+
+    adapter = build_adapter(spec, http_factory=no_network)
+    assert isinstance(adapter, WikidataDumpAdapter)
+
+    assert result.job is not None
+    job = load_job(result.job)
+    assert job.min_component_fraction == 0.1
+
+
+def test_cli_generate_dump_mode(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    blueprint = _write_blueprint(tmp_path)
+    out = tmp_path / "categories"
+    job_path = tmp_path / "jobs" / "cuisines.yml"
+
+    exit_code = cli.main(
+        [
+            "generate",
+            str(blueprint),
+            "--out",
+            str(out),
+            "--job",
+            str(job_path),
+            "--dump",
+            "out/wikidata/slice.json.gz",
+            "--hydrate",
+            "default",
+            "--min-component-fraction",
+            "0.2",
+        ]
+    )
+
+    assert exit_code == 0
+    spec = load_category(out / "peruvian-dishes.yml")
+    assert spec.source.type == "wikidata-dump"
+    assert spec.source.params["hydrate"] == "default"
+    assert load_job(job_path).min_component_fraction == 0.2
+
+
+def test_cli_generate_index_without_dump_is_rejected(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    blueprint = _write_blueprint(tmp_path)
+    exit_code = cli.main(
+        [
+            "generate",
+            str(blueprint),
+            "--out",
+            str(tmp_path / "c"),
+            "--index",
+            "some.sqlite3",
+        ]
+    )
+    assert exit_code == 2
+    assert "require --dump" in capsys.readouterr().err
+
+
+def _only_dump(raw: dict[str, object]) -> CategorySpec:
+    (spec,) = build_specs(raw, dump=_dump())
+    return spec
 
 
 # --- Count verification (--verify), with a stubbed Query Service -------------

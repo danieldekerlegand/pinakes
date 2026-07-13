@@ -266,7 +266,7 @@ def _fetch_path(dump: Path, **params: str) -> list[RawRecord]:
 def test_indexed_results_match_full_scan(tmp_path: Path, transitive: str) -> None:
     """An explicit index yields exactly the rows a full scan does."""
     dump = _dump_copy(tmp_path)
-    index_path = tmp_path / "dishes.index.json"
+    index_path = tmp_path / "dishes.index.sqlite3"
     build_index(dump, index_path)
     params = {"class": _DISH_CLASS, "transitive": transitive}
     scanned = _qid_name(_fetch_path(dump, **params))
@@ -279,7 +279,7 @@ def test_indexed_results_match_full_scan(tmp_path: Path, transitive: str) -> Non
 
 def test_sidecar_index_is_used_automatically(tmp_path: Path) -> None:
     dump = _dump_copy(tmp_path)
-    build_index(dump)  # writes the conventional <dump>.index.json sidecar
+    build_index(dump)  # writes the conventional <dump>.index.sqlite3 sidecar
     assert default_index_path(dump).exists()
     # No index param: the sidecar is picked up, same rows as a scan.
     assert _qid_name(_fetch_path(dump, **{"class": _DISH_CLASS})) == {
@@ -299,7 +299,7 @@ def test_full_scan_when_no_index_present(tmp_path: Path) -> None:
 
 def test_index_built_from_a_different_dump_is_rejected(tmp_path: Path) -> None:
     dump = _dump_copy(tmp_path)
-    index_path = tmp_path / "dishes.index.json"
+    index_path = tmp_path / "dishes.index.sqlite3"
     build_index(dump, index_path)
     # A second dump of a different size must not be served by the first's index.
     other = tmp_path / "other.json"
@@ -312,5 +312,5 @@ def test_missing_explicit_index_is_rejected(tmp_path: Path) -> None:
     dump = _dump_copy(tmp_path)
     with pytest.raises(DumpIndexError, match="not found"):
         _fetch_path(
-            dump, index=str(tmp_path / "absent.index.json"), **{"class": _DISH_CLASS}
+            dump, index=str(tmp_path / "absent.index.sqlite3"), **{"class": _DISH_CLASS}
         )

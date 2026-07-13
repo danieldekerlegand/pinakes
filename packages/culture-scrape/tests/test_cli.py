@@ -9,7 +9,13 @@ from pathlib import Path
 import pytest
 
 from culturescrape import cli
-from culturescrape.acquire import CategorySpec, Provenance, RawRecord, SourceAdapter
+from culturescrape.acquire import (
+    CategorySpec,
+    Provenance,
+    RawRecord,
+    SourceAdapter,
+    load_index,
+)
 
 _FIXTURES = Path(__file__).parent / "fixtures"
 _VALID_CATEGORY = _FIXTURES / "categories" / "valid.yml"
@@ -137,10 +143,13 @@ def test_index_wikidata_builds_sidecar(
     shutil.copyfile(_DUMP, dump)
     exit_code = cli.main(["index-wikidata", str(dump)])
     assert exit_code == 0
-    index = tmp_path / "dump.json.index.json"
+    index = tmp_path / "dump.json.index.sqlite3"
     assert index.exists()
-    payload = json.loads(index.read_text(encoding="utf-8"))
-    assert payload["instances"]["Q746549"] == ["Q207058", "Q2734670"]
+    loaded = load_index(index, dump)
+    try:
+        assert loaded.members_of("Q746549") == ["Q207058", "Q2734670"]
+    finally:
+        loaded.close()
     assert "indexed 8 entit" in capsys.readouterr().out
 
 

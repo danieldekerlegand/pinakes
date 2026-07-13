@@ -1,16 +1,17 @@
 """Tests for the on-disk class-membership index over a Wikidata dump.
 
-The index is built and queried entirely offline against the committed dump slice
-under ``tests/fixtures/wikidata/`` — the same ``peruvian_dishes_dump.json`` the
-adapter parity tests use. Cases cover the one-pass build, the *class → member
-QIDs* and *QID → classes* lookups (direct and transitive), the round-trip
-through disk, and the fingerprint guard that rejects an index pointed at a
-different dump.
+The index is a SQLite KV store built and queried entirely offline against the
+committed dump slice under ``tests/fixtures/wikidata/`` — the same
+``peruvian_dishes_dump.json`` the adapter parity tests use. Cases cover the
+one-pass build, the *class → member QIDs* and *QID → classes* lookups (direct
+and transitive), the round-trip through disk, and the fingerprint guard that
+rejects an index pointed at a different dump.
 """
 
 from __future__ import annotations
 
 import shutil
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -44,8 +45,9 @@ def _dump_copy(tmp_path: Path, name: str = "dump.json") -> Path:
 
 def test_build_index_maps_instances_and_subclasses(tmp_path: Path) -> None:
     index = build_index(_dump_copy(tmp_path))
-    assert index.instances[_DISH] == [_CEVICHE, _LOMO]  # sorted P31 members
-    assert index.subclasses[_DISH] == [_RAW_FISH]  # P279 subclass edge
+    assert index.members_of(_DISH) == [_CEVICHE, _LOMO]  # sorted P31 members
+    assert index.subclasses_of(_DISH) == [_RAW_FISH]  # P279 subclass edge
+    assert index.members_of("Q-absent") == []
 
 
 def test_member_qids_direct_excludes_subclass_instances(tmp_path: Path) -> None:
@@ -73,28 +75,40 @@ def test_build_writes_to_default_sidecar(tmp_path: Path) -> None:
     dump = _dump_copy(tmp_path)
     build_index(dump)
     assert default_index_path(dump).exists()
-    assert default_index_path(dump).name == "dump.json.index.json"
+    assert default_index_path(dump).name == "dump.json.index.sqlite3"
+
+
+def test_build_reports_summary_counts(tmp_path: Path) -> None:
+    index = build_index(_dump_copy(tmp_path))
+    # Distinct classes with >=1 P31 member / >=1 P279 subclass in the fixture.
+    assert index.class_count == 4
+    assert index.subclass_parent_count == 3
 
 
 def test_index_round_trips_through_disk(tmp_path: Path) -> None:
     dump = _dump_copy(tmp_path)
     built = build_index(dump)
     loaded = load_index(default_index_path(dump), dump)
-    assert loaded.instances == built.instances
-    assert loaded.subclasses == built.subclasses
+    assert loaded.members_of(_DISH) == built.members_of(_DISH)
+    assert loaded.subclasses_of(_DISH) == built.subclasses_of(_DISH)
+    assert loaded.member_qids((_DISH,), transitive=True) == built.member_qids(
+        (_DISH,), transitive=True
+    )
     assert loaded.fingerprint == built.fingerprint
 
 
 def test_payload_records_format_version_and_dump(tmp_path: Path) -> None:
-    import json
-
     dump = _dump_copy(tmp_path)
     build_index(dump)
-    payload = json.loads(default_index_path(dump).read_text(encoding="utf-8"))
-    assert payload["format"] == INDEX_FORMAT
-    assert payload["version"] == INDEX_VERSION
-    assert payload["dump"]["name"] == "dump.json"
-    assert payload["dump"]["size"] == dump.stat().st_size
+    conn = sqlite3.connect(default_index_path(dump))
+    try:
+        meta = dict(conn.execute("SELECT key, value FROM meta").fetchall())
+    finally:
+        conn.close()
+    assert meta["format"] == INDEX_FORMAT
+    assert meta["version"] == str(INDEX_VERSION)
+    assert meta["dump_name"] == "dump.json"
+    assert meta["dump_size"] == str(dump.stat().st_size)
 
 
 def test_dump_version_parses_date_from_name(tmp_path: Path) -> None:
@@ -106,34 +120,38 @@ def test_dump_version_parses_date_from_name(tmp_path: Path) -> None:
 
 def test_load_rejects_index_built_from_a_different_dump(tmp_path: Path) -> None:
     dump_a = _dump_copy(tmp_path, "wikidata-20240101-all.json")
-    build_index(dump_a, tmp_path / "a.index.json")
+    build_index(dump_a, tmp_path / "a.index.sqlite3")
     # A second dump differing in size (an extra trailing newline) is a mismatch.
     dump_b = tmp_path / "wikidata-20240108-all.json"
     dump_b.write_text(dump_a.read_text(encoding="utf-8") + "\n", encoding="utf-8")
     with pytest.raises(DumpIndexError, match="different dump"):
-        load_index(tmp_path / "a.index.json", dump_b)
+        load_index(tmp_path / "a.index.sqlite3", dump_b)
 
 
 def test_load_rejects_missing_index(tmp_path: Path) -> None:
     with pytest.raises(DumpIndexError, match="not found"):
-        load_index(tmp_path / "absent.index.json", _dump_copy(tmp_path))
+        load_index(tmp_path / "absent.index.sqlite3", _dump_copy(tmp_path))
 
 
-def test_load_rejects_foreign_json(tmp_path: Path) -> None:
-    bogus = tmp_path / "bogus.index.json"
+def test_load_rejects_foreign_file(tmp_path: Path) -> None:
+    bogus = tmp_path / "bogus.index.sqlite3"
     bogus.write_text('{"hello": "world"}', encoding="utf-8")
     with pytest.raises(DumpIndexError, match="not a"):
         load_index(bogus, _dump_copy(tmp_path))
 
 
 def test_load_rejects_unsupported_version(tmp_path: Path) -> None:
-    import json
-
     dump = _dump_copy(tmp_path)
     build_index(dump)
     sidecar = default_index_path(dump)
-    payload = json.loads(sidecar.read_text(encoding="utf-8"))
-    payload["version"] = INDEX_VERSION + 1
-    sidecar.write_text(json.dumps(payload), encoding="utf-8")
+    conn = sqlite3.connect(sidecar)
+    try:
+        conn.execute(
+            "UPDATE meta SET value = ? WHERE key = 'version'",
+            (str(INDEX_VERSION + 1),),
+        )
+        conn.commit()
+    finally:
+        conn.close()
     with pytest.raises(DumpIndexError, match="version"):
         load_index(sidecar, dump)

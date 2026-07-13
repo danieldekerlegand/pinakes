@@ -34,6 +34,12 @@ from culturescrape.acquire.wikidata_enrich import (
     resolve_dump_version,
 )
 from culturescrape.acquire.wikidata_hydration import UnknownProfileError, get_profile
+from culturescrape.acquire.wikidata_slice import (
+    SliceClass,
+    WikidataSliceError,
+    blueprint_classes,
+    build_slice,
+)
 from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
     DatalogExportError,
@@ -52,6 +58,7 @@ from culturescrape.neo4j.admin_import import (
 from culturescrape.neo4j.counts import count_summary
 from culturescrape.neo4j.export import Neo4jExportError, export_to_tsv
 from culturescrape.neo4j.load_csv import load_corpus
+from culturescrape.neo4j.merge_load import verify_idempotent_load
 from culturescrape.ontology.metrics import (
     metrics_for_dataset,
     read_dataset,
@@ -68,13 +75,20 @@ from culturescrape.orchestrate.corpus import (
     corpus_component_fraction,
     corpus_qa_policy,
 )
-from culturescrape.orchestrate.generate import BlueprintError, generate
+from culturescrape.orchestrate.generate import BlueprintError, DumpSource, generate
+from culturescrape.orchestrate.incremental import (
+    UpsertResult,
+    last_sync_at,
+    run_upsert,
+    write_sync_log,
+)
 from culturescrape.orchestrate.jobs import (
     STAGE_ORDER,
     Job,
     JobConfigError,
     load_job,
 )
+from culturescrape.orchestrate.merge import MergeError, write_merged_job
 from culturescrape.orchestrate.package import PackageError, package_corpus
 from culturescrape.orchestrate.qa import GateThresholds, evaluate_directory
 from culturescrape.orchestrate.runner import DEFAULT_WORKERS, run_job
@@ -300,7 +314,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     neo4j_counts = subparsers.add_parser(
         "neo4j-counts",
-        help="print node/edge counts by type from the connected Neo4j graph",
+        help="print node/edge counts by type from the connected Neo4j graph "
+        "(or, with --dataset, verify a corpus loads idempotently offline)",
+    )
+    neo4j_counts.add_argument(
+        "--dataset",
+        type=Path,
+        default=None,
+        help="a built corpus dataset dir (nodes/ + edges/): skip the live server "
+        "and prove a MERGE double-load is idempotent, printing the counts",
     )
     neo4j_counts.set_defaults(handler=_cmd_neo4j_counts)
 
@@ -548,7 +570,123 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="HTTP cache directory for --verify (default: <out>/.http-cache)",
     )
+    gen.add_argument(
+        "--dump",
+        type=Path,
+        default=None,
+        help="retarget every wikidata_class stub at this local Wikidata dump/slice "
+        "(source.type wikidata-dump), so the blueprint acquires fully offline; "
+        "see docs/wikidata-dump-runbook.md",
+    )
+    gen.add_argument(
+        "--index",
+        type=Path,
+        default=None,
+        help="dump-mode class-membership index beside the dump "
+        "(default: the conventional <dump>.index.sqlite3 sidecar or a full scan)",
+    )
+    gen.add_argument(
+        "--hydrate",
+        default=None,
+        help="dump-mode hydration profile every category opts into "
+        "(e.g. 'default'; omit for label-only SPARQL parity)",
+    )
+    gen.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="dump mode: select direct P31 instances only "
+        "(default: P31/P279* transitive, matching build-slice)",
+    )
+    gen.add_argument(
+        "--min-component-fraction",
+        type=float,
+        default=None,
+        help="write this corpus connectivity floor into the generated --job "
+        "(relax it for a single-domain dump slice that legitimately fragments)",
+    )
+    gen.add_argument(
+        "--min-provenance-completeness",
+        type=float,
+        default=None,
+        help="write this corpus provenance floor into the generated --job",
+    )
     gen.set_defaults(handler=_cmd_generate)
+
+    merge = subparsers.add_parser(
+        "merge",
+        help="assemble several dump blueprints + the LinguaScrape export into "
+        "one runnable merged-corpus job",
+    )
+    merge.add_argument(
+        "blueprints",
+        type=Path,
+        nargs="+",
+        help="one or more blueprint .yml files (dump mode: wikidata_class stubs)",
+    )
+    merge.add_argument(
+        "--dump",
+        type=Path,
+        required=True,
+        help="local Wikidata dump/slice every wikidata_class stub is sourced from",
+    )
+    merge.add_argument(
+        "--index",
+        type=Path,
+        default=None,
+        help="dump class-membership index (default: <dump>.index.sqlite3 sidecar)",
+    )
+    merge.add_argument(
+        "--hydrate",
+        default=None,
+        help="dump-mode hydration profile every category opts into (e.g. 'default')",
+    )
+    merge.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="select direct P31 instances only (default: P31/P279* transitive)",
+    )
+    merge.add_argument(
+        "--linguascrape",
+        type=Path,
+        default=None,
+        help="LinguaScrape canonical export root (nodes/ + edges/) to stitch in; "
+        "e.g. ../../export/culturescrape",
+    )
+    merge.add_argument(
+        "--out",
+        type=Path,
+        default=Path("categories"),
+        help="directory the generated category .yml files are written to",
+    )
+    merge.add_argument(
+        "--job",
+        type=Path,
+        required=True,
+        help="the runnable merged job .yml to write",
+    )
+    merge.add_argument(
+        "--name",
+        default="merged-dump",
+        help="job name / output_root stem (default: merged-dump)",
+    )
+    merge.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite existing category/job files instead of refusing",
+    )
+    merge.add_argument(
+        "--min-component-fraction",
+        type=float,
+        default=None,
+        help="write this corpus connectivity floor into the merged job",
+    )
+    merge.add_argument(
+        "--min-provenance-completeness",
+        type=float,
+        default=None,
+        help="write this corpus provenance floor into the merged job",
+    )
+    merge.set_defaults(handler=_cmd_merge)
 
     package = subparsers.add_parser(
         "package",
@@ -602,9 +740,47 @@ def _build_parser() -> argparse.ArgumentParser:
         "--out",
         type=Path,
         default=None,
-        help="path to write the index to (default: <dump>.index.json beside it)",
+        help="path to write the index to (default: <dump>.index.sqlite3 beside it)",
     )
     index_wikidata.set_defaults(handler=_cmd_index_wikidata)
+
+    build_slice_cmd = subparsers.add_parser(
+        "build-slice",
+        help="compose a real, bounded Wikidata dump slice from blueprint classes "
+        "via the live APIs (polite; no ~90 GB download)",
+    )
+    build_slice_cmd.add_argument(
+        "blueprints",
+        nargs="+",
+        type=Path,
+        help="blueprint .yml file(s) whose wikidata_class stubs seed the slice "
+        "(e.g. blueprints/food-drink.yml blueprints/language.yml)",
+    )
+    build_slice_cmd.add_argument(
+        "--out",
+        required=True,
+        type=Path,
+        help="path to write the slice to; name it with a YYYYMMDD so provenance "
+        "records the data's date (e.g. out/wikidata/wikidata-20260712-slice.json.gz)",
+    )
+    build_slice_cmd.add_argument(
+        "--limit-per-class",
+        type=int,
+        default=200,
+        help="max members to draw from each class (politeness bound; default: 200)",
+    )
+    build_slice_cmd.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="select direct P31 instances only (default: P31/P279* transitive)",
+    )
+    build_slice_cmd.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=None,
+        help="HTTP cache directory (default: <out-dir>/.http-cache)",
+    )
+    build_slice_cmd.set_defaults(handler=_cmd_build_slice)
 
     catalog = subparsers.add_parser(
         "catalog",
@@ -616,6 +792,59 @@ def _build_parser() -> argparse.ArgumentParser:
         help="a job's output root (holding catalog.json) or the catalog.json itself",
     )
     catalog.set_defaults(handler=_cmd_catalog)
+
+    sync = subparsers.add_parser(
+        "sync-wikidata",
+        help="incrementally upsert a corpus from a fresher dump slice: diff by "
+        "QID, re-hydrate + re-export only the changed entities, prove idempotency",
+    )
+    sync.add_argument(
+        "job",
+        type=Path,
+        help="the job that built the corpus (its wikidata-dump categories map "
+        "changed QIDs to labels/dimensions)",
+    )
+    sync.add_argument(
+        "--old-dump",
+        type=Path,
+        required=True,
+        help="the slice the corpus was last built from",
+    )
+    sync.add_argument(
+        "--new-dump",
+        type=Path,
+        required=True,
+        help="the fresher slice to diff against and upsert from",
+    )
+    sync.add_argument(
+        "--new-index",
+        type=Path,
+        default=None,
+        help="class-membership index for the new dump (default: <new-dump>."
+        "index.sqlite3 sidecar, else a bounded scan)",
+    )
+    sync.add_argument(
+        "--work-dir",
+        type=Path,
+        default=None,
+        help="where the delta dump + delta corpus are written (default: "
+        "<output_root>/sync)",
+    )
+    sync.add_argument(
+        "--corpus",
+        type=Path,
+        default=None,
+        help="the base corpus dataset to verify the idempotent load over "
+        "(default: <output_root>/corpus)",
+    )
+    sync.add_argument(
+        "--since",
+        default=None,
+        metavar="DURATION",
+        help="skip the sync if one was already recorded within DURATION (e.g. "
+        "24h, 7d); reuses the --since scheduling window at entity granularity",
+    )
+    sync.set_defaults(handler=_cmd_sync_wikidata)
     return parser
 
 
@@ -865,6 +1094,20 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
 
 
 def _cmd_neo4j_counts(args: argparse.Namespace) -> int:
+    if args.dataset is not None:
+        if not args.dataset.is_dir():
+            return _fail(f"{args.dataset} is not a directory")
+        report = verify_idempotent_load(args.dataset)
+        summary = report.counts
+        state = "idempotent" if report.idempotent else "NOT idempotent"
+        print(f"offline MERGE double-load of {args.dataset}: {state}")
+        print(f"node counts by label (total {summary.node_total}):")
+        for label, count in summary.nodes_by_label.items():
+            print(f"  {label}: {count}")
+        print(f"edge counts by type (total {summary.edge_total}):")
+        for edge_type, count in summary.edges_by_type.items():
+            print(f"  {edge_type}: {count}")
+        return 0 if report.idempotent else 1
     try:
         summary = count_summary()
     except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
@@ -1073,6 +1316,16 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
         cache_dir: Path = args.cache_dir or args.out / ".http-cache"
         count_fn = partial(fetch_count, HttpClient(cache_dir=cache_dir))
+    dump: DumpSource | None = None
+    if args.dump is not None:
+        dump = DumpSource(
+            path=args.dump,
+            index=args.index,
+            hydrate=args.hydrate,
+            transitive=not args.no_transitive,
+        )
+    elif args.index is not None or args.hydrate is not None:
+        return _fail("--index/--hydrate require --dump (dump mode)")
     try:
         result = generate(
             args.blueprint,
@@ -1081,6 +1334,9 @@ def _cmd_generate(args: argparse.Namespace) -> int:
             force=args.force,
             verify=args.verify,
             count_fn=count_fn,
+            dump=dump,
+            min_component_fraction=args.min_component_fraction,
+            min_provenance_completeness=args.min_provenance_completeness,
         )
     except (BlueprintError, WikidataSparqlError) as exc:
         return _fail(str(exc))
@@ -1089,6 +1345,35 @@ def _cmd_generate(args: argparse.Namespace) -> int:
     )
     if result.job is not None:
         print(f"  job: {result.job} (run: culturescrape run {result.job})")
+    return 0
+
+
+def _cmd_merge(args: argparse.Namespace) -> int:
+    dump = DumpSource(
+        path=args.dump,
+        index=args.index,
+        hydrate=args.hydrate,
+        transitive=not args.no_transitive,
+    )
+    try:
+        result = write_merged_job(
+            args.blueprints,
+            args.out,
+            args.job,
+            dump=dump,
+            name=args.name,
+            linguascrape_export=args.linguascrape,
+            force=args.force,
+            min_component_fraction=args.min_component_fraction,
+            min_provenance_completeness=args.min_provenance_completeness,
+        )
+    except (BlueprintError, MergeError) as exc:
+        return _fail(str(exc))
+    print(
+        f"merged {len(args.blueprints)} blueprint(s) into "
+        f"{len(result.categories)} category spec(s) at {args.out}"
+    )
+    print(f"  job: {result.job} (run: culturescrape run {result.job})")
     return 0
 
 
@@ -1137,10 +1422,44 @@ def _cmd_index_wikidata(args: argparse.Namespace) -> int:
     print(
         f"indexed {stats.entities} entit(ies) ({stats.skipped} skipped) from "
         f"{dump} (v{index.fingerprint.version}): "
-        f"{len(index.instances)} class(es) with members, "
-        f"{len(index.subclasses)} subclass edge(s) -> {out}"
+        f"{index.class_count} class(es) with members, "
+        f"{index.subclass_parent_count} subclass parent(s) -> {out}"
     )
     return 0
+
+
+def _cmd_build_slice(args: argparse.Namespace) -> int:
+    transitive = not args.no_transitive
+    classes: list[SliceClass] = []
+    try:
+        for blueprint in args.blueprints:
+            classes.extend(blueprint_classes(blueprint, transitive=transitive))
+    except WikidataSliceError as exc:
+        return _fail(str(exc))
+
+    out: Path = args.out
+    cache_dir: Path = args.cache_dir or out.parent / ".http-cache"
+    http = HttpClient(cache_dir=cache_dir)
+    try:
+        manifest = build_slice(
+            http, classes, out, limit_per_class=args.limit_per_class
+        )
+    except WikidataSliceError as exc:
+        return _fail(str(exc))
+
+    print(
+        f"wrote {manifest.entity_total} entit(ies) from {len(classes)} class(es) "
+        f"to {out} (v{manifest.dump_version}); "
+        f"manifest at {out.with_name(out.name + '.manifest.json')}"
+    )
+    for domain, detail in manifest.as_dict()["domains"].items():
+        print(f"  {domain}: {detail['obtained']} entit(ies)")
+    stats = http.stats
+    print(
+        f"  http: {stats.cache_hits} cache hit(s), "
+        f"{stats.cache_misses} miss(es), {stats.retries} retr(ies)"
+    )
+    return 2 if manifest.entity_total == 0 else 0
 
 
 def _cmd_catalog(args: argparse.Namespace) -> int:
@@ -1149,6 +1468,82 @@ def _cmd_catalog(args: argparse.Namespace) -> int:
         return _fail(f"{path} does not exist")
     print(render_table(load_catalog(path)))
     return 0
+
+
+def _cmd_sync_wikidata(args: argparse.Namespace) -> int:
+    try:
+        job = load_job(args.job)
+    except JobConfigError as exc:
+        return _fail(str(exc))
+    for label, path in (("old", args.old_dump), ("new", args.new_dump)):
+        if not path.exists():
+            return _fail(f"{label} dump not found: {path}")
+
+    work_dir: Path = args.work_dir or job.output_root / "sync"
+    now = datetime.now(UTC)
+
+    if args.since is not None:
+        try:
+            window = parse_duration(args.since)
+        except DurationError as exc:
+            return _fail(str(exc))
+        previous = last_sync_at(job.output_root)
+        if previous is not None and previous > now - window:
+            print(
+                f"last sync {previous.isoformat()} is within {args.since}; "
+                "skipping (pass a smaller --since or omit it to force)"
+            )
+            return 0
+
+    try:
+        result = run_upsert(
+            job,
+            args.old_dump,
+            args.new_dump,
+            work_dir=work_dir,
+            new_index=args.new_index,
+            corpus_dir=args.corpus,
+        )
+    except (CorpusBuildError, WikidataDumpError) as exc:
+        return _fail(str(exc))
+
+    log_path = write_sync_log(job.output_root, result, now=now)
+    print(_render_upsert(result))
+    print(f"  logged to {log_path}")
+    return 0 if result.idempotent else 1
+
+
+def _render_upsert(result: UpsertResult) -> str:
+    """Summarise an incremental upsert for the CLI."""
+    plan = result.plan
+    lines = [f"sync {plan.summary}"]
+    if not result.rebuilt:
+        lines.append("  no changed entity belongs to a dump category — nothing rebuilt")
+        return "\n".join(lines)
+    lines.append(
+        f"  re-hydrated {len(plan.upsert_qids)} entit(ies) across "
+        f"{len(result.categories)} categor(ies): {', '.join(result.categories)}"
+    )
+    if result.delta_corpus is not None:
+        lines.append(f"  delta corpus -> {result.delta_corpus}")
+    if result.delta_report is not None:
+        counts = result.delta_report.counts
+        lines.append(
+            f"  delta: {counts.node_total} node(s), {counts.edge_total} edge(s), "
+            f"idempotent={result.delta_report.idempotent}"
+        )
+    if result.upsert_report is not None:
+        counts = result.upsert_report.counts
+        lines.append(
+            f"  corpus after upsert: {counts.node_total} node(s), "
+            f"{counts.edge_total} edge(s), idempotent={result.upsert_report.idempotent}"
+        )
+    if plan.removed_in_corpus:
+        lines.append(
+            f"  note: {len(plan.removed_in_corpus)} removed QID(s) remain in the "
+            "corpus (upsert never deletes)"
+        )
+    return "\n".join(lines)
 
 
 def _parse_dimensions(value: str) -> list[Dimension]:

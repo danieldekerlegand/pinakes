@@ -176,6 +176,121 @@ def test_qualifier_is_read_instead_of_main_value() -> None:
     assert hydrate_entity(entity, _profile(mapping)) == {"time_start_iso": "1700"}
 
 
+# --- multi-value extraction (US-005) ------------------------------------------
+
+
+def _entity_snak(prop: str, value: Any) -> dict[str, Any]:
+    """A bare value snak for *prop* (for hand-building qualifier/reference lists)."""
+    return {"snaktype": "value", "property": prop, "datavalue": {"value": value}}
+
+
+def test_multi_collects_every_statement_value_deduped() -> None:
+    entity = _entity(
+        {
+            "P17": [
+                _stmt("P17", {"id": "Q30"}),
+                _stmt("P17", {"id": "Q16"}),
+                _stmt("P17", {"id": "Q30"}),  # duplicate → dropped
+            ]
+        }
+    )
+    mapping = PropertyMapping("P17", "spoken_in_qids", ValueKind.ENTITY, multi=True)
+    assert hydrate_entity(entity, _profile(mapping)) == {"spoken_in_qids": "Q30;Q16"}
+
+
+def test_single_value_default_keeps_only_the_first_of_many() -> None:
+    # Same entity, a non-multi mapping: unchanged historical behaviour.
+    entity = _entity(
+        {"P17": [_stmt("P17", {"id": "Q30"}), _stmt("P17", {"id": "Q16"})]}
+    )
+    mapping = PropertyMapping("P17", "place_qid", ValueKind.ENTITY)
+    assert hydrate_entity(entity, _profile(mapping)) == {"place_qid": "Q30"}
+
+
+def test_multi_orders_preferred_first_and_drops_deprecated() -> None:
+    entity = _entity(
+        {
+            "P279": [
+                _stmt("P279", {"id": "Q1"}),
+                _stmt("P279", {"id": "Q2"}, rank="preferred"),
+                _stmt("P279", {"id": "Q3"}, rank="deprecated"),
+            ]
+        }
+    )
+    mapping = PropertyMapping("P279", "parent_qids", ValueKind.ENTITY, multi=True)
+    # Q2 (preferred) leads; Q1 (normal) follows; Q3 (deprecated) is absent.
+    assert hydrate_entity(entity, _profile(mapping)) == {"parent_qids": "Q2;Q1"}
+
+
+def test_multi_qualifier_reads_every_qualifier_snak() -> None:
+    qualifiers = {
+        "P1545": [_entity_snak("P1545", "1"), _entity_snak("P1545", "2")]
+    }
+    entity = _entity({"P527": [_stmt("P527", {"id": "Q9"}, qualifiers=qualifiers)]})
+    single = PropertyMapping("P527", "ord", ValueKind.STRING, qualifier="P1545")
+    # A non-multi qualifier mapping still reads only the first snak (legacy).
+    assert hydrate_entity(entity, _profile(single)) == {"ord": "1"}
+    multi = PropertyMapping(
+        "P527", "ords", ValueKind.STRING, qualifier="P1545", multi=True
+    )
+    assert hydrate_entity(entity, _profile(multi)) == {"ords": "1;2"}
+
+
+# --- reference extraction (US-005) --------------------------------------------
+
+
+def _stmt_with_refs(prop: str, value: Any, ref_urls: list[str]) -> dict[str, Any]:
+    """A statement whose references each carry one P854 reference URL."""
+    statement = _stmt(prop, value)
+    statement["references"] = [
+        {"snaks": {"P854": [_entity_snak("P854", url)]}} for url in ref_urls
+    ]
+    return statement
+
+
+def test_reference_extracts_first_reference_url() -> None:
+    entity = _entity(
+        {"P279": [_stmt_with_refs("P279", {"id": "Q1"}, ["http://a", "http://b"])]}
+    )
+    mapping = PropertyMapping("P279", "references", ValueKind.STRING, reference="P854")
+    assert hydrate_entity(entity, _profile(mapping)) == {"references": "http://a"}
+
+
+def test_reference_multi_collects_all_reference_urls_across_statements() -> None:
+    entity = _entity(
+        {
+            "P279": [
+                _stmt_with_refs("P279", {"id": "Q1"}, ["http://a", "http://b"]),
+                _stmt_with_refs("P279", {"id": "Q2"}, ["http://b", "http://c"]),
+            ]
+        }
+    )
+    mapping = PropertyMapping(
+        "P279", "references", ValueKind.STRING, reference="P854", multi=True
+    )
+    # Deduped across statements, in document order.
+    assert hydrate_entity(entity, _profile(mapping)) == {
+        "references": "http://a;http://b;http://c"
+    }
+
+
+def test_reference_precedes_qualifier_when_both_set() -> None:
+    # A statement carrying both a qualifier and a reference: reference wins.
+    statement = _stmt_with_refs("P279", {"id": "Q1"}, ["http://ref"])
+    statement["qualifiers"] = {"P805": [_entity_snak("P805", "Q999")]}
+    entity = _entity({"P279": [statement]})
+    mapping = PropertyMapping(
+        "P279", "x", ValueKind.STRING, reference="P854", qualifier="P805"
+    )
+    assert hydrate_entity(entity, _profile(mapping)) == {"x": "http://ref"}
+
+
+def test_reference_absent_yields_nothing() -> None:
+    entity = _entity({"P279": [_stmt("P279", {"id": "Q1"})]})  # no references
+    mapping = PropertyMapping("P279", "references", ValueKind.STRING, reference="P854")
+    assert hydrate_entity(entity, _profile(mapping)) == {}
+
+
 # --- multilingual labels / aliases --------------------------------------------
 
 
@@ -213,6 +328,22 @@ def test_default_profile_covers_every_dimension() -> None:
 def test_language_profile_maps_parent_and_code() -> None:
     targets = {m.field for m in LANGUAGE_PROFILE.mappings}
     assert {"parent_qid", "language_code", "place_qid"} <= targets
+
+
+def test_language_profile_opts_into_richer_extraction() -> None:
+    # US-005: the language profile keeps its single-value linker fields AND adds
+    # multi-value aggregations + a reference-URL citation, all opt-in.
+    by_field = {m.field: m for m in LANGUAGE_PROFILE.mappings}
+    assert {"parent_qids", "spoken_in_qids", "scripts", "references"} <= set(by_field)
+    assert by_field["parent_qids"].multi and not by_field["parent_qid"].multi
+    assert by_field["references"].reference == "P854"
+
+
+def test_default_profile_stays_single_value() -> None:
+    # AC2: default behaviour is unchanged — no mapping opts into multi/reference.
+    assert not any(
+        m.multi or m.reference is not None for m in DEFAULT_PROFILE.mappings
+    )
 
 
 def test_get_profile_returns_registered_profile() -> None:
