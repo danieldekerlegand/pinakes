@@ -157,6 +157,33 @@ export function registerGraphRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/graph/retrieve?q=&k=&depth= — hybrid GraphRAG retrieval over the
+   * shared graph via the sidecar: the query is embedded, the top-`k` nearest nodes
+   * come from the Neo4j native vector index, and each is expanded into a subgraph.
+   * An empty query short-circuits to an empty result without calling the sidecar.
+   * 503 `{ available:false }` when GraphRAG is unavailable (the sidecar's embedder
+   * or Neo4j connection is absent, or the sidecar itself is down) — the same
+   * graceful-degradation contract as the rest of `/api/graph/*`.
+   */
+  app.get("/api/graph/retrieve", async (req: Request, res: Response) => {
+    const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    if (!q) {
+      res.json({ query: "", seeds: [], nodes: [], edges: [] });
+      return;
+    }
+    const kRaw = Number(req.query.k);
+    const k = Number.isFinite(kRaw) && kRaw > 0 ? kRaw : undefined;
+    const depthRaw = Number(req.query.depth);
+    const depth = Number.isFinite(depthRaw) && depthRaw >= 0 ? depthRaw : undefined;
+    try {
+      const result = await culturescrape.retrieve(q, { k, depth });
+      res.json(result);
+    } catch (error) {
+      handleError(res, "graph retrieval", error);
+    }
+  });
+
+  /**
    * GET /api/graph/metrics — graph-level metrics from the sidecar. 503 when the
    * sidecar is unavailable.
    */
