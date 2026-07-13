@@ -155,7 +155,11 @@ def plan_upsert(
     """
     diff = diff_dumps(old_dump, new_dump)
     corpus = dataset_qids(corpus_dir) if corpus_dir is not None else frozenset()
-    return UpsertPlan(diff=diff, watermark=dump_version(Path(new_dump)), corpus_qids=corpus)
+    return UpsertPlan(
+        diff=diff,
+        watermark=dump_version(Path(new_dump)),
+        corpus_qids=corpus,
+    )
 
 
 @dataclass(frozen=True)

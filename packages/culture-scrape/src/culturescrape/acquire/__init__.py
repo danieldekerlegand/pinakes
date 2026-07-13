@@ -61,6 +61,13 @@ from culturescrape.acquire.wikidata import (
     WikidataSparqlError,
     fetch_count,
 )
+from culturescrape.acquire.wikidata_diff import (
+    DumpDiff,
+    diff_dumps,
+    entity_fingerprint,
+    fingerprint_dump,
+    write_delta_dump,
+)
 from culturescrape.acquire.wikidata_dump import (
     DumpReadStats,
     WikidataDumpError,
@@ -103,13 +110,6 @@ from culturescrape.acquire.wikidata_hydration import (
     ValueKind,
     get_profile,
     hydrate_entity,
-)
-from culturescrape.acquire.wikidata_diff import (
-    DumpDiff,
-    diff_dumps,
-    entity_fingerprint,
-    fingerprint_dump,
-    write_delta_dump,
 )
 from culturescrape.acquire.wikidata_slice import (
     SLICE_SOURCE,
@@ -158,6 +158,7 @@ __all__ = [
     "AdapterSelectionError",
     "CategorySpec",
     "CategorySpecError",
+    "DumpDiff",
     "DumpFingerprint",
     "DumpIndex",
     "DumpIndexError",
@@ -208,11 +209,14 @@ __all__ = [
     "claim_entity_ids",
     "corpus_qids",
     "default_index_path",
+    "diff_dumps",
     "dump_fingerprint",
     "enrich_nodes",
+    "entity_fingerprint",
     "entity_named_languages",
     "fetch_count",
     "fetch_entities",
+    "fingerprint_dump",
     "get_adapter",
     "get_profile",
     "hydrate_entity",
@@ -227,6 +231,7 @@ __all__ = [
     "register",
     "registered_ids",
     "run_acquisition",
+    "write_delta_dump",
     "write_dump",
     "write_records",
 ]
