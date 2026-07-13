@@ -201,6 +201,19 @@ volume by `:TYPE` + the skipped unmappable tokens **from the source JSONL** (pur
 build), so the two AC deliverables (edge volume recorded, unmappable tokens reported) are one
 function. Driver `scripts/reconcile_kaikki.py`; committed summary `docs/kaikki-reconciliation.md`.
 
+## SPDX licence → redistribution class registry (`license_class.py`, US-005)
+
+The pure, tested bridge from a per-record SPDX `license` to the small set of **redistribution
+classes** the packaged corpus partitions on (`orchestrate/package.py` `licenses` block):
+`public-domain` (CC0), `attribution` (CC-BY), `share-alike` (CC-BY-SA), `non-commercial`
+(CC-BY-NC*), `unstamped` (blank), `unknown` (unregistered). `classify_license` upper-cases +
+strips, maps via `_SPDX_TO_CLASS`, and — crucially — an **unrecognised id falls to `unknown`,
+never a permissive class** (verify-before-redistribute). `REDISTRIBUTION` carries the per-class
+"what may be redistributed / what a trained model inherits" statement (US-005 AC3), reviewed
+against each CC deed; the share-alike ML caveat is deliberately hedged (whether trained weights
+are an "adaptation" of a CC-BY-SA DB is unsettled). Distinct from `lexibank_licenses.py`, which
+maps a *dataset id* → SPDX; this maps an *SPDX id* → class. No I/O — unit-test without a build.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

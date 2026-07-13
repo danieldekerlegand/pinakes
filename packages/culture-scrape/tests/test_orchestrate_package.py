@@ -25,6 +25,12 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _manifest_of(source: Path, out_dir: Path) -> dict:
+    """Package *source* and return its parsed manifest JSON."""
+    result = package_corpus(source, out_dir)
+    return json.loads(result.manifest.read_text(encoding="utf-8"))
+
+
 def _job_root(tmp_path: Path) -> Path:
     """A minimal job output root: corpus/ + exports + catalog.json."""
     root = tmp_path / "out" / "demo"
@@ -82,6 +88,80 @@ def test_manifest_type_counts_default_empty_without_a_corpus_manifest(
     )
     assert manifest["nodes_by_label"] == {}
     assert manifest["edges_by_type"] == {}
+
+
+def _job_root_with_licenses(tmp_path: Path) -> Path:
+    """A job root whose nodes carry a per-record SPDX ``license`` column."""
+    root = tmp_path / "out" / "licensed"
+    header = "csid:ID\t:LABEL\tname\tlicense\n"
+    # attribution (CC-BY), share-alike (CC-BY-SA), public-domain (CC0),
+    # a blank (unstamped hub node), and an unknown SPDX id.
+    _write(
+        root / "corpus" / "nodes" / "language.tsv",
+        header
+        + "c:1\tLanguage\tA\tCC-BY-4.0\n"
+        + "c:2\tLanguage\tB\tCC-BY-SA-3.0\n"
+        + "c:3\tLanguage\tC\tCC0-1.0\n"
+        + "c:4\tType\tlanguage\t\n"
+        + "c:5\tLanguage\tD\tWTFPL\n",
+    )
+    _write(
+        root / "corpus" / "nodes" / "phoneme.tsv",
+        header + "c:6\tPhoneme\t/m/\tCC-BY-SA-3.0\n",
+    )
+    _write(root / "corpus" / "edges" / "e.tsv", ":START_ID\t:END_ID\nc:1\tc:2\n")
+    return root
+
+
+def test_manifest_partitions_records_by_license_and_class(tmp_path: Path) -> None:
+    manifest = _manifest_of(_job_root_with_licenses(tmp_path), tmp_path / "dist")
+    licenses = manifest["licenses"]
+    assert licenses["record_count"] == 6
+    assert licenses["records_by_license"] == {
+        "(unstamped)": 1,
+        "CC-BY-4.0": 1,
+        "CC-BY-SA-3.0": 2,
+        "CC0-1.0": 1,
+        "WTFPL": 1,
+    }
+    # Permissive → restrictive class partition (share-alike counts both files).
+    assert licenses["records_by_class"] == {
+        "public-domain": 1,
+        "attribution": 1,
+        "share-alike": 2,
+        "unstamped": 1,
+        "unknown": 1,
+    }
+
+
+def test_manifest_embeds_spdx_registry_and_redistribution_statement(
+    tmp_path: Path,
+) -> None:
+    manifest = _manifest_of(_job_root_with_licenses(tmp_path), tmp_path / "dist")
+    licenses = manifest["licenses"]
+    # The embedded SPDX registry maps every present id to its class.
+    assert licenses["class_registry"] == {
+        "(unstamped)": "unstamped",
+        "CC-BY-4.0": "attribution",
+        "CC-BY-SA-3.0": "share-alike",
+        "CC0-1.0": "public-domain",
+        "WTFPL": "unknown",
+    }
+    # Every present class carries a redistribute + model statement (AC3).
+    assert set(licenses["redistribution"]) == set(licenses["records_by_class"])
+    for statement in licenses["redistribution"].values():
+        assert statement["redistribute"]
+        assert statement["model"]
+
+
+def test_manifest_license_block_present_but_empty_without_a_license_column(
+    tmp_path: Path,
+) -> None:
+    # The bare _job_root fixture has no license column, so partition is empty.
+    licenses = _manifest_of(_job_root(tmp_path), tmp_path / "dist")["licenses"]
+    assert licenses["record_count"] == 1
+    assert licenses["records_by_license"] == {"(unstamped)": 1}
+    assert licenses["records_by_class"] == {"unstamped": 1}
 
 
 def test_manifest_records_counts_hashes_and_sorted_files(tmp_path: Path) -> None:
