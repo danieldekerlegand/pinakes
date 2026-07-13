@@ -454,6 +454,8 @@ def _carry_provenance(record: RawRecord, row: Row) -> None:
     row["source_query"] = prov.source_query
     row["retrieved_at"] = prov.retrieved_at
     row["confidence"] = repr(prov.confidence)
+    if prov.license:
+        row["license"] = prov.license
 
 
 def _mint(

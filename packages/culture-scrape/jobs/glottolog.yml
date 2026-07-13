@@ -1,0 +1,14 @@
+# Glottolog corpus job — acquire + normalize + stitch + link the languoid catalogue.
+# Run with: uv run culturescrape run jobs/glottolog.yml
+#
+# Ingests the Glottolog CLDF languoid catalogue (categories/glottolog.yml) via the
+# tabular-dump adapter and links it: the linguistic linker resolves each languoid's
+# parent_code (its Family_ID glottocode) to a DESCENDS_FROM edge, so the family tree
+# becomes a connected descent graph. Points at the committed fixture slice by default
+# (network-free); repoint categories/glottolog.yml's source.query at the full download
+# to build the whole catalogue. Output lands under out/glottolog/ (gitignored).
+name: glottolog
+description: Glottolog languoid catalogue with DESCENDS_FROM genealogy.
+categories:
+  - ../categories/glottolog.yml
+output_root: ../out/glottolog

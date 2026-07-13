@@ -59,6 +59,35 @@ that edge type — the **full** `jobs/linguascrape-full.yml` rebuild is the only
 that exercises the live edge vocabulary. `test_linguascrape_ontology.py` pins that
 every map value is registered + one fold assertion per token.
 
+## `_carry_provenance` is where provenance columns land on a node (incl. `license`)
+
+`mapper.py`'s `_carry_provenance` copies each `Provenance` field onto the canonical
+node row; a column the adapter fills but this function forgets is **silently dropped**,
+even though the schema declares it. This bit the per-record `license` (source-breadth
+US-001): the tabular-dump adapter stamped `Provenance.license` and `headers.py`
+`NodeSchema.canonical()` gained a `license` column, but the node output was blank until
+`_carry_provenance` learned to set `row["license"] = prov.license` (only when truthy, so
+license-less sources still emit a blank cell, not the string `None`). Edges carry no
+`license` — `EdgeSchema.canonical()` has no such column and `_carry_edge_provenance`
+copies only source/source_url/retrieved_at/confidence — so per-record licence is a
+**node-level** guarantee (the ingested records); linker-derived edges inherit their
+source node's provenance minus licence.
+
+## Glottolog: two-key language reconciliation (`glottolog_reconcile.py`, US-001)
+
+The sibling of `lexicon_reconcile.py` for **languages**, but it does NOT reuse
+`reconcile_linguascrape`'s single-key cascade: that blocks on one `language_code` field,
+and glottocode vs ISO 639-3 are **different code spaces** that can't meet on a single key
+(a Glottolog node keyed by glottocode would never match a lexicon row keyed by ISO). So
+`reconcile_glottolog` runs its own **glottocode-first, then ISO 639-3** two-key cascade:
+glottocode is `language_code` on the corpus node; ISO rides in the node overflow (`extra`
+JSON, key `ISO639P3code`) because the glottolog category maps only Glottocode→language_code
+and leaves ISO639P3code unmapped. One candidate ⇒ matched, >1 ⇒ ambiguous (never
+auto-merged), 0 ⇒ new. It reuses `lexicon_reconcile`'s `ReconciliationSummary`/`OutcomeSample`
+report shape (tier encoded in the sample `confidence`: 1.0 glottocode, 0.95 ISO). Driver:
+`scripts/reconcile_glottolog.py` (gitignored `out/.../report.{json,md}`); committed summary
+`docs/glottolog-reconciliation.md`.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

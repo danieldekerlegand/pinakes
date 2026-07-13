@@ -117,6 +117,28 @@ Opt-in richer extraction:
   value, the corpus keeps the whole set in `extra`. `LANGUAGE_PROFILE` is the worked example.
 - `DEFAULT_PROFILE` opts into nothing (single-value), so plain dump builds stay byte-identical.
 
+## CLDF / tabular datasets are a category-only ingest (`tabular.py`, US-001)
+
+`TabularDumpAdapter` (`adapter: tabular-dump`) ingests any local CSV/TSV/JSON by renaming
+columns onto canonical fields — folding a CLDF source (Glottolog, WALS, PHOIBLE, Lexibank)
+is a **category-spec** exercise, never new adapter code. The worked example is
+`categories/glottolog.yml` + `jobs/glottolog.yml` (committed fixture slice at
+`tests/fixtures/glottolog/languages.csv`, so the job runs network-free / in CI; repoint
+`source.query` at the real gitignored download for the full catalogue). Key params:
+`field.<canonical>: <source-column>` (rename), `id_column` + `url_template` (per-record
+`source_url`), `source` / `license` / `confidence` (stamped on every record's provenance).
+
+- **License must be in `source.params.license`** (an SPDX id, e.g. `CC-BY-4.0`) — the adapter
+  puts it on `Provenance.license`, but it only reaches the node TSV because the mapper's
+  `_carry_provenance` copies it (see `schema/CLAUDE.md`). Unmapped columns ride through into
+  the node overflow (`extra`), so nothing is dropped — that's how the Glottolog reconciler
+  later reads `ISO639P3code` for its ISO fallback.
+- **Genealogy for free:** map the ancestor code column to `parent_code` (Glottolog's
+  `Family_ID`) and this languoid's code to `language_code` (its `Glottocode`); the linguistic
+  linker (`ontology/linguistic.py`) resolves each `parent_code` against a matching
+  `language_code` into a `DESCENDS_FROM` edge, so the family tree stitches into one connected
+  descent graph with no extra code.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

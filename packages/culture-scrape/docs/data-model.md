@@ -48,6 +48,7 @@ Dimension columns (nullable; present when known):
 | `script` | linguistic | ISO 15924 |
 | `etymology` | linguistic | free-text or structured ref |
 | `derived_from_csid` | genetic | denormalized convenience pointer (also an edge) |
+| `parent_code` | linguistic | ancestor language's code (ISO 639-3 / Glottocode); the linguistic linker resolves it to a `DESCENDS_FROM` edge (the persisted counterpart of the ephemeral `parent_qid` ref, the form a Glottolog ingest uses) |
 
 Provenance columns (required on every node):
 
@@ -58,6 +59,7 @@ Provenance columns (required on every node):
 | `source_query` | the SPARQL/PetScan spec or page that produced the row |
 | `retrieved_at` | ISO-8601 UTC timestamp |
 | `confidence:float` | 0–1 extraction/resolution confidence |
+| `license` | SPDX id of the record's distribution licence (e.g. `CC-BY-4.0`, `CC-BY-SA-3.0`); travels with every record so a share-alike source stays legally self-describing |
 
 ### Relationship files — `edges/<type>.tsv`
 One file per relationship type, Neo4j-import compatible:
