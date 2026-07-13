@@ -109,6 +109,14 @@ _DIRECT_SCALARS = frozenset(
 #: are not schema columns (so they do not persist to TSV), but carrying a
 #: recognised source field straight onto the node — instead of burying it in
 #: :data:`OVERFLOW_KEY` — lets richer acquisition feed the linkers directly.
+#:
+#: NOTE — a ref here only reaches a linker that runs on the *in-memory* normalized
+#: rows (the per-category ``link`` stage). ``build_corpus`` links after re-reading
+#: the normalized TSV from disk (``corpus._read_normalized``), where a non-persisted
+#: ref is gone; there only a real schema column (``parent_code``) or the ``extra``
+#: overflow survives. The Lexibank cognate-set id (source-breadth US-003) therefore
+#: rides in the **overflow** (unmapped ``cognateset`` cell), and the linguistic
+#: linker reads it back out of ``extra`` — not from here.
 _DIMENSION_REFS = frozenset(
     {
         "derived_from_qid",

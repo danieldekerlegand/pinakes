@@ -122,6 +122,52 @@ class). Driver `scripts/reconcile_typology.py`; committed summary
   `license` column (via `_carry_provenance`), so the corpus is queryable by licence
   class. `typology_reconcile`'s `facts_by_license` is the coverage proof.
 
+## Lexibank wordlists + COGNATE_WITH cognate stars (`lexibank_reconcile.py`, US-003)
+
+A Lexibank CLDF **wordlist** (ABVD) is the same attribute-fact ingest as WALS/PHOIBLE —
+one **Wordform** node per (language, concept) form, keyed by glottocode on
+`language_code` / ISO on `lang`, `name` = `"<Concept>: <Form>"` (within-language-distinct
+so the fuzzy merge doesn't collapse different concepts). `lexibank_reconcile.py` **reuses**
+`typology_reconcile.build_coverage` for the per-language glottocode→ISO reconciliation and
+adds a `CognateCoverage` (cognate sets / cognated forms / `COGNATE_WITH` edge count).
+Category `lexibank-abvd.yml` + job `jobs/lexibank.yml`; committed summary
+`docs/lexibank-reconciliation.md`; `words.tsv` is untouched (graph-side corpus). Three
+things that bit here:
+
+- **COGNATE_WITH is a representative STAR, never a clique.** A Lexibank `Cognateset_ID`
+  groups forms across *thousands* of doculects — the linguistic linker's etymon-based
+  cognate pass is a clique (`n(n-1)/2`), which for a 1,500-form ABVD set is ~1.1M edges
+  (the whole of ABVD would be ~46M). The new cognate-**set** pass in
+  `ontology/linguistic.py` (`_emit_cognate_sets`, keyed on the `cognateset` field, default
+  on but a no-op when no node carries it) emits a star to each set's
+  lexicographically-first csid (`n-1` edges). Cognacy is transitive within a set, so
+  co-membership survives through the representative.
+- **A cognate-set id must ride in the `extra` OVERFLOW, not a `_DIMENSION_REFS` field.**
+  `build_corpus` runs linkers *after* re-reading the normalized TSV from disk
+  (`corpus._read_normalized`), so a non-persisted `_DIMENSION_REFS` cell (like
+  `parent_qid`/`etymon_qid`) is **gone** at link time — only a real schema column
+  (`parent_code`) or the `extra` overflow survives the round-trip. So map
+  `field.cognateset: Cognateset_ID` as an **unmapped** cell (it lands in overflow) and have
+  the linker read it back out of `extra` (`LinguisticLinker._cognate_set`). The
+  per-category `link` stage (in-memory) would see a dimension ref, but `build_corpus` does
+  not — always verify a linker input reaches link time through disk, not just in memory.
+- **`merge_rows` fuzzy is O(k²) per `(:LABEL, lang)` block, and doculects SHARE an ISO** →
+  a `lang` block can hold thousands of forms (ABVD's biggest ~2,900), making a full ingest
+  minutes-slow (64M `SequenceMatcher` calls) or worse. For the committed coverage snapshot,
+  run a **bounded** slice (first N doculects, a per-doculect form cap) that still clears the
+  AC's ≥ 500 distinct languages — the category/job ingest the full download when repointed.
+
+## Per-dataset SPDX licence registry (`lexibank_licenses.py`, US-003)
+
+Lexibank is a *collection* of independently-licensed datasets, so its licence is
+**per-dataset, not per-collection** (AC2). `lexibank_licenses.py` maps a dataset id →
+SPDX (`license_for`), each value read from that dataset's CLDF `dc:license`, plus a
+CC-URL→SPDX normaliser (`spdx_from_license_url`, longest-stem-first so `by-nc-sa` beats
+`by`). The category's `source.params.license` is the registry value for its dataset (a test
+pins `lexibank-abvd`'s licence == `license_for("abvd")`). Most Lexibank datasets are
+`CC-BY-4.0`, but the registry + normaliser admit share-alike / NC / CC0 so a differing
+dataset stamps correctly — never default a licence into the graph.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

@@ -17,6 +17,7 @@ existing acquisition stack.
 | **Wikidata** language-family properties | Languages, families, proto-languages as items; lexemes for etymology | SPARQL → native TSV/CSV/JSON | CC0 1.0 | **Yes** — existing `wikidata-sparql` adapter |
 | **WALS** (2020) | ~2.6k languages × ~190 structural features (phonology/grammar/lexicon) | CLDF StructureDataset (CSV); GitHub + Zenodo dumps | CC-BY 4.0 | Dump adapter (not yet built) |
 | **PHOIBLE** 2.0 | ~3k inventories, ~2.1k languages; segment/phoneme inventories | CLDF dataset (CSV); GitHub + Zenodo dumps | CC-BY-SA 3.0 | Dump adapter (not yet built) |
+| **Lexibank** wordlists (e.g. ABVD) | Concept/form wordlists across languages, many with expert cognate judgements; ABVD alone spans ~1,050 glottocodes | CLDF Wordlist (CSV); GitHub + Zenodo dumps | Per-dataset (mostly CC-BY 4.0) | Dump adapter — category-only |
 | **Wiktionary** etymology | Broad cross-language etymologies/cognates/borrowings (free text + templates) | Wikitext dumps; no clean structured etymology export | CC-BY-SA 3.0 + GFDL | No — needs heavy wikitext parsing |
 
 ### Glottolog
@@ -45,6 +46,23 @@ Typological and phonological **feature** datasets rather than genealogies — th
 enrich language nodes (structural attributes, phoneme inventories) but do not by
 themselves yield the linguistic *edges*. Both are clean CLDF/CSV dumps and good
 later dump-adapter targets; WALS is CC-BY 4.0, PHOIBLE CC-BY-SA 3.0.
+
+### Lexibank wordlists (ABVD)
+Lexibank aggregates hundreds of independently-published CLDF **wordlist** datasets
+(concept/form tables keyed by language) — the lexical breadth `words.tsv` only
+approximates from ~108 curated languages. It is a **graph-side** corpus, not a
+`words.tsv` rewrite: each form lands as a `Wordform` attribute-fact node keyed by
+glottocode, and forms sharing a source **cognate set** are linked with
+`COGNATE_WITH` (a representative star — a Lexibank cognate class can span thousands
+of doculects, so a clique is intractable). The shipped ingest is **ABVD**
+(Austronesian Basic Vocabulary Database): ~2,000 doculects over **~1,050 distinct
+glottocodes** with ~250k expert cognate judgements, plain CLDF CSV — a category-only
+tabular-dump ingest (`categories/lexibank-abvd.yml` + `jobs/lexibank.yml`).
+**Licence is per-dataset, not per-collection:** Lexibank licences vary by dataset
+(most CC-BY 4.0, but the ecosystem also holds share-alike / non-commercial data), so
+the SPDX id is resolved from the per-dataset registry
+(`src/culturescrape/schema/lexibank_licenses.py`) — ABVD is `CC-BY-4.0`. See
+`docs/lexibank-reconciliation.md`.
 
 ### Wiktionary etymology
 Richest etymological/cognate coverage in principle, but it is unstructured

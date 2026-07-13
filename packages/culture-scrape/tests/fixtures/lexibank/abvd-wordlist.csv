@@ -1,0 +1,10 @@
+ID,Name,Form,Concept,Concept_ID,Glottocode,ISO639P3code,Language_Name,Cognateset_ID
+tgl-5-1,five: lima,lima,five,5_five,taga1270,tgl,Tagalog,five-1
+mri-5-1,five: rima,rima,five,5_five,maor1246,mri,Maori,five-1
+fij-5-1,five: lima,lima,five,5_five,fiji1243,fij,Fijian,five-1
+haw-5-1,five: lima,lima,five,5_five,hawa1245,haw,Hawaiian,five-1
+tgl-2-1,two: dalawa,dalawa,two,2_two,taga1270,tgl,Tagalog,two-1
+mri-2-1,two: rua,rua,two,2_two,maor1246,mri,Maori,two-2
+fij-2-1,two: rua,rua,two,2_two,fiji1243,fij,Fijian,two-2
+haw-2-1,two: lua,lua,two,2_two,hawa1245,haw,Hawaiian,two-2
+xyz-2-1,two: bar,bar,two,2_two,zzzz9999,xyz,Testlang,two-9

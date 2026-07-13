@@ -165,6 +165,76 @@ def test_cognate_with_between_terms_sharing_an_etymon() -> None:
     assert ("cs:term:pere", "cs:term:padre", "COGNATE_WITH") not in edges
 
 
+def _cognate_set_nodes() -> list[Row]:
+    """Four Lexibank wordforms in one cognate set (id in the ``extra`` overflow).
+
+    The cognate-set id rides in ``extra`` — where it lands after ``build_corpus``
+    re-reads the normalized TSV from disk — not as a top-level cell, so this pins
+    that the linker reads it back out of the overflow.
+    """
+    import json
+
+    return [
+        {"csid": "cs:wordform:d", ":LABEL": ["Wordform"], "name": "five: rima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:a", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:c", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:b", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+    ]
+
+
+def test_cognate_set_emits_a_representative_star_not_a_clique() -> None:
+    result = LinguisticLinker().link_linguistic(_cognate_set_nodes(), [])
+
+    edges = _edge_index(result.edges)
+    cognate = [k for k in edges if k[2] == "COGNATE_WITH"]
+    # 4 members → a star of 3 edges (n-1), NOT the 6 of a clique.
+    assert len(cognate) == 3
+    # Every edge points at the lexicographically-first csid (the representative).
+    assert all(end == "cs:wordform:a" for _start, end, _rel in cognate)
+    assert {start for start, _e, _r in cognate} == {
+        "cs:wordform:b", "cs:wordform:c", "cs:wordform:d"
+    }
+    assert float(str(edges[cognate[0]]["confidence"])) == pytest.approx(0.6)
+
+
+def test_cognate_set_reads_a_direct_field_too() -> None:
+    # A top-level `cognateset` cell (in-memory link stage) works as well as overflow.
+    nodes: list[Row] = [
+        {"csid": "cs:wordform:y", ":LABEL": ["Wordform"], "name": "hand: lima",
+         "cognateset": "hand-1"},
+        {"csid": "cs:wordform:x", ":LABEL": ["Wordform"], "name": "hand: liga",
+         "cognateset": "hand-1"},
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    assert _edge_index(result.edges).keys() == {
+        ("cs:wordform:y", "cs:wordform:x", "COGNATE_WITH")
+    }
+
+
+def test_singleton_cognate_set_emits_no_edge() -> None:
+    import json
+
+    nodes: list[Row] = [
+        {"csid": "cs:wordform:only", ":LABEL": ["Wordform"], "name": "two: bar",
+         "extra": json.dumps({"cognateset": "two-9"})},
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    assert result.edges == []
+
+
+def test_no_cognateset_is_a_no_op_for_ordinary_corpora() -> None:
+    # Nodes without a cognate-set id (any non-Lexibank corpus) get no cognate edges.
+    result = LinguisticLinker().link_linguistic(_family_tree(), [])
+
+    assert not any(e[":TYPE"] == "COGNATE_WITH" for e in result.edges)
+
+
 def test_does_not_duplicate_existing_edges() -> None:
     existing: Row = {
         ":START_ID": "cs:language:Q1321",
