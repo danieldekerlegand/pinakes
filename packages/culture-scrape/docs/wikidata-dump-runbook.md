@@ -302,3 +302,142 @@ no slice it is skipped.
 ```bash
 uv run pytest tests/test_blueprint_food_drink_dump_smoke.py -q
 ```
+
+---
+
+## Mid-size domains merged with the LinguaScrape corpus, offline (US-004)
+
+US-003 proved a single blueprint (food-drink). US-004 is the next shape: **two**
+mid-size dump domains (language, myth-religion) stitched **together** *and* merged
+with the existing LinguaScrape convergence corpus, so a Wikidata entity
+LinguaScrape already curates collapses to one node rather than duplicating. The
+lever is `culturescrape merge`, which expands N blueprints in dump mode and
+appends a `linguascrape-export` category, writing the single job whose categories
+`culturescrape run` then stitches (`orchestrate/merge.py`).
+
+```bash
+cd packages/culture-scrape
+SLICE=$(pwd)/out/wikidata/wikidata-20260712-blueprint-slice.json.gz
+
+# 1. Assemble the merged job: language + myth-religion (dump) + the live export.
+uv run culturescrape merge blueprints/language.yml blueprints/myth-religion.yml \
+  --dump  "$SLICE" \
+  --index "$SLICE.index.sqlite3" \
+  --hydrate default \
+  --linguascrape "$(cd ../.. && pwd)/export/culturescrape" \
+  --out out/merged/categories \
+  --job jobs/merged-dump.yml \
+  --name merged-dump \
+  --min-component-fraction 0.1 --min-provenance-completeness 0.0 \
+  --force
+
+# 2. Build the merged corpus offline (the dump + export adapters open no network).
+uv run culturescrape run jobs/merged-dump.yml --workers 4
+
+# 3. Prove the Neo4j load is idempotent (offline: MERGE double-load, no server).
+uv run culturescrape neo4j-counts --dataset out/merged-dump/corpus
+```
+
+`merge` writes `reconcile_shared_qids: true` into the job — see **identity
+preservation** below.
+
+### Recorded build — reference slice (2026-07-12)
+
+Language + myth-religion (17 dump categories) from the 5,691-entity slice, merged
+with the live LinguaScrape export (`export/culturescrape`):
+
+| stage | measurement |
+| --- | --- |
+| acquire — dump | **802** member entities across 17 categories; each category full-scans the whole slice |
+| acquire — LinguaScrape export | **12,671** canonical rows ingested from `nodes/`+`edges/` |
+| stitch + QID-reconcile + link + export | inline; **collapsed 14** cross-type same-QID duplicates |
+| **merged corpus** | **7,682 nodes / 5,283 edges**; largest component **14.79%** (1,136/7,682) |
+| whole build | **345 s wall** @ 4 workers |
+| peak memory | **192 MB** RSS · **43.5 MB** Python-object peak (`tracemalloc`) — streaming, bounded by the LinguaScrape ingest, not the slice |
+| Neo4j | `corpus-neo4j/neo4j-admin-import.sh` generated; **idempotent** (see below) |
+| Datalog | **55,132** facts projected |
+| QA | all corpus gates **pass** (0 duplicates after QID-reconcile, 0 dangling edges) |
+
+**Relaxed floors (documented).** The merged corpus carries the same two overrides
+as `jobs/linguascrape-full.yml`: `min_provenance_completeness: 0.0` (LinguaScrape
+rows carry the canonical `source` stamp but no external `source_url`; the
+LinguaScrape provenance gate still enforces it) and `min_component_fraction: 0.1`.
+The measured largest component is **14.79%** — the LinguaScrape corpus's own real
+semantic connectivity is ~17% (`docs/convergence-build.md`), and the dump domains
+attach to it only where a shared QID or a linker hub bridges them, so 0.1 is an
+honest floor that still fails on a genuine collapse. This is a *stored*-graph
+number; the derived temporal layer reconnects co-dated entities at query time.
+
+### Identity preservation — one QID is one node
+
+`csid` is `cs:<node-type>:<QID>`, so the *same* Wikidata entity typed differently
+by two sources gets two csids and the per-`csid` stitch cannot merge them. The
+reference merge surfaced **14** such cross-type duplicates in three shapes:
+
+* deity typed `Concept;CulturalArtifact` by the myth-religion blueprint vs `Deity`
+  by LinguaScrape (`cs:concept:Q146007` vs `cs:deity:Q146007` — Wadjet, Sobek, …);
+* script typed `Language` by the language blueprint's writing-systems / alphabets
+  categories vs `WritingSystem` by LinguaScrape (`cs:language:Q145625` vs
+  `cs:writing-system:Q145625` — Glagolitic, Ol Chiki, …);
+* a geographic **place hub** the linker mints for a QID LinguaScrape curates as a
+  `Culture` (`cs:place:Q11767` vs `cs:culture:Q11767` — Mesopotamia, Babylonia).
+
+`ontology.reconcile_qid.reconcile_shared_qids` (opt-in via the job's
+`reconcile_shared_qids: true`, which `merge` sets) collapses same-QID nodes into
+one — unioning their label sets and redirecting edges onto the survivor — so one
+QID is one node. It is **QID-only** (nodes with no QID, or differing QIDs, are
+untouched), so it never over-merges on a shared name. This drives the corpus
+`duplicate rate` gate to 0; without it the build fails that gate at 0.002.
+
+### Merged corpus — node/edge counts by label / :TYPE
+
+The offline MERGE double-load (`neo4j-counts --dataset`) is **idempotent** — the
+second load moves no count — and reports the grouped counts a live Neo4j would
+answer after `neo4j-admin import`. Every node carries the `Entity` anchor, so its
+tally (**7,682**) is the true node total; labels overlap because the QID-reconcile
+unions them (`Concept`+`Deity`, `Language`+`WritingSystem`, `Culture`+`Place`).
+
+Top node labels: `Entity` 7,682 · `Ingredient` 2,146 · `Language` 1,459 ·
+`Place` 1,119 · `LanguageFamily` 544 · `Period` 446 · `Concept` 368 ·
+`CulturalArtifact` 368 · `Culture` 302 · `ArchaeologicalCulture` 281 ·
+`ArtTradition` 230 · `Deity` 228 · `WritingSystem` 113 · `Cuisine` 101 ·
+`MigrationRoute` 100 · `MythMotif` 61 · `LiteraryTradition` 56 · `Battle` 49 ·
+`TradeGood` 45 · `UrheimatHypothesis` 22 · `Religion` 20 · `Category` 17 ·
+`Type` 2.
+
+Edges by `:TYPE` (**5,283** total): `DESCENDS_FROM` 1,642 · `LOCATED_IN` 980 ·
+`MEMBER_OF_CATEGORY` 802 · `INSTANCE_OF` 760 · `PART_OF_PERIOD` 498 ·
+`VARIANT_OF` 242 · `INFLUENCED_BY` 102 · `PART_OF` 101 · `SPOKEN_IN` 66 ·
+`BORROWED_FROM` 50 · `COGNATE_WITH` 27 · `DERIVED_FROM` 13. Of these, LinguaScrape
+contributed the `DESCENDS_FROM`/`VARIANT_OF`/`INFLUENCED_BY`/`PART_OF`/
+`BORROWED_FROM`/`COGNATE_WITH`/`DERIVED_FROM` families (the manifest's
+`linguascrape_edges_by_type`); `LOCATED_IN`/`INSTANCE_OF`/`MEMBER_OF_CATEGORY`/
+`PART_OF_PERIOD`/`SPOKEN_IN` are minted by the dump acquisition + linkers.
+
+### Reconciliation against curated lexicons
+
+Full report: [wikidata-merge-reconciliation.md](wikidata-merge-reconciliation.md).
+
+| corpus nodes vs curated lexicon | matched | new | ambiguous |
+| --- | --- | --- | --- |
+| 1,459 `language` nodes vs `lexicons/languages.tsv` (1,099 rows) | 97 | 1,362 | 0 |
+| 221 `deity` nodes vs `lexicons/deities.tsv` (206 rows) | 198 | 23 | 0 |
+
+Both domains reconcile with **0 ambiguous** — nothing is auto-merged. The
+languages that overlap the curated set fold on (name, type, region) at 0.95; the
+Wikidata-only minor languages stand as `new`. 198/221 deities match (the
+LinguaScrape deities re-match their own rows and the Wikidata `Q178885` members
+whose names align fold on).
+
+### Verifying offline (skipif-gated)
+
+`tests/test_blueprint_language_myth_dump_smoke.py` proves this path end to end
+where a real slice is present: it merges a small language + myth subset with the
+committed LinguaScrape fixture export, builds offline with an HTTP factory that
+**raises**, and asserts the corpus validates, carries both sources' rows,
+MERGE-loads idempotently, and reconciles. On a fresh checkout with no slice it is
+skipped.
+
+```bash
+uv run pytest tests/test_blueprint_language_myth_dump_smoke.py -q
+```

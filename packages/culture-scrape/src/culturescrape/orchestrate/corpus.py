@@ -63,6 +63,7 @@ from culturescrape.ontology.metrics import (
     render_summary,
     to_json,
 )
+from culturescrape.ontology.reconcile_qid import reconcile_shared_qids
 from culturescrape.ontology.run import run_linkers, select_linkers
 from culturescrape.ontology.stitch import (
     SharedEntity,
@@ -230,15 +231,26 @@ def build_corpus(
     stitched = stitch_categories(results)
     linked = run_linkers(stitched.nodes, stitched.edges, select_linkers(None))
 
+    final_nodes, final_edges = linked.nodes, linked.edges
+    if job.reconcile_shared_qids:
+        reconciled = reconcile_shared_qids(final_nodes, final_edges)
+        final_nodes, final_edges = reconciled.nodes, reconciled.edges
+        logger.info(
+            "corpus %s: collapsed %d node(s) sharing a QID across types",
+            job.name,
+            reconciled.collapsed,
+            extra={"event": "corpus.reconcile_qid", "job": job.name},
+        )
+
     dataset_dir = job.output_root / CORPUS_DIRNAME
     write_result(
-        NormalizationResult(nodes=linked.nodes, edges=linked.edges), dataset_dir
+        NormalizationResult(nodes=final_nodes, edges=final_edges), dataset_dir
     )
     _validate(job, dataset_dir)
 
     metrics = metrics_for_dataset(dataset_dir)
     (dataset_dir / "metrics.json").write_text(to_json(metrics) + "\n", encoding="utf-8")
-    build_manifest(job.name, linked.nodes, linked.edges).write(
+    build_manifest(job.name, final_nodes, final_edges).write(
         dataset_dir / "manifest.json"
     )
     report = evaluate_directory(dataset_dir, qa.thresholds)

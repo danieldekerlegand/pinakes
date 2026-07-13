@@ -41,6 +41,7 @@ _OPTIONAL_KEYS = (
     "stages",
     "min_provenance_completeness",
     "min_component_fraction",
+    "reconcile_shared_qids",
 )
 _ALLOWED_KEYS = frozenset(_REQUIRED_KEYS + _OPTIONAL_KEYS)
 
@@ -68,6 +69,10 @@ class Job:
         min_component_fraction: Optional override for the connectivity floor
             (``None`` keeps the default). A small single-domain fixture corpus
             need not reach the multi-domain seed corpus's connectivity.
+        reconcile_shared_qids: When true, collapse nodes that share a Wikidata
+            QID but were minted under different node types into one before the
+            corpus is written (a merged corpus stitching several sources needs
+            this so one QID is one node — see ``ontology.reconcile_qid``).
     """
 
     name: str
@@ -77,6 +82,7 @@ class Job:
     output_root: Path
     min_provenance_completeness: float | None = None
     min_component_fraction: float | None = None
+    reconcile_shared_qids: bool = False
 
     def output_dir(self, stage: str) -> Path:
         """Return the output directory for *stage* under :attr:`output_root`.
@@ -142,6 +148,9 @@ def _parse(raw: object, path: Path) -> Job:
     min_component = _parse_fraction(
         raw.get("min_component_fraction"), "min_component_fraction", errors
     )
+    reconcile_qids = _parse_bool(
+        raw.get("reconcile_shared_qids"), "reconcile_shared_qids", errors
+    )
 
     stages = _parse_stages(raw.get("stages"), errors)
     categories = (
@@ -169,6 +178,7 @@ def _parse(raw: object, path: Path) -> Job:
         output_root=output_root,
         min_provenance_completeness=min_provenance,
         min_component_fraction=min_component,
+        reconcile_shared_qids=reconcile_qids,
     )
 
 
@@ -228,6 +238,16 @@ def _parse_fraction(value: object, key: str, errors: list[str]) -> float | None:
         errors.append(f"{key!r} must be between 0 and 1, got {number}")
         return None
     return number
+
+
+def _parse_bool(value: object, key: str, errors: list[str]) -> bool:
+    """Parse an optional boolean flag, defaulting to ``False`` when omitted."""
+    if value is None:
+        return False
+    if not isinstance(value, bool):
+        errors.append(f"{key!r} must be a boolean (true/false)")
+        return False
+    return value
 
 
 def _parse_output_root(value: object, path: Path, errors: list[str]) -> Path | None:

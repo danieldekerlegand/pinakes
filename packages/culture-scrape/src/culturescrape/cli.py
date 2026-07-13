@@ -58,6 +58,7 @@ from culturescrape.neo4j.admin_import import (
 from culturescrape.neo4j.counts import count_summary
 from culturescrape.neo4j.export import Neo4jExportError, export_to_tsv
 from culturescrape.neo4j.load_csv import load_corpus
+from culturescrape.neo4j.merge_load import verify_idempotent_load
 from culturescrape.ontology.metrics import (
     metrics_for_dataset,
     read_dataset,
@@ -81,6 +82,7 @@ from culturescrape.orchestrate.jobs import (
     JobConfigError,
     load_job,
 )
+from culturescrape.orchestrate.merge import MergeError, write_merged_job
 from culturescrape.orchestrate.package import PackageError, package_corpus
 from culturescrape.orchestrate.qa import GateThresholds, evaluate_directory
 from culturescrape.orchestrate.runner import DEFAULT_WORKERS, run_job
@@ -306,7 +308,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     neo4j_counts = subparsers.add_parser(
         "neo4j-counts",
-        help="print node/edge counts by type from the connected Neo4j graph",
+        help="print node/edge counts by type from the connected Neo4j graph "
+        "(or, with --dataset, verify a corpus loads idempotently offline)",
+    )
+    neo4j_counts.add_argument(
+        "--dataset",
+        type=Path,
+        default=None,
+        help="a built corpus dataset dir (nodes/ + edges/): skip the live server "
+        "and prove a MERGE double-load is idempotent, printing the counts",
     )
     neo4j_counts.set_defaults(handler=_cmd_neo4j_counts)
 
@@ -595,6 +605,82 @@ def _build_parser() -> argparse.ArgumentParser:
         help="write this corpus provenance floor into the generated --job",
     )
     gen.set_defaults(handler=_cmd_generate)
+
+    merge = subparsers.add_parser(
+        "merge",
+        help="assemble several dump blueprints + the LinguaScrape export into "
+        "one runnable merged-corpus job",
+    )
+    merge.add_argument(
+        "blueprints",
+        type=Path,
+        nargs="+",
+        help="one or more blueprint .yml files (dump mode: wikidata_class stubs)",
+    )
+    merge.add_argument(
+        "--dump",
+        type=Path,
+        required=True,
+        help="local Wikidata dump/slice every wikidata_class stub is sourced from",
+    )
+    merge.add_argument(
+        "--index",
+        type=Path,
+        default=None,
+        help="dump class-membership index (default: <dump>.index.sqlite3 sidecar)",
+    )
+    merge.add_argument(
+        "--hydrate",
+        default=None,
+        help="dump-mode hydration profile every category opts into (e.g. 'default')",
+    )
+    merge.add_argument(
+        "--no-transitive",
+        action="store_true",
+        help="select direct P31 instances only (default: P31/P279* transitive)",
+    )
+    merge.add_argument(
+        "--linguascrape",
+        type=Path,
+        default=None,
+        help="LinguaScrape canonical export root (nodes/ + edges/) to stitch in; "
+        "e.g. ../../export/culturescrape",
+    )
+    merge.add_argument(
+        "--out",
+        type=Path,
+        default=Path("categories"),
+        help="directory the generated category .yml files are written to",
+    )
+    merge.add_argument(
+        "--job",
+        type=Path,
+        required=True,
+        help="the runnable merged job .yml to write",
+    )
+    merge.add_argument(
+        "--name",
+        default="merged-dump",
+        help="job name / output_root stem (default: merged-dump)",
+    )
+    merge.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite existing category/job files instead of refusing",
+    )
+    merge.add_argument(
+        "--min-component-fraction",
+        type=float,
+        default=None,
+        help="write this corpus connectivity floor into the merged job",
+    )
+    merge.add_argument(
+        "--min-provenance-completeness",
+        type=float,
+        default=None,
+        help="write this corpus provenance floor into the merged job",
+    )
+    merge.set_defaults(handler=_cmd_merge)
 
     package = subparsers.add_parser(
         "package",
@@ -949,6 +1035,20 @@ def _cmd_to_neo4j(args: argparse.Namespace) -> int:
 
 
 def _cmd_neo4j_counts(args: argparse.Namespace) -> int:
+    if args.dataset is not None:
+        if not args.dataset.is_dir():
+            return _fail(f"{args.dataset} is not a directory")
+        report = verify_idempotent_load(args.dataset)
+        summary = report.counts
+        state = "idempotent" if report.idempotent else "NOT idempotent"
+        print(f"offline MERGE double-load of {args.dataset}: {state}")
+        print(f"node counts by label (total {summary.node_total}):")
+        for label, count in summary.nodes_by_label.items():
+            print(f"  {label}: {count}")
+        print(f"edge counts by type (total {summary.edge_total}):")
+        for edge_type, count in summary.edges_by_type.items():
+            print(f"  {edge_type}: {count}")
+        return 0 if report.idempotent else 1
     try:
         summary = count_summary()
     except (Neo4jConfigError, Neo4jDriverNotInstalled) as exc:
@@ -1186,6 +1286,35 @@ def _cmd_generate(args: argparse.Namespace) -> int:
     )
     if result.job is not None:
         print(f"  job: {result.job} (run: culturescrape run {result.job})")
+    return 0
+
+
+def _cmd_merge(args: argparse.Namespace) -> int:
+    dump = DumpSource(
+        path=args.dump,
+        index=args.index,
+        hydrate=args.hydrate,
+        transitive=not args.no_transitive,
+    )
+    try:
+        result = write_merged_job(
+            args.blueprints,
+            args.out,
+            args.job,
+            dump=dump,
+            name=args.name,
+            linguascrape_export=args.linguascrape,
+            force=args.force,
+            min_component_fraction=args.min_component_fraction,
+            min_provenance_completeness=args.min_provenance_completeness,
+        )
+    except (BlueprintError, MergeError) as exc:
+        return _fail(str(exc))
+    print(
+        f"merged {len(args.blueprints)} blueprint(s) into "
+        f"{len(result.categories)} category spec(s) at {args.out}"
+    )
+    print(f"  job: {result.job} (run: culturescrape run {result.job})")
     return 0
 
 

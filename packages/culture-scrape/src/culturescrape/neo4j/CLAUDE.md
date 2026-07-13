@@ -8,6 +8,20 @@ merged corpus mixing sources (native Wikidata + `source='linguascrape'`) flows t
 one path with no source special-casing. Convergence = both sources' rows share a
 per-label node file / per-`:TYPE` edge file; the loader neither knows nor cares.
 
+## Offline idempotency proof — `merge_load.verify_idempotent_load` (US-004)
+
+`neo4j-counts --dataset <corpus>` (and `merge_load.verify_idempotent_load`) prove a
+corpus loads into Neo4j **idempotently without a live server**: an in-memory
+`_MergeGraph` replays the real load's MERGE keys (nodes on `csid`, edges on
+`(:START_ID,:END_ID,:TYPE)`), loads the dataset **twice**, and asserts the grouped
+counts don't move on the second load. The counts it returns match the live
+`counts.count_summary` shape — a node is tallied under **every** label it carries
+(its type `:LABEL` + the shared `Entity` anchor), so the `Entity` tally is the true
+node total (labels overlap, so summing `nodes_by_label` double-counts). Use it to
+record a merged corpus's node/edge counts by label/`:TYPE` when no server is up; a
+non-idempotent result (exit 1) means duplicate csids or duplicate edge keys the
+stitch failed to collapse.
+
 ## Running `loadcsv` against the dockerized Neo4j (repo `docker-compose.yml`)
 
 The stock `neo4j:5` service in the repo's `docker-compose.yml` cannot run
