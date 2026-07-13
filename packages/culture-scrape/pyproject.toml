@@ -49,6 +49,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 "culturescrape.explorer" = ["templates/*.html"]
 "culturescrape.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv", "rules_registry.tsv"]
+"culturescrape.experimental" = ["yago_sample/*.nt", "yago_sample/*.ttl", "yago_sample/*.md"]
 
 [tool.mypy]
 python_version = "3.11"

@@ -1,0 +1,80 @@
+{
+  "recommendation": "partially-adopt",
+  "taxonomy": {
+    "classes_with_fromclass": 10,
+    "classes_mapped": 8,
+    "classes_unmapped": 2,
+    "subclass_edges_total": 9,
+    "subclass_edges_by_status": {
+      "redundant": 2,
+      "novel": 1,
+      "partial": 4,
+      "unmapped": 2
+    },
+    "novel_edges": [
+      "ArtTradition subClassOf Culture"
+    ]
+  },
+  "facts": {
+    "triples_total": 12,
+    "type_assertions": 5,
+    "typed_entities": 5,
+    "mappable_property_facts": 2,
+    "wikidata_backlinks": 3
+  },
+  "shapes": {
+    "node_shapes_total": 3,
+    "property_shapes_total": 4,
+    "property_shapes_translated": 1,
+    "property_shapes_skipped": 3,
+    "rules_produced": 3,
+    "rules_novel": 2,
+    "rules_redundant": 1,
+    "skipped_reasons": [
+      "disjunctive range (sh:or) unsupported",
+      "property http://schema.org/inLanguage outside corpus edge vocabulary",
+      "subject class http://schema.org/Person not in corpus"
+    ],
+    "rules": [
+      {
+        "rule_id": "yago-located_in-from-Place",
+        "kind": "subject-type",
+        "head": "located_in_from_type_violation",
+        "clause_prolog": "",
+        "clause_souffle": "located_in_from_type_violation(X, Y) :- located_in(X, Y), !instance_of(X, \"Place\").",
+        "depends": "located_in;instance_of",
+        "source": "yago-4.5",
+        "source_url": "https://yago-knowledge.org/downloads/yago-4-5",
+        "retrieved_at": "2026-07-13T00:00:00Z",
+        "confidence": "0.9",
+        "novelty": "novel"
+      },
+      {
+        "rule_id": "yago-located_in-to-Place",
+        "kind": "value-type",
+        "head": "located_in_to_type_violation",
+        "clause_prolog": "",
+        "clause_souffle": "located_in_to_type_violation(X, Y) :- located_in(X, Y), !instance_of(Y, \"Place\").",
+        "depends": "located_in;instance_of",
+        "source": "yago-4.5",
+        "source_url": "https://yago-knowledge.org/downloads/yago-4-5",
+        "retrieved_at": "2026-07-13T00:00:00Z",
+        "confidence": "0.9",
+        "novelty": "redundant"
+      },
+      {
+        "rule_id": "yago-located_in-functional",
+        "kind": "functional",
+        "head": "located_in_functional_violation",
+        "clause_prolog": "",
+        "clause_souffle": "located_in_functional_violation(X) :- located_in(X, Y1), located_in(X, Y2), Y1 != Y2.",
+        "depends": "located_in",
+        "source": "yago-4.5",
+        "source_url": "https://yago-knowledge.org/downloads/yago-4-5",
+        "retrieved_at": "2026-07-13T00:00:00Z",
+        "confidence": "0.9",
+        "novelty": "novel"
+      }
+    ]
+  }
+}

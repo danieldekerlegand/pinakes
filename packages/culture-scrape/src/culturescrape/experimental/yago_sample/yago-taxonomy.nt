@@ -1,0 +1,37 @@
+# YAGO 4.5 taxonomy sample (N-Triples). Hand-authored; not a redistribution.
+# rdfs:subClassOf edges + ys:fromClass provenance back to the Wikidata class.
+# Prefixes (expanded inline, as N-Triples requires):
+#   schema: http://schema.org/
+#   yago:   http://yago-knowledge.org/resource/
+#   ys:     http://yago-knowledge.org/schema#
+#   wd:     http://www.wikidata.org/entity/
+#   rdfs:   http://www.w3.org/2000/01/rdf-schema#
+
+# --- classes that map onto the canonical schema (ys:fromClass -> Wikidata QID) ---
+<http://schema.org/Language> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q34770> .
+<http://yago-knowledge.org/resource/WritingSystem> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q8192> .
+<http://yago-knowledge.org/resource/Culture> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q11042> .
+<http://yago-knowledge.org/resource/ArchaeologicalCulture> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q465299> .
+<http://yago-knowledge.org/resource/ArtMovement> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q968159> .
+<http://yago-knowledge.org/resource/LiteraryMovement> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q2198855> .
+<http://schema.org/Place> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q2221906> .
+<http://yago-knowledge.org/resource/Religion> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q9174> .
+
+# --- schema.org top classes with no canonical-schema counterpart ---
+<http://schema.org/Person> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q5> .
+<http://schema.org/Organization> <http://yago-knowledge.org/schema#fromClass> <http://www.wikidata.org/entity/Q43229> .
+
+# --- rdfs:subClassOf edges (the class hierarchy) ---
+# both ends map to the corpus, already in datalog/taxonomy/subclass_of.tsv (redundant):
+<http://yago-knowledge.org/resource/ArchaeologicalCulture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://yago-knowledge.org/resource/Culture> .
+<http://yago-knowledge.org/resource/LiteraryMovement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://yago-knowledge.org/resource/ArtMovement> .
+# both ends map to the corpus, NOT yet in our artifact (novel edge YAGO would add):
+<http://yago-knowledge.org/resource/ArtMovement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://yago-knowledge.org/resource/Culture> .
+# one end maps, the super-class is an unmapped schema.org top class (partial):
+<http://yago-knowledge.org/resource/Culture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Intangible> .
+<http://schema.org/Language> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Intangible> .
+<http://yago-knowledge.org/resource/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/CreativeWork> .
+<http://yago-knowledge.org/resource/Religion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Intangible> .
+# neither end maps (schema.org internal hierarchy the corpus does not model):
+<http://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Thing> .
+<http://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://schema.org/Thing> .

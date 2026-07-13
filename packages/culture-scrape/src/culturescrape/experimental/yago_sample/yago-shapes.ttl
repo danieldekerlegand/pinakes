@@ -1,0 +1,51 @@
+# YAGO 4.5 SHACL shapes sample (Turtle). Hand-authored; not a redistribution.
+# The YAGO idiom: a schema.org class is a sh:NodeShape whose sh:property blocks carry
+# sh:path/sh:node/sh:datatype/sh:maxCount and a ys:fromProperty back-link to Wikidata.
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix schema: <http://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ys: <http://yago-knowledge.org/schema#> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# schema:Place carries two property shapes:
+#  * containedInPlace maps to the LOCATED_IN edge. Range (sh:node schema:Place) restates
+#    the schema's own to=Place constraint (redundant); targetClass schema:Place adds a
+#    from-constraint the canonical schema lacks (novel); sh:maxCount 1 makes it
+#    functional (a new integrity kind, novel).
+#  * location maps to the same edge but uses a disjunctive range (sh:or) — reported as
+#    an unsupported constraint form, skipped.
+schema:Place a sh:NodeShape ;
+    sh:targetClass schema:Place ;
+    sh:property [
+        sh:path schema:containedInPlace ;
+        sh:node schema:Place ;
+        sh:maxCount 1 ;
+        ys:fromProperty wdt:P131
+    ] ;
+    sh:property [
+        sh:path schema:location ;
+        sh:or ( [ sh:node schema:Place ] [ sh:node schema:Event ] ) ;
+        ys:fromProperty wdt:P276
+    ] .
+
+# inLanguage is a literal (sh:datatype) constraint — the property is outside the corpus
+# edge vocabulary, so there is no edge/type rule to make: skipped.
+schema:Language a sh:NodeShape ;
+    sh:targetClass schema:Language ;
+    sh:property [
+        sh:path schema:inLanguage ;
+        sh:datatype xsd:string ;
+        ys:fromProperty wdt:P407
+    ] .
+
+# targetClass schema:Person has no canonical-schema counterpart: the whole shape is
+# skipped (subject class outside the corpus).
+schema:Person a sh:NodeShape ;
+    sh:targetClass schema:Person ;
+    sh:property [
+        sh:path schema:parent ;
+        sh:node schema:Person ;
+        ys:fromProperty wdt:P22
+    ] .

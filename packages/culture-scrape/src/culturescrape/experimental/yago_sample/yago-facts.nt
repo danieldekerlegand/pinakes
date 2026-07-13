@@ -1,0 +1,24 @@
+# YAGO 4.5 facts sample (N-Triples). Hand-authored; not a redistribution.
+# Entity rdf:type assertions (typed against yago-taxonomy.nt) + a few property facts.
+# Prefixes as in yago-taxonomy.nt; rdf:type = <...22-rdf-syntax-ns#type>.
+
+# --- typed entities (rdf:type -> a taxonomy class) ---
+<http://yago-knowledge.org/resource/Ubaid_culture> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://yago-knowledge.org/resource/ArchaeologicalCulture> .
+<http://yago-knowledge.org/resource/Sumerian_language> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Language> .
+<http://yago-knowledge.org/resource/Cuneiform> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://yago-knowledge.org/resource/WritingSystem> .
+<http://yago-knowledge.org/resource/Mesopotamia> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place> .
+<http://yago-knowledge.org/resource/Uruk> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place> .
+
+# --- property facts whose predicate maps to a canonical-schema edge (LOCATED_IN) ---
+<http://yago-knowledge.org/resource/Ubaid_culture> <http://schema.org/containedInPlace> <http://yago-knowledge.org/resource/Mesopotamia> .
+<http://yago-knowledge.org/resource/Uruk> <http://schema.org/containedInPlace> <http://yago-knowledge.org/resource/Mesopotamia> .
+
+# --- property facts whose predicate has NO canonical-schema edge (not mappable) ---
+<http://yago-knowledge.org/resource/Cuneiform> <http://schema.org/dateCreated> "-3400"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+<http://yago-knowledge.org/resource/Sumerian_language> <http://schema.org/inLanguage> "sux"@en .
+
+# --- Wikidata back-links (schema:sameAs -> wd:Q...) that make YAGO facts de-dup-able
+#     against our existing Wikidata acquisition path ---
+<http://yago-knowledge.org/resource/Ubaid_culture> <http://schema.org/sameAs> <http://www.wikidata.org/entity/Q756569> .
+<http://yago-knowledge.org/resource/Sumerian_language> <http://schema.org/sameAs> <http://www.wikidata.org/entity/Q36790> .
+<http://yago-knowledge.org/resource/Cuneiform> <http://schema.org/sameAs> <http://www.wikidata.org/entity/Q401> .
