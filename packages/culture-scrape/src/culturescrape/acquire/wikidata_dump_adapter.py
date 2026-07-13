@@ -96,7 +96,11 @@ class WikidataDumpAdapter(SourceAdapter):
     labels/aliases are collected into ``aliases``. ``source.params['index']``
     points at a prebuilt membership index for fast class resolution; absent it,
     the conventional sidecar (``<dump>.index.sqlite3``) is used when present and a
-    full scan otherwise.
+    full scan otherwise. ``source.params['ids']`` (``;``-separated QIDs) pins
+    membership to an explicit allowlist — used by the incremental upsert path
+    (:mod:`culturescrape.orchestrate.incremental`) to select exactly the changed
+    entities of this category — bypassing the class scan/index entirely; ``class``
+    is still read (for the provenance descriptor) but no longer decides membership.
 
     Args:
         confidence: Provenance confidence stamped on every record.
@@ -139,8 +143,14 @@ class WikidataDumpAdapter(SourceAdapter):
         alias_languages = merge_languages(
             language, split_languages(params.get("hydrate_languages"))
         )
+        allowlist = _parse_ids(params.get("ids"))
         dump_path = Path(raw_path)
-        index = self._load_index(dump_path, params.get("index"))
+        # An explicit id allowlist decides membership on its own, so the (possibly
+        # mismatched) index sidecar is neither loaded nor needed.
+        index = (
+            None if allowlist is not None
+            else self._load_index(dump_path, params.get("index"))
+        )
         retrieved_at = self._now().isoformat()
         return self._iter_records(
             dump_path,
@@ -151,6 +161,7 @@ class WikidataDumpAdapter(SourceAdapter):
             profile,
             alias_languages,
             index,
+            allowlist,
         )
 
     @staticmethod
@@ -189,8 +200,9 @@ class WikidataDumpAdapter(SourceAdapter):
         profile: HydrationProfile | None,
         alias_languages: tuple[str, ...],
         index: DumpIndex | None,
+        allowlist: frozenset[str] | None = None,
     ) -> Iterator[RawRecord]:
-        is_member = self._membership_test(path, roots, transitive, index)
+        is_member = self._membership_test(path, roots, transitive, index, allowlist)
         descriptor = _selection_descriptor(roots, transitive, path)
         for entity in iter_entities(path):
             if not is_member(entity):
@@ -227,15 +239,20 @@ class WikidataDumpAdapter(SourceAdapter):
         roots: tuple[str, ...],
         transitive: bool,
         index: DumpIndex | None,
+        allowlist: frozenset[str] | None = None,
     ) -> Callable[[dict[str, Any]], bool]:
         """Return a predicate deciding whether a dump entity is a member.
 
-        With an *index*, membership is the precomputed *class → member QIDs* set
-        (an O(1) lookup, and no extra dump pass for the ``P279*`` closure).
-        Without one, it falls back to intersecting each entity's ``P31`` classes
-        with the class closure — built from the same statements, so the two paths
-        select exactly the same entities.
+        An explicit *allowlist* is authoritative: membership is exactly ``id in
+        allowlist`` (the incremental path resolves the changed members once,
+        upstream, and pins them here). Otherwise, with an *index*, membership is
+        the precomputed *class → member QIDs* set (an O(1) lookup, and no extra
+        dump pass for the ``P279*`` closure); without one, it falls back to
+        intersecting each entity's ``P31`` classes with the class closure — built
+        from the same statements, so the two paths select the same entities.
         """
+        if allowlist is not None:
+            return lambda entity: entity["id"] in allowlist
         if index is not None:
             member_qids = index.member_qids(roots, transitive)
             return lambda entity: entity["id"] in member_qids
@@ -268,6 +285,19 @@ class WikidataDumpAdapter(SourceAdapter):
                     closure.add(child)
                     stack.append(child)
         return closure
+
+
+def _parse_ids(raw: str | None) -> frozenset[str] | None:
+    """Parse a ``;``-separated QID allowlist, or ``None`` when the param is unset.
+
+    An empty/blank value yields an empty frozenset (select nothing) rather than
+    ``None``, so an explicitly-empty allowlist is honoured — a delta category with
+    no changed members selects zero entities instead of falling back to the class
+    scan.
+    """
+    if raw is None:
+        return None
+    return frozenset(qid.strip() for qid in raw.split(";") if qid.strip())
 
 
 def _label(entity: dict[str, Any], language: str) -> str | None:

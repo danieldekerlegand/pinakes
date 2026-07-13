@@ -104,6 +104,13 @@ from culturescrape.acquire.wikidata_hydration import (
     get_profile,
     hydrate_entity,
 )
+from culturescrape.acquire.wikidata_diff import (
+    DumpDiff,
+    diff_dumps,
+    entity_fingerprint,
+    fingerprint_dump,
+    write_delta_dump,
+)
 from culturescrape.acquire.wikidata_slice import (
     SLICE_SOURCE,
     WIKIDATA_API_ENDPOINT,

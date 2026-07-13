@@ -127,6 +127,22 @@ def csid_type(csid: str) -> str:
     return match.group("type")
 
 
+def csid_qid(csid: str) -> str | None:
+    """Return the Wikidata QID a **QID-anchored** *csid* carries, else ``None``.
+
+    A QID-anchored id has the QID verbatim as its local part
+    (``cs:dish:Q12345`` → ``Q12345``); an alias- or name-anchored id (or a
+    malformed string) has no QID and yields ``None``. This is the inverse of the
+    QID-anchoring path in :func:`mint_csid`, letting an incremental refresh recover
+    which Wikidata entity a corpus node stands for straight from its ``csid``.
+    """
+    match = _CSID_RE.fullmatch(csid.strip())
+    if match is None:
+        return None
+    local = match.group("local")
+    return local if _QID_RE.fullmatch(local) else None
+
+
 def _alias_local(alias: str) -> str:
     """Return the local part for an alias-anchored id (the alias verbatim).
 

@@ -76,6 +76,12 @@ from culturescrape.orchestrate.corpus import (
     corpus_qa_policy,
 )
 from culturescrape.orchestrate.generate import BlueprintError, DumpSource, generate
+from culturescrape.orchestrate.incremental import (
+    UpsertResult,
+    last_sync_at,
+    run_upsert,
+    write_sync_log,
+)
 from culturescrape.orchestrate.jobs import (
     STAGE_ORDER,
     Job,
@@ -786,6 +792,59 @@ def _build_parser() -> argparse.ArgumentParser:
         help="a job's output root (holding catalog.json) or the catalog.json itself",
     )
     catalog.set_defaults(handler=_cmd_catalog)
+
+    sync = subparsers.add_parser(
+        "sync-wikidata",
+        help="incrementally upsert a corpus from a fresher dump slice: diff by "
+        "QID, re-hydrate + re-export only the changed entities, prove idempotency",
+    )
+    sync.add_argument(
+        "job",
+        type=Path,
+        help="the job that built the corpus (its wikidata-dump categories map "
+        "changed QIDs to labels/dimensions)",
+    )
+    sync.add_argument(
+        "--old-dump",
+        type=Path,
+        required=True,
+        help="the slice the corpus was last built from",
+    )
+    sync.add_argument(
+        "--new-dump",
+        type=Path,
+        required=True,
+        help="the fresher slice to diff against and upsert from",
+    )
+    sync.add_argument(
+        "--new-index",
+        type=Path,
+        default=None,
+        help="class-membership index for the new dump (default: <new-dump>."
+        "index.sqlite3 sidecar, else a bounded scan)",
+    )
+    sync.add_argument(
+        "--work-dir",
+        type=Path,
+        default=None,
+        help="where the delta dump + delta corpus are written (default: "
+        "<output_root>/sync)",
+    )
+    sync.add_argument(
+        "--corpus",
+        type=Path,
+        default=None,
+        help="the base corpus dataset to verify the idempotent load over "
+        "(default: <output_root>/corpus)",
+    )
+    sync.add_argument(
+        "--since",
+        default=None,
+        metavar="DURATION",
+        help="skip the sync if one was already recorded within DURATION (e.g. "
+        "24h, 7d); reuses the --since scheduling window at entity granularity",
+    )
+    sync.set_defaults(handler=_cmd_sync_wikidata)
     return parser
 
 
@@ -1409,6 +1468,82 @@ def _cmd_catalog(args: argparse.Namespace) -> int:
         return _fail(f"{path} does not exist")
     print(render_table(load_catalog(path)))
     return 0
+
+
+def _cmd_sync_wikidata(args: argparse.Namespace) -> int:
+    try:
+        job = load_job(args.job)
+    except JobConfigError as exc:
+        return _fail(str(exc))
+    for label, path in (("old", args.old_dump), ("new", args.new_dump)):
+        if not path.exists():
+            return _fail(f"{label} dump not found: {path}")
+
+    work_dir: Path = args.work_dir or job.output_root / "sync"
+    now = datetime.now(UTC)
+
+    if args.since is not None:
+        try:
+            window = parse_duration(args.since)
+        except DurationError as exc:
+            return _fail(str(exc))
+        previous = last_sync_at(job.output_root)
+        if previous is not None and previous > now - window:
+            print(
+                f"last sync {previous.isoformat()} is within {args.since}; "
+                "skipping (pass a smaller --since or omit it to force)"
+            )
+            return 0
+
+    try:
+        result = run_upsert(
+            job,
+            args.old_dump,
+            args.new_dump,
+            work_dir=work_dir,
+            new_index=args.new_index,
+            corpus_dir=args.corpus,
+        )
+    except (CorpusBuildError, WikidataDumpError) as exc:
+        return _fail(str(exc))
+
+    log_path = write_sync_log(job.output_root, result, now=now)
+    print(_render_upsert(result))
+    print(f"  logged to {log_path}")
+    return 0 if result.idempotent else 1
+
+
+def _render_upsert(result: UpsertResult) -> str:
+    """Summarise an incremental upsert for the CLI."""
+    plan = result.plan
+    lines = [f"sync {plan.summary}"]
+    if not result.rebuilt:
+        lines.append("  no changed entity belongs to a dump category — nothing rebuilt")
+        return "\n".join(lines)
+    lines.append(
+        f"  re-hydrated {len(plan.upsert_qids)} entit(ies) across "
+        f"{len(result.categories)} categor(ies): {', '.join(result.categories)}"
+    )
+    if result.delta_corpus is not None:
+        lines.append(f"  delta corpus -> {result.delta_corpus}")
+    if result.delta_report is not None:
+        counts = result.delta_report.counts
+        lines.append(
+            f"  delta: {counts.node_total} node(s), {counts.edge_total} edge(s), "
+            f"idempotent={result.delta_report.idempotent}"
+        )
+    if result.upsert_report is not None:
+        counts = result.upsert_report.counts
+        lines.append(
+            f"  corpus after upsert: {counts.node_total} node(s), "
+            f"{counts.edge_total} edge(s), idempotent={result.upsert_report.idempotent}"
+        )
+    if plan.removed_in_corpus:
+        lines.append(
+            f"  note: {len(plan.removed_in_corpus)} removed QID(s) remain in the "
+            "corpus (upsert never deletes)"
+        )
+    return "\n".join(lines)
 
 
 def _parse_dimensions(value: str) -> list[Dimension]:

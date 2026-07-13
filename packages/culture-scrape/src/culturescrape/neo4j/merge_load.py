@@ -136,4 +136,30 @@ def verify_idempotent_load(dataset_dir: str | Path) -> IdempotencyReport:
     return IdempotencyReport(counts=second, idempotent=first == second)
 
 
-__all__ = ["IdempotencyReport", "verify_idempotent_load"]
+def verify_upsert_load(
+    base_dir: str | Path, delta_dir: str | Path
+) -> IdempotencyReport:
+    """Prove the *delta_dir* corpus MERGE-loads over *base_dir* idempotently (US-006).
+
+    The incremental path re-hydrates and re-exports only the changed entities into
+    a small *delta* corpus, which is then MERGE-loaded on top of the already-loaded
+    base corpus. This must leave the graph in a fixed point: because ``csid`` is
+    QID-anchored, a re-exported entity lands on the **same** node it already
+    occupies (an in-place update, not a duplicate). This replays that exactly —
+    load the base, then the delta (the incremental apply), snapshot, apply the
+    delta a **second** time, and assert the grouped counts by label/``:TYPE`` did
+    not move. The returned counts are the whole graph's after the upsert, so a
+    caller can record how the corpus grew.
+    """
+    base_nodes, base_edges = read_dataset(base_dir)
+    delta_nodes, delta_edges = read_dataset(delta_dir)
+    graph = _MergeGraph()
+    graph.load(base_nodes, base_edges)
+    graph.load(delta_nodes, delta_edges)
+    first = graph.counts()
+    graph.load(delta_nodes, delta_edges)
+    second = graph.counts()
+    return IdempotencyReport(counts=second, idempotent=first == second)
+
+
+__all__ = ["IdempotencyReport", "verify_idempotent_load", "verify_upsert_load"]
