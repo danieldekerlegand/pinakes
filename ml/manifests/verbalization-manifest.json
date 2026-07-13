@@ -1,0 +1,54 @@
+{
+  "attributeCounts": {
+    "DATED": 4976,
+    "LOCATED_AT": 1841
+  },
+  "counts": {
+    "attributes": 6817,
+    "edges": 2267,
+    "examples": 9084
+  },
+  "edgeCounts": {
+    "ABSORBED_INTO": 103,
+    "BORROWED_FROM": 50,
+    "COGNATE_WITH": 27,
+    "DERIVED_FROM": 13,
+    "DESCENDS_FROM": 1683,
+    "INFLUENCED_BY": 102,
+    "SPLIT_FROM": 47,
+    "SYNCRETIZED_WITH": 242
+  },
+  "excludedRelations": [
+    "CONTEMPORARY_WITH",
+    "FOLLOWS",
+    "PRECEDES"
+  ],
+  "licenseCounts": {
+    "CC-BY-4.0": 9084
+  },
+  "seed": 20260713,
+  "sha256": "f0726e14f70a5a1e831a591f11025e6e31f917cbe0d2d20567f579948bff2cc3",
+  "skipped": {
+    "unknownEndpointNode": 0
+  },
+  "templateCounts": {
+    "absorbed_into.0": 103,
+    "borrowed_from.0": 20,
+    "borrowed_from.1": 30,
+    "cognate_with.0": 13,
+    "cognate_with.1": 14,
+    "dated.0": 2547,
+    "dated.1": 2429,
+    "derived_from.0": 10,
+    "derived_from.1": 3,
+    "descends_from.0": 880,
+    "descends_from.1": 803,
+    "influenced_by.0": 57,
+    "influenced_by.1": 45,
+    "located_at.0": 948,
+    "located_at.1": 893,
+    "split_from.0": 29,
+    "split_from.1": 18,
+    "syncretized_with.0": 242
+  }
+}

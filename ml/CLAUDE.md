@@ -30,6 +30,42 @@ The shape every dataset/metric deliverable follows:
   a `src/linguascrape_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
   `.parent`). Off-by-one here silently skips the live gate.
 
+## Training-data generators (Phase 5 US-002; US-003 reuses the shape)
+
+The LLM-training datasets follow the **same reproducible-artifact pattern** as the
+triples exporter — a pure core + thin CLI + committed manifest snapshot + two test
+tiers. Specifics for the verbalization generator (`verbalize.py` +
+`export_verbalizations.py`, manifest `ml/manifests/verbalization-manifest.json`,
+data `ml/data/verbalizations/verbalizations.jsonl`):
+
+- **Reads BOTH `nodes/` and `edges/`** of `export/culturescrape/` — nodes give the
+  human-readable `name` per csid (edges reference csids, never names) plus rich
+  attributes. `load_nodes` builds a `csid → NodeInfo` map; parse **header-driven**.
+- **HF-datasets-compatible JSONL = a FLAT, uniform record per line.** Every example
+  (edge or attribute) has the *same* string keys (`text`/`kind`/`relation`/`head`/
+  `head_name`/`tail`/`tail_name`/`value`/`template_id` + provenance + `license`), so
+  `datasets.load_dataset("json", …)` infers one feature set. Don't nest heterogeneous
+  objects — mixed nested shapes break HF schema inference. `json.dumps(sort_keys=True,
+  ensure_ascii=False)` per line keeps unicode names readable + bytes reproducible.
+- **Templates are hand-written per edge `:TYPE`** (`EDGE_TEMPLATES`); the typed edge
+  vocabulary (14 relations) makes this tractable. One-or-more variants per type,
+  selected deterministically by `sha256(seed + "head\trel\ttail") % len` — variety
+  without a reroll. A **coverage test** asserts every non-`EXCLUDED_RELATIONS` edge
+  type in `shared/canonical-schema.json` has a template (a new edge type without one
+  fails CI). Reuse `triples.EXCLUDED_RELATIONS` — derived temporal relations are rules,
+  never verbalized.
+- **Dedup edges on `(head, relation, tail)`** (like triples — one row per supporting
+  datum). Provenance for the kept example comes from the **lexicographically-first**
+  supporting row (sort the rows, first-wins) so the choice is stable.
+- **GOTCHA — null-placeholder attributes.** The export uses `(lat,lon)=(0,0)` ("null
+  island") and `year 0` as blank sentinels (e.g. every language row carries them). The
+  attribute verbalizer treats both as absent (`_parse_int` returns `None` for `0`;
+  coords skipped when both are `0.0`) — otherwise you emit thousands of "located at
+  0, 0" / bogus-date examples. Year formatting: `>0 ⇒ "N CE"`, `<0 ⇒ "N BCE"`.
+- Edge-example count equals the triples count (2,267) by construction (same dedup);
+  attribute examples add the dated/coordinate facts. Re-pin after regenerating:
+  `dvc add ml/data && dvc push`, commit `ml/data.dvc` + the manifest together.
+
 ## Corpus facts (edges → triples)
 
 - The triples dataset reads `export/culturescrape/edges/*.tsv` (one file per
