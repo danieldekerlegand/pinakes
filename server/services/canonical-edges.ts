@@ -34,15 +34,18 @@ import {
   lexiconMappingByFile,
   type LexiconFileMapping,
 } from "@shared/lexicon-mapping";
+import { confidenceForClass } from "@shared/confidence-rubric";
 
 const LEXICONS_DIR = path.resolve("lexicons");
 
 /**
  * Confidence assigned to an edge whose source row carries no confidence value.
- * Deliberately mid-scale ("unknown, neither trusted nor distrusted"). Rows that
- * do carry confidence keep it (normalised — see {@link normaliseConfidence}).
+ * The `legacy-curated` rubric prior ("unknown, neither trusted nor distrusted";
+ * grandfathered at mid-scale), sourced from the confidence rubric so the number is
+ * tuned in one place (US-001). Rows that do carry confidence keep it (normalised —
+ * see {@link normaliseConfidence}).
  */
-export const DEFAULT_EDGE_CONFIDENCE = 0.5;
+export const DEFAULT_EDGE_CONFIDENCE = confidenceForClass("legacy-curated");
 
 /**
  * Provenance fields LinguaScrape TSVs do not carry per-row. They are required on

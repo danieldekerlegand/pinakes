@@ -34,6 +34,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -45,7 +46,9 @@ const USER_AGENT =
   "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for the words.tsv (Glottolog) glottocode join, on the 0–1 scale. */
-const GLOTTOLOG_CONFIDENCE = "0.9";
+// `referenced-wikidata` (0.9) — a Glottolog code (Wikidata P1394 / LexiBank), a referenced
+// external authority; confidence comes from the rubric, not a literal (US-001).
+const GLOTTOLOG_CONFIDENCE = confidenceCellForClass("referenced-wikidata");
 
 /** QID chunk size per SPARQL VALUES block (keeps each query well under the WDQS timeout). */
 const CHUNK = 150;

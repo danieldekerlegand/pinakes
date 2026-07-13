@@ -129,6 +129,7 @@ function toProvenance(c: CivilizationProps): Provenance | undefined {
     sourceUrl: c.sourceUrl ?? null,
     retrievedAt: c.retrievedAt ?? null,
     confidence: typeof c.confidence === "number" ? c.confidence : null,
+    wikidataQid: c.wikidataQid ?? null,
   };
   const hasAny =
     prov.source !== null ||

@@ -35,6 +35,30 @@ import {
   toggleFacetValue,
   type SearchFacets,
 } from "@/lib/search-facets";
+import { trustTierMeta, type TrustTier } from "@shared/trust-tier";
+
+/** Per-tier pill class for the search-result trust-tier badge. */
+const TIER_BADGE_CLASS: Record<TrustTier, string> = {
+  curated: "bg-emerald-100 text-emerald-700",
+  "auto-admitted": "bg-sky-100 text-sky-700",
+  quarantine: "bg-amber-100 text-amber-700",
+  inferred: "bg-violet-100 text-violet-700",
+};
+
+/** Compact trust-tier pill for a search result. */
+function TierBadge({ tier }: { tier: TrustTier }) {
+  const meta = trustTierMeta(tier);
+  return (
+    <span
+      title={meta.description}
+      data-testid="search-tier"
+      data-tier={tier}
+      className={`shrink-0 rounded-sm px-1 py-0 text-[10px] font-medium uppercase tracking-wide ${TIER_BADGE_CLASS[tier]}`}
+    >
+      {meta.label}
+    </span>
+  );
+}
 
 interface GraphProvenance {
   source: string;
@@ -54,6 +78,7 @@ interface SearchResult {
   csid?: string;
   confidence?: number;
   provenance?: GraphProvenance;
+  tier?: TrustTier;
 }
 
 interface SearchResponse {
@@ -489,6 +514,7 @@ export default function GlobalSearchDialog({
                       <span className="font-medium flex items-center gap-1.5">
                         <span className="truncate">{result.displayName}</span>
                         <SourceBadge result={result} />
+                        {result.tier && <TierBadge tier={result.tier} />}
                       </span>
                       {result.description && (
                         <span className="text-xs text-muted-foreground">

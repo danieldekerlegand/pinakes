@@ -33,6 +33,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import ClassVar
 
+from culturescrape.confidence import confidence_for
 from culturescrape.ontology.linker import (
     DEFAULT_REGISTRY,
     Edge,
@@ -123,7 +124,7 @@ class NamedInLinker(Linker):
         self,
         *,
         names_field: str = NAMED_IN_FIELD,
-        confidence: float = 0.95,
+        confidence: float = confidence_for("named-in-linker"),
     ) -> None:
         self.names_field = names_field
         self.confidence = confidence

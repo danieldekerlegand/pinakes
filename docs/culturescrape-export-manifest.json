@@ -343,9 +343,9 @@
           "count": 115,
           "nonEmpty": {
             "source": 115,
-            "source_url": 55,
-            "source_query": 55,
-            "retrieved_at": 55,
+            "source_url": 68,
+            "source_query": 68,
+            "retrieved_at": 68,
             "confidence": 115,
             "license": 115
           }
@@ -367,9 +367,9 @@
           "count": 286,
           "nonEmpty": {
             "source": 286,
-            "source_url": 250,
+            "source_url": 253,
             "source_query": 277,
-            "retrieved_at": 250,
+            "retrieved_at": 253,
             "confidence": 286,
             "license": 286
           }
@@ -403,9 +403,9 @@
           "count": 230,
           "nonEmpty": {
             "source": 230,
-            "source_url": 130,
+            "source_url": 199,
             "source_query": 206,
-            "retrieved_at": 130,
+            "retrieved_at": 199,
             "confidence": 230,
             "license": 230
           }
@@ -415,9 +415,9 @@
           "count": 61,
           "nonEmpty": {
             "source": 61,
-            "source_url": 29,
+            "source_url": 31,
             "source_query": 61,
-            "retrieved_at": 29,
+            "retrieved_at": 31,
             "confidence": 61,
             "license": 61
           }
@@ -427,9 +427,9 @@
           "count": 237,
           "nonEmpty": {
             "source": 237,
-            "source_url": 130,
-            "source_query": 182,
-            "retrieved_at": 130,
+            "source_url": 138,
+            "source_query": 184,
+            "retrieved_at": 138,
             "confidence": 237,
             "license": 237
           }
@@ -499,9 +499,9 @@
           "count": 1213,
           "nonEmpty": {
             "source": 1213,
-            "source_url": 399,
+            "source_url": 476,
             "source_query": 550,
-            "retrieved_at": 399,
+            "retrieved_at": 476,
             "confidence": 1213,
             "license": 1213
           }
@@ -511,9 +511,9 @@
           "count": 104,
           "nonEmpty": {
             "source": 104,
-            "source_url": 42,
-            "source_query": 42,
-            "retrieved_at": 42,
+            "source_url": 44,
+            "source_query": 44,
+            "retrieved_at": 44,
             "confidence": 104,
             "license": 104
           }
@@ -521,9 +521,9 @@
       ],
       "nonEmpty": {
         "source": 6835,
-        "source_url": 1892,
-        "source_query": 2545,
-        "retrieved_at": 1892,
+        "source_url": 2066,
+        "source_query": 2562,
+        "retrieved_at": 2066,
         "confidence": 6835,
         "license": 6835
       }
@@ -545,7 +545,7 @@
           "nonEmpty": {
             "source": 1683,
             "source_url": 0,
-            "source_query": 695,
+            "source_query": 704,
             "retrieved_at": 0,
             "confidence": 1683,
             "license": 1683
@@ -639,7 +639,7 @@
       "nonEmpty": {
         "source": 5836,
         "source_url": 0,
-        "source_query": 1094,
+        "source_query": 1103,
         "retrieved_at": 0,
         "confidence": 5836,
         "license": 5836
@@ -647,10 +647,10 @@
       "citationsWithoutCanonicalColumn": 0
     },
     "flags": [
-      "node.source_query: 2545/6835 rows preserve the original LinguaScrape citation.",
+      "node.source_query: 2562/6835 rows preserve the original LinguaScrape citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
-      "edge.source_query: 1094/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",
+      "edge.source_query: 1103/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",
       "license: 6835/6835 nodes and 5836/5836 edges carry an SPDX license (source-derived; default CC-BY-4.0)."
     ]
   }

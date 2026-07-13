@@ -1,5 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
+import { nodeFiles } from "@shared/lexicon-mapping";
+import {
+  classifyTrustTier,
+  ALL_TRUST_TIERS,
+  type TrustTier,
+} from "@shared/trust-tier";
 
 const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../lexicons");
 
@@ -40,6 +46,155 @@ export interface DataQualityReport {
   files: FileQualityScore[];
   referentialIntegrity: ReferentialCheck[];
   coverage: CoverageReport;
+  tierComposition: CorpusTierReport;
+}
+
+/** The size + quality of one trust tier within the corpus. */
+export interface TierBucket {
+  tier: TrustTier;
+  /** Node rows classified into this tier. */
+  nodeRows: number;
+  /** Rows carrying a `wikidata_qid`. */
+  withWikidataQid: number;
+  /** Rows carrying a `source_url`. */
+  withSourceUrl: number;
+  /** Rows carrying a `confidence`. */
+  withConfidence: number;
+  /** Mean of the present confidences (0–1 normalised), rounded, or `null`. */
+  avgConfidence: number | null;
+  /** Rows with QID + source_url + confidence all present. */
+  fullyProvenanced: number;
+}
+
+/**
+ * Corpus composition **by trust tier** (US-004). Every LinguaScrape lexicon row
+ * is human-curated, so in the shared graph the whole app corpus occupies the
+ * `curated` tier ({@link CorpusTierReport.graphTier}) — auto-admission never
+ * writes `lexicons/*.tsv`. What varies, and what this report tracks over time, is
+ * **auto-admission readiness**: {@link CorpusTierReport.byTier} classifies each
+ * curated node row by its *intrinsic* provenance via {@link classifyTrustTier}
+ * (would it auto-admit to the graph on its own merits — QID-anchored AND
+ * reference-backed — or quarantine?). The higher the auto-admitted share, the
+ * more of the curated corpus has converged with the global identity space.
+ */
+export interface CorpusTierReport {
+  /** Total classified node rows across all node lexicons. */
+  totalNodeRows: number;
+  /** The graph-corpus tier of the whole app corpus (human-curation gate). */
+  graphTier: TrustTier;
+  /** Readiness composition by tier, in {@link ALL_TRUST_TIERS} order. */
+  byTier: TierBucket[];
+  /** Fraction of node rows that would auto-admit on their own provenance. */
+  autoAdmissionReadyRate: number;
+  /** Per node-file readiness breakdown. */
+  files: Array<{
+    file: string;
+    node: string;
+    nodeRows: number;
+    autoAdmissionReady: number;
+  }>;
+}
+
+/** Normalise a confidence cell to 0–1 (files may store 0–100). `null` if unparseable. */
+function normaliseConfidence(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return null;
+  return n > 1 ? n / 100 : n;
+}
+
+/**
+ * Pure: classify every node row of the given parsed node files into its trust
+ * tier by intrinsic provenance and aggregate size + quality per tier. Rows are
+ * classified with `source` omitted (the export stamps `linguascrape` on export —
+ * the point of this report is the *readiness* view, not the graph tier), so a row
+ * lands in `auto-admitted` iff it is QID-anchored AND reference-backed, else
+ * `quarantine`. Deterministic (no clock/fs).
+ */
+export function computeCorpusTiers(
+  files: Array<{ file: string; node: string; header: string[]; rows: string[][] }>,
+): CorpusTierReport {
+  const buckets = new Map<
+    TrustTier,
+    { rows: number; qid: number; url: number; conf: number; confSum: number; full: number }
+  >();
+  for (const tier of ALL_TRUST_TIERS) {
+    buckets.set(tier, { rows: 0, qid: 0, url: 0, conf: 0, confSum: 0, full: 0 });
+  }
+  let totalNodeRows = 0;
+  const fileSummaries: CorpusTierReport["files"] = [];
+
+  for (const f of files) {
+    const qidIdx = f.header.indexOf("wikidata_qid");
+    const urlIdx = f.header.indexOf("source_url");
+    const confIdx = f.header.indexOf("confidence");
+    let fileReady = 0;
+    for (const row of f.rows) {
+      const qid = qidIdx !== -1 ? (row[qidIdx] ?? "").trim() : "";
+      const url = urlIdx !== -1 ? (row[urlIdx] ?? "").trim() : "";
+      const confRaw = confIdx !== -1 ? (row[confIdx] ?? "") : "";
+      const conf = normaliseConfidence(confRaw);
+      const tier = classifyTrustTier({ wikidataQid: qid, sourceUrl: url });
+      const b = buckets.get(tier)!;
+      b.rows++;
+      if (qid) b.qid++;
+      if (url) b.url++;
+      if (conf !== null) {
+        b.conf++;
+        b.confSum += conf;
+      }
+      if (qid && url && conf !== null) b.full++;
+      if (tier === "auto-admitted") fileReady++;
+      totalNodeRows++;
+    }
+    fileSummaries.push({
+      file: f.file,
+      node: f.node,
+      nodeRows: f.rows.length,
+      autoAdmissionReady: fileReady,
+    });
+  }
+
+  const byTier: TierBucket[] = ALL_TRUST_TIERS.map((tier) => {
+    const b = buckets.get(tier)!;
+    return {
+      tier,
+      nodeRows: b.rows,
+      withWikidataQid: b.qid,
+      withSourceUrl: b.url,
+      withConfidence: b.conf,
+      avgConfidence: b.conf > 0 ? Math.round((b.confSum / b.conf) * 10000) / 10000 : null,
+      fullyProvenanced: b.full,
+    };
+  });
+
+  const ready = buckets.get("auto-admitted")!.rows;
+  return {
+    totalNodeRows,
+    graphTier: "curated",
+    byTier,
+    autoAdmissionReadyRate:
+      totalNodeRows > 0 ? Math.round((ready / totalNodeRows) * 10000) / 10000 : 0,
+    files: fileSummaries.sort((a, b) => a.file.localeCompare(b.file)),
+  };
+}
+
+/**
+ * Reads the node lexicons from `lexiconsDir` and builds the deterministic
+ * corpus-tier report (no timestamp) — the committed-report + `/api/data-quality`
+ * source of truth for tier composition.
+ */
+export function buildCorpusTierReport(lexiconsDir: string): CorpusTierReport {
+  const files: Array<{ file: string; node: string; header: string[]; rows: string[][] }> = [];
+  for (const { file, node } of nodeFiles()) {
+    const filePath = path.join(lexiconsDir, file);
+    if (!fs.existsSync(filePath)) continue;
+    const { header, rows } = parseTsvFile(filePath);
+    files.push({ file, node, header, rows });
+  }
+  files.sort((a, b) => a.file.localeCompare(b.file));
+  return computeCorpusTiers(files);
 }
 
 /**
@@ -319,6 +474,7 @@ export function generateDataQualityReport(): DataQualityReport {
   const rowCounts: Record<string, number> = {};
   for (const f of fileScores) rowCounts[f.file] = f.rowCount;
   const coverage = computeCoverage(rowCounts);
+  const tierComposition = buildCorpusTierReport(LEXICONS_DIR);
 
   return {
     timestamp: new Date().toISOString(),
@@ -328,6 +484,7 @@ export function generateDataQualityReport(): DataQualityReport {
     files: fileScores,
     referentialIntegrity,
     coverage,
+    tierComposition,
   };
 }
 

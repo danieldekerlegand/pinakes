@@ -104,7 +104,7 @@ function RelatedEntitiesBody({
               </div>
             </div>
             {hasProvenance(rel.provenance) && (
-              <ProvenanceBadge provenance={rel.provenance} />
+              <ProvenanceBadge provenance={rel.provenance} isEdge />
             )}
           </li>
         ))}

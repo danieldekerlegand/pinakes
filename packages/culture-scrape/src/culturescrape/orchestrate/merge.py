@@ -67,6 +67,7 @@ def write_merged_job(
     force: bool = False,
     min_component_fraction: float | None = None,
     min_provenance_completeness: float | None = None,
+    tiered_trust: bool = True,
 ) -> MergeResult:
     """Expand *blueprints* (dump mode) + the LinguaScrape export into one job.
 
@@ -107,6 +108,7 @@ def write_merged_job(
         force=force,
         min_component_fraction=min_component_fraction,
         min_provenance_completeness=min_provenance_completeness,
+        tiered_trust=tiered_trust,
     )
     return MergeResult(categories=tuple(category_paths), job=job)
 
@@ -160,6 +162,7 @@ def _write_job(
     force: bool,
     min_component_fraction: float | None,
     min_provenance_completeness: float | None,
+    tiered_trust: bool,
 ) -> Path:
     """Write a runnable job listing *categories*, paths relative to the job."""
     if job_path.exists() and not force:
@@ -176,6 +179,11 @@ def _write_job(
         # A merged corpus stitches several sources that type a shared entity
         # differently; collapse same-QID nodes so one QID is one node.
         "reconcile_shared_qids": True,
+        # Auto-admission policy (US-002): QID-anchored + reference-backed facts
+        # admit with rubric confidence + tier label, weaker acquired facts
+        # quarantine; lexicons/ are never written. Per-tier QA gates default to
+        # tiers.DEFAULT_TIER_GATES (add a `tier_gates:` block to override).
+        "tiered_trust": tiered_trust,
     }
     if min_component_fraction is not None:
         mapping["min_component_fraction"] = min_component_fraction

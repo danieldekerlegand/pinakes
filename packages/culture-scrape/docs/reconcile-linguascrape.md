@@ -159,3 +159,69 @@ the committed fixture export and generates its Neo4j + Datalog exports. A commit
 counts and is asserted against a fresh build in CI. See
 [`convergence-build.md`](convergence-build.md) for the full recipe, the relaxed corpus
 floors it declares, and how to re-sync the manifest.
+
+## QID backfill on unreconciled lexicon rows (US-003)
+
+The pilot exported ~6,700 nodes but only **966 (14.4%)** reconciled to a global anchor,
+because almost every non-language row shipped without a `wikidata_qid` (cascade steps 1–2
+inert). US-003 raises the matched share to **2,461 (36.7%)** via two levers:
+
+1. **The dry-run report now honors the QID anchor.**
+   `scripts/reconciliation-report.ts` classified buckets on the language/name key only, so
+   the ~1,868 exported nodes that *already* carried a QID (from prior acquire work) were
+   miscounted as `likely-new`/`ambiguous`. The report now buckets any QID-bearing node as
+   `matched` (cascade step 1 — the QID *is* the entity; two nodes sharing a QID are the same
+   entity, collapsed by `reconcile_shared_qids`, not a blocking ambiguity). `keyCoverage`
+   gains `withWikidataQid`.
+
+2. **Batch reconciliation of the still-blank rows.**
+   `scripts/reconcile-lexicon-qids.ts` is the networked **acquire → reconcile** step. It
+   reads every addressable blank-QID row (blank `wikidata_qid`, non-blank `name`, `id`
+   unique in its file) across the lexicons that carry a QID column, and proposes a QID by an
+   **exact English `rdfs:label` match** on Wikidata — constrained to the node type's Wikidata
+   class where a reliable one exists (`archaeological-culture`→Q465299, `place`(sites)→Q839954,
+   `cuisine`→Q1968435, `deity`→Q178885, `writing-system`→Q8192, …), else matched on **global
+   label uniqueness** (minus Wikimedia disambiguation/category/list pages). Acceptance is
+   precision-first:
+   - **accepted** — exactly one entity matches → auto-applied;
+   - **ambiguous** — ≥2 entities match → listed with competing QIDs, **never auto-accepted**;
+   - **none** — no exact-label entity.
+
+   Of **601** addressable rows: **176 accepted, 37 ambiguous, 388 no-match**. The committed,
+   deterministic candidates artifact `scripts/data/lexicon-qid-candidates.tsv` is the
+   human-reviewable record **and** the network-free replay source (CI never hits Wikidata).
+   `--apply` fills the blank `wikidata_qid` cell plus full provenance (`source_url`,
+   `retrieved_at`, `confidence` from the `exact-reconciled` rubric class on the file's own
+   scale, `sources`) through the established enrichment write-back
+   (`import-from-culturescrape.buildEnrichment`) — blanks only, a differing curated cell is a
+   reported conflict never clobbered. `lexicons/*.tsv` stays the human-owned source of truth.
+
+### Refresh procedure
+
+```
+npx tsx scripts/reconcile-lexicon-qids.ts            # query Wikidata → rewrite the candidates artifact
+npx tsx scripts/reconcile-lexicon-qids.ts --apply    # fill blank wikidata_qid + provenance from accepted rows
+npx tsx scripts/export-for-culturescrape.ts          # regenerate docs/culturescrape-export-manifest.json
+npx tsx scripts/reconciliation-report.ts             # regenerate docs/reconciliation-report.json
+npm run convergence-qa                               # attribution + dedup gates (must PASS)
+```
+
+### Why 36.7%, not ≥50% (the measured ceiling)
+
+- **Most remaining `likely-new` nodes have no QID column to fill.** The ~3,950 unreconciled
+  nodes are dominated by node types whose lexicon files carry no `wikidata_qid` column at all
+  (`art-traditions`, `battles`, `culture-profiles`, `religions`, `settlements`,
+  `rivers-and-waters`, `families`, `trade-goods`, `cuisine-items`, `music-traditions`,
+  `urheimat-hypotheses`). Backfilling those first needs a per-file schema addition (a mapped
+  QID + provenance columns), which is a separate scale-up pass, not part of this backfill.
+- **388 of the 601 addressable rows have no exact-label Wikidata entity** — many are curated
+  compound labels (e.g. site names suffixed for disambiguation) that don't equal a Wikidata
+  primary label. Relaxing to alt-label / fuzzy matching would raise recall at the cost of
+  auto-admitting wrong anchors into the identity layer — deliberately not done.
+- **37 rows are genuinely ambiguous** (a label shared by ≥2 entities, e.g. *Babylon*,
+  *Petra*, *Delphi* — the modern place vs the archaeological site) and are withheld for human
+  triage per the never-auto-merge rule.
+
+The net effect is a **2.5× lift in the matched share** with zero attribution or dedup
+regressions, and a clean, reviewable path (the candidates artifact) for a human to accept
+the ambiguous/near-miss rows in a follow-up.

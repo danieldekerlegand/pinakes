@@ -1,0 +1,602 @@
+file	node	id	name	status	wikidata_qid	candidate_count	candidates
+archaeological-cultures.tsv	archaeological-culture	ban-chiang	Ban Chiang	none		0	
+archaeological-cultures.tsv	archaeological-culture	bell-beaker	Bell Beaker	none		0	
+archaeological-cultures.tsv	archaeological-culture	caral-supe	Caral-Supe	none		0	
+archaeological-cultures.tsv	archaeological-culture	catalhoyuk	Catalhoyuk Culture	none		0	
+archaeological-cultures.tsv	archaeological-culture	clovis	Clovis	none		0	
+archaeological-cultures.tsv	archaeological-culture	corded-ware	Corded Ware	none		0	
+archaeological-cultures.tsv	archaeological-culture	cucuteni-trypillia	Cucuteni-Trypillia	none		0	
+archaeological-cultures.tsv	archaeological-culture	folsom	Folsom	none		0	
+archaeological-cultures.tsv	archaeological-culture	funnel-beaker	Funnel Beaker (TRB)	none		0	
+archaeological-cultures.tsv	archaeological-culture	gobekli-tepe	Gobekli Tepe Builders	none		0	
+archaeological-cultures.tsv	archaeological-culture	indus-valley	Indus Valley (Harappan)	none		0	
+archaeological-cultures.tsv	archaeological-culture	jomon	Jomon	none		0	
+archaeological-cultures.tsv	archaeological-culture	kerma	Kerma	none		0	
+archaeological-cultures.tsv	archaeological-culture	lapita	Lapita	accepted	Q1021436	1	Q1021436
+archaeological-cultures.tsv	archaeological-culture	linearbandk	Linear Pottery (LBK)	none		0	
+archaeological-cultures.tsv	archaeological-culture	longshan	Longshan	none		0	
+archaeological-cultures.tsv	archaeological-culture	mehrgarh	Mehrgarh	none		0	
+archaeological-cultures.tsv	archaeological-culture	natufian	Natufian	none		0	
+archaeological-cultures.tsv	archaeological-culture	nok	Nok	none		0	
+archaeological-cultures.tsv	archaeological-culture	olmec	Olmec	none		0	
+archaeological-cultures.tsv	archaeological-culture	ppna	Pre-Pottery Neolithic A	accepted	Q1047444	1	Q1047444
+archaeological-cultures.tsv	archaeological-culture	ppnb	Pre-Pottery Neolithic B	accepted	Q897323	1	Q897323
+archaeological-cultures.tsv	archaeological-culture	ubaid	Ubaid	none		0	
+archaeological-cultures.tsv	archaeological-culture	uruk	Uruk	none		0	
+archaeological-cultures.tsv	archaeological-culture	vincha	Vinca	none		0	
+archaeological-cultures.tsv	archaeological-culture	yamnaya	Yamnaya	none		0	
+archaeological-cultures.tsv	archaeological-culture	yangshao	Yangshao	none		0	
+archaeological-sites.tsv	place	abu-simbel-site	Abu Simbel	accepted	Q134140	1	Q134140
+archaeological-sites.tsv	place	ajanta-caves	Ajanta Caves	none		0	
+archaeological-sites.tsv	place	akrotiri-site	Akrotiri	accepted	Q421232	1	Q421232
+archaeological-sites.tsv	place	aksum-obelisk-field	Aksum Obelisk Field	none		0	
+archaeological-sites.tsv	place	al-ula-hegra-site	Hegra (Mada'in Salih)	none		0	
+archaeological-sites.tsv	place	altamira-cave	Altamira	none		0	
+archaeological-sites.tsv	place	angkor-wat-site	Angkor Wat	accepted	Q43473	1	Q43473
+archaeological-sites.tsv	place	arles-roman-site	Roman Arles	none		0	
+archaeological-sites.tsv	place	avebury-site	Avebury	accepted	Q661855	1	Q661855
+archaeological-sites.tsv	place	axum-site	Axum	none		0	
+archaeological-sites.tsv	place	baalbek-site	Baalbek	accepted	Q178835	1	Q178835
+archaeological-sites.tsv	place	babylon-site	Babylon	ambiguous		2	Q5684 Q100329356
+archaeological-sites.tsv	place	bagan-site	Bagan	accepted	Q29317	1	Q29317
+archaeological-sites.tsv	place	bamiyan-buddhas	Bamiyan Buddhas	none		0	
+archaeological-sites.tsv	place	ban-chiang-site	Ban Chiang	accepted	Q584125	1	Q584125
+archaeological-sites.tsv	place	bath-roman-site	Roman Baths (Bath)	none		0	
+archaeological-sites.tsv	place	benin-city-site	Benin City	none		0	
+archaeological-sites.tsv	place	biskupin-site	Biskupin	accepted	Q866393	1	Q866393
+archaeological-sites.tsv	place	borobudur-site	Borobudur	none		0	
+archaeological-sites.tsv	place	broch-of-mousa	Broch of Mousa	none		0	
+archaeological-sites.tsv	place	butrint-site	Butrint	accepted	Q188694	1	Q188694
+archaeological-sites.tsv	place	byblos-site	Byblos	ambiguous		2	Q173532 Q20551645
+archaeological-sites.tsv	place	cahokia-site	Cahokia	accepted	Q333661	1	Q333661
+archaeological-sites.tsv	place	caral-site	Caral	none		0	
+archaeological-sites.tsv	place	carnac-site	Carnac	none		0	
+archaeological-sites.tsv	place	carthage-site	Carthage	accepted	Q6343	1	Q6343
+archaeological-sites.tsv	place	catacomb-rome-site	Catacombs of Rome	accepted	Q741051	1	Q741051
+archaeological-sites.tsv	place	catal-huyuk-west	Çatalhöyük West	none		0	
+archaeological-sites.tsv	place	catalhoyuk-site	Çatalhöyük	accepted	Q192522	1	Q192522
+archaeological-sites.tsv	place	chan-chan-site	Chan Chan	accepted	Q277540	1	Q277540
+archaeological-sites.tsv	place	chauvet-cave	Chauvet Cave	accepted	Q374096	1	Q374096
+archaeological-sites.tsv	place	chichen-itza-site	Chichén Itzá	none		0	
+archaeological-sites.tsv	place	cidade-velha-site	Cidade Velha	none		0	
+archaeological-sites.tsv	place	colosseum-site	Colosseum	accepted	Q10285	1	Q10285
+archaeological-sites.tsv	place	copan-site	Copán	accepted	Q214827	1	Q214827
+archaeological-sites.tsv	place	cueva-de-las-manos	Cueva de las Manos	accepted	Q223385	1	Q223385
+archaeological-sites.tsv	place	delos-site	Delos	accepted	Q131911921	1	Q131911921
+archaeological-sites.tsv	place	delphi-site	Delphi	ambiguous		2	Q75459 Q103917243
+archaeological-sites.tsv	place	derinkuyu-site	Derinkuyu	none		0	
+archaeological-sites.tsv	place	dolni-vestonice	Dolní Věstonice	accepted	Q2915044	1	Q2915044
+archaeological-sites.tsv	place	easter-island-site	Easter Island (Rapa Nui)	none		0	
+archaeological-sites.tsv	place	ebla-site	Ebla (Tell Mardikh)	none		0	
+archaeological-sites.tsv	place	ellora-caves	Ellora Caves	accepted	Q189616	1	Q189616
+archaeological-sites.tsv	place	ephesus-site	Ephesus	ambiguous		2	Q47611 Q64699469
+archaeological-sites.tsv	place	fasil-ghebbi-site	Fasil Ghebbi	none		0	
+archaeological-sites.tsv	place	giza-pyramids-site	Giza Pyramids	none		0	
+archaeological-sites.tsv	place	gobekli-tepe-site	Göbekli Tepe	accepted	Q214944	1	Q214944
+archaeological-sites.tsv	place	gobustan-site	Gobustan	none		0	
+archaeological-sites.tsv	place	great-enclosure-khami	Khami Ruins	none		0	
+archaeological-sites.tsv	place	great-wall-site	Great Wall (Badaling)	none		0	
+archaeological-sites.tsv	place	great-zimbabwe-site	Great Zimbabwe	accepted	Q209217	1	Q209217
+archaeological-sites.tsv	place	gyeongju-site	Gyeongju	none		0	
+archaeological-sites.tsv	place	hadrians-wall-site	Hadrian's Wall	accepted	Q57357	1	Q57357
+archaeological-sites.tsv	place	hagar-qim-site	Ħaġar Qim	accepted	Q343053	1	Q343053
+archaeological-sites.tsv	place	hagia-sophia-site	Hagia Sophia	none		0	
+archaeological-sites.tsv	place	hallstatt-site	Hallstatt	none		0	
+archaeological-sites.tsv	place	hampi-site	Hampi	accepted	Q26732	1	Q26732
+archaeological-sites.tsv	place	harappa-site	Harappa	accepted	Q185562	1	Q185562
+archaeological-sites.tsv	place	hattusa-site	Hattuša	none		0	
+archaeological-sites.tsv	place	heijo-palace-site	Heijō Palace	none		0	
+archaeological-sites.tsv	place	herculaneum-site	Herculaneum	accepted	Q178813	1	Q178813
+archaeological-sites.tsv	place	herodes-atticus-odeon	Odeon of Herodes Atticus	accepted	Q1328165	1	Q1328165
+archaeological-sites.tsv	place	heuneburg-site	Heuneburg	accepted	Q428756	1	Q428756
+archaeological-sites.tsv	place	himeji-castle-site	Himeji Castle	none		0	
+archaeological-sites.tsv	place	ife-site	Ifẹ̀	none		0	
+archaeological-sites.tsv	place	jennejeno-site	Jenné-jeno	none		0	
+archaeological-sites.tsv	place	jericho-site	Jericho (Tell es-Sultan)	none		0	
+archaeological-sites.tsv	place	jiahu-site	Jiahu	accepted	Q1688860	1	Q1688860
+archaeological-sites.tsv	place	jiroft-site	Jiroft	none		0	
+archaeological-sites.tsv	place	jomon-sannai-maruyama	Sannai-Maruyama	none		0	
+archaeological-sites.tsv	place	karnak-temple-site	Karnak Temple	none		0	
+archaeological-sites.tsv	place	khajuraho-site	Khajuraho	none		0	
+archaeological-sites.tsv	place	kilwa-kisiwani-site	Kilwa Kisiwani	none		0	
+archaeological-sites.tsv	place	knap-of-howar	Knap of Howar	accepted	Q1776885	1	Q1776885
+archaeological-sites.tsv	place	knossos-site	Knossos	accepted	Q173527	1	Q173527
+archaeological-sites.tsv	place	konark-sun-temple	Konark Sun Temple	none		0	
+archaeological-sites.tsv	place	kuk-swamp-site	Kuk Swamp	accepted	Q1165562	1	Q1165562
+archaeological-sites.tsv	place	la-tene-site	La Tène	accepted	Q176775	1	Q176775
+archaeological-sites.tsv	place	la-venta-site	La Venta	ambiguous		7	Q913166 Q97604867 Q97619013 Q97622584 Q97635195 Q97645229 Q97645953
+archaeological-sites.tsv	place	lalibela-site	Lalibela	none		0	
+archaeological-sites.tsv	place	lanse-aux-meadows	L'Anse aux Meadows	accepted	Q189113	1	Q189113
+archaeological-sites.tsv	place	lascaux-cave	Lascaux	accepted	Q172125	1	Q172125
+archaeological-sites.tsv	place	lepenski-vir	Lepenski Vir	accepted	Q906669	1	Q906669
+archaeological-sites.tsv	place	leptis-magna-site	Leptis Magna	accepted	Q191504	1	Q191504
+archaeological-sites.tsv	place	longmen-grottoes	Longmen Grottoes	none		0	
+archaeological-sites.tsv	place	luxor-temple-site	Luxor Temple	accepted	Q319841	1	Q319841
+archaeological-sites.tsv	place	machu-picchu-site	Machu Picchu	accepted	Q676203	1	Q676203
+archaeological-sites.tsv	place	mapungubwe-site	Mapungubwe	accepted	Q31405553	1	Q31405553
+archaeological-sites.tsv	place	mehrgarh-site	Mehrgarh	accepted	Q242148	1	Q242148
+archaeological-sites.tsv	place	meroe-site	Meroë	accepted	Q5780	1	Q5780
+archaeological-sites.tsv	place	merv-site	Merv	accepted	Q193325	1	Q193325
+archaeological-sites.tsv	place	mesa-verde-site	Mesa Verde	none		0	
+archaeological-sites.tsv	place	mogao-caves	Mogao Caves	accepted	Q43286	1	Q43286
+archaeological-sites.tsv	place	mohenjo-daro	Mohenjo-daro	accepted	Q5725	1	Q5725
+archaeological-sites.tsv	place	monte-alban-site	Monte Albán	accepted	Q464899	1	Q464899
+archaeological-sites.tsv	place	mungo-lake-site	Lake Mungo	none		0	
+archaeological-sites.tsv	place	mycenae-site	Mycenae	ambiguous		2	Q132564 Q60791422
+archaeological-sites.tsv	place	nalanda-site	Nalanda	none		0	
+archaeological-sites.tsv	place	nazca-lines-site	Nazca Lines	accepted	Q2620036	1	Q2620036
+archaeological-sites.tsv	place	newgrange-site	Newgrange	accepted	Q339503	1	Q339503
+archaeological-sites.tsv	place	nineveh-site	Nineveh	ambiguous		2	Q5680 Q103917300
+archaeological-sites.tsv	place	niya-site	Niya	accepted	Q1329268	1	Q1329268
+archaeological-sites.tsv	place	nok-site	Nok	none		0	
+archaeological-sites.tsv	place	olduvai-gorge	Olduvai Gorge	accepted	Q217043	1	Q217043
+archaeological-sites.tsv	place	olympia-site	Olympia	ambiguous		2	Q38888 Q103922441
+archaeological-sites.tsv	place	ostia-antica-site	Ostia Antica	none		0	
+archaeological-sites.tsv	place	palenque-site	Palenque	accepted	Q181427	1	Q181427
+archaeological-sites.tsv	place	palmyra-site	Palmyra	accepted	Q5747	1	Q5747
+archaeological-sites.tsv	place	penjikent-site	Penjikent	none		0	
+archaeological-sites.tsv	place	persepolis-site	Persepolis	accepted	Q129072	1	Q129072
+archaeological-sites.tsv	place	petra-site	Petra	ambiguous		5	Q5788 Q1519037 Q56401736 Q60791311 Q132519157
+archaeological-sites.tsv	place	pompeii-site	Pompeii	accepted	Q43332	1	Q43332
+archaeological-sites.tsv	place	pompeii-villa-mysteries	Villa of the Mysteries	accepted	Q1241298	1	Q1241298
+archaeological-sites.tsv	place	poverty-point-site	Poverty Point	accepted	Q964745	1	Q964745
+archaeological-sites.tsv	place	pueblo-bonito-site	Pueblo Bonito	none		0	
+archaeological-sites.tsv	place	samarkand-site	Samarkand	none		0	
+archaeological-sites.tsv	place	samothrace-site	Samothrace Sanctuary	none		0	
+archaeological-sites.tsv	place	sanchi-site	Sanchi	none		0	
+archaeological-sites.tsv	place	sanxingdui-site	Sanxingdui	accepted	Q929072	1	Q929072
+archaeological-sites.tsv	place	sarazm-site	Sarazm	accepted	Q422929	1	Q422929
+archaeological-sites.tsv	place	serpent-mound-site	Serpent Mound	accepted	Q968802	1	Q968802
+archaeological-sites.tsv	place	sigiriya-site	Sigiriya	none		0	
+archaeological-sites.tsv	place	sipan-site	Sipán	none		0	
+archaeological-sites.tsv	place	skara-brae-site	Skara Brae	accepted	Q816437	1	Q816437
+archaeological-sites.tsv	place	spirit-cave-site	Spirit Cave	accepted	Q118985001	1	Q118985001
+archaeological-sites.tsv	place	stonehenge-site	Stonehenge	accepted	Q39671	1	Q39671
+archaeological-sites.tsv	place	sukhothai-site	Sukhothai	none		0	
+archaeological-sites.tsv	place	sutton-hoo-site	Sutton Hoo	accepted	Q503256	1	Q503256
+archaeological-sites.tsv	place	tabon-caves	Tabon Caves	accepted	Q477329	1	Q477329
+archaeological-sites.tsv	place	takht-i-bahi-site	Takht-i-Bahi	accepted	Q117623	1	Q117623
+archaeological-sites.tsv	place	tassili-najjer-site	Tassili n'Ajjer	accepted	Q190048	1	Q190048
+archaeological-sites.tsv	place	taxila-site	Taxila	accepted	Q156093	1	Q156093
+archaeological-sites.tsv	place	teotihuacan-site	Teotihuacán	none		0	
+archaeological-sites.tsv	place	terracotta-army-site	Terracotta Army	accepted	Q47672	1	Q47672
+archaeological-sites.tsv	place	thonis-heracleion	Thonis-Heracleion	none		0	
+archaeological-sites.tsv	place	thulamela-site	Thulamela	accepted	Q2803449	1	Q2803449
+archaeological-sites.tsv	place	tikal-site	Tikal	accepted	Q181172	1	Q181172
+archaeological-sites.tsv	place	timbuktu-site	Timbuktu	none		0	
+archaeological-sites.tsv	place	tiwanaku-site	Tiwanaku	accepted	Q61750	1	Q61750
+archaeological-sites.tsv	place	troy-site	Troy (Hisarlik)	none		0	
+archaeological-sites.tsv	place	twyfelfontein-site	Twyfelfontein	accepted	Q754791	1	Q754791
+archaeological-sites.tsv	place	ugarit-site	Ugarit (Ras Shamra)	none		0	
+archaeological-sites.tsv	place	ur-site	Ur	accepted	Q5699	1	Q5699
+archaeological-sites.tsv	place	valley-of-kings	Valley of the Kings	ambiguous		2	Q133423 Q750107
+archaeological-sites.tsv	place	vergina-site	Vergina (Aigai)	none		0	
+archaeological-sites.tsv	place	vinca-site	Vinča	none		0	
+archaeological-sites.tsv	place	vindolanda-site	Vindolanda	accepted	Q1233131	1	Q1233131
+archaeological-sites.tsv	place	volubilis-site	Volubilis	accepted	Q391215	1	Q391215
+archaeological-sites.tsv	place	xian-city-wall	Xi'an City Wall	none		0	
+archaeological-sites.tsv	place	yin-xu-site	Yin Xu	none		0	
+archaeological-sites.tsv	place	yoshinogari-site	Yoshinogari	none		0	
+architectural-styles.tsv	art-tradition	arch-001	Egyptian Monumental	none		0	
+architectural-styles.tsv	art-tradition	arch-002	Greek Classical	none		0	
+architectural-styles.tsv	art-tradition	arch-003	Roman Imperial	none		0	
+architectural-styles.tsv	art-tradition	arch-004	Byzantine	none		0	
+architectural-styles.tsv	art-tradition	arch-005	Romanesque	none		0	
+architectural-styles.tsv	art-tradition	arch-006	Gothic	none		0	
+architectural-styles.tsv	art-tradition	arch-007	Islamic	none		0	
+architectural-styles.tsv	art-tradition	arch-008	Indian Temple	none		0	
+architectural-styles.tsv	art-tradition	arch-009	Chinese Traditional	none		0	
+architectural-styles.tsv	art-tradition	arch-010	Japanese Traditional	none		0	
+architectural-styles.tsv	art-tradition	arch-011	Mesoamerican	none		0	
+architectural-styles.tsv	art-tradition	arch-012	Renaissance	none		0	
+architectural-styles.tsv	art-tradition	arch-013	Baroque	accepted	Q37853	1	Q37853
+architectural-styles.tsv	art-tradition	arch-014	Mughal	none		0	
+architectural-styles.tsv	art-tradition	arch-015	Art Nouveau	accepted	Q34636	1	Q34636
+architectural-styles.tsv	art-tradition	arch-016	Art Deco	none		0	
+architectural-styles.tsv	art-tradition	arch-017	Modernist	none		0	
+architectural-styles.tsv	art-tradition	arch-018	Khmer	none		0	
+architectural-styles.tsv	art-tradition	arch-019	Sub-Saharan African	none		0	
+architectural-styles.tsv	art-tradition	arch-020	Andean	none		0	
+cooking-techniques.tsv	cooking-technique	al-dente	Al Dente Cooking	none		0	
+cooking-techniques.tsv	cooking-technique	bacalhau-salting	Bacalhau Salt-Curing	none		0	
+cooking-techniques.tsv	cooking-technique	banana-leaf-wrap	Banana Leaf Wrapping	none		0	
+cooking-techniques.tsv	cooking-technique	banh-mi-baking	Bánh Mì Baking	none		0	
+cooking-techniques.tsv	cooking-technique	bibimbap-assembly	Bibimbap Assembly	none		0	
+cooking-techniques.tsv	cooking-technique	bigos-stewing	Bigos (Hunter's Stew)	none		0	
+cooking-techniques.tsv	cooking-technique	bumbu-grinding	Bumbu Paste Grinding	none		0	
+cooking-techniques.tsv	cooking-technique	cataplana-steaming	Cataplana Steaming	none		0	
+cooking-techniques.tsv	cooking-technique	ceviche-curing	Ceviche Citrus Curing	none		0	
+cooking-techniques.tsv	cooking-technique	cheese-stretching	Sulguni Stretching	none		0	
+cooking-techniques.tsv	cooking-technique	coconut-cracking	Coconut Milk Extraction	none		0	
+cooking-techniques.tsv	cooking-technique	confit-french	Confit	none		0	
+cooking-techniques.tsv	cooking-technique	fermentation-miso	Miso Fermentation	none		0	
+cooking-techniques.tsv	cooking-technique	grilling-greek	Souvlaki Grilling	none		0	
+cooking-techniques.tsv	cooking-technique	injera-ferment	Injera Fermentation	none		0	
+cooking-techniques.tsv	cooking-technique	kebab-grilling	Kebab Grilling	none		0	
+cooking-techniques.tsv	cooking-technique	khoresh-braising	Khoresh Braising	none		0	
+cooking-techniques.tsv	cooking-technique	kimchi-ferment	Kimchi Fermentation	none		0	
+cooking-techniques.tsv	cooking-technique	mole-making	Mole Sauce Making	none		0	
+cooking-techniques.tsv	cooking-technique	mortar-pounding	Mortar Pounding	none		0	
+cooking-techniques.tsv	cooking-technique	nixtamalization	Nixtamalization	none		0	
+cooking-techniques.tsv	cooking-technique	pachamanca-earth	Pachamanca Earth Oven	none		0	
+cooking-techniques.tsv	cooking-technique	paella-socarrat	Paella Socarrat	none		0	
+cooking-techniques.tsv	cooking-technique	pasta-making	Fresh Pasta Making	none		0	
+cooking-techniques.tsv	cooking-technique	pho-broth	Phở Broth Simmering	none		0	
+cooking-techniques.tsv	cooking-technique	phyllo-making	Phyllo Dough Making	none		0	
+cooking-techniques.tsv	cooking-technique	pierogi-folding	Pierogi Folding	none		0	
+cooking-techniques.tsv	cooking-technique	roux-hungarian	Rántás (Roux)	none		0	
+cooking-techniques.tsv	cooking-technique	sauerkraut-ferment	Sauerkraut Fermentation	none		0	
+cooking-techniques.tsv	cooking-technique	sauteing-french	Sautéing	none		0	
+cooking-techniques.tsv	cooking-technique	smoking-german	Smoking (Räuchern)	none		0	
+cooking-techniques.tsv	cooking-technique	sofrito-spanish	Sofrito	none		0	
+cooking-techniques.tsv	cooking-technique	sous-vide	Sous Vide	none		0	
+cooking-techniques.tsv	cooking-technique	steaming-chinese	Steaming	none		0	
+cooking-techniques.tsv	cooking-technique	sushi-rice	Sushi Rice Seasoning	none		0	
+cooking-techniques.tsv	cooking-technique	tahdig-rice	Tahdig (Crispy Rice)	none		0	
+cooking-techniques.tsv	cooking-technique	tandoori-indian	Tandoori Cooking	none		0	
+cooking-techniques.tsv	cooking-technique	tempering-indian	Tadka (Tempering)	none		0	
+cooking-techniques.tsv	cooking-technique	tkemali-sauce	Tkemali Sauce Making	none		0	
+cooking-techniques.tsv	cooking-technique	turkish-coffee	Turkish Coffee Brewing	none		0	
+cooking-techniques.tsv	cooking-technique	wet-wat-stewing	Wet (Stew) Cooking	none		0	
+cooking-techniques.tsv	cooking-technique	wok-frying	Wok Stir-Frying	none		0	
+cuisines.tsv	cuisine	chinese	Chinese	none		0	
+cuisines.tsv	cuisine	ethiopian	Ethiopian	none		0	
+cuisines.tsv	cuisine	french	French	none		0	
+cuisines.tsv	cuisine	georgian	Georgian	none		0	
+cuisines.tsv	cuisine	german	German	none		0	
+cuisines.tsv	cuisine	greek	Greek	none		0	
+cuisines.tsv	cuisine	hungarian	Hungarian	none		0	
+cuisines.tsv	cuisine	indian	Indian	none		0	
+cuisines.tsv	cuisine	indonesian	Indonesian	none		0	
+cuisines.tsv	cuisine	iranian	Iranian	none		0	
+cuisines.tsv	cuisine	italian	Italian	none		0	
+cuisines.tsv	cuisine	japanese	Japanese	none		0	
+cuisines.tsv	cuisine	korean	Korean	none		0	
+cuisines.tsv	cuisine	mexican	Mexican	none		0	
+cuisines.tsv	cuisine	peruvian	Peruvian	none		0	
+cuisines.tsv	cuisine	polish	Polish	none		0	
+cuisines.tsv	cuisine	portuguese	Portuguese	none		0	
+cuisines.tsv	cuisine	spanish	Spanish	none		0	
+cuisines.tsv	cuisine	thai	Thai	none		0	
+cuisines.tsv	cuisine	turkish	Turkish	none		0	
+cuisines.tsv	cuisine	vietnamese	Vietnamese	none		0	
+dance-traditions.tsv	art-tradition	african-gumboot	Gumboot Dance	none		0	
+dance-traditions.tsv	art-tradition	balinese-legong	Legong	ambiguous		3	Q1209720 Q1473055 Q26208837
+dance-traditions.tsv	art-tradition	ballet	Ballet	ambiguous		14	Q4851625 Q20194505 Q20771286 Q74047532 Q76442832 Q76454649 Q79922817 Q79980180
+dance-traditions.tsv	art-tradition	belly-dance	Belly Dance	none		0	
+dance-traditions.tsv	art-tradition	bharatanatyam	Bharatanatyam	ambiguous		2	Q334156 Q27096250
+dance-traditions.tsv	art-tradition	bharatanatyam-fusion	Kuchipudi	ambiguous		4	Q6441526 Q12993806 Q12993808 Q15692844
+dance-traditions.tsv	art-tradition	butoh	Butoh	ambiguous		2	Q11118469 Q12478062
+dance-traditions.tsv	art-tradition	capoeira	Capoeira	ambiguous		3	Q62011711 Q62012908 Q117566004
+dance-traditions.tsv	art-tradition	chinese-lion	Lion Dance	ambiguous		3	Q30944338 Q65507281 Q131459187
+dance-traditions.tsv	art-tradition	cossack-dance	Cossack Dance	accepted	Q104771353	1	Q104771353
+dance-traditions.tsv	art-tradition	cumbia	Cumbia	ambiguous		2	Q21420312 Q87148833
+dance-traditions.tsv	art-tradition	dabke	Dabke	none		0	
+dance-traditions.tsv	art-tradition	dragon-dance	Dragon Dance	ambiguous		3	Q5305183 Q26157060 Q115137359
+dance-traditions.tsv	art-tradition	eskista	Eskista	none		0	
+dance-traditions.tsv	art-tradition	flamenco-dance	Flamenco Dance	none		0	
+dance-traditions.tsv	art-tradition	georgian-dance	Georgian Dance	accepted	Q26912317	1	Q26912317
+dance-traditions.tsv	art-tradition	haka	Haka	ambiguous		6	Q11861164 Q12485085 Q24362409 Q27700498 Q28148490 Q65104394
+dance-traditions.tsv	art-tradition	irish-step	Irish Step Dance	none		0	
+dance-traditions.tsv	art-tradition	japanese-bon	Bon Odori	accepted	Q1152364	1	Q1152364
+dance-traditions.tsv	art-tradition	javanese-bedhaya	Bedhaya	none		0	
+dance-traditions.tsv	art-tradition	kathak	Kathak	ambiguous		3	Q949256 Q90898995 Q107055841
+dance-traditions.tsv	art-tradition	kathakali	Kathakali	ambiguous		2	Q839500 Q21646597
+dance-traditions.tsv	art-tradition	kecak	Kecak	accepted	Q1737691	1	Q1737691
+dance-traditions.tsv	art-tradition	maypole-dance	Maypole Dance	none		0	
+dance-traditions.tsv	art-tradition	morris-dance	Morris Dance	none		0	
+dance-traditions.tsv	art-tradition	odissi	Odissi	accepted	Q2014687	1	Q2014687
+dance-traditions.tsv	art-tradition	polynesian-hula	Hula	ambiguous		16	Q647951 Q1026808 Q1969037 Q3142991 Q3215195 Q6382179 Q16184708 Q20146791
+dance-traditions.tsv	art-tradition	samba	Samba	ambiguous		111	Q1006431 Q1830735 Q2216866 Q2731787 Q2841495 Q3470665 Q3470669 Q5723305
+dance-traditions.tsv	art-tradition	sufi-whirling	Sama Dance	none		0	
+dance-traditions.tsv	art-tradition	tango	Tango	ambiguous		93	Q634452 Q1291877 Q1448573 Q1513845 Q1980003 Q2017368 Q2116212 Q2392522
+dance-traditions.tsv	art-tradition	thai-classical	Thai Classical Dance	none		0	
+dance-traditions.tsv	art-tradition	whirling-dervish	Whirling Dervish	accepted	Q28453204	1	Q28453204
+deities.tsv	deity	amaterasu	Amaterasu	accepted	Q455602	1	Q455602
+deities.tsv	deity	anubis	Anubis	accepted	Q47534	1	Q47534
+deities.tsv	deity	aphrodite	Aphrodite	accepted	Q35500	1	Q35500
+deities.tsv	deity	apollo	Apollo	ambiguous		2	Q37340 Q900649
+deities.tsv	deity	ares	Ares	accepted	Q40901	1	Q40901
+deities.tsv	deity	artemis	Artemis	accepted	Q39503	1	Q39503
+deities.tsv	deity	athena	Athena	accepted	Q37122	1	Q37122
+deities.tsv	deity	bastet	Bastet	accepted	Q129106	1	Q129106
+deities.tsv	deity	brahma	Brahma	accepted	Q11389	1	Q11389
+deities.tsv	deity	brigid	Brigid	accepted	Q255459	1	Q255459
+deities.tsv	deity	cernunnos	Cernunnos	accepted	Q739737	1	Q739737
+deities.tsv	deity	chaac	Chaac	accepted	Q1058253	1	Q1058253
+deities.tsv	deity	dagda	Dagda	none		0	
+deities.tsv	deity	demeter	Demeter	accepted	Q40730	1	Q40730
+deities.tsv	deity	durga	Durga	accepted	Q382973	1	Q382973
+deities.tsv	deity	enki	Enki	accepted	Q189726	1	Q189726
+deities.tsv	deity	enlil	Enlil	accepted	Q214672	1	Q214672
+deities.tsv	deity	ereshkigal	Ereshkigal	accepted	Q654458	1	Q654458
+deities.tsv	deity	eshu	Eshu	accepted	Q1367665	1	Q1367665
+deities.tsv	deity	freya	Freya	none		0	
+deities.tsv	deity	frigg	Frigg	accepted	Q131654	1	Q131654
+deities.tsv	deity	ganesha	Ganesha	accepted	Q1579	1	Q1579
+deities.tsv	deity	hades	Hades	accepted	Q41410	1	Q41410
+deities.tsv	deity	hel	Hel	accepted	Q191589	1	Q191589
+deities.tsv	deity	hephaestus	Hephaestus	accepted	Q44384	1	Q44384
+deities.tsv	deity	hera	Hera	accepted	Q38012	1	Q38012
+deities.tsv	deity	hermes	Hermes	accepted	Q41484	1	Q41484
+deities.tsv	deity	horus	Horus	accepted	Q84122	1	Q84122
+deities.tsv	deity	inanna	Inanna	accepted	Q272523	1	Q272523
+deities.tsv	deity	inari	Inari	accepted	Q719665	1	Q719665
+deities.tsv	deity	indra	Indra	accepted	Q128335	1	Q128335
+deities.tsv	deity	inti	Inti	accepted	Q213771	1	Q213771
+deities.tsv	deity	isis	Isis	accepted	Q79876	1	Q79876
+deities.tsv	deity	ixchel	Ix Chel	none		0	
+deities.tsv	deity	jupiter	Jupiter	accepted	Q4649	1	Q4649
+deities.tsv	deity	kukulkan	Kukulkan	accepted	Q768072	1	Q768072
+deities.tsv	deity	lakshmi	Lakshmi	accepted	Q131443	1	Q131443
+deities.tsv	deity	loki	Loki	accepted	Q133147	1	Q133147
+deities.tsv	deity	lugh	Lugh	accepted	Q215683	1	Q215683
+deities.tsv	deity	mama-quilla	Mama Quilla	accepted	Q1137398	1	Q1137398
+deities.tsv	deity	mars	Mars	accepted	Q112	1	Q112
+deities.tsv	deity	mercury	Mercury	accepted	Q1150	1	Q1150
+deities.tsv	deity	minerva	Minerva	accepted	Q126916	1	Q126916
+deities.tsv	deity	morrigan	Morrigan	none		0	
+deities.tsv	deity	neptune	Neptune	accepted	Q3954	1	Q3954
+deities.tsv	deity	njord	Njord	accepted	Q193879	1	Q193879
+deities.tsv	deity	odin	Odin	accepted	Q43610	1	Q43610
+deities.tsv	deity	ogun	Ogun	accepted	Q255116	1	Q255116
+deities.tsv	deity	oshun	Oshun	accepted	Q1851943	1	Q1851943
+deities.tsv	deity	osiris	Osiris	accepted	Q46491	1	Q46491
+deities.tsv	deity	pachamama	Pachamama	accepted	Q266462	1	Q266462
+deities.tsv	deity	perun	Perun	accepted	Q206561	1	Q206561
+deities.tsv	deity	poseidon	Poseidon	accepted	Q41127	1	Q41127
+deities.tsv	deity	quetzalcoatl	Quetzalcoatl	accepted	Q179818	1	Q179818
+deities.tsv	deity	ra	Ra	accepted	Q1252904	1	Q1252904
+deities.tsv	deity	saraswati	Saraswati	accepted	Q58838	1	Q58838
+deities.tsv	deity	sekhmet	Sekhmet	accepted	Q146104	1	Q146104
+deities.tsv	deity	shango	Shango	accepted	Q1547934	1	Q1547934
+deities.tsv	deity	shiva	Shiva	accepted	Q11378	1	Q11378
+deities.tsv	deity	skadi	Skadi	none		0	
+deities.tsv	deity	surya	Surya	accepted	Q204418	1	Q204418
+deities.tsv	deity	susanoo	Susanoo	accepted	Q272993	1	Q272993
+deities.tsv	deity	tengri	Tengri	accepted	Q2481517	1	Q2481517
+deities.tsv	deity	thor	Thor	accepted	Q42952	1	Q42952
+deities.tsv	deity	thoth	Thoth	accepted	Q146921	1	Q146921
+deities.tsv	deity	tlaloc	Tlaloc	accepted	Q232870	1	Q232870
+deities.tsv	deity	tsukuyomi	Tsukuyomi	accepted	Q595520	1	Q595520
+deities.tsv	deity	tyr	Tyr	accepted	Q172713	1	Q172713
+deities.tsv	deity	umay	Umay	accepted	Q2996714	1	Q2996714
+deities.tsv	deity	veles	Veles	accepted	Q824249	1	Q824249
+deities.tsv	deity	venus	Venus	accepted	Q47652	1	Q47652
+deities.tsv	deity	viracocha	Viracocha	accepted	Q209605	1	Q209605
+deities.tsv	deity	vishnu	Vishnu	accepted	Q11380	1	Q11380
+deities.tsv	deity	yama	Yama	accepted	Q45097	1	Q45097
+deities.tsv	deity	yemoja	Yemoja	none		0	
+deities.tsv	deity	zeus	Zeus	accepted	Q34201	1	Q34201
+ingredient-origins.tsv	ingredient	aji-peruvian	Ají Amarillo	none		0	
+ingredient-origins.tsv	ingredient	barberry-iranian	Barberry	none		0	
+ingredient-origins.tsv	ingredient	basil-italian	Basil	none		0	
+ingredient-origins.tsv	ingredient	beetroot-polish	Beetroot	none		0	
+ingredient-origins.tsv	ingredient	berbere-ethiopian	Berbere Spice	none		0	
+ingredient-origins.tsv	ingredient	butter-french	Butter	none		0	
+ingredient-origins.tsv	ingredient	cacao-mexican	Cacao	none		0	
+ingredient-origins.tsv	ingredient	cardamom-indian	Cardamom	none		0	
+ingredient-origins.tsv	ingredient	chili-mexican	Chili Pepper	none		0	
+ingredient-origins.tsv	ingredient	coconut-indonesian	Coconut	none		0	
+ingredient-origins.tsv	ingredient	cod-portuguese	Salt Cod	none		0	
+ingredient-origins.tsv	ingredient	corn-mexican	Corn (Maize)	none		0	
+ingredient-origins.tsv	ingredient	cumin-indian	Cumin	none		0	
+ingredient-origins.tsv	ingredient	dashi-japanese	Kombu (Dashi)	none		0	
+ingredient-origins.tsv	ingredient	feta-greek	Feta Cheese	none		0	
+ingredient-origins.tsv	ingredient	fish-sauce-thai	Fish Sauce	none		0	
+ingredient-origins.tsv	ingredient	fish-sauce-vietnamese	Fish Sauce	none		0	
+ingredient-origins.tsv	ingredient	galangal-indonesian	Galangal	none		0	
+ingredient-origins.tsv	ingredient	ginger-chinese	Ginger	none		0	
+ingredient-origins.tsv	ingredient	gochugaru-korean	Gochugaru	none		0	
+ingredient-origins.tsv	ingredient	grape-french	Grape	none		0	
+ingredient-origins.tsv	ingredient	lemongrass-thai	Lemongrass	none		0	
+ingredient-origins.tsv	ingredient	olive-greek	Olive	none		0	
+ingredient-origins.tsv	ingredient	olive-spanish	Olive Oil	none		0	
+ingredient-origins.tsv	ingredient	paprika-hungarian	Paprika	none		0	
+ingredient-origins.tsv	ingredient	pomegranate-georgian	Pomegranate	none		0	
+ingredient-origins.tsv	ingredient	potato-german	Potato	none		0	
+ingredient-origins.tsv	ingredient	quinoa-peruvian	Quinoa	none		0	
+ingredient-origins.tsv	ingredient	rice-chinese	Rice	none		0	
+ingredient-origins.tsv	ingredient	saffron-iranian	Saffron	none		0	
+ingredient-origins.tsv	ingredient	sesame-korean	Sesame	none		0	
+ingredient-origins.tsv	ingredient	soy-chinese	Soybean	none		0	
+ingredient-origins.tsv	ingredient	star-anise-vietnamese	Star Anise	none		0	
+ingredient-origins.tsv	ingredient	sumac-turkish	Sumac	none		0	
+ingredient-origins.tsv	ingredient	teff-ethiopian	Teff	none		0	
+ingredient-origins.tsv	ingredient	tomato-italian	Tomato	none		0	
+ingredient-origins.tsv	ingredient	turmeric-indian	Turmeric	none		0	
+ingredient-origins.tsv	ingredient	walnut-georgian	Walnut	none		0	
+ingredient-origins.tsv	ingredient	wasabi-japanese	Wasabi	none		0	
+ingredient-origins.tsv	ingredient	wheat-french	Wheat	none		0	
+ingredient-origins.tsv	ingredient	yogurt-turkish	Yogurt	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-001	Classical Sanskrit Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-002	Classical Greek Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-003	Classical Latin Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-004	Classical Chinese Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-005	Classical Arabic Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-006	Classical Japanese Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-007	Old English Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-008	Persian Classical Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-009	Medieval European Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-010	Classical Tamil Literature	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-011	Russian Literary Tradition	none		0	
+literary-traditions.tsv	literary-tradition	lit-trad-012	West African Oral Literature	none		0	
+migration-routes.tsv	migration-route	african-great-migration	Early Human Migration to Europe	none		0	
+migration-routes.tsv	migration-route	amber-road	Amber Road	ambiguous		3	Q239574 Q111032474 Q123012895
+migration-routes.tsv	migration-route	arab-berber-iberia	Arab-Berber Conquest of Iberia	none		0	
+migration-routes.tsv	migration-route	arab-expansion	Arab-Islamic Expansion	none		0	
+migration-routes.tsv	migration-route	arab-indian-ocean	Arab Indian Ocean Trade	none		0	
+migration-routes.tsv	migration-route	atlantic-slave-trade	Atlantic Slave Trade Routes	none		0	
+migration-routes.tsv	migration-route	austronesian-expansion	Austronesian Expansion	none		0	
+migration-routes.tsv	migration-route	bantu-expansion	Bantu Expansion	accepted	Q132039759	1	Q132039759
+migration-routes.tsv	migration-route	british-colonial-africa	British Colonial Expansion in Africa	none		0	
+migration-routes.tsv	migration-route	celtic-expansion	Celtic Expansion	none		0	
+migration-routes.tsv	migration-route	chinese-diaspora	Chinese Diaspora	none		0	
+migration-routes.tsv	migration-route	crusades	Crusades	ambiguous		7	Q12546 Q2913202 Q5190168 Q5190169 Q15760861 Q20200858 Q103899930
+migration-routes.tsv	migration-route	dravidian-migration	Dravidian Migration	none		0	
+migration-routes.tsv	migration-route	dutch-colonial	Dutch Colonial Maritime Network	none		0	
+migration-routes.tsv	migration-route	european-asia-colonization	European Asian Colonization	none		0	
+migration-routes.tsv	migration-route	european-atlantic	European Atlantic Colonization	none		0	
+migration-routes.tsv	migration-route	french-colonial-africa	French Colonial Expansion in Africa	none		0	
+migration-routes.tsv	migration-route	german-ostsiedlung	German Eastward Settlement	none		0	
+migration-routes.tsv	migration-route	gothic-migrations	Gothic Migrations	none		0	
+migration-routes.tsv	migration-route	great-migration-us	Great Migration (US)	none		0	
+migration-routes.tsv	migration-route	greek-colonization	Greek Colonization	none		0	
+migration-routes.tsv	migration-route	han-dynasty-expansion	Han Dynasty Expansion	none		0	
+migration-routes.tsv	migration-route	hungarian-migration	Hungarian Migration	none		0	
+migration-routes.tsv	migration-route	incense-route	Incense Route	accepted	Q754999	1	Q754999
+migration-routes.tsv	migration-route	indian-indenture	Indian Indenture System Migration	none		0	
+migration-routes.tsv	migration-route	indian-ocean-austronesian	Austronesian Indian Ocean Crossing	none		0	
+migration-routes.tsv	migration-route	indo-aryan-migration	Indo-Aryan Migration	none		0	
+migration-routes.tsv	migration-route	indo-european-expansion	Indo-European Expansion	none		0	
+migration-routes.tsv	migration-route	inuit-arctic	Thule Inuit Arctic Migration	none		0	
+migration-routes.tsv	migration-route	irish-diaspora	Irish Diaspora	none		0	
+migration-routes.tsv	migration-route	japanese-archipelago	Japanese Archipelago Settlement	none		0	
+migration-routes.tsv	migration-route	jewish-diaspora	Jewish Diaspora	none		0	
+migration-routes.tsv	migration-route	khmer-empire-expansion	Khmer Empire Expansion	none		0	
+migration-routes.tsv	migration-route	land-bridge-americas	Beringia Land Bridge Migration	none		0	
+migration-routes.tsv	migration-route	macedonian-conquest	Macedonian Conquests	none		0	
+migration-routes.tsv	migration-route	malay-archipelago-trade	Malay Archipelago Trade	none		0	
+migration-routes.tsv	migration-route	mongol-conquests	Mongol Conquests	none		0	
+migration-routes.tsv	migration-route	moroccan-jewish-exodus	Moroccan Jewish Exodus	none		0	
+migration-routes.tsv	migration-route	na-dene-migration	Na-Dene Migration	none		0	
+migration-routes.tsv	migration-route	norse-atlantic	Norse Atlantic Settlement	none		0	
+migration-routes.tsv	migration-route	out-of-africa	Out of Africa Migration	none		0	
+migration-routes.tsv	migration-route	pacific-islander-melanesia	Melanesian Settlement	none		0	
+migration-routes.tsv	migration-route	partition-india	Partition of India Migration	none		0	
+migration-routes.tsv	migration-route	phoenician-trade	Phoenician Trade Network	none		0	
+migration-routes.tsv	migration-route	polynesian-voyaging	Polynesian Voyaging	none		0	
+migration-routes.tsv	migration-route	portuguese-maritime	Portuguese Maritime Route to India	none		0	
+migration-routes.tsv	migration-route	roman-expansion	Roman Expansion	none		0	
+migration-routes.tsv	migration-route	romani-migration	Romani Migration	none		0	
+migration-routes.tsv	migration-route	sahel-pastoral	Sahel Pastoral Migration	none		0	
+migration-routes.tsv	migration-route	scramble-for-africa	European Scramble for Africa	none		0	
+migration-routes.tsv	migration-route	silk-road	Silk Road	ambiguous		9	Q36288 Q58027 Q1288317 Q16606217 Q54003971 Q65007524 Q65045900 Q114913089
+migration-routes.tsv	migration-route	slavic-expansion	Slavic Expansion	none		0	
+migration-routes.tsv	migration-route	spice-trade	Spice Trade Maritime Routes	none		0	
+migration-routes.tsv	migration-route	tai-migration	Tai Peoples Migration	none		0	
+migration-routes.tsv	migration-route	tibetan-plateau	Tibetan Plateau Settlement	none		0	
+migration-routes.tsv	migration-route	trail-of-tears	Trail of Tears	ambiguous		7	Q750448 Q1149494 Q3282684 Q14701785 Q17047689 Q79278836 Q79306880
+migration-routes.tsv	migration-route	trans-saharan-trade	Trans-Saharan Trade Routes	none		0	
+migration-routes.tsv	migration-route	transatlantic-european	Transatlantic European Migration	none		0	
+migration-routes.tsv	migration-route	turkic-migrations	Turkic Migrations	none		0	
+migration-routes.tsv	migration-route	uralic-migration	Uralic Migration	none		0	
+migration-routes.tsv	migration-route	viking-east	Viking Eastern Route	none		0	
+migration-routes.tsv	migration-route	viking-expansion	Viking Expansion	none		0	
+myth-motifs.tsv	myth-motif	afterlife-judgment	Judgment of the Dead	none		0	
+myth-motifs.tsv	myth-motif	animal-ancestor	Animal Ancestor / Totem	none		0	
+myth-motifs.tsv	myth-motif	cosmic-battle	The Cosmic Battle	none		0	
+myth-motifs.tsv	myth-motif	cosmic-egg	The Cosmic Egg	none		0	
+myth-motifs.tsv	myth-motif	creation-from-body	Creation from Dismembered Body	none		0	
+myth-motifs.tsv	myth-motif	culture-hero	The Culture Hero	none		0	
+myth-motifs.tsv	myth-motif	divine-kingship	Sacred/Divine Kingship	none		0	
+myth-motifs.tsv	myth-motif	divine-punishment	Divine Punishment / Hubris	none		0	
+myth-motifs.tsv	myth-motif	divine-twins	The Divine Twins	none		0	
+myth-motifs.tsv	myth-motif	dragon-serpent-slayer	The Dragon/Serpent Slayer	none		0	
+myth-motifs.tsv	myth-motif	dying-rising-god	The Dying and Rising God	none		0	
+myth-motifs.tsv	myth-motif	earth-diver	Earth Diver Creation	none		0	
+myth-motifs.tsv	myth-motif	fertility-sacrifice	Sacrifice for Fertility	none		0	
+myth-motifs.tsv	myth-motif	flood-myth	The Great Flood	ambiguous		8	Q64538494 Q114510762 Q117779576 Q118397664 Q123512526 Q124436027 Q125491086 Q134374096
+myth-motifs.tsv	myth-motif	forbidden-knowledge	Forbidden Knowledge / Taboo	none		0	
+myth-motifs.tsv	myth-motif	hero-quest	The Hero's Journey	ambiguous		3	Q7739480 Q7739482 Q130732089
+myth-motifs.tsv	myth-motif	mother-earth	Mother Earth / Earth Goddess	none		0	
+myth-motifs.tsv	myth-motif	primordial-chaos	Primordial Chaos / Void	none		0	
+myth-motifs.tsv	myth-motif	sacred-marriage	Sacred Marriage / Hieros Gamos	none		0	
+myth-motifs.tsv	myth-motif	shapeshifting	Shapeshifting / Transformation	none		0	
+myth-motifs.tsv	myth-motif	sky-earth-separation	Separation of Sky and Earth	none		0	
+myth-motifs.tsv	myth-motif	smith-god	The Divine Smith	none		0	
+myth-motifs.tsv	myth-motif	soul-journey	Journey of the Soul After Death	none		0	
+myth-motifs.tsv	myth-motif	sun-moon-origin	Origin of Sun and Moon	none		0	
+myth-motifs.tsv	myth-motif	theft-of-fire	Theft of Fire	accepted	Q139979334	1	Q139979334
+myth-motifs.tsv	myth-motif	trickster	The Trickster	ambiguous		4	Q20197949 Q119745037 Q134878636 Q139980495
+myth-motifs.tsv	myth-motif	underworld-journey	Descent to the Underworld	accepted	Q17112616	1	Q17112616
+myth-motifs.tsv	myth-motif	wisdom-quest	The Quest for Wisdom	none		0	
+myth-motifs.tsv	myth-motif	world-ages	Successive World Ages	none		0	
+myth-motifs.tsv	myth-motif	world-destruction	End of the World / Apocalypse	none		0	
+myth-motifs.tsv	myth-motif	world-serpent	The World Serpent / Cosmic Serpent	none		0	
+myth-motifs.tsv	myth-motif	world-tree	The World Tree	ambiguous		2	Q132326943 Q137369059
+trade-routes.tsv	trade-good	tr-001	Silk Road	ambiguous		9	Q36288 Q58027 Q1288317 Q16606217 Q54003971 Q65007524 Q65045900 Q114913089
+trade-routes.tsv	trade-good	tr-002	Maritime Spice Route	none		0	
+trade-routes.tsv	trade-good	tr-003	Trans-Saharan Gold-Salt Trade	none		0	
+trade-routes.tsv	trade-good	tr-004	Amber Road	ambiguous		3	Q239574 Q111032474 Q123012895
+trade-routes.tsv	trade-good	tr-005	Incense Route	accepted	Q754999	1	Q754999
+trade-routes.tsv	trade-good	tr-006	Phoenician Mediterranean Network	none		0	
+trade-routes.tsv	trade-good	tr-007	Viking Eastern Trade Route	none		0	
+trade-routes.tsv	trade-good	tr-008	Portuguese Cape Route	none		0	
+trade-routes.tsv	trade-good	tr-009	Arab Indian Ocean Network	none		0	
+trade-routes.tsv	trade-good	tr-010	Malay Archipelago Trade	none		0	
+trade-routes.tsv	trade-good	tr-011	Atlantic Slave Trade Triangle	none		0	
+trade-routes.tsv	trade-good	tr-012	European Atlantic Commerce	none		0	
+trade-routes.tsv	trade-good	tr-013	Hanseatic League Network	none		0	
+trade-routes.tsv	trade-good	tr-014	Indian Ocean Monsoon Route	none		0	
+trade-routes.tsv	trade-good	tr-015	Grand Trunk Road	accepted	Q300701	1	Q300701
+trade-routes.tsv	trade-good	tr-016	Tea Horse Road	none		0	
+trade-routes.tsv	trade-good	tr-017	Volga Trade Route	none		0	
+trade-routes.tsv	trade-good	tr-018	Lapis Lazuli Route	none		0	
+trade-routes.tsv	trade-good	tr-019	Tin Route	none		0	
+trade-routes.tsv	trade-good	tr-020	King's Highway	ambiguous		4	Q545941 Q819027 Q14211671 Q66995030
+trade-routes.tsv	trade-good	tr-021	Dutch VOC Spice Network	none		0	
+trade-routes.tsv	trade-good	tr-022	Salt Road (Via Salaria)	none		0	
+trade-routes.tsv	trade-good	tr-023	Canton Trade System	none		0	
+trade-routes.tsv	trade-good	tr-024	Fur Trade Route (North America)	none		0	
+trade-routes.tsv	trade-good	tr-025	Jade Road	none		0	
+writing-systems.tsv	writing-system	ws_001	Latin	none		0	
+writing-systems.tsv	writing-system	ws_002	Cyrillic	none		0	
+writing-systems.tsv	writing-system	ws_003	Greek	none		0	
+writing-systems.tsv	writing-system	ws_004	Arabic	none		0	
+writing-systems.tsv	writing-system	ws_005	Hebrew	none		0	
+writing-systems.tsv	writing-system	ws_006	Devanagari	accepted	Q38592	1	Q38592
+writing-systems.tsv	writing-system	ws_007	Chinese (Hanzi)	none		0	
+writing-systems.tsv	writing-system	ws_008	Hiragana	none		0	
+writing-systems.tsv	writing-system	ws_009	Katakana	none		0	
+writing-systems.tsv	writing-system	ws_010	Hangul	accepted	Q8222	1	Q8222
+writing-systems.tsv	writing-system	ws_011	Thai	none		0	
+writing-systems.tsv	writing-system	ws_012	Ge'ez (Ethiopic)	none		0	
+writing-systems.tsv	writing-system	ws_013	Armenian	none		0	
+writing-systems.tsv	writing-system	ws_014	Georgian (Mkhedruli)	none		0	
+writing-systems.tsv	writing-system	ws_015	Tibetan	none		0	
+writing-systems.tsv	writing-system	ws_016	Myanmar (Burmese)	none		0	
+writing-systems.tsv	writing-system	ws_017	Tamil	none		0	
+writing-systems.tsv	writing-system	ws_018	Telugu	none		0	
+writing-systems.tsv	writing-system	ws_019	Khmer	none		0	
+writing-systems.tsv	writing-system	ws_020	Traditional Mongolian	none		0	
+writing-systems.tsv	writing-system	ws_021	Cherokee	none		0	
+writing-systems.tsv	writing-system	ws_022	Runic (Elder Futhark)	none		0	
+writing-systems.tsv	writing-system	ws_023	Ogham	accepted	Q184661	1	Q184661
+writing-systems.tsv	writing-system	ws_024	Linear A	accepted	Q30972	1	Q30972
+writing-systems.tsv	writing-system	ws_025	Linear B	accepted	Q190102	1	Q190102
+writing-systems.tsv	writing-system	ws_026	Cuneiform (Sumero-Akkadian)	none		0	
+writing-systems.tsv	writing-system	ws_027	Egyptian Hieroglyphs	none		0	
+writing-systems.tsv	writing-system	ws_028	Phoenician	none		0	
+writing-systems.tsv	writing-system	ws_029	Brahmi	accepted	Q185083	1	Q185083
+writing-systems.tsv	writing-system	ws_030	Coptic	none		0	
+writing-systems.tsv	writing-system	ws_031	Kannada	none		0	
+writing-systems.tsv	writing-system	ws_032	Malayalam	none		0	
+writing-systems.tsv	writing-system	ws_033	Bengali	none		0	
+writing-systems.tsv	writing-system	ws_034	Lao	accepted	Q1815229	1	Q1815229
+writing-systems.tsv	writing-system	ws_035	Syriac	none		0	
+writing-systems.tsv	writing-system	ws_036	Gothic	none		0	
+writing-systems.tsv	writing-system	ws_037	Avestan	accepted	Q790681	1	Q790681
+writing-systems.tsv	writing-system	ws_038	Old Persian Cuneiform	none		0	
+writing-systems.tsv	writing-system	ws_039	Javanese	none		0	
+writing-systems.tsv	writing-system	ws_040	Balinese	accepted	Q804984	1	Q804984
+writing-systems.tsv	writing-system	ws_041	Inuktitut Syllabics	none		0	
+writing-systems.tsv	writing-system	ws_042	Brahmi-derived (South Asian)	none		0	
+writing-systems.tsv	writing-system	ws_043	Carian	none		0	
+writing-systems.tsv	writing-system	ws_044	Phoenician-derived (Western)	none		0	
+writing-systems.tsv	writing-system	ws_045	Aramaic	none		0	
+writing-systems.tsv	writing-system	ws_046	Etruscan	none		0	
+writing-systems.tsv	writing-system	ws_047	Old Italic	accepted	Q4891256	1	Q4891256
+writing-systems.tsv	writing-system	ws_048	Nabataean	none		0	
+writing-systems.tsv	writing-system	ws_049	Pallava/Khmer-derived	none		0	
+writing-systems.tsv	writing-system	ws_050	South Arabian	none		0	
+writing-systems.tsv	writing-system	ws_051	Sogdian	accepted	Q578359	1	Q578359
+writing-systems.tsv	writing-system	ws_052	Oracle Bone Script	none		0	
+writing-systems.tsv	writing-system	ws_053	Proto-Sinaitic	accepted	Q1065250	1	Q1065250
+writing-systems.tsv	writing-system	ws_054	Proto-Canaanite	none		0	
+writing-systems.tsv	writing-system	ws_055	N'Ko	none		0	
+writing-systems.tsv	writing-system	ws_056	Vai	none		0	
+writing-systems.tsv	writing-system	ws_057	Tifinagh	accepted	Q208503	1	Q208503
+writing-systems.tsv	writing-system	ws_058	Canadian Syllabics (Cree)	none		0	
+writing-systems.tsv	writing-system	ws_059	Welsh	none		0	
+writing-systems.tsv	writing-system	ws_060	Irish (Gaelic)	none		0	

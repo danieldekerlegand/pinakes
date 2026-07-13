@@ -1,0 +1,6 @@
+csid:ID	:LABEL	name	wikidata_qid	source	source_url	retrieved_at	confidence:float
+cs:place:athens	Place	Athens		linguascrape		2026-07-13T00:00:00+00:00	0.5
+cs:place:Q220	Place	Rome	Q220	wikidata	https://www.wikidata.org/entity/Q220	2026-07-13T00:00:00+00:00	0.9
+cs:place:Q1524	Place	Alexandria	Q1524	wikidata		2026-07-13T00:00:00+00:00	0.8
+cs:place:carthage	Place	Carthage		wikidata	https://www.wikidata.org/entity/Q6343	2026-07-13T00:00:00+00:00	0.8
+cs:place:Q159	Place	Russia	Q159	inferred:geographic		2026-07-13T00:00:00+00:00	0.6

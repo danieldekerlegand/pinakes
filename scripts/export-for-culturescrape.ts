@@ -50,6 +50,7 @@ import {
   CANONICAL_DELIMITER,
 } from "@shared/canonical-schema";
 import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { confidenceForClass } from "@shared/confidence-rubric";
 import { extractAllCanonicalEdges } from "../server/services/canonical-edges.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
@@ -113,10 +114,18 @@ export function licenseForSource(source: string): string {
 }
 
 /**
- * Confidence for a node whose lexicon row carries no confidence value — mid-scale
- * ("present but unverified"), matching {@link DEFAULT_EDGE_CONFIDENCE} on the edge side.
+ * Confidence for a node whose lexicon row carries no confidence value — the
+ * `legacy-curated` rubric prior ("present but unverified"; grandfathered at
+ * mid-scale), matching {@link DEFAULT_EDGE_CONFIDENCE} on the edge side. Sourced
+ * from the confidence rubric so the number is tuned in one place (US-001).
  */
-export const DEFAULT_NODE_CONFIDENCE = 0.5;
+export const DEFAULT_NODE_CONFIDENCE = confidenceForClass("legacy-curated");
+
+/**
+ * Confidence stamped on an auto-minted needs-curation stub node (US-007) — the
+ * `stub-needs-curation` rubric prior (`0`); not a real fact.
+ */
+export const STUB_NODE_CONFIDENCE = confidenceForClass("stub-needs-curation");
 
 /**
  * Provenance fields the export handles explicitly rather than copying through the
@@ -638,7 +647,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set("source_url", "");
     record.set("source_query", "");
     record.set("retrieved_at", "");
-    record.set("confidence", "0");
+    record.set("confidence", String(STUB_NODE_CONFIDENCE));
     record.set("license", licenseForSource(EXPORT_SOURCE));
 
     const group = nodeGroups.get(stubType) ?? [];

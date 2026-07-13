@@ -12,15 +12,77 @@
  * hold the classification/formatting logic and carry the unit tests (the repo has
  * no jsdom, so the "component tests" live against that module).
  */
-import { BookMarked, GitBranch, ExternalLink, AlertTriangle } from "lucide-react";
+import {
+  BookMarked,
+  GitBranch,
+  ExternalLink,
+  AlertTriangle,
+  ShieldCheck,
+  Sparkles,
+  FlaskConical,
+  Workflow,
+} from "lucide-react";
 import {
   classifyProvenance,
   isLowConfidence,
   formatConfidence,
   safeExternalUrl,
   hasProvenance,
+  provenanceTier,
+  trustTierMeta,
   type Provenance,
+  type TrustTier,
 } from "@/lib/graph/provenance";
+
+/** Per-tier pill styling + icon for {@link TrustTierBadge}. */
+const TIER_STYLE: Record<
+  TrustTier,
+  { className: string; Icon: typeof ShieldCheck }
+> = {
+  curated: {
+    className: "bg-emerald-100 text-emerald-700",
+    Icon: ShieldCheck,
+  },
+  "auto-admitted": {
+    className: "bg-sky-100 text-sky-700",
+    Icon: Sparkles,
+  },
+  quarantine: {
+    className: "bg-amber-100 text-amber-700",
+    Icon: FlaskConical,
+  },
+  inferred: {
+    className: "bg-violet-100 text-violet-700",
+    Icon: Workflow,
+  },
+};
+
+/**
+ * A compact pill naming a fact's **trust tier** — the graph-corpus policy that
+ * decides which facts auto-admit vs. quarantine (US-004). Mirrors the shared
+ * classifier so the app labels a fact the same way the corpus build does.
+ */
+export function TrustTierBadge({
+  tier,
+  className = "",
+}: {
+  tier: TrustTier;
+  className?: string;
+}) {
+  const meta = trustTierMeta(tier);
+  const { className: tierClass, Icon } = TIER_STYLE[tier];
+  return (
+    <span
+      data-testid="trust-tier"
+      data-tier={tier}
+      title={meta.description}
+      className={`inline-flex items-center gap-1 rounded-sm px-1 py-0 text-[10px] font-medium uppercase tracking-wide ${tierClass} ${className}`}
+    >
+      <Icon className="h-2.5 w-2.5" />
+      {meta.label}
+    </span>
+  );
+}
 
 /**
  * Compact pill: `Sourced` (citation) vs `Derived` (inferred), plus a
@@ -28,9 +90,15 @@ import {
  */
 export function ProvenanceBadge({
   provenance,
+  isEdge = false,
+  showTier = true,
   className = "",
 }: {
   provenance: Provenance | null | undefined;
+  /** Classify the fact as an edge (auto-admits on a citation alone). */
+  isEdge?: boolean;
+  /** Whether to render the trust-tier pill (default on). */
+  showTier?: boolean;
   className?: string;
 }) {
   if (!hasProvenance(provenance)) return null;
@@ -39,9 +107,11 @@ export function ProvenanceBadge({
   const sourced = kind === "sourced";
   const conf = formatConfidence(prov.confidence);
   const low = isLowConfidence(prov.confidence);
+  const tier = provenanceTier(prov, isEdge);
 
   return (
     <span className={`inline-flex items-center gap-1 ${className}`}>
+      {showTier && <TrustTierBadge tier={tier} />}
       <span
         data-testid="provenance-kind"
         data-kind={kind}
@@ -89,14 +159,18 @@ export function ProvenanceBadge({
  */
 export function ProvenanceList({
   provenance,
+  isEdge = false,
   className = "",
 }: {
   provenance: Provenance | null | undefined;
+  /** Classify the fact as an edge (auto-admits on a citation alone). */
+  isEdge?: boolean;
   className?: string;
 }) {
   if (!hasProvenance(provenance)) return null;
   const prov = provenance!;
   const href = safeExternalUrl(prov.sourceUrl);
+  const tier = provenanceTier(prov, isEdge);
 
   return (
     <div
@@ -107,9 +181,18 @@ export function ProvenanceList({
         <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
           Provenance
         </span>
-        <ProvenanceBadge provenance={prov} />
+        <ProvenanceBadge provenance={prov} isEdge={isEdge} showTier={false} />
       </div>
       <dl className="space-y-1.5">
+        <div>
+          <dt className="text-[10px] uppercase tracking-wider text-gray-400">
+            Trust tier
+          </dt>
+          <dd className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300">
+            <TrustTierBadge tier={tier} />
+            <span>{trustTierMeta(tier).description}</span>
+          </dd>
+        </div>
         {prov.source && (
           <div>
             <dt className="text-[10px] uppercase tracking-wider text-gray-400">

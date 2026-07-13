@@ -24,6 +24,7 @@ from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: The Wikidata Query Service SPARQL endpoint.
 WIKIDATA_SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
@@ -63,7 +64,7 @@ class WikidataSparqlAdapter(SourceAdapter):
         *,
         endpoint: str = WIKIDATA_SPARQL_ENDPOINT,
         item_var: str = "item",
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._http = http

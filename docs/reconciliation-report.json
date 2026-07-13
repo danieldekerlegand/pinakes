@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "source": "linguascrape",
   "cascade": [
     "wikidata_qid",
@@ -10,24 +10,24 @@
   ],
   "totals": {
     "nodes": 6708,
-    "matched": 966,
-    "ambiguous": 302,
-    "likelyNew": 5440
+    "matched": 2461,
+    "ambiguous": 297,
+    "likelyNew": 3950
   },
   "byType": [
     {
       "type": "archaeological-culture",
       "count": 277,
-      "matched": 0,
+      "matched": 253,
       "ambiguous": 0,
-      "likelyNew": 277
+      "likelyNew": 24
     },
     {
       "type": "art-tradition",
       "count": 237,
-      "matched": 0,
+      "matched": 138,
       "ambiguous": 0,
-      "likelyNew": 237
+      "likelyNew": 99
     },
     {
       "type": "battle",
@@ -39,36 +39,36 @@
     {
       "type": "cuisine",
       "count": 101,
-      "matched": 0,
+      "matched": 80,
       "ambiguous": 0,
-      "likelyNew": 101
+      "likelyNew": 21
     },
     {
       "type": "culture",
       "count": 340,
-      "matched": 0,
+      "matched": 81,
       "ambiguous": 0,
-      "likelyNew": 340
+      "likelyNew": 259
     },
     {
       "type": "deity",
       "count": 206,
-      "matched": 0,
+      "matched": 199,
       "ambiguous": 0,
-      "likelyNew": 206
+      "likelyNew": 7
     },
     {
       "type": "ingredient",
       "count": 2208,
-      "matched": 0,
+      "matched": 70,
       "ambiguous": 41,
-      "likelyNew": 2167
+      "likelyNew": 2097
     },
     {
       "type": "language",
       "count": 1099,
-      "matched": 966,
-      "ambiguous": 65,
+      "matched": 971,
+      "ambiguous": 60,
       "likelyNew": 68
     },
     {
@@ -81,30 +81,30 @@
     {
       "type": "literary-tradition",
       "count": 62,
-      "matched": 0,
+      "matched": 50,
       "ambiguous": 0,
-      "likelyNew": 62
+      "likelyNew": 12
     },
     {
       "type": "migration-route",
       "count": 104,
-      "matched": 0,
+      "matched": 44,
       "ambiguous": 0,
-      "likelyNew": 104
+      "likelyNew": 60
     },
     {
       "type": "myth-motif",
       "count": 61,
-      "matched": 0,
+      "matched": 31,
       "ambiguous": 0,
-      "likelyNew": 61
+      "likelyNew": 30
     },
     {
       "type": "place",
       "count": 1213,
-      "matched": 0,
+      "matched": 476,
       "ambiguous": 151,
-      "likelyNew": 1062
+      "likelyNew": 586
     },
     {
       "type": "religion",
@@ -130,9 +130,9 @@
     {
       "type": "writing-system",
       "count": 115,
-      "matched": 0,
+      "matched": 68,
       "ambiguous": 0,
-      "likelyNew": 115
+      "likelyNew": 47
     }
   ],
   "keyCoverage": {
@@ -141,6 +141,7 @@
       "withIso639": 1031,
       "withGlottocode": 576
     },
+    "withWikidataQid": 2042,
     "withRegion": 2687,
     "duplicateCsidsDropped": 0
   },
@@ -549,47 +550,6 @@
           "name": "Huasteca Nahuatl",
           "region": "Huasteca",
           "confidence": 0.5
-        }
-      ]
-    },
-    {
-      "keyType": "language-code",
-      "key": "qu",
-      "candidates": [
-        {
-          "csid": "cs:language:Q12953845",
-          "linguascrapeId": "qug",
-          "name": "Chimborazo Highland Quichua",
-          "region": "Central Ecuador",
-          "confidence": 0.9
-        },
-        {
-          "csid": "cs:language:Q1307730",
-          "linguascrapeId": "quh",
-          "name": "South Bolivian Quechua",
-          "region": "Bolivia",
-          "confidence": 0.9
-        },
-        {
-          "csid": "cs:language:Q25559701",
-          "linguascrapeId": "qvi",
-          "name": "Imbabura Highland Quichua",
-          "region": "Northern Ecuador",
-          "confidence": 0.9
-        },
-        {
-          "csid": "cs:language:Q35145",
-          "linguascrapeId": "quy",
-          "name": "Ayacucho Quechua",
-          "region": "Southern Peru",
-          "confidence": 0.9
-        },
-        {
-          "csid": "cs:language:Q35147",
-          "linguascrapeId": "quz",
-          "name": "Cusco Quechua",
-          "region": "Southern Peru",
-          "confidence": 0.9
         }
       ]
     },
@@ -1256,7 +1216,27 @@
           "confidence": 0.5
         }
       ]
+    },
+    {
+      "keyType": "name-type-region",
+      "key": "ceviche | ingredient | ",
+      "candidates": [
+        {
+          "csid": "cs:ingredient:mexican-ceviche",
+          "linguascrapeId": "mexican-ceviche",
+          "name": "Ceviche",
+          "region": "",
+          "confidence": 0.5
+        },
+        {
+          "csid": "cs:ingredient:peruvian-ceviche",
+          "linguascrapeId": "peruvian-ceviche",
+          "name": "Ceviche",
+          "region": "",
+          "confidence": 0.5
+        }
+      ]
     }
   ],
-  "ambiguityGroupCount": 139
+  "ambiguityGroupCount": 138
 }

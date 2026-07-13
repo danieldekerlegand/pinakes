@@ -176,6 +176,54 @@ The export (§7) applies these rules concretely:
 - The manifest's `provenance` block reports per-type non-blank counts for every
   provenance column plus a human-readable `flags` list (US-006 coverage metric).
 
+### 4.4 Confidence rubric — what a `confidence` number MEANS (US-001)
+
+`confidence` is the probabilistic substrate for the tiered-trust corpus (and any
+downstream inference / ProbLog engine), so it must mean something. Before US-001 it was a
+blanket per-source constant scattered across the acquire scripts and adapters — Wikidata
+pulls stamped `1.0`, HTML scraping `0.5`, the named-in linker `0.95` — so a probabilistic
+consumer would have learned from **fake uncertainty**. The **confidence rubric** replaces
+those literals with a single, documented table of per-provenance-class priors.
+
+- **Source of truth:** `shared/confidence-rubric.json` (typed accessors in
+  `shared/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
+  `confidenceCellForClass(...)`; `assertValidConfidenceRubric()` pins it well-formed).
+  culture-scrape mirrors it in `packages/culture-scrape/src/culturescrape/confidence.py`
+  (`confidence_for(cls)`), kept in lockstep by `tests/test_confidence.py`.
+- **How it's stamped:** acquisition, linkers, and the TS export name their provenance
+  **class** instead of hard-coding a number. TS acquire/curate scripts call
+  `confidenceCellForClass(...)` (the archaeological lexicons use `{scale: 100}` for their
+  0–100 columns); the export's `DEFAULT_NODE_CONFIDENCE` / edge `DEFAULT_EDGE_CONFIDENCE` /
+  needs-curation stub confidence derive from the rubric; the Python adapters
+  (`wikidata`/`getty`/`pleiades`/`petscan`/`wikitext`/`linguascrape`/`html`) and the
+  `named_in` linker default their `confidence` from `confidence_for(...)`.
+
+Classes, most- to least-trusted (`order` in the JSON):
+
+| Class | Prior | Meaning |
+|---|---|---|
+| `qid-anchored` | 1.0 | Identity IS a resolved external authority (Wikidata/Getty/Pleiades/PetScan/Wikitext; a curated lexicon row is QID-anchored identity). |
+| `named-in-linker` | 0.95 | High-precision name+type match by the ontology named-in linker. |
+| `referenced-wikidata` | 0.9 | Wikidata statement backed by a reference/authority (UNESCO P1999, Glottolog P1394) or a strong notability floor (sitelinks). |
+| `exact-reconciled` | 0.9 | Lexicon row reconciled to a QID by an exact blocking key (ISO/glottocode/unambiguous name). *(forward-looking, US-003)* |
+| `curated-verified` | 0.8 | Hand-curated record anchored to a manually verified QID (route / myth-motif curate scripts). |
+| `unreferenced-wikidata` | 0.8 | Bulk WDQS class-membership pull taken as-is, no per-statement reference. |
+| `fuzzy-reconciled` | 0.7 | Lexicon row reconciled by a fuzzy label match. *(forward-looking, US-003)* |
+| `inferred` | 0.6 | Derived by inference/linker with no external anchor on the value. *(forward-looking)* |
+| `scraped-html` | 0.5 | Brittle HTML scraping. |
+| `legacy-curated` | 0.5 | Human-curated lexicon row with no explicit confidence — "present but unverified". |
+| `stub-needs-curation` | 0.0 | Auto-minted placeholder for an unresolved edge endpoint (US-007) — not a real fact. |
+
+**Grandfathering (migration policy).** The priors were chosen to **preserve every
+historically-emitted confidence value**, so introducing the rubric is data-neutral — the
+export manifest is byte-identical and no committed acquired/curated row moves. Existing
+human-curated lexicon rows that carry no explicit `confidence` are **grandfathered** at the
+`legacy-curated` prior (the export default) rather than back-filled: re-deriving confidence
+for the thousands of pre-rubric rows is out of scope for US-001, and the corpus-merge job
+(US-002) is where lexicon rows earn a real tier. Re-calibrating any tier is now a one-line
+edit to `shared/confidence-rubric.json` (+ the Python mirror), after which the affected
+acquire scripts re-emit and the snapshots are regenerated.
+
 ## 5. Validation
 
 - **Compile time:** `shared/canonical-schema.ts` asserts the JSON against the

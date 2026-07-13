@@ -484,6 +484,17 @@ data change that moves a target domain's count, or the parity test fails.
   ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
   to `ROADMAP_TARGETS` and regenerate the committed report.
 
+## Corpus trust-tier report (tiered-trust US-004)
+
+`corpus-tier-report.ts` is the deterministic file-writer for the trust-tier composition, the exact
+sibling of `coverage-report.ts`: it imports `buildCorpusTierReport` from the shared
+`data-quality-scorer` service (one source of truth) and emits `docs/corpus-tier-report.{json,md}`.
+The JSON is asserted against the live corpus by `server/services/data-quality-scorer.test.ts`, so
+**re-run `npx tsx scripts/corpus-tier-report.ts` after any node-lexicon change that moves QID /
+`source_url` coverage** (e.g. a QID backfill), or that parity test fails. Tiers come from
+`@shared/trust-tier` (`classifyTrustTier`, the TS mirror of culture-scrape's `orchestrate/tiers.py`);
+the report tracks **auto-admission readiness** (the whole curated corpus is `graphTier: curated`).
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on
@@ -502,6 +513,48 @@ uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
 `languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
 report's `keyCoverage.languages.withGlottocode` tracks it). See
 `packages/culture-scrape/docs/reconcile-linguascrape.md`.
+
+- **The QID anchor IS cascade step 1 (US-003).** The report originally bucketed on the
+  language/name key only, so a node that already carried a `wikidata_qid` was miscounted as
+  `likely-new`. It now buckets **any** QID-bearing node as `matched` (a QID resolves the same
+  entity every time; two nodes sharing a QID are the same entity, collapsed by
+  `reconcile_shared_qids`, NOT a blocking ambiguity — so QID never produces an ambiguity
+  group). `keyCoverage.withWikidataQid` counts them and `KEYS_HEADER` gained a `wikidata_qid`
+  column. This is why backfilling QIDs (below) moves `matched`: without the anchor-aware
+  bucketing, a filled `wikidata_qid` would not change the report.
+
+## Batch QID backfill on unreconciled rows (US-003)
+
+`reconcile-lexicon-qids.ts` is the networked **acquire → reconcile** step that proposes
+`wikidata_qid`s for lexicon rows that lack one (the reason ~80% of nodes were `likely-new`).
+Same replay-source discipline as the acquire scripts: it writes a committed, deterministic
+candidates artifact `scripts/data/lexicon-qid-candidates.tsv` (CI never hits Wikidata),
+and `--apply` fills the blanks from it.
+
+- **Exact-label match, precision-first.** Per addressable row (blank `wikidata_qid`, non-blank
+  `name`, `id` unique in its file) it queries Wikidata for an entity whose English `rdfs:label`
+  equals the name exactly — **class-constrained** (`wdt:P31/wdt:P279* wd:<class>`) via
+  `QID_TARGETS` where a reliable class exists, else **global label uniqueness** (minus
+  Wikimedia disambiguation/category/list pages). Exactly one match ⇒ `accepted`; ≥2 ⇒
+  `ambiguous` (competing QIDs listed, **never auto-accepted**); 0 ⇒ `none`. `languages.tsv` is
+  excluded (already ISO/glottocode-matched — a QID adds no `matched`).
+- **Apply = the enrichment write-back.** `applyAccepted` calls
+  `import-from-culturescrape.buildEnrichment` per file: fills the blank `wikidata_qid` plus full
+  provenance (`source_url`, `retrieved_at`, `confidence` from the `exact-reconciled` rubric class
+  on the file's own 0–1/0–100 scale via `detectConfidenceScale`, `sources`). Blanks only — a
+  differing curated cell (e.g. an existing `confidence`) is a reported conflict, never clobbered.
+  **The attribution gate requires all of source/source_url/retrieved_at/confidence on any
+  QID-bearing row**, so an accepted row MUST end up with every provenance cell non-blank (it
+  does — pre-existing or newly filled). Idempotent: re-running `--apply` adds 0.
+- **GOTCHA — filling a QID re-mints the csid** (`cs:<type>:<id>` → `cs:<type>:<QID>`), so after
+  `--apply` regenerate BOTH `docs/culturescrape-export-manifest.json` and
+  `docs/reconciliation-report.json` and run `npm run convergence-qa`. A backfilled QID that
+  collides with an existing same-type QID would create a `duplicateCsids` regression the gate
+  blocks — none occurred, but verify the diagnostics after a fresh batch.
+- The matched-share ceiling (why one pass lands ~37%, not ≥50%) is documented in
+  `packages/culture-scrape/docs/reconcile-linguascrape.md` (US-003): most remaining
+  `likely-new` nodes live in lexicon files that carry **no** `wikidata_qid` column yet, so
+  backfilling them needs a per-file schema addition (a separate scale-up).
 
 ## Language glottocode enrichment (US-006)
 
