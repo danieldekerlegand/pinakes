@@ -232,6 +232,41 @@ include_constraints=True)`.
   (`test_souffle_detects_a_value_type_violation`) — engines aren't installed locally, so
   reason about stratification and lean on that CI-gated test.
 
+## Schema-constraint violation rules (rules-layer US-003)
+
+`schema_constraints.py` compiles the **canonical schema's own** constraints
+(`shared/canonical-schema.json` edge `from`/`to`, `symmetric`, csid-uniqueness) into
+Soufflé **violation rules** — the schema analogue of `constraints.py`. Same self-contained
+pattern: `extract_edge_constraints()` reads the schema (repo-root `parents[5]/shared/...`,
+absent in a standalone checkout) and resolves each node-type *name* → `:LABEL`, baking them
+into the committed replay artifact `datalog/schema/edge_constraints.tsv`; the reader/generator
+translate from resolved labels alone. Attached behind `to-datalog --schema-constraints` /
+`export_dataset(include_schema_constraints=True)`.
+
+- **All four kinds are Soufflé-only** (negation / inequality). A `from`/`to` type check is a
+  **support + violation pair** so heads stay binary: `from_ok_t(X, Y) :- t(X, Y),
+  instance_of(X, "L").` (one clause per allowed label) then `t_from_type_violation(X, Y) :-
+  t(X, Y), !from_ok_t(X, Y).` — the support carries **both** endpoints so the negation is over
+  the `(X, Y)` pair, never an unsafe unary `!from_ok(X)`. Symmetry: `t_symmetry_violation(X, Y)
+  :- t(X, Y), !t(Y, X).`; csid-uniqueness: `csid_uniqueness_violation(C, N) :- node(C, T1, N),
+  node(C, T2, M), N != M.` (the ONE schema rule whose body reads the arity-3 `node/3` — fine:
+  the emitter declares `node` from facts, so don't route it where `node` is undeclared).
+  Stratification: `instance_of` closure (recursive) < `from_ok_t` (positive) < violation
+  (negation) — no cycle-through-negation.
+- **The materialiser can't run these** (it has no negation), so the engine-free authoritative
+  check is a **purpose-built** `evaluate_schema_violations(facts, constraints)` (closes
+  `instance_of` over `subclass_of` itself, then enumerates offenders) — NOT
+  `materialize()`. The souffle-gated `test_souffle_detects_the_type_violation_the_evaluator_does`
+  asserts the real engine agrees with it.
+- **The full-corpus report is a committed release record** (`docs/schema-constraints-report.json`,
+  regenerate with `culturescrape schema-constraints export/culturescrape --json ...`), NOT a
+  live-asserted snapshot (the corpus is gitignored) — like the materialization manifest. `--baseline`
+  ratchets a corpus against it (violations never increase). A test pins the report's known finding
+  (45 `WritingSystem`-descent `descended-from` edges the schema doesn't yet allow; triaged in
+  `docs/schema-constraints.md`) so a careless regeneration is caught. Regenerate BOTH
+  `schema/edge_constraints.tsv` (tied to the live schema) and `schema/rules_registry.tsv` (tied to
+  the generator) after a schema change; both are `pyproject` package-data (`datalog/schema/*.tsv`).
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its

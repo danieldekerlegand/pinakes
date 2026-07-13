@@ -607,6 +607,68 @@ also loads the taxonomy closure the integrity rules negate over):
 
 ```
 
+### Schema constraints (canonical schema) — rules-layer US-003
+
+Where P279/P2302 acquire rules from *Wikidata*, this layer compiles the **canonical
+schema's own constraints** — declared in
+[`shared/canonical-schema.json`](../../../shared/canonical-schema.json) but never checked
+logically until now. [`culturescrape.datalog.schema_constraints`](../src/culturescrape/datalog/schema_constraints.py)
+`extract`s each edge type's `from`/`to` allowed node types (resolved to `:LABEL`s), its
+declared `symmetric` flag and the schema-wide csid-uniqueness rule into the provenanced
+replay artifact
+[`datalog/schema/edge_constraints.tsv`](../src/culturescrape/datalog/schema/edge_constraints.tsv),
+then compiles each into a **Soufflé violation rule whose output relation enumerates the
+offending edges**:
+
+| Constraint | Rule | Engines |
+| --- | --- | --- |
+| **from-type** | `t_from_type_violation(X, Y) :- t(X, Y), !from_ok_t(X, Y).` (support: `from_ok_t(X, Y) :- t(X, Y), instance_of(X, "L").`) | Soufflé only |
+| **to-type** | `t_to_type_violation(X, Y) :- t(X, Y), !to_ok_t(X, Y).` (negates on `Y`) | Soufflé only |
+| **symmetry** | `t_symmetry_violation(X, Y) :- t(X, Y), !t(Y, X).` (declared-symmetric edges only) | Soufflé only |
+| **csid-uniqueness** | `csid_uniqueness_violation(C, N) :- node(C, T1, N), node(C, T2, M), N != M.` | Soufflé only |
+
+The support relations carry **both** endpoints, so the violation negates over the `(X, Y)`
+pair rather than an unsafe unary `!from_ok_t(X)` — every head and predicate stays binary.
+All four kinds use negation / inequality over the transitive `instance_of` closure, so they
+are Soufflé-only (matching the P2302 integrity rules), and the export attaches them behind
+`--schema-constraints` (which loads the P279 closure they negate over). Each rule carries
+schema provenance (`source = canonical-schema`, `source_url`, `schema_version`, `confidence`)
+into the draft registry
+[`datalog/schema/rules_registry.tsv`](../src/culturescrape/datalog/schema/rules_registry.tsv):
+
+```python
+>>> from culturescrape.datalog import Fact
+>>> from culturescrape.datalog.schema_constraints import (
+...     load_edge_constraints, evaluate_schema_violations)
+>>> constraints = load_edge_constraints()
+>>> descends = next(c for c in constraints if c.edge_type == "DESCENDS_FROM")
+>>> descends.from_labels
+('Language', 'LanguageFamily', 'Culture', 'ArchaeologicalCulture')
+>>> facts = [
+...     Fact("instance_of", ("cs:ws:a", "WritingSystem")),
+...     Fact("instance_of", ("cs:ws:b", "WritingSystem")),
+...     Fact("instance_of", ("cs:lang:x", "Language")),
+...     Fact("instance_of", ("cs:lang:y", "Language")),
+...     Fact("descends_from", ("cs:ws:a", "cs:ws:b")),
+...     Fact("descends_from", ("cs:lang:x", "cs:lang:y")),
+... ]
+>>> violations = evaluate_schema_violations(facts, constraints)
+>>> violations["descends_from_from_type_violation"]   # the WritingSystem edge only
+[('cs:ws:a', 'cs:ws:b')]
+>>> violations["csid_uniqueness_violation"]
+[]
+
+```
+
+The engine-free `evaluate_schema_violations` is the authoritative check (the generic
+materialiser cannot express negation); `culturescrape schema-constraints <dataset>
+[--json report.json] [--baseline report.json]` runs it over a whole corpus and, with
+`--baseline`, ratchets against a committed report so violations can never increase. The
+current full-corpus enumeration (45 WritingSystem-descent `descended-from` edges the schema
+does not yet allow) is triaged in
+[`docs/schema-constraints-report.json`](schema-constraints-report.json) and
+[`docs/schema-constraints.md`](schema-constraints.md).
+
 ### Attaching the rules
 
 Passing `rules=RULES` appends a documented rules section — each rule's intended

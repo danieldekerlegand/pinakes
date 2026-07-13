@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.1.0",
+  "total": 90,
+  "counts": {
+    "descends_from_from_type_violation": 45,
+    "descends_from_to_type_violation": 45,
+    "absorbed_into_from_type_violation": 0,
+    "absorbed_into_to_type_violation": 0,
+    "borrowed_from_from_type_violation": 0,
+    "borrowed_from_to_type_violation": 0,
+    "cognate_with_from_type_violation": 0,
+    "cognate_with_to_type_violation": 0,
+    "conquered_by_from_type_violation": 0,
+    "conquered_by_to_type_violation": 0,
+    "csid_uniqueness_violation": 0,
+    "located_in_to_type_violation": 0,
+    "merged_with_from_type_violation": 0,
+    "merged_with_to_type_violation": 0,
+    "split_from_from_type_violation": 0,
+    "split_from_to_type_violation": 0,
+    "spoken_in_from_type_violation": 0,
+    "spoken_in_to_type_violation": 0,
+    "syncretized_with_from_type_violation": 0,
+    "syncretized_with_to_type_violation": 0
+  },
+  "samples": {
+    "descends_from_from_type_violation": [
+      {
+        "start": "cs:writing-system:Q1065250",
+        "end": "cs:writing-system:ws_027",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q1815229",
+        "end": "cs:writing-system:ws_049",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q185083",
+        "end": "cs:writing-system:ws_045",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q190102",
+        "end": "cs:writing-system:Q30972",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q208503",
+        "end": "cs:writing-system:ws_028",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q38592",
+        "end": "cs:writing-system:ws_042",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q4891256",
+        "end": "cs:writing-system:ws_003",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q578359",
+        "end": "cs:writing-system:ws_045",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q804984",
+        "end": "cs:writing-system:ws_042",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:ws_001",
+        "end": "cs:writing-system:ws_046",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      }
+    ],
+    "descends_from_to_type_violation": [
+      {
+        "start": "cs:writing-system:Q1065250",
+        "end": "cs:writing-system:ws_027",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q1815229",
+        "end": "cs:writing-system:ws_049",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q185083",
+        "end": "cs:writing-system:ws_045",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q190102",
+        "end": "cs:writing-system:Q30972",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q208503",
+        "end": "cs:writing-system:ws_028",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q38592",
+        "end": "cs:writing-system:ws_042",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q4891256",
+        "end": "cs:writing-system:ws_003",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q578359",
+        "end": "cs:writing-system:ws_045",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:Q804984",
+        "end": "cs:writing-system:ws_042",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      },
+      {
+        "start": "cs:writing-system:ws_001",
+        "end": "cs:writing-system:ws_046",
+        "start_labels": [
+          "WritingSystem"
+        ],
+        "end_labels": [
+          "WritingSystem"
+        ]
+      }
+    ]
+  }
+}

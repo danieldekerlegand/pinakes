@@ -50,6 +50,11 @@ from culturescrape.datalog.export import (
 )
 from culturescrape.datalog.materialize import MaterializeError, summarize
 from culturescrape.datalog.rules import RULES
+from culturescrape.datalog.schema_constraints import (
+    SchemaConstraintError,
+    load_edge_constraints,
+    schema_violation_report,
+)
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
 from culturescrape.neo4j.admin_import import (
     AdminImportError,
@@ -368,6 +373,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "integrity rules negate over.",
     )
     to_datalog.add_argument(
+        "--schema-constraints",
+        action="store_true",
+        help="attach the rules compiled from the canonical schema's edge from/to "
+        "constraints, csid-uniqueness and declared symmetry (Soufflé violation rules). "
+        "Loads the P279 taxonomy the integrity rules negate over.",
+    )
+    to_datalog.add_argument(
         "--out",
         required=True,
         type=Path,
@@ -406,6 +418,31 @@ def _build_parser() -> argparse.ArgumentParser:
         "'engine_only' in the manifest.",
     )
     datalog_materialize.set_defaults(handler=_cmd_datalog_materialize)
+
+    schema_constraints = subparsers.add_parser(
+        "schema-constraints",
+        help="detect canonical-schema violations (edge from/to types, csid-uniqueness, "
+        "declared symmetry) over a dataset, engine-free, and report them",
+    )
+    schema_constraints.add_argument(
+        "directory",
+        type=Path,
+        help="dataset root holding nodes/ and edges/ .tsv files",
+    )
+    schema_constraints.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the triaged violation report (counts + sampled offenders) as JSON",
+    )
+    schema_constraints.add_argument(
+        "--baseline",
+        type=Path,
+        default=None,
+        help="a committed report to ratchet against: exit non-zero if any violation "
+        "relation's count exceeds its baseline (a new relation counts as baseline 0)",
+    )
+    schema_constraints.set_defaults(handler=_cmd_schema_constraints)
 
     run = subparsers.add_parser(
         "run",
@@ -1161,6 +1198,7 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
             engines,
             include_rules=args.rules,
             include_constraints=args.constraints,
+            include_schema_constraints=args.schema_constraints,
         )
     except DatalogExportError as exc:
         return _fail(str(exc))
@@ -1170,6 +1208,8 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
         notes.append("rules")
     if args.constraints:
         notes.append("constraints")
+    if args.schema_constraints:
+        notes.append("schema-constraints")
     rules_note = f" with {' + '.join(notes)}" if notes else ""
     print(
         f"projected {result.fact_count} fact(s){rules_note} to {args.out} "
@@ -1217,6 +1257,53 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
             json.dumps(payload, indent=2) + "\n", encoding="utf-8"
         )
         print(f"wrote manifest to {args.json}")
+    return 0
+
+
+def _cmd_schema_constraints(args: argparse.Namespace) -> int:
+    try:
+        constraints = load_edge_constraints()
+        # Include the P279 taxonomy so class membership closes before the from/to
+        # type checks negate over it (mirrors the export's rule-bearing path).
+        facts = list(collect_facts(args.directory, include_taxonomy=True))
+    except (DatalogExportError, SchemaConstraintError) as exc:
+        return _fail(str(exc))
+    if not constraints:
+        return _fail(
+            "no edge constraints found (missing edge_constraints.tsv artifact)"
+        )
+
+    report = schema_violation_report(facts, constraints)
+    print(f"schema v{report.schema_version}: {report.total} violation(s)")
+    for relation, count in report.counts.items():
+        marker = "  " if count == 0 else "! "
+        print(f"{marker}{relation}: {count}")
+
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(
+            json.dumps(report.to_json(), indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"wrote report to {args.json}")
+
+    if args.baseline is not None:
+        try:
+            baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+        except OSError as exc:
+            return _fail(f"cannot read baseline {args.baseline}: {exc}")
+        base_counts = baseline.get("counts", {})
+        regressions = [
+            (relation, count, base_counts.get(relation, 0))
+            for relation, count in report.counts.items()
+            if count > base_counts.get(relation, 0)
+        ]
+        if regressions:
+            for relation, count, allowed in regressions:
+                print(f"REGRESSION {relation}: {count} > baseline {allowed}")
+            return _fail(
+                f"{len(regressions)} schema-violation relation(s) exceeded the baseline"
+            )
+        print(f"ratchet ok (baseline {args.baseline})")
     return 0
 
 

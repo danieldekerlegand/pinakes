@@ -32,6 +32,12 @@ from culturescrape.datalog.problog import (
 )
 from culturescrape.datalog.prolog import write_program
 from culturescrape.datalog.rules import RULES, Rule
+from culturescrape.datalog.schema_constraints import (
+    schema_constraint_file_rules,
+)
+from culturescrape.datalog.schema_constraints import (
+    souffle_rules as schema_souffle_rules,
+)
 from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME, write_souffle_program
 from culturescrape.datalog.taxonomy import subclass_file_facts
 
@@ -173,6 +179,7 @@ def export_dataset(
     *,
     include_rules: bool = False,
     include_constraints: bool = False,
+    include_schema_constraints: bool = False,
 ) -> ExportResult:
     """Export the dataset at *directory* to a logic program under *out*.
 
@@ -195,6 +202,13 @@ def export_dataset(
     domain — see the module docstring). ProbLog is the probabilistic on-ramp and
     receives no constraint rules.
 
+    When *include_schema_constraints* is set, the rules compiled from the canonical
+    schema's own edge from/to constraints, csid-uniqueness and declared symmetry
+    (:mod:`culturescrape.datalog.schema_constraints`, rules-layer US-003) are attached —
+    Soufflé-only (negation-as-failure over the ``instance_of`` closure), so the shared
+    rule library and its P279 taxonomy facts are attached alongside them exactly as the
+    property-constraint integrity rules require.
+
     Raises:
         DatalogExportError: If *engines* is empty, or the dataset cannot be read
             (see :func:`collect_facts`).
@@ -205,8 +219,9 @@ def export_dataset(
 
     # The taxonomy rides with the rules: subclass_of/2 facts only earn their keep
     # when the instance_of closure rule is attached to consume them — and the
-    # integrity rules negate over that same closure, so constraints need it too.
-    attach_rules = include_rules or include_constraints
+    # integrity rules (property + schema) negate over that same closure, so both
+    # kinds of constraint need it too.
+    attach_rules = include_rules or include_constraints or include_schema_constraints
     facts = collect_facts(directory, include_taxonomy=attach_rules)
     base_rules: tuple[Rule, ...] = RULES if attach_rules else ()
     prolog_rules = base_rules
@@ -215,6 +230,12 @@ def export_dataset(
         translation = constraint_file_rules()
         prolog_rules = base_rules + translation.prolog_rules()
         souffle_rules = base_rules + translation.souffle_rules()
+    if include_schema_constraints:
+        # Soufflé-only: the from/to type, symmetry and csid-uniqueness rules use
+        # negation / inequality (see the module docstring). Prolog receives none.
+        souffle_rules = souffle_rules + schema_souffle_rules(
+            schema_constraint_file_rules()
+        )
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
