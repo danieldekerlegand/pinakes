@@ -88,6 +88,40 @@ report shape (tier encoded in the sample `confidence`: 1.0 glottocode, 0.95 ISO)
 `scripts/reconcile_glottolog.py` (gitignored `out/.../report.{json,md}`); committed summary
 `docs/glottolog-reconciliation.md`.
 
+## WALS/PHOIBLE: attribute-fact nodes + language coverage (`typology_reconcile.py`, US-002)
+
+CLDF **enrichment** sources (WALS typology, PHOIBLE phonology — and the same shape will
+fit Lexibank wordlists, US-003) are ingested category-only as **attribute-fact nodes**:
+one node per (language, feature) value / (language, segment), keyed by the language's
+Glottocode on `language_code`. They are NOT a genealogy, so the join to the language
+lexicon is a **reconciliation**, not a graph edge — `typology_reconcile.py` rolls the
+facts up **per language** and reuses `glottolog_reconcile.reconcile_glottolog`'s
+glottocode→ISO cascade, reporting coverage (facts / languages by node type and by licence
+class). Driver `scripts/reconcile_typology.py`; committed summary
+`docs/wals-phoible-reconciliation.md`.
+
+- **GOTCHA — `merge_rows` fuzzy-name dedup will collapse distinct attribute facts.** The
+  per-category normalize (`pipeline.normalize_records`) runs `merge_rows`, whose fuzzy
+  pass blocks on **`(:LABEL, lang)`** and merges any two rows whose normalized `name`
+  are ≥ 0.85 similar. Systematic fact names share long substrings ("English phoneme /m/"
+  vs "…/p/" → 0.95 → merged; the *same* feature across languages → merged), so a naïve
+  node-per-fact ingest silently loses most facts. Two levers, both category-only, fix it:
+  (1) **map the ISO 639-3 code to `lang`** (`field.lang: ISO639P3code`) so facts of
+  different languages fall in different fuzzy blocks and are never compared — this also
+  serves as the reconciler's ISO fallback key (read from the `lang` column, not the
+  overflow); (2) **keep the node `name` short / within-language-distinct** — map `name`
+  to the bare segment (PHOIBLE) or a per-language-distinct feature label (WALS), so two
+  facts of ONE language stay dissimilar. Verify empirically: `culturescrape run` then
+  count `out/<job>/corpus/nodes/*.tsv` rows against the fixture row count.
+- **Connectivity is relaxed per job.** Attribute facts are disjoint per-language stars
+  (each links only to its synthetic type/category hub), so the corpus legitimately
+  fragments; set `min_component_fraction: 0.0` in the job (`orchestrate/jobs.py` override)
+  — the language join is the reconciliation, not descent connectivity.
+- **Per-record `license` is the AC deliverable** (WALS `CC-BY-4.0`, PHOIBLE share-alike
+  `CC-BY-SA-3.0`): set it in `source.params.license` and it lands on every node's
+  `license` column (via `_carry_provenance`), so the corpus is queryable by licence
+  class. `typology_reconcile`'s `facts_by_license` is the coverage proof.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

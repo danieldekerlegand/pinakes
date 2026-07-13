@@ -1,0 +1,61 @@
+# WALS (World Atlas of Language Structures) structural feature values ingested via
+# the generic tabular-dump adapter.
+#
+# WALS (docs/sources-linguistic.md) is the authoritative open **typology** database:
+# ~2.6k languages x ~190 structural features (phonology / grammar / lexicon). Its CLDF
+# StructureDataset is plain CSV, so it needs only column mappings on the existing
+# tabular-dump adapter (src/culturescrape/acquire/tabular.py), not new adapter code.
+#
+# Unlike Glottolog (a genealogy), WALS is enrichment: each value is a *fact about a
+# language* ("language X has feature F = value V"), so a row lands as its own
+# **Typology** attribute-fact node keyed by the language's **glottocode**
+# (field.language_code). The reconciler (schema/typology_reconcile.py) joins those
+# facts to the Glottolog-anchored Language nodes / lexicons/languages.tsv by glottocode
+# (then ISO 639-3) — the join is a reconciliation, not a graph descent edge, because
+# typology facts do not by themselves yield linguistic *edges* (docs/sources-linguistic.md).
+#
+# Mappings (denormalised CLDF column -> canonical field, docs/data-model.md):
+#   Name        -> name           (a per-fact label, "Language: Feature"; the mapper
+#                                   anchors a source-less node's csid on (name, lang),
+#                                   so within one language the feature names must stay
+#                                   distinct — WALS features are, so they never collide)
+#   Glottocode  -> language_code   (the language this fact is about; the reconciler's
+#                                   primary blocking key)
+#   ISO639P3code-> lang            (ISO 639-3 — the entity-resolution fuzzy-merge BLOCK
+#                                   key, so the *same* feature on two languages ("SVO"
+#                                   for English vs Mandarin) is never merged; AND the
+#                                   reconciler's ISO 639-3 fallback key)
+# Every unmapped column (Language_ID, Parameter_ID, Feature, Value, ...) rides through
+# into the node's `extra` overflow, so the feature/value payload is preserved, nothing
+# dropped.
+#
+# Provenance: source=wals, license=CC-BY-4.0 (WALS's release licence — travels with
+# every record, per the share-alike discipline), confidence=0.8 (the curated-verified
+# rubric class: an authoritative aggregated database).
+#
+# `source.query` points at the committed fixture slice so the job runs out of the box
+# and in CI (network-free). Repoint it at a real download: WALS ships one row per
+# (language, feature) in cldf/values.csv keyed by its own Language_ID, so a one-time
+# denormalisation joins values.csv -> languages.csv (Language_ID -> Glottocode /
+# ISO639P3code) and parameters.csv/codes.csv (feature + value labels), and synthesises
+# a unique `Name` cell per fact ("<Language>: <Feature>"). See
+# docs/wals-phoible-reconciliation.md.
+id: wals
+label: Typology
+description: WALS structural feature values (typology) as language-keyed attribute facts.
+source:
+  type: dump
+  query: tests/fixtures/wals/values.csv
+  params:
+    adapter: tabular-dump
+    format: csv
+    source: wals
+    license: CC-BY-4.0
+    confidence: "0.8"
+    id_column: ID
+    url_template: https://wals.info/valuesets/{id}
+    field.name: Name
+    field.language_code: Glottocode
+    field.lang: ISO639P3code
+dimensions:
+  - linguistic

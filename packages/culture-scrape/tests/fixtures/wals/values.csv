@@ -1,0 +1,10 @@
+ID,Language_ID,Language_Name,Glottocode,ISO639P3code,Parameter_ID,Feature,Value,Name
+81A-eng,eng,English,stan1293,eng,81A,"Order of Subject, Object and Verb",SVO,"English: Order of Subject, Object and Verb"
+1A-eng,eng,English,stan1293,eng,1A,Consonant Inventories,Average,English: Consonant Inventories
+81A-cmn,mnd,Mandarin,mand1415,cmn,81A,"Order of Subject, Object and Verb",SVO,"Mandarin: Order of Subject, Object and Verb"
+13A-cmn,mnd,Mandarin,mand1415,cmn,13A,Tone,Complex tone system,Mandarin: Tone
+81A-jpn,jpn,Japanese,nucl1643,jpn,81A,"Order of Subject, Object and Verb",SOV,"Japanese: Order of Subject, Object and Verb"
+26A-jpn,jpn,Japanese,nucl1643,jpn,26A,Prefixing vs. Suffixing,Strongly suffixing,Japanese: Prefixing vs. Suffixing
+81A-tur,tur,Turkish,nucl1301,tur,81A,"Order of Subject, Object and Verb",SOV,"Turkish: Order of Subject, Object and Verb"
+26A-tur,tur,Turkish,nucl1301,tur,26A,Prefixing vs. Suffixing,Strongly suffixing,Turkish: Prefixing vs. Suffixing
+81A-abz,abu,Abui,abui1241,abz,81A,"Order of Subject, Object and Verb",SOV,"Abui: Order of Subject, Object and Verb"
