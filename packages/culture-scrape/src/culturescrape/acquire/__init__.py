@@ -37,6 +37,11 @@ from culturescrape.acquire.http import (
     RequestsTransport,
     Transport,
 )
+from culturescrape.acquire.kaikki import (
+    KAIKKI_SOURCE,
+    KaikkiAdapter,
+    KaikkiError,
+)
 from culturescrape.acquire.linguascrape import (
     LINGUASCRAPE_SOURCE,
     LinguaScrapeExportAdapter,
@@ -140,6 +145,7 @@ __all__ = [
     "FIELD_PREFIX",
     "INDEX_FORMAT",
     "INDEX_VERSION",
+    "KAIKKI_SOURCE",
     "LANGUAGE_PROFILE",
     "LINGUASCRAPE_SOURCE",
     "PROFILES",
@@ -175,6 +181,8 @@ __all__ = [
     "HttpClient",
     "HttpResponse",
     "HttpStats",
+    "KaikkiAdapter",
+    "KaikkiError",
     "LinguaScrapeExportAdapter",
     "LinguaScrapeExportError",
     "Link",

@@ -20,6 +20,7 @@ from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.getty import GettyDumpAdapter
 from culturescrape.acquire.html import HtmlScrapeAdapter
 from culturescrape.acquire.http import HttpClient
+from culturescrape.acquire.kaikki import KaikkiAdapter
 from culturescrape.acquire.linguascrape import LinguaScrapeExportAdapter
 from culturescrape.acquire.petscan import PetScanAdapter
 from culturescrape.acquire.pleiades import PleiadesDumpAdapter
@@ -43,6 +44,7 @@ _BUILDERS: dict[str, Callable[[HttpClient | None], SourceAdapter]] = {
     GettyDumpAdapter.name: lambda http: GettyDumpAdapter(),
     PleiadesDumpAdapter.name: lambda http: PleiadesDumpAdapter(),
     TabularDumpAdapter.name: lambda http: TabularDumpAdapter(),
+    KaikkiAdapter.name: lambda http: KaikkiAdapter(),
     LinguaScrapeExportAdapter.name: lambda http: LinguaScrapeExportAdapter(),
 }
 
@@ -67,6 +69,7 @@ for _cls in (
     GettyDumpAdapter,
     PleiadesDumpAdapter,
     TabularDumpAdapter,
+    KaikkiAdapter,
     LinguaScrapeExportAdapter,
 ):
     _BY_SOURCE_TYPE[_cls.source_type] = (

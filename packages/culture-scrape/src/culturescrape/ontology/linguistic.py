@@ -57,12 +57,17 @@ from culturescrape.ontology.linker import (
 )
 from culturescrape.ontology.registry import Dimension
 from culturescrape.schema.ids import IdError, mint_csid, normalize_qid
+from culturescrape.schema.kaikki_etymology import parse_relations_cell
 
 #: The ``:LABEL`` token a language node carries.
 LANGUAGE_LABEL = "Language"
 
 #: The ``:LABEL`` token a term node carries.
 TERM_LABEL = "Term"
+
+#: The canonical edge ``:TYPE``s a kaikki etymology relation may emit — a guard so
+#: a corrupt cell can never inject a non-registered type (see ``kaikki_etymology``).
+ETYMOLOGY_EDGE_TYPES = frozenset({"BORROWED_FROM", "DERIVED_FROM", "COGNATE_WITH"})
 
 #: Node overflow column (``schema.mapper.OVERFLOW_KEY``) holding unmapped source
 #: cells as JSON — where a Lexibank ``cognateset`` id survives the normalize→disk→
@@ -128,6 +133,11 @@ def _code_local(code: str) -> str | None:
     return f"lang-{safe}" if safe else None
 
 
+def _form_key(lang: str, term: str) -> str:
+    """A case-folded ``(language, term)`` key for indexing a term/wordform node."""
+    return f"{lang.casefold()}\x1f{term.casefold()}"
+
+
 @dataclass(frozen=True)
 class LinguisticResult:
     """The linguistic linker's full output: new nodes plus inferred edges.
@@ -160,9 +170,16 @@ class LinguisticLinker(Linker):
       to (a Lexibank ``Cognateset_ID``); forms sharing one are linked into a
       ``COGNATE_WITH`` representative star. A node without this cell is unaffected,
       so the pass is a no-op for every non-Lexibank corpus;
-    * *descends_confidence* / *spoken_confidence* / *borrowed_confidence* —
-      confidence for an identifier-based descent / spoken-in / borrowing edge (a
-      reference is a strong signal);
+    * *etymology_field* — the cell carrying a wordform's kaikki etymology relations
+      (a JSON list of ``{rel, lang, term}``, source-breadth US-004); each relation
+      links the form to the source-side term it names with the relation's canonical
+      ``:TYPE`` (``BORROWED_FROM`` / ``DERIVED_FROM`` / ``COGNATE_WITH``), minting a
+      minimal ``Term`` node for the target keyed by ``(lang, term)`` so the same
+      etymon referenced by many forms is one node. A node without this cell is
+      unaffected, so the pass is a no-op for every non-kaikki corpus;
+    * *descends_confidence* / *spoken_confidence* / *borrowed_confidence* /
+      *derived_confidence* — confidence for an identifier-based descent / spoken-in /
+      borrowing / derivation edge (a reference is a strong signal);
     * *cognate_confidence* — confidence for a derived ``COGNATE_WITH`` (lower,
       flagging the weaker shared-etymon inference / cognate-set membership).
     """
@@ -179,10 +196,12 @@ class LinguisticLinker(Linker):
         etymon_field: str = "etymon_qid",
         mode_field: str = "derivation_mode",
         cognateset_field: str = "cognateset",
+        etymology_field: str = "etymology_relations",
         borrow_modes: frozenset[str] = DEFAULT_BORROW_MODES,
         descends_confidence: float = 0.9,
         spoken_confidence: float = 0.85,
         borrowed_confidence: float = 0.85,
+        derived_confidence: float = 0.8,
         cognate_confidence: float = 0.6,
     ) -> None:
         self.ancestor_qid_field = ancestor_qid_field
@@ -191,11 +210,19 @@ class LinguisticLinker(Linker):
         self.etymon_field = etymon_field
         self.mode_field = mode_field
         self.cognateset_field = cognateset_field
+        self.etymology_field = etymology_field
         self.borrow_modes = borrow_modes
         self.descends_confidence = descends_confidence
         self.spoken_confidence = spoken_confidence
         self.borrowed_confidence = borrowed_confidence
+        self.derived_confidence = derived_confidence
         self.cognate_confidence = cognate_confidence
+        #: Canonical ``:TYPE`` → the confidence a kaikki etymology edge carries.
+        self._etymology_confidence = {
+            "BORROWED_FROM": borrowed_confidence,
+            "DERIVED_FROM": derived_confidence,
+            "COGNATE_WITH": cognate_confidence,
+        }
 
     def link(self, nodes: Sequence[Node], edges: Sequence[Edge]) -> list[Edge]:
         """Return the inferred edges only (the :class:`Linker` contract)."""
@@ -218,6 +245,7 @@ class LinguisticLinker(Linker):
         lang_by_code: dict[str, str] = {}
         place_by_qid: dict[str, str] = {}
         term_by_qid: dict[str, str] = {}
+        term_by_form: dict[str, str] = {}
         for node in nodes:
             labels = _labels(node)
             csid = _scalar(node, "csid")
@@ -231,6 +259,13 @@ class LinguisticLinker(Linker):
                 place_by_qid[qid] = csid
             if TERM_LABEL in labels and qid:
                 term_by_qid[qid] = csid
+            # Index every term/wordform by its (language, form) so a kaikki
+            # etymology relation naming an existing term reuses it as an endpoint
+            # instead of minting a duplicate stub.
+            if (TERM_LABEL in labels or "Wordform" in labels) and (
+                name := _scalar(node, "name")
+            ):
+                term_by_form.setdefault(_form_key(_scalar(node, "lang"), name), csid)
 
         created: dict[str, Node] = {}
         emitted: set[tuple[str, str, str]] = {
@@ -263,6 +298,7 @@ class LinguisticLinker(Linker):
                 self._link_term(node, source, term_by_qid, created, emit, cognates)
             if cognate_set := self._cognate_set(node):
                 cognate_sets.setdefault(cognate_set, []).append(source)
+            self._link_etymology(node, source, term_by_form, created, emit)
 
         self._emit_cognates(cognates, emit)
         self._emit_cognate_sets(cognate_sets, emit)
@@ -310,6 +346,70 @@ class LinguisticLinker(Linker):
         if _scalar(node, self.mode_field) in self.borrow_modes:
             emit(source, etymon, "BORROWED_FROM", self.borrowed_confidence)
         cognates.setdefault(qid, []).append(source)
+
+    def _link_etymology(
+        self,
+        node: Node,
+        source: str,
+        term_by_form: dict[str, str],
+        created: dict[str, Node],
+        emit: _Emit,
+    ) -> None:
+        """Emit a kaikki wordform's etymology edges to its source-side terms.
+
+        Reads the node's ``etymology_relations`` cell (a JSON list of
+        ``{rel, lang, term}``) and, for each relation, resolves the target term —
+        reusing an existing ``(lang, term)`` node or minting a minimal ``Term`` —
+        and emits an edge of the relation's canonical ``:TYPE``. The ``:TYPE`` is
+        re-checked against :data:`ETYMOLOGY_EDGE_TYPES` so a corrupt cell can never
+        introduce a non-registered edge type.
+        """
+        for relation in self._etymology_relations(node):
+            edge_type = relation["rel"]
+            if edge_type not in ETYMOLOGY_EDGE_TYPES:
+                continue
+            lang, term = relation["lang"], relation["term"]
+            target = self._reuse_or_create_form(term_by_form, lang, term, created)
+            emit(source, target, edge_type, self._etymology_confidence[edge_type])
+
+    def _etymology_relations(self, node: Node) -> list[dict[str, str]]:
+        """Return *node*'s kaikki etymology relations (``[]`` when it has none).
+
+        Checks a direct field first (in-memory link stage), then the ``extra``
+        overflow JSON — the relations cell is unmapped, so after ``build_corpus``
+        re-reads the normalized TSV from disk it lives only there.
+        """
+        direct = _scalar(node, self.etymology_field)
+        if direct:
+            return parse_relations_cell(direct)
+        value = _overflow(node).get(self.etymology_field, "")
+        return parse_relations_cell(value) if isinstance(value, str) else []
+
+    def _reuse_or_create_form(
+        self,
+        term_by_form: dict[str, str],
+        lang: str,
+        term: str,
+        created: dict[str, Node],
+    ) -> str:
+        """Return the ``Term`` csid for *(lang, term)*, minting one if unseen."""
+        key = _form_key(lang, term)
+        if key in term_by_form:
+            return term_by_form[key]
+        csid = mint_csid("term", name=term, lang=lang or None)
+        term_by_form[key] = csid
+        if csid not in created:
+            node: Node = {
+                "csid": csid,
+                ":LABEL": [TERM_LABEL],
+                "name": term,
+                "source": f"inferred:{self.name}",
+                "confidence": str(self.borrowed_confidence),
+            }
+            if lang:
+                node["lang"] = lang
+            created[csid] = node
+        return csid
 
     def _resolve_ancestor(
         self,

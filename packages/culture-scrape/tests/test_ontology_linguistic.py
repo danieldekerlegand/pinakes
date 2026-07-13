@@ -268,3 +268,81 @@ def test_registered_in_default_registry() -> None:
     linker = DEFAULT_REGISTRY.get("linguistic")
     assert isinstance(linker, LinguisticLinker)
     assert linker.dimension is Dimension.LINGUISTIC
+
+
+# --- kaikki etymology relations (source-breadth US-004) --------------------
+
+
+def _kaikki_node(csid: str, name: str, lang: str, relations: list[dict]) -> Row:
+    """A wordform node carrying its kaikki etymology relations in `extra` overflow."""
+    import json
+
+    return {
+        "csid": csid,
+        ":LABEL": ["Wordform"],
+        "name": name,
+        "lang": lang,
+        "extra": json.dumps({"etymology_relations": json.dumps(relations)}),
+    }
+
+
+def test_etymology_relations_emit_typed_edges_to_minted_terms() -> None:
+    nodes = [
+        _kaikki_node(
+            "cs:wordform:beef", "beef", "en",
+            [
+                {"rel": "BORROWED_FROM", "lang": "fro", "term": "boef"},
+                {"rel": "COGNATE_WITH", "lang": "fr", "term": "bœuf"},
+            ],
+        ),
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    by_type = {str(e[":TYPE"]): e for e in result.edges}
+    assert set(by_type) == {"BORROWED_FROM", "COGNATE_WITH"}
+    # Each edge points at a minted Term node keyed by (lang, term).
+    boef = mint_csid("term", name="boef", lang="fro")
+    assert (str(by_type["BORROWED_FROM"][":START_ID"]),
+            str(by_type["BORROWED_FROM"][":END_ID"])) == ("cs:wordform:beef", boef)
+    created = {str(n["csid"]) for n in result.nodes}
+    assert boef in created
+    assert mint_csid("term", name="bœuf", lang="fr") in created
+
+
+def test_same_etymon_from_two_forms_is_one_term_node() -> None:
+    # Two forms deriving from the same (lang, term) reuse a single minted node.
+    nodes = [
+        _kaikki_node("cs:wordform:a", "amiko", "eo",
+                     [{"rel": "DERIVED_FROM", "lang": "la", "term": "amīcus"}]),
+        _kaikki_node("cs:wordform:b", "amiko2", "io",
+                     [{"rel": "DERIVED_FROM", "lang": "la", "term": "amīcus"}]),
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    amicus = mint_csid("term", name="amīcus", lang="la")
+    derived = [e for e in result.edges if e[":TYPE"] == "DERIVED_FROM"]
+    assert {str(e[":END_ID"]) for e in derived} == {amicus}
+    assert [str(n["csid"]) for n in result.nodes].count(amicus) == 1
+
+
+def test_etymology_relation_reuses_an_existing_term_endpoint() -> None:
+    # A relation naming an existing (lang, term) node points at it, minting nothing.
+    existing: Row = {
+        "csid": "cs:term:existing", ":LABEL": [TERM_LABEL],
+        "name": "boef", "lang": "fro",
+    }
+    node = _kaikki_node("cs:wordform:beef", "beef", "en",
+                        [{"rel": "BORROWED_FROM", "lang": "fro", "term": "boef"}])
+    result = LinguisticLinker().link_linguistic([existing, node], [])
+
+    (edge,) = [e for e in result.edges if e[":TYPE"] == "BORROWED_FROM"]
+    assert str(edge[":END_ID"]) == "cs:term:existing"
+    assert result.nodes == []  # nothing minted
+
+
+def test_no_etymology_cell_is_a_no_op() -> None:
+    result = LinguisticLinker().link_linguistic(_family_tree(), [])
+    assert not any(
+        e[":TYPE"] in {"BORROWED_FROM", "DERIVED_FROM", "COGNATE_WITH"}
+        for e in result.edges
+    )

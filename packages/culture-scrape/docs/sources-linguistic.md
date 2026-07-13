@@ -18,7 +18,7 @@ existing acquisition stack.
 | **WALS** (2020) | ~2.6k languages × ~190 structural features (phonology/grammar/lexicon) | CLDF StructureDataset (CSV); GitHub + Zenodo dumps | CC-BY 4.0 | Dump adapter (not yet built) |
 | **PHOIBLE** 2.0 | ~3k inventories, ~2.1k languages; segment/phoneme inventories | CLDF dataset (CSV); GitHub + Zenodo dumps | CC-BY-SA 3.0 | Dump adapter (not yet built) |
 | **Lexibank** wordlists (e.g. ABVD) | Concept/form wordlists across languages, many with expert cognate judgements; ABVD alone spans ~1,050 glottocodes | CLDF Wordlist (CSV); GitHub + Zenodo dumps | Per-dataset (mostly CC-BY 4.0) | Dump adapter — category-only |
-| **Wiktionary** etymology | Broad cross-language etymologies/cognates/borrowings (free text + templates) | Wikitext dumps; no clean structured etymology export | CC-BY-SA 3.0 + GFDL | No — needs heavy wikitext parsing |
+| **Wiktionary** etymology (via **kaikki.org** / wiktextract) | Broad cross-language etymologies/cognates/borrowings — the template vocabulary machine-parsed to structured JSON | kaikki.org JSONL (one object per word sense group) | CC-BY-SA 3.0 + GFDL | **Yes** — `kaikki` JSONL adapter |
 
 ### Glottolog
 The canonical open **language-family tree**: every languoid carries its
@@ -64,11 +64,17 @@ the SPDX id is resolved from the per-dataset registry
 (`src/culturescrape/schema/lexibank_licenses.py`) — ABVD is `CC-BY-4.0`. See
 `docs/lexibank-reconciliation.md`.
 
-### Wiktionary etymology
-Richest etymological/cognate coverage in principle, but it is unstructured
-wikitext (etymology templates inside prose) with no faithful structured export;
-extracting it reliably is a research effort of its own (would ride the existing
-`wikitext` adapter + `mwparserfromhell`). Deferred.
+### Wiktionary etymology (via kaikki.org)
+Richest etymological/cognate coverage — and no longer deferred. Rather than parse
+raw wikitext (a research effort of its own), the `kaikki` JSONL adapter ingests
+**kaikki.org**'s wiktextract-parsed extracts, which preserve each entry's etymology
+templates (`{{bor|…}}`, `{{inh|…}}`, `{{cog|…}}`, …) as structured `{name, args}`
+objects. `schema/kaikki_etymology.py` maps the directed-relation tokens onto the
+canonical edge vocabulary (`BORROWED_FROM` / `DERIVED_FROM` / `COGNATE_WITH`) and
+skips + reports every unmappable token (display helpers, ambiguous calques, and the
+`ncog` **non**-cognate assertion — never mis-typed). Category `categories/kaikki.yml`
++ job `jobs/kaikki.yml`; per-record `CC-BY-SA-3.0` (dual GFDL). See
+`docs/kaikki-reconciliation.md` (source-breadth US-004).
 
 ## Wikidata properties for the linguistic ontology edges
 
@@ -93,8 +99,9 @@ language nodes to Glottolog), `P5238` `combines lexemes`, `P5920` `root`.
    existing adapter, demonstrates the linguistic dimension and `DESCENDS_FROM`.
 2. **Next:** a **Glottolog** CLDF dump adapter (`source.type: dump`) for
    authoritative family trees, modelled on the Getty/Pleiades dump adapters.
-3. **Later:** WALS/PHOIBLE dump adapters for feature enrichment; Wiktionary
-   etymology via the wikitext adapter once structured extraction is viable.
+3. **Later:** WALS/PHOIBLE dump adapters for feature enrichment (done — US-002);
+   Wiktionary etymology via kaikki.org's structured extracts (done — the `kaikki`
+   JSONL adapter, US-004).
 
 ## Sources
 

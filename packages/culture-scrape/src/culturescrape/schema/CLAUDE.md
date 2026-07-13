@@ -168,6 +168,39 @@ pins `lexibank-abvd`'s licence == `license_for("abvd")`). Most Lexibank datasets
 `CC-BY-4.0`, but the registry + normaliser admit share-alike / NC / CC0 so a differing
 dataset stamps correctly — never default a licence into the graph.
 
+## kaikki.org etymology-template → canonical edge mapping (`kaikki_etymology.py`, US-004)
+
+`kaikki_etymology.py` is the pure, tested bridge from Wiktionary's etymology-template
+vocabulary (the `{{bor|…}}`/`{{inh|…}}`/`{{cog|…}}` templates kaikki.org preserves in each
+entry's `etymology_templates`) to the registered ontology edge `:TYPE`s. Only unambiguous
+**directed** relation tokens map: `bor`/`lbor`/`slbor`/`obor`/`ubor` → `BORROWED_FROM`,
+`inh`/`der` (+ `+` variants) → `DERIVED_FROM`, `cog` → `COGNATE_WITH`. Everything else is
+unmappable and **skipped + reported** (`ExtractResult.skipped_tokens`) — never coerced:
+display helpers (`m`/`l`/`mention`), ambiguous calques (`cal`/`clq`), and critically
+`ncog`/`noncog` (the **non**-cognate assertion — mapping it would invert the claim).
+
+- **Two arg layouts.** Borrowing/derivation templates put the destination lang in arg `1`,
+  the source lang/term in args `2`/`3`; cognate templates put the cognate lang/term in
+  args `1`/`2`. `extract_relations` reads whichever layout the token uses, so the
+  `EtymologyRelation` always names the *target* (source-side) `(lang, term)`. A recognised
+  token with a blank target term can't form an edge → also skipped (never overstates edge
+  volume).
+- **`relations_cell` / `parse_relations_cell`** serialise the mappable relations to the
+  `etymology_relations` node cell (unmapped → `extra` overflow) and back; `parse` re-guards
+  the `:TYPE` against the canonical set so a corrupt cell can never inject a non-registered
+  edge type. The linker (`ontology/linguistic.py` `_link_etymology`) reads it back out of
+  overflow and mints/reuses one `Term` node per `(lang, term)`. See `acquire/CLAUDE.md`.
+
+## kaikki language coverage + edge/skipped-token report (`kaikki_reconcile.py`, US-004)
+
+Reuses `typology_reconcile.build_coverage` for the per-language ISO reconciliation of the
+ingested **Wordform** nodes (kaikki carries no glottocode, so the glottocode→ISO cascade
+falls straight to the `lang` ISO key; kaikki's `lang_code` is the *Wiktionary* code, often
+639-1, so most languages read as `new` — never auto-merged). `analyze_entries` tallies edge
+volume by `:TYPE` + the skipped unmappable tokens **from the source JSONL** (pure, no corpus
+build), so the two AC deliverables (edge volume recorded, unmappable tokens reported) are one
+function. Driver `scripts/reconcile_kaikki.py`; committed summary `docs/kaikki-reconciliation.md`.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from
