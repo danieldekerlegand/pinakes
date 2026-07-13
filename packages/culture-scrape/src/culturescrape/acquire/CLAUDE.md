@@ -82,6 +82,28 @@ rejected as "not a … index" (opening it as SQLite fails → `DumpIndexError`).
   the measurements (runbook §"Building the class-membership index"). The `skipif`-gated
   `test_wikidata_dump_index_smoke.py` builds it over a real slice into a tmp dir when one is present.
 
+## Hydration profiles (`wikidata_hydration.py`) — single vs rich extraction (US-005)
+
+A `PropertyMapping` reads a Wikidata property into a canonical source field. It keeps
+the **single best-rank** value by default (preferred > normal, deprecated dropped, first
+statement/qualifier snak wins) — this is the parity behaviour and must stay the default.
+Opt-in richer extraction:
+
+- `multi=True` collects **every** distinct value across all ranked statements (deduped,
+  best-rank first) into the `;` multi-value encoding; with `qualifier=`/`reference=` it
+  reads *every* qualifier/reference snak per statement, not just the first.
+- `reference="P854"` lifts a statement's citations (reference-URL snaks) into the field —
+  references land in an **overflow field** (e.g. `references`), i.e. the mapper's `extra`
+  JSON, not `provenance.source_url` (the adapter sets that to the entity URI).
+- **GOTCHA — a multi-value field must target a downstream-safe column.** Only `aliases` is
+  split back into a list by `schema/mapper.py`; every other field is a scalar, and the
+  dimension refs (`place_qid`/`parent_qid`/`script`/…) feed linkers that resolve **one**
+  QID. So a `Q1;Q2` in `place_qid` breaks linking. Pattern: keep the single-value mapping
+  for the linker AND add a parallel `multi` mapping to a **new overflow field**
+  (`parent_qid` + `parent_qids`, `place_qid` + `spoken_in_qids`) — linkers keep their one
+  value, the corpus keeps the whole set in `extra`. `LANGUAGE_PROFILE` is the worked example.
+- `DEFAULT_PROFILE` opts into nothing (single-value), so plain dump builds stay byte-identical.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

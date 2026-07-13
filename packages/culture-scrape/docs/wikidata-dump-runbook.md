@@ -441,3 +441,58 @@ skipped.
 ```bash
 uv run pytest tests/test_blueprint_language_myth_dump_smoke.py -q
 ```
+
+## Richer hydration — multi-value, qualifiers, references (US-005)
+
+By default a `HydrationProfile` keeps only the **single best-rank** value per
+field (preferred beats normal, deprecated dropped, first statement wins) — the
+`wikidata-dump` parity behaviour. A `PropertyMapping` can now **opt in** to
+aggregate everything an entity actually carries:
+
+- `multi=True` — collect *every* distinct value across all ranked statements into
+  the `;` multi-value encoding (deduped, best-rank first) instead of just the
+  first. Combined with `qualifier=`/`reference=` it reads *every* qualifier /
+  reference snak per statement, not only the first.
+- `reference="P854"` — lift a statement's **citations** (here the *reference URL*
+  snak) into a field, so the source backing a statement becomes provenance rather
+  than being discarded.
+
+The default profile is untouched (no mapping opts in), so a plain dump build is
+byte-identical; only a profile that declares `multi`/`reference` changes.
+
+### Upgraded profile — `language`, before/after field coverage
+
+`LANGUAGE_PROFILE` keeps its single-value linker fields (`parent_qid`,
+`place_qid`, `script` — the linkers resolve one each) and adds four opt-in rich
+mappings that aggregate the full picture into overflow fields: `parent_qids`
+(P279, multi), `spoken_in_qids` (P17, multi), `scripts` (P282, multi), and
+`references` (P854 citations on the P279 classification statements).
+
+Measured over the reference slice's **392 language members** (2026-07-12):
+
+| field            | before | after | after w/ >1 value | total values |
+|------------------|-------:|------:|------------------:|-------------:|
+| `parent_qid`     |    230 |   230 |                 0 |          230 |
+| `parent_qids`    |      0 |   230 |                54 |          297 |
+| `place_qid`      |     52 |    52 |                 0 |           52 |
+| `spoken_in_qids` |      0 |    52 |                21 |          113 |
+| `script`         |     38 |    38 |                 0 |           38 |
+| `scripts`        |      0 |    38 |                 6 |           46 |
+| `references`     |      0 |    18 |                 — |           18 |
+
+Net: the single-value read captured at most one value per parent/country/script
+(320 in total); the richer profile recovers **136 previously-dropped values** (67
+extra parents + 61 extra countries + 8 extra scripts) plus **18 citation URLs** —
+without moving the linker-facing single-value fields. `aliases` is unchanged (385).
+
+### Verifying offline (fixtures + skipif-gated real slice)
+
+`tests/test_wikidata_hydration.py` covers rank order, multi-value dedup/order,
+multi-qualifier, and reference extraction (single + multi + precedence) on
+synthetic entities; `tests/test_wikidata_hydration_smoke.py` re-proves the
+`language` upgrade on the real slice (asserts real multi-parent + real P854
+citations fire) where one is present, and is skipped on a fresh checkout.
+
+```bash
+uv run pytest tests/test_wikidata_hydration.py tests/test_wikidata_hydration_smoke.py -q
+```

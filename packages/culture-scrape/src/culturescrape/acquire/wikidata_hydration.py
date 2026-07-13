@@ -8,8 +8,13 @@ dump-sourced node can be far richer than a SPARQL one at no extra request cost.
 
 This module turns that depth into canonical fields **declaratively**. A
 :class:`HydrationProfile` is an ordered list of :class:`PropertyMapping` rows,
-each naming a Wikidata property (or one of its qualifiers), the canonical source
-field it feeds, and how to read the statement's value. :func:`hydrate_entity`
+each naming a Wikidata property (or one of its qualifiers or references), the
+canonical source field it feeds, and how to read the statement's value. A mapping
+keeps the single best-rank value by default, or opts in (``multi=True``) to
+aggregate *every* value — multiple statements, every qualifier snak, or the
+citations behind a statement — into the ``;`` multi-value encoding, so the
+pipeline stops silently collapsing an entity's knowledge to one value per field.
+:func:`hydrate_entity`
 applies a profile to one parsed dump entity and returns a flat
 ``{field: value}`` dict in exactly the vocabulary
 :mod:`culturescrape.schema.normalize` and
@@ -68,12 +73,26 @@ class PropertyMapping:
         qualifier: When set, read this *qualifier* property off each statement
             instead of the statement's main value — so a qualifier (e.g. a date
             on a ``location`` statement) can feed a field too.
+        reference: When set, read this snak property off each statement's
+            *references* (its citations) instead of the main value — so a
+            statement's supporting source (e.g. ``P854`` *reference URL*) can be
+            lifted into a field. Takes precedence over ``qualifier``.
+        multi: Opt in to **multi-value** extraction. By default a mapping keeps
+            only the single best-rank value (preferred beats normal, first
+            statement wins) — the historical behaviour. With ``multi`` set, every
+            value the mapping's snaks yield across *all* ranked statements is
+            collected (deduplicated, best-rank first) and joined with
+            :data:`~culturescrape.schema.tsvio.MULTI_DELIMITER`; combined with
+            ``qualifier``/``reference`` it reads *every* qualifier/reference snak
+            per statement, not just the first.
     """
 
     prop: str
     field: str
     kind: ValueKind
     qualifier: str | None = None
+    reference: str | None = None
+    multi: bool = False
 
 
 @dataclass(frozen=True)
@@ -184,27 +203,65 @@ def _ranked_statements(statements: Any) -> list[Mapping[str, Any]]:
     return sorted(kept, key=lambda st: _RANK_ORDER.get(st.get("rank", "normal"), 1))
 
 
-def _snak_for(statement: Mapping[str, Any], mapping: PropertyMapping) -> Any:
-    """The snak a *mapping* reads off one *statement* (main value or qualifier)."""
-    if mapping.qualifier is None:
-        return statement.get("mainsnak")
-    qualifiers = statement.get("qualifiers")
-    if isinstance(qualifiers, Mapping):
-        snaks = qualifiers.get(mapping.qualifier)
-        if isinstance(snaks, list) and snaks:
-            return snaks[0]
-    return None
+def _snaks_for(
+    statement: Mapping[str, Any], mapping: PropertyMapping
+) -> list[Mapping[str, Any]]:
+    """The snaks a *mapping* reads off one *statement*, in document order.
+
+    For a plain mapping that is the single ``mainsnak``; a ``reference`` mapping
+    gathers the named snak across *every* reference on the statement, and a
+    ``qualifier`` mapping gathers the named qualifier's snaks. A non-``multi``
+    mapping only ever consumes the first of these (see :func:`_values`), so the
+    legacy single-value read is preserved; ``multi`` reads them all.
+    """
+    if mapping.reference is not None:
+        out: list[Mapping[str, Any]] = []
+        references = statement.get("references")
+        if isinstance(references, list):
+            for reference in references:
+                if not isinstance(reference, Mapping):
+                    continue
+                snaks = reference.get("snaks")
+                if isinstance(snaks, Mapping):
+                    out.extend(
+                        snak
+                        for snak in snaks.get(mapping.reference, []) or []
+                        if isinstance(snak, Mapping)
+                    )
+        return out
+    if mapping.qualifier is not None:
+        qualifiers = statement.get("qualifiers")
+        if isinstance(qualifiers, Mapping):
+            snaks = qualifiers.get(mapping.qualifier)
+            if isinstance(snaks, list):
+                return [snak for snak in snaks if isinstance(snak, Mapping)]
+        return []
+    mainsnak = statement.get("mainsnak")
+    return [mainsnak] if isinstance(mainsnak, Mapping) else []
 
 
-def _extract(entity: Mapping[str, Any], mapping: PropertyMapping) -> str | None:
-    """The best value *mapping* extracts from *entity*, or ``None`` if absent."""
+def _values(entity: Mapping[str, Any], mapping: PropertyMapping) -> list[str]:
+    """Every value *mapping* extracts from *entity*, best-rank first, deduped.
+
+    A non-``multi`` mapping short-circuits at the first value (so the returned
+    list has at most one element — the historical single best-rank value); a
+    ``multi`` mapping keeps every distinct value across all ranked statements and
+    all of a statement's qualifier/reference snaks.
+    """
     claims = entity.get("claims")
     statements = claims.get(mapping.prop) if isinstance(claims, Mapping) else None
+    out: list[str] = []
     for statement in _ranked_statements(statements):
-        value = _value(_snak_for(statement, mapping) or {}, mapping.kind)
-        if value:
-            return value
-    return None
+        snaks = _snaks_for(statement, mapping)
+        if not mapping.multi:
+            snaks = snaks[:1]
+        for snak in snaks:
+            value = _value(snak, mapping.kind)
+            if value and value not in out:
+                out.append(value)
+                if not mapping.multi:
+                    return out
+    return out
 
 
 def _aliases(
@@ -252,18 +309,22 @@ def hydrate_entity(
     """Extract *profile*'s declared fields from one parsed dump *entity*.
 
     Returns a flat ``{canonical_field: value}`` dict (the first declared mapping
-    that yields a value wins a field, so order encodes preference). When
-    *alias_languages* is non-empty the entity's labels/aliases in those languages
-    are collected into a ``;``-joined ``aliases`` field, minus *exclude_alias*
-    (the primary name) so it is not duplicated.
+    that yields a value wins a field, so order encodes preference). A ``multi``
+    mapping's values are ``;``-joined into the multi-value encoding; a single-value
+    mapping keeps only the best-rank value. When *alias_languages* is non-empty the
+    entity's labels/aliases in those languages are collected into a ``;``-joined
+    ``aliases`` field, minus *exclude_alias* (the primary name) so it is not
+    duplicated.
     """
     fields: dict[str, str] = {}
     for mapping in profile.mappings:
         if mapping.field in fields:
             continue
-        value = _extract(entity, mapping)
-        if value:
-            fields[mapping.field] = value
+        values = _values(entity, mapping)
+        if values:
+            fields[mapping.field] = (
+                MULTI_DELIMITER.join(values) if mapping.multi else values[0]
+            )
     if alias_languages:
         names = _aliases(entity, alias_languages, exclude=exclude_alias)
         if names:
@@ -298,6 +359,14 @@ DEFAULT_PROFILE = HydrationProfile(
 )
 
 #: A language-family profile: a language's parent and the place it is spoken in.
+#:
+#: The single-value mappings feed the ontology linkers (which resolve one parent /
+#: place / script per node); the ``multi=True`` mappings then aggregate the *full*
+#: set into overflow fields so no value is silently dropped, and the ``reference``
+#: mapping lifts the citations backing the subclass classification into
+#: provenance. Each rich mapping targets its own field (``parent_qids`` beside
+#: ``parent_qid``), so the linkers keep their single value while the corpus keeps
+#: the whole picture.
 LANGUAGE_PROFILE = HydrationProfile(
     name="language",
     mappings=(
@@ -306,6 +375,13 @@ LANGUAGE_PROFILE = HydrationProfile(
         PropertyMapping("P218", "language_code", ValueKind.STRING),  # ISO 639-1
         PropertyMapping("P17", "place_qid", ValueKind.ENTITY),  # spoken in country
         PropertyMapping("P282", "script", ValueKind.ENTITY),  # writing system
+        # richer extraction (US-005) — aggregate every value, keep the citations.
+        PropertyMapping("P279", "parent_qids", ValueKind.ENTITY, multi=True),
+        PropertyMapping("P17", "spoken_in_qids", ValueKind.ENTITY, multi=True),
+        PropertyMapping("P282", "scripts", ValueKind.ENTITY, multi=True),
+        PropertyMapping(
+            "P279", "references", ValueKind.STRING, reference="P854", multi=True
+        ),
     ),
 )
 
