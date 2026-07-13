@@ -71,6 +71,14 @@ from culturescrape.neo4j.counts import count_summary
 from culturescrape.neo4j.export import Neo4jExportError, export_to_tsv
 from culturescrape.neo4j.load_csv import load_corpus
 from culturescrape.neo4j.merge_load import verify_idempotent_load
+from culturescrape.neo4j.vector_index import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_MODEL,
+    DEFAULT_SIMILARITY,
+    VECTOR_INDEX_NAME,
+    EmbedderNotInstalled,
+    run_index_build,
+)
 from culturescrape.ontology.metrics import (
     metrics_for_dataset,
     read_dataset,
@@ -337,6 +345,36 @@ def _build_parser() -> argparse.ArgumentParser:
         "and prove a MERGE double-load is idempotent, printing the counts",
     )
     neo4j_counts.set_defaults(handler=_cmd_neo4j_counts)
+
+    graphrag_index = subparsers.add_parser(
+        "graphrag-index",
+        help="embed every node (name+aliases+description) with a local "
+        "sentence-transformers model and build the Neo4j native vector index "
+        "over the embeddings (GraphRAG retrieval)",
+    )
+    graphrag_index.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"sentence-transformers model to embed with (default: {DEFAULT_MODEL})",
+    )
+    graphrag_index.add_argument(
+        "--index-name",
+        default=VECTOR_INDEX_NAME,
+        help=f"name of the native vector index (default: {VECTOR_INDEX_NAME})",
+    )
+    graphrag_index.add_argument(
+        "--similarity",
+        choices=["cosine", "euclidean"],
+        default=DEFAULT_SIMILARITY,
+        help=f"vector similarity function (default: {DEFAULT_SIMILARITY})",
+    )
+    graphrag_index.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_BATCH_SIZE,
+        help=f"nodes embedded + written per round-trip (default: {DEFAULT_BATCH_SIZE})",
+    )
+    graphrag_index.set_defaults(handler=_cmd_graphrag_index)
 
     from_neo4j = subparsers.add_parser(
         "from-neo4j",
@@ -1197,6 +1235,28 @@ def _cmd_neo4j_counts(args: argparse.Namespace) -> int:
     print(f"edge counts by type (total {summary.edge_total}):")
     for edge_type, count in summary.edges_by_type.items():
         print(f"  {edge_type}: {count}")
+    return 0
+
+
+def _cmd_graphrag_index(args: argparse.Namespace) -> int:
+    try:
+        result = run_index_build(
+            model=args.model,
+            index_name=args.index_name,
+            similarity=args.similarity,
+            batch_size=args.batch_size,
+        )
+    except (
+        EmbedderNotInstalled,
+        Neo4jConfigError,
+        Neo4jDriverNotInstalled,
+    ) as exc:
+        return _fail(str(exc))
+    print(
+        f"embedded {result.embedded} of {result.node_count} node(s) "
+        f"(dim {result.dimension}) and built vector index "
+        f"{result.index_name!r} ({result.similarity})"
+    )
     return 0
 
 

@@ -41,7 +41,12 @@ from culturescrape.explorer.live import (
     Neo4jLive,
     load_queries,
 )
+from culturescrape.explorer.retrieval import HybridRetrieval, HybridRetriever
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
+from culturescrape.neo4j.vector_index import (
+    VECTOR_INDEX_NAME,
+    SentenceTransformerEmbedder,
+)
 from culturescrape.ontology.metrics import GraphMetrics
 from culturescrape.ontology.metrics import to_json as metrics_to_json
 from culturescrape.schema.headers import Column
@@ -65,6 +70,13 @@ MAX_GRAPH_DEPTH = 4
 
 #: Upper bound on the number of global-search hits a request may ask for.
 MAX_SEARCH_LIMIT = 200
+
+#: Default and upper bound for the number of vector-retrieval seeds (top-k).
+DEFAULT_RETRIEVE_K = 5
+MAX_RETRIEVE_K = 25
+
+#: Hop radius the hybrid-retrieval endpoint expands each seed to by default.
+RETRIEVE_DEPTH = 1
 
 #: Sortable completeness columns: query value -> (heading, sort key).
 COMPLETENESS_SORTS: dict[str, tuple[str, Callable[[CategoryStatus], Any]]] = {
@@ -104,6 +116,7 @@ def create_app(
     *,
     live: Neo4jLive | None = None,
     datalog: Datalog | None = None,
+    retriever: HybridRetriever | None = None,
 ) -> FastAPI:
     """Build the read-only explorer app for the corpus at *source*.
 
@@ -124,6 +137,14 @@ def create_app(
     corpus: Corpus = load_corpus(source)
     live = live if live is not None else Neo4jLive()
     datalog = datalog if datalog is not None else Datalog(corpus.corpus_dir)
+    # The default retriever pairs the live handle with a lazy local embedder:
+    # nothing is loaded until a query runs, and it reports itself unavailable
+    # (-> 503) when the embedding extra or a Neo4j connection is absent.
+    retriever = (
+        retriever
+        if retriever is not None
+        else HybridRetriever(live, SentenceTransformerEmbedder())
+    )
     queries = load_queries()
     app = FastAPI(title="culture-scrape explorer")
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -132,6 +153,7 @@ def create_app(
     app.state.corpus = corpus
     app.state.live = live
     app.state.datalog = datalog
+    app.state.retriever = retriever
 
     @app.get("/")
     def index(request: Request) -> Response:
@@ -386,6 +408,53 @@ def create_app(
             return JSONResponse({"error": f"unknown csid: {csid}"}, status_code=404)
         return JSONResponse(_graph_payload(corpus, hood))
 
+    @app.get("/api/retrieve")
+    def retrieve_api(
+        q: str = "", k: int = DEFAULT_RETRIEVE_K, depth: int = RETRIEVE_DEPTH
+    ) -> Response:
+        # Hybrid GraphRAG retrieval: embed the query, pull the top-k nearest
+        # nodes from the native vector index, and expand them into a subgraph.
+        query = q.strip()
+        k = min(max(k, 1), MAX_RETRIEVE_K)
+        depth = min(max(depth, 0), MAX_GRAPH_DEPTH)
+        if not query:
+            return JSONResponse(_empty_retrieval(k, depth, retriever.available()))
+        if not retriever.available():
+            return JSONResponse(
+                {
+                    "query": query,
+                    "available": False,
+                    "error": (
+                        "GraphRAG retrieval is unavailable: a live Neo4j "
+                        "connection and the sentence-transformers embedding "
+                        "extra are both required."
+                    ),
+                    "k": k,
+                    "depth": depth,
+                    "seeds": [],
+                    "nodes": [],
+                    "edges": [],
+                },
+                status_code=503,
+            )
+        try:
+            hood = retriever.retrieve(query, k, depth)
+        except Exception:  # noqa: BLE001 - any driver failure -> 503 degradation
+            return JSONResponse(
+                {
+                    "query": query,
+                    "available": False,
+                    "error": "GraphRAG retrieval could not reach the graph.",
+                    "k": k,
+                    "depth": depth,
+                    "seeds": [],
+                    "nodes": [],
+                    "edges": [],
+                },
+                status_code=503,
+            )
+        return JSONResponse(_retrieval_payload(hood))
+
     @app.get("/neo4j")
     def neo4j_console(request: Request, query: str = "", csid: str = "") -> Response:
         selected = next((q for q in queries if q.name == query), None)
@@ -610,6 +679,66 @@ def _live_graph_payload(hood: LiveNeighborhood) -> dict[str, Any]:
         "backend": "neo4j",
         "nodes": nodes,
         "edges": edges,
+    }
+
+
+def _empty_retrieval(k: int, depth: int, available: bool) -> dict[str, Any]:
+    """The JSON body for an empty/blank retrieval query (no seeds to expand)."""
+    return {
+        "query": "",
+        "available": available,
+        "backend": "neo4j",
+        "index": VECTOR_INDEX_NAME,
+        "k": k,
+        "depth": depth,
+        "seeds": [],
+        "nodes": [],
+        "edges": [],
+    }
+
+
+def _retrieval_payload(hood: HybridRetrieval) -> dict[str, Any]:
+    """The JSON body for a hybrid-retrieval result: ranked seeds + the subgraph.
+
+    Seeds carry their similarity ``score``; ``nodes``/``edges`` are the
+    self-contained neighborhood expanded around them, so the subgraph can ground
+    an LLM answer (edges also carry their ontology ``dimension`` for styling).
+    """
+    return {
+        "query": hood.query,
+        "available": True,
+        "backend": "neo4j",
+        "index": hood.index_name,
+        "k": hood.k,
+        "depth": hood.depth,
+        "seeds": [
+            {
+                "csid": seed.csid,
+                "name": seed.name or seed.csid,
+                "label": seed.labels[0] if seed.labels else "",
+                "labels": list(seed.labels),
+                "score": seed.score,
+            }
+            for seed in hood.seeds
+        ],
+        "nodes": [
+            {
+                "csid": node.csid,
+                "name": node.name or node.csid,
+                "label": node.labels[0] if node.labels else "",
+                "labels": list(node.labels),
+            }
+            for node in hood.nodes
+        ],
+        "edges": [
+            {
+                "source": edge.start,
+                "target": edge.end,
+                "type": edge.type,
+                "dimension": dimension_for(edge.type),
+            }
+            for edge in hood.edges
+        ],
     }
 
 
