@@ -48,6 +48,32 @@ the linkers** (so it also collapses linker-minted hub collisions), gated on the 
   byte-identical — a global QID-collapse could silently move their committed manifest
   counts. Keep it opt-in.
 
+## Incremental QID-keyed upsert — `incremental.py` (US-006)
+
+`run_upsert(job, old_dump, new_dump, …)` refreshes a corpus without a full rebuild:
+diff the two slices (`acquire/wikidata_diff`), resolve each changed QID to its
+`wikidata-dump` category (index lookup, else a bounded two-pass scan — `_members_by_category`),
+carve a **delta dump** of just the changed members, repoint each affected category at it
+(`_repoint` swaps `path`, sets an `ids` allowlist, drops the `index` param — it fingerprints the
+*old* dump), rebuild a **delta corpus**, and prove it MERGE-loads over the base to a fixed point
+(`neo4j/merge_load.verify_upsert_load`). Because `csid` is QID-anchored, a re-exported entity
+lands on the node it already occupies (in-place update, not a duplicate) — the corpus node/edge
+counts are identical before and after.
+
+- **`dataset_qids(corpus)`** recovers the QIDs a corpus holds via `schema/ids.csid_qid` (only
+  QID-anchored csids surrender a QID; alias/name-anchored nodes are skipped) — this is how the
+  plan grades which changes actually touch the corpus (`changed_in_corpus`/`removed_in_corpus`).
+  **An upsert never deletes** — a removed QID is reported, not dropped.
+- **The delta build relaxes floors on purpose** (`min_component_fraction=0.0`,
+  `fail_on_violation=False`): a handful of entities won't self-connect, and its job is to produce
+  the affected rows for an in-place MERGE, not to stand as a corpus. Drive it with a
+  network-raising `adapter_factory` to prove the rebuild stays offline.
+- **`sync-log.jsonl`** (`write_sync_log`/`last_sync_at`) is the entity-granularity twin of the
+  `--since` refresh log — a scheduled sync reuses the `--since` window to skip too-frequent runs.
+- **Test shape:** unit-test the plan/member/log logic on the committed dump fixture, then a full
+  `run_upsert` on the fixture (always runs) + a `skipif`-gated real-slice smoke that edits one
+  genuine entity's label. Same slice-resolution pattern as the other `*_dump_smoke` modules.
+
 ## Reconciling the built corpus against a curated lexicon
 
 Use `schema.lexicon_reconcile.reconcile_corpus_against_lexicon(node_tsv, lexicon, …)` and

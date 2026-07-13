@@ -82,6 +82,19 @@ rejected as "not a … index" (opening it as SQLite fails → `DumpIndexError`).
   the measurements (runbook §"Building the class-membership index"). The `skipif`-gated
   `test_wikidata_dump_index_smoke.py` builds it over a real slice into a tmp dir when one is present.
 
+## Content-fingerprint dump diff (`wikidata_diff.py`, US-006)
+
+`diff_dumps(old, new)` classifies every QID as added / changed / removed / unchanged by
+comparing **content fingerprints** — `entity_fingerprint` hashes a canonical (sorted-key)
+JSON projection of `_CONTENT_KEYS` (`labels`/`descriptions`/`aliases`/`claims`/`sitelinks`)
+only, so a re-export that merely bumped revision metadata (`lastrevid`/`modified`/`pageid`)
+hashes identically and does **not** read as a change. `fingerprint_dump` streams a dump into
+a `{qid: hash}` map (memory bounded by the map, not the dump); `write_delta_dump(new, qids,
+out)` carves just those QIDs into the same `latest-all` framing the reader accepts. This is the
+"which entities changed" primitive the incremental upsert (`orchestrate/incremental.py`) drives.
+Gotcha: a diff re-scans **both** whole slices — fine at slice scale, but a full-dump diff wants
+a stored fingerprint manifest, not a re-scan (US-007 scale note).
+
 ## Hydration profiles (`wikidata_hydration.py`) — single vs rich extraction (US-005)
 
 A `PropertyMapping` reads a Wikidata property into a canonical source field. It keeps

@@ -496,3 +496,92 @@ citations fire) where one is present, and is skipped on a fresh checkout.
 ```bash
 uv run pytest tests/test_wikidata_hydration.py tests/test_wikidata_hydration_smoke.py -q
 ```
+
+## Incremental update — upsert a corpus from a fresher slice (US-006)
+
+A living corpus must not be rebuilt from scratch when a handful of upstream entities
+change. The Neo4j load is already `MERGE`-on-`csid` and `csid` is **QID-anchored**, so
+re-exporting a changed entity lands it on the very node it already occupies — an
+in-place update, never a duplicate. The only missing piece is knowing *which* entities
+changed; the incremental path (`culturescrape sync-wikidata`) answers that by diffing
+two slices keyed on QID, re-hydrating only the changed members, and proving the MERGE
+stays idempotent — all offline, no live Neo4j.
+
+The flow, keyed on QID throughout (`orchestrate/incremental.py`):
+
+1. **Diff** the fresher slice against the one the corpus was built from
+   (`acquire/wikidata_diff.py`). Each entity is reduced to a **content fingerprint** —
+   a SHA-256 over exactly the parts the corpus reads (labels/descriptions/aliases/
+   claims/sitelinks), deliberately excluding volatile revision metadata (`lastrevid`/
+   `modified`/`pageid`) — so a no-op re-export of the *same* knowledge does **not**
+   register as a change. Comparing the two fingerprint maps yields the added / changed
+   / removed QIDs.
+2. **Resolve** which of the job's `wikidata-dump` categories each changed QID belongs
+   to (via the new slice's membership index, else a bounded scan), so every affected
+   entity re-exports under the right label / dimensions / links.
+3. **Re-hydrate & re-export** only those entities: a small *delta dump* holding just
+   the changed members is carved from the new slice, the job is repointed at it (each
+   category pinned to its changed members via the adapter's `ids` allowlist), and a
+   *delta corpus* — the affected rows and nothing else — is rebuilt.
+4. **Prove idempotency** offline: the delta MERGE-loads over the base corpus to a fixed
+   point (`neo4j/merge_load.verify_upsert_load` — load base, apply delta, snapshot,
+   apply delta again, assert the grouped counts by label / `:TYPE` did not move).
+
+Each run appends an auditable line to `<output_root>/sync-log.jsonl` (watermark, the
+added/changed/removed tallies, the categories rebuilt, whether the load was idempotent).
+`--since` reuses the entity-granularity twin of the `--since` scheduling window: a sync
+recorded within the window is skipped.
+
+```bash
+# Diff the fresher slice, re-hydrate only the changed dishes, prove idempotency.
+# --old-dump is the slice the corpus was last built from; --new-dump the fresher one.
+culturescrape sync-wikidata jobs/food-drink-dump.yml \
+  --old-dump  "$PWD/out/wikidata/wikidata-20260712-blueprint-slice.json.gz" \
+  --new-dump  "$PWD/out/wikidata/wikidata-20260801-blueprint-slice.json.gz" \
+  --new-index "$PWD/out/wikidata/wikidata-20260801-blueprint-slice.json.gz.index.sqlite3" \
+  --since 24h
+# Exit 0 = idempotent (or skipped/no-op); exit 1 = the MERGE would duplicate.
+```
+
+The EventStreams (recentchange SSE) leg named in the roadmap is the same upsert with a
+different change source — since `run_upsert` is keyed on QID and re-hydrates from a
+*slice*, the SSE feed only needs to select which QIDs to re-slice; the dump-diff variant
+above is the offline-provable path and the one wired into CLI + tests today.
+
+### Recorded run — reference slice (2026-07-12)
+
+Measured on the reference `--limit-per-class 200` slice (5,691 entities). A **base**
+food-drink `dish` corpus (`Q746549`, transitive) built to **31 nodes / 51 edges** in
+0.9 s. One real dish (`Q117803607`) had its English label edited into a synthesised
+fresher slice; `sync-wikidata` then:
+
+| stage                    | measurement                                             |
+|--------------------------|---------------------------------------------------------|
+| diff                     | 0 added, **1 changed**, 0 removed, 5,690 unchanged      |
+| resolve                  | 1 QID → 1 category (`dishes`)                            |
+| delta corpus             | 4 nodes / 3 edges (the dish + its linked place hubs)     |
+| corpus after upsert      | 31 nodes / 51 edges — **unchanged counts** (in-place)    |
+| idempotent (delta + upsert) | ✅ both — the second delta load moved nothing         |
+| wall-clock               | ~5.7 s (dominated by the two full-slice fingerprint scans) |
+
+The corpus node/edge counts are **identical** before and after the upsert: the changed
+dish re-landed on its own QID-anchored `csid` rather than duplicating — the whole point.
+The throughput cost is the two full passes over the slice to fingerprint it (US-007's
+scale note): fine at slice scale, but a full-dump diff wants a stored fingerprint
+manifest rather than re-scanning the old dump each time.
+
+### Verifying offline (fixtures + skipif-gated real slice)
+
+`tests/test_wikidata_diff.py` pins the fingerprint/diff contract on synthetic entities
+(key-order independence, revision-metadata invariance, add/change/remove classification,
+delta carving). `tests/test_orchestrate_incremental.py` drives the whole upsert on the
+committed dump fixture — plan grading, member resolution, sync log, and a full offline
+`run_upsert` that rebuilds exactly the changed/added entities and proves the MERGE stays
+idempotent. `tests/test_blueprint_incremental_dump_smoke.py` re-proves it on the real
+slice (edits one genuine dish's label, upserts, asserts a single-entity delta loads
+idempotently) where one is present, and is skipped on a fresh checkout.
+
+```bash
+uv run pytest tests/test_wikidata_diff.py tests/test_orchestrate_incremental.py \
+  tests/test_blueprint_incremental_dump_smoke.py -q
+```
