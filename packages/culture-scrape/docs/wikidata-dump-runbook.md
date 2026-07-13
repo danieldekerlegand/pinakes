@@ -133,6 +133,49 @@ QIDs), with `source.params.transitive` for the `P31/P279*` idiom.
 
 ---
 
+## Building the class-membership index (on-disk KV store)
+
+Resolving a class straight from the dump scans every entity — twice for the
+transitive `P31/P279*` idiom. The index precomputes both relations once into a
+**SQLite** KV store (`<dump>.index.sqlite3`, stdlib `sqlite3` — no dependency),
+so the adapter answers membership from indexed lookups instead of a rescan, and
+the transitive closure needs no second full pass. Lookups are memory-bounded:
+only the rows a query touches (a class's members, a root's subclass closure) are
+read, never the whole index.
+
+```bash
+cd packages/culture-scrape
+# Writes <dump>.index.sqlite3 beside the dump (override with --out).
+uv run culturescrape index-wikidata out/wikidata/wikidata-20260712-blueprint-slice.json.gz
+```
+
+The adapter picks the sidecar up automatically when present (or name one with
+`source.params.index`); it is rebuilt, not reused, if the dump's fingerprint
+(name/size/date) changes, so a stale index can never answer for the wrong dump.
+The `.sqlite3` file is a large artifact — it stays gitignored (`out/*`), like the
+slice; commit only the measurements below.
+
+### Recorded build — reference slice (2026-07-12)
+
+Against the 5,691-entity API-composed reference slice
+(`wikidata-20260712-blueprint-slice.json.gz`, 9.80 MB gz):
+
+| metric | value |
+| --- | --- |
+| entities indexed | 5,691 (0 skipped) |
+| classes with ≥1 `P31` member | 1,073 |
+| classes with ≥1 `P279` subclass | 691 |
+| build wall-clock | 2.48 s |
+| build peak memory (tracemalloc) | 4.4 MB |
+| on-disk index size | 0.58 MB |
+| transitive lookup (`Q2095` food, `P279*`) | 1.2 ms → 19 members |
+
+Build memory is bounded by the `_FLUSH_ROWS` (50k) insert buffer, not the dump
+size — the same streaming discipline the reader uses, so this extrapolates to
+the full dump (index size scales with entity count, not with peak RAM).
+
+---
+
 ## Verifying a slice
 
 A `skipif`-gated smoke test iterates the first N entities of a real slice when

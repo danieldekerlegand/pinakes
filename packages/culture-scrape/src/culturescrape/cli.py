@@ -608,7 +608,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--out",
         type=Path,
         default=None,
-        help="path to write the index to (default: <dump>.index.json beside it)",
+        help="path to write the index to (default: <dump>.index.sqlite3 beside it)",
     )
     index_wikidata.set_defaults(handler=_cmd_index_wikidata)
 
@@ -1181,8 +1181,8 @@ def _cmd_index_wikidata(args: argparse.Namespace) -> int:
     print(
         f"indexed {stats.entities} entit(ies) ({stats.skipped} skipped) from "
         f"{dump} (v{index.fingerprint.version}): "
-        f"{len(index.instances)} class(es) with members, "
-        f"{len(index.subclasses)} subclass edge(s) -> {out}"
+        f"{index.class_count} class(es) with members, "
+        f"{index.subclass_parent_count} subclass parent(s) -> {out}"
     )
     return 0
 

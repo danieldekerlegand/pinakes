@@ -57,6 +57,31 @@ lands under `out/` (gitignored — commit the manifest, never the slice); the
 slice is present. Full recipe (plus the streamed `wikibase-dump-filter` and full-dump
 variants): `docs/wikidata-dump-runbook.md`.
 
+## Class-membership index (`wikidata_dump_index.py`, on-disk SQLite KV — US-002)
+
+The dump adapter resolves class membership (`P31` / transitive `P279*`) from a precomputed
+**SQLite** KV store beside the dump (`<dump>.index.sqlite3`, stdlib `sqlite3` — no dependency),
+built once by `culturescrape index-wikidata <dump>` / `build_index()`. This replaced the retired
+in-memory JSON sidecar (`INDEX_VERSION` bumped 1→2); a JSON file handed to `load_index` is now
+rejected as "not a … index" (opening it as SQLite fails → `DumpIndexError`).
+
+- **Two tables, one streaming pass:** `instances(class, member)` (P31) and `subclasses(parent,
+  child)` (P279). Rows are buffered and `executemany`-flushed every `_FLUSH_ROWS` (50k), and the
+  lookup indexes (`idx_instances_class`, `idx_instances_member`, `idx_subclasses_parent`) are
+  created **after** the bulk insert — so build memory is bounded by the buffer, not the dump
+  (measured 4.4 MB peak / 2.48 s / 0.58 MB index for the 5,691-entity reference slice).
+- **Memory-bounded lookups:** `member_qids(roots, transitive)` walks the `P279*` closure via
+  indexed `subclasses_of` queries (no second full dump scan) then unions members per class;
+  `classes_of(qid)` reads the `idx_instances_member` index directly (no whole-index inversion).
+  Query the store via the public methods — `members_of`/`subclasses_of`/`member_qids`/
+  `classes_of` + `class_count`/`subclass_parent_count` — not raw dict attributes (there are none).
+- **`DumpIndex` owns a live connection:** `close()` it (or use it as a context manager). The dump
+  **fingerprint** (name/size/`YYYYMMDD`) lives in the `meta` table; `load_index` recomputes it and
+  refuses an index built from a different dump. `default_index_path` → `<dump>.index.sqlite3`.
+- Same real-data discipline as the slice: the `.sqlite3` file is gitignored (`out/*`) — commit only
+  the measurements (runbook §"Building the class-membership index"). The `skipif`-gated
+  `test_wikidata_dump_index_smoke.py` builds it over a real slice into a tmp dir when one is present.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

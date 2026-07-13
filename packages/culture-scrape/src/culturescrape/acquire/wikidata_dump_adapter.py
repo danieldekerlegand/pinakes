@@ -95,7 +95,7 @@ class WikidataDumpAdapter(SourceAdapter):
     ``source.params['hydrate_languages']`` adds ``;``-separated languages whose
     labels/aliases are collected into ``aliases``. ``source.params['index']``
     points at a prebuilt membership index for fast class resolution; absent it,
-    the conventional sidecar (``<dump>.index.json``) is used when present and a
+    the conventional sidecar (``<dump>.index.sqlite3``) is used when present and a
     full scan otherwise.
 
     Args:
