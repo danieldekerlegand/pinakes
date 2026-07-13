@@ -24,14 +24,23 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from culturescrape.datalog import Fact, edge_file_facts, node_file_facts
+from culturescrape.datalog.constraints import constraint_file_rules
 from culturescrape.datalog.problog import (
     PROBLOG_PROGRAM_NAME,
     collect_problog_facts,
     write_problog_program,
 )
 from culturescrape.datalog.prolog import write_program
-from culturescrape.datalog.rules import RULES, Rule
+from culturescrape.datalog.registry import active_curated_rules
+from culturescrape.datalog.rules import Rule
+from culturescrape.datalog.schema_constraints import (
+    schema_constraint_file_rules,
+)
+from culturescrape.datalog.schema_constraints import (
+    souffle_rules as schema_souffle_rules,
+)
 from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME, write_souffle_program
+from culturescrape.datalog.taxonomy import subclass_file_facts
 
 #: Filename of the generated SWI-Prolog program inside the output directory
 #: (parallel to :data:`~culturescrape.datalog.SOUFFLE_PROGRAM_NAME` for Soufflé).
@@ -117,15 +126,23 @@ class _DatasetFacts:
 
     node_files: tuple[Path, ...]
     edge_files: tuple[Path, ...]
+    #: When set, the committed P279 taxonomy is appended as ``subclass_of/2``
+    #: facts (so the class-membership closure rule has its base relation). It is
+    #: opt-in — the rule-less export is byte-for-byte unchanged.
+    include_taxonomy: bool = False
 
     def __iter__(self) -> Iterator[Fact]:
         for path in self.node_files:
             yield from node_file_facts(path)
         for path in self.edge_files:
             yield from edge_file_facts(path)
+        if self.include_taxonomy:
+            yield from subclass_file_facts()
 
 
-def collect_facts(directory: str | Path) -> _DatasetFacts:
+def collect_facts(
+    directory: str | Path, *, include_taxonomy: bool = False
+) -> _DatasetFacts:
     """Project every node and edge row under *directory* into a fact stream.
 
     Discovers ``nodes/*.tsv`` then ``edges/*.tsv`` (each sorted by filename, so
@@ -135,6 +152,12 @@ def collect_facts(directory: str | Path) -> _DatasetFacts:
     validated eagerly (so a bad dataset fails on the call, not mid-iteration);
     the rows themselves are read only when the stream is iterated, and never held
     whole in memory.
+
+    When *include_taxonomy* is set, the committed Wikidata P279 taxonomy
+    (:mod:`culturescrape.datalog.taxonomy`) is appended as ``subclass_of/2`` facts
+    so the ``instance_of`` closure rule has its base relation. It is opt-in
+    because the ``subclass_of`` facts are only meaningful *with* the rules — the
+    default fact stream (and every count pinned against it) is unchanged.
 
     Raises:
         DatalogExportError: If *directory* is not a directory or holds no
@@ -147,7 +170,7 @@ def collect_facts(directory: str | Path) -> _DatasetFacts:
     edge_files = tuple(sorted((directory / "edges").glob("*.tsv")))
     if not node_files:
         raise DatalogExportError(f"{directory} holds no nodes/*.tsv to project")
-    return _DatasetFacts(node_files, edge_files)
+    return _DatasetFacts(node_files, edge_files, include_taxonomy=include_taxonomy)
 
 
 def export_dataset(
@@ -156,6 +179,8 @@ def export_dataset(
     engines: Iterable[Engine],
     *,
     include_rules: bool = False,
+    include_constraints: bool = False,
+    include_schema_constraints: bool = False,
 ) -> ExportResult:
     """Export the dataset at *directory* to a logic program under *out*.
 
@@ -166,6 +191,25 @@ def export_dataset(
     files). When *include_rules* is set, the shared inference library
     (:data:`~culturescrape.datalog.RULES`) is attached to every program.
 
+    When *include_constraints* is set, the rules translated from Wikidata property
+    constraints (:mod:`culturescrape.datalog.constraints`, rules-layer US-002) are
+    attached — and, because the subject/value-type integrity rules negate over the
+    **transitive** ``instance_of`` membership, the shared rule library (the P279
+    closure and its taxonomy facts) is attached alongside them even without
+    *include_rules*. The constraint rules are **engine-specific**: SWI-Prolog receives
+    only the symmetric derivations (self-recursive, so tabled and terminating), while
+    Soufflé also receives the inverse derivations and the subject/value-type integrity
+    rules (mutually-recursive inverse pairs and stratified negation are Soufflé's
+    domain — see the module docstring). ProbLog is the probabilistic on-ramp and
+    receives no constraint rules.
+
+    When *include_schema_constraints* is set, the rules compiled from the canonical
+    schema's own edge from/to constraints, csid-uniqueness and declared symmetry
+    (:mod:`culturescrape.datalog.schema_constraints`, rules-layer US-003) are attached —
+    Soufflé-only (negation-as-failure over the ``instance_of`` closure), so the shared
+    rule library and its P279 taxonomy facts are attached alongside them exactly as the
+    property-constraint integrity rules require.
+
     Raises:
         DatalogExportError: If *engines* is empty, or the dataset cannot be read
             (see :func:`collect_facts`).
@@ -174,8 +218,30 @@ def export_dataset(
     if not engines:
         raise DatalogExportError("no engine selected")
 
-    facts = collect_facts(directory)
-    rules: tuple[Rule, ...] = RULES if include_rules else ()
+    # The taxonomy rides with the rules: subclass_of/2 facts only earn their keep
+    # when the instance_of closure rule is attached to consume them — and the
+    # integrity rules (property + schema) negate over that same closure, so both
+    # kinds of constraint need it too.
+    attach_rules = include_rules or include_constraints or include_schema_constraints
+    facts = collect_facts(directory, include_taxonomy=attach_rules)
+    # The curated closures are attached through the rules registry's status gate
+    # (rules-layer US-004): only rules whose registry status is ``active`` are emitted,
+    # so a retired curated rule is withdrawn without deleting its ``rules.py`` clauses.
+    # With the default governance metadata every curated rule is active, so the emitted
+    # program is byte-for-byte unchanged.
+    base_rules: tuple[Rule, ...] = active_curated_rules() if attach_rules else ()
+    prolog_rules = base_rules
+    souffle_rules = base_rules
+    if include_constraints:
+        translation = constraint_file_rules()
+        prolog_rules = base_rules + translation.prolog_rules()
+        souffle_rules = base_rules + translation.souffle_rules()
+    if include_schema_constraints:
+        # Soufflé-only: the from/to type, symmetry and csid-uniqueness rules use
+        # negation / inequality (see the module docstring). Prolog receives none.
+        souffle_rules = souffle_rules + schema_souffle_rules(
+            schema_constraint_file_rules()
+        )
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -189,15 +255,15 @@ def export_dataset(
     for engine in engines:
         if engine is Engine.SWIPL:
             program = out_dir / PROLOG_PROGRAM_NAME
-            fact_count = write_program(program, facts, rules)
+            fact_count = write_program(program, facts, prolog_rules)
         elif engine is Engine.PROBLOG:
             program = out_dir / PROBLOG_PROGRAM_NAME
             fact_count = write_problog_program(
-                program, collect_problog_facts(directory), rules
+                program, collect_problog_facts(directory), base_rules
             )
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
-            fact_count = write_souffle_program(out_dir, facts, rules)
+            fact_count = write_souffle_program(out_dir, facts, souffle_rules)
         programs[engine] = program
 
     return ExportResult(fact_count=fact_count, programs=programs)

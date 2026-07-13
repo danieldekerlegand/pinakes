@@ -49,7 +49,19 @@ from culturescrape.datalog.export import (
     export_dataset,
 )
 from culturescrape.datalog.materialize import MaterializeError, summarize
+from culturescrape.datalog.registry import (
+    REGISTRY_TSV,
+    build_registry,
+    load_registry,
+    validate_registry,
+    write_registry,
+)
 from culturescrape.datalog.rules import RULES
+from culturescrape.datalog.schema_constraints import (
+    SchemaConstraintError,
+    load_edge_constraints,
+    schema_violation_report,
+)
 from culturescrape.neo4j import Neo4jConfigError, Neo4jDriverNotInstalled
 from culturescrape.neo4j.admin_import import (
     AdminImportError,
@@ -360,6 +372,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="attach the shared inference-rule library to the program(s)",
     )
     to_datalog.add_argument(
+        "--constraints",
+        action="store_true",
+        help="attach the rules translated from Wikidata property constraints "
+        "(P2302): symmetric derivations (all engines), inverse derivations and "
+        "subject/value-type integrity rules (Soufflé). Loads the P279 taxonomy the "
+        "integrity rules negate over.",
+    )
+    to_datalog.add_argument(
+        "--schema-constraints",
+        action="store_true",
+        help="attach the rules compiled from the canonical schema's edge from/to "
+        "constraints, csid-uniqueness and declared symmetry (Soufflé violation rules). "
+        "Loads the P279 taxonomy the integrity rules negate over.",
+    )
+    to_datalog.add_argument(
         "--out",
         required=True,
         type=Path,
@@ -398,6 +425,51 @@ def _build_parser() -> argparse.ArgumentParser:
         "'engine_only' in the manifest.",
     )
     datalog_materialize.set_defaults(handler=_cmd_datalog_materialize)
+
+    schema_constraints = subparsers.add_parser(
+        "schema-constraints",
+        help="detect canonical-schema violations (edge from/to types, csid-uniqueness, "
+        "declared symmetry) over a dataset, engine-free, and report them",
+    )
+    schema_constraints.add_argument(
+        "directory",
+        type=Path,
+        help="dataset root holding nodes/ and edges/ .tsv files",
+    )
+    schema_constraints.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the triaged violation report (counts + sampled offenders) as JSON",
+    )
+    schema_constraints.add_argument(
+        "--baseline",
+        type=Path,
+        default=None,
+        help="a committed report to ratchet against: exit non-zero if any violation "
+        "relation's count exceeds its baseline (a new relation counts as baseline 0)",
+    )
+    schema_constraints.set_defaults(handler=_cmd_schema_constraints)
+
+    rules_registry = subparsers.add_parser(
+        "rules-registry",
+        help="validate the provenanced rules registry (parseable clauses, known "
+        "predicates, no arity conflicts) — the rules-layer QA gate — and print a "
+        "summary; --regenerate rewrites the committed registry from the rule sources",
+    )
+    rules_registry.add_argument(
+        "--regenerate",
+        action="store_true",
+        help="rebuild the committed registry TSV from the curated/property/schema "
+        "rule sources (run after changing any rule or its provenance)",
+    )
+    rules_registry.add_argument(
+        "--json",
+        type=Path,
+        default=None,
+        help="write the validated registry as JSON (rule rows + any problems)",
+    )
+    rules_registry.set_defaults(handler=_cmd_rules_registry)
 
     run = subparsers.add_parser(
         "run",
@@ -1148,12 +1220,24 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
     try:
         engines = engines_for_choice(args.engine)
         result = export_dataset(
-            args.directory, args.out, engines, include_rules=args.rules
+            args.directory,
+            args.out,
+            engines,
+            include_rules=args.rules,
+            include_constraints=args.constraints,
+            include_schema_constraints=args.schema_constraints,
         )
     except DatalogExportError as exc:
         return _fail(str(exc))
 
-    rules_note = " with rules" if args.rules else ""
+    notes = []
+    if args.rules:
+        notes.append("rules")
+    if args.constraints:
+        notes.append("constraints")
+    if args.schema_constraints:
+        notes.append("schema-constraints")
+    rules_note = f" with {' + '.join(notes)}" if notes else ""
     print(
         f"projected {result.fact_count} fact(s){rules_note} to {args.out} "
         f"for {', '.join(engine.value for engine in engines)}"
@@ -1176,7 +1260,9 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
     rules = tuple(rule for rule in RULES if rule.name not in exclude)
 
     try:
-        facts = collect_facts(args.directory)
+        # Include the P279 taxonomy so the instance_of closure rule has its
+        # subclass_of base relation (mirrors export_dataset's rule-bearing path).
+        facts = collect_facts(args.directory, include_taxonomy=True)
         summary = summarize(facts, rules)
     except (DatalogExportError, MaterializeError) as exc:
         return _fail(str(exc))
@@ -1198,6 +1284,108 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
             json.dumps(payload, indent=2) + "\n", encoding="utf-8"
         )
         print(f"wrote manifest to {args.json}")
+    return 0
+
+
+def _cmd_schema_constraints(args: argparse.Namespace) -> int:
+    try:
+        constraints = load_edge_constraints()
+        # Include the P279 taxonomy so class membership closes before the from/to
+        # type checks negate over it (mirrors the export's rule-bearing path).
+        facts = list(collect_facts(args.directory, include_taxonomy=True))
+    except (DatalogExportError, SchemaConstraintError) as exc:
+        return _fail(str(exc))
+    if not constraints:
+        return _fail(
+            "no edge constraints found (missing edge_constraints.tsv artifact)"
+        )
+
+    report = schema_violation_report(facts, constraints)
+    print(f"schema v{report.schema_version}: {report.total} violation(s)")
+    for relation, count in report.counts.items():
+        marker = "  " if count == 0 else "! "
+        print(f"{marker}{relation}: {count}")
+
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(
+            json.dumps(report.to_json(), indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"wrote report to {args.json}")
+
+    if args.baseline is not None:
+        try:
+            baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+        except OSError as exc:
+            return _fail(f"cannot read baseline {args.baseline}: {exc}")
+        base_counts = baseline.get("counts", {})
+        regressions = [
+            (relation, count, base_counts.get(relation, 0))
+            for relation, count in report.counts.items()
+            if count > base_counts.get(relation, 0)
+        ]
+        if regressions:
+            for relation, count, allowed in regressions:
+                print(f"REGRESSION {relation}: {count} > baseline {allowed}")
+            return _fail(
+                f"{len(regressions)} schema-violation relation(s) exceeded the baseline"
+            )
+        print(f"ratchet ok (baseline {args.baseline})")
+    return 0
+
+
+def _cmd_rules_registry(args: argparse.Namespace) -> int:
+    if args.regenerate:
+        entries = build_registry()
+        problems = validate_registry(entries)
+        if problems:
+            for problem in problems:
+                print(f"PROBLEM {problem.rule_id}: {problem.problem}")
+            return _fail(
+                f"refusing to regenerate: {len(problems)} registry problem(s)"
+            )
+        count = write_registry(entries, REGISTRY_TSV)
+        print(f"regenerated {count} rule(s) to {REGISTRY_TSV}")
+        return 0
+
+    # Validate the committed registry — the QA gate. Also confirm it is in sync with a
+    # fresh build (a drifted committed TSV means someone edited a rule without
+    # regenerating), so `rules-registry` alone catches both malformed and stale rows.
+    committed = load_registry()
+    problems = validate_registry(committed)
+    from collections import Counter
+
+    by_layer = Counter(entry.layer for entry in committed)
+    by_status = Counter(entry.status for entry in committed)
+    print(f"rules registry: {len(committed)} rule(s)")
+    for layer, count in sorted(by_layer.items()):
+        print(f"  layer {layer}: {count}")
+    for status, count in sorted(by_status.items()):
+        print(f"  status {status}: {count}")
+
+    fresh = build_registry()
+    if committed != fresh:
+        problems = [*problems]
+        print("DRIFT the committed registry differs from a fresh build")
+
+    if args.json is not None:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "rules": [entry.to_row() for entry in committed],
+            "problems": [
+                {"rule_id": p.rule_id, "problem": p.problem} for p in problems
+            ],
+        }
+        args.json.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote registry to {args.json}")
+
+    if problems:
+        for problem in problems:
+            print(f"PROBLEM {problem.rule_id}: {problem.problem}")
+        return _fail(f"{len(problems)} registry problem(s)")
+    if committed != fresh:
+        return _fail("committed registry is stale (run rules-registry --regenerate)")
+    print("registry ok (well-formed, in sync)")
     return 0
 
 

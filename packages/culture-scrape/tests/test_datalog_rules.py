@@ -35,6 +35,7 @@ from culturescrape.datalog.rules import (
     FOLLOWS,
     GENETIC_LINGUISTIC_CORRELATION,
     INFLUENCED_TRANSITIVELY,
+    INSTANCE_OF,
     PRECEDES,
     SAME_REGION,
     WITHIN_REGION,
@@ -85,6 +86,7 @@ def test_library_defines_the_required_derived_relations() -> None:
         "component_of",
         "same_region",
         "genetic_linguistic_correlation",
+        "instance_of",
     ]
 
 
@@ -145,10 +147,14 @@ def test_pl_declares_derived_and_base_rule_predicates() -> None:
         "within_region",
         "influenced_transitively",
         "component_of",
+        "instance_of",  # rules-layer US-001: the P279 class-membership closure
     )
     for name in recursive_heads:
         assert f":- table {name}/2." in program
         assert f":- dynamic {name}/2." not in program
+        # With no facts here, a tabled head is not discontiguous either. (The
+        # instance_of overload — tabled AND fact-bearing — is covered in
+        # test_datalog_taxonomy.)
         assert f":- discontiguous {name}/2." not in program
 
 
@@ -181,7 +187,15 @@ def test_pl_declares_temporal_rule_predicates_as_dynamic() -> None:
 def test_is_recursive_flags_only_transitive_closure_rules() -> None:
     # A rule is recursive iff its head predicate appears in its own body — the
     # transitive closures. The symmetric/join rules are not.
-    recursive = {ANCESTOR, WITHIN_REGION, INFLUENCED_TRANSITIVELY, COMPONENT_OF}
+    # instance_of is recursive too — its head reads its own derived extension to
+    # climb the subclass_of chain (rules-layer US-001).
+    recursive = {
+        ANCESTOR,
+        WITHIN_REGION,
+        INFLUENCED_TRANSITIVELY,
+        COMPONENT_OF,
+        INSTANCE_OF,
+    }
     for rule in RULES:
         assert is_recursive(rule) is (rule in recursive), rule.name
 
@@ -189,7 +203,13 @@ def test_is_recursive_flags_only_transitive_closure_rules() -> None:
 def test_tabled_signatures_are_the_recursive_heads() -> None:
     assert tabled_signatures(RULES) == {
         (rule.name, ARITY)
-        for rule in (ANCESTOR, WITHIN_REGION, INFLUENCED_TRANSITIVELY, COMPONENT_OF)
+        for rule in (
+            ANCESTOR,
+            WITHIN_REGION,
+            INFLUENCED_TRANSITIVELY,
+            COMPONENT_OF,
+            INSTANCE_OF,
+        )
     }
 
 
@@ -363,5 +383,6 @@ def test_all_rule_constants_are_referenced() -> None:
         COMPONENT_OF,
         SAME_REGION,
         GENETIC_LINGUISTIC_CORRELATION,
+        INSTANCE_OF,
     }
     assert set(RULES) == named

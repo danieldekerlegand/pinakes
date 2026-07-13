@@ -505,8 +505,9 @@ as `Ex < Sy` is not a predicate goal and carries no relation).
 | `component_of/2` | transitive `part_of/2` | `component_of(X, Y)` — `X` is a component of whole `Y` through any chain of part-of containments |
 | `same_region/2` | co-location via `within_region/2` | `same_region(X, Y)` — `X` and `Y` share an enclosing region (reflexive, symmetric); the geographic half of the cross-domain correlation |
 | `genetic_linguistic_correlation/2` | `originates_from/2` ⋈ `spoken_in/2` on region | `genetic_linguistic_correlation(H, L)` — a haplogroup `H` and a language `L` correlate because `H` originates in the region `L` is spoken in |
+| `instance_of/2` | (recursive) base `instance_of` typing over `subclass_of/2` | `instance_of(X, C)` — `X` is transitively an instance of class `C`: a leaf-class entity answers for every ancestor class the Wikidata P279 taxonomy places above it. Its head is *also* a base relation (the projected `:LABEL` facts seed it) — see [Class taxonomy](#class-taxonomy-p279-rules-layer-us-001) |
 
-The last two port LinguaScrape's cross-domain and genetic–linguistic correlation
+The middle two port LinguaScrape's cross-domain and genetic–linguistic correlation
 logic into the shared graph (T-LS-US-005). `genetic_linguistic_correlation/2`
 derives only the *qualitative* pairing; the numeric overlap score (region-polygon
 intersection, notable divergences) stays a CPU-domain computation in the
@@ -527,11 +528,146 @@ cycle (`clovis` ↔ `folsom`, see `docs/engine-validation.md`) and `influenced_b
 is *legitimately* cyclic — mutual influence (`eng` ↔ `fra`, `arb` ↔ `heb`, …) is
 real — so naive SLD evaluation of `ancestor`/`influenced_transitively` loops
 forever in SWI-Prolog. The Prolog emitter therefore declares every **recursive**
-rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`)
-`:- table` instead of `:- dynamic`: SLG resolution computes the least fixpoint and
-terminates, producing exactly Soufflé's tuple set (verified on the full corpus —
-`docs/engine-validation.md`). This is a Prolog-only concern; Soufflé's set
-semantics handle cycles natively, so the shared clause text is untouched.
+rule head (`ancestor`, `within_region`, `influenced_transitively`, `component_of`,
+and `instance_of` — the P279 closure below) `:- table` instead of `:- dynamic`:
+SLG resolution computes the least fixpoint and terminates, producing exactly
+Soufflé's tuple set (verified on the full corpus — `docs/engine-validation.md`).
+This is a Prolog-only concern; Soufflé's set semantics handle cycles natively, so
+the shared clause text is untouched. `instance_of` is the one recursive head that
+*also* carries base facts, so the Prolog emitter gives it `:- table` **and** `:-
+discontiguous` (its `:LABEL` facts are interleaved by row) but never `:- dynamic`.
+
+### Class taxonomy (P279) — rules-layer US-001
+
+`instance_of/2` closes **class membership** over a taxonomy the graph does not
+otherwise carry: `instance_of(X, C) :- instance_of(X, D), subclass_of(D, C)`. The
+base `instance_of` half is a node's `:LABEL`; the `subclass_of` half is acquired
+from **Wikidata's `P279` (*subclass of*) hierarchy** — either a WDQS `wdt:P279*`
+query or the on-disk dump index — by
+[`culturescrape.acquire.taxonomy`](../src/culturescrape/acquire/taxonomy.py). It
+resolves the *direct* subclass relations among the corpus's `:LABEL` node types
+(the classes that back them — `ArchaeologicalCulture` ⊂ `Culture`,
+`LiteraryTradition` ⊂ `ArtTradition`) into a small, provenanced replay artifact
+[`datalog/taxonomy/subclass_of.tsv`](../src/culturescrape/datalog/taxonomy/subclass_of.tsv)
+(`source`/`source_url`/`retrieved_at`/`confidence` per row, network-free in CI).
+[`culturescrape.datalog.taxonomy`](../src/culturescrape/datalog/taxonomy.py)
+projects it back to `subclass_of/2` facts, which `collect_facts(dir,
+include_taxonomy=True)` appends — **opt-in, coupled to `--rules`** (the facts only
+earn their keep with the closure rule), so a rule-less export is byte-for-byte
+unchanged. Only *direct* edges are stored: the recursion climbs each chain one hop
+at a time through the derived `instance_of`, so a 3-level chain `A ⊂ B ⊂ C` needs
+only `A→B` and `B→C`. The datalog materialiser attaches the taxonomy too, so the
+committed manifest counts the derived ancestor memberships.
+
+### Property constraints (P2302) — rules-layer US-002
+
+Where the taxonomy acquires *type* rules, this layer acquires **relation** rules from
+**Wikidata's property constraints (`P2302`)** — machine-readable axioms about the very
+properties the edge vocabulary is built from.
+[`culturescrape.acquire.constraints`](../src/culturescrape/acquire/constraints.py) fetches
+each mapped property's constraint statements (a WDQS `p:P2302` query) and resolves them
+against the corpus — property PID → edge `:TYPE`, an inverse constraint's target property
+→ its `:TYPE`, a type constraint's class QID → node `:LABEL` — into the provenanced replay
+artifact
+[`datalog/constraints/property_constraints.tsv`](../src/culturescrape/datalog/constraints/property_constraints.tsv)
+(network-free in CI).
+[`culturescrape.datalog.constraints`](../src/culturescrape/datalog/constraints.py)
+`translate`s each into a rule (or reports it):
+
+| Constraint | Rule | Engines |
+| --- | --- | --- |
+| **symmetric** (`Q21510862`) | `t(X, Y) :- t(Y, X).` — a bidirectional derivation | all (self-recursive → tabled) |
+| **inverse** (`Q21510855`) | `t(X, Y) :- u(Y, X).` — an inverse derivation (when `u` is in the vocabulary) | Soufflé only |
+| **subject/value-type** (`Q21503250`/`Q21510865`) | `t_subject_type_violation(X, Y) :- t(X, Y), !instance_of(X, "C").` — an integrity rule enumerating violations (value-type negates on `Y`) | Soufflé only |
+
+Inverse *pairs* are mutually recursive (`t :- u` and `u :- t`), which Soufflé's set
+semantics evaluate to a fixpoint but naive SWI SLD resolution would loop on (the
+cross-rule recursion is invisible to the single-rule tabling heuristic), and the integrity
+rules use stratified negation-as-failure over the `instance_of` closure — so both are
+Soufflé-only, matching US-003's violation-rules direction. A constraint whose type is none
+of these, or whose inverse property / type class is outside the corpus vocabulary, is
+**skipped and reported** (a `SkippedConstraint`), never guessed. Each translated rule
+carries the provenance of its constraint statement (`constraint_statement_id`,
+`retrieved_at`, `source`, `confidence`) into the draft rules registry
+[`datalog/constraints/rules_registry.tsv`](../src/culturescrape/datalog/constraints/rules_registry.tsv)
+(rules-layer US-004, draft form). The export attaches them behind `--constraints` (which
+also loads the taxonomy closure the integrity rules negate over):
+
+```python
+>>> from culturescrape.datalog.constraints import constraint_file_rules
+>>> result = constraint_file_rules()
+>>> sorted({rule.kind for rule in result.rules})
+['subject-type', 'symmetric', 'value-type']
+>>> len(result.skipped)   # a contemporary constraint + an out-of-vocabulary inverse
+2
+>>> [rule.name for rule in result.prolog_rules()]   # Prolog: symmetric derivations only
+['adjacent_to']
+>>> sorted(rule.name for rule in result.souffle_rules())
+['adjacent_to', 'adjacent_to_subject_type_violation', 'adjacent_to_value_type_violation']
+
+```
+
+### Schema constraints (canonical schema) — rules-layer US-003
+
+Where P279/P2302 acquire rules from *Wikidata*, this layer compiles the **canonical
+schema's own constraints** — declared in
+[`shared/canonical-schema.json`](../../../shared/canonical-schema.json) but never checked
+logically until now. [`culturescrape.datalog.schema_constraints`](../src/culturescrape/datalog/schema_constraints.py)
+`extract`s each edge type's `from`/`to` allowed node types (resolved to `:LABEL`s), its
+declared `symmetric` flag and the schema-wide csid-uniqueness rule into the provenanced
+replay artifact
+[`datalog/schema/edge_constraints.tsv`](../src/culturescrape/datalog/schema/edge_constraints.tsv),
+then compiles each into a **Soufflé violation rule whose output relation enumerates the
+offending edges**:
+
+| Constraint | Rule | Engines |
+| --- | --- | --- |
+| **from-type** | `t_from_type_violation(X, Y) :- t(X, Y), !from_ok_t(X, Y).` (support: `from_ok_t(X, Y) :- t(X, Y), instance_of(X, "L").`) | Soufflé only |
+| **to-type** | `t_to_type_violation(X, Y) :- t(X, Y), !to_ok_t(X, Y).` (negates on `Y`) | Soufflé only |
+| **symmetry** | `t_symmetry_violation(X, Y) :- t(X, Y), !t(Y, X).` (declared-symmetric edges only) | Soufflé only |
+| **csid-uniqueness** | `csid_uniqueness_violation(C, N) :- node(C, T1, N), node(C, T2, M), N != M.` | Soufflé only |
+
+The support relations carry **both** endpoints, so the violation negates over the `(X, Y)`
+pair rather than an unsafe unary `!from_ok_t(X)` — every head and predicate stays binary.
+All four kinds use negation / inequality over the transitive `instance_of` closure, so they
+are Soufflé-only (matching the P2302 integrity rules), and the export attaches them behind
+`--schema-constraints` (which loads the P279 closure they negate over). Each rule carries
+schema provenance (`source = canonical-schema`, `source_url`, `schema_version`, `confidence`)
+into the draft registry
+[`datalog/schema/rules_registry.tsv`](../src/culturescrape/datalog/schema/rules_registry.tsv):
+
+```python
+>>> from culturescrape.datalog import Fact
+>>> from culturescrape.datalog.schema_constraints import (
+...     load_edge_constraints, evaluate_schema_violations)
+>>> constraints = load_edge_constraints()
+>>> descends = next(c for c in constraints if c.edge_type == "DESCENDS_FROM")
+>>> descends.from_labels
+('Language', 'LanguageFamily', 'Culture', 'ArchaeologicalCulture')
+>>> facts = [
+...     Fact("instance_of", ("cs:ws:a", "WritingSystem")),
+...     Fact("instance_of", ("cs:ws:b", "WritingSystem")),
+...     Fact("instance_of", ("cs:lang:x", "Language")),
+...     Fact("instance_of", ("cs:lang:y", "Language")),
+...     Fact("descends_from", ("cs:ws:a", "cs:ws:b")),
+...     Fact("descends_from", ("cs:lang:x", "cs:lang:y")),
+... ]
+>>> violations = evaluate_schema_violations(facts, constraints)
+>>> violations["descends_from_from_type_violation"]   # the WritingSystem edge only
+[('cs:ws:a', 'cs:ws:b')]
+>>> violations["csid_uniqueness_violation"]
+[]
+
+```
+
+The engine-free `evaluate_schema_violations` is the authoritative check (the generic
+materialiser cannot express negation); `culturescrape schema-constraints <dataset>
+[--json report.json] [--baseline report.json]` runs it over a whole corpus and, with
+`--baseline`, ratchets against a committed report so violations can never increase. The
+current full-corpus enumeration (45 WritingSystem-descent `descended-from` edges the schema
+does not yet allow) is triaged in
+[`docs/schema-constraints-report.json`](schema-constraints-report.json) and
+[`docs/schema-constraints.md`](schema-constraints.md).
 
 ### Attaching the rules
 
@@ -731,3 +867,37 @@ post-US-001 edge model — the pre-US-001 record read `contemporary` off the
   `originates_from`/`spoken_in` edges); it is exercised on the bundled fixture,
   which carries ported `source: linguascrape` genetics facts, and materializes on
   any merged corpus that adds a genetics source.
+
+## Provenanced rules registry (rules-layer US-004)
+
+Facts carry `source`/`source_url`/`retrieved_at`/`confidence` and pass a QA gate;
+rules now do too. `datalog/registry.py` **wraps** the three rule sources — the curated
+`rules.py` closures, the Wikidata P2302 property-constraint rules (US-002) and the
+canonical-schema violation rules (US-003) — into one provenanced, validated table,
+committed at `datalog/rules_registry.tsv` and regenerated with `culturescrape
+rules-registry --regenerate`. Each row carries a `rule_id`, the head/body clause text
+per dialect (`clause_prolog`/`clause_souffle`), `depends`, `source`, `source_url`,
+`retrieved_at`, `confidence`, `version` and a lifecycle `status`.
+
+`validate_registry` is the QA gate (run in CI and by `culturescrape rules-registry`):
+every clause parses, every predicate is known (a rule head, a base projection
+relation, or a declared dependency), and no predicate is used at two arities. The
+exporter **consumes** the registry through `registry.active_curated_rules()` — a curated
+rule flipped to `retired` in `CURATED_RULE_META` is withdrawn from the emitted program
+without deleting its `rules.py` clauses (the constraint/schema layers already gate their
+own emission on `status == "active"`). See `docs/rules-registry.md` for the lifecycle.
+
+```python
+>>> from culturescrape.datalog.registry import build_registry, validate_registry
+>>> entries = build_registry()
+>>> validate_registry(entries)                       # the QA gate: no problems
+[]
+>>> sorted({entry.layer for entry in entries})       # all three rule sources
+['canonical-schema', 'curated', 'wikidata-property']
+>>> by_id = {entry.rule_id: entry for entry in entries}
+>>> by_id['curated-ancestor'].source                 # a migrated hand-written rule
+'curated'
+>>> by_id['curated-ancestor'].status
+'active'
+
+```

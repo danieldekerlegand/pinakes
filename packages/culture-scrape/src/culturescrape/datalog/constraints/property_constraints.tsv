@@ -1,0 +1,6 @@
+property_id	edge_type	constraint_kind	constraint_qid	statement_id	inverse_pid	inverse_edge_type	class_qid	class_label	relation_qid	source	source_url	retrieved_at	confidence
+P47	ADJACENT_TO	subject-type	Q21503250	P47$shares-border-subject-type			Q2221906	Place	Q21514624	wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9
+P47	ADJACENT_TO	symmetric	Q21510862	P47$shares-border-symmetric						wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9
+P47	ADJACENT_TO	value-type	Q21510865	P47$shares-border-value-type			Q2221906	Place	Q21514624	wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9
+P47	ADJACENT_TO	other	Q25796498	P47$shares-border-contemporary						wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9
+P361	PART_OF	inverse	Q21510855	P361$part-of-inverse	P527					wikidata	https://www.wikidata.org/wiki/Property:P361	2026-07-13T00:00:00Z	0.9

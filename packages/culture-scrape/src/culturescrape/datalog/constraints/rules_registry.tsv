@@ -1,0 +1,4 @@
+rule_id	kind	head	clause_prolog	clause_souffle	property_id	constraint_statement_id	source	source_url	retrieved_at	confidence	status
+wd-p47-subject-type-adjacent_to	subject-type	adjacent_to_subject_type_violation		adjacent_to_subject_type_violation(X, Y) :- adjacent_to(X, Y), !instance_of(X, "Place").	P47	P47$shares-border-subject-type	wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9	active
+wd-p47-symmetric-adjacent_to	symmetric	adjacent_to	adjacent_to(X, Y) :- adjacent_to(Y, X).	adjacent_to(X, Y) :- adjacent_to(Y, X).	P47	P47$shares-border-symmetric	wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9	active
+wd-p47-value-type-adjacent_to	value-type	adjacent_to_value_type_violation		adjacent_to_value_type_violation(X, Y) :- adjacent_to(X, Y), !instance_of(Y, "Place").	P47	P47$shares-border-value-type	wikidata	https://www.wikidata.org/wiki/Property:P47	2026-07-13T00:00:00Z	0.9	active

@@ -142,6 +142,169 @@ is the `W::` probability prefix. Design rules if you touch it:
   (imported lazily inside the fn to avoid an import cycle: export imports problog).
   `Engine.PROBLOG` is opt-in — `engines_for_choice("both")` stays swipl+souffle.
 
+## Class taxonomy: subclass_of/2 + the EDB∪IDB instance_of closure (rules-layer US-001)
+
+`instance_of/2` is the one rule whose head is **also a base relation** — nodes
+project `instance_of(Csid, Label)` facts (a `:LABEL`) AND the rule
+`instance_of(X, C) :- instance_of(X, D), subclass_of(D, C)` extends it up the P279
+taxonomy. Consequences every emitter/materialiser already handles (don't re-break):
+
+- **Prolog:** a recursive head with facts is `:- table` **+** `:- discontiguous`
+  (facts interleave by row) but **never** `:- dynamic` (SWI forbids dynamic+table).
+  `prolog._preamble_lines` takes `fact_signatures` to keep the two sets straight —
+  a tabled sig that is also a fact sig lands in the discontiguous block. A rule-less
+  or fact-less program is byte-for-byte unchanged (the overlap only fires when
+  instance_of facts AND `RULES` are both present).
+- **Soufflé:** the fact block already emits `.decl`/`.input`/`.output instance_of`;
+  `_render_rules` skips re-declaring a predicate already `declared` by facts, so the
+  relation is loaded (`.input`) AND derived (rule) — the standard Soufflé EDB∪IDB
+  union. Verified by the `souffle`-gated closure test in `test_datalog_taxonomy.py`.
+- **Materialiser:** `materialize` seeds the store with base facts then adds derived
+  tuples to the SAME head set, so `derived_relations["instance_of"]` is base ∪
+  closure (base `:LABEL` typing PLUS ancestor memberships) — expected, noted in the
+  manifest. `_base_relations` = deps − heads, so `instance_of` (a head) is not
+  double-counted as a base relation; `subclass_of` is.
+
+The `subclass_of` facts come from a **committed replay artifact**
+(`datalog/taxonomy/subclass_of.tsv`, provenanced), NOT the corpus:
+`datalog/taxonomy.py` reads it, `acquire/taxonomy.py` extracts it from Wikidata
+P279 (WDQS `wdt:P279*` **or** the dump index's `class_closure`) among the corpus's
+`:LABEL` classes (`CORPUS_CLASS_QIDS`). Only **direct** label→label edges are
+stored — the recursion climbs each chain one hop at a time through the *derived*
+`instance_of`, so a 3-level chain needs only its two direct hops. Regenerate the
+artifact from the extractor (a fixture ancestor-lookup encodes the real P279 facts;
+`test_extractor_reproduces_the_committed_artifact` ties the two together).
+
+- **Opt-in, coupled to `--rules`.** `collect_facts(dir, include_taxonomy=True)`
+  appends the subclass_of facts; `export_dataset(include_rules=True)` and
+  `datalog-materialize` set it. Default is off, so every count pinned against the
+  plain fact stream (`test_datalog_export`, the fixture node/edge counts) is
+  unchanged — the taxonomy facts only appear WITH the closure rule that consumes them.
+- **New backing class?** Add the `:LABEL → class QID` entry to `CORPUS_CLASS_QIDS`
+  (omit a label whose Wikidata class is ambiguous — the taxonomy is only as sound as
+  this map), re-extract, and re-commit the TSV. `subclass_of` is already in
+  `examples.KNOWN_PREDICATES`, so a query naming it lints clean.
+
+## Property-constraint rules: symmetric / inverse / integrity (rules-layer US-002)
+
+`constraints.py` translates Wikidata `P2302` property constraints into rules, read
+from the committed replay artifact `datalog/constraints/property_constraints.tsv`
+(written by `acquire/constraints.py`; all Wikidata↔corpus resolution is baked into
+its columns, so `datalog` never imports `acquire`). `translate()` →
+`TranslationResult(rules, skipped)`; `constraint_file_rules()` loads+translates the
+committed artifact. Emitted behind `to-datalog --constraints` / `export_dataset(
+include_constraints=True)`.
+
+- **A `ConstraintRule` is NOT a `Rule`** — it carries provenance (`constraint_statement_id`,
+  `retrieved_at`, source/confidence, `status`) and **per-engine** clause tuples, and
+  yields a plain `Rule` via `.prolog_rule()` / `.souffle_rule()` (either may be `None`).
+  This is how a rule reaches ONE engine with dialect-specific text (negation) while
+  reusing all the existing emitter machinery — the emitters render any `Rule` verbatim,
+  so a `Rule` whose clause is `... :- t(X,Y), !instance_of(Y,"C").` emits fine for
+  Soufflé, and the byte-identical-across-dialects invariant (a test over `RULES` only)
+  is untouched because these rules are not in `RULES`.
+- **Three translations, engine split:** *symmetric* (`Q21510862`) → `t(X,Y):-t(Y,X).`
+  to BOTH engines (self-recursive → auto-tabled in Prolog, safe); *inverse* (`Q21510855`)
+  → `t(X,Y):-u(Y,X).` **Soufflé-only** (an inverse pair mutually recurses `t:-u`,`u:-t`;
+  Soufflé fixpoints it, but untabled SWI SLD would loop — the single-rule `is_recursive`
+  tabling heuristic can't see cross-rule recursion); *subject/value-type*
+  (`Q21503250`/`Q21510865`) → a violation head `t_{subject,value}_type_violation(X,Y):-
+  t(X,Y), !instance_of({X,Y},"C").` **Soufflé-only** (stratified negation over the
+  `instance_of` closure). So `export_dataset` passes DIFFERENT rule sets per engine
+  (`translation.prolog_rules()` = symmetric only; `.souffle_rules()` = all active).
+- **`--constraints` implies the rule library** (`attach_rules = include_rules or
+  include_constraints`) because the integrity rules negate over the *transitive*
+  `instance_of` — the P279 closure + taxonomy facts must be present. ProbLog gets the
+  base `RULES` but no constraint rules (it has no negation / no `:- table`).
+- **Skipped-and-reported, never guessed:** an untranslatable constraint type, an inverse
+  whose target property isn't in `EDGE_PROPERTY_PIDS` (blank `inverse_edge_type`), or a
+  type constraint whose class isn't a corpus `:LABEL` (blank `class_label`) → a
+  `SkippedConstraint`. A generated clause that duplicates a curated `RULES` clause is
+  marked `status="redundant"` and excluded from emission (dedup via `curated=` set).
+- **Draft rules registry (US-004 draft):** `render_rules_registry()` → committed
+  `datalog/constraints/rules_registry.tsv` (rule id + per-dialect clauses + provenance +
+  status). Regenerate it AND `property_constraints.tsv` together (a test pins the
+  registry to `constraint_file_rules()`); the two `.tsv`s are in
+  `pyproject` package-data (`datalog/constraints/*.tsv`).
+- **Materialiser covers the positive kinds only** — symmetric/inverse are positive Horn
+  (fixpoint-safe), so `materialize(facts, [cr.souffle_rule()])` derives them engine-free
+  in tests; the violation rules use negation and are validated by the souffle-gated smoke
+  (`test_souffle_detects_a_value_type_violation`) — engines aren't installed locally, so
+  reason about stratification and lean on that CI-gated test.
+
+## Schema-constraint violation rules (rules-layer US-003)
+
+`schema_constraints.py` compiles the **canonical schema's own** constraints
+(`shared/canonical-schema.json` edge `from`/`to`, `symmetric`, csid-uniqueness) into
+Soufflé **violation rules** — the schema analogue of `constraints.py`. Same self-contained
+pattern: `extract_edge_constraints()` reads the schema (repo-root `parents[5]/shared/...`,
+absent in a standalone checkout) and resolves each node-type *name* → `:LABEL`, baking them
+into the committed replay artifact `datalog/schema/edge_constraints.tsv`; the reader/generator
+translate from resolved labels alone. Attached behind `to-datalog --schema-constraints` /
+`export_dataset(include_schema_constraints=True)`.
+
+- **All four kinds are Soufflé-only** (negation / inequality). A `from`/`to` type check is a
+  **support + violation pair** so heads stay binary: `from_ok_t(X, Y) :- t(X, Y),
+  instance_of(X, "L").` (one clause per allowed label) then `t_from_type_violation(X, Y) :-
+  t(X, Y), !from_ok_t(X, Y).` — the support carries **both** endpoints so the negation is over
+  the `(X, Y)` pair, never an unsafe unary `!from_ok(X)`. Symmetry: `t_symmetry_violation(X, Y)
+  :- t(X, Y), !t(Y, X).`; csid-uniqueness: `csid_uniqueness_violation(C, N) :- node(C, T1, N),
+  node(C, T2, M), N != M.` (the ONE schema rule whose body reads the arity-3 `node/3` — fine:
+  the emitter declares `node` from facts, so don't route it where `node` is undeclared).
+  Stratification: `instance_of` closure (recursive) < `from_ok_t` (positive) < violation
+  (negation) — no cycle-through-negation.
+- **The materialiser can't run these** (it has no negation), so the engine-free authoritative
+  check is a **purpose-built** `evaluate_schema_violations(facts, constraints)` (closes
+  `instance_of` over `subclass_of` itself, then enumerates offenders) — NOT
+  `materialize()`. The souffle-gated `test_souffle_detects_the_type_violation_the_evaluator_does`
+  asserts the real engine agrees with it.
+- **The full-corpus report is a committed release record** (`docs/schema-constraints-report.json`,
+  regenerate with `culturescrape schema-constraints export/culturescrape --json ...`), NOT a
+  live-asserted snapshot (the corpus is gitignored) — like the materialization manifest. `--baseline`
+  ratchets a corpus against it (violations never increase). A test pins the report's known finding
+  (45 `WritingSystem`-descent `descended-from` edges the schema doesn't yet allow; triaged in
+  `docs/schema-constraints.md`) so a careless regeneration is caught. Regenerate BOTH
+  `schema/edge_constraints.tsv` (tied to the live schema) and `schema/rules_registry.tsv` (tied to
+  the generator) after a schema change; both are `pyproject` package-data (`datalog/schema/*.tsv`).
+
+## Provenanced rules registry (rules-layer US-004)
+
+`registry.py` **wraps** the three rule sources — curated `RULES`, the P2302
+property-constraint rules (`constraints.py`), the schema violation rules
+(`schema_constraints.py`) — into ONE provenanced, validated table committed at
+`datalog/rules_registry.tsv` (package-data). It's the governance layer facts already
+have (`source`/`source_url`/`retrieved_at`/`confidence`/`version`/`status` per rule).
+
+- **Generated + committed, pinned by a test.** `build_registry()` aggregates the three
+  sources deterministically (curated in-code + the two committed replay artifacts);
+  `test_committed_registry_matches_a_fresh_build` pins the TSV. Regenerate after ANY
+  rule/provenance change: `culturescrape rules-registry --regenerate` (a `_cmd_*`
+  refuses to write if validation fails). Columns: `rule_id, layer, head, clause_prolog,
+  clause_souffle, depends, source, source_url, retrieved_at, confidence, version, status`.
+- **`rules.py` stays the curated CLAUSE source** (its `Rule.intent`/`.example` drive the
+  emitted comment blocks — don't reconstruct curated Rules from the registry or you lose
+  them). The registry wraps them with metadata; `CURATED_RULE_META` (keyed by head) is
+  the in-code status/version source, default = all `active`.
+- **The QA gate is `validate_registry(entries) -> [RegistryProblem]`** (run in CI +
+  `culturescrape rules-registry`): parseable clauses (balanced; head + `pred(args)`/
+  comparison-guard body), known predicates (per-entry: rule heads ∪ `_ALWAYS_KNOWN` ∪
+  `examples.KNOWN_PREDICATES` ∪ the entry's own `depends` — so a Soufflé `!from_ok_t`
+  negation is "known" because `from_ok_t` is another registry head, and a schema edge
+  predicate is known because the entry `depends` on it), no arity conflicts (a pred at
+  two arities anywhere). Clause cells may hold MULTIPLE `.`-terminated clauses — split on
+  `.` is safe (registry clauses carry no other dots: variables + quoted `:LABEL`s only).
+  Import `KNOWN_PREDICATES` LAZILY inside the fn (avoid an import-time cycle via examples).
+- **The exporter CONSUMES the registry** through `active_curated_rules()` — `export.py`
+  attaches it instead of `RULES` directly, dropping any curated rule whose status ≠
+  `active`. Default = all active ⇒ byte-identical output (no existing test moved). Flip a
+  head's status in `CURATED_RULE_META` to retire it without deleting its clauses. The
+  property/schema layers already gate their own emission on `status=="active"`.
+- **Status lifecycle** `proposed → active → retired` (+ `redundant` = a generated clause
+  that duplicates a curated one; the constraints layer marks these). `VALID_STATUSES`
+  pins the set; docs/rules-registry.md describes it. The per-layer draft registries
+  (`constraints/rules_registry.tsv`, `schema/rules_registry.tsv`) still exist as each
+  layer's own artifact — the unified registry is the governance aggregate over them.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its
