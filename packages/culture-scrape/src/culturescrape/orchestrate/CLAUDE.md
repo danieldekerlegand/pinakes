@@ -25,6 +25,43 @@ below). Then `culturescrape run <job>` builds it fully offline.
 - Use **absolute** `--dump`/`--index`/`--linguascrape` paths — the dump adapter and the
   linguascrape-export adapter resolve their path relative to the run CWD, not the job.
 
+## Tiered trust / auto-admission — `tiers.py` (US-002)
+
+A merged corpus is the auto-admission surface: QID-anchored **and** reference-backed
+facts admit with their US-001 rubric confidence + a **tier label**, weaker acquired facts
+quarantine, and `lexicons/*.tsv` are never written (auto-admission is a graph-corpus
+policy, not a lexicon write). `classify_tier(row)` is a **pure** function of already-
+canonical provenance columns (`source`, `wikidata_qid`, `source_url`) — so `tier` is NOT a
+new TSV column (that would cascade into the neo4j/datalog schema + every committed
+snapshot); it is *derived*, and recoverable from the same `source(Csid,Source)` Datalog
+fact / Neo4j property that already exists. Tiers, most-to-least trusted: `curated`
+(`source=linguascrape`, wins even with a QID/ref — human vetting is strongest),
+`auto-admitted` (node with `wikidata_qid` AND `source_url`; edge with `source_url`),
+`quarantine` (acquired but not both), `inferred` (`source` starts `inferred:` — linker
+scaffolding). Runbook: `docs/tiered-trust.md`.
+
+- **Opt-in via the job**, like `reconcile_shared_qids`: `Job.tiered_trust` (bool) +
+  `Job.tier_gates` (per-tier `GateThresholds` overrides). Off by default, so single-source
+  builds stay byte-identical. `culturescrape merge` bakes `tiered_trust: true` in (opt out
+  with `--no-tiered`). When on, `build_corpus` writes `corpus/tiers.json` (composition-by-
+  tier manifest — deterministic, content-only, same discipline as `manifest.json`) and
+  `corpus/qa-tiers.json` (per-tier QA), and a per-tier gate violation fails the build under
+  `fail_on_violation`.
+- **Per-tier QA (`evaluate_tiers`) partitions rows by tier and reuses `qa.evaluate`.** The
+  meaningful per-tier floors are **provenance + dedup + unreconciled** (auto-admitted must
+  be fully sourced + QID-reconciled; quarantine has no floor — it is *awaiting* curation).
+  **Dangling-edge / connectivity stay permissive per tier** — a curated edge legitimately
+  points at a quarantined node, so `DEFAULT_TIER_GATES` sets BOTH `max_dangling_edge_rate`
+  and `max_linguascrape_dangling_edge_rate` to 1.0; real dangling is caught by the whole-
+  corpus gate. (The curated subset is all-LinguaScrape, so `qa.evaluate` appends the LS-
+  scoped gates — remember to relax the LS dangling one too, not just the base one.)
+- **`jobs._parse_tier_gates` imports `tiers.ALL_TIERS` lazily** (inside the fn) to avoid a
+  `jobs`↔`tiers` top-level import order coupling: `tiers` imports the qa/manifest/metrics
+  layer; `jobs` only needs the tier *names*.
+- **Committed manifest** = `docs/tiered-corpus-manifest.json`, built from the
+  `tests/fixtures/tiered/` corpus (spans every tier) and asserted by `tests/test_tiers.py`;
+  regenerate via `manifest_for_tier_dataset(job, dir)` if the fixture moves.
+
 ## Identity preservation — collapse same-QID nodes across types (US-004)
 
 `csid` is `cs:<node-type>:<QID>`, so the **same** Wikidata entity typed differently by

@@ -19,7 +19,8 @@ lives.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -29,6 +30,7 @@ from culturescrape.acquire.categories import (
     CategorySpecError,
     load_category,
 )
+from culturescrape.orchestrate.qa import GateThresholds
 
 #: Pipeline stages in canonical execution order (see ``PLAN.md`` data flow).
 STAGE_ORDER = ("acquire", "normalize", "link", "export")
@@ -42,6 +44,8 @@ _OPTIONAL_KEYS = (
     "min_provenance_completeness",
     "min_component_fraction",
     "reconcile_shared_qids",
+    "tiered_trust",
+    "tier_gates",
 )
 _ALLOWED_KEYS = frozenset(_REQUIRED_KEYS + _OPTIONAL_KEYS)
 
@@ -73,6 +77,16 @@ class Job:
             QID but were minted under different node types into one before the
             corpus is written (a merged corpus stitching several sources needs
             this so one QID is one node — see ``ontology.reconcile_qid``).
+        tiered_trust: When true, the corpus build classifies every row into a
+            trust tier (``curated`` / ``auto-admitted`` / ``quarantine`` /
+            ``inferred`` — see :mod:`culturescrape.orchestrate.tiers`), writes a
+            composition-by-tier manifest, and grades each tier against its own QA
+            gates. Off by default so single-source builds are byte-identical.
+        tier_gates: Per-tier QA threshold overrides, keyed by tier name; each
+            value is a partial :class:`~culturescrape.orchestrate.qa.GateThresholds`
+            mapping. A tier absent here uses its
+            :data:`~culturescrape.orchestrate.tiers.DEFAULT_TIER_GATES` entry.
+            Only meaningful with ``tiered_trust``.
     """
 
     name: str
@@ -83,6 +97,8 @@ class Job:
     min_provenance_completeness: float | None = None
     min_component_fraction: float | None = None
     reconcile_shared_qids: bool = False
+    tiered_trust: bool = False
+    tier_gates: Mapping[str, GateThresholds] = field(default_factory=dict)
 
     def output_dir(self, stage: str) -> Path:
         """Return the output directory for *stage* under :attr:`output_root`.
@@ -151,6 +167,8 @@ def _parse(raw: object, path: Path) -> Job:
     reconcile_qids = _parse_bool(
         raw.get("reconcile_shared_qids"), "reconcile_shared_qids", errors
     )
+    tiered_trust = _parse_bool(raw.get("tiered_trust"), "tiered_trust", errors)
+    tier_gates = _parse_tier_gates(raw.get("tier_gates"), errors)
 
     stages = _parse_stages(raw.get("stages"), errors)
     categories = (
@@ -179,6 +197,8 @@ def _parse(raw: object, path: Path) -> Job:
         min_provenance_completeness=min_provenance,
         min_component_fraction=min_component,
         reconcile_shared_qids=reconcile_qids,
+        tiered_trust=tiered_trust,
+        tier_gates=tier_gates,
     )
 
 
@@ -248,6 +268,42 @@ def _parse_bool(value: object, key: str, errors: list[str]) -> bool:
         errors.append(f"{key!r} must be a boolean (true/false)")
         return False
     return value
+
+
+def _parse_tier_gates(
+    value: object, errors: list[str]
+) -> Mapping[str, GateThresholds]:
+    """Parse an optional per-tier QA-threshold override map, or ``{}`` when omitted.
+
+    Each key must be a known tier (``curated`` / ``auto-admitted`` / ...) and each
+    value a mapping of :class:`~culturescrape.orchestrate.qa.GateThresholds`
+    fields; a partial mapping keeps that tier's defaults for the rest. An unknown
+    tier or a non-numeric threshold is a validation error.
+    """
+    # Imported here (not at module top) to avoid a jobs<->tiers import order
+    # coupling: tiers imports the QA/manifest layer, jobs only needs the names.
+    from culturescrape.orchestrate.tiers import ALL_TIERS
+
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        errors.append("'tier_gates' must be a mapping of tier -> threshold mapping")
+        return {}
+    gates: dict[str, GateThresholds] = {}
+    for tier, overrides in value.items():
+        if tier not in ALL_TIERS:
+            errors.append(
+                f"tier_gates: unknown tier {tier!r}; valid: {', '.join(ALL_TIERS)}"
+            )
+            continue
+        if not isinstance(overrides, dict):
+            errors.append(f"tier_gates[{tier!r}] must be a mapping of thresholds")
+            continue
+        try:
+            gates[str(tier)] = GateThresholds.from_dict(overrides)
+        except ValueError as exc:
+            errors.append(f"tier_gates[{tier!r}]: {exc}")
+    return gates
 
 
 def _parse_output_root(value: object, path: Path, errors: list[str]) -> Path | None:

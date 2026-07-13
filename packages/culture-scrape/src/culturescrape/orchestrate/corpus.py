@@ -84,6 +84,12 @@ from culturescrape.orchestrate.runner import (
     JobRun,
     run_job,
 )
+from culturescrape.orchestrate.tiers import (
+    TieredManifest,
+    TierQaReport,
+    build_tier_manifest,
+    evaluate_tiers,
+)
 from culturescrape.schema.pipeline import NormalizationResult, write_result
 from culturescrape.schema.validate import validate_directory
 
@@ -171,6 +177,10 @@ class CorpusBuild:
         datalog: The generated Datalog export (fact count + program paths).
         shared: Entities that ended up shared across categories.
         min_component_fraction: The connectivity bound the build was held to.
+        tiers: The composition-by-tier manifest when the job opted into
+            ``tiered_trust``, else ``None``.
+        tier_qa: The per-tier QA report when the job opted into ``tiered_trust``,
+            else ``None``.
     """
 
     name: str
@@ -182,6 +192,8 @@ class CorpusBuild:
     datalog: ExportResult
     shared: tuple[SharedEntity, ...]
     min_component_fraction: float
+    tiers: TieredManifest | None = None
+    tier_qa: TierQaReport | None = None
 
     @property
     def connected(self) -> bool:
@@ -259,6 +271,21 @@ def build_corpus(
         render_report(stitched.shared) + "\n", encoding="utf-8"
     )
 
+    tiers: TieredManifest | None = None
+    tier_qa: TierQaReport | None = None
+    if job.tiered_trust:
+        tiers = build_tier_manifest(job.name, final_nodes, final_edges)
+        tiers.write(dataset_dir / "tiers.json")
+        tier_qa = evaluate_tiers(final_nodes, final_edges, job.tier_gates)
+        tier_qa.write(dataset_dir / "qa-tiers.json")
+        logger.log(
+            logging.WARNING if tier_qa.violations else logging.INFO,
+            "corpus tiered trust: job=%s\n%s",
+            job.name,
+            tier_qa.render_summary(),
+            extra={"event": "corpus.tiers", "job": job.name, "ok": tier_qa.ok},
+        )
+
     logger.info(
         "corpus assembled: job=%s\n%s",
         job.name,
@@ -272,7 +299,7 @@ def build_corpus(
         },
     )
 
-    _gate(job, report, qa, metrics, min_component_fraction, logger)
+    _gate(job, report, qa, metrics, min_component_fraction, logger, tier_qa)
 
     import_plan = generate_import_script(
         dataset_dir, out_dir=job.output_root / NEO4J_DIRNAME, database=database
@@ -301,6 +328,8 @@ def build_corpus(
         datalog=datalog,
         shared=tuple(stitched.shared),
         min_component_fraction=min_component_fraction,
+        tiers=tiers,
+        tier_qa=tier_qa,
     )
 
 
@@ -361,8 +390,9 @@ def _gate(
     metrics: GraphMetrics,
     min_component_fraction: float,
     logger: logging.Logger,
+    tier_qa: TierQaReport | None = None,
 ) -> None:
-    """Fail the build on a QA violation or an under-connected corpus."""
+    """Fail the build on a QA violation, a tier gate, or under-connectivity."""
     level = logging.WARNING if report.violations else logging.INFO
     logger.log(
         level,
@@ -376,6 +406,13 @@ def _gate(
     if qa.fail_on_violation and report.violations:
         names = ", ".join(gate.label for gate in report.violations)
         raise CorpusBuildError(f"corpus {job.name!r}: QA gates failed: {names}")
+    if qa.fail_on_violation and tier_qa is not None and tier_qa.violations:
+        names = ", ".join(
+            f"{tier}:{label}" for tier, label in tier_qa.violations
+        )
+        raise CorpusBuildError(
+            f"corpus {job.name!r}: per-tier QA gates failed: {names}"
+        )
     if metrics.largest_component_fraction < min_component_fraction:
         raise CorpusBuildError(
             f"corpus {job.name!r}: graph is fragmented — largest component holds "

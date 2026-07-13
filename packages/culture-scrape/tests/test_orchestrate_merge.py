@@ -157,3 +157,29 @@ def test_merge_refuses_to_overwrite_without_force(tmp_path: Path) -> None:
     write_merged_job(
         [bp], tmp_path / "categories", job_path, dump=_dump(tmp_path), force=True
     )
+
+
+def test_merged_job_enables_tiered_trust_by_default(tmp_path: Path) -> None:
+    bp = _write_blueprint(
+        tmp_path / "language.yml", name="language", cid="languages", qid="Q34770"
+    )
+    job_path = tmp_path / "jobs" / "merged.yml"
+    write_merged_job([bp], tmp_path / "categories", job_path, dump=_dump(tmp_path))
+    # A merged corpus is the auto-admission surface: QID-anchored + reference-backed
+    # facts admit with a tier label, weaker acquired facts quarantine (US-002).
+    assert load_job(job_path).tiered_trust is True
+
+
+def test_merged_job_can_opt_out_of_tiered_trust(tmp_path: Path) -> None:
+    bp = _write_blueprint(
+        tmp_path / "language.yml", name="language", cid="languages", qid="Q34770"
+    )
+    job_path = tmp_path / "jobs" / "merged.yml"
+    write_merged_job(
+        [bp],
+        tmp_path / "categories",
+        job_path,
+        dump=_dump(tmp_path),
+        tiered_trust=False,
+    )
+    assert load_job(job_path).tiered_trust is False

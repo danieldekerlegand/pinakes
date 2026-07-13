@@ -1,0 +1,2 @@
+:START_ID	:END_ID	:TYPE	weight:float	source	source_url	retrieved_at	confidence:float
+cs:place:Q220	cs:place:Q159	PART_OF_PERIOD	1.0	inferred:temporal		2026-07-13T00:00:00+00:00	0.6

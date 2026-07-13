@@ -686,6 +686,13 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="write this corpus provenance floor into the merged job",
     )
+    merge.add_argument(
+        "--no-tiered",
+        action="store_true",
+        help="do not write the tiered-trust auto-admission policy into the job "
+        "(default: tiered_trust on — QID-anchored + reference-backed facts "
+        "auto-admit with a tier label, weaker acquired facts quarantine)",
+    )
     merge.set_defaults(handler=_cmd_merge)
 
     package = subparsers.add_parser(
@@ -1262,19 +1269,31 @@ def _render_corpus(build: CorpusBuild) -> str:
     """Summarise a finished corpus build for the CLI."""
     metrics = build.metrics
     qa = "ok" if build.qa.ok else f"{len(build.qa.violations)} violation(s)"
-    return "\n".join(
-        [
-            f"corpus {build.name}: {metrics.node_count} node(s), "
-            f"{metrics.edge_count} edge(s) -> {build.dataset_dir}",
-            f"  connectivity: largest component "
-            f"{metrics.largest_component_fraction:.0%} "
-            f"({'connected' if build.connected else 'FRAGMENTED'})",
-            f"  qa: {qa}",
-            f"  neo4j: {build.import_plan.script_path}",
-            f"  datalog: {build.datalog.fact_count} fact(s) -> "
-            f"{build.datalog.programs[Engine.SWIPL].parent}",
-        ]
-    )
+    lines = [
+        f"corpus {build.name}: {metrics.node_count} node(s), "
+        f"{metrics.edge_count} edge(s) -> {build.dataset_dir}",
+        f"  connectivity: largest component "
+        f"{metrics.largest_component_fraction:.0%} "
+        f"({'connected' if build.connected else 'FRAGMENTED'})",
+        f"  qa: {qa}",
+    ]
+    if build.tiers is not None:
+        composition = ", ".join(
+            f"{tier} {count}" for tier, count in build.tiers.nodes_by_tier.items()
+        )
+        tier_qa = build.tier_qa
+        tier_status = (
+            "ok"
+            if tier_qa is None or tier_qa.ok
+            else f"{len(tier_qa.violations)} violation(s)"
+        )
+        lines.append(f"  tiers (nodes): {composition or 'none'} [qa: {tier_status}]")
+    lines += [
+        f"  neo4j: {build.import_plan.script_path}",
+        f"  datalog: {build.datalog.fact_count} fact(s) -> "
+        f"{build.datalog.programs[Engine.SWIPL].parent}",
+    ]
+    return "\n".join(lines)
 
 
 def _cmd_qa(args: argparse.Namespace) -> int:
@@ -1366,6 +1385,7 @@ def _cmd_merge(args: argparse.Namespace) -> int:
             force=args.force,
             min_component_fraction=args.min_component_fraction,
             min_provenance_completeness=args.min_provenance_completeness,
+            tiered_trust=not args.no_tiered,
         )
     except (BlueprintError, MergeError) as exc:
         return _fail(str(exc))
