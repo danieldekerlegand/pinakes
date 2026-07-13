@@ -35,6 +35,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -45,7 +46,9 @@ const USER_AGENT =
   "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for Wikidata-acquired rows, on the 0–1 scale (export leaves ≤1 as-is). */
-const ACQUIRED_CONFIDENCE = "0.8";
+// `unreferenced-wikidata` (0.8) — a bulk WDQS class-membership pull taken as-is;
+// confidence comes from the rubric, not a literal (US-001).
+const ACQUIRED_CONFIDENCE = confidenceCellForClass("unreferenced-wikidata");
 const SOURCES = '["Wikidata"]';
 
 /** One raw SPARQL binding (only the fields the queries below actually project). */

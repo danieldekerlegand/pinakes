@@ -18,6 +18,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
@@ -25,7 +26,9 @@ const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 /** Fixed retrieval timestamp for the verified-QID lookups (deterministic file). */
 const RETRIEVED_AT = "2026-07-08T00:00:00Z";
 /** Confidence for curated, QID-anchored rows on the 0–1 scale (export leaves ≤1 as-is). */
-const CONFIDENCE = "0.8";
+// `curated-verified` (0.8) — hand-picked motifs, each anchored to a manually verified QID;
+// confidence comes from the rubric, not a literal (US-001).
+const CONFIDENCE = confidenceCellForClass("curated-verified");
 const SOURCES = '["Wikidata","Stith Thompson Motif-Index"]';
 
 /** A curated myth motif (mirrors myth-motifs.tsv columns + provenance). */

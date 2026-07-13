@@ -36,6 +36,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -47,7 +48,9 @@ const USER_AGENT =
   "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for Wikidata-acquired enrichment, on the 0–1 scale (export leaves ≤1 as-is). */
-const ACQUIRED_CONFIDENCE = "0.9";
+// `referenced-wikidata` (0.9) — P1999 endangerment cites UNESCO, a referenced statement;
+// confidence comes from the rubric, not a literal (US-001).
+const ACQUIRED_CONFIDENCE = confidenceCellForClass("referenced-wikidata");
 
 /** ISO-3 chunk size per SPARQL VALUES block (keeps each query well under the WDQS timeout). */
 const CHUNK = 150;

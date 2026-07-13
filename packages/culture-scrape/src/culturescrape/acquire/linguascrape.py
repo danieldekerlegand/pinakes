@@ -46,6 +46,7 @@ from pathlib import Path
 from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 from culturescrape.schema.headers import (
     DELIMITER,
     Column,
@@ -64,7 +65,9 @@ from culturescrape.schema.headers import (
 LINGUASCRAPE_SOURCE = "linguascrape"
 
 #: Confidence stamped when a row carries no (or a non-numeric) ``confidence`` cell.
-DEFAULT_CONFIDENCE = 1.0
+#: A LinguaScrape lexicon row is QID-anchored identity, so a silent cell inherits
+#: the ``qid-anchored`` rubric prior (1.0), grandfathered pre-rubric (US-001).
+DEFAULT_CONFIDENCE = confidence_for("qid-anchored")
 
 #: The provenance columns lifted out of ``fields`` into :class:`Provenance` —
 #: :func:`culturescrape.schema.mapper.map_record` reads provenance from there, so

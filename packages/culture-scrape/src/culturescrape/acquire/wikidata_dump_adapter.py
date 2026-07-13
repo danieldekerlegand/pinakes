@@ -65,6 +65,7 @@ from culturescrape.acquire.wikidata_hydration import (
     merge_languages,
     split_languages,
 )
+from culturescrape.confidence import confidence_for
 
 #: URI prefix the Query Service binds an ``?item`` to; reused so the dump
 #: adapter's ``item`` field is byte-identical to the SPARQL adapter's.
@@ -114,7 +115,7 @@ class WikidataDumpAdapter(SourceAdapter):
     def __init__(
         self,
         *,
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._confidence = confidence

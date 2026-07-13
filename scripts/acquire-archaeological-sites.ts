@@ -22,6 +22,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -46,7 +47,11 @@ const DEFAULT_MIN_SITELINKS = 6;
 const DEFAULT_LIMIT = 400;
 
 /** Confidence for Wikidata-acquired rows, on the lexicon's 0–100 scale (export → 0.9). */
-const ACQUIRED_CONFIDENCE = "90";
+// `referenced-wikidata` (0.9) on the lexicon's 0–100 scale — sites are filtered by a
+// sitelinks notability floor, so the confidence comes from the rubric, not a literal (US-001).
+const ACQUIRED_CONFIDENCE = confidenceCellForClass("referenced-wikidata", {
+  scale: 100,
+});
 
 interface RawBinding {
   s: { value: string };

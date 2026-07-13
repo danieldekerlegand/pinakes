@@ -28,6 +28,7 @@ from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: The PetScan endpoint.
 PETSCAN_ENDPOINT = "https://petscan.wmcloud.org/"
@@ -60,7 +61,7 @@ class PetScanAdapter(SourceAdapter):
         http: HttpClient,
         *,
         endpoint: str = PETSCAN_ENDPOINT,
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._http = http

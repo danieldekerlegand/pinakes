@@ -28,6 +28,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { confidenceCellForClass } from "@shared/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -53,7 +54,11 @@ const DEFAULT_MIN_SITELINKS = 4;
 const DEFAULT_LIMIT = 250;
 
 /** Confidence for Wikidata-acquired rows, on the lexicon's 0–100 scale (export → 0.8). */
-const ACQUIRED_CONFIDENCE = "80";
+// `unreferenced-wikidata` (0.8) on the lexicon's 0–100 scale — a bulk WDQS class-membership
+// pull taken as-is; confidence comes from the rubric, not a literal (US-001).
+const ACQUIRED_CONFIDENCE = confidenceCellForClass("unreferenced-wikidata", {
+  scale: 100,
+});
 
 /** One raw binding from the base attribute query. */
 interface BaseBinding {

@@ -37,6 +37,7 @@ from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: Path of the MediaWiki API relative to a wiki's host.
 MEDIAWIKI_API_PATH = "/w/api.php"
@@ -81,7 +82,7 @@ class WikitextAdapter(SourceAdapter):
         http: HttpClient,
         *,
         endpoint: str | None = None,
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._http = http

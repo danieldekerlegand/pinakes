@@ -26,6 +26,7 @@ from typing import Any
 from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: Base URI under which a Pleiades place id resolves.
 PLEIADES_PLACE_URI = "https://pleiades.stoa.org/places/"
@@ -65,7 +66,7 @@ class PleiadesDumpAdapter(SourceAdapter):
     def __init__(
         self,
         *,
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._confidence = confidence

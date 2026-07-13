@@ -25,6 +25,7 @@ from pathlib import Path
 from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: The ODC-By licence Getty publishes its vocabularies under.
 GETTY_LICENSE = "ODC-By 1.0"
@@ -76,7 +77,7 @@ class GettyDumpAdapter(SourceAdapter):
     def __init__(
         self,
         *,
-        confidence: float = 1.0,
+        confidence: float = confidence_for("qid-anchored"),
         now: Callable[[], datetime] = _utc_now,
     ) -> None:
         self._confidence = confidence

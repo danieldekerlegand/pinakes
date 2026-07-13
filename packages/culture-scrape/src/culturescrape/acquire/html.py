@@ -38,12 +38,14 @@ from culturescrape.acquire.adapters import SourceAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.records import Provenance, RawRecord
+from culturescrape.confidence import confidence_for
 
 #: Prefix marking a ``source.params`` key as a per-field selector.
 FIELD_PREFIX = "field."
 
 #: Default confidence for scraped rows — low, because HTML scraping is brittle.
-DEFAULT_HTML_CONFIDENCE = 0.5
+#: The ``scraped-html`` rubric prior (0.5); tuned in one place (US-001).
+DEFAULT_HTML_CONFIDENCE = confidence_for("scraped-html")
 
 _VALID_SELECTOR_TYPES = frozenset({"css", "xpath"})
 

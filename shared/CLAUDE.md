@@ -27,6 +27,25 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   dispositions here + `server/services/canonical-edges` to emit `export/culturescrape/` canonical
   TSVs. See `scripts/CLAUDE.md`.
 
+## Confidence rubric (tiered-trust, US-001)
+
+- `confidence-rubric.json` is the **single source of truth for what a `confidence` number
+  means** — a per-provenance-class prior (`qid-anchored` 1.0 → `stub-needs-curation` 0.0),
+  replacing the old blanket per-source constants. `confidence-rubric.ts` types it and exposes
+  `confidenceForClass(cls, {scale})` (0–1, or `{scale:100}` for the archaeological lexicons'
+  0–100 columns) / `confidenceCellForClass(...)` (string cell) / `assertValidConfidenceRubric()`.
+  Consume via `@shared/confidence-rubric`; **never hard-code a confidence literal** — name the
+  class instead, so every tier is tuned in one place.
+- **Stampers:** the TS acquire/curate scripts (`scripts/acquire-*.ts`, `curate-*.ts`), the
+  export's `DEFAULT_NODE_CONFIDENCE` / stub confidence, and `canonical-edges` `DEFAULT_EDGE_CONFIDENCE`.
+- **Python mirror:** `packages/culture-scrape/src/culturescrape/confidence.py` (`confidence_for(cls)`),
+  used by the acquire adapters + `named_in` linker; kept in lockstep with the JSON by
+  `packages/culture-scrape/tests/test_confidence.py` (skips parity when the sibling JSON is absent).
+- **GOTCHA — priors are chosen to preserve historically-emitted values** (grandfathering), so the
+  export manifest stays byte-identical. If you re-calibrate a tier, the affected acquire scripts
+  re-emit and you must regenerate the committed snapshots (export manifest + reconciliation report)
+  and the Python mirror. Rubric prose lives in `docs/canonical-schema.md` §4.4.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'
