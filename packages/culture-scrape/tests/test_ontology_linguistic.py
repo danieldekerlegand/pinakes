@@ -165,6 +165,76 @@ def test_cognate_with_between_terms_sharing_an_etymon() -> None:
     assert ("cs:term:pere", "cs:term:padre", "COGNATE_WITH") not in edges
 
 
+def _cognate_set_nodes() -> list[Row]:
+    """Four Lexibank wordforms in one cognate set (id in the ``extra`` overflow).
+
+    The cognate-set id rides in ``extra`` — where it lands after ``build_corpus``
+    re-reads the normalized TSV from disk — not as a top-level cell, so this pins
+    that the linker reads it back out of the overflow.
+    """
+    import json
+
+    return [
+        {"csid": "cs:wordform:d", ":LABEL": ["Wordform"], "name": "five: rima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:a", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:c", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+        {"csid": "cs:wordform:b", ":LABEL": ["Wordform"], "name": "five: lima",
+         "extra": json.dumps({"cognateset": "five-1"})},
+    ]
+
+
+def test_cognate_set_emits_a_representative_star_not_a_clique() -> None:
+    result = LinguisticLinker().link_linguistic(_cognate_set_nodes(), [])
+
+    edges = _edge_index(result.edges)
+    cognate = [k for k in edges if k[2] == "COGNATE_WITH"]
+    # 4 members → a star of 3 edges (n-1), NOT the 6 of a clique.
+    assert len(cognate) == 3
+    # Every edge points at the lexicographically-first csid (the representative).
+    assert all(end == "cs:wordform:a" for _start, end, _rel in cognate)
+    assert {start for start, _e, _r in cognate} == {
+        "cs:wordform:b", "cs:wordform:c", "cs:wordform:d"
+    }
+    assert float(str(edges[cognate[0]]["confidence"])) == pytest.approx(0.6)
+
+
+def test_cognate_set_reads_a_direct_field_too() -> None:
+    # A top-level `cognateset` cell (in-memory link stage) works as well as overflow.
+    nodes: list[Row] = [
+        {"csid": "cs:wordform:y", ":LABEL": ["Wordform"], "name": "hand: lima",
+         "cognateset": "hand-1"},
+        {"csid": "cs:wordform:x", ":LABEL": ["Wordform"], "name": "hand: liga",
+         "cognateset": "hand-1"},
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    assert _edge_index(result.edges).keys() == {
+        ("cs:wordform:y", "cs:wordform:x", "COGNATE_WITH")
+    }
+
+
+def test_singleton_cognate_set_emits_no_edge() -> None:
+    import json
+
+    nodes: list[Row] = [
+        {"csid": "cs:wordform:only", ":LABEL": ["Wordform"], "name": "two: bar",
+         "extra": json.dumps({"cognateset": "two-9"})},
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    assert result.edges == []
+
+
+def test_no_cognateset_is_a_no_op_for_ordinary_corpora() -> None:
+    # Nodes without a cognate-set id (any non-Lexibank corpus) get no cognate edges.
+    result = LinguisticLinker().link_linguistic(_family_tree(), [])
+
+    assert not any(e[":TYPE"] == "COGNATE_WITH" for e in result.edges)
+
+
 def test_does_not_duplicate_existing_edges() -> None:
     existing: Row = {
         ":START_ID": "cs:language:Q1321",
@@ -198,3 +268,81 @@ def test_registered_in_default_registry() -> None:
     linker = DEFAULT_REGISTRY.get("linguistic")
     assert isinstance(linker, LinguisticLinker)
     assert linker.dimension is Dimension.LINGUISTIC
+
+
+# --- kaikki etymology relations (source-breadth US-004) --------------------
+
+
+def _kaikki_node(csid: str, name: str, lang: str, relations: list[dict]) -> Row:
+    """A wordform node carrying its kaikki etymology relations in `extra` overflow."""
+    import json
+
+    return {
+        "csid": csid,
+        ":LABEL": ["Wordform"],
+        "name": name,
+        "lang": lang,
+        "extra": json.dumps({"etymology_relations": json.dumps(relations)}),
+    }
+
+
+def test_etymology_relations_emit_typed_edges_to_minted_terms() -> None:
+    nodes = [
+        _kaikki_node(
+            "cs:wordform:beef", "beef", "en",
+            [
+                {"rel": "BORROWED_FROM", "lang": "fro", "term": "boef"},
+                {"rel": "COGNATE_WITH", "lang": "fr", "term": "bœuf"},
+            ],
+        ),
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    by_type = {str(e[":TYPE"]): e for e in result.edges}
+    assert set(by_type) == {"BORROWED_FROM", "COGNATE_WITH"}
+    # Each edge points at a minted Term node keyed by (lang, term).
+    boef = mint_csid("term", name="boef", lang="fro")
+    assert (str(by_type["BORROWED_FROM"][":START_ID"]),
+            str(by_type["BORROWED_FROM"][":END_ID"])) == ("cs:wordform:beef", boef)
+    created = {str(n["csid"]) for n in result.nodes}
+    assert boef in created
+    assert mint_csid("term", name="bœuf", lang="fr") in created
+
+
+def test_same_etymon_from_two_forms_is_one_term_node() -> None:
+    # Two forms deriving from the same (lang, term) reuse a single minted node.
+    nodes = [
+        _kaikki_node("cs:wordform:a", "amiko", "eo",
+                     [{"rel": "DERIVED_FROM", "lang": "la", "term": "amīcus"}]),
+        _kaikki_node("cs:wordform:b", "amiko2", "io",
+                     [{"rel": "DERIVED_FROM", "lang": "la", "term": "amīcus"}]),
+    ]
+    result = LinguisticLinker().link_linguistic(nodes, [])
+
+    amicus = mint_csid("term", name="amīcus", lang="la")
+    derived = [e for e in result.edges if e[":TYPE"] == "DERIVED_FROM"]
+    assert {str(e[":END_ID"]) for e in derived} == {amicus}
+    assert [str(n["csid"]) for n in result.nodes].count(amicus) == 1
+
+
+def test_etymology_relation_reuses_an_existing_term_endpoint() -> None:
+    # A relation naming an existing (lang, term) node points at it, minting nothing.
+    existing: Row = {
+        "csid": "cs:term:existing", ":LABEL": [TERM_LABEL],
+        "name": "boef", "lang": "fro",
+    }
+    node = _kaikki_node("cs:wordform:beef", "beef", "en",
+                        [{"rel": "BORROWED_FROM", "lang": "fro", "term": "boef"}])
+    result = LinguisticLinker().link_linguistic([existing, node], [])
+
+    (edge,) = [e for e in result.edges if e[":TYPE"] == "BORROWED_FROM"]
+    assert str(edge[":END_ID"]) == "cs:term:existing"
+    assert result.nodes == []  # nothing minted
+
+
+def test_no_etymology_cell_is_a_no_op() -> None:
+    result = LinguisticLinker().link_linguistic(_family_tree(), [])
+    assert not any(
+        e[":TYPE"] in {"BORROWED_FROM", "DERIVED_FROM", "COGNATE_WITH"}
+        for e in result.edges
+    )

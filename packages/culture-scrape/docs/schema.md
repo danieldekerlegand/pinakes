@@ -54,11 +54,13 @@ unknown dimension is simply absent (an empty cell), never invented.
 | `script` | string | linguistic | ISO 15924 script code |
 | `etymology` | string | linguistic | free-text or structured ref |
 | `derived_from_csid` | string | genetic | denormalized pointer to an ancestor node (also an edge) |
+| `parent_code` | string | linguistic | ancestor language code (ISO 639-3 / Glottocode) the linguistic linker resolves to a `DESCENDS_FROM` edge; persisted counterpart of the ephemeral `parent_qid` ref (a Glottolog ingest maps `Family_ID` here) |
 | `source` | string | provenance | adapter id (e.g. `wikidata`, `wikitext`, `petscan`) |
 | `source_url` | string | provenance | canonical URL/URI of the record |
 | `source_query` | string | provenance | the query/page that produced the row |
 | `retrieved_at` | string | provenance | ISO-8601 UTC timestamp |
 | `confidence` | `:float` | provenance | extraction/resolution confidence in `[0, 1]` |
+| `license` | string | provenance | SPDX id of the record's distribution licence (e.g. `CC-BY-4.0`, `CC-BY-SA-3.0`); travels with every record so a share-alike source stays legally self-describing |
 | `extra` | string | overflow | JSON object of unrecognised raw fields + the merge record |
 
 ## Edge columns

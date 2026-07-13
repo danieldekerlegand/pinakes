@@ -213,11 +213,13 @@ class NodeSchema:
                 PropertyColumn("script"),
                 PropertyColumn("etymology"),
                 PropertyColumn("derived_from_csid"),
+                PropertyColumn("parent_code"),
                 PropertyColumn("source"),
                 PropertyColumn("source_url"),
                 PropertyColumn("source_query"),
                 PropertyColumn("retrieved_at"),
                 PropertyColumn("confidence", PropertyType.FLOAT),
+                PropertyColumn("license"),
             )
         )
 

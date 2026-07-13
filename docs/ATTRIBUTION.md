@@ -41,6 +41,29 @@ explorer detail panel + graph search results surface the tier alongside the prov
 
 ---
 
+## Graph-side linguistic breadth sources (Phase 4 — source-breadth)
+
+These sources break the Wikidata-only dependency (Phase 4 of `NEUROSYMBOLIC_ROADMAP.md`). They
+are **graph-corpus** ingests — they land as nodes/edges in the culture-scrape corpus (via the
+tabular-dump / kaikki adapters under `packages/culture-scrape/`), **not** as `lexicons/*.tsv`
+rows — so they never touch curated lexicon values. Each is ingested category-only with a
+per-record SPDX `license` on every node (schema v1.1), which is what lets the packaged corpus
+partition by licence class (see *License-partitioned redistribution* below).
+
+| Dataset | Version | License (SPDX) | Obligations | Coverage | Category / report |
+| --- | --- | --- | --- | --- | --- |
+| **Glottolog** languoid catalogue (CLDF) | v5.x CLDF release | `CC-BY-4.0` | Attribute Glottolog | Languoids as `Language`/`LanguageFamily` nodes with `DESCENDS_FROM` hierarchy | `categories/glottolog.yml`; [`docs/glottolog-reconciliation.md`](../packages/culture-scrape/docs/glottolog-reconciliation.md) |
+| **WALS** (World Atlas of Language Structures, CLDF) | 2020 CLDF release | `CC-BY-4.0` | Attribute WALS | Structural typology feature-facts keyed by glottocode | `categories/wals.yml`; [`docs/wals-phoible-reconciliation.md`](../packages/culture-scrape/docs/wals-phoible-reconciliation.md) |
+| **PHOIBLE** phoneme inventories (CLDF) | 2.0 | `CC-BY-SA-3.0` ⚠ share-alike | Attribute PHOIBLE **and** re-license derivatives share-alike | Phoneme-inventory facts keyed by glottocode | `categories/phoible.yml`; same report as WALS |
+| **Lexibank — ABVD** (Austronesian Basic Vocabulary Database, CLDF) | CLDF release | `CC-BY-4.0` (per-dataset — Lexibank varies) | Attribute ABVD | `Wordform` facts + `COGNATE_WITH` cognate stars; ≥ 500 distinct languages | `categories/lexibank-abvd.yml`, `schema/lexibank_licenses.py`; [`docs/lexibank-reconciliation.md`](../packages/culture-scrape/docs/lexibank-reconciliation.md) |
+| **kaikki.org** parsed Wiktionary (wiktextract, JSONL) | rolling extract | `CC-BY-SA-3.0` ⚠ share-alike (dual GFDL) | Attribute Wiktionary contributors **and** re-license derivatives share-alike | Etymology edges: `DERIVED_FROM` / `BORROWED_FROM` / `COGNATE_WITH` | `acquire/kaikki.py`, `categories/kaikki.yml`; [`docs/kaikki-reconciliation.md`](../packages/culture-scrape/docs/kaikki-reconciliation.md) |
+
+Lexibank licences are **per-dataset**, not per-collection — the SPDX id travels with each
+record from `schema/lexibank_licenses.py` (verified against the dataset's own CLDF `dc:license`),
+never assumed for "all of Lexibank". Per-source coverage numbers (facts / languages / edges,
+matched vs new) live in each committed reconciliation report linked above; the packaged corpus's
+per-licence-class record counts live in the release manifest's `licenses` block.
+
 ## Core Language Data
 
 | Dataset | Source | License | Notes |
@@ -132,6 +155,39 @@ explorer detail panel + graph search results surface the tier alongside the prov
 
 ---
 
+## License-partitioned redistribution (source-breadth US-005)
+
+Now that share-alike sources (PHOIBLE, kaikki/Wiktionary) are in the shared graph, the packaged
+corpus **self-describes by licence class** so a downstream can see, from the manifest alone, what
+may be redistributed under which terms — and what a model trained on each class inherits. The
+package step (`packages/culture-scrape/src/culturescrape/orchestrate/package.py`) reads the
+per-record SPDX `license` on every node and emits a `licenses` block in `<name>-manifest.json`:
+
+- `records_by_license` — `{SPDX: count}` across the corpus (blank cells under `(unstamped)`),
+- `records_by_class` — `{class: count}`, ordered permissive → restrictive,
+- `class_registry` — the embedded `{SPDX: class}` registry,
+- `redistribution` — the per-class statement below.
+
+The classifier is `packages/culture-scrape/src/culturescrape/schema/license_class.py` (the SPDX →
+class registry). The classes, and the **documented statement of what may be redistributed under
+which terms** (reviewed against each Creative-Commons deed):
+
+| Class | SPDX ids | May redistribute | A trained model inherits |
+| --- | --- | --- | --- |
+| **public-domain** (CC0 core) | `CC0-1.0` | Freely, any terms, no attribution | No obligation |
+| **attribution** | `CC-BY-4.0`, `CC-BY-3.0` (Glottolog, WALS, ABVD, Wikidata-CC-BY) | Yes, with credit to the source; no share-alike — may be combined with the CC0 core | Attribution must accompany the model / data card; output not encumbered |
+| **share-alike** overlay | `CC-BY-SA-3.0`/`-4.0` (PHOIBLE, kaikki/Wiktionary) | Yes, with credit **and** under the same/compatible CC-BY-SA licence — an adapted database must itself be CC-BY-SA. Kept a **distinct overlay** so the duty is not propagated onto the core | An adapted dataset inherits the CC-BY-SA duty; whether ML weights are an "adaptation" is legally unsettled — attribute sources, treat any redistributed derivative dataset as CC-BY-SA |
+| **non-commercial** | `CC-BY-NC*`, `CC-BY-NC-SA*` | Non-commercial only, with attribution; excluded from any commercially-redistributable partition | May not be used commercially without separate permission |
+| **unstamped** | (blank) | Structural / synthetic hub rows carrying no third-party content — safe with the core | No obligation |
+| **unknown** | anything unregistered | Do **not** redistribute until identified & registered (treat as all-rights-reserved) | Must be resolved before use |
+
+**What may be redistributed, in practice:** the CC0 + attribution + unstamped partitions form the
+redistributable core (attribution requires only crediting sources). The **share-alike overlay must
+be shipped as its own partition under CC-BY-SA** (or omitted for a CC-BY-only release); anything in
+`non-commercial` or `unknown` is excluded from a commercial or unrestricted redistribution until
+separately cleared. Wikidata-acquired rows are CC0 (public-domain) — no attribution legally
+required, though full per-row provenance is retained regardless.
+
 ## How to Add New Data Sources
 
 When adding a new dataset:
@@ -151,4 +207,5 @@ When adding a new dataset:
 
 ---
 
-*Last updated: 2026-07-13 — trust-tier surfacing + corpus-tier readiness report added (tiered-trust-corpus US-004).*
+*Last updated: 2026-07-13 — Phase-4 graph-side breadth sources (Glottolog, WALS, PHOIBLE,
+Lexibank/ABVD, kaikki/Wiktionary) + license-partitioned redistribution added (source-breadth US-005).*

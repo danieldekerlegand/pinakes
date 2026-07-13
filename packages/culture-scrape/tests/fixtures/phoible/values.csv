@@ -1,0 +1,11 @@
+ID,Language_ID,Language_Name,Glottocode,ISO639P3code,Parameter_ID,Segment,Name
+eng-m,stan1293,English,stan1293,eng,m,m,English phoneme /m/
+eng-p,stan1293,English,stan1293,eng,p,p,English phoneme /p/
+eng-th,stan1293,English,stan1293,eng,θ,θ,English phoneme /θ/
+cmn-m,mand1415,Mandarin,mand1415,cmn,m,m,Mandarin phoneme /m/
+cmn-tsr,mand1415,Mandarin,mand1415,cmn,ʈʂ,ʈʂ,Mandarin phoneme /ʈʂ/
+haw-glottal,hawa1245,Hawaiian,hawa1245,haw,ʔ,ʔ,Hawaiian phoneme /ʔ/
+haw-k,hawa1245,Hawaiian,hawa1245,haw,k,k,Hawaiian phoneme /k/
+swa-b,swah1253,Swahili,swah1253,swa,ɓ,ɓ,Swahili phoneme /ɓ/
+myp-b,pira1253,Pirahã,pira1253,myp,b,b,Pirahã phoneme /b/
+myp-p,pira1253,Pirahã,pira1253,myp,p,p,Pirahã phoneme /p/

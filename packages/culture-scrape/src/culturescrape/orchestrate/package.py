@@ -9,6 +9,13 @@ that records the node/edge counts, a per-file SHA-256, and a digest over the
 whole bundle, so an upload to a release or object store is one step and a
 downloader can verify integrity.
 
+Now that share-alike sources are in the graph, the manifest also self-describes by
+**licence** (source-breadth US-005): a ``licenses`` block partitions the corpus's
+node records by SPDX id and by redistribution *class* (public-domain / attribution
+/ share-alike / non-commercial), embeds the SPDX→class registry, and carries the
+plain-language "what may be redistributed under which terms (and what a trained
+model inherits)" statement per class — see :mod:`culturescrape.schema.license_class`.
+
 It accepts either a whole job output root (``out/<job>/`` — packaging its
 ``corpus/`` plus the ``corpus-neo4j`` / ``corpus-datalog`` exports and
 ``catalog.json``) or a bare corpus dataset directory (one holding ``nodes/`` and
@@ -29,8 +36,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from culturescrape.schema.license_class import (
+    class_registry,
+    partition_by_class,
+    redistribution_for,
+)
+
 #: Top-level members of a job output root to include, in archive order.
 _JOB_MEMBERS = ("corpus", "corpus-neo4j", "corpus-datalog", "catalog.json")
+
+#: Header cell of the per-record SPDX licence column on a canonical node TSV.
+_LICENSE_COLUMN = "license"
+
+#: TSV field delimiter (matches ``schema.tsvio`` — kept local to avoid the import).
+_TSV_DELIMITER = "\t"
 
 
 class PackageError(ValueError):
@@ -55,6 +74,7 @@ class PackageResult:
     name: str
     digest: str
     files: tuple[FileEntry, ...]
+    licenses: dict[str, Any]
 
     @property
     def total_bytes(self) -> int:
@@ -91,6 +111,7 @@ def package_corpus(
     name = name or source.name
     node_count, edge_count = _counts(source, members)
     nodes_by_label, edges_by_type = _type_counts(source, members)
+    licenses = _license_partition(source, members)
 
     manifest: dict[str, Any] = {
         "name": name,
@@ -98,6 +119,7 @@ def package_corpus(
         "edge_count": edge_count,
         "nodes_by_label": nodes_by_label,
         "edges_by_type": edges_by_type,
+        "licenses": licenses,
         "digest": digest,
         "files": [
             {"path": entry.path, "sha256": entry.sha256, "bytes": entry.bytes}
@@ -118,6 +140,7 @@ def package_corpus(
         name=name,
         digest=digest,
         files=entries,
+        licenses=licenses,
     )
 
 
@@ -220,6 +243,84 @@ def _int_map(value: Any) -> dict[str, int]:
         for key, count in value.items()
         if isinstance(key, str) and isinstance(count, int)
     }
+
+
+def _license_partition(source: Path, members: Sequence[str]) -> dict[str, Any]:
+    """Partition the corpus's node records by SPDX licence + redistribution class.
+
+    Scans the per-record ``license`` column of every ``nodes/*.tsv`` under the
+    corpus and rolls it up into (source-breadth US-005):
+
+    - ``records_by_license`` — ``{SPDX: count}`` (blank cells under ``"(unstamped)"``),
+    - ``records_by_class`` — ``{class: count}`` (public-domain / attribution /
+      share-alike / non-commercial / unstamped / unknown, permissive → restrictive),
+    - ``class_registry`` — ``{SPDX: class}`` for every id present (the embedded
+      SPDX registry the AC calls for),
+    - ``redistribution`` — the plain-language redistribute/model statement per
+      present class,
+    - ``record_count`` — total licence-bearing rows scanned.
+
+    So a downloader can see, from the manifest alone, what may be redistributed
+    under which terms without unpacking the bundle. Deterministic (sorted keys,
+    integer counts), so a packaged corpus's licence profile is reproducible.
+    """
+    raw_counts = _records_by_license(source, members)
+    records_by_class = partition_by_class(raw_counts)
+    registry = class_registry(raw_counts)
+    redistribution = redistribution_for(tuple(records_by_class))
+    # A blank licence cell counts internally under "" (so it classifies as
+    # ``unstamped``) but is displayed under a readable sentinel in the manifest.
+    records_by_license = {
+        (spdx or "(unstamped)"): count for spdx, count in raw_counts.items()
+    }
+    return {
+        "record_count": sum(raw_counts.values()),
+        "records_by_license": records_by_license,
+        "records_by_class": records_by_class,
+        "class_registry": registry,
+        "redistribution": redistribution,
+    }
+
+
+def _records_by_license(source: Path, members: Sequence[str]) -> dict[str, int]:
+    """Count node rows by their ``license`` cell across the corpus node TSVs.
+
+    Reads the ``nodes/`` directory of the corpus (job-root ``corpus/nodes`` or a
+    bare ``nodes``); a blank licence (or a file without a ``license`` column) is
+    keyed as ``""`` so it classifies as ``unstamped``. Sorted by key so the
+    partition is deterministic.
+    """
+    base = source / "corpus" if "corpus" in members else source
+    nodes_dir = base / "nodes"
+    counts: dict[str, int] = {}
+    if not nodes_dir.is_dir():
+        return counts
+    for tsv in sorted(nodes_dir.glob("*.tsv")):
+        _tally_license_column(tsv, counts)
+    return dict(sorted(counts.items()))
+
+
+def _tally_license_column(tsv: Path, counts: dict[str, int]) -> None:
+    """Add *tsv*'s per-row licence values into *counts* (in place)."""
+    try:
+        with tsv.open("r", encoding="utf-8") as handle:
+            header = handle.readline()
+            if not header:
+                return
+            columns = header.rstrip("\n").split(_TSV_DELIMITER)
+            try:
+                idx = columns.index(_LICENSE_COLUMN)
+            except ValueError:
+                idx = None
+            for line in handle:
+                cells = line.rstrip("\n").split(_TSV_DELIMITER)
+                if idx is not None and idx < len(cells):
+                    value = cells[idx].strip()
+                else:
+                    value = ""
+                counts[value] = counts.get(value, 0) + 1
+    except OSError:
+        return
 
 
 def _write_archive(

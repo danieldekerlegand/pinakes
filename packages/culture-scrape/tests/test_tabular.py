@@ -21,6 +21,7 @@ from culturescrape.acquire.factory import AdapterSelectionError, build_adapter
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.records import RawRecord
 from culturescrape.acquire.tabular import TabularDumpAdapter, TabularDumpError
+from culturescrape.schema.mapper import map_record
 
 _FIXED = datetime(2026, 1, 1, tzinfo=UTC)
 
@@ -134,6 +135,19 @@ def test_provenance_is_stamped_with_source_licence_and_templated_url(
     assert prov.source_url == "https://example.org/city/42"
     assert prov.source_query == str(dump)
     assert prov.retrieved_at == _FIXED.isoformat()
+
+
+def test_licence_carries_through_the_mapper_onto_the_node(tmp_path: Path) -> None:
+    # The adapter stamps `license` on the record's provenance; the mapper must carry
+    # it onto the canonical node row (the schema now has a `license` column), or a
+    # share-alike source would be ingested without the licence that travels with it.
+    dump = _write(tmp_path / "d.csv", "name,qid\nGlottolog Lang,Q1\n")
+    spec = _spec(
+        {"path": str(dump), "field.wikidata_qid": "qid", "license": "CC-BY-4.0"}
+    )
+    (record,) = _fetch(spec)
+    row = map_record(record, spec)
+    assert row["license"] == "CC-BY-4.0"
 
 
 def test_source_url_falls_back_to_the_dump_path(tmp_path: Path) -> None:

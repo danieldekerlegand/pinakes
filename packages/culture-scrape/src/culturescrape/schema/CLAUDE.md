@@ -59,6 +59,161 @@ that edge type — the **full** `jobs/linguascrape-full.yml` rebuild is the only
 that exercises the live edge vocabulary. `test_linguascrape_ontology.py` pins that
 every map value is registered + one fold assertion per token.
 
+## `_carry_provenance` is where provenance columns land on a node (incl. `license`)
+
+`mapper.py`'s `_carry_provenance` copies each `Provenance` field onto the canonical
+node row; a column the adapter fills but this function forgets is **silently dropped**,
+even though the schema declares it. This bit the per-record `license` (source-breadth
+US-001): the tabular-dump adapter stamped `Provenance.license` and `headers.py`
+`NodeSchema.canonical()` gained a `license` column, but the node output was blank until
+`_carry_provenance` learned to set `row["license"] = prov.license` (only when truthy, so
+license-less sources still emit a blank cell, not the string `None`). Edges carry no
+`license` — `EdgeSchema.canonical()` has no such column and `_carry_edge_provenance`
+copies only source/source_url/retrieved_at/confidence — so per-record licence is a
+**node-level** guarantee (the ingested records); linker-derived edges inherit their
+source node's provenance minus licence.
+
+## Glottolog: two-key language reconciliation (`glottolog_reconcile.py`, US-001)
+
+The sibling of `lexicon_reconcile.py` for **languages**, but it does NOT reuse
+`reconcile_linguascrape`'s single-key cascade: that blocks on one `language_code` field,
+and glottocode vs ISO 639-3 are **different code spaces** that can't meet on a single key
+(a Glottolog node keyed by glottocode would never match a lexicon row keyed by ISO). So
+`reconcile_glottolog` runs its own **glottocode-first, then ISO 639-3** two-key cascade:
+glottocode is `language_code` on the corpus node; ISO rides in the node overflow (`extra`
+JSON, key `ISO639P3code`) because the glottolog category maps only Glottocode→language_code
+and leaves ISO639P3code unmapped. One candidate ⇒ matched, >1 ⇒ ambiguous (never
+auto-merged), 0 ⇒ new. It reuses `lexicon_reconcile`'s `ReconciliationSummary`/`OutcomeSample`
+report shape (tier encoded in the sample `confidence`: 1.0 glottocode, 0.95 ISO). Driver:
+`scripts/reconcile_glottolog.py` (gitignored `out/.../report.{json,md}`); committed summary
+`docs/glottolog-reconciliation.md`.
+
+## WALS/PHOIBLE: attribute-fact nodes + language coverage (`typology_reconcile.py`, US-002)
+
+CLDF **enrichment** sources (WALS typology, PHOIBLE phonology — and the same shape will
+fit Lexibank wordlists, US-003) are ingested category-only as **attribute-fact nodes**:
+one node per (language, feature) value / (language, segment), keyed by the language's
+Glottocode on `language_code`. They are NOT a genealogy, so the join to the language
+lexicon is a **reconciliation**, not a graph edge — `typology_reconcile.py` rolls the
+facts up **per language** and reuses `glottolog_reconcile.reconcile_glottolog`'s
+glottocode→ISO cascade, reporting coverage (facts / languages by node type and by licence
+class). Driver `scripts/reconcile_typology.py`; committed summary
+`docs/wals-phoible-reconciliation.md`.
+
+- **GOTCHA — `merge_rows` fuzzy-name dedup will collapse distinct attribute facts.** The
+  per-category normalize (`pipeline.normalize_records`) runs `merge_rows`, whose fuzzy
+  pass blocks on **`(:LABEL, lang)`** and merges any two rows whose normalized `name`
+  are ≥ 0.85 similar. Systematic fact names share long substrings ("English phoneme /m/"
+  vs "…/p/" → 0.95 → merged; the *same* feature across languages → merged), so a naïve
+  node-per-fact ingest silently loses most facts. Two levers, both category-only, fix it:
+  (1) **map the ISO 639-3 code to `lang`** (`field.lang: ISO639P3code`) so facts of
+  different languages fall in different fuzzy blocks and are never compared — this also
+  serves as the reconciler's ISO fallback key (read from the `lang` column, not the
+  overflow); (2) **keep the node `name` short / within-language-distinct** — map `name`
+  to the bare segment (PHOIBLE) or a per-language-distinct feature label (WALS), so two
+  facts of ONE language stay dissimilar. Verify empirically: `culturescrape run` then
+  count `out/<job>/corpus/nodes/*.tsv` rows against the fixture row count.
+- **Connectivity is relaxed per job.** Attribute facts are disjoint per-language stars
+  (each links only to its synthetic type/category hub), so the corpus legitimately
+  fragments; set `min_component_fraction: 0.0` in the job (`orchestrate/jobs.py` override)
+  — the language join is the reconciliation, not descent connectivity.
+- **Per-record `license` is the AC deliverable** (WALS `CC-BY-4.0`, PHOIBLE share-alike
+  `CC-BY-SA-3.0`): set it in `source.params.license` and it lands on every node's
+  `license` column (via `_carry_provenance`), so the corpus is queryable by licence
+  class. `typology_reconcile`'s `facts_by_license` is the coverage proof.
+
+## Lexibank wordlists + COGNATE_WITH cognate stars (`lexibank_reconcile.py`, US-003)
+
+A Lexibank CLDF **wordlist** (ABVD) is the same attribute-fact ingest as WALS/PHOIBLE —
+one **Wordform** node per (language, concept) form, keyed by glottocode on
+`language_code` / ISO on `lang`, `name` = `"<Concept>: <Form>"` (within-language-distinct
+so the fuzzy merge doesn't collapse different concepts). `lexibank_reconcile.py` **reuses**
+`typology_reconcile.build_coverage` for the per-language glottocode→ISO reconciliation and
+adds a `CognateCoverage` (cognate sets / cognated forms / `COGNATE_WITH` edge count).
+Category `lexibank-abvd.yml` + job `jobs/lexibank.yml`; committed summary
+`docs/lexibank-reconciliation.md`; `words.tsv` is untouched (graph-side corpus). Three
+things that bit here:
+
+- **COGNATE_WITH is a representative STAR, never a clique.** A Lexibank `Cognateset_ID`
+  groups forms across *thousands* of doculects — the linguistic linker's etymon-based
+  cognate pass is a clique (`n(n-1)/2`), which for a 1,500-form ABVD set is ~1.1M edges
+  (the whole of ABVD would be ~46M). The new cognate-**set** pass in
+  `ontology/linguistic.py` (`_emit_cognate_sets`, keyed on the `cognateset` field, default
+  on but a no-op when no node carries it) emits a star to each set's
+  lexicographically-first csid (`n-1` edges). Cognacy is transitive within a set, so
+  co-membership survives through the representative.
+- **A cognate-set id must ride in the `extra` OVERFLOW, not a `_DIMENSION_REFS` field.**
+  `build_corpus` runs linkers *after* re-reading the normalized TSV from disk
+  (`corpus._read_normalized`), so a non-persisted `_DIMENSION_REFS` cell (like
+  `parent_qid`/`etymon_qid`) is **gone** at link time — only a real schema column
+  (`parent_code`) or the `extra` overflow survives the round-trip. So map
+  `field.cognateset: Cognateset_ID` as an **unmapped** cell (it lands in overflow) and have
+  the linker read it back out of `extra` (`LinguisticLinker._cognate_set`). The
+  per-category `link` stage (in-memory) would see a dimension ref, but `build_corpus` does
+  not — always verify a linker input reaches link time through disk, not just in memory.
+- **`merge_rows` fuzzy is O(k²) per `(:LABEL, lang)` block, and doculects SHARE an ISO** →
+  a `lang` block can hold thousands of forms (ABVD's biggest ~2,900), making a full ingest
+  minutes-slow (64M `SequenceMatcher` calls) or worse. For the committed coverage snapshot,
+  run a **bounded** slice (first N doculects, a per-doculect form cap) that still clears the
+  AC's ≥ 500 distinct languages — the category/job ingest the full download when repointed.
+
+## Per-dataset SPDX licence registry (`lexibank_licenses.py`, US-003)
+
+Lexibank is a *collection* of independently-licensed datasets, so its licence is
+**per-dataset, not per-collection** (AC2). `lexibank_licenses.py` maps a dataset id →
+SPDX (`license_for`), each value read from that dataset's CLDF `dc:license`, plus a
+CC-URL→SPDX normaliser (`spdx_from_license_url`, longest-stem-first so `by-nc-sa` beats
+`by`). The category's `source.params.license` is the registry value for its dataset (a test
+pins `lexibank-abvd`'s licence == `license_for("abvd")`). Most Lexibank datasets are
+`CC-BY-4.0`, but the registry + normaliser admit share-alike / NC / CC0 so a differing
+dataset stamps correctly — never default a licence into the graph.
+
+## kaikki.org etymology-template → canonical edge mapping (`kaikki_etymology.py`, US-004)
+
+`kaikki_etymology.py` is the pure, tested bridge from Wiktionary's etymology-template
+vocabulary (the `{{bor|…}}`/`{{inh|…}}`/`{{cog|…}}` templates kaikki.org preserves in each
+entry's `etymology_templates`) to the registered ontology edge `:TYPE`s. Only unambiguous
+**directed** relation tokens map: `bor`/`lbor`/`slbor`/`obor`/`ubor` → `BORROWED_FROM`,
+`inh`/`der` (+ `+` variants) → `DERIVED_FROM`, `cog` → `COGNATE_WITH`. Everything else is
+unmappable and **skipped + reported** (`ExtractResult.skipped_tokens`) — never coerced:
+display helpers (`m`/`l`/`mention`), ambiguous calques (`cal`/`clq`), and critically
+`ncog`/`noncog` (the **non**-cognate assertion — mapping it would invert the claim).
+
+- **Two arg layouts.** Borrowing/derivation templates put the destination lang in arg `1`,
+  the source lang/term in args `2`/`3`; cognate templates put the cognate lang/term in
+  args `1`/`2`. `extract_relations` reads whichever layout the token uses, so the
+  `EtymologyRelation` always names the *target* (source-side) `(lang, term)`. A recognised
+  token with a blank target term can't form an edge → also skipped (never overstates edge
+  volume).
+- **`relations_cell` / `parse_relations_cell`** serialise the mappable relations to the
+  `etymology_relations` node cell (unmapped → `extra` overflow) and back; `parse` re-guards
+  the `:TYPE` against the canonical set so a corrupt cell can never inject a non-registered
+  edge type. The linker (`ontology/linguistic.py` `_link_etymology`) reads it back out of
+  overflow and mints/reuses one `Term` node per `(lang, term)`. See `acquire/CLAUDE.md`.
+
+## kaikki language coverage + edge/skipped-token report (`kaikki_reconcile.py`, US-004)
+
+Reuses `typology_reconcile.build_coverage` for the per-language ISO reconciliation of the
+ingested **Wordform** nodes (kaikki carries no glottocode, so the glottocode→ISO cascade
+falls straight to the `lang` ISO key; kaikki's `lang_code` is the *Wiktionary* code, often
+639-1, so most languages read as `new` — never auto-merged). `analyze_entries` tallies edge
+volume by `:TYPE` + the skipped unmappable tokens **from the source JSONL** (pure, no corpus
+build), so the two AC deliverables (edge volume recorded, unmappable tokens reported) are one
+function. Driver `scripts/reconcile_kaikki.py`; committed summary `docs/kaikki-reconciliation.md`.
+
+## SPDX licence → redistribution class registry (`license_class.py`, US-005)
+
+The pure, tested bridge from a per-record SPDX `license` to the small set of **redistribution
+classes** the packaged corpus partitions on (`orchestrate/package.py` `licenses` block):
+`public-domain` (CC0), `attribution` (CC-BY), `share-alike` (CC-BY-SA), `non-commercial`
+(CC-BY-NC*), `unstamped` (blank), `unknown` (unregistered). `classify_license` upper-cases +
+strips, maps via `_SPDX_TO_CLASS`, and — crucially — an **unrecognised id falls to `unknown`,
+never a permissive class** (verify-before-redistribute). `REDISTRIBUTION` carries the per-class
+"what may be redistributed / what a trained model inherits" statement (US-005 AC3), reviewed
+against each CC deed; the share-alike ML caveat is deliberately hedged (whether trained weights
+are an "adaptation" of a CC-BY-SA DB is unsettled). Distinct from `lexibank_licenses.py`, which
+maps a *dataset id* → SPDX; this maps an *SPDX id* → class. No I/O — unit-test without a build.
+
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from

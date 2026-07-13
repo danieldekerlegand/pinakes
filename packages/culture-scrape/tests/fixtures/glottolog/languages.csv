@@ -1,0 +1,9 @@
+ID,Name,Macroarea,Latitude,Longitude,Glottocode,ISO639P3code,Level,Countries,Family_ID,Language_ID,Closest_ISO369P3code,First_Year_Of_Documentation,Last_Year_Of_Documentation,Is_Isolate
+sino1245,Sino-Tibetan,Eurasia,,,sino1245,,family,,,,,,,false
+mand1415,Mandarin Chinese,Eurasia,34.0,113.0,mand1415,cmn,language,CN,sino1245,,cmn,,,false
+beij1234,Beijing Mandarin,Eurasia,39.9,116.4,beij1234,,dialect,CN,sino1245,mand1415,cmn,,,false
+yuec1235,Yue Chinese,Eurasia,23.0,113.0,yuec1235,yue,language,CN,sino1245,,yue,,,false
+nucl1310,Burmese,Eurasia,21.9,95.9,nucl1310,mya,language,MM,sino1245,,mya,,,false
+tibe1272,Tibetic,Eurasia,,,tibe1272,,family,,sino1245,,,,,false
+dzon1239,Dzongkha,Eurasia,27.5,89.6,dzon1239,dzo,language,BT,sino1245,tibe1272,dzo,,,false
+lolo1234,Lolopo,Eurasia,25.0,101.0,lolo1234,ycl,language,CN,sino1245,,ycl,,,false

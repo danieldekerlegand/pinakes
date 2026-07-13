@@ -1407,6 +1407,10 @@ def _cmd_package(args: argparse.Namespace) -> int:
         f"{result.total_bytes} byte(s) -> {result.archive}"
     )
     print(f"  manifest: {result.manifest} ({result.digest})")
+    by_class = result.licenses.get("records_by_class", {})
+    if by_class:
+        summary = ", ".join(f"{cls}={count}" for cls, count in by_class.items())
+        print(f"  licenses: {summary}")
     return 0
 
 

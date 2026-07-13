@@ -117,6 +117,59 @@ Opt-in richer extraction:
   value, the corpus keeps the whole set in `extra`. `LANGUAGE_PROFILE` is the worked example.
 - `DEFAULT_PROFILE` opts into nothing (single-value), so plain dump builds stay byte-identical.
 
+## CLDF / tabular datasets are a category-only ingest (`tabular.py`, US-001)
+
+`TabularDumpAdapter` (`adapter: tabular-dump`) ingests any local CSV/TSV/JSON by renaming
+columns onto canonical fields — folding a CLDF source (Glottolog, WALS, PHOIBLE, Lexibank)
+is a **category-spec** exercise, never new adapter code. The worked example is
+`categories/glottolog.yml` + `jobs/glottolog.yml` (committed fixture slice at
+`tests/fixtures/glottolog/languages.csv`, so the job runs network-free / in CI; repoint
+`source.query` at the real gitignored download for the full catalogue). Key params:
+`field.<canonical>: <source-column>` (rename), `id_column` + `url_template` (per-record
+`source_url`), `source` / `license` / `confidence` (stamped on every record's provenance).
+
+- **License must be in `source.params.license`** (an SPDX id, e.g. `CC-BY-4.0`) — the adapter
+  puts it on `Provenance.license`, but it only reaches the node TSV because the mapper's
+  `_carry_provenance` copies it (see `schema/CLAUDE.md`). Unmapped columns ride through into
+  the node overflow (`extra`), so nothing is dropped — that's how the Glottolog reconciler
+  later reads `ISO639P3code` for its ISO fallback.
+- **Genealogy for free:** map the ancestor code column to `parent_code` (Glottolog's
+  `Family_ID`) and this languoid's code to `language_code` (its `Glottocode`); the linguistic
+  linker (`ontology/linguistic.py`) resolves each `parent_code` against a matching
+  `language_code` into a `DESCENDS_FROM` edge, so the family tree stitches into one connected
+  descent graph with no extra code.
+
+## kaikki.org Wiktionary JSONL is a NEW adapter, not tabular-dump (`kaikki.py`, US-004)
+
+A kaikki entry is a **nested** object (`etymology_templates` is a list of
+`{name, args}` objects), so the column-rename `tabular-dump` adapter cannot extract it —
+it would stringify the whole list. `KaikkiAdapter` (`adapter: kaikki`, `source_type:
+dump`) reads the JSONL and yields one **Wordform** node per entry (`field.name` = the
+head `word`, `field.lang` = `lang_code` = the fuzzy-block + reconcile ISO key). Wire a
+new dump adapter in all three places (this file's checklist) — it is NOT in `_NEEDS_HTTP`
+(local dump). Per-record `license=CC-BY-SA-3.0` (Wiktionary is CC-BY-SA, dual GFDL — a
+share-alike source), `confidence=0.8`.
+
+- **The etymology relation → edge mapping lives in `schema/kaikki_etymology.py`** (pure,
+  tested), NOT the adapter: `bor…→BORROWED_FROM`, `inh`/`der`→`DERIVED_FROM`,
+  `cog`→`COGNATE_WITH`; every other token (display helpers, calques, and the `ncog`
+  **non**-cognate assertion) is unmappable → skipped + reported, never mis-typed. The
+  adapter serialises the *mappable* relations into an **unmapped** `etymology_relations`
+  cell so they ride into the node `extra` overflow and survive the normalize→disk→link
+  round-trip (same disk-round-trip rule as the Lexibank `cognateset` — see `schema/CLAUDE.md`).
+- **The linguistic linker emits the edges** (`ontology/linguistic.py` `_link_etymology`):
+  it reads the overflow cell and, per relation, mints/reuses a minimal `Term` node keyed
+  by `(lang, term)` (via `mint_csid("term", name=…, lang=…)`, so one etymon shared by
+  many forms is one node) and emits the relation's canonical `:TYPE`. A no-op for any node
+  without the cell.
+- **Category ingests Wordform, linker mints Term** — the two labels keep the reconcile
+  clean: `schema/kaikki_reconcile.py` reads only `wordform.tsv` (the ingested entries) for
+  language coverage, while the etymon stubs land in `term.tsv` (`source=inferred:linguistic`)
+  and don't pollute the count. Edge volume + skipped-token report come from re-parsing the
+  source JSONL with `extract_relations` (pure, no corpus build needed). Worked example:
+  `categories/kaikki.yml`, `jobs/kaikki.yml`, `scripts/reconcile_kaikki.py`,
+  `docs/kaikki-reconciliation.md`.
+
 ## Test conventions
 
 Locate committed fixtures via `Path(__file__).parent / "fixtures" / ...`. Inject a fixed

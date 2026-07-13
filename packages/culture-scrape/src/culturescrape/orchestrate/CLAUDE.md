@@ -6,6 +6,24 @@ links + validates + exports the whole job into one corpus. A `Job` (`jobs.py`) i
 parsed `jobs/*.yml`; add a new job key by extending `_OPTIONAL_KEYS` + the `Job`
 dataclass + a parser in `load_job` (mirror `min_component_fraction`).
 
+## License-partitioned packaging — `package.py` (source-breadth US-005)
+
+`package_corpus` now emits a `licenses` block in the release manifest so a shared corpus
+**self-describes by licence** (share-alike sources — PHOIBLE, kaikki/Wiktionary — are in the
+graph). It scans the per-record SPDX `license` column of every `corpus/nodes/*.tsv` (edges have
+no `license`) into `records_by_license` `{SPDX: count}`, rolls that up by redistribution class
+(`schema/license_class.py`: public-domain / attribution / share-alike / non-commercial /
+unstamped / unknown, ordered permissive → restrictive), and embeds the `{SPDX: class}` registry +
+per-class redistribute/model-training statement. Deterministic (sorted, integer counts).
+
+- **Blank licence keys as `""` internally, `(unstamped)` only for display.** `classify_license`
+  maps `""` → `unstamped`, but a literal `"(unstamped)"` string would classify as `unknown` (not
+  in the SPDX map) — so count raw values (blank `""`), classify/partition from the raw map, and
+  render the `(unstamped)` label only when building the manifest's `records_by_license`.
+- The committed `docs/corpus-release-manifest.json` is a historical point-in-time record (no test
+  asserts it) — it predates the `licenses` block and is NOT regenerated here (a full rebuild is
+  expensive + its bytes aren't reproducible). New packages carry the block automatically.
+
 ## Building a merged, multi-source corpus — `merge.py` (US-004)
 
 `build_corpus(job)` stitches **every category in the job** into one graph (same-`csid`
