@@ -484,6 +484,17 @@ data change that moves a target domain's count, or the parity test fails.
   ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
   to `ROADMAP_TARGETS` and regenerate the committed report.
 
+## Corpus trust-tier report (tiered-trust US-004)
+
+`corpus-tier-report.ts` is the deterministic file-writer for the trust-tier composition, the exact
+sibling of `coverage-report.ts`: it imports `buildCorpusTierReport` from the shared
+`data-quality-scorer` service (one source of truth) and emits `docs/corpus-tier-report.{json,md}`.
+The JSON is asserted against the live corpus by `server/services/data-quality-scorer.test.ts`, so
+**re-run `npx tsx scripts/corpus-tier-report.ts` after any node-lexicon change that moves QID /
+`source_url` coverage** (e.g. a QID backfill), or that parity test fails. Tiers come from
+`@shared/trust-tier` (`classifyTrustTier`, the TS mirror of culture-scrape's `orchestrate/tiers.py`);
+the report tracks **auto-admission readiness** (the whole curated corpus is `graphTier: curated`).
+
 ## Reconciliation dry-run (US-005)
 
 `reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on

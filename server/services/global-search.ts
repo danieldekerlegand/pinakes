@@ -26,6 +26,7 @@ import * as culturescrape from "./culturescrape-client";
 import type { SearchHit } from "./culturescrape-client";
 import { getGraphResolver } from "./graph-resolver";
 import type { GraphResolver } from "./graph-resolver";
+import type { TrustTier } from "@shared/trust-tier";
 
 /** Where a search result originated: the local TSV corpus or the shared graph. */
 export type SearchSource = "local" | "graph";
@@ -57,6 +58,26 @@ export interface SearchResult {
   confidence?: number;
   /** Provenance for graph hits so the UI can attribute the fact. */
   provenance?: GraphProvenance;
+  /**
+   * Trust tier (US-004). A **local** hit is `curated` by definition — it comes
+   * from the human-curated lexicons. A **graph-only** hit is classified coarsely
+   * from the sidecar payload (which carries no `source_url`): a QID-anchored hit
+   * is `auto-admitted`, else `quarantine`; the detail panel refines this from the
+   * node's full provenance via `provenanceTier`.
+   */
+  tier?: TrustTier;
+}
+
+/**
+ * Coarse trust tier for a **graph-only** search hit (US-004). The sidecar
+ * `/search` payload carries only `csid`/`name`/`label`/`qid`/`field`, not the
+ * `source_url` an exact {@link classifyTrustTier} node classification needs, so
+ * a QID-anchored hit is labelled `auto-admitted` (it is globally identified and
+ * already admitted to the shared graph) and a QID-less hit `quarantine`. Local
+ * hits do not use this — they are always `curated`.
+ */
+export function graphHitTier(hit: SearchHit): TrustTier {
+  return hit.qid && hit.qid.trim() ? "auto-admitted" : "quarantine";
 }
 
 /** One facet bucket: a distinct value and how many results carry it. */
@@ -565,7 +586,9 @@ export async function globalSearch(
   // Sort by relevance descending, stamp source, compute facets over the FULL
   // match set (before filtering/slicing), then apply facet filters and cap to 50.
   allResults.sort((a, b) => b.relevance - a.relevance);
-  const stamped = allResults.map((r): SearchResult => ({ ...r, source: "local" }));
+  const stamped = allResults.map(
+    (r): SearchResult => ({ ...r, source: "local", tier: "curated" }),
+  );
   const facets = computeFacets(stamped);
   const filtered = applyFacetFilters(stamped, filters);
 
@@ -618,11 +641,12 @@ export function mergeGraphResults(
       id: r.id,
       name: r.displayName,
     });
+    const withTier: SearchResult = { ...r, tier: r.tier ?? "curated" };
     if (resolved) {
       localCsids.add(resolved.csid);
-      return { ...r, csid: resolved.csid };
+      return { ...withTier, csid: resolved.csid };
     }
-    return r;
+    return withTier;
   });
 
   const queryTokens = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -645,6 +669,7 @@ export function mergeGraphResults(
       source: "graph",
       csid: hit.csid,
       confidence: exact ? 1 : relevance,
+      tier: graphHitTier(hit),
       provenance: {
         source: "culture-scrape graph",
         qid: hit.qid || undefined,

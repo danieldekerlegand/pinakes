@@ -6,6 +6,7 @@ import {
   isLowConfidence,
   formatConfidence,
   safeExternalUrl,
+  provenanceTier,
   LOW_CONFIDENCE_THRESHOLD,
   type Provenance,
 } from "./provenance";
@@ -24,6 +25,7 @@ describe("extractProvenance", () => {
       sourceUrl: "https://example.org/paella",
       retrievedAt: "2026-01-01",
       confidence: 0.9,
+      wikidataQid: null,
     });
   });
 
@@ -35,6 +37,7 @@ describe("extractProvenance", () => {
       sourceUrl: "https://x.test",
       retrievedAt: null,
       confidence: 0.4,
+      wikidataQid: null,
     });
   });
 
@@ -50,10 +53,16 @@ describe("extractProvenance", () => {
       sourceUrl: null,
       retrievedAt: null,
       confidence: null,
+      wikidataQid: null,
     };
     expect(extractProvenance({})).toEqual(empty);
     expect(extractProvenance(null)).toEqual(empty);
     expect(extractProvenance(undefined)).toEqual(empty);
+  });
+
+  it("extracts the Wikidata QID from wikidata_qid / qid aliases", () => {
+    expect(extractProvenance({ wikidata_qid: "Q42" }).wikidataQid).toBe("Q42");
+    expect(extractProvenance({ qid: "Q7" }).wikidataQid).toBe("Q7");
   });
 });
 
@@ -155,5 +164,50 @@ describe("safeExternalUrl", () => {
     expect(safeExternalUrl("ftp://host/x")).toBeNull();
     expect(safeExternalUrl("")).toBeNull();
     expect(safeExternalUrl(null)).toBeNull();
+  });
+});
+
+describe("provenanceTier", () => {
+  it("classifies a curated LinguaScrape node from its provenance", () => {
+    expect(
+      provenanceTier(
+        extractProvenance({
+          source: "linguascrape",
+          wikidata_qid: "Q1",
+          source_url: "https://example.org",
+        }),
+      ),
+    ).toBe("curated");
+  });
+
+  it("auto-admits a QID-anchored, reference-backed node", () => {
+    expect(
+      provenanceTier(
+        extractProvenance({
+          source: "wikidata",
+          wikidata_qid: "Q7",
+          source_url: "https://www.wikidata.org/wiki/Q7",
+        }),
+      ),
+    ).toBe("auto-admitted");
+  });
+
+  it("quarantines a node missing a QID or a citation", () => {
+    expect(
+      provenanceTier(extractProvenance({ source: "wikidata", qid: "Q7" })),
+    ).toBe("quarantine");
+  });
+
+  it("auto-admits an edge on a citation alone", () => {
+    expect(
+      provenanceTier(
+        extractProvenance({ source: "wikidata", source_url: "https://x.test" }),
+        true,
+      ),
+    ).toBe("auto-admitted");
+  });
+
+  it("defaults a null provenance to quarantine", () => {
+    expect(provenanceTier(null)).toBe("quarantine");
   });
 });

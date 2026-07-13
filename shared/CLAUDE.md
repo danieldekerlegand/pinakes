@@ -46,6 +46,30 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   re-emit and you must regenerate the committed snapshots (export manifest + reconciliation report)
   and the Python mirror. Rubric prose lives in `docs/canonical-schema.md` §4.4.
 
+## Trust tiers (tiered-trust, US-004)
+
+- `trust-tier.ts` is the **single TS source of truth for the trust-tier policy** — the mirror of
+  culture-scrape's `orchestrate/tiers.py` `classify_tier`. `classifyTrustTier({source, wikidataQid,
+  sourceUrl, isEdge})` is a pure, dependency-free function of the *already-canonical* provenance
+  columns (so `tier` is **derived**, never a stored column). Precedence must stay byte-identical to
+  the Python: `inferred:` prefix → `inferred`; a `linguascrape` source token → `curated`; else a
+  node auto-admits iff QID-anchored **and** reference-backed (an edge on a citation alone), else
+  `quarantine`. `ALL_TRUST_TIERS` / `TRUST_TIER_META` / `trustTierMeta(tier)` give the ordered
+  list + display label/description. Consume via `@shared/trust-tier`.
+- **Two app surfaces call it** (keep them in sync with the classifier, don't re-implement):
+  the client provenance module `client/src/lib/graph/provenance.ts` (`provenanceTier(prov, isEdge)`,
+  rendered by `ProvenanceBadge`/`ProvenanceList`/`TrustTierBadge`) surfaces the tier on graph
+  detail/explorer panels + `global-search.ts` (`graphHitTier` on graph hits, local hits are
+  `curated` by definition); and `server/services/data-quality-scorer.ts` (`computeCorpusTiers` /
+  `buildCorpusTierReport`) reports corpus composition by tier.
+- **GOTCHA — the app corpus is entirely `curated`.** Auto-admission never writes `lexicons/*.tsv`,
+  so every exported lexicon row is `source=linguascrape` → `curated` in the graph. The corpus-tier
+  report therefore tracks **auto-admission readiness** (classify each curated node row by its own
+  provenance, `source` omitted → `auto-admitted` iff QID + `source_url`, else `quarantine`) — the
+  growth metric, not the graph tier. Committed snapshot `docs/corpus-tier-report.json`
+  (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
+  `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'

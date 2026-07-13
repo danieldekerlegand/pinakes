@@ -1,0 +1,189 @@
+{
+  "totalNodeRows": 6708,
+  "graphTier": "curated",
+  "byTier": [
+    {
+      "tier": "curated",
+      "nodeRows": 0,
+      "withWikidataQid": 0,
+      "withSourceUrl": 0,
+      "withConfidence": 0,
+      "avgConfidence": null,
+      "fullyProvenanced": 0
+    },
+    {
+      "tier": "auto-admitted",
+      "nodeRows": 2042,
+      "withWikidataQid": 2042,
+      "withSourceUrl": 2042,
+      "withConfidence": 2042,
+      "avgConfidence": 0.8622,
+      "fullyProvenanced": 2042
+    },
+    {
+      "tier": "quarantine",
+      "nodeRows": 4666,
+      "withWikidataQid": 0,
+      "withSourceUrl": 24,
+      "withConfidence": 122,
+      "avgConfidence": 0.8746,
+      "fullyProvenanced": 0
+    },
+    {
+      "tier": "inferred",
+      "nodeRows": 0,
+      "withWikidataQid": 0,
+      "withSourceUrl": 0,
+      "withConfidence": 0,
+      "avgConfidence": null,
+      "fullyProvenanced": 0
+    }
+  ],
+  "autoAdmissionReadyRate": 0.3044,
+  "files": [
+    {
+      "file": "archaeological-cultures.tsv",
+      "node": "archaeological-culture",
+      "nodeRows": 277,
+      "autoAdmissionReady": 253
+    },
+    {
+      "file": "archaeological-sites.tsv",
+      "node": "place",
+      "nodeRows": 550,
+      "autoAdmissionReady": 476
+    },
+    {
+      "file": "architectural-styles.tsv",
+      "node": "art-tradition",
+      "nodeRows": 90,
+      "autoAdmissionReady": 72
+    },
+    {
+      "file": "art-traditions.tsv",
+      "node": "art-tradition",
+      "nodeRows": 35,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "battles.tsv",
+      "node": "battle",
+      "nodeRows": 53,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "civilizations.tsv",
+      "node": "culture",
+      "nodeRows": 170,
+      "autoAdmissionReady": 81
+    },
+    {
+      "file": "cuisine-items.tsv",
+      "node": "ingredient",
+      "nodeRows": 2097,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "cuisines.tsv",
+      "node": "cuisine",
+      "nodeRows": 101,
+      "autoAdmissionReady": 80
+    },
+    {
+      "file": "culture-profiles.tsv",
+      "node": "culture",
+      "nodeRows": 170,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "dance-traditions.tsv",
+      "node": "art-tradition",
+      "nodeRows": 92,
+      "autoAdmissionReady": 66
+    },
+    {
+      "file": "deities.tsv",
+      "node": "deity",
+      "nodeRows": 206,
+      "autoAdmissionReady": 199
+    },
+    {
+      "file": "families.tsv",
+      "node": "language-family",
+      "nodeRows": 543,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "ingredient-origins.tsv",
+      "node": "ingredient",
+      "nodeRows": 111,
+      "autoAdmissionReady": 70
+    },
+    {
+      "file": "languages.tsv",
+      "node": "language",
+      "nodeRows": 1099,
+      "autoAdmissionReady": 552
+    },
+    {
+      "file": "literary-traditions.tsv",
+      "node": "literary-tradition",
+      "nodeRows": 62,
+      "autoAdmissionReady": 50
+    },
+    {
+      "file": "migration-routes.tsv",
+      "node": "migration-route",
+      "nodeRows": 104,
+      "autoAdmissionReady": 44
+    },
+    {
+      "file": "music-traditions.tsv",
+      "node": "art-tradition",
+      "nodeRows": 20,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "myth-motifs.tsv",
+      "node": "myth-motif",
+      "nodeRows": 61,
+      "autoAdmissionReady": 31
+    },
+    {
+      "file": "religions.tsv",
+      "node": "religion",
+      "nodeRows": 20,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "rivers-and-waters.tsv",
+      "node": "place",
+      "nodeRows": 21,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "settlements.tsv",
+      "node": "place",
+      "nodeRows": 642,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "trade-goods.tsv",
+      "node": "trade-good",
+      "nodeRows": 45,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "urheimat-hypotheses.tsv",
+      "node": "urheimat-hypothesis",
+      "nodeRows": 24,
+      "autoAdmissionReady": 0
+    },
+    {
+      "file": "writing-systems.tsv",
+      "node": "writing-system",
+      "nodeRows": 115,
+      "autoAdmissionReady": 68
+    }
+  ]
+}

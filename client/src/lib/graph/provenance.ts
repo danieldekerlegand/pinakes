@@ -13,6 +13,13 @@
  * `provenance.test.ts`), matching the existing transform-test convention.
  */
 
+import {
+  classifyTrustTier,
+  trustTierMeta,
+  type TrustTier,
+  type TrustTierMeta,
+} from "@shared/trust-tier";
+
 /** The provenance/confidence fields a graph fact may carry. */
 export interface Provenance {
   /** Where the fact came from — a corpus/adapter id or an inference marker. */
@@ -23,6 +30,8 @@ export interface Provenance {
   retrievedAt: string | null;
   /** 0–1 confidence, when the fact carries one. */
   confidence: number | null;
+  /** The Wikidata QID, when the node carries one (drives the trust tier). */
+  wikidataQid: string | null;
 }
 
 /** Whether a fact is directly attributable or produced by inference. */
@@ -73,8 +82,30 @@ export function extractProvenance(
     sourceUrl: str(p.source_url) ?? str(p.sourceUrl),
     retrievedAt: str(p.retrieved_at) ?? str(p.retrievedAt),
     confidence: num(p.confidence),
+    wikidataQid: str(p.wikidata_qid) ?? str(p.wikidataQid) ?? str(p.qid),
   };
 }
+
+/**
+ * The trust tier of a graph fact (US-004) — a pure function of its provenance,
+ * mirroring culture-scrape's corpus-build classifier via the shared
+ * {@link classifyTrustTier}. `isEdge` distinguishes an edge (auto-admits on a
+ * citation alone) from a node (needs a QID *and* a citation).
+ */
+export function provenanceTier(
+  prov: Provenance | null | undefined,
+  isEdge = false,
+): TrustTier {
+  return classifyTrustTier({
+    source: prov?.source,
+    wikidataQid: prov?.wikidataQid,
+    sourceUrl: prov?.sourceUrl,
+    isEdge,
+  });
+}
+
+export { trustTierMeta };
+export type { TrustTier, TrustTierMeta };
 
 /** True when none of the provenance fields carry a value. */
 export function hasProvenance(prov: Provenance | null | undefined): boolean {
@@ -83,7 +114,8 @@ export function hasProvenance(prov: Provenance | null | undefined): boolean {
     prov.source !== null ||
     prov.sourceUrl !== null ||
     prov.retrievedAt !== null ||
-    prov.confidence !== null
+    prov.confidence !== null ||
+    prov.wikidataQid !== null
   );
 }
 
