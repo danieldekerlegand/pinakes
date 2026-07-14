@@ -145,6 +145,23 @@ def test_render_baselines_doc_is_deterministic() -> None:
     assert str(BASELINE_SEED) in doc
 
 
+def test_render_baselines_doc_preserves_kgqa_section() -> None:
+    """A tier-3 block (US-004) is re-appended verbatim, absent by default."""
+    outcomes = [_outcome("TransE", 0.1)]
+    kwargs = dict(
+        corpus_md5="abc",
+        manifest_sha256="def",
+        triples_sha256="ghi",
+        counts={"triples": 1, "entities": 1, "relations": 1},
+        split_counts={"train": 1, "valid": 0, "test": 0},
+    )
+    assert "KGQA-EVAL" not in render_baselines_doc(outcomes, **kwargs)
+    block = "<!-- KGQA-EVAL:START -->\ntier 3 numbers\n<!-- KGQA-EVAL:END -->"
+    with_block = render_baselines_doc(outcomes, **kwargs, kgqa_section=block)
+    assert with_block.count("KGQA-EVAL:START") == 1
+    assert with_block.rstrip().endswith("<!-- KGQA-EVAL:END -->")
+
+
 # --- .dvc / hash helpers ------------------------------------------------------
 
 

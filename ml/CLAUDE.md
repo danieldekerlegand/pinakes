@@ -29,6 +29,55 @@ The shape every dataset/metric deliverable follows:
   `Path(__file__).resolve().parents[2]` is the repo root (parents[1] = `ml/`). From
   a `src/linguascrape_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
   `.parent`). Off-by-one here silently skips the live gate.
+- **GOTCHA — build/regenerate the manifest against the CANONICAL DVC corpus, not a
+  locally-drifted `export/culturescrape`.** A prior scale-up (QID backfill / dedupe) or an
+  aborted `npx tsx scripts/export-for-culturescrape.ts` can leave `export/culturescrape`
+  modified vs the committed `export/culturescrape.dvc` hash (`uv run --project ml dvc status
+  export/culturescrape.dvc` shows "modified"). A committed manifest built on that drifted tree
+  is NOT reproducible by anyone who `dvc pull`s the canonical corpus. Symptom: one live gate
+  passes while a sibling fails against the SAME export (the sibling's manifest was regenerated
+  on the drift). Fix before regenerating any manifest: `uv run --project ml dvc checkout
+  --force export/culturescrape.dvc` (the extra `manifest.json`/`convergence/`/`reconciliation/`/
+  `writeback/` files are gitignored scratch — `--force` is safe), then rebuild + `dvc add
+  ml/data && dvc push`. Attribute-template selection hashes on `node.csid`, so a QID-driven
+  csid change reshuffles a few `dated.*`/`located_at.*` counts (edge counts stay put — edges
+  dedup on the csid triple, which is unchanged).
+
+## Training-data generators (Phase 5 US-002; US-003 reuses the shape)
+
+The LLM-training datasets follow the **same reproducible-artifact pattern** as the
+triples exporter — a pure core + thin CLI + committed manifest snapshot + two test
+tiers. Specifics for the verbalization generator (`verbalize.py` +
+`export_verbalizations.py`, manifest `ml/manifests/verbalization-manifest.json`,
+data `ml/data/verbalizations/verbalizations.jsonl`):
+
+- **Reads BOTH `nodes/` and `edges/`** of `export/culturescrape/` — nodes give the
+  human-readable `name` per csid (edges reference csids, never names) plus rich
+  attributes. `load_nodes` builds a `csid → NodeInfo` map; parse **header-driven**.
+- **HF-datasets-compatible JSONL = a FLAT, uniform record per line.** Every example
+  (edge or attribute) has the *same* string keys (`text`/`kind`/`relation`/`head`/
+  `head_name`/`tail`/`tail_name`/`value`/`template_id` + provenance + `license`), so
+  `datasets.load_dataset("json", …)` infers one feature set. Don't nest heterogeneous
+  objects — mixed nested shapes break HF schema inference. `json.dumps(sort_keys=True,
+  ensure_ascii=False)` per line keeps unicode names readable + bytes reproducible.
+- **Templates are hand-written per edge `:TYPE`** (`EDGE_TEMPLATES`); the typed edge
+  vocabulary (14 relations) makes this tractable. One-or-more variants per type,
+  selected deterministically by `sha256(seed + "head\trel\ttail") % len` — variety
+  without a reroll. A **coverage test** asserts every non-`EXCLUDED_RELATIONS` edge
+  type in `shared/canonical-schema.json` has a template (a new edge type without one
+  fails CI). Reuse `triples.EXCLUDED_RELATIONS` — derived temporal relations are rules,
+  never verbalized.
+- **Dedup edges on `(head, relation, tail)`** (like triples — one row per supporting
+  datum). Provenance for the kept example comes from the **lexicographically-first**
+  supporting row (sort the rows, first-wins) so the choice is stable.
+- **GOTCHA — null-placeholder attributes.** The export uses `(lat,lon)=(0,0)` ("null
+  island") and `year 0` as blank sentinels (e.g. every language row carries them). The
+  attribute verbalizer treats both as absent (`_parse_int` returns `None` for `0`;
+  coords skipped when both are `0.0`) — otherwise you emit thousands of "located at
+  0, 0" / bogus-date examples. Year formatting: `>0 ⇒ "N CE"`, `<0 ⇒ "N BCE"`.
+- Edge-example count equals the triples count (2,267) by construction (same dedup);
+  attribute examples add the dated/coordinate facts. Re-pin after regenerating:
+  `dvc add ml/data && dvc push`, commit `ml/data.dvc` + the manifest together.
 
 ## Corpus facts (edges → triples)
 
@@ -111,6 +160,86 @@ The shape every dataset/metric deliverable follows:
   `skipif ml/data absent` (skips in CI). Predictions + metrics are byte-reproducible
   (pinned seed, CPU) → a rerun is a git no-op; `ml/data`/embeddings are unchanged by
   US-005 (same training) so no DVC re-pin.
+
+## KGQA evaluation — eval tier 3 (US-004)
+
+`kgqa_eval.py` (pure) + `eval_kgqa.py` (thin CLI) score the held-out KGQA `eval`
+split — the third eval tier alongside link-prediction metrics (tier 1) and logical
+consistency (tier 2). Same reproducible-artifact shape: pure core + committed
+snapshot (`ml/manifests/kgqa-eval-baseline.json`) + a live gate (`skipif` export /
+`ml/data/kgqa/eval.jsonl` absent) asserting the baseline equals a fresh build.
+
+- **Systems are pluggable + deterministic, so CI is network-free.** A `System` is
+  `Callable[[QARecord], SystemPrediction]`. The committed baseline measures
+  `GraphRetrievalSystem` (BFS a depth-bounded neighbourhood around the subject, then
+  walk the gold reasoning chain **only through retrieved edges** — retrieval depth is
+  the measured variable, so a chain deeper than `DEFAULT_RETRIEVAL_DEPTH=2` is
+  answered wrong, an honest floor not an oracle) vs a `no-retrieval` control (restate
+  the subject). The *live* off-the-shelf-LLM variant (Gemini proxy over the same
+  retrieved subgraph) is local-only, documented in `docs/kgqa-dataset.md`, never in CI.
+- **Metrics are integer-derived + rounded** (`round(x, 6)`) so the JSON snapshot is
+  byte-stable across platforms: exact / normalized answer match + an evidence-grounding
+  rate (is the answer a node the system retrieved?), overall + per-`kind`.
+- **Tier-2 runs over the KGQA evidence.** `evidence_triples(predictions)` →
+  `consistency.evaluate_consistency` records descent-cycle / schema-type /
+  antisymmetry counts per system in the same baseline. The evidence is real corpus
+  edges, so a nonzero `schemaTypeBreaches` (today 20 — `DESCENDS_FROM` among
+  `writing-system` nodes the schema's `from`/`to` sets don't declare) is a genuine
+  corpus/schema observation surfaced by the check, not a code bug. It is a committed
+  snapshot, NOT the monotone `consistency-baseline.json` ratchet.
+- **GOTCHA — the tier-3 doc block is co-owned.** `linguascrape-eval-kgqa` upserts a
+  marker-wrapped (`KGQA-EVAL:START/END`) tier-3 section into `docs/ml-baselines.md`
+  (which `train_baselines` otherwise rewrites from scratch). `render_baselines_doc`
+  takes an optional `kgqa_section` and `train_baselines` extracts + re-appends the
+  existing block, so the two CLIs cooperate instead of clobbering. Regenerate with
+  `uv run linguascrape-eval-kgqa` after any corpus/eval-split change; the live gate
+  fails on a stale baseline. No DVC re-pin (reads the existing split, writes no data).
+
+## QLoRA fine-tuning pipeline (US-005)
+
+`finetune.py` (pure core + lazy heavy imports) + `train_finetune.py` (thin CLI,
+console script `linguascrape-finetune`) consume the US-002 verbalization + US-003 QA
+JSONL, QLoRA-fine-tune a small open causal-LM, and score the held-out KGQA split
+**before/after** through the US-004 tier-3 scorer. Full runbook + GPU procedure:
+[`docs/finetune-runbook.md`](../docs/finetune-runbook.md).
+
+- **The heavy training stack is NOT a declared dependency** — same rule as
+  `scallopy` (see `pyproject.toml`): `trl`/`peft`/`accelerate` (+`bitsandbytes` for
+  CUDA 4-bit) are installed on demand (`uv pip install trl peft accelerate`), never in
+  `uv.lock`. So **all heavy imports are lazy inside functions** — `import
+  linguascrape_ml.finetune` and the whole CI suite work in the slim env. Adding the
+  `[project.scripts]` entry does NOT change `uv.lock`; CI's `uv sync --frozen` stays
+  green. `require_finetune_deps()` raises an actionable install message when absent —
+  and that test RUNS in CI (deps absent) but SKIPS locally (deps installed).
+- **No training in CI, no committed metrics snapshot.** Training metrics/weights are
+  NOT byte-reproducible across platforms (MPS vs CUDA float nondeterminism), so unlike
+  the verbalization/kgqa/baseline manifests there is **no committed snapshot + live
+  gate** here. CI tests only the **pure core** on fixtures (dataset assembly, prompt
+  formatting, `FineTuneConfig` round-trip, the before/after scoring wiring with fake
+  `System`s, the dep gate). The committed artifacts are the **configs**
+  (`ml/configs/finetune-{smoke,gpu}.json`) + the runbook — not a numbers file.
+- **Config-driven + frozen dataclass.** `FineTuneConfig` (model / dataset paths /
+  LoRA + training hyperparameters) round-trips through JSON (`from_json`/`to_dict`),
+  rejects unknown keys (catches config typos), and `.resolved(base)` makes the dataset
+  paths absolute against the ml root. `lora_target_modules` is a tuple internally
+  (frozen/hashable), a list on the wire.
+- **Reuse the tier-3 `System` seam for before/after eval.** The base and tuned models
+  are wrapped as `HFCausalLMSystem` (a `kgqa_eval.System = Callable[[QARecord],
+  SystemPrediction]`) so they score through the EXACT harness as the US-004
+  graph-retrieval baseline — `evaluate_systems` is pure w.r.t. the systems, so tests
+  drive it with deterministic fake systems (perfect/blank) and assert the metrics.
+- **GOTCHA — trl 1.x `SFTConfig`/`SFTTrainer` API.** `SFTTrainer` takes
+  `processing_class=` (not `tokenizer=`) + `peft_config=`; `SFTConfig` takes
+  `dataset_text_field` + `max_length` (not `max_seq_length`). CPU training needs
+  `use_cpu=True` and `bf16=False/fp16=False` (bf16/fp16 need CUDA) or `SFTConfig`
+  raises "Your setup doesn't support bf16/gpu". These live in `train_qlora` (all
+  `# pragma: no cover` — local-only, never run in CI). The pipeline was proven
+  end-to-end on `hf-internal-testing/tiny-random-LlamaForCausalLM` on CPU.
+- **Datasets referenced by DVC hash, not re-pinned.** The pipeline READS the existing
+  DVC-tracked `ml/data/{verbalizations,kgqa}` and writes only to the git-ignored
+  `ml/artifacts/` (adapter + `run-summary.json`) + MLflow — so **no `dvc add ml/data`
+  re-pin** (contrast US-002/003 which generate data). `ml/.gitignore` ignores
+  `/artifacts`.
 
 ## MLflow / DVC
 

@@ -18,3 +18,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 /data
+
+# QLoRA fine-tuning outputs (adapters / run summaries) — reproducible from the
+# committed config + DVC data, so not tracked (US-005). Committed inputs are
+# `configs/finetune-*.json`; the runbook is `docs/finetune-runbook.md`.
+/artifacts

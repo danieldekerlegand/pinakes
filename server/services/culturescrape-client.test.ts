@@ -249,6 +249,63 @@ describe("cypher", () => {
   });
 });
 
+describe("retrieve", () => {
+  it("validates a hybrid-retrieval payload and sends q/k/depth params", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        query: "bread of the mediterranean",
+        available: true,
+        backend: "neo4j",
+        index: "entity_embedding",
+        k: 3,
+        depth: 1,
+        seeds: [
+          {
+            csid: "cs:dish:paella",
+            name: "Paella",
+            label: "Dish",
+            labels: ["Dish"],
+            score: 0.91,
+          },
+        ],
+        nodes: [
+          { csid: "cs:dish:paella", name: "Paella", label: "Dish", labels: ["Dish"] },
+        ],
+        edges: [
+          {
+            source: "cs:dish:paella",
+            target: "cs:place:valencia",
+            type: "ORIGINATES_IN",
+            dimension: "geographic",
+          },
+        ],
+      }),
+    );
+
+    const res = await client.retrieve("bread of the mediterranean", {
+      k: 3,
+      depth: 1,
+    });
+
+    expect(res.available).toBe(true);
+    expect(res.seeds[0].score).toBeCloseTo(0.91);
+    expect(res.edges[0].type).toBe("ORIGINATES_IN");
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    expect(url.pathname).toBe("/api/retrieve");
+    expect(url.searchParams.get("q")).toBe("bread of the mediterranean");
+    expect(url.searchParams.get("k")).toBe("3");
+    expect(url.searchParams.get("depth")).toBe("1");
+  });
+
+  it("maps a 503 (embedder/Neo4j absent) to an unavailable error", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ available: false }, 503));
+
+    await expect(client.retrieve("anything")).rejects.toBeInstanceOf(
+      client.CultureScrapeUnavailableError,
+    );
+  });
+});
+
 // ── isAvailable ───────────────────────────────────────────────────────────────
 
 describe("isAvailable", () => {

@@ -24,6 +24,13 @@ culturescrape = "culturescrape.cli:main"
 neo4j = [
     "neo4j>=5",
 ]
+# GraphRAG node embedding (Phase 5). Heavy (torch), kept out of the core install
+# and the slim sidecar image; imported lazily by
+# ``culturescrape.neo4j.vector_index`` so the module and its pure helpers work
+# with the extra absent (the offline unit tests run in CI without it).
+graphrag = [
+    "sentence-transformers>=2.2",
+]
 gui = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
@@ -66,6 +73,13 @@ ignore_missing_imports = true
 # emitted ProbLog syntax), never the library code, so treat it as untyped.
 [[tool.mypy.overrides]]
 module = ["problog", "problog.*"]
+ignore_missing_imports = true
+
+# sentence-transformers (the optional ``graphrag`` extra) is imported lazily by
+# the vector-index embedder and ships no type stubs; treat it as untyped so core
+# type checks pass whether or not the extra is installed.
+[[tool.mypy.overrides]]
+module = ["sentence_transformers", "sentence_transformers.*"]
 ignore_missing_imports = true
 
 [tool.ruff]

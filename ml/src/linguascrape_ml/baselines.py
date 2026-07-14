@@ -267,6 +267,7 @@ def render_baselines_doc(
     split_counts: dict[str, int],
     consistency: list[dict[str, object]] | None = None,
     predictions_top_k: int | None = None,
+    kgqa_section: str | None = None,
 ) -> str:
     """Render the committed ``docs/ml-baselines.md`` — a **pure** function of numbers.
 
@@ -279,6 +280,11 @@ def render_baselines_doc(
     (``{"model", "numPredictions", "counts": {descentCycles, schemaTypeBreaches,
     asymmetryViolations}}``); when supplied, the logical-consistency counts are
     reported in the same doc, alongside the link-prediction metrics.
+
+    ``kgqa_section`` (US-004) is the tier-3 KGQA-accuracy block (owned by
+    ``linguascrape-eval-kgqa``, wrapped in its ``KGQA-EVAL`` markers). This CLI
+    rewrites the doc from scratch, so it re-appends the existing block verbatim to
+    avoid clobbering the tier-3 results a separate CLI wrote.
     """
     head = outcomes[0]
     lines: list[str] = [
@@ -396,4 +402,8 @@ def render_baselines_doc(
         " (local file backend; `uv run mlflow ui`).",
         "",
     ]
+    if kgqa_section:
+        # Re-append the tier-3 KGQA block verbatim (already marker-wrapped +
+        # trailing newline) so a baselines re-run preserves it.
+        return "\n".join(lines) + "\n" + kgqa_section.rstrip("\n") + "\n"
     return "\n".join(lines)
