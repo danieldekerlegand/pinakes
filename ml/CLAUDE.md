@@ -241,6 +241,43 @@ JSONL, QLoRA-fine-tune a small open causal-LM, and score the held-out KGQA split
   re-pin** (contrast US-002/003 which generate data). `ml/.gitignore` ignores
   `/artifacts`.
 
+## Scallop context export + Horn-rule translation (Phase 5 US-001)
+
+`scallop.py` (pure, stdlib-only) + `export_scallop.py` (thin CLI, console script
+`linguascrape-export-scallop`) load the corpus into Scallop: interned relation
+CSVs, a `.scl` translation of the rules registry, and a gated scallopy smoke.
+Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md).
+
+- **The registry is the rule source, not `rules.py`.** Translate from the committed
+  unified registry `packages/culture-scrape/.../datalog/rules_registry.tsv`
+  (`clause_souffle` column — the most complete dialect, it carries the negation the
+  Prolog column omits). Only `status == "active"` rows are emitted (governance).
+- **Soufflé→Scallop is a surface rewrite:** upper-case vars → lower-case, `:-` → `=`,
+  `,` → `and`, `!p` → `not p`, comparison guards pass through. The ONE translatability
+  constraint is **every predicate literal is binary** (the same `ARITY == 2` the
+  culture-scrape materializer imposes) — the lone offender `csid_uniqueness_violation`
+  (reads arity-3 `node/3`) is **skipped + reported** in the manifest, never dropped.
+  Today: 51 translated, 1 skipped.
+- **`program.scl` is corpus-INDEPENDENT** (a pure function of the committed registry),
+  so it is committed to git under `ml/scallop/` (NOT `ml/data`, which is gitignored)
+  and CI-gated byte-for-byte against a fresh translation — a real test even without
+  the DVC corpus. The manifest's *registry-derived* fields (translated/skipped ids)
+  are likewise CI-gated; only its corpus counts need the `skipif`-export live gate.
+- **`.scl` type inference:** base predicates (read in a body, never a rule head) get a
+  `type name(String, String)` decl so a rule over an unpopulated relation compiles +
+  answers empty (don't error); `time_start`/`time_end` are `(String, i32)` so the
+  temporal comparison guards type-check. Entities stay `String` (self-describing +
+  lets `instance_of(X, "Culture")` stay uniformly typed) — the interning to ints is a
+  separate artifact for the CSV/tensor export.
+- **GOTCHA — `scallopy` runs on macOS/arm64 ONLY** (its sole wheel is
+  `cp39-macosx_11_0_arm64`; it does NOT resolve on Linux or Python 3.11). So the
+  `--smoke` scallopy run is local-only + `require_scallop_deps`-gated + `# pragma:
+  no cover`, exactly like the finetune training stack. The smoke's *logic* is still
+  validated in CI via the engine-free `transitive_closure` reference derivation the
+  smoke asserts equality against (`SMOKE_TARGETS`: `ancestor` + `influenced_transitively`).
+- Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the interned
+  relation CSVs live in the DVC-tracked `ml/data/scallop/` tree.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
