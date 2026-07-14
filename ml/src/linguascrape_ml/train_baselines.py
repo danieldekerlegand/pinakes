@@ -247,6 +247,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"consistency baseline -> {args.consistency_baseline}")
 
     consistency_rows = [r.as_dict() for r in reports]
+    # Preserve the tier-3 KGQA block (owned by linguascrape-eval-kgqa) across this
+    # from-scratch rewrite, so the two cooperating CLIs never clobber each other.
+    from linguascrape_ml.kgqa_eval import extract_marked_section
+
+    existing_doc = args.doc.read_text(encoding="utf-8") if args.doc.exists() else ""
+    kgqa_section = extract_marked_section(existing_doc)
     doc = render_baselines_doc(
         outcomes,
         corpus_md5=meta["corpus_md5"],
@@ -258,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         consistency=consistency_rows,
         predictions_top_k=args.top_k,
+        kgqa_section=kgqa_section,
     )
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")

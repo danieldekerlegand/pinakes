@@ -97,9 +97,51 @@ core. It runs only with a `GEMINI_API_KEY`; the pure transform (`kgqa.apply_poli
 is unit-tested with a fake polisher. After generating a variant, `dvc add ml/data`
 captures it alongside the deterministic core.
 
+## KGQA evaluation (eval tier 3, US-004)
+
+The held-out `eval` split is scored by the third eval tier — `linguascrape-eval-kgqa`
+(`ml/src/linguascrape_ml/eval_kgqa.py`, pure core in `kgqa_eval.py`). It measures two
+deterministic, **network-free** systems and commits the numbers to
+`ml/manifests/kgqa-eval-baseline.json` + a tier-3 block in `docs/ml-baselines.md`
+(cross-linking the three eval tiers):
+
+- **`graph-retrieval`** — the GraphRAG floor. For each question it expands a
+  depth-bounded neighbourhood around the subject (the ML-side mirror of the US-001
+  `vector top-k → neighbourhood expansion` retriever) and answers by walking the
+  reasoning chain **using only edges it retrieved**, so a chain deeper than the
+  retrieval depth (default 2) is answered wrong — an honest depth-limited floor, not
+  an oracle.
+- **`no-retrieval`** — the control: with no retrieved subgraph it can only restate
+  the subject, so the gap between the two rows is the value the retrieved evidence
+  adds.
+
+Three scores per system: **exact** / **normalized** answer match against the gold
+answer, plus an **evidence-grounding** rate (is the answer a node the system actually
+retrieved?). The tier-2 logical-consistency checks (`linguascrape_ml.consistency`)
+also run over the structured evidence each system produced — descent acyclicity,
+canonical-schema `from`/`to` type constraints, and antisymmetry — so a corpus/schema
+breach in the reasoning paths (e.g. `DESCENDS_FROM` among node types the schema does
+not yet declare) is surfaced. The committed baseline is byte-reproducible (a live
+snapshot-gate test asserts it equals a fresh build) and logged to MLflow.
+
+### Live off-the-shelf-LLM variant (local-only, never required for CI)
+
+The deterministic `graph-retrieval` system is the reproducible stand-in for "an
+off-the-shelf LLM reading the retrieved subgraph". The **live** measurement answers
+the *same* retrieved subgraphs through the existing Gemini proxy — bring the graph
+stack up (`npm run dev:full`, needs Neo4j + `GEMINI_API_KEY`) and query
+`/api/graph/retrieve` for the subject's subgraph, then have the LLM answer from it;
+the no-retrieval control is the same LLM with no subgraph. It is local-only (network
++ API key) and its numbers are not committed — the deterministic floor is what CI and
+the baseline track.
+
 ## Regenerating
 
 ```bash
+# Tier-3 KGQA eval (after the eval split exists):
+uv run --project ml linguascrape-eval-kgqa            # add --no-mlflow to skip logging
+git add ml/manifests/kgqa-eval-baseline.json docs/ml-baselines.md
+
 # 1. Ensure the canonical corpus is checked out (not a locally-drifted export):
 uv run --project ml dvc checkout --force export/culturescrape.dvc
 

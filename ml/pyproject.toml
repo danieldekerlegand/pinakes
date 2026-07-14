@@ -50,6 +50,8 @@ linguascrape-export-kgqa = "linguascrape_ml.export_kgqa:main"
 linguascrape-polish-kgqa = "linguascrape_ml.polish_kgqa:main"
 # US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
 linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
+# Phase-5 US-004 KGQA eval tier 3 — also `python -m linguascrape_ml.eval_kgqa`.
+linguascrape-eval-kgqa = "linguascrape_ml.eval_kgqa:main"
 # US-005 consistency ratchet (pure — no torch) — also `python -m
 # linguascrape_ml.check_consistency`.
 linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"

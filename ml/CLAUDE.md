@@ -161,6 +161,40 @@ data `ml/data/verbalizations/verbalizations.jsonl`):
   (pinned seed, CPU) → a rerun is a git no-op; `ml/data`/embeddings are unchanged by
   US-005 (same training) so no DVC re-pin.
 
+## KGQA evaluation — eval tier 3 (US-004)
+
+`kgqa_eval.py` (pure) + `eval_kgqa.py` (thin CLI) score the held-out KGQA `eval`
+split — the third eval tier alongside link-prediction metrics (tier 1) and logical
+consistency (tier 2). Same reproducible-artifact shape: pure core + committed
+snapshot (`ml/manifests/kgqa-eval-baseline.json`) + a live gate (`skipif` export /
+`ml/data/kgqa/eval.jsonl` absent) asserting the baseline equals a fresh build.
+
+- **Systems are pluggable + deterministic, so CI is network-free.** A `System` is
+  `Callable[[QARecord], SystemPrediction]`. The committed baseline measures
+  `GraphRetrievalSystem` (BFS a depth-bounded neighbourhood around the subject, then
+  walk the gold reasoning chain **only through retrieved edges** — retrieval depth is
+  the measured variable, so a chain deeper than `DEFAULT_RETRIEVAL_DEPTH=2` is
+  answered wrong, an honest floor not an oracle) vs a `no-retrieval` control (restate
+  the subject). The *live* off-the-shelf-LLM variant (Gemini proxy over the same
+  retrieved subgraph) is local-only, documented in `docs/kgqa-dataset.md`, never in CI.
+- **Metrics are integer-derived + rounded** (`round(x, 6)`) so the JSON snapshot is
+  byte-stable across platforms: exact / normalized answer match + an evidence-grounding
+  rate (is the answer a node the system retrieved?), overall + per-`kind`.
+- **Tier-2 runs over the KGQA evidence.** `evidence_triples(predictions)` →
+  `consistency.evaluate_consistency` records descent-cycle / schema-type /
+  antisymmetry counts per system in the same baseline. The evidence is real corpus
+  edges, so a nonzero `schemaTypeBreaches` (today 20 — `DESCENDS_FROM` among
+  `writing-system` nodes the schema's `from`/`to` sets don't declare) is a genuine
+  corpus/schema observation surfaced by the check, not a code bug. It is a committed
+  snapshot, NOT the monotone `consistency-baseline.json` ratchet.
+- **GOTCHA — the tier-3 doc block is co-owned.** `linguascrape-eval-kgqa` upserts a
+  marker-wrapped (`KGQA-EVAL:START/END`) tier-3 section into `docs/ml-baselines.md`
+  (which `train_baselines` otherwise rewrites from scratch). `render_baselines_doc`
+  takes an optional `kgqa_section` and `train_baselines` extracts + re-appends the
+  existing block, so the two CLIs cooperate instead of clobbering. Regenerate with
+  `uv run linguascrape-eval-kgqa` after any corpus/eval-split change; the live gate
+  fails on a stale baseline. No DVC re-pin (reads the existing split, writes no data).
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

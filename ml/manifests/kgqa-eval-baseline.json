@@ -1,0 +1,101 @@
+{
+  "counts": {
+    "derivation": 169,
+    "path": 225,
+    "records": 394
+  },
+  "retrievalDepth": 2,
+  "split": "kgqa/eval",
+  "systems": {
+    "graph-retrieval": {
+      "consistency": {
+        "counts": {
+          "asymmetryViolations": 0,
+          "descentCycles": 0,
+          "schemaTypeBreaches": 20
+        },
+        "numPredictions": 370
+      },
+      "metrics": {
+        "accuracyExact": 0.984772,
+        "accuracyNormalized": 0.984772,
+        "answerRate": 0.984772,
+        "answered": 388,
+        "byKind": {
+          "derivation": {
+            "accuracyExact": 0.964497,
+            "accuracyNormalized": 0.964497,
+            "answerRate": 0.964497,
+            "answered": 163,
+            "exact": 163,
+            "grounded": 169,
+            "groundingRate": 1.0,
+            "normalized": 163,
+            "total": 169
+          },
+          "path": {
+            "accuracyExact": 1.0,
+            "accuracyNormalized": 1.0,
+            "answerRate": 1.0,
+            "answered": 225,
+            "exact": 225,
+            "grounded": 225,
+            "groundingRate": 1.0,
+            "normalized": 225,
+            "total": 225
+          }
+        },
+        "exact": 388,
+        "grounded": 394,
+        "groundingRate": 1.0,
+        "normalized": 388,
+        "total": 394
+      }
+    },
+    "no-retrieval": {
+      "consistency": {
+        "counts": {
+          "asymmetryViolations": 0,
+          "descentCycles": 0,
+          "schemaTypeBreaches": 0
+        },
+        "numPredictions": 0
+      },
+      "metrics": {
+        "accuracyExact": 0.015228,
+        "accuracyNormalized": 0.015228,
+        "answerRate": 0.0,
+        "answered": 0,
+        "byKind": {
+          "derivation": {
+            "accuracyExact": 0.017751,
+            "accuracyNormalized": 0.017751,
+            "answerRate": 0.0,
+            "answered": 0,
+            "exact": 3,
+            "grounded": 0,
+            "groundingRate": 0.0,
+            "normalized": 3,
+            "total": 169
+          },
+          "path": {
+            "accuracyExact": 0.013333,
+            "accuracyNormalized": 0.013333,
+            "answerRate": 0.0,
+            "answered": 0,
+            "exact": 3,
+            "grounded": 0,
+            "groundingRate": 0.0,
+            "normalized": 3,
+            "total": 225
+          }
+        },
+        "exact": 6,
+        "grounded": 0,
+        "groundingRate": 0.0,
+        "normalized": 6,
+        "total": 394
+      }
+    }
+  }
+}
