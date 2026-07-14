@@ -195,6 +195,52 @@ snapshot (`ml/manifests/kgqa-eval-baseline.json`) + a live gate (`skipif` export
   `uv run linguascrape-eval-kgqa` after any corpus/eval-split change; the live gate
   fails on a stale baseline. No DVC re-pin (reads the existing split, writes no data).
 
+## QLoRA fine-tuning pipeline (US-005)
+
+`finetune.py` (pure core + lazy heavy imports) + `train_finetune.py` (thin CLI,
+console script `linguascrape-finetune`) consume the US-002 verbalization + US-003 QA
+JSONL, QLoRA-fine-tune a small open causal-LM, and score the held-out KGQA split
+**before/after** through the US-004 tier-3 scorer. Full runbook + GPU procedure:
+[`docs/finetune-runbook.md`](../docs/finetune-runbook.md).
+
+- **The heavy training stack is NOT a declared dependency** — same rule as
+  `scallopy` (see `pyproject.toml`): `trl`/`peft`/`accelerate` (+`bitsandbytes` for
+  CUDA 4-bit) are installed on demand (`uv pip install trl peft accelerate`), never in
+  `uv.lock`. So **all heavy imports are lazy inside functions** — `import
+  linguascrape_ml.finetune` and the whole CI suite work in the slim env. Adding the
+  `[project.scripts]` entry does NOT change `uv.lock`; CI's `uv sync --frozen` stays
+  green. `require_finetune_deps()` raises an actionable install message when absent —
+  and that test RUNS in CI (deps absent) but SKIPS locally (deps installed).
+- **No training in CI, no committed metrics snapshot.** Training metrics/weights are
+  NOT byte-reproducible across platforms (MPS vs CUDA float nondeterminism), so unlike
+  the verbalization/kgqa/baseline manifests there is **no committed snapshot + live
+  gate** here. CI tests only the **pure core** on fixtures (dataset assembly, prompt
+  formatting, `FineTuneConfig` round-trip, the before/after scoring wiring with fake
+  `System`s, the dep gate). The committed artifacts are the **configs**
+  (`ml/configs/finetune-{smoke,gpu}.json`) + the runbook — not a numbers file.
+- **Config-driven + frozen dataclass.** `FineTuneConfig` (model / dataset paths /
+  LoRA + training hyperparameters) round-trips through JSON (`from_json`/`to_dict`),
+  rejects unknown keys (catches config typos), and `.resolved(base)` makes the dataset
+  paths absolute against the ml root. `lora_target_modules` is a tuple internally
+  (frozen/hashable), a list on the wire.
+- **Reuse the tier-3 `System` seam for before/after eval.** The base and tuned models
+  are wrapped as `HFCausalLMSystem` (a `kgqa_eval.System = Callable[[QARecord],
+  SystemPrediction]`) so they score through the EXACT harness as the US-004
+  graph-retrieval baseline — `evaluate_systems` is pure w.r.t. the systems, so tests
+  drive it with deterministic fake systems (perfect/blank) and assert the metrics.
+- **GOTCHA — trl 1.x `SFTConfig`/`SFTTrainer` API.** `SFTTrainer` takes
+  `processing_class=` (not `tokenizer=`) + `peft_config=`; `SFTConfig` takes
+  `dataset_text_field` + `max_length` (not `max_seq_length`). CPU training needs
+  `use_cpu=True` and `bf16=False/fp16=False` (bf16/fp16 need CUDA) or `SFTConfig`
+  raises "Your setup doesn't support bf16/gpu". These live in `train_qlora` (all
+  `# pragma: no cover` — local-only, never run in CI). The pipeline was proven
+  end-to-end on `hf-internal-testing/tiny-random-LlamaForCausalLM` on CPU.
+- **Datasets referenced by DVC hash, not re-pinned.** The pipeline READS the existing
+  DVC-tracked `ml/data/{verbalizations,kgqa}` and writes only to the git-ignored
+  `ml/artifacts/` (adapter + `run-summary.json`) + MLflow — so **no `dvc add ml/data`
+  re-pin** (contrast US-002/003 which generate data). `ml/.gitignore` ignores
+  `/artifacts`.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

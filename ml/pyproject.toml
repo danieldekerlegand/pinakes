@@ -55,6 +55,10 @@ linguascrape-eval-kgqa = "linguascrape_ml.eval_kgqa:main"
 # US-005 consistency ratchet (pure — no torch) — also `python -m
 # linguascrape_ml.check_consistency`.
 linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
+# Phase-5 US-005 QLoRA fine-tuning pipeline (verbalization + QA JSONL -> tuned
+# adapter, before/after KGQA eval); also `python -m linguascrape_ml.train_finetune`.
+# Needs the undeclared training stack (`uv pip install trl peft accelerate`).
+linguascrape-finetune = "linguascrape_ml.train_finetune:main"
 
 [project.optional-dependencies]
 dev = [
