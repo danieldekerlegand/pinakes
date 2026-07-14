@@ -30,6 +30,12 @@ from linguascrape_ml.consistency import (
     parse_predictions,
     render_predictions,
 )
+from linguascrape_ml.kgqa import (
+    QAExample,
+    apply_polish,
+    build_graph,
+    split_examples,
+)
 from linguascrape_ml.tracking import (
     DEFAULT_EXPERIMENT,
     default_tracking_uri,
@@ -69,9 +75,12 @@ __all__ = [
     "ConsistencyReport",
     "Example",
     "NodeInfo",
+    "QAExample",
     "Triple",
+    "apply_polish",
     "build_baseline",
     "build_examples",
+    "build_graph",
     "build_manifest",
     "compare_to_baseline",
     "default_tracking_uri",
@@ -86,6 +95,7 @@ __all__ = [
     "render_baselines_doc",
     "render_predictions",
     "serialize_examples",
+    "split_examples",
     "split_triples",
     "start_run",
     "tracking_uri",

@@ -1,0 +1,114 @@
+{
+  "candidateStats": {
+    "ambiguousAncestorBranch": 31,
+    "ambiguousFinalHop": 1549,
+    "cyclicDescent": 2,
+    "derivationCandidates": 1137,
+    "derivationDroppedBySampling": 0,
+    "pathCandidates": 1489,
+    "pathDroppedBySampling": 0
+  },
+  "counts": {
+    "derivation": 1137,
+    "examples": 2626,
+    "path": 1489
+  },
+  "evalRatio": 0.15,
+  "hopsHistogram": {
+    "2": 2580,
+    "3": 8,
+    "4": 6,
+    "5": 6,
+    "6": 9,
+    "7": 13,
+    "8": 4
+  },
+  "kindCounts": {
+    "derivation": 1137,
+    "path": 1489
+  },
+  "licenseCounts": {
+    "CC-BY-4.0": 2626
+  },
+  "reasoningTypeCounts": {
+    "ancestor_chain": 1137,
+    "multi_hop_path": 1489
+  },
+  "relationPathCounts": {
+    "ABSORBED_INTO>ABSORBED_INTO": 41,
+    "ABSORBED_INTO>DESCENDS_FROM": 9,
+    "BORROWED_FROM>BORROWED_FROM": 16,
+    "BORROWED_FROM>COGNATE_WITH": 2,
+    "BORROWED_FROM>DERIVED_FROM": 6,
+    "BORROWED_FROM>DESCENDS_FROM": 50,
+    "COGNATE_WITH>BORROWED_FROM": 6,
+    "COGNATE_WITH>COGNATE_WITH": 4,
+    "COGNATE_WITH>DERIVED_FROM": 3,
+    "COGNATE_WITH>DESCENDS_FROM": 25,
+    "COGNATE_WITH>INFLUENCED_BY": 4,
+    "DERIVED_FROM>BORROWED_FROM": 2,
+    "DERIVED_FROM>COGNATE_WITH": 1,
+    "DERIVED_FROM>DERIVED_FROM": 2,
+    "DERIVED_FROM>DESCENDS_FROM": 10,
+    "DERIVED_FROM>INFLUENCED_BY": 1,
+    "DESCENDS_FROM>ABSORBED_INTO": 9,
+    "DESCENDS_FROM>BORROWED_FROM": 1,
+    "DESCENDS_FROM>DESCENDS_FROM": 2250,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 8,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 6,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 6,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 9,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 13,
+    "DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM>DESCENDS_FROM": 4,
+    "DESCENDS_FROM>INFLUENCED_BY": 1,
+    "INFLUENCED_BY>BORROWED_FROM": 18,
+    "INFLUENCED_BY>COGNATE_WITH": 4,
+    "INFLUENCED_BY>DERIVED_FROM": 3,
+    "INFLUENCED_BY>DESCENDS_FROM": 96,
+    "INFLUENCED_BY>INFLUENCED_BY": 7,
+    "SPLIT_FROM>DESCENDS_FROM": 6,
+    "SPLIT_FROM>SPLIT_FROM": 3
+  },
+  "seed": 20260713,
+  "sha256": "ea8678ef69ce8d0ec14bb65506811f5bbd629409f842caed86931d602128bd8e",
+  "splits": {
+    "eval": {
+      "examples": 394,
+      "sha256": "007a3b45eec53f8de04447a227209fb24bb997fe3a89629f2f5b0553a2ad549b"
+    },
+    "train": {
+      "examples": 2232,
+      "sha256": "f57e540e36a98eb93889c8ed16ad42c4a7c7810fa2226de14af52af1455aa580"
+    }
+  },
+  "templateCounts": {
+    "derivation.ancestor": 1137,
+    "path.absorbed_into__absorbed_into": 41,
+    "path.absorbed_into__descends_from": 9,
+    "path.borrowed_from__borrowed_from": 16,
+    "path.borrowed_from__cognate_with": 2,
+    "path.borrowed_from__derived_from": 6,
+    "path.borrowed_from__descends_from": 50,
+    "path.cognate_with__borrowed_from": 6,
+    "path.cognate_with__cognate_with": 4,
+    "path.cognate_with__derived_from": 3,
+    "path.cognate_with__descends_from": 25,
+    "path.cognate_with__influenced_by": 4,
+    "path.derived_from__borrowed_from": 2,
+    "path.derived_from__cognate_with": 1,
+    "path.derived_from__derived_from": 2,
+    "path.derived_from__descends_from": 10,
+    "path.derived_from__influenced_by": 1,
+    "path.descends_from__absorbed_into": 9,
+    "path.descends_from__borrowed_from": 1,
+    "path.descends_from__descends_from": 1159,
+    "path.descends_from__influenced_by": 1,
+    "path.influenced_by__borrowed_from": 18,
+    "path.influenced_by__cognate_with": 4,
+    "path.influenced_by__derived_from": 3,
+    "path.influenced_by__descends_from": 96,
+    "path.influenced_by__influenced_by": 7,
+    "path.split_from__descends_from": 6,
+    "path.split_from__split_from": 3
+  }
+}

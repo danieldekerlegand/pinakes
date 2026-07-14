@@ -42,6 +42,12 @@ linguascrape-export-triples = "linguascrape_ml.export_triples:main"
 # Phase-5 US-002 reproducer — triple-verbalization JSONL for LLM fine-tuning;
 # also runnable as `python -m linguascrape_ml.export_verbalizations`.
 linguascrape-export-verbalizations = "linguascrape_ml.export_verbalizations:main"
+# Phase-5 US-003 reproducer — multi-hop KG-grounded QA JSONL; also runnable as
+# `python -m linguascrape_ml.export_kgqa`.
+linguascrape-export-kgqa = "linguascrape_ml.export_kgqa:main"
+# Phase-5 US-003 OPTIONAL Gemini-polish variant (never required for CI); also
+# runnable as `python -m linguascrape_ml.polish_kgqa`.
+linguascrape-polish-kgqa = "linguascrape_ml.polish_kgqa:main"
 # US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
 linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
 # US-005 consistency ratchet (pure — no torch) — also `python -m
