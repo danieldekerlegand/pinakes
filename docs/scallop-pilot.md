@@ -200,3 +200,118 @@ After a triples-split change (re-run `linguascrape-export-triples`) or a schema
 constraint change, re-run `uv run linguascrape-export-queries`, then re-pin the data
 (`uv run --project ml dvc add ml/data && uv run --project ml dvc push`) and commit
 `ml/data.dvc` alongside the updated `ml/manifests/training-queries-manifest.json`.
+
+---
+
+# Rule-guided link prediction (US-003)
+
+NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-003** — the pilot's core: a **differentiable
+rule-guided link predictor**. A neural edge predicate over the frozen PyKEEN
+embeddings supplies soft edge probabilities, and the corpus's *ancestor*
+transitive-closure rule propagates that evidence through the graph before the loss
+is taken.
+
+- **Pure core:** `ml/src/linguascrape_ml/scallop_train.py`
+- **CLI:** `uv run linguascrape-train-scallop`
+  (`ml/src/linguascrape_ml/train_scallop.py`)
+- **Config (committed):** `ml/configs/scallop-pilot.json`
+- **Inputs (DVC-tracked):** the PyKEEN entity embeddings
+  (`ml/data/embeddings/<model>/entity_embeddings.npy`, US-003 baselines), the triples
+  splits (`ml/data/triples/`), and the US-002 training queries
+  (`ml/data/queries/queries.jsonl`)
+- **Outputs:** the comparison block in `docs/ml-baselines.md`
+  (`SCALLOP-PILOT` markers) + a git-ignored run summary in `ml/artifacts/scallop-pilot/`
+
+## The model
+
+For a candidate edge `(h, r, t)`:
+
+1. **Neural predicate** — `p_direct = σ(MLP_r([h; t; h⊙t; |h−t|]))` over the frozen
+   embeddings (per target relation). This is the *soft edge probability* the pilot
+   needs; it also weights the observed `train` base facts of `r`.
+2. **Symbolic propagation** — the ancestor rule
+   `ancestor(x, y) = descends_from(x, y); descends_from(x, z) and ancestor(z, y)`
+   under Scallop's **`minmaxprob`** provenance: `Pr[ancestor(h, t)] = max over paths
+   of (min edge probability along the path)` — the exact bottleneck-/widest-path
+   semantics.
+3. **Rule-guided score** — `score = max(p_direct, Pr[ancestor(h, t)])` (a two-body
+   rule under min-max-prob *is* the max of its bodies). BCE against the US-002 query
+   labels; gradients flow through the rule layer into the neural predicate.
+
+`BORROWED_FROM` has no logically-sound transitive rule (borrowing is not a
+genealogy), so it is scored by the neural predicate alone — reported honestly rather
+than propagated through an unsound rule.
+
+`minmax_widths` is the **engine-free, differentiable** implementation of the
+`minmaxprob` extension (a bounded-hop widest-path relaxation, `torch.minimum` +
+`scatter_reduce` amax — both carry gradients). With every edge probability set to
+`1.0` it collapses to the plain boolean transitive closure, so a test ties it back to
+the US-001 engine-free `scallop.transitive_closure` oracle.
+
+## Why the scallopy program is expressed but run engine-free
+
+The equivalent scallopy program is emitted by `build_scl_program` (and run by
+`run_scallop_ancestor` under `provenance="minmaxprob"`):
+
+```
+rel ancestor_descends_from(x, y) = descends_from(x, y)
+rel ancestor_descends_from(x, y) = descends_from(x, z) and ancestor_descends_from(z, y)
+```
+
+As documented for US-001, **`scallopy` installs only on macOS/arm64 + CPython 3.9**,
+so the scallopy path is local-only + `require_scallop_deps`-gated + `# pragma: no
+cover`. The `minmaxprob` semantics is what `minmax_widths` computes exactly, so the
+engine-free reference produces the pilot's numbers on any host and a local test
+asserts the two agree — the same "validate the logic engine-free" discipline US-001
+used for the boolean smoke.
+
+## Evaluation & the honest comparison
+
+Filtered MRR/Hits@k on the held-out `test` split (**full entity vocabulary**, matching
+PyKEEN's evaluator) plus the tier-2 logical-consistency checks
+(`linguascrape_ml.consistency`) over the model's top-1 completions.
+
+The headline verdict is an **ablation** — the identical neural predicate with the
+rule ON vs OFF, through the *same* harness — which isolates the rule's contribution
+without the cross-harness confound of comparing to PyKEEN's own evaluator. The
+committed pure-PyKEEN row is shown as the floor the acceptance asks the side-by-side
+against.
+
+**Result at current corpus scale (TransE embeddings, seed 20260713):** the corpus is
+tiny and very sparse and the PyKEEN floor is already near-random (MRR ≈ 0.007,
+Hits@1 = 0), so the ablation is **neutral** — rule-guided MRR ≈ 0.0060 vs the
+direct-only ablation ≈ 0.0062 (within noise). Two honest observations:
+
+- The leakage-safe pair split puts most descent *chains'* links on different sides of
+  train/test, so few held-out `descends_from` edges are reachable through `train`-only
+  ancestor paths — the rule rarely has a multi-hop path to propagate along. Rule
+  guidance needs a denser corpus (or a split that keeps chains intact) to pay off.
+- The rule *raises* tier-2 descent-cycle / antisymmetry violations (it concentrates
+  top-1 predictions onto descent chains, so more mutual/cyclic pairs surface) — a real
+  tradeoff the symbolic check makes visible, not a code bug.
+
+This is a working, reproducible neurosymbolic loop with an honest **negative/neutral**
+result — an acceptable US-003 outcome per the PRD; the DeepProbLog feasibility run
+(US-004) and the go/no-go report weigh it against the alternative.
+
+## Tests
+
+- **Fixture unit tests** (CI-safe, torch runs in the `ml/**` CI): the min-max
+  semantics (boolean-closure reduction, bottleneck-of-best-path, gradient flow,
+  empty graph), query/base-edge loading, the end-to-end training loop (loss
+  decreases; the rule gives transitive positives signal), filtered ranking, the
+  helped/hurt/neutral verdict, the `.scl` emission, the config round-trip, and the
+  idempotent doc upsert — `ml/tests/test_scallop_train.py`.
+- No committed metrics snapshot + live gate (unlike the verbalization/kgqa/baseline
+  manifests): torch training metrics are not byte-reproducible across platforms, so
+  the committed artifacts are the **config** + the **comparison analysis** (this
+  section + the `docs/ml-baselines.md` block), the same stance as the QLoRA pipeline.
+
+## Regenerating
+
+Run `cd ml && uv run linguascrape-train-scallop` (needs the DVC-tracked embeddings +
+splits + queries; `uv run --project ml dvc pull` first). It upserts the
+`SCALLOP-PILOT` block in `docs/ml-baselines.md` and writes the git-ignored run
+summary. No `ml/data` re-pin (it reads the existing DVC data, writes only to
+`ml/artifacts/`). A `linguascrape-train-baselines` re-run preserves this block (the
+same cooperating-CLIs discipline as the KGQA tier-3 section).

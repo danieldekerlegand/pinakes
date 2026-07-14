@@ -66,6 +66,10 @@ linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
 # adapter, before/after KGQA eval); also `python -m linguascrape_ml.train_finetune`.
 # Needs the undeclared training stack (`uv pip install trl peft accelerate`).
 linguascrape-finetune = "linguascrape_ml.train_finetune:main"
+# Phase-5 US-003 rule-guided link predictor (neural edge scorer + min-max ancestor
+# rule); also `python -m linguascrape_ml.train_scallop`. The engine-free reference
+# runs anywhere; the scallopy `minmaxprob` program is local-only (macOS/arm64).
+linguascrape-train-scallop = "linguascrape_ml.train_scallop:main"
 
 [project.optional-dependencies]
 dev = [

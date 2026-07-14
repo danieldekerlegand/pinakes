@@ -316,6 +316,52 @@ reproducible-artifact shape (pure core + committed manifest
 - Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the JSONL
   lives in the DVC-tracked `ml/data/queries/` tree.
 
+## Rule-guided link prediction — Scallop pilot US-003
+
+`scallop_train.py` (pure core, lazy torch) + `train_scallop.py` (thin CLI, console
+script `linguascrape-train-scallop`) are the pilot's core: a differentiable
+rule-guided link predictor — a neural edge predicate over the frozen PyKEEN
+embeddings + the *ancestor* transitive-closure rule under Scallop's `minmaxprob`
+provenance. Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md) §US-003.
+
+- **`minmax_widths` IS the `minmaxprob` semantics, computed engine-free.** The
+  recursive `ancestor` rule under scallopy's `minmaxprob` provenance = the widest-path
+  (bottleneck) reachability `Pr[ancestor(h,t)] = max-path of min-edge-prob`, which
+  `minmax_widths` computes exactly as a bounded-hop, **differentiable** torch
+  relaxation (`torch.minimum` + `scatter_reduce(reduce="amax")` both carry gradients).
+  With all edge weights `1.0` it collapses to the boolean transitive closure — the
+  test ties it back to US-001's `scallop.transitive_closure` oracle. Same "validate the
+  logic engine-free" discipline US-001 used: the scallopy path (`run_scallop_ancestor`,
+  `build_scl_program`) is local-only + `require_scallop_deps`-gated + `# pragma: no
+  cover` (macOS/arm64 wheel), and the reference produces the numbers on any host.
+- **torch/pykeen ARE the declared stack, so the CI smoke actually TRAINS.** Unlike
+  scallopy (undeclared, macOS-only), torch runs in the `ml/**` CI — so
+  `test_scallop_train.py` trains the whole loop on a fixture and asserts the loss
+  drops + the rule gives transitive positives signal (the "loop smoke-tested on a
+  fixture subset in CI" acceptance). Keep torch imports **lazy inside functions**
+  anyway (no torch at module top) so `import linguascrape_ml` stays light — the
+  nn.Module is defined *inside* `build_model`, not at module scope.
+- **The honest comparison is an ABLATION, not vs PyKEEN's evaluator.** Comparing the
+  pilot's MRR to the committed PyKEEN number confounds a different scorer with a
+  different evaluator (tie policy, filtering). So the verdict is rule-ON vs rule-OFF
+  (`transitive_relations=[]`) through the SAME `run_ranking` harness; the PyKEEN row is
+  shown only as the floor. Rank over the FULL entity vocab (`typed_candidates=False`)
+  to match PyKEEN's protocol — typed pools are an easier task, never the headline.
+- **No committed metrics snapshot + live gate** (same as the QLoRA pipeline): torch
+  training numbers aren't byte-reproducible across platforms. Committed artifacts = the
+  **config** (`ml/configs/scallop-pilot.json`) + the **comparison analysis** (the
+  `SCALLOP-PILOT`-marked block in `docs/ml-baselines.md`, upserted like the KGQA tier-3
+  block — `train_baselines` preserves it across its rewrite). Run summary goes to the
+  git-ignored `ml/artifacts/scallop-pilot/`; **no `ml/data` re-pin** (reads existing
+  DVC data, writes no data).
+- **The result today is `neutral` — and that's a valid US-003 outcome.** At the
+  near-random corpus floor (PyKEEN MRR ≈ 0.007, Hits@1 = 0) rule guidance is within
+  noise: the leakage-safe pair split scatters descent-chain links across train/test, so
+  few held-out edges have a `train`-only ancestor path to propagate along. The rule
+  also RAISES tier-2 descent-cycle/antisymmetry counts (it concentrates top-1
+  predictions on descent chains) — a real tradeoff the symbolic check surfaces. Report
+  it honestly; US-004's DeepProbLog run weighs against it.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
