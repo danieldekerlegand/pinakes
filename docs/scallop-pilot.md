@@ -118,3 +118,85 @@ re-run `uv run linguascrape-export-scallop`, then re-pin the data
 (`uv run --project ml dvc add ml/data && uv run --project ml dvc push`) and commit
 `ml/data.dvc` alongside the updated `ml/scallop/program.scl` +
 `ml/manifests/scallop-export-manifest.json`.
+
+---
+
+# Training-query generator (US-002)
+
+NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-002** — the supervised signal the US-003
+rule-guided link-prediction loop trains on. Emits **training queries**: held-out
+positive edges paired with **type-constrained negatives** (head/tail corruptions
+restricted to schema-compatible node types, so they are hard yet false).
+
+- **Pure core:** `ml/src/linguascrape_ml/queries.py`
+- **CLI:** `uv run linguascrape-export-queries`
+  (`ml/src/linguascrape_ml/export_queries.py`)
+- **Inputs:** the DVC-tracked triples splits (`ml/data/triples/{train,valid,test}.tsv`
+  + `triples.tsv`, built by `linguascrape-export-triples`) + the machine-readable
+  edge `from`/`to` type constraints in `shared/canonical-schema.json`
+- **Committed artifact:** the snapshot manifest
+  `ml/manifests/training-queries-manifest.json`
+- **DVC-tracked artifact (git-ignored):** `ml/data/queries/queries.jsonl`
+
+## Target relations and the three-way split
+
+The pilot targets **`DESCENDS_FROM`** and **`BORROWED_FROM`** (`TARGET_RELATIONS`) —
+both populated and type-constrained on each end. Positives are drawn from a
+**held-out** split (default `valid`), giving a clean separation that US-003 relies
+on:
+
+| split   | role                                                            |
+| ------- | --------------------------------------------------------------- |
+| `train` | observed base facts fed to the Scallop program                  |
+| `valid` | training-query **positives** (this generator's supervised signal) |
+| `test`  | reserved for the US-003 held-out link-prediction evaluation     |
+
+Because `train` (base facts) and `test` (eval) are both distinct from the positive
+source, a positive is never an observed base fact and the evaluation split is never
+trained on. `--split` overrides the source; `--negative-ratio` (default 4) and
+`--seed` control the negatives.
+
+## Type-constrained negatives
+
+For each positive `(h, r, t)` the generator emits `negative_ratio` negatives,
+alternating the corrupted end (tail, head, tail, …). The replacement is sampled from
+the **type-compatible pool** for that end — entities whose node type (read off the
+`cs:<node-type>:<id>` csid) is in the relation's `from`/`to` set in
+`shared/canonical-schema.json` (reusing `consistency.load_edge_constraints`). So a
+`BORROWED_FROM` negative stays language→language; a `DESCENDS_FROM` negative stays
+within {language, language-family, culture, archaeological-culture}. An unconstrained
+end (empty `from`/`to`) draws from all entities.
+
+A draw that reconstructs the positive, duplicates an already-emitted negative, or
+lands on **any** known-true edge (the *filtered* setting — train ∪ valid ∪ test) is
+rejected and resampled, so **no negative is a real edge**. The manifest's `leakage`
+block records this: `negativesLeakingTrainFacts` and `negativesLeakingKnownPositives`
+recompute the invariant from the emitted queries (both must be `0`), `collisionsRejected`
+counts resamples, and `insufficientPoolNegatives` counts any negative dropped because
+the type pool was exhausted (never at corpus scale — a shortfall is reported, not
+faked). Today: **176 positives → 704 negatives (880 queries)** from `valid`, `0`
+train-fact leakage.
+
+## Output format
+
+`queries.jsonl` is a flat, uniform record per line (HF-`datasets`-compatible schema):
+`relation`, `head`, `tail`, `label` (1 positive / 0 negative), `corrupted`
+(`""`/`head`/`tail`), `head_type`, `tail_type`, and `source` (the positive's
+`head\trel\ttail` row — every negative shares its parent positive's `source`, so
+US-003 groups a positive with its negatives on that key).
+
+## Tests
+
+- **Fixture unit tests** (CI-safe): entity typing, type-filtered pools, type-respecting
+  corruption, no-known-positive-leakage, positive-reconstruction guard, ratio/side
+  alternation, determinism + seed sensitivity, pool-exhaustion reporting, manifest
+  leakage counts, flat-JSONL uniformity — `ml/tests/test_queries.py`.
+- **Live reproducibility gate** (`skipif` the DVC splits are absent → skips in CI):
+  the committed manifest must equal a fresh build of the live triples splits.
+
+## Regenerating
+
+After a triples-split change (re-run `linguascrape-export-triples`) or a schema
+constraint change, re-run `uv run linguascrape-export-queries`, then re-pin the data
+(`uv run --project ml dvc add ml/data && uv run --project ml dvc push`) and commit
+`ml/data.dvc` alongside the updated `ml/manifests/training-queries-manifest.json`.

@@ -278,6 +278,44 @@ Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md).
 - Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the interned
   relation CSVs live in the DVC-tracked `ml/data/scallop/` tree.
 
+## Training-query generator — Scallop pilot US-002
+
+`queries.py` (pure) + `export_queries.py` (thin CLI, console script
+`linguascrape-export-queries`) turn the triples splits into **training queries** for
+the US-003 rule-guided loop: held-out positives + type-constrained negatives. Same
+reproducible-artifact shape (pure core + committed manifest
+`ml/manifests/training-queries-manifest.json` + DVC data `ml/data/queries/queries.jsonl`
++ live gate). Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md) §US-002.
+
+- **Reads the triples DATASET, not the raw export.** Positives come from
+  `ml/data/triples/<split>.tsv` (default `valid`), known-positives (the negative
+  rejection set) from `triples.tsv`, train facts from `train.tsv` — all reused via
+  `consistency.parse_predictions` (the split files ARE `head\trel\ttail`). This
+  decouples US-002 from any `export/culturescrape` drift: the live gate is
+  `skipif not (ml/data/triples/valid.tsv).exists()`, independent of the edge export.
+- **Three-way split discipline** (why positives default to `valid`): `train` = base
+  facts fed to Scallop; `valid` = training-query positives; `test` = US-003 eval.
+  Keep them disjoint — never draw positives from `test`, or US-003's held-out eval is
+  trained on. `--split` overrides but document the leakage implication if you do.
+- **Type-constrained corruption reuses the schema, never hard-codes types.** The
+  corruption pool for an end is entities whose `node_type_of(csid)` ∈ the relation's
+  `from`/`to` set (`consistency.load_edge_constraints` over
+  `shared/canonical-schema.json`); an empty set ⇒ `None` ⇒ unconstrained ⇒ all
+  entities. Same csid-type source as the consistency ratchet — a schema change flows
+  through both.
+- **Leakage is filtered + self-checked.** A negative is rejected if it reconstructs
+  the positive, duplicates an emitted negative, or is ANY known-true edge (train ∪
+  valid ∪ test — stronger than the AC's "not a train fact"). The manifest's
+  `leakage.negativesLeaking{TrainFacts,KnownPositives}` RECOMPUTE the invariant from
+  the emitted queries (must be 0), so the snapshot gate catches a generator bug, not
+  just trusts it. `insufficientPoolNegatives` counts dropped negatives (pool
+  exhausted) — 0 at corpus scale; a shortfall is reported, never a type-wrong fake.
+- **Self-loops are allowed negatives.** Corrupting `(h,t)`'s tail with `h` yields a
+  self-loop `(h,h)` — genuinely false + type-well-formed, so it's kept (rare: 1/pool).
+  Don't add a self-loop guard expecting it to change counts materially.
+- Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the JSONL
+  lives in the DVC-tracked `ml/data/queries/` tree.
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
