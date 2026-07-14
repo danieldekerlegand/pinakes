@@ -70,6 +70,11 @@ linguascrape-finetune = "linguascrape_ml.train_finetune:main"
 # rule); also `python -m linguascrape_ml.train_scallop`. The engine-free reference
 # runs anywhere; the scallopy `minmaxprob` program is local-only (macOS/arm64).
 linguascrape-train-scallop = "linguascrape_ml.train_scallop:main"
+# Phase-5 US-004 DeepProbLog feasibility run — measures the ProbLog exact-inference
+# scale ceiling + the Scallop-vs-DeepProbLog comparison; also `python -m
+# linguascrape_ml.train_deepproblog`. `problog` is declared (runs anywhere); the
+# `deepproblog` neural-AD loop is undeclared + gated (docs/neurosymbolic-pilot-report.md).
+linguascrape-deepproblog = "linguascrape_ml.train_deepproblog:main"
 
 [project.optional-dependencies]
 dev = [

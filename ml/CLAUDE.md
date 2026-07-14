@@ -362,6 +362,44 @@ provenance. Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md) §
   predictions on descent chains) — a real tradeoff the symbolic check surfaces. Report
   it honestly; US-004's DeepProbLog run weighs against it.
 
+## DeepProbLog feasibility + Scallop comparison — pilot US-004
+
+`deepproblog_pilot.py` (pure core, lazy problog) + `train_deepproblog.py` (thin CLI,
+console script `linguascrape-deepproblog`) close the pilot with the DeepProbLog-vs-Scallop
+go/no-go. Full write-up + recommendation: [`docs/neurosymbolic-pilot-report.md`](../docs/neurosymbolic-pilot-report.md).
+
+- **`problog` is DECLARED → the feasibility run happens in CI, unlike `scallopy`.**
+  DeepProbLog's inference backend *is* ProbLog (its neural ADs only swap a fact's fixed
+  probability for a network output), so the ProbLog program the DeepProbLog model would
+  compile runs here for real and the scale ceiling is *measured*, not asserted. The
+  `deepproblog` package itself (the neural-AD training loop) is the undeclared/gated
+  piece (`require_deepproblog_deps` + `# pragma: no cover`) — same stance as `scallopy`.
+- **Measure per-QUERY, not batched.** DeepProbLog knowledge-compiles per training
+  example, so `scale_probe` compiles each query on its own. Two gotchas that shaped this:
+  (1) the bundled **`dsharp` d-DNNF compiler segfaults** (raises `DSharpError`) when many
+  queries are batched into ONE compilation on this Linux host, and `pysdd` (the SDD
+  alternative) is NOT installed — so batching conflates a real limit with a toolchain
+  bug. `evaluate_program` wraps the call with a `SIGALRM` timeout + broad except so a
+  crash/timeout is *recorded as a ceiling*, never fatal. (2) The **exact-inference
+  hardness driver is proof multiplicity** (`count_paths` = distinct simple paths =
+  circuit size), NOT grounding size (which stays compact) — a pure, deterministic,
+  CI-testable metric. Today the `DESCENDS_FROM` graph is a sparse forest (≤3 proofs/query)
+  so per-query inference is tractable; the binding constraint is throughput.
+- **The headline is a measured architectural gap, not a task-quality one.** Scallop's
+  full 40-epoch/880-query training = one batched min-max pass per epoch = **2.1 s**;
+  DeepProbLog's per-example exact compilation extrapolates to **~50 min** (85 ms/query ×
+  880 × 40) — ~1,400× — for the SAME neutral ranking. Semantics differ (ProbLog = exact
+  noisy-or marginal, 0.79 on the two-path fixture; Scallop = widest-path max, 0.80),
+  unit-tested against the real `problog` engine. Recommendation: **Scallop** for training;
+  DeepProbLog for bounded exact queries only.
+- **The report is a committed DOCUMENT, not a byte-gated snapshot** (timing is
+  nondeterministic). The deterministic parts (proof counts, ground nodes, compiled
+  counts, marginals) are asserted via the pure functions in `test_deepproblog_pilot.py`.
+  The CLI upserts a `DEEPPROBLOG-PROBE`-marked table into the report (idempotent, like the
+  SCALLOP-PILOT block) — that block is in `neurosymbolic-pilot-report.md`, NOT
+  `ml-baselines.md`, so it never interacts with `train_baselines`' rewrite. Run summary →
+  git-ignored `ml/artifacts/deepproblog/`; **no `ml/data` re-pin** (reads existing splits).
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
