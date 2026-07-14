@@ -7,7 +7,9 @@ retriever turns a free-text query into a self-contained subgraph (vector top-k â
 neighborhood expansion) ready to ground an LLM answer.
 
 This is roadmap **Phase 5.1** (`NEUROSYMBOLIC_ROADMAP.md`). It underpins the KGQA
-evaluation (US-004) and the grounded training-data synthesis (US-002/US-003).
+evaluation (US-004) and the grounded training-data synthesis (US-002/US-003 â€” the
+multi-hop KGQA dataset composition + held-out eval split are documented in
+[`kgqa-dataset.md`](kgqa-dataset.md)).
 
 Three moving parts:
 
