@@ -39,6 +39,9 @@ dependencies = [
 [project.scripts]
 # US-002 reproducer — also runnable as `python -m linguascrape_ml.export_triples`.
 linguascrape-export-triples = "linguascrape_ml.export_triples:main"
+# Phase-5 US-002 (Scallop pilot) — training-query generator (positives +
+# type-constrained negatives); also runnable as `python -m linguascrape_ml.export_queries`.
+linguascrape-export-queries = "linguascrape_ml.export_queries:main"
 # Phase-5 US-002 reproducer — triple-verbalization JSONL for LLM fine-tuning;
 # also runnable as `python -m linguascrape_ml.export_verbalizations`.
 linguascrape-export-verbalizations = "linguascrape_ml.export_verbalizations:main"
@@ -50,6 +53,10 @@ linguascrape-export-kgqa = "linguascrape_ml.export_kgqa:main"
 linguascrape-polish-kgqa = "linguascrape_ml.polish_kgqa:main"
 # US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
 linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
+# Phase-5 US-001 Scallop context export + Horn-rule translation; also runnable as
+# `python -m linguascrape_ml.export_scallop`. `--smoke` needs the undeclared
+# `scallopy` (macOS/arm64 wheel) — see docs/scallop-pilot.md.
+linguascrape-export-scallop = "linguascrape_ml.export_scallop:main"
 # Phase-5 US-004 KGQA eval tier 3 — also `python -m linguascrape_ml.eval_kgqa`.
 linguascrape-eval-kgqa = "linguascrape_ml.eval_kgqa:main"
 # US-005 consistency ratchet (pure — no torch) — also `python -m
@@ -59,6 +66,15 @@ linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
 # adapter, before/after KGQA eval); also `python -m linguascrape_ml.train_finetune`.
 # Needs the undeclared training stack (`uv pip install trl peft accelerate`).
 linguascrape-finetune = "linguascrape_ml.train_finetune:main"
+# Phase-5 US-003 rule-guided link predictor (neural edge scorer + min-max ancestor
+# rule); also `python -m linguascrape_ml.train_scallop`. The engine-free reference
+# runs anywhere; the scallopy `minmaxprob` program is local-only (macOS/arm64).
+linguascrape-train-scallop = "linguascrape_ml.train_scallop:main"
+# Phase-5 US-004 DeepProbLog feasibility run — measures the ProbLog exact-inference
+# scale ceiling + the Scallop-vs-DeepProbLog comparison; also `python -m
+# linguascrape_ml.train_deepproblog`. `problog` is declared (runs anywhere); the
+# `deepproblog` neural-AD loop is undeclared + gated (docs/neurosymbolic-pilot-report.md).
+linguascrape-deepproblog = "linguascrape_ml.train_deepproblog:main"
 
 [project.optional-dependencies]
 dev = [

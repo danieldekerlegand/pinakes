@@ -241,6 +241,165 @@ JSONL, QLoRA-fine-tune a small open causal-LM, and score the held-out KGQA split
   re-pin** (contrast US-002/003 which generate data). `ml/.gitignore` ignores
   `/artifacts`.
 
+## Scallop context export + Horn-rule translation (Phase 5 US-001)
+
+`scallop.py` (pure, stdlib-only) + `export_scallop.py` (thin CLI, console script
+`linguascrape-export-scallop`) load the corpus into Scallop: interned relation
+CSVs, a `.scl` translation of the rules registry, and a gated scallopy smoke.
+Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md).
+
+- **The registry is the rule source, not `rules.py`.** Translate from the committed
+  unified registry `packages/culture-scrape/.../datalog/rules_registry.tsv`
+  (`clause_souffle` column — the most complete dialect, it carries the negation the
+  Prolog column omits). Only `status == "active"` rows are emitted (governance).
+- **Soufflé→Scallop is a surface rewrite:** upper-case vars → lower-case, `:-` → `=`,
+  `,` → `and`, `!p` → `not p`, comparison guards pass through. The ONE translatability
+  constraint is **every predicate literal is binary** (the same `ARITY == 2` the
+  culture-scrape materializer imposes) — the lone offender `csid_uniqueness_violation`
+  (reads arity-3 `node/3`) is **skipped + reported** in the manifest, never dropped.
+  Today: 51 translated, 1 skipped.
+- **`program.scl` is corpus-INDEPENDENT** (a pure function of the committed registry),
+  so it is committed to git under `ml/scallop/` (NOT `ml/data`, which is gitignored)
+  and CI-gated byte-for-byte against a fresh translation — a real test even without
+  the DVC corpus. The manifest's *registry-derived* fields (translated/skipped ids)
+  are likewise CI-gated; only its corpus counts need the `skipif`-export live gate.
+- **`.scl` type inference:** base predicates (read in a body, never a rule head) get a
+  `type name(String, String)` decl so a rule over an unpopulated relation compiles +
+  answers empty (don't error); `time_start`/`time_end` are `(String, i32)` so the
+  temporal comparison guards type-check. Entities stay `String` (self-describing +
+  lets `instance_of(X, "Culture")` stay uniformly typed) — the interning to ints is a
+  separate artifact for the CSV/tensor export.
+- **GOTCHA — `scallopy` runs on macOS/arm64 ONLY** (its sole wheel is
+  `cp39-macosx_11_0_arm64`; it does NOT resolve on Linux or Python 3.11). So the
+  `--smoke` scallopy run is local-only + `require_scallop_deps`-gated + `# pragma:
+  no cover`, exactly like the finetune training stack. The smoke's *logic* is still
+  validated in CI via the engine-free `transitive_closure` reference derivation the
+  smoke asserts equality against (`SMOKE_TARGETS`: `ancestor` + `influenced_transitively`).
+- Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the interned
+  relation CSVs live in the DVC-tracked `ml/data/scallop/` tree.
+
+## Training-query generator — Scallop pilot US-002
+
+`queries.py` (pure) + `export_queries.py` (thin CLI, console script
+`linguascrape-export-queries`) turn the triples splits into **training queries** for
+the US-003 rule-guided loop: held-out positives + type-constrained negatives. Same
+reproducible-artifact shape (pure core + committed manifest
+`ml/manifests/training-queries-manifest.json` + DVC data `ml/data/queries/queries.jsonl`
++ live gate). Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md) §US-002.
+
+- **Reads the triples DATASET, not the raw export.** Positives come from
+  `ml/data/triples/<split>.tsv` (default `valid`), known-positives (the negative
+  rejection set) from `triples.tsv`, train facts from `train.tsv` — all reused via
+  `consistency.parse_predictions` (the split files ARE `head\trel\ttail`). This
+  decouples US-002 from any `export/culturescrape` drift: the live gate is
+  `skipif not (ml/data/triples/valid.tsv).exists()`, independent of the edge export.
+- **Three-way split discipline** (why positives default to `valid`): `train` = base
+  facts fed to Scallop; `valid` = training-query positives; `test` = US-003 eval.
+  Keep them disjoint — never draw positives from `test`, or US-003's held-out eval is
+  trained on. `--split` overrides but document the leakage implication if you do.
+- **Type-constrained corruption reuses the schema, never hard-codes types.** The
+  corruption pool for an end is entities whose `node_type_of(csid)` ∈ the relation's
+  `from`/`to` set (`consistency.load_edge_constraints` over
+  `shared/canonical-schema.json`); an empty set ⇒ `None` ⇒ unconstrained ⇒ all
+  entities. Same csid-type source as the consistency ratchet — a schema change flows
+  through both.
+- **Leakage is filtered + self-checked.** A negative is rejected if it reconstructs
+  the positive, duplicates an emitted negative, or is ANY known-true edge (train ∪
+  valid ∪ test — stronger than the AC's "not a train fact"). The manifest's
+  `leakage.negativesLeaking{TrainFacts,KnownPositives}` RECOMPUTE the invariant from
+  the emitted queries (must be 0), so the snapshot gate catches a generator bug, not
+  just trusts it. `insufficientPoolNegatives` counts dropped negatives (pool
+  exhausted) — 0 at corpus scale; a shortfall is reported, never a type-wrong fake.
+- **Self-loops are allowed negatives.** Corrupting `(h,t)`'s tail with `h` yields a
+  self-loop `(h,h)` — genuinely false + type-well-formed, so it's kept (rare: 1/pool).
+  Don't add a self-loop guard expecting it to change counts materially.
+- Re-pin `ml/data` (`dvc add ml/data && dvc push`) after regenerating — the JSONL
+  lives in the DVC-tracked `ml/data/queries/` tree.
+
+## Rule-guided link prediction — Scallop pilot US-003
+
+`scallop_train.py` (pure core, lazy torch) + `train_scallop.py` (thin CLI, console
+script `linguascrape-train-scallop`) are the pilot's core: a differentiable
+rule-guided link predictor — a neural edge predicate over the frozen PyKEEN
+embeddings + the *ancestor* transitive-closure rule under Scallop's `minmaxprob`
+provenance. Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md) §US-003.
+
+- **`minmax_widths` IS the `minmaxprob` semantics, computed engine-free.** The
+  recursive `ancestor` rule under scallopy's `minmaxprob` provenance = the widest-path
+  (bottleneck) reachability `Pr[ancestor(h,t)] = max-path of min-edge-prob`, which
+  `minmax_widths` computes exactly as a bounded-hop, **differentiable** torch
+  relaxation (`torch.minimum` + `scatter_reduce(reduce="amax")` both carry gradients).
+  With all edge weights `1.0` it collapses to the boolean transitive closure — the
+  test ties it back to US-001's `scallop.transitive_closure` oracle. Same "validate the
+  logic engine-free" discipline US-001 used: the scallopy path (`run_scallop_ancestor`,
+  `build_scl_program`) is local-only + `require_scallop_deps`-gated + `# pragma: no
+  cover` (macOS/arm64 wheel), and the reference produces the numbers on any host.
+- **torch/pykeen ARE the declared stack, so the CI smoke actually TRAINS.** Unlike
+  scallopy (undeclared, macOS-only), torch runs in the `ml/**` CI — so
+  `test_scallop_train.py` trains the whole loop on a fixture and asserts the loss
+  drops + the rule gives transitive positives signal (the "loop smoke-tested on a
+  fixture subset in CI" acceptance). Keep torch imports **lazy inside functions**
+  anyway (no torch at module top) so `import linguascrape_ml` stays light — the
+  nn.Module is defined *inside* `build_model`, not at module scope.
+- **The honest comparison is an ABLATION, not vs PyKEEN's evaluator.** Comparing the
+  pilot's MRR to the committed PyKEEN number confounds a different scorer with a
+  different evaluator (tie policy, filtering). So the verdict is rule-ON vs rule-OFF
+  (`transitive_relations=[]`) through the SAME `run_ranking` harness; the PyKEEN row is
+  shown only as the floor. Rank over the FULL entity vocab (`typed_candidates=False`)
+  to match PyKEEN's protocol — typed pools are an easier task, never the headline.
+- **No committed metrics snapshot + live gate** (same as the QLoRA pipeline): torch
+  training numbers aren't byte-reproducible across platforms. Committed artifacts = the
+  **config** (`ml/configs/scallop-pilot.json`) + the **comparison analysis** (the
+  `SCALLOP-PILOT`-marked block in `docs/ml-baselines.md`, upserted like the KGQA tier-3
+  block — `train_baselines` preserves it across its rewrite). Run summary goes to the
+  git-ignored `ml/artifacts/scallop-pilot/`; **no `ml/data` re-pin** (reads existing
+  DVC data, writes no data).
+- **The result today is `neutral` — and that's a valid US-003 outcome.** At the
+  near-random corpus floor (PyKEEN MRR ≈ 0.007, Hits@1 = 0) rule guidance is within
+  noise: the leakage-safe pair split scatters descent-chain links across train/test, so
+  few held-out edges have a `train`-only ancestor path to propagate along. The rule
+  also RAISES tier-2 descent-cycle/antisymmetry counts (it concentrates top-1
+  predictions on descent chains) — a real tradeoff the symbolic check surfaces. Report
+  it honestly; US-004's DeepProbLog run weighs against it.
+
+## DeepProbLog feasibility + Scallop comparison — pilot US-004
+
+`deepproblog_pilot.py` (pure core, lazy problog) + `train_deepproblog.py` (thin CLI,
+console script `linguascrape-deepproblog`) close the pilot with the DeepProbLog-vs-Scallop
+go/no-go. Full write-up + recommendation: [`docs/neurosymbolic-pilot-report.md`](../docs/neurosymbolic-pilot-report.md).
+
+- **`problog` is DECLARED → the feasibility run happens in CI, unlike `scallopy`.**
+  DeepProbLog's inference backend *is* ProbLog (its neural ADs only swap a fact's fixed
+  probability for a network output), so the ProbLog program the DeepProbLog model would
+  compile runs here for real and the scale ceiling is *measured*, not asserted. The
+  `deepproblog` package itself (the neural-AD training loop) is the undeclared/gated
+  piece (`require_deepproblog_deps` + `# pragma: no cover`) — same stance as `scallopy`.
+- **Measure per-QUERY, not batched.** DeepProbLog knowledge-compiles per training
+  example, so `scale_probe` compiles each query on its own. Two gotchas that shaped this:
+  (1) the bundled **`dsharp` d-DNNF compiler segfaults** (raises `DSharpError`) when many
+  queries are batched into ONE compilation on this Linux host, and `pysdd` (the SDD
+  alternative) is NOT installed — so batching conflates a real limit with a toolchain
+  bug. `evaluate_program` wraps the call with a `SIGALRM` timeout + broad except so a
+  crash/timeout is *recorded as a ceiling*, never fatal. (2) The **exact-inference
+  hardness driver is proof multiplicity** (`count_paths` = distinct simple paths =
+  circuit size), NOT grounding size (which stays compact) — a pure, deterministic,
+  CI-testable metric. Today the `DESCENDS_FROM` graph is a sparse forest (≤3 proofs/query)
+  so per-query inference is tractable; the binding constraint is throughput.
+- **The headline is a measured architectural gap, not a task-quality one.** Scallop's
+  full 40-epoch/880-query training = one batched min-max pass per epoch = **2.1 s**;
+  DeepProbLog's per-example exact compilation extrapolates to **~50 min** (85 ms/query ×
+  880 × 40) — ~1,400× — for the SAME neutral ranking. Semantics differ (ProbLog = exact
+  noisy-or marginal, 0.79 on the two-path fixture; Scallop = widest-path max, 0.80),
+  unit-tested against the real `problog` engine. Recommendation: **Scallop** for training;
+  DeepProbLog for bounded exact queries only.
+- **The report is a committed DOCUMENT, not a byte-gated snapshot** (timing is
+  nondeterministic). The deterministic parts (proof counts, ground nodes, compiled
+  counts, marginals) are asserted via the pure functions in `test_deepproblog_pilot.py`.
+  The CLI upserts a `DEEPPROBLOG-PROBE`-marked table into the report (idempotent, like the
+  SCALLOP-PILOT block) — that block is in `neurosymbolic-pilot-report.md`, NOT
+  `ml-baselines.md`, so it never interacts with `train_baselines`' rewrite. Run summary →
+  git-ignored `ml/artifacts/deepproblog/`; **no `ml/data` re-pin** (reads existing splits).
+
 ## MLflow / DVC
 
 - Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

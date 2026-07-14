@@ -266,6 +266,18 @@ def main(argv: list[str] | None = None) -> int:
         predictions_top_k=args.top_k,
         kgqa_section=kgqa_section,
     )
+    # Preserve the Phase-5 US-003 rule-guided comparison block too (owned by
+    # linguascrape-train-scallop) — the same cooperating-CLIs discipline as KGQA.
+    from linguascrape_ml.scallop_train import (
+        extract_marked_section as extract_scallop_section,
+    )
+    from linguascrape_ml.scallop_train import (
+        upsert_marked_section as upsert_scallop_section,
+    )
+
+    scallop_section = extract_scallop_section(existing_doc)
+    if scallop_section:
+        doc = upsert_scallop_section(doc, scallop_section)
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")
     print(f"metrics doc -> {args.doc}")
