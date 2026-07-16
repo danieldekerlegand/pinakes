@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   metrics: vi.fn(),
   datalog: vi.fn(),
   cypher: vi.fn(),
+  retrieve: vi.fn(),
   clientIsAvailable: vi.fn(),
   resolve: vi.fn(),
 }));
@@ -45,6 +46,7 @@ vi.mock("../services/culturescrape-client", async (importOriginal) => {
     metrics: mocks.metrics,
     datalog: mocks.datalog,
     cypher: mocks.cypher,
+    retrieve: mocks.retrieve,
     isAvailable: mocks.clientIsAvailable,
   };
 });
@@ -155,6 +157,77 @@ describe("GET /api/graph/search", () => {
   it("returns 502 when the sidecar sends an unusable response", async () => {
     mocks.search.mockRejectedValue(new CultureScrapeError("bad body", 200));
     const { status, body } = await get("/api/graph/search?q=paella");
+    expect(status).toBe(502);
+    expect(body.available).toBe(true);
+  });
+});
+
+// ── GET /api/graph/retrieve ──────────────────────────────────────────────────
+
+describe("GET /api/graph/retrieve", () => {
+  const RETRIEVAL = {
+    query: "iron-age hillforts",
+    available: true,
+    backend: "neo4j",
+    index: "entity_embedding",
+    k: 5,
+    depth: 1,
+    seeds: [
+      {
+        csid: "cs:site:maiden-castle",
+        name: "Maiden Castle",
+        label: "Site",
+        labels: ["Site"],
+        score: 0.88,
+      },
+    ],
+    nodes: [
+      {
+        csid: "cs:site:maiden-castle",
+        name: "Maiden Castle",
+        label: "Site",
+        labels: ["Site"],
+      },
+    ],
+    edges: [],
+  };
+
+  it("returns the hybrid-retrieval subgraph on success", async () => {
+    mocks.retrieve.mockResolvedValue(RETRIEVAL);
+    const { status, body } = await get("/api/graph/retrieve?q=iron-age%20hillforts");
+    expect(status).toBe(200);
+    expect(body.seeds[0].csid).toBe("cs:site:maiden-castle");
+    expect(mocks.retrieve).toHaveBeenCalledWith("iron-age hillforts", {
+      k: undefined,
+      depth: undefined,
+    });
+  });
+
+  it("passes numeric k and depth through", async () => {
+    mocks.retrieve.mockResolvedValue({ ...RETRIEVAL, k: 3, depth: 2 });
+    await get("/api/graph/retrieve?q=x&k=3&depth=2");
+    expect(mocks.retrieve).toHaveBeenCalledWith("x", { k: 3, depth: 2 });
+  });
+
+  it("short-circuits an empty query without calling the sidecar", async () => {
+    const { status, body } = await get("/api/graph/retrieve?q=%20%20");
+    expect(status).toBe(200);
+    expect(body).toEqual({ query: "", seeds: [], nodes: [], edges: [] });
+    expect(mocks.retrieve).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 { available:false } when GraphRAG is unavailable", async () => {
+    mocks.retrieve.mockRejectedValue(
+      new CultureScrapeUnavailableError("no embedder"),
+    );
+    const { status, body } = await get("/api/graph/retrieve?q=x");
+    expect(status).toBe(503);
+    expect(body.available).toBe(false);
+  });
+
+  it("returns 502 when the sidecar sends an unusable response", async () => {
+    mocks.retrieve.mockRejectedValue(new CultureScrapeError("bad body", 200));
+    const { status, body } = await get("/api/graph/retrieve?q=x");
     expect(status).toBe(502);
     expect(body.available).toBe(true);
   });

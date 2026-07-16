@@ -1,0 +1,67 @@
+{
+  "counts": {
+    "negatives": 704,
+    "positives": 176,
+    "queries": 880
+  },
+  "leakage": {
+    "collisionsRejected": 4,
+    "insufficientPoolNegatives": 0,
+    "knownPositives": 1733,
+    "negativesLeakingKnownPositives": 0,
+    "negativesLeakingTrainFacts": 0,
+    "trainPositives": 1385
+  },
+  "negativeRatio": 4,
+  "perRelation": {
+    "BORROWED_FROM": {
+      "negatives": 16,
+      "positives": 4
+    },
+    "DESCENDS_FROM": {
+      "negatives": 688,
+      "positives": 172
+    }
+  },
+  "poolSizes": {
+    "BORROWED_FROM": {
+      "from": 1099,
+      "to": 1099
+    },
+    "DESCENDS_FROM": {
+      "from": 1892,
+      "to": 1892
+    }
+  },
+  "queriesSha256": "22b010155a6153c0d5738492e3d7a173e3b5188ab8f08465df3d83bb69643359",
+  "seed": 20260713,
+  "sourceSplit": "valid",
+  "targetRelations": [
+    "BORROWED_FROM",
+    "DESCENDS_FROM"
+  ],
+  "typeConstraints": {
+    "BORROWED_FROM": {
+      "from": [
+        "language"
+      ],
+      "to": [
+        "language"
+      ]
+    },
+    "DESCENDS_FROM": {
+      "from": [
+        "archaeological-culture",
+        "culture",
+        "language",
+        "language-family"
+      ],
+      "to": [
+        "archaeological-culture",
+        "culture",
+        "language",
+        "language-family"
+      ]
+    }
+  }
+}

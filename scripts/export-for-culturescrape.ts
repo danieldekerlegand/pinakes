@@ -1,5 +1,5 @@
 /**
- * Export LinguaScrape lexicons in culture-scrape's ingestion-ready format (US-004).
+ * Export pinakes lexicons in culture-scrape's ingestion-ready format (US-004).
  *
  * This reads every `lexicons/*.tsv` mapped as a canonical node (US-002) plus every
  * embedded / dedicated relationship (US-003) and emits the shared canonical shape
@@ -15,8 +15,8 @@
  *
  * Provenance (US-006): every node and edge carries all four provenance columns —
  * `source`, `source_url`, `retrieved_at`, `confidence` (values may be blank, the column
- * is always present). `source = "linguascrape"` is the acquisition-source id the
- * reconciler keys on; the *original* LinguaScrape bibliographic `sources` citations are
+ * is always present). `source = "pinakes"` is the acquisition-source id the
+ * reconciler keys on; the *original* pinakes bibliographic `sources` citations are
  * preserved (never dropped) in the node `source_query` column. `source_url` and
  * `retrieved_at` propagate verbatim from the lexicon row when the acquisition step
  * recorded them (US-004: ~1.9k acquired rows carry a Wikidata entity URL + timestamp);
@@ -28,9 +28,9 @@
  * format), so re-runs are byte-identical (idempotent). Per the `idScheme` in
  * `shared/canonical-schema.json`, a known Wikidata QID is the identity, so a row with a
  * non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (US-005); a row without one
- * falls back to `cs:<node-type>:<linguascrape-id>`. Every row also retains its original
- * `linguascrape_id` (the round-trip key for US-007). Edge endpoints are rewritten from
- * LinguaScrape ids to the csids of
+ * falls back to `cs:<node-type>:<pinakes-id>`. Every row also retains its original
+ * `pinakes_id` (the round-trip key for US-007). Edge endpoints are rewritten from
+ * pinakes ids to the csids of
  * the exported nodes; an edge whose endpoint has no exported node is not emitted
  * (dangling endpoints would break `neo4j-admin import`) and is counted + sampled in
  * the manifest rather than silently dropped.
@@ -67,10 +67,10 @@ export const DOC_MANIFEST_PATH = path.join(
 );
 
 /** Acquisition-source identifier stamped on every exported row. */
-export const EXPORT_SOURCE = "linguascrape";
+export const EXPORT_SOURCE = "pinakes";
 
 /**
- * SPDX license for the curated LinguaScrape corpus (US-003). The corpus is a
+ * SPDX license for the curated pinakes corpus (US-003). The corpus is a
  * hand-curated aggregate distributed under CC-BY; even its Wikidata-anchored rows
  * are redistributed as part of this attributed corpus. A source whose records carry
  * a genuinely different license (a future CC-BY-SA source) is listed in
@@ -83,14 +83,14 @@ export const DEFAULT_LICENSE = "CC-BY-4.0";
  * SPDX identifier its records are distributed under, so share-alike obligations
  * travel **per record** once the first CC-BY-SA source (Glottolog / Wiktionary /
  * PHOIBLE) lands — retrofitting the column afterwards is far more painful. The
- * TS export stamps `source = linguascrape` on every row today, so every exported
+ * TS export stamps `source = pinakes` on every row today, so every exported
  * record resolves to {@link DEFAULT_LICENSE}; culture-scrape's own acquisition
  * paths stamp their source id (e.g. `wikidata`) and inherit the mapped license.
  * Extend this table when a new source is added; an unlisted source falls back to
  * {@link DEFAULT_LICENSE}. SPDX identifiers per https://spdx.org/licenses/.
  */
 export const SOURCE_LICENSES: Readonly<Record<string, string>> = {
-  linguascrape: DEFAULT_LICENSE,
+  pinakes: DEFAULT_LICENSE,
   wikidata: "CC0-1.0",
   glottolog: "CC-BY-4.0",
   wals: "CC-BY-4.0",
@@ -176,7 +176,7 @@ export interface UnresolvedEndpoint {
 
 /** An auto-generated needs-curation stub node minted for an unresolved endpoint (US-007). */
 export interface StubNodeSample {
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   readonly type: string;
   readonly sourceFile: string;
 }
@@ -285,7 +285,7 @@ function yearCell(value: string): string {
 }
 
 /**
- * Normalise a raw confidence cell to `[0, 1]`. LinguaScrape mixes 0–100 and 0–1
+ * Normalise a raw confidence cell to `[0, 1]`. pinakes mixes 0–100 and 0–1
  * scales, so values above 1 are treated as percentages. Empty / non-numeric ⇒
  * `fallback`.
  */
@@ -301,7 +301,7 @@ export function normaliseConfidence(
 }
 
 /**
- * Parse a combined coordinate cell into `{ lat, lon }`. LinguaScrape stores these as
+ * Parse a combined coordinate cell into `{ lat, lon }`. pinakes stores these as
  * JSON `{"lat":..,"lng":..}`; a bare `"lat,lon"` string is also accepted. Returns
  * `null` when the cell is empty or unparseable.
  */
@@ -328,7 +328,7 @@ export function parseCoordinates(
 }
 
 /**
- * Parse a LinguaScrape citation cell into a single preserved string. Many lexicons
+ * Parse a pinakes citation cell into a single preserved string. Many lexicons
  * store `sources` as a JSON array (`["Kuijt 2002","Cauvin 2000"]`); those are joined
  * with `"; "`. A plain string is returned trimmed; empty ⇒ `""`. This never drops the
  * original citation — it only reshapes it for the `source_query` column (US-006).
@@ -372,16 +372,16 @@ export function deriveSourceUrl(...candidates: string[]): string {
  * Mint a deterministic canonical id (US-005). Per the `idScheme` in
  * `shared/canonical-schema.json`, a known Wikidata QID **is** the identity, so a row
  * carrying a non-blank `wikidata_qid` mints `cs:<node-type>:<QID>`; a row without one
- * falls back to the readable `cs:<node-type>:<linguascrape-id>`. QID-anchoring makes
+ * falls back to the readable `cs:<node-type>:<pinakes-id>`. QID-anchoring makes
  * the same entity carry the same csid regardless of which pipeline exported it.
  */
 export function mintCsid(
   nodeType: string,
-  linguascrapeId: string,
+  pinakesId: string,
   wikidataQid?: string,
 ): string {
   const qid = (wikidataQid ?? "").trim();
-  const local = qid !== "" ? qid : linguascrapeId;
+  const local = qid !== "" ? qid : pinakesId;
   return `cs:${nodeType}:${local}`;
 }
 
@@ -396,7 +396,7 @@ export function nodeTypeFromCsid(csid: string): string {
 }
 
 /**
- * Turn a LinguaScrape id into a human-readable display name for a stub node —
+ * Turn a pinakes id into a human-readable display name for a stub node —
  * `proto_indo_european` → `Proto Indo European`. Used only for auto-generated
  * needs-curation stubs (US-007); real nodes keep their curated `name`.
  */
@@ -509,7 +509,7 @@ function buildNodesForFile(
   const qidIdxForFile = targetIdx.get("wikidata_qid") ?? -1;
 
   for (const row of rows) {
-    const idIdxForFile = targetIdx.get("linguascrape_id") ?? -1;
+    const idIdxForFile = targetIdx.get("pinakes_id") ?? -1;
     const lsId = cell(row, idIdxForFile);
     if (lsId === "") {
       counters.skippedMissingId += 1;
@@ -548,7 +548,7 @@ function buildNodesForFile(
     }
 
     // Provenance: `source` = acquisition-source id (reconciler anchor); the
-    // original LinguaScrape citation is preserved in `source_query` and never
+    // original pinakes citation is preserved in `source_query` and never
     // dropped (US-006). `source_url`/`retrieved_at` (US-004): a URL/timestamp the
     // acquisition step recorded on the row survives verbatim; when the row carries
     // no URL we fall back to one embedded in the citation, else blank — a URL is
@@ -570,7 +570,7 @@ function buildNodesForFile(
     group.push(orderRow(CANONICAL_SCHEMA.node.columns, record));
 
     if (idIndex.has(lsId)) {
-      // Same LinguaScrape id used by more than one node — keep the first mapping.
+      // Same pinakes id used by more than one node — keep the first mapping.
       if (idIndex.get(lsId) !== csid) counters.ambiguousIds += 1;
     } else {
       idIndex.set(lsId, csid);
@@ -641,7 +641,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set("csid", csid);
     record.set(":LABEL", typeInfo.label);
     record.set("name", humanizeId(id));
-    record.set("linguascrape_id", id);
+    record.set("pinakes_id", id);
     record.set("description", STUB_NEEDS_CURATION_NOTE);
     record.set("source", EXPORT_SOURCE);
     record.set("source_url", "");
@@ -658,7 +658,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     stubNodesMinted += 1;
     stubNodesByType.set(stubType, (stubNodesByType.get(stubType) ?? 0) + 1);
     if (stubNodeSamples.length < MAX_STUB_SAMPLES) {
-      stubNodeSamples.push({ linguascrapeId: id, type: stubType, sourceFile });
+      stubNodeSamples.push({ pinakesId: id, type: stubType, sourceFile });
     }
     return csid;
   };
@@ -709,7 +709,7 @@ export function buildExport(lexiconsDir: string = LEXICONS_DIR): BuiltExport {
     record.set(":TYPE", e.type);
     record.set("time_start", e.timeStart === null ? "" : String(e.timeStart));
     record.set("time_end", e.timeEnd === null ? "" : String(e.timeEnd));
-    record.set("linguascrape_id", e.linguascrapeId ?? "");
+    record.set("pinakes_id", e.pinakesId ?? "");
     record.set("source", EXPORT_SOURCE);
     record.set("source_url", deriveSourceUrl(e.provenance.sourceUrl, edgeCitation));
     record.set("source_query", edgeCitation);
@@ -817,16 +817,16 @@ function buildProvenanceCoverage(
   const flags: string[] = [];
   if (node.nonEmpty.source_url === 0) {
     flags.push(
-      `node.source_url: 0/${node.total} rows carry a URL — LinguaScrape lexicons record no source URLs; left blank, never fabricated.`,
+      `node.source_url: 0/${node.total} rows carry a URL — pinakes lexicons record no source URLs; left blank, never fabricated.`,
     );
   }
   if (node.nonEmpty.retrieved_at === 0) {
     flags.push(
-      `node.retrieved_at: 0/${node.total} rows carry a retrieval timestamp — LinguaScrape records none; left blank, never fabricated.`,
+      `node.retrieved_at: 0/${node.total} rows carry a retrieval timestamp — pinakes records none; left blank, never fabricated.`,
     );
   }
   flags.push(
-    `node.source_query: ${node.nonEmpty.source_query}/${node.total} rows preserve the original LinguaScrape citation.`,
+    `node.source_query: ${node.nonEmpty.source_query}/${node.total} rows preserve the original pinakes citation.`,
   );
   if (edge.nonEmpty.source_url === 0) {
     flags.push(

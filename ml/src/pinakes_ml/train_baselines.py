@@ -247,6 +247,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"consistency baseline -> {args.consistency_baseline}")
 
     consistency_rows = [r.as_dict() for r in reports]
+    # Preserve the tier-3 KGQA block (owned by pinakes-eval-kgqa) across this
+    # from-scratch rewrite, so the two cooperating CLIs never clobber each other.
+    from pinakes_ml.kgqa_eval import extract_marked_section
+
+    existing_doc = args.doc.read_text(encoding="utf-8") if args.doc.exists() else ""
+    kgqa_section = extract_marked_section(existing_doc)
     doc = render_baselines_doc(
         outcomes,
         corpus_md5=meta["corpus_md5"],
@@ -258,7 +264,20 @@ def main(argv: list[str] | None = None) -> int:
         },
         consistency=consistency_rows,
         predictions_top_k=args.top_k,
+        kgqa_section=kgqa_section,
     )
+    # Preserve the Phase-5 US-003 rule-guided comparison block too (owned by
+    # pinakes-train-scallop) — the same cooperating-CLIs discipline as KGQA.
+    from pinakes_ml.scallop_train import (
+        extract_marked_section as extract_scallop_section,
+    )
+    from pinakes_ml.scallop_train import (
+        upsert_marked_section as upsert_scallop_section,
+    )
+
+    scallop_section = extract_scallop_section(existing_doc)
+    if scallop_section:
+        doc = upsert_scallop_section(doc, scallop_section)
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")
     print(f"metrics doc -> {args.doc}")

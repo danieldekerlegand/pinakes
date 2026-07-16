@@ -1,0 +1,18 @@
+{
+  "embeddings_model": "transe",
+  "embeddings_path": "data/embeddings/{model}/entity_embeddings.npy",
+  "entities_path": "data/triples/entities.tsv",
+  "triples_dir": "data/triples",
+  "queries_path": "data/queries/queries.jsonl",
+  "target_relations": ["DESCENDS_FROM", "BORROWED_FROM"],
+  "transitive_relations": ["DESCENDS_FROM"],
+  "hops": 3,
+  "hidden_dim": 32,
+  "epochs": 40,
+  "learning_rate": 0.01,
+  "weight_decay": 0.0,
+  "seed": 20260713,
+  "device": null,
+  "filtered": true,
+  "typed_candidates": false
+}

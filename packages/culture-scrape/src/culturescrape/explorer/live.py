@@ -17,7 +17,7 @@ surface is exercisable against a mocked driver.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
@@ -93,6 +93,30 @@ class LiveNeighborhood:
 
     center: str
     depth: int
+    nodes: tuple[LiveNode, ...]
+    edges: tuple[LiveEdge, ...]
+
+
+@dataclass(frozen=True)
+class RetrievedSeed:
+    """A vector-index hit: the seed node plus its similarity score."""
+
+    csid: str
+    name: str
+    labels: tuple[str, ...]
+    score: float
+
+
+@dataclass(frozen=True)
+class LiveRetrieval:
+    """A hybrid-retrieval result: the ranked seeds plus their expanded subgraph.
+
+    The vector index picks the top-*k* semantically-nearest *seeds*; *nodes* /
+    *edges* are their combined neighborhood (self-contained: every edge has both
+    endpoints in the node set), so the subgraph is ready to ground an LLM answer.
+    """
+
+    seeds: tuple[RetrievedSeed, ...]
     nodes: tuple[LiveNode, ...]
     edges: tuple[LiveEdge, ...]
 
@@ -244,6 +268,81 @@ class Neo4jLive:
         )
         return LiveNeighborhood(center=csid, depth=depth, nodes=nodes, edges=edges)
 
+    def vector_retrieve(
+        self, embedding: Sequence[float], k: int, depth: int, *, index_name: str
+    ) -> LiveRetrieval:
+        """Hybrid retrieval: vector top-*k* seeds, then neighborhood expansion.
+
+        Queries the native vector index *index_name* for the *k* nodes nearest to
+        *embedding*, then expands each seed out to *depth* hops and gathers the
+        edges internal to that node set. Mirrors :meth:`neighborhood`'s
+        self-contained shape. Raises like :meth:`run` on a driver failure; a query
+        that finds no seeds returns an empty result rather than raising.
+        """
+        driver = self._connect(self._config, env=self._env)
+        try:
+            with driver.session() as session:
+                seed_records = list(
+                    session.run(
+                        "CALL db.index.vector.queryNodes($index, $k, $embedding) "
+                        "YIELD node, score "
+                        "WHERE node:Entity "
+                        "RETURN node.csid AS csid, node.name AS name, "
+                        "labels(node) AS labels, score AS score",
+                        {
+                            "index": index_name,
+                            "k": int(k),
+                            "embedding": [float(value) for value in embedding],
+                        },
+                    )
+                )
+                seeds = tuple(
+                    RetrievedSeed(
+                        csid=str(record["csid"]),
+                        name=_render(record["name"]),
+                        labels=_type_labels(record["labels"]),
+                        score=float(record["score"]),
+                    )
+                    for record in seed_records
+                    if record["csid"] is not None
+                )
+                if not seeds:
+                    return LiveRetrieval(seeds=(), nodes=(), edges=())
+                seed_ids = [seed.csid for seed in seeds]
+                node_records = list(
+                    session.run(
+                        "MATCH (c:Entity) WHERE c.csid IN $ids "
+                        f"MATCH (c)-[*0..{int(depth)}]-(n:Entity) "
+                        "RETURN DISTINCT n.csid AS csid, n.name AS name, "
+                        "labels(n) AS labels",
+                        {"ids": seed_ids},
+                    )
+                )
+                ids = [str(record["csid"]) for record in node_records]
+                edge_records = list(
+                    session.run(
+                        "MATCH (a:Entity)-[r]->(b:Entity) "
+                        "WHERE a.csid IN $ids AND b.csid IN $ids "
+                        "RETURN a.csid AS start, b.csid AS end, type(r) AS type",
+                        {"ids": ids},
+                    )
+                )
+        finally:
+            driver.close()
+        nodes = tuple(
+            LiveNode(
+                csid=str(record["csid"]),
+                name=_render(record["name"]),
+                labels=_type_labels(record["labels"]),
+            )
+            for record in node_records
+        )
+        edges = tuple(
+            LiveEdge(str(record["start"]), str(record["end"]), str(record["type"]))
+            for record in edge_records
+        )
+        return LiveRetrieval(seeds=seeds, nodes=nodes, edges=edges)
+
 
 __all__ = [
     "Connect",
@@ -251,7 +350,9 @@ __all__ = [
     "LiveEdge",
     "LiveNeighborhood",
     "LiveNode",
+    "LiveRetrieval",
     "Neo4jLive",
     "QueryResult",
+    "RetrievedSeed",
     "load_queries",
 ]

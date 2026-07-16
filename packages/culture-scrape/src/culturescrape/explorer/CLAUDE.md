@@ -20,6 +20,18 @@ same corpus data — **keep them at parity**. Payload shapes are frozen by the z
   `failed_keys`); `_qa_json`/`_category_json` flatten them to lists for the JSON body.
 - **`/api/graph/{csid}`** is the other JSON route — a dedicated path (not negotiated),
   Cytoscape `elements`, live-Neo4j-first with a TSV fallback (`_graph_payload`).
+- **`/api/retrieve?q=&k=&depth=`** (GraphRAG, Phase 5.1) — hybrid retrieval: embed the
+  query, pull top-`k` from the Neo4j native vector index, expand each seed to `depth`
+  hops. `create_app` builds a default `HybridRetriever(live, SentenceTransformerEmbedder())`
+  (lazy — nothing loads until a query runs) but takes an injectable `retriever=` so tests
+  drive a fake. **Degradation is by status code, not a swallowed body:** an empty query →
+  200 empty; retriever **unavailable** (embedding extra absent OR Neo4j not configured,
+  gated by `HybridRetriever.available()`) → **503** `{available:false}`; a driver failure
+  mid-retrieve → 503. The TS proxy relies on this: `culturescrape-client.requestJson` maps
+  any `>=500` (so the 503) to `CultureScrapeUnavailableError`, which `graph.ts handleError`
+  turns back into 503 `{available:false}` — the body is intentionally not forwarded.
+  Index build lives in `neo4j/vector_index.py` (CLI `graphrag-index`); full runbook at
+  repo `docs/graphrag-runbook.md`.
 
 ## Tests
 

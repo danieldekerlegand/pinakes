@@ -110,7 +110,7 @@ ORDER=(
 #     US-001 anytime; US-002 needs scale-ready-conversion; US-003 needs tiered-trust-corpus;
 #     US-004/005 need first-ml-loop. Coordinate with the Insimul-side counterpart
 #     (~/Development/workspace/tasks/ralph/pinakes-bridge.json).
-#  "insimul-bridge:9"        # predicate-mapping registry + grounding-pack exporter + insimul adapter (schema v1.2, synthetic tier) + VESPACE adherence tier + dataset generators
+  "insimul-bridge:9"         # predicate-mapping registry + grounding-pack exporter + insimul adapter (schema v1.2, synthetic tier) + VESPACE adherence tier + dataset generators
 # --- SLM pilot (INSIMUL_SYNC_PLAN.md Phase D) — PROVISIONAL; re-ground before running.
 #     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
 #     (operator); baseline model Qwen2.5-3B-Instruct (matches Insimul's local-AI deployment).

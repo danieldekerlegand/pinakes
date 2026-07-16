@@ -111,6 +111,54 @@ export const CypherResponseSchema = z.object({
 });
 export type CypherResponse = z.infer<typeof CypherResponseSchema>;
 
+/** A vector-index seed hit: the seed node plus its similarity score. */
+export const RetrievalSeedSchema = z.object({
+  csid: z.string(),
+  name: z.string().default(""),
+  /** primary per-type label of the seed node. */
+  label: z.string().default(""),
+  labels: z.array(z.string()).default([]),
+  score: z.number(),
+});
+
+/** One node in a retrieved subgraph (the seeds' expanded neighborhood). */
+export const RetrievalNodeSchema = z.object({
+  csid: z.string(),
+  name: z.string().default(""),
+  label: z.string().default(""),
+  labels: z.array(z.string()).default([]),
+});
+
+/** One relationship internal to a retrieved subgraph. */
+export const RetrievalEdgeSchema = z.object({
+  source: z.string(),
+  target: z.string(),
+  type: z.string(),
+  /** ontology dimension of the edge type, for styling. */
+  dimension: z.string().default(""),
+});
+
+/**
+ * A hybrid GraphRAG retrieval answer, mirroring the sidecar's `/api/retrieve`
+ * payload (`culturescrape.explorer.app._retrieval_payload`): the ranked vector
+ * seeds plus the self-contained subgraph expanded around them, ready to ground an
+ * LLM answer. `available` is `false` when the query was blank (no seeds to expand).
+ */
+export const RetrieveResponseSchema = z.object({
+  query: z.string().default(""),
+  available: z.boolean(),
+  /** the retrieval backend (`neo4j`). */
+  backend: z.string().default("neo4j"),
+  /** name of the native vector index the seeds came from. */
+  index: z.string().default(""),
+  k: z.number(),
+  depth: z.number(),
+  seeds: z.array(RetrievalSeedSchema),
+  nodes: z.array(RetrievalNodeSchema),
+  edges: z.array(RetrievalEdgeSchema),
+});
+export type RetrieveResponse = z.infer<typeof RetrieveResponseSchema>;
+
 // ── Typed errors ─────────────────────────────────────────────────────────────
 
 /**
@@ -339,4 +387,22 @@ export function datalog(
  */
 export function cypher(query: string): Promise<CypherResponse> {
   return requestJson("/neo4j", CypherResponseSchema, { query, run: "1" });
+}
+
+/**
+ * Hybrid GraphRAG retrieval (`GET /api/retrieve`): embed `query`, pull the top-`k`
+ * nearest nodes from the Neo4j native vector index, and expand them out to `depth`
+ * hops. When the sidecar's embedder or Neo4j connection is absent it answers 503,
+ * which surfaces here as {@link CultureScrapeUnavailableError} (routes → 503
+ * `{ available: false }`), keeping the graceful-degradation contract.
+ */
+export function retrieve(
+  query: string,
+  opts: { k?: number; depth?: number } = {},
+): Promise<RetrieveResponse> {
+  return requestJson("/api/retrieve", RetrieveResponseSchema, {
+    q: query,
+    k: opts.k,
+    depth: opts.depth,
+  });
 }
