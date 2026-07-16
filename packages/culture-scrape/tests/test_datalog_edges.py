@@ -205,7 +205,7 @@ def test_canonical_confidence_reaches_both_dialects(tmp_path: Path) -> None:
             ":END_ID": "cs:language:eng",
             ":TYPE": "BORROWED_FROM",
             "weight:float": "",
-            "source": "linguascrape",
+            "source": "pinakes",
             "source_url": "",
             "retrieved_at": "",
             "confidence:float": "0.8",

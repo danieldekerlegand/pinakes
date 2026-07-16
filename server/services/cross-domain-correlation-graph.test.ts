@@ -80,7 +80,7 @@ function toGraphNode(e: DomainEntity): GraphNode {
     labels: [label],
     name: e.name,
     properties: {
-      linguascrape_id: e.id,
+      pinakes_id: e.id,
       associated_language_ids: e.languageIds,
       ...(e.region ? { region: e.region } : {}),
       ...(e.coordinates ? { lat: e.coordinates.lat, lon: e.coordinates.lng } : {}),
@@ -119,7 +119,7 @@ describe("graphNodeToDomainEntity", () => {
       labels: ["Language"],
       name: "Latin",
       properties: {
-        linguascrape_id: "lat",
+        pinakes_id: "lat",
         associated_language_ids: ["lat"],
         region: "Southern Europe",
         lat: 41.9,

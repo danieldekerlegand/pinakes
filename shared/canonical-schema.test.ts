@@ -143,14 +143,14 @@ describe("canonical schema contract (US-001)", () => {
     }
   });
 
-  it("retains the LinguaScrape id as an alias column on both families", () => {
-    expect(CANONICAL_SCHEMA.idScheme.aliasColumn).toBe("linguascrape_id");
+  it("retains the Pinakes id as an alias column on both families", () => {
+    expect(CANONICAL_SCHEMA.idScheme.aliasColumn).toBe("pinakes_id");
     expect(
-      CANONICAL_SCHEMA.node.columns.find((c) => c.field === "linguascrape_id")
+      CANONICAL_SCHEMA.node.columns.find((c) => c.field === "pinakes_id")
         ?.role,
     ).toBe("alias");
     expect(
-      CANONICAL_SCHEMA.edge.columns.find((c) => c.field === "linguascrape_id")
+      CANONICAL_SCHEMA.edge.columns.find((c) => c.field === "pinakes_id")
         ?.role,
     ).toBe("alias");
   });

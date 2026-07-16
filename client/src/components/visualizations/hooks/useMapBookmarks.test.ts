@@ -209,12 +209,12 @@ describe('loadBookmarksFromStorage / saveBookmarksToStorage', () => {
   });
 
   it('returns empty array when storage has invalid JSON', () => {
-    localStorage.setItem('linguascrape-map-bookmarks', '{not valid json');
+    localStorage.setItem('pinakes-map-bookmarks', '{not valid json');
     expect(loadBookmarksFromStorage()).toEqual([]);
   });
 
   it('returns empty array when storage has non-array JSON', () => {
-    localStorage.setItem('linguascrape-map-bookmarks', '{"foo": "bar"}');
+    localStorage.setItem('pinakes-map-bookmarks', '{"foo": "bar"}');
     expect(loadBookmarksFromStorage()).toEqual([]);
   });
 

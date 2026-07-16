@@ -21,8 +21,8 @@ venv/
 # Generated data — never committed. A corpus is regenerable from the category
 # specs and is published as release artifacts instead (see docs/storage.md).
 # `/out/*` (not `/out/`) so git can still descend into out/ to track the DVC
-# pointer + DVC-managed .gitignore for the DVC-tracked linguascrape-full build.
+# pointer + DVC-managed .gitignore for the DVC-tracked pinakes-full build.
 /out/*
-!/out/linguascrape-full.dvc
+!/out/pinakes-full.dvc
 !/out/.gitignore
 .http-cache/

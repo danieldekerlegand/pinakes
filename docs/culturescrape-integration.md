@@ -1,9 +1,9 @@
-# culture-scrape ↔ LinguaScrape: Data-Layer Convergence Plan
+# culture-scrape ↔ Pinakes: Data-Layer Convergence Plan
 
 **Status:** Data-layer convergence **implemented** (US-001…US-008) · app-side graph
 integration **implemented** (`graph-app-integration` US-001…US-011) · **Last updated:** 2026-07-03
 **Decision:** Align the two data layers on a shared canonical schema with Neo4j/Datalog as
-the correlation system-of-record. **Do not** rewrite the LinguaScrape backend to Python.
+the correlation system-of-record. **Do not** rewrite the Pinakes backend to Python.
 
 This doc is the *architecture / rationale* view. The concrete, machine-readable contract —
 node/edge types, exact column headers, the per-lexicon mapping, export/reconcile/write-back/QA
@@ -17,9 +17,9 @@ section of `canonical-schema.md` that specifies it.
 
 ## 1. Goal
 
-Make LinguaScrape's data and culture-scrape's data **one correlatable body of knowledge** —
+Make Pinakes's data and culture-scrape's data **one correlatable body of knowledge** —
 so a language, an archaeological culture, a cuisine, a deity, and a trade good can be related,
-traversed, and reasoned over together — without discarding LinguaScrape's TypeScript app or
+traversed, and reasoned over together — without discarding Pinakes's TypeScript app or
 culture-scrape's Python pipeline.
 
 The principle: **alignment is a schema-and-store problem, not a language problem.** Two systems
@@ -28,7 +28,7 @@ store), which a TS service speaks as well as a Python one (Neo4j ships a first-c
 
 ## 2. Why not a Python rewrite
 
-- A Python rewrite of LinguaScrape's ~40k-LOC Express backend would **not itself create
+- A Python rewrite of Pinakes's ~40k-LOC Express backend would **not itself create
   alignment** — two differently-shaped schemas are misaligned regardless of language.
 - The ~91k-LOC React/Vite frontend stays TypeScript no matter what, so the rewrite buys nothing
   for the UI.
@@ -44,31 +44,31 @@ Full alignment requires six layers to match. The **Status** column records how t
 data-layer-convergence work (US-001…US-008) closed each gap; the code lives under `scripts/`,
 `shared/`, and `server/services/`, specified in `docs/canonical-schema.md`.
 
-| Layer | culture-scrape | LinguaScrape today | Status |
+| Layer | culture-scrape | Pinakes today | Status |
 |---|---|---|---|
-| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid QID-anchored `cs:<node-type>:<QID>` when a row carries a `wikidata_qid`, else `cs:<node-type>:<linguascrape-id>` (US-005); `linguascrape_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts`. |
+| **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid QID-anchored `cs:<node-type>:<QID>` when a row carries a `wikidata_qid`, else `cs:<node-type>:<pinakes-id>` (US-005); `pinakes_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts`. |
 | **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `shared/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
 | **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
-| **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="linguascrape"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
+| **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="pinakes"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
 | **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`packages/culture-scrape/`) + `graph-app-integration`. CPU-domain compute stays TS. |
 | **Ontology / dimensions** | temporal / geographic / linguistic / genetic | explorer dims: temporal/spatial/relational/hierarchical/categorical | **Contract ratified** — canonical dimension columns (`time_start`/`time_end`/`period`, `lat`/`lon`/`*_id`, `language_code`/`script`) defined in the schema; explorer-adapter mapping is downstream UI work. |
 
 **Key insight:** `cultural-lineages.tsv` is already a hand-built edge table. culture-scrape
 generalizes exactly that pattern across every domain — and the edge extractor now generalizes it
-across LinguaScrape's embedded FK columns too.
+across Pinakes's embedded FK columns too.
 
 ## 4. Target architecture
 
 ```
  ┌─────────── culture-scrape (Python) — canonical data + correlation engine ───────────┐
  │  YAML categories/blueprints → acquire (Wikidata dump/SPARQL, Getty, Pleiades,        │
- │                                + NEW: LinguaScrape lexicons via the tabular adapter) │
+ │                                + NEW: Pinakes lexicons via the tabular adapter) │
  │      → normalize → reconcile (csid / wikidata_qid) → ontology link → QA gates         │
  │      → canonical nodes/edges TSV → Neo4j (graph) → Datalog (.pl/.dl inference)        │
  └───────────────────────────────────────────────────────────────────────────────────────┘
         ▲ TSV = portable source of truth (both projects agree)   │ Cypher · Datalog · REST
   human-curated edits (write-back) ──────────────────────────────▼
- ┌─────────── LinguaScrape (TypeScript) — presentation + domain compute ───────────────┐
+ ┌─────────── Pinakes (TypeScript) — presentation + domain compute ───────────────┐
  │  Express: Neo4j TS driver (relational queries) + FastAPI proxy (search / Datalog);   │
  │           keeps TS-only domain compute (linguistic distance, etymology)              │
  │  React/Vite: UnifiedExplorer adapters, graph neighborhood views, provenance UI       │
@@ -77,9 +77,9 @@ across LinguaScrape's embedded FK columns too.
 
 - **One canonical model, one reconciliation cascade, one provenance model, one correlation
   store.** TSV stays the portable, git-diffable source of truth on both sides.
-- culture-scrape's `tabular.py` already ingests arbitrary TSV/CSV, so LinguaScrape's `lexicons/`
+- culture-scrape's `tabular.py` already ingests arbitrary TSV/CSV, so Pinakes's `lexicons/`
   become **just another acquisition source**.
-- LinguaScrape queries the shared graph two ways: **Neo4j TS driver** for relational/graph
+- Pinakes queries the shared graph two ways: **Neo4j TS driver** for relational/graph
   traversal, and the **FastAPI proxy** for full-text search and Datalog inference consoles.
 - Correlation the user wants ("in useful ways") lives in the **Datalog/Neo4j layer** — rules like
   `contemporary_with/2`, `same_region/2`, transitive `descends_from`, and
@@ -94,14 +94,14 @@ across LinguaScrape's embedded FK columns too.
   absorbed-into, spoken-in, located-in, contemporary-with, part-of-period, borrowed-from,
   cognate-with, derived-from, syncretized-with (extensible).
 - **Identity:** `csid` primary; anchors `wikidata_qid`, `iso639_3`/`glottocode` (languages),
-  `pleiades_id`/`tgn_id` (places). LinguaScrape ids retained as an alias column for round-trip.
+  `pleiades_id`/`tgn_id` (places). Pinakes ids retained as an alias column for round-trip.
 - **Provenance on every row:** `source`, `source_url`, `retrieved_at`, `confidence` — with
-  `source = "linguascrape"` for LinguaScrape-origin rows and original `sources` preserved.
+  `source = "pinakes"` for Pinakes-origin rows and original `sources` preserved.
 
 ## 6. Vendored monorepo (single repo, single history)
 
 culture-scrape is **vendored into this repo at `packages/culture-scrape/`** (a fresh copy of its
-tracked files — its 105-commit upstream history is intentionally *not* imported, so LinguaScrape's
+tracked files — its 105-commit upstream history is intentionally *not* imported, so Pinakes's
 history stays clean). Because both projects now live in one repo, a single Ralph run can modify
 either side and commit atomically — there is **no cross-repo split**. Work still splits by
 *language/runtime*:
@@ -109,7 +109,7 @@ either side and commit atomically — there is **no cross-repo split**. Work sti
 | Work | Runtime | Location |
 |---|---|---|
 | Canonical schema contract doc + machine-readable schema | shared | `docs/`, `shared/`, PRD `tasks/ralph/data-layer-convergence.json` |
-| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `packages/culture-scrape/`, PRD `tasks/ralph/linguascrape-convergence-python.json` |
+| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `packages/culture-scrape/`, PRD `tasks/ralph/pinakes-convergence-python.json` |
 | Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `client/`, PRDs `tasks/ralph/{data-layer-convergence,graph-app-integration}.json` |
 
 → The Python-side ingestion/reconciliation/Datalog work is an in-repo concern under
@@ -149,7 +149,7 @@ The round trip, with the exact command and artifact at each hop:
       │ 1. EXPORT   npx tsx scripts/export-for-culturescrape.ts
       ▼
  export/culturescrape/nodes/<node-type>.tsv + edges/<edge-type>.tsv + manifest.json
-      │              (source="linguascrape" provenance; csid = cs:<node-type>:<QID>, else <linguascrape-id>)
+      │              (source="pinakes" provenance; csid = cs:<node-type>:<QID>, else <pinakes-id>)
       │
       │ 2. RECONCILE (dry-run, network-free)   npx tsx scripts/reconciliation-report.ts
       ▼              → keys.tsv + report.json  (matched / ambiguous / likely-new buckets)
@@ -158,9 +158,9 @@ The round trip, with the exact command and artifact at each hop:
       ▼   tabular adapter → normalize → reconcile.py/merge.py → Neo4j load → Datalog
  shared graph  (Neo4j nodes/edges under shared labels + Datalog inference facts)
       │
-      │ 4. CONSUME  (LinguaScrape TS)
+      │ 4. CONSUME  (Pinakes TS)
       ▼   Neo4j TS driver (relational/graph queries) + FastAPI proxy (search / Datalog)
- LinguaScrape app  (UnifiedExplorer adapters, graph views, provenance UI)
+ Pinakes app  (UnifiedExplorer adapters, graph views, provenance UI)
       │
       │ 5. WRITE-BACK  npx tsx scripts/import-from-culturescrape.ts  [--overwrite]
       ▼   reads enriched canonical nodes/*.tsv → fills blank lexicon cells (gap-fill only)
@@ -170,9 +170,9 @@ The round trip, with the exact command and artifact at each hop:
 ```
 
 - **Steps 1, 2, 5, GATE are TypeScript in this repo** (`scripts/`). Step 3 is Python under
-  `packages/culture-scrape/`; step 4 is the LinguaScrape app + the `graph-app-integration` PRD.
+  `packages/culture-scrape/`; step 4 is the Pinakes app + the `graph-app-integration` PRD.
 - **Step 3 is itself a one-command, offline, reproducible recipe:** `culturescrape run
-  jobs/linguascrape.yml` (re)builds the LinguaScrape-inclusive corpus — ingest → reconcile →
+  jobs/pinakes.yml` (re)builds the Pinakes-inclusive corpus — ingest → reconcile →
   link → Datalog/Neo4j — from the committed fixture export, with a committed manifest
   (`packages/culture-scrape/docs/convergence-manifest.json`) asserted against a fresh build in
   CI. The full operational recipe — build the *live* corpus, load Neo4j, materialize Datalog,
@@ -183,7 +183,7 @@ The round trip, with the exact command and artifact at each hop:
 - **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/
   `retrieved_at`/`confidence`; the original citation rides in the node `source_query`.
 
-## 9. Add a new LinguaScrape domain to the graph
+## 9. Add a new Pinakes domain to the graph
 
 To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
 
@@ -193,7 +193,7 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
    doesn't exist yet, add it to `nodeTypes` (or an edge to `edgeTypes`) in the canonical schema
    **and** to the §1/§2 tables in `canonical-schema.md` first.
 2. **Give every column a disposition** (`target` / `edge` / `property` / `drop`). Follow the
-   naming conventions in `canonical-schema.md` §6.2 (`id → linguascrape_id`, `name → name`,
+   naming conventions in `canonical-schema.md` §6.2 (`id → pinakes_id`, `name → name`,
    `sources → source`, `latitude/longitude → lat/lon`, …). A `drop` needs a documented `reason`.
 3. **Embedded relationships** (FK columns like `parent_id`, `*_culture_ids`): give them the
    `edge` disposition and, if the target `:TYPE` value vocabulary is free-text, add it to the
@@ -221,13 +221,13 @@ load Neo4j → materialize Datalog → smoke-test from the app), follow the oper
 | Step | Owner (runtime / location) | Reference |
 |---|---|---|
 | Canonical schema + lexicon mapping (contract) | **shared** — `shared/`, `docs/` | `canonical-schema.md` §1–§6 |
-| Export / reconcile dry-run / write-back / QA gate | **LinguaScrape (TS)** — `scripts/`, `server/services/` | `canonical-schema.md` §7–§10 |
+| Export / reconcile dry-run / write-back / QA gate | **Pinakes (TS)** — `scripts/`, `server/services/` | `canonical-schema.md` §7–§10 |
 | Tabular ingestion, reconcile/merge, ontology linking, Neo4j load, Datalog rules | **culture-scrape (Python)** — `packages/culture-scrape/` | see below |
-| Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **LinguaScrape (TS)** — `server/`, `client/` | `graph-app-integration` PRD |
+| Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **Pinakes (TS)** — `server/`, `client/` | `graph-app-integration` PRD |
 
 Python-side cross-links (same repo, `packages/culture-scrape/`):
 
-- **Ingesting the export:** [`docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)
+- **Ingesting the export:** [`docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)
   — how the export flows through reconcile, and which side owns each merge decision.
 - **Reconciliation cascade:** `src/culturescrape/schema/reconcile.py` (QID lookup) +
   `merge.py` (clustering/merge); see [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md).
@@ -241,7 +241,7 @@ Python-side cross-links (same repo, `packages/culture-scrape/`):
 
 ## 10b. App-side graph API routes (`/api/graph/*`)
 
-The browser talks only to the LinguaScrape origin. `server/routes/graph.ts`
+The browser talks only to the Pinakes origin. `server/routes/graph.ts`
 (`registerGraphRoutes`, wired in `server/routes.ts`) exposes a first-party proxy over
 the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 (`server/services/graph-store.ts`); search/metrics run through the FastAPI sidecar client
@@ -256,7 +256,7 @@ the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
 | `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
 | `POST /api/graph/datalog` | sidecar `/datalog` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
 | `POST /api/graph/cypher` | sidecar `/neo4j` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
-| `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a LinguaScrape entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
+| `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a Pinakes entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
 **Sidecar JSON contract (US-003).** The FastAPI explorer's `/search`, `/metrics`, and
@@ -395,7 +395,7 @@ down (see the degradation contract in §10b).
 | `CULTURESCRAPE_CORPUS` | docker-compose (`culturescrape` service) | `tests/fixtures/explorer-corpus` | Corpus the sidecar serves; point at a mounted built corpus for real data. |
 | `NEO4J_URI` | `server/services/graph-store.ts` | `bolt://localhost:7687` | Bolt endpoint of the shared graph store. |
 | `NEO4J_USER` / `NEO4J_PASSWORD` | `graph-store.ts` | `neo4j` / *(empty)* | Neo4j credentials. |
-| `NEO4J_AUTH` | docker-compose (`neo4j` service) | `neo4j/linguascrape` | `user/password` for the container; **must equal** `NEO4J_USER`/`NEO4J_PASSWORD`. |
+| `NEO4J_AUTH` | docker-compose (`neo4j` service) | `neo4j/pinakes` | `user/password` for the container; **must equal** `NEO4J_USER`/`NEO4J_PASSWORD`. |
 | `NEO4J_DATABASE` | `graph-store.ts` | `neo4j` | Target database name. |
 | `NEO4J_QUERY_TIMEOUT_MS` / `NEO4J_CONNECTION_TIMEOUT_MS` | `graph-store.ts` | `10000` / `5000` | Driver query + connection-acquisition timeouts. |
 | `NEO4J_MAX_POOL_SIZE` | `graph-store.ts` | `50` | Connection-pool ceiling. |
@@ -468,15 +468,15 @@ the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pa
 
 ### Cross-links
 
-- **Convergence (data-layer) work — LinguaScrape-side tasklist 15:** the export / reconcile /
+- **Convergence (data-layer) work — Pinakes-side tasklist 15:** the export / reconcile /
   write-back / QA toolchain (§7) is driven by
   [`tasks/ralph/completed/data-layer-convergence.json`](../tasks/ralph/completed/data-layer-convergence.json),
   specified in [`docs/canonical-schema.md`](./canonical-schema.md). It produces the canonical
   `nodes/`/`edges/` TSVs this integration consumes once loaded into Neo4j.
 - **Python-side convergence — tasklist 16:**
-  [`tasks/ralph/completed/linguascrape-convergence-python.json`](../tasks/ralph/completed/linguascrape-convergence-python.json)
+  [`tasks/ralph/completed/pinakes-convergence-python.json`](../tasks/ralph/completed/pinakes-convergence-python.json)
   and the vendored engine under [`packages/culture-scrape/`](../packages/culture-scrape/) —
-  ingestion ([`docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)),
+  ingestion ([`docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)),
   Neo4j load ([`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md)) and Datalog
   ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
   (`mypy` / `pytest` / `ruff`), not the app's.
@@ -499,9 +499,9 @@ the template for retiring the remaining hand-rolled joins (`cross-domain-correla
   math is shared, the two paths produce **bit-identical** ranked results on a shared
   fixture — that is the parity guarantee (`cross-domain-correlation-graph.test.ts`).
 - **Domain → `:LABEL` map** (`DOMAIN_LABELS`): `language→Language`, `cuisine→Cuisine`,
-  `religion→Religion`, `civilization→Culture`. `music`/`haplogroup` are LinguaScrape-only
+  `religion→Religion`, `civilization→Culture`. `music`/`haplogroup` are Pinakes-only
   domains with no graph node type, so a query touching them is not graph-eligible and
-  always uses the in-memory path. Node props project as: `linguascrape_id`→id (fallback
+  always uses the in-memory path. Node props project as: `pinakes_id`→id (fallback
   csid), `lat`/`lon`→coordinates, `time_start`/`time_end`, `region`, and
   `associated_language_ids`→`languageIds`.
 - **Feature-flagged + degrades cleanly.** `correlateWithGraphFallback` is the single
@@ -513,7 +513,7 @@ the template for retiring the remaining hand-rolled joins (`cross-domain-correla
 
 ## 11. Non-goals
 
-- Rewriting LinguaScrape's backend or frontend language.
+- Rewriting Pinakes's backend or frontend language.
 - Abandoning TSV — it remains the portable source of truth on both sides.
 - Moving CPU-domain compute (linguistic distance, etymology) out of TS.
 
@@ -521,7 +521,7 @@ the template for retiring the remaining hand-rolled joins (`cross-domain-correla
 
 The work is driven by [Ralph](../docs/ralph-workflow.md) PRDs under `tasks/ralph/` (run via
 `scripts/ralph/run-all.sh`). Convergence-related PRDs, in dependency order:
-`data-layer-convergence` (**implemented**, §7) → `linguascrape-convergence-python` (Python side,
+`data-layer-convergence` (**implemented**, §7) → `pinakes-convergence-python` (Python side,
 **implemented**) → `graph-app-integration` (app-side graph integration, **implemented**, §10b/§10c).
 The first two now live in `tasks/ralph/completed/`; the app-side runbook is §10c.
 The remaining roadmap PRDs (`data-acquisition`, `narrative-education`, `platform-infra`,

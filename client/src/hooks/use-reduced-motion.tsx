@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const RM_STORAGE_KEY = 'linguascrape-reduced-motion';
+const RM_STORAGE_KEY = 'pinakes-reduced-motion';
 
 export function useReducedMotion() {
   const [reducedMotion, setReducedMotion] = useState(() => {

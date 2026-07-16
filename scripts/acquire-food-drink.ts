@@ -23,7 +23,7 @@
  *    when present, else blank. Blank is fine; `coordinates` is a property column.
  *  - Drop QID-named / empty labels, and anything whose normalised name already exists in the
  *    curated lexicon (dedup against the same node type — never a duplicate). Ids are deduped
- *    across the WHOLE corpus (the export's `ambiguousLinguascrapeIds` diagnostic keys on the
+ *    across the WHOLE corpus (the export's `ambiguousPinakesIds` diagnostic keys on the
  *    raw id across every node type), so a generic id gets a domain suffix on collision.
  *  - Every emitted row carries full provenance: `wikidata_qid`, `source_url`, `retrieved_at`,
  *    `confidence`, `sources` (Guiding Principle #8).
@@ -43,7 +43,7 @@ const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "Pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for Wikidata-acquired rows, on the 0–1 scale (export leaves ≤1 as-is). */
 // `unreferenced-wikidata` (0.8) — a bulk WDQS class-membership pull taken as-is;

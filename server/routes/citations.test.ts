@@ -61,7 +61,7 @@ describe("GET /api/citations/:domain/:id", () => {
     expect(res.headers.get("content-type")).toContain("application/x-bibtex");
     expect(res.headers.get("content-disposition")).toBe('attachment; filename="minoan.bib"');
     const text = await res.text();
-    expect(text).toContain("@misc{linguascrape-culture-profile-minoan,");
+    expect(text).toContain("@misc{pinakes-culture-profile-minoan,");
     expect(text).toContain("title = {Minoan Civilization}");
     expect(text).toContain("@misc{minoan-evans-1921,");
     // the record entry's url is derived from the request host

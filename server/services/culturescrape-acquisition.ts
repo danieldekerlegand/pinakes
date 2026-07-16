@@ -1,7 +1,7 @@
 /**
  * culture-scrape Wikidata bulk-acquisition orchestration (US-005).
  *
- * LinguaScrape triggers large-scale Wikidata ingestion from the scraper
+ * Pinakes triggers large-scale Wikidata ingestion from the scraper
  * dashboard, but the actual SPARQL set-acquisition is **culture-scrape's** job —
  * we never grow a second TS SPARQL client (single-entity URL extraction in
  * `url-extractor.ts` uses the REST `Special:EntityData` endpoint; bulk queries go
@@ -58,7 +58,7 @@ export interface AcquisitionCategory {
   nodeLabel: string;
   /** Whether the SPARQL binds coordinates (`wdt:P625`) — sites require them. */
   requireCoordinates: boolean;
-  /** LinguaScrape contribution bucket acquired records are filed under. */
+  /** Pinakes contribution bucket acquired records are filed under. */
   entityType: ContributionEntityType;
 }
 

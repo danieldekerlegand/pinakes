@@ -1,6 +1,6 @@
 # PWA & Offline Support (US-011)
 
-LinguaScrape ships as an installable, offline-capable Progressive Web App. The
+Pinakes ships as an installable, offline-capable Progressive Web App. The
 implementation is dependency-free (no `vite-plugin-pwa`/Workbox): a hand-authored
 service worker plus a web app manifest, with all routing/registration decisions
 factored into pure, unit-tested TypeScript.
@@ -35,10 +35,10 @@ Vite's HMR/module requests and break hot reload. To manually clear a stuck SW, c
 | Request | Strategy | Cache |
 | --- | --- | --- |
 | non-GET / `text/event-stream` | network-only | — |
-| same-origin `/api/*` (data) | network-first | `linguascrape-data-*` |
-| same-origin navigation (HTML) | network-first (falls back to precached `/`) | `linguascrape-shell-*` |
-| same-origin static asset (hashed JS/CSS/img) | cache-first | `linguascrape-shell-*` |
-| allow-listed cross-origin (fonts, basemap tiles) | stale-while-revalidate | `linguascrape-runtime-*` |
+| same-origin `/api/*` (data) | network-first | `pinakes-data-*` |
+| same-origin navigation (HTML) | network-first (falls back to precached `/`) | `pinakes-shell-*` |
+| same-origin static asset (hashed JS/CSS/img) | cache-first | `pinakes-shell-*` |
+| allow-listed cross-origin (fonts, basemap tiles) | stale-while-revalidate | `pinakes-runtime-*` |
 | any other cross-origin | network-only | — |
 
 - **Data is network-first**, so online users always get fresh data and offline users
@@ -63,7 +63,7 @@ from an old cache):
 
 On the next visit, the new SW's `install` precaches the shell into the new
 `…-<version>` caches, and its `activate` handler calls `staleCacheNames()` to delete
-every `linguascrape-*` cache **not** in `MANAGED_CACHES` — i.e. all the old-version
+every `pinakes-*` cache **not** in `MANAGED_CACHES` — i.e. all the old-version
 caches. `skipWaiting()` + `clients.claim()` make the new SW take control immediately.
 
 Because content-hashed asset filenames change per build, individual asset updates do

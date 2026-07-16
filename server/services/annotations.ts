@@ -13,7 +13,7 @@
  * filesystem wrapper over them.
  *
  * Each annotation is keyed by (entity **stable id** + owner): the entity is
- * referenced by the same deterministic `cs:<node-type>:<linguascrape-id>` csid
+ * referenced by the same deterministic `cs:<node-type>:<pinakes-id>` csid
  * used by collections / the shared-graph convergence work, so an annotation
  * survives renames of denormalized display fields and lines up 1:1 with graph
  * nodes. Ownership is a soft, opaque owner id (there is no auth).
@@ -27,11 +27,11 @@ import path from "path";
 // Types
 // ============================================================================
 
-/** A LinguaScrape entity reference — the same shape as the client `GraphEntityRef`. */
+/** A Pinakes entity reference — the same shape as the client `GraphEntityRef`. */
 export interface AnnotationEntityRef {
   /** Canonical node type, e.g. `"language"`, `"culture"`, `"battle"`. */
   type: string;
-  /** LinguaScrape local id — the strong, stable signal. */
+  /** Pinakes local id — the strong, stable signal. */
   id: string;
   /** Display name, denormalized so an annotation renders without re-fetching. */
   name?: string;
@@ -102,7 +102,7 @@ export const MAX_ANNOTATION_LENGTH = 10_000;
 
 /**
  * The stable reference key for an entity — mirrors `collections.stableEntityId`
- * / `graph-resolver.mintCsid` (`cs:<node-type>:<linguascrape-id>`). Kept local so
+ * / `graph-resolver.mintCsid` (`cs:<node-type>:<pinakes-id>`). Kept local so
  * this module stays free of the graph-resolver's filesystem imports.
  */
 export function stableEntityId(ref: Pick<AnnotationEntityRef, "type" | "id">): string {

@@ -1,23 +1,23 @@
-"""Compose several dump blueprints and the LinguaScrape export into one corpus.
+"""Compose several dump blueprints and the Pinakes export into one corpus.
 
 US-003 proved a *single* blueprint (food-drink) builds from the Wikidata dump
 slice offline. US-004 needs the next shape: **several** dump domains (language,
-myth-religion) stitched together *and* merged with the existing LinguaScrape
-convergence corpus — so a Wikidata language that LinguaScrape already curates
+myth-religion) stitched together *and* merged with the existing Pinakes
+convergence corpus — so a Wikidata language that Pinakes already curates
 collapses to one node rather than duplicating.
 
 The stitch itself is not new: :func:`culturescrape.orchestrate.corpus.build_corpus`
 already stitches every category in a job into one graph (same-``csid`` rows
 merge, ``docs/data-model.md``), and ``csid`` is QID-anchored, so a shared
-Wikidata entity reconciles across the dump and the LinguaScrape export for free.
+Wikidata entity reconciles across the dump and the Pinakes export for free.
 The only missing piece is *assembly*: turning N blueprints (in dump mode) plus
-the LinguaScrape export into the single job whose categories ``build_corpus``
+the Pinakes export into the single job whose categories ``build_corpus``
 then stitches. That is what :func:`write_merged_job` does — it reuses
 :func:`culturescrape.orchestrate.generate.generate` (dump mode) per blueprint and
-appends a ``linguascrape-export`` category, then writes one runnable job.
+appends a ``pinakes-export`` category, then writes one runnable job.
 
 Run the result with ``culturescrape run`` exactly like any other job; the merged
-corpus's node/edge counts by label/``:TYPE`` (and LinguaScrape's contribution to
+corpus's node/edge counts by label/``:TYPE`` (and Pinakes's contribution to
 them) land in its committed manifest (:mod:`culturescrape.orchestrate.manifest`),
 and its idempotent double-load is verifiable offline
 (:func:`culturescrape.neo4j.merge_load.verify_idempotent_load`).
@@ -35,13 +35,13 @@ import yaml
 
 from culturescrape.orchestrate.generate import DumpSource, generate
 
-#: The category id / filename the LinguaScrape export is written under.
-LINGUASCRAPE_CATEGORY_ID = "linguascrape"
+#: The category id / filename the Pinakes export is written under.
+PINAKES_CATEGORY_ID = "pinakes"
 
-#: The dimensions the LinguaScrape export category declares — the canonical rows
+#: The dimensions the Pinakes export category declares — the canonical rows
 #: already carry their own ``:LABEL``/``:TYPE``, so this only names the linker
-#: dimensions the merged corpus runs (matching ``categories/linguascrape.yml``).
-_LINGUASCRAPE_DIMENSIONS = ("temporal", "geographic", "linguistic", "genetic")
+#: dimensions the merged corpus runs (matching ``categories/pinakes.yml``).
+_PINAKES_DIMENSIONS = ("temporal", "geographic", "linguistic", "genetic")
 
 
 class MergeError(ValueError):
@@ -63,17 +63,17 @@ def write_merged_job(
     *,
     dump: DumpSource,
     name: str = "merged-dump",
-    linguascrape_export: str | Path | None = None,
+    pinakes_export: str | Path | None = None,
     force: bool = False,
     min_component_fraction: float | None = None,
     min_provenance_completeness: float | None = None,
     tiered_trust: bool = True,
 ) -> MergeResult:
-    """Expand *blueprints* (dump mode) + the LinguaScrape export into one job.
+    """Expand *blueprints* (dump mode) + the Pinakes export into one job.
 
     Each blueprint is expanded through :func:`generate` in dump mode (every
     ``wikidata_class`` stub retargeted at *dump*) into *out_dir*; when
-    *linguascrape_export* is given, a ``linguascrape-export`` category reading
+    *pinakes_export* is given, a ``pinakes-export`` category reading
     that export root is written alongside them. A single runnable job listing
     every category is then written to *job_path*, with *output_root* defaulting
     to ``out/<name>`` (mirroring :func:`generate`) and the two corpus floors
@@ -81,7 +81,7 @@ def write_merged_job(
     merged corpus.
 
     Raises:
-        MergeError: If no blueprint is given, or the LinguaScrape export path is
+        MergeError: If no blueprint is given, or the Pinakes export path is
             not a directory.
     """
     if not blueprints:
@@ -94,10 +94,10 @@ def write_merged_job(
         result = generate(blueprint, out_dir, dump=dump, force=force)
         category_paths.extend(result.categories)
 
-    if linguascrape_export is not None:
+    if pinakes_export is not None:
         category_paths.append(
-            _write_linguascrape_category(
-                out_dir, Path(linguascrape_export), force=force
+            _write_pinakes_category(
+                out_dir, Path(pinakes_export), force=force
             )
         )
 
@@ -113,10 +113,10 @@ def write_merged_job(
     return MergeResult(categories=tuple(category_paths), job=job)
 
 
-def _write_linguascrape_category(
+def _write_pinakes_category(
     out_dir: Path, export_root: Path, *, force: bool
 ) -> Path:
-    """Write a ``linguascrape-export`` category reading *export_root*.
+    """Write a ``pinakes-export`` category reading *export_root*.
 
     The export root is stored as an **absolute** path so the category resolves
     regardless of the directory ``culturescrape run`` is invoked from (the
@@ -124,30 +124,30 @@ def _write_linguascrape_category(
     """
     if not export_root.is_dir():
         raise MergeError(
-            f"LinguaScrape export root {export_root} is not a directory "
+            f"Pinakes export root {export_root} is not a directory "
             "(expected a nodes/ + edges/ canonical export)"
         )
     out_dir.mkdir(parents=True, exist_ok=True)
-    dest = out_dir / f"{LINGUASCRAPE_CATEGORY_ID}.yml"
+    dest = out_dir / f"{PINAKES_CATEGORY_ID}.yml"
     if dest.exists() and not force:
         raise MergeError(f"{dest} already exists; pass force=True to overwrite")
     mapping: dict[str, Any] = {
-        "id": LINGUASCRAPE_CATEGORY_ID,
+        "id": PINAKES_CATEGORY_ID,
         "label": "Entity",
         "description": (
-            "LinguaScrape's canonical nodes/edges export, ingested as a "
+            "Pinakes's canonical nodes/edges export, ingested as a "
             "first-class source for the merged corpus."
         ),
         "source": {
             "type": "dump",
             "query": str(export_root.resolve()),
-            "params": {"adapter": "linguascrape-export", "source": "linguascrape"},
+            "params": {"adapter": "pinakes-export", "source": "pinakes"},
         },
-        "dimensions": list(_LINGUASCRAPE_DIMENSIONS),
+        "dimensions": list(_PINAKES_DIMENSIONS),
         "links": [],
     }
     header = (
-        "# Generated by `culturescrape merge` — the LinguaScrape convergence\n"
+        "# Generated by `culturescrape merge` — the Pinakes convergence\n"
         "# export ingested as a first-class source for the merged corpus.\n"
     )
     dest.write_text(header + _render_yaml(mapping), encoding="utf-8")
@@ -173,7 +173,7 @@ def _write_job(
     output_root = os.path.relpath(base.parent / "out" / name, base)
     mapping: dict[str, Any] = {
         "name": name,
-        "description": f"Merged dump + LinguaScrape corpus ({name}).",
+        "description": f"Merged dump + Pinakes corpus ({name}).",
         "categories": rels,
         "output_root": output_root,
         # A merged corpus stitches several sources that type a shared entity
@@ -204,7 +204,7 @@ def _render_yaml(mapping: dict[str, Any]) -> str:
 
 
 __all__ = [
-    "LINGUASCRAPE_CATEGORY_ID",
+    "PINAKES_CATEGORY_ID",
     "MergeError",
     "MergeResult",
     "write_merged_job",

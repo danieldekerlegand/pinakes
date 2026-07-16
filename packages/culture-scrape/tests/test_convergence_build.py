@@ -1,9 +1,9 @@
-"""US-008: the reproducible LinguaScrape convergence build.
+"""US-008: the reproducible Pinakes convergence build.
 
-Drives the *real* shipped job (``jobs/linguascrape.yml`` +
-``categories/linguascrape.yml``) through the whole corpus pipeline — acquire,
+Drives the *real* shipped job (``jobs/pinakes.yml`` +
+``categories/pinakes.yml``) through the whole corpus pipeline — acquire,
 normalize, stitch, link, validate, gate, export — from the committed fixture
-export, so the run is deterministic and offline (the ``linguascrape-export``
+export, so the run is deterministic and offline (the ``pinakes-export``
 adapter reads a local directory; no network). It proves the recipe end to end
 and pins the corpus shape against the committed manifest snapshot.
 """
@@ -27,8 +27,8 @@ from culturescrape.orchestrate.manifest import manifest_for_dataset
 from culturescrape.schema.validate import validate_directory
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-JOB_PATH = REPO_ROOT / "jobs" / "linguascrape.yml"
-FIXTURE_EXPORT = REPO_ROOT / "tests" / "fixtures" / "linguascrape" / "export"
+JOB_PATH = REPO_ROOT / "jobs" / "pinakes.yml"
+FIXTURE_EXPORT = REPO_ROOT / "tests" / "fixtures" / "pinakes" / "export"
 COMMITTED_MANIFEST = REPO_ROOT / "docs" / "convergence-manifest.json"
 
 
@@ -56,7 +56,7 @@ def _build(output_root: Path) -> CorpusBuild:
 
 
 def test_shipped_job_declares_relaxed_corpus_floors() -> None:
-    # The recipe is self-contained: the floors that let a LinguaScrape-only
+    # The recipe is self-contained: the floors that let a Pinakes-only
     # corpus pass live in the committed job, not in a hand-typed CLI flag.
     job = load_job(JOB_PATH)
     assert job.min_provenance_completeness == 0.0
@@ -79,11 +79,11 @@ def test_build_passes_quality_gates(tmp_path: Path) -> None:
     assert build.qa.ok
     assert build.qa.violations == ()
     gates = {gate.key: gate for gate in build.qa.gates}
-    # The correctness gates stay strictly clean, and the LinguaScrape-scoped
-    # provenance gate confirms every LinguaScrape row keeps its source stamp.
+    # The correctness gates stay strictly clean, and the Pinakes-scoped
+    # provenance gate confirms every Pinakes row keeps its source stamp.
     assert gates["dangling_edge_rate"].value == 0.0
     assert gates["duplicate_rate"].value == 0.0
-    assert gates["linguascrape_provenance_completeness"].value == 1.0
+    assert gates["pinakes_provenance_completeness"].value == 1.0
 
 
 def test_build_generates_neo4j_and_datalog_exports(tmp_path: Path) -> None:
@@ -105,10 +105,10 @@ def test_build_writes_manifest_matching_committed_snapshot(tmp_path: Path) -> No
     # The committed fingerprint must match a fresh build, so a corpus that
     # silently gains/drops a node or edge type fails CI.
     assert written == committed
-    # It records node/edge type counts and the LinguaScrape-origin edge subset.
+    # It records node/edge type counts and the Pinakes-origin edge subset.
     assert written["nodes_by_label"]
     assert written["edges_by_type"]
-    assert written["linguascrape_edges_by_type"] == {"DESCENDS_FROM": 1}
+    assert written["pinakes_edges_by_type"] == {"DESCENDS_FROM": 1}
 
 
 def test_manifest_for_dataset_reproduces_the_written_manifest(tmp_path: Path) -> None:
@@ -146,7 +146,7 @@ def test_parse_fraction_accepts_bounds_and_none() -> None:
 
 
 def test_load_job_rejects_an_out_of_range_fraction(tmp_path: Path) -> None:
-    category = REPO_ROOT / "categories" / "linguascrape.yml"
+    category = REPO_ROOT / "categories" / "pinakes.yml"
     path = tmp_path / "bad.yml"
     path.write_text(
         "name: bad\n"

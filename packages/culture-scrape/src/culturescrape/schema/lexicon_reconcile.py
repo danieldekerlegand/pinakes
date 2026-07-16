@@ -1,9 +1,9 @@
-"""Reconcile an acquired corpus of nodes against an existing LinguaScrape lexicon.
+"""Reconcile an acquired corpus of nodes against an existing Pinakes lexicon.
 
 A domain expansion (e.g. the civilizations pilot, ``docs/prd`` §15) acquires many
 rows from Wikidata and must fold them into the corpus **without duplicating** the
-entities LinguaScrape already curates in ``lexicons/<domain>.tsv``. The decision
-logic is :func:`reconcile_linguascrape`'s offline cascade — language code, then
+entities Pinakes already curates in ``lexicons/<domain>.tsv``. The decision
+logic is :func:`reconcile_pinakes`'s offline cascade — language code, then
 exact ``(name, type, region)``, then fuzzy name — which classifies every acquired
 row *matched* (already curated → merge, keep provenance), *new* (stands as its own
 node), or *ambiguous* (rival curated rows → never auto-merged, held for triage).
@@ -25,7 +25,7 @@ from .mapper import OVERFLOW_KEY
 from .reconcile import (
     LocalOutcome,
     LocalReconciliationReport,
-    reconcile_linguascrape,
+    reconcile_pinakes,
 )
 from .tsvio import Row
 
@@ -223,7 +223,7 @@ def render_markdown(summary: ReconciliationSummary) -> str:
     lines = [
         f"# Reconciliation report — {s.domain}",
         "",
-        "Offline cascade (`reconcile_linguascrape`): each acquired row classified "
+        "Offline cascade (`reconcile_pinakes`): each acquired row classified "
         "against the existing curated lexicon by language code → exact "
         "`(name, type, region)` → fuzzy name. Ambiguous rows are **never** "
         "auto-merged.",
@@ -289,7 +289,7 @@ def reconcile_corpus_against_lexicon(
         node_type=node_type,
         region_column=region_column,
     )
-    report = reconcile_linguascrape(
+    report = reconcile_pinakes(
         incoming, existing, fuzzy_threshold=fuzzy_threshold
     )
     summary = summarize(

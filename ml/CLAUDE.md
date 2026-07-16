@@ -12,7 +12,7 @@ The shape every dataset/metric deliverable follows:
 - **Pure core over an input dir** (`triples.py`): `load_* → transform → build_manifest`,
   no wall-clock / network / MLflow, so it is byte-reproducible and tests drive it
   with tiny temp-dir fixtures. Filesystem writes + MLflow live in a thin CLI
-  (`export_triples.py`), runnable as `python -m linguascrape_ml.<mod>` AND as a
+  (`export_triples.py`), runnable as `python -m pinakes_ml.<mod>` AND as a
   `[project.scripts]` console script (adding a script entry does NOT change
   `uv.lock` — CI's `uv sync --frozen` stays green).
 - **Committed manifest = the snapshot** (`ml/manifests/*.json`): counts + content
@@ -27,7 +27,7 @@ The shape every dataset/metric deliverable follows:
   `docs/convergence-qa-baseline.json`; it runs locally, skips in CI.
 - **GOTCHA — repo-root path from a test file:** `ml/tests/x.py` →
   `Path(__file__).resolve().parents[2]` is the repo root (parents[1] = `ml/`). From
-  a `src/linguascrape_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
+  a `src/pinakes_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
   `.parent`). Off-by-one here silently skips the live gate.
 
 ## Corpus facts (edges → triples)
@@ -41,7 +41,7 @@ The shape every dataset/metric deliverable follows:
   stored structural edge (not excluded). See `EXCLUDED_RELATIONS` in `triples.py`.
 - The export emits **one edge row per supporting datum** (a language-pair
   `COGNATE_WITH` recurs once per shared cognate word, differing only in
-  `linguascrape_id`); dedup on `(head, relation, tail)` for link prediction
+  `pinakes_id`); dedup on `(head, relation, tail)` for link prediction
   (5,836 rows → 2,267 triples today).
 - **Leakage-safe splits group by unordered entity pair** `{head, tail}` so inverse
   (symmetric `COGNATE_WITH`/`SYNCRETIZED_WITH`), cross-relation, and reverse-direction
@@ -63,7 +63,7 @@ The shape every dataset/metric deliverable follows:
   sha256 as "the version these metrics were measured on". Don't put the `ml/data` md5 in
   the doc — it's circular (adding the embeddings changes it after the doc is written).
 - **torch/pykeen/numpy imported LAZILY inside functions** (module top stays light so
-  `import linguascrape_ml` doesn't pull the heavy stack). numpy is NOT a declared dep — it
+  `import pinakes_ml` doesn't pull the heavy stack). numpy is NOT a declared dep — it
   rides in transitively via torch/pykeen (same as pandas for `from_path`), so `uv.lock`
   is unchanged and CI's `uv sync --frozen` stays green.
 - **CI smoke trains; full runs don't.** US-003's `test_baselines.py` runs a tiny in-memory
@@ -114,7 +114,7 @@ The shape every dataset/metric deliverable follows:
 
 ## MLflow / DVC
 
-- Always log via `linguascrape_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
+- Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
   — MLflow ≥3 refuses the file backend otherwise). Never `mlflow.set_tracking_uri` by
   hand. `mlruns/` is git-ignored; preserved metrics go to `docs/ml-baselines.md`.
 - DVC is at the repo root; run it as `uv run --project ml dvc <cmd>`. After

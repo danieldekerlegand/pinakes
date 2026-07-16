@@ -5,7 +5,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
 ## Canonical convergence schema
 
 - `canonical-schema.json` is the **machine-readable source of truth** for the shared
-  culture-scrape ↔ LinguaScrape node/edge model. `canonical-schema.ts` types it and
+  culture-scrape ↔ Pinakes node/edge model. `canonical-schema.ts` types it and
   exposes accessors (`nodeHeaderRow`, `edgeHeaderRow`, `*ProvenanceColumns`,
   `nodeTypeByName`, …). Consume from `@shared/canonical-schema`; never fork the JSON.
 - Column contracts mirror culture-scrape's Neo4j-import headers
@@ -52,7 +52,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   culture-scrape's `orchestrate/tiers.py` `classify_tier`. `classifyTrustTier({source, wikidataQid,
   sourceUrl, isEdge})` is a pure, dependency-free function of the *already-canonical* provenance
   columns (so `tier` is **derived**, never a stored column). Precedence must stay byte-identical to
-  the Python: `inferred:` prefix → `inferred`; a `linguascrape` source token → `curated`; else a
+  the Python: `inferred:` prefix → `inferred`; a `pinakes` source token → `curated`; else a
   node auto-admits iff QID-anchored **and** reference-backed (an edge on a citation alone), else
   `quarantine`. `ALL_TRUST_TIERS` / `TRUST_TIER_META` / `trustTierMeta(tier)` give the ordered
   list + display label/description. Consume via `@shared/trust-tier`.
@@ -63,7 +63,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   `curated` by definition); and `server/services/data-quality-scorer.ts` (`computeCorpusTiers` /
   `buildCorpusTierReport`) reports corpus composition by tier.
 - **GOTCHA — the app corpus is entirely `curated`.** Auto-admission never writes `lexicons/*.tsv`,
-  so every exported lexicon row is `source=linguascrape` → `curated` in the graph. The corpus-tier
+  so every exported lexicon row is `source=pinakes` → `curated` in the graph. The corpus-tier
   report therefore tracks **auto-admission readiness** (classify each curated node row by its own
   provenance, `source` omitted → `auto-admitted` iff QID + `source_url`, else `quarantine`) — the
   growth metric, not the graph tier. Committed snapshot `docs/corpus-tier-report.json`

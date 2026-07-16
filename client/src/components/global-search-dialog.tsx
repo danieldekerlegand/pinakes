@@ -103,7 +103,7 @@ interface SpatialSearchResponse {
   totalCount: number;
 }
 
-const RECENT_SEARCHES_KEY = "linguascrape-recent-searches";
+const RECENT_SEARCHES_KEY = "pinakes-recent-searches";
 const MAX_RECENT = 5;
 
 const ENTITY_ICONS: Record<string, React.ReactNode> = {

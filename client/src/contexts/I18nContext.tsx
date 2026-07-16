@@ -19,7 +19,7 @@ import {
   type LocaleCode,
 } from "@/lib/i18n";
 
-const STORAGE_KEY = "linguascrape.locale";
+const STORAGE_KEY = "pinakes.locale";
 
 interface I18nContextValue extends I18n {
   setLocale: (next: LocaleCode) => void;

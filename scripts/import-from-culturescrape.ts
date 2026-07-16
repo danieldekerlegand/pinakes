@@ -1,6 +1,6 @@
 /**
  * Bidirectional TSV write-back: import culture-scrape-derived facts back into the
- * LinguaScrape lexicons (US-007).
+ * Pinakes lexicons (US-007).
  *
  * US-004 exports `lexicons/*.tsv` → the shared canonical shape culture-scrape ingests.
  * This module is the return leg: it reads canonical node TSVs (the *enriched* export
@@ -17,7 +17,7 @@
  *     supplies a value is an *enrichment* and is written.
  *   * **Provenance columns are preserved.** The lexicon columns that carry provenance /
  *     citations (`sources`, the column mapped to canonical `source`, …) and the identity /
- *     confidence columns are excluded from write-back — LinguaScrape owns those.
+ *     confidence columns are excluded from write-back — Pinakes owns those.
  *   * **No data loss.** A pure round-trip (export → import with no enrichment) is a
  *     byte-identical no-op: every writeable cell already matches, so nothing changes.
  *
@@ -45,7 +45,7 @@ export const WRITEBACK_DIR = path.join(EXPORT_DIR, "writeback");
 
 /**
  * Canonical fields excluded from write-back. These are either the join key /
- * structural id (`linguascrape_id`) or LinguaScrape-owned provenance / confidence
+ * structural id (`pinakes_id`) or Pinakes-owned provenance / confidence
  * columns that must be preserved, not overwritten from the graph (AC2). The lexicon
  * column mapped to canonical `source` actually holds bibliographic citations — never
  * clobber it with the acquisition-source id.
@@ -53,7 +53,7 @@ export const WRITEBACK_DIR = path.join(EXPORT_DIR, "writeback");
 export const NON_WRITEBACK_FIELDS: ReadonlySet<string> = new Set([
   "csid",
   ":LABEL",
-  "linguascrape_id",
+  "pinakes_id",
   "wikidata_qid",
   "source",
   "source_url",
@@ -67,7 +67,7 @@ export const NON_WRITEBACK_FIELDS: ReadonlySet<string> = new Set([
 export interface WriteBackChange {
   readonly file: string;
   readonly nodeType: string;
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   readonly field: string;
   readonly column: string;
   readonly oldValue: string;
@@ -76,7 +76,7 @@ export interface WriteBackChange {
 }
 
 /**
- * An id whose `linguascrape_id` join key is not unique (the same id appears on more than
+ * An id whose `pinakes_id` join key is not unique (the same id appears on more than
  * one lexicon row, and/or more than one canonical row). Such a key cannot identify a single
  * row to write into, so the write-back **skips it entirely** — reported here, never written
  * — rather than risk writing one entity's facts into another entity's row. (The live
@@ -87,7 +87,7 @@ export interface WriteBackChange {
 export interface WriteBackAmbiguousId {
   readonly file: string;
   readonly nodeType: string;
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   /** How many lexicon rows in `file` carry this id (≥1; >1 means lexicon-side ambiguity). */
   readonly lexiconRows: number;
   /** True when the canonical export also had >1 row for this id. */
@@ -98,7 +98,7 @@ export interface WriteBackAmbiguousId {
 export interface WriteBackConflict {
   readonly file: string;
   readonly nodeType: string;
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   readonly field: string;
   readonly column: string;
   /** The human-curated value currently in the lexicon (kept unless `overwrite`). */
@@ -201,25 +201,25 @@ function canonicalNodeFieldIndex(): Map<string, number> {
   return new Map(CANONICAL_SCHEMA.node.columns.map((c, i) => [c.field, i]));
 }
 
-/** Canonical node rows indexed by `linguascrape_id`, plus the ids that were non-unique. */
+/** Canonical node rows indexed by `pinakes_id`, plus the ids that were non-unique. */
 interface CanonicalNodeIndex {
-  /** linguascrape_id → the first canonical row carrying it. */
+  /** pinakes_id → the first canonical row carrying it. */
   readonly byId: Map<string, string[]>;
   /** ids that appeared on more than one canonical row (ambiguous — do not write). */
   readonly ambiguousIds: Set<string>;
 }
 
 /**
- * Index every canonical node type's rows by `linguascrape_id`. Reads
+ * Index every canonical node type's rows by `pinakes_id`. Reads
  * `<canonicalDir>/nodes/<type>.tsv` for each node type that has a lexicon node file.
- * A `linguascrape_id` seen on more than one canonical row is recorded as ambiguous so the
+ * A `pinakes_id` seen on more than one canonical row is recorded as ambiguous so the
  * caller can skip it rather than write from an arbitrary "first" row.
  */
 function loadCanonicalNodes(
   canonicalDir: string,
 ): Map<string, CanonicalNodeIndex> {
   const fieldIdx = canonicalNodeFieldIndex();
-  const idIdx = fieldIdx.get("linguascrape_id") ?? -1;
+  const idIdx = fieldIdx.get("pinakes_id") ?? -1;
   const byType = new Map<string, CanonicalNodeIndex>();
   const types = new Set(nodeFiles().map((f) => f.node));
   for (const type of types) {
@@ -286,7 +286,7 @@ export function buildWriteBack(
   let enrichments = 0;
   let overwriteCount = 0;
 
-  // Pass 1 — parse every node file and count each `linguascrape_id` across the whole node
+  // Pass 1 — parse every node file and count each `pinakes_id` across the whole node
   // *type* (not just within one file). The same id can appear in more than one lexicon file
   // that maps to the same type (historically `mohenjo-daro` was in both `archaeological-sites.tsv`
   // and `settlements.tsv` → both `place`), which the export dedups to one canonical row.
@@ -313,7 +313,7 @@ export function buildWriteBack(
     if (reverse.size === 0) continue;
 
     const mapping = lexiconMappingByFile(file);
-    const idColumn = mapping?.columns.find((c) => c.target === "linguascrape_id");
+    const idColumn = mapping?.columns.find((c) => c.target === "pinakes_id");
     const idIdx = idColumn ? parsed.headers.indexOf(idColumn.column) : -1;
     if (idIdx < 0) continue;
     if (!canonicalByType.has(node)) continue;
@@ -347,7 +347,7 @@ export function buildWriteBack(
         const key = matchKey(node, lsId);
         if (!ambiguousSeen.has(key)) {
           ambiguousSeen.add(key);
-          ambiguous.push({ file, nodeType: node, linguascrapeId: lsId, lexiconRows, canonicalAmbiguous });
+          ambiguous.push({ file, nodeType: node, pinakesId: lsId, lexiconRows, canonicalAmbiguous });
         }
         continue;
       }
@@ -371,13 +371,13 @@ export function buildWriteBack(
           parsed.changed = true;
           enrichments += 1;
           changes.push({
-            file, nodeType: node, linguascrapeId: lsId, field, column,
+            file, nodeType: node, pinakesId: lsId, field, column,
             oldValue: "", newValue: sanitize(incoming), kind: "enrichment",
           });
         } else {
           // Curated value disagrees — a conflict. Reported, never silently resolved.
           conflicts.push({
-            file, nodeType: node, linguascrapeId: lsId, field, column,
+            file, nodeType: node, pinakesId: lsId, field, column,
             curatedValue: current, incomingValue: incoming, incomingSource,
           });
           if (overwrite) {
@@ -385,7 +385,7 @@ export function buildWriteBack(
             parsed.changed = true;
             overwriteCount += 1;
             changes.push({
-              file, nodeType: node, linguascrapeId: lsId, field, column,
+              file, nodeType: node, pinakesId: lsId, field, column,
               oldValue: current, newValue: sanitize(incoming), kind: "overwrite",
             });
           }
@@ -445,7 +445,7 @@ function setCell(row: string[], idx: number, value: string): void {
 function compareChange(a: WriteBackChange, b: WriteBackChange): number {
   return (
     cmp(a.file, b.file) ||
-    cmp(a.linguascrapeId, b.linguascrapeId) ||
+    cmp(a.pinakesId, b.pinakesId) ||
     cmp(a.field, b.field)
   );
 }
@@ -453,13 +453,13 @@ function compareChange(a: WriteBackChange, b: WriteBackChange): number {
 function compareConflict(a: WriteBackConflict, b: WriteBackConflict): number {
   return (
     cmp(a.file, b.file) ||
-    cmp(a.linguascrapeId, b.linguascrapeId) ||
+    cmp(a.pinakesId, b.pinakesId) ||
     cmp(a.field, b.field)
   );
 }
 
 function compareAmbiguous(a: WriteBackAmbiguousId, b: WriteBackAmbiguousId): number {
-  return cmp(a.file, b.file) || cmp(a.linguascrapeId, b.linguascrapeId);
+  return cmp(a.file, b.file) || cmp(a.pinakesId, b.pinakesId);
 }
 
 function cmp(a: string, b: string): number {
@@ -773,7 +773,7 @@ export function additionsReportJson(report: AdditionsReport): string {
 // ---------------------------------------------------------------------------
 // Column enrichment of EXISTING rows (US-006)
 //
-// The write-back above enriches from the canonical export (keyed by linguascrape_id). The
+// The write-back above enriches from the canonical export (keyed by pinakes_id). The
 // language-breadth story needs a sibling that enriches existing lexicon rows from a curated,
 // committed enrichment TSV keyed by an arbitrary column (`id` by default) — e.g. Wikidata
 // UNESCO endangerment status matched to `languages.tsv` by the corpus id. It shares the

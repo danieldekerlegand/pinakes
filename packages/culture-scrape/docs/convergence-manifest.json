@@ -1,5 +1,5 @@
 {
-  "job": "linguascrape",
+  "job": "pinakes",
   "node_count": 6,
   "edge_count": 3,
   "nodes_by_label": {
@@ -11,7 +11,7 @@
     "DESCENDS_FROM": 1,
     "PART_OF_PERIOD": 2
   },
-  "linguascrape_edges_by_type": {
+  "pinakes_edges_by_type": {
     "DESCENDS_FROM": 1
   }
 }

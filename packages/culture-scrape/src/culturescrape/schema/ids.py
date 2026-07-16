@@ -11,7 +11,7 @@ There are three minting paths:
   local part is the QID verbatim: ``cs:dish:Q12345``. Two rows reconciled to the
   same QID collapse to one node regardless of how their names were spelled.
 * **Alias-anchored.** When a source ships a stable local id of its own (e.g. a
-  LinguaScrape id), that id *is* the identity within its type, so the local part
+  Pinakes id), that id *is* the identity within its type, so the local part
   is the alias verbatim: ``cs:language:aap``. Re-ingesting the same source row
   mints the identical id, and the result matches the ``cs:<type>:<id>`` the
   source's own export already computed (so its edges resolve).

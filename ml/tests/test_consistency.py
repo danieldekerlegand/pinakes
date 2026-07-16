@@ -18,8 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from linguascrape_ml.baselines import render_baselines_doc
-from linguascrape_ml.consistency import (
+from pinakes_ml.baselines import render_baselines_doc
+from pinakes_ml.consistency import (
     ANTISYMMETRIC_RELATIONS,
     SYMMETRIC_RELATIONS,
     Triple,
@@ -233,7 +233,7 @@ def test_compare_baseline_flags_unratcheted_model() -> None:
 def test_render_baselines_doc_consistency_section() -> None:
     import numpy as np
 
-    from linguascrape_ml.baselines import BaselineOutcome
+    from pinakes_ml.baselines import BaselineOutcome
 
     outcome = BaselineOutcome(
         model="TransE",
@@ -310,7 +310,7 @@ def test_committed_predictions_pass_the_ratchet() -> None:
     reason="triples splits not present (DVC-tracked; run `dvc pull` locally)",
 )
 def test_generate_predictions_on_committed_splits() -> None:
-    from linguascrape_ml.baselines import (
+    from pinakes_ml.baselines import (
         generate_predictions,
         load_split_factories,
         run_pipeline,

@@ -1,17 +1,17 @@
 # Merged-corpus reconciliation — language & myth-religion (US-004)
 
 When the language and myth-religion dump domains are stitched with the existing
-LinguaScrape convergence corpus (`culturescrape merge … --linguascrape …`,
+Pinakes convergence corpus (`culturescrape merge … --pinakes …`,
 [wikidata-dump-runbook.md](wikidata-dump-runbook.md) §US-004), every acquired node
 is classified against the nearest overlapping curated lexicon by the **offline
 cascade** (`schema.lexicon_reconcile.reconcile_corpus_against_lexicon` →
-`reconcile_linguascrape`): language code → exact `(name, type, region)` → fuzzy
+`reconcile_pinakes`): language code → exact `(name, type, region)` → fuzzy
 name (cross-source floor **0.93** — a wrong merge corrupts a curated node, a
 missed one only surfaces a duplicate). **Ambiguous rows are never auto-merged** —
 they are withheld for human triage.
 
 Built from the reference slice (`wikidata-20260712-blueprint-slice`, 5,691
-entities) merged with the live LinguaScrape export (`export/culturescrape`),
+entities) merged with the live Pinakes export (`export/culturescrape`),
 2026-07-12. The built corpus is gitignored; these counts are the committed record.
 
 ## language nodes vs `lexicons/languages.tsv`
@@ -30,7 +30,7 @@ carries — e.g. Abkhaz → `cs:language:abk`, Armenian → `cs:language:hye`,
 Basque → `cs:language:eus`, Bengali → `cs:language:ben`, Bulgarian →
 `cs:language:bul`, English → `cs:language:eng`, Dutch → `cs:language:nld` (all at
 confidence 0.95, exact-name after normalization). The 1,362 `new` rows are
-mostly minor / unwritten languages LinguaScrape does not yet curate (Acehnese,
+mostly minor / unwritten languages Pinakes does not yet curate (Acehnese,
 Afar, Ahom, …) plus a handful of QID-only rows the slice carried without an
 English label. **0 ambiguous** — no acquired language collided with two rival
 curated rows.
@@ -47,18 +47,18 @@ curated rows.
 | union distinct | 229 |
 
 198 of the 221 corpus deities reconcile onto a curated `deities.tsv` row — the
-LinguaScrape-origin deities (Aphrodite, Anubis, Brahma, …) re-match their own
+Pinakes-origin deities (Aphrodite, Anubis, Brahma, …) re-match their own
 curated rows, and the Wikidata `Q178885` members whose names align (Ahura Mazda,
 Baal, Beelzebub, …) fold onto the curated entity. The 23 `new` deities (Abellio,
-Abraxas, Am-heh, Anshar, Bennu, …) are candidates LinguaScrape does not yet
+Abraxas, Am-heh, Anshar, Bennu, …) are candidates Pinakes does not yet
 curate. **0 ambiguous.**
 
 ## Why the merge is lossless
 
 `csid` is `cs:<node-type>:<QID>`, so a shared Wikidata entity that two sources
-type differently (a deity typed `Concept` by the dump vs `Deity` by LinguaScrape,
+type differently (a deity typed `Concept` by the dump vs `Deity` by Pinakes,
 a script typed `Language` vs `WritingSystem`, a place-hub the linker mints for a
-QID LinguaScrape curates as a `Culture`) would otherwise land as **two** nodes.
+QID Pinakes curates as a `Culture`) would otherwise land as **two** nodes.
 The merged build runs `ontology.reconcile_qid.reconcile_shared_qids` (opt-in via
 the job's `reconcile_shared_qids: true`), which collapses same-QID nodes into one
 — unioning their labels and redirecting edges — so **one QID is one node**. On

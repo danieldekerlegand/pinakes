@@ -10,7 +10,7 @@ see [`datalog.md` § Schema constraints](datalog.md) for the mechanism.
 This doc is the **triage** half of the acceptance criterion: what the current corpus
 violates, and what to do about it.
 
-## Current violations (full LinguaScrape corpus)
+## Current violations (full Pinakes corpus)
 
 Regenerated with
 `culturescrape schema-constraints export/culturescrape --json docs/schema-constraints-report.json`;

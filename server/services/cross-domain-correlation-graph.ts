@@ -29,7 +29,7 @@ import { GraphUnavailableError, type GraphNode } from "./graph-store";
 /**
  * The correlation domains that exist as node `:LABEL`s in the shared graph, per
  * the canonical schema (shared/canonical-schema.json). `music` and `haplogroup`
- * are LinguaScrape-only domains with no graph node type, so a query touching
+ * are Pinakes-only domains with no graph node type, so a query touching
  * them is not graph-eligible and always uses the in-memory path.
  */
 export const DOMAIN_LABELS: Partial<Record<DomainType, string>> = {
@@ -77,7 +77,7 @@ function nonEmptyString(value: unknown): string | null {
 
 /**
  * Project a Neo4j node into the domain-agnostic {@link DomainEntity} the scoring
- * functions consume. The node's `linguascrape_id` (the alias back to the source
+ * functions consume. The node's `pinakes_id` (the alias back to the source
  * row) is the entity id when present — so a graph-loaded entity carries the same
  * id as its in-memory counterpart — else the csid. Coordinates come from the
  * canonical `lat`/`lon` dimensions; associated languages / region from the
@@ -88,7 +88,7 @@ export function graphNodeToDomainEntity(
   domain: DomainType,
 ): DomainEntity {
   const p = node.properties;
-  const id = nonEmptyString(p.linguascrape_id) ?? node.csid;
+  const id = nonEmptyString(p.pinakes_id) ?? node.csid;
   const lat = finiteNumber(p.lat);
   const lon = finiteNumber(p.lon);
   return {

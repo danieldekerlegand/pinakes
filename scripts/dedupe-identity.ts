@@ -1,9 +1,9 @@
 /**
- * US-008 — Burn duplicate csids and ambiguous linguascrape_ids to zero.
+ * US-008 — Burn duplicate csids and ambiguous pinakes_ids to zero.
  *
  * The export (`scripts/export-for-culturescrape.ts`) minted 44 duplicate csids
  * (`cs:<type>:<id>` collisions — same `id` reused by ≥2 nodes of ONE type) and 16
- * ambiguous `linguascrape_id`s (one raw `id` reused across ≥2 node TYPES → different
+ * ambiguous `pinakes_id`s (one raw `id` reused across ≥2 node TYPES → different
  * csids). Both poison every downstream join. This is the one-shot, deterministic,
  * idempotent migration that resolves them by RENAMING (never deleting curated data,
  * except three byte-identical duplicate rows) and re-pointing the affected FK / edge

@@ -78,7 +78,7 @@ describe("GET /api/dataset/full", () => {
   it("streams a downloadable JSON bundle with metadata + files", async () => {
     const res = await fetch(`${baseUrl}/api/dataset/full?datasets=languages`);
     expect(res.status).toBe(200);
-    expect(res.headers.get("content-disposition")).toContain('attachment; filename="linguascrape-dataset-v1.0.0.json"');
+    expect(res.headers.get("content-disposition")).toContain('attachment; filename="pinakes-dataset-v1.0.0.json"');
     const body = await res.json();
     expect(body.metadata.version).toBe("1.0.0");
     expect(Array.isArray(body.files)).toBe(true);

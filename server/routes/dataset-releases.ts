@@ -93,7 +93,7 @@ export function registerDatasetReleaseRoutes(
         format: parseFormat(req.query.format),
         datasets: parseDatasets(req.query.datasets),
       });
-      const filename = `linguascrape-dataset-v${snapshot.metadata.version}.json`;
+      const filename = `pinakes-dataset-v${snapshot.metadata.version}.json`;
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.send(JSON.stringify(snapshot, null, 2));

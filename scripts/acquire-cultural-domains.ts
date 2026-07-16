@@ -30,7 +30,7 @@
  *  - Class-suffix labels are normalised before reconciling (Wikidata "Latin script" → "Latin",
  *    "Gothic architecture" → "Gothic") so seed rows aren't re-added as un-caught duplicates.
  *  - Drop QID-named / empty labels and any normalised name already in the same node type; ids are
- *    deduped across the WHOLE corpus (the export's `ambiguousLinguascrapeIds` diagnostic is global).
+ *    deduped across the WHOLE corpus (the export's `ambiguousPinakesIds` diagnostic is global).
  *  - Every emitted row carries full provenance (Guiding Principle #8).
  *
  * Run:  npx tsx scripts/acquire-cultural-domains.ts [--domain writing-systems|deities|
@@ -48,7 +48,7 @@ const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "Pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for Wikidata-acquired rows, on the 0–1 scale (export leaves ≤1 as-is). */
 // `unreferenced-wikidata` (0.8) — a bulk WDQS class-membership pull taken as-is;
@@ -586,7 +586,7 @@ function curate(
    * acquired in one run before ANY write-back, so re-reading the lexicons per domain can't see a
    * sibling domain's just-minted ids — two domains would then mint the same generic id (e.g.
    * "romanticism" as both an art-tradition and a literary-tradition, "oduduwa" as both a
-   * writing-system and a deity) and regress the export's global `ambiguousLinguascrapeIds` ratchet.
+   * writing-system and a deity) and regress the export's global `ambiguousPinakesIds` ratchet.
    */
   usedIds: Set<string>,
 ): { rows: CuratedRow[]; stats: CurateStats } {
@@ -693,7 +693,7 @@ async function main(): Promise<void> {
   const retrievedAt = new Date().toISOString();
 
   // One shared used-id set for the whole run (seeded from every node lexicon), so sibling domains
-  // never mint the same id — the fix for the cross-domain `ambiguousLinguascrapeIds` collisions.
+  // never mint the same id — the fix for the cross-domain `ambiguousPinakesIds` collisions.
   const usedIds = new Set<string>();
   for (const file of nodeLexiconFiles()) {
     for (const id of readIdsAndNames(file).ids) usedIds.add(id);

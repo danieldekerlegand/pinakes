@@ -1,6 +1,6 @@
 # Progressive summary/detail loading (US-004)
 
-LinguaScrape's legacy entity list endpoints return **fully hydrated** records —
+Pinakes's legacy entity list endpoints return **fully hydrated** records —
 every field of every row. A client that only needs a name plus a couple of badge
 fields to render a list or a collapsed card still pays for the whole payload
 (descriptions, pantheons, sacred texts, diffusion paths, …). Progressive loading

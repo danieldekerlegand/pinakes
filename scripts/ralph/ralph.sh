@@ -2,7 +2,7 @@
 # Ralph Wiggum - Long-running AI agent loop
 # Usage: ./ralph.sh [--tool amp|claude] [max_iterations]
 #
-# LinguaScrape is a single repo (no submodules). Each PRD may still declare a
+# Pinakes is a single repo (no submodules). Each PRD may still declare a
 # `repo` field; it defaults to "." (the repo root), where branches/commits happen
 # and where progress detection (did a new commit land?) tracks HEAD.
 

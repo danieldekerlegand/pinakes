@@ -1,14 +1,14 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "LinguaScrape Public API",
+    "title": "Pinakes Public API",
     "version": "1.1.0",
     "description": "Programmatic contribution + read API plus a versioned public dataset API. Contribution write endpoints require an API key (via the 'X-API-Key' header or 'Authorization: Bearer <key>') when the server is configured with CONTRIBUTION_API_KEYS, and are rate-limited per key. Read endpoints are open. Submitted contributions enter a review queue; they are never written to the live dataset unreviewed. The dataset API exposes citable, versioned snapshots (semver + optional DOI) and a full-dataset download endpoint."
   },
   "servers": [
     {
       "url": "/",
-      "description": "This LinguaScrape instance"
+      "description": "This Pinakes instance"
     }
   ],
   "components": {

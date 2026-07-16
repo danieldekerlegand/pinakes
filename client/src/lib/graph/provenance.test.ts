@@ -168,11 +168,11 @@ describe("safeExternalUrl", () => {
 });
 
 describe("provenanceTier", () => {
-  it("classifies a curated LinguaScrape node from its provenance", () => {
+  it("classifies a curated Pinakes node from its provenance", () => {
     expect(
       provenanceTier(
         extractProvenance({
-          source: "linguascrape",
+          source: "pinakes",
           wikidata_qid: "Q1",
           source_url: "https://example.org",
         }),

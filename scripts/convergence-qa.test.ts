@@ -196,7 +196,7 @@ describe("convergence-qa (US-008)", () => {
       anchoredOverlap: 10,
       overlapRate: 0.1,
       duplicateCsids: 44,
-      ambiguousLinguascrapeIds: 16,
+      ambiguousPinakesIds: 16,
       edgesWithUnresolvedEndpoint: 139,
       ...over,
     });
@@ -210,7 +210,7 @@ describe("convergence-qa (US-008)", () => {
     });
     const baseline: RegressionBaseline = {
       duplicateCsids: 44,
-      ambiguousLinguascrapeIds: 16,
+      ambiguousPinakesIds: 16,
       edgesWithUnresolvedEndpoint: 139,
       reconciliationAmbiguous: 242,
     };
@@ -239,7 +239,7 @@ describe("convergence-qa (US-008)", () => {
       expect(b).toBeDefined();
       for (const k of [
         "duplicateCsids",
-        "ambiguousLinguascrapeIds",
+        "ambiguousPinakesIds",
         "edgesWithUnresolvedEndpoint",
         "reconciliationAmbiguous",
       ] as const) {

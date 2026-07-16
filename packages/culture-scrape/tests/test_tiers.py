@@ -3,7 +3,7 @@
 The classifier, manifest, and per-tier gates are pure and unit-tested here; the
 committed ``docs/tiered-corpus-manifest.json`` snapshot is asserted against a
 small fixture corpus that spans every tier; and the corpus-build integration is
-exercised offline against the LinguaScrape fixture export (all curated) plus the
+exercised offline against the Pinakes fixture export (all curated) plus the
 linker-minted inferred scaffolding.
 """
 
@@ -39,8 +39,8 @@ from culturescrape.orchestrate.tiers import (
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = Path(__file__).parent / "fixtures" / "tiered"
 COMMITTED_MANIFEST = REPO_ROOT / "docs" / "tiered-corpus-manifest.json"
-LS_JOB = REPO_ROOT / "jobs" / "linguascrape.yml"
-LS_EXPORT = Path(__file__).parent / "fixtures" / "linguascrape" / "export"
+LS_JOB = REPO_ROOT / "jobs" / "pinakes.yml"
+LS_EXPORT = Path(__file__).parent / "fixtures" / "pinakes" / "export"
 
 
 # --------------------------------------------------------------------------- #
@@ -60,13 +60,13 @@ def _edge(**cells: str) -> dict[str, object]:
     return row
 
 
-def test_curated_node_when_linguascrape_sourced() -> None:
-    assert classify_tier(_node(source="linguascrape")) == TIER_CURATED
+def test_curated_node_when_pinakes_sourced() -> None:
+    assert classify_tier(_node(source="pinakes")) == TIER_CURATED
 
 
 def test_curated_wins_even_when_qid_and_reference_present() -> None:
     # A reconciled row carries both stamps; human curation is the stronger signal.
-    row = _node(source="linguascrape;wikidata", wikidata_qid="Q1", source_url="http://x")
+    row = _node(source="pinakes;wikidata", wikidata_qid="Q1", source_url="http://x")
     assert classify_tier(row) == TIER_CURATED
 
 
@@ -106,7 +106,7 @@ def test_inferred_edge_is_inferred_tier() -> None:
 
 
 def test_partition_by_tier_covers_every_tier_key() -> None:
-    buckets = partition_by_tier([_node(source="linguascrape")])
+    buckets = partition_by_tier([_node(source="pinakes")])
     assert set(buckets) == set(ALL_TIERS)
     assert len(buckets[TIER_CURATED]) == 1
 
@@ -143,7 +143,7 @@ def test_manifest_is_deterministic() -> None:
 
 
 def test_empty_tiers_are_omitted_from_the_manifest() -> None:
-    manifest = build_tier_manifest("j", [_node(source="linguascrape")], [])
+    manifest = build_tier_manifest("j", [_node(source="pinakes")], [])
     assert set(manifest.nodes_by_tier) == {TIER_CURATED}
     assert TIER_QUARANTINE not in manifest.tiers
 
@@ -245,7 +245,7 @@ def test_job_rejects_non_numeric_threshold(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# corpus-build integration (offline, over the LinguaScrape fixture)            #
+# corpus-build integration (offline, over the Pinakes fixture)            #
 # --------------------------------------------------------------------------- #
 
 
@@ -285,7 +285,7 @@ def test_tiered_build_writes_manifest_and_per_tier_qa(tmp_path: Path) -> None:
     assert written == build.tiers.to_dict()
     assert (build.dataset_dir / "qa-tiers.json").exists()
 
-    # The LinguaScrape fixture rows are all curated; linkers add inferred hubs.
+    # The Pinakes fixture rows are all curated; linkers add inferred hubs.
     assert TIER_CURATED in build.tiers.nodes_by_tier
     assert set(build.tiers.nodes_by_tier) <= set(ALL_TIERS)
     # Auto-admission never wrote lexicons — the build only reads the export dir.

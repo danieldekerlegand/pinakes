@@ -1,7 +1,7 @@
-# LinguaScrape Data Schema & Integration Plan
+# Pinakes Data Schema & Integration Plan
 
 ## Overview
-This document defines the data schema for integrating linguistic, genetic, cultural, archaeological, and culinary data into the LinguaScrape system.
+This document defines the data schema for integrating linguistic, genetic, cultural, archaeological, and culinary data into the Pinakes system.
 
 ## Core Principle: Everything Links to Languages
 All data types should be linkable to languages through various relationship fields.

@@ -36,8 +36,8 @@ export interface QuizStorage {
   removeItem(key: string): void;
 }
 
-export const QUIZ_HISTORY_KEY = "linguascrape.quiz.history";
-export const QUIZ_AUTOSCALE_KEY = "linguascrape.quiz.autoscale";
+export const QUIZ_HISTORY_KEY = "pinakes.quiz.history";
+export const QUIZ_AUTOSCALE_KEY = "pinakes.quiz.autoscale";
 
 /** A quiz counts as "passed" at or above this percentage. */
 export const PASS_THRESHOLD = 60;

@@ -39,7 +39,7 @@ full-tree scan (`npm run secret-scan`, CI mode); `--staged` = staged-only
   blocks, and secret-named assignments gated on Shannon entropy (≥ 3.5 bits/char,
   ≥ 20 chars, mixed char classes). This is what lets a full-tree scan of all 1400+
   tracked files pass clean (weak values like `.env.example`'s
-  `NEO4J_PASSWORD=linguascrape` are low-entropy dictionary words → not flagged).
+  `NEO4J_PASSWORD=pinakes` are low-entropy dictionary words → not flagged).
 - **`.env` is a PATH rule, not content** — any real `.env*` file is blocked
   regardless of content; templates (`.env.example`, `*.sample`, `*.template`) are
   allowlisted.
@@ -61,7 +61,7 @@ optional). Rules:
 
 - **`license` is resolved from the record's `source` via `SOURCE_LICENSES`** (a registry in
   `export-for-culturescrape.ts`, `source id → SPDX`), defaulting to `DEFAULT_LICENSE`
-  (`CC-BY-4.0`). The TS export stamps `source = linguascrape` on every row, so today every
+  (`CC-BY-4.0`). The TS export stamps `source = pinakes` on every row, so today every
   exported record is `CC-BY-4.0`; the registry is the forward-looking mechanism (e.g.
   `wikidata → CC0-1.0`, `wiktionary → CC-BY-SA-4.0`) that fires when culture-scrape's own
   acquisition paths stamp a different `source` — land it **before** the first share-alike
@@ -74,7 +74,7 @@ optional). Rules:
   set explicitly) and in `NODE_/EDGE_PROVENANCE_FIELDS` (so the manifest coverage + the
   convergence-QA drift check see them). `license` is also in the importer's
   `NON_WRITEBACK_FIELDS` (graph-owned; never written back to lexicons).
-- **Python lockstep:** culture-scrape's `linguascrape-export` adapter already lifts
+- **Python lockstep:** culture-scrape's `pinakes-export` adapter already lifts
   `source_query`/`license` into `Provenance` (its `_PROVENANCE_COLUMNS`); a row-level `license`
   cell wins over the export-level `license` param. culture-scrape's OWN `headers.py`
   `NodeSchema/EdgeSchema.canonical()` were deliberately **not** changed (they already diverge
@@ -109,7 +109,7 @@ non-empty data (`npm run smoke:graph`, docs in
 - **GOTCHA — the sidecar and Neo4j must serve the SAME corpus or the cross-backend
   `node/:id` check 404s.** `discoverCsid` takes a csid from the **sidecar** search
   then looks it up in **Neo4j**; if the sidecar is on its bundled 9-node demo
-  fixture (the `CORPUS` default) while Neo4j holds the LinguaScrape export
+  fixture (the `CORPUS` default) while Neo4j holds the Pinakes export
   (loaded by `to-neo4j export/culturescrape`), the csid doesn't exist in Neo4j and
   the smoke fails. To run a fully green smoke: point the sidecar at the same bare
   corpus — `docker-compose.yml` mounts the gitignored `export/culturescrape` at
@@ -127,12 +127,12 @@ non-empty data (`npm run smoke:graph`, docs in
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
 `shared/canonical-schema.json` `idScheme`); a row without one falls back to
-`cs:<node-type>:<linguascrape-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
+`cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
 `wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
 `targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
-snapshots agree. Edge endpoints are rewritten to node csids via a `linguascrape_id → csid`
+snapshots agree. Edge endpoints are rewritten to node csids via a `pinakes_id → csid`
 index built during the node pass (so QID-anchoring re-points edges for free — endpoints are
-still keyed on `linguascrape_id`, which is unchanged) — endpoints with no exported node are
+still keyed on `pinakes_id`, which is unchanged) — endpoints with no exported node are
 counted + sampled in the manifest, never emitted (keeps output `neo4j-admin import`-clean).
 Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinates` JSON cells
 (`{"lat":..,"lng":..}`) split into `lat`/`lon`.
@@ -142,7 +142,7 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
   csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
   lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
   The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
-  `linguascrape_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
+  `pinakes_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
 
 - **Unresolved edge endpoints mint flagged stub nodes, not dropped edges (US-007).** An edge
   whose start/end id has no exported node used to be counted-and-dropped
@@ -155,10 +155,10 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
   `indo_european`). Stub **type** is borrowed from the resolved counterpart endpoint when there
   is one, else `STUB_TYPE_BY_SOURCE_FILE[sourceFile]` (both endpoints unresolved), else
   `DEFAULT_STUB_TYPE` (`culture`). Minted **once per id** (`idIndex` first-wins), so no
-  `ambiguousLinguascrapeIds` / `duplicateCsids` regression — only `edgesWithUnresolvedEndpoint`
+  `ambiguousPinakesIds` / `duplicateCsids` regression — only `edgesWithUnresolvedEndpoint`
   moves (→0; re-baseline `docs/convergence-qa-baseline.json`). Manifest gains
   `diagnostics.stubNodes{Minted,ByType,Samples}`. Stubs have no lexicon row, so the write-back
-  round-trip still no-ops (import keys on `linguascrape_id`; a stub id matches nothing → skipped).
+  round-trip still no-ops (import keys on `pinakes_id`; a stub id matches nothing → skipped).
   `reconciliation-report.json` reads **lexicons**, not the export, so it is unchanged by stubs.
 
 - **GOTCHA — a literal `"null"` FK cell is not an id.** `writing-systems.tsv` writes the string
@@ -172,7 +172,7 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
 The export stamps all four provenance columns on **every** node and edge (values may be
 blank, the column is always present). Rules:
 
-- `source` = `linguascrape` (acquisition-source id) on 100% of rows — the reconciler
+- `source` = `pinakes` (acquisition-source id) on 100% of rows — the reconciler
   anchor **and** culture-scrape's `validate.py` requires a non-empty `source`.
 - The lexicon column mapped to canonical `source` actually holds **bibliographic
   citations**, not the adapter id. `parseCitation()` reshapes it (JSON array → `"; "`-joined)
@@ -214,8 +214,8 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   reported (`report.conflicts`), never silently resolved; `{overwrite:true}` / `--overwrite`
   is the only way to apply it (still logged as a conflict).
 - **`NON_WRITEBACK_FIELDS`** (identity + all provenance/confidence columns) are never written —
-  LinguaScrape owns curated columns; the graph owns edges + external-authority enrichment.
-- **GOTCHA — `linguascrape_id` is NOT globally unique** in the live corpus. The same id recurs
+  Pinakes owns curated columns; the graph owns edges + external-authority enrichment.
+- **GOTCHA — `pinakes_id` is NOT globally unique** in the live corpus. The same id recurs
   *within* a file (`languages.tsv` uses `abe` for two distinct languages) **and across files of
   the same node type** (`mohenjo-daro` is in both `archaeological-sites.tsv` and `settlements.tsv`,
   both → `place`). The export dedups to one canonical row, so any write keyed on such an id could
@@ -331,7 +331,7 @@ TSV is the network-free source of truth the write-back + gate replay — CI neve
   items carry `P625`. Don't gate on coordinates the way the sites script does; the `coordinates`
   column is a property and may be blank.
 - **Dedup ids across the WHOLE corpus, not just the same node type.** The export's
-  `ambiguousLinguascrapeIds` diagnostic keys on the raw `linguascrape_id` across **every** node
+  `ambiguousPinakesIds` diagnostic keys on the raw `pinakes_id` across **every** node
   type (`idIndex` in `export-for-culturescrape.ts`), so a generic culture id like `sumer`/`vedas`
   colliding with a *civilization*/*place* id of the same string is a ratchet regression the gate
   blocks — even though the csids differ (`cs:archaeological-culture:sumer` ≠ `cs:culture:sumer`).
@@ -407,7 +407,7 @@ Two reuse rules it adds beyond the food-drink script:
   acquired in one invocation *before any write-back*, each domain's per-domain re-read of the
   lexicons can't see a sibling domain's just-minted ids (the additions TSVs aren't on disk yet),
   so two domains mint the same generic id (`romanticism` as both art-tradition + literary-tradition,
-  `oduduwa` as both writing-system + deity) → a global `ambiguousLinguascrapeIds` regression. `main`
+  `oduduwa` as both writing-system + deity) → a global `ambiguousPinakesIds` regression. `main`
   now seeds one `usedIds` set from every node lexicon and threads it through every `curate` call;
   the earlier-listed domain in `DOMAINS` keeps the bare id, the later one gets the `-<slugFallback>`
   suffix. (Names still dedup per node type via `nameSiblings` — art-tradition spans architectural
@@ -445,10 +445,10 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
   it reads the **lexicons**, NOT the export (which force-blanks `source_url`/`retrieved_at`), and uses
   the per-file mapping so it generalises across domains without hard-coded column names; (3) **dedup
   regression** (`detectRegressions`) — a monotone ratchet against `docs/convergence-qa-baseline.json`
-  (`duplicateCsids`, `ambiguousLinguascrapeIds`, `edgesWithUnresolvedEndpoint`, reconciliation
+  (`duplicateCsids`, `ambiguousPinakesIds`, `edgesWithUnresolvedEndpoint`, reconciliation
   `ambiguous`). The id-overlap / unreconciled / provenance-coverage numbers stay informational.
 - **GOTCHA — the dedup ratchet is a baseline, not a zero.** The live corpus already has
-  `duplicateCsids=44`, `ambiguousLinguascrapeIds=16`, `edgesWithUnresolvedEndpoint=139` (legit
+  `duplicateCsids=44`, `ambiguousPinakesIds=16`, `edgesWithUnresolvedEndpoint=139` (legit
   cross-file id reuse), so an absolute `=== 0` would be red on day one. After a data change that
   *legitimately* moves these, re-baseline with `npm run convergence-qa:baseline`
   (`--write-baseline`) — a live-corpus test asserts `report.regressions === []` on `main`, so a stale
@@ -479,7 +479,7 @@ data change that moves a target domain's count, or the parity test fails.
   `server/services/data-quality-scorer.ts` so `/api/data-quality` and this committed report are
   **one source of truth**. The script is just the deterministic file-writer + Markdown renderer.
 - **Two target kinds:** `kind: "roadmap"` = the hard §8/§15 numbers from
-  docs/prd-linguascrape-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
+  docs/prd-pinakes-deep-history-roadmap.md; `kind: "breadth"` = the credible-breadth goals
   the US-003..005 stories set for domains the roadmap describes only qualitatively
   ("foundational corpus"). Each carries a `source` string. When you add a domain target, add it
   to `ROADMAP_TARGETS` and regenerate the committed report.
@@ -512,7 +512,7 @@ header ending in `region` (`region`/`origin_region`/`proposed_region`). Language
 uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
 `languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
 report's `keyCoverage.languages.withGlottocode` tracks it). See
-`packages/culture-scrape/docs/reconcile-linguascrape.md`.
+`packages/culture-scrape/docs/reconcile-pinakes.md`.
 
 - **The QID anchor IS cascade step 1 (US-003).** The report originally bucketed on the
   language/name key only, so a node that already carried a `wikidata_qid` was miscounted as
@@ -552,7 +552,7 @@ and `--apply` fills the blanks from it.
   collides with an existing same-type QID would create a `duplicateCsids` regression the gate
   blocks — none occurred, but verify the diagnostics after a fresh batch.
 - The matched-share ceiling (why one pass lands ~37%, not ≥50%) is documented in
-  `packages/culture-scrape/docs/reconcile-linguascrape.md` (US-003): most remaining
+  `packages/culture-scrape/docs/reconcile-pinakes.md` (US-003): most remaining
   `likely-new` nodes live in lexicon files that carry **no** `wikidata_qid` column yet, so
   backfilling them needs a per-file schema addition (a separate scale-up).
 
@@ -587,13 +587,13 @@ enrichment write-back: `import-from-culturescrape --enrich <file> --target langu
 
 The one-shot, idempotent, byte-faithful migration that burned the export's 44 duplicate
 csids (`cs:<type>:<id>` collisions = same `id` reused by ≥2 nodes of ONE type) and 16
-ambiguous `linguascrape_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
+ambiguous `pinakes_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
 It edits `lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
 targeted cells change) and is safe to re-run (a row whose old id is already gone is skipped).
 Reusable rules for any future id-collision cleanup:
 
 - **The two metrics are driven ONLY by the node `id` column.** duplicateCsids = same-type
-  same-id; ambiguousLinguascrapeIds = same raw id across types. So the fix is always a node
+  same-id; ambiguousPinakesIds = same raw id across types. So the fix is always a node
   `id` rename or a row delete — nothing else moves them. `id` renames do NOT touch the
   reconciliation `ambiguous` metric (languages key on iso639_1/iso639_2/glottocode, everything
   else on (name,type,region) — never `id`).
@@ -623,7 +623,7 @@ Reusable rules for any future id-collision cleanup:
   `mohenjo-daro-settlement`, and an existing `indus-valley-civilization` archaeological culture
   all pre-existed — the first slug choices regressed). After the migration re-run the
   duplicate/ambiguous diagnostic AND the export, and watch `diagnostics.{duplicateCsids,
-  ambiguousLinguascrapeIds,edgesWithUnresolvedEndpoint,stubNodesMinted}` (stubs must NOT rise).
+  ambiguousPinakesIds,edgesWithUnresolvedEndpoint,stubNodesMinted}` (stubs must NOT rise).
 - **Recovering dropped rows RAISES reconciliation `ambiguous`.** The 44 duplicate-csid rows were
   being silently dropped from BOTH the export and reconciliation (`buildReconciliationKeys`
   `duplicateCsidsDropped`). Making them distinct surfaces them in reconciliation, where near-dups

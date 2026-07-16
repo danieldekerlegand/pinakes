@@ -84,7 +84,7 @@ describe("reconciliation-report (US-005)", () => {
       }
     });
 
-    it("skips rows with no linguascrape id", () => {
+    it("skips rows with no pinakes id", () => {
       const dir = makeFixtureDir({
         "cuisines.tsv": [
           ["id", "name", "region"],

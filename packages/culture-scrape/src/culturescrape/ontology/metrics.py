@@ -43,11 +43,11 @@ from culturescrape.schema.tsvio import Row, TsvError, read_rows
 #: Dimension bucket for an edge whose ``:TYPE`` the ontology does not register.
 UNKNOWN_DIMENSION = "unknown"
 
-#: Provenance ``source`` id LinguaScrape-origin edges carry (mirrors
-#: :data:`culturescrape.acquire.linguascrape.LINGUASCRAPE_SOURCE`). Native edges
+#: Provenance ``source`` id Pinakes-origin edges carry (mirrors
+#: :data:`culturescrape.acquire.pinakes.PINAKES_SOURCE`). Native edges
 #: carry their own source and inferred edges ``inferred:<linker>``, so filtering
-#: on this id isolates the edges LinguaScrape contributed to the merged corpus.
-LINGUASCRAPE_SOURCE = "linguascrape"
+#: on this id isolates the edges Pinakes contributed to the merged corpus.
+PINAKES_SOURCE = "pinakes"
 
 
 @dataclass(frozen=True)
@@ -206,20 +206,20 @@ def edges_by_type_for_source(
     return dict(sorted(counts.items()))
 
 
-def linguascrape_edges_by_type(edges: Sequence[Edge]) -> dict[str, int]:
-    """Count the LinguaScrape-origin *edges* by canonical ``:TYPE`` (US-004).
+def pinakes_edges_by_type(edges: Sequence[Edge]) -> dict[str, int]:
+    """Count the Pinakes-origin *edges* by canonical ``:TYPE`` (US-004).
 
     A thin wrapper over :func:`edges_by_type_for_source` for
-    :data:`LINGUASCRAPE_SOURCE` — the report that tells a maintainer how many
-    edges of each type LinguaScrape contributed to the merged corpus.
+    :data:`PINAKES_SOURCE` — the report that tells a maintainer how many
+    edges of each type Pinakes contributed to the merged corpus.
     """
-    return edges_by_type_for_source(edges, LINGUASCRAPE_SOURCE)
+    return edges_by_type_for_source(edges, PINAKES_SOURCE)
 
 
-def dataset_linguascrape_edges_by_type(directory: str | Path) -> dict[str, int]:
-    """Read the dataset under *directory* and report its LinguaScrape edges."""
+def dataset_pinakes_edges_by_type(directory: str | Path) -> dict[str, int]:
+    """Read the dataset under *directory* and report its Pinakes edges."""
     _, edges = read_dataset(directory)
-    return linguascrape_edges_by_type(edges)
+    return pinakes_edges_by_type(edges)
 
 
 def to_json(metrics: GraphMetrics) -> str:

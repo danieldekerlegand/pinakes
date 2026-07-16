@@ -1,3 +1,0 @@
-csid:ID	:LABEL	name	lang	wikidata_qid	getty_id	aliases	description	linguascrape_id	time_start:int	time_end:int	time_start_iso	period	lat:float	lon:float	place_qid	tgn_id	pleiades_id	language_code	script	etymology	derived_from_csid	source	source_url	source_query	retrieved_at	confidence:float
-cs:archaeological-culture:bell-beaker	ArchaeologicalCulture	Bell Beaker						bell-beaker	-2800	-1800		Chalcolithic										linguascrape				0.7
-cs:archaeological-culture:yamnaya	ArchaeologicalCulture	Yamnaya						yamnaya	-3300	-2600		Bronze Age										linguascrape				0.9

@@ -4,7 +4,7 @@ The **only** part of culture-scrape that talks to a graph DB. The `neo4j` driver
 an optional extra, imported lazily in `__init__.connect`; nothing here needs a live
 server to *generate* scripts. The converter is **dataset-agnostic** — it operates on
 canonical `nodes/*.tsv` + `edges/*.tsv` (headers per `docs/data-model.md`), so a
-merged corpus mixing sources (native Wikidata + `source='linguascrape'`) flows through
+merged corpus mixing sources (native Wikidata + `source='pinakes'`) flows through
 one path with no source special-casing. Convergence = both sources' rows share a
 per-label node file / per-`:TYPE` edge file; the loader neither knows nor cares.
 
@@ -91,7 +91,7 @@ native nodes" is a property of the *data*, verified by loading, not of loader br
 - **Two fake shapes:** a *recording* session (captures `(cypher, params)` to assert the
   generated statements) and an *embedded graph* (applies MERGE-on-`csid` /
   `(start,end,type)` semantics so labels/edge types can be queried back — see
-  `test_neo4j_roundtrip.py::_FakeGraph` and `test_neo4j_linguascrape.py::_EmbeddedGraph`).
+  `test_neo4j_roundtrip.py::_FakeGraph` and `test_neo4j_pinakes.py::_EmbeddedGraph`).
   The embedded stand-in can be driven by the **real** `apply_load_csv`: its session reads
   the file bound to `$file` (`FILE_PARAM`) and applies the statement's intent, so the
   production loader runs unmodified against an in-process "database".

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "title": "LinguaScrape lexicon → canonical node/edge mapping",
+  "title": "Pinakes lexicon → canonical node/edge mapping",
   "description": "Deterministic, reviewable mapping from every lexicons/*.tsv to the canonical model defined in shared/canonical-schema.json (US-002). Each file declares a `kind`, its canonical `node` type (for node files), and a per-column disposition. Every source column is accounted for exactly once. Machine-readable sibling of the prose table in docs/canonical-schema.md §6.",
   "kinds": {
     "node": "Rows become canonical nodes of the declared `node` type.",
@@ -20,7 +20,7 @@
       "kind": "node",
       "node": "archaeological-culture",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "region", "property": true },
         { "column": "coordinates", "property": true, "note": "combined lat,lon string; export (US-004) splits into lat/lon" },
@@ -49,7 +49,7 @@
       "kind": "node",
       "node": "place",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "coordinates", "property": true, "note": "combined lat,lon string; export splits into lat/lon" },
         { "column": "site_type", "property": true },
@@ -75,7 +75,7 @@
       "kind": "node",
       "node": "art-tradition",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "style_period", "target": "period" },
         { "column": "origin_date", "target": "time_start" },
@@ -101,7 +101,7 @@
       "node": null,
       "note": "Relationship between two art traditions; transition_type maps to the DERIVED_FROM / INFLUENCED_BY edge vocabulary.",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "from_tradition_id", "target": ":START_ID" },
         { "column": "to_tradition_id", "target": ":END_ID" },
         { "column": "transition_type", "target": ":TYPE" },
@@ -116,7 +116,7 @@
       "kind": "node",
       "node": "art-tradition",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "category", "property": true },
         { "column": "style_period", "target": "period" },
@@ -135,7 +135,7 @@
       "kind": "node",
       "node": "battle",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "date", "target": "time_start" },
         { "column": "coordinates", "property": true, "note": "combined lat,lon string; export splits into lat/lon" },
@@ -208,7 +208,7 @@
       "kind": "node",
       "node": "culture",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "time_period_start", "target": "time_start" },
@@ -256,7 +256,7 @@
       "node": "ingredient",
       "note": "Dishes / food items; no dedicated dish node type in v1, mapped to the closest canonical type (ingredient).",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "cuisine_id", "property": true },
         { "column": "name", "target": "name" },
         { "column": "food_type", "property": true },
@@ -269,7 +269,7 @@
       "kind": "node",
       "node": "cuisine",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "region", "property": true },
@@ -291,7 +291,7 @@
       "node": null,
       "note": "First-class relationship table; relationship_type values map onto the canonical edge vocabulary (descended-from, influenced-by, absorbed-into, …).",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "source_id", "target": ":START_ID" },
         { "column": "source_name", "property": true },
         { "column": "target_id", "target": ":END_ID" },
@@ -327,7 +327,7 @@
       "kind": "node",
       "node": "culture",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "alternate_names", "target": "aliases" },
         { "column": "civilization_id", "property": true },
@@ -379,7 +379,7 @@
       "kind": "node",
       "node": "art-tradition",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "region", "property": true },
@@ -405,7 +405,7 @@
       "kind": "node",
       "node": "deity",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "pantheon", "property": true },
@@ -453,7 +453,7 @@
       "node": null,
       "note": "Cross-language word relationships; relation_type maps to borrowed-from / cognate-with / derived-from. Edges connect the language nodes; the word forms ride along as properties.",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "source_word", "property": true },
         { "column": "source_language", "target": ":START_ID" },
         { "column": "target_word", "property": true },
@@ -466,7 +466,7 @@
       "kind": "node",
       "node": "language-family",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "parent_id", "edge": "descended-from" },
         { "column": "description", "target": "description" },
@@ -559,7 +559,7 @@
       "kind": "node",
       "node": "ingredient",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "cuisine_id", "property": true },
         { "column": "origin_region", "property": true },
@@ -615,7 +615,7 @@
       "node": null,
       "note": "Language contact events; contact_type maps to influenced-by / borrowed-from.",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "source_language_id", "target": ":START_ID" },
         { "column": "target_language_id", "target": ":END_ID" },
         { "column": "contact_type", "target": ":TYPE" },
@@ -669,7 +669,7 @@
       "kind": "node",
       "node": "language",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "iso639_1", "target": "language_code" },
@@ -705,7 +705,7 @@
       "kind": "node",
       "node": "literary-tradition",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "region", "property": true },
         { "column": "origin_date", "target": "time_start" },
@@ -790,7 +790,7 @@
       "kind": "node",
       "node": "migration-route",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "route_type", "property": true },
         { "column": "waypoints", "property": true },
@@ -812,7 +812,7 @@
       "kind": "node",
       "node": "art-tradition",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "region", "property": true },
@@ -854,7 +854,7 @@
       "kind": "node",
       "node": "myth-motif",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "motif_type", "property": true },
         { "column": "atu_index", "property": true },
@@ -904,7 +904,7 @@
       "kind": "node",
       "node": "religion",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "native_name", "target": "aliases" },
         { "column": "religion_type", "property": true },
@@ -925,7 +925,7 @@
       "kind": "node",
       "node": "place",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "alternate_names", "target": "aliases" },
         { "column": "water_type", "property": true },
@@ -964,7 +964,7 @@
       "kind": "node",
       "node": "place",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "alternate_names", "target": "aliases" },
         { "column": "latitude", "target": "lat" },
@@ -1050,7 +1050,7 @@
       "kind": "node",
       "node": "trade-good",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "category", "property": true },
         { "column": "origin_region", "property": true },
@@ -1091,7 +1091,7 @@
       "kind": "node",
       "node": "urheimat-hypothesis",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "language_family_id", "property": true, "note": "subject family FK; candidate edge to the language-family node" },
         { "column": "hypothesis_name", "target": "name" },
         { "column": "proposed_region", "property": true },
@@ -1165,7 +1165,7 @@
       "kind": "node",
       "node": "writing-system",
       "columns": [
-        { "column": "id", "target": "linguascrape_id" },
+        { "column": "id", "target": "pinakes_id" },
         { "column": "name", "target": "name" },
         { "column": "type", "property": true },
         { "column": "direction", "property": true },

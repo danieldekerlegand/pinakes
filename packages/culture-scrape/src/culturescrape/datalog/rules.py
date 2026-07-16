@@ -10,7 +10,7 @@ derived relations are available whichever engine a researcher loads.
 Eleven rules ship in :data:`RULES`. Five are closures over the base ontology
 (``docs/data-model.md``); three derive the **temporal relations arithmetically**
 from the time bounds (so they need no stored edge — see below); two port
-LinguaScrape's cross-domain and genetic–linguistic correlation logic (T-LS-US-005)
+Pinakes's cross-domain and genetic–linguistic correlation logic (T-LS-US-005)
 so those correlations become derived, queryable facts over the merged graph; and
 the last closes **class membership** over the P279 taxonomy (rules-layer US-001):
 
@@ -33,7 +33,7 @@ the last closes **class membership** over the P279 taxonomy (rules-layer US-001)
 * :data:`GENETIC_LINGUISTIC_CORRELATION` —
   ``genetic_linguistic_correlation/2``, a haplogroup and a language correlated
   by originating from / being spoken in the same region (the symbolic core of
-  LinguaScrape's genetic–linguistic correlation; the numeric overlap score stays
+  Pinakes's genetic–linguistic correlation; the numeric overlap score stays
   a CPU-domain computation in the TypeScript engine);
 * :data:`INSTANCE_OF` — ``instance_of/2``, the transitive closure of the base
   ``instance_of`` typing over ``subclass_of/2`` (``instance_of(X, C) :-
@@ -273,7 +273,7 @@ SAME_REGION = Rule(
     intent=(
         "same_region(X, Y): X and Y sit within a common region — both reach the "
         "same enclosing place through within_region/2 (the transitive closure of "
-        "located_in). It is the geographic half of LinguaScrape's cross-domain "
+        "located_in). It is the geographic half of Pinakes's cross-domain "
         "correlation: entities co-located in one region are candidates to be "
         "correlated across dimensions. The relation is reflexive (a node shares "
         "its own region) and symmetric, so a caller filters X = Y when only "
@@ -295,7 +295,7 @@ GENETIC_LINGUISTIC_CORRELATION = Rule(
         "genetic_linguistic_correlation(H, L): a genetic entity H (a haplogroup) "
         "and a linguistic entity L (a language or language family) are correlated "
         "because H originates from the same region L is spoken in — the symbolic "
-        "core of LinguaScrape's genetic–linguistic correlation. The numeric "
+        "core of Pinakes's genetic–linguistic correlation. The numeric "
         "overlap score (region-polygon intersection, notable divergences) stays a "
         "CPU-domain computation in the TypeScript engine; the logic layer derives "
         "only the qualitative pairing, so one query surfaces every "

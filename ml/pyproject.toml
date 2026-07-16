@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "linguascrape-ml"
+name = "pinakes-ml"
 version = "0.1.0"
-description = "ML / neurosymbolic workspace for LinguaScrape — triples export, PyKEEN baselines, ProbLog, DVC + MLflow (NEUROSYMBOLIC_ROADMAP.md Phase 2)."
+description = "ML / neurosymbolic workspace for Pinakes — triples export, PyKEEN baselines, ProbLog, DVC + MLflow (NEUROSYMBOLIC_ROADMAP.md Phase 2)."
 readme = "README.md"
 # Kept a separate uv workspace from packages/culture-scrape so the sidecar
 # Docker image stays slim (no torch/pykeen). Pinned to 3.11 — the ML stack
@@ -37,13 +37,13 @@ dependencies = [
 # it out keeps the core env — the CI import smoke torch/pykeen/problog — green.
 
 [project.scripts]
-# US-002 reproducer — also runnable as `python -m linguascrape_ml.export_triples`.
-linguascrape-export-triples = "linguascrape_ml.export_triples:main"
-# US-003 reproducer — also runnable as `python -m linguascrape_ml.train_baselines`.
-linguascrape-train-baselines = "linguascrape_ml.train_baselines:main"
+# US-002 reproducer — also runnable as `python -m pinakes_ml.export_triples`.
+pinakes-export-triples = "pinakes_ml.export_triples:main"
+# US-003 reproducer — also runnable as `python -m pinakes_ml.train_baselines`.
+pinakes-train-baselines = "pinakes_ml.train_baselines:main"
 # US-005 consistency ratchet (pure — no torch) — also `python -m
-# linguascrape_ml.check_consistency`.
-linguascrape-check-consistency = "linguascrape_ml.check_consistency:main"
+# pinakes_ml.check_consistency`.
+pinakes-check-consistency = "pinakes_ml.check_consistency:main"
 
 [project.optional-dependencies]
 dev = [

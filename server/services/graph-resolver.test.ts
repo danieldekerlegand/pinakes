@@ -16,13 +16,13 @@ import {
 // ── Fixtures ─────────────────────────────────────────────────────────────
 
 const ENTRIES: AliasEntry[] = [
-  { csid: "cs:language:lat", linguascrapeId: "lat", nodeType: "language", name: "Latin", region: "Italy" },
-  { csid: "cs:language:grc", linguascrapeId: "grc", nodeType: "language", name: "Ancient Greek", region: "Greece" },
-  { csid: "cs:language:san", linguascrapeId: "san", nodeType: "language", name: "Sanskrit", region: "India" },
-  { csid: "cs:culture:rome", linguascrapeId: "rome", nodeType: "culture", name: "Roman", region: "Italy" },
+  { csid: "cs:language:lat", pinakesId: "lat", nodeType: "language", name: "Latin", region: "Italy" },
+  { csid: "cs:language:grc", pinakesId: "grc", nodeType: "language", name: "Ancient Greek", region: "Greece" },
+  { csid: "cs:language:san", pinakesId: "san", nodeType: "language", name: "Sanskrit", region: "India" },
+  { csid: "cs:culture:rome", pinakesId: "rome", nodeType: "culture", name: "Roman", region: "Italy" },
   // Same normalized name in two different regions → region disambiguates.
-  { csid: "cs:culture:norse-scand", linguascrapeId: "norse-scand", nodeType: "culture", name: "Norse", region: "Scandinavia" },
-  { csid: "cs:culture:norse-iceland", linguascrapeId: "norse-iceland", nodeType: "culture", name: "Norse", region: "Iceland" },
+  { csid: "cs:culture:norse-scand", pinakesId: "norse-scand", nodeType: "culture", name: "Norse", region: "Scandinavia" },
+  { csid: "cs:culture:norse-iceland", pinakesId: "norse-iceland", nodeType: "culture", name: "Norse", region: "Iceland" },
 ];
 
 describe("graph-resolver — alias resolution", () => {
@@ -37,7 +37,7 @@ describe("graph-resolver — alias resolution", () => {
 
   it("honors an explicit csid/alias column over the minted value", () => {
     const resolver = createGraphResolver([
-      { csid: "cs:language:xyz-merged", linguascrapeId: "lat", nodeType: "language", name: "Latin" },
+      { csid: "cs:language:xyz-merged", pinakesId: "lat", nodeType: "language", name: "Latin" },
     ]);
     const resolved = resolver.resolve({ type: "language", id: "lat" });
     expect(resolved?.csid).toBe("cs:language:xyz-merged");
@@ -56,8 +56,8 @@ describe("graph-resolver — alias resolution", () => {
     // Same id/type appears twice (as in the live corpus) but collapses to one csid.
     const resolver = createGraphResolver(
       [
-        { csid: "cs:place:mohenjo-daro", linguascrapeId: "mohenjo-daro", nodeType: "place", name: "Mohenjo-daro" },
-        { csid: "cs:place:mohenjo-daro", linguascrapeId: "mohenjo-daro", nodeType: "place", name: "Mohenjo-daro" },
+        { csid: "cs:place:mohenjo-daro", pinakesId: "mohenjo-daro", nodeType: "place", name: "Mohenjo-daro" },
+        { csid: "cs:place:mohenjo-daro", pinakesId: "mohenjo-daro", nodeType: "place", name: "Mohenjo-daro" },
       ],
       { onAmbiguous },
     );
@@ -73,8 +73,8 @@ describe("graph-resolver — alias resolution", () => {
     const events: AmbiguityEvent[] = [];
     const resolver = createGraphResolver(
       [
-        { csid: "cs:place:mohenjo-a", linguascrapeId: "mohenjo", nodeType: "place", name: "Mohenjo A" },
-        { csid: "cs:place:mohenjo-b", linguascrapeId: "mohenjo", nodeType: "place", name: "Mohenjo B" },
+        { csid: "cs:place:mohenjo-a", pinakesId: "mohenjo", nodeType: "place", name: "Mohenjo A" },
+        { csid: "cs:place:mohenjo-b", pinakesId: "mohenjo", nodeType: "place", name: "Mohenjo B" },
       ],
       { onAmbiguous: (e) => events.push(e) },
     );
@@ -193,7 +193,7 @@ describe("graph-resolver — lexicon-backed loader", () => {
 
   it("builds minted-csid alias entries from lexicon rows", () => {
     const entries = loadAliasEntries(tmpDir);
-    const latin = entries.find((e) => e.linguascrapeId === "lat");
+    const latin = entries.find((e) => e.pinakesId === "lat");
     expect(latin).toMatchObject({
       csid: "cs:language:lat",
       nodeType: "language",

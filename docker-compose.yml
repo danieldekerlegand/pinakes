@@ -1,4 +1,4 @@
-# Local orchestration for LinguaScrape's data-layer integration.
+# Local orchestration for Pinakes's data-layer integration.
 # Brings up the vendored culture-scrape FastAPI sidecar and a Neo4j graph store.
 # Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
 #
@@ -9,7 +9,7 @@
 # neo4j sits behind the `graph` profile (it is heavy), so a bare
 # `docker compose up` starts only the sidecar; the scripts above start both.
 #
-# The LinguaScrape server reads CULTURESCRAPE_API_URL / NEO4J_* from .env
+# The Pinakes server reads CULTURESCRAPE_API_URL / NEO4J_* from .env
 # (see .env.example) and degrades gracefully when these services are down.
 
 services:
@@ -19,7 +19,7 @@ services:
     ports:
       - "8800:8800"
     environment:
-      # Serve real data by pointing CORPUS at the mounted LinguaScrape canonical
+      # Serve real data by pointing CORPUS at the mounted Pinakes canonical
       # export (below): `CULTURESCRAPE_CORPUS=/corpus`. This is the SAME bare
       # corpus (nodes/ + edges/) that `to-neo4j export/culturescrape` loads into
       # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
@@ -53,7 +53,7 @@ services:
       - "7687:7687"   # Bolt (NEO4J_URI=bolt://localhost:7687)
     environment:
       # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
-      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/linguascrape}
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pinakes}
       # APOC is required by the incremental `culturescrape to-neo4j --mode loadcsv`
       # path: node labels are reattached with apoc.create.addLabels and edges are
       # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in

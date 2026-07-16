@@ -1495,7 +1495,7 @@ wheels = [
 ]
 
 [[package]]
-name = "linguascrape-ml"
+name = "pinakes-ml"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

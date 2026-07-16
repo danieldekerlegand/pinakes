@@ -1,4 +1,4 @@
-"""Tests for reconciling an acquired node corpus against a LinguaScrape lexicon.
+"""Tests for reconciling an acquired node corpus against a Pinakes lexicon.
 
 Network-free: both sides are tiny on-disk TSV fixtures written to ``tmp_path``.
 Covers the two loaders (header-suffix stripping, ``:LABEL`` wrapping, overflow
@@ -18,7 +18,7 @@ from culturescrape.schema.lexicon_reconcile import (
     render_markdown,
     summarize,
 )
-from culturescrape.schema.reconcile import reconcile_linguascrape
+from culturescrape.schema.reconcile import reconcile_pinakes
 
 _CORPUS_HEADER = (
     "csid:ID\t:LABEL\tname\twikidata_qid\tconfidence:float\tsource\textra"
@@ -115,8 +115,8 @@ def test_stricter_fuzzy_keeps_lookalikes_apart(tmp_path: Path) -> None:
         label="Culture",
         node_type="culture",
     )
-    loose = reconcile_linguascrape(incoming, existing, fuzzy_threshold=0.85)
-    strict = reconcile_linguascrape(incoming, existing, fuzzy_threshold=0.93)
+    loose = reconcile_pinakes(incoming, existing, fuzzy_threshold=0.85)
+    strict = reconcile_pinakes(incoming, existing, fuzzy_threshold=0.93)
     assert loose.results[0].outcome is LocalOutcome.MATCHED
     assert strict.results[0].outcome is LocalOutcome.NEW
 

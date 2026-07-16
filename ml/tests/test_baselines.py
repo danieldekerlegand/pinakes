@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from linguascrape_ml.baselines import (
+from pinakes_ml.baselines import (
     BASELINE_SEED,
     METRIC_KEYS,
     BaselineOutcome,
@@ -26,7 +26,7 @@ from linguascrape_ml.baselines import (
     render_baselines_doc,
     train_baseline,
 )
-from linguascrape_ml.train_baselines import (
+from pinakes_ml.train_baselines import (
     DEFAULT_DATA_DIR,
     read_dvc_md5,
     save_embeddings,
@@ -175,7 +175,7 @@ def test_sha256_file(tmp_path: Path) -> None:
 )
 def test_baseline_runs_on_committed_splits() -> None:
     """One epoch on the real splits — proves the loader → pipeline path works."""
-    from linguascrape_ml.baselines import load_split_factories
+    from pinakes_ml.baselines import load_split_factories
 
     training, validation, testing = load_split_factories(DEFAULT_DATA_DIR)
     outcome = train_baseline(

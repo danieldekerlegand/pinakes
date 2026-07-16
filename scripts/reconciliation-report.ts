@@ -12,7 +12,7 @@
  *   4. exact `(name, type, region)` — same normalized name, node type, and region;
  *   5. fuzzy `name`       — within one type/region, above a similarity threshold.
  *
- * LinguaScrape rows arrive with **no** `wikidata_qid`/`getty_id` (steps 1–2 are
+ * Pinakes rows arrive with **no** `wikidata_qid`/`getty_id` (steps 1–2 are
  * inert), so this module emits the keys the reconciler actually keys on for our data
  * — language codes for languages, and the normalized `(name, type, region)` blocking
  * key for every other domain — and estimates, without touching the network or the
@@ -31,7 +31,7 @@
  * directory so tests drive them with fixtures; `writeReconciliation` / `runReport` do
  * the filesystem side. The keys TSV lands in the gitignored export tree; a bounded,
  * human-reviewable report snapshot is committed to `docs/reconciliation-report.json`.
- * See `packages/culture-scrape/docs/reconcile-linguascrape.md` for how to feed it into
+ * See `packages/culture-scrape/docs/reconcile-pinakes.md` for how to feed it into
  * culture-scrape's reconcile step.
  */
 import fs from "node:fs";
@@ -80,7 +80,7 @@ export type ReconciliationBucket = "matched" | "ambiguous" | "likely-new";
 /** The reconciliation keys emitted for one exported node. */
 export interface ReconciliationKey {
   readonly csid: string;
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   readonly nodeType: string;
   readonly label: string;
   readonly name: string;
@@ -104,7 +104,7 @@ export interface AmbiguityGroup {
   readonly key: string;
   readonly candidates: ReadonlyArray<{
     readonly csid: string;
-    readonly linguascrapeId: string;
+    readonly pinakesId: string;
     readonly name: string;
     readonly region: string;
     readonly confidence: number;
@@ -170,7 +170,7 @@ function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
 
 /**
  * Normalize a key component: NFKC, whitespace-collapsed, casefolded — mirrors
- * culture-scrape's `normalize_name` so LinguaScrape's keys block the same way.
+ * culture-scrape's `normalize_name` so Pinakes's keys block the same way.
  */
 export function normalizeKey(value: string): string {
   return value.normalize("NFKC").split(/\s+/).filter(Boolean).join(" ").toLowerCase();
@@ -226,7 +226,7 @@ export function buildReconciliationKeys(
     const { headers, rows } = readTsv(path.join(lexiconsDir, file));
     if (headers.length === 0) continue;
 
-    const idIdx = targetColIndex(file, headers, "linguascrape_id");
+    const idIdx = targetColIndex(file, headers, "pinakes_id");
     const qidIdx = targetColIndex(file, headers, "wikidata_qid");
     const nameIdx = targetColIndex(file, headers, "name");
     const confIdx = targetColIndex(file, headers, "confidence");
@@ -259,7 +259,7 @@ export function buildReconciliationKeys(
 
       keys.push({
         csid,
-        linguascrapeId: lsId,
+        pinakesId: lsId,
         nodeType: node,
         label: typeInfo.label,
         name,
@@ -362,7 +362,7 @@ function toAmbiguityGroup(
   const candidates = group
     .map((k) => ({
       csid: k.csid,
-      linguascrapeId: k.linguascrapeId,
+      pinakesId: k.pinakesId,
       name: k.name,
       region: k.region,
       confidence: k.confidence,
@@ -449,7 +449,7 @@ function buildReport(
 /** TSV header for the emitted reconciliation keys file. */
 export const KEYS_HEADER: readonly string[] = [
   "csid",
-  "linguascrape_id",
+  "pinakes_id",
   "node_type",
   "name",
   "region",
@@ -468,7 +468,7 @@ function keyRow(k: ReconciliationKey): string {
   const sani = (s: string) => s.replace(/[\t\r\n]+/g, " ").trim();
   return [
     k.csid,
-    k.linguascrapeId,
+    k.pinakesId,
     k.nodeType,
     sani(k.name),
     sani(k.region),

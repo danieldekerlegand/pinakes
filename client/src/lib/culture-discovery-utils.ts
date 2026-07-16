@@ -128,7 +128,7 @@ export function getCollectionProfiles(
   return profiles.filter(collection.matches).slice(0, limit);
 }
 
-const RECENTLY_VIEWED_KEY = "linguascrape:recently-viewed-cultures";
+const RECENTLY_VIEWED_KEY = "pinakes:recently-viewed-cultures";
 const RECENTLY_VIEWED_MAX = 8;
 
 export function loadRecentlyViewed(

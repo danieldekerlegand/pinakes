@@ -49,15 +49,15 @@ Derived unit rates:
   cap RAM; the 71 MB peak tracks the *corpus* held for stitch/export, not the
   slice.
 
-### US-004 — language + myth-religion + LinguaScrape merge, offline
+### US-004 — language + myth-religion + Pinakes merge, offline
 
-17 dump categories from the same slice merged with the live LinguaScrape export
+17 dump categories from the same slice merged with the live Pinakes export
 (`docs/wikidata-dump-runbook.md` §"Recorded build … (US-004)"):
 
 | stage | throughput | memory |
 | --- | --- | --- |
 | acquire — dump | **802** members across 17 categories; each full-scans the slice | — |
-| acquire — LinguaScrape export | **12,671** canonical rows ingested | — |
+| acquire — Pinakes export | **12,671** canonical rows ingested | — |
 | stitch + QID-reconcile + link + export | **14** cross-type same-QID dups collapsed | — |
 | merged corpus | **7,682 nodes / 5,283 edges**; largest component **14.79%** | **192 MB RSS** · 43.5 MB Python-object peak |
 | whole build | **345 s wall** @ 4 workers | — |

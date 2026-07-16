@@ -48,7 +48,7 @@ describe("canonical edge extraction (US-003)", () => {
       expect(split.timeEnd).toBe(-3500);
       expect(split.provenance.confidence).toBeCloseTo(0.8);
       expect(split.provenance.source).toBe("Anthony 2007; Ringe 2006");
-      expect(split.linguascrapeId).toBe("cl-001");
+      expect(split.pinakesId).toBe("cl-001");
       expect(split.sourceFile).toBe("cultural-lineages.tsv");
 
       const evolved = edge(edges, "latin", "french");
@@ -174,7 +174,7 @@ describe("canonical edge extraction (US-003)", () => {
       expect(toFamily.type).toBe(descends);
       expect(toFamily.timeStart).toBeNull();
       expect(toFamily.provenance.confidence).toBe(DEFAULT_EDGE_CONFIDENCE);
-      expect(toFamily.linguascrapeId).toBeNull();
+      expect(toFamily.pinakesId).toBeNull();
 
       const toParent = edge(edges, "french", "latin");
       expect(toParent.type).toBe(descends);

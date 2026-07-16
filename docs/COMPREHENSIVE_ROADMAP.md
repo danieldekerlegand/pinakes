@@ -1,4 +1,4 @@
-# LinguaScrape Comprehensive Roadmap
+# Pinakes Comprehensive Roadmap
 ## A World Cultures Atlas: Geography × Time × Culture
 
 *Version 1.0 - February 2026*
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-LinguaScrape is evolving from a linguistic database into a **comprehensive world cultures atlas** that maps human cultural expression across geography and time. This roadmap outlines the transformation from the current language-focused application into an integrated platform encompassing:
+Pinakes is evolving from a linguistic database into a **comprehensive world cultures atlas** that maps human cultural expression across geography and time. This roadmap outlines the transformation from the current language-focused application into an integrated platform encompassing:
 
 - **Languages** (current & historical)
 - **Anthropology** (kinship systems, social organization)
@@ -709,5 +709,5 @@ Maintain `ATTRIBUTION.md` listing all data sources with their licenses.
 
 ---
 
-*Document maintained by: LinguaScrape Development Team*
+*Document maintained by: Pinakes Development Team*
 *Last updated: February 6, 2026 — Phases 0–5 substantially complete*

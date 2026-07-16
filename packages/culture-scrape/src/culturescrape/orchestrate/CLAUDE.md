@@ -29,19 +29,19 @@ per-class redistribute/model-training statement. Deterministic (sorted, integer 
 `build_corpus(job)` stitches **every category in the job** into one graph (same-`csid`
 rows merge), and `csid` is QID-anchored, so a shared Wikidata entity reconciles across
 sources for free. That is the whole trick behind a *merged* corpus: put dump categories
-**and** a `linguascrape-export` category in one job. `merge.write_merged_job`
-(CLI `culturescrape merge <bp…> --dump … --linguascrape <export> --job …`) assembles
+**and** a `pinakes-export` category in one job. `merge.write_merged_job`
+(CLI `culturescrape merge <bp…> --dump … --pinakes <export> --job …`) assembles
 exactly that — it reuses `generate` (dump mode) per blueprint and appends a
-`linguascrape-export` category reading the export root (stored **absolute** so it
+`pinakes-export` category reading the export root (stored **absolute** so it
 resolves regardless of run CWD). It sets `reconcile_shared_qids: true` on the job (see
 below). Then `culturescrape run <job>` builds it fully offline.
 
 - **Scale gotcha (US-003 still applies):** each dump category full-scans the whole
   slice, so acquire wall-clock ≈ N_categories × slice size. On the reference merge the
-  LinguaScrape ingest (12k rows) + 17 dump scans dominated (345 s wall, 192 MB peak);
+  Pinakes ingest (12k rows) + 17 dump scans dominated (345 s wall, 192 MB peak);
   memory stays streaming-bounded, throughput is the thing US-007 must call out.
-- Use **absolute** `--dump`/`--index`/`--linguascrape` paths — the dump adapter and the
-  linguascrape-export adapter resolve their path relative to the run CWD, not the job.
+- Use **absolute** `--dump`/`--index`/`--pinakes` paths — the dump adapter and the
+  pinakes-export adapter resolve their path relative to the run CWD, not the job.
 
 ## Tiered trust / auto-admission — `tiers.py` (US-002)
 
@@ -53,7 +53,7 @@ canonical provenance columns (`source`, `wikidata_qid`, `source_url`) — so `ti
 new TSV column (that would cascade into the neo4j/datalog schema + every committed
 snapshot); it is *derived*, and recoverable from the same `source(Csid,Source)` Datalog
 fact / Neo4j property that already exists. Tiers, most-to-least trusted: `curated`
-(`source=linguascrape`, wins even with a QID/ref — human vetting is strongest),
+(`source=pinakes`, wins even with a QID/ref — human vetting is strongest),
 `auto-admitted` (node with `wikidata_qid` AND `source_url`; edge with `source_url`),
 `quarantine` (acquired but not both), `inferred` (`source` starts `inferred:` — linker
 scaffolding). Runbook: `docs/tiered-trust.md`.
@@ -70,8 +70,8 @@ scaffolding). Runbook: `docs/tiered-trust.md`.
   be fully sourced + QID-reconciled; quarantine has no floor — it is *awaiting* curation).
   **Dangling-edge / connectivity stay permissive per tier** — a curated edge legitimately
   points at a quarantined node, so `DEFAULT_TIER_GATES` sets BOTH `max_dangling_edge_rate`
-  and `max_linguascrape_dangling_edge_rate` to 1.0; real dangling is caught by the whole-
-  corpus gate. (The curated subset is all-LinguaScrape, so `qa.evaluate` appends the LS-
+  and `max_pinakes_dangling_edge_rate` to 1.0; real dangling is caught by the whole-
+  corpus gate. (The curated subset is all-Pinakes, so `qa.evaluate` appends the LS-
   scoped gates — remember to relax the LS dangling one too, not just the base one.)
 - **`jobs._parse_tier_gates` imports `tiers.ALL_TIERS` lazily** (inside the fn) to avoid a
   `jobs`↔`tiers` top-level import order coupling: `tiers` imports the qa/manifest/metrics
@@ -85,8 +85,8 @@ scaffolding). Runbook: `docs/tiered-trust.md`.
 `csid` is `cs:<node-type>:<QID>`, so the **same** Wikidata entity typed differently by
 two sources gets two csids and the per-`csid` stitch cannot merge them — the corpus then
 carries duplicate identities and the `duplicate rate` QA gate (max 0) trips. Seen on the
-reference merge: a deity typed `Concept` by the dump vs `Deity` by LinguaScrape; a script
-typed `Language` vs `WritingSystem`; a linker-minted `place` hub for a QID LinguaScrape
+reference merge: a deity typed `Concept` by the dump vs `Deity` by Pinakes; a script
+typed `Language` vs `WritingSystem`; a linker-minted `place` hub for a QID Pinakes
 curates as a `Culture`. `ontology/reconcile_qid.reconcile_shared_qids` fixes it: group
 nodes by normalized QID, merge each group via the tested `schema.merge.merge_rows` (which
 unions labels/aliases/provenance) and redirect edges through `merged_csid_remap` (drop
@@ -99,7 +99,7 @@ the linkers** (so it also collapses linker-minted hub collisions), gated on the 
   name. Group by QID first; only same-QID groups are merged. Nodes with no QID pass
   through untouched.
 - **Opt-in, not global.** The flag is `False` by default and only the merged job sets it,
-  so existing single-source builds (linguascrape-full, seed-corpus, food-drink) stay
+  so existing single-source builds (pinakes-full, seed-corpus, food-drink) stay
   byte-identical — a global QID-collapse could silently move their committed manifest
   counts. Keep it opt-in.
 
@@ -135,7 +135,7 @@ Use `schema.lexicon_reconcile.reconcile_corpus_against_lexicon(node_tsv, lexicon
 render with `render_markdown`. **GOTCHA — the `label` argument must be the corpus node
 type's canonical label**, not a superclass: the offline cascade blocks on the primary
 label, so reconciling `deity.tsv` with `label="Concept"` yields 0 matches while
-`label="Deity"` yields the real 198/221 (the LinguaScrape deities re-match their own
+`label="Deity"` yields the real 198/221 (the Pinakes deities re-match their own
 rows). Pass `region_column="region"` only for node types whose lexicon has a region
 column (languages do; deities don't). Built corpora are gitignored, so commit the
 reconciliation **numbers** (a docs report) rather than a regenerable artifact.

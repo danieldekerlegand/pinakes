@@ -85,7 +85,7 @@ The gate (`scripts/convergence-qa.ts`, [canonical-schema §10](./canonical-schem
 
 1. **Attribution** — any acquisition-imported row (a row with a `wikidata_qid`) lacks
    `source` / `source_url` / `retrieved_at` / `confidence`. Reads the lexicons directly.
-2. **Regression** — `duplicateCsids`, `ambiguousLinguascrapeIds`,
+2. **Regression** — `duplicateCsids`, `ambiguousPinakesIds`,
    `edgesWithUnresolvedEndpoint`, or reconciliation `ambiguous` climbs above its committed
    ceiling in `docs/convergence-qa-baseline.json`.
 3. **Drift** — schema / mapping no longer validate, or a mapped column / lexicon file
@@ -127,4 +127,4 @@ sidecar + Neo4j on the **same** corpus — pilot §6.3).
 - [Data-population pilot report](./data-population-pilot-report.md) — the end-to-end proof + gotchas.
 - [Canonical schema §7–§10](./canonical-schema.md) — export, reconciliation, write-back, QA gate.
 - [culture-scrape integration design](./culturescrape-integration.md).
-- Roadmap [§15 Data population at scale](./prd-linguascrape-deep-history-roadmap.md).
+- Roadmap [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md).

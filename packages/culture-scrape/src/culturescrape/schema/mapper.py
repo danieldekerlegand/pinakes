@@ -45,17 +45,17 @@ from culturescrape.schema.tsvio import MULTI_DELIMITER, Row
 #: Column that holds, as a JSON object, every raw field with no canonical home.
 OVERFLOW_KEY = "extra"
 
-#: Round-trip alias column: the source-local id a LinguaScrape row arrived with.
-#: Retained on every LinguaScrape-origin node so the export can be traced back to
+#: Round-trip alias column: the source-local id a Pinakes row arrived with.
+#: Retained on every Pinakes-origin node so the export can be traced back to
 #: the exact lexicon row it came from even after its ``csid`` is (re)minted.
-LINGUASCRAPE_ID_KEY = "linguascrape_id"
+PINAKES_ID_KEY = "pinakes_id"
 
-#: LinguaScrape export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
+#: Pinakes export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
 #:
-#: LinguaScrape emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
+#: Pinakes emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
 #: already registered in :mod:`culturescrape.ontology.registry` and map to
 #: themselves, so a fed-in edge participates directly in cross-dimensional
-#: linking. The three LinguaScrape-specific tokens fold onto the closest
+#: linking. The three Pinakes-specific tokens fold onto the closest
 #: registered canonical type so no non-canonical ``:TYPE`` ever enters the merged
 #: graph:
 #:
@@ -65,13 +65,13 @@ LINGUASCRAPE_ID_KEY = "linguascrape_id"
 #:   equivalence between the blended forms;
 #: * ``SPLIT_FROM`` (a language/lineage diverged from a common ancestor) ->
 #:   ``DESCENDS_FROM`` — genealogical descent, the same canonical home
-#:   LinguaScrape's ``evolved-into``/``gave-rise-to`` lineage edges already fold
+#:   Pinakes's ``evolved-into``/``gave-rise-to`` lineage edges already fold
 #:   onto (a divergence *is* a descent event).
 #:
 #: Every value here is a registered canonical ``:TYPE`` (asserted by the ontology
 #: tests); an edge token absent from this map is rejected by
-#: :func:`map_linguascrape_edge` rather than passed through un-canonicalised.
-LINGUASCRAPE_EDGE_TYPE_MAP: dict[str, str] = {
+#: :func:`map_pinakes_edge` rather than passed through un-canonicalised.
+PINAKES_EDGE_TYPE_MAP: dict[str, str] = {
     "DESCENDS_FROM": "DESCENDS_FROM",
     "INFLUENCED_BY": "INFLUENCED_BY",
     "BORROWED_FROM": "BORROWED_FROM",
@@ -196,47 +196,47 @@ def map_records(
     return [map_record(record, category) for record in records]
 
 
-# --- LinguaScrape export ---------------------------------------------------
+# --- Pinakes export ---------------------------------------------------
 #
-# A LinguaScrape export (``docs/reconcile-linguascrape.md``) already ships the
+# A Pinakes export (``docs/reconcile-pinakes.md``) already ships the
 # shared canonical shape: node rows carry their own ``:LABEL`` / ``csid`` and a
-# ``linguascrape_id`` alias, edge rows carry ``:START_ID`` / ``:END_ID`` /
+# ``pinakes_id`` alias, edge rows carry ``:START_ID`` / ``:END_ID`` /
 # ``:TYPE``. So mapping such a record is not the general "rename an arbitrary
 # source's fields" problem :func:`map_record` solves — the label and dimension
 # columns are already canonical. The two functions below take that shorter path:
-# they copy the canonical columns, retain the ``linguascrape_id`` round-trip
+# they copy the canonical columns, retain the ``pinakes_id`` round-trip
 # alias, and (re)mint the ``csid`` deterministically — QID-anchored when the row
-# carries a Wikidata QID, otherwise anchored on the stable ``linguascrape_id`` so
+# carries a Wikidata QID, otherwise anchored on the stable ``pinakes_id`` so
 # re-ingestion is idempotent and the id matches the one the export computed.
 
 
-def linguascrape_node_schema() -> NodeSchema:
-    """The canonical node header plus the ``linguascrape_id`` alias + overflow."""
+def pinakes_node_schema() -> NodeSchema:
+    """The canonical node header plus the ``pinakes_id`` alias + overflow."""
     base = NodeSchema.canonical()
     return NodeSchema(
         (
             *base.columns,
-            PropertyColumn(LINGUASCRAPE_ID_KEY),
+            PropertyColumn(PINAKES_ID_KEY),
             PropertyColumn(OVERFLOW_KEY),
         )
     )
 
 
-def linguascrape_edge_schema() -> EdgeSchema:
-    """The canonical edge header plus LinguaScrape time-range + alias columns."""
+def pinakes_edge_schema() -> EdgeSchema:
+    """The canonical edge header plus Pinakes time-range + alias columns."""
     base = EdgeSchema.canonical()
     return EdgeSchema(
         (
             *base.columns,
             PropertyColumn("time_start", PropertyType.INT),
             PropertyColumn("time_end", PropertyType.INT),
-            PropertyColumn(LINGUASCRAPE_ID_KEY),
+            PropertyColumn(PINAKES_ID_KEY),
         )
     )
 
 
-def map_linguascrape_record(record: RawRecord) -> Row:
-    """Map one LinguaScrape export *record* to a canonical node or edge row.
+def map_pinakes_record(record: RawRecord) -> Row:
+    """Map one Pinakes export *record* to a canonical node or edge row.
 
     Node rows (carrying a ``:LABEL``) and edge rows (carrying a ``:TYPE``) are
     told apart by their structural column, mirroring the export's ``nodes/`` vs
@@ -246,30 +246,30 @@ def map_linguascrape_record(record: RawRecord) -> Row:
         MapperError: If the record carries neither a ``:LABEL`` nor a ``:TYPE``.
     """
     if ":TYPE" in record.fields:
-        return map_linguascrape_edge(record)
+        return map_pinakes_edge(record)
     if ":LABEL" in record.fields:
-        return map_linguascrape_node(record)
+        return map_pinakes_node(record)
     raise MapperError(
-        "LinguaScrape record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
+        "Pinakes record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
     )
 
 
-def map_linguascrape_records(records: Iterable[RawRecord]) -> list[Row]:
-    """Map every LinguaScrape export record to a row, preserving order."""
-    return [map_linguascrape_record(record) for record in records]
+def map_pinakes_records(records: Iterable[RawRecord]) -> list[Row]:
+    """Map every Pinakes export record to a row, preserving order."""
+    return [map_pinakes_record(record) for record in records]
 
 
-def map_linguascrape_node(record: RawRecord) -> Row:
-    """Map a LinguaScrape export node *record* to a canonical node row.
+def map_pinakes_node(record: RawRecord) -> Row:
+    """Map a Pinakes export node *record* to a canonical node row.
 
     Raises:
         MapperError: If the record has no ``:LABEL``, or has neither a Wikidata
-            QID nor a ``linguascrape_id`` from which to mint a ``csid``.
+            QID nor a ``pinakes_id`` from which to mint a ``csid``.
     """
     fields = normalize_fields(record.fields)
     labels = _labels(fields.get(":LABEL", ""))
     if not labels:
-        raise MapperError("LinguaScrape node row has no ':LABEL'")
+        raise MapperError("Pinakes node row has no ':LABEL'")
 
     consumed: set[str] = {":LABEL", "csid"}
     row: Row = {}
@@ -289,17 +289,17 @@ def map_linguascrape_node(record: RawRecord) -> Row:
     _carry_canonical_temporal(fields, row, consumed)
     _resolve_geographic(fields, row, consumed)
 
-    alias = fields.get(LINGUASCRAPE_ID_KEY, "").strip()
-    consumed.add(LINGUASCRAPE_ID_KEY)
+    alias = fields.get(PINAKES_ID_KEY, "").strip()
+    consumed.add(PINAKES_ID_KEY)
     if alias:
-        row[LINGUASCRAPE_ID_KEY] = alias
+        row[PINAKES_ID_KEY] = alias
 
     overflow = {key: value for key, value in fields.items() if key not in consumed}
     if overflow:
         row[OVERFLOW_KEY] = json.dumps(overflow, ensure_ascii=False, sort_keys=True)
 
     row[":LABEL"] = labels
-    row["csid"] = _mint_linguascrape(
+    row["csid"] = _mint_pinakes(
         labels[0],
         fields.get("csid", ""),
         qid=_scalar(row.get("wikidata_qid")),
@@ -310,26 +310,26 @@ def map_linguascrape_node(record: RawRecord) -> Row:
     return row
 
 
-def map_linguascrape_edge(record: RawRecord) -> Row:
-    """Map a LinguaScrape export edge *record* to a canonical edge row.
+def map_pinakes_edge(record: RawRecord) -> Row:
+    """Map a Pinakes export edge *record* to a canonical edge row.
 
     Structural endpoints and ``:TYPE`` are required; the ``:TYPE`` token is
     translated to the canonical ontology vocabulary via
-    :data:`LINGUASCRAPE_EDGE_TYPE_MAP` so the edge participates in
+    :data:`PINAKES_EDGE_TYPE_MAP` so the edge participates in
     cross-dimensional linking, and ``weight``, the temporal range, and the
-    ``linguascrape_id`` alias ride through when present. Provenance (source,
+    ``pinakes_id`` alias ride through when present. Provenance (source,
     confidence, time range) is carried off the record.
 
     Raises:
         MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank,
-            or the ``:TYPE`` is not a known LinguaScrape edge token.
+            or the ``:TYPE`` is not a known Pinakes edge token.
     """
     fields = {key: normalize_text(value) for key, value in record.fields.items()}
     row: Row = {}
     for key in (":START_ID", ":END_ID", ":TYPE"):
         value = fields.get(key, "").strip()
         if not value:
-            raise MapperError(f"LinguaScrape edge row is missing {key!r}")
+            raise MapperError(f"Pinakes edge row is missing {key!r}")
         row[key] = _canonical_edge_type(value) if key == ":TYPE" else value
 
     for key in ("weight", "time_start", "time_end"):
@@ -337,9 +337,9 @@ def map_linguascrape_edge(record: RawRecord) -> Row:
         if value:
             row[key] = value
 
-    alias = fields.get(LINGUASCRAPE_ID_KEY, "").strip()
+    alias = fields.get(PINAKES_ID_KEY, "").strip()
     if alias:
-        row[LINGUASCRAPE_ID_KEY] = alias
+        row[PINAKES_ID_KEY] = alias
 
     _carry_edge_provenance(record, row)
     return row
@@ -353,10 +353,10 @@ def _labels(raw: str) -> list[str]:
 def _carry_canonical_temporal(
     fields: dict[str, str], row: Row, consumed: set[str]
 ) -> None:
-    """Copy LinguaScrape's already-canonical ``time_*`` columns onto *row*.
+    """Copy Pinakes's already-canonical ``time_*`` columns onto *row*.
 
     Unlike :func:`_resolve_temporal`, which parses a free-text source date, a
-    LinguaScrape export ships resolved integer years, so they are carried
+    Pinakes export ships resolved integer years, so they are carried
     verbatim (a blank cell was already dropped upstream).
     """
     for key in ("time_start", "time_end", "time_start_iso"):
@@ -365,16 +365,16 @@ def _carry_canonical_temporal(
             consumed.add(key)
 
 
-def _mint_linguascrape(
+def _mint_pinakes(
     label: str, shipped_csid: str, *, qid: str | None, alias: str | None
 ) -> str:
-    """Mint a LinguaScrape node's ``csid``: QID first, else the id alias.
+    """Mint a Pinakes node's ``csid``: QID first, else the id alias.
 
     The node type comes from the ``<type>`` segment of the ``csid`` the export
     shipped (falling back to the primary label) so the minted id lands under the
     same type the export and its edges reference.
     """
-    type_slug = _linguascrape_type(shipped_csid, label)
+    type_slug = _pinakes_type(shipped_csid, label)
     if qid:
         try:
             return mint_csid(type_slug, qid=qid)
@@ -383,13 +383,13 @@ def _mint_linguascrape(
     if alias:
         return mint_csid(type_slug, alias=alias)
     raise MapperError(
-        "cannot mint csid: LinguaScrape node has neither a Wikidata QID nor a "
-        "linguascrape_id"
+        "cannot mint csid: Pinakes node has neither a Wikidata QID nor a "
+        "pinakes_id"
     )
 
 
-def _linguascrape_type(shipped_csid: str, label: str) -> str:
-    """The node-type slug for a LinguaScrape row (from its csid, else its label)."""
+def _pinakes_type(shipped_csid: str, label: str) -> str:
+    """The node-type slug for a Pinakes row (from its csid, else its label)."""
     if shipped_csid:
         try:
             return csid_type(shipped_csid)
@@ -399,20 +399,20 @@ def _linguascrape_type(shipped_csid: str, label: str) -> str:
 
 
 def _canonical_edge_type(token: str) -> str:
-    """Translate a LinguaScrape edge ``:TYPE`` to the canonical vocabulary.
+    """Translate a Pinakes edge ``:TYPE`` to the canonical vocabulary.
 
     Raises:
-        MapperError: If *token* is not a known LinguaScrape edge type — a token
-            outside :data:`LINGUASCRAPE_EDGE_TYPE_MAP` would enter the graph as a
+        MapperError: If *token* is not a known Pinakes edge type — a token
+            outside :data:`PINAKES_EDGE_TYPE_MAP` would enter the graph as a
             non-canonical ``:TYPE``, so it is rejected loudly rather than passed
             through.
     """
     try:
-        return LINGUASCRAPE_EDGE_TYPE_MAP[token]
+        return PINAKES_EDGE_TYPE_MAP[token]
     except KeyError:
-        known = ", ".join(sorted(LINGUASCRAPE_EDGE_TYPE_MAP))
+        known = ", ".join(sorted(PINAKES_EDGE_TYPE_MAP))
         raise MapperError(
-            f"unknown LinguaScrape edge :TYPE {token!r} (known: {known})"
+            f"unknown Pinakes edge :TYPE {token!r} (known: {known})"
         ) from None
 
 

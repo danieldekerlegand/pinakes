@@ -74,10 +74,10 @@ function fakeExport(dataset: string, name: string, rowCounts: number[]): ExportR
       rowCount,
     })),
     metadata: {
-      title: `LinguaScrape Export: ${name}`,
+      title: `Pinakes Export: ${name}`,
       description: "",
       exportDate: "2026-01-01T00:00:00.000Z",
-      source: "LinguaScrape",
+      source: "Pinakes",
       license: DATASET_LICENSE,
       fileCount: rowCounts.length,
       totalRows: rowCounts.reduce((a, b) => a + b, 0),
@@ -205,14 +205,14 @@ describe("buildDatasetSnapshot", () => {
 
 describe("createZenodoDoiMinter", () => {
   const meta = {
-    title: "LinguaScrape Open Dataset",
+    title: "Pinakes Open Dataset",
     description: "d",
     version: "1.0.0",
     releaseDate: "2026-07-06T00:00:00.000Z",
     doi: null,
     doiUrl: null,
     license: "CC-BY-4.0",
-    source: "LinguaScrape",
+    source: "Pinakes",
     format: "json" as const,
     datasets: [],
     fileCount: 0,

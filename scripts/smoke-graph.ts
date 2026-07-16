@@ -11,7 +11,7 @@
  *   GET /api/graph/node/:id            — a real node resolves by csid (Neo4j)
  *   GET /api/graph/neighborhood/:id    — its neighborhood has nodes (Neo4j)
  *
- * It **degrades gracefully**: when the LinguaScrape server, the sidecar, or Neo4j
+ * It **degrades gracefully**: when the Pinakes server, the sidecar, or Neo4j
  * is absent it prints a clear "stack down" message and exits 0 rather than
  * throwing a connection stack trace — so running it with nothing up is a no-op,
  * not a hard failure. It exits **1 only when a backend is up but a check fails**
@@ -26,7 +26,7 @@ import type {
   SearchResponse,
 } from "../server/services/culturescrape-client";
 
-/** Base URL of the running LinguaScrape server (not the sidecar directly). */
+/** Base URL of the running Pinakes server (not the sidecar directly). */
 const BASE_URL = (
   process.env.SMOKE_GRAPH_URL ?? `http://localhost:${process.env.PORT ?? "3050"}`
 ).replace(/\/$/, "");
@@ -150,7 +150,7 @@ async function main(): Promise<number> {
   if (!status.reached) {
     // eslint-disable-next-line no-console
     console.log(
-      `\n⚠  Stack down: the LinguaScrape server is not reachable at ${BASE_URL}.\n` +
+      `\n⚠  Stack down: the Pinakes server is not reachable at ${BASE_URL}.\n` +
         `   Start it with 'npm run dev:full' (app + culture-scrape sidecar + Neo4j),\n` +
         `   then re-run 'npx tsx scripts/smoke-graph.ts'. (${status.error})`,
     );

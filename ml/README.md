@@ -1,4 +1,4 @@
-# `ml/` — LinguaScrape ML / neurosymbolic workspace
+# `ml/` — Pinakes ML / neurosymbolic workspace
 
 Phase 2 of [`NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md): the first
 **fact → model loop**, built at the *current* corpus scale (deliberately before
@@ -46,11 +46,11 @@ uv run pytest                # smoke tests (imports + MLflow file backend)
 
 All scripts log to a **local file store** (no server, no DB): `ml/mlruns` by
 default, overridable with `MLFLOW_TRACKING_URI`. Never wire `mlflow.set_tracking_uri`
-by hand — use the helper in `linguascrape_ml.tracking`:
+by hand — use the helper in `pinakes_ml.tracking`:
 
 ```python
 import mlflow
-from linguascrape_ml import start_run
+from pinakes_ml import start_run
 
 with start_run(run_name="transe-baseline"):   # configures URI + experiment, opens the run
     mlflow.log_param("model", "TransE")
@@ -62,7 +62,7 @@ via `setdefault`) — MLflow ≥3 puts the file store in "maintenance mode" and
 raises without that opt-out. We require the file backend (no server/DB, so runs
 stay reproducible and CI-safe), so the helper sets it for you.
 
-Runs group under the `linguascrape-baselines` experiment. Browse them with
+Runs group under the `pinakes-baselines` experiment. Browse them with
 `uv run mlflow ui` (defaults to the same file store) → http://127.0.0.1:5000.
 `mlruns/` is git-ignored — metrics that must be preserved are committed to
 `docs/ml-baselines.md` (US-003), not the run store.
@@ -82,7 +82,7 @@ so nothing leaves the machine and no cloud credentials are needed.
 | Path | What it is |
 |------|-----------|
 | `export/culturescrape` | Canonical node/edge TSV export (the corpus the triples exporter reads) |
-| `packages/culture-scrape/out/linguascrape-full` | Full Datalog/Neo4j rebuild output |
+| `packages/culture-scrape/out/pinakes-full` | Full Datalog/Neo4j rebuild output |
 | `ml/data` | ML datasets (triples + splits, US-002) and trained artifacts (embeddings, US-003) |
 
 ### Workflow
@@ -116,7 +116,7 @@ deterministic splits.
 
 ```bash
 cd ml
-uv run python -m linguascrape_ml.export_triples     # or: uv run linguascrape-export-triples
+uv run python -m pinakes_ml.export_triples     # or: uv run pinakes-export-triples
 # writes ml/data/triples/{triples,train,valid,test,entities,relations}.tsv
 #      + ml/manifests/triples-split-manifest.json  (committed, snapshot-tested)
 # then re-pin the data:  cd .. && uv run --project ml dvc add ml/data && dvc push
@@ -158,7 +158,7 @@ every future corpus-growth and neurosymbolic result is judged against.
 ```bash
 cd ml
 uv run --project . dvc pull                 # fetch the DVC-tracked splits (repo root)
-uv run linguascrape-train-baselines         # or: python -m linguascrape_ml.train_baselines
+uv run pinakes-train-baselines         # or: python -m pinakes_ml.train_baselines
 # trains all three (CPU/MPS), logs MRR + Hits@{1,3,10} to MLflow, writes:
 #   docs/ml-baselines.md                      (committed — metrics + corpus/split hashes)
 #   ml/data/embeddings/<model>/entity_embeddings.npy (+ metadata.json; DVC-tracked)
@@ -182,7 +182,7 @@ uv run linguascrape-train-baselines         # or: python -m linguascrape_ml.trai
 ## Logical-consistency ratchet (US-005)
 
 The differentiating benefit of the symbolic layer: a model's predictions are
-*checked against the rules*. `linguascrape_ml.consistency` (pure) scores three
+*checked against the rules*. `pinakes_ml.consistency` (pure) scores three
 violation families over a predictions triples file:
 
 - **descent cycles** — `DESCENDS_FROM` must be a DAG (Tarjan SCC; self-loops + mutual
@@ -203,8 +203,8 @@ small + reproducible), evaluates them, writes the ratchet baseline
 
 ```bash
 cd ml
-uv run linguascrape-check-consistency          # the CI gate: recompute vs baseline
-uv run linguascrape-check-consistency --write-baseline   # deliberate re-baseline
+uv run pinakes-check-consistency          # the CI gate: recompute vs baseline
+uv run pinakes-check-consistency --write-baseline   # deliberate re-baseline
 ```
 
 - **The ratchet runs in CI** (pytest `test_committed_predictions_pass_the_ratchet` +
@@ -223,7 +223,7 @@ ml/
 ├── pyproject.toml            # uv workspace (Python 3.11), deps + ruff/pytest config
 ├── .python-version          # 3.11
 ├── README.md                # this file
-├── src/linguascrape_ml/
+├── src/pinakes_ml/
 │   ├── __init__.py
 │   ├── tracking.py          # MLflow file-backend wiring (start_run helper)
 │   ├── triples.py           # US-002 pure core: load/split/manifest triples

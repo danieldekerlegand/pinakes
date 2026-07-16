@@ -1,9 +1,9 @@
 """Unit tests for the merged-corpus job assembler (US-004).
 
 These run in CI with **no** dump slice: they exercise :func:`write_merged_job`'s
-assembly — expanding several blueprints in dump mode, appending the LinguaScrape
+assembly — expanding several blueprints in dump mode, appending the Pinakes
 export category, and writing one runnable job — using a tiny local blueprint and
-a fixture LinguaScrape export directory. The end-to-end build against the *real*
+a fixture Pinakes export directory. The end-to-end build against the *real*
 slice lives in ``test_blueprint_language_myth_dump_smoke`` (skipif-gated).
 """
 
@@ -16,7 +16,7 @@ import pytest
 from culturescrape.orchestrate.generate import DumpSource
 from culturescrape.orchestrate.jobs import load_job
 from culturescrape.orchestrate.merge import (
-    LINGUASCRAPE_CATEGORY_ID,
+    PINAKES_CATEGORY_ID,
     MergeError,
     write_merged_job,
 )
@@ -40,7 +40,7 @@ def _fixture_export(root: Path) -> Path:
     (root / "edges").mkdir(parents=True)
     (root / "nodes" / "language.tsv").write_text(
         "csid:ID\t:LABEL\tname\tsource\n"
-        "cs:language:q1\tLanguage\tLatin\tlinguascrape\n",
+        "cs:language:q1\tLanguage\tLatin\tpinakes\n",
         encoding="utf-8",
     )
     return root
@@ -77,7 +77,7 @@ def test_merge_writes_one_job_over_all_blueprint_categories(tmp_path: Path) -> N
     assert all(spec.source.type == "wikidata-dump" for spec in job.categories)
 
 
-def test_merge_appends_linguascrape_export_category(tmp_path: Path) -> None:
+def test_merge_appends_pinakes_export_category(tmp_path: Path) -> None:
     bp = _write_blueprint(
         tmp_path / "language.yml", name="language", cid="languages", qid="Q34770"
     )
@@ -90,14 +90,14 @@ def test_merge_appends_linguascrape_export_category(tmp_path: Path) -> None:
         out,
         job_path,
         dump=_dump(tmp_path),
-        linguascrape_export=export,
+        pinakes_export=export,
     )
 
     job = load_job(job_path)
     ids = {spec.id for spec in job.categories}
-    assert ids == {"languages", LINGUASCRAPE_CATEGORY_ID}
-    ls = next(s for s in job.categories if s.id == LINGUASCRAPE_CATEGORY_ID)
-    assert ls.source.params.get("adapter") == "linguascrape-export"
+    assert ids == {"languages", PINAKES_CATEGORY_ID}
+    ls = next(s for s in job.categories if s.id == PINAKES_CATEGORY_ID)
+    assert ls.source.params.get("adapter") == "pinakes-export"
     # Stored as an absolute path so it resolves independent of the run CWD.
     assert Path(ls.source.query or "").is_absolute()
     assert Path(ls.source.query or "").samefile(export)
@@ -139,7 +139,7 @@ def test_merge_rejects_a_non_directory_export(tmp_path: Path) -> None:
             tmp_path / "categories",
             tmp_path / "job.yml",
             dump=_dump(tmp_path),
-            linguascrape_export=missing,
+            pinakes_export=missing,
         )
 
 

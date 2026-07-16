@@ -39,9 +39,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from culturescrape.ontology.metrics import LINGUASCRAPE_SOURCE, read_dataset
+from culturescrape.ontology.metrics import PINAKES_SOURCE, read_dataset
 from culturescrape.schema.ids import IdError, normalize_name, normalize_qid
-from culturescrape.schema.mapper import LINGUASCRAPE_ID_KEY
+from culturescrape.schema.mapper import PINAKES_ID_KEY
 from culturescrape.schema.tsvio import Row
 
 #: Provenance columns a row must all carry non-empty to count as fully sourced.
@@ -54,7 +54,7 @@ QA_REPORT_SUFFIX = ".qa.json"
 QA_REPORT_MD_SUFFIX = ".qa.md"
 
 #: Delimiter :mod:`culturescrape.schema.merge` joins concatenated provenance
-#: ``source`` values with, so a reconciled row carries ``"wikidata;linguascrape"``.
+#: ``source`` values with, so a reconciled row carries ``"wikidata;pinakes"``.
 _SOURCE_DELIMITER = ";"
 
 
@@ -75,15 +75,15 @@ class GateThresholds:
             sourced rows.
         max_dangling_edge_rate: Largest tolerated fraction of dangling edges.
         max_unreconciled_rate: Largest tolerated fraction of unreconciled nodes.
-        min_linguascrape_provenance_completeness: Smallest tolerated fraction of
-            LinguaScrape-origin rows still carrying the ``linguascrape`` source
+        min_pinakes_provenance_completeness: Smallest tolerated fraction of
+            Pinakes-origin rows still carrying the ``pinakes`` source
             stamp (defaults to ``1.0`` — merging must never drop it).
-        max_linguascrape_duplicate_rate: Largest tolerated post-dedup duplicate
-            fraction among LinguaScrape-origin nodes.
-        max_linguascrape_dangling_edge_rate: Largest tolerated fraction of
-            LinguaScrape-origin edges pointing at an unknown csid.
-        max_linguascrape_unreconciled_rate: Largest tolerated fraction of
-            LinguaScrape-origin nodes never merged to a graph node (defaults to
+        max_pinakes_duplicate_rate: Largest tolerated post-dedup duplicate
+            fraction among Pinakes-origin nodes.
+        max_pinakes_dangling_edge_rate: Largest tolerated fraction of
+            Pinakes-origin edges pointing at an unknown csid.
+        max_pinakes_unreconciled_rate: Largest tolerated fraction of
+            Pinakes-origin nodes never merged to a graph node (defaults to
             ``1.0`` — informational unless a reconciling run tightens it).
     """
 
@@ -92,10 +92,10 @@ class GateThresholds:
     min_provenance_completeness: float = 1.0
     max_dangling_edge_rate: float = 0.0
     max_unreconciled_rate: float = 1.0
-    min_linguascrape_provenance_completeness: float = 1.0
-    max_linguascrape_duplicate_rate: float = 0.0
-    max_linguascrape_dangling_edge_rate: float = 0.0
-    max_linguascrape_unreconciled_rate: float = 1.0
+    min_pinakes_provenance_completeness: float = 1.0
+    max_pinakes_duplicate_rate: float = 0.0
+    max_pinakes_dangling_edge_rate: float = 0.0
+    max_pinakes_unreconciled_rate: float = 1.0
 
     @classmethod
     def from_dict(cls, data: dict[str, object]) -> GateThresholds:
@@ -119,25 +119,25 @@ class GateThresholds:
             max_unreconciled_rate=_as_float(
                 data, "max_unreconciled_rate", cls.max_unreconciled_rate
             ),
-            min_linguascrape_provenance_completeness=_as_float(
+            min_pinakes_provenance_completeness=_as_float(
                 data,
-                "min_linguascrape_provenance_completeness",
-                cls.min_linguascrape_provenance_completeness,
+                "min_pinakes_provenance_completeness",
+                cls.min_pinakes_provenance_completeness,
             ),
-            max_linguascrape_duplicate_rate=_as_float(
+            max_pinakes_duplicate_rate=_as_float(
                 data,
-                "max_linguascrape_duplicate_rate",
-                cls.max_linguascrape_duplicate_rate,
+                "max_pinakes_duplicate_rate",
+                cls.max_pinakes_duplicate_rate,
             ),
-            max_linguascrape_dangling_edge_rate=_as_float(
+            max_pinakes_dangling_edge_rate=_as_float(
                 data,
-                "max_linguascrape_dangling_edge_rate",
-                cls.max_linguascrape_dangling_edge_rate,
+                "max_pinakes_dangling_edge_rate",
+                cls.max_pinakes_dangling_edge_rate,
             ),
-            max_linguascrape_unreconciled_rate=_as_float(
+            max_pinakes_unreconciled_rate=_as_float(
                 data,
-                "max_linguascrape_unreconciled_rate",
-                cls.max_linguascrape_unreconciled_rate,
+                "max_pinakes_unreconciled_rate",
+                cls.max_pinakes_unreconciled_rate,
             ),
         )
 
@@ -304,9 +304,9 @@ def evaluate(
     ``0.0`` (and full provenance completeness of ``1.0``), so the row-count gate
     is what catches an empty dataset.
 
-    When the corpus contains at least one LinguaScrape-origin row, four extra
+    When the corpus contains at least one Pinakes-origin row, four extra
     gates scoped to those rows are appended (provenance completeness, duplicate
-    rate, dangling-edge rate, unreconciled rate) so LinguaScrape ingestion cannot
+    rate, dangling-edge rate, unreconciled rate) so Pinakes ingestion cannot
     silently degrade the merged corpus. A native-only corpus keeps the five base
     gates unchanged.
     """
@@ -355,7 +355,7 @@ def evaluate(
             "nodes with no wikidata_qid or getty_id",
         ),
     )
-    gates += _linguascrape_gates(nodes, edges, thresholds)
+    gates += _pinakes_gates(nodes, edges, thresholds)
     return QaReport(
         dataset=dataset,
         node_count=node_count,
@@ -364,58 +364,58 @@ def evaluate(
     )
 
 
-def _linguascrape_gates(
+def _pinakes_gates(
     nodes: Sequence[Row],
     edges: Sequence[Row],
     thresholds: GateThresholds,
 ) -> tuple[GateResult, ...]:
-    """The LinguaScrape-scoped gates, or ``()`` when the corpus has no LS rows.
+    """The Pinakes-scoped gates, or ``()`` when the corpus has no LS rows.
 
-    A row is LinguaScrape-origin if it retains a ``linguascrape_id`` alias or a
-    ``linguascrape`` token in its (possibly merge-concatenated) ``source``
-    provenance. Duplicate/unreconciled gates cover LinguaScrape *nodes*; the
-    dangling-edge gate checks LinguaScrape *edges* against **every** node (a
-    LinguaScrape edge may legitimately point at a native node); provenance
-    completeness covers all LinguaScrape-origin rows.
+    A row is Pinakes-origin if it retains a ``pinakes_id`` alias or a
+    ``pinakes`` token in its (possibly merge-concatenated) ``source``
+    provenance. Duplicate/unreconciled gates cover Pinakes *nodes*; the
+    dangling-edge gate checks Pinakes *edges* against **every** node (a
+    Pinakes edge may legitimately point at a native node); provenance
+    completeness covers all Pinakes-origin rows.
     """
-    ls_nodes = [node for node in nodes if _is_linguascrape(node)]
-    ls_edges = [edge for edge in edges if _is_linguascrape(edge)]
+    ls_nodes = [node for node in nodes if _is_pinakes(node)]
+    ls_edges = [edge for edge in edges if _is_pinakes(edge)]
     if not ls_nodes and not ls_edges:
         return ()
 
     ls_count = len(ls_nodes) + len(ls_edges)
     return (
         _gate(
-            "linguascrape_provenance_completeness",
-            "LinguaScrape provenance completeness",
-            _linguascrape_provenance_completeness(ls_nodes, ls_edges),
-            thresholds.min_linguascrape_provenance_completeness,
+            "pinakes_provenance_completeness",
+            "Pinakes provenance completeness",
+            _pinakes_provenance_completeness(ls_nodes, ls_edges),
+            thresholds.min_pinakes_provenance_completeness,
             "min",
-            f"{ls_count} LinguaScrape-origin row(s) keeping the source stamp",
+            f"{ls_count} Pinakes-origin row(s) keeping the source stamp",
         ),
         _gate(
-            "linguascrape_duplicate_rate",
-            "LinguaScrape duplicate rate (post-dedup)",
+            "pinakes_duplicate_rate",
+            "Pinakes duplicate rate (post-dedup)",
             _duplicate_rate(ls_nodes),
-            thresholds.max_linguascrape_duplicate_rate,
+            thresholds.max_pinakes_duplicate_rate,
             "max",
-            "LinguaScrape nodes sharing a strong identity key",
+            "Pinakes nodes sharing a strong identity key",
         ),
         _gate(
-            "linguascrape_dangling_edge_rate",
-            "LinguaScrape dangling-edge rate",
+            "pinakes_dangling_edge_rate",
+            "Pinakes dangling-edge rate",
             _dangling_edge_rate(nodes, ls_edges),
-            thresholds.max_linguascrape_dangling_edge_rate,
+            thresholds.max_pinakes_dangling_edge_rate,
             "max",
-            "LinguaScrape edges referencing an unknown csid",
+            "Pinakes edges referencing an unknown csid",
         ),
         _gate(
-            "linguascrape_unreconciled_rate",
-            "LinguaScrape unreconciled-entity rate",
+            "pinakes_unreconciled_rate",
+            "Pinakes unreconciled-entity rate",
             _unreconciled_rate(ls_nodes),
-            thresholds.max_linguascrape_unreconciled_rate,
+            thresholds.max_pinakes_unreconciled_rate,
             "max",
-            "LinguaScrape nodes not merged to a graph node",
+            "Pinakes nodes not merged to a graph node",
         ),
     )
 
@@ -520,16 +520,16 @@ def _unreconciled_rate(nodes: Sequence[Row]) -> float:
     return unreconciled / len(nodes)
 
 
-def _is_linguascrape(row: Row) -> bool:
-    """Whether *row* is LinguaScrape-origin (has the alias or the source stamp).
+def _is_pinakes(row: Row) -> bool:
+    """Whether *row* is Pinakes-origin (has the alias or the source stamp).
 
-    Identity survives a reconcile merge: the row keeps its ``linguascrape_id``
-    alias, and its ``source`` provenance holds the ``linguascrape`` token (joined
+    Identity survives a reconcile merge: the row keeps its ``pinakes_id``
+    alias, and its ``source`` provenance holds the ``pinakes`` token (joined
     with the native source when both merged). Either signal is enough.
     """
-    if _scalar(row, LINGUASCRAPE_ID_KEY):
+    if _scalar(row, PINAKES_ID_KEY):
         return True
-    return LINGUASCRAPE_SOURCE in _source_tokens(row)
+    return PINAKES_SOURCE in _source_tokens(row)
 
 
 def _source_tokens(row: Row) -> set[str]:
@@ -538,21 +538,21 @@ def _source_tokens(row: Row) -> set[str]:
     return {token.strip() for token in source.split(_SOURCE_DELIMITER) if token.strip()}
 
 
-def _linguascrape_provenance_completeness(
+def _pinakes_provenance_completeness(
     nodes: Sequence[Row], edges: Sequence[Row]
 ) -> float:
-    """Fraction of LinguaScrape-origin rows keeping the ``linguascrape`` stamp.
+    """Fraction of Pinakes-origin rows keeping the ``pinakes`` stamp.
 
-    A row identified as LinguaScrape-origin (typically by its surviving
-    ``linguascrape_id`` alias) whose ``source`` provenance no longer names
-    :data:`~culturescrape.ontology.metrics.LINGUASCRAPE_SOURCE` has lost its
+    A row identified as Pinakes-origin (typically by its surviving
+    ``pinakes_id`` alias) whose ``source`` provenance no longer names
+    :data:`~culturescrape.ontology.metrics.PINAKES_SOURCE` has lost its
     stamp — the merge dropped its provenance. An empty subset is vacuously
     complete (``1.0``).
     """
     rows = list(nodes) + list(edges)
     if not rows:
         return 1.0
-    stamped = sum(1 for row in rows if LINGUASCRAPE_SOURCE in _source_tokens(row))
+    stamped = sum(1 for row in rows if PINAKES_SOURCE in _source_tokens(row))
     return stamped / len(rows)
 
 

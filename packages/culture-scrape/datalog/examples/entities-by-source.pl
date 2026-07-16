@@ -3,13 +3,13 @@
 % Every entity whose row came from a named acquisition source — joining the
 % queryable provenance fact source/2 (keyed by csid; the machine-readable form of
 % the trailing `% source:` comment) to node/3 for the display name. This is what
-% makes provenance a first-class query target: `source(C, linguascrape)` selects
+% makes provenance a first-class query target: `source(C, pinakes)` selects
 % the csids a source contributed, and node/3 names them. Provenance is neither
 % symmetric nor transitive, so a single direct lookup is the whole answer; no
 % --rules library is needed. The sibling rel_source/4 does the same for edges.
 %
 % Interactive form (after `swipl graph.pl`):
-%   ?- source(Csid, linguascrape), node(Csid, _, Name).
+%   ?- source(Csid, pinakes), node(Csid, _, Name).
 %
 % Run on the bundled example dataset:
 %   culturescrape to-datalog datalog/examples/dataset \
@@ -27,6 +27,6 @@
 
 main :-
     forall(
-        ( source(Csid, linguascrape), node(Csid, _, Name) ),
+        ( source(Csid, pinakes), node(Csid, _, Name) ),
         format("~w\t~w~n", [Csid, Name])
     ).

@@ -42,7 +42,7 @@ const OUT_FILE = path.join(
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "Pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Wikidata class Q465299 = "archaeological culture". */
 const CULTURE_CLASS = "Q465299";
@@ -237,8 +237,8 @@ function nodeLexiconFiles(): string[] {
  *
  * Names are deduped per-type (a `culture` named "Sumer" may coexist with a `civilization`
  * of the same name — reconciliation keys on `(name, type, region)`), but ids must be unique
- * across the **whole corpus**: the export's `ambiguousLinguascrapeIds` diagnostic keys on the
- * raw `linguascrape_id` across every node type, so a new culture id colliding with a
+ * across the **whole corpus**: the export's `ambiguousPinakesIds` diagnostic keys on the
+ * raw `pinakes_id` across every node type, so a new culture id colliding with a
  * civilization/place id of the same string is a regression the QA gate blocks. We therefore
  * seed the used-id set from every node lexicon and suffix any collision.
  */

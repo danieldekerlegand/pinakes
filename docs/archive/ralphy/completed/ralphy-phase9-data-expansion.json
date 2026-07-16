@@ -184,7 +184,7 @@
       "title": "Create export pipeline for contributing data back to open datasets",
       "completed": true,
       "parallel_group": 6,
-      "description": "US-130: Build server/services/data-export.ts that can export LinguaScrape data in standard formats: CLDF (Cross-Linguistic Data Formats) for linguistic data, GeoJSON for geographic data, CSV with standardized headers for general datasets. Include provenance tracking so AI-generated vs human-curated data is clearly distinguished. Add GET /api/export/:dataset/:format endpoints."
+      "description": "US-130: Build server/services/data-export.ts that can export Pinakes data in standard formats: CLDF (Cross-Linguistic Data Formats) for linguistic data, GeoJSON for geographic data, CSV with standardized headers for general datasets. Include provenance tracking so AI-generated vs human-curated data is clearly distinguished. Add GET /api/export/:dataset/:format endpoints."
     }
   ]
 }

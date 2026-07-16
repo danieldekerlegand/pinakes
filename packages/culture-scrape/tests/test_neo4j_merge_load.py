@@ -14,7 +14,7 @@ from culturescrape.neo4j.merge_load import verify_idempotent_load
 from culturescrape.schema.headers import EdgeSchema, NodeSchema
 from culturescrape.schema.tsvio import write_edge_rows, write_node_rows
 
-_FIXTURE = Path(__file__).parent / "fixtures" / "linguascrape" / "export"
+_FIXTURE = Path(__file__).parent / "fixtures" / "pinakes" / "export"
 
 
 def test_committed_export_loads_idempotently() -> None:
@@ -38,14 +38,14 @@ def test_merge_collapses_a_shared_csid_across_files(tmp_path: Path) -> None:
     """Two files carrying the same csid MERGE to ONE node — the stitch guarantee.
 
     This is exactly what makes a language present in both the Wikidata dump and
-    the LinguaScrape export a single merged node rather than a duplicate.
+    the Pinakes export a single merged node rather than a duplicate.
     """
     shared = {"csid": "cs:language:q1", ":LABEL": ["Language"], "name": "Latin"}
     _write_dataset(
         tmp_path,
         node_files={
             "dump-language": [shared],
-            "linguascrape-language": [shared],  # same csid, different source file
+            "pinakes-language": [shared],  # same csid, different source file
             "other": [
                 {"csid": "cs:deity:q2", ":LABEL": ["Concept"], "name": "Jupiter"}
             ],

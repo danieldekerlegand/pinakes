@@ -527,7 +527,7 @@ function QuizResults({
     // Prefer the native share sheet (mobile), fall back to clipboard.
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title: "LinguaScrape Quiz", text, url });
+        await navigator.share({ title: "Pinakes Quiz", text, url });
         return;
       }
     } catch {
@@ -809,7 +809,7 @@ export default function QuizPage() {
           </div>
           <p className="text-gray-400 mb-10 max-w-xl">
             Test your knowledge of languages, writing systems, grammar, and geography.
-            Questions are dynamically generated from the LinguaScrape database.
+            Questions are dynamically generated from the Pinakes database.
           </p>
 
           <Card className="bg-gray-900 border-gray-700 p-6 space-y-6">

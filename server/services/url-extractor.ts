@@ -488,7 +488,7 @@ export function draftToContribution(
 
 // ── Default (live) network implementation ───────────────────────────────────────
 
-const USER_AGENT = "LinguaScrape/1.0 (url-extractor; +https://linguascrape.local)";
+const USER_AGENT = "Pinakes/1.0 (url-extractor; +https://pinakes.local)";
 
 /** Live deps hitting the real Wikidata/Wikipedia REST APIs (no SPARQL). */
 export const liveDeps: UrlExtractorDeps = {

@@ -54,7 +54,7 @@ export const CANDIDATES_FILE = path.join(DATA_DIR, "lexicon-qid-candidates.tsv")
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "LinguaScrape/1.0 (https://github.com/; qid-backfill; dldekerl@gmail.com)";
+  "Pinakes/1.0 (https://github.com/; qid-backfill; dldekerl@gmail.com)";
 
 /** Fixed retrieval date → a deterministic committed artifact (no wall-clock). */
 export const RETRIEVED_AT = "2026-07-13";

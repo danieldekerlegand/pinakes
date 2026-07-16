@@ -95,9 +95,9 @@ a comparison over a still-unbound variable is an unsafe rule and also raises.
   `influenced_transitively`/`component_of`) materialise in ~1 s and stay in the manifest.
   `--exclude` rejects an unknown head; without it the CLI materialises every rule (the
   small-fixture path — tests + doctests — is unchanged).
-- `genetic_linguistic_correlation` derives **0 over the LinguaScrape-only corpus**
+- `genetic_linguistic_correlation` derives **0 over the Pinakes-only corpus**
   (no genetics/haplogroup source → no `originates_from`/`spoken_in` edges). It is
-  exercised on the bundled fixture, which carries ported `source: linguascrape`
+  exercised on the bundled fixture, which carries ported `source: pinakes`
   genetics facts. Don't "fix" the 0 — it's a data property, not a bug.
 - Tests pin the evaluator's exact extensions on the small bundled dataset
   (`tests/test_datalog_materialize.py`); those counts are stable because the fixture
@@ -366,8 +366,8 @@ register an `Example(...)` in `examples.py` (add to `EXAMPLES` + `__all__`). Syn
 ## GOTCHA — `datalog/examples/dataset` is a shared fixture
 
 It is `nodes/*.tsv` + `edges/*.tsv` and `collect_facts` reads **every** file in
-each (sorted). You can drop in an extra file (e.g. `nodes/linguascrape.tsv`,
-`source: linguascrape`) — node header needs `csid:ID`/`:LABEL`/`name`, edge header
+each (sorted). You can drop in an extra file (e.g. `nodes/pinakes.tsv`,
+`source: pinakes`) — node header needs `csid:ID`/`:LABEL`/`name`, edge header
 needs `:START_ID`/`:END_ID`/`:TYPE`; other columns are optional. **But its exact
 node/edge counts are pinned elsewhere:** `tests/test_explorer_data.py` asserts
 `len(corpus.nodes.rows)`, `len(corpus.edges.rows)`, `metrics.node_count`, and
@@ -387,7 +387,7 @@ via `shutil.which` so the suite still passes on a machine without them (local de
 the engine-free `datalog-materialize` path).
 
 Still validate rule *logic* engine-free (evaluate the rule body directly over the
-projected facts vs the `Example.expected` set — see `tests/test_datalog_linguascrape.py`)
+projected facts vs the `Example.expected` set — see `tests/test_datalog_pinakes.py`)
 so the logic is checked even without an engine, and keep the engine-gated test that
 agrees with that derivation for when an engine is present. Install locally: see
 `docs/datalog.md`, "Installing the engines".

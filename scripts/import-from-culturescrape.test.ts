@@ -44,7 +44,7 @@ function editCanonicalCell(
 ): void {
   const p = path.join(canonDir, "nodes", `${type}.tsv`);
   const lines = fs.readFileSync(p, "utf8").split("\n");
-  const idIdx = nodeCol("linguascrape_id");
+  const idIdx = nodeCol("pinakes_id");
   const fIdx = nodeCol(field);
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === "") continue;
@@ -164,7 +164,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
 
       expect(report.totals.enrichments).toBe(1);
       expect(report.totals.conflicts).toBe(0);
-      const change = report.changes.find((c) => c.linguascrapeId === "latin");
+      const change = report.changes.find((c) => c.pinakesId === "latin");
       expect(change).toMatchObject({
         file: "languages.tsv",
         field: "aliases",
@@ -199,11 +199,11 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
       expect(noWrite.report.totals.conflicts).toBe(1);
       expect(noWrite.report.conflicts[0]).toMatchObject({
         file: "languages.tsv",
-        linguascrapeId: "french",
+        pinakesId: "french",
         field: "name",
         curatedValue: "French",
         incomingValue: "Frankish",
-        incomingSource: "linguascrape",
+        incomingSource: "pinakes",
       });
       expect(noWrite.files.get("languages.tsv")!.changed).toBe(false);
 
@@ -219,7 +219,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
     }
   });
 
-  it("preserves LinguaScrape-owned provenance columns (AC2): never written, never conflicted", () => {
+  it("preserves Pinakes-owned provenance columns (AC2): never written, never conflicted", () => {
     const dir = fullFixture();
     try {
       const canon = exportTo(dir);
@@ -269,7 +269,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
       expect(report.ambiguousIds[0]).toMatchObject({
         file: "languages.tsv",
         nodeType: "language",
-        linguascrapeId: "abe",
+        pinakesId: "abe",
         lexiconRows: 2,
       });
       expect(files.get("languages.tsv")!.changed).toBe(false);
@@ -299,7 +299,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
       expect(report.totals.skippedAmbiguousIds).toBe(1);
       expect(report.ambiguousIds[0]).toMatchObject({
         nodeType: "place",
-        linguascrapeId: "shared-site",
+        pinakesId: "shared-site",
         lexiconRows: 2,
       });
     } finally {
@@ -317,7 +317,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
       const cells = new Array(CANONICAL_SCHEMA.node.columns.length).fill("");
       cells[nodeCol("csid")] = "cs:language:klingon";
       cells[nodeCol(":LABEL")] = "Language";
-      cells[nodeCol("linguascrape_id")] = "klingon";
+      cells[nodeCol("pinakes_id")] = "klingon";
       cells[nodeCol("name")] = "Klingon";
       cells[nodeCol("source")] = "graph";
       fs.writeFileSync(p, [...lines, cells.join("\t")].join("\n") + "\n");
@@ -536,7 +536,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
         expect(report.totals.conflicts).toBe(0);
         expect(report.totals.filesChanged).toBe(0);
         expect(report.totals.nodesMatched).toBeGreaterThan(0);
-        // US-008 burned every duplicate/ambiguous linguascrape_id to zero (a within-node-type
+        // US-008 burned every duplicate/ambiguous pinakes_id to zero (a within-node-type
         // id reuse IS a duplicate csid), so the write-back no longer has to skip any ambiguous
         // id — it round-trips the whole corpus cleanly.
         expect(report.totals.skippedAmbiguousIds).toBe(0);

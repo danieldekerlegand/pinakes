@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "source": "linguascrape",
+  "source": "pinakes",
   "cascade": [
     "wikidata_qid",
     "getty_id",
@@ -152,14 +152,14 @@
       "candidates": [
         {
           "csid": "cs:language:abe",
-          "linguascrapeId": "abe",
+          "pinakesId": "abe",
           "name": "Western Abenaki",
           "region": "North America",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:great-andamanese",
-          "linguascrapeId": "great-andamanese",
+          "pinakesId": "great-andamanese",
           "name": "Great Andamanese",
           "region": "India",
           "confidence": 0.5
@@ -172,14 +172,14 @@
       "candidates": [
         {
           "csid": "cs:language:akk",
-          "linguascrapeId": "akk",
+          "pinakesId": "akk",
           "name": "Akkadian",
           "region": "Mesopotamia",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:akk-classical",
-          "linguascrapeId": "akk-classical",
+          "pinakesId": "akk-classical",
           "name": "Akkadian",
           "region": "Mesopotamia",
           "confidence": 0.5
@@ -192,14 +192,14 @@
       "candidates": [
         {
           "csid": "cs:language:arabela",
-          "linguascrapeId": "arabela",
+          "pinakesId": "arabela",
           "name": "Arabela",
           "region": "Peru",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:arb",
-          "linguascrapeId": "arb",
+          "pinakesId": "arb",
           "name": "Standard Arabic",
           "region": "",
           "confidence": 0.5
@@ -212,14 +212,14 @@
       "candidates": [
         {
           "csid": "cs:language:arc",
-          "linguascrapeId": "arc",
+          "pinakesId": "arc",
           "name": "Aramaic",
           "region": "Middle East",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:arc-classical",
-          "linguascrapeId": "arc-classical",
+          "pinakesId": "arc-classical",
           "name": "Aramaic",
           "region": "Middle East",
           "confidence": 0.5
@@ -232,14 +232,14 @@
       "candidates": [
         {
           "csid": "cs:language:aym",
-          "linguascrapeId": "aym",
+          "pinakesId": "aym",
           "name": "Central Aymara",
           "region": "Altiplano",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:southern-aymara",
-          "linguascrapeId": "southern-aymara",
+          "pinakesId": "southern-aymara",
           "name": "Southern Aymara",
           "region": "Southern Peru",
           "confidence": 0.5
@@ -252,14 +252,14 @@
       "candidates": [
         {
           "csid": "cs:language:bam",
-          "linguascrapeId": "bam",
+          "pinakesId": "bam",
           "name": "Bambara",
           "region": "West Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:bam-manding",
-          "linguascrapeId": "bam-manding",
+          "pinakesId": "bam-manding",
           "name": "Bambara",
           "region": "West Africa",
           "confidence": 0.5
@@ -272,14 +272,14 @@
       "candidates": [
         {
           "csid": "cs:language:cop",
-          "linguascrapeId": "cop",
+          "pinakesId": "cop",
           "name": "Coptic",
           "region": "Egypt",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:cop-classical",
-          "linguascrapeId": "cop-classical",
+          "pinakesId": "cop-classical",
           "name": "Coptic",
           "region": "Egypt",
           "confidence": 0.5
@@ -292,14 +292,14 @@
       "candidates": [
         {
           "csid": "cs:language:cub",
-          "linguascrapeId": "cub",
+          "pinakesId": "cub",
           "name": "Cubeo",
           "region": "Vaupés Region",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:guna",
-          "linguascrapeId": "guna",
+          "pinakesId": "guna",
           "name": "Guna",
           "region": "Panama and Colombia",
           "confidence": 0.5
@@ -312,14 +312,14 @@
       "candidates": [
         {
           "csid": "cs:language:dje",
-          "linguascrapeId": "dje",
+          "pinakesId": "dje",
           "name": "Zarma",
           "region": "West Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:dje-southern-songhay",
-          "linguascrapeId": "dje-southern-songhay",
+          "pinakesId": "dje-southern-songhay",
           "name": "Zarma",
           "region": "West Africa",
           "confidence": 0.5
@@ -332,14 +332,14 @@
       "candidates": [
         {
           "csid": "cs:language:dyu",
-          "linguascrapeId": "dyu",
+          "pinakesId": "dyu",
           "name": "Dyula",
           "region": "West Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:dyu-manding",
-          "linguascrapeId": "dyu-manding",
+          "pinakesId": "dyu-manding",
           "name": "Dyula",
           "region": "West Africa",
           "confidence": 0.5
@@ -352,14 +352,14 @@
       "candidates": [
         {
           "csid": "cs:language:egy",
-          "linguascrapeId": "egy",
+          "pinakesId": "egy",
           "name": "Ancient Egyptian",
           "region": "Egypt",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:egy-classical",
-          "linguascrapeId": "egy-classical",
+          "pinakesId": "egy-classical",
           "name": "Ancient Egyptian",
           "region": "Ancient Egypt",
           "confidence": 0.5
@@ -372,14 +372,14 @@
       "candidates": [
         {
           "csid": "cs:language:ess",
-          "linguascrapeId": "ess",
+          "pinakesId": "ess",
           "name": "Central Siberian Yupik",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:esselen-language",
-          "linguascrapeId": "esselen-language",
+          "pinakesId": "esselen-language",
           "name": "Esselen",
           "region": "United States",
           "confidence": 0.5
@@ -392,14 +392,14 @@
       "candidates": [
         {
           "csid": "cs:language:even",
-          "linguascrapeId": "even",
+          "pinakesId": "even",
           "name": "Even",
           "region": "Russia",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:evn",
-          "linguascrapeId": "evn",
+          "pinakesId": "evn",
           "name": "Evenki",
           "region": "",
           "confidence": 0.5
@@ -412,14 +412,14 @@
       "candidates": [
         {
           "csid": "cs:language:got",
-          "linguascrapeId": "got",
+          "pinakesId": "got",
           "name": "Gothic",
           "region": "Europe",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:got-classical",
-          "linguascrapeId": "got-classical",
+          "pinakesId": "got-classical",
           "name": "Gothic",
           "region": "Eastern Europe",
           "confidence": 0.5
@@ -432,14 +432,14 @@
       "candidates": [
         {
           "csid": "cs:language:gvc",
-          "linguascrapeId": "gvc",
+          "pinakesId": "gvc",
           "name": "Guanano",
           "region": "Vaupés Region",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:kadiweu",
-          "linguascrapeId": "kadiweu",
+          "pinakesId": "kadiweu",
           "name": "Kadiwéu",
           "region": "Brazil",
           "confidence": 0.5
@@ -452,14 +452,14 @@
       "candidates": [
         {
           "csid": "cs:language:hio",
-          "linguascrapeId": "hio",
+          "pinakesId": "hio",
           "name": "Tsoa",
           "region": "Eastern Kalahari",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:tshwa",
-          "linguascrapeId": "tshwa",
+          "pinakesId": "tshwa",
           "name": "Tshwa",
           "region": "Eastern Kalahari",
           "confidence": 0.5
@@ -472,14 +472,14 @@
       "candidates": [
         {
           "csid": "cs:language:hnj",
-          "linguascrapeId": "hnj",
+          "pinakesId": "hnj",
           "name": "Hmong Njua",
           "region": "Southeast Asia, China, Diaspora",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:mww",
-          "linguascrapeId": "mww",
+          "pinakesId": "mww",
           "name": "Hmong Daw",
           "region": "Southeast Asia, China, Diaspora",
           "confidence": 0.5
@@ -492,14 +492,14 @@
       "candidates": [
         {
           "csid": "cs:language:haiom",
-          "linguascrapeId": "haiom",
+          "pinakesId": "haiom",
           "name": "Hai||om",
           "region": "Northern Namibia",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:khi",
-          "linguascrapeId": "khi",
+          "pinakesId": "khi",
           "name": "Khoekhoe",
           "region": "Southern Africa",
           "confidence": 0.5
@@ -512,14 +512,14 @@
       "candidates": [
         {
           "csid": "cs:language:kalapalo",
-          "linguascrapeId": "kalapalo",
+          "pinakesId": "kalapalo",
           "name": "Kalapalo",
           "region": "Xingu Indigenous Park",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:kui",
-          "linguascrapeId": "kui",
+          "pinakesId": "kui",
           "name": "Kuikuro",
           "region": "Xingu Indigenous Park",
           "confidence": 0.5
@@ -532,21 +532,21 @@
       "candidates": [
         {
           "csid": "cs:language:central-nahuatl",
-          "linguascrapeId": "central-nahuatl",
+          "pinakesId": "central-nahuatl",
           "name": "Central Nahuatl",
           "region": "Central Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:guerrero-nahuatl",
-          "linguascrapeId": "guerrero-nahuatl",
+          "pinakesId": "guerrero-nahuatl",
           "name": "Guerrero Nahuatl",
           "region": "Guerrero",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:nah",
-          "linguascrapeId": "nah",
+          "pinakesId": "nah",
           "name": "Huasteca Nahuatl",
           "region": "Huasteca",
           "confidence": 0.5
@@ -559,14 +559,14 @@
       "candidates": [
         {
           "csid": "cs:language:ses",
-          "linguascrapeId": "ses",
+          "pinakesId": "ses",
           "name": "Koyraboro Senni",
           "region": "West Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:ses-southern-songhay",
-          "linguascrapeId": "ses-southern-songhay",
+          "pinakesId": "ses-southern-songhay",
           "name": "Koyraboro Senni",
           "region": "West Africa",
           "confidence": 0.5
@@ -579,14 +579,14 @@
       "candidates": [
         {
           "csid": "cs:language:sna",
-          "linguascrapeId": "sna",
+          "pinakesId": "sna",
           "name": "Shona",
           "region": "Southern Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:snk",
-          "linguascrapeId": "snk",
+          "pinakesId": "snk",
           "name": "Soninke",
           "region": "West Africa",
           "confidence": 0.5
@@ -599,14 +599,14 @@
       "candidates": [
         {
           "csid": "cs:language:sun",
-          "linguascrapeId": "sun",
+          "pinakesId": "sun",
           "name": "Sundanese",
           "region": "Southeast Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:sus",
-          "linguascrapeId": "sus",
+          "pinakesId": "sus",
           "name": "Susu",
           "region": "West Africa",
           "confidence": 0.5
@@ -619,63 +619,63 @@
       "candidates": [
         {
           "csid": "cs:language:coyutla-totonac",
-          "linguascrapeId": "coyutla-totonac",
+          "pinakesId": "coyutla-totonac",
           "name": "Coyutla Totonac",
           "region": "Veracruz, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:filomeno-mata-totonac",
-          "linguascrapeId": "filomeno-mata-totonac",
+          "pinakesId": "filomeno-mata-totonac",
           "name": "Filomeno Mata Totonac",
           "region": "Veracruz, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:ozumatlan-totonac",
-          "linguascrapeId": "ozumatlan-totonac",
+          "pinakesId": "ozumatlan-totonac",
           "name": "Ozumatlán Totonac",
           "region": "Veracruz, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:papantla-totonac",
-          "linguascrapeId": "papantla-totonac",
+          "pinakesId": "papantla-totonac",
           "name": "Papantla Totonac",
           "region": "Veracruz, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:tecpatlan-totonac",
-          "linguascrapeId": "tecpatlan-totonac",
+          "pinakesId": "tecpatlan-totonac",
           "name": "Tecpatlán Totonac",
           "region": "Puebla, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:tot",
-          "linguascrapeId": "tot",
+          "pinakesId": "tot",
           "name": "Highland Totonac",
           "region": "Puebla, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:upper-necaxa-totonac",
-          "linguascrapeId": "upper-necaxa-totonac",
+          "pinakesId": "upper-necaxa-totonac",
           "name": "Upper Necaxa Totonac",
           "region": "Puebla, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:xicotepec-de-juarez-totonac",
-          "linguascrapeId": "xicotepec-de-juarez-totonac",
+          "pinakesId": "xicotepec-de-juarez-totonac",
           "name": "Xicotepec de Juárez Totonac",
           "region": "Puebla, Mexico",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:yecuatla-totonac",
-          "linguascrapeId": "yecuatla-totonac",
+          "pinakesId": "yecuatla-totonac",
           "name": "Yecuatla Totonac",
           "region": "Veracruz, Mexico",
           "confidence": 0.5
@@ -688,14 +688,14 @@
       "candidates": [
         {
           "csid": "cs:language:umu",
-          "linguascrapeId": "umu",
+          "pinakesId": "umu",
           "name": "Munsee",
           "region": "North America",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:umutina",
-          "linguascrapeId": "umutina",
+          "pinakesId": "umutina",
           "name": "Umutina",
           "region": "Mato Grosso",
           "confidence": 0.5
@@ -708,14 +708,14 @@
       "candidates": [
         {
           "csid": "cs:language:xal",
-          "linguascrapeId": "xal",
+          "pinakesId": "xal",
           "name": "Kalmyk",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:language:xal-western",
-          "linguascrapeId": "xal-western",
+          "pinakesId": "xal-western",
           "name": "Kalmyk",
           "region": "Russia",
           "confidence": 0.5
@@ -728,14 +728,14 @@
       "candidates": [
         {
           "csid": "cs:place:aksum",
-          "linguascrapeId": "aksum",
+          "pinakesId": "aksum",
           "name": "Aksum",
           "region": "East Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:aksum-settlement",
-          "linguascrapeId": "aksum-settlement",
+          "pinakesId": "aksum-settlement",
           "name": "Aksum",
           "region": "East Africa",
           "confidence": 0.5
@@ -748,21 +748,21 @@
       "candidates": [
         {
           "csid": "cs:place:aleppo",
-          "linguascrapeId": "aleppo",
+          "pinakesId": "aleppo",
           "name": "Aleppo",
           "region": "Levant",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:aleppo-islamic",
-          "linguascrapeId": "aleppo-islamic",
+          "pinakesId": "aleppo-islamic",
           "name": "Aleppo",
           "region": "Levant",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:aleppo-settlement",
-          "linguascrapeId": "aleppo-settlement",
+          "pinakesId": "aleppo-settlement",
           "name": "Aleppo",
           "region": "Levant",
           "confidence": 0.5
@@ -775,14 +775,14 @@
       "candidates": [
         {
           "csid": "cs:place:alexandria",
-          "linguascrapeId": "alexandria",
+          "pinakesId": "alexandria",
           "name": "Alexandria",
           "region": "Egypt",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:alexandria-settlement",
-          "linguascrapeId": "alexandria-settlement",
+          "pinakesId": "alexandria-settlement",
           "name": "Alexandria",
           "region": "Egypt",
           "confidence": 0.5
@@ -795,14 +795,14 @@
       "candidates": [
         {
           "csid": "cs:language-family:algic",
-          "linguascrapeId": "algic",
+          "pinakesId": "algic",
           "name": "Algic",
           "region": "North America",
           "confidence": 0.5
         },
         {
           "csid": "cs:language-family:algic__algic",
-          "linguascrapeId": "algic__algic",
+          "pinakesId": "algic__algic",
           "name": "Algic",
           "region": "North America",
           "confidence": 0.5
@@ -815,14 +815,14 @@
       "candidates": [
         {
           "csid": "cs:place:angkor",
-          "linguascrapeId": "angkor",
+          "pinakesId": "angkor",
           "name": "Angkor",
           "region": "Southeast Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:angkor-settlement",
-          "linguascrapeId": "angkor-settlement",
+          "pinakesId": "angkor-settlement",
           "name": "Angkor",
           "region": "Southeast Asia",
           "confidence": 0.5
@@ -835,14 +835,14 @@
       "candidates": [
         {
           "csid": "cs:place:antioch",
-          "linguascrapeId": "antioch",
+          "pinakesId": "antioch",
           "name": "Antioch",
           "region": "Levant",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:antioch-settlement",
-          "linguascrapeId": "antioch-settlement",
+          "pinakesId": "antioch-settlement",
           "name": "Antioch",
           "region": "Levant",
           "confidence": 0.5
@@ -855,14 +855,14 @@
       "candidates": [
         {
           "csid": "cs:place:anyang",
-          "linguascrapeId": "anyang",
+          "pinakesId": "anyang",
           "name": "Anyang",
           "region": "East Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:anyang-settlement",
-          "linguascrapeId": "anyang-settlement",
+          "pinakesId": "anyang-settlement",
           "name": "Anyang",
           "region": "East Asia",
           "confidence": 0.5
@@ -875,21 +875,21 @@
       "candidates": [
         {
           "csid": "cs:ingredient:mexican-arroz-con-leche",
-          "linguascrapeId": "mexican-arroz-con-leche",
+          "pinakesId": "mexican-arroz-con-leche",
           "name": "Arroz con Leche",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:peruvian-arroz-con-leche",
-          "linguascrapeId": "peruvian-arroz-con-leche",
+          "pinakesId": "peruvian-arroz-con-leche",
           "name": "Arroz con Leche",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:spanish-arroz-con-leche",
-          "linguascrapeId": "spanish-arroz-con-leche",
+          "pinakesId": "spanish-arroz-con-leche",
           "name": "Arroz con Leche",
           "region": "",
           "confidence": 0.5
@@ -902,14 +902,14 @@
       "candidates": [
         {
           "csid": "cs:language-family:aymaran",
-          "linguascrapeId": "aymaran",
+          "pinakesId": "aymaran",
           "name": "Aymaran",
           "region": "Andes",
           "confidence": 0.5
         },
         {
           "csid": "cs:language-family:aymaran__aymaran",
-          "linguascrapeId": "aymaran__aymaran",
+          "pinakesId": "aymaran__aymaran",
           "name": "Aymaran",
           "region": "Andes",
           "confidence": 0.5
@@ -922,14 +922,14 @@
       "candidates": [
         {
           "csid": "cs:place:babylon",
-          "linguascrapeId": "babylon",
+          "pinakesId": "babylon",
           "name": "Babylon",
           "region": "Mesopotamia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:babylon-settlement",
-          "linguascrapeId": "babylon-settlement",
+          "pinakesId": "babylon-settlement",
           "name": "Babylon",
           "region": "Mesopotamia",
           "confidence": 0.5
@@ -942,14 +942,14 @@
       "candidates": [
         {
           "csid": "cs:place:bagdad-settlement",
-          "linguascrapeId": "bagdad-settlement",
+          "pinakesId": "bagdad-settlement",
           "name": "Baghdad",
           "region": "Mesopotamia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:baghdad",
-          "linguascrapeId": "baghdad",
+          "pinakesId": "baghdad",
           "name": "Baghdad",
           "region": "Mesopotamia",
           "confidence": 0.5
@@ -962,21 +962,21 @@
       "candidates": [
         {
           "csid": "cs:ingredient:greek-baklava",
-          "linguascrapeId": "greek-baklava",
+          "pinakesId": "greek-baklava",
           "name": "Baklava",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:iranian-baklava",
-          "linguascrapeId": "iranian-baklava",
+          "pinakesId": "iranian-baklava",
           "name": "Baklava",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:turkish-baklava",
-          "linguascrapeId": "turkish-baklava",
+          "pinakesId": "turkish-baklava",
           "name": "Baklava",
           "region": "",
           "confidence": 0.5
@@ -989,14 +989,14 @@
       "candidates": [
         {
           "csid": "cs:language-family:basque",
-          "linguascrapeId": "basque",
+          "pinakesId": "basque",
           "name": "Basque",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:language-family:basque__basque",
-          "linguascrapeId": "basque__basque",
+          "pinakesId": "basque__basque",
           "name": "Basque",
           "region": "",
           "confidence": 0.5
@@ -1009,14 +1009,14 @@
       "candidates": [
         {
           "csid": "cs:place:benin-city",
-          "linguascrapeId": "benin-city",
+          "pinakesId": "benin-city",
           "name": "Benin City",
           "region": "West Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:benin-city-settlement",
-          "linguascrapeId": "benin-city-settlement",
+          "pinakesId": "benin-city-settlement",
           "name": "Benin City",
           "region": "West Africa",
           "confidence": 0.5
@@ -1029,14 +1029,14 @@
       "candidates": [
         {
           "csid": "cs:place:borobudur-area",
-          "linguascrapeId": "borobudur-area",
+          "pinakesId": "borobudur-area",
           "name": "Borobudur",
           "region": "Southeast Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:borobudur-settlement",
-          "linguascrapeId": "borobudur-settlement",
+          "pinakesId": "borobudur-settlement",
           "name": "Borobudur",
           "region": "Southeast Asia",
           "confidence": 0.5
@@ -1049,21 +1049,21 @@
       "candidates": [
         {
           "csid": "cs:place:bruges",
-          "linguascrapeId": "bruges",
+          "pinakesId": "bruges",
           "name": "Bruges",
           "region": "Western Europe",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:bruges-medieval",
-          "linguascrapeId": "bruges-medieval",
+          "pinakesId": "bruges-medieval",
           "name": "Bruges",
           "region": "Western Europe",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:bruges-settlement",
-          "linguascrapeId": "bruges-settlement",
+          "pinakesId": "bruges-settlement",
           "name": "Bruges",
           "region": "Western Europe",
           "confidence": 0.5
@@ -1076,21 +1076,21 @@
       "candidates": [
         {
           "csid": "cs:place:bukhara",
-          "linguascrapeId": "bukhara",
+          "pinakesId": "bukhara",
           "name": "Bukhara",
           "region": "Central Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:bukhara-islamic",
-          "linguascrapeId": "bukhara-islamic",
+          "pinakesId": "bukhara-islamic",
           "name": "Bukhara",
           "region": "Central Asia",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:bukhara-settlement",
-          "linguascrapeId": "bukhara-settlement",
+          "pinakesId": "bukhara-settlement",
           "name": "Bukhara",
           "region": "Central Asia",
           "confidence": 0.5
@@ -1103,14 +1103,14 @@
       "candidates": [
         {
           "csid": "cs:language-family:burushaski",
-          "linguascrapeId": "burushaski",
+          "pinakesId": "burushaski",
           "name": "Burushaski",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:language-family:burushaski__burushaski",
-          "linguascrapeId": "burushaski__burushaski",
+          "pinakesId": "burushaski__burushaski",
           "name": "Burushaski",
           "region": "",
           "confidence": 0.5
@@ -1123,14 +1123,14 @@
       "candidates": [
         {
           "csid": "cs:ingredient:mexican-buuelos",
-          "linguascrapeId": "mexican-buuelos",
+          "pinakesId": "mexican-buuelos",
           "name": "Buñuelos",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:spanish-buuelos",
-          "linguascrapeId": "spanish-buuelos",
+          "pinakesId": "spanish-buuelos",
           "name": "Buñuelos",
           "region": "",
           "confidence": 0.5
@@ -1143,14 +1143,14 @@
       "candidates": [
         {
           "csid": "cs:place:cahokia",
-          "linguascrapeId": "cahokia",
+          "pinakesId": "cahokia",
           "name": "Cahokia",
           "region": "North America",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:cahokia-settlement",
-          "linguascrapeId": "cahokia-settlement",
+          "pinakesId": "cahokia-settlement",
           "name": "Cahokia",
           "region": "North America",
           "confidence": 0.5
@@ -1163,14 +1163,14 @@
       "candidates": [
         {
           "csid": "cs:place:cairo",
-          "linguascrapeId": "cairo",
+          "pinakesId": "cairo",
           "name": "Cairo",
           "region": "Egypt",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:cairo-settlement",
-          "linguascrapeId": "cairo-settlement",
+          "pinakesId": "cairo-settlement",
           "name": "Cairo",
           "region": "Egypt",
           "confidence": 0.5
@@ -1183,14 +1183,14 @@
       "candidates": [
         {
           "csid": "cs:language-family:cariban",
-          "linguascrapeId": "cariban",
+          "pinakesId": "cariban",
           "name": "Cariban",
           "region": "Northern South America",
           "confidence": 0.5
         },
         {
           "csid": "cs:language-family:cariban__cariban",
-          "linguascrapeId": "cariban__cariban",
+          "pinakesId": "cariban__cariban",
           "name": "Cariban",
           "region": "Northern South America",
           "confidence": 0.5
@@ -1203,14 +1203,14 @@
       "candidates": [
         {
           "csid": "cs:place:carthage-city",
-          "linguascrapeId": "carthage-city",
+          "pinakesId": "carthage-city",
           "name": "Carthage",
           "region": "North Africa",
           "confidence": 0.5
         },
         {
           "csid": "cs:place:carthage-settlement",
-          "linguascrapeId": "carthage-settlement",
+          "pinakesId": "carthage-settlement",
           "name": "Carthage",
           "region": "North Africa",
           "confidence": 0.5
@@ -1223,14 +1223,14 @@
       "candidates": [
         {
           "csid": "cs:ingredient:mexican-ceviche",
-          "linguascrapeId": "mexican-ceviche",
+          "pinakesId": "mexican-ceviche",
           "name": "Ceviche",
           "region": "",
           "confidence": 0.5
         },
         {
           "csid": "cs:ingredient:peruvian-ceviche",
-          "linguascrapeId": "peruvian-ceviche",
+          "pinakesId": "peruvian-ceviche",
           "name": "Ceviche",
           "region": "",
           "confidence": 0.5

@@ -39,7 +39,7 @@ describe("scanForSecrets", () => {
 
   it("does NOT flag .env.example / templates", () => {
     expect(
-      scanForSecrets([{ path: ".env.example", content: "NEO4J_PASSWORD=linguascrape\n" }]),
+      scanForSecrets([{ path: ".env.example", content: "NEO4J_PASSWORD=pinakes\n" }]),
     ).toEqual([]);
     expect(isEnvSecretFile(".env.example")).toBe(false);
     expect(isEnvSecretFile(".env")).toBe(true);
@@ -98,7 +98,7 @@ describe("scanForSecrets", () => {
   it("does NOT flag low-entropy dictionary-word secrets (e.g. .env.example password)", () => {
     // The literal value from .env.example must never trip the generic rule.
     const findings = scanForSecrets([
-      { path: "note.md", content: "password: linguascrape\n" },
+      { path: "note.md", content: "password: pinakes\n" },
     ]);
     expect(findings).toEqual([]);
   });

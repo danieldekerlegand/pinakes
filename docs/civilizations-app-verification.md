@@ -50,7 +50,7 @@ Stack: `docker compose` Neo4j 5 + culture-scrape sidecar (both serving the
 
 `npm run smoke:graph` is only green when **the sidecar and Neo4j serve the same
 corpus**. `dev:full` builds the sidecar on its bundled 9-node demo fixture
-(`CORPUS` default) while US-004 loads the LinguaScrape export into Neo4j — so the
+(`CORPUS` default) while US-004 loads the Pinakes export into Neo4j — so the
 smoke's cross-backend `node/:id` check 404s (a sidecar csid absent from Neo4j).
 Fix wired here: `docker-compose.yml` mounts the gitignored `export/culturescrape`
 at `/corpus:ro`; bring the stack up with

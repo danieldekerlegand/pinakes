@@ -642,7 +642,7 @@ export function EnhancedLanguageMapView({
     setIsExportingImage(true);
     try {
       const year = currentYear < 0 ? `${Math.abs(currentYear)}bce` : `${currentYear}ce`;
-      await exportMapPNG(mapContainerRef.current, `linguascrape-map-${year}.png`);
+      await exportMapPNG(mapContainerRef.current, `pinakes-map-${year}.png`);
     } finally {
       setIsExportingImage(false);
     }

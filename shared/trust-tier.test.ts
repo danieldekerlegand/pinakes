@@ -4,7 +4,7 @@ import {
   ALL_TRUST_TIERS,
   TRUST_TIER_META,
   trustTierMeta,
-  LINGUASCRAPE_SOURCE,
+  PINAKES_SOURCE,
 } from "./trust-tier";
 
 describe("classifyTrustTier — parity with Python tiers.classify_tier", () => {
@@ -16,22 +16,22 @@ describe("classifyTrustTier — parity with Python tiers.classify_tier", () => {
         sourceUrl: "https://example.org",
       }),
     ).toBe("inferred");
-    // even mixed with a linguascrape token, inferred takes precedence
+    // even mixed with a pinakes token, inferred takes precedence
     expect(
-      classifyTrustTier({ source: "inferred:hub;linguascrape" }),
+      classifyTrustTier({ source: "inferred:hub;pinakes" }),
     ).toBe("inferred");
   });
 
-  it("a linguascrape source is curated even with a QID + citation", () => {
+  it("a pinakes source is curated even with a QID + citation", () => {
     expect(
       classifyTrustTier({
-        source: LINGUASCRAPE_SOURCE,
+        source: PINAKES_SOURCE,
         wikidataQid: "Q1",
         sourceUrl: "https://example.org",
       }),
     ).toBe("curated");
     // merge-joined multi-source token still resolves curated
-    expect(classifyTrustTier({ source: "linguascrape;wikidata" })).toBe(
+    expect(classifyTrustTier({ source: "pinakes;wikidata" })).toBe(
       "curated",
     );
   });

@@ -5,7 +5,7 @@ gitignored (``docs/storage.md``), so the repo cannot diff the corpus itself to
 catch a build that silently gains or drops rows. The manifest is the small,
 committed fingerprint that closes that gap: it records how many nodes each
 ``:LABEL`` and how many edges each ``:TYPE`` the build produced, plus the
-LinguaScrape-origin edge breakdown (US-004), so a review sees the shape of the
+Pinakes-origin edge breakdown (US-004), so a review sees the shape of the
 merged corpus change even though the corpus is not committed.
 
 It is deliberately **content-only** — node/edge *type counts*, no wall-clock, no
@@ -30,8 +30,8 @@ from culturescrape.ontology.metrics import (
     read_dataset as _read_dataset,
 )
 
-#: Provenance ``source`` id LinguaScrape-origin rows carry.
-LINGUASCRAPE_SOURCE = "linguascrape"
+#: Provenance ``source`` id Pinakes-origin rows carry.
+PINAKES_SOURCE = "pinakes"
 
 
 @dataclass(frozen=True)
@@ -44,8 +44,8 @@ class CorpusManifest:
         edge_count: Total edge rows.
         nodes_by_label: Node counts keyed by primary ``:LABEL``, sorted by label.
         edges_by_type: Edge counts keyed by ``:TYPE``, sorted by type.
-        linguascrape_edges_by_type: Edge counts for the ``linguascrape``-origin
-            subset, keyed by ``:TYPE`` — how many edges of each type LinguaScrape
+        pinakes_edges_by_type: Edge counts for the ``pinakes``-origin
+            subset, keyed by ``:TYPE`` — how many edges of each type Pinakes
             contributed to the merged corpus.
     """
 
@@ -54,7 +54,7 @@ class CorpusManifest:
     edge_count: int
     nodes_by_label: dict[str, int]
     edges_by_type: dict[str, int]
-    linguascrape_edges_by_type: dict[str, int]
+    pinakes_edges_by_type: dict[str, int]
 
     def to_dict(self) -> dict[str, object]:
         """Render the manifest as a plain, JSON-ready dict (stable key order)."""
@@ -64,7 +64,7 @@ class CorpusManifest:
             "edge_count": self.edge_count,
             "nodes_by_label": dict(self.nodes_by_label),
             "edges_by_type": dict(self.edges_by_type),
-            "linguascrape_edges_by_type": dict(self.linguascrape_edges_by_type),
+            "pinakes_edges_by_type": dict(self.pinakes_edges_by_type),
         }
 
     def to_json(self) -> str:
@@ -86,7 +86,7 @@ def build_manifest(
         edge_count=len(edges),
         nodes_by_label=nodes_by_label(nodes),
         edges_by_type=edges_by_type(edges),
-        linguascrape_edges_by_type=edges_by_type_for_source(edges, LINGUASCRAPE_SOURCE),
+        pinakes_edges_by_type=edges_by_type_for_source(edges, PINAKES_SOURCE),
     )
 
 

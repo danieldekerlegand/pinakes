@@ -29,7 +29,7 @@ const darkModeHookPath = path.resolve(__dirname, '../client/src/hooks/use-dark-m
 const darkModeHookContent = fs.readFileSync(darkModeHookPath, 'utf-8');
 
 assert(fs.existsSync(darkModeHookPath), 'use-dark-mode.tsx exists');
-assert(darkModeHookContent.includes('linguascrape-dark-mode'), 'Uses correct localStorage key');
+assert(darkModeHookContent.includes('pinakes-dark-mode'), 'Uses correct localStorage key');
 assert(darkModeHookContent.includes('prefers-color-scheme: dark'), 'Respects OS dark mode preference');
 assert(darkModeHookContent.includes("classList.toggle('dark'"), 'Toggles .dark class on documentElement');
 assert(darkModeHookContent.includes('export function useDarkMode'), 'Exports useDarkMode hook');
@@ -43,7 +43,7 @@ const reducedMotionHookPath = path.resolve(__dirname, '../client/src/hooks/use-r
 const reducedMotionHookContent = fs.readFileSync(reducedMotionHookPath, 'utf-8');
 
 assert(fs.existsSync(reducedMotionHookPath), 'use-reduced-motion.tsx exists');
-assert(reducedMotionHookContent.includes('linguascrape-reduced-motion'), 'Uses correct localStorage key');
+assert(reducedMotionHookContent.includes('pinakes-reduced-motion'), 'Uses correct localStorage key');
 assert(reducedMotionHookContent.includes('prefers-reduced-motion: reduce'), 'Respects OS reduced motion preference');
 assert(reducedMotionHookContent.includes("classList.toggle('reduce-motion'"), 'Toggles .reduce-motion class on documentElement');
 assert(reducedMotionHookContent.includes('export function useReducedMotion'), 'Exports useReducedMotion hook');

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Reconcile the Glottolog languoid corpus against LinguaScrape's language lexicon.
+"""Reconcile the Glottolog languoid corpus against Pinakes's language lexicon.
 
 Glottolog (`docs/sources-linguistic.md`) is the authoritative language-identity
 source, so many languoids it ingests already exist in `lexicons/languages.tsv`. This

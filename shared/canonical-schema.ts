@@ -1,6 +1,6 @@
 /**
  * Canonical node/edge schema contract — the single data model both
- * culture-scrape and LinguaScrape target (US-001).
+ * culture-scrape and Pinakes target (US-001).
  *
  * The machine-readable source of truth is {@link ./canonical-schema.json}. This
  * module imports it, pins its shape with a `satisfies` check (so `npm run check`
@@ -26,7 +26,7 @@ export type CanonicalColumnRole =
   | "core" // required/near-required identity + display columns
   | "dimension" // temporal / geographic / linguistic / genetic columns
   | "provenance" // source / trust columns
-  | "alias"; // retained cross-project id (e.g. `linguascrape_id`)
+  | "alias"; // retained cross-project id (e.g. `pinakes_id`)
 
 /** One column in a node or edge header row. */
 export interface CanonicalColumn {

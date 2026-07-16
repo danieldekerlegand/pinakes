@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run-all.sh — drive the LinguaScrape PRDs through Ralph sequentially, in dependency
+# run-all.sh — drive the Pinakes PRDs through Ralph sequentially, in dependency
 # order. For each PRD it seeds scripts/ralph/prd.json and runs ./ralph.sh (which loops
 # fresh agent instances until every story passes or max iterations is hit), then — by
 # default — verifies the result and merges the branch into main.
@@ -75,7 +75,7 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 # (skipped automatically even if listed here).
 #
 # Roadmap Phases 7-15 (incl. security-hardening, data-population-pilot, data-population)
-# are complete (see tasks/ralph/completed/ and docs/prd-linguascrape-deep-history-roadmap.md).
+# are complete (see tasks/ralph/completed/ and docs/prd-pinakes-deep-history-roadmap.md).
 # These are the NEUROSYMBOLIC_ROADMAP.md PRDs (repo root), in dependency order:
 #   - symbolic-engine-truth:      Phase 0 — real engines in CI/sidecar, rel_conf confidence fix,
 #                                 provenance propagation, QID-anchored csids, id burndown.
@@ -109,7 +109,7 @@ ORDER=(
 # --- Cross-project bridge (INSIMUL_SYNC_PLAN.md) — UNCOMMENT once its deps have merged:
 #     US-001 anytime; US-002 needs scale-ready-conversion; US-003 needs tiered-trust-corpus;
 #     US-004/005 need first-ml-loop. Coordinate with the Insimul-side counterpart
-#     (~/Development/workspace/tasks/ralph/linguascrape-bridge.json).
+#     (~/Development/workspace/tasks/ralph/pinakes-bridge.json).
 #  "insimul-bridge:9"        # predicate-mapping registry + grounding-pack exporter + insimul adapter (schema v1.2, synthetic tier) + VESPACE adherence tier + dataset generators
 # --- SLM pilot (INSIMUL_SYNC_PLAN.md Phase D) — PROVISIONAL; re-ground before running.
 #     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
@@ -119,7 +119,7 @@ ORDER=(
 #     US-001 anytime (extends the insimul-bridge registry, or creates it); US-002 needs
 #     scale-ready-conversion; US-003 needs tiered-trust-corpus; US-004 needs graphrag machinery;
 #     US-005 needs first-ml-loop. Coordinate with the Analyzer-side counterpart
-#     (~/Development/analyzer/tasks/ralph/linguascrape-bridge.json, after its predicate-layer).
+#     (~/Development/analyzer/tasks/ralph/pinakes-bridge.json, after its predicate-layer).
 #  "analyzer-bridge:9"          # registry extension + entity-grounding snapshot + analyzer adapter (asset nodes, personal tier) + file-web Datalog/Neo4j/GraphRAG + edit-ops datasets/eval
 # --- Analyzer SLM pilot (the media-bridge mapping spec Phase E) — PROVISIONAL; re-ground before running.
 #     Needs slm-pilot (validated pipeline) + analyzer-bridge US-005 (edit-ops datasets) merged;

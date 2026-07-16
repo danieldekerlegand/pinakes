@@ -1,7 +1,7 @@
 /**
  * Neo4j TypeScript data-access layer for the shared culture-scrape graph.
  *
- * LinguaScrape queries the shared correlation store two ways (see
+ * Pinakes queries the shared correlation store two ways (see
  * docs/culturescrape-integration.md): the FastAPI proxy for search/Datalog, and
  * this module — the official `neo4j-driver` — for relational/graph queries
  * (node lookup, neighborhood traversal, correlation edges).

@@ -21,14 +21,14 @@
 export type TrustTier = "curated" | "auto-admitted" | "quarantine" | "inferred";
 
 /** The `source` token a row that came through the human-curated lexicon gate carries. */
-export const LINGUASCRAPE_SOURCE = "linguascrape";
+export const PINAKES_SOURCE = "pinakes";
 
 /** The `inferred:<linker>` provenance prefix a linker-minted row carries. */
 const INFERRED_PREFIX = "inferred:";
 
 /**
  * Delimiter `culturescrape.schema.merge` joins concatenated `source` values with,
- * so a reconciled row carries `"linguascrape;wikidata"`.
+ * so a reconciled row carries `"pinakes;wikidata"`.
  */
 const SOURCE_DELIMITER = ";";
 
@@ -56,7 +56,7 @@ export const TRUST_TIER_META: Record<TrustTier, TrustTierMeta> = {
   curated: {
     tier: "curated",
     label: "Curated",
-    description: "Human-vetted through the LinguaScrape lexicon curation gate.",
+    description: "Human-vetted through the Pinakes lexicon curation gate.",
     order: 0,
   },
   "auto-admitted": {
@@ -85,7 +85,7 @@ export const TRUST_TIER_META: Record<TrustTier, TrustTierMeta> = {
 export interface TrustTierInput {
   /**
    * The `source` provenance value (may be a `;`-joined multi-source token, e.g.
-   * `"linguascrape;wikidata"`).
+   * `"pinakes;wikidata"`).
    */
   source?: string | null;
   /** The Wikidata QID, when the node carries one (edges have no QID column). */
@@ -113,7 +113,7 @@ function sourceTokens(source: string | null | undefined): string[] {
  * can carry several signals, so order matters (mirrors `tiers.classify_tier`):
  *
  *  1. any `inferred:<linker>` `source` token → `inferred`;
- *  2. a `linguascrape` `source` token → `curated` (a curated row that *also*
+ *  2. a `pinakes` `source` token → `curated` (a curated row that *also*
  *     reconciled to Wikidata stays curated — human vetting is the strongest signal);
  *  3. otherwise an acquired fact: `auto-admitted` iff it is QID-anchored (a node
  *     with a `wikidataQid`; edges have no QID so the requirement does not apply)
@@ -122,7 +122,7 @@ function sourceTokens(source: string | null | undefined): string[] {
 export function classifyTrustTier(input: TrustTierInput): TrustTier {
   const tokens = sourceTokens(input.source);
   if (tokens.some((t) => t.startsWith(INFERRED_PREFIX))) return "inferred";
-  if (tokens.includes(LINGUASCRAPE_SOURCE)) return "curated";
+  if (tokens.includes(PINAKES_SOURCE)) return "curated";
   const referenceBacked = trim(input.sourceUrl).length > 0;
   if (input.isEdge) return referenceBacked ? "auto-admitted" : "quarantine";
   const qidAnchored = trim(input.wikidataQid).length > 0;

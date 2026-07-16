@@ -62,7 +62,7 @@ const ALLOW_MARKERS = ["secret-scan:allow", "gitleaks:allow"];
 
 /**
  * Paths the scanner never inspects. `.env.example`/`*.example` hold intentional
- * template values (e.g. `NEO4J_PASSWORD=linguascrape`); lockfiles are giant hash
+ * template values (e.g. `NEO4J_PASSWORD=pinakes`); lockfiles are giant hash
  * blobs; the scanner + its test legitimately contain rule patterns and planted
  * fixtures. Everything here is matched against the repo-relative path.
  */

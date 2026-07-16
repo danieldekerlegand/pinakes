@@ -2,12 +2,12 @@
  * Convergence QA gate & drift detection (US-008).
  *
  * A single, network-free health check that both projects can run in CI to catch
- * schema / id drift between LinguaScrape's lexicons and the shared canonical model
+ * schema / id drift between Pinakes's lexicons and the shared canonical model
  * *before* it reaches culture-scrape's graph. It reports four convergence signals —
  *
- *   * **id-overlap**            — how much of the LinguaScrape export overlaps
+ *   * **id-overlap**            — how much of the Pinakes export overlaps
  *                                 culture-scrape's identity space (the reconciliation
- *                                 dry-run's global-anchor matches), plus LinguaScrape's
+ *                                 dry-run's global-anchor matches), plus Pinakes's
  *                                 own internal id-collision diagnostics;
  *   * **unreconciled rate**     — the share of exported nodes that would *not* collapse
  *                                 onto an existing node (likely-new + ambiguous);
@@ -116,7 +116,7 @@ export interface AttributionIssue {
  */
 export interface RegressionBaseline {
   readonly duplicateCsids: number;
-  readonly ambiguousLinguascrapeIds: number;
+  readonly ambiguousPinakesIds: number;
   readonly edgesWithUnresolvedEndpoint: number;
   readonly reconciliationAmbiguous: number;
 }
@@ -128,15 +128,15 @@ export interface RegressionIssue {
   readonly current: number;
 }
 
-/** id-overlap signal: cross-dataset overlap + LinguaScrape-internal id health. */
+/** id-overlap signal: cross-dataset overlap + Pinakes-internal id health. */
 export interface IdentityMetrics {
   readonly nodes: number;
   /** Nodes carrying a global anchor that overlaps culture-scrape's identity space. */
   readonly anchoredOverlap: number;
   readonly overlapRate: number;
-  /** LinguaScrape ids reused by more than one node of the same type (export drops). */
+  /** Pinakes ids reused by more than one node of the same type (export drops). */
   readonly duplicateCsids: number;
-  readonly ambiguousLinguascrapeIds: number;
+  readonly ambiguousPinakesIds: number;
   readonly edgesWithUnresolvedEndpoint: number;
 }
 
@@ -395,7 +395,7 @@ export function detectRegressions(
   if (baseline === undefined) return [];
   const current: RegressionBaseline = {
     duplicateCsids: identity.duplicateCsids,
-    ambiguousLinguascrapeIds: identity.ambiguousLinguascrapeIds,
+    ambiguousPinakesIds: identity.ambiguousPinakesIds,
     edgesWithUnresolvedEndpoint: identity.edgesWithUnresolvedEndpoint,
     reconciliationAmbiguous: reconciliation.ambiguous,
   };
@@ -425,7 +425,7 @@ function identityMetrics(
     anchoredOverlap: recon.totals.matched,
     overlapRate: rate(recon.totals.matched, nodes),
     duplicateCsids: manifest.diagnostics.duplicateCsids,
-    ambiguousLinguascrapeIds: manifest.diagnostics.ambiguousLinguascrapeIds,
+    ambiguousPinakesIds: manifest.diagnostics.ambiguousPinakesIds,
     edgesWithUnresolvedEndpoint: manifest.diagnostics.edgesWithUnresolvedEndpoint,
   };
 }
@@ -563,7 +563,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`- Nodes exported: **${id.nodes}**`);
   lines.push(`- Overlap w/ culture-scrape identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
   lines.push(`- Duplicate csids dropped: ${id.duplicateCsids}`);
-  lines.push(`- Ambiguous LinguaScrape ids (id reused by ≥2 nodes of a type): ${id.ambiguousLinguascrapeIds}`);
+  lines.push(`- Ambiguous Pinakes ids (id reused by ≥2 nodes of a type): ${id.ambiguousPinakesIds}`);
   lines.push(`- Edges dropped for an unresolved endpoint: ${id.edgesWithUnresolvedEndpoint}`);
   lines.push("");
 
@@ -631,7 +631,7 @@ export function writeBaseline(baselineFile: string = BASELINE_FILE): RegressionB
   const report = buildConvergenceQA(LEXICONS_DIR, { baseline: undefined });
   const baseline: RegressionBaseline = {
     duplicateCsids: report.metrics.identity.duplicateCsids,
-    ambiguousLinguascrapeIds: report.metrics.identity.ambiguousLinguascrapeIds,
+    ambiguousPinakesIds: report.metrics.identity.ambiguousPinakesIds,
     edgesWithUnresolvedEndpoint: report.metrics.identity.edgesWithUnresolvedEndpoint,
     reconciliationAmbiguous: report.metrics.reconciliation.ambiguous,
   };

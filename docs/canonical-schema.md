@@ -5,13 +5,13 @@
 (typed + validated by [`shared/canonical-schema.ts`](../shared/canonical-schema.ts)).
 
 This is the single canonical model both **culture-scrape** (Python pipeline) and
-**LinguaScrape** (TypeScript app) target so that a language, an archaeological culture,
+**Pinakes** (TypeScript app) target so that a language, an archaeological culture,
 a cuisine, a deity, and a trade good mean the same thing in one correlatable graph.
 It is the concrete realisation of the contract sketched in
 [`culturescrape-integration.md` §5](./culturescrape-integration.md). The column
 contracts deliberately mirror culture-scrape's typed Neo4j-import headers
 ([`packages/culture-scrape/.../schema/headers.py`](../packages/culture-scrape/src/culturescrape/schema/headers.py)
-and [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md)) so LinguaScrape
+and [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md)) so Pinakes
 exports are import-compatible with `neo4j-admin import` **without transformation**.
 
 > **How to consume it.** Import from `@shared/canonical-schema` in TS. On the Python
@@ -80,7 +80,7 @@ token so the two graphs share relationship semantics.
 > **Naming note.** The PRD lists the concept as `descended-from`; the Neo4j `:TYPE`
 > token is culture-scrape's pre-existing **`DESCENDS_FROM`** so both graphs use one
 > token. The five tokens `SPLIT_FROM`, `MERGED_WITH`, `CONQUERED_BY`, `ABSORBED_INTO`,
-> and `SYNCRETIZED_WITH` are new — contributed by LinguaScrape's lineage domains and
+> and `SYNCRETIZED_WITH` are new — contributed by Pinakes's lineage domains and
 > should be added to culture-scrape's `ontology/` as the graphs merge.
 
 ## 3. Identity scheme
@@ -94,7 +94,7 @@ token so the two graphs share relationship semantics.
   - all node types → `wikidata_qid`
   - `language` → `language_code` (ISO 639-3 / Glottocode)
   - `place` → `pleiades_id`, `tgn_id`, `place_qid`
-- **Alias column: `linguascrape_id`.** Every LinguaScrape-origin row retains its
+- **Alias column: `pinakes_id`.** Every Pinakes-origin row retains its
   original lexicon id here so the canonical→lexicon mapping survives the bidirectional
   write-back (US-007). It is a plain property column on both node and edge files.
 
@@ -117,7 +117,7 @@ cell `name` / `name:int` / `name:float`.
 | `getty_id` | core | AAT/TGN/ULAN id |
 | `aliases` | core | `;`-separated alternative names |
 | `description` | core | short gloss |
-| `linguascrape_id` | alias | original lexicon id (round-trip key) |
+| `pinakes_id` | alias | original lexicon id (round-trip key) |
 | `time_start:int` | dimension | year, negative = BCE |
 | `time_end:int` | dimension | |
 | `time_start_iso` | dimension | ISO date when finer than a year |
@@ -128,7 +128,7 @@ cell `name` / `name:int` / `name:float`.
 | `script` | dimension | ISO 15924 |
 | `etymology` | dimension | free-text or structured ref |
 | `derived_from_csid` | dimension | denormalized pointer (also a `derived-from` edge) |
-| `source` | **provenance** | adapter id — `linguascrape` for LinguaScrape rows |
+| `source` | **provenance** | adapter id — `pinakes` for Pinakes rows |
 | `source_url` | **provenance** | canonical URL/URI (blank when unknown) |
 | `source_query` | provenance | query/page/citation that produced the row |
 | `retrieved_at` | **provenance** | ISO-8601 UTC timestamp |
@@ -144,7 +144,7 @@ cell `name` / `name:int` / `name:float`.
 | `:TYPE` | type | one of the `:TYPE` tokens in §2 |
 | `weight:float` | dimension | optional strength |
 | `time_start:int`, `time_end:int` | dimension | when the relation held |
-| `linguascrape_id` | alias | original lexicon row id (round-trip key) |
+| `pinakes_id` | alias | original lexicon row id (round-trip key) |
 | `source`, `source_url`, `source_query`, `retrieved_at`, `confidence:float`, `license` | **provenance** | same as nodes; `source_query` (edge citation) + `license` added in schema **v1.1** |
 
 ### Mandatory provenance (US-006 + US-003)
@@ -156,23 +156,23 @@ though `source_url` may be blank when no URL is derivable (never fabricated; fla
 
 The export (§7) applies these rules concretely:
 
-- **`source`** = `linguascrape` (the acquisition-source id) on 100% of rows — "no fact
+- **`source`** = `pinakes` (the acquisition-source id) on 100% of rows — "no fact
   without a source", matching culture-scrape's `validate.py`.
-- **`source_query`** preserves the *original* LinguaScrape bibliographic `sources` citation
+- **`source_query`** preserves the *original* Pinakes bibliographic `sources` citation
   — it is never dropped. Schema **v1.1** added `source_query` to the **edge** family too, so
   an edge that carried a citation now keeps it (the earlier
   `provenance.edge.citationsWithoutCanonicalColumn` residue is now permanently `0`).
 - **`license`** (schema **v1.1**) is an SPDX identifier resolved from the record's `source`
   via the per-source registry `SOURCE_LICENSES` (`scripts/export-for-culturescrape.ts`);
-  `linguascrape` → `CC-BY-4.0` (the curated-corpus default), `wikidata` → `CC0-1.0`,
+  `pinakes` → `CC-BY-4.0` (the curated-corpus default), `wikidata` → `CC0-1.0`,
   `wiktionary`/`kaikki` → `CC-BY-SA-4.0`, `phoible` → `CC-BY-SA-3.0`, … Landing the column
   **before** the first share-alike source means attribution/share-alike obligations travel
-  per record without a painful retrofit. culture-scrape's `linguascrape-export` adapter lifts
+  per record without a painful retrofit. culture-scrape's `pinakes-export` adapter lifts
   a row-level `license` cell into `Provenance.license` (a row cell wins over the export-level
   `license` param).
 - **`source_url`** is filled only when a real `http(s)` URL is present in the source
   data; otherwise blank and flagged. URLs are **never fabricated**.
-- **`retrieved_at`** is blank — LinguaScrape records no retrieval timestamp.
+- **`retrieved_at`** is blank — Pinakes records no retrieval timestamp.
 - The manifest's `provenance` block reports per-type non-blank counts for every
   provenance column plus a human-readable `flags` list (US-006 coverage metric).
 
@@ -195,7 +195,7 @@ those literals with a single, documented table of per-provenance-class priors.
   `confidenceCellForClass(...)` (the archaeological lexicons use `{scale: 100}` for their
   0–100 columns); the export's `DEFAULT_NODE_CONFIDENCE` / edge `DEFAULT_EDGE_CONFIDENCE` /
   needs-curation stub confidence derive from the rubric; the Python adapters
-  (`wikidata`/`getty`/`pleiades`/`petscan`/`wikitext`/`linguascrape`/`html`) and the
+  (`wikidata`/`getty`/`pleiades`/`petscan`/`wikitext`/`pinakes`/`html`) and the
   `named_in` linker default their `confidence` from `confidence_for(...)`.
 
 Classes, most- to least-trusted (`order` in the JSON):
@@ -262,7 +262,7 @@ Every source column carries exactly one disposition:
 - **property** → no dedicated canonical field; retained as an extra Neo4j property / future field.
 - **drop** → not carried into the canonical model (each has a documented `reason`).
 
-Convention across node files: `id → linguascrape_id` (alias), `name/hypothesis_name → name`,
+Convention across node files: `id → pinakes_id` (alias), `name/hypothesis_name → name`,
 `native_name/alternate_names → aliases`, `description/summary_description → description`,
 `sources → source`, `confidence → confidence`, `*_start/origin_date/time_origin → time_start`,
 `*_end/end_date → time_end`, `*_label/style_period/time_period → period`,
@@ -365,7 +365,7 @@ Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
 
 ## 7. Canonical export (US-004)
 
-`scripts/export-for-culturescrape.ts` emits LinguaScrape's lexicons in this canonical
+`scripts/export-for-culturescrape.ts` emits Pinakes's lexicons in this canonical
 shape so culture-scrape's tabular adapter can ingest them without transformation. Run it
 with `npx tsx scripts/export-for-culturescrape.ts` (build/write API: `buildExport()` is
 pure over a lexicons dir; `writeExport()` / `runExport()` touch the filesystem).
@@ -384,21 +384,21 @@ A committed snapshot of the manifest lives at
 
 - **Headers** are the exact typed Neo4j-import rows from §4, so the output validates
   against `shared/canonical-schema.json` (asserted by `scripts/export-for-culturescrape.test.ts`).
-- **Identity** — `csid` is minted deterministically as `cs:<node-type>:<linguascrape-id>`;
-  every row keeps its original id in `linguascrape_id` (the US-007 round-trip key). Edge
-  `:START_ID`/`:END_ID` are rewritten from LinguaScrape ids to the csids of exported nodes.
+- **Identity** — `csid` is minted deterministically as `cs:<node-type>:<pinakes-id>`;
+  every row keeps its original id in `pinakes_id` (the US-007 round-trip key). Edge
+  `:START_ID`/`:END_ID` are rewritten from Pinakes ids to the csids of exported nodes.
 - **Provenance (US-006 + US-003)** — every node and edge carries its provenance columns.
-  `source = "linguascrape"` on 100% of rows; the original LinguaScrape citation is preserved
+  `source = "pinakes"` on 100% of rows; the original Pinakes citation is preserved
   in the `source_query` column — for **nodes and (schema v1.1) edges** — never dropped;
   every row also carries an SPDX **`license`** resolved from its `source` (schema v1.1);
   `source_url` is derived only from a real URL in the data (never fabricated) and otherwise
-  blank + flagged; `retrieved_at` is blank (LinguaScrape records none). The manifest's
+  blank + flagged; `retrieved_at` is blank (Pinakes records none). The manifest's
   `provenance` block reports per-type completeness + flags. Edge `confidence` and time ranges carry through from the US-003
   extractor; a node with no `confidence` column defaults to `0.5`.
 - **Idempotent** — rows are sorted (nodes by `csid`, edges by `:START_ID/:END_ID/:TYPE`)
   and no wall-clock is written, so re-runs are byte-identical.
 - **Diagnostics** (never silent) — the manifest reports `skippedNodeRowsMissingId`,
-  `duplicateCsids`, `ambiguousLinguascrapeIds`, and `edgesWithUnresolvedEndpoint` (edges
+  `duplicateCsids`, `ambiguousPinakesIds`, and `edgesWithUnresolvedEndpoint` (edges
   whose endpoint has no exported node are counted + sampled, not emitted, so the output
   stays `neo4j-admin import`-clean; reconciling those endpoints is US-005's job).
 
@@ -416,7 +416,7 @@ graph node by a strict **cascade** of identity signals (strongest first — see
 | 4 | exact `(name, type, region)` | Same normalized name, node type, and region. |
 | 5 | fuzzy `name` | Same type/region, name similarity above a threshold. |
 
-LinguaScrape rows carry **no** `wikidata_qid`/`getty_id` (steps 1–2 are inert for our data),
+Pinakes rows carry **no** `wikidata_qid`/`getty_id` (steps 1–2 are inert for our data),
 so `scripts/reconciliation-report.ts` emits the keys the reconciler actually keys on —
 language codes for languages, and the normalized `(name, type, region)` blocking key for
 every other domain — and estimates, **without touching the network or the live graph**, how
@@ -447,7 +447,7 @@ Each node is classified into exactly one **bucket**:
 
 `report.json` also carries `keyCoverage` (language iso/glottocode coverage, region coverage,
 `duplicateCsidsDropped`) and `byType` roll-ups. See
-[`packages/culture-scrape/docs/reconcile-linguascrape.md`](../packages/culture-scrape/docs/reconcile-linguascrape.md)
+[`packages/culture-scrape/docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)
 for how to feed the export into culture-scrape's reconcile step.
 
 ## 9. Bidirectional write-back & field ownership (US-007)
@@ -464,8 +464,8 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
 
 ### 9.1 Write-back rules (conservative by default)
 
-- **Join key = `linguascrape_id`.** A canonical node is matched back to a lexicon row by the
-  original LinguaScrape id (the reverse of the §7 csid minting). Only canonical fields with a
+- **Join key = `pinakes_id`.** A canonical node is matched back to a lexicon row by the
+  original Pinakes id (the reverse of the §7 csid minting). Only canonical fields with a
   real reverse `lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
   writeable ("where a canonical→lexicon mapping exists").
 - **Enrichment (gap fill).** A *blank* lexicon cell for which the graph supplies a value is
@@ -474,7 +474,7 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
   value is a conflict: it is **reported** (`report.conflicts`), and the curated value is
   **kept**. `--overwrite` / `{ overwrite: true }` is the only way to apply the incoming value,
   and even then the override is still listed as a conflict for the audit trail.
-- **Ambiguous join key (skipped, reported).** `linguascrape_id` is **not globally unique** in
+- **Ambiguous join key (skipped, reported).** `pinakes_id` is **not globally unique** in
   the live corpus — e.g. `languages.tsv` reuses `abe` for both *Western Abenaki* and *Great
   Andamanese*, and `mohenjo-daro` appears in both `archaeological-sites.tsv` and
   `settlements.tsv` (both → `place`). Because such an id cannot address a single lexicon row,
@@ -492,13 +492,13 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
 
 | Field group | Authoritative side | Write-back disposition |
 |---|---|---|
-| Identity (`csid`, `linguascrape_id`, `:LABEL`) | LinguaScrape (ids) / schema (label) | Never written (join key / structural) |
-| Core descriptive fields with a lexicon column (`name`, `aliases`, `language_code`, `script`, `region`, `time_start`/`time_end`, `lat`/`lon`, `description`, …) | **LinguaScrape (human-curated)** | Filled only when blank; disagreements are conflicts, kept unless `--overwrite` |
-| Provenance, confidence & licence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`, `license`) | **LinguaScrape** (see `NON_WRITEBACK_FIELDS`) | Never written — LinguaScrape owns citations/confidence/licence; the graph's `source`/`confidence` are for triage only |
+| Identity (`csid`, `pinakes_id`, `:LABEL`) | Pinakes (ids) / schema (label) | Never written (join key / structural) |
+| Core descriptive fields with a lexicon column (`name`, `aliases`, `language_code`, `script`, `region`, `time_start`/`time_end`, `lat`/`lon`, `description`, …) | **Pinakes (human-curated)** | Filled only when blank; disagreements are conflicts, kept unless `--overwrite` |
+| Provenance, confidence & licence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`, `license`) | **Pinakes** (see `NON_WRITEBACK_FIELDS`) | Never written — Pinakes owns citations/confidence/licence; the graph's `source`/`confidence` are for triage only |
 | Relationships / edges | **culture-scrape graph** (correlation system-of-record) | Not written back to lexicons at all |
 | Graph-only enrichments with **no** lexicon column (external ids like `wikidata_qid`/`getty_id`, graph-derived metrics) | culture-scrape graph | No lexicon home → stay in the graph (surfaced, not written) |
 
-Rule of thumb: **LinguaScrape owns the CPU-domain / curated columns; the graph owns
+Rule of thumb: **Pinakes owns the CPU-domain / curated columns; the graph owns
 correlation (edges) and external-authority enrichment.** A blank curated cell is the only
 thing the graph may fill; anything already curated wins until a human opts into `--overwrite`.
 
@@ -513,7 +513,7 @@ thing the graph may fill; anything already curated wins until a human opts into 
     the graph is meant to win (rare), otherwise fix the source and re-export.
   - `ambiguousIds` flag id-collisions to clean up in the lexicons (dedupe ids) before those
     rows can round-trip.
-- **Contribution-system edits** (human curation in the LinguaScrape app) are authoritative for
+- **Contribution-system edits** (human curation in the Pinakes app) are authoritative for
   the curated columns and flow **out** via the next export; they are never overwritten by an
   unattended inbound sync.
 
@@ -530,7 +530,7 @@ artifact (`convergence-qa.json` + human-readable `convergence-qa.md`) lands in t
 
 | Signal | Meaning | Source |
 |---|---|---|
-| **id-overlap** | Nodes carrying a global anchor that overlaps culture-scrape's identity space (the reconciliation dry-run's `matched`), plus LinguaScrape-internal id-collision counts (`duplicateCsids`, `ambiguousLinguascrapeIds`, unresolved edge endpoints) | export manifest (§7) + reconciliation report (§8) |
+| **id-overlap** | Nodes carrying a global anchor that overlaps culture-scrape's identity space (the reconciliation dry-run's `matched`), plus Pinakes-internal id-collision counts (`duplicateCsids`, `ambiguousPinakesIds`, unresolved edge endpoints) | export manifest (§7) + reconciliation report (§8) |
 | **unreconciled rate** | `(ambiguous + likely-new) / nodes` — the share of exported nodes that will **not** collapse onto an existing node | reconciliation report (§8) |
 | **provenance completeness** | Per node/edge family, the non-blank rate of each required provenance column | export coverage report (§4.3, US-006) |
 | **schema drift** | The drift findings below | canonical schema (§5) + lexicon mapping (§6) + live headers |
@@ -561,7 +561,7 @@ curated seed) and are skipped.
 
 **3. Dedup / reconciliation regression** (`detectRegressions`) — a monotone ratchet against
 `docs/convergence-qa-baseline.json`. The gate fails if `duplicateCsids`,
-`ambiguousLinguascrapeIds`, `edgesWithUnresolvedEndpoint`, or reconciliation `ambiguous` climbs
+`ambiguousPinakesIds`, `edgesWithUnresolvedEndpoint`, or reconciliation `ambiguous` climbs
 **above** its committed ceiling. Scaled data may hold or lower these freely; a legitimate increase
 is re-baselined deliberately — `npx tsx scripts/convergence-qa.ts --write-baseline` (or
 `npm run convergence-qa:baseline`) — which is the reviewed act that keeps a bulk import from

@@ -1,7 +1,7 @@
 /**
  * Runtime analytical index over the TSV corpus (US-001, tasklist 13 platform-infra).
  *
- * LinguaScrape keeps `lexicons/*.tsv` as the single source of truth (see
+ * Pinakes keeps `lexicons/*.tsv` as the single source of truth (see
  * server/tsv-storage.ts). This module builds a **read-only, in-memory DuckDB**
  * mirror of those TSVs so heavy *tabular* work — facet counts, GROUP BY
  * aggregates, ad-hoc analytical SQL — runs in one indexed pass instead of
@@ -27,7 +27,7 @@ import path from "node:path";
 import { DuckDBInstance, type DuckDBConnection } from "@duckdb/node-api";
 
 /** A `read_csv` nullstr that cannot occur in real data, so empty cells stay `""`. */
-const NULL_SENTINEL = "__LINGUASCRAPE_NEVER_NULL_SENTINEL__";
+const NULL_SENTINEL = "__PINAKES_NEVER_NULL_SENTINEL__";
 
 /** One row of a facet-count result: a distinct value and how many rows carry it. */
 export interface FacetCount {

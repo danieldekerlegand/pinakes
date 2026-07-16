@@ -21,7 +21,7 @@ from culturescrape.acquire.getty import GettyDumpAdapter
 from culturescrape.acquire.html import HtmlScrapeAdapter
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.kaikki import KaikkiAdapter
-from culturescrape.acquire.linguascrape import LinguaScrapeExportAdapter
+from culturescrape.acquire.pinakes import PinakesExportAdapter
 from culturescrape.acquire.petscan import PetScanAdapter
 from culturescrape.acquire.pleiades import PleiadesDumpAdapter
 from culturescrape.acquire.tabular import TabularDumpAdapter
@@ -45,7 +45,7 @@ _BUILDERS: dict[str, Callable[[HttpClient | None], SourceAdapter]] = {
     PleiadesDumpAdapter.name: lambda http: PleiadesDumpAdapter(),
     TabularDumpAdapter.name: lambda http: TabularDumpAdapter(),
     KaikkiAdapter.name: lambda http: KaikkiAdapter(),
-    LinguaScrapeExportAdapter.name: lambda http: LinguaScrapeExportAdapter(),
+    PinakesExportAdapter.name: lambda http: PinakesExportAdapter(),
 }
 
 #: Adapter ids that need an :class:`HttpClient` to reach a remote endpoint.
@@ -70,7 +70,7 @@ for _cls in (
     PleiadesDumpAdapter,
     TabularDumpAdapter,
     KaikkiAdapter,
-    LinguaScrapeExportAdapter,
+    PinakesExportAdapter,
 ):
     _BY_SOURCE_TYPE[_cls.source_type] = (
         *_BY_SOURCE_TYPE.get(_cls.source_type, ()),

@@ -1,3 +1,3 @@
 :START_ID	:END_ID	:TYPE	weight:float	source	source_url	retrieved_at	confidence:float
-cs:place:athens	cs:place:carthage	LOCATED_IN	1.0	linguascrape		2026-07-13T00:00:00+00:00	0.5
+cs:place:athens	cs:place:carthage	LOCATED_IN	1.0	pinakes		2026-07-13T00:00:00+00:00	0.5
 cs:place:Q220	cs:place:Q1524	LOCATED_IN	1.0	getty_tgn	https://vocab.getty.edu/tgn/1	2026-07-13T00:00:00+00:00	0.9

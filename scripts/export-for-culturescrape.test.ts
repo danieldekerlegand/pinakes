@@ -50,7 +50,7 @@ describe("export-for-culturescrape (US-004)", () => {
     it("anchors the csid on a known Wikidata QID, else falls back to the id (US-005)", () => {
       // Non-blank QID → cs:<type>:<QID> (the same entity carries one id everywhere).
       expect(mintCsid("language", "french", "Q150")).toBe("cs:language:Q150");
-      // Blank / whitespace-only QID → readable linguascrape-id fallback.
+      // Blank / whitespace-only QID → readable pinakes-id fallback.
       expect(mintCsid("language", "french", "")).toBe("cs:language:french");
       expect(mintCsid("language", "french", "  ")).toBe("cs:language:french");
       expect(mintCsid("language", "french")).toBe("cs:language:french");
@@ -145,7 +145,7 @@ describe("export-for-culturescrape (US-004)", () => {
         ],
       });
 
-    it("emits typed canonical headers and stamps linguascrape provenance", () => {
+    it("emits typed canonical headers and stamps pinakes provenance", () => {
       const dir = fixture();
       try {
         const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-out-"));
@@ -171,7 +171,7 @@ describe("export-for-culturescrape (US-004)", () => {
       }
     });
 
-    it("mints csids, keeps linguascrape_id, and splits combined coordinates", () => {
+    it("mints csids, keeps pinakes_id, and splits combined coordinates", () => {
       const dir = fixture();
       try {
         const { nodeGroups } = buildExport(dir);
@@ -180,7 +180,7 @@ describe("export-for-culturescrape (US-004)", () => {
         const french = langRows[0];
         expect(french[nodeCol("csid")]).toBe("cs:language:french");
         expect(french[nodeCol(":LABEL")]).toBe("Language");
-        expect(french[nodeCol("linguascrape_id")]).toBe("french");
+        expect(french[nodeCol("pinakes_id")]).toBe("french");
         expect(french[nodeCol("name")]).toBe("French");
         expect(french[nodeCol("language_code")]).toBe("fr");
         expect(french[nodeCol("lat")]).toBe("48.8");
@@ -251,7 +251,7 @@ describe("export-for-culturescrape (US-004)", () => {
 
         // Both endpoints were minted as flagged needs-curation stub nodes.
         const fams = nodeGroups.get("language-family")!;
-        const stubX = fams.find((r) => r[nodeCol("linguascrape_id")] === "proto_x")!;
+        const stubX = fams.find((r) => r[nodeCol("pinakes_id")] === "proto_x")!;
         expect(stubX[nodeCol("csid")]).toBe("cs:language-family:proto_x");
         expect(stubX[nodeCol("name")]).toBe("Proto X");
         expect(stubX[nodeCol("description")]).toBe(STUB_NEEDS_CURATION_NOTE);
@@ -263,7 +263,7 @@ describe("export-for-culturescrape (US-004)", () => {
         expect(manifest.diagnostics.stubNodesMinted).toBe(2);
         expect(manifest.diagnostics.stubNodesByType).toEqual({ "language-family": 2 });
         expect(manifest.diagnostics.stubNodeSamples).toContainEqual({
-          linguascrapeId: "proto_x",
+          pinakesId: "proto_x",
           type: "language-family",
           sourceFile: "cultural-lineages.tsv",
         });
@@ -296,7 +296,7 @@ describe("export-for-culturescrape (US-004)", () => {
       try {
         const { nodeGroups, edgeGroups, manifest } = buildExport(dir);
         const arch = nodeGroups.get("archaeological-culture")!;
-        const stub = arch.filter((r) => r[nodeCol("linguascrape_id")] === "corded_ware");
+        const stub = arch.filter((r) => r[nodeCol("pinakes_id")] === "corded_ware");
         // Minted exactly once despite two successor references.
         expect(stub).toHaveLength(1);
         expect(stub[0][nodeCol("csid")]).toBe("cs:archaeological-culture:corded_ware");
@@ -374,12 +374,12 @@ describe("export-for-culturescrape (US-004)", () => {
       try {
         const { nodeGroups, edgeGroups } = buildExport(dir);
         const arch = nodeGroups.get("archaeological-culture")!;
-        // QID row → cs:<type>:<QID>; the linguascrape_id alias is unchanged.
-        const ppnb = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppnb")!;
+        // QID row → cs:<type>:<QID>; the pinakes_id alias is unchanged.
+        const ppnb = arch.find((r) => r[nodeCol("pinakes_id")] === "ppnb")!;
         expect(ppnb[nodeCol("csid")]).toBe("cs:archaeological-culture:Q123");
         expect(ppnb[nodeCol("wikidata_qid")]).toBe("Q123");
         // No-QID row → readable fallback.
-        const ppna = arch.find((r) => r[nodeCol("linguascrape_id")] === "ppna")!;
+        const ppna = arch.find((r) => r[nodeCol("pinakes_id")] === "ppna")!;
         expect(ppna[nodeCol("csid")]).toBe("cs:archaeological-culture:ppna");
 
         // The predecessor edge (ppnb→ppna) re-points its start onto the QID csid.
@@ -517,7 +517,7 @@ describe("provenance propagation (US-006)", () => {
       ],
     });
 
-  it("preserves the original citation in source_query, keeps source=linguascrape", () => {
+  it("preserves the original citation in source_query, keeps source=pinakes", () => {
     const dir = fixture();
     try {
       const { nodeGroups } = buildExport(dir);
@@ -579,7 +579,7 @@ describe("provenance propagation (US-006)", () => {
         CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
       const rows = nodeGroups.get("archaeological-culture")!;
       const byId = (id: string) =>
-        rows.find((r) => r[q("linguascrape_id")] === id)!;
+        rows.find((r) => r[q("pinakes_id")] === id)!;
 
       // Acquired row: URL + timestamp survive verbatim (not fabricated, not dropped).
       const clovis = byId("clovis");

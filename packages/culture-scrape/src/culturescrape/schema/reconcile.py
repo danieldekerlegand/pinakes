@@ -37,7 +37,7 @@ from typing import Any
 
 from culturescrape.acquire.http import HttpClient
 from culturescrape.schema.ids import IdError, mint_csid, normalize_name
-from culturescrape.schema.mapper import LINGUASCRAPE_ID_KEY, OVERFLOW_KEY
+from culturescrape.schema.mapper import PINAKES_ID_KEY, OVERFLOW_KEY
 from culturescrape.schema.merge import PROVENANCE_TEXT_COLUMNS
 from culturescrape.schema.tsvio import Row
 
@@ -325,13 +325,13 @@ def _record_decision(row: Row, result: ReconciliationResult) -> None:
     row[OVERFLOW_KEY] = json.dumps(data, ensure_ascii=False, sort_keys=True)
 
 
-# --- Offline reconciliation of LinguaScrape-origin rows --------------------
+# --- Offline reconciliation of Pinakes-origin rows --------------------
 #
 # The Wikidata reconciler above answers "which QID is this name?" over the
-# network. LinguaScrape rows arrive *without* a QID
-# (``docs/reconcile-linguascrape.md``), so their identity has to be settled
+# network. Pinakes rows arrive *without* a QID
+# (``docs/reconcile-pinakes.md``), so their identity has to be settled
 # against the nodes already in the corpus using only local signals. This is that
-# offline cascade: for each incoming LinguaScrape row it looks for the existing
+# offline cascade: for each incoming Pinakes row it looks for the existing
 # node it denotes by a strict precedence — a shared language code
 # (iso639/glottocode), then an exact normalized ``(name, type, region)``, then a
 # fuzzy name within one type/region — and reports each row as *matched*, *new*,
@@ -359,7 +359,7 @@ class LocalMatchTier(Enum):
 
 
 class LocalOutcome(Enum):
-    """The outcome of reconciling one LinguaScrape row against the corpus."""
+    """The outcome of reconciling one Pinakes row against the corpus."""
 
     MATCHED = "matched"
     NEW = "new"
@@ -385,7 +385,7 @@ class LocalCandidate:
 
 @dataclass(frozen=True)
 class LocalReconciliation:
-    """The decision for one incoming LinguaScrape row.
+    """The decision for one incoming Pinakes row.
 
     ``matched_csid`` is set only when ``outcome`` is
     :attr:`~LocalOutcome.MATCHED`. ``confidence`` is the strength of the best
@@ -405,7 +405,7 @@ class LocalReconciliation:
 
 @dataclass(frozen=True)
 class LocalReconciliationReport:
-    """The full result of :func:`reconcile_linguascrape`.
+    """The full result of :func:`reconcile_pinakes`.
 
     ``results`` holds one :class:`LocalReconciliation` per incoming row, in input
     order. ``rows`` holds the rows safe to load into the corpus — each matched
@@ -437,13 +437,13 @@ class LocalReconciliationReport:
         }
 
 
-def reconcile_linguascrape(
+def reconcile_pinakes(
     incoming: Iterable[Row],
     existing: Iterable[Row],
     *,
     fuzzy_threshold: float = DEFAULT_LOCAL_FUZZY_THRESHOLD,
 ) -> LocalReconciliationReport:
-    """Reconcile LinguaScrape-origin *incoming* rows against *existing* nodes.
+    """Reconcile Pinakes-origin *incoming* rows against *existing* nodes.
 
     Each incoming row runs the offline cascade against an index of the existing
     corpus (language code → exact ``(name, type, region)`` → fuzzy name) and is
@@ -587,9 +587,9 @@ def _merge_local(
             merged[column] = joined
     merged["confidence"] = repr(max(_confidence(target), _confidence(incoming)))
 
-    alias = _cell(incoming, LINGUASCRAPE_ID_KEY)
-    if alias and not _cell(target, LINGUASCRAPE_ID_KEY):
-        merged[LINGUASCRAPE_ID_KEY] = alias
+    alias = _cell(incoming, PINAKES_ID_KEY)
+    if alias and not _cell(target, PINAKES_ID_KEY):
+        merged[PINAKES_ID_KEY] = alias
 
     return _record_local(merged, LocalOutcome.MATCHED, tier, matched_csid, confidence)
 
@@ -630,7 +630,7 @@ _MERGE_RESERVED = frozenset(
         "wikidata_qid",
         "getty_id",
         OVERFLOW_KEY,
-        LINGUASCRAPE_ID_KEY,
+        PINAKES_ID_KEY,
         *PROVENANCE_TEXT_COLUMNS,
     }
 )

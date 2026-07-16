@@ -67,7 +67,7 @@ export interface TierBucket {
 }
 
 /**
- * Corpus composition **by trust tier** (US-004). Every LinguaScrape lexicon row
+ * Corpus composition **by trust tier** (US-004). Every Pinakes lexicon row
  * is human-curated, so in the shared graph the whole app corpus occupies the
  * `curated` tier ({@link CorpusTierReport.graphTier}) — auto-admission never
  * writes `lexicons/*.tsv`. What varies, and what this report tracks over time, is
@@ -107,7 +107,7 @@ function normaliseConfidence(raw: string): number | null {
 /**
  * Pure: classify every node row of the given parsed node files into its trust
  * tier by intrinsic provenance and aggregate size + quality per tier. Rows are
- * classified with `source` omitted (the export stamps `linguascrape` on export —
+ * classified with `source` omitted (the export stamps `pinakes` on export —
  * the point of this report is the *readiness* view, not the graph tier), so a row
  * lands in `auto-admitted` iff it is QID-anchored AND reference-backed, else
  * `quarantine`. Deterministic (no clock/fs).
@@ -201,7 +201,7 @@ export function buildCorpusTierReport(lexiconsDir: string): CorpusTierReport {
  * A domain's population target.
  *
  * `kind: "roadmap"` targets are the hard numbers from the deep-history roadmap
- * (docs/prd-linguascrape-deep-history-roadmap.md §8 / §15). `kind: "breadth"`
+ * (docs/prd-pinakes-deep-history-roadmap.md §8 / §15). `kind: "breadth"`
  * targets are the credible-breadth goals the data-population stories set for the
  * newer cultural domains the roadmap describes only qualitatively
  * ("foundational corpus", "credible breadth"); `source` records where each came from.
@@ -238,7 +238,7 @@ export interface CoverageReport {
 /**
  * Roadmap / data-population targets per domain. Ordered as the roadmap §15 table
  * lists them (hard roadmap targets first, then the story-breadth domains).
- * Kept in sync with docs/prd-linguascrape-deep-history-roadmap.md.
+ * Kept in sync with docs/prd-pinakes-deep-history-roadmap.md.
  */
 export const ROADMAP_TARGETS: RoadmapTarget[] = [
   { domain: "civilizations", file: "civilizations.tsv", target: 150, targetLabel: "150+", kind: "roadmap", source: "roadmap §8.1 / §15" },

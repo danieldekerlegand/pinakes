@@ -1,16 +1,16 @@
 /**
  * Entity ID resolution at query time (US-006).
  *
- * Maps a LinguaScrape entity reference (a canonical node type + local
- * `linguascrape_id`, e.g. a `language`/`culture`/`language-family` id) to its
+ * Maps a Pinakes entity reference (a canonical node type + local
+ * `pinakes_id`, e.g. a `language`/`culture`/`language-family` id) to its
  * shared-graph `csid` so "show in graph" affordances (US-007) can jump from an
  * app entity to its node in the culture-scrape graph.
  *
  * Resolution leans on the convergence reconciliation (tasklist 15 / the
  * `reconciliation-report` + `export-for-culturescrape` work):
  *
- *   1. **Alias hit** — the deterministic `cs:<node-type>:<linguascrape-id>` id the
- *      export mints for every node *is* the alias between a LinguaScrape row and its
+ *   1. **Alias hit** — the deterministic `cs:<node-type>:<pinakes-id>` id the
+ *      export mints for every node *is* the alias between a Pinakes row and its
  *      graph node. A row may also carry an explicit `csid`/`alias` column populated
  *      during convergence write-back; when present it wins over the minted value.
  *      An exact `(type, id)` hit resolves with confidence `1.0`.
@@ -38,11 +38,11 @@ const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
 /** Default minimum name similarity (Dice coefficient) for a fuzzy match. */
 export const DEFAULT_FUZZY_THRESHOLD = 0.6;
 
-/** A LinguaScrape entity reference to resolve into a shared-graph csid. */
+/** A Pinakes entity reference to resolve into a shared-graph csid. */
 export interface EntityRef {
   /** Canonical node type name, e.g. `"language"`, `"culture"`, `"language-family"`. */
   readonly type: string;
-  /** LinguaScrape local id (`linguascrape_id`); the strong signal when present. */
+  /** Pinakes local id (`pinakes_id`); the strong signal when present. */
   readonly id?: string;
   /** Display name, used for the fuzzy fallback when `id` is absent/unknown. */
   readonly name?: string;
@@ -61,10 +61,10 @@ export interface ResolvedCsid {
   readonly method: ResolutionMethod;
 }
 
-/** One csid ↔ LinguaScrape-entity alias, the unit the resolver indexes. */
+/** One csid ↔ Pinakes-entity alias, the unit the resolver indexes. */
 export interface AliasEntry {
   readonly csid: string;
-  readonly linguascrapeId: string;
+  readonly pinakesId: string;
   readonly nodeType: string;
   readonly name: string;
   readonly region?: string;
@@ -89,15 +89,15 @@ export interface GraphResolverOptions {
 export interface GraphResolver {
   /** Resolve an entity ref to a csid, or `null` when unresolved/ambiguous. */
   resolve(ref: EntityRef): ResolvedCsid | null;
-  /** Reverse lookup: a known csid back to its LinguaScrape entity ref. */
+  /** Reverse lookup: a known csid back to its Pinakes entity ref. */
   reverse(csid: string): EntityRef | null;
   /** Number of indexed alias entries (distinct csids). */
   readonly size: number;
 }
 
 /** Mint the deterministic canonical id (mirrors `scripts/export-for-culturescrape`). */
-export function mintCsid(nodeType: string, linguascrapeId: string): string {
-  return `cs:${nodeType}:${linguascrapeId}`;
+export function mintCsid(nodeType: string, pinakesId: string): string {
+  return `cs:${nodeType}:${pinakesId}`;
 }
 
 /**
@@ -190,8 +190,8 @@ export function createGraphResolver(
     };
     if (!byCsid.has(indexed.csid)) byCsid.set(indexed.csid, indexed);
 
-    if (indexed.linguascrapeId !== "") {
-      const key = indexed.nodeType + TYPE_ID_SEP + indexed.linguascrapeId;
+    if (indexed.pinakesId !== "") {
+      const key = indexed.nodeType + TYPE_ID_SEP + indexed.pinakesId;
       const set = byTypeId.get(key) ?? new Set<string>();
       set.add(indexed.csid);
       byTypeId.set(key, set);
@@ -287,7 +287,7 @@ export function createGraphResolver(
       if (entry === undefined) return null;
       return {
         type: entry.nodeType,
-        id: entry.linguascrapeId,
+        id: entry.pinakesId,
         name: entry.name,
         region: entry.region,
       };
@@ -347,7 +347,7 @@ export function loadAliasEntries(lexiconsDir: string = LEXICONS_DIR): AliasEntry
     const { headers, rows } = readTsv(path.join(lexiconsDir, file));
     if (headers.length === 0) continue;
 
-    const idIdx = targetColIndex(file, headers, "linguascrape_id");
+    const idIdx = targetColIndex(file, headers, "pinakes_id");
     const nameIdx = targetColIndex(file, headers, "name");
     const regionIdx = regionColIndex(headers);
     const csidIdx = csidColIndex(headers);
@@ -358,7 +358,7 @@ export function loadAliasEntries(lexiconsDir: string = LEXICONS_DIR): AliasEntry
       const explicit = cell(row, csidIdx);
       entries.push({
         csid: explicit !== "" ? explicit : mintCsid(node, lsId),
-        linguascrapeId: lsId,
+        pinakesId: lsId,
         nodeType: node,
         name: cell(row, nameIdx),
         region: cell(row, regionIdx),

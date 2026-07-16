@@ -151,14 +151,14 @@ describe("relatedFromNeighborhood", () => {
     const other = node("o", "Other");
     const nb = neighborhood(root, [other], [
       edge("e1", "REL", root.csid, other.csid, 1, {
-        source: "linguascrape",
+        source: "pinakes",
         source_url: "https://example.org/x",
         confidence: 0.42,
       }),
     ]);
     const [rel] = relatedFromNeighborhood(nb);
     expect(rel.provenance).toMatchObject({
-      source: "linguascrape",
+      source: "pinakes",
       sourceUrl: "https://example.org/x",
       confidence: 0.42,
     });

@@ -126,7 +126,7 @@ function EmbedContent() {
       </div>
       {/* Attribution bar */}
       <div className={`flex items-center justify-end px-3 py-1.5 text-xs border-t ${isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-        Powered by LinguaScrape
+        Powered by Pinakes
       </div>
     </div>
   );

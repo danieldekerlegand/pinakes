@@ -1,6 +1,6 @@
 # Ralph Workflow
 
-LinguaScrape uses the **Ralph** long-running-agent loop to work through PRDs autonomously.
+Pinakes uses the **Ralph** long-running-agent loop to work through PRDs autonomously.
 It replaces the earlier `ralphy` JSON-tasklist tooling (archived under `docs/archive/ralphy/`).
 
 > ⚠️ **One git driver at a time.** Never run `run-all.sh` while another driver is mutating the
@@ -17,7 +17,7 @@ It replaces the earlier `ralphy` JSON-tasklist tooling (archived under `docs/arc
 scripts/ralph/
   ralph.sh        # the loop: repeatedly feeds an agent prompt until a PRD's stories all pass
   prompt.md       # agent instructions (amp variant)
-  CLAUDE.md       # agent instructions (claude variant) + LinguaScrape commands/conventions
+  CLAUDE.md       # agent instructions (claude variant) + Pinakes commands/conventions
   run-all.sh      # multi-PRD orchestrator: seed → loop → verify → merge → retire
   .gitignore      # ignores runtime state: prd.json, progress.txt, .last-branch, archive/, snapshots/
 tasks/ralph/
@@ -58,7 +58,7 @@ AUTO_MERGE_MAIN=0 ./scripts/ralph/run-all.sh ...     # complete but don't merge
 RESUME=1          ./scripts/ralph/run-all.sh <name>  # resume a partial run
 ```
 
-**Dependency order:** `data-layer-convergence` → `linguascrape-convergence-python` →
+**Dependency order:** `data-layer-convergence` → `pinakes-convergence-python` →
 `graph-app-integration` → `platform-infra` → `data-acquisition` → `narrative-education` →
 `speculative`.
 

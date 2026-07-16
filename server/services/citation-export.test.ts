@@ -97,7 +97,7 @@ describe("entityToBibtex", () => {
     const bare: CitableEntity = { entityType: "deity", id: "zeus", name: "Zeus", sources: [] };
     const bib = entityToBibtex(bare);
     expect((bib.match(/@misc\{/g) ?? []).length).toBe(1);
-    expect(bib).toContain("@misc{linguascrape-deity-zeus,");
+    expect(bib).toContain("@misc{pinakes-deity-zeus,");
     expect(bib).toContain("title = {Zeus}");
   });
 

@@ -20,7 +20,7 @@ Every node and edge row is classified by [`orchestrate/tiers.py`](../src/culture
 
 | Tier | Rule | Confidence source |
 | --- | --- | --- |
-| `curated` | `source` names `linguascrape` (came through the human-curated lexicon gate; wins even when a QID/reference is also present) | US-001 rubric, stamped upstream |
+| `curated` | `source` names `pinakes` (came through the human-curated lexicon gate; wins even when a QID/reference is also present) | US-001 rubric, stamped upstream |
 | `auto-admitted` | **QID-anchored AND reference-backed** — a node with a `wikidata_qid` *and* a `source_url`; an edge (no QID column) with a `source_url` citation | US-001 `referenced-wikidata` (0.9) etc. |
 | `quarantine` | an acquired fact that is *not* both QID-anchored and reference-backed (a QID with no citation, a name-only row, an HTML scrape) — in the corpus, tagged, awaiting curation | US-001 `unreferenced-wikidata` etc. |
 | `inferred` | `source` starts with `inferred:<linker>` — a linker-minted hub or inferred edge (derived scaffolding, not an acquired fact) | linker confidence |
@@ -32,18 +32,18 @@ first-class and queryable, so a query recovers the tier by the same predicate �
 
 ## Building a merged, tiered corpus
 
-The corpus-merge job unions the LinguaScrape canonical export with auto-admitted domain
+The corpus-merge job unions the Pinakes canonical export with auto-admitted domain
 corpora from the Wikidata dump slice (the machinery is
 [`orchestrate/merge.py`](../src/culturescrape/orchestrate/merge.py) +
 [`orchestrate/corpus.py`](../src/culturescrape/orchestrate/corpus.py) `build_corpus`,
 US-004). `culturescrape merge` bakes `tiered_trust: true` into the job by default:
 
 ```bash
-# 1. Assemble the merged job (dump domains + the LinguaScrape export).
+# 1. Assemble the merged job (dump domains + the Pinakes export).
 culturescrape merge <blueprint…> \
     --dump  /abs/path/to/slice.json.gz \
     --index /abs/path/to/slice.json.gz.index.sqlite3 \
-    --linguascrape /abs/path/to/export/culturescrape \
+    --pinakes /abs/path/to/export/culturescrape \
     --job jobs/merged-tiered.yml --name merged-tiered
     # add --no-tiered to write a plain (untiered) merged job
 
@@ -70,7 +70,7 @@ encode the trust floors that actually differentiate the tiers:
 
 - **auto-admitted** must be fully sourced (`min_provenance_completeness = 1.0`),
   QID-reconciled (`max_unreconciled_rate = 0.0`), and deduped (`max_duplicate_rate = 0.0`);
-- **curated** need not carry an external `source_url` (LinguaScrape records none —
+- **curated** need not carry an external `source_url` (Pinakes records none —
   curation is the gate, enforced upstream) but must not duplicate;
 - **quarantine** carries no provenance floor (it is *awaiting* curation, not failing it);
 - **inferred** scaffolding is exempt.
@@ -97,12 +97,12 @@ Because a tier is a function of `source` + `wikidata_qid` + `source_url` — all
 in both stores — no new schema is needed:
 
 - **Datalog** — [`datalog/nodes.py`](../src/culturescrape/datalog/nodes.py) already emits
-  `source(Csid, Source)` (and `edges.py` `rel_source/4`), so `source(C, linguascrape)`
+  `source(Csid, Source)` (and `edges.py` `rel_source/4`), so `source(C, pinakes)`
   selects the curated tier, `source(C, S), place_qid(C, _)` an auto-admitted-style join,
   and an `inferred:` prefix the inferred tier. See `datalog/examples/entities-by-source.pl`.
 - **Neo4j** — `source`, `confidence`, `wikidata_qid`, and `source_url` are ordinary node /
   edge properties, so the same predicate is a `WHERE` clause
-  (`WHERE n.source = 'linguascrape'`, or `n.wikidata_qid IS NOT NULL AND n.source_url <> ''`
+  (`WHERE n.source = 'pinakes'`, or `n.wikidata_qid IS NOT NULL AND n.source_url <> ''`
   for the auto-admitted tier).
 
 ## Refreshing a tiered corpus
@@ -111,7 +111,7 @@ Tiering carries no extra refresh state — a refresh is the ordinary corpus refr
 tier of each row is recomputed from its provenance on every build:
 
 - **Full rebuild** — re-run `culturescrape run jobs/merged-tiered.yml` (regenerates
-  `tiers.json` / `qa-tiers.json`). Do this after the LinguaScrape export or the dump slice
+  `tiers.json` / `qa-tiers.json`). Do this after the Pinakes export or the dump slice
   changes materially.
 - **Incremental (QID-keyed) upsert** — [`orchestrate/incremental.py`](../src/culturescrape/orchestrate/incremental.py)
   `run_upsert` / `culturescrape sync-wikidata` refreshes only the changed Wikidata

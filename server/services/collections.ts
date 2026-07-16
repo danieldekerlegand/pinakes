@@ -9,7 +9,7 @@
  * the store is a thin filesystem wrapper over them.
  *
  * Entities are referenced by a **stable id** — the same deterministic
- * `cs:<node-type>:<linguascrape-id>` csid the shared-graph convergence work mints
+ * `cs:<node-type>:<pinakes-id>` csid the shared-graph convergence work mints
  * (mirrors `graph-resolver.mintCsid` / tasklist 18 US-009), so a collection item
  * survives renames of denormalized display fields and lines up 1:1 with graph nodes.
  */
@@ -22,11 +22,11 @@ import path from "path";
 // Types
 // ============================================================================
 
-/** A LinguaScrape entity reference — the same shape as the client `GraphEntityRef`. */
+/** A Pinakes entity reference — the same shape as the client `GraphEntityRef`. */
 export interface CollectionEntityRef {
   /** Canonical node type, e.g. `"language"`, `"culture"`, `"battle"`. */
   type: string;
-  /** LinguaScrape local id — the strong, stable signal. */
+  /** Pinakes local id — the strong, stable signal. */
   id: string;
   /** Display name, denormalized so a collection renders without re-fetching. */
   name?: string;
@@ -99,7 +99,7 @@ export interface ValidationResult {
 
 /**
  * The stable reference key for an entity — mirrors `graph-resolver.mintCsid`
- * (`cs:<node-type>:<linguascrape-id>`). Kept local so this module stays free of
+ * (`cs:<node-type>:<pinakes-id>`). Kept local so this module stays free of
  * the graph-resolver's filesystem imports.
  */
 export function stableEntityId(ref: Pick<CollectionEntityRef, "type" | "id">): string {

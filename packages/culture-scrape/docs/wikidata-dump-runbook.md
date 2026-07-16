@@ -276,7 +276,7 @@ uv run culturescrape datalog-materialize out/food-drink/corpus \
 
 ### Reconciliation against curated rows
 
-The corpus is reconciled against the nearest overlapping LinguaScrape lexicon with
+The corpus is reconciled against the nearest overlapping Pinakes lexicon with
 the offline cascade (`reconcile_corpus_against_lexicon`; language code → exact
 `(name, type, region)` → fuzzy name, ambiguous rows **never** auto-merged):
 
@@ -284,7 +284,7 @@ the offline cascade (`reconcile_corpus_against_lexicon`; language code → exact
 | --- | --- | --- | --- | --- |
 | 960 named dish nodes vs `lexicons/cuisines.tsv` (101 rows) | 0 | 960 | 0 | 1,061 |
 
-The zero-match result is honest and expected: LinguaScrape curates **cuisines**
+The zero-match result is honest and expected: Pinakes curates **cuisines**
 (e.g. "Italian cuisine"), not individual dishes, so there is no identity overlap
 to damage — every dish stands as its own `new` node and nothing is auto-merged.
 A domain that *does* overlap a curated lexicon (US-004's language / myth-religion)
@@ -305,14 +305,14 @@ uv run pytest tests/test_blueprint_food_drink_dump_smoke.py -q
 
 ---
 
-## Mid-size domains merged with the LinguaScrape corpus, offline (US-004)
+## Mid-size domains merged with the Pinakes corpus, offline (US-004)
 
 US-003 proved a single blueprint (food-drink). US-004 is the next shape: **two**
 mid-size dump domains (language, myth-religion) stitched **together** *and* merged
-with the existing LinguaScrape convergence corpus, so a Wikidata entity
-LinguaScrape already curates collapses to one node rather than duplicating. The
+with the existing Pinakes convergence corpus, so a Wikidata entity
+Pinakes already curates collapses to one node rather than duplicating. The
 lever is `culturescrape merge`, which expands N blueprints in dump mode and
-appends a `linguascrape-export` category, writing the single job whose categories
+appends a `pinakes-export` category, writing the single job whose categories
 `culturescrape run` then stitches (`orchestrate/merge.py`).
 
 ```bash
@@ -324,7 +324,7 @@ uv run culturescrape merge blueprints/language.yml blueprints/myth-religion.yml 
   --dump  "$SLICE" \
   --index "$SLICE.index.sqlite3" \
   --hydrate default \
-  --linguascrape "$(cd ../.. && pwd)/export/culturescrape" \
+  --pinakes "$(cd ../.. && pwd)/export/culturescrape" \
   --out out/merged/categories \
   --job jobs/merged-dump.yml \
   --name merged-dump \
@@ -344,25 +344,25 @@ preservation** below.
 ### Recorded build — reference slice (2026-07-12)
 
 Language + myth-religion (17 dump categories) from the 5,691-entity slice, merged
-with the live LinguaScrape export (`export/culturescrape`):
+with the live Pinakes export (`export/culturescrape`):
 
 | stage | measurement |
 | --- | --- |
 | acquire — dump | **802** member entities across 17 categories; each category full-scans the whole slice |
-| acquire — LinguaScrape export | **12,671** canonical rows ingested from `nodes/`+`edges/` |
+| acquire — Pinakes export | **12,671** canonical rows ingested from `nodes/`+`edges/` |
 | stitch + QID-reconcile + link + export | inline; **collapsed 14** cross-type same-QID duplicates |
 | **merged corpus** | **7,682 nodes / 5,283 edges**; largest component **14.79%** (1,136/7,682) |
 | whole build | **345 s wall** @ 4 workers |
-| peak memory | **192 MB** RSS · **43.5 MB** Python-object peak (`tracemalloc`) — streaming, bounded by the LinguaScrape ingest, not the slice |
+| peak memory | **192 MB** RSS · **43.5 MB** Python-object peak (`tracemalloc`) — streaming, bounded by the Pinakes ingest, not the slice |
 | Neo4j | `corpus-neo4j/neo4j-admin-import.sh` generated; **idempotent** (see below) |
 | Datalog | **55,132** facts projected |
 | QA | all corpus gates **pass** (0 duplicates after QID-reconcile, 0 dangling edges) |
 
 **Relaxed floors (documented).** The merged corpus carries the same two overrides
-as `jobs/linguascrape-full.yml`: `min_provenance_completeness: 0.0` (LinguaScrape
+as `jobs/pinakes-full.yml`: `min_provenance_completeness: 0.0` (Pinakes
 rows carry the canonical `source` stamp but no external `source_url`; the
-LinguaScrape provenance gate still enforces it) and `min_component_fraction: 0.1`.
-The measured largest component is **14.79%** — the LinguaScrape corpus's own real
+Pinakes provenance gate still enforces it) and `min_component_fraction: 0.1`.
+The measured largest component is **14.79%** — the Pinakes corpus's own real
 semantic connectivity is ~17% (`docs/convergence-build.md`), and the dump domains
 attach to it only where a shared QID or a linker hub bridges them, so 0.1 is an
 honest floor that still fails on a genuine collapse. This is a *stored*-graph
@@ -375,11 +375,11 @@ by two sources gets two csids and the per-`csid` stitch cannot merge them. The
 reference merge surfaced **14** such cross-type duplicates in three shapes:
 
 * deity typed `Concept;CulturalArtifact` by the myth-religion blueprint vs `Deity`
-  by LinguaScrape (`cs:concept:Q146007` vs `cs:deity:Q146007` — Wadjet, Sobek, …);
+  by Pinakes (`cs:concept:Q146007` vs `cs:deity:Q146007` — Wadjet, Sobek, …);
 * script typed `Language` by the language blueprint's writing-systems / alphabets
-  categories vs `WritingSystem` by LinguaScrape (`cs:language:Q145625` vs
+  categories vs `WritingSystem` by Pinakes (`cs:language:Q145625` vs
   `cs:writing-system:Q145625` — Glagolitic, Ol Chiki, …);
-* a geographic **place hub** the linker mints for a QID LinguaScrape curates as a
+* a geographic **place hub** the linker mints for a QID Pinakes curates as a
   `Culture` (`cs:place:Q11767` vs `cs:culture:Q11767` — Mesopotamia, Babylonia).
 
 `ontology.reconcile_qid.reconcile_shared_qids` (opt-in via the job's
@@ -408,10 +408,10 @@ Top node labels: `Entity` 7,682 · `Ingredient` 2,146 · `Language` 1,459 ·
 Edges by `:TYPE` (**5,283** total): `DESCENDS_FROM` 1,642 · `LOCATED_IN` 980 ·
 `MEMBER_OF_CATEGORY` 802 · `INSTANCE_OF` 760 · `PART_OF_PERIOD` 498 ·
 `VARIANT_OF` 242 · `INFLUENCED_BY` 102 · `PART_OF` 101 · `SPOKEN_IN` 66 ·
-`BORROWED_FROM` 50 · `COGNATE_WITH` 27 · `DERIVED_FROM` 13. Of these, LinguaScrape
+`BORROWED_FROM` 50 · `COGNATE_WITH` 27 · `DERIVED_FROM` 13. Of these, Pinakes
 contributed the `DESCENDS_FROM`/`VARIANT_OF`/`INFLUENCED_BY`/`PART_OF`/
 `BORROWED_FROM`/`COGNATE_WITH`/`DERIVED_FROM` families (the manifest's
-`linguascrape_edges_by_type`); `LOCATED_IN`/`INSTANCE_OF`/`MEMBER_OF_CATEGORY`/
+`pinakes_edges_by_type`); `LOCATED_IN`/`INSTANCE_OF`/`MEMBER_OF_CATEGORY`/
 `PART_OF_PERIOD`/`SPOKEN_IN` are minted by the dump acquisition + linkers.
 
 ### Reconciliation against curated lexicons
@@ -426,14 +426,14 @@ Full report: [wikidata-merge-reconciliation.md](wikidata-merge-reconciliation.md
 Both domains reconcile with **0 ambiguous** — nothing is auto-merged. The
 languages that overlap the curated set fold on (name, type, region) at 0.95; the
 Wikidata-only minor languages stand as `new`. 198/221 deities match (the
-LinguaScrape deities re-match their own rows and the Wikidata `Q178885` members
+Pinakes deities re-match their own rows and the Wikidata `Q178885` members
 whose names align fold on).
 
 ### Verifying offline (skipif-gated)
 
 `tests/test_blueprint_language_myth_dump_smoke.py` proves this path end to end
 where a real slice is present: it merges a small language + myth subset with the
-committed LinguaScrape fixture export, builds offline with an HTTP factory that
+committed Pinakes fixture export, builds offline with an HTTP factory that
 **raises**, and asserts the corpus validates, carries both sources' rows,
 MERGE-loads idempotently, and reconciles. On a fresh checkout with no slice it is
 skipped.

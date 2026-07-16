@@ -104,7 +104,7 @@ export function buildOpenApiSpec(): Record<string, unknown> {
   return {
     openapi: "3.0.3",
     info: {
-      title: "LinguaScrape Public API",
+      title: "Pinakes Public API",
       version: "1.1.0",
       description:
         "Programmatic contribution + read API plus a versioned public dataset API. " +
@@ -115,7 +115,7 @@ export function buildOpenApiSpec(): Record<string, unknown> {
         "live dataset unreviewed. The dataset API exposes citable, versioned snapshots " +
         "(semver + optional DOI) and a full-dataset download endpoint.",
     },
-    servers: [{ url: "/", description: "This LinguaScrape instance" }],
+    servers: [{ url: "/", description: "This Pinakes instance" }],
     components: {
       securitySchemes: {
         ApiKeyAuth: {

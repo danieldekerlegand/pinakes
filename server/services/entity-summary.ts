@@ -1,7 +1,7 @@
 /**
  * Progressive summary/detail contract (US-004, tasklist 13 platform-infra).
  *
- * LinguaScrape's entity list endpoints historically return **fully hydrated**
+ * Pinakes's entity list endpoints historically return **fully hydrated**
  * records (every field of every row), so a client that only needs a name plus a
  * couple of badge fields to render a list/card still pays for the whole payload
  * (descriptions, pantheons, sacred texts, diffusion paths, …). This module

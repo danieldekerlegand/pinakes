@@ -3,7 +3,7 @@
 % Every ancestor of a language — the transitive closure of descends_from/2,
 % computed by the ancestor/2 rule (see docs/datalog.md and
 % src/culturescrape/datalog/rules.py). The descends_from edges here are
-% LinguaScrape-origin (source: linguascrape), so this query demonstrates the base
+% Pinakes-origin (source: pinakes), so this query demonstrates the base
 % transitive closure running across the merged graph. Load this file alongside a
 % graph.pl that was generated with --rules, then run main/0.
 %

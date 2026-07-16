@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import type { MapBookmark, BaseMapId } from '../../../lib/visualization/geospatial-types';
 import { VIEW_PRESETS } from '../../../lib/visualization/geospatial-types';
 
-const STORAGE_KEY = 'linguascrape-map-bookmarks';
+const STORAGE_KEY = 'pinakes-map-bookmarks';
 
 // ---------------------------------------------------------------------------
 // localStorage helpers (exported for testing)

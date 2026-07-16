@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const DM_STORAGE_KEY = 'linguascrape-dark-mode';
+const DM_STORAGE_KEY = 'pinakes-dark-mode';
 
 export function useDarkMode() {
   const [darkMode, setDarkMode] = useState(() => {

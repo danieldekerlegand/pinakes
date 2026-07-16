@@ -573,32 +573,32 @@ def _build_parser() -> argparse.ArgumentParser:
         f"(default: {GateThresholds.max_unreconciled_rate})",
     )
     qa.add_argument(
-        "--min-linguascrape-provenance-completeness",
+        "--min-pinakes-provenance-completeness",
         type=float,
-        default=GateThresholds.min_linguascrape_provenance_completeness,
-        help="minimum fraction of LinguaScrape-origin rows keeping the source "
-        f"stamp (default: {GateThresholds.min_linguascrape_provenance_completeness})",
+        default=GateThresholds.min_pinakes_provenance_completeness,
+        help="minimum fraction of Pinakes-origin rows keeping the source "
+        f"stamp (default: {GateThresholds.min_pinakes_provenance_completeness})",
     )
     qa.add_argument(
-        "--max-linguascrape-duplicate-rate",
+        "--max-pinakes-duplicate-rate",
         type=float,
-        default=GateThresholds.max_linguascrape_duplicate_rate,
-        help="maximum post-dedup duplicate fraction among LinguaScrape nodes "
-        f"(default: {GateThresholds.max_linguascrape_duplicate_rate})",
+        default=GateThresholds.max_pinakes_duplicate_rate,
+        help="maximum post-dedup duplicate fraction among Pinakes nodes "
+        f"(default: {GateThresholds.max_pinakes_duplicate_rate})",
     )
     qa.add_argument(
-        "--max-linguascrape-dangling-edge-rate",
+        "--max-pinakes-dangling-edge-rate",
         type=float,
-        default=GateThresholds.max_linguascrape_dangling_edge_rate,
-        help="maximum fraction of dangling LinguaScrape edges "
-        f"(default: {GateThresholds.max_linguascrape_dangling_edge_rate})",
+        default=GateThresholds.max_pinakes_dangling_edge_rate,
+        help="maximum fraction of dangling Pinakes edges "
+        f"(default: {GateThresholds.max_pinakes_dangling_edge_rate})",
     )
     qa.add_argument(
-        "--max-linguascrape-unreconciled-rate",
+        "--max-pinakes-unreconciled-rate",
         type=float,
-        default=GateThresholds.max_linguascrape_unreconciled_rate,
-        help="maximum fraction of unreconciled LinguaScrape nodes "
-        f"(default: {GateThresholds.max_linguascrape_unreconciled_rate})",
+        default=GateThresholds.max_pinakes_unreconciled_rate,
+        help="maximum fraction of unreconciled Pinakes nodes "
+        f"(default: {GateThresholds.max_pinakes_unreconciled_rate})",
     )
     qa.set_defaults(handler=_cmd_qa)
 
@@ -686,7 +686,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     merge = subparsers.add_parser(
         "merge",
-        help="assemble several dump blueprints + the LinguaScrape export into "
+        help="assemble several dump blueprints + the Pinakes export into "
         "one runnable merged-corpus job",
     )
     merge.add_argument(
@@ -718,10 +718,10 @@ def _build_parser() -> argparse.ArgumentParser:
         help="select direct P31 instances only (default: P31/P279* transitive)",
     )
     merge.add_argument(
-        "--linguascrape",
+        "--pinakes",
         type=Path,
         default=None,
-        help="LinguaScrape canonical export root (nodes/ + edges/) to stitch in; "
+        help="Pinakes canonical export root (nodes/ + edges/) to stitch in; "
         "e.g. ../../export/culturescrape",
     )
     merge.add_argument(
@@ -1494,12 +1494,12 @@ def _cmd_qa(args: argparse.Namespace) -> int:
         min_provenance_completeness=args.min_provenance_completeness,
         max_dangling_edge_rate=args.max_dangling_edge_rate,
         max_unreconciled_rate=args.max_unreconciled_rate,
-        min_linguascrape_provenance_completeness=(
-            args.min_linguascrape_provenance_completeness
+        min_pinakes_provenance_completeness=(
+            args.min_pinakes_provenance_completeness
         ),
-        max_linguascrape_duplicate_rate=args.max_linguascrape_duplicate_rate,
-        max_linguascrape_dangling_edge_rate=args.max_linguascrape_dangling_edge_rate,
-        max_linguascrape_unreconciled_rate=args.max_linguascrape_unreconciled_rate,
+        max_pinakes_duplicate_rate=args.max_pinakes_duplicate_rate,
+        max_pinakes_dangling_edge_rate=args.max_pinakes_dangling_edge_rate,
+        max_pinakes_unreconciled_rate=args.max_pinakes_unreconciled_rate,
     )
     report = evaluate_directory(directory, thresholds)
     if args.out is not None:
@@ -1569,7 +1569,7 @@ def _cmd_merge(args: argparse.Namespace) -> int:
             args.job,
             dump=dump,
             name=args.name,
-            linguascrape_export=args.linguascrape,
+            pinakes_export=args.pinakes,
             force=args.force,
             min_component_fraction=args.min_component_fraction,
             min_provenance_completeness=args.min_provenance_completeness,

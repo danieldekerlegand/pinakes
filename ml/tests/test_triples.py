@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from linguascrape_ml.export_triples import DEFAULT_MANIFEST, build
-from linguascrape_ml.triples import (
+from pinakes_ml.export_triples import DEFAULT_MANIFEST, build
+from pinakes_ml.triples import (
     EXCLUDED_RELATIONS,
     Triple,
     analyze_leakage,

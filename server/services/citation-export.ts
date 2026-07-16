@@ -11,7 +11,7 @@
  * a JSON-encoded array cell (`'["Hesiod Theogony","Homer Iliad"]'`). We parse what we can
  * (author / year / url) and fall back to a `title`-only entry — never dropping a source.
  *
- * Every export also emits a leading **record entry** that cites the LinguaScrape entity
+ * Every export also emits a leading **record entry** that cites the Pinakes entity
  * record itself, so an entity with *no* sources still yields a usable citation (AC3).
  */
 
@@ -22,7 +22,7 @@ export type CitationFormat = "bibtex" | "ris" | "csljson";
 export const CITATION_FORMATS: readonly CitationFormat[] = ["bibtex", "ris", "csljson"];
 
 /** The dataset a record entry attributes to. */
-export const DATASET_PUBLISHER = "LinguaScrape cultural dataset";
+export const DATASET_PUBLISHER = "Pinakes cultural dataset";
 
 /**
  * A normalized, format-agnostic view of any citable entity. The route builds this from
@@ -132,7 +132,7 @@ function escapeBibtex(value: string): string {
 
 /** A stable base citation key for an entity's record entry. */
 export function recordCiteKey(entity: CitableEntity): string {
-  return slug(`linguascrape-${entity.entityType}-${entity.id}`) || "linguascrape-record";
+  return slug(`pinakes-${entity.entityType}-${entity.id}`) || "pinakes-record";
 }
 
 /**
@@ -153,7 +153,7 @@ function buildKeys(entity: CitableEntity, sources: ParsedSource[]): string[] {
     return key;
   };
 
-  const keys = [take(recordCiteKey(entity), "linguascrape-record")];
+  const keys = [take(recordCiteKey(entity), "pinakes-record")];
   const stem = slug(entity.id) || slug(entity.name) || "source";
   sources.forEach((src, i) => {
     const parts = [stem, src.author ? slug(src.author) : "", src.year ? String(src.year) : ""]
@@ -166,7 +166,7 @@ function buildKeys(entity: CitableEntity, sources: ParsedSource[]): string[] {
 
 /** A one-line entity descriptor for the record-entry note. */
 function recordNote(entity: CitableEntity): string {
-  const bits = [`LinguaScrape ${entity.entityType.replace(/-/g, " ")} record`];
+  const bits = [`Pinakes ${entity.entityType.replace(/-/g, " ")} record`];
   if (entity.region) bits.push(`region: ${entity.region}`);
   return bits.join("; ");
 }

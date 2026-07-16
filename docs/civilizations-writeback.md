@@ -53,7 +53,7 @@ carries all four plus a bibliographic `sources = ["Wikidata"]` cell:
 derives the canonical `source_url` only from the bibliographic citation, so the Wikidata
 entity URL lives in the lexicon (and is shown in the app, which reads the lexicon) but is
 **not yet propagated** to the canonical export / Neo4j for these rows. `source` is still
-force-stamped `linguascrape` and the citation preserved in `source_query`.
+force-stamped `pinakes` and the citation preserved in `source_query`.
 
 ## Reproduce / verify
 

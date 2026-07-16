@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const HC_STORAGE_KEY = 'linguascrape-high-contrast';
+const HC_STORAGE_KEY = 'pinakes-high-contrast';
 
 export function useHighContrast() {
   const [highContrast, setHighContrast] = useState(() => {

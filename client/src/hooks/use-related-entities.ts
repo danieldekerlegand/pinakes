@@ -12,7 +12,7 @@ import type { GraphEntityRef } from "@/components/graph/ShowInGraphButton";
 /**
  * Shared hook powering the generalised "related entities" affordance (US-006).
  *
- * Given any LinguaScrape entity ref (language, culture/civilization, battle,
+ * Given any Pinakes entity ref (language, culture/civilization, battle,
  * religion, …) it:
  *   1. resolves the ref to its shared-graph csid via `/api/graph/resolve`
  *      (the alias table — works even while Neo4j itself is offline), then

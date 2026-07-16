@@ -1,7 +1,7 @@
 {
   "version": "1.1.0",
-  "title": "culture-scrape ↔ LinguaScrape canonical node/edge schema",
-  "description": "The single canonical data contract both projects target. Node and edge column contracts mirror culture-scrape's typed Neo4j-import headers (packages/culture-scrape/src/culturescrape/schema/headers.py) so LinguaScrape exports are import-compatible without transformation. See docs/canonical-schema.md for the prose specification and the per-lexicon mapping table.",
+  "title": "culture-scrape ↔ Pinakes canonical node/edge schema",
+  "description": "The single canonical data contract both projects target. Node and edge column contracts mirror culture-scrape's typed Neo4j-import headers (packages/culture-scrape/src/culturescrape/schema/headers.py) so Pinakes exports are import-compatible without transformation. See docs/canonical-schema.md for the prose specification and the per-lexicon mapping table.",
   "delimiter": "\t",
   "idScheme": {
     "primaryKey": "csid",
@@ -12,8 +12,8 @@
       "language": ["language_code"],
       "place": ["pleiades_id", "tgn_id", "place_qid"]
     },
-    "aliasColumn": "linguascrape_id",
-    "aliasNote": "Every LinguaScrape-origin row retains its original lexicon id in linguascrape_id so the canonical→lexicon mapping survives round-trip (write-back)."
+    "aliasColumn": "pinakes_id",
+    "aliasNote": "Every Pinakes-origin row retains its original lexicon id in pinakes_id so the canonical→lexicon mapping survives round-trip (write-back)."
   },
   "node": {
     "columns": [
@@ -25,7 +25,7 @@
       { "field": "getty_id", "header": "getty_id", "type": "string", "role": "core", "required": false },
       { "field": "aliases", "header": "aliases", "type": "string", "role": "core", "required": false },
       { "field": "description", "header": "description", "type": "string", "role": "core", "required": false },
-      { "field": "linguascrape_id", "header": "linguascrape_id", "type": "string", "role": "alias", "required": false },
+      { "field": "pinakes_id", "header": "pinakes_id", "type": "string", "role": "alias", "required": false },
       { "field": "time_start", "header": "time_start:int", "type": "int", "role": "dimension", "required": false },
       { "field": "time_end", "header": "time_end:int", "type": "int", "role": "dimension", "required": false },
       { "field": "time_start_iso", "header": "time_start_iso", "type": "string", "role": "dimension", "required": false },
@@ -55,7 +55,7 @@
       { "field": "weight", "header": "weight:float", "type": "float", "role": "dimension", "required": false },
       { "field": "time_start", "header": "time_start:int", "type": "int", "role": "dimension", "required": false },
       { "field": "time_end", "header": "time_end:int", "type": "int", "role": "dimension", "required": false },
-      { "field": "linguascrape_id", "header": "linguascrape_id", "type": "string", "role": "alias", "required": false },
+      { "field": "pinakes_id", "header": "pinakes_id", "type": "string", "role": "alias", "required": false },
       { "field": "source", "header": "source", "type": "string", "role": "provenance", "required": true },
       { "field": "source_url", "header": "source_url", "type": "string", "role": "provenance", "required": true },
       { "field": "source_query", "header": "source_query", "type": "string", "role": "provenance", "required": false },

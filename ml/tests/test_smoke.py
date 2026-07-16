@@ -11,7 +11,7 @@ from pathlib import Path
 
 import mlflow
 
-from linguascrape_ml import (
+from pinakes_ml import (
     DEFAULT_EXPERIMENT,
     default_tracking_uri,
     start_run,

@@ -1,7 +1,7 @@
 # Civilizations reconciliation report (data-population pilot, US-002)
 
 Point-in-time snapshot of the **acquire → normalize → reconcile** step of the
-civilizations pilot (`docs/prd-linguascrape-deep-history-roadmap.md` §15). Reproduce
+civilizations pilot (`docs/prd-pinakes-deep-history-roadmap.md` §15). Reproduce
 with:
 
 ```bash
@@ -12,7 +12,7 @@ uv run python scripts/reconcile_civilizations.py         # reconcile → out/...
 The machine-readable report (`out/civilizations/reconciliation/report.{json,md}`) is
 gitignored (it tracks the live corpus); this doc is the committed summary. Matching
 logic: `culturescrape.schema.lexicon_reconcile` over the offline cascade
-(`reconcile_linguascrape`) — language code → exact `(name, type, region)` → fuzzy
+(`reconcile_pinakes`) — language code → exact `(name, type, region)` → fuzzy
 name. Ambiguous rows are **never** auto-merged.
 
 ## Result (2026-07-08, live WDQS)

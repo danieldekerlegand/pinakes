@@ -47,7 +47,7 @@ from culturescrape.datalog.rules import (
 #: a two-step located_in containment, a one-directional contemporary_with edge,
 #: a derived_from→influenced_by influence chain, dated spans (time_start/time_end)
 #: for the arithmetic temporal rules — Q47 overlaps Q42, and Q07 is strictly later
-#: so Q42 precedes Q07 — and, for the LinguaScrape correlation rules, a haplogroup
+#: so Q42 precedes Q07 — and, for the Pinakes correlation rules, a haplogroup
 #: originating in the region a language is spoken in. Dated facts carry numeric
 #: values so Soufflé types time_start/time_end as `number` and the `<`/`>=` guards
 #: compile.

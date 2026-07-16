@@ -36,7 +36,7 @@ console.log('Test 1: generateEmbedCode with default options');
   assertIncludes(code, 'height:500px', 'defaults to 500px height');
   assertIncludes(code, 'border:none', 'removes border');
   assertIncludes(code, 'loading="lazy"', 'uses lazy loading');
-  assertIncludes(code, 'title="LinguaScrape', 'includes accessible title');
+  assertIncludes(code, 'title="Pinakes', 'includes accessible title');
 }
 
 // Test 2: generateEmbedCode with custom options
@@ -48,12 +48,12 @@ console.log('\nTest 2: generateEmbedCode with custom options');
     height: 600,
     theme: 'dark',
   };
-  const code = generateEmbedCode('https://linguascrape.io', options);
+  const code = generateEmbedCode('https://pinakes.io', options);
   assertIncludes(code, 'view=map', 'uses custom view');
   assertIncludes(code, 'theme=dark', 'uses dark theme');
   assertIncludes(code, 'width:800px', 'uses pixel width');
   assertIncludes(code, 'height:600px', 'uses pixel height');
-  assertIncludes(code, 'title="LinguaScrape - map visualization"', 'title includes view name');
+  assertIncludes(code, 'title="Pinakes - map visualization"', 'title includes view name');
 }
 
 // Test 3: generateEmbedCode with string width

@@ -1,7 +1,7 @@
 /**
  * Typed HTTP client for the culture-scrape FastAPI sidecar.
  *
- * LinguaScrape talks to the shared culture-scrape graph two ways (see
+ * Pinakes talks to the shared culture-scrape graph two ways (see
  * docs/culturescrape-integration.md): the Neo4j TypeScript driver
  * (server/services/graph-store.ts) for relational/graph traversal, and this
  * module — the sidecar's FastAPI — for the endpoints that are better served over

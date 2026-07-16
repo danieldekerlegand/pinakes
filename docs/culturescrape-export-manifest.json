@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "source": "linguascrape",
+  "source": "pinakes",
   "nodeTypes": [
     {
       "type": "language",
@@ -164,7 +164,7 @@
   "diagnostics": {
     "skippedNodeRowsMissingId": 0,
     "duplicateCsids": 0,
-    "ambiguousLinguascrapeIds": 0,
+    "ambiguousPinakesIds": 0,
     "edgesWithUnresolvedEndpoint": 0,
     "unresolvedEndpointSamples": [],
     "stubNodesMinted": 127,
@@ -176,127 +176,127 @@
     },
     "stubNodeSamples": [
       {
-        "linguascrapeId": "pottery-neolithic",
+        "pinakesId": "pottery-neolithic",
         "type": "archaeological-culture",
         "sourceFile": "archaeological-cultures.tsv"
       },
       {
-        "linguascrapeId": "yayoi",
+        "pinakesId": "yayoi",
         "type": "archaeological-culture",
         "sourceFile": "archaeological-cultures.tsv"
       },
       {
-        "linguascrapeId": "proto_indo_european",
+        "pinakesId": "proto_indo_european",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_anatolian",
+        "pinakesId": "proto_anatolian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_tocharian",
+        "pinakesId": "proto_tocharian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_indo_iranian",
+        "pinakesId": "proto_indo_iranian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_iranian",
+        "pinakesId": "proto_iranian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_indo_aryan",
+        "pinakesId": "proto_indo_aryan",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_greek",
+        "pinakesId": "proto_greek",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_italic",
+        "pinakesId": "proto_italic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_celtic",
+        "pinakesId": "proto_celtic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_germanic",
+        "pinakesId": "proto_germanic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_balto_slavic",
+        "pinakesId": "proto_balto_slavic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_slavic",
+        "pinakesId": "proto_slavic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_baltic",
+        "pinakesId": "proto_baltic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "corded_ware",
+        "pinakesId": "corded_ware",
         "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "afanasievo",
+        "pinakesId": "afanasievo",
         "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "bell_beaker",
+        "pinakesId": "bell_beaker",
         "type": "archaeological-culture",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_afroasiatic",
+        "pinakesId": "proto_afroasiatic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_semitic",
+        "pinakesId": "proto_semitic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_berber",
+        "pinakesId": "proto_berber",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_cushitic",
+        "pinakesId": "proto_cushitic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "ancient_egyptian",
+        "pinakesId": "ancient_egyptian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "akkadian",
+        "pinakesId": "akkadian",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       },
       {
-        "linguascrapeId": "proto_northwest_semitic",
+        "pinakesId": "proto_northwest_semitic",
         "type": "language-family",
         "sourceFile": "cultural-lineages.tsv"
       }
@@ -647,7 +647,7 @@
       "citationsWithoutCanonicalColumn": 0
     },
     "flags": [
-      "node.source_query: 2562/6835 rows preserve the original LinguaScrape citation.",
+      "node.source_query: 2562/6835 rows preserve the original Pinakes citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.source_query: 1103/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",

@@ -119,7 +119,7 @@ async function fetchWikipediaExtract(title: string): Promise<WikipediaExtract | 
   const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "LinguaScrape/1.0 (polity-scraper)" },
+      headers: { "User-Agent": "Pinakes/1.0 (polity-scraper)" },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as any;
@@ -139,7 +139,7 @@ async function fetchWikipediaInfobox(title: string): Promise<WikipediaInfobox> {
   const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=wikitext&section=0&format=json`;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "LinguaScrape/1.0 (polity-scraper)" },
+      headers: { "User-Agent": "Pinakes/1.0 (polity-scraper)" },
     });
     if (!res.ok) return {};
     const data = (await res.json()) as any;
@@ -196,7 +196,7 @@ async function fetchSeshatPolity(seshatId: string): Promise<{
   const url = `https://seshatdatabank.info/api/v1/polities/?name=${encodeURIComponent(seshatId)}&format=json`;
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "LinguaScrape/1.0 (polity-scraper)" },
+      headers: { "User-Agent": "Pinakes/1.0 (polity-scraper)" },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as any;

@@ -101,7 +101,7 @@ export function sharedCollectionQueryKey(token: string): [string] {
 
 // --- Owner identity -----------------------------------------------------------
 
-const OWNER_STORAGE_KEY = "linguascrape.collections.ownerId";
+const OWNER_STORAGE_KEY = "pinakes.collections.ownerId";
 
 /**
  * A stable, per-browser owner id (no auth). Persisted in localStorage; generated

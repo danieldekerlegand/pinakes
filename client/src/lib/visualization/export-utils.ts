@@ -52,7 +52,7 @@ function drawWatermark(
   canvasHeight: number,
   scale: number
 ) {
-  const text = 'LinguaScrape';
+  const text = 'Pinakes';
   const padding = 12;
   const fontSize = 14;
 
@@ -240,7 +240,7 @@ export function drawMapLayers(ctx: CanvasRenderingContext2D, layers: MapLayerSou
 export interface MapCaptureOptions {
   /** Device-pixel multiplier for high-resolution output (default 2) */
   scale?: number;
-  /** Draw the LinguaScrape attribution watermark (default true) */
+  /** Draw the Pinakes attribution watermark (default true) */
   watermark?: boolean;
   /** Fill colour behind transparent tiles (default 'white') */
   background?: string;
@@ -248,7 +248,7 @@ export interface MapCaptureOptions {
 
 /**
  * Composite a map container (Leaflet tiles + deck.gl/canvas overlays) onto a
- * single high-resolution canvas, with the LinguaScrape watermark. Returns the
+ * single high-resolution canvas, with the Pinakes watermark. Returns the
  * canvas, or `null` if a 2D context is unavailable.
  */
 export function captureMapToCanvas(
@@ -430,5 +430,5 @@ export function generateEmbedCode(baseUrl: string, options: EmbedOptions): strin
   const widthAttr = typeof width === 'number' ? `${width}px` : width;
   const heightAttr = typeof height === 'number' ? `${height}px` : height;
 
-  return `<iframe src="${src}" style="width:${widthAttr};height:${heightAttr};border:none;border-radius:8px;" loading="lazy" title="LinguaScrape - ${view} visualization"></iframe>`;
+  return `<iframe src="${src}" style="width:${widthAttr};height:${heightAttr};border:none;border-radius:8px;" loading="lazy" title="Pinakes - ${view} visualization"></iframe>`;
 }

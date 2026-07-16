@@ -42,10 +42,10 @@ from culturescrape.acquire.kaikki import (
     KaikkiAdapter,
     KaikkiError,
 )
-from culturescrape.acquire.linguascrape import (
-    LINGUASCRAPE_SOURCE,
-    LinguaScrapeExportAdapter,
-    LinguaScrapeExportError,
+from culturescrape.acquire.pinakes import (
+    PINAKES_SOURCE,
+    PinakesExportAdapter,
+    PinakesExportError,
 )
 from culturescrape.acquire.petscan import (
     PETSCAN_ENDPOINT,
@@ -147,7 +147,7 @@ __all__ = [
     "INDEX_VERSION",
     "KAIKKI_SOURCE",
     "LANGUAGE_PROFILE",
-    "LINGUASCRAPE_SOURCE",
+    "PINAKES_SOURCE",
     "PROFILES",
     "GETTY_LICENSE",
     "GETTY_NAMESPACES",
@@ -183,8 +183,8 @@ __all__ = [
     "HttpStats",
     "KaikkiAdapter",
     "KaikkiError",
-    "LinguaScrapeExportAdapter",
-    "LinguaScrapeExportError",
+    "PinakesExportAdapter",
+    "PinakesExportError",
     "Link",
     "PetScanAdapter",
     "PetScanError",

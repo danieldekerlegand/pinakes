@@ -4,7 +4,7 @@
  * human-curated lexicon corpus is independently QID-anchored + reference-backed
  * (and would auto-admit to the shared graph on its own merits).
  *
- * Every LinguaScrape lexicon row is human-curated, so in the shared graph the
+ * Every Pinakes lexicon row is human-curated, so in the shared graph the
  * whole app corpus is the `curated` tier (auto-admission never writes
  * `lexicons/*.tsv`). The readiness breakdown is the growth metric: as US-003's
  * QID backfill converges the corpus with the global identity space, the

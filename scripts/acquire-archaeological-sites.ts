@@ -35,7 +35,7 @@ const OUT_FILE = path.join(
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "LinguaScrape/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "Pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Wikidata class Q839954 = "archaeological site". */
 const SITE_CLASS = "Q839954";

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run LinguaScrape together with the vendored culture-scrape sidecar + Neo4j.
+# Run Pinakes together with the vendored culture-scrape sidecar + Neo4j.
 #
 #   npm run dev:full        # or: ./scripts/dev-full.sh
 #
@@ -41,5 +41,5 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
-echo "▶ Starting LinguaScrape dev server (npm run dev)…"
+echo "▶ Starting Pinakes dev server (npm run dev)…"
 npm run dev

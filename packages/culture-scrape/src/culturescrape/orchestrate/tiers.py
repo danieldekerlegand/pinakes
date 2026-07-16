@@ -10,7 +10,7 @@ awaiting a human. Crucially this is a graph-corpus policy only: it never writes
 ``lexicons/*.tsv`` (human curation remains the sole path into the app-facing
 lexicon layer), so a corpus build classifies rows, it does not move them.
 
-The stitch/merge machinery already unions the LinguaScrape canonical export with
+The stitch/merge machinery already unions the Pinakes canonical export with
 auto-admitted domain corpora (:mod:`culturescrape.orchestrate.merge` +
 :func:`culturescrape.orchestrate.corpus.build_corpus`, US-004); tiering is the
 policy layer on top: a pure classifier over each row's provenance, a per-tier QA
@@ -19,7 +19,7 @@ policy, and a deterministic composition manifest.
 Tiers, most-to-least trusted:
 
 * :data:`TIER_CURATED` — the row came through the human-curated lexicon gate
-  (``source`` names :data:`LINGUASCRAPE_SOURCE`). Highest trust: a person vetted
+  (``source`` names :data:`PINAKES_SOURCE`). Highest trust: a person vetted
   it. Curation is enforced upstream, so this tier carries no provenance floor
   here.
 * :data:`TIER_AUTO_ADMITTED` — **QID-anchored *and* reference-backed**. A node
@@ -52,7 +52,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from culturescrape.ontology.linker import Edge, Node
-from culturescrape.ontology.metrics import LINGUASCRAPE_SOURCE, nodes_by_label
+from culturescrape.ontology.metrics import PINAKES_SOURCE, nodes_by_label
 from culturescrape.orchestrate.manifest import edges_by_type
 from culturescrape.orchestrate.qa import GateThresholds, QaReport, evaluate
 from culturescrape.schema.tsvio import Row
@@ -82,7 +82,7 @@ ALL_TIERS: tuple[str, ...] = (
 _INFERRED_PREFIX = "inferred:"
 
 #: Delimiter :mod:`culturescrape.schema.merge` joins concatenated ``source``
-#: values with, so a reconciled row carries ``"linguascrape;wikidata"``.
+#: values with, so a reconciled row carries ``"pinakes;wikidata"``.
 _SOURCE_DELIMITER = ";"
 
 
@@ -92,7 +92,7 @@ def classify_tier(row: Row) -> str:
     Precedence (a merged row can carry several signals, so order matters):
 
     #. any ``inferred:<linker>`` ``source`` token → :data:`TIER_INFERRED`;
-    #. a :data:`LINGUASCRAPE_SOURCE` ``source`` token → :data:`TIER_CURATED`
+    #. a :data:`PINAKES_SOURCE` ``source`` token → :data:`TIER_CURATED`
        (a curated row that *also* reconciled to Wikidata stays curated — human
        vetting is the strongest signal);
     #. otherwise an acquired fact: :data:`TIER_AUTO_ADMITTED` iff it is
@@ -103,7 +103,7 @@ def classify_tier(row: Row) -> str:
     tokens = _source_tokens(row)
     if any(token.startswith(_INFERRED_PREFIX) for token in tokens):
         return TIER_INFERRED
-    if LINGUASCRAPE_SOURCE in tokens:
+    if PINAKES_SOURCE in tokens:
         return TIER_CURATED
     reference_backed = bool(_scalar(row, "source_url"))
     if _is_edge(row):
@@ -240,7 +240,7 @@ def manifest_for_tier_dataset(job: str, directory: str | Path) -> TieredManifest
 #: The default per-tier QA gates. The floors that actually differentiate trust:
 #: an **auto-admitted** fact must be fully sourced (it is reference-backed by
 #: definition) and QID-reconciled (so no unreconciled node) and deduped; a
-#: **curated** row need not carry an external ``source_url`` (LinguaScrape records
+#: **curated** row need not carry an external ``source_url`` (Pinakes records
 #: none — curation is the gate, enforced upstream) but must not duplicate; a
 #: **quarantine** fact is by construction under-sourced, so it carries no floor
 #: (it is *awaiting* curation, not failing it); **inferred** scaffolding is
@@ -249,11 +249,11 @@ def manifest_for_tier_dataset(job: str, directory: str | Path) -> TieredManifest
 #: gate (:mod:`culturescrape.orchestrate.corpus`) enforces those globally.
 #: A per-tier subset legitimately holds edges pointing at *other* tiers' nodes
 #: (a curated edge into a quarantined node), so both the base and the
-#: LinguaScrape-scoped dangling-edge gates are permissive per tier — real
+#: Pinakes-scoped dangling-edge gates are permissive per tier — real
 #: dangling is caught by the whole-corpus QA gate.
 _PERMISSIVE_DANGLING = {
     "max_dangling_edge_rate": 1.0,
-    "max_linguascrape_dangling_edge_rate": 1.0,
+    "max_pinakes_dangling_edge_rate": 1.0,
 }
 
 DEFAULT_TIER_GATES: Mapping[str, GateThresholds] = {

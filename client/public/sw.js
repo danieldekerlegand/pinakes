@@ -1,5 +1,5 @@
 /*
- * LinguaScrape service worker (US-011).
+ * Pinakes service worker (US-011).
  *
  * Served verbatim from client/public (it imports nothing). Its routing rules MIRROR
  * client/src/lib/pwa/cache-strategy.ts — that module is the tested source of truth,
@@ -8,16 +8,16 @@
  *
  * Cache-invalidation strategy (see docs/pwa-offline.md):
  *   - `install` precaches the app shell, then skipWaiting().
- *   - `activate` deletes every `linguascrape-*` cache not owned by this version and
+ *   - `activate` deletes every `pinakes-*` cache not owned by this version and
  *     claims open clients, so a CACHE_VERSION bump wipes stale assets on next load.
  *   - Data (`/api/*`) is network-first, so online users always get fresh data and
  *     offline users fall back to the last successful response.
  */
 
 const CACHE_VERSION = "v1";
-const APP_SHELL_CACHE = `linguascrape-shell-${CACHE_VERSION}`;
-const DATA_CACHE = `linguascrape-data-${CACHE_VERSION}`;
-const RUNTIME_CACHE = `linguascrape-runtime-${CACHE_VERSION}`;
+const APP_SHELL_CACHE = `pinakes-shell-${CACHE_VERSION}`;
+const DATA_CACHE = `pinakes-data-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `pinakes-runtime-${CACHE_VERSION}`;
 const MANAGED_CACHES = [APP_SHELL_CACHE, DATA_CACHE, RUNTIME_CACHE];
 
 const APP_SHELL_URLS = [
@@ -90,7 +90,7 @@ self.addEventListener("activate", (event) => {
           names
             .filter(
               (name) =>
-                name.startsWith("linguascrape-") && !MANAGED_CACHES.includes(name),
+                name.startsWith("pinakes-") && !MANAGED_CACHES.includes(name),
             )
             .map((name) => caches.delete(name)),
         ),

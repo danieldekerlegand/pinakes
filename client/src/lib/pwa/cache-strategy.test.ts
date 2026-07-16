@@ -12,7 +12,7 @@ import {
   staleCacheNames,
 } from "./cache-strategy";
 
-const ORIGIN = "https://linguascrape.test";
+const ORIGIN = "https://pinakes.test";
 const ctx = { origin: ORIGIN };
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "../../../public");
@@ -87,17 +87,17 @@ describe("route()", () => {
 });
 
 describe("staleCacheNames()", () => {
-  it("returns only unmanaged linguascrape caches", () => {
+  it("returns only unmanaged pinakes caches", () => {
     const existing = [
       APP_SHELL_CACHE,
       DATA_CACHE,
-      "linguascrape-shell-v0",
-      "linguascrape-data-v0",
+      "pinakes-shell-v0",
+      "pinakes-data-v0",
       "workbox-precache",
       "some-other-app-cache",
     ];
     expect(staleCacheNames(existing).sort()).toEqual(
-      ["linguascrape-data-v0", "linguascrape-shell-v0"].sort(),
+      ["pinakes-data-v0", "pinakes-shell-v0"].sort(),
     );
   });
 
@@ -110,7 +110,7 @@ describe("constants", () => {
   it("derives every managed cache name from CACHE_VERSION", () => {
     for (const name of MANAGED_CACHES) {
       expect(name).toContain(CACHE_VERSION);
-      expect(name.startsWith("linguascrape-")).toBe(true);
+      expect(name.startsWith("pinakes-")).toBe(true);
     }
     expect(new Set(MANAGED_CACHES).size).toBe(MANAGED_CACHES.length);
   });

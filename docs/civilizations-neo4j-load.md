@@ -20,9 +20,9 @@ indexes, so re-running it does not duplicate nodes or relationships.
 
 > **csid migration (US-005).** This snapshot predates QID-anchored ids. The export now
 > mints `cs:<type>:<QID>` for any row with a non-blank `wikidata_qid` (only rows without a
-> QID keep `cs:<type>:<linguascrape-id>`; see `shared/canonical-schema.json` `idScheme`).
+> QID keep `cs:<type>:<pinakes-id>`; see `shared/canonical-schema.json` `idScheme`).
 > Because the load `MERGE`s on `csid`, the first load after this change **re-keys** every
-> QID-bearing node onto its new csid rather than updating the old linguascrape-id-anchored
+> QID-bearing node onto its new csid rather than updating the old pinakes-id-anchored
 > node. To migrate an already-populated graph, wipe and reload from the fresh export (the
 > load is idempotent, so a clean reload is the supported path) rather than merging on top of
 > the old ids — otherwise the pre-migration nodes are orphaned under their stale csids.
@@ -43,7 +43,7 @@ docker compose up -d neo4j          # `graph` profile; healthy in ~12s (APOC aut
 
 # 3. Incremental, idempotent LOAD CSV against the running DB
 cd packages/culture-scrape
-export NEO4J_URI='bolt://localhost:7687' NEO4J_USER='neo4j' NEO4J_PASSWORD='linguascrape'
+export NEO4J_URI='bolt://localhost:7687' NEO4J_USER='neo4j' NEO4J_PASSWORD='pinakes'
 uv run culturescrape to-neo4j ../../export/culturescrape --mode loadcsv
 #    → applied 37 constraint/index statement(s) and ran 24 LOAD CSV statement(s)  (~19s)
 ```

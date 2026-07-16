@@ -6,15 +6,15 @@
 // references CACHE_VERSION and every managed cache name below.
 
 // Bump CACHE_VERSION to invalidate ALL caches: the SW `activate` handler deletes
-// every `linguascrape-*` cache not in MANAGED_CACHES (see staleCacheNames), so a
+// every `pinakes-*` cache not in MANAGED_CACHES (see staleCacheNames), so a
 // version bump forces a clean re-precache of the app shell. See docs/pwa-offline.md.
 export const CACHE_VERSION = "v1";
 
-export const APP_SHELL_CACHE = `linguascrape-shell-${CACHE_VERSION}`;
-export const DATA_CACHE = `linguascrape-data-${CACHE_VERSION}`;
-export const RUNTIME_CACHE = `linguascrape-runtime-${CACHE_VERSION}`;
+export const APP_SHELL_CACHE = `pinakes-shell-${CACHE_VERSION}`;
+export const DATA_CACHE = `pinakes-data-${CACHE_VERSION}`;
+export const RUNTIME_CACHE = `pinakes-runtime-${CACHE_VERSION}`;
 
-/** Caches this SW version owns; anything else `linguascrape-*` is stale. */
+/** Caches this SW version owns; anything else `pinakes-*` is stale. */
 export const MANAGED_CACHES = [APP_SHELL_CACHE, DATA_CACHE, RUNTIME_CACHE] as const;
 
 /**
@@ -129,12 +129,12 @@ export function route(req: RequestLike, ctx: RouteContext): RoutePlan {
 }
 
 /**
- * Given the cache names currently present, return the `linguascrape-*` caches that
+ * Given the cache names currently present, return the `pinakes-*` caches that
  * are no longer owned by this SW version (deleted on `activate` for invalidation).
  */
 export function staleCacheNames(existing: readonly string[]): string[] {
   const managed = new Set<string>(MANAGED_CACHES);
   return existing.filter(
-    (name) => name.startsWith("linguascrape-") && !managed.has(name),
+    (name) => name.startsWith("pinakes-") && !managed.has(name),
   );
 }

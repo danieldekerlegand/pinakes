@@ -14,7 +14,7 @@ id) + `source_type` (the category `source.type` it consumes) and implement
 3. `__init__.py` — re-export the class/errors and add them to `__all__`.
 
 `source_type` must be one of `VALID_SOURCE_TYPES` (categories.py). When several adapters
-share a type (`dump` is shared by getty/pleiades/tabular/linguascrape-export), the category
+share a type (`dump` is shared by getty/pleiades/tabular/pinakes-export), the category
 disambiguates via `source.params.adapter: <name>`.
 
 ## Provenance placement (gotcha)
@@ -27,18 +27,18 @@ into the mapper's overflow JSON. `Provenance.__post_init__` requires `confidence
 and a valid ISO-8601 **UTC** `retrieved_at`, so a blank `retrieved_at` must be filled from
 an injected clock (`now`, for deterministic tests) — never pass `""`.
 
-## LinguaScrape export adapter (`linguascrape-export`, US-001)
+## Pinakes export adapter (`pinakes-export`, US-001)
 
-`linguascrape.py` reads LinguaScrape's canonical export *directory* (not a single file):
-`<root>/nodes/*.tsv` + `<root>/edges/*.tsv`, one `RawRecord` per row, `source=linguascrape`.
+`pinakes.py` reads Pinakes's canonical export *directory* (not a single file):
+`<root>/nodes/*.tsv` + `<root>/edges/*.tsv`, one `RawRecord` per row, `source=pinakes`.
 Headers are the typed Neo4j-import form; it parses them with `schema/headers.py`
 (`parse_node_header`/`parse_edge_header`) to validate the file and strip type suffixes
 (`csid:ID`→`csid`, `confidence:float`→`confidence`; structural `:LABEL`/`:START_ID`/
 `:END_ID`/`:TYPE` kept verbatim). Nodes vs edges are discriminated downstream by the
-presence of `:LABEL` vs `:TYPE`. The `linguascrape_id` alias column rides through in
-`fields` for round-trip. Fixture export: `tests/fixtures/linguascrape/export/`. Producer +
+presence of `:LABEL` vs `:TYPE`. The `pinakes_id` alias column rides through in
+`fields` for round-trip. Fixture export: `tests/fixtures/pinakes/export/`. Producer +
 schema live on the TS side (`scripts/export-for-culturescrape.ts`,
-`shared/canonical-schema.ts`); see `docs/reconcile-linguascrape.md`.
+`shared/canonical-schema.ts`); see `docs/reconcile-pinakes.md`.
 
 ## Real-data dump slices (`wikidata_slice.py`, not an adapter)
 

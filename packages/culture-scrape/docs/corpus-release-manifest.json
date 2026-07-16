@@ -1,8 +1,8 @@
 {
-  "job": "linguascrape-full",
-  "built_from": "export/culturescrape (scripts/export-for-culturescrape.ts) -> jobs/linguascrape-full.yml -> culturescrape package",
-  "note": "Release record for the full LinguaScrape convergence corpus, regenerated at the Phase-1 full-rebuild benchmark (US-005) against the post-US-001 edge model. edge_count dropped 5576745 -> 3548 (a ~1570x reduction): US-001 turned the pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS edges (99.98% of the old total, one per co-dated pair) into arithmetic Datalog rules over time_start/time_end, so only semantic edges (descent/influence/borrowing/containment/period membership) are now stored; the temporal layer is derived on demand. node/edge counts and nodes_by_label/edges_by_type are the DETERMINISTIC corpus fingerprint; 'digest' and per-file 'sha256' pin THIS point-in-time bundle (edge/node 'retrieved_at' carries the ingestion wall-clock, so the bytes are not reproducible across builds). Regenerate with the commands in docs/convergence-build.md 'Full-rebuild benchmark (US-005)'; the tar.gz itself is gitignored (dist/).",
-  "artifact": "linguascrape-full-corpus.tar.gz",
+  "job": "pinakes-full",
+  "built_from": "export/culturescrape (scripts/export-for-culturescrape.ts) -> jobs/pinakes-full.yml -> culturescrape package",
+  "note": "Release record for the full Pinakes convergence corpus, regenerated at the Phase-1 full-rebuild benchmark (US-005) against the post-US-001 edge model. edge_count dropped 5576745 -> 3548 (a ~1570x reduction): US-001 turned the pairwise CONTEMPORARY_WITH/PRECEDES/FOLLOWS edges (99.98% of the old total, one per co-dated pair) into arithmetic Datalog rules over time_start/time_end, so only semantic edges (descent/influence/borrowing/containment/period membership) are now stored; the temporal layer is derived on demand. node/edge counts and nodes_by_label/edges_by_type are the DETERMINISTIC corpus fingerprint; 'digest' and per-file 'sha256' pin THIS point-in-time bundle (edge/node 'retrieved_at' carries the ingestion wall-clock, so the bytes are not reproducible across builds). Regenerate with the commands in docs/convergence-build.md 'Full-rebuild benchmark (US-005)'; the tar.gz itself is gitignored (dist/).",
+  "artifact": "pinakes-full-corpus.tar.gz",
   "node_count": 6848,
   "edge_count": 3548,
   "nodes_by_label": {

@@ -67,8 +67,8 @@ class Job:
         min_provenance_completeness: Optional override for the corpus QA
             provenance-completeness floor (``None`` keeps the default). A corpus
             built entirely from a source that carries no external ``source_url``
-            (e.g. a LinguaScrape-only convergence corpus) relaxes this — the
-            source-of-record provenance is still enforced by the LinguaScrape
+            (e.g. a Pinakes-only convergence corpus) relaxes this — the
+            source-of-record provenance is still enforced by the Pinakes
             provenance gate.
         min_component_fraction: Optional override for the connectivity floor
             (``None`` keeps the default). A small single-domain fixture corpus

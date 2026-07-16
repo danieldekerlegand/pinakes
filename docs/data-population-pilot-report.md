@@ -6,7 +6,7 @@ proven end-to-end on one domain (civilizations), landing real, attributed data a
 into the running app.
 
 - **Pilot:** `data-population-pilot` (branch `ralph/data-population-pilot`), US-001…US-006.
-- **Roadmap:** de-risks [§15 "Data population at scale"](./prd-linguascrape-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
+- **Roadmap:** de-risks [§15 "Data population at scale"](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
   the highest-leverage gap. Civilizations was §15's first pilot row (89 actual → 150+ target).
 - **Date:** 2026-07-08. Accurate against the committed state of US-001…US-005.
 
@@ -68,7 +68,7 @@ That acquired set was reconciled against the 89 curated civilizations
 - **Known attribution gap (fix #1 below).** `scripts/export-for-culturescrape.ts` derives the
   canonical `source_url` only from the bibliographic citation, so the Wikidata entity URL lives in
   the lexicon (and is shown in-app, which reads the lexicon) but is **not yet propagated** to the
-  canonical export / Neo4j for these rows. `source` is still force-stamped `linguascrape` and the
+  canonical export / Neo4j for these rows. `source` is still force-stamped `pinakes` and the
   QID/citation preserved in `source_query`. The app shows the source link; the graph does not.
 
 ## 4. Wall-clock / throughput
@@ -146,8 +146,8 @@ QA report so §15's progress table can be tracked automatically as domains fill 
 
 ## References
 
-- Roadmap: [§15 Data population at scale](./prd-linguascrape-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
-  [§16 Production-verification pass](./prd-linguascrape-deep-history-roadmap.md), Guiding Principles #5 & #8.
+- Roadmap: [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
+  [§16 Production-verification pass](./prd-pinakes-deep-history-roadmap.md), Guiding Principles #5 & #8.
 - Integration design: [`culturescrape-integration.md`](./culturescrape-integration.md),
   [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
 - Pilot artifacts: [`civilizations-writeback.md`](./civilizations-writeback.md),

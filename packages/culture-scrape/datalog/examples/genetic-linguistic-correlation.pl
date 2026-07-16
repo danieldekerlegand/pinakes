@@ -3,9 +3,9 @@
 % Every language a haplogroup correlates with — the genetic_linguistic_correlation/2
 % rule pairs a haplogroup that originates_from a region with each language spoken_in
 % that same region (see docs/datalog.md and src/culturescrape/datalog/rules.py).
-% This is the symbolic core of LinguaScrape's genetic–linguistic correlation ported
+% This is the symbolic core of Pinakes's genetic–linguistic correlation ported
 % into logic; the numeric overlap score stays a CPU-domain computation in the
-% TypeScript engine. The facts here are LinguaScrape-origin (source: linguascrape),
+% TypeScript engine. The facts here are Pinakes-origin (source: pinakes),
 % linked through the merged graph. Load alongside a graph.pl built with --rules.
 %
 % Interactive form (after `swipl graph.pl`):
