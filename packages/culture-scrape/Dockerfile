@@ -1,4 +1,4 @@
-# culture-scrape read-only FastAPI explorer (the "sidecar" for Pinakes).
+# culture-scrape read-only FastAPI explorer (the "sidecar" for pinakes).
 # Built and run by the repo-root docker-compose.yml (service: culturescrape).
 
 # ---------------------------------------------------------------------------

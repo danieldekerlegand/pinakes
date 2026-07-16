@@ -82,13 +82,13 @@
       "title": "Implement map image import and georeferencing tool",
       "completed": true,
       "parallel_group": 4,
-      "description": "US-313: Build a tool that lets users drag-and-drop a historical map image onto the Pinakes map. The tool provides: image overlay with adjustable opacity, rotation, and scale; control point placement (minimum 3 points) to georeference the image by matching known locations; rubber-sheet transformation to align the image to the map projection. Build client/src/components/visualizations/map-tools/ImageGeoreferencer.tsx."
+      "description": "US-313: Build a tool that lets users drag-and-drop a historical map image onto the pinakes map. The tool provides: image overlay with adjustable opacity, rotation, and scale; control point placement (minimum 3 points) to georeference the image by matching known locations; rubber-sheet transformation to align the image to the map projection. Build client/src/components/visualizations/map-tools/ImageGeoreferencer.tsx."
     },
     {
       "title": "Implement AI-powered map feature extraction from imported images",
       "completed": true,
       "parallel_group": 4,
-      "description": "US-314: Build server/services/map-image-analyzer.ts that uses Gemini vision API to analyze a georeferenced historical map image and extract features. Detect: region boundaries (polygons), settlement locations (points), route lines, labels/text, legend items. Convert detected features into Pinakes data format (settlements.tsv entries, boundary polygons, routes). Present extracted features for user review/correction before saving. Build the review UI in client/src/components/visualizations/map-tools/ExtractedFeatureReview.tsx."
+      "description": "US-314: Build server/services/map-image-analyzer.ts that uses Gemini vision API to analyze a georeferenced historical map image and extract features. Detect: region boundaries (polygons), settlement locations (points), route lines, labels/text, legend items. Convert detected features into pinakes data format (settlements.tsv entries, boundary polygons, routes). Present extracted features for user review/correction before saving. Build the review UI in client/src/components/visualizations/map-tools/ExtractedFeatureReview.tsx."
     },
     {
       "title": "Create map comparison/split-screen enhancements",

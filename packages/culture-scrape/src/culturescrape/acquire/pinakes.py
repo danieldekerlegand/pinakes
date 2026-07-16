@@ -1,11 +1,11 @@
-"""Pinakes canonical nodes/edges export adapter.
+"""pinakes canonical nodes/edges export adapter.
 
-`Pinakes <../../../../docs/culturescrape-integration.md>`_ exports its
+`pinakes <../../../../docs/culturescrape-integration.md>`_ exports its
 lexicons in the shared canonical shape (``docs/data-model.md``): a directory of
 typed, Neo4j-import-compatible TSVs, one file per node type under ``nodes/`` and
 one per edge type under ``edges/``. This adapter reads such an export *from local
 disk* and emits one :class:`~culturescrape.acquire.records.RawRecord` per row so
-Pinakes becomes a first-class acquisition source alongside Wikidata, Getty,
+pinakes becomes a first-class acquisition source alongside Wikidata, Getty,
 and PetScan — no bespoke transform, just the canonical export the two projects
 already agree on.
 
@@ -25,7 +25,7 @@ per-record SPDX ``license``) are lifted out of the field map into the record's
 :func:`culturescrape.schema.mapper.map_record` reads them). The ``source`` is
 stamped :data:`PINAKES_SOURCE` — the acquisition-source id the reconciler
 keys on — regardless of what the file carries, and ``retrieved_at`` is stamped
-with the ingestion clock when the export leaves it blank (Pinakes records no
+with the ingestion clock when the export leaves it blank (pinakes records no
 retrieval timestamp). A row-level ``license`` cell takes precedence over the
 export-level ``license`` param.
 
@@ -60,12 +60,12 @@ from culturescrape.schema.headers import (
     parse_node_header,
 )
 
-#: Provenance ``source`` id stamped on every Pinakes-origin row. This is the
+#: Provenance ``source`` id stamped on every pinakes-origin row. This is the
 #: acquisition-source id reconciliation keys on, not a bibliographic citation.
 PINAKES_SOURCE = "pinakes"
 
 #: Confidence stamped when a row carries no (or a non-numeric) ``confidence`` cell.
-#: A Pinakes lexicon row is QID-anchored identity, so a silent cell inherits
+#: A pinakes lexicon row is QID-anchored identity, so a silent cell inherits
 #: the ``qid-anchored`` rubric prior (1.0), grandfathered pre-rubric (US-001).
 DEFAULT_CONFIDENCE = confidence_for("qid-anchored")
 
@@ -85,7 +85,7 @@ _PROVENANCE_COLUMNS = frozenset(
 
 
 class PinakesExportError(RuntimeError):
-    """Raised when a Pinakes export is missing, malformed, or misconfigured."""
+    """Raised when a pinakes export is missing, malformed, or misconfigured."""
 
 
 def _utc_now() -> datetime:
@@ -93,7 +93,7 @@ def _utc_now() -> datetime:
 
 
 class PinakesExportAdapter(SourceAdapter):
-    """Read a local Pinakes canonical export and yield one record per row.
+    """Read a local pinakes canonical export and yield one record per row.
 
     Args:
         now: Clock returning a UTC timestamp for a row's ``retrieved_at`` when the
@@ -118,13 +118,13 @@ class PinakesExportAdapter(SourceAdapter):
         root = Path(raw_path)
         if not root.is_dir():
             raise PinakesExportError(
-                f"Pinakes export root {root} is not a directory"
+                f"pinakes export root {root} is not a directory"
             )
         nodes_dir = root / "nodes"
         edges_dir = root / "edges"
         if not nodes_dir.is_dir() and not edges_dir.is_dir():
             raise PinakesExportError(
-                f"{root} is not a Pinakes export: it has no nodes/ or edges/"
+                f"{root} is not a pinakes export: it has no nodes/ or edges/"
             )
 
         source_name = params.get("source") or PINAKES_SOURCE

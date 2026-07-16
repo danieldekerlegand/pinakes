@@ -124,7 +124,7 @@ describe("snapshot metadata assembly (release payload)", () => {
             { filename: "families.json", content: "[]", rowCount: 2 },
           ],
           metadata: {
-            title: "Pinakes Export: Languages",
+            title: "pinakes Export: Languages",
             description: "",
             exportDate: NOW.toISOString(),
             source: "",

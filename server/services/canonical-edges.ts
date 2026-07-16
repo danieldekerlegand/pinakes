@@ -1,7 +1,7 @@
 /**
  * Canonical edge extraction (US-003).
  *
- * Pinakes stores relationships two ways: as dedicated *edge tables*
+ * pinakes stores relationships two ways: as dedicated *edge tables*
  * (`cultural-lineages.tsv`, `etymology-relations.tsv`, …) and as *embedded
  * foreign-key columns* on node tables (`languages.family_id`,
  * `archaeological-cultures.predecessor_culture_ids`, …). This module reads both
@@ -48,7 +48,7 @@ const LEXICONS_DIR = path.resolve("lexicons");
 export const DEFAULT_EDGE_CONFIDENCE = confidenceForClass("legacy-curated");
 
 /**
- * Provenance fields Pinakes TSVs do not carry per-row. They are required on
+ * Provenance fields pinakes TSVs do not carry per-row. They are required on
  * the canonical edge family, so we emit empty strings here; US-006 (provenance
  * propagation) is responsible for filling `source_url`/`retrieved_at` from each
  * lexicon's dataset-level provenance.
@@ -107,9 +107,9 @@ export interface EdgeProvenance {
 
 /** A single canonical relationship extracted from a lexicon. */
 export interface CanonicalEdge {
-  /** `:START_ID` — the Pinakes id of the origin node. */
+  /** `:START_ID` — the pinakes id of the origin node. */
   readonly startId: string;
-  /** `:END_ID` — the Pinakes id of the destination node. */
+  /** `:END_ID` — the pinakes id of the destination node. */
   readonly endId: string;
   /** `:TYPE` — the canonical Neo4j edge-type token (e.g. `DESCENDS_FROM`). */
   readonly type: string;
@@ -120,7 +120,7 @@ export interface CanonicalEdge {
   /** Inclusive upper bound of the edge's active period, or `null` if unknown. */
   readonly timeEnd: number | null;
   readonly provenance: EdgeProvenance;
-  /** The edge row's own Pinakes id (edge tables only), else `null`. */
+  /** The edge row's own pinakes id (edge tables only), else `null`. */
   readonly pinakesId: string | null;
   /** Base name of the lexicon the edge came from. */
   readonly sourceFile: string;
@@ -187,7 +187,7 @@ function parseYear(value: string): number | null {
 }
 
 /**
- * Normalise a raw confidence cell to `[0, 1]`. Pinakes mixes 0–100
+ * Normalise a raw confidence cell to `[0, 1]`. pinakes mixes 0–100
  * (`cultural-lineages`, `archaeological-cultures`) and 0–1 scales, so values
  * above 1 are treated as percentages. Empty / non-numeric ⇒ default.
  */

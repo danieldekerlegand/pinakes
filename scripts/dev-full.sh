@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run Pinakes together with the vendored culture-scrape sidecar + Neo4j.
+# Run pinakes together with the vendored culture-scrape sidecar + Neo4j.
 #
 #   npm run dev:full        # or: ./scripts/dev-full.sh
 #
@@ -41,5 +41,5 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
-echo "▶ Starting Pinakes dev server (npm run dev)…"
+echo "▶ Starting pinakes dev server (npm run dev)…"
 npm run dev

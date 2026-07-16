@@ -43,7 +43,7 @@ const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "Pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
 
 /** Confidence for Wikidata-acquired rows, on the 0–1 scale (export leaves ≤1 as-is). */
 // `unreferenced-wikidata` (0.8) — a bulk WDQS class-membership pull taken as-is;

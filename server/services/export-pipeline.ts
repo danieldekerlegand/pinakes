@@ -295,10 +295,10 @@ function generateMetadata(
   files: ExportedFile[]
 ): DatasetMetadata {
   return {
-    title: `Pinakes Export: ${profile.name}`,
+    title: `pinakes Export: ${profile.name}`,
     description: profile.description,
     exportDate: new Date().toISOString(),
-    source: "Pinakes (https://github.com/pinakes)",
+    source: "pinakes (https://github.com/pinakes)",
     license: "CC-BY-4.0",
     fileCount: files.length,
     totalRows: files.reduce((sum, f) => sum + f.rowCount, 0),
@@ -553,20 +553,20 @@ export function assembleSnapshotMetadata(
 ): DatasetSnapshotMetadata {
   const datasets: DatasetSnapshotEntry[] = exports.map((e) => ({
     id: e.dataset,
-    name: e.metadata.title.replace(/^Pinakes Export:\s*/, ""),
+    name: e.metadata.title.replace(/^pinakes Export:\s*/, ""),
     fileCount: e.files.length,
     totalRows: e.files.reduce((sum, f) => sum + f.rowCount, 0),
   }));
   return {
-    title: "Pinakes Open Dataset",
+    title: "pinakes Open Dataset",
     description:
-      "Versioned, citable snapshot of the Pinakes open linguistic + cultural corpus.",
+      "Versioned, citable snapshot of the pinakes open linguistic + cultural corpus.",
     version: opts.version,
     releaseDate: opts.releaseDate,
     doi: opts.doi ?? null,
     doiUrl: opts.doiUrl ?? null,
     license: opts.license ?? DATASET_LICENSE,
-    source: "Pinakes (https://github.com/pinakes)",
+    source: "pinakes (https://github.com/pinakes)",
     format: opts.format,
     datasets,
     fileCount: datasets.reduce((s, d) => s + d.fileCount, 0),

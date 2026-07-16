@@ -647,7 +647,7 @@
       "citationsWithoutCanonicalColumn": 0
     },
     "flags": [
-      "node.source_query: 2562/6835 rows preserve the original Pinakes citation.",
+      "node.source_query: 2562/6835 rows preserve the original pinakes citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.source_query: 1103/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",

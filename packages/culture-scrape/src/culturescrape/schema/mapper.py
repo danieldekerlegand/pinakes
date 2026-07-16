@@ -45,17 +45,17 @@ from culturescrape.schema.tsvio import MULTI_DELIMITER, Row
 #: Column that holds, as a JSON object, every raw field with no canonical home.
 OVERFLOW_KEY = "extra"
 
-#: Round-trip alias column: the source-local id a Pinakes row arrived with.
-#: Retained on every Pinakes-origin node so the export can be traced back to
+#: Round-trip alias column: the source-local id a pinakes row arrived with.
+#: Retained on every pinakes-origin node so the export can be traced back to
 #: the exact lexicon row it came from even after its ``csid`` is (re)minted.
 PINAKES_ID_KEY = "pinakes_id"
 
-#: Pinakes export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
+#: pinakes export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
 #:
-#: Pinakes emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
+#: pinakes emits its relationships as ``SCREAMING_SNAKE`` tokens; five are
 #: already registered in :mod:`culturescrape.ontology.registry` and map to
 #: themselves, so a fed-in edge participates directly in cross-dimensional
-#: linking. The three Pinakes-specific tokens fold onto the closest
+#: linking. The three pinakes-specific tokens fold onto the closest
 #: registered canonical type so no non-canonical ``:TYPE`` ever enters the merged
 #: graph:
 #:
@@ -65,7 +65,7 @@ PINAKES_ID_KEY = "pinakes_id"
 #:   equivalence between the blended forms;
 #: * ``SPLIT_FROM`` (a language/lineage diverged from a common ancestor) ->
 #:   ``DESCENDS_FROM`` — genealogical descent, the same canonical home
-#:   Pinakes's ``evolved-into``/``gave-rise-to`` lineage edges already fold
+#:   pinakes's ``evolved-into``/``gave-rise-to`` lineage edges already fold
 #:   onto (a divergence *is* a descent event).
 #:
 #: Every value here is a registered canonical ``:TYPE`` (asserted by the ontology
@@ -196,9 +196,9 @@ def map_records(
     return [map_record(record, category) for record in records]
 
 
-# --- Pinakes export ---------------------------------------------------
+# --- pinakes export ---------------------------------------------------
 #
-# A Pinakes export (``docs/reconcile-pinakes.md``) already ships the
+# A pinakes export (``docs/reconcile-pinakes.md``) already ships the
 # shared canonical shape: node rows carry their own ``:LABEL`` / ``csid`` and a
 # ``pinakes_id`` alias, edge rows carry ``:START_ID`` / ``:END_ID`` /
 # ``:TYPE``. So mapping such a record is not the general "rename an arbitrary
@@ -223,7 +223,7 @@ def pinakes_node_schema() -> NodeSchema:
 
 
 def pinakes_edge_schema() -> EdgeSchema:
-    """The canonical edge header plus Pinakes time-range + alias columns."""
+    """The canonical edge header plus pinakes time-range + alias columns."""
     base = EdgeSchema.canonical()
     return EdgeSchema(
         (
@@ -236,7 +236,7 @@ def pinakes_edge_schema() -> EdgeSchema:
 
 
 def map_pinakes_record(record: RawRecord) -> Row:
-    """Map one Pinakes export *record* to a canonical node or edge row.
+    """Map one pinakes export *record* to a canonical node or edge row.
 
     Node rows (carrying a ``:LABEL``) and edge rows (carrying a ``:TYPE``) are
     told apart by their structural column, mirroring the export's ``nodes/`` vs
@@ -250,17 +250,17 @@ def map_pinakes_record(record: RawRecord) -> Row:
     if ":LABEL" in record.fields:
         return map_pinakes_node(record)
     raise MapperError(
-        "Pinakes record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
+        "pinakes record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
     )
 
 
 def map_pinakes_records(records: Iterable[RawRecord]) -> list[Row]:
-    """Map every Pinakes export record to a row, preserving order."""
+    """Map every pinakes export record to a row, preserving order."""
     return [map_pinakes_record(record) for record in records]
 
 
 def map_pinakes_node(record: RawRecord) -> Row:
-    """Map a Pinakes export node *record* to a canonical node row.
+    """Map a pinakes export node *record* to a canonical node row.
 
     Raises:
         MapperError: If the record has no ``:LABEL``, or has neither a Wikidata
@@ -269,7 +269,7 @@ def map_pinakes_node(record: RawRecord) -> Row:
     fields = normalize_fields(record.fields)
     labels = _labels(fields.get(":LABEL", ""))
     if not labels:
-        raise MapperError("Pinakes node row has no ':LABEL'")
+        raise MapperError("pinakes node row has no ':LABEL'")
 
     consumed: set[str] = {":LABEL", "csid"}
     row: Row = {}
@@ -311,7 +311,7 @@ def map_pinakes_node(record: RawRecord) -> Row:
 
 
 def map_pinakes_edge(record: RawRecord) -> Row:
-    """Map a Pinakes export edge *record* to a canonical edge row.
+    """Map a pinakes export edge *record* to a canonical edge row.
 
     Structural endpoints and ``:TYPE`` are required; the ``:TYPE`` token is
     translated to the canonical ontology vocabulary via
@@ -322,14 +322,14 @@ def map_pinakes_edge(record: RawRecord) -> Row:
 
     Raises:
         MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank,
-            or the ``:TYPE`` is not a known Pinakes edge token.
+            or the ``:TYPE`` is not a known pinakes edge token.
     """
     fields = {key: normalize_text(value) for key, value in record.fields.items()}
     row: Row = {}
     for key in (":START_ID", ":END_ID", ":TYPE"):
         value = fields.get(key, "").strip()
         if not value:
-            raise MapperError(f"Pinakes edge row is missing {key!r}")
+            raise MapperError(f"pinakes edge row is missing {key!r}")
         row[key] = _canonical_edge_type(value) if key == ":TYPE" else value
 
     for key in ("weight", "time_start", "time_end"):
@@ -353,10 +353,10 @@ def _labels(raw: str) -> list[str]:
 def _carry_canonical_temporal(
     fields: dict[str, str], row: Row, consumed: set[str]
 ) -> None:
-    """Copy Pinakes's already-canonical ``time_*`` columns onto *row*.
+    """Copy pinakes's already-canonical ``time_*`` columns onto *row*.
 
     Unlike :func:`_resolve_temporal`, which parses a free-text source date, a
-    Pinakes export ships resolved integer years, so they are carried
+    pinakes export ships resolved integer years, so they are carried
     verbatim (a blank cell was already dropped upstream).
     """
     for key in ("time_start", "time_end", "time_start_iso"):
@@ -368,7 +368,7 @@ def _carry_canonical_temporal(
 def _mint_pinakes(
     label: str, shipped_csid: str, *, qid: str | None, alias: str | None
 ) -> str:
-    """Mint a Pinakes node's ``csid``: QID first, else the id alias.
+    """Mint a pinakes node's ``csid``: QID first, else the id alias.
 
     The node type comes from the ``<type>`` segment of the ``csid`` the export
     shipped (falling back to the primary label) so the minted id lands under the
@@ -383,13 +383,13 @@ def _mint_pinakes(
     if alias:
         return mint_csid(type_slug, alias=alias)
     raise MapperError(
-        "cannot mint csid: Pinakes node has neither a Wikidata QID nor a "
+        "cannot mint csid: pinakes node has neither a Wikidata QID nor a "
         "pinakes_id"
     )
 
 
 def _pinakes_type(shipped_csid: str, label: str) -> str:
-    """The node-type slug for a Pinakes row (from its csid, else its label)."""
+    """The node-type slug for a pinakes row (from its csid, else its label)."""
     if shipped_csid:
         try:
             return csid_type(shipped_csid)
@@ -399,10 +399,10 @@ def _pinakes_type(shipped_csid: str, label: str) -> str:
 
 
 def _canonical_edge_type(token: str) -> str:
-    """Translate a Pinakes edge ``:TYPE`` to the canonical vocabulary.
+    """Translate a pinakes edge ``:TYPE`` to the canonical vocabulary.
 
     Raises:
-        MapperError: If *token* is not a known Pinakes edge type — a token
+        MapperError: If *token* is not a known pinakes edge type — a token
             outside :data:`PINAKES_EDGE_TYPE_MAP` would enter the graph as a
             non-canonical ``:TYPE``, so it is rejected loudly rather than passed
             through.
@@ -412,7 +412,7 @@ def _canonical_edge_type(token: str) -> str:
     except KeyError:
         known = ", ".join(sorted(PINAKES_EDGE_TYPE_MAP))
         raise MapperError(
-            f"unknown Pinakes edge :TYPE {token!r} (known: {known})"
+            f"unknown pinakes edge :TYPE {token!r} (known: {known})"
         ) from None
 
 

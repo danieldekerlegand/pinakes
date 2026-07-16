@@ -1,8 +1,8 @@
-"""Reconcile an acquired corpus of nodes against an existing Pinakes lexicon.
+"""Reconcile an acquired corpus of nodes against an existing pinakes lexicon.
 
 A domain expansion (e.g. the civilizations pilot, ``docs/prd`` §15) acquires many
 rows from Wikidata and must fold them into the corpus **without duplicating** the
-entities Pinakes already curates in ``lexicons/<domain>.tsv``. The decision
+entities pinakes already curates in ``lexicons/<domain>.tsv``. The decision
 logic is :func:`reconcile_pinakes`'s offline cascade — language code, then
 exact ``(name, type, region)``, then fuzzy name — which classifies every acquired
 row *matched* (already curated → merge, keep provenance), *new* (stands as its own

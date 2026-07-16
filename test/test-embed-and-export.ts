@@ -36,7 +36,7 @@ console.log('Test 1: generateEmbedCode with default options');
   assertIncludes(code, 'height:500px', 'defaults to 500px height');
   assertIncludes(code, 'border:none', 'removes border');
   assertIncludes(code, 'loading="lazy"', 'uses lazy loading');
-  assertIncludes(code, 'title="Pinakes', 'includes accessible title');
+  assertIncludes(code, 'title="pinakes', 'includes accessible title');
 }
 
 // Test 2: generateEmbedCode with custom options
@@ -53,7 +53,7 @@ console.log('\nTest 2: generateEmbedCode with custom options');
   assertIncludes(code, 'theme=dark', 'uses dark theme');
   assertIncludes(code, 'width:800px', 'uses pixel width');
   assertIncludes(code, 'height:600px', 'uses pixel height');
-  assertIncludes(code, 'title="Pinakes - map visualization"', 'title includes view name');
+  assertIncludes(code, 'title="pinakes - map visualization"', 'title includes view name');
 }
 
 // Test 3: generateEmbedCode with string width

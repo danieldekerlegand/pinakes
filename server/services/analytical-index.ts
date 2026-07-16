@@ -1,7 +1,7 @@
 /**
  * Runtime analytical index over the TSV corpus (US-001, tasklist 13 platform-infra).
  *
- * Pinakes keeps `lexicons/*.tsv` as the single source of truth (see
+ * pinakes keeps `lexicons/*.tsv` as the single source of truth (see
  * server/tsv-storage.ts). This module builds a **read-only, in-memory DuckDB**
  * mirror of those TSVs so heavy *tabular* work — facet counts, GROUP BY
  * aggregates, ad-hoc analytical SQL — runs in one indexed pass instead of

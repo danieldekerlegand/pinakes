@@ -5,7 +5,7 @@ gitignored (``docs/storage.md``), so the repo cannot diff the corpus itself to
 catch a build that silently gains or drops rows. The manifest is the small,
 committed fingerprint that closes that gap: it records how many nodes each
 ``:LABEL`` and how many edges each ``:TYPE`` the build produced, plus the
-Pinakes-origin edge breakdown (US-004), so a review sees the shape of the
+pinakes-origin edge breakdown (US-004), so a review sees the shape of the
 merged corpus change even though the corpus is not committed.
 
 It is deliberately **content-only** — node/edge *type counts*, no wall-clock, no
@@ -30,7 +30,7 @@ from culturescrape.ontology.metrics import (
     read_dataset as _read_dataset,
 )
 
-#: Provenance ``source`` id Pinakes-origin rows carry.
+#: Provenance ``source`` id pinakes-origin rows carry.
 PINAKES_SOURCE = "pinakes"
 
 
@@ -45,7 +45,7 @@ class CorpusManifest:
         nodes_by_label: Node counts keyed by primary ``:LABEL``, sorted by label.
         edges_by_type: Edge counts keyed by ``:TYPE``, sorted by type.
         pinakes_edges_by_type: Edge counts for the ``pinakes``-origin
-            subset, keyed by ``:TYPE`` — how many edges of each type Pinakes
+            subset, keyed by ``:TYPE`` — how many edges of each type pinakes
             contributed to the merged corpus.
     """
 

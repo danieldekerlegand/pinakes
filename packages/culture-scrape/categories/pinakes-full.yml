@@ -1,4 +1,4 @@
-# Full Pinakes convergence corpus — ingests the LIVE canonical export.
+# Full pinakes convergence corpus — ingests the LIVE canonical export.
 #
 # Identical to categories/pinakes.yml except source.query points at the
 # real export tree that `npx tsx scripts/export-for-culturescrape.ts` writes
@@ -14,7 +14,7 @@
 # `culturescrape run jobs/pinakes-full.yml` (see docs/convergence-build.md).
 id: pinakes-full   # matches the filename so the loader can discover it.
 label: Entity   # placeholder: each exported row carries its own :LABEL.
-description: Pinakes's canonical nodes/edges export (live, full), ingested as a first-class source.
+description: pinakes's canonical nodes/edges export (live, full), ingested as a first-class source.
 source:
   type: dump
   query: ../../export/culturescrape

@@ -1,7 +1,7 @@
 /**
  * Neo4j TypeScript data-access layer for the shared culture-scrape graph.
  *
- * Pinakes queries the shared correlation store two ways (see
+ * pinakes queries the shared correlation store two ways (see
  * docs/culturescrape-integration.md): the FastAPI proxy for search/Datalog, and
  * this module — the official `neo4j-driver` — for relational/graph queries
  * (node lookup, neighborhood traversal, correlation edges).

@@ -1,6 +1,6 @@
 # Data Attribution & Licensing
 
-This document tracks data sources, licenses, and attribution requirements for all datasets used in Pinakes.
+This document tracks data sources, licenses, and attribution requirements for all datasets used in pinakes.
 
 Per-domain **counts** below reflect the populated corpus after the `data-population` work (roadmap
 §15). For the machine-readable actual-vs-target breakdown see
@@ -25,7 +25,7 @@ tier is *derived* (never a stored column) from the provenance columns above via 
 classifier `shared/trust-tier.ts` (the TS mirror of culture-scrape's
 `orchestrate/tiers.py` `classify_tier`), most-to-least trusted:
 
-- **`curated`** — human-vetted through the Pinakes lexicon gate (`source = pinakes`).
+- **`curated`** — human-vetted through the pinakes lexicon gate (`source = pinakes`).
 - **`auto-admitted`** — QID-anchored **and** reference-backed (a node with `wikidata_qid` +
   `source_url`; an edge with `source_url`) — admitted to the graph corpus automatically.
 - **`quarantine`** — acquired but not both — awaiting curation.

@@ -135,5 +135,5 @@ export function resultShareText(
   categoryLabel = result.category,
 ): string {
   const pct = scorePct(result);
-  return `I scored ${result.correct}/${result.total} (${pct}%) on the ${categoryLabel} quiz in Pinakes!`;
+  return `I scored ${result.correct}/${result.total} (${pct}%) on the ${categoryLabel} quiz in pinakes!`;
 }

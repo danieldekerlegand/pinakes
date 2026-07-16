@@ -245,7 +245,7 @@ describe('captureMapToCanvas', () => {
   it('draws the watermark by default and omits it when disabled', () => {
     const h1 = installDom();
     captureMapToCanvas(fakeContainer(rect(0, 0, 400, 300), []), { watermark: true });
-    expect(h1.ctx.calls.some((c) => c[0] === 'fillText' && c[1] === 'Pinakes')).toBe(true);
+    expect(h1.ctx.calls.some((c) => c[0] === 'fillText' && c[1] === 'pinakes')).toBe(true);
 
     const h2 = installDom();
     captureMapToCanvas(fakeContainer(rect(0, 0, 400, 300), []), { watermark: false });

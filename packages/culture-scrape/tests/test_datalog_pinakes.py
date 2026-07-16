@@ -1,11 +1,11 @@
-"""Pinakes cross-domain correlation rules over the merged fixture (US-005).
+"""pinakes cross-domain correlation rules over the merged fixture (US-005).
 
 The bundled example dataset (``datalog/examples/dataset``) now carries
-Pinakes-origin facts (``source: pinakes``): a haplogroup, a Proto-Celtic
+pinakes-origin facts (``source: pinakes``): a haplogroup, a Proto-Celtic
 descent chain, and the ``originates_from`` / ``spoken_in`` region links. These
 tests prove three things without a logic engine installed:
 
-* the Pinakes facts *project* into the graph with their provenance intact;
+* the pinakes facts *project* into the graph with their provenance intact;
 * the ported rules (:data:`SAME_REGION`, :data:`GENETIC_LINGUISTIC_CORRELATION`)
   and the reused base closures (``ancestor``, ``contemporary``) emit valid Prolog
   and Soufflé clauses when the dataset is exported;
@@ -69,14 +69,14 @@ def _pairs(facts: list[Fact], predicate: str) -> set[tuple[str, str]]:
     }
 
 
-# --- projection carries the Pinakes provenance -------------------------
+# --- projection carries the pinakes provenance -------------------------
 
 
 def test_dataset_projects_pinakes_origin_facts() -> None:
     facts = _dataset_facts()
     pinakes = [f for f in facts if f.source == "pinakes"]
-    assert pinakes, "the merged fixture projected no Pinakes-origin facts"
-    # The correlation base predicates all carry the Pinakes provenance.
+    assert pinakes, "the merged fixture projected no pinakes-origin facts"
+    # The correlation base predicates all carry the pinakes provenance.
     for predicate in ("originates_from", "spoken_in", "descends_from"):
         assert any(f.predicate == predicate for f in pinakes), predicate
 
@@ -186,6 +186,6 @@ def test_correlation_smoke_skip_is_logged_when_swipl_absent(
         pytest.skip("swipl installed; the correlation smoke test runs above")
     with caplog.at_level(logging.INFO):
         logging.getLogger(__name__).info(
-            "skipping Pinakes correlation smoke test: swipl not found"
+            "skipping pinakes correlation smoke test: swipl not found"
         )
     assert "swipl not found" in caplog.text

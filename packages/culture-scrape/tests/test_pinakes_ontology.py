@@ -1,12 +1,12 @@
-"""Pinakes edges as first-class canonical edges in the linker (US-004).
+"""pinakes edges as first-class canonical edges in the linker (US-004).
 
-The mapper (``test_pinakes_mapper.py``) turns a Pinakes export edge
+The mapper (``test_pinakes_mapper.py``) turns a pinakes export edge
 into a canonical edge row; this module pins the two things that make such an edge
 *participate* in the shared graph:
 
 * its ``:TYPE`` is translated to the canonical ontology vocabulary
   (:data:`PINAKES_EDGE_TYPE_MAP`) — five tokens map to themselves, the three
-  Pinakes-specific ones fold onto a registered canonical type, and an
+  pinakes-specific ones fold onto a registered canonical type, and an
   unknown token is rejected rather than passed through un-canonicalised; and
 * the mapped edge, carrying its time range / confidence / provenance, flows
   through the linker :class:`~culturescrape.ontology.run` pipeline unchanged and
@@ -50,7 +50,7 @@ def _fixture_rows() -> tuple[list[Row], list[Edge]]:
     spec = CategorySpec(
         id="pinakes",
         label="Entity",
-        description="the Pinakes export",
+        description="the pinakes export",
         source=SourceSpec(type="dump", query=str(FIXTURE_EXPORT), params={}),
         dimensions=("linguistic",),
         links=(),
@@ -111,7 +111,7 @@ def test_split_from_folds_onto_descends_from() -> None:
 
 
 def test_unknown_edge_type_is_rejected() -> None:
-    with pytest.raises(MapperError, match="unknown Pinakes edge :TYPE"):
+    with pytest.raises(MapperError, match="unknown pinakes edge :TYPE"):
         map_pinakes_edge(_edge_record("MADE_UP_TYPE"))
 
 
@@ -141,7 +141,7 @@ def test_fixture_edges_load_and_link() -> None:
 
     run = run_linkers(nodes, edges, select_linkers())
 
-    # The Pinakes edge survives the pipeline as a canonical edge...
+    # The pinakes edge survives the pipeline as a canonical edge...
     descends = [
         edge
         for edge in run.edges
@@ -159,7 +159,7 @@ def test_fixture_edges_load_and_link() -> None:
 def test_metrics_report_pinakes_edges_by_type() -> None:
     nodes, edges = _fixture_rows()
     run = run_linkers(nodes, edges, select_linkers())
-    # Counts only the Pinakes-origin edges, by canonical :TYPE.
+    # Counts only the pinakes-origin edges, by canonical :TYPE.
     assert pinakes_edges_by_type(run.edges) == {"DESCENDS_FROM": 1}
 
 

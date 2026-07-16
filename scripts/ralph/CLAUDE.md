@@ -9,7 +9,7 @@ You are an autonomous coding agent working on a software project.
 3. Check you're on the correct branch from PRD `branchName`. If not, check it out or create from main.
 4. Pick the **first** user story where `passes: false` (stories are listed in priority order)
 5. Implement that single user story
-6. Run quality checks for the workspace(s) you touched — see the **Project: Pinakes** section below for the exact commands
+6. Run quality checks for the workspace(s) you touched — see the **Project: pinakes** section below for the exact commands
 7. Update CLAUDE.md files if you discover reusable patterns (see below)
 8. If checks pass, commit ALL changes with message: `feat: [Story ID] - [Story Title]`
 9. Update the PRD to set `passes: true` for the completed story
@@ -70,7 +70,7 @@ If there are still stories with `passes: false`, end your response normally (ano
 - Commit frequently; keep CI green
 - Read the Codebase Patterns section in progress.txt before starting
 
-## Project: Pinakes — Commands, Conventions & Gotchas
+## Project: pinakes — Commands, Conventions & Gotchas
 
 A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.tsv` is the source of truth; no Postgres/Drizzle in the live path). The Python data/correlation engine **culture-scrape is vendored** at `packages/culture-scrape/` (no nested `.git` — commits go to this monorepo). The authoritative integration design is `docs/culturescrape-integration.md`.
 

@@ -3,7 +3,7 @@
 The live load leg (:mod:`culturescrape.neo4j.load_csv`) is deliberately
 ``MERGE``-based — nodes on ``csid``, relationships on ``(:START_ID, :END_ID,
 :TYPE)`` — so re-running the same dataset **updates** rather than duplicates. A
-merged corpus (native Wikidata dump domains stitched with the Pinakes
+merged corpus (native Wikidata dump domains stitched with the pinakes
 convergence export) must keep that guarantee: loading it twice has to leave the
 graph with the *identical* node/edge counts by label and ``:TYPE``.
 

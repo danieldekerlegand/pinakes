@@ -1,9 +1,9 @@
-"""Smoke test: the merged corpus loads Pinakes-origin rows under the same
+"""Smoke test: the merged corpus loads pinakes-origin rows under the same
 labels and edge types as native nodes (T?-US-006).
 
 No live Neo4j server is required. A *merged* canonical corpus is written — one
 that mixes Wikidata-sourced ("native", ``source='wikidata'``) rows with
-Pinakes-origin (``source='pinakes'``) rows in the **same** per-label
+pinakes-origin (``source='pinakes'``) rows in the **same** per-label
 node files and per-type edge files, exactly as the pipeline groups a converged
 graph. The real incremental loader (:func:`apply_load_csv`) is then run against
 an *embedded* in-memory graph (:class:`_EmbeddedGraph`) that applies the same
@@ -14,7 +14,7 @@ identity semantics the generated Cypher encodes:
   label in their ``:LABEL`` cell;
 * relationships key on ``(:START_ID, :END_ID, :TYPE)``.
 
-Because native and Pinakes rows share a file per label/type, "loaded under
+Because native and pinakes rows share a file per label/type, "loaded under
 the same labels" is not an assertion about the loader special-casing a source —
 it is a property of the converged data flowing through one dataset-agnostic
 path. The tests assert the expected labels (``Language``,
@@ -47,7 +47,7 @@ from culturescrape.schema.headers import EdgeSchema, NodeSchema
 from culturescrape.schema.tsvio import read_rows, write_edge_rows, write_node_rows
 
 # --------------------------------------------------------------------------- #
-# A merged corpus: native + Pinakes rows share each label/type file.
+# A merged corpus: native + pinakes rows share each label/type file.
 # --------------------------------------------------------------------------- #
 
 _LANGUAGES: tuple[dict[str, str | list[str]], ...] = (
@@ -61,7 +61,7 @@ _LANGUAGES: tuple[dict[str, str | list[str]], ...] = (
         "confidence": "0.95",
     },
     {
-        # Pinakes-origin language, same label as the native row.
+        # pinakes-origin language, same label as the native row.
         ":LABEL": ["Language"],
         "csid": "cs:language:pie",
         "name": "Proto-Indo-European",
@@ -91,7 +91,7 @@ _CULTURES: tuple[dict[str, str | list[str]], ...] = (
         "confidence": "0.9",
     },
     {
-        # Pinakes-origin cultures, same label as the native row.
+        # pinakes-origin cultures, same label as the native row.
         ":LABEL": ["ArchaeologicalCulture"],
         "csid": "cs:archaeological-culture:yamnaya",
         "name": "Yamnaya",
@@ -113,7 +113,7 @@ _CULTURES: tuple[dict[str, str | list[str]], ...] = (
 
 _EDGES: tuple[dict[str, str], ...] = (
     {
-        # Native edge — and a cross-source one: it points at a Pinakes node.
+        # Native edge — and a cross-source one: it points at a pinakes node.
         ":START_ID": "cs:archaeological-culture:corded-ware",
         ":END_ID": "cs:archaeological-culture:yamnaya",
         ":TYPE": "DESCENDS_FROM",
@@ -122,7 +122,7 @@ _EDGES: tuple[dict[str, str], ...] = (
         "confidence": "0.8",
     },
     {
-        # Pinakes-origin edge, same :TYPE as the native one.
+        # pinakes-origin edge, same :TYPE as the native one.
         ":START_ID": "cs:archaeological-culture:bell-beaker",
         ":END_ID": "cs:archaeological-culture:yamnaya",
         ":TYPE": "DESCENDS_FROM",
@@ -134,7 +134,7 @@ _EDGES: tuple[dict[str, str], ...] = (
 
 
 def _write_merged_corpus(root: Path) -> None:
-    """Write the merged corpus with native + Pinakes rows sharing files."""
+    """Write the merged corpus with native + pinakes rows sharing files."""
     node_schema = NodeSchema.canonical()
     edge_schema = EdgeSchema.canonical()
     write_node_rows(root / "nodes" / "Language.tsv", node_schema, list(_LANGUAGES))
@@ -237,7 +237,7 @@ class _EmbeddedSession:
 
 
 def test_merged_corpus_loads_pinakes_under_shared_labels(tmp_path: Path) -> None:
-    """Native + Pinakes nodes appear under the same labels + Entity anchor."""
+    """Native + pinakes nodes appear under the same labels + Entity anchor."""
     corpus = tmp_path / "corpus"
     _write_merged_corpus(corpus)
 
@@ -245,7 +245,7 @@ def test_merged_corpus_loads_pinakes_under_shared_labels(tmp_path: Path) -> None
     driver: Any = graph  # a fake driver stands in for the Bolt connection
     apply_load_csv(corpus, driver=driver)
 
-    # The Language label carries both a native and a Pinakes-origin node.
+    # The Language label carries both a native and a pinakes-origin node.
     native_lang = graph.nodes["cs:language:en"]
     ls_lang = graph.nodes["cs:language:pie"]
     assert native_lang["source"] == "wikidata"
@@ -281,7 +281,7 @@ def test_merged_corpus_loads_shared_edge_types(tmp_path: Path) -> None:
     sources = {edge["source"] for edge in descends.values()}
     assert {"wikidata", "pinakes"} <= sources
 
-    # The cross-source edge (native start -> Pinakes end) is present.
+    # The cross-source edge (native start -> pinakes end) is present.
     cross = (
         "cs:archaeological-culture:corded-ware",
         "cs:archaeological-culture:yamnaya",
@@ -345,7 +345,7 @@ def test_csid_uniqueness_constraint_anchors_the_merged_corpus() -> None:
 
 
 def test_merged_corpus_has_globally_unique_csids(tmp_path: Path) -> None:
-    """No csid collides between native and Pinakes rows in the merge."""
+    """No csid collides between native and pinakes rows in the merge."""
     corpus = tmp_path / "corpus"
     _write_merged_corpus(corpus)
 

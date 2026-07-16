@@ -52,7 +52,7 @@ from culturescrape.schema.reconcile import WikidataReconciler, reconcile_rows
 from culturescrape.schema.tsvio import Row, write_edge_rows, write_node_rows
 
 #: Acquisition adapter whose records already ship the shared canonical shape, so
-#: normalization takes the short Pinakes path (map + dedup, no field-rename
+#: normalization takes the short pinakes path (map + dedup, no field-rename
 #: or category/type synthesis) rather than the generic mapper.
 PINAKES_EXPORT_ADAPTER = "pinakes-export"
 
@@ -143,7 +143,7 @@ def normalize_records(
     returned rows are unsorted — :func:`write_result` imposes the canonical
     order on write.
 
-    A Pinakes export category (``source.params.adapter ==
+    A pinakes export category (``source.params.adapter ==
     ``pinakes-export``) takes a shorter path: its records already ship the
     canonical shape (their own ``:LABEL`` / ``csid`` / ``:TYPE``), so they are
     mapped via :func:`~culturescrape.schema.mapper.map_pinakes_records`,
@@ -166,14 +166,14 @@ def normalize_records(
 
 
 def _is_pinakes_export(category: CategorySpec) -> bool:
-    """Whether *category* is ingested through the Pinakes export adapter."""
+    """Whether *category* is ingested through the pinakes export adapter."""
     return category.source.params.get("adapter") == PINAKES_EXPORT_ADAPTER
 
 
 def _normalize_pinakes(
     records: Iterable[RawRecord], *, fuzzy_threshold: float
 ) -> NormalizationResult:
-    """Normalize Pinakes export records (already canonically shaped).
+    """Normalize pinakes export records (already canonically shaped).
 
     Records are mapped via
     :func:`~culturescrape.schema.mapper.map_pinakes_records` — which re-mints
@@ -192,10 +192,10 @@ def _normalize_pinakes(
 
 
 def _redirect_edges(edges: Sequence[Row], nodes: Sequence[Row]) -> list[Row]:
-    """Redirect Pinakes edge endpoints onto merge survivors.
+    """Redirect pinakes edge endpoints onto merge survivors.
 
     Dedup (:func:`~culturescrape.schema.merge.merge_rows`) collapses duplicate
-    Pinakes nodes to one csid per real-world thing, but the export's edges
+    pinakes nodes to one csid per real-world thing, but the export's edges
     were minted against the pre-dedup csids, so an endpoint that lost out to a
     merge would dangle and fail :mod:`~culturescrape.schema.validate` (breaking
     ``neo4j-admin import`` downstream). Each ``:START_ID`` / ``:END_ID`` is

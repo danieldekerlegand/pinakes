@@ -1,7 +1,7 @@
-"""Tests for the offline reconciliation of Pinakes-origin rows.
+"""Tests for the offline reconciliation of pinakes-origin rows.
 
 Unlike :mod:`test_schema_reconcile` (which drives the Wikidata *network*
-reconciler), these exercise the offline cascade that settles a Pinakes
+reconciler), these exercise the offline cascade that settles a pinakes
 row's identity against the nodes already in the corpus using only local signals:
 a shared language code, an exact ``(name, type, region)``, then a fuzzy name.
 Each cascade tier, the ambiguity path (never auto-merged), and the provenance-
@@ -229,7 +229,7 @@ def test_matched_merge_preserves_both_provenance_and_identity() -> None:
     # both sources survive in provenance
     assert merged["source"] == "wikidata;pinakes"
     assert merged["source_url"] == "https://wd/Q1"
-    # Pinakes's round-trip id is retained
+    # pinakes's round-trip id is retained
     assert merged[PINAKES_ID_KEY] == "pie"
     # confidence is the higher of the pair
     assert merged["confidence"] == repr(0.9)

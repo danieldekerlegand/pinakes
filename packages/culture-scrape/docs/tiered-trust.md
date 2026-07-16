@@ -32,14 +32,14 @@ first-class and queryable, so a query recovers the tier by the same predicate �
 
 ## Building a merged, tiered corpus
 
-The corpus-merge job unions the Pinakes canonical export with auto-admitted domain
+The corpus-merge job unions the pinakes canonical export with auto-admitted domain
 corpora from the Wikidata dump slice (the machinery is
 [`orchestrate/merge.py`](../src/culturescrape/orchestrate/merge.py) +
 [`orchestrate/corpus.py`](../src/culturescrape/orchestrate/corpus.py) `build_corpus`,
 US-004). `culturescrape merge` bakes `tiered_trust: true` into the job by default:
 
 ```bash
-# 1. Assemble the merged job (dump domains + the Pinakes export).
+# 1. Assemble the merged job (dump domains + the pinakes export).
 culturescrape merge <blueprint…> \
     --dump  /abs/path/to/slice.json.gz \
     --index /abs/path/to/slice.json.gz.index.sqlite3 \
@@ -70,7 +70,7 @@ encode the trust floors that actually differentiate the tiers:
 
 - **auto-admitted** must be fully sourced (`min_provenance_completeness = 1.0`),
   QID-reconciled (`max_unreconciled_rate = 0.0`), and deduped (`max_duplicate_rate = 0.0`);
-- **curated** need not carry an external `source_url` (Pinakes records none —
+- **curated** need not carry an external `source_url` (pinakes records none —
   curation is the gate, enforced upstream) but must not duplicate;
 - **quarantine** carries no provenance floor (it is *awaiting* curation, not failing it);
 - **inferred** scaffolding is exempt.
@@ -111,7 +111,7 @@ Tiering carries no extra refresh state — a refresh is the ordinary corpus refr
 tier of each row is recomputed from its provenance on every build:
 
 - **Full rebuild** — re-run `culturescrape run jobs/merged-tiered.yml` (regenerates
-  `tiers.json` / `qa-tiers.json`). Do this after the Pinakes export or the dump slice
+  `tiers.json` / `qa-tiers.json`). Do this after the pinakes export or the dump slice
   changes materially.
 - **Incremental (QID-keyed) upsert** — [`orchestrate/incremental.py`](../src/culturescrape/orchestrate/incremental.py)
   `run_upsert` / `culturescrape sync-wikidata` refreshes only the changed Wikidata

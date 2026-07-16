@@ -76,14 +76,14 @@ class GateThresholds:
         max_dangling_edge_rate: Largest tolerated fraction of dangling edges.
         max_unreconciled_rate: Largest tolerated fraction of unreconciled nodes.
         min_pinakes_provenance_completeness: Smallest tolerated fraction of
-            Pinakes-origin rows still carrying the ``pinakes`` source
+            pinakes-origin rows still carrying the ``pinakes`` source
             stamp (defaults to ``1.0`` — merging must never drop it).
         max_pinakes_duplicate_rate: Largest tolerated post-dedup duplicate
-            fraction among Pinakes-origin nodes.
+            fraction among pinakes-origin nodes.
         max_pinakes_dangling_edge_rate: Largest tolerated fraction of
-            Pinakes-origin edges pointing at an unknown csid.
+            pinakes-origin edges pointing at an unknown csid.
         max_pinakes_unreconciled_rate: Largest tolerated fraction of
-            Pinakes-origin nodes never merged to a graph node (defaults to
+            pinakes-origin nodes never merged to a graph node (defaults to
             ``1.0`` — informational unless a reconciling run tightens it).
     """
 
@@ -304,9 +304,9 @@ def evaluate(
     ``0.0`` (and full provenance completeness of ``1.0``), so the row-count gate
     is what catches an empty dataset.
 
-    When the corpus contains at least one Pinakes-origin row, four extra
+    When the corpus contains at least one pinakes-origin row, four extra
     gates scoped to those rows are appended (provenance completeness, duplicate
-    rate, dangling-edge rate, unreconciled rate) so Pinakes ingestion cannot
+    rate, dangling-edge rate, unreconciled rate) so pinakes ingestion cannot
     silently degrade the merged corpus. A native-only corpus keeps the five base
     gates unchanged.
     """
@@ -369,14 +369,14 @@ def _pinakes_gates(
     edges: Sequence[Row],
     thresholds: GateThresholds,
 ) -> tuple[GateResult, ...]:
-    """The Pinakes-scoped gates, or ``()`` when the corpus has no LS rows.
+    """The pinakes-scoped gates, or ``()`` when the corpus has no LS rows.
 
-    A row is Pinakes-origin if it retains a ``pinakes_id`` alias or a
+    A row is pinakes-origin if it retains a ``pinakes_id`` alias or a
     ``pinakes`` token in its (possibly merge-concatenated) ``source``
-    provenance. Duplicate/unreconciled gates cover Pinakes *nodes*; the
-    dangling-edge gate checks Pinakes *edges* against **every** node (a
-    Pinakes edge may legitimately point at a native node); provenance
-    completeness covers all Pinakes-origin rows.
+    provenance. Duplicate/unreconciled gates cover pinakes *nodes*; the
+    dangling-edge gate checks pinakes *edges* against **every** node (a
+    pinakes edge may legitimately point at a native node); provenance
+    completeness covers all pinakes-origin rows.
     """
     ls_nodes = [node for node in nodes if _is_pinakes(node)]
     ls_edges = [edge for edge in edges if _is_pinakes(edge)]
@@ -387,35 +387,35 @@ def _pinakes_gates(
     return (
         _gate(
             "pinakes_provenance_completeness",
-            "Pinakes provenance completeness",
+            "pinakes provenance completeness",
             _pinakes_provenance_completeness(ls_nodes, ls_edges),
             thresholds.min_pinakes_provenance_completeness,
             "min",
-            f"{ls_count} Pinakes-origin row(s) keeping the source stamp",
+            f"{ls_count} pinakes-origin row(s) keeping the source stamp",
         ),
         _gate(
             "pinakes_duplicate_rate",
-            "Pinakes duplicate rate (post-dedup)",
+            "pinakes duplicate rate (post-dedup)",
             _duplicate_rate(ls_nodes),
             thresholds.max_pinakes_duplicate_rate,
             "max",
-            "Pinakes nodes sharing a strong identity key",
+            "pinakes nodes sharing a strong identity key",
         ),
         _gate(
             "pinakes_dangling_edge_rate",
-            "Pinakes dangling-edge rate",
+            "pinakes dangling-edge rate",
             _dangling_edge_rate(nodes, ls_edges),
             thresholds.max_pinakes_dangling_edge_rate,
             "max",
-            "Pinakes edges referencing an unknown csid",
+            "pinakes edges referencing an unknown csid",
         ),
         _gate(
             "pinakes_unreconciled_rate",
-            "Pinakes unreconciled-entity rate",
+            "pinakes unreconciled-entity rate",
             _unreconciled_rate(ls_nodes),
             thresholds.max_pinakes_unreconciled_rate,
             "max",
-            "Pinakes nodes not merged to a graph node",
+            "pinakes nodes not merged to a graph node",
         ),
     )
 
@@ -521,7 +521,7 @@ def _unreconciled_rate(nodes: Sequence[Row]) -> float:
 
 
 def _is_pinakes(row: Row) -> bool:
-    """Whether *row* is Pinakes-origin (has the alias or the source stamp).
+    """Whether *row* is pinakes-origin (has the alias or the source stamp).
 
     Identity survives a reconcile merge: the row keeps its ``pinakes_id``
     alias, and its ``source`` provenance holds the ``pinakes`` token (joined
@@ -541,9 +541,9 @@ def _source_tokens(row: Row) -> set[str]:
 def _pinakes_provenance_completeness(
     nodes: Sequence[Row], edges: Sequence[Row]
 ) -> float:
-    """Fraction of Pinakes-origin rows keeping the ``pinakes`` stamp.
+    """Fraction of pinakes-origin rows keeping the ``pinakes`` stamp.
 
-    A row identified as Pinakes-origin (typically by its surviving
+    A row identified as pinakes-origin (typically by its surviving
     ``pinakes_id`` alias) whose ``source`` provenance no longer names
     :data:`~culturescrape.ontology.metrics.PINAKES_SOURCE` has lost its
     stamp — the merge dropped its provenance. An empty subset is vacuously

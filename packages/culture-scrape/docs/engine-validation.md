@@ -5,7 +5,7 @@ Phase 0, item 0.2 of [`NEUROSYMBOLIC_ROADMAP.md`](../../../NEUROSYMBOLIC_ROADMAP
 engine had *ever* executed the exports — all symbolic validation rested on the
 engine-free Python fixpoint evaluator (`datalog/materialize.py`). This is the
 record of the first time SWI-Prolog and Soufflé loaded and queried the real
-Pinakes corpus, what it cost, and what it surfaced.
+pinakes corpus, what it cost, and what it surfaced.
 
 ## TL;DR
 

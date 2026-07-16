@@ -1,5 +1,5 @@
 /**
- * Pinakes lexicon → canonical node/edge mapping (US-002).
+ * pinakes lexicon → canonical node/edge mapping (US-002).
  *
  * The machine-readable source of truth is {@link ./lexicon-mapping.json}. This
  * module imports it, pins its shape, and exposes typed accessors the

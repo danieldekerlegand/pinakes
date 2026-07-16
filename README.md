@@ -1,11 +1,11 @@
-# Pinakes
+# pinakes
 
 A TypeScript/React/Vite + Express application for exploring language, culture, and deep
 history through interactive visualizations. Storage is **TSV-first** — `lexicons/*.tsv` is
 the source of truth (loaded by `server/tsv-storage.ts`); there is no Postgres/Drizzle in the
 live path.
 
-Pinakes also consumes a **shared culture-scrape graph** (Neo4j + Datalog) for
+pinakes also consumes a **shared culture-scrape graph** (Neo4j + Datalog) for
 cross-domain correlation, while keeping CPU-domain compute (linguistic distance, etymology)
 in TypeScript. The Python data/correlation engine **culture-scrape is vendored** at
 [`packages/culture-scrape/`](./packages/culture-scrape/).

@@ -74,10 +74,10 @@ function fakeExport(dataset: string, name: string, rowCounts: number[]): ExportR
       rowCount,
     })),
     metadata: {
-      title: `Pinakes Export: ${name}`,
+      title: `pinakes Export: ${name}`,
       description: "",
       exportDate: "2026-01-01T00:00:00.000Z",
-      source: "Pinakes",
+      source: "pinakes",
       license: DATASET_LICENSE,
       fileCount: rowCounts.length,
       totalRows: rowCounts.reduce((a, b) => a + b, 0),
@@ -205,14 +205,14 @@ describe("buildDatasetSnapshot", () => {
 
 describe("createZenodoDoiMinter", () => {
   const meta = {
-    title: "Pinakes Open Dataset",
+    title: "pinakes Open Dataset",
     description: "d",
     version: "1.0.0",
     releaseDate: "2026-07-06T00:00:00.000Z",
     doi: null,
     doiUrl: null,
     license: "CC-BY-4.0",
-    source: "Pinakes",
+    source: "pinakes",
     format: "json" as const,
     datasets: [],
     fileCount: 0,

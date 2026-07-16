@@ -1,8 +1,8 @@
-# PRD: Pinakes Long-Term Roadmap
+# PRD: pinakes Long-Term Roadmap
 
 ## Introduction
 
-Pinakes aims to be the definitive interactive atlas of all human language and culture throughout history. The platform already has a strong foundation: 1,100+ languages with phonetic data, 121K+ word translations, linguistic distance analysis, cultural domain data (cuisines, music, religions, haplogroups), and a multi-view visualization system (tree, network, timeline, map, cross-domain).
+pinakes aims to be the definitive interactive atlas of all human language and culture throughout history. The platform already has a strong foundation: 1,100+ languages with phonetic data, 121K+ word translations, linguistic distance analysis, cultural domain data (cuisines, music, religions, haplogroups), and a multi-view visualization system (tree, network, timeline, map, cross-domain).
 
 This roadmap defines the path from the current state to the full vision: a tapestry illustrating the interconnectedness of all human language and culture, with sophisticated visualization tools for exploring when and where languages were spoken, how they grew and contracted, how cultures migrated and intermixed, and how all of these threads weave together.
 

@@ -507,7 +507,7 @@ as `Ex < Sy` is not a predicate goal and carries no relation).
 | `genetic_linguistic_correlation/2` | `originates_from/2` ⋈ `spoken_in/2` on region | `genetic_linguistic_correlation(H, L)` — a haplogroup `H` and a language `L` correlate because `H` originates in the region `L` is spoken in |
 | `instance_of/2` | (recursive) base `instance_of` typing over `subclass_of/2` | `instance_of(X, C)` — `X` is transitively an instance of class `C`: a leaf-class entity answers for every ancestor class the Wikidata P279 taxonomy places above it. Its head is *also* a base relation (the projected `:LABEL` facts seed it) — see [Class taxonomy](#class-taxonomy-p279-rules-layer-us-001) |
 
-The middle two port Pinakes's cross-domain and genetic–linguistic correlation
+The middle two port pinakes's cross-domain and genetic–linguistic correlation
 logic into the shared graph (T-LS-US-005). `genetic_linguistic_correlation/2`
 derives only the *qualitative* pairing; the numeric overlap score (region-polygon
 intersection, notable divergences) stays a CPU-domain computation in the
@@ -794,7 +794,7 @@ $ swipl -q -g main -t halt /tmp/eg/graph.pl datalog/examples/ancestry-of-dish.pl
 | `language-descent.pl` | the full ancestry of a language | transitive `ancestor/2` (`DESCENDS_FROM`) | each ancestor, one csid per line — `cs:language:proto-celtic`, `cs:language:pie` |
 | `entities-by-source.pl` | the entities a source contributed | `source/2` (provenance keyed by csid) joined to `node/3` | each entity `csid<TAB>name` — `cs:language:pie  Proto-Indo-European`, … (the six `pinakes` rows) |
 
-The two closure examples above `entities-by-source` run over **Pinakes-origin**
+The two closure examples above `entities-by-source` run over **pinakes-origin**
 facts merged into the dataset (`source: pinakes`), exercising the ported
 correlation rules and the base transitive closure across the merged graph.
 `entities-by-source` shows provenance is a first-class query target: `source/2`
@@ -863,7 +863,7 @@ post-US-001 edge model — the pre-US-001 record read `contemporary` off the
   over the bundled fixture validate the logic.
 - `same_region/2` and `ancestor/2` are unchanged (co-location / transitive
   descent). `genetic_linguistic_correlation/2` derives **0** over the
-  Pinakes-only corpus (no genetics domain — no
+  pinakes-only corpus (no genetics domain — no
   `originates_from`/`spoken_in` edges); it is exercised on the bundled fixture,
   which carries ported `source: pinakes` genetics facts, and materializes on
   any merged corpus that adds a genetics source.

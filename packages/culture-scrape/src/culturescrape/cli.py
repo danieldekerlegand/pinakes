@@ -576,28 +576,28 @@ def _build_parser() -> argparse.ArgumentParser:
         "--min-pinakes-provenance-completeness",
         type=float,
         default=GateThresholds.min_pinakes_provenance_completeness,
-        help="minimum fraction of Pinakes-origin rows keeping the source "
+        help="minimum fraction of pinakes-origin rows keeping the source "
         f"stamp (default: {GateThresholds.min_pinakes_provenance_completeness})",
     )
     qa.add_argument(
         "--max-pinakes-duplicate-rate",
         type=float,
         default=GateThresholds.max_pinakes_duplicate_rate,
-        help="maximum post-dedup duplicate fraction among Pinakes nodes "
+        help="maximum post-dedup duplicate fraction among pinakes nodes "
         f"(default: {GateThresholds.max_pinakes_duplicate_rate})",
     )
     qa.add_argument(
         "--max-pinakes-dangling-edge-rate",
         type=float,
         default=GateThresholds.max_pinakes_dangling_edge_rate,
-        help="maximum fraction of dangling Pinakes edges "
+        help="maximum fraction of dangling pinakes edges "
         f"(default: {GateThresholds.max_pinakes_dangling_edge_rate})",
     )
     qa.add_argument(
         "--max-pinakes-unreconciled-rate",
         type=float,
         default=GateThresholds.max_pinakes_unreconciled_rate,
-        help="maximum fraction of unreconciled Pinakes nodes "
+        help="maximum fraction of unreconciled pinakes nodes "
         f"(default: {GateThresholds.max_pinakes_unreconciled_rate})",
     )
     qa.set_defaults(handler=_cmd_qa)
@@ -686,7 +686,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     merge = subparsers.add_parser(
         "merge",
-        help="assemble several dump blueprints + the Pinakes export into "
+        help="assemble several dump blueprints + the pinakes export into "
         "one runnable merged-corpus job",
     )
     merge.add_argument(
@@ -721,7 +721,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--pinakes",
         type=Path,
         default=None,
-        help="Pinakes canonical export root (nodes/ + edges/) to stitch in; "
+        help="pinakes canonical export root (nodes/ + edges/) to stitch in; "
         "e.g. ../../export/culturescrape",
     )
     merge.add_argument(

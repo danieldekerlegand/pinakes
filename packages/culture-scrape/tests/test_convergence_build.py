@@ -1,4 +1,4 @@
-"""US-008: the reproducible Pinakes convergence build.
+"""US-008: the reproducible pinakes convergence build.
 
 Drives the *real* shipped job (``jobs/pinakes.yml`` +
 ``categories/pinakes.yml``) through the whole corpus pipeline — acquire,
@@ -56,7 +56,7 @@ def _build(output_root: Path) -> CorpusBuild:
 
 
 def test_shipped_job_declares_relaxed_corpus_floors() -> None:
-    # The recipe is self-contained: the floors that let a Pinakes-only
+    # The recipe is self-contained: the floors that let a pinakes-only
     # corpus pass live in the committed job, not in a hand-typed CLI flag.
     job = load_job(JOB_PATH)
     assert job.min_provenance_completeness == 0.0
@@ -79,8 +79,8 @@ def test_build_passes_quality_gates(tmp_path: Path) -> None:
     assert build.qa.ok
     assert build.qa.violations == ()
     gates = {gate.key: gate for gate in build.qa.gates}
-    # The correctness gates stay strictly clean, and the Pinakes-scoped
-    # provenance gate confirms every Pinakes row keeps its source stamp.
+    # The correctness gates stay strictly clean, and the pinakes-scoped
+    # provenance gate confirms every pinakes row keeps its source stamp.
     assert gates["dangling_edge_rate"].value == 0.0
     assert gates["duplicate_rate"].value == 0.0
     assert gates["pinakes_provenance_completeness"].value == 1.0
@@ -105,7 +105,7 @@ def test_build_writes_manifest_matching_committed_snapshot(tmp_path: Path) -> No
     # The committed fingerprint must match a fresh build, so a corpus that
     # silently gains/drops a node or edge type fails CI.
     assert written == committed
-    # It records node/edge type counts and the Pinakes-origin edge subset.
+    # It records node/edge type counts and the pinakes-origin edge subset.
     assert written["nodes_by_label"]
     assert written["edges_by_type"]
     assert written["pinakes_edges_by_type"] == {"DESCENDS_FROM": 1}

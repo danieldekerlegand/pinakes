@@ -356,7 +356,7 @@ export function buildCultureProfileReportHtml(options: BuildReportOptions): stri
     ${sourcesPart}
 
     <footer class="footer">
-      <p>Generated ${escapeHtml(generated.toISOString().slice(0, 10))} by Pinakes Culture Explorer.</p>
+      <p>Generated ${escapeHtml(generated.toISOString().slice(0, 10))} by pinakes Culture Explorer.</p>
       ${sharePart}
     </footer>
   </div>

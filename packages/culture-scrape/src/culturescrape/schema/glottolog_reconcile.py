@@ -1,7 +1,7 @@
 """Reconcile the Glottolog languoid corpus against ``lexicons/languages.tsv``.
 
 Glottolog is the authoritative language-identity source, so a languoid it ingests
-often already exists in Pinakes's curated lexicon. This module classifies each
+often already exists in pinakes's curated lexicon. This module classifies each
 Glottolog node against the existing languages by a **two-key cascade** —
 **glottocode first** (Glottolog's own primary identifier, carried on the node as
 ``language_code``), then **ISO 639-3** (the languoid's ``ISO639P3code``, kept in the

@@ -1,6 +1,6 @@
 /**
  * Bidirectional TSV write-back: import culture-scrape-derived facts back into the
- * Pinakes lexicons (US-007).
+ * pinakes lexicons (US-007).
  *
  * US-004 exports `lexicons/*.tsv` → the shared canonical shape culture-scrape ingests.
  * This module is the return leg: it reads canonical node TSVs (the *enriched* export
@@ -17,7 +17,7 @@
  *     supplies a value is an *enrichment* and is written.
  *   * **Provenance columns are preserved.** The lexicon columns that carry provenance /
  *     citations (`sources`, the column mapped to canonical `source`, …) and the identity /
- *     confidence columns are excluded from write-back — Pinakes owns those.
+ *     confidence columns are excluded from write-back — pinakes owns those.
  *   * **No data loss.** A pure round-trip (export → import with no enrichment) is a
  *     byte-identical no-op: every writeable cell already matches, so nothing changes.
  *
@@ -45,7 +45,7 @@ export const WRITEBACK_DIR = path.join(EXPORT_DIR, "writeback");
 
 /**
  * Canonical fields excluded from write-back. These are either the join key /
- * structural id (`pinakes_id`) or Pinakes-owned provenance / confidence
+ * structural id (`pinakes_id`) or pinakes-owned provenance / confidence
  * columns that must be preserved, not overwritten from the graph (AC2). The lexicon
  * column mapped to canonical `source` actually holds bibliographic citations — never
  * clobber it with the acquisition-source id.

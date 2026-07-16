@@ -3,7 +3,7 @@
 The classifier, manifest, and per-tier gates are pure and unit-tested here; the
 committed ``docs/tiered-corpus-manifest.json`` snapshot is asserted against a
 small fixture corpus that spans every tier; and the corpus-build integration is
-exercised offline against the Pinakes fixture export (all curated) plus the
+exercised offline against the pinakes fixture export (all curated) plus the
 linker-minted inferred scaffolding.
 """
 
@@ -245,7 +245,7 @@ def test_job_rejects_non_numeric_threshold(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# corpus-build integration (offline, over the Pinakes fixture)            #
+# corpus-build integration (offline, over the pinakes fixture)            #
 # --------------------------------------------------------------------------- #
 
 
@@ -285,7 +285,7 @@ def test_tiered_build_writes_manifest_and_per_tier_qa(tmp_path: Path) -> None:
     assert written == build.tiers.to_dict()
     assert (build.dataset_dir / "qa-tiers.json").exists()
 
-    # The Pinakes fixture rows are all curated; linkers add inferred hubs.
+    # The pinakes fixture rows are all curated; linkers add inferred hubs.
     assert TIER_CURATED in build.tiers.nodes_by_tier
     assert set(build.tiers.nodes_by_tier) <= set(ALL_TIERS)
     # Auto-admission never wrote lexicons — the build only reads the export dir.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-A new feature has been added to Pinakes that enables computational analysis of linguistic similarity between languages using the ASJP-based LDND (Levenshtein Distance Normalized Divided) algorithm with phonetic feature-based weighting for improved accuracy.
+A new feature has been added to pinakes that enables computational analysis of linguistic similarity between languages using the ASJP-based LDND (Levenshtein Distance Normalized Divided) algorithm with phonetic feature-based weighting for improved accuracy.
 
 ## What Was Implemented
 

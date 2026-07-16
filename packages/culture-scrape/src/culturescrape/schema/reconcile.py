@@ -325,13 +325,13 @@ def _record_decision(row: Row, result: ReconciliationResult) -> None:
     row[OVERFLOW_KEY] = json.dumps(data, ensure_ascii=False, sort_keys=True)
 
 
-# --- Offline reconciliation of Pinakes-origin rows --------------------
+# --- Offline reconciliation of pinakes-origin rows --------------------
 #
 # The Wikidata reconciler above answers "which QID is this name?" over the
-# network. Pinakes rows arrive *without* a QID
+# network. pinakes rows arrive *without* a QID
 # (``docs/reconcile-pinakes.md``), so their identity has to be settled
 # against the nodes already in the corpus using only local signals. This is that
-# offline cascade: for each incoming Pinakes row it looks for the existing
+# offline cascade: for each incoming pinakes row it looks for the existing
 # node it denotes by a strict precedence — a shared language code
 # (iso639/glottocode), then an exact normalized ``(name, type, region)``, then a
 # fuzzy name within one type/region — and reports each row as *matched*, *new*,
@@ -359,7 +359,7 @@ class LocalMatchTier(Enum):
 
 
 class LocalOutcome(Enum):
-    """The outcome of reconciling one Pinakes row against the corpus."""
+    """The outcome of reconciling one pinakes row against the corpus."""
 
     MATCHED = "matched"
     NEW = "new"
@@ -385,7 +385,7 @@ class LocalCandidate:
 
 @dataclass(frozen=True)
 class LocalReconciliation:
-    """The decision for one incoming Pinakes row.
+    """The decision for one incoming pinakes row.
 
     ``matched_csid`` is set only when ``outcome`` is
     :attr:`~LocalOutcome.MATCHED`. ``confidence`` is the strength of the best
@@ -443,7 +443,7 @@ def reconcile_pinakes(
     *,
     fuzzy_threshold: float = DEFAULT_LOCAL_FUZZY_THRESHOLD,
 ) -> LocalReconciliationReport:
-    """Reconcile Pinakes-origin *incoming* rows against *existing* nodes.
+    """Reconcile pinakes-origin *incoming* rows against *existing* nodes.
 
     Each incoming row runs the offline cascade against an index of the existing
     corpus (language code → exact ``(name, type, region)`` → fuzzy name) and is

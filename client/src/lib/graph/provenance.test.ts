@@ -168,7 +168,7 @@ describe("safeExternalUrl", () => {
 });
 
 describe("provenanceTier", () => {
-  it("classifies a curated Pinakes node from its provenance", () => {
+  it("classifies a curated pinakes node from its provenance", () => {
     expect(
       provenanceTier(
         extractProvenance({

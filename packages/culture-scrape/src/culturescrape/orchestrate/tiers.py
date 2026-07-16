@@ -10,7 +10,7 @@ awaiting a human. Crucially this is a graph-corpus policy only: it never writes
 ``lexicons/*.tsv`` (human curation remains the sole path into the app-facing
 lexicon layer), so a corpus build classifies rows, it does not move them.
 
-The stitch/merge machinery already unions the Pinakes canonical export with
+The stitch/merge machinery already unions the pinakes canonical export with
 auto-admitted domain corpora (:mod:`culturescrape.orchestrate.merge` +
 :func:`culturescrape.orchestrate.corpus.build_corpus`, US-004); tiering is the
 policy layer on top: a pure classifier over each row's provenance, a per-tier QA
@@ -240,7 +240,7 @@ def manifest_for_tier_dataset(job: str, directory: str | Path) -> TieredManifest
 #: The default per-tier QA gates. The floors that actually differentiate trust:
 #: an **auto-admitted** fact must be fully sourced (it is reference-backed by
 #: definition) and QID-reconciled (so no unreconciled node) and deduped; a
-#: **curated** row need not carry an external ``source_url`` (Pinakes records
+#: **curated** row need not carry an external ``source_url`` (pinakes records
 #: none — curation is the gate, enforced upstream) but must not duplicate; a
 #: **quarantine** fact is by construction under-sourced, so it carries no floor
 #: (it is *awaiting* curation, not failing it); **inferred** scaffolding is
@@ -249,7 +249,7 @@ def manifest_for_tier_dataset(job: str, directory: str | Path) -> TieredManifest
 #: gate (:mod:`culturescrape.orchestrate.corpus`) enforces those globally.
 #: A per-tier subset legitimately holds edges pointing at *other* tiers' nodes
 #: (a curated edge into a quarantined node), so both the base and the
-#: Pinakes-scoped dangling-edge gates are permissive per tier — real
+#: pinakes-scoped dangling-edge gates are permissive per tier — real
 #: dangling is caught by the whole-corpus QA gate.
 _PERMISSIVE_DANGLING = {
     "max_dangling_edge_rate": 1.0,

@@ -8,10 +8,10 @@ of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo
 ## 1. Why there are two copies
 
 culture-scrape began as a standalone Python repo (`~/Development/culture-scrape`) and was
-**vendored** into Pinakes at `packages/culture-scrape/` so the two projects could
+**vendored** into pinakes at `packages/culture-scrape/` so the two projects could
 co-evolve without a package-publish round trip (see `docs/culturescrape-integration.md`).
 The vendored copy carries **no nested `.git`** — it is an ordinary subtree of this
-monorepo, so every commit to it lands in Pinakes's history. That was the right call
+monorepo, so every commit to it lands in pinakes's history. That was the right call
 for velocity, but it created the classic vendored-fork hazard: the vendored copy moved
 ahead while the standalone repo stood still, and there was **no sync mechanism** to
 reconcile them. A diverged fork of the core engine is pure risk — this document retires
@@ -48,12 +48,12 @@ re-confirmed against the tree 2026-07-12). The standalone repo lacks all of them
 |---|---|---|
 | **Engine-free materializer** | `src/culturescrape/datalog/materialize.py` | Naive-fixpoint Datalog evaluator (`materialize`/`summarize`) that computes the rules' derived extension **without** swipl/souffle — computed 1,044,372 derived tuples over the full corpus. Vendored-only. |
 | **Neo4j counts helper** | `src/culturescrape/neo4j/counts.py` | Label/relationship-count reporting over the loaded graph. Vendored-only. |
-| **2 extra inference rules** | `src/culturescrape/datalog/rules.py` | Standalone ships **5** rules; the vendored copy ships **7** (`RULES`). The two extra port Pinakes's cross-domain logic: `same_region/2` (geographic correlation) and `genetic_linguistic_correlation/2` (the symbolic core of the genetic↔linguistic correlation). |
-| **Pinakes acquisition adapter** | `src/culturescrape/acquire/pinakes.py` | Reads a Pinakes canonical export (`nodes/*.tsv` + `edges/*.tsv`) from disk and emits `RawRecord`s, making Pinakes a first-class acquisition source alongside Wikidata/Getty/PetScan. Vendored-only. |
+| **2 extra inference rules** | `src/culturescrape/datalog/rules.py` | Standalone ships **5** rules; the vendored copy ships **7** (`RULES`). The two extra port pinakes's cross-domain logic: `same_region/2` (geographic correlation) and `genetic_linguistic_correlation/2` (the symbolic core of the genetic↔linguistic correlation). |
+| **pinakes acquisition adapter** | `src/culturescrape/acquire/pinakes.py` | Reads a pinakes canonical export (`nodes/*.tsv` + `edges/*.tsv`) from disk and emits `RawRecord`s, making pinakes a first-class acquisition source alongside Wikidata/Getty/PetScan. Vendored-only. |
 | **~20 modified modules** | across `src/culturescrape/` (~84 Python modules total) | Bug fixes + capabilities added while vendored — e.g. `datalog/edges.py` `rel_conf/4` confidence projection (US-003), `datalog/prolog.py` tabling of recursive closures for cyclic base relations (US-002), `datalog/souffle.py`/`run_souffle` output-dir fixes, plus adapter/schema tweaks. These are validated by this repo's CI and documented in `packages/culture-scrape/docs/engine-validation.md`. |
 
 **Nested-git note:** `packages/culture-scrape/` has no `.git` (verified). Never
-re-introduce one — a nested repo would silently detach these files from Pinakes's
+re-introduce one — a nested repo would silently detach these files from pinakes's
 history and re-create the fork.
 
 ## 4. Working rule for future changes

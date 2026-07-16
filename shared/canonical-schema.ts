@@ -1,6 +1,6 @@
 /**
  * Canonical node/edge schema contract — the single data model both
- * culture-scrape and Pinakes target (US-001).
+ * culture-scrape and pinakes target (US-001).
  *
  * The machine-readable source of truth is {@link ./canonical-schema.json}. This
  * module imports it, pins its shape with a `satisfies` check (so `npm run check`

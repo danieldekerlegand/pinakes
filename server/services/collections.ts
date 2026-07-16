@@ -22,11 +22,11 @@ import path from "path";
 // Types
 // ============================================================================
 
-/** A Pinakes entity reference — the same shape as the client `GraphEntityRef`. */
+/** A pinakes entity reference — the same shape as the client `GraphEntityRef`. */
 export interface CollectionEntityRef {
   /** Canonical node type, e.g. `"language"`, `"culture"`, `"battle"`. */
   type: string;
-  /** Pinakes local id — the strong, stable signal. */
+  /** pinakes local id — the strong, stable signal. */
   id: string;
   /** Display name, denormalized so a collection renders without re-fetching. */
   name?: string;

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""Reconcile the acquired civilizations corpus against Pinakes's lexicon.
+"""Reconcile the acquired civilizations corpus against pinakes's lexicon.
 
 The civilizations pilot (`docs/prd-pinakes-deep-history-roadmap.md` §15) grows
 the ``civilizations`` domain from the curated 89 toward 150+. This driver runs the
 **reconcile** step of that pipeline: it loads the deduplicated Culture nodes built by
 ``culturescrape run jobs/civilizations.yml`` and classifies each against the existing
 rows in ``lexicons/civilizations.tsv`` (matched / new / ambiguous), so the write-back
-(Pinakes's ``scripts/import-from-culturescrape.ts``) adds only genuinely new
+(pinakes's ``scripts/import-from-culturescrape.ts``) adds only genuinely new
 civilizations and never duplicates a curated one.
 
 Acquisition (network) and the corpus build must have run first::

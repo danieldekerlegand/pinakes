@@ -1,4 +1,4 @@
-# Build the FULL, publishable Pinakes convergence corpus from the live
+# Build the FULL, publishable pinakes convergence corpus from the live
 # canonical export (US-001), as opposed to jobs/pinakes.yml which ingests
 # the committed 6-row fixture for a deterministic CI build.
 #
@@ -9,9 +9,9 @@
 #   uv run culturescrape package out/pinakes-full --out dist     # publish tar.gz + manifest
 # See docs/convergence-build.md for the full runbook.
 #
-# The relaxed floors mirror jobs/pinakes.yml: Pinakes rows carry
+# The relaxed floors mirror jobs/pinakes.yml: pinakes rows carry
 # the canonical `source` stamp but no external `source_url`, so the generic
-# provenance floor is relaxed (the Pinakes provenance QA gate still enforces
+# provenance floor is relaxed (the pinakes provenance QA gate still enforces
 # it), and a single-source convergence corpus need not reach the multi-domain
 # seed corpus's connectivity. A truly merged corpus (native Wikidata + this
 # source) meets both defaults and can drop these overrides.
@@ -29,7 +29,7 @@
 # while reflecting the post-US-001 edge model. See docs/convergence-build.md
 # "Full-rebuild benchmark (US-005)".
 name: pinakes-full
-description: Pinakes convergence (full) — ingest the live canonical export.
+description: pinakes convergence (full) — ingest the live canonical export.
 categories:
   - ../categories/pinakes-full.yml
 output_root: ../out/pinakes-full

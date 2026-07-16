@@ -2,7 +2,7 @@
 
 _Story: US-001 (tasklist 13 — platform & infrastructure)._
 
-Pinakes keeps `lexicons/*.tsv` as the **single source of truth** (loaded by
+pinakes keeps `lexicons/*.tsv` as the **single source of truth** (loaded by
 `server/tsv-storage.ts`). Heavy *tabular* work — facet counts, `GROUP BY`
 aggregates, ad-hoc analytical SQL — used to mean re-parsing files and looping in
 JS on every request. The **analytical index** (`server/services/analytical-index.ts`)

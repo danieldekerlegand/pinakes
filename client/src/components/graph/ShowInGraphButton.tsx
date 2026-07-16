@@ -19,11 +19,11 @@ const GraphNeighborhoodView = lazy(
   () => import("@/components/graph/GraphNeighborhoodView"),
 );
 
-/** A Pinakes entity reference to resolve into a shared-graph node. */
+/** A pinakes entity reference to resolve into a shared-graph node. */
 export interface GraphEntityRef {
   /** Canonical node type, e.g. `"language"`, `"culture"`. */
   type: string;
-  /** Pinakes local id — the strong signal for resolution. */
+  /** pinakes local id — the strong signal for resolution. */
   id?: string;
   /** Display name — used for the fuzzy fallback when the id doesn't match. */
   name?: string;

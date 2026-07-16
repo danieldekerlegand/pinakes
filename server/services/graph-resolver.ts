@@ -1,7 +1,7 @@
 /**
  * Entity ID resolution at query time (US-006).
  *
- * Maps a Pinakes entity reference (a canonical node type + local
+ * Maps a pinakes entity reference (a canonical node type + local
  * `pinakes_id`, e.g. a `language`/`culture`/`language-family` id) to its
  * shared-graph `csid` so "show in graph" affordances (US-007) can jump from an
  * app entity to its node in the culture-scrape graph.
@@ -10,7 +10,7 @@
  * `reconciliation-report` + `export-for-culturescrape` work):
  *
  *   1. **Alias hit** — the deterministic `cs:<node-type>:<pinakes-id>` id the
- *      export mints for every node *is* the alias between a Pinakes row and its
+ *      export mints for every node *is* the alias between a pinakes row and its
  *      graph node. A row may also carry an explicit `csid`/`alias` column populated
  *      during convergence write-back; when present it wins over the minted value.
  *      An exact `(type, id)` hit resolves with confidence `1.0`.
@@ -38,11 +38,11 @@ const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
 /** Default minimum name similarity (Dice coefficient) for a fuzzy match. */
 export const DEFAULT_FUZZY_THRESHOLD = 0.6;
 
-/** A Pinakes entity reference to resolve into a shared-graph csid. */
+/** A pinakes entity reference to resolve into a shared-graph csid. */
 export interface EntityRef {
   /** Canonical node type name, e.g. `"language"`, `"culture"`, `"language-family"`. */
   readonly type: string;
-  /** Pinakes local id (`pinakes_id`); the strong signal when present. */
+  /** pinakes local id (`pinakes_id`); the strong signal when present. */
   readonly id?: string;
   /** Display name, used for the fuzzy fallback when `id` is absent/unknown. */
   readonly name?: string;
@@ -61,7 +61,7 @@ export interface ResolvedCsid {
   readonly method: ResolutionMethod;
 }
 
-/** One csid ↔ Pinakes-entity alias, the unit the resolver indexes. */
+/** One csid ↔ pinakes-entity alias, the unit the resolver indexes. */
 export interface AliasEntry {
   readonly csid: string;
   readonly pinakesId: string;
@@ -89,7 +89,7 @@ export interface GraphResolverOptions {
 export interface GraphResolver {
   /** Resolve an entity ref to a csid, or `null` when unresolved/ambiguous. */
   resolve(ref: EntityRef): ResolvedCsid | null;
-  /** Reverse lookup: a known csid back to its Pinakes entity ref. */
+  /** Reverse lookup: a known csid back to its pinakes entity ref. */
   reverse(csid: string): EntityRef | null;
   /** Number of indexed alias entries (distinct csids). */
   readonly size: number;

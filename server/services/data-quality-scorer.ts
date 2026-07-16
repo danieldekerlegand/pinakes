@@ -67,7 +67,7 @@ export interface TierBucket {
 }
 
 /**
- * Corpus composition **by trust tier** (US-004). Every Pinakes lexicon row
+ * Corpus composition **by trust tier** (US-004). Every pinakes lexicon row
  * is human-curated, so in the shared graph the whole app corpus occupies the
  * `curated` tier ({@link CorpusTierReport.graphTier}) — auto-admission never
  * writes `lexicons/*.tsv`. What varies, and what this report tracks over time, is

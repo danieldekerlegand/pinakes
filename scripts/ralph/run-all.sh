@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run-all.sh — drive the Pinakes PRDs through Ralph sequentially, in dependency
+# run-all.sh — drive the pinakes PRDs through Ralph sequentially, in dependency
 # order. For each PRD it seeds scripts/ralph/prd.json and runs ./ralph.sh (which loops
 # fresh agent instances until every story passes or max iterations is hit), then — by
 # default — verifies the result and merges the branch into main.

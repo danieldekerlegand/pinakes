@@ -2,12 +2,12 @@
  * Convergence QA gate & drift detection (US-008).
  *
  * A single, network-free health check that both projects can run in CI to catch
- * schema / id drift between Pinakes's lexicons and the shared canonical model
+ * schema / id drift between pinakes's lexicons and the shared canonical model
  * *before* it reaches culture-scrape's graph. It reports four convergence signals —
  *
- *   * **id-overlap**            — how much of the Pinakes export overlaps
+ *   * **id-overlap**            — how much of the pinakes export overlaps
  *                                 culture-scrape's identity space (the reconciliation
- *                                 dry-run's global-anchor matches), plus Pinakes's
+ *                                 dry-run's global-anchor matches), plus pinakes's
  *                                 own internal id-collision diagnostics;
  *   * **unreconciled rate**     — the share of exported nodes that would *not* collapse
  *                                 onto an existing node (likely-new + ambiguous);
@@ -128,13 +128,13 @@ export interface RegressionIssue {
   readonly current: number;
 }
 
-/** id-overlap signal: cross-dataset overlap + Pinakes-internal id health. */
+/** id-overlap signal: cross-dataset overlap + pinakes-internal id health. */
 export interface IdentityMetrics {
   readonly nodes: number;
   /** Nodes carrying a global anchor that overlaps culture-scrape's identity space. */
   readonly anchoredOverlap: number;
   readonly overlapRate: number;
-  /** Pinakes ids reused by more than one node of the same type (export drops). */
+  /** pinakes ids reused by more than one node of the same type (export drops). */
   readonly duplicateCsids: number;
   readonly ambiguousPinakesIds: number;
   readonly edgesWithUnresolvedEndpoint: number;
@@ -563,7 +563,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`- Nodes exported: **${id.nodes}**`);
   lines.push(`- Overlap w/ culture-scrape identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
   lines.push(`- Duplicate csids dropped: ${id.duplicateCsids}`);
-  lines.push(`- Ambiguous Pinakes ids (id reused by ≥2 nodes of a type): ${id.ambiguousPinakesIds}`);
+  lines.push(`- Ambiguous pinakes ids (id reused by ≥2 nodes of a type): ${id.ambiguousPinakesIds}`);
   lines.push(`- Edges dropped for an unresolved endpoint: ${id.edgesWithUnresolvedEndpoint}`);
   lines.push("");
 

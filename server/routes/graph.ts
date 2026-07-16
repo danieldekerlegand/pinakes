@@ -1,7 +1,7 @@
 /**
  * First-party `/api/graph/*` routes (US-004).
  *
- * The browser talks only to the Pinakes origin; these routes proxy the
+ * The browser talks only to the pinakes origin; these routes proxy the
  * shared culture-scrape graph on the server's behalf. Node/neighborhood lookups
  * go through the Neo4j driver layer (server/services/graph-store.ts); search and
  * metrics go through the FastAPI sidecar client (culturescrape-client.ts).
@@ -170,7 +170,7 @@ export function registerGraphRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/graph/resolve?type=&id=&name=&region= — resolve a Pinakes
+   * GET /api/graph/resolve?type=&id=&name=&region= — resolve a pinakes
    * entity ref to its shared-graph csid (US-006) so "Show in graph" affordances
    * can jump into the neighborhood view. Backed by the convergence alias table,
    * which is loaded from the local lexicons and so does NOT depend on Neo4j —

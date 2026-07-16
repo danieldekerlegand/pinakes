@@ -392,7 +392,7 @@ domains + formats.
   `title`-only entry — **never drops a source**. Cite keys read `id-author-year`
   (`minoan-evans-1921`), collisions get an index suffix.
 - **AC3 (missing/partial sources) is handled by design:** every export leads with a
-  **record entry** citing the Pinakes entity record itself (dataset publisher
+  **record entry** citing the pinakes entity record itself (dataset publisher
   `DATASET_PUBLISHER`), so an entity with zero sources still yields a usable citation.
 - **Route** takes injectable `fetchers` (`{domain: {urlPath, fetch(id)→CitableEntity|null}}`)
   so route tests run with in-memory fakes (no storage/fs). Default fetchers cover the

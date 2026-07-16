@@ -109,7 +109,7 @@ non-empty data (`npm run smoke:graph`, docs in
 - **GOTCHA — the sidecar and Neo4j must serve the SAME corpus or the cross-backend
   `node/:id` check 404s.** `discoverCsid` takes a csid from the **sidecar** search
   then looks it up in **Neo4j**; if the sidecar is on its bundled 9-node demo
-  fixture (the `CORPUS` default) while Neo4j holds the Pinakes export
+  fixture (the `CORPUS` default) while Neo4j holds the pinakes export
   (loaded by `to-neo4j export/culturescrape`), the csid doesn't exist in Neo4j and
   the smoke fails. To run a fully green smoke: point the sidecar at the same bare
   corpus — `docker-compose.yml` mounts the gitignored `export/culturescrape` at
@@ -214,7 +214,7 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
   reported (`report.conflicts`), never silently resolved; `{overwrite:true}` / `--overwrite`
   is the only way to apply it (still logged as a conflict).
 - **`NON_WRITEBACK_FIELDS`** (identity + all provenance/confidence columns) are never written —
-  Pinakes owns curated columns; the graph owns edges + external-authority enrichment.
+  pinakes owns curated columns; the graph owns edges + external-authority enrichment.
 - **GOTCHA — `pinakes_id` is NOT globally unique** in the live corpus. The same id recurs
   *within* a file (`languages.tsv` uses `abe` for two distinct languages) **and across files of
   the same node type** (`mohenjo-daro` is in both `archaeological-sites.tsv` and `settlements.tsv`,

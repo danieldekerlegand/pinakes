@@ -1,6 +1,6 @@
 # Corpus rebuild & graph-refresh runbook (US-008)
 
-This is **the** operational runbook for the Pinakes ↔ culture-scrape convergence:
+This is **the** operational runbook for the pinakes ↔ culture-scrape convergence:
 how to (re)build the merged corpus, load it into Neo4j, materialize the Datalog
 inference layer, and prove the live app talks to the stack — end to end, with the exact
 commands. It also records the **refresh cadence** and the **"add a new domain to the live
@@ -19,7 +19,7 @@ Two audiences read this doc:
 - **Contract** — the shared node/edge schema every step targets:
   [`docs/canonical-schema.md`](../../../docs/canonical-schema.md).
 - **Design & data flow** — why convergence works this way, plus the round-trip diagram and
-  the "add a new Pinakes domain" mapping steps:
+  the "add a new pinakes domain" mapping steps:
   [`docs/culturescrape-integration.md`](../../../docs/culturescrape-integration.md)
   (§8 end-to-end data flow, §9 add-a-domain, §10 which side owns which step).
 - **Per-step design** — [`reconcile-pinakes.md`](reconcile-pinakes.md) (ingest/merge),
@@ -74,7 +74,7 @@ culturescrape run jobs/pinakes.yml
 ```
 
 `jobs/pinakes.yml` declares a single category (`categories/pinakes.yml`) that
-reads Pinakes's canonical `nodes/*.tsv` + `edges/*.tsv` export through the
+reads pinakes's canonical `nodes/*.tsv` + `edges/*.tsv` export through the
 `pinakes-export` adapter. `culturescrape run` sees a full-pipeline job (all of
 `acquire → normalize → link → export`) and takes the **corpus** path
 (`orchestrate/corpus.build_corpus`): it acquires + normalizes the category, stitches it,
@@ -82,7 +82,7 @@ links across every dimension, writes the canonical corpus TSV, validates it, gra
 gates, and generates the Neo4j import script and the Datalog `.pl`/`.dl` programs.
 
 Because the export ships the shared canonical shape already (its own `:LABEL` / `csid` /
-`:TYPE`), `normalize` takes the short Pinakes path
+`:TYPE`), `normalize` takes the short pinakes path
 (`schema/pipeline._normalize_pinakes`): it maps via `map_pinakes_records` — which
 re-mints each `csid` deterministically (QID- then `pinakes_id`-anchored) so a re-run is
 **idempotent** — splits nodes from edges, and dedups the nodes. No field-rename, anchoring,
@@ -107,7 +107,7 @@ is never committed. What **is** committed is the manifest fingerprint.
 
 `corpus/manifest.json` (built by `orchestrate/manifest.build_manifest`) is a deterministic,
 content-only fingerprint of the corpus: total node/edge counts, node counts by `:LABEL`,
-edge counts by `:TYPE`, and the Pinakes-origin edge breakdown. It carries no wall-clock
+edge counts by `:TYPE`, and the pinakes-origin edge breakdown. It carries no wall-clock
 and no paths, so the same corpus always serialises to the same bytes. A snapshot of it is
 committed at [`docs/convergence-manifest.json`](convergence-manifest.json) and a test
 (`tests/test_convergence_build.py`) rebuilds the corpus offline and asserts the fresh
@@ -127,19 +127,19 @@ min_provenance_completeness: 0.0
 min_component_fraction: 0.5
 ```
 
-Both suit a **Pinakes-only** convergence corpus and are honest, not a loophole:
+Both suit a **pinakes-only** convergence corpus and are honest, not a loophole:
 
 - **`min_provenance_completeness: 0.0`** — the generic provenance gate counts a row as
-  sourced only with `source` + `source_url` + `retrieved_at`. Pinakes records no
+  sourced only with `source` + `source_url` + `retrieved_at`. pinakes records no
   external `source_url` (see [`reconcile-pinakes.md`](reconcile-pinakes.md) "What
-  Pinakes ships"), so this floor would reject the corpus. Provenance is still enforced
-  — by the **Pinakes provenance QA gate** (`pinakes_provenance_completeness`, min
-  `1.0`), which checks the `source` stamp every Pinakes row actually carries.
+  pinakes ships"), so this floor would reject the corpus. Provenance is still enforced
+  — by the **pinakes provenance QA gate** (`pinakes_provenance_completeness`, min
+  `1.0`), which checks the `source` stamp every pinakes row actually carries.
 - **`min_component_fraction: 0.5`** — a small single-domain fixture corpus need not reach the
   multi-domain seed corpus's near-`1.0` connectivity.
 
 A truly **merged** corpus (native Wikidata categories, which carry `source_url`, plus this
-Pinakes category) meets both defaults and can drop the overrides — add the Pinakes
+pinakes category) meets both defaults and can drop the overrides — add the pinakes
 category to a job like `jobs/seed-corpus.yml` to build it (that path needs live Wikidata, so
 it is not offline/deterministic).
 
@@ -151,13 +151,13 @@ culturescrape qa out/pinakes/corpus --min-provenance-completeness 0 --fail-on-vi
 ```
 
 `validate` confirms the TSV is schema-valid; `qa` (with the same relaxed provenance floor the
-build uses) passes every gate, including all four Pinakes-scoped gates. The build itself
+build uses) passes every gate, including all four pinakes-scoped gates. The build itself
 already runs both — these commands just re-check the artifact independently.
 
 ## The full, publishable corpus (US-001)
 
 Everything above builds from the committed **6-row fixture** so the job is offline and
-CI-deterministic. To build and publish the **full** Pinakes-inclusive corpus (every
+CI-deterministic. To build and publish the **full** pinakes-inclusive corpus (every
 mapped domain — ~5.3k nodes / ~5.4M linked edges) from the *live* lexicons, use the parallel
 `pinakes-full` job. It is identical to `pinakes.yml` except its category
 (`categories/pinakes-full.yml`) points `source.query` at the real export tree instead of
@@ -221,7 +221,7 @@ downloader verifies against the committed SHA-256 manifest.
 
 **On edge scale.** The full corpus's ~5.4M edges are dominated by the temporal linker
 materializing pairwise `PRECEDES` / `FOLLOWS` / `CONTEMPORARY_WITH` within each
-`(:LABEL, place_qid)` facet; Pinakes rows rarely carry a `place_qid`, so large
+`(:LABEL, place_qid)` facet; pinakes rows rarely carry a `place_qid`, so large
 same-label sets (e.g. `Ingredient`, `Place`) compare all-pairs. `PRECEDES` / `FOLLOWS` are
 registered `transitive=True`, so their full closure is intended to be *derived* in Datalog
 (US-004), not stored — a future optimization is to have the linker emit only adjacent
@@ -315,10 +315,10 @@ The structural targets over the full corpus (fingerprint committed in
 | `within_region/2` (transitive `located_in/2`) | 1,753 | region containment closure |
 | `influenced_transitively/2` | 510 | transitive `influenced_by/2` |
 | `component_of/2` | 468 | transitive `part_of/2` |
-| `genetic_linguistic_correlation/2` | 0 | empty here — Pinakes ships no genetics domain |
+| `genetic_linguistic_correlation/2` | 0 | empty here — pinakes ships no genetics domain |
 | `contemporary/2`, `precedes/2`, `follows/2` | *engine-only* | derived on demand over `time_start`/`time_end`; not materialized engine-free at scale |
 
-`genetic_linguistic_correlation/2` is 0 because the Pinakes-only corpus has no haplogroup
+`genetic_linguistic_correlation/2` is 0 because the pinakes-only corpus has no haplogroup
 source (no `originates_from`/`spoken_in` edges); it materializes on a merged corpus that adds
 one, and its expected shape is exercised on the bundled fixture (which carries the ported
 `source: pinakes` genetics facts).
@@ -366,7 +366,7 @@ membership) are stored.
 (1,136/6,848 nodes) — the old `CONTEMPORARY_WITH` blob fused everything into one artificial giant
 component (~100%). The `min_component_fraction` floor in `jobs/pinakes-full.yml` was lowered
 0.5 → 0.12 to reflect the post-US-001 model; the temporal layer reconnects co-dated entities at
-query time via `contemporary/2`, it just isn't a *stored* edge. The strict Pinakes gates
+query time via `contemporary/2`, it just isn't a *stored* edge. The strict pinakes gates
 (provenance = 1.0, duplicate/dangling = 0) still pass unchanged.
 
 **Regenerated committed manifests** (release records, not CI-asserted — the corpus is gitignored
@@ -397,7 +397,7 @@ npm run smoke:graph     # or: npx tsx scripts/smoke-graph.ts
 ```
 
 `scripts/smoke-graph.ts` hits the first-party `/api/graph/*` routes on the running
-Pinakes server and asserts each returns **real, non-empty** data:
+pinakes server and asserts each returns **real, non-empty** data:
 
 | Check | Route | Assertion |
 |---|---|---|

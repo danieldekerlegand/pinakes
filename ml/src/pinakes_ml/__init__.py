@@ -1,4 +1,4 @@
-"""Pinakes ML / neurosymbolic workspace.
+"""pinakes ML / neurosymbolic workspace.
 
 Phase 2 of ``NEUROSYMBOLIC_ROADMAP.md``: the first fact->model loop
 (triples export, PyKEEN baselines, ProbLog emitter, consistency ratchet)

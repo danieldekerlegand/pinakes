@@ -515,7 +515,7 @@ export async function queryExternalPlaces(
 
 // ── Live network implementation ─────────────────────────────────────────────────
 
-const USER_AGENT = "Pinakes/1.0 (historical-linguistics-research)";
+const USER_AGENT = "pinakes/1.0 (historical-linguistics-research)";
 
 let lastNominatimCall = 0;
 const NOMINATIM_RATE_LIMIT_MS = 1100; // Nominatim requires >= 1 req/sec

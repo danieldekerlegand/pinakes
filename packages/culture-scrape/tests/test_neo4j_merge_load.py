@@ -38,7 +38,7 @@ def test_merge_collapses_a_shared_csid_across_files(tmp_path: Path) -> None:
     """Two files carrying the same csid MERGE to ONE node — the stitch guarantee.
 
     This is exactly what makes a language present in both the Wikidata dump and
-    the Pinakes export a single merged node rather than a duplicate.
+    the pinakes export a single merged node rather than a duplicate.
     """
     shared = {"csid": "cs:language:q1", ":LABEL": ["Language"], "name": "Latin"}
     _write_dataset(

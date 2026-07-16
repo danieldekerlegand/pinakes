@@ -1,6 +1,6 @@
 # Ralph Workflow
 
-Pinakes uses the **Ralph** long-running-agent loop to work through PRDs autonomously.
+pinakes uses the **Ralph** long-running-agent loop to work through PRDs autonomously.
 It replaces the earlier `ralphy` JSON-tasklist tooling (archived under `docs/archive/ralphy/`).
 
 > ⚠️ **One git driver at a time.** Never run `run-all.sh` while another driver is mutating the
@@ -17,7 +17,7 @@ It replaces the earlier `ralphy` JSON-tasklist tooling (archived under `docs/arc
 scripts/ralph/
   ralph.sh        # the loop: repeatedly feeds an agent prompt until a PRD's stories all pass
   prompt.md       # agent instructions (amp variant)
-  CLAUDE.md       # agent instructions (claude variant) + Pinakes commands/conventions
+  CLAUDE.md       # agent instructions (claude variant) + pinakes commands/conventions
   run-all.sh      # multi-PRD orchestrator: seed → loop → verify → merge → retire
   .gitignore      # ignores runtime state: prd.json, progress.txt, .last-branch, archive/, snapshots/
 tasks/ralph/

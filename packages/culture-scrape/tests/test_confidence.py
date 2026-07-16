@@ -2,7 +2,7 @@
 
 Verifies the Python priors are well-formed and — when the monorepo checkout is
 present — stay in lockstep with the shared ``shared/confidence-rubric.json`` that
-the Pinakes TypeScript side reads. The parity check is skipped (not failed)
+the pinakes TypeScript side reads. The parity check is skipped (not failed)
 when the sibling JSON is absent, so the vendored package still tests standalone.
 """
 

@@ -12,7 +12,7 @@
  *   4. exact `(name, type, region)` — same normalized name, node type, and region;
  *   5. fuzzy `name`       — within one type/region, above a similarity threshold.
  *
- * Pinakes rows arrive with **no** `wikidata_qid`/`getty_id` (steps 1–2 are
+ * pinakes rows arrive with **no** `wikidata_qid`/`getty_id` (steps 1–2 are
  * inert), so this module emits the keys the reconciler actually keys on for our data
  * — language codes for languages, and the normalized `(name, type, region)` blocking
  * key for every other domain — and estimates, without touching the network or the
@@ -170,7 +170,7 @@ function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
 
 /**
  * Normalize a key component: NFKC, whitespace-collapsed, casefolded — mirrors
- * culture-scrape's `normalize_name` so Pinakes's keys block the same way.
+ * culture-scrape's `normalize_name` so pinakes's keys block the same way.
  */
 export function normalizeKey(value: string): string {
   return value.normalize("NFKC").split(/\s+/).filter(Boolean).join(" ").toLowerCase();

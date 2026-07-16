@@ -1,17 +1,17 @@
-"""End-to-end offline proof of the merged (dump + Pinakes) corpus (US-004).
+"""End-to-end offline proof of the merged (dump + pinakes) corpus (US-004).
 
 US-004 needs the next shape past the US-003 single-blueprint proof: several dump
 domains (language, myth-religion) stitched together *and* merged with the
-existing Pinakes convergence export, then verified to load into Neo4j
+existing pinakes convergence export, then verified to load into Neo4j
 idempotently. This module proves that path where a real slice is present:
 
 * :func:`~culturescrape.orchestrate.merge.write_merged_job` assembles a job over
-  a language + myth subset (dump mode) plus the committed Pinakes fixture
+  a language + myth subset (dump mode) plus the committed pinakes fixture
   export;
 * :func:`~culturescrape.orchestrate.corpus.build_corpus` acquires + stitches it
   offline (an HTTP factory that *raises* fails any accidental fetch);
 * the merged corpus is schema-valid, carries both native dump nodes and
-  Pinakes-origin edges, MERGE-loads **idempotently**
+  pinakes-origin edges, MERGE-loads **idempotently**
   (:func:`~culturescrape.neo4j.merge_load.verify_idempotent_load`), and reconciles
   against a curated lexicon.
 
@@ -49,7 +49,7 @@ from culturescrape.schema.validate import validate_directory
 #: Where ``build-slice`` writes by convention (gitignored); overridable by env.
 _DEFAULT_SLICE_DIR = Path(__file__).parent.parent / "out" / "wikidata"
 
-#: The committed Pinakes fixture export (nodes/ + edges/).
+#: The committed pinakes fixture export (nodes/ + edges/).
 _LS_FIXTURE = Path(__file__).parent / "fixtures" / "pinakes" / "export"
 
 
@@ -113,7 +113,7 @@ def _raise_no_network():  # type: ignore[no-untyped-def]
 
 @pytest.fixture(scope="module")
 def merged() -> Iterator[CorpusBuild]:
-    """Build the language+myth+Pinakes merged subset once, fully offline."""
+    """Build the language+myth+pinakes merged subset once, fully offline."""
     assert _SLICE is not None
     slice_path = _SLICE.resolve()
     sidecar = Path(f"{slice_path}.index.sqlite3")
@@ -159,10 +159,10 @@ def test_merged_corpus_builds_offline_and_validates(merged: CorpusBuild) -> None
 
 
 def test_merged_corpus_carries_both_sources(merged: CorpusBuild) -> None:
-    """The stitched corpus holds native dump nodes AND Pinakes-origin edges."""
+    """The stitched corpus holds native dump nodes AND pinakes-origin edges."""
     nodes, edges = read_dataset(merged.dataset_dir)
     manifest = build_manifest(merged.name, nodes, edges)
-    # Pinakes contributed at least one edge to the merged corpus.
+    # pinakes contributed at least one edge to the merged corpus.
     assert manifest.pinakes_edges_by_type
     # And the dump domains contributed nodes (more than the 4-node LS fixture).
     assert manifest.node_count > 4

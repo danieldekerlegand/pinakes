@@ -87,7 +87,7 @@ def _healthy() -> tuple[list[Row], list[Row]]:
 
 
 def _ls_node(csid: str, *, ls_id: str, source: str = "pinakes", **kw: str) -> Row:
-    """A Pinakes-origin node: canonical row + a ``pinakes_id`` alias."""
+    """A pinakes-origin node: canonical row + a ``pinakes_id`` alias."""
     row = _node(csid, source=source, **kw)
     row["pinakes_id"] = ls_id
     return row
@@ -102,14 +102,14 @@ def _ls_edge(
     source: str = "pinakes",
     **kw: str,
 ) -> Row:
-    """A Pinakes-origin edge carrying a ``pinakes_id`` alias."""
+    """A pinakes-origin edge carrying a ``pinakes_id`` alias."""
     row = _edge(start, end, rel_type, source=source, **kw)
     row["pinakes_id"] = ls_id
     return row
 
 
 def _merged_clean() -> tuple[list[Row], list[Row]]:
-    """A merged corpus: one native node/edge plus reconciled Pinakes rows."""
+    """A merged corpus: one native node/edge plus reconciled pinakes rows."""
     nodes = [
         _node("cs:dish:Q1", qid="Q1"),
         _ls_node("cs:lang:Q2", ls_id="pie", qid="Q2"),
@@ -215,7 +215,7 @@ def test_partly_reconciled_rate_is_a_fraction() -> None:
     assert _gate(report, "unreconciled_rate").value == pytest.approx(0.5)
 
 
-# --- Pinakes-scoped gates (US-007) -------------------------------------
+# --- pinakes-scoped gates (US-007) -------------------------------------
 
 
 def test_native_only_corpus_has_no_pinakes_gates() -> None:
@@ -243,7 +243,7 @@ def test_pinakes_row_recognised_by_merged_source_token() -> None:
 
 
 def test_pinakes_provenance_gate_trips_when_stamp_dropped() -> None:
-    # Both rows are Pinakes-origin (alias present); one lost its source stamp.
+    # Both rows are pinakes-origin (alias present); one lost its source stamp.
     nodes = [
         _ls_node("cs:lang:a", ls_id="a", qid="Q1"),
         _ls_node("cs:lang:b", ls_id="b", qid="Q2", source=""),
@@ -260,7 +260,7 @@ def test_pinakes_duplicate_gate_trips_on_shared_qid() -> None:
     report = evaluate(nodes, edges)
     gate = _gate(report, "pinakes_duplicate_rate")
     assert not gate.passed
-    # Three Pinakes nodes, one duplicate QID.
+    # Three pinakes nodes, one duplicate QID.
     assert gate.value == pytest.approx(1 / 3)
 
 
@@ -274,7 +274,7 @@ def test_pinakes_dangling_gate_trips_on_unknown_endpoint() -> None:
 
 
 def test_pinakes_dangling_gate_allows_edge_into_native_node() -> None:
-    # A Pinakes edge may legitimately point at a native node.
+    # A pinakes edge may legitimately point at a native node.
     nodes = [_node("cs:dish:Q1", qid="Q1"), _ls_node("cs:lang:Q2", ls_id="pie")]
     edges = [_ls_edge("cs:lang:Q2", "cs:dish:Q1", ls_id="e1")]
     report = evaluate(nodes, edges)
@@ -353,7 +353,7 @@ def test_render_markdown_lists_every_gate() -> None:
     report = evaluate(*_merged_clean())
     markdown = report.render_markdown()
     assert markdown.startswith("# QA report")
-    assert "Pinakes provenance completeness" in markdown
+    assert "pinakes provenance completeness" in markdown
     assert "| Gate | Result | Value | Bound | Detail |" in markdown
 
 
@@ -361,7 +361,7 @@ def test_write_markdown_emits_human_readable_artifact(tmp_path: Path) -> None:
     report = evaluate(*_merged_clean())
     out = report.write_markdown(tmp_path / "qa.md")
     assert out.is_file()
-    assert "Pinakes dangling-edge rate" in out.read_text(encoding="utf-8")
+    assert "pinakes dangling-edge rate" in out.read_text(encoding="utf-8")
 
 
 # --- directory reader -------------------------------------------------------
@@ -408,16 +408,16 @@ def test_cli_qa_rejects_non_directory(tmp_path: Path) -> None:
 
 
 def test_cli_qa_fails_on_degraded_pinakes_corpus(tmp_path: Path) -> None:
-    # One extra Pinakes-origin (source='pinakes') node reconciled to
+    # One extra pinakes-origin (source='pinakes') node reconciled to
     # nothing. Default thresholds are permissive, so the corpus passes; tightening
-    # only the Pinakes unreconciled bound trips that gate alone.
+    # only the pinakes unreconciled bound trips that gate alone.
     nodes, edges = _healthy()
     nodes.append(_node("cs:lang:x", source="pinakes"))
     _write_dataset(tmp_path, nodes, edges)
     md = tmp_path / "qa.md"
     assert main(["qa", str(tmp_path), "--markdown-out", str(md)]) == 0
     assert md.is_file()
-    assert "Pinakes unreconciled-entity rate" in md.read_text(encoding="utf-8")
+    assert "pinakes unreconciled-entity rate" in md.read_text(encoding="utf-8")
     assert (
         main(
             [

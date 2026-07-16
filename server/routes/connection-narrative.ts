@@ -2,7 +2,7 @@
  * AI "explain the connection" narrative route (US-005).
  *
  * `POST /api/graph/explain` — given two entities (each a shared-graph `csid`, or a
- * Pinakes entity ref `{ type, id, name, region }` resolved to a csid), find
+ * pinakes entity ref `{ type, id, name, region }` resolved to a csid), find
  * the connecting path in the shared graph, augment it with Datalog inference, and
  * return a Gemini-generated, **sourced** narrative explaining the link (see
  * server/services/connection-narrative.ts). The explanation cites the underlying

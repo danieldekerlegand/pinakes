@@ -288,7 +288,7 @@ async function testExportMetadata() {
   assert(meta.fileCount > 0, "metadata counts files");
   assert(meta.totalRows >= 0, "metadata counts total rows");
   assert(meta.exportDate.length > 0, "metadata has export date");
-  assert(meta.source.includes("Pinakes"), "metadata cites source");
+  assert(meta.source.includes("pinakes"), "metadata cites source");
 }
 
 async function main() {

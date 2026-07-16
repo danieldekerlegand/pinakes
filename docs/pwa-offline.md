@@ -1,6 +1,6 @@
 # PWA & Offline Support (US-011)
 
-Pinakes ships as an installable, offline-capable Progressive Web App. The
+pinakes ships as an installable, offline-capable Progressive Web App. The
 implementation is dependency-free (no `vite-plugin-pwa`/Workbox): a hand-authored
 service worker plus a web app manifest, with all routing/registration decisions
 factored into pure, unit-tested TypeScript.

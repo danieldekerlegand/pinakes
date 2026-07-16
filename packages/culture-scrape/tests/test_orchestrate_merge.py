@@ -1,9 +1,9 @@
 """Unit tests for the merged-corpus job assembler (US-004).
 
 These run in CI with **no** dump slice: they exercise :func:`write_merged_job`'s
-assembly — expanding several blueprints in dump mode, appending the Pinakes
+assembly — expanding several blueprints in dump mode, appending the pinakes
 export category, and writing one runnable job — using a tiny local blueprint and
-a fixture Pinakes export directory. The end-to-end build against the *real*
+a fixture pinakes export directory. The end-to-end build against the *real*
 slice lives in ``test_blueprint_language_myth_dump_smoke`` (skipif-gated).
 """
 

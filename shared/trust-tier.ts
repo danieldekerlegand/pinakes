@@ -56,7 +56,7 @@ export const TRUST_TIER_META: Record<TrustTier, TrustTierMeta> = {
   curated: {
     tier: "curated",
     label: "Curated",
-    description: "Human-vetted through the Pinakes lexicon curation gate.",
+    description: "Human-vetted through the pinakes lexicon curation gate.",
     order: 0,
   },
   "auto-admitted": {

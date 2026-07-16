@@ -1,8 +1,8 @@
-# Pinakes Roadmap
+# pinakes Roadmap
 
 ## Vision: A Living Atlas of Human Civilization
 
-Pinakes aims to become the most comprehensive interactive atlas of human culture and civilization — tracing the interconnected threads of language, cuisine, music, art, religion, trade, genetics, and social organization across geography and time, from prehistory to the present day.
+pinakes aims to become the most comprehensive interactive atlas of human culture and civilization — tracing the interconnected threads of language, cuisine, music, art, religion, trade, genetics, and social organization across geography and time, from prehistory to the present day.
 
 The ultimate goal: **given any modern culture, trace its origins back through millennia** — showing how Yamnaya pastoralists became Persians, how Proto-Austronesian seafarers populated the Pacific, how a dish traveled from Central Asia to a street vendor in Istanbul, or how a musical scale migrated from West Africa to the Mississippi Delta.
 
@@ -37,7 +37,7 @@ organic boundaries, no lineage model, missing cultural domains) are all closed.
   explain/anomaly/hypothesis generation, AR/VR, living-dataset ingestion.
 - **culture-scrape convergence (cross-cutting, new since March 2026):** the vendored culture-scrape
   Python engine (`packages/culture-scrape/`) now shares one canonical node/edge schema with the
-  lexicons; Pinakes exports and reconciles into it and queries the shared **Neo4j + Datalog**
+  lexicons; pinakes exports and reconciles into it and queries the shared **Neo4j + Datalog**
   graph as the correlation system-of-record. See `docs/culturescrape-integration.md`.
 
 ### Not yet hardened (see "What's Next — Phase 15+")

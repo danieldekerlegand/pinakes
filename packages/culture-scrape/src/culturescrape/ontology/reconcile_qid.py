@@ -1,17 +1,17 @@
 """Collapse nodes that share a Wikidata QID but were minted under different types.
 
-Stitching several dump domains with the Pinakes convergence export (US-004)
+Stitching several dump domains with the pinakes convergence export (US-004)
 surfaces a class of identity damage the per-``csid`` stitch cannot fix on its own:
 the **same** real-world entity acquires **different** ``csid``\\ s when two sources
 type it differently, because ``csid`` is ``cs:<node-type>:<QID>``. Observed on the
 reference merge:
 
 * a deity typed ``Concept`` by the myth-religion blueprint vs ``Deity`` by
-  Pinakes (``cs:concept:Q146007`` vs ``cs:deity:Q146007``);
+  pinakes (``cs:concept:Q146007`` vs ``cs:deity:Q146007``);
 * a script typed ``Language`` by the language blueprint's writing-systems category
-  vs ``WritingSystem`` by Pinakes (``cs:language:Q145625`` vs
+  vs ``WritingSystem`` by pinakes (``cs:language:Q145625`` vs
   ``cs:writing-system:Q145625``);
-* a geographic **place hub** the linker mints for a QID that Pinakes already
+* a geographic **place hub** the linker mints for a QID that pinakes already
   curates as a ``Culture`` (``cs:place:Q11767`` vs ``cs:culture:Q11767``).
 
 A Wikidata QID is a *global* identity (one QID ⇒ one entity), so all of these are

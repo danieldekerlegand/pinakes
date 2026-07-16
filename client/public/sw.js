@@ -1,5 +1,5 @@
 /*
- * Pinakes service worker (US-011).
+ * pinakes service worker (US-011).
  *
  * Served verbatim from client/public (it imports nothing). Its routing rules MIRROR
  * client/src/lib/pwa/cache-strategy.ts — that module is the tested source of truth,

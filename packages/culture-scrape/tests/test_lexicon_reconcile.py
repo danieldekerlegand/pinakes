@@ -1,4 +1,4 @@
-"""Tests for reconciling an acquired node corpus against a Pinakes lexicon.
+"""Tests for reconciling an acquired node corpus against a pinakes lexicon.
 
 Network-free: both sides are tiny on-disk TSV fixtures written to ``tmp_path``.
 Covers the two loaders (header-suffix stripping, ``:LABEL`` wrapping, overflow

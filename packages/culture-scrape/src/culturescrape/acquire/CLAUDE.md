@@ -27,9 +27,9 @@ into the mapper's overflow JSON. `Provenance.__post_init__` requires `confidence
 and a valid ISO-8601 **UTC** `retrieved_at`, so a blank `retrieved_at` must be filled from
 an injected clock (`now`, for deterministic tests) — never pass `""`.
 
-## Pinakes export adapter (`pinakes-export`, US-001)
+## pinakes export adapter (`pinakes-export`, US-001)
 
-`pinakes.py` reads Pinakes's canonical export *directory* (not a single file):
+`pinakes.py` reads pinakes's canonical export *directory* (not a single file):
 `<root>/nodes/*.tsv` + `<root>/edges/*.tsv`, one `RawRecord` per row, `source=pinakes`.
 Headers are the typed Neo4j-import form; it parses them with `schema/headers.py`
 (`parse_node_header`/`parse_edge_header`) to validate the file and strip type suffixes

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "title": "Pinakes lexicon → canonical node/edge mapping",
+  "title": "pinakes lexicon → canonical node/edge mapping",
   "description": "Deterministic, reviewable mapping from every lexicons/*.tsv to the canonical model defined in shared/canonical-schema.json (US-002). Each file declares a `kind`, its canonical `node` type (for node files), and a per-column disposition. Every source column is accounted for exactly once. Machine-readable sibling of the prose table in docs/canonical-schema.md §6.",
   "kinds": {
     "node": "Rows become canonical nodes of the declared `node` type.",

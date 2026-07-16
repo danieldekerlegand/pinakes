@@ -34,15 +34,15 @@ exporter emits for that registered :TYPE:
 * :data:`MATERIAL_COMPOSITION` — ``material-composition.pl``: an artifact's
   materials, via ``made_of/2`` (``MADE_OF``).
 
-Two more run over Pinakes-origin facts in the merged dataset
+Two more run over pinakes-origin facts in the merged dataset
 (``source: pinakes``), exercising the correlation rules ported from
-Pinakes (T-LS-US-005):
+pinakes (T-LS-US-005):
 
 * :data:`GENETIC_LINGUISTIC_CORRELATION` —
   ``genetic-linguistic-correlation.pl``: the languages a haplogroup correlates
   with, via ``genetic_linguistic_correlation/2`` (shared origin/spoken region);
 * :data:`LANGUAGE_DESCENT` — ``language-descent.pl``: a language's full ancestry,
-  via the transitive ``ancestor/2`` closure running over Pinakes
+  via the transitive ``ancestor/2`` closure running over pinakes
   ``descends_from`` edges.
 
 One more makes provenance itself a query target (US-004): the ``source/2`` fact
@@ -209,7 +209,7 @@ GENETIC_LINGUISTIC_CORRELATION = Example(
 LANGUAGE_DESCENT = Example(
     slug="language-descent",
     title="Full ancestry of a language",
-    focus="ancestor/2 (transitive descends_from over Pinakes edges)",
+    focus="ancestor/2 (transitive descends_from over pinakes edges)",
     expected=frozenset(
         {
             ("cs:language:proto-celtic",),

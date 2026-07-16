@@ -5,7 +5,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
 ## Canonical convergence schema
 
 - `canonical-schema.json` is the **machine-readable source of truth** for the shared
-  culture-scrape ↔ Pinakes node/edge model. `canonical-schema.ts` types it and
+  culture-scrape ↔ pinakes node/edge model. `canonical-schema.ts` types it and
   exposes accessors (`nodeHeaderRow`, `edgeHeaderRow`, `*ProvenanceColumns`,
   `nodeTypeByName`, …). Consume from `@shared/canonical-schema`; never fork the JSON.
 - Column contracts mirror culture-scrape's Neo4j-import headers

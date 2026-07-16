@@ -95,7 +95,7 @@ a comparison over a still-unbound variable is an unsafe rule and also raises.
   `influenced_transitively`/`component_of`) materialise in ~1 s and stay in the manifest.
   `--exclude` rejects an unknown head; without it the CLI materialises every rule (the
   small-fixture path — tests + doctests — is unchanged).
-- `genetic_linguistic_correlation` derives **0 over the Pinakes-only corpus**
+- `genetic_linguistic_correlation` derives **0 over the pinakes-only corpus**
   (no genetics/haplogroup source → no `originates_from`/`spoken_in` edges). It is
   exercised on the bundled fixture, which carries ported `source: pinakes`
   genetics facts. Don't "fix" the 0 — it's a data property, not a bug.

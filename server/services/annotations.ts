@@ -27,11 +27,11 @@ import path from "path";
 // Types
 // ============================================================================
 
-/** A Pinakes entity reference — the same shape as the client `GraphEntityRef`. */
+/** A pinakes entity reference — the same shape as the client `GraphEntityRef`. */
 export interface AnnotationEntityRef {
   /** Canonical node type, e.g. `"language"`, `"culture"`, `"battle"`. */
   type: string;
-  /** Pinakes local id — the strong, stable signal. */
+  /** pinakes local id — the strong, stable signal. */
   id: string;
   /** Display name, denormalized so an annotation renders without re-fetching. */
   name?: string;

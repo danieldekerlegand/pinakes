@@ -219,7 +219,7 @@ describe("import-from-culturescrape / write-back (US-007)", () => {
     }
   });
 
-  it("preserves Pinakes-owned provenance columns (AC2): never written, never conflicted", () => {
+  it("preserves pinakes-owned provenance columns (AC2): never written, never conflicted", () => {
     const dir = fullFixture();
     try {
       const canon = exportTo(dir);

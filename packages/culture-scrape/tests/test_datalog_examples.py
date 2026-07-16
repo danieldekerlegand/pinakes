@@ -66,7 +66,7 @@ REQUIRED_BASE_FACTS = [
     Fact("derived_from", ("cs:invention:smartphone", "cs:invention:mobile-phone")),
     Fact("made_of", ("cs:clothing:kimono", "cs:material:silk")),
     Fact("made_of", ("cs:clothing:kimono", "cs:material:cotton")),
-    # Pinakes-origin facts the correlation examples query (source: pinakes).
+    # pinakes-origin facts the correlation examples query (source: pinakes).
     Fact("originates_from", ("cs:haplogroup:r1b", "cs:place:western-europe")),
     Fact("spoken_in", ("cs:language:proto-celtic", "cs:place:western-europe")),
     Fact("spoken_in", ("cs:language:gaulish", "cs:place:western-europe")),

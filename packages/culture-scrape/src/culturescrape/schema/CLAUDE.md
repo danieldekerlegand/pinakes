@@ -19,7 +19,7 @@ records into the canonical node/edge TSV family. Two paths:
 - **generic** — `map_records → anchor → reconcile → merge_rows (dedup) →
   categorize_rows`. Edges are *built from the merged nodes* by `categorize_rows`,
   so they always reference surviving csids.
-- **Pinakes export** (`_is_pinakes_export`, `source.params.adapter ==
+- **pinakes export** (`_is_pinakes_export`, `source.params.adapter ==
   "pinakes-export"`) — the records already ship canonical `:LABEL`/`csid`/
   `:TYPE`, so `_normalize_pinakes` only maps, splits nodes from edges, and
   dedups the nodes. **Its edges pre-exist**, so they do NOT automatically follow
@@ -29,7 +29,7 @@ records into the canonical node/edge TSV family. Two paths:
 
 `merge_rows` collapses duplicate nodes (same QID / Getty / `(name,lang,type)` /
 fuzzy name) to **one primary csid per cluster**, dropping the losers. In the
-Pinakes path an edge minted against a loser's csid would then **dangle** and
+pinakes path an edge minted against a loser's csid would then **dangle** and
 fail `validate` (breaking `neo4j-admin import` downstream) — this was a live-corpus
 bug: e.g. two languages named the same collapse, and every `BORROWED_FROM` pointing
 at the dropped csid orphaned. `_normalize_pinakes` therefore calls
@@ -42,16 +42,16 @@ pre-existing edges across a `merge_rows` call, redirect them the same way.**
 ## Gotcha: `PINAKES_EDGE_TYPE_MAP` must cover EVERY exported edge `:TYPE`
 
 `mapper.py`'s `PINAKES_EDGE_TYPE_MAP` (identity for the five registered tokens,
-folds for the Pinakes-specific ones — `ABSORBED_INTO→PART_OF`,
+folds for the pinakes-specific ones — `ABSORBED_INTO→PART_OF`,
 `SYNCRETIZED_WITH→VARIANT_OF`, `SPLIT_FROM→DESCENDS_FROM`) must list **every** edge
 `:TYPE` the TS export can emit, or `_normalize_pinakes` rejects the whole build
-(`unknown Pinakes edge :TYPE '<TOKEN>'`). The export's edge vocabulary lives on
+(`unknown pinakes edge :TYPE '<TOKEN>'`). The export's edge vocabulary lives on
 the TS side in `shared/canonical-schema.json` `edgeTypes[].type` — when a **new
 canonical edge type** is added there (US-005 found `SPLIT_FROM` had been added to the
 schema but never registered here, silently breaking the full rebuild since), add the
 matching token to this map: identity if it names a registered ontology `:TYPE`
 (`ontology/registry.py`), else fold onto the closest registered one. `SPLIT_FROM`
-folds onto `DESCENDS_FROM` — the same home Pinakes's `evolved-into`/`gave-rise-to`
+folds onto `DESCENDS_FROM` — the same home pinakes's `evolved-into`/`gave-rise-to`
 lineage edges already use; the direction is taken as-is from the source row
 (`:START_ID`=source_id=ancestor), matching those siblings. The fixture-only
 `test_convergence_build.py` won't catch a missing token if the fixture export lacks
@@ -217,7 +217,7 @@ maps a *dataset id* → SPDX; this maps an *SPDX id* → class. No I/O — unit-
 ## Reconciling an acquired corpus against a lexicon (`lexicon_reconcile.py`)
 
 `lexicon_reconcile.py` is the thin data layer that folds a domain acquired from
-Wikidata into the corpus without duplicating what Pinakes already curates — it
+Wikidata into the corpus without duplicating what pinakes already curates — it
 wraps `reconcile.reconcile_pinakes`'s offline cascade (it adds **no** matching
 logic). Used by `scripts/reconcile_civilizations.py` (the civilizations pilot, US-002).
 

@@ -140,7 +140,7 @@ class CorpusBuildError(RuntimeError):
 def corpus_qa_policy(job: Job, base: QaPolicy = DEFAULT_CORPUS_QA) -> QaPolicy:
     """The QA policy for *job*, applying its ``min_provenance_completeness`` override.
 
-    A job may relax the corpus provenance floor (e.g. a Pinakes-only corpus,
+    A job may relax the corpus provenance floor (e.g. a pinakes-only corpus,
     whose rows carry no external ``source_url``; see ``docs/convergence-build.md``);
     every other threshold and the ``fail_on_violation`` flag come from *base*.
     """

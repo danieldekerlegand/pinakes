@@ -1,6 +1,6 @@
-"""Tests for mapping Pinakes export records to canonical node/edge rows.
+"""Tests for mapping pinakes export records to canonical node/edge rows.
 
-The Pinakes adapter (``test_pinakes.py``) turns an export directory
+The pinakes adapter (``test_pinakes.py``) turns an export directory
 into :class:`RawRecord`\\ s that already carry the shared canonical shape; this
 module pins the *mapping* step that turns those records into canonical
 :class:`Row`\\ s: the deterministic ``csid`` (QID-anchored, else anchored on the
@@ -47,7 +47,7 @@ def _fixture_records() -> list[RawRecord]:
     spec = CategorySpec(
         id="pinakes",
         label="Entity",
-        description="the Pinakes export",
+        description="the pinakes export",
         source=SourceSpec(type="dump", query=str(FIXTURE_EXPORT), params={}),
         dimensions=("linguistic",),
         links=(),
@@ -300,11 +300,11 @@ def test_fixture_edges_round_trip_through_tsv(tmp_path: Path) -> None:
 
 
 def _lingua_category() -> CategorySpec:
-    """A category routed down the Pinakes export normalize path."""
+    """A category routed down the pinakes export normalize path."""
     return CategorySpec(
         id="pinakes-full",
         label="Entity",
-        description="the live Pinakes export",
+        description="the live pinakes export",
         source=SourceSpec(
             type="dump", query="unused", params={"adapter": "pinakes-export"}
         ),

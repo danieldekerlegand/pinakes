@@ -1,6 +1,6 @@
-"""Tests for the Pinakes canonical-export acquisition adapter.
+"""Tests for the pinakes canonical-export acquisition adapter.
 
-Pinakes exports its lexicons in the shared canonical shape — a directory of
+pinakes exports its lexicons in the shared canonical shape — a directory of
 typed Neo4j-import TSVs under ``nodes/`` and ``edges/`` (``docs/data-model.md``).
 These tests pin that the adapter turns that export into :class:`RawRecord`\\ s:
 the field mapping and the ``pinakes_id`` round-trip alias, the provenance
@@ -47,7 +47,7 @@ def _spec(query: str | None, params: Mapping[str, str] | None = None) -> Categor
     return CategorySpec(
         id="pinakes",
         label="Entity",
-        description="the Pinakes export",
+        description="the pinakes export",
         source=SourceSpec(type="dump", query=query, params=dict(params or {})),
         dimensions=("linguistic",),
         links=(),
@@ -231,7 +231,7 @@ def test_non_directory_root_is_rejected(tmp_path: Path) -> None:
 
 
 def test_a_directory_without_nodes_or_edges_is_rejected(tmp_path: Path) -> None:
-    with pytest.raises(PinakesExportError, match="is not a Pinakes export"):
+    with pytest.raises(PinakesExportError, match="is not a pinakes export"):
         _fetch(_spec(str(tmp_path)))
 
 

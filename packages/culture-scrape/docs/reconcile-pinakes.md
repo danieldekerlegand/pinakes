@@ -1,6 +1,6 @@
-# Reconciling the Pinakes export into culture-scrape
+# Reconciling the pinakes export into culture-scrape
 
-Pinakes exports its lexicons in the shared canonical shape (see
+pinakes exports its lexicons in the shared canonical shape (see
 `../../../docs/canonical-schema.md`, §7). This note describes how those rows flow through
 culture-scrape's reconcile step so the *same* real-world entity — a language, culture,
 deity, place — becomes **one** graph node across both datasets, and which side owns which
@@ -23,7 +23,7 @@ A merge that would unite two **different** non-empty `wikidata_qid` (or `getty_i
 *refused* — an explicit identifier conflict means the rows are distinct things, however
 alike their names.
 
-Because Pinakes rows ship no QID (steps 1–2 are inert on first ingest), the
+Because pinakes rows ship no QID (steps 1–2 are inert on first ingest), the
 `reconcile.reconcile_pinakes(incoming, existing)` entry point runs an **offline**
 form of the cascade over just steps 3–5 — no network, no live graph. For each incoming
 row it classifies against an index of the existing corpus:
@@ -39,16 +39,16 @@ row it classifies against an index of the existing corpus:
 
 Every emitted row records its decision under the `reconcile_local` overflow key.
 
-## What Pinakes ships (and what it does not)
+## What pinakes ships (and what it does not)
 
-Pinakes rows arrive with **no** `wikidata_qid` / `getty_id`, so steps 1–2 are inert on
+pinakes rows arrive with **no** `wikidata_qid` / `getty_id`, so steps 1–2 are inert on
 first ingest. Reconciliation therefore rests on:
 
 - **language codes** for `Language` nodes (`language_code`, plus the secondary code and any
   glottocode preserved as reconciliation keys), and
 - the normalized **`(name, type, region)`** blocking key for every other domain.
 
-Pinakes ships a **dry-run estimate** of how its export will land, produced *without*
+pinakes ships a **dry-run estimate** of how its export will land, produced *without*
 network or a live graph, so the ingest can be reviewed before it runs:
 
 - `scripts/reconciliation-report.ts` → `export/culturescrape/reconciliation/keys.tsv` +
@@ -59,7 +59,7 @@ network or a live graph, so the ingest can be reviewed before it runs:
 
 ## Feeding it in
 
-1. **Export + estimate** (Pinakes side):
+1. **Export + estimate** (pinakes side):
 
    ```bash
    npx tsx scripts/export-for-culturescrape.ts      # nodes/*.tsv + edges/*.tsv
@@ -69,7 +69,7 @@ network or a live graph, so the ingest can be reviewed before it runs:
 2. **Review the dry-run** — open `docs/reconciliation-report.json`. Triage the
    `ambiguities` list: each group is a set of exported nodes the reconciler cannot tell
    apart on name/code alone. Resolve them by supplying step-1/2 evidence (a `wikidata_qid`
-   or `getty_id`) upstream in the lexicons, *not* by loosening the match — Pinakes is
+   or `getty_id`) upstream in the lexicons, *not* by loosening the match — pinakes is
    authoritative for its own rows' identity anchors.
 
 3. **Ingest + reconcile** (culture-scrape side) — load the canonical node/edge TSVs through
@@ -83,24 +83,24 @@ network or a live graph, so the ingest can be reviewed before it runs:
 
 | Step | Owner | Notes |
 |------|-------|-------|
-| Emit reconciliation keys (codes, name/region) | **Pinakes** | `scripts/reconciliation-report.ts`; keys ride the export. |
-| Estimate matched / new / ambiguous | **Pinakes** | Dry-run, no network; for review only. |
+| Emit reconciliation keys (codes, name/region) | **pinakes** | `scripts/reconciliation-report.ts`; keys ride the export. |
+| Estimate matched / new / ambiguous | **pinakes** | Dry-run, no network; for review only. |
 | QID/Getty lookup + accept/reject | **culture-scrape** | `reconcile.py`; the system of record for identity. |
 | Cluster + merge duplicates | **culture-scrape** | `merge.py`; refuses identifier-conflicting merges. |
-| Resolve a flagged ambiguity | **human**, upstream in Pinakes lexicons | Add a `wikidata_qid`/`getty_id` anchor; never silently auto-merge. |
+| Resolve a flagged ambiguity | **human**, upstream in pinakes lexicons | Add a `wikidata_qid`/`getty_id` anchor; never silently auto-merge. |
 
 The dry-run never mutates the graph; it only tells you what the real reconcile step above is
 likely to do, so surprises surface in review rather than in Neo4j.
 
 ## Edges into the ontology (US-004)
 
-Pinakes edge rows are ingested as first-class canonical edges so they participate in
+pinakes edge rows are ingested as first-class canonical edges so they participate in
 cross-dimensional linking alongside native inferred edges:
 
 - **`:TYPE` is canonicalised at map time.** `map_pinakes_edge` translates the export's
   edge token through `PINAKES_EDGE_TYPE_MAP` (`schema/mapper.py`) to a **registered**
   ontology `:TYPE`. Five tokens map to themselves (`DESCENDS_FROM`, `INFLUENCED_BY`,
-  `BORROWED_FROM`, `COGNATE_WITH`, `DERIVED_FROM`); the three Pinakes-specific tokens fold
+  `BORROWED_FROM`, `COGNATE_WITH`, `DERIVED_FROM`); the three pinakes-specific tokens fold
   onto the closest canonical type — `ABSORBED_INTO → PART_OF` (transitive containment),
   `SYNCRETIZED_WITH → VARIANT_OF` (symmetric equivalence), and `SPLIT_FROM → DESCENDS_FROM`
   (genealogical divergence, the same home the `evolved-into`/`gave-rise-to` lineage edges
@@ -112,35 +112,35 @@ cross-dimensional linking alongside native inferred edges:
 - **Feed through the linker unchanged.** A mapped edge is a valid `Edge` row, so it is passed
   straight into `ontology.run.run_linkers(nodes, edges, ...)` as input; the linkers see it
   (e.g. the structural linker dedups against it) and inferred edges compose over it. Input
-  edges are never re-tagged, so a Pinakes edge keeps `source='pinakes'` while
+  edges are never re-tagged, so a pinakes edge keeps `source='pinakes'` while
   inferred ones get `source='inferred:<linker>'`.
 - **Report by type.** `ontology.metrics.pinakes_edges_by_type(edges)` (and the
-  `edges_by_type_for_source(edges, source)` it wraps) counts the Pinakes-origin edges by
+  `edges_by_type_for_source(edges, source)` it wraps) counts the pinakes-origin edges by
   canonical `:TYPE`, filtering on the `source` provenance so inferred/native edges are
   excluded.
 
 ## Convergence QA gate (US-007)
 
-Once Pinakes rows are merged into the corpus, `orchestrate/qa.py` guards against a
-Pinakes ingestion silently degrading it. The five base gates (row count, duplicate
+Once pinakes rows are merged into the corpus, `orchestrate/qa.py` guards against a
+pinakes ingestion silently degrading it. The five base gates (row count, duplicate
 rate, provenance completeness, dangling-edge rate, unreconciled rate) grade the whole
-dataset; four **Pinakes-scoped** gates are appended whenever the corpus actually
-contains Pinakes-origin rows (a native-only corpus keeps the five base gates
+dataset; four **pinakes-scoped** gates are appended whenever the corpus actually
+contains pinakes-origin rows (a native-only corpus keeps the five base gates
 unchanged):
 
-- **`pinakes_provenance_completeness`** (min) — fraction of Pinakes-origin rows
-  still carrying the `pinakes` source stamp. A row identified as Pinakes-origin
+- **`pinakes_provenance_completeness`** (min) — fraction of pinakes-origin rows
+  still carrying the `pinakes` source stamp. A row identified as pinakes-origin
   whose `source` no longer names it has lost its provenance in the merge.
 - **`pinakes_duplicate_rate`** (max) — post-dedup duplicate fraction among
-  Pinakes nodes (same strong identity key: `wikidata_qid` > `getty_id` > normalized
+  pinakes nodes (same strong identity key: `wikidata_qid` > `getty_id` > normalized
   name tuple).
-- **`pinakes_dangling_edge_rate`** (max) — fraction of Pinakes edges whose
-  endpoint names no known csid. Checked against **every** node, since a Pinakes edge
+- **`pinakes_dangling_edge_rate`** (max) — fraction of pinakes edges whose
+  endpoint names no known csid. Checked against **every** node, since a pinakes edge
   may legitimately point at a native node.
-- **`pinakes_unreconciled_rate`** (max) — fraction of Pinakes nodes merged to no
+- **`pinakes_unreconciled_rate`** (max) — fraction of pinakes nodes merged to no
   external-authority id. Permissive (`1.0`) by default; tighten it for a reconciling run.
 
-A row is **Pinakes-origin** if it retains a `pinakes_id` alias *or* a
+A row is **pinakes-origin** if it retains a `pinakes_id` alias *or* a
 `pinakes` token in its (possibly merge-concatenated `wikidata;pinakes`) `source`
 provenance — the identity survives a reconcile merge.
 
@@ -153,7 +153,7 @@ non-zero on any violation. Every QA run emits both a machine-readable JSON repor
 ## Reproducible build (US-008)
 
 The whole flow above is packaged as a one-command, offline, deterministic recipe:
-`culturescrape run jobs/pinakes.yml` (re)builds the Pinakes-inclusive corpus from
+`culturescrape run jobs/pinakes.yml` (re)builds the pinakes-inclusive corpus from
 the committed fixture export and generates its Neo4j + Datalog exports. A committed
 [`docs/convergence-manifest.json`](convergence-manifest.json) records the node/edge type
 counts and is asserted against a fresh build in CI. See
