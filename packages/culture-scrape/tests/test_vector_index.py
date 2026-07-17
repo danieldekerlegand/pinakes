@@ -41,6 +41,21 @@ def test_node_embedding_text_drops_blanks_and_trims() -> None:
     assert node_embedding_text("", "", "") == ""
 
 
+def test_node_embedding_text_includes_asset_transcript() -> None:
+    # An asset embeds its filename + caption (description) + transcript snippet
+    # (analyzer-bridge US-004), so a file is retrievable by what it says and shows.
+    text = node_embedding_text(
+        "beach_final.mp4",
+        "",
+        "Final graded travel montage",
+        "welcome to Athens, the coast at sunset",
+    )
+    assert text == (
+        "beach_final.mp4\nFinal graded travel montage\n"
+        "welcome to Athens, the coast at sunset"
+    )
+
+
 def test_vector_index_statement_is_idempotent_ddl() -> None:
     stmt = vector_index_statement(dimension=384)
     assert "CREATE VECTOR INDEX entity_embedding IF NOT EXISTS" in stmt
@@ -154,6 +169,42 @@ def test_read_node_texts_skips_textless_nodes() -> None:
         NodeText("cs:culture:sumer", "Sumer\nShumer\nciv"),
         NodeText("cs:place:uruk", "Uruk"),
     ]
+
+
+#: Asset nodes carrying caption (description) + ASR/OCR transcript text alongside
+#: an entity node with no transcript (analyzer-bridge US-004 GraphRAG coverage).
+ASSET_NODES = [
+    {
+        "csid": "cs:asset:beach",
+        "name": "beach_final.mp4",
+        "aliases": "",
+        "description": "Final graded travel montage",
+        "transcript": "welcome to Athens, the coast at sunset",
+    },
+    {
+        # An entity node has no transcript property — its embed text is unchanged.
+        "csid": "cs:place:athens",
+        "name": "Athens",
+        "aliases": "",
+        "description": "capital of Greece",
+    },
+]
+
+
+def test_read_node_texts_embeds_asset_caption_and_transcript() -> None:
+    driver = _FakeDriver(ASSET_NODES)
+    texts = read_node_texts(driver)  # type: ignore[arg-type]
+    assert texts == [
+        NodeText(
+            "cs:asset:beach",
+            "beach_final.mp4\nFinal graded travel montage\n"
+            "welcome to Athens, the coast at sunset",
+        ),
+        NodeText("cs:place:athens", "Athens\ncapital of Greece"),
+    ]
+    # The read pulls the transcript column so assets contribute their spoken text.
+    read = next(c for c in driver.calls if "MATCH (n:Entity)" in c.cypher)
+    assert "n.transcript AS transcript" in read.cypher
 
 
 def test_embed_nodes_batches_and_writes_vectors() -> None:

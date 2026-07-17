@@ -115,6 +115,8 @@ beforeEach(() => {
   process.env.NEO4J_URI = "bolt://localhost:7687";
   process.env.NEO4J_USER = "neo4j";
   process.env.NEO4J_PASSWORD = "test";
+  // Personal-tier gating defaults OFF (analyzer-bridge US-004); each test opts in.
+  delete process.env.PERSONAL_TIER_ENABLED;
 });
 
 afterEach(async () => {
@@ -379,6 +381,81 @@ describe("findPath", () => {
     await expect(graphStore.findPath("cs:a", "cs:b")).rejects.toBeInstanceOf(
       graphStore.GraphUnavailableError,
     );
+  });
+});
+
+// ── personal-tier gating (analyzer-bridge US-004) ───────────────────────────────
+
+describe("personal-tier gating", () => {
+  const asset = () =>
+    fakeNode("a1", ["Asset", "Entity"], {
+      csid: "cs:asset:aaa",
+      name: "beach.jpg",
+      source: "analyzer",
+    });
+  const place = () =>
+    fakeNode("p1", ["Place", "Entity"], {
+      csid: "cs:place:Q1524",
+      name: "Athens",
+      source: "pinakes",
+    });
+
+  it("does not surface a personal node by direct csid lookup when disabled", async () => {
+    mockState.runQueue = [{ records: [record({ n: asset() })] }];
+    expect(await graphStore.getNode("cs:asset:aaa")).toBeNull();
+  });
+
+  it("surfaces a personal node by csid lookup when the tier is enabled", async () => {
+    process.env.PERSONAL_TIER_ENABLED = "true";
+    mockState.runQueue = [{ records: [record({ n: asset() })] }];
+    const node = await graphStore.getNode("cs:asset:aaa");
+    expect(node?.csid).toBe("cs:asset:aaa");
+    expect(node?.labels).toContain("Asset");
+  });
+
+  it("filters personal nodes out of getNodesByLabel when disabled", async () => {
+    mockState.runQueue = [
+      { records: [record({ n: place() }), record({ n: asset() })] },
+    ];
+    const nodes = await graphStore.getNodesByLabel("Entity");
+    expect(nodes.map((n) => n.csid)).toEqual(["cs:place:Q1524"]);
+  });
+
+  it("drops personal nodes and their edges from the overview when disabled", async () => {
+    mockState.runQueue = [
+      {
+        records: [
+          record({
+            nodes: [place(), asset()],
+            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "analyzer" })],
+          }),
+        ],
+      },
+    ];
+    const snapshot = await graphStore.getGraphOverview(10);
+    expect(snapshot.nodes.map((n) => n.csid)).toEqual(["cs:place:Q1524"]);
+    // The DEPICTS edge touched the dropped asset, so it is pruned too.
+    expect(snapshot.edges).toEqual([]);
+  });
+
+  it("keeps personal nodes and edges in the overview when enabled", async () => {
+    process.env.PERSONAL_TIER_ENABLED = "1";
+    mockState.runQueue = [
+      {
+        records: [
+          record({
+            nodes: [place(), asset()],
+            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "analyzer" })],
+          }),
+        ],
+      },
+    ];
+    const snapshot = await graphStore.getGraphOverview(10);
+    expect(snapshot.nodes.map((n) => n.csid).sort()).toEqual([
+      "cs:asset:aaa",
+      "cs:place:Q1524",
+    ]);
+    expect(snapshot.edges).toHaveLength(1);
   });
 });
 

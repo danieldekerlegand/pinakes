@@ -23,7 +23,7 @@ renders to the same atom, so the projection is idempotent.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from pathlib import Path
 
 from culturescrape.datalog import Atom, DatalogError, Fact
@@ -125,17 +125,27 @@ def node_facts(columns: Sequence[Column], row: Row) -> list[Fact]:
     return facts
 
 
-def node_file_facts(path: str | Path) -> Iterator[Fact]:
+def node_file_facts(
+    path: str | Path, *, keep_row: Callable[[Row], bool] | None = None
+) -> Iterator[Fact]:
     """Stream a node TSV file at *path*, projecting each row to facts.
 
     The header is validated as a node schema (``:ID``, ``:LABEL``, ``name``)
     before any row is read, so a malformed file fails fast rather than emitting
     ill-typed facts. Rows are read one at a time (:func:`open_rows`) and their
     facts yielded lazily, so a dump-scale file never lands whole in memory.
+
+    When *keep_row* is given, only rows for which it returns ``True`` are
+    projected — the row-level filter the tier-scoped export uses to include or
+    exclude a trust tier (a personal-tier row is dropped from the public program
+    and kept in the ``--tier personal`` one). ``None`` keeps every row, so the
+    default projection is unchanged.
     """
     columns, rows = open_rows(path)
     schema = NodeSchema(tuple(columns))
     for row in rows:
+        if keep_row is not None and not keep_row(row):
+            continue
         yield from node_facts(schema.columns, row)
 
 

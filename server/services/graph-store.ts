@@ -22,6 +22,11 @@ import neo4j, {
   type Relationship as Neo4jRelationship,
   type QueryResult,
 } from "neo4j-driver";
+import {
+  filterPersonalNodes,
+  isPersonalNode,
+  isPersonalTierEnabled,
+} from "./personal-tier";
 
 // ── Public result types (validated at the driver boundary) ──────────────────
 
@@ -296,7 +301,29 @@ async function runRead(
 // ── Public queries ──────────────────────────────────────────────────────────
 
 /**
- * Look up a single node by its `csid`. Returns `null` when no such node exists.
+ * Drop personal-tier (Analyzer) nodes and any edge touching one, unless the
+ * `PERSONAL_TIER_ENABLED` flag is set (analyzer-bridge US-004). The proxy surfaces
+ * personal media facts only when the operator opts in; by default they stay
+ * local-only. A no-op when the flag is on or the graph holds no personal node.
+ */
+function gatePersonal(nodes: GraphNode[], edges: GraphEdge[]): {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+} {
+  const enabled = isPersonalTierEnabled();
+  const keptNodes = filterPersonalNodes(nodes, enabled);
+  if (keptNodes.length === nodes.length) return { nodes, edges };
+  const keptCsids = new Set(keptNodes.map((n) => n.csid));
+  const keptEdges = edges.filter(
+    (e) => keptCsids.has(e.startCsid) && keptCsids.has(e.endCsid),
+  );
+  return { nodes: keptNodes, edges: keptEdges };
+}
+
+/**
+ * Look up a single node by its `csid`. Returns `null` when no such node exists,
+ * or when it is a personal-tier node and the tier is not enabled (the proxy does
+ * not surface a personal file by direct csid lookup either).
  * @throws {GraphUnavailableError} when Neo4j cannot be reached.
  */
 export async function getNode(csid: string): Promise<GraphNode | null> {
@@ -306,7 +333,9 @@ export async function getNode(csid: string): Promise<GraphNode | null> {
   );
   const record = result.records[0];
   if (!record) return null;
-  return projectNode(record.get("n") as Neo4jNode);
+  const node = projectNode(record.get("n") as Neo4jNode);
+  if (!isPersonalTierEnabled() && isPersonalNode(node)) return null;
+  return node;
 }
 
 /**
@@ -325,7 +354,10 @@ export async function getNodesByLabel(label: string): Promise<GraphNode[]> {
     throw new GraphUnavailableError(`invalid node label: ${label}`);
   }
   const result = await runRead(`MATCH (n:${label}) RETURN n`, {});
-  return result.records.map((record) => projectNode(record.get("n") as Neo4jNode));
+  const nodes = result.records.map((record) =>
+    projectNode(record.get("n") as Neo4jNode),
+  );
+  return filterPersonalNodes(nodes, isPersonalTierEnabled());
 }
 
 /** Clamp a requested overview node cap into the supported 1..MAX range. */
@@ -389,7 +421,7 @@ function buildSnapshot(result: QueryResult): GraphSnapshot {
     }
   }
 
-  return { nodes, edges: Array.from(edgesById.values()) };
+  return gatePersonal(nodes, Array.from(edgesById.values()));
 }
 
 /** Clamp a requested traversal depth into the supported 1..3 range. */
@@ -480,10 +512,15 @@ function buildNeighborhood(result: QueryResult, depth: number): Neighborhood | n
     }
   }
 
+  const root = projectNode(focus);
+  // The proxy does not surface a personal file's neighborhood by direct lookup
+  // unless the tier is enabled.
+  if (!isPersonalTierEnabled() && isPersonalNode(root)) return null;
+  const gated = gatePersonal(nodes, Array.from(edgesById.values()));
   return {
-    root: projectNode(focus),
-    nodes,
-    edges: Array.from(edgesById.values()),
+    root,
+    nodes: gated.nodes,
+    edges: gated.edges,
     depth,
   };
 }
@@ -519,16 +556,21 @@ export async function getCorrelations(
     ORDER BY coalesce(r.weight, 0) DESC, other.name ASC
   `;
   const result = await runRead(cypher, { csid });
-  return result.records.map((record) => {
+  const enabled = isPersonalTierEnabled();
+  const correlations: Correlation[] = [];
+  for (const record of result.records) {
     const node = projectNode(record.get("other") as Neo4jNode);
+    // A correlated personal-tier node is not surfaced unless the tier is enabled.
+    if (!enabled && isPersonalNode(node)) continue;
     const rawWeight = coerceValue(record.get("weight"));
     const weight = typeof rawWeight === "number" ? rawWeight : undefined;
-    return {
+    correlations.push({
       node,
       relationship: record.get("relType") as string,
       ...(weight !== undefined ? { weight } : {}),
-    };
-  });
+    });
+  }
+  return correlations;
 }
 
 /** Clamp a requested shortest-path length into the supported 1..MAX range. */
@@ -576,6 +618,10 @@ function buildPath(result: QueryResult): GraphPath | null {
     csidByElementId.set(n.elementId, projected.csid);
     nodes.push(projected);
   }
+
+  // A shortest path that traverses a personal-tier node is not surfaced unless
+  // the tier is enabled — a partial path would misrepresent the connection.
+  if (!isPersonalTierEnabled() && nodes.some(isPersonalNode)) return null;
 
   const rawRels = ((record.get("pathRels") as Neo4jRelationship[]) ?? []).filter(Boolean);
   const edges = rawRels.map((rel) => projectEdge(rel, csidByElementId));

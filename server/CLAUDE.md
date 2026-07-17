@@ -879,6 +879,24 @@ privacy guarantee; the server only enriches non-identifying ids.
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 
+## Personal-tier gating in the graph proxy — `services/personal-tier.ts` (analyzer-bridge US-004)
+
+The Analyzer bridge can load a user's own files into the shared graph as a **personal tier**
+(`:Asset` nodes, `source=analyzer`). The privacy invariant: they are local-only and must not
+surface through the browser-facing graph proxy unless the operator opts in.
+
+- **`personal-tier.ts` is pure** (`isPersonalTierEnabled(env)` — env flag `PERSONAL_TIER_ENABLED`,
+  **off by default**, same shape as `isGraphCorrelationEnabled`; `isPersonalNode({labels,
+  properties})` — `Asset` label OR a `source=analyzer` token, handling merged `pinakes;analyzer`;
+  `filterPersonalNodes(nodes, enabled)`). Unit-tested in `personal-tier.test.ts`.
+- **`graph-store.ts` applies it post-projection** at every node-surfacing query — `getNode`
+  (→ null when personal & disabled), `getNodesByLabel`, `getGraphOverview`/`getNeighborhood`
+  (via `gatePersonal`, which also **prunes edges** touching a dropped node), `getCorrelations`,
+  and `findPath` (→ null if the path traverses a personal node). This is a filter, NOT a Cypher
+  rewrite, so no query-shape test moved and a corpus with no personal node is unaffected.
+  `graph-store.test.ts` `beforeEach` now `delete`s `PERSONAL_TIER_ENABLED` (default off); the
+  gating `describe` opts in per-test.
+
 ## Migrating a correlation to the graph — `services/cross-domain-correlation-graph.ts`
 
 US-007 is the template for retiring a bespoke in-memory TS join in favor of the shared

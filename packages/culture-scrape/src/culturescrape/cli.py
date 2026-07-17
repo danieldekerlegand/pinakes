@@ -42,12 +42,15 @@ from culturescrape.acquire.wikidata_slice import (
 )
 from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
+    PERSONAL_TIER,
     DatalogExportError,
     Engine,
     collect_facts,
     engines_for_choice,
     export_dataset,
+    tier_row_filter,
 )
+from culturescrape.datalog.file_web import FILE_WEB_RULES
 from culturescrape.datalog.materialize import MaterializeError, summarize
 from culturescrape.datalog.registry import (
     REGISTRY_TSV,
@@ -425,6 +428,17 @@ def _build_parser() -> argparse.ArgumentParser:
         "Loads the P279 taxonomy the integrity rules negate over.",
     )
     to_datalog.add_argument(
+        "--tier",
+        choices=["personal"],
+        default=None,
+        help="scope the program to a trust tier. Default (omitted): the PUBLIC "
+        "program — personal-tier (source=analyzer) rows are filtered out, so a corpus "
+        "that has ingested Analyzer file-facts still exports a release-safe program. "
+        "'personal': the LOCAL-ONLY file web (asset nodes + grounding edges), with "
+        "the file-web reasoning rules (derived_from lineage + refers_to/co_refers) "
+        "attached. Personal-tier data is never emitted by default.",
+    )
+    to_datalog.add_argument(
         "--out",
         required=True,
         type=Path,
@@ -447,6 +461,16 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help="write the base/derived count manifest to this path as JSON",
+    )
+    datalog_materialize.add_argument(
+        "--tier",
+        choices=["personal"],
+        default=None,
+        help="scope the materialisation to a trust tier. Default: the public "
+        "corpus with the shared inference rules. 'personal': materialise the "
+        "file-web rules (derived_from lineage + refers_to/co_refers) over the "
+        "LOCAL-ONLY personal (source=analyzer) subgraph — the engine-free proof that "
+        "the ingested file web answers lineage and cross-file queries.",
     )
     datalog_materialize.add_argument(
         "--exclude",
@@ -1286,11 +1310,14 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
             include_rules=args.rules,
             include_constraints=args.constraints,
             include_schema_constraints=args.schema_constraints,
+            tier=args.tier,
         )
     except DatalogExportError as exc:
         return _fail(str(exc))
 
     notes = []
+    if args.tier:
+        notes.append(f"tier={args.tier}")
     if args.rules:
         notes.append("rules")
     if args.constraints:
@@ -1310,19 +1337,27 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
 
 def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
     exclude = tuple(args.exclude or ())
-    known_heads = {rule.name for rule in RULES}
+    # The personal tier materialises the file-web rules over the local-only
+    # source=analyzer subgraph; the default materialises the shared library over the
+    # public corpus.
+    rule_library = FILE_WEB_RULES if args.tier == PERSONAL_TIER else RULES
+    known_heads = {rule.name for rule in rule_library}
     unknown = [name for name in exclude if name not in known_heads]
     if unknown:
         return _fail(
             f"--exclude names unknown rule head(s): {', '.join(sorted(unknown))} "
             f"(known: {', '.join(sorted(known_heads))})"
         )
-    rules = tuple(rule for rule in RULES if rule.name not in exclude)
+    rules = tuple(rule for rule in rule_library if rule.name not in exclude)
 
     try:
+        keep_row = tier_row_filter(args.tier)
         # Include the P279 taxonomy so the instance_of closure rule has its
         # subclass_of base relation (mirrors export_dataset's rule-bearing path).
-        facts = collect_facts(args.directory, include_taxonomy=True)
+        # The file-web rules read no taxonomy, but including it is harmless.
+        facts = collect_facts(
+            args.directory, include_taxonomy=True, keep_row=keep_row
+        )
         summary = summarize(facts, rules)
     except (DatalogExportError, MaterializeError) as exc:
         return _fail(str(exc))

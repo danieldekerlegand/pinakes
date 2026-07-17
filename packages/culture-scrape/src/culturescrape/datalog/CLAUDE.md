@@ -305,6 +305,33 @@ have (`source`/`source_url`/`retrieved_at`/`confidence`/`version`/`status` per r
   (`constraints/rules_registry.tsv`, `schema/rules_registry.tsv`) still exist as each
   layer's own artifact — the unified registry is the governance aggregate over them.
 
+## Tier-scoped export + the file-web rules (analyzer-bridge US-004)
+
+`to-datalog`/`datalog-materialize` take `--tier personal`; `export_dataset(...,
+tier=...)` and `collect_facts(..., keep_row=...)` implement it.
+
+- **The tier filter is a per-row `keep_row` predicate**, threaded through
+  `node_file_facts`/`edge_file_facts` (both gained a `keep_row=` kwarg) → `_DatasetFacts`
+  → `collect_facts` → `collect_problog_facts`. `export.tier_row_filter(tier)` builds it:
+  `None` → **drop** personal rows (the PUBLIC program — the containment gate; a
+  `source=analyzer` row never reaches the default `.pl`/`.dl`), `"personal"` → **keep only**
+  personal rows. It imports `orchestrate.tiers.is_personal_source` **lazily** (orchestrate
+  imports datalog.export, so a top-level import would risk a cycle) and reads the single
+  `PERSONAL_SOURCES` set — never hard-code `"analyzer"`.
+- **`FILE_WEB_RULES` (`datalog/file_web.py`) are DELIBERATELY NOT in `RULES`.** They ride
+  only with `--tier personal`, so the public program and every count pinned against the
+  shared library (`test_datalog_rules.py`, the materialization manifest, the rules
+  registry) are byte-for-byte unchanged. `test_datalog_rules.py::set(RULES)==named` and
+  `build_registry()` only see `rules.py`, so a new file-web rule adds no lockstep there.
+  Their tests live in `test_datalog_file_web.py` (materialise engine-free + swipl/souffle
+  smoke over the committed `tests/fixtures/file-web` web).
+- The three rules: `derived_from_transitively` (PURE `derived_from` closure — recursive, so
+  auto-tabled; distinct from `influenced_transitively` which also folds in `influenced_by`),
+  `refers_to` (`depicts`∪`mentions`), `co_refers` (two assets sharing a referent —
+  reflexive/symmetric like `same_region`). All positive Horn ⇒ the materialiser derives them.
+- Existing corpora carry no `source=analyzer` rows, so the default-drops-personal filter is a
+  no-op there ⇒ nothing pinned moved. Docs: `docs/personal-tier-file-web.md`.
+
 ## Adding an inference rule
 
 Append a `Rule(...)` constant and add it to `RULES` in `rules.py` (also its

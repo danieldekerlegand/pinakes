@@ -27,7 +27,7 @@ Every fact carries the row's ``source`` as provenance, mirroring node facts.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 from culturescrape.datalog import DatalogError, Fact
@@ -115,17 +115,26 @@ def edge_facts(row: Row) -> list[Fact]:
     return facts
 
 
-def edge_file_facts(path: str | Path) -> Iterator[Fact]:
+def edge_file_facts(
+    path: str | Path, *, keep_row: Callable[[Row], bool] | None = None
+) -> Iterator[Fact]:
     """Stream an edge TSV file at *path*, projecting each row to facts.
 
     The header is validated as an edge schema (``:START_ID``, ``:END_ID``,
     ``:TYPE``) before any row is read, so a malformed file fails fast rather than
     emitting ill-typed facts. Rows are read one at a time (:func:`open_rows`) and
     their facts yielded lazily, so a dump-scale file never lands whole in memory.
+
+    When *keep_row* is given, only rows for which it returns ``True`` are
+    projected — the row-level filter the tier-scoped export uses to keep or drop a
+    trust tier (the ``source=analyzer`` grounding edges are dropped from the public
+    program and kept in the ``--tier personal`` one). ``None`` keeps every row.
     """
     columns, rows = open_rows(path)
     EdgeSchema(tuple(columns))  # validate the header; raises on a malformed file
     for row in rows:
+        if keep_row is not None and not keep_row(row):
+            continue
         yield from edge_facts(row)
 
 

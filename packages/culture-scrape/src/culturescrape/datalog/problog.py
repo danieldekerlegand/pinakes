@@ -36,7 +36,7 @@ tests); :func:`write_problog_program` streams the byte-identical bytes to a path
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO
@@ -46,7 +46,7 @@ from culturescrape.datalog.edges import edge_facts
 from culturescrape.datalog.nodes import node_file_facts
 from culturescrape.datalog.rules import ARITY, Rule, render_rule
 from culturescrape.schema.headers import EdgeSchema
-from culturescrape.schema.tsvio import open_rows
+from culturescrape.schema.tsvio import Row, open_rows
 
 #: Filename of the generated ProbLog program inside the output directory. It is
 #: deliberately distinct from the SWI-Prolog ``graph.pl`` so both dialects can be
@@ -172,18 +172,22 @@ def annotate_edge_group(facts: Iterable[Fact]) -> list[AnnotatedFact]:
     return annotated
 
 
-def _problog_edge_file_facts(path: str | Path) -> Iterator[AnnotatedFact]:
+def _problog_edge_file_facts(
+    path: str | Path, *, keep_row: Callable[[Row], bool] | None = None
+) -> Iterator[AnnotatedFact]:
     """Stream an edge TSV file, projecting each row to annotated facts.
 
     Mirrors :func:`~culturescrape.datalog.edge_file_facts` but groups each row's
     facts so the edge's confidence can be lifted onto its relation facts
     (:func:`annotate_edge_group`). The header is validated as an edge schema
     before any row is read, and rows are read one at a time, so a dump-scale file
-    never lands whole in memory.
+    never lands whole in memory. *keep_row* is the tier scope (``None`` keeps all).
     """
     columns, rows = open_rows(path)
     EdgeSchema(tuple(columns))  # validate the header; raises on a malformed file
     for row in rows:
+        if keep_row is not None and not keep_row(row):
+            continue
         yield from annotate_edge_group(edge_facts(row))
 
 
@@ -199,22 +203,26 @@ class _ProblogDatasetFacts:
 
     node_files: tuple[Path, ...]
     edge_files: tuple[Path, ...]
+    keep_row: Callable[[Row], bool] | None = None
 
     def __iter__(self) -> Iterator[AnnotatedFact]:
         for path in self.node_files:
-            for fact in node_file_facts(path):
+            for fact in node_file_facts(path, keep_row=self.keep_row):
                 yield AnnotatedFact(fact, None)
         for path in self.edge_files:
-            yield from _problog_edge_file_facts(path)
+            yield from _problog_edge_file_facts(path, keep_row=self.keep_row)
 
 
-def collect_problog_facts(directory: str | Path) -> _ProblogDatasetFacts:
+def collect_problog_facts(
+    directory: str | Path, *, keep_row: Callable[[Row], bool] | None = None
+) -> _ProblogDatasetFacts:
     """Project every node and edge row under *directory* into annotated facts.
 
     Reuses :func:`~culturescrape.datalog.export.collect_facts` for discovery and
     validation (so a bad dataset fails on the call, not mid-iteration) and returns
     a re-iterable :class:`_ProblogDatasetFacts` whose edge facts carry their
-    edge's confidence as a ProbLog probability.
+    edge's confidence as a ProbLog probability. *keep_row* is the tier scope
+    (:func:`~culturescrape.datalog.export.tier_row_filter`; ``None`` keeps all).
 
     Raises:
         DatalogExportError: If *directory* is not a directory or holds no
@@ -222,8 +230,10 @@ def collect_problog_facts(directory: str | Path) -> _ProblogDatasetFacts:
     """
     from culturescrape.datalog.export import collect_facts
 
-    dataset = collect_facts(directory)
-    return _ProblogDatasetFacts(dataset.node_files, dataset.edge_files)
+    dataset = collect_facts(directory, keep_row=keep_row)
+    return _ProblogDatasetFacts(
+        dataset.node_files, dataset.edge_files, keep_row=keep_row
+    )
 
 
 def _base_predicate_stubs(rules: list[Rule]) -> list[str]:
