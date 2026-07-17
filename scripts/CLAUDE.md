@@ -118,6 +118,40 @@ non-empty data (`npm run smoke:graph`, docs in
   directly). Default stays the demo fixture so a bare `docker compose up` still
   starts when no export has been built.
 
+## Entity-grounding snapshot (analyzer-bridge US-002)
+
+`export-entity-grounding.ts` emits a compact, license-filtered JSON snapshot of canonical
+**entities + reconciliation keys** that Analyzer's enrichment step consumes offline to ground
+per-file facts (the media-bridge mapping spec §4.2). Same pure-builder shape as the canonical export:
+`buildEntityGrounding(lexiconsDir, {licenseClasses, domains})` reads the node lexicons (via
+`nodeFiles()`), and `snapshotEnvelope`/`writeSnapshot`/`runExport` do the wrapping + fs side.
+Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored). Run with
+`npm run entity-grounding` (`--license-classes CC0,CC-BY` default, `--domains language,culture`,
+`--out <dir>`, `--emit-fixture`).
+
+- **Reuses the export/reconciliation helpers** — `mintCsid` (QID-anchored csid + csid dedup),
+  `normaliseConfidence`, `licenseForSource`, `deriveSourceUrl`, `parseCitation`, `EXPORT_SOURCE`
+  from `export-for-culturescrape.ts`, and `normalizeKey`/`normalizeQid` from `reconciliation-report.ts`.
+  Don't re-implement id minting / license resolution — import them so the snapshot stays consistent
+  with the TSV export (same csids, same `source=pinakes → CC-BY-4.0` default).
+- **Size-conscious: keys + names only.** Each record is `{csid, entityType, name, aliases,
+  reconciliation:{wikidataQid, normalizedName, iso639_1?/iso639_2?/glottocode? (languages only,
+  omitted when blank)}, provenance:{source, sourceUrl, retrievedAt, confidence}, license}`.
+  **Never add `description`/bulk fields** — a test asserts the record key set. Language codes are
+  read by raw header name (`iso639_1`/`iso639_2`/`/glotto/`), NOT via the canonical mapping (they map
+  to `language_code`/property, not distinct canonical fields).
+- **License filtering is by *class*** (family, version-independent — `licenseClass("CC-BY-4.0")==="CC-BY"`,
+  `"CC0-1.0"→"CC0"`). Default classes `CC0`+`CC-BY` **exclude** share-alike (`CC-BY-SA-*`). A row-level
+  `license` column wins over the source default (mirrors culture-scrape's adapter), so a future
+  mixed-license corpus grounds with genuine per-record licenses; today every real row is `CC-BY-4.0`.
+- **Determinism:** entities are csid-sorted, carry no wall-clock; two builds are byte-identical
+  **modulo the envelope `generatedAt`** (the sole non-deterministic field — the pure builder never
+  stamps it, `runExport` does via `new Date().toISOString()`). The committed **fixture** snapshot
+  (`scripts/data/entity-grounding-snapshot.json`, built from `scripts/data/entity-grounding-fixture/`
+  with a pinned `FIXTURE_GENERATED_AT`) is asserted in-sync by a test — regenerate with
+  `npm run entity-grounding -- --emit-fixture` after any shape change. No committed *live* snapshot
+  (6708 entities — too big; the fixture pins the shape instead).
+
 ## Canonical export (US-004)
 
 `export-for-culturescrape.ts` emits `export/culturescrape/{nodes,edges}/<type>.tsv`

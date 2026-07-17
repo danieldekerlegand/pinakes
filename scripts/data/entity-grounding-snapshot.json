@@ -1,0 +1,73 @@
+{
+  "contractVersion": "1.0.0",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "source": "pinakes",
+  "licenseClasses": [
+    "CC0",
+    "CC-BY"
+  ],
+  "domains": [],
+  "count": 3,
+  "entities": [
+    {
+      "csid": "cs:culture:Q35355",
+      "entityType": "culture",
+      "name": "Sumer",
+      "aliases": [
+        "Sumeria",
+        "Šumeru"
+      ],
+      "reconciliation": {
+        "wikidataQid": "Q35355",
+        "normalizedName": "sumer"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "https://www.wikidata.org/wiki/Q35355",
+        "retrievedAt": "2026-01-02",
+        "confidence": 0.95
+      },
+      "license": "CC-BY-4.0"
+    },
+    {
+      "csid": "cs:language:Q150",
+      "entityType": "language",
+      "name": "French",
+      "aliases": [
+        "français"
+      ],
+      "reconciliation": {
+        "wikidataQid": "Q150",
+        "normalizedName": "french",
+        "iso639_1": "fr",
+        "iso639_2": "fra",
+        "glottocode": "stan1290"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "https://www.wikidata.org/wiki/Q150",
+        "retrievedAt": "2026-01-01",
+        "confidence": 0.9
+      },
+      "license": "CC-BY-4.0"
+    },
+    {
+      "csid": "cs:language:xx",
+      "entityType": "language",
+      "name": "Testish",
+      "aliases": [],
+      "reconciliation": {
+        "wikidataQid": "",
+        "normalizedName": "testish",
+        "iso639_1": "xx"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "",
+        "retrievedAt": "",
+        "confidence": 0.8
+      },
+      "license": "CC0-1.0"
+    }
+  ]
+}

@@ -9,6 +9,7 @@
     "sidecar:up": "docker compose up -d --build culturescrape neo4j",
     "sidecar:down": "docker compose stop culturescrape neo4j",
     "smoke:graph": "tsx scripts/smoke-graph.ts",
+    "entity-grounding": "tsx scripts/export-entity-grounding.ts",
     "convergence-qa": "tsx scripts/convergence-qa.ts",
     "convergence-qa:baseline": "tsx scripts/convergence-qa.ts --write-baseline",
     "test:e2e": "playwright test",
