@@ -63,15 +63,21 @@ describe("predicate-mapping registry", () => {
     }
   });
 
-  it("resolves non-pending canonical types against the live schema (totality)", () => {
+  it("resolves the now-landed canonical types against the live schema (totality)", () => {
     // derived-from (edge) is an EXISTING canonical type carried non-pending.
     const derivedFrom = relationsForProject("analyzer").find((r) => r.id === 7);
     expect(derivedFrom?.pending).toBe(false);
     expect(derivedFrom?.canonicalType).toBe("derived-from");
-    // asset / depicts are v1.3 additions carried as pending.
+    // asset / depicts / mentions landed in canonical schema v1.2 (analyzer-bridge US-003),
+    // so their relations are now non-pending and resolve against the live schema.
     const shows = relationsForProject("analyzer").find((r) => r.id === 2);
-    expect(shows?.pending).toBe(true);
+    expect(shows?.pending).toBe(false);
     expect(shows?.canonicalType).toBe("depicts");
+    const refersTo = relationsForProject("analyzer").find((r) => r.id === 8);
+    expect(refersTo?.pending).toBe(false);
+    expect(refersTo?.canonicalTypes).toEqual(["depicts", "mentions"]);
+    // Nothing remains pending now that the v1.2 additions have landed.
+    expect(relationsForProject("analyzer").every((r) => !r.pending)).toBe(true);
   });
 
   it("rejects a relation whose non-pending canonical type does not resolve", () => {
@@ -84,21 +90,18 @@ describe("predicate-mapping registry", () => {
   it("rejects a pending relation whose canonical type already resolves (stale flag)", () => {
     const bad = cloneRegistry();
     const rel = bad.projects.analyzer.relations.find((r) => r.id === 2) as RelationMapping;
-    // Point a pending relation at an existing canonical edge — the flag is now stale.
-    (rel as { canonicalType: string }).canonicalType = "located-in";
+    // depicts now resolves in the v1.2 schema, so marking its relation pending is stale.
+    (rel as { pending: boolean }).pending = true;
     expect(() => assertValidPredicateMapping(bad)).toThrow(/flip pending to false/i);
   });
 
   it("rejects a pending canonical type not declared in pendingSchemaAdditions", () => {
     const bad = cloneRegistry();
-    // Keep `asset` declared (the sha256: id-space needs it) but drop the pending
-    // edge types, so a pending `depicts`/`mentions` relation trips the relation check.
-    bad.projects.analyzer.pendingSchemaAdditions = {
-      targetVersion: "1.3.0",
-      note: "x",
-      nodeTypes: ["asset"],
-      edgeTypes: [],
-    };
+    const rel = bad.projects.analyzer.relations.find((r) => r.id === 2) as RelationMapping;
+    // A relation pending on a type that neither resolves nor is a declared addition
+    // (pendingSchemaAdditions is now empty) trips the relation check.
+    (rel as { pending: boolean }).pending = true;
+    (rel as { canonicalType: string }).canonicalType = "not-yet-a-real-edge";
     expect(() => assertValidPredicateMapping(bad)).toThrow(/not listed in pendingSchemaAdditions/i);
   });
 

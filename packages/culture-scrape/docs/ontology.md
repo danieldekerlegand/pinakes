@@ -164,6 +164,20 @@ node **already in the set** (a miss is skipped, never stubbed).
 | `PART_OF` | entity → entity | | ✔ | A `part of` reference (`part_of_qid`, Wikidata `P361`) resolving to an in-set node; the rules layer materialises the `component_of/2` transitive closure. | `test_ontology_structural.py::test_part_of_reference_becomes_part_of_edge` |
 | `USES` | entity → entity | | | A `uses` reference (`uses_qid`, Wikidata `P2283`) resolving to an in-set node — the instrument, material, or technique the entity uses. | `test_ontology_structural.py::test_uses_reference_becomes_uses_edge` |
 
+### Personal media — the Analyzer bridge (canonical schema v1.2, analyzer-bridge US-003)
+
+Ingested, not linker-inferred: Analyzer's `to_canonical` projection emits these edges from
+content-addressed `asset` nodes (the `sha256:` id-space) over the user's own files, and
+the `analyzer` acquisition adapter carries them verbatim into the **personal trust tier**
+(local-only — hard-gated out of every non-personal export/release; see
+[`the media-bridge mapping spec`](../../../the media-bridge mapping spec) and
+[`shared/predicate-mapping.json`](../../../shared/predicate-mapping.json) `projects.analyzer`).
+
+| `:TYPE` | dom → rng | sym | trans | Inference rule | Test |
+|---|---|:--:|:--:|---|---|
+| `DEPICTS` | asset → entity | | | *Ingested* — an asset visually depicts a canonical entity (Analyzer vision caption / detected object); the entity is resolved by csid (`refers_to` grounding), never duplicated. | `test_argos.py::test_edges_keep_their_type_and_endpoints_verbatim` |
+| `MENTIONS` | asset → entity | | | *Ingested* — an asset textually mentions a canonical entity (Analyzer transcript / text ingest); resolved by csid. | `test_argos.py::test_edges_keep_their_type_and_endpoints_verbatim` |
+
 ### Reserved types
 
 `NAMED_IN`, `SUBCLASS_OF`, `CREATED_BY`, and `MADE_OF` are part of the vocabulary so

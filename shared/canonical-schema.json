@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "title": "culture-scrape ↔ pinakes canonical node/edge schema",
   "description": "The single canonical data contract both projects target. Node and edge column contracts mirror culture-scrape's typed Neo4j-import headers (packages/culture-scrape/src/culturescrape/schema/headers.py) so pinakes exports are import-compatible without transformation. See docs/canonical-schema.md for the prose specification and the per-lexicon mapping table.",
   "delimiter": "\t",
@@ -85,7 +85,8 @@
     { "name": "trade-good", "label": "TradeGood", "description": "A commodity moved along trade networks." },
     { "name": "battle", "label": "Battle", "description": "A military engagement or conflict event." },
     { "name": "place", "label": "Place", "description": "A geographic place, settlement, or site." },
-    { "name": "migration-route", "label": "MigrationRoute", "description": "A route of human or cultural migration." }
+    { "name": "migration-route", "label": "MigrationRoute", "description": "A route of human or cultural migration." },
+    { "name": "asset", "label": "Asset", "description": "A content-addressed media asset (csid local part = sha256 of the file bytes), ingested from Analyzer's to_canonical projection. A personal-tier file node carrying technical properties (container/duration/codec/width/height, in overflow); the sha256: id-space of the predicate-mapping registry (v1.2 addition, analyzer-bridge US-003)." }
   ],
   "edgeTypes": [
     { "name": "descended-from", "type": "DESCENDS_FROM", "description": "Genealogical descent (language→ancestor, culture→predecessor). Uses culture-scrape's existing DESCENDS_FROM token.", "from": ["language", "language-family", "culture", "archaeological-culture"], "to": ["language", "language-family", "culture", "archaeological-culture"] },
@@ -101,6 +102,8 @@
     { "name": "borrowed-from", "type": "BORROWED_FROM", "description": "A term/word borrowed from a source language.", "from": ["language"], "to": ["language"] },
     { "name": "cognate-with", "type": "COGNATE_WITH", "description": "Terms sharing a common ancestral form.", "from": ["language"], "to": ["language"] },
     { "name": "derived-from", "type": "DERIVED_FROM", "description": "A cultural artifact/style/dish derived from an ancestor.", "from": [], "to": [] },
-    { "name": "syncretized-with", "type": "SYNCRETIZED_WITH", "description": "Religious/deity syncretism between traditions.", "from": ["religion", "deity"], "to": ["religion", "deity"] }
+    { "name": "syncretized-with", "type": "SYNCRETIZED_WITH", "description": "Religious/deity syncretism between traditions.", "from": ["religion", "deity"], "to": ["religion", "deity"] },
+    { "name": "depicts", "type": "DEPICTS", "description": "An asset visually depicts an entity (Analyzer vision caption / detected object; the object may carry an entity_ref csid after Bridge-1 grounding). Personal tier (v1.2 addition, analyzer-bridge US-003).", "from": ["asset"], "to": [] },
+    { "name": "mentions", "type": "MENTIONS", "description": "An asset textually mentions an entity (Analyzer transcript / text ingest). Personal tier (v1.2 addition, analyzer-bridge US-003).", "from": ["asset"], "to": [] }
   ]
 }

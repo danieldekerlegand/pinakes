@@ -32,6 +32,7 @@ const EXPECTED_NODE_TYPES = [
   "battle",
   "place",
   "migration-route",
+  "asset",
 ];
 
 const EXPECTED_EDGE_TYPES = [
@@ -49,6 +50,8 @@ const EXPECTED_EDGE_TYPES = [
   "cognate-with",
   "derived-from",
   "syncretized-with",
+  "depicts",
+  "mentions",
 ];
 
 describe("canonical schema contract (US-001)", () => {
@@ -123,8 +126,15 @@ describe("canonical schema contract (US-001)", () => {
     }
   });
 
-  it("is schema v1.1.0 with edge citations + per-record license (US-003)", () => {
-    expect(CANONICAL_SCHEMA.version).toBe("1.1.0");
+  it("is schema v1.2.0 with the asset node type + depicts/mentions edges (analyzer-bridge US-003)", () => {
+    expect(CANONICAL_SCHEMA.version).toBe("1.2.0");
+    // v1.2 adds the sha256-identified `asset` node + its personal-tier edges.
+    expect(nodeTypeByName("asset")?.label).toBe("Asset");
+    expect(edgeTypeByName("depicts")?.type).toBe("DEPICTS");
+    expect(edgeTypeByName("mentions")?.type).toBe("MENTIONS");
+    // depicts/mentions originate from an asset (from-constrained, unconstrained target).
+    expect(edgeTypeByName("depicts")?.from).toEqual(["asset"]);
+    expect(edgeTypeByName("depicts")?.to).toEqual([]);
     // Edges now carry a source_query citation column (role provenance, optional).
     const edgeSourceQuery = CANONICAL_SCHEMA.edge.columns.find(
       (c) => c.field === "source_query",

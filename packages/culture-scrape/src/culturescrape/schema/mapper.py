@@ -80,6 +80,12 @@ PINAKES_EDGE_TYPE_MAP: dict[str, str] = {
     "ABSORBED_INTO": "PART_OF",
     "SYNCRETIZED_WITH": "VARIANT_OF",
     "SPLIT_FROM": "DESCENDS_FROM",
+    # Personal-media edges (canonical schema v1.2, analyzer-bridge US-003) — registered
+    # ontology :TYPEs, so they map to themselves. Kept here for forward-safety per the
+    # "cover EVERY exported edge :TYPE" gotcha (schema/CLAUDE.md); no pinakes lexicon
+    # emits them today, the analyzer adapter has its own csid-preserving normalize path.
+    "DEPICTS": "DEPICTS",
+    "MENTIONS": "MENTIONS",
 }
 
 #: Canonical scalar columns copied straight from a (renamed) source field.
@@ -423,6 +429,128 @@ def _carry_edge_provenance(record: RawRecord, row: Row) -> None:
     row["source_url"] = prov.source_url
     row["retrieved_at"] = prov.retrieved_at
     row["confidence"] = repr(prov.confidence)
+
+
+# --- analyzer export -----------------------------------------------------
+#
+# An Analyzer ``to_canonical`` export (the media-bridge mapping spec §4.3, analyzer-bridge US-003)
+# ships the shared canonical shape like the pinakes export, but its csids are
+# **already final**: an asset node is ``cs:asset:<sha256hex>`` and a
+# ``depicts``/``mentions`` edge points at an existing canonical entity csid
+# resolved by Analyzer's grounding step. So — unlike the pinakes path, which re-mints
+# QID-/alias-anchored csids — the analyzer path preserves every shipped csid and
+# endpoint **verbatim** (idempotent re-ingest; existing entities are referenced,
+# never duplicated). Edge ``:TYPE`` is validated against the ontology so an
+# unregistered relation cannot enter the graph.
+
+
+def map_argos_record(record: RawRecord) -> Row:
+    """Map one Analyzer export *record* to a canonical node or edge row.
+
+    Node rows (carrying a ``:LABEL``) and edge rows (carrying a ``:TYPE``) are
+    told apart by their structural column, mirroring the export's ``nodes/`` vs
+    ``edges/`` split.
+
+    Raises:
+        MapperError: If the record carries neither a ``:LABEL`` nor a ``:TYPE``.
+    """
+    if ":TYPE" in record.fields:
+        return map_argos_edge(record)
+    if ":LABEL" in record.fields:
+        return map_argos_node(record)
+    raise MapperError(
+        "analyzer record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
+    )
+
+
+def map_argos_records(records: Iterable[RawRecord]) -> list[Row]:
+    """Map every Analyzer export record to a row, preserving order."""
+    return [map_argos_record(record) for record in records]
+
+
+def map_argos_node(record: RawRecord) -> Row:
+    """Map an Analyzer export node *record* to a canonical node row.
+
+    The shipped ``csid`` (e.g. ``cs:asset:<sha256hex>``) is preserved **verbatim**
+    — content-addressed identity is already final, so re-ingesting the same export
+    yields the identical row. Recognised canonical columns are carried; unrecognised
+    source fields (an asset's technical probe — container / duration / codec /
+    width / height) ride into the :data:`OVERFLOW_KEY` overflow, never dropped.
+
+    Raises:
+        MapperError: If the record has no ``:LABEL`` or no ``csid``.
+    """
+    fields = normalize_fields(record.fields)
+    labels = _labels(fields.get(":LABEL", ""))
+    if not labels:
+        raise MapperError("analyzer node row has no ':LABEL'")
+    csid = fields.get("csid", "").strip()
+    if not csid:
+        raise MapperError("analyzer node row has no 'csid' to preserve")
+
+    consumed: set[str] = {":LABEL", "csid"}
+    row: Row = {}
+    for key in _DIRECT_SCALARS | _DIMENSION_REFS:
+        if key in fields:
+            row[key] = fields[key]
+            consumed.add(key)
+
+    if "aliases" in fields:
+        row["aliases"] = [
+            part.strip()
+            for part in fields["aliases"].split(MULTI_DELIMITER)
+            if part.strip()
+        ]
+        consumed.add("aliases")
+
+    _carry_canonical_temporal(fields, row, consumed)
+    _resolve_geographic(fields, row, consumed)
+
+    overflow = {key: value for key, value in fields.items() if key not in consumed}
+    if overflow:
+        row[OVERFLOW_KEY] = json.dumps(overflow, ensure_ascii=False, sort_keys=True)
+
+    row[":LABEL"] = labels
+    row["csid"] = csid
+    _carry_provenance(record, row)
+    return row
+
+
+def map_argos_edge(record: RawRecord) -> Row:
+    """Map an Analyzer export edge *record* to a canonical edge row.
+
+    Endpoints and ``:TYPE`` are preserved verbatim (a ``depicts`` / ``mentions``
+    edge references an existing canonical entity csid, resolved by Analyzer's
+    grounding — never re-minted). The ``:TYPE`` is validated against the ontology
+    so an unregistered relation is rejected rather than passed through.
+
+    Raises:
+        MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank,
+            or the ``:TYPE`` is not a registered ontology relationship type.
+    """
+    # Leaf-module import (not the ontology package) avoids a circular import — the
+    # package pulls in the linkers, which depend on the schema. Same as validate.py.
+    from culturescrape.ontology.registry import is_registered
+
+    fields = {key: normalize_text(value) for key, value in record.fields.items()}
+    row: Row = {}
+    for key in (":START_ID", ":END_ID", ":TYPE"):
+        value = fields.get(key, "").strip()
+        if not value:
+            raise MapperError(f"analyzer edge row is missing {key!r}")
+        row[key] = value
+    if not is_registered(str(row[":TYPE"])):
+        raise MapperError(
+            f"analyzer edge :TYPE {row[':TYPE']!r} is not a registered ontology type"
+        )
+
+    for key in ("weight", "time_start", "time_end"):
+        value = fields.get(key, "").strip()
+        if value:
+            row[key] = value
+
+    _carry_edge_provenance(record, row)
+    return row
 
 
 def _resolve_temporal(fields: dict[str, str], row: Row, consumed: set[str]) -> None:

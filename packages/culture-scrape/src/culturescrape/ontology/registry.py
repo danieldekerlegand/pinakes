@@ -234,6 +234,23 @@ _RELATION_TYPES: tuple[RelationType, ...] = (
         "entity",
         description="entity uses an instrument, material or technique (Wikidata P2283)",
     ),
+    # Personal-media (Analyzer bridge, canonical schema v1.2 — analyzer-bridge US-003).
+    # An asset (sha256-identified media node) depicts/mentions a canonical entity;
+    # local-only, personal trust tier (see shared/predicate-mapping.json analyzer section).
+    RelationType(
+        "DEPICTS",
+        Dimension.STRUCTURAL,
+        "asset",
+        "entity",
+        description="an asset visually depicts an entity (Analyzer vision caption/object)",
+    ),
+    RelationType(
+        "MENTIONS",
+        Dimension.STRUCTURAL,
+        "asset",
+        "entity",
+        description="an asset textually mentions an entity (Analyzer transcript/text)",
+    ),
 )
 
 #: The registry: ``:TYPE`` name -> :class:`RelationType`, the source of truth.

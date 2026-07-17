@@ -50,12 +50,14 @@ from culturescrape.schema.ids import (
     normalize_type,
 )
 from culturescrape.schema.mapper import (
+    OVERFLOW_KEY,
     PINAKES_EDGE_TYPE_MAP,
     PINAKES_ID_KEY,
-    OVERFLOW_KEY,
     MapperError,
-    pinakes_edge_schema,
-    pinakes_node_schema,
+    map_argos_edge,
+    map_argos_node,
+    map_argos_record,
+    map_argos_records,
     map_pinakes_edge,
     map_pinakes_node,
     map_pinakes_record,
@@ -63,6 +65,8 @@ from culturescrape.schema.mapper import (
     map_record,
     map_records,
     node_schema,
+    pinakes_edge_schema,
+    pinakes_node_schema,
 )
 from culturescrape.schema.merge import (
     DEFAULT_FUZZY_THRESHOLD,
@@ -215,6 +219,10 @@ __all__ = [
     "encode_values",
     "pinakes_edge_schema",
     "pinakes_node_schema",
+    "map_argos_edge",
+    "map_argos_node",
+    "map_argos_record",
+    "map_argos_records",
     "map_field_names",
     "map_pinakes_edge",
     "map_pinakes_node",

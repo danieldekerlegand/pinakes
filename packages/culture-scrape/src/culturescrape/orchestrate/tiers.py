@@ -70,12 +70,28 @@ TIER_QUARANTINE = "quarantine"
 #: The inferred tier: linker-minted hubs / inferred edges (derived scaffolding).
 TIER_INFERRED = "inferred"
 
-#: Every tier, most-to-least trusted — the stable order tier reports render in.
+#: The personal tier: facts ingested from a user's own files via the Analyzer bridge
+#: (analyzer-bridge US-003). NOT on the trust axis above — it is a **privacy**
+#: partition: personal-tier records describe the user's private media and are
+#: hard-gated out of every non-personal export, packaged artifact, and open-data
+#: release (:func:`assert_no_personal_records`). A record is personal iff its
+#: ``source`` names one of :data:`PERSONAL_SOURCES`.
+TIER_PERSONAL = "personal"
+
+#: Acquisition-source ids whose records are personal-tier (privacy invariant). A
+#: match on any ``source`` token classifies the row personal regardless of any
+#: other stamp (a grounded ``refers_to`` fact may carry a QID yet stays personal).
+PERSONAL_SOURCES: frozenset[str] = frozenset({"analyzer"})
+
+#: Every tier — the stable order tier reports render in. The first four are the
+#: trust axis (most-to-least trusted); :data:`TIER_PERSONAL` is the orthogonal
+#: privacy partition, appended last.
 ALL_TIERS: tuple[str, ...] = (
     TIER_CURATED,
     TIER_AUTO_ADMITTED,
     TIER_QUARANTINE,
     TIER_INFERRED,
+    TIER_PERSONAL,
 )
 
 #: The ``inferred:<linker>`` provenance prefix a linker-minted row carries.
@@ -91,6 +107,10 @@ def classify_tier(row: Row) -> str:
 
     Precedence (a merged row can carry several signals, so order matters):
 
+    #. any :data:`PERSONAL_SOURCES` ``source`` token → :data:`TIER_PERSONAL`
+       (the privacy invariant: a fact derived from the user's files is personal
+       regardless of any QID / citation it also carries, so this is checked
+       **first** — it must never fall through to an exportable tier);
     #. any ``inferred:<linker>`` ``source`` token → :data:`TIER_INFERRED`;
     #. a :data:`PINAKES_SOURCE` ``source`` token → :data:`TIER_CURATED`
        (a curated row that *also* reconciled to Wikidata stays curated — human
@@ -101,6 +121,8 @@ def classify_tier(row: Row) -> str:
        ``source_url``), else :data:`TIER_QUARANTINE`.
     """
     tokens = _source_tokens(row)
+    if tokens & PERSONAL_SOURCES:
+        return TIER_PERSONAL
     if any(token.startswith(_INFERRED_PREFIX) for token in tokens):
         return TIER_INFERRED
     if PINAKES_SOURCE in tokens:
@@ -285,7 +307,61 @@ DEFAULT_TIER_GATES: Mapping[str, GateThresholds] = {
         max_unreconciled_rate=1.0,
         **_PERMISSIVE_DANGLING,
     ),
+    # Personal-media facts are local-only and awaiting no curation, so they carry
+    # no trust floor here — containment (not admission) is their gate, enforced by
+    # :func:`assert_no_personal_records` on every export/package path.
+    TIER_PERSONAL: GateThresholds(
+        min_rows=0,
+        max_duplicate_rate=1.0,
+        min_provenance_completeness=0.0,
+        max_unreconciled_rate=1.0,
+        **_PERMISSIVE_DANGLING,
+    ),
 }
+
+
+class PersonalTierContainmentError(RuntimeError):
+    """Raised when a :data:`TIER_PERSONAL` record reaches a non-personal artifact.
+
+    The privacy invariant of the Analyzer bridge (the media-bridge mapping spec §6): facts
+    derived from the user's files must NEVER appear in an open-data release, a
+    packaged corpus, or any non-personal export or training set. This is the hard
+    gate that enforces it — the same mechanism the synthetic tier uses.
+    """
+
+
+def is_personal_source(source_cell: str) -> bool:
+    """Whether a raw ``source`` cell names any :data:`PERSONAL_SOURCES` token."""
+    tokens = {
+        token.strip()
+        for token in source_cell.split(_SOURCE_DELIMITER)
+        if token.strip()
+    }
+    return bool(tokens & PERSONAL_SOURCES)
+
+
+def personal_records(rows: Sequence[Row]) -> list[Row]:
+    """Return every *row* that classifies as :data:`TIER_PERSONAL`."""
+    return [row for row in rows if classify_tier(row) == TIER_PERSONAL]
+
+
+def assert_no_personal_records(rows: Sequence[Row], *, context: str) -> None:
+    """Assert no *row* is personal-tier; raise :class:`PersonalTierContainmentError`.
+
+    The hard containment gate every **non-personal** export / packaging / release
+    path calls before it emits *rows*. *context* names the artifact for the error
+    message (e.g. ``"packaged corpus"``). A no-op when the corpus carries no
+    personal-tier record (the common case) — so a build with no Analyzer ingest is
+    unaffected.
+    """
+    offenders = personal_records(rows)
+    if offenders:
+        raise PersonalTierContainmentError(
+            f"{len(offenders)} personal-tier record(s) would enter {context}, "
+            f"violating the personal-tier privacy invariant (the media-bridge mapping spec §6); "
+            f"personal-tier facts are local-only — first offender source="
+            f"{_scalar(offenders[0], 'source')!r}"
+        )
 
 
 @dataclass(frozen=True)
@@ -412,16 +488,22 @@ def _scalar(row: Row, key: str) -> str:
 __all__ = [
     "ALL_TIERS",
     "DEFAULT_TIER_GATES",
+    "PERSONAL_SOURCES",
     "TIER_AUTO_ADMITTED",
     "TIER_CURATED",
     "TIER_INFERRED",
+    "TIER_PERSONAL",
     "TIER_QUARANTINE",
+    "PersonalTierContainmentError",
     "TierComposition",
     "TierQaReport",
     "TieredManifest",
+    "assert_no_personal_records",
     "build_tier_manifest",
     "classify_tier",
     "evaluate_tiers",
+    "is_personal_source",
     "manifest_for_tier_dataset",
     "partition_by_tier",
+    "personal_records",
 ]

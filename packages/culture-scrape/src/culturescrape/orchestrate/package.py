@@ -31,7 +31,7 @@ import hashlib
 import io
 import json
 import tarfile
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -47,6 +47,9 @@ _JOB_MEMBERS = ("corpus", "corpus-neo4j", "corpus-datalog", "catalog.json")
 
 #: Header cell of the per-record SPDX licence column on a canonical node TSV.
 _LICENSE_COLUMN = "license"
+
+#: Header cell of the acquisition-``source`` column (both node and edge TSVs).
+_SOURCE_COLUMN = "source"
 
 #: TSV field delimiter (matches ``schema.tsvio`` — kept local to avoid the import).
 _TSV_DELIMITER = "\t"
@@ -102,6 +105,7 @@ def package_corpus(
         raise PackageError(f"{source} is not a directory")
 
     members = _select_members(source)
+    _assert_no_personal_tier(source, members)
     files = _collect(source, members)
     if not files:
         raise PackageError(f"{source} holds no files to package")
@@ -142,6 +146,60 @@ def package_corpus(
         files=entries,
         licenses=licenses,
     )
+
+
+def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
+    """Refuse to package a corpus that holds any personal-tier record.
+
+    The hard privacy gate (analyzer-bridge US-003, the media-bridge mapping spec §6): a packaged
+    artifact is a shareable / open-data release, so a personal-tier record — a
+    fact derived from the user's own files, ingested via the Analyzer bridge — must
+    never enter one. Scans the ``source`` column of every ``nodes/*.tsv`` and
+    ``edges/*.tsv`` under the corpus; a value naming a personal source
+    (:data:`culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) aborts the package.
+    A no-op for a corpus with no Analyzer ingest (the common case).
+    """
+    # Lazy import keeps the ``orchestrate`` package init order robust (tiers pulls
+    # in the qa/manifest/metrics layer).
+    from culturescrape.orchestrate.tiers import is_personal_source
+
+    base = source / "corpus" if "corpus" in members else source
+    for kind in ("nodes", "edges"):
+        directory = base / kind
+        if not directory.is_dir():
+            continue
+        for tsv in sorted(directory.glob("*.tsv")):
+            offender = _first_personal_source(tsv, is_personal_source)
+            if offender is not None:
+                raise PackageError(
+                    f"refusing to package {source}: {tsv} holds a personal-tier "
+                    f"record (source={offender!r}); personal-tier facts are "
+                    "local-only and must never enter a packaged/open-data release "
+                    "(the media-bridge mapping spec §6)"
+                )
+
+
+def _first_personal_source(
+    tsv: Path, is_personal: Callable[[str], bool]
+) -> str | None:
+    """Return the first personal ``source`` cell in *tsv*, or ``None`` if none."""
+    try:
+        with tsv.open("r", encoding="utf-8") as handle:
+            header = handle.readline()
+            if not header:
+                return None
+            columns = header.rstrip("\n").split(_TSV_DELIMITER)
+            try:
+                idx = columns.index(_SOURCE_COLUMN)
+            except ValueError:
+                return None
+            for line in handle:
+                cells = line.rstrip("\n").split(_TSV_DELIMITER)
+                if idx < len(cells) and is_personal(cells[idx]):
+                    return cells[idx].strip()
+    except OSError:
+        return None
+    return None
 
 
 def _select_members(source: Path) -> tuple[str, ...]:

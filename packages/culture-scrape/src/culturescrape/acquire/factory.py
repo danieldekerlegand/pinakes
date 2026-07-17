@@ -16,13 +16,14 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from culturescrape.acquire.adapters import SourceAdapter
+from culturescrape.acquire.analyzer import ArgosExportAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.getty import GettyDumpAdapter
 from culturescrape.acquire.html import HtmlScrapeAdapter
 from culturescrape.acquire.http import HttpClient
 from culturescrape.acquire.kaikki import KaikkiAdapter
-from culturescrape.acquire.pinakes import PinakesExportAdapter
 from culturescrape.acquire.petscan import PetScanAdapter
+from culturescrape.acquire.pinakes import PinakesExportAdapter
 from culturescrape.acquire.pleiades import PleiadesDumpAdapter
 from culturescrape.acquire.tabular import TabularDumpAdapter
 from culturescrape.acquire.wikidata import WikidataSparqlAdapter
@@ -46,6 +47,7 @@ _BUILDERS: dict[str, Callable[[HttpClient | None], SourceAdapter]] = {
     TabularDumpAdapter.name: lambda http: TabularDumpAdapter(),
     KaikkiAdapter.name: lambda http: KaikkiAdapter(),
     PinakesExportAdapter.name: lambda http: PinakesExportAdapter(),
+    ArgosExportAdapter.name: lambda http: ArgosExportAdapter(),
 }
 
 #: Adapter ids that need an :class:`HttpClient` to reach a remote endpoint.
@@ -71,6 +73,7 @@ for _cls in (
     TabularDumpAdapter,
     KaikkiAdapter,
     PinakesExportAdapter,
+    ArgosExportAdapter,
 ):
     _BY_SOURCE_TYPE[_cls.source_type] = (
         *_BY_SOURCE_TYPE.get(_cls.source_type, ()),

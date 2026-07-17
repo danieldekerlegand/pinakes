@@ -49,10 +49,10 @@
         "both": "Crosses in both directions."
       },
       "pendingSchemaAdditions": {
-        "targetVersion": "1.3.0",
-        "note": "Landed by analyzer-bridge US-003 (may already be present from the Insimul v1.2 bump). Flip the relation `pending` flags to false when these types resolve in shared/canonical-schema.json.",
-        "nodeTypes": ["asset"],
-        "edgeTypes": ["depicts", "mentions"]
+        "targetVersion": "1.2.0",
+        "note": "Landed by analyzer-bridge US-003: the `asset` node type + `depicts`/`mentions` edge types now resolve in shared/canonical-schema.json (v1.2.0), so the relation `pending` flags below are flipped to false and these lists are empty. Nothing is pending.",
+        "nodeTypes": [],
+        "edgeTypes": []
       },
       "relations": [
         {
@@ -62,7 +62,7 @@
           "canonicalType": "asset",
           "direction": "AR->LS",
           "portability": ["local-only"],
-          "pending": true,
+          "pending": false,
           "notes": "container / duration / codec / width / height sub-facts → asset node properties, not edges."
         },
         {
@@ -72,7 +72,7 @@
           "canonicalType": "depicts",
           "direction": "AR->LS",
           "portability": ["horn-safe", "local-only"],
-          "pending": true,
+          "pending": false,
           "notes": "Vision caption / detected object. Object X may carry an entity_ref (csid) after Bridge-1 grounding."
         },
         {
@@ -82,7 +82,7 @@
           "canonicalType": "asset",
           "direction": "AR->LS",
           "portability": ["local-only"],
-          "pending": true,
+          "pending": false,
           "notes": "ASR segments → asset transcript property + temporal facts; t_start/t_end ⇄ time_start/time_end (see temporalFieldMap)."
         },
         {
@@ -92,7 +92,7 @@
           "canonicalType": "asset",
           "direction": "AR->LS",
           "portability": ["local-only"],
-          "pending": true,
+          "pending": false,
           "notes": "Article / text ingest → asset text property."
         },
         {
@@ -130,7 +130,7 @@
           "canonicalTypes": ["depicts", "mentions"],
           "direction": "both",
           "portability": ["horn-safe"],
-          "pending": true,
+          "pending": false,
           "notes": "Bridge-1 grounding: `depicts`/`mentions` with entity_ref = csid. Confidence from the grounding rubric; ambiguous candidates never auto-merged."
         },
         {

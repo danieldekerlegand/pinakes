@@ -80,6 +80,30 @@ scaffolding). Runbook: `docs/tiered-trust.md`.
   `tests/fixtures/tiered/` corpus (spans every tier) and asserted by `tests/test_tiers.py`;
   regenerate via `manifest_for_tier_dataset(job, dir)` if the fixture moves.
 
+## Personal trust tier + containment gate — `tiers.py` (analyzer-bridge US-003)
+
+`TIER_PERSONAL` is a **fifth** tier, but on a different axis from the trust four
+(curated/auto-admitted/quarantine/inferred): it is a **privacy** partition for facts
+ingested from the user's own files via the Analyzer bridge. `classify_tier` returns it
+**first** — a `source` token in `PERSONAL_SOURCES` (`{"analyzer"}`) is personal regardless of
+any QID/citation the row also carries (a grounded `refers_to` fact). It is appended to
+`ALL_TIERS` (last), so `partition_by_tier`/manifest/QA machinery pick it up for free; a
+corpus with no Analyzer ingest is unaffected (the tier is simply empty and omitted).
+
+- **The hard containment gate is `assert_no_personal_records(rows, *, context)`** (raises
+  `PersonalTierContainmentError`) — the privacy invariant (the media-bridge mapping spec §6): personal
+  facts are local-only and must NEVER enter a non-personal export / packaged artifact /
+  open-data release. `orchestrate/package.py` calls `_assert_no_personal_tier` before it
+  packages (scans the `source` column of every `nodes/`+`edges/` TSV via `is_personal_source`).
+  **US-004 must add the same gate to any NEW export/release path it builds** (the Datalog
+  `--tier personal` opt-in, Neo4j load, GraphRAG) — mirror this call; default direction is
+  local-only.
+- **`PERSONAL_SOURCES` is the single source list.** Add a source id here to route a new
+  personal producer to the tier; never hard-code the string elsewhere — `is_personal_source`
+  / `classify_tier` / the package gate all read this set.
+- Committed tiered-corpus manifest / fixtures are unchanged (they carry no personal rows).
+  Unit coverage: `tests/test_argos.py` (tier classification + the gate).
+
 ## Identity preservation — collapse same-QID nodes across types (US-004)
 
 `csid` is `cs:<node-type>:<QID>`, so the **same** Wikidata entity typed differently by

@@ -40,6 +40,33 @@ presence of `:LABEL` vs `:TYPE`. The `pinakes_id` alias column rides through in
 schema live on the TS side (`scripts/export-for-culturescrape.ts`,
 `shared/canonical-schema.ts`); see `docs/reconcile-pinakes.md`.
 
+## analyzer `to_canonical` adapter (`analyzer`, analyzer-bridge US-003)
+
+`analyzer.py` reads an Analyzer `to_canonical` export *directory* (`nodes/*.tsv` +
+`edges/*.tsv`, same canonical shape as the pinakes export), stamps `source=analyzer`, and
+lifts run/export provenance (`source_url` = `run:<id>`/`edl:<run>:<v>`) + the per-record
+SPDX `license`. Wired in the factory's three places (`dump` `source_type`, disambiguated by
+`source.params.adapter: analyzer`). Distinct from the pinakes adapter in **two** ways that
+matter downstream:
+
+- **csids are FINAL, not re-minted.** An asset node is `cs:asset:<sha256hex>` (the `sha256:`
+  id-space of `shared/predicate-mapping.json`) and a `depicts`/`mentions` (`refers_to`) edge
+  points at an *existing* canonical entity csid resolved by Analyzer's grounding. So the
+  normalization path `pipeline._normalize_argos` (selected by `adapter == "analyzer"`) uses
+  `mapper.map_argos_records`, which **preserves every shipped csid/endpoint verbatim** — no
+  QID/alias re-mint (the pinakes path), no dedup. That is what makes re-ingest idempotent
+  (byte-identical rows) and keeps a referenced entity referenced, never duplicated.
+- **All rows land in the `personal` trust tier.** `classify_tier` maps a `source=analyzer` token
+  → `TIER_PERSONAL` **first** (before inferred/curated), the privacy invariant. See
+  `orchestrate/CLAUDE.md` "Personal trust tier".
+
+`map_argos_edge` validates `:TYPE` against `ontology.registry.is_registered` (leaf-module
+import, like `validate.py`) — `DEPICTS`/`MENTIONS`/`DERIVED_FROM` are registered. Asset
+technical probe fields (container/duration/codec/width/height) are non-canonical, so they
+ride into the node `extra` overflow. Fixture: `tests/fixtures/analyzer/export/` (+ an
+`entities/` fixture the refers_to edges resolve against for a merged `validate`);
+`tests/test_argos.py`.
+
 ## Real-data dump slices (`wikidata_slice.py`, not an adapter)
 
 `wikidata_slice.py` is a standalone **builder**, not a `SourceAdapter`: it composes

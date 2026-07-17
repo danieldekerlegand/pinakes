@@ -70,6 +70,26 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
   `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
 
+## Canonical schema v1.2 — the asset node + personal-media edges (analyzer-bridge US-003)
+
+`canonical-schema.json` is at **v1.2.0**: it adds the `asset` node type (label `Asset`, the
+`sha256:` id-space — a content-addressed media node, technical props ride in overflow) and the
+`depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
+These are the Analyzer-bridge personal-media vocabulary. Bumping the schema version / node+edge
+vocab has a **cross-language blast radius** — when you touch node/edge types again, update in
+lockstep (all pinned by tests):
+
+- TS: `shared/canonical-schema.test.ts` `EXPECTED_NODE_TYPES`/`EXPECTED_EDGE_TYPES` + the
+  version assertion; `shared/predicate-mapping.json` `pending` flags + `pendingSchemaAdditions`
+  (the validator throws the instant a `pending` type resolves — flip it) + `predicate-mapping.test.ts`.
+- Python (`packages/culture-scrape`): the edge `:TYPE` vocab lives in `ontology/registry.py`
+  (`REGISTRY`, pinned by `test_ontology_registry.py`) **and** must be documented in
+  `docs/ontology.md` (pinned by `test_ontology_doc.py`); `schema/mapper.py` `PINAKES_EDGE_TYPE_MAP`
+  (cover every exported edge :TYPE). The version + from/to bake into three regenerated,
+  test-pinned artifacts: `datalog/schema/edge_constraints.tsv`, `datalog/schema/rules_registry.tsv`,
+  `datalog/rules_registry.tsv` (regenerate via their `write_*`/`build_registry` fns). A node
+  `:LABEL` needs no Python allowlist change (nothing rejects `Asset`).
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'

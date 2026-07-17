@@ -55,14 +55,20 @@ from culturescrape.orchestrate.schedule import (
 from culturescrape.orchestrate.tiers import (
     ALL_TIERS,
     DEFAULT_TIER_GATES,
+    PERSONAL_SOURCES,
+    TIER_PERSONAL,
+    PersonalTierContainmentError,
     TierComposition,
     TieredManifest,
     TierQaReport,
+    assert_no_personal_records,
     build_tier_manifest,
     classify_tier,
     evaluate_tiers,
+    is_personal_source,
     manifest_for_tier_dataset,
     partition_by_tier,
+    personal_records,
 )
 
 __all__ = [
@@ -70,6 +76,12 @@ __all__ = [
     "DEFAULT_CORPUS_QA",
     "DEFAULT_MIN_COMPONENT_FRACTION",
     "DEFAULT_TIER_GATES",
+    "PERSONAL_SOURCES",
+    "PersonalTierContainmentError",
+    "TIER_PERSONAL",
+    "assert_no_personal_records",
+    "is_personal_source",
+    "personal_records",
     "STAGE_ORDER",
     "VALID_STAGES",
     "Catalog",
