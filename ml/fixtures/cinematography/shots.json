@@ -1,0 +1,81 @@
+{
+  "note": "Synthetic, hand-written shot list exercising every cinematography constraint rule. NOT personal data (US-005 AC4).",
+  "style": {
+    "name": "1920s newsreel",
+    "allowed": {
+      "palette": ["monochrome", "sepia", "desaturated", "neutral"],
+      "aspect": ["1.37:1", "4:3"]
+    },
+    "forbidden": {
+      "lens": ["anamorphic"],
+      "camera_movement": ["drone", "steadicam", "dolly_zoom"]
+    }
+  },
+  "shots": [
+    {
+      "id": "shot_001",
+      "cinematography": {
+        "shot_size": "extreme_close_up",
+        "camera_movement": "drone",
+        "lens": "normal",
+        "aspect": "1.37:1",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_002",
+      "cinematography": {
+        "shot_size": "extreme_wide_shot",
+        "camera_movement": "static",
+        "lens": "telephoto",
+        "aspect": "1.37:1",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_003",
+      "cinematography": {
+        "shot_size": "medium_shot",
+        "camera_movement": "static",
+        "lens": "normal",
+        "lighting": "natural",
+        "time_of_day": "night",
+        "aspect": "1.37:1",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_004",
+      "cinematography": {
+        "shot_size": "close_up",
+        "camera_movement": "pan",
+        "lens": "normal",
+        "focal_mm": 200,
+        "aspect": "1.37:1",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_005",
+      "cinematography": {
+        "shot_size": "medium_shot",
+        "lens": "anamorphic",
+        "aspect": "1.37:1",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_006",
+      "cinematography": {
+        "shot_size": "wide_shot",
+        "camera_movement": "static",
+        "lens": "normal",
+        "aspect": "16:9",
+        "palette": "monochrome"
+      }
+    },
+    {
+      "id": "shot_007"
+    }
+  ]
+}

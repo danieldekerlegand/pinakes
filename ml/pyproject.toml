@@ -75,6 +75,14 @@ pinakes-train-scallop = "pinakes_ml.train_scallop:main"
 # pinakes_ml.train_deepproblog`. `problog` is declared (runs anywhere); the
 # `deepproblog` neural-AD loop is undeclared + gated (docs/neurosymbolic-pilot-report.md).
 pinakes-deepproblog = "pinakes_ml.train_deepproblog:main"
+# analyzer-bridge US-005 (Bridge 3) — edit-ops SLM datasets over the Analyzer exhaust
+# (nl-edit + preference JSONL -> SFT + preference pairs); also `python -m
+# pinakes_ml.export_edit_ops`. Personal-tier: real datasets are local/DVC only.
+pinakes-export-edit-ops = "pinakes_ml.export_edit_ops:main"
+# analyzer-bridge US-005 — cinematography-adherence eval tier (shot configs + the
+# Analyzer constraint vocabulary -> violation counts by rule/severity); also
+# `python -m pinakes_ml.eval_cinematography`. `--check` is the ratchet gate.
+pinakes-eval-cinematography = "pinakes_ml.eval_cinematography:main"
 
 [project.optional-dependencies]
 dev = [

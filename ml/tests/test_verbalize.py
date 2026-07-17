@@ -307,11 +307,21 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
 
 
+def _is_personal_tier_edge(edge_type: dict) -> bool:
+    """An edge touching the personal ``asset`` node (e.g. ``DEPICTS``/``MENTIONS``,
+    analyzer-bridge US-003). Personal-tier facts must NEVER enter the open verbalization
+    training set (the PRD's PRIVACY INVARIANT), so they are never verbalized: the
+    generator already skips any edge type without a template, and the coverage gate
+    below must not DEMAND one for them."""
+    endpoints = list(edge_type.get("from", [])) + list(edge_type.get("to", []))
+    return "asset" in endpoints
+
+
 def test_every_exported_edge_type_has_a_template() -> None:
     schema = json.loads(_SCHEMA.read_text(encoding="utf-8"))
     for edge_type in schema["edgeTypes"]:
         token = edge_type["type"]
-        if token in EXCLUDED_RELATIONS:
+        if token in EXCLUDED_RELATIONS or _is_personal_tier_edge(edge_type):
             continue
         assert token in EDGE_TEMPLATES, f"no verbalization template for {token}"
         assert EDGE_TEMPLATES[token], f"empty template list for {token}"

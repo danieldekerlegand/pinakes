@@ -400,6 +400,49 @@ go/no-go. Full write-up + recommendation: [`docs/neurosymbolic-pilot-report.md`]
   `ml-baselines.md`, so it never interacts with `train_baselines`' rewrite. Run summary →
   git-ignored `ml/artifacts/deepproblog/`; **no `ml/data` re-pin** (reads existing splits).
 
+## Edit-ops SLM datasets + cinematography adherence eval (analyzer-bridge US-005)
+
+Bridge 3: convert Analyzer's training exhaust (`filmstudio.bridge.dataset_export` JSONL)
+into `ml/` datasets + a third adherence eval. Feeds the edit-ops SLM pilot
+(`docs/edit-ops-slm-pilot-scope.md`). Same reproducible-artifact shape as `verbalize.py`
+(pure core + thin CLI + committed manifest), with two hard rules unique to this bridge:
+
+- **Everything is `personal` tier — the PRD's PRIVACY INVARIANT.** The Analyzer exhaust
+  describes the user's own media. `edit_ops_dataset.py` stamps `tier: "personal"` on every
+  record + the manifest; the real datasets land in DVC-tracked `ml/data/edit-ops/`
+  (git-ignored), NEVER committed. The **committed manifest is built from a SYNTHETIC,
+  hand-written exhaust fixture** (`ml/fixtures/analyzer-exhaust/`) so no personal data enters
+  git or CI (AC4) — the snapshot test builds from that fixture, so there is NO
+  personal-corpus live gate (contrast verbalize/triples, whose corpus is open). A test
+  asserts every fixture `run_id` is a `run-synth-*` id.
+- **The verbalize/triples exporters must EXCLUDE personal-tier edge types.** `DEPICTS`/
+  `MENTIONS` (from `asset`, US-003) are personal — they must never be verbalized into the
+  OPEN training corpus. verbalize already skips any edge type without a template (so they're
+  never emitted); the coverage gate `test_every_exported_edge_type_has_a_template` now skips
+  asset-touching edges (`_is_personal_tier_edge`) so it doesn't DEMAND a template for them.
+  Any future open-corpus generator over edges needs the same personal-tier exclusion.
+
+Specifics:
+- `edit_ops_dataset.py` reads `nl-edit.jsonl` (+ `preferences.jsonl`). The **retry paper
+  trail** (`attempts`, Analyzer US-NE4) is the gold: each attempt with `dry_run.passed==false`
+  is a **rejection-sampled negative**; a failed attempt paired with the next PASSING attempt
+  (or the row's accepted `ops`) is an **error→fix correction** pair. The top-level validated
+  `ops` is the **accepted** SFT positive. One flat, uniform SFT record shape across all three
+  kinds (`chosen`/`rejected` are JSON op-batch strings, "" when N/A) — HF-datasets-compatible.
+- `cinematography_eval.py` is PURE + self-contained (stdlib only, like `consistency.py`): it
+  does NOT import Analyzer's `filmstudio` — the constraint vocabulary is **vendored as data**
+  (`CONSTRAINT_VOCAB`, a faithful mirror of `cinematography_rules.DEFAULT_RULES` + its pairwise
+  tables) and emitted to `ml/cinematography/constraint-vocab.json` (corpus-independent,
+  committed to git NOT `ml/data`, CI-gated byte-for-byte against the module — same discipline
+  as `ml/scallop/program.scl`). `build_report` counts violations by `rule_id` + `severity`
+  over a shot-list fixture (`ml/fixtures/cinematography/shots.json`); the ratchet baseline is
+  `ml/manifests/cinematography-adherence-baseline.json`. `pinakes-eval-cinematography --check`
+  is the retraining-free gate. If Analyzer's `cinematography_rules.py` gains a rule/table row,
+  re-mirror it here + bump `CONSTRAINT_VOCAB_VERSION` and regenerate both artifacts.
+- CLIs: `pinakes-export-edit-ops`, `pinakes-eval-cinematography`. Both default to the
+  synthetic/committed fixtures; point `--export-dir`/`--shots` at real inputs locally. No
+  `ml/data` re-pin unless you actually build the real (personal) edit-ops datasets.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
