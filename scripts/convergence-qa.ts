@@ -40,6 +40,7 @@ import {
   lexiconMappingByFile,
   mappedFiles,
 } from "@shared/lexicon-mapping";
+import { assertValidPredicateMapping } from "@shared/predicate-mapping";
 import {
   buildExport,
   EXPORT_DIR,
@@ -88,6 +89,7 @@ export interface DriftIssue {
   readonly kind:
     | "schema-invalid"
     | "mapping-invalid"
+    | "registry-invalid"
     | "unmapped-lexicon-file"
     | "missing-source-column"
     | "canonical-column-missing";
@@ -240,6 +242,17 @@ export function detectDrift(lexiconsDir: string = LEXICONS_DIR): DriftIssue[] {
     drift.push({
       kind: "mapping-invalid",
       message: `lexicon mapping does not validate: ${(err as Error).message}`,
+    });
+  }
+
+  // 2b. Predicate-mapping registry still validates (canonical-type totality; a
+  //     renamed canonical type or a stale `pending` flag surfaces here).
+  try {
+    assertValidPredicateMapping();
+  } catch (err) {
+    drift.push({
+      kind: "registry-invalid",
+      message: `predicate-mapping registry does not validate: ${(err as Error).message}`,
     });
   }
 

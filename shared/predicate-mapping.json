@@ -1,0 +1,167 @@
+{
+  "registryVersion": "0.1.0",
+  "title": "Predicate-mapping registry — canonical vocabulary ⇄ bridged-project relations",
+  "description": "The machine-validated bridge contract between pinakes's canonical node/edge vocabulary and the relation vocabularies of the projects it bridges (Analyzer, and — when insimul-bridge lands — Insimul). ONE registry, versioned on `registryVersion`; the authoritative copy is intended to live in Rosetta (~/Development/rosetta/registry/predicate-mapping.json) once that workspace exists, with this `shared/` copy kept in sync and never forked locally. Encodes the media-bridge mapping spec Appendix A: the Analyzer relation vocabulary, the sha256:/cs: id-space rules, the `local-only` portability class that keeps personal-tier facts from ever leaving the machine, and the t_start/t_end ⇄ time_start/time_end temporal-field map. Each relation entry names a canonical node/edge type (validated against shared/canonical-schema.json for totality) or a non-type mapping (derived rule / provenance columns / temporal fields); a `pending` flag marks types that are declared-but-not-yet-added canonical schema additions (e.g. the v1.3 `asset` node + `depicts`/`mentions` edges landed by analyzer-bridge US-003), so the flag doubles as a live checklist the totality test enforces against the evolving schema.",
+  "portabilityClasses": {
+    "horn-safe": "Crosses the boundary into pinakes's constrained-Horn Datalog layer (+ arithmetic after Phase 1).",
+    "grounding-only": "Reference data consumed at ground time; no runtime predicate crosses.",
+    "full-prolog": "Full ISO Prolog only (cuts / negation / probabilistic likelihood) — does not cross to Datalog.",
+    "local-only": "Never leaves the personal tier. Hard-gated out of open-data releases, packaged corpora, and any non-personal export or training set (the privacy invariant this bridge introduces)."
+  },
+  "idSpaces": [
+    {
+      "prefix": "sha256:",
+      "form": "sha256:<hex>",
+      "canonicalKind": "node",
+      "nodeType": "asset",
+      "description": "A content-addressed Analyzer asset (id = sha256 of bytes) → canonical `asset` node. Re-encode changes the hash; `derived-from` lineage partially compensates (registry future-work)."
+    },
+    {
+      "prefix": "cs:",
+      "form": "cs:<type>:<id>",
+      "canonicalKind": "entity",
+      "description": "A grounded canonical pinakes entity (csid). The Bridge-1 `refers_to` target: a fact may reference a real-world entity, not only an asset hash."
+    },
+    {
+      "prefix": "run:",
+      "form": "run:<id>",
+      "canonicalKind": "provenance",
+      "description": "An Analyzer run. Default: fact provenance only, not a graph node."
+    },
+    {
+      "prefix": "edl:",
+      "form": "edl:<run>:<v>",
+      "canonicalKind": "provenance",
+      "description": "A versioned Analyzer EDL take. Default: fact provenance only, not a graph node."
+    }
+  ],
+  "temporalFieldMap": {
+    "t_start": "time_start",
+    "t_end": "time_end"
+  },
+  "projects": {
+    "analyzer": {
+      "title": "Analyzer — agentic multimedia studio (the user's file web)",
+      "sourceDoc": "the media-bridge mapping spec Appendix A",
+      "direction": {
+        "AR->LS": "Analyzer predicate → pinakes canonical (Bridge 2: the file web as corpus).",
+        "LS->AR": "pinakes canonical → Analyzer (Bridge 1: entity grounding + world knowledge).",
+        "both": "Crosses in both directions."
+      },
+      "pendingSchemaAdditions": {
+        "targetVersion": "1.3.0",
+        "note": "Landed by analyzer-bridge US-003 (may already be present from the Insimul v1.2 bump). Flip the relation `pending` flags to false when these types resolve in shared/canonical-schema.json.",
+        "nodeTypes": ["asset"],
+        "edgeTypes": ["depicts", "mentions"]
+      },
+      "relations": [
+        {
+          "id": 1,
+          "external": "asset_technical",
+          "canonicalKind": "node-property",
+          "canonicalType": "asset",
+          "direction": "AR->LS",
+          "portability": ["local-only"],
+          "pending": true,
+          "notes": "container / duration / codec / width / height sub-facts → asset node properties, not edges."
+        },
+        {
+          "id": 2,
+          "external": "shows(asset, X)",
+          "canonicalKind": "edge",
+          "canonicalType": "depicts",
+          "direction": "AR->LS",
+          "portability": ["horn-safe", "local-only"],
+          "pending": true,
+          "notes": "Vision caption / detected object. Object X may carry an entity_ref (csid) after Bridge-1 grounding."
+        },
+        {
+          "id": 3,
+          "external": "says(asset, text, t)",
+          "canonicalKind": "node-property",
+          "canonicalType": "asset",
+          "direction": "AR->LS",
+          "portability": ["local-only"],
+          "pending": true,
+          "notes": "ASR segments → asset transcript property + temporal facts; t_start/t_end ⇄ time_start/time_end (see temporalFieldMap)."
+        },
+        {
+          "id": 4,
+          "external": "reads(asset, text)",
+          "canonicalKind": "node-property",
+          "canonicalType": "asset",
+          "direction": "AR->LS",
+          "portability": ["local-only"],
+          "pending": true,
+          "notes": "Article / text ingest → asset text property."
+        },
+        {
+          "id": 5,
+          "external": "scene(asset, t_start, t_end)",
+          "canonicalKind": "temporal",
+          "direction": "AR->LS",
+          "portability": ["local-only"],
+          "pending": false,
+          "notes": "Temporal segmentation facts; endpoints map through temporalFieldMap."
+        },
+        {
+          "id": 6,
+          "external": "co_occurs(a, b, t)",
+          "canonicalKind": "derived-rule",
+          "direction": "AR->LS",
+          "portability": ["horn-safe"],
+          "pending": false,
+          "notes": "A derived rule, never a stored edge — same derived-not-stored discipline as pinakes's temporal edges."
+        },
+        {
+          "id": 7,
+          "external": "derived_from(output, source)",
+          "canonicalKind": "edge",
+          "canonicalType": "derived-from",
+          "direction": "AR->LS",
+          "portability": ["horn-safe"],
+          "pending": false,
+          "notes": "Existing canonical edge type. Lineage transitivity is one Horn rule (US-004)."
+        },
+        {
+          "id": 8,
+          "external": "refers_to(asset, entity)",
+          "canonicalKind": "edge",
+          "canonicalTypes": ["depicts", "mentions"],
+          "direction": "both",
+          "portability": ["horn-safe"],
+          "pending": true,
+          "notes": "Bridge-1 grounding: `depicts`/`mentions` with entity_ref = csid. Confidence from the grounding rubric; ambiguous candidates never auto-merged."
+        },
+        {
+          "id": 9,
+          "external": "cinematography facts/violations",
+          "canonicalKind": "rule",
+          "direction": "AR->LS",
+          "portability": ["horn-safe"],
+          "pending": false,
+          "notes": "US-CS6 constraint facts → rules-registry entries + violation facts. Third instance of the provenanced-rules pattern (pinakes Phase 4b, Insimul validators)."
+        },
+        {
+          "id": 10,
+          "external": "GroundingPack entities",
+          "canonicalKind": "node",
+          "canonicalTypes": ["culture", "place", "language", "deity"],
+          "direction": "LS->AR",
+          "portability": ["grounding-only"],
+          "pending": false,
+          "notes": "Canonical nodes (culture / place / language / deity / …) exported as the shared GroundingPack format (same schema as the Insimul bridge)."
+        },
+        {
+          "id": 11,
+          "external": "fact provenance {source, source_url, retrieved_at, confidence, license}",
+          "canonicalKind": "provenance",
+          "direction": "both",
+          "portability": [],
+          "pending": false,
+          "notes": "The US-PL1 alignment — identical field names. `license` is an SPDX id; facts derived from licensed reference data keep the license through the bridge."
+        }
+      ]
+    }
+  }
+}
