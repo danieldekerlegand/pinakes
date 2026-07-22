@@ -30,7 +30,7 @@ agent id and can be grounded and reasoned about like any other node.
 | Shape | Emitted by |
 |---|---|
 | `canonical-tsv` | `scripts/export-for-culturescrape.ts` — the typed, csid-keyed node/edge TSV bundle |
-| `grounding-pack` | `scripts/export-entity-grounding.ts` — the entity-grounding pack (US-PKA3 aligns its envelope to KGP §2) |
+| `grounding-pack` | `scripts/export-entity-grounding.ts` — the entity-grounding pack in the KGP §2 envelope ([`docs/grounding-pack.md`](grounding-pack.md)) |
 
 …plus one **entity** port: the canonical csid namespace. Its `types` list is *total* over
 `shared/canonical-schema.json` `nodeTypes` — `assertValidCapabilityManifest` fails if a

@@ -116,6 +116,30 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
   document can be served verbatim to a registry.
 
+## KGP grounding-pack contract — `kgp.ts`
+
+The pinakes side of `koine/specs/grounding-pack.md` (0.4.0): the **normative** §3 claim
+normalization + §3.1 claim ids, §2.1 pack identity, the vendored core relation registry, the
+KINP identifier forms, and the §7.1 licence-class policy. Consumed by
+`scripts/export-entity-grounding.ts`; prose in `docs/grounding-pack.md`.
+
+- **Never hand-roll a claim id or a pack hash.** Cross-producer dedup works only if every
+  project reduces a claim to the identical byte string first — `claimHashInput` is that string
+  and `mintClaimId`/`mintPackId` are the only way to mint. Confidence, provenance, licence and
+  embeddings are **excluded** from the claim hash on purpose (the same fact from two producers
+  must merge); `manifest.created`/`signing` are excluded from `pack_id` for the same reason.
+- **Pure + hasher-injected.** `sha256` is a parameter (`Sha256Hex`), so this module — like every
+  other file in `shared/` — imports no node builtin and stays client-safe. The caller supplies
+  `node:crypto`.
+- **`KGP_CORE_RELATIONS` is vendored from koine `registry/relations.tsv`**, not fetched, so ids
+  can be minted offline. A published signature is **immutable** (changing arity/symmetry would
+  silently change every dependent claim id) — upstream changes arrive as *new* relation names,
+  new rows are additive. Each row carries a dialect tier; `assertRelationAllowed` keeps a
+  `horn-safe` relation out of a `grounding-only` pack.
+- **Only namespace and kind of a CURIE are case-folded** (KGP §3.2 rule 3). `wikidata:ent:Q150`
+  keeps its `Q` — an external authority's local id is not ours to lowercase. Our own locals are
+  lowercased + percent-encoded by `csidToKinpCurie` per `docs/canonical-schema.md` §3.1.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'

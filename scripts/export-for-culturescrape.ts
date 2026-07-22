@@ -239,7 +239,7 @@ export interface ExportManifest {
   readonly diagnostics: {
     readonly skippedNodeRowsMissingId: number;
     readonly duplicateCsids: number;
-    readonly ambiguousLinguascrapeIds: number;
+    readonly ambiguousPinakesIds: number;
     readonly edgesWithUnresolvedEndpoint: number;
     readonly unresolvedEndpointSamples: readonly UnresolvedEndpoint[];
     /**
@@ -908,7 +908,7 @@ function buildManifest(
     diagnostics: {
       skippedNodeRowsMissingId: nodeCounters.skippedMissingId,
       duplicateCsids: nodeCounters.duplicateCsids,
-      ambiguousLinguascrapeIds: nodeCounters.ambiguousIds,
+      ambiguousPinakesIds: nodeCounters.ambiguousIds,
       edgesWithUnresolvedEndpoint: unresolvedCount,
       unresolvedEndpointSamples: unresolvedSamples,
       stubNodesMinted: stubNodes.minted,

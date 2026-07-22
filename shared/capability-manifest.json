@@ -33,7 +33,7 @@
       "shape": "grounding-pack",
       "worlds": ["pinakes:world:consensus-reality"],
       "x_produced_by": "scripts/export-entity-grounding.ts",
-      "description": "The entity-grounding pack (csid, entity type, aliases, reconciliation, provenance, licence classes). US-PKA3 aligns its envelope to KGP `koine/specs/grounding-pack.md` §2; the port's plane/dialect/world are already the KGP-facing ones."
+      "description": "The entity-grounding pack (csid, entity type, aliases, reconciliation, provenance, licence classes) in the KGP `koine/specs/grounding-pack.md` §2 envelope: content-addressed `pack_id`, `worlds`/`kind`/`basis`/`dialect`, `exact_match` anchor assertions carrying §3 claim ids, and a §7.1 `license_policy` manifest. Contract: `docs/grounding-pack.md`."
     },
     {
       "plane": "entity",
