@@ -729,6 +729,58 @@ Interface: [`docs/slm-prompt-contract.md`](../docs/slm-prompt-contract.md).
   decimals. Greedy inference over a fixed GGUF is reproducible where the MPS
   training path was not.
 
+## SLM pilot — the Insimul handoff bundle (slm-pilot US-005)
+
+`slm_handoff.py` (pure) + `export_handoff.py` (thin CLI, `pinakes-export-handoff`)
+close Phase D: they turn US-004's GGUF into a **self-describing bundle** —
+`model-manifest.json`, `prompt-contract.json`, the frozen `rule-eval.jsonl` and
+`LICENSE-NOTES.md`, all written **beside** the model in `ml/models/slm-pilot/` so
+one `dvc pull ml/models` hands the recipient everything. Wiring instructions:
+[`docs/slm-insimul-runbook.md`](../docs/slm-insimul-runbook.md).
+
+- **This story assembles; it does not measure.** Every score in the manifest is
+  copied from the US-003 baseline report and the US-004 parity report, and
+  `dataFloor` rides along verbatim. Adding a new number here would be a
+  measurement nobody's protocol authorized.
+- **The bundle root IS `ml/models/slm-pilot`, not a sibling directory** — the
+  1.9 GB binary is never copied twice, and the DVC pointer is the one US-004
+  already created. Re-pin with `uv run --project ml dvc add ml/models && dvc push`
+  after every rebuild; the manifest, the `SLM-HANDOFF` doc block and
+  `ml/models.dvc` move together.
+- **GOTCHA — the manifest cannot record its own tree's DVC md5.** It lives inside
+  `ml/models`, so writing it changes the hash it would be claiming. Only
+  `ml/data`'s md5 is recorded (the bundle is not in that tree); the authoritative
+  models pin is the committed `ml/models.dvc`. Same circularity `train_baselines`
+  avoids by keeping `ml/data`'s md5 out of the baselines doc.
+- **`--check` has two tiers and the first one runs in CI.** It rebuilds the frozen
+  eval set from the committed fixtures and compares it to the manifest's
+  `evalSetSha256` (no DVC, no GGUF, no undeclared dep) — that is the gate for "the
+  bundle's scores describe an eval set this repo no longer produces". Only when
+  `ml/models` is materialised does it re-hash the files. `verify_bundle` is the
+  pure half and is what the recipient effectively runs.
+- **The eval set is REBUILT in process, never copied from `ml/data`** — same
+  discipline as the training pipeline, and why the CLI works in a fresh worktree.
+  The CLI also **hard-fails** when the parity report names a different
+  `evalSetSha256` than the build reproduces.
+- **Nothing machine-local ships.** `_config_summary` drops `output_dir` and
+  relativises the resolved path fields against the `ml/` root; a test asserts no
+  `/Users/` string survives into the manifest or the generated prose.
+- **The license position is recorded, not inferred, and it is a finding.**
+  `Qwen/Qwen2.5-3B-Instruct` is `license: other` / `license_name: qwen-research`
+  — the **Qwen Research License, non-commercial** — and the fine-tuned GGUF
+  inherits it. Most of the Qwen2.5 family is Apache-2.0; 3B and 72B are the
+  exceptions (`Qwen2.5-1.5B-Instruct` is Apache-2.0, verified 2026-07-22). US-006
+  owns what to do about it.
+- **`RUNTIME_GAPS` is data, cited by file and symbol**, because the runbook's
+  claims about Insimul's code must not drift from the doc block's. The one that
+  voids every measured number is `chat-wrapper-rebuilds-the-prompt`:
+  `LocalAIProvider.generate` concatenates the system prompt onto the user prompt
+  and re-renders it through node-llama-cpp's chat wrapper, so the contract's exact
+  string is not what reaches the model today.
+- The `SLM-HANDOFF` block lives in `docs/slm-insimul-runbook.md`, outside
+  `train_baselines`' preserve list — same reasoning as `SLM-QUANT`. No `ml/data`
+  re-pin; MLflow run name `slm-handoff`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

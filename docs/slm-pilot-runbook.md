@@ -23,7 +23,11 @@ operating manual.
   + [`ml/tests/test_slm_gguf.py`](../ml/tests/test_slm_gguf.py)
 - Run output (git-ignored): `ml/artifacts/<run>/{[repeat-N/]adapter,run-summary.json}`,
   `baseline-report.json` and `parity-report.json`
-- Deliverable model (DVC, `ml/models.dvc`): `ml/models/slm-pilot/<run>-Q4_K_M.gguf`
+- Deliverable model (DVC, `ml/models.dvc`): `ml/models/slm-pilot/<run>-Q4_K_M.gguf`,
+  which US-005 turns into the full **handoff bundle** (manifest + contract + the
+  frozen eval set + license notes) — see
+  [`docs/slm-insimul-runbook.md`](slm-insimul-runbook.md) for the bundle and the
+  Insimul-side wiring
 - Published results: the `SLM-PILOT` block in
   [`docs/ml-baselines.md`](ml-baselines.md) and the `SLM-QUANT` block in
   [`docs/slm-pilot-report.md`](slm-pilot-report.md), both upserted by their CLI

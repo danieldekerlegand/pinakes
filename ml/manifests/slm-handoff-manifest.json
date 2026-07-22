@@ -1,0 +1,306 @@
+{
+  "bundleVersion": "1",
+  "contractVersion": "1",
+  "dataFloor": {
+    "checks": {
+      "evalPrompts": {
+        "floor": 100,
+        "measured": 2,
+        "meets": false
+      },
+      "evalWorlds": {
+        "floor": 2,
+        "measured": 1,
+        "meets": false
+      },
+      "ruleSftTrain": {
+        "floor": 500,
+        "measured": 7,
+        "meets": false
+      },
+      "ruleSftTrainAccepted": {
+        "floor": 200,
+        "measured": 3,
+        "meets": false
+      }
+    },
+    "shortfalls": [
+      "evalPrompts",
+      "evalWorlds",
+      "ruleSftTrain",
+      "ruleSftTrainAccepted"
+    ],
+    "verdict": "insufficient-data"
+  },
+  "dataset": {
+    "dataDvcMd5": "f20307afdace3832ac9a415db5f57699.dir",
+    "evalPromptsScored": 2,
+    "evalSetFile": "rule-eval.jsonl",
+    "evalSetSha256": "e01cd8175823d5af64414cc4edd2e21369695a606f058197eed234960cbf5fb8",
+    "heldOutWorlds": [
+      "w-laterre"
+    ],
+    "matchesFrozenEvalSet": true,
+    "ruleSftSha256": "b53f348cb5af2ddd23c654f4ef5d540160907d4d06969f2494cf44f6cf442a73"
+  },
+  "files": [
+    {
+      "exists": true,
+      "name": "prompt-contract.json",
+      "sha256": "1b4e865108c25db25e38bb022fa026517f06265bdefc5cf3165655f6a87b4eec",
+      "sizeBytes": 2837
+    },
+    {
+      "exists": true,
+      "name": "rule-eval.jsonl",
+      "sha256": "e01cd8175823d5af64414cc4edd2e21369695a606f058197eed234960cbf5fb8",
+      "sizeBytes": 3250
+    },
+    {
+      "exists": true,
+      "name": "LICENSE-NOTES.md",
+      "sha256": "5228b87bcc830bc2563385c85f44fc38eca64a9c625b5adc62549b4f8540caf1",
+      "sizeBytes": 2810
+    },
+    {
+      "exists": true,
+      "name": "README.md",
+      "sha256": "efc590b603401fcb8cd158a0381ec59b09f07865daff9014f361709954e3fc29",
+      "sizeBytes": 1540
+    }
+  ],
+  "license": {
+    "baseModel": {
+      "apacheAlternativesChecked": [
+        "Qwen/Qwen2.5-1.5B-Instruct"
+      ],
+      "baseModel": "Qwen/Qwen2.5-3B-Instruct",
+      "commercialUse": "PROHIBITED without a separate license from Alibaba Cloud — §2(a) grants the rights 'FOR NON-COMMERCIAL PURPOSES ONLY'; §2(b) says a commercial user must request a license.",
+      "derivativeStatus": "This GGUF is a derivative work: the base weights were LoRA-fine-tuned, merged and quantized, so the base model's terms flow through to it.",
+      "licenseId": "qwen-research",
+      "licenseName": "Qwen Research License Agreement",
+      "licenseUrl": "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct/blob/main/LICENSE",
+      "note": "Insimul's scripts/setup-local-ai.sh already downloads Qwen2.5-3B-Instruct-GGUF, so this obligation exists on the Insimul side today — but shipping a fine-tuned derivative in a commercial product is a distribution the research license does not cover. Qwen2.5-1.5B-Instruct IS Apache-2.0 (verified 2026-07-22); the 3B and 72B checkpoints are the family's bespoke-license exceptions. This is a decision input for US-006, not a legal opinion.",
+      "requiredAttribution": "Product documentation must prominently display 'Built with Qwen' or 'Improved using Qwen' (§4(b)); modified files must carry a notice that they were changed (§3(b)); the agreement must be passed to recipients.",
+      "requiredNotice": "Qwen is licensed under the Qwen RESEARCH LICENSE AGREEMENT, Copyright (c) Alibaba Cloud. All Rights Reserved.",
+      "verifiedOn": "2026-07-22"
+    },
+    "trainingData": {
+      "licenseClass": "proprietary",
+      "modelOutputs": "No third-party model's outputs were used as training targets: the SFT targets are Insimul's own validated Prolog rules.",
+      "redistribution": "Insimul-internal only. The rule-SFT corpus and the eval set are synthetic-tier / proprietary — never an open-data release, and never committed to git on either side.",
+      "source": "Insimul CanonicalWorldExports + rejection-sampled rule candidates, converted by pinakes_ml.insimul_datasets (insimul-bridge US-005).",
+      "syntheticNegatives": "Preference negatives are corruption-sampled and kept only when the tier-4 validator confirms the corruption introduced a defect the original did not have; they are not model-generated.",
+      "tier": "synthetic"
+    }
+  },
+  "model": {
+    "adapterSource": "ml/artifacts/slm-pilot-3b/repeat-1/run-summary.json",
+    "baseModel": "Qwen/Qwen2.5-3B-Instruct",
+    "chatTemplateVerified": true,
+    "file": "slm-pilot-3b-Q4_K_M.gguf",
+    "quant": "Q4_K_M",
+    "runName": "slm-pilot-3b",
+    "sha256": "508ca756d9724ab662c29c3ca1ec6745985d745a8f924875363228109f94bab8",
+    "sizeBytes": 1929902400
+  },
+  "pipelineVersion": "1",
+  "promptContract": {
+    "contractVersion": "1",
+    "file": "prompt-contract.json",
+    "generation": {
+      "maxTokens": 96,
+      "stop": [
+        "<|im_end|>",
+        "<|endoftext|>"
+      ],
+      "temperature": 0.0,
+      "topK": 1,
+      "topP": 1.0
+    },
+    "productionArm": "grounded",
+    "systemPrompt": "You are Insimul's rule author. Answer with exactly one Prolog rule: a single clause terminated by a period. Output only the rule — no prose, no explanation, no code fences."
+  },
+  "protocolVersion": "1",
+  "runtime": {
+    "contextSize": 4096,
+    "gaps": [
+      {
+        "id": "chat-wrapper-rebuilds-the-prompt",
+        "required": "Send `inferencePromptTemplate` verbatim through a raw-completion path (node-llama-cpp's LlamaCompletion), or construct the session with an explicit ChatML wrapper and a real system turn. The concatenated form is NOT the string the parity check measured.",
+        "symbol": "LocalAIProvider.generate",
+        "today": "The system prompt is concatenated onto the user prompt (`${systemPrompt}\\n\\n${prompt}`) and handed to LlamaChatSession.prompt(), which re-renders it through node-llama-cpp's auto-detected chat wrapper.",
+        "where": "server/services/ai/providers/local/local-ai-provider.ts"
+      },
+      {
+        "id": "decoding-defaults-are-not-the-contract",
+        "required": "Rule authoring must use the contract's greedy settings (temperature 0, topK 1, maxNewTokens 96) and its stop triggers. Every adherence number in this bundle was measured under them.",
+        "symbol": "LocalAIProviderConfig defaults",
+        "today": "defaultTemperature 0.7, maxTokens 2048, no top-k and no stop set.",
+        "where": "server/services/ai/providers/local/local-ai-provider.ts"
+      },
+      {
+        "id": "default-model-name-mismatch",
+        "required": "Set LOCAL_MODEL_PATH (absolute) or LOCAL_MODEL_NAME explicitly for the pilot model. Do not rely on the built-in default.",
+        "symbol": "getAIConfig().local.modelName",
+        "today": "Defaults to 'phi-4-mini-q4', which resolves to models/phi-4-mini-q4.gguf — a file scripts/setup-local-ai.sh does not download (it fetches qwen2.5-3b-instruct-q4_k_m.gguf).",
+        "where": "server/config/ai-config.ts"
+      },
+      {
+        "id": "rule-generation-does-not-route-through-the-provider",
+        "required": "Route rule authoring through the provider factory (or a dedicated rule-author provider) so AI_PROVIDER=local reaches it — otherwise the bundled model is loaded but never asked to author a rule.",
+        "symbol": "generateRule / generateRulesBatch / generateBulkRules",
+        "today": "Rule generation calls Gemini directly rather than resolving a provider through getAIProvider().",
+        "where": "server/services/gemini-ai.ts"
+      }
+    ],
+    "gpuLayers": "auto",
+    "quant": "Q4_K_M",
+    "target": "Insimul LocalAIService (node-llama-cpp)"
+  },
+  "scores": {
+    "gguf": {
+      "grounded": {
+        "evalLoss": 2.674045,
+        "fireabilityIndex": 0.778801,
+        "fullyValid": 1.0,
+        "parseRate": 0.5,
+        "parsed": 1,
+        "prompts": 2,
+        "reachabilityCharitable": 1.0,
+        "reachabilityStrict": 1.0,
+        "referentialIntegrity": 1.0,
+        "schemaValidity": 1.0,
+        "structuralValidity": 1.0
+      },
+      "ungrounded": {
+        "evalLoss": 2.625717,
+        "fireabilityIndex": 0.0,
+        "fullyValid": 0.5,
+        "parseRate": 1.0,
+        "parsed": 2,
+        "prompts": 2,
+        "reachabilityCharitable": 0.0,
+        "reachabilityStrict": 0.5,
+        "referentialIntegrity": 0.5,
+        "schemaValidity": 0.5,
+        "structuralValidity": 1.0
+      }
+    },
+    "groundingAblation": {
+      "evalLoss": 0.023542,
+      "fireabilityIndex": 0.0,
+      "fullyValid": 1.0,
+      "parseRate": -0.5,
+      "reachabilityCharitable": 0.0,
+      "reachabilityStrict": 1.0,
+      "referentialIntegrity": 0.0,
+      "schemaValidity": 1.0,
+      "structuralValidity": 0.0
+    },
+    "hf": {
+      "grounded": {
+        "evalLoss": 2.463996,
+        "fireabilityIndex": 0.0,
+        "fullyValid": 1.0,
+        "parseRate": 0.5,
+        "parsed": 1,
+        "prompts": 2,
+        "reachabilityCharitable": 0.0,
+        "reachabilityStrict": 1.0,
+        "referentialIntegrity": 1.0,
+        "schemaValidity": 1.0,
+        "structuralValidity": 1.0
+      },
+      "ungrounded": {
+        "evalLoss": 2.436815,
+        "fireabilityIndex": 0.0,
+        "fullyValid": 0.0,
+        "parseRate": 1.0,
+        "parsed": 2,
+        "prompts": 2,
+        "reachabilityCharitable": 0.0,
+        "reachabilityStrict": 0.0,
+        "referentialIntegrity": 1.0,
+        "schemaValidity": 0.0,
+        "structuralValidity": 1.0
+      }
+    },
+    "quantizationBudget": {
+      "allowedPp": 2.0,
+      "arm": "grounded",
+      "gguf": 1.0,
+      "hf": 1.0,
+      "metric": "fullyValid",
+      "observedPp": 0.0,
+      "verdict": "within-budget",
+      "withinBudget": true
+    },
+    "quantizationDeltas": {
+      "grounded": {
+        "evalLoss": 0.210049,
+        "fireabilityIndex": 0.778801,
+        "fullyValid": 0.0,
+        "parseRate": 0.0,
+        "reachabilityCharitable": 1.0,
+        "reachabilityStrict": 0.0,
+        "referentialIntegrity": 0.0,
+        "schemaValidity": 0.0,
+        "structuralValidity": 0.0
+      },
+      "ungrounded": {
+        "evalLoss": 0.188902,
+        "fireabilityIndex": 0.0,
+        "fullyValid": 0.5,
+        "parseRate": 0.0,
+        "reachabilityCharitable": 0.0,
+        "reachabilityStrict": 0.5,
+        "referentialIntegrity": -0.5,
+        "schemaValidity": 0.5,
+        "structuralValidity": 0.0
+      }
+    }
+  },
+  "training": {
+    "config": {
+      "accepted_only": true,
+      "arms": [
+        "grounded",
+        "ungrounded"
+      ],
+      "base_model": "Qwen/Qwen2.5-3B-Instruct",
+      "candidates": [],
+      "device": null,
+      "dvc_file": "data.dvc",
+      "eval_manifest": "manifests/slm-pilot-eval-manifest.json",
+      "eval_ratio": 0.25,
+      "gradient_accumulation_steps": 1,
+      "learning_rate": 0.0002,
+      "load_in_4bit": false,
+      "logging_steps": 1,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "lora_r": 16,
+      "lora_target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj"
+      ],
+      "max_eval_prompts": null,
+      "max_new_tokens": 96,
+      "max_seq_length": 1024,
+      "max_train_records": null,
+      "num_train_epochs": 4.0,
+      "per_device_train_batch_size": 1,
+      "repeats": 3,
+      "run_name": "slm-pilot-3b",
+      "score_untuned": true,
+      "seed": 20260722,
+      "warmup_ratio": 0.03,
+      "worlds": []
+    },
+    "repeats": 3,
+    "stub": false
+  }
+}
