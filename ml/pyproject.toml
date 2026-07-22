@@ -95,6 +95,33 @@ pinakes-eval-rule-adherence = "pinakes_ml.eval_rule_adherence:main"
 # pinakes_ml.export_insimul_datasets`. `--check` is the manifest ratchet.
 # Everything it emits is synthetic tier / proprietary — DVC data, never git.
 pinakes-export-insimul = "pinakes_ml.export_insimul_datasets:main"
+# slm-pilot US-001 — the pilot's FROZEN evaluation protocol (held-out rule
+# prompts -> the eval set + the metric list, comparison points, ablation arms
+# and the measured-volume `insufficient-data` floor); also `python -m
+# pinakes_ml.export_slm_eval`. `--check` is the freeze gate.
+# Prose half: docs/slm-pilot-protocol.md.
+pinakes-export-slm-eval = "pinakes_ml.export_slm_eval:main"
+# slm-pilot US-002 — the pilot's config-driven QLoRA pipeline (rule-SFT ->
+# fine-tune -> tier-4 adherence on the FROZEN eval set, both prompt arms); also
+# `python -m pinakes_ml.train_slm`. `--stub` runs the whole loop with no model
+# and no undeclared deps (the CI smoke); a real run needs
+# `uv pip install trl peft accelerate`. Runbook: docs/slm-pilot-runbook.md.
+pinakes-train-slm = "pinakes_ml.train_slm:main"
+# slm-pilot US-004 — the deployment leg (merge the LoRA adapter -> GGUF ->
+# Q4_K_M -> tier-4 adherence under llama.cpp, vs the HF-stack scores on the same
+# frozen eval set) plus the prompt-template contract Insimul's LocalAIService
+# must send; also `python -m pinakes_ml.export_gguf`. `--contract-only` and
+# `--dry-run` are pure (the CI-safe smokes); a real conversion needs the
+# undeclared `llama-cpp-python`/`gguf` and a built llama.cpp checkout.
+# Contract: docs/slm-prompt-contract.md.
+pinakes-export-gguf = "pinakes_ml.export_gguf:main"
+# slm-pilot US-005 — the Insimul handoff bundle (the GGUF's model manifest, the
+# prompt contract, the frozen eval set for re-verification and the license
+# notes, assembled beside the model in the DVC-tracked ml/models/slm-pilot);
+# also `python -m pinakes_ml.export_handoff`. `--dry-run` touches nothing and
+# `--check` is the re-verification gate (the eval-set hash tier runs in CI).
+# Runbook: docs/slm-insimul-runbook.md.
+pinakes-export-handoff = "pinakes_ml.export_handoff:main"
 
 [project.optional-dependencies]
 dev = [

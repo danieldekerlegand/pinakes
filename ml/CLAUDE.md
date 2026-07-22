@@ -558,6 +558,229 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
 - No `ml/data` re-pin for the fixture build (it writes to `ml/data/insimul/` but
   the committed artifact is the manifest); MLflow run name `insimul-datasets`.
 
+## SLM pilot — the frozen eval protocol (slm-pilot US-001)
+
+Phase D's referee: `slm_pilot.py` (pure) + `export_slm_eval.py` (thin CLI,
+`pinakes-export-slm-eval`) freeze the eval set, the metric list, the comparison
+points and the volume floors BEFORE any training run. Prose half + the success bar:
+[`docs/slm-pilot-protocol.md`](../docs/slm-pilot-protocol.md).
+
+- **The protocol is in the MANIFEST, not only the prose.** `metrics`,
+  `comparisonPoints`, `ablation` and `dataFloor` ride in
+  `ml/manifests/slm-pilot-eval-manifest.json`, which is snapshot-gated against a
+  fresh fixture build — so US-003 changing the headline metrics is a visible diff on
+  a gated file. `--check` is the freeze gate.
+- **The eval set is the held-out worlds' rule prompts, deduped by `prompt_id`.**
+  Corruption negatives share their accepted parent's `prompt_id`, so grouping by it
+  gives one row per distinct *prompt*; the accepted record (sorted first) supplies
+  `reference_completion`, the only reference-based metric's (`evalLoss`) target.
+- **Both prompt arms are frozen up front.** `strip_grounding_block` derives the
+  US-003 ablation's ungrounded arm from the grounded one (drop the three vocabulary
+  listing lines, swap "listed above" for "Insimul's standard Prolog rule
+  vocabulary") — idempotent, unit-tested against `build_rule_prompt`. If
+  `build_rule_prompt`'s wording changes, `GROUNDING_LINE_PREFIXES` must change with
+  it or the ablation silently stops stripping anything.
+- **`check_floors` is the `insufficient-data` gate, and it is a FIELD, not a
+  judgment call.** Today's fixture corpus is below every floor (7 train SFT records
+  vs 500; 2 eval prompts vs 100), so `dataFloor.verdict == "insufficient-data"`.
+  US-006 reads that field; it does not re-derive it. A missing volume key counts as
+  0 so a rename fails the gate loudly instead of passing it.
+- **A shortfall is exit 0, not an error** — the artifacts are still written and the
+  verdict is recorded. The CLI prints a NOTE; the pipeline stories still run, because
+  a pipeline is proven by completing the loop, not by its scores.
+- Fixture-driven (the same two worlds as `pinakes-export-insimul`), so the committed
+  manifest needs no DVC corpus; the eval JSONL lands in the DVC-tracked
+  `ml/data/slm-pilot/` tree — **no re-pin for a fixture build**, same stance as the
+  Insimul datasets. MLflow run name `slm-pilot-eval`.
+
+## SLM pilot — the QLoRA training pipeline (slm-pilot US-002)
+
+`slm_finetune.py` (pure core + lazy heavy imports) + `train_slm.py` (thin CLI,
+`pinakes-train-slm`) are Phase D's workflow backbone: rule-SFT corpus → QLoRA
+fine-tune → **tier-4 adherence** on the frozen eval set, both prompt arms, driven
+by a committed JSON config. Runbook: [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md).
+
+- **The QLoRA plumbing is REUSED from `finetune.py`, not reforked.**
+  `require_finetune_deps` / `resolve_device` / `_lora_config` / `_load_tokenizer` /
+  `_load_base_model` duck-type on any config exposing the same LoRA fields, which
+  `SlmPilotConfig` does. What differs is the task: tier-4 rule adherence
+  (`rule_adherence.evaluate_rule`) instead of tier-3 QA, and the US-001 **frozen**
+  eval set instead of the KGQA split. If you touch the trl/peft call sites, touch
+  them in `finetune.py` — both pipelines ride on them.
+- **The datasets are rebuilt IN PROCESS, never read from `ml/data/`.** Same
+  `build_datasets` + `build_eval_set`, same seed and per-world split as
+  `pinakes-export-slm-eval` — so the run *reproduces* the frozen eval set and
+  records `evalSetSha256` + `matchesFrozenEvalSet` against the committed manifest
+  (the protocol's "a run that cannot name the eval set it scored is not a
+  comparison point"). Consequence: a debug run works in a fresh worktree with **no
+  `dvc pull`**, and it writes no data, so there is **no `ml/data` re-pin**.
+- **The training seam is injectable, which is what makes the CI smoke real.**
+  `run_pipeline(..., trainer=, model_factory=)` — pass `stub_trainer` +
+  `stub_model_factory` (or the CLI's `--stub`) and the *identical* code path runs
+  end to end with no model, no network and no undeclared dep. A stub run stamps
+  `training.stub = true` and the CLI shouts, because its scores describe wiring.
+- **ChatML is rendered PURELY, not by the tokenizer** (`render_chatml` /
+  `format_inference_prompt`), so the exact prompt string is unit-testable in the
+  slim env and is US-004's template contract. `format_training_text` is the
+  inference prompt plus the assistant turn — a test asserts that identity, so
+  training and inference cannot drift. A real run calls `chat_template_matches`
+  and records `chatTemplateVerified` (`true` for Qwen2.5-Instruct). The system
+  prompt says nothing about the world vocabulary — the grounding lives in the user
+  turn, which is exactly what the ablation strips.
+- **`extract_rule` refuses to coerce prose into a clause.** Fences and preamble are
+  stripped and the clause is taken to its terminating period; a generation with no
+  clause returns `""` and scores as a parse failure. Without this, `"I cannot
+  help."` *parses* (the tier-4 parser accepts it as a one-atom clause) and a
+  refusal would be scored as a well-formed rule.
+- **No committed metrics snapshot, no `--check` gate** — same stance as the
+  Phase-5 QLoRA pipeline and for the measured reason: two identical MPS
+  invocations of the debug run produced different adherence rates. Committed
+  artifacts are the config (`ml/configs/slm-pilot-*.json`), the runbook and the
+  tests. The adapter + `run-summary.json` go to git-ignored `ml/artifacts/`; the
+  *deliverable* model (US-004/005 GGUF bundle) is what earns a DVC pin.
+- **Scores at the current corpus scale are not results.** 3 training records / 2
+  eval prompts — `dataFloor.verdict == "insufficient-data"`. US-002's deliverable
+  is that the loop closes, and it does (0.5B on MPS, ~6 s of training).
+
+## SLM pilot — the 3B baseline + comparison table (slm-pilot US-003)
+
+`slm_baseline.py` (pure, plus the networked `GeminiRuleModel`) turns N runs of the
+US-002 pipeline into the pilot's **comparison table**: mean/min/max per stage, arm
+and frozen metric, the ablation gap, the success bar's arithmetic, and the
+`SLM-PILOT` block upserted into `docs/ml-baselines.md`. Config
+`ml/configs/slm-pilot-3b.json`; runbook [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md).
+
+- **Every number is a mean over repeats, never a single draw.** `config.repeats`
+  reruns the whole train+score loop at the SAME seed; `bar.spreadAcrossRepeats` is
+  the honesty check the doc block states in words ("any effect smaller than this
+  is the platform"). The measured outcome at 3B: all three repeats gave
+  *identical* rates and `evalLoss` moved only in the fourth decimal — so the
+  US-002 0.5B nondeterminism is **not** universal, which is exactly the kind of
+  thing you only learn by running the repeats.
+- **A frozen comparison point is never dropped, only explained.**
+  `build_comparison_table` emits one row per `slm_pilot.COMPARISON_POINTS` entry
+  in that order; an unfillable row carries `status: "not-measured"` plus a reason
+  (`NOT_MEASURED_REASONS`). Today both `deterministic-translator-floor` (absent
+  from the Insimul checkout) and `grounded-gemini` (no API key) are unfilled —
+  and because the primary bar is *a fraction of the untuned→Gemini gap*,
+  `gap_closure` returns `None` rather than estimating it.
+- **`dataFloor` is copied verbatim from the frozen manifest** (`read_data_floor`),
+  never re-derived, and `bar_inputs` deliberately emits no verdict — the verdict
+  is US-006's and it is gated on that field.
+- **GOTCHA — release each stage's weights before loading the next.**
+  `release_model` / `free_device_memory` in `slm_finetune.py`: the pipeline loads
+  one model per stage (untuned → trainer → tuned) and each stays referenced by its
+  frame until the call returns. Three fp32 3B copies are ~37 GB and do not fit in
+  36 GB of unified memory; at 0.5B nobody noticed.
+- **`docs/ml-baselines.md` is co-owned by FIVE CLIs now.** `train_baselines`
+  rewrites the doc and re-appends `KGQA-EVAL`, `SCALLOP-PILOT`, `RULE-ADHERENCE`
+  and `SLM-PILOT`. A sixth marked block must join that preserve list or a
+  baselines re-run deletes it. A `--stub` run never writes the doc.
+- No `ml/data` re-pin (the pipeline reads DVC-tracked trees and writes none);
+  adapters + `baseline-report.json` stay in git-ignored `ml/artifacts/`; three
+  MLflow runs per baseline, each naming the eval set it scored.
+
+## SLM pilot — the GGUF deployment leg + prompt contract (slm-pilot US-004)
+
+`slm_gguf.py` (pure core + lazy heavy imports) + `export_gguf.py` (thin CLI,
+`pinakes-export-gguf`) close Phase D's deployment question: merge the US-003
+adapter, convert to GGUF, quantize to **Q4_K_M** (Insimul's deployed quant), and
+re-score the result with the tier-4 harness on the *same* frozen eval set.
+Runbook: [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md) §US-004.
+Interface: [`docs/slm-prompt-contract.md`](../docs/slm-prompt-contract.md).
+
+- **The parity check holds everything but the runtime constant, and enforces it.**
+  Same `RuleModel` seam, same `format_inference_prompt` string, greedy decoding on
+  both sides, same tier-4 scorer — and the CLI **hard-fails** when the HF run
+  summary's `evalSetSha256` differs from the eval set it rebuilt in process. Two
+  columns on two eval sets is not a parity check.
+- **The acceptability threshold was frozen by US-001, not chosen here.**
+  `QUANT_BUDGET_METRIC`/`QUANT_BUDGET_PP`/`QUANT_BUDGET_ARM` mirror
+  `docs/slm-pilot-protocol.md` §5 bar 3 (`fullyValid`, grounded arm, ≤ 2pp), and a
+  test asserts the doc still states them. A missing column yields
+  `not-measured`, never a pass.
+- **The prompt contract is GENERATED from the pipeline's renderers, never
+  transcribed.** `build_prompt_contract()` evaluates `format_inference_prompt` /
+  `format_training_text` on a placeholder; `ml/manifests/slm-prompt-contract.json`
+  is the committed snapshot and the pytest gate is a *real* CI gate (pure — no
+  fixtures, no corpus, no llama.cpp). A diff there means the deployed prompt no
+  longer matches the measured one ⇒ **bump `CONTRACT_VERSION`; it breaks Insimul**.
+- **`ml/models` is its own DVC pointer (`ml/models.dvc`).** The deliverable GGUF is
+  the first model artifact in the repo to earn a pin — but it must NOT go into
+  `ml/data`, whose md5 the frozen protocol cites as the eval set's tree. Re-pin
+  with `uv run --project ml dvc add ml/models && dvc push` after a conversion; the
+  merged fp16 weights and the f16 GGUF stay in git-ignored `ml/artifacts/`.
+- **GOTCHA — `sentencepiece` is required to convert a Qwen2 checkpoint** even
+  though Qwen2 is BPE: `Qwen2Model.set_vocab` tries `_set_vocab_sentencepiece()`
+  first and falls back to `_set_vocab_gpt2()` only on `FileNotFoundError`, so a
+  missing module raises `ImportError` straight through the handler. Install it with
+  `gguf`/`llama-cpp-python`; all three are undeclared (`uv pip install`), same
+  stance as `trl`/`peft`.
+- **GOTCHA — build only the `llama-quantize` cmake target.** `brew install
+  llama.cpp` needs write access to `/opt/homebrew` that a locked-down machine will
+  not have, and a full source build is minutes of compiling nobody needs.
+- **`--contract-only` / `--dry-run` are the model-free smokes** (the role `--stub`
+  plays for `pinakes-train-slm`) and `--check` is the contract freeze gate. The
+  `SLM-QUANT` block is upserted into `docs/slm-pilot-report.md`, **not**
+  `docs/ml-baselines.md` — so it stays outside `train_baselines`' five-block
+  preserve list and US-006 writes its verdict around it.
+- **No repeat machinery on this column, and that is measured:** two independent
+  `--skip-convert` runs gave identical rates *and* identical `evalLoss` to six
+  decimals. Greedy inference over a fixed GGUF is reproducible where the MPS
+  training path was not.
+
+## SLM pilot — the Insimul handoff bundle (slm-pilot US-005)
+
+`slm_handoff.py` (pure) + `export_handoff.py` (thin CLI, `pinakes-export-handoff`)
+close Phase D: they turn US-004's GGUF into a **self-describing bundle** —
+`model-manifest.json`, `prompt-contract.json`, the frozen `rule-eval.jsonl` and
+`LICENSE-NOTES.md`, all written **beside** the model in `ml/models/slm-pilot/` so
+one `dvc pull ml/models` hands the recipient everything. Wiring instructions:
+[`docs/slm-insimul-runbook.md`](../docs/slm-insimul-runbook.md).
+
+- **This story assembles; it does not measure.** Every score in the manifest is
+  copied from the US-003 baseline report and the US-004 parity report, and
+  `dataFloor` rides along verbatim. Adding a new number here would be a
+  measurement nobody's protocol authorized.
+- **The bundle root IS `ml/models/slm-pilot`, not a sibling directory** — the
+  1.9 GB binary is never copied twice, and the DVC pointer is the one US-004
+  already created. Re-pin with `uv run --project ml dvc add ml/models && dvc push`
+  after every rebuild; the manifest, the `SLM-HANDOFF` doc block and
+  `ml/models.dvc` move together.
+- **GOTCHA — the manifest cannot record its own tree's DVC md5.** It lives inside
+  `ml/models`, so writing it changes the hash it would be claiming. Only
+  `ml/data`'s md5 is recorded (the bundle is not in that tree); the authoritative
+  models pin is the committed `ml/models.dvc`. Same circularity `train_baselines`
+  avoids by keeping `ml/data`'s md5 out of the baselines doc.
+- **`--check` has two tiers and the first one runs in CI.** It rebuilds the frozen
+  eval set from the committed fixtures and compares it to the manifest's
+  `evalSetSha256` (no DVC, no GGUF, no undeclared dep) — that is the gate for "the
+  bundle's scores describe an eval set this repo no longer produces". Only when
+  `ml/models` is materialised does it re-hash the files. `verify_bundle` is the
+  pure half and is what the recipient effectively runs.
+- **The eval set is REBUILT in process, never copied from `ml/data`** — same
+  discipline as the training pipeline, and why the CLI works in a fresh worktree.
+  The CLI also **hard-fails** when the parity report names a different
+  `evalSetSha256` than the build reproduces.
+- **Nothing machine-local ships.** `_config_summary` drops `output_dir` and
+  relativises the resolved path fields against the `ml/` root; a test asserts no
+  `/Users/` string survives into the manifest or the generated prose.
+- **The license position is recorded, not inferred, and it is a finding.**
+  `Qwen/Qwen2.5-3B-Instruct` is `license: other` / `license_name: qwen-research`
+  — the **Qwen Research License, non-commercial** — and the fine-tuned GGUF
+  inherits it. Most of the Qwen2.5 family is Apache-2.0; 3B and 72B are the
+  exceptions (`Qwen2.5-1.5B-Instruct` is Apache-2.0, verified 2026-07-22). US-006
+  owns what to do about it.
+- **`RUNTIME_GAPS` is data, cited by file and symbol**, because the runbook's
+  claims about Insimul's code must not drift from the doc block's. The one that
+  voids every measured number is `chat-wrapper-rebuilds-the-prompt`:
+  `LocalAIProvider.generate` concatenates the system prompt onto the user prompt
+  and re-renders it through node-llama-cpp's chat wrapper, so the contract's exact
+  string is not what reaches the model today.
+- The `SLM-HANDOFF` block lives in `docs/slm-insimul-runbook.md`, outside
+  `train_baselines`' preserve list — same reasoning as `SLM-QUANT`. No `ml/data`
+  re-pin; MLflow run name `slm-handoff`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
