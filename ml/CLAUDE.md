@@ -593,6 +593,55 @@ points and the volume floors BEFORE any training run. Prose half + the success b
   `ml/data/slm-pilot/` tree — **no re-pin for a fixture build**, same stance as the
   Insimul datasets. MLflow run name `slm-pilot-eval`.
 
+## SLM pilot — the QLoRA training pipeline (slm-pilot US-002)
+
+`slm_finetune.py` (pure core + lazy heavy imports) + `train_slm.py` (thin CLI,
+`pinakes-train-slm`) are Phase D's workflow backbone: rule-SFT corpus → QLoRA
+fine-tune → **tier-4 adherence** on the frozen eval set, both prompt arms, driven
+by a committed JSON config. Runbook: [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md).
+
+- **The QLoRA plumbing is REUSED from `finetune.py`, not reforked.**
+  `require_finetune_deps` / `resolve_device` / `_lora_config` / `_load_tokenizer` /
+  `_load_base_model` duck-type on any config exposing the same LoRA fields, which
+  `SlmPilotConfig` does. What differs is the task: tier-4 rule adherence
+  (`rule_adherence.evaluate_rule`) instead of tier-3 QA, and the US-001 **frozen**
+  eval set instead of the KGQA split. If you touch the trl/peft call sites, touch
+  them in `finetune.py` — both pipelines ride on them.
+- **The datasets are rebuilt IN PROCESS, never read from `ml/data/`.** Same
+  `build_datasets` + `build_eval_set`, same seed and per-world split as
+  `pinakes-export-slm-eval` — so the run *reproduces* the frozen eval set and
+  records `evalSetSha256` + `matchesFrozenEvalSet` against the committed manifest
+  (the protocol's "a run that cannot name the eval set it scored is not a
+  comparison point"). Consequence: a debug run works in a fresh worktree with **no
+  `dvc pull`**, and it writes no data, so there is **no `ml/data` re-pin**.
+- **The training seam is injectable, which is what makes the CI smoke real.**
+  `run_pipeline(..., trainer=, model_factory=)` — pass `stub_trainer` +
+  `stub_model_factory` (or the CLI's `--stub`) and the *identical* code path runs
+  end to end with no model, no network and no undeclared dep. A stub run stamps
+  `training.stub = true` and the CLI shouts, because its scores describe wiring.
+- **ChatML is rendered PURELY, not by the tokenizer** (`render_chatml` /
+  `format_inference_prompt`), so the exact prompt string is unit-testable in the
+  slim env and is US-004's template contract. `format_training_text` is the
+  inference prompt plus the assistant turn — a test asserts that identity, so
+  training and inference cannot drift. A real run calls `chat_template_matches`
+  and records `chatTemplateVerified` (`true` for Qwen2.5-Instruct). The system
+  prompt says nothing about the world vocabulary — the grounding lives in the user
+  turn, which is exactly what the ablation strips.
+- **`extract_rule` refuses to coerce prose into a clause.** Fences and preamble are
+  stripped and the clause is taken to its terminating period; a generation with no
+  clause returns `""` and scores as a parse failure. Without this, `"I cannot
+  help."` *parses* (the tier-4 parser accepts it as a one-atom clause) and a
+  refusal would be scored as a well-formed rule.
+- **No committed metrics snapshot, no `--check` gate** — same stance as the
+  Phase-5 QLoRA pipeline and for the measured reason: two identical MPS
+  invocations of the debug run produced different adherence rates. Committed
+  artifacts are the config (`ml/configs/slm-pilot-*.json`), the runbook and the
+  tests. The adapter + `run-summary.json` go to git-ignored `ml/artifacts/`; the
+  *deliverable* model (US-004/005 GGUF bundle) is what earns a DVC pin.
+- **Scores at the current corpus scale are not results.** 3 training records / 2
+  eval prompts — `dataFloor.verdict == "insufficient-data"`. US-002's deliverable
+  is that the loop closes, and it does (0.5B on MPS, ~6 s of training).
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

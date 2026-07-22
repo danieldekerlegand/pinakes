@@ -101,6 +101,12 @@ pinakes-export-insimul = "pinakes_ml.export_insimul_datasets:main"
 # pinakes_ml.export_slm_eval`. `--check` is the freeze gate.
 # Prose half: docs/slm-pilot-protocol.md.
 pinakes-export-slm-eval = "pinakes_ml.export_slm_eval:main"
+# slm-pilot US-002 — the pilot's config-driven QLoRA pipeline (rule-SFT ->
+# fine-tune -> tier-4 adherence on the FROZEN eval set, both prompt arms); also
+# `python -m pinakes_ml.train_slm`. `--stub` runs the whole loop with no model
+# and no undeclared deps (the CI smoke); a real run needs
+# `uv pip install trl peft accelerate`. Runbook: docs/slm-pilot-runbook.md.
+pinakes-train-slm = "pinakes_ml.train_slm:main"
 
 [project.optional-dependencies]
 dev = [

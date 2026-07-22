@@ -11,6 +11,7 @@ so the bar cannot be moved to fit a result.
 - Manifest (committed, snapshot-tested): [`ml/manifests/slm-pilot-eval-manifest.json`](../ml/manifests/slm-pilot-eval-manifest.json)
 - Eval set (DVC tree, git-ignored, **synthetic tier / proprietary**): `ml/data/slm-pilot/rule-eval.jsonl`
 - Coverage: [`ml/tests/test_slm_pilot.py`](../ml/tests/test_slm_pilot.py)
+- The pipeline that answers to this protocol (US-002): [`docs/slm-pilot-runbook.md`](slm-pilot-runbook.md)
 
 ## ⚠️ What "frozen" means here
 
