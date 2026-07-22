@@ -305,19 +305,27 @@ have (`source`/`source_url`/`retrieved_at`/`confidence`/`version`/`status` per r
   (`constraints/rules_registry.tsv`, `schema/rules_registry.tsv`) still exist as each
   layer's own artifact — the unified registry is the governance aggregate over them.
 
-## Tier-scoped export + the file-web rules (analyzer-bridge US-004)
+## Tier-scoped export + the file-web rules (analyzer-bridge US-004, insimul-bridge US-003)
 
-`to-datalog`/`datalog-materialize` take `--tier personal`; `export_dataset(...,
-tier=...)` and `collect_facts(..., keep_row=...)` implement it.
+`to-datalog`/`datalog-materialize` take `--tier {personal,synthetic}` (`CONTAINED_TIERS`);
+`export_dataset(..., tier=...)` and `collect_facts(..., keep_row=...)` implement it.
 
 - **The tier filter is a per-row `keep_row` predicate**, threaded through
   `node_file_facts`/`edge_file_facts` (both gained a `keep_row=` kwarg) → `_DatasetFacts`
   → `collect_facts` → `collect_problog_facts`. `export.tier_row_filter(tier)` builds it:
-  `None` → **drop** personal rows (the PUBLIC program — the containment gate; a
-  `source=analyzer` row never reaches the default `.pl`/`.dl`), `"personal"` → **keep only**
-  personal rows. It imports `orchestrate.tiers.is_personal_source` **lazily** (orchestrate
+  `None` → **drop every contained-tier row** (the PUBLIC program — the containment gate;
+  neither a `source=analyzer` nor a `source=insimul` row reaches the default `.pl`/`.dl`),
+  a tier token → **keep only** that tier's rows. It imports
+  `orchestrate.tiers.is_personal_source`/`is_synthetic_source` **lazily** (orchestrate
   imports datalog.export, so a top-level import would risk a cycle) and reads the single
-  `PERSONAL_SOURCES` set — never hard-code `"analyzer"`.
+  `PERSONAL_SOURCES`/`SYNTHETIC_SOURCES` sets — never hard-code `"analyzer"`/`"insimul"`.
+- **`synthetic` attaches no special rule library, unlike `personal`.** A generated world's
+  own rules are **full-prolog** (cuts, negation, `rule_likelihood/2`) and by contract do
+  not cross into Datalog — they ride as `insimul-world` rules-registry entries
+  (`acquire.insimul.world_rule_entries`) with an empty `clause_souffle`, never as `Rule`s.
+  So `--tier synthetic` gets the shared `RULES`, and `cli.py`'s `FILE_WEB_RULES` swap stays
+  keyed on `PERSONAL_TIER` alone. **A third contained tier would add a `CONTAINED_TIERS`
+  entry + a `predicates` entry, and nothing else.**
 - **`FILE_WEB_RULES` (`datalog/file_web.py`) are DELIBERATELY NOT in `RULES`.** They ride
   only with `--tier personal`, so the public program and every count pinned against the
   shared library (`test_datalog_rules.py`, the materialization manifest, the rules

@@ -57,6 +57,20 @@ PROLOG_PROGRAM_NAME = "graph.pl"
 #: :func:`culturescrape.orchestrate.tiers.assert_no_personal_records`).
 PERSONAL_TIER = "personal"
 
+#: The synthetic (Insimul) trust tier — the ``--tier`` token that scopes the export
+#: to a generated world's own subgraph. The containment invariant
+#: (INSIMUL_SYNC_PLAN.md §7 "License leakage") is the exact twin of the personal
+#: one: a generated-world fact must NEVER reach the default (public) program, so
+#: the default export **filters synthetic rows out** too. Unlike the personal tier
+#: it attaches no special rule library — a world's own rules are full-prolog and
+#: do not cross into Datalog (they ride as ``insimul-world`` rules-registry entries
+#: instead; see :func:`culturescrape.acquire.insimul.world_rule_entries`).
+SYNTHETIC_TIER = "synthetic"
+
+#: The contained tiers, in ``--tier`` token order: neither reaches the default
+#: program, and each can be selected on its own.
+CONTAINED_TIERS: tuple[str, ...] = (PERSONAL_TIER, SYNTHETIC_TIER)
+
 
 class DatalogExportError(ValueError):
     """Raised when a dataset cannot be projected to a logic program."""
@@ -71,30 +85,42 @@ def _row_source(row: Row) -> str:
 def tier_row_filter(tier: str | None) -> Callable[[Row], bool]:
     """Build the row-level keep predicate that scopes a projection to *tier*.
 
-    * ``None`` — the **public** program: every non-personal row is kept and every
-      personal-tier row (``source`` in
-      :data:`culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) is dropped, so a
-      corpus that has ingested Analyzer file-facts still yields a release-safe
-      program with no personal data in it.
-    * :data:`PERSONAL_TIER` — the **local-only** program: only personal-tier rows
-      are kept.
+    * ``None`` — the **public** program: every row of a *contained* tier is
+      dropped and everything else kept, so a corpus that has ingested Analyzer
+      file-facts (:data:`~culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) or
+      Insimul worlds (:data:`~culturescrape.orchestrate.tiers.SYNTHETIC_SOURCES`)
+      still yields a release-safe program with neither in it.
+    * :data:`PERSONAL_TIER` — the **local-only** program: only personal rows.
+    * :data:`SYNTHETIC_TIER` — the **generated-world** program: only synthetic rows.
 
     Raises:
-        DatalogExportError: for any tier token other than ``personal``/``None``.
+        DatalogExportError: for any tier token outside
+            :data:`CONTAINED_TIERS` / ``None``.
     """
     # Imported lazily so the datalog package stays free of an import-time edge to
-    # orchestrate (orchestrate.corpus imports datalog.export); ``is_personal_source``
-    # reads the single ``PERSONAL_SOURCES`` set, so the personal-source vocabulary
-    # is never duplicated here.
-    from culturescrape.orchestrate.tiers import is_personal_source
-
-    if tier is None:
-        return lambda row: not is_personal_source(_row_source(row))
-    if tier == PERSONAL_TIER:
-        return lambda row: is_personal_source(_row_source(row))
-    raise DatalogExportError(
-        f"unknown tier {tier!r} (the only tier-scoped export is {PERSONAL_TIER!r})"
+    # orchestrate (orchestrate.corpus imports datalog.export); these read the single
+    # PERSONAL_SOURCES / SYNTHETIC_SOURCES sets, so neither source vocabulary is
+    # duplicated here.
+    from culturescrape.orchestrate.tiers import (
+        is_personal_source,
+        is_synthetic_source,
     )
+
+    predicates = {
+        PERSONAL_TIER: is_personal_source,
+        SYNTHETIC_TIER: is_synthetic_source,
+    }
+    if tier is None:
+        return lambda row: not any(
+            contained(_row_source(row)) for contained in predicates.values()
+        )
+    contained_predicate = predicates.get(tier)
+    if contained_predicate is None:
+        raise DatalogExportError(
+            f"unknown tier {tier!r} (the tier-scoped exports are "
+            f"{', '.join(repr(t) for t in CONTAINED_TIERS)})"
+        )
+    return lambda row: contained_predicate(_row_source(row))
 
 
 class Engine(enum.Enum):
@@ -356,7 +382,9 @@ def export_dataset(
 
 
 __all__ = [
+    "CONTAINED_TIERS",
     "PERSONAL_TIER",
+    "SYNTHETIC_TIER",
     "PROBLOG_PROGRAM_NAME",
     "PROLOG_PROGRAM_NAME",
     "DatalogExportError",

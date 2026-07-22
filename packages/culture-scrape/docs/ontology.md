@@ -178,6 +178,24 @@ the `analyzer` acquisition adapter carries them verbatim into the **personal tru
 | `DEPICTS` | asset → entity | | | *Ingested* — an asset visually depicts a canonical entity (Analyzer vision caption / detected object); the entity is resolved by csid (`refers_to` grounding), never duplicated. | `test_argos.py::test_edges_keep_their_type_and_endpoints_verbatim` |
 | `MENTIONS` | asset → entity | | | *Ingested* — an asset textually mentions a canonical entity (Analyzer transcript / text ingest); resolved by csid. | `test_argos.py::test_edges_keep_their_type_and_endpoints_verbatim` |
 
+### Generated worlds — the Insimul bridge (canonical schema v1.3, insimul-bridge US-003)
+
+Ingested, not linker-inferred: Insimul's `CanonicalWorldExport` (WorldIR + the world's
+Prolog KB) carries characters, buildings and businesses plus their genealogy, occupancy
+and causality edges, and the `insimul` acquisition adapter lands them in the **synthetic
+trust tier** (world-scoped provenance, proprietary licence — hard-gated out of every
+open-data release; see [`INSIMUL_SYNC_PLAN.md`](../../../INSIMUL_SYNC_PLAN.md) and
+[`shared/predicate-mapping.json`](../../../shared/predicate-mapping.json) `projects.insimul`
+entries 9–15).
+
+| `:TYPE` | dom → rng | sym | trans | Inference rule | Test |
+|---|---|:--:|:--:|---|---|
+| `PARENT_OF` | character → character | | | *Ingested* — Insimul `parent_of/2` (a character's `childIds`); `child_of/2` is the same relation with the arguments swapped, never a second edge. | `test_insimul.py::test_genealogy_edges_use_canonical_argument_order` |
+| `SPOUSE_OF` | character → character | ✔ | | *Ingested* — Insimul `married_to/2` (`spouseId`); symmetric, so the two stored directions collapse to one edge with sorted endpoints. | `test_insimul.py::test_spouse_edges_collapse_to_one_sorted_edge` |
+| `EMPLOYED_BY` | character → business | | | *Ingested* — Insimul `business_owner/2` / `business_founder/2`; `occupation/2` is a job title (a node property), not an employer. | `test_insimul.py::test_business_owner_and_founder_become_employed_by_edges` |
+| `RESIDES_IN` | character → building | | | *Ingested* — Insimul `residence_resident/2` (a character's `homeResidenceId` / a building's `occupantIds`); occupancy, distinct from `LOCATED_IN` positional containment. | `test_insimul.py::test_residents_become_resides_in_edges` |
+| `CAUSED_BY` | entity → entity | | | *Ingested* — a truth's causal chain (`causedByTruthIds` / `causesTruthIds`), canonical order (effect, cause). Endpoint-unconstrained: a truth event has no canonical node type of its own, so truths anchor on `myth-motif`. | `test_insimul.py::test_truth_causal_chain_becomes_caused_by_edges` |
+
 ### Reserved types
 
 `NAMED_IN`, `SUBCLASS_OF`, `CREATED_BY`, and `MADE_OF` are part of the vocabulary so

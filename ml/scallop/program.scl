@@ -11,14 +11,18 @@ type contemporary_with(String, String)
 type depicts(String, String)
 type derived_from(String, String)
 type descends_from(String, String)
+type employed_by(String, String)
 type influenced_by(String, String)
 type located_in(String, String)
 type mentions(String, String)
 type merged_with(String, String)
 type originates_from(String, String)
+type parent_of(String, String)
 type part_of(String, String)
+type resides_in(String, String)
 type split_from(String, String)
 type spoken_in(String, String)
+type spouse_of(String, String)
 type subclass_of(String, String)
 type syncretized_with(String, String)
 type time_end(String, i32)
@@ -138,6 +142,18 @@ rel to_ok_descends_from(x, y) = descends_from(x, y) and instance_of(y, "Archaeol
 // schema-descends_from-to-type (canonical-schema)
 rel descends_from_to_type_violation(x, y) = descends_from(x, y) and not to_ok_descends_from(x, y)
 
+// schema-employed_by-from-ok (canonical-schema)
+rel from_ok_employed_by(x, y) = employed_by(x, y) and instance_of(x, "Character")
+
+// schema-employed_by-from-type (canonical-schema)
+rel employed_by_from_type_violation(x, y) = employed_by(x, y) and not from_ok_employed_by(x, y)
+
+// schema-employed_by-to-ok (canonical-schema)
+rel to_ok_employed_by(x, y) = employed_by(x, y) and instance_of(y, "Business")
+
+// schema-employed_by-to-type (canonical-schema)
+rel employed_by_to_type_violation(x, y) = employed_by(x, y) and not to_ok_employed_by(x, y)
+
 // schema-located_in-to-ok (canonical-schema)
 rel to_ok_located_in(x, y) = located_in(x, y) and instance_of(y, "Place")
 
@@ -166,6 +182,30 @@ rel to_ok_merged_with(x, y) = merged_with(x, y) and instance_of(y, "LanguageFami
 // schema-merged_with-to-type (canonical-schema)
 rel merged_with_to_type_violation(x, y) = merged_with(x, y) and not to_ok_merged_with(x, y)
 
+// schema-parent_of-from-ok (canonical-schema)
+rel from_ok_parent_of(x, y) = parent_of(x, y) and instance_of(x, "Character")
+
+// schema-parent_of-from-type (canonical-schema)
+rel parent_of_from_type_violation(x, y) = parent_of(x, y) and not from_ok_parent_of(x, y)
+
+// schema-parent_of-to-ok (canonical-schema)
+rel to_ok_parent_of(x, y) = parent_of(x, y) and instance_of(y, "Character")
+
+// schema-parent_of-to-type (canonical-schema)
+rel parent_of_to_type_violation(x, y) = parent_of(x, y) and not to_ok_parent_of(x, y)
+
+// schema-resides_in-from-ok (canonical-schema)
+rel from_ok_resides_in(x, y) = resides_in(x, y) and instance_of(x, "Character")
+
+// schema-resides_in-from-type (canonical-schema)
+rel resides_in_from_type_violation(x, y) = resides_in(x, y) and not from_ok_resides_in(x, y)
+
+// schema-resides_in-to-ok (canonical-schema)
+rel to_ok_resides_in(x, y) = resides_in(x, y) and instance_of(y, "Building")
+
+// schema-resides_in-to-type (canonical-schema)
+rel resides_in_to_type_violation(x, y) = resides_in(x, y) and not to_ok_resides_in(x, y)
+
 // schema-split_from-from-ok (canonical-schema)
 rel from_ok_split_from(x, y) = split_from(x, y) and instance_of(x, "Language")
 rel from_ok_split_from(x, y) = split_from(x, y) and instance_of(x, "LanguageFamily")
@@ -193,6 +233,18 @@ rel to_ok_spoken_in(x, y) = spoken_in(x, y) and instance_of(y, "Place")
 
 // schema-spoken_in-to-type (canonical-schema)
 rel spoken_in_to_type_violation(x, y) = spoken_in(x, y) and not to_ok_spoken_in(x, y)
+
+// schema-spouse_of-from-ok (canonical-schema)
+rel from_ok_spouse_of(x, y) = spouse_of(x, y) and instance_of(x, "Character")
+
+// schema-spouse_of-from-type (canonical-schema)
+rel spouse_of_from_type_violation(x, y) = spouse_of(x, y) and not from_ok_spouse_of(x, y)
+
+// schema-spouse_of-to-ok (canonical-schema)
+rel to_ok_spouse_of(x, y) = spouse_of(x, y) and instance_of(y, "Character")
+
+// schema-spouse_of-to-type (canonical-schema)
+rel spouse_of_to_type_violation(x, y) = spouse_of(x, y) and not to_ok_spouse_of(x, y)
 
 // schema-syncretized_with-from-ok (canonical-schema)
 rel from_ok_syncretized_with(x, y) = syncretized_with(x, y) and instance_of(x, "Religion")

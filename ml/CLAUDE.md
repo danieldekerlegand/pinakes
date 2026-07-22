@@ -443,6 +443,121 @@ Specifics:
   synthetic/committed fixtures; point `--export-dir`/`--shots` at real inputs locally. No
   `ml/data` re-pin unless you actually build the real (personal) edit-ops datasets.
 
+## Prolog rule adherence — eval tier 4, the VESPACE port (insimul-bridge US-004)
+
+Bridge 4: `rule_adherence.py` (pure) + `eval_rule_adherence.py` (thin CLI,
+`pinakes-eval-rule-adherence`) score **generated Prolog rules against the world
+they were authored for** — parse rate, structural/schema/referential validity,
+charitable+strict reachability, fireability. Metric definitions, the upstream
+module-by-module provenance table, and the deliberate deviations:
+[`docs/rule-adherence-tier.md`](../docs/rule-adherence-tier.md).
+
+- **PURE + stdlib-only, no Insimul import** — the same discipline as
+  `consistency.py` and `cinematography_eval.py`. What crosses the bridge is the
+  *metric definitions* (from `insimul-server/server/__tests__/vespace-rule-generation-e2e/`),
+  reimplemented and cited. That includes a hand-rolled Prolog parser: the tier
+  must run in the slim `ml/` env with zero engine, exactly like `scallop.py`'s
+  engine-free reference derivations.
+- **The world context comes from a `CanonicalWorldExport`, not a corpus.**
+  Intrinsic keys = the export's `prologKb` **facts** (bodyless clauses — the
+  character-creation layer); producible keys = the effect terms in each action's
+  Prolog `content` (`action_accept/3` etc. bodies) lowered through the upstream
+  effect table. So the same evaluator works on any converted world without a
+  companion VESPACE corpus. **GOTCHA — the US-003 fixture world exports no
+  actions** (`systems.actions: []`), so *every* action-derived condition in it is
+  dead and it scores 0% schema validity. That is an honest floor over converted
+  worlds, asserted as such in `test_the_bridge_world_scores_end_to_end`; don't
+  "fix" it here — Insimul has to emit actions with Prolog `content`.
+- **Two committed artifacts, both fixture-driven so CI needs no DVC corpus**:
+  `ml/manifests/rule-adherence-baseline.json` (the snapshot/ratchet, `--check` is
+  the gate) and the `RULE-ADHERENCE`-marked tier-4 block in
+  `docs/ml-baselines.md`. That block is **co-owned** — `train_baselines` extracts
+  and re-appends it across its from-scratch doc rewrite, the same cooperating-CLIs
+  discipline as the `KGQA-EVAL` and `SCALLOP-PILOT` blocks. A fourth marked block
+  means `train_baselines` now preserves three.
+- The fixture pair is `ml/fixtures/insimul/{world-export,generated-rules}.json` —
+  a VESPACE-salon-shaped world plus eight rules, one per scored dimension,
+  carrying the **known-dead** `married/2` / `trusts/3` / `esteems/3` set that
+  Insimul's validation-2 findings report as the residual after vocabulary
+  grounding. The baseline is the assertion that they score as expected.
+- **Don't double-count one mistake.** Atoms the structural checks own (literal
+  actor labels, opaque effect payloads) and all arguments of engine predicates
+  (wrapper heads + effect terms — no slot of `rule_effect(_, C, occupation,
+  salonniere)` names an entity) are skipped by the referential walk. Engine
+  predicates are also excluded from the condition set: an effect payload is not
+  something a rule has to satisfy.
+- **Upstream bug not ported**: `insimul-prolog-parser.ts`'s `parseGoal` strips a
+  trailing `)` after removing `\+`, mangling `\+ flattered(Y)` — contradicting its
+  own docstring. This port unwraps only a redundant *outer* paren pair. If you
+  diff the two implementations, that difference is deliberate.
+- No `ml/data` re-pin (fixture-driven, writes no data); MLflow run name
+  `rule-adherence`.
+
+## Insimul SLM datasets — rule-SFT + lore QA (insimul-bridge US-005)
+
+Bridge 4's training feed: `insimul_datasets.py` (pure, stdlib-only) +
+`export_insimul_datasets.py` (thin CLI, `pinakes-export-insimul`) turn converted
+worlds into `rule-sft.jsonl` / `rule-preferences.jsonl` / `lore-qa.jsonl` under
+the DVC-tracked `ml/data/insimul/`, with a committed manifest
+(`ml/manifests/insimul-datasets-manifest.json`, `--check` is the ratchet). Full
+contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
+
+- **`synthetic` tier / `proprietary` class on every record and the manifest** —
+  the same shape as Bridge 3's personal-tier invariant, one axis over. The data
+  is DVC-only, never git; `test_every_record_is_synthetic_tier_and_proprietary`
+  is the gate. Any new generator over converted worlds inherits this.
+- **The committed manifest is fixture-built, so CI needs no DVC corpus.**
+  Defaults are the two committed fixture worlds — the Bridge-2 one at
+  `packages/culture-scrape/tests/fixtures/insimul/world-export.json` and the
+  VESPACE one at `ml/fixtures/insimul/world-export.json` — plus
+  `ml/fixtures/insimul/rule-candidates.jsonl` (a hand-authored Insimul
+  rejection-sampling export: 7 candidates over 3 `promptId` groups, each with a
+  4-layer `validatorReport`). **Two worlds is the minimum** — a per-world
+  held-out split needs somewhere to hold *out*.
+- **GOTCHA — `build_world_graph` reimplements the Bridge-2 adapter's node/edge
+  projection**, because `ml/` is a separate uv workspace and cannot import
+  `culturescrape`. The drift gate is a committed cross-check fixture
+  `ml/fixtures/insimul/bridge-graph.json`, generated *by the adapter*.
+  **Regenerate it after ANY change to `acquire/insimul.py`:**
+  ```sh
+  cd packages/culture-scrape && uv run python -c "
+  import json, pathlib
+  from culturescrape.acquire.insimul import read_world_export, world_records, world_edges
+  ex = read_world_export('tests/fixtures/insimul/world-export.json')
+  nodes = sorted({r.fields['csid']: r.fields.get('name','') for r in world_records(ex) if 'csid' in r.fields}.items())
+  edges = sorted((e[':START_ID'], e[':TYPE'], e[':END_ID']) for e in world_edges(ex))
+  pathlib.Path('../../ml/fixtures/insimul/bridge-graph.json').write_text(json.dumps({
+    '_note': 'Generated by the culture-scrape Bridge-2 adapter — the cross-check for pinakes_ml.insimul_datasets.build_world_graph. Regenerate with the command in ml/CLAUDE.md.',
+    'worldId': ex.world_id,
+    'nodes': [{'csid': c, 'name': n} for c, n in nodes],
+    'edges': [{'head': h, 'relation': r, 'tail': t} for h, r, t in edges],
+  }, indent=2, sort_keys=True, ensure_ascii=False) + '\n', encoding='utf-8')"
+  ```
+- **The declared accept/reject label always beats the evaluator's verdict.** A
+  world's own shipped rules are accepted by construction even though today's
+  action-less exports make them score dead keys; the tier-4 scorecard rides along
+  as a diagnostic (`defects`/`fully_valid`). Do NOT "fix" the floor here.
+- **A synthesized negative must be verified worse.** `corrupt_rule` plants one of
+  five defects and the pair is kept only when `_defects(spoiled) - _defects(clean)`
+  is non-empty; inert and inapplicable attempts are *counted* in the manifest, not
+  silently dropped.
+- **`kgqa.path_examples` is now parameterised** (`statements=`/`questions=`) —
+  that is how the open-corpus generator runs over a synthetic world's relation
+  vocabulary rather than being forked. A relation with no template emits no
+  question, so each caller owns a coverage test over its own edge types.
+- **The rule-derivation matcher decides nothing it cannot check.** Comparisons,
+  cuts and `\+` goals abort a derivation instead of being assumed true, and a
+  rule with no witness is reported (`rulesWithoutDerivation`). `world_facts`
+  projects WorldIR (gender / surname / occupation / terrain / residence /
+  ownership) alongside the export's `prologKb` — without that projection almost
+  no real rule body is derivable.
+- **The split groups by WORLD, not by subject entity** (contrast `kgqa.
+  split_examples`). A world is a closed KB with its own rules; an entity-level
+  split leaks its vocabulary into training. At least one world is always held
+  out when there are ≥2, even at `eval_ratio=0`.
+- No `ml/data` re-pin for the fixture build (it writes to `ml/data/insimul/` but
+  the committed artifact is the manifest); MLflow run name `insimul-datasets`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

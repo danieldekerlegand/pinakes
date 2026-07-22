@@ -278,6 +278,17 @@ def main(argv: list[str] | None = None) -> int:
     scallop_section = extract_scallop_section(existing_doc)
     if scallop_section:
         doc = upsert_scallop_section(doc, scallop_section)
+    # …and the tier-4 rule-adherence block (owned by pinakes-eval-rule-adherence).
+    from pinakes_ml.rule_adherence import (
+        extract_marked_section as extract_adherence_section,
+    )
+    from pinakes_ml.rule_adherence import (
+        upsert_marked_section as upsert_adherence_section,
+    )
+
+    adherence_section = extract_adherence_section(existing_doc)
+    if adherence_section:
+        doc = upsert_adherence_section(doc, adherence_section)
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")
     print(f"metrics doc -> {args.doc}")

@@ -48,7 +48,7 @@ import hashlib
 import json
 import random
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -294,8 +294,20 @@ def _qa_from_evidence(
     )
 
 
-def _path_examples(graph: Graph) -> tuple[list[QAExample], dict[str, int]]:
-    """Two-hop path QA with a single, unambiguous final answer."""
+def path_examples(
+    graph: Graph,
+    *,
+    statements: Mapping[str, str] = REL_STATEMENT,
+    questions: Mapping[str, str] = REL_QUESTION,
+) -> tuple[list[QAExample], dict[str, int]]:
+    """Two-hop path QA with a single, unambiguous final answer.
+
+    ``statements``/``questions`` are the per-``:TYPE`` phrasings; overriding them
+    is how a caller runs this generator over a graph with a different relation
+    vocabulary (``insimul_datasets`` does exactly that for converted worlds). A
+    relation absent from either table contributes no question — callers own a
+    coverage gate over their own vocabulary, as :mod:`pinakes_ml.verbalize` does.
+    """
     examples: list[QAExample] = []
     ambiguous = 0
     seen: set[tuple[str, str, str, str]] = set()
@@ -305,6 +317,8 @@ def _path_examples(graph: Graph) -> tuple[list[QAExample], dict[str, int]]:
                 continue
             for r2, tail in graph.adjacency.get(mid, ()):  # sorted already
                 if tail in (head, mid):
+                    continue
+                if r1 not in statements or r2 not in questions:
                     continue
                 # answer must be unique: (mid, r2) resolves to exactly one tail
                 if len(graph.rel_out[r2][mid]) != 1:
@@ -316,8 +330,8 @@ def _path_examples(graph: Graph) -> tuple[list[QAExample], dict[str, int]]:
                 seen.add(key)
                 e1 = graph.edge_index[(head, r1, mid)]
                 e2 = graph.edge_index[(mid, r2, tail)]
-                stmt = REL_STATEMENT[r1].format(h=e1.head_name, t=e1.tail_name)
-                ask = REL_QUESTION[r2].format(h=e2.head_name)
+                stmt = statements[r1].format(h=e1.head_name, t=e1.tail_name)
+                ask = questions[r2].format(h=e2.head_name)
                 examples.append(
                     _qa_from_evidence(
                         question=PATH_TEMPLATE.format(stmt=stmt, ask=ask),
@@ -407,7 +421,7 @@ def build_examples(
     byte-reproducible. The returned stats dict records candidate/skip counts.
     """
     graph = build_graph(export_dir)
-    path_all, path_stats = _path_examples(graph)
+    path_all, path_stats = path_examples(graph)
     deriv_all, deriv_stats = _derivation_examples(graph)
     path_kept, path_dropped = _sample(path_all, seed=seed, cap=max_per_kind)
     deriv_kept, deriv_dropped = _sample(deriv_all, seed=seed + 1, cap=max_per_kind)

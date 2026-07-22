@@ -1,0 +1,265 @@
+{
+  "analyzerVersion": "1",
+  "counts": {
+    "fullyValid": 3,
+    "parsed": 7,
+    "referentiallyValid": 6,
+    "rules": 8,
+    "schemaValid": 4,
+    "structurallyValid": 6
+  },
+  "lambdas": {
+    "action": 0.25,
+    "intrinsic": 0.05
+  },
+  "missingReferences": [
+    "marguerite_valmont"
+  ],
+  "rates": {
+    "fullyValid": 0.428571,
+    "parse": 0.875,
+    "referentialIntegrity": 0.857143,
+    "schemaValidity": 0.571429,
+    "structuralValidity": 0.857143
+  },
+  "reachability": {
+    "charitable": {
+      "max": 1.0,
+      "mean": 0.690476,
+      "median": 1.0,
+      "min": 0.0
+    },
+    "fireability": {
+      "max": 0.740818,
+      "mean": 0.456911,
+      "median": 0.449329,
+      "min": 0.0
+    },
+    "fullyDeadActionSlice": 3,
+    "fullyReachableRules": 4,
+    "histogram": {
+      "[0.00, 0.25)": 1,
+      "[0.25, 0.50)": 1,
+      "[0.50, 0.75)": 1,
+      "[0.75, 1.00)": 0,
+      "[1.00, 1.00]": 4
+    },
+    "meanConditionsPerRule": 2.571429,
+    "medianConditionsPerRule": 2.0,
+    "rulesWithDeadConditions": 3,
+    "strict": {
+      "max": 1.0,
+      "mean": 0.571429,
+      "median": 1.0,
+      "min": 0.0
+    },
+    "totalConditions": 18
+  },
+  "rules": [
+    {
+      "actionConditions": 3,
+      "actionConditionsProducible": 3,
+      "complexity": 4,
+      "deadConditionKeys": [],
+      "deadConditions": 0,
+      "fireabilityIndex": 0.449329,
+      "intrinsicConditions": 1,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 1.0,
+      "reachabilityStrict": 1.0,
+      "ruleName": "flatterer_gains_ally",
+      "structuralErrors": [],
+      "totalConditions": 4,
+      "unknownPredicates": []
+    },
+    {
+      "actionConditions": 1,
+      "actionConditionsProducible": 1,
+      "complexity": 3,
+      "deadConditionKeys": [],
+      "deadConditions": 0,
+      "fireabilityIndex": 0.704688,
+      "intrinsicConditions": 2,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 1.0,
+      "reachabilityStrict": 1.0,
+      "ruleName": "tutored_charisma_rises",
+      "structuralErrors": [],
+      "totalConditions": 3,
+      "unknownPredicates": []
+    },
+    {
+      "actionConditions": 2,
+      "actionConditionsProducible": 0,
+      "complexity": 3,
+      "deadConditionKeys": [
+        "esteems/3",
+        "married/2"
+      ],
+      "deadConditions": 2,
+      "fireabilityIndex": 0.192317,
+      "intrinsicConditions": 1,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 0.333333,
+      "reachabilityStrict": 0.0,
+      "ruleName": "noble_esteems_spouse",
+      "structuralErrors": [],
+      "totalConditions": 3,
+      "unknownPredicates": [
+        "esteems/3",
+        "married/2"
+      ]
+    },
+    {
+      "actionConditions": 1,
+      "actionConditionsProducible": 0,
+      "complexity": 2,
+      "deadConditionKeys": [
+        "trusts/3"
+      ],
+      "deadConditions": 1,
+      "fireabilityIndex": 0.370409,
+      "intrinsicConditions": 1,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 0.5,
+      "reachabilityStrict": 0.0,
+      "ruleName": "virtuous_trusts_confidant",
+      "structuralErrors": [],
+      "totalConditions": 2,
+      "unknownPredicates": [
+        "trusts/3"
+      ]
+    },
+    {
+      "actionConditions": 1,
+      "actionConditionsProducible": 1,
+      "complexity": 2,
+      "deadConditionKeys": [],
+      "deadConditions": 0,
+      "fireabilityIndex": 0.740818,
+      "intrinsicConditions": 1,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 1.0,
+      "reachabilityStrict": 1.0,
+      "ruleName": "salon_promotion",
+      "structuralErrors": [],
+      "totalConditions": 2,
+      "unknownPredicates": []
+    },
+    {
+      "actionConditions": 1,
+      "actionConditionsProducible": 1,
+      "complexity": 2,
+      "deadConditionKeys": [],
+      "deadConditions": 0,
+      "fireabilityIndex": 0.740818,
+      "intrinsicConditions": 1,
+      "missingReferences": [
+        "marguerite_valmont"
+      ],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 1.0,
+      "reachabilityStrict": 1.0,
+      "ruleName": "courts_a_stranger",
+      "structuralErrors": [],
+      "totalConditions": 2,
+      "unknownPredicates": []
+    },
+    {
+      "actionConditions": 2,
+      "actionConditionsProducible": 0,
+      "complexity": 2,
+      "deadConditionKeys": [
+        "effect/2",
+        "trait_female/1"
+      ],
+      "deadConditions": 2,
+      "fireabilityIndex": 0.0,
+      "intrinsicConditions": 0,
+      "missingReferences": [],
+      "parseError": null,
+      "parsed": true,
+      "reachabilityCharitable": 0.0,
+      "reachabilityStrict": 0.0,
+      "ruleName": "trait_prefixed_sentence_rule_about_being_rich_and_old",
+      "structuralErrors": [
+        "family_prefix_predicate",
+        "literal_actor_atom",
+        "opaque_effect_payload",
+        "rule_atom_budget"
+      ],
+      "totalConditions": 2,
+      "unknownPredicates": [
+        "effect/2",
+        "trait_female/1"
+      ]
+    },
+    {
+      "actionConditions": 0,
+      "actionConditionsProducible": 0,
+      "complexity": 0,
+      "deadConditionKeys": [],
+      "deadConditions": 0,
+      "fireabilityIndex": 0.0,
+      "intrinsicConditions": 0,
+      "missingReferences": [],
+      "parseError": "unbalanced parentheses",
+      "parsed": false,
+      "reachabilityCharitable": 0.0,
+      "reachabilityStrict": 0.0,
+      "ruleName": "broken_rule",
+      "structuralErrors": [],
+      "totalConditions": 0,
+      "unknownPredicates": []
+    }
+  ],
+  "topDeadConditions": [
+    {
+      "key": "effect/2",
+      "rulesAffected": 1
+    },
+    {
+      "key": "esteems/3",
+      "rulesAffected": 1
+    },
+    {
+      "key": "married/2",
+      "rulesAffected": 1
+    },
+    {
+      "key": "trait_female/1",
+      "rulesAffected": 1
+    },
+    {
+      "key": "trusts/3",
+      "rulesAffected": 1
+    }
+  ],
+  "unknownPredicates": [
+    "effect/2",
+    "esteems/3",
+    "married/2",
+    "trait_female/1",
+    "trusts/3"
+  ],
+  "world": {
+    "actions": 5,
+    "contractVersion": "insimul-grounding-v1",
+    "entityAtoms": 7,
+    "intrinsicPredicates": 11,
+    "produciblePredicates": 7,
+    "valueAtoms": 15,
+    "worldId": "w-vespace-fixture"
+  }
+}

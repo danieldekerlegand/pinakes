@@ -83,6 +83,18 @@ pinakes-export-edit-ops = "pinakes_ml.export_edit_ops:main"
 # Analyzer constraint vocabulary -> violation counts by rule/severity); also
 # `python -m pinakes_ml.eval_cinematography`. `--check` is the ratchet gate.
 pinakes-eval-cinematography = "pinakes_ml.eval_cinematography:main"
+# insimul-bridge US-004 — Prolog rule-adherence eval tier 4, the VESPACE port
+# (candidate rules + a CanonicalWorldExport -> parse / schema / referential
+# validity + reachability + fireability); also `python -m
+# pinakes_ml.eval_rule_adherence`. `--check` is the ratchet gate. Metric
+# definitions: docs/rule-adherence-tier.md.
+pinakes-eval-rule-adherence = "pinakes_ml.eval_rule_adherence:main"
+# insimul-bridge US-005 — Insimul SLM dataset generators (converted worlds ->
+# rule-authoring SFT + preference pairs + lore-consistency QA, with a per-world
+# held-out split and a mock-model adherence smoke); also `python -m
+# pinakes_ml.export_insimul_datasets`. `--check` is the manifest ratchet.
+# Everything it emits is synthetic tier / proprietary — DVC data, never git.
+pinakes-export-insimul = "pinakes_ml.export_insimul_datasets:main"
 
 [project.optional-dependencies]
 dev = [

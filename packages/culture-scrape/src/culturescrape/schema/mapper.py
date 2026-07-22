@@ -45,6 +45,12 @@ from culturescrape.schema.tsvio import MULTI_DELIMITER, Row
 #: Column that holds, as a JSON object, every raw field with no canonical home.
 OVERFLOW_KEY = "extra"
 
+#: The bridges whose records take the csid-*preserving* normalization path
+#: (:func:`map_preserving_records`). The token names the producing bridge in that
+#: path's error messages, nothing more — it is not a provenance ``source``.
+ARGOS_ORIGIN = "analyzer"
+INSIMUL_ORIGIN = "insimul"
+
 #: Round-trip alias column: the source-local id a pinakes row arrived with.
 #: Retained on every pinakes-origin node so the export can be traced back to
 #: the exact lexicon row it came from even after its ``csid`` is (re)minted.
@@ -86,6 +92,15 @@ PINAKES_EDGE_TYPE_MAP: dict[str, str] = {
     # emits them today, the analyzer adapter has its own csid-preserving normalize path.
     "DEPICTS": "DEPICTS",
     "MENTIONS": "MENTIONS",
+    # Generated-world edges (canonical schema v1.3, insimul-bridge US-003) — same
+    # forward-safety rule: registered ontology :TYPEs mapping to themselves. The
+    # insimul adapter has its own csid-preserving normalize path; no pinakes
+    # lexicon emits these today.
+    "PARENT_OF": "PARENT_OF",
+    "SPOUSE_OF": "SPOUSE_OF",
+    "EMPLOYED_BY": "EMPLOYED_BY",
+    "RESIDES_IN": "RESIDES_IN",
+    "CAUSED_BY": "CAUSED_BY",
 }
 
 #: Canonical scalar columns copied straight from a (renamed) source field.
@@ -431,21 +446,28 @@ def _carry_edge_provenance(record: RawRecord, row: Row) -> None:
     row["confidence"] = repr(prov.confidence)
 
 
-# --- analyzer export -----------------------------------------------------
+# --- csid-preserving bridge exports -----------------------------------
 #
-# An Analyzer ``to_canonical`` export (the media-bridge mapping spec §4.3, analyzer-bridge US-003)
-# ships the shared canonical shape like the pinakes export, but its csids are
-# **already final**: an asset node is ``cs:asset:<sha256hex>`` and a
-# ``depicts``/``mentions`` edge points at an existing canonical entity csid
-# resolved by Analyzer's grounding step. So — unlike the pinakes path, which re-mints
-# QID-/alias-anchored csids — the analyzer path preserves every shipped csid and
-# endpoint **verbatim** (idempotent re-ingest; existing entities are referenced,
-# never duplicated). Edge ``:TYPE`` is validated against the ontology so an
-# unregistered relation cannot enter the graph.
+# Two bridges ship the shared canonical shape like the pinakes export, but with
+# csids that are **already final**, so — unlike the pinakes path, which re-mints
+# QID-/alias-anchored csids — this path preserves every shipped csid and endpoint
+# **verbatim** (idempotent re-ingest; existing entities are referenced, never
+# duplicated). Edge ``:TYPE`` is validated against the ontology so an unregistered
+# relation cannot enter the graph.
+#
+# * **analyzer** (the media-bridge mapping spec §4.3, analyzer-bridge US-003) — an asset node is
+#   ``cs:asset:<sha256hex>`` and a ``depicts``/``mentions`` edge points at an
+#   existing canonical entity csid resolved by Analyzer's grounding step.
+# * **insimul** (INSIMUL_SYNC_PLAN.md §4.3, insimul-bridge US-003) — the adapter
+#   mints world-scoped alias-anchored csids (``cs:character:insimul:<world>:<id>``)
+#   while reading the ``CanonicalWorldExport``, so by the time a record reaches
+#   here its identity is settled and re-minting would only risk forking it.
+#
+# *origin* names the producing bridge; it appears in error messages only.
 
 
-def map_argos_record(record: RawRecord) -> Row:
-    """Map one Analyzer export *record* to a canonical node or edge row.
+def map_preserving_record(record: RawRecord, *, origin: str) -> Row:
+    """Map one csid-preserving bridge *record* to a canonical node or edge row.
 
     Node rows (carrying a ``:LABEL``) and edge rows (carrying a ``:TYPE``) are
     told apart by their structural column, mirroring the export's ``nodes/`` vs
@@ -455,27 +477,51 @@ def map_argos_record(record: RawRecord) -> Row:
         MapperError: If the record carries neither a ``:LABEL`` nor a ``:TYPE``.
     """
     if ":TYPE" in record.fields:
-        return map_argos_edge(record)
+        return map_preserving_edge(record, origin=origin)
     if ":LABEL" in record.fields:
-        return map_argos_node(record)
+        return map_preserving_node(record, origin=origin)
     raise MapperError(
-        "analyzer record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
+        f"{origin} record has neither a ':LABEL' (node) nor a ':TYPE' (edge)"
     )
+
+
+def map_preserving_records(
+    records: Iterable[RawRecord], *, origin: str
+) -> list[Row]:
+    """Map every csid-preserving bridge record to a row, preserving order."""
+    return [map_preserving_record(record, origin=origin) for record in records]
+
+
+def map_argos_record(record: RawRecord) -> Row:
+    """Map one Analyzer export *record* to a canonical node or edge row."""
+    return map_preserving_record(record, origin=ARGOS_ORIGIN)
 
 
 def map_argos_records(records: Iterable[RawRecord]) -> list[Row]:
     """Map every Analyzer export record to a row, preserving order."""
-    return [map_argos_record(record) for record in records]
+    return map_preserving_records(records, origin=ARGOS_ORIGIN)
 
 
-def map_argos_node(record: RawRecord) -> Row:
-    """Map an Analyzer export node *record* to a canonical node row.
+def map_insimul_record(record: RawRecord) -> Row:
+    """Map one Insimul world-export *record* to a canonical node or edge row."""
+    return map_preserving_record(record, origin=INSIMUL_ORIGIN)
 
-    The shipped ``csid`` (e.g. ``cs:asset:<sha256hex>``) is preserved **verbatim**
-    — content-addressed identity is already final, so re-ingesting the same export
-    yields the identical row. Recognised canonical columns are carried; unrecognised
-    source fields (an asset's technical probe — container / duration / codec /
-    width / height) ride into the :data:`OVERFLOW_KEY` overflow, never dropped.
+
+def map_insimul_records(records: Iterable[RawRecord]) -> list[Row]:
+    """Map every Insimul world-export record to a row, preserving order."""
+    return map_preserving_records(records, origin=INSIMUL_ORIGIN)
+
+
+def map_preserving_node(record: RawRecord, *, origin: str) -> Row:
+    """Map a csid-preserving bridge node *record* to a canonical node row.
+
+    The shipped ``csid`` (e.g. ``cs:asset:<sha256hex>``,
+    ``cs:character:insimul:<world>:<id>``) is preserved **verbatim** — identity is
+    already final, so re-ingesting the same export yields the identical row.
+    Recognised canonical columns are carried; unrecognised source fields (an
+    asset's technical probe — container / duration / codec / width / height; a
+    character's gender / occupation / personality) ride into the
+    :data:`OVERFLOW_KEY` overflow, never dropped.
 
     Raises:
         MapperError: If the record has no ``:LABEL`` or no ``csid``.
@@ -483,10 +529,10 @@ def map_argos_node(record: RawRecord) -> Row:
     fields = normalize_fields(record.fields)
     labels = _labels(fields.get(":LABEL", ""))
     if not labels:
-        raise MapperError("analyzer node row has no ':LABEL'")
+        raise MapperError(f"{origin} node row has no ':LABEL'")
     csid = fields.get("csid", "").strip()
     if not csid:
-        raise MapperError("analyzer node row has no 'csid' to preserve")
+        raise MapperError(f"{origin} node row has no 'csid' to preserve")
 
     consumed: set[str] = {":LABEL", "csid"}
     row: Row = {}
@@ -516,13 +562,15 @@ def map_argos_node(record: RawRecord) -> Row:
     return row
 
 
-def map_argos_edge(record: RawRecord) -> Row:
-    """Map an Analyzer export edge *record* to a canonical edge row.
+def map_preserving_edge(record: RawRecord, *, origin: str) -> Row:
+    """Map a csid-preserving bridge edge *record* to a canonical edge row.
 
     Endpoints and ``:TYPE`` are preserved verbatim (a ``depicts`` / ``mentions``
-    edge references an existing canonical entity csid, resolved by Analyzer's
-    grounding — never re-minted). The ``:TYPE`` is validated against the ontology
-    so an unregistered relation is rejected rather than passed through.
+    edge references an existing canonical entity csid resolved by Analyzer's
+    grounding; an Insimul genealogy edge references the world-scoped csids the
+    adapter minted for its own nodes — never re-minted). The ``:TYPE`` is
+    validated against the ontology so an unregistered relation is rejected rather
+    than passed through.
 
     Raises:
         MapperError: If any of ``:START_ID`` / ``:END_ID`` / ``:TYPE`` is blank,
@@ -537,11 +585,11 @@ def map_argos_edge(record: RawRecord) -> Row:
     for key in (":START_ID", ":END_ID", ":TYPE"):
         value = fields.get(key, "").strip()
         if not value:
-            raise MapperError(f"analyzer edge row is missing {key!r}")
+            raise MapperError(f"{origin} edge row is missing {key!r}")
         row[key] = value
     if not is_registered(str(row[":TYPE"])):
         raise MapperError(
-            f"analyzer edge :TYPE {row[':TYPE']!r} is not a registered ontology type"
+            f"{origin} edge :TYPE {row[':TYPE']!r} is not a registered ontology type"
         )
 
     for key in ("weight", "time_start", "time_end"):

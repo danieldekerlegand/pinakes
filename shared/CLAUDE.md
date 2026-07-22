@@ -70,18 +70,30 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
   `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
 
-## Canonical schema v1.2 — the asset node + personal-media edges (analyzer-bridge US-003)
+## Canonical schema v1.2 / v1.3 — the bridge vocabularies (analyzer + insimul US-003)
 
-`canonical-schema.json` is at **v1.2.0**: it adds the `asset` node type (label `Asset`, the
-`sha256:` id-space — a content-addressed media node, technical props ride in overflow) and the
-`depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
-These are the Analyzer-bridge personal-media vocabulary. Bumping the schema version / node+edge
-vocab has a **cross-language blast radius** — when you touch node/edge types again, update in
-lockstep (all pinned by tests):
+`canonical-schema.json` is at **v1.3.0**. Two bridges own its post-1.1 additions:
+
+- **v1.2 (analyzer-bridge US-003)** — the `asset` node type (label `Asset`, the `sha256:`
+  id-space; a content-addressed media node, technical props ride in overflow) and the
+  `depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
+- **v1.3 (insimul-bridge US-003)** — the generated-world vocabulary: `character` / `building` /
+  `business` node types (`Character`/`Building`/`Business`) and `parent-of` / `spouse-of` /
+  `employed-by` / `resides-in` / `caused-by` (`PARENT_OF`/`SPOUSE_OF`/`EMPLOYED_BY`/`RESIDES_IN`/
+  `CAUSED_BY`). `character` is the vocabulary's **first person-family type**. The genealogy /
+  occupancy edges are endpoint-constrained; `caused-by` is deliberately **unconstrained** — a
+  truth event has no canonical node type, so Bridge 2 anchors truths on `myth-motif` (the type
+  the registry already pairs them with, entry 6) rather than coining an `event` type.
+
+Bumping the schema version / node+edge vocab has a **cross-language blast radius** — when you
+touch node/edge types again, update in lockstep (all pinned by tests):
 
 - TS: `shared/canonical-schema.test.ts` `EXPECTED_NODE_TYPES`/`EXPECTED_EDGE_TYPES` + the
   version assertion; `shared/predicate-mapping.json` `pending` flags + `pendingSchemaAdditions`
-  (the validator throws the instant a `pending` type resolves — flip it) + `predicate-mapping.test.ts`.
+  (the validator throws the instant a `pending` type resolves — flip it **upstream in koine**,
+  then re-vendor) + `predicate-mapping.test.ts`. **A NODE type also needs
+  `shared/capability-manifest.json`** — its produced entity port is total over `nodeTypes`, so
+  `assertValidCapabilityManifest` fails until the port lists the new type too.
 - Python (`packages/culture-scrape`): the edge `:TYPE` vocab lives in `ontology/registry.py`
   (`REGISTRY`, pinned by `test_ontology_registry.py`) **and** must be documented in
   `docs/ontology.md` (pinned by `test_ontology_doc.py`); `schema/mapper.py` `PINAKES_EDGE_TYPE_MAP`
@@ -89,6 +101,13 @@ lockstep (all pinned by tests):
   test-pinned artifacts: `datalog/schema/edge_constraints.tsv`, `datalog/schema/rules_registry.tsv`,
   `datalog/rules_registry.tsv` (regenerate via their `write_*`/`build_registry` fns). A node
   `:LABEL` needs no Python allowlist change (nothing rejects `Asset`).
+- **The committed Bridge-1 fixture pack moves too.** `scripts/data/insimul-grounding-pack.json`
+  embeds the registry version in `x_pinakes` and is content-addressed, so a registry re-vendor
+  changes its `packId` — regenerate it (`packJson(buildFixturePack())` → `FIXTURE_PACK_PATH`)
+  or `export-insimul-pack.test.ts` goes red.
+- `shared/trust-tier.ts` is the **app-facing display** mirror of `classify_tier` and knows only
+  the four trust rungs; neither bridge partition (`personal`, `synthetic`) is mirrored there,
+  by precedent — they never reach the app corpus.
 
 ## KCB capability manifest — `capability-manifest.json` + `capability-manifest.ts`
 
@@ -115,6 +134,45 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
 - Spec-conformant keys stay spec-named (`kcb_version`, `grants_required`); Pinakes-local
   additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
   document can be served verbatim to a registry.
+
+## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
+
+The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of
+the projects pinakes bridges (`projects.analyzer`, `projects.insimul`). Same JSON + typed-accessor +
+runtime-validator shape as `canonical-schema`/`capability-manifest`, with one difference that
+governs how you edit it:
+
+- **The JSON is a generated MIRROR, not a source.** The authoritative copy is koine
+  `registry/predicate-mapping.json` (the file declares it in its own `canonicalHome`/`mirrors`
+  blocks). Never hand-edit `shared/predicate-mapping.json` — upstream the correction to koine,
+  bump its `registryVersion`, then re-vendor with a plain `cp`. The drift gate in
+  `predicate-mapping.test.ts` compares the two **byte-for-byte** and `skipIf`s when no koine
+  checkout is present (`KOINE_ROOT`, else `~/Development/koine`) — the same skipif-gated
+  sibling-checkout pattern as the Python confidence-rubric parity test. **Worked example of
+  that flow:** `insimul-bridge` US-002 needed `country_name/2` / `settlement_name/2` /
+  `item_name/2` (a nameless world seed is unusable, and all three are in Insimul's shipped
+  `predicate-schema.ts`), so they were added to koine entries 1/2/5, `registryVersion` went
+  0.4.0 → **0.4.1**, and the mirror was re-vendored with a plain `cp` — not added locally.
+- **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
+  `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
+  `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect
+  tier**; the pre-0.3.0 `portabilityClasses` array is gone. Trust tiers are a *third*, unrelated
+  axis carried on provenance (see `trust-tier.ts`) — do not conflate the three.
+- **The registry never coins relation names.** An `edge`/`derived-rule` entry crosses as a KGP
+  claim and must name its koine relation(s) in `koineRelations`; every other kind must name none.
+  The validator resolves each against `kgp.ts`'s vendored vocabulary (`KGP_CORE_RELATIONS` +
+  `KGP_DOMAIN_RELATIONS`), so closing a vocabulary gap means **adding a row to koine's
+  `relations.tsv` / `relations/<domain>.tsv`** and re-vendoring both files. A domain prefix is the
+  TSV's `domain` column, **not** its file stem (`relations/cinematography.tsv` → `cine:`).
+- **`pending` is a live checklist against `canonical-schema.json`** (see the v1.2 section above):
+  a `pending: true` type must be listed in that project's `pendingSchemaAdditions` *and* must not
+  yet resolve; flipping either without the other fails validation. Insimul's block is the open
+  one — the v1.3 `character`/`building`/`business` nodes + genealogy/employment/residence/causality
+  edges land with `insimul-bridge` US-003.
+- **A bridged predicate the producer has not shipped is allowed, not a failure** — the registry is
+  authored partly from a design draft. `unverifiedPredicates(project, catalog)` flags them for a
+  human; `assertValidPredicateMapping` never consults it. The test cross-checks against Insimul's
+  `predicate-schema.ts` when that checkout exists (`INSIMUL_ROOT`).
 
 ## KGP grounding-pack contract — `kgp.ts`
 

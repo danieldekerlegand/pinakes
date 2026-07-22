@@ -55,7 +55,10 @@
         "battle",
         "place",
         "migration-route",
-        "asset"
+        "asset",
+        "character",
+        "building",
+        "business"
       ],
       "description": "Canonical real-world entity references (csids). KINP §6 names Pinakes the single canonical authority for real-world entities, so this port is the one every other project's `same_as` anchors point at. The list is total over `shared/canonical-schema.json` nodeTypes and is drift-checked by `assertValidCapabilityManifest`."
     }

@@ -76,6 +76,16 @@ LAYER_CURATED = "curated"
 LAYER_WIKIDATA_PROPERTY = "wikidata-property"
 LAYER_CANONICAL_SCHEMA = "canonical-schema"
 
+#: A generated Insimul world's own Prolog rules (insimul-bridge US-003, registry
+#: entry 17). Unlike the three layers above, this one arrives as **data** — one
+#: rule set per ingested ``CanonicalWorldExport`` — so it is deliberately NOT part
+#: of :func:`build_registry` (which must stay a deterministic function of
+#: code-resident sources, pinned byte-for-byte by a test). A world's entries are
+#: built by :func:`culturescrape.acquire.insimul.world_rule_entries` and written
+#: beside the corpus with :func:`write_registry`. They are always full-prolog:
+#: ``clause_souffle`` is empty, so nothing here can leak into the Datalog programs.
+LAYER_INSIMUL_WORLD = "insimul-world"
+
 #: The registry columns, in order — the edge schema's provenance discipline applied to
 #: rules. ``clause_prolog`` / ``clause_souffle`` hold the (space-joined) Horn clauses
 #: for each dialect; a rule emitted to a single engine leaves the other blank, and a

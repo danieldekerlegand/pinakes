@@ -83,15 +83,29 @@ TIER_PERSONAL = "personal"
 #: other stamp (a grounded ``refers_to`` fact may carry a QID yet stays personal).
 PERSONAL_SOURCES: frozenset[str] = frozenset({"analyzer"})
 
+#: The synthetic tier: facts ingested from a *generated* world via the Insimul
+#: bridge (insimul-bridge US-003). Like :data:`TIER_PERSONAL` this is not a rung on
+#: the trust ladder above — it is a **provenance partition**: a synthetic record
+#: describes a world that does not exist, so however internally exact it is, it
+#: must never be mixed into a real-world tier or an open-data release
+#: (:func:`assert_no_synthetic_records`; INSIMUL_SYNC_PLAN §7 "License leakage").
+#: A record is synthetic iff its ``source`` names one of :data:`SYNTHETIC_SOURCES`.
+TIER_SYNTHETIC = "synthetic"
+
+#: Acquisition-source ids whose records are synthetic-tier. A match on any
+#: ``source`` token classifies the row synthetic regardless of any other stamp.
+SYNTHETIC_SOURCES: frozenset[str] = frozenset({"insimul"})
+
 #: Every tier — the stable order tier reports render in. The first four are the
-#: trust axis (most-to-least trusted); :data:`TIER_PERSONAL` is the orthogonal
-#: privacy partition, appended last.
+#: trust axis (most-to-least trusted); :data:`TIER_PERSONAL` and
+#: :data:`TIER_SYNTHETIC` are the orthogonal partitions, appended last.
 ALL_TIERS: tuple[str, ...] = (
     TIER_CURATED,
     TIER_AUTO_ADMITTED,
     TIER_QUARANTINE,
     TIER_INFERRED,
     TIER_PERSONAL,
+    TIER_SYNTHETIC,
 )
 
 #: The ``inferred:<linker>`` provenance prefix a linker-minted row carries.
@@ -111,6 +125,10 @@ def classify_tier(row: Row) -> str:
        (the privacy invariant: a fact derived from the user's files is personal
        regardless of any QID / citation it also carries, so this is checked
        **first** — it must never fall through to an exportable tier);
+    #. any :data:`SYNTHETIC_SOURCES` ``source`` token → :data:`TIER_SYNTHETIC`
+       (the same containment reasoning: a generated-world fact carries a real
+       ``source_url`` and would otherwise auto-admit as though it described the
+       world, so it is classified before the trust rungs are considered);
     #. any ``inferred:<linker>`` ``source`` token → :data:`TIER_INFERRED`;
     #. a :data:`PINAKES_SOURCE` ``source`` token → :data:`TIER_CURATED`
        (a curated row that *also* reconciled to Wikidata stays curated — human
@@ -123,6 +141,8 @@ def classify_tier(row: Row) -> str:
     tokens = _source_tokens(row)
     if tokens & PERSONAL_SOURCES:
         return TIER_PERSONAL
+    if tokens & SYNTHETIC_SOURCES:
+        return TIER_SYNTHETIC
     if any(token.startswith(_INFERRED_PREFIX) for token in tokens):
         return TIER_INFERRED
     if PINAKES_SOURCE in tokens:
@@ -317,6 +337,18 @@ DEFAULT_TIER_GATES: Mapping[str, GateThresholds] = {
         max_unreconciled_rate=1.0,
         **_PERMISSIVE_DANGLING,
     ),
+    # A generated world is a closed KB: its rows are fully provenanced (world id +
+    # seed + contract version) and carry no QID by construction — there is nothing
+    # real to reconcile against — so the floor that bites is **dedup**. A duplicate
+    # would mean the world-scoped csid mint forked, which is the one way a
+    # Bridge-2 re-ingest could stop being idempotent.
+    TIER_SYNTHETIC: GateThresholds(
+        min_rows=0,
+        max_duplicate_rate=0.0,
+        min_provenance_completeness=1.0,
+        max_unreconciled_rate=1.0,
+        **_PERMISSIVE_DANGLING,
+    ),
 }
 
 
@@ -361,6 +393,53 @@ def assert_no_personal_records(rows: Sequence[Row], *, context: str) -> None:
             f"violating the personal-tier privacy invariant (the media-bridge mapping spec §6); "
             f"personal-tier facts are local-only — first offender source="
             f"{_scalar(offenders[0], 'source')!r}"
+        )
+
+
+class SyntheticTierContainmentError(RuntimeError):
+    """Raised when a :data:`TIER_SYNTHETIC` record reaches a real-world artifact.
+
+    The containment invariant of the Insimul bridge (INSIMUL_SYNC_PLAN.md §7
+    "License leakage"): facts read out of a *generated* world are proprietary and
+    describe a world that does not exist, so they must NEVER appear in an
+    open-data release, a packaged corpus, or any non-synthetic export. This is the
+    hard gate that enforces it — the sibling of
+    :class:`PersonalTierContainmentError`.
+    """
+
+
+def is_synthetic_source(source_cell: str) -> bool:
+    """Whether a raw ``source`` cell names any :data:`SYNTHETIC_SOURCES` token."""
+    tokens = {
+        token.strip()
+        for token in source_cell.split(_SOURCE_DELIMITER)
+        if token.strip()
+    }
+    return bool(tokens & SYNTHETIC_SOURCES)
+
+
+def synthetic_records(rows: Sequence[Row]) -> list[Row]:
+    """Return every *row* that classifies as :data:`TIER_SYNTHETIC`."""
+    return [row for row in rows if classify_tier(row) == TIER_SYNTHETIC]
+
+
+def assert_no_synthetic_records(rows: Sequence[Row], *, context: str) -> None:
+    """Assert no *row* is synthetic-tier; raise :class:`SyntheticTierContainmentError`.
+
+    The hard containment gate every **non-synthetic** export / packaging / release
+    path calls before it emits *rows*. *context* names the artifact for the error
+    message (e.g. ``"packaged corpus"``). A no-op when the corpus carries no
+    synthetic-tier record (the common case) — so a build with no Insimul ingest is
+    unaffected.
+    """
+    offenders = synthetic_records(rows)
+    if offenders:
+        raise SyntheticTierContainmentError(
+            f"{len(offenders)} synthetic-tier record(s) would enter {context}, "
+            f"violating the synthetic-tier containment invariant "
+            f"(INSIMUL_SYNC_PLAN.md §7 'License leakage'); generated-world facts "
+            f"are proprietary and never mix into real-world tiers — first "
+            f"offender source={_scalar(offenders[0], 'source')!r}"
         )
 
 
@@ -489,21 +568,27 @@ __all__ = [
     "ALL_TIERS",
     "DEFAULT_TIER_GATES",
     "PERSONAL_SOURCES",
+    "SYNTHETIC_SOURCES",
     "TIER_AUTO_ADMITTED",
     "TIER_CURATED",
     "TIER_INFERRED",
     "TIER_PERSONAL",
     "TIER_QUARANTINE",
+    "TIER_SYNTHETIC",
     "PersonalTierContainmentError",
+    "SyntheticTierContainmentError",
     "TierComposition",
     "TierQaReport",
     "TieredManifest",
     "assert_no_personal_records",
+    "assert_no_synthetic_records",
     "build_tier_manifest",
     "classify_tier",
     "evaluate_tiers",
     "is_personal_source",
+    "is_synthetic_source",
     "manifest_for_tier_dataset",
     "partition_by_tier",
     "personal_records",
+    "synthetic_records",
 ]

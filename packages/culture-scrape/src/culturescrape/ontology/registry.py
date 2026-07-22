@@ -251,6 +251,46 @@ _RELATION_TYPES: tuple[RelationType, ...] = (
         "entity",
         description="an asset textually mentions an entity (Analyzer transcript/text)",
     ),
+    # Generated-world vocabulary (Insimul bridge, canonical schema v1.3 —
+    # insimul-bridge US-003). Characters / buildings / businesses and their
+    # genealogy, occupancy and causality edges; synthetic trust tier, world-scoped
+    # provenance (see shared/predicate-mapping.json insimul entries 9-15).
+    RelationType(
+        "PARENT_OF",
+        Dimension.GENETIC,
+        "character",
+        "character",
+        description="a character is a parent of another (Insimul parent_of/2)",
+    ),
+    RelationType(
+        "SPOUSE_OF",
+        Dimension.GENETIC,
+        "character",
+        "character",
+        symmetric=True,
+        description="two characters are married (Insimul married_to/2)",
+    ),
+    RelationType(
+        "EMPLOYED_BY",
+        Dimension.STRUCTURAL,
+        "character",
+        "business",
+        description="a character works for a business (Insimul business_owner/2)",
+    ),
+    RelationType(
+        "RESIDES_IN",
+        Dimension.STRUCTURAL,
+        "character",
+        "building",
+        description="a character dwells in a building (Insimul residence_resident/2)",
+    ),
+    RelationType(
+        "CAUSED_BY",
+        Dimension.TEMPORAL,
+        "entity",
+        "entity",
+        description="an event happened because of an earlier event (effect, cause)",
+    ),
 )
 
 #: The registry: ``:TYPE`` name -> :class:`RelationType`, the source of truth.

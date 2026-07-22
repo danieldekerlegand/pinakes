@@ -1,17 +1,22 @@
 edge_type	from_labels	to_labels	symmetric	source	source_url	schema_version	confidence
-ABSORBED_INTO	Culture;ArchaeologicalCulture	Culture;ArchaeologicalCulture	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-BORROWED_FROM	Language	Language	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-COGNATE_WITH	Language	Language	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-CONQUERED_BY	Culture;Place	Culture;Battle	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-CONTEMPORARY_WITH			false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-DEPICTS	Asset		false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-DERIVED_FROM			false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-DESCENDS_FROM	Language;LanguageFamily;Culture;ArchaeologicalCulture	Language;LanguageFamily;Culture;ArchaeologicalCulture	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-INFLUENCED_BY			false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-LOCATED_IN		Place	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-MENTIONS	Asset		false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-MERGED_WITH	Culture;Language;LanguageFamily	Culture;Language;LanguageFamily	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-PART_OF_PERIOD			false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-SPLIT_FROM	Language;LanguageFamily;Culture	Language;LanguageFamily;Culture	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-SPOKEN_IN	Language	Place	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
-SYNCRETIZED_WITH	Religion;Deity	Religion;Deity	false	canonical-schema	shared/canonical-schema.json	1.2.0	1.0
+ABSORBED_INTO	Culture;ArchaeologicalCulture	Culture;ArchaeologicalCulture	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+BORROWED_FROM	Language	Language	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+CAUSED_BY			false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+COGNATE_WITH	Language	Language	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+CONQUERED_BY	Culture;Place	Culture;Battle	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+CONTEMPORARY_WITH			false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+DEPICTS	Asset		false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+DERIVED_FROM			false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+DESCENDS_FROM	Language;LanguageFamily;Culture;ArchaeologicalCulture	Language;LanguageFamily;Culture;ArchaeologicalCulture	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+EMPLOYED_BY	Character	Business	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+INFLUENCED_BY			false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+LOCATED_IN		Place	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+MENTIONS	Asset		false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+MERGED_WITH	Culture;Language;LanguageFamily	Culture;Language;LanguageFamily	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+PARENT_OF	Character	Character	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+PART_OF_PERIOD			false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+RESIDES_IN	Character	Building	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+SPLIT_FROM	Language;LanguageFamily;Culture	Language;LanguageFamily;Culture	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+SPOKEN_IN	Language	Place	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+SPOUSE_OF	Character	Character	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0
+SYNCRETIZED_WITH	Religion;Deity	Religion;Deity	false	canonical-schema	shared/canonical-schema.json	1.3.0	1.0

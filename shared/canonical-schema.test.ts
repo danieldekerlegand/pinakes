@@ -33,6 +33,9 @@ const EXPECTED_NODE_TYPES = [
   "place",
   "migration-route",
   "asset",
+  "character",
+  "building",
+  "business",
 ];
 
 const EXPECTED_EDGE_TYPES = [
@@ -52,6 +55,11 @@ const EXPECTED_EDGE_TYPES = [
   "syncretized-with",
   "depicts",
   "mentions",
+  "parent-of",
+  "spouse-of",
+  "employed-by",
+  "resides-in",
+  "caused-by",
 ];
 
 describe("canonical schema contract (US-001)", () => {
@@ -126,8 +134,8 @@ describe("canonical schema contract (US-001)", () => {
     }
   });
 
-  it("is schema v1.2.0 with the asset node type + depicts/mentions edges (analyzer-bridge US-003)", () => {
-    expect(CANONICAL_SCHEMA.version).toBe("1.2.0");
+  it("is schema v1.3.0 with the asset node type + depicts/mentions edges (analyzer-bridge US-003)", () => {
+    expect(CANONICAL_SCHEMA.version).toBe("1.3.0");
     // v1.2 adds the sha256-identified `asset` node + its personal-tier edges.
     expect(nodeTypeByName("asset")?.label).toBe("Asset");
     expect(edgeTypeByName("depicts")?.type).toBe("DEPICTS");
@@ -141,6 +149,23 @@ describe("canonical schema contract (US-001)", () => {
     );
     expect(edgeSourceQuery?.role).toBe("provenance");
     expect(edgeSourceQuery?.required).toBe(false);
+    // v1.3 adds the Insimul Bridge-2 vocabulary (insimul-bridge US-003).
+    expect(nodeTypeByName("character")?.label).toBe("Character");
+    expect(nodeTypeByName("building")?.label).toBe("Building");
+    expect(nodeTypeByName("business")?.label).toBe("Business");
+    expect(edgeTypeByName("parent-of")?.type).toBe("PARENT_OF");
+    expect(edgeTypeByName("spouse-of")?.type).toBe("SPOUSE_OF");
+    expect(edgeTypeByName("employed-by")?.type).toBe("EMPLOYED_BY");
+    expect(edgeTypeByName("resides-in")?.type).toBe("RESIDES_IN");
+    expect(edgeTypeByName("caused-by")?.type).toBe("CAUSED_BY");
+    // Genealogy/occupancy edges are endpoint-constrained; causality is generic
+    // (a truth event has no canonical node type of its own yet).
+    expect(edgeTypeByName("parent-of")?.from).toEqual(["character"]);
+    expect(edgeTypeByName("parent-of")?.to).toEqual(["character"]);
+    expect(edgeTypeByName("employed-by")?.to).toEqual(["business"]);
+    expect(edgeTypeByName("resides-in")?.to).toEqual(["building"]);
+    expect(edgeTypeByName("caused-by")?.from).toEqual([]);
+    expect(edgeTypeByName("caused-by")?.to).toEqual([]);
     // Both families carry an SPDX `license` provenance column.
     for (const family of [
       CANONICAL_SCHEMA.node.columns,

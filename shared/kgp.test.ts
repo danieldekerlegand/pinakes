@@ -4,6 +4,8 @@ import {
   ALL_LICENSE_CLASSES,
   DEFAULT_LICENSE_POLICY_CLASSES,
   KGP_CORE_RELATIONS,
+  KGP_DOMAIN_RELATIONS,
+  KGP_RELATION_DOMAINS,
   KGP_VERSION,
   PACK_WORLD,
   RESERVED_LINK_RELATIONS,
@@ -53,6 +55,30 @@ describe("kgp (koine/specs/grounding-pack.md)", () => {
       expect(() => assertRelationAllowed("part_of", "grounding-only")).toThrow(/horn-safe/);
       expect(() => assertRelationAllowed("part_of", "horn-safe")).not.toThrow();
       expect(() => assertRelationAllowed("shows", "grounding-only")).toThrow(/relation registry/);
+    });
+
+    it("vendors the domain extensions pinakes speaks (cine / media / soc)", () => {
+      expect(KGP_RELATION_DOMAINS).toEqual(["cine", "media", "soc"]);
+      // A domain prefix is the TSV's `domain` column, NOT its file stem
+      // (relations/cinematography.tsv declares `cine:`).
+      for (const [name, sig] of Object.entries(KGP_DOMAIN_RELATIONS)) {
+        expect(name, name).toMatch(/^[a-z]+:[a-z_]+$/);
+        expect(KGP_RELATION_DOMAINS, name).toContain(name.slice(0, name.indexOf(":")));
+        expect(sig.arity, name).toBe(sig.argRoles.length);
+        expect(ALL_DIALECTS, name).toContain(sig.tier);
+      }
+      // The Insimul bridge's social vocabulary: spouse_of is symmetric (operands sorted
+      // before hashing, §3.2 rule 2) and horn-safe, so it needs a horn-safe pack.
+      expect(relationSignature("soc:spouse_of")).toEqual({
+        arity: 2,
+        argRoles: ["a", "b"],
+        symmetric: true,
+        tier: "horn-safe",
+      });
+      expect(() => assertRelationAllowed("soc:spouse_of", "grounding-only")).toThrow(/horn-safe/);
+      expect(() => assertRelationAllowed("soc:spouse_of", "horn-safe")).not.toThrow();
+      // A domain pinakes does not speak is not in the vocabulary.
+      expect(relationSignature("mystery:spouse_of")).toBeUndefined();
     });
 
     it("separates KINP's reserved link relations from ordinary assertions (§2)", () => {
