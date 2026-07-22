@@ -129,7 +129,11 @@ governs how you edit it:
   bump its `registryVersion`, then re-vendor with a plain `cp`. The drift gate in
   `predicate-mapping.test.ts` compares the two **byte-for-byte** and `skipIf`s when no koine
   checkout is present (`KOINE_ROOT`, else `~/Development/koine`) — the same skipif-gated
-  sibling-checkout pattern as the Python confidence-rubric parity test.
+  sibling-checkout pattern as the Python confidence-rubric parity test. **Worked example of
+  that flow:** `insimul-bridge` US-002 needed `country_name/2` / `settlement_name/2` /
+  `item_name/2` (a nameless world seed is unusable, and all three are in Insimul's shipped
+  `predicate-schema.ts`), so they were added to koine entries 1/2/5, `registryVersion` went
+  0.4.0 → **0.4.1**, and the mirror was re-vendored with a plain `cp` — not added locally.
 - **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
   `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
   `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect

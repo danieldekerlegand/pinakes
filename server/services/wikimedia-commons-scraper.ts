@@ -68,6 +68,14 @@ interface WikimediaImageInfoResponse {
   };
 }
 
+/**
+ * Where scraped images are persisted. Overridable via `WIKIMEDIA_COMMONS_TSV` so tests never
+ * write into the real `lexicons/` tree — a unit test that drops an unmapped TSV there races
+ * `shared/lexicon-mapping.test.ts` (which reads the live directory) and can clobber curated data.
+ */
+export const WIKIMEDIA_COMMONS_TSV_PATH = (): string =>
+  path.resolve(process.env.WIKIMEDIA_COMMONS_TSV ?? "lexicons/wikimedia-commons-images.tsv");
+
 export class WikimediaCommonsScraper {
   private static isScraping = false;
 
@@ -346,7 +354,7 @@ export class WikimediaCommonsScraper {
   }
 
   private loadExistingIds(): Set<string> {
-    const filePath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+    const filePath = WIKIMEDIA_COMMONS_TSV_PATH();
     if (!fs.existsSync(filePath)) return new Set();
 
     try {
@@ -472,7 +480,7 @@ export class WikimediaCommonsScraper {
   private async writeImagesTSV(
     newImages: WikimediaCommonsImage[]
   ): Promise<void> {
-    const filePath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+    const filePath = WIKIMEDIA_COMMONS_TSV_PATH();
     const headers = [
       "id",
       "title",

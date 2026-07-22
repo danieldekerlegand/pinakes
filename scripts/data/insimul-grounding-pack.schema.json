@@ -1,0 +1,109 @@
+{
+  "$ref": "#/definitions/GroundingPack",
+  "definitions": {
+    "GroundingPack": {
+      "type": "object",
+      "properties": {
+        "contractVersion": {
+          "type": "string",
+          "const": "insimul-grounding-v1"
+        },
+        "packId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "const": "linguascrape"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "csid": {
+                "type": "string",
+                "minLength": 1
+              },
+              "entityType": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fields": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceUrl": {
+                    "type": "string"
+                  },
+                  "retrievedAt": {
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "source",
+                  "confidence"
+                ],
+                "additionalProperties": true
+              },
+              "license": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "csid",
+              "entityType",
+              "fields",
+              "provenance",
+              "license"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "prologFacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "licenseManifest": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "contractVersion",
+        "packId",
+        "generatedAt",
+        "source",
+        "domains",
+        "entities",
+        "prologFacts",
+        "licenseManifest"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

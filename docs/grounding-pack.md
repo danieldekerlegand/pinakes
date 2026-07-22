@@ -120,9 +120,46 @@ The exporter emits **snapshots** today; delta production (diffing two packs and 
 direction of §6 real, and it is a producer-side change only — the envelope already carries
 the fields.
 
+## The Insimul projection (Bridge 1, `insimul-bridge` US-002)
+
+Insimul's shipped consumer contract (`@insimul/core` `groundingPackSchema`, US-CE7) pins
+`contractVersion: "insimul-grounding-v1"` and `source: "linguascrape"` as **literals**, so
+its envelope and the KGP envelope above cannot be the same document. `scripts/export-insimul-pack.ts`
+is therefore a *projection*, not a second corpus reader: it re-uses `buildEntityGrounding`
+verbatim and re-wraps the result. Run it with `npm run insimul-pack`
+(`--domains culture,place,language`, `--license-classes`, `--out`, `--emit-fixture`); the KGP
+pack's content address rides across in `x_pinakes.kgpPackId`, so the two artifacts for one
+corpus slice are always traceable to each other.
+
+Three things it adds on top of the KGP pack:
+
+1. **`entities[].fields`** — the seed payload the KGP pack deliberately omits: settlement
+   `lat`/`lon` (real coordinates; Insimul lays lots and streets out around them), a culture's
+   `governmentType`/`foundedYear`, a language's `realCode`/`glottocode`.
+2. **`prologFacts`** — ground facts in *Insimul's* predicate vocabulary. Every predicate is
+   sanctioned by the [predicate-mapping registry](../shared/predicate-mapping.json): the
+   `SEED_MAPPINGS` table may only emit a predicate its registry entry's `external` cell
+   names, and only through an entry that crosses `LS->IN`, is `exportable` and is not
+   `pending` (`assertSeedMappingsRegistered`, run at build time *and* in the test suite). A
+   missing predicate is closed by upstreaming it to koine and re-vendoring — never by
+   widening the table. registryVersion **0.4.1** added `country_name/2`, `settlement_name/2`
+   and `item_name/2` exactly that way (a nameless world seed is unusable, and all three are
+   in Insimul's shipped `predicate-schema.ts`).
+3. **`licenseManifest`** — the §7.1 policy plus what the filter *dropped*, per SPDX id and
+   per class, so a share-alike exclusion is auditable rather than invisible.
+
+A fact is skipped, never faked, when its source cell is blank or non-numeric, and a foreign
+key (`settlement_of_country/2`, `language_parent/2`) is emitted only when it resolves to an
+entity **inside the pack** — a license-filtered country must not leave a dangling reference.
+Packs are validated against a vendored copy of Insimul's `grounding-pack.schema.json`
+(`scripts/data/insimul-grounding-pack.schema.json`) *before* they are written, and the test
+drift-checks that copy byte-for-byte against the sibling checkout when `INSIMUL_ROOT`
+resolves.
+
 ## Related
 
 - [`docs/capability-bus.md`](capability-bus.md) — the KCB manifest that publishes this pack
   as a `grounding-pack` knowledge port on `pinakes:world:consensus-reality`.
+- `INSIMUL_SYNC_PLAN.md` §4.2 — Bridge 1, the consumer of the Insimul projection above.
 - [`docs/canonical-schema.md`](canonical-schema.md) §3.1 — `csid` as a KINP entity CURIE.
 - `the media-bridge mapping spec` §4.2 — the consumer this pack was originally built for.

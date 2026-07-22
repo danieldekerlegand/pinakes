@@ -1,4 +1,4 @@
-id	name	native_name	iso639_1	iso639_2	glottocode	region	wikidata_qid	source_url	retrieved_at	confidence	sources	license
-fr	French	français	fr	fra	stan1290	Europe	Q150	https://www.wikidata.org/wiki/Q150	2026-01-01	0.9	["Ethnologue"]	
-xx	Testish		xx			Nowhere				0.8		CC0-1.0
-share	ShareLang		sh			Nowhere				0.8		CC-BY-SA-4.0
+id	name	native_name	iso639_1	iso639_2	glottocode	parent_language_id	region	wikidata_qid	source_url	retrieved_at	confidence	sources	license
+fr	French	français	fr	fra	stan1290		Europe	Q150	https://www.wikidata.org/wiki/Q150	2026-01-01	0.9	["Ethnologue"]
+xx	Testish		xx			fr	Nowhere				0.8		CC0-1.0
+share	ShareLang		sh			fr	Nowhere				0.8		CC-BY-SA-4.0

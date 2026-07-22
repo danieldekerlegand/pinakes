@@ -1,6 +1,6 @@
 {
   "kgp_version": "0.4.0",
-  "pack_id": "sha256-073a9b4255a1305ae99278057a1c6e5b2b2a5cba3f989a94fdb281e2512f05c7",
+  "pack_id": "sha256-4b665470981adaebde24c2e5ddf05308d827c9ba1e9499d44ae78ceca022f6ed",
   "producer": "pinakes",
   "worlds": [
     "pinakes:world:consensus-reality"
@@ -16,7 +16,7 @@
     "CC-BY"
   ],
   "domains": [],
-  "count": 3,
+  "count": 4,
   "entities": [
     {
       "csid": "cs:culture:Q35355",
@@ -77,6 +77,25 @@
         "confidence": 0.8
       },
       "license": "CC0-1.0"
+    },
+    {
+      "csid": "cs:place:ur",
+      "entityType": "place",
+      "name": "Ur",
+      "aliases": [
+        "Urim"
+      ],
+      "reconciliation": {
+        "wikidataQid": "",
+        "normalizedName": "ur"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "",
+        "retrievedAt": "",
+        "confidence": 0.5
+      },
+      "license": "CC-BY-4.0"
     }
   ],
   "assertions": [
@@ -116,7 +135,7 @@
   "links": [],
   "manifest": {
     "counts": {
-      "entities": 3,
+      "entities": 4,
       "assertions": 2,
       "links": 0
     },

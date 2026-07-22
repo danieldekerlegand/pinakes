@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 
 // Mock global fetch
 const mockFetch = vi.fn();
@@ -8,7 +9,15 @@ vi.stubGlobal("fetch", mockFetch);
 
 import { WikimediaCommonsScraper } from "./wikimedia-commons-scraper";
 
-const TEST_TSV_PATH = path.resolve("lexicons/wikimedia-commons-images.test.tsv");
+// The scraper resolves its output path lazily from `WIKIMEDIA_COMMONS_TSV`, so pointing it at
+// a temp file here is enough. It must NOT write into the real `lexicons/` tree: that races
+// `shared/lexicon-mapping.test.ts` (which reads the live directory and fails on an unmapped
+// file) and puts a unit test one bug away from clobbering curated data.
+const TEST_TSV_PATH = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), "wikimedia-commons-")),
+  "wikimedia-commons-images.tsv",
+);
+process.env.WIKIMEDIA_COMMONS_TSV = TEST_TSV_PATH;
 
 function cleanupTestFiles(): void {
   for (const f of [TEST_TSV_PATH, `${TEST_TSV_PATH}.tmp`]) {
@@ -332,7 +341,7 @@ describe("WikimediaCommonsScraper", () => {
       expect(result.images[0].artifactType).toBe("mosque");
 
       // Verify TSV was written
-      const tsvPath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      const tsvPath = TEST_TSV_PATH;
       expect(fs.existsSync(tsvPath)).toBe(true);
 
       const content = fs.readFileSync(tsvPath, "utf8");
@@ -350,7 +359,7 @@ describe("WikimediaCommonsScraper", () => {
 
     it("skips already-scraped images", async () => {
       // Pre-populate TSV with an existing image
-      const tsvPath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      const tsvPath = TEST_TSV_PATH;
       const headers = "id\ttitle\tdescription\timage_url\tthumb_url\tartist\tlicense\tcategories\tcoordinates\tdate_created\tassociated_culture\tassociated_language_ids\tartifact_type\tregion\tsource\n";
       const row = "existing_image\tExisting.jpg\tTest\thttps://example.com/img.jpg\thttps://example.com/thumb.jpg\tArtist\tCC BY\t[]\t\t2020-01-01\t\t[]\tcultural_artifact\t\thttps://commons.wikimedia.org/wiki/File:Existing.jpg\n";
       fs.writeFileSync(tsvPath, headers + row, "utf8");
@@ -489,7 +498,7 @@ describe("WikimediaCommonsScraper", () => {
       expect(warnings[0]).toContain("FailCategory");
 
       // Cleanup
-      const tsvPath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      const tsvPath = TEST_TSV_PATH;
       if (fs.existsSync(tsvPath)) fs.unlinkSync(tsvPath);
     });
   });

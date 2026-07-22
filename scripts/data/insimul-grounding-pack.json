@@ -1,0 +1,176 @@
+{
+  "contractVersion": "insimul-grounding-v1",
+  "packId": "sha256-8759a5e37082fc3488c1199662f73142a7a7b927b3afb9b4e3d98e1cbbfd8adf",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "source": "linguascrape",
+  "domains": [],
+  "entities": [
+    {
+      "csid": "cs:culture:Q35355",
+      "entityType": "culture",
+      "fields": {
+        "name": "Sumer",
+        "aliases": [
+          "Sumeria",
+          "Šumeru"
+        ],
+        "wikidataQid": "Q35355",
+        "governmentType": "City-states",
+        "foundedYear": -4500
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "https://www.wikidata.org/wiki/Q35355",
+        "retrievedAt": "2026-01-02",
+        "confidence": 0.95
+      },
+      "license": "CC-BY-4.0"
+    },
+    {
+      "csid": "cs:language:Q150",
+      "entityType": "language",
+      "fields": {
+        "name": "French",
+        "aliases": [
+          "français"
+        ],
+        "wikidataQid": "Q150",
+        "realCode": "fr",
+        "glottocode": "stan1290",
+        "region": "Europe"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "https://www.wikidata.org/wiki/Q150",
+        "retrievedAt": "2026-01-01",
+        "confidence": 0.9
+      },
+      "license": "CC-BY-4.0"
+    },
+    {
+      "csid": "cs:language:xx",
+      "entityType": "language",
+      "fields": {
+        "name": "Testish",
+        "realCode": "xx",
+        "region": "Nowhere"
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "",
+        "retrievedAt": "",
+        "confidence": 0.8
+      },
+      "license": "CC0-1.0"
+    },
+    {
+      "csid": "cs:place:ur",
+      "entityType": "place",
+      "fields": {
+        "name": "Ur",
+        "aliases": [
+          "Urim"
+        ],
+        "settlementType": "city-state",
+        "region": "Mesopotamia",
+        "foundedYear": -3800,
+        "population": 65000,
+        "lat": 30.962,
+        "lon": 46.103
+      },
+      "provenance": {
+        "source": "pinakes",
+        "sourceUrl": "",
+        "retrievedAt": "",
+        "confidence": 0.5
+      },
+      "license": "CC-BY-4.0"
+    }
+  ],
+  "prologFacts": [
+    "country('cs:culture:Q35355').",
+    "country_name('cs:culture:Q35355', 'Sumer').",
+    "government_type('cs:culture:Q35355', 'City-states').",
+    "country_founded('cs:culture:Q35355', -4500).",
+    "language('cs:language:Q150').",
+    "language_name('cs:language:Q150', 'French').",
+    "language_kind('cs:language:Q150', real).",
+    "language_real_code('cs:language:Q150', fr).",
+    "language('cs:language:xx').",
+    "language_name('cs:language:xx', 'Testish').",
+    "language_kind('cs:language:xx', real).",
+    "language_parent('cs:language:xx', 'cs:language:Q150').",
+    "language_real_code('cs:language:xx', xx).",
+    "settlement('cs:place:ur').",
+    "settlement_name('cs:place:ur', 'Ur').",
+    "settlement_of_country('cs:place:ur', 'cs:culture:Q35355')."
+  ],
+  "licenseManifest": {
+    "allowedSpdxClasses": [
+      "CC0",
+      "CC-BY"
+    ],
+    "policy": {
+      "allowed_classes": [
+        "public-domain",
+        "attribution"
+      ],
+      "allowed_spdx_classes": [
+        "CC0",
+        "CC-BY"
+      ],
+      "on_violation": "reject-with-report"
+    },
+    "included": {
+      "count": 4,
+      "byLicense": {
+        "CC-BY-4.0": 3,
+        "CC0-1.0": 1
+      },
+      "byClass": {
+        "CC-BY": 3,
+        "CC0": 1
+      }
+    },
+    "excluded": {
+      "count": 2,
+      "byLicense": {
+        "CC-BY-SA-4.0": 2
+      },
+      "byClass": {
+        "CC-BY-SA": 2
+      }
+    }
+  },
+  "x_pinakes": {
+    "kgpPackId": "sha256-4b665470981adaebde24c2e5ddf05308d827c9ba1e9499d44ae78ceca022f6ed",
+    "producer": "pinakes",
+    "registryVersion": "0.4.1",
+    "predicateProvenance": {
+      "1": [
+        "country/1",
+        "country_founded/2",
+        "country_name/2",
+        "government_type/2"
+      ],
+      "2": [
+        "settlement/1",
+        "settlement_name/2",
+        "settlement_of_country/2"
+      ],
+      "3": [
+        "language/1",
+        "language_kind/2",
+        "language_name/2",
+        "language_parent/2",
+        "language_real_code/2"
+      ],
+      "5": [
+        "item/1",
+        "item_category/2",
+        "item_name/2",
+        "item_type/2"
+      ]
+    }
+  }
+}

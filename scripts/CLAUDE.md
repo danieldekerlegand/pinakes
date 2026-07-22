@@ -141,6 +141,9 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
   read by raw header name (`iso639_1`/`iso639_2`/`/glotto/`), NOT via the canonical mapping (they map
   to `language_code`/property, not distinct canonical fields).
 - **License filtering is by *class*** (family, version-independent — `licenseClass("CC-BY-4.0")==="CC-BY"`,
+  and `assertLicenseColumn()` fails the build with the remedy in the message if the canonical schema
+  ever loses the v1.1 per-record `license` column; `licenseClasses: null` disables the filter and is
+  for the Insimul projection's excluded-record tally only — never for emitting a pack),
   `"CC0-1.0"→"CC0"`). Default classes `CC0`+`CC-BY` **exclude** share-alike (`CC-BY-SA-*`). A row-level
   `license` column wins over the source default (mirrors culture-scrape's adapter), so a future
   mixed-license corpus grounds with genuine per-record licenses; today every real row is `CC-BY-4.0`.
@@ -160,6 +163,51 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
   `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim per QID-bearing entity.
   Normalization lives in `@shared/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
   is `2.0.0` (the envelope broke, the records did not). Full contract: `docs/grounding-pack.md`.
+
+## Insimul grounding pack (insimul-bridge US-002)
+
+`export-insimul-pack.ts` is a **projection of the KGP pack, not a second corpus reader** — it
+imports `buildEntityGrounding`/`buildGroundingPack` from `export-entity-grounding.ts` and
+re-wraps the result in Insimul's own envelope. Two envelopes are unavoidable: `@insimul/core`'s
+`groundingPackSchema` pins `contractVersion: "insimul-grounding-v1"` and `source: "linguascrape"`
+(the project's former name) as **zod literals**, so a single document cannot satisfy both. The
+KGP `pack_id` rides across in `x_pinakes.kgpPackId`. Run: `npm run insimul-pack [-- --domains
+culture,place,language --license-classes CC0,CC-BY --out <dir> --emit-fixture]`. Full contract:
+[`docs/grounding-pack.md`](../docs/grounding-pack.md) "The Insimul projection".
+
+- **`SEED_MAPPINGS` is the executable half of the US-001 predicate-mapping registry, and
+  `assertSeedMappingsRegistered()` enforces that** (at build time *and* in the test): a mapping
+  may only emit a predicate its `projects.insimul` registry entry's `external` cell names, only
+  through an entry that crosses `LS->IN`/`both`, is `exportable`, and is not `pending`. **Never
+  widen the table to add a predicate** — upstream it to koine `registry/predicate-mapping.json`,
+  bump `registryVersion`, `cp` the mirror back. That is how 0.4.1 added `country_name/2` /
+  `settlement_name/2` / `item_name/2` (a nameless world seed is unusable; all three are in
+  Insimul's shipped `predicate-schema.ts`, which a skipif-gated test cross-checks).
+- **Registry entries with a prose `external` cell emit no facts, by construction** —
+  `externalPredicates()` finds no `name/arity` in "religion truths / backstory templates", so
+  deities/myth-motifs ride as entity records only. That is the designed behaviour, not a gap.
+- **Skip, never fake.** A blank/non-numeric source cell drops the fact; a foreign key
+  (`settlement_of_country/2`, `language_parent/2`) is emitted only when it resolves to an entity
+  **inside the pack**, so a license-filtered country can't leave a dangling seed reference. FKs
+  resolve through a `nodeType\0pinakesId → csid` index so a QID-anchored target
+  (`civilization_id=sumer` → `cs:culture:Q35355`) links correctly.
+- **`fields` is where domain data lives** (settlement `lat`/`lon`, `governmentType`,
+  `realCode`). The KGP entity record stays keys-and-names only — do not add bulk fields there.
+  Coordinates are handled uniformly for every node type: `latitude`+`longitude` columns, else a
+  `*coordinates` JSON cell via the export's `parseCoordinates`.
+- **The consumer's schema is vendored + drift-gated**, same pattern as the koine registry
+  mirror: `scripts/data/insimul-grounding-pack.schema.json` is byte-derived from
+  `$INSIMUL_ROOT/packages/core/schemas/grounding-pack.schema.json` (default
+  `~/Development/workspace/insimul-babylon`) and the test compares them under `skipIf`.
+  `assertMatchesInsimulSchema` runs inside `buildInsimulPack`, so a pack Insimul would reject
+  never reaches disk. `validateJsonSchema` is a deliberate ~60-line draft-07 *subset* checker
+  (no JSON-Schema runtime in this repo); an unsupported keyword surfaces as a violation.
+- **GOTCHA — the fixture lexicons are SHARED with the KGP snapshot.** Adding a row/file to
+  `scripts/data/entity-grounding-fixture/` moves **both** committed packs; regenerate both
+  (`npm run entity-grounding -- --emit-fixture` **and** `npm run insimul-pack -- --emit-fixture`)
+  or the sync tests fail. Adding an *unmapped* column is free — only columns the lexicon mapping
+  maps (or the raw-header lookups: `license`, `iso639_*`, `/glotto/`, `latitude`/`longitude`,
+  `*coordinates`, and the seed columns) are read.
 
 ## Canonical export (US-004)
 

@@ -60,7 +60,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { nodeTypeByName } from "@shared/canonical-schema";
+import {
+  CANONICAL_SCHEMA,
+  nodeProvenanceColumns,
+  nodeTypeByName,
+} from "@shared/canonical-schema";
 import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
 import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@shared/capability-manifest";
 import {
@@ -249,20 +253,46 @@ export interface GroundingPack {
 
 /** Options controlling which entities land in the snapshot. */
 export interface GroundingOptions {
-  /** Allowed license classes; an entity outside them is excluded. Default {@link DEFAULT_LICENSE_CLASSES}. */
-  readonly licenseClasses?: readonly string[];
+  /**
+   * Allowed license classes; an entity outside them is excluded. Default
+   * {@link DEFAULT_LICENSE_CLASSES}. `null` disables the filter entirely — used by the
+   * Insimul projection to count what the filter *excluded*, never to emit a pack.
+   */
+  readonly licenseClasses?: readonly string[] | null;
   /** Allowed entity-type domains; empty/undefined = all domains. */
   readonly domains?: readonly string[];
 }
 
+/**
+ * Assert the canonical schema declares the per-record `license` column (schema v1.1,
+ * `scale-ready-conversion` US-003). License *filtering* is meaningless without it — a
+ * pack built against a v1.0 schema would silently admit share-alike records — so both
+ * this exporter and the Insimul projection fail loudly rather than emit an unfiltered
+ * pack. Throws with the remedy in the message. The column list is a parameter so the check
+ * itself is testable without stubbing the live schema.
+ */
+export function assertLicenseColumn(
+  provenanceColumns: readonly string[] = nodeProvenanceColumns(),
+): void {
+  if (!provenanceColumns.includes("license")) {
+    throw new Error(
+      "grounding-pack: canonical schema v" +
+        CANONICAL_SCHEMA.version +
+        ' declares no per-record "license" provenance column, so license-class filtering' +
+        " cannot be enforced. Upgrade shared/canonical-schema.json to v1.1+ (the" +
+        " scale-ready-conversion US-003 SPDX column) before exporting a grounding pack.",
+    );
+  }
+}
+
 /** Read a cell, trimming whitespace; out-of-range indices yield `""`. */
-function cell(row: string[], idx: number): string {
+export function cell(row: string[], idx: number): string {
   if (idx < 0 || idx >= row.length) return "";
   return (row[idx] ?? "").trim();
 }
 
 /** Parse a TSV file into `{ headers, rows }`; missing files yield empties. */
-function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
+export function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
   if (!fs.existsSync(filePath)) return { headers: [], rows: [] };
   const content = fs.readFileSync(filePath, "utf8");
   const lines = content.split(/\r?\n/).filter((l) => l.trim() !== "");
@@ -273,7 +303,7 @@ function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
 }
 
 /** Column index (in `headers`) for the lexicon column mapped to canonical `target`. */
-function targetColIndex(file: string, headers: string[], target: string): number {
+export function targetColIndex(file: string, headers: string[], target: string): number {
   const mapping = lexiconMappingByFile(file);
   if (mapping === undefined) return -1;
   const col = mapping.columns.find((c) => c.target === target);
@@ -281,7 +311,7 @@ function targetColIndex(file: string, headers: string[], target: string): number
 }
 
 /** Case-insensitive exact-name header lookup, else -1. */
-function headerIndex(headers: string[], name: string): number {
+export function headerIndex(headers: string[], name: string): number {
   const lower = name.toLowerCase();
   return headers.findIndex((h) => h.toLowerCase() === lower);
 }
@@ -354,7 +384,9 @@ export function buildEntityGrounding(
   lexiconsDir: string = LEXICONS_DIR,
   options: GroundingOptions = {},
 ): GroundingEntity[] {
-  const licenseClasses = options.licenseClasses ?? DEFAULT_LICENSE_CLASSES;
+  assertLicenseColumn();
+  const licenseClasses =
+    options.licenseClasses === undefined ? DEFAULT_LICENSE_CLASSES : options.licenseClasses;
   const domains = options.domains ?? [];
   const domainSet = domains.length > 0 ? new Set(domains) : null;
 
@@ -394,7 +426,7 @@ export function buildEntityGrounding(
       // (source is forced to pinakes → DEFAULT_LICENSE, matching the canonical export).
       const rowLicense = cell(row, licenseIdx);
       const license = rowLicense !== "" ? rowLicense : licenseForSource(EXPORT_SOURCE);
-      if (!licenseAllowed(license, licenseClasses)) continue;
+      if (licenseClasses !== null && !licenseAllowed(license, licenseClasses)) continue;
 
       const name = cell(row, nameIdx);
       const citation = citationIdx >= 0 ? parseCitation(cell(row, citationIdx)) : "";
