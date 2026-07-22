@@ -305,16 +305,23 @@ def file_identity(path: Path | str) -> dict[str, Any]:
 def parity_deltas(
     hf_scores: Mapping[str, Mapping[str, Any]],
     gguf_scores: Mapping[str, Mapping[str, Any]],
+    *,
+    metrics: Sequence[str] = FROZEN_METRICS,
 ) -> dict[str, dict[str, float]]:
     """``gguf − hf`` per arm and frozen metric — negative means the quant lost.
 
     Only arms and metrics both columns actually carry are emitted: an invented
     zero would read as "no degradation" when the truth is "not measured".
+
+    ``metrics`` is a parameter (defaulting to this pilot's frozen list) so the
+    edit-ops pilot's deployment leg reuses the arithmetic with its own frozen
+    metrics instead of forking it — same discipline as
+    :func:`~pinakes_ml.slm_baseline.aggregate_repeats`.
     """
     deltas: dict[str, dict[str, float]] = {}
     for arm in sorted(set(hf_scores) & set(gguf_scores)):
         row: dict[str, float] = {}
-        for metric in FROZEN_METRICS:
+        for metric in metrics:
             before, after = hf_scores[arm].get(metric), gguf_scores[arm].get(metric)
             if isinstance(before, int | float) and isinstance(after, int | float):
                 row[metric] = round(float(after) - float(before), 6)
