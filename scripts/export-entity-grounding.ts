@@ -271,10 +271,10 @@ export function buildEntityGrounding(
     const glottoIdx = isLanguage ? glottocodeColIndex(headers) : -1;
 
     for (const row of rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
       const rawQid = cell(row, qidIdx);
-      const csid = mintCsid(node, lsId, rawQid);
+      const csid = mintCsid(node, pinakesId, rawQid);
       if (seenCsids.has(csid)) continue;
       seenCsids.add(csid);
 

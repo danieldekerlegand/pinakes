@@ -34,11 +34,11 @@ function exportTo(lexiconsDir: string): string {
 const nodeCol = (field: string) =>
   CANONICAL_SCHEMA.node.columns.findIndex((c) => c.field === field);
 
-/** Overwrite a cell in `<canon>/nodes/<type>.tsv` for the row with the given ls id. */
+/** Overwrite a cell in `<canon>/nodes/<type>.tsv` for the row with the given pinakes id. */
 function editCanonicalCell(
   canonDir: string,
   type: string,
-  lsId: string,
+  pinakesId: string,
   field: string,
   value: string,
 ): void {
@@ -49,7 +49,7 @@ function editCanonicalCell(
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === "") continue;
     const cells = lines[i].split("\t");
-    if (cells[idIdx] === lsId) {
+    if (cells[idIdx] === pinakesId) {
       cells[fIdx] = value;
       lines[i] = cells.join("\t");
     }

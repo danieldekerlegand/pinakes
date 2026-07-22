@@ -111,6 +111,10 @@ Relationship `:TYPE` vocabulary (extensible; defined formally in `src/culturescr
   known, `csid` is derived deterministically from the QID so re-runs are idempotent.
 - Entity resolution (Tasklist 2) collapses duplicates by matching on
   `wikidata_qid` → `getty_id` → normalized `(name, lang, type)` → fuzzy fallback.
+- **Koine (KINP):** `csid` is the KINP *entity* identifier in the `pinakes` namespace —
+  `cs:<type>:<local>` ⇄ `pinakes:ent:<type>.<local>`, with the canonical IRI derivable
+  from it. Mapping rules: [`docs/canonical-schema.md` §3.1](../../../docs/canonical-schema.md)
+  (repo root); spec: `koine/specs/identity.md` §3.
 
 ## Round-trip contract
 

@@ -161,7 +161,7 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
 `shared/canonical-schema.json` `idScheme`); a row without one falls back to
-`cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
+`cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, pinakesId, qid?)` is the single source —
 `wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
 `targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
 snapshots agree. Edge endpoints are rewritten to node csids via a `pinakes_id → csid`
@@ -172,7 +172,7 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
 (`{"lat":..,"lng":..}`) split into `lat`/`lon`.
 
 - **GOTCHA — QID-anchoring is snapshot-neutral for the export MANIFEST but not the
-  reconciliation report.** The manifest holds only counts + lsId-keyed unresolved samples (no
+  reconciliation report.** The manifest holds only counts + pinakesId-keyed unresolved samples (no
   csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
   lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
   The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
