@@ -67,6 +67,55 @@ ride into the node `extra` overflow. Fixture: `tests/fixtures/analyzer/export/` 
 `entities/` fixture the refers_to edges resolve against for a merged `validate`);
 `tests/test_argos.py`.
 
+## insimul `CanonicalWorldExport` adapter (`insimul`, insimul-bridge US-003)
+
+`insimul.py` reads Insimul's `CanonicalWorldExport` — a **single JSON file**, not a
+directory: a `contractVersion`/`worldId`/`seed`/`predicateSchemaHash` envelope around the
+world's WorldIR (`ir`) and Prolog KB (`prologKb`). Wired in the factory's three places
+(`dump` `source_type`, disambiguated by `source.params.adapter: insimul`). Fixture:
+`tests/fixtures/insimul/world-export.json`; `tests/test_insimul.py` (40 tests).
+
+- **The adapter MINTS the csids, it does not read them.** Unlike analyzer (final csids on
+  the wire), Insimul entity ids are MongoDB ObjectIds unique *within a world only* — never
+  across worlds (the registry's `projects.insimul.idSpace` rule). So it mints
+  `cs:<type>:insimul:<worldId>:<entityId>` (alias-anchored, `_alias_local` keeps it
+  verbatim; a csid local part may contain colons). It is still a **csid-preserving**
+  normalize path (`pipeline._normalize_insimul` → `mapper.map_insimul_records`) because
+  by the time a record reaches the mapper its identity is settled — re-minting could only
+  fork it. That's what makes re-ingest byte-identical (**0 changes**).
+- **`retrieved_at` is the export's own `exportedAt`, never a clock.** A world export is an
+  artifact, so stamping "now" would break idempotence — a missing or non-UTC `exportedAt`
+  is a hard error, not a fallback. This is the opposite of the analyzer/pinakes adapters'
+  injected-clock pattern, deliberately.
+- **All rows land in the `synthetic` trust tier.** `classify_tier` maps a `source=insimul`
+  token → `TIER_SYNTHETIC` right after the personal check and *before* the trust rungs
+  (a world row carries a real `source_url` and would otherwise auto-admit). Licence is
+  `LicenseRef-Insimul-Proprietary`, unregistered in `schema/license_class.py` → class
+  `unknown` = never redistributed. See `orchestrate/CLAUDE.md` "Synthetic trust tier".
+- **Two deliberate non-mappings.** (1) A settlement's `position` is world-space metres
+  around procedural terrain, NOT WGS-84 — it never touches `lat`/`lon` (it would put a
+  generated town at latitude 412); it rides into overflow. (2) A **truth is not an event
+  node** — the canonical vocabulary has no general event type and v1.3 coined none, so a
+  truth anchors on `myth-motif` (the type registry entry 6 already pairs Insimul truths
+  with) and `caused-by` stays endpoint-unconstrained in the schema.
+- **Both stored directions collapse to one edge.** Insimul stores relationships from both
+  ends (`childIds` *and* `parentIds`; a building's `occupantIds` *and* a character's
+  `homeResidenceId`), and `SPOUSE_OF` is symmetric so its endpoints are sorted.
+  `world_edges` dedupes each `:TYPE` group on `(start, end)` and sorts it.
+- **`causesTruthIds`/`causedByTruthIds` do not exist in Insimul yet.** They are declared by
+  INSIMUL_SYNC_PLAN Appendix A row 10 and read forward-compatibly; an export without them
+  yields no `CAUSED_BY` edges (a test pins that).
+- **World rules are registry entries, not records.** `world_rule_entries(export)` returns
+  `datalog.registry.RegistryEntry`s at `layer = insimul-world`, `rule_id =
+  insimul:<worldId>:<ruleId>`, with `clause_souffle = ""` — *that empty cell IS the
+  full-prolog flag* (cuts / negation / `rule_likelihood/2` do not cross to Datalog). They
+  are deliberately NOT in `build_registry()`, whose committed artifact must stay a
+  deterministic function of code-resident sources. **GOTCHA — the `datalog.registry`
+  import is deferred inside the function**: `datalog` reaches `schema` → `acquire`, so a
+  module-scope import closes a real cycle (it broke a `import datalog.registry` -first
+  entry point before being deferred). `RegistryEntry` is `TYPE_CHECKING`-only at module
+  scope.
+
 ## Real-data dump slices (`wikidata_slice.py`, not an adapter)
 
 `wikidata_slice.py` is a standalone **builder**, not a `SourceAdapter`: it composes

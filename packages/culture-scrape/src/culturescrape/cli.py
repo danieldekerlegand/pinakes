@@ -42,6 +42,7 @@ from culturescrape.acquire.wikidata_slice import (
 )
 from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
+    CONTAINED_TIERS,
     PERSONAL_TIER,
     DatalogExportError,
     Engine,
@@ -429,14 +430,17 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     to_datalog.add_argument(
         "--tier",
-        choices=["personal"],
+        choices=list(CONTAINED_TIERS),
         default=None,
-        help="scope the program to a trust tier. Default (omitted): the PUBLIC "
-        "program — personal-tier (source=analyzer) rows are filtered out, so a corpus "
-        "that has ingested Analyzer file-facts still exports a release-safe program. "
+        help="scope the program to a contained trust tier. Default (omitted): the "
+        "PUBLIC program — personal-tier (source=analyzer) AND synthetic-tier "
+        "(source=insimul) rows are filtered out, so a corpus that has ingested Analyzer "
+        "file-facts or Insimul worlds still exports a release-safe program. "
         "'personal': the LOCAL-ONLY file web (asset nodes + grounding edges), with "
         "the file-web reasoning rules (derived_from lineage + refers_to/co_refers) "
-        "attached. Personal-tier data is never emitted by default.",
+        "attached. 'synthetic': one generated Insimul world's own subgraph (a world's "
+        "own rules are full-prolog and do not cross to Datalog). Neither tier is ever "
+        "emitted by default.",
     )
     to_datalog.add_argument(
         "--out",
@@ -464,13 +468,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     datalog_materialize.add_argument(
         "--tier",
-        choices=["personal"],
+        choices=list(CONTAINED_TIERS),
         default=None,
-        help="scope the materialisation to a trust tier. Default: the public "
-        "corpus with the shared inference rules. 'personal': materialise the "
-        "file-web rules (derived_from lineage + refers_to/co_refers) over the "
-        "LOCAL-ONLY personal (source=analyzer) subgraph — the engine-free proof that "
-        "the ingested file web answers lineage and cross-file queries.",
+        help="scope the materialisation to a contained trust tier. Default: the "
+        "public corpus (personal AND synthetic rows filtered out) with the shared "
+        "inference rules. 'personal': materialise the file-web rules (derived_from "
+        "lineage + refers_to/co_refers) over the LOCAL-ONLY personal (source=analyzer) "
+        "subgraph — the engine-free proof that the ingested file web answers lineage "
+        "and cross-file queries. 'synthetic': the shared rules over one generated "
+        "Insimul world (source=insimul).",
     )
     datalog_materialize.add_argument(
         "--exclude",

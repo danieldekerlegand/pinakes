@@ -104,6 +104,32 @@ corpus with no Analyzer ingest is unaffected (the tier is simply empty and omitt
 - Committed tiered-corpus manifest / fixtures are unchanged (they carry no personal rows).
   Unit coverage: `tests/test_argos.py` (tier classification + the gate).
 
+## Synthetic trust tier + containment gate — `tiers.py` (insimul-bridge US-003)
+
+`TIER_SYNTHETIC` is the **sixth** tier and the exact structural twin of `TIER_PERSONAL`:
+also off the trust ladder, also a partition, also classified *before* the trust rungs.
+It holds facts read out of a **generated Insimul world** (`SYNTHETIC_SOURCES = {"insimul"}`).
+Copy the personal-tier reasoning verbatim when extending either — they are one pattern:
+
+- **The classification must come before the trust rungs, and here's why it matters more
+  than for personal.** A world row carries a *real, non-empty* `source_url`
+  (`insimul:world:<id>`), so an edge would auto-admit and a QID-less node would quarantine
+  — either way it would sit on the trust ladder as though it described the real world.
+  `classify_tier` checks `tokens & SYNTHETIC_SOURCES` second (after personal), so it can't.
+- **`assert_no_synthetic_records(rows, *, context)`** (raises `SyntheticTierContainmentError`)
+  is the hard gate — INSIMUL_SYNC_PLAN.md §7 "License leakage": generated-world facts are
+  proprietary and must NEVER enter an open-data release / packaged artifact / real-world
+  tier. `package.py`'s `_assert_no_personal_tier` now runs **both** predicates over one
+  scan of each `nodes/`+`edges/` TSV. Any NEW export/release path must call both gates.
+- **The synthetic gate floors are dedup + provenance, unlike personal's no-floor.** A
+  generated world is a *closed* KB: fully provenanced by construction (world id + seed +
+  contract version) and QID-less by construction (nothing real to reconcile to). So
+  `max_unreconciled_rate` is 1.0 but `max_duplicate_rate` is **0.0** — a duplicate means
+  the world-scoped csid mint forked, the one way a Bridge-2 re-ingest could stop being
+  idempotent.
+- **`SYNTHETIC_SOURCES` is the single source list** (same rule as `PERSONAL_SOURCES`).
+  Unit coverage: `tests/test_insimul.py`.
+
 ## Identity preservation — collapse same-QID nodes across types (US-004)
 
 `csid` is `cs:<node-type>:<QID>`, so the **same** Wikidata entity typed differently by

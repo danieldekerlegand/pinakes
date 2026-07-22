@@ -90,6 +90,7 @@ def test_registry_covers_every_documented_type() -> None:
         "INSTANCE_OF", "SUBCLASS_OF", "MEMBER_OF_CATEGORY", "CREATED_BY",
         "MADE_OF", "PART_OF", "USES",
         "DEPICTS", "MENTIONS",
+        "PARENT_OF", "SPOUSE_OF", "EMPLOYED_BY", "RESIDES_IN", "CAUSED_BY",
     }
     assert set(REGISTRY) == expected
 

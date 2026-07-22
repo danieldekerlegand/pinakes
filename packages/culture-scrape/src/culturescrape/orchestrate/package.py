@@ -149,40 +149,64 @@ def package_corpus(
 
 
 def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
-    """Refuse to package a corpus that holds any personal-tier record.
+    """Refuse to package a corpus that holds a contained-tier record.
 
-    The hard privacy gate (analyzer-bridge US-003, the media-bridge mapping spec §6): a packaged
-    artifact is a shareable / open-data release, so a personal-tier record — a
-    fact derived from the user's own files, ingested via the Analyzer bridge — must
-    never enter one. Scans the ``source`` column of every ``nodes/*.tsv`` and
-    ``edges/*.tsv`` under the corpus; a value naming a personal source
-    (:data:`culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) aborts the package.
-    A no-op for a corpus with no Analyzer ingest (the common case).
+    A packaged artifact is a shareable / open-data release, so the two contained
+    tiers must never enter one:
+
+    * **personal** (analyzer-bridge US-003, the media-bridge mapping spec §6) — a fact derived
+      from the user's own files, ingested via the Analyzer bridge; local-only;
+    * **synthetic** (insimul-bridge US-003, INSIMUL_SYNC_PLAN.md §7 "License
+      leakage") — a fact read out of a *generated* Insimul world; proprietary, and
+      it describes a world that does not exist.
+
+    Scans the ``source`` column of every ``nodes/*.tsv`` and ``edges/*.tsv`` under
+    the corpus once; a value naming a source in either
+    :data:`~culturescrape.orchestrate.tiers.PERSONAL_SOURCES` or
+    :data:`~culturescrape.orchestrate.tiers.SYNTHETIC_SOURCES` aborts the package.
+    A no-op for a corpus with no bridge ingest (the common case).
     """
     # Lazy import keeps the ``orchestrate`` package init order robust (tiers pulls
     # in the qa/manifest/metrics layer).
-    from culturescrape.orchestrate.tiers import is_personal_source
+    from culturescrape.orchestrate.tiers import (
+        is_personal_source,
+        is_synthetic_source,
+    )
 
+    gates: tuple[tuple[str, Callable[[str], bool], str], ...] = (
+        (
+            "personal",
+            is_personal_source,
+            "personal-tier facts are local-only and must never enter a "
+            "packaged/open-data release (the media-bridge mapping spec §6)",
+        ),
+        (
+            "synthetic",
+            is_synthetic_source,
+            "synthetic-tier facts are proprietary generated-world content and "
+            "must never enter a packaged/open-data release "
+            "(INSIMUL_SYNC_PLAN.md §7 'License leakage')",
+        ),
+    )
     base = source / "corpus" if "corpus" in members else source
     for kind in ("nodes", "edges"):
         directory = base / kind
         if not directory.is_dir():
             continue
         for tsv in sorted(directory.glob("*.tsv")):
-            offender = _first_personal_source(tsv, is_personal_source)
-            if offender is not None:
-                raise PackageError(
-                    f"refusing to package {source}: {tsv} holds a personal-tier "
-                    f"record (source={offender!r}); personal-tier facts are "
-                    "local-only and must never enter a packaged/open-data release "
-                    "(the media-bridge mapping spec §6)"
-                )
+            for tier, predicate, remedy in gates:
+                offender = _first_contained_source(tsv, predicate)
+                if offender is not None:
+                    raise PackageError(
+                        f"refusing to package {source}: {tsv} holds a {tier}-tier "
+                        f"record (source={offender!r}); {remedy}"
+                    )
 
 
-def _first_personal_source(
-    tsv: Path, is_personal: Callable[[str], bool]
+def _first_contained_source(
+    tsv: Path, is_contained: Callable[[str], bool]
 ) -> str | None:
-    """Return the first personal ``source`` cell in *tsv*, or ``None`` if none."""
+    """Return the first matching ``source`` cell in *tsv*, or ``None`` if none."""
     try:
         with tsv.open("r", encoding="utf-8") as handle:
             header = handle.readline()
@@ -195,7 +219,7 @@ def _first_personal_source(
                 return None
             for line in handle:
                 cells = line.rstrip("\n").split(_TSV_DELIMITER)
-                if idx < len(cells) and is_personal(cells[idx]):
+                if idx < len(cells) and is_contained(cells[idx]):
                     return cells[idx].strip()
     except OSError:
         return None

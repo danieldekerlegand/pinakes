@@ -70,18 +70,30 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
   `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
 
-## Canonical schema v1.2 — the asset node + personal-media edges (analyzer-bridge US-003)
+## Canonical schema v1.2 / v1.3 — the bridge vocabularies (analyzer + insimul US-003)
 
-`canonical-schema.json` is at **v1.2.0**: it adds the `asset` node type (label `Asset`, the
-`sha256:` id-space — a content-addressed media node, technical props ride in overflow) and the
-`depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
-These are the Analyzer-bridge personal-media vocabulary. Bumping the schema version / node+edge
-vocab has a **cross-language blast radius** — when you touch node/edge types again, update in
-lockstep (all pinned by tests):
+`canonical-schema.json` is at **v1.3.0**. Two bridges own its post-1.1 additions:
+
+- **v1.2 (analyzer-bridge US-003)** — the `asset` node type (label `Asset`, the `sha256:`
+  id-space; a content-addressed media node, technical props ride in overflow) and the
+  `depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
+- **v1.3 (insimul-bridge US-003)** — the generated-world vocabulary: `character` / `building` /
+  `business` node types (`Character`/`Building`/`Business`) and `parent-of` / `spouse-of` /
+  `employed-by` / `resides-in` / `caused-by` (`PARENT_OF`/`SPOUSE_OF`/`EMPLOYED_BY`/`RESIDES_IN`/
+  `CAUSED_BY`). `character` is the vocabulary's **first person-family type**. The genealogy /
+  occupancy edges are endpoint-constrained; `caused-by` is deliberately **unconstrained** — a
+  truth event has no canonical node type, so Bridge 2 anchors truths on `myth-motif` (the type
+  the registry already pairs them with, entry 6) rather than coining an `event` type.
+
+Bumping the schema version / node+edge vocab has a **cross-language blast radius** — when you
+touch node/edge types again, update in lockstep (all pinned by tests):
 
 - TS: `shared/canonical-schema.test.ts` `EXPECTED_NODE_TYPES`/`EXPECTED_EDGE_TYPES` + the
   version assertion; `shared/predicate-mapping.json` `pending` flags + `pendingSchemaAdditions`
-  (the validator throws the instant a `pending` type resolves — flip it) + `predicate-mapping.test.ts`.
+  (the validator throws the instant a `pending` type resolves — flip it **upstream in koine**,
+  then re-vendor) + `predicate-mapping.test.ts`. **A NODE type also needs
+  `shared/capability-manifest.json`** — its produced entity port is total over `nodeTypes`, so
+  `assertValidCapabilityManifest` fails until the port lists the new type too.
 - Python (`packages/culture-scrape`): the edge `:TYPE` vocab lives in `ontology/registry.py`
   (`REGISTRY`, pinned by `test_ontology_registry.py`) **and** must be documented in
   `docs/ontology.md` (pinned by `test_ontology_doc.py`); `schema/mapper.py` `PINAKES_EDGE_TYPE_MAP`
@@ -89,6 +101,13 @@ lockstep (all pinned by tests):
   test-pinned artifacts: `datalog/schema/edge_constraints.tsv`, `datalog/schema/rules_registry.tsv`,
   `datalog/rules_registry.tsv` (regenerate via their `write_*`/`build_registry` fns). A node
   `:LABEL` needs no Python allowlist change (nothing rejects `Asset`).
+- **The committed Bridge-1 fixture pack moves too.** `scripts/data/insimul-grounding-pack.json`
+  embeds the registry version in `x_pinakes` and is content-addressed, so a registry re-vendor
+  changes its `packId` — regenerate it (`packJson(buildFixturePack())` → `FIXTURE_PACK_PATH`)
+  or `export-insimul-pack.test.ts` goes red.
+- `shared/trust-tier.ts` is the **app-facing display** mirror of `classify_tier` and knows only
+  the four trust rungs; neither bridge partition (`personal`, `synthetic`) is mirrored there,
+  by precedent — they never reach the app corpus.
 
 ## KCB capability manifest — `capability-manifest.json` + `capability-manifest.ts`
 

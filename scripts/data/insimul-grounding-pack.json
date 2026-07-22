@@ -1,6 +1,6 @@
 {
   "contractVersion": "insimul-grounding-v1",
-  "packId": "sha256-8759a5e37082fc3488c1199662f73142a7a7b927b3afb9b4e3d98e1cbbfd8adf",
+  "packId": "sha256-17e20a85215a251c8b7defe279c37dbe9b8345d2be7c4be53a9b69d7730c464b",
   "generatedAt": "2026-01-01T00:00:00.000Z",
   "source": "linguascrape",
   "domains": [],
@@ -145,7 +145,7 @@
   "x_pinakes": {
     "kgpPackId": "sha256-4b665470981adaebde24c2e5ddf05308d827c9ba1e9499d44ae78ceca022f6ed",
     "producer": "pinakes",
-    "registryVersion": "0.4.1",
+    "registryVersion": "0.4.2",
     "predicateProvenance": {
       "1": [
         "country/1",

@@ -40,6 +40,7 @@ from culturescrape.schema.headers import EdgeSchema
 from culturescrape.schema.ids import IdError, normalize_type
 from culturescrape.schema.mapper import (
     map_argos_records,
+    map_insimul_records,
     map_pinakes_records,
     map_records,
     node_schema,
@@ -62,6 +63,12 @@ PINAKES_EXPORT_ADAPTER = "pinakes-export"
 #: analyzer path (map + preserve csids verbatim, no dedup re-mint) — see
 #: :func:`_normalize_argos`.
 ARGOS_EXPORT_ADAPTER = "analyzer"
+
+#: Acquisition adapter whose records ship the canonical shape with **final**
+#: world-scoped csids (minted by the adapter while reading the
+#: ``CanonicalWorldExport``), so normalization takes the insimul path — map +
+#: preserve csids verbatim, no dedup re-mint. See :func:`_normalize_insimul`.
+INSIMUL_EXPORT_ADAPTER = "insimul"
 
 
 class PipelineError(ValueError):
@@ -159,6 +166,8 @@ def normalize_records(
     """
     if _is_argos_export(category):
         return _normalize_argos(records)
+    if _is_insimul_export(category):
+        return _normalize_insimul(records)
     if _is_pinakes_export(category):
         return _normalize_pinakes(records, fuzzy_threshold=fuzzy_threshold)
 
@@ -197,6 +206,32 @@ def _normalize_argos(records: Iterable[RawRecord]) -> NormalizationResult:
     canonical entity it names — that entity is referenced, never re-created here.
     """
     rows = map_argos_records(records)
+    node_rows = [row for row in rows if ":LABEL" in row]
+    edge_rows = [row for row in rows if ":TYPE" in row]
+    return NormalizationResult(nodes=node_rows, edges=edge_rows)
+
+
+def _is_insimul_export(category: CategorySpec) -> bool:
+    """Whether *category* is ingested through the insimul world-export adapter."""
+    return category.source.params.get("adapter") == INSIMUL_EXPORT_ADAPTER
+
+
+def _normalize_insimul(records: Iterable[RawRecord]) -> NormalizationResult:
+    """Normalize Insimul world-export records (canonical shape, **final** csids).
+
+    Records are mapped via
+    :func:`~culturescrape.schema.mapper.map_insimul_records` — which preserves
+    each shipped ``csid`` / endpoint verbatim — then split into node rows
+    (carrying a ``:LABEL``) and edge rows (carrying a ``:TYPE``). The csids were
+    minted world-scoped and deterministically by
+    :mod:`culturescrape.acquire.insimul` while reading the artifact, so no dedup /
+    re-mint runs: re-ingesting the same world export produces byte-identical rows
+    (idempotent, 0 changes) and every edge endpoint resolves against a node of the
+    same run. A generated world is a *closed* KB — there is nothing outside it for
+    an entity to reconcile to — so the generic map/anchor/reconcile path would
+    have nothing to add and could only fork identities.
+    """
+    rows = map_insimul_records(records)
     node_rows = [row for row in rows if ":LABEL" in row]
     edge_rows = [row for row in rows if ":TYPE" in row]
     return NormalizationResult(nodes=node_rows, edges=edge_rows)

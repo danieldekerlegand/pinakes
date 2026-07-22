@@ -171,23 +171,21 @@ describe("predicate-mapping registry", () => {
     expect(relationsForProject("analyzer").every((r) => !r.pending)).toBe(true);
   });
 
-  it("keeps insimul's pending flags a live checklist for the v1.3 Bridge-2 additions", () => {
+  it("clears insimul's pending flags now the v1.3 Bridge-2 additions have landed", () => {
     const insimul = predicateMappingProject("insimul");
+    // The checklist emptied when canonical schema v1.3.0 landed the seven types
+    // (insimul-bridge US-003); `targetVersion` stays as the schema that closed it.
     expect(insimul?.pendingSchemaAdditions?.targetVersion).toBe("1.3.0");
-    expect(insimul?.pendingSchemaAdditions?.nodeTypes).toEqual([
-      "character",
-      "building",
-      "business",
-    ]);
-    expect(insimul?.pendingSchemaAdditions?.edgeTypes).toEqual([
-      "parent-of",
-      "spouse-of",
-      "employed-by",
-      "resides-in",
-      "caused-by",
-    ]);
+    expect(insimul?.pendingSchemaAdditions?.nodeTypes).toEqual([]);
+    expect(insimul?.pendingSchemaAdditions?.edgeTypes).toEqual([]);
+    // Nothing remains pending for insimul either — the Bridge-2 entries (9-15)
+    // resolve against `shared/canonical-schema.json` like every other entry.
+    expect(relationsForProject("insimul").every((r) => !r.pending)).toBe(true);
+    for (const id of [9, 10, 11, 12, 13, 14, 15]) {
+      expect(relationsForProject("insimul").find((r) => r.id === id)?.pending).toBe(false);
+    }
     // Bridge-1 grounding types (culture / place / language / deity / cuisine / myth-motif,
-    // located-in / descended-from) already resolve, so they are NOT pending.
+    // located-in / descended-from) already resolved, so they were never pending.
     const groundingSeeds = relationsForProject("insimul").filter((r) => r.direction === "LS->IN");
     expect(groundingSeeds.length).toBeGreaterThan(0);
     expect(groundingSeeds.every((r) => !r.pending)).toBe(true);
