@@ -781,6 +781,69 @@ one `dvc pull ml/models` hands the recipient everything. Wiring instructions:
   `train_baselines`' preserve list — same reasoning as `SLM-QUANT`. No `ml/data`
   re-pin; MLflow run name `slm-handoff`.
 
+## Edit-ops SLM pilot — the frozen eval protocol (edit-ops-slm-pilot US-001)
+
+Bridge 3's referee and a structural clone of `slm_pilot.py`: `edit_ops_pilot.py`
+(pure) + `export_edit_ops_eval.py` (thin CLI, `pinakes-export-edit-ops-eval`)
+freeze the eval set, the metric list **and its oracles**, the comparison points,
+the three prompt arms, the success bar and the volume floors BEFORE any training
+run. Prose half: [`docs/edit-ops-slm-protocol.md`](../docs/edit-ops-slm-protocol.md).
+
+- **The op vocabulary is VENDORED as data, never imported.** `OP_VOCAB` mirrors
+  Analyzer's `filmstudio.edit_ops.op_vocabulary()`; `ml/edit-ops/op-vocab.json` is the
+  committed, CI-gated rendering (same discipline as `ml/cinematography/
+  constraint-vocab.json`). Re-mirror + bump `OP_VOCAB_VERSION` after any Analyzer op
+  change, and regenerate. Dump the upstream table with:
+  ```sh
+  cd ~/Development/analyzer && uv run python -c "
+  import json, filmstudio.agents          # import agents FIRST — see the gotcha below
+  from filmstudio.edit_ops import op_vocabulary
+  print(json.dumps(op_vocabulary(), indent=1, sort_keys=True))"
+  ```
+- **GOTCHA — `import filmstudio.edit_ops` alone raises a circular ImportError**
+  (`edit_ops` → `agents.skill_json_edl_export` → `agents/__init__` →
+  `skill_nl_edit` → `edit_ops`, partially initialised). Importing
+  `filmstudio.agents` first resolves it. Upstream quirk, not ours.
+- **Every metric names its ORACLE** (`METRIC_ORACLES`): `offline` (implemented
+  here, runs in the slim env), `analyzer-apply-ops` / `analyzer-render-check` (Analyzer's
+  deterministic gates, need the checkout), `reference`. The offline tier is
+  *executable* (`score_case`/`aggregate_scores`), and the Analyzer tiers are
+  deliberately ABSENT from its result dict — a placeholder would let a run report a
+  dry-run rate it never measured.
+- **`schemaValid` is NOT `dryRunPass`.** The offline checks are the pure slice of
+  what `apply_ops` enforces (unknown ops, missing/mistyped/unknown params,
+  unresolvable refs); `apply_ops` also rejects semantically impossible edits. Don't
+  present one as the other.
+- **Unknown is never a pass.** `BatchVerdict.refs_grounded` is `None` (not `False`)
+  when the case has no usable timeline, and `aggregate_scores` omits a metric no
+  case defines rather than emitting 0.0.
+- **The exhaust records NO EDL** — `dataset_export._nl_edit_records` emits input
+  paths, a clip *count* and the version. So exhaust-derived cases carry a
+  `reconstructed: true` timeline, `has_timeline: false`, and the Analyzer oracles
+  cannot score them. A producer-side gap, recorded in the protocol doc §3; don't
+  "fix" it by pretending the reconstruction is a timeline.
+- **The three prompt arms are built from PARTS, not stripped after the fact**
+  (contrast `slm_pilot.strip_grounding_block`, which had to reverse another
+  module's renderer): `grounded` / `no-vocab` (ops menu removed) / `no-grounding`
+  (Inputs+Timeline tables removed). `build_edit_prompt` raises on an unknown arm.
+- **The eval set is PERSONAL tier by contagion** — the hand-written stratum is
+  synthetic, the exhaust stratum is personal, and the assembled set inherits the
+  more restrictive label. DVC only, never git; a real (non-fixture) manifest also
+  stays out of git because it names run ids.
+- **The hand-written stratum is the coverage guarantee**: one case per op in
+  `OP_SPECS` + six labelled refusal cases, all against one committed synthetic
+  timeline. Its 12 reference batches were verified to dry-run clean through Analyzer's
+  real `apply_ops` (the fixture needed a non-empty `outputs` list — `validate_edl`
+  requires one — which is exactly the kind of thing only the real oracle tells you).
+- **A malformed reference is FLAGGED, not patched.** `reference_schema_valid` rides
+  on every case and `evalSet.referenceDefects` names the offenders; today that is
+  the analyzer-bridge exhaust fixture's `trim_clip`-with-`in` row (declared: `in_point`).
+- Fixture-driven, so the committed manifest needs no DVC corpus; the eval JSONL
+  lands in the DVC-tracked `ml/data/edit-ops-pilot/` tree — **no re-pin for a
+  fixture build** (and do NOT `dvc add ml/data` in a worktree where the tree was
+  never pulled: you would pin a directory containing only the new file). MLflow run
+  name `edit-ops-pilot-eval`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
