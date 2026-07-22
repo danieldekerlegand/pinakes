@@ -1025,6 +1025,64 @@ Runbook: [`docs/edit-ops-slm-runbook.md`](../docs/edit-ops-slm-runbook.md) §US-
   fixed GGUF does not have MPS training's nondeterminism. MLflow run name
   `edit-ops-pilot-quant-parity`.
 
+## Edit-ops SLM pilot — the Analyzer handoff bundle (US-005)
+
+`edit_ops_handoff.py` (pure, plus one read-only subprocess probe) +
+`export_edit_ops_handoff.py` (thin CLI, `pinakes-export-edit-ops-handoff`) close
+Phase E: they turn US-004's two GGUFs into a **self-describing bundle** —
+`model-manifest.json`, `prompt-contract.json`, the frozen `edit-ops-eval.jsonl` and
+`LICENSE-NOTES.md`, written **beside** the models in `ml/models/edit-ops-pilot/` so
+one `dvc pull ml/models` hands the recipient everything. Wiring instructions:
+[`docs/edit-ops-slm-analyzer-runbook.md`](../docs/edit-ops-slm-analyzer-runbook.md).
+
+- **This story assembles; it does not measure.** Every score in the manifest is
+  copied from the US-003 baseline report and the US-004 parity report, and
+  `dataFloor` rides along verbatim. The ONE thing it measures is the prompt gap
+  (below), which is about Analyzer, not about the model.
+- **The bundle carries BOTH quantizations and their Modelfiles**, and
+  `verify_bundle` hashes all four — a rewritten Modelfile silently changes the
+  TEMPLATE and the decoding parameters every score assumes, so it is exactly as
+  fatal as a rewritten GGUF. Contrast `slm_handoff`, whose manifest has a single
+  `model`; the per-entry check loop is shared (`slm_handoff.verify_entries`) and
+  `config_summary` is now parameterised on its path keys rather than forked.
+- **The deploy quant is DERIVED, not typed.** `recommend_deploy` picks the highest
+  `dryRunPass` on the grounded arm — Analyzer's own `apply_ops` gate, the metric the
+  deployment is judged on — because US-004 measured that `schemaValid` cannot
+  separate the quants. Today that resolves to **Q8_0**. With no `--analyzer-dir` the
+  function returns the baseline quant and says *"this is a default, not a
+  recommendation"*.
+- **The Analyzer prompt gap is MEASURED, not asserted.** `argos_prompt_probe` renders
+  Analyzer's real `skill_nl_edit._system_prompt` in the Analyzer checkout (subprocess,
+  JSON in/out — the US-003 rule) and `prompt_gap` compares it block by block against
+  the committed contract. Measured 2026-07-22: **every block is byte-identical, and
+  the message split is not** — Analyzer sends the whole block as the SYSTEM turn with
+  the bare instruction as the user turn, while the pilot measured a short system
+  turn and the block in the USER turn. Same words, different prompt; say so.
+- **`ARGOS_WIRING` is data, cited by file and symbol.** The one that voids the
+  measured numbers is `prompt-is-sent-as-one-system-turn`; the one that surprises is
+  `no-dedicated-nl-edit-model-setting` — `server._nl_edit_model` borrows the
+  director/conform/editor model, so pointing NL editing at the pilot also points
+  that agent's own work at it. A dedicated setting is an Analyzer-side story, named not
+  drafted.
+- **Personal tier is stamped everywhere** — manifest, README, doc block, license
+  notes. Redistribution is barred TWICE (the base model's research license *and* the
+  personal tier); they are not alternatives. The committed manifest is safe to
+  commit only because it is fixture-built (`run-synth-*`).
+- **`--check` has two tiers and the first runs in CI**: rebuild the frozen eval set
+  from the committed fixtures and compare it to the manifest's `evalSetSha256` (no
+  DVC, no GGUF, no Ollama), then — only when `ml/models` is materialised — re-hash
+  every file. The eval set is REBUILT in process, never copied from `ml/data`, and
+  the CLI hard-fails when the parity report names a different `evalSetSha256`.
+- **The AC's "cross-link from both ARGOS_SYNC_PLAN mirrors" vs "no Analyzer repo files
+  modified" is resolved as data.** The canonical mirror (`the media-bridge mapping spec`) is
+  edited here; the Analyzer mirror (`analyzer/docs/LINGUASCRAPE_SYNC_PLAN.md` — the
+  pre-rename name the file actually has) gets `mirror_patch()`, printed by
+  `--dry-run` and referenced from the sequencing table. Provided, not applied.
+- The `EDIT-OPS-HANDOFF` block lives in `docs/edit-ops-slm-analyzer-runbook.md`,
+  outside `train_baselines`' preserve list — same reasoning as `EDIT-OPS-QUANT`. No
+  `ml/data` re-pin; **do NOT `dvc add ml/models` in a Chief worktree** (same trap as
+  everywhere else in this pilot). MLflow run name `edit-ops-handoff`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

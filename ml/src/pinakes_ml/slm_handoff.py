@@ -393,20 +393,31 @@ def strip_base(value: str, base: str) -> str:
     return value[len(prefix) :] if value.startswith(prefix) else value
 
 
-def _config_summary(config: Mapping[str, Any], base: str = "") -> dict[str, Any]:
+def config_summary(
+    config: Mapping[str, Any],
+    base: str = "",
+    *,
+    path_keys: Sequence[str] = PATH_CONFIG_KEYS,
+    path_list_keys: Sequence[str] = PATH_LIST_CONFIG_KEYS,
+    drop: Sequence[str] = ("output_dir",),
+) -> dict[str, Any]:
     """The training config: reproducible fields only, no machine-local paths.
 
     ``output_dir`` is dropped (where one operator's adapter happened to land);
     the remaining path fields are made relative to the ``ml/`` root, because a
     rerun needs *which* config and *which* manifest, not whose disk.
+
+    The key sets are parameters rather than constants because the edit-ops pilot's
+    config names different path fields (:mod:`pinakes_ml.edit_ops_handoff` passes
+    its own) — one implementation of "nothing machine-local ships", two bundles.
     """
     summary: dict[str, Any] = {}
     for key, value in sorted(config.items()):
-        if key == "output_dir":
+        if key in drop:
             continue
-        if key in PATH_CONFIG_KEYS and isinstance(value, str):
+        if key in path_keys and isinstance(value, str):
             summary[key] = strip_base(value, base)
-        elif key in PATH_LIST_CONFIG_KEYS and isinstance(value, list | tuple):
+        elif key in path_list_keys and isinstance(value, list | tuple):
             summary[key] = [
                 strip_base(item, base) if isinstance(item, str) else item
                 for item in value
@@ -414,6 +425,10 @@ def _config_summary(config: Mapping[str, Any], base: str = "") -> dict[str, Any]
         else:
             summary[key] = value
     return summary
+
+
+#: Kept as the old private name so this module's own call sites read unchanged.
+_config_summary = config_summary
 
 
 def _sorted_arms(scores: Mapping[str, Any] | None) -> dict[str, dict[str, Any]]:
@@ -517,6 +532,35 @@ def build_model_manifest(
 # --- verification (pure) --------------------------------------------------------
 
 
+def verify_entries(
+    expected: Sequence[Mapping[str, Any]], root: Path | str
+) -> tuple[str, ...]:
+    """Re-hash every ``{name, sha256, sizeBytes}`` row against ``root``.
+
+    The per-file half of :func:`verify_bundle`, factored out because the edit-ops
+    bundle inventories *several* models (one per quantization) plus their
+    Modelfiles and so cannot use this module's single-``model`` shape — but the
+    "a byte differs ⇒ none of the numbers describe this file" check is identical.
+    """
+    problems: list[str] = []
+    for entry in expected:
+        name = str(entry.get("name", ""))
+        actual = bundle_entry(root, name)
+        if not actual["exists"]:
+            problems.append(f"missing: {name}")
+            continue
+        if entry.get("sha256") and actual["sha256"] != entry["sha256"]:
+            problems.append(
+                f"sha256 mismatch: {name} "
+                f"({actual['sha256'][:12]}… != {str(entry['sha256'])[:12]}…)"
+            )
+        elif entry.get("sizeBytes") is not None and (
+            actual["sizeBytes"] != entry["sizeBytes"]
+        ):
+            problems.append(f"size mismatch: {name}")
+    return tuple(problems)
+
+
 def verify_bundle(
     manifest: Mapping[str, Any], root: Path | str
 ) -> tuple[str, ...]:
@@ -542,22 +586,7 @@ def verify_bundle(
             }
         )
     expected.extend(entry for entry in (manifest.get("files") or ()))
-    for entry in expected:
-        name = str(entry.get("name", ""))
-        actual = bundle_entry(root, name)
-        if not actual["exists"]:
-            problems.append(f"missing: {name}")
-            continue
-        if entry.get("sha256") and actual["sha256"] != entry["sha256"]:
-            problems.append(
-                f"sha256 mismatch: {name} "
-                f"({actual['sha256'][:12]}… != {str(entry['sha256'])[:12]}…)"
-            )
-        elif entry.get("sizeBytes") is not None and (
-            actual["sizeBytes"] != entry["sizeBytes"]
-        ):
-            problems.append(f"size mismatch: {name}")
-    return tuple(problems)
+    return tuple(problems) + verify_entries(expected, root)
 
 
 # --- the shipped prose (pure) ---------------------------------------------------
@@ -856,6 +885,7 @@ __all__ = [
     "build_model_manifest",
     "bundle_entry",
     "bundle_inventory",
+    "config_summary",
     "extract_marked_section",
     "insimul_env_block",
     "insimul_generation_settings",
@@ -866,4 +896,5 @@ __all__ = [
     "strip_base",
     "upsert_marked_section",
     "verify_bundle",
+    "verify_entries",
 ]
