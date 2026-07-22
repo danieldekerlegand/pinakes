@@ -1,5 +1,14 @@
 {
-  "contractVersion": "1.0.0",
+  "kgp_version": "0.4.0",
+  "pack_id": "sha256-073a9b4255a1305ae99278057a1c6e5b2b2a5cba3f989a94fdb281e2512f05c7",
+  "producer": "pinakes",
+  "worlds": [
+    "pinakes:world:consensus-reality"
+  ],
+  "kind": "snapshot",
+  "basis": null,
+  "dialect": "grounding-only",
+  "contractVersion": "2.0.0",
   "generatedAt": "2026-01-01T00:00:00.000Z",
   "source": "pinakes",
   "licenseClasses": [
@@ -69,5 +78,63 @@
       },
       "license": "CC0-1.0"
     }
-  ]
+  ],
+  "assertions": [
+    {
+      "id": "sha256-24716b1c53d6250c349ad32cb84153ef33a452a6680a7a8dc6b32b4879ebc3ea",
+      "world": "pinakes:world:consensus-reality",
+      "subject": "pinakes:ent:language.q150",
+      "relation": "exact_match",
+      "object": "wikidata:ent:Q150",
+      "confidence": 0.9,
+      "license": "CC-BY-4.0",
+      "prov": {
+        "agent": "pinakes:agent:resolver",
+        "activity": "pinakes:src:export-entity-grounding",
+        "asserted": "2026-01-01",
+        "method": "wikidata-qid-anchor",
+        "source_url": "https://www.wikidata.org/wiki/Q150"
+      }
+    },
+    {
+      "id": "sha256-83914ee477870526828908b7a9342c1c15cbaa0656d47c5c502a43e7ac7dac5a",
+      "world": "pinakes:world:consensus-reality",
+      "subject": "pinakes:ent:culture.q35355",
+      "relation": "exact_match",
+      "object": "wikidata:ent:Q35355",
+      "confidence": 0.95,
+      "license": "CC-BY-4.0",
+      "prov": {
+        "agent": "pinakes:agent:resolver",
+        "activity": "pinakes:src:export-entity-grounding",
+        "asserted": "2026-01-02",
+        "method": "wikidata-qid-anchor",
+        "source_url": "https://www.wikidata.org/wiki/Q35355"
+      }
+    }
+  ],
+  "links": [],
+  "manifest": {
+    "counts": {
+      "entities": 3,
+      "assertions": 2,
+      "links": 0
+    },
+    "created": "2026-01-01T00:00:00.000Z",
+    "signing": {
+      "key_id": null,
+      "alg": "ed25519"
+    },
+    "license_policy": {
+      "allowed_classes": [
+        "public-domain",
+        "attribution"
+      ],
+      "allowed_spdx_classes": [
+        "CC0",
+        "CC-BY"
+      ],
+      "on_violation": "reject-with-report"
+    }
+  }
 }

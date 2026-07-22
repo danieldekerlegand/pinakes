@@ -86,25 +86,27 @@ def _healthy() -> tuple[list[Row], list[Row]]:
     return nodes, edges
 
 
-def _ls_node(csid: str, *, ls_id: str, source: str = "pinakes", **kw: str) -> Row:
+def _pinakes_node(
+    csid: str, *, pinakes_id: str, source: str = "pinakes", **kw: str
+) -> Row:
     """A pinakes-origin node: canonical row + a ``pinakes_id`` alias."""
     row = _node(csid, source=source, **kw)
-    row["pinakes_id"] = ls_id
+    row["pinakes_id"] = pinakes_id
     return row
 
 
-def _ls_edge(
+def _pinakes_edge(
     start: str,
     end: str,
     rel_type: str = "DESCENDS_FROM",
     *,
-    ls_id: str = "e",
+    pinakes_id: str = "e",
     source: str = "pinakes",
     **kw: str,
 ) -> Row:
     """A pinakes-origin edge carrying a ``pinakes_id`` alias."""
     row = _edge(start, end, rel_type, source=source, **kw)
-    row["pinakes_id"] = ls_id
+    row["pinakes_id"] = pinakes_id
     return row
 
 
@@ -112,12 +114,12 @@ def _merged_clean() -> tuple[list[Row], list[Row]]:
     """A merged corpus: one native node/edge plus reconciled pinakes rows."""
     nodes = [
         _node("cs:dish:Q1", qid="Q1"),
-        _ls_node("cs:lang:Q2", ls_id="pie", qid="Q2"),
-        _ls_node("cs:lang:gaul", ls_id="gaulish", getty="aat:1"),
+        _pinakes_node("cs:lang:Q2", pinakes_id="pie", qid="Q2"),
+        _pinakes_node("cs:lang:gaul", pinakes_id="gaulish", getty="aat:1"),
     ]
     edges = [
         _edge("cs:dish:Q1", "cs:lang:Q2"),
-        _ls_edge("cs:lang:gaul", "cs:lang:Q2", ls_id="e1"),
+        _pinakes_edge("cs:lang:gaul", "cs:lang:Q2", pinakes_id="e1"),
     ]
     return nodes, edges
 
@@ -245,8 +247,8 @@ def test_pinakes_row_recognised_by_merged_source_token() -> None:
 def test_pinakes_provenance_gate_trips_when_stamp_dropped() -> None:
     # Both rows are pinakes-origin (alias present); one lost its source stamp.
     nodes = [
-        _ls_node("cs:lang:a", ls_id="a", qid="Q1"),
-        _ls_node("cs:lang:b", ls_id="b", qid="Q2", source=""),
+        _pinakes_node("cs:lang:a", pinakes_id="a", qid="Q1"),
+        _pinakes_node("cs:lang:b", pinakes_id="b", qid="Q2", source=""),
     ]
     report = evaluate(nodes, [])
     gate = _gate(report, "pinakes_provenance_completeness")
@@ -256,7 +258,7 @@ def test_pinakes_provenance_gate_trips_when_stamp_dropped() -> None:
 
 def test_pinakes_duplicate_gate_trips_on_shared_qid() -> None:
     nodes, edges = _merged_clean()
-    nodes.append(_ls_node("cs:lang:Q2-dup", ls_id="pie2", qid="Q2"))
+    nodes.append(_pinakes_node("cs:lang:Q2-dup", pinakes_id="pie2", qid="Q2"))
     report = evaluate(nodes, edges)
     gate = _gate(report, "pinakes_duplicate_rate")
     assert not gate.passed
@@ -266,7 +268,7 @@ def test_pinakes_duplicate_gate_trips_on_shared_qid() -> None:
 
 def test_pinakes_dangling_gate_trips_on_unknown_endpoint() -> None:
     nodes, edges = _merged_clean()
-    edges.append(_ls_edge("cs:lang:Q2", "cs:lang:missing", ls_id="e2"))
+    edges.append(_pinakes_edge("cs:lang:Q2", "cs:lang:missing", pinakes_id="e2"))
     report = evaluate(nodes, edges)
     gate = _gate(report, "pinakes_dangling_edge_rate")
     assert not gate.passed
@@ -275,16 +277,19 @@ def test_pinakes_dangling_gate_trips_on_unknown_endpoint() -> None:
 
 def test_pinakes_dangling_gate_allows_edge_into_native_node() -> None:
     # A pinakes edge may legitimately point at a native node.
-    nodes = [_node("cs:dish:Q1", qid="Q1"), _ls_node("cs:lang:Q2", ls_id="pie")]
-    edges = [_ls_edge("cs:lang:Q2", "cs:dish:Q1", ls_id="e1")]
+    nodes = [
+        _node("cs:dish:Q1", qid="Q1"),
+        _pinakes_node("cs:lang:Q2", pinakes_id="pie"),
+    ]
+    edges = [_pinakes_edge("cs:lang:Q2", "cs:dish:Q1", pinakes_id="e1")]
     report = evaluate(nodes, edges)
     assert _gate(report, "pinakes_dangling_edge_rate").value == 0.0
 
 
 def test_pinakes_unreconciled_gate_trips_when_tightened() -> None:
     nodes = [
-        _ls_node("cs:lang:a", ls_id="a"),
-        _ls_node("cs:lang:b", ls_id="b", qid="Q9"),
+        _pinakes_node("cs:lang:a", pinakes_id="a"),
+        _pinakes_node("cs:lang:b", pinakes_id="b", qid="Q9"),
     ]
     report = evaluate(
         nodes, [], GateThresholds(max_pinakes_unreconciled_rate=0.0)

@@ -2,22 +2,33 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
 import {
+  buildAssertions,
   buildEntityGrounding,
   buildFixtureSnapshot,
-  snapshotEnvelope,
+  buildGroundingPack,
   snapshotJson,
+  packFileName,
   parseAliases,
   parseArgs,
   licenseClass,
   licenseAllowed,
   writeSnapshot,
+  ANCHOR_RELATION,
   CONTRACT_VERSION,
   DEFAULT_LICENSE_CLASSES,
   FIXTURE_GENERATED_AT,
   FIXTURE_SNAPSHOT_PATH,
   type GroundingEntity,
 } from "./export-entity-grounding";
+import {
+  KGP_VERSION,
+  PACK_WORLD,
+  claimHashInput,
+  csidToKinpCurie,
+  wikidataEntityCurie,
+} from "@shared/kgp";
 
 /** Write a `{ file: rows[][] }` map of TSVs into a fresh temp lexicons dir. */
 function makeFixtureDir(files: Record<string, string[][]>): string {
@@ -193,9 +204,9 @@ describe("export-entity-grounding (analyzer-bridge US-002)", () => {
         const a = buildEntityGrounding(dir);
         const b = buildEntityGrounding(dir);
         expect(a.map((e) => e.csid)).toEqual(["cs:cuisine:a", "cs:cuisine:z"]);
-        // Snapshots are byte-identical modulo the envelope timestamp.
+        // Packs are byte-identical modulo the envelope timestamp.
         const wrap = (es: GroundingEntity[]) =>
-          snapshotJson(snapshotEnvelope(es, { generatedAt: "T" }));
+          snapshotJson(buildGroundingPack(es, { generatedAt: "T" }));
         expect(wrap(a)).toEqual(wrap(b));
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
@@ -220,7 +231,7 @@ describe("export-entity-grounding (analyzer-bridge US-002)", () => {
     it("writes snapshot.json under the out dir", () => {
       const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "ls-grounding-out-"));
       try {
-        const snap = snapshotEnvelope([], { generatedAt: "T" });
+        const snap = buildGroundingPack([], { generatedAt: "T" });
         writeSnapshot(snap, outDir);
         const onDisk = JSON.parse(
           fs.readFileSync(path.join(outDir, "snapshot.json"), "utf8"),
@@ -230,6 +241,145 @@ describe("export-entity-grounding (analyzer-bridge US-002)", () => {
       } finally {
         fs.rmSync(outDir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("KGP envelope (US-PKA3)", () => {
+    const twoEntities = () =>
+      makeFixtureDir({
+        "languages.tsv": [
+          ["id", "name", "iso639_1", "wikidata_qid", "source_url", "retrieved_at", "confidence"],
+          ["fr", "French", "fr", "Q150", "https://www.wikidata.org/entity/Q150", "2026-01-01", "0.9"],
+          ["nq", "NoQid", "nq", "", "", "", ""],
+        ],
+      });
+
+    it("carries the KGP §2 envelope around the unchanged entity payload", () => {
+      const dir = twoEntities();
+      try {
+        const pack = buildGroundingPack(buildEntityGrounding(dir), { generatedAt: "T" });
+        expect(pack.kgp_version).toBe(KGP_VERSION);
+        expect(pack.producer).toBe("pinakes");
+        expect(pack.worlds).toEqual([PACK_WORLD]);
+        expect(pack.kind).toBe("snapshot");
+        expect(pack.basis).toBeNull();
+        expect(pack.dialect).toBe("grounding-only");
+        expect(pack.pack_id).toMatch(/^sha256-[0-9a-f]{64}$/);
+        // The pinakes envelope a Bridge-1 consumer pins is still there.
+        expect(pack.contractVersion).toBe(CONTRACT_VERSION);
+        expect(pack.source).toBe("pinakes");
+        expect(pack.count).toBe(pack.entities.length);
+        expect(pack.entities.map((e) => e.csid)).toEqual(["cs:language:Q150", "cs:language:nq"]);
+        // Manifest: counts + emission metadata + the §7.1 policy.
+        expect(pack.manifest.counts).toEqual({ entities: 2, assertions: 1, links: 0 });
+        expect(pack.manifest.created).toBe("T");
+        expect(pack.manifest.signing).toEqual({ key_id: null, alg: "ed25519" });
+        expect(pack.links).toEqual([]);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("mints assertion ids by the normative KGP §3 normalization", () => {
+      const dir = twoEntities();
+      try {
+        const entities = buildEntityGrounding(dir);
+        const [anchor, ...rest] = buildAssertions(entities);
+        // Only the QID-bearing entity yields an anchor.
+        expect(rest).toEqual([]);
+        expect(anchor.relation).toBe(ANCHOR_RELATION);
+        expect(anchor.world).toBe(PACK_WORLD);
+        expect(anchor.subject).toBe(csidToKinpCurie("cs:language:Q150"));
+        expect(anchor.subject).toBe("pinakes:ent:language.q150");
+        expect(anchor.object).toBe(wikidataEntityCurie("Q150"));
+
+        // The id is the sha256 of the §3.1 hash input — recomputed here independently.
+        const expected = crypto
+          .createHash("sha256")
+          .update(
+            claimHashInput({
+              world: PACK_WORLD,
+              relation: ANCHOR_RELATION,
+              args: [
+                { kind: "id", curie: "pinakes:ent:language.q150" },
+                { kind: "id", curie: "wikidata:ent:Q150" },
+              ],
+            }),
+            "utf8",
+          )
+          .digest("hex");
+        expect(anchor.id).toBe(`sha256-${expected}`);
+
+        // Confidence/licence/provenance ride on the record, never in the claim id.
+        expect(anchor.confidence).toBe(0.9);
+        expect(anchor.license).toBe("CC-BY-4.0");
+        expect(anchor.prov).toEqual({
+          agent: "pinakes:agent:resolver",
+          activity: "pinakes:src:export-entity-grounding",
+          asserted: "2026-01-01",
+          method: "wikidata-qid-anchor",
+          source_url: "https://www.wikidata.org/entity/Q150",
+        });
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("republishes the SPDX filter as the KGP §7.1 license policy", () => {
+      const pack = buildGroundingPack([], { generatedAt: "T" });
+      expect(pack.manifest.license_policy).toEqual({
+        allowed_classes: ["public-domain", "attribution"],
+        allowed_spdx_classes: ["CC0", "CC-BY"],
+        on_violation: "reject-with-report",
+      });
+      const wide = buildGroundingPack([], {
+        generatedAt: "T",
+        licenseClasses: ["CC0", "CC-BY", "CC-BY-SA"],
+      });
+      expect(wide.manifest.license_policy.allowed_classes).toEqual([
+        "public-domain",
+        "attribution",
+        "share-alike",
+      ]);
+    });
+
+    it("is content-addressed: same input ⇒ same pack_id, regardless of when it was built", () => {
+      const dir = twoEntities();
+      try {
+        const entities = buildEntityGrounding(dir);
+        const first = buildGroundingPack(entities, { generatedAt: "2026-01-01T00:00:00.000Z" });
+        const later = buildGroundingPack(entities, { generatedAt: "2027-06-30T12:34:56.000Z" });
+        expect(later.pack_id).toBe(first.pack_id);
+
+        // Different knowledge ⇒ different address (entity set, and the applied filter).
+        const fewer = buildGroundingPack(entities.slice(0, 1), { generatedAt: "T" });
+        expect(fewer.pack_id).not.toBe(first.pack_id);
+        const widened = buildGroundingPack(entities, {
+          generatedAt: "T",
+          licenseClasses: ["CC0", "CC-BY", "CC-BY-SA"],
+        });
+        expect(widened.pack_id).not.toBe(first.pack_id);
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it("keeps snapshot and delta kinds honest about their basis (KGP §6)", () => {
+      expect(() =>
+        buildGroundingPack([], { generatedAt: "T", kind: "delta" }),
+      ).toThrow(/basis/);
+      expect(() =>
+        buildGroundingPack([], { generatedAt: "T", basis: "sha256-abc" }),
+      ).toThrow(/snapshot/);
+      const delta = buildGroundingPack([], {
+        generatedAt: "T",
+        kind: "delta",
+        basis: "sha256-abc",
+      });
+      expect(delta.kind).toBe("delta");
+      expect(delta.basis).toBe("sha256-abc");
+      expect(packFileName("delta")).toBe("delta.json");
+      expect(packFileName("snapshot")).toBe("snapshot.json");
     });
   });
 
@@ -259,6 +409,19 @@ describe("export-entity-grounding (analyzer-bridge US-002)", () => {
       expect([...csids].sort()).toEqual(csids);
       // csid uniqueness (deduped).
       expect(new Set(csids).size).toBe(csids.length);
+    });
+
+    it("packs the corpus reproducibly, one anchor per QID-bearing entity", () => {
+      const es = buildEntityGrounding();
+      const pack = buildGroundingPack(es, { generatedAt: "2026-01-01T00:00:00.000Z" });
+      const anchored = es.filter((e) => e.reconciliation.wikidataQid !== "").length;
+      expect(anchored).toBeGreaterThan(0);
+      expect(pack.assertions).toHaveLength(anchored);
+      const ids = pack.assertions.map((a) => a.id);
+      expect([...ids].sort()).toEqual(ids);
+      expect(new Set(ids).size).toBe(ids.length);
+      // Rebuilding the same corpus lands on the same content address.
+      expect(buildGroundingPack(es, { generatedAt: "later" }).pack_id).toBe(pack.pack_id);
     });
   });
 });

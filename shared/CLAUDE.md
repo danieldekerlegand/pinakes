@@ -90,6 +90,56 @@ lockstep (all pinned by tests):
   `datalog/rules_registry.tsv` (regenerate via their `write_*`/`build_registry` fns). A node
   `:LABEL` needs no Python allowlist change (nothing rejects `Asset`).
 
+## KCB capability manifest — `capability-manifest.json` + `capability-manifest.ts`
+
+The Koine capability-bus manifest Pinakes publishes as the `pinakes:agent:resolver` authority
+provider (`koine/specs/capability-bus.md` §2/§6). Same JSON-source-of-truth + typed-accessor +
+runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contract in
+`docs/capability-bus.md`, served by `server/routes/capability-bus.ts`.
+
+- **It is a surface wrapper, and the validator enforces that.** Every capability must declare
+  ≥1 `x_surfaces` entry naming an already-built route + the merged file implementing it, so a
+  capability can never be advertised with nothing behind it. Adding a capability means pointing
+  at code that exists, not writing new code here.
+- **The produced entity port is total over `canonical-schema.json` `nodeTypes`** — add a
+  canonical node type and `assertValidCapabilityManifest` fails until the port lists it too
+  (an unlisted entity is undiscoverable on the bus). Capability-level ports use the `"*"`
+  wildcard (`ENTITY_TYPE_WILDCARD`) instead of restating the list.
+- **Knowledge ports are pinned to `grounding-only` + a `pinakes:world:*` world.** The validator
+  rejects a higher dialect tier or a foreign world, so an accidental `full-prolog` or
+  `insimul:world:…` port can't be published.
+- **Pass the manifest through, don't read module state.** `assertValidCapabilityManifest(m)`
+  and the `produced*Port` accessors all take the manifest as a parameter — an accessor that
+  closed over `CAPABILITY_MANIFEST` silently validated the live doc instead of the clone under
+  test (caught by the mutation tests; keep that pattern for any new check).
+- Spec-conformant keys stay spec-named (`kcb_version`, `grants_required`); Pinakes-local
+  additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
+  document can be served verbatim to a registry.
+
+## KGP grounding-pack contract — `kgp.ts`
+
+The pinakes side of `koine/specs/grounding-pack.md` (0.4.0): the **normative** §3 claim
+normalization + §3.1 claim ids, §2.1 pack identity, the vendored core relation registry, the
+KINP identifier forms, and the §7.1 licence-class policy. Consumed by
+`scripts/export-entity-grounding.ts`; prose in `docs/grounding-pack.md`.
+
+- **Never hand-roll a claim id or a pack hash.** Cross-producer dedup works only if every
+  project reduces a claim to the identical byte string first — `claimHashInput` is that string
+  and `mintClaimId`/`mintPackId` are the only way to mint. Confidence, provenance, licence and
+  embeddings are **excluded** from the claim hash on purpose (the same fact from two producers
+  must merge); `manifest.created`/`signing` are excluded from `pack_id` for the same reason.
+- **Pure + hasher-injected.** `sha256` is a parameter (`Sha256Hex`), so this module — like every
+  other file in `shared/` — imports no node builtin and stays client-safe. The caller supplies
+  `node:crypto`.
+- **`KGP_CORE_RELATIONS` is vendored from koine `registry/relations.tsv`**, not fetched, so ids
+  can be minted offline. A published signature is **immutable** (changing arity/symmetry would
+  silently change every dependent claim id) — upstream changes arrive as *new* relation names,
+  new rows are additive. Each row carries a dialect tier; `assertRelationAllowed` keeps a
+  `horn-safe` relation out of a `grounding-only` pack.
+- **Only namespace and kind of a CURIE are case-folded** (KGP §3.2 rule 3). `wikidata:ent:Q150`
+  keeps its `Q` — an external authority's local id is not ours to lowercase. Our own locals are
+  lowercased + percent-encoded by `csidToKinpCurie` per `docs/canonical-schema.md` §3.1.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'

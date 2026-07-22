@@ -236,9 +236,9 @@ export function buildReconciliationKeys(
     const regionIdx = regionColIndex(headers);
 
     for (const row of rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
-      const csid = mintCsid(node, lsId, cell(row, qidIdx));
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
+      const csid = mintCsid(node, pinakesId, cell(row, qidIdx));
       if (seenCsids.has(csid)) {
         duplicateCsidsDropped += 1;
         continue;
@@ -259,7 +259,7 @@ export function buildReconciliationKeys(
 
       keys.push({
         csid,
-        pinakesId: lsId,
+        pinakesId,
         nodeType: node,
         label: typeInfo.label,
         name,

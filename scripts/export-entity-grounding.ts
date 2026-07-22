@@ -1,5 +1,7 @@
 /**
- * Entity-grounding snapshot exporter (analyzer-bridge US-002, Bridge 1's producer).
+ * Entity-grounding pack exporter — pinakes's producer on the KGP **knowledge data
+ * plane** (`koine/specs/grounding-pack.md` §2), originally analyzer-bridge US-002's
+ * snapshot exporter and **retargeted** (US-PKA3) onto the KGP GroundingPack envelope.
  *
  * Emits a compact, license-filtered JSON export of canonical entities + the
  * reconciliation keys Analyzer's enrichment step consumes **offline** to ground
@@ -7,40 +9,77 @@
  * mention the same entity link through it and inherit pinakes's knowledge — that is
  * what turns per-file datapoints into a web *connecting* files.
  *
- * Shape (envelope + one record per entity):
+ * Shape (KGP envelope + the pinakes payload it already carried):
  *
  *   {
- *     contractVersion, generatedAt, source, licenseClasses, domains,
+ *     kgp_version, pack_id, producer, worlds, kind, basis, dialect,   // KGP §2
+ *     contractVersion, generatedAt, source, licenseClasses, domains,  // pinakes envelope
+ *     count,
  *     entities: [{
  *       csid, entityType, name, aliases,
  *       reconciliation: { wikidataQid, normalizedName, iso639_1?, iso639_2?, glottocode? },
  *       provenance: { source, sourceUrl, retrievedAt, confidence },
  *       license,           // SPDX id
- *     }]
+ *     }],
+ *     assertions: [{ id, world, subject, relation, object, confidence, license, prov }],
+ *     links: [],
+ *     manifest: { counts, created, signing, license_policy }
  *   }
  *
- * **Size-conscious by design:** keys and names only — no `description`/bulk fields —
- * so the snapshot stays small enough to ship and diff.
+ * The **entity records are unchanged** by the retarget — csid, reconciliation keys and
+ * provenance are exactly what Bridge 1 shipped; the envelope around them is now KGP's.
  *
- * **Deterministic + idempotent:** entities are csid-sorted and carry no wall-clock,
- * so two builds are byte-identical *modulo* the envelope `generatedAt` timestamp
- * (the only non-deterministic field; the pure builder never stamps it — the writer
- * does). A committed fixture snapshot (`scripts/data/entity-grounding-snapshot.json`,
- * built from `scripts/data/entity-grounding-fixture/`) pins the shape.
+ * **Assertions are the reconciliation anchors.** Each QID-bearing entity yields one
+ * `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim whose `id` is
+ * minted by the NORMATIVE KGP §3 normalization over the shared relation registry
+ * (`@shared/kgp`), so the same anchor asserted by another producer mints the same claim
+ * id and merges. `links` stays empty: KINP's reserved equivalence/lifecycle relations
+ * (`same_as`/`retracts`/…) are not what a grounding snapshot emits.
+ *
+ * **Size-conscious by design:** keys and names only — no `description`/bulk fields —
+ * so the pack stays small enough to ship and diff.
+ *
+ * **Deterministic + reproducible:** entities are csid-sorted, assertions claim-id-sorted,
+ * and neither carries a wall-clock, so two builds of the same corpus are byte-identical
+ * *modulo* the envelope `generatedAt`/`manifest.created` timestamp — which is excluded
+ * from the `pack_id` precisely so the same input yields the same content address. A
+ * committed fixture snapshot (`scripts/data/entity-grounding-snapshot.json`, built from
+ * `scripts/data/entity-grounding-fixture/`) pins the shape.
  *
  * **License-filterable:** `--license-classes CC0,CC-BY` (default) keeps only entities
  * whose SPDX license belongs to an allowed *class* (family, version-independent —
  * `CC-BY-4.0`→`CC-BY`, `CC0-1.0`→`CC0`). A share-alike source (`CC-BY-SA-*`) is
- * excluded by default. **Domain-filterable:** `--domains language,culture` keeps only
- * those entity types. Both filters are pure over the built entity list.
+ * excluded by default; the applied filter is republished as the KGP §7.1
+ * `manifest.license_policy`. **Domain-filterable:** `--domains language,culture` keeps
+ * only those entity types. Both filters are pure over the built entity list.
  *
- * `buildEntityGrounding` is pure over a lexicons directory (tests drive it with
- * fixtures); `snapshotEnvelope`/`writeSnapshot`/`runExport` do the wrapping + fs side.
+ * `buildEntityGrounding`/`buildAssertions` are pure over a lexicons directory (tests
+ * drive them with fixtures); `buildGroundingPack`/`writeSnapshot`/`runExport` do the
+ * wrapping + fs side.
  */
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { nodeTypeByName } from "@shared/canonical-schema";
 import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@shared/capability-manifest";
+import {
+  KGP_VERSION,
+  KGP_PRODUCER,
+  DEFAULT_DIALECT,
+  PACK_WORLD,
+  assertRelationAllowed,
+  canonicalClaimArgs,
+  csidToKinpCurie,
+  licensePolicyFor,
+  mintClaimId,
+  mintPackId,
+  wikidataEntityCurie,
+  type Claim,
+  type LicensePolicy,
+  type PackElement,
+  type PackKind,
+} from "@shared/kgp";
 import {
   mintCsid,
   normaliseConfidence,
@@ -76,8 +115,27 @@ export const FIXTURE_LEXICONS_DIR = path.join(
   "entity-grounding-fixture",
 );
 
-/** Snapshot contract version — bump on any breaking shape change (consumer pins it). */
-export const CONTRACT_VERSION = "1.0.0";
+/**
+ * Snapshot contract version — bump on any breaking shape change (consumer pins it).
+ * **2.0.0** is the KGP retarget (US-PKA3): the entity records are untouched, the
+ * envelope around them became a KGP GroundingPack.
+ */
+export const CONTRACT_VERSION = "2.0.0";
+
+/** The dialect every pinakes pack ships at — ground facts + confidence, no rules (KGP §5). */
+export const PACK_DIALECT: KnowledgeDialect = DEFAULT_DIALECT;
+
+/** The registry relation a reconciliation anchor is asserted with (grounding-only tier). */
+export const ANCHOR_RELATION = "exact_match";
+
+/** W3C-PROV `activity` for every assertion this exporter mints (no run id — packs stay reproducible). */
+export const PACK_ACTIVITY = "pinakes:src:export-entity-grounding";
+
+/** W3C-PROV `method`: the QID anchor *is* reconciliation cascade step 1. */
+export const ANCHOR_METHOD = "wikidata-qid-anchor";
+
+/** Signing shape shared with the KCB manifest (KGP §9.3) — unsigned until a key is provisioned. */
+export const PACK_SIGNING = { key_id: null, alg: "ed25519" } as const;
 
 /**
  * Fixed `generatedAt` stamped on the committed fixture snapshot so it is fully
@@ -122,17 +180,71 @@ export interface GroundingEntity {
   readonly license: string;
 }
 
-/** The full snapshot envelope written to disk. */
-export interface GroundingSnapshot {
+/** W3C-PROV shape carried by an assertion (KINP §7.1); the SPDX license rides beside it. */
+export interface AssertionProvenance {
+  readonly agent: string;
+  readonly activity: string;
+  /** Transaction time — the row's `retrieved_at` (never a wall-clock, so packs reproduce). */
+  readonly asserted: string;
+  readonly method: string;
+  readonly source_url: string;
+}
+
+/** One KINP assertion envelope (§7.1) whose `id` is the KGP §3 content hash of the claim. */
+export interface GroundingAssertion {
+  /** `sha256-…` claim id — the same fact from any producer mints this same id. */
+  readonly id: string;
+  readonly world: string;
+  readonly subject: string;
+  readonly relation: string;
+  readonly object: string;
+  readonly confidence: number;
+  /** SPDX id — license rides on records, never in the claim hash (KGP §7.1). */
+  readonly license: string;
+  readonly prov: AssertionProvenance;
+}
+
+/** The pack manifest (KGP §2): counts, emission time, signing shape, license policy. */
+export interface PackManifest {
+  readonly counts: {
+    readonly entities: number;
+    readonly assertions: number;
+    readonly links: number;
+  };
+  readonly created: string;
+  readonly signing: { readonly key_id: string | null; readonly alg: string };
+  readonly license_policy: LicensePolicy;
+}
+
+/**
+ * The full KGP GroundingPack written to disk. The `kgp_*`/`producer`/`worlds`/`kind`/
+ * `basis`/`dialect`/`manifest` fields are the spec's (§2, spec-named so the document is
+ * servable verbatim); `contractVersion`/`generatedAt`/`source`/`licenseClasses`/
+ * `domains`/`count` are the pinakes envelope Bridge 1's consumer already pins.
+ */
+export interface GroundingPack {
+  readonly kgp_version: string;
+  /** Content address of this pack (KGP §2.1) — same knowledge in ⇒ same id out. */
+  readonly pack_id: string;
+  readonly producer: string;
+  readonly worlds: readonly string[];
+  readonly kind: PackKind;
+  /** For a delta: the `pack_id` it applies against; `null` for a snapshot (KGP §6). */
+  readonly basis: string | null;
+  readonly dialect: KnowledgeDialect;
   readonly contractVersion: string;
   readonly generatedAt: string;
   readonly source: string;
-  /** The license classes this snapshot was filtered to (provenance of the filter). */
+  /** The license classes this pack was filtered to (provenance of the filter). */
   readonly licenseClasses: readonly string[];
-  /** The entity-type domains this snapshot was filtered to (`[]` = all domains). */
+  /** The entity-type domains this pack was filtered to (`[]` = all domains). */
   readonly domains: readonly string[];
   readonly count: number;
   readonly entities: readonly GroundingEntity[];
+  readonly assertions: readonly GroundingAssertion[];
+  /** KINP reserved equivalence/lifecycle relations — a grounding snapshot emits none. */
+  readonly links: readonly GroundingAssertion[];
+  readonly manifest: PackManifest;
 }
 
 /** Options controlling which entities land in the snapshot. */
@@ -271,10 +383,10 @@ export function buildEntityGrounding(
     const glottoIdx = isLanguage ? glottocodeColIndex(headers) : -1;
 
     for (const row of rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
       const rawQid = cell(row, qidIdx);
-      const csid = mintCsid(node, lsId, rawQid);
+      const csid = mintCsid(node, pinakesId, rawQid);
       if (seenCsids.has(csid)) continue;
       seenCsids.add(csid);
 
@@ -323,52 +435,187 @@ export function buildEntityGrounding(
   return entities;
 }
 
+/** SHA-256 → lowercase hex, the hasher KGP §3.2 rule 7 mandates for claims and packs. */
+const sha256Hex = (input: string): string =>
+  createHash("sha256").update(input, "utf8").digest("hex");
+
 /**
- * Wrap built entities in the snapshot envelope. `generatedAt` is the sole
- * non-deterministic field — the caller supplies it (the CLI stamps the wall-clock,
- * the fixture pins {@link FIXTURE_GENERATED_AT}).
+ * Mint the identity-anchor assertions: one `exact_match` claim per QID-bearing entity,
+ * linking the pinakes entity CURIE to its Wikidata anchor (KINP §4.4 — the primary
+ * real-world anchor, and reconciliation cascade step 1).
+ *
+ * The claim `id` comes from the NORMATIVE KGP §3 normalization, so it is independent of
+ * confidence/provenance: another producer asserting the same anchor mints the same id
+ * and the two merge with both provenance records retained. `subject`/`object` are read
+ * back from {@link canonicalClaimArgs} so the record's operand order is the one that was
+ * hashed (`exact_match` is symmetric — §3.2 rule 2 sorts its operands).
+ *
+ * Pure: no filesystem, no wall-clock. Assertions come back claim-id-sorted and deduped.
  */
-export function snapshotEnvelope(
+export function buildAssertions(
+  entities: readonly GroundingEntity[],
+  world: string = PACK_WORLD,
+): GroundingAssertion[] {
+  assertRelationAllowed(ANCHOR_RELATION, PACK_DIALECT);
+  const assertions: GroundingAssertion[] = [];
+  const seen = new Set<string>();
+  for (const entity of entities) {
+    const qid = entity.reconciliation.wikidataQid;
+    if (qid === "") continue;
+    const claim: Claim = {
+      world,
+      relation: ANCHOR_RELATION,
+      args: [
+        { kind: "id", curie: csidToKinpCurie(entity.csid) },
+        { kind: "id", curie: wikidataEntityCurie(qid) },
+      ],
+    };
+    const id = mintClaimId(claim, sha256Hex);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const [subject, object] = canonicalClaimArgs(claim);
+    assertions.push({
+      id,
+      world,
+      subject,
+      relation: ANCHOR_RELATION,
+      object,
+      confidence: entity.provenance.confidence,
+      license: entity.license,
+      prov: {
+        agent: RESOLVER_IDENTITY,
+        activity: PACK_ACTIVITY,
+        asserted: entity.provenance.retrievedAt,
+        method: ANCHOR_METHOD,
+        source_url: entity.provenance.sourceUrl,
+      },
+    });
+  }
+  assertions.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return assertions;
+}
+
+/**
+ * Wrap built entities in the KGP GroundingPack envelope (§2), minting the content
+ * address (§2.1) over the pack's knowledge.
+ *
+ * `generatedAt` is the sole non-deterministic field — the caller supplies it (the CLI
+ * stamps the wall-clock, the fixture pins {@link FIXTURE_GENERATED_AT}) — and it is
+ * **excluded from `pack_id`** along with `signing`, exactly as §3.1 excludes `prov` from
+ * a claim id: they describe the emission, not the knowledge. That exclusion is what
+ * makes "same input ⇒ same `pack_id`" hold across builds.
+ */
+export function buildGroundingPack(
   entities: readonly GroundingEntity[],
   opts: {
     generatedAt: string;
     licenseClasses?: readonly string[];
     domains?: readonly string[];
+    /** Snapshot (default) or delta; a delta MUST name the `basis` pack it applies against. */
+    kind?: PackKind;
+    basis?: string | null;
   },
-): GroundingSnapshot {
+): GroundingPack {
+  const kind = opts.kind ?? "snapshot";
+  const basis = opts.basis ?? null;
+  if (kind === "delta" && !basis) {
+    throw new Error("grounding-pack: a delta must name the basis pack_id it applies against (KGP §6)");
+  }
+  if (kind === "snapshot" && basis) {
+    throw new Error("grounding-pack: a snapshot is complete for its worlds and carries no basis (KGP §6)");
+  }
+
+  const licenseClasses = [...(opts.licenseClasses ?? DEFAULT_LICENSE_CLASSES)];
+  const domains = [...(opts.domains ?? [])];
+  const assertions = buildAssertions(entities);
+  const links: readonly GroundingAssertion[] = [];
+  const licensePolicy = licensePolicyFor(licenseClasses);
+
+  const counts = {
+    entities: entities.length,
+    assertions: assertions.length,
+    links: links.length,
+  };
+  // The identity-bearing manifest: everything that describes *what knowledge this is*,
+  // and nothing that varies build to build (`created`, `signing`).
+  const identityManifest = {
+    kgp_version: KGP_VERSION,
+    producer: KGP_PRODUCER,
+    worlds: [PACK_WORLD],
+    kind,
+    basis,
+    dialect: PACK_DIALECT,
+    contractVersion: CONTRACT_VERSION,
+    source: EXPORT_SOURCE,
+    licenseClasses,
+    domains,
+    counts,
+    license_policy: licensePolicy,
+  };
+  const element = (record: GroundingEntity | GroundingAssertion, id: string): PackElement => ({
+    id,
+    record,
+  });
+  const packId = mintPackId(
+    {
+      manifest: identityManifest,
+      entities: entities.map((e) => element(e, e.csid)),
+      assertions: assertions.map((a) => element(a, a.id)),
+      links: links.map((l) => element(l, l.id)),
+    },
+    sha256Hex,
+  );
+
   return {
+    kgp_version: KGP_VERSION,
+    pack_id: packId,
+    producer: KGP_PRODUCER,
+    worlds: [PACK_WORLD],
+    kind,
+    basis,
+    dialect: PACK_DIALECT,
     contractVersion: CONTRACT_VERSION,
     generatedAt: opts.generatedAt,
     source: EXPORT_SOURCE,
-    licenseClasses: [...(opts.licenseClasses ?? DEFAULT_LICENSE_CLASSES)],
-    domains: [...(opts.domains ?? [])],
+    licenseClasses,
+    domains,
     count: entities.length,
     entities,
+    assertions,
+    links,
+    manifest: {
+      counts,
+      created: opts.generatedAt,
+      signing: { ...PACK_SIGNING },
+      license_policy: licensePolicy,
+    },
   };
 }
 
-/** Serialise a snapshot to its JSON form (trailing newline). */
-export function snapshotJson(snapshot: GroundingSnapshot): string {
-  return JSON.stringify(snapshot, null, 2) + "\n";
+/** Serialise a pack to its JSON form (trailing newline). */
+export function snapshotJson(pack: GroundingPack): string {
+  return JSON.stringify(pack, null, 2) + "\n";
 }
 
-/** Build the committed fixture snapshot (pinned timestamp) from the fixture lexicons. */
-export function buildFixtureSnapshot(): GroundingSnapshot {
+/** Build the committed fixture pack (pinned timestamp) from the fixture lexicons. */
+export function buildFixtureSnapshot(): GroundingPack {
   const entities = buildEntityGrounding(FIXTURE_LEXICONS_DIR);
-  return snapshotEnvelope(entities, {
+  return buildGroundingPack(entities, {
     generatedAt: FIXTURE_GENERATED_AT,
     licenseClasses: DEFAULT_LICENSE_CLASSES,
     domains: [],
   });
 }
 
-/** Write a snapshot to `<GROUNDING_DIR>/snapshot.json` (gitignored). */
-export function writeSnapshot(
-  snapshot: GroundingSnapshot,
-  outDir: string = GROUNDING_DIR,
-): void {
+/** File name a pack of `kind` is written under (KGP §6 names the two directions). */
+export function packFileName(kind: PackKind): string {
+  return kind === "delta" ? "delta.json" : "snapshot.json";
+}
+
+/** Write a pack to `<GROUNDING_DIR>/<snapshot|delta>.json` (gitignored). */
+export function writeSnapshot(pack: GroundingPack, outDir: string = GROUNDING_DIR): void {
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, "snapshot.json"), snapshotJson(snapshot));
+  fs.writeFileSync(path.join(outDir, packFileName(pack.kind)), snapshotJson(pack));
 }
 
 /** Parse `--license-classes a,b` / `--domains a,b` / `--out dir` from argv. */
@@ -395,8 +642,9 @@ export function parseArgs(argv: readonly string[]): {
 }
 
 /**
- * Build + write the live-corpus snapshot. `generatedAt` defaults to the wall-clock
- * (idempotent modulo this field). Returns the written snapshot.
+ * Build + write the live-corpus snapshot pack. `generatedAt` defaults to the wall-clock
+ * (which does not enter `pack_id`, so re-running yields the same content address).
+ * Returns the written pack.
  */
 export function runExport(
   opts: {
@@ -406,18 +654,18 @@ export function runExport(
     domains?: readonly string[];
     generatedAt?: string;
   } = {},
-): GroundingSnapshot {
+): GroundingPack {
   const entities = buildEntityGrounding(opts.lexiconsDir ?? LEXICONS_DIR, {
     licenseClasses: opts.licenseClasses,
     domains: opts.domains,
   });
-  const snapshot = snapshotEnvelope(entities, {
+  const pack = buildGroundingPack(entities, {
     generatedAt: opts.generatedAt ?? new Date().toISOString(),
     licenseClasses: opts.licenseClasses,
     domains: opts.domains,
   });
-  writeSnapshot(snapshot, opts.outDir ?? GROUNDING_DIR);
-  return snapshot;
+  writeSnapshot(pack, opts.outDir ?? GROUNDING_DIR);
+  return pack;
 }
 
 // CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
@@ -426,19 +674,22 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\
     process.argv.slice(2),
   );
   if (emitFixture) {
-    const snapshot = buildFixtureSnapshot();
-    fs.writeFileSync(FIXTURE_SNAPSHOT_PATH, snapshotJson(snapshot));
+    const pack = buildFixtureSnapshot();
+    fs.writeFileSync(FIXTURE_SNAPSHOT_PATH, snapshotJson(pack));
     // eslint-disable-next-line no-console
     console.log(
-      `Wrote fixture snapshot (${snapshot.count} entities) → ${FIXTURE_SNAPSHOT_PATH}`,
+      `Wrote fixture pack (${pack.count} entities, ${pack.assertions.length} assertions, ` +
+        `${pack.pack_id}) → ${FIXTURE_SNAPSHOT_PATH}`,
     );
   } else {
-    const snapshot = runExport({ licenseClasses, domains, outDir });
+    const pack = runExport({ licenseClasses, domains, outDir });
     // eslint-disable-next-line no-console
     console.log(
-      `Entity-grounding snapshot: ${snapshot.count} entities ` +
-        `(licenseClasses=${snapshot.licenseClasses.join("+") || "all"}, ` +
-        `domains=${snapshot.domains.join("+") || "all"}) → ${outDir}/snapshot.json`,
+      `Entity-grounding pack ${pack.pack_id}: ${pack.count} entities, ` +
+        `${pack.assertions.length} assertions ` +
+        `(dialect=${pack.dialect}, kind=${pack.kind}, ` +
+        `licenseClasses=${pack.licenseClasses.join("+") || "all"}, ` +
+        `domains=${pack.domains.join("+") || "all"}) → ${outDir}/${packFileName(pack.kind)}`,
     );
   }
 }

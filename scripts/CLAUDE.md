@@ -118,7 +118,7 @@ non-empty data (`npm run smoke:graph`, docs in
   directly). Default stays the demo fixture so a bare `docker compose up` still
   starts when no export has been built.
 
-## Entity-grounding snapshot (analyzer-bridge US-002)
+## Entity-grounding snapshot (analyzer-bridge US-002; KGP-retargeted, US-PKA3)
 
 `export-entity-grounding.ts` emits a compact, license-filtered JSON snapshot of canonical
 **entities + reconciliation keys** that Analyzer's enrichment step consumes offline to ground
@@ -144,13 +144,22 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
   `"CC0-1.0"→"CC0"`). Default classes `CC0`+`CC-BY` **exclude** share-alike (`CC-BY-SA-*`). A row-level
   `license` column wins over the source default (mirrors culture-scrape's adapter), so a future
   mixed-license corpus grounds with genuine per-record licenses; today every real row is `CC-BY-4.0`.
-- **Determinism:** entities are csid-sorted, carry no wall-clock; two builds are byte-identical
-  **modulo the envelope `generatedAt`** (the sole non-deterministic field — the pure builder never
-  stamps it, `runExport` does via `new Date().toISOString()`). The committed **fixture** snapshot
+- **Determinism:** entities are csid-sorted, assertions claim-id-sorted, neither carries a
+  wall-clock; two builds are byte-identical **modulo the envelope `generatedAt`/`manifest.created`**
+  (the sole non-deterministic field — the pure builder never stamps it, `runExport` does via
+  `new Date().toISOString()`) and that field is **excluded from `pack_id`**, so the same corpus
+  always yields the same content address. The committed **fixture** snapshot
   (`scripts/data/entity-grounding-snapshot.json`, built from `scripts/data/entity-grounding-fixture/`
   with a pinned `FIXTURE_GENERATED_AT`) is asserted in-sync by a test — regenerate with
   `npm run entity-grounding -- --emit-fixture` after any shape change. No committed *live* snapshot
   (6708 entities — too big; the fixture pins the shape instead).
+- **The envelope is a KGP GroundingPack (US-PKA3), the payload is not.** `buildGroundingPack`
+  (was `snapshotEnvelope`) wraps the *unchanged* entity records in `koine/specs/grounding-pack.md`
+  §2: `kgp_version`/`pack_id`/`producer`/`worlds`/`kind`/`basis`/`dialect` + a
+  `manifest{counts,created,signing,license_policy}`, and `buildAssertions` mints one
+  `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim per QID-bearing entity.
+  Normalization lives in `@shared/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
+  is `2.0.0` (the envelope broke, the records did not). Full contract: `docs/grounding-pack.md`.
 
 ## Canonical export (US-004)
 
@@ -161,7 +170,7 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
 `shared/canonical-schema.json` `idScheme`); a row without one falls back to
-`cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, lsId, qid?)` is the single source —
+`cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, pinakesId, qid?)` is the single source —
 `wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
 `targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
 snapshots agree. Edge endpoints are rewritten to node csids via a `pinakes_id → csid`
@@ -172,7 +181,7 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
 (`{"lat":..,"lng":..}`) split into `lat`/`lon`.
 
 - **GOTCHA — QID-anchoring is snapshot-neutral for the export MANIFEST but not the
-  reconciliation report.** The manifest holds only counts + lsId-keyed unresolved samples (no
+  reconciliation report.** The manifest holds only counts + pinakesId-keyed unresolved samples (no
   csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
   lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
   The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on

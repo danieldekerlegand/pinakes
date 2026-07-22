@@ -230,13 +230,13 @@ function loadCanonicalNodes(
     const byId = new Map<string, string[]>();
     const ambiguousIds = new Set<string>();
     for (const row of rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
-      if (byId.has(lsId)) {
-        ambiguousIds.add(lsId); // seen before → non-unique join key
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
+      if (byId.has(pinakesId)) {
+        ambiguousIds.add(pinakesId); // seen before → non-unique join key
         continue; // keep the first, but it will be skipped as ambiguous
       }
-      byId.set(lsId, row);
+      byId.set(pinakesId, row);
     }
     byType.set(type, { byId, ambiguousIds });
   }
@@ -279,7 +279,7 @@ export function buildWriteBack(
   const ambiguous: WriteBackAmbiguousId[] = [];
   const ambiguousSeen = new Set<string>();
   const matchedCanonical = new Set<string>();
-  const matchKey = (type: string, lsId: string) => `${type}\x1f${lsId}`;
+  const matchKey = (type: string, pinakesId: string) => `${type}\x1f${pinakesId}`;
 
   let filesScanned = 0;
   let nodesMatched = 0;
@@ -320,8 +320,8 @@ export function buildWriteBack(
 
     const counts = idCountByType.get(node) ?? new Map<string, number>();
     for (const row of parsed.rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId !== "") counts.set(lsId, (counts.get(lsId) ?? 0) + 1);
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId !== "") counts.set(pinakesId, (counts.get(pinakesId) ?? 0) + 1);
     }
     idCountByType.set(node, counts);
     parsedFiles.push({ file, node, parsed, idIdx, reverse });
@@ -334,26 +334,26 @@ export function buildWriteBack(
     const typeCounts = idCountByType.get(node)!;
 
     for (const row of parsed.rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
-      const canonRow = canonicalRows.get(lsId);
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
+      const canonRow = canonicalRows.get(pinakesId);
       if (canonRow === undefined) continue; // lexicon row absent from the graph return
 
       // Non-unique join key (across the type's lexicon rows and/or canonical rows): the id
       // cannot identify a single row → skip write-back, report the ambiguity.
-      const lexiconRows = typeCounts.get(lsId) ?? 1;
-      const canonicalAmbiguous = canonicalAmbiguousIds.has(lsId);
+      const lexiconRows = typeCounts.get(pinakesId) ?? 1;
+      const canonicalAmbiguous = canonicalAmbiguousIds.has(pinakesId);
       if (lexiconRows > 1 || canonicalAmbiguous) {
-        const key = matchKey(node, lsId);
+        const key = matchKey(node, pinakesId);
         if (!ambiguousSeen.has(key)) {
           ambiguousSeen.add(key);
-          ambiguous.push({ file, nodeType: node, pinakesId: lsId, lexiconRows, canonicalAmbiguous });
+          ambiguous.push({ file, nodeType: node, pinakesId, lexiconRows, canonicalAmbiguous });
         }
         continue;
       }
 
-      if (!matchedCanonical.has(matchKey(node, lsId))) {
-        matchedCanonical.add(matchKey(node, lsId));
+      if (!matchedCanonical.has(matchKey(node, pinakesId))) {
+        matchedCanonical.add(matchKey(node, pinakesId));
         nodesMatched += 1;
       }
       const incomingSource = cell(canonRow, sourceFieldIdx);
@@ -371,13 +371,13 @@ export function buildWriteBack(
           parsed.changed = true;
           enrichments += 1;
           changes.push({
-            file, nodeType: node, pinakesId: lsId, field, column,
+            file, nodeType: node, pinakesId, field, column,
             oldValue: "", newValue: sanitize(incoming), kind: "enrichment",
           });
         } else {
           // Curated value disagrees — a conflict. Reported, never silently resolved.
           conflicts.push({
-            file, nodeType: node, pinakesId: lsId, field, column,
+            file, nodeType: node, pinakesId, field, column,
             curatedValue: current, incomingValue: incoming, incomingSource,
           });
           if (overwrite) {
@@ -385,7 +385,7 @@ export function buildWriteBack(
             parsed.changed = true;
             overwriteCount += 1;
             changes.push({
-              file, nodeType: node, pinakesId: lsId, field, column,
+              file, nodeType: node, pinakesId, field, column,
               oldValue: current, newValue: sanitize(incoming), kind: "overwrite",
             });
           }
@@ -398,10 +398,10 @@ export function buildWriteBack(
   // write into — creating new lexicon rows is out of scope; surfaced for review).
   let unmatchedCanonicalNodes = 0;
   for (const [type, index] of canonicalByType) {
-    for (const lsId of index.byId.keys()) {
+    for (const pinakesId of index.byId.keys()) {
       if (
-        !matchedCanonical.has(matchKey(type, lsId)) &&
-        !ambiguousSeen.has(matchKey(type, lsId))
+        !matchedCanonical.has(matchKey(type, pinakesId)) &&
+        !ambiguousSeen.has(matchKey(type, pinakesId))
       ) {
         unmatchedCanonicalNodes += 1;
       }

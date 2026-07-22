@@ -98,6 +98,40 @@ token so the two graphs share relationship semantics.
   original lexicon id here so the canonical→lexicon mapping survives the bidirectional
   write-back (US-007). It is a plain property column on both node and edge files.
 
+### 3.1 `csid` as a KINP entity CURIE
+
+Pinakes is the **canonical authority for real-world entities** in the Koine ecosystem
+(`koine/specs/identity.md` §3.4, §10), and `csid` *is* — structurally — a KINP **entity**
+identifier: minted, stable, QID-anchored, independent of the row's current attributes
+(KINP §2). This section is the **mapping note**; it is not a data migration. `csid` stays
+the primary key on the wire and in the graph, and the KINP forms are a *derived view* of it.
+
+| Form | Shape | Example |
+|---|---|---|
+| `csid` (stored) | `cs:<type>:<local>` | `cs:language:Q1860` |
+| KINP CURIE (§3.2) | `pinakes:ent:<type>.<kinp-local>` | `pinakes:ent:language.q1860` |
+| KINP IRI (§3.1) | `https://id.koine.example/ent/pinakes/<type>.<kinp-local>` | `https://id.koine.example/ent/pinakes/language.q1860` |
+
+Derivation of `<kinp-local>` from the csid's `<local>` part, in order:
+
+1. lowercase ASCII `A–Z`;
+2. percent-encode every remaining character outside `[a-z0-9._-]` as lowercase `%XX` of
+   its UTF-8 bytes (this covers the `:` an alias-anchored local may itself contain, so the
+   `.` after `<type>` is unambiguously the first `.` in the local-id).
+
+The `<kinp-local>` grammar is KINP §3.1's `[a-z0-9][a-z0-9._-]*`; the `<type>.` prefix keeps
+csids of different node types disjoint inside the single flat `pinakes` entity namespace, and
+the three id-minting paths (QID-, alias-, name-anchored) all survive it unchanged.
+
+**One-way by design.** The derivation is not reversed by string surgery: an alias-anchored
+local whose source id differs from another only by ASCII case would fold onto one CURIE.
+That does not bite today (locals are QIDs `Q<n>` or already-lowercase slugs), and it never
+needs to: every Pinakes emission carries the verbatim `csid` alongside any KINP form —
+the same discipline the `pinakes_id` alias column applies to lexicon ids — so the csid is
+always recoverable from the record, never from the CURIE.
+
+The Prolog term form (KINP §3.3) follows mechanically: `id(ent, pinakes, 'language.q1860')`.
+
 ## 4. Column contract
 
 The exact header rows are emitted by `nodeHeaderRow()` / `edgeHeaderRow()` in
@@ -428,7 +462,7 @@ the export would land. Run it with `npx tsx scripts/reconciliation-report.ts`
 
 ```
 export/culturescrape/reconciliation/
-  keys.tsv      # one row per exported node: csid, ls id, iso codes, region, name_key, bucket
+  keys.tsv      # one row per exported node: csid, pinakes id, iso codes, region, name_key, bucket
   report.json   # full dry-run report (all ambiguity groups)
 docs/reconciliation-report.json   # committed snapshot (ambiguities bounded to 50)
 ```

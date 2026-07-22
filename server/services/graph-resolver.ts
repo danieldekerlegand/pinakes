@@ -353,12 +353,12 @@ export function loadAliasEntries(lexiconsDir: string = LEXICONS_DIR): AliasEntry
     const csidIdx = csidColIndex(headers);
 
     for (const row of rows) {
-      const lsId = cell(row, idIdx);
-      if (lsId === "") continue;
+      const pinakesId = cell(row, idIdx);
+      if (pinakesId === "") continue;
       const explicit = cell(row, csidIdx);
       entries.push({
-        csid: explicit !== "" ? explicit : mintCsid(node, lsId),
-        pinakesId: lsId,
+        csid: explicit !== "" ? explicit : mintCsid(node, pinakesId),
+        pinakesId,
         nodeType: node,
         name: cell(row, nameIdx),
         region: cell(row, regionIdx),
