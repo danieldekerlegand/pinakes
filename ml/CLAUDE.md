@@ -902,6 +902,67 @@ prompt arms, driven by a committed JSON config. Runbook:
   loop closes, and it does (0.5B on MPS, 191 s end to end, 4.1 s of training). MLflow
   run name `edit-ops-pilot-debug`.
 
+## Edit-ops SLM pilot — the 3B baseline + the Analyzer-oracle tier (US-003)
+
+`edit_ops_baseline.py` (pure, plus two subprocess bridges) turns N runs of the US-002
+pipeline into the pilot's **comparison table** — and, unlike its Insimul sibling, it
+fills the metrics the offline referee cannot answer. Config
+`ml/configs/edit-ops-pilot-3b.json`; CLI `pinakes-train-edit-ops --report`; runbook
+[`docs/edit-ops-slm-runbook.md`](../docs/edit-ops-slm-runbook.md) §US-003.
+
+- **Analyzer crosses as a SUBPROCESS here, not an import.** `argos_dry_run` and
+  `deterministic_floor_replies` write JSON into a temp file, run `uv run python -c
+  <script>` with `cwd=<analyzer checkout>`, and read JSON back. That is how `dryRunPass`
+  (the primary bar's metric) and the regex-tier floor get measured from `ml/`, whose
+  venv has no `filmstudio`. Both scripts import `filmstudio.agents` FIRST — the
+  `edit_ops` circular-import gotcha. Absent `--analyzer-dir`, both rows are
+  `not-measured` **with a reason**; the metric never becomes a zero.
+- **`dryRunPass`'s scoring convention was defined in US-003, not US-001** (which froze
+  the metric and named its oracle but could not run it), so it is stated in
+  `DRY_RUN_SCOPE` and printed into the doc block: dry-run-computable cases only
+  (the exhaust records no EDL), refusal cases excluded (their right answer is the empty
+  batch, which `apply_ops` rejects outright), a reply with no batch scores **False**,
+  and the **raw** extracted ops are sent — not our canonicalised copy — so the number
+  answers "would Analyzer's own gate have accepted this reply".
+- **The oracle needs the raw replies, so the pipeline now records them.**
+  `EditOpsPilotConfig.record_generations` (default on, `PIPELINE_VERSION = 2`) puts a
+  `generations` block and `dataset.caseIds` in the run summary; `generations_by_case`
+  keys replies by case id and returns `{}` on a length mismatch rather than a silently
+  misaligned map. Scores are aggregates and cannot be un-aggregated back into batches.
+- **A non-model comparison point is replayed through the IDENTICAL referee.**
+  `ReplayModel`/`score_replies` feed the deterministic tier's batches through
+  `score_cases`, so the floor row is measured by this harness rather than quoted from
+  Analyzer's. The tier reads the instruction + EDL and never a prompt, so its row is
+  recorded once, under the grounded arm.
+- **Reuse, don't refork:** `slm_baseline.aggregate_repeats`/`aggregate_single` now take
+  `metrics=`/`count_key=` and its `extract/upsert_marked_section` take the marks as
+  parameters, so this module supplies its own frozen metric list and `EDIT-OPS-PILOT`
+  marks instead of copying 200 lines. Defaults are unchanged for the Insimul pilot.
+- **`docs/ml-baselines.md` is co-owned by SIX CLIs now** — `train_baselines` re-appends
+  `KGQA-EVAL`, `SCALLOP-PILOT`, `RULE-ADHERENCE`, `SLM-PILOT` and now `EDIT-OPS-PILOT`.
+  A seventh marked block must join that preserve list or a baselines re-run deletes it.
+- **`--report` refuses to render a run whose `comparisonPoint` is not the 3B row**
+  (`COMPARISON_SOURCES_INVERSE`): the stage→row map is the 3B baseline's, and the 0.5B
+  run joins the table through `--debug-summary` as its own row (with a hard eval-set
+  sha256 check — two columns on two eval sets is not a comparison).
+- **`--from-summaries` re-renders the table from run summaries already on disk.** The
+  table is cheap; the run is not. Use it to re-render after a doc-text change.
+- No committed metrics snapshot and no `--check` gate (same stance as every other QLoRA
+  pipeline here); the committed artifacts are the config, the runbook, the doc block
+  and the tests. `baseline-report.json` + adapters stay in git-ignored `ml/artifacts/`.
+- **Measured (3 repeats, MPS, 1,575 s, $0.00): the fine-tune is a NO-OP on the
+  referee.** Every grounded-arm rate is identical untuned vs tuned (`schemaValid` 0.947,
+  `dryRunPass` 1.000, `normalizedBatchMatch` 0.538); only `evalLoss` moved (0.645 →
+  0.315), so the "tuning-did-something" bar reads **+0.0pp** and is not met. The coverage
+  bar IS met (1.000 vs the regex floor's 0.083 = +1,100%) — *by the untuned model too*,
+  so it grades Qwen2.5-3B + the prompt, not the tuning. The ablation contradicts the
+  protocol's expectation on its vocabulary half: removing the op menu costs more
+  (`schemaValid` −0.211, `opNameValidity` −0.158) than removing the timeline (−0.053),
+  while `refGrounding` moves only for `no-grounding` (−0.143) — so the timeline half is
+  confirmed and Analyzer must keep sending both blocks. 3B beats 0.5B by +57.9pp
+  `schemaValid` for 2.5× wall clock. `dataFloor.verdict` is still `insufficient-data`;
+  at 19 cases one case is 0.053 and one refusal case is 0.167 — the resolution floor.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

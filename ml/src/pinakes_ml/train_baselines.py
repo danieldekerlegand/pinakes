@@ -300,6 +300,17 @@ def main(argv: list[str] | None = None) -> int:
     slm_section = extract_slm_section(existing_doc)
     if slm_section:
         doc = upsert_slm_section(doc, slm_section)
+    # …and the Phase-E edit-ops comparison block (owned by pinakes-train-edit-ops).
+    from pinakes_ml.edit_ops_baseline import (
+        extract_marked_section as extract_edit_ops_section,
+    )
+    from pinakes_ml.edit_ops_baseline import (
+        upsert_marked_section as upsert_edit_ops_section,
+    )
+
+    edit_ops_section = extract_edit_ops_section(existing_doc)
+    if edit_ops_section:
+        doc = upsert_edit_ops_section(doc, edit_ops_section)
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")
     print(f"metrics doc -> {args.doc}")

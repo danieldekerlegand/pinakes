@@ -120,11 +120,18 @@ def aggregate_values(values: Sequence[float | None]) -> dict[str, Any] | None:
 
 def aggregate_repeats(
     summaries: Sequence[Mapping[str, Any]],
+    *,
+    metrics: Sequence[str] = FROZEN_METRICS,
+    count_key: str = "prompts",
 ) -> dict[str, dict[str, dict[str, Any]]]:
     """``{stage: {arm: {metric: aggregate}}}`` over N run summaries.
 
     The repeats share one seed on purpose: the spread they expose is the
     platform's float nondeterminism (US-002's measured gotcha), not sampling.
+
+    ``metrics``/``count_key`` are parameters so the sibling edit-ops pilot — whose
+    frozen metric list differs and which counts ``cases``, not ``prompts`` — reuses
+    this aggregation instead of forking it. The defaults are this pilot's.
     """
     stages: dict[str, dict[str, dict[str, Any]]] = {}
     for summary in summaries:
@@ -136,21 +143,24 @@ def aggregate_repeats(
             draws = [
                 (s.get("scores") or {}).get(stage, {}).get(arm, {}) for s in summaries
             ]
-            metrics: dict[str, Any] = {
-                "prompts": max(
-                    (int(d.get("prompts", 0)) for d in draws if d.get("prompts")),
+            cells: dict[str, Any] = {
+                count_key: max(
+                    (int(d.get(count_key, 0)) for d in draws if d.get(count_key)),
                     default=0,
                 ),
                 "repeats": len(draws),
             }
-            for metric in FROZEN_METRICS:
-                metrics[metric] = aggregate_values([d.get(metric) for d in draws])
-            arms[arm] = metrics
+            for metric in metrics:
+                cells[metric] = aggregate_values([d.get(metric) for d in draws])
+            arms[arm] = cells
     return stages
 
 
 def aggregate_single(
     arms: Mapping[str, Mapping[str, Any]],
+    *,
+    metrics: Sequence[str] = FROZEN_METRICS,
+    count_key: str = "prompts",
 ) -> dict[str, dict[str, Any]]:
     """One un-repeated scoring pass, in :func:`aggregate_repeats`' shape.
 
@@ -160,13 +170,13 @@ def aggregate_single(
     """
     out: dict[str, dict[str, Any]] = {}
     for arm, scores in arms.items():
-        metrics: dict[str, Any] = {
-            "prompts": int(scores.get("prompts", 0) or 0),
+        cells: dict[str, Any] = {
+            count_key: int(scores.get(count_key, 0) or 0),
             "repeats": 1,
         }
-        for metric in FROZEN_METRICS:
-            metrics[metric] = aggregate_values([scores.get(metric)])
-        out[arm] = metrics
+        for metric in metrics:
+            cells[metric] = aggregate_values([scores.get(metric)])
+        out[arm] = cells
     return out
 
 
@@ -473,20 +483,32 @@ def render_baseline_section(report: Mapping[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def extract_marked_section(doc_text: str) -> str | None:
-    """The SLM-pilot block (incl. markers) currently in the doc, or ``None``."""
-    start = doc_text.find(DOC_MARK_START)
-    end = doc_text.find(DOC_MARK_END)
+def extract_marked_section(
+    doc_text: str, start_mark: str = DOC_MARK_START, end_mark: str = DOC_MARK_END
+) -> str | None:
+    """The marked block (incl. markers) currently in the doc, or ``None``.
+
+    The marks are parameters so a sibling pilot's block can reuse the same
+    idempotent upsert rather than reimplementing it; they default to this
+    module's, which is what ``pinakes-train-baselines`` imports.
+    """
+    start = doc_text.find(start_mark)
+    end = doc_text.find(end_mark)
     if start == -1 or end == -1 or end < start:
         return None
-    return doc_text[start : end + len(DOC_MARK_END)]
+    return doc_text[start : end + len(end_mark)]
 
 
-def upsert_marked_section(doc_text: str, section: str) -> str:
-    """Insert or replace the SLM-pilot block. Idempotent; appends when absent."""
+def upsert_marked_section(
+    doc_text: str,
+    section: str,
+    start_mark: str = DOC_MARK_START,
+    end_mark: str = DOC_MARK_END,
+) -> str:
+    """Insert or replace a marked block. Idempotent; appends when absent."""
     if not section:
         return doc_text
-    existing = extract_marked_section(doc_text)
+    existing = extract_marked_section(doc_text, start_mark, end_mark)
     body = section if section.endswith("\n") else section + "\n"
     if existing is not None:
         replaced = doc_text.replace(existing, body.rstrip("\n"), 1)
