@@ -680,6 +680,55 @@ and frozen metric, the ablation gap, the success bar's arithmetic, and the
   adapters + `baseline-report.json` stay in git-ignored `ml/artifacts/`; three
   MLflow runs per baseline, each naming the eval set it scored.
 
+## SLM pilot — the GGUF deployment leg + prompt contract (slm-pilot US-004)
+
+`slm_gguf.py` (pure core + lazy heavy imports) + `export_gguf.py` (thin CLI,
+`pinakes-export-gguf`) close Phase D's deployment question: merge the US-003
+adapter, convert to GGUF, quantize to **Q4_K_M** (Insimul's deployed quant), and
+re-score the result with the tier-4 harness on the *same* frozen eval set.
+Runbook: [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md) §US-004.
+Interface: [`docs/slm-prompt-contract.md`](../docs/slm-prompt-contract.md).
+
+- **The parity check holds everything but the runtime constant, and enforces it.**
+  Same `RuleModel` seam, same `format_inference_prompt` string, greedy decoding on
+  both sides, same tier-4 scorer — and the CLI **hard-fails** when the HF run
+  summary's `evalSetSha256` differs from the eval set it rebuilt in process. Two
+  columns on two eval sets is not a parity check.
+- **The acceptability threshold was frozen by US-001, not chosen here.**
+  `QUANT_BUDGET_METRIC`/`QUANT_BUDGET_PP`/`QUANT_BUDGET_ARM` mirror
+  `docs/slm-pilot-protocol.md` §5 bar 3 (`fullyValid`, grounded arm, ≤ 2pp), and a
+  test asserts the doc still states them. A missing column yields
+  `not-measured`, never a pass.
+- **The prompt contract is GENERATED from the pipeline's renderers, never
+  transcribed.** `build_prompt_contract()` evaluates `format_inference_prompt` /
+  `format_training_text` on a placeholder; `ml/manifests/slm-prompt-contract.json`
+  is the committed snapshot and the pytest gate is a *real* CI gate (pure — no
+  fixtures, no corpus, no llama.cpp). A diff there means the deployed prompt no
+  longer matches the measured one ⇒ **bump `CONTRACT_VERSION`; it breaks Insimul**.
+- **`ml/models` is its own DVC pointer (`ml/models.dvc`).** The deliverable GGUF is
+  the first model artifact in the repo to earn a pin — but it must NOT go into
+  `ml/data`, whose md5 the frozen protocol cites as the eval set's tree. Re-pin
+  with `uv run --project ml dvc add ml/models && dvc push` after a conversion; the
+  merged fp16 weights and the f16 GGUF stay in git-ignored `ml/artifacts/`.
+- **GOTCHA — `sentencepiece` is required to convert a Qwen2 checkpoint** even
+  though Qwen2 is BPE: `Qwen2Model.set_vocab` tries `_set_vocab_sentencepiece()`
+  first and falls back to `_set_vocab_gpt2()` only on `FileNotFoundError`, so a
+  missing module raises `ImportError` straight through the handler. Install it with
+  `gguf`/`llama-cpp-python`; all three are undeclared (`uv pip install`), same
+  stance as `trl`/`peft`.
+- **GOTCHA — build only the `llama-quantize` cmake target.** `brew install
+  llama.cpp` needs write access to `/opt/homebrew` that a locked-down machine will
+  not have, and a full source build is minutes of compiling nobody needs.
+- **`--contract-only` / `--dry-run` are the model-free smokes** (the role `--stub`
+  plays for `pinakes-train-slm`) and `--check` is the contract freeze gate. The
+  `SLM-QUANT` block is upserted into `docs/slm-pilot-report.md`, **not**
+  `docs/ml-baselines.md` — so it stays outside `train_baselines`' five-block
+  preserve list and US-006 writes its verdict around it.
+- **No repeat machinery on this column, and that is measured:** two independent
+  `--skip-convert` runs gave identical rates *and* identical `evalLoss` to six
+  decimals. Greedy inference over a fixed GGUF is reproducible where the MPS
+  training path was not.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

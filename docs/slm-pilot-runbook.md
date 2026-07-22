@@ -1,24 +1,33 @@
 # SLM pilot — training-pipeline runbook
 
-**slm-pilot US-002 (the pipeline) + US-003 (the 3B baseline).** How to run the
-Phase-D pipeline: rule-SFT corpus → QLoRA fine-tune → tier-4 adherence score on
-the **frozen** eval set, both prompt arms. The referee it answers to is
+**slm-pilot US-002 (the pipeline) + US-003 (the 3B baseline) + US-004 (the GGUF
+deployment leg).** How to run the Phase-D pipeline: rule-SFT corpus → QLoRA
+fine-tune → tier-4 adherence score on the **frozen** eval set, both prompt arms →
+GGUF handoff. The referee it answers to is
 [`docs/slm-pilot-protocol.md`](slm-pilot-protocol.md); this document is the
 operating manual.
 
 - Pure core: [`ml/src/pinakes_ml/slm_finetune.py`](../ml/src/pinakes_ml/slm_finetune.py)
   + [`ml/src/pinakes_ml/slm_baseline.py`](../ml/src/pinakes_ml/slm_baseline.py)
   (US-003: repeat aggregation, the frozen comparison table, the doc block)
-- CLI: `cd ml && uv run pinakes-train-slm` (`--stub` is the model-free smoke)
+  + [`ml/src/pinakes_ml/slm_gguf.py`](../ml/src/pinakes_ml/slm_gguf.py)
+  (US-004: the conversion plan, the parity arithmetic, the prompt contract)
+- CLIs: `cd ml && uv run pinakes-train-slm` (`--stub` is the model-free smoke)
+  and `uv run pinakes-export-gguf` (`--dry-run` / `--contract-only` are its
+  model-free smokes)
 - Configs (committed): [`slm-pilot-debug.json`](../ml/configs/slm-pilot-debug.json)
   (0.5B pipeline debug) · [`slm-pilot-3b.json`](../ml/configs/slm-pilot-3b.json)
   (the US-003 baseline)
 - Coverage: [`ml/tests/test_slm_finetune.py`](../ml/tests/test_slm_finetune.py)
   + [`ml/tests/test_slm_baseline.py`](../ml/tests/test_slm_baseline.py)
-- Run output (git-ignored): `ml/artifacts/<run>/{[repeat-N/]adapter,run-summary.json}`
-  and `baseline-report.json`
+  + [`ml/tests/test_slm_gguf.py`](../ml/tests/test_slm_gguf.py)
+- Run output (git-ignored): `ml/artifacts/<run>/{[repeat-N/]adapter,run-summary.json}`,
+  `baseline-report.json` and `parity-report.json`
+- Deliverable model (DVC, `ml/models.dvc`): `ml/models/slm-pilot/<run>-Q4_K_M.gguf`
 - Published results: the `SLM-PILOT` block in
-  [`docs/ml-baselines.md`](ml-baselines.md), upserted by the CLI
+  [`docs/ml-baselines.md`](ml-baselines.md) and the `SLM-QUANT` block in
+  [`docs/slm-pilot-report.md`](slm-pilot-report.md), both upserted by their CLI
+- Interface contract: [`docs/slm-prompt-contract.md`](slm-prompt-contract.md)
 
 ## What the pipeline does
 
@@ -115,10 +124,15 @@ Every run writes `run-summary.json` and one MLflow run
 
 ## The prompt-template contract
 
+> **US-004 turned this section into a committed interface.** The authoritative,
+> machine-readable version is [`docs/slm-prompt-contract.md`](slm-prompt-contract.md)
+> + `ml/manifests/slm-prompt-contract.json`; what follows is the training-side
+> summary.
+
 The model is prompted with **ChatML** — Qwen2.5-Instruct's own template — rendered
 by a pure function (`render_chatml` / `format_inference_prompt`) rather than by the
-tokenizer, so the exact string is unit-testable in the slim CI env and is available
-to hand to Insimul's `LocalAIService` in US-004:
+tokenizer, so the exact string is unit-testable in the slim CI env and is what
+Insimul's `LocalAIService` is handed:
 
 ```
 <|im_start|>system
@@ -239,18 +253,132 @@ work and tuning has not internalised the vocabulary — but it is one prompt per
 cell. **Do not carry this into US-006 as a finding**; carry it as the measurement
 the ablation machinery produces, ready to mean something at corpus scale.
 
+## US-004 — the deployment leg: GGUF + the llama.cpp parity check
+
+Insimul runs models through `node-llama-cpp` as **Q4_K_M GGUF**
+(`scripts/setup-local-ai.sh` already deploys Qwen2.5-3B-Instruct that way). So the
+pilot's model is only validated once it has survived that conversion *and been
+re-measured under it*.
+
+```
+adapter ──merge──> fp16 HF weights ──convert_hf_to_gguf──> f16 GGUF
+                                                             │
+                                              llama-quantize │ Q4_K_M
+                                                             ▼
+        HF-stack scores (US-003 run summary) ◄── parity ──> llama.cpp scores
+                                                    │
+                                            the frozen ≤2pp budget
+```
+
+### The toolchain (undeclared, local-only — same stance as trl/peft)
+
+```sh
+git clone --depth 1 https://github.com/ggml-org/llama.cpp ~/llama.cpp
+cd ~/llama.cpp && cmake -B build -DGGML_METAL=ON -DLLAMA_CURL=OFF \
+  -DCMAKE_BUILD_TYPE=Release && cmake --build build --target llama-quantize -j 8
+cd <repo>/ml && uv pip install llama-cpp-python gguf sentencepiece
+```
+
+Only the `llama-quantize` target is built — the full llama.cpp build is minutes of
+compiling nobody needs here. Point elsewhere with `--llama-cpp-dir` or
+`$LLAMA_CPP_DIR`.
+
+### Running it
+
+```sh
+cd ml
+uv run pinakes-export-gguf --contract-only   # the prompt contract (pure, no model)
+uv run pinakes-export-gguf --check           # the contract freeze gate
+uv run pinakes-export-gguf --dry-run         # the conversion plan + exact commands
+uv run pinakes-export-gguf                   # merge -> GGUF -> Q4_K_M -> parity
+uv run pinakes-export-gguf --skip-convert    # re-score an existing GGUF
+```
+
+Then re-pin the deliverable: `uv run --project ml dvc add ml/models && dvc push`,
+and commit `ml/models.dvc`. **`ml/models` is its own DVC pointer, deliberately not
+part of `ml/data`** — a 2 GB binary that changes with every checkpoint has no
+business re-pinning the dataset tree, and `ml/data`'s pin is what the protocol
+cites.
+
+`--dry-run` and `--contract-only` need no adapter, no llama.cpp and no undeclared
+dependency: they are the CI-safe smokes, the role `--stub` plays for
+`pinakes-train-slm`.
+
+### The parity check refuses to compare two eval sets
+
+The CLI rebuilds the frozen eval set in process (same builder, seed and split as
+the training pipeline) and **hard-fails** if the HF run summary it was pointed at
+records a different `evalSetSha256`. Two columns measured on two eval sets is not
+a parity check, and the protocol's "a run that cannot name the eval set it scored
+is not a comparison point" rule matters twice as much when there are two columns.
+
+Everything else is held constant on purpose: the same `RuleModel` seam, the same
+`format_inference_prompt` string, greedy decoding on both sides
+(`do_sample=False` vs `temperature=0`/`top_k=1`), the same tier-4 scorer. The only
+variables are the runtime and the quantization.
+
+### The measured conversion (2026-07-22)
+
+`Qwen/Qwen2.5-3B-Instruct` + the US-003 `repeat-1` adapter. fp16 merge → 3.71 GB
+f16 GGUF → **1.93 GB Q4_K_M** (5,886 MiB → 1,835 MiB, 4.99 bits/weight; 12 s of
+quantization). End-to-end scoring pass: **60 s**, **$0.00** — local, so the GPU
+rental clause never fired here either. Full table: the `SLM-QUANT` block in
+[`docs/slm-pilot-report.md`](slm-pilot-report.md).
+
+| Arm | `fullyValid` HF → llama.cpp | `evalLoss` HF → llama.cpp |
+| --- | --- | --- |
+| grounded | 1.000 → 1.000 (Δ 0.000) | 2.464 → 2.674 (Δ +0.210) |
+| ungrounded | 0.000 → 0.500 (Δ +0.500) | 2.437 → 2.626 (Δ +0.189) |
+
+The frozen budget (protocol §5 bar 3: `fullyValid` on the grounded arm may degrade
+by ≤ 2pp) reads **within-budget at 0.0pp**. Three things to keep straight about
+that:
+
+1. **It is a machinery result, not a production clearance.**
+   `dataFloor.verdict == "insufficient-data"` still governs — two eval prompts, so
+   the only expressible rates are 0, 0.5 and 1, and "0.0pp degradation" is what a
+   two-prompt sample can say at best. What US-004 actually establishes is that the
+   deployment leg runs and is measured against a threshold nobody chose afterwards.
+2. **`evalLoss` moved and that IS the quantization.** ~+0.20 nats on both arms is
+   the honest signal in this run: it is a continuous metric, so unlike the rate
+   metrics it can resolve a change at n = 2. The adherence rates surviving intact
+   while the loss rises is exactly the expected shape for a 4-bit quant on a
+   format-constrained task.
+3. **The ungrounded arm's +0.5 `fullyValid` is not an improvement.** One prompt
+   flipping is the smallest possible move on this eval set. Quantization does not
+   make a model better; it made a coin land differently.
+
+**llama.cpp scoring was byte-reproducible here** — two independent
+`--skip-convert` runs produced identical rates *and* identical `evalLoss` to six
+decimals. Unlike the MPS training path, greedy CPU/Metal inference over a fixed
+GGUF gave no run-to-run spread, so this column needs no repeat machinery.
+
+### The prompt-template contract
+
+The third deliverable, and the one Insimul consumes:
+[`docs/slm-prompt-contract.md`](slm-prompt-contract.md) + the committed,
+snapshot-gated [`ml/manifests/slm-prompt-contract.json`](../ml/manifests/slm-prompt-contract.json).
+It is **generated from the pipeline's own renderers**, never transcribed, so a
+change to the training template fails the CI gate instead of silently making the
+deployed prompt differ from the measured one. A diff there means bumping
+`contractVersion` — a breaking change for Insimul's caller.
+
 ## What is and is not tracked
 
 | Artifact | Where | Why |
 | --- | --- | --- |
 | config | `ml/configs/slm-pilot-*.json` (git) | the run's definition |
 | eval set + rule-SFT | `ml/data/` (DVC) | bulk, synthetic tier / proprietary |
-| adapter + run summary + baseline report | `ml/artifacts/` (git-ignored, **not** DVC) | a throwaway adapter is fully reproducible from the config + the DVC-pinned data; DVC-tracking it would pin noise |
+| adapter + run summary + baseline/parity report | `ml/artifacts/` (git-ignored, **not** DVC) | a throwaway adapter is fully reproducible from the config + the DVC-pinned data; DVC-tracking it would pin noise |
+| merged fp16 weights + the f16 GGUF | `ml/artifacts/<run>/gguf/` (git-ignored, **not** DVC) | lossless intermediates, regenerable from the adapter in ~2 min |
+| **the deliverable GGUF** | `ml/models/slm-pilot/` (DVC, `ml/models.dvc`) | this is the thing Insimul runs — a model artifact earns a pin, and it gets its own pointer so it never churns `ml/data` |
 | the published comparison table | the `SLM-PILOT` block in `docs/ml-baselines.md` (git) | small, and being in git is what makes the result reviewable in a diff |
-| the pilot's deliverable model | US-004/005 | the merged 3B weights and the GGUF handoff bundle **are** DVC-tracked — that is where a model artifact earns a pin |
+| the quantization parity table | the `SLM-QUANT` block in `docs/slm-pilot-report.md` (git) | same, and US-006 writes its verdict around that block |
+| the prompt-template contract | `ml/manifests/slm-prompt-contract.json` (git) | the interface Insimul codes against; snapshot-gated so it cannot drift |
 
-The pipeline reads the existing DVC-tracked trees and writes no data, so **no
-`dvc add ml/data` re-pin** is needed after a run.
+The training pipeline reads the existing DVC-tracked trees and writes no data, so
+**no `dvc add ml/data` re-pin** is needed after a run. `pinakes-export-gguf` does
+produce a tracked artifact — re-pin `ml/models` (only) after a conversion.
 
 ## Gotchas
 
@@ -282,3 +410,19 @@ The pipeline reads the existing DVC-tracked trees and writes no data, so **no
 - **A `--stub` run never touches the doc.** Its scores describe wiring; publishing
   them into the comparison table would be the exact failure the protocol's
   "name the eval set you scored" rule exists to prevent.
+- **`sentencepiece` is required to convert a Qwen2 checkpoint even though it is a
+  BPE model.** `Qwen2Model.set_vocab` *tries* the sentencepiece path first and only
+  falls back to the gpt2 path on `FileNotFoundError` — a missing module raises
+  `ImportError` straight through the handler, so the conversion dies at "Set model
+  tokenizer" with a misleading traceback. Install it alongside `gguf`.
+- **`ml/models` has its own DVC pointer; never fold the GGUF into `ml/data`.**
+  `ml/data.dvc`'s md5 is quoted by the frozen protocol as the tree the eval set
+  lives in — re-pinning it for a model checkpoint would churn that citation on
+  every conversion.
+- **`brew install llama.cpp` may be a dead end** (it needs write permission on
+  `/opt/homebrew` that a locked-down machine will not have). The source build of
+  the single `llama-quantize` target above is the reliable path and takes about a
+  minute.
+- **The parity report's absolute paths stay in the JSON, not the doc.** The
+  committed `SLM-QUANT` block records repo-relative provenance and omits
+  `llamaCppDir` — `/Users/<someone>/…` is not provenance anyone else can act on.

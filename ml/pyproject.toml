@@ -107,6 +107,14 @@ pinakes-export-slm-eval = "pinakes_ml.export_slm_eval:main"
 # and no undeclared deps (the CI smoke); a real run needs
 # `uv pip install trl peft accelerate`. Runbook: docs/slm-pilot-runbook.md.
 pinakes-train-slm = "pinakes_ml.train_slm:main"
+# slm-pilot US-004 — the deployment leg (merge the LoRA adapter -> GGUF ->
+# Q4_K_M -> tier-4 adherence under llama.cpp, vs the HF-stack scores on the same
+# frozen eval set) plus the prompt-template contract Insimul's LocalAIService
+# must send; also `python -m pinakes_ml.export_gguf`. `--contract-only` and
+# `--dry-run` are pure (the CI-safe smokes); a real conversion needs the
+# undeclared `llama-cpp-python`/`gguf` and a built llama.cpp checkout.
+# Contract: docs/slm-prompt-contract.md.
+pinakes-export-gguf = "pinakes_ml.export_gguf:main"
 
 [project.optional-dependencies]
 dev = [
