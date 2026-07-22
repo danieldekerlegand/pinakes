@@ -136,6 +136,15 @@ pinakes-export-edit-ops-eval = "pinakes_ml.export_edit_ops_eval:main"
 # needs `uv pip install trl peft accelerate`.
 # Runbook: docs/edit-ops-slm-runbook.md.
 pinakes-train-edit-ops = "pinakes_ml.train_edit_ops:main"
+# edit-ops-slm-pilot US-004 — the deployment leg (merge the LoRA adapter -> GGUF ->
+# Q4_K_M -> a Modelfile registered with Ollama -> the US-001 referee on the FROZEN
+# eval set, vs the HF-stack scores) plus the prompt contract Analyzer's skill_nl_edit
+# must send; also `python -m pinakes_ml.export_edit_ops_gguf`. `--contract-only` and
+# `--dry-run` are pure (the CI-safe smokes) and `--check` is the contract freeze
+# gate; a real conversion needs the undeclared `gguf`/`sentencepiece`, a built
+# llama.cpp checkout and a running Ollama.
+# Contract: docs/edit-ops-prompt-contract.md.
+pinakes-export-edit-ops-gguf = "pinakes_ml.export_edit_ops_gguf:main"
 
 [project.optional-dependencies]
 dev = [

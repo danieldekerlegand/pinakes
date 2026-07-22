@@ -963,6 +963,68 @@ fills the metrics the offline referee cannot answer. Config
   `schemaValid` for 2.5× wall clock. `dataFloor.verdict` is still `insufficient-data`;
   at 19 cases one case is 0.053 and one refusal case is 0.167 — the resolution floor.
 
+## Edit-ops SLM pilot — the Ollama deployment leg + prompt contract (US-004)
+
+`edit_ops_gguf.py` (pure core + a lazy HTTP client) + `export_edit_ops_gguf.py` (thin
+CLI, `pinakes-export-edit-ops-gguf`) close Phase E's deployment question: merge the
+US-003 adapter, convert to GGUF, quantize, register it with **Ollama** via a generated
+`Modelfile`, and re-score it with the US-001 referee on the *same* frozen eval set.
+Interface: [`docs/edit-ops-prompt-contract.md`](../docs/edit-ops-prompt-contract.md).
+Results block: [`docs/edit-ops-slm-pilot-report.md`](../docs/edit-ops-slm-pilot-report.md).
+Runbook: [`docs/edit-ops-slm-runbook.md`](../docs/edit-ops-slm-runbook.md) §US-004.
+
+- **Ollama, not llama.cpp-in-process** (contrast `slm_gguf.py`, the Insimul sibling):
+  Analyzer's `model_client` resolves `ollama/<model>` ids, so this is the runtime the
+  model will actually live in and scoring anywhere else would grade a deployment
+  nobody makes. The conversion half is **reused** from `slm_gguf` (`build_plan` /
+  `convert_command` / `quantize_command` / `file_identity` / `merge_adapter` are
+  runtime-agnostic; `parity_deltas` gained a `metrics=` parameter for this). What is
+  new is everything downstream of the `.gguf`.
+- **The parity column is scored through `raw: true`.** `OllamaEditModel.generate`
+  POSTs `format_inference_prompt(...)` verbatim to `/api/generate`, bypassing
+  server-side templating, so the served model sees the *same bytes* the HF column did.
+  Analyzer will use the chat path instead — so the `Modelfile` `TEMPLATE` renders the
+  identical string from `(.System, .Prompt)` and `render_template_probe` + a test
+  assert that equality. Never trust an eyeballed Go template.
+- **The budget is READ from `edit_ops_pilot.SUCCESS_BAR["quantBudget"]`, not restated**
+  (contrast `slm_gguf.QUANT_BUDGET_PP`, which is a copy). One source of truth; a test
+  also asserts the prose protocol still states the same number.
+- **`escalation()` mechanises "record a Q8 comparison if degradation is material".**
+  Material == the frozen bar was missed; an *unmeasured* budget escalates too. The
+  second column reuses the merge and the f16 GGUF the first pass produced.
+- **`budget_resolution()` is the honesty check the numbers needed.** A rate over *n*
+  cases moves in steps of `100/n`, so at n = 19 the smallest non-zero degradation is
+  5.3pp — already over the frozen ≤2pp bar. Without that field, `over-budget` reads as
+  a measured five-point regression instead of "one case flipped".
+- **`cross_quant_agreement()` is why two quants beat one.** Q8_0 is near-lossless
+  relative to Q4_K_M; if both lose the *same* ground against fp32, the gap is not a
+  precision effect. Measured: both −5.3pp on `schemaValid`, so it is the runtime/
+  resolution, not the quant. `dryRunPass` is the only metric that separates them
+  (Q8 1.000 = fp32 parity, Q4 0.917) — and it is Analyzer's own gate, so **Q8_0 is the
+  one to deploy** on this evidence.
+- **`evalLoss` is ABSENT from the served column, never borrowed.** Ollama's generate
+  API exposes no logprobs; `OLLAMA_UNCOMPUTABLE` names the metric and the reason and
+  the doc block prints it. Same rule as the `analyzer-*` oracles in US-002.
+- **`--analyzer-dir` folds `dryRunPass` into BOTH columns — and the HF side must be
+  merged BEFORE the served columns are built**, because every delta is computed
+  against that dict. Merging it afterwards silently produced `—` deltas for the one
+  metric Analyzer actually enforces.
+- **`--contract-only` / `--dry-run` are the model-free smokes** and `--check` is the
+  contract freeze gate (pure — no GGUF, no Ollama, no undeclared dep). The
+  `EDIT-OPS-QUANT` block goes into `docs/edit-ops-slm-pilot-report.md`, **not**
+  `docs/ml-baselines.md`, so it stays outside `train_baselines`' preserve list and
+  US-006 writes its verdict around it.
+- **The GGUF lands in `ml/models/edit-ops-pilot/` (git-ignored, under the existing
+  `ml/models.dvc` pointer) — but do NOT `dvc add ml/models` in a Chief worktree.**
+  Same trap as `ml/data`: the slm-pilot bundle that pointer describes is not
+  materialised here, so a re-pin would replace it with a tree containing only the
+  edit-ops files. Re-pin from a full checkout with `uv run --project ml dvc add
+  ml/models && dvc push`.
+- **Reproducible where the training path was not:** two independent `--skip-convert`
+  runs produced identical rates on every arm and every metric. Greedy inference over a
+  fixed GGUF does not have MPS training's nondeterminism. MLflow run name
+  `edit-ops-pilot-quant-parity`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
