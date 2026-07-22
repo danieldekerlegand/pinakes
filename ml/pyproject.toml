@@ -95,6 +95,12 @@ pinakes-eval-rule-adherence = "pinakes_ml.eval_rule_adherence:main"
 # pinakes_ml.export_insimul_datasets`. `--check` is the manifest ratchet.
 # Everything it emits is synthetic tier / proprietary — DVC data, never git.
 pinakes-export-insimul = "pinakes_ml.export_insimul_datasets:main"
+# slm-pilot US-001 — the pilot's FROZEN evaluation protocol (held-out rule
+# prompts -> the eval set + the metric list, comparison points, ablation arms
+# and the measured-volume `insufficient-data` floor); also `python -m
+# pinakes_ml.export_slm_eval`. `--check` is the freeze gate.
+# Prose half: docs/slm-pilot-protocol.md.
+pinakes-export-slm-eval = "pinakes_ml.export_slm_eval:main"
 
 [project.optional-dependencies]
 dev = [

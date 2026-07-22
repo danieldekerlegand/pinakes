@@ -558,6 +558,41 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
 - No `ml/data` re-pin for the fixture build (it writes to `ml/data/insimul/` but
   the committed artifact is the manifest); MLflow run name `insimul-datasets`.
 
+## SLM pilot — the frozen eval protocol (slm-pilot US-001)
+
+Phase D's referee: `slm_pilot.py` (pure) + `export_slm_eval.py` (thin CLI,
+`pinakes-export-slm-eval`) freeze the eval set, the metric list, the comparison
+points and the volume floors BEFORE any training run. Prose half + the success bar:
+[`docs/slm-pilot-protocol.md`](../docs/slm-pilot-protocol.md).
+
+- **The protocol is in the MANIFEST, not only the prose.** `metrics`,
+  `comparisonPoints`, `ablation` and `dataFloor` ride in
+  `ml/manifests/slm-pilot-eval-manifest.json`, which is snapshot-gated against a
+  fresh fixture build — so US-003 changing the headline metrics is a visible diff on
+  a gated file. `--check` is the freeze gate.
+- **The eval set is the held-out worlds' rule prompts, deduped by `prompt_id`.**
+  Corruption negatives share their accepted parent's `prompt_id`, so grouping by it
+  gives one row per distinct *prompt*; the accepted record (sorted first) supplies
+  `reference_completion`, the only reference-based metric's (`evalLoss`) target.
+- **Both prompt arms are frozen up front.** `strip_grounding_block` derives the
+  US-003 ablation's ungrounded arm from the grounded one (drop the three vocabulary
+  listing lines, swap "listed above" for "Insimul's standard Prolog rule
+  vocabulary") — idempotent, unit-tested against `build_rule_prompt`. If
+  `build_rule_prompt`'s wording changes, `GROUNDING_LINE_PREFIXES` must change with
+  it or the ablation silently stops stripping anything.
+- **`check_floors` is the `insufficient-data` gate, and it is a FIELD, not a
+  judgment call.** Today's fixture corpus is below every floor (7 train SFT records
+  vs 500; 2 eval prompts vs 100), so `dataFloor.verdict == "insufficient-data"`.
+  US-006 reads that field; it does not re-derive it. A missing volume key counts as
+  0 so a rename fails the gate loudly instead of passing it.
+- **A shortfall is exit 0, not an error** — the artifacts are still written and the
+  verdict is recorded. The CLI prints a NOTE; the pipeline stories still run, because
+  a pipeline is proven by completing the loop, not by its scores.
+- Fixture-driven (the same two worlds as `pinakes-export-insimul`), so the committed
+  manifest needs no DVC corpus; the eval JSONL lands in the DVC-tracked
+  `ml/data/slm-pilot/` tree — **no re-pin for a fixture build**, same stance as the
+  Insimul datasets. MLflow run name `slm-pilot-eval`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
