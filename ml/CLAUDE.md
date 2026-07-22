@@ -844,6 +844,64 @@ run. Prose half: [`docs/edit-ops-slm-protocol.md`](../docs/edit-ops-slm-protocol
   never pulled: you would pin a directory containing only the new file). MLflow run
   name `edit-ops-pilot-eval`.
 
+## Edit-ops SLM pilot — the QLoRA training pipeline (edit-ops-slm-pilot US-002)
+
+`edit_ops_finetune.py` (pure core + lazy heavy imports) + `train_edit_ops.py` (thin
+CLI, `pinakes-train-edit-ops`) are Bridge 3's workflow backbone: edit-ops SFT corpus →
+QLoRA fine-tune → the US-001 **offline referee** on the frozen eval set, all three
+prompt arms, driven by a committed JSON config. Runbook:
+[`docs/edit-ops-slm-runbook.md`](../docs/edit-ops-slm-runbook.md).
+
+- **A structural clone of `slm_finetune.py`, and it REUSES rather than reforks.** The
+  QLoRA plumbing comes from `finetune.py` (duck-typed on the config's LoRA fields) and
+  `render_chatml` / `release_model` / `free_device_memory` come from `slm_finetune.py`
+  — touch a trl/peft call site once and all three pipelines move. What differs is the
+  referee (`edit_ops_pilot.score_case`, not the tier-4 rule scorer) and that there are
+  **three** arms, not two.
+- **The corpus + eval set are rebuilt IN PROCESS, never read from `ml/data/`** — same
+  builder, seed and split as `pinakes-export-edit-ops-eval`, so the run *reproduces*
+  the frozen eval set and records `evalSetSha256` + `matchesFrozenEvalSet`. A debug run
+  therefore works in a fresh worktree with **no `dvc pull`**, writes no data, and needs
+  **no `ml/data` re-pin**.
+- **The Analyzer-oracle metrics are ABSENT from every score block, not zero.**
+  `OFFLINE_METRICS` is derived from `METRIC_ORACLES`, and the summary carries a
+  `metricsNotComputable` map naming `dryRunPass`/`renderCheckPass` and their oracles.
+  A test asserts they never appear. Same rule as US-001: unknown is never a pass.
+- **The training seam is injectable, which is what makes the CI smoke real.**
+  `run_pipeline(..., trainer=, model_factory=)` — pass `stub_trainer` +
+  `stub_model_factory` (or `--stub`) and the identical path runs with no model, no
+  network, no undeclared dep. A stub run stamps `training.stub = true`.
+- **The training target is the eval's surface form.** `render_completion` emits the
+  canonicalised batch inside a ```json fence — what `extract_batch` parses first and
+  what `exactBatchMatch` rewards. `load_grounding` re-reads the exhaust so a training
+  prompt renders the same (reconstructed) tables an exhaust eval case does;
+  `SftExample` alone carries only a clip count.
+- **GOTCHA — `opNameValidity` gates `paramSchemaValidity` and `refGrounding`.**
+  `validate_batch` skips the param/ref checks for an op it cannot resolve, so a batch
+  of hallucinated ops scores 1.0 on both *vacuously* (visible in the `no-vocab` arm).
+  `schemaValid`, the conjunction, is the honest headline; the components are
+  diagnostics. Documented, not changed — the referee is frozen mid-pilot.
+- **GOTCHA — Analyzer's `apply_ops` silently ignores UNKNOWN PARAMS.** It rejects unknown
+  op names and unresolvable refs, but `trim_clip` with `in` (declared: `in_point`)
+  applies cleanly, changes nothing and warns about nothing. So `dryRunPass` ⊅
+  `paramSchemaValidity`: a batch can pass Analyzer's own gate while doing nothing that was
+  asked. Measured 2026-07-22; the upstream fix is an Analyzer-side story, named not drafted.
+- **The SFT builder cannot teach a refusal.** `edit_ops_dataset._sft_from_row` emits an
+  `accepted` example only for a non-empty `ops`, so a row where Analyzer itself refused
+  contributes no positive — and `refusalCorrectness` measured 0.000 at every stage and
+  arm. A dataset-builder gap (analyzer-bridge US-005's frozen builder), not a model failure.
+- **No committed metrics snapshot, no `--check` gate** — same stance as the two other
+  QLoRA pipelines, and for the measured reason: across three draws at the same seed the
+  untuned pass and `schemaValid` were identical, but `trainLoss`, `evalLoss` and
+  `paramSchemaValidity` moved (the last by one case, 5.3pp — the resolution floor at
+  n = 19). MPS *training* is the nondeterministic part. Committed: the config, the
+  runbook, the tests. The adapter and `run-summary.json` go to git-ignored
+  `ml/artifacts/`.
+- **Scores at the current corpus scale are not results.** 1 training record / 19 eval
+  cases — `dataFloor.verdict == "insufficient-data"`. US-002's deliverable is that the
+  loop closes, and it does (0.5B on MPS, 191 s end to end, 4.1 s of training). MLflow
+  run name `edit-ops-pilot-debug`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

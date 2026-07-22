@@ -129,6 +129,13 @@ pinakes-export-handoff = "pinakes_ml.export_handoff:main"
 # floor); also `python -m pinakes_ml.export_edit_ops_eval`. `--check` is the freeze
 # gate. Prose half: docs/edit-ops-slm-protocol.md.
 pinakes-export-edit-ops-eval = "pinakes_ml.export_edit_ops_eval:main"
+# edit-ops-slm-pilot US-002 — the Analyzer pilot's config-driven QLoRA pipeline
+# (edit-ops SFT -> fine-tune -> the US-001 offline referee on the FROZEN eval set,
+# all three prompt arms); also `python -m pinakes_ml.train_edit_ops`. `--stub` runs
+# the whole loop with no model and no undeclared deps (the CI smoke); a real run
+# needs `uv pip install trl peft accelerate`.
+# Runbook: docs/edit-ops-slm-runbook.md.
+pinakes-train-edit-ops = "pinakes_ml.train_edit_ops:main"
 
 [project.optional-dependencies]
 dev = [
