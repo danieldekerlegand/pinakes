@@ -51,6 +51,31 @@ New route groups live in `server/routes/<area>.ts` exporting
 `server/routes.ts` (right after `registerGraphRoutes`). Keeping them in their own
 file avoids editing the large, already-error-heavy `routes.ts` body.
 
+## KCB capability bus — `routes/capability-bus.ts` + `services/capability-registry.ts`
+
+`GET /.well-known/kcb-manifest.json` (+ `/api/kcb/manifest`) publishes Pinakes's Koine
+capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
+`/api/kcb/status` the registration outcome. The manifest itself is
+`@shared/capability-manifest` (`shared/CLAUDE.md`); full contract in `docs/capability-bus.md`.
+
+- **Nothing here implements a capability.** The routes serve a document that *points at*
+  already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/culturescrape`,
+  `/api/graph/datalog`). Extending the bus means editing the manifest JSON, not adding handlers.
+- **The registry is best-effort and never gates serving** (KCB §3 — it is a cache/index over
+  the provider's own surfaces, and ADR-0001 makes it route-by-lookup, not a proxy).
+  `publishCapabilityManifest` never throws: absent/unreachable/rejecting all resolve to
+  `{registered:false, servingDirectly:true, detail}`. Registration is fired **fire-and-forget**
+  at route-registration time so a slow registry can't delay startup, and `/api/kcb/status`
+  answers before it settles. Same optional-env shape as `GEONAMES_USERNAME`: no
+  `KCB_REGISTRY_URL` ⇒ no push, everything still served.
+- **Absolutize against an origin, not a hard-coded host.** `capabilityManifestFor(origin)`
+  rewrites endpoints + surfaces to absolute URLs so a registry entry is dialable; the origin is
+  `PINAKES_PUBLIC_ORIGIN` else the requesting origin, and an explicit `null` yields the
+  as-authored relative document (what a same-origin client wants). `publish`/`origin` are
+  injectable on the route options so tests cover registered / unreachable / unconfigured with
+  no network.
+- These endpoints are **not** in `docs/openapi.json`, so no spec-snapshot regen is needed.
+
 ## Server-side key proxies (Gemini US-001, Google Translate US-002)
 
 Third-party API keys are **server-side only** — never `VITE_`-prefixed (Vite inlines those

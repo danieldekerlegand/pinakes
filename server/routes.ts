@@ -55,6 +55,7 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
+import { registerCapabilityBusRoutes } from "./routes/capability-bus";
 import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
 import { registerAnomalyRoutes } from "./routes/anomaly-detection";
 import { registerHypothesisRoutes } from "./routes/hypotheses";
@@ -127,6 +128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
+
+  // KCB capability-bus surface (US-PKA2) — publishes the manifest that advertises the
+  // already-built resolve/reconcile/query surfaces on the Koine control plane, and
+  // best-effort registers it with the discovery registry. Registration never gates
+  // serving: with no reachable registry the capabilities stay invocable directly.
+  registerCapabilityBusRoutes(app);
 
   // AI "explain the connection" narrative route (POST /api/graph/explain, US-005) —
   // traverse the shared graph + Datalog between two entities and generate a sourced,

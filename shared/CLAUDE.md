@@ -90,6 +90,32 @@ lockstep (all pinned by tests):
   `datalog/rules_registry.tsv` (regenerate via their `write_*`/`build_registry` fns). A node
   `:LABEL` needs no Python allowlist change (nothing rejects `Asset`).
 
+## KCB capability manifest — `capability-manifest.json` + `capability-manifest.ts`
+
+The Koine capability-bus manifest Pinakes publishes as the `pinakes:agent:resolver` authority
+provider (`koine/specs/capability-bus.md` §2/§6). Same JSON-source-of-truth + typed-accessor +
+runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contract in
+`docs/capability-bus.md`, served by `server/routes/capability-bus.ts`.
+
+- **It is a surface wrapper, and the validator enforces that.** Every capability must declare
+  ≥1 `x_surfaces` entry naming an already-built route + the merged file implementing it, so a
+  capability can never be advertised with nothing behind it. Adding a capability means pointing
+  at code that exists, not writing new code here.
+- **The produced entity port is total over `canonical-schema.json` `nodeTypes`** — add a
+  canonical node type and `assertValidCapabilityManifest` fails until the port lists it too
+  (an unlisted entity is undiscoverable on the bus). Capability-level ports use the `"*"`
+  wildcard (`ENTITY_TYPE_WILDCARD`) instead of restating the list.
+- **Knowledge ports are pinned to `grounding-only` + a `pinakes:world:*` world.** The validator
+  rejects a higher dialect tier or a foreign world, so an accidental `full-prolog` or
+  `insimul:world:…` port can't be published.
+- **Pass the manifest through, don't read module state.** `assertValidCapabilityManifest(m)`
+  and the `produced*Port` accessors all take the manifest as a parameter — an accessor that
+  closed over `CAPABILITY_MANIFEST` silently validated the live doc instead of the clone under
+  test (caught by the mutation tests; keep that pattern for any new check).
+- Spec-conformant keys stay spec-named (`kcb_version`, `grants_required`); Pinakes-local
+  additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
+  document can be served verbatim to a registry.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'
