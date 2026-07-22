@@ -116,6 +116,41 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
   document can be served verbatim to a registry.
 
+## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
+
+The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of
+the projects pinakes bridges (`projects.analyzer`, `projects.insimul`). Same JSON + typed-accessor +
+runtime-validator shape as `canonical-schema`/`capability-manifest`, with one difference that
+governs how you edit it:
+
+- **The JSON is a generated MIRROR, not a source.** The authoritative copy is koine
+  `registry/predicate-mapping.json` (the file declares it in its own `canonicalHome`/`mirrors`
+  blocks). Never hand-edit `shared/predicate-mapping.json` — upstream the correction to koine,
+  bump its `registryVersion`, then re-vendor with a plain `cp`. The drift gate in
+  `predicate-mapping.test.ts` compares the two **byte-for-byte** and `skipIf`s when no koine
+  checkout is present (`KOINE_ROOT`, else `~/Development/koine`) — the same skipif-gated
+  sibling-checkout pattern as the Python confidence-rubric parity test.
+- **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
+  `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
+  `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect
+  tier**; the pre-0.3.0 `portabilityClasses` array is gone. Trust tiers are a *third*, unrelated
+  axis carried on provenance (see `trust-tier.ts`) — do not conflate the three.
+- **The registry never coins relation names.** An `edge`/`derived-rule` entry crosses as a KGP
+  claim and must name its koine relation(s) in `koineRelations`; every other kind must name none.
+  The validator resolves each against `kgp.ts`'s vendored vocabulary (`KGP_CORE_RELATIONS` +
+  `KGP_DOMAIN_RELATIONS`), so closing a vocabulary gap means **adding a row to koine's
+  `relations.tsv` / `relations/<domain>.tsv`** and re-vendoring both files. A domain prefix is the
+  TSV's `domain` column, **not** its file stem (`relations/cinematography.tsv` → `cine:`).
+- **`pending` is a live checklist against `canonical-schema.json`** (see the v1.2 section above):
+  a `pending: true` type must be listed in that project's `pendingSchemaAdditions` *and* must not
+  yet resolve; flipping either without the other fails validation. Insimul's block is the open
+  one — the v1.3 `character`/`building`/`business` nodes + genealogy/employment/residence/causality
+  edges land with `insimul-bridge` US-003.
+- **A bridged predicate the producer has not shipped is allowed, not a failure** — the registry is
+  authored partly from a design draft. `unverifiedPredicates(project, catalog)` flags them for a
+  human; `assertValidPredicateMapping` never consults it. The test cross-checks against Insimul's
+  `predicate-schema.ts` when that checkout exists (`INSIMUL_ROOT`).
+
 ## KGP grounding-pack contract — `kgp.ts`
 
 The pinakes side of `koine/specs/grounding-pack.md` (0.4.0): the **normative** §3 claim

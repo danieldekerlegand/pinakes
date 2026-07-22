@@ -13,8 +13,10 @@
  *   the hash (§3.1) — they are metadata *about* the claim, not its identity.
  * - **§2.1 pack identity** — {@link mintPackId} content-addresses a whole pack, so two
  *   builds of the same knowledge emit the same `pack_id`.
- * - the **shared relation registry** ({@link KGP_CORE_RELATIONS}, vendored from koine
- *   `registry/relations.tsv`) which fixes each relation's arity, argument order, symmetry
+ * - the **shared relation registry** ({@link KGP_CORE_RELATIONS} +
+ *   {@link KGP_DOMAIN_RELATIONS}, vendored from koine `registry/relations.tsv` and the
+ *   `registry/relations/<domain>.tsv` extensions pinakes speaks) which fixes each
+ *   relation's arity, argument order, symmetry
  *   and dialect tier — a relation's signature is immutable once published, because
  *   changing it would silently change every dependent claim id;
  * - the **KINP identifier forms** ({@link csidToKinpCurie}, {@link curieToIri}) —
@@ -90,6 +92,41 @@ export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
 };
 
 /**
+ * The **domain-extension** relation vocabularies pinakes speaks, vendored verbatim from
+ * koine `registry/relations/<domain>.tsv`. Domain relation names are qualified with the
+ * domain prefix the TSV's `domain` column declares — which is *not* the file stem
+ * (`relations/cinematography.tsv` declares `cine:`), so the prefix is only knowable from
+ * the rows themselves.
+ *
+ * A project loads only the domains it speaks: `cine:`/`media:` for the Analyzer bridge and
+ * `soc:` for the Insimul bridge (person-level kinship, employment and residence).
+ * Vendored for the same reason as {@link KGP_CORE_RELATIONS} — a claim id depends on the
+ * signature, so it must be mintable offline — and additive for the same reason: a
+ * published signature is immutable, so an upstream *change* arrives as a new name.
+ */
+export const KGP_DOMAIN_RELATIONS: Readonly<Record<string, RelationSignature>> = {
+  "cine:shows": { arity: 2, argRoles: ["shot", "subject"], symmetric: false, tier: "grounding-only" },
+  "cine:scene_of": { arity: 2, argRoles: ["shot", "scene"], symmetric: false, tier: "grounding-only" },
+  "cine:says": { arity: 2, argRoles: ["speaker", "utterance"], symmetric: false, tier: "grounding-only" },
+  "cine:reads": { arity: 2, argRoles: ["frame", "text"], symmetric: false, tier: "grounding-only" },
+  "cine:commands": { arity: 2, argRoles: ["commander", "force"], symmetric: false, tier: "grounding-only" },
+  "media:derived_from": { arity: 2, argRoles: ["derived", "source"], symmetric: false, tier: "grounding-only" },
+  "media:variant_of": { arity: 2, argRoles: ["variant", "source"], symmetric: false, tier: "grounding-only" },
+  "media:excerpt_of": { arity: 2, argRoles: ["excerpt", "source"], symmetric: false, tier: "grounding-only" },
+  "media:perceptual_match": { arity: 2, argRoles: ["a", "b"], symmetric: true, tier: "grounding-only" },
+  "media:mentions": { arity: 2, argRoles: ["asset", "entity"], symmetric: false, tier: "grounding-only" },
+  "soc:parent_of": { arity: 2, argRoles: ["parent", "child"], symmetric: false, tier: "horn-safe" },
+  "soc:spouse_of": { arity: 2, argRoles: ["a", "b"], symmetric: true, tier: "horn-safe" },
+  "soc:employed_by": { arity: 2, argRoles: ["employee", "employer"], symmetric: false, tier: "horn-safe" },
+  "soc:resides_in": { arity: 2, argRoles: ["resident", "residence"], symmetric: false, tier: "horn-safe" },
+};
+
+/** The domain prefixes {@link KGP_DOMAIN_RELATIONS} covers (`cine`, `media`, `soc`). */
+export const KGP_RELATION_DOMAINS: readonly string[] = [
+  ...new Set(Object.keys(KGP_DOMAIN_RELATIONS).map((name) => name.slice(0, name.indexOf(":")))),
+];
+
+/**
  * KINP's reserved equivalence + lifecycle relations (`identity.md` §4.2/§4.3). An
  * assertion using one of these belongs in a pack's `links` rather than its `assertions`
  * (§2). `exact_match` is deliberately **not** in this set — it anchors to an external
@@ -109,9 +146,12 @@ export function isLinkRelation(relation: string): boolean {
   return RESERVED_LINK_RELATIONS.includes(relation);
 }
 
-/** The registry signature of a relation, or `undefined` when it is not in the core vocabulary. */
+/**
+ * The registry signature of a relation, or `undefined` when it is in neither the core
+ * vocabulary nor a domain extension pinakes speaks.
+ */
 export function relationSignature(relation: string): RelationSignature | undefined {
-  return KGP_CORE_RELATIONS[relation];
+  return KGP_CORE_RELATIONS[relation] ?? KGP_DOMAIN_RELATIONS[relation];
 }
 
 /**
@@ -123,7 +163,7 @@ export function assertRelationAllowed(relation: string, dialect: KnowledgeDialec
   const signature = relationSignature(relation);
   if (!signature) {
     throw new Error(
-      `kgp: relation "${relation}" is not in the shared relation registry (koine registry/relations.tsv)`,
+      `kgp: relation "${relation}" is not in the shared relation registry (koine registry/relations.tsv + registry/relations/<domain>.tsv)`,
     );
   }
   if (DIALECT_RANK[signature.tier] > DIALECT_RANK[dialect]) {
