@@ -317,11 +317,38 @@ def _is_personal_tier_edge(edge_type: dict) -> bool:
     return "asset" in endpoints
 
 
+#: Node types that only ever carry generated (Insimul) world content — v1.3
+#: additions, insimul-bridge US-003.
+_SYNTHETIC_TIER_NODES = frozenset({"character", "building", "business"})
+
+#: Synthetic-tier edges whose endpoints cannot identify them. ``caused-by`` is
+#: deliberately endpoint-less (US-003: a truth is not a node type, so the
+#: relation is unconstrained), so it has to be named explicitly.
+_SYNTHETIC_TIER_EDGES = frozenset({"CAUSED_BY"})
+
+
+def _is_synthetic_tier_edge(edge_type: dict) -> bool:
+    """An edge over generated Insimul world content (``character``/``building``/
+    ``business``, or the endpoint-less ``CAUSED_BY``). Synthetic-tier facts must
+    NEVER enter an open-data release or the open verbalization training set (the
+    PRD invariant, enforced upstream by `orchestrate.tiers`), so — exactly like
+    the personal-tier exclusion above — they are never verbalized and the
+    coverage gate must not DEMAND a template for them."""
+    if edge_type["type"] in _SYNTHETIC_TIER_EDGES:
+        return True
+    endpoints = set(edge_type.get("from", [])) | set(edge_type.get("to", []))
+    return bool(endpoints & _SYNTHETIC_TIER_NODES)
+
+
 def test_every_exported_edge_type_has_a_template() -> None:
     schema = json.loads(_SCHEMA.read_text(encoding="utf-8"))
     for edge_type in schema["edgeTypes"]:
         token = edge_type["type"]
-        if token in EXCLUDED_RELATIONS or _is_personal_tier_edge(edge_type):
+        if (
+            token in EXCLUDED_RELATIONS
+            or _is_personal_tier_edge(edge_type)
+            or _is_synthetic_tier_edge(edge_type)
+        ):
             continue
         assert token in EDGE_TEMPLATES, f"no verbalization template for {token}"
         assert EDGE_TEMPLATES[token], f"empty template list for {token}"

@@ -443,6 +443,56 @@ Specifics:
   synthetic/committed fixtures; point `--export-dir`/`--shots` at real inputs locally. No
   `ml/data` re-pin unless you actually build the real (personal) edit-ops datasets.
 
+## Prolog rule adherence — eval tier 4, the VESPACE port (insimul-bridge US-004)
+
+Bridge 4: `rule_adherence.py` (pure) + `eval_rule_adherence.py` (thin CLI,
+`pinakes-eval-rule-adherence`) score **generated Prolog rules against the world
+they were authored for** — parse rate, structural/schema/referential validity,
+charitable+strict reachability, fireability. Metric definitions, the upstream
+module-by-module provenance table, and the deliberate deviations:
+[`docs/rule-adherence-tier.md`](../docs/rule-adherence-tier.md).
+
+- **PURE + stdlib-only, no Insimul import** — the same discipline as
+  `consistency.py` and `cinematography_eval.py`. What crosses the bridge is the
+  *metric definitions* (from `insimul-server/server/__tests__/vespace-rule-generation-e2e/`),
+  reimplemented and cited. That includes a hand-rolled Prolog parser: the tier
+  must run in the slim `ml/` env with zero engine, exactly like `scallop.py`'s
+  engine-free reference derivations.
+- **The world context comes from a `CanonicalWorldExport`, not a corpus.**
+  Intrinsic keys = the export's `prologKb` **facts** (bodyless clauses — the
+  character-creation layer); producible keys = the effect terms in each action's
+  Prolog `content` (`action_accept/3` etc. bodies) lowered through the upstream
+  effect table. So the same evaluator works on any converted world without a
+  companion VESPACE corpus. **GOTCHA — the US-003 fixture world exports no
+  actions** (`systems.actions: []`), so *every* action-derived condition in it is
+  dead and it scores 0% schema validity. That is an honest floor over converted
+  worlds, asserted as such in `test_the_bridge_world_scores_end_to_end`; don't
+  "fix" it here — Insimul has to emit actions with Prolog `content`.
+- **Two committed artifacts, both fixture-driven so CI needs no DVC corpus**:
+  `ml/manifests/rule-adherence-baseline.json` (the snapshot/ratchet, `--check` is
+  the gate) and the `RULE-ADHERENCE`-marked tier-4 block in
+  `docs/ml-baselines.md`. That block is **co-owned** — `train_baselines` extracts
+  and re-appends it across its from-scratch doc rewrite, the same cooperating-CLIs
+  discipline as the `KGQA-EVAL` and `SCALLOP-PILOT` blocks. A fourth marked block
+  means `train_baselines` now preserves three.
+- The fixture pair is `ml/fixtures/insimul/{world-export,generated-rules}.json` —
+  a VESPACE-salon-shaped world plus eight rules, one per scored dimension,
+  carrying the **known-dead** `married/2` / `trusts/3` / `esteems/3` set that
+  Insimul's validation-2 findings report as the residual after vocabulary
+  grounding. The baseline is the assertion that they score as expected.
+- **Don't double-count one mistake.** Atoms the structural checks own (literal
+  actor labels, opaque effect payloads) and all arguments of engine predicates
+  (wrapper heads + effect terms — no slot of `rule_effect(_, C, occupation,
+  salonniere)` names an entity) are skipped by the referential walk. Engine
+  predicates are also excluded from the condition set: an effect payload is not
+  something a rule has to satisfy.
+- **Upstream bug not ported**: `insimul-prolog-parser.ts`'s `parseGoal` strips a
+  trailing `)` after removing `\+`, mangling `\+ flattered(Y)` — contradicting its
+  own docstring. This port unwraps only a redundant *outer* paren pair. If you
+  diff the two implementations, that difference is deliberate.
+- No `ml/data` re-pin (fixture-driven, writes no data); MLflow run name
+  `rule-adherence`.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
