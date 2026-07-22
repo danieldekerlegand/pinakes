@@ -642,6 +642,44 @@ by a committed JSON config. Runbook: [`docs/slm-pilot-runbook.md`](../docs/slm-p
   eval prompts — `dataFloor.verdict == "insufficient-data"`. US-002's deliverable
   is that the loop closes, and it does (0.5B on MPS, ~6 s of training).
 
+## SLM pilot — the 3B baseline + comparison table (slm-pilot US-003)
+
+`slm_baseline.py` (pure, plus the networked `GeminiRuleModel`) turns N runs of the
+US-002 pipeline into the pilot's **comparison table**: mean/min/max per stage, arm
+and frozen metric, the ablation gap, the success bar's arithmetic, and the
+`SLM-PILOT` block upserted into `docs/ml-baselines.md`. Config
+`ml/configs/slm-pilot-3b.json`; runbook [`docs/slm-pilot-runbook.md`](../docs/slm-pilot-runbook.md).
+
+- **Every number is a mean over repeats, never a single draw.** `config.repeats`
+  reruns the whole train+score loop at the SAME seed; `bar.spreadAcrossRepeats` is
+  the honesty check the doc block states in words ("any effect smaller than this
+  is the platform"). The measured outcome at 3B: all three repeats gave
+  *identical* rates and `evalLoss` moved only in the fourth decimal — so the
+  US-002 0.5B nondeterminism is **not** universal, which is exactly the kind of
+  thing you only learn by running the repeats.
+- **A frozen comparison point is never dropped, only explained.**
+  `build_comparison_table` emits one row per `slm_pilot.COMPARISON_POINTS` entry
+  in that order; an unfillable row carries `status: "not-measured"` plus a reason
+  (`NOT_MEASURED_REASONS`). Today both `deterministic-translator-floor` (absent
+  from the Insimul checkout) and `grounded-gemini` (no API key) are unfilled —
+  and because the primary bar is *a fraction of the untuned→Gemini gap*,
+  `gap_closure` returns `None` rather than estimating it.
+- **`dataFloor` is copied verbatim from the frozen manifest** (`read_data_floor`),
+  never re-derived, and `bar_inputs` deliberately emits no verdict — the verdict
+  is US-006's and it is gated on that field.
+- **GOTCHA — release each stage's weights before loading the next.**
+  `release_model` / `free_device_memory` in `slm_finetune.py`: the pipeline loads
+  one model per stage (untuned → trainer → tuned) and each stays referenced by its
+  frame until the call returns. Three fp32 3B copies are ~37 GB and do not fit in
+  36 GB of unified memory; at 0.5B nobody noticed.
+- **`docs/ml-baselines.md` is co-owned by FIVE CLIs now.** `train_baselines`
+  rewrites the doc and re-appends `KGQA-EVAL`, `SCALLOP-PILOT`, `RULE-ADHERENCE`
+  and `SLM-PILOT`. A sixth marked block must join that preserve list or a
+  baselines re-run deletes it. A `--stub` run never writes the doc.
+- No `ml/data` re-pin (the pipeline reads DVC-tracked trees and writes none);
+  adapters + `baseline-report.json` stay in git-ignored `ml/artifacts/`; three
+  MLflow runs per baseline, each naming the eval set it scored.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

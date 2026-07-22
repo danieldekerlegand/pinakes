@@ -289,6 +289,17 @@ def main(argv: list[str] | None = None) -> int:
     adherence_section = extract_adherence_section(existing_doc)
     if adherence_section:
         doc = upsert_adherence_section(doc, adherence_section)
+    # …and the Phase-D SLM-pilot comparison block (owned by pinakes-train-slm).
+    from pinakes_ml.slm_baseline import (
+        extract_marked_section as extract_slm_section,
+    )
+    from pinakes_ml.slm_baseline import (
+        upsert_marked_section as upsert_slm_section,
+    )
+
+    slm_section = extract_slm_section(existing_doc)
+    if slm_section:
+        doc = upsert_slm_section(doc, slm_section)
     args.doc.parent.mkdir(parents=True, exist_ok=True)
     args.doc.write_text(doc, encoding="utf-8")
     print(f"metrics doc -> {args.doc}")

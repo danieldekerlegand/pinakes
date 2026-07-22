@@ -26,21 +26,35 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from pathlib import Path
 
 from pinakes_ml.export_insimul_datasets import DEFAULT_CANDIDATES, DEFAULT_WORLDS
+from pinakes_ml.slm_baseline import (
+    DEFAULT_GEMINI_MODEL,
+    NOT_MEASURED_REASONS,
+    STAGE_GEMINI,
+    build_baseline_report,
+    gemini_api_key,
+    render_baseline_section,
+    upsert_marked_section,
+)
 from pinakes_ml.slm_finetune import (
+    ARM_GROUNDED,
     SlmPilotConfig,
     build_pilot_data,
     run_pipeline,
+    score_model,
     stub_model_factory,
     stub_trainer,
 )
 
 _ML_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = _ML_ROOT / "configs" / "slm-pilot-debug.json"
+DEFAULT_DOC = _ML_ROOT.parent / "docs" / "ml-baselines.md"
 
 SUMMARY_FILE = "run-summary.json"
+REPORT_FILE = "baseline-report.json"
 
 
 def read_dvc_md5(dvc_path: Path) -> str:
@@ -75,6 +89,19 @@ def eval_set_matches_manifest(manifest_path: Path, sha256: str) -> bool | None:
     return sha256 in hashes
 
 
+def read_data_floor(manifest_path: Path) -> dict | None:
+    """The frozen protocol's ``dataFloor`` block, copied forward verbatim.
+
+    US-001's rule: the sufficiency verdict is a *field*, not a judgment call, and
+    a downstream story reads it rather than re-deriving it.
+    """
+    if not manifest_path.exists():
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    floor = manifest.get("dataFloor")
+    return dict(floor) if isinstance(floor, dict) else None
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -98,6 +125,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--no-untuned", action="store_true",
         help="Skip the untuned baseline pass (faster; loses the delta).",
+    )
+    parser.add_argument(
+        "--repeats", type=int, default=None,
+        help="Train+score this many times at the SAME seed (default: the "
+             "config's). The spread across repeats is the platform's float "
+             "nondeterminism — report it, never a single draw.",
+    )
+    parser.add_argument(
+        "--gemini", action="store_true",
+        help="Also score the grounded-Gemini comparison point (needs "
+             "GEMINI_API_KEY and google-generativeai; costs API calls).",
+    )
+    parser.add_argument("--gemini-model", default=DEFAULT_GEMINI_MODEL)
+    parser.add_argument(
+        "--doc", type=Path, default=DEFAULT_DOC,
+        help="Markdown doc the SLM-PILOT comparison block is upserted into.",
+    )
+    parser.add_argument(
+        "--no-doc", action="store_true", help="Skip the docs/ml-baselines.md upsert."
     )
     parser.add_argument("--no-mlflow", action="store_true")
     args = parser.parse_args(argv)
@@ -141,25 +187,99 @@ def main(argv: list[str] | None = None) -> int:
         trainer = train_qlora
         model_factory = hf_model_factory
 
-    summary = run_pipeline(
-        config,
-        data,
-        trainer=trainer,
-        model_factory=model_factory,
-        dataset_dvc_md5=read_dvc_md5(Path(config.dvc_file)),
-        matches_frozen_eval_set=matches,
-    )
+    dvc_md5 = read_dvc_md5(Path(config.dvc_file))
+    repeats = max(1, args.repeats if args.repeats is not None else config.repeats)
+    started = time.monotonic()
+    summaries = []
+    for index in range(1, repeats + 1):
+        run_config = config
+        if repeats > 1:
+            # One adapter + summary per repeat, so a disagreeing draw can be
+            # inspected rather than overwritten by the next one.
+            run_config = SlmPilotConfig.from_dict(
+                {
+                    **config.to_dict(),
+                    "output_dir": str(Path(config.output_dir) / f"repeat-{index}"),
+                }
+            )
+        summary = run_pipeline(
+            run_config,
+            data,
+            trainer=trainer,
+            model_factory=model_factory,
+            dataset_dvc_md5=dvc_md5,
+            matches_frozen_eval_set=matches,
+        )
+        out_path = Path(run_config.output_dir) / SUMMARY_FILE
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(
+            json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        if repeats > 1:
+            print(f"--- repeat {index}/{repeats}")
+        _print_report(summary, out_path)
+        summaries.append(summary)
+        if not args.no_mlflow:
+            _log_to_mlflow(summary)
 
-    out_path = Path(config.output_dir) / SUMMARY_FILE
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    extra_stages, reasons = _score_gemini(args, data)
+    report = build_baseline_report(
+        summaries,
+        extra_stages=extra_stages,
+        data_floor=read_data_floor(Path(config.eval_manifest)),
+        wall_clock_seconds=round(time.monotonic() - started, 3),
+        reasons=reasons,
     )
-    _print_report(summary, out_path)
-
-    if not args.no_mlflow:
-        _log_to_mlflow(summary)
+    report_path = Path(config.output_dir) / REPORT_FILE
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(f"report   -> {report_path}")
+    _write_doc(args, report)
     return 0
+
+
+def _score_gemini(args, data) -> tuple[dict, dict]:
+    """The ``grounded-gemini`` row — measured when possible, explained when not.
+
+    A frozen comparison point is never dropped: without ``--gemini`` (or without
+    a key) the row keeps its ``not-measured`` reason and the report says so.
+    """
+    reasons = dict(NOT_MEASURED_REASONS)
+    if not args.gemini:
+        reasons["grounded-gemini"] = (
+            "not requested — rerun with `pinakes-train-slm --gemini` and a "
+            "GEMINI_API_KEY to fill this row."
+        )
+        return {}, reasons
+    if not gemini_api_key():
+        print(f"NOTE  grounded-gemini: {reasons['grounded-gemini']}")
+        return {}, reasons
+    from pinakes_ml.slm_baseline import GeminiRuleModel  # pragma: no cover
+
+    model = GeminiRuleModel(args.gemini_model)  # pragma: no cover
+    scores = score_model(  # pragma: no cover
+        model, data.eval_set, data.world_contexts, (ARM_GROUNDED,)
+    )
+    reasons.pop("grounded-gemini", None)  # pragma: no cover
+    return {STAGE_GEMINI: scores}, reasons  # pragma: no cover
+
+
+def _write_doc(args, report: dict) -> None:
+    """Upsert the SLM-PILOT block — never from a stub run."""
+    if args.no_doc:
+        return
+    if report["stub"]:
+        print("NOTE  stub run — docs/ml-baselines.md not touched.")
+        return
+    existing = args.doc.read_text(encoding="utf-8") if args.doc.exists() else ""
+    args.doc.parent.mkdir(parents=True, exist_ok=True)
+    args.doc.write_text(
+        upsert_marked_section(existing, render_baseline_section(report)),
+        encoding="utf-8",
+    )
+    print(f"doc      -> {args.doc}")
 
 
 def _print_report(summary: dict, out_path: Path) -> None:

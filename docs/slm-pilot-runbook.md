@@ -1,15 +1,24 @@
 # SLM pilot — training-pipeline runbook
 
-**slm-pilot US-002.** How to run the Phase-D pipeline: rule-SFT corpus → QLoRA
-fine-tune → tier-4 adherence score on the **frozen** eval set, both prompt arms.
-The referee it answers to is [`docs/slm-pilot-protocol.md`](slm-pilot-protocol.md);
-this document is the operating manual.
+**slm-pilot US-002 (the pipeline) + US-003 (the 3B baseline).** How to run the
+Phase-D pipeline: rule-SFT corpus → QLoRA fine-tune → tier-4 adherence score on
+the **frozen** eval set, both prompt arms. The referee it answers to is
+[`docs/slm-pilot-protocol.md`](slm-pilot-protocol.md); this document is the
+operating manual.
 
 - Pure core: [`ml/src/pinakes_ml/slm_finetune.py`](../ml/src/pinakes_ml/slm_finetune.py)
+  + [`ml/src/pinakes_ml/slm_baseline.py`](../ml/src/pinakes_ml/slm_baseline.py)
+  (US-003: repeat aggregation, the frozen comparison table, the doc block)
 - CLI: `cd ml && uv run pinakes-train-slm` (`--stub` is the model-free smoke)
-- Config (committed): [`ml/configs/slm-pilot-debug.json`](../ml/configs/slm-pilot-debug.json)
+- Configs (committed): [`slm-pilot-debug.json`](../ml/configs/slm-pilot-debug.json)
+  (0.5B pipeline debug) · [`slm-pilot-3b.json`](../ml/configs/slm-pilot-3b.json)
+  (the US-003 baseline)
 - Coverage: [`ml/tests/test_slm_finetune.py`](../ml/tests/test_slm_finetune.py)
-- Run output (git-ignored): `ml/artifacts/slm-pilot-debug/{adapter,run-summary.json}`
+  + [`ml/tests/test_slm_baseline.py`](../ml/tests/test_slm_baseline.py)
+- Run output (git-ignored): `ml/artifacts/<run>/{[repeat-N/]adapter,run-summary.json}`
+  and `baseline-report.json`
+- Published results: the `SLM-PILOT` block in
+  [`docs/ml-baselines.md`](ml-baselines.md), upserted by the CLI
 
 ## What the pipeline does
 
@@ -51,15 +60,33 @@ uv run pinakes-train-slm --stub --no-mlflow
 uv pip install trl peft accelerate      # + bitsandbytes on CUDA for 4-bit
 uv run pinakes-train-slm                # configs/slm-pilot-debug.json
 
-# 3. A different config / a real converted corpus.
+# 3. The US-003 baseline: Qwen2.5-3B-Instruct, 3 repeats, publishes the
+#    SLM-PILOT block into docs/ml-baselines.md.
+uv run pinakes-train-slm --config configs/slm-pilot-3b.json
+
+# 4. A real converted corpus, and the grounded-Gemini comparison point.
 uv run pinakes-train-slm --config configs/slm-pilot-3b.json \
   --world /path/to/world-a.json --world /path/to/world-b.json \
   --candidates /path/to/rules.jsonl
+GEMINI_API_KEY=… uv run pinakes-train-slm --config configs/slm-pilot-3b.json \
+  --gemini            # + uv pip install google-generativeai
 ```
 
 Useful flags: `--no-untuned` skips the baseline pass (halves the wall clock, loses
-the delta), `--output-dir` relocates the adapter + summary, `--no-mlflow` skips
-tracking.
+the delta), `--repeats N` overrides the config's repeat count, `--output-dir`
+relocates the adapter + summary, `--no-doc` skips the `docs/ml-baselines.md`
+upsert (a `--stub` run never writes it), `--no-mlflow` skips tracking.
+
+### Repeats, and why every number is a mean
+
+US-002 measured that two identical MPS invocations of the same config at the same
+seed produced **different** adherence rates on the 0.5B model. So a US-003 number
+is never a single draw: `config.repeats` runs the whole train+score loop that many
+times at the *same* seed, and the report carries mean / min / max / n per stage,
+arm and metric. `bar.spreadAcrossRepeats` is the honesty check — **any effect
+smaller than the spread is the platform, not the model**, and the doc block says
+so in those words. Each repeat gets its own `repeat-N/` adapter and summary, so a
+disagreeing draw can be inspected instead of overwritten.
 
 ### The config
 
@@ -148,13 +175,78 @@ snapshot for this pipeline and no `--check` gate: the committed artifacts are th
 **config**, the **runbook** and the **tests**, never a numbers file. US-003 must
 report a mean over repeats or a fixed-seed CPU run, not a single MPS draw.
 
+## The measured 3B baseline run (US-003, 2026-07-22)
+
+`Qwen/Qwen2.5-3B-Instruct`, `configs/slm-pilot-3b.json`, QLoRA on MPS,
+**3 repeats** at seed `20260722`, 3 training records / 2 eval prompts, 12
+optimizer steps per repeat (~14 s of training each), **191 s** wall clock for the
+whole thing, **$0.00** — it ran locally, so the story's GPU-rental clause never
+fired and there is no cost to record beyond the electricity. The numbers live in
+the `SLM-PILOT` block of [`docs/ml-baselines.md`](ml-baselines.md) and in three
+MLflow runs, each carrying `evalSetSha256`, `ruleSftSha256` and `datasetDvcMd5`.
+
+> ⚠️ **`dataFloor.verdict == "insufficient-data"`.** Every caveat from the debug
+> run still applies, and harder: at n = 2 eval prompts the only expressible rates
+> are 0, 0.5 and 1. Nothing below is a verdict about the approach — US-006 reads
+> the floor field, it does not re-derive it.
+
+Three things the run *did* establish:
+
+1. **The 3B leg of the pipeline works end to end**, unquantized, on a 36 GB
+   Apple-Silicon machine, in three minutes — including the untuned baseline pass,
+   both prompt arms and the eval-set loss. `chatTemplateVerified: true`,
+   `matchesFrozenEvalSet: true`.
+2. **At 3B the run was reproducible, unlike the 0.5B debug run.** All three
+   repeats produced *identical* adherence rates; only `evalLoss` moved, and only
+   in the fourth decimal (spread 0.001). The US-002 gotcha is not universal — but
+   the repeat machinery is what turned that from an assumption into a measurement,
+   so keep running it.
+3. **Training moved the eval-set loss down hard** — 3.13 → 2.46 grounded, 3.06 →
+   2.44 ungrounded. On three records that is memorisation, not generalisation;
+   it is a training-health signal and nothing more.
+
+And the two comparison points that could not be filled, recorded with their
+reasons rather than dropped (the protocol froze the *list*, so a missing row is a
+caveat on the verdict, not an absence):
+
+| Row | Status | Why |
+| --- | --- | --- |
+| `deterministic-translator-floor` | not-measured | the VESPACE translator is absent from the current `insimul-platform` checkout (protocol §4) |
+| `grounded-gemini` | not-measured | no `GEMINI_API_KEY` in this environment. `GeminiRuleModel` is implemented and scores through the identical harness — rerun with a key and `--gemini` to fill the row |
+
+**The `grounded-gemini` gap is the one that matters.** The protocol's primary bar
+is stated as a *fraction of the untuned→Gemini gap closed*; with the Gemini row
+empty, `bar.gapClosedVsReference` is `null` by construction rather than estimated.
+US-006 inherits that as a second caveat alongside the data floor.
+
+### The ablation — did tuning internalise the vocabulary?
+
+One extra generation pass, not a second pipeline. Fine-tuned weights, grounded
+prompt minus the same weights on the vocabulary-stripped prompt:
+
+| Metric | grounded − ungrounded |
+| --- | ---: |
+| `parseRate` | −0.500 |
+| `schemaValidity` | +1.000 |
+| `fullyValid` | +1.000 |
+| `evalLoss` | +0.024 |
+
+Read at this scale it says only that the two arms *behave differently*: with the
+grounding block the tuned model emitted a schema-valid rule on the one prompt it
+parsed; without it, it emitted parseable clauses over predicates no world
+declares. That is the shape you would expect if the grounding block is doing the
+work and tuning has not internalised the vocabulary — but it is one prompt per
+cell. **Do not carry this into US-006 as a finding**; carry it as the measurement
+the ablation machinery produces, ready to mean something at corpus scale.
+
 ## What is and is not tracked
 
 | Artifact | Where | Why |
 | --- | --- | --- |
 | config | `ml/configs/slm-pilot-*.json` (git) | the run's definition |
 | eval set + rule-SFT | `ml/data/` (DVC) | bulk, synthetic tier / proprietary |
-| adapter + run summary | `ml/artifacts/` (git-ignored, **not** DVC) | a throwaway debug adapter is fully reproducible from the config + the DVC-pinned data; DVC-tracking it would pin noise |
+| adapter + run summary + baseline report | `ml/artifacts/` (git-ignored, **not** DVC) | a throwaway adapter is fully reproducible from the config + the DVC-pinned data; DVC-tracking it would pin noise |
+| the published comparison table | the `SLM-PILOT` block in `docs/ml-baselines.md` (git) | small, and being in git is what makes the result reviewable in a diff |
 | the pilot's deliverable model | US-004/005 | the merged 3B weights and the GGUF handoff bundle **are** DVC-tracked — that is where a model artifact earns a pin |
 
 The pipeline reads the existing DVC-tracked trees and writes no data, so **no
@@ -176,3 +268,17 @@ The pipeline reads the existing DVC-tracked trees and writes no data, so **no
 - **The 0.5B model is the pipeline-debug model, never a comparison point.** The
   frozen comparison table names `untuned-qwen2.5-3b-instruct` and the two
   fine-tuned 3B rows; a 0.5B number does not belong in it.
+- **Each stage releases its weights before the next stage loads its own**
+  (`release_model` / `free_device_memory`). The pipeline holds one model per
+  stage (untuned → trainer → tuned) and each stays alive in its frame until the
+  call returns — harmless at 0.5B, fatal at 3B, where three fp32 copies are
+  ~37 GB and do not fit in a 36 GB unified-memory machine. Add a stage without
+  releasing and the 3B run dies in swap.
+- **`docs/ml-baselines.md` is now co-owned by five CLIs.** `pinakes-train-slm`
+  upserts the `SLM-PILOT` block; `pinakes-train-baselines` rewrites the doc from
+  scratch and re-appends it (alongside `KGQA-EVAL`, `SCALLOP-PILOT` and
+  `RULE-ADHERENCE`). A new marked block must be added to that preserve list or a
+  baselines re-run silently deletes it.
+- **A `--stub` run never touches the doc.** Its scores describe wiring; publishing
+  them into the comparison table would be the exact failure the protocol's
+  "name the eval set you scored" rule exists to prevent.

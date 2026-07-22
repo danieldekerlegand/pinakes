@@ -205,6 +205,11 @@ class SlmPilotConfig:
     arms: tuple[str, ...] = ARMS
     #: Score the untuned base model first — the "what did tuning buy?" row.
     score_untuned: bool = True
+    #: How many times to run train+score at THIS seed. US-002 measured that two
+    #: identical MPS invocations disagree, so a US-003 number is a mean over
+    #: repeats with its observed spread, never a single draw
+    #: (:mod:`pinakes_ml.slm_baseline`).
+    repeats: int = 1
 
     # Training hyperparameters.
     num_train_epochs: float = 3.0
@@ -552,6 +557,47 @@ Trainer = Callable[[SlmPilotConfig, Sequence[InstructionRecord]], TrainOutcome]
 ModelFactory = Callable[[SlmPilotConfig, str | None], RuleModel]
 
 
+def free_device_memory() -> None:
+    """Collect garbage and empty the accelerator cache — best-effort.
+
+    ``torch`` is looked up in :data:`sys.modules` rather than imported, so this
+    is a no-op (not an import) in the slim CI env.
+    """
+    import gc
+    import sys
+
+    gc.collect()
+    torch = sys.modules.get("torch")
+    if torch is None:
+        return
+    for backend in ("mps", "cuda"):  # pragma: no cover - device-dependent
+        cache = getattr(getattr(torch, backend, None), "empty_cache", None)
+        if callable(cache):
+            try:
+                cache()
+            except Exception:  # noqa: BLE001 - freeing memory is best-effort
+                pass
+
+
+def release_model(model: object) -> None:
+    """Drop a stage's weights before the next stage loads its own.
+
+    The pipeline loads one model per stage (untuned → trainer → tuned) and each
+    stays referenced by its frame until the call returns — fine for the 0.5B
+    debug model, fatal at 3B, where three fp32 copies are ~37 GB and do not fit
+    in a 36 GB unified-memory machine. So each stage releases explicitly.
+    Best-effort by design: a stub model has nothing to free.
+    """
+    for attr in ("model", "tokenizer"):
+        if hasattr(model, attr):
+            try:
+                delattr(model, attr)
+            except AttributeError:  # pragma: no cover - read-only attribute
+                pass
+    del model
+    free_device_memory()
+
+
 def score_model(
     model: RuleModel,
     eval_set: Sequence[EvalPrompt],
@@ -645,11 +691,15 @@ def run_pipeline(
         base = model_factory(config, None)
         stages["untuned"] = score_model(base, data.eval_set, worlds, config.arms)
         chat_verified = getattr(base, "chat_template_verified", None)
+        release_model(base)
+        del base
     outcome = trainer(config, data.train_records)
     tuned = model_factory(config, outcome.adapter_dir)
     stages["finetuned"] = score_model(tuned, data.eval_set, worlds, config.arms)
     if chat_verified is None:
         chat_verified = getattr(tuned, "chat_template_verified", None)
+    release_model(tuned)
+    del tuned
     return build_run_summary(
         config,
         data,
@@ -791,6 +841,10 @@ def train_qlora(
     trainer.save_model(str(adapter_dir))
     tokenizer.save_pretrained(str(adapter_dir))
     metrics = getattr(train_output, "metrics", None) or {}
+    # Free the training copy before the caller loads the tuned model for scoring
+    # — three fp32 3B copies do not fit in 36 GB (see release_model).
+    del trainer, model
+    free_device_memory()
     return TrainOutcome(
         adapter_dir=str(adapter_dir),
         device=device,
