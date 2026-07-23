@@ -1119,6 +1119,52 @@ one `dvc pull ml/models` hands the recipient everything. Wiring instructions:
   `ml/data` re-pin; **do NOT `dvc add ml/models` in a Chief worktree** (same trap as
   everywhere else in this pilot). MLflow run name `edit-ops-handoff`.
 
+## KFT finetune-job admission — `ml/` as a specialized provider (90 US-1)
+
+`kft.py` (pure, stdlib + the sibling pure modules only) is the adapter between the
+ecosystem contract (`koine/specs/fine-tuning.md`, KFT 0.3.0 +
+`koine/schemas/finetune-job.schema.json`) and this workspace's existing trainer:
+a job manifest in, a frozen `SlmPilotConfig` + a `RunAnchor` out. It contains **no
+training logic** — `slm_finetune.py` is still the sole pipeline.
+
+- **Pinakes is the NARROW leg of a multi-provider program (KFT §9, FT-K).** It
+  admits `text-generation × {sft, lora, qlora}` over the knowledge plane and
+  nothing else; agora hosts the general trainer. Refusals are graded and each has
+  its own code, because a router reads them differently: `unknown-modality` /
+  `incompatible-modality-method` mean the *pair is nonsense* (checked against the
+  vendored KFT §3.1 table), while `unsupported-modality` / `unsupported-method` /
+  `unsupported-dataset-plane` mean "legitimate job, wrong provider" and name agora
+  in the message. Don't collapse them into one error.
+- **A base model is an ENTITY, never a coordinate string (KFT §5.1, FT-G).** A job
+  names `pinakes:model:…`; the Hub coordinate is read off that entity's external
+  anchor in the committed registry `ml/configs/kft-base-models.json`, which also
+  carries the base's own license class + egress (KFT §4.2/§4.3 need both — FT-B).
+  An `hf:model:…` string in a job is *refused*, not resolved. Add a row before
+  pointing a config at a new base; `test_kft.py` asserts every committed
+  `configs/slm-pilot-*.json` base is anchored.
+- **The RUN is the reproducibility anchor, not the weights (KFT §5.2, FT-C).** GPU
+  nondeterminism is exactly the reason there is no committed metrics snapshot here
+  (see the QLoRA sections above), so `seed` + `config_hash` + the pinned input ids
+  ride on `RunAnchor`. `engine_config_hash` hashes the **unresolved** (ml-relative)
+  `SlmPilotConfig`, so two hosts admitting one job agree; `AdmittedJob.resolved()`
+  absolutizes paths afterwards and leaves the anchor alone. Keep path resolution on
+  `SlmPilotConfig.resolved(base)` — admission must not mint absolute paths.
+- **`hyperparams` is permissive by contract (KFT §9), so an unimplemented key is
+  REPORTED, not dropped** — `AdmittedJob.ignored_hyperparams` (dotted names, e.g.
+  `lora.bias`), the same discipline `scallop.py` uses for untranslatable rules. A
+  *mistyped* key is a rejection (`invalid-hyperparam`). Everything the schema
+  declares `additionalProperties: false` on (top level, `dataset`, `compute`) is
+  rejected on an unknown key — a typo'd key trains something other than what the
+  job's author wrote.
+- **`method == "qlora"` means 4-bit**, unless `hyperparams.load_in_4bit` says
+  otherwise — which a `local-mps` job MUST, bitsandbytes being CUDA-only. The
+  committed fixture `ml/fixtures/kft/finetune-job.json` is the golden positive and
+  pins it off for that reason.
+- Fixture-driven and committed-file-only: admission runs in the slim CI env with no
+  DVC corpus, no network and no model. `test_importing_kft_pulls_in_no_heavy_stack`
+  re-asserts the no-heavy-import rule in a **subprocess** (the stack may already be
+  loaded by a sibling test in-session). No `ml/data` re-pin, no `uv.lock` churn.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
