@@ -121,9 +121,11 @@ describe("capabilityManifestFor", () => {
     expect(CAPABILITY_MANIFEST.endpoints.http).toBe("/api/kcb");
   });
 
-  it("leaves mcp/a2a null — Pinakes fronts the bus over plain HTTP today", () => {
+  it("serves the MCP endpoint (41-US-1); a2a stays null until that front lands", () => {
+    // The as-authored manifest advertises the /mcp surface as a server-relative path.
+    expect(CAPABILITY_MANIFEST.endpoints.mcp).toBe("/mcp");
     const published = capabilityManifestFor("https://pinakes.example");
-    expect(published.endpoints.mcp).toBeNull();
+    expect(published.endpoints.mcp).toBe("/mcp");
     expect(published.endpoints.a2a).toBeNull();
   });
 });

@@ -55,6 +55,7 @@ import {
 } from "./services/linguistic-distance-enhanced";
 import { federatedSearch, parseSearchFilters } from "./services/global-search";
 import { registerGraphRoutes } from "./routes/graph";
+import { registerMcpRoutes } from "./routes/mcp";
 import { registerCapabilityBusRoutes } from "./routes/capability-bus";
 import { registerConnectionNarrativeRoutes } from "./routes/connection-narrative";
 import { registerAnomalyRoutes } from "./routes/anomaly-detection";
@@ -128,6 +129,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // First-party shared-graph proxy routes (/api/graph/*, US-004).
   registerGraphRoutes(app);
+
+  // MCP server surface (/mcp, 41-US-1) — the KCB §4 invoke-by-MCP-tool front for
+  // the three §6 capabilities. Each tool forwards to the already-built surface it
+  // wraps (resolve → graph-resolver, reconcile → culture-scrape acquisition,
+  // query → the sidecar Datalog console); no resolver/reconciler is reimplemented.
+  registerMcpRoutes(app);
 
   // KCB capability-bus surface (US-PKA2) — publishes the manifest that advertises the
   // already-built resolve/reconcile/query surfaces on the Koine control plane, and

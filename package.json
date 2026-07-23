@@ -10,7 +10,7 @@
     "sidecar:down": "docker compose stop culturescrape neo4j",
     "smoke:graph": "tsx scripts/smoke-graph.ts",
     "entity-grounding": "tsx scripts/export-entity-grounding.ts",
-  "insimul-pack": "tsx scripts/export-insimul-pack.ts",
+    "insimul-pack": "tsx scripts/export-insimul-pack.ts",
     "convergence-qa": "tsx scripts/convergence-qa.ts",
     "convergence-qa:baseline": "tsx scripts/convergence-qa.ts --write-baseline",
     "regen:registry-mirror": "tsx scripts/regen-registry-mirror.ts",
@@ -27,6 +27,7 @@
     "db:migrate": "node -e \"console.log('TSV-only mode: db:migrate is disabled (no Postgres/Drizzle).')\""
   },
   "dependencies": {
+    "@a2a-js/sdk": "^1.0.0",
     "@deck.gl/core": "^9.2.11",
     "@deck.gl/geo-layers": "^9.2.11",
     "@deck.gl/layers": "^9.2.11",
@@ -36,6 +37,7 @@
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@neondatabase/serverless": "^0.10.4",
     "@radix-ui/react-accordion": "^1.2.4",
     "@radix-ui/react-alert-dialog": "^1.1.7",
