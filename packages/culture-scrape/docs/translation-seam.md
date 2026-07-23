@@ -344,5 +344,70 @@ Pinakes-owned schema it keeps authoring), and the Datalog inference content
 
 ---
 
-<!-- US-4 (ML-DERIVATION bucket) and US-5 (Entanglement register + Migration)
-     append their sections below. -->
+## Bucket 3 (ML-DERIVATION) — what stays in `ml/`, and its input contracts
+
+The three ML derivations are **not** part of the seam: they are *consumers* of the
+canonical corpus, one layer downstream of every translator. They stay in the `ml/`
+workspace regardless of where the generic emitters move, so `agora:60` and `pinakes:50`
+inherit nothing from them. This section records (a) why they stay, (b) each derivation's
+input contract, (c) the one ML↔generic coupling and how the seam handles it, and (d) the
+boundary invariant that must survive the split.
+
+### 3a. Why the ML derivations STAY in `ml/`
+
+The `ml/` workspace is a **separate uv workspace (Python 3.11)** rooted at the *repo
+root* (`ml/src/pinakes_ml/`), not inside `packages/culture-scrape`. Its whole reason to
+exist is to keep `torch` / `pykeen` / `problog` **out** of the culture-scrape sidecar so
+that package's Docker image stays slim (`ml/CLAUDE.md`: "Separate uv workspace (Python
+3.11), NOT the culture-scrape sidecar — keep torch/pykeen OUT of the sidecar"). Because
+it is a distinct workspace with its own lock, **it cannot import `culturescrape`** — a
+grep for `import culturescrape` / `from culturescrape` across all of `ml/` returns
+nothing. Consequently the three derivations consume the corpus **as on-disk files**
+(`export/culturescrape/{nodes,edges}/*.tsv`, resolved from `_REPO_ROOT` at
+`export_triples.py:42` / `export_scallop.py:52`) and never call any translator API. When
+Bucket 1 becomes the `agora` Rust lib, these derivations still read files — they do not
+become clients of the engine.
+
+### 3b. Each ML derivation and its input contract
+
+| Derivation | Pure core + CLI | Input contract |
+| --- | --- | --- |
+| **PyKEEN triples** | `triples.py` + `export_triples.py` | Reads `export/culturescrape/edges/*.tsv` **header-driven** into `Triple`s (`load_triples`, `triples.py:110`); **excludes derived temporals** — `EXCLUDED_RELATIONS = frozenset({"CONTEMPORARY_WITH", "PRECEDES", "FOLLOWS"})` (`triples.py:46`, applied `triples.py:104`); and does **leakage-safe unordered-pair splits** — `split_triples` (`triples.py:128`) groups every triple by its *unordered* entity pair (`_pair_key`, `triples.py:123`) so inverse (`A→B` / `B→A`) and cross-relation duplicates on the same pair never straddle train/valid/test. |
+| **Scallop `.scl`** | `scallop.py` + `export_scallop.py` | Translates the committed `datalog/rules_registry.tsv` (`DEFAULT_REGISTRY`, `export_scallop.py:53-61`) into a Scallop program. Only **`status == "active"`** rules are emitted — `translate_registry` drops non-active rules silently (`scallop.py:359`, `_ACTIVE_STATUS = "active"` `scallop.py:60`); **every predicate literal must be binary** (`_translate_literal` raises `UntranslatableClause` on a non-binary predicate, `scallop.py:271-289`); the one rule that breaks it, **`csid_uniqueness_violation`** (it reads the arity-3 `node/3`), is **skipped and reported** as a `SkippedRule` (`scallop.py:120`, `364`) rather than silently dropped. |
+| **DeepProbLog pilot** | `deepproblog_pilot.py` | Measures the **per-query knowledge-compilation ceiling**: it renders the runnable ProbLog program the model would compile (`render_problog_program`, `:151`; `render_deepproblog_program`, `:181`), counts distinct proofs per query (`proof_multiplicity`, `:239` over `count_paths`, `:213`), grounds it (`ground_size`, `:296`) and exact-compiles it under a wall-clock budget (`evaluate_program`, `:309`) so a compiler crash/timeout is recorded as a *ceiling hit*, not an error — the `scale_probe` (`:389`) reports "multiplicity + compile feasibility per size: the scale ceiling, measured". |
+
+All three follow the `ml/` **reproducible-artifact pattern** (`ml/CLAUDE.md`): a pure
+core over an input dir + a thin CLI + a committed `ml/manifests/*.json` snapshot — none
+of which touches a translator symbol.
+
+### 3c. The one ML↔generic coupling: the shared `rules_registry.tsv`
+
+The single point where Bucket 3 touches Bucket 1's world is the **rules registry**.
+`ml/scallop.py` re-reads the *same* committed Pinakes datalog artifact,
+`packages/culture-scrape/src/culturescrape/datalog/rules_registry.tsv`
+(`export_scallop.py:53-61`), that the generic Datalog emitter consumes via
+`datalog/registry.py:active_curated_rules` (Bucket 2 §2c). So the Scallop `.scl`
+translator is an **ML-side *re-translation* of the same registry** — Scallop's binary-only
+rule shape is deliberately the same one the culture-scrape emitters assume
+(`scallop.py:33-36`), and its active-only stance mirrors `active_curated_rules`
+(`scallop.py:57-58`). The seam spec therefore requires that **both the generic Datalog
+emitter and the ML Scallop re-translation stay fed by the one committed
+`rules_registry.tsv`, never forked**: Pinakes authors and commits it once (Bucket 2), the
+`agora` emitter reads it as data, and `ml/` reads that same file — three consumers, one
+source of truth. This is not an engine-API dependency; it is a shared *data artifact*.
+
+### 3d. The boundary invariant that must survive the split
+
+**`ml/` imports no `culturescrape` symbol** (verified: no `import culturescrape` anywhere
+in `ml/`). This is the invariant that keeps Bucket 3 out of the seam entirely: because the
+derivations depend only on the **on-disk canonical corpus**
+(`export/culturescrape/{nodes,edges}/*.tsv`) and the **committed registry TSV**, *nothing
+in Bucket 3 becomes a consumer of the `agora` Rust API*. When Bucket 1 leaves for `agora`
+and Bucket 2 stays in `pinakes`, the ML workspace is unaffected — it keeps reading the same
+files. The port must preserve this: the corpus file layout and the registry TSV are the
+ML contract, and neither may be replaced by an in-process engine call without breaking the
+`torch`/`pykeen`/`problog`-isolation the separate workspace exists to enforce.
+
+---
+
+<!-- US-5 (Entanglement register + Migration) appends its section below. -->
