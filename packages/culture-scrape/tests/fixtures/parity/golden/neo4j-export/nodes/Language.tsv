@@ -1,0 +1,2 @@
+csid:ID	:LABEL	name	lang	wikidata_qid	getty_id	aliases	description	pinakes_id	time_start:int	time_end:int	time_start_iso	period	lat:float	lon:float	place_qid	tgn_id	pleiades_id	language_code	script	etymology	derived_from_csid	source	source_url	source_query	retrieved_at	confidence:float	license
+cs:language:Q5218	Language	Quechua	qu			Runa Simi;Kichwa	tab\there / newline\nthere / backslash\\here / semi;colon											que	Latn	*qhichwa ‘temperate valley’	cs:language:Q5218	glottolog				0.5	CC-BY-4.0

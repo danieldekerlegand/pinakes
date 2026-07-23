@@ -426,3 +426,27 @@ projected facts vs the `Example.expected` set — see `tests/test_datalog_pinake
 so the logic is checked even without an engine, and keep the engine-gated test that
 agrees with that derivation for when an engine is present. Install locally: see
 `docs/datalog.md`, "Installing the engines".
+
+## The six-format parity goldens (`tests/fixtures/parity/`, pinakes:50 US-2)
+
+`tests/test_translation_parity.py` renders ONE representative canonical fixture through
+the embedded agora engine into **checked-in goldens** for all six canonical conversions
+(TSV, to-neo4j CSV + Cypher, from-neo4j export shards, SWI-Prolog, Soufflé + every
+`.facts` shard, ProbLog) and asserts two independent byte claims against them:
+*engine == golden* and *pre-migration Python emitter == golden*. Sharing one golden is
+what pins engine and reference to each other.
+
+- **Goldens are committed data, not a value computed at test time.** That is the point:
+  they survive the code moving, so US-6's relocation/retirement re-runs this module from
+  the new home and any behavioural drift is a byte diff against files captured *before*
+  the move. Don't "simplify" it into a compute-both-and-compare test — that would pass
+  happily even if both sides drifted together.
+- **Regenerate deliberately:** `PARITY_REGEN=1 uv run pytest tests/test_translation_parity.py`,
+  then review the diff. A normal run never rebaselines.
+- **Keep the fixture representative.** `test_fixture_exercises_the_lossless_escapes_and_shard_fan_out`
+  guards the inputs the claim depends on (tab / newline / backslash / escaped `;`, a
+  multi-label node, an empty multi-value cell, sparse rows, ≥3 labels and ≥2 edge types).
+  A neutered fixture proves nothing, and byte parity is only as strong as its input.
+- **Verify a golden actually bites** after touching this: mutate one character in a
+  golden and confirm the suite goes red (it should fail *three* tests — both claims plus
+  the CSV cross-check).

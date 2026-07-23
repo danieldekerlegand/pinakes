@@ -140,3 +140,25 @@ native nodes" is a property of the *data*, verified by loading, not of loader br
 
 `load_csv` binds each file as `path.resolve().as_uri()` (`file://…`). To recover the
 path in a fake, `Path(url2pathname(urlparse(url).path))` — not `url[7:]` slicing.
+
+## The engine's `to_cypher` bodies ARE `load_csv`'s, byte for byte (pinakes:50 US-2)
+
+The agora translation engine's `to_cypher` script and `load_csv.py` looked like
+"different artifacts" — and at the *script* level they are: the engine emits one
+self-contained file that binds `:param file => 'nodes/<Label>.tsv'` (relative), while
+`load_csv` parses each file's real header and binds an absolute `file://` URL at run
+time against a live driver. But the **statement bodies are identical bytes** to
+`node_cypher(NodeSchema.canonical())` / `edge_cypher(EdgeSchema.canonical())` — same
+`MERGE` on `csid`, same `toInteger`/`toFloat` coercions, same `split(row.aliases, ';')`,
+same `apoc.merge.relationship` shape, same property order.
+
+So the to-neo4j leg **is** byte-comparable against a pre-migration reference, and
+`tests/test_translation_parity.py` pins it: every `LOAD CSV` block in the committed
+Cypher golden must equal one of the two reference bodies. Don't repeat the mistake of
+diffing whole scripts, concluding "not the same artifact", and skipping the parity
+proof — **strip the delivery wrapper and diff the rendered statement**.
+
+Caveat that still stands: this parity holds for the **canonical** schema only.
+`load_csv` renders from each file's *parsed* header, so a corpus file carrying the
+`parent_code`/`extra` acquisition extensions (`schema/CLAUDE.md`) produces a body the
+engine cannot render — which is why `load_csv` has not been delegated.
