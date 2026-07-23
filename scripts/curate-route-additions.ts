@@ -372,6 +372,52 @@ const TRADE_ROUTES: TradeRow[] = [
     economic_impact: "Principal artery of Edo-period travel and commerce; subject of Hiroshige's famous prints" },
 ];
 
+/**
+ * `traded_goods` is a foreign key into `lexicons/trade-goods.tsv`, so it must serialise as
+ * `tg-NNN` ids — the routes above name goods in prose because that is what is readable to
+ * curate. This map is the join, and `resolveTradedGoods` makes an unmapped name a **build
+ * failure** rather than a dangling reference: tr-026..tr-039 originally shipped with the raw
+ * names in the id column, which no consumer could resolve and which broke the referential
+ * -integrity test in `test/economy-trade-section.test.ts`.
+ *
+ * Generic entries ("textiles", "spices", "metals", "metalwork") deliberately resolve to the
+ * aggregate goods tg-046/048/049/050 rather than to a specific fibre or metal — the route
+ * sources name a category, and picking a specific good would invent precision they do not have.
+ */
+const TRADE_GOOD_IDS: Readonly<Record<string, string>> = {
+  cedar: "tg-051", cloth: "tg-046", coca: "tg-057", cotton: "tg-018", furs: "tg-031",
+  gems: "tg-032", gold: "tg-006", grain: "tg-047", hides: "tg-055", horses: "tg-020",
+  lacquerware: "tg-058", livestock: "tg-054", maize: "tg-056", marble: "tg-052",
+  "metal goods": "tg-050", metals: "tg-049", metalwork: "tg-050", oil: "tg-053",
+  porcelain: "tg-021", rice: "tg-034", salt: "tg-014", seafood: "tg-059", silk: "tg-001",
+  silver: "tg-007", slaves: "tg-030", spices: "tg-048", tea: "tg-015", textiles: "tg-046",
+  wine: "tg-036", wool: "tg-019",
+};
+
+/**
+ * Things a route carried that are **not** trade goods and therefore get no `trade-good` node.
+ * Royal dispatches were the Persian Royal Road's defining traffic, but they are official
+ * correspondence, not a commodity — tr-026's `description` is where that belongs.
+ */
+const NOT_TRADE_GOODS: ReadonlySet<string> = new Set(["royal dispatches"]);
+
+/** Map curated good names onto trade-good ids; throws on any name with no ruling. */
+function resolveTradedGoods(names: readonly string[], routeId: string): string[] {
+  const ids: string[] = [];
+  for (const name of names) {
+    if (NOT_TRADE_GOODS.has(name)) continue;
+    const id = TRADE_GOOD_IDS[name];
+    if (!id) {
+      throw new Error(
+        `${routeId}: traded good ${JSON.stringify(name)} has no id in TRADE_GOOD_IDS. ` +
+          `Add a row to lexicons/trade-goods.tsv and map it here, or list it in NOT_TRADE_GOODS.`,
+      );
+    }
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
 /** Assemble one output TSV from a header + row-cell function over the curated records. */
 function serialize<T>(
   header: readonly string[],
@@ -428,7 +474,7 @@ function main(): void {
     waypoints: r.waypoints,
     start_date: r.start_date,
     end_date: r.end_date,
-    traded_goods: JSON.stringify(r.traded_goods),
+    traded_goods: JSON.stringify(resolveTradedGoods(r.traded_goods, r.id)),
     key_cities: JSON.stringify(r.key_cities),
     controlling_powers: JSON.stringify(r.controlling_powers),
     associated_languages: JSON.stringify(r.languages),

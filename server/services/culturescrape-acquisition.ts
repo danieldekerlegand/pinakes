@@ -146,7 +146,7 @@ export function buildAcquisitionQuery(
 
 /**
  * Serialize a culture-scrape category spec (matching the shipped
- * `packages/culture-scrape/categories/*.yml` shape) for `culturescrape fetch`.
+ * `core/categories/*.yml` shape) for `culturescrape fetch`.
  */
 export function buildCategorySpecYaml(
   category: AcquisitionCategory,
@@ -454,7 +454,7 @@ export async function runAcquisitionJob(
 export interface LiveRunnerOptions {
   /** Python interpreter (default `CULTURESCRAPE_PYTHON` env or `python3`). */
   python?: string;
-  /** culture-scrape package dir (default `CULTURESCRAPE_DIR` env or `<cwd>/packages/culture-scrape`). */
+  /** culture-scrape package dir (default `CULTURESCRAPE_DIR` env or `<cwd>/core`). */
   packageDir?: string;
   /** Per-fetch timeout (default `CULTURESCRAPE_FETCH_TIMEOUT_MS` env or 5 min). */
   timeoutMs?: number;
@@ -569,7 +569,7 @@ export function createLiveJobRunner(
   const packageDir =
     options.packageDir ??
     process.env.CULTURESCRAPE_DIR ??
-    path.resolve(process.cwd(), "packages/culture-scrape");
+    path.resolve(process.cwd(), "core");
   const timeoutMs =
     options.timeoutMs ??
     (Number(process.env.CULTURESCRAPE_FETCH_TIMEOUT_MS) || 300_000);

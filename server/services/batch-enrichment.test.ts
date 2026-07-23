@@ -83,16 +83,23 @@ describe("batch-enrichment", () => {
       const results = analyzeTsvFiles(100);
       const filenames = results.map((r) => r.filename);
 
-      // These files are known to have fewer than 50 rows
+      // Files still under the 100-row threshold. Enrichment legitimately lifts a
+      // file out of this set — cuisines.tsv crossed it — so the literal list is a
+      // floor only, and the invariant below is what actually pins the behaviour.
       const knownSmallFiles = [
         "literary-traditions.tsv",
         "music-traditions.tsv",
         "religions.tsv",
-        "cuisines.tsv",
       ];
 
       for (const small of knownSmallFiles) {
         expect(filenames).toContain(small);
+      }
+
+      // Whatever the corpus looks like, the analyzer only reports files below the
+      // threshold it was asked for.
+      for (const info of results) {
+        expect(info.rowCount).toBeLessThan(100);
       }
     });
   });

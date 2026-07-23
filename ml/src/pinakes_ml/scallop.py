@@ -11,7 +11,7 @@ of that bridge (US-001):
 * :func:`intern_symbols` assigns every csid a deterministic integer id (sorted
   vocab → index) so the relations can be exported as integer CSVs / tensors.
 * :func:`translate_registry` translates the provenanced Horn-rule registry
-  (``packages/culture-scrape/.../datalog/rules_registry.tsv``) into Scallop ``.scl``
+  (``core/.../datalog/rules_registry.tsv``) into Scallop ``.scl``
   rules, **skipping and reporting** any rule it cannot express (see
   :class:`SkippedRule`).
 * :func:`transitive_closure` is the engine-free reference derivation the scallopy

@@ -634,7 +634,7 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   (`liveDeps.fetchWikidataEntity`), not the Query Service. The statement →
   field vocabulary (P571 inception→start year, P625→lat/lng, P144/P737/P279→
   relationships, …) is kept **aligned with culture-scrape's hydration profile**
-  (`packages/culture-scrape/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
+  (`core/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
   acquisition stays culture-scrape's job (US-005) — don't add a TS SPARQL client.
 - **Network is behind an injectable `UrlExtractorDeps`** (`fetchWikidataEntity` +
   `fetchWikipediaPage`); tests pass fixture-backed deps reading
@@ -737,7 +737,7 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
 
 - **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
   (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
-  matching `packages/culture-scrape/categories/*.yml`) to a temp file and spawns
+  matching `core/categories/*.yml`) to a temp file and spawns
   `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
   `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
   `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the

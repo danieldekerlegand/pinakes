@@ -9,7 +9,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   exposes accessors (`nodeHeaderRow`, `edgeHeaderRow`, `*ProvenanceColumns`,
   `nodeTypeByName`, …). Consume from `@shared/canonical-schema`; never fork the JSON.
 - Column contracts mirror culture-scrape's Neo4j-import headers
-  (`packages/culture-scrape/.../schema/headers.py`). Prose + mapping tables live in
+  (`core/.../schema/headers.py`). Prose + mapping tables live in
   `docs/canonical-schema.md`.
 - `lexicon-mapping.json` (US-002) is the machine-readable **lexicon → canonical** map:
   every `lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
@@ -38,9 +38,9 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   class instead, so every tier is tuned in one place.
 - **Stampers:** the TS acquire/curate scripts (`scripts/acquire-*.ts`, `curate-*.ts`), the
   export's `DEFAULT_NODE_CONFIDENCE` / stub confidence, and `canonical-edges` `DEFAULT_EDGE_CONFIDENCE`.
-- **Python mirror:** `packages/culture-scrape/src/culturescrape/confidence.py` (`confidence_for(cls)`),
+- **Python mirror:** `core/src/culturescrape/confidence.py` (`confidence_for(cls)`),
   used by the acquire adapters + `named_in` linker; kept in lockstep with the JSON by
-  `packages/culture-scrape/tests/test_confidence.py` (skips parity when the sibling JSON is absent).
+  `core/tests/test_confidence.py` (skips parity when the sibling JSON is absent).
 - **GOTCHA — priors are chosen to preserve historically-emitted values** (grandfathering), so the
   export manifest stays byte-identical. If you re-calibrate a tier, the affected acquire scripts
   re-emit and you must regenerate the committed snapshots (export manifest + reconciliation report)
@@ -94,7 +94,7 @@ touch node/edge types again, update in lockstep (all pinned by tests):
   then re-vendor) + `predicate-mapping.test.ts`. **A NODE type also needs
   `shared/capability-manifest.json`** — its produced entity port is total over `nodeTypes`, so
   `assertValidCapabilityManifest` fails until the port lists the new type too.
-- Python (`packages/culture-scrape`): the edge `:TYPE` vocab lives in `ontology/registry.py`
+- Python (`core`): the edge `:TYPE` vocab lives in `ontology/registry.py`
   (`REGISTRY`, pinned by `test_ontology_registry.py`) **and** must be documented in
   `docs/ontology.md` (pinned by `test_ontology_doc.py`); `schema/mapper.py` `PINAKES_EDGE_TYPE_MAP`
   (cover every exported edge :TYPE). The version + from/to bake into three regenerated,

@@ -241,10 +241,10 @@ verify_branch() {
     gated_vitest "changed tests" $tst || return 1
   fi
   # culture-scrape sidecar (Python, uv-managed .venv — `python` isn't on PATH here): mypy + pytest + ruff.
-  if echo "$files" | grep -q '^packages/culture-scrape/'; then
-    gated_check "mypy" 'cd "$REPO/packages/culture-scrape" && uv run --no-sync mypy src' _norm_mypy || return 1
-    gated_check "pytest" 'cd "$REPO/packages/culture-scrape" && uv run --no-sync pytest -q' _norm_pytest || return 1
-    gated_check "ruff" 'cd "$REPO/packages/culture-scrape" && uv run --no-sync ruff check .' _norm_ruff || return 1
+  if echo "$files" | grep -q '^core/'; then
+    gated_check "mypy" 'cd "$REPO/core" && uv run --no-sync mypy src' _norm_mypy || return 1
+    gated_check "pytest" 'cd "$REPO/core" && uv run --no-sync pytest -q' _norm_pytest || return 1
+    gated_check "ruff" 'cd "$REPO/core" && uv run --no-sync ruff check .' _norm_ruff || return 1
   fi
   return 0
 }

@@ -119,7 +119,7 @@ describe("capability-bus routes (registry reachable)", () => {
     expect(byName.reconcile.grant).toBe("invoke:reconcile");
     // The reconciler is the merged Python module; the manifest wraps it, never replaces it.
     expect(byName.reconcile.surfaces[0].implementation).toBe(
-      "packages/culture-scrape/src/culturescrape/schema/reconcile.py",
+      "core/src/culturescrape/schema/reconcile.py",
     );
     expect(byName.resolve.surfaces[0].path).toBe("/api/graph/resolve");
     expect(byName.query.surfaces.map((s: { path: string }) => s.path)).toContain(

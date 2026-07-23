@@ -9,20 +9,33 @@ This is the single canonical model both **culture-scrape** (Python pipeline) and
 a cuisine, a deity, and a trade good mean the same thing in one correlatable graph.
 It is the concrete realisation of the contract sketched in
 [`culturescrape-integration.md` §5](./culturescrape-integration.md). The column
-contracts deliberately mirror culture-scrape's typed Neo4j-import headers
-([`packages/culture-scrape/.../schema/headers.py`](../packages/culture-scrape/src/culturescrape/schema/headers.py)
-and [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md)) so pinakes
+contracts are culture-scrape's typed Neo4j-import headers
+([`core/.../schema/headers.py`](../core/src/culturescrape/schema/headers.py)
+and [`docs/data-model.md`](../core/docs/data-model.md)) so pinakes
 exports are import-compatible with `neo4j-admin import` **without transformation**.
 
 > **How to consume it.** Import from `@shared/canonical-schema` in TS. On the Python
 > side, `shared/canonical-schema.json` is the artifact to validate exported node/edge
 > TSV headers against. Both repos read the *same file*; do not fork it.
 
+> **Which way the mirror points (pinakes:50).** This file leads and `headers.py`
+> follows — not the other way round. The embedded agora translation engine
+> (`agora:60-translation-engine-rust`) renders *this* contract's columns, so a
+> culture-scrape header that has drifted from it produces different bytes for the
+> same graph. `headers.py` transcribes the column tuples (the contract lives outside
+> that package, and a standalone checkout must still know its schema) and
+> `core/tests/test_canonical_schema_parity.py` pins the
+> transcription to this file, and both to the engine, column-for-column. Columns
+> culture-scrape needs but this contract does not declare — the acquisition
+> `parent_code` ref, the `extra` overflow — are **extensions**: they are appended
+> after the canonical columns by `schema.mapper.node_schema()`, never inserted into
+> them. Add a column here first.
+
 > **How to operationalize it.** This doc is the *contract*; the end-to-end operational
 > recipe that turns lexicons into a live, queryable graph (export → build → publish →
 > Neo4j load → Datalog materialize → app smoke-test, plus refresh cadence and the
 > add-a-domain checklist) is the runbook
-> [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+> [`core/docs/convergence-build.md`](../core/docs/convergence-build.md).
 
 ---
 
@@ -57,7 +70,7 @@ here). US-002 maps every `lexicons/*.tsv` onto one of these types.
 
 Each edge type has a kebab-case canonical `name` and a SCREAMING_SNAKE Neo4j `:TYPE`
 token. Where an edge already exists in culture-scrape's ontology
-([`data-model.md`](../packages/culture-scrape/docs/data-model.md)) we reuse its exact
+([`data-model.md`](../core/docs/data-model.md)) we reuse its exact
 token so the two graphs share relationship semantics.
 
 | `name` | `:TYPE` | Description |
@@ -89,7 +102,7 @@ token so the two graphs share relationship semantics.
   minted as `cs:<type>:<local>`. When a Wikidata QID is known it *is* the identity
   (`cs:language:Q1860`); otherwise the local part is a readable slug plus a hash of the
   normalized `(name, lang)` pair. Minting is deterministic, so re-runs are idempotent
-  (see [`ids.py`](../packages/culture-scrape/src/culturescrape/schema/ids.py)).
+  (see [`ids.py`](../core/src/culturescrape/schema/ids.py)).
 - **Anchors** (drive reconciliation; see US-005):
   - all node types → `wikidata_qid`
   - `language` → `language_code` (ISO 639-3 / Glottocode)
@@ -222,7 +235,7 @@ those literals with a single, documented table of per-provenance-class priors.
 - **Source of truth:** `shared/confidence-rubric.json` (typed accessors in
   `shared/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
   `confidenceCellForClass(...)`; `assertValidConfidenceRubric()` pins it well-formed).
-  culture-scrape mirrors it in `packages/culture-scrape/src/culturescrape/confidence.py`
+  culture-scrape mirrors it in `core/src/culturescrape/confidence.py`
   (`confidence_for(cls)`), kept in lockstep by `tests/test_confidence.py`.
 - **How it's stamped:** acquisition, linkers, and the TS export name their provenance
   **class** instead of hard-coding a number. TS acquire/curate scripts call
@@ -440,7 +453,7 @@ A committed snapshot of the manifest lives at
 
 culture-scrape merges the *same* real-world thing acquired from different sources onto one
 graph node by a strict **cascade** of identity signals (strongest first — see
-`packages/culture-scrape/src/culturescrape/schema/reconcile.py` and `.../merge.py`):
+`core/src/culturescrape/schema/reconcile.py` and `.../merge.py`):
 
 | # | Signal | Meaning |
 |---|--------|---------|
@@ -481,7 +494,7 @@ Each node is classified into exactly one **bucket**:
 
 `report.json` also carries `keyCoverage` (language iso/glottocode coverage, region coverage,
 `duplicateCsidsDropped`) and `byType` roll-ups. See
-[`packages/culture-scrape/docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)
+[`core/docs/reconcile-pinakes.md`](../core/docs/reconcile-pinakes.md)
 for how to feed the export into culture-scrape's reconcile step.
 
 ## 9. Bidirectional write-back & field ownership (US-007)
@@ -615,10 +628,10 @@ which runs on every push / PR. Two jobs:
   convergence-qa unit tests, then `npm run convergence-qa` (the gate; exits `1` on any of the three
   failures above).
 - **`culture-scrape`** (Python) — `uv run ruff check .`, `uv run mypy src`, `uv run pytest` in
-  `packages/culture-scrape/`.
+  `core/`.
 
 So a data change lands green only when **TS + Python** checks pass. Locally the equivalents are
-`npm run convergence-qa` and the `packages/culture-scrape` toolchain. The CLI prints a one-line
+`npm run convergence-qa` and the `core` toolchain. The CLI prints a one-line
 summary (`PASS`/`FAIL`, node count, id-overlap %, unreconciled %, and drift / attribution /
 regression issue counts) and, on failure, one line per issue to stderr. The per-domain data
 workflow that this gate guards is [`data-population-runbook.md`](./data-population-runbook.md).

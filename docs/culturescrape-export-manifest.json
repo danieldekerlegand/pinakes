@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "source": "pinakes",
   "nodeTypes": [
     {
@@ -84,7 +84,7 @@
       "type": "trade-good",
       "label": "TradeGood",
       "file": "nodes/trade-good.tsv",
-      "count": 45
+      "count": 59
     },
     {
       "type": "battle",
@@ -156,7 +156,7 @@
     }
   ],
   "totals": {
-    "nodes": 6835,
+    "nodes": 6849,
     "edges": 5836,
     "nodeTypes": 17,
     "edgeTypes": 8
@@ -312,7 +312,7 @@
         "confidence",
         "license"
       ],
-      "total": 6835,
+      "total": 6849,
       "byType": [
         {
           "type": "language",
@@ -472,14 +472,14 @@
         },
         {
           "type": "trade-good",
-          "count": 45,
+          "count": 59,
           "nonEmpty": {
-            "source": 45,
+            "source": 59,
             "source_url": 0,
             "source_query": 0,
             "retrieved_at": 0,
-            "confidence": 45,
-            "license": 45
+            "confidence": 59,
+            "license": 59
           }
         },
         {
@@ -520,12 +520,12 @@
         }
       ],
       "nonEmpty": {
-        "source": 6835,
+        "source": 6849,
         "source_url": 2066,
         "source_query": 2562,
         "retrieved_at": 2066,
-        "confidence": 6835,
-        "license": 6835
+        "confidence": 6849,
+        "license": 6849
       }
     },
     "edge": {
@@ -647,11 +647,11 @@
       "citationsWithoutCanonicalColumn": 0
     },
     "flags": [
-      "node.source_query: 2562/6835 rows preserve the original pinakes citation.",
+      "node.source_query: 2562/6849 rows preserve the original pinakes citation.",
       "edge.source_url: 0/5836 edges carry a URL; left blank, never fabricated.",
       "edge.retrieved_at: 0/5836 edges carry a retrieval timestamp; left blank, never fabricated.",
       "edge.source_query: 1103/5836 edges preserve their original citation (canonical schema v1.1 — previously dropped).",
-      "license: 6835/6835 nodes and 5836/5836 edges carry an SPDX license (source-derived; default CC-BY-4.0)."
+      "license: 6849/6849 nodes and 5836/5836 edges carry an SPDX license (source-derived; default CC-BY-4.0)."
     ]
   }
 }

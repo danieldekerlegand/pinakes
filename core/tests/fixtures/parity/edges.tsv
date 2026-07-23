@@ -1,0 +1,4 @@
+:START_ID	:END_ID	:TYPE	weight:float	time_start:int	time_end:int	pinakes_id	source	source_url	source_query	retrieved_at	confidence:float	license
+cs:dish:Q207965	cs:language:Q5218	DERIVED_FROM		1500	1600	edge/1					0.33	
+cs:dish:Q207965	cs:place:Q2634	ORIGINATES_IN	1.0				wikidata	https://example.invalid/a		2026-01-01T00:00:00Z	0.8	CC0-1.0
+cs:place:Q2634	cs:language:Q5218	ORIGINATES_IN										

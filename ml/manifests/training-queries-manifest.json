@@ -1,26 +1,26 @@
 {
   "counts": {
-    "negatives": 704,
-    "positives": 176,
-    "queries": 880
+    "negatives": 692,
+    "positives": 173,
+    "queries": 865
   },
   "leakage": {
-    "collisionsRejected": 4,
+    "collisionsRejected": 1,
     "insufficientPoolNegatives": 0,
     "knownPositives": 1733,
     "negativesLeakingKnownPositives": 0,
     "negativesLeakingTrainFacts": 0,
-    "trainPositives": 1385
+    "trainPositives": 1386
   },
   "negativeRatio": 4,
   "perRelation": {
     "BORROWED_FROM": {
-      "negatives": 16,
-      "positives": 4
+      "negatives": 20,
+      "positives": 5
     },
     "DESCENDS_FROM": {
-      "negatives": 688,
-      "positives": 172
+      "negatives": 672,
+      "positives": 168
     }
   },
   "poolSizes": {
@@ -33,7 +33,7 @@
       "to": 1892
     }
   },
-  "queriesSha256": "22b010155a6153c0d5738492e3d7a173e3b5188ab8f08465df3d83bb69643359",
+  "queriesSha256": "249c01681c5776458cf4f5d52b90581afb21a0082c6332f12d8fab7856a1a1f8",
   "seed": 20260713,
   "sourceSplit": "valid",
   "targetRelations": [

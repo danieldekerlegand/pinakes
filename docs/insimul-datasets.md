@@ -11,7 +11,7 @@ score on.
 - Manifest: [`ml/manifests/insimul-datasets-manifest.json`](../ml/manifests/insimul-datasets-manifest.json)
 - Data (DVC-tracked, git-ignored, **never committed**): `ml/data/insimul/`
 - Fixtures: `ml/fixtures/insimul/{world-export,rule-candidates.jsonl,bridge-graph}.json`
-  plus the Bridge-2 world at `packages/culture-scrape/tests/fixtures/insimul/world-export.json`
+  plus the Bridge-2 world at `core/tests/fixtures/insimul/world-export.json`
 
 `INSIMUL_SYNC_PLAN.md` §5.1 is the spec: *"Rule-authoring SFT — (world context +
 vocabulary-grounded instruction → validated Prolog rule). Scale via rejection

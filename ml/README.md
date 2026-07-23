@@ -3,7 +3,7 @@
 Phase 2 of [`NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md): the first
 **fact → model loop**, built at the *current* corpus scale (deliberately before
 scale-up, so corpus growth becomes measurable). This workspace is intentionally
-**separate from the `packages/culture-scrape/` sidecar** so the sidecar Docker
+**separate from the `core/` sidecar** so the sidecar Docker
 image stays slim — the sidecar never imports torch/pykeen.
 
 Deliverables (one Ralph story each):
@@ -82,7 +82,7 @@ so nothing leaves the machine and no cloud credentials are needed.
 | Path | What it is |
 |------|-----------|
 | `export/culturescrape` | Canonical node/edge TSV export (the corpus the triples exporter reads) |
-| `packages/culture-scrape/out/pinakes-full` | Full Datalog/Neo4j rebuild output |
+| `core/out/pinakes-full` | Full Datalog/Neo4j rebuild output |
 | `ml/data` | ML datasets (triples + splits, US-002) and trained artifacts (embeddings, US-003) |
 
 ### Workflow

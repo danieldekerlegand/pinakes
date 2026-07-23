@@ -67,9 +67,9 @@ describe("CultureProfile data layer", () => {
 
   describe("getCultureProfileById", () => {
     it("returns a specific profile by ID", async () => {
-      const profile = await storage.getCultureProfileById("roman-culture");
+      const profile = await storage.getCultureProfileById("cp-roman");
       expect(profile).not.toBeNull();
-      expect(profile!.name).toBe("Roman");
+      expect(profile!.name).toBe("Roman Culture");
       expect(profile!.socialOrganization).toBe("empire");
       expect(profile!.technologyLevel).toBe("iron");
       expect(profile!.associatedLanguageIds).toContain("latin");
@@ -81,7 +81,7 @@ describe("CultureProfile data layer", () => {
     });
 
     it("parses pipe-separated fields correctly", async () => {
-      const profile = await storage.getCultureProfileById("aztec-culture");
+      const profile = await storage.getCultureProfileById("cp-aztec");
       expect(profile).not.toBeNull();
       expect(profile!.alternateNames).toContain("Mexica");
       expect(profile!.alternateNames).toContain("Tenochca");

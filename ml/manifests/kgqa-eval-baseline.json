@@ -1,7 +1,7 @@
 {
   "counts": {
-    "derivation": 169,
-    "path": 225,
+    "derivation": 168,
+    "path": 226,
     "records": 394
   },
   "retrievalDepth": 2,
@@ -14,7 +14,7 @@
           "descentCycles": 0,
           "schemaTypeBreaches": 20
         },
-        "numPredictions": 370
+        "numPredictions": 371
       },
       "metrics": {
         "accuracyExact": 0.984772,
@@ -23,26 +23,26 @@
         "answered": 388,
         "byKind": {
           "derivation": {
-            "accuracyExact": 0.964497,
-            "accuracyNormalized": 0.964497,
-            "answerRate": 0.964497,
-            "answered": 163,
-            "exact": 163,
-            "grounded": 169,
+            "accuracyExact": 0.964286,
+            "accuracyNormalized": 0.964286,
+            "answerRate": 0.964286,
+            "answered": 162,
+            "exact": 162,
+            "grounded": 168,
             "groundingRate": 1.0,
-            "normalized": 163,
-            "total": 169
+            "normalized": 162,
+            "total": 168
           },
           "path": {
             "accuracyExact": 1.0,
             "accuracyNormalized": 1.0,
             "answerRate": 1.0,
-            "answered": 225,
-            "exact": 225,
-            "grounded": 225,
+            "answered": 226,
+            "exact": 226,
+            "grounded": 226,
             "groundingRate": 1.0,
-            "normalized": 225,
-            "total": 225
+            "normalized": 226,
+            "total": 226
           }
         },
         "exact": 388,
@@ -68,26 +68,26 @@
         "answered": 0,
         "byKind": {
           "derivation": {
-            "accuracyExact": 0.017751,
-            "accuracyNormalized": 0.017751,
+            "accuracyExact": 0.017857,
+            "accuracyNormalized": 0.017857,
             "answerRate": 0.0,
             "answered": 0,
             "exact": 3,
             "grounded": 0,
             "groundingRate": 0.0,
             "normalized": 3,
-            "total": 169
+            "total": 168
           },
           "path": {
-            "accuracyExact": 0.013333,
-            "accuracyNormalized": 0.013333,
+            "accuracyExact": 0.013274,
+            "accuracyNormalized": 0.013274,
             "answerRate": 0.0,
             "answered": 0,
             "exact": 3,
             "grounded": 0,
             "groundingRate": 0.0,
             "normalized": 3,
-            "total": 225
+            "total": 226
           }
         },
         "exact": 6,

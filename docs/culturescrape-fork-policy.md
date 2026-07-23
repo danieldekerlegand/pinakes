@@ -1,7 +1,11 @@
 # culture-scrape fork policy — one source of truth
 
 **Status:** Canonical decision, 2026-07-12 (Phase 0 item 0.9 / US-009).
-**TL;DR:** `packages/culture-scrape/` in this monorepo is the **single canonical copy**
+Updated 2026-07-23: the `packages/culture-scrape/` shell was retired and the engine is
+now first-party pinakes code at `core/` ([`docs/REMOVED_FEATURES.md`](./REMOVED_FEATURES.md)).
+That **strengthens** this policy rather than changing it — there is no longer even a
+"vendored copy" to re-sync.
+**TL;DR:** `core/` in this monorepo is the **single canonical copy**
 of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo is
 **diverged and behind** — it is **archived**, not synced. Do all Python engine work here.
 
@@ -10,19 +14,23 @@ of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo
 culture-scrape began as a standalone Python repo (`~/Development/culture-scrape`) and was
 **vendored** into pinakes at `packages/culture-scrape/` so the two projects could
 co-evolve without a package-publish round trip (see `docs/culturescrape-integration.md`).
-The vendored copy carries **no nested `.git`** — it is an ordinary subtree of this
-monorepo, so every commit to it lands in pinakes's history. That was the right call
+That copy carried **no nested `.git`** — it was an ordinary subtree of this
+monorepo, so every commit to it landed in pinakes's history. That was the right call
 for velocity, but it created the classic vendored-fork hazard: the vendored copy moved
 ahead while the standalone repo stood still, and there was **no sync mechanism** to
 reconcile them. A diverged fork of the core engine is pure risk — this document retires
 that risk on paper and states the procedure.
 
+The shell has since been retired outright: the engine moved to `core/` as first-party
+code, so "the vendored copy" is simply *pinakes's code* now. The divergence table in §3
+is kept as the historical record of what the standalone repo lacks.
+
 ## 2. The decision
 
-- **`packages/culture-scrape/` is canonical.** All future Python engine changes
+- **`core/` is canonical.** All future Python engine changes
   (acquisition adapters, datalog/neo4j emitters, rules, materializer) land here and are
   reviewed + tested via this repo's toolchain (`uv run mypy src` / `uv run pytest` /
-  `uv run ruff check .` from `packages/culture-scrape/`, plus the `convergence-qa.yml`
+  `uv run ruff check .` from `core/`, plus the `convergence-qa.yml`
   CI job).
 - **The standalone `~/Development/culture-scrape` repo is archived, not merged back.**
   It is behind on every axis below and has no changes the vendored copy lacks that are
@@ -35,7 +43,7 @@ that risk on paper and states the procedure.
 
   Archive procedure (do once, when convenient — not required for correctness here since the
   repo is already absent): tag the standalone repo `archived-superseded-by-pinakes`,
-  push the tag, and set its README to point at `packages/culture-scrape/` as canonical, or
+  push the tag, and set its README to point at `core/` as canonical, or
   simply move it to cold storage. **Do not delete history** — keep it as a provenance record
   of the pre-vendor era.
 
@@ -44,32 +52,32 @@ that risk on paper and states the procedure.
 The vendored copy is ahead by these pieces (audited 2026-07-11, roadmap §2 finding 9;
 re-confirmed against the tree 2026-07-12). The standalone repo lacks all of them.
 
-| Divergence | Where (in `packages/culture-scrape/`) | What it is |
+| Divergence | Where (in `core/`) | What it is |
 |---|---|---|
 | **Engine-free materializer** | `src/culturescrape/datalog/materialize.py` | Naive-fixpoint Datalog evaluator (`materialize`/`summarize`) that computes the rules' derived extension **without** swipl/souffle — computed 1,044,372 derived tuples over the full corpus. Vendored-only. |
 | **Neo4j counts helper** | `src/culturescrape/neo4j/counts.py` | Label/relationship-count reporting over the loaded graph. Vendored-only. |
 | **2 extra inference rules** | `src/culturescrape/datalog/rules.py` | Standalone ships **5** rules; the vendored copy ships **7** (`RULES`). The two extra port pinakes's cross-domain logic: `same_region/2` (geographic correlation) and `genetic_linguistic_correlation/2` (the symbolic core of the genetic↔linguistic correlation). |
 | **pinakes acquisition adapter** | `src/culturescrape/acquire/pinakes.py` | Reads a pinakes canonical export (`nodes/*.tsv` + `edges/*.tsv`) from disk and emits `RawRecord`s, making pinakes a first-class acquisition source alongside Wikidata/Getty/PetScan. Vendored-only. |
-| **~20 modified modules** | across `src/culturescrape/` (~84 Python modules total) | Bug fixes + capabilities added while vendored — e.g. `datalog/edges.py` `rel_conf/4` confidence projection (US-003), `datalog/prolog.py` tabling of recursive closures for cyclic base relations (US-002), `datalog/souffle.py`/`run_souffle` output-dir fixes, plus adapter/schema tweaks. These are validated by this repo's CI and documented in `packages/culture-scrape/docs/engine-validation.md`. |
+| **~20 modified modules** | across `src/culturescrape/` (~84 Python modules total) | Bug fixes + capabilities added while vendored — e.g. `datalog/edges.py` `rel_conf/4` confidence projection (US-003), `datalog/prolog.py` tabling of recursive closures for cyclic base relations (US-002), `datalog/souffle.py`/`run_souffle` output-dir fixes, plus adapter/schema tweaks. These are validated by this repo's CI and documented in `core/docs/engine-validation.md`. |
 
-**Nested-git note:** `packages/culture-scrape/` has no `.git` (verified). Never
+**Nested-git note:** `core/` has no `.git` (verified). Never
 re-introduce one — a nested repo would silently detach these files from pinakes's
 history and re-create the fork.
 
 ## 4. Working rule for future changes
 
 - **Edit here.** Any culture-scrape change is a normal commit in this monorepo under
-  `packages/culture-scrape/`. Do **not** touch `~/Development/culture-scrape`.
+  `core/`. Do **not** touch `~/Development/culture-scrape`.
 - **Never re-vendor from the standalone repo.** It is behind; copying from it would
   regress the divergence above.
 - If a genuine third-party fork of culture-scrape ever needs upstreaming, do it via an
-  explicit `git subtree` split of `packages/culture-scrape/` (one-directional export),
+  explicit `git subtree` split of `core/` (one-directional export),
   reviewed like any other release — but that is out of scope until an external consumer
   exists.
 
 ## 5. Related docs
 
 - `docs/culturescrape-integration.md` — the integration design + live export snapshot.
-- `packages/culture-scrape/docs/engine-validation.md` — the first real-engine run + the
+- `core/docs/engine-validation.md` — the first real-engine run + the
   fixes the vendored modules carry.
 - `NEUROSYMBOLIC_ROADMAP.md` §Phase 0 — the status table this policy closes (item 0.9).

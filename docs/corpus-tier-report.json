@@ -1,5 +1,5 @@
 {
-  "totalNodeRows": 6708,
+  "totalNodeRows": 6722,
   "graphTier": "curated",
   "byTier": [
     {
@@ -22,7 +22,7 @@
     },
     {
       "tier": "quarantine",
-      "nodeRows": 4666,
+      "nodeRows": 4680,
       "withWikidataQid": 0,
       "withSourceUrl": 24,
       "withConfidence": 122,
@@ -39,7 +39,7 @@
       "fullyProvenanced": 0
     }
   ],
-  "autoAdmissionReadyRate": 0.3044,
+  "autoAdmissionReadyRate": 0.3038,
   "files": [
     {
       "file": "archaeological-cultures.tsv",
@@ -170,7 +170,7 @@
     {
       "file": "trade-goods.tsv",
       "node": "trade-good",
-      "nodeRows": 45,
+      "nodeRows": 59,
       "autoAdmissionReady": 0
     },
     {

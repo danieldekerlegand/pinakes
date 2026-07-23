@@ -3,7 +3,7 @@
  *
  * culture-scrape reconciles rows from many sources onto one graph node by a strict
  * **cascade** of identity signals (strongest first — see
- * `packages/culture-scrape/src/culturescrape/schema/{reconcile,merge}.py`):
+ * `core/src/culturescrape/schema/{reconcile,merge}.py`):
  *
  *   1. `wikidata_qid`     — the QID *is* the identity;
  *   2. `getty_id`         — a shared Getty subject;
@@ -31,7 +31,7 @@
  * directory so tests drive them with fixtures; `writeReconciliation` / `runReport` do
  * the filesystem side. The keys TSV lands in the gitignored export tree; a bounded,
  * human-reviewable report snapshot is committed to `docs/reconciliation-report.json`.
- * See `packages/culture-scrape/docs/reconcile-pinakes.md` for how to feed it into
+ * See `core/docs/reconcile-pinakes.md` for how to feed it into
  * culture-scrape's reconcile step.
  */
 import fs from "node:fs";

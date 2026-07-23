@@ -247,11 +247,27 @@ describe("Economy & Trade Section - Data Layer", () => {
       const routes = await storage.getTradeRoutes();
       const goodIds = new Set(goods.map((g) => g.id));
 
+      // Report every dangling reference at once, named — a bare `expect(has).toBe(true)`
+      // says only "expected false to be true" and hides how wide the breakage is.
+      const dangling: string[] = [];
       for (const r of routes) {
         for (const goodId of r.tradedGoods) {
-          expect(goodIds.has(goodId)).toBe(true);
+          if (!goodIds.has(goodId)) dangling.push(`${r.id} -> ${JSON.stringify(goodId)}`);
         }
       }
+      expect(dangling).toEqual([]);
+    });
+
+    // tr-026..tr-039 shipped with good *names* ("grain", "textiles") in the id column, so
+    // every reference dangled. Shape is the cheaper guard: a name can never look like an id,
+    // so this bites even if a future batch happens to name a good that does exist.
+    it("traded_goods holds tg-NNN ids, never good names", async () => {
+      const routes = await storage.getTradeRoutes();
+      const malformed = routes.flatMap((r) =>
+        r.tradedGoods.filter((g) => !/^tg-\d{3}$/.test(g)).map((g) => `${r.id} -> ${JSON.stringify(g)}`),
+      );
+      expect(malformed).toEqual([]);
+      expect(routes.some((r) => r.tradedGoods.length > 0)).toBe(true);
     });
   });
 

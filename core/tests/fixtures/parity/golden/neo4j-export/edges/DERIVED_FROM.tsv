@@ -1,0 +1,2 @@
+:START_ID	:END_ID	:TYPE	weight:float	time_start:int	time_end:int	pinakes_id	source	source_url	source_query	retrieved_at	confidence:float	license
+cs:dish:Q207965	cs:language:Q5218	DERIVED_FROM		1500	1600	edge/1					0.33	

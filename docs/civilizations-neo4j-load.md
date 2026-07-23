@@ -42,7 +42,7 @@ npx tsx scripts/export-for-culturescrape.ts
 docker compose up -d neo4j          # `graph` profile; healthy in ~12s (APOC auto-fetched)
 
 # 3. Incremental, idempotent LOAD CSV against the running DB
-cd packages/culture-scrape
+cd core
 export NEO4J_URI='bolt://localhost:7687' NEO4J_USER='neo4j' NEO4J_PASSWORD='pinakes'
 uv run culturescrape to-neo4j ../../export/culturescrape --mode loadcsv
 #    → applied 37 constraint/index statement(s) and ran 24 LOAD CSV statement(s)  (~19s)
@@ -104,5 +104,5 @@ same `MERGE`-on-`csid` load) left the graph unchanged:
 `docker compose up -d neo4j` → `npx tsx scripts/export-for-culturescrape.ts` → the
 `to-neo4j --mode loadcsv` + `neo4j-counts` commands above. Corpus (`export/culturescrape`)
 and the graph volume are regenerable and gitignored; only `docker-compose.yml` and this
-doc are committed. See the roadmap §15 and `packages/culture-scrape/docs/convergence-build.md`.
+doc are committed. See the roadmap §15 and `core/docs/convergence-build.md`.
 </content>
