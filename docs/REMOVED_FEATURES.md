@@ -55,6 +55,11 @@ could not be retired and are **not** dead code:
 
 Closing these needs upstream work in agora, not in pinakes: a TSV→graph **parser**, a
 **schema-parameterized** writer, a **fact-level** render surface, and a **rule-aware** one.
+agora:60 is complete and retired, so that is a *new* agora story rather than a pending
+decision — do not re-derive it by hand. `core/tests/test_engine_surface.py` pins the eight
+renderers and one row per missing capability; it fails the day any of them lands and names
+what became completable. `core/tests/test_engine_packaging.py` does the same for the
+macOS-only wheel that blocks the sidecar image.
 
 ## TSV read-only mode
 
