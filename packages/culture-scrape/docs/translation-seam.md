@@ -94,6 +94,142 @@ consumers of the future `agora` Rust lib. Detailed in the ML-derivations section
 
 ---
 
-<!-- US-2 (GENERIC bucket — agora Rust engine API), US-3 (PINAKES-SPECIFIC bucket),
-     US-4 (ML-DERIVATION bucket), and US-5 (Entanglement register + Migration) append
-     their sections below. -->
+## Bucket 1 (GENERIC) — the `agora` Rust engine API the shared translators must expose
+
+This is the surface `agora:60` receives. The generic translators are pure functions
+of a *canonical graph* plus the *schema/vocab as config* — nothing here is
+Pinakes-specific once the schema is injected rather than hard-coded (the hard-coding
+that remains is catalogued as an entanglement in US-5). This section records (a) the
+data contract the translators operate over, (b) the Rust API surface that must
+re-expose them, (c) the dependencies that cross the seam and their Rust equivalents,
+and (d) the byte-identity / determinism invariants the port must preserve verbatim.
+
+### 1a. The pure data contract
+
+**The lossless escape table** (`schema/tsvio.py:48-65`, `_ENCODE` / `_ENCODE_MULTI` /
+`_DECODE`). Every canonical cell is escaped so a value carrying a delimiter never
+corrupts the file; decoding is a single left-to-right scan (`_unescape`, `tsvio.py:87`)
+so `\\t` decodes to a literal `\t`, never a tab:
+
+| Literal | Encoded | Notes |
+| --- | --- | --- |
+| `\` (backslash) | `\\` | the single escape char (`ESCAPE`, `tsvio.py:42`) |
+| TAB | `\t` | the column delimiter (`DELIMITER` from `headers.py`) |
+| CR | `\r` | files read in universal-newline mode |
+| LF | `\n` | a physical `\n` is only ever a row terminator |
+| `;` (inside a multi-value part) | `\;` | `MULTI_DELIMITER = ";"` (`tsvio.py:39`); joins parts of a list cell |
+
+Multi-value columns join their parts with `;`; a literal `;` inside a part is escaped
+as `\;` (`encode_values`, `tsvio.py:80`). An empty cell decodes to the empty list
+(`decode_values`, `tsvio.py:114`) — an empty list and `[""]` both serialize to `""`.
+
+**The row shape.** `Row = dict[str, str | list[str]]` (`tsvio.py:68`): scalar columns
+map to `str`, the two multi-value columns to `list[str]`. Which columns are
+multi-valued is a *shape* fact about the schema, not domain content:
+`MULTI_VALUE_KEYS = frozenset({":LABEL", "aliases"})` (`tsvio.py:45`) — it rides across
+the seam as config (US-3, canonical-schema ownership).
+
+**The deterministic sort keys** the writers impose (so writing the same logical row
+set in any input order yields byte-identical output):
+
+- `write_node_rows` (`tsvio.py:213`) sorts by **`csid`** (the schema's single
+  `IdColumn`) in canonical column order.
+- `write_edge_rows` (`tsvio.py:231`) sorts by the tuple **`(:START_ID, :END_ID,
+  :TYPE)`** (`tsvio.py:241`).
+
+Sort columns are always structural scalars; a list value there signals a caller error
+(`_sort_key`, `tsvio.py:196`).
+
+### 1b. The `agora` Rust lib API surface (canonical-graph ↔ format)
+
+The Rust lib must model a **domain-neutral in-memory canonical graph** and expose
+per-format `encode`/`decode` entrypoints. Because every format is a projection of the
+same graph over the same schema, the schema is a *parameter*, never baked into Rust:
+
+- **Canonical graph model.** A `Node` carries `csid` (the id), a `:LABEL` set
+  (multi-value), and typed scalar properties keyed by column name. An `Edge` carries
+  `:START_ID` / `:END_ID` / `:TYPE` and typed scalar properties. Property *types*
+  (`:int`, `:float`, `:LABEL`/`aliases` as lists) come from the injected schema, not
+  hard-coded columns.
+- **Schema/vocab as config.** The node `:LABEL` set, edge `:TYPE` set, and the typed
+  property columns (with their `MULTI_VALUE_KEYS`) are passed in as a config object.
+  The Python side reads them from `NodeSchema.canonical()` / `EdgeSchema.canonical()`
+  and `shared/canonical-schema.json`; those stay Pinakes-authored (US-3).
+- **TSV codec.** `encode`/`decode` mirroring `write_rows` / `read_rows` /
+  `open_rows` (`tsvio.py`), preserving the escape table and the two sort orders
+  above exactly. `open_rows` is the *streaming* reader (header eager, rows lazy) the
+  Datalog projection depends on — the Rust decode path must be a streaming iterator,
+  not a slurp (US determinism invariant below).
+- **Neo4j codec.** An encode entrypoint mirroring
+  `export_to_tsv(out_dir, *, config, env, driver)` (`neo4j/export.py:152`): stream a
+  Bolt graph (`NODE_QUERY` = `MATCH (n) RETURN labels(n), properties(n)`; `EDGE_QUERY`
+  = `MATCH (a)-[r]->(b) RETURN a.csid, b.csid, type(r), properties(r)`,
+  `neo4j/export.py:48-55`) into sharded `nodes/<label>.tsv` + `edges/<type>.tsv`.
+  Nodes are keyed on their primary (alphabetically-first) type label with the
+  `ENTITY_LABEL` anchor dropped; both node and edge shards written in canonical sort
+  order. The reverse (`admin_import.py` / `load_csv.py`) generates loader
+  scripts/Cypher from the same schema.
+- **Datalog codec.** An encode entrypoint mirroring
+  `export_dataset(directory, out, engines, *, include_rules, include_constraints,
+  include_schema_constraints, tier)` (`datalog/export.py:266`). It projects each
+  canonical `Row` to **binary** facts (`node/3` companions, `instance_of`, `rel/3` +
+  typed `t/2` + `rel_conf/4` + `rel_source/4`) via `collect_facts` (`export.py:220`)
+  and writes one or more engine programs: SWI-Prolog `graph.pl`, Soufflé `graph.dl` +
+  `<predicate>.facts`, ProbLog `graph.problog.pl`. Two hard constraints the emitters
+  assume and the port must keep:
+  - **`ARITY == 2`.** Every *predicate* literal is binary (`datalog/CLAUDE.md`,
+    "Materializing rules"); the lone arity-3 reader is `node/3` (csid, type, name).
+    The materializer and every emitter reject a non-binary predicate literal.
+  - **ProbLog confidence → `W::` annotation.** `annotate_edge_group`
+    (`datalog/problog.py:150`) lifts the `rel_conf/4` confidence onto `rel/3` and the
+    typed `t/2` as a `W::` probability prefix; companions
+    (`rel_conf/4`, `rel_source/4`) and all node/dimension facts stay certain
+    (unannotated). A confidence of `1.0` or absent is written unannotated; an
+    out-of-`[0,1]` value raises rather than emit invalid syntax.
+  - The **rules/constraints/schema-constraints/tier** toggles pass Pinakes *content*
+    into the generic emitter — they are entanglements the port must externalize
+    (rules as data, tier as a caller predicate); catalogued in US-5.
+
+### 1c. Dependencies that cross the seam, and their Rust equivalents
+
+| Python dependency | Where | Rust equivalent |
+| --- | --- | --- |
+| `neo4j` driver (optional `neo4j` extra) | **lazy-imported** in `neo4j/__init__.connect` (`from neo4j import GraphDatabase`, `__init__.py:121`); nothing needs it to *generate* scripts | a Bolt client (e.g. `neo4rs`), likewise optional/feature-gated — the codec that only writes TSV/Cypher needs no live server |
+| `problog` | a **TEST-only** dep (`dev` extra + a mypy ignore-missing-imports override, `datalog/CLAUDE.md`) | **none** — the emitter imports *nothing* from `problog`; it only writes ProbLog text. Tests `pytest.importorskip("problog")` to compute a marginal, but the encoder is pure text |
+| `torch` / `pykeen` | — | **explicitly none on this side.** Those live only in the `ml/` workspace (Bucket 3, US-4); no generic translator imports them |
+
+The `neo4j` driver is the *only* runtime dependency that crosses the generic seam,
+and it is already isolated behind one lazy import (`connect`) that raises
+`Neo4jDriverNotInstalled` with install instructions when absent — so the Rust port
+inherits a clean, single, optional Bolt boundary.
+
+### 1d. Byte-identity / determinism invariants (porting obligations)
+
+These are not optional optimizations — downstream corpus digests, git-diffability, and
+the idempotent Neo4j round-trip all depend on them. The Rust port must preserve each
+verbatim:
+
+- **`write_program == render_program`** (`datalog/prolog.py:199` vs `:170`): the
+  streaming line-by-line writer must be byte-for-byte equal to the whole-string
+  renderer — both build the same line sequence, and `write(line+"\n")` per line equals
+  `"\n".join(lines)+"\n"`. Tests enforce `write_* == render_*`; the same holds for the
+  ProbLog emitter (single-pass, shared line list). (`datalog/CLAUDE.md`, "The export is
+  streaming, not slurping".)
+- **`write_souffle_facts` row order** (`datalog/souffle.py:233`): rows are written to
+  per-relation handles in **fact order**, which equals the old grouped order (rows
+  within a file keep source order).
+- **Deterministic `collect_facts` file order** (`datalog/export.py:254`): `nodes/*.tsv`
+  then `edges/*.tsv`, each **sorted by filename**, node files first so entity-defining
+  facts precede the edges that reference them. The stream is re-iterable and streamed
+  (peak memory ≈ one row + the per-predicate signature table, never the corpus) — the
+  emitters pass over it more than once, so the Rust source must be re-iterable, not a
+  one-shot generator.
+- **Canonical TSV sort** (`schema/tsvio.py` `write_node_rows` / `write_edge_rows`):
+  the `csid` and `(:START_ID, :END_ID, :TYPE)` orders from §1a make each file a
+  byte-stable function of its logical row set, which is what makes the Neo4j
+  round-trip stable and TSV diffs meaningful.
+
+---
+
+<!-- US-3 (PINAKES-SPECIFIC bucket), US-4 (ML-DERIVATION bucket), and
+     US-5 (Entanglement register + Migration) append their sections below. -->
