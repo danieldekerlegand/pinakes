@@ -51,13 +51,7 @@ _REPO_ROOT = _ML_ROOT.parent
 #: truths, genealogy) and one VESPACE-shaped world (actions, no rules). Two
 #: worlds is the minimum for a meaningful per-world held-out split.
 DEFAULT_WORLDS = (
-    _REPO_ROOT
-    / "packages"
-    / "culture-scrape"
-    / "tests"
-    / "fixtures"
-    / "insimul"
-    / "world-export.json",
+    _REPO_ROOT / "core" / "tests" / "fixtures" / "insimul" / "world-export.json",
     _ML_ROOT / "fixtures" / "insimul" / "world-export.json",
 )
 DEFAULT_CANDIDATES = (_ML_ROOT / "fixtures" / "insimul" / "rule-candidates.jsonl",)

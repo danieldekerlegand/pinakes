@@ -5,6 +5,42 @@ torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM
 `ml/`: `uv run ruff check .`, `uv run pytest`, import smoke
 `uv run python -c 'import torch, pykeen, problog'`.
 
+## The canonical corpus is the agora lib's output — but the lib is NOT a dep
+
+Since pinakes:50 US-1 the canonical node/edge TSV `ml/` reads is rendered by the
+embedded agora translation engine (`agora:60-translation-engine-rust`), not by
+hand-written Python emitters. **Do not add the extension to this workspace.** It is
+a macOS/arm64 abi3 wheel vendored under `core/vendor/`; declaring it would churn
+`ml/uv.lock` and break `uv sync --frozen` on Linux CI — the same stance
+`pyproject.toml` already takes on `scallopy`.
+
+The tie to the engine is `tests/test_lib_export.py`, which drives the real loaders
+(`triples` / `verbalize` / `scallop`) over the engine's **committed output**,
+`core/tests/fixtures/parity/golden/neo4j-export/{nodes,edges}/*.tsv` — captured
+from `translation.to_neo4j_export` and byte-pinned by
+`core/tests/test_translation_parity.py` against both the engine and the
+pre-migration emitters. Reading a git-tracked file out of `core/` is the
+established cross-workspace move here (`export_insimul_datasets.DEFAULT_WORLDS[0]`
+does it too). The fixture is deliberately hostile — escaped tab / newline /
+backslash, a multi-label node, an empty multi-value cell, a negative year — so
+"the loaders survive the engine's escaping" is a claim with teeth. It runs in CI
+(no DVC, no wheel); the live `export/culturescrape` gates are unaffected.
+
+- **The loaders are header-*driven* but the names they look up are literals.**
+  `triples._START_COL`/`_END_COL`/`_TYPE_COL` and `verbalize`'s `_NODE_*`/`_EDGE_*`/
+  `_PROV_*` are asserted to be columns `shared/canonical-schema.json` declares, so a
+  renamed column fails loudly instead of silently reading blanks.
+- **GOTCHA — a stale repo-root-relative path is a permanent SKIP, not a failure.**
+  Every live gate is `skipif not <path>.exists()`, so a path that stops resolving
+  makes the gate vanish and the suite stays green. This bit for real: when the
+  Python package moved to `core/`, `export_scallop.DEFAULT_REGISTRY` and
+  `export_insimul_datasets.DEFAULT_WORLDS[0]` still pointed at
+  `packages/culture-scrape/`, silently killing both `test_scallop.py`
+  committed-artifact gates. `test_every_git_tracked_default_path_resolves` now
+  asserts every repo-root-anchored default that names a *committed* file exists, and
+  that none points back into the retired shell. **Diff the skip count after any
+  relocation** — it went 10 → 8 when these were repaired.
+
 ## Reproducible-artifact pattern (US-002, reused by US-003/005)
 
 The shape every dataset/metric deliverable follows:

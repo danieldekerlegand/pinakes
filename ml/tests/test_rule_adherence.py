@@ -49,13 +49,7 @@ from pinakes_ml.rule_adherence import (
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 #: The bridge-2 (US-003) fixture world — a real CanonicalWorldExport.
 BRIDGE_WORLD = (
-    _REPO_ROOT
-    / "packages"
-    / "culture-scrape"
-    / "tests"
-    / "fixtures"
-    / "insimul"
-    / "world-export.json"
+    _REPO_ROOT / "core" / "tests" / "fixtures" / "insimul" / "world-export.json"
 )
 
 

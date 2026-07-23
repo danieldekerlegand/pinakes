@@ -51,13 +51,7 @@ _REPO_ROOT = _ML_ROOT.parent
 
 DEFAULT_EDGES_DIR = _REPO_ROOT / "export" / "culturescrape" / "edges"
 DEFAULT_REGISTRY = (
-    _REPO_ROOT
-    / "packages"
-    / "culture-scrape"
-    / "src"
-    / "culturescrape"
-    / "datalog"
-    / "rules_registry.tsv"
+    _REPO_ROOT / "core" / "src" / "culturescrape" / "datalog" / "rules_registry.tsv"
 )
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "scallop"
 DEFAULT_PROGRAM = _ML_ROOT / "scallop" / "program.scl"
