@@ -14,6 +14,7 @@ import {
   regenerateKgpSource,
   buildRegen,
   writeRegen,
+  runCheck,
   readKoineSource,
   resolveKoineRoot,
   KGP_PATH,
@@ -147,6 +148,17 @@ describe("regen-registry-mirror — live koine round-trip", () => {
     const first = buildRegen(fixtureRoot);
     const second = buildRegen(fixtureRoot);
     expect(second).toEqual(first);
+  });
+
+  // The read-only `check:registry-mirror` CLI is clean (exit 0) against the vendored 0.4.2
+  // mirror — it writes nothing and only reports staleness (US-4).
+  it.skipIf(!hasKoine)("check:registry-mirror reports clean (exit 0) on the freshly vendored mirror", () => {
+    const jsonBefore = readFileSync(PREDICATE_MAPPING_PATH, "utf8");
+    const kgpBefore = readFileSync(KGP_PATH, "utf8");
+    expect(runCheck()).toBe(0);
+    // Read-only: neither mirror was touched by the check.
+    expect(readFileSync(PREDICATE_MAPPING_PATH, "utf8")).toBe(jsonBefore);
+    expect(readFileSync(KGP_PATH, "utf8")).toBe(kgpBefore);
   });
 
   it("leaves the predicate-mapping registry valid, with every koineRelation resolvable", () => {

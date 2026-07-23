@@ -360,9 +360,37 @@ export function runRegen(): void {
   );
 }
 
+/**
+ * Read-only CLI (`--check` / `npm run check:registry-mirror`): report whether either
+ * mirror is stale against the koine checkout WITHOUT writing anything, returning the
+ * process exit code (`0` clean, `1` stale). A stale report names the ONE supported
+ * remedy (`npm run regen:registry-mirror`) and forbids hand-editing — same discipline
+ * as {@link formatSignatureDrifts} and the drift gates.
+ */
+export function runCheck(): number {
+  const koineRoot = resolveKoineRoot();
+  const { jsonChanged, kgpChanged } = diffRegen(koineRoot);
+  const stale = [
+    jsonChanged ? "shared/predicate-mapping.json" : null,
+    kgpChanged ? "shared/kgp.ts" : null,
+  ].filter(Boolean);
+  if (stale.length === 0) {
+    console.log(`check:registry-mirror: both mirrors up to date with ${koineRoot} (git status clean).`);
+    return 0;
+  }
+  console.error(
+    `check:registry-mirror: stale mirror(s): ${stale.join(", ")}.\n` +
+      `Run \`${REGEN_REMEDY}\` to re-vendor both from the koine checkout. Never hand-edit the ` +
+      "mirror — a published signature is immutable (KGP §3.2 / the registry signaturePolicy); " +
+      "upstream the correction to koine, bump registryVersion, then regen.",
+  );
+  return 1;
+}
+
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   try {
-    runRegen();
+    const exitCode = process.argv.includes("--check") ? runCheck() : (runRegen(), 0);
+    if (exitCode !== 0) process.exit(exitCode);
   } catch (err) {
     console.error((err as Error).message);
     process.exit(1);

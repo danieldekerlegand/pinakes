@@ -142,17 +142,25 @@ the projects pinakes bridges (`projects.analyzer`, `projects.insimul`). Same JSO
 runtime-validator shape as `canonical-schema`/`capability-manifest`, with one difference that
 governs how you edit it:
 
-- **The JSON is a generated MIRROR, not a source.** The authoritative copy is koine
-  `registry/predicate-mapping.json` (the file declares it in its own `canonicalHome`/`mirrors`
-  blocks). Never hand-edit `shared/predicate-mapping.json` — upstream the correction to koine,
-  bump its `registryVersion`, then re-vendor with a plain `cp`. The drift gate in
-  `predicate-mapping.test.ts` compares the two **byte-for-byte** and `skipIf`s when no koine
-  checkout is present (`KOINE_ROOT`, else `~/Development/koine`) — the same skipif-gated
-  sibling-checkout pattern as the Python confidence-rubric parity test. **Worked example of
-  that flow:** `insimul-bridge` US-002 needed `country_name/2` / `settlement_name/2` /
+- **The JSON is a generated MIRROR, not a source — and so is `kgp.ts`'s relation vocabulary.**
+  The authoritative copies are koine `registry/predicate-mapping.json` and
+  `registry/relations.tsv` + `registry/relations/<domain>.tsv` (the JSON declares this in its own
+  `canonicalHome`/`mirrors` blocks). Never hand-edit `shared/predicate-mapping.json` **or**
+  `kgp.ts`'s `KGP_CORE_RELATIONS`/`KGP_DOMAIN_RELATIONS` — a published signature is immutable
+  (KGP §3.2 / the registry `signaturePolicy`). Upstream the correction to koine, bump its
+  `registryVersion`, then re-vendor with **`npm run regen:registry-mirror`** — the one supported
+  re-vendor path (deterministic; regenerates BOTH mirrors together so they can never go
+  one-sided). `npm run check:registry-mirror` is the read-only staleness check. The plain `cp`
+  is retired — a `cp` re-vendored only the JSON and left the `kgp.ts` vocabulary to drift. The
+  drift gate in `predicate-mapping.test.ts` compares the JSON **byte-for-byte** AND the TSV
+  vocabulary signature-for-signature, and `convergence-qa.ts` blocks on staleness; all `skipIf`
+  when no koine checkout is present (`KOINE_ROOT`, else `~/Development/koine`) — the same
+  skipif-gated sibling-checkout pattern as the Python confidence-rubric parity test. **Worked
+  example of that flow:** `insimul-bridge` US-002 needed `country_name/2` / `settlement_name/2` /
   `item_name/2` (a nameless world seed is unusable, and all three are in Insimul's shipped
   `predicate-schema.ts`), so they were added to koine entries 1/2/5, `registryVersion` went
-  0.4.0 → **0.4.1**, and the mirror was re-vendored with a plain `cp` — not added locally.
+  0.4.0 → **0.4.1**, and the mirror was re-vendored with `npm run regen:registry-mirror` — not
+  added locally.
 - **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
   `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
   `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect
