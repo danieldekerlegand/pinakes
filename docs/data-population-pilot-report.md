@@ -149,7 +149,7 @@ QA report so §15's progress table can be tracked automatically as domains fill 
 - Roadmap: [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
   [§16 Production-verification pass](./prd-pinakes-deep-history-roadmap.md), Guiding Principles #5 & #8.
 - Integration design: [`culturescrape-integration.md`](./culturescrape-integration.md),
-  [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+  [`core/docs/convergence-build.md`](../core/docs/convergence-build.md).
 - Pilot artifacts: [`civilizations-writeback.md`](./civilizations-writeback.md),
   [`civilizations-neo4j-load.md`](./civilizations-neo4j-load.md),
   [`civilizations-app-verification.md`](./civilizations-app-verification.md).

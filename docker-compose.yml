@@ -15,7 +15,7 @@
 services:
   culturescrape:
     build:
-      context: ./packages/culture-scrape
+      context: ./core
     ports:
       - "8800:8800"
     environment:

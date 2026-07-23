@@ -36,7 +36,7 @@ organic boundaries, no lineage model, missing cultural domains) are all closed.
 - **Phase 14 — Speculative & long-term:** DNA-to-culture mapper, IPA/music audio, AI
   explain/anomaly/hypothesis generation, AR/VR, living-dataset ingestion.
 - **culture-scrape convergence (cross-cutting, new since March 2026):** the vendored culture-scrape
-  Python engine (`packages/culture-scrape/`) now shares one canonical node/edge schema with the
+  Python engine (`core/`) now shares one canonical node/edge schema with the
   lexicons; pinakes exports and reconciles into it and queries the shared **Neo4j + Datalog**
   graph as the correlation system-of-record. See `docs/culturescrape-integration.md`.
 

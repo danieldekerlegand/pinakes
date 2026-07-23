@@ -12,7 +12,7 @@
  * (`Special:EntityData/<QID>.json`) — the light lookup primitive, not the SPARQL
  * Query Service. The statement → canonical-field vocabulary here is deliberately
  * kept **aligned with culture-scrape's hydration profile**
- * (`packages/culture-scrape/src/culturescrape/acquire/wikidata_hydration.py`):
+ * (`core/src/culturescrape/acquire/wikidata_hydration.py`):
  * P571 inception → start year, P625 coordinate location → lat/lon, P144 based-on /
  * P737 influenced-by / P279 subclass-of → relationships, etc. Bulk SPARQL *set*
  * acquisition (a category = a query) stays culture-scrape's job (US-005); this

@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: packages/culture-scrape
+        working-directory: core
     steps:
       - uses: actions/checkout@v4
       - name: Install logic engines (swi-prolog + souffle)

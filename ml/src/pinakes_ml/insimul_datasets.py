@@ -205,7 +205,7 @@ def world_csid(node_type: str, world_id: str, entity_id: str) -> str:
     Mirrors ``acquire.insimul.WorldExport.csid`` — an alias-anchored
     ``mint_csid`` whose local part is the alias **verbatim**, i.e.
     ``cs:<type>:insimul:<worldId>:<entityId>``. Reimplemented (not imported):
-    ``ml/`` is a separate uv workspace from ``packages/culture-scrape``, so the
+    ``ml/`` is a separate uv workspace from ``core``, so the
     seam is gated by a committed cross-check fixture instead — see
     ``ml/fixtures/insimul/bridge-graph.json`` and its test.
     """

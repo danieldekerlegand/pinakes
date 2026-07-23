@@ -249,7 +249,7 @@ CSVs, a `.scl` translation of the rules registry, and a gated scallopy smoke.
 Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md).
 
 - **The registry is the rule source, not `rules.py`.** Translate from the committed
-  unified registry `packages/culture-scrape/.../datalog/rules_registry.tsv`
+  unified registry `core/.../datalog/rules_registry.tsv`
   (`clause_souffle` column — the most complete dialect, it carries the negation the
   Prolog column omits). Only `status == "active"` rows are emitted (governance).
 - **Soufflé→Scallop is a surface rewrite:** upper-case vars → lower-case, `:-` → `=`,
@@ -508,7 +508,7 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
   is the gate. Any new generator over converted worlds inherits this.
 - **The committed manifest is fixture-built, so CI needs no DVC corpus.**
   Defaults are the two committed fixture worlds — the Bridge-2 one at
-  `packages/culture-scrape/tests/fixtures/insimul/world-export.json` and the
+  `core/tests/fixtures/insimul/world-export.json` and the
   VESPACE one at `ml/fixtures/insimul/world-export.json` — plus
   `ml/fixtures/insimul/rule-candidates.jsonl` (a hand-authored Insimul
   rejection-sampling export: 7 candidates over 3 `promptId` groups, each with a
@@ -520,7 +520,7 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
   `ml/fixtures/insimul/bridge-graph.json`, generated *by the adapter*.
   **Regenerate it after ANY change to `acquire/insimul.py`:**
   ```sh
-  cd packages/culture-scrape && uv run python -c "
+  cd core && uv run python -c "
   import json, pathlib
   from culturescrape.acquire.insimul import read_world_export, world_records, world_edges
   ex = read_world_export('tests/fixtures/insimul/world-export.json')

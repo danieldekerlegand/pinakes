@@ -50,7 +50,7 @@ data-layer-convergence work (US-001…US-008) closed each gap; the code lives un
 | **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `shared/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
 | **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
 | **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="pinakes"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
-| **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`packages/culture-scrape/`) + `graph-app-integration`. CPU-domain compute stays TS. |
+| **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`core/`) + `graph-app-integration`. CPU-domain compute stays TS. |
 | **Ontology / dimensions** | temporal / geographic / linguistic / genetic | explorer dims: temporal/spatial/relational/hierarchical/categorical | **Contract ratified** — canonical dimension columns (`time_start`/`time_end`/`period`, `lat`/`lon`/`*_id`, `language_code`/`script`) defined in the schema; explorer-adapter mapping is downstream UI work. |
 
 **Key insight:** `cultural-lineages.tsv` is already a hand-built edge table. culture-scrape
@@ -100,7 +100,7 @@ across pinakes's embedded FK columns too.
 
 ## 6. Vendored monorepo (single repo, single history)
 
-culture-scrape is **vendored into this repo at `packages/culture-scrape/`** (a fresh copy of its
+culture-scrape is **vendored into this repo at `core/`** (a fresh copy of its
 tracked files — its 105-commit upstream history is intentionally *not* imported, so pinakes's
 history stays clean). Because both projects now live in one repo, a single Ralph run can modify
 either side and commit atomically — there is **no cross-repo split**. Work still splits by
@@ -109,11 +109,11 @@ either side and commit atomically — there is **no cross-repo split**. Work sti
 | Work | Runtime | Location |
 |---|---|---|
 | Canonical schema contract doc + machine-readable schema | shared | `docs/`, `shared/`, PRD `tasks/ralph/data-layer-convergence.json` |
-| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `packages/culture-scrape/`, PRD `tasks/ralph/pinakes-convergence-python.json` |
+| Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `core/`, PRD `tasks/ralph/pinakes-convergence-python.json` |
 | Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `client/`, PRDs `tasks/ralph/{data-layer-convergence,graph-app-integration}.json` |
 
 → The Python-side ingestion/reconciliation/Datalog work is an in-repo concern under
-`packages/culture-scrape/`, driven by its own Ralph PRD. Everything references this doc as the
+`core/`, driven by its own Ralph PRD. Everything references this doc as the
 source of truth.
 
 ## 7. The convergence toolchain (what's built)
@@ -154,7 +154,7 @@ The round trip, with the exact command and artifact at each hop:
       │ 2. RECONCILE (dry-run, network-free)   npx tsx scripts/reconciliation-report.ts
       ▼              → keys.tsv + report.json  (matched / ambiguous / likely-new buckets)
       │
-      │ 3. INGEST + RECONCILE + LOAD  (Python — packages/culture-scrape/)
+      │ 3. INGEST + RECONCILE + LOAD  (Python — core/)
       ▼   tabular adapter → normalize → reconcile.py/merge.py → Neo4j load → Datalog
  shared graph  (Neo4j nodes/edges under shared labels + Datalog inference facts)
       │
@@ -170,14 +170,14 @@ The round trip, with the exact command and artifact at each hop:
 ```
 
 - **Steps 1, 2, 5, GATE are TypeScript in this repo** (`scripts/`). Step 3 is Python under
-  `packages/culture-scrape/`; step 4 is the pinakes app + the `graph-app-integration` PRD.
+  `core/`; step 4 is the pinakes app + the `graph-app-integration` PRD.
 - **Step 3 is itself a one-command, offline, reproducible recipe:** `culturescrape run
   jobs/pinakes.yml` (re)builds the pinakes-inclusive corpus — ingest → reconcile →
   link → Datalog/Neo4j — from the committed fixture export, with a committed manifest
-  (`packages/culture-scrape/docs/convergence-manifest.json`) asserted against a fresh build in
+  (`core/docs/convergence-manifest.json`) asserted against a fresh build in
   CI. The full operational recipe — build the *live* corpus, load Neo4j, materialize Datalog,
   smoke-test from the app, plus refresh cadence and the add-a-domain checklist — is the
-  runbook [`packages/culture-scrape/docs/convergence-build.md`](../packages/culture-scrape/docs/convergence-build.md).
+  runbook [`core/docs/convergence-build.md`](../core/docs/convergence-build.md).
 - **TSV is the source of truth at both ends.** Nothing in the graph is authoritative for a
   human-curated lexicon column — the graph enriches blanks and owns edges (see §10).
 - **Provenance survives the whole trip:** every exported row carries `source`/`source_url`/
@@ -209,12 +209,12 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
    id if ever present); otherwise it lands as `likely-new` and is fine.
 7. **Run the gate:** `npx tsx scripts/convergence-qa.ts` must exit `0` (no drift).
 8. **Python side:** if the new node/edge type needs bespoke reconcile/ontology handling, cross-link
-   the work under `packages/culture-scrape/` (see §10) — the tabular adapter ingests the new
+   the work under `core/` (see §10) — the tabular adapter ingests the new
    `nodes/`/`edges/` files without code changes as long as headers match the canonical schema.
 
 Steps 1–8 map the domain; to then land it in the **live** graph (rebuild the full corpus →
 load Neo4j → materialize Datalog → smoke-test from the app), follow the operational runbook
-[`convergence-build.md` "Add a new domain to the live graph"](../packages/culture-scrape/docs/convergence-build.md).
+[`convergence-build.md` "Add a new domain to the live graph"](../core/docs/convergence-build.md).
 
 ## 10. Which side owns which step
 
@@ -222,21 +222,21 @@ load Neo4j → materialize Datalog → smoke-test from the app), follow the oper
 |---|---|---|
 | Canonical schema + lexicon mapping (contract) | **shared** — `shared/`, `docs/` | `canonical-schema.md` §1–§6 |
 | Export / reconcile dry-run / write-back / QA gate | **pinakes (TS)** — `scripts/`, `server/services/` | `canonical-schema.md` §7–§10 |
-| Tabular ingestion, reconcile/merge, ontology linking, Neo4j load, Datalog rules | **culture-scrape (Python)** — `packages/culture-scrape/` | see below |
+| Tabular ingestion, reconcile/merge, ontology linking, Neo4j load, Datalog rules | **culture-scrape (Python)** — `core/` | see below |
 | Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **pinakes (TS)** — `server/`, `client/` | `graph-app-integration` PRD |
 
-Python-side cross-links (same repo, `packages/culture-scrape/`):
+Python-side cross-links (same repo, `core/`):
 
-- **Ingesting the export:** [`docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)
+- **Ingesting the export:** [`docs/reconcile-pinakes.md`](../core/docs/reconcile-pinakes.md)
   — how the export flows through reconcile, and which side owns each merge decision.
 - **Reconciliation cascade:** `src/culturescrape/schema/reconcile.py` (QID lookup) +
-  `merge.py` (clustering/merge); see [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md).
+  `merge.py` (clustering/merge); see [`docs/data-model.md`](../core/docs/data-model.md).
 - **Typed import headers:** `src/culturescrape/schema/headers.py` — the canonical column contract
   in §4 deliberately mirrors these so the export is `neo4j-admin import`-clean.
-- **Neo4j / Datalog:** [`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md),
-  [`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md),
-  [`docs/ontology.md`](../packages/culture-scrape/docs/ontology.md).
-- **Python-side Ralph PRDs:** `packages/culture-scrape/ralph/` (acquisition, schema/entity-resolution,
+- **Neo4j / Datalog:** [`docs/neo4j.md`](../core/docs/neo4j.md),
+  [`docs/datalog.md`](../core/docs/datalog.md),
+  [`docs/ontology.md`](../core/docs/ontology.md).
+- **Python-side Ralph PRDs:** `core/ralph/` (acquisition, schema/entity-resolution,
   ontology-linking, neo4j-converter, datalog-exporter, …).
 
 ## 10b. App-side graph API routes (`/api/graph/*`)
@@ -266,7 +266,7 @@ the TS client's `Accept: application/json` (same URLs) gets JSON with the shapes
 `/metrics` → `culturescrape.ontology.metrics.to_json` (a corpus with no readable metrics
 answers a zeroed document), `/completeness` → `{ qa, rows[] }`. The two representations are
 built from the same corpus data (parity); the negotiation lives in
-`packages/culture-scrape/src/culturescrape/explorer/app.py` (`_wants_json`).
+`core/src/culturescrape/explorer/app.py` (`_wants_json`).
 
 **Degradation contract.** When a backend is unreachable the query routes answer
 **HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
@@ -414,7 +414,7 @@ down (see the degradation contract in §10b).
 - **Just the services** — `npm run sidecar:up` (build + start `culturescrape` + `neo4j`) and
   `npm run sidecar:down`. Useful when running the app from an IDE.
 
-`docker-compose.yml` defines two services: `culturescrape` (built from `packages/culture-scrape/`,
+`docker-compose.yml` defines two services: `culturescrape` (built from `core/`,
 port **8800**) and `neo4j` (`neo4j:5`, HTTP **7474** / Bolt **7687**). Neo4j sits behind the
 `graph` compose profile (it is heavy) so a bare `docker compose up` starts only the sidecar; the
 scripts above name both services explicitly, or use `docker compose --profile graph up`. Verify
@@ -429,7 +429,7 @@ graph integration adds **two out-of-process dependencies** that the server reach
 1. **Neo4j** — a managed instance (Aura or self-hosted). Set `NEO4J_URI` (use `neo4j+s://` for
    TLS in prod), `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`. The driver is lazily created,
    pooled, and torn down on `SIGTERM`/`SIGINT` (`closeGraphStore()` in `server/index.ts`).
-2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` (the `packages/culture-scrape/`
+2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` (the `core/`
    Dockerfile) as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
    `CULTURESCRAPE_API_URL` to its internal URL. Keep it on the private network — the browser never
    talks to it directly (all access is proxied through `/api/graph/*`).
@@ -475,10 +475,10 @@ the export). To add it to the explorer, follow the `culturescrape.adapter.ts` pa
   `nodes/`/`edges/` TSVs this integration consumes once loaded into Neo4j.
 - **Python-side convergence — tasklist 16:**
   [`tasks/ralph/completed/pinakes-convergence-python.json`](../tasks/ralph/completed/pinakes-convergence-python.json)
-  and the vendored engine under [`packages/culture-scrape/`](../packages/culture-scrape/) —
-  ingestion ([`docs/reconcile-pinakes.md`](../packages/culture-scrape/docs/reconcile-pinakes.md)),
-  Neo4j load ([`docs/neo4j.md`](../packages/culture-scrape/docs/neo4j.md)) and Datalog
-  ([`docs/datalog.md`](../packages/culture-scrape/docs/datalog.md)). Use its own toolchain
+  and the vendored engine under [`core/`](../core/) —
+  ingestion ([`docs/reconcile-pinakes.md`](../core/docs/reconcile-pinakes.md)),
+  Neo4j load ([`docs/neo4j.md`](../core/docs/neo4j.md)) and Datalog
+  ([`docs/datalog.md`](../core/docs/datalog.md)). Use its own toolchain
   (`mypy` / `pytest` / `ruff`), not the app's.
 - **This app-side PRD:** `tasks/ralph/graph-app-integration.json` (US-001…US-012).
 

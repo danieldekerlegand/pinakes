@@ -7,8 +7,9 @@ live path.
 
 pinakes also consumes a **shared culture-scrape graph** (Neo4j + Datalog) for
 cross-domain correlation, while keeping CPU-domain compute (linguistic distance, etymology)
-in TypeScript. The Python data/correlation engine **culture-scrape is vendored** at
-[`packages/culture-scrape/`](./packages/culture-scrape/).
+in TypeScript. The Python data/correlation engine is **first-party pinakes code** at
+[`core/`](./core/) — formerly vendored under `packages/culture-scrape/`, relocated into
+pinakes proper (the `culturescrape` package namespace is unchanged).
 
 ## Quickstart
 
@@ -37,7 +38,7 @@ tooltip. See the runbook below to enable it.
   node/edge schema, per-lexicon mapping, export/reconcile/write-back/QA tooling.
 - **Ralph workflow** — [`docs/ralph-workflow.md`](./docs/ralph-workflow.md): the autonomous
   PRD-driven iteration loop under `tasks/ralph/` and `scripts/ralph/`.
-- **Vendored engine** — [`packages/culture-scrape/README.md`](./packages/culture-scrape/README.md)
+- **Data/correlation engine** — [`core/README.md`](./core/README.md)
   (Python ≥3.11; own `mypy`/`pytest`/`ruff` toolchain).
 
 Nearby `CLAUDE.md` files (`scripts/`, `shared/`) hold directory-specific conventions.

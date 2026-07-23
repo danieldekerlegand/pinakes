@@ -6,7 +6,7 @@
  * this module — the official `neo4j-driver` — for relational/graph queries
  * (node lookup, neighborhood traversal, correlation edges).
  *
- * The canonical graph schema (packages/culture-scrape/docs/data-model.md):
+ * The canonical graph schema (core/docs/data-model.md):
  *   nodes carry `csid` (primary key), one or more `:LABEL`s, `name`, temporal
  *   props (`time_start`/`time_end`) and provenance (`source`, `source_url`,
  *   `retrieved_at`, `confidence`); edges carry a data-driven `:TYPE`, an optional

@@ -22,14 +22,14 @@ Three moving parts:
 ## 0. Prerequisites
 
 1. **The graph stack is up** (Neo4j 5 + APOC via the `graph` docker profile) and
-   the corpus is loaded. See `packages/culture-scrape/docs/convergence-build.md`
+   the corpus is loaded. See `core/docs/convergence-build.md`
    §"Load the corpus into Neo4j" — in short, from the repo root:
 
    ```bash
    # bring up Neo4j pointed at the built export
    CULTURESCRAPE_CORPUS=/corpus docker compose up -d neo4j
    # load the canonical TSV corpus into it (incremental, MERGE-based)
-   cd packages/culture-scrape
+   cd core
    uv run culturescrape to-neo4j ../../export/culturescrape --mode loadcsv
    ```
 
@@ -37,7 +37,7 @@ Three moving parts:
    kept out of the slim sidecar image). Install it where the index build runs:
 
    ```bash
-   cd packages/culture-scrape
+   cd core
    uv sync --extra graphrag          # or: pip install 'culturescrape[graphrag]'
    ```
 
@@ -54,7 +54,7 @@ One idempotent command embeds every node and (re-)creates the native vector inde
 over the embeddings:
 
 ```bash
-cd packages/culture-scrape
+cd core
 uv run culturescrape graphrag-index
 # → embedded 6123 of 6140 node(s) (dim 384) and built vector index
 #   'entity_embedding' (cosine)
@@ -152,14 +152,14 @@ that hasn't been loaded into Neo4j.
 > **Note:** the spot-check requires the live graph stack (Neo4j + the embedding
 > extra). The endpoint **contract** — success shape, empty-query short-circuit, and
 > every unavailable/ malformed state — is covered offline by
-> `packages/culture-scrape/tests/test_retrieval.py` /
+> `core/tests/test_retrieval.py` /
 > `tests/test_vector_index.py` (Python) and `server/routes/graph.test.ts` /
 > `server/services/culturescrape-client.test.ts` (TS), which run in CI with no live
 > Neo4j and no model download.
 
 ## 4. Where the pieces live
 
-- Embedder + index DDL/build: `packages/culture-scrape/src/culturescrape/neo4j/vector_index.py`
+- Embedder + index DDL/build: `core/src/culturescrape/neo4j/vector_index.py`
 - Live vector query (`db.index.vector.queryNodes` + expansion): `…/explorer/live.py` (`Neo4jLive.vector_retrieve`)
 - Hybrid retriever + endpoint gating: `…/explorer/retrieval.py`, `…/explorer/app.py` (`/api/retrieve`)
 - CLI subcommand: `…/cli.py` (`graphrag-index`)

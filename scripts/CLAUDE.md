@@ -91,7 +91,7 @@ optional). Rules:
 `smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data
 transform) — it probes the running app's `/api/graph/*` routes and asserts real,
 non-empty data (`npm run smoke:graph`, docs in
-`packages/culture-scrape/docs/convergence-build.md` "US-005"). Reusable shape for any
+`core/docs/convergence-build.md` "US-005"). Reusable shape for any
 "hit the live app and check it" script:
 
 - **Never throw on a down backend.** Every `fetch` is wrapped so a transport failure
@@ -632,7 +632,7 @@ header ending in `region` (`region`/`origin_region`/`proposed_region`). Language
 uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
 `languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
 report's `keyCoverage.languages.withGlottocode` tracks it). See
-`packages/culture-scrape/docs/reconcile-pinakes.md`.
+`core/docs/reconcile-pinakes.md`.
 
 - **The QID anchor IS cascade step 1 (US-003).** The report originally bucketed on the
   language/name key only, so a node that already carried a `wikidata_qid` was miscounted as
@@ -672,7 +672,7 @@ and `--apply` fills the blanks from it.
   collides with an existing same-type QID would create a `duplicateCsids` regression the gate
   blocks — none occurred, but verify the diagnostics after a fresh batch.
 - The matched-share ceiling (why one pass lands ~37%, not ≥50%) is documented in
-  `packages/culture-scrape/docs/reconcile-pinakes.md` (US-003): most remaining
+  `core/docs/reconcile-pinakes.md` (US-003): most remaining
   `likely-new` nodes live in lexicon files that carry **no** `wikidata_qid` column yet, so
   backfilling them needs a per-file schema addition (a separate scale-up).
 

@@ -86,7 +86,7 @@ describe("capability manifest", () => {
     });
     // The reconciler is the merged Python one — the manifest points at it, never replaces it.
     expect(primarySurface("reconcile")?.implementation).toBe(
-      "packages/culture-scrape/src/culturescrape/schema/reconcile.py",
+      "core/src/culturescrape/schema/reconcile.py",
     );
     expect(primarySurface("query")?.path).toBe("/api/graph/datalog");
     for (const name of CAPABILITY_NAMES) {

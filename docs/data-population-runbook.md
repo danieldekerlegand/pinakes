@@ -17,7 +17,7 @@ each domain isn't re-invented.
 ### 1. Generate — a domain acquisition blueprint/job
 
 Author (or extend) the culture-scrape acquisition job for the domain under
-`packages/culture-scrape/` (blueprint → generated SPARQL job, e.g. `jobs/<domain>.yml`).
+`core/` (blueprint → generated SPARQL job, e.g. `jobs/<domain>.yml`).
 Target the **tightest** Wikidata classes for the domain, not the broad umbrella classes.
 
 ### 2. Verify — the classes return what you expect
@@ -100,7 +100,7 @@ npm run convergence-qa:baseline   # rewrites docs/convergence-qa-baseline.json
 ```
 
 Also run the Python side for the acquisition/reconcile code you touched (from
-`packages/culture-scrape/`): `uv run ruff check .` · `uv run mypy src` · `uv run pytest`.
+`core/`): `uv run ruff check .` · `uv run mypy src` · `uv run pytest`.
 CI enforces both sides via `.github/workflows/convergence-qa.yml`.
 
 ### 8. Load — into Neo4j + Datalog, verify counts

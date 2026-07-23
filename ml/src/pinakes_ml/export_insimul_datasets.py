@@ -18,7 +18,7 @@ into MLflow. ``--check`` re-builds and exits non-zero on any drift from the
 committed manifest (no writes) — the retraining-free gate.
 
 Defaults build from the two committed fixture worlds (the Bridge-2 world at
-``packages/culture-scrape/tests/fixtures/insimul/world-export.json`` and the
+``core/tests/fixtures/insimul/world-export.json`` and the
 VESPACE-shaped world at ``ml/fixtures/insimul/world-export.json``) plus the
 candidate export at ``ml/fixtures/insimul/rule-candidates.jsonl``, so the
 committed manifest needs no DVC corpus. Point ``--world`` at real converted

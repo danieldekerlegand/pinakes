@@ -158,7 +158,7 @@ world in place:
 
 ```bash
 cd ml
-W=../packages/culture-scrape/tests/fixtures/insimul/world-export.json
+W=../core/tests/fixtures/insimul/world-export.json
 uv run pinakes-eval-rule-adherence --world "$W" --rules "$W" \
     --baseline /tmp/laterre.json --no-doc --no-mlflow
 ```

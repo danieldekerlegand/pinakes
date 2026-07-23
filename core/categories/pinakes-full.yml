@@ -1,0 +1,29 @@
+# Full pinakes convergence corpus — ingests the LIVE canonical export.
+#
+# Identical to categories/pinakes.yml except source.query points at the
+# real export tree that `npx tsx scripts/export-for-culturescrape.ts` writes
+# (repo-root export/culturescrape) rather than the committed 6-row fixture. That
+# live export is gitignored and regenerable, so this category is deliberately
+# NOT pinned by test_convergence_build.py — jobs/pinakes.yml (fixture)
+# stays the deterministic, CI-reproducible build; this one produces the full,
+# publishable corpus (US-001).
+#
+# `source.query` resolves relative to the working directory `culturescrape run`
+# is invoked from — the package root (core/), so the repo-root
+# export sits two levels up. Regenerate it first with the export script, then run
+# `culturescrape run jobs/pinakes-full.yml` (see docs/convergence-build.md).
+id: pinakes-full   # matches the filename so the loader can discover it.
+label: Entity   # placeholder: each exported row carries its own :LABEL.
+description: pinakes's canonical nodes/edges export (live, full), ingested as a first-class source.
+source:
+  type: dump
+  query: ../export/culturescrape
+  params:
+    adapter: pinakes-export
+    source: pinakes
+dimensions:
+  - temporal
+  - geographic
+  - linguistic
+  - genetic
+links: []

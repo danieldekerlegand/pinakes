@@ -47,7 +47,7 @@ in the contribution review queue, never as a live write — the KCB §5 merge-re
 | Capability | Grant | Primary surface | Implemented by (already merged) |
 |---|---|---|---|
 | `resolve` | `invoke:resolve` | `GET /api/graph/resolve` | `server/services/graph-resolver.ts` |
-| `reconcile` | `invoke:reconcile` | `POST /api/scraping/culturescrape` | `packages/culture-scrape/src/culturescrape/schema/reconcile.py` |
+| `reconcile` | `invoke:reconcile` | `POST /api/scraping/culturescrape` | `core/src/culturescrape/schema/reconcile.py` |
 | `query` | `invoke:query` | `POST /api/graph/datalog` | `server/routes/graph.ts`, `server/services/graph-store.ts` |
 
 Each capability carries an `x_surfaces` array — every built route behind it, first entry

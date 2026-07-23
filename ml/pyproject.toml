@@ -7,7 +7,7 @@ name = "pinakes-ml"
 version = "0.1.0"
 description = "ML / neurosymbolic workspace for pinakes — triples export, PyKEEN baselines, ProbLog, DVC + MLflow (NEUROSYMBOLIC_ROADMAP.md Phase 2)."
 readme = "README.md"
-# Kept a separate uv workspace from packages/culture-scrape so the sidecar
+# Kept a separate uv workspace from core so the sidecar
 # Docker image stays slim (no torch/pykeen). Pinned to 3.11 — the ML stack
 # (pykeen/torch wheels) lags the newest interpreters.
 requires-python = ">=3.11,<3.13"

@@ -8,7 +8,7 @@
  * the ingestion / export / QA code (US-002..US-008) build on.
  *
  * The column contracts mirror culture-scrape's typed Neo4j-import headers
- * (`packages/culture-scrape/src/culturescrape/schema/headers.py`) so exported
+ * (`core/src/culturescrape/schema/headers.py`) so exported
  * TSV is import-compatible with `neo4j-admin import` without transformation.
  */
 import canonicalSchemaJson from "./canonical-schema.json";

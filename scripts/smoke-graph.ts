@@ -15,7 +15,7 @@
  * is absent it prints a clear "stack down" message and exits 0 rather than
  * throwing a connection stack trace — so running it with nothing up is a no-op,
  * not a hard failure. It exits **1 only when a backend is up but a check fails**
- * (a genuine regression). See docs — `packages/culture-scrape/docs/convergence-build.md`.
+ * (a genuine regression). See docs — `core/docs/convergence-build.md`.
  *
  * Run:  npx tsx scripts/smoke-graph.ts   (optionally SMOKE_GRAPH_URL=… PORT=…)
  */

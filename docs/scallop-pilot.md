@@ -11,7 +11,7 @@ translated to a `.scl` program, and a scallopy smoke run proves the round trip.
   (`ml/src/pinakes_ml/export_scallop.py`)
 - **Inputs:** the DVC-tracked canonical edge export
   (`export/culturescrape/edges/*.tsv`) + the committed rules registry
-  (`packages/culture-scrape/src/culturescrape/datalog/rules_registry.tsv`)
+  (`core/src/culturescrape/datalog/rules_registry.tsv`)
 - **Committed artifacts:** the translated program `ml/scallop/program.scl` and the
   snapshot manifest `ml/manifests/scallop-export-manifest.json`
 - **DVC-tracked artifacts (git-ignored):** the interned relation CSVs +

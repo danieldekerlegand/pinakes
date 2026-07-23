@@ -266,7 +266,7 @@ class SlmPilotConfig:
         """Absolute paths: ``ml/``-relative for outputs, repo-relative for worlds.
 
         World/candidate exports live outside ``ml/`` (one fixture is under
-        ``packages/culture-scrape/``), so they resolve against the repo root;
+        ``core/``), so they resolve against the repo root;
         everything the pipeline writes or reads inside the workspace resolves
         against ``ml/``.
         """

@@ -19,7 +19,7 @@ artifacts:
 ``--check`` re-evaluates and exits non-zero on any drift from the committed
 baseline (no writes) — the retraining-free gate an operator can run by hand.
 Point ``--world`` at a real converted world (e.g. the bridge-2 fixture at
-``packages/culture-scrape/tests/fixtures/insimul/world-export.json``) and
+``core/tests/fixtures/insimul/world-export.json``) and
 ``--rules`` at that world's own export to score a generated world in place.
 """
 
