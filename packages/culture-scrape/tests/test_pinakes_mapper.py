@@ -21,15 +21,15 @@ from culturescrape.acquire.categories import CategorySpec, SourceSpec
 from culturescrape.acquire.pinakes import PinakesExportAdapter
 from culturescrape.acquire.records import Provenance, RawRecord
 from culturescrape.schema import (
-    PINAKES_ID_KEY,
     OVERFLOW_KEY,
+    PINAKES_ID_KEY,
     MapperError,
-    pinakes_edge_schema,
-    pinakes_node_schema,
     map_pinakes_edge,
     map_pinakes_node,
     map_pinakes_record,
     map_pinakes_records,
+    pinakes_edge_schema,
+    pinakes_node_schema,
     read_rows,
     write_edge_rows,
     write_node_rows,

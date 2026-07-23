@@ -11,8 +11,8 @@ preserving merge are covered on hand-built fixtures — no network, no live grap
 import json
 
 from culturescrape.schema import (
-    PINAKES_ID_KEY,
     OVERFLOW_KEY,
+    PINAKES_ID_KEY,
     RECONCILIATION_LOCAL_KEY,
     LocalMatchTier,
     LocalOutcome,
