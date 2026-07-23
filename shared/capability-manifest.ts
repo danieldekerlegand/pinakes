@@ -97,6 +97,19 @@ export interface CapabilityEndpoints {
   readonly a2a: string | null;
 }
 
+/**
+ * The KCB §5 manifest signature block. `alg` is fixed (`ed25519`); `key_id` is null
+ * until a key is provisioned. `signature` is a detached base64 Ed25519 signature over
+ * the canonical manifest with this `signature` field excluded — server-only code in
+ * `server/services/manifest-signing.ts` attaches it, keeping `shared/` node-builtin-free.
+ */
+export interface ManifestSigning {
+  readonly key_id: string | null;
+  readonly alg: string;
+  /** Base64 Ed25519 signature; present only on a signed, served manifest. */
+  readonly signature?: string;
+}
+
 /** Pinakes-local metadata carried alongside the spec fields. */
 export interface CapabilityManifestMeta {
   readonly manifestVersion: string;
@@ -120,7 +133,7 @@ export interface CapabilityManifest {
   readonly consumes: readonly Port[];
   readonly capabilities: readonly Capability[];
   readonly auth: { readonly scheme: string; readonly grants_required: readonly string[] };
-  readonly signing: { readonly key_id: string | null; readonly alg: string };
+  readonly signing: ManifestSigning;
 }
 
 /** The live manifest as authored in `capability-manifest.json`. */
@@ -173,12 +186,17 @@ function absolutize(origin: string, path: string): string {
  */
 export function capabilityManifestFor(origin: string | null): CapabilityManifest {
   if (!origin) return CAPABILITY_MANIFEST;
+  const { mcp, a2a } = CAPABILITY_MANIFEST.endpoints;
   return {
     ...CAPABILITY_MANIFEST,
     endpoints: {
       ...CAPABILITY_MANIFEST.endpoints,
       http: absolutize(origin, CAPABILITY_MANIFEST.endpoints.http),
       manifest: absolutize(origin, CAPABILITY_MANIFEST.endpoints.manifest),
+      // The MCP tools surface and the A2A agent-card are dialable fronts too, so a
+      // registry entry that lists them must carry absolute URLs — null stays null.
+      mcp: mcp ? absolutize(origin, mcp) : mcp,
+      a2a: a2a ? absolutize(origin, a2a) : a2a,
     },
     capabilities: CAPABILITY_MANIFEST.capabilities.map((c) => ({
       ...c,
@@ -250,6 +268,19 @@ export function assertValidCapabilityManifest(
   for (const key of ["http", "manifest"] as const) {
     if (!isNonEmptyString(manifest.endpoints?.[key])) {
       throw new Error(`capability-manifest: endpoints.${key} must be a non-empty string`);
+    }
+  }
+  // The MCP / A2A fronts are optional (null until stood up), but a *populated* one must be
+  // a server-relative path (leading "/") — the same shape as an `x_surfaces` path, so the
+  // serving layer can absolutize it against an origin. An absolute URL here would be
+  // double-absolutized (or point off-origin) when a registry entry is built.
+  for (const key of ["mcp", "a2a"] as const) {
+    const value = manifest.endpoints?.[key];
+    if (value === null || value === undefined) continue;
+    if (!isNonEmptyString(value) || !value.startsWith("/")) {
+      throw new Error(
+        `capability-manifest: endpoints.${key} must be null or a server-relative path (leading "/"), got "${String(value)}"`,
+      );
     }
   }
 
@@ -337,6 +368,14 @@ export function assertValidCapabilityManifest(
   }
   if (!isNonEmptyString(manifest.signing?.alg)) {
     throw new Error("capability-manifest: signing.alg must be a non-empty string");
+  }
+  // KCB §5 signing is optional (`key_id: null` = unsigned), but once a key is provisioned
+  // the id must be a non-empty string paired with the (already-required) non-empty `alg`,
+  // so a consumer can name the key it verifies against.
+  if (manifest.signing.key_id !== null && !isNonEmptyString(manifest.signing.key_id)) {
+    throw new Error(
+      "capability-manifest: a populated signing.key_id must be a non-empty string paired with a non-empty alg",
+    );
   }
 }
 

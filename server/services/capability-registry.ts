@@ -17,6 +17,7 @@
  * and `PINAKES_PUBLIC_ORIGIN` for the absolute URLs the registry hands out.
  */
 import { capabilityManifestFor, type CapabilityManifest } from "@shared/capability-manifest";
+import { signManifestForServing } from "./manifest-signing";
 
 /** Default publish timeout, in ms. */
 export const DEFAULT_REGISTRY_TIMEOUT_MS = 5_000;
@@ -81,7 +82,10 @@ export async function publishCapabilityManifest(
   }
 
   const origin = options.origin === undefined ? configuredOrigin() : options.origin;
-  const manifest: CapabilityManifest = capabilityManifestFor(origin);
+  // Publish the same document a consumer would fetch: origin-absolutized (dialable
+  // addresses, mcp/a2a included) and signed when a key is configured (KCB §5), so the
+  // registry entry carries a verifiable `signing.key_id` + `signature`.
+  const manifest: CapabilityManifest = signManifestForServing(capabilityManifestFor(origin));
   const configured = options.timeoutMs ?? Number(process.env.KCB_REGISTRY_TIMEOUT_MS);
   const timeoutMs =
     Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_REGISTRY_TIMEOUT_MS;

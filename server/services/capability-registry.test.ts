@@ -11,8 +11,18 @@ import {
   configuredOrigin,
   publishCapabilityManifest,
 } from "./capability-registry";
+import { generateSigningKeyPair, verifyManifestSignature } from "./manifest-signing";
+import type { CapabilityManifest } from "@shared/capability-manifest";
 
-const ENV_KEYS = ["KCB_REGISTRY_URL", "KCB_REGISTRY_TIMEOUT_MS", "PINAKES_PUBLIC_ORIGIN"] as const;
+const ENV_KEYS = [
+  "KCB_REGISTRY_URL",
+  "KCB_REGISTRY_TIMEOUT_MS",
+  "PINAKES_PUBLIC_ORIGIN",
+  // Cleared so the signing state of these tests is deterministic (unsigned unless a test
+  // opts in) regardless of the operator's ambient env.
+  "PINAKES_SIGNING_PRIVATE_KEY",
+  "PINAKES_SIGNING_KEY_ID",
+] as const;
 const saved: Record<string, string | undefined> = {};
 
 beforeEach(() => {
@@ -39,7 +49,9 @@ describe("publishCapabilityManifest", () => {
 
   it("posts the origin-absolutized manifest to the registry", async () => {
     let seenUrl = "";
-    let posted: { identity: string; endpoints: { manifest: string } } | null = null;
+    let posted:
+      | { identity: string; endpoints: { manifest: string; mcp: string | null; a2a: string | null } }
+      | null = null;
     const result = await publishCapabilityManifest({
       registryUrl: "https://registry.example/",
       origin: "https://pinakes.example",
@@ -54,7 +66,35 @@ describe("publishCapabilityManifest", () => {
     expect(posted!.endpoints.manifest).toBe(
       "https://pinakes.example/.well-known/kcb-manifest.json",
     );
+    // The MCP tools surface + the A2A agent-card are absolutized too, so a registry entry
+    // is directly dialable on every front (US-4).
+    expect(posted!.endpoints.mcp).toBe("https://pinakes.example/mcp");
+    expect(posted!.endpoints.a2a).toBe(
+      "https://pinakes.example/.well-known/agent-card.json",
+    );
     expect(result.registered).toBe(true);
+  });
+
+  it("posts a signed manifest when a signing key is configured (KCB §5)", async () => {
+    const { privateKeyPem, publicKeyPem, keyId } = generateSigningKeyPair();
+    process.env.PINAKES_SIGNING_PRIVATE_KEY = privateKeyPem;
+    let posted: CapabilityManifest | null = null;
+    const result = await publishCapabilityManifest({
+      registryUrl: "https://registry.example",
+      origin: "https://pinakes.example",
+      fetchImpl: (async (_url: string, init: RequestInit) => {
+        posted = JSON.parse(String(init.body)) as CapabilityManifest;
+        return new Response(null, { status: 201 });
+      }) as unknown as typeof fetch,
+    });
+    expect(result.registered).toBe(true);
+    // The published document carries a populated key id + a detached signature…
+    expect(posted!.signing.key_id).toBe(keyId);
+    expect(typeof posted!.signing.signature).toBe("string");
+    // …and it verifies against the public key over the absolutized, signed document.
+    expect(verifyManifestSignature(posted!, publicKeyPem)).toBe(true);
+    // Absolutized fronts survive signing.
+    expect(posted!.endpoints.mcp).toBe("https://pinakes.example/mcp");
   });
 
   it("reads the registry + origin from the environment", async () => {

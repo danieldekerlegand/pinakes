@@ -16,8 +16,9 @@ project can *discover* those surfaces in KCB terms and dial them directly.
 |---|---|
 | Source of truth | `shared/capability-manifest.json` (typed accessors: `shared/capability-manifest.ts`) |
 | Identity | `pinakes:agent:resolver` → `https://id.koine.example/agent/pinakes/resolver` |
-| KCB version | 0.2.0 |
+| KCB version | 0.2.0 (manifest revision `x_pinakes.manifestVersion` — bumped to `0.2.0` when the MCP/A2A fronts + signing landed) |
 | Served at | `GET /.well-known/kcb-manifest.json`, `GET /api/kcb/manifest` |
+| Invocation fronts | `endpoints.mcp` = `/mcp` (MCP tools), `endpoints.a2a` = `/.well-known/agent-card.json` (A2A agent-card), `endpoints.http` = `/api/kcb` (plain HTTP) |
 
 A capability provider is itself a fabric entity (KCB §2), so `pinakes:agent:resolver` is a KINP
 agent id and can be grounded and reasoned about like any other node.
@@ -52,6 +53,42 @@ in the contribution review queue, never as a live write — the KCB §5 merge-re
 Each capability carries an `x_surfaces` array — every built route behind it, first entry
 primary. `GET /api/kcb/capabilities` returns that directory in invocation-ready form.
 
+### Invocation fronts — MCP and A2A
+
+KCB §4 names two ways to *invoke* a capability beyond plain HTTP, and Pinakes stands up both
+as thin wrappers over the same `x_surfaces`:
+
+| Front | Endpoint | Built by | What it exposes |
+|---|---|---|---|
+| **MCP** | `endpoints.mcp` = `/mcp` | `server/routes/mcp.ts` (`@modelcontextprotocol/sdk`) | The three capabilities as MCP tools (`resolve`/`reconcile`/`query`); `list_tools` = KCB describe, `CallTool` forwards to the built surface, a down backend degrades to an MCP tool error. |
+| **A2A** | `endpoints.a2a` = `/.well-known/agent-card.json` | `server/routes/a2a.ts` (`@a2a-js/sdk`) | An A2A AgentCard advertising the three capabilities as skills; the whole KCB §2 manifest rides as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension, so a crawler pulling only the card recovers the manifest and the MCP tools url. |
+
+Both are authored as **server-relative paths** (validated: a non-null `endpoints.mcp`/`.a2a`
+must lead with `/`) and are absolutized against the serving/publishing origin exactly like
+`http`/`manifest`, so a registry entry lists dialable URLs for every front. Either may be
+`null` until stood up.
+
+## Signing (KCB §5)
+
+The served and published manifest is **signed** so a consumer can attribute its provenance
+(KCB §5 / KINP §7 `prov.agent`). Ed25519 lives in `server/services/manifest-signing.ts` (it
+needs `node:crypto`, so it stays in `server/`, not client-safe `shared/`; the `signature` field
+slot + the canonical serializer stay in `shared/`, mirroring `shared/kgp.ts`'s hasher injection).
+
+- The signature is Ed25519 over the canonical serialization of the manifest **with the
+  `signature` field excluded** (`{key_id, alg}` only), so the signed bytes bind the key id and
+  algorithm yet the signature never signs its own value. `verifyManifestSignature(manifest,
+  publicKey)` re-derives the same bytes and returns `false` (never throws) on any tamper.
+- **Optional-env degrade** (same shape as `GEONAMES_USERNAME` / `KCB_REGISTRY_URL`): with no
+  key configured the manifest is served unsigned (`signing.key_id: null`) and nothing throws —
+  KCB §5 signing is a SHOULD, not a MUST. `GET /api/kcb/status` reports `signed: true` once a
+  key is configured.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `PINAKES_SIGNING_PRIVATE_KEY` | unset | PEM (or base64-DER PKCS8) Ed25519 private key. Unset ⇒ served unsigned. |
+| `PINAKES_SIGNING_KEY_ID` | derived | `signing.key_id` to publish. Unset ⇒ derived from the public-key fingerprint (`ed25519:<hash>`) so a configured key always has a stable, non-empty id. |
+
 ## The registry is a cache, never a dependency
 
 KCB §3 makes the discovery registry an index over the providers' own surfaces
@@ -84,11 +121,6 @@ as-authored document gets server-relative paths.
 
 ## Not yet built
 
-- **MCP / A2A fronts.** `endpoints.mcp` and `endpoints.a2a` are null — Pinakes speaks to the
-  bus over plain HTTP today. Adding either is a new endpoint value, not a manifest redesign.
-- **Signing.** KCB §5 says manifests SHOULD be signed and shares one `{key_id, alg}` shape
-  with KGP `manifest.signing`. That shape is already in the manifest with `key_id: null`, so
-  signing is a key-provisioning step rather than a schema change.
 - **Grant enforcement.** `auth.grants_required` fixes the grant *shape* only; issuance,
   rotation, and spend ceilings live in Cuneiform's workforce governance (KCB §5). Pinakes's
   own HTTP surfaces keep enforcing `server/services/api-auth.ts` until a grant issuer exists.

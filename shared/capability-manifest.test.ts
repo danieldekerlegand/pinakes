@@ -121,10 +121,18 @@ describe("capabilityManifestFor", () => {
     expect(CAPABILITY_MANIFEST.endpoints.http).toBe("/api/kcb");
   });
 
-  it("leaves mcp/a2a null — Pinakes fronts the bus over plain HTTP today", () => {
+  it("serves and absolutizes the MCP (41-US-1) and A2A (41-US-2) endpoints", () => {
+    // The as-authored manifest advertises both fronts as server-relative paths.
+    expect(CAPABILITY_MANIFEST.endpoints.mcp).toBe("/mcp");
+    expect(CAPABILITY_MANIFEST.endpoints.a2a).toBe("/.well-known/agent-card.json");
     const published = capabilityManifestFor("https://pinakes.example");
-    expect(published.endpoints.mcp).toBeNull();
-    expect(published.endpoints.a2a).toBeNull();
+    // US-4 absolutizes mcp/a2a alongside http/manifest so a registry entry is dialable.
+    expect(published.endpoints.mcp).toBe("https://pinakes.example/mcp");
+    expect(published.endpoints.a2a).toBe(
+      "https://pinakes.example/.well-known/agent-card.json",
+    );
+    // The as-authored source is untouched (same-origin clients read relative paths).
+    expect(CAPABILITY_MANIFEST.endpoints.mcp).toBe("/mcp");
   });
 });
 
@@ -180,5 +188,53 @@ describe("assertValidCapabilityManifest", () => {
     mm.capabilities = mm.capabilities.filter((c) => c.name !== "query");
     mm.auth.grants_required = mm.auth.grants_required.filter((g) => g !== "invoke:query");
     expect(() => assertValidCapabilityManifest(m)).toThrow(/requires the "query" capability/);
+  });
+
+  it("rejects a populated mcp endpoint that is not a server-relative path", () => {
+    const m = cloneManifest();
+    (m as unknown as { endpoints: { mcp: string } }).endpoints.mcp = "mcp";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(
+      /endpoints\.mcp must be null or a server-relative path/,
+    );
+  });
+
+  it("rejects a populated a2a endpoint given as an absolute URL rather than a relative path", () => {
+    const m = cloneManifest();
+    (m as unknown as { endpoints: { a2a: string } }).endpoints.a2a =
+      "https://evil.example/agent-card.json";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(
+      /endpoints\.a2a must be null or a server-relative path/,
+    );
+  });
+
+  it("allows a null mcp/a2a endpoint (the front is optional until stood up)", () => {
+    const m = cloneManifest();
+    const endpoints = (m as unknown as { endpoints: { mcp: string | null; a2a: string | null } })
+      .endpoints;
+    endpoints.mcp = null;
+    endpoints.a2a = null;
+    expect(() => assertValidCapabilityManifest(m)).not.toThrow();
+  });
+
+  it("rejects a populated signing.key_id that is an empty string", () => {
+    const m = cloneManifest();
+    (m as unknown as { signing: { key_id: string } }).signing.key_id = "";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/signing\.key_id must be a non-empty string/);
+  });
+
+  it("rejects a populated signing.key_id paired with an empty alg", () => {
+    const m = cloneManifest();
+    const signing = (m as unknown as { signing: { key_id: string; alg: string } }).signing;
+    signing.key_id = "ed25519:abcdef0123456789";
+    signing.alg = "";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/signing\.alg must be a non-empty string/);
+  });
+
+  it("accepts a populated signing.key_id paired with a non-empty alg (a signed manifest)", () => {
+    const m = cloneManifest();
+    const signing = (m as unknown as { signing: { key_id: string; alg: string } }).signing;
+    signing.key_id = "ed25519:abcdef0123456789";
+    signing.alg = "ed25519";
+    expect(() => assertValidCapabilityManifest(m)).not.toThrow();
   });
 });

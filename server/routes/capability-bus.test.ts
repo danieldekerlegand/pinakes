@@ -15,6 +15,8 @@ import {
   type CapabilityBusRouteOptions,
 } from "./capability-bus";
 import type { PublishResult } from "../services/capability-registry";
+import { generateSigningKeyPair, verifyManifestSignature } from "../services/manifest-signing";
+import type { CapabilityManifest } from "@shared/capability-manifest";
 
 const REGISTERED: PublishResult = {
   registered: true,
@@ -96,6 +98,11 @@ describe("capability-bus routes (registry reachable)", () => {
     const manifest = await fetch(`${baseUrl}/api/kcb/manifest`).then((r) => r.json());
     expect(manifest.endpoints.manifest).toBe(
       "https://pinakes.example/.well-known/kcb-manifest.json",
+    );
+    // The MCP tools surface + the A2A agent-card are absolutized alongside http/manifest (US-4).
+    expect(manifest.endpoints.mcp).toBe("https://pinakes.example/mcp");
+    expect(manifest.endpoints.a2a).toBe(
+      "https://pinakes.example/.well-known/agent-card.json",
     );
     const resolve = manifest.capabilities.find((c: { name: string }) => c.name === "resolve");
     expect(resolve.x_surfaces[0].url).toBe("https://pinakes.example/api/graph/resolve");
@@ -190,6 +197,48 @@ describe("capability-bus routes (no registry configured)", () => {
     try {
       const manifest = await fetch(`${baseUrl}/api/kcb/manifest`).then((r) => r.json());
       expect(manifest.endpoints.manifest).toBe(`${baseUrl}/.well-known/kcb-manifest.json`);
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe("capability-bus routes (signing configured)", () => {
+  const savedKey = process.env.PINAKES_SIGNING_PRIVATE_KEY;
+  const savedId = process.env.PINAKES_SIGNING_KEY_ID;
+  let publicKeyPem: string;
+  let keyId: string;
+
+  beforeAll(() => {
+    const pair = generateSigningKeyPair();
+    publicKeyPem = pair.publicKeyPem;
+    keyId = pair.keyId;
+    process.env.PINAKES_SIGNING_PRIVATE_KEY = pair.privateKeyPem;
+    delete process.env.PINAKES_SIGNING_KEY_ID;
+  });
+  afterAll(() => {
+    if (savedKey === undefined) delete process.env.PINAKES_SIGNING_PRIVATE_KEY;
+    else process.env.PINAKES_SIGNING_PRIVATE_KEY = savedKey;
+    if (savedId === undefined) delete process.env.PINAKES_SIGNING_KEY_ID;
+    else process.env.PINAKES_SIGNING_KEY_ID = savedId;
+  });
+
+  it("serves a signed manifest that verifies, and reports signed:true", async () => {
+    const { baseUrl, close } = await startServer({
+      origin: "https://pinakes.example",
+      skipRegistration: true,
+    });
+    try {
+      const manifest = (await fetch(`${baseUrl}${MANIFEST_WELL_KNOWN_PATH}`).then((r) =>
+        r.json(),
+      )) as CapabilityManifest;
+      expect(manifest.signing.key_id).toBe(keyId);
+      expect(typeof manifest.signing.signature).toBe("string");
+      expect(verifyManifestSignature(manifest, publicKeyPem)).toBe(true);
+
+      const status = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
+      expect(status.signed).toBe(true);
+      expect(status.manifestVersion).toBe("0.2.0");
     } finally {
       await close();
     }
