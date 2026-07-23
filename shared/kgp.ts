@@ -87,6 +87,7 @@ export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
   derived_from: { arity: 2, argRoles: ["derived", "source"], symmetric: false, tier: "grounding-only" },
   retracts: { arity: 2, argRoles: ["retraction", "target"], symmetric: false, tier: "grounding-only" },
   supersedes: { arity: 2, argRoles: ["newer", "older"], symmetric: false, tier: "grounding-only" },
+  retrains: { arity: 2, argRoles: ["newer", "older"], symmetric: false, tier: "grounding-only" },
   located_in: { arity: 2, argRoles: ["entity", "place"], symmetric: false, tier: "horn-safe" },
   descended_from: { arity: 2, argRoles: ["descendant", "ancestor"], symmetric: false, tier: "horn-safe" },
   caused_by: { arity: 2, argRoles: ["effect", "cause"], symmetric: false, tier: "horn-safe" },

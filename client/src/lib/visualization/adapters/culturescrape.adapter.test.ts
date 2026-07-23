@@ -187,6 +187,7 @@ describe("culturescrapeAdapter.detail", () => {
       sourceUrl: "https://example.org/paella",
       retrievedAt: "2026-01-01",
       confidence: 0.9,
+      wikidataQid: null,
     });
   });
 });

@@ -109,6 +109,7 @@ describe("civilizationsAdapter", () => {
       sourceUrl: "http://www.wikidata.org/entity/Q4752820",
       retrievedAt: "2026-07-08T04:56:01.068765+00:00",
       confidence: 1.0,
+      wikidataQid: "Q4752820",
     });
     expect(d.fields.find((f) => f.label === "Wikidata")?.value).toBe("Q4752820");
   });
