@@ -74,7 +74,20 @@ loader needs (all committed there, so `docker compose up -d neo4j` is enough):
 - `load_csv.py` — keep an *existing* DB current (incremental `LOAD CSV`, `MERGE` never
   `CREATE`; edges via `apoc.merge.relationship` since `:TYPE` is data-driven).
 - `export.py` — pull a live graph back to byte-stable canonical TSV (driver-side cursor,
-  no server-side APOC export).
+  no server-side APOC export). **Rendering is delegated** (pinakes:50 US-1): the cursor
+  rows go to the embedded agora translation engine's `to_neo4j_export`, which shards and
+  writes the documents; reading the graph is ours, formatting is the engine's. Two
+  single-family calls, not one whole-graph call, so node rows are released before edge
+  rows are read. Byte-parity against the TSV writers is pinned in
+  `tests/test_translation_lib.py`. Two canonicalisations the engine applies that the
+  writers do not — row order and the `:LABEL` cell order — are harmless here because
+  `_node_row` already sorts labels and the writers already sort rows; both are pinned as
+  recorded properties, not assumed.
+  `admin_import.py` / `load_csv.py` **cannot** delegate: the engine's `to_csv` emits
+  comma-CSV and its `to_cypher` a self-contained `:param file =>` script, whereas those
+  two emit a `neo4j-admin` command over the *original* TSV and driver-bound statements
+  parsed from each file's real header (so a corpus file carrying `parent_code`/`extra`
+  still loads). Different artifacts, not the same one rendered twice.
 
 Node labels come from the row's `:LABEL` cell (`apoc.create.addLabels(... split(...))`),
 edge types from the row's `:TYPE` — so "loaded under the same labels/edge types as

@@ -40,8 +40,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from culturescrape.ontology.metrics import PINAKES_SOURCE, read_dataset
+from culturescrape.schema.headers import PINAKES_ID_KEY
 from culturescrape.schema.ids import IdError, normalize_name, normalize_qid
-from culturescrape.schema.mapper import PINAKES_ID_KEY
 from culturescrape.schema.tsvio import Row
 
 #: Provenance columns a row must all carry non-empty to count as fully sourced.

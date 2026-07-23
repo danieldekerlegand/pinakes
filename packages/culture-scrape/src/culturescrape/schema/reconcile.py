@@ -36,8 +36,9 @@ from enum import Enum
 from typing import Any
 
 from culturescrape.acquire.http import HttpClient
+from culturescrape.schema.headers import PINAKES_ID_KEY
 from culturescrape.schema.ids import IdError, mint_csid, normalize_name
-from culturescrape.schema.mapper import OVERFLOW_KEY, PINAKES_ID_KEY
+from culturescrape.schema.mapper import OVERFLOW_KEY
 from culturescrape.schema.merge import PROVENANCE_TEXT_COLUMNS
 from culturescrape.schema.tsvio import Row
 

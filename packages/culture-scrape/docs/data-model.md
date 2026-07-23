@@ -32,6 +32,7 @@ Required columns (Neo4j-import compatible headers):
 | `getty_id` | AAT/TGN/ULAN id (nullable) |
 | `aliases` | `;`-separated alternative names |
 | `description` | short gloss |
+| `pinakes_id` | round-trip alias: the source-local id a pinakes-origin row arrived with, so the canonical→lexicon mapping survives a write-back |
 
 Dimension columns (nullable; present when known):
 
@@ -48,7 +49,16 @@ Dimension columns (nullable; present when known):
 | `script` | linguistic | ISO 15924 |
 | `etymology` | linguistic | free-text or structured ref |
 | `derived_from_csid` | genetic | denormalized convenience pointer (also an edge) |
+
+**Acquisition extensions** (culture-scrape's, *not* the canonical contract's — see
+"Canonical columns are the shared contract" below). They are appended after the
+canonical columns by `schema.mapper.node_schema()`, so a canonical-only consumer
+reads the prefix unchanged:
+
+| Column | Dimension | Notes |
+|---|---|---|
 | `parent_code` | linguistic | ancestor language's code (ISO 639-3 / Glottocode); the linguistic linker resolves it to a `DESCENDS_FROM` edge (the persisted counterpart of the ephemeral `parent_qid` ref, the form a Glottolog ingest uses) |
+| `extra` | — | JSON object holding every raw field with no canonical home |
 
 Provenance columns (required on every node):
 
@@ -70,7 +80,21 @@ One file per relationship type, Neo4j-import compatible:
 | `:END_ID` | target node `csid` |
 | `:TYPE` | relationship type (see ontology below) |
 | `weight:float` | optional strength/confidence |
-| `source`, `source_url`, `retrieved_at`, `confidence:float` | provenance (same as nodes) |
+| `time_start:int`, `time_end:int` | optional validity range for the relationship |
+| `pinakes_id` | round-trip alias, as on nodes |
+| `source`, `source_url`, `source_query`, `retrieved_at`, `confidence:float`, `license` | provenance (same as nodes) |
+
+### Canonical columns are the shared contract
+
+The two tables above are `shared/canonical-schema.json` — the single contract
+`docs/canonical-schema.md` says not to fork — transcribed into
+`src/culturescrape/schema/headers.py` as `NodeSchema.canonical()` /
+`EdgeSchema.canonical()`. The embedded agora translation engine
+(`agora:60-translation-engine-rust`, reached through `culturescrape.translation`)
+renders *that* header, so drift between the two silently breaks byte-parity with
+it. `tests/test_canonical_schema_parity.py` pins header module, contract and
+engine together column-for-column; add a column to the contract first, never
+here first.
 
 ## Cross-dimensional ontology
 

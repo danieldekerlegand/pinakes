@@ -26,10 +26,15 @@ The header row names and types every column. A header *cell* is one of:
 
 ## Node columns
 
-`NodeSchema.canonical()` defines the column order below. `node_schema()` appends
-the `extra` overflow column (see [Overflow](#overflow-extra)). Every node row
-carries the identity, provenance, and any dimension columns that are known; an
-unknown dimension is simply absent (an empty cell), never invented.
+`NodeSchema.canonical()` defines the column order below — it is
+`shared/canonical-schema.json`'s `node.columns` order verbatim, the single
+contract `docs/canonical-schema.md` says not to fork. `node_schema()` appends
+culture-scrape's two acquisition extensions, `parent_code` and the `extra`
+overflow (see [Overflow](#overflow-extra)), *after* the canonical columns, so a
+canonical-only consumer — the embedded agora translation engine — reads the
+prefix unchanged. Every node row carries the identity, provenance, and any
+dimension columns that are known; an unknown dimension is simply absent (an
+empty cell), never invented.
 
 | Column header | Type | Group | Meaning |
 |---|---|---|---|
@@ -41,6 +46,7 @@ unknown dimension is simply absent (an empty cell), never invented.
 | `getty_id` | string | identity | AAT/TGN/ULAN id (nullable) |
 | `aliases` | string (multi) | identity | `;`-separated alternative names |
 | `description` | string | identity | short gloss |
+| `pinakes_id` | string | alias | round-trip alias: the source-local id a pinakes-origin row arrived with, so the canonical→lexicon mapping survives write-back |
 | `time_start` | `:int` | temporal | start year (negative = BCE) |
 | `time_end` | `:int` | temporal | end year (negative = BCE) |
 | `time_start_iso` | string | temporal | raw ISO/ambiguous temporal string when sub-year precision matters |
@@ -54,13 +60,22 @@ unknown dimension is simply absent (an empty cell), never invented.
 | `script` | string | linguistic | ISO 15924 script code |
 | `etymology` | string | linguistic | free-text or structured ref |
 | `derived_from_csid` | string | genetic | denormalized pointer to an ancestor node (also an edge) |
-| `parent_code` | string | linguistic | ancestor language code (ISO 639-3 / Glottocode) the linguistic linker resolves to a `DESCENDS_FROM` edge; persisted counterpart of the ephemeral `parent_qid` ref (a Glottolog ingest maps `Family_ID` here) |
 | `source` | string | provenance | adapter id (e.g. `wikidata`, `wikitext`, `petscan`) |
 | `source_url` | string | provenance | canonical URL/URI of the record |
 | `source_query` | string | provenance | the query/page that produced the row |
 | `retrieved_at` | string | provenance | ISO-8601 UTC timestamp |
 | `confidence` | `:float` | provenance | extraction/resolution confidence in `[0, 1]` |
 | `license` | string | provenance | SPDX id of the record's distribution licence (e.g. `CC-BY-4.0`, `CC-BY-SA-3.0`); travels with every record so a share-alike source stays legally self-describing |
+
+### Acquisition extensions (not canonical)
+
+`node_schema()` appends these two, in this order, after the canonical columns.
+They are culture-scrape's own — the contract does not declare them, so they must
+never move inside `NodeSchema.canonical()`.
+
+| Column header | Type | Group | Meaning |
+|---|---|---|---|
+| `parent_code` | string | linguistic | ancestor language code (ISO 639-3 / Glottocode) the linguistic linker resolves to a `DESCENDS_FROM` edge; persisted counterpart of the ephemeral `parent_qid` ref (a Glottolog ingest maps `Family_ID` here) |
 | `extra` | string | overflow | JSON object of unrecognised raw fields + the merge record |
 
 ## Edge columns
@@ -74,10 +89,15 @@ provenance of the source node that justified it.
 | `:END_ID` | end | target node `csid` |
 | `:TYPE` | type | relationship type (the ontology in `docs/data-model.md`) |
 | `weight` | `:float` | optional strength/confidence |
+| `time_start` | `:int` | optional start of the relationship's validity range |
+| `time_end` | `:int` | optional end of the relationship's validity range |
+| `pinakes_id` | string | round-trip alias, as on nodes |
 | `source` | string | provenance: adapter id |
 | `source_url` | string | provenance: record URL |
+| `source_query` | string | provenance: the query/page that produced the row |
 | `retrieved_at` | string | provenance: ISO-8601 UTC timestamp |
 | `confidence` | `:float` | provenance: confidence in `[0, 1]` |
+| `license` | string | provenance: SPDX id of the record's distribution licence |
 
 ## Type suffixes
 
@@ -87,7 +107,7 @@ Only three property types are supported, because only these survive a
 | Suffix | Type | Columns that require it |
 |---|---|---|
 | *(none)* | string | every column not listed below |
-| `:int` | integer | `time_start`, `time_end` |
+| `:int` | integer | `time_start`, `time_end` (on both nodes and edges) |
 | `:float` | float | `lat`, `lon`, `weight`, `confidence` |
 
 The suffix is **mandatory** for the typed columns: a property column whose name

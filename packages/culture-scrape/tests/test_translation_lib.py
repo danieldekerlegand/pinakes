@@ -163,6 +163,89 @@ def test_engine_canonicalises_row_order(tmp_path: Path) -> None:
     assert csids == sorted(csids)
 
 
+def test_neo4j_export_renders_the_reference_tsv_bytes(tmp_path: Path) -> None:
+    """``to_neo4j_export`` equals the canonical TSV writers, shard for shard.
+
+    ``neo4j/export.py`` used to shard the cursor's rows itself and write each
+    shard with :func:`~culturescrape.schema.tsvio.write_node_rows` /
+    :func:`~culturescrape.schema.tsvio.write_edge_rows`; it now hands the whole
+    canonical graph to the engine. Those writers are still the reference
+    implementation, so rendering the same rows both ways is the pre- vs
+    post-migration comparison — and it must be bytes, not shape.
+    """
+    dataset = _dataset(tmp_path / "dataset")
+    _, node_rows = read_rows(dataset / "nodes" / "nodes.tsv")
+    _, edge_rows = read_rows(dataset / "edges" / "edges.tsv")
+    # ``neo4j/export.py`` sorts each node's labels before handing them over (its
+    # ``_node_row`` drops the Entity anchor and sorts the rest), so the production
+    # path never feeds an unsorted ``:LABEL`` cell. Match it here — an unsorted
+    # cell is the one input the two renderers disagree on, pinned separately by
+    # :func:`test_engine_canonicalises_the_label_cell`.
+    for row in node_rows:
+        labels = row[":LABEL"]
+        assert not isinstance(labels, str)
+        row[":LABEL"] = sorted(labels)
+
+    rendered = translation.to_neo4j_export(translation.graph_json(node_rows, edge_rows))
+    assert rendered["node_count"] == len(node_rows)
+    assert rendered["edge_count"] == len(edge_rows)
+
+    # The engine shards nodes on their primary (alphabetically first, non-Entity)
+    # label and edges on ``:TYPE`` — reproduce that grouping to drive the writers.
+    reference = tmp_path / "reference"
+    reference.mkdir()
+    node_shards: dict[str, list[dict[str, str | list[str]]]] = {}
+    for row in node_rows:
+        labels = row[":LABEL"]
+        assert not isinstance(labels, str)
+        node_shards.setdefault(labels[0], []).append(row)
+    edge_shards: dict[str, list[dict[str, str | list[str]]]] = {}
+    for row in edge_rows:
+        edge_type = row[":TYPE"]
+        assert isinstance(edge_type, str)
+        edge_shards.setdefault(edge_type, []).append(row)
+
+    assert set(rendered["node_files"]) == set(node_shards)
+    assert set(rendered["edge_files"]) == set(edge_shards)
+
+    for label, rows in node_shards.items():
+        path = reference / f"{label}.tsv"
+        write_node_rows(path, NodeSchema.canonical(), rows)
+        assert rendered["node_files"][label] == path.read_text(encoding="utf-8")
+    for edge_type, rows in edge_shards.items():
+        path = reference / f"{edge_type}.tsv"
+        write_edge_rows(path, EdgeSchema.canonical(), rows)
+        assert rendered["edge_files"][edge_type] == path.read_text(encoding="utf-8")
+
+
+def test_engine_canonicalises_the_label_cell(tmp_path: Path) -> None:
+    """The engine sorts a node's ``:LABEL`` cell; the TSV writer preserves it.
+
+    The second behavioural difference between the two renderers, and benign for
+    the same reason as the row order: ``neo4j/export.py`` sorts the labels it
+    reads off the cursor, so the delegated path only ever hands the engine an
+    already-sorted cell. A hand-authored file can carry an unsorted one, and
+    there the engine's output is the canonical one. Recorded rather than hidden.
+    """
+    row: dict[str, str | list[str]] = {
+        "csid": "cs:dish:Q42",
+        ":LABEL": ["Dish", "CulturalArtifact"],
+        "name": "Ceviche",
+    }
+    rendered = translation.to_neo4j_export(translation.graph_json([row], []))
+
+    # Sharded on the sorted-first label, and the cell itself comes back sorted.
+    assert set(rendered["node_files"]) == {"CulturalArtifact"}
+    shard = rendered["node_files"]["CulturalArtifact"]
+    assert shard.splitlines()[1].split("\t")[1] == "CulturalArtifact;Dish"
+
+    reference = tmp_path / "Dish.tsv"
+    write_node_rows(reference, NodeSchema.canonical(), [row])
+    assert reference.read_text(encoding="utf-8").splitlines()[1].split("\t")[1] == (
+        "Dish;CulturalArtifact"
+    )
+
+
 def test_missing_engine_names_the_upstream_task() -> None:
     """An absent engine fails loudly, naming agora:60 — never a silent fallback."""
     message = translation._MISSING

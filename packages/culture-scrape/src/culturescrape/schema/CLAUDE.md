@@ -67,11 +67,32 @@ even though the schema declares it. This bit the per-record `license` (source-br
 US-001): the tabular-dump adapter stamped `Provenance.license` and `headers.py`
 `NodeSchema.canonical()` gained a `license` column, but the node output was blank until
 `_carry_provenance` learned to set `row["license"] = prov.license` (only when truthy, so
-license-less sources still emit a blank cell, not the string `None`). Edges carry no
-`license` — `EdgeSchema.canonical()` has no such column and `_carry_edge_provenance`
-copies only source/source_url/retrieved_at/confidence — so per-record licence is a
-**node-level** guarantee (the ingested records); linker-derived edges inherit their
-source node's provenance minus licence.
+license-less sources still emit a blank cell, not the string `None`).
+`EdgeSchema.canonical()` now *declares* `license` (the shared contract does — see
+below), but `_carry_edge_provenance` still copies only
+source/source_url/retrieved_at/confidence, so the cell is written blank: per-record
+licence remains a **node-level** guarantee (the ingested records), and linker-derived
+edges still inherit their source node's provenance minus licence. Filling it is a
+behaviour change, not a schema one.
+
+## The canonical header IS `shared/canonical-schema.json` — extensions go after it
+
+`NodeSchema.canonical()` / `EdgeSchema.canonical()` are the repo-wide contract
+(`docs/canonical-schema.md`: "do not fork it") transcribed into `headers.py`, and the
+embedded agora translation engine renders *that* header — so drift between the two
+silently breaks byte-parity with it. `tests/test_canonical_schema_parity.py` pins
+header module ↔ contract ↔ engine column-for-column; it is the guard that made the
+delegation in `neo4j/export.py` safe.
+
+**A column culture-scrape needs but the contract does not declare is an extension and
+hangs off the END of the canonical tuple**, never inside it — `mapper.node_schema()` is
+`NodeSchema.canonical()` + `parent_code` + `extra`. `parent_code` used to sit *inside*
+`canonical()`, and that fork is exactly what blocked delegation: the engine emits the
+contract's 28 node / 13 edge columns, culture-scrape emitted 28 *different* node / 8
+edge ones, so every byte-pinned TSV/neo4j test would have failed. Readers here are all
+header-keyed, so moving it out cost nothing — the linguistic linker still reads a real
+persisted column at `build_corpus` time. Need a new column? Add it to
+`shared/canonical-schema.json` first, or make it an extension.
 
 ## Glottolog: two-key language reconciliation (`glottolog_reconcile.py`, US-001)
 

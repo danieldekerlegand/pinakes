@@ -9,7 +9,7 @@ This is the single canonical model both **culture-scrape** (Python pipeline) and
 a cuisine, a deity, and a trade good mean the same thing in one correlatable graph.
 It is the concrete realisation of the contract sketched in
 [`culturescrape-integration.md` §5](./culturescrape-integration.md). The column
-contracts deliberately mirror culture-scrape's typed Neo4j-import headers
+contracts are culture-scrape's typed Neo4j-import headers
 ([`packages/culture-scrape/.../schema/headers.py`](../packages/culture-scrape/src/culturescrape/schema/headers.py)
 and [`docs/data-model.md`](../packages/culture-scrape/docs/data-model.md)) so pinakes
 exports are import-compatible with `neo4j-admin import` **without transformation**.
@@ -17,6 +17,19 @@ exports are import-compatible with `neo4j-admin import` **without transformation
 > **How to consume it.** Import from `@shared/canonical-schema` in TS. On the Python
 > side, `shared/canonical-schema.json` is the artifact to validate exported node/edge
 > TSV headers against. Both repos read the *same file*; do not fork it.
+
+> **Which way the mirror points (pinakes:50).** This file leads and `headers.py`
+> follows — not the other way round. The embedded agora translation engine
+> (`agora:60-translation-engine-rust`) renders *this* contract's columns, so a
+> culture-scrape header that has drifted from it produces different bytes for the
+> same graph. `headers.py` transcribes the column tuples (the contract lives outside
+> that package, and a standalone checkout must still know its schema) and
+> `packages/culture-scrape/tests/test_canonical_schema_parity.py` pins the
+> transcription to this file, and both to the engine, column-for-column. Columns
+> culture-scrape needs but this contract does not declare — the acquisition
+> `parent_code` ref, the `extra` overflow — are **extensions**: they are appended
+> after the canonical columns by `schema.mapper.node_schema()`, never inserted into
+> them. Add a column here first.
 
 > **How to operationalize it.** This doc is the *contract*; the end-to-end operational
 > recipe that turns lexicons into a live, queryable graph (export → build → publish →

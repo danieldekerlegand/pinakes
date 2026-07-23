@@ -27,10 +27,11 @@ from collections.abc import Iterable
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.records import RawRecord
 from culturescrape.schema.headers import (
+    PARENT_CODE_KEY,
+    PINAKES_ID_KEY,
     EdgeSchema,
     NodeSchema,
     PropertyColumn,
-    PropertyType,
 )
 from culturescrape.schema.ids import IdError, csid_type, mint_csid, normalize_type
 from culturescrape.schema.normalize import (
@@ -50,11 +51,6 @@ OVERFLOW_KEY = "extra"
 #: path's error messages, nothing more — it is not a provenance ``source``.
 ARGOS_ORIGIN = "analyzer"
 INSIMUL_ORIGIN = "insimul"
-
-#: Round-trip alias column: the source-local id a pinakes row arrived with.
-#: Retained on every pinakes-origin node so the export can be traced back to
-#: the exact lexicon row it came from even after its ``csid`` is (re)minted.
-PINAKES_ID_KEY = "pinakes_id"
 
 #: pinakes export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
 #:
@@ -156,9 +152,30 @@ class MapperError(ValueError):
 
 
 def node_schema() -> NodeSchema:
-    """The canonical node header plus the :data:`OVERFLOW_KEY` column."""
+    """The canonical node header plus culture-scrape's acquisition extensions.
+
+    Two columns hang off the end of the canonical tuple, in this order:
+
+    * :data:`~culturescrape.schema.headers.PARENT_CODE_KEY` — the ancestor
+      language code the linguistic linker resolves to a ``DESCENDS_FROM`` edge.
+      ``build_corpus`` links *after* re-reading the normalized TSV from disk, so
+      the ref has to survive that round-trip as a real column;
+    * :data:`OVERFLOW_KEY` — the JSON catch-all for unmapped raw fields.
+
+    Neither is in ``shared/canonical-schema.json``, so neither may sit inside
+    :meth:`NodeSchema.canonical` — the canonical prefix is what the embedded
+    agora translation engine renders, and a column injected into it would break
+    byte-parity. A reader keyed on the header (which every reader here is) sees
+    the extensions exactly as before.
+    """
     base = NodeSchema.canonical()
-    return NodeSchema((*base.columns, PropertyColumn(OVERFLOW_KEY)))
+    return NodeSchema(
+        (
+            *base.columns,
+            PropertyColumn(PARENT_CODE_KEY),
+            PropertyColumn(OVERFLOW_KEY),
+        )
+    )
 
 
 def map_record(record: RawRecord, category: CategorySpec) -> Row:
@@ -232,28 +249,20 @@ def map_records(
 
 
 def pinakes_node_schema() -> NodeSchema:
-    """The canonical node header plus the ``pinakes_id`` alias + overflow."""
+    """The canonical node header plus the overflow column.
+
+    The ``pinakes_id`` alias and the edge time range used to be appended here;
+    the canonical contract declares both, so the canonical tuple already carries
+    them and only the overflow is left to add.
+    """
     base = NodeSchema.canonical()
-    return NodeSchema(
-        (
-            *base.columns,
-            PropertyColumn(PINAKES_ID_KEY),
-            PropertyColumn(OVERFLOW_KEY),
-        )
-    )
+    return NodeSchema((*base.columns, PropertyColumn(OVERFLOW_KEY)))
 
 
 def pinakes_edge_schema() -> EdgeSchema:
-    """The canonical edge header plus pinakes time-range + alias columns."""
-    base = EdgeSchema.canonical()
-    return EdgeSchema(
-        (
-            *base.columns,
-            PropertyColumn("time_start", PropertyType.INT),
-            PropertyColumn("time_end", PropertyType.INT),
-            PropertyColumn(PINAKES_ID_KEY),
-        )
-    )
+    """The canonical edge header — ``time_start``/``time_end``/``pinakes_id``
+    are canonical columns, so a pinakes edge needs no extension."""
+    return EdgeSchema.canonical()
 
 
 def map_pinakes_record(record: RawRecord) -> Row:

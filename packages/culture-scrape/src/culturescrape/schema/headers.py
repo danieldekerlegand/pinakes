@@ -1,4 +1,20 @@
-"""Typed node/edge headers matching ``docs/data-model.md``.
+"""Typed node/edge headers matching ``shared/canonical-schema.json``.
+
+:meth:`NodeSchema.canonical` / :meth:`EdgeSchema.canonical` are the repo-wide
+canonical contract — the one ``shared/canonical-schema.json`` declares and
+``docs/canonical-schema.md`` says not to fork. The embedded agora translation
+engine (``culturescrape.translation``) renders *that* header, so any drift here
+silently breaks byte-parity with it; ``tests/test_canonical_schema_parity.py``
+pins the two together column-for-column. The tuples are transcribed rather than
+loaded from the JSON because the contract lives at the monorepo root, outside
+this package — a standalone checkout must still know its own schema — so the
+test, not an import, is what keeps them honest.
+
+Columns culture-scrape needs but the contract does not declare (the acquisition
+``parent_code`` ref, the ``extra`` overflow) are *extensions*: they hang off the
+canonical tuple in :func:`culturescrape.schema.mapper.node_schema`, never inside
+it.
+
 
 The data model adopts Neo4j's CSV header conventions (but tab-delimited) so
 ``neo4j-admin import`` consumes our TSV files directly and APOC export can
@@ -26,6 +42,16 @@ from enum import Enum
 
 #: Column delimiter for the TSV file family (see ``docs/data-model.md``).
 DELIMITER = "\t"
+
+#: Round-trip alias column: the source-local id a pinakes row arrived with.
+#: Canonical on both node and edge (``idScheme.aliasColumn`` in the contract), so
+#: a canonical→lexicon mapping survives a write-back.
+PINAKES_ID_KEY = "pinakes_id"
+
+#: Acquisition-only column: an ancestor language's ISO 639-3 / Glottocode, which
+#: the linguistic linker resolves to a ``DESCENDS_FROM`` edge. It is **not** a
+#: canonical column — see :func:`culturescrape.schema.mapper.node_schema`.
+PARENT_CODE_KEY = "parent_code"
 
 
 class SchemaError(ValueError):
@@ -136,6 +162,8 @@ NODE_PROPERTY_TYPES: dict[str, PropertyType] = {
 #: Property names the edge data model types, with their required type.
 EDGE_PROPERTY_TYPES: dict[str, PropertyType] = {
     "weight": PropertyType.FLOAT,
+    "time_start": PropertyType.INT,
+    "time_end": PropertyType.INT,
     "confidence": PropertyType.FLOAT,
 }
 
@@ -189,7 +217,12 @@ class NodeSchema:
 
     @classmethod
     def canonical(cls) -> NodeSchema:
-        """The full data-model node header (``docs/data-model.md``)."""
+        """The full canonical node header (``shared/canonical-schema.json``).
+
+        Column order is the contract's ``node.columns`` order, verbatim — see
+        the module docstring on why it is transcribed rather than loaded, and
+        ``tests/test_canonical_schema_parity.py`` for the drift guard.
+        """
         return cls(
             (
                 IdColumn("csid"),
@@ -200,6 +233,7 @@ class NodeSchema:
                 PropertyColumn("getty_id"),
                 PropertyColumn("aliases"),
                 PropertyColumn("description"),
+                PropertyColumn(PINAKES_ID_KEY),
                 PropertyColumn("time_start", PropertyType.INT),
                 PropertyColumn("time_end", PropertyType.INT),
                 PropertyColumn("time_start_iso"),
@@ -213,7 +247,6 @@ class NodeSchema:
                 PropertyColumn("script"),
                 PropertyColumn("etymology"),
                 PropertyColumn("derived_from_csid"),
-                PropertyColumn("parent_code"),
                 PropertyColumn("source"),
                 PropertyColumn("source_url"),
                 PropertyColumn("source_query"),
@@ -249,17 +282,26 @@ class EdgeSchema:
 
     @classmethod
     def canonical(cls) -> EdgeSchema:
-        """The full data-model edge header (``docs/data-model.md``)."""
+        """The full canonical edge header (``shared/canonical-schema.json``).
+
+        As with :meth:`NodeSchema.canonical`, this is the contract's
+        ``edge.columns`` order verbatim.
+        """
         return cls(
             (
                 StructuralColumn(":START_ID"),
                 StructuralColumn(":END_ID"),
                 StructuralColumn(":TYPE"),
                 PropertyColumn("weight", PropertyType.FLOAT),
+                PropertyColumn("time_start", PropertyType.INT),
+                PropertyColumn("time_end", PropertyType.INT),
+                PropertyColumn(PINAKES_ID_KEY),
                 PropertyColumn("source"),
                 PropertyColumn("source_url"),
+                PropertyColumn("source_query"),
                 PropertyColumn("retrieved_at"),
                 PropertyColumn("confidence", PropertyType.FLOAT),
+                PropertyColumn("license"),
             )
         )
 

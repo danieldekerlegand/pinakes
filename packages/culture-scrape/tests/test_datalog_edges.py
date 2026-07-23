@@ -199,19 +199,16 @@ def test_canonical_confidence_reaches_both_dialects(tmp_path: Path) -> None:
     """
     header = render_edge_header(EdgeSchema.canonical())
     # A canonical row: blank weight, confidence 0.8 (as the real corpus ships).
-    row = "\t".join(
-        {
-            ":START_ID": "cs:language:arb",
-            ":END_ID": "cs:language:eng",
-            ":TYPE": "BORROWED_FROM",
-            "weight:float": "",
-            "source": "pinakes",
-            "source_url": "",
-            "retrieved_at": "",
-            "confidence:float": "0.8",
-        }[cell]
-        for cell in header.split("\t")
-    )
+    filled = {
+        ":START_ID": "cs:language:arb",
+        ":END_ID": "cs:language:eng",
+        ":TYPE": "BORROWED_FROM",
+        "source": "pinakes",
+        "confidence:float": "0.8",
+    }
+    # Every other canonical cell is blank — including ``weight:float``, which is
+    # the point of the regression.
+    row = "\t".join(filled.get(cell, "") for cell in header.split("\t"))
     edges = tmp_path / "edges.tsv"
     edges.write_text(f"{header}\n{row}\n", encoding="utf-8")
 
