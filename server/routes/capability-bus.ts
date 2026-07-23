@@ -32,6 +32,7 @@ import {
   publishCapabilityManifest,
   type PublishResult,
 } from "../services/capability-registry";
+import { signManifestForServing } from "../services/manifest-signing";
 
 /** Where the manifest is served for registry crawlers (KCB §3 pull population). */
 export const MANIFEST_WELL_KNOWN_PATH = "/.well-known/kcb-manifest.json";
@@ -101,7 +102,9 @@ export function registerCapabilityBusRoutes(
   }
 
   function sendManifest(req: Request, res: Response): void {
-    res.json(capabilityManifestFor(originFor(req, originOption)));
+    // Absolutize for the requesting origin, then sign with the env-configured key (a no-op
+    // that serves the document unsigned when no key is set — KCB §5 signing is a SHOULD).
+    res.json(signManifestForServing(capabilityManifestFor(originFor(req, originOption))));
   }
 
   app.get(MANIFEST_WELL_KNOWN_PATH, sendManifest);
@@ -130,7 +133,9 @@ export function registerCapabilityBusRoutes(
       identity: CAPABILITY_MANIFEST.identity,
       kcbVersion: CAPABILITY_MANIFEST.kcb_version,
       manifestVersion: CAPABILITY_MANIFEST.x_pinakes.manifestVersion,
-      signed: isManifestSigned(),
+      // True when a signing key is configured: sign the authored manifest and read the
+      // populated `key_id` off the result. Unconfigured ⇒ unsigned clone ⇒ false.
+      signed: isManifestSigned(signManifestForServing(CAPABILITY_MANIFEST)),
       registry: registration,
     });
   });
