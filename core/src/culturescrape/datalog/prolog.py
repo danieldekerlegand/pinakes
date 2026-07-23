@@ -18,16 +18,21 @@ Two things make a generated file load *cleanly* (no warnings):
 :func:`render_program` builds the program text (handy to parse/assert in tests
 without touching disk); :func:`write_program` writes it to a path and returns the
 fact count. Facts render via :func:`culturescrape.datalog.render_fact` in the
-:data:`~culturescrape.datalog.Dialect.PROLOG` dialect.
+:data:`~culturescrape.datalog.Dialect.PROLOG` dialect — unless the caller passes
+``rendered_facts``, the seam through which ``datalog/export.py`` hands over
+clauses rendered by the embedded agora translation engine
+(:mod:`culturescrape.translation`). Either way this module owns only the
+directives and the header: the two are computed over facts **and** rules, which
+is why the engine cannot render the program whole.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
 from typing import TextIO
 
-from culturescrape.datalog import Dialect, Fact
+from culturescrape.datalog import DatalogError, Dialect, Fact
 from culturescrape.datalog.rules import (
     Rule,
     render_rule,
@@ -139,7 +144,36 @@ def _rule_lines(rules: list[Rule]) -> list[str]:
     return lines
 
 
-def _write_program(handle: TextIO, facts: Iterable[Fact], rules: list[Rule]) -> int:
+def _clause_lines(
+    facts: Iterable[Fact], rendered_facts: Sequence[str] | None
+) -> Iterator[str]:
+    """The fact-clause lines to emit for *facts*.
+
+    Without *rendered_facts* each fact renders here, one at a time (the streaming
+    default). With it the clauses were rendered elsewhere — by the embedded agora
+    translation engine — and are emitted verbatim, zipped ``strict`` against the
+    projected facts so a clause list that has drifted out of step with the fact
+    stream fails loudly instead of writing a short or over-long program.
+    """
+    if rendered_facts is None:
+        for fact in facts:
+            yield fact.render(Dialect.PROLOG)
+        return
+    try:
+        for _fact, line in zip(facts, rendered_facts, strict=True):
+            yield line
+    except ValueError as exc:
+        raise DatalogError(
+            "pre-rendered clause count does not match the projected fact count"
+        ) from exc
+
+
+def _write_program(
+    handle: TextIO,
+    facts: Iterable[Fact],
+    rules: list[Rule],
+    rendered_facts: Sequence[str] | None = None,
+) -> int:
     """Stream the program for *facts*/*rules* to *handle*; return the fact count.
 
     *facts* is iterated **twice** — once to collect the ``(predicate, arity)``
@@ -157,8 +191,8 @@ def _write_program(handle: TextIO, facts: Iterable[Fact], rules: list[Rule]) -> 
         handle.write(line)
         handle.write("\n")
     count = 0
-    for fact in facts:
-        handle.write(fact.render(Dialect.PROLOG))
+    for clause in _clause_lines(facts, rendered_facts):
+        handle.write(clause)
         handle.write("\n")
         count += 1
     for line in _rule_lines(rules):
@@ -197,7 +231,11 @@ def render_program(facts: Iterable[Fact], rules: Iterable[Rule] = ()) -> str:
 
 
 def write_program(
-    path: str | Path, facts: Iterable[Fact], rules: Iterable[Rule] = ()
+    path: str | Path,
+    facts: Iterable[Fact],
+    rules: Iterable[Rule] = (),
+    *,
+    rendered_facts: Sequence[str] | None = None,
 ) -> int:
     """Write a SWI-Prolog program for *facts* to *path*; return the fact count.
 
@@ -207,12 +245,21 @@ def write_program(
     and the renderer pass printable Unicode through verbatim). *facts* is iterated
     twice, so pass a re-iterable source (a list, or :func:`collect_facts`), not a
     one-shot generator.
+
+    *rendered_facts* supplies the fact clauses already rendered, in fact-stream
+    order and one string per fact — the seam the embedded agora translation engine
+    delegates through (:mod:`culturescrape.translation`). The clauses are then the
+    engine's and only the *program structure* is this module's: the schema header,
+    the ``:- table``/``:- discontiguous``/``:- dynamic`` directives (computed over
+    facts **and** rules, which the engine never sees) and the rule section. It
+    costs the streaming property — the clause list is materialised — so it is
+    opt-in rather than the default.
     """
     rules = list(rules)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
-        return _write_program(handle, facts, rules)
+        return _write_program(handle, facts, rules, rendered_facts)
 
 
 __all__ = ["render_program", "write_program"]

@@ -1,16 +1,18 @@
 """Byte-parity for the embedded agora translation engine (pinakes:50 US-1).
 
-culture-scrape delegates its rules-free logic-program *rendering* to the agora
-translation engine (``agora:60-translation-engine-rust``, embedded in-process via
-its ``translation_py`` PyO3 bindings) instead of hand-writing the emitters. That
-swap is only legitimate if it is **lossless**, so these tests pin the engine's
-output against the reference Python emitters — the same fixture dataset rendered
-both ways must be byte-for-byte identical, not merely "loads without error".
+culture-scrape delegates its logic-program *rendering* to the agora translation
+engine (``agora:60-translation-engine-rust``, embedded in-process via its
+``translation_py`` PyO3 bindings) instead of hand-writing the emitters. That swap
+is only legitimate if it is **lossless**, so these tests pin the engine's output
+against the reference Python emitters — the same fixture dataset rendered both
+ways must be byte-for-byte identical, not merely "loads without error".
 
-The reference emitters (``datalog/prolog.py``'s ``write_program``,
-``datalog/souffle.py``'s ``write_souffle_program``, ``datalog/problog.py``'s
-``write_problog_program``) are still the rule-bearing path, so they remain the
-authoritative comparison for the engine-rendered base programs.
+Both export paths delegate. The rules-free one takes the engine's whole document;
+the rule-bearing one takes its *fact clauses* and re-composes the program around
+them, because the engine renders the canonical graph's base facts and nothing
+else (no rule sections, no directives computed over facts ∪ rules, no P279
+taxonomy). The reference emitters are what those writers still do when handed no
+pre-rendered clauses, so they remain the authoritative comparison for both.
 """
 
 from __future__ import annotations
@@ -18,17 +20,30 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
+
 from culturescrape import translation
+from culturescrape.datalog import DatalogError
 from culturescrape.datalog.export import (
     PROBLOG_PROGRAM_NAME,
     PROLOG_PROGRAM_NAME,
     Engine,
     collect_facts,
     export_dataset,
+    tier_row_filter,
 )
-from culturescrape.datalog.problog import collect_problog_facts, write_problog_program
+from culturescrape.datalog.problog import (
+    ProblogError,
+    collect_problog_facts,
+    write_problog_program,
+)
 from culturescrape.datalog.prolog import write_program
-from culturescrape.datalog.souffle import SOUFFLE_PROGRAM_NAME, write_souffle_program
+from culturescrape.datalog.registry import active_curated_rules
+from culturescrape.datalog.souffle import (
+    SOUFFLE_PROGRAM_NAME,
+    write_souffle_facts,
+    write_souffle_program,
+)
 from culturescrape.schema.headers import EdgeSchema, NodeSchema
 from culturescrape.schema.tsvio import read_rows, write_edge_rows, write_node_rows
 
@@ -55,6 +70,17 @@ def _dataset(root: Path) -> Path:
     return root
 
 
+def _written(out: Path) -> dict[str, str]:
+    """Every program and per-relation ``.facts`` shard under *out*, by filename."""
+    rendered = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in sorted(out.glob("*.facts"))
+    }
+    for name in (PROLOG_PROGRAM_NAME, SOUFFLE_PROGRAM_NAME, PROBLOG_PROGRAM_NAME):
+        rendered[name] = (out / name).read_text(encoding="utf-8")
+    return rendered
+
+
 def _reference(dataset: Path, out: Path) -> dict[str, str]:
     """Render the fixture with the reference Python emitters (no rules).
 
@@ -68,13 +94,30 @@ def _reference(dataset: Path, out: Path) -> dict[str, str]:
     write_problog_program(
         out / PROBLOG_PROGRAM_NAME, collect_problog_facts(dataset), ()
     )
-    rendered = {
-        path.name: path.read_text(encoding="utf-8")
-        for path in sorted(out.glob("*.facts"))
-    }
-    for name in (PROLOG_PROGRAM_NAME, SOUFFLE_PROGRAM_NAME, PROBLOG_PROGRAM_NAME):
-        rendered[name] = (out / name).read_text(encoding="utf-8")
-    return rendered
+    return _written(out)
+
+
+def _reference_with_rules(dataset: Path, out: Path) -> dict[str, str]:
+    """Render the fixture with the reference emitters, the rule library attached.
+
+    Mirrors exactly what ``export_dataset(..., include_rules=True)`` composes —
+    the active curated rules, the P279 taxonomy overlay those rules consume, and
+    the public tier scope. Handed no pre-rendered clauses, each writer renders
+    every fact itself: the pre-migration behaviour, and so the comparison the
+    delegated path has to reproduce.
+    """
+    keep_row = tier_row_filter(None)
+    facts = collect_facts(dataset, include_taxonomy=True, keep_row=keep_row)
+    rules = active_curated_rules()
+    out.mkdir(parents=True, exist_ok=True)
+    write_program(out / PROLOG_PROGRAM_NAME, facts, rules)
+    write_souffle_program(out, facts, rules)
+    write_problog_program(
+        out / PROBLOG_PROGRAM_NAME,
+        collect_problog_facts(dataset, keep_row=keep_row),
+        rules,
+    )
+    return _written(out)
 
 
 def test_engine_renders_the_reference_bytes(tmp_path: Path) -> None:
@@ -134,6 +177,115 @@ def test_export_dataset_writes_the_canonical_filenames(tmp_path: Path) -> None:
     assert sorted(out.glob("*.facts"))
     assert result.fact_count > 0
     assert result.programs[Engine.SWIPL] == out / PROLOG_PROGRAM_NAME
+
+
+def test_rule_bearing_export_matches_the_reference_emitters(tmp_path: Path) -> None:
+    """``--rules`` delegates its fact clauses and still emits the reference bytes.
+
+    This is the path the engine cannot render whole — the directive preamble and
+    the Soufflé declarations are computed over facts **and** rules, the rule
+    sections are culture-scrape's own inference layer, and the committed P279
+    taxonomy is not part of the canonical graph. Every *fact clause* is still the
+    engine's, so comparing the composed programs against the reference emitters
+    is the pre- vs post-migration check for ``graph.pl``, ``graph.dl`` plus every
+    shard, and ``graph.problog.pl`` in one assertion.
+    """
+    dataset = _dataset(tmp_path / "data")
+    out = tmp_path / "out"
+
+    export_dataset(
+        dataset,
+        out,
+        (Engine.SWIPL, Engine.SOUFFLE, Engine.PROBLOG),
+        include_rules=True,
+    )
+
+    reference = _reference_with_rules(dataset, tmp_path / "reference")
+    # Guard the comparison against emptiness: a dict of three programs and no
+    # shards would compare equal while proving nothing about the delegation.
+    assert sum(name.endswith(".facts") for name in reference) > 1
+    assert "subclass_of.facts" in reference, "the taxonomy overlay must be sharded"
+    assert _written(out) == reference
+
+
+def test_rule_bearing_fact_count_matches_the_reference(tmp_path: Path) -> None:
+    """The delegated rule-bearing export reports the reference fact count.
+
+    The clause list is materialised rather than streamed on this path, so the
+    count is the one number that could silently drift from the fact stream.
+    """
+    dataset = _dataset(tmp_path / "data")
+    keep_row = tier_row_filter(None)
+    expected = write_program(
+        tmp_path / "ref.pl",
+        collect_facts(dataset, include_taxonomy=True, keep_row=keep_row),
+        active_curated_rules(),
+    )
+
+    result = export_dataset(
+        dataset, tmp_path / "out", (Engine.SWIPL,), include_rules=True
+    )
+
+    assert result.fact_count == expected
+
+
+def test_program_fact_clauses_drops_the_header_and_directives() -> None:
+    """The clause split keeps fact clauses only — comments, directives, blanks go."""
+    program = "% schema header\n\n:- dynamic node/3.\n\nnode(a).\n0.5::edge(a,b).\n"
+
+    assert translation.program_fact_clauses(program) == ["node(a).", "0.5::edge(a,b)."]
+
+
+def test_pre_rendered_prolog_clauses_must_match_the_fact_stream(
+    tmp_path: Path,
+) -> None:
+    """A clause list out of step with the facts fails loudly, never truncates.
+
+    Nothing but the count ties pre-rendered clauses back to the facts they came
+    from, so an engine that projected a different row set would otherwise write a
+    short — but perfectly parseable — program.
+    """
+    dataset = _dataset(tmp_path / "data")
+    facts = collect_facts(dataset)
+    clauses = translation.program_fact_clauses(
+        translation.dataset_datalog(facts.node_files, facts.edge_files)["prolog"]
+    )
+
+    with pytest.raises(DatalogError, match="does not match"):
+        write_program(tmp_path / "short.pl", facts, (), rendered_facts=clauses[:-1])
+
+
+def test_pre_rendered_problog_clauses_must_match_the_fact_stream(
+    tmp_path: Path,
+) -> None:
+    """The ProbLog writer applies the same count guard to its annotated clauses."""
+    dataset = _dataset(tmp_path / "data")
+    facts = collect_facts(dataset)
+    clauses = translation.program_fact_clauses(
+        translation.dataset_datalog(facts.node_files, facts.edge_files)["problog"]
+    )
+
+    with pytest.raises(ProblogError, match="does not match"):
+        write_problog_program(
+            tmp_path / "short.problog.pl",
+            collect_problog_facts(dataset),
+            (),
+            rendered_facts=clauses + ["extra(clause)."],
+        )
+
+
+def test_pre_rendered_shards_must_name_declared_relations(tmp_path: Path) -> None:
+    """A shard for a relation the fact base never declares is rejected.
+
+    Soufflé keys its shards by predicate rather than counting them, so the
+    equivalent drift there is a shard with nowhere to go — silently dropped if it
+    were not checked, because only declared relations get a handle.
+    """
+    dataset = _dataset(tmp_path / "data")
+    facts = collect_facts(dataset)
+
+    with pytest.raises(DatalogError, match="does not declare"):
+        write_souffle_facts(tmp_path / "out", facts, rendered_shards={"nonesuch": ""})
 
 
 def test_engine_canonicalises_row_order(tmp_path: Path) -> None:

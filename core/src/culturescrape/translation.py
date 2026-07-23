@@ -125,6 +125,40 @@ def to_neo4j_export(graph: str) -> dict[str, Any]:
     return dict(_engine.to_neo4j_export(graph))
 
 
+#: Line prefixes in an engine-rendered logic program that are *not* fact clauses:
+#: ``%`` opens a comment (the schema header both the SWI-Prolog and the ProbLog
+#: renderer emit) and ``:-`` opens a directive (SWI-Prolog's
+#: ``discontiguous``/``dynamic`` preamble; ProbLog's parser rejects directives, so
+#: its programs carry none). A fact clause opens with its functor — a
+#: lowercase-initial identifier — or, in ProbLog, with a numeric probability
+#: annotation, so neither prefix can collide with one.
+_NON_CLAUSE_PREFIXES = ("%", ":-")
+
+
+def program_fact_clauses(program: str) -> list[str]:
+    """The fact-clause lines of an engine-rendered Prolog/ProbLog program.
+
+    The engine renders a *whole* program — schema header, directive preamble, then
+    one clause per projected fact. This splits the clause block back out so a
+    caller can re-compose it with structure the engine does not know about (the
+    inference rules and their directives, the P279 taxonomy overlay); see
+    :func:`culturescrape.datalog.export.export_dataset`.
+
+    The split is exact rather than heuristic: one clause is always exactly one
+    line, because :func:`culturescrape.datalog.render_atom` escapes every C0
+    control — newline included — inside a quoted atom, so no clause can contain a
+    raw line break. Blank separator lines carry no clause and are dropped.
+
+        >>> program_fact_clauses("% header\\n\\n:- dynamic node/3.\\n\\nnode(a).\\n")
+        ['node(a).']
+    """
+    return [
+        line
+        for line in program.splitlines()
+        if line and not line.startswith(_NON_CLAUSE_PREFIXES)
+    ]
+
+
 def _read_rows(
     paths: Iterable[Path], keep_row: Callable[[Row], bool] | None
 ) -> list[Row]:
@@ -162,6 +196,7 @@ def dataset_datalog(
 __all__ = [
     "dataset_datalog",
     "graph_json",
+    "program_fact_clauses",
     "to_csv",
     "to_cypher",
     "to_datalog",

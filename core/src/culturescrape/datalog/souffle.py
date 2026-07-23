@@ -31,7 +31,7 @@ and every ``.facts`` file into one directory, ready for
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -230,7 +230,13 @@ def _render_cell(value: Atom, col_type: str) -> str:
     return text
 
 
-def write_souffle_facts(path: str | Path, facts: Iterable[Fact]) -> dict[str, int]:
+def write_souffle_facts(
+    path: str | Path,
+    facts: Iterable[Fact],
+    *,
+    rendered_shards: Mapping[str, str] | None = None,
+    local_facts: Iterable[Fact] | None = None,
+) -> dict[str, int]:
     """Write one ``<predicate>.facts`` file per relation into directory *path*.
 
     Returns the row count written for each predicate. Cells are encoded with the
@@ -245,10 +251,30 @@ def write_souffle_facts(path: str | Path, facts: Iterable[Fact]) -> dict[str, in
     one-shot generator. Only one open handle per relation (plus the type table)
     is held; the facts are never buffered in memory, so a dump-scale relation
     streams straight to disk.
+
+    *rendered_shards* maps a predicate to a shard body already rendered elsewhere
+    — the seam the embedded agora translation engine delegates through
+    (:mod:`culturescrape.translation`). Those bodies are written verbatim and only
+    *local_facts* (the overlay the engine cannot render, because it is not part of
+    the canonical graph: the committed P279 taxonomy) is rendered here. Local rows
+    are appended after any shard for the same relation, so a predicate carried by
+    both keeps the fact stream's order. *facts* still determines the relation and
+    type table, so every declared relation gets a file whether or not it has rows.
     """
     relations = souffle_relations(facts)
     types = {relation.predicate: relation.types for relation in relations}
     counts = {relation.predicate: 0 for relation in relations}
+
+    shards = dict(rendered_shards or {})
+    unknown = sorted(set(shards) - set(counts))
+    if unknown:
+        raise DatalogError(
+            "pre-rendered shards name relations the fact base does not declare: "
+            + ", ".join(unknown)
+        )
+    # With no shards every fact renders here (the streaming default); with them the
+    # caller says explicitly which facts the engine did not cover.
+    rows = facts if rendered_shards is None else (local_facts or ())
 
     directory = Path(path)
     directory.mkdir(parents=True, exist_ok=True)
@@ -261,7 +287,10 @@ def write_souffle_facts(path: str | Path, facts: Iterable[Fact]) -> dict[str, in
             )
             for relation in relations
         }
-        for fact in facts:
+        for predicate, body in shards.items():
+            handles[predicate].write(body)
+            counts[predicate] += body.count("\n")
+        for fact in rows:
             col_types = types[fact.predicate]
             cells = [
                 _render_cell(arg, col_type)
@@ -275,7 +304,12 @@ def write_souffle_facts(path: str | Path, facts: Iterable[Fact]) -> dict[str, in
 
 
 def write_souffle_program(
-    path: str | Path, facts: Iterable[Fact], rules: Iterable[Rule] = ()
+    path: str | Path,
+    facts: Iterable[Fact],
+    rules: Iterable[Rule] = (),
+    *,
+    rendered_shards: Mapping[str, str] | None = None,
+    local_facts: Iterable[Fact] | None = None,
 ) -> int:
     """Write the full Soufflé program for *facts* into directory *path*.
 
@@ -289,13 +323,20 @@ def write_souffle_program(
     *facts* is iterated more than once (declarations, then sharding), so pass a
     re-iterable source (a list, or :func:`collect_facts`), not a one-shot
     generator.
+
+    *rendered_shards* / *local_facts* forward to :func:`write_souffle_facts`: the
+    rows then come from the embedded agora translation engine and this module
+    contributes only the ``.dl`` — the declarations, the inferred attribute types,
+    the I/O directives and the rule section, none of which the engine emits.
     """
     directory = Path(path)
     directory.mkdir(parents=True, exist_ok=True)
     (directory / SOUFFLE_PROGRAM_NAME).write_text(
         render_souffle_program(facts, rules), encoding="utf-8"
     )
-    counts = write_souffle_facts(directory, facts)
+    counts = write_souffle_facts(
+        directory, facts, rendered_shards=rendered_shards, local_facts=local_facts
+    )
     return sum(counts.values())
 
 

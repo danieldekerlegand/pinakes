@@ -26,7 +26,8 @@ importing `translation_py` directly. Delegating today:
 
 | Surface | Engine entry point |
 |---|---|
-| `datalog/export.py` → `graph.pl` / `graph.dl` (+ `.facts`) / `graph.problog.pl` | `to_prolog` / `to_souffle` / `to_problog` (rules-free path) |
+| `datalog/export.py` → `graph.pl` / `graph.dl` (+ `.facts`) / `graph.problog.pl`, rules-free | `to_datalog` — the whole document, verbatim |
+| `datalog/export.py`, **rule-bearing** (`--rules`, `--constraints`, the personal tier, the explorer's Datalog console) | `to_datalog` — every fact clause; pinakes composes only the program *structure* around them |
 | `neo4j/export.py` (`from-neo4j`) | `to_neo4j_export` |
 
 Byte parity against the pre-migration Python emitters is pinned by committed goldens in
@@ -44,9 +45,17 @@ could not be retired and are **not** dead code:
   is schema-fixed.
 - `datalog/__init__.py` `render_atom` / `render_fact` and the `Dialect` quoting rules — the
   engine has no fact-level surface.
-- The **rule-bearing** `datalog/export.py` path (`--rules`, and the explorer's Datalog
-  console) — `:- table` / `:- discontiguous` / `:- dynamic` directives are computed over
-  facts ∪ rules, and the engine emits base facts only.
+- The **program structure** of the rule-bearing `datalog/export.py` path — the
+  `:- table` / `:- discontiguous` / `:- dynamic` preamble and the Soufflé
+  `.decl`/`.input`/`.output` block are computed over facts ∪ rules, the rule clauses are
+  pinakes' own inference layer, and the committed P279 taxonomy is not part of the
+  canonical graph. The engine emits base facts only, so pinakes re-composes them —
+  `translation.program_fact_clauses` splits the engine's document back into clauses and
+  `write_program` / `write_souffle_facts` / `write_problog_program` take them through
+  their `rendered_facts` / `rendered_shards` seam. Every fact clause on this path is still
+  the engine's; a rule-aware upstream API would remove the re-composition, not add
+  delegation. Byte parity against the same writers rendering their own facts is pinned by
+  `test_rule_bearing_export_matches_the_reference_emitters`.
 - `neo4j/load_csv.py` + `admin_import.py` (`to-neo4j`) — these render per-file statements
   from each corpus file's *parsed* header, including the `parent_code` / `extra`
   extensions. The engine's `to_cypher` is a whole-graph load script with relative

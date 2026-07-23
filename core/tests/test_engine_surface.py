@@ -3,8 +3,14 @@
 ``agora:60-translation-engine-rust`` ships exactly eight **whole-graph document
 renderers**: it takes a canonical graph as JSON and returns rendered documents.
 It has no parsing direction, no fact-level API, no schema parameterization and no
-rule-aware entry point. That is why four surfaces in this package stay
+rule-aware entry point. That is why several surfaces in this package stay
 hand-written Python — see ``docs/REMOVED_FEATURES.md`` for the full table.
+
+Note that "the engine does not render X" does **not** always mean "X cannot
+delegate": the rule-bearing export composes the engine's whole document back into
+fact clauses and supplies only the structure around them, so every fact clause on
+that path is the engine's despite there being no rule-aware entry point. Read a
+row below as *this capability is absent*, never as *that surface is unreachable*.
 
 The upstream story is **complete and retired**, so this is not "pending a
 decision": closing these gaps is a new agora story. Five separate iterations of
@@ -59,7 +65,9 @@ MISSING_CAPABILITIES = {
     ),
     "rule-aware rendering (directives over facts + rules)": (
         ("to_prolog_with_rules", "to_souffle_with_rules", "to_datalog_with_rules"),
-        "US-2 AC-2, US-4 AC-4 and US-6 AC-1 for the --rules paths",
+        "the re-composition seam on the --rules path (translation."
+        "program_fact_clauses plus the rendered_facts/rendered_shards arguments), "
+        "which could then be deleted — the fact clauses themselves already delegate",
     ),
 }
 

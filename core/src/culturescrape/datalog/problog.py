@@ -36,7 +36,7 @@ tests); :func:`write_problog_program` streams the byte-identical bytes to a path
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO
@@ -274,8 +274,35 @@ def _rule_lines(rules: list[Rule]) -> list[str]:
     return lines
 
 
+def _clause_lines(
+    facts: Iterable[AnnotatedFact], rendered_facts: Sequence[str] | None
+) -> Iterator[str]:
+    """The annotated fact-clause lines to emit for *facts*.
+
+    Without *rendered_facts* each fact renders here, one at a time (the streaming
+    default). With it the clauses — including the ``W::`` confidence annotation —
+    were rendered by the embedded agora translation engine and are emitted
+    verbatim, zipped ``strict`` against the projected facts so a clause list out of
+    step with the fact stream fails loudly instead of writing a truncated program.
+    """
+    if rendered_facts is None:
+        for annotated in facts:
+            yield render_annotated_fact(annotated)
+        return
+    try:
+        for _annotated, line in zip(facts, rendered_facts, strict=True):
+            yield line
+    except ValueError as exc:
+        raise ProblogError(
+            "pre-rendered clause count does not match the projected fact count"
+        ) from exc
+
+
 def _write_problog(
-    handle: TextIO, facts: Iterable[AnnotatedFact], rules: list[Rule]
+    handle: TextIO,
+    facts: Iterable[AnnotatedFact],
+    rules: list[Rule],
+    rendered_facts: Sequence[str] | None = None,
 ) -> int:
     """Stream the program for *facts*/*rules* to *handle*; return the fact count.
 
@@ -287,8 +314,8 @@ def _write_problog(
     handle.write(_HEADER)
     handle.write("\n")
     count = 0
-    for annotated in facts:
-        handle.write(render_annotated_fact(annotated))
+    for clause in _clause_lines(facts, rendered_facts):
+        handle.write(clause)
         handle.write("\n")
         count += 1
     for line in _rule_lines(rules):
@@ -323,7 +350,11 @@ def render_problog_program(
 
 
 def write_problog_program(
-    path: str | Path, facts: Iterable[AnnotatedFact], rules: Iterable[Rule] = ()
+    path: str | Path,
+    facts: Iterable[AnnotatedFact],
+    rules: Iterable[Rule] = (),
+    *,
+    rendered_facts: Sequence[str] | None = None,
 ) -> int:
     """Write a ProbLog program for *facts* to *path*; return the fact count.
 
@@ -332,12 +363,18 @@ def write_problog_program(
     but never holding the whole program string in memory — encoded UTF-8 (ProbLog
     reads UTF-8 source, and the renderer passes printable Unicode through
     verbatim).
+
+    *rendered_facts* supplies the annotated clauses already rendered, in
+    fact-stream order and one string per fact — the seam the embedded agora
+    translation engine delegates through (:mod:`culturescrape.translation`), which
+    leaves this module only the header, the base-relation stubs and the rule
+    section. It costs the streaming property, so it is opt-in.
     """
     rules = list(rules)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
-        return _write_problog(handle, facts, rules)
+        return _write_problog(handle, facts, rules, rendered_facts)
 
 
 __all__ = [

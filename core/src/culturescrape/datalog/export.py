@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from culturescrape import translation
-from culturescrape.datalog import Fact, edge_file_facts, node_file_facts
+from culturescrape.datalog import Dialect, Fact, edge_file_facts, node_file_facts
 from culturescrape.datalog.constraints import constraint_file_rules
 from culturescrape.datalog.file_web import FILE_WEB_RULES
 from culturescrape.datalog.problog import (
@@ -344,9 +344,12 @@ def export_dataset(
     prolog_rules = base_rules + file_web_rules
     souffle_rules = base_rules + file_web_rules
     if include_constraints:
-        translation = constraint_file_rules()
-        prolog_rules = base_rules + file_web_rules + translation.prolog_rules()
-        souffle_rules = base_rules + file_web_rules + translation.souffle_rules()
+        # Not named ``translation``: that is the module-level engine adapter this
+        # export delegates its rendering to, and rebinding it here would make it a
+        # local for the whole function body.
+        constraints = constraint_file_rules()
+        prolog_rules = base_rules + file_web_rules + constraints.prolog_rules()
+        souffle_rules = base_rules + file_web_rules + constraints.souffle_rules()
     if include_schema_constraints:
         # Soufflé-only: the from/to type, symmetry and csid-uniqueness rules use
         # negation / inequality (see the module docstring). Prolog receives none.
@@ -357,39 +360,101 @@ def export_dataset(
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # The rules-free path delegates its format *rendering* to the embedded agora
+    # BOTH paths delegate their format *rendering* to the embedded agora
     # translation engine (agora:60, via ``culturescrape.translation``): row
     # discovery and the tier filter stay here, the engine renders the canonical
-    # graph to byte-identical SWI-Prolog / Soufflé / ProbLog programs (proven
-    # against the reference emitters in ``tests/test_translation_lib.py``). The
+    # graph to byte-identical SWI-Prolog / Soufflé / ProbLog fact bodies (proven
+    # against the reference emitters in ``tests/test_translation_lib.py``).
+    #
+    # The rules-free path takes the engine's whole document verbatim. The
     # rule-bearing path — the shared inference library, the property/schema
-    # constraints, the personal-tier file-web rules — is culture-scrape's own,
-    # since the engine renders base facts, not an interleaved rule/directive
-    # program; it keeps the streaming Python emitters below.
+    # constraints, the personal-tier file-web rules — re-composes it, because the
+    # engine renders *base facts of the canonical graph* and nothing else: the
+    # directive preamble and the Soufflé declarations are computed over facts ∪
+    # rules, the rule sections are culture-scrape's own inference layer, and the
+    # committed P279 taxonomy is a separate source the canonical graph does not
+    # carry. So the engine still owns every fact clause; this module contributes
+    # only the program structure around them.
     if not attach_rules and not file_web_rules:
         return _export_via_engine(facts, out_dir, engines, keep_row)
 
+    return _export_rule_bearing(
+        directory,
+        facts,
+        out_dir,
+        engines,
+        keep_row,
+        prolog_rules=prolog_rules,
+        souffle_rules=souffle_rules,
+        problog_rules=base_rules + file_web_rules,
+    )
+
+
+def _export_rule_bearing(
+    directory: str | Path,
+    facts: _DatasetFacts,
+    out_dir: Path,
+    engines: Iterable[Engine],
+    keep_row: Callable[[Row], bool] | None,
+    *,
+    prolog_rules: tuple[Rule, ...],
+    souffle_rules: tuple[Rule, ...],
+    problog_rules: tuple[Rule, ...],
+) -> ExportResult:
+    """Write the rule-bearing programs for *engines*, facts rendered by the engine.
+
+    The canonical graph's fact bodies come from
+    :func:`culturescrape.translation.dataset_datalog`; each emitter is handed them
+    pre-rendered and supplies only what the engine cannot know — the
+    ``:- table``/``:- discontiguous``/``:- dynamic`` preamble and the Soufflé
+    ``.decl``/``.input``/``.output`` block (both computed over facts **and** rules),
+    the rule clauses themselves, and the ProbLog base-relation stubs.
+
+    The committed P279 taxonomy (``subclass_of/2``, attached when
+    ``include_taxonomy`` is set so the ``instance_of`` closure has a base relation)
+    is *not* part of the canonical graph, so the engine never sees it. It is a pure
+    suffix of the fact stream (:class:`_DatasetFacts`), which is why appending its
+    clauses after the engine's reproduces the stream order exactly; for Soufflé it
+    is its own relation, handed over as ``local_facts``. ProbLog carries no taxonomy
+    at all (``collect_problog_facts`` does not take it), so its clause list is the
+    engine's unchanged.
+    """
+    rendered = translation.dataset_datalog(facts.node_files, facts.edge_files, keep_row)
+    overlay: list[Fact] = list(subclass_file_facts()) if facts.include_taxonomy else []
+
     programs: dict[Engine, Path] = {}
-    # Each streaming writer returns the fact count it emitted; every engine sees
-    # the same number of edge/node facts, so any one is authoritative (avoids a
-    # separate len() pass over the corpus). ProbLog counts one clause per
-    # projected fact too — the confidence rides on the edge relation, not as an
-    # extra fact — so its count matches the deterministic engines'.
+    # Each writer returns the fact count it emitted; every engine sees the same
+    # number of edge/node facts, so any one is authoritative (avoids a separate
+    # len() pass over the corpus). ProbLog counts one clause per projected fact too
+    # — the confidence rides on the edge relation, not as an extra fact — so its
+    # count matches the deterministic engines' (minus the taxonomy overlay, which
+    # it does not carry).
     fact_count = 0
     for engine in engines:
         if engine is Engine.SWIPL:
             program = out_dir / PROLOG_PROGRAM_NAME
-            fact_count = write_program(program, facts, prolog_rules)
+            clauses = translation.program_fact_clauses(rendered["prolog"])
+            clauses += [fact.render(Dialect.PROLOG) for fact in overlay]
+            fact_count = write_program(
+                program, facts, prolog_rules, rendered_facts=clauses
+            )
         elif engine is Engine.PROBLOG:
             program = out_dir / PROBLOG_PROGRAM_NAME
             fact_count = write_problog_program(
                 program,
                 collect_problog_facts(directory, keep_row=keep_row),
-                base_rules + file_web_rules,
+                problog_rules,
+                rendered_facts=translation.program_fact_clauses(rendered["problog"]),
             )
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
-            fact_count = write_souffle_program(out_dir, facts, souffle_rules)
+            fact_count = write_souffle_program(
+                out_dir,
+                facts,
+                souffle_rules,
+                rendered_shards=rendered["souffle"]["facts"],
+                local_facts=overlay,
+            )
         programs[engine] = program
 
     return ExportResult(fact_count=fact_count, programs=programs)
