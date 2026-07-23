@@ -23,6 +23,7 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from culturescrape import translation
 from culturescrape.datalog import Fact, edge_file_facts, node_file_facts
 from culturescrape.datalog.constraints import constraint_file_rules
 from culturescrape.datalog.file_web import FILE_WEB_RULES
@@ -355,6 +356,19 @@ def export_dataset(
 
     out_dir = Path(out)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # The rules-free path delegates its format *rendering* to the embedded agora
+    # translation engine (agora:60, via ``culturescrape.translation``): row
+    # discovery and the tier filter stay here, the engine renders the canonical
+    # graph to byte-identical SWI-Prolog / Soufflé / ProbLog programs (proven
+    # against the reference emitters in ``tests/test_translation_lib.py``). The
+    # rule-bearing path — the shared inference library, the property/schema
+    # constraints, the personal-tier file-web rules — is culture-scrape's own,
+    # since the engine renders base facts, not an interleaved rule/directive
+    # program; it keeps the streaming Python emitters below.
+    if not attach_rules and not file_web_rules:
+        return _export_via_engine(facts, out_dir, engines, keep_row)
+
     programs: dict[Engine, Path] = {}
     # Each streaming writer returns the fact count it emitted; every engine sees
     # the same number of edge/node facts, so any one is authoritative (avoids a
@@ -376,6 +390,49 @@ def export_dataset(
         else:
             program = out_dir / SOUFFLE_PROGRAM_NAME
             fact_count = write_souffle_program(out_dir, facts, souffle_rules)
+        programs[engine] = program
+
+    return ExportResult(fact_count=fact_count, programs=programs)
+
+
+def _export_via_engine(
+    facts: _DatasetFacts,
+    out_dir: Path,
+    engines: Iterable[Engine],
+    keep_row: Callable[[Row], bool] | None,
+) -> ExportResult:
+    """Write the rules-free programs for *engines* using the embedded engine.
+
+    The discovered ``nodes/*.tsv`` / ``edges/*.tsv`` (tier-filtered by *keep_row*)
+    are handed to the agora translation engine, which returns the rendered program
+    text for every target; only the requested *engines* are written, into the same
+    ``graph.pl`` / ``graph.dl`` (+ ``.facts``) / ``graph.problog.pl`` filenames the
+    streaming path uses. ``fact_count`` is the engine's projected-fact count, which
+    every target shares — identical to the reference emitters'.
+
+    Files are written with ``newline=""`` so the engine's ``\\n`` line endings reach
+    disk verbatim (byte-identical to the streaming writers, which do the same).
+    """
+    rendered = translation.dataset_datalog(
+        facts.node_files, facts.edge_files, keep_row
+    )
+    fact_count = int(rendered["fact_count"])
+    programs: dict[Engine, Path] = {}
+    for engine in engines:
+        if engine is Engine.SWIPL:
+            program = out_dir / PROLOG_PROGRAM_NAME
+            program.write_text(rendered["prolog"], encoding="utf-8", newline="")
+        elif engine is Engine.PROBLOG:
+            program = out_dir / PROBLOG_PROGRAM_NAME
+            program.write_text(rendered["problog"], encoding="utf-8", newline="")
+        else:
+            program = out_dir / SOUFFLE_PROGRAM_NAME
+            souffle = rendered["souffle"]
+            program.write_text(souffle["program"], encoding="utf-8", newline="")
+            for stem, body in souffle["facts"].items():
+                (out_dir / f"{stem}.facts").write_text(
+                    body, encoding="utf-8", newline=""
+                )
         programs[engine] = program
 
     return ExportResult(fact_count=fact_count, programs=programs)

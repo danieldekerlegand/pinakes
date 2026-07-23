@@ -15,6 +15,12 @@ dependencies = [
     "lxml>=5",
     "mwparserfromhell>=0.6",
     "requests>=2.31",
+    # The embedded agora translation engine (agora:60-translation-engine-rust):
+    # a Rust core exposed in-process through PyO3 bindings (the ``translation_py``
+    # extension). culture-scrape delegates its canonical format *rendering* to it
+    # rather than hand-writing the emitters (pinakes:42 seam spec). Vendored as an
+    # abi3 wheel under ``vendor/`` and wired via ``[tool.uv.sources]`` below.
+    "translation-py",
 ]
 
 [project.scripts]
@@ -58,10 +64,26 @@ where = ["src"]
 "culturescrape.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv", "rules_registry.tsv"]
 "culturescrape.experimental" = ["yago_sample/*.nt", "yago_sample/*.ttl", "yago_sample/*.md"]
 
+# The embedded agora translation engine is vendored as a prebuilt abi3 wheel
+# (Python ≥ 3.9, so it is CPython-version-agnostic) under ``vendor/``, built from
+# ``agora:60``'s ``translation/crates/py`` PyO3 crate. Wiring it as a uv source
+# keeps ``uv sync --frozen`` self-contained (no network, no Rust toolchain needed
+# to install). NOTE: the wheel is platform-specific; cross-platform / CI packaging
+# of the engine is handled when the sidecar is retired (pinakes:50 US-6).
+[tool.uv.sources]
+translation-py = { path = "vendor/translation_py-0.1.0-cp39-abi3-macosx_11_0_arm64.whl" }
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
 files = ["src", "tests"]
+
+# The embedded agora translation engine (``translation_py``) is a compiled PyO3
+# extension shipping no type stubs; the adapter (``culturescrape.translation``)
+# wraps it, so treat the extension itself as untyped — mirroring neo4j/problog.
+[[tool.mypy.overrides]]
+module = ["translation_py", "translation_py.*"]
+ignore_missing_imports = true
 
 # The optional ``neo4j`` driver is absent unless the extra is installed; the
 # converter imports it lazily, so missing stubs must not fail core type checks.
