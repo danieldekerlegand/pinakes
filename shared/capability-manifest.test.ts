@@ -121,12 +121,14 @@ describe("capabilityManifestFor", () => {
     expect(CAPABILITY_MANIFEST.endpoints.http).toBe("/api/kcb");
   });
 
-  it("serves the MCP endpoint (41-US-1); a2a stays null until that front lands", () => {
-    // The as-authored manifest advertises the /mcp surface as a server-relative path.
+  it("serves the MCP (41-US-1) and A2A (41-US-2) endpoints", () => {
+    // The as-authored manifest advertises both fronts as server-relative paths.
     expect(CAPABILITY_MANIFEST.endpoints.mcp).toBe("/mcp");
+    expect(CAPABILITY_MANIFEST.endpoints.a2a).toBe("/.well-known/agent-card.json");
     const published = capabilityManifestFor("https://pinakes.example");
+    // US-4 absolutizes mcp/a2a; US-2 only serves them (still relative on the clone).
     expect(published.endpoints.mcp).toBe("/mcp");
-    expect(published.endpoints.a2a).toBeNull();
+    expect(published.endpoints.a2a).toBe("/.well-known/agent-card.json");
   });
 });
 

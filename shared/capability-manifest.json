@@ -8,7 +8,7 @@
     "identityIri": "https://id.koine.example/agent/pinakes/resolver",
     "defaultWorld": "pinakes:world:consensus-reality",
     "wildcardEntityTypes": "*",
-    "endpointNote": "Pinakes fronts the KCB §6 capabilities as MCP tools at `endpoints.mcp` (`/mcp`, official `@modelcontextprotocol/sdk`) in addition to plain HTTP (`endpoints.http`); the A2A agent-card (`endpoints.a2a`) is still null until that front lands. The per-capability `x_surfaces` are the already-built routes the MCP tools and the HTTP base both front; they are the direct-invocation path the §3 registry hands out addresses for.",
+    "endpointNote": "Pinakes fronts the KCB §6 capabilities as MCP tools at `endpoints.mcp` (`/mcp`, official `@modelcontextprotocol/sdk`) and as A2A skills on the agent-card at `endpoints.a2a` (`/.well-known/agent-card.json`, official `@a2a-js/sdk`) in addition to plain HTTP (`endpoints.http`); the agent-card also carries this whole manifest as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension (KCB §2). The per-capability `x_surfaces` are the already-built routes the MCP tools, the A2A skills, and the HTTP base all front; they are the direct-invocation path the §3 registry hands out addresses for.",
     "authNote": "`auth.grants_required` fixes the KCB §5 grant SHAPE only. Grant issuance and spend ceilings live in Cuneiform's workforce governance; Pinakes's own HTTP surfaces keep enforcing their existing `server/services/api-auth.ts` policy until a grant issuer exists.",
     "signingNote": "KCB §5 says manifests SHOULD be signed. No Ed25519 key is provisioned for Pinakes yet, so `signing.key_id` is null (unsigned) while the shape is already the one KGP `manifest.signing` uses, so signing is a key-provisioning step and not a schema change."
   },
@@ -16,7 +16,7 @@
     "http": "/api/kcb",
     "manifest": "/.well-known/kcb-manifest.json",
     "mcp": "/mcp",
-    "a2a": null
+    "a2a": "/.well-known/agent-card.json"
   },
   "produces": [
     {
