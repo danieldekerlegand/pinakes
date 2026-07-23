@@ -447,6 +447,27 @@ entity description) so every row still carries genuine provenance — and emits 
 `scripts/data/{migration,trade}-routes-additions.tsv`. Write the TSV from a JS array via a header +
 per-record cell map (never hand-type TSV with many JSON columns — one stray tab breaks the grid).
 
+- **A curated FK column must be resolved through a THROWING map, never emitted raw.**
+  `traded_goods` is a foreign key into `trade-goods.tsv`, but the curated records name goods in
+  prose ("grain", "textiles") because that is what is readable to author. tr-026..tr-039 shipped
+  with those names serialised straight into the id column: 31 dangling references that no
+  consumer could resolve and that no gate caught (the export ignores `attribute` files, so only
+  `test/economy-trade-section.test.ts` saw it — red for months). `TRADE_GOOD_IDS` +
+  `resolveTradedGoods()` now make an unmapped name a **build failure** naming the route, the
+  good, and the two ways to fix it. Generic names ("textiles", "spices", "metals", "metalwork")
+  resolve to deliberately **aggregate** goods (tg-046/048/049/050), not to a specific fibre or
+  metal — the sources name a category, and resolving to a specific good would invent precision.
+  `NOT_TRADE_GOODS` is the explicit escape for non-commodities (tr-026's "royal dispatches" is
+  correspondence; it belongs in the route `description`, which already carries it).
+- **GOTCHA — a node-lexicon row change cascades into `ml/manifests/`, not just `docs/`.** The
+  two-snapshot rule below is incomplete: five more committed manifests are built from the live
+  corpus and are asserted against a fresh build by `ml/tests/`. After changing any node lexicon
+  also run, from `ml/`: `pinakes-export-triples`, `pinakes-export-verbalizations`,
+  `pinakes-export-kgqa`, then `pinakes-export-queries`, then `pinakes-eval-kgqa` — **in that
+  order**, because the later ones read the `ml/data/` splits the earlier ones write. Their tests
+  are `skipif(not <export_dir>.exists())`, so in a checkout that has never run
+  `export-for-culturescrape.ts` they silently **skip** and a stale manifest looks green; running
+  the export is what un-gates them. Regenerating in the wrong order just moves the failure.
 - **`--add-rows` now also ensures a `sources` column.** `buildCultureAdditions` calls
   `ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"])`, so a target lexicon with no
   citation column today (migration-routes / trade-routes) gets one, and every appended row records

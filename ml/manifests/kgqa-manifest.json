@@ -70,15 +70,15 @@
     "SPLIT_FROM>SPLIT_FROM": 3
   },
   "seed": 20260713,
-  "sha256": "ea8678ef69ce8d0ec14bb65506811f5bbd629409f842caed86931d602128bd8e",
+  "sha256": "21fef8abe5de8af60310c9c28a8bd2f98601375836107ec2f39447e08b86dfaf",
   "splits": {
     "eval": {
       "examples": 394,
-      "sha256": "007a3b45eec53f8de04447a227209fb24bb997fe3a89629f2f5b0553a2ad549b"
+      "sha256": "7fd411236fb850ef24f06e7b1c572a16cda7ecc663e42a1f8e9d996b4e159efe"
     },
     "train": {
       "examples": 2232,
-      "sha256": "f57e540e36a98eb93889c8ed16ad42c4a7c7810fa2226de14af52af1455aa580"
+      "sha256": "55f99bee8ea9e52dd458cbe55bac854a5447d0ce3aa0d54b05bdd93d45b59040"
     }
   },
   "templateCounts": {

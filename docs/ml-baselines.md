@@ -86,7 +86,7 @@ held-out split from US-003) and whether its answer is **grounded in the
 evidence it retrieved**. Deterministic + offline (network-free), so the numbers
 below are a byte-reproducible floor committed to `ml/manifests/kgqa-eval-baseline.json`.
 
-- Held-out records: **394** (path 225 / derivation 169); retrieval depth **2**.
+- Held-out records: **394** (path 226 / derivation 168); retrieval depth **2**.
 
 | System | Exact | Normalized | Grounding | Answered |
 | --- | --- | --- | --- | --- |
@@ -115,7 +115,7 @@ model error — descent cycles and antisymmetry violations should stay at zero.
 
 | System | Evidence edges | Descent cycles | Schema type breaches | Asymmetry violations |
 | --- | --- | --- | --- | --- |
-| graph-retrieval | 370 | 0 | 20 | 0 |
+| graph-retrieval | 371 | 0 | 20 | 0 |
 | no-retrieval | 0 | 0 | 0 | 0 |
 
 ## Evaluation tiers

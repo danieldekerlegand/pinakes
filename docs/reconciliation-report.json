@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.3.0",
   "source": "pinakes",
   "cascade": [
     "wikidata_qid",
@@ -9,10 +9,10 @@
     "fuzzy name"
   ],
   "totals": {
-    "nodes": 6708,
+    "nodes": 6722,
     "matched": 2461,
     "ambiguous": 297,
-    "likelyNew": 3950
+    "likelyNew": 3964
   },
   "byType": [
     {
@@ -115,10 +115,10 @@
     },
     {
       "type": "trade-good",
-      "count": 45,
+      "count": 59,
       "matched": 0,
       "ambiguous": 0,
-      "likelyNew": 45
+      "likelyNew": 59
     },
     {
       "type": "urheimat-hypothesis",
@@ -142,7 +142,7 @@
       "withGlottocode": 576
     },
     "withWikidataQid": 2042,
-    "withRegion": 2687,
+    "withRegion": 2701,
     "duplicateCsidsDropped": 0
   },
   "ambiguities": [
