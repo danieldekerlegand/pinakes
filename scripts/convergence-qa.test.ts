@@ -8,6 +8,7 @@ import {
   detectDrift,
   detectAttributionGaps,
   detectRegressions,
+  detectRegistryStaleness,
   formatMarkdown,
   loadBaseline,
   reportJson,
@@ -18,6 +19,7 @@ import {
   type IdentityMetrics,
   type ReconciliationMetrics,
   type RegressionBaseline,
+  type RegistryStalenessProbe,
 } from "./convergence-qa";
 
 /** The real corpus — the clean baseline the gate must pass on. */
@@ -96,6 +98,107 @@ describe("convergence-qa (US-008)", () => {
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
+    });
+  });
+
+  // US-3: the koine registry-mirror staleness gate. Both directions are driven through an
+  // injected probe so the test never depends on the sibling koine checkout being present
+  // (or on the live mirror's freshness), mirroring the "simulate an unmapped file" tests.
+  describe("detectRegistryStaleness (registry mirror drift)", () => {
+    const probe = (over: Partial<RegistryStalenessProbe> = {}): RegistryStalenessProbe => ({
+      koinePresent: true,
+      diff: () => ({ jsonChanged: false, kgpChanged: false }),
+      ...over,
+    });
+
+    it("no finding when no koine checkout is present (the blind-spot guard)", () => {
+      // Without the sibling repo the gate is a no-op — diff() must never even be called.
+      expect(
+        detectRegistryStaleness(
+          probe({
+            koinePresent: false,
+            diff: () => {
+              throw new Error("diff must not run without a koine checkout");
+            },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
+    it("no finding when both mirrors are fresh", () => {
+      expect(detectRegistryStaleness(probe())).toEqual([]);
+    });
+
+    it("exactly one finding when the JSON mirror is stale, naming the regen remedy", () => {
+      const drift = detectRegistryStaleness(
+        probe({ diff: () => ({ jsonChanged: true, kgpChanged: false }) }),
+      );
+      expect(drift).toHaveLength(1);
+      expect(drift[0].kind).toBe("registry-stale");
+      expect(drift[0].message).toContain("shared/predicate-mapping.json");
+      expect(drift[0].message).toContain("npm run regen:registry-mirror");
+      expect(drift[0].message).toMatch(/never hand-edit/i);
+    });
+
+    it("exactly one finding when the kgp.ts TSV vocabulary is stale", () => {
+      const drift = detectRegistryStaleness(
+        probe({ diff: () => ({ jsonChanged: false, kgpChanged: true }) }),
+      );
+      expect(drift).toHaveLength(1);
+      expect(drift[0].kind).toBe("registry-stale");
+      expect(drift[0].message).toContain("shared/kgp.ts");
+    });
+
+    it("still exactly one finding when BOTH mirrors are stale (one issue, both named)", () => {
+      const drift = detectRegistryStaleness(
+        probe({ diff: () => ({ jsonChanged: true, kgpChanged: true }) }),
+      );
+      expect(drift).toHaveLength(1);
+      expect(drift[0].message).toContain("shared/predicate-mapping.json");
+      expect(drift[0].message).toContain("shared/kgp.ts");
+    });
+
+    it("a broken (present but unreadable) checkout fails the gate rather than crashing", () => {
+      const drift = detectRegistryStaleness(
+        probe({
+          diff: () => {
+            throw new Error("koine source file not found: registry/relations.tsv");
+          },
+        }),
+      );
+      expect(drift).toHaveLength(1);
+      expect(drift[0].kind).toBe("registry-stale");
+      expect(drift[0].message).toContain("npm run regen:registry-mirror");
+    });
+
+    it("a stale mirror fails the whole gate (report.ok === false, exit 1)", () => {
+      const staleProbe = probe({ diff: () => ({ jsonChanged: true, kgpChanged: false }) });
+      const drift = detectDrift(REAL_LEXICONS, { registryProbe: staleProbe });
+      expect(drift.some((d) => d.kind === "registry-stale")).toBe(true);
+
+      const report = buildConvergenceQA(REAL_LEXICONS, { registryProbe: staleProbe });
+      expect(report.ok).toBe(false);
+      expect(report.drift.filter((d) => d.kind === "registry-stale")).toHaveLength(1);
+
+      const outDir = tmpDir();
+      try {
+        const { exitCode } = runQA({
+          lexiconsDir: REAL_LEXICONS,
+          outDir,
+          registryProbe: staleProbe,
+        });
+        expect(exitCode).toBe(1);
+      } finally {
+        fs.rmSync(outDir, { recursive: true, force: true });
+      }
+    });
+
+    it("a fresh mirror adds no staleness finding to the real-corpus gate", () => {
+      const freshProbe = probe(); // koinePresent + both unchanged
+      const drift = detectDrift(REAL_LEXICONS, { registryProbe: freshProbe });
+      expect(drift.filter((d) => d.kind === "registry-stale")).toEqual([]);
+      const report = buildConvergenceQA(REAL_LEXICONS, { registryProbe: freshProbe });
+      expect(report.ok).toBe(true);
     });
   });
 

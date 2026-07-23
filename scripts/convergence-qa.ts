@@ -53,6 +53,13 @@ import {
   buildReconciliation,
   type ReconciliationReport,
 } from "./reconciliation-report.ts";
+import {
+  diffRegen,
+  resolveKoineRoot,
+  KOINE_REGISTRY_REL,
+  REGEN_REMEDY,
+  type RegenDiff,
+} from "./regen-registry-mirror.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -90,6 +97,7 @@ export interface DriftIssue {
     | "schema-invalid"
     | "mapping-invalid"
     | "registry-invalid"
+    | "registry-stale"
     | "unmapped-lexicon-file"
     | "missing-source-column"
     | "canonical-column-missing";
@@ -213,6 +221,70 @@ function lexiconFilesOnDisk(lexiconsDir: string): string[] {
 }
 
 /**
+ * How the convergence gate reads the koine registry-mirror drift. Injectable so a test
+ * can simulate a stale (or fresh) mirror without a live koine checkout — the default
+ * resolves the real checkout and computes the live regen diff.
+ */
+export interface RegistryStalenessProbe {
+  /** Whether a koine checkout is present to compare against (the byte-test guard). */
+  readonly koinePresent: boolean;
+  /** The diff a `npm run regen:registry-mirror` would produce (read only when present). */
+  readonly diff: () => RegenDiff;
+}
+
+/** Default probe: resolve the koine checkout and compute the live regen diff. */
+export function defaultRegistryProbe(): RegistryStalenessProbe {
+  const koineRoot = resolveKoineRoot();
+  const koinePresent = fs.existsSync(path.join(koineRoot, KOINE_REGISTRY_REL));
+  return { koinePresent, diff: () => diffRegen(koineRoot) };
+}
+
+/**
+ * Registry-staleness gate: when a koine checkout is present, fail if either the JSON
+ * mirror (`shared/predicate-mapping.json`) or the `kgp.ts` TSV vocabulary
+ * (`KGP_CORE_RELATIONS`/`KGP_DOMAIN_RELATIONS`) is out of date vs the authoritative koine
+ * registry. Guarded on koine presence exactly like the byte test in
+ * `predicate-mapping.test.ts`, so a checkout WITHOUT the sibling repo adds no finding.
+ * Emits **at most one** staleness {@link DriftIssue}; the remedy it names is always
+ * `npm run regen:registry-mirror` — never a hand-edit (the mirror is byte-derived).
+ */
+export function detectRegistryStaleness(
+  probe: RegistryStalenessProbe = defaultRegistryProbe(),
+): DriftIssue[] {
+  if (!probe.koinePresent) return [];
+  let diff: RegenDiff;
+  try {
+    diff = probe.diff();
+  } catch (err) {
+    // A koine checkout present but unreadable (a source file missing) is itself drift —
+    // fail the gate loudly rather than crash the whole QA run.
+    return [
+      {
+        kind: "registry-stale",
+        message:
+          `could not compare the vendored koine registry mirror against the checkout: ` +
+          `${(err as Error).message}. Run \`${REGEN_REMEDY}\` once the koine checkout is intact.`,
+      },
+    ];
+  }
+  if (!diff.jsonChanged && !diff.kgpChanged) return [];
+  const stale = [
+    diff.jsonChanged ? "shared/predicate-mapping.json" : null,
+    diff.kgpChanged ? "shared/kgp.ts (KGP_CORE_RELATIONS/KGP_DOMAIN_RELATIONS)" : null,
+  ].filter(Boolean);
+  return [
+    {
+      kind: "registry-stale",
+      message:
+        `the vendored koine registry mirror is stale: ${stale.join(" + ")} ` +
+        `differ from the authoritative koine copy. Run \`${REGEN_REMEDY}\` to re-vendor ` +
+        `both mirrors — never hand-edit the mirror (a correction is upstreamed to koine, ` +
+        `registryVersion bumped, then re-vendored).`,
+    },
+  ];
+}
+
+/**
  * Detect convergence drift for a lexicons directory. Cheap (header reads only, no
  * export build). Returns every drift finding; an empty list means the gate passes.
  *
@@ -221,7 +293,10 @@ function lexiconFilesOnDisk(lexiconsDir: string): string[] {
  * `*.tsv` present-but-unmapped, and any structural break in the canonical schema/mapping,
  * is drift.
  */
-export function detectDrift(lexiconsDir: string = LEXICONS_DIR): DriftIssue[] {
+export function detectDrift(
+  lexiconsDir: string = LEXICONS_DIR,
+  opts: { registryProbe?: RegistryStalenessProbe } = {},
+): DriftIssue[] {
   const drift: DriftIssue[] = [];
 
   // 1. Canonical schema still validates (renamed/removed structural or provenance column).
@@ -255,6 +330,12 @@ export function detectDrift(lexiconsDir: string = LEXICONS_DIR): DriftIssue[] {
       message: `predicate-mapping registry does not validate: ${(err as Error).message}`,
     });
   }
+
+  // 2c. Both vendored koine registry mirrors are up to date (guarded on koine presence,
+  //     like the byte test in predicate-mapping.test.ts). A stale JSON mirror or kgp.ts
+  //     TSV vocabulary BLOCKS — the remedy is `npm run regen:registry-mirror`, not a
+  //     hand-edit. Absent the sibling checkout this is a no-op (no re-baseline needed).
+  drift.push(...detectRegistryStaleness(opts.registryProbe ?? defaultRegistryProbe()));
 
   // 3. The canonical provenance columns the export relies on still exist (US-006).
   const nodeFieldSet = new Set(CANONICAL_SCHEMA.node.columns.map((c) => c.field));
@@ -482,9 +563,9 @@ function provenanceMetrics(manifest: ExportManifest): ProvenanceMetrics {
  */
 export function buildConvergenceQA(
   lexiconsDir: string = LEXICONS_DIR,
-  opts: { baseline?: RegressionBaseline } = {},
+  opts: { baseline?: RegressionBaseline; registryProbe?: RegistryStalenessProbe } = {},
 ): ConvergenceQAReport {
-  const drift = detectDrift(lexiconsDir);
+  const drift = detectDrift(lexiconsDir, { registryProbe: opts.registryProbe });
   const attribution = detectAttributionGaps(lexiconsDir);
   const { manifest } = buildExport(lexiconsDir);
   const { report: recon } = buildReconciliation(lexiconsDir);
@@ -628,9 +709,15 @@ export function writeConvergenceQA(
  * code (`0` clean, `1` on drift) so the CLI — and CI — can gate on it.
  */
 export function runQA(
-  opts: { lexiconsDir?: string; outDir?: string } = {},
+  opts: {
+    lexiconsDir?: string;
+    outDir?: string;
+    registryProbe?: RegistryStalenessProbe;
+  } = {},
 ): { report: ConvergenceQAReport; exitCode: number } {
-  const report = buildConvergenceQA(opts.lexiconsDir ?? LEXICONS_DIR);
+  const report = buildConvergenceQA(opts.lexiconsDir ?? LEXICONS_DIR, {
+    registryProbe: opts.registryProbe,
+  });
   writeConvergenceQA(report, opts.outDir ?? QA_DIR);
   return { report, exitCode: report.ok ? 0 : 1 };
 }

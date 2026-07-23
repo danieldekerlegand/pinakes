@@ -77,6 +77,7 @@ export interface RelationSignature {
  * new rows are additive.
  */
 export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
+  // @generated:begin core-relations - koine registry/relations.tsv - regen: npm run regen:registry-mirror; do not hand-edit
   same_as: { arity: 2, argRoles: ["a", "b"], symmetric: true, tier: "grounding-only" },
   based_on: { arity: 2, argRoles: ["derived", "source"], symmetric: false, tier: "grounding-only" },
   exact_match: { arity: 2, argRoles: ["a", "b"], symmetric: true, tier: "grounding-only" },
@@ -89,6 +90,7 @@ export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
   located_in: { arity: 2, argRoles: ["entity", "place"], symmetric: false, tier: "horn-safe" },
   descended_from: { arity: 2, argRoles: ["descendant", "ancestor"], symmetric: false, tier: "horn-safe" },
   caused_by: { arity: 2, argRoles: ["effect", "cause"], symmetric: false, tier: "horn-safe" },
+  // @generated:end core-relations
 };
 
 /**
@@ -105,6 +107,7 @@ export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
  * published signature is immutable, so an upstream *change* arrives as a new name.
  */
 export const KGP_DOMAIN_RELATIONS: Readonly<Record<string, RelationSignature>> = {
+  // @generated:begin domain-relations - koine registry/relations/{cinematography,media,social}.tsv - regen: npm run regen:registry-mirror; do not hand-edit
   "cine:shows": { arity: 2, argRoles: ["shot", "subject"], symmetric: false, tier: "grounding-only" },
   "cine:scene_of": { arity: 2, argRoles: ["shot", "scene"], symmetric: false, tier: "grounding-only" },
   "cine:says": { arity: 2, argRoles: ["speaker", "utterance"], symmetric: false, tier: "grounding-only" },
@@ -119,6 +122,7 @@ export const KGP_DOMAIN_RELATIONS: Readonly<Record<string, RelationSignature>> =
   "soc:spouse_of": { arity: 2, argRoles: ["a", "b"], symmetric: true, tier: "horn-safe" },
   "soc:employed_by": { arity: 2, argRoles: ["employee", "employer"], symmetric: false, tier: "horn-safe" },
   "soc:resides_in": { arity: 2, argRoles: ["resident", "residence"], symmetric: false, tier: "horn-safe" },
+  // @generated:end domain-relations
 };
 
 /** The domain prefixes {@link KGP_DOMAIN_RELATIONS} covers (`cine`, `media`, `soc`). */

@@ -519,6 +519,35 @@ and confirmed against the entity description — filter search hits whose descri
 myth/folklore, since top-1 is noisy: it returned video games/films/plants for many terms). Fixed
 `RETRIEVED_AT` for a deterministic file; write back with the same `--add-rows` path.
 
+## Koine registry re-vendor — `regen-registry-mirror.ts` (40-registry-mirror-autoregen)
+
+The deterministic re-vendor for the TWO on-disk koine mirrors pinakes keeps, replacing the
+old manual `cp`. `shared/predicate-mapping.json` is a byte copy of koine
+`registry/predicate-mapping.json`; `shared/kgp.ts`'s `KGP_CORE_RELATIONS` (from koine
+`registry/relations.tsv`) + `KGP_DOMAIN_RELATIONS` (from
+`registry/relations/{cinematography,media,social}.tsv`) are the second mirror. **Never
+hand-edit either** — a published signature is immutable (KGP §3.2 / the registry
+`signaturePolicy`); upstream the correction to koine, bump `registryVersion`, then regen.
+
+- **`npm run regen:registry-mirror`** (`--` nothing) re-vendors both mirrors from the koine
+  checkout and prints what changed. **`npm run check:registry-mirror`** (`--check`) is the
+  read-only sibling: it reports whether either mirror is stale and exits `1` if so (naming
+  `npm run regen:registry-mirror` as the remedy), writing nothing. Both resolve the koine
+  checkout from `KOINE_ROOT`, else `~/Development/koine` — the SAME resolution
+  `shared/predicate-mapping.test.ts` uses (`resolveKoineRoot()`).
+- Same pure-core/thin-fs shape as the other scripts: `parseRelationsTsv` / `renderEntries` /
+  `regenerateKgpSource` / `buildRegen` are pure over the koine sources; `writeRegen`/`runRegen`
+  (and read-only `diffRegen`/`runCheck`) do the fs side. `buildRegen` reads + validates all five
+  koine sources before any write, so a missing source aborts without leaving a one-sided mirror.
+- `kgp.ts` uses `// @generated:begin/end {core,domain}-relations` markers; the regen replaces
+  only the entry lines between them (JSDoc + const decls preserved). The domain prefix is the TSV
+  `domain` column, NOT the file stem (`cinematography.tsv` → `cine:`).
+- **The drift gates that pair with it:** `shared/predicate-mapping.test.ts` byte-compares the JSON
+  and signature-compares the TSV vocabulary under `skipIf(!hasKoine)`, and `convergence-qa.ts`
+  `detectRegistryStaleness` emits a `registry-stale` `DriftIssue` (both guarded on koine presence,
+  so a checkout without the sibling repo is unaffected). Running the regen against the live 0.4.2
+  koine checkout is an empty diff — the mirrors are already vendored.
+
 ## Convergence QA gate (US-008)
 
 `convergence-qa.ts` is the network-free drift gate both projects run in CI. It composes the
