@@ -26,7 +26,14 @@ Three rules this module exists to hold:
 * **The run is the reproducibility anchor, not the weights (KFT §5.2, FT-C).**
   GPU nondeterminism means a tuned model cannot be content-addressed, so
   ``seed`` + ``config_hash`` + the pinned input ids ride on the run
-  (:class:`RunAnchor`), which US-2 writes into the model's PROV record.
+  (:class:`RunAnchor`), which :mod:`pinakes_ml.kft_run` writes into the model's
+  PROV record.
+* **Placement is contract-governed, not an operator setting (KFT §4.2).**
+  :func:`check_egress` folds every training record's egress class together with
+  the *base model's own* (FT-B) and refuses a cross-boundary ``compute.class``
+  with a report. Because pinakes's SLM corpora are containment-gated
+  (``synthetic``/``personal``), that verdict is ``local-only`` in practice — this
+  provider is the local leg, and it never bursts.
 * **Nothing is silently dropped.** Unknown top-level/dataset/compute keys are
   rejected (the schema is ``additionalProperties: false``); ``hyperparams`` is
   deliberately permissive per KFT §9, so a key this engine does not implement is
@@ -91,6 +98,70 @@ GENERAL_TRAINER = "agora (the general `finetune` trainer, KFT §9)"
 #: KFT §4.2 / KGP §7.2 egress vocabulary, plus the schema's default.
 EGRESS_CLASSES: tuple[str, ...] = ("derived", "exportable", "local-only")
 DEFAULT_EGRESS = "derived"
+
+#: The two *resolved* egress classes, most permissive first — the ladder
+#: :func:`most_restrictive_egress` walks. ``derived`` is an instruction, not an
+#: outcome, so it never appears here.
+RESOLVED_EGRESS: tuple[str, ...] = ("exportable", "local-only")
+
+#: KGP §7 trust tier → the egress class it implies when a dataset header does not
+#: pin one. koine's ``policy/trust-tiers.json`` calls ``synthetic`` and
+#: ``personal`` *containment-gated* ("never in open-data releases"; "never leaves
+#: the local machine by default") — and every corpus this provider trains on is
+#: one of the two (insimul-bridge US-005 rule-SFT is synthetic/proprietary,
+#: edit-ops US-005 is personal). That, not an operator setting, is what makes
+#: pinakes the LOCAL-ONLY leg of the multi-provider program (KFT §4.2, §9).
+TIER_EGRESS: dict[str, str] = {
+    "curated": "exportable",
+    "acquired": "exportable",
+    "synthetic": "local-only",
+    "personal": "local-only",
+}
+
+#: The compute classes this provider can place a run on — all in-tier, on the
+#: machine that holds the data. There is deliberately **no cloud row**: pinakes
+#: never bursts (KFT §4.2), which is precisely its complement to agora's
+#: cloud-capable general trainer.
+LOCAL_COMPUTE_CLASSES: tuple[str, ...] = ("local-cpu", "local-mps", "local-cuda")
+
+#: License id → KGP §7.1 class (koine ``policy/license-classes.json``). The
+#: policy's own rule is that "a record with an unknown/blank license is INVALID
+#: at every boundary — producers must resolve, never default silently", so this
+#: table is exhaustive over what the ecosystem actually emits and anything else
+#: is *rejected* rather than bucketed. ``LicenseRef-Insimul-Proprietary`` is the
+#: resolution :mod:`pinakes_ml.insimul_datasets` already publishes
+#: (``LICENSE_CLASS = "proprietary"``), restated here rather than re-derived.
+LICENSE_CLASSES: dict[str, str] = {
+    "CC0-1.0": "public-domain",
+    "PDM-1.0": "public-domain",
+    "CC-BY-3.0": "attribution",
+    "CC-BY-4.0": "attribution",
+    "Apache-2.0": "attribution",
+    "MIT": "attribution",
+    "CC-BY-SA-3.0": "share-alike",
+    "CC-BY-SA-4.0": "share-alike",
+    "ODbL-1.0": "share-alike",
+    "GFDL-1.3-only": "share-alike",
+    "LicenseRef-Qwen-Research": "non-commercial",
+    "PROPRIETARY": "proprietary",
+    "LicenseRef-Insimul-Proprietary": "proprietary",
+    "PERSONAL": "personal",
+}
+
+#: License classes, most permissive first — the union in KFT §4.3/§5.4 takes the
+#: **last** class present. ``non-commercial`` is a pinakes refinement of koine's
+#: five (a research-licensed base like Qwen2.5-3B is not "owner-scoped
+#: proprietary", but it is not redistributable either); it is already the class
+#: ``configs/kft-base-models.json`` records, and it belongs upstream in
+#: ``koine/policy/license-classes.json`` — propose it there, do not fork further.
+LICENSE_CLASS_ORDER: tuple[str, ...] = (
+    "public-domain",
+    "attribution",
+    "share-alike",
+    "non-commercial",
+    "proprietary",
+    "personal",
+)
 
 #: The only external-anchor scheme this provider resolves (KFT §5.1, FT-G).
 HF_ANCHOR_PREFIX = "ext:hf:"
@@ -567,6 +638,213 @@ def check_dataset(job: FinetuneJob) -> None:
     )
 
 
+# --- the egress gate (KFT §4.2, NORMATIVE) --------------------------------------
+
+
+def most_restrictive_egress(classes: Sequence[str]) -> str:
+    """The strictest class in ``classes`` — ``local-only`` wins over everything.
+
+    KFT §4.2: "if any input — data *or* base — is ``local-only``, the run's
+    effective egress is ``local-only``." An empty set is ``exportable`` (the
+    schema's default), but every caller here supplies at least data and base.
+    """
+    for candidate in reversed(RESOLVED_EGRESS):
+        if candidate in classes:
+            return candidate
+    return RESOLVED_EGRESS[0]
+
+
+def license_class_of(license_id: str) -> str:
+    """Resolve one SPDX / pseudo license id to its KGP §7.1 class.
+
+    A blank or unrecognised id is **rejected**, never bucketed: koine's
+    ``policy/license-classes.json`` makes an unresolved license invalid at every
+    boundary, and KFT §5.4 makes the model inherit the union of these classes —
+    a silently-defaulted one would be a licensing claim nobody made.
+    """
+    _require(
+        bool(license_id.strip()),
+        "unresolved-license",
+        "a training input carries no license; KGP §7.1 forbids defaulting one "
+        "(producers must resolve it at the source)",
+    )
+    resolved = LICENSE_CLASSES.get(license_id)
+    _require(
+        resolved is not None,
+        "unresolved-license",
+        f"license {license_id!r} maps to no KGP §7.1 class; register it in "
+        f"pinakes_ml.kft.LICENSE_CLASSES (and upstream in "
+        f"koine/policy/license-classes.json) before training on it",
+        license=license_id,
+    )
+    return str(resolved)
+
+
+def most_restrictive_license(classes: Sequence[str]) -> str:
+    """The union license class of a corpus (KFT §4.3) — the strictest present."""
+    ranked = [c for c in LICENSE_CLASS_ORDER if c in classes]
+    return ranked[-1] if ranked else LICENSE_CLASS_ORDER[0]
+
+
+def dataset_egress(job: FinetuneJob) -> tuple[str, str, str]:
+    """``(egress, tier, license)`` for the job's training records (KGP §7.2).
+
+    Read off the ``dataset-jsonl-header`` — the record layout that, per KFT §4.1,
+    "carries the license + trust tier that travel with the set". A job with no
+    header cannot be gated at all, so it is refused rather than guessed at: the
+    whole point of §4.2 is that placement is contract-governed.
+
+    An explicit ``header.egress`` pin wins; otherwise the tier implies it
+    (:data:`TIER_EGRESS`).
+    """
+    header = job.header
+    _require(
+        header is not None,
+        "missing-dataset-header",
+        "dataset.header is required: the egress gate (KFT §4.2) needs the trust "
+        "tier and license that travel with the training records (KFT §4.1)",
+    )
+    assert header is not None  # narrowed by _require
+    tier = str(header.get("tier") or "")
+    _require(
+        tier in TIER_EGRESS,
+        "unknown-tier",
+        f"dataset.header.tier {tier!r} is not a KGP §7 trust tier "
+        f"{sorted(TIER_EGRESS)}; koine's trust-tier policy forbids defaulting it",
+        tier=tier,
+    )
+    license_id = str(header.get("license") or "")
+    license_class_of(license_id)  # rejects a blank/unresolvable license
+    pinned = header.get("egress")
+    if pinned is not None:
+        _require(
+            pinned in RESOLVED_EGRESS,
+            "malformed-job",
+            f"dataset.header.egress {pinned!r} is not one of "
+            f"{list(RESOLVED_EGRESS)}",
+        )
+        return str(pinned), tier, license_id
+    return TIER_EGRESS[tier], tier, license_id
+
+
+@dataclass(frozen=True)
+class EgressDecision:
+    """The §4.2 verdict for one run, and the §5.4 inheritance its outputs carry.
+
+    Recorded rather than recomputed downstream: :mod:`pinakes_ml.kft_run` stamps
+    :attr:`effective` and :attr:`license_class` onto the minted model entity and
+    every weight asset (KFT §5.4, FT-A), so the constraint travels with the bytes
+    instead of being re-derived from a corpus the recipient may not have.
+    """
+
+    #: The run's effective egress — the most restrictive input (data ∪ base).
+    effective: str
+    dataset_egress: str
+    base_egress: str
+    #: The corpus's KGP §7 trust tier (descriptive; recorded, not a gate — §4.3).
+    tier: str
+    #: The union license across {training data ∪ base model} (KFT §4.3, FT-B).
+    licenses: tuple[str, ...]
+    license_class: str
+    compute_class: str
+    #: What the job asked for (``derived`` / ``exportable`` / ``local-only``).
+    requested: str
+
+    @property
+    def local_only(self) -> bool:
+        return self.effective == "local-only"
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "effective": self.effective,
+            "datasetEgress": self.dataset_egress,
+            "baseEgress": self.base_egress,
+            "tier": self.tier,
+            "licenses": list(self.licenses),
+            "licenseClass": self.license_class,
+            "compute": {"class": self.compute_class, "requested": self.requested},
+            "localOnly": self.local_only,
+        }
+
+
+def check_egress(job: FinetuneJob, base: BaseModelAnchor) -> EgressDecision:
+    """Apply the KFT §4.2 gate at admission — before any placement.
+
+    Four ways this refuses, and they are different facts:
+
+    * ``cross-boundary-compute`` — the corpus (or the base) is ``local-only`` and
+      the job names a compute class that leaves the tier. This is the gate: never
+      silently downgraded, never silently placed locally, always reported.
+    * ``egress-assertion-violated`` — the job asserted ``exportable`` and the data
+      says otherwise. §4.2 requires the provider to verify an explicit assertion,
+      not trust it.
+    * ``unsupported-compute-class`` — the job is placeable in principle but pinakes
+      owns **no** non-local placement (:data:`LOCAL_COMPUTE_CLASSES`). "Right job,
+      wrong provider" — route it to the general trainer, the same graded refusal
+      :func:`check_modality_method` makes.
+    * ``unresolved-license`` / ``unknown-tier`` / ``missing-dataset-header`` — the
+      inputs do not carry what the gate needs to decide (:func:`dataset_egress`).
+
+    An explicit ``compute.egress: "local-only"`` pin is honoured as a floor, so a
+    pinned job on cross-boundary compute lands in the first refusal above — FT-J's
+    rule that an unplaceable gated job fails **at admission**, never hangs and
+    never gets silently cloud-placed.
+    """
+    data_egress, tier, license_id = dataset_egress(job)
+    effective = most_restrictive_egress((data_egress, base.egress))
+    _require(
+        not (job.compute_egress == "exportable" and effective == "local-only"),
+        "egress-assertion-violated",
+        f"job asserts compute.egress 'exportable' but the effective class over "
+        f"{{data ∪ base}} is 'local-only' (dataset {data_egress!r} from the "
+        f"{tier!r} tier, base {base.egress!r}); KFT §4.2 makes an explicit "
+        f"assertion verifiable, not authoritative",
+        effective=effective,
+        datasetEgress=data_egress,
+        baseEgress=base.egress,
+    )
+    if job.compute_egress == "local-only":
+        effective = "local-only"
+    local_compute = job.compute_class in LOCAL_COMPUTE_CLASSES
+    if effective == "local-only":
+        _require(
+            local_compute,
+            "cross-boundary-compute",
+            f"compute.class {job.compute_class!r} crosses the trust boundary and "
+            f"this run's effective egress is 'local-only' (dataset {data_egress!r} "
+            f"from the {tier!r} tier, base {base.egress!r}). KFT §4.2: a "
+            f"local-only run MUST execute on in-tier compute — pinakes places on "
+            f"{list(LOCAL_COMPUTE_CLASSES)} and never bursts",
+            computeClass=job.compute_class,
+            effective=effective,
+            localComputeClasses=list(LOCAL_COMPUTE_CLASSES),
+        )
+    else:
+        _require(
+            local_compute,
+            "unsupported-compute-class",
+            f"pinakes is the LOCAL-ONLY executor of the multi-provider program "
+            f"(KFT §9) and places only on {list(LOCAL_COMPUTE_CLASSES)}; "
+            f"{job.compute_class!r} is a valid class for an all-exportable corpus "
+            f"— route this job to {GENERAL_TRAINER}",
+            computeClass=job.compute_class,
+            localComputeClasses=list(LOCAL_COMPUTE_CLASSES),
+        )
+    licenses = tuple(sorted({license_id, base.license} - {""}))
+    return EgressDecision(
+        effective=effective,
+        dataset_egress=data_egress,
+        base_egress=base.egress,
+        tier=tier,
+        licenses=licenses,
+        license_class=most_restrictive_license(
+            [license_class_of(entry) for entry in licenses]
+        ),
+        compute_class=job.compute_class,
+        requested=job.compute_egress,
+    )
+
+
 # --- hyperparameter mapping (KFT §3 -> SlmPilotConfig) --------------------------
 
 
@@ -727,6 +1005,8 @@ class AdmittedJob:
     job: FinetuneJob
     config: SlmPilotConfig
     anchor: RunAnchor
+    #: The §4.2 verdict — and the §5.4 inheritance the run's outputs will carry.
+    egress: EgressDecision
     #: Hyperparameter keys this engine does not implement — reported, not dropped.
     ignored_hyperparams: tuple[str, ...] = ()
 
@@ -743,6 +1023,7 @@ class AdmittedJob:
             job=self.job,
             config=self.config.resolved(ml_root),
             anchor=self.anchor,
+            egress=self.egress,
             ignored_hyperparams=self.ignored_hyperparams,
         )
 
@@ -757,10 +1038,12 @@ def admit(
 ) -> AdmittedJob:
     """Admit a KFT finetune job → a ``SlmPilotConfig`` + its run anchor.
 
-    Every check runs **before** any compute is committed (KFT §3.1/§4.1): parse,
-    version, ``modality × method``, dataset plane, base-model anchor. The first
-    failure raises :class:`JobRejected`, whose :attr:`~JobRejected.report` is the
-    caller-facing rejection.
+    Every check runs **before** any compute is committed (KFT §3.1/§4.1/§4.2):
+    parse, version, ``modality × method``, dataset plane, base-model anchor, and
+    the egress gate (:func:`check_egress` — the last one, because it needs the
+    resolved base's own egress class). The first failure raises
+    :class:`JobRejected`, whose :attr:`~JobRejected.report` is the caller-facing
+    rejection.
 
     ``worlds``/``candidates`` stay a caller concern: the KGP pack ids in
     ``dataset.knowledge`` are *references* (KFT §4.1), and turning a pack id into
@@ -785,6 +1068,7 @@ def admit(
         modality=job.modality,
         baseModelModality=anchor.modality,
     )
+    egress = check_egress(job, anchor)
 
     base = defaults or SlmPilotConfig()
     overrides, ignored = map_hyperparams(job.hyperparams)
@@ -819,5 +1103,6 @@ def admit(
             compute_class=job.compute_class,
             compute_egress=job.compute_egress,
         ),
+        egress=egress,
         ignored_hyperparams=ignored,
     )

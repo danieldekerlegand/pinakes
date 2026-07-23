@@ -1165,6 +1165,70 @@ training logic** — `slm_finetune.py` is still the sole pipeline.
   re-asserts the no-heavy-import rule in a **subprocess** (the stack may already be
   loaded by a sibling test in-session). No `ml/data` re-pin, no `uv.lock` churn.
 
+## KFT run outputs — telemetry, egress, minted model/weights (90 US-2)
+
+The other half of the provider: `kft.check_egress` (the §4.2 gate, applied inside
+`admit`) plus `kft_run.py` (pure) — the §6 training-telemetry stream, the tuned
+model as a minted KINP entity, and the adapter/merged/GGUF artifacts as KMI
+assets. Driven by `pinakes-train-slm --kft-job <manifest>` (`--stub` works, so the
+whole path runs in CI); outputs land beside the run summary as `kft-telemetry.jsonl`
++ `kft-run.json` in the git-ignored `ml/artifacts/kft/<job-slug>/`.
+
+- **Pinakes is a LOCAL-ONLY executor by DATA, not by config.** koine's
+  `policy/trust-tiers.json` calls `synthetic` and `personal` *containment-gated*,
+  and every corpus this workspace trains on is one of the two — so
+  `TIER_EGRESS` maps them to `local-only`, the effective class folds in the
+  **base model's** own egress (FT-B), and a cross-boundary `compute.class` is
+  refused with a report before any compute. Four graded codes, and they mean
+  different things: `cross-boundary-compute` (the gate fired),
+  `egress-assertion-violated` (the job claimed `exportable`; §4.2 says verify,
+  don't trust), `unsupported-compute-class` ("right job, wrong provider" — pinakes
+  owns no cloud placement at all, so this one names agora), and
+  `unknown-tier`/`unresolved-license`/`missing-dataset-header` (the inputs can't
+  be classified — KGP §7/§7.1 forbid defaulting either, so it is a refusal, never
+  a guess).
+- **`LICENSE_CLASSES` is a mirror of koine's `policy/license-classes.json`**, and
+  an id outside it is *rejected* rather than bucketed. The one addition is
+  `non-commercial` (Qwen Research is neither attribution nor owner-scoped
+  proprietary); it is documented in `configs/kft-base-models.json` and belongs
+  upstream — propose it in koine rather than adding a sixth local class. US-1
+  originally wrote `permissive` for Apache-2.0; that was drift from koine's
+  `attribution` and is fixed.
+- **§5.4 inheritance is STAMPED on the outputs, not implied.** The minted model
+  and every weight asset carry the run's effective egress + union license class,
+  so a recipient answers "may this ship?" from the envelope without re-deriving
+  the corpus. `check_publishable(model, destination)` is the enforcement, and an
+  **unknown destination is refused** — for a gate whose failure mode is
+  exfiltrating private training data the safe default is no.
+- **The model id is minted from the RUN; asset ids are content addresses.** GPU
+  nondeterminism rules out content-addressing weights (FT-C), so
+  `mint_model_id` derives `pinakes:model:<base>-<job-slug>` from the base entity +
+  the job's PROV activity. Assets go the other way: `pinakes:asset:sha256-…` over
+  the bytes (a directory gets a tree address over its sorted member hashes).
+  **An artifact that does not exist yet is `pendingExports`, never a placeholder
+  id** — a stub run mints zero assets and says so.
+- **The GGUF/merged paths come from `slm_gguf.build_plan`**, the same layout
+  `pinakes-export-gguf` writes, so the §5.3 export matrix (adapter
+  `media:derived_from` the base ENTITY — pinakes holds no base bytes — merged
+  `derived_from` adapter+base, GGUF `media:variant_of` merged) describes the
+  deliverable the deployment leg actually produces.
+- **The stub emits a step-accurate, LOSS-FREE stream.** `stub_log_history`
+  computes the steps/epochs/warmup-LR the config schedules — real arithmetic —
+  and reports no loss, because a fabricated loss curve is precisely what KFT §6
+  exists to replace. A real run's curve is trl's own `trainer.state.log_history`,
+  now carried on `TrainOutcome.log_history` (`loss`→`train_loss`,
+  `learning_rate`→`lr`; anything else numeric passes through).
+- **GOTCHA — §6 addresses an event by `job`+`step`, which assumes one event per
+  step.** This pipeline emits a training row, an `eval:<stage>` row (the tier-4
+  adherence curve's two endpoints) and a terminal row, and the last two share the
+  final step. So `event_id` is `<job>#<kind>:<step>`; without the kind,
+  "idempotent under redelivery" would coalesce three different events. Propose the
+  clarification upstream.
+- **No wall clock in the core**: every `ts` is a parameter (`train_slm._utc_now`
+  is the only clock), so a run record is byte-reproducible in a test. Still no
+  committed metrics snapshot — training numbers stay non-reproducible. No
+  `ml/data` re-pin, no `uv.lock` churn.
+
 ## MLflow / DVC
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`

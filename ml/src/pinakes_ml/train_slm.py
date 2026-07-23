@@ -6,6 +6,7 @@ Reproducer for the Phase-D workflow backbone. From ``ml/``::
     uv pip install trl peft accelerate                    # the undeclared stack
     uv run pinakes-train-slm                              # the 0.5B debug run
     uv run pinakes-train-slm --config configs/slm-pilot-3b.json
+    uv run pinakes-train-slm --stub --kft-job fixtures/kft/finetune-job.json
 
 It loads a committed JSON config (:class:`~pinakes_ml.slm_finetune.SlmPilotConfig`),
 rebuilds the rule-SFT corpus and the **frozen** eval set deterministically from the
@@ -19,6 +20,13 @@ config + dataset hashes + every metric to MLflow.
 with no model, no network and no undeclared dependency. That is the CI smoke —
 and the scores it produces are meaningless by construction (the summary says so).
 
+``--kft-job`` runs the same pipeline as a **KFT capability provider**
+(90-finetune-provider): the manifest is admitted through :mod:`pinakes_ml.kft`
+(specialization + the §4.2 egress gate — a refused job prints its report and
+exits 2, having committed no compute), and on completion the run mints its KFT §5
+model/weight records and §6 training-telemetry stream next to the run summary
+(:mod:`pinakes_ml.kft_run`).
+
 Runbook: ``docs/slm-pilot-runbook.md``. Protocol: ``docs/slm-pilot-protocol.md``.
 """
 
@@ -27,9 +35,18 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 from pinakes_ml.export_insimul_datasets import DEFAULT_CANDIDATES, DEFAULT_WORLDS
+from pinakes_ml.kft import AdmittedJob, JobRejected, admit
+from pinakes_ml.kft_run import (
+    ROLE_ADAPTER,
+    ROLE_GGUF,
+    ROLE_MERGED,
+    mint_run_outputs,
+    render_telemetry_jsonl,
+)
 from pinakes_ml.slm_baseline import (
     DEFAULT_GEMINI_MODEL,
     NOT_MEASURED_REASONS,
@@ -48,6 +65,7 @@ from pinakes_ml.slm_finetune import (
     stub_model_factory,
     stub_trainer,
 )
+from pinakes_ml.slm_gguf import MODEL_SUBDIR, MODELS_DIRNAME, build_plan
 
 _ML_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = _ML_ROOT / "configs" / "slm-pilot-debug.json"
@@ -55,6 +73,10 @@ DEFAULT_DOC = _ML_ROOT.parent / "docs" / "ml-baselines.md"
 
 SUMMARY_FILE = "run-summary.json"
 REPORT_FILE = "baseline-report.json"
+#: The KFT §6 training-telemetry stream and the §5 run record, written beside the
+#: run summary in the git-ignored output dir. ``--kft-job`` only.
+TELEMETRY_FILE = "kft-telemetry.jsonl"
+RUN_RECORD_FILE = "kft-run.json"
 
 
 def read_dvc_md5(dvc_path: Path) -> str:
@@ -89,6 +111,90 @@ def eval_set_matches_manifest(manifest_path: Path, sha256: str) -> bool | None:
     return sha256 in hashes
 
 
+def _utc_now() -> str:
+    """The emission timestamp for a telemetry event (KFT §6 ``ts``).
+
+    The only wall clock in the KFT path, and it lives in the CLI — the minting
+    core takes ``ts`` as a parameter so the record stays reproducible in tests.
+    """
+    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def repo_relative(path: Path) -> str:
+    """A repo-root-relative spelling of ``path`` when it is inside the checkout.
+
+    Admission hashes the **unresolved** config (``kft.engine_config_hash``), so
+    two hosts admitting one job must agree — which they only do if the world
+    paths that go into it are checkout-relative rather than ``/Users/…``.
+    """
+    try:
+        return str(path.resolve().relative_to(_ML_ROOT.parent))
+    except ValueError:  # pragma: no cover - a world outside the checkout
+        return str(path)
+
+
+def admit_kft_job(
+    job_path: Path, worlds: list[Path], candidates: list[Path]
+) -> AdmittedJob:
+    """Admit a KFT finetune job → the pipeline config it becomes (KFT §3/§4)."""
+    payload = json.loads(job_path.read_text(encoding="utf-8"))
+    return admit(
+        payload,
+        worlds=[repo_relative(p) for p in worlds],
+        candidates=[repo_relative(p) for p in candidates],
+    )
+
+
+def write_kft_outputs(
+    admitted: AdmittedJob, summary: dict, config: SlmPilotConfig, *, ts: str
+) -> dict:
+    """Mint the run's KFT §5 record + §6 telemetry beside the run summary.
+
+    The GGUF/merged paths come from :func:`pinakes_ml.slm_gguf.build_plan` — the
+    same layout ``pinakes-export-gguf`` writes — so an asset is minted for the
+    deliverable the deployment leg actually produces, and the roles it has not
+    produced yet are reported as pending rather than invented.
+
+    ``config`` is the run's *effective* config (CLI overrides applied), which is
+    why it is passed rather than read off ``admitted``.
+    """
+    output_dir = Path(config.output_dir)
+    plan = build_plan(
+        config.base_model,
+        summary["training"]["adapterDir"],
+        output_dir,
+        _ML_ROOT / MODELS_DIRNAME / MODEL_SUBDIR,
+        run_name=config.run_name,
+    )
+    outputs = mint_run_outputs(
+        admitted,
+        summary,
+        artifacts={
+            ROLE_ADAPTER: plan.adapter_dir,
+            ROLE_MERGED: plan.merged_dir,
+            ROLE_GGUF: plan.quantized_gguf,
+        },
+        ts=ts,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / TELEMETRY_FILE).write_text(
+        render_telemetry_jsonl(outputs.telemetry), encoding="utf-8"
+    )
+    record = outputs.as_dict()
+    (output_dir / RUN_RECORD_FILE).write_text(
+        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(f"kft model  = {outputs.model.entity_id}")
+    print(
+        f"kft egress = {outputs.model.egress} / {outputs.model.license_class} "
+        f"({len(outputs.assets)} weight asset(s), "
+        f"pending {', '.join(outputs.pending_exports) or 'none'})"
+    )
+    print(f"telemetry -> {output_dir / TELEMETRY_FILE}")
+    print(f"kft run   -> {output_dir / RUN_RECORD_FILE}")
+    return record
+
+
 def read_data_floor(manifest_path: Path) -> dict | None:
     """The frozen protocol's ``dataFloor`` block, copied forward verbatim.
 
@@ -105,6 +211,13 @@ def read_data_floor(manifest_path: Path) -> dict | None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument(
+        "--kft-job", type=Path, default=None,
+        help="A KFT finetune-job manifest (koine/schemas/finetune-job.schema.json). "
+             "Admitted through pinakes_ml.kft INSTEAD of --config; a refused job "
+             "prints its report and exits 2. Emits the §6 telemetry stream and "
+             "the §5 run record beside the run summary.",
+    )
     parser.add_argument(
         "--base-dir", type=Path, default=_ML_ROOT,
         help="Base dir the config's paths resolve against (default: ml/).",
@@ -148,7 +261,27 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-mlflow", action="store_true")
     args = parser.parse_args(argv)
 
-    config = SlmPilotConfig.from_json(args.config).resolved(args.base_dir)
+    admitted: AdmittedJob | None = None
+    if args.kft_job is not None:
+        # The job manifest names its own worlds only by KGP pack id (KFT §4.1),
+        # so the data-plane inputs still come from the CLI's defaults; admission
+        # decides everything else.
+        job_worlds = [Path(p) for p in (args.worlds or DEFAULT_WORLDS)]
+        job_candidates = [
+            Path(p)
+            for p in (args.candidates or [p for p in DEFAULT_CANDIDATES if p.exists()])
+        ]
+        try:
+            admitted = admit_kft_job(args.kft_job, job_worlds, job_candidates)
+        except JobRejected as exc:
+            print(json.dumps(exc.report, indent=2, sort_keys=True))
+            return 2
+        admitted = admitted.resolved(args.base_dir)
+        config = admitted.config
+        for ignored in admitted.ignored_hyperparams:
+            print(f"NOTE  hyperparam not implemented by this engine: {ignored}")
+    else:
+        config = SlmPilotConfig.from_json(args.config).resolved(args.base_dir)
     overrides: dict[str, object] = {}
     if args.output_dir is not None:
         overrides["output_dir"] = str(args.output_dir)
@@ -219,6 +352,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"--- repeat {index}/{repeats}")
         _print_report(summary, out_path)
         summaries.append(summary)
+        if admitted is not None:
+            write_kft_outputs(admitted, summary, run_config, ts=_utc_now())
         if not args.no_mlflow:
             _log_to_mlflow(summary)
 

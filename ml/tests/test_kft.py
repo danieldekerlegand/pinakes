@@ -12,6 +12,10 @@ What these hold:
   Hub coordinate through the committed external anchor (FT-G), and an unanchored
   or unknown base is refused;
 * the **run anchor carries seed + config_hash** (FT-C);
+* the **egress gate holds (KFT §4.2)** — the effective class folds every training
+  record together with the base's own, a cross-boundary ``compute.class`` is
+  refused with a report rather than downgraded, and an input the gate cannot
+  classify is refused rather than guessed at;
 * the module stays in the **slim env** — no heavy import, asserted in a
   subprocess, and the ``require_finetune_deps`` gate is untouched.
 
@@ -33,19 +37,25 @@ from pinakes_ml.kft import (
     DEFAULT_JOB_FIXTURE,
     HF_ANCHOR_PREFIX,
     KFT_VERSION,
+    LICENSE_CLASS_ORDER,
+    LICENSE_CLASSES,
     METHODS,
     MODALITIES,
     MODALITY_METHODS,
     PROVIDER_METHODS,
     PROVIDER_MODALITY,
+    TIER_EGRESS,
     AdmittedJob,
     BaseModelAnchor,
     FinetuneJob,
     JobRejected,
     admit,
     engine_config_hash,
+    license_class_of,
     load_base_models,
     map_hyperparams,
+    most_restrictive_egress,
+    most_restrictive_license,
     resolve_base_model,
 )
 from pinakes_ml.slm_finetune import SlmPilotConfig
@@ -228,6 +238,164 @@ def test_an_empty_dataset_is_rejected(payload, anchors) -> None:
     with pytest.raises(JobRejected) as excinfo:
         admit(job, anchors=anchors)
     assert excinfo.value.code == "empty-dataset"
+
+
+# --- the egress gate (KFT §4.2, NORMATIVE) --------------------------------------
+
+
+def _open_corpus(job: dict[str, Any]) -> dict[str, Any]:
+    """Re-tier the golden job's corpus as open data — the non-gated control.
+
+    Everything pinakes actually trains on is containment-gated, so the only way
+    to exercise the *other* branch of §4.2 is to hand it a corpus that is not.
+    """
+    job["dataset"]["header"] = {
+        **job["dataset"]["header"],
+        "tier": "curated",
+        "license": "CC-BY-4.0",
+    }
+    return job
+
+
+def test_the_golden_job_resolves_local_only(payload, anchors) -> None:
+    decision = admit(payload, anchors=anchors).egress
+
+    # synthetic tier -> containment-gated -> local-only, even though the BASE is
+    # exportable: §4.2 takes the most restrictive input, not the average.
+    assert decision.effective == "local-only"
+    assert decision.local_only
+    assert (decision.dataset_egress, decision.base_egress) == (
+        "local-only",
+        "exportable",
+    )
+    assert decision.tier == "synthetic"
+    # The union license spans {data ∪ base} (§4.3, FT-B) and takes the strictest
+    # class — a research-licensed base cannot make a proprietary corpus laxer.
+    assert decision.licenses == (
+        "LicenseRef-Insimul-Proprietary",
+        "LicenseRef-Qwen-Research",
+    )
+    assert decision.license_class == "proprietary"
+    assert decision.compute_class == payload["compute"]["class"]
+    assert json.dumps(decision.as_dict(), sort_keys=True)
+
+
+@pytest.mark.parametrize(
+    "compute_class", ["single-gpu-a100-80gb", "managed-training-api", "cloud-h100"]
+)
+def test_a_local_only_run_refuses_cross_boundary_compute(
+    payload, anchors, compute_class
+) -> None:
+    job = _job(payload)
+    job["compute"]["class"] = compute_class
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+
+    rejected = excinfo.value
+    assert rejected.code == "cross-boundary-compute"
+    assert rejected.detail["computeClass"] == compute_class
+    assert rejected.detail["effective"] == "local-only"
+    assert rejected.report["provider"] == "pinakes"
+    # Rejected WITH A REPORT — never silently downgraded, never silently placed.
+    assert "never bursts" in str(rejected)
+
+
+def test_an_explicit_local_only_pin_is_honoured_as_a_floor(payload, anchors) -> None:
+    # An all-exportable corpus that PINS local-only stays pinned (§4.2) …
+    job = _open_corpus(_job(payload))
+    job["compute"]["egress"] = "local-only"
+    assert admit(job, anchors=anchors).egress.effective == "local-only"
+    # … and the pin is then unsatisfiable on cross-boundary compute (FT-J):
+    # refused at admission, never hung and never quietly cloud-placed.
+    job["compute"]["class"] = "single-gpu-a100-80gb"
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+    assert excinfo.value.code == "cross-boundary-compute"
+
+
+def test_an_exportable_assertion_is_verified_not_trusted(payload, anchors) -> None:
+    job = _job(payload)
+    job["compute"]["egress"] = "exportable"
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+    assert excinfo.value.code == "egress-assertion-violated"
+    assert excinfo.value.detail["datasetEgress"] == "local-only"
+
+
+def test_an_exportable_corpus_still_places_only_locally(payload, anchors) -> None:
+    """The specialization: pinakes owns no cloud placement at all (KFT §9)."""
+    job = _open_corpus(_job(payload))
+    decision = admit(job, anchors=anchors).egress
+    assert decision.effective == "exportable"
+    assert decision.license_class == "non-commercial"  # from the base (FT-B)
+
+    job["compute"]["class"] = "single-gpu-a100-80gb"
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+    # A different fact from cross-boundary-compute: the job breaks no gate, this
+    # provider simply is not the one to run it.
+    assert excinfo.value.code == "unsupported-compute-class"
+    assert "agora" in str(excinfo.value)
+
+
+def test_a_header_egress_pin_overrides_the_tier(payload, anchors) -> None:
+    job = _open_corpus(_job(payload))
+    job["dataset"]["header"]["egress"] = "local-only"
+    assert admit(job, anchors=anchors).egress.dataset_egress == "local-only"
+
+
+@pytest.mark.parametrize(
+    ("mutate", "code"),
+    [
+        (lambda h: h.pop("tier"), "unknown-tier"),
+        (lambda h: h.update(tier="trusted"), "unknown-tier"),
+        (lambda h: h.pop("license"), "unresolved-license"),
+        (lambda h: h.update(license=""), "unresolved-license"),
+        (lambda h: h.update(license="MegaCorp-EULA-7"), "unresolved-license"),
+    ],
+)
+def test_the_gate_refuses_inputs_it_cannot_classify(
+    payload, anchors, mutate, code
+) -> None:
+    """KGP §7/§7.1 forbid defaulting a tier or a license — so neither is guessed."""
+    job = _job(payload)
+    mutate(job["dataset"]["header"])
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+    assert excinfo.value.code == code
+
+
+def test_a_headerless_dataset_cannot_be_gated(payload, anchors) -> None:
+    job = _job(payload)
+    del job["dataset"]["header"]
+    with pytest.raises(JobRejected) as excinfo:
+        admit(job, anchors=anchors)
+    assert excinfo.value.code == "missing-dataset-header"
+
+
+def test_the_tier_and_license_tables_mirror_koine(anchors) -> None:
+    # The KGP §7 tier vocabulary, vendored as data (koine provenance.schema.json
+    # $defs/tier). A tier koine adds without a row here would be silently
+    # unclassifiable — the mirror is the gate.
+    assert set(TIER_EGRESS) == {"curated", "acquired", "synthetic", "personal"}
+    # The two containment-gated tiers are exactly the local-only ones.
+    assert {t for t, e in TIER_EGRESS.items() if e == "local-only"} == {
+        "synthetic",
+        "personal",
+    }
+    assert set(LICENSE_CLASSES.values()) <= set(LICENSE_CLASS_ORDER)
+    # Every base in the committed registry classifies (§4.3 needs it).
+    for anchor in anchors.values():
+        assert license_class_of(anchor.license) == anchor.license_class
+
+
+def test_the_restriction_ladders_take_the_strictest(payload) -> None:
+    assert most_restrictive_egress(["exportable", "exportable"]) == "exportable"
+    assert most_restrictive_egress(["exportable", "local-only"]) == "local-only"
+    assert most_restrictive_egress([]) == "exportable"
+    assert most_restrictive_license(["attribution", "proprietary"]) == "proprietary"
+    assert most_restrictive_license(["personal", "attribution"]) == "personal"
+    assert most_restrictive_license([]) == "public-domain"
 
 
 # --- base-model entities + external anchors (KFT §5.1, FT-G) --------------------
