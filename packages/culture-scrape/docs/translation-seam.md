@@ -410,4 +410,177 @@ ML contract, and neither may be replaced by an in-process engine call without br
 
 ---
 
-<!-- US-5 (Entanglement register + Migration) appends its section below. -->
+## Entanglement register — where the "generic" seam is messy
+
+The Bucket-1 translators are *almost* domain-neutral, but four couplings let Pinakes
+content or Pinakes-side files reach inside the generic emitters. Each is real seam
+friction the `agora` port must resolve to keep the Rust engine domain-neutral. Each row
+gives the file evidence, why it crosses the seam, and the concrete change the port must
+make. (a)/(b) live in the Datalog emitter; (c)/(d) are the schema-injection couplings
+already forward-referenced from Bucket 1 §1b and Bucket 2 §2b.
+
+### (a) The tier filter reaches into Pinakes trust-tier source vocab
+
+`datalog/export.py:export_dataset` (`:266`) scopes which rows reach the program with
+`keep_row = tier_row_filter(tier)` (`export.py:322`). `tier_row_filter` (`export.py:85`)
+**lazily imports** the Pinakes trust-tier predicates from a sibling package:
+
+```python
+from culturescrape.orchestrate.tiers import (   # export.py:104
+    is_personal_source, is_synthetic_source,
+)
+```
+
+`is_personal_source` / `is_synthetic_source` (`orchestrate/tiers.py:365` ff.) test a row's
+`source` cell against the Pinakes source vocab `PERSONAL_SOURCES = {"analyzer"}` /
+`SYNTHETIC_SOURCES = {"insimul"}` (`tiers.py:84` / `:97`). The tier names themselves —
+`PERSONAL_TIER` / `SYNTHETIC_TIER` / `CONTAINED_TIERS` (`export.py:58` / `:68` / `:72`) —
+plus the `FILE_WEB_RULES` lineage rules spliced when `personal` (`export.py:342`, imported
+from `datalog/file_web.py:114`) are Pinakes trust-tier concepts leaking into the generic
+exporter. The lazy import is deliberate — a comment (`export.py:101-103`) notes it dodges a
+circular import (`orchestrate.corpus` imports `datalog.export`) — which is itself evidence
+the tier logic belongs on the Pinakes side, not the emitter's.
+
+**Resolution (keeps `agora` domain-neutral):** the tier scope becomes a
+**caller-supplied `keep_row` predicate** passed *into* the Datalog encode entrypoint — the
+Rust engine takes an opaque `Fn(&Row) -> bool` and never imports `orchestrate` or any
+source-name vocab. Pinakes builds the predicate from its own trust-tier vocab and hands it
+in; `agora` just applies it. The `FILE_WEB_RULES` splice is folded into the same
+"rules-as-data" channel as (b).
+
+### (b) The Datalog emitter mixes the generic projection with Pinakes rule content
+
+`export_dataset` takes three toggles — `include_rules`, `include_constraints`,
+`include_schema_constraints` (`export.py:271-273`) — that splice Pinakes inference content
+into the emitted program: the curated `RULES` / `rules_registry.tsv` library, the P2302
+constraint rules, and the `canonical-schema.json` violation rules (Bucket 2 §2c). The
+emitter *core* is generic (project rows → binary facts → engine syntax); these toggles let
+Pinakes **content** flow through it (`attach_rules = include_rules or include_constraints
+or include_schema_constraints`, `export.py:329`).
+
+**Resolution:** the rules/constraints/schema-constraint rulesets pass as
+**caller-supplied data** — the Rust encode entrypoint accepts an already-materialized list
+of rule/constraint clauses (text or a neutral clause struct) to append, and never reads
+`rules_registry.tsv`, `RULES`, or the P2302 artifact itself. Pinakes materializes them
+(via `active_curated_rules` etc., Bucket 2 §2c) and passes them in. This is the same
+"rule library rides across the seam as DATA, not ported logic" principle from §2c, stated
+here as a concrete API change: **no ruleset is a hard-coded Rust constant**.
+
+### (c) `schema_constraints.py` reaches the canonical schema on the TS side
+
+`datalog/schema_constraints.py` reads the canonical edge-type declaration from the repo
+root at `Path(__file__).resolve().parents[5] / "shared" / "canonical-schema.json"`
+(`schema_constraints.py:67`) — a Bucket-1-adjacent module reaching *out of* `culture-scrape`
+and up to the monorepo `shared/` tree, where `canonical-schema.ts` is the source of truth
+and the `.json` its generated artifact (Bucket 2 §2b). A `parents[5]` filesystem walk is
+exactly the kind of host-layout assumption a domain-neutral engine must not carry.
+
+**Resolution:** the canonical schema/vocab is **injected as config** (Bucket 1 §1b) — the
+Rust engine receives the edge-type declaration as a parameter, never walks the filesystem
+for `shared/canonical-schema.json`. Pinakes (`pinakes:50`) keeps authoring the schema and
+supplies it; `agora` consumes it. (This coupling is also why `schema_constraints.py` itself
+stays PINAKES-SPECIFIC, §2c — only the *compiled* violation clauses cross as data per (b).)
+
+### (d) `neo4j/export.py` binds the Pinakes canonical vocab directly
+
+`neo4j/export.py:export_to_tsv` binds the vocab from Pinakes-authored Python:
+`node_schema = NodeSchema.canonical()` / `edge_schema = EdgeSchema.canonical()`
+(`export.py:175-176`, from `schema/headers.py:191` / `:251`). A Bucket-1 translator reaches
+straight for the Pinakes canonical vocab instead of receiving it.
+
+**Resolution:** identical to (c) — the node `:LABEL` set, edge `:TYPE` set, and typed
+property columns are the **injected schema config** of Bucket 1 §1b. The Neo4j codec takes
+the schema as a parameter; a vocab change is a config change, never a Rust change.
+
+### Register summary
+
+| # | Coupling | Evidence | Resolution |
+| --- | --- | --- | --- |
+| (a) | Tier filter → Pinakes trust-tier source vocab | `export.py:104` lazy `import … orchestrate.tiers.{is_personal_source,is_synthetic_source}`; `tier_row_filter` `:85`; `FILE_WEB_RULES` splice `:342` | Caller-supplied `keep_row` predicate; no `orchestrate` import |
+| (b) | Emitter mixes generic projection + Pinakes rules | `include_rules`/`include_constraints`/`include_schema_constraints` `export.py:271-273`; `attach_rules` `:329` | Rulesets pass as caller-supplied data, not Rust constants |
+| (c) | Schema constraints read `shared/canonical-schema.json` | `schema_constraints.py:67` `parents[5] / "shared" / "canonical-schema.json"` | Schema injected as config; no filesystem walk |
+| (d) | Neo4j codec binds `NodeSchema/EdgeSchema.canonical()` | `neo4j/export.py:175-176` | Schema injected as config parameter |
+
+Every entanglement resolves the same way: **content and vocab that today reach into the
+generic emitters become parameters the Pinakes side supplies to a domain-neutral engine.**
+Once (a)–(d) are externalized, Bucket 1 is genuinely generic.
+
+---
+
+## Migration — the MOVE list for `agora:60` and the RETAIN list for `pinakes:50`
+
+This section hands each downstream tasklist an actionable list it can execute without
+re-reading the source.
+
+### MOVE to `agora` (Bucket 1) — for `agora:60`
+
+**Translators to port** (function-by-function; all cited above):
+
+- **TSV codec** — `schema/tsvio.py`: `encode_value`/`encode_values`,
+  `decode_value`/`decode_values`, `write_rows`/`read_rows`/`open_rows`,
+  `write_node_rows`, `write_edge_rows` (escape table + two sort keys, §1a).
+- **Neo4j codec** — `neo4j/export.py:export_to_tsv` (+ `NODE_QUERY`/`EDGE_QUERY`),
+  `neo4j/admin_import.py`, `load_csv.py`, `constraints.py`, `merge_load.py:verify_idempotent_load`.
+- **Datalog codec** — `datalog/export.py:export_dataset` + `collect_facts`,
+  `nodes.py`, `edges.py`, `prolog.py:write_program`, `souffle.py:write_souffle_program`/`write_souffle_facts`,
+  `problog.py:write_problog_program`/`collect_problog_facts` (+ `annotate_edge_group`).
+
+**API the `agora` lib must expose** (§1b): a domain-neutral in-memory canonical graph
+(nodes: `csid` + `:LABEL` set + typed props; edges: `:START_ID`/`:END_ID`/`:TYPE` + typed
+props) with per-format `encode`/`decode` entrypoints mirroring
+`export_to_tsv(out_dir, *, config, env, driver)` and
+`export_dataset(directory, out, engines, *, include_rules, include_constraints, include_schema_constraints, tier)`
+— but with **schema injected as config**, **rulesets/constraints passed as data**, and the
+**tier scope as a caller-supplied `keep_row` predicate** (entanglements (a)–(d)). Preserve
+the ProbLog `W::` annotation and the `ARITY == 2` constraint (§1b).
+
+**Deps that cross the seam** (§1c): the optional `neo4j` driver → a feature-gated Bolt
+client (`neo4rs`); `problog` → **none** (text-only emitter); `torch`/`pykeen` → **none on
+this side**.
+
+**Porting obligations** (§1d, non-negotiable): `write_program == render_program`;
+`write_souffle_facts` fact-order; filename-sorted, re-iterable `collect_facts` (nodes before
+edges); canonical TSV sort (`csid`; `(:START_ID,:END_ID,:TYPE)`).
+
+### RETAIN in `pinakes` (Bucket 2) — for `pinakes:50`
+
+`culture-scrape` **stays vendored in `pinakes`**; when the Bucket-1 emitters leave, these
+modules simply revert to plain Pinakes code (nothing physically moves, §2d):
+
+- **Acquisition** — `acquire/*` (Wikidata dump-slice `wikidata_slice.py`, P279
+  `taxonomy.py`, P2302 `constraints.py`, and the WD/PetScan/Getty/Pleiades/kaikki adapters).
+- **Reconciliation / correspondences** — `schema/reconcile.py`, `mapper.py`, `merge.py`,
+  `normalize.py`, `pipeline.py`, and the `{lexicon,glottolog,typology,lexibank,kaikki}_reconcile.py`
+  family.
+- **Explorer viz** — `explorer/*` (`app.py:create_app`, `server.py:run_server`, + plumbing).
+- **Canonical schema/vocab it keeps authoring** — `schema/headers.py`
+  (`NodeSchema.canonical()`/`EdgeSchema.canonical()`) + `shared/canonical-schema.{ts,json}`
+  (the TS-side source of truth, §2b); supplied to `agora` as config.
+- **Datalog inference content** — `datalog/rules.py:RULES`, `constraints.py` (P2302),
+  `schema_constraints.py`, `registry.py:active_curated_rules` (+ committed `rules_registry.tsv`),
+  `taxonomy.py` (P279). Pinakes authors these and passes the materialized rulesets to
+  `agora` as data (entanglement (b)); it does **not** port them to Rust.
+
+### STAYS in `ml/` (Bucket 3) — unaffected by the split
+
+`ml/src/pinakes_ml/{export_triples.py+triples.py, export_scallop.py+scallop.py,
+deepproblog_pilot.py}` stay in the separate `ml/` uv workspace. They import **no**
+`culturescrape` symbol and consume only the on-disk corpus
+(`export/culturescrape/{nodes,edges}/*.tsv`) + the committed `rules_registry.tsv`, so none
+becomes a client of the `agora` API (§3d). The one coupling — `ml/scallop.py` re-reading the
+same registry TSV the generic emitter uses — is satisfied by the single-committed-registry
+invariant (§3c): Pinakes commits it once, `agora` reads it as data, `ml/` reads the same
+file; never forked.
+
+---
+
+## READ-ONLY discovery declaration
+
+**This document is a READ-ONLY discovery artifact. No source code was moved or edited by
+this task.** The *only* file added is `packages/culture-scrape/docs/translation-seam.md`
+(this file) — consistent with `touches = [pinakes-culture-scrape]`; `git status` shows
+exactly one added doc and no source change. Every byte-identity / determinism invariant
+(`write_ == render_`, deterministic TSV sort, `ARITY == 2`, re-iterable streaming
+`collect_facts`) is documented above as a **porting obligation** for `agora:60`, not
+enforced by any change here. The seam is now specified; the moves are `agora:60`'s and
+`pinakes:50`'s to execute.
