@@ -33,6 +33,25 @@ same corpus data — **keep them at parity**. Payload shapes are frozen by the z
   Index build lives in `neo4j/vector_index.py` (CLI `graphrag-index`); full runbook at
   repo `docs/graphrag-runbook.md`.
 
+## The Datalog console's facts are the agora engine's (pinakes:50 US-4)
+
+`datalog.Datalog._program_path` projects the corpus with `export_dataset(...,
+include_rules=True)`. That is a **rule-bearing** export, and for five iterations of
+pinakes:50 it was recorded as the reason the console could not delegate — the exporter
+gated delegation on `not attach_rules`, because agora:60 ships only whole-graph document
+renderers and knows nothing about rules. That inference was wrong: `datalog/export.py`
+`_export_rule_bearing` now splits the engine's rendered document back into fact clauses
+(`translation.program_fact_clauses`) and composes the program around them, so **every
+fact clause in the console's `graph.pl` is the engine's** and only the structure — the
+`:- table`/`:- discontiguous`/`:- dynamic` preamble, the rule section, the P279 taxonomy
+overlay — is culture-scrape's.
+
+Don't re-derive this from `export.py`: `test_datalog_console_projects_its_facts_through_
+the_agora_engine` pins it with a spy on `translation.dataset_datalog` **and** a verbatim
+block match of the engine's clauses in the emitted file. The spy alone would pass if the
+result were discarded; the byte check alone would pass if a hand-written emitter were
+re-instated. Both, or neither is worth much.
+
 ## Tests
 
 `tests/test_explorer_app.py` drives the app with FastAPI's `TestClient` (no live server);

@@ -19,7 +19,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from culturescrape import cli  # noqa: E402
+from culturescrape import cli, translation  # noqa: E402
 from culturescrape.explorer import create_app  # noqa: E402
 from culturescrape.explorer.datalog import Datalog  # noqa: E402
 
@@ -626,6 +626,63 @@ def test_datalog_skip_is_logged_when_swipl_absent(
             "skipping runnable datalog views: swipl not found"
         )
     assert "swipl not found" in caplog.text
+
+
+# --- The console's symbolic layer is the agora engine's (pinakes:50 US-4) ---
+
+
+def test_datalog_console_projects_its_facts_through_the_agora_engine(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The console's ``graph.pl`` takes its fact clauses from the embedded engine.
+
+    The console projects a **rule-bearing** program (``include_rules=True``), which
+    was for five iterations the stated reason it could not delegate — the exporter
+    gated delegation on ``not attach_rules``. It now re-composes the engine's
+    rendered document instead, contributing only what the engine cannot know: the
+    directive preamble, the rule clauses and the P279 taxonomy overlay. That is
+    pinakes:50 US-4 AC-4 ("the relocated explorer emits any Cypher/Datalog it needs
+    via the agora lib"), so it is pinned here rather than inferred from
+    ``datalog/export.py``.
+
+    Both halves are asserted because either alone is weak: the spy proves the call
+    happens but would pass if its result were discarded, and the byte check proves
+    what landed in the file but would pass if the hand-written emitters were
+    silently re-instated — they render identical bytes by construction
+    (``tests/test_translation_lib.py``).
+    """
+    rendered: list[dict[str, object]] = []
+    real = translation.dataset_datalog
+
+    def spy(*args: object, **kwargs: object) -> dict[str, object]:
+        result = real(*args, **kwargs)  # type: ignore[arg-type]
+        rendered.append(result)
+        return result
+
+    monkeypatch.setattr(translation, "dataset_datalog", spy)
+
+    console = Datalog(SAMPLE, swipl=None)
+    # The projection step itself — independent of swipl, which only runs queries
+    # against the program this produces.
+    program = console._program_path()  # noqa: SLF001
+
+    assert len(rendered) == 1, (
+        "the explorer's Datalog console no longer renders through the agora "
+        "translation engine (culturescrape.translation.dataset_datalog was not "
+        "called) — pinakes:50 US-4 AC-4 requires that it does"
+    )
+    clauses = translation.program_fact_clauses(str(rendered[0]["prolog"]))
+    # Guard against a vacuous comparison: the sample corpus projects a real graph.
+    assert len(clauses) > 10, f"engine rendered only {len(clauses)} fact clauses"
+
+    body = program.read_text(encoding="utf-8")
+    # ``_clause_lines`` writes one clause per line with nothing interleaved, so the
+    # engine's clauses appear as one verbatim, contiguous block — anything else
+    # means the exporter reformatted them on the way through.
+    assert "\n".join(clauses) in body
+    # ...and the structure around them is still culture-scrape's.
+    assert ":- discontiguous" in body
+    assert "% Inference rules" in body
 
 
 # --- One entity across TSV / Neo4j / Datalog (T7-US-009) --------------------
