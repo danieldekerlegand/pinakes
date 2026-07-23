@@ -6,6 +6,13 @@ The end-to-end check — emit the same fact base and rule library for both engin
 run each, and assert the derived relations match tuple-for-tuple — needs ``swipl``
 *and* ``souffle``; it skips with a logged reason when either is absent and runs in
 CI when both are present.
+
+It runs **twice**, over the two ways a program reaches an engine: once from the
+hand-written :data:`EQUIV_FACTS` list (the emitters in isolation) and once from the
+same fact base expressed as canonical TSV and exported through
+:func:`~culturescrape.datalog.export.export_dataset`, whose fact clauses the
+embedded agora translation engine renders (pinakes:50 US-2). The second pair is
+what ``culturescrape to-datalog --rules`` actually ships.
 """
 
 from __future__ import annotations
@@ -16,6 +23,7 @@ from pathlib import Path
 
 import pytest
 
+from culturescrape import translation
 from culturescrape.datalog import (
     RULES,
     Divergence,
@@ -28,6 +36,13 @@ from culturescrape.datalog import (
     write_souffle_program,
 )
 from culturescrape.datalog.equivalence import Tuple
+from culturescrape.datalog.export import (
+    PROLOG_PROGRAM_NAME,
+    Engine,
+    collect_facts,
+    export_dataset,
+)
+from culturescrape.datalog.materialize import materialize
 
 #: A fact base whose every derived relation in :data:`RULES` has tuples the raw
 #: facts never state directly, so the cross-engine check compares non-empty
@@ -152,3 +167,155 @@ def test_equivalence_skip_is_logged_when_an_engine_is_absent(
             "skipping cross-engine equivalence: %s not found", ", ".join(missing)
         )
     assert "not found" in caplog.text
+
+
+# --- the same gate, over the LIB-EMITTED programs (pinakes:50 US-2) ----------
+#
+# The check above builds both programs from the hand-written :data:`EQUIV_FACTS`
+# list, so it exercises the emitters but never the embedded agora translation
+# engine. The seam spec requires the equivalence gate to hold for the programs the
+# export actually ships, whose every fact clause is rendered by the engine
+# (``datalog/export.py`` ``_export_rule_bearing`` → ``translation.dataset_datalog``).
+# So the same fact base is expressed as canonical TSV, exported through that path
+# once per engine, and compared tuple-for-tuple.
+
+#: The canonical node rows behind :data:`EQUIV_FACTS`. The dated spans are the
+#: same three (Q47 100–200 overlapping Q42 150–300; Q99 400–500 disjoint from
+#: both) that make ``contemporary``/``precedes``/``follows`` non-empty, carried
+#: here as ``time_start``/``time_end`` dimension columns rather than bare facts.
+_EQUIV_NODES = """csid:ID\t:LABEL\tname\tsource\ttime_start:int\ttime_end:int
+cs:battle:Q47\tBattle\tBattle\twikidata\t100\t200
+cs:culture:Q7\tCulture\tCulture\twikidata\t\t
+cs:dish:Q07\tDish\tOlder Dish\twikidata\t\t
+cs:dish:Q42\tDish\tArepa\twikidata\t150\t300
+cs:dish:Q99\tDish\tLater Dish\twikidata\t400\t500
+cs:haplogroup:r1b\tHaplogroup\tR1b\twikidata\t\t
+cs:lang:itc\tLanguage\tItalic\twikidata\t\t
+cs:lang:lat\tLanguage\tLatin\twikidata\t\t
+cs:lang:spa\tLanguage\tSpanish\twikidata\t\t
+cs:language:proto-celtic\tLanguage\tProto-Celtic\twikidata\t\t
+cs:part:Q11\tArtifact\tPart 11\twikidata\t\t
+cs:part:Q12\tArtifact\tPart 12\twikidata\t\t
+cs:part:Q13\tArtifact\tPart 13\twikidata\t\t
+cs:place:Q123\tPlace\tCity\twikidata\t\t
+cs:place:Q200\tPlace\tRegion\twikidata\t\t
+cs:place:western-europe\tPlace\tWestern Europe\twikidata\t\t
+"""
+
+#: The canonical edge rows behind :data:`EQUIV_FACTS` — one ``:TYPE`` per typed
+#: predicate the rule bodies read (``predicate_for_type`` lowercases them).
+_EQUIV_EDGES = """:START_ID\t:END_ID\t:TYPE\tsource
+cs:battle:Q47\tcs:dish:Q42\tCONTEMPORARY_WITH\twikidata
+cs:culture:Q7\tcs:place:Q123\tLOCATED_IN\twikidata
+cs:dish:Q42\tcs:dish:Q07\tINFLUENCED_BY\twikidata
+cs:dish:Q42\tcs:place:Q123\tLOCATED_IN\twikidata
+cs:dish:Q99\tcs:dish:Q42\tDERIVED_FROM\twikidata
+cs:haplogroup:r1b\tcs:place:western-europe\tORIGINATES_FROM\twikidata
+cs:lang:lat\tcs:lang:itc\tDESCENDS_FROM\twikidata
+cs:lang:spa\tcs:lang:lat\tDESCENDS_FROM\twikidata
+cs:language:proto-celtic\tcs:place:western-europe\tSPOKEN_IN\twikidata
+cs:part:Q11\tcs:part:Q12\tPART_OF\twikidata
+cs:part:Q12\tcs:part:Q13\tPART_OF\twikidata
+cs:place:Q123\tcs:place:Q200\tLOCATED_IN\twikidata
+"""
+
+
+def _equiv_dataset(root: Path) -> Path:
+    """Write :data:`EQUIV_FACTS`' fact base as a canonical TSV dataset."""
+    (root / "nodes").mkdir(parents=True)
+    (root / "edges").mkdir(parents=True)
+    (root / "nodes" / "nodes.tsv").write_text(_EQUIV_NODES, encoding="utf-8")
+    (root / "edges" / "edges.tsv").write_text(_EQUIV_EDGES, encoding="utf-8")
+    return root
+
+
+def _export_both(root: Path, tmp_path: Path) -> tuple[Path, Path]:
+    """Export *root* with ``--rules`` for each engine; return ``(pl, souffle_dir)``."""
+    prolog_dir = tmp_path / "prolog"
+    souffle_dir = tmp_path / "souffle"
+    export_dataset(root, prolog_dir, (Engine.SWIPL,), include_rules=True)
+    export_dataset(root, souffle_dir, (Engine.SOUFFLE,), include_rules=True)
+    return prolog_dir / PROLOG_PROGRAM_NAME, souffle_dir
+
+
+def test_the_lib_emitted_programs_carry_the_engines_clauses_and_a_live_closure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The engine-free half of the gate below — and its non-vacuity guard.
+
+    Two claims the cross-engine run cannot make for itself, because it skips
+    wherever ``swipl``/``souffle`` are absent:
+
+    1. **Provenance** — both programs' fact clauses come from the engine. This
+       needs a *call-site* probe, not an output one: on this fixture the engine
+       and the reference emitters render byte-identical streams (which is the
+       whole point of the migration), so swapping the delegation back for the
+       Python emitter leaves ``graph.pl`` unchanged and no output assertion can
+       see it. Verified deliberately — passing ``rendered_facts=None`` into
+       ``_export_rule_bearing`` does not move a single byte. The spy below is
+       therefore the only thing separating "the engine rendered these facts" from
+       "these bytes happen to match"; the verbatim-block check rides along so a
+       call whose *result is discarded* still fails.
+    2. **Non-vacuity** — every relation the cross-engine check compares has a
+       non-empty extension over this fixture, computed engine-free by
+       :func:`~culturescrape.datalog.materialize.materialize`. Without it a
+       fixture that closed to the empty set would let the gated test "agree" on
+       nothing at all.
+    """
+    root = _equiv_dataset(tmp_path / "data")
+
+    calls: list[tuple[int, int]] = []
+    real = translation.dataset_datalog
+
+    def spy(node_files, edge_files, keep_row=None):  # type: ignore[no-untyped-def]
+        calls.append((len(node_files), len(edge_files)))
+        return real(node_files, edge_files, keep_row)
+
+    monkeypatch.setattr(translation, "dataset_datalog", spy)
+    program, souffle_dir = _export_both(root, tmp_path)
+    assert calls == [(1, 1), (1, 1)], (
+        "each engine's export must render its facts via the lib"
+    )
+
+    facts = collect_facts(root, include_taxonomy=True)
+    rendered = real(facts.node_files, facts.edge_files, None)
+    clauses = translation.program_fact_clauses(rendered["prolog"])
+    assert len(clauses) > 10  # a vacuous block cannot satisfy the check below
+    assert "\n".join(clauses) in program.read_text(encoding="utf-8")
+
+    # Soufflé reads its rows from one .facts shard per relation, so the engine's
+    # fact base reaches that engine as files rather than as clauses.
+    assert (souffle_dir / "rel.facts").exists()
+    assert (souffle_dir / "descends_from.facts").exists()
+
+    derived = materialize(list(facts), RULES)
+    empty = [name for name in _DERIVED if not derived.get(name)]
+    assert not empty, f"closures are empty over the fixture: {empty}"
+
+
+@pytest.mark.skipif(
+    SWIPL is None or SOUFFLE is None,
+    reason="cross-engine equivalence needs both swipl and souffle",
+)
+def test_lib_emitted_prolog_and_souffle_agree_on_every_derived_relation(
+    tmp_path: Path,
+) -> None:
+    assert SWIPL is not None and SOUFFLE is not None  # narrow for mypy
+    root = _equiv_dataset(tmp_path / "data")
+    program, souffle_dir = _export_both(root, tmp_path)
+
+    out_dir = tmp_path / "out"
+    run_souffle(souffle_dir, out_dir, souffle=SOUFFLE)
+
+    disagreements = []
+    for predicate in _DERIVED:
+        prolog = prolog_tuples(program, predicate, 2, swipl=SWIPL)
+        souffle = souffle_tuples(out_dir, predicate)
+        div = compare_relation(predicate, prolog, souffle)
+        if not div.agree:
+            disagreements.append(div.report())
+        else:
+            # Non-emptiness is pinned engine-free above; assert it here too so a
+            # truncated export cannot pass as agreement.
+            assert prolog, f"{predicate} closure was unexpectedly empty"
+    assert not disagreements, "\n".join(disagreements)

@@ -259,3 +259,49 @@ def test_problog_computes_a_marginal_over_a_fixture(tmp_path: Path) -> None:
     assert marginals["within_region('cs:dish:Q1','cs:place:Q3')"] == pytest.approx(
         0.72
     )
+
+
+def test_problog_computes_the_marginal_over_the_lib_emitted_program(
+    tmp_path: Path,
+) -> None:
+    """The same marginal, over the program ``to-datalog`` actually ships.
+
+    The smoke above renders through :func:`render_problog_program` — the reference
+    Python emitter. Per the pinakes:50 seam spec the shipped ``graph.problog.pl``
+    is written by :func:`export_dataset`, whose fact clauses (``W::`` confidence
+    annotation included) come from the embedded agora translation engine. This
+    runs the *shipped* artifact through ProbLog and asserts the same two
+    marginals, so "the engine's ProbLog syntax is valid and its probabilities
+    multiply along a derived chain" is proven of the delegated path, not only of
+    the emitter it replaced.
+
+    ``include_rules=True`` is what routes the export through
+    ``_export_rule_bearing`` — the branch that hands the engine's clauses to
+    :func:`write_problog_program` — and is also what defines ``within_region/2``.
+    """
+    problog_program = pytest.importorskip("problog.program")
+    problog = pytest.importorskip("problog")
+
+    out = tmp_path / "out"
+    export_dataset(
+        _chain_dataset(tmp_path / "data"),
+        out,
+        (Engine.PROBLOG,),
+        include_rules=True,
+    )
+    text = (out / PROBLOG_PROGRAM_NAME).read_text(encoding="utf-8")
+    # The confidence → probability annotation is the engine's, on both edge views.
+    assert "0.9::rel(located_in, 'cs:dish:Q1', 'cs:place:Q2')." in text
+    assert "0.9::located_in('cs:dish:Q1', 'cs:place:Q2')." in text
+
+    text += "\nquery(located_in('cs:dish:Q1', 'cs:place:Q2')).\n"
+    text += "query(within_region('cs:dish:Q1', 'cs:place:Q3')).\n"
+
+    model = problog_program.PrologString(text)
+    result = problog.get_evaluatable().create_from(model).evaluate()
+    marginals = {str(term): prob for term, prob in result.items()}
+
+    assert marginals["located_in('cs:dish:Q1','cs:place:Q2')"] == pytest.approx(0.9)
+    assert marginals["within_region('cs:dish:Q1','cs:place:Q3')"] == pytest.approx(
+        0.72
+    )

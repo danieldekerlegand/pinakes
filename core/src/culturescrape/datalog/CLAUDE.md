@@ -427,6 +427,25 @@ so the logic is checked even without an engine, and keep the engine-gated test t
 agrees with that derivation for when an engine is present. Install locally: see
 `docs/datalog.md`, "Installing the engines".
 
+## GOTCHA — on the rule-bearing path, output checks CANNOT see a reverted delegation
+
+`_export_rule_bearing` hands the engine's clauses to `write_program` /
+`write_problog_program` / `write_souffle_program` as `rendered_facts=` /
+`rendered_shards=`. Those writers' own rendering is **byte-identical** to the engine's
+on every canonical dataset — that byte-parity is the point of the migration — so
+setting `rendered_facts=None` (i.e. deleting the delegation) does not move a single
+byte of `graph.pl`. Verified deliberately in pinakes:50 US-2.
+
+So a test that asserts "the engine's clauses appear in the output" is a **tautology**
+here and will happily pass on a de-delegated export. The only guard that bites is a
+**call-site spy** — `monkeypatch.setattr(translation, "dataset_datalog", spy)` and
+assert it was called (see `tests/test_datalog_equivalence.py`). Keep an output check
+alongside it, because a spy alone would pass if the call's result were discarded.
+
+Note this is the *opposite* of the explorer's Datalog console
+(`explorer/CLAUDE.md`), where the block check does bite — do not generalise either
+result. Prove which one applies by injecting the revert and re-running.
+
 ## The six-format parity goldens (`tests/fixtures/parity/`, pinakes:50 US-2)
 
 `tests/test_translation_parity.py` renders ONE representative canonical fixture through

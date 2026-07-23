@@ -22,6 +22,7 @@ from culturescrape.datalog import (
     write_souffle_facts,
     write_souffle_program,
 )
+from culturescrape.datalog.export import Engine, export_dataset
 from culturescrape.schema.tsvio import decode_value
 
 NODES = Path(__file__).parent / "fixtures" / "datalog" / "nodes.tsv"
@@ -115,6 +116,8 @@ _DECL_RE = re.compile(
     r"^\.decl [a-z][A-Za-z0-9_]*\((x\d+: (symbol|number|float)(, )?)+\)$"
 )
 _IO_RE = re.compile(r"^\.(input|output) [a-z][A-Za-z0-9_]*$")
+#: One declared attribute slot inside a ``.decl`` line.
+_ATTR_RE = re.compile(r"x\d+: (?:symbol|number|float)")
 
 
 def test_generated_program_is_well_formed_line_by_line() -> None:
@@ -226,3 +229,70 @@ def test_souffle_smoke_skip_is_logged_when_absent(
 def test_relation_declaration_renders_named_typed_attributes() -> None:
     rel = Relation("located_at", ("symbol", "float", "float"))
     assert rel.declaration() == ".decl located_at(x0: symbol, x1: float, x2: float)"
+
+
+# --- graph.dl as the export actually ships it (pinakes:50 US-2) --------------
+
+
+def test_the_lib_emitted_graph_dl_declares_and_shards_every_relation(
+    tmp_path: Path,
+) -> None:
+    """Validate the ``graph.dl`` ``to-datalog`` ships, not only ``render_*``'s.
+
+    Every check above renders through :func:`render_souffle_program` /
+    :func:`write_souffle_facts` — the reference emitters. Per the pinakes:50 seam
+    spec the shipped program's fact rows come from the embedded agora translation
+    engine (``export.py`` ``_export_rule_bearing`` passes them as
+    ``rendered_shards``), so the same well-formedness claims are re-asserted
+    against that artifact: each declaration parses, each declared relation is
+    both ``.input`` and ``.output``, and each has a ``.facts`` shard whose every
+    row carries exactly the declared number of attributes.
+
+    ``souffle`` is not needed — this is the structural half of the smoke above,
+    which stays gated on the binary.
+    """
+    root = tmp_path / "data"
+    (root / "nodes").mkdir(parents=True)
+    (root / "edges").mkdir(parents=True)
+    (root / "nodes" / "nodes.tsv").write_text(
+        NODES.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    (root / "edges" / "edges.tsv").write_text(
+        EDGES.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+
+    out = tmp_path / "out"
+    export_dataset(root, out, (Engine.SOUFFLE,), include_rules=True)
+    program = (out / SOUFFLE_PROGRAM_NAME).read_text(encoding="utf-8")
+
+    declared = {
+        line.split("(", 1)[0].removeprefix(".decl ")
+        for line in program.splitlines()
+        if line.startswith(".decl ")
+    }
+    assert {"node", "rel", "instance_of"} <= declared
+    # Count the declared attributes as ``x<n>:`` slots — not any ``x`` on the
+    # line, which a predicate name containing one would inflate.
+    arities = {
+        line.split("(", 1)[0].removeprefix(".decl "): len(_ATTR_RE.findall(line))
+        for line in program.splitlines()
+        if line.startswith(".decl ")
+    }
+
+    for line in program.splitlines():
+        if line.startswith((".decl", ".input", ".output")):
+            assert _DECL_RE.match(line) or _IO_RE.match(line), line
+
+    # Rule heads are derived, so only the *fact* relations carry a shard; every
+    # shard that exists must belong to a declared relation and match its arity.
+    shards = sorted(p for p in out.glob("*.facts"))
+    assert len(shards) > 1, "a single shard would not exercise the fan-out"
+    for shard in shards:
+        predicate = shard.stem
+        assert predicate in declared, f"{predicate}.facts has no .decl"
+        assert f"\n.input {predicate}\n" in program
+        assert f"\n.output {predicate}\n" in program
+        rows = shard.read_text(encoding="utf-8").splitlines()
+        assert rows, f"{predicate}.facts is empty"
+        for row in rows:
+            assert len(row.split("\t")) == arities[predicate], row
