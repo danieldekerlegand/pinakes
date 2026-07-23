@@ -231,5 +231,118 @@ verbatim:
 
 ---
 
-<!-- US-3 (PINAKES-SPECIFIC bucket), US-4 (ML-DERIVATION bucket), and
-     US-5 (Entanglement register + Migration) append their sections below. -->
+## Bucket 2 (PINAKES-SPECIFIC) — what moves back into `pinakes` proper
+
+This is the surface `pinakes:50` reclaims. Everything here is *domain content* about
+the cultural corpus: how the graph is acquired from Wikidata, how source rows are
+reconciled to a single `csid`, how the corpus is browsed, the canonical schema/vocab
+itself, and the Datalog *inference* library. None of it is a canonical-graph↔format
+translator; it is the Pinakes side of the seam that authors the graph and the schema
+the generic (Bucket 1) translators then project. **The `culture-scrape` package stays
+vendored inside `pinakes`** — the engine-generic emitters (Bucket 1) *leave* for
+`agora`, the domain modules below *do not move at all*; they simply revert to being
+plain Pinakes code once the emitters are gone.
+
+### 2a. The PINAKES-SPECIFIC modules
+
+Paths relative to `packages/culture-scrape/src/culturescrape/` unless noted. Every
+`file:function` resolves in the current tree.
+
+**Wikidata acquisition (`acquire/*`).** The whole acquisition surface is
+Pinakes-specific — it knows Wikidata QIDs, properties, and the cultural blueprint:
+
+| `file:function` | Rationale (code-grounded) | Pinakes home |
+| --- | --- | --- |
+| `acquire/wikidata_slice.py:blueprint_classes` / `SliceManifest` / `ClassMembership` | Dump-slice: reads the blueprint classes and slices the WD dump to corpus membership. | stays `culturescrape.acquire` (vendored in pinakes) |
+| `acquire/taxonomy.py` (P279) | Extracts the Wikidata **P279** `subclass_of` class taxonomy — feeds `datalog/taxonomy.py`'s `subclass_of.tsv` replay artifact. | stays `culturescrape.acquire` |
+| `acquire/constraints.py` (P2302) | Extracts Wikidata **P2302** property-constraint statements — feeds `datalog/constraints.py`'s replay artifact. | stays `culturescrape.acquire` |
+| `acquire/wikidata_dump*.py`, `wikidata_hydration.py`, `wikidata_enrich.py`, `wikidata.py`, `petscan.py`, `getty.py`, `pleiades.py`, `kaikki.py`, … | Source adapters (WDQS/dump/PetScan/Getty/Pleiades/kaikki) — QID- and source-schema-aware acquisition, not translation. | stays `culturescrape.acquire` |
+
+**Reconciliation / correspondences (`schema/*`).** The layer that resolves many source
+rows to one canonical `csid` — the "resolver authority" of ADR-0002. Domain-specific
+matching, not row IO:
+
+| `file:function` | Rationale (code-grounded) | Pinakes home |
+| --- | --- | --- |
+| `schema/reconcile.py:WikidataReconciler` / `reconcile_row` / `reconcile_rows` | Reconciles a row to a Wikidata entity (WDQS candidate scoring) — the `csid`↔`KINP` resolver. | stays `culturescrape.schema` |
+| `schema/mapper.py:map_record` / `map_records` / `map_pinakes_record` | Maps a source `RawRecord` + `CategorySpec` to a canonical `Row` — domain field mapping. | stays `culturescrape.schema` |
+| `schema/merge.py:merge_rows` / `merged_csid_remap` | Clusters + merges duplicate entities (exact-key + fuzzy-name), remapping `csid`. | stays `culturescrape.schema` |
+| `schema/normalize.py:normalize_text` / `normalize_fields` / `TimeSpan` | Text/era/time-span normalization (century parsing, era signs) — corpus semantics. | stays `culturescrape.schema` |
+| `schema/pipeline.py:normalize_records` / `read_raw_records` | Drives raw-record → normalized-row for pinakes/analyzer exports. | stays `culturescrape.schema` |
+| `schema/{lexicon,glottolog,typology,lexibank,kaikki}_reconcile.py` | The per-source `*_reconcile` family — dataset-specific correspondence to the canonical graph (lexicon, Glottolog, typology, Lexibank, kaikki). | stays `culturescrape.schema` |
+
+**Explorer viz (`explorer/*`).** A FastAPI app for browsing the corpus — purely a
+Pinakes-facing product surface:
+
+| `file:function` | Rationale (code-grounded) | Pinakes home |
+| --- | --- | --- |
+| `explorer/app.py:create_app` (`FastAPI(title="culture-scrape explorer")`) | The explorer application factory — corpus browse/retrieval UI. | stays `culturescrape.explorer` |
+| `explorer/server.py:run_server`, `explorer/{data,links,retrieval,live,datalog,actions}.py` | The viz server + data/retrieval/datalog-example plumbing behind the UI. | stays `culturescrape.explorer` |
+
+### 2b. Canonical-schema ownership — Pinakes authors it, `agora` receives it as config
+
+**The shared vocab is Pinakes-owned and must be injected INTO the `agora` engine as a
+config parameter, never hard-coded in Rust.** The vocab is three things: the node
+`:LABEL` set, the edge `:TYPE` set, and the typed property columns (with their
+`MULTI_VALUE_KEYS`). Today the generic translators read it from two Pinakes-authored
+sources:
+
+- **`schema/headers.py`** — `NodeSchema.canonical()` (`headers.py:191`) and
+  `EdgeSchema.canonical()` (`headers.py:251`) are the Python-side canonical vocab.
+  `neo4j/export.py` binds them directly (`node_schema = NodeSchema.canonical()`,
+  `edge_schema = EdgeSchema.canonical()`, `neo4j/export.py:175-176`) — a Bucket-1
+  translator reaching for Pinakes vocab. In the port this becomes the injected schema
+  config (Bucket 1 §1b), authored by Pinakes.
+- **`shared/canonical-schema.json`** (repo root) — the machine-readable edge-type
+  declaration `datalog/schema_constraints.py` reads at
+  `Path(__file__).resolve().parents[5] / "shared" / "canonical-schema.json"`
+  (`schema_constraints.py:67`). **The schema lives on the TS side**:
+  `shared/canonical-schema.ts` (+ `.test.ts`) is the source of truth, the `.json` its
+  generated artifact — so the canonical vocab already lives *in the pinakes monorepo*,
+  outside `culture-scrape`. `pinakes:50` keeps authoring it; `agora` consumes the
+  `.json` as config.
+
+The resolution is symmetric with §1b: **the vocab is a parameter the Pinakes side
+supplies to the domain-neutral engine**, so a schema change never means a Rust change.
+
+### 2c. The Datalog *inference* content is PINAKES-SPECIFIC (distinct from the generic emitter)
+
+Bucket 1 keeps the Datalog **projection/emitter** (`export.py`, `nodes.py`, `edges.py`,
+`prolog.py`, `souffle.py`, `problog.py`). But the Datalog *inference content* those
+emitters optionally splice in is Pinakes rule/vocab data and stays behind:
+
+| `file:function` | What it is | Why PINAKES-SPECIFIC |
+| --- | --- | --- |
+| `datalog/rules.py:RULES` (`rules.py:346`) | `RULES: tuple[Rule, ...]` — curated inference rules (`ancestor`, `same_region`, temporal closures). | Inference *content*, not a translator. |
+| `datalog/constraints.py` (P2302) | Compiles the committed P2302 replay artifact into integrity rules. | Wikidata-derived domain axioms. |
+| `datalog/schema_constraints.py` | Compiles `shared/canonical-schema.json` edge-type declarations into violation rules. | Reads the Pinakes-owned schema (§2b). |
+| `datalog/registry.py:active_curated_rules` (`registry.py:570`) | Reads the committed `rules_registry.tsv` (`REGISTRY_TSV`, `registry.py:64`) — the provenanced rule library. | The registry is Pinakes-authored rule data. |
+| `datalog/taxonomy.py` (P279) | Projects the `subclass_of.tsv` replay artifact into `subclass_of/2` facts. | Wikidata P279 taxonomy content. |
+
+**The rule library rides across the seam as DATA, not ported Rust logic.** The generic
+Datalog emitter (Bucket 1) *consumes* the committed `rules_registry.tsv` (and the P2302 /
+P279 / schema-constraint artifacts) as input text it appends to the program; it does not
+need to understand or re-derive them. So `agora` never ports `RULES` or the constraint
+compilers — Pinakes keeps authoring the rules and commits the registry TSV, and both the
+generic emitter (Bucket 1) and the ML Scallop re-translation (Bucket 3, US-4) read that
+single committed artifact. This is why the `include_rules` / `include_constraints` /
+`include_schema_constraints` toggles on `export_dataset` are catalogued as entanglements
+(US-5): the emitter core is generic, but those toggles let Pinakes content flow through
+it, and the port must accept that content as caller-supplied data rather than importing it.
+
+### 2d. The move list for `pinakes:50`
+
+Nothing in Bucket 2 physically moves — `culture-scrape` **stays vendored in `pinakes`**.
+`pinakes:50` reclaims these modules simply by *keeping* them when the Bucket-1 emitters
+leave for `agora`: `acquire/*` (Wikidata acquisition, incl. dump-slice + P279 + P2302),
+`schema/{reconcile,mapper,merge,normalize,pipeline}.py` + the `*_reconcile` family
+(reconciliation/correspondences), `explorer/*` (viz), `schema/headers.py`
+(`NodeSchema`/`EdgeSchema` canonical vocab) + `shared/canonical-schema.json` (the
+Pinakes-owned schema it keeps authoring), and the Datalog inference content
+(`rules.py`, `constraints.py`, `schema_constraints.py`, `registry.py`, `taxonomy.py`).
+`pinakes:50` can act on this list without re-reading the source.
+
+---
+
+<!-- US-4 (ML-DERIVATION bucket) and US-5 (Entanglement register + Migration)
+     append their sections below. -->
