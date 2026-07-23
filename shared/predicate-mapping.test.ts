@@ -20,6 +20,13 @@ import {
   type PredicateMappingRegistry,
   type RelationMapping,
 } from "./predicate-mapping";
+import { KGP_CORE_RELATIONS, KGP_DOMAIN_RELATIONS } from "./kgp";
+import {
+  parseRelationsTsv,
+  diffVocabulary,
+  formatSignatureDrifts,
+  readKoineVocabulary,
+} from "../scripts/regen-registry-mirror";
 
 /** Deep-clone the live registry so a test can mutate one field in isolation. */
 function cloneRegistry(): PredicateMappingRegistry {
@@ -62,6 +69,53 @@ describe("predicate-mapping registry", () => {
   it.skipIf(!hasKoine)("is byte-identical to the authoritative koine copy", () => {
     const vendored = readFileSync(resolve(import.meta.dirname, "predicate-mapping.json"), "utf8");
     expect(readFileSync(KOINE_REGISTRY, "utf8")).toBe(vendored);
+  });
+
+  // Second drift gate (US-2): the byte test above covers only the JSON mirror. `kgp.ts`'s
+  // `KGP_CORE_RELATIONS` + `KGP_DOMAIN_RELATIONS` are a SECOND mirror ("vendored verbatim
+  // from koine registry/relations.tsv") that no test gated — so a koine signature change
+  // could drift unnoticed. This companion parses the four live TSVs and fails if any
+  // vendored signature disagrees on arity / ordered argRoles / symmetric / tier.
+  it.skipIf(!hasKoine)(
+    "vendored kgp.ts vocabulary matches the live koine TSV signatures",
+    () => {
+      const { core, domain } = readKoineVocabulary(KOINE_ROOT);
+      const drifts = [
+        ...diffVocabulary(KGP_CORE_RELATIONS, core),
+        ...diffVocabulary(KGP_DOMAIN_RELATIONS, domain),
+      ];
+      expect(drifts, formatSignatureDrifts(drifts)).toEqual([]);
+    },
+  );
+
+  // Proof the gate BLOCKS on staleness (doesn't just skip): drive the same comparator with a
+  // simulated koine change and assert it goes red with `npm run regen:registry-mirror` as the
+  // remedy — never "hand-edit the mirror". Uses a synthetic TSV, so it runs without a koine
+  // checkout too (the live companion above skips when the sibling repo is absent).
+  it("a changed/added koine TSV signature turns the drift gate red, naming the regen remedy", () => {
+    const staleTsv =
+      "relation\tarity\targ_roles\tsymmetric\ttier\tdomain\tinverse\tdescription\n" +
+      // `same_as` is vendored symmetric:true — koine flipping it (a signature change) drifts.
+      "same_as\t2\ta|b\tfalse\tgrounding-only\tcore\t\tsimulated signature change\n" +
+      // A brand-new upstream relation not yet re-vendored into kgp.ts is also drift.
+      "brand_new_rel\t2\tx|y\tfalse\tgrounding-only\tcore\t\tadded upstream, not vendored\n";
+    const drifts = diffVocabulary(KGP_CORE_RELATIONS, parseRelationsTsv(staleTsv, { core: true }));
+    expect(drifts.length).toBeGreaterThan(0);
+    expect(drifts.map((d) => d.relation)).toEqual(
+      expect.arrayContaining(["same_as", "brand_new_rel"]),
+    );
+    const message = formatSignatureDrifts(drifts);
+    expect(message).toContain("npm run regen:registry-mirror");
+    expect(message).toMatch(/never hand-edit/i);
+  });
+
+  it("a koine registryVersion bump turns the byte gate red until a re-vendor", () => {
+    const vendored = readFileSync(resolve(import.meta.dirname, "predicate-mapping.json"), "utf8");
+    // Koine bumps 0.4.2 → 0.4.3 upstream; until `npm run regen:registry-mirror` re-vendors,
+    // the authoritative copy no longer equals the byte-for-byte mirror.
+    const bumped = vendored.replace(/"registryVersion": "0\.4\.2"/, '"registryVersion": "0.4.3"');
+    expect(bumped).not.toBe(vendored); // the bump really changed the authoritative source…
+    expect(vendored).not.toBe(bumped); // …so the byte-identical gate above would be red.
   });
 
   it("registers the analyzer project encoding the media-bridge mapping spec Appendix A", () => {

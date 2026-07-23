@@ -245,6 +245,95 @@ export function diffRegen(koineRoot: string = resolveKoineRoot()): RegenDiff {
   };
 }
 
+/** The one supported remedy every staleness message names — never "hand-edit the mirror". */
+export const REGEN_REMEDY = "npm run regen:registry-mirror";
+
+/** A minimal relation signature — the four immutable fields the registry `signaturePolicy` pins. */
+interface SignatureLike {
+  readonly arity: number;
+  readonly argRoles: readonly string[];
+  readonly symmetric: boolean;
+  readonly tier: string;
+}
+
+/** One relation whose vendored `kgp.ts` signature disagrees with the live koine TSV. */
+export interface SignatureDrift {
+  /** The qualified relation name (`caused_by`, `cine:shows`, `soc:parent_of`, …). */
+  readonly relation: string;
+  /** What disagrees — missing / extra / arity / argRoles / symmetric / tier — human-readable. */
+  readonly detail: string;
+}
+
+/**
+ * Compare a vendored `kgp.ts` relation vocabulary (`KGP_CORE_RELATIONS` /
+ * `KGP_DOMAIN_RELATIONS`) against the authoritative koine TSV entries, returning one
+ * {@link SignatureDrift} per relation that is missing from the vendored copy, extra in it,
+ * or disagrees on arity / ordered `argRoles` / symmetric / tier — the immutable-signature
+ * policy of KGP §3.2 and the registry's `signaturePolicy` block. An empty result means the
+ * mirror is in lockstep. Pure — the caller supplies both sides.
+ */
+export function diffVocabulary(
+  vendored: Readonly<Record<string, SignatureLike>>,
+  authoritative: readonly RelationEntry[],
+): SignatureDrift[] {
+  const drifts: SignatureDrift[] = [];
+  const live = new Map(authoritative.map((entry) => [entry.name, entry.signature]));
+  for (const entry of authoritative) {
+    const have = vendored[entry.name];
+    if (!have) {
+      drifts.push({ relation: entry.name, detail: "missing from the vendored kgp.ts vocabulary" });
+      continue;
+    }
+    const want = entry.signature;
+    const reasons: string[] = [];
+    if (have.arity !== want.arity) reasons.push(`arity ${have.arity} ≠ ${want.arity}`);
+    if (JSON.stringify(have.argRoles) !== JSON.stringify(want.argRoles)) {
+      reasons.push(`argRoles ${JSON.stringify(have.argRoles)} ≠ ${JSON.stringify(want.argRoles)}`);
+    }
+    if (have.symmetric !== want.symmetric) reasons.push(`symmetric ${have.symmetric} ≠ ${want.symmetric}`);
+    if (have.tier !== want.tier) reasons.push(`tier ${JSON.stringify(have.tier)} ≠ ${JSON.stringify(want.tier)}`);
+    if (reasons.length > 0) drifts.push({ relation: entry.name, detail: reasons.join("; ") });
+  }
+  for (const name of Object.keys(vendored)) {
+    if (!live.has(name)) {
+      drifts.push({ relation: name, detail: "extra in the vendored kgp.ts vocabulary (not in the koine TSV)" });
+    }
+  }
+  return drifts;
+}
+
+/** The parsed live koine relation vocabulary — core (unqualified) + the domain extensions. */
+export interface KoineVocabulary {
+  readonly core: RelationEntry[];
+  readonly domain: RelationEntry[];
+}
+
+/** Read + parse the four koine relation TSVs (core + `{cinematography,media,social}`). */
+export function readKoineVocabulary(koineRoot: string = resolveKoineRoot()): KoineVocabulary {
+  const core = parseRelationsTsv(readKoineSource(koineRoot, KOINE_CORE_TSV_REL), { core: true });
+  const domain = KOINE_DOMAIN_TSV_RELS.flatMap((rel) =>
+    parseRelationsTsv(readKoineSource(koineRoot, rel), { core: false }),
+  );
+  return { core, domain };
+}
+
+/**
+ * Render {@link SignatureDrift}s into a one-string failure message that names the ONE
+ * supported remedy (`npm run regen:registry-mirror`) and forbids hand-editing the mirror —
+ * a signature is immutable (KGP §3.2 / the registry `signaturePolicy`), so a correction is
+ * upstreamed to koine (`registryVersion` bumped) and re-vendored, never forked here.
+ */
+export function formatSignatureDrifts(drifts: readonly SignatureDrift[]): string {
+  const lines = drifts.map((drift) => `  ${drift.relation}: ${drift.detail}`).join("\n");
+  return (
+    "kgp.ts vendored relation vocabulary is out of sync with the koine registry TSVs:\n" +
+    `${lines}\n` +
+    `Run \`${REGEN_REMEDY}\` to re-vendor both mirrors from the koine checkout. Never hand-edit ` +
+    "the mirror — a published signature is immutable (KGP §3.2 / the registry signaturePolicy); " +
+    "upstream the correction to koine, bump registryVersion, then regen."
+  );
+}
+
 /** Regenerate both mirrors and write them (together — never one without the other). */
 export function writeRegen(koineRoot: string = resolveKoineRoot()): RegenDiff {
   const { predicateMappingJson, kgpSource } = buildRegen(koineRoot);
