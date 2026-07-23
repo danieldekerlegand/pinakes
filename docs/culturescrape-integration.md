@@ -98,13 +98,20 @@ across pinakes's embedded FK columns too.
 - **Provenance on every row:** `source`, `source_url`, `retrieved_at`, `confidence` — with
   `source = "pinakes"` for pinakes-origin rows and original `sources` preserved.
 
-## 6. Vendored monorepo (single repo, single history)
+## 6. First-party monorepo (single repo, single history)
 
-culture-scrape is **vendored into this repo at `core/`** (a fresh copy of its
-tracked files — its 105-commit upstream history is intentionally *not* imported, so pinakes's
-history stays clean). Because both projects now live in one repo, a single Ralph run can modify
-either side and commit atomically — there is **no cross-repo split**. Work still splits by
-*language/runtime*:
+The Python data/correlation engine is **first-party pinakes code at `core/`**. It began as a
+vendored copy of the standalone culture-scrape repo (its 105-commit upstream history was
+intentionally *not* imported, so pinakes's history stays clean) and lived at
+`packages/culture-scrape/` until that shell was retired — see
+[`docs/REMOVED_FEATURES.md`](./REMOVED_FEATURES.md). The `culturescrape` package namespace,
+console script and `cs:` id space are unchanged; only the checkout path moved.
+
+Because everything lives in one repo, a single Ralph run can modify either side and commit
+atomically — there is **no cross-repo split**. The one genuinely external dependency is the
+agora translation engine (`agora:60-translation-engine-rust`), embedded in-process as a PyO3
+extension behind the `culturescrape.translation` adapter; canonical format *rendering* is its
+job now, not pinakes's. Work still splits by *language/runtime*:
 
 | Work | Runtime | Location |
 |---|---|---|
@@ -422,6 +429,14 @@ scripts above name both services explicitly, or use `docker compose --profile gr
 reachability: `curl -sf http://localhost:8800/` (sidecar) and open `http://localhost:7474`
 (Neo4j browser).
 
+> ⚠️ **The `culturescrape` image currently does not build** — the embedded agora translation
+> engine is vendored as a macOS/arm64-only wheel that `pip` cannot install into a linux image.
+> The full reasoning is at the top of [`core/Dockerfile`](../core/Dockerfile); unblocking it
+> needs a portable artifact from `agora:60`. Until then, `npm run dev:full` / `sidecar:up`
+> bring up **Neo4j only** and the sidecar-backed routes degrade per §10b. To run the sidecar
+> locally without Docker: `cd core && uv sync --all-extras && uv run culturescrape serve
+> <corpus> --port 8800`.
+
 ### Production deployment
 
 The app is deployed as today (`npm run build` → `npm start`, a single Express+static bundle). The
@@ -430,8 +445,8 @@ graph integration adds **two out-of-process dependencies** that the server reach
 1. **Neo4j** — a managed instance (Aura or self-hosted). Set `NEO4J_URI` (use `neo4j+s://` for
    TLS in prod), `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`. The driver is lazily created,
    pooled, and torn down on `SIGTERM`/`SIGINT` (`closeGraphStore()` in `server/index.ts`).
-2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` (the `core/`
-   Dockerfile) as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
+2. **culture-scrape FastAPI sidecar** — run `culturescrape serve` from a `uv sync`'d `core/`
+   checkout as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
    `CULTURESCRAPE_API_URL` to its internal URL. Keep it on the private network — the browser never
    talks to it directly (all access is proxied through `/api/graph/*`).
 

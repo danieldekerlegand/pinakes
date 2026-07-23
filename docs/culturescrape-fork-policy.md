@@ -1,6 +1,10 @@
 # culture-scrape fork policy — one source of truth
 
 **Status:** Canonical decision, 2026-07-12 (Phase 0 item 0.9 / US-009).
+Updated 2026-07-23: the `packages/culture-scrape/` shell was retired and the engine is
+now first-party pinakes code at `core/` ([`docs/REMOVED_FEATURES.md`](./REMOVED_FEATURES.md)).
+That **strengthens** this policy rather than changing it — there is no longer even a
+"vendored copy" to re-sync.
 **TL;DR:** `core/` in this monorepo is the **single canonical copy**
 of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo is
 **diverged and behind** — it is **archived**, not synced. Do all Python engine work here.
@@ -8,14 +12,18 @@ of the culture-scrape engine. The standalone `~/Development/culture-scrape` repo
 ## 1. Why there are two copies
 
 culture-scrape began as a standalone Python repo (`~/Development/culture-scrape`) and was
-**vendored** into pinakes at `core/` so the two projects could
+**vendored** into pinakes at `packages/culture-scrape/` so the two projects could
 co-evolve without a package-publish round trip (see `docs/culturescrape-integration.md`).
-The vendored copy carries **no nested `.git`** — it is an ordinary subtree of this
-monorepo, so every commit to it lands in pinakes's history. That was the right call
+That copy carried **no nested `.git`** — it was an ordinary subtree of this
+monorepo, so every commit to it landed in pinakes's history. That was the right call
 for velocity, but it created the classic vendored-fork hazard: the vendored copy moved
 ahead while the standalone repo stood still, and there was **no sync mechanism** to
 reconcile them. A diverged fork of the core engine is pure risk — this document retires
 that risk on paper and states the procedure.
+
+The shell has since been retired outright: the engine moved to `core/` as first-party
+code, so "the vendored copy" is simply *pinakes's code* now. The divergence table in §3
+is kept as the historical record of what the standalone repo lacks.
 
 ## 2. The decision
 

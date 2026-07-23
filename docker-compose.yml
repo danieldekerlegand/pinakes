@@ -1,6 +1,12 @@
 # Local orchestration for pinakes's data-layer integration.
-# Brings up the vendored culture-scrape FastAPI sidecar and a Neo4j graph store.
+# Brings up the culture-scrape FastAPI sidecar (built from the first-party engine at
+# ./core — the packages/culture-scrape shell is retired, see docs/REMOVED_FEATURES.md)
+# and a Neo4j graph store.
 # Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
+#
+# ⚠️ The `culturescrape` image does NOT build today — see the packaging note at the
+# top of core/Dockerfile. Everything the app does degrades gracefully without it
+# (docs/culturescrape-integration.md §10b), so `npm run dev` is unaffected.
 #
 #   docker compose up -d --build culturescrape neo4j   # sidecar + graph only
 #   docker compose --profile graph up -d               # same, via the `graph` profile

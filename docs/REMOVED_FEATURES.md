@@ -1,4 +1,62 @@
-# Removed / Disabled Features (TSV Read-Only Mode)
+# Removed / Disabled Features
+
+## The `packages/culture-scrape` vendored shell (retired 2026-07-23)
+
+`packages/culture-scrape/` no longer exists. The Python data/correlation engine it
+vendored is now **first-party pinakes code at [`core/`](../core/)** — same
+`culturescrape` package namespace, same `culturescrape` console script, same `cs:` id
+space, only the checkout path moved. Nothing was deleted in the move; see
+[`core/CLAUDE.md`](../core/CLAUDE.md) for the repo-root path arithmetic that changed
+with it (the package sits one level below the repo root now, not two).
+
+Retired along with the shell:
+
+- The **vendored-fork framing.** `core/` was never a two-way subtree link and is not one
+  now; [`culturescrape-fork-policy.md`](./culturescrape-fork-policy.md) records why the
+  standalone `~/Development/culture-scrape` repo stays archived.
+- Build/config references to the old path — docker-compose's `culturescrape` service
+  builds `./core`, and `npm run sidecar:up` / `sidecar:down` drive that service by name.
+
+### Translation handed off to agora:60
+
+Canonical **format rendering** moved out of pinakes and into the agora translation engine
+(`agora:60-translation-engine-rust`), embedded in-process as the `translation_py` PyO3
+extension and reached only through the adapter `culturescrape.translation` — never by
+importing `translation_py` directly. Delegating today:
+
+| Surface | Engine entry point |
+|---|---|
+| `datalog/export.py` → `graph.pl` / `graph.dl` (+ `.facts`) / `graph.problog.pl` | `to_prolog` / `to_souffle` / `to_problog` (rules-free path) |
+| `neo4j/export.py` (`from-neo4j`) | `to_neo4j_export` |
+
+Byte parity against the pre-migration Python emitters is pinned by committed goldens in
+`core/tests/fixtures/parity/` (`core/tests/test_translation_parity.py`), which cover all
+six canonical conversions and survived the relocation unchanged.
+
+**Still hand-written Python, and why.** agora:60 ships exactly eight *whole-graph document*
+renderers (`to_tsv to_csv to_cypher to_prolog to_souffle to_problog to_datalog
+to_neo4j_export`) — no parsing, no fact-level surface, no schema parameterization. So these
+could not be retired and are **not** dead code:
+
+- `schema/tsvio.py` `read_rows` / `read_edge_rows` — the engine consumes canonical graph
+  JSON and never produces it from TSV, so there is nothing to parse with. `write_rows` is
+  schema-parameterized (it renders reconciler-specific and extension columns); the engine
+  is schema-fixed.
+- `datalog/__init__.py` `render_atom` / `render_fact` and the `Dialect` quoting rules — the
+  engine has no fact-level surface.
+- The **rule-bearing** `datalog/export.py` path (`--rules`, and the explorer's Datalog
+  console) — `:- table` / `:- discontiguous` / `:- dynamic` directives are computed over
+  facts ∪ rules, and the engine emits base facts only.
+- `neo4j/load_csv.py` + `admin_import.py` (`to-neo4j`) — these render per-file statements
+  from each corpus file's *parsed* header, including the `parent_code` / `extra`
+  extensions. The engine's `to_cypher` is a whole-graph load script with relative
+  `:param file` paths. The rendered statement *bodies* are byte-identical (pinned by the
+  goldens), but the artifacts are not interchangeable.
+
+Closing these needs upstream work in agora, not in pinakes: a TSV→graph **parser**, a
+**schema-parameterized** writer, a **fact-level** render surface, and a **rule-aware** one.
+
+## TSV read-only mode
 
 This project is currently running in a **TSV-backed, read-only mode**. The PostgreSQL/Drizzle-backed features were removed or disabled to simplify initial usage and allow the app to run without `DATABASE_URL`.
 

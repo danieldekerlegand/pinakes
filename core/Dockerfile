@@ -1,5 +1,30 @@
 # culture-scrape read-only FastAPI explorer (the "sidecar" for pinakes).
 # Built and run by the repo-root docker-compose.yml (service: culturescrape).
+#
+# ---------------------------------------------------------------------------
+# ⚠️ KNOWN BROKEN — this image does not build. Blocked upstream on agora:60.
+# ---------------------------------------------------------------------------
+# `pyproject.toml` declares `translation-py` (the embedded agora translation engine)
+# as a real runtime dependency, resolved for local dev from a prebuilt wheel under
+# `vendor/` via `[tool.uv.sources]`. Neither half of that survives into this image:
+#
+#   1. `[tool.uv.sources]` is a **uv-only** mechanism. The `pip install` below does
+#      not read it, so pip resolves `translation-py` against PyPI, where it does not
+#      exist. Copying `vendor/` and adding `--find-links vendor` fixes only this half.
+#   2. The vendored wheel is `translation_py-0.1.0-cp39-abi3-macosx_11_0_arm64.whl` —
+#      **macOS/arm64 only**. This image is `linux`, so no tag matches it regardless of
+#      how pip is pointed at the file. agora:60 ships no linux wheel and no sdist, and
+#      the crate source is not vendored here, so the wheel cannot be rebuilt in-image.
+#
+# Unblocking needs a portable artifact from agora (manylinux wheels, or an sdist plus
+# a Rust build stage). Do NOT "fix" this by demoting `translation-py` to an optional
+# extra: the guarded-import policy in `culturescrape.translation` deliberately has no
+# silent fallback, and the dependency being real is what makes that guard meaningful.
+#
+# Impact is contained: the sidecar is optional at runtime. Every `/api/graph/*` route
+# answers 503 `{ available:false }` and the graph UI disables with a tooltip when it is
+# absent (docs/culturescrape-integration.md §10b), and `culturescrape serve` still runs
+# fine outside Docker from a `uv sync`'d checkout.
 
 # ---------------------------------------------------------------------------
 # Stage 1 — build Soufflé from source. Debian (this image's base) has no

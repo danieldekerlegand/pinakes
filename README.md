@@ -9,7 +9,11 @@ pinakes also consumes a **shared culture-scrape graph** (Neo4j + Datalog) for
 cross-domain correlation, while keeping CPU-domain compute (linguistic distance, etymology)
 in TypeScript. The Python data/correlation engine is **first-party pinakes code** at
 [`core/`](./core/) — formerly vendored under `packages/culture-scrape/`, relocated into
-pinakes proper (the `culturescrape` package namespace is unchanged).
+pinakes proper (the `culturescrape` package namespace is unchanged). Canonical **format
+rendering** — Neo4j/Prolog/Soufflé/ProbLog/TSV — is delegated to the embedded agora
+translation engine (`agora:60-translation-engine-rust`) rather than hand-written here; see
+[`docs/REMOVED_FEATURES.md`](./docs/REMOVED_FEATURES.md) for the retirement and what
+remains in Python.
 
 ## Quickstart
 
@@ -18,7 +22,8 @@ npm install
 cp .env.example .env          # fill in API keys / graph config as needed
 
 npm run dev                   # app only (graph features degrade off gracefully)
-npm run dev:full              # app + culture-scrape sidecar + Neo4j (needs Docker)
+npm run dev:full              # app + culture-scrape sidecar + Neo4j (needs Docker; the
+                              # sidecar image is currently unbuildable — see core/Dockerfile)
 
 npm run check                 # typecheck (tsc)
 npx vitest run <path>         # tests, scoped to what you changed
