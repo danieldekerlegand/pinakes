@@ -35,3 +35,28 @@ If you ever relocate this package again: `git grep -n "parents\[[0-9]\]"` plus
 `git grep -n 'parent\.parent'` over `src`/`tests`/`scripts` is the complete list,
 and prove each one with `python -c "print(P, P.exists())"` rather than trusting
 a green suite — the suite stayed green with the walks broken.
+
+### …and prove it from INSIDE pytest, not just from `python -c`
+
+`python -c` and pytest can disagree about what a test module's constants are.
+pytest caches its **assertion-rewritten** bytecode as
+`tests/__pycache__/<mod>.cpython-3XX-pytest-<ver>.pyc`, validated against the
+source's `(mtime, size)` — and editing `parents[2]` → `parents[3]` changes
+neither. So a walk that was edited and reverted within the same second keeps
+serving stale bytecode: the source reads `parents[2]`, an interactive import
+resolves `parents[2]`, and only pytest still computes `parents[3]`. Combined with
+the `if path.exists()` skip guards, that quietly turned 4 of
+`test_canonical_schema_parity.py`'s 8 assertions into skips (`1928 passed /
+46 skipped` instead of `1932 / 42`) with a green exit code.
+
+The tell is a direct import disagreeing with the test run. Confirm with a throwaway
+probe that imports the module *under pytest* and prints the constant, and clear the
+cache before trusting any path-related measurement:
+
+```bash
+find . -name __pycache__ -type d -not -path './.venv/*' -exec rm -rf {} +
+```
+
+`__pycache__` is gitignored and untracked, so this is a local-worktree failure
+mode only — CI compiles fresh. But it means **skip-count evidence is only valid
+against a cleared cache.**
