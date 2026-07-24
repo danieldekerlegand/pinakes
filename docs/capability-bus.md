@@ -16,7 +16,7 @@ project can *discover* those surfaces in KCB terms and dial them directly.
 |---|---|
 | Source of truth | `shared/capability-manifest.json` (typed accessors: `shared/capability-manifest.ts`) |
 | Identity | `pinakes:agent:resolver` → `https://id.koine.example/agent/pinakes/resolver` |
-| KCB version | 0.2.0 (manifest revision `x_pinakes.manifestVersion` — bumped to `0.2.0` when the MCP/A2A fronts + signing landed) |
+| KCB version | 0.2.0 (manifest revision `x_pinakes.manifestVersion` — `0.2.0` when the MCP/A2A fronts + signing landed, `0.3.0` when the specialized KFT `finetune` capability joined) |
 | Served at | `GET /.well-known/kcb-manifest.json`, `GET /api/kcb/manifest` |
 | Invocation fronts | `endpoints.mcp` = `/mcp` (MCP tools), `endpoints.a2a` = `/.well-known/agent-card.json` (A2A agent-card), `endpoints.http` = `/api/kcb` (plain HTTP) |
 
@@ -49,9 +49,68 @@ in the contribution review queue, never as a live write — the KCB §5 merge-re
 | `resolve` | `invoke:resolve` | `GET /api/graph/resolve` | `server/services/graph-resolver.ts` |
 | `reconcile` | `invoke:reconcile` | `POST /api/scraping/culturescrape` | `core/src/culturescrape/schema/reconcile.py` |
 | `query` | `invoke:query` | `POST /api/graph/datalog` | `server/routes/graph.ts`, `server/services/graph-store.ts` |
+| `finetune` | `invoke:finetune` | MCP tools `finetune` / `finetune_subscribe` (`POST /mcp`) | `ml/src/pinakes_ml/train_slm.py` (+ `kft.py`/`kft_run.py`), fronted by `server/services/finetune-provider.ts` |
 
 Each capability carries an `x_surfaces` array — every built route behind it, first entry
 primary. `GET /api/kcb/capabilities` returns that directory in invocation-ready form.
+
+### `finetune` — the specialized, local-only KFT provider
+
+`koine/specs/fine-tuning.md` (KFT) is deliberately **multi-provider** (§9, FT-K): agora hosts
+the *general* trainer and Pinakes runs its **own narrow** provider over the already-built `ml/`
+QLoRA pipeline. Both accept `text-generation`, so the manifest carries the tiebreak signal
+explicitly, in `x_specialization`:
+
+| Field | Value | Why |
+|---|---|---|
+| `provider_class` | `specialized` | KCB §3 prefers the more specialized matching provider (FT-K). |
+| `modality` / `methods` | `text-generation` / `sft`, `lora`, `qlora` | Exactly what `ml/src/pinakes_ml/kft.py` admits — advertising wider would route jobs here that admission then refuses. |
+| `egress` | `local-only` | The SLM corpora are `synthetic`/`proprietary`/`personal` tier, so the §4.2 gate resolves local-only and a cross-boundary `compute.class` is **refused with a report** before any compute. |
+| `domains` | `slm-rule-authoring`, `neurosymbolic` | What the provider is specialized *for* — the routing signal. |
+| `general_provider` | `agora:agent:trainer` | Where a non-matching job belongs. |
+
+Ports span three planes (KFT §2): a KINP `model` entity in (`base-model`) plus a
+`grounding-only` knowledge training-set port; a KINP `model` entity out
+(`finetuned-model`) plus the **only media port Pinakes publishes** — the KMI weight/export
+assets (`application/vnd.koine.model+safetensors`, `…+gguf`, KFT §5.3). `cost` is metered in
+`gpu-seconds` so a caller can gate spend *before* invoking (KFT §7).
+
+`model` is a KINP entity type from koine's `registry/entity-types.tsv`, **not** a canonical
+csid node type, so it is allowlisted in `KINP_ENTITY_TYPES` rather than resolved through
+`canonical-schema.json`. `assertValidCapabilityManifest` enforces every row of that table plus
+the port shape — the advertisement cannot drift from what `ml/` admits without failing the gate.
+
+**The surface is a wrapper, like every other one here.** `server/services/finetune-provider.ts`
+shells out to the already-built console script
+
+```sh
+uv run --project ml pinakes-train-slm --kft-job <manifest> --output-dir <run> --no-mlflow --no-doc
+```
+
+and reads back what it writes: `kft-telemetry.jsonl` (the KFT §6 training-telemetry stream) and
+`kft-run.json` (the §5 minted model + weight assets). No training logic exists on the TS side;
+`ml/` stays the sole trainer and the sole admission gate. The runner's exit codes are the
+contract — **0** ran, **2** refused at admission with a machine-readable report on stdout (no
+compute committed), anything else the runner itself is unusable.
+
+`finetune` and `finetune_subscribe` are KFT §6's async pair: `invoke` returns a run handle
+immediately, `subscribe` streams the telemetry to the terminal event (which carries the minted
+model entity id and its weight asset ids). Events are addressed by
+`eventId` = `<job>#<kind>:<step>` and are idempotent under redelivery, so a reconnecting
+consumer may replay from any index.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `PINAKES_FINETUNE_ENABLED` | on | `0`/`false` ⇒ the capability is still **advertised** but an invoke answers with an actionable error. |
+| `PINAKES_ML_DIR` | `<repo>/ml` | The uv workspace the console script lives in. |
+| `PINAKES_FINETUNE_UV` | `uv` | The uv binary. Missing ⇒ an actionable "runner unreachable" error, never a crash. |
+| `PINAKES_FINETUNE_STUB` | off | Default `--stub` (the injectable model seam — the whole pipeline, no training stack, no GPU). |
+| `PINAKES_FINETUNE_ARTIFACTS` | `ml/artifacts/kcb` | Where run dirs are created (git-ignored). |
+
+Degrade is the `GEONAMES_USERNAME` shape: the heavy `trl`/`peft`/`accelerate` stack is
+deliberately **undeclared** in `ml/` (see `ml/CLAUDE.md`), so with it absent the capability
+stays on the manifest and in `list_tools`, and only the invoke returns the
+`require_finetune_deps` install message.
 
 ### Invocation fronts — MCP and A2A
 
@@ -60,8 +119,8 @@ as thin wrappers over the same `x_surfaces`:
 
 | Front | Endpoint | Built by | What it exposes |
 |---|---|---|---|
-| **MCP** | `endpoints.mcp` = `/mcp` | `server/routes/mcp.ts` (`@modelcontextprotocol/sdk`) | The three capabilities as MCP tools (`resolve`/`reconcile`/`query`); `list_tools` = KCB describe, `CallTool` forwards to the built surface, a down backend degrades to an MCP tool error. |
-| **A2A** | `endpoints.a2a` = `/.well-known/agent-card.json` | `server/routes/a2a.ts` (`@a2a-js/sdk`) | An A2A AgentCard advertising the three capabilities as skills; the whole KCB §2 manifest rides as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension, so a crawler pulling only the card recovers the manifest and the MCP tools url. |
+| **MCP** | `endpoints.mcp` = `/mcp` | `server/routes/mcp.ts` (`@modelcontextprotocol/sdk`) | Every capability as an MCP tool (`resolve`/`reconcile`/`query`, plus `finetune`/`finetune_subscribe`); `list_tools` = KCB describe, `CallTool` forwards to the built surface, a down backend degrades to an MCP tool error. |
+| **A2A** | `endpoints.a2a` = `/.well-known/agent-card.json` | `server/routes/a2a.ts` (`@a2a-js/sdk`) | An A2A AgentCard advertising every capability as a skill (tags carry the `x_specialization` signal, so an FT-K tiebreak is readable from the card alone); the whole KCB §2 manifest rides as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension, so a crawler pulling only the card recovers the manifest and the MCP tools url. |
 
 Both are authored as **server-relative paths** (validated: a non-null `endpoints.mcp`/`.a2a`
 must lead with `/`) and are absolutized against the serving/publishing origin exactly like
@@ -124,5 +183,9 @@ as-authored document gets server-relative paths.
 - **Grant enforcement.** `auth.grants_required` fixes the grant *shape* only; issuance,
   rotation, and spend ceilings live in Cuneiform's workforce governance (KCB §5). Pinakes's
   own HTTP surfaces keep enforcing `server/services/api-auth.ts` until a grant issuer exists.
-- **`subscribe` / `fetch` verbs.** Only `describe` (the manifest) and `invoke` (the built
-  endpoints) are surfaced. KGP §6 delta subscriptions come with the grounding-pack work.
+- **KGP `subscribe` / `fetch` verbs.** `subscribe` exists only for `finetune` (the KFT §6
+  telemetry stream). For the knowledge ports, only `describe` (the manifest) and `invoke` (the
+  built endpoints) are surfaced; KGP §6 delta subscriptions come with the grounding-pack work.
+- **Grant-gated spend ceilings for `finetune`.** `cost.meter`/`est_units` publish the figure a
+  caller gates on (KFT §7), but Pinakes does not yet check a `budget_units` ceiling at admission
+  — that needs the grant issuer above.

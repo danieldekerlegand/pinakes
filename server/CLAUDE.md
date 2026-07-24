@@ -76,6 +76,44 @@ capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
   no network.
 - These endpoints are **not** in `docs/openapi.json`, so no spec-snapshot regen is needed.
 
+## KFT `finetune` provider — `services/finetune-provider.ts` (90-US-3)
+
+The fourth capability on the bus, and the only **specialized** one: Pinakes's own KFT
+training provider (`koine/specs/fine-tuning.md` §9/FT-K — agora hosts the *general* trainer).
+Served as the MCP tools `finetune` (invoke) + `finetune_subscribe` (stream) and, via the
+manifest, as an A2A skill. Contract + env table: `docs/capability-bus.md`.
+
+- **It is a SURFACE WRAPPER over `ml/`, and that is load-bearing.** An invoke shells out to
+  the already-built console script (`uv run --project ml pinakes-train-slm --kft-job <manifest>
+  --output-dir <run> --no-mlflow --no-doc`) and reads back the two files it writes —
+  `kft-telemetry.jsonl` (the KFT §6 stream) and `kft-run.json` (the §5 minted model + KMI
+  weight assets). **No training logic and no admission logic on the TS side**; `ml/kft.py`
+  decides what is admissible, `ml/slm_finetune.py` is the sole trainer. The one thing read
+  out of the manifest app-side is `job` (the KINP activity id the stream is addressed by) —
+  everything else is forwarded verbatim.
+- **The runner's exit codes ARE the contract**: `0` ran, **`2` refused at admission** with a
+  machine-readable report on stdout and no compute committed, anything else the runner itself
+  is unusable. A refusal becomes a `failed` run carrying `report` (a router reads `.code` —
+  `cross-boundary-compute`, `unsupported-modality`, …); an unusable runner throws
+  `FinetuneUnavailableError`, which the MCP layer maps to the same "is unavailable" tool
+  error shape as `GraphUnavailableError`.
+- **Optional-env degrade, `GEONAMES_USERNAME` shape.** The heavy `trl`/`peft`/`accelerate`
+  stack is deliberately undeclared in `ml/` (`ml/CLAUDE.md`), so the capability is **always
+  advertised** (manifest + `list_tools` + agent-card) and only the *invoke* degrades, with
+  the `require_finetune_deps` install message. `PINAKES_FINETUNE_ENABLED=0` is the same
+  degrade by operator choice. Never gate the advertisement on the runner being present.
+- **`invoke` is async by contract (KFT §6)** — `startFinetune` returns a handle in `pending`
+  and dispatches fire-and-forget; `subscribeFinetune` drains the stream to the terminal
+  event (which carries the minted model entity id + weight asset ids). `FinetuneJobStore` is
+  in-memory on purpose (the durable record is the run dir), and its `subscribe` is a live
+  async generator: buffered events first, then new ones, returning at a terminal state.
+  Events are replayable — `eventId` is `<job>#<kind>:<step>`, so `fromIndex` is safe.
+- **Test seam:** the subprocess lives behind the injectable `FinetuneRunner` and the store is
+  injectable too (`{config, runner, store, onSettled}`), so the whole invoke→subscribe path —
+  including over the real MCP wire in `routes/mcp.test.ts` — runs with no uv, no Python, no
+  GPU. `onSettled` is how a test awaits the fire-and-forget dispatch deterministically (the
+  same role `onJobSettled` plays for acquisition jobs).
+
 ## Server-side key proxies (Gemini US-001, Google Translate US-002)
 
 Third-party API keys are **server-side only** — never `VITE_`-prefixed (Vite inlines those

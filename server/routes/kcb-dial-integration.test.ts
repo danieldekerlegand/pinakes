@@ -119,13 +119,24 @@ describe("dial Pinakes as the real authority (describe → invoke → verify)", 
       skills: Array<{ id: string }>;
     };
     expect(card.name).toBe("pinakes:agent:resolver");
-    expect(card.skills.map((s) => s.id).sort()).toEqual(["query", "reconcile", "resolve"]);
+    expect(card.skills.map((s) => s.id).sort()).toEqual([
+      "finetune",
+      "query",
+      "reconcile",
+      "resolve",
+    ]);
 
     // MCP describe front — same three capabilities, over the wire, from the live server.
     const client = await connectMcp(baseUrl);
     try {
       const { tools } = await client.listTools();
-      expect(tools.map((t) => t.name).sort()).toEqual(["query", "reconcile", "resolve"]);
+      expect(tools.map((t) => t.name).sort()).toEqual([
+        "finetune",
+        "finetune_subscribe",
+        "query",
+        "reconcile",
+        "resolve",
+      ]);
     } finally {
       await client.close();
     }
@@ -245,12 +256,17 @@ describe("registration stays best-effort — the surfaces are served with the re
     const card = (await fetch(`${baseUrl}${AGENT_CARD_ROUTE_PATH}`).then((r) => r.json())) as {
       skills: Array<{ id: string }>;
     };
-    expect(card.skills.map((s) => s.id).sort()).toEqual(["query", "reconcile", "resolve"]);
+    expect(card.skills.map((s) => s.id).sort()).toEqual([
+      "finetune",
+      "query",
+      "reconcile",
+      "resolve",
+    ]);
 
     const client = await connectMcp(baseUrl);
     try {
       const { tools } = await client.listTools();
-      expect(tools).toHaveLength(3);
+      expect(tools).toHaveLength(5);
     } finally {
       await client.close();
     }
