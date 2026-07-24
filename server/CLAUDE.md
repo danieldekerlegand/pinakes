@@ -113,6 +113,48 @@ manifest, as an A2A skill. Contract + env table: `docs/capability-bus.md`.
   including over the real MCP wire in `routes/mcp.test.ts` — runs with no uv, no Python, no
   GPU. `onSettled` is how a test awaits the fire-and-forget dispatch deterministically (the
   same role `onJobSettled` plays for acquisition jobs).
+- **One spec deliberately does NOT use that seam.** `services/finetune-provider.integration.test.ts`
+  (90-US-4) drives `createLiveFinetuneRunner` against the actual console script under `--stub`
+  — the only way to prove the argv, the exit codes and the two files read back are the contract
+  `ml/` implements rather than the one the fakes agree on. It is fast (a stub run is <100 ms)
+  and needs no heavy deps, but it needs **uv**, so the live block is `describe.skipIf(!LIVE)`;
+  the things that could *rot* (the module path, the `[project.scripts]` entry, the manifest's
+  `x_surfaces`/`admission` paths) are asserted **unconditionally** so a relocation fails loudly
+  instead of vanishing into a skip. A stub run mints zero weight assets and reports
+  `pendingExports: [adapter, merged-fp16, gguf]` — assert that, not fabricated asset ids.
+
+## KFT multi-provider routing — `services/finetune-routing.ts` (90-US-4)
+
+The FT-K tiebreak (KFT §8/§9), pure and executable: manifests + a job in, a routing decision
+out. **Pinakes does not own the registry** (it is agora's); what lives here is the provider
+side — proof that our advertisement carries enough signal to be routed to correctly, and a gate
+that goes red if the manifest widens past what `ml/src/pinakes_ml/kft.py` admits.
+
+- **Admissibility and preference are separate, and conflating them is the bug to avoid.**
+  `ProviderRejection` (codes mirroring `kft.py`: `unsupported-modality`/`-method`/
+  `-dataset-plane`) means "this provider would refuse the job". `CandidateRank` means "of the
+  providers that would accept, which should win": `specialized` › `general` › `fallback`. A
+  narrow provider with no matching signal is `fallback` — it *would* run the job, so an explicit
+  target still routes there, but a generic job goes to the general trainer. Ranking on tier
+  before cost is what stops Pinakes (1800 gpu-seconds) undercutting agora (3600) on a job it has
+  no business claiming.
+- **The specialization signal is `dataset.header.datasetKind`, not a job field.** KFT 0.3.0's
+  job schema is `additionalProperties: false` with no `domain`/`provider` key, so the signal
+  rides on koine's `dataset-jsonl-header` (`rule-sft` → `slm-rule-authoring`, `lore-qa` →
+  `neurosymbolic`; `DATASET_KIND_DOMAINS`) and FT-K's explicit target rides **out of band** on
+  the invoke envelope. Adding either to the job manifest would be an unknown key that admission
+  rejects — propose them upstream in koine instead.
+- **The test fixture is asymmetric on purpose.** Pinakes's side is the *live* manifest, so a
+  widened `x_specialization` fails the routing spec too; agora's is a hand-written stub (its
+  real manifest belongs to `agora:90-finetune-trainer`) with **no** `x_specialization`, which is
+  what "general" means on the wire. Clone-and-mutate that stub; never loosen the validator.
+- **Two sibling providers exist and are NOT built here** (koine program map, Tranche D):
+  `agora:90-finetune-trainer` (the general, cloud-capable trainer — named on our manifest as
+  `x_specialization.general_provider`) and `cuneiform:90-finetune-client` (the KCB client that
+  replaces `Runner::Stub` and *calls* this surface). Table + rationale in `docs/capability-bus.md`.
+- `/api/kcb/capabilities` now carries `specialization` on a narrow capability — the directory is
+  a `describe` surface and FT-K is decided on that block, so a registry that discovered us there
+  should not have to re-fetch the manifest to learn we are the specialized leg.
 
 ## Server-side key proxies (Gemini US-001, Google Translate US-002)
 

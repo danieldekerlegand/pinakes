@@ -112,6 +112,53 @@ deliberately **undeclared** in `ml/` (see `ml/CLAUDE.md`), so with it absent the
 stays on the manifest and in `list_tools`, and only the invoke returns the
 `require_finetune_deps` install message.
 
+### Multi-provider routing (KFT §8/§9, FT-K)
+
+Fine-tuning is deliberately **not single-home**. FT-K states the tiebreak the discovery
+registry applies when more than one provider matches a job: prefer the more **specialized**
+matching provider, then lower `cost` (KCB §3); a job MAY name a target provider explicitly;
+an unbroken tie is **surfaced to the caller**, not resolved silently.
+
+That registry is agora's, not ours. `server/services/finetune-routing.ts` is the **provider
+side** of the contract — a pure, executable reading of the rule that proves Pinakes's
+advertisement carries enough signal to be routed to correctly, and goes red if the manifest
+ever widens past what `ml/src/pinakes_ml/kft.py` admits. It keeps two things apart that are
+easy to conflate:
+
+- **Admissibility** — would this provider refuse the job at the door? The rejection codes are
+  `kft.py`'s own (`unsupported-modality` / `unsupported-method` / `unsupported-dataset-plane`),
+  so a refusal at routing reads the same as a refusal at admission.
+- **Preference** — of the providers that *would* accept, which should the registry pick? A
+  narrow provider with no matching signal ranks `fallback`: it would run the job, but the
+  general trainer should get it. That is how a generic `text-generation` job is left to agora
+  without ever claiming Pinakes would have refused it — and why an explicit target of Pinakes
+  is still honoured for such a job.
+
+**Where the signal comes from.** `finetune-job.schema.json` (KFT 0.3.0) is
+`additionalProperties: false` and has no `domain` or `provider` field, so a job states its
+specialization through its *data*: the dataset's `header.datasetKind` (koine's
+`dataset-jsonl-header` — `rule-sft`, `lore-qa`, …), which `DATASET_KIND_DOMAINS` maps onto the
+`x_specialization.domains` vocabulary. FT-K's explicit target likewise has no home in the
+schema, so it rides **out of band** on the invoke envelope rather than being smuggled in as an
+unknown key (which admission would reject). Both are worth proposing upstream as KFT §3
+additions.
+
+#### The sibling providers — recorded here, built elsewhere
+
+Per the koine program map (`koine/tasks/chief/README.md`, Tranche D), ratifying KFT handed
+three runtime tasklists to three repos. **Only the Pinakes one is built here**; the other two
+are named so a reader of this document knows what is deliberately missing rather than lost:
+
+| Tasklist | Repo | Role | Status here |
+|---|---|---|---|
+| `90-finetune-trainer` | **agora** | The **general** `finetune` provider — engine ladder LLaMA-Factory / Unsloth / Axolotl / diffusers, SkyPilot placement under the §4.2 egress gate, **cloud-capable**. | Not built here. Stubbed as a fixture manifest in `server/services/finetune-routing.test.ts`; named on our manifest as `x_specialization.general_provider`. |
+| `90-finetune-provider` | **pinakes** | This provider — the `ml/` TRL+PEFT SLM path, **local-only** by data tier. | This repo. |
+| `90-finetune-client` | **cuneiform** | The KCB **client** that replaces `Runner::Stub` — discover → invoke → **subscribe** to the real §6 telemetry (deleting its fabricated loss curve), un-404 export (§5.3) and the registry (§8), and issue `invoke:finetune` grants (§7). | Not built here. It is the caller of the surface described above; Pinakes serves it, does not implement it. |
+
+The two legs are **complements, not competitors**: agora's trainer can burst to rented GPU,
+Pinakes's cannot and refuses to try (§4.2). A job over `synthetic`/`proprietary`/`personal`
+data routes here and never leaves the tier; a generic or multimodal job routes there.
+
 ### Invocation fronts — MCP and A2A
 
 KCB §4 names two ways to *invoke* a capability beyond plain HTTP, and Pinakes stands up both
