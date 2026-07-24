@@ -2,14 +2,15 @@
   "kcb_version": "0.2.0",
   "identity": "pinakes:agent:resolver",
   "x_pinakes": {
-    "manifestVersion": "0.2.0",
+    "manifestVersion": "0.3.0",
     "title": "Pinakes capability manifest — the canonical resolver/producer on the Koine capability bus",
-    "description": "The KCB (`koine/specs/capability-bus.md` §2) manifest Pinakes publishes as the authority provider named in that spec's §6 per-project mapping. It is a SURFACE WRAPPER, not an implementation: every capability below points at code that is already built and merged (the Wikidata OpenRefine reconciler `core/src/culturescrape/schema/reconcile.py`, the csid resolver `server/services/graph-resolver.ts`, the graph query layer `server/routes/graph.ts`, and the canonical-TSV / entity-grounding exporters under `scripts/`). Nothing here re-implements a reconciler. The manifest exists so a consumer can DISCOVER those surfaces through the bus; because §3 is route-by-lookup rather than proxy, a consumer that cannot reach the Cuneiform-hosted registry can read this document from Pinakes directly (`/.well-known/kcb-manifest.json`) and invoke the same endpoints — Pinakes never depends on the registry to serve its capabilities.",
+    "description": "The KCB (`koine/specs/capability-bus.md` §2) manifest Pinakes publishes as the authority provider named in that spec's §6 per-project mapping. It is a SURFACE WRAPPER, not an implementation: every capability below points at code that is already built and merged (the Wikidata OpenRefine reconciler `core/src/culturescrape/schema/reconcile.py`, the csid resolver `server/services/graph-resolver.ts`, the graph query layer `server/routes/graph.ts`, and the canonical-TSV / entity-grounding exporters under `scripts/`). Nothing here re-implements a reconciler. The manifest exists so a consumer can DISCOVER those surfaces through the bus; because §3 is route-by-lookup rather than proxy, a consumer that cannot reach the Cuneiform-hosted registry can read this document from Pinakes directly (`/.well-known/kcb-manifest.json`) and invoke the same endpoints — Pinakes never depends on the registry to serve its capabilities. The same rule governs the `finetune` capability added in 0.3.0: it points at the already-built `ml/` uv workspace (`ml/src/pinakes_ml/kft.py` admission + `pinakes-train-slm --kft-job`), which stays the sole trainer — the app-side surface only dispatches to it.",
     "identityIri": "https://id.koine.example/agent/pinakes/resolver",
     "defaultWorld": "pinakes:world:consensus-reality",
     "wildcardEntityTypes": "*",
     "endpointNote": "Pinakes fronts the KCB §6 capabilities as MCP tools at `endpoints.mcp` (`/mcp`, official `@modelcontextprotocol/sdk`) and as A2A skills on the agent-card at `endpoints.a2a` (`/.well-known/agent-card.json`, official `@a2a-js/sdk`) in addition to plain HTTP (`endpoints.http`); the agent-card also carries this whole manifest as a `https://koine.dev/kcb/manifest/0.3` AgentCard extension (KCB §2). The per-capability `x_surfaces` are the already-built routes the MCP tools, the A2A skills, and the HTTP base all front; they are the direct-invocation path the §3 registry hands out addresses for.",
     "authNote": "`auth.grants_required` fixes the KCB §5 grant SHAPE only. Grant issuance and spend ceilings live in Cuneiform's workforce governance; Pinakes's own HTTP surfaces keep enforcing their existing `server/services/api-auth.ts` policy until a grant issuer exists.",
+    "specializationNote": "KFT (`koine/specs/fine-tuning.md`) is deliberately MULTI-PROVIDER (§9, FT-K): agora hosts the *general* trainer, Pinakes runs its own NARROW, specialized `finetune` provider over the `ml/` QLoRA pipeline. The `x_specialization` block on that capability is what lets the §3 registry tell the two apart and route an SLM rule-authoring / neurosymbolic job here rather than to the general trainer. Pinakes's SLM corpora are `synthetic`/`proprietary`/`personal` tier, so the provider resolves LOCAL-ONLY under the §4.2 egress gate and refuses any cross-boundary `compute.class` — the complement to agora's cloud-capable leg, not a competitor to it.",
     "signingNote": "KCB §5 says manifests SHOULD be signed. The served/published manifest is signed over a canonical serialization (`signature` excluded) by `server/services/manifest-signing.ts` (node:crypto Ed25519) when `PINAKES_SIGNING_PRIVATE_KEY` is configured, populating `signing.key_id` + a detached `signature`; with no key it degrades to `signing.key_id: null` (unsigned) — the authored document below stays unsigned and is the pre-signing source. `signing.alg` is fixed to `ed25519` and shares the shape KGP `manifest.signing` uses."
   },
   "endpoints": {
@@ -168,11 +169,83 @@
           "description": "GraphRAG seed + neighborhood retrieval."
         }
       ]
+    },
+    {
+      "name": "finetune",
+      "description": "Fine-tune a small language model on Pinakes's neurosymbolic training corpora — the SPECIALIZED, local-only leg of the KFT multi-provider program (`koine/specs/fine-tuning.md` §9, FT-K; agora hosts the general trainer). Admits `text-generation` × {sft, lora, qlora} over the knowledge plane and nothing else, and refuses at admission (KFT §3.1, FT-F) anything outside that. Because the SLM corpora are `synthetic`/`proprietary`/`personal` tier, every run resolves LOCAL-ONLY under the §4.2 egress gate and a cross-boundary `compute.class` is refused with a report before any compute. On completion the tuned model is minted as a KINP `model` entity and its adapter / merged / GGUF artifacts as KMI weight assets (§5.1/§5.3), all inheriting the run's egress + union license (§5.4).",
+      "inputs": [
+        {
+          "plane": "entity",
+          "types": ["model"],
+          "shape": "base-model",
+          "description": "The KINP `model` entity to tune (KFT §5.1). Resolved to its Hub coordinate through the entity's external anchor in `ml/configs/kft-base-models.json` — a bare `hf:model:…` coordinate string is refused, never resolved (FT-G)."
+        },
+        {
+          "plane": "knowledge",
+          "dialect": "grounding-only",
+          "shape": "training-set",
+          "description": "KGP pack ids for the rule-SFT / lore-QA training records (KFT §4.1 — references, never inlined payloads). The dataset header's trust tier and license drive the §4.2 egress gate and the §4.3 union license."
+        }
+      ],
+      "outputs": [
+        {
+          "plane": "entity",
+          "types": ["model"],
+          "shape": "finetuned-model",
+          "description": "The minted KINP `model` entity for the tuned model — `based_on`/`derived_from` the base, anchored on the run's PROV activity + seed + config_hash (KFT §5.2, FT-C)."
+        },
+        {
+          "plane": "media",
+          "media_types": [
+            "application/vnd.koine.model+safetensors",
+            "application/vnd.koine.model+gguf"
+          ],
+          "shape": "weights",
+          "description": "The adapter / merged-fp16 weights and the Q4_K_M GGUF export as KMI assets, with the §5.3 export-matrix lineage (`media:derived_from` / `media:variant_of`). Content-addressed; an artifact this run did not produce is reported as pending, never minted as a placeholder."
+        }
+      ],
+      "cost": { "tier": "paid", "meter": "gpu-seconds", "est_units": 1800 },
+      "x_grant": "invoke:finetune",
+      "x_specialization": {
+        "provider_class": "specialized",
+        "modality": "text-generation",
+        "methods": ["sft", "lora", "qlora"],
+        "egress": "local-only",
+        "domains": ["slm-rule-authoring", "neurosymbolic"],
+        "general_provider": "agora:agent:trainer",
+        "admission": "ml/src/pinakes_ml/kft.py",
+        "description": "The FT-K tiebreak signal. A job carrying an SLM rule-authoring / neurosymbolic specialization (or naming Pinakes explicitly) routes here; a generic `text-generation` job with no specialization signal belongs to agora's general trainer. `egress: local-only` is a refusal posture, not a preference — Pinakes owns no cloud placement."
+      },
+      "x_surfaces": [
+        {
+          "method": "POST",
+          "path": "/mcp",
+          "implementation": "server/services/finetune-provider.ts",
+          "description": "MCP tool `finetune` — starts an async KFT run; a SURFACE WRAPPER that shells out to `uv run --project ml pinakes-train-slm --kft-job <manifest>` and parses its `kft-telemetry.jsonl` / `kft-run.json`. `finetune_subscribe` streams the KFT §6 telemetry to the terminal event."
+        },
+        {
+          "method": "POST",
+          "path": "/mcp",
+          "implementation": "ml/src/pinakes_ml/train_slm.py",
+          "description": "The `pinakes-train-slm --kft-job` console script the wrapper dispatches to — the sole trainer. Exit 0 = ran, exit 2 = refused at admission with a machine-readable report on stdout."
+        },
+        {
+          "method": "GET",
+          "path": "/.well-known/agent-card.json",
+          "implementation": "server/routes/a2a.ts",
+          "description": "The same capability as an A2A skill on the agent-card, mirroring this entry's description + specialization tags."
+        }
+      ]
     }
   ],
   "auth": {
     "scheme": "capability-token",
-    "grants_required": ["invoke:resolve", "invoke:reconcile", "invoke:query"]
+    "grants_required": [
+      "invoke:resolve",
+      "invoke:reconcile",
+      "invoke:query",
+      "invoke:finetune"
+    ]
   },
   "signing": { "key_id": null, "alg": "ed25519" }
 }

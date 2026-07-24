@@ -1,0 +1,41 @@
+{
+  "kft_version": "0.3.0",
+  "job": "cuneiform:activity:ft-run/insimul-slm-9f2a",
+  "base_model": "pinakes:model:qwen2.5-3b-instruct",
+  "modality": "text-generation",
+  "method": "qlora",
+  "dataset": {
+    "knowledge": ["kgp:pack:sha256-7b1e0f3c9a2d4e6f8a0c2e4b6d8f0a2c"],
+    "header": {
+      "record": "header",
+      "contractVersion": "0.4.0",
+      "datasetKind": "rule-sft",
+      "source": "pinakes",
+      "tier": "synthetic",
+      "license": "LicenseRef-Insimul-Proprietary",
+      "generatedAt": "2026-07-23T00:00:00Z",
+      "provenance": {
+        "manifest": "ml/manifests/insimul-datasets-manifest.json",
+        "protocol": "ml/manifests/slm-pilot-eval-manifest.json"
+      }
+    }
+  },
+  "hyperparams": {
+    "epochs": 4,
+    "lr": 0.0002,
+    "max_seq_len": 1024,
+    "load_in_4bit": false,
+    "lora": {
+      "r": 16,
+      "alpha": 32,
+      "dropout": 0.05,
+      "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"]
+    }
+  },
+  "export": ["gguf:Q4_K_M", "safetensors-adapter"],
+  "compute": { "class": "local-mps", "egress": "derived" },
+  "eval": ["kcs:scenario:vespace-rule-gen"],
+  "seed": 20260722,
+  "config_hash": "sha256-3f7a9c1e2b4d6f8a0c2e4b6d8f0a2c4e6b8d0f2a4c6e8b0d2f4a6c8e0b2d4f6a",
+  "signing": { "key_id": "pinakes:key:ed25519-01", "alg": "ed25519" }
+}

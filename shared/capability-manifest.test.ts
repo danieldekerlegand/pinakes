@@ -3,16 +3,22 @@ import {
   CAPABILITY_MANIFEST,
   CAPABILITY_NAMES,
   DEFAULT_WORLD,
+  KINP_ENTITY_TYPES,
   RESOLVER_IDENTITY,
   assertValidCapabilityManifest,
   canonicalEntityTypes,
   capability,
   capabilityManifestFor,
+  capabilitySpecialization,
+  finetuneCapability,
   isManifestSigned,
   primarySurface,
   producedEntityPort,
   producedKnowledgePorts,
   type CapabilityManifest,
+  type CapabilitySpecialization,
+  type EntityPort,
+  type MediaPort,
 } from "./capability-manifest";
 
 /** Deep-clone the live manifest so a test can mutate one field in isolation. */
@@ -35,6 +41,21 @@ type Mutable = {
 function mutable(manifest: CapabilityManifest): Mutable {
   return manifest as unknown as Mutable;
 }
+
+/** Mutable view of the `finetune` entry (the published type is deeply readonly). */
+type FinetuneShape = {
+  name: string;
+  inputs: { plane: string; types?: string[]; shape?: string }[];
+  outputs: { plane: string; types?: string[]; media_types?: string[] }[];
+  cost: { tier: string; est_units: number; meter?: string };
+  x_specialization?: {
+    provider_class: string;
+    modality: string;
+    methods: string[];
+    egress: string;
+    domains: string[];
+  } & Partial<CapabilitySpecialization>;
+};
 
 describe("capability manifest", () => {
   it("is well-formed against KCB §2 (the live manifest validates)", () => {
@@ -236,5 +257,124 @@ describe("assertValidCapabilityManifest", () => {
     signing.key_id = "ed25519:abcdef0123456789";
     signing.alg = "ed25519";
     expect(() => assertValidCapabilityManifest(m)).not.toThrow();
+  });
+});
+
+/**
+ * The KFT `finetune` capability (90-US-3). What these pin is not "the JSON has a
+ * finetune entry" but that the ADVERTISEMENT matches what `ml/src/pinakes_ml/kft.py`
+ * actually admits — a manifest that quietly widened (a second modality, a `full`/`dpo`
+ * method, an `exportable` egress) would make the registry route jobs here that
+ * admission then refuses, which is exactly the failure FT-K's tiebreak exists to avoid.
+ */
+describe("the specialized KFT finetune capability", () => {
+  /** Mutable view of the finetune entry on a clone. */
+  function finetuneOf(m: CapabilityManifest) {
+    return (m as unknown as { capabilities: FinetuneShape[] }).capabilities.find(
+      (c) => c.name === "finetune",
+    )!;
+  }
+
+  it("is advertised alongside the three KCB §6 capabilities, with its own grant", () => {
+    const cap = finetuneCapability();
+    expect(cap).toBeDefined();
+    expect(cap?.x_grant).toBe("invoke:finetune");
+    expect(CAPABILITY_MANIFEST.auth.grants_required).toContain("invoke:finetune");
+    // KCB §6 does not *require* it — KFT is multi-provider, so it is additive.
+    expect(CAPABILITY_NAMES).not.toContain("finetune" as never);
+  });
+
+  it("declares the KFT §2 cross-plane ports: base model in, model + weights out", () => {
+    const cap = finetuneCapability()!;
+    expect(cap.inputs.map((p) => p.plane)).toEqual(["entity", "knowledge"]);
+    expect(cap.outputs.map((p) => p.plane)).toEqual(["entity", "media"]);
+    // The base/finetuned model is a KINP `model` entity, not a canonical csid type.
+    const base = cap.inputs.find((p) => p.plane === "entity") as EntityPort;
+    expect(base.types).toEqual(["model"]);
+    expect(base.shape).toBe("base-model");
+    expect(KINP_ENTITY_TYPES).toContain("model");
+    // The weights port is the only media port Pinakes publishes (KFT §5.3).
+    const weights = cap.outputs.find((p) => p.plane === "media") as MediaPort;
+    expect(weights.media_types).toEqual([
+      "application/vnd.koine.model+safetensors",
+      "application/vnd.koine.model+gguf",
+    ]);
+    // Cost is metered for KCB spend gating before the (expensive) invoke.
+    expect(cap.cost).toMatchObject({ tier: "paid", meter: "gpu-seconds" });
+    expect(cap.cost.est_units).toBeGreaterThan(0);
+  });
+
+  it("carries the FT-K specialization marker the registry breaks a tie on", () => {
+    const spec = capabilitySpecialization("finetune")!;
+    expect(spec.provider_class).toBe("specialized");
+    expect(spec.modality).toBe("text-generation");
+    expect([...spec.methods].sort()).toEqual(["lora", "qlora", "sft"]);
+    // The provider's whole specialization: it never leaves the tier (KFT §4.2).
+    expect(spec.egress).toBe("local-only");
+    expect(spec.domains).toContain("neurosymbolic");
+    // …and it names the general sibling a non-matching job belongs to.
+    expect(spec.general_provider).toContain("agora");
+    expect(spec.admission).toBe("ml/src/pinakes_ml/kft.py");
+    // The three §6 capabilities are unspecialized — the marker is what distinguishes.
+    for (const name of CAPABILITY_NAMES) expect(capabilitySpecialization(name)).toBeUndefined();
+  });
+
+  it("wraps the already-built ml/ trainer rather than declaring new training code", () => {
+    const implementations = finetuneCapability()!.x_surfaces.map((s) => s.implementation);
+    expect(implementations).toContain("ml/src/pinakes_ml/train_slm.py");
+    expect(implementations).toContain("server/services/finetune-provider.ts");
+  });
+
+  it("rejects a finetune capability with no specialization marker", () => {
+    const m = cloneManifest();
+    delete finetuneOf(m).x_specialization;
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/must declare x_specialization/);
+  });
+
+  it("rejects advertising Pinakes as the general trainer (that is agora's leg)", () => {
+    const m = cloneManifest();
+    finetuneOf(m).x_specialization!.provider_class = "general";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/must be a "specialized" provider/);
+  });
+
+  it("rejects an exportable egress — the §4.2 gate would never grant it", () => {
+    const m = cloneManifest();
+    finetuneOf(m).x_specialization!.egress = "exportable";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/must advertise egress "local-only"/);
+  });
+
+  it("rejects a modality or method outside the KFT vocabulary", () => {
+    const bad = cloneManifest();
+    finetuneOf(bad).x_specialization!.modality = "text-to-song";
+    expect(() => assertValidCapabilityManifest(bad)).toThrow(/unknown KFT §3.1 modality/);
+
+    const badMethod = cloneManifest();
+    finetuneOf(badMethod).x_specialization!.methods = ["sft", "distill"];
+    expect(() => assertValidCapabilityManifest(badMethod)).toThrow(/unknown KFT §3 method/);
+  });
+
+  it("rejects a weights port naming a media type koine's registry does not define", () => {
+    const m = cloneManifest();
+    const weights = finetuneOf(m).outputs.find((p) => p.plane === "media")!;
+    weights.media_types = ["application/x-pickle"];
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/non-KMI media type/);
+  });
+
+  it("rejects a finetune capability that lost its model or weights port", () => {
+    const noBase = cloneManifest();
+    finetuneOf(noBase).inputs = finetuneOf(noBase).inputs.filter((p) => p.plane !== "entity");
+    expect(() => assertValidCapabilityManifest(noBase)).toThrow(/base-model entity input port/);
+
+    const noWeights = cloneManifest();
+    finetuneOf(noWeights).outputs = finetuneOf(noWeights).outputs.filter(
+      (p) => p.plane !== "media",
+    );
+    expect(() => assertValidCapabilityManifest(noWeights)).toThrow(/weights media output port/);
+  });
+
+  it("rejects a cost that is not metered in gpu-seconds (KFT §2 spend gating)", () => {
+    const m = cloneManifest();
+    finetuneOf(m).cost.meter = "requests";
+    expect(() => assertValidCapabilityManifest(m)).toThrow(/must meter cost in "gpu-seconds"/);
   });
 });

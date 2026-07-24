@@ -122,6 +122,11 @@ export function registerCapabilityBusRoutes(
         description: c.description,
         cost: c.cost,
         grant: c.x_grant,
+        // Present only on a narrow provider (today: `finetune`). The directory is a
+        // `describe` surface, and FT-K's tiebreak is decided on this block — a registry
+        // that discovered Pinakes here would otherwise have to re-fetch the manifest to
+        // learn it is the specialized leg.
+        ...(c.x_specialization ? { specialization: c.x_specialization } : {}),
         surfaces: c.x_surfaces,
       })),
     });

@@ -59,10 +59,15 @@ describe("A2A agent-card surface (/.well-known/agent-card.json)", () => {
     expect((card.provider as { organization: string }).organization).toBe("Pinakes");
   });
 
-  it("exposes the three KCB §6 capabilities as A2A skills mirroring the manifest", async () => {
+  it("exposes every manifest capability as an A2A skill mirroring the manifest", async () => {
     const card = await fetchCard();
     const skills = card.skills as Array<{ id: string; name: string; description: string; tags: string[] }>;
-    expect(skills.map((s) => s.id).sort()).toEqual(["query", "reconcile", "resolve"]);
+    expect(skills.map((s) => s.id).sort()).toEqual([
+      "finetune",
+      "query",
+      "reconcile",
+      "resolve",
+    ]);
     for (const capability of CAPABILITY_MANIFEST.capabilities) {
       const skill = skills.find((s) => s.id === capability.name);
       expect(skill, capability.name).toBeDefined();
@@ -70,6 +75,27 @@ describe("A2A agent-card surface (/.well-known/agent-card.json)", () => {
       expect(skill?.description).toBe(capability.description);
       expect(skill?.tags).toContain(capability.name);
     }
+  });
+
+  it("tags the finetune skill with its FT-K specialization so a crawler can route on the card alone", async () => {
+    const card = await fetchCard();
+    const skills = card.skills as Array<{ id: string; tags: string[] }>;
+    const finetune = skills.find((s) => s.id === "finetune");
+    expect(finetune, "finetune skill").toBeDefined();
+    // KFT §9/FT-K: the registry prefers the MORE specialized provider, and these are
+    // the signals it breaks the tie on — carried as tags, not only in the extension.
+    expect(finetune?.tags).toEqual(
+      expect.arrayContaining([
+        "finetune",
+        "specialized",
+        "text-generation",
+        "local-only",
+        "neurosymbolic",
+        "media",
+      ]),
+    );
+    // The unspecialized §6 capabilities carry no such marker.
+    expect(skills.find((s) => s.id === "resolve")?.tags).not.toContain("specialized");
   });
 
   it("points its invocation interface at the /mcp surface (US-1)", async () => {
@@ -92,9 +118,14 @@ describe("A2A agent-card surface (/.well-known/agent-card.json)", () => {
     expect(params.consumes).toEqual(CAPABILITY_MANIFEST.consumes);
     expect(params.auth).toEqual(CAPABILITY_MANIFEST.auth);
     expect(params.signing).toEqual(CAPABILITY_MANIFEST.signing);
-    // The embedded capabilities recover the three §6 invocable units with their surfaces.
+    // The embedded capabilities recover every invocable unit with its surfaces.
     const embedded = params.capabilities as Array<{ name: string; x_surfaces: unknown[] }>;
-    expect(embedded.map((c) => c.name).sort()).toEqual(["query", "reconcile", "resolve"]);
+    expect(embedded.map((c) => c.name).sort()).toEqual([
+      "finetune",
+      "query",
+      "reconcile",
+      "resolve",
+    ]);
     expect(embedded.every((c) => c.x_surfaces.length > 0)).toBe(true);
   });
 });

@@ -529,6 +529,13 @@ class TrainOutcome:
     train_loss: float | None = None
     train_runtime_seconds: float | None = None
     stub: bool = False
+    #: The trainer's per-step log, newest last — trl/transformers'
+    #: ``trainer.state.log_history`` verbatim (``{loss, learning_rate, grad_norm,
+    #: epoch, step}`` rows). Carried on the outcome rather than dropped because
+    #: it is the *measured* curve KFT §6's training-telemetry stream publishes
+    #: (:mod:`pinakes_ml.kft_run`); a subscriber that gets a fabricated one is
+    #: exactly what that section exists to replace.
+    log_history: tuple[Mapping[str, Any], ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -538,6 +545,7 @@ class TrainOutcome:
             "trainLoss": self.train_loss,
             "trainRuntimeSeconds": self.train_runtime_seconds,
             "stub": self.stub,
+            "logHistory": [dict(row) for row in self.log_history],
         }
 
 
@@ -769,6 +777,53 @@ def stub_model_factory(
     return factory
 
 
+def planned_steps(config: SlmPilotConfig, num_records: int) -> int:
+    """How many optimizer steps this config implies over ``num_records`` rows.
+
+    Plain arithmetic over the config — the same
+    ``ceil(records / (batch × accum)) × epochs`` transformers computes — so the
+    stub's telemetry has the *real* step count of the run it stands in for.
+    """
+    per_step = max(
+        1, config.per_device_train_batch_size * config.gradient_accumulation_steps
+    )
+    per_epoch = -(-max(0, num_records) // per_step)  # ceil
+    return int(per_epoch * config.num_train_epochs)
+
+
+def stub_log_history(
+    config: SlmPilotConfig, num_records: int
+) -> tuple[dict[str, Any], ...]:
+    """The training log a stub run *can honestly emit* — schedule, never loss.
+
+    A stub trains nothing, so it has no loss to report and inventing one would
+    reproduce precisely the fabricated curve KFT §6 replaces. What it does know
+    is arithmetic: which steps the config schedules, the epoch each falls in, and
+    the linear-warmup learning rate transformers would set there. So the stream
+    is well-formed and step-accurate, and a subscriber can tell it apart from a
+    real run by the absent ``loss`` key (and ``training.stub``).
+    """
+    total = planned_steps(config, num_records)
+    if total <= 0:
+        return ()
+    warmup = int(config.warmup_ratio * total)
+    every = max(1, config.logging_steps)
+    history: list[dict[str, Any]] = []
+    for step in range(every, total + 1, every):
+        if step <= warmup and warmup:
+            factor = step / warmup
+        else:
+            factor = max(0.0, (total - step) / max(1, total - warmup))
+        history.append(
+            {
+                "step": step,
+                "epoch": round(step / total * config.num_train_epochs, 6),
+                "learning_rate": round(config.learning_rate * factor, 12),
+            }
+        )
+    return tuple(history)
+
+
 def stub_trainer(
     config: SlmPilotConfig, records: Sequence[InstructionRecord]
 ) -> TrainOutcome:
@@ -778,6 +833,7 @@ def stub_trainer(
         device="stub",
         num_train_records=len(records),
         stub=True,
+        log_history=stub_log_history(config, len(records)),
     )
 
 
@@ -841,6 +897,11 @@ def train_qlora(
     trainer.save_model(str(adapter_dir))
     tokenizer.save_pretrained(str(adapter_dir))
     metrics = getattr(train_output, "metrics", None) or {}
+    # The measured loss/lr/grad-norm curve KFT §6 publishes as training telemetry
+    # — captured before the trainer is released below.
+    log_history = tuple(
+        dict(row) for row in getattr(trainer.state, "log_history", None) or ()
+    )
     # Free the training copy before the caller loads the tuned model for scoring
     # — three fp32 3B copies do not fit in 36 GB (see release_model).
     del trainer, model
@@ -853,6 +914,7 @@ def train_qlora(
         train_runtime_seconds=(
             float(metrics["train_runtime"]) if "train_runtime" in metrics else None
         ),
+        log_history=log_history,
     )
 
 

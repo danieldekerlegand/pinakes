@@ -71,6 +71,8 @@ describe("capability-bus routes (registry reachable)", () => {
       "resolve",
       "reconcile",
       "query",
+      // The specialized KFT provider (90-US-3) rides on the same document.
+      "finetune",
     ]);
   });
 
@@ -162,7 +164,7 @@ describe("capability-bus routes (registry unreachable)", () => {
 
   it("still serves the capability directory so a consumer can invoke directly", async () => {
     const body = await fetch(`${baseUrl}/api/kcb/capabilities`).then((r) => r.json());
-    expect(body.capabilities).toHaveLength(3);
+    expect(body.capabilities).toHaveLength(4);
     for (const cap of body.capabilities) {
       expect(cap.surfaces.length, cap.name).toBeGreaterThan(0);
     }
@@ -238,7 +240,7 @@ describe("capability-bus routes (signing configured)", () => {
 
       const status = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
       expect(status.signed).toBe(true);
-      expect(status.manifestVersion).toBe("0.2.0");
+      expect(status.manifestVersion).toBe("0.3.0");
     } finally {
       await close();
     }

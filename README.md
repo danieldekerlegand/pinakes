@@ -43,6 +43,14 @@ tooltip. See the runbook below to enable it.
   node/edge schema, per-lexicon mapping, export/reconcile/write-back/QA tooling.
 - **Ralph workflow** — [`docs/ralph-workflow.md`](./docs/ralph-workflow.md): the autonomous
   PRD-driven iteration loop under `tasks/ralph/` and `scripts/ralph/`.
+- **Capability bus (KCB) + the KFT `finetune` provider** —
+  [`docs/capability-bus.md`](./docs/capability-bus.md): the manifest Pinakes publishes, its
+  MCP/A2A fronts, and the **specialized, local-only** fine-tuning provider that wraps
+  [`ml/`](./ml/). Fine-tuning is deliberately multi-provider (KFT §9/FT-K), and **two sibling
+  legs are NOT built in this repo**: the *general*, cloud-capable trainer
+  (`agora:90-finetune-trainer`) and the KCB client that calls both
+  (`cuneiform:90-finetune-client`, replacing its `Runner::Stub`). Program map:
+  `koine/tasks/chief/README.md`, Tranche D.
 - **Data/correlation engine** — [`core/README.md`](./core/README.md)
   (Python ≥3.11; own `mypy`/`pytest`/`ruff` toolchain).
 

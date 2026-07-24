@@ -14,11 +14,15 @@
  * it is a validated, spec-shaped AgentCard rather than a hand-rolled JSON blob.
  *
  * **Surface wrapper only** (server/CLAUDE.md + shared/CLAUDE.md): the card advertises
- * the same three KCB §6 capabilities as A2A skills (`resolve`/`reconcile`/`query`),
- * with descriptions/tags mirroring `shared/capability-manifest.json`, and points its
- * invocation url at the `/mcp` surface US-1 stood up. Nothing here resolves,
- * reconciles or queries anything — a crawler that pulls ONLY this card recovers the
- * full KCB §2 manifest from the extension `params` and dials the built surfaces.
+ * every capability on the manifest as an A2A skill — the three KCB §6 ones
+ * (`resolve`/`reconcile`/`query`) plus the specialized KFT `finetune` provider
+ * (90-US-3) — with descriptions/tags mirroring `shared/capability-manifest.json`, and
+ * points its invocation url at the `/mcp` surface US-1 stood up. Nothing here
+ * resolves, reconciles, queries or trains anything — a crawler that pulls ONLY this
+ * card recovers the full KCB §2 manifest from the extension `params` (including the
+ * `x_specialization` block the KFT §9/FT-K tiebreak reads) and dials the built
+ * surfaces. Skills are derived from the manifest, so a new capability becomes a skill
+ * by being declared there, never by editing this file.
  */
 import { type Express, type Request, type Response } from "express";
 import {
@@ -55,10 +59,21 @@ function mcpUrl(origin: string | null): string {
   return abs(origin, CAPABILITY_MANIFEST.endpoints.mcp ?? CAPABILITY_MANIFEST.endpoints.http);
 }
 
-/** Tags mirroring a capability: its name plus the planes it connects (KCB §2.1 ports). */
+/**
+ * Tags mirroring a capability: its name, the planes it connects (KCB §2.1 ports),
+ * and — on a narrow provider — its `x_specialization` signal, so a crawler that
+ * matches skills by tag can break the KFT §9/FT-K tie (specialized beats general)
+ * from the card alone, without pulling the manifest extension.
+ */
 function skillTags(capability: (typeof CAPABILITY_MANIFEST.capabilities)[number]): string[] {
   const planes = [...capability.inputs, ...capability.outputs].map((p) => p.plane);
-  return Array.from(new Set([capability.name, ...planes, "koine-capability-bus"]));
+  const spec = capability.x_specialization;
+  const specialization = spec
+    ? [spec.provider_class, spec.modality, spec.egress, ...spec.domains]
+    : [];
+  return Array.from(
+    new Set([capability.name, ...planes, ...specialization, "koine-capability-bus"]),
+  );
 }
 
 /**

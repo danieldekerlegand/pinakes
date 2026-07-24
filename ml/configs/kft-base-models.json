@@ -1,0 +1,21 @@
+{
+  "_note": "The KINP `model` entities pinakes has minted for the base models its ml/ pipeline fine-tunes, each carrying the external anchor to its Hugging Face coordinate (KFT 0.3.0 §5.1, FT-G). A finetune-job names the ENTITY id; pinakes_ml.kft resolves it here. An `hf:...` string in a job is not a base model — it is an unanchored guess. Add a row before pointing a config at a new base; ml/tests/test_kft.py asserts every committed slm-pilot config's base_model is anchored.",
+  "_licenseClassNote": "`license_class` values are koine/policy/license-classes.json classes (public-domain | attribution | share-alike | proprietary | personal), asserted against pinakes_ml.kft.LICENSE_CLASSES. `non-commercial` is the one pinakes-local refinement: the Qwen Research License is neither attribution nor owner-scoped proprietary, and KFT §4.3 makes the union license the thing a downstream consumer admits a MODEL on. Propose it upstream rather than adding more.",
+  "kftVersion": "0.3.0",
+  "models": {
+    "pinakes:model:qwen2.5-0.5b-instruct": {
+      "same_as": "ext:hf:Qwen/Qwen2.5-0.5B-Instruct",
+      "modality": "text-generation",
+      "license": "Apache-2.0",
+      "license_class": "attribution",
+      "egress": "exportable"
+    },
+    "pinakes:model:qwen2.5-3b-instruct": {
+      "same_as": "ext:hf:Qwen/Qwen2.5-3B-Instruct",
+      "modality": "text-generation",
+      "license": "LicenseRef-Qwen-Research",
+      "license_class": "non-commercial",
+      "egress": "exportable"
+    }
+  }
+}

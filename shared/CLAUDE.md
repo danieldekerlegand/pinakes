@@ -132,8 +132,27 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   closed over `CAPABILITY_MANIFEST` silently validated the live doc instead of the clone under
   test (caught by the mutation tests; keep that pattern for any new check).
 - Spec-conformant keys stay spec-named (`kcb_version`, `grants_required`); Pinakes-local
-  additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`) so the
-  document can be served verbatim to a registry.
+  additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`,
+  `x_specialization`) so the document can be served verbatim to a registry.
+- **The KFT `finetune` capability (90-US-3) is the one specialized entry, and the validator
+  pins it to what `ml/` admits.** KFT is multi-provider (`koine/specs/fine-tuning.md` §9,
+  FT-K): agora hosts the general trainer, Pinakes advertises a NARROW one. `x_specialization`
+  (`provider_class`/`modality`/`methods`/`egress`/`domains`) is the tiebreak signal, and
+  `assertFinetuneCapability` rejects an advertisement that widened past
+  `ml/src/pinakes_ml/kft.py` — a second modality, a `full`/`dpo` method, an `exportable`
+  egress. **Widening the manifest without widening admission routes jobs here that are then
+  refused**, which is the exact failure FT-K's tiebreak exists to prevent. `cost.meter` must
+  stay `gpu-seconds` (KFT §7 spend gating).
+- **Two vocabularies come from koine's registry, NOT from `canonical-schema.json`.**
+  `KINP_ENTITY_TYPES` (`model` — `registry/entity-types.tsv`) is the allowlist that lets a
+  capability port name a non-csid entity type; `KFT_WEIGHT_MEDIA_TYPES`
+  (`registry/media-types.tsv`) bounds the `media` plane. `MediaPort` is the third plane
+  (`entity` | `knowledge` | `media`); the finetune weights port is the only one Pinakes
+  publishes. Add to these lists only when koine's registry does — they are mirrors.
+- **A capability's ports may span planes; the produced-port rules do not change.** The entity
+  totality check and the `grounding-only` + `pinakes:world:*` pins apply to `produces` /
+  `consumes`; a capability-level knowledge port can legitimately omit `worlds` (the finetune
+  training-set port does — its data is not consensus-reality knowledge).
 
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 

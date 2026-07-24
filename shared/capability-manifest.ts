@@ -29,11 +29,18 @@
 import capabilityManifestJson from "./capability-manifest.json";
 import { CANONICAL_SCHEMA, nodeTypeByName } from "./canonical-schema";
 
-/** The three capabilities KCB §6 names for Pinakes. */
-export type CapabilityName = "resolve" | "reconcile" | "query";
+/** The capabilities Pinakes declares — KCB §6's three plus the KFT `finetune` provider. */
+export type CapabilityName = "resolve" | "reconcile" | "query" | "finetune";
 
-/** The capability names in their manifest order. */
+/**
+ * The three capabilities KCB §6 *requires* of Pinakes, in manifest order. `finetune`
+ * is deliberately not here: KFT is multi-provider (§9/FT-K), so a `finetune` capability
+ * is one Pinakes *may* advertise, not one the bus demands of the authority provider.
+ */
 export const CAPABILITY_NAMES: readonly CapabilityName[] = ["resolve", "reconcile", "query"] as const;
+
+/** The KFT training capability (`koine/specs/fine-tuning.md` §2). */
+export const FINETUNE_CAPABILITY = "finetune";
 
 /** KGP dialect (portability) tiers a knowledge port may declare (`grounding-pack.md` §5). */
 export type KnowledgeDialect = "grounding-only" | "horn-safe" | "full-prolog";
@@ -43,6 +50,37 @@ export const DEFAULT_WORLD = "pinakes:world:consensus-reality";
 
 /** The entity-`types` wildcard — "every canonical node type" (KCB already uses `*` for `world_pattern`). */
 export const ENTITY_TYPE_WILDCARD = "*";
+
+/**
+ * KINP entity types that are registered in koine's shared registry
+ * (`registry/entity-types.tsv`) but are **not** canonical csid node types, so they
+ * resolve through neither `canonical-schema.json` nor the produced entity port.
+ * `model` is KFT §5.1's model entity — the thing a `finetune` capability consumes and
+ * produces. Keep this list tiny and koine-sourced: it is the escape hatch from the
+ * "every entity type is a canonical node type" rule, not a second vocabulary.
+ */
+export const KINP_ENTITY_TYPES: readonly string[] = ["model"] as const;
+
+/** The KFT §3.1 modality vocabulary (koine `registry/enums/modality.tsv`). */
+export const KFT_MODALITIES: readonly string[] = [
+  "text-generation",
+  "image-text-to-text",
+  "video-text-to-text",
+  "text-to-image",
+  "text-to-video",
+] as const;
+
+/** The KFT §3 `method` vocabulary. */
+export const KFT_METHODS: readonly string[] = ["sft", "lora", "qlora", "full", "dpo"] as const;
+
+/** The KMI media types a KFT provider may emit weights/exports as (§5.3). */
+export const KFT_WEIGHT_MEDIA_TYPES: readonly string[] = [
+  "application/vnd.koine.model+safetensors",
+  "application/vnd.koine.model+gguf",
+  "application/vnd.koine.model+onnx",
+  "application/vnd.koine.model+coreml",
+  "application/vnd.koine.model+tflite",
+] as const;
 
 /** A port on the knowledge plane — typed by KGP dialect + an optional payload shape. */
 export interface KnowledgePort {
@@ -58,11 +96,24 @@ export interface KnowledgePort {
 export interface EntityPort {
   readonly plane: "entity";
   readonly types: readonly string[];
+  /** Payload shape, e.g. `base-model` / `finetuned-model` (KFT §2). */
+  readonly shape?: string;
   readonly description?: string;
 }
 
-/** A typed connection point (KCB §2.1). Pinakes declares no media ports. */
-export type Port = KnowledgePort | EntityPort;
+/**
+ * A port on the media plane — typed by KMI media types (`koine/registry/media-types.tsv`).
+ * Pinakes's only media ports are the `finetune` capability's weight/export outputs (KFT §5.3).
+ */
+export interface MediaPort {
+  readonly plane: "media";
+  readonly media_types: readonly string[];
+  readonly shape?: string;
+  readonly description?: string;
+}
+
+/** A typed connection point (KCB §2.1) — entity, knowledge, or media plane. */
+export type Port = KnowledgePort | EntityPort | MediaPort;
 
 /** One already-built HTTP surface a capability is a wrapper over. */
 export interface CapabilitySurface {
@@ -76,15 +127,41 @@ export interface CapabilitySurface {
   readonly url?: string;
 }
 
+/**
+ * How narrow a provider is, and along which axis (KFT §9/FT-K). The registry reads
+ * this to break a tie between two providers that both match a job's modality: the
+ * MORE specialized one wins. Absent on a general-purpose capability.
+ */
+export interface CapabilitySpecialization {
+  /** `specialized` (a narrow leg) vs `general` (the catch-all provider). */
+  readonly provider_class: "specialized" | "general";
+  /** The single KFT §3.1 modality this provider accepts. */
+  readonly modality: string;
+  /** The KFT §3 methods it accepts within that modality. */
+  readonly methods: readonly string[];
+  /** The egress class every run resolves to (KFT §4.2). Pinakes is `local-only`. */
+  readonly egress: string;
+  /** What the provider is specialized *for* — the FT-K routing signal. */
+  readonly domains: readonly string[];
+  /** The general sibling a non-matching job belongs to. */
+  readonly general_provider?: string;
+  /** Repo-relative path of the admission code that enforces all of the above. */
+  readonly admission?: string;
+  readonly description?: string;
+}
+
 /** One named, invocable unit (KCB §2). */
 export interface Capability {
   readonly name: string;
   readonly description: string;
   readonly inputs: readonly Port[];
   readonly outputs: readonly Port[];
-  readonly cost: { readonly tier: string; readonly est_units: number };
+  /** `meter` names the unit `est_units` counts (KFT §2 — `gpu-seconds` for training). */
+  readonly cost: { readonly tier: string; readonly est_units: number; readonly meter?: string };
   /** The KCB §5 grant an invocation of this capability requires. */
   readonly x_grant: string;
+  /** Present on a narrow provider; the KFT §9/FT-K routing signal. */
+  readonly x_specialization?: CapabilitySpecialization;
   /** The built routes this capability wraps; the first is the primary. */
   readonly x_surfaces: readonly CapabilitySurface[];
 }
@@ -120,6 +197,8 @@ export interface CapabilityManifestMeta {
   readonly wildcardEntityTypes: string;
   readonly endpointNote: string;
   readonly authNote: string;
+  /** Why the `finetune` capability is narrow, and what it complements (KFT §9/FT-K). */
+  readonly specializationNote: string;
   readonly signingNote: string;
 }
 
@@ -150,6 +229,24 @@ export function capability(name: string): Capability | undefined {
 /** The primary (first) built surface of a capability. */
 export function primarySurface(name: string): CapabilitySurface | undefined {
   return capability(name)?.x_surfaces[0];
+}
+
+/** The KFT `finetune` capability, when this manifest advertises one. */
+export function finetuneCapability(
+  manifest: CapabilityManifest = CAPABILITY_MANIFEST,
+): Capability | undefined {
+  return manifest.capabilities.find((c) => c.name === FINETUNE_CAPABILITY);
+}
+
+/**
+ * The specialization block a router breaks an FT-K tie on, or `undefined` for a
+ * capability that declares none (which the registry reads as "general").
+ */
+export function capabilitySpecialization(
+  name: string,
+  manifest: CapabilityManifest = CAPABILITY_MANIFEST,
+): CapabilitySpecialization | undefined {
+  return manifest.capabilities.find((c) => c.name === name)?.x_specialization;
 }
 
 /** Every knowledge port on `produces` (the grounding data Pinakes emits). */
@@ -216,8 +313,24 @@ function assertPort(port: Port, where: string): void {
     }
     for (const type of port.types) {
       if (type === ENTITY_TYPE_WILDCARD) continue;
+      // A koine-registered, non-canonical KINP type (`model`) resolves here rather
+      // than through `canonical-schema.json` — see {@link KINP_ENTITY_TYPES}.
+      if (KINP_ENTITY_TYPES.includes(type)) continue;
       if (!nodeTypeByName(type)) {
         throw new Error(`capability-manifest: ${where} entity port names unknown type "${type}"`);
+      }
+    }
+    return;
+  }
+  if (port.plane === "media") {
+    if (port.media_types.length === 0) {
+      throw new Error(`capability-manifest: ${where} media port declares no media_types`);
+    }
+    for (const mediaType of port.media_types) {
+      if (!isNonEmptyString(mediaType) || !mediaType.includes("/")) {
+        throw new Error(
+          `capability-manifest: ${where} media port names malformed media type "${String(mediaType)}"`,
+        );
       }
     }
     return;
@@ -239,12 +352,95 @@ function assertPort(port: Port, where: string): void {
   }
 }
 
+function entityPortWith(ports: readonly Port[], type: string): EntityPort | undefined {
+  return ports.find((p): p is EntityPort => p.plane === "entity" && p.types.includes(type));
+}
+
+/**
+ * Validate the `finetune` capability against KFT §2 and the specialization the
+ * program (§9/FT-K) assigns Pinakes: a NARROW provider, not a general trainer.
+ *
+ * The point of the extra checks is that a `finetune` entry which quietly widened —
+ * a second modality, a `full`/`dpo` method the `ml/` admission code refuses, an
+ * `exportable` egress the §4.2 gate would never grant — would make the registry
+ * route jobs here that admission then rejects. Validate the advertisement against
+ * what `ml/src/pinakes_ml/kft.py` actually admits.
+ */
+function assertFinetuneCapability(cap: Capability): void {
+  const where = `capability "${cap.name}"`;
+  const spec = cap.x_specialization;
+  if (!spec) {
+    throw new Error(
+      `capability-manifest: ${where} must declare x_specialization — KFT §9/FT-K breaks a multi-provider tie on it`,
+    );
+  }
+  if (spec.provider_class !== "specialized") {
+    throw new Error(
+      `capability-manifest: ${where} must be a "specialized" provider (agora hosts the general trainer — KFT §9), got "${spec.provider_class}"`,
+    );
+  }
+  if (!KFT_MODALITIES.includes(spec.modality)) {
+    throw new Error(
+      `capability-manifest: ${where} names unknown KFT §3.1 modality "${spec.modality}"`,
+    );
+  }
+  if (spec.methods.length === 0) {
+    throw new Error(`capability-manifest: ${where} declares no KFT §3 methods`);
+  }
+  for (const method of spec.methods) {
+    if (!KFT_METHODS.includes(method)) {
+      throw new Error(`capability-manifest: ${where} names unknown KFT §3 method "${method}"`);
+    }
+  }
+  if (spec.egress !== "local-only") {
+    throw new Error(
+      `capability-manifest: ${where} must advertise egress "local-only" — Pinakes's SLM corpora are containment-gated and the §4.2 gate refuses cross-boundary compute, got "${spec.egress}"`,
+    );
+  }
+  if (spec.domains.length === 0) {
+    throw new Error(
+      `capability-manifest: ${where} declares no specialization domains — the FT-K routing signal would be empty`,
+    );
+  }
+  if (cap.cost.meter !== "gpu-seconds") {
+    throw new Error(
+      `capability-manifest: ${where} must meter cost in "gpu-seconds" (KFT §2), got "${String(cap.cost.meter)}"`,
+    );
+  }
+  // Ports: a base-model entity in, data in, a finetuned-model entity + weights out.
+  if (!entityPortWith(cap.inputs, "model")) {
+    throw new Error(`capability-manifest: ${where} needs a base-model entity input port (KFT §2)`);
+  }
+  if (!cap.inputs.some((p) => p.plane === "knowledge" || p.plane === "media")) {
+    throw new Error(
+      `capability-manifest: ${where} needs a knowledge or media training-set input port (KFT §2)`,
+    );
+  }
+  if (!entityPortWith(cap.outputs, "model")) {
+    throw new Error(
+      `capability-manifest: ${where} needs a finetuned-model entity output port (KFT §5.1)`,
+    );
+  }
+  const weights = cap.outputs.find((p): p is MediaPort => p.plane === "media");
+  if (!weights) {
+    throw new Error(`capability-manifest: ${where} needs a weights media output port (KFT §5.3)`);
+  }
+  for (const mediaType of weights.media_types) {
+    if (!KFT_WEIGHT_MEDIA_TYPES.includes(mediaType)) {
+      throw new Error(
+        `capability-manifest: ${where} weights port names non-KMI media type "${mediaType}" (koine registry/media-types.tsv)`,
+      );
+    }
+  }
+}
+
 /**
  * Validate the live manifest against the KCB §2 shape and the vocabularies it
  * borrows: canonical node types (totality on the produced entity port), the three
  * §6 capability names, one grant per capability, and at least one already-built
  * surface behind every capability — the check that keeps this a wrapper rather than
- * letting a capability be declared with nothing behind it.
+ * letting a capability be declared with nothing behind it. A declared `finetune`
+ * capability gets the extra KFT §2/§9 narrowness checks on top.
  */
 export function assertValidCapabilityManifest(
   manifest: CapabilityManifest = CAPABILITY_MANIFEST,
@@ -360,6 +556,7 @@ export function assertValidCapabilityManifest(
         );
       }
     }
+    if (cap.name === FINETUNE_CAPABILITY) assertFinetuneCapability(cap);
   }
   for (const grant of manifest.auth.grants_required) {
     if (!names.includes(grant.replace(/^invoke:/, ""))) {
