@@ -43,7 +43,6 @@ from culturescrape.acquire.wikidata_slice import (
 from culturescrape.acquire.writer import record_to_jsonl
 from culturescrape.datalog.export import (
     CONTAINED_TIERS,
-    PERSONAL_TIER,
     DatalogExportError,
     Engine,
     collect_facts,
@@ -51,7 +50,6 @@ from culturescrape.datalog.export import (
     export_dataset,
     tier_row_filter,
 )
-from culturescrape.datalog.file_web import FILE_WEB_RULES
 from culturescrape.datalog.materialize import MaterializeError, summarize
 from culturescrape.datalog.registry import (
     REGISTRY_TSV,
@@ -433,14 +431,12 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=list(CONTAINED_TIERS),
         default=None,
         help="scope the program to a contained trust tier. Default (omitted): the "
-        "PUBLIC program — personal-tier (source=analyzer) AND synthetic-tier "
-        "(source=insimul) rows are filtered out, so a corpus that has ingested Analyzer "
-        "file-facts or Insimul worlds still exports a release-safe program. "
-        "'personal': the LOCAL-ONLY file web (asset nodes + grounding edges), with "
-        "the file-web reasoning rules (derived_from lineage + refers_to/co_refers) "
-        "attached. 'synthetic': one generated Insimul world's own subgraph (a world's "
-        "own rules are full-prolog and do not cross to Datalog). Neither tier is ever "
-        "emitted by default.",
+        "PUBLIC program — personal-tier AND synthetic-tier (source=insimul) rows "
+        "are filtered out, so a corpus that has ingested a personal-tier source or "
+        "Insimul worlds still exports a release-safe program. "
+        "'personal': the LOCAL-ONLY personal subgraph. 'synthetic': one generated "
+        "Insimul world's own subgraph (a world's own rules are full-prolog and do "
+        "not cross to Datalog). Neither tier is ever emitted by default.",
     )
     to_datalog.add_argument(
         "--out",
@@ -472,11 +468,9 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="scope the materialisation to a contained trust tier. Default: the "
         "public corpus (personal AND synthetic rows filtered out) with the shared "
-        "inference rules. 'personal': materialise the file-web rules (derived_from "
-        "lineage + refers_to/co_refers) over the LOCAL-ONLY personal (source=analyzer) "
-        "subgraph — the engine-free proof that the ingested file web answers lineage "
-        "and cross-file queries. 'synthetic': the shared rules over one generated "
-        "Insimul world (source=insimul).",
+        "inference rules. 'personal': the shared rules over the LOCAL-ONLY personal "
+        "subgraph. 'synthetic': the shared rules over one generated Insimul world "
+        "(source=insimul).",
     )
     datalog_materialize.add_argument(
         "--exclude",
@@ -1343,10 +1337,9 @@ def _cmd_to_datalog(args: argparse.Namespace) -> int:
 
 def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
     exclude = tuple(args.exclude or ())
-    # The personal tier materialises the file-web rules over the local-only
-    # source=analyzer subgraph; the default materialises the shared library over the
-    # public corpus.
-    rule_library = FILE_WEB_RULES if args.tier == PERSONAL_TIER else RULES
+    # Every tier materialises the shared inference library; --tier only scopes
+    # which rows are projected under it.
+    rule_library = RULES
     known_heads = {rule.name for rule in rule_library}
     unknown = [name for name in exclude if name not in known_heads]
     if unknown:
@@ -1360,7 +1353,6 @@ def _cmd_datalog_materialize(args: argparse.Namespace) -> int:
         keep_row = tier_row_filter(args.tier)
         # Include the P279 taxonomy so the instance_of closure rule has its
         # subclass_of base relation (mirrors export_dataset's rule-bearing path).
-        # The file-web rules read no taxonomy, but including it is harmless.
         facts = collect_facts(
             args.directory, include_taxonomy=True, keep_row=keep_row
         )

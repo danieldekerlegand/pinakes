@@ -268,7 +268,7 @@ matching, not row IO:
 | `schema/mapper.py:map_record` / `map_records` / `map_pinakes_record` | Maps a source `RawRecord` + `CategorySpec` to a canonical `Row` — domain field mapping. | stays `culturescrape.schema` |
 | `schema/merge.py:merge_rows` / `merged_csid_remap` | Clusters + merges duplicate entities (exact-key + fuzzy-name), remapping `csid`. | stays `culturescrape.schema` |
 | `schema/normalize.py:normalize_text` / `normalize_fields` / `TimeSpan` | Text/era/time-span normalization (century parsing, era signs) — corpus semantics. | stays `culturescrape.schema` |
-| `schema/pipeline.py:normalize_records` / `read_raw_records` | Drives raw-record → normalized-row for pinakes/analyzer exports. | stays `culturescrape.schema` |
+| `schema/pipeline.py:normalize_records` / `read_raw_records` | Drives raw-record → normalized-row for pinakes/bridge exports. | stays `culturescrape.schema` |
 | `schema/{lexicon,glottolog,typology,lexibank,kaikki}_reconcile.py` | The per-source `*_reconcile` family — dataset-specific correspondence to the canonical graph (lexicon, Glottolog, typology, Lexibank, kaikki). | stays `culturescrape.schema` |
 
 **Explorer viz (`explorer/*`).** A FastAPI app for browsing the corpus — purely a
@@ -432,11 +432,10 @@ from culturescrape.orchestrate.tiers import (   # export.py:104
 ```
 
 `is_personal_source` / `is_synthetic_source` (`orchestrate/tiers.py:365` ff.) test a row's
-`source` cell against the Pinakes source vocab `PERSONAL_SOURCES = {"analyzer"}` /
-`SYNTHETIC_SOURCES = {"insimul"}` (`tiers.py:84` / `:97`). The tier names themselves —
-`PERSONAL_TIER` / `SYNTHETIC_TIER` / `CONTAINED_TIERS` (`export.py:58` / `:68` / `:72`) —
-plus the `FILE_WEB_RULES` lineage rules spliced when `personal` (`export.py:342`, imported
-from `datalog/file_web.py:114`) are Pinakes trust-tier concepts leaking into the generic
+`source` cell against the Pinakes source vocab `PERSONAL_SOURCES` (empty by default —
+pinakes bundles no personal-tier producer) / `SYNTHETIC_SOURCES = {"insimul"}`. The tier
+names themselves — `PERSONAL_TIER` / `SYNTHETIC_TIER` / `CONTAINED_TIERS` — are Pinakes
+trust-tier concepts leaking into the generic
 exporter. The lazy import is deliberate — a comment (`export.py:101-103`) notes it dodges a
 circular import (`orchestrate.corpus` imports `datalog.export`) — which is itself evidence
 the tier logic belongs on the Pinakes side, not the emitter's.
@@ -496,7 +495,7 @@ the schema as a parameter; a vocab change is a config change, never a Rust chang
 
 | # | Coupling | Evidence | Resolution |
 | --- | --- | --- | --- |
-| (a) | Tier filter → Pinakes trust-tier source vocab | `export.py:104` lazy `import … orchestrate.tiers.{is_personal_source,is_synthetic_source}`; `tier_row_filter` `:85`; `FILE_WEB_RULES` splice `:342` | Caller-supplied `keep_row` predicate; no `orchestrate` import |
+| (a) | Tier filter → Pinakes trust-tier source vocab | `export.py:104` lazy `import … orchestrate.tiers.{is_personal_source,is_synthetic_source}`; `tier_row_filter` `:85` | Caller-supplied `keep_row` predicate; no `orchestrate` import |
 | (b) | Emitter mixes generic projection + Pinakes rules | `include_rules`/`include_constraints`/`include_schema_constraints` `export.py:271-273`; `attach_rules` `:329` | Rulesets pass as caller-supplied data, not Rust constants |
 | (c) | Schema constraints read `shared/canonical-schema.json` | `schema_constraints.py:67` `parents[4] / "shared" / "canonical-schema.json"` | Schema injected as config; no filesystem walk |
 | (d) | Neo4j codec binds `NodeSchema/EdgeSchema.canonical()` | `neo4j/export.py:175-176` | Schema injected as config parameter |

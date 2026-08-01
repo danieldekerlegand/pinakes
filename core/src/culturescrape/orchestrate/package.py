@@ -154,8 +154,8 @@ def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
     A packaged artifact is a shareable / open-data release, so the two contained
     tiers must never enter one:
 
-    * **personal** (analyzer-bridge US-003, the media-bridge mapping spec §6) — a fact derived
-      from the user's own files, ingested via the Analyzer bridge; local-only;
+    * **personal** — a fact derived from the user's own private files, ingested
+      by a personal-tier source; local-only;
     * **synthetic** (insimul-bridge US-003, INSIMUL_SYNC_PLAN.md §7 "License
       leakage") — a fact read out of a *generated* Insimul world; proprietary, and
       it describes a world that does not exist.
@@ -178,7 +178,7 @@ def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
             "personal",
             is_personal_source,
             "personal-tier facts are local-only and must never enter a "
-            "packaged/open-data release (the media-bridge mapping spec §6)",
+            "packaged/open-data release",
         ),
         (
             "synthetic",

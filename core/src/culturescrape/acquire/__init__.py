@@ -7,11 +7,6 @@ from culturescrape.acquire.adapters import (
     register,
     registered_ids,
 )
-from culturescrape.acquire.analyzer import (
-    ARGOS_SOURCE,
-    ArgosExportAdapter,
-    ArgosExportError,
-)
 from culturescrape.acquire.categories import (
     VALID_DIMENSIONS,
     VALID_SOURCE_TYPES,
@@ -202,9 +197,6 @@ __all__ = [
     "KaikkiError",
     "PinakesExportAdapter",
     "PinakesExportError",
-    "ARGOS_SOURCE",
-    "ArgosExportAdapter",
-    "ArgosExportError",
     "CONTRACT_VERSION",
     "INSIMUL_LICENSE",
     "INSIMUL_SOURCE",

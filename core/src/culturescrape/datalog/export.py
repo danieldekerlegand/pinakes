@@ -26,7 +26,6 @@ from pathlib import Path
 from culturescrape import translation
 from culturescrape.datalog import Dialect, Fact, edge_file_facts, node_file_facts
 from culturescrape.datalog.constraints import constraint_file_rules
-from culturescrape.datalog.file_web import FILE_WEB_RULES
 from culturescrape.datalog.problog import (
     PROBLOG_PROGRAM_NAME,
     collect_problog_facts,
@@ -49,12 +48,12 @@ from culturescrape.schema.tsvio import Row
 #: (parallel to :data:`~culturescrape.datalog.SOUFFLE_PROGRAM_NAME` for Soufflé).
 PROLOG_PROGRAM_NAME = "graph.pl"
 
-#: The personal (Analyzer) trust tier — the ``--tier`` token that scopes the export
-#: to the local-only file web (asset nodes + grounding edges) and attaches the
-#: file-web reasoning rules. Any other tier token is rejected. The privacy
-#: invariant (the media-bridge mapping spec §6): a personal-tier fact must NEVER reach the
-#: default (public) program, so the default export **filters personal rows out**
-#: — the containment gate for this release path (mirrors
+#: The personal trust tier — the ``--tier`` token that scopes the export to rows
+#: a personal-tier source produced (:data:`~culturescrape.orchestrate.tiers.
+#: PERSONAL_SOURCES`). Any other tier token is rejected. The privacy invariant: a
+#: personal-tier fact must NEVER reach the default (public) program, so the
+#: default export **filters personal rows out** — the containment gate for this
+#: release path (mirrors
 #: :func:`culturescrape.orchestrate.tiers.assert_no_personal_records`).
 PERSONAL_TIER = "personal"
 
@@ -62,8 +61,8 @@ PERSONAL_TIER = "personal"
 #: to a generated world's own subgraph. The containment invariant
 #: (INSIMUL_SYNC_PLAN.md §7 "License leakage") is the exact twin of the personal
 #: one: a generated-world fact must NEVER reach the default (public) program, so
-#: the default export **filters synthetic rows out** too. Unlike the personal tier
-#: it attaches no special rule library — a world's own rules are full-prolog and
+#: the default export **filters synthetic rows out** too. Neither tier attaches a
+#: special rule library — a world's own rules, for instance, are full-prolog and
 #: do not cross into Datalog (they ride as ``insimul-world`` rules-registry entries
 #: instead; see :func:`culturescrape.acquire.insimul.world_rule_entries`).
 SYNTHETIC_TIER = "synthetic"
@@ -87,10 +86,11 @@ def tier_row_filter(tier: str | None) -> Callable[[Row], bool]:
     """Build the row-level keep predicate that scopes a projection to *tier*.
 
     * ``None`` — the **public** program: every row of a *contained* tier is
-      dropped and everything else kept, so a corpus that has ingested Analyzer
-      file-facts (:data:`~culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) or
-      Insimul worlds (:data:`~culturescrape.orchestrate.tiers.SYNTHETIC_SOURCES`)
-      still yields a release-safe program with neither in it.
+      dropped and everything else kept, so a corpus that has ingested a
+      personal-tier source
+      (:data:`~culturescrape.orchestrate.tiers.PERSONAL_SOURCES`) or Insimul
+      worlds (:data:`~culturescrape.orchestrate.tiers.SYNTHETIC_SOURCES`) still
+      yields a release-safe program with neither in it.
     * :data:`PERSONAL_TIER` — the **local-only** program: only personal rows.
     * :data:`SYNTHETIC_TIER` — the **generated-world** program: only synthetic rows.
 
@@ -303,14 +303,11 @@ def export_dataset(
     property-constraint integrity rules require.
 
     *tier* scopes which trust tier reaches the program (:func:`tier_row_filter`).
-    The default (``None``) is the **public** program: personal-tier
-    (``source=analyzer``) rows are filtered out, so a corpus that has ingested Analyzer
-    file-facts still exports a release-safe program with no personal data — the
-    containment gate for this path. ``tier="personal"`` is the **local-only**
-    program: only personal-tier rows are projected, and the file-web reasoning
-    rules (:data:`~culturescrape.datalog.file_web.FILE_WEB_RULES` — lineage
-    transitivity over ``derived_from`` and the ``refers_to``/``co_refers`` join)
-    are attached so the ingested file web gains the logic Analyzer never built.
+    The default (``None``) is the **public** program: personal-tier rows are
+    filtered out, so a corpus that has ingested a personal-tier source still
+    exports a release-safe program with no personal data — the containment gate
+    for this path. ``tier="personal"`` is the **local-only** program: only
+    personal-tier rows are projected.
 
     Raises:
         DatalogExportError: If *engines* is empty, the dataset cannot be read
@@ -321,7 +318,6 @@ def export_dataset(
         raise DatalogExportError("no engine selected")
 
     keep_row = tier_row_filter(tier)
-    personal = tier == PERSONAL_TIER
 
     # The taxonomy rides with the rules: subclass_of/2 facts only earn their keep
     # when the instance_of closure rule is attached to consume them — and the
@@ -337,19 +333,15 @@ def export_dataset(
     # With the default governance metadata every curated rule is active, so the emitted
     # program is byte-for-byte unchanged.
     base_rules: tuple[Rule, ...] = active_curated_rules() if attach_rules else ()
-    # The file-web reasoning rides only with the personal-tier export — never with
-    # the public program — so the ingested file web (and only it) gets lineage
-    # transitivity and the refers_to/co_refers join.
-    file_web_rules: tuple[Rule, ...] = FILE_WEB_RULES if personal else ()
-    prolog_rules = base_rules + file_web_rules
-    souffle_rules = base_rules + file_web_rules
+    prolog_rules = base_rules
+    souffle_rules = base_rules
     if include_constraints:
         # Not named ``translation``: that is the module-level engine adapter this
         # export delegates its rendering to, and rebinding it here would make it a
         # local for the whole function body.
         constraints = constraint_file_rules()
-        prolog_rules = base_rules + file_web_rules + constraints.prolog_rules()
-        souffle_rules = base_rules + file_web_rules + constraints.souffle_rules()
+        prolog_rules = base_rules + constraints.prolog_rules()
+        souffle_rules = base_rules + constraints.souffle_rules()
     if include_schema_constraints:
         # Soufflé-only: the from/to type, symmetry and csid-uniqueness rules use
         # negation / inequality (see the module docstring). Prolog receives none.
@@ -367,15 +359,15 @@ def export_dataset(
     # against the reference emitters in ``tests/test_translation_lib.py``).
     #
     # The rules-free path takes the engine's whole document verbatim. The
-    # rule-bearing path — the shared inference library, the property/schema
-    # constraints, the personal-tier file-web rules — re-composes it, because the
+    # rule-bearing path — the shared inference library and the property/schema
+    # constraints — re-composes it, because the
     # engine renders *base facts of the canonical graph* and nothing else: the
     # directive preamble and the Soufflé declarations are computed over facts ∪
     # rules, the rule sections are culture-scrape's own inference layer, and the
     # committed P279 taxonomy is a separate source the canonical graph does not
     # carry. So the engine still owns every fact clause; this module contributes
     # only the program structure around them.
-    if not attach_rules and not file_web_rules:
+    if not attach_rules:
         return _export_via_engine(facts, out_dir, engines, keep_row)
 
     return _export_rule_bearing(
@@ -386,7 +378,7 @@ def export_dataset(
         keep_row,
         prolog_rules=prolog_rules,
         souffle_rules=souffle_rules,
-        problog_rules=base_rules + file_web_rules,
+        problog_rules=base_rules,
     )
 
 

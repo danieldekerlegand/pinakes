@@ -93,24 +93,17 @@ Node labels come from the row's `:LABEL` cell (`apoc.create.addLabels(... split(
 edge types from the row's `:TYPE` — so "loaded under the same labels/edge types as
 native nodes" is a property of the *data*, verified by loading, not of loader branching.
 
-## Personal tier + GraphRAG asset coverage (analyzer-bridge US-004)
+## A contained trust tier loads with ZERO loader change
 
-- **The personal (Analyzer) tier loads with ZERO loader change.** Because labels/edge types
-  are data-driven, an `:Asset` node file + `DEPICTS`/`MENTIONS`/`DERIVED_FROM` edges flow
-  through `load_corpus`/`apply_load_csv` unmodified: assets land under `:Asset` (+ the
-  `Entity` anchor), get an automatic per-label `csid_unique_Asset` constraint
-  (`dataset_node_labels` reads the `:LABEL` cells), and re-ingest is idempotent
-  (`verify_idempotent_load`). Proof: `tests/test_neo4j_personal_tier.py` (mirrors the
-  `test_neo4j_pinakes.py` `_EmbeddedGraph` pattern). No source/tier gate exists at load
-  time — containment is the *app proxy's* job (`server/services/personal-tier.ts`,
-  `PERSONAL_TIER_ENABLED`), not the loader's.
-- **`vector_index.node_embedding_text` gained a `transcript` param** so `asset` nodes embed
-  their ASR/OCR snippet alongside name + caption(`description`); `read_node_texts` now
-  `RETURN`s `n.transcript`. Entity nodes carry none ⇒ their embedding text is byte-identical
-  (existing `test_vector_index.py` unchanged). A missing key is read via `_optional(record,
-  key)` (`.get`) so a recording fake needn't carry the new column. Assets are already
-  `:Entity`, so retrieval returns them with no other change. Docs +
-  spot-checks: `docs/personal-tier-file-web.md`.
+Because labels/edge types are data-driven, a tier-scoped corpus needs no loader
+branching: a new node file's `:LABEL` lands its rows under that label (+ the `Entity`
+anchor), it gets an automatic per-label `csid_unique_<Label>` constraint
+(`dataset_node_labels` reads the `:LABEL` cells), and re-ingest is idempotent
+(`verify_idempotent_load`). No source/tier gate exists at load time — containment is
+the *export's* job (`datalog/export.py::tier_row_filter`), not the loader's.
+
+`vector_index` is likewise tier-agnostic: `node_embedding_text` embeds name + aliases
++ description for every node, whatever produced it.
 
 ## Testing conventions (no live server in CI)
 

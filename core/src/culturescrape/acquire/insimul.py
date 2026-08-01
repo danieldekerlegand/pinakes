@@ -11,8 +11,8 @@ around the world's WorldIR (``ir``) and the combined Prolog knowledge base
 every generated world becomes corpus — with its ground-truth rule set attached
 (:func:`world_rule_entries`).
 
-Unlike the analyzer adapter (which reads an export that already ships final csids),
-the world export ships **Insimul's own** entity ids, which are MongoDB ObjectIds
+Unlike an export that already ships final csids, the world export ships
+**Insimul's own** entity ids, which are MongoDB ObjectIds
 unique *within a world only* — never across worlds or projects (the registry's
 ``projects.insimul.idSpace`` rule). So this adapter mints the csid itself, alias-
 anchored and world-scoped: ``cs:<type>:insimul:<worldId>:<entityId>``. The mint is

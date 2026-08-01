@@ -85,21 +85,14 @@ def node_embedding_text(
     name: str,
     aliases: str = "",
     description: str = "",
-    transcript: str = "",
 ) -> str:
-    """The text embedded for a node: its name, aliases, description, transcript.
+    """The text embedded for a node: its name, aliases and description.
 
     Blank parts are dropped and the survivors joined with newlines, so a node
     with only a name still yields usable text and a rich node contributes its
     aliases + gloss. Whitespace is trimmed; the result is never ``None``.
-
-    *transcript* extends GraphRAG coverage to ``asset`` nodes (analyzer-bridge
-    US-004): an asset's caption is carried in *description* and its ASR / OCR
-    ``transcript`` snippet in *transcript*, so a file the user ingested is
-    retrievable by what it *says* and *shows*, not only its filename. Entity nodes
-    carry no transcript, so their embedding text is byte-for-byte unchanged.
     """
-    parts = [part.strip() for part in (name, aliases, description, transcript)]
+    parts = [part.strip() for part in (name, aliases, description)]
     return "\n".join(part for part in parts if part)
 
 
@@ -237,11 +230,8 @@ def create_vector_index(
 def read_node_texts(driver: Driver, *, label: str = ENTITY_LABEL) -> list[NodeText]:
     """Read every *label* node's csid and its embedding text from the graph.
 
-    Nodes whose name/aliases/description/transcript are all blank yield empty text
-    and are skipped — there is nothing meaningful to embed for them. The
-    ``transcript`` property is read so ``asset`` nodes contribute their ASR / OCR
-    text alongside their caption (analyzer-bridge US-004); a node without one (every
-    entity node) simply contributes nothing extra, so its embedding is unchanged.
+    Nodes whose name/aliases/description are all blank yield empty text and are
+    skipped — there is nothing meaningful to embed for them.
     """
     label = _ident(label, "label")
     texts: list[NodeText] = []
@@ -249,8 +239,7 @@ def read_node_texts(driver: Driver, *, label: str = ENTITY_LABEL) -> list[NodeTe
         records = session.run(
             f"MATCH (n:{label}) "
             "RETURN n.csid AS csid, n.name AS name, "
-            "n.aliases AS aliases, n.description AS description, "
-            "n.transcript AS transcript"
+            "n.aliases AS aliases, n.description AS description"
         )
         for record in records:
             csid = record["csid"]
@@ -260,7 +249,6 @@ def read_node_texts(driver: Driver, *, label: str = ENTITY_LABEL) -> list[NodeTe
                 _string(record["name"]),
                 _string(record["aliases"]),
                 _string(record["description"]),
-                _string(_optional(record, "transcript")),
             )
             if text:
                 texts.append(NodeText(csid=str(csid), text=text))
@@ -404,20 +392,6 @@ def _count_nodes(driver: Driver, *, label: str = ENTITY_LABEL) -> int:
     if record is None:
         return 0
     return int(record["count"])
-
-
-def _optional(record: Any, key: str) -> Any:
-    """A record field that may be absent (a graph loaded before US-004's columns).
-
-    A real Neo4j ``Record`` always carries every ``RETURN … AS key`` column
-    (``None`` when the property is unset); a recording test fake may omit newer
-    keys. Reading through ``.get`` tolerates both without forcing every fixture to
-    carry the column.
-    """
-    getter = getattr(record, "get", None)
-    if callable(getter):
-        return getter(key)
-    return record[key]
 
 
 def _string(value: Any) -> str:

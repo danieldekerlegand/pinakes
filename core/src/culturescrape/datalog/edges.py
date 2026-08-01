@@ -127,8 +127,8 @@ def edge_file_facts(
 
     When *keep_row* is given, only rows for which it returns ``True`` are
     projected — the row-level filter the tier-scoped export uses to keep or drop a
-    trust tier (the ``source=analyzer`` grounding edges are dropped from the public
-    program and kept in the ``--tier personal`` one). ``None`` keeps every row.
+    trust tier (a personal-tier source's edges are dropped from the public program
+    and kept in the ``--tier personal`` one). ``None`` keeps every row.
     """
     columns, rows = open_rows(path)
     EdgeSchema(tuple(columns))  # validate the header; raises on a malformed file

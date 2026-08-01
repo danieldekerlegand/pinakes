@@ -39,7 +39,6 @@ from culturescrape.schema.categorize import categorize_rows
 from culturescrape.schema.headers import EdgeSchema
 from culturescrape.schema.ids import IdError, normalize_type
 from culturescrape.schema.mapper import (
-    map_argos_records,
     map_insimul_records,
     map_pinakes_records,
     map_records,
@@ -57,12 +56,6 @@ from culturescrape.schema.tsvio import Row, write_edge_rows, write_node_rows
 #: normalization takes the short pinakes path (map + dedup, no field-rename
 #: or category/type synthesis) rather than the generic mapper.
 PINAKES_EXPORT_ADAPTER = "pinakes-export"
-
-#: Acquisition adapter whose records ship the canonical shape with **final** csids
-#: (content-addressed assets + grounded entity refs), so normalization takes the
-#: analyzer path (map + preserve csids verbatim, no dedup re-mint) — see
-#: :func:`_normalize_argos`.
-ARGOS_EXPORT_ADAPTER = "analyzer"
 
 #: Acquisition adapter whose records ship the canonical shape with **final**
 #: world-scoped csids (minted by the adapter while reading the
@@ -164,8 +157,6 @@ def normalize_records(
     split into nodes and edges, and the nodes are deduped — no field rename,
     anchoring, reconciliation, or category/type synthesis.
     """
-    if _is_argos_export(category):
-        return _normalize_argos(records)
     if _is_insimul_export(category):
         return _normalize_insimul(records)
     if _is_pinakes_export(category):
@@ -186,29 +177,6 @@ def normalize_records(
 def _is_pinakes_export(category: CategorySpec) -> bool:
     """Whether *category* is ingested through the pinakes export adapter."""
     return category.source.params.get("adapter") == PINAKES_EXPORT_ADAPTER
-
-
-def _is_argos_export(category: CategorySpec) -> bool:
-    """Whether *category* is ingested through the analyzer export adapter."""
-    return category.source.params.get("adapter") == ARGOS_EXPORT_ADAPTER
-
-
-def _normalize_argos(records: Iterable[RawRecord]) -> NormalizationResult:
-    """Normalize Analyzer export records (canonical shape, **final** csids).
-
-    Records are mapped via
-    :func:`~culturescrape.schema.mapper.map_argos_records` — which preserves each
-    shipped ``csid`` / endpoint verbatim (content-addressed asset ids +
-    grounding-resolved entity refs) — then split into node rows (carrying a
-    ``:LABEL``) and edge rows (carrying a ``:TYPE``). No dedup / re-mint runs: the
-    csids are already final, so re-ingesting the same export produces byte-identical
-    rows (idempotent) and a ``refers_to`` edge keeps pointing at the existing
-    canonical entity it names — that entity is referenced, never re-created here.
-    """
-    rows = map_argos_records(records)
-    node_rows = [row for row in rows if ":LABEL" in row]
-    edge_rows = [row for row in rows if ":TYPE" in row]
-    return NormalizationResult(nodes=node_rows, edges=edge_rows)
 
 
 def _is_insimul_export(category: CategorySpec) -> bool:

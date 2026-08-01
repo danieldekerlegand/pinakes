@@ -46,10 +46,9 @@ from culturescrape.schema.tsvio import MULTI_DELIMITER, Row
 #: Column that holds, as a JSON object, every raw field with no canonical home.
 OVERFLOW_KEY = "extra"
 
-#: The bridges whose records take the csid-*preserving* normalization path
+#: The bridge whose records take the csid-*preserving* normalization path
 #: (:func:`map_preserving_records`). The token names the producing bridge in that
 #: path's error messages, nothing more — it is not a provenance ``source``.
-ARGOS_ORIGIN = "analyzer"
 INSIMUL_ORIGIN = "insimul"
 
 #: pinakes export edge ``:TYPE`` token -> canonical ontology ``:TYPE``.
@@ -82,10 +81,10 @@ PINAKES_EDGE_TYPE_MAP: dict[str, str] = {
     "ABSORBED_INTO": "PART_OF",
     "SYNCRETIZED_WITH": "VARIANT_OF",
     "SPLIT_FROM": "DESCENDS_FROM",
-    # Personal-media edges (canonical schema v1.2, analyzer-bridge US-003) — registered
-    # ontology :TYPEs, so they map to themselves. Kept here for forward-safety per the
-    # "cover EVERY exported edge :TYPE" gotcha (schema/CLAUDE.md); no pinakes lexicon
-    # emits them today, the analyzer adapter has its own csid-preserving normalize path.
+    # Personal-media edges (canonical schema v1.2) — registered ontology :TYPEs, so
+    # they map to themselves. Kept here for forward-safety per the "cover EVERY
+    # exported edge :TYPE" gotcha (schema/CLAUDE.md); no pinakes lexicon emits them
+    # today, and a personal-media bridge would use the csid-preserving path instead.
     "DEPICTS": "DEPICTS",
     "MENTIONS": "MENTIONS",
     # Generated-world edges (canonical schema v1.3, insimul-bridge US-003) — same
@@ -457,20 +456,21 @@ def _carry_edge_provenance(record: RawRecord, row: Row) -> None:
 
 # --- csid-preserving bridge exports -----------------------------------
 #
-# Two bridges ship the shared canonical shape like the pinakes export, but with
+# A bridge may ship the shared canonical shape like the pinakes export, but with
 # csids that are **already final**, so — unlike the pinakes path, which re-mints
 # QID-/alias-anchored csids — this path preserves every shipped csid and endpoint
 # **verbatim** (idempotent re-ingest; existing entities are referenced, never
 # duplicated). Edge ``:TYPE`` is validated against the ontology so an unregistered
 # relation cannot enter the graph.
 #
-# * **analyzer** (the media-bridge mapping spec §4.3, analyzer-bridge US-003) — an asset node is
-#   ``cs:asset:<sha256hex>`` and a ``depicts``/``mentions`` edge points at an
-#   existing canonical entity csid resolved by Analyzer's grounding step.
 # * **insimul** (INSIMUL_SYNC_PLAN.md §4.3, insimul-bridge US-003) — the adapter
 #   mints world-scoped alias-anchored csids (``cs:character:insimul:<world>:<id>``)
 #   while reading the ``CanonicalWorldExport``, so by the time a record reaches
 #   here its identity is settled and re-minting would only risk forking it.
+#
+# The path is generic (``origin=`` is the only bridge-specific input), so a new
+# bridge whose export already carries final csids — a content-addressed asset
+# store, say — reuses it by passing its own origin token.
 #
 # *origin* names the producing bridge; it appears in error messages only.
 
@@ -499,16 +499,6 @@ def map_preserving_records(
 ) -> list[Row]:
     """Map every csid-preserving bridge record to a row, preserving order."""
     return [map_preserving_record(record, origin=origin) for record in records]
-
-
-def map_argos_record(record: RawRecord) -> Row:
-    """Map one Analyzer export *record* to a canonical node or edge row."""
-    return map_preserving_record(record, origin=ARGOS_ORIGIN)
-
-
-def map_argos_records(records: Iterable[RawRecord]) -> list[Row]:
-    """Map every Analyzer export record to a row, preserving order."""
-    return map_preserving_records(records, origin=ARGOS_ORIGIN)
 
 
 def map_insimul_record(record: RawRecord) -> Row:
@@ -574,10 +564,10 @@ def map_preserving_node(record: RawRecord, *, origin: str) -> Row:
 def map_preserving_edge(record: RawRecord, *, origin: str) -> Row:
     """Map a csid-preserving bridge edge *record* to a canonical edge row.
 
-    Endpoints and ``:TYPE`` are preserved verbatim (a ``depicts`` / ``mentions``
-    edge references an existing canonical entity csid resolved by Analyzer's
-    grounding; an Insimul genealogy edge references the world-scoped csids the
-    adapter minted for its own nodes — never re-minted). The ``:TYPE`` is
+    Endpoints and ``:TYPE`` are preserved verbatim (an Insimul genealogy edge, for
+    instance, references the world-scoped csids the adapter minted for its own
+    nodes — never re-minted; an edge may equally reference an existing canonical
+    entity csid the producing bridge already resolved). The ``:TYPE`` is
     validated against the ontology so an unregistered relation is rejected rather
     than passed through.
 
