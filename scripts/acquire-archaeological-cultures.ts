@@ -42,7 +42,7 @@ const OUT_FILE = path.join(
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "pinakes/1.0 (+https://github.com/danieldekerlegand/pinakes; data-population)";
 
 /** Wikidata class Q465299 = "archaeological culture". */
 const CULTURE_CLASS = "Q465299";

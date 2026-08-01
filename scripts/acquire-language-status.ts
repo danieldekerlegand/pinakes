@@ -45,7 +45,7 @@ const OUT_FILE = path.join(DATA_DIR, "language-enrichment.tsv");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
 const USER_AGENT =
-  "pinakes/1.0 (https://github.com/; data-population; dldekerl@gmail.com)";
+  "pinakes/1.0 (+https://github.com/danieldekerlegand/pinakes; data-population)";
 
 /** Confidence for Wikidata-acquired enrichment, on the 0–1 scale (export leaves ≤1 as-is). */
 // `referenced-wikidata` (0.9) — P1999 endangerment cites UNESCO, a referenced statement;
