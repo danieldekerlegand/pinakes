@@ -70,11 +70,11 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
   `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
 
-## Canonical schema v1.2 / v1.3 — the bridge vocabularies (analyzer + insimul US-003)
+## Canonical schema v1.2 / v1.3 — the bridge vocabularies
 
 `canonical-schema.json` is at **v1.3.0**. Two bridges own its post-1.1 additions:
 
-- **v1.2 (analyzer-bridge US-003)** — the `asset` node type (label `Asset`, the `sha256:`
+- **v1.2 (the media-analysis bridge)** — the `asset` node type (label `Asset`, the `sha256:`
   id-space; a content-addressed media node, technical props ride in overflow) and the
   `depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
 - **v1.3 (insimul-bridge US-003)** — the generated-world vocabulary: `character` / `building` /
@@ -157,7 +157,7 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 
 The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of
-the projects pinakes bridges (`projects.analyzer`, `projects.insimul`). Same JSON + typed-accessor +
+the projects pinakes bridges (the `projects` block of the vendored koine registry). Same JSON + typed-accessor +
 runtime-validator shape as `canonical-schema`/`capability-manifest`, with one difference that
 governs how you edit it:
 
@@ -180,6 +180,18 @@ governs how you edit it:
   `predicate-schema.ts`), so they were added to koine entries 1/2/5, `registryVersion` went
   0.4.0 → **0.4.1**, and the mirror was re-vendored with `npm run regen:registry-mirror` — not
   added locally.
+- **The mirror is EXEMPT from the publish-prep genericization sweep, deliberately.** The
+  open-sourcing pass (`62-genericize-and-publish-prep`) renamed closed-sibling references
+  across pinakes's own code/docs to an agnostic taxonomy (`analyzer`→analyzer,
+  `formant`→composer, `cuneiform`→orchestrator, `tessera`→cache, `rosetta`→legacy), but
+  `predicate-mapping.json` still carries a `projects.analyzer` block and an ecosystem-scoped
+  `agora` package reference — and `predicate-mapping.test.ts` must keep naming those keys. **That is correct
+  and must not be "fixed".** The `projects.<name>` keys are the ecosystem contract's own
+  identifiers; renaming one here would fork the registry permanently and fail the
+  byte-for-byte drift gate. A rename has to be upstreamed to koine and re-vendored. So the
+  publish-readiness proof-grep for closed-sibling identifiers scopes **out** the vendored
+  mirror and its test, along with `lexicons/`, `data/`, and cultural fixtures (where
+  `Analyzer`/`cuneiform`/`Rosetta` are domain content, not project names).
 - **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
   `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
   `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect

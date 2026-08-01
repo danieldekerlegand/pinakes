@@ -38,8 +38,8 @@ agent id and can be grounded and reasoned about like any other node.
 canonical node type is added without being published here, because an entity that is not on
 the port is an entity nobody on the bus can discover.
 
-`consumes` — grounding-only knowledge from peer producers (Analyzer extraction deltas, Insimul
-world facts downshifted for export) and entity references to resolve. Inbound knowledge lands
+`consumes` — grounding-only knowledge from peer producers (media-analysis extraction deltas,
+Insimul world facts downshifted for export) and entity references to resolve. Inbound knowledge lands
 in the contribution review queue, never as a live write — the KCB §5 merge-review linkage.
 
 ### Capabilities
@@ -153,7 +153,7 @@ are named so a reader of this document knows what is deliberately missing rather
 |---|---|---|---|
 | `90-finetune-trainer` | **agora** | The **general** `finetune` provider — engine ladder LLaMA-Factory / Unsloth / Axolotl / diffusers, SkyPilot placement under the §4.2 egress gate, **cloud-capable**. | Not built here. Stubbed as a fixture manifest in `server/services/finetune-routing.test.ts`; named on our manifest as `x_specialization.general_provider`. |
 | `90-finetune-provider` | **pinakes** | This provider — the `ml/` TRL+PEFT SLM path, **local-only** by data tier. | This repo. |
-| `90-finetune-client` | **cuneiform** | The KCB **client** that replaces `Runner::Stub` — discover → invoke → **subscribe** to the real §6 telemetry (deleting its fabricated loss curve), un-404 export (§5.3) and the registry (§8), and issue `invoke:finetune` grants (§7). | Not built here. It is the caller of the surface described above; Pinakes serves it, does not implement it. |
+| `90-finetune-client` | **orchestrator** | The KCB **client** that replaces `Runner::Stub` — discover → invoke → **subscribe** to the real §6 telemetry (deleting its fabricated loss curve), un-404 export (§5.3) and the registry (§8), and issue `invoke:finetune` grants (§7). | Not built here. It is the caller of the surface described above; Pinakes serves it, does not implement it. |
 
 The two legs are **complements, not competitors**: agora's trainer can burst to rented GPU,
 Pinakes's cannot and refuses to try (§4.2). A job over `synthetic`/`proprietary`/`personal`
@@ -228,7 +228,7 @@ as-authored document gets server-relative paths.
 ## Not yet built
 
 - **Grant enforcement.** `auth.grants_required` fixes the grant *shape* only; issuance,
-  rotation, and spend ceilings live in Cuneiform's workforce governance (KCB §5). Pinakes's
+  rotation, and spend ceilings live in the orchestrator's workforce governance (KCB §5). Pinakes's
   own HTTP surfaces keep enforcing `server/services/api-auth.ts` until a grant issuer exists.
 - **KGP `subscribe` / `fetch` verbs.** `subscribe` exists only for `finetune` (the KFT §6
   telemetry stream). For the knowledge ports, only `describe` (the manifest) and `invoke` (the

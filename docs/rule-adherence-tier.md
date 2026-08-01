@@ -12,7 +12,7 @@ rule ever fire, given the world's character-creation layer and its action set?
 The other tiers: link-prediction metrics (tier 1), logical consistency (tier 2),
 KGQA accuracy (tier 3) — all in `docs/ml-baselines.md` — plus the
 cinematography-adherence tier (Bridge 3, `ml/manifests/cinematography-adherence-baseline.json`),
-this tier's sibling on the Analyzer side.
+this tier's sibling on the media-analysis side.
 
 ## Provenance — what is ported, and from where
 
@@ -24,7 +24,7 @@ for porting it here as a fourth tier.
 
 **No Insimul code is imported.** `rule_adherence.py` is stdlib-only and
 self-contained, the same discipline as `consistency.py` (tier 2) and
-`cinematography_eval.py` (the Analyzer adherence tier, whose constraint vocabulary
+`cinematography_eval.py` (the cinematography adherence tier, whose constraint vocabulary
 is vendored as data). What crosses the boundary is the *metric definitions*,
 reimplemented here and cited below so a reader can check the port against the
 source. The upstream modules, at the time of the port:

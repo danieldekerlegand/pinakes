@@ -101,8 +101,9 @@ export const KGP_CORE_RELATIONS: Readonly<Record<string, RelationSignature>> = {
  * (`relations/cinematography.tsv` declares `cine:`), so the prefix is only knowable from
  * the rows themselves.
  *
- * A project loads only the domains it speaks: `cine:`/`media:` for the Analyzer bridge and
- * `soc:` for the Insimul bridge (person-level kinship, employment and residence).
+ * A project loads only the domains it speaks: `cine:`/`media:` for a media-analysis
+ * producer and `soc:` for the Insimul bridge (person-level kinship, employment and
+ * residence).
  * Vendored for the same reason as {@link KGP_CORE_RELATIONS} — a claim id depends on the
  * signature, so it must be mintable offline — and additive for the same reason: a
  * published signature is immutable, so an upstream *change* arrives as a new name.

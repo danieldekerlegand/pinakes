@@ -36,7 +36,7 @@ function startApp(opts: { deps: TranslateDeps; apiKey: string | null }): Promise
   app.use(express.json());
   registerTranslateRoutes(app, opts);
   return new Promise((resolve) => {
-    const server = app.listen(0, () => {
+    const server = app.listen(0, "127.0.0.1", () => {
       resolve({ server, baseUrl: `http://127.0.0.1:${(server.address() as AddressInfo).port}` });
     });
   });

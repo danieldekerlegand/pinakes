@@ -43,7 +43,7 @@ function makeFixtureDir(files: Record<string, string[][]>): string {
 const byCsid = (es: readonly GroundingEntity[], csid: string) =>
   es.find((e) => e.csid === csid);
 
-describe("export-entity-grounding (analyzer-bridge US-002)", () => {
+describe("export-entity-grounding", () => {
   describe("license classes", () => {
     it("strips the version to the license family", () => {
       expect(licenseClass("CC0-1.0")).toBe("CC0");

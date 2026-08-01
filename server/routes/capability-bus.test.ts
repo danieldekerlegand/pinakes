@@ -38,7 +38,7 @@ async function startServer(options: CapabilityBusRouteOptions) {
   app.use(express.json());
   registerCapabilityBusRoutes(app, options);
   const server: Server = await new Promise((resolve) => {
-    const s = app.listen(0, () => resolve(s));
+    const s = app.listen(0, "127.0.0.1", () => resolve(s));
   });
   const { port } = server.address() as AddressInfo;
   return {

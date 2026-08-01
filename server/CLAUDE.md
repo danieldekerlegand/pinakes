@@ -44,6 +44,34 @@ Because auto-admission never writes lexicons, the whole app corpus is `curated` 
 regenerate after a node-lexicon QID/URL coverage change. Confidence cells on the 0–100 archaeological
 scale are normalised (`>1 → /100`) before averaging.
 
+## Route tests: always `app.listen(0, "127.0.0.1", …)` — never bare `listen(0)`
+
+Every route test spins up a real `express()` on an ephemeral port and fetches
+`http://127.0.0.1:${port}`. **Bind the host explicitly.** A bare `app.listen(0, cb)` binds
+`::` (IPv6 wildcard, dual-stack), and the kernel allocates that port from the IPv6 ephemeral
+space *without* reserving the matching IPv4 one — so a second server can legally bind
+`127.0.0.1` on the **same** port number (verifiable: `net.createServer().listen(0)` then
+`listen(samePort, "127.0.0.1")` succeeds). When that happened across the ~35 route-test files,
+the IPv4-preferring `fetch("http://127.0.0.1:…")` landed on **someone else's app**, and the
+test failed with a bewildering 404 (`SyntaxError: Unexpected token 'N', "Not Found" is not
+valid JSON`) or a connection error — in a *different, innocent* file each run.
+
+That made the whole vitest suite flaky at roughly 1-in-2 runs, and it reproduced with
+`--no-file-parallelism`, so it was never a "too much concurrency" problem. Binding the
+loopback explicitly makes the allocator hand out a port that is exclusively ours. Copy the
+established shape and don't "simplify" the host argument away:
+
+```ts
+await new Promise<void>((resolve) => {
+  server = app.listen(0, "127.0.0.1", () => resolve());
+});
+const { port } = server.address() as AddressInfo;
+baseUrl = `http://127.0.0.1:${port}`;
+```
+
+Also always `await` the listen callback before reading `.address()`, and close the server in
+`afterAll` — a leaked listener holds its port for the rest of the run.
+
 ## Route registration
 
 New route groups live in `server/routes/<area>.ts` exporting
@@ -150,7 +178,7 @@ that goes red if the manifest widens past what `ml/src/pinakes_ml/kft.py` admits
   what "general" means on the wire. Clone-and-mutate that stub; never loosen the validator.
 - **Two sibling providers exist and are NOT built here** (koine program map, Tranche D):
   `agora:90-finetune-trainer` (the general, cloud-capable trainer — named on our manifest as
-  `x_specialization.general_provider`) and `cuneiform:90-finetune-client` (the KCB client that
+  `x_specialization.general_provider`) and an orchestrator-side finetune client (the KCB client that
   replaces `Runner::Stub` and *calls* this surface). Table + rationale in `docs/capability-bus.md`.
 - `/api/kcb/capabilities` now carries `specialization` on a narrow capability — the directory is
   a `describe` surface and FT-K is decided on that block, so a registry that discovered us there
@@ -984,16 +1012,23 @@ privacy guarantee; the server only enriches non-identifying ids.
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 
-## Personal-tier gating in the graph proxy — `services/personal-tier.ts` (analyzer-bridge US-004)
+## Personal-tier gating in the graph proxy — `services/personal-tier.ts`
 
-The Analyzer bridge can load a user's own files into the shared graph as a **personal tier**
-(`:Asset` nodes, `source=analyzer`). The privacy invariant: they are local-only and must not
-surface through the browser-facing graph proxy unless the operator opts in.
+A deployment may load a user's own files into the shared graph as a **personal tier**
+(`:Asset` nodes plus a registered personal `source` token). The privacy invariant: they are
+local-only and must not surface through the browser-facing graph proxy unless the operator
+opts in.
 
 - **`personal-tier.ts` is pure** (`isPersonalTierEnabled(env)` — env flag `PERSONAL_TIER_ENABLED`,
   **off by default**, same shape as `isGraphCorrelationEnabled`; `isPersonalNode({labels,
-  properties})` — `Asset` label OR a `source=analyzer` token, handling merged `pinakes;analyzer`;
-  `filterPersonalNodes(nodes, enabled)`). Unit-tested in `personal-tier.test.ts`.
+  properties}, personalSources?)` — `Asset` label OR a `source` token naming a registered
+  personal producer, handling merged `pinakes;<producer>`; `filterPersonalNodes(nodes, enabled,
+  personalSources?)`). Unit-tested in `personal-tier.test.ts`.
+- **`PERSONAL_SOURCES` is EMPTY by default** — pinakes bundles no personal-tier producer, so
+  out of the box only the `Asset` label gates. A deployment that ingests its own private
+  material registers that adapter's source id (or passes a set through the two predicates).
+  This mirrors the Python `orchestrate.tiers.PERSONAL_SOURCES` exactly — the tier framework is
+  generic; the producers that fill it are a deployment concern.
 - **`graph-store.ts` applies it post-projection** at every node-surfacing query — `getNode`
   (→ null when personal & disabled), `getNodesByLabel`, `getGraphOverview`/`getNeighborhood`
   (via `gatePersonal`, which also **prunes edges** touching a dropped node), `getCorrelations`,

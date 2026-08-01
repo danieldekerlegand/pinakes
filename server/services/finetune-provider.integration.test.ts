@@ -101,7 +101,7 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real ml/ runner, 
       detail: "not attempted in this test",
     }) });
     server = await new Promise<Server>((done) => {
-      const s = app.listen(0, () => done(s));
+      const s = app.listen(0, "127.0.0.1", () => done(s));
     });
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   });

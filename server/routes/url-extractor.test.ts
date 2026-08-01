@@ -68,7 +68,7 @@ beforeAll(async () => {
   registerUrlExtractorRoutes(app, { contributions, deps: fixtureDeps });
   // A second mount on a distinct path is not possible; test 502 via a fresh app.
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => resolve());
+    server = app.listen(0, "127.0.0.1", () => resolve());
   });
   const { port } = server.address() as AddressInfo;
   baseUrl = `http://127.0.0.1:${port}`;
@@ -155,7 +155,7 @@ describe("POST /api/extract/url source failures", () => {
       deps: explodingDeps,
     });
     await new Promise<void>((resolve) => {
-      server2 = app2.listen(0, () => resolve());
+      server2 = app2.listen(0, "127.0.0.1", () => resolve());
     });
     base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
   });

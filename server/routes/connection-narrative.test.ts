@@ -65,7 +65,7 @@ beforeAll(async () => {
     inferFacts: (a, b) => inferFacts(a, b),
   });
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => resolve());
+    server = app.listen(0, "127.0.0.1", () => resolve());
   });
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
