@@ -1,4 +1,4 @@
-"""Training-query generator — the supervised signal (NEUROSYMBOLIC_ROADMAP Phase 5).
+"""Training-query generator — the supervised signal (neurosymbolic roadmap Phase 5).
 
 US-002 of the Scallop pilot. The rule-guided link-prediction loop (US-003) trains
 on **training queries**: known-true positive edges paired with **type-constrained

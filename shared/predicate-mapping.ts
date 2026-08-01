@@ -20,7 +20,7 @@
  * caught at runtime by {@link assertValidPredicateMapping} (exercised by the vitest
  * suite and wired into the convergence-QA drift gate).
  *
- * The registry encodes the media-bridge mapping spec Appendix A + INSIMUL_SYNC_PLAN.md Appendix A,
+ * The registry encodes the Analyzer bridge spec Appendix A + the Insimul bridge spec Appendix A,
  * the `sha256:`/`cs:` id-space rules, and the `t_start`/`t_end` ⇄ `time_start`/`time_end`
  * temporal-field map. Since registryVersion 0.3.0 the old single `portabilityClasses`
  * enum is split into the two orthogonal axes KGP 0.4.0 ruled distinct — **dialect**

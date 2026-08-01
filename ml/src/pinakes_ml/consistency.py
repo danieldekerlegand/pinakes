@@ -1,4 +1,4 @@
-"""Logical-consistency checker — the symbolic ratchet (NEUROSYMBOLIC_ROADMAP Phase 2).
+"""Logical-consistency checker — the symbolic ratchet (neurosymbolic roadmap Phase 2).
 
 The differentiating benefit of the symbolic layer is that a statistical model's
 predictions can be *checked against the rules*. This module consumes a predictions

@@ -1,6 +1,6 @@
 # Tiered trust & auto-admission runbook (US-002)
 
-Phase 3 of [`NEUROSYMBOLIC_ROADMAP.md`](../../NEUROSYMBOLIC_ROADMAP.md) (item 3.5)
+Phase 3 of the neurosymbolic roadmap (item 3.5)
 decouples the machine-trusted **grounding corpus** from the human-curated **app
 lexicons**. The pilot's ~1.7% curation yield makes the human gate the binding
 constraint on corpus growth, so a fact that is *already* globally identified and

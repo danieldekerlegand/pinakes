@@ -76,7 +76,7 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 #
 # Roadmap Phases 7-15 (incl. security-hardening, data-population-pilot, data-population)
 # are complete (see tasks/ralph/completed/ and docs/prd-pinakes-deep-history-roadmap.md).
-# These are the NEUROSYMBOLIC_ROADMAP.md PRDs (repo root), in dependency order:
+# These are the neurosymbolic-roadmap PRDs, in dependency order:
 #   - symbolic-engine-truth:      Phase 0 — real engines in CI/sidecar, rel_conf confidence fix,
 #                                 provenance propagation, QID-anchored csids, id burndown.
 #   - scale-ready-conversion:     Phase 1 — temporal edges become rules (kills the O(n^2) blowup),
@@ -106,27 +106,20 @@ ORDER=(
   "rules-layer:9"
   "graphrag-and-training-data:9"
   "scallop-pilot:8"
-# --- Cross-project bridge (INSIMUL_SYNC_PLAN.md) — UNCOMMENT once its deps have merged:
+# --- Cross-project bridge (the Insimul bridge spec) — UNCOMMENT once its deps have merged:
 #     US-001 anytime; US-002 needs scale-ready-conversion; US-003 needs tiered-trust-corpus;
 #     US-004/005 need first-ml-loop. Coordinate with the Insimul-side counterpart
 #     (~/Development/workspace/tasks/ralph/pinakes-bridge.json).
   "insimul-bridge:9"         # predicate-mapping registry + grounding-pack exporter + insimul adapter (schema v1.2, synthetic tier) + VESPACE adherence tier + dataset generators
-# --- SLM pilot (INSIMUL_SYNC_PLAN.md Phase D) — PROVISIONAL; re-ground before running.
+# --- SLM pilot (the Insimul bridge spec Phase D) — PROVISIONAL; re-ground before running.
 #     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
 #     (operator); baseline model Qwen2.5-3B-Instruct (matches Insimul's local-AI deployment).
 #  "slm-pilot:10"            # frozen eval protocol + QLoRA pipeline + 3B baseline fine-tune + GGUF parity + Insimul handoff + go/no-go report
-# --- Analyzer bridge (the media-bridge mapping spec) — UNCOMMENT once its deps have merged:
-#     US-001 anytime (extends the insimul-bridge registry, or creates it); US-002 needs
-#     scale-ready-conversion; US-003 needs tiered-trust-corpus; US-004 needs graphrag machinery;
-#     US-005 needs first-ml-loop. Coordinate with the Analyzer-side counterpart
-#     (~/Development/analyzer/tasks/ralph/pinakes-bridge.json, after its predicate-layer).
-#  "analyzer-bridge:9"          # registry extension + entity-grounding snapshot + analyzer adapter (asset nodes, personal tier) + file-web Datalog/Neo4j/GraphRAG + edit-ops datasets/eval
-# --- Analyzer SLM pilot (the media-bridge mapping spec Phase E) — PROVISIONAL; re-ground before running.
-#     Needs slm-pilot (validated pipeline) + analyzer-bridge US-005 (edit-ops datasets) merged;
-#     deployment target: Ollama-served GGUF (Analyzer's model_client speaks ollama/<model> natively).
-#  "edit-ops-slm-pilot:10"   # frozen eval (apply_ops oracle) + pipeline reuse + fine-tune + GGUF/Ollama parity + Analyzer handoff + go/no-go
+# --- The Analyzer bridge + its edit-ops SLM pilot used to be scheduled here. Both were
+#     excised from pinakes (they train on Analyzer exhaust, not cultural knowledge) and
+#     re-homed to Analyzer itself; they are no longer pinakes PRDs.
 )
-ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot analyzer-bridge edit-ops-slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
+ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
 
 # Optional positional filter: run only the named PRDs (still in ORDER order).
 if [ "$#" -gt 0 ]; then

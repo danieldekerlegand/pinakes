@@ -1,7 +1,7 @@
 # SLM pilot → Insimul integration runbook
 
-**Phase D, loop closure.** [`INSIMUL_SYNC_PLAN.md`](../INSIMUL_SYNC_PLAN.md) §7
-Phase D · [`NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md) Phase 5.
+**Phase D, loop closure.** The Insimul bridge spec §7
+Phase D · the neurosymbolic roadmap Phase 5.
 Companions: the [pilot protocol](slm-pilot-protocol.md) (the frozen referee), the
 [training runbook](slm-pilot-runbook.md) (how the model was made), the
 [prompt contract](slm-prompt-contract.md) (the exact strings), and the

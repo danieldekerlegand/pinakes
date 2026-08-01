@@ -1,4 +1,4 @@
-"""Multi-hop KG-grounded QA synthesis (NEUROSYMBOLIC_ROADMAP.md Phase 5, US-003).
+"""Multi-hop KG-grounded QA synthesis (neurosymbolic roadmap Phase 5, US-003).
 
 Turns the canonical **node** + **edge** export
 (``export/culturescrape/{nodes,edges}/*.tsv``) into chain-of-reasoning question /

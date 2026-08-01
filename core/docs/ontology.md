@@ -186,7 +186,7 @@ Ingested, not linker-inferred: Insimul's `CanonicalWorldExport` (WorldIR + the w
 Prolog KB) carries characters, buildings and businesses plus their genealogy, occupancy
 and causality edges, and the `insimul` acquisition adapter lands them in the **synthetic
 trust tier** (world-scoped provenance, proprietary licence — hard-gated out of every
-open-data release; see [`INSIMUL_SYNC_PLAN.md`](../../INSIMUL_SYNC_PLAN.md) and
+open-data release; see the Insimul bridge spec and
 [`shared/predicate-mapping.json`](../../shared/predicate-mapping.json) `projects.insimul`
 entries 9–15).
 

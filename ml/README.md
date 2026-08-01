@@ -1,6 +1,6 @@
 # `ml/` — pinakes ML / neurosymbolic workspace
 
-Phase 2 of [`NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md): the first
+Phase 2 of the neurosymbolic roadmap: the first
 **fact → model loop**, built at the *current* corpus scale (deliberately before
 scale-up, so corpus growth becomes measurable). This workspace is intentionally
 **separate from the `core/` sidecar** so the sidecar Docker

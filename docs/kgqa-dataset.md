@@ -1,6 +1,6 @@
 # Multi-hop KG-grounded QA dataset (KGQA)
 
-NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-003**. Chain-of-reasoning question/answer
+Neurosymbolic roadmap **Phase 5, US-003**. Chain-of-reasoning question/answer
 training data synthesised deterministically from the canonical export
 (`export/culturescrape/{nodes,edges}`). Every QA pair is grounded in an explicit
 **graph path** or **rule derivation**, and that path/derivation *is* the reference

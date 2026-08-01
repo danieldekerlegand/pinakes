@@ -1,6 +1,6 @@
 """CLI: build the multi-hop KG-grounded QA dataset + committed manifest (US-003).
 
-Reproducer for NEUROSYMBOLIC_ROADMAP.md Phase 5, US-003. Run from anywhere::
+Reproducer for the neurosymbolic roadmap Phase 5, US-003. Run from anywhere::
 
     uv run python -m pinakes_ml.export_kgqa
 

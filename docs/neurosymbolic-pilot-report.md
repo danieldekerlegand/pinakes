@@ -1,6 +1,6 @@
 # Neurosymbolic pilot report — Scallop vs DeepProbLog
 
-**NEUROSYMBOLIC_ROADMAP.md Phase 5 (row 5.4), US-004.** The go/no-go that closes the
+**Neurosymbolic roadmap Phase 5 (row 5.4), US-004.** The go/no-go that closes the
 `scallop-pilot` PRD and shapes the next one. It compares the two neurosymbolic
 frameworks the roadmap named — **Scallop** (piloted end-to-end in US-001…US-003) and
 **DeepProbLog** (exercised here) — on the *same* task, the *same* substrate, and

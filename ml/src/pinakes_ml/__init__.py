@@ -1,6 +1,6 @@
 """pinakes ML / neurosymbolic workspace.
 
-Phase 2 of ``NEUROSYMBOLIC_ROADMAP.md``: the first fact->model loop
+Phase 2 of the neurosymbolic roadmap: the first fact->model loop
 (triples export, PyKEEN baselines, ProbLog emitter, consistency ratchet)
 built on the current corpus scale so later corpus growth is measurable.
 

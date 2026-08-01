@@ -59,7 +59,7 @@ PERSONAL_TIER = "personal"
 
 #: The synthetic (Insimul) trust tier — the ``--tier`` token that scopes the export
 #: to a generated world's own subgraph. The containment invariant
-#: (INSIMUL_SYNC_PLAN.md §7 "License leakage") is the exact twin of the personal
+#: (the Insimul bridge spec §7 "License leakage") is the exact twin of the personal
 #: one: a generated-world fact must NEVER reach the default (public) program, so
 #: the default export **filters synthetic rows out** too. Neither tier attaches a
 #: special rule library — a world's own rules, for instance, are full-prolog and

@@ -1,6 +1,6 @@
 """Trust tiers: which facts auto-admit to the graph corpus, which quarantine.
 
-Phase 3 of ``NEUROSYMBOLIC_ROADMAP.md`` (item 3.5) decouples the machine-trusted
+Phase 3 of the neurosymbolic roadmap (item 3.5) decouples the machine-trusted
 grounding corpus from the human-curated app lexicons. The pilot's ~1.7% curation
 yield makes the human gate the binding constraint on corpus growth, so a fact
 that is *already* globally identified and externally referenced should not have
@@ -93,7 +93,7 @@ PERSONAL_SOURCES: frozenset[str] = frozenset()
 #: the trust ladder above — it is a **provenance partition**: a synthetic record
 #: describes a world that does not exist, so however internally exact it is, it
 #: must never be mixed into a real-world tier or an open-data release
-#: (:func:`assert_no_synthetic_records`; INSIMUL_SYNC_PLAN §7 "License leakage").
+#: (:func:`assert_no_synthetic_records`; the Insimul bridge spec §7 "License leakage").
 #: A record is synthetic iff its ``source`` names one of :data:`SYNTHETIC_SOURCES`.
 TIER_SYNTHETIC = "synthetic"
 
@@ -405,7 +405,7 @@ def assert_no_personal_records(rows: Sequence[Row], *, context: str) -> None:
 class SyntheticTierContainmentError(RuntimeError):
     """Raised when a :data:`TIER_SYNTHETIC` record reaches a real-world artifact.
 
-    The containment invariant of the Insimul bridge (INSIMUL_SYNC_PLAN.md §7
+    The containment invariant of the Insimul bridge (bridge spec §7
     "License leakage"): facts read out of a *generated* world are proprietary and
     describe a world that does not exist, so they must NEVER appear in an
     open-data release, a packaged corpus, or any non-synthetic export. This is the
@@ -443,7 +443,7 @@ def assert_no_synthetic_records(rows: Sequence[Row], *, context: str) -> None:
         raise SyntheticTierContainmentError(
             f"{len(offenders)} synthetic-tier record(s) would enter {context}, "
             f"violating the synthetic-tier containment invariant "
-            f"(INSIMUL_SYNC_PLAN.md §7 'License leakage'); generated-world facts "
+            f"(the Insimul bridge spec §7 'License leakage'); generated-world facts "
             f"are proprietary and never mix into real-world tiers — first "
             f"offender source={_scalar(offenders[0], 'source')!r}"
         )

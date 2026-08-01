@@ -13,7 +13,7 @@ score on.
 - Fixtures: `ml/fixtures/insimul/{world-export,rule-candidates.jsonl,bridge-graph}.json`
   plus the Bridge-2 world at `core/tests/fixtures/insimul/world-export.json`
 
-`INSIMUL_SYNC_PLAN.md` §5.1 is the spec: *"Rule-authoring SFT — (world context +
+The Insimul bridge spec §5.1 is the spec: *"Rule-authoring SFT — (world context +
 vocabulary-grounded instruction → validated Prolog rule). Scale via rejection
 sampling … accepted rules are SFT data, rejections are preference-pair
 negatives. Lore-consistency QA — pinakes's multi-hop KG-grounded QA generator
@@ -26,7 +26,7 @@ world is generated content, not observation. Every record and the manifest carry
 `tier: "synthetic"`, `license: "LicenseRef-Insimul-Proprietary"` and
 `licenseClass: "proprietary"`; the datasets land in the DVC-tracked, git-ignored
 `ml/data/insimul/` tree and must never enter an open-data release
-(INSIMUL_SYNC_PLAN §7 "License leakage"). The corpus-side gate is
+(the Insimul bridge spec §7 "License leakage"). The corpus-side gate is
 `culturescrape.orchestrate.tiers.assert_no_synthetic_records`; the dataset-side
 gate is `test_every_record_is_synthetic_tier_and_proprietary`.
 
@@ -76,7 +76,7 @@ the same governance rule `scallop.py` applies to the Datalog registry.
 origins:
 
 - **`rejection-sampled`** — a producer export's accepted and rejected answers to
-  the **same `promptId`**. This is the real thing INSIMUL_SYNC_PLAN §5.1
+  the **same `promptId`**. This is the real thing the Insimul bridge spec §5.1
   describes; the committed fixture `ml/fixtures/insimul/rule-candidates.jsonl`
   is a hand-authored example of the shape (7 candidates over 3 prompts, each
   with its 4-layer `validatorReport`).
@@ -151,7 +151,7 @@ MLflow (run name `insimul-datasets`).
 Today's held-out world is `w-laterre`, which exports no actions, so it scores
 `fullyValidRate: 0.0`. **That is an honest floor, not a bug** — the fix belongs
 on the Insimul side (emit `systems.actions` with Prolog `content`), and it is
-recorded as a producer-side gap in `INSIMUL_SYNC_PLAN.md` §5.2.
+recorded as a producer-side gap in the Insimul bridge spec §5.2.
 
 ## Reproducing
 

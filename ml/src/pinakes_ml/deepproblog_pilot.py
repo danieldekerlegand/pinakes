@@ -191,7 +191,7 @@ def render_deepproblog_program(
     counterpart of US-001's ``build_scl_program``.
     """
     return (
-        "% DeepProbLog program (NEUROSYMBOLIC_ROADMAP Phase 5, US-004).\n"
+        "% DeepProbLog program (neurosymbolic roadmap Phase 5, US-004).\n"
         "% edge/2's probability is produced by a neural module `edge_net` — the same\n"
         "% PyKEEN-fed edge scorer as the US-003 Scallop pilot — via a neural AD.\n"
         f"nn(edge_net, [H, T]) :: {edge}(H, T).\n"

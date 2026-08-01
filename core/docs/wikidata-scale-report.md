@@ -1,7 +1,7 @@
 # Wikidata dump path — scale report & go/no-go
 
 **Date:** 2026-07-12 · **Branch:** `ralph/wikidata-dump-slice` ·
-**Phase:** 3 of [`NEUROSYMBOLIC_ROADMAP.md`](../../NEUROSYMBOLIC_ROADMAP.md)
+**Phase:** 3 of the neurosymbolic roadmap
 (items 3.1, 3.2, 3.4, 3.6)
 
 This is the written verdict — with the real numbers measured in US-003..US-006 —

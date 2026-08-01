@@ -6,7 +6,7 @@ reality."* This document describes the pack Pinakes emits and the two normative 
 implements.
 
 **This is a retarget, not a new exporter.** `scripts/export-entity-grounding.ts` was built
-and merged for the Analyzer bridge (`the media-bridge mapping spec` §4.2, commit `17f0713`); US-PKA3
+and merged for the Analyzer bridge (the Analyzer bridge spec §4.2, commit `17f0713`); US-PKA3
 wrapped its existing payload in the KGP envelope. The entity records — csid, entity type,
 aliases, reconciliation keys, provenance, SPDX licence — are **byte-for-byte the same
 content**; what changed is the envelope around them, and the assertions minted from the
@@ -160,6 +160,6 @@ resolves.
 
 - [`docs/capability-bus.md`](capability-bus.md) — the KCB manifest that publishes this pack
   as a `grounding-pack` knowledge port on `pinakes:world:consensus-reality`.
-- `INSIMUL_SYNC_PLAN.md` §4.2 — Bridge 1, the consumer of the Insimul projection above.
+- the Insimul bridge spec §4.2 — Bridge 1, the consumer of the Insimul projection above.
 - [`docs/canonical-schema.md`](canonical-schema.md) §3.1 — `csid` as a KINP entity CURIE.
-- `the media-bridge mapping spec` §4.2 — the consumer this pack was originally built for.
+- the Analyzer bridge spec §4.2 — the consumer this pack was originally built for.

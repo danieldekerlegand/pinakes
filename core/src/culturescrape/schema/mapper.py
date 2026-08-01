@@ -463,7 +463,7 @@ def _carry_edge_provenance(record: RawRecord, row: Row) -> None:
 # duplicated). Edge ``:TYPE`` is validated against the ontology so an unregistered
 # relation cannot enter the graph.
 #
-# * **insimul** (INSIMUL_SYNC_PLAN.md §4.3, insimul-bridge US-003) — the adapter
+# * **insimul** (the Insimul bridge spec §4.3, insimul-bridge US-003) — the adapter
 #   mints world-scoped alias-anchored csids (``cs:character:insimul:<world>:<id>``)
 #   while reading the ``CanonicalWorldExport``, so by the time a record reaches
 #   here its identity is settled and re-minting would only risk forking it.

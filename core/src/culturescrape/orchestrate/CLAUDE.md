@@ -123,7 +123,7 @@ Copy the personal-tier reasoning verbatim when extending either — they are one
   — either way it would sit on the trust ladder as though it described the real world.
   `classify_tier` checks `tokens & SYNTHETIC_SOURCES` second (after personal), so it can't.
 - **`assert_no_synthetic_records(rows, *, context)`** (raises `SyntheticTierContainmentError`)
-  is the hard gate — INSIMUL_SYNC_PLAN.md §7 "License leakage": generated-world facts are
+  is the hard gate — the Insimul bridge spec §7 "License leakage": generated-world facts are
   proprietary and must NEVER enter an open-data release / packaged artifact / real-world
   tier. `package.py`'s `_assert_no_personal_tier` now runs **both** predicates over one
   scan of each `nodes/`+`edges/` TSV. Any NEW export/release path must call both gates.

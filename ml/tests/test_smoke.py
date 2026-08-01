@@ -1,7 +1,7 @@
 """Smoke tests for the ml/ workspace — imports + MLflow file backend.
 
 Deliberately import-only / tiny: no model training runs in CI (that is
-local-only per NEUROSYMBOLIC_ROADMAP.md Phase 2). These assert the environment
+local-only per the neurosymbolic roadmap Phase 2). These assert the environment
 is wired correctly and the tracking helper actually writes to the file backend.
 """
 

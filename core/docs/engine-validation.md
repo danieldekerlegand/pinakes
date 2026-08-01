@@ -1,6 +1,6 @@
 # Engine validation — first real-engine run over the real corpus
 
-Phase 0, item 0.2 of [`NEUROSYMBOLIC_ROADMAP.md`](../../NEUROSYMBOLIC_ROADMAP.md)
+Phase 0, item 0.2 of the neurosymbolic roadmap
 (story **US-002** of the `symbolic-engine-truth` PRD). Until this run, no logic
 engine had *ever* executed the exports — all symbolic validation rested on the
 engine-free Python fixpoint evaluator (`datalog/materialize.py`). This is the

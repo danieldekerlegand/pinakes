@@ -1,4 +1,4 @@
-"""KGQA evaluation — the third eval tier (NEUROSYMBOLIC_ROADMAP.md Phase 5, US-004).
+"""KGQA evaluation — the third eval tier (neurosymbolic roadmap Phase 5, US-004).
 
 The eval harness has three tiers, all judging a model/system against the same
 corpus but from different angles:

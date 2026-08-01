@@ -1,4 +1,4 @@
-"""Triples dataset builder — the fact→model bridge (NEUROSYMBOLIC_ROADMAP.md Phase 2).
+"""Triples dataset builder — the fact→model bridge (neurosymbolic roadmap Phase 2).
 
 Turns the canonical **edge** export (``export/culturescrape/edges/*.tsv``, one file
 per semantic relation, `neo4j-admin import` header) into a PyKEEN-native

@@ -779,7 +779,7 @@ def build_scl_program(transitive_relations: tuple[str, ...]) -> str:
     US-001 translation surface (``ancestor(x, y) = descends_from(x, y); …``).
     """
     lines = [
-        "// Rule-guided link-prediction program (NEUROSYMBOLIC_ROADMAP Phase 5,",
+        "// Rule-guided link-prediction program (neurosymbolic roadmap Phase 5,",
         "// US-003). Base edge probabilities are supplied by the neural predicate;",
         "// provenance = minmaxprob (Pr[ancestor] = max-path of min-edge-prob).",
         "",

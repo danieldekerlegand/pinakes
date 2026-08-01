@@ -1,4 +1,4 @@
-"""PyKEEN link-prediction baselines — the metric floor (NEUROSYMBOLIC_ROADMAP Phase 2).
+"""PyKEEN link-prediction baselines — the metric floor (neurosymbolic roadmap Phase 2).
 
 Trains TransE / ComplEx / RotatE knowledge-graph embeddings on the **committed**
 train/valid/test splits (US-002) and records MRR + Hits@{1,3,10}. These are the

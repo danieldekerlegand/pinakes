@@ -1,6 +1,6 @@
 """CLI: score the held-out KGQA split (eval tier 3) + commit the baseline (US-004).
 
-Reproducer for NEUROSYMBOLIC_ROADMAP.md Phase 5, US-004. Run from ``ml/`` (needs
+Reproducer for the neurosymbolic roadmap Phase 5, US-004. Run from ``ml/`` (needs
 the DVC-tracked corpus + eval split — ``uv run --project ml dvc pull`` first)::
 
     uv run python -m pinakes_ml.eval_kgqa

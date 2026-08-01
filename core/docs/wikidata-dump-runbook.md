@@ -6,7 +6,7 @@ was proven only against a 10 KB committed fixture (`tests/fixtures/wikidata/`).
 This runbook is the reproducible recipe for pointing that stack at **real**
 Wikidata data — either the official full dump, a streamed domain filter, or the
 bounded API-composed slice — so the scale work (US-002..US-007 of the
-`ralph/wikidata-dump-slice` PRD; Phase 3 of `NEUROSYMBOLIC_ROADMAP.md`) runs on
+`ralph/wikidata-dump-slice` PRD; Phase 3 of the neurosymbolic roadmap) runs on
 genuine bytes.
 
 All three paths produce the **same file framing** the reader accepts, so they are

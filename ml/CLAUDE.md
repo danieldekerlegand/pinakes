@@ -1,4 +1,4 @@
-# `ml/` — neurosymbolic ML workspace (NEUROSYMBOLIC_ROADMAP.md Phase 2)
+# `ml/` — neurosymbolic ML workspace (roadmap Phase 2)
 
 Separate uv workspace (Python 3.11), NOT the culture-scrape sidecar — keep
 torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM

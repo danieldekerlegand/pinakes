@@ -9,7 +9,7 @@
 > LOAD CSV, the docker-compose Neo4j additions) is still current and reusable; only the
 > inline counts are a period record, not a live figure. See also the csid-migration note
 > just below. For the canonical Phase-0 status and the fork policy, see
-> [`../NEUROSYMBOLIC_ROADMAP.md`](../NEUROSYMBOLIC_ROADMAP.md) and
+> the neurosymbolic roadmap and
 > [`docs/culturescrape-fork-policy.md`](./culturescrape-fork-policy.md).
 
 The expanded civilizations (`lexicons/civilizations.tsv`, 170 rows after US-003) loaded

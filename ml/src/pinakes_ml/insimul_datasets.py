@@ -40,7 +40,7 @@ discipline as :mod:`pinakes_ml.queries`' type-constrained corruption pools.
 is generated content, not observation: every record and the manifest carry
 ``tier: "synthetic"`` and ``LicenseRef-Insimul-Proprietary`` (the adapter's
 :data:`INSIMUL_LICENSE`), and the datasets land in the DVC-tracked, git-ignored
-``ml/data/insimul/`` tree — never in an open-data release (INSIMUL_SYNC_PLAN §7
+``ml/data/insimul/`` tree — never in an open-data release (the Insimul bridge spec §7
 "License leakage"; ``orchestrate.tiers.assert_no_synthetic_records`` is the
 corpus-side gate).
 
@@ -129,7 +129,7 @@ INSIMUL_SOURCE = "insimul"
 #: redistribute); the dataset-facing class is the blunter, truthful one below.
 INSIMUL_LICENSE = "LicenseRef-Insimul-Proprietary"
 #: The license class the manifests advertise. Bridge-2 output is proprietary and
-#: never enters an open-data release (INSIMUL_SYNC_PLAN §7).
+#: never enters an open-data release (the Insimul bridge spec §7).
 LICENSE_CLASS = "proprietary"
 #: The ``contractVersion`` literal ``@insimul/core`` pins on a world export.
 CONTRACT_VERSION = "insimul-grounding-v1"
@@ -387,7 +387,7 @@ def load_candidate_records(path: Path | str) -> list[_CandidateRecord]:
     """Read an Insimul rejection-sampling export into candidate records.
 
     Accepts a ``rules.jsonl`` (one candidate object per line — the shape
-    INSIMUL_SYNC_PLAN §5.1 describes for "generate across many worlds, filter
+    the Insimul bridge spec §5.1 describes for "generate across many worlds, filter
     through Insimul's 4-layer validator stack"), a ``{"rules": [...]}`` JSON
     document, or a bare JSON list. Recognised keys per record: ``worldId``,
     ``name``/``id``, ``content``/``prolog``/``rule``, ``promptId``,

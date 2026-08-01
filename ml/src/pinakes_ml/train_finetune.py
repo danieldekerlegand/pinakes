@@ -1,6 +1,6 @@
 """CLI: run the QLoRA fine-tuning pipeline + before/after KGQA eval (US-005).
 
-Reproducer for NEUROSYMBOLIC_ROADMAP.md Phase 5, US-005. Run from ``ml/`` after
+Reproducer for the neurosymbolic roadmap Phase 5, US-005. Run from ``ml/`` after
 installing the (undeclared) training stack and pulling the DVC data::
 
     uv pip install trl peft accelerate      # + bitsandbytes on CUDA for 4-bit

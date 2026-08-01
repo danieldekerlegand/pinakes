@@ -1,6 +1,6 @@
 """CLI: build the triple-verbalization JSONL dataset + committed manifest.
 
-Reproducer for US-002 (NEUROSYMBOLIC_ROADMAP.md Phase 5). Run from anywhere::
+Reproducer for US-002 (neurosymbolic roadmap Phase 5). Run from anywhere::
 
     uv run python -m pinakes_ml.export_verbalizations
 

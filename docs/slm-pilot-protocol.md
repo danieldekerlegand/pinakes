@@ -1,6 +1,6 @@
 # SLM pilot — frozen evaluation protocol
 
-**slm-pilot US-001.** The referee for the Phase-D pilot ([`INSIMUL_SYNC_PLAN.md`](../INSIMUL_SYNC_PLAN.md)
+**slm-pilot US-001.** The referee for the Phase-D pilot (the Insimul bridge spec
 §6 Phase D): train a small model for Insimul lore consistency and Prolog-rule
 adherence, and decide honestly whether the approach validates. This document and
 its machine-readable half are written and committed **before any training run**,
@@ -114,7 +114,7 @@ Bridge-2 world exports carry no `systems.actions` with Prolog `content`, so the
 producibility index is empty and *every* action-derived condition scores dead. The
 held-out world `w-laterre` scores `referenceFullyValid: 0` — its own shipped rules
 score zero fully-valid. That is a **producer-side gap**, recorded in
-`INSIMUL_SYNC_PLAN.md` §5.2, not a model failure. Absolute `fullyValid` numbers are
+the Insimul bridge spec §5.2, not a model failure. Absolute `fullyValid` numbers are
 therefore near-meaningless until Insimul emits actions; the pilot leans on the
 **relative** spread between comparison points measured on the identical eval set.
 

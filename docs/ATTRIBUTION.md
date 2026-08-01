@@ -20,7 +20,7 @@ sources and are never overwritten by acquisition (Guiding Principle #8).
 ### Trust tiers (US-004)
 
 Every fact in the shared graph carries a **trust tier** — the graph-corpus policy that
-decides which facts auto-admit vs. quarantine (Phase 3 of `NEUROSYMBOLIC_ROADMAP.md`). The
+decides which facts auto-admit vs. quarantine (Phase 3 of the neurosymbolic roadmap). The
 tier is *derived* (never a stored column) from the provenance columns above via the shared
 classifier `shared/trust-tier.ts` (the TS mirror of culture-scrape's
 `orchestrate/tiers.py` `classify_tier`), most-to-least trusted:
@@ -43,7 +43,7 @@ explorer detail panel + graph search results surface the tier alongside the prov
 
 ## Graph-side linguistic breadth sources (Phase 4 — source-breadth)
 
-These sources break the Wikidata-only dependency (Phase 4 of `NEUROSYMBOLIC_ROADMAP.md`). They
+These sources break the Wikidata-only dependency (Phase 4 of the neurosymbolic roadmap). They
 are **graph-corpus** ingests — they land as nodes/edges in the culture-scrape corpus (via the
 tabular-dump / kaikki adapters under `core/`), **not** as `lexicons/*.tsv`
 rows — so they never touch curated lexicon values. Each is ingested category-only with a

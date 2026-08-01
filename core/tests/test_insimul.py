@@ -12,7 +12,7 @@ Covers Bridge 2 end-to-end over a committed fixture world:
 * **idempotence** — re-ingesting the same artifact yields byte-identical rows
   (0 changes), the AC's re-ingest guarantee;
 * the **hard containment gate** — a synthetic-tier record can never enter a
-  packaged / open-data artifact (INSIMUL_SYNC_PLAN.md §7 "License leakage");
+  packaged / open-data artifact (the Insimul bridge spec §7 "License leakage");
 * the world's Prolog rules as **full-prolog, world-scoped** rules-registry entries
   that never reach the committed Datalog registry;
 * a ``validate`` over the ingested corpus — nodes + edges are import-clean (no

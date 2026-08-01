@@ -122,7 +122,7 @@ non-empty data (`npm run smoke:graph`, docs in
 
 `export-entity-grounding.ts` emits a compact, license-filtered JSON snapshot of canonical
 **entities + reconciliation keys** that Analyzer's enrichment step consumes offline to ground
-per-file facts (the media-bridge mapping spec §4.2). Same pure-builder shape as the canonical export:
+per-file facts (the Analyzer bridge spec §4.2). Same pure-builder shape as the canonical export:
 `buildEntityGrounding(lexiconsDir, {licenseClasses, domains})` reads the node lexicons (via
 `nodeFiles()`), and `snapshotEnvelope`/`writeSnapshot`/`runExport` do the wrapping + fs side.
 Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored). Run with
