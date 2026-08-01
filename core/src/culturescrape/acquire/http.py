@@ -38,7 +38,7 @@ import requests
 #: Default User-Agent identifying the project per the Wikimedia policy. Callers
 #: are encouraged to override this with their own contact details.
 DEFAULT_USER_AGENT = (
-    "culture-scrape/0.1.0 (https://github.com/evolvemedia/culture-scrape)"
+    "culture-scrape/0.1.0 (+https://github.com/danieldekerlegand/pinakes)"
 )
 
 

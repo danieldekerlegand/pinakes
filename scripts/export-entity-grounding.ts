@@ -1,11 +1,11 @@
 /**
  * Entity-grounding pack exporter — pinakes's producer on the KGP **knowledge data
- * plane** (`koine/specs/grounding-pack.md` §2), originally analyzer-bridge US-002's
+ * plane** (`koine/specs/grounding-pack.md` §2), originally a media-analysis bridge's
  * snapshot exporter and **retargeted** (US-PKA3) onto the KGP GroundingPack envelope.
  *
  * Emits a compact, license-filtered JSON export of canonical entities + the
- * reconciliation keys Analyzer's enrichment step consumes **offline** to ground
- * per-file facts in real-world referents (the Analyzer bridge spec §4.2). Two files that
+ * reconciliation keys an analyzer's enrichment step consumes **offline** to ground
+ * per-file facts in real-world referents (the media-analysis bridge spec §4.2). Two files that
  * mention the same entity link through it and inherit pinakes's knowledge — that is
  * what turns per-file datapoints into a web *connecting* files.
  *
@@ -150,7 +150,7 @@ export const FIXTURE_GENERATED_AT = "2026-01-01T00:00:00.000Z";
 /** Default allowed license *classes* (families, version-independent) — CC0 + CC-BY. */
 export const DEFAULT_LICENSE_CLASSES: readonly string[] = ["CC0", "CC-BY"];
 
-/** Reconciliation keys carried per entity (Analyzer's offline grounding cascade). */
+/** Reconciliation keys carried per entity (the analyzer's offline grounding cascade). */
 export interface GroundingReconciliation {
   /** Normalized `wikidata_qid` (`Q…`), `""` when the row carries none. Cascade step 1. */
   readonly wikidataQid: string;

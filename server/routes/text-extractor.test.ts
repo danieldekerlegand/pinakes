@@ -48,7 +48,7 @@ beforeAll(async () => {
   app.use(express.json());
   registerTextExtractorRoutes(app, { contributions, deps: fixtureDeps });
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => resolve());
+    server = app.listen(0, "127.0.0.1", () => resolve());
   });
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
@@ -111,7 +111,7 @@ describe("POST /api/extract/text model failures", () => {
       deps: explodingDeps,
     });
     await new Promise<void>((resolve) => {
-      server2 = app2.listen(0, () => resolve());
+      server2 = app2.listen(0, "127.0.0.1", () => resolve());
     });
     base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
   });

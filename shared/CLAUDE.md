@@ -180,6 +180,18 @@ governs how you edit it:
   `predicate-schema.ts`), so they were added to koine entries 1/2/5, `registryVersion` went
   0.4.0 → **0.4.1**, and the mirror was re-vendored with `npm run regen:registry-mirror` — not
   added locally.
+- **The mirror is EXEMPT from the publish-prep genericization sweep, deliberately.** The
+  open-sourcing pass (`62-genericize-and-publish-prep`) renamed closed-sibling references
+  across pinakes's own code/docs to an agnostic taxonomy (`analyzer`→analyzer,
+  `formant`→composer, `cuneiform`→orchestrator, `tessera`→cache, `rosetta`→legacy), but
+  `predicate-mapping.json` still carries a `projects.analyzer` block and an ecosystem-scoped
+  `agora` package reference — and `predicate-mapping.test.ts` must keep naming those keys. **That is correct
+  and must not be "fixed".** The `projects.<name>` keys are the ecosystem contract's own
+  identifiers; renaming one here would fork the registry permanently and fail the
+  byte-for-byte drift gate. A rename has to be upstreamed to koine and re-vendored. So the
+  publish-readiness proof-grep for closed-sibling identifiers scopes **out** the vendored
+  mirror and its test, along with `lexicons/`, `data/`, and cultural fixtures (where
+  `Analyzer`/`cuneiform`/`Rosetta` are domain content, not project names).
 - **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
   `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /
   `local-only` — whether it may *leave*). `local-only` is an **egress class, not a fourth dialect

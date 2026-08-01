@@ -44,6 +44,34 @@ Because auto-admission never writes lexicons, the whole app corpus is `curated` 
 regenerate after a node-lexicon QID/URL coverage change. Confidence cells on the 0–100 archaeological
 scale are normalised (`>1 → /100`) before averaging.
 
+## Route tests: always `app.listen(0, "127.0.0.1", …)` — never bare `listen(0)`
+
+Every route test spins up a real `express()` on an ephemeral port and fetches
+`http://127.0.0.1:${port}`. **Bind the host explicitly.** A bare `app.listen(0, cb)` binds
+`::` (IPv6 wildcard, dual-stack), and the kernel allocates that port from the IPv6 ephemeral
+space *without* reserving the matching IPv4 one — so a second server can legally bind
+`127.0.0.1` on the **same** port number (verifiable: `net.createServer().listen(0)` then
+`listen(samePort, "127.0.0.1")` succeeds). When that happened across the ~35 route-test files,
+the IPv4-preferring `fetch("http://127.0.0.1:…")` landed on **someone else's app**, and the
+test failed with a bewildering 404 (`SyntaxError: Unexpected token 'N', "Not Found" is not
+valid JSON`) or a connection error — in a *different, innocent* file each run.
+
+That made the whole vitest suite flaky at roughly 1-in-2 runs, and it reproduced with
+`--no-file-parallelism`, so it was never a "too much concurrency" problem. Binding the
+loopback explicitly makes the allocator hand out a port that is exclusively ours. Copy the
+established shape and don't "simplify" the host argument away:
+
+```ts
+await new Promise<void>((resolve) => {
+  server = app.listen(0, "127.0.0.1", () => resolve());
+});
+const { port } = server.address() as AddressInfo;
+baseUrl = `http://127.0.0.1:${port}`;
+```
+
+Also always `await` the listen callback before reading `.address()`, and close the server in
+`afterAll` — a leaked listener holds its port for the rest of the run.
+
 ## Route registration
 
 New route groups live in `server/routes/<area>.ts` exporting

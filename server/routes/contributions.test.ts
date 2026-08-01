@@ -57,7 +57,7 @@ beforeAll(async () => {
     }),
   });
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => resolve());
+    server = app.listen(0, "127.0.0.1", () => resolve());
   });
   const { port } = server.address() as AddressInfo;
   baseUrl = `http://127.0.0.1:${port}`;
@@ -187,7 +187,7 @@ describe("auth disabled (no keys configured) is backward-compatible", () => {
       }),
     });
     const openServer = await new Promise<Server>((resolve) => {
-      const s = openApp.listen(0, () => resolve(s));
+      const s = openApp.listen(0, "127.0.0.1", () => resolve(s));
     });
     const { port } = openServer.address() as AddressInfo;
     const res = await fetch(`http://127.0.0.1:${port}/api/contributions`, {

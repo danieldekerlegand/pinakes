@@ -6,7 +6,7 @@ reality."* This document describes the pack Pinakes emits and the two normative 
 implements.
 
 **This is a retarget, not a new exporter.** `scripts/export-entity-grounding.ts` was built
-and merged for the Analyzer bridge (the Analyzer bridge spec §4.2, commit `17f0713`); US-PKA3
+and merged for a media-analysis consumer's bridge (its bridge spec §4.2, commit `17f0713`); US-PKA3
 wrapped its existing payload in the KGP envelope. The entity records — csid, entity type,
 aliases, reconciliation keys, provenance, SPDX licence — are **byte-for-byte the same
 content**; what changed is the envelope around them, and the assertions minted from the
@@ -74,7 +74,7 @@ exact_match(pinakes:ent:language.q150, wikidata:ent:Q150)  @ pinakes:world:conse
 `claim_id = "sha256-" · lowerhex(SHA-256(world · "|" · relation · "(" · args · ")"))`, with
 symmetric relations sorting their operands so `exact_match(a,b)` and `exact_match(b,a)` are
 one claim. Confidence, provenance and licence are **excluded from the hash** — that is the
-whole point: the same anchor asserted by Analyzer or Insimul mints the *same* claim id and
+whole point: the same anchor asserted by an analyzer or by Insimul mints the *same* claim id and
 merges, while both provenance records survive. `shared/kgp.ts` implements the rule set
 (identifier args, string/integer/decimal/boolean/datetime literals) and
 `shared/kgp.test.ts` pins it.
@@ -162,4 +162,4 @@ resolves.
   as a `grounding-pack` knowledge port on `pinakes:world:consensus-reality`.
 - the Insimul bridge spec §4.2 — Bridge 1, the consumer of the Insimul projection above.
 - [`docs/canonical-schema.md`](canonical-schema.md) §3.1 — `csid` as a KINP entity CURIE.
-- the Analyzer bridge spec §4.2 — the consumer this pack was originally built for.
+- the media-analysis bridge spec §4.2 — the consumer this pack was originally built for.

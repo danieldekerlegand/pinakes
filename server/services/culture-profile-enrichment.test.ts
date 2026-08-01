@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import {
   runCultureProfileEnrichment,
   getCultureEnrichmentJob,
@@ -37,32 +38,29 @@ function mockEntries(entries: Record<string, string>[]) {
   });
 }
 
-function snapshot(): Map<string, string> {
-  const snap = new Map<string, string>();
-  for (const f of TARGET_FILES) {
-    const p = path.join(LEXICONS_DIR, f);
-    snap.set(p, fs.readFileSync(p, "utf8"));
-  }
-  return snap;
-}
-
-function restore(snap: Map<string, string>): void {
-  for (const [p, content] of snap.entries()) {
-    fs.writeFileSync(p, content, "utf8");
-  }
-}
-
 describe("culture-profile-enrichment", () => {
   const originalEnv = process.env.GEMINI_API_KEY;
-  let snap: Map<string, string>;
+  const originalLexicons = process.env.PINAKES_LEXICONS_DIR;
+  let tmpLexicons: string;
 
+  // This service APPENDS to the lexicon TSVs it is pointed at, so it must never be pointed
+  // at `lexicons/` from a test. Each case gets a throwaway copy of the four target files;
+  // the previous snapshot-the-real-corpus-and-restore-it approach only held as long as
+  // every run reached its afterEach, and one interrupted run committed generated rows into
+  // `lexicons/daily-life.tsv`. See the note on `lexiconsDir()` in the service.
   beforeEach(() => {
     mockGenerateContent.mockReset();
-    snap = snapshot();
+    tmpLexicons = fs.mkdtempSync(path.join(os.tmpdir(), "culture-enrichment-lexicons-"));
+    for (const f of TARGET_FILES) {
+      fs.copyFileSync(path.join(LEXICONS_DIR, f), path.join(tmpLexicons, f));
+    }
+    process.env.PINAKES_LEXICONS_DIR = tmpLexicons;
   });
 
   afterEach(() => {
-    restore(snap);
+    fs.rmSync(tmpLexicons, { recursive: true, force: true });
+    if (originalLexicons === undefined) delete process.env.PINAKES_LEXICONS_DIR;
+    else process.env.PINAKES_LEXICONS_DIR = originalLexicons;
     process.env.GEMINI_API_KEY = originalEnv;
   });
 
@@ -117,7 +115,7 @@ describe("culture-profile-enrichment", () => {
         },
       ]);
 
-      const before = fs.readFileSync(path.join(LEXICONS_DIR, "daily-life.tsv"), "utf8");
+      const before = fs.readFileSync(path.join(tmpLexicons, "daily-life.tsv"), "utf8");
 
       const job = await runCultureProfileEnrichment({
         profileIds: ["cp-sumerian"],
@@ -129,7 +127,7 @@ describe("culture-profile-enrichment", () => {
       expect(job.totalNewRows).toBe(1);
       expect(job.completedProfiles).toBe(1);
 
-      const after = fs.readFileSync(path.join(LEXICONS_DIR, "daily-life.tsv"), "utf8");
+      const after = fs.readFileSync(path.join(tmpLexicons, "daily-life.tsv"), "utf8");
       expect(after.length).toBeGreaterThan(before.length);
       expect(after).toContain("Test Housing Pattern");
 
@@ -146,7 +144,7 @@ describe("culture-profile-enrichment", () => {
         { id: "", culture_profile_id: "cp-sumerian", category: "diet", title: "Entry B", description: "B", social_class: "common", gender_context: "all", age_group: "all", season: "all", time_period_start: "-3000", time_period_end: "-2000", sources: "Test" },
       ]);
 
-      const before = fs.readFileSync(path.join(LEXICONS_DIR, "daily-life.tsv"), "utf8");
+      const before = fs.readFileSync(path.join(tmpLexicons, "daily-life.tsv"), "utf8");
       const existingIds = new Set(
         before.split("\n").slice(1).map((l) => l.split("\t")[0]).filter(Boolean)
       );
@@ -159,7 +157,7 @@ describe("culture-profile-enrichment", () => {
 
       expect(job.totalNewRows).toBe(2);
 
-      const after = fs.readFileSync(path.join(LEXICONS_DIR, "daily-life.tsv"), "utf8");
+      const after = fs.readFileSync(path.join(tmpLexicons, "daily-life.tsv"), "utf8");
       const newLines = after.trim().split("\n").slice(-2);
       const newIds = newLines.map((l) => l.split("\t")[0]);
       expect(new Set(newIds).size).toBe(2);
@@ -245,7 +243,7 @@ describe("culture-profile-enrichment", () => {
         entriesPerDomain: 1,
       });
 
-      const after = fs.readFileSync(path.join(LEXICONS_DIR, "daily-life.tsv"), "utf8");
+      const after = fs.readFileSync(path.join(tmpLexicons, "daily-life.tsv"), "utf8");
       const lastLine = after.trim().split("\n").pop() ?? "";
       const cells = lastLine.split("\t");
       expect(cells[1]).toBe("cp-sumerian");

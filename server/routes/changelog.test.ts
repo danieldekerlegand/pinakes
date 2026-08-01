@@ -47,7 +47,7 @@ beforeAll(async () => {
   registerAiReviewRoutes(app, { contributions, lexiconsDir, changelog });
 
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => resolve());
+    server = app.listen(0, "127.0.0.1", () => resolve());
   });
   const { port } = server.address() as AddressInfo;
   baseUrl = `http://127.0.0.1:${port}`;

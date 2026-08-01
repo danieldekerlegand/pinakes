@@ -115,9 +115,9 @@ ORDER=(
 #     Needs first-ml-loop + insimul-bridge (US-004/005) merged; US-003 may need rented GPU
 #     (operator); baseline model Qwen2.5-3B-Instruct (matches Insimul's local-AI deployment).
 #  "slm-pilot:10"            # frozen eval protocol + QLoRA pipeline + 3B baseline fine-tune + GGUF parity + Insimul handoff + go/no-go report
-# --- The Analyzer bridge + its edit-ops SLM pilot used to be scheduled here. Both were
-#     excised from pinakes (they train on Analyzer exhaust, not cultural knowledge) and
-#     re-homed to Analyzer itself; they are no longer pinakes PRDs.
+# --- A media-analysis bridge + its edit-ops SLM pilot used to be scheduled here. Both were
+#     excised from pinakes (they train on that analyzer's exhaust, not cultural knowledge)
+#     and re-homed to the analyzer itself; they are no longer pinakes PRDs.
 )
 ALL_NAMES="symbolic-engine-truth insimul-bridge slm-pilot scale-ready-conversion first-ml-loop wikidata-dump-slice tiered-trust-corpus source-breadth-cldf rules-layer graphrag-and-training-data scallop-pilot"
 

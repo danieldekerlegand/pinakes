@@ -118,11 +118,11 @@ non-empty data (`npm run smoke:graph`, docs in
   directly). Default stays the demo fixture so a bare `docker compose up` still
   starts when no export has been built.
 
-## Entity-grounding snapshot (analyzer-bridge US-002; KGP-retargeted, US-PKA3)
+## Entity-grounding snapshot (KGP-retargeted, US-PKA3)
 
 `export-entity-grounding.ts` emits a compact, license-filtered JSON snapshot of canonical
-**entities + reconciliation keys** that Analyzer's enrichment step consumes offline to ground
-per-file facts (the Analyzer bridge spec §4.2). Same pure-builder shape as the canonical export:
+**entities + reconciliation keys** that an analyzer's enrichment step consumes offline to ground
+per-file facts (the media-analysis bridge spec §4.2). Same pure-builder shape as the canonical export:
 `buildEntityGrounding(lexiconsDir, {licenseClasses, domains})` reads the node lexicons (via
 `nodeFiles()`), and `snapshotEnvelope`/`writeSnapshot`/`runExport` do the wrapping + fs side.
 Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored). Run with

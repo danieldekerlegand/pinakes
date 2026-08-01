@@ -63,7 +63,7 @@ async function startProvider(bus: CapabilityBusRouteOptions = {}) {
   registerA2aRoutes(app, { origin: ORIGIN });
   registerCapabilityBusRoutes(app, { origin: ORIGIN, skipRegistration: true, ...bus });
   const server: Server = await new Promise((resolve) => {
-    const s = app.listen(0, () => resolve(s));
+    const s = app.listen(0, "127.0.0.1", () => resolve(s));
   });
   const { port } = server.address() as AddressInfo;
   return {

@@ -90,7 +90,7 @@ beforeAll(async () => {
   app = express();
   registerHypothesisRoutes(app, { loadNodes, loadCorridors, loadKnownSites });
   await new Promise<void>((resolve) => {
-    server = app.listen(0, () => {
+    server = app.listen(0, "127.0.0.1", () => {
       const { port } = server.address() as AddressInfo;
       baseUrl = `http://127.0.0.1:${port}`;
       resolve();
@@ -165,7 +165,9 @@ describe("GET /api/hypotheses", () => {
         throw new Error("boom");
       },
     });
-    const s = bad.listen(0);
+    const s = await new Promise<Server>((resolve) => {
+      const srv = bad.listen(0, "127.0.0.1", () => resolve(srv));
+    });
     const { port } = s.address() as AddressInfo;
     try {
       const res = await fetch(`http://127.0.0.1:${port}/api/hypotheses`);
