@@ -70,18 +70,23 @@ TIER_QUARANTINE = "quarantine"
 #: The inferred tier: linker-minted hubs / inferred edges (derived scaffolding).
 TIER_INFERRED = "inferred"
 
-#: The personal tier: facts ingested from a user's own files via the Analyzer bridge
-#: (analyzer-bridge US-003). NOT on the trust axis above — it is a **privacy**
-#: partition: personal-tier records describe the user's private media and are
-#: hard-gated out of every non-personal export, packaged artifact, and open-data
-#: release (:func:`assert_no_personal_records`). A record is personal iff its
-#: ``source`` names one of :data:`PERSONAL_SOURCES`.
+#: The personal tier: facts ingested from a user's own private files by a
+#: personal-tier acquisition source. NOT on the trust axis above — it is a
+#: **privacy** partition: personal-tier records describe the user's private
+#: material and are hard-gated out of every non-personal export, packaged
+#: artifact, and open-data release (:func:`assert_no_personal_records`). A record
+#: is personal iff its ``source`` names one of :data:`PERSONAL_SOURCES`.
 TIER_PERSONAL = "personal"
 
 #: Acquisition-source ids whose records are personal-tier (privacy invariant). A
 #: match on any ``source`` token classifies the row personal regardless of any
-#: other stamp (a grounded ``refers_to`` fact may carry a QID yet stays personal).
-PERSONAL_SOURCES: frozenset[str] = frozenset({"analyzer"})
+#: other stamp (a grounded reference fact may carry a QID yet stays personal).
+#:
+#: **Empty by default** — pinakes bundles no personal-tier producer. A deployment
+#: that ingests its own private material registers that adapter's source id here
+#: and the whole tier applies to it unchanged: classification, per-tier gates,
+#: the containment gate, and the tier-scoped Datalog export.
+PERSONAL_SOURCES: frozenset[str] = frozenset()
 
 #: The synthetic tier: facts ingested from a *generated* world via the Insimul
 #: bridge (insimul-bridge US-003). Like :data:`TIER_PERSONAL` this is not a rung on
@@ -327,7 +332,7 @@ DEFAULT_TIER_GATES: Mapping[str, GateThresholds] = {
         max_unreconciled_rate=1.0,
         **_PERMISSIVE_DANGLING,
     ),
-    # Personal-media facts are local-only and awaiting no curation, so they carry
+    # Personal-tier facts are local-only and awaiting no curation, so they carry
     # no trust floor here — containment (not admission) is their gate, enforced by
     # :func:`assert_no_personal_records` on every export/package path.
     TIER_PERSONAL: GateThresholds(
@@ -355,8 +360,8 @@ DEFAULT_TIER_GATES: Mapping[str, GateThresholds] = {
 class PersonalTierContainmentError(RuntimeError):
     """Raised when a :data:`TIER_PERSONAL` record reaches a non-personal artifact.
 
-    The privacy invariant of the Analyzer bridge (the media-bridge mapping spec §6): facts
-    derived from the user's files must NEVER appear in an open-data release, a
+    The privacy invariant of any personal-tier source: facts derived from the
+    user's own private files must NEVER appear in an open-data release, a
     packaged corpus, or any non-personal export or training set. This is the hard
     gate that enforces it — the same mechanism the synthetic tier uses.
     """
@@ -383,14 +388,15 @@ def assert_no_personal_records(rows: Sequence[Row], *, context: str) -> None:
     The hard containment gate every **non-personal** export / packaging / release
     path calls before it emits *rows*. *context* names the artifact for the error
     message (e.g. ``"packaged corpus"``). A no-op when the corpus carries no
-    personal-tier record (the common case) — so a build with no Analyzer ingest is
-    unaffected.
+    personal-tier record (the common case, and the only case while
+    :data:`PERSONAL_SOURCES` is empty) — so a build with no personal-tier ingest
+    is unaffected.
     """
     offenders = personal_records(rows)
     if offenders:
         raise PersonalTierContainmentError(
             f"{len(offenders)} personal-tier record(s) would enter {context}, "
-            f"violating the personal-tier privacy invariant (the media-bridge mapping spec §6); "
+            f"violating the personal-tier privacy invariant; "
             f"personal-tier facts are local-only — first offender source="
             f"{_scalar(offenders[0], 'source')!r}"
         )

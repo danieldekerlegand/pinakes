@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from culturescrape.orchestrate import load_job
+from culturescrape.orchestrate import tiers as tiers_module
 from culturescrape.orchestrate.corpus import (
     build_corpus,
     corpus_component_fraction,
@@ -25,15 +26,21 @@ from culturescrape.orchestrate.jobs import JobConfigError
 from culturescrape.orchestrate.qa import GateThresholds
 from culturescrape.orchestrate.tiers import (
     ALL_TIERS,
+    PERSONAL_SOURCES,
     TIER_AUTO_ADMITTED,
     TIER_CURATED,
     TIER_INFERRED,
+    TIER_PERSONAL,
     TIER_QUARANTINE,
+    PersonalTierContainmentError,
+    assert_no_personal_records,
     build_tier_manifest,
     classify_tier,
     evaluate_tiers,
+    is_personal_source,
     manifest_for_tier_dataset,
     partition_by_tier,
+    personal_records,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -109,6 +116,95 @@ def test_partition_by_tier_covers_every_tier_key() -> None:
     buckets = partition_by_tier([_node(source="pinakes")])
     assert set(buckets) == set(ALL_TIERS)
     assert len(buckets[TIER_CURATED]) == 1
+
+
+# --------------------------------------------------------------------------- #
+# personal tier — the framework, with no bundled personal producer             #
+# --------------------------------------------------------------------------- #
+#
+# Pinakes ships no personal-tier acquisition adapter, so PERSONAL_SOURCES is empty
+# and nothing classifies personal out of the box. The tier is still a live,
+# working framework: a deployment registers its own private-ingest source id and
+# every mechanism below applies to it. These tests register such an id
+# (monkeypatching the one source list) and prove the whole path still functions.
+
+#: The source id a deployment's own private-file adapter might register.
+_PERSONAL_SOURCE = "my-vault"
+
+
+@pytest.fixture
+def registered_personal_source(monkeypatch: pytest.MonkeyPatch) -> str:
+    """Register :data:`_PERSONAL_SOURCE` as a personal-tier source for one test."""
+    monkeypatch.setattr(
+        tiers_module, "PERSONAL_SOURCES", frozenset({_PERSONAL_SOURCE})
+    )
+    return _PERSONAL_SOURCE
+
+
+def test_no_personal_source_is_bundled_by_default() -> None:
+    # The tier exists; pinakes just ships no producer for it. Nothing classifies
+    # personal, so no corpus built from the bundled adapters can trip the gate.
+    assert PERSONAL_SOURCES == frozenset()
+    assert not is_personal_source("pinakes")
+    assert classify_tier(_node(source="pinakes")) != TIER_PERSONAL
+
+
+def test_a_registered_personal_source_still_classifies(
+    registered_personal_source: str,
+) -> None:
+    assert classify_tier(_node(source=registered_personal_source)) == TIER_PERSONAL
+    assert classify_tier(_edge(source=registered_personal_source)) == TIER_PERSONAL
+
+
+def test_personal_wins_over_every_trust_signal(
+    registered_personal_source: str,
+) -> None:
+    # The privacy invariant: a QID + a citation must NOT lift a personal row onto
+    # the trust ladder — classify_tier checks the personal vocabulary first.
+    row = _node(
+        source=f"{registered_personal_source};wikidata",
+        wikidata_qid="Q1",
+        source_url="http://x",
+    )
+    assert classify_tier(row) == TIER_PERSONAL
+
+
+def test_partition_and_records_pick_up_a_personal_row(
+    registered_personal_source: str,
+) -> None:
+    rows = [_node(source=registered_personal_source), _node(source="pinakes")]
+    buckets = partition_by_tier(rows)
+    assert len(buckets[TIER_PERSONAL]) == 1
+    assert personal_records(rows) == [rows[0]]
+
+
+def test_the_containment_gate_rejects_a_personal_record(
+    registered_personal_source: str,
+) -> None:
+    with pytest.raises(PersonalTierContainmentError, match="personal-tier"):
+        assert_no_personal_records(
+            [_node(source=registered_personal_source)], context="packaged corpus"
+        )
+
+
+def test_the_containment_gate_is_a_no_op_without_a_personal_row() -> None:
+    assert_no_personal_records([_node(source="pinakes")], context="packaged corpus")
+
+
+def test_the_datalog_tier_filter_still_scopes_the_personal_tier(
+    registered_personal_source: str,
+) -> None:
+    # The Datalog projection is a release path, so the default (public) program
+    # drops personal rows and `--tier personal` selects exactly them.
+    from culturescrape.datalog.export import PERSONAL_TIER, tier_row_filter
+
+    public = tier_row_filter(None)
+    assert not public({"source": registered_personal_source})
+    assert public({"source": "pinakes"})
+
+    scoped = tier_row_filter(PERSONAL_TIER)
+    assert scoped({"source": registered_personal_source})
+    assert not scoped({"source": "pinakes"})
 
 
 # --------------------------------------------------------------------------- #

@@ -482,10 +482,11 @@ def test_package_refuses_a_corpus_holding_a_synthetic_record(tmp_path: Path) -> 
 
 def test_the_public_datalog_program_drops_synthetic_rows() -> None:
     # The Datalog projection is a release path too, so the default (public)
-    # program filters BOTH contained tiers out.
+    # program filters every contained tier out. (The personal half of that claim
+    # is covered in test_tiers.py, which registers a personal source to test it —
+    # pinakes bundles no personal-tier producer.)
     public = tier_row_filter(None)
     assert not public({"source": INSIMUL_SOURCE})
-    assert not public({"source": "analyzer"})
     assert public({"source": "pinakes"})
 
 
@@ -493,7 +494,6 @@ def test_the_synthetic_tier_scopes_the_datalog_program_to_one_world() -> None:
     scoped = tier_row_filter(SYNTHETIC_TIER)
     assert scoped({"source": INSIMUL_SOURCE})
     assert not scoped({"source": "pinakes"})
-    assert not scoped({"source": "analyzer"})
 
 
 def test_an_unknown_datalog_tier_is_rejected() -> None:

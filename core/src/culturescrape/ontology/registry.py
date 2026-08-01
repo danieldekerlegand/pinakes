@@ -234,22 +234,23 @@ _RELATION_TYPES: tuple[RelationType, ...] = (
         "entity",
         description="entity uses an instrument, material or technique (Wikidata P2283)",
     ),
-    # Personal-media (Analyzer bridge, canonical schema v1.2 — analyzer-bridge US-003).
-    # An asset (sha256-identified media node) depicts/mentions a canonical entity;
-    # local-only, personal trust tier (see shared/predicate-mapping.json analyzer section).
+    # Personal-media vocabulary (canonical schema v1.2). An asset (sha256-identified
+    # media node) depicts/mentions a canonical entity; local-only, personal trust
+    # tier. Registered so a personal-media ingest has a canonical home; pinakes
+    # itself bundles no producer for them.
     RelationType(
         "DEPICTS",
         Dimension.STRUCTURAL,
         "asset",
         "entity",
-        description="an asset visually depicts an entity (Analyzer vision caption/object)",
+        description="an asset visually depicts an entity (a vision caption/object)",
     ),
     RelationType(
         "MENTIONS",
         Dimension.STRUCTURAL,
         "asset",
         "entity",
-        description="an asset textually mentions an entity (Analyzer transcript/text)",
+        description="an asset textually mentions an entity (a transcript/text ingest)",
     ),
     # Generated-world vocabulary (Insimul bridge, canonical schema v1.3 —
     # insimul-bridge US-003). Characters / buildings / businesses and their
