@@ -118,7 +118,7 @@ describe("predicate-mapping registry", () => {
     expect(vendored).not.toBe(bumped); // …so the byte-identical gate above would be red.
   });
 
-  it("registers the analyzer project encoding the media-bridge mapping spec Appendix A", () => {
+  it("registers the analyzer project encoding the media-bridge mapping spec (Appendix A)", () => {
     const analyzer = predicateMappingProject("analyzer");
     expect(analyzer).toBeDefined();
     expect(analyzer?.sourceDoc).toMatch(/Appendix A/i);
