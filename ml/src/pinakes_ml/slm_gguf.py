@@ -313,8 +313,8 @@ def parity_deltas(
     Only arms and metrics both columns actually carry are emitted: an invented
     zero would read as "no degradation" when the truth is "not measured".
 
-    ``metrics`` is a parameter (defaulting to this pilot's frozen list) so the
-    edit-ops pilot's deployment leg reuses the arithmetic with its own frozen
+    ``metrics`` is a parameter (defaulting to this pilot's frozen list) so
+    another pilot's deployment leg reuses the arithmetic with its own frozen
     metrics instead of forking it — same discipline as
     :func:`~pinakes_ml.slm_baseline.aggregate_repeats`.
     """

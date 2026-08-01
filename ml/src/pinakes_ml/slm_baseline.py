@@ -129,9 +129,9 @@ def aggregate_repeats(
     The repeats share one seed on purpose: the spread they expose is the
     platform's float nondeterminism (US-002's measured gotcha), not sampling.
 
-    ``metrics``/``count_key`` are parameters so the sibling edit-ops pilot — whose
-    frozen metric list differs and which counts ``cases``, not ``prompts`` — reuses
-    this aggregation instead of forking it. The defaults are this pilot's.
+    ``metrics``/``count_key`` are parameters so a sibling pilot — whose frozen
+    metric list differs, or which counts something other than ``prompts`` —
+    reuses this aggregation instead of forking it. The defaults are this pilot's.
     """
     stages: dict[str, dict[str, dict[str, Any]]] = {}
     for summary in summaries:

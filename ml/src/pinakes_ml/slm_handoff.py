@@ -407,9 +407,9 @@ def config_summary(
     the remaining path fields are made relative to the ``ml/`` root, because a
     rerun needs *which* config and *which* manifest, not whose disk.
 
-    The key sets are parameters rather than constants because the edit-ops pilot's
-    config names different path fields (:mod:`pinakes_ml.edit_ops_handoff` passes
-    its own) — one implementation of "nothing machine-local ships", two bundles.
+    The key sets are parameters rather than constants so a pilot whose config
+    names different path fields can pass its own — one implementation of
+    "nothing machine-local ships", any number of bundles.
     """
     summary: dict[str, Any] = {}
     for key, value in sorted(config.items()):
@@ -537,10 +537,10 @@ def verify_entries(
 ) -> tuple[str, ...]:
     """Re-hash every ``{name, sha256, sizeBytes}`` row against ``root``.
 
-    The per-file half of :func:`verify_bundle`, factored out because the edit-ops
-    bundle inventories *several* models (one per quantization) plus their
-    Modelfiles and so cannot use this module's single-``model`` shape — but the
-    "a byte differs ⇒ none of the numbers describe this file" check is identical.
+    The per-file half of :func:`verify_bundle`, factored out so a bundle that
+    inventories *several* models (one per quantization) — and so cannot use this
+    module's single-``model`` shape — still gets the identical "a byte differs ⇒
+    none of the numbers describe this file" check.
     """
     problems: list[str] = []
     for entry in expected:
