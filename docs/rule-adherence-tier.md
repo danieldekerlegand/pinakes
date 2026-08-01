@@ -19,7 +19,7 @@ this tier's sibling on the Analyzer side.
 Insimul's VESPACE harness (`insimul-server/server/__tests__/vespace-rule-generation-e2e/`,
 written up in `docs/editor/evaluation/VESPACE_TRANSLATION_VALIDATION_METHODOLOGY.md`
 and the two `vespace-validation-*/findings.md` reports) measures LLM-authored
-Insimul Prolog on exactly these axes. `INSIMUL_SYNC_PLAN.md` §"Evaluation" calls
+Insimul Prolog on exactly these axes. The Insimul bridge spec §"Evaluation" calls
 for porting it here as a fourth tier.
 
 **No Insimul code is imported.** `rule_adherence.py` is stdlib-only and

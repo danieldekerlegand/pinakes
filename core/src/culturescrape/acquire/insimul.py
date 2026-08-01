@@ -101,7 +101,7 @@ INSIMUL_SOURCE = "insimul"
 CONTRACT_VERSION = "insimul-grounding-v1"
 
 #: The per-record SPDX licence a generated world carries. Bridge-2 output is
-#: proprietary (INSIMUL_SYNC_PLAN §7 "License leakage"); the id is unregistered in
+#: proprietary (the Insimul bridge spec §7 "License leakage"); the id is unregistered in
 #: :mod:`culturescrape.schema.license_class`, so it classifies ``unknown`` — the
 #: verify-before-redistribute class, which is exactly right here.
 INSIMUL_LICENSE = "LicenseRef-Insimul-Proprietary"
@@ -317,7 +317,7 @@ def _provenance(
 
     ``source_url`` is the world URI and ``source_query`` carries the generation
     seed, the contract version and Insimul's predicate-schema hash — the three
-    facts INSIMUL_SYNC_PLAN §7 "Identity" requires on a Bridge-2 record so a row
+    facts the Insimul bridge spec §7 "Identity" requires on a Bridge-2 record so a row
     can always be traced back to the exact artifact that produced it.
     """
     parts = [
@@ -680,7 +680,7 @@ def _caused_by_pairs(export: WorldExport) -> list[tuple[str, str]]:
     Read from ``causedByTruthIds`` (this truth's causes) and ``causesTruthIds``
     (this truth's effects), both normalized to canonical (effect, cause) order.
     Insimul does not ship these fields on ``TruthIR`` yet — they are declared by
-    INSIMUL_SYNC_PLAN Appendix A row 10 and read forward-compatibly here, so an
+    the Insimul bridge spec Appendix A row 10 and read forward-compatibly here, so an
     export without them simply yields no causality edges.
     """
     truths = _entity_ids(export, "systems", "truths")

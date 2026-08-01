@@ -61,9 +61,9 @@ _ML_ROOT = Path(__file__).resolve().parents[2]
 #: The KFT spec version this adapter implements (``koine/specs/fine-tuning.md``).
 KFT_VERSION = "0.3.0"
 
-#: KFT §3.1 modality vocabulary, mirrored as data (the same "vendor the upstream
-#: vocabulary, don't import it" discipline :mod:`pinakes_ml.cinematography_eval`
-#: uses for Analyzer's rules). Additive upstream; re-mirror when koine adds a row.
+#: KFT §3.1 modality vocabulary, mirrored as data (the "vendor the upstream
+#: vocabulary, don't import it" discipline this workspace uses for every foreign
+#: rule set). Additive upstream; re-mirror when koine adds a row.
 MODALITIES: tuple[str, ...] = (
     "text-generation",
     "image-text-to-text",
@@ -108,8 +108,8 @@ RESOLVED_EGRESS: tuple[str, ...] = ("exportable", "local-only")
 #: pin one. koine's ``policy/trust-tiers.json`` calls ``synthetic`` and
 #: ``personal`` *containment-gated* ("never in open-data releases"; "never leaves
 #: the local machine by default") — and every corpus this provider trains on is
-#: one of the two (insimul-bridge US-005 rule-SFT is synthetic/proprietary,
-#: edit-ops US-005 is personal). That, not an operator setting, is what makes
+#: one of the two (insimul-bridge US-005 rule-SFT is synthetic/proprietary).
+#: That, not an operator setting, is what makes
 #: pinakes the LOCAL-ONLY leg of the multi-provider program (KFT §4.2, §9).
 TIER_EGRESS: dict[str, str] = {
     "curated": "exportable",

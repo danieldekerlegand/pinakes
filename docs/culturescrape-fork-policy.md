@@ -80,4 +80,4 @@ history and re-create the fork.
 - `docs/culturescrape-integration.md` — the integration design + live export snapshot.
 - `core/docs/engine-validation.md` — the first real-engine run + the
   fixes the vendored modules carry.
-- `NEUROSYMBOLIC_ROADMAP.md` §Phase 0 — the status table this policy closes (item 0.9).
+- Neurosymbolic roadmap, Phase 0 — the status table this policy closes (item 0.9).

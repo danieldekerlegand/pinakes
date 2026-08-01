@@ -1,6 +1,6 @@
 # QLoRA fine-tuning pipeline + rented-GPU runbook
 
-NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-005** — the last Phase-5.1 story. A
+Neurosymbolic roadmap **Phase 5, US-005** — the last Phase-5.1 story. A
 config-driven QLoRA pipeline that fine-tunes a small open causal-LM on the
 deterministic training data generated earlier in the phase and scores the held-out
 KGQA split **before and after** tuning through the existing tier-3 eval harness.

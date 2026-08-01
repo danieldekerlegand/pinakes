@@ -1,4 +1,4 @@
-"""Triple-verbalization dataset builder (NEUROSYMBOLIC_ROADMAP.md Phase 5, US-002).
+"""Triple-verbalization dataset builder (neurosymbolic roadmap Phase 5, US-002).
 
 Turns the canonical **node** + **edge** export
 (``export/culturescrape/{nodes,edges}/*.tsv``) into natural-language training

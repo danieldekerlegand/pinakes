@@ -1,5 +1,5 @@
 /**
- * Insimul grounding-pack exporter — **Bridge 1** of INSIMUL_SYNC_PLAN §4.2: domain-filtered
+ * Insimul grounding-pack exporter — **Bridge 1** of the Insimul bridge spec §4.2: domain-filtered
  * slices of the canonical corpus rendered as world seeds Insimul can import (real cultures,
  * settlements with real coordinates, languages, deities, cuisines) with cited provenance and
  * an SPDX license on every record.

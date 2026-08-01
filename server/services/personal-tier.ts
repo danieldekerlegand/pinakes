@@ -3,7 +3,7 @@
  *
  * The Analyzer bridge can ingest a user's own files into the graph as a **personal
  * tier**: content-addressed `asset` nodes (`:LABEL` `Asset`, `source=analyzer`) plus
- * their grounding edges. The privacy invariant (the media-bridge mapping spec §6) is that
+ * their grounding edges. The privacy invariant (the Analyzer bridge spec §6) is that
  * personal-tier facts are **local-only** — they must never surface through the
  * proxy the browser talks to unless the operator has explicitly opted in.
  *

@@ -1,7 +1,7 @@
 /**
  * Trust tiers — the TypeScript mirror of culture-scrape's
  * `orchestrate/tiers.py` `classify_tier` (US-002, Phase 3 of
- * `NEUROSYMBOLIC_ROADMAP.md`). One pure function classifies a node or edge into
+ * the neurosymbolic roadmap). One pure function classifies a node or edge into
  * its trust tier from provenance columns that are **already** first-class and
  * queryable — `source`, `wikidata_qid`, `source_url` — so `tier` is *derived*,
  * never a new canonical column.

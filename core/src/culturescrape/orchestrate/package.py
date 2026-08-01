@@ -156,7 +156,7 @@ def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
 
     * **personal** — a fact derived from the user's own private files, ingested
       by a personal-tier source; local-only;
-    * **synthetic** (insimul-bridge US-003, INSIMUL_SYNC_PLAN.md §7 "License
+    * **synthetic** (insimul-bridge US-003, the Insimul bridge spec §7 "License
       leakage") — a fact read out of a *generated* Insimul world; proprietary, and
       it describes a world that does not exist.
 
@@ -185,7 +185,7 @@ def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
             is_synthetic_source,
             "synthetic-tier facts are proprietary generated-world content and "
             "must never enter a packaged/open-data release "
-            "(INSIMUL_SYNC_PLAN.md §7 'License leakage')",
+            "(the Insimul bridge spec §7 'License leakage')",
         ),
     )
     base = source / "corpus" if "corpus" in members else source

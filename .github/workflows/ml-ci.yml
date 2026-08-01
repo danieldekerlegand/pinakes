@@ -1,6 +1,6 @@
 name: ml-ci
 
-# ml/ workspace smoke gate (NEUROSYMBOLIC_ROADMAP.md Phase 2 / ml US-001).
+# ml/ workspace smoke gate (neurosymbolic roadmap Phase 2 / ml US-001).
 # Keeps the neurosymbolic ML env importable + lint/test-clean WITHOUT training in
 # CI: the statistical stack (torch/pykeen/problog) is heavy and full baseline runs
 # are local-only (MPS/CPU on the dev machine). This job proves the env resolves

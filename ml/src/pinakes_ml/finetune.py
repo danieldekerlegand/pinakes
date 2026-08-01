@@ -1,6 +1,6 @@
 """QLoRA fine-tuning pipeline over the generated training data (US-005).
 
-Reproducer for NEUROSYMBOLIC_ROADMAP.md Phase 5, US-005 — the final Phase-5.1
+Reproducer for the neurosymbolic roadmap Phase 5, US-005 — the final Phase-5.1
 story. It consumes the two deterministic training datasets built earlier in the
 phase:
 

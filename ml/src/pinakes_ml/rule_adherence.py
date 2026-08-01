@@ -23,15 +23,14 @@ artifact), it reports five families of numbers:
     The VESPACE reachability model: are a rule's conditions producible at all,
     given the character-creation layer and the action set?
 
-Self-contained + PURE (stdlib only), like ``consistency.py`` and
-``cinematography_eval.py``: it does **not** import Insimul code. The metric
-definitions are reimplemented from Insimul's ``reachability-analyzer.ts`` /
-``insimul-reachability-analyzer.ts`` and its validator stack; every formula and
-constant is cited in :doc:`../../../docs/rule-adherence-tier.md`. Everything is a
-pure function of (rules, world context), sorted and wall-clock-free, so
-:func:`build_report` is byte-reproducible — the same inputs yield the same
-committed baseline (a git no-op), the same ratchet shape as
-``cinematography-adherence-baseline.json``.
+Self-contained + PURE (stdlib only), like ``consistency.py``: it does **not**
+import Insimul code. The metric definitions are reimplemented from Insimul's
+``reachability-analyzer.ts`` / ``insimul-reachability-analyzer.ts`` and its
+validator stack; every formula and constant is cited in
+:doc:`../../../docs/rule-adherence-tier.md`. Everything is a pure function of
+(rules, world context), sorted and wall-clock-free, so :func:`build_report` is
+byte-reproducible — the same inputs yield the same committed baseline (a git
+no-op), the same ratchet shape as the other eval tiers.
 """
 
 from __future__ import annotations
@@ -80,7 +79,7 @@ __all__ = [
 
 #: Versions the reimplemented metric definitions so a baseline is attributable
 #: to the exact scoring rules it was measured against (a formula change bumps
-#: this, exactly like ``CONSTRAINT_VOCAB_VERSION`` on the cinematography tier).
+#: this).
 ANALYZER_VERSION = "1"
 
 #: Decay per intrinsic condition in the fireability index. Insimul's default —

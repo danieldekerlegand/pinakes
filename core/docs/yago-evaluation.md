@@ -1,6 +1,6 @@
 # Evaluating YAGO 4.5 as a packaged facts + rules source
 
-*Rules-layer US-005 / NEUROSYMBOLIC_ROADMAP.md Phase 4, work item 4.4.*
+*Rules-layer US-005 / the neurosymbolic roadmap Phase 4, work item 4.4.*
 
 **Question.** Phase 4 acquires "the rules known to humankind" instead of hand-writing
 them. [YAGO 4.5](https://yago-knowledge.org/) is a large, clean, Wikidata-derived
@@ -205,7 +205,7 @@ integration effort where the marginal value is — the axioms, not the facts.
 
 ## Cross-references
 
-- Roadmap: `NEUROSYMBOLIC_ROADMAP.md` Phase 4, item **4.4** (this evaluation) and source 4.
+- Roadmap: the neurosymbolic roadmap Phase 4, item **4.4** (this evaluation) and source 4.
 - Rules registry & QA gate: [`rules-registry.md`](./rules-registry.md) (US-004).
 - The shape → violation-rule pattern this reuses: [`schema-constraints.md`](./schema-constraints.md)
   (US-003) and the P2302 section of [`datalog.md`](./datalog.md) (US-002).

@@ -1,4 +1,4 @@
-"""Scallop context export from the canonical relations (NEUROSYMBOLIC_ROADMAP Phase 5).
+"""Scallop context export from the canonical relations (neurosymbolic roadmap Phase 5).
 
 The neurosymbolic pilot loads the corpus into `scallopy <https://scallop-lang.org>`_
 as its differentiable-logic substrate. This module is the **pure, engine-free core**
@@ -398,7 +398,7 @@ def build_scl(translated: list[TranslatedRule]) -> str:
     (sorted decls, rule order) and ends with a trailing newline.
     """
     lines: list[str] = [
-        "// Scallop program — canonical Horn rules (NEUROSYMBOLIC_ROADMAP.md Phase 5).",
+        "// Scallop program — canonical Horn rules (neurosymbolic roadmap Phase 5).",
         "// Generated from the provenanced rules registry by",
         "// pinakes_ml.export_scallop — do not edit by hand.",
         "",

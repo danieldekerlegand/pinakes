@@ -1,6 +1,6 @@
 # Scallop context export + Horn-rule translation
 
-NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-001** (roadmap row 5.4) — the first step of
+Neurosymbolic roadmap **Phase 5, US-001** (roadmap row 5.4) — the first step of
 the neurosymbolic pilot. Loads the canonical corpus into
 [Scallop](https://scallop-lang.org) as its differentiable-logic substrate: the
 relations become Scallop fact tables, the provenanced Horn-rule registry is
@@ -123,7 +123,7 @@ re-run `uv run pinakes-export-scallop`, then re-pin the data
 
 # Training-query generator (US-002)
 
-NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-002** — the supervised signal the US-003
+Neurosymbolic roadmap **Phase 5, US-002** — the supervised signal the US-003
 rule-guided link-prediction loop trains on. Emits **training queries**: held-out
 positive edges paired with **type-constrained negatives** (head/tail corruptions
 restricted to schema-compatible node types, so they are hard yet false).
@@ -205,7 +205,7 @@ constraint change, re-run `uv run pinakes-export-queries`, then re-pin the data
 
 # Rule-guided link prediction (US-003)
 
-NEUROSYMBOLIC_ROADMAP.md **Phase 5, US-003** — the pilot's core: a **differentiable
+Neurosymbolic roadmap **Phase 5, US-003** — the pilot's core: a **differentiable
 rule-guided link predictor**. A neural edge predicate over the frozen PyKEEN
 embeddings supplies soft edge probabilities, and the corpus's *ancestor*
 transitive-closure rule propagates that evidence through the graph before the loss

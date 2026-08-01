@@ -76,7 +76,7 @@ world's WorldIR (`ir`) and Prolog KB (`prologKb`). Wired in the factory's three 
   `homeResidenceId`), and `SPOUSE_OF` is symmetric so its endpoints are sorted.
   `world_edges` dedupes each `:TYPE` group on `(start, end)` and sorts it.
 - **`causesTruthIds`/`causedByTruthIds` do not exist in Insimul yet.** They are declared by
-  INSIMUL_SYNC_PLAN Appendix A row 10 and read forward-compatibly; an export without them
+  the Insimul bridge spec Appendix A row 10 and read forward-compatibly; an export without them
   yields no `CAUSED_BY` edges (a test pins that).
 - **World rules are registry entries, not records.** `world_rule_entries(export)` returns
   `datalog.registry.RegistryEntry`s at `layer = insimul-world`, `rule_id =
