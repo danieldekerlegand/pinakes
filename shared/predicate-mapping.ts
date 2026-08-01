@@ -1,7 +1,7 @@
 /**
  * Predicate-mapping registry — the machine-validated bridge contract between
  * pinakes's canonical node/edge vocabulary and the relation vocabularies of the
- * projects it bridges (Analyzer and Insimul).
+ * projects it bridges.
  *
  * **This file's JSON is a generated mirror, not a source.** The authoritative copy
  * lives in koine (`registry/predicate-mapping.json`, the `canonicalHome` block the
@@ -15,12 +15,12 @@
  * This module imports the mirror, pins its shape with an `as` assertion (its enum
  * string cells widen to `string` on JSON import, so a plain `satisfies` cannot narrow
  * them), and exposes typed accessors the bridge code (grounding-pack exporter, the
- * `analyzer`/`insimul` acquisition adapters, the Datalog/Neo4j/GraphRAG layer) builds on.
+ * per-project acquisition adapters, the Datalog/Neo4j/GraphRAG layer) builds on.
  * Structural drift in the JSON breaks `npm run check`; enum-/totality-level drift is
  * caught at runtime by {@link assertValidPredicateMapping} (exercised by the vitest
  * suite and wired into the convergence-QA drift gate).
  *
- * The registry encodes the Analyzer bridge spec Appendix A + the Insimul bridge spec Appendix A,
+ * The registry encodes each bridged project's sync-plan Appendix A,
  * the `sha256:`/`cs:` id-space rules, and the `t_start`/`t_end` ⇄ `time_start`/`time_end`
  * temporal-field map. Since registryVersion 0.3.0 the old single `portabilityClasses`
  * enum is split into the two orthogonal axes KGP 0.4.0 ruled distinct — **dialect**
@@ -118,7 +118,7 @@ export interface PendingSchemaAdditions {
 export interface ProjectMapping {
   readonly title: string;
   readonly sourceDoc: string;
-  /** The `registryVersion` this project's section was added at (absent for the lifted analyzer section). */
+  /** The `registryVersion` this project's section was added at (absent for the originally-lifted section). */
   readonly addedAt?: string;
   readonly direction: Readonly<Record<string, string>>;
   /** Prose about project-local entry fields (e.g. insimul's `sourceRow`). */

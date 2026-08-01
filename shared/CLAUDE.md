@@ -70,11 +70,11 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   (`scripts/corpus-tier-report.ts`), asserted against the live corpus by
   `data-quality-scorer.test.ts`; regenerate after a node-lexicon QID/URL coverage change.
 
-## Canonical schema v1.2 / v1.3 — the bridge vocabularies (analyzer + insimul US-003)
+## Canonical schema v1.2 / v1.3 — the bridge vocabularies
 
 `canonical-schema.json` is at **v1.3.0**. Two bridges own its post-1.1 additions:
 
-- **v1.2 (analyzer-bridge US-003)** — the `asset` node type (label `Asset`, the `sha256:`
+- **v1.2 (the media-analysis bridge)** — the `asset` node type (label `Asset`, the `sha256:`
   id-space; a content-addressed media node, technical props ride in overflow) and the
   `depicts`/`mentions` (`DEPICTS`/`MENTIONS`) edge types (`from: ["asset"]`, unconstrained `to`).
 - **v1.3 (insimul-bridge US-003)** — the generated-world vocabulary: `character` / `building` /
@@ -157,7 +157,7 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 
 The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of
-the projects pinakes bridges (`projects.analyzer`, `projects.insimul`). Same JSON + typed-accessor +
+the projects pinakes bridges (the `projects` block of the vendored koine registry). Same JSON + typed-accessor +
 runtime-validator shape as `canonical-schema`/`capability-manifest`, with one difference that
 governs how you edit it:
 

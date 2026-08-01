@@ -134,7 +134,7 @@ describe("canonical schema contract (US-001)", () => {
     }
   });
 
-  it("is schema v1.3.0 with the asset node type + depicts/mentions edges (analyzer-bridge US-003)", () => {
+  it("is schema v1.3.0 with the asset node type + depicts/mentions edges", () => {
     expect(CANONICAL_SCHEMA.version).toBe("1.3.0");
     // v1.2 adds the sha256-identified `asset` node + its personal-tier edges.
     expect(nodeTypeByName("asset")?.label).toBe("Asset");

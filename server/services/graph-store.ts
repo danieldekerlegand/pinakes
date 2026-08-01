@@ -301,8 +301,8 @@ async function runRead(
 // ── Public queries ──────────────────────────────────────────────────────────
 
 /**
- * Drop personal-tier (Analyzer) nodes and any edge touching one, unless the
- * `PERSONAL_TIER_ENABLED` flag is set (analyzer-bridge US-004). The proxy surfaces
+ * Drop personal-tier nodes and any edge touching one, unless the
+ * `PERSONAL_TIER_ENABLED` flag is set. The proxy surfaces
  * personal media facts only when the operator opts in; by default they stay
  * local-only. A no-op when the flag is on or the graph holds no personal node.
  */
@@ -621,7 +621,7 @@ function buildPath(result: QueryResult): GraphPath | null {
 
   // A shortest path that traverses a personal-tier node is not surfaced unless
   // the tier is enabled — a partial path would misrepresent the connection.
-  if (!isPersonalTierEnabled() && nodes.some(isPersonalNode)) return null;
+  if (!isPersonalTierEnabled() && nodes.some((node) => isPersonalNode(node))) return null;
 
   const rawRels = ((record.get("pathRels") as Neo4jRelationship[]) ?? []).filter(Boolean);
   const edges = rawRels.map((rel) => projectEdge(rel, csidByElementId));

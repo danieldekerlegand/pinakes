@@ -115,7 +115,7 @@ beforeEach(() => {
   process.env.NEO4J_URI = "bolt://localhost:7687";
   process.env.NEO4J_USER = "neo4j";
   process.env.NEO4J_PASSWORD = "test";
-  // Personal-tier gating defaults OFF (analyzer-bridge US-004); each test opts in.
+  // Personal-tier gating defaults OFF; each test opts in.
   delete process.env.PERSONAL_TIER_ENABLED;
 });
 
@@ -384,14 +384,14 @@ describe("findPath", () => {
   });
 });
 
-// ── personal-tier gating (analyzer-bridge US-004) ───────────────────────────────
+// ── personal-tier gating ───────────────────────────────
 
 describe("personal-tier gating", () => {
   const asset = () =>
     fakeNode("a1", ["Asset", "Entity"], {
       csid: "cs:asset:aaa",
       name: "beach.jpg",
-      source: "analyzer",
+      source: "my-files",
     });
   const place = () =>
     fakeNode("p1", ["Place", "Entity"], {
@@ -427,7 +427,7 @@ describe("personal-tier gating", () => {
         records: [
           record({
             nodes: [place(), asset()],
-            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "analyzer" })],
+            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "my-files" })],
           }),
         ],
       },
@@ -445,7 +445,7 @@ describe("personal-tier gating", () => {
         records: [
           record({
             nodes: [place(), asset()],
-            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "analyzer" })],
+            rels: [fakeRel("r1", "DEPICTS", "a1", "p1", { source: "my-files" })],
           }),
         ],
       },

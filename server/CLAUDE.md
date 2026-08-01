@@ -150,7 +150,7 @@ that goes red if the manifest widens past what `ml/src/pinakes_ml/kft.py` admits
   what "general" means on the wire. Clone-and-mutate that stub; never loosen the validator.
 - **Two sibling providers exist and are NOT built here** (koine program map, Tranche D):
   `agora:90-finetune-trainer` (the general, cloud-capable trainer — named on our manifest as
-  `x_specialization.general_provider`) and `cuneiform:90-finetune-client` (the KCB client that
+  `x_specialization.general_provider`) and an orchestrator-side finetune client (the KCB client that
   replaces `Runner::Stub` and *calls* this surface). Table + rationale in `docs/capability-bus.md`.
 - `/api/kcb/capabilities` now carries `specialization` on a narrow capability — the directory is
   a `describe` surface and FT-K is decided on that block, so a registry that discovered us there
@@ -984,16 +984,23 @@ privacy guarantee; the server only enriches non-identifying ids.
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 
-## Personal-tier gating in the graph proxy — `services/personal-tier.ts` (analyzer-bridge US-004)
+## Personal-tier gating in the graph proxy — `services/personal-tier.ts`
 
-The Analyzer bridge can load a user's own files into the shared graph as a **personal tier**
-(`:Asset` nodes, `source=analyzer`). The privacy invariant: they are local-only and must not
-surface through the browser-facing graph proxy unless the operator opts in.
+A deployment may load a user's own files into the shared graph as a **personal tier**
+(`:Asset` nodes plus a registered personal `source` token). The privacy invariant: they are
+local-only and must not surface through the browser-facing graph proxy unless the operator
+opts in.
 
 - **`personal-tier.ts` is pure** (`isPersonalTierEnabled(env)` — env flag `PERSONAL_TIER_ENABLED`,
   **off by default**, same shape as `isGraphCorrelationEnabled`; `isPersonalNode({labels,
-  properties})` — `Asset` label OR a `source=analyzer` token, handling merged `pinakes;analyzer`;
-  `filterPersonalNodes(nodes, enabled)`). Unit-tested in `personal-tier.test.ts`.
+  properties}, personalSources?)` — `Asset` label OR a `source` token naming a registered
+  personal producer, handling merged `pinakes;<producer>`; `filterPersonalNodes(nodes, enabled,
+  personalSources?)`). Unit-tested in `personal-tier.test.ts`.
+- **`PERSONAL_SOURCES` is EMPTY by default** — pinakes bundles no personal-tier producer, so
+  out of the box only the `Asset` label gates. A deployment that ingests its own private
+  material registers that adapter's source id (or passes a set through the two predicates).
+  This mirrors the Python `orchestrate.tiers.PERSONAL_SOURCES` exactly — the tier framework is
+  generic; the producers that fill it are a deployment concern.
 - **`graph-store.ts` applies it post-projection** at every node-surfacing query — `getNode`
   (→ null when personal & disabled), `getNodesByLabel`, `getGraphOverview`/`getNeighborhood`
   (via `gatePersonal`, which also **prunes edges** touching a dropped node), `getCorrelations`,

@@ -79,7 +79,7 @@ function job(over: JobOverrides = {}): Record<string, unknown> {
   const { modality = "text-generation", method = "qlora", datasetKind = "rule-sft", media } = over;
   return {
     kft_version: "0.3.0",
-    job: "cuneiform:activity:ft-run/route-1",
+    job: "orchestrator:activity:ft-run/route-1",
     base_model: "pinakes:model:qwen2.5-3b-instruct",
     modality,
     method,
@@ -216,7 +216,7 @@ describe("selectFinetuneProvider — the FT-K tiebreak (KFT §8/§9)", () => {
   });
 
   it("reports an explicit target that is not registered at all", () => {
-    const decision = selectFinetuneProvider({ job: job(), target: "formant:agent:trainer" }, REGISTRY);
+    const decision = selectFinetuneProvider({ job: job(), target: "composer:agent:trainer" }, REGISTRY);
     expect(decision.outcome).toBe("unroutable");
     expect(decision.reason).toContain("no such provider is registered");
   });
@@ -298,13 +298,13 @@ describe("selectFinetuneProvider — routing refusals mirror ml/ admission", () 
 
   it("ignores a manifest with no finetune capability at all", () => {
     const resolverOnly: ProviderManifest = {
-      identity: "cuneiform:agent:console",
+      identity: "orchestrator:agent:console",
       capabilities: CAPABILITY_MANIFEST.capabilities.filter((c) => c.name !== "finetune"),
     };
     const decision = selectFinetuneProvider({ job: job() }, [resolverOnly, PINAKES]);
     expect(decision.provider).toBe("pinakes:agent:resolver");
     expect(decision.rejected[0]).toMatchObject({
-      identity: "cuneiform:agent:console",
+      identity: "orchestrator:agent:console",
       code: "no-finetune-capability",
     });
   });
