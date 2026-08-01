@@ -16,7 +16,6 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from culturescrape.acquire.adapters import SourceAdapter
-from culturescrape.acquire.analyzer import ArgosExportAdapter
 from culturescrape.acquire.categories import CategorySpec
 from culturescrape.acquire.getty import GettyDumpAdapter
 from culturescrape.acquire.html import HtmlScrapeAdapter
@@ -48,7 +47,6 @@ _BUILDERS: dict[str, Callable[[HttpClient | None], SourceAdapter]] = {
     TabularDumpAdapter.name: lambda http: TabularDumpAdapter(),
     KaikkiAdapter.name: lambda http: KaikkiAdapter(),
     PinakesExportAdapter.name: lambda http: PinakesExportAdapter(),
-    ArgosExportAdapter.name: lambda http: ArgosExportAdapter(),
     InsimulWorldAdapter.name: lambda http: InsimulWorldAdapter(),
 }
 
@@ -75,7 +73,6 @@ for _cls in (
     TabularDumpAdapter,
     KaikkiAdapter,
     PinakesExportAdapter,
-    ArgosExportAdapter,
     InsimulWorldAdapter,
 ):
     _BY_SOURCE_TYPE[_cls.source_type] = (

@@ -102,7 +102,7 @@ corpus with no Analyzer ingest is unaffected (the tier is simply empty and omitt
   personal producer to the tier; never hard-code the string elsewhere — `is_personal_source`
   / `classify_tier` / the package gate all read this set.
 - Committed tiered-corpus manifest / fixtures are unchanged (they carry no personal rows).
-  Unit coverage: `tests/test_argos.py` (tier classification + the gate).
+  Unit coverage for the classifier + the gate lives in `tests/test_tiers.py`.
 
 ## Synthetic trust tier + containment gate — `tiers.py` (insimul-bridge US-003)
 
