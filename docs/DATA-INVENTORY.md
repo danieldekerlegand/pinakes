@@ -117,3 +117,30 @@ Python gates (need the `uv` env): `cd core && uv run pytest` and `cd ml && uv ru
 - `export/culturescrape/`, `ml/**` — the corpus seam and the ML island.
 - Test fixtures (`core/tests/fixtures/**`, `ml/fixtures/`) — belong with their tests.
 - `sources/` — gitignored external dumps, one code path.
+
+## Execution log (branch `chore/data-reorg`)
+
+All batches executed and committed. Verification per batch below.
+
+- **Batch A** ✅ — 10 orphans → `data/archive/`, deleted `data/cuisine/` dup,
+  `ATTRIBUTION.md` paths fixed. (Finding: the "orphans" are attributed CC-BY sources
+  pending TSV conversion, not junk — archived per decision, one rename from `data/source/`.)
+- **Batch B** ✅ — 5 runtime dirs → `data/runtime/` (empty on disk, no migration).
+  Verified: tsc clean, 103 service/route tests pass.
+- **Batch C** ✅ — contributions gitignored under `data/runtime/`, 4 unreferenced sample
+  JSONs → `data/archive/contributions/`. Verified: tsc clean, 38 tests pass. (Finding:
+  only 1 code literal, not the 6 the map estimated.)
+- **Batch D** ✅ — `haplogroups.txt`, `top_100_foods_by_cuisine.csv` → `data/source/`.
+  Verified: `convert-haplogroups.js` regenerates its TSV byte-identically. (Finding:
+  `convert-cuisines.js` is a stale one-shot — committed `cuisine-items.tsv` has hand-edits
+  it no longer reproduces; left as the source of truth, drift out of scope.)
+- **etymology-tree/** ✅ — removed (unreferenced Clojure subproject).
+- **Batch E** ✅ — 5 pipeline-input dirs → `core/inputs/`. Verified: core pytest held at
+  baseline **1922 passed / 41 skipped / 0 failed** after each sub-move; ml unaffected.
+
+### Separate loose end found (not caused by this reorg)
+
+- The earlier `linguascrape_ml`→`pinakes_ml` rename left `ml/.venv` without its `dev`
+  extra, so `uv run pytest` fell back to an isolated pytest that couldn't import the
+  package (phantom "22 collection errors"). Fixed with `uv sync --extra dev`; ml suite
+  then **475 passed / 8 skipped**. Consider `uv sync --extra dev` in the ml setup/CI docs.
