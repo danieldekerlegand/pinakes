@@ -19,7 +19,7 @@ from culturescrape.acquire.categories import (
 from culturescrape.ontology.registry import is_registered
 from culturescrape.orchestrate.generate import generate, load_blueprint
 
-BLUEPRINTS = Path(__file__).resolve().parent.parent / "blueprints"
+BLUEPRINTS = Path(__file__).resolve().parent.parent / "inputs" / "blueprints"
 
 
 def _blueprint_files() -> list[Path]:

@@ -13,4 +13,4 @@ categories:
 - ../categories/tabletop-games.yml
 - ../categories/traditional-games.yml
 - ../categories/toys.yml
-output_root: ../out/sports-games
+output_root: ../../out/sports-games

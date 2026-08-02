@@ -12,4 +12,4 @@ categories:
 - ../categories/cultivars.yml
 - ../categories/healing-traditions.yml
 - ../categories/folklore-creatures.yml
-output_root: ../out/living-traditions
+output_root: ../../out/living-traditions

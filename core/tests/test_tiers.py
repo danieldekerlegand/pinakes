@@ -46,7 +46,7 @@ from culturescrape.orchestrate.tiers import (
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = Path(__file__).parent / "fixtures" / "tiered"
 COMMITTED_MANIFEST = REPO_ROOT / "docs" / "tiered-corpus-manifest.json"
-LS_JOB = REPO_ROOT / "jobs" / "pinakes.yml"
+LS_JOB = REPO_ROOT / "inputs" / "jobs" / "pinakes.yml"
 LS_EXPORT = Path(__file__).parent / "fixtures" / "pinakes" / "export"
 
 

@@ -17,8 +17,8 @@ from culturescrape.ontology import validate_type
 from culturescrape.orchestrate import Job, load_job
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-JOBS_DIR = REPO_ROOT / "jobs"
-CATEGORIES_DIR = REPO_ROOT / "categories"
+JOBS_DIR = REPO_ROOT / "inputs" / "jobs"
+CATEGORIES_DIR = REPO_ROOT / "inputs" / "categories"
 
 #: Every shipped job spec, by name, so failures point at the offending file.
 SHIPPED_JOBS = sorted(JOBS_DIR.glob("*.yml"))

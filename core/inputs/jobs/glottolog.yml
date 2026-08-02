@@ -11,4 +11,4 @@ name: glottolog
 description: Glottolog languoid catalogue with DESCENDS_FROM genealogy.
 categories:
   - ../categories/glottolog.yml
-output_root: ../out/glottolog
+output_root: ../../out/glottolog

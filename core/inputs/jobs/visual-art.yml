@@ -17,4 +17,4 @@ categories:
 - ../categories/art-movements.yml
 - ../categories/etching-prints.yml
 - ../categories/lithograph-prints.yml
-output_root: ../out/visual-art
+output_root: ../../out/visual-art

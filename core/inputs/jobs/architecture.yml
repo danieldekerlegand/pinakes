@@ -17,4 +17,4 @@ categories:
 - ../categories/church-buildings.yml
 - ../categories/aqueducts.yml
 - ../categories/megalithic-tombs.yml
-output_root: ../out/architecture
+output_root: ../../out/architecture

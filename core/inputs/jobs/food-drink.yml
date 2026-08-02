@@ -17,4 +17,4 @@ categories:
 - ../categories/drinks.yml
 - ../categories/candies.yml
 - ../categories/wines.yml
-output_root: ../out/food-drink
+output_root: ../../out/food-drink

@@ -18,6 +18,6 @@ name: pinakes
 description: pinakes convergence — ingest its canonical nodes/edges export.
 categories:
   - ../categories/pinakes.yml
-output_root: ../out/pinakes
+output_root: ../../out/pinakes
 min_provenance_completeness: 0.0
 min_component_fraction: 0.5

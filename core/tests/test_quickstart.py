@@ -36,7 +36,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SEED_FIXTURES = Path(__file__).parent / "fixtures" / "seed-corpus"
 
 #: The bundled sample corpus the quickstart links, imports, exports, and queries.
-SAMPLE_CORPUS = REPO_ROOT / "datalog" / "examples" / "dataset"
+SAMPLE_CORPUS = REPO_ROOT / "inputs" / "datalog-examples" / "dataset"
 
 #: A category whose raw records the quickstart normalizes (§3, stage by stage).
 QUICKSTART_CATEGORY = "peruvian-dishes"
@@ -44,7 +44,7 @@ QUICKSTART_CATEGORY = "peruvian-dishes"
 #: The seed categories, derived from the shipped ``jobs/seed-corpus.yml`` so the
 #: quickstart smoke run mirrors the corpus the guide tells a reader to build.
 SEED_CATEGORY_IDS = tuple(
-    spec.id for spec in load_job(REPO_ROOT / "jobs" / "seed-corpus.yml").categories
+    spec.id for spec in load_job(REPO_ROOT / "inputs" / "jobs" / "seed-corpus.yml").categories
 )
 
 
@@ -74,7 +74,7 @@ def offline(monkeypatch: pytest.MonkeyPatch) -> None:
 def _write_seed_job(tmp_path: Path) -> Path:
     """Write the seed job pointing at the real categories but a temp output root."""
     categories = "".join(
-        f"  - {REPO_ROOT / 'categories' / f'{cid}.yml'}\n"
+        f"  - {REPO_ROOT / 'inputs' / 'categories' / f'{cid}.yml'}\n"
         for cid in SEED_CATEGORY_IDS
     )
     job = tmp_path / "seed.yml"
@@ -111,7 +111,7 @@ def test_run_the_pipeline_one_command(tmp_path: Path, offline: None) -> None:
 def test_normalize_and_validate_a_category(tmp_path: Path) -> None:
     """§3 — normalize a category's raw records, then validate the canonical TSV."""
     raw = SEED_FIXTURES / f"{QUICKSTART_CATEGORY}.jsonl"
-    category = REPO_ROOT / "categories" / f"{QUICKSTART_CATEGORY}.yml"
+    category = REPO_ROOT / "inputs" / "categories" / f"{QUICKSTART_CATEGORY}.yml"
     out = tmp_path / "normalize"
 
     assert cli.main(

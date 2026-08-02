@@ -177,7 +177,7 @@ def test_write_refresh_log_appends_one_line_per_run(tmp_path: Path) -> None:
 def _write_job(tmp_path: Path, *category_ids: str) -> Path:
     job = tmp_path / "job.yml"
     categories = "".join(
-        f"  - {REPO_ROOT / 'categories' / f'{cid}.yml'}\n" for cid in category_ids
+        f"  - {REPO_ROOT / 'inputs' / 'categories' / f'{cid}.yml'}\n" for cid in category_ids
     )
     job.write_text(
         "name: refresh-job\n"

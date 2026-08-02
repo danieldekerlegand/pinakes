@@ -17,4 +17,4 @@ categories:
 - ../categories/peace-treaties.yml
 - ../categories/insurgencies.yml
 - ../categories/genocides.yml
-output_root: ../out/conflicts
+output_root: ../../out/conflicts

@@ -10,4 +10,4 @@ categories:
 - ../categories/weapons.yml
 - ../categories/ceramics.yml
 - ../categories/currency.yml
-output_root: ../out/material-culture
+output_root: ../../out/material-culture

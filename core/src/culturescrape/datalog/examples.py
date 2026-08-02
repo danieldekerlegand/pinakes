@@ -2,9 +2,9 @@
 
 The fact projection (``nodes.py``, ``edges.py``) and the rule library
 (``rules.py``) make the logic program; this module makes it *usable on day one*.
-It pairs worked queries — shipped as ``.pl`` files under ``datalog/examples`` and
+It pairs worked queries — shipped as ``.pl`` files under ``inputs/datalog-examples`` and
 documented in ``docs/datalog.md`` — with a small self-contained dataset
-(``datalog/examples/dataset``) they run against, plus the harness that runs each
+(``inputs/datalog-examples/dataset``) they run against, plus the harness that runs each
 query in SWI-Prolog and the offline linter that checks the query files without an
 engine installed.
 
@@ -72,7 +72,7 @@ from culturescrape.datalog.rules import RULES
 from culturescrape.ontology.registry import relation_types
 
 #: Directory (relative to the repo root) holding the example query files.
-EXAMPLES_DIRNAME = "datalog/examples"
+EXAMPLES_DIRNAME = "inputs/datalog-examples"
 
 #: The bundled dataset the examples run against, under :data:`EXAMPLES_DIRNAME`.
 DATASET_DIRNAME = "dataset"
@@ -85,7 +85,7 @@ ENTRY_POINT = "main"
 class Example:
     """One shipped example query and its expected answer on the dataset.
 
-    *slug* is the query file's stem (``datalog/examples/<slug>.pl``). *title* and
+    *slug* is the query file's stem (``inputs/datalog-examples/<slug>.pl``). *title* and
     *focus* describe it for the docs (the relation or closure it showcases).
     *expected* is the set of answer rows ``main/0`` prints on the bundled dataset,
     one tuple per row — the output shape the harness asserts when ``swipl`` runs.
@@ -278,7 +278,7 @@ def repo_root() -> Path:
 
 
 def examples_dir(root: str | Path | None = None) -> Path:
-    """Return the ``datalog/examples`` directory, defaulting to the repo root."""
+    """Return the ``inputs/datalog-examples`` directory, defaulting to the repo root."""
     base = Path(root) if root is not None else repo_root()
     return base / EXAMPLES_DIRNAME
 

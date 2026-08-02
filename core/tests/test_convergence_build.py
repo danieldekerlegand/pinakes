@@ -27,7 +27,7 @@ from culturescrape.orchestrate.manifest import manifest_for_dataset
 from culturescrape.schema.validate import validate_directory
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-JOB_PATH = REPO_ROOT / "jobs" / "pinakes.yml"
+JOB_PATH = REPO_ROOT / "inputs" / "jobs" / "pinakes.yml"
 FIXTURE_EXPORT = REPO_ROOT / "tests" / "fixtures" / "pinakes" / "export"
 COMMITTED_MANIFEST = REPO_ROOT / "docs" / "convergence-manifest.json"
 
@@ -146,7 +146,7 @@ def test_parse_fraction_accepts_bounds_and_none() -> None:
 
 
 def test_load_job_rejects_an_out_of_range_fraction(tmp_path: Path) -> None:
-    category = REPO_ROOT / "categories" / "pinakes.yml"
+    category = REPO_ROOT / "inputs" / "categories" / "pinakes.yml"
     path = tmp_path / "bad.yml"
     path.write_text(
         "name: bad\n"

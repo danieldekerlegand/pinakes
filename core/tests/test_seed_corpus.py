@@ -15,7 +15,7 @@ from culturescrape.ontology import validate_type
 from culturescrape.orchestrate import Job, load_job
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-JOB_PATH = REPO_ROOT / "jobs" / "seed-corpus.yml"
+JOB_PATH = REPO_ROOT / "inputs" / "jobs" / "seed-corpus.yml"
 
 #: The domains the seed corpus must cover (acceptance criteria). The first five
 #: are the original multi-domain spread; the rest represent the corpus-expansion
@@ -49,7 +49,7 @@ def test_seed_job_covers_required_domains() -> None:
 
 @pytest.mark.parametrize("category_id", sorted(REQUIRED_CATEGORY_IDS))
 def test_each_seed_category_validates(category_id: str) -> None:
-    spec = load_category(REPO_ROOT / "categories" / f"{category_id}.yml")
+    spec = load_category(REPO_ROOT / "inputs" / "categories" / f"{category_id}.yml")
 
     assert isinstance(spec, CategorySpec)
     # Source: a known adapter type, with a query or params to drive it.

@@ -540,7 +540,7 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "job",
         type=Path,
-        help="path to the job .yml spec (e.g. jobs/seed-corpus.yml)",
+        help="path to the job .yml spec (e.g. inputs/jobs/seed-corpus.yml)",
     )
     run.add_argument(
         "--stages",
@@ -671,14 +671,14 @@ def _build_parser() -> argparse.ArgumentParser:
     gen.add_argument(
         "blueprint",
         type=Path,
-        help="path to the blueprint .yml (e.g. blueprints/world-cuisines.yml)",
+        help="path to the blueprint .yml (e.g. inputs/blueprints/world-cuisines.yml)",
     )
     gen.add_argument(
         "--out",
         type=Path,
-        default=Path("categories"),
+        default=Path("inputs/categories"),
         help="directory the generated category .yml files are written to "
-        "(default: categories/)",
+        "(default: inputs/categories/)",
     )
     gen.add_argument(
         "--job",
@@ -789,7 +789,7 @@ def _build_parser() -> argparse.ArgumentParser:
     merge.add_argument(
         "--out",
         type=Path,
-        default=Path("categories"),
+        default=Path("inputs/categories"),
         help="directory the generated category .yml files are written to",
     )
     merge.add_argument(
@@ -895,7 +895,7 @@ def _build_parser() -> argparse.ArgumentParser:
         nargs="+",
         type=Path,
         help="blueprint .yml file(s) whose wikidata_class stubs seed the slice "
-        "(e.g. blueprints/food-drink.yml blueprints/language.yml)",
+        "(e.g. inputs/blueprints/food-drink.yml inputs/blueprints/language.yml)",
     )
     build_slice_cmd.add_argument(
         "--out",

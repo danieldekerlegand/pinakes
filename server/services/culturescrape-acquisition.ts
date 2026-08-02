@@ -146,7 +146,7 @@ export function buildAcquisitionQuery(
 
 /**
  * Serialize a culture-scrape category spec (matching the shipped
- * `core/categories/*.yml` shape) for `culturescrape fetch`.
+ * `core/inputs/categories/*.yml` shape) for `culturescrape fetch`.
  */
 export function buildCategorySpecYaml(
   category: AcquisitionCategory,

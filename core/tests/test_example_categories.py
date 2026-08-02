@@ -10,7 +10,7 @@ import pytest
 
 from culturescrape.acquire import CategorySpec, load_category
 
-CATEGORIES = Path(__file__).resolve().parent.parent / "categories"
+CATEGORIES = Path(__file__).resolve().parent.parent / "inputs" / "categories"
 
 #: Every shipped example, with the ``source.type`` it is meant to demonstrate.
 EXPECTED_SOURCE_TYPES = {

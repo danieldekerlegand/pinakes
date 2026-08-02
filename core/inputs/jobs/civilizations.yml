@@ -11,4 +11,4 @@ categories:
 - ../categories/realms.yml
 - ../categories/dynasties.yml
 - ../categories/historical-countries.yml
-output_root: ../out/civilizations
+output_root: ../../out/civilizations

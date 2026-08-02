@@ -9,4 +9,4 @@ categories:
 - ../categories/materials.yml
 - ../categories/vehicles.yml
 - ../categories/machines.yml
-output_root: ../out/science-tech
+output_root: ../../out/science-tech

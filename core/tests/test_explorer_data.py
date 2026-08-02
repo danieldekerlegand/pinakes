@@ -21,7 +21,7 @@ from culturescrape.explorer.data import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SAMPLE = REPO_ROOT / "datalog" / "examples" / "dataset"
+SAMPLE = REPO_ROOT / "inputs" / "datalog-examples" / "dataset"
 #: A full job output root fixture: corpus/ TSV plus catalog.json, metrics.json,
 #: qa.json, and per-category reports under qa/.
 FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "explorer-corpus"

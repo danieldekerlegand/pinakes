@@ -28,7 +28,7 @@ from culturescrape.ontology.linguistic import LinguisticLinker
 from culturescrape.schema.mapper import map_records
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent.parent
-_SPEC_PATH = _PACKAGE_ROOT / "categories" / "kaikki.yml"
+_SPEC_PATH = _PACKAGE_ROOT / "inputs" / "categories" / "kaikki.yml"
 _FIXTURE = _PACKAGE_ROOT / "tests" / "fixtures" / "kaikki" / "etymology.jsonl"
 
 _FIXED_NOW = datetime(2026, 7, 13, tzinfo=UTC)

@@ -8,4 +8,4 @@ categories:
 - ../categories/dialects.yml
 - ../categories/alphabets.yml
 - ../categories/language-families.yml
-output_root: ../out/language
+output_root: ../../out/language

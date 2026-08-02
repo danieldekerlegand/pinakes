@@ -20,7 +20,7 @@ from culturescrape.ontology.linguistic import LinguisticLinker
 from culturescrape.schema.mapper import map_records
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent.parent
-_SPEC_PATH = _PACKAGE_ROOT / "categories" / "lexibank-abvd.yml"
+_SPEC_PATH = _PACKAGE_ROOT / "inputs" / "categories" / "lexibank-abvd.yml"
 
 
 def _spec():

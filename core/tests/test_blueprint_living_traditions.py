@@ -22,7 +22,7 @@ from culturescrape.orchestrate.generate import generate
 from culturescrape.orchestrate.jobs import load_job
 
 BLUEPRINT = (
-    Path(__file__).resolve().parent.parent / "blueprints" / "living-traditions.yml"
+    Path(__file__).resolve().parent.parent / "inputs" / "blueprints" / "living-traditions.yml"
 )
 
 # Each required slice of the domain, mapped to the stub id that covers it.

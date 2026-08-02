@@ -28,7 +28,7 @@ SWIPL = shutil.which("swipl")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 #: A ready-made corpus dataset shipped in the repo (nodes/ + edges/).
-SAMPLE = REPO_ROOT / "datalog" / "examples" / "dataset"
+SAMPLE = REPO_ROOT / "inputs" / "datalog-examples" / "dataset"
 #: A full job output root fixture: corpus/ TSV plus catalog/metrics/qa artifacts.
 FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "explorer-corpus"
 

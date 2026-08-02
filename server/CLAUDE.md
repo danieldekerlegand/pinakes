@@ -845,7 +845,7 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
 
 - **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
   (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
-  matching `core/categories/*.yml`) to a temp file and spawns
+  matching `core/inputs/categories/*.yml`) to a temp file and spawns
   `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
   `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
   `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the

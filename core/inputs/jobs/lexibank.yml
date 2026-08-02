@@ -20,5 +20,5 @@ name: lexibank
 description: Lexibank ABVD wordlist — forms keyed by glottocode with COGNATE_WITH cognate stars.
 categories:
   - ../categories/lexibank-abvd.yml
-output_root: ../out/lexibank
+output_root: ../../out/lexibank
 min_component_fraction: 0.0

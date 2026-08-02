@@ -9,4 +9,4 @@ categories:
 - ../categories/percussion-instruments.yml
 - ../categories/dance-types.yml
 - ../categories/songs.yml
-output_root: ../out/music
+output_root: ../../out/music

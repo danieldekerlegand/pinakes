@@ -30,7 +30,7 @@ FIXTURES = Path(__file__).parent / "fixtures" / "seed-corpus"
 #: the real ``jobs/seed-corpus.yml`` so the offline run mirrors what ships and a
 #: new seed domain is exercised here the moment it is added to the job.
 SEED_CATEGORY_IDS = tuple(
-    spec.id for spec in load_job(REPO_ROOT / "jobs" / "seed-corpus.yml").categories
+    spec.id for spec in load_job(REPO_ROOT / "inputs" / "jobs" / "seed-corpus.yml").categories
 )
 
 
@@ -61,7 +61,7 @@ def _write_seed_job(tmp_path: Path) -> Path:
     """Write a seed job pointing at the real categories but a temp output root."""
     job = tmp_path / "seed.yml"
     categories = "".join(
-        f"  - {REPO_ROOT / 'categories' / f'{cid}.yml'}\n"
+        f"  - {REPO_ROOT / 'inputs' / 'categories' / f'{cid}.yml'}\n"
         for cid in SEED_CATEGORY_IDS
     )
     job.write_text(

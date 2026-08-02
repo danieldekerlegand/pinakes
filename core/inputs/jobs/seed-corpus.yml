@@ -16,4 +16,4 @@ categories:
   - ../categories/inventions.yml               # science/technology domain (T8 corpus expansion)
   - ../categories/clothing.yml                 # material-culture/dress domain (T8 corpus expansion)
   - ../categories/traditional-festivals.yml    # living-traditions/nature domain (T8 corpus expansion)
-output_root: ../out/seed-corpus
+output_root: ../../out/seed-corpus

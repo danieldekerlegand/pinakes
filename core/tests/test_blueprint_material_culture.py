@@ -18,7 +18,7 @@ from culturescrape.orchestrate.generate import generate
 from culturescrape.orchestrate.jobs import load_job
 
 _ROOT = Path(__file__).resolve().parent.parent
-BLUEPRINT = _ROOT / "blueprints" / "material-culture.yml"
+BLUEPRINT = _ROOT / "inputs" / "blueprints" / "material-culture.yml"
 
 # Each required slice of the domain, mapped to the stub id that covers it.
 REQUIRED_CATEGORIES = {

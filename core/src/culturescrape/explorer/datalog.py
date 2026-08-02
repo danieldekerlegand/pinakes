@@ -1,7 +1,7 @@
 """Offline-capable Datalog/Prolog console for the explorer (T7-US-008).
 
 Mirrors :mod:`culturescrape.explorer.live`: the explorer reads the symbolic layer
-the same way it reads Neo4j. It lists the shipped ``datalog/examples/*.pl``
+the same way it reads Neo4j. It lists the shipped ``inputs/datalog-examples/*.pl``
 queries with their descriptions, projects the corpus to a ``graph.pl`` on demand,
 and runs a selected example — or an ad-hoc ``main/0`` goal — through SWI-Prolog,
 reusing :mod:`culturescrape.datalog.examples` for both running and linting.
@@ -33,7 +33,7 @@ from culturescrape.datalog.export import (
 
 @dataclass(frozen=True)
 class DatalogExample:
-    """One shipped ``datalog/examples/*.pl`` query, parsed for display.
+    """One shipped ``inputs/datalog-examples/*.pl`` query, parsed for display.
 
     *slug* is the query file's stem, *title* and *focus* its documented summary
     (from :data:`culturescrape.datalog.examples.EXAMPLES`), and *source* the full

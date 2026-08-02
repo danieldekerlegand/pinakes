@@ -1,14 +1,14 @@
 """Generate many category specs from one compact domain blueprint.
 
 Hand-writing a ``categories/<id>.yml`` per class does not scale to thousands of
-categories. A *blueprint* (``blueprints/<domain>.yml``) collapses that work: it
+categories. A *blueprint* (``inputs/blueprints/<domain>.yml``) collapses that work: it
 declares the defaults a whole domain shares (label, dimensions, links) once, then
 lists one short stub per category — usually just an id, a gloss, and a Wikidata
 class id. :func:`generate` expands every stub into a full, *validated*
 ``categories/<id>.yml`` (writing the SPARQL or PetScan config for you), and can
 emit a runnable ``jobs/<domain>.yml`` that runs the lot end to end.
 
-Blueprint schema (``blueprints/<domain>.yml``)::
+Blueprint schema (``inputs/blueprints/<domain>.yml``)::
 
     defaults:                         # optional; merged into every stub
       label: Dish;CulturalArtifact    # ;-separated Neo4j label set

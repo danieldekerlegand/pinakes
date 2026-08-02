@@ -35,7 +35,7 @@ from culturescrape.schema.pipeline import read_raw_records
 from culturescrape.schema.validate import validate_directory
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-JOB_PATH = REPO_ROOT / "jobs" / "seed-corpus.yml"
+JOB_PATH = REPO_ROOT / "inputs" / "jobs" / "seed-corpus.yml"
 FIXTURES = Path(__file__).parent / "fixtures" / "seed-corpus"
 
 #: Every seed category must have a recorded fixture for the offline run.

@@ -38,7 +38,7 @@ def test_committed_categories_stamp_the_expected_spdx_license(tmp_path: Path) ->
     the tabular-dump adapter offline over the committed fixture slices.
     """
     for name, expected in (("wals", "CC-BY-4.0"), ("phoible", "CC-BY-SA-3.0")):
-        spec = load_category(_PACKAGE_ROOT / "categories" / f"{name}.yml")
+        spec = load_category(_PACKAGE_ROOT / "inputs" / "categories" / f"{name}.yml")
         adapter = build_adapter(
             spec, http_factory=lambda: HttpClient(cache_dir=tmp_path)
         )

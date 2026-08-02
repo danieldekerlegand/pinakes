@@ -24,8 +24,8 @@ from culturescrape.orchestrate.generate import generate, iter_blueprints, load_b
 from culturescrape.orchestrate.jobs import Job, load_job
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BLUEPRINTS = sorted(iter_blueprints(REPO_ROOT / "blueprints"))
-SHIPPED_JOBS = sorted((REPO_ROOT / "jobs").glob("*.yml"))
+BLUEPRINTS = sorted(iter_blueprints(REPO_ROOT / "inputs" / "blueprints"))
+SHIPPED_JOBS = sorted((REPO_ROOT / "inputs" / "jobs").glob("*.yml"))
 #: The catalog count documented in docs/blueprints.md and README.md, summed over
 #: the twelve verified domains (the ``example`` worked example is excluded).
 DOCUMENTED_DOMAIN_CATEGORIES = 119

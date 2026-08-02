@@ -3,7 +3,7 @@
 # the committed 6-row fixture for a deterministic CI build.
 #
 # Run end to end (from the package root) with:
-#   npx --prefix .. tsx ../scripts/export-for-culturescrape.ts  # refresh the export
+#   npx --prefix .. tsx ../../scripts/export-for-culturescrape.ts  # refresh the export
 #   uv run culturescrape run jobs/pinakes-full.yml               # build the corpus
 #   uv run culturescrape validate out/pinakes-full/corpus        # schema-validate it
 #   uv run culturescrape package out/pinakes-full --out dist     # publish tar.gz + manifest
@@ -32,6 +32,6 @@ name: pinakes-full
 description: pinakes convergence (full) — ingest the live canonical export.
 categories:
   - ../categories/pinakes-full.yml
-output_root: ../out/pinakes-full
+output_root: ../../out/pinakes-full
 min_provenance_completeness: 0.0
 min_component_fraction: 0.12

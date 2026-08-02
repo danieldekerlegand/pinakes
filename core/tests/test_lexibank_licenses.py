@@ -34,7 +34,7 @@ def test_registry_is_keyed_per_dataset() -> None:
 
 
 def test_committed_abvd_category_stamps_the_registry_license() -> None:
-    spec = load_category(_PACKAGE_ROOT / "categories" / "lexibank-abvd.yml")
+    spec = load_category(_PACKAGE_ROOT / "inputs" / "categories" / "lexibank-abvd.yml")
     assert spec.source.params["license"] == license_for("abvd")
     assert spec.source.params["source"] == "lexibank-abvd"
 

@@ -20,5 +20,5 @@ name: kaikki
 description: kaikki.org Wiktionary etymology — wordforms with borrowed/derived/cognate edges.
 categories:
   - ../categories/kaikki.yml
-output_root: ../out/kaikki
+output_root: ../../out/kaikki
 min_component_fraction: 0.0

@@ -29,7 +29,7 @@ from culturescrape.ontology import registry
 from culturescrape.schema.categorize import CATEGORY_LABEL, TYPE_LABEL
 
 #: Directory (relative to the repo root) holding the example query files.
-QUERIES_DIRNAME = "cypher"
+QUERIES_DIRNAME = "inputs/cypher"
 
 #: Node labels the schema defines: the base/anchor labels plus the node kinds
 #: the ontology relates (each relation ``domain``/``range``, capitalized).

@@ -15,7 +15,7 @@ from culturescrape.ontology import lookup
 
 _SPEC_PATH = (
     Path(__file__).resolve().parent.parent
-    / "categories"
+    / "inputs" / "categories"
     / "derived-cocktails.yml"
 )
 
