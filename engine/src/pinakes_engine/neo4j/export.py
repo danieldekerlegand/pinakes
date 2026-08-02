@@ -24,7 +24,7 @@ type, exactly as the hand-written writers did:
 * relationships go to ``edges/<type>.tsv`` keyed on their ``:TYPE``.
 
 Every file carries the full canonical header (``headers.py`` /
-``shared/canonical-schema.json``) so typed property columns keep their ``:int`` /
+``contracts/canonical-schema.json``) so typed property columns keep their ``:int`` /
 ``:float`` suffixes and provenance columns are always present, and rows come back
 in canonical sort order (``csid`` for nodes; ``:START_ID, :END_ID, :TYPE`` for
 edges).

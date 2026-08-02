@@ -26,7 +26,7 @@ import type { ContributionSource, Contribution } from "./contribution-service";
 
 /**
  * Swim-lane keys — kept in sync with the client timeline
- * (`client/src/components/culture-profile/culture-evolution-timeline-utils.ts`
+ * (`web/src/components/culture-profile/culture-evolution-timeline-utils.ts`
  * `LANE_ORDER`). Redeclared here so the server has no client import.
  */
 export const TIMELINE_LANES = [

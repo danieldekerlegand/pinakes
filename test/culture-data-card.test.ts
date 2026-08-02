@@ -7,7 +7,7 @@ import {
   validateCardData,
   normalizeTags,
   type CultureDataCardData,
-} from "../client/src/components/shared/culture-data-card-utils";
+} from "../web/src/components/shared/culture-data-card-utils";
 
 describe("CultureDataCard utils - formatTimePeriod", () => {
   it("returns empty string when both start and end are null/undefined", () => {

@@ -25,7 +25,7 @@ APPEND to progress.txt (never replace, always append):
 - **Learnings for future iterations:**
   - Patterns discovered (e.g., "this codebase uses X for Y")
   - Gotchas encountered (e.g., "don't forget to update Z when changing W")
-  - Useful context (e.g., "the explorer adapters live in client/src/lib/visualization/adapters")
+  - Useful context (e.g., "the explorer adapters live in web/src/lib/visualization/adapters")
 ---
 ```
 
@@ -76,7 +76,7 @@ A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.ts
 
 ### Quality-check commands by area
 
-- **Web app** (`client/`, `server/`, `shared/` — React 18 + Vite + Express + vitest)
+- **Web app** (`web/`, `server/`, `contracts/` — React 18 + Vite + Express + vitest)
   - Typecheck: `npm run check` (runs `tsc`) — must be clean for the files you touched.
   - Tests (scope to the area you changed, e.g. a file or dir): `npx vitest run <path-you-touched>`
   - Run the app: `npm run dev`; with the graph sidecar + Neo4j: `npm run dev:full` (see docker-compose.yml, .env.example).
@@ -90,7 +90,7 @@ A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.ts
 
 - **Keep `main` clean.** Each PRD runs on its `ralph/<feature>` branch created from `main`. Never commit directly to `main`.
 - **TSV is the source of truth.** Data lives in `lexicons/*.tsv`, loaded by `server/tsv-storage.ts`. Prefer extending TSV + loaders over introducing a database.
-- **The explorer is adapter-driven.** New datasets become a `DatasetAdapter` in `client/src/lib/visualization/adapters/` (declare dimensions; the generic visualizations follow). Don't hand-build per-dataset panels.
+- **The explorer is adapter-driven.** New datasets become a `DatasetAdapter` in `web/src/lib/visualization/adapters/` (declare dimensions; the generic visualizations follow). Don't hand-build per-dataset panels.
 - **Shared graph = correlation system-of-record.** Relational/graph queries go through Neo4j (via the graph app-integration work) + pinakes-engine's Datalog; keep CPU-domain compute (linguistic distance, etymology) in TS. See `docs/engine-integration.md`.
 - **pinakes-engine is vendored, not upstream-linked.** Python-side convergence work lives under `engine/`; use its own toolchain (mypy/pytest/ruff).
 - **Commit message:** `feat: [Story ID] - [Story Title]`. End the commit body with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.

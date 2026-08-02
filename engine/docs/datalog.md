@@ -611,7 +611,7 @@ also loads the taxonomy closure the integrity rules negate over):
 
 Where P279/P2302 acquire rules from *Wikidata*, this layer compiles the **canonical
 schema's own constraints** — declared in
-[`shared/canonical-schema.json`](../../shared/canonical-schema.json) but never checked
+[`contracts/canonical-schema.json`](../../contracts/canonical-schema.json) but never checked
 logically until now. [`pinakes_engine.datalog.schema_constraints`](../src/pinakes_engine/datalog/schema_constraints.py)
 `extract`s each edge type's `from`/`to` allowed node types (resolved to `:LABEL`s), its
 declared `symmetric` flag and the schema-wide csid-uniqueness rule into the provenanced

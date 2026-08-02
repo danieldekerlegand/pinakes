@@ -255,7 +255,7 @@ _RELATION_TYPES: tuple[RelationType, ...] = (
     # Generated-world vocabulary (Insimul bridge, canonical schema v1.3 —
     # insimul-bridge US-003). Characters / buildings / businesses and their
     # genealogy, occupancy and causality edges; synthetic trust tier, world-scoped
-    # provenance (see shared/predicate-mapping.json insimul entries 9-15).
+    # provenance (see contracts/predicate-mapping.json insimul entries 9-15).
     RelationType(
         "PARENT_OF",
         Dimension.GENETIC,

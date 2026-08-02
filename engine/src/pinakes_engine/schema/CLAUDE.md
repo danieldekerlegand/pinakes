@@ -46,7 +46,7 @@ folds for the pinakes-specific ones — `ABSORBED_INTO→PART_OF`,
 `SYNCRETIZED_WITH→VARIANT_OF`, `SPLIT_FROM→DESCENDS_FROM`) must list **every** edge
 `:TYPE` the TS export can emit, or `_normalize_pinakes` rejects the whole build
 (`unknown pinakes edge :TYPE '<TOKEN>'`). The export's edge vocabulary lives on
-the TS side in `shared/canonical-schema.json` `edgeTypes[].type` — when a **new
+the TS side in `contracts/canonical-schema.json` `edgeTypes[].type` — when a **new
 canonical edge type** is added there (US-005 found `SPLIT_FROM` had been added to the
 schema but never registered here, silently breaking the full rebuild since), add the
 matching token to this map: identity if it names a registered ontology `:TYPE`
@@ -75,7 +75,7 @@ licence remains a **node-level** guarantee (the ingested records), and linker-de
 edges still inherit their source node's provenance minus licence. Filling it is a
 behaviour change, not a schema one.
 
-## The canonical header IS `shared/canonical-schema.json` — extensions go after it
+## The canonical header IS `contracts/canonical-schema.json` — extensions go after it
 
 `NodeSchema.canonical()` / `EdgeSchema.canonical()` are the repo-wide contract
 (`docs/canonical-schema.md`: "do not fork it") transcribed into `headers.py`, and the
@@ -92,7 +92,7 @@ contract's 28 node / 13 edge columns, pinakes-engine emitted 28 *different* node
 edge ones, so every byte-pinned TSV/neo4j test would have failed. Readers here are all
 header-keyed, so moving it out cost nothing — the linguistic linker still reads a real
 persisted column at `build_corpus` time. Need a new column? Add it to
-`shared/canonical-schema.json` first, or make it an extension.
+`contracts/canonical-schema.json` first, or make it an extension.
 
 ## Glottolog: two-key language reconciliation (`glottolog_reconcile.py`, US-001)
 

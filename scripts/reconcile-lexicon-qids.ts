@@ -34,8 +34,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
-import { nodeFiles } from "@shared/lexicon-mapping";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
+import { nodeFiles } from "@contracts/lexicon-mapping";
 import {
   buildEnrichment,
   readLexiconFile,

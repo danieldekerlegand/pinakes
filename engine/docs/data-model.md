@@ -86,7 +86,7 @@ One file per relationship type, Neo4j-import compatible:
 
 ### Canonical columns are the shared contract
 
-The two tables above are `shared/canonical-schema.json` — the single contract
+The two tables above are `contracts/canonical-schema.json` — the single contract
 `docs/canonical-schema.md` says not to fork — transcribed into
 `src/pinakes_engine/schema/headers.py` as `NodeSchema.canonical()` /
 `EdgeSchema.canonical()`. The embedded agora translation engine

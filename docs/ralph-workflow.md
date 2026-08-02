@@ -68,7 +68,7 @@ Before merging, `run-all.sh` runs only the checks for the areas the branch chang
 against `main`** — a check fails only on failures the branch *introduces* (pre-existing breakage on
 `main` never blocks a finished branch). Set `STRICT_VERIFY=1` to fail on any failure.
 
-- Web app (`client/`, `server/`, `shared/`): `npx tsc --noEmit` + `vitest run <changed specs>`
+- Web app (`web/`, `server/`, `contracts/`): `npx tsc --noEmit` + `vitest run <changed specs>`
 - pinakes-engine sidecar (`engine/`): `mypy src` + `pytest` + `ruff check .`
 
 ## Notes

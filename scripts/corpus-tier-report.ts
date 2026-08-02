@@ -26,7 +26,7 @@ import {
   buildCorpusTierReport,
   type CorpusTierReport,
 } from "../server/services/data-quality-scorer";
-import { trustTierMeta } from "@shared/trust-tier";
+import { trustTierMeta } from "@contracts/trust-tier";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -81,7 +81,7 @@ export function renderMarkdown(report: CorpusTierReport): string {
   }
   lines.push("");
   lines.push(
-    "*Tiers use the shared classifier (`shared/trust-tier.ts`), the TS mirror of " +
+    "*Tiers use the shared classifier (`contracts/trust-tier.ts`), the TS mirror of " +
       "pinakes-engine's `orchestrate/tiers.py` `classify_tier`. See the JSON report " +
       "for the machine-readable form.*",
   );

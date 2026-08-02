@@ -52,7 +52,7 @@ all you need.
 ## Refresh cadence
 
 - **On any lexicon or mapping change** that shifts the corpus shape (a new/edited
-  `lexicons/*.tsv` row, a `shared/lexicon-mapping.json` change, a new linker): re-run
+  `lexicons/*.tsv` row, a `contracts/lexicon-mapping.json` change, a new linker): re-run
   phases 1–2, then re-sync the committed fingerprints — `docs/convergence-manifest.json`
   (fixture build) and/or `docs/corpus-release-manifest.json` (full build). The snapshot
   tests fail in CI otherwise (see [The committed manifest](#the-committed-manifest)).
@@ -424,13 +424,13 @@ mapping work in [`engine-integration.md` §9](../../docs/engine-integration.md)
 followed by one full-pipeline refresh. The checklist:
 
 1. **Map & disposition the file** — add it to
-   [`shared/lexicon-mapping.json`](../../shared/lexicon-mapping.json) (a `kind` + a
+   [`contracts/lexicon-mapping.json`](../../contracts/lexicon-mapping.json) (a `kind` + a
    canonical `node`/`edge` type) and give every column a disposition, following the naming
    conventions in [`canonical-schema.md` §6](../../docs/canonical-schema.md). If it needs a
    node/edge type that doesn't exist yet, add it to
-   [`shared/canonical-schema.json`](../../shared/canonical-schema.json) **and** the §1/§2
+   [`contracts/canonical-schema.json`](../../contracts/canonical-schema.json) **and** the §1/§2
    tables in `canonical-schema.md` first. (Full steps: integration §9 items 1–4.)
-2. **Validate the mapping:** `npx vitest run shared/lexicon-mapping.test.ts` — asserts every
+2. **Validate the mapping:** `npx vitest run contracts/lexicon-mapping.test.ts` — asserts every
    `lexicons/*.tsv` is accounted for and every referenced column is real.
 3. **Re-export + refresh snapshots:** `npx tsx scripts/export-for-engine.ts`, then
    `npx tsx scripts/reconciliation-report.ts`; re-sync the committed

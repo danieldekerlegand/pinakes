@@ -26,7 +26,7 @@
  *
  * Identity: `csid` is minted deterministically (the id scheme's `cs:<type>:<local>`
  * format), so re-runs are byte-identical (idempotent). Per the `idScheme` in
- * `shared/canonical-schema.json`, a known Wikidata QID is the identity, so a row with a
+ * `contracts/canonical-schema.json`, a known Wikidata QID is the identity, so a row with a
  * non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (US-005); a row without one
  * falls back to `cs:<node-type>:<pinakes-id>`. Every row also retains its original
  * `pinakes_id` (the round-trip key for US-007). Edge endpoints are rewritten from
@@ -48,9 +48,9 @@ import {
   edgeHeaderRow,
   nodeTypeByName,
   CANONICAL_DELIMITER,
-} from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
-import { confidenceForClass } from "@shared/confidence-rubric";
+} from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
+import { confidenceForClass } from "@contracts/confidence-rubric";
 import { extractAllCanonicalEdges } from "../server/services/canonical-edges.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
@@ -370,7 +370,7 @@ export function deriveSourceUrl(...candidates: string[]): string {
 
 /**
  * Mint a deterministic canonical id (US-005). Per the `idScheme` in
- * `shared/canonical-schema.json`, a known Wikidata QID **is** the identity, so a row
+ * `contracts/canonical-schema.json`, a known Wikidata QID **is** the identity, so a row
  * carrying a non-blank `wikidata_qid` mints `cs:<node-type>:<QID>`; a row without one
  * falls back to the readable `cs:<node-type>:<pinakes-id>`. QID-anchoring makes
  * the same entity carry the same csid regardless of which pipeline exported it.

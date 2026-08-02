@@ -43,7 +43,7 @@ from pathlib import Path
 
 from pinakes_ml.triples import EXCLUDED_RELATIONS
 
-# --- Canonical export header columns (shared/canonical-schema.json) -------------
+# --- Canonical export header columns (contracts/canonical-schema.json) -------------
 
 # Node columns.
 _NODE_CSID = "csid:ID"
@@ -74,7 +74,7 @@ DATE_RELATION = "DATED"
 COORDINATE_RELATION = "LOCATED_AT"
 
 # One or more templates per edge :TYPE. ``{head}``/``{tail}`` are the node names.
-# Every non-derived edge type in shared/canonical-schema.json has an entry; a new
+# Every non-derived edge type in contracts/canonical-schema.json has an entry; a new
 # edge type without a template is caught by the coverage test.
 EDGE_TEMPLATES: dict[str, tuple[str, ...]] = {
     "DESCENDS_FROM": (

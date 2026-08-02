@@ -1,7 +1,7 @@
 """Tests for the confidence rubric (US-001).
 
 Verifies the Python priors are well-formed and — when the monorepo checkout is
-present — stay in lockstep with the shared ``shared/confidence-rubric.json`` that
+present — stay in lockstep with the shared ``contracts/confidence-rubric.json`` that
 the pinakes TypeScript side reads. The parity check is skipped (not failed)
 when the sibling JSON is absent, so the vendored package still tests standalone.
 """
@@ -20,7 +20,7 @@ from pinakes_engine.confidence import (
 )
 
 _SHARED_RUBRIC = (
-    pathlib.Path(__file__).resolve().parents[2] / "shared" / "confidence-rubric.json"
+    pathlib.Path(__file__).resolve().parents[2] / "contracts" / "confidence-rubric.json"
 )
 
 
@@ -50,14 +50,14 @@ def test_preserves_historical_acquisition_values() -> None:
 
 @pytest.mark.skipif(
     not _SHARED_RUBRIC.exists(),
-    reason="shared/confidence-rubric.json not present (standalone checkout)",
+    reason="contracts/confidence-rubric.json not present (standalone checkout)",
 )
 def test_matches_shared_json() -> None:
     shared = json.loads(_SHARED_RUBRIC.read_text())
     assert shared["version"] == RUBRIC_VERSION
     shared_priors = {name: entry["prior"] for name, entry in shared["classes"].items()}
     assert shared_priors == dict(CONFIDENCE_PRIORS), (
-        "Python priors drifted from shared/confidence-rubric.json"
+        "Python priors drifted from contracts/confidence-rubric.json"
     )
     # The Python mapping is ordered most- to least-trusted, mirroring the JSON `order`.
     assert list(CONFIDENCE_PRIORS.keys()) == list(shared["order"])

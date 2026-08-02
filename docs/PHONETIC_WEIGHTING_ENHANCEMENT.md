@@ -90,7 +90,7 @@ Body: {
 
 Validation updated to include `'ipa-weighted'` in valid modes.
 
-### UI Enhancement: `client/src/components/linguistic-distance-analyzer.tsx`
+### UI Enhancement: `web/src/components/linguistic-distance-analyzer.tsx`
 
 **New Button in Phonetic Encoding Selector:**
 
@@ -255,7 +255,7 @@ console.log(`Cognates: ${result.lexical.sharedCognates}`);
 
 - `server/services/linguistic-distance-calculator.ts` (+4 imports, type updates)
 - `server/routes.ts` (validation array updated)
-- `client/src/components/linguistic-distance-analyzer.tsx` (4-button layout)
+- `web/src/components/linguistic-distance-analyzer.tsx` (4-button layout)
 - `LINGUISTIC_DISTANCE_FEATURE.md` (documentation)
 
 ## Build Status

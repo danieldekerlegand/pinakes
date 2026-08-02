@@ -42,4 +42,4 @@ Every lexicon row is human-curated, so in the shared graph the whole app corpus 
 | urheimat-hypotheses.tsv | urheimat-hypothesis | 24 | 0 |
 | writing-systems.tsv | writing-system | 115 | 68 |
 
-*Tiers use the shared classifier (`shared/trust-tier.ts`), the TS mirror of pinakes-engine's `orchestrate/tiers.py` `classify_tier`. See the JSON report for the machine-readable form.*
+*Tiers use the shared classifier (`contracts/trust-tier.ts`), the TS mirror of pinakes-engine's `orchestrate/tiers.py` `classify_tier`. See the JSON report for the machine-readable form.*

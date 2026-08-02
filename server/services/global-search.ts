@@ -26,7 +26,7 @@ import * as pinakes_engine from "./engine-client";
 import type { SearchHit } from "./engine-client";
 import { getGraphResolver } from "./graph-resolver";
 import type { GraphResolver } from "./graph-resolver";
-import type { TrustTier } from "@shared/trust-tier";
+import type { TrustTier } from "@contracts/trust-tier";
 
 /** Where a search result originated: the local TSV corpus or the shared graph. */
 export type SearchSource = "local" | "graph";

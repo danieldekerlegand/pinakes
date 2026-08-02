@@ -13,10 +13,10 @@
  * document is produced through the SDK's `AgentCard` codec (`fromJSON`→`toJSON`), so
  * it is a validated, spec-shaped AgentCard rather than a hand-rolled JSON blob.
  *
- * **Surface wrapper only** (server/CLAUDE.md + shared/CLAUDE.md): the card advertises
+ * **Surface wrapper only** (server/CLAUDE.md + contracts/CLAUDE.md): the card advertises
  * every capability on the manifest as an A2A skill — the three KCB §6 ones
  * (`resolve`/`reconcile`/`query`) plus the specialized KFT `finetune` provider
- * (90-US-3) — with descriptions/tags mirroring `shared/capability-manifest.json`, and
+ * (90-US-3) — with descriptions/tags mirroring `contracts/capability-manifest.json`, and
  * points its invocation url at the `/mcp` surface US-1 stood up. Nothing here
  * resolves, reconciles, queries or trains anything — a crawler that pulls ONLY this
  * card recovers the full KCB §2 manifest from the extension `params` (including the
@@ -31,7 +31,7 @@ import {
   AGENT_CARD_PATH,
 } from "@a2a-js/sdk";
 
-import { CAPABILITY_MANIFEST } from "@shared/capability-manifest";
+import { CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
 import { configuredOrigin } from "../services/capability-registry";
 
 /** Where the A2A agent-card is served (mirrors `endpoints.a2a`; SDK path + leading `/`). */

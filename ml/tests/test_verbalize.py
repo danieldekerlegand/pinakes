@@ -304,7 +304,7 @@ def test_load_nodes_is_header_driven(export_dir: Path) -> None:
 # --- Template-coverage gate: every non-derived edge type has a template --------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 def _is_personal_tier_edge(edge_type: dict) -> bool:

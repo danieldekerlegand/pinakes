@@ -24,7 +24,7 @@ describe("scanForSecrets", () => {
     const files: ScanFile[] = [
       { path: "server/routes.ts", content: "export const port = 5000;\n" },
       {
-        path: "client/src/lib/scraping.ts",
+        path: "web/src/lib/scraping.ts",
         content: "const url = '/api/translate';\nconst key = process.env.FOO;\n",
       },
     ];

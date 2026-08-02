@@ -1,6 +1,6 @@
-"""The canonical header is ``shared/canonical-schema.json``'s, not a fork.
+"""The canonical header is ``contracts/canonical-schema.json``'s, not a fork.
 
-``docs/canonical-schema.md`` names ``shared/canonical-schema.json`` the single
+``docs/canonical-schema.md`` names ``contracts/canonical-schema.json`` the single
 data contract and says not to fork it, but :mod:`pinakes_engine.schema.headers`
 transcribes the column tuples rather than loading them — the contract lives at
 the monorepo root, outside this package, and a standalone checkout still has to
@@ -39,12 +39,12 @@ from pinakes_engine.schema.mapper import OVERFLOW_KEY, node_schema
 
 #: The monorepo's shared contract, absent in a standalone pinakes-engine checkout.
 CANONICAL_SCHEMA_JSON = (
-    Path(__file__).resolve().parents[2] / "shared" / "canonical-schema.json"
+    Path(__file__).resolve().parents[2] / "contracts" / "canonical-schema.json"
 )
 
 _needs_contract = pytest.mark.skipif(
     not CANONICAL_SCHEMA_JSON.exists(),
-    reason="shared/canonical-schema.json not present (standalone checkout)",
+    reason="contracts/canonical-schema.json not present (standalone checkout)",
 )
 
 

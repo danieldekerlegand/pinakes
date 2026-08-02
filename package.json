@@ -15,13 +15,14 @@
     "convergence-qa:baseline": "tsx scripts/convergence-qa.ts --write-baseline",
     "regen:registry-mirror": "tsx scripts/regen-registry-mirror.ts",
     "check:registry-mirror": "tsx scripts/regen-registry-mirror.ts --check",
-    "test:e2e": "playwright test",
+    "test": "vitest run --config web/vitest.config.ts",
+    "test:e2e": "playwright test --config web/playwright.config.ts",
     "secret-scan": "tsx scripts/secret-scan.ts",
     "secret-scan:staged": "tsx scripts/secret-scan.ts --staged",
     "prepare": "git config core.hooksPath .githooks || true",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build --config web/vite.config.ts && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
-    "check": "tsc"
+    "check": "tsc -p web/tsconfig.json"
   },
   "dependencies": {
     "@a2a-js/sdk": "^1.0.0",

@@ -32,7 +32,7 @@
  * **Assertions are the reconciliation anchors.** Each QID-bearing entity yields one
  * `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim whose `id` is
  * minted by the NORMATIVE KGP §3 normalization over the shared relation registry
- * (`@shared/kgp`), so the same anchor asserted by another producer mints the same claim
+ * (`@contracts/kgp`), so the same anchor asserted by another producer mints the same claim
  * id and merges. `links` stays empty: KINP's reserved equivalence/lifecycle relations
  * (`same_as`/`retracts`/…) are not what a grounding snapshot emits.
  *
@@ -64,9 +64,9 @@ import {
   CANONICAL_SCHEMA,
   nodeProvenanceColumns,
   nodeTypeByName,
-} from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
-import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@shared/capability-manifest";
+} from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
+import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@contracts/capability-manifest";
 import {
   KGP_VERSION,
   KGP_PRODUCER,
@@ -83,7 +83,7 @@ import {
   type LicensePolicy,
   type PackElement,
   type PackKind,
-} from "@shared/kgp";
+} from "@contracts/kgp";
 import {
   mintCsid,
   normaliseConfidence,
@@ -279,7 +279,7 @@ export function assertLicenseColumn(
       "grounding-pack: canonical schema v" +
         CANONICAL_SCHEMA.version +
         ' declares no per-record "license" provenance column, so license-class filtering' +
-        " cannot be enforced. Upgrade shared/canonical-schema.json to v1.1+ (the" +
+        " cannot be enforced. Upgrade contracts/canonical-schema.json to v1.1+ (the" +
         " scale-ready-conversion US-003 SPDX column) before exporting a grounding pack.",
     );
   }

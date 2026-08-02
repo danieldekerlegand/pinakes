@@ -235,7 +235,7 @@ include_constraints=True)`.
 ## Schema-constraint violation rules (rules-layer US-003)
 
 `schema_constraints.py` compiles the **canonical schema's own** constraints
-(`shared/canonical-schema.json` edge `from`/`to`, `symmetric`, csid-uniqueness) into
+(`contracts/canonical-schema.json` edge `from`/`to`, `symmetric`, csid-uniqueness) into
 Soufflé **violation rules** — the schema analogue of `constraints.py`. Same self-contained
 pattern: `extract_edge_constraints()` reads the schema (repo-root `parents[4]/shared/...`,
 absent in a standalone checkout) and resolves each node-type *name* → `:LABEL`, baking them

@@ -187,7 +187,7 @@ Prolog KB) carries characters, buildings and businesses plus their genealogy, oc
 and causality edges, and the `insimul` acquisition adapter lands them in the **synthetic
 trust tier** (world-scoped provenance, proprietary licence — hard-gated out of every
 open-data release; see the Insimul bridge spec and
-[`shared/predicate-mapping.json`](../../shared/predicate-mapping.json) `projects.insimul`
+[`contracts/predicate-mapping.json`](../../contracts/predicate-mapping.json) `projects.insimul`
 entries 9–15).
 
 | `:TYPE` | dom → rng | sym | trans | Inference rule | Test |

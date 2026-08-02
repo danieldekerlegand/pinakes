@@ -16,7 +16,7 @@
  * `KCB_REGISTRY_URL` (unset = no registry, publish is a no-op), `KCB_REGISTRY_TIMEOUT_MS`,
  * and `PINAKES_PUBLIC_ORIGIN` for the absolute URLs the registry hands out.
  */
-import { capabilityManifestFor, type CapabilityManifest } from "@shared/capability-manifest";
+import { capabilityManifestFor, type CapabilityManifest } from "@contracts/capability-manifest";
 import { signManifestForServing } from "./manifest-signing";
 
 /** Default publish timeout, in ms. */

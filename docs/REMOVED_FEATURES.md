@@ -81,7 +81,7 @@ neither of which was imported by any route), the stub `db:push` / `db:generate` 
 scripts, and the `drizzle-orm` / `drizzle-zod` / `drizzle-kit` / `pg` / `@neondatabase/serverless`
 / `connect-pg-simple` / `express-session` dependencies. Persistence is TSV + Neo4j + files;
 there is no `DATABASE_URL` any more. The record shapes the geospatial converters still need
-moved to `shared/types.ts` as plain TypeScript types.
+moved to `contracts/types.ts` as plain TypeScript types.
 
 ## Supported API Endpoints
 

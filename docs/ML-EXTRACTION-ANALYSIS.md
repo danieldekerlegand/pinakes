@@ -17,7 +17,7 @@ aligns Pinakes back to its stated mission and fits the koine/agora producer↔co
 fabric model that the rest of the ecosystem already follows. The cost is bounded and known:
 the corpus handoff plus **three contract files** that become vendored-with-drift-gate mirrors.
 
-**But gate it on one thing:** how settled `shared/canonical-schema.json` and the datalog
+**But gate it on one thing:** how settled `contracts/canonical-schema.json` and the datalog
 `rules_registry.tsv` are. If those are still churning weekly, keep `ml/` in-repo a while
 longer — every change would otherwise need a cross-repo drift-gate roundtrip. If they've
 stabilized, extract now.
@@ -41,13 +41,13 @@ fabric. It is `1.1 GB` on disk (mostly `.venv` + DVC-materialized `ml/data`/`ml/
 |---|---|---|---|
 | `build/corpus/` corpus | DVC tree | triples, verbalize, kgqa, eval_kgqa, scallop | **the seam** |
 | `build/corpus.dvc` (md5) | git | train_baselines (records corpus version) | pointer |
-| `shared/canonical-schema.json` | git | consistency, kgqa, queries, train_baselines, train_scallop (6 modules) | **contract** |
+| `contracts/canonical-schema.json` | git | consistency, kgqa, queries, train_baselines, train_scallop (6 modules) | **contract** |
 | `engine/src/pinakes_engine/datalog/rules_registry.tsv` | git | export_scallop (`DEFAULT_REGISTRY`) | **contract** |
 | `engine/tests/fixtures/insimul/world-export.json` | git | export_insimul_datasets (`DEFAULT_WORLDS`), eval_rule_adherence | fixture-as-input |
 
 Plus `ml/tests/test_lib_export.py` drives the loaders over `engine/`'s committed golden export
 fixtures (`engine/tests/fixtures/parity/golden/neo4j-export/`). Nothing in `engine/`, `server/`,
-or `client/` reads *into* `ml/` — the dependency is strictly one-directional (ml → engine/shared),
+or `web/` reads *into* `ml/` — the dependency is strictly one-directional (ml → engine/shared),
 which is what makes extraction clean.
 
 ## Case FOR extraction

@@ -1,6 +1,6 @@
 # Schema-constraint violations (rules-layer US-003)
 
-The canonical schema ([`shared/canonical-schema.json`](../../shared/canonical-schema.json))
+The canonical schema ([`contracts/canonical-schema.json`](../../contracts/canonical-schema.json))
 declares, per edge type, which node `:LABEL`s its endpoints may carry (`from` / `to`),
 whether the type is `symmetric`, and — schema-wide — that a `csid` identifies exactly one
 node. [`pinakes_engine.datalog.schema_constraints`](../src/pinakes_engine/datalog/schema_constraints.py)
@@ -34,7 +34,7 @@ two ways — both a schema change with snapshot regeneration, out of scope for t
 that only *surfaces* the mismatch:
 
 1. **Widen the schema** — add `writing-system` to `descended-from`'s `from`/`to` in
-   `shared/canonical-schema.json` (script genealogy is a legitimate descent). Then the
+   `contracts/canonical-schema.json` (script genealogy is a legitimate descent). Then the
    violations drop to 0 and the baseline is re-ratcheted downward.
 2. **Retype the edges** — mint a dedicated `script-derived-from` edge type for writing-system
    genealogy and re-point the `writing-systems.tsv` edges to it.
@@ -62,4 +62,4 @@ hand-written `rules.py` library under one governed `proposed → active → reti
 today every schema rule is `active` (the schema is the source of truth, so its constraints are
 always in force). Regenerate both `datalog/schema/edge_constraints.tsv` and
 `datalog/schema/rules_registry.tsv` together after a schema change (a test ties the first to
-`shared/canonical-schema.json` and the second to the generator).
+`contracts/canonical-schema.json` and the second to the generator).

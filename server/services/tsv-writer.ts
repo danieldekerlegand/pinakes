@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Language, LanguageFamily } from "@shared/types";
+import type { Language, LanguageFamily } from "@contracts/types";
 import type { TradeGood, TradeRoute } from "../tsv-storage";
 
 export interface WordListEntry {

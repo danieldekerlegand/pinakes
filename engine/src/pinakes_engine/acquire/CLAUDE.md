@@ -38,7 +38,7 @@ Headers are the typed Neo4j-import form; it parses them with `schema/headers.py`
 presence of `:LABEL` vs `:TYPE`. The `pinakes_id` alias column rides through in
 `fields` for round-trip. Fixture export: `tests/fixtures/pinakes/export/`. Producer +
 schema live on the TS side (`scripts/export-for-engine.ts`,
-`shared/canonical-schema.ts`); see `docs/reconcile-pinakes.md`.
+`contracts/canonical-schema.ts`); see `docs/reconcile-pinakes.md`.
 
 ## insimul `CanonicalWorldExport` adapter (`insimul`, insimul-bridge US-003)
 

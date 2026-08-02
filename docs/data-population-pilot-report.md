@@ -58,7 +58,7 @@ That acquired set was reconciled against the 89 curated civilizations
 - **Every added row carries full provenance.** All 81 appended rows have `wikidata_qid`,
   `source_url` (`http://www.wikidata.org/entity/<QID>`), `retrieved_at` (acquisition ISO-8601),
   `confidence = 1.0`, and a bibliographic `sources = ["Wikidata"]`. Four provenance columns were
-  added to `civilizations.tsv` and mapped in `shared/lexicon-mapping.json`; existing curated rows
+  added to `civilizations.tsv` and mapped in `contracts/lexicon-mapping.json`; existing curated rows
   carry them blank.
 - **QA gate passes.** The convergence QA gate is green: provenance coverage 0.999 (≥0.5 floor),
   `dup=0`, `dangling=0`, 0 drift. Python gate green throughout (ruff/mypy clean, pytest 1488

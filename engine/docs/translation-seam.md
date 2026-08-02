@@ -154,7 +154,7 @@ same graph over the same schema, the schema is a *parameter*, never baked into R
 - **Schema/vocab as config.** The node `:LABEL` set, edge `:TYPE` set, and the typed
   property columns (with their `MULTI_VALUE_KEYS`) are passed in as a config object.
   The Python side reads them from `NodeSchema.canonical()` / `EdgeSchema.canonical()`
-  and `shared/canonical-schema.json`; those stay Pinakes-authored (US-3).
+  and `contracts/canonical-schema.json`; those stay Pinakes-authored (US-3).
 - **TSV codec.** `encode`/`decode` mirroring `write_rows` / `read_rows` /
   `open_rows` (`tsvio.py`), preserving the escape table and the two sort orders
   above exactly. `open_rows` is the *streaming* reader (header eager, rows lazy) the
@@ -293,11 +293,11 @@ sources:
   `edge_schema = EdgeSchema.canonical()`, `neo4j/export.py:175-176`) — a Bucket-1
   translator reaching for Pinakes vocab. In the port this becomes the injected schema
   config (Bucket 1 §1b), authored by Pinakes.
-- **`shared/canonical-schema.json`** (repo root) — the machine-readable edge-type
+- **`contracts/canonical-schema.json`** (repo root) — the machine-readable edge-type
   declaration `datalog/schema_constraints.py` reads at
-  `Path(__file__).resolve().parents[4] / "shared" / "canonical-schema.json"`
+  `Path(__file__).resolve().parents[4] / "contracts" / "canonical-schema.json"`
   (`schema_constraints.py:67`). **The schema lives on the TS side**:
-  `shared/canonical-schema.ts` (+ `.test.ts`) is the source of truth, the `.json` its
+  `contracts/canonical-schema.ts` (+ `.test.ts`) is the source of truth, the `.json` its
   generated artifact — so the canonical vocab already lives *in the pinakes monorepo*,
   outside `pinakes-engine`. `pinakes:50` keeps authoring it; `agora` consumes the
   `.json` as config.
@@ -315,7 +315,7 @@ emitters optionally splice in is Pinakes rule/vocab data and stays behind:
 | --- | --- | --- |
 | `datalog/rules.py:RULES` (`rules.py:346`) | `RULES: tuple[Rule, ...]` — curated inference rules (`ancestor`, `same_region`, temporal closures). | Inference *content*, not a translator. |
 | `datalog/constraints.py` (P2302) | Compiles the committed P2302 replay artifact into integrity rules. | Wikidata-derived domain axioms. |
-| `datalog/schema_constraints.py` | Compiles `shared/canonical-schema.json` edge-type declarations into violation rules. | Reads the Pinakes-owned schema (§2b). |
+| `datalog/schema_constraints.py` | Compiles `contracts/canonical-schema.json` edge-type declarations into violation rules. | Reads the Pinakes-owned schema (§2b). |
 | `datalog/registry.py:active_curated_rules` (`registry.py:570`) | Reads the committed `rules_registry.tsv` (`REGISTRY_TSV`, `registry.py:64`) — the provenanced rule library. | The registry is Pinakes-authored rule data. |
 | `datalog/taxonomy.py` (P279) | Projects the `subclass_of.tsv` replay artifact into `subclass_of/2` facts. | Wikidata P279 taxonomy content. |
 
@@ -337,7 +337,7 @@ Nothing in Bucket 2 physically moves — `pinakes-engine` **stays vendored in `p
 leave for `agora`: `acquire/*` (Wikidata acquisition, incl. dump-slice + P279 + P2302),
 `schema/{reconcile,mapper,merge,normalize,pipeline}.py` + the `*_reconcile` family
 (reconciliation/correspondences), `explorer/*` (viz), `schema/headers.py`
-(`NodeSchema`/`EdgeSchema` canonical vocab) + `shared/canonical-schema.json` (the
+(`NodeSchema`/`EdgeSchema` canonical vocab) + `contracts/canonical-schema.json` (the
 Pinakes-owned schema it keeps authoring), and the Datalog inference content
 (`rules.py`, `constraints.py`, `schema_constraints.py`, `registry.py`, `taxonomy.py`).
 `pinakes:50` can act on this list without re-reading the source.
@@ -468,15 +468,15 @@ here as a concrete API change: **no ruleset is a hard-coded Rust constant**.
 ### (c) `schema_constraints.py` reaches the canonical schema on the TS side
 
 `datalog/schema_constraints.py` reads the canonical edge-type declaration from the repo
-root at `Path(__file__).resolve().parents[4] / "shared" / "canonical-schema.json"`
+root at `Path(__file__).resolve().parents[4] / "contracts" / "canonical-schema.json"`
 (`schema_constraints.py:67`) — a Bucket-1-adjacent module reaching *out of* `pinakes-engine`
-and up to the monorepo `shared/` tree, where `canonical-schema.ts` is the source of truth
+and up to the monorepo `contracts/` tree, where `canonical-schema.ts` is the source of truth
 and the `.json` its generated artifact (Bucket 2 §2b). A `parents[4]` filesystem walk is
 exactly the kind of host-layout assumption a domain-neutral engine must not carry.
 
 **Resolution:** the canonical schema/vocab is **injected as config** (Bucket 1 §1b) — the
 Rust engine receives the edge-type declaration as a parameter, never walks the filesystem
-for `shared/canonical-schema.json`. Pinakes (`pinakes:50`) keeps authoring the schema and
+for `contracts/canonical-schema.json`. Pinakes (`pinakes:50`) keeps authoring the schema and
 supplies it; `agora` consumes it. (This coupling is also why `schema_constraints.py` itself
 stays PINAKES-SPECIFIC, §2c — only the *compiled* violation clauses cross as data per (b).)
 
@@ -497,7 +497,7 @@ the schema as a parameter; a vocab change is a config change, never a Rust chang
 | --- | --- | --- | --- |
 | (a) | Tier filter → Pinakes trust-tier source vocab | `export.py:104` lazy `import … orchestrate.tiers.{is_personal_source,is_synthetic_source}`; `tier_row_filter` `:85` | Caller-supplied `keep_row` predicate; no `orchestrate` import |
 | (b) | Emitter mixes generic projection + Pinakes rules | `include_rules`/`include_constraints`/`include_schema_constraints` `export.py:271-273`; `attach_rules` `:329` | Rulesets pass as caller-supplied data, not Rust constants |
-| (c) | Schema constraints read `shared/canonical-schema.json` | `schema_constraints.py:67` `parents[4] / "shared" / "canonical-schema.json"` | Schema injected as config; no filesystem walk |
+| (c) | Schema constraints read `contracts/canonical-schema.json` | `schema_constraints.py:67` `parents[4] / "contracts" / "canonical-schema.json"` | Schema injected as config; no filesystem walk |
 | (d) | Neo4j codec binds `NodeSchema/EdgeSchema.canonical()` | `neo4j/export.py:175-176` | Schema injected as config parameter |
 
 Every entanglement resolves the same way: **content and vocab that today reach into the
@@ -553,7 +553,7 @@ modules simply revert to plain Pinakes code (nothing physically moves, §2d):
   family.
 - **Explorer viz** — `explorer/*` (`app.py:create_app`, `server.py:run_server`, + plumbing).
 - **Canonical schema/vocab it keeps authoring** — `schema/headers.py`
-  (`NodeSchema.canonical()`/`EdgeSchema.canonical()`) + `shared/canonical-schema.{ts,json}`
+  (`NodeSchema.canonical()`/`EdgeSchema.canonical()`) + `contracts/canonical-schema.{ts,json}`
   (the TS-side source of truth, §2b); supplied to `agora` as config.
 - **Datalog inference content** — `datalog/rules.py:RULES`, `constraints.py` (P2302),
   `schema_constraints.py`, `registry.py:active_curated_rules` (+ committed `rules_registry.tsv`),

@@ -35,7 +35,7 @@ import {
 } from "./capability-bus";
 import { generateSigningKeyPair, verifyManifestSignature } from "../services/manifest-signing";
 import { publishCapabilityManifest } from "../services/capability-registry";
-import type { CapabilityManifest } from "@shared/capability-manifest";
+import type { CapabilityManifest } from "@contracts/capability-manifest";
 import type { PublishResult } from "../services/capability-registry";
 
 /** The origin the provider absolutizes its dialable addresses against. */

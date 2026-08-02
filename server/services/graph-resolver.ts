@@ -29,8 +29,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { nodeTypeByName } from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { nodeTypeByName } from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");

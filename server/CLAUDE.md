@@ -35,7 +35,7 @@ asserted against the live corpus by `data-quality-scorer.test.ts`. Add a domain 
 `ROADMAP_TARGETS` and regenerating the committed report.
 
 US-004 added a **tier composition** section: `computeCorpusTiers(files)` (pure) + `buildCorpusTierReport
-(lexiconsDir)` classify every node-lexicon row by trust tier via the shared `@shared/trust-tier`
+(lexiconsDir)` classify every node-lexicon row by trust tier via the shared `@contracts/trust-tier`
 `classifyTrustTier`, so `/api/data-quality` `tierComposition` surfaces corpus size + quality by tier.
 Because auto-admission never writes lexicons, the whole app corpus is `curated` (`graphTier`); the
 `byTier` breakdown is **auto-admission readiness** (classify each curated row by its own provenance —
@@ -84,7 +84,7 @@ file avoids editing the large, already-error-heavy `routes.ts` body.
 `GET /.well-known/kcb-manifest.json` (+ `/api/kcb/manifest`) publishes Pinakes's Koine
 capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
 `/api/kcb/status` the registration outcome. The manifest itself is
-`@shared/capability-manifest` (`shared/CLAUDE.md`); full contract in `docs/capability-bus.md`.
+`@contracts/capability-manifest` (`contracts/CLAUDE.md`); full contract in `docs/capability-bus.md`.
 
 - **Nothing here implements a capability.** The routes serve a document that *points at*
   already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/culturescrape`,
@@ -194,10 +194,10 @@ key and makes the upstream call. Full posture: `docs/SECURITY.md`.
   `{text,to,from?}` reads `GOOGLE_TRANSLATE_API_KEY` (never a `VITE_` var). Network is behind an
   injectable `TranslateDeps` + injectable key so tests use a fake upstream and **no real key**.
   **Optional-key pattern** (like `GEONAMES_USERNAME`): no key ⇒ **503** and the client
-  (`client/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
+  (`web/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
   502 upstream failure.
 - **Invariant guards** (`server/security/{gemini,translate}-proxy.test.ts`) scan `.env.example`
-  + all `client/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
+  + all `web/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
   explanatory comments must not contain the literal `VITE_*` / provider-endpoint strings, or the
   guard fails on itself — reword them.
 
@@ -266,9 +266,9 @@ radius). The response also carries a `geojson` FeatureCollection for the map ove
   (`geometry.coordinates` `[lng,lat]`) + settlements (flat `latitude`/`longitude`). **500** only on a
   loader throw. These leads are **distinct from the curated `urheimat-hypotheses` dataset**
   (`DISTINCT_FROM_CURATED` note; never overwrite it). Client entry: the `/hypotheses` page
-  (`client/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
+  (`web/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
   with uncertainty** (radius = `uncertaintyRadiusKm`); the styling math is pure in
-  `client/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
+  `web/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
 
 ## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
 
@@ -360,7 +360,7 @@ US-010 (this PRD) adds a preservation-status dashboard + an attributed field-upd
   `changelog` as the other pipelines in `registerRoutes`); tests use an in-memory loader + temp-dir
   `ContributionService`/`ChangelogStore` (no storage/fs). **400** validation, **404** unknown
   `languageId` (the route loads languages to enrich name/currentStatus + reject unknown ids). Client
-  entry: the `/endangered-languages` page (`client/src/pages/endangered-languages.tsx`), linked in
+  entry: the `/endangered-languages` page (`web/src/pages/endangered-languages.tsx`), linked in
   `AppSidebar` (`ShieldAlert`).
 
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
@@ -398,7 +398,7 @@ top of the contribution queue. Endpoints (all open, unguarded):
   `isSteward` into `confirm`. Confirm status codes: **200** ok, **400** missing reviewer
   / self-confirm, **404** unknown, **409** duplicate reviewer. Client entry: a "Confirm"
   button + verification badges in the Review tab of
-  `client/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
+  `web/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
   (adopt-a-culture form + list).
 
 ## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
@@ -492,7 +492,7 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
   Python/network/Zenodo). Wired in `registerRoutes` sharing the same `changelog` + a
   `createZenodoDoiMinter()`. **These endpoints are NOT in `docs/openapi.json`** (the spec-parity
   test only covers what's declared there — no regen needed). Client entry: the `/living-dataset`
-  page (`client/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
+  page (`web/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
 
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
@@ -534,7 +534,7 @@ domains + formats.
   `properties.civilizationId`, site id = `properties.siteId`). The entity URL is derived
   from the request host + `urlPath`. Streams `attachment; filename="<slug>.<ext>"`; **404**
   unknown domain/id, **400** unknown format. Client entry: a "Cite" dropdown
-  (`client/src/components/culture-profile/cite-button.tsx`) next to the Export button in
+  (`web/src/components/culture-profile/cite-button.tsx`) next to the Export button in
   `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
 
 ## Canonical per-entity URLs — `services/entity-resolver.ts` + `routes/entity-resolver.ts`
@@ -542,7 +542,7 @@ domains + formats.
 `GET /api/entity/:domain/:id` (US-009) resolves a **permanent** entity id to its
 canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:` id,
 `citable`, an optional richer `viewPath`). `GET /api/entities` lists the domains + the
-`/entity/:domain/:id` template. Backs the client landing page `client/src/pages/entity.tsx`.
+`/entity/:domain/:id` template. Backs the client landing page `web/src/pages/entity.tsx`.
 
 - **The id ⇄ path mapping is pure** (`entity-resolver.ts`, no fs/express/storage):
   `ENTITY_DOMAINS` registry (kebab domain → `{label, entityType, citable, citationDomain?,
@@ -631,7 +631,7 @@ reuse for any "author geometry in-app" feature:
   pattern as collections/annotations.
 - For `language-range`, `associatedEntityId` is mirrored into
   `entityData.languageId` to satisfy that type's required fields.
-- Client entry point is `client/src/components/visualizations/BoundaryDrawingPanel
+- Client entry point is `web/src/components/visualizations/BoundaryDrawingPanel
   .tsx` (uses the existing `useDrawingTool` hook); it posts the `DrawnGeometryInput`
   shape (geometry + target + associatedEntityId + timePeriodStart/End).
 
@@ -659,7 +659,7 @@ copy it for any "author temporal data in-app" feature:
   in the service instead.
 - Route takes an **injectable** `ContributionService`; test points it at a
   `mkdtempSync` dir (same as collections/drawn-geometry).
-- Client entry point: `client/src/components/visualizations/TimelineEventAuthoringPanel
+- Client entry point: `web/src/components/visualizations/TimelineEventAuthoringPanel
   .tsx` (a clickable SVG axis reusing `culture-evolution-timeline-utils`
   `xToYear`/`yearToX`), mounted via an "Add entry" toggle in
   `culture-profile/culture-evolution-timeline-section.tsx`.
@@ -674,7 +674,7 @@ it into `cultural-lineages.tsv`. Same pure-service + injectable-route shape as
 timeline-event/drawn-geometry — differences to know:
 
 - **Vocabulary is the canonical edge vocabulary**, not a local list:
-  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@shared/canonical-schema`
+  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@contracts/canonical-schema`
   `CANONICAL_SCHEMA.edgeTypes` (14 kebab names + Neo4j tokens). Reuse it for any
   "pick a relationship type" UI so authored edges stay export-compatible.
 - **Dedup is enforced server-side against corpus + queue.** The route builds the
@@ -691,7 +691,7 @@ timeline-event/drawn-geometry — differences to know:
   temp dirs (seed a `cultural-lineages.tsv` in the temp lexicons dir to exercise
   corpus dedup). Added `relationship` to `ContributionEntityType` +
   `REQUIRED_FIELDS` (`["sourceId","targetId","relationshipType"]`).
-- Client entry: `client/src/components/visualizations/RelationshipBuilderPanel.tsx`
+- Client entry: `web/src/components/visualizations/RelationshipBuilderPanel.tsx`
   (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
   a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
 
@@ -724,7 +724,7 @@ contributor confirms one via `POST /api/relationships/edge` (US-003).
   time). The default existing-edge loader is wrapped in try/catch — a missing lexicons dir
   degrades to "no exclusions", never a 500.
 - Client entry: a "Suggested for <entity>" section in
-  `client/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
+  `web/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
   source is chosen; each row shows the target, canonical type, confidence, and rationale
   chips, with a **Use** button that only *pre-fills* the composer (the contributor still
   clicks Create). The client query treats a 404 as "no suggestions".
@@ -833,7 +833,7 @@ extractor notes) actually happens.
   where `fields` is `Record<field, {decision:'accept'|'edit'|'reject', value?}>`. **200**
   with the updated view (`promotion` populated on approve); **400** on bad decision /
   missing reviewer / rejected-required-field / non-promotable type; **404** for an unknown
-  or non-AI draft. Client entry: the `/ai-review` page (`client/src/pages/ai-review.tsx`),
+  or non-AI draft. Client entry: the `/ai-review` page (`web/src/pages/ai-review.tsx`),
   linked in `AppSidebar`.
 
 ## pinakes-engine Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
@@ -879,7 +879,7 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   **Route test hook:** `onJobSettled(jobId, result, error)` lets a test await the
   background job deterministically instead of polling. POST returns **202**; **400**
   on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
-  Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
+  Acquisition" card in `web/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
 
 ## Open Context / tDAR archaeological acquisition — adapters in `services/archaeological-site-scraper.ts` + `routes/archaeological-acquisition.ts`
 
@@ -912,7 +912,7 @@ lists them. Same background-job + contribution-queue shape as pinakes-engine
   fire-and-forget, maps `onProgress`. **Route test hook:** `onJobSettled(jobId,
   result, error)` awaits the background job deterministically. POST returns **202**;
   **400** on unknown source / non-positive limit. Client entry: the "Archaeological
-  Sites (Open Context / tDAR)" card in `client/src/pages/scraper-dashboard.tsx`.
+  Sites (Open Context / tDAR)" card in `web/src/pages/scraper-dashboard.tsx`.
 
 ## Place resolution — `services/place-resolver.ts`
 
@@ -959,7 +959,7 @@ The module is **pure + dependency-free** (structural GeoJSON types, no Express/s
 import) so it is trivially unit-tested. Gotchas: features whose geometry yields no bounds
 (geometry-less/malformed) are conservatively **kept**, never dropped; a missing/garbage
 bbox is a no-op (full layer). Client side sends the bbox via the React Query key, not a
-manual fetch — see `client/src/lib/visualization/map-performance.ts` `viewportParams()`.
+manual fetch — see `web/src/lib/visualization/map-performance.ts` `viewportParams()`.
 
 ## Faceted global search — `services/global-search.ts`
 
@@ -988,7 +988,7 @@ counts (per `entityType` + `source`) and filter params live in pure helpers:
 file was reduced to *in the browser* (only the ids — never the raw genotypes — are sent)
 and returns the languages/cultures/cuisines that ancestry is associated with, plus fixed
 caveats. `GET /api/ancestry/haplogroups` lists the reference haplogroups. The raw-DNA
-**parser + haplogroup inference are client-side** (`client/src/lib/dna/*`) — that is the
+**parser + haplogroup inference are client-side** (`web/src/lib/dna/*`) — that is the
 privacy guarantee; the server only enriches non-identifying ids.
 
 - **The mapping is pure** in `genetic-linguistic-correlation.ts` (`mapHaplogroupsToAncestry(ids,
@@ -1008,7 +1008,7 @@ privacy guarantee; the server only enriches non-identifying ids.
   minimal shape from live storage: haplogroups/families/languages/civilizations[.properties]/
   cuisines) so route tests run with in-memory fakes — no storage/fs. **400** on
   missing/empty `haplogroupIds`. Client entry: the `/ancestry` page
-  (`client/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
+  (`web/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 

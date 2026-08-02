@@ -1,7 +1,7 @@
-"""Typed node/edge headers matching ``shared/canonical-schema.json``.
+"""Typed node/edge headers matching ``contracts/canonical-schema.json``.
 
 :meth:`NodeSchema.canonical` / :meth:`EdgeSchema.canonical` are the repo-wide
-canonical contract — the one ``shared/canonical-schema.json`` declares and
+canonical contract — the one ``contracts/canonical-schema.json`` declares and
 ``docs/canonical-schema.md`` says not to fork. The embedded agora translation
 engine (``pinakes_engine.translation``) renders *that* header, so any drift here
 silently breaks byte-parity with it; ``tests/test_canonical_schema_parity.py``
@@ -217,7 +217,7 @@ class NodeSchema:
 
     @classmethod
     def canonical(cls) -> NodeSchema:
-        """The full canonical node header (``shared/canonical-schema.json``).
+        """The full canonical node header (``contracts/canonical-schema.json``).
 
         Column order is the contract's ``node.columns`` order, verbatim — see
         the module docstring on why it is transcribed rather than loaded, and
@@ -282,7 +282,7 @@ class EdgeSchema:
 
     @classmethod
     def canonical(cls) -> EdgeSchema:
-        """The full canonical edge header (``shared/canonical-schema.json``).
+        """The full canonical edge header (``contracts/canonical-schema.json``).
 
         As with :meth:`NodeSchema.canonical`, this is the contract's
         ``edge.columns`` order verbatim.

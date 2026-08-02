@@ -12,7 +12,7 @@ import {
   publishCapabilityManifest,
 } from "./capability-registry";
 import { generateSigningKeyPair, verifyManifestSignature } from "./manifest-signing";
-import type { CapabilityManifest } from "@shared/capability-manifest";
+import type { CapabilityManifest } from "@contracts/capability-manifest";
 
 const ENV_KEYS = [
   "KCB_REGISTRY_URL",

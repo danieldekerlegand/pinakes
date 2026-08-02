@@ -12,7 +12,7 @@ import {
   loadEnrichmentFile,
 } from "./import-from-engine";
 import { buildExport, writeExport } from "./export-for-engine";
-import { CANONICAL_SCHEMA } from "@shared/canonical-schema";
+import { CANONICAL_SCHEMA } from "@contracts/canonical-schema";
 
 /** Write a `{ file: rows[][] }` map of TSVs into a fresh temp lexicons dir. */
 function makeFixtureDir(files: Record<string, string[][]>): string {

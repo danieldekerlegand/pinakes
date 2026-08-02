@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import type { Language, LanguageFamily } from "@shared/types";
+import type { Language, LanguageFamily } from "@contracts/types";
 
 export type QuestionType = "multiple_choice" | "drag_sort" | "map_click";
 export type Difficulty = "easy" | "medium" | "hard";

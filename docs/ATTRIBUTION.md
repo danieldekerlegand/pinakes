@@ -22,7 +22,7 @@ sources and are never overwritten by acquisition (Guiding Principle #8).
 Every fact in the shared graph carries a **trust tier** — the graph-corpus policy that
 decides which facts auto-admit vs. quarantine (Phase 3 of the neurosymbolic roadmap). The
 tier is *derived* (never a stored column) from the provenance columns above via the shared
-classifier `shared/trust-tier.ts` (the TS mirror of pinakes-engine's
+classifier `contracts/trust-tier.ts` (the TS mirror of pinakes-engine's
 `orchestrate/tiers.py` `classify_tier`), most-to-least trusted:
 
 - **`curated`** — human-vetted through the pinakes lexicon gate (`source = pinakes`).
@@ -37,7 +37,7 @@ Because auto-admission **never writes `lexicons/*.tsv`**, the whole app-facing c
 `tierComposition`) instead tracks **auto-admission readiness** — how much of the curated corpus
 is independently QID-anchored + reference-backed (would auto-admit on its own merits). The
 explorer detail panel + graph search results surface the tier alongside the provenance display
-(`ProvenanceBadge`/`ProvenanceList`/`TrustTierBadge` over `client/src/lib/graph/provenance.ts`).
+(`ProvenanceBadge`/`ProvenanceList`/`TrustTierBadge` over `web/src/lib/graph/provenance.ts`).
 
 ---
 

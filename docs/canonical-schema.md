@@ -1,8 +1,8 @@
 # Canonical Node/Edge Schema — the shared data contract
 
 **Status:** Ratified (US-001) · **Last updated:** 2026-07-02
-**Machine-readable source of truth:** [`shared/canonical-schema.json`](../shared/canonical-schema.json)
-(typed + validated by [`shared/canonical-schema.ts`](../shared/canonical-schema.ts)).
+**Machine-readable source of truth:** [`contracts/canonical-schema.json`](../contracts/canonical-schema.json)
+(typed + validated by [`contracts/canonical-schema.ts`](../contracts/canonical-schema.ts)).
 
 This is the single canonical model both **pinakes-engine** (Python pipeline) and
 **pinakes** (TypeScript app) target so that a language, an archaeological culture,
@@ -14,8 +14,8 @@ contracts are pinakes-engine's typed Neo4j-import headers
 and [`docs/data-model.md`](../engine/docs/data-model.md)) so pinakes
 exports are import-compatible with `neo4j-admin import` **without transformation**.
 
-> **How to consume it.** Import from `@shared/canonical-schema` in TS. On the Python
-> side, `shared/canonical-schema.json` is the artifact to validate exported node/edge
+> **How to consume it.** Import from `@contracts/canonical-schema` in TS. On the Python
+> side, `contracts/canonical-schema.json` is the artifact to validate exported node/edge
 > TSV headers against. Both repos read the *same file*; do not fork it.
 
 > **Which way the mirror points (pinakes:50).** This file leads and `headers.py`
@@ -148,7 +148,7 @@ The Prolog term form (KINP §3.3) follows mechanically: `id(ent, pinakes, 'langu
 ## 4. Column contract
 
 The exact header rows are emitted by `nodeHeaderRow()` / `edgeHeaderRow()` in
-`@shared/canonical-schema`. Headers use Neo4j's CSV conventions but **tab-delimited**:
+`@contracts/canonical-schema`. Headers use Neo4j's CSV conventions but **tab-delimited**:
 a structural cell (`csid:ID`, `:LABEL`, `:START_ID`, `:END_ID`, `:TYPE`) or a property
 cell `name` / `name:int` / `name:float`.
 
@@ -232,8 +232,8 @@ pulls stamped `1.0`, HTML scraping `0.5`, the named-in linker `0.95` — so a pr
 consumer would have learned from **fake uncertainty**. The **confidence rubric** replaces
 those literals with a single, documented table of per-provenance-class priors.
 
-- **Source of truth:** `shared/confidence-rubric.json` (typed accessors in
-  `shared/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
+- **Source of truth:** `contracts/confidence-rubric.json` (typed accessors in
+  `contracts/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
   `confidenceCellForClass(...)`; `assertValidConfidenceRubric()` pins it well-formed).
   pinakes-engine mirrors it in `engine/src/pinakes_engine/confidence.py`
   (`confidence_for(cls)`), kept in lockstep by `tests/test_confidence.py`.
@@ -268,25 +268,25 @@ human-curated lexicon rows that carry no explicit `confidence` are **grandfather
 `legacy-curated` prior (the export default) rather than back-filled: re-deriving confidence
 for the thousands of pre-rubric rows is out of scope for US-001, and the corpus-merge job
 (US-002) is where lexicon rows earn a real tier. Re-calibrating any tier is now a one-line
-edit to `shared/confidence-rubric.json` (+ the Python mirror), after which the affected
+edit to `contracts/confidence-rubric.json` (+ the Python mirror), after which the affected
 acquire scripts re-emit and the snapshots are regenerated.
 
 ## 5. Validation
 
-- **Compile time:** `shared/canonical-schema.ts` asserts the JSON against the
+- **Compile time:** `contracts/canonical-schema.ts` asserts the JSON against the
   `CanonicalSchema` type, so structural drift breaks `npm run check`.
 - **Runtime:** `assertValidCanonicalSchema()` checks every column's `type`/`role`, the
   structural columns per family, and that each provenance name resolves to a real
-  column. Covered by `shared/canonical-schema.test.ts`.
-- **Python side:** validate exported headers against `shared/canonical-schema.json`
+  column. Covered by `contracts/canonical-schema.test.ts`.
+- **Python side:** validate exported headers against `contracts/canonical-schema.json`
   before ingestion (US-004/US-008).
 
 ## 6. Per-lexicon mapping table (US-002)
 
 The mapping from each of the 57 `lexicons/*.tsv` to a canonical node/edge type is ratified
-here and, machine-readably, in [`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json)
-(typed accessors in `shared/lexicon-mapping.ts`; totality + real-column checks in
-`shared/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
+here and, machine-readably, in [`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json)
+(typed accessors in `contracts/lexicon-mapping.ts`; totality + real-column checks in
+`contracts/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
 human-readable summary — the JSON carries the full column-by-column disposition.
 
 ### 6.1 File `kind`s
@@ -397,7 +397,7 @@ into `lat`/`lon` by the export (US-004). Loose `associated_*` id lists are kept 
 
 ### 6.5 Columns with no canonical home
 
-Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
+Handled two ways (see `contracts/lexicon-mapping.json` for the per-column list):
 
 - **Kept as property** — the majority: domain-specific descriptive columns
   (e.g. `pottery_style`, `word_order`, `deity_pantheon`), loose `associated_*` id lists,
@@ -430,7 +430,7 @@ A committed snapshot of the manifest lives at
 [`docs/engine-export-manifest.json`](./engine-export-manifest.json).
 
 - **Headers** are the exact typed Neo4j-import rows from §4, so the output validates
-  against `shared/canonical-schema.json` (asserted by `scripts/export-for-engine.test.ts`).
+  against `contracts/canonical-schema.json` (asserted by `scripts/export-for-engine.test.ts`).
 - **Identity** — `csid` is minted deterministically as `cs:<node-type>:<pinakes-id>`;
   every row keeps its original id in `pinakes_id` (the US-007 round-trip key). Edge
   `:START_ID`/`:END_ID` are rewritten from pinakes ids to the csids of exported nodes.
@@ -595,13 +595,13 @@ a schema-drift check.
   a **renamed canonical column** surfaces here as a mapping `target` pointing at a field that no
   longer exists;
 - `canonical-column-missing` — a canonical **provenance** column the export writes disappeared;
-- `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `shared/lexicon-mapping.json`;
+- `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `contracts/lexicon-mapping.json`;
 - `missing-source-column` — a mapped column that no longer exists in its live TSV header.
 
 **2. Attribution** (`detectAttributionGaps`) — every **acquisition-imported** row must carry full
 provenance. A row is imported iff its `wikidata_qid`-mapped cell is non-blank; each such row must
 have a non-blank `source`, `source_url`, `retrieved_at`, and `confidence` (the columns are named
-per file by `shared/lexicon-mapping.json`, so this generalises across domains). It reads the
+per file by `contracts/lexicon-mapping.json`, so this generalises across domains). It reads the
 **lexicons** (source of truth) — *not* the canonical export, which force-blanks
 `source_url`/`retrieved_at`. Files with no `wikidata_qid` mapping have no imported rows (all
 curated seed) and are skipped.

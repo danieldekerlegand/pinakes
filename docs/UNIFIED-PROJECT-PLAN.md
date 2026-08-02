@@ -90,8 +90,8 @@ pinakes/
 | `server/` (TS) | `services/api/src/pinakes/` | **rewritten** in Python; Node/Express/Drizzle deleted |
 | `core/` (`culturescrape`) | `engine/src/pinakes_engine/` | renamed; kept + absorbed |
 | `core/inputs/` | `engine/inputs/` | moves with the engine |
-| `client/` | `web/` | stays TS; root TS configs move in with it |
-| `shared/` | `contracts/` | + generated Python bindings |
+| `client/` | `web/` | stays TS; root TS configs move in with it — **done** (20 US-2) |
+| `shared/` | `contracts/` | + generated Python bindings — move **done** (20 US-2); bindings still to come |
 | `lexicons/` (top-level) | `data/source/lexicons/` | free to move now (readers rewritten) |
 | `scripts/` (TS) | `tooling/` | heavily culled; acquisition scripts fold into the engine |
 | `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed — `export/culturescrape` → `build/corpus` **done** (20 US-1) |
@@ -131,7 +131,7 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 ## 9. Concrete first steps (Phase 0)
 1. Remove DVC + Drizzle/pg (safe, independent, immediate clutter reduction).
 2. Generate the API contract spec from the current Express server (the parity baseline).
-3. Create the new skeleton (§4) and move `client/ → web/`, `core/ → engine/` (rename), `shared/ → contracts/` — mechanically, before any Python porting.
+3. Create the new skeleton (§4) and move `client/ → web/`, `core/ → engine/` (rename), `shared/ → contracts/` — mechanically, before any Python porting. **Done** (20 US-1 + US-2).
 4. Stand up the FastAPI shell that serves the client and returns 501 for not-yet-ported routes.
 
 ## 10. Decisions (resolved 2026-08-02)

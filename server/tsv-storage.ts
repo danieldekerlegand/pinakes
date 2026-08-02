@@ -7,7 +7,7 @@ import type {
   LanguageFamily,
   LanguageFamilyWithChildren,
   LanguageWithStats,
-} from "@shared/types";
+} from "@contracts/types";
 import type {
   LanguageRangeFeature,
   ArchaeologicalSiteFeature,
@@ -15,7 +15,7 @@ import type {
   EmpireTimelineFeature,
   HistoricalRouteFeature,
   MaterialCultureDistribution,
-} from "../client/src/lib/visualization/geospatial-types";
+} from "../web/src/lib/visualization/geospatial-types";
 
 // Phonological inventory types
 export interface PhonologicalInventory {

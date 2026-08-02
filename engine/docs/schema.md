@@ -27,7 +27,7 @@ The header row names and types every column. A header *cell* is one of:
 ## Node columns
 
 `NodeSchema.canonical()` defines the column order below — it is
-`shared/canonical-schema.json`'s `node.columns` order verbatim, the single
+`contracts/canonical-schema.json`'s `node.columns` order verbatim, the single
 contract `docs/canonical-schema.md` says not to fork. `node_schema()` appends
 pinakes-engine's two acquisition extensions, `parent_code` and the `extra`
 overflow (see [Overflow](#overflow-extra)), *after* the canonical columns, so a

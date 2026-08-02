@@ -5,7 +5,7 @@
  * agora hosts the *general* trainer, and Pinakes runs its **own specialized**
  * `finetune` provider over the already-built `ml/` uv workspace. This module is that
  * provider's app-side front — and it is a **SURFACE WRAPPER, nothing more**
- * (`shared/CLAUDE.md`): an `invoke` shells out to the already-built console script
+ * (`contracts/CLAUDE.md`): an `invoke` shells out to the already-built console script
  *
  *     uv run --project ml pinakes-train-slm --kft-job <manifest> --output-dir <run>
  *

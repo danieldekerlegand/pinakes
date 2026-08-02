@@ -36,8 +36,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { CANONICAL_SCHEMA, nodeTypeByName } from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { CANONICAL_SCHEMA, nodeTypeByName } from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 import {
   mintCsid,
   normaliseConfidence,

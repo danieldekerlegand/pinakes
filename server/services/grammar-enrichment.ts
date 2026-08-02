@@ -2,7 +2,7 @@ import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import fs from "node:fs";
 import path from "node:path";
 import { jobStore } from "./job-store";
-import type { Language } from "@shared/types";
+import type { Language } from "@contracts/types";
 
 interface GrammarFeatureRow {
   id: string;

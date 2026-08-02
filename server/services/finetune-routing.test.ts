@@ -15,7 +15,7 @@ import { describe, it, expect } from "vitest";
  * `assertFinetuneCapability`. agora's side is a hand-written stub — its own manifest
  * belongs to `agora:90-finetune-trainer` and is not built in this repo.
  */
-import { CAPABILITY_MANIFEST, type Capability } from "@shared/capability-manifest";
+import { CAPABILITY_MANIFEST, type Capability } from "@contracts/capability-manifest";
 import {
   DATASET_KIND_DOMAINS,
   jobSignals,

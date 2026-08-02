@@ -25,7 +25,7 @@ function assert(condition: boolean, message: string) {
 // === Test 1: Dark mode hook file exists and has correct structure ===
 console.log("\n=== Dark Mode Hook ===");
 
-const darkModeHookPath = path.resolve(__dirname, '../client/src/hooks/use-dark-mode.tsx');
+const darkModeHookPath = path.resolve(__dirname, '../web/src/hooks/use-dark-mode.tsx');
 const darkModeHookContent = fs.readFileSync(darkModeHookPath, 'utf-8');
 
 assert(fs.existsSync(darkModeHookPath), 'use-dark-mode.tsx exists');
@@ -39,7 +39,7 @@ assert(darkModeHookContent.includes('addEventListener'), 'Listens for OS prefere
 // === Test 2: Reduced motion hook file exists and has correct structure ===
 console.log("\n=== Reduced Motion Hook ===");
 
-const reducedMotionHookPath = path.resolve(__dirname, '../client/src/hooks/use-reduced-motion.tsx');
+const reducedMotionHookPath = path.resolve(__dirname, '../web/src/hooks/use-reduced-motion.tsx');
 const reducedMotionHookContent = fs.readFileSync(reducedMotionHookPath, 'utf-8');
 
 assert(fs.existsSync(reducedMotionHookPath), 'use-reduced-motion.tsx exists');
@@ -53,7 +53,7 @@ assert(reducedMotionHookContent.includes('addEventListener'), 'Listens for OS pr
 // === Test 3: CSS has dark mode variables ===
 console.log("\n=== CSS Dark Mode Variables ===");
 
-const cssPath = path.resolve(__dirname, '../client/src/index.css');
+const cssPath = path.resolve(__dirname, '../web/src/index.css');
 const cssContent = fs.readFileSync(cssPath, 'utf-8');
 
 assert(cssContent.includes('.dark {'), 'Has .dark class theme variables');
@@ -78,7 +78,7 @@ assert(cssContent.includes('scroll-behavior: auto'), 'Disables smooth scrolling'
 // === Test 5: Dashboard integrates hooks and toggles ===
 console.log("\n=== Dashboard Integration ===");
 
-const dashboardPath = path.resolve(__dirname, '../client/src/pages/dashboard.tsx');
+const dashboardPath = path.resolve(__dirname, '../web/src/pages/dashboard.tsx');
 const dashboardContent = fs.readFileSync(dashboardPath, 'utf-8');
 
 assert(dashboardContent.includes("from \"@/hooks/use-dark-mode\""), 'Dashboard imports useDarkMode');

@@ -48,7 +48,7 @@ import {
   FINETUNE_CAPABILITY,
   type Capability,
   type CapabilitySpecialization,
-} from "@shared/capability-manifest";
+} from "@contracts/capability-manifest";
 
 /** The subset of a KCB manifest routing reads — a foreign provider's document fits too. */
 export interface ProviderManifest {

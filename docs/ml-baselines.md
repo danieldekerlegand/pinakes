@@ -39,7 +39,7 @@ split, evaluated against the full entity vocabulary.
 
 Each baseline's top-1 link predictions (both directions, per test
 triple) are checked against the symbolic rules — **descent acyclicity**,
-canonical-schema **from/to type** constraints (`shared/canonical-schema.json`),
+canonical-schema **from/to type** constraints (`contracts/canonical-schema.json`),
 and relation **antisymmetry** — by `pinakes_ml.consistency`. The violation
 counts are ratcheted in CI against `ml/manifests/consistency-baseline.json`
 (a monotone gate, mirroring `docs/convergence-qa-baseline.json`); a deliberate

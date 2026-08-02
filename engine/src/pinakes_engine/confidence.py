@@ -9,7 +9,7 @@ class here carries a numeric prior in ``[0, 1]`` and a rationale; adapters and
 linkers name their class via :func:`confidence_for` instead of hard-coding a
 literal, so the numbers are tuned in ONE place.
 
-This mirrors the repo-root ``shared/confidence-rubric.json`` that the pinakes
+This mirrors the repo-root ``contracts/confidence-rubric.json`` that the pinakes
 TypeScript side reads; the values are kept in lockstep by ``tests/test_confidence.py``
 (which reads that JSON when the monorepo checkout is present). pinakes-engine is a
 vendored, self-contained copy, so the priors are defined here rather than loaded
@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from types import MappingProxyType
 
-#: Rubric version — mirrors ``shared/confidence-rubric.json`` ``version``.
+#: Rubric version — mirrors ``contracts/confidence-rubric.json`` ``version``.
 RUBRIC_VERSION = "1.0"
 
 #: Provenance class -> numeric prior in ``[0, 1]``. Ordered most- to least-trusted.

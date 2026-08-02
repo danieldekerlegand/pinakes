@@ -1,6 +1,6 @@
 """Compile the canonical schema's own constraints into Soufflé violation rules.
 
-``shared/canonical-schema.json`` machine-readably declares, for every edge type,
+``contracts/canonical-schema.json`` machine-readably declares, for every edge type,
 which node ``:LABEL``\\ s its endpoints may carry (``from`` / ``to``), whether it is
 ``symmetric``, and — schema-wide — that a ``csid`` identifies exactly one node.
 Those constraints have always existed as JSON but were never *checked logically*: an
@@ -14,7 +14,7 @@ Like :mod:`pinakes_engine.datalog.constraints`, this is the datalog boundary and
 **self-contained**: it reads a committed, provenanced replay artifact
 (:data:`EDGE_CONSTRAINTS_TSV`) rather than reaching out to the TypeScript-side schema
 at runtime. :func:`extract_edge_constraints` compiles that artifact from
-``shared/canonical-schema.json`` when the monorepo checkout is present (resolving each
+``contracts/canonical-schema.json`` when the monorepo checkout is present (resolving each
 node-type *name* — ``culture`` — to its ``:LABEL`` — ``Culture`` — so the datalog reader
 translates from resolved labels alone); a test ties the two together, the same pattern
 the taxonomy and property-constraint extractors use.
@@ -64,7 +64,7 @@ from pinakes_engine.schema.tsvio import encode_value, open_rows
 #: standalone vendored checkout — the extractor is then simply not runnable, and the
 #: committed replay artifact remains the source of truth.
 CANONICAL_SCHEMA_JSON = (
-    Path(__file__).resolve().parents[4] / "shared" / "canonical-schema.json"
+    Path(__file__).resolve().parents[4] / "contracts" / "canonical-schema.json"
 )
 
 #: The committed replay artifact: the schema's edge constraints with node-type names
@@ -84,7 +84,7 @@ SCHEMA_RULES_REGISTRY_TSV = (
 #: external acquisition), so confidence is ``1.0`` — the weak link the
 #: property-constraint rules have (the property↔edge backing map) does not exist here.
 SCHEMA_SOURCE = "canonical-schema"
-SCHEMA_SOURCE_URL = "shared/canonical-schema.json"
+SCHEMA_SOURCE_URL = "contracts/canonical-schema.json"
 SCHEMA_CONSTRAINT_CONFIDENCE = 1.0
 
 #: The columns the committed edge-constraints artifact carries, in order.

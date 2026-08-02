@@ -17,7 +17,7 @@ reconciliation keys they already carried.
 | | |
 |---|---|
 | Emitted by | `scripts/export-entity-grounding.ts` (`npm run entity-grounding`) |
-| Contract module | `shared/kgp.ts` (claim + pack normalization; typed by `shared/kgp.test.ts`) |
+| Contract module | `contracts/kgp.ts` (claim + pack normalization; typed by `contracts/kgp.test.ts`) |
 | Live output | `build/corpus/entity-grounding/snapshot.json` (gitignored) |
 | Committed fixture | `scripts/data/entity-grounding-snapshot.json` (from `scripts/data/entity-grounding-fixture/`) |
 | KGP version | 0.4.0 |
@@ -75,9 +75,9 @@ exact_match(pinakes:ent:language.q150, wikidata:ent:Q150)  @ pinakes:world:conse
 symmetric relations sorting their operands so `exact_match(a,b)` and `exact_match(b,a)` are
 one claim. Confidence, provenance and licence are **excluded from the hash** — that is the
 whole point: the same anchor asserted by an analyzer or by Insimul mints the *same* claim id and
-merges, while both provenance records survive. `shared/kgp.ts` implements the rule set
+merges, while both provenance records survive. `contracts/kgp.ts` implements the rule set
 (identifier args, string/integer/decimal/boolean/datetime literals) and
-`shared/kgp.test.ts` pins it.
+`contracts/kgp.test.ts` pins it.
 
 ## Determinism
 
@@ -137,7 +137,7 @@ Three things it adds on top of the KGP pack:
    `lat`/`lon` (real coordinates; Insimul lays lots and streets out around them), a culture's
    `governmentType`/`foundedYear`, a language's `realCode`/`glottocode`.
 2. **`prologFacts`** — ground facts in *Insimul's* predicate vocabulary. Every predicate is
-   sanctioned by the [predicate-mapping registry](../shared/predicate-mapping.json): the
+   sanctioned by the [predicate-mapping registry](../contracts/predicate-mapping.json): the
    `SEED_MAPPINGS` table may only emit a predicate its registry entry's `external` cell
    names, and only through an entry that crosses `LS->IN`, is `exportable` and is not
    `pending` (`assertSeedMappingsRegistered`, run at build time *and* in the test suite). A

@@ -47,7 +47,7 @@ DEFAULT_EXPORT_DIR = _REPO_ROOT / "build" / "corpus"
 DEFAULT_EVAL_SPLIT = KGQA_EVAL_PATH
 DEFAULT_BASELINE = _ML_ROOT / "manifests" / "kgqa-eval-baseline.json"
 DEFAULT_DOC = _REPO_ROOT / "docs" / "ml-baselines.md"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 def write_baseline(path: Path, report: dict[str, object]) -> None:

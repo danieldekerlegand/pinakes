@@ -12,8 +12,8 @@ import {
   shouldUseWebGL,
   isWebGLSupported,
   WEBGL_FEATURE_THRESHOLD,
-} from '../client/src/lib/visualization/map-performance';
-import type { BoundingBox } from '../client/src/lib/visualization/geospatial-types';
+} from '../web/src/lib/visualization/map-performance';
+import type { BoundingBox } from '../web/src/lib/visualization/geospatial-types';
 
 // ---------------------------------------------------------------------------
 // Helper factories

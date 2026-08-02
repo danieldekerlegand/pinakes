@@ -14,7 +14,7 @@ project can *discover* those surfaces in KCB terms and dial them directly.
 
 | | |
 |---|---|
-| Source of truth | `shared/capability-manifest.json` (typed accessors: `shared/capability-manifest.ts`) |
+| Source of truth | `contracts/capability-manifest.json` (typed accessors: `contracts/capability-manifest.ts`) |
 | Identity | `pinakes:agent:resolver` → `https://id.koine.example/agent/pinakes/resolver` |
 | KCB version | 0.2.0 (manifest revision `x_pinakes.manifestVersion` — `0.2.0` when the MCP/A2A fronts + signing landed, `0.3.0` when the specialized KFT `finetune` capability joined) |
 | Served at | `GET /.well-known/kcb-manifest.json`, `GET /api/kcb/manifest` |
@@ -34,7 +34,7 @@ agent id and can be grounded and reasoned about like any other node.
 | `grounding-pack` | `scripts/export-entity-grounding.ts` — the entity-grounding pack in the KGP §2 envelope ([`docs/grounding-pack.md`](grounding-pack.md)) |
 
 …plus one **entity** port: the canonical csid namespace. Its `types` list is *total* over
-`shared/canonical-schema.json` `nodeTypes` — `assertValidCapabilityManifest` fails if a
+`contracts/canonical-schema.json` `nodeTypes` — `assertValidCapabilityManifest` fails if a
 canonical node type is added without being published here, because an entity that is not on
 the port is an entity nobody on the bus can discover.
 
@@ -178,8 +178,8 @@ must lead with `/`) and are absolutized against the serving/publishing origin ex
 
 The served and published manifest is **signed** so a consumer can attribute its provenance
 (KCB §5 / KINP §7 `prov.agent`). Ed25519 lives in `server/services/manifest-signing.ts` (it
-needs `node:crypto`, so it stays in `server/`, not client-safe `shared/`; the `signature` field
-slot + the canonical serializer stay in `shared/`, mirroring `shared/kgp.ts`'s hasher injection).
+needs `node:crypto`, so it stays in `server/`, not client-safe `contracts/`; the `signature` field
+slot + the canonical serializer stay in `contracts/`, mirroring `contracts/kgp.ts`'s hasher injection).
 
 - The signature is Ed25519 over the canonical serialization of the manifest **with the
   `signature` field excluded** (`{key_id, alg}` only), so the signed bytes bind the key id and

@@ -6,7 +6,7 @@ import {
   DEFAULT_EDGE_CONFIDENCE,
   type CanonicalEdge,
 } from "./canonical-edges";
-import { edgeTypeByName } from "@shared/canonical-schema";
+import { edgeTypeByName } from "@contracts/canonical-schema";
 
 /** Find the single edge matching a start→end pair (fails the test if absent). */
 function edge(edges: CanonicalEdge[], startId: string, endId: string): CanonicalEdge {

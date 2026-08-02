@@ -33,7 +33,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-# neo4j-admin import header columns the exporter writes (shared/canonical-schema.json).
+# neo4j-admin import header columns the exporter writes (contracts/canonical-schema.json).
 _START_COL = ":START_ID"
 _END_COL = ":END_ID"
 _TYPE_COL = ":TYPE"

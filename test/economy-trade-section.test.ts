@@ -3,7 +3,7 @@ import { TsvStorage } from "../server/tsv-storage";
 import type {
   TradeGood,
   TradeRoute,
-} from "../client/src/components/culture-profile/economy-trade-utils";
+} from "../web/src/components/culture-profile/economy-trade-utils";
 import {
   filterTradeGoodsByLanguages,
   filterTradeRoutesByLanguages,
@@ -11,7 +11,7 @@ import {
   getUniqueRouteTypes,
   formatTradeYear,
   CATEGORY_COLORS,
-} from "../client/src/components/culture-profile/economy-trade-utils";
+} from "../web/src/components/culture-profile/economy-trade-utils";
 
 // --- Pure utility function tests ---
 

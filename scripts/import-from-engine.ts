@@ -33,8 +33,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { CANONICAL_SCHEMA } from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { CANONICAL_SCHEMA } from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 import { EXPORT_DIR, EXPORT_SOURCE } from "./export-for-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");

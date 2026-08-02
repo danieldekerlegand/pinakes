@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { nodeFiles } from "@shared/lexicon-mapping";
+import { nodeFiles } from "@contracts/lexicon-mapping";
 import {
   classifyTrustTier,
   ALL_TRUST_TIERS,
   type TrustTier,
-} from "@shared/trust-tier";
+} from "@contracts/trust-tier";
 
 const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../lexicons");
 

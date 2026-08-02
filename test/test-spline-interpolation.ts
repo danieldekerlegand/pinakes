@@ -9,7 +9,7 @@ import {
   smoothFeature,
   smoothFeatures,
   generateGradientEdgeRings,
-} from '../client/src/lib/visualization/spline-interpolation';
+} from '../web/src/lib/visualization/spline-interpolation';
 import type { Feature, Polygon, MultiPolygon } from 'geojson';
 
 let passed = 0;

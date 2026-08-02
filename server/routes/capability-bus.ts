@@ -15,7 +15,7 @@
  * These routes are a **surface wrapper only**: nothing here resolves, reconciles or
  * queries anything. Every capability points at merged code (`graph-resolver.ts`,
  * `pinakes_engine/schema/reconcile.py`, the `/api/graph/*` routes), and invocation
- * goes to those endpoints directly. The manifest itself is `shared/capability-manifest.json`.
+ * goes to those endpoints directly. The manifest itself is `contracts/capability-manifest.json`.
  *
  * Registration is fired once at registration time and is best-effort; `publish` is
  * injectable so tests drive the registry-unreachable path with no network.
@@ -26,7 +26,7 @@ import {
   capabilityManifestFor,
   CAPABILITY_MANIFEST,
   isManifestSigned,
-} from "@shared/capability-manifest";
+} from "@contracts/capability-manifest";
 import {
   configuredOrigin,
   publishCapabilityManifest,

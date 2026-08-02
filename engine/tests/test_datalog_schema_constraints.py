@@ -56,7 +56,7 @@ def _constraint(**overrides: object) -> EdgeConstraint:
         to_labels=("Language", "Culture"),
         symmetric=False,
         source="canonical-schema",
-        source_url="shared/canonical-schema.json",
+        source_url="contracts/canonical-schema.json",
         schema_version="1.1.0",
         confidence=1.0,
     )
@@ -69,7 +69,7 @@ def _constraint(**overrides: object) -> EdgeConstraint:
 
 @pytest.mark.skipif(
     not CANONICAL_SCHEMA_JSON.exists(),
-    reason="shared/canonical-schema.json not present (standalone checkout)",
+    reason="contracts/canonical-schema.json not present (standalone checkout)",
 )
 def test_extractor_reproduces_the_committed_artifact() -> None:
     """The committed edge_constraints.tsv equals a fresh compile of the live schema."""
@@ -83,13 +83,13 @@ def test_extractor_reproduces_the_committed_artifact() -> None:
         / "edge_constraints.tsv"
     ).read_text(encoding="utf-8")
     assert fresh == committed, (
-        "edge_constraints.tsv drifted from shared/canonical-schema.json — regenerate it"
+        "edge_constraints.tsv drifted from contracts/canonical-schema.json — regenerate it"
     )
 
 
 @pytest.mark.skipif(
     not CANONICAL_SCHEMA_JSON.exists(),
-    reason="shared/canonical-schema.json not present (standalone checkout)",
+    reason="contracts/canonical-schema.json not present (standalone checkout)",
 )
 def test_extract_resolves_node_type_names_to_labels() -> None:
     constraints = {c.edge_type: c for c in extract_edge_constraints()}

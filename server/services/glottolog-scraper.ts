@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import type { Language, LanguageFamily } from "@shared/types";
+import type { Language, LanguageFamily } from "@contracts/types";
 import { tsvWriter } from "./tsv-writer";
 import { jobStore } from "./job-store";
 import path from "node:path";

@@ -25,8 +25,9 @@ npm run dev                   # app only (graph features degrade off gracefully)
 npm run dev:full              # app + pinakes-engine sidecar + Neo4j (needs Docker; the
                               # sidecar image is currently unbuildable — see engine/Dockerfile)
 
-npm run check                 # typecheck (tsc)
-npx vitest run <path>         # tests, scoped to what you changed
+npm run check                 # typecheck (tsc -p web/tsconfig.json)
+npm test                      # the full vitest suite
+npm test -- <path>            # tests, scoped to what you changed
 npm run build && npm start    # production build + serve
 ```
 
@@ -54,4 +55,4 @@ tooltip. See the runbook below to enable it.
 - **Data/correlation engine** — [`engine/README.md`](./engine/README.md)
   (Python ≥3.11; own `mypy`/`pytest`/`ruff` toolchain).
 
-Nearby `CLAUDE.md` files (`scripts/`, `shared/`) hold directory-specific conventions.
+Nearby `CLAUDE.md` files (`scripts/`, `contracts/`) hold directory-specific conventions.

@@ -28,7 +28,7 @@ import { GraphUnavailableError, type GraphNode } from "./graph-store";
 
 /**
  * The correlation domains that exist as node `:LABEL`s in the shared graph, per
- * the canonical schema (shared/canonical-schema.json). `music` and `haplogroup`
+ * the canonical schema (contracts/canonical-schema.json). `music` and `haplogroup`
  * are pinakes-only domains with no graph node type, so a query touching
  * them is not graph-eligible and always uses the in-memory path.
  */

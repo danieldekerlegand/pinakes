@@ -18,7 +18,7 @@ evaluates on — a clean three-way separation:
 
 **Type-constrained corruption.** For each positive ``(h, r, t)`` a corrupted
 negative replaces the head (or tail) with another entity whose node type is allowed
-on that end of ``r`` per ``shared/canonical-schema.json`` (reusing
+on that end of ``r`` per ``contracts/canonical-schema.json`` (reusing
 :func:`pinakes_ml.consistency.load_edge_constraints` /
 :func:`~pinakes_ml.consistency.node_type_of`). An entity's type is read off its
 ``cs:<node-type>:<id>`` csid. A corruption that reconstructs the positive, duplicates
@@ -45,7 +45,7 @@ from pinakes_ml.triples import Triple
 
 # The pilot's two link-prediction target relations (edge ``:TYPE`` tokens, matching
 # ``Triple.relation``). Both are populated in the corpus; both are type-constrained
-# on each end in ``shared/canonical-schema.json`` (so corruption pools are non-empty
+# on each end in ``contracts/canonical-schema.json`` (so corruption pools are non-empty
 # and the negatives are hard). Sorted for a deterministic manifest.
 TARGET_RELATIONS: tuple[str, ...] = ("BORROWED_FROM", "DESCENDS_FROM")
 

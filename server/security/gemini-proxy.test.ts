@@ -14,7 +14,7 @@ import path from "path";
  * server-side `GEMINI_API_KEY`; the key is never shipped in the Vite bundle. These
  * tests lock that invariant in place:
  *   1. no `VITE_GEMINI_*` (client-exposed) Gemini config exists;
- *   2. no `client/` source references a Gemini key / SDK / raw model endpoint;
+ *   2. no `web/` source references a Gemini key / SDK / raw model endpoint;
  *   3. the representative proxy endpoint works with the LLM mocked and needs no
  *      client-supplied key, and never echoes a key back to the caller.
  */
@@ -24,7 +24,7 @@ import { ContributionService } from "../services/contribution-service";
 import type { RawTextExtraction, TextExtractorDeps } from "../services/text-extractor";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
-const CLIENT_SRC = path.join(REPO_ROOT, "client", "src");
+const CLIENT_SRC = path.join(REPO_ROOT, "web", "src");
 const FIXTURES = path.join(__dirname, "..", "services", "fixtures", "text-extractor");
 
 /** Recursively collect all `.ts`/`.tsx` source files under a dir. */
@@ -49,7 +49,7 @@ describe("Gemini key is server-side only (US-001)", () => {
     expect(env).not.toMatch(/VITE_GEMINI/i);
   });
 
-  it("no client/ source references a Gemini key, SDK, or raw model endpoint", () => {
+  it("no web/ source references a Gemini key, SDK, or raw model endpoint", () => {
     const files = collectSourceFiles(CLIENT_SRC);
     // Patterns that would mean the key/model is reachable from the browser bundle.
     const forbidden = [

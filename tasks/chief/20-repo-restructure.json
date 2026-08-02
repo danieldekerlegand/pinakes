@@ -39,8 +39,8 @@
         "shared/ is now contracts/; all TS imports of the former shared/* resolve.",
         "`bun run check` (tsc) passes and the web vitest suite passes at the new paths."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "client/ -> web/ (index.html+public+src; web/README.md kept), shared/ -> contracts/, and the six root TS configs + components.json into web/. Alias @shared -> @contracts (superset of the AC; tsc catches any miss). Baselines held EXACTLY: vitest 218 files / 3654 passed / 8 skipped, engine pytest 1922/41, ml pytest 477/8 (the Python skipifs read contracts/canonical-schema.json, so an unchanged skip count is what proves the path). tsc clean via all 3 entry points (web/tsconfig.json, the root shim, scripts/tsconfig.json). Also verified: vite build (166KB tailwind CSS with utilities scanned from web/src), dev server boots + serves web/index.html through the vite middleware + @contracts routes 200, playwright collects 15 tests from ../e2e, docker compose config, secret-scan, convergence-qa. KEPT AT ROOT deliberately: a one-line tsconfig.json shim (tsx resolves aliases from the nearest tsconfig at/above cwd; without it npm run dev + every tsx script fails at runtime) \u2014 it retires with the TS server. package.json now names each config explicitly (check/test/test:e2e/build); added the missing `test` script."
     },
     {
       "id": "US-3",

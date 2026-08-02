@@ -20,7 +20,7 @@ indexes, so re-running it does not duplicate nodes or relationships.
 
 > **csid migration (US-005).** This snapshot predates QID-anchored ids. The export now
 > mints `cs:<type>:<QID>` for any row with a non-blank `wikidata_qid` (only rows without a
-> QID keep `cs:<type>:<pinakes-id>`; see `shared/canonical-schema.json` `idScheme`).
+> QID keep `cs:<type>:<pinakes-id>`; see `contracts/canonical-schema.json` `idScheme`).
 > Because the load `MERGE`s on `csid`, the first load after this change **re-keys** every
 > QID-bearing node onto its new csid rather than updating the old pinakes-id-anchored
 > node. To migrate an already-populated graph, wipe and reload from the fresh export (the

@@ -37,7 +37,7 @@ _REPO_ROOT = _ML_ROOT.parent
 
 DEFAULT_PREDICTIONS_DIR = _ML_ROOT / "predictions"
 DEFAULT_BASELINE = _ML_ROOT / "manifests" / "consistency-baseline.json"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 # The three baselines, lower-cased to match the committed prediction filenames.
 DEFAULT_MODELS = ("transe", "complex", "rotate")

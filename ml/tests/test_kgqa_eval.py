@@ -220,7 +220,7 @@ def test_evidence_triples_dedup_sorted() -> None:
 def test_build_eval_report_structure(export_dir: Path) -> None:
     records = _records(export_dir)
     graph = build_graph(export_dir)
-    schema = Path(__file__).resolve().parents[2] / "shared" / "canonical-schema.json"
+    schema = Path(__file__).resolve().parents[2] / "contracts" / "canonical-schema.json"
     constraints = load_edge_constraints(schema)
     report = build_eval_report(records, default_systems(graph), constraints, depth=2)
     assert report["split"] == "kgqa/eval"
@@ -238,7 +238,7 @@ def test_build_eval_report_structure(export_dir: Path) -> None:
 def test_render_kgqa_section_is_deterministic(export_dir: Path) -> None:
     records = _records(export_dir)
     graph = build_graph(export_dir)
-    schema = Path(__file__).resolve().parents[2] / "shared" / "canonical-schema.json"
+    schema = Path(__file__).resolve().parents[2] / "contracts" / "canonical-schema.json"
     constraints = load_edge_constraints(schema)
     report = build_eval_report(records, default_systems(graph), constraints, depth=2)
     section = render_kgqa_section(report)
@@ -273,7 +273,7 @@ def test_upsert_marked_section_insert_replace_idempotent() -> None:
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _LIVE_EXPORT = _REPO_ROOT / "build" / "corpus"
 _EVAL_SPLIT = _REPO_ROOT / "ml" / "data" / "kgqa" / "eval.jsonl"
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 _BASELINE = _REPO_ROOT / "ml" / "manifests" / "kgqa-eval-baseline.json"
 
 

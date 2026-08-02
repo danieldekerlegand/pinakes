@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { CultureProfile } from "../shared/types";
+import type { CultureProfile } from "../contracts/types";
 import {
   buildCultureProfileReportHtml,
   buildReportFilename,
@@ -12,7 +12,7 @@ import {
   humanizeTechnology,
   humanizeUrbanism,
   REPORT_CSS,
-} from "../client/src/lib/culture-profile-report";
+} from "../web/src/lib/culture-profile-report";
 
 const SAMPLE_PROFILE: CultureProfile = {
   id: "roman-culture",

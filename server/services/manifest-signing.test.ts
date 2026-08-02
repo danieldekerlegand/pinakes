@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createPublicKey } from "node:crypto";
 
-import { CAPABILITY_MANIFEST, isManifestSigned } from "@shared/capability-manifest";
+import { CAPABILITY_MANIFEST, isManifestSigned } from "@contracts/capability-manifest";
 import {
   SIGNING_ALG,
   PRIVATE_KEY_ENV,

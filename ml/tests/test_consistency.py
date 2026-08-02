@@ -5,7 +5,7 @@ Two tiers, mirroring the workspace pattern:
 * **Pure unit tests + the committed-artifact ratchet run everywhere (incl. CI).**
   The checks are pure over in-memory triples, and the ratchet recomputes violation
   counts from the *committed* ``ml/predictions/*.tsv`` + ``consistency-baseline.json``
-  + ``shared/canonical-schema.json`` — all git-tracked, so it is a real CI gate (no
+  + ``contracts/canonical-schema.json`` — all git-tracked, so it is a real CI gate (no
   torch needed), exactly like the TS ``convergence-qa`` drift gate.
 * **A live gate** trains a tiny model on the committed splits and generates
   predictions, SKIPPED when the git-ignored ``ml/data`` is absent (as in CI).
@@ -37,7 +37,7 @@ from pinakes_ml.consistency import (
 
 _ML_ROOT = Path(__file__).resolve().parents[1]
 _REPO_ROOT = _ML_ROOT.parent
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 _PREDICTIONS_DIR = _ML_ROOT / "predictions"
 _CONSISTENCY_BASELINE = _ML_ROOT / "manifests" / "consistency-baseline.json"
 _COMMITTED_MODELS = ("transe", "complex", "rotate")

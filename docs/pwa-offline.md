@@ -9,15 +9,15 @@ factored into pure, unit-tested TypeScript.
 
 | Concern | File | Notes |
 | --- | --- | --- |
-| Web app manifest | `client/public/manifest.webmanifest` | name/icons/`display: standalone`; linked from `index.html` |
-| App icons | `client/public/icon.svg`, `icon-maskable.svg` | SVG (`sizes: any`); one `purpose: maskable` for adaptive launchers |
-| Service worker | `client/public/sw.js` | served verbatim (imports nothing); mirrors the strategy module |
-| Cache strategy (source of truth) | `client/src/lib/pwa/cache-strategy.ts` | pure `route()` + cache names + `staleCacheNames()` |
-| SW registration | `client/src/lib/pwa/register.ts` | production-only, feature-detected, error-swallowing |
-| Connectivity | `client/src/lib/pwa/online-status.ts` + `hooks/use-online-status.tsx` | `navigator.onLine` + `online`/`offline` events |
-| Offline indicator | `client/src/components/OfflineIndicator.tsx` | fixed status pill, mounted in `App.tsx` |
+| Web app manifest | `web/public/manifest.webmanifest` | name/icons/`display: standalone`; linked from `index.html` |
+| App icons | `web/public/icon.svg`, `icon-maskable.svg` | SVG (`sizes: any`); one `purpose: maskable` for adaptive launchers |
+| Service worker | `web/public/sw.js` | served verbatim (imports nothing); mirrors the strategy module |
+| Cache strategy (source of truth) | `web/src/lib/pwa/cache-strategy.ts` | pure `route()` + cache names + `staleCacheNames()` |
+| SW registration | `web/src/lib/pwa/register.ts` | production-only, feature-detected, error-swallowing |
+| Connectivity | `web/src/lib/pwa/online-status.ts` + `hooks/use-online-status.tsx` | `navigator.onLine` + `online`/`offline` events |
+| Offline indicator | `web/src/components/OfflineIndicator.tsx` | fixed status pill, mounted in `App.tsx` |
 
-`client/public/*` is served at the site root in dev (Vite `publicDir`) and copied to
+`web/public/*` is served at the site root in dev (Vite `publicDir`) and copied to
 `dist/public/` by `vite build`, so the manifest, icons, and `sw.js` are available at
 `/manifest.webmanifest`, `/icon.svg`, `/sw.js` in both dev and prod.
 
@@ -58,8 +58,8 @@ All cache names embed `CACHE_VERSION` (currently `v1`), defined in **both**
 To invalidate every cache (e.g. after a schema/shell change that must not be served
 from an old cache):
 
-1. Bump `CACHE_VERSION` in `client/src/lib/pwa/cache-strategy.ts`.
-2. Bump the matching `CACHE_VERSION` constant in `client/public/sw.js`.
+1. Bump `CACHE_VERSION` in `web/src/lib/pwa/cache-strategy.ts`.
+2. Bump the matching `CACHE_VERSION` constant in `web/public/sw.js`.
 
 On the next visit, the new SW's `install` precaches the shell into the new
 `…-<version>` caches, and its `activate` handler calls `staleCacheNames()` to delete

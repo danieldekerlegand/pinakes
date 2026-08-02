@@ -168,7 +168,7 @@ violation families over a predictions triples file:
   + longer cycles);
 - **canonical-schema type breaches** — endpoint node types (read off the
   `cs:<node-type>:<id>` csid) vs each edge's `from`/`to` sets in
-  [`shared/canonical-schema.json`](../shared/canonical-schema.json) (empty ⇒
+  [`contracts/canonical-schema.json`](../contracts/canonical-schema.json) (empty ⇒
   unconstrained);
 - **asymmetry violations** — antisymmetric relations (descent/derivation) predicted in
   both directions or as a self-loop (`COGNATE_WITH`/`SYNCRETIZED_WITH` are symmetric,

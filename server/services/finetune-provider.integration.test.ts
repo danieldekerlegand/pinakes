@@ -42,7 +42,7 @@ import {
 } from "./finetune-provider";
 import { selectFinetuneProvider, type ProviderManifest } from "./finetune-routing";
 import { registerCapabilityBusRoutes } from "../routes/capability-bus";
-import { CAPABILITY_MANIFEST } from "@shared/capability-manifest";
+import { CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
 
 const REPO_ROOT = process.cwd();
 const ML_ROOT = join(REPO_ROOT, "ml");

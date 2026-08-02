@@ -9,7 +9,7 @@ import {
   buildCorpusTierReport,
   ROADMAP_TARGETS,
 } from "./data-quality-scorer";
-import { ALL_TRUST_TIERS } from "@shared/trust-tier";
+import { ALL_TRUST_TIERS } from "@contracts/trust-tier";
 
 const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../lexicons");
 const COMMITTED_REPORT = path.resolve(import.meta.dirname, "../../docs/coverage-report.json");

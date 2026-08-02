@@ -41,7 +41,7 @@ clobbered. Re-running is idempotent (dedup by `wikidata_qid` → normalised name
 
 Four provenance columns were added to `civilizations.tsv` (mapped to the canonical
 `wikidata_qid` / `source_url` / `retrieved_at` / `confidence` fields in
-`shared/lexicon-mapping.json`). Existing rows carry them blank; **every appended row**
+`contracts/lexicon-mapping.json`). Existing rows carry them blank; **every appended row**
 carries all four plus a bibliographic `sources = ["Wikidata"]` cell:
 
 - `wikidata_qid` — e.g. `Q47690`

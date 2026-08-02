@@ -2,7 +2,7 @@ import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { tsvWriter } from "./tsv-writer";
 import { jobStore } from "./job-store";
 import { storage } from "../storage";
-import type { Language } from "@shared/types";
+import type { Language } from "@contracts/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const modelName = process.env.GEMINI_MODEL || "gemini-3-pro-preview";

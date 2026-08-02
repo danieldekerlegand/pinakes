@@ -38,7 +38,7 @@ backslash, a multi-label node, an empty multi-value cell, a negative year — so
 
 - **The loaders are header-*driven* but the names they look up are literals.**
   `triples._START_COL`/`_END_COL`/`_TYPE_COL` and `verbalize`'s `_NODE_*`/`_EDGE_*`/
-  `_PROV_*` are asserted to be columns `shared/canonical-schema.json` declares, so a
+  `_PROV_*` are asserted to be columns `contracts/canonical-schema.json` declares, so a
   renamed column fails loudly instead of silently reading blanks.
 - **GOTCHA — a stale repo-root-relative path is a permanent SKIP, not a failure.**
   Every live gate is `skipif not <path>.exists()`, so a path that stops resolving
@@ -110,7 +110,7 @@ data `ml/data/verbalizations/verbalizations.jsonl`):
   vocabulary (14 relations) makes this tractable. One-or-more variants per type,
   selected deterministically by `sha256(seed + "head\trel\ttail") % len` — variety
   without a reroll. A **coverage test** asserts every non-`EXCLUDED_RELATIONS` edge
-  type in `shared/canonical-schema.json` has a template (a new edge type without one
+  type in `contracts/canonical-schema.json` has a template (a new edge type without one
   fails CI). Reuse `triples.EXCLUDED_RELATIONS` — derived temporal relations are rules,
   never verbalized.
 - **Dedup edges on `(head, relation, tail)`** (like triples — one row per supporting
@@ -178,7 +178,7 @@ data `ml/data/verbalizations/verbalizations.jsonl`):
   stack. Three checks: descent acyclicity (`DESCENDS_FROM` DAG via iterative Tarjan
   SCC — self-loops + SCC>1), canonical-schema `from`/`to` type breaches (endpoint node
   type read off the `cs:<node-type>:<id>` csid; an **empty** `from`/`to` list in
-  `shared/canonical-schema.json` ⇒ unconstrained ⇒ `None` ⇒ that end is *not* checked),
+  `contracts/canonical-schema.json` ⇒ unconstrained ⇒ `None` ⇒ that end is *not* checked),
   and antisymmetry (mutual/self on the descent+derivation relations;
   `COGNATE_WITH`/`SYNCRETIZED_WITH` are symmetric and excluded). Source the type
   constraints from the machine-readable schema — never hard-code them.
@@ -346,7 +346,7 @@ reproducible-artifact shape (pure core + committed manifest
 - **Type-constrained corruption reuses the schema, never hard-codes types.** The
   corruption pool for an end is entities whose `node_type_of(csid)` ∈ the relation's
   `from`/`to` set (`consistency.load_edge_constraints` over
-  `shared/canonical-schema.json`); an empty set ⇒ `None` ⇒ unconstrained ⇒ all
+  `contracts/canonical-schema.json`); an empty set ⇒ `None` ⇒ unconstrained ⇒ all
   entities. Same csid-type source as the consistency ratchet — a schema change flows
   through both.
 - **Leakage is filtered + self-checked.** A negative is rejected if it reconstructs

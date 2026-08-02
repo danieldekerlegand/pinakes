@@ -9,7 +9,7 @@ import {
   calculateGeographicDistance,
 } from "../server/services/linguistic-distance-calculator";
 import { TsvStorage } from "../server/tsv-storage";
-import type { Language } from "../shared/types";
+import type { Language } from "../contracts/types";
 
 async function testDistanceCalculation() {
   console.log("=== Linguistic Distance Calculation Test ===\n");

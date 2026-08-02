@@ -16,7 +16,7 @@ import {
 } from "./capability-bus";
 import type { PublishResult } from "../services/capability-registry";
 import { generateSigningKeyPair, verifyManifestSignature } from "../services/manifest-signing";
-import type { CapabilityManifest } from "@shared/capability-manifest";
+import type { CapabilityManifest } from "@contracts/capability-manifest";
 
 const REGISTERED: PublishResult = {
   registered: true,

@@ -139,7 +139,7 @@ restricted to schema-compatible node types, so they are hard yet false).
   (`ml/src/pinakes_ml/export_queries.py`)
 - **Inputs:** the DVC-tracked triples splits (`ml/data/triples/{train,valid,test}.tsv`
   + `triples.tsv`, built by `pinakes-export-triples`) + the machine-readable
-  edge `from`/`to` type constraints in `shared/canonical-schema.json`
+  edge `from`/`to` type constraints in `contracts/canonical-schema.json`
 - **Committed artifact:** the snapshot manifest
   `ml/manifests/training-queries-manifest.json`
 - **DVC-tracked artifact (git-ignored):** `ml/data/queries/queries.jsonl`
@@ -168,7 +168,7 @@ For each positive `(h, r, t)` the generator emits `negative_ratio` negatives,
 alternating the corrupted end (tail, head, tail, …). The replacement is sampled from
 the **type-compatible pool** for that end — entities whose node type (read off the
 `cs:<node-type>:<id>` csid) is in the relation's `from`/`to` set in
-`shared/canonical-schema.json` (reusing `consistency.load_edge_constraints`). So a
+`contracts/canonical-schema.json` (reusing `consistency.load_edge_constraints`). So a
 `BORROWED_FROM` negative stays language→language; a `DESCENDS_FROM` negative stays
 within {language, language-family, culture, archaeological-culture}. An unconstrained
 end (empty `from`/`to`) draws from all entities.

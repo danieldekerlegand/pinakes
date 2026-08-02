@@ -4,14 +4,15 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
 
 ## Type-checking
 
-- **`scripts/` is excluded from the root `tsconfig.json` `include`, so `npm run check`
+- **`scripts/` is excluded from the project `web/tsconfig.json` `include`, so `npm run check`
   does NOT type-check anything here.** Type-check scripts explicitly with
   `npx tsc -p scripts/tsconfig.json` (0 errors expected — keep it that way).
-- `scripts/tsconfig.json` sets `baseUrl: ".."` + `paths` for `@shared/*` and `@/*`, so
-  scripts may import `@shared/...` and cross-workspace files (e.g.
-  `../server/services/...`). At runtime, `tsx` resolves `@shared` via the root tsconfig
-  paths, and vitest resolves it via its own alias config — a plain `@shared` import works
-  in all three (tsc/tsx/vitest).
+- `scripts/tsconfig.json` sets `baseUrl: ".."` + `paths` for `@contracts/*` and `@/*`, so
+  scripts may import `@contracts/...` and cross-workspace files (e.g.
+  `../server/services/...`). At runtime, `tsx` resolves `@contracts` via the **root
+  `tsconfig.json` shim** (tsx looks for the nearest tsconfig at or above its cwd, and the
+  real project config now lives in `web/`), and vitest resolves it via its own alias config
+  — a plain `@contracts` import works in all three (tsc/tsx/vitest).
 
 ## Conventions
 
@@ -56,7 +57,7 @@ full-tree scan (`npm run secret-scan`, CI mode); `--staged` = staged-only
 
 The export stamps a `license` column on **every** node and edge and a `source_query`
 citation column on **edges** (nodes already had one). Both are v1.1 additions to
-`shared/canonical-schema.json` (role `provenance`; `license` required, edge `source_query`
+`contracts/canonical-schema.json` (role `provenance`; `license` required, edge `source_query`
 optional). Rules:
 
 - **`license` is resolved from the record's `source` via `SOURCE_LICENSES`** (a registry in
@@ -161,7 +162,7 @@ Live output: `build/corpus/entity-grounding/snapshot.json` (gitignored). Run wit
   §2: `kgp_version`/`pack_id`/`producer`/`worlds`/`kind`/`basis`/`dialect` + a
   `manifest{counts,created,signing,license_policy}`, and `buildAssertions` mints one
   `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim per QID-bearing entity.
-  Normalization lives in `@shared/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
+  Normalization lives in `@contracts/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
   is `2.0.0` (the envelope broke, the records did not). Full contract: `docs/grounding-pack.md`.
 
 ## Insimul grounding pack (insimul-bridge US-002)
@@ -213,11 +214,11 @@ culture,place,language --license-classes CC0,CC-BY --out <dir> --emit-fixture]`.
 
 `export-for-engine.ts` emits `build/corpus/{nodes,edges}/<type>.tsv`
 (gitignored) + `manifest.json`, and a committed manifest snapshot at
-`docs/engine-export-manifest.json`. It reuses `@shared/lexicon-mapping` (node
+`docs/engine-export-manifest.json`. It reuses `@contracts/lexicon-mapping` (node
 `target`/`property` dispositions) and `server/services/canonical-edges`
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
-`shared/canonical-schema.json` `idScheme`); a row without one falls back to
+`contracts/canonical-schema.json` `idScheme`); a row without one falls back to
 `cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, pinakesId, qid?)` is the single source —
 `wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
 `targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
@@ -348,10 +349,10 @@ overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Repor
 - **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
   free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
   (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
-  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written) —
+  the sourced vitality. The runtime `Language` type lives in **`contracts/types.ts`** (hand-written) —
   add the field there and read it in `tsv-storage.ts`'s `getLanguages` parse. (There is no longer a
   competing `@shared/schema`; the Drizzle module was deleted in `10-foundation-cleanup` US-2 and its
-  still-referenced record shapes moved into `shared/types.ts`.)
+  still-referenced record shapes moved into `contracts/types.ts`.)
 
 ## New-row additions (US-003, data-population pilot)
 
@@ -395,8 +396,8 @@ summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md)
   snapshots** or their live-corpus parity tests fail: `npx tsx scripts/export-for-engine.ts`
   (→ `docs/engine-export-manifest.json`) **and** `npx tsx scripts/reconciliation-report.ts`
   (→ `docs/reconciliation-report.json`). Adding a mapped column also needs its
-  `shared/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
-  won't catch that; `shared/lexicon-mapping.test.ts` will.
+  `contracts/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
+  won't catch that; `contracts/lexicon-mapping.test.ts` will.
 
 ## Domain acquisition (US-002, data-population at scale)
 
@@ -544,8 +545,8 @@ myth/folklore, since top-1 is noisy: it returned video games/films/plants for ma
 ## Koine registry re-vendor — `regen-registry-mirror.ts` (40-registry-mirror-autoregen)
 
 The deterministic re-vendor for the TWO on-disk koine mirrors pinakes keeps, replacing the
-old manual `cp`. `shared/predicate-mapping.json` is a byte copy of koine
-`registry/predicate-mapping.json`; `shared/kgp.ts`'s `KGP_CORE_RELATIONS` (from koine
+old manual `cp`. `contracts/predicate-mapping.json` is a byte copy of koine
+`registry/predicate-mapping.json`; `contracts/kgp.ts`'s `KGP_CORE_RELATIONS` (from koine
 `registry/relations.tsv`) + `KGP_DOMAIN_RELATIONS` (from
 `registry/relations/{cinematography,media,social}.tsv`) are the second mirror. **Never
 hand-edit either** — a published signature is immutable (KGP §3.2 / the registry
@@ -556,7 +557,7 @@ hand-edit either** — a published signature is immutable (KGP §3.2 / the regis
   read-only sibling: it reports whether either mirror is stale and exits `1` if so (naming
   `npm run regen:registry-mirror` as the remedy), writing nothing. Both resolve the koine
   checkout from `KOINE_ROOT`, else `~/Development/koine` — the SAME resolution
-  `shared/predicate-mapping.test.ts` uses (`resolveKoineRoot()`).
+  `contracts/predicate-mapping.test.ts` uses (`resolveKoineRoot()`).
 - Same pure-core/thin-fs shape as the other scripts: `parseRelationsTsv` / `renderEntries` /
   `regenerateKgpSource` / `buildRegen` are pure over the koine sources; `writeRegen`/`runRegen`
   (and read-only `diffRegen`/`runCheck`) do the fs side. `buildRegen` reads + validates all five
@@ -564,7 +565,7 @@ hand-edit either** — a published signature is immutable (KGP §3.2 / the regis
 - `kgp.ts` uses `// @generated:begin/end {core,domain}-relations` markers; the regen replaces
   only the entry lines between them (JSDoc + const decls preserved). The domain prefix is the TSV
   `domain` column, NOT the file stem (`cinematography.tsv` → `cine:`).
-- **The drift gates that pair with it:** `shared/predicate-mapping.test.ts` byte-compares the JSON
+- **The drift gates that pair with it:** `contracts/predicate-mapping.test.ts` byte-compares the JSON
   and signature-compares the TSV vocabulary under `skipIf(!hasKoine)`, and `convergence-qa.ts`
   `detectRegistryStaleness` emits a `registry-stale` `DriftIssue` (both guarded on koine presence,
   so a checkout without the sibling repo is unaffected). Running the regen against the live 0.4.2
@@ -634,7 +635,7 @@ sibling of `coverage-report.ts`: it imports `buildCorpusTierReport` from the sha
 The JSON is asserted against the live corpus by `server/services/data-quality-scorer.test.ts`, so
 **re-run `npx tsx scripts/corpus-tier-report.ts` after any node-lexicon change that moves QID /
 `source_url` coverage** (e.g. a QID backfill), or that parity test fails. Tiers come from
-`@shared/trust-tier` (`classifyTrustTier`, the TS mirror of pinakes-engine's `orchestrate/tiers.py`);
+`@contracts/trust-tier` (`classifyTrustTier`, the TS mirror of pinakes-engine's `orchestrate/tiers.py`);
 the report tracks **auto-admission readiness** (the whole curated corpus is `graphTier: curated`).
 
 ## Reconciliation dry-run (US-005)
@@ -755,7 +756,7 @@ Reusable rules for any future id-collision cleanup:
   culture but renaming the Nooksack *language* means re-pointing grammar-features/phonological-
   inventories `language_id` (the language FKs) but nothing else.
 - **The EDGE-endpoint columns are the ones that mint stubs if orphaned** (from
-  `shared/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
+  `contracts/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
   predecessor/successor_culture_ids, cultural-lineages source_id/target_id (**polymorphic** — any
   node type), deities.syncretism_links, etymology-relations + language-contacts endpoints,
   families.parent_id, languages.family_id/parent_language_id, writing-systems.parent_system_id.

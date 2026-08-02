@@ -28,7 +28,7 @@ import {
   claimHashInput,
   csidToKinpCurie,
   wikidataEntityCurie,
-} from "@shared/kgp";
+} from "@contracts/kgp";
 
 /** Write a `{ file: rows[][] }` map of TSVs into a fresh temp lexicons dir. */
 function makeFixtureDir(files: Record<string, string[][]>): string {

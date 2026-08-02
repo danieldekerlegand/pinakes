@@ -14,7 +14,7 @@ So US-005 added the minimal wiring, then browser-verified it.
 1. **Server** — `loadCivilizations()` (`server/tsv-storage.ts`) now emits the
    provenance columns (`description`, `wikidata_qid`, `source_url`, `retrieved_at`,
    `confidence`) into the `/api/map/civilizations` GeoJSON `properties`. The
-   `CivilizationProperties` type (`client/src/lib/visualization/geospatial-types.ts`,
+   `CivilizationProperties` type (`web/src/lib/visualization/geospatial-types.ts`,
    shared with the server) gained those as optional fields. Live response: **170
    features, 81 carrying `wikidataQid` + `sourceUrl` + `confidence=1.0`.**
 2. **Explorer adapter** — new `civilizations.adapter.ts` (registered in

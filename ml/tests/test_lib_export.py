@@ -58,7 +58,7 @@ _ML_ROOT = _REPO_ROOT / "ml"
 _ENGINE_EXPORT = (
     _REPO_ROOT / "engine" / "tests" / "fixtures" / "parity" / "golden" / "neo4j-export"
 )
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 #: The three triples the engine's fixture corpus carries.
 _EXPECTED = [
@@ -69,7 +69,7 @@ _EXPECTED = [
 
 
 def _canonical_headers() -> tuple[list[str], list[str]]:
-    """``(node header, edge header)`` as ``shared/canonical-schema.json`` declares."""
+    """``(node header, edge header)`` as ``contracts/canonical-schema.json`` declares."""
     schema = json.loads(_SCHEMA.read_text(encoding="utf-8"))
     return (
         [col["header"] for col in schema["node"]["columns"]],
@@ -82,7 +82,7 @@ def _canonical_headers() -> tuple[list[str], list[str]]:
 
 def test_the_repo_root_walk_lands_on_the_repo_root() -> None:
     """``parents[2]`` from ``ml/tests/`` must be the repo root, not ``ml/``."""
-    assert (_REPO_ROOT / "shared" / "canonical-schema.json").is_file()
+    assert (_REPO_ROOT / "contracts" / "canonical-schema.json").is_file()
     assert (_REPO_ROOT / "engine" / "pyproject.toml").is_file()
     assert (_REPO_ROOT / "ml" / "pyproject.toml").is_file()
 
@@ -100,7 +100,7 @@ def test_every_git_tracked_default_path_resolves() -> None:
         "export_insimul_datasets.DEFAULT_WORLDS[0]": (
             export_insimul_datasets.DEFAULT_WORLDS[0]
         ),
-        "shared/canonical-schema.json": _SCHEMA,
+        "contracts/canonical-schema.json": _SCHEMA,
         "the engine-rendered export": _ENGINE_EXPORT,
     }
     missing = sorted(name for name, path in tracked.items() if not path.exists())

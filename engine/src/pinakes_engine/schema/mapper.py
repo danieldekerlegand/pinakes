@@ -161,7 +161,7 @@ def node_schema() -> NodeSchema:
       the ref has to survive that round-trip as a real column;
     * :data:`OVERFLOW_KEY` — the JSON catch-all for unmapped raw fields.
 
-    Neither is in ``shared/canonical-schema.json``, so neither may sit inside
+    Neither is in ``contracts/canonical-schema.json``, so neither may sit inside
     :meth:`NodeSchema.canonical` — the canonical prefix is what the embedded
     agora translation engine renders, and a column injected into it would break
     byte-parity. A reader keyed on the header (which every reader here is) sees

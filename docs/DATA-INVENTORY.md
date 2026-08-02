@@ -33,7 +33,7 @@ what code references it, and a risk-ordered plan to consolidate it.
 | 10 | `data/contributions/` | Runtime queue | git *(inconsistent)* | Medium — `"data/contributions"` default in `contribution-service.ts` + 6 route defaults | **Gitignore** + move samples to fixtures |
 | 11 | `data/{collections,annotations,stewardship,changelog,living-dataset}/` | Runtime user state | gitignored | Medium — one constructor default string each | Move under `data/runtime/` |
 | 12 | `scripts/data/` (23 tsv + fixture) | Curated source / regen output | git | Medium — centralized `DATA_DIR` off `import.meta.dirname` | Leave (co-located with the scripts that own it) |
-| 13 | `shared/*.json` (5) | **Contracts/schema** | git | Medium-high — `.ts` co-import + `REPO_ROOT/"shared"` + Python `parents[4]/"shared"` | **Leave** (correctly co-located with `.ts` wrappers) |
+| 13 | `contracts/*.json` (5) | **Contracts/schema** | git | Medium-high — `.ts` co-import + `REPO_ROOT/"contracts"` + Python `parents[4]/"contracts"` | **Leave** (correctly co-located with `.ts` wrappers) |
 | 14 | `build/corpus/` | Canonical corpus | git-ignored | Low — CLI arg, no hardcoded default | **Leave** (the ML seam) |
 | 15 | `ml/{data,models}` + `ml/{configs,manifests,fixtures,predictions,scallop}` | ML artifacts | git-ignored + git | Self-contained under `ml/` | **Leave** (already an island) |
 | 16 | `sources/` (glottolog, LinguaMeta.pdf, url-nlp) | External dumps | gitignored | Low — one path in `server/services/boundary-resolver.ts:404` | Leave |
@@ -69,7 +69,7 @@ engine/
   src/ …                      # code
 build/corpus/         # UNCHANGED — the ML seam (git-ignored)
 ml/ …                         # UNCHANGED — self-contained island
-shared/                       # UNCHANGED — contracts, co-located with .ts
+contracts/                       # UNCHANGED — contracts, co-located with .ts
 ```
 
 Everything marked UNCHANGED is a deliberate leave-in-place with a rationale in the table
@@ -113,7 +113,7 @@ Python gates (need the `uv` env): `cd engine && uv run pytest` and `cd ml && uv 
 ## Explicitly out of scope (leave as-is, with reason)
 
 - `lexicons/` — ~60 hardcoded literals + `process.cwd()`; top-level is already a clear home.
-- `shared/*.json` — contracts deliberately co-located with their `.ts` wrappers.
+- `contracts/*.json` — contracts deliberately co-located with their `.ts` wrappers.
 - `build/corpus/`, `ml/**` — the corpus seam and the ML island.
 - Test fixtures (`engine/tests/fixtures/**`, `ml/fixtures/`) — belong with their tests.
 - `sources/` — gitignored external dumps, one code path.

@@ -22,7 +22,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -198,7 +198,7 @@ function slugify(name: string): string {
  */
 function placeLexiconFiles(): string[] {
   const mapping = JSON.parse(
-    fs.readFileSync(path.join(REPO_ROOT, "shared", "lexicon-mapping.json"), "utf8"),
+    fs.readFileSync(path.join(REPO_ROOT, "contracts", "lexicon-mapping.json"), "utf8"),
   ) as { files: { file: string; kind: string; node: string | null }[] };
   return mapping.files
     .filter((f) => f.kind === "node" && f.node === "place")

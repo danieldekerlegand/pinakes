@@ -10,7 +10,7 @@ import {
   FEATURE_DESCRIPTIONS,
   LAYOUT_TYPE_DESCRIPTIONS,
   type CityLayoutData,
-} from "../client/src/components/visualizations/city-layout-utils";
+} from "../web/src/components/visualizations/city-layout-utils";
 
 // --- Pure utility function tests ---
 

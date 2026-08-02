@@ -7,7 +7,7 @@
  * Streamable HTTP transport) — at `/mcp`, exposing exactly the three KCB §6
  * capabilities as tools named `resolve`/`reconcile`/`query`.
  *
- * **Surface wrapper only** (server/CLAUDE.md + shared/CLAUDE.md): every tool
+ * **Surface wrapper only** (server/CLAUDE.md + contracts/CLAUDE.md): every tool
  * forwards to the already-built surface the manifest points at —
  *   - `resolve`   → `server/services/graph-resolver.ts` (`GET /api/graph/resolve`)
  *   - `reconcile` → the pinakes-engine acquisition job (`POST /api/scraping/culturescrape`)
@@ -41,7 +41,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
-import { capability, CAPABILITY_MANIFEST } from "@shared/capability-manifest";
+import { capability, CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
 import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 import { GraphUnavailableError } from "../services/graph-store";
 import * as pinakes_engine from "../services/engine-client";

@@ -8,7 +8,7 @@ import {
   getUniqueInnovationCategories,
   sortInnovationsByYear,
   INNOVATION_CATEGORY_COLORS,
-} from "../client/src/components/culture-profile/technology-innovation-utils";
+} from "../web/src/components/culture-profile/technology-innovation-utils";
 
 const mockInnovations: Innovation[] = [
   {

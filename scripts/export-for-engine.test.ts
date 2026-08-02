@@ -24,7 +24,7 @@ import {
   edgeHeaderRow,
   CANONICAL_SCHEMA,
   edgeTypeByName,
-} from "@shared/canonical-schema";
+} from "@contracts/canonical-schema";
 
 /** Write a `{ file: "h1\th2\n r1..." }` map of TSVs into a fresh temp lexicons dir. */
 function makeFixtureDir(files: Record<string, string[][]>): string {

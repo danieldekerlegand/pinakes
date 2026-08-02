@@ -34,13 +34,13 @@ import path from "node:path";
 import {
   CANONICAL_SCHEMA,
   assertValidCanonicalSchema,
-} from "@shared/canonical-schema";
+} from "@contracts/canonical-schema";
 import {
   assertValidLexiconMapping,
   lexiconMappingByFile,
   mappedFiles,
-} from "@shared/lexicon-mapping";
-import { assertValidPredicateMapping } from "@shared/predicate-mapping";
+} from "@contracts/lexicon-mapping";
+import { assertValidPredicateMapping } from "@contracts/predicate-mapping";
 import {
   buildExport,
   EXPORT_DIR,
@@ -81,7 +81,7 @@ export const IMPORT_MARKER_TARGET = "wikidata_qid";
  * Provenance every imported row MUST carry, non-blank (roadmap Guiding Principle #8):
  * which authority (`source`), the record URL (`source_url`), when it was retrieved
  * (`retrieved_at`), and the reconciliation confidence (`confidence`). These are canonical
- * *targets*; each lexicon file names the columns itself (via shared/lexicon-mapping.json),
+ * *targets*; each lexicon file names the columns itself (via contracts/lexicon-mapping.json),
  * so the gate generalises across domains without hard-coding column names.
  */
 export const REQUIRED_IMPORT_PROVENANCE_TARGETS = [
@@ -241,7 +241,7 @@ export function defaultRegistryProbe(): RegistryStalenessProbe {
 
 /**
  * Registry-staleness gate: when a koine checkout is present, fail if either the JSON
- * mirror (`shared/predicate-mapping.json`) or the `kgp.ts` TSV vocabulary
+ * mirror (`contracts/predicate-mapping.json`) or the `kgp.ts` TSV vocabulary
  * (`KGP_CORE_RELATIONS`/`KGP_DOMAIN_RELATIONS`) is out of date vs the authoritative koine
  * registry. Guarded on koine presence exactly like the byte test in
  * `predicate-mapping.test.ts`, so a checkout WITHOUT the sibling repo adds no finding.
@@ -269,8 +269,8 @@ export function detectRegistryStaleness(
   }
   if (!diff.jsonChanged && !diff.kgpChanged) return [];
   const stale = [
-    diff.jsonChanged ? "shared/predicate-mapping.json" : null,
-    diff.kgpChanged ? "shared/kgp.ts (KGP_CORE_RELATIONS/KGP_DOMAIN_RELATIONS)" : null,
+    diff.jsonChanged ? "contracts/predicate-mapping.json" : null,
+    diff.kgpChanged ? "contracts/kgp.ts (KGP_CORE_RELATIONS/KGP_DOMAIN_RELATIONS)" : null,
   ].filter(Boolean);
   return [
     {
@@ -363,7 +363,7 @@ export function detectDrift(
     if (!mapped.has(file)) {
       drift.push({
         kind: "unmapped-lexicon-file",
-        message: `lexicons/${file} is present on disk but not in shared/lexicon-mapping.json`,
+        message: `lexicons/${file} is present on disk but not in contracts/lexicon-mapping.json`,
         file,
       });
     }

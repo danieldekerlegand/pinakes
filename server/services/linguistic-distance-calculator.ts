@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Language } from "@shared/types";
+import type { Language } from "@contracts/types";
 import { normalizedPhoneticLevenshtein } from "./phonetic-features";
 
 // Cache for available languages with word data

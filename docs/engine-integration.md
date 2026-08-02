@@ -8,8 +8,8 @@ the correlation system-of-record. **Do not** rewrite the pinakes backend to Pyth
 This doc is the *architecture / rationale* view. The concrete, machine-readable contract —
 node/edge types, exact column headers, the per-lexicon mapping, export/reconcile/write-back/QA
 behaviour — lives in [`docs/canonical-schema.md`](./canonical-schema.md), backed by
-[`shared/canonical-schema.json`](../shared/canonical-schema.json) and
-[`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json). When the two disagree, the
+[`contracts/canonical-schema.json`](../contracts/canonical-schema.json) and
+[`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json). When the two disagree, the
 machine-readable schema wins. §7–§10 below map each convergence capability to the code and to the
 section of `canonical-schema.md` that specifies it.
 
@@ -42,12 +42,12 @@ store), which a TS service speaks as well as a Python one (Neo4j ships a first-c
 
 Full alignment requires six layers to match. The **Status** column records how the
 data-layer-convergence work (US-001…US-008) closed each gap; the code lives under `scripts/`,
-`shared/`, and `server/services/`, specified in `docs/canonical-schema.md`.
+`contracts/`, and `server/services/`, specified in `docs/canonical-schema.md`.
 
 | Layer | pinakes-engine | pinakes today | Status |
 |---|---|---|---|
 | **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid QID-anchored `cs:<node-type>:<QID>` when a row carries a `wikidata_qid`, else `cs:<node-type>:<pinakes-id>` (US-005); `pinakes_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts`. |
-| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `shared/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
+| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `contracts/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
 | **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
 | **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="pinakes"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
 | **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`engine/`) + `graph-app-integration`. CPU-domain compute stays TS. |
@@ -115,9 +115,9 @@ job now, not pinakes's. Work still splits by *language/runtime*:
 
 | Work | Runtime | Location |
 |---|---|---|
-| Canonical schema contract doc + machine-readable schema | shared | `docs/`, `shared/`, PRD `tasks/ralph/data-layer-convergence.json` |
+| Canonical schema contract doc + machine-readable schema | shared | `docs/`, `contracts/`, PRD `tasks/ralph/data-layer-convergence.json` |
 | Lexicons ingestion adapter/job; edge extraction; Datalog rules; Neo4j load; reconciliation tuning | **Python** | `engine/`, PRD `tasks/ralph/pinakes-convergence-python.json` |
-| Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `client/`, PRDs `tasks/ralph/{data-layer-convergence,graph-app-integration}.json` |
+| Neo4j TS driver, proxy routes, explorer adapter, graph views, provenance UI, write-back export | **TypeScript** | `server/`, `web/`, PRDs `tasks/ralph/{data-layer-convergence,graph-app-integration}.json` |
 
 → The Python-side ingestion/reconciliation/Datalog work is an in-repo concern under
 `engine/`, driven by its own Ralph PRD. Everything references this doc as the
@@ -132,8 +132,8 @@ The data-layer-convergence PRD delivered these artifacts. Each is specified in a
 
 | Story | Capability | Code | Spec |
 |---|---|---|---|
-| US-001 | Canonical node/edge schema (17 node types, 14 edge types), identity + provenance columns | `shared/canonical-schema.json` (+ `.ts` types/validators) | §1–§5 |
-| US-002 | Mapping of all 57 `lexicons/*.tsv` → canonical node/edge type, per-column disposition | `shared/lexicon-mapping.json` (+ `.ts`) | §6 |
+| US-001 | Canonical node/edge schema (17 node types, 14 edge types), identity + provenance columns | `contracts/canonical-schema.json` (+ `.ts` types/validators) | §1–§5 |
+| US-002 | Mapping of all 57 `lexicons/*.tsv` → canonical node/edge type, per-column disposition | `contracts/lexicon-mapping.json` (+ `.ts`) | §6 |
 | US-003 | Edge extraction from whole-file edge tables + embedded FK columns | `server/services/canonical-edges.ts` | §6.4 |
 | US-004 | Export lexicons to canonical `nodes/*.tsv` + `edges/*.tsv` (idempotent, import-clean) | `scripts/export-for-engine.ts` | §7 |
 | US-005 | Reconciliation keys + dry-run bucket report (matched / ambiguous / likely-new) | `scripts/reconciliation-report.ts` | §8 |
@@ -194,9 +194,9 @@ The round trip, with the exact command and artifact at each hop:
 
 To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
 
-1. **Map the file** in [`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json): add an
+1. **Map the file** in [`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json): add an
    entry with a `kind` (`node` / `edge` / `attribute` / `excluded`) and, for a `node`/`edge`
-   file, a `node` type from `shared/canonical-schema.json`. If the domain needs a node type that
+   file, a `node` type from `contracts/canonical-schema.json`. If the domain needs a node type that
    doesn't exist yet, add it to `nodeTypes` (or an edge to `edgeTypes`) in the canonical schema
    **and** to the §1/§2 tables in `canonical-schema.md` first.
 2. **Give every column a disposition** (`target` / `edge` / `property` / `drop`). Follow the
@@ -205,7 +205,7 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
 3. **Embedded relationships** (FK columns like `parent_id`, `*_culture_ids`): give them the
    `edge` disposition and, if the target `:TYPE` value vocabulary is free-text, add it to the
    `EDGE_TYPE_VALUE_MAPS` in `server/services/canonical-edges.ts` (US-003).
-4. **Run the mapping validator:** `npx vitest run shared/lexicon-mapping.test.ts` — it asserts
+4. **Run the mapping validator:** `npx vitest run contracts/lexicon-mapping.test.ts` — it asserts
    totality (all `lexicons/*.tsv` accounted for) and that every referenced column is real.
 5. **Regenerate the export & snapshots:**
    `npx tsx scripts/export-for-engine.ts` then
@@ -227,10 +227,10 @@ load Neo4j → materialize Datalog → smoke-test from the app), follow the oper
 
 | Step | Owner (runtime / location) | Reference |
 |---|---|---|
-| Canonical schema + lexicon mapping (contract) | **shared** — `shared/`, `docs/` | `canonical-schema.md` §1–§6 |
+| Canonical schema + lexicon mapping (contract) | **shared** — `contracts/`, `docs/` | `canonical-schema.md` §1–§6 |
 | Export / reconcile dry-run / write-back / QA gate | **pinakes (TS)** — `scripts/`, `server/services/` | `canonical-schema.md` §7–§10 |
 | Tabular ingestion, reconcile/merge, ontology linking, Neo4j load, Datalog rules | **pinakes-engine (Python)** — `engine/` | see below |
-| Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **pinakes (TS)** — `server/`, `client/` | `graph-app-integration` PRD |
+| Neo4j TS driver, FastAPI proxy, explorer adapters, graph/provenance UI | **pinakes (TS)** — `server/`, `web/` | `graph-app-integration` PRD |
 
 Python-side cross-links (same repo, `engine/`):
 
@@ -286,32 +286,32 @@ health probe and always returns 200 so the client can gate graph-dependent UI (U
 `server/services/graph-health.ts` (`getGraphHealth()`), which aggregates both backends'
 `isAvailable()` into one verdict, pull-through cached for `GRAPH_HEALTH_TTL_MS` (default 5s)
 so a burst of probes issues at most one round of checks. On the client, the
-`useGraphAvailability()` hook (`client/src/hooks/use-graph-availability.tsx`) polls that
+`useGraphAvailability()` hook (`web/src/hooks/use-graph-availability.tsx`) polls that
 route (30s interval, `retry:false`, fails closed) and exposes `{ available, neo4j, sidecar,
 isEnabled(backend), unavailableReason(backend) }`. Graph-dependent UI wraps its
 trigger/tab in `<GraphFeatureGate backend=… mode="disable"|"hide">`
-(`client/src/components/graph/GraphFeatureGate.tsx`), which dims + tooltips (or hides) the
+(`web/src/components/graph/GraphFeatureGate.tsx`), which dims + tooltips (or hides) the
 feature when its backend is offline. Pure decision logic lives in
-`client/src/lib/graph/availability.ts` (`isGraphFeatureEnabled` / `graphUnavailableReason`).
+`web/src/lib/graph/availability.ts` (`isGraphFeatureEnabled` / `graphUnavailableReason`).
 
 Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
 with both services module-mocked and exercises every route including the unavailable path.
 
 **Neighborhood visualization (US-007).** Entity detail panels (language, culture profile)
 carry a `<ShowInGraphButton entity={{ type, id, name, region }}>`
-(`client/src/components/graph/ShowInGraphButton.tsx`). The trigger is gated on the `neo4j`
+(`web/src/components/graph/ShowInGraphButton.tsx`). The trigger is gated on the `neo4j`
 backend via `GraphFeatureGate`; clicking it opens a dialog that resolves the entity to a
 csid through `GET /api/graph/resolve` (US-006) and then `React.lazy`-loads
-`GraphNeighborhoodView` (`client/src/components/graph/GraphNeighborhoodView.tsx`). That view
+`GraphNeighborhoodView` (`web/src/components/graph/GraphNeighborhoodView.tsx`). That view
 fetches `GET /api/graph/neighborhood/:id?depth=`, projects the payload through the pure
-transforms in `client/src/lib/graph/neighborhood-graph.ts` (nodes coloured/typed by first
+transforms in `web/src/lib/graph/neighborhood-graph.ts` (nodes coloured/typed by first
 `:LABEL`, edges labelled by `:TYPE`), and renders it with the shared force-directed
 `NetworkGraph`. Depth is adjustable 1–3; loading, empty, and graph-unavailable states are all
 handled. The heavy d3 renderer is code-split into its own chunk so it only loads on open.
 
 **Shared-graph explorer dataset (US-008).** The shared graph is exposed through the existing
 adapter-driven UnifiedExplorer as the **"Shared Culture Graph"** dataset
-(`client/src/lib/visualization/adapters/culturescrape.adapter.ts`, registered in
+(`web/src/lib/visualization/adapters/culturescrape.adapter.ts`, registered in
 `registry.ts`). Its `endpoint` is `GET /api/graph/overview`; `unwrap` pairs each node with
 its incident edges, and `project` maps the `{ nodes, edges }` payload into **all five**
 explorer dimensions — relational (nodes coloured by `:LABEL`, links by `:TYPE`), hierarchical
@@ -324,7 +324,7 @@ retrieved_at, confidence) so graph facts stay attributable. Pure transforms are 
 `culturescrape.adapter.test.ts`.
 
 **Federated global search (US-009).** The unified search box (`GET /api/search`,
-`server/services/global-search.ts`, dialog `client/src/components/global-search-dialog.tsx`)
+`server/services/global-search.ts`, dialog `web/src/components/global-search-dialog.tsx`)
 merges local-corpus hits with shared-graph hits from the sidecar `/search`. `federatedSearch`
 runs the existing `globalSearch` (local) and the pinakes-engine client `search` in sequence;
 `mergeGraphResults` combines them:
@@ -347,7 +347,7 @@ runs the existing `globalSearch` (local) and the pinakes-engine client `search` 
 
 **Provenance & confidence surfacing (US-010).** Graph facts carry the pinakes-engine
 provenance columns as node/edge properties (`source`, `source_url`, `retrieved_at`,
-`confidence`). The pure module `client/src/lib/graph/provenance.ts` normalises these into a
+`confidence`). The pure module `web/src/lib/graph/provenance.ts` normalises these into a
 `Provenance` record and holds the display logic:
 
 - **Sourced vs derived.** `classifyProvenance` marks a fact **sourced** when it carries a
@@ -360,28 +360,28 @@ provenance columns as node/edge properties (`source`, `source_url`, `retrieved_a
 - **Safe links.** `safeExternalUrl` only returns `http(s)` URLs, so the source link is rendered
   as `<a target="_blank" rel="noopener noreferrer">` and never an unsafe scheme.
 
-The reusable components live in `client/src/components/graph/Provenance.tsx`: `<ProvenanceBadge>`
+The reusable components live in `web/src/components/graph/Provenance.tsx`: `<ProvenanceBadge>`
 (compact sourced/derived pill + confidence chip) and `<ProvenanceList>` (full breakdown with the
 safe source link). They are used in the explorer detail panel (`UnifiedExplorer` renders
 `DetailDescriptor.provenance` via `<ProvenanceList>`; the pinakes_engine adapter's `detail`
 supplies it) and in the graph neighborhood view (root-node `<ProvenanceBadge>`). The pure
-classification/formatting logic is unit-tested in `client/src/lib/graph/provenance.test.ts` (the
+classification/formatting logic is unit-tested in `web/src/lib/graph/provenance.test.ts` (the
 repo has no jsdom, so the "component tests" exercise that module — same convention as US-007/008).
 
 **Datalog/Cypher research console (US-011).** An advanced, experimental surface at
-`/advanced-tools` (`client/src/pages/advanced-tools.tsx`) — intentionally **not** linked from the
+`/advanced-tools` (`web/src/pages/advanced-tools.tsx`) — intentionally **not** linked from the
 primary navigation — lets a researcher run read-only inference queries against the shared graph:
 Datalog goals over pinakes-engine's rule set (`POST /api/graph/datalog`) and Cypher reads against
 Neo4j (`POST /api/graph/cypher`). It ships example presets (`contemporary_with/2`, `same_region/2`
 via `within_region/2`, and transitive `descends_from` via `ancestor/2` for Datalog; `descends_from`
-edges and a language sample for Cypher — `client/src/lib/graph/research-console.ts`). Queries are
+edges and a language sample for Cypher — `web/src/lib/graph/research-console.ts`). Queries are
 **read-only** on both sides: the UI states it and the server rejects Cypher write clauses with 400
 before the sidecar is called. Sidecar errors are surfaced, not swallowed — a Datalog lint
 `error`/`reason` (e.g. when `swipl` is absent) renders in the panel, and a Cypher syntax error comes
 back as 502 with its detail. The whole tool is wrapped in `<GraphFeatureGate backend="sidecar">` so
 its Run buttons disable with an explanatory tooltip when the sidecar is offline (US-005). Route
 degradation (success + unavailable) is covered by `server/routes/graph.test.ts`; the pure preset /
-result-normalisation logic by `client/src/lib/graph/research-console.test.ts`.
+result-normalisation logic by `web/src/lib/graph/research-console.test.ts`.
 
 ## 10c. App-side runbook (run · deploy · extend)
 
@@ -475,7 +475,7 @@ To surface a new shared-graph capability at the app origin:
    error classes survive for `instanceof`), then exercise success **and** the unavailable path over
    real HTTP.
 4. **Gate the UI** on the right backend with `<GraphFeatureGate backend="neo4j"|"sidecar"|"any">`
-   (`client/src/components/graph/GraphFeatureGate.tsx`) so the feature disables with a tooltip when
+   (`web/src/components/graph/GraphFeatureGate.tsx`) so the feature disables with a tooltip when
    its backend is offline.
 5. **Document the row** in the §10b route catalog (method, backend, success shape, degradation).
 

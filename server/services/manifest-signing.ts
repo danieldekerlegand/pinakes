@@ -3,12 +3,12 @@
  * a provider's manifest SHOULD be signed so a consumer can attribute its provenance —
  * KINP §7 `prov.agent`).
  *
- * **Server-only, by the same rule that keeps `shared/kgp.ts` hasher-injected.** The
+ * **Server-only, by the same rule that keeps `contracts/kgp.ts` hasher-injected.** The
  * signature is Ed25519 over a deterministic canonical serialization, so it needs
- * `node:crypto`; `shared/` must stay client-safe and node-builtin-free, so the crypto
+ * `node:crypto`; `contracts/` must stay client-safe and node-builtin-free, so the crypto
  * lives here in `server/` while the manifest *shape* (`ManifestSigning.signature`) and
- * the canonical serializer (`canonicalJson`) stay in `shared/`. This mirrors how
- * `shared/kgp.ts` defines the byte-exact hash input and the caller supplies the hasher.
+ * the canonical serializer (`canonicalJson`) stay in `contracts/`. This mirrors how
+ * `contracts/kgp.ts` defines the byte-exact hash input and the caller supplies the hasher.
  *
  * **Optional-env degrade, like `GEONAMES_USERNAME` / `KCB_REGISTRY_URL`.** With no
  * `PINAKES_SIGNING_PRIVATE_KEY` configured the manifest is served unsigned
@@ -19,7 +19,7 @@
  * **The signature covers everything but itself.** {@link canonicalSigningInput} rebuilds
  * `signing` as `{key_id, alg}` — dropping `signature` — before serializing, so the
  * signed bytes bind the key id and algorithm to the manifest yet the signature can never
- * sign over its own value. This is the same exclusion `shared/kgp.ts` applies when it
+ * sign over its own value. This is the same exclusion `contracts/kgp.ts` applies when it
  * leaves `signing` out of a pack's content hash.
  */
 import {
@@ -32,8 +32,8 @@ import {
   type KeyObject,
 } from "node:crypto";
 
-import { canonicalJson } from "@shared/kgp";
-import type { CapabilityManifest, ManifestSigning } from "@shared/capability-manifest";
+import { canonicalJson } from "@contracts/kgp";
+import type { CapabilityManifest, ManifestSigning } from "@contracts/capability-manifest";
 
 /** The signature algorithm — fixed to match `signing.alg` in the manifest. */
 export const SIGNING_ALG = "ed25519";

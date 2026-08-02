@@ -20,7 +20,7 @@ a pure function of the export's own bytes, so a re-ingest of the same artifact
 produces byte-identical rows (**idempotent**: 0 changes) and every edge endpoint
 resolves against a node this same run emitted.
 
-Mapping (``shared/predicate-mapping.json`` ``projects.insimul``, entries 9-15,
+Mapping (``contracts/predicate-mapping.json`` ``projects.insimul``, entries 9-15,
 landed as canonical schema **v1.3.0**):
 
 ===================================  ==========================================
@@ -108,7 +108,7 @@ INSIMUL_LICENSE = "LicenseRef-Insimul-Proprietary"
 
 #: Confidence stamped on every ingested row. A generated fact is exact *within its
 #: closed world* but carries no external anchor on its value, which is the
-#: ``inferred`` rubric class (``shared/confidence-rubric.json``). The corpus's
+#: ``inferred`` rubric class (``contracts/confidence-rubric.json``). The corpus's
 #: confidence axis measures evidential strength about the real world, and a
 #: synthesized fact has none — the trust tier, not the prior, is what marks it.
 DEFAULT_CONFIDENCE = confidence_for("inferred")
