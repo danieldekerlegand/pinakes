@@ -51,8 +51,8 @@
         "docker-compose.yml and the Dockerfiles are under infra/; `docker compose` config still validates.",
         "The server still boots and reads lexicons from the new path; existing tests pass."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "lexicons/ -> data/source/lexicons/ (57 TSVs) + docker-compose.yml -> infra/docker-compose.yml and engine/Dockerfile -> infra/engine.Dockerfile. ~925 lexicons references swept; the readers that mattered were the ~60 literals in server/tsv-storage.ts (cwd-relative), the LEXICONS_DIR constants in server/services + scripts + test, and the engine reconcile scripts (_REPO_ROOT / \"lexicons\"). Baselines held EXACTLY: vitest 218 files / 3654 passed / 8 skipped, engine pytest 1922/41, ml pytest 477/8; tsc clean via web/ + scripts/; ruff+mypy clean in engine and ml (fixed 2 pre-existing E501s in each). Server smoke against the new path: /api/languages 1099, /api/language-families 543, /api/map/civilizations 170, /api/map/archaeological-sites 550, /api/map/language-range-polygons 133, /api/map/routes 104, /api/data-quality 57 files + 6722 tier rows, DuckDB analytical-index facets live. docker compose -f infra/docker-compose.yml config validates. Also green: convergence-qa (6722 nodes), secret-scan, playwright --list (15 tests). Compose gotchas handled: project name PINNED to `pinakes` (else the move renames the project to `infra` and orphans the neo4j-data volume) and every call site passes -f from the repo root (${PWD} must be the repo root for the neo4j absolute-path bind mount). NOT swept, deliberately: docs/archive/**, docs/MIGRATION_SUMMARY.md and docs/DATA-INVENTORY.md are historical records that a blanket rewrite would turn into lies; DATA-INVENTORY got a superseded-on-this-point banner instead."
     },
     {
       "id": "US-4",
