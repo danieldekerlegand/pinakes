@@ -9,14 +9,14 @@ fewer triples rather than a red test.
 Since pinakes:50 US-1 that renderer is the embedded agora translation engine
 (``agora:60-translation-engine-rust``), and this module is what ties ``ml/`` to it
 **in CI, over real engine bytes** — without ``ml/`` declaring the extension. The
-engine is a macOS/arm64 abi3 wheel vendored in ``core/``; adding it to this
+engine is a macOS/arm64 abi3 wheel vendored in ``engine/``; adding it to this
 workspace would churn ``ml/uv.lock`` and break ``uv sync --frozen`` on Linux CI
 (the same stance ``pyproject.toml`` takes on ``scallopy``). So instead of importing
 the lib, this reads its **committed output**:
 
-    core/tests/fixtures/parity/golden/neo4j-export/{nodes,edges}/*.tsv
+    engine/tests/fixtures/parity/golden/neo4j-export/{nodes,edges}/*.tsv
 
-which ``core/tests/test_translation_parity.py`` captures from
+which ``engine/tests/test_translation_parity.py`` captures from
 ``translation.to_neo4j_export`` and pins byte-for-byte against both the engine and
 the pre-migration Python emitters. It is deliberately hostile data — embedded tab /
 newline / backslash escapes, a multi-label node, an empty multi-value cell, sparse
@@ -26,7 +26,7 @@ bytes and this module fails on what ``ml/`` makes of them.
 
 The third group of tests guards the path math itself. ``ml/``'s live gates are
 ``skipif``-ed on a repo-root-relative path, so an off-by-one (or a relocated
-sibling, as when the Python package moved to ``core/``) turns a gate into a
+sibling, as when the Python package moved to ``engine/``) turns a gate into a
 permanent skip and the suite stays green. Every repo-root-anchored default that
 points at a *git-tracked* file is asserted to exist here, so that failure mode is
 loud.
@@ -56,7 +56,7 @@ _ML_ROOT = _REPO_ROOT / "ml"
 
 #: The engine-rendered canonical export, committed by core's parity suite.
 _ENGINE_EXPORT = (
-    _REPO_ROOT / "core" / "tests" / "fixtures" / "parity" / "golden" / "neo4j-export"
+    _REPO_ROOT / "engine" / "tests" / "fixtures" / "parity" / "golden" / "neo4j-export"
 )
 _SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
 
@@ -83,7 +83,7 @@ def _canonical_headers() -> tuple[list[str], list[str]]:
 def test_the_repo_root_walk_lands_on_the_repo_root() -> None:
     """``parents[2]`` from ``ml/tests/`` must be the repo root, not ``ml/``."""
     assert (_REPO_ROOT / "shared" / "canonical-schema.json").is_file()
-    assert (_REPO_ROOT / "core" / "pyproject.toml").is_file()
+    assert (_REPO_ROOT / "engine" / "pyproject.toml").is_file()
     assert (_REPO_ROOT / "ml" / "pyproject.toml").is_file()
 
 
@@ -93,7 +93,7 @@ def test_every_git_tracked_default_path_resolves() -> None:
     These are the inputs the CI-tier gates read directly (no corpus build), so a stale
     path here does not fail — it makes the gate `skipif` forever. That is exactly
     what happened to both `test_scallop.py` committed-artifact gates when the
-    Python package moved from `packages/culture-scrape/` to `core/`.
+    Python package moved from `packages/culture-scrape/` to `engine/`.
     """
     tracked = {
         "export_scallop.DEFAULT_REGISTRY": export_scallop.DEFAULT_REGISTRY,
@@ -113,16 +113,18 @@ def test_the_corpus_anchor_exists_so_the_live_gates_skip_on_a_build_not_a_typo(
 ) -> None:
     """The live gates skip on a *materialization*, never on a path typo.
 
-    `export/culturescrape/` is a git-ignored build output, absent in CI. The
+    `build/corpus/` is a git-ignored build output, absent in CI. The
     anchor used to be its committed `.dvc` pointer; DVC was removed
     (`docs/artifact-versioning.md`), so the committed thing that still names the
-    tree is `export/.gitignore`. If the repo agrees the path is ignored and the
-    exporter's default resolves to it, a skip means "not built", not "renamed".
+    tree is the repo-root `.gitignore` (`/build/*`, from the target-layout move
+    of `export/culturescrape/` to `build/corpus/`). If the repo agrees the path
+    is ignored and the exporter's default resolves to it, a skip means "not
+    built", not "renamed".
     """
-    ignore = (_REPO_ROOT / "export" / ".gitignore").read_text(encoding="utf-8")
-    assert "/culturescrape" in ignore.split()
-    assert triples_edges_dir().parent.name == "culturescrape"
-    assert triples_edges_dir().parent.parent == _REPO_ROOT / "export"
+    ignore = (_REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert "/build/*" in ignore.split()
+    assert triples_edges_dir().parent.name == "corpus"
+    assert triples_edges_dir().parent.parent == _REPO_ROOT / "build"
 
 
 def triples_edges_dir() -> Path:

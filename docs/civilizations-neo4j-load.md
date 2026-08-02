@@ -4,16 +4,16 @@
 > Neo4j load (US-004) and its then-current export counts (**5,432 nodes / 5,526 edges**,
 > 7 edge types). Those numbers are frozen at that point in time and have since moved: the
 > live export is now **6,835 nodes / 5,836 edges across 8 edge types** (see
-> [`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json), the
+> [`docs/engine-export-manifest.json`](./engine-export-manifest.json), the
 > authoritative live snapshot). The **procedure** below (MERGE-on-`csid`, idempotent
 > LOAD CSV, the docker-compose Neo4j additions) is still current and reusable; only the
 > inline counts are a period record, not a live figure. See also the csid-migration note
 > just below. For the canonical Phase-0 status and the fork policy, see
 > the neurosymbolic roadmap and
-> [`docs/culturescrape-fork-policy.md`](./culturescrape-fork-policy.md).
+> [`docs/engine-fork-policy.md`](./engine-fork-policy.md).
 
 The expanded civilizations (`lexicons/civilizations.tsv`, 170 rows after US-003) loaded
-into the live Neo4j graph via the incremental, idempotent `culturescrape to-neo4j
+into the live Neo4j graph via the incremental, idempotent `pinakes_engine to-neo4j
 --mode loadcsv` path, so the running app queries real breadth. The load is `MERGE`-on-`csid`
 (never `CREATE`) behind an `Entity.csid` uniqueness constraint plus per-label constraints/
 indexes, so re-running it does not duplicate nodes or relationships.
@@ -34,17 +34,17 @@ civilizations as 340 `:Culture` nodes — the extra rows are the other culture l
 also map to `:Culture`):
 
 ```bash
-# 1. Refresh the canonical export (gitignored export/culturescrape/{nodes,edges}/*.tsv)
-npx tsx scripts/export-for-culturescrape.ts
+# 1. Refresh the canonical export (gitignored build/corpus/{nodes,edges}/*.tsv)
+npx tsx scripts/export-for-engine.ts
 #    → Exported 5432 nodes (17 types) + 5526 edges (7 types)
 
 # 2. Bring up Neo4j with APOC + absolute file:// CSV import (see docker-compose.yml)
 docker compose up -d neo4j          # `graph` profile; healthy in ~12s (APOC auto-fetched)
 
 # 3. Incremental, idempotent LOAD CSV against the running DB
-cd core
+cd engine
 export NEO4J_URI='bolt://localhost:7687' NEO4J_USER='neo4j' NEO4J_PASSWORD='pinakes'
-uv run culturescrape to-neo4j ../../export/culturescrape --mode loadcsv
+uv run pinakes_engine to-neo4j ../../build/corpus --mode loadcsv
 #    → applied 37 constraint/index statement(s) and ran 24 LOAD CSV statement(s)  (~19s)
 ```
 
@@ -63,7 +63,7 @@ The stock `neo4j:5` service could **not** run the `loadcsv` path. This story wir
 
 ## Smoke query — node counts by label
 
-The documented smoke query is `culturescrape neo4j-counts` (= `cypher/node-counts-by-label.cypher`
+The documented smoke query is `pinakes_engine neo4j-counts` (= `cypher/node-counts-by-label.cypher`
 `MATCH (n) UNWIND labels(n) AS label RETURN label, count(*)`). `:Culture` is the civilizations
 label; there is no dedicated `:Culture` cypher file because `Culture` is not a relation
 domain/range in the schema registry (the query-lint's `DEFINED_LABELS`), so the generic
@@ -101,8 +101,8 @@ same `MERGE`-on-`csid` load) left the graph unchanged:
 
 ## Reproduce
 
-`docker compose up -d neo4j` → `npx tsx scripts/export-for-culturescrape.ts` → the
-`to-neo4j --mode loadcsv` + `neo4j-counts` commands above. Corpus (`export/culturescrape`)
+`docker compose up -d neo4j` → `npx tsx scripts/export-for-engine.ts` → the
+`to-neo4j --mode loadcsv` + `neo4j-counts` commands above. Corpus (`build/corpus`)
 and the graph volume are regenerable and gitignored; only `docker-compose.yml` and this
-doc are committed. See the roadmap §15 and `core/docs/convergence-build.md`.
+doc are committed. See the roadmap §15 and `engine/docs/convergence-build.md`.
 </content>

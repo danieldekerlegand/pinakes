@@ -26,7 +26,7 @@ stabilized, extract now.
 
 A separate `uv` workspace (Python 3.11), ~18.5k LOC across 39 modules + 22 test files, its
 own heavy stack (torch, pykeen, problog, scallopy, trl/peft, llama.cpp) kept deliberately out
-of the `core/` sidecar. Feature surface (see [ml/CLAUDE.md](../ml/CLAUDE.md)): triples export +
+of the `engine/` sidecar. Feature surface (see [ml/CLAUDE.md](../ml/CLAUDE.md)): triples export +
 PyKEEN baselines (eval tier 1), logical-consistency ratchet (tier 2), KGQA (tier 3), rule
 adherence (tier 4), the Scallop/DeepProbLog neurosymbolic pilot, the full SLM productization
 pilot (QLoRA → GGUF → Insimul handoff), and a **KFT fine-tuning provider** for the koine/agora
@@ -39,15 +39,15 @@ fabric. It is `1.1 GB` on disk (mostly `.venv` + DVC-materialized `ml/data`/`ml/
 
 | What ml/ reads | Where | Used by | Kind |
 |---|---|---|---|
-| `export/culturescrape/` corpus | DVC tree | triples, verbalize, kgqa, eval_kgqa, scallop | **the seam** |
-| `export/culturescrape.dvc` (md5) | git | train_baselines (records corpus version) | pointer |
+| `build/corpus/` corpus | DVC tree | triples, verbalize, kgqa, eval_kgqa, scallop | **the seam** |
+| `build/corpus.dvc` (md5) | git | train_baselines (records corpus version) | pointer |
 | `shared/canonical-schema.json` | git | consistency, kgqa, queries, train_baselines, train_scallop (6 modules) | **contract** |
-| `core/src/culturescrape/datalog/rules_registry.tsv` | git | export_scallop (`DEFAULT_REGISTRY`) | **contract** |
-| `core/tests/fixtures/insimul/world-export.json` | git | export_insimul_datasets (`DEFAULT_WORLDS`), eval_rule_adherence | fixture-as-input |
+| `engine/src/pinakes_engine/datalog/rules_registry.tsv` | git | export_scallop (`DEFAULT_REGISTRY`) | **contract** |
+| `engine/tests/fixtures/insimul/world-export.json` | git | export_insimul_datasets (`DEFAULT_WORLDS`), eval_rule_adherence | fixture-as-input |
 
-Plus `ml/tests/test_lib_export.py` drives the loaders over `core/`'s committed golden export
-fixtures (`core/tests/fixtures/parity/golden/neo4j-export/`). Nothing in `core/`, `server/`,
-or `client/` reads *into* `ml/` — the dependency is strictly one-directional (ml → core/shared),
+Plus `ml/tests/test_lib_export.py` drives the loaders over `engine/`'s committed golden export
+fixtures (`engine/tests/fixtures/parity/golden/neo4j-export/`). Nothing in `engine/`, `server/`,
+or `client/` reads *into* `ml/` — the dependency is strictly one-directional (ml → engine/shared),
 which is what makes extraction clean.
 
 ## Case FOR extraction
@@ -68,7 +68,7 @@ which is what makes extraction clean.
 
 ## Case AGAINST / the real costs
 
-- **The corpus handoff.** A separate repo can't read `export/culturescrape` locally. Options:
+- **The corpus handoff.** A separate repo can't read `build/corpus` locally. Options:
   (a) a **shared DVC remote** both repos pull from (lowest friction — the `dvc-storage` remote
   already exists); (b) publish the corpus as a **versioned dataset** (KGP/KMI asset) the ml
   repo pulls by version. Either way it's new cross-repo plumbing.
@@ -102,8 +102,8 @@ If those four are acceptable, extraction is clean and one-directional. The estab
 
 1. **Stabilize first.** Confirm `canonical-schema.json` + `rules_registry.tsv` aren't in active
    flux. If they are, defer — this is the one real blocker.
-2. **Make the corpus a published input.** Point the new repo's `export/culturescrape` at the
-   shared DVC remote (or publish a versioned corpus asset); keep `_REPO_ROOT/export/culturescrape`
+2. **Make the corpus a published input.** Point the new repo's `build/corpus` at the
+   shared DVC remote (or publish a versioned corpus asset); keep `_REPO_ROOT/build/corpus`
    resolving via an env/config override instead of a repo-relative path.
 3. **Vendor the 3 contract files** with drift-failing tests (mirror the existing koine-mirror
    pattern in `scripts/regen-registry-mirror.ts`).

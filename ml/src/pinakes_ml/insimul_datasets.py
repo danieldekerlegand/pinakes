@@ -44,7 +44,7 @@ is generated content, not observation: every record and the manifest carry
 "License leakage"; ``orchestrate.tiers.assert_no_synthetic_records`` is the
 corpus-side gate).
 
-Pure + stdlib-only (no Insimul import, no ``culturescrape`` import — ``ml/`` is a
+Pure + stdlib-only (no Insimul import, no ``pinakes_engine`` import — ``ml/`` is a
 separate uv workspace), no wall-clock and no MLflow, so the committed manifest is
 byte-reproducible. The thin CLI + MLflow logging live in
 :mod:`pinakes_ml.export_insimul_datasets`.
@@ -125,7 +125,7 @@ SYNTHETIC_TIER = "synthetic"
 INSIMUL_SOURCE = "insimul"
 #: The per-record SPDX id a generated world carries, mirrored from
 #: ``acquire.insimul.INSIMUL_LICENSE``. It is an unregistered ``LicenseRef``, so
-#: culture-scrape's SPDX classifier files it ``unknown`` (verify before
+#: pinakes-engine's SPDX classifier files it ``unknown`` (verify before
 #: redistribute); the dataset-facing class is the blunter, truthful one below.
 INSIMUL_LICENSE = "LicenseRef-Insimul-Proprietary"
 #: The license class the manifests advertise. Bridge-2 output is proprietary and
@@ -205,7 +205,7 @@ def world_csid(node_type: str, world_id: str, entity_id: str) -> str:
     Mirrors ``acquire.insimul.WorldExport.csid`` — an alias-anchored
     ``mint_csid`` whose local part is the alias **verbatim**, i.e.
     ``cs:<type>:insimul:<worldId>:<entityId>``. Reimplemented (not imported):
-    ``ml/`` is a separate uv workspace from ``core``, so the
+    ``ml/`` is a separate uv workspace from ``engine``, so the
     seam is gated by a committed cross-check fixture instead — see
     ``ml/fixtures/insimul/bridge-graph.json`` and its test.
     """

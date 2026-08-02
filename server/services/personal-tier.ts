@@ -15,7 +15,7 @@
  * exists to drop).
  *
  * This is the TS twin of the Python tier framework
- * (`core/src/culturescrape/orchestrate/tiers.py`) and follows it exactly: the tier
+ * (`engine/src/pinakes_engine/orchestrate/tiers.py`) and follows it exactly: the tier
  * itself is generic, and the set of *producers* that fill it is a deployment
  * concern — see {@link PERSONAL_SOURCES}.
  */

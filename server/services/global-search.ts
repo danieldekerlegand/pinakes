@@ -22,8 +22,8 @@ import type {
   TradeGood,
   FoodwayEvent,
 } from "../tsv-storage";
-import * as culturescrape from "./culturescrape-client";
-import type { SearchHit } from "./culturescrape-client";
+import * as pinakes_engine from "./engine-client";
+import type { SearchHit } from "./engine-client";
 import { getGraphResolver } from "./graph-resolver";
 import type { GraphResolver } from "./graph-resolver";
 import type { TrustTier } from "@shared/trust-tier";
@@ -33,7 +33,7 @@ export type SearchSource = "local" | "graph";
 
 /** Provenance/confidence attached to a shared-graph search hit. */
 export interface GraphProvenance {
-  /** Human label for the origin, e.g. `"culture-scrape graph"`. */
+  /** Human label for the origin, e.g. `"pinakes-engine graph"`. */
   source: string;
   /** Wikidata QID when the node carries one. */
   qid?: string;
@@ -671,7 +671,7 @@ export function mergeGraphResults(
       confidence: exact ? 1 : relevance,
       tier: graphHitTier(hit),
       provenance: {
-        source: "culture-scrape graph",
+        source: "pinakes-engine graph",
         qid: hit.qid || undefined,
         matchField: hit.field || undefined,
         graphLink: hit.graph,
@@ -694,8 +694,8 @@ export function mergeGraphResults(
 export interface FederatedSearchDeps {
   /** Local corpus search (defaults to {@link globalSearch}). */
   localSearch: (query: string, filters?: SearchFilters) => Promise<SearchResponse>;
-  /** Shared-graph search (defaults to the culture-scrape sidecar client). */
-  graphSearch: (query: string, limit?: number) => Promise<culturescrape.SearchResponse>;
+  /** Shared-graph search (defaults to the pinakes-engine sidecar client). */
+  graphSearch: (query: string, limit?: number) => Promise<pinakes_engine.SearchResponse>;
   /** Entity → csid resolver for dedup (defaults to the lexicon-backed singleton). */
   resolver: Pick<GraphResolver, "resolve">;
 }
@@ -714,7 +714,7 @@ export async function federatedSearch(
   deps: Partial<FederatedSearchDeps> = {},
 ): Promise<SearchResponse> {
   const localSearch = deps.localSearch ?? globalSearch;
-  const graphSearch = deps.graphSearch ?? culturescrape.search;
+  const graphSearch = deps.graphSearch ?? pinakes_engine.search;
 
   const trimmed = query.trim();
   const local = await localSearch(trimmed, filters);

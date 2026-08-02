@@ -22,7 +22,7 @@ export interface ConsolePreset {
 
 /**
  * Datalog presets — ad-hoc `main/0` goals over the inference rules culture-scrape
- * ships (see core/inputs/datalog-examples). The csids are drawn from
+ * ships (see engine/inputs/datalog-examples). The csids are drawn from
  * the bundled example dataset so the presets are runnable, not just illustrative.
  */
 export const DATALOG_PRESETS: ConsolePreset[] = [

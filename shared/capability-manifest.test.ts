@@ -89,7 +89,7 @@ describe("capability manifest", () => {
     }
     // The two producers are the already-built exporters, not new code.
     const producers = knowledge.map((p) => p.x_produced_by);
-    expect(producers).toContain("scripts/export-for-culturescrape.ts");
+    expect(producers).toContain("scripts/export-for-engine.ts");
     expect(producers).toContain("scripts/export-entity-grounding.ts");
   });
 
@@ -107,7 +107,7 @@ describe("capability manifest", () => {
     });
     // The reconciler is the merged Python one — the manifest points at it, never replaces it.
     expect(primarySurface("reconcile")?.implementation).toBe(
-      "core/src/culturescrape/schema/reconcile.py",
+      "engine/src/pinakes_engine/schema/reconcile.py",
     );
     expect(primarySurface("query")?.path).toBe("/api/graph/datalog");
     for (const name of CAPABILITY_NAMES) {

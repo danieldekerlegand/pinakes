@@ -1,20 +1,20 @@
 /**
- * culture-scrape Wikidata bulk-acquisition orchestration (US-005).
+ * pinakes-engine Wikidata bulk-acquisition orchestration (US-005).
  *
  * pinakes triggers large-scale Wikidata ingestion from the scraper
- * dashboard, but the actual SPARQL set-acquisition is **culture-scrape's** job —
+ * dashboard, but the actual SPARQL set-acquisition is **pinakes-engine's** job —
  * we never grow a second TS SPARQL client (single-entity URL extraction in
  * `url-extractor.ts` uses the REST `Special:EntityData` endpoint; bulk queries go
- * to the vendored Python engine, see `docs/culturescrape-integration.md`).
+ * to the vendored Python engine, see `docs/engine-integration.md`).
  *
  * The flow:
  *   1. A domain (civilizations / sites / figures / trade goods) maps to an
  *      {@link AcquisitionCategory} — a Wikidata class + the contribution bucket
  *      acquired records are filed under.
- *   2. A {@link CultureScrapeJobRunner} runs the culture-scrape `fetch` command
+ *   2. A {@link CultureScrapeJobRunner} runs the pinakes-engine `fetch` command
  *      for that category and returns the raw records + run report. The live
- *      runner (`liveJobRunner`) writes a culture-scrape category spec to a temp
- *      file and spawns `python -m culturescrape.cli fetch <spec> --out <dir>`;
+ *      runner (`liveJobRunner`) writes a pinakes-engine category spec to a temp
+ *      file and spawns `python -m pinakes_engine.cli fetch <spec> --out <dir>`;
  *      tests inject a fake runner with recorded records (no Python, no network).
  *   3. {@link runAcquisitionJob} maps each record → a `Partial<Contribution>`
  *      (carrying Wikidata provenance) and enqueues it in the **contribution
@@ -47,14 +47,14 @@ export type AcquisitionDomain =
 export interface AcquisitionCategory {
   /** Stable domain key used by the API + dashboard. */
   domain: AcquisitionDomain;
-  /** culture-scrape category id (== the on-disk spec filename stem). */
+  /** pinakes-engine category id (== the on-disk spec filename stem). */
   id: string;
   /** Human label shown in the dashboard. */
   label: string;
   description: string;
   /** Wikidata class QID selected by `wdt:P31`. */
   wikidataClass: string;
-  /** culture-scrape node label for the generated category spec. */
+  /** pinakes-engine node label for the generated category spec. */
   nodeLabel: string;
   /** Whether the SPARQL binds coordinates (`wdt:P625`) — sites require them. */
   requireCoordinates: boolean;
@@ -116,7 +116,7 @@ export function resolveAcquisitionCategory(
   return (ACQUISITION_CATALOG as Record<string, AcquisitionCategory>)[domain];
 }
 
-// ── Category-spec generation (handed to culture-scrape, not executed here) ─────
+// ── Category-spec generation (handed to pinakes-engine, not executed here) ─────
 
 /**
  * Build the SPARQL query for a category. Coordinates are a bound triple for
@@ -145,8 +145,8 @@ export function buildAcquisitionQuery(
 }
 
 /**
- * Serialize a culture-scrape category spec (matching the shipped
- * `core/inputs/categories/*.yml` shape) for `culturescrape fetch`.
+ * Serialize a pinakes-engine category spec (matching the shipped
+ * `engine/inputs/categories/*.yml` shape) for `pinakes_engine fetch`.
  */
 export function buildCategorySpecYaml(
   category: AcquisitionCategory,
@@ -173,7 +173,7 @@ export function buildCategorySpecYaml(
   );
 }
 
-// ── Raw record parsing (the culture-scrape `.jsonl` acquisition output) ────────
+// ── Raw record parsing (the pinakes-engine `.jsonl` acquisition output) ────────
 
 export interface RawRecordProvenance {
   source: string;
@@ -200,7 +200,7 @@ function isRawRecord(value: unknown): value is RawRecord {
   );
 }
 
-/** Parse a culture-scrape `.jsonl` payload into records, skipping blank/garbage lines. */
+/** Parse a pinakes-engine `.jsonl` payload into records, skipping blank/garbage lines. */
 export function parseRawRecords(jsonl: string): RawRecord[] {
   const out: RawRecord[] = [];
   for (const line of jsonl.split("\n")) {
@@ -267,7 +267,7 @@ export function recordToContribution(
     domain: category.domain,
     wikidataClass: category.wikidataClass,
     // Provenance + review flags (mirrors US-004 auto-derived drafts).
-    source: "culturescrape-wikidata",
+    source: "pinakes_engine-wikidata",
     autoDerived: true,
     aiGenerated: false,
     sourceQuery: provenance.source_query,
@@ -287,13 +287,13 @@ export function recordToContribution(
     entityData,
     sources: [
       {
-        title: `Wikidata${qid ? ` ${qid}` : ""} via culture-scrape`,
+        title: `Wikidata${qid ? ` ${qid}` : ""} via pinakes-engine`,
         url: sourceUrl,
         license: provenance.license ?? "CC0",
       },
     ],
     confidence: toContributionConfidence(provenance.confidence),
-    notes: `Bulk-acquired from Wikidata (${category.label}) via culture-scrape; awaiting review.`,
+    notes: `Bulk-acquired from Wikidata (${category.label}) via pinakes-engine; awaiting review.`,
   };
 }
 
@@ -318,7 +318,7 @@ export interface JobRunnerContext {
 }
 
 /**
- * The network/subprocess boundary. `liveJobRunner` shells out to culture-scrape;
+ * The network/subprocess boundary. `liveJobRunner` shells out to pinakes-engine;
  * tests inject a fake returning recorded records so no Python/network is needed.
  */
 export interface CultureScrapeJobRunner {
@@ -372,7 +372,7 @@ export interface RunAcquisitionOptions {
 /**
  * Run one acquisition end to end: fetch via the runner, then map + enqueue each
  * record into the contribution review queue. Returns per-run counts + the
- * culture-scrape run report.
+ * pinakes-engine run report.
  */
 export async function runAcquisitionJob(
   options: RunAcquisitionOptions,
@@ -449,12 +449,12 @@ export async function runAcquisitionJob(
   };
 }
 
-// ── Live runner (spawns the vendored culture-scrape CLI) ───────────────────────
+// ── Live runner (spawns the vendored pinakes-engine CLI) ───────────────────────
 
 export interface LiveRunnerOptions {
   /** Python interpreter (default `CULTURESCRAPE_PYTHON` env or `python3`). */
   python?: string;
-  /** culture-scrape package dir (default `CULTURESCRAPE_DIR` env or `<cwd>/core`). */
+  /** pinakes-engine package dir (default `CULTURESCRAPE_DIR` env or `<cwd>/core`). */
   packageDir?: string;
   /** Per-fetch timeout (default `CULTURESCRAPE_FETCH_TIMEOUT_MS` env or 5 min). */
   timeoutMs?: number;
@@ -468,7 +468,7 @@ function runCli(
   signal?: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const child = spawn(python, ["-m", "culturescrape.cli", ...args], {
+    const child = spawn(python, ["-m", "pinakes_engine.cli", ...args], {
       cwd: packageDir,
       env: {
         ...process.env,
@@ -496,7 +496,7 @@ function runCli(
       finish(() =>
         reject(
           new CultureScrapeAcquisitionError(
-            `culturescrape fetch timed out after ${timeoutMs}ms`,
+            `pinakes_engine fetch timed out after ${timeoutMs}ms`,
           ),
         ),
       );
@@ -514,7 +514,7 @@ function runCli(
       finish(() =>
         reject(
           new CultureScrapeAcquisitionError(
-            `failed to launch culturescrape (${python}): ${err.message}`,
+            `failed to launch pinakes_engine (${python}): ${err.message}`,
           ),
         ),
       );
@@ -526,7 +526,7 @@ function runCli(
         finish(() =>
           reject(
             new CultureScrapeAcquisitionError(
-              `culturescrape fetch exited ${code}: ${stderr.trim().slice(0, 500)}`,
+              `pinakes_engine fetch exited ${code}: ${stderr.trim().slice(0, 500)}`,
             ),
           ),
         );
@@ -569,7 +569,7 @@ export function createLiveJobRunner(
   const packageDir =
     options.packageDir ??
     process.env.CULTURESCRAPE_DIR ??
-    path.resolve(process.cwd(), "core");
+    path.resolve(process.cwd(), "engine");
   const timeoutMs =
     options.timeoutMs ??
     (Number(process.env.CULTURESCRAPE_FETCH_TIMEOUT_MS) || 300_000);
@@ -577,7 +577,7 @@ export function createLiveJobRunner(
   return {
     async runFetch(category, context) {
       const outDir = fs.mkdtempSync(
-        path.join(os.tmpdir(), `culturescrape-${category.id}-`),
+        path.join(os.tmpdir(), `pinakes_engine-${category.id}-`),
       );
       const specPath = path.join(outDir, `${category.id}.yml`);
       fs.writeFileSync(
@@ -606,5 +606,5 @@ export function createLiveJobRunner(
   };
 }
 
-/** Default live runner — spawns the vendored culture-scrape CLI. */
+/** Default live runner — spawns the vendored pinakes-engine CLI. */
 export const liveJobRunner: CultureScrapeJobRunner = createLiveJobRunner();

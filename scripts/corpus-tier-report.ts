@@ -82,7 +82,7 @@ export function renderMarkdown(report: CorpusTierReport): string {
   lines.push("");
   lines.push(
     "*Tiers use the shared classifier (`shared/trust-tier.ts`), the TS mirror of " +
-      "culture-scrape's `orchestrate/tiers.py` `classify_tier`. See the JSON report " +
+      "pinakes-engine's `orchestrate/tiers.py` `classify_tier`. See the JSON report " +
       "for the machine-readable form.*",
   );
   lines.push("");

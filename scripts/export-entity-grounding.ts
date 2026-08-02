@@ -94,7 +94,7 @@ import {
   licenseForSource,
   deriveSourceUrl,
   parseCitation,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 import { normalizeKey, normalizeQid } from "./reconciliation-report.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
@@ -376,7 +376,7 @@ export function licenseAllowed(
  * no wall-clock). Mirrors the export's node pass: dedupes by csid, mints QID-anchored
  * csids, forces `source = pinakes` (the reconciler anchor), and resolves an SPDX
  * license per record. A row-level `license` column wins over the source default (the
- * same precedence culture-scrape's adapter uses), so a mixed-license corpus grounds
+ * same precedence pinakes-engine's adapter uses), so a mixed-license corpus grounds
  * with genuine per-record licenses. Entities are filtered by license class + domain
  * and returned csid-sorted.
  */
@@ -700,7 +700,7 @@ export function runExport(
   return pack;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const { licenseClasses, domains, outDir, emitFixture } = parseArgs(
     process.argv.slice(2),

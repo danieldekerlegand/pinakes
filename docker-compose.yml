@@ -1,14 +1,14 @@
 # Local orchestration for pinakes's data-layer integration.
-# Brings up the culture-scrape FastAPI sidecar (built from the first-party engine at
-# ./core — the packages/culture-scrape shell is retired, see docs/REMOVED_FEATURES.md)
+# Brings up the pinakes-engine FastAPI sidecar (built from the first-party engine at
+# ./engine — the packages/culture-scrape shell is retired, see docs/REMOVED_FEATURES.md)
 # and a Neo4j graph store.
 # Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
 #
-# ⚠️ The `culturescrape` image does NOT build today — see the packaging note at the
-# top of core/Dockerfile. Everything the app does degrades gracefully without it
-# (docs/culturescrape-integration.md §10b), so `npm run dev` is unaffected.
+# ⚠️ The `pinakes_engine` image does NOT build today — see the packaging note at the
+# top of engine/Dockerfile. Everything the app does degrades gracefully without it
+# (docs/engine-integration.md §10b), so `npm run dev` is unaffected.
 #
-#   docker compose up -d --build culturescrape neo4j   # sidecar + graph only
+#   docker compose up -d --build pinakes_engine neo4j   # sidecar + graph only
 #   docker compose --profile graph up -d               # same, via the `graph` profile
 #   npm run dev:full                                    # sidecar + graph + app
 #
@@ -19,15 +19,15 @@
 # (see .env.example) and degrades gracefully when these services are down.
 
 services:
-  culturescrape:
+  pinakes_engine:
     build:
-      context: ./core
+      context: ./engine
     ports:
       - "8800:8800"
     environment:
       # Serve real data by pointing CORPUS at the mounted pinakes canonical
       # export (below): `CULTURESCRAPE_CORPUS=/corpus`. This is the SAME bare
-      # corpus (nodes/ + edges/) that `to-neo4j export/culturescrape` loads into
+      # corpus (nodes/ + edges/) that `to-neo4j build/corpus` loads into
       # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
       # what makes `npm run smoke:graph` green end to end (US-005). Left at the
       # bundled 9-node fixture by default so a bare `docker compose up` (no export
@@ -35,11 +35,11 @@ services:
       CORPUS: ${CULTURESCRAPE_CORPUS:-tests/fixtures/explorer-corpus}
     volumes:
       # The gitignored canonical export (produced by
-      # `npx tsx scripts/export-for-culturescrape.ts`). `load_corpus` reads a bare
+      # `npx tsx scripts/export-for-engine.ts`). `load_corpus` reads a bare
       # `nodes/`+`edges/` directory, so this dir is directly servable. Read-only;
       # unused until CULTURESCRAPE_CORPUS=/corpus. Mounting `${PWD}` (the repo
       # root) subpath keeps parity with the neo4j service's `${PWD}` mount.
-      - ${PWD}/export/culturescrape:/corpus:ro
+      - ${PWD}/build/corpus:/corpus:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/')"]
       interval: 5s
@@ -60,7 +60,7 @@ services:
     environment:
       # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pinakes}
-      # APOC is required by the incremental `culturescrape to-neo4j --mode loadcsv`
+      # APOC is required by the incremental `pinakes_engine to-neo4j --mode loadcsv`
       # path: node labels are reattached with apoc.create.addLabels and edges are
       # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in
       # core Cypher). The neo4j:5 image fetches the bundled apoc plugin from this var.

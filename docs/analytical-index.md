@@ -20,7 +20,7 @@ the TSV write path. Dropping it changes nothing about the data — only query sp
 | graph / correlation (neighborhoods, paths)   | **Neo4j** (`server/services/graph-store.ts`)       |
 | CPU-domain (linguistic distance, etymology)  | **TypeScript** (stays in-process)                  |
 
-See `docs/culturescrape-integration.md` for the broader system-of-record split.
+See `docs/engine-integration.md` for the broader system-of-record split.
 
 ## How the mirror stays faithful to the TSVs
 

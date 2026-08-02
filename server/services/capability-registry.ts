@@ -12,7 +12,7 @@
  * already-built routes; discovery just falls back from "ask the registry" to "read
  * the provider".
  *
- * Configuration is env-only, matching `culturescrape-client.ts`:
+ * Configuration is env-only, matching `engine-client.ts`:
  * `KCB_REGISTRY_URL` (unset = no registry, publish is a no-op), `KCB_REGISTRY_TIMEOUT_MS`,
  * and `PINAKES_PUBLIC_ORIGIN` for the absolute URLs the registry hands out.
  */

@@ -1,14 +1,14 @@
 /**
  * Canonical node/edge schema contract — the single data model both
- * culture-scrape and pinakes target (US-001).
+ * pinakes-engine and pinakes target (US-001).
  *
  * The machine-readable source of truth is {@link ./canonical-schema.json}. This
  * module imports it, pins its shape with a `satisfies` check (so `npm run check`
  * fails if the JSON drifts from the contract type), and exposes typed accessors
  * the ingestion / export / QA code (US-002..US-008) build on.
  *
- * The column contracts mirror culture-scrape's typed Neo4j-import headers
- * (`core/src/culturescrape/schema/headers.py`) so exported
+ * The column contracts mirror pinakes-engine's typed Neo4j-import headers
+ * (`engine/src/pinakes_engine/schema/headers.py`) so exported
  * TSV is import-compatible with `neo4j-admin import` without transformation.
  */
 import canonicalSchemaJson from "./canonical-schema.json";

@@ -473,13 +473,13 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
 - **All decision logic is pure** (`living-dataset.ts`, clock is a param): `computeReleaseCadence`
   (**annual**, `RELEASE_CADENCE_DAYS=365`; never-released ⇒ due, else next = last + interval) →
   `{dueNow, nextReleaseDate, daysUntilDue}`; `computeIngestionSchedule(ingestions, now,
-  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors culture-scrape's
+  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors pinakes-engine's
   `orchestrate/schedule.py` `select_stale` idea — an unparseable/absent timestamp ⇒ due);
   `selectDueDomains`; `currentReleaseFrom` (latest recorded release, else the seed `1.0.0` default).
 - **`LivingDatasetStore`** is the only fs boundary — one `state.json` (`{ingestions, releases}`)
   under an injectable dir (default the **gitignored** `data/living-dataset/`), same JSON-on-disk
   shape as the other `data/*` stores; unparseable/missing file ⇒ empty state.
-- **Ingest = scheduled culture-scrape acquisition.** The route reuses `runAcquisitionJob`
+- **Ingest = scheduled pinakes-engine acquisition.** The route reuses `runAcquisitionJob`
   (`culturescrape-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
   in the review queue (never a live write), then stamps `store.recordIngestion(domain, now)`. A
   per-domain runner failure is **collected in `errors[]`, never aborts the pass**. Body:
@@ -741,9 +741,9 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   Wikidata is resolved via the REST endpoint `Special:EntityData/<QID>.json`
   (`liveDeps.fetchWikidataEntity`), not the Query Service. The statement →
   field vocabulary (P571 inception→start year, P625→lat/lng, P144/P737/P279→
-  relationships, …) is kept **aligned with culture-scrape's hydration profile**
-  (`core/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
-  acquisition stays culture-scrape's job (US-005) — don't add a TS SPARQL client.
+  relationships, …) is kept **aligned with pinakes-engine's hydration profile**
+  (`engine/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
+  acquisition stays pinakes-engine's job (US-005) — don't add a TS SPARQL client.
 - **Network is behind an injectable `UrlExtractorDeps`** (`fetchWikidataEntity` +
   `fetchWikipediaPage`); tests pass fixture-backed deps reading
   `services/fixtures/url-extractor/*.json` (recorded WD entity + WP summary
@@ -836,17 +836,17 @@ extractor notes) actually happens.
   or non-AI draft. Client entry: the `/ai-review` page (`client/src/pages/ai-review.tsx`),
   linked in `AppSidebar`.
 
-## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
+## pinakes-engine Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
 
-`POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata
+`POST /api/scraping/culturescrape` (US-005) triggers **pinakes-engine's** Wikidata
 SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods);
 `GET /api/scraping/culturescrape/categories` lists them. Reuse notes for any
 "trigger a background scraper from the dashboard" feature:
 
 - **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
-  (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
-  matching `core/inputs/categories/*.yml`) to a temp file and spawns
-  `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
+  (`liveJobRunner`) writes a pinakes-engine category spec (`buildCategorySpecYaml`,
+  matching `engine/inputs/categories/*.yml`) to a temp file and spawns
+  `python -m pinakes_engine.cli fetch <spec> --out <dir>` (cwd = package dir,
   `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
   `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
   `<id>.jsonl` records + `<id>.report.json`. Single-**entity** lookups still use the
@@ -857,12 +857,12 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   `ContributionService`) fetches then maps each record → `Partial<Contribution>`
   and enqueues it; it returns `{acquired, queued, skipped, contributionIds, report}`.
 - **Acquired records land in the contribution review queue**, never a live TSV
-  write — flagged `entityData.source='culturescrape-wikidata'` + `autoDerived:true`
+  write — flagged `entityData.source='pinakes_engine-wikidata'` + `autoDerived:true`
   (`aiGenerated:false` — it's a structured source, not an LLM), confidence clamped
   to 1..99 so it reads as needs-review. `recordToContribution` returns `null` to
   **skip** a row with no label (Wikidata's label service echoes the QID for
   unlabeled items — filter `name === qid`) or a missing required coordinate.
-- **`RawRecord` shape** (culture-scrape `.jsonl`): `{fields:{item,itemLabel,image,
+- **`RawRecord` shape** (pinakes-engine `.jsonl`): `{fields:{item,itemLabel,image,
   coord,qid}, provenance:{source,source_url,source_query,retrieved_at,confidence,
   license}}`. `coord` is WKT `Point(lng lat)` — `parseWktPoint` → `{lat,lng}`
   (note the lng/lat order swap).
@@ -873,7 +873,7 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   + `REQUIRED_FIELDS`; `civilization` (name-only) is reused for civilizations.
 - **Progress streams through the existing `jobStore`** (dashboard polls
   `GET /api/scraping-jobs` every 2s) — the route creates a job
-  (`languageId='culturescrape:<domain>'`, `dataSource='other'`), runs
+  (`languageId='pinakes_engine:<domain>'`, `dataSource='other'`), runs
   `runAcquisitionJob` fire-and-forget, and maps `onProgress` →
   `updateJob({statusMessage, completedWords=queued, failedWords=skipped, totalWords})`.
   **Route test hook:** `onJobSettled(jobId, result, error)` lets a test await the
@@ -886,7 +886,7 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
 `POST /api/scraping/archaeology` (US-007) acquires archaeological sites from two
 external authorities (**Open Context**, **tDAR**) that complement the existing
 Pleiades/UNESCO paths in the same file; `GET /api/scraping/archaeology/sources`
-lists them. Same background-job + contribution-queue shape as culture-scrape
+lists them. Same background-job + contribution-queue shape as pinakes-engine
 (US-005) — differences to know:
 
 - **Adapters live in `archaeological-site-scraper.ts`** (per the story's file

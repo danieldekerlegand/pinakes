@@ -35,7 +35,7 @@ jobs:
       - name: Attribution / dedup / drift gate
         run: npm run convergence-qa
 
-  culture-scrape:
+  pinakes-engine:
     # Pinned to 22.04 (jammy): the official souffle-lang apt repo ships a .deb
     # that depends on libffi7, which exists on jammy but not on ubuntu-latest
     # (24.04 / noble ships libffi8). This lets swipl + souffle install via plain
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: core
+        working-directory: engine
     steps:
       - uses: actions/checkout@v4
       - name: Install logic engines (swi-prolog + souffle)

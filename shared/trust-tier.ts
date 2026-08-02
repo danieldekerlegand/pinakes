@@ -1,5 +1,5 @@
 /**
- * Trust tiers — the TypeScript mirror of culture-scrape's
+ * Trust tiers — the TypeScript mirror of pinakes-engine's
  * `orchestrate/tiers.py` `classify_tier` (US-002, Phase 3 of
  * the neurosymbolic roadmap). One pure function classifies a node or edge into
  * its trust tier from provenance columns that are **already** first-class and
@@ -27,7 +27,7 @@ export const PINAKES_SOURCE = "pinakes";
 const INFERRED_PREFIX = "inferred:";
 
 /**
- * Delimiter `culturescrape.schema.merge` joins concatenated `source` values with,
+ * Delimiter `pinakes_engine.schema.merge` joins concatenated `source` values with,
  * so a reconciled row carries `"pinakes;wikidata"`.
  */
 const SOURCE_DELIMITER = ";";

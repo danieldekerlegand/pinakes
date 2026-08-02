@@ -3,10 +3,10 @@
  *
  * A single, network-free health check that both projects can run in CI to catch
  * schema / id drift between pinakes's lexicons and the shared canonical model
- * *before* it reaches culture-scrape's graph. It reports four convergence signals —
+ * *before* it reaches pinakes-engine's graph. It reports four convergence signals —
  *
  *   * **id-overlap**            — how much of the pinakes export overlaps
- *                                 culture-scrape's identity space (the reconciliation
+ *                                 pinakes-engine's identity space (the reconciliation
  *                                 dry-run's global-anchor matches), plus pinakes's
  *                                 own internal id-collision diagnostics;
  *   * **unreconciled rate**     — the share of exported nodes that would *not* collapse
@@ -48,7 +48,7 @@ import {
   NODE_PROVENANCE_FIELDS,
   EDGE_PROVENANCE_FIELDS,
   type ExportManifest,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 import {
   buildReconciliation,
   type ReconciliationReport,
@@ -72,7 +72,7 @@ export const BASELINE_FILE = path.join(REPO_ROOT, "docs", "convergence-qa-baseli
 
 /**
  * Canonical field whose non-blank lexicon cell marks a row as **acquisition-imported**
- * (written by the culture-scrape pipeline, not hand-curated). A file with no column
+ * (written by the pinakes-engine pipeline, not hand-curated). A file with no column
  * mapped to this target has no imported rows — every row is curated seed.
  */
 export const IMPORT_MARKER_TARGET = "wikidata_qid";
@@ -141,7 +141,7 @@ export interface RegressionIssue {
 /** id-overlap signal: cross-dataset overlap + pinakes-internal id health. */
 export interface IdentityMetrics {
   readonly nodes: number;
-  /** Nodes carrying a global anchor that overlaps culture-scrape's identity space. */
+  /** Nodes carrying a global anchor that overlaps pinakes-engine's identity space. */
   readonly anchoredOverlap: number;
   readonly overlapRate: number;
   /** pinakes ids reused by more than one node of the same type (export drops). */
@@ -655,7 +655,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`## id-overlap (cross-dataset identity)`);
   const id = metrics.identity;
   lines.push(`- Nodes exported: **${id.nodes}**`);
-  lines.push(`- Overlap w/ culture-scrape identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
+  lines.push(`- Overlap w/ pinakes-engine identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
   lines.push(`- Duplicate csids dropped: ${id.duplicateCsids}`);
   lines.push(`- Ambiguous pinakes ids (id reused by ≥2 nodes of a type): ${id.ambiguousPinakesIds}`);
   lines.push(`- Edges dropped for an unresolved endpoint: ${id.edgesWithUnresolvedEndpoint}`);
@@ -746,7 +746,7 @@ export function writeBaseline(baselineFile: string = BASELINE_FILE): RegressionB
   return baseline;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   if (process.argv.includes("--write-baseline")) {
     const baseline = writeBaseline();

@@ -6,7 +6,7 @@
  *        (which domains are stale), the current release + annual release cadence
  *        (when the next citable snapshot is due), and the release history.
  *   POST /api/living-dataset/ingest  — run a scheduled discovery-ingestion pass:
- *        for each due (or requested) acquisition domain, run culture-scrape bulk
+ *        for each due (or requested) acquisition domain, run pinakes-engine bulk
  *        acquisition (→ contribution review queue, never a live write) and stamp
  *        the domain's last-ingestion timestamp.
  *   POST /api/living-dataset/release — mint a versioned, DOI-bearing snapshot of
@@ -53,7 +53,7 @@ export interface LivingDatasetRouteOptions {
   store?: LivingDatasetStore;
   /** Contribution review queue acquired records land in (default `data/runtime/contributions`). */
   contributions?: ContributionService;
-  /** culture-scrape acquisition runner (default: the live CLI runner). */
+  /** pinakes-engine acquisition runner (default: the live CLI runner). */
   runner?: CultureScrapeJobRunner;
   /** DOI minter for `POST /release` (default Zenodo, disabled without a token). */
   doiMinter?: DoiMinter;
@@ -143,7 +143,7 @@ export function registerLivingDatasetRoutes(
    * POST /api/living-dataset/ingest — run a scheduled discovery-ingestion pass.
    * Body: { domains?: string[], force?: boolean, limit?: number }. Without a
    * `domains` list it runs the stale domains (all when `force`). Each domain runs
-   * culture-scrape acquisition into the review queue; a per-domain failure is
+   * pinakes-engine acquisition into the review queue; a per-domain failure is
    * collected (never aborts the whole run) so a partial pass still records what
    * succeeded.
    */

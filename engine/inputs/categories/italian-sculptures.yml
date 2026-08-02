@@ -1,0 +1,25 @@
+# Example category. Load with pinakes_engine.acquire.load_category().
+# Schema: docs/data-model.md ("Category specification (input)"); adapter: docs/acquisition.md.
+#
+# Italian sculptures are well modelled in Wikidata, so the category is a SPARQL
+# query: instances of sculpture (Q860861) whose country (P17) is Italy (Q38).
+id: italian-sculptures
+label: Sculpture;CulturalArtifact
+description: Every Italian sculpture
+source:
+  type: wikidata-sparql
+  query: |
+    SELECT ?item ?itemLabel ?creator ?inception ?image WHERE {
+      ?item wdt:P31 wd:Q860861 ;          # instance of: sculpture
+            wdt:P17 wd:Q38 .              # country: Italy
+      OPTIONAL { ?item wdt:P170 ?creator . }    # creator
+      OPTIONAL { ?item wdt:P571 ?inception . }  # inception
+      OPTIONAL { ?item wdt:P18 ?image . }       # image
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en,it". }
+    }
+dimensions: [temporal, geographic, linguistic]
+links:
+  - type: CREATED_BY
+    to: person
+  - type: ORIGINATES_FROM
+    to: place

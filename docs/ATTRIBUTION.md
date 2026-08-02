@@ -9,7 +9,7 @@ Per-domain **counts** below reflect the populated corpus after the `data-populat
 ## Data provenance (acquired rows)
 
 Domains expanded at scale were acquired from **Wikidata** (WDQS / offline dump) via
-culture-scrape's blueprints, then reconciled + curated (see
+pinakes-engine's blueprints, then reconciled + curated (see
 [`docs/data-population-runbook.md`](data-population-runbook.md) and
 `scripts/acquire-*.ts` / `scripts/curate-*.ts`). **Wikidata content is CC0** — no attribution
 legally required, but every acquired row still carries full per-row provenance
@@ -22,7 +22,7 @@ sources and are never overwritten by acquisition (Guiding Principle #8).
 Every fact in the shared graph carries a **trust tier** — the graph-corpus policy that
 decides which facts auto-admit vs. quarantine (Phase 3 of the neurosymbolic roadmap). The
 tier is *derived* (never a stored column) from the provenance columns above via the shared
-classifier `shared/trust-tier.ts` (the TS mirror of culture-scrape's
+classifier `shared/trust-tier.ts` (the TS mirror of pinakes-engine's
 `orchestrate/tiers.py` `classify_tier`), most-to-least trusted:
 
 - **`curated`** — human-vetted through the pinakes lexicon gate (`source = pinakes`).
@@ -44,19 +44,19 @@ explorer detail panel + graph search results surface the tier alongside the prov
 ## Graph-side linguistic breadth sources (Phase 4 — source-breadth)
 
 These sources break the Wikidata-only dependency (Phase 4 of the neurosymbolic roadmap). They
-are **graph-corpus** ingests — they land as nodes/edges in the culture-scrape corpus (via the
-tabular-dump / kaikki adapters under `core/`), **not** as `lexicons/*.tsv`
+are **graph-corpus** ingests — they land as nodes/edges in the pinakes-engine corpus (via the
+tabular-dump / kaikki adapters under `engine/`), **not** as `lexicons/*.tsv`
 rows — so they never touch curated lexicon values. Each is ingested category-only with a
 per-record SPDX `license` on every node (schema v1.1), which is what lets the packaged corpus
 partition by licence class (see *License-partitioned redistribution* below).
 
 | Dataset | Version | License (SPDX) | Obligations | Coverage | Category / report |
 | --- | --- | --- | --- | --- | --- |
-| **Glottolog** languoid catalogue (CLDF) | v5.x CLDF release | `CC-BY-4.0` | Attribute Glottolog | Languoids as `Language`/`LanguageFamily` nodes with `DESCENDS_FROM` hierarchy | `categories/glottolog.yml`; [`docs/glottolog-reconciliation.md`](../core/docs/glottolog-reconciliation.md) |
-| **WALS** (World Atlas of Language Structures, CLDF) | 2020 CLDF release | `CC-BY-4.0` | Attribute WALS | Structural typology feature-facts keyed by glottocode | `categories/wals.yml`; [`docs/wals-phoible-reconciliation.md`](../core/docs/wals-phoible-reconciliation.md) |
+| **Glottolog** languoid catalogue (CLDF) | v5.x CLDF release | `CC-BY-4.0` | Attribute Glottolog | Languoids as `Language`/`LanguageFamily` nodes with `DESCENDS_FROM` hierarchy | `categories/glottolog.yml`; [`docs/glottolog-reconciliation.md`](../engine/docs/glottolog-reconciliation.md) |
+| **WALS** (World Atlas of Language Structures, CLDF) | 2020 CLDF release | `CC-BY-4.0` | Attribute WALS | Structural typology feature-facts keyed by glottocode | `categories/wals.yml`; [`docs/wals-phoible-reconciliation.md`](../engine/docs/wals-phoible-reconciliation.md) |
 | **PHOIBLE** phoneme inventories (CLDF) | 2.0 | `CC-BY-SA-3.0` ⚠ share-alike | Attribute PHOIBLE **and** re-license derivatives share-alike | Phoneme-inventory facts keyed by glottocode | `categories/phoible.yml`; same report as WALS |
-| **Lexibank — ABVD** (Austronesian Basic Vocabulary Database, CLDF) | CLDF release | `CC-BY-4.0` (per-dataset — Lexibank varies) | Attribute ABVD | `Wordform` facts + `COGNATE_WITH` cognate stars; ≥ 500 distinct languages | `categories/lexibank-abvd.yml`, `schema/lexibank_licenses.py`; [`docs/lexibank-reconciliation.md`](../core/docs/lexibank-reconciliation.md) |
-| **kaikki.org** parsed Wiktionary (wiktextract, JSONL) | rolling extract | `CC-BY-SA-3.0` ⚠ share-alike (dual GFDL) | Attribute Wiktionary contributors **and** re-license derivatives share-alike | Etymology edges: `DERIVED_FROM` / `BORROWED_FROM` / `COGNATE_WITH` | `acquire/kaikki.py`, `categories/kaikki.yml`; [`docs/kaikki-reconciliation.md`](../core/docs/kaikki-reconciliation.md) |
+| **Lexibank — ABVD** (Austronesian Basic Vocabulary Database, CLDF) | CLDF release | `CC-BY-4.0` (per-dataset — Lexibank varies) | Attribute ABVD | `Wordform` facts + `COGNATE_WITH` cognate stars; ≥ 500 distinct languages | `categories/lexibank-abvd.yml`, `schema/lexibank_licenses.py`; [`docs/lexibank-reconciliation.md`](../engine/docs/lexibank-reconciliation.md) |
+| **kaikki.org** parsed Wiktionary (wiktextract, JSONL) | rolling extract | `CC-BY-SA-3.0` ⚠ share-alike (dual GFDL) | Attribute Wiktionary contributors **and** re-license derivatives share-alike | Etymology edges: `DERIVED_FROM` / `BORROWED_FROM` / `COGNATE_WITH` | `acquire/kaikki.py`, `categories/kaikki.yml`; [`docs/kaikki-reconciliation.md`](../engine/docs/kaikki-reconciliation.md) |
 
 Lexibank licences are **per-dataset**, not per-collection — the SPDX id travels with each
 record from `schema/lexibank_licenses.py` (verified against the dataset's own CLDF `dc:license`),
@@ -160,7 +160,7 @@ per-licence-class record counts live in the release manifest's `licenses` block.
 Now that share-alike sources (PHOIBLE, kaikki/Wiktionary) are in the shared graph, the packaged
 corpus **self-describes by licence class** so a downstream can see, from the manifest alone, what
 may be redistributed under which terms — and what a model trained on each class inherits. The
-package step (`core/src/culturescrape/orchestrate/package.py`) reads the
+package step (`engine/src/pinakes_engine/orchestrate/package.py`) reads the
 per-record SPDX `license` on every node and emits a `licenses` block in `<name>-manifest.json`:
 
 - `records_by_license` — `{SPDX: count}` across the corpus (blank cells under `(unstamped)`),
@@ -168,7 +168,7 @@ per-record SPDX `license` on every node and emits a `licenses` block in `<name>-
 - `class_registry` — the embedded `{SPDX: class}` registry,
 - `redistribution` — the per-class statement below.
 
-The classifier is `core/src/culturescrape/schema/license_class.py` (the SPDX →
+The classifier is `engine/src/pinakes_engine/schema/license_class.py` (the SPDX →
 class registry). The classes, and the **documented statement of what may be redistributed under
 which terms** (reviewed against each Creative-Commons deed):
 
@@ -196,7 +196,7 @@ When adding a new dataset:
 2. Add a `source_license` field to the TSV if the file mixes sources. The canonical
    export (schema **v1.1**, US-003) also stamps a per-record SPDX `license` column on every
    exported node and edge, resolved from the record's `source` via the `SOURCE_LICENSES`
-   registry in `scripts/export-for-culturescrape.ts` — extend that registry when a new source
+   registry in `scripts/export-for-engine.ts` — extend that registry when a new source
    with a distinct licence lands (e.g. a CC-BY-SA source: Glottolog / Wiktionary / PHOIBLE).
 3. Prefer CC0 or CC-BY sources
 4. If using CC-BY-SA data, note that derivatives must also be CC-BY-SA

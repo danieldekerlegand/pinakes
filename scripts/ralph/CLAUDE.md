@@ -53,7 +53,7 @@ Do NOT add story-specific implementation details, temporary debugging notes, or 
 
 ## Browser Testing (If Available)
 
-For any story that changes UI, verify it works in the browser if you have browser testing tools configured (e.g., via MCP or the dev-browser skill): run the app (`npm run dev`, or `npm run dev:full` when the culture-scrape graph is needed), navigate to the relevant page, verify the change, and screenshot if helpful. If no browser tools are available, note in progress.txt that manual browser verification is needed. Do not mark a UI story `passes: true` without some browser-level confirmation.
+For any story that changes UI, verify it works in the browser if you have browser testing tools configured (e.g., via MCP or the dev-browser skill): run the app (`npm run dev`, or `npm run dev:full` when the pinakes-engine graph is needed), navigate to the relevant page, verify the change, and screenshot if helpful. If no browser tools are available, note in progress.txt that manual browser verification is needed. Do not mark a UI story `passes: true` without some browser-level confirmation.
 
 ## Stop Condition
 
@@ -72,7 +72,7 @@ If there are still stories with `passes: false`, end your response normally (ano
 
 ## Project: pinakes — Commands, Conventions & Gotchas
 
-A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.tsv` is the source of truth; no Postgres/Drizzle in the live path). The Python data/correlation engine **culture-scrape is vendored** at `core/` (no nested `.git` — commits go to this monorepo). The authoritative integration design is `docs/culturescrape-integration.md`.
+A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.tsv` is the source of truth; no Postgres/Drizzle in the live path). The Python data/correlation engine **pinakes-engine is vendored** at `engine/` (no nested `.git` — commits go to this monorepo). The authoritative integration design is `docs/engine-integration.md`.
 
 ### Quality-check commands by area
 
@@ -80,7 +80,7 @@ A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.ts
   - Typecheck: `npm run check` (runs `tsc`) — must be clean for the files you touched.
   - Tests (scope to the area you changed, e.g. a file or dir): `npx vitest run <path-you-touched>`
   - Run the app: `npm run dev`; with the graph sidecar + Neo4j: `npm run dev:full` (see docker-compose.yml, .env.example).
-- **culture-scrape sidecar** (`core/`, Python ≥3.11) — run from that directory:
+- **pinakes-engine sidecar** (`engine/`, Python ≥3.11) — run from that directory:
   - Types: `python -m mypy src` · Tests: `python -m pytest` · Lint: `python -m ruff check .`
   - Network is mocked against fixtures in tests — no live network / no live Neo4j.
 
@@ -91,7 +91,7 @@ A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.ts
 - **Keep `main` clean.** Each PRD runs on its `ralph/<feature>` branch created from `main`. Never commit directly to `main`.
 - **TSV is the source of truth.** Data lives in `lexicons/*.tsv`, loaded by `server/tsv-storage.ts`. Prefer extending TSV + loaders over introducing a database.
 - **The explorer is adapter-driven.** New datasets become a `DatasetAdapter` in `client/src/lib/visualization/adapters/` (declare dimensions; the generic visualizations follow). Don't hand-build per-dataset panels.
-- **Shared graph = correlation system-of-record.** Relational/graph queries go through Neo4j (via the graph app-integration work) + culture-scrape's Datalog; keep CPU-domain compute (linguistic distance, etymology) in TS. See `docs/culturescrape-integration.md`.
-- **culture-scrape is vendored, not upstream-linked.** Python-side convergence work lives under `core/`; use its own toolchain (mypy/pytest/ruff).
+- **Shared graph = correlation system-of-record.** Relational/graph queries go through Neo4j (via the graph app-integration work) + pinakes-engine's Datalog; keep CPU-domain compute (linguistic distance, etymology) in TS. See `docs/engine-integration.md`.
+- **pinakes-engine is vendored, not upstream-linked.** Python-side convergence work lives under `engine/`; use its own toolchain (mypy/pytest/ruff).
 - **Commit message:** `feat: [Story ID] - [Story Title]`. End the commit body with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 - **One story per iteration; keep CI green.** A red typecheck/test compounds across fresh-context iterations — never commit broken code.

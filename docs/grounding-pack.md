@@ -18,7 +18,7 @@ reconciliation keys they already carried.
 |---|---|
 | Emitted by | `scripts/export-entity-grounding.ts` (`npm run entity-grounding`) |
 | Contract module | `shared/kgp.ts` (claim + pack normalization; typed by `shared/kgp.test.ts`) |
-| Live output | `export/culturescrape/entity-grounding/snapshot.json` (gitignored) |
+| Live output | `build/corpus/entity-grounding/snapshot.json` (gitignored) |
 | Committed fixture | `scripts/data/entity-grounding-snapshot.json` (from `scripts/data/entity-grounding-fixture/`) |
 | KGP version | 0.4.0 |
 

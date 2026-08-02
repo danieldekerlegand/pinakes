@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}pinakes-engine explorer{% endblock %}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 15px/1.5 system-ui, sans-serif; margin: 0; }
+    header { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
+             padding: .6rem 1rem; border-bottom: 1px solid #8884; }
+    header .brand { font-weight: 600; }
+    header .src { opacity: .7; font-family: ui-monospace, monospace; }
+    nav { display: flex; gap: .9rem; margin-left: auto; flex-wrap: wrap; }
+    nav a { text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    main { padding: 1rem 1.2rem; max-width: 1100px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { text-align: left; padding: .3rem .55rem; border-bottom: 1px solid #8883; }
+    code, .mono { font-family: ui-monospace, monospace; }
+    .muted { opacity: .65; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <span class="brand">pinakes-engine explorer</span>
+    <span class="src">{{ source }}</span>
+    <nav>
+      {% for v in views %}<a href="{{ v.path }}">{{ v.label }}</a>{% endfor %}
+    </nav>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

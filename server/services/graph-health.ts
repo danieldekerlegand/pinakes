@@ -3,7 +3,7 @@
  *
  * A single place that reports the availability of both graph backends — the
  * Neo4j driver layer (graph-store.ts) and the FastAPI sidecar
- * (culturescrape-client.ts) — so the `/api/graph/status` route and any future
+ * (engine-client.ts) — so the `/api/graph/status` route and any future
  * server consumer read one consistent, cheap verdict instead of probing each
  * backend independently.
  *
@@ -15,7 +15,7 @@
  * degradation.
  */
 import * as graphStore from "./graph-store";
-import * as culturescrape from "./culturescrape-client";
+import * as pinakes_engine from "./engine-client";
 
 export interface GraphHealth {
   /** True when EITHER backend is reachable (the app can offer some graph feature). */
@@ -49,7 +49,7 @@ export async function getGraphHealth(force = false): Promise<GraphHealth> {
   }
   const [neo4j, sidecar] = await Promise.all([
     graphStore.isAvailable().catch(() => false),
-    culturescrape.isAvailable().catch(() => false),
+    pinakes_engine.isAvailable().catch(() => false),
   ]);
   cache = { available: neo4j || sidecar, neo4j, sidecar, checkedAt: now };
   return cache;

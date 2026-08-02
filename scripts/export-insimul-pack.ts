@@ -60,7 +60,7 @@ import {
   EXPORT_DIR,
   mintCsid,
   parseCoordinates,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 import {
   assertLicenseColumn,
   buildEntityGrounding,
@@ -107,7 +107,7 @@ export const INSIMUL_SCHEMA_PATH = path.join(
 /** Path of the authoritative schema inside an Insimul (`insimul-babylon`) checkout. */
 export const INSIMUL_SCHEMA_REPO_PATH = path.join(
   "packages",
-  "core",
+  "engine",
   "schemas",
   "grounding-pack.schema.json",
 );
@@ -876,7 +876,7 @@ export function runExport(
   return pack;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const { licenseClasses, domains, outDir, emitFixture } = parseArgs(process.argv.slice(2));
   if (emitFixture) {

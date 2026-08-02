@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 /**
- * Unit tests for the culture-scrape Wikidata bulk-acquisition pipeline (US-005).
+ * Unit tests for the pinakes-engine Wikidata bulk-acquisition pipeline (US-005).
  * The job runner is faked (recorded records, no Python/network) and the
  * ContributionService points at a temp dir so drafts land in an isolated queue.
  */
@@ -99,7 +99,7 @@ describe("buildAcquisitionQuery / buildCategorySpecYaml", () => {
     expect(buildAcquisitionQuery(CIV)).toContain("OPTIONAL { ?item wdt:P625 ?coord . }");
   });
 
-  it("emits a culture-scrape category spec with the wikidata-sparql source", () => {
+  it("emits a pinakes-engine category spec with the wikidata-sparql source", () => {
     const yaml = buildCategorySpecYaml(SITES, 10);
     expect(yaml).toContain("id: wikidata-archaeological-sites");
     expect(yaml).toContain("type: wikidata-sparql");
@@ -153,7 +153,7 @@ describe("recordToContribution", () => {
     expect(draft!.action).toBe("add");
     const data = draft!.entityData as Record<string, unknown>;
     expect(data.name).toBe("Roman Empire");
-    expect(data.source).toBe("culturescrape-wikidata");
+    expect(data.source).toBe("pinakes_engine-wikidata");
     expect(data.autoDerived).toBe(true);
     expect(data.aiGenerated).toBe(false);
     expect(data.wikidataQid).toBe("Q220");
@@ -230,7 +230,7 @@ describe("runAcquisitionJob", () => {
     const { contributions: queued } = contributions.list({ entityType: "civilization" });
     expect(queued).toHaveLength(2);
     expect(queued.every((c) => c.status === "pending")).toBe(true);
-    expect(queued.every((c) => c.entityData.source === "culturescrape-wikidata")).toBe(true);
+    expect(queued.every((c) => c.entityData.source === "pinakes_engine-wikidata")).toBe(true);
   });
 
   it("stops enqueueing once the signal is aborted", async () => {

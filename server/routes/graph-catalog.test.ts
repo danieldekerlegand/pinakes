@@ -6,7 +6,7 @@ import { registerGraphRoutes } from "./graph";
 
 /**
  * Drift guard for the `/api/graph/*` route catalog documented in
- * `docs/culturescrape-integration.md` §10b.
+ * `docs/engine-integration.md` §10b.
  *
  * §10b is the contract the web app codes against: every first-party graph route,
  * its backend, and — crucially — the graceful-degradation promise (503
@@ -23,7 +23,7 @@ import { registerGraphRoutes } from "./graph";
 
 /** Repo root — `server/routes/` sits two levels below it. */
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
-const INTEGRATION_DOC = path.join(REPO_ROOT, "docs", "culturescrape-integration.md");
+const INTEGRATION_DOC = path.join(REPO_ROOT, "docs", "engine-integration.md");
 
 /** `"GET /api/graph/search"` — method + path, no query string. */
 type RouteKey = string;
@@ -58,7 +58,7 @@ function documentedRoutes(): Map<RouteKey, { backend: string; notes: string }> {
   const doc = readFileSync(INTEGRATION_DOC, "utf8");
 
   const section = doc.split("## 10b.")[1];
-  expect(section, "docs/culturescrape-integration.md has no '## 10b.' section").toBeDefined();
+  expect(section, "docs/engine-integration.md has no '## 10b.' section").toBeDefined();
   // Stop at the next h2 so a later section's table cannot leak in.
   const body = section.split("\n## ")[0];
 
@@ -76,7 +76,7 @@ function documentedRoutes(): Map<RouteKey, { backend: string; notes: string }> {
   return rows;
 }
 
-describe("/api/graph/* route catalog (docs/culturescrape-integration.md §10b)", () => {
+describe("/api/graph/* route catalog (docs/engine-integration.md §10b)", () => {
   it("documents every registered route", () => {
     const undocumented = [...registeredRoutes()].filter((r) => !documentedRoutes().has(r));
     expect(

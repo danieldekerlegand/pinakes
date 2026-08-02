@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the triples exporter (US-002).
 
 The unit tests drive the pure core with tiny temp-dir fixtures, so they run in
-CI where the git-ignored ``export/culturescrape`` is absent. The snapshot test
+CI where the git-ignored ``build/corpus`` is absent. The snapshot test
 (live corpus vs committed manifest) is SKIPPED when the export is not present —
 it is the local reproducibility gate, mirroring the "training is local-only"
 split of this workspace.
@@ -152,7 +152,7 @@ def test_vocab_covers_all_ids(edges_dir: Path) -> None:
 
 # ml/tests/this_file → parents[2] is the repo root.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_LIVE_EDGES = _REPO_ROOT / "export" / "culturescrape" / "edges"
+_LIVE_EDGES = _REPO_ROOT / "build" / "corpus" / "edges"
 
 
 @pytest.mark.skipif(

@@ -1,7 +1,7 @@
 """Triple-verbalization dataset builder (neurosymbolic roadmap Phase 5, US-002).
 
 Turns the canonical **node** + **edge** export
-(``export/culturescrape/{nodes,edges}/*.tsv``) into natural-language training
+(``build/corpus/{nodes,edges}/*.tsv``) into natural-language training
 examples for LLM fine-tuning: one HF-datasets-compatible JSONL record per fact,
 carrying the verbalized statement, the source triple, provenance
 (``source``/``source_url``/``source_query``) and the SPDX ``license`` class.

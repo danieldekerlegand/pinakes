@@ -149,7 +149,7 @@ describe("dial Pinakes as the real authority (describe → invoke → verify)", 
         name: "query",
         arguments: { goal: "main :- true." },
       });
-      // The live handler forwarded to POST /api/graph/datalog (culturescrape.datalog); with
+      // The live handler forwarded to POST /api/graph/datalog (pinakes_engine.datalog); with
       // the sidecar down it surfaces as an MCP tool error, never a crash or a fixture.
       expect(result.isError).toBe(true);
       const body = decode(result as never) as { error: string };

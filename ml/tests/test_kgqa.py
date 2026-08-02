@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the multi-hop KG-grounded QA generator (US-003).
 
 Unit tests drive the pure core with tiny temp-dir fixtures, so they run in CI
-where the git-ignored ``export/culturescrape`` is absent. The snapshot test (live
+where the git-ignored ``build/corpus`` is absent. The snapshot test (live
 corpus vs committed manifest) is SKIPPED when the export is not present — the
 local reproducibility gate, mirroring the triples/verbalization exporters.
 """
@@ -373,7 +373,7 @@ def test_build_graph_first_wins_provenance(export_dir: Path) -> None:
 # --- Live reproducibility gate (skipped when the export is absent) ---------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
+_LIVE_EXPORT = _REPO_ROOT / "build" / "corpus"
 _MANIFEST = _REPO_ROOT / "ml" / "manifests" / "kgqa-manifest.json"
 
 

@@ -133,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // MCP server surface (/mcp, 41-US-1) — the KCB §4 invoke-by-MCP-tool front for
   // the three §6 capabilities. Each tool forwards to the already-built surface it
-  // wraps (resolve → graph-resolver, reconcile → culture-scrape acquisition,
+  // wraps (resolve → graph-resolver, reconcile → pinakes-engine acquisition,
   // query → the sidecar Datalog console); no resolver/reconciler is reimplemented.
   registerMcpRoutes(app);
 
@@ -251,10 +251,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // the AI source and the human reviewer.
   registerAiReviewRoutes(app, { changelog });
 
-  // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
-  // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
+  // pinakes-engine Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
+  // US-005) — trigger + monitor pinakes-engine's Wikidata SPARQL acquisition of
   // civilizations/sites/figures/trade-goods from the scraper dashboard. Bulk
-  // SPARQL stays culture-scrape's job (no TS SPARQL client); acquired records
+  // SPARQL stays pinakes-engine's job (no TS SPARQL client); acquired records
   // land in the contribution review queue with Wikidata provenance. Progress
   // streams via the existing jobStore (GET /api/scraping-jobs).
   registerCultureScrapeAcquisitionRoutes(app);
@@ -3155,7 +3155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Living dataset: discovery ingestion & DOI snapshots (US-011, speculative)
   // ============================================================================
   // The lifecycle layer that keeps the corpus current + citable: a scheduled
-  // discovery-ingestion pass (culture-scrape bulk acquisition → review queue),
+  // discovery-ingestion pass (pinakes-engine bulk acquisition → review queue),
   // an annual versioned-release cadence (reuses the snapshot builder + DOI minter),
   // and a freshness/versioning status feed. GET /api/living-dataset/status,
   // POST /api/living-dataset/{ingest,release}. See routes/living-dataset.ts.

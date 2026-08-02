@@ -1,0 +1,43 @@
+# Example blueprint: the input the category generator expands.
+#
+# Run:  pinakes_engine generate blueprints/example.yml --out categories --job jobs/example.yml
+#
+# `defaults` are merged into every stub; each stub overrides what it needs and
+# names exactly one source selector. See src/pinakes_engine/orchestrate/generate.py
+# for the full schema, and docs/data-model.md for the category contract.
+#
+# QIDs below are illustrative — verify a class on query.wikidata.org before a
+# real run so the SPARQL targets the entities you mean.
+defaults:
+  label: Dish;CulturalArtifact
+  dimensions: [temporal, geographic, linguistic]
+  links:
+    - {type: ORIGINATES_FROM, to: place}
+
+categories:
+  # Instance-of a Wikidata class (wdt:P31) — the common case.
+  - id: peruvian-dishes
+    name: Peruvian dish
+    wikidata_class: Q746549
+
+  - id: japanese-dishes
+    name: Japanese dish
+    wikidata_class: Q1062834
+
+  # A taxonomy: the transitive subclass tree under a class (wdt:P279+).
+  - id: indo-european-languages
+    description: Indo-European languages and the ancestors they descend from
+    subclass_of: Q19860
+    label: Language
+    dimensions: [linguistic]
+    links:
+      - {type: DESCENDS_FROM, to: language}
+
+  # A Wikipedia category tree, traversed by PetScan.
+  - id: us-civil-war-battles
+    name: battle of the American Civil War
+    label: Battle;Event
+    dimensions: [temporal, geographic]
+    links:
+      - {type: LOCATED_IN, to: place}
+    petscan: {categories: Battles of the American Civil War, depth: 3}

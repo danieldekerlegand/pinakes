@@ -1,0 +1,142 @@
+{
+  "project": "pinakes-engine",
+  "branchName": "ralph/neo4j-converter",
+  "description": "Neo4j bidirectional converter — lossless round-trip between the canonical TSV schema and a Neo4j property graph: bulk seed via neo4j-admin import, incremental updates via LOAD CSV, export back to TSV via APOC, with a round-trip test proving TSV -> Neo4j -> TSV is byte-stable, plus schema constraints and example Cypher.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add the Neo4j converter module and optional dependency",
+      "description": "As a developer, I need the neo4j driver wired in optionally so the converter is isolated from core.",
+      "acceptanceCriteria": [
+        "Add an optional 'neo4j' extra in pyproject.toml pulling the official neo4j Python driver",
+        "Create src/pinakes_engine/neo4j/__init__.py with a connection helper reading URI/user/password from env or config",
+        "Connection helper fails with a clear message when the driver extra is not installed",
+        "Tests pass (pytest) for config parsing with the driver mocked",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Generate neo4j-admin import header/argument mapping from canonical TSV",
+      "description": "As a user, I want the bulk-import command derived from my TSV so seeding a fresh DB is one step.",
+      "acceptanceCriteria": [
+        "Given a directory of nodes/*.tsv and edges/*.tsv, generate the neo4j-admin import invocation with correct --nodes/--relationships args and --delimiter set to tab",
+        "Verify our headers (csid:ID, :LABEL, :START_ID, :END_ID, :TYPE, typed properties) are already valid neo4j-admin headers; if any transformation is needed, write transformed copies rather than mutating originals",
+        "Emit the command to a script file and print it; do not require a live DB to generate it",
+        "Tests pass (pytest) asserting the generated command references every node and edge file with correct flags",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Implement LOAD CSV incremental import",
+      "description": "As a user, I want to add/update data into an existing graph so the DB stays current without a rebuild.",
+      "acceptanceCriteria": [
+        "Generate parameterized Cypher using LOAD CSV WITH HEADERS and FIELDTERMINATOR '\\t' that MERGEs nodes on csid and MERGEs relationships on (:START_ID,:END_ID,:TYPE)",
+        "MERGE semantics ensure re-running the same import does not duplicate nodes or edges (idempotent)",
+        "Typed property columns are coerced to int/float/string per the header suffix",
+        "Tests pass (pytest) generating the Cypher and asserting MERGE (not CREATE) is used for both nodes and edges",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Create schema constraints and indexes",
+      "description": "As a user, I want a unique constraint on csid so the graph enforces identity and imports are fast.",
+      "acceptanceCriteria": [
+        "Generate Cypher creating a uniqueness constraint on csid and indexes on wikidata_qid and name",
+        "Constraint creation is idempotent (IF NOT EXISTS)",
+        "Provide a command to apply constraints to a connected DB",
+        "Tests pass (pytest) generating the expected constraint/index Cypher",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Implement APOC-based export from Neo4j back to TSV",
+      "description": "As a user, I want to pull the graph back into canonical TSV so the round-trip is closed.",
+      "acceptanceCriteria": [
+        "Use apoc.export.csv.* (configured with tab delimiter) or driver-side cursor export to write nodes/*.tsv and edges/*.tsv grouped by label/type",
+        "Exported files use the canonical headers and the canonical sort order (csid; START_ID,END_ID,TYPE)",
+        "Provenance and typed columns survive export with correct type suffixes",
+        "Tests pass (pytest) against a mocked driver returning fixture rows, asserting exported files match the canonical schema",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Prove the round-trip is lossless",
+      "description": "As a user, I want a guarantee that TSV -> Neo4j -> TSV does not lose or mangle data.",
+      "acceptanceCriteria": [
+        "Add a round-trip test: load a fixture TSV dataset, import to a Neo4j test instance (or a faithful in-memory/driver fake), export back, and assert byte-equality with the sorted original",
+        "Any unavoidable transformation (e.g. property ordering) is normalized before comparison and documented",
+        "The test covers nodes with multiple labels, multi-value fields, and BCE dates",
+        "Tests pass (pytest) for the round-trip",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Add a to-neo4j / from-neo4j CLI",
+      "description": "As a user, I want two commands so importing and exporting are turnkey.",
+      "acceptanceCriteria": [
+        "Add `pinakes_engine to-neo4j <dir> [--mode admin|loadcsv]` and `pinakes_engine from-neo4j --out <dir>`",
+        "to-neo4j generates the admin-import script or runs LOAD CSV against a connected DB per --mode",
+        "from-neo4j exports the connected DB to canonical TSV",
+        "Tests pass (pytest) invoking both CLIs with the driver mocked",
+        "Type checks pass (mypy)"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Ship example Cypher queries for the four dimensions",
+      "description": "As a user, I want ready queries so I can explore the graph immediately after import.",
+      "acceptanceCriteria": [
+        "Add cypher/ examples: shortest cultural path between two entities, all entities contemporary with X, everything ORIGINATES_FROM a region, a language-family DESCENDS_FROM tree",
+        "Each query has a comment explaining inputs and expected shape",
+        "Queries parse against the constraint/label schema (validated with a Cypher linter or driver explain on a test DB)",
+        "Tests pass (pytest) checking each query file is non-empty and references only defined labels/types",
+        "Lint passes (ruff)"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Document the Neo4j workflow",
+      "description": "As a user, I want clear docs so I can seed, update, export, and query without guesswork.",
+      "acceptanceCriteria": [
+        "docs/neo4j.md covers: when to use admin-import vs LOAD CSV, the constraint setup, export, the round-trip guarantee, and the example queries",
+        "Include exact commands for a local Neo4j instance",
+        "Document the APOC + apoc.export.file_enabled configuration prerequisite",
+        "Tests pass (pytest) for any doctested snippet",
+        "Lint passes (ruff)"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

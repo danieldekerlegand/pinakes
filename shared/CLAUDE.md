@@ -5,11 +5,11 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
 ## Canonical convergence schema
 
 - `canonical-schema.json` is the **machine-readable source of truth** for the shared
-  culture-scrape ↔ pinakes node/edge model. `canonical-schema.ts` types it and
+  pinakes-engine ↔ pinakes node/edge model. `canonical-schema.ts` types it and
   exposes accessors (`nodeHeaderRow`, `edgeHeaderRow`, `*ProvenanceColumns`,
   `nodeTypeByName`, …). Consume from `@shared/canonical-schema`; never fork the JSON.
-- Column contracts mirror culture-scrape's Neo4j-import headers
-  (`core/.../schema/headers.py`). Prose + mapping tables live in
+- Column contracts mirror pinakes-engine's Neo4j-import headers
+  (`engine/.../schema/headers.py`). Prose + mapping tables live in
   `docs/canonical-schema.md`.
 - `lexicon-mapping.json` (US-002) is the machine-readable **lexicon → canonical** map:
   every `lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
@@ -23,8 +23,8 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   live TSVs is enforced by the test, which
   reads headers from `resolve(process.cwd(), "lexicons")` and compares **unique** column names
   (some source headers, e.g. `words-base.tsv`, have duplicate columns).
-- **US-004 export** (`scripts/export-for-culturescrape.ts`) consumes the node `target`/`property`
-  dispositions here + `server/services/canonical-edges` to emit `export/culturescrape/` canonical
+- **US-004 export** (`scripts/export-for-engine.ts`) consumes the node `target`/`property`
+  dispositions here + `server/services/canonical-edges` to emit `build/corpus/` canonical
   TSVs. See `scripts/CLAUDE.md`.
 
 ## Confidence rubric (tiered-trust, US-001)
@@ -38,9 +38,9 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
   class instead, so every tier is tuned in one place.
 - **Stampers:** the TS acquire/curate scripts (`scripts/acquire-*.ts`, `curate-*.ts`), the
   export's `DEFAULT_NODE_CONFIDENCE` / stub confidence, and `canonical-edges` `DEFAULT_EDGE_CONFIDENCE`.
-- **Python mirror:** `core/src/culturescrape/confidence.py` (`confidence_for(cls)`),
+- **Python mirror:** `engine/src/pinakes_engine/confidence.py` (`confidence_for(cls)`),
   used by the acquire adapters + `named_in` linker; kept in lockstep with the JSON by
-  `core/tests/test_confidence.py` (skips parity when the sibling JSON is absent).
+  `engine/tests/test_confidence.py` (skips parity when the sibling JSON is absent).
 - **GOTCHA — priors are chosen to preserve historically-emitted values** (grandfathering), so the
   export manifest stays byte-identical. If you re-calibrate a tier, the affected acquire scripts
   re-emit and you must regenerate the committed snapshots (export manifest + reconciliation report)
@@ -49,7 +49,7 @@ Code here is imported by both `server/` and `client/` (alias `@shared/*`).
 ## Trust tiers (tiered-trust, US-004)
 
 - `trust-tier.ts` is the **single TS source of truth for the trust-tier policy** — the mirror of
-  culture-scrape's `orchestrate/tiers.py` `classify_tier`. `classifyTrustTier({source, wikidataQid,
+  pinakes-engine's `orchestrate/tiers.py` `classify_tier`. `classifyTrustTier({source, wikidataQid,
   sourceUrl, isEdge})` is a pure, dependency-free function of the *already-canonical* provenance
   columns (so `tier` is **derived**, never a stored column). Precedence must stay byte-identical to
   the Python: `inferred:` prefix → `inferred`; a `pinakes` source token → `curated`; else a
@@ -94,7 +94,7 @@ touch node/edge types again, update in lockstep (all pinned by tests):
   then re-vendor) + `predicate-mapping.test.ts`. **A NODE type also needs
   `shared/capability-manifest.json`** — its produced entity port is total over `nodeTypes`, so
   `assertValidCapabilityManifest` fails until the port lists the new type too.
-- Python (`core`): the edge `:TYPE` vocab lives in `ontology/registry.py`
+- Python (`engine`): the edge `:TYPE` vocab lives in `ontology/registry.py`
   (`REGISTRY`, pinned by `test_ontology_registry.py`) **and** must be documented in
   `docs/ontology.md` (pinned by `test_ontology_doc.py`); `schema/mapper.py` `PINAKES_EDGE_TYPE_MAP`
   (cover every exported edge :TYPE). The version + from/to bake into three regenerated,

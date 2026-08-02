@@ -16,8 +16,8 @@ each domain isn't re-invented.
 
 ### 1. Generate — a domain acquisition blueprint/job
 
-Author (or extend) the culture-scrape acquisition job for the domain under
-`core/` (blueprint → generated SPARQL job, e.g. `jobs/<domain>.yml`).
+Author (or extend) the pinakes-engine acquisition job for the domain under
+`engine/` (blueprint → generated SPARQL job, e.g. `jobs/<domain>.yml`).
 Target the **tightest** Wikidata classes for the domain, not the broad umbrella classes.
 
 ### 2. Verify — the classes return what you expect
@@ -30,13 +30,13 @@ verified class list in the job.
 ### 3. Acquire — run real acquisition (network) into the canonical corpus
 
 Run the job to acquire from Wikidata (SPARQL + offline dump) and normalize/reconcile into
-the canonical corpus (culture-scrape). This is the one networked step. Every acquired node
+the canonical corpus (pinakes-engine). This is the one networked step. Every acquired node
 carries `source`/`source_url`/`retrieved_at`/`confidence` provenance from the start
 (Guiding Principle #8).
 
 ### 4. Reconcile — dedup against the existing curated rows
 
-Reconcile the acquired set against the curated lexicon (culture-scrape's
+Reconcile the acquired set against the curated lexicon (pinakes-engine's
 `lexicon_reconcile`, cross-source fuzzy threshold ~0.93). Buckets: **matched** (existing ↔
 acquired, verify correct), **new**, **ambiguous** (blocking-key collision — **never
 auto-merged**, listed for review). The TS-side dry-run estimate is
@@ -60,7 +60,7 @@ expect single-digit-percent yields, and log what you dropped.
 ### 6. Write-back — append into `lexicons/*.tsv` (never clobber curation)
 
 Append the curated additions into the domain's lexicon via
-`scripts/import-from-culturescrape.ts` (the pilot used `--add-cultures`). It is
+`scripts/import-from-engine.ts` (the pilot used `--add-cultures`). It is
 **append-only + idempotent**: dedups by `wikidata_qid` → normalised name → id, so a second
 run adds 0 and leaves the file byte-identical. A curated cell that differs is a **conflict**
 — *reported, never silently overwritten*. Enrichment write-back (filling blanks on existing
@@ -70,7 +70,7 @@ rows) uses `buildWriteBack`; it skips ambiguous ids (see `scripts/CLAUDE.md` §w
 live-corpus parity tests fail:
 
 ```bash
-npx tsx scripts/export-for-culturescrape.ts     # → docs/culturescrape-export-manifest.json
+npx tsx scripts/export-for-engine.ts     # → docs/engine-export-manifest.json
 npx tsx scripts/reconciliation-report.ts        # → docs/reconciliation-report.json
 ```
 
@@ -100,13 +100,13 @@ npm run convergence-qa:baseline   # rewrites docs/convergence-qa-baseline.json
 ```
 
 Also run the Python side for the acquisition/reconcile code you touched (from
-`core/`): `uv run ruff check .` · `uv run mypy src` · `uv run pytest`.
+`engine/`): `uv run ruff check .` · `uv run mypy src` · `uv run pytest`.
 CI enforces both sides via `.github/workflows/convergence-qa.yml`.
 
 ### 8. Load — into Neo4j + Datalog, verify counts
 
-Load the expanded corpus into Neo4j (`culturescrape to-neo4j --mode loadcsv`) and verify
-counts (`culturescrape neo4j-counts`); the load is idempotent (MERGE on `csid`). `loadcsv`
+Load the expanded corpus into Neo4j (`pinakes_engine to-neo4j --mode loadcsv`) and verify
+counts (`pinakes_engine neo4j-counts`); the load is idempotent (MERGE on `csid`). `loadcsv`
 needs real infra, not a bare `docker compose up` — see pilot §6.2 and `docker-compose.yml`.
 Confirm the live app renders the new rows (`npm run dev:full`, `npm run smoke:graph` with the
 sidecar + Neo4j on the **same** corpus — pilot §6.3).
@@ -126,5 +126,5 @@ sidecar + Neo4j on the **same** corpus — pilot §6.3).
 
 - [Data-population pilot report](./data-population-pilot-report.md) — the end-to-end proof + gotchas.
 - [Canonical schema §7–§10](./canonical-schema.md) — export, reconciliation, write-back, QA gate.
-- [culture-scrape integration design](./culturescrape-integration.md).
+- [pinakes-engine integration design](./engine-integration.md).
 - Roadmap [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md).

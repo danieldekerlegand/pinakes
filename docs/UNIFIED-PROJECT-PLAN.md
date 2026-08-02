@@ -94,7 +94,7 @@ pinakes/
 | `shared/` | `contracts/` | + generated Python bindings |
 | `lexicons/` (top-level) | `data/source/lexicons/` | free to move now (readers rewritten) |
 | `scripts/` (TS) | `tooling/` | heavily culled; acquisition scripts fold into the engine |
-| `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed |
+| `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed — `export/culturescrape` → `build/corpus` **done** (20 US-1) |
 | `docker-compose.yml`, Dockerfiles | `infra/` | |
 | Drizzle/pg, DVC (`.dvc/`, `*.dvc`) | *(deleted)* | vestigial / stranded |
 
@@ -103,7 +103,7 @@ pinakes/
 - **One FastAPI app** (the engine already uses FastAPI for the sidecar — grow that into the whole backend). It serves the built React client and all `/api/*` routes in one process.
 - **Neo4j** stays the graph store (already the shared substrate; Python already has 24 files using it — consolidate the 2 TS driver files into Python).
 - **Files** for the rest: TSV corpus/lexicons + `data/runtime/*` JSON. **No SQL** (Drizzle/pg removed — "TSV-only mode" is already the truth).
-- The two TS→Python seams **vanish**: `culturescrape-client.ts` (HTTP to :8800) and `culturescrape-acquisition.ts` (CLI subprocess) become direct in-process calls.
+- The two TS→Python seams **vanish**: `engine-client.ts` (HTTP to :8800, was `culturescrape-client.ts`) and `culturescrape-acquisition.ts` (CLI subprocess) become direct in-process calls.
 
 ## 6. Consolidate the two scraping stacks (directly serves the speed goal)
 

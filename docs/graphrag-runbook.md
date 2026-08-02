@@ -6,7 +6,7 @@
 > md5s are historical provenance labels, not fetchable references.
 > Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
 
-Semantic search over the shared culture-scrape graph: every node's
+Semantic search over the shared pinakes-engine graph: every node's
 name + aliases + description is embedded locally with a sentence-transformers
 model, the vectors land in a **Neo4j 5 native vector index**, and a hybrid
 retriever turns a free-text query into a self-contained subgraph (vector top-k →
@@ -21,30 +21,30 @@ Three moving parts:
 
 | Layer | Where | Purpose |
 | --- | --- | --- |
-| Embedder + index build | `culturescrape.neo4j.vector_index` (CLI `graphrag-index`) | the **repeatable** build step |
-| Hybrid retriever + `/api/retrieve` | `culturescrape.explorer.retrieval` + `explorer/app.py` | query-time retrieval over the sidecar |
-| `/api/graph/retrieve` proxy | `server/routes/graph.ts` → `culturescrape-client.ts` | the browser-facing, gated proxy |
+| Embedder + index build | `pinakes_engine.neo4j.vector_index` (CLI `graphrag-index`) | the **repeatable** build step |
+| Hybrid retriever + `/api/retrieve` | `pinakes_engine.explorer.retrieval` + `explorer/app.py` | query-time retrieval over the sidecar |
+| `/api/graph/retrieve` proxy | `server/routes/graph.ts` → `engine-client.ts` | the browser-facing, gated proxy |
 
 ## 0. Prerequisites
 
 1. **The graph stack is up** (Neo4j 5 + APOC via the `graph` docker profile) and
-   the corpus is loaded. See `core/docs/convergence-build.md`
+   the corpus is loaded. See `engine/docs/convergence-build.md`
    §"Load the corpus into Neo4j" — in short, from the repo root:
 
    ```bash
    # bring up Neo4j pointed at the built export
    CULTURESCRAPE_CORPUS=/corpus docker compose up -d neo4j
    # load the canonical TSV corpus into it (incremental, MERGE-based)
-   cd core
-   uv run culturescrape to-neo4j ../../export/culturescrape --mode loadcsv
+   cd engine
+   uv run pinakes_engine to-neo4j ../../build/corpus --mode loadcsv
    ```
 
 2. **The `graphrag` extra is installed** (sentence-transformers + torch — heavy,
    kept out of the slim sidecar image). Install it where the index build runs:
 
    ```bash
-   cd core
-   uv sync --extra graphrag          # or: pip install 'culturescrape[graphrag]'
+   cd engine
+   uv sync --extra graphrag          # or: pip install 'pinakes_engine[graphrag]'
    ```
 
    The module and all its pure helpers import fine **without** the extra; only the
@@ -60,8 +60,8 @@ One idempotent command embeds every node and (re-)creates the native vector inde
 over the embeddings:
 
 ```bash
-cd core
-uv run culturescrape graphrag-index
+cd engine
+uv run pinakes_engine graphrag-index
 # → embedded 6123 of 6140 node(s) (dim 384) and built vector index
 #   'entity_embedding' (cosine)
 ```
@@ -96,7 +96,7 @@ similarity scores) plus the self-contained subgraph. `k` is clamped to 1..25,
 
 **pinakes proxy (browser-facing):** `GET /api/graph/retrieve?q=&k=&depth=`
 (`server/routes/graph.ts`). The browser only talks to the pinakes origin; this
-proxies to the sidecar via the typed `culturescrape-client.ts` (`retrieve`),
+proxies to the sidecar via the typed `engine-client.ts` (`retrieve`),
 validating the payload with zod at the boundary.
 
 Both degrade gracefully (the established `/api/graph/*` contract):
@@ -158,15 +158,15 @@ that hasn't been loaded into Neo4j.
 > **Note:** the spot-check requires the live graph stack (Neo4j + the embedding
 > extra). The endpoint **contract** — success shape, empty-query short-circuit, and
 > every unavailable/ malformed state — is covered offline by
-> `core/tests/test_retrieval.py` /
+> `engine/tests/test_retrieval.py` /
 > `tests/test_vector_index.py` (Python) and `server/routes/graph.test.ts` /
-> `server/services/culturescrape-client.test.ts` (TS), which run in CI with no live
+> `server/services/engine-client.test.ts` (TS), which run in CI with no live
 > Neo4j and no model download.
 
 ## 4. Where the pieces live
 
-- Embedder + index DDL/build: `core/src/culturescrape/neo4j/vector_index.py`
+- Embedder + index DDL/build: `engine/src/pinakes_engine/neo4j/vector_index.py`
 - Live vector query (`db.index.vector.queryNodes` + expansion): `…/explorer/live.py` (`Neo4jLive.vector_retrieve`)
 - Hybrid retriever + endpoint gating: `…/explorer/retrieval.py`, `…/explorer/app.py` (`/api/retrieve`)
 - CLI subcommand: `…/cli.py` (`graphrag-index`)
-- TS proxy + typed client: `server/routes/graph.ts` (`/api/graph/retrieve`), `server/services/culturescrape-client.ts` (`retrieve`)
+- TS proxy + typed client: `server/routes/graph.ts` (`/api/graph/retrieve`), `server/services/engine-client.ts` (`retrieve`)

@@ -1,0 +1,71 @@
+{
+  "project": "pinakes-engine",
+  "description": "Core acquisition engine — structured-first source adapters (Wikidata SPARQL, PetScan, official dumps, residual wikitext via mwparserfromhell, generic HTTP fallback) that fetch sweeping cultural/historical/linguistic categories into raw rows with full provenance, behind a uniform adapter interface with caching, rate-limiting, and category-spec input.",
+  "tasks": [
+    {
+      "title": "T1-US-001: Scaffold the pinakes_engine Python package",
+      "description": "As a developer, I need an installable package skeleton so every later subsystem has a home.\n\nAcceptance criteria (all must be met before marking complete):\n- Create pyproject.toml with package name 'pinakes_engine', Python >=3.11, and dev deps: pytest, mypy, ruff\n- Create src/pinakes_engine/__init__.py and src/pinakes_engine/acquire/__init__.py\n- `pip install -e .` succeeds in a clean venv\n- Type checks pass (mypy)\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-002: Define the RawRecord and Provenance data classes",
+      "description": "As a developer, I need a uniform in-memory representation of an acquired row plus its provenance before normalization.\n\nAcceptance criteria (all must be met before marking complete):\n- Define a frozen dataclass Provenance(source, source_url, source_query, retrieved_at, confidence)\n- Define a dataclass RawRecord(fields: dict[str,str], provenance: Provenance)\n- retrieved_at is an ISO-8601 UTC string; confidence is a float in [0,1]\n- Tests pass (pytest) covering construction and validation of out-of-range confidence\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-003: Define the SourceAdapter abstract interface and registry",
+      "description": "As a developer, I want every source behind one interface so the orchestrator can call them uniformly.\n\nAcceptance criteria (all must be met before marking complete):\n- Define abstract base SourceAdapter with method fetch(category_spec) -> Iterator[RawRecord]\n- Define a register/lookup registry keyed by adapter id (e.g. 'wikidata-sparql', 'petscan')\n- Adapters declare a name and the category-spec source.type they handle\n- Tests pass (pytest) verifying registry lookup raises a clear error for unknown adapter ids\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-004: Implement the category-spec YAML loader",
+      "description": "As a user, I want to declare a category in YAML so a category becomes a reproducible input.\n\nAcceptance criteria (all must be met before marking complete):\n- Parse categories/<name>.yml matching the schema in docs/data-model.md (id, label, description, source, dimensions, links)\n- Validate required fields and raise a clear error listing missing/invalid keys\n- Loader returns a typed CategorySpec dataclass\n- Tests pass (pytest) with a valid fixture and at least two invalid fixtures\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-005: Build an HTTP client with on-disk caching and rate-limiting",
+      "description": "As a developer, I need polite, reproducible network access so adapters are testable and don't hammer endpoints.\n\nAcceptance criteria (all must be met before marking complete):\n- Implement a client wrapping requests with a configurable per-host rate limit and exponential backoff on 429/5xx\n- Responses cached on disk keyed by (url, params); cache hits skip the network\n- A configurable User-Agent string identifies the project (per Wikimedia policy)\n- Tests pass (pytest) using a mocked transport: cache hit avoids a second call; 429 triggers backoff then retry\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-006: Implement the Wikidata SPARQL adapter",
+      "description": "As a user, I want categories defined by a SPARQL query so 'every Peruvian dish' is a query, not a scrape.\n\nAcceptance criteria (all must be met before marking complete):\n- POST/GET the query in category_spec.source.query to query.wikidata.org/sparql with format=json via the cached HTTP client\n- Map each SPARQL binding row to a RawRecord, preserving the item QID and all selected variables\n- Set provenance.source='wikidata', source_url to the item URI, source_query to the SPARQL text\n- Tests pass (pytest) against a recorded SPARQL JSON fixture (no live network)\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-007: Implement the PetScan adapter",
+      "description": "As a user, I want to pull Wikipedia category-tree membership lists so categories that live as wiki categories are first-class.\n\nAcceptance criteria (all must be met before marking complete):\n- Call petscan.wmcloud.org with the spec's PetScan parameters (categories, depth, combination, optional WDQS) requesting format=json\n- Map each result page/item to a RawRecord including title, pageid, and Wikidata QID when present\n- Set provenance.source='petscan' with the PetScan query URL recorded in source_query\n- Tests pass (pytest) against a recorded PetScan JSON fixture\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-008: Implement the wikitext adapter using mwparserfromhell",
+      "description": "As a user, I want to extract rows from 'List of...' wikitables and infoboxes that SPARQL/PetScan cannot reach.\n\nAcceptance criteria (all must be met before marking complete):\n- Fetch raw wikitext for a page via the MediaWiki API (cached client)\n- Use mwparserfromhell to extract rows from the first matching wikitable and/or named template parameters specified in the category spec\n- Each extracted row becomes a RawRecord with provenance.source='wikitext' and the page URL\n- Tests pass (pytest) parsing a recorded wikitext fixture containing a table and an infobox\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-009: Implement the dump adapter for Getty and Pleiades",
+      "description": "As a user, I want to ingest official bulk dumps so authoritative vocabularies can anchor entities.\n\nAcceptance criteria (all must be met before marking complete):\n- Read a local Getty N-Triples dump and emit RawRecords for AAT/TGN/ULAN entries (id, preferred label, type)\n- Read a local Pleiades JSON/CSV export and emit RawRecords for places (id, name, lat, lon, cross-links)\n- Provenance records source='getty_aat'|'getty_tgn'|'getty_ulan'|'pleiades' and the record URI; respect ODC-By attribution by storing the license string\n- Tests pass (pytest) against small recorded dump fixtures for both sources\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-010: Implement a generic HTTP/HTML fallback adapter",
+      "description": "As a user, I want a last-resort adapter for categories that only exist as prose/tables on non-wiki sites.\n\nAcceptance criteria (all must be met before marking complete):\n- Given a URL and a CSS/XPath row+field selector spec, extract rows into RawRecords via the cached client\n- Adapter is clearly marked best-effort; sets a lower default confidence and source='http'\n- Robots.txt is checked and respected before fetching\n- Tests pass (pytest) against a recorded HTML fixture\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-011: Add a fetch CLI command",
+      "description": "As a user, I want to run a single category from the command line and see raw records written to disk.\n\nAcceptance criteria (all must be met before marking complete):\n- Add console entrypoint `pinakes_engine fetch <category.yml> --out <dir>`\n- Command selects the adapter from source.type, runs fetch, and writes raw records as JSON-lines with provenance\n- Running the command on a fixture-backed category produces a non-empty .jsonl output file\n- Tests pass (pytest) invoking the CLI with a mocked adapter\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-012: Add structured logging and a per-run acquisition report",
+      "description": "As a user, I want to see what was fetched, from where, and what failed so runs are auditable.\n\nAcceptance criteria (all must be met before marking complete):\n- Emit structured logs (record count, cache hit/miss, retries, errors) per adapter run\n- Write a run report (JSON) summarizing category id, adapter, row count, distinct sources, and error count\n- Failures in one record do not abort the whole run; they are counted and logged\n- Tests pass (pytest) asserting the report counts match a fixture run\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    },
+    {
+      "title": "T1-US-013: Document adapters and add three example category specs",
+      "description": "As a user, I want runnable examples so I can model my own categories.\n\nAcceptance criteria (all must be met before marking complete):\n- Add categories/ examples: peruvian-dishes (wikidata-sparql), us-civil-war-battles (petscan), italian-sculptures (wikidata-sparql)\n- Add docs/acquisition.md describing each adapter, its source.type, and required spec fields\n- Each example category validates against the loader (US-004)\n- Tests pass (pytest) validating all example specs load without error\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/acquisition-engine'.",
+      "completed": true
+    }
+  ]
+}

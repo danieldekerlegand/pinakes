@@ -11,7 +11,7 @@
  *
  * **This is a surface wrapper, never an implementation.** Every capability's
  * `x_surfaces` point at already-built, already-merged code — the Wikidata
- * OpenRefine reconciler (`culturescrape/schema/reconcile.py`), the csid resolver
+ * OpenRefine reconciler (`pinakes_engine/schema/reconcile.py`), the csid resolver
  * (`server/services/graph-resolver.ts`), the graph query routes, the canonical-TSV
  * and entity-grounding exporters. Nothing here re-implements a reconciler; the
  * manifest only makes those surfaces *discoverable* in KCB terms.

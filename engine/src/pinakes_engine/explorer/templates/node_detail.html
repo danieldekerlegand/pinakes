@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ name or csid }} · pinakes-engine explorer{% endblock %}
+{% block content %}
+  <p class="muted"><a href="/nodes">‹ Nodes</a></p>
+  <h1>{{ name or csid }}</h1>
+  <p class="mono muted">{{ csid }}</p>
+
+  <h2>Across stores</h2>
+  <p class="muted">The same entity, joined by <code>csid</code>, in each
+    representation.</p>
+  <table>
+    <tbody>
+      <tr>
+        <th>Graph</th>
+        <td><a href="{{ links.graph }}">Neighborhood centered on this node</a></td>
+      </tr>
+      <tr>
+        <th>Neo4j</th>
+        <td><a href="{{ links.neo4j }}">Node by csid</a>
+          <code class="mono muted">{{ links.neo4j_cypher }}</code></td>
+      </tr>
+      <tr>
+        <th>Datalog</th>
+        <td><a href="{{ links.datalog }}">Console, pre-filled for this node</a>
+          <code class="mono muted">{{ links.datalog_atom }}</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Columns</h2>
+  <table>
+    <tbody>
+      {% for header, value in cells %}
+      <tr><th class="mono">{{ header }}</th><td>{{ value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Outgoing edges ({{ outgoing|length }})</h2>
+  <table>
+    <thead><tr><th>:TYPE</th><th>→ target</th></tr></thead>
+    <tbody>
+      {% for e in outgoing %}
+      <tr>
+        <td class="mono">{{ e.type }}</td>
+        <td><a href="/nodes/{{ e.csid }}">{{ e.name or e.csid }}</a>
+            <span class="mono muted">{{ e.csid }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td class="muted" colspan="2">None.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Incoming edges ({{ incoming|length }})</h2>
+  <table>
+    <thead><tr><th>:TYPE</th><th>← source</th></tr></thead>
+    <tbody>
+      {% for e in incoming %}
+      <tr>
+        <td class="mono">{{ e.type }}</td>
+        <td><a href="/nodes/{{ e.csid }}">{{ e.name or e.csid }}</a>
+            <span class="mono muted">{{ e.csid }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td class="muted" colspan="2">None.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

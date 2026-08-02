@@ -14,5 +14,5 @@ else structural.
 
 | Current | Note |
 |---|---|
-| `docker-compose.yml` | the `culturescrape` service is renamed with the engine |
+| `docker-compose.yml` | its service was renamed `culturescrape` → `pinakes_engine` with the engine (US-1) |
 | Dockerfiles | |

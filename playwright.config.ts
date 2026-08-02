@@ -5,7 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * The smoke boots the real dev server (`npm run dev`, TSV-backed, no external
  * services required) and drives the app in a headless Chromium. The shared graph
- * (Neo4j + culture-scrape sidecar) is treated as OPTIONAL: when it is down the
+ * (Neo4j + pinakes-engine sidecar) is treated as OPTIONAL: when it is down the
  * graph-dependent UI degrades via `GraphFeatureGate` and the smoke asserts that
  * degraded affordance instead of requiring a live graph. So the suite runs the
  * same locally and in CI with nothing but the app itself up.

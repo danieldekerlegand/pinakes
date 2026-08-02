@@ -1,0 +1,71 @@
+{
+  "project": "pinakes-engine",
+  "description": "Canonical TSV schema + entity-resolution layer — turns heterogeneous RawRecords from any adapter into coherent, deduplicated, Neo4j-import-compatible node and edge TSV files keyed on a stable global id reconciled to Wikidata QIDs and Getty ids, with typed headers, provenance, and round-trip-safe canonical ordering.",
+  "tasks": [
+    {
+      "title": "T2-US-001: Implement the canonical TSV header model",
+      "description": "As a developer, I need typed node/edge headers matching docs/data-model.md so files are Neo4j-import compatible.\n\nAcceptance criteria (all must be met before marking complete):\n- Define NodeSchema and EdgeSchema describing required headers (csid:ID, :LABEL, name, ...) and typed property suffixes (:int, :float)\n- Provide a function to render and parse a header row for nodes and for edges\n- Reject property columns whose declared type suffix does not match the data model\n- Tests pass (pytest) round-tripping a header row to schema objects and back\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-002: Implement a strict TSV writer and reader",
+      "description": "As a developer, I need tab-delimited IO that never corrupts data containing tabs/newlines so files are lossless.\n\nAcceptance criteria (all must be met before marking complete):\n- Writer escapes/encodes tab, newline, and backslash in field values deterministically; reader reverses it exactly\n- Multi-value fields use ';' with a defined escape for literal ';'\n- Header is always the first line; column order is stable\n- Tests pass (pytest) writing then reading values containing tabs, newlines, and ';' and asserting equality\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-003: Implement csid minting",
+      "description": "As a developer, I need deterministic global ids so re-runs are idempotent.\n\nAcceptance criteria (all must be met before marking complete):\n- If a Wikidata QID is known, csid is derived deterministically from it (e.g. cs:<type>:Q<number>)\n- Otherwise csid is cs:<type>:<deterministic slug/hash of normalized name+lang>\n- Minting the same input twice yields the identical csid\n- Tests pass (pytest) covering QID-based and name-based minting determinism\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-004: Implement field normalization",
+      "description": "As a developer, I want raw fields cleaned into canonical columns so downstream matching is reliable.\n\nAcceptance criteria (all must be met before marking complete):\n- Normalize whitespace, unicode (NFC), and trim; map common source field names to canonical column names via a configurable mapping\n- Parse temporal values into time_start:int / time_end:int (BCE negative) and keep raw in time_start_iso when ambiguous\n- Parse coordinates into lat:float / lon:float; invalid coords are dropped with a logged warning\n- Tests pass (pytest) for date parsing (BCE, century, year ranges) and coordinate parsing\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-005: Map RawRecords to canonical node rows",
+      "description": "As a developer, I want a RawRecord-to-node-row mapper so any adapter's output reaches the canonical schema.\n\nAcceptance criteria (all must be met before marking complete):\n- Produce a node row with csid, :LABEL from the category spec, name, lang, and any resolved dimension columns\n- Carry provenance columns (source, source_url, source_query, retrieved_at, confidence) onto every row\n- Unknown/extra raw fields are preserved in a dedicated overflow column rather than dropped\n- Tests pass (pytest) mapping a fixture RawRecord set to node rows\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-006: Implement Wikidata QID reconciliation",
+      "description": "As a developer, I want entities matched to Wikidata so the same thing from two sources gets one id.\n\nAcceptance criteria (all must be met before marking complete):\n- When a row lacks a QID, attempt reconciliation via the Wikidata search/reconciliation API (cached client) using name+type+lang\n- Accept a match only above a configurable score threshold; otherwise leave QID null and lower confidence\n- Record the reconciliation decision (matched/none/ambiguous) in provenance\n- Tests pass (pytest) against a recorded reconciliation API fixture covering match, no-match, and ambiguous cases\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-007: Implement Getty id reconciliation against local dumps",
+      "description": "As a developer, I want entities anchored to AAT/TGN/ULAN where applicable so vocabularies normalize types/places/people.\n\nAcceptance criteria (all must be met before marking complete):\n- Build an in-memory index from the local Getty dumps (from acquisition Tasklist) keyed by normalized preferred label\n- Attach getty_id to a node when a confident label+type match exists\n- No false anchor: ambiguous matches are skipped and logged\n- Tests pass (pytest) against a small Getty index fixture\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-008: Implement deduplication / entity resolution",
+      "description": "As a developer, I want duplicate entities collapsed so the graph has one node per real-world thing.\n\nAcceptance criteria (all must be met before marking complete):\n- Resolution precedence: identical wikidata_qid > identical getty_id > exact normalized (name,lang,type) > fuzzy name match above threshold\n- Merging unions aliases, keeps the highest-confidence value per column, and concatenates provenance from all merged rows\n- Merge decisions are recorded so they can be audited and reversed\n- Tests pass (pytest) merging a fixture with QID-dupes, label-dupes, and a fuzzy near-duplicate\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-009: Generate MEMBER_OF_CATEGORY and INSTANCE_OF edges",
+      "description": "As a developer, I want each entity linked to its scraped category and type so categories are queryable.\n\nAcceptance criteria (all must be met before marking complete):\n- For every node, emit a MEMBER_OF_CATEGORY edge to the category node and an INSTANCE_OF edge to its type node\n- Category and type nodes are created (idempotently) if absent\n- Edges carry provenance from the source rows\n- Tests pass (pytest) asserting edge counts equal node counts for a fixture category\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-010: Implement canonical sorting for round-trip stability",
+      "description": "As a developer, I want deterministic file ordering so TSV diffs are meaningful and Neo4j round-trips are stable.\n\nAcceptance criteria (all must be met before marking complete):\n- Node files sorted by csid; edge files sorted by (:START_ID, :END_ID, :TYPE)\n- Column order follows the schema's canonical order exactly\n- Writing the same logical dataset twice yields byte-identical files\n- Tests pass (pytest) asserting byte-stability across two writes\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-011: Implement a schema/data validator",
+      "description": "As a user, I want to validate TSV files so malformed data is caught before import or export.\n\nAcceptance criteria (all must be met before marking complete):\n- Validate: required headers present, typed columns parse, csid unique, edges reference existing csids, provenance non-empty\n- Report errors with file, line, and column context; exit non-zero on failure\n- Validator runs on both node and edge files in a directory\n- Tests pass (pytest) on a valid fixture (passes) and several invalid fixtures (each fails with the right message)\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-012: Add a normalize CLI command",
+      "description": "As a user, I want one command that turns raw .jsonl from acquisition into validated canonical TSV.\n\nAcceptance criteria (all must be met before marking complete):\n- Add `pinakes_engine normalize <raw.jsonl> --category <category.yml> --out <dir>` producing nodes/<type>.tsv and edges/<type>.tsv\n- Pipeline runs: map -> normalize -> reconcile -> dedup -> edges -> sort -> validate\n- Running on a fixture raw file produces valid TSV that passes US-011 validation\n- Tests pass (pytest) invoking the CLI end-to-end on a fixture\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    },
+    {
+      "title": "T2-US-013: Document the schema and reconciliation behavior",
+      "description": "As a user, I want clear docs so I can trust and extend the normalization layer.\n\nAcceptance criteria (all must be met before marking complete):\n- docs/schema.md documents every canonical column, type suffix, escaping rules, and the resolution precedence\n- Include a worked example: two raw rows for the same dish from Wikidata + wikitext merging into one node\n- All code examples in the doc run as a doctest or referenced test\n- Tests pass (pytest) for the worked-example test\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/schema-entity-resolution'.",
+      "completed": true
+    }
+  ]
+}

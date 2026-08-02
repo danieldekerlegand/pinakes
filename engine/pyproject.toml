@@ -1,0 +1,132 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pinakes-engine"
+version = "0.1.0"
+description = "TSV-first, multi-domain aggregation engine for cultural, socio-historical, and linguistic data."
+readme = "PLAN.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "PyYAML>=6",
+    "cssselect>=1.2",
+    "lxml>=5",
+    "mwparserfromhell>=0.6",
+    "requests>=2.31",
+    # The embedded agora translation engine (agora:60-translation-engine-rust):
+    # a Rust core exposed in-process through PyO3 bindings (the ``translation_py``
+    # extension). pinakes-engine delegates its canonical format *rendering* to it
+    # rather than hand-writing the emitters (pinakes:42 seam spec). Vendored as an
+    # abi3 wheel under ``vendor/`` and wired via ``[tool.uv.sources]`` below.
+    "translation-py",
+]
+
+[project.scripts]
+pinakes_engine = "pinakes_engine.cli:main"
+
+[project.optional-dependencies]
+neo4j = [
+    "neo4j>=5",
+]
+# GraphRAG node embedding (Phase 5). Heavy (torch), kept out of the core install
+# and the slim sidecar image; imported lazily by
+# ``pinakes_engine.neo4j.vector_index`` so the module and its pure helpers work
+# with the extra absent (the offline unit tests run in CI without it).
+graphrag = [
+    "sentence-transformers>=2.2",
+]
+gui = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "jinja2>=3.1",
+    "httpx>=0.27",
+]
+dev = [
+    "pytest>=8",
+    "mypy>=1.8",
+    "ruff>=0.4",
+    "lxml-stubs>=0.5",
+    "types-PyYAML>=6",
+    "types-requests>=2.31",
+    # The ProbLog dialect emitter itself needs no runtime dep (it only writes
+    # text); problog is a *test* dependency — CI computes a marginal probability
+    # over a fixture export to prove the emitted syntax is valid ProbLog.
+    "problog>=2.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"pinakes_engine.explorer" = ["templates/*.html"]
+"pinakes_engine.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv", "rules_registry.tsv"]
+"pinakes_engine.experimental" = ["yago_sample/*.nt", "yago_sample/*.ttl", "yago_sample/*.md"]
+
+# The embedded agora translation engine is vendored as a prebuilt abi3 wheel
+# (Python ≥ 3.9, so it is CPython-version-agnostic) under ``vendor/``, built from
+# ``agora:60``'s ``translation/crates/py`` PyO3 crate. Wiring it as a uv source
+# keeps ``uv sync --frozen`` self-contained (no network, no Rust toolchain needed
+# to install). NOTE: the wheel is platform-specific; cross-platform / CI packaging
+# of the engine is handled when the sidecar is retired (pinakes:50 US-6).
+[tool.uv.sources]
+translation-py = { path = "vendor/translation_py-0.1.0-cp39-abi3-macosx_11_0_arm64.whl" }
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+
+# The embedded agora translation engine (``translation_py``) is a compiled PyO3
+# extension shipping no type stubs; the adapter (``pinakes_engine.translation``)
+# wraps it, so treat the extension itself as untyped — mirroring neo4j/problog.
+[[tool.mypy.overrides]]
+module = ["translation_py", "translation_py.*"]
+ignore_missing_imports = true
+
+# The optional ``neo4j`` driver is absent unless the extra is installed; the
+# converter imports it lazily, so missing stubs must not fail core type checks.
+[[tool.mypy.overrides]]
+module = ["neo4j", "neo4j.*"]
+ignore_missing_imports = true
+
+# ...but when the extra IS installed the driver's optional-dependency shims pull
+# in numpy, whose inline stubs are written in 3.12 ``type`` syntax that mypy
+# rejects while checking against our ``python_version = "3.11"`` floor. Skip just
+# those two shims (pinakes-engine uses neither the vector nor the dataframe
+# surface) so the rest of the driver stays fully typed and the floor keeps doing
+# its job — our own code stays 3.11-compatible per ``requires-python``.
+[[tool.mypy.overrides]]
+module = ["neo4j._optional_deps", "neo4j.vector"]
+follow_imports = "skip"
+
+# ``pytest.approx`` reaches numpy the same way, which would break the ``tests``
+# half of ``files`` for the same 3.12-stub reason. The suite never uses the
+# ndarray overloads, so skip that one module too.
+[[tool.mypy.overrides]]
+module = ["_pytest.python_api"]
+follow_imports = "skip"
+
+# problog ships no type stubs; only the test suite imports it (to validate the
+# emitted ProbLog syntax), never the library code, so treat it as untyped.
+[[tool.mypy.overrides]]
+module = ["problog", "problog.*"]
+ignore_missing_imports = true
+
+# sentence-transformers (the optional ``graphrag`` extra) is imported lazily by
+# the vector-index embedder and ships no type stubs; treat it as untyped so core
+# type checks pass whether or not the extra is installed. When the extra IS
+# installed it also reaches numpy (via torch -> transformers), so skip following
+# it for the same reason as the neo4j shims above.
+[[tool.mypy.overrides]]
+module = ["sentence_transformers", "sentence_transformers.*"]
+follow_imports = "skip"
+ignore_missing_imports = true
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

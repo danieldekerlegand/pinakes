@@ -1,0 +1,51 @@
+{
+  "project": "pinakes-engine",
+  "description": "Neo4j bidirectional converter — lossless round-trip between the canonical TSV schema and a Neo4j property graph: bulk seed via neo4j-admin import, incremental updates via LOAD CSV, export back to TSV via APOC, with a round-trip test proving TSV -> Neo4j -> TSV is byte-stable, plus schema constraints and example Cypher.",
+  "tasks": [
+    {
+      "title": "T4-US-001: Add the Neo4j converter module and optional dependency",
+      "description": "As a developer, I need the neo4j driver wired in optionally so the converter is isolated from core.\n\nAcceptance criteria (all must be met before marking complete):\n- Add an optional 'neo4j' extra in pyproject.toml pulling the official neo4j Python driver\n- Create src/pinakes_engine/neo4j/__init__.py with a connection helper reading URI/user/password from env or config\n- Connection helper fails with a clear message when the driver extra is not installed\n- Tests pass (pytest) for config parsing with the driver mocked\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-002: Generate neo4j-admin import header/argument mapping from canonical TSV",
+      "description": "As a user, I want the bulk-import command derived from my TSV so seeding a fresh DB is one step.\n\nAcceptance criteria (all must be met before marking complete):\n- Given a directory of nodes/*.tsv and edges/*.tsv, generate the neo4j-admin import invocation with correct --nodes/--relationships args and --delimiter set to tab\n- Verify our headers (csid:ID, :LABEL, :START_ID, :END_ID, :TYPE, typed properties) are already valid neo4j-admin headers; if any transformation is needed, write transformed copies rather than mutating originals\n- Emit the command to a script file and print it; do not require a live DB to generate it\n- Tests pass (pytest) asserting the generated command references every node and edge file with correct flags\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-003: Implement LOAD CSV incremental import",
+      "description": "As a user, I want to add/update data into an existing graph so the DB stays current without a rebuild.\n\nAcceptance criteria (all must be met before marking complete):\n- Generate parameterized Cypher using LOAD CSV WITH HEADERS and FIELDTERMINATOR '\\t' that MERGEs nodes on csid and MERGEs relationships on (:START_ID,:END_ID,:TYPE)\n- MERGE semantics ensure re-running the same import does not duplicate nodes or edges (idempotent)\n- Typed property columns are coerced to int/float/string per the header suffix\n- Tests pass (pytest) generating the Cypher and asserting MERGE (not CREATE) is used for both nodes and edges\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-004: Create schema constraints and indexes",
+      "description": "As a user, I want a unique constraint on csid so the graph enforces identity and imports are fast.\n\nAcceptance criteria (all must be met before marking complete):\n- Generate Cypher creating a uniqueness constraint on csid and indexes on wikidata_qid and name\n- Constraint creation is idempotent (IF NOT EXISTS)\n- Provide a command to apply constraints to a connected DB\n- Tests pass (pytest) generating the expected constraint/index Cypher\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-005: Implement APOC-based export from Neo4j back to TSV",
+      "description": "As a user, I want to pull the graph back into canonical TSV so the round-trip is closed.\n\nAcceptance criteria (all must be met before marking complete):\n- Use apoc.export.csv.* (configured with tab delimiter) or driver-side cursor export to write nodes/*.tsv and edges/*.tsv grouped by label/type\n- Exported files use the canonical headers and the canonical sort order (csid; START_ID,END_ID,TYPE)\n- Provenance and typed columns survive export with correct type suffixes\n- Tests pass (pytest) against a mocked driver returning fixture rows, asserting exported files match the canonical schema\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-006: Prove the round-trip is lossless",
+      "description": "As a user, I want a guarantee that TSV -> Neo4j -> TSV does not lose or mangle data.\n\nAcceptance criteria (all must be met before marking complete):\n- Add a round-trip test: load a fixture TSV dataset, import to a Neo4j test instance (or a faithful in-memory/driver fake), export back, and assert byte-equality with the sorted original\n- Any unavoidable transformation (e.g. property ordering) is normalized before comparison and documented\n- The test covers nodes with multiple labels, multi-value fields, and BCE dates\n- Tests pass (pytest) for the round-trip\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-007: Add a to-neo4j / from-neo4j CLI",
+      "description": "As a user, I want two commands so importing and exporting are turnkey.\n\nAcceptance criteria (all must be met before marking complete):\n- Add `pinakes_engine to-neo4j <dir> [--mode admin|loadcsv]` and `pinakes_engine from-neo4j --out <dir>`\n- to-neo4j generates the admin-import script or runs LOAD CSV against a connected DB per --mode\n- from-neo4j exports the connected DB to canonical TSV\n- Tests pass (pytest) invoking both CLIs with the driver mocked\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-008: Ship example Cypher queries for the four dimensions",
+      "description": "As a user, I want ready queries so I can explore the graph immediately after import.\n\nAcceptance criteria (all must be met before marking complete):\n- Add cypher/ examples: shortest cultural path between two entities, all entities contemporary with X, everything ORIGINATES_FROM a region, a language-family DESCENDS_FROM tree\n- Each query has a comment explaining inputs and expected shape\n- Queries parse against the constraint/label schema (validated with a Cypher linter or driver explain on a test DB)\n- Tests pass (pytest) checking each query file is non-empty and references only defined labels/types\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    },
+    {
+      "title": "T4-US-009: Document the Neo4j workflow",
+      "description": "As a user, I want clear docs so I can seed, update, export, and query without guesswork.\n\nAcceptance criteria (all must be met before marking complete):\n- docs/neo4j.md covers: when to use admin-import vs LOAD CSV, the constraint setup, export, the round-trip guarantee, and the example queries\n- Include exact commands for a local Neo4j instance\n- Document the APOC + apoc.export.file_enabled configuration prerequisite\n- Tests pass (pytest) for any doctested snippet\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/neo4j-converter'.",
+      "completed": true
+    }
+  ]
+}

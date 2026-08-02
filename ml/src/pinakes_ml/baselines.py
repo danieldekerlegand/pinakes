@@ -303,7 +303,7 @@ def render_baselines_doc(
         "",
         "| Artifact | Hash |",
         "| --- | --- |",
-        f"| Canonical export (`export/culturescrape`, tree sha256) | `{corpus_hash}` |",
+        f"| Canonical export (`build/corpus`, tree sha256) | `{corpus_hash}` |",
         "| Split manifest (`ml/manifests/triples-split-manifest.json`, sha256) |"
         f" `{manifest_sha256}` |",
         f"| Triples content (`triplesSha256`) | `{triples_sha256}` |",

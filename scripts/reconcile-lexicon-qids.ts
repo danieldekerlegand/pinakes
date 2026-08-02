@@ -4,7 +4,7 @@
  * ~5,440 of the exported nodes are "likely-new" solely because their lexicon row lacks a
  * `wikidata_qid` — so the curated corpus sits outside the global identity space even where a
  * matching Wikidata entity plainly exists. This script is the **acquire → reconcile** step that
- * proposes QIDs for those rows via culture-scrape's cascade step 1 (the QID anchor), keyed by an
+ * proposes QIDs for those rows via pinakes-engine's cascade step 1 (the QID anchor), keyed by an
  * **exact English label match** on Wikidata (optionally constrained to the node type's Wikidata
  * class). It is deliberately conservative — the identity layer must not be poisoned by a wrong
  * anchor:
@@ -21,7 +21,7 @@
  * deterministic candidates artifact (`scripts/data/lexicon-qid-candidates.tsv`) that is the
  * network-free replay source — CI never hits Wikidata. `--apply` reads that artifact and fills
  * the **blank** `wikidata_qid` cell (plus full provenance) on each accepted row via the established
- * enrichment write-back (`import-from-culturescrape.buildEnrichment`), which only ever fills blanks
+ * enrichment write-back (`import-from-engine.buildEnrichment`), which only ever fills blanks
  * and reports (never resolves) a conflict — so no curated cell is clobbered and `lexicons/*.tsv`
  * stays the human-owned source of truth. Rerunning the acquire step is idempotent; rerunning
  * `--apply` is a no-op (the qid cell is now non-blank).
@@ -43,7 +43,7 @@ import {
   enrichmentReportJson,
   WRITEBACK_DIR,
   type EnrichmentRecord,
-} from "./import-from-culturescrape.ts";
+} from "./import-from-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -508,7 +508,7 @@ async function main(): Promise<void> {
   );
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   main().catch((err: unknown) => {
     // eslint-disable-next-line no-console

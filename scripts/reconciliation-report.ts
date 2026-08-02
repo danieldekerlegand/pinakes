@@ -1,9 +1,9 @@
 /**
  * Reconciliation keys & dry-run report for cross-dataset entity merging (US-005).
  *
- * culture-scrape reconciles rows from many sources onto one graph node by a strict
+ * pinakes-engine reconciles rows from many sources onto one graph node by a strict
  * **cascade** of identity signals (strongest first — see
- * `core/src/culturescrape/schema/{reconcile,merge}.py`):
+ * `engine/src/pinakes_engine/schema/{reconcile,merge}.py`):
  *
  *   1. `wikidata_qid`     — the QID *is* the identity;
  *   2. `getty_id`         — a shared Getty subject;
@@ -31,8 +31,8 @@
  * directory so tests drive them with fixtures; `writeReconciliation` / `runReport` do
  * the filesystem side. The keys TSV lands in the gitignored export tree; a bounded,
  * human-reviewable report snapshot is committed to `docs/reconciliation-report.json`.
- * See `core/docs/reconcile-pinakes.md` for how to feed it into
- * culture-scrape's reconcile step.
+ * See `engine/docs/reconcile-pinakes.md` for how to feed it into
+ * pinakes-engine's reconcile step.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -44,7 +44,7 @@ import {
   DEFAULT_NODE_CONFIDENCE,
   EXPORT_SOURCE,
   EXPORT_DIR,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
@@ -63,7 +63,7 @@ export const DOC_REPORT_PATH = path.join(
 export const MAX_AMBIGUITY_SAMPLES = 50;
 
 /**
- * culture-scrape's reconciliation cascade, strongest first (documented so the
+ * pinakes-engine's reconciliation cascade, strongest first (documented so the
  * report is self-describing; mirrors `reconcile.py` / `merge.py`).
  */
 export const RECONCILE_CASCADE: readonly string[] = [
@@ -170,7 +170,7 @@ function readTsv(filePath: string): { headers: string[]; rows: string[][] } {
 
 /**
  * Normalize a key component: NFKC, whitespace-collapsed, casefolded — mirrors
- * culture-scrape's `normalize_name` so pinakes's keys block the same way.
+ * pinakes-engine's `normalize_name` so pinakes's keys block the same way.
  */
 export function normalizeKey(value: string): string {
   return value.normalize("NFKC").split(/\s+/).filter(Boolean).join(" ").toLowerCase();
@@ -281,7 +281,7 @@ export function buildReconciliationKeys(
 }
 
 /**
- * Classify each key by culture-scrape's cascade and assemble the dry-run report.
+ * Classify each key by pinakes-engine's cascade and assemble the dry-run report.
  * Anchored nodes (language codes / QIDs) take precedence over name blocking; a key
  * shared by two *distinct* nodes is ambiguous and its candidates are listed.
  */
@@ -531,7 +531,7 @@ export function runReport(
   return built;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const { report } = runReport();
   const { totals } = report;

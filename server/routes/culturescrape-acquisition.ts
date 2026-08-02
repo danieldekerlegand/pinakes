@@ -1,5 +1,5 @@
 /**
- * culture-scrape Wikidata bulk-acquisition routes (US-005).
+ * pinakes-engine Wikidata bulk-acquisition routes (US-005).
  *
  * `GET  /api/scraping/culturescrape/categories` — the four acquirable domains
  *   (civilizations, sites, figures, trade goods) for the dashboard.
@@ -29,7 +29,7 @@ import {
 } from "../services/culturescrape-acquisition";
 
 export interface CultureScrapeAcquisitionRouteOptions {
-  /** Job runner (default: the live culture-scrape CLI runner). */
+  /** Job runner (default: the live pinakes-engine CLI runner). */
   runner?: CultureScrapeJobRunner;
   /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
@@ -75,7 +75,7 @@ export function registerCultureScrapeAcquisitionRoutes(
     const category = resolveAcquisitionCategory(body.domain);
     if (!category) {
       return res.status(400).json({
-        message: `Unknown culture-scrape domain: ${body.domain ?? "(none)"}`,
+        message: `Unknown pinakes-engine domain: ${body.domain ?? "(none)"}`,
         validDomains: Object.keys(ACQUISITION_CATALOG),
       });
     }
@@ -90,7 +90,7 @@ export function registerCultureScrapeAcquisitionRoutes(
     }
 
     const job = jobStore.createJob(
-      `culturescrape:${category.domain}`,
+      `pinakes_engine:${category.domain}`,
       limit ?? 0,
       "other",
     );

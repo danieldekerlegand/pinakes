@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the triple-verbalization generator (US-002).
 
 Unit tests drive the pure core with tiny temp-dir fixtures, so they run in CI
-where the git-ignored ``export/culturescrape`` is absent. The snapshot test (live
+where the git-ignored ``build/corpus`` is absent. The snapshot test (live
 corpus vs committed manifest) is SKIPPED when the export is not present — the
 local reproducibility gate, mirroring the triples exporter (US-002 Phase 2).
 """
@@ -356,7 +356,7 @@ def test_every_exported_edge_type_has_a_template() -> None:
 
 # --- Live reproducibility gate (skipped when the export is absent) ---------
 
-_LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
+_LIVE_EXPORT = _REPO_ROOT / "build" / "corpus"
 
 
 @pytest.mark.skipif(

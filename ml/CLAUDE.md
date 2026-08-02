@@ -1,6 +1,6 @@
 # `ml/` — neurosymbolic ML workspace (roadmap Phase 2)
 
-Separate uv workspace (Python 3.11), NOT the culture-scrape sidecar — keep
+Separate uv workspace (Python 3.11), NOT the pinakes-engine sidecar — keep
 torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM
 `ml/`: `uv run ruff check .`, `uv run pytest`, import smoke
 `uv run python -c 'import torch, pykeen, problog'`.
@@ -20,21 +20,21 @@ torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM
 Since pinakes:50 US-1 the canonical node/edge TSV `ml/` reads is rendered by the
 embedded agora translation engine (`agora:60-translation-engine-rust`), not by
 hand-written Python emitters. **Do not add the extension to this workspace.** It is
-a macOS/arm64 abi3 wheel vendored under `core/vendor/`; declaring it would churn
+a macOS/arm64 abi3 wheel vendored under `engine/vendor/`; declaring it would churn
 `ml/uv.lock` and break `uv sync --frozen` on Linux CI — the same stance
 `pyproject.toml` already takes on `scallopy`.
 
 The tie to the engine is `tests/test_lib_export.py`, which drives the real loaders
 (`triples` / `verbalize` / `scallop`) over the engine's **committed output**,
-`core/tests/fixtures/parity/golden/neo4j-export/{nodes,edges}/*.tsv` — captured
+`engine/tests/fixtures/parity/golden/neo4j-export/{nodes,edges}/*.tsv` — captured
 from `translation.to_neo4j_export` and byte-pinned by
-`core/tests/test_translation_parity.py` against both the engine and the
-pre-migration emitters. Reading a git-tracked file out of `core/` is the
+`engine/tests/test_translation_parity.py` against both the engine and the
+pre-migration emitters. Reading a git-tracked file out of `engine/` is the
 established cross-workspace move here (`export_insimul_datasets.DEFAULT_WORLDS[0]`
 does it too). The fixture is deliberately hostile — escaped tab / newline /
 backslash, a multi-label node, an empty multi-value cell, a negative year — so
 "the loaders survive the engine's escaping" is a claim with teeth. It runs in CI
-(no DVC, no wheel); the live `export/culturescrape` gates are unaffected.
+(no DVC, no wheel); the live `build/corpus` gates are unaffected.
 
 - **The loaders are header-*driven* but the names they look up are literals.**
   `triples._START_COL`/`_END_COL`/`_TYPE_COL` and `verbalize`'s `_NODE_*`/`_EDGE_*`/
@@ -43,7 +43,7 @@ backslash, a multi-label node, an empty multi-value cell, a negative year — so
 - **GOTCHA — a stale repo-root-relative path is a permanent SKIP, not a failure.**
   Every live gate is `skipif not <path>.exists()`, so a path that stops resolving
   makes the gate vanish and the suite stays green. This bit for real: when the
-  Python package moved to `core/`, `export_scallop.DEFAULT_REGISTRY` and
+  Python package moved to `engine/`, `export_scallop.DEFAULT_REGISTRY` and
   `export_insimul_datasets.DEFAULT_WORLDS[0]` still pointed at
   `packages/culture-scrape/`, silently killing both `test_scallop.py`
   committed-artifact gates. `test_every_git_tracked_default_path_resolves` now
@@ -76,14 +76,14 @@ The shape every dataset/metric deliverable follows:
   a `src/pinakes_ml/x.py` module it's `parents[2]` = `ml/` (repo root =
   `.parent`). Off-by-one here silently skips the live gate.
 - **GOTCHA — build/regenerate the manifest against the CANONICAL DVC corpus, not a
-  locally-drifted `export/culturescrape`.** A prior scale-up (QID backfill / dedupe) or an
-  aborted `npx tsx scripts/export-for-culturescrape.ts` can leave `export/culturescrape`
-  modified vs the committed `export/culturescrape.dvc` hash (`uv run --project ml dvc status
-  export/culturescrape.dvc` shows "modified"). A committed manifest built on that drifted tree
+  locally-drifted `build/corpus`.** A prior scale-up (QID backfill / dedupe) or an
+  aborted `npx tsx scripts/export-for-engine.ts` can leave `build/corpus`
+  modified vs the committed `build/corpus.dvc` hash (`uv run --project ml dvc status
+  build/corpus.dvc` shows "modified"). A committed manifest built on that drifted tree
   is NOT reproducible by anyone who `dvc pull`s the canonical corpus. Symptom: one live gate
   passes while a sibling fails against the SAME export (the sibling's manifest was regenerated
   on the drift). Fix before regenerating any manifest: `uv run --project ml dvc checkout
-  --force export/culturescrape.dvc` (the extra `manifest.json`/`convergence/`/`reconciliation/`/
+  --force build/corpus.dvc` (the extra `manifest.json`/`convergence/`/`reconciliation/`/
   `writeback/` files are gitignored scratch — `--force` is safe), then rebuild + `dvc add
   ml/data && dvc push`. Attribute-template selection hashes on `node.csid`, so a QID-driven
   csid change reshuffles a few `dated.*`/`located_at.*` counts (edge counts stay put — edges
@@ -97,7 +97,7 @@ tiers. Specifics for the verbalization generator (`verbalize.py` +
 `export_verbalizations.py`, manifest `ml/manifests/verbalization-manifest.json`,
 data `ml/data/verbalizations/verbalizations.jsonl`):
 
-- **Reads BOTH `nodes/` and `edges/`** of `export/culturescrape/` — nodes give the
+- **Reads BOTH `nodes/` and `edges/`** of `build/corpus/` — nodes give the
   human-readable `name` per csid (edges reference csids, never names) plus rich
   attributes. `load_nodes` builds a `csid → NodeInfo` map; parse **header-driven**.
 - **HF-datasets-compatible JSONL = a FLAT, uniform record per line.** Every example
@@ -127,7 +127,7 @@ data `ml/data/verbalizations/verbalizations.jsonl`):
 
 ## Corpus facts (edges → triples)
 
-- The triples dataset reads `export/culturescrape/edges/*.tsv` (one file per
+- The triples dataset reads `build/corpus/edges/*.tsv` (one file per
   semantic relation, `neo4j-admin import` header: `:START_ID`/`:END_ID`/`:TYPE`).
   Parse **header-driven**, not by column position.
 - **Derived temporal relations never enter training triples** — `CONTEMPORARY_WITH`,
@@ -154,7 +154,7 @@ data `ml/data/verbalizations/verbalizations.jsonl`):
   `random_seed` pins torch/numpy/python RNGs, so a rerun yields byte-identical metrics →
   `docs/ml-baselines.md` is a git no-op unless the corpus/hyperparameters change. The doc
   renderer (`render_baselines_doc`) is PURE (no wall-clock) and unit-tested; it records the
-  corpus DVC md5 (`read_dvc_md5` parses `export/culturescrape.dvc`) + manifest/triples
+  corpus DVC md5 (`read_dvc_md5` parses `build/corpus.dvc`) + manifest/triples
   sha256 as "the version these metrics were measured on". Don't put the `ml/data` md5 in
   the doc — it's circular (adding the embeddings changes it after the doc is written).
 - **torch/pykeen/numpy imported LAZILY inside functions** (module top stays light so
@@ -295,13 +295,13 @@ CSVs, a `.scl` translation of the rules registry, and a gated scallopy smoke.
 Full runbook: [`docs/scallop-pilot.md`](../docs/scallop-pilot.md).
 
 - **The registry is the rule source, not `rules.py`.** Translate from the committed
-  unified registry `core/.../datalog/rules_registry.tsv`
+  unified registry `engine/.../datalog/rules_registry.tsv`
   (`clause_souffle` column — the most complete dialect, it carries the negation the
   Prolog column omits). Only `status == "active"` rows are emitted (governance).
 - **Soufflé→Scallop is a surface rewrite:** upper-case vars → lower-case, `:-` → `=`,
   `,` → `and`, `!p` → `not p`, comparison guards pass through. The ONE translatability
   constraint is **every predicate literal is binary** (the same `ARITY == 2` the
-  culture-scrape materializer imposes) — the lone offender `csid_uniqueness_violation`
+  pinakes-engine materializer imposes) — the lone offender `csid_uniqueness_violation`
   (reads arity-3 `node/3`) is **skipped + reported** in the manifest, never dropped.
   Today: 51 translated, 1 skipped.
 - **`program.scl` is corpus-INDEPENDENT** (a pure function of the committed registry),
@@ -337,7 +337,7 @@ reproducible-artifact shape (pure core + committed manifest
   `ml/data/triples/<split>.tsv` (default `valid`), known-positives (the negative
   rejection set) from `triples.tsv`, train facts from `train.tsv` — all reused via
   `consistency.parse_predictions` (the split files ARE `head\trel\ttail`). This
-  decouples US-002 from any `export/culturescrape` drift: the live gate is
+  decouples US-002 from any `build/corpus` drift: the live gate is
   `skipif not (ml/data/triples/valid.tsv).exists()`, independent of the edge export.
 - **Three-way split discipline** (why positives default to `valid`): `train` = base
   facts fed to Scallop; `valid` = training-query positives; `test` = US-003 eval.
@@ -511,7 +511,7 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
   is the gate. Any new generator over converted worlds inherits this.
 - **The committed manifest is fixture-built, so CI needs no DVC corpus.**
   Defaults are the two committed fixture worlds — the Bridge-2 one at
-  `core/tests/fixtures/insimul/world-export.json` and the
+  `engine/tests/fixtures/insimul/world-export.json` and the
   VESPACE one at `ml/fixtures/insimul/world-export.json` — plus
   `ml/fixtures/insimul/rule-candidates.jsonl` (a hand-authored Insimul
   rejection-sampling export: 7 candidates over 3 `promptId` groups, each with a
@@ -519,18 +519,18 @@ contract: [`docs/insimul-datasets.md`](../docs/insimul-datasets.md).
   held-out split needs somewhere to hold *out*.
 - **GOTCHA — `build_world_graph` reimplements the Bridge-2 adapter's node/edge
   projection**, because `ml/` is a separate uv workspace and cannot import
-  `culturescrape`. The drift gate is a committed cross-check fixture
+  `pinakes_engine`. The drift gate is a committed cross-check fixture
   `ml/fixtures/insimul/bridge-graph.json`, generated *by the adapter*.
   **Regenerate it after ANY change to `acquire/insimul.py`:**
   ```sh
-  cd core && uv run python -c "
+  cd engine && uv run python -c "
   import json, pathlib
-  from culturescrape.acquire.insimul import read_world_export, world_records, world_edges
+  from pinakes_engine.acquire.insimul import read_world_export, world_records, world_edges
   ex = read_world_export('tests/fixtures/insimul/world-export.json')
   nodes = sorted({r.fields['csid']: r.fields.get('name','') for r in world_records(ex) if 'csid' in r.fields}.items())
   edges = sorted((e[':START_ID'], e[':TYPE'], e[':END_ID']) for e in world_edges(ex))
   pathlib.Path('../../ml/fixtures/insimul/bridge-graph.json').write_text(json.dumps({
-    '_note': 'Generated by the culture-scrape Bridge-2 adapter — the cross-check for pinakes_ml.insimul_datasets.build_world_graph. Regenerate with the command in ml/CLAUDE.md.',
+    '_note': 'Generated by the pinakes-engine Bridge-2 adapter — the cross-check for pinakes_ml.insimul_datasets.build_world_graph. Regenerate with the command in ml/CLAUDE.md.',
     'worldId': ex.world_id,
     'nodes': [{'csid': c, 'name': n} for c, n in nodes],
     'edges': [{'head': h, 'relation': r, 'tail': t} for h, r, t in edges],

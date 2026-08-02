@@ -7,7 +7,7 @@
  * EXISTING `languages.tsv` rows, keyed by the corpus `id`), not an append. It is the one
  * networked step of the runbook; the committed output
  * (`scripts/data/language-glottocode-enrichment.tsv`) is the network-free source of truth the
- * enrichment write-back (`import-from-culturescrape --enrich`) + QA gate operate on, so CI
+ * enrichment write-back (`import-from-engine --enrich`) + QA gate operate on, so CI
  * never touches Wikidata.
  *
  * Two glottocode sources (AC — "Wikidata P1394 and/or joined from words.tsv Glottocode"):

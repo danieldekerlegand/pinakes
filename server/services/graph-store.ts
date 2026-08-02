@@ -1,12 +1,12 @@
 /**
- * Neo4j TypeScript data-access layer for the shared culture-scrape graph.
+ * Neo4j TypeScript data-access layer for the shared pinakes-engine graph.
  *
  * pinakes queries the shared correlation store two ways (see
- * docs/culturescrape-integration.md): the FastAPI proxy for search/Datalog, and
+ * docs/engine-integration.md): the FastAPI proxy for search/Datalog, and
  * this module — the official `neo4j-driver` — for relational/graph queries
  * (node lookup, neighborhood traversal, correlation edges).
  *
- * The canonical graph schema (core/docs/data-model.md):
+ * The canonical graph schema (engine/docs/data-model.md):
  *   nodes carry `csid` (primary key), one or more `:LABEL`s, `name`, temporal
  *   props (`time_start`/`time_end`) and provenance (`source`, `source_url`,
  *   `retrieved_at`, `confidence`); edges carry a data-driven `:TYPE`, an optional
@@ -32,7 +32,7 @@ import {
 
 /** A node projected out of Neo4j into a plain, JSON-safe shape. */
 export interface GraphNode {
-  /** culture-scrape global id (`cs:<type>:<slug>`), the primary key. */
+  /** pinakes-engine global id (`cs:<type>:<slug>`), the primary key. */
   csid: string;
   /** node labels (`:LABEL`), e.g. `["Dish", "CulturalArtifact"]`. */
   labels: string[];
@@ -530,7 +530,7 @@ function buildNeighborhood(result: QueryResult, depth: number): Neighborhood | n
  * is given, only edges of that `:TYPE` are followed (e.g. `LOCATED_IN`,
  * `DESCENDS_FROM`); otherwise every direct relationship is returned. (Pairwise
  * temporal relations — `CONTEMPORARY_WITH`/`PRECEDES`/`FOLLOWS` — are no longer
- * stored as edges; they are derived on demand by the culture-scrape Datalog
+ * stored as edges; they are derived on demand by the pinakes-engine Datalog
  * rules, so a query for one returns an empty array here.) Ordered by descending
  * edge weight, then name.
  * @throws {GraphUnavailableError} when Neo4j cannot be reached.

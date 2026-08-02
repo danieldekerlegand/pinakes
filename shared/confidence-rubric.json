@@ -18,7 +18,7 @@
   "classes": {
     "qid-anchored": {
       "prior": 1.0,
-      "rationale": "The record's identity IS a resolved external authority (Wikidata QID, Getty ULAN/AAT, Pleiades, PetScan class membership, an infobox keyed to an entity). The anchor is certain, so the fact inherits full confidence. Used by culture-scrape's Wikidata/Getty/Pleiades/PetScan/Wikitext adapters and as the default when a curated lexicon row is silent but QID-anchored."
+      "rationale": "The record's identity IS a resolved external authority (Wikidata QID, Getty ULAN/AAT, Pleiades, PetScan class membership, an infobox keyed to an entity). The anchor is certain, so the fact inherits full confidence. Used by pinakes-engine's Wikidata/Getty/Pleiades/PetScan/Wikitext adapters and as the default when a curated lexicon row is silent but QID-anchored."
     },
     "named-in-linker": {
       "prior": 0.95,
@@ -50,7 +50,7 @@
     },
     "scraped-html": {
       "prior": 0.5,
-      "rationale": "Extracted by brittle HTML scraping (selectors break, tables shift). Deliberately mid-scale so the normalization stage can down-weight it. Used by culture-scrape's html adapter."
+      "rationale": "Extracted by brittle HTML scraping (selectors break, tables shift). Deliberately mid-scale so the normalization stage can down-weight it. Used by pinakes-engine's html adapter."
     },
     "legacy-curated": {
       "prior": 0.5,

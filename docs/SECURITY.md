@@ -108,7 +108,7 @@ Four core flows in headless Chromium against a real dev build:
 4. **Graph feature** — `/advanced-tools` (the graph research console) opens, and
    the graph-dependent "Run" trigger is present either live or as the
    `GraphFeatureGate` disabled-with-tooltip affordance. **The shared graph (Neo4j
-   + culture-scrape sidecar) is optional**: the smoke asserts graceful degradation
+   + pinakes-engine sidecar) is optional**: the smoke asserts graceful degradation
    rather than requiring a live graph, so it runs the same locally and in CI.
 
 ### Running it
@@ -162,7 +162,7 @@ graph-down path just lets the real server return its unavailable responses.
 2. **Explorer graph adapter** — the "Shared Culture Graph" dataset loads its item
    count when the graph is up, and shows a prompt "Failed to load" when it is down
    (rather than hanging).
-3. **Federated search** — a purple **Graph** source badge + culture-scrape
+3. **Federated search** — a purple **Graph** source badge + pinakes-engine
    provenance appears when up; local-only hits when down.
 4. **`GraphFeatureGate`** — the "Show in graph" button and the research-console
    trigger render **disabled with an offline/unavailable tooltip** when the graph
@@ -222,5 +222,5 @@ Where each hardening story lands against the roadmap's
 **Out of scope / human-only:** rotating the previously-exposed `.env` secrets and
 purging the file from git history are manual operations (the untrack + `.gitignore`
 are already done). Sourcing real fallback assets (audio clips, glTF models) and
-building/loading the full culture-scrape corpus are roadmap §15 (data population)
+building/loading the full pinakes-engine corpus are roadmap §15 (data population)
 and §16 (production-verification) work, not security hardening.

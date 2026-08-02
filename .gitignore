@@ -11,8 +11,6 @@ vite.config.ts.*
 sources/
 .ralphy
 .ralphy-worktrees
-# US-004 canonical export output (gitignored; manifest snapshot lives in docs/)
-export/culturescrape/
 # Stranded DVC local remote — DVC has been removed (docs/artifact-versioning.md).
 # Kept ignored so a leftover checkout does not show up as untracked noise.
 dvc-storage/

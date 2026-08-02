@@ -7,7 +7,7 @@
  * aggregates, ad-hoc analytical SQL — runs in one indexed pass instead of
  * re-parsing files and looping in JS on every request.
  *
- * Division of labour (docs/culturescrape-integration.md):
+ * Division of labour (docs/engine-integration.md):
  *   - **tabular / aggregate** queries  → this DuckDB index
  *   - **graph / correlation** queries  → Neo4j (server/services/graph-store.ts)
  *   - **CPU-domain** compute (distance, etymology) → stays in TS

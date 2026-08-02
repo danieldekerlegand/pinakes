@@ -11,11 +11,11 @@
  * is one entity, so we resolve it via Wikidata's *single-entity* REST endpoint
  * (`Special:EntityData/<QID>.json`) — the light lookup primitive, not the SPARQL
  * Query Service. The statement → canonical-field vocabulary here is deliberately
- * kept **aligned with culture-scrape's hydration profile**
- * (`core/src/culturescrape/acquire/wikidata_hydration.py`):
+ * kept **aligned with pinakes-engine's hydration profile**
+ * (`engine/src/pinakes_engine/acquire/wikidata_hydration.py`):
  * P571 inception → start year, P625 coordinate location → lat/lon, P144 based-on /
  * P737 influenced-by / P279 subclass-of → relationships, etc. Bulk SPARQL *set*
- * acquisition (a category = a query) stays culture-scrape's job (US-005); this
+ * acquisition (a category = a query) stays pinakes-engine's job (US-005); this
  * module only maps a single entity's statements the same way.
  *
  * All network access is behind the injectable {@link UrlExtractorDeps} so tests
@@ -195,7 +195,7 @@ export interface UrlExtractorDeps {
   fetchWikipediaPage(lang: string, title: string): Promise<WikipediaPage>;
 }
 
-// ── Statement → field vocabulary (aligned with culture-scrape hydration) ───────
+// ── Statement → field vocabulary (aligned with pinakes-engine hydration) ───────
 
 /** Properties whose object QID becomes a suggested relationship, with a label. */
 const RELATIONSHIP_PROPERTIES: Record<string, string> = {

@@ -1,7 +1,7 @@
 /**
  * AI "explain the connection" narrative generator (US-005).
  *
- * Given two entities in the shared culture-scrape graph, this service traverses
+ * Given two entities in the shared pinakes-engine graph, this service traverses
  * the graph for the shortest connecting path (server/services/graph-store
  * {@link ../services/graph-store.findPath}), optionally augments it with Datalog
  * inference (the sidecar's `/datalog` console), and asks the **existing Gemini

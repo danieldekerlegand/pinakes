@@ -169,7 +169,7 @@ function isRealLabel(label: string): boolean {
   return !/^Q\d+$/.test(t);
 }
 
-/** Normalise a name for duplicate detection (matches import-from-culturescrape). */
+/** Normalise a name for duplicate detection (matches import-from-engine). */
 function normaliseName(name: string): string {
   return name
     .normalize("NFKD")

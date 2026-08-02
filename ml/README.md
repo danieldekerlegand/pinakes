@@ -3,7 +3,7 @@
 Phase 2 of the neurosymbolic roadmap: the first
 **fact → model loop**, built at the *current* corpus scale (deliberately before
 scale-up, so corpus growth becomes measurable). This workspace is intentionally
-**separate from the `core/` sidecar** so the sidecar Docker
+**separate from the `engine/` sidecar** so the sidecar Docker
 image stays slim — the sidecar never imports torch/pykeen.
 
 Deliverables (one Ralph story each):
@@ -79,8 +79,8 @@ from committed inputs. Nothing pins their content hashes:
 
 | Path | What it is | How to get it |
 |------|-----------|---------------|
-| `export/culturescrape` | Canonical node/edge TSV export (the corpus the triples exporter reads) | `npx tsx scripts/export-for-culturescrape.ts` from the repo root |
-| `core/out/pinakes-full` | Full Datalog/Neo4j rebuild output | the `core/` pipeline jobs |
+| `build/corpus` | Canonical node/edge TSV export (the corpus the triples exporter reads) | `npx tsx scripts/export-for-engine.ts` from the repo root |
+| `engine/out/pinakes-full` | Full Datalog/Neo4j rebuild output | the `engine/` pipeline jobs |
 | `ml/data` | ML datasets (triples + splits, US-002) and trained artifacts (embeddings, US-003) | the export/train CLIs below |
 | `ml/models` | Deliverable model bundles (slm-pilot GGUF) | `pinakes-export-gguf` |
 
@@ -101,7 +101,7 @@ uv run python -m pinakes_ml.export_triples     # or: uv run pinakes-export-tripl
 #      + ml/manifests/triples-split-manifest.json  (committed, snapshot-tested)
 ```
 
-Reads `export/culturescrape/edges/*.tsv` (git-ignored — build the export first). The
+Reads `build/corpus/edges/*.tsv` (git-ignored — build the export first). The
 whole build is a **pure function of the edges + seed**, so a byte-identical
 corpus is a git no-op on the manifest; a corpus change moves it, and the live
 snapshot test (`test_committed_manifest_matches_live_corpus`) fails until the

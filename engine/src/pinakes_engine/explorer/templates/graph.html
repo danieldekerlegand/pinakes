@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Graph · pinakes-engine explorer{% endblock %}
+{% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+  <style>
+    .controls { display: flex; gap: .6rem; align-items: end; flex-wrap: wrap; margin: 1rem 0; }
+    .controls label { display: flex; flex-direction: column; font-size: .85rem; opacity: .8; }
+    .controls input, .controls select { font: inherit; padding: .25rem .4rem; }
+    #cy { width: 100%; height: 70vh; border: 1px solid #8884; border-radius: 6px; }
+    .hint { opacity: .7; font-size: .9rem; }
+    .legend { display: flex; gap: 1.4rem; flex-wrap: wrap; margin: .8rem 0; }
+    .legend .group { font-size: .85rem; }
+    .legend .group h3 { margin: 0 0 .2rem; font-size: .8rem; opacity: .7; font-weight: 600; }
+    .legend .swatch { display: inline-flex; align-items: center; gap: .3rem; margin-right: .8rem; }
+    .legend .dot { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+    .legend .bar { width: 1.2rem; height: 0; border-top-width: 3px; border-top-style: solid; display: inline-block; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>Graph</h1>
+  <p class="muted">A node-link view of the neighborhood around a node, backed by
+    <strong>{{ backend }}</strong>. Nodes are coloured by <code>:LABEL</code>, edges
+    by ontology dimension. Click a node to expand its neighbors.</p>
+
+  <form class="controls" method="get" action="/graph">
+    <label>Start node
+      <input type="text" name="csid" list="node-list" value="{{ csid }}" size="32"
+             placeholder="csid">
+    </label>
+    <datalist id="node-list">
+      {% for n in nodes %}<option value="{{ n.csid }}">{{ n.name }}</option>{% endfor %}
+    </datalist>
+    <label>Depth
+      <input type="number" name="depth" min="0" max="{{ max_depth }}" value="{{ depth }}">
+    </label>
+    <button type="submit">Show</button>
+  </form>
+
+  {% if not found %}
+  <p class="hint">No node selected{% if csid %} — <code>{{ csid }}</code> is not in
+    this corpus{% endif %}. Pick a start node above.</p>
+  {% else %}
+  <div class="legend">
+    <div class="group"><h3>Node labels (:LABEL)</h3><span id="legend-labels"></span></div>
+    <div class="group"><h3>Edge dimensions</h3><span id="legend-dims"></span></div>
+  </div>
+  <p class="muted"><a href="/nodes/{{ csid }}">‹ Back to {{ name or csid }} detail</a></p>
+  <div id="cy" data-csid="{{ csid }}" data-depth="{{ depth }}"></div>
+  <p class="hint">Tip: click any node to pull in its neighbors; drag to pan, scroll to zoom.</p>
+
+  <script>
+    (function () {
+      const el = document.getElementById("cy");
+      const startCsid = el.dataset.csid;
+      const expandDepth = 1;
+
+      // Fixed palette for the five ontology dimensions (plus a fallback).
+      const DIM_COLORS = {
+        geographic: "#1f77b4", temporal: "#ff7f0e", linguistic: "#2ca02c",
+        genetic: "#d62728", structural: "#9467bd", unknown: "#999999"
+      };
+      // Stable colours for :LABEL values, assigned on first sight.
+      const LABEL_PALETTE = [
+        "#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#76b7b2",
+        "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"
+      ];
+      const labelColors = {};
+      function labelColor(label) {
+        if (!(label in labelColors)) {
+          labelColors[label] = LABEL_PALETTE[Object.keys(labelColors).length % LABEL_PALETTE.length];
+        }
+        return labelColors[label];
+      }
+
+      const cy = cytoscape({
+        container: el,
+        style: [
+          {
+            selector: "node",
+            style: {
+              "background-color": ele => labelColor(ele.data("label")),
+              "label": "data(name)",
+              "font-size": "10px",
+              "color": "#333",
+              "text-valign": "bottom",
+              "text-margin-y": 3,
+              "width": 26, "height": 26
+            }
+          },
+          { selector: "node[?center]", style: { "border-width": 3, "border-color": "#222" } },
+          {
+            selector: "edge",
+            style: {
+              "line-color": ele => DIM_COLORS[ele.data("dimension")] || DIM_COLORS.unknown,
+              "target-arrow-color": ele => DIM_COLORS[ele.data("dimension")] || DIM_COLORS.unknown,
+              "target-arrow-shape": "triangle",
+              "curve-style": "bezier",
+              "width": 2,
+              "label": "data(type)",
+              "font-size": "8px",
+              "color": "#888",
+              "text-rotation": "autorotate"
+            }
+          }
+        ]
+      });
+
+      function refreshLegend() {
+        const labelBox = document.getElementById("legend-labels");
+        labelBox.innerHTML = Object.entries(labelColors).map(([l, c]) =>
+          `<span class="swatch"><span class="dot" style="background:${c}"></span>${l || "—"}</span>`).join("");
+        const dims = new Set(cy.edges().map(e => e.data("dimension")));
+        const dimBox = document.getElementById("legend-dims");
+        dimBox.innerHTML = [...dims].sort().map(d =>
+          `<span class="swatch"><span class="bar" style="border-color:${DIM_COLORS[d] || DIM_COLORS.unknown}"></span>${d}</span>`).join("");
+      }
+
+      function relayout() {
+        cy.layout({ name: "cose", animate: false, padding: 30 }).run();
+      }
+
+      async function expand(csid, depth) {
+        const resp = await fetch(`/api/graph/${csid}?depth=${depth}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const elements = [...data.nodes, ...data.edges].filter(e => !cy.getElementById(e.data.id).length);
+        if (elements.length) cy.add(elements);
+        refreshLegend();
+        relayout();
+      }
+
+      cy.on("tap", "node", evt => expand(evt.target.id(), expandDepth));
+
+      expand(startCsid, parseInt(el.dataset.depth, 10) || expandDepth);
+    })();
+  </script>
+  {% endif %}
+{% endblock %}

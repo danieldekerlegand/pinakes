@@ -1,0 +1,28 @@
+# Example category. Load with pinakes_engine.acquire.load_category().
+# Schema: docs/data-model.md ("Category specification (input)"); adapter: docs/acquisition.md.
+#
+# German architectural monuments are heritage-designated structures, modelled in
+# Wikidata via heritage status (P1435) = architectural monument / Baudenkmal
+# (Q1473946) with country (P17) Germany (Q183). The query also pulls the
+# architect and inception so the temporal and creator links can be minted.
+id: german-architectural-monuments
+label: Monument;Building;CulturalArtifact
+description: Heritage-designated architectural monuments in Germany
+source:
+  type: wikidata-sparql
+  query: |
+    SELECT ?item ?itemLabel ?architect ?inception ?location ?image WHERE {
+      ?item wdt:P1435 wd:Q1473946 ;        # heritage status: architectural monument (illustrative)
+            wdt:P17 wd:Q183 .              # country: Germany
+      OPTIONAL { ?item wdt:P84 ?architect . }   # architect
+      OPTIONAL { ?item wdt:P571 ?inception . }  # inception
+      OPTIONAL { ?item wdt:P131 ?location . }   # located in administrative entity
+      OPTIONAL { ?item wdt:P18 ?image . }       # image
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en,de". }
+    }
+dimensions: [temporal, geographic]
+links:
+  - type: LOCATED_IN
+    to: place
+  - type: CREATED_BY
+    to: person

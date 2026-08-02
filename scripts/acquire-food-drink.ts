@@ -9,7 +9,7 @@
  * Wikidata.
  *
  * Three sibling domains, one script (they share the food-drink blueprint + the same acquire
- * machinery — see core/inputs/blueprints/food-drink.yml):
+ * machinery — see engine/inputs/blueprints/food-drink.yml):
  *  - cuisines            (node `cuisine`)     ← Wikidata Q1968435 "national cuisine".
  *  - ingredient-origins  (node `ingredient`)  ← Wikidata Q25403900 "food ingredient".
  *  - cooking-techniques  (attribute)          ← Wikidata Q1039303  "cooking technique".
@@ -119,7 +119,7 @@ function isRealLabel(label: string): boolean {
   return !/^Q\d+$/.test(t);
 }
 
-/** Normalise a name for duplicate detection (matches import-from-culturescrape). */
+/** Normalise a name for duplicate detection (matches import-from-engine). */
 function normaliseName(name: string): string {
   return name
     .normalize("NFKD")

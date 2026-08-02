@@ -7,7 +7,7 @@ import os from "os";
 import path from "path";
 
 /**
- * Integration tests for the culture-scrape acquisition routes (US-005). The job
+ * Integration tests for the pinakes-engine acquisition routes (US-005). The job
  * runner is faked (recorded records — no Python subprocess, no network) and the
  * ContributionService points at a temp dir. An `onJobSettled` hook lets each
  * test await the background job deterministically.
@@ -35,7 +35,7 @@ function rawRecord(fields: Record<string, string>): RawRecord {
   };
 }
 
-/** Records keyed by the culture-scrape category id the runner is asked for. */
+/** Records keyed by the pinakes-engine category id the runner is asked for. */
 const RECORDS_BY_CATEGORY: Record<string, RawRecord[]> = {
   "wikidata-civilizations": [
     rawRecord({ item: "http://www.wikidata.org/entity/Q220", itemLabel: "Roman Empire", qid: "Q220" }),
@@ -141,7 +141,7 @@ describe("POST /api/scraping/culturescrape", () => {
     const stored = contributions.get(result!.contributionIds[0]);
     expect(stored?.status).toBe("pending");
     expect(stored?.entityType).toBe("civilization");
-    expect(stored?.entityData.source).toBe("culturescrape-wikidata");
+    expect(stored?.entityData.source).toBe("pinakes_engine-wikidata");
     expect(stored?.entityData.autoDerived).toBe(true);
   });
 

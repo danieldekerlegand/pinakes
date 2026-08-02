@@ -14,7 +14,7 @@
  *
  * These routes are a **surface wrapper only**: nothing here resolves, reconciles or
  * queries anything. Every capability points at merged code (`graph-resolver.ts`,
- * `culturescrape/schema/reconcile.py`, the `/api/graph/*` routes), and invocation
+ * `pinakes_engine/schema/reconcile.py`, the `/api/graph/*` routes), and invocation
  * goes to those endpoints directly. The manifest itself is `shared/capability-manifest.json`.
  *
  * Registration is fired once at registration time and is best-effort; `publish` is

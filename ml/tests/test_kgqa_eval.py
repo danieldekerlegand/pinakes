@@ -271,7 +271,7 @@ def test_upsert_marked_section_insert_replace_idempotent() -> None:
 # --- Live reproducibility gate (skipped when the export is absent) ---------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
+_LIVE_EXPORT = _REPO_ROOT / "build" / "corpus"
 _EVAL_SPLIT = _REPO_ROOT / "ml" / "data" / "kgqa" / "eval.jsonl"
 _SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
 _BASELINE = _REPO_ROOT / "ml" / "manifests" / "kgqa-eval-baseline.json"

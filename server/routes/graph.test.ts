@@ -5,7 +5,7 @@ import type { Server } from "node:http";
 
 /**
  * Integration tests for the first-party `/api/graph/*` routes (US-004). The
- * graph-store (Neo4j) and culturescrape-client (sidecar) are module-mocked — no
+ * graph-store (Neo4j) and engine-client (sidecar) are module-mocked — no
  * live Neo4j, no live network — while the real error classes are preserved so the
  * routes' `instanceof` degradation logic runs exactly as in production. The routes
  * are mounted on a real Express app and driven over real HTTP.
@@ -37,9 +37,9 @@ vi.mock("../services/graph-store", async (importOriginal) => {
   };
 });
 
-vi.mock("../services/culturescrape-client", async (importOriginal) => {
+vi.mock("../services/engine-client", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../services/culturescrape-client")>();
+    await importOriginal<typeof import("../services/engine-client")>();
   return {
     ...actual, // keep the real CultureScrape*Error classes
     search: mocks.search,
@@ -67,7 +67,7 @@ import { GraphUnavailableError } from "../services/graph-store";
 import {
   CultureScrapeError,
   CultureScrapeUnavailableError,
-} from "../services/culturescrape-client";
+} from "../services/engine-client";
 
 // ── Test server ───────────────────────────────────────────────────────────────
 

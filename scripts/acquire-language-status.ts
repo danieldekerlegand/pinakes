@@ -7,7 +7,7 @@
  * fills gaps on the EXISTING `lexicons/languages.tsv` rows (the corpus's 1,099 languages),
  * reconciled by ISO 639-3 code. The one networked step of the runbook (acquire →
  * reconcile); the committed output (`scripts/data/language-enrichment.tsv`) is the
- * network-free source of truth the enrichment write-back (`import-from-culturescrape
+ * network-free source of truth the enrichment write-back (`import-from-engine
  * --enrich`) + QA gate operate on, so CI never touches Wikidata.
  *
  * What Wikidata carries for our corpus (probed against the 994 ISO-3 codes on disk):

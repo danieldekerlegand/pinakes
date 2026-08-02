@@ -12,7 +12,7 @@ number below is pinned to an exact corpus version, split manifest, and seed.
 
 | Artifact | Hash |
 | --- | --- |
-| Canonical export (`export/culturescrape`, tree sha256) | `e418c976755c57876e0be1438c6295b7.dir` (historical DVC md5 — see `docs/artifact-versioning.md`) |
+| Canonical export (`build/corpus`, tree sha256) | `e418c976755c57876e0be1438c6295b7.dir` (historical DVC md5 — see `docs/artifact-versioning.md`) |
 | Split manifest (`ml/manifests/triples-split-manifest.json`, sha256) | `9074b365176c17f5fc83e1339b55ca993576b753b811abb935946b888aa1672a` |
 | Triples content (`triplesSha256`) | `c799a6f1767e0e876c7b3f18ed7ec4031fa2af0d3c68420e0101aa07059ff2bb` |
 

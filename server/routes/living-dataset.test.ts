@@ -8,7 +8,7 @@ import path from "node:path";
 
 /**
  * Integration tests for the living-dataset workflow (US-011, speculative). The
- * routes are wired to temp-dir stores, a fake culture-scrape runner (no Python /
+ * routes are wired to temp-dir stores, a fake pinakes-engine runner (no Python /
  * network), and a fake DOI minter (no live Zenodo call). The clock is injected so
  * cadence + schedule assertions are deterministic.
  */

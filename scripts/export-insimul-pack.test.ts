@@ -45,7 +45,7 @@ const hasInsimulSchema = fs.existsSync(INSIMUL_SCHEMA);
 const INSIMUL_PREDICATE_SCHEMA = path.join(
   INSIMUL_ROOT,
   "packages",
-  "core",
+  "engine",
   "src",
   "prolog",
   "predicate-schema.ts",

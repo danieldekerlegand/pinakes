@@ -1,0 +1,18 @@
+# Music & performing arts — verified Wikidata classes for the culture corpus.
+#
+# 6 classes, ~26,805 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  pinakes_engine generate blueprints/music.yml \
+#                --out categories --job jobs/music.yml
+defaults:
+  label: CulturalArtifact
+  dimensions: [temporal, geographic]
+categories:
+  - {id: musical-instruments, name: "musical instrument", wikidata_class: Q34379}  # ~783
+  - {id: music-genres, name: "music genre", wikidata_class: Q188451}  # ~6,290
+  - {id: musical-forms, name: "musical form", wikidata_class: Q862597}  # ~345
+  - {id: percussion-instruments, name: "percussion instrument", wikidata_class: Q133163}  # ~56
+  - {id: dance-types, name: "type of dance", wikidata_class: Q107357104}  # ~3,670
+  - {id: songs, name: "song", wikidata_class: Q7366}  # ~15,661

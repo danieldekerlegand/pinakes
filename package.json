@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "dev:full": "./scripts/dev-full.sh",
-    "sidecar:up": "docker compose up -d --build culturescrape neo4j",
-    "sidecar:down": "docker compose stop culturescrape neo4j",
+    "sidecar:up": "docker compose up -d --build pinakes_engine neo4j",
+    "sidecar:down": "docker compose stop pinakes_engine neo4j",
     "smoke:graph": "tsx scripts/smoke-graph.ts",
     "entity-grounding": "tsx scripts/export-entity-grounding.ts",
     "insimul-pack": "tsx scripts/export-insimul-pack.ts",

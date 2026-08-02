@@ -17,7 +17,7 @@ import {
   type SearchResult,
   type SearchResponse,
 } from "./global-search";
-import type { SearchHit, SearchResponse as GraphSearchResponse } from "./culturescrape-client";
+import type { SearchHit, SearchResponse as GraphSearchResponse } from "./engine-client";
 import type { GraphResolver, ResolvedCsid, EntityRef } from "./graph-resolver";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ describe("mergeGraphResults", () => {
     const graph = results.find((r) => r.source === "graph")!;
     expect(graph.csid).toBe("cs:culture:hittite");
     expect(graph.entityType).toBe("culture");
-    expect(graph.provenance?.source).toBe("culture-scrape graph");
+    expect(graph.provenance?.source).toBe("pinakes-engine graph");
   });
 
   it("dedups an entity present in both, matched by csid alias (local wins)", () => {
