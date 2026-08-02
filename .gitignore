@@ -13,8 +13,8 @@ sources/
 .ralphy-worktrees
 # US-004 canonical export output (gitignored; manifest snapshot lives in docs/)
 export/culturescrape/
-# DVC local remote (neurosymbolic roadmap Phase 2 / ml US-001) — the actual bytes
-# for DVC-tracked builds live here; the committed pointers are the *.dvc files.
+# Stranded DVC local remote — DVC has been removed (docs/artifact-versioning.md).
+# Kept ignored so a leftover checkout does not show up as untracked noise.
 dvc-storage/
 # US-007 collaborative collections — user runtime data (JSON per collection)
 data/runtime/collections/
@@ -28,6 +28,10 @@ data/runtime/changelog/
 data/runtime/living-dataset/
 # US-... contributions — runtime queue (samples archived under data/archive/)
 data/runtime/contributions/
+# US-3 target-layout skeleton — build/ holds regenerable outputs only (docs/UNIFIED-PROJECT-PLAN.md §4).
+# Ignore the contents but keep the placeholder README so the directory stays visible.
+/build/*
+!/build/README.md
 # Playwright e2e (US-006) — installed browsers cache is global; test artifacts are local
 test-results/
 playwright-report/

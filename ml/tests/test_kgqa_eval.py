@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the KGQA eval harness (tier 3, US-004).
 
 Unit tests drive the pure scorer + deterministic systems with tiny temp-dir
-fixtures, so they run in CI where the DVC-tracked corpus + eval split are absent.
+fixtures, so they run in CI where the git-ignored corpus + eval split are absent.
 The snapshot test (live corpus/split vs committed baseline) is SKIPPED when the
 export is not present — the local reproducibility gate, mirroring the other ml/
 exporters.
@@ -268,7 +268,7 @@ def test_upsert_marked_section_insert_replace_idempotent() -> None:
     assert upsert_marked_section(twice, section2) == twice
 
 
-# --- Live reproducibility gate (skipped when the DVC export is absent) ---------
+# --- Live reproducibility gate (skipped when the export is absent) ---------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
@@ -279,7 +279,7 @@ _BASELINE = _REPO_ROOT / "ml" / "manifests" / "kgqa-eval-baseline.json"
 
 @pytest.mark.skipif(
     not (_LIVE_EXPORT / "nodes").exists() or not _EVAL_SPLIT.exists(),
-    reason="canonical export / eval split not present (DVC-tracked; run `dvc pull`)",
+    reason="canonical export / eval split not present (git-ignored; build it locally)",
 )
 def test_committed_baseline_matches_live_corpus() -> None:
     """The committed KGQA eval baseline must equal a fresh build of the live split."""

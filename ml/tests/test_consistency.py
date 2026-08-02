@@ -8,7 +8,7 @@ Two tiers, mirroring the workspace pattern:
   + ``shared/canonical-schema.json`` — all git-tracked, so it is a real CI gate (no
   torch needed), exactly like the TS ``convergence-qa`` drift gate.
 * **A live gate** trains a tiny model on the committed splits and generates
-  predictions, SKIPPED when the DVC-tracked ``ml/data`` is absent (as in CI).
+  predictions, SKIPPED when the git-ignored ``ml/data`` is absent (as in CI).
 """
 
 from __future__ import annotations
@@ -257,7 +257,7 @@ def test_render_baselines_doc_consistency_section() -> None:
     ]
     doc = render_baselines_doc(
         [outcome],
-        corpus_md5="abc",
+        corpus_hash="abc",
         manifest_sha256="def",
         triples_sha256="ghi",
         counts={"triples": 1, "entities": 1, "relations": 1},
@@ -269,7 +269,7 @@ def test_render_baselines_doc_consistency_section() -> None:
     assert "| TransE | 379 | 295 | 4 | 332 |" in doc
     # Still a pure function of its inputs.
     kwargs = dict(
-        corpus_md5="abc", manifest_sha256="def", triples_sha256="ghi",
+        corpus_hash="abc", manifest_sha256="def", triples_sha256="ghi",
         counts={"triples": 1, "entities": 1, "relations": 1},
         split_counts={"train": 1, "valid": 0, "test": 0},
         consistency=consistency, predictions_top_k=1,
@@ -307,7 +307,7 @@ def test_committed_predictions_pass_the_ratchet() -> None:
 
 @pytest.mark.skipif(
     not (_ML_ROOT / "data" / "triples" / "train.tsv").exists(),
-    reason="triples splits not present (DVC-tracked; run `dvc pull` locally)",
+    reason="triples splits not present (git-ignored; build it locally)",
 )
 def test_generate_predictions_on_committed_splits() -> None:
     from pinakes_ml.baselines import (

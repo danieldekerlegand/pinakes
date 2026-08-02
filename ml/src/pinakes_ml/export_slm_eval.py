@@ -7,7 +7,7 @@ Reproducer for the pilot's referee. Run from anywhere::
 Rebuilds the insimul-bridge US-005 datasets, reserves the **held-out worlds'**
 rule-authoring prompts as the frozen eval set, and writes:
 
-* ``ml/data/slm-pilot/rule-eval.jsonl`` — the eval set (DVC-tracked tree,
+* ``ml/data/slm-pilot/rule-eval.jsonl`` — the eval set (git-ignored tree,
   git-ignored, ``synthetic`` tier / proprietary: never committed);
 * ``ml/manifests/slm-pilot-eval-manifest.json`` — the committed, snapshot-tested
   protocol manifest: the frozen metric list, the comparison points, the ablation
@@ -18,7 +18,7 @@ makes "the protocol was frozen before training" a checkable claim rather than a
 promise. The prose half is ``docs/slm-pilot-protocol.md``.
 
 Defaults are the same two committed fixture worlds ``pinakes-export-insimul``
-uses, so the committed manifest needs no DVC corpus. Point ``--world`` at real
+uses, so the committed manifest needs no corpus build. Point ``--world`` at real
 converted worlds locally; the exit code then tells you whether the corpus clears
 the volume floors.
 """

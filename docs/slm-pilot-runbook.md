@@ -1,5 +1,11 @@
 # SLM pilot — training-pipeline runbook
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 **slm-pilot US-002 (the pipeline) + US-003 (the 3B baseline) + US-004 (the GGUF
 deployment leg).** How to run the Phase-D pipeline: rule-SFT corpus → QLoRA
 fine-tune → tier-4 adherence score on the **frozen** eval set, both prompt arms →

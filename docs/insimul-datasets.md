@@ -1,5 +1,11 @@
 # Insimul SLM datasets — rule-SFT + lore-consistency QA
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 **insimul-bridge US-005.** The training feed of the Insimul bridge: converted
 worlds (the Bridge-2 `CanonicalWorldExport` artifacts US-003 ingests) become
 three SLM datasets — rule-authoring SFT, rule-authoring preference pairs, and

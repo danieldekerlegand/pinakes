@@ -7,7 +7,7 @@ Two tiers, mirroring the workspace pattern:
   factory for one epoch — the "training scripts smoke-tested on a tiny fixture in CI"
   acceptance. Kept small (dim 2, 1 epoch) so CI stays fast.
 * **A live gate** trains one baseline on the committed splits for a single epoch,
-  SKIPPED when the DVC-tracked ``ml/data/triples`` is absent (as it is in CI). Full,
+  SKIPPED when the git-ignored ``ml/data/triples`` is absent (as it is in CI). Full,
   many-epoch runs are local-only via the CLI.
 """
 
@@ -28,7 +28,7 @@ from pinakes_ml.baselines import (
 )
 from pinakes_ml.train_baselines import (
     DEFAULT_DATA_DIR,
-    read_dvc_md5,
+    hash_tree,
     save_embeddings,
     sha256_file,
 )
@@ -95,7 +95,7 @@ def test_save_embeddings_round_trips(tmp_path: Path) -> None:
         "TransE", training, validation, testing,
         embedding_dim=2, num_epochs=1, device="cpu",
     )
-    model_dir = save_embeddings(tmp_path, outcome, {"corpus_md5": "deadbeef"})
+    model_dir = save_embeddings(tmp_path, outcome, {"corpus_hash": "deadbeef"})
     loaded = np.load(model_dir / "entity_embeddings.npy")
     assert loaded.shape == (6, 2)
     import json
@@ -103,7 +103,7 @@ def test_save_embeddings_round_trips(tmp_path: Path) -> None:
     meta = json.loads((model_dir / "metadata.json").read_text(encoding="utf-8"))
     assert meta["model"] == "TransE"
     assert meta["shape"] == [6, 2]
-    assert meta["corpus_md5"] == "deadbeef"
+    assert meta["corpus_hash"] == "deadbeef"
     assert meta["entities_order"].startswith("ml/data/triples/entities.tsv")
 
 
@@ -129,7 +129,7 @@ def test_render_baselines_doc_is_deterministic() -> None:
         _outcome("RotatE", 0.3),
     ]
     kwargs = dict(
-        corpus_md5="abc123",
+        corpus_hash="abc123",
         manifest_sha256="deadbeef",
         triples_sha256="cafef00d",
         counts={"triples": 2267, "entities": 2057, "relations": 8},
@@ -149,7 +149,7 @@ def test_render_baselines_doc_preserves_kgqa_section() -> None:
     """A tier-3 block (US-004) is re-appended verbatim, absent by default."""
     outcomes = [_outcome("TransE", 0.1)]
     kwargs = dict(
-        corpus_md5="abc",
+        corpus_hash="abc",
         manifest_sha256="def",
         triples_sha256="ghi",
         counts={"triples": 1, "entities": 1, "relations": 1},
@@ -162,17 +162,36 @@ def test_render_baselines_doc_preserves_kgqa_section() -> None:
     assert with_block.rstrip().endswith("<!-- KGQA-EVAL:END -->")
 
 
-# --- .dvc / hash helpers ------------------------------------------------------
+# --- tree / file hash helpers -------------------------------------------------
 
 
-def test_read_dvc_md5(tmp_path: Path) -> None:
-    dvc = tmp_path / "x.dvc"
-    dvc.write_text(
-        "outs:\n- md5: e418c976755c57876e0be1438c6295b7.dir\n  hash: md5\n",
-        encoding="utf-8",
-    )
-    assert read_dvc_md5(dvc) == "e418c976755c57876e0be1438c6295b7.dir"
-    assert read_dvc_md5(tmp_path / "missing.dvc") == "unknown"
+def test_hash_tree_is_deterministic_and_content_sensitive(tmp_path: Path) -> None:
+    tree = tmp_path / "corpus"
+    (tree / "edges").mkdir(parents=True)
+    (tree / "nodes.tsv").write_text("a\tb\n", encoding="utf-8")
+    (tree / "edges" / "e.tsv").write_text("x\ty\n", encoding="utf-8")
+
+    first = hash_tree(tree)
+    assert first == hash_tree(tree)  # stable across calls
+    assert len(first) == 64
+
+    (tree / "edges" / "e.tsv").write_text("x\tz\n", encoding="utf-8")
+    assert hash_tree(tree) != first  # a changed byte moves the hash
+
+
+def test_hash_tree_is_path_sensitive(tmp_path: Path) -> None:
+    """Renaming a file must move the hash — content alone is not the address."""
+    tree = tmp_path / "t"
+    tree.mkdir()
+    (tree / "a.tsv").write_text("same\n", encoding="utf-8")
+    before = hash_tree(tree)
+    (tree / "a.tsv").rename(tree / "b.tsv")
+    assert hash_tree(tree) != before
+
+
+def test_hash_tree_reports_unknown_for_an_absent_tree(tmp_path: Path) -> None:
+    """A fresh checkout has not built the corpus yet; the doc must still render."""
+    assert hash_tree(tmp_path / "missing") == "unknown"
 
 
 def test_sha256_file(tmp_path: Path) -> None:
@@ -188,7 +207,7 @@ def test_sha256_file(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(
     not (DEFAULT_DATA_DIR / "train.tsv").exists(),
-    reason="triples splits not present (DVC-tracked; run `dvc pull` locally)",
+    reason="triples splits not present (git-ignored; build it locally)",
 )
 def test_baseline_runs_on_committed_splits() -> None:
     """One epoch on the real splits — proves the loader → pipeline path works."""

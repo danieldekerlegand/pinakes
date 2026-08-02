@@ -5,7 +5,7 @@ Phase 2 of the neurosymbolic roadmap: the first fact->model loop
 built on the current corpus scale so later corpus growth is measurable.
 
 Reproducibility is enforced structurally: pinned seeds, committed split
-manifests, DVC-tracked datasets, and MLflow-logged runs.
+manifests, git-ignored datasets, and MLflow-logged runs.
 """
 
 from pinakes_ml.baselines import (

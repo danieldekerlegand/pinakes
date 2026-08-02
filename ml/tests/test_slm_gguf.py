@@ -153,7 +153,7 @@ def test_the_contract_manifest_is_json_serializable_and_sorted() -> None:
 
 
 def test_the_deliverable_lands_in_the_models_tree_not_the_data_tree(plan) -> None:
-    """A 2 GB binary gets its own DVC pointer; intermediates stay git-ignored."""
+    """A 2 GB binary gets its own top-level tree; intermediates stay in work/."""
     assert plan.quantized_gguf.parent.name == "models"
     assert plan.quantized_gguf.name == f"{model_stem('slm-pilot-3b')}.gguf"
     assert plan.merged_dir.parent.name == "work"

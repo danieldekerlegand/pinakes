@@ -1,5 +1,10 @@
 # Should `ml/` become its own repo? — extract-vs-keep analysis
 
+> **Stale on DVC.** Written before the flatten's Phase 0 removed DVC. The
+> `dvc-storage` remote referenced below no longer exists and the `*.dvc`
+> pointers are deleted, so the "shared DVC remote" option costs a fresh setup
+> rather than reusing what's there. See `docs/artifact-versioning.md`.
+
 **Question:** Pinakes's mission is *scraping + AI to produce and visualize large heterogeneous
 datasets* (a data hub). The `ml/` workspace (neurosymbolic training, SLM pilot, KFT provider)
 is a distinct concern. Should it move to a separate training-focused repo?

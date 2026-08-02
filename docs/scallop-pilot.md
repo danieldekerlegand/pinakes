@@ -1,5 +1,11 @@
 # Scallop context export + Horn-rule translation
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 Neurosymbolic roadmap **Phase 5, US-001** (roadmap row 5.4) — the first step of
 the neurosymbolic pilot. Loads the canonical corpus into
 [Scallop](https://scallop-lang.org) as its differentiable-logic substrate: the

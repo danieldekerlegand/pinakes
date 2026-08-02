@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--models-dir", type=Path, default=None,
         help=f"Where the deliverable GGUF lands (default: ml/{MODELS_DIRNAME}/"
-             f"{MODEL_SUBDIR}, its own DVC pointer).",
+             f"{MODEL_SUBDIR}, the git-ignored models tree).",
     )
     parser.add_argument("--work-dir", type=Path, default=None)
     parser.add_argument("--quant", default=DEFAULT_QUANT)

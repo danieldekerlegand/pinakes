@@ -1,5 +1,11 @@
 # SLM pilot — report
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 **Verdict: INSUFFICIENT DATA.** The pipeline validated end to end; the *approach*
 was not tested, because the corpus that exists today is ~1.4% of the smallest size
 at which any score could mean something. This is the outcome the protocol's own

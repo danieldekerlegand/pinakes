@@ -8,11 +8,11 @@ Reproducer for US-003. Run from ``ml/`` (full runs are local-only — CPU/MPS)::
 
 For each model it trains reproducibly on the committed splits, extracts MRR +
 Hits@{1,3,10}, logs an MLflow run (metrics + the exact corpus/split hashes), saves
-the trained entity embeddings under ``ml/data/embeddings/<model>/`` (DVC-tracked),
+the trained entity embeddings under ``ml/data/embeddings/<model>/`` (git-ignored),
 and rewrites the committed ``docs/ml-baselines.md``.
 
-After running, re-pin the embeddings with ``dvc add ml/data && dvc push`` and commit
-the updated ``ml/data.dvc`` alongside the regenerated doc.
+The embeddings are a regenerable build output — there is nothing to re-pin after a
+run; commit only the regenerated doc. See ``docs/artifact-versioning.md``.
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 from pathlib import Path
 
 from pinakes_ml.baselines import (
@@ -58,23 +57,31 @@ DEFAULT_PREDICTIONS_DIR = _ML_ROOT / "predictions"
 DEFAULT_CONSISTENCY_BASELINE = _ML_ROOT / "manifests" / "consistency-baseline.json"
 DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
 DEFAULT_TOP_K = 1
-_EXPORT_DVC = _REPO_ROOT / "export" / "culturescrape.dvc"
+_EXPORT_DIR = _REPO_ROOT / "export" / "culturescrape"
 
 
-def read_dvc_md5(dvc_path: Path) -> str:
-    """First ``md5:`` value in a ``.dvc`` pointer (the tracked content hash).
+def hash_tree(root: Path) -> str:
+    """Deterministic content hash of a build-output tree.
 
-    A ``.dvc`` file is small YAML; the ``outs[0].md5`` line pins the exact bytes of
-    the tracked build output, which is precisely "the corpus version this metric was
-    measured on". Returns ``"unknown"`` if the pointer is absent (e.g. a fresh
-    checkout before ``dvc pull``) so the doc still renders.
+    This is "the corpus version this metric was measured on". It used to be read
+    out of a committed ``.dvc`` pointer; DVC was removed (see
+    ``docs/artifact-versioning.md``), so the pin is now computed directly from the
+    bytes on disk — strictly better, since it cannot go stale against the tree it
+    claims to describe.
+
+    Path-sensitive (a renamed file changes the hash) and order-independent (the
+    walk is sorted), so it is stable across machines. Returns ``"unknown"`` if the
+    tree is absent — e.g. a fresh checkout that has not regenerated it yet — so the
+    doc still renders.
     """
-    if not dvc_path.exists():
+    if not root.is_dir():
         return "unknown"
-    # The pointer line is ``- md5: <hash>.dir``; match the ``md5:`` key anywhere
-    # (the sibling ``hash: md5`` line has no trailing colon, so it can't match).
-    match = re.search(r"md5:\s*(\S+)", dvc_path.read_text(encoding="utf-8"))
-    return match.group(1) if match else "unknown"
+    digest = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        digest.update(str(path.relative_to(root).as_posix()).encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(hashlib.sha256(path.read_bytes()).digest())
+    return digest.hexdigest()
 
 
 def sha256_file(path: Path) -> str:
@@ -127,7 +134,7 @@ def _log_to_mlflow(
         mlflow.log_param("num_epochs", outcome.num_epochs)
         mlflow.log_param("seed", outcome.seed)
         mlflow.log_param("device", outcome.device)
-        mlflow.log_param("corpus_md5", meta["corpus_md5"])
+        mlflow.log_param("corpus_hash", meta["corpus_hash"])
         mlflow.log_param("triples_sha256", meta["triples_sha256"])
         mlflow.log_param("manifest_sha256", meta["manifest_sha256"])
         for key, value in outcome.metrics.items():
@@ -176,13 +183,13 @@ def main(argv: list[str] | None = None) -> int:
     if not (args.data_dir / "train.tsv").exists():
         parser.error(
             f"triples splits not found in {args.data_dir}\n"
-            "They are DVC-tracked — run `uv run --project ml dvc pull` (or rebuild "
-            "with `uv run pinakes-export-triples`) first."
+            "They are a git-ignored build output — rebuild them with "
+            "`uv run pinakes-export-triples` first."
         )
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     meta = {
-        "corpus_md5": read_dvc_md5(_EXPORT_DVC),
+        "corpus_hash": hash_tree(_EXPORT_DIR),
         "manifest_sha256": sha256_file(args.manifest),
         "triples_sha256": manifest["triplesSha256"],
     }
@@ -255,7 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     kgqa_section = extract_marked_section(existing_doc)
     doc = render_baselines_doc(
         outcomes,
-        corpus_md5=meta["corpus_md5"],
+        corpus_hash=meta["corpus_hash"],
         manifest_sha256=meta["manifest_sha256"],
         triples_sha256=meta["triples_sha256"],
         counts=manifest["counts"],

@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the triple-verbalization generator (US-002).
 
 Unit tests drive the pure core with tiny temp-dir fixtures, so they run in CI
-where the DVC-tracked ``export/culturescrape`` is absent. The snapshot test (live
+where the git-ignored ``export/culturescrape`` is absent. The snapshot test (live
 corpus vs committed manifest) is SKIPPED when the export is not present — the
 local reproducibility gate, mirroring the triples exporter (US-002 Phase 2).
 """
@@ -354,14 +354,14 @@ def test_every_exported_edge_type_has_a_template() -> None:
         assert EDGE_TEMPLATES[token], f"empty template list for {token}"
 
 
-# --- Live reproducibility gate (skipped when the DVC export is absent) ---------
+# --- Live reproducibility gate (skipped when the export is absent) ---------
 
 _LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
 
 
 @pytest.mark.skipif(
     not (_LIVE_EXPORT / "nodes").exists(),
-    reason="canonical export not present (DVC-tracked; run `dvc pull` locally)",
+    reason="canonical export not present (git-ignored; build it locally)",
 )
 def test_committed_manifest_matches_live_corpus() -> None:
     """The committed manifest must equal a fresh build of the live corpus."""

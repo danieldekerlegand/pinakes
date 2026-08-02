@@ -6,7 +6,7 @@ Reproducer for the Bridge-4 dataset generators. Run from anywhere::
 
 Reads one or more ``CanonicalWorldExport`` files (plus, optionally, Insimul
 ``rules.jsonl`` rejection-sampling exports), writes three training datasets into
-``ml/data/insimul/`` — DVC-tracked, git-ignored, **never committed**, because a
+``ml/data/insimul/`` — git-ignored, **never committed**, because a
 converted world is ``synthetic`` tier and proprietary-licensed — and writes the
 deterministic manifest to ``ml/manifests/insimul-datasets-manifest.json``
 (committed, snapshot-tested).
@@ -21,8 +21,8 @@ Defaults build from the two committed fixture worlds (the Bridge-2 world at
 ``core/tests/fixtures/insimul/world-export.json`` and the
 VESPACE-shaped world at ``ml/fixtures/insimul/world-export.json``) plus the
 candidate export at ``ml/fixtures/insimul/rule-candidates.jsonl``, so the
-committed manifest needs no DVC corpus. Point ``--world`` at real converted
-worlds locally, then re-pin with ``dvc add ml/data && dvc push``.
+committed manifest needs no corpus build. Point ``--world`` at real converted
+worlds locally; the output tree is git-ignored and needs no re-pin.
 """
 
 from __future__ import annotations

@@ -302,7 +302,7 @@ def test_the_pipeline_runs_end_to_end_against_the_stub(config, pilot_data) -> No
         pilot_data,
         trainer=stub_trainer,
         model_factory=stub_model_factory(pilot_data.eval_set),
-        dataset_dvc_md5="abc123",
+        dataset_hash="abc123",
         matches_frozen_eval_set=True,
     )
 
@@ -316,7 +316,7 @@ def test_the_pipeline_runs_end_to_end_against_the_stub(config, pilot_data) -> No
             assert scores["prompts"] == len(pilot_data.eval_set)
     assert set(summary["deltas"]) == set(ARMS)
     assert summary["dataset"]["evalSetSha256"] == pilot_data.eval_sha256
-    assert summary["dataset"]["dvcMd5"] == "abc123"
+    assert summary["dataset"]["contentHash"] == "abc123"
     assert summary["training"]["numTrainRecords"] == len(pilot_data.train_records)
     # A stub run must be self-identifying — its scores describe wiring, not a model.
     assert summary["training"]["stub"] is True

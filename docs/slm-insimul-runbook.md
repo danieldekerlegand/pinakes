@@ -1,5 +1,11 @@
 # SLM pilot → Insimul integration runbook
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 **Phase D, loop closure.** The Insimul bridge spec §7
 Phase D · the neurosymbolic roadmap Phase 5.
 Companions: the [pilot protocol](slm-pilot-protocol.md) (the frozen referee), the

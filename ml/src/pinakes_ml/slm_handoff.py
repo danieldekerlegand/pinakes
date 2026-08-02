@@ -12,7 +12,7 @@ engineer will actually ask:
 * **the GGUF** (US-004's deliverable) — *what do I load?*
 * **the model manifest** (:func:`build_model_manifest`) — *where did it come
   from, and what did it score?* Base model, the training config, the dataset
-  hashes + DVC pin, the adherence scores on both stacks, the frozen data-floor
+  hashes, the adherence scores on both stacks, the frozen data-floor
   verdict, and the license position.
 * **the prompt contract** (US-004's ``ml/manifests/slm-prompt-contract.json``) —
   *what exact strings do I send?*
@@ -55,10 +55,9 @@ BUNDLE_VERSION = "1"
 # --- the bundle layout ----------------------------------------------------------
 #
 # The bundle root IS ``ml/models/slm-pilot`` — the tree US-004's GGUF already
-# lands in, under its own DVC pointer (``ml/models.dvc``). Putting the small
-# files beside the model rather than in a sibling directory means one `dvc pull`
-# hands the recipient a complete, self-describing bundle, and the 1.9 GB binary
-# is never copied twice.
+# lands in. Putting the small files beside the model rather than in a sibling
+# directory means one copy of that tree hands the recipient a complete,
+# self-describing bundle, and the 1.9 GB binary is never copied twice.
 
 MODEL_MANIFEST_FILE = "model-manifest.json"
 CONTRACT_FILE = "prompt-contract.json"
@@ -235,7 +234,7 @@ IN_GAME_CHECKLIST: tuple[dict[str, str], ...] = (
     {
         "step": "Load the bundle",
         "detail": (
-            "dvc pull ml/models, copy the GGUF into Insimul's models directory, "
+            "copy the GGUF from ml/models into Insimul's models directory, "
             "set the environment block above, and confirm the startup log "
             "(logAIStatus) names the pilot model and the 4096-token context."
         ),
@@ -381,7 +380,7 @@ def bundle_inventory(root: Path | str, names: Sequence[str]) -> list[dict[str, A
 #: Config keys whose values are paths the pipeline resolves to absolutes before
 #: recording them. A bundle that ships ``/Users/<someone>/…`` is telling its
 #: recipient where a stranger's checkout was.
-PATH_CONFIG_KEYS: tuple[str, ...] = ("dvc_file", "eval_manifest")
+PATH_CONFIG_KEYS: tuple[str, ...] = ("data_dir", "eval_manifest")
 PATH_LIST_CONFIG_KEYS: tuple[str, ...] = ("worlds", "candidates")
 
 
@@ -444,7 +443,7 @@ def build_model_manifest(
     contract: Mapping[str, Any] | None = None,
     inventory: Sequence[Mapping[str, Any]] = (),
     gguf: Mapping[str, Any] | None = None,
-    dataset_dvc_md5: str = "",
+    dataset_hash: str = "",
     context_size: int | None = None,
     gpu_layers: str | int = "auto",
     ml_root: str = "",
@@ -457,12 +456,12 @@ def build_model_manifest(
     does in every other pilot artifact — the sufficiency verdict is a field, and
     a bundle that carried scores without it would read as a clearance.
 
-    There is deliberately **no ``ml/models`` DVC md5 here**: this manifest lives
+    There is deliberately **no ``ml/models`` hash here**: this manifest lives
     inside that tree, so recording the tree's own hash is circular — writing the
     manifest changes the hash the manifest just claimed. (Same trap
     ``ml/CLAUDE.md`` records for the baselines doc and ``ml/data``.) The
-    authoritative pin is the committed ``ml/models.dvc``; ``ml/data``'s md5 is
-    recorded because the bundle does *not* live in that tree.
+    per-file sha256s in ``files`` are the authoritative addresses; ``ml/data``'s
+    hash is recorded because the bundle does *not* live in that tree.
     """
     plan = parity.get("plan") or {}
     artifact = parity.get("artifact") or {}
@@ -495,7 +494,7 @@ def build_model_manifest(
         "dataset": {
             **dataset,
             "evalSetFile": BUNDLE_EVAL_FILE,
-            "dataDvcMd5": dataset_dvc_md5,
+            "dataHash": dataset_hash,
         },
         "dataFloor": dict(parity.get("dataFloor") or baseline.get("dataFloor") or {}),
         "scores": {
@@ -734,10 +733,9 @@ def render_handoff_section(manifest: Mapping[str, Any]) -> str:
         "",
         "## The bundle (slm-pilot US-005)",
         "",
-        "`ml/models/slm-pilot/` — DVC-tracked under its own pointer, the "
-        "committed `ml/models.dvc`. `dvc pull ml/models` materialises the whole "
-        "bundle. (The manifest records no `ml/models` md5: it lives *in* that "
-        "tree, so the hash would be circular.)",
+        "`ml/models/slm-pilot/` — git-ignored; rebuild or copy the tree to "
+        "materialise the whole bundle. (The manifest records no `ml/models` "
+        "hash: it lives *in* that tree, so the hash would be circular.)",
         "",
         "| File | sha256 | size |",
         "| --- | --- | ---: |",
@@ -771,7 +769,7 @@ def render_handoff_section(manifest: Mapping[str, Any]) -> str:
         f"`{model.get('adapterSource', '') or '—'}`. Eval set `sha256 "
         f"{str(dataset.get('evalSetSha256', ''))[:16]}…`, rule-SFT `sha256 "
         f"{str(dataset.get('ruleSftSha256', ''))[:16]}…`, `ml/data` md5 "
-        f"`{dataset.get('dataDvcMd5', '') or '—'}`.",
+        f"`{dataset.get('dataHash', '') or '—'}`.",
         "",
     ]
     if floor:

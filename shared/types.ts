@@ -190,3 +190,136 @@ export type CultureProfile = {
   imageGalleryTags: string[];
   sources: string[];
 };
+
+// ============================================================================
+// Geospatial record shapes
+//
+// Row shapes for the geospatial layers, consumed by the record → GeoJSON
+// converters in client/src/lib/visualization/geospatial-transformers.ts. The
+// live loaders in server/tsv-storage.ts build the GeoJSON `*Feature` types in
+// client/src/lib/visualization/geospatial-types.ts directly from `lexicons/*.tsv`.
+// ============================================================================
+
+export type LanguageRange = {
+  id: string;
+  languageId: string;
+  familyId: string;
+  /** GeoJSON geometry (Polygon or MultiPolygon) */
+  geometry: unknown;
+  rangeType: string;
+  /** Year (negative for BCE) */
+  timePeriodStart: number | null;
+  /** null means "to present" */
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  /** 1-100 */
+  confidence: number | null;
+  sources: string[] | null;
+  notes: string | null;
+};
+
+export type ArchaeologicalSite = {
+  id: string;
+  name: string;
+  coordinates: { lat: number; lng: number };
+  /** settlement, burial, temple, fortification, workshop, ceremonial */
+  siteType: string;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  associatedLanguageIds: string[] | null;
+  associatedCultureIds: string[] | null;
+  /** unexcavated, partial, extensive, complete */
+  excavationStatus: string | null;
+  findings: string[] | null;
+  /** 1-100, for marker sizing */
+  importance: number | null;
+  /** 1-100 */
+  confidence: number | null;
+  sources: string[] | null;
+  description: string | null;
+};
+
+export type Civilization = {
+  id: string;
+  name: string;
+  nativeName: string | null;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  associatedLanguageIds: string[] | null;
+  writingSystems: string[] | null;
+  /** Empire, city-state, etc. */
+  politicalStructure: string | null;
+  capital: string | null;
+  /** Estimated at peak */
+  population: number | null;
+  sources: string[] | null;
+  description: string | null;
+};
+
+export type CivilizationBoundary = {
+  id: string;
+  civilizationId: string;
+  /** GeoJSON geometry (Polygon or MultiPolygon) */
+  geometry: unknown;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  /** political, cultural, linguistic, military */
+  boundaryType: string | null;
+  /** 1-100 */
+  confidence: number | null;
+  sources: string[] | null;
+  notes: string | null;
+};
+
+export type HistoricalRoute = {
+  id: string;
+  name: string;
+  /** GeoJSON geometry (LineString) */
+  geometry: unknown;
+  /** trade, migration, conquest, pilgrimage, communication */
+  routeType: string;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  associatedLanguageIds: string[] | null;
+  linguisticImpact: string | null;
+  tradedGoods: string[] | null;
+  /** bidirectional, unidirectional */
+  direction: string | null;
+  sources: string[] | null;
+  description: string | null;
+};
+
+export type MaterialCulture = {
+  id: string;
+  name: string;
+  /** pottery, burial, architecture, tools, art, clothing, weapons */
+  cultureType: string;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  associatedLanguageIds: string[] | null;
+  sources: string[] | null;
+  description: string | null;
+};
+
+export type MaterialCultureDistribution = {
+  id: string;
+  cultureId: string;
+  /** GeoJSON geometry (Point, Polygon, or MultiPolygon) */
+  geometry: unknown;
+  /** 0-1, for heatmap */
+  intensity: string | null;
+  timePeriodStart: number;
+  timePeriodEnd: number | null;
+  timePeriodLabel: string | null;
+  /** Number of artifacts found */
+  artifactCount: number | null;
+  /** 1-100 */
+  confidence: number | null;
+  sources: string[] | null;
+  notes: string | null;
+};

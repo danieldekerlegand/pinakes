@@ -19,7 +19,7 @@ What these hold:
 * the module stays in the **slim env** — no heavy import, asserted in a
   subprocess, and the ``require_finetune_deps`` gate is untouched.
 
-Everything here runs on committed files: no DVC corpus, no network, no model.
+Everything here runs on committed files: no corpus build, no network, no model.
 """
 
 from __future__ import annotations

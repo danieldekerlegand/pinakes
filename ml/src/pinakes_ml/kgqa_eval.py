@@ -431,7 +431,7 @@ def render_kgqa_section(report: dict[str, object]) -> str:
         "   grounding (this section).",
         "",
         "Reproduce tier 3: `cd ml && uv run pinakes-eval-kgqa` (needs the",
-        "DVC-tracked export + eval split; `uv run --project ml dvc pull` first).",
+        "git-ignored export + eval split; rebuild them first).",
         "",
         DOC_MARK_END,
     ]

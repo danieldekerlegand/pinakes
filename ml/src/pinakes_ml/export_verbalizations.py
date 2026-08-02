@@ -8,15 +8,15 @@ or via the console script::
 
     uv run pinakes-export-verbalizations
 
-Reads the DVC-tracked canonical export (``export/culturescrape/{nodes,edges}``),
-writes the HF-datasets-compatible JSONL into ``ml/data/verbalizations/`` (DVC-
+Reads the git-ignored canonical export (``export/culturescrape/{nodes,edges}``),
+writes the HF-datasets-compatible JSONL into ``ml/data/verbalizations/`` (git-
 tracked, git-ignored), and writes the deterministic manifest to
 ``ml/manifests/verbalization-manifest.json`` (committed to git, snapshot-tested).
 The whole build is a pure function of the export + seed, so a byte-identical
 corpus is a git no-op on the manifest.
 
-After running, re-pin the data with ``dvc add ml/data`` and commit the updated
-``ml/data.dvc`` alongside the manifest.
+The data tree is a git-ignored build output — nothing to re-pin; commit only the
+regenerated manifest.
 """
 
 from __future__ import annotations
@@ -83,9 +83,8 @@ def main(argv: list[str] | None = None) -> int:
     if not (args.export_dir / "nodes").exists():
         parser.error(
             f"export not found: {args.export_dir}\n"
-            "The canonical export is DVC-tracked — run "
-            "`uv run --project ml dvc pull` (or regenerate it with "
-            "`npx tsx scripts/export-for-culturescrape.ts`) first."
+            "The canonical export is a git-ignored build output — regenerate "
+            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
         )
 
     examples, manifest = build(args.export_dir, seed=args.seed)

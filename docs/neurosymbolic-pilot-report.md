@@ -1,5 +1,11 @@
 # Neurosymbolic pilot report — Scallop vs DeepProbLog
 
+> **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
+> `dvc push` below is stale: those trees are plain git-ignored build outputs
+> now — regenerate them instead, and skip any "re-pin" step. Recorded DVC
+> md5s are historical provenance labels, not fetchable references.
+> Rationale + how to re-enable versioning: `docs/artifact-versioning.md`.
+
 **Neurosymbolic roadmap Phase 5 (row 5.4), US-004.** The go/no-go that closes the
 `scallop-pilot` PRD and shapes the next one. It compares the two neurosymbolic
 frameworks the roadmap named — **Scallop** (piloted end-to-end in US-001…US-003) and

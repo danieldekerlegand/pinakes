@@ -18,7 +18,7 @@
         "`git grep -n dvc -- server core ml/src` returns only comments/docs, never live imports or invocations.",
         "docs/ gains a short note on re-enabling DVC (or git-lfs) later via `dvc init` + a cloud remote."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -31,7 +31,7 @@
         "The stub db:push / db:generate / db:migrate scripts are removed from package.json.",
         "`bun run dev` still boots the server and the existing vitest suite still passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -44,7 +44,7 @@
         "client/, core/, server/, shared/ are untouched by this tasklist.",
         "bun run check (tsc) still passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

@@ -10,7 +10,7 @@ The default build is a **pure function** of the canonical edge export + the
 committed rules registry (:mod:`pinakes_ml.scallop`). It writes:
 
 * ``ml/data/scallop/relations/<rel>.csv`` — interned integer ``head_id,tail_id``
-  fact tables (one per relation), DVC-tracked / git-ignored;
+  fact tables (one per relation), git-ignored;
 * ``ml/data/scallop/symbols.tsv`` — the deterministic ``id<TAB>csid`` interning;
 * ``ml/scallop/program.scl`` — the translated Scallop program (committed;
   corpus-independent, so CI checks it byte-for-byte against a fresh registry
@@ -206,9 +206,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.edges_dir.exists():
         parser.error(
             f"edges dir not found: {args.edges_dir}\n"
-            "The canonical export is DVC-tracked — run "
-            "`uv run --project ml dvc pull` (or regenerate it with "
-            "`npx tsx scripts/export-for-culturescrape.ts`) first."
+            "The canonical export is a git-ignored build output — regenerate "
+            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
         )
 
     relations, symbols, translated, program_scl, manifest = build(

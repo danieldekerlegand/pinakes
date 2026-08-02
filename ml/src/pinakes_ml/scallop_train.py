@@ -972,7 +972,7 @@ def render_comparison_section(comparison: Comparison, config: PilotConfig) -> st
         lines.append("")
     lines += [
         "> Reproduce: `cd ml && uv run pinakes-train-scallop` (needs the "
-        "DVC-tracked embeddings + splits + queries; `uv run --project ml dvc pull` "
+        "git-ignored embeddings + splits + queries; rebuild them first "
         "first). The engine-free min-max reference runs anywhere; the equivalent "
         "scallopy `minmaxprob` program (`build_scl_program`) is local-only "
         "(macOS/arm64 wheel). Full runbook: `docs/scallop-pilot.md` §US-003.",

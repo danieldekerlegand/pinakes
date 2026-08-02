@@ -8,17 +8,17 @@ or via the console script::
 
     uv run pinakes-export-queries
 
-Reads the DVC-tracked triples splits (``ml/data/triples/{train,valid,test}.tsv`` +
+Reads the git-ignored triples splits (``ml/data/triples/{train,valid,test}.tsv`` +
 ``triples.tsv`` — themselves built by :mod:`pinakes_ml.export_triples`), draws
 the target-relation positives from the held-out split (default ``valid``), generates
 type-constrained negatives, and writes ``ml/data/queries/queries.jsonl``
-(DVC-tracked, git-ignored) plus the deterministic manifest
+(git-ignored) plus the deterministic manifest
 ``ml/manifests/training-queries-manifest.json`` (committed, snapshot-tested). The
 whole build is a pure function of the splits + seed, so a byte-identical corpus is a
 git no-op on the manifest.
 
-After running, re-pin the data with ``dvc add ml/data`` and commit the updated
-``ml/data.dvc`` alongside the manifest.
+The data tree is a git-ignored build output — nothing to re-pin; commit only the
+regenerated manifest.
 """
 
 from __future__ import annotations
@@ -151,9 +151,8 @@ def main(argv: list[str] | None = None) -> int:
     if not split_file.exists():
         parser.error(
             f"triples split not found: {split_file}\n"
-            "The triples dataset is DVC-tracked — run "
-            "`uv run --project ml dvc pull`, or build it with "
-            "`uv run pinakes-export-triples` first."
+            "The triples dataset is a git-ignored build output — build it "
+            "with `uv run pinakes-export-triples` first."
         )
 
     queries, manifest = build(

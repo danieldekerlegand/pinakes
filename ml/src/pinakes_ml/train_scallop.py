@@ -1,7 +1,7 @@
 """CLI: train the rule-guided link predictor, compare to the PyKEEN baseline.
 
 Reproducer for Phase-5 US-003 (the Scallop pilot's core). Run from ``ml/`` (the
-run is local-only — it needs the DVC-tracked embeddings/splits/queries)::
+run is local-only — it needs the git-ignored embeddings/splits/queries)::
 
     uv run python -m pinakes_ml.train_scallop
     # or the console script:
@@ -15,7 +15,7 @@ held-out ``test`` split; runs the pilot's top-1 predictions through the tier-2
 logical-consistency checker; logs everything to MLflow; and upserts the
 side-by-side comparison block into ``docs/ml-baselines.md`` (helped / hurt /
 neutral verdict vs the pure-PyKEEN baseline). A run summary is written to the
-git-ignored ``ml/artifacts/scallop-pilot/`` (reproducible from the config + DVC
+git-ignored ``ml/artifacts/scallop-pilot/`` (reproducible from the config + the
 data, so it is not committed — same stance as the QLoRA pipeline).
 
 The equivalent scallopy ``minmaxprob`` program is emitted by
@@ -136,12 +136,13 @@ def main(argv: list[str] | None = None) -> int:
     if not embeddings_path.exists():
         parser.error(
             f"embeddings not found: {embeddings_path}\n"
-            "They are DVC-tracked — run `uv run --project ml dvc pull` (or train the "
-            "baselines with `uv run pinakes-train-baselines`) first."
+            "They are a git-ignored build output — train the baselines "
+            "with `uv run pinakes-train-baselines` first."
         )
     if not (triples_dir / "test.tsv").exists():
         parser.error(
-            f"triples splits not found in {triples_dir} (DVC-tracked; `dvc pull`)."
+            f"triples splits not found in {triples_dir} "
+            "(git-ignored — rebuild it first)."
         )
 
     import numpy as np
@@ -225,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
         num_ranks=metrics.num_ranks,
     )
 
-    # Run summary (git-ignored — reproducible from config + DVC data).
+    # Run summary (git-ignored — reproducible from config + the data tree).
     args.artifacts_dir.mkdir(parents=True, exist_ok=True)
     summary = {
         "config": config.to_dict(),

@@ -20,9 +20,7 @@ venv/
 
 # Generated data — never committed. A corpus is regenerable from the category
 # specs and is published as release artifacts instead (see docs/storage.md).
-# `/out/*` (not `/out/`) so git can still descend into out/ to track the DVC
-# pointer + DVC-managed .gitignore for the DVC-tracked pinakes-full build.
-/out/*
-!/out/pinakes-full.dvc
-!/out/.gitignore
+# That includes the `out/pinakes-full` build (formerly DVC-pinned — see
+# docs/artifact-versioning.md).
+/out/
 .http-cache/

@@ -13,16 +13,16 @@ grounding ablation) and the committed prompt contract — and writes the small
 files that turn a 1.9 GB binary into something someone else can run:
 ``model-manifest.json``, ``prompt-contract.json``, the frozen eval set,
 ``LICENSE-NOTES.md`` and a bundle ``README.md``, all beside the GGUF in
-``ml/models/slm-pilot/`` so one ``dvc pull ml/models`` delivers the lot.
+``ml/models/slm-pilot/`` so one copy of ``ml/models`` delivers the lot.
 
 **The eval set is rebuilt in process**, never copied out of ``ml/data`` — the
 same builder, seed and split the training pipeline uses — so the bundle works in
-a fresh worktree with no ``dvc pull``, and its sha256 is by construction the one
+a fresh worktree with no model build, and its sha256 is by construction the one
 every score in the manifest was measured on.
 
 ``--check`` is the re-verification gate and it runs in CI: it rebuilds the eval
 set and compares it to the committed manifest's ``evalSetSha256`` (a real gate,
-fixture-driven, no DVC corpus needed), then — only if the bundle tree is actually
+fixture-driven, no corpus build needed), then — only if the bundle tree is actually
 materialised — re-hashes every file against the manifest's inventory.
 
 Runbook: ``docs/slm-insimul-runbook.md``.
@@ -55,7 +55,7 @@ from pinakes_ml.slm_handoff import (
     verify_bundle,
 )
 from pinakes_ml.slm_pilot import build_eval_set
-from pinakes_ml.train_slm import read_dvc_md5
+from pinakes_ml.train_slm import hash_data_tree
 
 _ML_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = _ML_ROOT / "configs" / "slm-pilot-3b.json"
@@ -195,9 +195,9 @@ def main(argv: list[str] | None = None) -> int:
     if gguf is not None and not gguf["exists"]:
         # Not fatal: the manifest still records the identity the parity check
         # measured, and `--check` will report the file as missing. A worktree
-        # without `dvc pull ml/models` is the common case.
+        # without a materialised `ml/models` tree is the common case.
         print(f"NOTE     {gguf_name} is not materialised here — recording the "
-              "identity from the parity report; `dvc pull ml/models` to verify.")
+              "identity from the parity report; rebuild `ml/models` to verify.")
         gguf = None
 
     manifest = build_model_manifest(
@@ -205,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
         baseline=baseline,
         contract=contract,
         gguf=gguf,
-        dataset_dvc_md5=read_dvc_md5(Path(args.base_dir) / config.dvc_file),
+        dataset_hash=hash_data_tree(Path(args.base_dir) / config.data_dir),
         context_size=DEFAULT_CONTEXT_SIZE,
         gpu_layers=DEFAULT_GPU_LAYERS,
         ml_root=str(Path(args.base_dir).resolve()),
@@ -260,7 +260,7 @@ def _check(
         return 1
     print(f"ok       eval set reproduces: {eval_sha256[:12]}…")
     if not bundle_dir.exists():
-        print(f"NOTE     {bundle_dir} is not materialised (`dvc pull ml/models` "
+        print(f"NOTE     {bundle_dir} is not materialised (rebuild it "
               "to verify the files themselves) — hashes NOT checked.")
         return 0
     problems = verify_bundle(manifest, bundle_dir)
@@ -316,7 +316,7 @@ def _log_to_mlflow(manifest: dict) -> None:  # pragma: no cover - local-only
         mlflow.log_param("baseModel", manifest["model"]["baseModel"])
         mlflow.log_param("ggufSha256", manifest["model"]["sha256"])
         mlflow.log_param("evalSetSha256", dataset.get("evalSetSha256", ""))
-        mlflow.log_param("dataDvcMd5", dataset.get("dataDvcMd5", ""))
+        mlflow.log_param("dataHash", dataset.get("dataHash", ""))
         mlflow.log_param(
             "baseModelLicense", manifest["license"]["baseModel"]["licenseId"]
         )
