@@ -32,7 +32,7 @@ export interface WordScrapingResult {
 
 /**
  * Word List Scraper - scrapes translations for a language using various data sources
- * Writes results to per-language TSV files in lexicons/[language-id].tsv
+ * Writes results to per-language TSV files in data/source/lexicons/[language-id].tsv
  */
 export class WordListScraper {
   private linguisticAPI: LinguisticAPIService;
@@ -76,7 +76,7 @@ export class WordListScraper {
       jobId,
     } = options;
 
-    const centralWordsPath = "lexicons/words.tsv";
+    const centralWordsPath = "data/source/lexicons/words.tsv";
     const outputPath = centralWordsPath; // Now using central file
 
     // Update job status to running

@@ -72,14 +72,14 @@ If there are still stories with `passes: false`, end your response normally (ano
 
 ## Project: pinakes — Commands, Conventions & Gotchas
 
-A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.tsv` is the source of truth; no Postgres/Drizzle in the live path). The Python data/correlation engine **pinakes-engine is vendored** at `engine/` (no nested `.git` — commits go to this monorepo). The authoritative integration design is `docs/engine-integration.md`.
+A TypeScript/React/Vite + Express app with **TSV-first storage** (`data/source/lexicons/*.tsv` is the source of truth; no Postgres/Drizzle in the live path). The Python data/correlation engine **pinakes-engine is vendored** at `engine/` (no nested `.git` — commits go to this monorepo). The authoritative integration design is `docs/engine-integration.md`.
 
 ### Quality-check commands by area
 
 - **Web app** (`web/`, `server/`, `contracts/` — React 18 + Vite + Express + vitest)
   - Typecheck: `npm run check` (runs `tsc`) — must be clean for the files you touched.
   - Tests (scope to the area you changed, e.g. a file or dir): `npx vitest run <path-you-touched>`
-  - Run the app: `npm run dev`; with the graph sidecar + Neo4j: `npm run dev:full` (see docker-compose.yml, .env.example).
+  - Run the app: `npm run dev`; with the graph sidecar + Neo4j: `npm run dev:full` (see infra/docker-compose.yml, .env.example).
 - **pinakes-engine sidecar** (`engine/`, Python ≥3.11) — run from that directory:
   - Types: `python -m mypy src` · Tests: `python -m pytest` · Lint: `python -m ruff check .`
   - Network is mocked against fixtures in tests — no live network / no live Neo4j.
@@ -89,7 +89,7 @@ A TypeScript/React/Vite + Express app with **TSV-first storage** (`lexicons/*.ts
 ### Conventions & gotchas (read before editing)
 
 - **Keep `main` clean.** Each PRD runs on its `ralph/<feature>` branch created from `main`. Never commit directly to `main`.
-- **TSV is the source of truth.** Data lives in `lexicons/*.tsv`, loaded by `server/tsv-storage.ts`. Prefer extending TSV + loaders over introducing a database.
+- **TSV is the source of truth.** Data lives in `data/source/lexicons/*.tsv`, loaded by `server/tsv-storage.ts`. Prefer extending TSV + loaders over introducing a database.
 - **The explorer is adapter-driven.** New datasets become a `DatasetAdapter` in `web/src/lib/visualization/adapters/` (declare dimensions; the generic visualizations follow). Don't hand-build per-dataset panels.
 - **Shared graph = correlation system-of-record.** Relational/graph queries go through Neo4j (via the graph app-integration work) + pinakes-engine's Datalog; keep CPU-domain compute (linguistic distance, etymology) in TS. See `docs/engine-integration.md`.
 - **pinakes-engine is vendored, not upstream-linked.** Python-side convergence work lives under `engine/`; use its own toolchain (mypy/pytest/ruff).

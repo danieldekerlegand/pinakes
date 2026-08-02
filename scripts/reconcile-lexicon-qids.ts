@@ -22,7 +22,7 @@
  * network-free replay source — CI never hits Wikidata. `--apply` reads that artifact and fills
  * the **blank** `wikidata_qid` cell (plus full provenance) on each accepted row via the established
  * enrichment write-back (`import-from-engine.buildEnrichment`), which only ever fills blanks
- * and reports (never resolves) a conflict — so no curated cell is clobbered and `lexicons/*.tsv`
+ * and reports (never resolves) a conflict — so no curated cell is clobbered and `data/source/lexicons/*.tsv`
  * stays the human-owned source of truth. Rerunning the acquire step is idempotent; rerunning
  * `--apply` is a no-op (the qid cell is now non-blank).
  *
@@ -30,7 +30,7 @@
  *   npx tsx scripts/reconcile-lexicon-qids.ts [--file <lexicon.tsv>] [--limit N] [--min-batch N]
  *       → query Wikidata, (re)write scripts/data/lexicon-qid-candidates.tsv
  *   npx tsx scripts/reconcile-lexicon-qids.ts --apply [--overwrite]
- *       → apply the accepted anchors from the committed artifact into lexicons/*.tsv
+ *       → apply the accepted anchors from the committed artifact into data/source/lexicons/*.tsv
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -46,7 +46,7 @@ import {
 } from "./import-from-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 /** Committed, deterministic candidates artifact — the network-free replay source of truth. */

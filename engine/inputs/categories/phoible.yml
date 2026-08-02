@@ -9,7 +9,7 @@
 # ("language X has phoneme /p/"), so a row lands as its own **Phoneme** attribute-fact
 # node keyed by the language's **glottocode** (field.language_code). The reconciler
 # (schema/typology_reconcile.py) joins those facts to the Glottolog-anchored Language
-# nodes / lexicons/languages.tsv by glottocode (then ISO 639-3).
+# nodes / data/source/lexicons/languages.tsv by glottocode (then ISO 639-3).
 #
 # Mappings (denormalised CLDF column -> canonical field, docs/data-model.md):
 #   Segment     -> name           (the phoneme itself, e.g. "m" — the node's name IS

@@ -12,7 +12,7 @@
 > the neurosymbolic roadmap and
 > [`docs/engine-fork-policy.md`](./engine-fork-policy.md).
 
-The expanded civilizations (`lexicons/civilizations.tsv`, 170 rows after US-003) loaded
+The expanded civilizations (`data/source/lexicons/civilizations.tsv`, 170 rows after US-003) loaded
 into the live Neo4j graph via the incremental, idempotent `pinakes_engine to-neo4j
 --mode loadcsv` path, so the running app queries real breadth. The load is `MERGE`-on-`csid`
 (never `CREATE`) behind an `Entity.csid` uniqueness constraint plus per-label constraints/
@@ -38,8 +38,8 @@ also map to `:Culture`):
 npx tsx scripts/export-for-engine.ts
 #    → Exported 5432 nodes (17 types) + 5526 edges (7 types)
 
-# 2. Bring up Neo4j with APOC + absolute file:// CSV import (see docker-compose.yml)
-docker compose up -d neo4j          # `graph` profile; healthy in ~12s (APOC auto-fetched)
+# 2. Bring up Neo4j with APOC + absolute file:// CSV import (see infra/docker-compose.yml)
+docker compose -f infra/docker-compose.yml up -d neo4j          # `graph` profile; healthy in ~12s (APOC auto-fetched)
 
 # 3. Incremental, idempotent LOAD CSV against the running DB
 cd engine
@@ -48,7 +48,7 @@ uv run pinakes_engine to-neo4j ../../build/corpus --mode loadcsv
 #    → applied 37 constraint/index statement(s) and ran 24 LOAD CSV statement(s)  (~19s)
 ```
 
-### docker-compose Neo4j additions this enabled (`docker-compose.yml`, `neo4j` service)
+### docker-compose Neo4j additions this enabled (`infra/docker-compose.yml`, `neo4j` service)
 
 The stock `neo4j:5` service could **not** run the `loadcsv` path. This story wired it:
 
@@ -101,8 +101,8 @@ same `MERGE`-on-`csid` load) left the graph unchanged:
 
 ## Reproduce
 
-`docker compose up -d neo4j` → `npx tsx scripts/export-for-engine.ts` → the
+`docker compose -f infra/docker-compose.yml up -d neo4j` → `npx tsx scripts/export-for-engine.ts` → the
 `to-neo4j --mode loadcsv` + `neo4j-counts` commands above. Corpus (`build/corpus`)
-and the graph volume are regenerable and gitignored; only `docker-compose.yml` and this
+and the graph volume are regenerable and gitignored; only `infra/docker-compose.yml` and this
 doc are committed. See the roadmap §15 and `engine/docs/convergence-build.md`.
 </content>

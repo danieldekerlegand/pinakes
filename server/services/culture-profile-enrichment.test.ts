@@ -24,7 +24,7 @@ vi.mock("@google/generative-ai", () => ({
   },
 }));
 
-const LEXICONS_DIR = "lexicons";
+const LEXICONS_DIR = "data/source/lexicons";
 const TARGET_FILES = [
   "culture-profiles.tsv",
   "daily-life.tsv",
@@ -44,10 +44,10 @@ describe("culture-profile-enrichment", () => {
   let tmpLexicons: string;
 
   // This service APPENDS to the lexicon TSVs it is pointed at, so it must never be pointed
-  // at `lexicons/` from a test. Each case gets a throwaway copy of the four target files;
+  // at `data/source/lexicons/` from a test. Each case gets a throwaway copy of the four target files;
   // the previous snapshot-the-real-corpus-and-restore-it approach only held as long as
   // every run reached its afterEach, and one interrupted run committed generated rows into
-  // `lexicons/daily-life.tsv`. See the note on `lexiconsDir()` in the service.
+  // `data/source/lexicons/daily-life.tsv`. See the note on `lexiconsDir()` in the service.
   beforeEach(() => {
     mockGenerateContent.mockReset();
     tmpLexicons = fs.mkdtempSync(path.join(os.tmpdir(), "culture-enrichment-lexicons-"));

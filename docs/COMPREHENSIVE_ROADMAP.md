@@ -28,7 +28,7 @@ pinakes is evolving from a linguistic database into a **comprehensive world cult
 #### Core Language Infrastructure
 | Feature | Status | Files |
 |---------|--------|-------|
-| Language families/languages database | ✅ Complete | `lexicons/families.tsv` (74KB), `lexicons/languages.tsv` (138KB) |
+| Language families/languages database | ✅ Complete | `data/source/lexicons/families.tsv` (74KB), `data/source/lexicons/languages.tsv` (138KB) |
 | Hierarchical family tree visualization | ✅ Complete | `LanguageTreeView.tsx` |
 | Force-directed network graph | ✅ Complete | `LanguageNetworkView.tsx` |
 | Timeline view with BCE/CE support | ✅ Complete | `LanguageTimelineView.tsx` |
@@ -78,10 +78,10 @@ pinakes is evolving from a linguistic database into a **comprehensive world cult
 #### Raw Data Files (Not Yet Integrated)
 | File | Content | Location |
 |------|---------|----------|
-| `haplogroups.txt` | ✅ Converted to `lexicons/haplogroups.tsv` | `/data/` |
+| `haplogroups.txt` | ✅ Converted to `data/source/lexicons/haplogroups.tsv` | `/data/` |
 | `proto-languages.txt` | Reconstructed ancestral languages | `/data/` |
 | `native_migrations.txt` | Population movement data | `/data/` |
-| `top_100_foods_by_cuisine.csv` | ✅ Converted to `lexicons/cuisines.tsv` | `/data/` |
+| `top_100_foods_by_cuisine.csv` | ✅ Converted to `data/source/lexicons/cuisines.tsv` | `/data/` |
 | `language_contact_phenomena.csv` | Substrate/superstrate data | `/data/` |
 
 ### � Remaining Gaps
@@ -204,7 +204,7 @@ Before expanding to all domains, implement **one complete domain end-to-end** wi
 
 #### 0.5.1 Complete Cuisine Implementation
 
-- [x] Convert `top_100_foods_by_cuisine.csv` → `lexicons/cuisines.tsv` + `cuisine-items.tsv`
+- [x] Convert `top_100_foods_by_cuisine.csv` → `data/source/lexicons/cuisines.tsv` + `cuisine-items.tsv`
 - [x] Implement TSV loader for cuisines
 - [x] Add temporal validity fields (when cuisine emerged)
 - [x] Create cuisine map layer with regional markers (`CuisineLayer.tsx`)
@@ -255,11 +255,11 @@ The `/data/` directory has valuable data not yet connected.
 
 | File | Integration Target |
 |------|-------------------|
-| `haplogroups.txt` | ✅ `lexicons/haplogroups.tsv` (62 entries) |
-| `proto-languages.txt` | New `lexicons/proto-languages.tsv` |
-| `native_migrations.txt` | New `lexicons/migrations.tsv` |
-| `top_100_foods_by_cuisine.csv` | ✅ `lexicons/cuisines.tsv` + `lexicons/cuisine-items.tsv` |
-| `language_contact_phenomena.csv` | New `lexicons/language-contact.tsv` |
+| `haplogroups.txt` | ✅ `data/source/lexicons/haplogroups.tsv` (62 entries) |
+| `proto-languages.txt` | New `data/source/lexicons/proto-languages.tsv` |
+| `native_migrations.txt` | New `data/source/lexicons/migrations.tsv` |
+| `top_100_foods_by_cuisine.csv` | ✅ `data/source/lexicons/cuisines.tsv` + `data/source/lexicons/cuisine-items.tsv` |
+| `language_contact_phenomena.csv` | New `data/source/lexicons/language-contact.tsv` |
 
 **Tasks:**
 - [x] Create parser scripts for each format (`scripts/convert-haplogroups.js`)
@@ -332,12 +332,12 @@ Add new cultural domains beyond language and archaeology.
 
 #### 3.1 Music & Performing Arts 🎵 ✅ COMPLETE
 
-**Schema: `lexicons/music-traditions.tsv`**
+**Schema: `data/source/lexicons/music-traditions.tsv`**
 ```
 id | name | region | time_period_start | time_period_end | associated_language_ids | instruments | scales | rhythmic_patterns | related_traditions | sources
 ```
 
-**Schema: `lexicons/musical-instruments.tsv`**
+**Schema: `data/source/lexicons/musical-instruments.tsv`**
 ```
 id | name | instrument_family | origin_region | time_origin | construction_materials | playing_technique | associated_traditions | sources
 ```
@@ -350,17 +350,17 @@ id | name | instrument_family | origin_region | time_origin | construction_mater
 
 #### 3.2 Religion & Mythology 🕌 ✅ COMPLETE
 
-**Schema: `lexicons/religions.tsv`**
+**Schema: `data/source/lexicons/religions.tsv`**
 ```
 id | name | religion_type | origin_region | time_origin | sacred_texts | associated_language_ids | deity_pantheon | ritual_practices | sources
 ```
 
-**Schema: `lexicons/mythologies.tsv`**
+**Schema: `data/source/lexicons/mythologies.tsv`**
 ```
 id | name | associated_religion_id | mythology_type | creation_narratives | hero_cycles | cosmology | sources
 ```
 
-**Schema: `lexicons/oral-traditions.tsv`**
+**Schema: `data/source/lexicons/oral-traditions.tsv`**
 ```
 id | name | tradition_type | associated_language_ids | transmission_method | key_narratives | cultural_significance | sources
 ```
@@ -373,12 +373,12 @@ id | name | tradition_type | associated_language_ids | transmission_method | key
 
 #### 3.3 Social Organization & Kinship 👥
 
-**Schema: `lexicons/kinship-systems.tsv`**
+**Schema: `data/source/lexicons/kinship-systems.tsv`**
 ```
 id | name | system_type | descent_rule | residence_pattern | marriage_rules | terminology_type | associated_language_ids | sources
 ```
 
-**Schema: `lexicons/social-structures.tsv`**
+**Schema: `data/source/lexicons/social-structures.tsv`**
 ```
 id | name | structure_type | stratification | political_organization | economic_base | associated_civilization_ids | sources
 ```
@@ -390,12 +390,12 @@ id | name | structure_type | stratification | political_organization | economic_
 
 #### 3.4 Visual Arts & Architecture 🏛️
 
-**Schema: `lexicons/art-styles.tsv`**
+**Schema: `data/source/lexicons/art-styles.tsv`**
 ```
 id | name | style_period | region | time_period_start | time_period_end | characteristics | influences | associated_civilization_ids | sources
 ```
 
-**Schema: `lexicons/architectural-traditions.tsv`**
+**Schema: `data/source/lexicons/architectural-traditions.tsv`**
 ```
 id | name | tradition_type | region | structural_elements | materials | associated_civilization_ids | notable_examples | sources
 ```
@@ -407,7 +407,7 @@ id | name | tradition_type | region | structural_elements | materials | associat
 
 #### 3.5 Traditional Dress & Textiles 👘
 
-**Schema: `lexicons/traditional-dress.tsv`**
+**Schema: `data/source/lexicons/traditional-dress.tsv`**
 ```
 id | name | region | associated_culture_ids | garment_types | materials | symbolism | occasions | sources
 ```
@@ -419,12 +419,12 @@ id | name | region | associated_culture_ids | garment_types | materials | symbol
 
 #### 3.6 Economic Systems & Trade 💰
 
-**Schema: `lexicons/economic-systems.tsv`**
+**Schema: `data/source/lexicons/economic-systems.tsv`**
 ```
 id | name | system_type | subsistence_pattern | trade_goods | currency_type | market_structures | time_period | sources
 ```
 
-**Schema: `lexicons/trade-goods.tsv`**
+**Schema: `data/source/lexicons/trade-goods.tsv`**
 ```
 id | name | good_type | origin_regions | trade_routes | time_period | cultural_significance | sources
 ```

@@ -194,7 +194,7 @@ inert). US-003 raises the matched share to **2,461 (36.7%)** via two levers:
    `retrieved_at`, `confidence` from the `exact-reconciled` rubric class on the file's own
    scale, `sources`) through the established enrichment write-back
    (`import-from-engine.buildEnrichment`) — blanks only, a differing curated cell is a
-   reported conflict never clobbered. `lexicons/*.tsv` stays the human-owned source of truth.
+   reported conflict never clobbered. `data/source/lexicons/*.tsv` stays the human-owned source of truth.
 
 ### Refresh procedure
 

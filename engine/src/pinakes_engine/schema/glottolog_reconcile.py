@@ -1,4 +1,6 @@
-"""Reconcile the Glottolog languoid corpus against ``lexicons/languages.tsv``.
+"""Reconcile the Glottolog languoid corpus against the curated language lexicon.
+
+(``data/source/lexicons/languages.tsv``.)
 
 Glottolog is the authoritative language-identity source, so a languoid it ingests
 often already exists in pinakes's curated lexicon. This module classifies each
@@ -127,7 +129,7 @@ def read_language_lexicon(
     glottocode_column: str = "glottocode",
     iso_column: str = "iso639_2",
 ) -> list[LexiconLanguage]:
-    """Load ``lexicons/languages.tsv`` as the existing side of the reconciliation.
+    """Load ``data/source/lexicons/languages.tsv`` as the existing side.
 
     Mints an alias-anchored ``csid`` from each row's ``id`` (falling back to the
     name) so a matched Glottolog node points at a stable lexicon identity, and reads
@@ -234,7 +236,8 @@ def render_markdown(summary: ReconciliationSummary) -> str:
         f"# Reconciliation report — {s.domain}",
         "",
         "Two-key offline cascade (`reconcile_glottolog`): each Glottolog languoid is "
-        "classified against the existing `lexicons/languages.tsv` by **glottocode "
+        "classified against the existing `data/source/lexicons/languages.tsv` by "
+        "**glottocode "
         "first**, then **ISO 639-3**. A code shared by more than one lexicon row is "
         "**ambiguous** and is never auto-merged.",
         "",

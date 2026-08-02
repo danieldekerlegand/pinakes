@@ -126,8 +126,8 @@ export class LanguageFamilyScraperTSV {
         progressCallback("progress", "Writing to TSV files...");
       }
 
-      await tsvWriter.writeLanguageFamilyTSV(allFamilies, "lexicons/families.tsv");
-      await tsvWriter.writeLanguageTSV(allLanguages, "lexicons/languages.tsv");
+      await tsvWriter.writeLanguageFamilyTSV(allFamilies, "data/source/lexicons/families.tsv");
+      await tsvWriter.writeLanguageTSV(allLanguages, "data/source/lexicons/languages.tsv");
 
       // Update job status to completed
       this.updateJobStatus(jobId, {

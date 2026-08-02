@@ -197,7 +197,7 @@ export type CultureProfile = {
 // Row shapes for the geospatial layers, consumed by the record → GeoJSON
 // converters in web/src/lib/visualization/geospatial-transformers.ts. The
 // live loaders in server/tsv-storage.ts build the GeoJSON `*Feature` types in
-// web/src/lib/visualization/geospatial-types.ts directly from `lexicons/*.tsv`.
+// web/src/lib/visualization/geospatial-types.ts directly from `data/source/lexicons/*.tsv`.
 // ============================================================================
 
 export type LanguageRange = {

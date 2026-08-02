@@ -29,7 +29,7 @@ interface ScrapedBattle {
   warName: string;
 }
 
-const BATTLES_FILE = "lexicons/battles.tsv";
+const BATTLES_FILE = "data/source/lexicons/battles.tsv";
 
 const BATTLE_HEADERS = [
   "id",

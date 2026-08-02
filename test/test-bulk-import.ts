@@ -7,7 +7,7 @@ import {
   getImportTargets,
 } from "../server/services/bulk-import";
 
-const TEST_DIR = path.resolve("lexicons/.test-import");
+const TEST_DIR = path.resolve("data/source/lexicons/.test-import");
 let passed = 0;
 let failed = 0;
 
@@ -81,7 +81,7 @@ async function testBulkImportAppend() {
 
   // Create a test TSV file in the actual lexicons dir
   const testFile = "test-import-append.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(
       testPath,
@@ -115,7 +115,7 @@ async function testBulkImportDuplicateSkip() {
   console.log("\nbulkImport (duplicate skip):");
 
   const testFile = "test-import-dup.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(
       testPath,
@@ -145,7 +145,7 @@ async function testBulkImportReplace() {
   console.log("\nbulkImport (replace mode):");
 
   const testFile = "test-import-replace.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(
       testPath,
@@ -176,7 +176,7 @@ async function testBulkImportCSV() {
   console.log("\nbulkImport (CSV input):");
 
   const testFile = "test-import-csv.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(testPath, "id\tname\tregion\n", "utf8");
 
@@ -200,7 +200,7 @@ async function testBulkImportColumnMapping() {
   console.log("\nbulkImport (column reordering):");
 
   const testFile = "test-import-reorder.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(testPath, "id\tname\tregion\n", "utf8");
 
@@ -225,7 +225,7 @@ async function testBulkImportPartialColumns() {
   console.log("\nbulkImport (partial columns):");
 
   const testFile = "test-import-partial.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(testPath, "id\tname\tregion\n", "utf8");
 
@@ -269,7 +269,7 @@ async function testBulkImportValidation() {
 
   // No matching columns
   const testFile = "test-import-nomatch.tsv";
-  const testPath = path.resolve("lexicons", testFile);
+  const testPath = path.resolve("data", "source", "lexicons", testFile);
   try {
     await fs.promises.writeFile(testPath, "id\tname\tregion\n", "utf8");
 
@@ -345,7 +345,7 @@ async function main() {
     await cleanup();
 
     // Clean up any backup dirs created during tests
-    const backupDir = path.resolve("lexicons/.backups");
+    const backupDir = path.resolve("data/source/lexicons/.backups");
     await fs.promises.rm(backupDir, { recursive: true, force: true }).catch(() => {});
   } catch (error) {
     console.error("\nUnexpected error:", error);

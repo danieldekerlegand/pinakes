@@ -7,7 +7,7 @@ import {
   type TrustTier,
 } from "@contracts/trust-tier";
 
-const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../lexicons");
+const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../data/source/lexicons");
 
 export interface FieldQuality {
   column: string;
@@ -70,7 +70,7 @@ export interface TierBucket {
  * Corpus composition **by trust tier** (US-004). Every pinakes lexicon row
  * is human-curated, so in the shared graph the whole app corpus occupies the
  * `curated` tier ({@link CorpusTierReport.graphTier}) — auto-admission never
- * writes `lexicons/*.tsv`. What varies, and what this report tracks over time, is
+ * writes `data/source/lexicons/*.tsv`. What varies, and what this report tracks over time, is
  * **auto-admission readiness**: {@link CorpusTierReport.byTier} classifies each
  * curated node row by its *intrinsic* provenance via {@link classifyTrustTier}
  * (would it auto-admit to the graph on its own merits — QID-anchored AND

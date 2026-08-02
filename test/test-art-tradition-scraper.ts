@@ -143,12 +143,12 @@ async function testScraperHelpers() {
 
   // Test 1: TSV file existence
   console.log("1. Verifying TSV files exist:");
-  assert(fs.existsSync("lexicons/art-traditions.tsv"), "art-traditions.tsv exists");
-  assert(fs.existsSync("lexicons/art-style-evolutions.tsv"), "art-style-evolutions.tsv exists");
+  assert(fs.existsSync("data/source/lexicons/art-traditions.tsv"), "art-traditions.tsv exists");
+  assert(fs.existsSync("data/source/lexicons/art-style-evolutions.tsv"), "art-style-evolutions.tsv exists");
 
   // Test 2: TSV file structure - art traditions
   console.log("\n2. Verifying art-traditions.tsv structure:");
-  const artContent = fs.readFileSync("lexicons/art-traditions.tsv", "utf8");
+  const artContent = fs.readFileSync("data/source/lexicons/art-traditions.tsv", "utf8");
   const artLines = artContent.split("\n").filter((l) => l.trim());
   const artHeader = artLines[0].split("\t");
   assert(artHeader.includes("id"), "Has id column");
@@ -168,7 +168,7 @@ async function testScraperHelpers() {
 
   // Test 3: TSV file structure - style evolutions
   console.log("\n3. Verifying art-style-evolutions.tsv structure:");
-  const evoContent = fs.readFileSync("lexicons/art-style-evolutions.tsv", "utf8");
+  const evoContent = fs.readFileSync("data/source/lexicons/art-style-evolutions.tsv", "utf8");
   const evoLines = evoContent.split("\n").filter((l) => l.trim());
   const evoHeader = evoLines[0].split("\t");
   assert(evoHeader.includes("id"), "Has id column");

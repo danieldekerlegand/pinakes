@@ -52,14 +52,14 @@ Stack: `docker compose` Neo4j 5 + pinakes-engine sidecar (both serving the
 corpus**. `dev:full` builds the sidecar on its bundled 9-node demo fixture
 (`CORPUS` default) while US-004 loads the pinakes export into Neo4j — so the
 smoke's cross-backend `node/:id` check 404s (a sidecar csid absent from Neo4j).
-Fix wired here: `docker-compose.yml` mounts the gitignored `build/corpus`
+Fix wired here: `infra/docker-compose.yml` mounts the gitignored `build/corpus`
 at `/corpus:ro`; bring the stack up with
 
 ```
-CULTURESCRAPE_CORPUS=/corpus docker compose up -d pinakes_engine neo4j
+CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j
 ```
 
 so both backends read the same bare `nodes/`+`edges/` corpus. The default stays
-the demo fixture so a bare `docker compose up` still starts with no export built.
+the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still starts with no export built.
 
 See also `docs/civilizations-neo4j-load.md` (US-004), `docs/engine-integration.md`.

@@ -66,7 +66,7 @@ export default function DataOverview() {
             Data Overview
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            All datasets stored as TSV/CSV files in the lexicons/ directory
+            All datasets stored as TSV/CSV files in the data/source/lexicons/ directory
           </p>
         </div>
 

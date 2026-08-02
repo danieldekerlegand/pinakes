@@ -1,4 +1,6 @@
-"""Tests for reconciling the Glottolog corpus against ``lexicons/languages.tsv``.
+"""Tests for reconciling the Glottolog corpus against the curated language lexicon.
+
+(``data/source/lexicons/languages.tsv``.)
 
 Network-free: both sides are tiny on-disk TSV fixtures written to ``tmp_path``.
 Covers the two loaders (glottocode + ISO-from-overflow on the corpus side; csid

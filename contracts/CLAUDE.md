@@ -12,7 +12,7 @@ Code here is imported by both `server/` and `web/` (alias `@contracts/*`).
   (`engine/.../schema/headers.py`). Prose + mapping tables live in
   `docs/canonical-schema.md`.
 - `lexicon-mapping.json` (US-002) is the machine-readable **lexicon → canonical** map:
-  every `lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
+  every `data/source/lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
   per-column disposition (`target` canonical field / `edge` type / `property` / `drop`).
   Consume via `@contracts/lexicon-mapping` (`lexiconMappingByFile`, `nodeFiles`, `edgeFiles`,
   `assertValidLexiconMapping`). US-003 (`server/services/canonical-edges.ts`) reads the `edge`
@@ -21,7 +21,7 @@ Code here is imported by both `server/` and `web/` (alias `@contracts/*`).
   vocabularies (e.g. `evolved-into`, `substrate`) are aligned to canonical edge types by the
   local `EDGE_TYPE_VALUE_MAPS` there. US-004 (export) reads `target`/`property`. Totality vs the
   live TSVs is enforced by the test, which
-  reads headers from `resolve(process.cwd(), "lexicons")` and compares **unique** column names
+  reads headers from `resolve(process.cwd(), "data", "source", "lexicons")` and compares **unique** column names
   (some source headers, e.g. `words-base.tsv`, have duplicate columns).
 - **US-004 export** (`scripts/export-for-engine.ts`) consumes the node `target`/`property`
   dispositions here + `server/services/canonical-edges` to emit `build/corpus/` canonical
@@ -62,7 +62,7 @@ Code here is imported by both `server/` and `web/` (alias `@contracts/*`).
   detail/explorer panels + `global-search.ts` (`graphHitTier` on graph hits, local hits are
   `curated` by definition); and `server/services/data-quality-scorer.ts` (`computeCorpusTiers` /
   `buildCorpusTierReport`) reports corpus composition by tier.
-- **GOTCHA — the app corpus is entirely `curated`.** Auto-admission never writes `lexicons/*.tsv`,
+- **GOTCHA — the app corpus is entirely `curated`.** Auto-admission never writes `data/source/lexicons/*.tsv`,
   so every exported lexicon row is `source=pinakes` → `curated` in the graph. The corpus-tier
   report therefore tracks **auto-admission readiness** (classify each curated node row by its own
   provenance, `source` omitted → `auto-admitted` iff QID + `source_url`, else `quarantine`) — the
@@ -190,7 +190,7 @@ governs how you edit it:
   identifiers; renaming one here would fork the registry permanently and fail the
   byte-for-byte drift gate. A rename has to be upstreamed to koine and re-vendored. So the
   publish-readiness proof-grep for closed-sibling identifiers scopes **out** the vendored
-  mirror and its test, along with `lexicons/`, `data/`, and cultural fixtures (where
+  mirror and its test, along with `data/source/lexicons/`, `data/`, and cultural fixtures (where
   `Analyzer`/`cuneiform`/`Rosetta` are domain content, not project names).
 - **Two axes, not one** (registryVersion ≥ 0.3.0): per-entry `dialect` (`grounding-only` ⊂
   `horn-safe` ⊂ `full-prolog` — what a consumer may *evaluate*) and `egress` (`exportable` /

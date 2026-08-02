@@ -78,7 +78,7 @@ import {
 } from "./export-entity-grounding.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the live-corpus Insimul pack. */
 export const INSIMUL_PACK_DIR = path.join(EXPORT_DIR, "insimul-grounding");

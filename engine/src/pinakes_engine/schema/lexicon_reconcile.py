@@ -2,14 +2,15 @@
 
 A domain expansion (e.g. the civilizations pilot, ``docs/prd`` §15) acquires many
 rows from Wikidata and must fold them into the corpus **without duplicating** the
-entities pinakes already curates in ``lexicons/<domain>.tsv``. The decision
+entities pinakes already curates in ``data/source/lexicons/<domain>.tsv``. The decision
 logic is :func:`reconcile_pinakes`'s offline cascade — language code, then
 exact ``(name, type, region)``, then fuzzy name — which classifies every acquired
 row *matched* (already curated → merge, keep provenance), *new* (stands as its own
 node), or *ambiguous* (rival curated rows → never auto-merged, held for triage).
 
 This module is the thin data layer around that cascade: two loaders (a canonical
-node TSV produced by ``pinakes_engine run``; a raw ``lexicons/*.tsv`` file) and a
+node TSV produced by ``pinakes_engine run``; a raw ``data/source/lexicons/*.tsv``
+file) and a
 serialisable :class:`ReconciliationSummary` (counts + bounded samples) suitable for
 a committed report. It adds no matching logic of its own.
 """
@@ -97,7 +98,7 @@ def read_lexicon_nodes(
     id_column: str = "id",
     region_column: str | None = None,
 ) -> list[Row]:
-    """Load a raw ``lexicons/*.tsv`` file as existing-corpus reconciler rows.
+    """Load a raw ``data/source/lexicons/*.tsv`` as existing-corpus reconciler rows.
 
     Mints a QID-free ``csid`` from the row's name (``cs:<node_type>:<slug>``) so
     the existing rows carry the identity anchor the merge keeps, tags every row

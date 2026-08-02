@@ -303,7 +303,7 @@ export class UnderrepresentedVocabScraper {
     }
 
     const totalLanguages = allLanguages.length;
-    const centralWordsPath = "lexicons/words.tsv";
+    const centralWordsPath = "data/source/lexicons/words.tsv";
     const result: UnderrepresentedScrapingResult = {
       familiesProcessed: new Set(allLanguages.map((l) => l.familyId)).size,
       languagesProcessed: 0,

@@ -36,7 +36,7 @@ import {
 } from "@contracts/lexicon-mapping";
 import { confidenceForClass } from "@contracts/confidence-rubric";
 
-const LEXICONS_DIR = path.resolve("lexicons");
+const LEXICONS_DIR = path.resolve("data", "source", "lexicons");
 
 /**
  * Confidence assigned to an edge whose source row carries no confidence value.

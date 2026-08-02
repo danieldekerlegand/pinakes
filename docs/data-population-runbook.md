@@ -57,7 +57,7 @@ Write the survivors to a committed additions TSV (pilot pattern:
 `confidence`, `sources`). Pilot yield after curation was **~1.7%** of the raw acquired set —
 expect single-digit-percent yields, and log what you dropped.
 
-### 6. Write-back — append into `lexicons/*.tsv` (never clobber curation)
+### 6. Write-back — append into `data/source/lexicons/*.tsv` (never clobber curation)
 
 Append the curated additions into the domain's lexicon via
 `scripts/import-from-engine.ts` (the pilot used `--add-cultures`). It is
@@ -66,7 +66,7 @@ run adds 0 and leaves the file byte-identical. A curated cell that differs is a 
 — *reported, never silently overwritten*. Enrichment write-back (filling blanks on existing
 rows) uses `buildWriteBack`; it skips ambiguous ids (see `scripts/CLAUDE.md` §write-back).
 
-**After any `lexicons/*.tsv` row/column change, regenerate the committed snapshots** or their
+**After any `data/source/lexicons/*.tsv` row/column change, regenerate the committed snapshots** or their
 live-corpus parity tests fail:
 
 ```bash
@@ -107,7 +107,7 @@ CI enforces both sides via `.github/workflows/convergence-qa.yml`.
 
 Load the expanded corpus into Neo4j (`pinakes_engine to-neo4j --mode loadcsv`) and verify
 counts (`pinakes_engine neo4j-counts`); the load is idempotent (MERGE on `csid`). `loadcsv`
-needs real infra, not a bare `docker compose up` — see pilot §6.2 and `docker-compose.yml`.
+needs real infra, not a bare `docker compose -f infra/docker-compose.yml up` — see pilot §6.2 and `infra/docker-compose.yml`.
 Confirm the live app renders the new rows (`npm run dev:full`, `npm run smoke:graph` with the
 sidecar + Neo4j on the **same** corpus — pilot §6.3).
 

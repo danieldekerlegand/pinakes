@@ -1,4 +1,6 @@
-"""Tests for reconciling WALS / PHOIBLE facts against ``lexicons/languages.tsv``.
+"""Tests for reconciling WALS / PHOIBLE facts against the curated language lexicon.
+
+(``data/source/lexicons/languages.tsv``.)
 
 Network-free: both sides are tiny on-disk TSV fixtures written to ``tmp_path``. Covers
 the fact-node loader (glottocode from ``language_code``, ISO from ``lang``, licence,

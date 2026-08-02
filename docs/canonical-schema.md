@@ -64,7 +64,7 @@ Each node type has a kebab-case canonical `name` and a PascalCase Neo4j `:LABEL`
 | `migration-route` | `MigrationRoute` | A route of human or cultural migration |
 
 The vocabulary is **extensible** — add an entry to `nodeTypes` in the JSON (and a row
-here). US-002 maps every `lexicons/*.tsv` onto one of these types.
+here). US-002 maps every `data/source/lexicons/*.tsv` onto one of these types.
 
 ## 2. Edge types
 
@@ -283,7 +283,7 @@ acquire scripts re-emit and the snapshots are regenerated.
 
 ## 6. Per-lexicon mapping table (US-002)
 
-The mapping from each of the 57 `lexicons/*.tsv` to a canonical node/edge type is ratified
+The mapping from each of the 57 `data/source/lexicons/*.tsv` to a canonical node/edge type is ratified
 here and, machine-readably, in [`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json)
 (typed accessors in `contracts/lexicon-mapping.ts`; totality + real-column checks in
 `contracts/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
@@ -503,7 +503,7 @@ The export (§7) is the **outbound** leg (lexicons → canonical → graph).
 [`scripts/import-from-engine.ts`](../scripts/import-from-engine.ts) is the
 **return** leg: it reads the *enriched* canonical node TSVs pinakes-engine hands back
 (graph-derived values, filled gaps) and writes those facts into the lexicon rows they came
-from, so the two stores do not drift and `lexicons/*.tsv` stays a complete,
+from, so the two stores do not drift and `data/source/lexicons/*.tsv` stays a complete,
 graph-independent source of truth. Run it with `npx tsx scripts/import-from-engine.ts`
 (add `--overwrite` to apply graph values over curated ones; see below).
 `buildWriteBack(canonicalDir, lexiconsDir)` is pure; `writeWriteBack` / `runWriteBack` touch
@@ -513,7 +513,7 @@ the filesystem. The report lands at `build/corpus/writeback/report.json` (gitign
 
 - **Join key = `pinakes_id`.** A canonical node is matched back to a lexicon row by the
   original pinakes id (the reverse of the §7 csid minting). Only canonical fields with a
-  real reverse `lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
+  real reverse `data/source/lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
   writeable ("where a canonical→lexicon mapping exists").
 - **Enrichment (gap fill).** A *blank* lexicon cell for which the graph supplies a value is
   filled. This is the only edit applied by default.
@@ -595,7 +595,7 @@ a schema-drift check.
   a **renamed canonical column** surfaces here as a mapping `target` pointing at a field that no
   longer exists;
 - `canonical-column-missing` — a canonical **provenance** column the export writes disappeared;
-- `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `contracts/lexicon-mapping.json`;
+- `unmapped-lexicon-file` — a `data/source/lexicons/*.tsv` on disk that is not in `contracts/lexicon-mapping.json`;
 - `missing-source-column` — a mapped column that no longer exists in its live TSV header.
 
 **2. Attribution** (`detectAttributionGaps`) — every **acquisition-imported** row must carry full

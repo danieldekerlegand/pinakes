@@ -110,7 +110,7 @@ export interface WiktionaryScrapeOptions {
  */
 class WiktionaryPhonologyScraper {
   private static isScraping = false;
-  private readonly filePath = "lexicons/phonological-inventories.tsv";
+  private readonly filePath = "data/source/lexicons/phonological-inventories.tsv";
   private readonly headers = [
     "id",
     "language_id",

@@ -14,7 +14,8 @@ Like :mod:`pinakes_engine.datalog.constraints`, this is the datalog boundary and
 **self-contained**: it reads a committed, provenanced replay artifact
 (:data:`EDGE_CONSTRAINTS_TSV`) rather than reaching out to the TypeScript-side schema
 at runtime. :func:`extract_edge_constraints` compiles that artifact from
-``contracts/canonical-schema.json`` when the monorepo checkout is present (resolving each
+``contracts/canonical-schema.json`` when the monorepo checkout is present
+(resolving each
 node-type *name* — ``culture`` — to its ``:LABEL`` — ``Culture`` — so the datalog reader
 translates from resolved labels alone); a test ties the two together, the same pattern
 the taxonomy and property-constraint extractors use.

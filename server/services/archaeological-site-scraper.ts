@@ -413,7 +413,7 @@ export class ArchaeologicalSiteScraper {
     const {
       pleiadesIds = NOTABLE_PLEIADES_IDS,
       includeUnesco = true,
-      tsvPath = "lexicons/archaeological-sites.tsv",
+      tsvPath = "data/source/lexicons/archaeological-sites.tsv",
       progressCallback,
     } = options;
 

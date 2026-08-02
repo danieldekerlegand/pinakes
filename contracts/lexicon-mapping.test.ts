@@ -11,9 +11,9 @@ import {
 } from "./lexicon-mapping.ts";
 import { CANONICAL_DELIMITER } from "./canonical-schema.ts";
 
-const LEXICONS_DIR = resolve(process.cwd(), "lexicons");
+const LEXICONS_DIR = resolve(process.cwd(), "data", "source", "lexicons");
 
-/** Every `*.tsv` currently in lexicons/. */
+/** Every `*.tsv` currently in data/source/lexicons/. */
 function lexiconFilesOnDisk(): string[] {
   return readdirSync(LEXICONS_DIR)
     .filter((f) => f.endsWith(".tsv"))
@@ -32,7 +32,7 @@ describe("lexicon → canonical mapping (US-002)", () => {
     expect(() => assertValidLexiconMapping()).not.toThrow();
   });
 
-  it("is total: every lexicons/*.tsv is mapped and nothing extra", () => {
+  it("is total: every data/source/lexicons/*.tsv is mapped and nothing extra", () => {
     const onDisk = new Set(lexiconFilesOnDisk());
     const mapped = new Set(mappedFiles());
     // Files present on disk but missing from the mapping.

@@ -10,7 +10,7 @@
  * - `PATCH /api/ai-review/:id`       — submit per-field accept/edit/reject
  *                                      decisions + approve|reject. On approve the
  *                                      accepted draft is **promoted** into the
- *                                      appropriate `lexicons/*.tsv` with
+ *                                      appropriate `data/source/lexicons/*.tsv` with
  *                                      provenance (AI source + human reviewer).
  *
  * `ContributionService` and `lexiconsDir` are injectable so tests use a temp
@@ -33,7 +33,7 @@ import {
 
 export interface AiReviewRouteOptions {
   contributions?: ContributionService;
-  /** Directory holding `lexicons/*.tsv` (default: repo `lexicons`). */
+  /** Directory holding `data/source/lexicons/*.tsv` (default: repo `data/source/lexicons`). */
   lexiconsDir?: string;
   /** Changelog store — an approved promotion is logged here (US-010). */
   changelog?: ChangelogStore;
@@ -41,7 +41,7 @@ export interface AiReviewRouteOptions {
 
 export function registerAiReviewRoutes(app: Express, options: AiReviewRouteOptions = {}): void {
   const contributions = options.contributions ?? new ContributionService();
-  const lexiconsDir = options.lexiconsDir ?? path.resolve("lexicons");
+  const lexiconsDir = options.lexiconsDir ?? path.resolve("data", "source", "lexicons");
   const changelog = options.changelog ?? new ChangelogStore();
 
   /**

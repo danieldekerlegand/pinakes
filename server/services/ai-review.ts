@@ -7,7 +7,7 @@
  * module turns those drafts into a **field-level review** model — a human can
  * accept / edit / reject each field before commit, low-confidence fields are
  * flagged — and, on approval, **promotes** the accepted draft into the
- * appropriate `lexicons/*.tsv` with provenance recording BOTH the AI source and
+ * appropriate `data/source/lexicons/*.tsv` with provenance recording BOTH the AI source and
  * the human reviewer.
  *
  * Everything here is pure over an injectable `lexiconsDir` (+ a `now` clock), so
@@ -209,7 +209,7 @@ export function validateAcceptedDraft(
 }
 
 // ============================================================================
-// Promotion to lexicons/*.tsv
+// Promotion to data/source/lexicons/*.tsv
 // ============================================================================
 
 export interface PromotionRecord {
@@ -373,7 +373,7 @@ function appendRow(filePath: string, header: string[], cells: Record<string, str
 }
 
 /**
- * Promote an accepted AI draft into the appropriate `lexicons/*.tsv` and record
+ * Promote an accepted AI draft into the appropriate `data/source/lexicons/*.tsv` and record
  * provenance (AI source + human reviewer) in a companion ledger. Returns the
  * promotion record. Throws `AiReviewError` for a non-promotable entity type or
  * when a required field is missing.

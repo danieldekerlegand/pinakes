@@ -8,7 +8,8 @@ They enrich language nodes but are not themselves a genealogy, so the join to th
 Glottolog-anchored languages is a **reconciliation**, not a graph descent edge.
 
 This module rolls the facts up **per language** and classifies each distinct language
-against ``lexicons/languages.tsv`` by the same **glottocode-first, then ISO 639-3**
+against ``data/source/lexicons/languages.tsv`` by the same **glottocode-first,
+then ISO 639-3**
 cascade the Glottolog reconciler uses (reused here via
 :func:`~pinakes_engine.schema.glottolog_reconcile.reconcile_glottolog`), and reports the
 **coverage** the acceptance asks for: how many facts, of which licence class, over how
@@ -229,7 +230,8 @@ def render_markdown(coverage: TypologyCoverage) -> str:
         "WALS structural features and PHOIBLE phoneme inventories ingested via the "
         "tabular-dump adapter as language-keyed **attribute facts** (categories "
         "`wals.yml` / `phoible.yml`). Each distinct language is reconciled against "
-        "`lexicons/languages.tsv` by the **glottocode-first, then ISO 639-3** cascade "
+        "`data/source/lexicons/languages.tsv` by the **glottocode-first, then ISO "
+        "639-3** cascade "
         "(`reconcile_glottolog`); a code shared by more than one lexicon row is "
         "**ambiguous** and is never auto-merged.",
         "",

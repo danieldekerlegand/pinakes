@@ -44,7 +44,7 @@ const TSV_HEADERS = [
 
 class GrammarEnrichmentService {
   private static isScraping = false;
-  private readonly filePath = "lexicons/grammar-features.tsv";
+  private readonly filePath = "data/source/lexicons/grammar-features.tsv";
 
   private updateJobStatus(
     jobId: string | undefined,

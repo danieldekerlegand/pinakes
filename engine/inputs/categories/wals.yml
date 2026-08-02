@@ -10,7 +10,7 @@
 # language* ("language X has feature F = value V"), so a row lands as its own
 # **Typology** attribute-fact node keyed by the language's **glottocode**
 # (field.language_code). The reconciler (schema/typology_reconcile.py) joins those
-# facts to the Glottolog-anchored Language nodes / lexicons/languages.tsv by glottocode
+# facts to the Glottolog-anchored Language nodes / data/source/lexicons/languages.tsv by glottocode
 # (then ISO 639-3) — the join is a reconciliation, not a graph descent edge, because
 # typology facts do not by themselves yield linguistic *edges* (docs/sources-linguistic.md).
 #

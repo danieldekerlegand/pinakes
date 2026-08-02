@@ -6,7 +6,7 @@
  * source-of-truth TSVs — the authored entry lands in the *contribution queue*
  * (via `ContributionService.submit`) with provenance
  * `entityData.source = 'user-authored'`, so a human reviewer promotes it into
- * `lexicons/culture-events.tsv` later (US-009).
+ * `data/source/lexicons/culture-events.tsv` later (US-009).
  *
  * Two entry kinds are supported (matching the acceptance criteria — "events,
  * period markers, and date ranges"):

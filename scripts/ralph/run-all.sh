@@ -87,7 +87,7 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 #                                 richer hydration, incremental updates, scale report.
 #                                 OPERATOR: US-001 needs provisioned disk/bandwidth (see PRD).
 #   - tiered-trust-corpus:        Phase 3b — confidence rubric, auto-admission graph corpus
-#                                 (never writes lexicons/), QID backfill, tier surfacing.
+#                                 (never writes data/source/lexicons/), QID backfill, tier surfacing.
 #   - source-breadth-cldf:        Phase 4a — Glottolog/WALS/PHOIBLE/Lexibank/kaikki ingestion,
 #                                 license-partitioned packaging.
 #   - rules-layer:                Phase 4b — P279 taxonomy, P2302 property constraints, schema

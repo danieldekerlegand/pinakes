@@ -6,11 +6,11 @@ import type { Language } from "@contracts/types";
 
 /**
  * Service for enriching phonological inventories for languages using Google Gemini AI.
- * Writes to lexicons/phonological-inventories.tsv in TSV format with JSON-encoded fields.
+ * Writes to data/source/lexicons/phonological-inventories.tsv in TSV format with JSON-encoded fields.
  */
 class PhonologyEnrichmentService {
   private static isScraping = false;
-  private readonly filePath = "lexicons/phonological-inventories.tsv";
+  private readonly filePath = "data/source/lexicons/phonological-inventories.tsv";
   private readonly headers = [
     "id",
     "language_id",

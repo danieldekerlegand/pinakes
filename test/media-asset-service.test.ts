@@ -203,7 +203,7 @@ describe("TsvStorage media asset loading", () => {
     const { TsvStorage } = await import("../server/tsv-storage");
     const tsvStorage = new TsvStorage();
     const assets = await tsvStorage.getMediaAssets();
-    // Should load from actual lexicons/media-assets.tsv
+    // Should load from actual data/source/lexicons/media-assets.tsv
     expect(Array.isArray(assets)).toBe(true);
     expect(assets.length).toBeGreaterThan(0);
     expect(assets[0]).toHaveProperty("id");

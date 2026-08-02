@@ -1,7 +1,7 @@
 # Civilizations write-back (US-003)
 
 Curated, reconciliation-**new** civilizations appended into the source-of-truth
-`lexicons/civilizations.tsv` via `scripts/import-from-engine.ts --add-cultures`.
+`data/source/lexicons/civilizations.tsv` via `scripts/import-from-engine.ts --add-cultures`.
 Existing human-curated rows are never rewritten (append-only), so no curated cell can be
 clobbered. Re-running is idempotent (dedup by `wikidata_qid` → normalised name → id).
 
@@ -27,7 +27,7 @@ clobbered. Re-running is idempotent (dedup by `wikidata_qid` → normalised name
 | conflicts (id collision) | 0 |
 | rows before → after | 89 → **170** |
 
-`lexicons/civilizations.tsv` now holds **170** distinct civilizations (target: 150+).
+`data/source/lexicons/civilizations.tsv` now holds **170** distinct civilizations (target: 150+).
 
 ### By verified class
 

@@ -289,7 +289,7 @@ export class VerbParadigmScraper {
   /**
    * Write new paradigm entries to verb-paradigms.tsv, appending to existing data.
    */
-  async writeParadigms(entries: VerbParadigmEntry[], tsvPath = "lexicons/verb-paradigms.tsv"): Promise<number> {
+  async writeParadigms(entries: VerbParadigmEntry[], tsvPath = "data/source/lexicons/verb-paradigms.tsv"): Promise<number> {
     if (entries.length === 0) return 0;
 
     const existingContent = fs.existsSync(tsvPath)
@@ -345,7 +345,7 @@ export class VerbParadigmScraper {
 
   private loadExistingParadigmKeys(): Set<string> {
     const keys = new Set<string>();
-    const tsvPath = "lexicons/verb-paradigms.tsv";
+    const tsvPath = "data/source/lexicons/verb-paradigms.tsv";
 
     if (!fs.existsSync(tsvPath)) return keys;
 

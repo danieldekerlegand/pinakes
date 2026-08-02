@@ -47,7 +47,7 @@ data-layer-convergence work (US-001…US-008) closed each gap; the code lives un
 | Layer | pinakes-engine | pinakes today | Status |
 |---|---|---|---|
 | **Identity** | `csid` derived from Wikidata QID + reconciliation cascade (`wikidata_qid → getty_id → language code → normalized(name,type,region) → fuzzy`) | `id`, `iso639_1`, `iso639_2` on languages; opaque ids elsewhere; **no QIDs** | **DONE** — csid QID-anchored `cs:<node-type>:<QID>` when a row carries a `wikidata_qid`, else `cs:<node-type>:<pinakes-id>` (US-005); `pinakes_id` kept as round-trip alias; reconciliation keys (ISO codes; normalized name/type/region) emitted by `scripts/reconciliation-report.ts`. |
-| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `contracts/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
+| **Entity schema** | `nodes/<type>.tsv`, typed Neo4j headers (`csid:ID`, `:LABEL`) | 57 domain TSVs (`languages.tsv`, `archaeological-cultures.tsv`, …) | **DONE** — every one of the 57 `data/source/lexicons/*.tsv` mapped to a canonical node/edge type (or `attribute`/`excluded`) in `contracts/lexicon-mapping.json` (US-002); export writes `nodes/<node-type>.tsv` (US-004). |
 | **Edges** | `edges/<type>.tsv` (`:START_ID`,`:END_ID`,`:TYPE`,`time_start:int`,`confidence:float`) | `cultural-lineages.tsv` = `source_id,target_id,relationship_type,time_start,time_end,confidence,evidence_types,sources`; archaeological cultures carry `predecessor/successor_culture_ids`; families carry `parent_id`; languages carry `family_id`/`parent_language_id` | **DONE** — `server/services/canonical-edges.ts` extracts edges from the whole-file edge tables **and** embedded FK columns; export writes `edges/<edge-type>.tsv` (US-003/US-004). |
 | **Provenance** | every row: `source,source_url,source_query,retrieved_at,confidence` | `confidence` + `sources` on lineages/cultures only | **DONE** — all four provenance columns stamped on **every** node and edge; `source="pinakes"`; citations preserved in `source_query`; URLs never fabricated; per-type coverage in the export manifest (US-006). |
 | **Store / correlation** | Neo4j (graph) + Datalog (`.pl`/`.dl` inference rules) | in-memory TS (`cross-domain-correlation.ts`, `genetic-linguistic-correlation.ts`, relationship scoring) | **Data ready** — export is `neo4j-admin import`-clean; loading into Neo4j + migrating correlation to Cypher/Datalog is the Python side (`engine/`) + `graph-app-integration`. CPU-domain compute stays TS. |
@@ -77,7 +77,7 @@ across pinakes's embedded FK columns too.
 
 - **One canonical model, one reconciliation cascade, one provenance model, one correlation
   store.** TSV stays the portable, git-diffable source of truth on both sides.
-- pinakes-engine's `tabular.py` already ingests arbitrary TSV/CSV, so pinakes's `lexicons/`
+- pinakes-engine's `tabular.py` already ingests arbitrary TSV/CSV, so pinakes's `data/source/lexicons/`
   become **just another acquisition source**.
 - pinakes queries the shared graph two ways: **Neo4j TS driver** for relational/graph
   traversal, and the **FastAPI proxy** for full-text search and Datalog inference consoles.
@@ -133,7 +133,7 @@ The data-layer-convergence PRD delivered these artifacts. Each is specified in a
 | Story | Capability | Code | Spec |
 |---|---|---|---|
 | US-001 | Canonical node/edge schema (17 node types, 14 edge types), identity + provenance columns | `contracts/canonical-schema.json` (+ `.ts` types/validators) | §1–§5 |
-| US-002 | Mapping of all 57 `lexicons/*.tsv` → canonical node/edge type, per-column disposition | `contracts/lexicon-mapping.json` (+ `.ts`) | §6 |
+| US-002 | Mapping of all 57 `data/source/lexicons/*.tsv` → canonical node/edge type, per-column disposition | `contracts/lexicon-mapping.json` (+ `.ts`) | §6 |
 | US-003 | Edge extraction from whole-file edge tables + embedded FK columns | `server/services/canonical-edges.ts` | §6.4 |
 | US-004 | Export lexicons to canonical `nodes/*.tsv` + `edges/*.tsv` (idempotent, import-clean) | `scripts/export-for-engine.ts` | §7 |
 | US-005 | Reconciliation keys + dry-run bucket report (matched / ambiguous / likely-new) | `scripts/reconciliation-report.ts` | §8 |
@@ -151,7 +151,7 @@ tree itself is gitignored (regenerate with the CLIs below).
 The round trip, with the exact command and artifact at each hop:
 
 ```
- lexicons/*.tsv  (source of truth, human-curated)
+ data/source/lexicons/*.tsv  (source of truth, human-curated)
       │
       │ 1. EXPORT   npx tsx scripts/export-for-engine.ts
       ▼
@@ -171,7 +171,7 @@ The round trip, with the exact command and artifact at each hop:
       │
       │ 5. WRITE-BACK  npx tsx scripts/import-from-engine.ts  [--overwrite]
       ▼   reads enriched canonical nodes/*.tsv → fills blank lexicon cells (gap-fill only)
- lexicons/*.tsv   (enriched; conflicts reported, never silently resolved)
+ data/source/lexicons/*.tsv   (enriched; conflicts reported, never silently resolved)
 
  GATE (any time, CI):  npx tsx scripts/convergence-qa.ts   # exits 1 on schema/id drift
 ```
@@ -192,7 +192,7 @@ The round trip, with the exact command and artifact at each hop:
 
 ## 9. Add a new pinakes domain to the graph
 
-To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
+To bring a new (or newly-relevant) `data/source/lexicons/<file>.tsv` into the shared graph:
 
 1. **Map the file** in [`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json): add an
    entry with a `kind` (`node` / `edge` / `attribute` / `excluded`) and, for a `node`/`edge`
@@ -206,7 +206,7 @@ To bring a new (or newly-relevant) `lexicons/<file>.tsv` into the shared graph:
    `edge` disposition and, if the target `:TYPE` value vocabulary is free-text, add it to the
    `EDGE_TYPE_VALUE_MAPS` in `server/services/canonical-edges.ts` (US-003).
 4. **Run the mapping validator:** `npx vitest run contracts/lexicon-mapping.test.ts` — it asserts
-   totality (all `lexicons/*.tsv` accounted for) and that every referenced column is real.
+   totality (all `data/source/lexicons/*.tsv` accounted for) and that every referenced column is real.
 5. **Regenerate the export & snapshots:**
    `npx tsx scripts/export-for-engine.ts` then
    `npx tsx scripts/reconciliation-report.ts`, and refresh the committed snapshots
@@ -422,16 +422,16 @@ down (see the degradation contract in §10b).
 - **Just the services** — `npm run sidecar:up` (build + start `pinakes_engine` + `neo4j`) and
   `npm run sidecar:down`. Useful when running the app from an IDE.
 
-`docker-compose.yml` defines two services: `pinakes_engine` (built from `engine/`,
+`infra/docker-compose.yml` defines two services: `pinakes_engine` (built from `engine/`,
 port **8800**) and `neo4j` (`neo4j:5`, HTTP **7474** / Bolt **7687**). Neo4j sits behind the
-`graph` compose profile (it is heavy) so a bare `docker compose up` starts only the sidecar; the
-scripts above name both services explicitly, or use `docker compose --profile graph up`. Verify
+`graph` compose profile (it is heavy) so a bare `docker compose -f infra/docker-compose.yml up` starts only the sidecar; the
+scripts above name both services explicitly, or use `docker compose -f infra/docker-compose.yml --profile graph up`. Verify
 reachability: `curl -sf http://localhost:8800/` (sidecar) and open `http://localhost:7474`
 (Neo4j browser).
 
 > ⚠️ **The `pinakes_engine` image currently does not build** — the embedded agora translation
 > engine is vendored as a macOS/arm64-only wheel that `pip` cannot install into a linux image.
-> The full reasoning is at the top of [`engine/Dockerfile`](../engine/Dockerfile); unblocking it
+> The full reasoning is at the top of [`infra/engine.Dockerfile`](../infra/engine.Dockerfile); unblocking it
 > needs a portable artifact from `agora:60`. Until then, `npm run dev:full` / `sidecar:up`
 > bring up **Neo4j only** and the sidecar-backed routes degrade per §10b. To run the sidecar
 > locally without Docker: `cd engine && uv sync --all-extras && uv run pinakes_engine serve

@@ -92,10 +92,10 @@ pinakes/
 | `core/inputs/` | `engine/inputs/` | moves with the engine |
 | `client/` | `web/` | stays TS; root TS configs move in with it — **done** (20 US-2) |
 | `shared/` | `contracts/` | + generated Python bindings — move **done** (20 US-2); bindings still to come |
-| `lexicons/` (top-level) | `data/source/lexicons/` | free to move now (readers rewritten) |
+| `lexicons/` (top-level) | `data/source/lexicons/` | move **done** (20 US-3); readers' path literals rewritten in place |
 | `scripts/` (TS) | `tooling/` | heavily culled; acquisition scripts fold into the engine |
 | `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed — `export/culturescrape` → `build/corpus` **done** (20 US-1) |
-| `docker-compose.yml`, Dockerfiles | `infra/` | |
+| `docker-compose.yml`, Dockerfiles | `infra/` | **done** (20 US-3) — `infra/{docker-compose.yml,engine.Dockerfile}`; invoke compose from the repo root with `-f` |
 | Drizzle/pg, DVC (`.dvc/`, `*.dvc`) | *(deleted)* | vestigial / stranded |
 
 ## 5. Target runtime architecture

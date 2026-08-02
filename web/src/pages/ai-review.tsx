@@ -4,7 +4,7 @@
  * `/ai-review` lists AI-generated drafts (from the URL extractor US-004 and the
  * text extractor US-008) and lets a human accept / edit / reject each field
  * before commit. Low-confidence fields are highlighted. Approving promotes the
- * accepted draft into the live dataset (server-side, `lexicons/*.tsv`) with
+ * accepted draft into the live dataset (server-side, `data/source/lexicons/*.tsv`) with
  * provenance recording both the AI source and the reviewer; rejecting drops it.
  */
 import { useMemo, useState } from "react";

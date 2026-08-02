@@ -124,7 +124,7 @@ export function registerRelationshipSuggestionRoutes(
   app: Express,
   options: SuggestionRouteOptions = {},
 ): void {
-  const lexiconsDir = options.lexiconsDir ?? path.resolve("lexicons");
+  const lexiconsDir = options.lexiconsDir ?? path.resolve("data", "source", "lexicons");
   const loadEntities = options.loadEntities ?? defaultLoadEntities;
   const loadExistingEdges =
     options.loadExistingEdges ?? defaultLoadExistingEdges(lexiconsDir);

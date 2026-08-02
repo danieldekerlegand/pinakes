@@ -22,11 +22,11 @@ record a merged corpus's node/edge counts by label/`:TYPE` when no server is up;
 non-idempotent result (exit 1) means duplicate csids or duplicate edge keys the
 stitch failed to collapse.
 
-## Running `loadcsv` against the dockerized Neo4j (repo `docker-compose.yml`)
+## Running `loadcsv` against the dockerized Neo4j (repo `infra/docker-compose.yml`)
 
-The stock `neo4j:5` service in the repo's `docker-compose.yml` cannot run
+The stock `neo4j:5` service in the repo's `infra/docker-compose.yml` cannot run
 `--mode loadcsv` out of the box — the `neo4j` service now sets four things that the
-loader needs (all committed there, so `docker compose up -d neo4j` is enough):
+loader needs (all committed there, so `docker compose -f infra/docker-compose.yml up -d neo4j` is enough):
 
 - **APOC** (`NEO4J_PLUGINS: '["apoc"]'` + `procedures_unrestricted/_allowlist: "apoc.*"`)
   — nodes use `apoc.create.addLabels`, edges use `apoc.merge.relationship`. Verify with

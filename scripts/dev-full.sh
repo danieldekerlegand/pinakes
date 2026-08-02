@@ -22,12 +22,12 @@ SIDECAR_URL="${CULTURESCRAPE_API_URL:-http://localhost:8800}"
 cleanup() {
   echo ""
   echo "Stopping pinakes-engine sidecar + Neo4j…"
-  docker compose stop pinakes_engine neo4j >/dev/null 2>&1 || true
+  docker compose -f infra/docker-compose.yml stop pinakes_engine neo4j >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
 echo "▶ Starting pinakes-engine sidecar + Neo4j (docker compose)…"
-docker compose up -d --build pinakes_engine neo4j
+docker compose -f infra/docker-compose.yml up -d --build pinakes_engine neo4j
 
 echo "▶ Waiting for the sidecar at ${SIDECAR_URL} …"
 for i in $(seq 1 60); do

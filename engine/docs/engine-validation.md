@@ -118,7 +118,7 @@ divergence), but the tuples are spurious.
 **Filed, not fixed here** (US-002 is the engine-run story; touching lexicon data
 pulls in `export/reconciliation` snapshot regeneration). Fix in a data-hygiene
 pass: drop the `clovis descends_from folsom` edge from its source lexicon
-(`lexicons/cultural-lineages.tsv` / archaeological-culture lineage rows), leaving
+(`data/source/lexicons/cultural-lineages.tsv` / archaeological-culture lineage rows), leaving
 `folsom descends_from clovis`.
 
 ### Finding B — `influenced_by` legitimate cycles (NOT a data error)

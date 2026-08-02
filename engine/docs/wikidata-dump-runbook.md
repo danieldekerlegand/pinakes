@@ -282,7 +282,7 @@ the offline cascade (`reconcile_corpus_against_lexicon`; language code → exact
 
 | corpus (dish) vs curated | matched | new | ambiguous | union distinct |
 | --- | --- | --- | --- | --- |
-| 960 named dish nodes vs `lexicons/cuisines.tsv` (101 rows) | 0 | 960 | 0 | 1,061 |
+| 960 named dish nodes vs `data/source/lexicons/cuisines.tsv` (101 rows) | 0 | 960 | 0 | 1,061 |
 
 The zero-match result is honest and expected: pinakes curates **cuisines**
 (e.g. "Italian cuisine"), not individual dishes, so there is no identity overlap
@@ -420,8 +420,8 @@ Full report: [wikidata-merge-reconciliation.md](wikidata-merge-reconciliation.md
 
 | corpus nodes vs curated lexicon | matched | new | ambiguous |
 | --- | --- | --- | --- |
-| 1,459 `language` nodes vs `lexicons/languages.tsv` (1,099 rows) | 97 | 1,362 | 0 |
-| 221 `deity` nodes vs `lexicons/deities.tsv` (206 rows) | 198 | 23 | 0 |
+| 1,459 `language` nodes vs `data/source/lexicons/languages.tsv` (1,099 rows) | 97 | 1,362 | 0 |
+| 221 `deity` nodes vs `data/source/lexicons/deities.tsv` (206 rows) | 198 | 23 | 0 |
 
 Both domains reconcile with **0 ambiguous** — nothing is auto-merged. The
 languages that overlap the curated set fold on (name, type, region) at 0.95; the

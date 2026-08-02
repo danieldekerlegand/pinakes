@@ -5,7 +5,8 @@ A Lexibank CLDF wordlist (category ``lexibank-abvd.yml``, job ``jobs/lexibank.ym
 is ingested as language-keyed **Wordform** attribute facts, with cognate sets linked
 into ``COGNATE_WITH`` representative stars. This driver runs the **reconcile** step:
 it loads the built wordform nodes, rolls them up per language, classifies each
-distinct language against ``lexicons/languages.tsv`` by a **glottocode-first, then
+distinct language against ``data/source/lexicons/languages.tsv`` by a
+**glottocode-first, then
 ISO 639-3** cascade, and records coverage — forms / distinct languages, by licence
 class, cognate sets / forms-with-cognacy / ``COGNATE_WITH`` edges, matched / new /
 ambiguous languages.
@@ -45,7 +46,7 @@ _REPO_ROOT = _PACKAGE_ROOT.parent
 _CORPUS = _PACKAGE_ROOT / "out" / "lexibank" / "corpus"
 DEFAULT_NODES = _CORPUS / "nodes" / "wordform.tsv"
 DEFAULT_EDGES = _CORPUS / "edges" / COGNATE_EDGE_FILE
-DEFAULT_LEXICON = _REPO_ROOT / "lexicons" / "languages.tsv"
+DEFAULT_LEXICON = _REPO_ROOT / "data" / "source" / "lexicons" / "languages.tsv"
 DEFAULT_OUT_DIR = _PACKAGE_ROOT / "out" / "lexibank" / "reconciliation"
 
 

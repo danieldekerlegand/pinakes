@@ -60,7 +60,7 @@ is CC BY 4.0.
 
 **Why this matters for us.** ShareAlike is copyleft. Our corpus is published under its
 own license/citation columns (schema v1.1); bulk-importing YAGO *facts* into
-`lexicons/`/the corpus would arguably make the redistributed corpus a BY-SA derivative —
+`data/source/lexicons/`/the corpus would arguably make the redistributed corpus a BY-SA derivative —
 a licensing entanglement we should avoid. In contrast, **translating a handful of SHACL
 shapes into our own rule clauses is a transformation into an independent artifact**
 (our Datalog), attributed to YAGO but not a redistribution of YAGO data — much cleaner.

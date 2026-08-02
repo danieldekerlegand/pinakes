@@ -1,5 +1,7 @@
 # pinakes-engine read-only FastAPI explorer (the "sidecar" for pinakes).
-# Built and run by the repo-root docker-compose.yml (service: pinakes_engine).
+# Built and run by the sibling infra/docker-compose.yml (service: pinakes_engine).
+# Its build CONTEXT is `../engine`, not this directory — every COPY below is relative
+# to the engine package root.
 #
 # ---------------------------------------------------------------------------
 # ⚠️ KNOWN BROKEN — this image does not build. Blocked upstream on agora:60.

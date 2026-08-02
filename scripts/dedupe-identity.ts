@@ -30,7 +30,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 interface Rename {
   /** Lexicon file whose node `id` cell is rewritten. */

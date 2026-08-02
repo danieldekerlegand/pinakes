@@ -38,7 +38,7 @@ import path from "node:path";
 import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";

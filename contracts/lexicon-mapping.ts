@@ -4,7 +4,7 @@
  * The machine-readable source of truth is {@link ./lexicon-mapping.json}. This
  * module imports it, pins its shape, and exposes typed accessors the
  * edge-extraction / export / QA code (US-003..US-008) build on. Every
- * `lexicons/*.tsv` is mapped to a canonical `kind`/node type and every source
+ * `data/source/lexicons/*.tsv` is mapped to a canonical `kind`/node type and every source
  * column is given exactly one disposition (canonical field target, embedded
  * edge, retained property, or documented drop).
  *
@@ -41,7 +41,7 @@ export interface LexiconColumnMapping {
   readonly note?: string;
 }
 
-/** The mapping for a single `lexicons/*.tsv`. */
+/** The mapping for a single `data/source/lexicons/*.tsv`. */
 export interface LexiconFileMapping {
   /** Base filename, e.g. `languages.tsv`. */
   readonly file: string;

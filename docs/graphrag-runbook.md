@@ -33,7 +33,7 @@ Three moving parts:
 
    ```bash
    # bring up Neo4j pointed at the built export
-   CULTURESCRAPE_CORPUS=/corpus docker compose up -d neo4j
+   CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d neo4j
    # load the canonical TSV corpus into it (incremental, MERGE-based)
    cd engine
    uv run pinakes_engine to-neo4j ../../build/corpus --mode loadcsv

@@ -14,7 +14,7 @@ Built from the reference slice (`wikidata-20260712-blueprint-slice`, 5,691
 entities) merged with the live pinakes export (`build/corpus`),
 2026-07-12. The built corpus is gitignored; these counts are the committed record.
 
-## language nodes vs `lexicons/languages.tsv`
+## language nodes vs `data/source/lexicons/languages.tsv`
 
 | metric | count |
 | --- | --- |
@@ -35,7 +35,7 @@ Afar, Ahom, …) plus a handful of QID-only rows the slice carried without an
 English label. **0 ambiguous** — no acquired language collided with two rival
 curated rows.
 
-## deity nodes vs `lexicons/deities.tsv`
+## deity nodes vs `data/source/lexicons/deities.tsv`
 
 | metric | count |
 | --- | --- |

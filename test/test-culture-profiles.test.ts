@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
 
-const LEXICONS_DIR = path.join(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = path.join(import.meta.dirname, "..", "data", "source", "lexicons");
 
 function parseTsv(text: string): { header: string[]; rows: string[][] } {
   const lines = text.split("\n").filter((l) => l.trim().length > 0);

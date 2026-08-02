@@ -1,5 +1,26 @@
 # server/ — Express API + TSV loaders
 
+## The corpus is at `data/source/lexicons/` (moved in pinakes:20 US-3)
+
+`lexicons/` is no longer a top-level directory. Every reader here resolves
+`data/source/lexicons` instead, in one of two shapes — match the surrounding file:
+
+- **`tsv-storage.ts`**: ~60 `readFileIfExists("data/source/lexicons/<x>.tsv")` literals,
+  resolved against `process.cwd()` by `readFileOrThrow` (which also falls back to
+  `<cwd>/data/source/lexicons/<basename>`). So **the server must be started from the repo
+  root** — that was already true, the path is just longer now.
+- **services / routes**: a `LEXICONS_DIR` constant, either
+  `path.resolve("data", "source", "lexicons")` (cwd-relative) or
+  `path.resolve(import.meta.dirname, "../../data/source/lexicons")` (file-relative), and on
+  routes an injectable `options.lexiconsDir` defaulting to it. Keep injectability — it is
+  what lets route tests point at a `mkdtempSync` dir.
+
+**A wrong path here fails quietly.** `readFileIfExists` returns `null` and the endpoint
+answers `[]`; `fs.readdirSync` on a missing dir *does* throw, which is why
+`data-quality-scorer.ts` was the one place that caught the miss during the move. When you
+touch these paths, assert on **counts** (`/api/languages` → 1099, `/api/map/civilizations`
+→ 170 features, `/api/data-quality` → 57 files) rather than on a 200.
+
 ## Quality-gate reality (read first)
 
 - **`npm run check` (`tsc`) is now CLEAN — 0 errors — and the gate is STRICT.**
@@ -444,7 +465,7 @@ the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI 
   (**removals ⇒ major, additions ⇒ minor, else patch**) + `nextVersionFromChangelog`,
   and `assembleSnapshotMetadata(exports, opts)` → `DatasetSnapshotMetadata` (version, DOI,
   license, per-dataset + total row/file counts). `buildDatasetSnapshot(options)` orchestrates:
-  it reuses `exportDataset` per profile, so it reads the real `lexicons/` (integration-test it
+  it reuses `exportDataset` per profile, so it reads the real `data/source/lexicons/` (integration-test it
   against the live corpus — assert `metadata.totalRows === sum(files.rowCount)`, not a
   hard-coded count that drifts). Version precedence: explicit `version` › changelog-derived
   (`previousVersion` + `changeCounts`) › `DATASET_RELEASE_VERSION` (`1.0.0`).
@@ -797,7 +818,7 @@ notes (mirrors url-extractor US-004, but multi-entity + LLM):
 
 `/api/ai-review` (US-009) is the **promotion** leg for AI-generated drafts (the URL
 extractor US-004 + text extractor US-008): a human accepts/edits/rejects each field,
-and an approved draft is written into `lexicons/*.tsv` with provenance recording BOTH
+and an approved draft is written into `data/source/lexicons/*.tsv` with provenance recording BOTH
 the AI source and the reviewer. This is where "US-009 promotes" (referenced across the
 extractor notes) actually happens.
 
@@ -1071,7 +1092,7 @@ first-callers share one in-flight build promise), and a `close…()` wired into 
 
 ## Analytical index (DuckDB) — `services/analytical-index.ts`
 
-Runtime, in-memory DuckDB mirror of `lexicons/*.tsv` for **tabular/aggregate**
+Runtime, in-memory DuckDB mirror of `data/source/lexicons/*.tsv` for **tabular/aggregate**
 queries (faceting, `GROUP BY`); graph queries still go to Neo4j. Full contract:
 `docs/analytical-index.md`. Key gotchas:
 

@@ -5,7 +5,8 @@ WALS structural features and PHOIBLE phoneme inventories are ingested (categorie
 ``wals.yml`` / ``phoible.yml``, job ``jobs/typology.yml``) as language-keyed attribute
 facts. This driver runs the **reconcile** step: it loads the built fact nodes and rolls
 them up per language, classifying each distinct language against
-``lexicons/languages.tsv`` by a **glottocode-first, then ISO 639-3** cascade, and
+``data/source/lexicons/languages.tsv`` by a **glottocode-first, then ISO 639-3**
+cascade, and
 records the coverage (facts / languages by node type and by licence class, matched /
 new / ambiguous languages).
 
@@ -46,7 +47,7 @@ DEFAULT_NODE_FILES = {
     "typology": _CORPUS_NODES / "typology.tsv",
     "phoneme": _CORPUS_NODES / "phoneme.tsv",
 }
-DEFAULT_LEXICON = _REPO_ROOT / "lexicons" / "languages.tsv"
+DEFAULT_LEXICON = _REPO_ROOT / "data" / "source" / "lexicons" / "languages.tsv"
 DEFAULT_OUT_DIR = _PACKAGE_ROOT / "out" / "typology" / "reconciliation"
 
 

@@ -1,7 +1,7 @@
 /**
  * Runtime analytical index over the TSV corpus (US-001, tasklist 13 platform-infra).
  *
- * pinakes keeps `lexicons/*.tsv` as the single source of truth (see
+ * pinakes keeps `data/source/lexicons/*.tsv` as the single source of truth (see
  * server/tsv-storage.ts). This module builds a **read-only, in-memory DuckDB**
  * mirror of those TSVs so heavy *tabular* work — facet counts, GROUP BY
  * aggregates, ad-hoc analytical SQL — runs in one indexed pass instead of
@@ -275,11 +275,11 @@ export class AnalyticalIndex {
 let singleton: AnalyticalIndex | null = null;
 let building: Promise<AnalyticalIndex> | null = null;
 
-/** Absolute path to the live `lexicons/` directory. */
+/** Absolute path to the live `data/source/lexicons/` directory. */
 function defaultLexiconsDir(): string {
   return process.env.LEXICONS_DIR
     ? path.resolve(process.env.LEXICONS_DIR)
-    : path.resolve(process.cwd(), "lexicons");
+    : path.resolve(process.cwd(), "data", "source", "lexicons");
 }
 
 /**

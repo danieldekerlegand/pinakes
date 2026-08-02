@@ -73,7 +73,7 @@ Reconciling the committed fixture (`uv run pinakes_engine run jobs/kaikki.yml` t
 
 ### Language reconciliation
 
-Each distinct wordform language is reconciled against `lexicons/languages.tsv` by the
+Each distinct wordform language is reconciled against `data/source/lexicons/languages.tsv` by the
 **ISO 639-3** join (kaikki carries no glottocode, so the glottocode-first cascade falls
 straight to the ISO key). kaikki's `lang_code` is the Wiktionary language code (often ISO
 639-1 / a custom code) rather than 639-3, so a language matches only when its code lands

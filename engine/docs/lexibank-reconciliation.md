@@ -39,7 +39,7 @@ rewrite (`words.tsv` is untouched); the join to the language lexicon is a
   so the licence is keyed on the dataset id, never assumed for the collection. ABVD =
   **`CC-BY-4.0`**. The corpus is queryable by licence class.
 - **Reconciliation** (`pinakes_engine.schema.lexibank_reconcile`) rolls the forms up per
-  language and classifies each distinct language against `lexicons/languages.tsv` by the
+  language and classifies each distinct language against `data/source/lexicons/languages.tsv` by the
   same **glottocode-first, then ISO 639-3** cascade Glottolog/typology use (reused via
   `reconcile_glottolog`). A code shared by >1 lexicon row is **ambiguous** and is
   **never** auto-merged. Connectivity is relaxed (`min_component_fraction: 0.0`): forms

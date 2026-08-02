@@ -181,7 +181,8 @@ def _write_job(
         "reconcile_shared_qids": True,
         # Auto-admission policy (US-002): QID-anchored + reference-backed facts
         # admit with rubric confidence + tier label, weaker acquired facts
-        # quarantine; lexicons/ are never written. Per-tier QA gates default to
+        # quarantine; data/source/lexicons/ are never written. Per-tier QA gates
+        # default to
         # tiers.DEFAULT_TIER_GATES (add a `tier_gates:` block to override).
         "tiered_trust": tiered_trust,
     }

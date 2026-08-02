@@ -20,7 +20,7 @@ name. Ambiguous rows are **never** auto-merged.
 | metric | count |
 | --- | --- |
 | acquired, deduplicated by `wikidata_qid` (corpus `:Culture` nodes) | **4 734** |
-| existing (curated `lexicons/civilizations.tsv`) | 89 |
+| existing (curated `data/source/lexicons/civilizations.tsv`) | 89 |
 | matched (already curated → enrich) | 57 |
 | new (candidates) | 4 677 |
 | ambiguous (held for triage) | 0 |

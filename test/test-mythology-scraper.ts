@@ -88,7 +88,7 @@ async function testScraperModule() {
 async function testDeitiesTsvStructure() {
   console.log("=== Testing deities.tsv Structure ===\n");
 
-  const filePath = path.resolve(__dirname, "../lexicons/deities.tsv");
+  const filePath = path.resolve(__dirname, "../data/source/lexicons/deities.tsv");
   assert(fs.existsSync(filePath), "deities.tsv exists");
 
   const text = fs.readFileSync(filePath, "utf-8");
@@ -170,7 +170,7 @@ async function testDeitiesTsvStructure() {
 async function testMythMotifsTsvStructure(validDeityIds: Set<string>) {
   console.log("=== Testing myth-motifs.tsv Structure ===\n");
 
-  const filePath = path.resolve(__dirname, "../lexicons/myth-motifs.tsv");
+  const filePath = path.resolve(__dirname, "../data/source/lexicons/myth-motifs.tsv");
   assert(fs.existsSync(filePath), "myth-motifs.tsv exists");
 
   const text = fs.readFileSync(filePath, "utf-8");
@@ -272,7 +272,7 @@ async function testMythMotifsTsvStructure(validDeityIds: Set<string>) {
 async function testCrossCulturalLinking() {
   console.log("=== Testing Cross-Cultural Linking ===\n");
 
-  const deitiesPath = path.resolve(__dirname, "../lexicons/deities.tsv");
+  const deitiesPath = path.resolve(__dirname, "../data/source/lexicons/deities.tsv");
   const text = fs.readFileSync(deitiesPath, "utf-8");
   const { header, rows } = parseTsv(text);
 

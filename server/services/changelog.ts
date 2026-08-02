@@ -2,7 +2,7 @@
  * Data versioning & changelog (US-010).
  *
  * A browsable, append-only record of dataset changes — every row added, modified,
- * or removed from `lexicons/*.tsv` — so provenance is auditable over time. The
+ * or removed from `data/source/lexicons/*.tsv` — so provenance is auditable over time. The
  * contribution pipeline logs an entry whenever an approved edit lands (see the
  * `changelog` option on `registerAiReviewRoutes` / `registerContributionRoutes`),
  * and `GET /api/changelog` exposes the log filterable by domain + date.
@@ -31,7 +31,7 @@ export interface ChangelogEntryInput {
   /** Logical domain the change belongs to, e.g. `"civilization"`, `"language"`. */
   domain: string;
   changeType: ChangeType;
-  /** The `lexicons/*.tsv` file the change targets, when known. */
+  /** The `data/source/lexicons/*.tsv` file the change targets, when known. */
   targetFile?: string;
   /** The affected row's id, when known. */
   targetId?: string;

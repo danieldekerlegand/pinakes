@@ -15,7 +15,7 @@
  *                                 required provenance columns (US-006);
  *   * **schema drift**          — the machine-readable canonical schema (US-001) and the
  *                                 lexicon→canonical mapping (US-002) still validate, every
- *                                 `lexicons/*.tsv` on disk is mapped, and every mapped
+ *                                 `data/source/lexicons/*.tsv` on disk is mapped, and every mapped
  *                                 column still exists in its live header.
  *
  * Only **drift** fails the gate: {@link runQA} exits non-zero when the canonical schema
@@ -62,7 +62,7 @@ import {
 } from "./regen-registry-mirror.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the convergence-QA artifact. */
 export const QA_DIR = path.join(EXPORT_DIR, "convergence");
@@ -357,13 +357,13 @@ export function detectDrift(
     }
   }
 
-  // 4. Every lexicons/*.tsv on disk is mapped (US-002 totality); unmapped ⇒ drift.
+  // 4. Every data/source/lexicons/*.tsv on disk is mapped (US-002 totality); unmapped ⇒ drift.
   const mapped = new Set(mappedFiles());
   for (const file of lexiconFilesOnDisk(lexiconsDir)) {
     if (!mapped.has(file)) {
       drift.push({
         kind: "unmapped-lexicon-file",
-        message: `lexicons/${file} is present on disk but not in contracts/lexicon-mapping.json`,
+        message: `data/source/lexicons/${file} is present on disk but not in contracts/lexicon-mapping.json`,
         file,
       });
     }
@@ -381,7 +381,7 @@ export function detectDrift(
     if (missing.length > 0) {
       drift.push({
         kind: "missing-source-column",
-        message: `lexicons/${file}: mapped column(s) absent from the live header: ${missing.join(", ")}`,
+        message: `data/source/lexicons/${file}: mapped column(s) absent from the live header: ${missing.join(", ")}`,
         file,
       });
     }
@@ -617,7 +617,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`## Schema drift`);
   if (report.drift.length === 0) {
     lines.push(`No drift: canonical schema + lexicon mapping validate, every `);
-    lines.push(`\`lexicons/*.tsv\` is mapped, and every mapped column exists.`);
+    lines.push(`\`data/source/lexicons/*.tsv\` is mapped, and every mapped column exists.`);
   } else {
     lines.push(`${report.drift.length} drift issue(s) — the gate fails:`);
     for (const d of report.drift) {

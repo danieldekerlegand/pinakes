@@ -65,7 +65,7 @@ feature's `.properties`. Reuse notes for any map-GeoJSON dataset:
   (`geospatial-types.ts`) is imported by `server/tsv-storage.ts`, so a new
   server-emitted field must be added there as an OPTIONAL property first (else the
   server `tsc` breaks). The loader only emits a provenance column when the header
-  has it — so adding a `lexicons/civilizations.tsv` column is enough.
+  has it — so adding a `data/source/lexicons/civilizations.tsv` column is enough.
 
 ## Shared-graph adapter (`culturescrape.adapter.ts`)
 

@@ -33,7 +33,7 @@ import { nodeTypeByName } from "@contracts/canonical-schema";
 import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Default minimum name similarity (Dice coefficient) for a fuzzy match. */
 export const DEFAULT_FUZZY_THRESHOLD = 0.6;

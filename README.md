@@ -1,7 +1,7 @@
 # pinakes
 
 A TypeScript/React/Vite + Express application for exploring language, culture, and deep
-history through interactive visualizations. Storage is **TSV-first** — `lexicons/*.tsv` is
+history through interactive visualizations. Storage is **TSV-first** — `data/source/lexicons/*.tsv` is
 the source of truth (loaded by `server/tsv-storage.ts`); there is no Postgres/Drizzle in the
 live path.
 
@@ -23,7 +23,7 @@ cp .env.example .env          # fill in API keys / graph config as needed
 
 npm run dev                   # app only (graph features degrade off gracefully)
 npm run dev:full              # app + pinakes-engine sidecar + Neo4j (needs Docker; the
-                              # sidecar image is currently unbuildable — see engine/Dockerfile)
+                              # sidecar image is currently unbuildable — see infra/engine.Dockerfile)
 
 npm run check                 # typecheck (tsc -p web/tsconfig.json)
 npm test                      # the full vitest suite

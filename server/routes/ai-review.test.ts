@@ -96,7 +96,7 @@ describe("GET /api/ai-review", () => {
 });
 
 describe("PATCH /api/ai-review/:id — approve + promote", () => {
-  it("promotes an approved draft into lexicons/*.tsv with reviewer + AI-source provenance", async () => {
+  it("promotes an approved draft into data/source/lexicons/*.tsv with reviewer + AI-source provenance", async () => {
     const draft = seedDraft();
     const { status, body } = await req("PATCH", `/api/ai-review/${draft.id}`, {
       decision: "approved",

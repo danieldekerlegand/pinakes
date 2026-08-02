@@ -3,7 +3,7 @@ import path from "node:path";
 import fetch from "node-fetch";
 import { jobStore } from "./job-store";
 
-const LEXICONS_DIR = path.resolve("lexicons");
+const LEXICONS_DIR = path.resolve("data", "source", "lexicons");
 const CIVILIZATIONS_TSV = path.join(LEXICONS_DIR, "civilizations.tsv");
 
 export interface PolityRecord {

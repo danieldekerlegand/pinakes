@@ -116,8 +116,8 @@ export class TradeGoodsScraper {
       const allRoutes = [...existingRoutes, ...newRoutes];
 
       // Write TSV files
-      await tsvWriter.writeTradeGoodsTSV(allGoods, "lexicons/trade-goods.tsv");
-      await tsvWriter.writeTradeRoutesTSV(allRoutes, "lexicons/trade-routes.tsv");
+      await tsvWriter.writeTradeGoodsTSV(allGoods, "data/source/lexicons/trade-goods.tsv");
+      await tsvWriter.writeTradeRoutesTSV(allRoutes, "data/source/lexicons/trade-routes.tsv");
 
       this.updateJobStatus(jobId, {
         status: "completed",

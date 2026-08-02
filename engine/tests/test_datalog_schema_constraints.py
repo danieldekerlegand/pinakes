@@ -83,7 +83,8 @@ def test_extractor_reproduces_the_committed_artifact() -> None:
         / "edge_constraints.tsv"
     ).read_text(encoding="utf-8")
     assert fresh == committed, (
-        "edge_constraints.tsv drifted from contracts/canonical-schema.json — regenerate it"
+        "edge_constraints.tsv drifted from contracts/canonical-schema.json — "
+        "regenerate it"
     )
 
 

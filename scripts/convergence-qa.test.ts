@@ -23,7 +23,7 @@ import {
 } from "./convergence-qa";
 
 /** The real corpus — the clean baseline the gate must pass on. */
-const REAL_LEXICONS = path.resolve(process.cwd(), "lexicons");
+const REAL_LEXICONS = path.resolve(process.cwd(), "data", "source", "lexicons");
 
 /** Fresh temp dir; caller removes it. */
 function tmpDir(): string {

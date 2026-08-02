@@ -19,7 +19,7 @@ import {
 } from "../server/services/data-quality-scorer";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const JSON_OUT = path.join(REPO_ROOT, "docs", "coverage-report.json");
 const MD_OUT = path.join(REPO_ROOT, "docs", "coverage-report.md");
 

@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 /**
- * Explorer adapter for the civilizations corpus (`lexicons/civilizations.tsv`),
+ * Explorer adapter for the civilizations corpus (`data/source/lexicons/civilizations.tsv`),
  * served as GeoJSON by `/api/map/civilizations`. This is what surfaces the
  * data-population-pilot's expanded civilizations (89 → 170, incl. the Wikidata
  * write-back) in the UnifiedExplorer — with provenance shown in the detail

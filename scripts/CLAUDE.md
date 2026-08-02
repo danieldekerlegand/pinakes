@@ -21,6 +21,11 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
 - Keep the data-transform core **pure over an input dir** (e.g. `buildExport(lexiconsDir)`)
   and put filesystem writes in a thin `writeExport`/`runExport` wrapper — tests then drive
   the core with temp-dir fixtures (`fs.mkdtempSync`) and assert without touching real output.
+- **The corpus lives at `data/source/lexicons/`, not `lexicons/`** (pinakes:20 US-3). The
+  house pattern is `const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons")`
+  as the *default argument* of an otherwise dir-pure function. Never write the path as a
+  bare string literal — a wrong dir does not throw here, it yields an empty file list and a
+  cheerfully green "0 rows, 0 drift" report.
 
 ## Secret scanning (US-003)
 
@@ -113,10 +118,10 @@ non-empty data (`npm run smoke:graph`, docs in
   fixture (the `CORPUS` default) while Neo4j holds the pinakes export
   (loaded by `to-neo4j build/corpus`), the csid doesn't exist in Neo4j and
   the smoke fails. To run a fully green smoke: point the sidecar at the same bare
-  corpus — `docker-compose.yml` mounts the gitignored `build/corpus` at
+  corpus — `infra/docker-compose.yml` mounts the gitignored `build/corpus` at
   `/corpus:ro`, so bring the stack up with `CULTURESCRAPE_CORPUS=/corpus docker
   compose up -d pinakes_engine neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
-  directly). Default stays the demo fixture so a bare `docker compose up` still
+  directly). Default stays the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still
   starts when no export has been built.
 
 ## Entity-grounding snapshot (KGP-retargeted, US-PKA3)
@@ -296,7 +301,7 @@ blank, the column is always present). Rules:
 
 `import-from-engine.ts` is the **return leg** of the export: it reads the enriched
 canonical node TSVs (`<canonicalDir>/nodes/<type>.tsv`) and writes graph-derived facts back
-into `lexicons/*.tsv` via the **reverse** of the US-002 `target` map. `buildWriteBack(canonicalDir,
+into `data/source/lexicons/*.tsv` via the **reverse** of the US-002 `target` map. `buildWriteBack(canonicalDir,
 lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
 `writeWriteBack`/`runWriteBack` do the filesystem side. Report →
 `build/corpus/writeback/report.json` (gitignored). Full contract + ownership table:
@@ -357,7 +362,7 @@ overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Repor
 ## New-row additions (US-003, data-population pilot)
 
 Same file also grows the corpus: `--add-cultures [file]` **appends** curated,
-reconciliation-*new* civilizations into `lexicons/civilizations.tsv` (default input:
+reconciliation-*new* civilizations into `data/source/lexicons/civilizations.tsv` (default input:
 committed `scripts/data/civilizations-additions.tsv`, derived from the US-002 acquired
 corpus). `buildCultureAdditions(parsedFile, candidates)` is pure; `runCultureAdditions` /
 `loadCultureAdditions` do the fs side. Report →
@@ -392,7 +397,7 @@ summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md)
   `lexicon-mapping.json` — and are all in `NON_WRITEBACK_FIELDS` (+ `wikidata_qid` added there),
   so the export→import round-trip stays a **no-op** (export force-blanks `source_url`/`retrieved_at`
   and copies `wikidata_qid`/`confidence`; import never writes any of them back).
-- **GOTCHA — after changing any `lexicons/*.tsv` row/column count, regenerate BOTH committed
+- **GOTCHA — after changing any `data/source/lexicons/*.tsv` row/column count, regenerate BOTH committed
   snapshots** or their live-corpus parity tests fail: `npx tsx scripts/export-for-engine.ts`
   (→ `docs/engine-export-manifest.json`) **and** `npx tsx scripts/reconciliation-report.ts`
   (→ `docs/reconciliation-report.json`). Adding a mapped column also needs its
@@ -579,7 +584,7 @@ existing pure builders — `buildExport` (§export) for the manifest + provenanc
 **one** source of truth per metric; don't recompute them here. `detectDrift(lexiconsDir)` is the
 cheap gate (header reads only, no export build): it runs `assertValidCanonicalSchema` +
 `assertValidLexiconMapping`, checks the export's provenance columns still exist, flags any
-`lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
+`data/source/lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
 `buildConvergenceQA` adds the metrics; `runQA` returns `{ report, exitCode }` (`1` on drift).
 
 - **Three hard checks fail the gate** (`report.ok === false` ⇒ non-zero exit), since US-001:
@@ -731,7 +736,7 @@ enrichment write-back: `import-from-engine --enrich <file> --target languages.ts
 The one-shot, idempotent, byte-faithful migration that burned the export's 44 duplicate
 csids (`cs:<type>:<id>` collisions = same `id` reused by ≥2 nodes of ONE type) and 16
 ambiguous `pinakes_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
-It edits `lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
+It edits `data/source/lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
 targeted cells change) and is safe to re-run (a row whose old id is already gone is skipped).
 Reusable rules for any future id-collision cleanup:
 

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { CuisineScraper } from "../server/services/cuisine-scraper";
 
-const TEST_DIR = path.resolve("lexicons/.test-cuisine");
+const TEST_DIR = path.resolve("data/source/lexicons/.test-cuisine");
 let passed = 0;
 let failed = 0;
 
@@ -58,10 +58,10 @@ function testLoadExistingCuisineIds() {
   // We test that the scraper correctly reads existing TSV data
   const scraper = new CuisineScraper();
 
-  // The main lexicons/cuisines.tsv should have entries
+  // The main data/source/lexicons/cuisines.tsv should have entries
   const ids = (scraper as any).loadExistingCuisineIds();
   assert(ids instanceof Set, "returns a Set");
-  assert(ids.size > 0, "finds existing cuisine IDs from lexicons/cuisines.tsv");
+  assert(ids.size > 0, "finds existing cuisine IDs from data/source/lexicons/cuisines.tsv");
   assert(ids.has("chinese"), "includes 'chinese' cuisine");
   assert(ids.has("french"), "includes 'french' cuisine");
   assert(ids.has("japanese"), "includes 'japanese' cuisine");

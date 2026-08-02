@@ -2,7 +2,7 @@
 
 _Story: US-001 (tasklist 13 — platform & infrastructure)._
 
-pinakes keeps `lexicons/*.tsv` as the **single source of truth** (loaded by
+pinakes keeps `data/source/lexicons/*.tsv` as the **single source of truth** (loaded by
 `server/tsv-storage.ts`). Heavy *tabular* work — facet counts, `GROUP BY`
 aggregates, ad-hoc analytical SQL — used to mean re-parsing files and looping in
 JS on every request. The **analytical index** (`server/services/analytical-index.ts`)
@@ -53,7 +53,7 @@ the index with the directory:
 enough to call on demand (e.g. after a scraper writes a TSV, or on a timer) to
 pick up edits without restarting the server.
 
-> Cache-invalidation rule of thumb: whatever writes a `lexicons/*.tsv` should call
+> Cache-invalidation rule of thumb: whatever writes a `data/source/lexicons/*.tsv` should call
 > `getAnalyticalIndex().then(i => i.refresh())` afterwards, or the index serves the
 > previous snapshot until the next refresh / restart.
 
@@ -63,7 +63,7 @@ pick up edits without restarting the server.
   faceted request doesn't pay the build cost. Warm-up failure is non-fatal — the
   build just defers to first use.
 - **Singleton:** `getAnalyticalIndex()` builds once (concurrent first-callers share
-  the build) over `LEXICONS_DIR` (default `./lexicons`).
+  the build) over `LEXICONS_DIR` (default `./data/source/lexicons`).
 - **Shutdown:** `closeAnalyticalIndex()` releases the DuckDB connection + instance
   (wired into the `SIGTERM`/`SIGINT` handler alongside the Neo4j driver).
 

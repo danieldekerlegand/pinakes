@@ -4,8 +4,9 @@
 The civilizations pilot (`docs/prd-pinakes-deep-history-roadmap.md` §15) grows
 the ``civilizations`` domain from the curated 89 toward 150+. This driver runs the
 **reconcile** step of that pipeline: it loads the deduplicated Culture nodes built by
-``pinakes_engine run jobs/civilizations.yml`` and classifies each against the existing
-rows in ``lexicons/civilizations.tsv`` (matched / new / ambiguous), so the write-back
+``pinakes_engine run jobs/civilizations.yml`` and classifies each against the
+existing rows in ``data/source/lexicons/civilizations.tsv`` (matched / new /
+ambiguous), so the write-back
 (pinakes's ``scripts/import-from-engine.ts``) adds only genuinely new
 civilizations and never duplicates a curated one.
 
@@ -41,7 +42,7 @@ _REPO_ROOT = _PACKAGE_ROOT.parent
 
 _CORPUS = _PACKAGE_ROOT / "out" / "civilizations" / "corpus"
 DEFAULT_CORPUS_NODES = _CORPUS / "nodes" / "culture.tsv"
-DEFAULT_LEXICON = _REPO_ROOT / "lexicons" / "civilizations.tsv"
+DEFAULT_LEXICON = _REPO_ROOT / "data" / "source" / "lexicons" / "civilizations.tsv"
 DEFAULT_OUT_DIR = _PACKAGE_ROOT / "out" / "civilizations" / "reconciliation"
 
 

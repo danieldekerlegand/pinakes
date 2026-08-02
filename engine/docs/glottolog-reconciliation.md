@@ -26,7 +26,7 @@ slice; repoint `categories/glottolog.yml`'s `source.query` at a full Glottolog C
 | metric | count |
 | --- | --- |
 | ingested languoids (corpus `:Language` nodes) | **8** |
-| existing (curated `lexicons/languages.tsv`) | 1 099 |
+| existing (curated `data/source/lexicons/languages.tsv`) | 1 099 |
 | matched (already curated) | 4 |
 | new (candidates to add) | 4 |
 | ambiguous (held for triage) | 0 |

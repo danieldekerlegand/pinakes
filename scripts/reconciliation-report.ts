@@ -47,7 +47,7 @@ import {
 } from "./export-for-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the reconciliation keys + full report. */
 export const RECONCILE_DIR = path.join(EXPORT_DIR, "reconciliation");

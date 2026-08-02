@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const LEXICONS_DIR = path.resolve("lexicons");
+const LEXICONS_DIR = path.resolve("data", "source", "lexicons");
 
 export interface ImportResult {
   target: string;

@@ -26,7 +26,7 @@ interface RouteRow {
 }
 
 function loadMigrationRoutes(): RouteRow[] {
-  const filePath = join(__dirname, "..", "lexicons", "migration-routes.tsv");
+  const filePath = join(__dirname, "..", "data", "source", "lexicons", "migration-routes.tsv");
   const text = readFileSync(filePath, "utf-8");
   const lines = text.split("\n").filter((l) => l.trim().length > 0);
   const header = lines[0].split("\t");

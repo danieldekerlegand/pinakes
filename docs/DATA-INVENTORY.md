@@ -1,7 +1,15 @@
 # Data inventory & reorganization plan
 
-**Status:** proposal — nothing has moved. This maps every data location in the repo,
-what code references it, and a risk-ordered plan to consolidate it.
+**Status:** superseded proposal, kept for the inventory. This maps every data location
+in the repo as of the data-reorg exercise, what code references it, and a risk-ordered
+plan to consolidate it.
+
+> **Superseded on the one point it got wrong.** This document recommended leaving
+> `lexicons/` at the top level because the ~60 hardcoded literals made it too costly to
+> move. [`UNIFIED-PROJECT-PLAN.md` §4](./UNIFIED-PROJECT-PLAN.md) overrode that, and
+> pinakes:20 US-3 did the move: **`lexicons/` is now `data/source/lexicons/`**, and
+> `docker-compose.yml` + the sidecar Dockerfile are now under `infra/`. The paths below
+> are left as written so the risk analysis still reads coherently — read them as "was".
 
 ## Principles (agreed)
 

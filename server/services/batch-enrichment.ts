@@ -4,7 +4,7 @@ import path from "node:path";
 
 const BATCH_SIZE = 5;
 const BATCH_DELAY_MS = 2000;
-const LEXICONS_DIR = "lexicons";
+const LEXICONS_DIR = "data/source/lexicons";
 
 export interface TsvFileInfo {
   filename: string;

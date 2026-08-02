@@ -2,8 +2,9 @@
 """Reconcile the Glottolog languoid corpus against pinakes's language lexicon.
 
 Glottolog (`docs/sources-linguistic.md`) is the authoritative language-identity
-source, so many languoids it ingests already exist in `lexicons/languages.tsv`. This
-driver runs the **reconcile** step: it loads the deduplicated Language nodes built by
+source, so many languoids it ingests already exist in
+`data/source/lexicons/languages.tsv`. This driver runs the **reconcile** step: it
+loads the deduplicated Language nodes built by
 ``pinakes_engine run jobs/glottolog.yml`` and classifies each against the existing
 languages by a **glottocode-first, then ISO 639-3** cascade (matched / new /
 ambiguous), so a downstream write-back adds only genuinely new languoids and never
@@ -43,7 +44,7 @@ _REPO_ROOT = _PACKAGE_ROOT.parent
 DEFAULT_CORPUS_NODES = (
     _PACKAGE_ROOT / "out" / "glottolog" / "corpus" / "nodes" / "language.tsv"
 )
-DEFAULT_LEXICON = _REPO_ROOT / "lexicons" / "languages.tsv"
+DEFAULT_LEXICON = _REPO_ROOT / "data" / "source" / "lexicons" / "languages.tsv"
 DEFAULT_OUT_DIR = _PACKAGE_ROOT / "out" / "glottolog" / "reconciliation"
 
 

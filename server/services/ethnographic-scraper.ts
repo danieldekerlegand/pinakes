@@ -426,7 +426,7 @@ Do NOT include societies already covered by these IDs: ${Array.from(existingIds)
   }
 
   private async getExistingKinshipIds(): Promise<Set<string>> {
-    const filePath = "lexicons/kinship-systems.tsv";
+    const filePath = "data/source/lexicons/kinship-systems.tsv";
     const ids = new Set<string>();
 
     if (!fs.existsSync(filePath)) return ids;
@@ -443,7 +443,7 @@ Do NOT include societies already covered by these IDs: ${Array.from(existingIds)
   }
 
   private async getExistingSocialOrgIds(): Promise<Set<string>> {
-    const filePath = "lexicons/social-organization.tsv";
+    const filePath = "data/source/lexicons/social-organization.tsv";
     const ids = new Set<string>();
 
     if (!fs.existsSync(filePath)) return ids;
@@ -460,7 +460,7 @@ Do NOT include societies already covered by these IDs: ${Array.from(existingIds)
   }
 
   private async appendKinshipSystemsTSV(systems: KinshipSystemEntry[]): Promise<void> {
-    const filePath = "lexicons/kinship-systems.tsv";
+    const filePath = "data/source/lexicons/kinship-systems.tsv";
     const fileExists = fs.existsSync(filePath);
 
     const rows = systems.map((sys) =>
@@ -488,7 +488,7 @@ Do NOT include societies already covered by these IDs: ${Array.from(existingIds)
   }
 
   async writeSocialOrganizationTSV(orgs: SocialOrganizationEntry[]): Promise<void> {
-    const filePath = "lexicons/social-organization.tsv";
+    const filePath = "data/source/lexicons/social-organization.tsv";
     const fileExists = fs.existsSync(filePath);
 
     const headers = [

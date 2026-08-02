@@ -6,7 +6,8 @@ language-keyed **Wordform** nodes, and the linguistic linker turns each entry's
 etymology relations into ``BORROWED_FROM`` / ``DERIVED_FROM`` / ``COGNATE_WITH``
 edges. This driver runs the **reconcile** step: it loads the built wordform nodes and
 rolls them up per language, classifying each distinct language against
-``lexicons/languages.tsv`` by the ISO 639-3 join, and re-reads the source extract to
+``data/source/lexicons/languages.tsv`` by the ISO 639-3 join, and re-reads the
+source extract to
 report the edge volume by ``:TYPE`` plus the etymology-template tokens skipped as
 unmappable.
 
@@ -47,7 +48,7 @@ DEFAULT_WORDFORM_NODES = (
 )
 #: The source extract the category ingests (committed fixture slice by default).
 DEFAULT_EXTRACT = _PACKAGE_ROOT / "tests" / "fixtures" / "kaikki" / "etymology.jsonl"
-DEFAULT_LEXICON = _REPO_ROOT / "lexicons" / "languages.tsv"
+DEFAULT_LEXICON = _REPO_ROOT / "data" / "source" / "lexicons" / "languages.tsv"
 DEFAULT_OUT_DIR = _PACKAGE_ROOT / "out" / "kaikki" / "reconciliation"
 
 

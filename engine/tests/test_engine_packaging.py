@@ -1,6 +1,6 @@
 """The agora engine's packaging blocker stays visible instead of going latent.
 
-The sidecar image (``Dockerfile``, built by the repo-root ``docker-compose.yml``
+The sidecar image (``infra/engine.Dockerfile``, built by ``infra/docker-compose.yml``
 service ``pinakes_engine``) **does not build**, and the cause is upstream: this
 package declares ``translation-py`` as a real runtime dependency but resolves it
 from a prebuilt, *macOS/arm64-only* wheel under ``vendor/`` via the uv-only
@@ -11,8 +11,8 @@ module is the tripwire on it:
 
 * If agora ever ships a portable artifact (a manylinux wheel, a pure-Python
   wheel, or an sdist), :func:`test_vendored_engine_wheel_is_still_platform_locked`
-  fails — telling whoever bumps the wheel that ``Dockerfile`` can now be fixed and
-  the ⚠️ notes in it, ``docker-compose.yml``, ``README.md`` and
+  fails — telling whoever bumps the wheel that the Dockerfile can now be fixed and
+  the ⚠️ notes in it, ``infra/docker-compose.yml``, ``README.md`` and
   ``docs/engine-integration.md`` must come down.
 * If someone deletes the explanation without fixing the build,
   :func:`test_the_dockerfile_documents_the_packaging_blocker` fails.
@@ -32,11 +32,15 @@ from pathlib import Path
 
 import pytest
 
-#: Package root (``core/``): this file is ``core/tests/<name>.py``.
+#: Package root (``engine/``): this file is ``engine/tests/<name>.py``.
 _PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+#: Repo root — see ``engine/CLAUDE.md``'s depth table (``tests/x.py`` ⇒ ``parents[2]``).
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 _PYPROJECT = _PACKAGE_ROOT / "pyproject.toml"
-_DOCKERFILE = _PACKAGE_ROOT / "Dockerfile"
+#: The Dockerfile moved out of the package to ``infra/`` in pinakes:20 US-3; the
+#: build context is still ``engine/`` (see ``infra/docker-compose.yml``).
+_DOCKERFILE = _REPO_ROOT / "infra" / "engine.Dockerfile"
 
 #: The distribution name of the embedded agora translation engine.
 ENGINE_DIST = "translation-py"
@@ -86,8 +90,9 @@ def test_vendored_engine_wheel_is_still_platform_locked() -> None:
     platform_tag = wheel.stem.rsplit("-", 1)[-1]
     assert not any(tag in platform_tag for tag in PORTABLE_WHEEL_TAGS), (
         f"the vendored engine wheel is now portable ({platform_tag!r}). The sidecar "
-        "image can probably build — fix core/Dockerfile and remove the ⚠️ notes in it, "
-        "docker-compose.yml, README.md and docs/engine-integration.md."
+        "image can probably build — fix infra/engine.Dockerfile and remove the ⚠️ "
+        "notes in it, "
+        "infra/docker-compose.yml, README.md and docs/engine-integration.md."
     )
 
 
@@ -107,6 +112,7 @@ def test_the_dockerfile_documents_the_packaging_blocker(phrase: str) -> None:
     find out why from the file that failed.
     """
     assert phrase in _DOCKERFILE.read_text(encoding="utf-8"), (
-        f"core/Dockerfile no longer explains {phrase!r}. If the blocker is fixed, "
+        f"infra/engine.Dockerfile no longer explains {phrase!r}. If the blocker is "
+        "fixed, "
         "delete this module; if not, keep the explanation."
     )

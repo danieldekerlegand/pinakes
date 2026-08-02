@@ -30,7 +30,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need a data structure for storing representative text passages per language so that users can see what languages actually look like.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/sample-texts.tsv` with columns: `id`, `language_id`, `title`, `text`, `transliteration` (for non-Latin scripts), `translation_en`, `source`, `date_composed`, `genre` (prose/poetry/religious/legal/inscription/conversational), `script`
+- [x] Create `data/source/lexicons/sample-texts.tsv` with columns: `id`, `language_id`, `title`, `text`, `transliteration` (for non-Latin scripts), `translation_en`, `source`, `date_composed`, `genre` (prose/poetry/religious/legal/inscription/conversational), `script`
 - [x] Populate with at least 2-3 sample texts per language for the top 50 most-spoken languages (100-150 entries)
 - [x] Include samples from at least 20 dead/historical languages (Old English, Latin, Ancient Greek, Sanskrit, Sumerian, Old Norse, Gothic, Classical Chinese, Old Irish, Akkadian, Hittite, Egyptian, Coptic, Old Church Slavonic, Old Persian, Avestan, Sogdian, Tocharian, Proto-Germanic reconstructions, Middle English)
 - [x] TSV loader implemented in `tsv-storage.ts`
@@ -55,7 +55,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need to integrate etymological derivation data (similar to etymwn.tsv used by etymology-tree) so the system can trace word origins across languages.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/etymology-relations.tsv` with columns: `id`, `source_word`, `source_language`, `target_word`, `target_language`, `relation_type` (derived_from, etymology, cognate, borrowed_from, calque)
+- [x] Create `data/source/lexicons/etymology-relations.tsv` with columns: `id`, `source_word`, `source_language`, `target_word`, `target_language`, `relation_type` (derived_from, etymology, cognate, borrowed_from, calque)
 - [x] Populate with at least 5,000 etymological relationships covering major Indo-European, Semitic, Sino-Tibetan, and Austronesian connections
 - [x] Include relationships for common English words back to Latin, French, Old English, Old Norse, Greek roots
 - [x] TSV loader and API endpoint `GET /api/etymology-relations`
@@ -113,7 +113,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need to store phonological inventories (consonants, vowels, tones) for each language so users can compare sound systems.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/phonological-inventories.tsv` with columns: `id`, `language_id`, `consonants` (JSON array of IPA symbols), `vowels` (JSON array), `tones` (JSON array or null), `phonotactic_patterns` (JSON), `syllable_structure`, `stress_system`
+- [x] Create `data/source/lexicons/phonological-inventories.tsv` with columns: `id`, `language_id`, `consonants` (JSON array of IPA symbols), `vowels` (JSON array), `tones` (JSON array or null), `phonotactic_patterns` (JSON), `syllable_structure`, `stress_system`
 - [x] Populate for at least 100 languages across all major families
 - [x] Include data for historical/dead languages where known (Latin, Sanskrit, Proto-Indo-European, Old English, Classical Arabic)
 - [x] TSV loader and API endpoints
@@ -135,7 +135,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need to store structural grammar features for each language so users can compare grammatical systems.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/grammar-features.tsv` with columns: `id`, `language_id`, `word_order` (SOV/SVO/VSO/VOS/OVS/OSV/free), `morphological_type` (isolating/agglutinative/fusional/polysynthetic), `case_system` (JSON: list of cases), `gender_system` (JSON), `number_system` (JSON), `tense_aspect_mood` (JSON), `agreement_system`, `negation_strategy`, `question_formation`, `relative_clause_strategy`, `noun_class_count`, `verb_valency_changes` (JSON: causative/passive/applicative/etc.), `evidentiality`, `ergativity`
+- [x] Create `data/source/lexicons/grammar-features.tsv` with columns: `id`, `language_id`, `word_order` (SOV/SVO/VSO/VOS/OVS/OSV/free), `morphological_type` (isolating/agglutinative/fusional/polysynthetic), `case_system` (JSON: list of cases), `gender_system` (JSON), `number_system` (JSON), `tense_aspect_mood` (JSON), `agreement_system`, `negation_strategy`, `question_formation`, `relative_clause_strategy`, `noun_class_count`, `verb_valency_changes` (JSON: causative/passive/applicative/etc.), `evidentiality`, `ergativity`
 - [x] Populate for at least 100 languages spanning all major typological profiles
 - [x] TSV loader and API endpoints
 - [x] Typecheck passes
@@ -157,7 +157,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to explore the world's writing systems, see which languages use them, and understand their historical development.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/writing-systems.tsv` with columns: `id`, `name`, `type` (alphabet/abjad/abugida/syllabary/logographic/featural), `direction` (LTR/RTL/TTB/boustrophedon), `parent_system_id`, `language_ids` (JSON), `origin_date`, `origin_region`, `character_count`, `sample_characters`, `unicode_block`, `is_active`
+- [x] Create `data/source/lexicons/writing-systems.tsv` with columns: `id`, `name`, `type` (alphabet/abjad/abugida/syllabary/logographic/featural), `direction` (LTR/RTL/TTB/boustrophedon), `parent_system_id`, `language_ids` (JSON), `origin_date`, `origin_region`, `character_count`, `sample_characters`, `unicode_block`, `is_active`
 - [x] Populate with at least 50 writing systems (Latin, Cyrillic, Greek, Arabic, Hebrew, Devanagari, Chinese, Japanese kana/kanji, Korean Hangul, Thai, Ge'ez, Armenian, Georgian, Tibetan, Burmese, Tamil, Telugu, Khmer, Mongolian, Cherokee, Runic, Ogham, Linear A/B, Cuneiform, Egyptian hieroglyphs, Phoenician, Brahmi, etc.)
 - [x] Family tree visualization showing script evolution (Phoenician -> Greek -> Latin -> etc.)
 - [x] Map view showing geographic distribution of writing systems
@@ -169,7 +169,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to compare verb conjugation systems across languages to understand how differently languages encode tense, aspect, mood, person, and number.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/verb-paradigms.tsv` with sample conjugation tables for common verbs ("to be", "to go", "to give") across at least 30 languages
+- [x] Create `data/source/lexicons/verb-paradigms.tsv` with sample conjugation tables for common verbs ("to be", "to go", "to give") across at least 30 languages
 - [x] Interactive conjugation table viewer showing full paradigm for a verb in any language
 - [x] Side-by-side comparison of the same verb concept across 2-3 languages
 - [x] Visual indicators for complexity: number of distinct forms, irregularity markers
@@ -187,8 +187,8 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need comprehensive civilization boundary data to show territorial changes over time.
 
 **Acceptance Criteria:**
-- [x] Expand `lexicons/civilizations.tsv` to 30+ civilizations (add: Mesopotamian empires, Egypt, Persia, Maurya, Gupta, Han Dynasty, Tang Dynasty, Mongol Empire, Ottoman Empire, Byzantine Empire, Holy Roman Empire, Aztec, Inca, Maya, Khmer Empire, Mali Empire, Songhai, Great Zimbabwe, Carthage, Phoenicia, Indus Valley, Shang Dynasty, Hittite Empire, Assyria, Umayyad/Abbasid Caliphates, Viking territories, Celtic territories, etc.)
-- [x] Expand `lexicons/civilization-boundaries.tsv` with multiple temporal snapshots per civilization (e.g., Roman Republic 200 BCE, Roman Empire 117 CE, Western Roman Empire 400 CE)
+- [x] Expand `data/source/lexicons/civilizations.tsv` to 30+ civilizations (add: Mesopotamian empires, Egypt, Persia, Maurya, Gupta, Han Dynasty, Tang Dynasty, Mongol Empire, Ottoman Empire, Byzantine Empire, Holy Roman Empire, Aztec, Inca, Maya, Khmer Empire, Mali Empire, Songhai, Great Zimbabwe, Carthage, Phoenicia, Indus Valley, Shang Dynasty, Hittite Empire, Assyria, Umayyad/Abbasid Caliphates, Viking territories, Celtic territories, etc.)
+- [x] Expand `data/source/lexicons/civilization-boundaries.tsv` with multiple temporal snapshots per civilization (e.g., Roman Republic 200 BCE, Roman Empire 117 CE, Western Roman Empire 400 CE)
 - [x] At least 80 boundary entries total (multiple snapshots per expanding/contracting entity)
 - [x] All boundaries as valid GeoJSON polygons
 - [x] Typecheck passes
@@ -197,7 +197,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need a comprehensive archaeological sites dataset to populate the map with material evidence of human history.
 
 **Acceptance Criteria:**
-- [x] Expand `lexicons/archaeological-sites.tsv` to 60+ sites across all inhabited continents
+- [x] Expand `data/source/lexicons/archaeological-sites.tsv` to 60+ sites across all inhabited continents
 - [x] Include: Olduvai Gorge, Lascaux, Altamira, Catalhoyuk, Jericho, Ur, Mohenjo-daro, Angkor Wat, Machu Picchu, Great Zimbabwe, Mesa Verde, Cahokia, Teotihuacan, Chichen Itza, Petra, Persepolis, Troy, Knossos, Mycenae, Stonehenge, Newgrange, Carnac, Terracotta Army, Sanchi, Ajanta, Easter Island, L'Anse aux Meadows, etc.
 - [x] Each site with: coordinates, date range, associated civilization, cultural_period, site_type (settlement/temple/burial/cave_art/fortress/city), description, associated_languages
 - [x] Typecheck passes
@@ -206,7 +206,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need human migration and trade route data to animate the movement of peoples and ideas.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/migration-routes.tsv` with columns: `id`, `name`, `route_type` (migration/trade/conquest/colonization/diaspora), `waypoints` (GeoJSON LineString), `start_date`, `end_date`, `peoples` (JSON), `associated_languages` (JSON), `description`, `consequences`
+- [x] Create `data/source/lexicons/migration-routes.tsv` with columns: `id`, `name`, `route_type` (migration/trade/conquest/colonization/diaspora), `waypoints` (GeoJSON LineString), `start_date`, `end_date`, `peoples` (JSON), `associated_languages` (JSON), `description`, `consequences`
 - [x] Populate with at least 30 routes: Out of Africa, Indo-European expansion, Bantu expansion, Austronesian expansion, Polynesian voyaging, Silk Road, Trans-Saharan trade, Amber Road, Incense Route, Viking expansion, Arab expansion, Mongol conquests, European colonization routes, Atlantic slave trade routes, Great Migration (US), Jewish diaspora, Romani migration, etc.
 - [x] Each route with temporal data enabling animated playback
 - [x] Typecheck passes
@@ -215,7 +215,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a developer, I need historical battle and conflict data to contextualize territorial changes and language shifts.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/battles.tsv` with columns: `id`, `name`, `date`, `coordinates` (lat/lng), `belligerents` (JSON: array of {name, civilization_id}), `outcome`, `casualties_estimate`, `significance`, `associated_language_changes`, `war_name`
+- [x] Create `data/source/lexicons/battles.tsv` with columns: `id`, `name`, `date`, `coordinates` (lat/lng), `belligerents` (JSON: array of {name, civilization_id}), `outcome`, `casualties_estimate`, `significance`, `associated_language_changes`, `war_name`
 - [x] Populate with at least 50 historically significant battles spanning antiquity to modern era across all continents
 - [x] Include battles that directly caused language shifts (e.g., Battle of Hastings -> Norman French influence on English, Fall of Constantinople -> Greek diaspora)
 - [x] Typecheck passes
@@ -258,7 +258,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 
 **Acceptance Criteria:**
 - [x] Integrate existing `data/language_contact_phenomena.csv` into a proper TSV with enrichment
-- [x] Create `lexicons/language-contacts.tsv` with columns: `id`, `source_language_id`, `target_language_id`, `contact_type` (substrate/superstrate/adstrate/borrowing/pidginization/creolization), `time_period`, `region`, `features_transferred` (JSON: phonological/lexical/grammatical), `example_features`, `intensity` (heavy/moderate/light)
+- [x] Create `data/source/lexicons/language-contacts.tsv` with columns: `id`, `source_language_id`, `target_language_id`, `contact_type` (substrate/superstrate/adstrate/borrowing/pidginization/creolization), `time_period`, `region`, `features_transferred` (JSON: phonological/lexical/grammatical), `example_features`, `intensity` (heavy/moderate/light)
 - [x] Populate with at least 60 contact events
 - [x] Network visualization showing language contact as a directed graph (separate from family tree - shows horizontal transfer)
 - [x] Map overlay showing contact zones with temporal filtering
@@ -269,7 +269,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to see how sounds changed systematically over time within language families (e.g., Grimm's Law, the Great Vowel Shift), so I can understand why related languages sound different today.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/sound-changes.tsv` with columns: `id`, `name`, `family_id`, `source_language_id`, `target_language_id`, `change_rule` (IPA notation, e.g., "p -> f"), `environment` (word-initial, intervocalic, etc.), `date_range`, `examples` (JSON array of {before, after, meaning}), `related_changes` (JSON)
+- [x] Create `data/source/lexicons/sound-changes.tsv` with columns: `id`, `name`, `family_id`, `source_language_id`, `target_language_id`, `change_rule` (IPA notation, e.g., "p -> f"), `environment` (word-initial, intervocalic, etc.), `date_range`, `examples` (JSON array of {before, after, meaning}), `related_changes` (JSON)
 - [x] Populate with at least 40 well-documented sound changes: Grimm's Law, Verner's Law, Great Vowel Shift, Grassmann's Law, Latin to Romance vowel changes, Proto-Slavic palatalization, Bantu consonant shifts, etc.
 - [x] Interactive chain visualization: show a sound change rule, then click through examples showing the before/after in descendant languages
 - [x] Timeline view of sound changes within a family, showing when each change occurred
@@ -321,7 +321,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to explore the spread of technologies and material culture (pottery styles, metallurgy, agriculture, tools) across time and space.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/material-culture.tsv` with columns: `id`, `name`, `category` (pottery/metallurgy/agriculture/tools/textiles/architecture), `origin_date`, `origin_coordinates`, `spread_data` (JSON: array of {date, coordinates, associated_civilization}), `description`, `associated_languages`, `significance`
+- [x] Create `data/source/lexicons/material-culture.tsv` with columns: `id`, `name`, `category` (pottery/metallurgy/agriculture/tools/textiles/architecture), `origin_date`, `origin_coordinates`, `spread_data` (JSON: array of {date, coordinates, associated_civilization}), `description`, `associated_languages`, `significance`
 - [x] Populate with at least 40 entries: Bell Beaker pottery, Corded Ware, Linear Pottery, Iron smelting, Bronze working, Wheel invention, Writing invention, Agriculture (Fertile Crescent, Yangtze, Mesoamerica independently), Gunpowder, Printing, Domesticated crops (wheat, rice, maize, potato), Domesticated animals (horse, cattle, dog), etc.
 - [x] Map visualization showing technology spread as animated concentric waves from origin points
 - [x] Timeline showing when different regions gained each technology
@@ -332,7 +332,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to see how food and agriculture changed over time in different regions, linked to migrations, trade, and colonization.
 
 **Acceptance Criteria:**
-- [x] Extend existing cuisine data with temporal depth: create `lexicons/foodway-events.tsv` tracking specific introductions (e.g., "Tomatoes introduced to Italy, 1548, from Mesoamerica via Spanish colonization")
+- [x] Extend existing cuisine data with temporal depth: create `data/source/lexicons/foodway-events.tsv` tracking specific introductions (e.g., "Tomatoes introduced to Italy, 1548, from Mesoamerica via Spanish colonization")
 - [x] Populate with at least 50 major food exchange events (Columbian Exchange items, Silk Road spice trade, Austronesian crop introductions, Bantu agricultural expansion, etc.)
 - [x] Map animation showing crop/food diffusion from origin to global adoption
 - [x] Link food introductions to the migration routes and trade routes from Phase 3
@@ -343,7 +343,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to explore different kinship terminologies and social organization patterns across cultures.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/kinship-systems.tsv` with columns: `id`, `system_type` (Eskimo/Hawaiian/Sudanese/Omaha/Crow/Iroquois/Dravidian), `language_ids` (JSON), `terminology` (JSON: mapping of kin terms), `descent_rule` (patrilineal/matrilineal/bilateral/ambilineal), `residence_rule` (patrilocal/matrilocal/neolocal/avunculocal), `associated_civilizations`
+- [x] Create `data/source/lexicons/kinship-systems.tsv` with columns: `id`, `system_type` (Eskimo/Hawaiian/Sudanese/Omaha/Crow/Iroquois/Dravidian), `language_ids` (JSON), `terminology` (JSON: mapping of kin terms), `descent_rule` (patrilineal/matrilineal/bilateral/ambilineal), `residence_rule` (patrilocal/matrilocal/neolocal/avunculocal), `associated_civilizations`
 - [x] Populate with at least 25 entries spanning all system types
 - [x] Visual kinship diagram showing how each system classifies relatives differently
 - [x] Map showing geographic distribution of kinship system types
@@ -354,7 +354,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to explore artistic and architectural traditions across cultures and time periods.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/art-traditions.tsv` with columns: `id`, `name`, `category` (painting/sculpture/architecture/textile/ceramic/metalwork), `style_period`, `origin_date`, `end_date`, `origin_coordinates`, `description`, `associated_civilizations`, `associated_languages`, `key_features` (JSON), `notable_examples` (JSON)
+- [x] Create `data/source/lexicons/art-traditions.tsv` with columns: `id`, `name`, `category` (painting/sculpture/architecture/textile/ceramic/metalwork), `style_period`, `origin_date`, `end_date`, `origin_coordinates`, `description`, `associated_civilizations`, `associated_languages`, `key_features` (JSON), `notable_examples` (JSON)
 - [x] Populate with at least 30 traditions: Egyptian monumental, Greek Classical, Roman, Byzantine, Romanesque, Gothic, Renaissance, Baroque, Islamic geometric, Chinese landscape painting, Japanese ukiyo-e, Mayan, Aztec, African masks, Aboriginal dot painting, Mughal miniatures, etc.
 - [x] Timeline view showing overlapping art periods
 - [x] Map showing geographic distribution of styles
@@ -365,7 +365,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want to see what goods were traded along historical routes and how economic systems varied across civilizations.
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/trade-goods.tsv` with columns: `id`, `name`, `category` (spice/metal/textile/grain/luxury/animal), `origin_region`, `origin_coordinates`, `trade_routes` (JSON: route_ids), `time_period`, `economic_significance`, `associated_languages` (JSON: languages of traders/producers)
+- [x] Create `data/source/lexicons/trade-goods.tsv` with columns: `id`, `name`, `category` (spice/metal/textile/grain/luxury/animal), `origin_region`, `origin_coordinates`, `trade_routes` (JSON: route_ids), `time_period`, `economic_significance`, `associated_languages` (JSON: languages of traders/producers)
 - [x] Populate with at least 40 trade goods: silk, spices (pepper, cinnamon, clove, nutmeg), gold, silver, tin, copper, amber, incense, ivory, salt, tea, coffee, sugar, cotton, wool, horses, slaves (historical context), porcelain, obsidian, lapis lazuli, etc.
 - [x] Map showing trade good origins with animated flow along trade routes
 - [x] Filter by good type or time period
@@ -395,7 +395,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 **Description:** As a user, I want pre-built "guided tours" that walk me through fascinating stories in the data - like "The Journey of the Word 'Sugar'" or "How the Silk Road Changed Languages."
 
 **Acceptance Criteria:**
-- [x] Create `lexicons/narratives.tsv` with columns: `id`, `title`, `description`, `steps` (JSON array of {text, map_center, map_zoom, time_point, highlighted_entities, layer_config})
+- [x] Create `data/source/lexicons/narratives.tsv` with columns: `id`, `title`, `description`, `steps` (JSON array of {text, map_center, map_zoom, time_point, highlighted_entities, layer_config})
 - [x] Populate with at least 10 narratives covering diverse topics and regions
 - [x] Narrative player UI: step-by-step cards with map/timeline auto-navigation
 - [x] Play/pause/step controls
@@ -515,7 +515,7 @@ The roadmap is organized into six phases, each delivering a self-contained set o
 
 ## Technical Considerations
 
-- **Data format**: All new data stored in `lexicons/*.tsv` files with JSON-encoded complex fields, consistent with existing architecture
+- **Data format**: All new data stored in `data/source/lexicons/*.tsv` files with JSON-encoded complex fields, consistent with existing architecture
 - **Data volume**: Phase 3 data expansion will push total TSV rows from ~126K to ~130K+; in-memory loading remains feasible but lazy-loading by domain (Phase 6) will be important
 - **GeoJSON complexity**: Civilization boundary polygons can be large; consider simplification for rendering and storing detailed versions separately
 - **Etymology data**: The `etymwn.tsv` format from etymology-tree uses `rel:is_derived_from` and `rel:etymology` relations; adapt this to the new TSV schema while preserving the recursive trace capability

@@ -3,7 +3,7 @@
  *
  * Given the SNP calls parsed from a raw-DNA export, assign a **Y-DNA haplogroup** by
  * walking a simplified ISOGG-style phylogenetic tree of defining markers. The corpus
- * (`lexicons/haplogroups.tsv`) is Y-chromosome only, so this focuses on the paternal
+ * (`data/source/lexicons/haplogroups.tsv`) is Y-chromosome only, so this focuses on the paternal
  * line; a sample with no Y calls (e.g. a female profile, or a chip without Y coverage)
  * yields `hasYData: false` and the UI explains why.
  *
@@ -19,7 +19,7 @@
 import type { ParsedDna } from "./dna-parser";
 
 interface YMarker {
-  /** Corpus haplogroup id (matches `lexicons/haplogroups.tsv`). */
+  /** Corpus haplogroup id (matches `data/source/lexicons/haplogroups.tsv`). */
   id: string;
   /** Human label. */
   label: string;

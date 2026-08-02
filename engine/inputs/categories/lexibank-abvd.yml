@@ -13,7 +13,7 @@
 # words.tsv rewrite): each form lands as its own **Wordform** attribute-fact node
 # keyed by the language's **glottocode** (field.language_code) with its ISO 639-3 on
 # `lang`. The reconciler (schema/lexibank_reconcile.py) rolls forms up per language
-# and joins them to the Glottolog-anchored language nodes / lexicons/languages.tsv by
+# and joins them to the Glottolog-anchored language nodes / data/source/lexicons/languages.tsv by
 # the glottocode -> ISO cascade — the join is a reconciliation, not a descent edge.
 #
 # COGNATE_WITH: a Lexibank cognate set groups forms across doculects that descend

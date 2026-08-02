@@ -145,7 +145,7 @@ function testGetWalsArea() {
 function testScraperWriteFeatures() {
   console.log("\nGrammarWalsGrambankScraper.writeFeatures:");
 
-  const testFile = "lexicons/.test-grammar-wals-grambank.tsv";
+  const testFile = "data/source/lexicons/.test-grammar-wals-grambank.tsv";
   const scraper = new GrammarWalsGrambankScraper();
 
   const features: FeatureRow[] = [

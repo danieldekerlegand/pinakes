@@ -52,7 +52,7 @@ all you need.
 ## Refresh cadence
 
 - **On any lexicon or mapping change** that shifts the corpus shape (a new/edited
-  `lexicons/*.tsv` row, a `contracts/lexicon-mapping.json` change, a new linker): re-run
+  `data/source/lexicons/*.tsv` row, a `contracts/lexicon-mapping.json` change, a new linker): re-run
   phases 1–2, then re-sync the committed fingerprints — `docs/convergence-manifest.json`
   (fixture build) and/or `docs/corpus-release-manifest.json` (full build). The snapshot
   tests fail in CI otherwise (see [The committed manifest](#the-committed-manifest)).
@@ -231,7 +231,7 @@ ordering edges and leave transitivity to the Datalog rules. This does not affect
 ## Load the corpus into Neo4j (US-002)
 
 With the full corpus built (US-001 above), load it into a running Neo4j (see
-`docker-compose.yml` / `npm run dev:full` at the repo root for a local instance; APOC is
+`infra/docker-compose.yml` / `npm run dev:full` at the repo root for a local instance; APOC is
 required for the incremental path). The operator's reference is [`docs/neo4j.md`](neo4j.md);
 the exact commands for the full corpus are:
 
@@ -419,7 +419,7 @@ and `SMOKE_GRAPH_TIMEOUT_MS` (default `15000`). Type-check the script with
 
 ## Add a new domain to the live graph
 
-Bringing a new (or newly-relevant) `lexicons/<file>.tsv` into the *live* graph is the
+Bringing a new (or newly-relevant) `data/source/lexicons/<file>.tsv` into the *live* graph is the
 mapping work in [`engine-integration.md` §9](../../docs/engine-integration.md)
 followed by one full-pipeline refresh. The checklist:
 
@@ -431,7 +431,7 @@ followed by one full-pipeline refresh. The checklist:
    [`contracts/canonical-schema.json`](../../contracts/canonical-schema.json) **and** the §1/§2
    tables in `canonical-schema.md` first. (Full steps: integration §9 items 1–4.)
 2. **Validate the mapping:** `npx vitest run contracts/lexicon-mapping.test.ts` — asserts every
-   `lexicons/*.tsv` is accounted for and every referenced column is real.
+   `data/source/lexicons/*.tsv` is accounted for and every referenced column is real.
 3. **Re-export + refresh snapshots:** `npx tsx scripts/export-for-engine.ts`, then
    `npx tsx scripts/reconciliation-report.ts`; re-sync the committed
    `docs/engine-export-manifest.json` / `docs/reconciliation-report.json`.

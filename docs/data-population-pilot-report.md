@@ -26,7 +26,7 @@ into the running app.
 
 The 81 added rows were curated from the three **tightest** verified Wikidata classes:
 ancient civilization (Q28171280) ×21, civilization (Q8432) ×47, empire (Q48349) ×13.
-Source of truth is `lexicons/civilizations.tsv` (89→170); the built corpus stays gitignored.
+Source of truth is `data/source/lexicons/civilizations.tsv` (89→170); the built corpus stays gitignored.
 
 ## 2. Reconciliation / dedup rate
 
@@ -106,14 +106,14 @@ rows into 81 trustworthy ones was human judgement, not compute. Scale-out cost s
    / `kingdom` return modern states, parties, militias, and movements alongside real
    civilizations, plus ~14% unlabelled (QID-named) rows. Curate down to the tight classes or add a
    noise filter — do **not** bulk-append the acquired set.
-2. **Neo4j `loadcsv` needs real infra, not `docker compose up`.** The `file://` LOAD CSV path
+2. **Neo4j `loadcsv` needs real infra, not `docker compose -f infra/docker-compose.yml up`.** The `file://` LOAD CSV path
    needs APOC + `allow_csv_import_from_file_urls=true` **and** `server.directories.import=/` to lift
    the import-dir jail (the trap: `allow_csv` alone still resolves `file:///abs` *under* the import
-   dir → `ExternalResourceFailed`). `docker-compose.yml`'s `neo4j` service now wires this.
+   dir → `ExternalResourceFailed`). `infra/docker-compose.yml`'s `neo4j` service now wires this.
 3. **`smoke:graph` needs the sidecar and Neo4j on the SAME corpus.** `dev:full` defaults the
    sidecar to a bundled 9-node demo while Neo4j holds the real export → the cross-backend `node/:id`
-   check 404s. Run `CULTURESCRAPE_CORPUS=/corpus docker compose up -d pinakes_engine neo4j`.
-4. **After any `lexicons/*.tsv` shape change, regenerate BOTH committed snapshots**
+   check 404s. Run `CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j`.
+4. **After any `data/source/lexicons/*.tsv` shape change, regenerate BOTH committed snapshots**
    (`docs/engine-export-manifest.json` via the export CLI, and `docs/reconciliation-report.json`
    via the reconciliation CLI) or their live-corpus parity tests fail.
 5. **`source_url` does not reach the graph** (see §3). App-visible ≠ graph-visible for external URLs.

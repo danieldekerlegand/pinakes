@@ -8,7 +8,7 @@ externally referenced auto-admits to the graph corpus with a rubric confidence a
 trust-tier label, while everything weaker quarantines for later curation.
 
 **The one invariant:** auto-admission is a *graph-corpus* policy only. It NEVER writes
-`lexicons/*.tsv` — human curation remains the sole path into the app-facing lexicon
+`data/source/lexicons/*.tsv` — human curation remains the sole path into the app-facing lexicon
 layer. A corpus build *classifies* rows into tiers; it does not move them out of any
 source.
 

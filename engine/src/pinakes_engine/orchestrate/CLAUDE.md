@@ -47,7 +47,7 @@ below). Then `pinakes_engine run <job>` builds it fully offline.
 
 A merged corpus is the auto-admission surface: QID-anchored **and** reference-backed
 facts admit with their US-001 rubric confidence + a **tier label**, weaker acquired facts
-quarantine, and `lexicons/*.tsv` are never written (auto-admission is a graph-corpus
+quarantine, and `data/source/lexicons/*.tsv` are never written (auto-admission is a graph-corpus
 policy, not a lexicon write). `classify_tier(row)` is a **pure** function of already-
 canonical provenance columns (`source`, `wikidata_qid`, `source_url`) — so `tier` is NOT a
 new TSV column (that would cascade into the neo4j/datalog schema + every committed

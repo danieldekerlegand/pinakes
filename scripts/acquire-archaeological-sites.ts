@@ -1,6 +1,6 @@
 /**
  * Acquire notable archaeological sites from Wikidata (SPARQL) and curate them into a
- * committed additions TSV for write-back into `lexicons/archaeological-sites.tsv` (US-002,
+ * committed additions TSV for write-back into `data/source/lexicons/archaeological-sites.tsv` (US-002,
  * data-population at scale).
  *
  * This is the one networked step of the per-domain runbook
@@ -25,7 +25,7 @@ import path from "node:path";
 import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const OUT_FILE = path.join(
   REPO_ROOT,
   "scripts",

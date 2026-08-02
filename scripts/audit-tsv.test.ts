@@ -12,7 +12,7 @@ import {
   type FileAudit,
 } from "./audit-tsv";
 
-const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "data", "source", "lexicons");
 
 // --- Unit tests with temp fixtures ---
 
@@ -152,7 +152,7 @@ describe("identifyCoverageGaps", () => {
   });
 });
 
-// --- Integration test against real lexicons/ data ---
+// --- Integration test against real data/source/lexicons/ data ---
 
 describe("runAudit (integration)", () => {
   it("audits all real TSV files", () => {

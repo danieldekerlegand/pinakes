@@ -352,7 +352,7 @@ For each script, provide:
     progressCallback?: (type: string, message: string, data?: any) => void;
     outputPath?: string;
   } = {}): Promise<WritingSystem[]> {
-    const { jobId, progressCallback, outputPath = "lexicons/writing-systems.tsv" } = options;
+    const { jobId, progressCallback, outputPath = "data/source/lexicons/writing-systems.tsv" } = options;
 
     if (WritingSystemScraper.isScraping) {
       throw new Error("Writing system scraping is already in progress");

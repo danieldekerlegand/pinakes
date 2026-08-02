@@ -7,7 +7,7 @@ that is *already* globally identified and externally referenced should not have
 to wait behind curation to reach the graph — it can **auto-admit** with a rubric
 confidence and a trust-tier label, while everything weaker **quarantines**
 awaiting a human. Crucially this is a graph-corpus policy only: it never writes
-``lexicons/*.tsv`` (human curation remains the sole path into the app-facing
+``data/source/lexicons/*.tsv`` (human curation remains the sole path into the app-facing
 lexicon layer), so a corpus build classifies rows, it does not move them.
 
 The stitch/merge machinery already unions the pinakes canonical export with
@@ -57,7 +57,8 @@ from pinakes_engine.orchestrate.manifest import edges_by_type
 from pinakes_engine.orchestrate.qa import GateThresholds, QaReport, evaluate
 from pinakes_engine.schema.tsvio import Row
 
-#: The human-curated tier: the row passed through ``lexicons/*.tsv`` curation.
+#: The human-curated tier: the row passed through ``data/source/lexicons/*.tsv``
+#: curation.
 TIER_CURATED = "curated"
 
 #: The auto-admitted tier: QID-anchored **and** reference-backed acquired facts.

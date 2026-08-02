@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerHypothesisRoutes(app);
 
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
-  // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.
+  // faceting/aggregates served from the DuckDB index over data/source/lexicons/*.tsv.
   registerAnalyticsRoutes(app);
 
   // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
@@ -247,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
   // field-level review workflow for AI-generated drafts (US-004/US-008): a human
   // accepts/edits/rejects each field (low-confidence fields flagged), and an
-  // approved draft is promoted into lexicons/*.tsv with provenance recording both
+  // approved draft is promoted into data/source/lexicons/*.tsv with provenance recording both
   // the AI source and the human reviewer.
   registerAiReviewRoutes(app, { changelog });
 
@@ -1127,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const fs = await import("node:fs");
       const nodePath = await import("node:path");
-      const lexDir = nodePath.resolve(process.cwd(), "lexicons");
+      const lexDir = nodePath.resolve(process.cwd(), "data", "source", "lexicons");
 
       const countRows = (file: string): number => {
         try {
@@ -5251,7 +5251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   const validationService = new DataValidationService(
-    path.join(import.meta.dirname, "..", "lexicons")
+    path.join(import.meta.dirname, "..", "data", "source", "lexicons")
   );
 
   /**
@@ -5355,7 +5355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thresholds = freshDays || agingDays
         ? { freshDays: freshDays ?? 7, agingDays: agingDays ?? 30 }
         : undefined;
-      const lexiconsDir = path.resolve(process.cwd(), "lexicons");
+      const lexiconsDir = path.resolve(process.cwd(), "data", "source", "lexicons");
       const summary = getFreshnessSummary(lexiconsDir, new Date(), thresholds);
       res.json(summary);
     } catch (error) {
@@ -6126,7 +6126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ── Media Assets ──────────────────────────────────────────────────
 
   const mediaAssetService = new MediaAssetService(
-    path.resolve(import.meta.dirname, "..", "lexicons")
+    path.resolve(import.meta.dirname, "..", "data", "source", "lexicons")
   );
 
   /**
@@ -6357,7 +6357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const artifactType = req.query.artifact_type as string | undefined;
       const region = req.query.region as string | undefined;
 
-      const filePath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      const filePath = path.resolve("data/source/lexicons/wikimedia-commons-images.tsv");
       if (!fs.existsSync(filePath)) {
         return res.json({ images: [], count: 0 });
       }

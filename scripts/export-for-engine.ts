@@ -1,7 +1,7 @@
 /**
  * Export pinakes lexicons in pinakes-engine's ingestion-ready format (US-004).
  *
- * This reads every `lexicons/*.tsv` mapped as a canonical node (US-002) plus every
+ * This reads every `data/source/lexicons/*.tsv` mapped as a canonical node (US-002) plus every
  * embedded / dedicated relationship (US-003) and emits the shared canonical shape
  * pinakes-engine's tabular adapter can ingest without transformation:
  *
@@ -54,7 +54,7 @@ import { confidenceForClass } from "@contracts/confidence-rubric";
 import { extractAllCanonicalEdges } from "../server/services/canonical-edges.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Default gitignored output directory for the canonical export. */
 export const EXPORT_DIR = path.join(REPO_ROOT, "export", "pinakes_engine");

@@ -59,7 +59,7 @@ export interface LivingDatasetRouteOptions {
   doiMinter?: DoiMinter;
   /** Shared changelog store used to derive the next semver on release. */
   changelog?: ChangelogStore;
-  /** Lexicons dir the freshness summary reads (default `./lexicons`). */
+  /** Lexicons dir the freshness summary reads (default `./data/source/lexicons`). */
   lexiconsDir?: string;
   /** Per-domain acquisition limit for a scheduled ingestion run (default 50). */
   defaultIngestLimit?: number;
@@ -101,7 +101,7 @@ export function registerLivingDatasetRoutes(
   const runner = options.runner ?? liveJobRunner;
   const doiMinter = options.doiMinter ?? createZenodoDoiMinter();
   const changelog = options.changelog;
-  const lexiconsDir = options.lexiconsDir ?? path.resolve("lexicons");
+  const lexiconsDir = options.lexiconsDir ?? path.resolve("data", "source", "lexicons");
   const defaultIngestLimit = options.defaultIngestLimit ?? 50;
   const now = options.now ?? (() => new Date());
 

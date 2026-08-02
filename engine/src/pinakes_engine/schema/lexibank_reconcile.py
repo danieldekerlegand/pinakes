@@ -1,4 +1,6 @@
-"""Reconcile the Lexibank wordlist corpus against ``lexicons/languages.tsv``.
+"""Reconcile the Lexibank wordlist corpus against the curated language lexicon.
+
+(``data/source/lexicons/languages.tsv``.)
 
 A Lexibank CLDF wordlist (category ``lexibank-abvd.yml``, job ``jobs/lexibank.yml``)
 is ingested as **Wordform** attribute-fact nodes — one node per (language, concept)
@@ -175,7 +177,8 @@ def render_markdown(result: LexibankCoverage) -> str:
         "",
         "A Lexibank CLDF wordlist ingested via the tabular-dump adapter as "
         "language-keyed **Wordform** attribute facts (category `lexibank-abvd.yml`). "
-        "Each distinct language is reconciled against `lexicons/languages.tsv` by the "
+        "Each distinct language is reconciled against "
+        "`data/source/lexicons/languages.tsv` by the "
         "**glottocode-first, then ISO 639-3** cascade (`reconcile_glottolog`); a code "
         "shared by more than one lexicon row is **ambiguous** and is never "
         "auto-merged. Forms sharing a cognate set are linked into `COGNATE_WITH` "

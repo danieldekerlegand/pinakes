@@ -248,7 +248,7 @@ logic). Used by `scripts/reconcile_civilizations.py` (the civilizations pilot, U
   corpus stores the merge-provenance JSON there, and that cell is *not* re-parseable in
   isolation (`_decode_overflow` → `JSONDecodeError`), so carrying it onto a reconciler
   row makes `_region`/the cascade blow up. The cascade never needs it — drop it.
-- **`read_lexicon_nodes`** loads a raw `lexicons/*.tsv` as the *existing* side: mints a
+- **`read_lexicon_nodes`** loads a raw `data/source/lexicons/*.tsv` as the *existing* side: mints a
   QID-free `csid` from the row `id` (alias-anchored) or name, tags the canonical
   `:LABEL`, and — only if a `region_column` is given — supplies the region blocking key
   via the row's overflow JSON (the canonical schema has no `region` column).

@@ -1,6 +1,6 @@
 # Civilizations, polities & states — verified Wikidata classes for the culture
 # corpus. These map to the canonical `culture` node type (:Culture), the same
-# type pinakes's lexicons/civilizations.tsv reconciles against.
+# type pinakes's data/source/lexicons/civilizations.tsv reconciles against.
 #
 # 8 classes. Each class's `instance of` (P31) count was verified live against
 # the Wikidata Query Service (2026-07) with `pinakes_engine generate --verify`;

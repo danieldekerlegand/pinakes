@@ -8,7 +8,8 @@ terms (source-breadth US-004). This module records what the acceptance asks for:
 
 * the **language coverage** of the ingested wordforms — reusing
   :func:`~pinakes_engine.schema.typology_reconcile.build_coverage`'s per-language
-  glottocode → ISO 639-3 cascade against ``lexicons/languages.tsv`` (kaikki carries
+  glottocode → ISO 639-3 cascade against ``data/source/lexicons/languages.tsv``
+  (kaikki carries
   no glottocode, so every language joins on the ISO code on ``lang``); and
 * the **edge volume** by canonical ``:TYPE`` plus every etymology-template token that
   named no canonical relation and was **skipped** — computed straight from the source
@@ -163,7 +164,8 @@ def render_markdown(kc: KaikkiCoverage) -> str:
         "relation (display helpers, ambiguous calques, and the `ncog`/`noncog` "
         "**non**-cognate assertion) are skipped and reported below, never coerced "
         "onto an edge type. Each distinct language is reconciled against "
-        "`lexicons/languages.tsv` by the **ISO 639-3** join (kaikki carries no "
+        "`data/source/lexicons/languages.tsv` by the **ISO 639-3** join (kaikki "
+        "carries no "
         "glottocode); a code shared by more than one lexicon row is **ambiguous** "
         "and is never auto-merged.",
         "",

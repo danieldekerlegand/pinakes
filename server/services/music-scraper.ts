@@ -115,8 +115,8 @@ export class MusicScraper {
       }
 
       // Step 3: Write to TSV files
-      await tsvWriter.writeMusicTraditionsTSV(traditions, "lexicons/music-traditions.tsv");
-      await tsvWriter.writeMusicalInstrumentsTSV(instruments, "lexicons/musical-instruments.tsv");
+      await tsvWriter.writeMusicTraditionsTSV(traditions, "data/source/lexicons/music-traditions.tsv");
+      await tsvWriter.writeMusicalInstrumentsTSV(instruments, "data/source/lexicons/musical-instruments.tsv");
 
       this.updateJobStatus(jobId, {
         status: "completed",

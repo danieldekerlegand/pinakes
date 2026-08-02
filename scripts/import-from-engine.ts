@@ -2,7 +2,7 @@
  * Bidirectional TSV write-back: import pinakes-engine-derived facts back into the
  * pinakes lexicons (US-007).
  *
- * US-004 exports `lexicons/*.tsv` → the shared canonical shape pinakes-engine ingests.
+ * US-004 exports `data/source/lexicons/*.tsv` → the shared canonical shape pinakes-engine ingests.
  * This module is the return leg: it reads canonical node TSVs (the *enriched* export
  * pinakes-engine hands back — graph-derived values, filled gaps) and writes those facts
  * back into the lexicon rows they came from, so the two stores do not drift and the
@@ -21,7 +21,7 @@
  *   * **No data loss.** A pure round-trip (export → import with no enrichment) is a
  *     byte-identical no-op: every writeable cell already matches, so nothing changes.
  *
- * Only canonical fields with a real `lexicons/*.tsv` column (a reverse of the US-002
+ * Only canonical fields with a real `data/source/lexicons/*.tsv` column (a reverse of the US-002
  * `target` mapping) are writeable — that is what "where a canonical→lexicon mapping
  * exists" means. Graph-authored **relationships/edges** are *not* written back into
  * lexicon FK columns: an edge has no lexicon row identity to target, and relationships are
@@ -38,7 +38,7 @@ import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 import { EXPORT_DIR, EXPORT_SOURCE } from "./export-for-engine.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Default gitignored location for the write-back report. */
 export const WRITEBACK_DIR = path.join(EXPORT_DIR, "writeback");
@@ -80,7 +80,7 @@ export interface WriteBackChange {
  * one lexicon row, and/or more than one canonical row). Such a key cannot identify a single
  * row to write into, so the write-back **skips it entirely** — reported here, never written
  * — rather than risk writing one entity's facts into another entity's row. (The live
- * `lexicons/languages.tsv` reuses ids like `abe` for both *Western Abenaki* and *Great
+ * `data/source/lexicons/languages.tsv` reuses ids like `abe` for both *Western Abenaki* and *Great
  * Andamanese*; the export already drops the duplicate, but the import must not enrich the
  * survivor from the wrong twin.)
  */

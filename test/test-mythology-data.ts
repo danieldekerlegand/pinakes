@@ -51,7 +51,7 @@ function assert(condition: boolean, message: string) {
 async function testDeitiesTsv() {
   console.log("=== Testing deities.tsv ===\n");
 
-  const filePath = path.resolve(__dirname, "../lexicons/deities.tsv");
+  const filePath = path.resolve(__dirname, "../data/source/lexicons/deities.tsv");
   assert(fs.existsSync(filePath), "deities.tsv exists");
 
   const text = fs.readFileSync(filePath, "utf-8");
@@ -157,7 +157,7 @@ async function testDeitiesTsv() {
 async function testMythMotifsTsv() {
   console.log("=== Testing myth-motifs.tsv ===\n");
 
-  const filePath = path.resolve(__dirname, "../lexicons/myth-motifs.tsv");
+  const filePath = path.resolve(__dirname, "../data/source/lexicons/myth-motifs.tsv");
   assert(fs.existsSync(filePath), "myth-motifs.tsv exists");
 
   const text = fs.readFileSync(filePath, "utf-8");
@@ -229,7 +229,7 @@ async function testMythMotifsTsv() {
   assert(motifTypes.size >= 5, `has 5+ motif types (found ${motifTypes.size}: ${[...motifTypes].join(", ")})`);
 
   // Verify deity_ids reference deities in deities.tsv
-  const deitiesPath = path.resolve(__dirname, "../lexicons/deities.tsv");
+  const deitiesPath = path.resolve(__dirname, "../data/source/lexicons/deities.tsv");
   const deitiesText = fs.readFileSync(deitiesPath, "utf-8");
   const deities = parseTsv(deitiesText);
   const deityIdIdx = getIdx(deities.header, "id");

@@ -6,7 +6,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const LEXICONS_DIR = join(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = join(import.meta.dirname, "..", "data", "source", "lexicons");
 
 function parseTsv(filename: string): Record<string, string>[] {
   const content = readFileSync(join(LEXICONS_DIR, filename), "utf-8");

@@ -164,7 +164,7 @@ class LanguageEnrichmentService {
         return updated;
       });
 
-      await tsvWriter.writeLanguageTSV(mergedLanguages, "lexicons/languages.tsv");
+      await tsvWriter.writeLanguageTSV(mergedLanguages, "data/source/lexicons/languages.tsv");
       storage.invalidateCache("languages");
 
       this.updateJobStatus(jobId, {

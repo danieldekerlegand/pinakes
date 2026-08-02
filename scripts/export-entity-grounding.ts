@@ -98,7 +98,7 @@ import {
 import { normalizeKey, normalizeQid } from "./reconciliation-report.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the full entity-grounding snapshot (live corpus). */
 export const GROUNDING_DIR = path.join(EXPORT_DIR, "entity-grounding");

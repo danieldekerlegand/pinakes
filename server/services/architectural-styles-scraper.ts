@@ -345,7 +345,7 @@ Generate 30 NEW styles not in the list above.`;
   }
 
   private async readExistingStyles(): Promise<ArchitecturalStyle[]> {
-    const filePath = path.resolve("lexicons/architectural-styles.tsv");
+    const filePath = path.resolve("data/source/lexicons/architectural-styles.tsv");
     if (!fs.existsSync(filePath)) return [];
 
     const content = await fs.promises.readFile(filePath, "utf8");
@@ -413,7 +413,7 @@ Generate 30 NEW styles not in the list above.`;
       JSON.stringify(s.buildingTypes),
     ]);
 
-    const filePath = path.resolve("lexicons/architectural-styles.tsv");
+    const filePath = path.resolve("data/source/lexicons/architectural-styles.tsv");
     const dir = path.dirname(filePath);
     await fs.promises.mkdir(dir, { recursive: true });
 
@@ -448,7 +448,7 @@ Generate 30 NEW styles not in the list above.`;
       bt.culturalFunction,
     ]);
 
-    const filePath = path.resolve("lexicons/building-types.tsv");
+    const filePath = path.resolve("data/source/lexicons/building-types.tsv");
     const dir = path.dirname(filePath);
     await fs.promises.mkdir(dir, { recursive: true });
 

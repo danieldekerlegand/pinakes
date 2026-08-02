@@ -28,7 +28,7 @@ join to the language lexicon is a **reconciliation**, not a graph descent edge.
   is queryable by licence class: **WALS = `CC-BY-4.0`**, **PHOIBLE = `CC-BY-SA-3.0`**
   (share-alike). Building both in one job puts the two licence classes in one graph.
 - **Reconciliation** (`pinakes_engine.schema.typology_reconcile`) rolls the facts up per
-  language and classifies each distinct language against `lexicons/languages.tsv` by the
+  language and classifies each distinct language against `data/source/lexicons/languages.tsv` by the
   same **glottocode-first, then ISO 639-3** cascade the Glottolog reconciler uses
   (reused via `reconcile_glottolog`). A code shared by >1 lexicon row is **ambiguous**
   and is **never** auto-merged.
@@ -56,7 +56,7 @@ whole catalogues (WALS ~2.6k languages × ~190 features; PHOIBLE ~2.1k languages
 | metric | count |
 | --- | --- |
 | distinct languages (incoming) | 8 |
-| existing (curated `lexicons/languages.tsv`) | 1 099 |
+| existing (curated `data/source/lexicons/languages.tsv`) | 1 099 |
 | matched (already curated) | 6 |
 | new (candidates to add) | 2 |
 | ambiguous (held for triage) | 0 |

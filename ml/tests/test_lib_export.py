@@ -69,7 +69,7 @@ _EXPECTED = [
 
 
 def _canonical_headers() -> tuple[list[str], list[str]]:
-    """``(node header, edge header)`` as ``contracts/canonical-schema.json`` declares."""
+    """``(node header, edge header)``, as ``contracts/canonical-schema.json`` says."""
     schema = json.loads(_SCHEMA.read_text(encoding="utf-8"))
     return (
         [col["header"] for col in schema["node"]["columns"]],

@@ -95,7 +95,7 @@ function parseLanguageWordForms(languageId: string): Map<string, WordFormData> {
   const wordForms = new Map<string, WordFormData>();
 
   // Try to read from individual language file first
-  const individualFilePath = path.join(process.cwd(), 'lexicons', `${languageId}.tsv`);
+  const individualFilePath = path.join(process.cwd(), 'data', 'source', 'lexicons', `${languageId}.tsv`);
   if (fs.existsSync(individualFilePath)) {
     const content = fs.readFileSync(individualFilePath, 'utf-8');
     const lines = content.split('\n').filter(l => l.trim());
@@ -127,7 +127,7 @@ function parseLanguageWordForms(languageId: string): Map<string, WordFormData> {
   }
 
   // Fall back to main words.tsv file
-  const mainFilePath = path.join(process.cwd(), 'lexicons', 'words.tsv');
+  const mainFilePath = path.join(process.cwd(), 'data', 'source', 'lexicons', 'words.tsv');
   if (!fs.existsSync(mainFilePath)) {
     console.warn(`No word forms found for language ${languageId}`);
     return wordForms;
@@ -510,7 +510,7 @@ export function getAvailableLanguageIds(): string[] {
   const availableIds = new Set<string>();
 
   // Check main words.tsv file
-  const mainFilePath = path.join(process.cwd(), 'lexicons', 'words.tsv');
+  const mainFilePath = path.join(process.cwd(), 'data', 'source', 'lexicons', 'words.tsv');
   if (fs.existsSync(mainFilePath)) {
     const content = fs.readFileSync(mainFilePath, 'utf-8');
     const lines = content.split('\n');
@@ -527,7 +527,7 @@ export function getAvailableLanguageIds(): string[] {
   }
 
   // Check individual language TSV files
-  const lexiconsDir = path.join(process.cwd(), 'lexicons');
+  const lexiconsDir = path.join(process.cwd(), 'data', 'source', 'lexicons');
   if (fs.existsSync(lexiconsDir)) {
     const files = fs.readdirSync(lexiconsDir);
     for (const file of files) {

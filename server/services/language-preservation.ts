@@ -4,7 +4,7 @@
  * Two responsibilities, both **pure** (no fs / express / storage / clock — so they
  * unit-test directly on synthetic fixtures):
  *
- *  1. **Status aggregation.** The corpus `status` column on `lexicons/languages.tsv`
+ *  1. **Status aggregation.** The corpus `status` column on `data/source/lexicons/languages.tsv`
  *     is free-text and messy ("living", "Critically Endangered", "definiteley
  *     endangered", …). `normalizeStatus` maps every observed spelling onto a canonical
  *     UNESCO-style **vitality level**, each carrying a coarse `category`

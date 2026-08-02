@@ -172,7 +172,7 @@ async function main(): Promise<number> {
     console.log(
       `\n⚠  Stack down: the server is up but neither Neo4j nor the pinakes-engine\n` +
         `   sidecar is reachable. Bring the graph stack up with 'npm run dev:full'\n` +
-        `   (see docker-compose.yml / .env.example), then re-run this smoke test.`,
+        `   (see infra/docker-compose.yml / .env.example), then re-run this smoke test.`,
     );
     return 0; // graceful — the graph backends are absent, not broken
   }
