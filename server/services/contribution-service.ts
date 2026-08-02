@@ -2,7 +2,7 @@
  * Contribution & Review Service (Phase 5)
  * 
  * Lightweight contribution system for community data submissions.
- * Stores contributions as JSON files in data/contributions/ directory.
+ * Stores contributions as JSON files in data/runtime/contributions/ directory.
  * No auth required — designed for personal project use with optional moderation.
  */
 
@@ -226,7 +226,7 @@ export class ContributionService {
   private contributionsDir: string;
   private contributions: Contribution[] | null = null;
 
-  constructor(dataDir: string = "data/contributions") {
+  constructor(dataDir: string = "data/runtime/contributions") {
     this.contributionsDir = path.resolve(dataDir);
     this.ensureDirectory();
   }

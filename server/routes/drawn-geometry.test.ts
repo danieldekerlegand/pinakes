@@ -9,7 +9,7 @@ import path from "path";
 /**
  * Integration tests for `POST /api/map/drawn-geometry` (US-001). The route is
  * wired to a `ContributionService` pointed at a temp dir so drawn geometries
- * land in an isolated queue (no real `data/contributions/` writes).
+ * land in an isolated queue (no real `data/runtime/contributions/` writes).
  */
 
 import { registerDrawnGeometryRoutes } from "./drawn-geometry";

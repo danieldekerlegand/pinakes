@@ -31,7 +31,7 @@ import {
 } from "../services/relationship-edge";
 
 export interface RelationshipRouteOptions {
-  /** Contribution queue (default: real `data/contributions`). */
+  /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /** Lexicons dir the corpus edges are read from (default: `./lexicons`). */
   lexiconsDir?: string;

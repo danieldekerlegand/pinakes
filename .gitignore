@@ -26,6 +26,8 @@ data/runtime/stewardship/
 data/runtime/changelog/
 # US-011 living dataset — runtime state (ingestion timestamps + release history)
 data/runtime/living-dataset/
+# US-... contributions — runtime queue (samples archived under data/archive/)
+data/runtime/contributions/
 # Playwright e2e (US-006) — installed browsers cache is global; test artifacts are local
 test-results/
 playwright-report/

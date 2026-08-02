@@ -31,7 +31,7 @@ import {
 export interface CultureScrapeAcquisitionRouteOptions {
   /** Job runner (default: the live culture-scrape CLI runner). */
   runner?: CultureScrapeJobRunner;
-  /** Contribution queue (default: real `data/contributions`). */
+  /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /**
    * Test hook fired after a background job settles — lets a test await

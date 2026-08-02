@@ -51,7 +51,7 @@ import {
 export interface LivingDatasetRouteOptions {
   /** State store (default the real gitignored `data/living-dataset/`). */
   store?: LivingDatasetStore;
-  /** Contribution review queue acquired records land in (default `data/contributions`). */
+  /** Contribution review queue acquired records land in (default `data/runtime/contributions`). */
   contributions?: ContributionService;
   /** culture-scrape acquisition runner (default: the live CLI runner). */
   runner?: CultureScrapeJobRunner;

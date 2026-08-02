@@ -24,7 +24,7 @@ import {
 } from "../services/text-extractor";
 
 export interface TextExtractorRouteOptions {
-  /** Contribution queue (default: real `data/contributions`). */
+  /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /** LLM boundary (default: live Gemini). */
   deps?: TextExtractorDeps;

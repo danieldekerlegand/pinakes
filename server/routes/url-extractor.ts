@@ -24,7 +24,7 @@ import {
 } from "../services/url-extractor";
 
 export interface UrlExtractorRouteOptions {
-  /** Contribution queue (default: real `data/contributions`). */
+  /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /** Network boundary (default: live Wikidata/Wikipedia REST). */
   deps?: UrlExtractorDeps;

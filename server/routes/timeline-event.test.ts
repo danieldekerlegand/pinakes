@@ -9,7 +9,7 @@ import path from "path";
 /**
  * Integration tests for `POST /api/timeline/event` (US-002). The route is wired
  * to a `ContributionService` pointed at a temp dir so authored entries land in
- * an isolated queue (no real `data/contributions/` writes).
+ * an isolated queue (no real `data/runtime/contributions/` writes).
  */
 
 import { registerTimelineEventRoutes } from "./timeline-event";

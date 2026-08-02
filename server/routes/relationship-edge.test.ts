@@ -10,7 +10,7 @@ import path from "path";
  * Integration tests for `POST /api/relationships/edge` (US-003). The route is
  * wired to a `ContributionService` pointed at a temp dir and an isolated
  * lexicons dir (with a seeded `cultural-lineages.tsv`), so edge creation + dedup
- * are exercised end-to-end with no real `data/contributions/` or corpus writes.
+ * are exercised end-to-end with no real `data/runtime/contributions/` or corpus writes.
  */
 
 import { registerRelationshipEdgeRoutes } from "./relationship-edge";

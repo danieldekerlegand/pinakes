@@ -31,7 +31,7 @@ import {
 export interface ArchaeologyAcquisitionRouteOptions {
   /** Network boundary (default: the live Open Context / tDAR fetchers). */
   deps?: ArchaeologyDeps;
-  /** Contribution queue (default: real `data/contributions`). */
+  /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /**
    * Test hook fired after a background job settles — lets a test await
