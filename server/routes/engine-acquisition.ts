@@ -1,9 +1,9 @@
 /**
  * pinakes-engine Wikidata bulk-acquisition routes (US-005).
  *
- * `GET  /api/scraping/culturescrape/categories` — the four acquirable domains
+ * `GET  /api/scraping/engine/categories` — the four acquirable domains
  *   (civilizations, sites, figures, trade goods) for the dashboard.
- * `POST /api/scraping/culturescrape` — start a Wikidata acquisition job for one
+ * `POST /api/scraping/engine` — start a Wikidata acquisition job for one
  *   domain. The heavy lifting runs in the background via
  *   {@link runAcquisitionJob}; progress is streamed through the existing
  *   `jobStore` (the scraper dashboard already polls `GET /api/scraping-jobs`),
@@ -25,12 +25,12 @@ import {
   resolveAcquisitionCategory,
   runAcquisitionJob,
   type AcquisitionJobResult,
-  type CultureScrapeJobRunner,
-} from "../services/culturescrape-acquisition";
+  type EngineJobRunner,
+} from "../services/engine-acquisition";
 
-export interface CultureScrapeAcquisitionRouteOptions {
+export interface EngineAcquisitionRouteOptions {
   /** Job runner (default: the live pinakes-engine CLI runner). */
-  runner?: CultureScrapeJobRunner;
+  runner?: EngineJobRunner;
   /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
   /**
@@ -44,15 +44,15 @@ export interface CultureScrapeAcquisitionRouteOptions {
   ) => void;
 }
 
-export function registerCultureScrapeAcquisitionRoutes(
+export function registerEngineAcquisitionRoutes(
   app: Express,
-  options: CultureScrapeAcquisitionRouteOptions = {},
+  options: EngineAcquisitionRouteOptions = {},
 ): void {
   const runner = options.runner ?? liveJobRunner;
   const contributions = options.contributions ?? new ContributionService();
 
-  /** GET /api/scraping/culturescrape/categories — the acquirable domains. */
-  app.get("/api/scraping/culturescrape/categories", (_req, res) => {
+  /** GET /api/scraping/engine/categories — the acquirable domains. */
+  app.get("/api/scraping/engine/categories", (_req, res) => {
     res.json({
       categories: listAcquisitionCategories().map((c) => ({
         domain: c.domain,
@@ -66,11 +66,11 @@ export function registerCultureScrapeAcquisitionRoutes(
   });
 
   /**
-   * POST /api/scraping/culturescrape
+   * POST /api/scraping/engine
    * Body: `{ domain, limit? }`. 202 with `{ jobId, domain }`; 400 on an unknown
    * domain or a bad limit. Progress + results surface via `GET /api/scraping-jobs`.
    */
-  app.post("/api/scraping/culturescrape", (req, res) => {
+  app.post("/api/scraping/engine", (req, res) => {
     const body = (req.body ?? {}) as { domain?: string; limit?: number };
     const category = resolveAcquisitionCategory(body.domain);
     if (!category) {
@@ -141,7 +141,7 @@ export function registerCultureScrapeAcquisitionRoutes(
     res.status(202).json({
       jobId: job.id,
       domain: category.domain,
-      message: `Culture-scrape Wikidata acquisition started for ${category.label}`,
+      message: `pinakes-engine Wikidata acquisition started for ${category.label}`,
     });
   });
 }

@@ -23,11 +23,24 @@ Own toolchain, run from this directory:
 uv sync --frozen --all-extras && uv run ruff check . && uv run mypy src && uv run pytest
 ```
 
-Own toolchain, run from this directory:
+## GOTCHA — the lock and the venv live at the REPO ROOT, not here
 
-```bash
-uv sync --frozen --all-extras && uv run ruff check . && uv run mypy src && uv run pytest
-```
+pinakes:20 US-4 made the repo root a **virtual uv workspace root**
+(`/pyproject.toml`, `[tool.uv.workspace] members = ["engine"]`) so this package
+and `services/api`'s `pinakes` can never drift on a shared dependency. Two
+consequences:
+
+- **There is no `engine/uv.lock` and no `engine/.venv` any more** — they are
+  `/uv.lock` and `/.venv`. The commands above still work verbatim from this
+  directory (uv discovers the workspace root by walking up), but `uv lock`
+  rewrites the *root* lock, and a stale `engine/.venv` left over from before the
+  move is dead weight: delete it, `uv run` will not use it.
+- `[tool.uv.sources]` in this file stays **relative to this file**
+  (`vendor/…whl`); uv rebases it to `engine/vendor/…whl` in the root lock itself.
+  Do not "fix" that path by hand.
+
+`ml/` is deliberately NOT a member (`exclude = ["ml"]`) — it keeps its own
+`ml/uv.lock` + `ml/.venv` so torch/pykeen never enter this environment.
 
 ## GOTCHA — this package sits ONE level below the repo root
 

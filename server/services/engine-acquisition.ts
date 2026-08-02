@@ -11,7 +11,7 @@
  *   1. A domain (civilizations / sites / figures / trade goods) maps to an
  *      {@link AcquisitionCategory} — a Wikidata class + the contribution bucket
  *      acquired records are filed under.
- *   2. A {@link CultureScrapeJobRunner} runs the pinakes-engine `fetch` command
+ *   2. A {@link EngineJobRunner} runs the pinakes-engine `fetch` command
  *      for that category and returns the raw records + run report. The live
  *      runner (`liveJobRunner`) writes a pinakes-engine category spec to a temp
  *      file and spawns `python -m pinakes_engine.cli fetch <spec> --out <dir>`;
@@ -321,17 +321,17 @@ export interface JobRunnerContext {
  * The network/subprocess boundary. `liveJobRunner` shells out to pinakes-engine;
  * tests inject a fake returning recorded records so no Python/network is needed.
  */
-export interface CultureScrapeJobRunner {
+export interface EngineJobRunner {
   runFetch(
     category: AcquisitionCategory,
     context: JobRunnerContext,
   ): Promise<FetchOutcome>;
 }
 
-export class CultureScrapeAcquisitionError extends Error {
+export class EngineAcquisitionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "CultureScrapeAcquisitionError";
+    this.name = "EngineAcquisitionError";
   }
 }
 
@@ -362,7 +362,7 @@ export interface AcquisitionJobResult {
 
 export interface RunAcquisitionOptions {
   category: AcquisitionCategory;
-  runner: CultureScrapeJobRunner;
+  runner: EngineJobRunner;
   contributions: ContributionService;
   limit?: number;
   signal?: AbortSignal;
@@ -452,11 +452,11 @@ export async function runAcquisitionJob(
 // ── Live runner (spawns the vendored pinakes-engine CLI) ───────────────────────
 
 export interface LiveRunnerOptions {
-  /** Python interpreter (default `CULTURESCRAPE_PYTHON` env or `python3`). */
+  /** Python interpreter (default `PINAKES_ENGINE_PYTHON` env or `python3`). */
   python?: string;
-  /** pinakes-engine package dir (default `CULTURESCRAPE_DIR` env or `<cwd>/core`). */
+  /** pinakes-engine package dir (default `PINAKES_ENGINE_DIR` env or `<cwd>/engine`). */
   packageDir?: string;
-  /** Per-fetch timeout (default `CULTURESCRAPE_FETCH_TIMEOUT_MS` env or 5 min). */
+  /** Per-fetch timeout (default `PINAKES_ENGINE_FETCH_TIMEOUT_MS` env or 5 min). */
   timeoutMs?: number;
 }
 
@@ -495,7 +495,7 @@ function runCli(
       child.kill("SIGKILL");
       finish(() =>
         reject(
-          new CultureScrapeAcquisitionError(
+          new EngineAcquisitionError(
             `pinakes_engine fetch timed out after ${timeoutMs}ms`,
           ),
         ),
@@ -513,7 +513,7 @@ function runCli(
     child.on("error", (err) => {
       finish(() =>
         reject(
-          new CultureScrapeAcquisitionError(
+          new EngineAcquisitionError(
             `failed to launch pinakes_engine (${python}): ${err.message}`,
           ),
         ),
@@ -525,7 +525,7 @@ function runCli(
       else
         finish(() =>
           reject(
-            new CultureScrapeAcquisitionError(
+            new EngineAcquisitionError(
               `pinakes_engine fetch exited ${code}: ${stderr.trim().slice(0, 500)}`,
             ),
           ),
@@ -563,16 +563,16 @@ function readReport(
 
 export function createLiveJobRunner(
   options: LiveRunnerOptions = {},
-): CultureScrapeJobRunner {
+): EngineJobRunner {
   const python =
-    options.python ?? process.env.CULTURESCRAPE_PYTHON ?? "python3";
+    options.python ?? process.env.PINAKES_ENGINE_PYTHON ?? "python3";
   const packageDir =
     options.packageDir ??
-    process.env.CULTURESCRAPE_DIR ??
+    process.env.PINAKES_ENGINE_DIR ??
     path.resolve(process.cwd(), "engine");
   const timeoutMs =
     options.timeoutMs ??
-    (Number(process.env.CULTURESCRAPE_FETCH_TIMEOUT_MS) || 300_000);
+    (Number(process.env.PINAKES_ENGINE_FETCH_TIMEOUT_MS) || 300_000);
 
   return {
     async runFetch(category, context) {
@@ -607,4 +607,4 @@ export function createLiveJobRunner(
 }
 
 /** Default live runner — spawns the vendored pinakes-engine CLI. */
-export const liveJobRunner: CultureScrapeJobRunner = createLiveJobRunner();
+export const liveJobRunner: EngineJobRunner = createLiveJobRunner();

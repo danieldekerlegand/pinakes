@@ -33,7 +33,7 @@ Three moving parts:
 
    ```bash
    # bring up Neo4j pointed at the built export
-   CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d neo4j
+   PINAKES_ENGINE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d neo4j
    # load the canonical TSV corpus into it (incremental, MERGE-based)
    cd engine
    uv run pinakes_engine to-neo4j ../../build/corpus --mode loadcsv
@@ -103,7 +103,7 @@ Both degrade gracefully (the established `/api/graph/*` contract):
 
 - **Empty query** → `200 { query:"", seeds:[], nodes:[], edges:[] }`, no sidecar call.
 - **GraphRAG unavailable** (embedding extra absent, Neo4j unreachable, sidecar down,
-  or the sidecar disabled via `CULTURESCRAPE_ENABLED=false`) → **`503
+  or the sidecar disabled via `PINAKES_ENGINE_ENABLED=false`) → **`503
   { available:false }`**. This is the feature gate: retrieval simply reports itself
   unavailable rather than crashing the request.
 - **Malformed upstream body** → `502 { available:true }`.

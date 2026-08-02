@@ -29,7 +29,7 @@
  * same way — advertised, not invocable, with a message that says why.
  *
  * Everything network/subprocess-shaped sits behind the injectable {@link FinetuneRunner}
- * (the `culturescrape-acquisition.ts` pattern), so the whole invoke→subscribe path is
+ * (the `engine-acquisition.ts` pattern), so the whole invoke→subscribe path is
  * tested with an in-memory fake — no uv, no Python, no GPU.
  */
 import { spawn } from "node:child_process";

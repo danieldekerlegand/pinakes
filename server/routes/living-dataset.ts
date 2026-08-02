@@ -27,8 +27,8 @@ import {
   liveJobRunner,
   runAcquisitionJob,
   type AcquisitionDomain,
-  type CultureScrapeJobRunner,
-} from "../services/culturescrape-acquisition";
+  type EngineJobRunner,
+} from "../services/engine-acquisition";
 import { ContributionService } from "../services/contribution-service";
 import {
   buildDatasetSnapshot,
@@ -54,7 +54,7 @@ export interface LivingDatasetRouteOptions {
   /** Contribution review queue acquired records land in (default `data/runtime/contributions`). */
   contributions?: ContributionService;
   /** pinakes-engine acquisition runner (default: the live CLI runner). */
-  runner?: CultureScrapeJobRunner;
+  runner?: EngineJobRunner;
   /** DOI minter for `POST /release` (default Zenodo, disabled without a token). */
   doiMinter?: DoiMinter;
   /** Shared changelog store used to derive the next semver on release. */

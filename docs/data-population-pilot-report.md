@@ -112,7 +112,7 @@ rows into 81 trustworthy ones was human judgement, not compute. Scale-out cost s
    dir → `ExternalResourceFailed`). `infra/docker-compose.yml`'s `neo4j` service now wires this.
 3. **`smoke:graph` needs the sidecar and Neo4j on the SAME corpus.** `dev:full` defaults the
    sidecar to a bundled 9-node demo while Neo4j holds the real export → the cross-backend `node/:id`
-   check 404s. Run `CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j`.
+   check 404s. Run `PINAKES_ENGINE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j`.
 4. **After any `data/source/lexicons/*.tsv` shape change, regenerate BOTH committed snapshots**
    (`docs/engine-export-manifest.json` via the export CLI, and `docs/reconciliation-report.json`
    via the reconciliation CLI) or their live-corpus parity tests fail.
@@ -136,7 +136,7 @@ Ship these fixes with (or before) the scale-out:
   civilization-specific. Generalise it (per-domain allow/deny class lists + a QID-named reject) so
   each domain isn't re-curated from scratch. Curation is the throughput bottleneck (§4) — invest here.
 - **Fix #3 — make corpus alignment the default for verification.** Bake the
-  `CULTURESCRAPE_CORPUS=/corpus` alignment into the `dev:full` / verification path so `smoke:graph`
+  `PINAKES_ENGINE_CORPUS=/corpus` alignment into the `dev:full` / verification path so `smoke:graph`
   is green out of the box against the real export, not the demo fixture.
 
 Optional but recommended: capture a per-domain "acquired → curated → published" yield metric in the

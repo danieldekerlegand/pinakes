@@ -117,14 +117,14 @@
       "x_surfaces": [
         {
           "method": "POST",
-          "path": "/api/scraping/culturescrape",
+          "path": "/api/scraping/engine",
           "implementation": "engine/src/pinakes_engine/schema/reconcile.py",
           "description": "Runs the Wikidata acquisition + reconciliation pipeline for one domain; every matched/ambiguous/none decision is recorded in the row's provenance and lands in the contribution review queue."
         },
         {
           "method": "GET",
-          "path": "/api/scraping/culturescrape/categories",
-          "implementation": "server/services/culturescrape-acquisition.ts",
+          "path": "/api/scraping/engine/categories",
+          "implementation": "server/services/engine-acquisition.ts",
           "description": "The reconcilable domains + their Wikidata classes (the input vocabulary for the POST above)."
         }
       ]

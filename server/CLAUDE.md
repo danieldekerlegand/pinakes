@@ -108,7 +108,7 @@ capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
 `@contracts/capability-manifest` (`contracts/CLAUDE.md`); full contract in `docs/capability-bus.md`.
 
 - **Nothing here implements a capability.** The routes serve a document that *points at*
-  already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/culturescrape`,
+  already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/engine`,
   `/api/graph/datalog`). Extending the bus means editing the manifest JSON, not adding handlers.
 - **The registry is best-effort and never gates serving** (KCB §3 — it is a cache/index over
   the provider's own surfaces, and ADR-0001 makes it route-by-lookup, not a proxy).
@@ -501,7 +501,7 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
   under an injectable dir (default the **gitignored** `data/living-dataset/`), same JSON-on-disk
   shape as the other `data/*` stores; unparseable/missing file ⇒ empty state.
 - **Ingest = scheduled pinakes-engine acquisition.** The route reuses `runAcquisitionJob`
-  (`culturescrape-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
+  (`engine-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
   in the review queue (never a live write), then stamps `store.recordIngestion(domain, now)`. A
   per-domain runner failure is **collected in `errors[]`, never aborts the pass**. Body:
   `{domains?, force?, limit?}` (default limit 50); **400** only on an unknown requested domain.
@@ -857,11 +857,11 @@ extractor notes) actually happens.
   or non-AI draft. Client entry: the `/ai-review` page (`web/src/pages/ai-review.tsx`),
   linked in `AppSidebar`.
 
-## pinakes-engine Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
+## pinakes-engine Wikidata bulk acquisition — `services/engine-acquisition.ts` + `routes/engine-acquisition.ts`
 
-`POST /api/scraping/culturescrape` (US-005) triggers **pinakes-engine's** Wikidata
+`POST /api/scraping/engine` (US-005) triggers **pinakes-engine's** Wikidata
 SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods);
-`GET /api/scraping/culturescrape/categories` lists them. Reuse notes for any
+`GET /api/scraping/engine/categories` lists them. Reuse notes for any
 "trigger a background scraper from the dashboard" feature:
 
 - **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
@@ -869,10 +869,10 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   matching `engine/inputs/categories/*.yml`) to a temp file and spawns
   `python -m pinakes_engine.cli fetch <spec> --out <dir>` (cwd = package dir,
   `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
-  `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
+  `PINAKES_ENGINE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
   `<id>.jsonl` records + `<id>.report.json`. Single-**entity** lookups still use the
   REST `Special:EntityData` endpoint (`url-extractor.ts`); only bulk **sets** shell out.
-- **The runner is an injectable boundary** (`CultureScrapeJobRunner.runFetch`) so
+- **The runner is an injectable boundary** (`EngineJobRunner.runFetch`) so
   the whole pipeline is unit-tested with a fake returning recorded `RawRecord`s —
   no subprocess, no network. `runAcquisitionJob` (pure over runner + an injectable
   `ContributionService`) fetches then maps each record → `Partial<Contribution>`

@@ -51,7 +51,7 @@ type WordCoverage = {
   coveragePercent: number;
 };
 
-type CultureScrapeCategory = {
+type EngineCategory = {
   domain: string;
   id: string;
   label: string;
@@ -145,11 +145,11 @@ export default function ScraperDashboard() {
     staleTime: STALE_TIMES.static,
   });
 
-  const { data: csCategoriesData } = useQuery<{ categories: CultureScrapeCategory[] }>({
-    queryKey: ["/api/scraping/culturescrape/categories"],
+  const { data: csCategoriesData } = useQuery<{ categories: EngineCategory[] }>({
+    queryKey: ["/api/scraping/engine/categories"],
     staleTime: STALE_TIMES.static,
   });
-  const cultureScrapeCategories = csCategoriesData?.categories ?? [];
+  const engineCategories = csCategoriesData?.categories ?? [];
 
   const { data: archSourcesData } = useQuery<{ sources: ArchaeologySource[] }>({
     queryKey: ["/api/scraping/archaeology/sources"],
@@ -191,20 +191,20 @@ export default function ScraperDashboard() {
     },
   });
 
-  const cultureScrapeMutation = useMutation({
+  const engineMutation = useMutation({
     mutationFn: async ({ domain, limit }: { domain: string; limit?: number }) => {
-      const res = await apiRequest("POST", "/api/scraping/culturescrape", { domain, limit });
+      const res = await apiRequest("POST", "/api/scraping/engine", { domain, limit });
       return res.json();
     },
     onSuccess: (_data, { domain }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/scraping-jobs"] });
       toast({
         title: "Acquisition Started",
-        description: `culture-scrape Wikidata acquisition queued for ${domain}.`,
+        description: `pinakes-engine Wikidata acquisition queued for ${domain}.`,
       });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to start culture-scrape acquisition.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to start pinakes-engine acquisition.", variant: "destructive" });
     },
   });
 
@@ -263,11 +263,11 @@ export default function ScraperDashboard() {
     wordScrapeMutation.mutate({ languageId: lang.id, languageName: lang.name });
   };
 
-  const handleStartCultureScrape = () => {
+  const handleStartEngineAcquisition = () => {
     if (!selectedCsDomain) return;
     const parsed = Number(csLimit);
     const limit = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : undefined;
-    cultureScrapeMutation.mutate({ domain: selectedCsDomain, limit });
+    engineMutation.mutate({ domain: selectedCsDomain, limit });
   };
 
   const handleStartArchaeology = () => {
@@ -537,15 +537,15 @@ export default function ScraperDashboard() {
                 </CardContent>
               </Card>
 
-              {/* culture-scrape Wikidata Acquisition (US-005) */}
-              <Card data-testid="culturescrape-card">
+              {/* pinakes-engine Wikidata Acquisition (US-005) */}
+              <Card data-testid="engine-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Boxes className="h-5 w-5" />
                     Wikidata Bulk Acquisition
                   </CardTitle>
                   <CardDescription>
-                    Trigger culture-scrape's Wikidata SPARQL acquisition of civilizations,
+                    Trigger pinakes-engine's Wikidata SPARQL acquisition of civilizations,
                     sites, figures, and trade goods. Records enter the contribution review
                     queue with provenance — never the live dataset directly.
                   </CardDescription>
@@ -554,11 +554,11 @@ export default function ScraperDashboard() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Domain</label>
                     <Select value={selectedCsDomain} onValueChange={setSelectedCsDomain}>
-                      <SelectTrigger data-testid="culturescrape-domain-select">
+                      <SelectTrigger data-testid="engine-domain-select">
                         <SelectValue placeholder="Choose a domain..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {cultureScrapeCategories.map((cat) => (
+                        {engineCategories.map((cat) => (
                           <SelectItem key={cat.domain} value={cat.domain}>
                             {cat.label}
                           </SelectItem>
@@ -567,7 +567,7 @@ export default function ScraperDashboard() {
                     </Select>
                     {selectedCsDomain && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {cultureScrapeCategories.find((c) => c.domain === selectedCsDomain)?.description}
+                        {engineCategories.find((c) => c.domain === selectedCsDomain)?.description}
                       </p>
                     )}
                   </div>
@@ -579,16 +579,16 @@ export default function ScraperDashboard() {
                       value={csLimit}
                       onChange={(e) => setCsLimit(e.target.value)}
                       placeholder="e.g. 500"
-                      data-testid="culturescrape-limit"
+                      data-testid="engine-limit"
                     />
                   </div>
                   <Button
-                    onClick={handleStartCultureScrape}
-                    disabled={!selectedCsDomain || cultureScrapeMutation.isPending}
+                    onClick={handleStartEngineAcquisition}
+                    disabled={!selectedCsDomain || engineMutation.isPending}
                     className="w-full"
-                    data-testid="start-culturescrape"
+                    data-testid="start-engine"
                   >
-                    {cultureScrapeMutation.isPending ? (
+                    {engineMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Starting...

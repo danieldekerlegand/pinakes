@@ -1,6 +1,12 @@
 node_modules
 dist
 .DS_Store
+# uv workspace root (pyproject.toml + uv.lock). All members share ONE venv here;
+# `ml/` is a separate workspace and ignores its own via ml/.gitignore.
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 # Secrets — never commit (use .env.example as the template). See docs note on rotation.
 .env
 .env.local

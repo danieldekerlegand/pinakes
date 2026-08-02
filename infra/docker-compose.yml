@@ -25,7 +25,7 @@
 # `docker compose -f infra/docker-compose.yml up` starts only the sidecar; the scripts
 # above start both.
 #
-# The pinakes server reads CULTURESCRAPE_API_URL / NEO4J_* from .env
+# The pinakes server reads PINAKES_ENGINE_API_URL / NEO4J_* from .env
 # (see .env.example) and degrades gracefully when these services are down.
 
 # Pinned so the project name (and therefore container + volume names such as
@@ -47,18 +47,18 @@ services:
       - "8800:8800"
     environment:
       # Serve real data by pointing CORPUS at the mounted pinakes canonical
-      # export (below): `CULTURESCRAPE_CORPUS=/corpus`. This is the SAME bare
+      # export (below): `PINAKES_ENGINE_CORPUS=/corpus`. This is the SAME bare
       # corpus (nodes/ + edges/) that `to-neo4j build/corpus` loads into
       # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
       # what makes `npm run smoke:graph` green end to end (US-005). Left at the
       # bundled 9-node fixture by default so a bare `docker compose -f infra/docker-compose.yml up` (no export
       # built yet) still starts cleanly.
-      CORPUS: ${CULTURESCRAPE_CORPUS:-tests/fixtures/explorer-corpus}
+      CORPUS: ${PINAKES_ENGINE_CORPUS:-tests/fixtures/explorer-corpus}
     volumes:
       # The gitignored canonical export (produced by
       # `npx tsx scripts/export-for-engine.ts`). `load_corpus` reads a bare
       # `nodes/`+`edges/` directory, so this dir is directly servable. Read-only;
-      # unused until CULTURESCRAPE_CORPUS=/corpus. Mounting `${PWD}` (the repo
+      # unused until PINAKES_ENGINE_CORPUS=/corpus. Mounting `${PWD}` (the repo
       # root) subpath keeps parity with the neo4j service's `${PWD}` mount.
       - ${PWD}/build/corpus:/corpus:ro
     healthcheck:

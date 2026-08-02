@@ -14,8 +14,8 @@
  * first-party `/api/graph/*` routes (US-004).
  *
  * Everything degrades gracefully: transport failures, timeouts and 5xx map to a
- * typed {@link CultureScrapeUnavailableError} (routes answer 503), a bad request
- * or malformed body maps to {@link CultureScrapeError}, and {@link isAvailable}
+ * typed {@link EngineUnavailableError} (routes answer 503), a bad request
+ * or malformed body maps to {@link EngineError}, and {@link isAvailable}
  * returns `false` rather than throwing when the sidecar is down or disabled.
  */
 import { z } from "zod";
@@ -163,12 +163,12 @@ export type RetrieveResponse = z.infer<typeof RetrieveResponseSchema>;
 
 /**
  * The sidecar could not be reached (transport failure, timeout, 5xx, or it is
- * disabled via `CULTURESCRAPE_ENABLED=false`). Routes map this to HTTP 503.
+ * disabled via `PINAKES_ENGINE_ENABLED=false`). Routes map this to HTTP 503.
  */
-export class CultureScrapeUnavailableError extends Error {
+export class EngineUnavailableError extends Error {
   constructor(message = "pinakes-engine sidecar is unavailable") {
     super(message);
-    this.name = "CultureScrapeUnavailableError";
+    this.name = "EngineUnavailableError";
   }
 }
 
@@ -176,12 +176,12 @@ export class CultureScrapeUnavailableError extends Error {
  * The sidecar answered but the response was unusable: a non-2xx client error, a
  * non-JSON body, or a payload that failed schema validation.
  */
-export class CultureScrapeError extends Error {
+export class EngineError extends Error {
   /** HTTP status when the failure came from a response, else `undefined`. */
   readonly status?: number;
   constructor(message: string, status?: number) {
     super(message);
-    this.name = "CultureScrapeError";
+    this.name = "EngineError";
     this.status = status;
   }
 }
@@ -198,15 +198,15 @@ interface ClientConfig {
 }
 
 function readConfig(): ClientConfig {
-  const raw = process.env.CULTURESCRAPE_ENABLED;
+  const raw = process.env.PINAKES_ENGINE_ENABLED;
   // Enabled by default; only an explicit false/0/no opts out.
   const enabled = !(raw && /^(false|0|no|off)$/i.test(raw.trim()));
   return {
-    baseUrl: (process.env.CULTURESCRAPE_API_URL || "http://localhost:8800").replace(
+    baseUrl: (process.env.PINAKES_ENGINE_API_URL || "http://localhost:8800").replace(
       /\/+$/,
       "",
     ),
-    timeoutMs: Number(process.env.CULTURESCRAPE_TIMEOUT_MS) || 10_000,
+    timeoutMs: Number(process.env.PINAKES_ENGINE_TIMEOUT_MS) || 10_000,
     enabled,
   };
 }
@@ -272,8 +272,8 @@ type QueryParams = Record<string, string | number | boolean | undefined | null>;
 /**
  * Issue a GET, enforce a timeout, and validate the JSON body against `schema`.
  *
- * @throws {CultureScrapeUnavailableError} transport error, timeout, or 5xx.
- * @throws {CultureScrapeError} non-2xx client error, non-JSON body, or a payload
+ * @throws {EngineUnavailableError} transport error, timeout, or 5xx.
+ * @throws {EngineError} non-2xx client error, non-JSON body, or a payload
  *   that fails schema validation.
  */
 async function requestJson<S extends z.ZodTypeAny>(
@@ -283,8 +283,8 @@ async function requestJson<S extends z.ZodTypeAny>(
 ): Promise<z.infer<S>> {
   const cfg = readConfig();
   if (!cfg.enabled) {
-    throw new CultureScrapeUnavailableError(
-      "pinakes-engine sidecar is disabled (CULTURESCRAPE_ENABLED=false)",
+    throw new EngineUnavailableError(
+      "pinakes-engine sidecar is disabled (PINAKES_ENGINE_ENABLED=false)",
     );
   }
   const controller = new AbortController();
@@ -305,7 +305,7 @@ async function requestJson<S extends z.ZodTypeAny>(
         : err instanceof Error
           ? err.message
           : "network error";
-    throw new CultureScrapeUnavailableError(reason);
+    throw new EngineUnavailableError(reason);
   } finally {
     clearTimeout(timer);
   }
@@ -313,12 +313,12 @@ async function requestJson<S extends z.ZodTypeAny>(
   if (res.status >= 500) {
     // Server-side failure: treat as unavailable so callers can degrade / retry.
     availabilityCache = null;
-    throw new CultureScrapeUnavailableError(
+    throw new EngineUnavailableError(
       `pinakes-engine ${path} returned ${res.status}`,
     );
   }
   if (!res.ok) {
-    throw new CultureScrapeError(
+    throw new EngineError(
       `pinakes-engine ${path} returned ${res.status}`,
       res.status,
     );
@@ -328,7 +328,7 @@ async function requestJson<S extends z.ZodTypeAny>(
   try {
     body = await res.json();
   } catch {
-    throw new CultureScrapeError(
+    throw new EngineError(
       `pinakes-engine ${path} returned a non-JSON response`,
       res.status,
     );
@@ -336,7 +336,7 @@ async function requestJson<S extends z.ZodTypeAny>(
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    throw new CultureScrapeError(
+    throw new EngineError(
       `pinakes-engine ${path} returned a malformed response: ${parsed.error.message}`,
       res.status,
     );
@@ -393,7 +393,7 @@ export function cypher(query: string): Promise<CypherResponse> {
  * Hybrid GraphRAG retrieval (`GET /api/retrieve`): embed `query`, pull the top-`k`
  * nearest nodes from the Neo4j native vector index, and expand them out to `depth`
  * hops. When the sidecar's embedder or Neo4j connection is absent it answers 503,
- * which surfaces here as {@link CultureScrapeUnavailableError} (routes → 503
+ * which surfaces here as {@link EngineUnavailableError} (routes → 503
  * `{ available: false }`), keeping the graceful-degradation contract.
  */
 export function retrieve(

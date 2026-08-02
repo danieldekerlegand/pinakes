@@ -47,7 +47,7 @@ in the contribution review queue, never as a live write — the KCB §5 merge-re
 | Capability | Grant | Primary surface | Implemented by (already merged) |
 |---|---|---|---|
 | `resolve` | `invoke:resolve` | `GET /api/graph/resolve` | `server/services/graph-resolver.ts` |
-| `reconcile` | `invoke:reconcile` | `POST /api/scraping/culturescrape` | `engine/src/pinakes_engine/schema/reconcile.py` |
+| `reconcile` | `invoke:reconcile` | `POST /api/scraping/engine` | `engine/src/pinakes_engine/schema/reconcile.py` |
 | `query` | `invoke:query` | `POST /api/graph/datalog` | `server/routes/graph.ts`, `server/services/graph-store.ts` |
 | `finetune` | `invoke:finetune` | MCP tools `finetune` / `finetune_subscribe` (`POST /mcp`) | `ml/src/pinakes_ml/train_slm.py` (+ `kft.py`/`kft_run.py`), fronted by `server/services/finetune-provider.ts` |
 

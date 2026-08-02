@@ -278,8 +278,8 @@ built from the same corpus data (parity); the negotiation lives in
 
 **Degradation contract.** When a backend is unreachable the query routes answer
 **HTTP 503** with a structured `{ available: false, error, detail }` body and never crash
-(`GraphUnavailableError` / `CultureScrapeUnavailableError` → 503). A malformed/unusable
-upstream response (`CultureScrapeError`) maps to **502**. `/api/graph/status` is itself a
+(`GraphUnavailableError` / `EngineUnavailableError` → 503). A malformed/unusable
+upstream response (`EngineError`) maps to **502**. `/api/graph/status` is itself a
 health probe and always returns 200 so the client can gate graph-dependent UI (US-005).
 
 **Health & graceful degradation (US-005).** `/api/graph/status` delegates to
@@ -397,10 +397,10 @@ down (see the degradation contract in §10b).
 
 | Var | Read by | Default | Purpose |
 | --- | --- | --- | --- |
-| `CULTURESCRAPE_API_URL` | `server/services/engine-client.ts` | `http://localhost:8800` | Base URL of the FastAPI sidecar (search / metrics / datalog / cypher). |
-| `CULTURESCRAPE_ENABLED` | `engine-client.ts` | `true` | Falsey ⇒ `isAvailable()` returns false, sidecar-backed features disable without errors. |
-| `CULTURESCRAPE_TIMEOUT_MS` | `engine-client.ts` | `10000` | Per-request timeout for the sidecar HTTP client. |
-| `CULTURESCRAPE_CORPUS` | docker-compose (`pinakes_engine` service) | `tests/fixtures/explorer-corpus` | Corpus the sidecar serves; point at a mounted built corpus for real data. |
+| `PINAKES_ENGINE_API_URL` | `server/services/engine-client.ts` | `http://localhost:8800` | Base URL of the FastAPI sidecar (search / metrics / datalog / cypher). |
+| `PINAKES_ENGINE_ENABLED` | `engine-client.ts` | `true` | Falsey ⇒ `isAvailable()` returns false, sidecar-backed features disable without errors. |
+| `PINAKES_ENGINE_TIMEOUT_MS` | `engine-client.ts` | `10000` | Per-request timeout for the sidecar HTTP client. |
+| `PINAKES_ENGINE_CORPUS` | docker-compose (`pinakes_engine` service) | `tests/fixtures/explorer-corpus` | Corpus the sidecar serves; point at a mounted built corpus for real data. |
 | `NEO4J_URI` | `server/services/graph-store.ts` | `bolt://localhost:7687` | Bolt endpoint of the shared graph store. |
 | `NEO4J_USER` / `NEO4J_PASSWORD` | `graph-store.ts` | `neo4j` / *(empty)* | Neo4j credentials. |
 | `NEO4J_AUTH` | docker-compose (`neo4j` service) | `neo4j/pinakes` | `user/password` for the container; **must equal** `NEO4J_USER`/`NEO4J_PASSWORD`. |
@@ -446,8 +446,8 @@ graph integration adds **two out-of-process dependencies** that the server reach
    TLS in prod), `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DATABASE`. The driver is lazily created,
    pooled, and torn down on `SIGTERM`/`SIGINT` (`closeGraphStore()` in `server/index.ts`).
 2. **pinakes-engine FastAPI sidecar** — run `pinakes_engine serve` from a `uv sync`'d `engine/`
-   checkout as a sibling service pointed at a built corpus (`CULTURESCRAPE_CORPUS`); set
-   `CULTURESCRAPE_API_URL` to its internal URL. Keep it on the private network — the browser never
+   checkout as a sibling service pointed at a built corpus (`PINAKES_ENGINE_CORPUS`); set
+   `PINAKES_ENGINE_API_URL` to its internal URL. Keep it on the private network — the browser never
    talks to it directly (all access is proxied through `/api/graph/*`).
 
 Both are **optional at runtime**: if either is unset or unreachable the server logs it, answers the
@@ -463,11 +463,11 @@ To surface a new shared-graph capability at the app origin:
    `server/services/graph-store.ts` (parameterized Cypher, coerce Neo4j `Integer`s at the boundary,
    throw `GraphUnavailableError` when the driver is down). A sidecar-served capability (search,
    metrics, datalog, cypher, completeness) → add a **zod-validated** wrapper to
-   `server/services/engine-client.ts` (throw `CultureScrapeUnavailableError` for
-   transport/timeout/5xx/disabled, `CultureScrapeError` for 4xx/malformed).
+   `server/services/engine-client.ts` (throw `EngineUnavailableError` for
+   transport/timeout/5xx/disabled, `EngineError` for 4xx/malformed).
 2. **Add the route** in `server/routes/graph.ts` under `registerGraphRoutes`. Reuse the shared
-   `handleError()` so `GraphUnavailableError`/`CultureScrapeUnavailableError` → **503**
-   `{ available:false, error, detail }` and `CultureScrapeError` → **502**. For a body-consuming
+   `handleError()` so `GraphUnavailableError`/`EngineUnavailableError` → **503**
+   `{ available:false, error, detail }` and `EngineError` → **502**. For a body-consuming
    `POST`, attach the route-scoped `jsonBody` middleware (see the datalog/cypher routes). Never let
    an unreachable backend crash the process.
 3. **Test it** in `server/routes/graph.test.ts`: add the new service fn to both the

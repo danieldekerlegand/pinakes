@@ -75,7 +75,7 @@ import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerTextExtractorRoutes } from "./routes/text-extractor";
 import { registerTranslateRoutes } from "./routes/translate";
 import { registerAiReviewRoutes } from "./routes/ai-review";
-import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
+import { registerEngineAcquisitionRoutes } from "./routes/engine-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
@@ -251,13 +251,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // the AI source and the human reviewer.
   registerAiReviewRoutes(app, { changelog });
 
-  // pinakes-engine Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
+  // pinakes-engine Wikidata bulk-acquisition routes (/api/scraping/engine,
   // US-005) — trigger + monitor pinakes-engine's Wikidata SPARQL acquisition of
   // civilizations/sites/figures/trade-goods from the scraper dashboard. Bulk
   // SPARQL stays pinakes-engine's job (no TS SPARQL client); acquired records
   // land in the contribution review queue with Wikidata provenance. Progress
   // streams via the existing jobStore (GET /api/scraping-jobs).
-  registerCultureScrapeAcquisitionRoutes(app);
+  registerEngineAcquisitionRoutes(app);
 
   // Open Context / tDAR archaeological acquisition routes
   // (/api/scraping/archaeology, US-007) — complement the Pleiades path with two

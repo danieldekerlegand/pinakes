@@ -119,7 +119,7 @@ non-empty data (`npm run smoke:graph`, docs in
   (loaded by `to-neo4j build/corpus`), the csid doesn't exist in Neo4j and
   the smoke fails. To run a fully green smoke: point the sidecar at the same bare
   corpus — `infra/docker-compose.yml` mounts the gitignored `build/corpus` at
-  `/corpus:ro`, so bring the stack up with `CULTURESCRAPE_CORPUS=/corpus docker
+  `/corpus:ro`, so bring the stack up with `PINAKES_ENGINE_CORPUS=/corpus docker
   compose up -d pinakes_engine neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
   directly). Default stays the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still
   starts when no export has been built.

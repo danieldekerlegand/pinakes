@@ -16,8 +16,8 @@ import * as graphStore from "../services/graph-store";
 import { GraphUnavailableError } from "../services/graph-store";
 import * as pinakes_engine from "../services/engine-client";
 import {
-  CultureScrapeError,
-  CultureScrapeUnavailableError,
+  EngineError,
+  EngineUnavailableError,
 } from "../services/engine-client";
 import { getGraphHealth } from "../services/graph-health";
 import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
@@ -30,7 +30,7 @@ import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 function handleError(res: Response, context: string, error: unknown): void {
   if (
     error instanceof GraphUnavailableError ||
-    error instanceof CultureScrapeUnavailableError
+    error instanceof EngineUnavailableError
   ) {
     res.status(503).json({
       available: false,
@@ -39,7 +39,7 @@ function handleError(res: Response, context: string, error: unknown): void {
     });
     return;
   }
-  if (error instanceof CultureScrapeError) {
+  if (error instanceof EngineError) {
     res.status(502).json({
       available: true,
       error: `${context} returned an unusable response`,

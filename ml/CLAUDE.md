@@ -5,6 +5,14 @@ torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM
 `ml/`: `uv run ruff check .`, `uv run pytest`, import smoke
 `uv run python -c 'import torch, pykeen, problog'`.
 
+> **This workspace is EXCLUDED from the root one, on purpose.** pinakes:20 US-4
+> made the repo root a virtual uv workspace (`/pyproject.toml`) tying `engine/`
+> and, later, `services/api/`. `ml/` is listed in its `exclude` — that entry is
+> load-bearing, not decoration: without it uv's workspace discovery would walk up
+> from here, find the root manifest and claim this project, collapsing `ml/`'s
+> stack into `/uv.lock` + `/.venv`. Keep `ml/uv.lock` and `ml/.venv` local; never
+> add `ml` to the root `members`.
+
 > **DVC IS GONE** (flatten Phase 0 — `docs/artifact-versioning.md`). This file was
 > written while it existed and still mentions it in ~60 places, all of them stale:
 > there is no `dvc` in the venv, no `.dvc/` at the repo root, no `*.dvc` pointers

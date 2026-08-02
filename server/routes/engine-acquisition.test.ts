@@ -13,13 +13,13 @@ import path from "path";
  * test await the background job deterministically.
  */
 
-import { registerCultureScrapeAcquisitionRoutes } from "./culturescrape-acquisition";
+import { registerEngineAcquisitionRoutes } from "./engine-acquisition";
 import { ContributionService } from "../services/contribution-service";
 import type {
   AcquisitionJobResult,
-  CultureScrapeJobRunner,
+  EngineJobRunner,
   RawRecord,
-} from "../services/culturescrape-acquisition";
+} from "../services/engine-acquisition";
 
 function rawRecord(fields: Record<string, string>): RawRecord {
   return {
@@ -43,7 +43,7 @@ const RECORDS_BY_CATEGORY: Record<string, RawRecord[]> = {
   ],
 };
 
-const fakeRunner: CultureScrapeJobRunner = {
+const fakeRunner: EngineJobRunner = {
   async runFetch(category) {
     const records = RECORDS_BY_CATEGORY[category.id] ?? [];
     return {
@@ -82,7 +82,7 @@ beforeAll(async () => {
   contributions = new ContributionService(dir);
   app = express();
   app.use(express.json());
-  registerCultureScrapeAcquisitionRoutes(app, {
+  registerEngineAcquisitionRoutes(app, {
     runner: fakeRunner,
     contributions,
     onJobSettled: (jobId, result, error) => {
@@ -104,7 +104,7 @@ afterAll(async () => {
 
 type Res = { status: number; body: any };
 async function post(body: unknown): Promise<Res> {
-  const res = await fetch(`${baseUrl}/api/scraping/culturescrape`, {
+  const res = await fetch(`${baseUrl}/api/scraping/engine`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -113,9 +113,9 @@ async function post(body: unknown): Promise<Res> {
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-describe("GET /api/scraping/culturescrape/categories", () => {
+describe("GET /api/scraping/engine/categories", () => {
   it("lists the four acquirable domains", async () => {
-    const res = await fetch(`${baseUrl}/api/scraping/culturescrape/categories`);
+    const res = await fetch(`${baseUrl}/api/scraping/engine/categories`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as { categories: Array<{ domain: string }> };
     const domains = body.categories.map((c) => c.domain).sort();
@@ -123,7 +123,7 @@ describe("GET /api/scraping/culturescrape/categories", () => {
   });
 });
 
-describe("POST /api/scraping/culturescrape", () => {
+describe("POST /api/scraping/engine", () => {
   it("starts a job and queues acquired records into the review queue", async () => {
     const { status, body } = await post({ domain: "civilizations", limit: 50 });
     expect(status).toBe(202);

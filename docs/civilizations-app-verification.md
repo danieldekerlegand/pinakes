@@ -56,7 +56,7 @@ Fix wired here: `infra/docker-compose.yml` mounts the gitignored `build/corpus`
 at `/corpus:ro`; bring the stack up with
 
 ```
-CULTURESCRAPE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j
+PINAKES_ENGINE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j
 ```
 
 so both backends read the same bare `nodes/`+`edges/` corpus. The default stays

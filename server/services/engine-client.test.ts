@@ -42,9 +42,9 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
   client.resetAvailabilityCache();
-  delete process.env.CULTURESCRAPE_ENABLED;
-  delete process.env.CULTURESCRAPE_API_URL;
-  delete process.env.CULTURESCRAPE_TIMEOUT_MS;
+  delete process.env.PINAKES_ENGINE_ENABLED;
+  delete process.env.PINAKES_ENGINE_API_URL;
+  delete process.env.PINAKES_ENGINE_TIMEOUT_MS;
 });
 
 afterEach(() => {
@@ -101,53 +101,53 @@ describe("search", () => {
     expect(res.results[0].graph).toBeNull();
   });
 
-  it("rejects a malformed response with CultureScrapeError", async () => {
+  it("rejects a malformed response with EngineError", async () => {
     // `results` must be an array of objects; a string is malformed.
     fetchMock.mockResolvedValueOnce(jsonResponse({ results: "nope" }));
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeError,
+      client.EngineError,
     );
   });
 
-  it("rejects a non-JSON body with CultureScrapeError", async () => {
+  it("rejects a non-JSON body with EngineError", async () => {
     fetchMock.mockResolvedValueOnce(nonJsonResponse(200));
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeError,
+      client.EngineError,
     );
   });
 
-  it("maps a 4xx to CultureScrapeError carrying the status", async () => {
+  it("maps a 4xx to EngineError carrying the status", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ detail: "bad" }, 400));
 
     await expect(client.search("x")).rejects.toMatchObject({
-      name: "CultureScrapeError",
+      name: "EngineError",
       status: 400,
     });
   });
 
-  it("maps a 5xx to CultureScrapeUnavailableError", async () => {
+  it("maps a 5xx to EngineUnavailableError", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({}, 503));
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeUnavailableError,
+      client.EngineUnavailableError,
     );
   });
 
-  it("maps a timeout (AbortError) to CultureScrapeUnavailableError", async () => {
+  it("maps a timeout (AbortError) to EngineUnavailableError", async () => {
     fetchMock.mockRejectedValueOnce(abortError());
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeUnavailableError,
+      client.EngineUnavailableError,
     );
   });
 
-  it("maps a transport failure to CultureScrapeUnavailableError", async () => {
+  it("maps a transport failure to EngineUnavailableError", async () => {
     fetchMock.mockRejectedValueOnce(new TypeError("fetch failed"));
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeUnavailableError,
+      client.EngineUnavailableError,
     );
   });
 });
@@ -301,7 +301,7 @@ describe("retrieve", () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ available: false }, 503));
 
     await expect(client.retrieve("anything")).rejects.toBeInstanceOf(
-      client.CultureScrapeUnavailableError,
+      client.EngineUnavailableError,
     );
   });
 });
@@ -325,17 +325,17 @@ describe("isAvailable", () => {
   });
 
   it("returns false without probing when disabled via env", async () => {
-    process.env.CULTURESCRAPE_ENABLED = "false";
+    process.env.PINAKES_ENGINE_ENABLED = "false";
 
     expect(await client.isAvailable()).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("throws CultureScrapeUnavailableError from wrappers when disabled", async () => {
-    process.env.CULTURESCRAPE_ENABLED = "0";
+  it("throws EngineUnavailableError from wrappers when disabled", async () => {
+    process.env.PINAKES_ENGINE_ENABLED = "0";
 
     await expect(client.search("x")).rejects.toBeInstanceOf(
-      client.CultureScrapeUnavailableError,
+      client.EngineUnavailableError,
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -344,8 +344,8 @@ describe("isAvailable", () => {
 // ── config ────────────────────────────────────────────────────────────────────
 
 describe("configuration", () => {
-  it("targets CULTURESCRAPE_API_URL and trims a trailing slash", async () => {
-    process.env.CULTURESCRAPE_API_URL = "http://sidecar:8800/";
+  it("targets PINAKES_ENGINE_API_URL and trims a trailing slash", async () => {
+    process.env.PINAKES_ENGINE_API_URL = "http://sidecar:8800/";
     fetchMock.mockResolvedValueOnce(jsonResponse({ results: [] }));
 
     await client.search("x");

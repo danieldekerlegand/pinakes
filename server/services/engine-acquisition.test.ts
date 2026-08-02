@@ -21,9 +21,9 @@ import {
   resolveAcquisitionCategory,
   runAcquisitionJob,
   type AcquisitionCategory,
-  type CultureScrapeJobRunner,
+  type EngineJobRunner,
   type RawRecord,
-} from "./culturescrape-acquisition";
+} from "./engine-acquisition";
 
 const CIV = ACQUISITION_CATALOG.civilizations;
 const SITES = ACQUISITION_CATALOG.sites;
@@ -44,7 +44,7 @@ function rawRecord(fields: Record<string, string>, source_query = "SELECT ..."):
   };
 }
 
-function fakeRunner(records: RawRecord[]): CultureScrapeJobRunner {
+function fakeRunner(records: RawRecord[]): EngineJobRunner {
   return {
     async runFetch(category) {
       return {

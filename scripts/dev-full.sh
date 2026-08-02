@@ -17,7 +17,7 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-SIDECAR_URL="${CULTURESCRAPE_API_URL:-http://localhost:8800}"
+SIDECAR_URL="${PINAKES_ENGINE_API_URL:-http://localhost:8800}"
 
 cleanup() {
   echo ""

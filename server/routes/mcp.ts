@@ -10,7 +10,7 @@
  * **Surface wrapper only** (server/CLAUDE.md + contracts/CLAUDE.md): every tool
  * forwards to the already-built surface the manifest points at —
  *   - `resolve`   → `server/services/graph-resolver.ts` (`GET /api/graph/resolve`)
- *   - `reconcile` → the pinakes-engine acquisition job (`POST /api/scraping/culturescrape`)
+ *   - `reconcile` → the pinakes-engine acquisition job (`POST /api/scraping/engine`)
  *   - `query`     → the sidecar Datalog console (`POST /api/graph/datalog`)
  *   - `finetune` / `finetune_subscribe` → the `ml/` QLoRA pipeline via
  *     `server/services/finetune-provider.ts` (90-US-3), which shells out to the
@@ -26,7 +26,7 @@
  * the same optional-env shape as `GEONAMES_USERNAME` / `KCB_REGISTRY_URL`.
  *
  * Graceful degradation mirrors `/api/graph/*`: a `GraphUnavailableError` /
- * `CultureScrapeUnavailableError` becomes an MCP tool *error result*
+ * `EngineUnavailableError` becomes an MCP tool *error result*
  * (`isError: true`), never a thrown crash — the same 503-shaped degradation the
  * HTTP routes give (`GraphUnavailableError` → `{ available: false }`).
  *
@@ -46,8 +46,8 @@ import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 import { GraphUnavailableError } from "../services/graph-store";
 import * as pinakes_engine from "../services/engine-client";
 import {
-  CultureScrapeError,
-  CultureScrapeUnavailableError,
+  EngineError,
+  EngineUnavailableError,
 } from "../services/engine-client";
 import { jobStore } from "../services/job-store";
 import { ContributionService } from "../services/contribution-service";
@@ -56,7 +56,7 @@ import {
   liveJobRunner,
   resolveAcquisitionCategory,
   runAcquisitionJob,
-} from "../services/culturescrape-acquisition";
+} from "../services/engine-acquisition";
 import {
   FinetuneRefusedError,
   FinetuneRunNotFoundError,
@@ -70,7 +70,7 @@ import {
 /** Where the MCP server is mounted (mirrors `endpoints.mcp` in the manifest). */
 export const MCP_ROUTE_PATH = "/mcp";
 
-/** Input to the `reconcile` tool (mirrors the `POST /api/scraping/culturescrape` body). */
+/** Input to the `reconcile` tool (mirrors the `POST /api/scraping/engine` body). */
 export interface ReconcileToolInput {
   readonly domain?: string;
   readonly limit?: number;
@@ -128,7 +128,7 @@ async function runTool(
   } catch (error) {
     if (
       error instanceof GraphUnavailableError ||
-      error instanceof CultureScrapeUnavailableError ||
+      error instanceof EngineUnavailableError ||
       // The finetune surface degrades the same way: advertised, not dispatchable,
       // with a message that says how to make it dispatchable (90-US-3 AC3).
       error instanceof FinetuneUnavailableError
@@ -145,7 +145,7 @@ async function runTool(
     if (error instanceof FinetuneRunNotFoundError) {
       return errorResult(`${context} has no such run`, message(error));
     }
-    if (error instanceof CultureScrapeError) {
+    if (error instanceof EngineError) {
       return errorResult(`${context} returned an unusable response`, message(error));
     }
     return errorResult(`${context} failed`, message(error));
@@ -168,13 +168,13 @@ async function liveQuery(input: QueryToolInput): Promise<unknown> {
   const goal = input.goal?.trim() || undefined;
   const example = input.example?.trim() || undefined;
   if (!goal && !example) {
-    throw new CultureScrapeError("a datalog goal or example is required");
+    throw new EngineError("a datalog goal or example is required");
   }
   return pinakes_engine.datalog({ goal, example });
 }
 
 // The reconcile default queues a real pinakes-engine acquisition, exactly like
-// `POST /api/scraping/culturescrape`. The contribution queue is lazily created so
+// `POST /api/scraping/engine`. The contribution queue is lazily created so
 // the module has no fs side effect until a live reconcile is actually invoked.
 let reconcileContributions: ContributionService | null = null;
 function contributionQueue(): ContributionService {
@@ -192,7 +192,7 @@ function liveReconcile(input: ReconcileToolInput): {
 } {
   const category = resolveAcquisitionCategory(input.domain);
   if (!category) {
-    throw new CultureScrapeError(
+    throw new EngineError(
       `Unknown pinakes-engine domain: ${input.domain ?? "(none)"} — valid: ${Object.keys(
         ACQUISITION_CATALOG,
       ).join(", ")}`,
@@ -202,7 +202,7 @@ function liveReconcile(input: ReconcileToolInput): {
   if (input.limit !== undefined && input.limit !== null) {
     const parsed = Number(input.limit);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      throw new CultureScrapeError("limit must be a positive number");
+      throw new EngineError("limit must be a positive number");
     }
     limit = Math.floor(parsed);
   }
@@ -252,7 +252,7 @@ function liveReconcile(input: ReconcileToolInput): {
   return {
     jobId: job.id,
     domain: category.domain,
-    message: `Culture-scrape Wikidata acquisition started for ${category.label}`,
+    message: `pinakes-engine Wikidata acquisition started for ${category.label}`,
   };
 }
 
