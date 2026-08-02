@@ -31,7 +31,7 @@
         "The stub db:push / db:generate / db:migrate scripts are removed from package.json.",
         "`bun run dev` still boots the server and the existing vitest suite still passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
