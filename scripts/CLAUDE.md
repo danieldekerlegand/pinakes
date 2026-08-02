@@ -348,9 +348,10 @@ overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Repor
 - **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
   free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
   (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
-  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written),
-  NOT `@shared/schema` (Drizzle) — add the field there and read it in `tsv-storage.ts`'s
-  `getLanguages` parse.
+  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written) —
+  add the field there and read it in `tsv-storage.ts`'s `getLanguages` parse. (There is no longer a
+  competing `@shared/schema`; the Drizzle module was deleted in `10-foundation-cleanup` US-2 and its
+  still-referenced record shapes moved into `shared/types.ts`.)
 
 ## New-row additions (US-003, data-population pilot)
 

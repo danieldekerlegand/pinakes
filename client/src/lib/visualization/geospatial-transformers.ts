@@ -18,7 +18,7 @@ import type {
   MaterialCultureDistribution as MaterialCultureDistributionDB,
   Language,
   LanguageFamily,
-} from '@shared/schema';
+} from '@shared/types';
 
 // ============================================================================
 // Time-Based Filtering
