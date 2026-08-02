@@ -180,7 +180,7 @@ class FineTuneConfig:
 
     Every knob the AC calls out is here so a run is fully described by a committed
     JSON config (``ml/configs/finetune-*.json``) — model, the two source datasets
-    (referenced by path; their DVC hash is recorded at run time), and the LoRA +
+    (referenced by path; their content hash is recorded at run time), and the LoRA +
     training hyperparameters. Frozen + round-trippable (``from_dict``/``to_dict``)
     so the config is itself a reproducible artifact.
     """

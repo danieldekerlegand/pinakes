@@ -391,7 +391,7 @@ def render_baseline_section(report: Mapping[str, Any]) -> str:
         "",
         "## SLM pilot — rule-authoring baseline (Phase D, slm-pilot US-003)",
         "",
-        f"Base model `{report['baseModel']}`, QLoRA on the DVC-pinned rule-SFT "
+        f"Base model `{report['baseModel']}`, QLoRA on the content-hashed rule-SFT "
         f"corpus, scored by the **tier-4 adherence harness** on the frozen eval "
         f"set (`docs/slm-pilot-protocol.md`). "
         f"{report['repeats']} repeat(s) at one pinned seed; a cell shows the mean "
@@ -402,7 +402,7 @@ def render_baseline_section(report: Mapping[str, Any]) -> str:
         f"{dataset.get('evalPromptsScored', 0)} prompts, "
         f"held out {', '.join(dataset.get('heldOutWorlds') or []) or 'none'}",
         f"- trained on {dataset.get('trainRecords', 0)} records, "
-        f"DVC tree `{str(dataset.get('dvcMd5', '')) or '—'}`",
+        f"data tree `{str(dataset.get('contentHash', '')) or '—'}`",
         f"- device `{(report.get('training') or {}).get('device', '')}`, "
         f"wall clock "
         f"{_fmt((report.get('cost') or {}).get('wallClockSeconds'), 1)} s, "

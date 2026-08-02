@@ -5,8 +5,8 @@ name: ml-ci
 # CI: the statistical stack (torch/pykeen/problog) is heavy and full baseline runs
 # are local-only (MPS/CPU on the dev machine). This job proves the env resolves
 # from the committed uv.lock and the tracking helper works; datasets/metrics
-# reproducibility is enforced separately by DVC pointers + committed split
-# manifests (US-002+), not by this smoke.
+# reproducibility is enforced separately by the committed split manifests
+# (US-002+), not by this smoke. (DVC was removed — docs/artifact-versioning.md.)
 #
 # Scoped to ml/ changes so it does not tax unrelated pushes. The heavy torch wheel
 # download is expected — this is imports-only, no model training.

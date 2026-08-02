@@ -39,7 +39,7 @@ discipline as :mod:`pinakes_ml.queries`' type-constrained corruption pools.
 **Everything is ``synthetic`` tier and proprietary-licensed.** A converted world
 is generated content, not observation: every record and the manifest carry
 ``tier: "synthetic"`` and ``LicenseRef-Insimul-Proprietary`` (the adapter's
-:data:`INSIMUL_LICENSE`), and the datasets land in the DVC-tracked, git-ignored
+:data:`INSIMUL_LICENSE`), and the datasets land in the git-ignored
 ``ml/data/insimul/`` tree — never in an open-data release (the Insimul bridge spec §7
 "License leakage"; ``orchestrate.tiers.assert_no_synthetic_records`` is the
 corpus-side gate).
@@ -1097,7 +1097,7 @@ def build_world_graph(world: World) -> Graph:
 
     The same nodes and edges the Bridge-2 acquisition adapter would land in the
     canonical corpus (csids included), assembled in memory so the QA generator
-    runs on a world export without a DVC corpus round-trip.
+    runs on a world export without a corpus round-trip.
     """
     nodes = _world_nodes(world)
     edge_index: dict[tuple[str, str, str], EvidenceEdge] = {}

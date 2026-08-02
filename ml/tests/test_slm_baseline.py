@@ -71,7 +71,7 @@ def _summary(parse: float, schema: float, loss: float | None = 1.0) -> dict:
             "evalPromptsScored": 2,
             "trainRecords": 3,
             "heldOutWorlds": ["w-laterre"],
-            "dvcMd5": "f20307af.dir",
+            "contentHash": "f20307af.dir",
         },
         "training": {"stub": False, "device": "mps", "trainLoss": 0.5,
                      "trainRuntimeSeconds": 6.0},

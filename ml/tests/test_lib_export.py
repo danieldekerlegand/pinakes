@@ -90,7 +90,7 @@ def test_the_repo_root_walk_lands_on_the_repo_root() -> None:
 def test_every_git_tracked_default_path_resolves() -> None:
     """Repo-root-anchored defaults that point at committed files must exist.
 
-    These are the inputs the CI-tier gates read directly (no DVC pull), so a stale
+    These are the inputs the CI-tier gates read directly (no corpus build), so a stale
     path here does not fail — it makes the gate `skipif` forever. That is exactly
     what happened to both `test_scallop.py` committed-artifact gates when the
     Python package moved from `packages/culture-scrape/` to `core/`.
@@ -109,15 +109,20 @@ def test_every_git_tracked_default_path_resolves() -> None:
     assert not any("packages/culture-scrape" in str(p) for p in tracked.values())
 
 
-def test_the_dvc_corpus_anchor_exists_so_the_live_gates_are_gated_on_a_pull() -> None:
+def test_the_corpus_anchor_exists_so_the_live_gates_skip_on_a_build_not_a_typo(
+) -> None:
     """The live gates skip on a *materialization*, never on a path typo.
 
-    `export/culturescrape/` is DVC-tracked and absent in CI, but its pointer file
-    is committed — so if the pointer resolves and the tree does not, the skip is
-    honest.
+    `export/culturescrape/` is a git-ignored build output, absent in CI. The
+    anchor used to be its committed `.dvc` pointer; DVC was removed
+    (`docs/artifact-versioning.md`), so the committed thing that still names the
+    tree is `export/.gitignore`. If the repo agrees the path is ignored and the
+    exporter's default resolves to it, a skip means "not built", not "renamed".
     """
-    assert (_REPO_ROOT / "export" / "culturescrape.dvc").is_file()
+    ignore = (_REPO_ROOT / "export" / ".gitignore").read_text(encoding="utf-8")
+    assert "/culturescrape" in ignore.split()
     assert triples_edges_dir().parent.name == "culturescrape"
+    assert triples_edges_dir().parent.parent == _REPO_ROOT / "export"
 
 
 def triples_edges_dir() -> Path:

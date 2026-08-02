@@ -124,8 +124,8 @@ def main(argv: list[str] | None = None) -> int:
     triples_dir = Path(config.triples_dir)
     if not (triples_dir / "train.tsv").exists():
         parser.error(
-            f"triples splits not found in {triples_dir} (DVC-tracked; "
-            "`uv run --project ml dvc pull`)."
+            f"triples splits not found in {triples_dir} (git-ignored; "
+            "rebuild it first)."
         )
 
     base_pairs = _base_pairs(triples_dir, config.target_relation)

@@ -5,6 +5,16 @@ torch/pykeen OUT of the sidecar so its Docker image stays slim. Run checks FROM
 `ml/`: `uv run ruff check .`, `uv run pytest`, import smoke
 `uv run python -c 'import torch, pykeen, problog'`.
 
+> **DVC IS GONE** (flatten Phase 0 — `docs/artifact-versioning.md`). This file was
+> written while it existed and still mentions it in ~60 places, all of them stale:
+> there is no `dvc` in the venv, no `.dvc/` at the repo root, no `*.dvc` pointers
+> and no remote. Read every "re-pin with `dvc add … && dvc push`" as **"nothing to
+> do — the tree is git-ignored"**, every "`dvc pull` first" as **"build/regenerate
+> the tree first"**, and every "DVC-tracked" as **"git-ignored, regenerable"**.
+> Recorded DVC md5s (in `docs/ml-baselines.md`, manifests, run metadata) are
+> provenance labels now — they identify which build a number came from, but
+> nothing can fetch that tree.
+
 ## The canonical corpus is the agora lib's output — but the lib is NOT a dep
 
 Since pinakes:50 US-1 the canonical node/edge TSV `ml/` reads is rendered by the
@@ -884,11 +894,11 @@ whole path runs in CI); outputs land beside the run summary as `kft-telemetry.js
   committed metrics snapshot — training numbers stay non-reproducible. No
   `ml/data` re-pin, no `uv.lock` churn.
 
-## MLflow / DVC
+## MLflow
 
 - Always log via `pinakes_ml.start_run` (opts into `MLFLOW_ALLOW_FILE_STORE=true`
   — MLflow ≥3 refuses the file backend otherwise). Never `mlflow.set_tracking_uri` by
   hand. `mlruns/` is git-ignored; preserved metrics go to `docs/ml-baselines.md`.
-- DVC is at the repo root; run it as `uv run --project ml dvc <cmd>`. After
-  regenerating `ml/data`, `dvc add ml/data && dvc push` and commit the updated
-  `ml/data.dvc`.
+- **No artifact versioning.** `ml/data`, `ml/artifacts` and `ml/models` are plain
+  git-ignored build outputs — regenerate them, never re-pin them. See
+  `docs/artifact-versioning.md` (and the DVC banner at the top of this file).

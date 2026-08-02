@@ -17,7 +17,7 @@ The pure transform (:func:`~pinakes_ml.kgqa.apply_polish`) is unit-tested
 with a fake polisher; the networked Gemini client is imported lazily here so
 importing this module (and the whole package) never pulls a Gemini dependency,
 and CI — which sets no ``GEMINI_API_KEY`` — never runs it. After generating the
-variant, ``dvc add ml/data`` captures it alongside the deterministic core.
+variant, it lands in the git-ignored ``ml/data`` beside the deterministic core.
 """
 
 from __future__ import annotations

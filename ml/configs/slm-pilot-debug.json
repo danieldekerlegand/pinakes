@@ -3,7 +3,7 @@
   "run_name": "slm-pilot-debug",
   "worlds": [],
   "candidates": [],
-  "dvc_file": "data.dvc",
+  "data_dir": "data",
   "eval_manifest": "manifests/slm-pilot-eval-manifest.json",
   "output_dir": "artifacts/slm-pilot-debug",
   "seed": 20260722,

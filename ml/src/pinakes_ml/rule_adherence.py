@@ -1341,7 +1341,7 @@ def render_adherence_section(report: Mapping[str, Any]) -> str:
         lines.append("")
     lines += [
         "Reproduce: `cd ml && uv run pinakes-eval-rule-adherence`"
-        " (fixture-driven — no DVC corpus needed);"
+        " (fixture-driven — no corpus build needed);"
         " `--check` is the retraining-free ratchet gate.",
         "",
         DOC_MARK_END,

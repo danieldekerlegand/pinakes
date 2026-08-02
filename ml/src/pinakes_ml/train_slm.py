@@ -79,19 +79,22 @@ TELEMETRY_FILE = "kft-telemetry.jsonl"
 RUN_RECORD_FILE = "kft-run.json"
 
 
-def read_dvc_md5(dvc_path: Path) -> str:
-    """The tracked md5 out of a ``.dvc`` pointer, or ``""`` when unavailable.
+def hash_data_tree(data_dir: Path) -> str:
+    """Content hash of the dataset tree, or ``""`` when unavailable.
 
-    Reuses the parser :mod:`pinakes_ml.train_baselines` already ships (imported
-    lazily — that module pulls the heavy embedding stack).
+    Records which data a pilot run was trained on. This used to be the md5 out of
+    a committed ``.dvc`` pointer; DVC was removed (``docs/artifact-versioning.md``)
+    so it is hashed from disk instead. Reuses the hasher
+    :mod:`pinakes_ml.train_baselines` already ships (imported lazily — that module
+    pulls the heavy embedding stack).
     """
-    if not dvc_path.exists():
+    if not data_dir.is_dir():
         return ""
     try:
-        from pinakes_ml.train_baselines import read_dvc_md5 as _read
+        from pinakes_ml.train_baselines import hash_tree
 
-        return _read(dvc_path)
-    except Exception:  # pragma: no cover - a malformed pointer is not fatal
+        return hash_tree(data_dir)
+    except Exception:  # pragma: no cover - an unreadable tree is not fatal
         return ""
 
 
@@ -320,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
         trainer = train_qlora
         model_factory = hf_model_factory
 
-    dvc_md5 = read_dvc_md5(Path(config.dvc_file))
+    data_hash = hash_data_tree(Path(config.data_dir))
     repeats = max(1, args.repeats if args.repeats is not None else config.repeats)
     started = time.monotonic()
     summaries = []
@@ -340,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
             data,
             trainer=trainer,
             model_factory=model_factory,
-            dataset_dvc_md5=dvc_md5,
+            dataset_hash=data_hash,
             matches_frozen_eval_set=matches,
         )
         out_path = Path(run_config.output_dir) / SUMMARY_FILE
@@ -461,7 +464,7 @@ def _log_to_mlflow(summary: dict) -> None:
         # name the eval set it scored and the corpus it trained on.
         mlflow.log_param("evalSetSha256", dataset["evalSetSha256"])
         mlflow.log_param("ruleSftSha256", dataset["ruleSftSha256"])
-        mlflow.log_param("datasetDvcMd5", dataset["dvcMd5"])
+        mlflow.log_param("datasetHash", dataset["contentHash"])
         mlflow.log_param("matchesFrozenEvalSet", dataset["matchesFrozenEvalSet"])
         mlflow.log_param("heldOutWorlds", ",".join(dataset["heldOutWorlds"]))
         mlflow.log_param("stub", summary["training"]["stub"])

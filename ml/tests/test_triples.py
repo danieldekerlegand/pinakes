@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the triples exporter (US-002).
 
 The unit tests drive the pure core with tiny temp-dir fixtures, so they run in
-CI where the DVC-tracked ``export/culturescrape`` is absent. The snapshot test
+CI where the git-ignored ``export/culturescrape`` is absent. The snapshot test
 (live corpus vs committed manifest) is SKIPPED when the export is not present —
 it is the local reproducibility gate, mirroring the "training is local-only"
 split of this workspace.
@@ -148,7 +148,7 @@ def test_vocab_covers_all_ids(edges_dir: Path) -> None:
     assert relation_vocab(triples) == sorted({t.relation for t in triples})
 
 
-# --- Live reproducibility gate (skipped when the DVC export is absent) ---------
+# --- Live reproducibility gate (skipped when the export is absent) ---------
 
 # ml/tests/this_file → parents[2] is the repo root.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -157,7 +157,7 @@ _LIVE_EDGES = _REPO_ROOT / "export" / "culturescrape" / "edges"
 
 @pytest.mark.skipif(
     not _LIVE_EDGES.exists(),
-    reason="canonical export not present (DVC-tracked; run `dvc pull` locally)",
+    reason="canonical export not present (git-ignored; build it locally)",
 )
 def test_committed_manifest_matches_live_corpus() -> None:
     """The committed split manifest must equal a fresh build of the live corpus.

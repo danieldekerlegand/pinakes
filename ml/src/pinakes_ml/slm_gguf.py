@@ -88,9 +88,9 @@ VERDICT_WITHIN = "within-budget"
 VERDICT_OVER = "over-budget"
 VERDICT_UNMEASURED = "not-measured"
 
-#: Where the deliverable GGUF lands: its own DVC pointer (``ml/models.dvc``),
-#: NOT the ``ml/data`` tree — a 2 GB binary has no business re-pinning the
-#: dataset tree every time a checkpoint changes.
+#: Where the deliverable GGUF lands: its own top-level tree, NOT ``ml/data`` —
+#: a 2 GB binary has no business churning the dataset tree every time a
+#: checkpoint changes.
 MODELS_DIRNAME = "models"
 MODEL_SUBDIR = "slm-pilot"
 
@@ -217,11 +217,11 @@ class ConversionPlan:
     base_model: str
     adapter_dir: Path
     #: Merged fp16 HF weights — a bulky intermediate, so it stays in the
-    #: git-ignored artifacts tree and is never DVC-pinned.
+    #: git-ignored artifacts tree and is never a deliverable.
     merged_dir: Path
     #: The lossless GGUF, likewise an intermediate.
     f16_gguf: Path
-    #: The deliverable, in the DVC-tracked models tree.
+    #: The deliverable, in the git-ignored models tree.
     quantized_gguf: Path
     quant: str = DEFAULT_QUANT
 
@@ -280,7 +280,7 @@ def quantize_command(quantizer: Path | str, plan: ConversionPlan) -> list[str]:
 def file_identity(path: Path | str) -> dict[str, Any]:
     """size + sha256 of a produced artifact, or an empty identity when absent.
 
-    The GGUF is git-ignored and DVC-tracked, so its *identity* is what travels in
+    The GGUF is git-ignored, so its *identity* is what travels in
     the committed report — "which bytes were scored" is the same discipline the
     protocol applies to the eval set.
     """

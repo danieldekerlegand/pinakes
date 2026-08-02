@@ -17,7 +17,7 @@ Three things live here, all deterministic (no wall-clock, no network, no model):
   a judgment about the model. US-006 reads this field, it does not re-derive it.
 
 Same reproducible-artifact shape as the rest of ``ml/``: the bulk JSONL goes to the
-DVC-tracked ``ml/data/slm-pilot/`` tree, the committed artifact is the manifest
+git-ignored ``ml/data/slm-pilot/`` tree, the committed artifact is the manifest
 (:func:`build_eval_manifest`), and both are a pure function of the fixture worlds.
 """
 

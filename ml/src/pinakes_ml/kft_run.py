@@ -20,7 +20,7 @@ The rule that ties them together is **KFT §5.4 (FT-A)**: the model and every
 asset inherit the run's most-restrictive egress class and union license class
 from :class:`~pinakes_ml.kft.EgressDecision`. Pinakes's corpora are
 containment-gated, so in practice that is ``local-only`` — the tuned model is a
-git/DVC-local artifact that :func:`check_publishable` refuses to hand to a
+machine-local artifact that :func:`check_publishable` refuses to hand to a
 cross-boundary destination. Half a gate (§4.2 alone) would let a model trained on
 private data walk out carrying what it memorized.
 
@@ -283,7 +283,7 @@ def content_digest(path: Path | str) -> tuple[str, int]:
     A GGUF is one file; a LoRA adapter and a merged checkpoint are directories.
     A directory's address is the sha256 over its sorted ``<relpath>\\n<sha256>``
     lines, so it is stable across hosts and changes whenever any member does —
-    the same shape DVC gives a tracked tree. Reuses
+    the same shape :func:`pinakes_ml.train_baselines.hash_tree` gives. Reuses
     :func:`pinakes_ml.slm_gguf.file_identity` for the per-file leg so there is
     one place that knows how an artifact is hashed.
     """
@@ -538,8 +538,8 @@ def build_provenance(
 #: exfiltrating private training data, the safe default is refusal.
 PUBLICATION_TARGETS: dict[str, bool] = {
     "filesystem": False,
-    "dvc-local": False,
-    "dvc-remote": True,
+    "local-artifact-store": False,
+    "remote-object-store": True,
     "huggingface-hub": True,
     "kcb-registry": True,
     "ollama-registry": True,

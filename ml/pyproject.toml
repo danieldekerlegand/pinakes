@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pinakes-ml"
 version = "0.1.0"
-description = "ML / neurosymbolic workspace for pinakes — triples export, PyKEEN baselines, ProbLog, DVC + MLflow (roadmap Phase 2)."
+description = "ML / neurosymbolic workspace for pinakes — triples export, PyKEEN baselines, ProbLog, MLflow (roadmap Phase 2)."
 readme = "README.md"
 # Kept a separate uv workspace from core so the sidecar
 # Docker image stays slim (no torch/pykeen). Pinned to 3.11 — the ML stack
@@ -23,9 +23,9 @@ dependencies = [
     # datasets format for fine-tuning generators.
     "sentence-transformers>=2.2",
     "datasets>=2.14",
-    # Experiment tracking (local file backend) + dataset/artifact versioning.
+    # Experiment tracking (local file backend). Dataset/artifact versioning is
+    # deliberately absent — see docs/artifact-versioning.md.
     "mlflow>=2.9",
-    "dvc>=3.0",
 ]
 
 # NOTE — scallopy (neurosymbolic pilot, roadmap Phase 5.4) is intentionally NOT a

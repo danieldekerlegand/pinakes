@@ -8,14 +8,14 @@ or via the console script::
 
     uv run pinakes-export-triples
 
-Reads the DVC-tracked canonical edge export, writes the PyKEEN-native triples +
-splits + vocab into ``ml/data/triples/`` (DVC-tracked, git-ignored), and writes
+Reads the git-ignored canonical edge export, writes the PyKEEN-native triples +
+splits + vocab into ``ml/data/triples/`` (git-ignored), and writes
 the deterministic split manifest to ``ml/manifests/triples-split-manifest.json``
 (committed to git, snapshot-tested). The whole build is a pure function of the
 edges + seed, so a byte-identical corpus is a git no-op on the manifest.
 
-After running, re-pin the data with ``dvc add ml/data`` and commit the updated
-``ml/data.dvc`` alongside the manifest.
+The data tree is a git-ignored build output — nothing to re-pin; commit only the
+regenerated manifest.
 """
 
 from __future__ import annotations
@@ -108,9 +108,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.edges_dir.exists():
         parser.error(
             f"edges dir not found: {args.edges_dir}\n"
-            "The canonical export is DVC-tracked — run "
-            "`uv run --project ml dvc pull` (or regenerate it with "
-            "`npx tsx scripts/export-for-culturescrape.ts`) first."
+            "The canonical export is a git-ignored build output — regenerate "
+            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
         )
 
     triples, splits, manifest = build(args.edges_dir, seed=args.seed)

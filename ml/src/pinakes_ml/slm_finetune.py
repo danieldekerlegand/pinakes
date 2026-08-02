@@ -180,15 +180,15 @@ class SlmPilotConfig:
     run_name: str = "slm-pilot-debug"
 
     # Dataset provenance. Empty ``worlds``/``candidates`` mean "the committed
-    # fixture worlds" (resolved by the CLI), so a debug run needs no DVC pull;
+    # fixture worlds" (resolved by the CLI), so a debug run needs no corpus build;
     # a real run points them at converted worlds. The datasets are DERIVED from
     # these deterministically — same builder, same seed, same split as
     # ``pinakes-export-slm-eval`` — so the frozen eval set is reproduced, never
     # re-derived differently.
     worlds: tuple[str, ...] = ()
     candidates: tuple[str, ...] = ()
-    #: The DVC pointer whose md5 pins the tree the datasets land in (recorded).
-    dvc_file: str = "data.dvc"
+    #: The dataset tree the datasets land in; its content hash is recorded.
+    data_dir: str = "data"
     #: The frozen protocol manifest the run cross-checks its eval set against.
     eval_manifest: str = "manifests/slm-pilot-eval-manifest.json"
     output_dir: str = "artifacts/slm-pilot-debug"
@@ -282,7 +282,7 @@ class SlmPilotConfig:
                 **self.to_dict(),
                 "worlds": [_abs(repo_root, p) for p in self.worlds],
                 "candidates": [_abs(repo_root, p) for p in self.candidates],
-                "dvc_file": _abs(ml_root, self.dvc_file),
+                "data_dir": _abs(ml_root, self.data_dir),
                 "eval_manifest": _abs(ml_root, self.eval_manifest),
                 "output_dir": _abs(ml_root, self.output_dir),
             }
@@ -375,7 +375,7 @@ def build_pilot_data(
     Same builder, seed and split as ``pinakes-export-slm-eval``, so the eval set
     is *reproduced* rather than re-derived — and the recorded sha256 proves it.
     Rebuilding in process (instead of reading ``ml/data/slm-pilot/``) is what
-    lets the debug run work in a fresh worktree with no DVC pull.
+    lets the debug run work in a fresh worktree with no corpus build.
     """
     datasets = build_datasets(
         world_paths, candidate_paths, seed=config.seed, eval_ratio=config.eval_ratio
@@ -637,14 +637,14 @@ def build_run_summary(
     outcome: TrainOutcome,
     stages: Mapping[str, Mapping[str, Any]],
     *,
-    dataset_dvc_md5: str = "",
+    dataset_hash: str = "",
     matches_frozen_eval_set: bool | None = None,
     chat_template_verified: bool | None = None,
 ) -> dict[str, Any]:
     """The committable run summary — pure, and the MLflow payload's source.
 
     Deliberately self-describing: config, dataset identity (both content hashes
-    plus the DVC md5), the training outcome and every arm's scores, so the
+    plus the dataset content hash), the training outcome and every arm's scores, so the
     summary alone answers "what was trained on what, and scored against which
     eval set".
     """
@@ -662,7 +662,7 @@ def build_run_summary(
         "dataset": {
             "evalSetSha256": data.eval_sha256,
             "ruleSftSha256": data.sft_sha256,
-            "dvcMd5": dataset_dvc_md5,
+            "contentHash": dataset_hash,
             "matchesFrozenEvalSet": matches_frozen_eval_set,
             "heldOutWorlds": list(data.held_out_worlds),
             "trainRecords": len(data.train_records),
@@ -682,7 +682,7 @@ def run_pipeline(
     *,
     trainer: Trainer,
     model_factory: ModelFactory,
-    dataset_dvc_md5: str = "",
+    dataset_hash: str = "",
     matches_frozen_eval_set: bool | None = None,
 ) -> dict[str, Any]:
     """score(untuned) → train → score(tuned): the whole loop, in one pure-ish call.
@@ -713,7 +713,7 @@ def run_pipeline(
         data,
         outcome,
         stages,
-        dataset_dvc_md5=dataset_dvc_md5,
+        dataset_hash=dataset_hash,
         matches_frozen_eval_set=matches_frozen_eval_set,
         chat_template_verified=chat_verified,
     )

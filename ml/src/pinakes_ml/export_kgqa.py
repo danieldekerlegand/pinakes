@@ -8,9 +8,9 @@ or via the console script::
 
     uv run pinakes-export-kgqa
 
-Reads the DVC-tracked canonical export (``export/culturescrape/{nodes,edges}``),
+Reads the git-ignored canonical export (``export/culturescrape/{nodes,edges}``),
 writes two HF-datasets-compatible JSONL splits into ``ml/data/kgqa/``
-(``train.jsonl`` + the held-out ``eval.jsonl``, both DVC-tracked, git-ignored),
+(``train.jsonl`` + the held-out ``eval.jsonl``, both git-ignored),
 and writes the deterministic manifest to ``ml/manifests/kgqa-manifest.json``
 (committed to git, snapshot-tested). The whole build is a pure function of the
 export + seed, so a byte-identical corpus is a git no-op on the manifest.
@@ -19,8 +19,8 @@ The ``eval.jsonl`` split is the **registered held-out KGQA eval split** the eval
 harness (US-004) scores on — its path constants and loader (:data:`KGQA_EVAL_PATH`,
 :func:`load_split`, :data:`REGISTERED_EVAL_SPLIT`) are the harness's import surface.
 
-After running, re-pin the data with ``dvc add ml/data`` and commit the updated
-``ml/data.dvc`` alongside the manifest.
+The data tree is a git-ignored build output — nothing to re-pin; commit only the
+regenerated manifest.
 """
 
 from __future__ import annotations
@@ -120,9 +120,8 @@ def main(argv: list[str] | None = None) -> int:
     if not (args.export_dir / "nodes").exists():
         parser.error(
             f"export not found: {args.export_dir}\n"
-            "The canonical export is DVC-tracked — run "
-            "`uv run --project ml dvc pull` (or regenerate it with "
-            "`npx tsx scripts/export-for-culturescrape.ts`) first."
+            "The canonical export is a git-ignored build output — regenerate "
+            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
         )
 
     splits, manifest = build(

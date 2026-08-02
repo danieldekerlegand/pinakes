@@ -7,7 +7,7 @@ Two tiers, mirroring the reproducible-artifact pattern (see ``ml/CLAUDE.md``):
 * **Committed-artifact + live gates** — the committed ``program.scl`` /
   translated-rule set are checked against a fresh translation of the *real*
   registry (corpus-independent → runs in CI); the full manifest is checked against
-  a fresh build of the live corpus (``skipif`` the DVC export is absent → skips in CI).
+  a fresh build of the live corpus (``skipif`` the export is absent → skips in CI).
 
 ``scallopy`` itself is never imported here (its only wheel is macOS/arm64); the
 smoke run's *logic* is validated by :func:`reference_derivations`, which the real
@@ -342,7 +342,7 @@ def test_committed_manifest_rule_translation_matches_registry() -> None:
     ]
 
 
-# --- Live reproducibility gate (skipped when the DVC export is absent) --------
+# --- Live reproducibility gate (skipped when the export is absent) --------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _LIVE_EDGES = _REPO_ROOT / "export" / "culturescrape" / "edges"
@@ -350,7 +350,7 @@ _LIVE_EDGES = _REPO_ROOT / "export" / "culturescrape" / "edges"
 
 @pytest.mark.skipif(
     not (_LIVE_EDGES.exists() and DEFAULT_REGISTRY.exists()),
-    reason="canonical export not present (DVC-tracked; run `dvc pull` locally)",
+    reason="canonical export not present (git-ignored; build it locally)",
 )
 def test_committed_manifest_matches_live_corpus() -> None:
     """The committed manifest must equal a fresh build of the live corpus + registry."""

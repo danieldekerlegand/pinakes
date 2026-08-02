@@ -27,15 +27,15 @@ what code references it, and a risk-ordered plan to consolidate it.
 | 4 | `core/datalog/examples/` | Pipeline input | git | Medium — constant `parents[3]/"datalog/examples"` | Optional: group under `core/inputs/` |
 | 5 | `core/cypher/` (10) | Pipeline input | git | Medium — constant `parents[3]/"cypher"` | Optional: group under `core/inputs/` |
 | 6 | `core/jobs/` (19) | Input **and** generated | git | Medium — CLI arg; job yml hardcodes `../out/<job>` | Optional: group under `core/inputs/` |
-| 7 | `core/out/pinakes-full` | Generated output | **DVC** | Low — only `core/jobs/*.yml` hardcode `../out/...` | Leave (DVC output) |
+| 7 | `core/out/pinakes-full` | Generated output | git-ignored | Low — only `core/jobs/*.yml` hardcode `../out/...` | Leave (build output) |
 | 8 | `data/*.txt` `*.csv` (loose) | Curated source | git | Split — see below | Partition: keep-referenced → `data/source/`; orphans → decide |
 | 9 | `data/cuisine/` | Duplicate copy | git | **None** — no code references it | **Delete** (stray dup of top-level cuisine files) |
 | 10 | `data/contributions/` | Runtime queue | git *(inconsistent)* | Medium — `"data/contributions"` default in `contribution-service.ts` + 6 route defaults | **Gitignore** + move samples to fixtures |
 | 11 | `data/{collections,annotations,stewardship,changelog,living-dataset}/` | Runtime user state | gitignored | Medium — one constructor default string each | Move under `data/runtime/` |
 | 12 | `scripts/data/` (23 tsv + fixture) | Curated source / regen output | git | Medium — centralized `DATA_DIR` off `import.meta.dirname` | Leave (co-located with the scripts that own it) |
 | 13 | `shared/*.json` (5) | **Contracts/schema** | git | Medium-high — `.ts` co-import + `REPO_ROOT/"shared"` + Python `parents[4]/"shared"` | **Leave** (correctly co-located with `.ts` wrappers) |
-| 14 | `export/culturescrape/` | Canonical corpus | **DVC** | Low — CLI arg, no hardcoded default | **Leave** (the ML seam) |
-| 15 | `ml/{data,models}` + `ml/{configs,manifests,fixtures,predictions,scallop}` | ML artifacts | DVC + git | Self-contained under `ml/` | **Leave** (already an island) |
+| 14 | `export/culturescrape/` | Canonical corpus | git-ignored | Low — CLI arg, no hardcoded default | **Leave** (the ML seam) |
+| 15 | `ml/{data,models}` + `ml/{configs,manifests,fixtures,predictions,scallop}` | ML artifacts | git-ignored + git | Self-contained under `ml/` | **Leave** (already an island) |
 | 16 | `sources/` (glottolog, LinguaMeta.pdf, url-nlp) | External dumps | gitignored | Low — one path in `server/services/boundary-resolver.ts:404` | Leave |
 | 17 | `etymology-tree/` | Standalone Clojure subproject | git | **None** — unreferenced by any TS/Python | Decide: own repo / vendor / remove |
 
@@ -65,9 +65,9 @@ lexicons/                     # UNCHANGED — canonical lexicon TSVs (too costly
 core/
   inputs/        # OPTIONAL consolidation of pipeline inputs
     blueprints/  categories/  jobs/  cypher/  datalog-examples/
-  out/                        # UNCHANGED (DVC output)
+  out/                        # UNCHANGED (git-ignored build output)
   src/ …                      # code
-export/culturescrape/         # UNCHANGED — the ML seam (DVC)
+export/culturescrape/         # UNCHANGED — the ML seam (git-ignored)
 ml/ …                         # UNCHANGED — self-contained island
 shared/                       # UNCHANGED — contracts, co-located with .ts
 ```

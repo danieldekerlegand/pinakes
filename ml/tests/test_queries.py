@@ -1,9 +1,9 @@
 """Unit + snapshot tests for the training-query generator (Scallop pilot US-002).
 
 The unit tests drive the pure core with tiny in-memory fixtures, so they run in CI
-where the DVC-tracked ``ml/data`` is absent. The snapshot test (live triples splits
+where the git-ignored ``ml/data`` is absent. The snapshot test (live triples splits
 vs committed manifest) is SKIPPED when the splits are not present — the local
-reproducibility gate, mirroring the workspace's "data is DVC-tracked" split.
+reproducibility gate, mirroring the workspace's "data is a build output" split.
 """
 
 from __future__ import annotations
@@ -243,7 +243,7 @@ def test_serialize_is_flat_uniform_jsonl() -> None:
     assert body.endswith("\n")
 
 
-# --- Live reproducibility gate (skipped when the DVC data is absent) -----------
+# --- Live reproducibility gate (skipped when the data is absent) -----------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _ML_ROOT = _REPO_ROOT / "ml"
@@ -253,7 +253,7 @@ _SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
 
 @pytest.mark.skipif(
     not (_TRIPLES_DIR / "valid.tsv").exists(),
-    reason="triples splits not present (DVC-tracked; run `dvc pull` locally)",
+    reason="triples splits not present (git-ignored; build it locally)",
 )
 def test_committed_manifest_matches_live_splits() -> None:
     """The committed manifest must equal a fresh build of the live triples splits."""

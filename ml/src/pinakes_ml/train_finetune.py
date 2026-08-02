@@ -1,10 +1,11 @@
 """CLI: run the QLoRA fine-tuning pipeline + before/after KGQA eval (US-005).
 
 Reproducer for the neurosymbolic roadmap Phase 5, US-005. Run from ``ml/`` after
-installing the (undeclared) training stack and pulling the DVC data::
+installing the (undeclared) training stack and building the datasets::
 
     uv pip install trl peft accelerate      # + bitsandbytes on CUDA for 4-bit
-    uv run --project . dvc pull             # fetch the DVC-tracked datasets
+    uv run pinakes-export-verbalizations    # build the git-ignored datasets
+    uv run pinakes-export-kgqa
     uv run pinakes-finetune            # local smoke (tiny model, MPS/CPU)
     # or a specific config:
     uv run pinakes-finetune --config configs/finetune-gpu.json

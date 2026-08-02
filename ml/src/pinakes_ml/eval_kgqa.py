@@ -1,7 +1,7 @@
 """CLI: score the held-out KGQA split (eval tier 3) + commit the baseline (US-004).
 
 Reproducer for the neurosymbolic roadmap Phase 5, US-004. Run from ``ml/`` (needs
-the DVC-tracked corpus + eval split — ``uv run --project ml dvc pull`` first)::
+the git-ignored corpus + eval split — rebuild them first)::
 
     uv run python -m pinakes_ml.eval_kgqa
     # or the console script:
@@ -114,15 +114,14 @@ def main(argv: list[str] | None = None) -> int:
     if not (args.export_dir / "nodes").exists():
         parser.error(
             f"export not found: {args.export_dir}\n"
-            "The canonical export is DVC-tracked — run "
-            "`uv run --project ml dvc pull` (or regenerate it with "
-            "`npx tsx scripts/export-for-culturescrape.ts`) first."
+            "The canonical export is a git-ignored build output — regenerate "
+            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
         )
     if not args.eval_split.exists():
         parser.error(
             f"eval split not found: {args.eval_split}\n"
-            "It is DVC-tracked — run `uv run --project ml dvc pull` (or rebuild "
-            "with `uv run pinakes-export-kgqa`) first."
+            "It is a git-ignored build output — rebuild it with "
+            "`uv run pinakes-export-kgqa` first."
         )
 
     report = build(args.export_dir, args.eval_split, args.schema, depth=args.depth)

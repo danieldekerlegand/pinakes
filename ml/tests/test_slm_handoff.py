@@ -116,7 +116,7 @@ def baseline() -> dict:
             "seed": 20260722,
             "lora_r": 16,
             "output_dir": "/Users/someone/ml/artifacts/slm-pilot-3b",
-            "dvc_file": "/Users/someone/ml/data.dvc",
+            "data_dir": "/Users/someone/ml/data",
             "eval_manifest": "/Users/someone/ml/manifests/slm-pilot-eval-manifest.json",
             "worlds": ["/Users/someone/ml/fixtures/insimul/world-export.json"],
         },
@@ -129,7 +129,7 @@ def manifest(parity: dict, baseline: dict) -> dict:
         parity,
         baseline=baseline,
         contract=build_prompt_contract(),
-        dataset_dvc_md5="f2030000.dir",
+        dataset_hash="f2030000.dir",
         context_size=4096,
         ml_root="/Users/someone/ml",
     )
@@ -187,7 +187,7 @@ def test_the_manifest_ships_no_machine_local_paths(manifest):
     assert "/Users/someone" not in blob
     assert "/somewhere" not in blob
     config = manifest["training"]["config"]
-    assert config["dvc_file"] == "data.dvc"
+    assert config["data_dir"] == "data"
     assert config["eval_manifest"] == "manifests/slm-pilot-eval-manifest.json"
     assert config["worlds"] == ["fixtures/insimul/world-export.json"]
     # output_dir is where one operator's adapter landed; it is not reproducibility.
@@ -365,7 +365,7 @@ def test_the_committed_manifest_describes_the_shipped_bundle():
 
 
 def test_check_gates_on_the_bundled_eval_set_reproducing(capsys):
-    """The CI-safe tier: fixture-driven, no DVC pull, no GGUF."""
+    """The CI-safe tier: fixture-driven, no corpus build, no GGUF."""
     assert main(["--check", "--config", str(CONFIG_3B), "--no-mlflow"]) == 0
     out = capsys.readouterr().out
     assert "eval set reproduces" in out

@@ -293,7 +293,7 @@ def load_base_models(
     """Read the committed base-model entity registry.
 
     The registry is corpus-independent and git-tracked (like ``ml/scallop/
-    program.scl``), so admission works in CI with no DVC pull and no network.
+    program.scl``), so admission works in CI with no corpus build and no network.
     """
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     models = payload.get("models") or {}

@@ -16,7 +16,7 @@ What these hold:
   linked with the KFT §5.3 export matrix's relations;
 * the end-to-end ``pinakes-train-slm --stub --kft-job`` path writes both files.
 
-Everything runs on committed files plus tmp dirs: no DVC corpus, no network, no
+Everything runs on committed files plus tmp dirs: no corpus build, no network, no
 model, no heavy dependency.
 """
 
@@ -236,8 +236,10 @@ def test_a_local_only_model_cannot_be_published_across_the_boundary(admitted) ->
 
     # The local destinations the deliverable actually uses.
     check_publishable(model, "filesystem")
-    check_publishable(model, "dvc-local")
-    for destination in ("huggingface-hub", "kcb-registry", "dvc-remote", "who-knows"):
+    check_publishable(model, "local-artifact-store")
+    for destination in (
+        "huggingface-hub", "kcb-registry", "remote-object-store", "who-knows",
+    ):
         with pytest.raises(JobRejected) as excinfo:
             check_publishable(model, destination)
         assert excinfo.value.code == "cross-boundary-publication"
