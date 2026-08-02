@@ -128,7 +128,7 @@ per-licence-class record counts live in the release manifest's `licenses` block.
 | `data/archive/native_migrations.txt` | Anthropological research | CC-BY | Migration route descriptions |
 | `data/archive/language_contact_phenomena.csv` | Linguistic research | CC-BY | Language contact and borrowing data |
 | `data/archive/language_hierarchy_complete_with_contact.csv` | Glottolog + manual curation | CC-BY | Extended language hierarchy with contact info |
-| `data/top_100_foods_by_cuisine.csv` | Manual curation | CC-BY | Source data for cuisine-items.tsv |
+| `data/source/top_100_foods_by_cuisine.csv` | Manual curation | CC-BY | Source data for cuisine-items.tsv |
 | `data/archive/top_30_main_dishes_by_cuisine.csv` | Manual curation | CC-BY | Supplementary cuisine data |
 | `data/archive/top_30_soups_by_cuisine.csv` | Manual curation | CC-BY | Supplementary cuisine data |
 

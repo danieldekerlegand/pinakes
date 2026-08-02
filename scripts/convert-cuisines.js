@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Read the CSV file
-const csvPath = path.join(__dirname, '../data/top_100_foods_by_cuisine.csv');
+const csvPath = path.join(__dirname, '../data/source/top_100_foods_by_cuisine.csv');
 const tsvPath = path.join(__dirname, '../lexicons/cuisine-items.tsv');
 
 const csvContent = fs.readFileSync(csvPath, 'utf-8');

@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const inputPath = path.join(__dirname, '../data/haplogroups.txt');
+const inputPath = path.join(__dirname, '../data/source/haplogroups.txt');
 const outputPath = path.join(__dirname, '../lexicons/haplogroups.tsv');
 
 const content = fs.readFileSync(inputPath, 'utf-8');
