@@ -1,0 +1,51 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/10-foundation-cleanup",
+  "baseBranch": "main",
+  "description": "Foundation step 1 of the flatten (docs/UNIFIED-PROJECT-PLAN.md §4/§9): remove vestigial infrastructure (DVC, Drizzle/Postgres) and lay down the empty target repo skeleton. No behavior change to the running app — this only deletes dead plumbing and adds structure that later tasklists move into.",
+  "touches": ["repo-layout", "deps"],
+  "warmup": ["bun install"],
+  "verify": ["bun run check"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Remove DVC entirely",
+      "description": "DVC is stranded (its local-dir remote is absent) and unneeded: the GGUF was never finetuned in production and every tracked tree is regenerable. Remove it and document the one-command path to re-enable later.",
+      "acceptanceCriteria": [
+        "Deleted: the four *.dvc pointers (export/culturescrape.dvc, core/out/pinakes-full.dvc, ml/data.dvc, ml/models.dvc), the .dvc/ directory, and .dvcignore.",
+        "The former DVC output paths are gitignored as regenerable build outputs.",
+        "ml/pyproject.toml no longer declares `dvc`; `uv lock` regenerated for ml with no other dependency changes in the lock diff.",
+        "`git grep -n dvc -- server core ml/src` returns only comments/docs, never live imports or invocations.",
+        "docs/ gains a short note on re-enabling DVC (or git-lfs) later via `dvc init` + a cloud remote."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Remove the dormant Drizzle/Postgres stack",
+      "description": "Persistence is TSV + Neo4j + files ('TSV-only mode'); Drizzle/pg are declared but dormant (the db:* npm scripts are stubs). Remove them.",
+      "acceptanceCriteria": [
+        "drizzle.config.ts, the pgTable schema in shared/schema.ts, and server/db.ts are removed (or stripped of all drizzle/pg references).",
+        "drizzle-orm, drizzle-zod, pg, connect-pg-simple (and express-session if it was only the pg session store) are removed from package.json.",
+        "The stub db:push / db:generate / db:migrate scripts are removed from package.json.",
+        "`bun run dev` still boots the server and the existing vitest suite still passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Create the target repo skeleton",
+      "description": "Add the empty top-level structure the flatten targets, so later tasklists move into a known layout. Directories only; no code moves in this tasklist.",
+      "acceptanceCriteria": [
+        "Empty directories exist, each with a README.md stating its purpose per the plan: services/api/, engine/, web/, contracts/, data/source/, build/, infra/, tooling/.",
+        "build/ is gitignored.",
+        "client/, core/, server/, shared/ are untouched by this tasklist.",
+        "bun run check (tsc) still passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/80-cutover",
+  "baseBranch": "main",
+  "description": "Final cutover (docs/UNIFIED-PROJECT-PLAN.md §7 Phase 4): with every route ported and the scrapers unified, make the Python FastAPI service the sole backend, delete the Node/Express server and all remaining TS backend + vestigial deps, and confirm full parity. After this, Pinakes is one Python service + a React client + the isolated ml/ workspace.",
+  "dependsOn": [
+    "60-port-contributions",
+    "61-port-collab-stores",
+    "62-port-analytics",
+    "63-port-entity-search",
+    "64-port-ingest",
+    "65-port-catalog-bus",
+    "70-unify-scrapers"
+  ],
+  "touches": ["cutover", "python-api", "repo-layout"],
+  "iters": 8,
+  "warmup": ["bun install", "uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Confirm full route parity, then serve everything from Python",
+      "description": "Verify the 501 coverage tracker is empty (every route ported) and the FastAPI service serves the built web/ client plus all /api/* routes in one process.",
+      "acceptanceCriteria": [
+        "The not-yet-ported (501) coverage tracker is empty — every /api/* route the client uses passes the parity tests against the Python service.",
+        "The FastAPI service serves the web/ build at the root and all API routes in one process (no sidecar, no Node).",
+        "An end-to-end smoke (start the Python service, load the client, exercise graph + a write flow) passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Delete the Node/Express backend + vestigial deps",
+      "description": "Remove server/ (Node/Express), the now-unused root Node build tooling for the backend, and any remaining vestigial dependencies. Keep web/'s own Node toolchain (Vite build) intact.",
+      "acceptanceCriteria": [
+        "server/ and the Express entrypoint/build (esbuild bundling of the server) are removed; package.json no longer defines a Node backend dev/start/build.",
+        "web/ still builds via Vite; the Python service serves its output.",
+        "`git grep -in culturescrape` across the whole repo returns nothing outside historical docs/archive.",
+        "A fresh clone can build web/, start the Python service, and run the full suite via .chief/verify.sh green."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

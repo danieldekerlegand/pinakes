@@ -1,0 +1,37 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/70-unify-scrapers",
+  "baseBranch": "main",
+  "description": "Consolidate the two scraping stacks into one (docs/UNIFIED-PROJECT-PLAN.md §6): fold the parallel/legacy TS *-scraper.ts stack (~14.3k LOC, ~29 files) into the Python pinakes_engine acquisition layer, so there is ONE async fetch layer, ONE rate-limiter/politeness policy, ONE cache, and ONE set of domain adapters. This is where 'incredibly fast at AI-powered scraping' is actually won — the levers the benchmark showed matter (concurrency, caching, parsing), not the language.",
+  "dependsOn": ["50-engine-inprocess-graph", "64-port-ingest"],
+  "touches": ["engine", "port-ingest"],
+  "iters": 10,
+  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Map + migrate the TS domain scrapers onto the engine's acquire layer",
+      "description": "Inventory the TS *-scraper.ts / *-enrichment.ts modules, identify which domains they cover vs the engine's existing adapters, and reimplement each on the engine's async HTTP + rate-limit + cache infrastructure. Deduplicate against existing engine adapters rather than porting 1:1.",
+      "acceptanceCriteria": [
+        "Every TS scraper's capability is available through the Python engine acquisition layer (no domain regressed).",
+        "All acquisition uses the engine's single rate-limited/cached async HTTP client and shared parsing utilities; no scraper keeps its own ad-hoc fetch loop.",
+        "The TS *-scraper.ts / *-enrichment.ts files are removed.",
+        "Acquisition parity: representative fetch+parse for each migrated domain yields the same normalized rows as before (on cached fixtures)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "One concurrency + politeness model, benchmarked",
+      "description": "Ensure the unified acquisition layer runs fetches concurrently with per-host rate limiting and caching, and record a quick before/after throughput note so the speed goal is evidenced (network-bound reality per the plan).",
+      "acceptanceCriteria": [
+        "Concurrent multi-source acquisition is supported with per-host politeness preserved (min_interval honored per host, not globally serialized).",
+        "A short benchmark note (docs/) shows end-to-end acquisition throughput for a representative job and confirms where time goes (network vs parse).",
+        ".chief/verify.sh passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/40-contracts-codegen",
+  "baseBranch": "main",
+  "description": "Make contracts/ a language-neutral source of truth with generated Python AND TS bindings + a drift gate (docs/UNIFIED-PROJECT-PLAN.md §10). The Python backend and the TS client both consume the canonical schema/registries; neither language is authoritative — a JSON/schema source generates both, mirroring the koine-contracts pattern already used for predicate-mapping.",
+  "dependsOn": ["30-api-shell-parity"],
+  "touches": ["contracts"],
+  "warmup": ["bun install", "uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Language-neutral contract source + generators",
+      "description": "Establish the canonical schema/registries (canonical-schema.json, predicate-mapping.json, lexicon-mapping.json, confidence-rubric.json, capability-manifest.json) as the source of truth under contracts/, with codegen producing typed Python and TS bindings.",
+      "acceptanceCriteria": [
+        "contracts/ holds the neutral source files; a codegen script emits Python types/loaders (for engine + services/api) and TS types (for web) from them.",
+        "The engine and services/api consume the generated Python bindings; web consumes the generated TS bindings; no side hand-maintains a divergent copy.",
+        "Generated outputs are reproducible (re-running codegen is a no-op on a clean tree)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Drift gate",
+      "description": "A test fails if the committed generated bindings don't match a fresh generation from the source — the same drift-fails-CI discipline as the existing registry mirror.",
+      "acceptanceCriteria": [
+        "A test regenerates from the contracts/ source and asserts byte-equality with the committed bindings (Python and TS).",
+        "The gate is wired into .chief/verify.sh so a contract change without regeneration blocks merge."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

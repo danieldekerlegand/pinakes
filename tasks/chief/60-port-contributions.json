@@ -1,0 +1,36 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/60-port-contributions",
+  "baseBranch": "main",
+  "description": "Port the contributions pipeline to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): the contribution review queue, AI-review promotion into the TSV corpus, API-key auth + rate-limiting. Pure-TS logic today; reimplement on the FastAPI service behind the parity gate. Runs in parallel with the other 6x-port tasklists.",
+  "dependsOn": ["50-engine-inprocess-graph"],
+  "touches": ["port-contributions"],
+  "iters": 8,
+  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Port the contribution queue + review + promotion",
+      "description": "Reimplement contribution-service (JSON-per-record store under data/runtime/contributions), the review/open flow, and ai-review promotion of accepted drafts into the lexicon TSVs.",
+      "acceptanceCriteria": [
+        "The contributions and ai-review routes are served by auto-registered Python routers and pass the parity tests.",
+        "The runtime store reads/writes data/runtime/contributions (matching current behavior); promotion writes back to the lexicon TSVs.",
+        "The Express handlers for these routes are removed or return 501; the coverage tracker is updated.",
+        ".chief/verify.sh passes."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Port API-key auth + rate-limiting",
+      "description": "Reimplement the API-key authentication and rate-limiting that guards the contribution endpoints.",
+      "acceptanceCriteria": [
+        "Auth + rate-limit behavior matches the current server (same accept/reject/429 semantics) and is covered by tests.",
+        "Parity tests for the guarded endpoints pass."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

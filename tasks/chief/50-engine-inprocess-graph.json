@@ -1,0 +1,37 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/50-engine-inprocess-graph",
+  "baseBranch": "main",
+  "description": "Collapse the TS<->Python seams and port the graph routes (docs/UNIFIED-PROJECT-PLAN.md §5). The two integration points that exist today — the HTTP sidecar client and the CLI-subprocess acquisition — become direct in-process calls into pinakes_engine, and /api/graph/* is served from the Python service. This is the template every later port tasklist follows.",
+  "dependsOn": ["40-contracts-codegen"],
+  "touches": ["python-api", "engine"],
+  "iters": 8,
+  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Engine in-process (kill the sidecar + subprocess seams)",
+      "description": "Replace the sidecar HTTP client and the CLI-subprocess acquisition with direct in-process calls into pinakes_engine. The FastAPI service imports the engine; there is no more :8800 hop and no `python -m ... fetch` spawn.",
+      "acceptanceCriteria": [
+        "The functionality of the former culturescrape-client (search/metrics/completeness/datalog/neo4j/retrieve) and culturescrape-acquisition (fetch) is provided by in-process engine calls from the Python service.",
+        "No HTTP call to a Python sidecar and no CLI subprocess remain in the request path.",
+        "Neo4j access is consolidated in Python (the engine's driver); the former TS neo4j-driver usage for these paths is gone."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Port /api/graph/* to the Python service",
+      "description": "Implement the graph route group (search, retrieve, metrics, datalog, cypher, node/neighborhood/overview) as an auto-registered router on the FastAPI service, backed by the in-process engine.",
+      "acceptanceCriteria": [
+        "Every /api/graph/* route the client uses is served by the Python service and passes the parity tests (response shapes match the baseline).",
+        "The route module is auto-registered (no shared-app edit) and self-contained.",
+        "The corresponding Express /api/graph/* handlers are removed or return 501 (coverage tracker updated).",
+        ".chief/verify.sh passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

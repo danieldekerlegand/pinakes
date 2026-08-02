@@ -1,0 +1,61 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/20-repo-restructure",
+  "baseBranch": "main",
+  "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md §4): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only — NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
+  "dependsOn": ["10-foundation-cleanup"],
+  "touches": ["repo-layout"],
+  "warmup": ["bun install", "uv sync --project engine"],
+  "verify": ["bun run check", "uv run --project engine pytest -q -p no:cacheprovider"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Rename the engine: core/ (culturescrape) -> engine/ (pinakes_engine)",
+      "description": "Move core/ to engine/ and rename the Python package culturescrape -> pinakes_engine, erasing the culturescrape/culture-scrape/cs: name from the package, CLI, and imports. core/inputs -> engine/inputs.",
+      "acceptanceCriteria": [
+        "core/src/culturescrape/ is now engine/src/pinakes_engine/; core/inputs/ is now engine/inputs/; engine/pyproject.toml names the package pinakes_engine.",
+        "All intra-package imports, the console-script entry, and repo-root-relative default paths resolve at the new location.",
+        "`git grep -in culturescrape -- engine` returns nothing (name fully erased inside the engine).",
+        "`uv run --project engine pytest` matches the pre-move baseline (same passed/skipped counts; watch the skip count per the ml/CLAUDE.md silent-SKIP rule)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Move client/ -> web/ and shared/ -> contracts/",
+      "description": "Relocate the React client to web/ (with its TS build configs moving in from the repo root) and the shared schema/registries to contracts/. Fix all imports and config paths.",
+      "acceptanceCriteria": [
+        "client/ is now web/; the previously root-level vite/tailwind/postcss/tsconfig/vitest/playwright configs live under web/ and resolve there.",
+        "shared/ is now contracts/; all TS imports of the former shared/* resolve.",
+        "`bun run check` (tsc) passes and the web vitest suite passes at the new paths."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Relocate data + infra to the target layout",
+      "description": "Move lexicons/ under data/source/ (now cheap — see the plan; note server/tsv-storage.ts still reads it and its ~60 literals must be updated here since the file isn't rewritten until a later tasklist), and move docker-compose/Dockerfiles to infra/.",
+      "acceptanceCriteria": [
+        "lexicons/ is now data/source/lexicons/; every reader (notably server/tsv-storage.ts, the scripts, and web) resolves the new path.",
+        "docker-compose.yml and the Dockerfiles are under infra/; `docker compose` config still validates.",
+        "The server still boots and reads lexicons from the new path; existing tests pass."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-4",
+      "title": "Wire the uv workspace + update the still-TS server's engine references",
+      "description": "Tie the Python packages (services/api placeholder + engine) into a uv workspace at the repo root, and update the still-present TS server's references to the engine (env vars, subprocess dir, API paths) so it keeps working against the renamed engine until it is ported.",
+      "acceptanceCriteria": [
+        "A root uv workspace manifest includes engine (and the services/api package once it exists); ml/ remains its OWN separate workspace (torch must not enter the web env).",
+        "The TS server's CULTURESCRAPE_* env handling, the acquisition subprocess (now `python -m pinakes_engine.cli`), and the /api/scraping/culturescrape/* route paths are renamed to the new engine name and still function.",
+        "`bun run dev` + `bun run check` pass; a smoke of the graph + acquisition seams against the renamed engine succeeds."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

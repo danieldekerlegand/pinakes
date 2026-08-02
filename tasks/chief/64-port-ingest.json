@@ -1,0 +1,35 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/64-port-ingest",
+  "baseBranch": "main",
+  "description": "Port the single-entity ingest + external-adapter routes to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): text-extractor, url-extractor (Wikidata REST), translate (Google proxy), archaeological-acquisition (Open Context/tDAR). These feed the contribution queue. Runs in parallel with the other port tasklists; 70-unify-scrapers depends on it.",
+  "dependsOn": ["50-engine-inprocess-graph"],
+  "touches": ["port-ingest"],
+  "iters": 8,
+  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Port text + url extractors and translate",
+      "description": "Reimplement text-extractor, url-extractor (single-entity Wikidata REST), and the translate proxy on the FastAPI service, using the engine's async HTTP client where they fetch.",
+      "acceptanceCriteria": [
+        "text-extractor, url-extractor, and translate routes pass the parity tests.",
+        "Outbound fetches go through the engine's rate-limited/cached HTTP layer (not an ad-hoc client).",
+        "Express handlers removed or 501; coverage tracker updated."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Port the archaeological acquisition adapters",
+      "description": "Reimplement the archaeological-acquisition route + its Open Context/tDAR/Pleiades adapters, landing rows in the contribution queue.",
+      "acceptanceCriteria": [
+        "archaeological-acquisition routes pass the parity tests; acquired rows land in data/runtime/contributions.",
+        ".chief/verify.sh passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

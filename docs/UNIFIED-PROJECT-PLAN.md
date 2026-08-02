@@ -111,7 +111,7 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 
 ## 7. Approach & phasing
 
-**Chosen approach: big-bang cutover** (rewrite the backend in Python, then swap Node → Python in one move). ⚠️ This is the highest-risk option across ~72k LOC — see Risks (§8). The phasing below makes it survivable by building the safety net first and porting in verifiable vertical slices, even though the *cutover* is single-shot.
+**Chosen approach: phased, driven by Chief tasklists** (decided 2026-08-02). Each slice is authored as a `tasks/chief/NN-slug.json` story that Chief drives implement→verify→commit→merge; the backend is ported in verifiable vertical slices with incremental merges, then a single final cutover. This supersedes the earlier "big-bang" framing (lower risk) and requires a **real `.chief/verify.sh`** gate — Python `pytest` + parity/contract tests + client typecheck — wired in the foundation band. The phases below map to the tasklist bands.
 
 - **Phase 0 — Foundation & cleanup.** Remove DVC (rm `.dvc/`, `*.dvc`, `.dvcignore`; gitignore the build outputs). Delete Drizzle/pg. Lay down the new repo skeleton (§4). Rename `culturescrape` → `pinakes_engine`. Stand up the FastAPI app shell. **Capture the current API contract** (generate an OpenAPI/route inventory from the running Express server + record the client's expected responses) — this is the parity spec.
 - **Phase 1 — Engine in-process.** Fold the sidecar + CLI seams into direct calls; port the graph routes (`/api/graph/*`) onto the in-process engine.
@@ -122,7 +122,7 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 
 ## 8. Risks & mitigations
 
-- **Big-bang scale (~72k LOC).** *Mitigation:* build the parity harness in Phase 0; port in vertical slices tested against it; keep the old server runnable until full parity; single well-rehearsed cutover with rollback. (A phased/strangler cutover remains the lower-risk alternative — see Open Questions.)
+- **Rewrite scale (~72k LOC).** *Mitigation:* phased via Chief — parity harness first (foundation band), port in vertical slices each gated by `verify.sh`, keep the old server runnable until full parity, single rehearsed cutover with rollback.
 - **Client contract drift.** The 111k-LOC React app depends on exact API shapes. *Mitigation:* the Phase-0 OpenAPI/contract capture + contract tests the Python routes must satisfy.
 - **Losing the Python test net during moves.** *Mitigation:* the engine's 1,922 tests move with it; run them after every relocation (watch the skip count, per the `ml/CLAUDE.md` silent-SKIP lesson).
 - **Reorg breaking hardcoded paths.** *Mitigation:* the rewrite replaces the readers, so relocation is deliberate, not incidental; `contracts/` bindings are generated, not path-joined ad hoc.
@@ -134,8 +134,8 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 3. Create the new skeleton (§4) and move `client/ → web/`, `core/ → engine/` (rename), `shared/ → contracts/` — mechanically, before any Python porting.
 4. Stand up the FastAPI shell that serves the client and returns 501 for not-yet-ported routes.
 
-## 10. Open questions
-- **Approach:** confirm big-bang cutover vs a lower-risk phased/strangler cutover (same end state; the phasing above already leans phased-internally).
-- **Engine package name:** `pinakes_engine` vs another (`pinakes_graph`, `pinakes_core`).
-- **Corpus on clone:** commit the ~2.8 MB canonical corpus to git for clone-and-run convenience, or keep it a gitignored regenerable `build/` output?
-- **`contracts/` bindings:** generate Python from the existing TS schema, or make `contracts/` language-neutral (JSON/`+ codegen both sides)?
+## 10. Decisions (resolved 2026-08-02)
+- **Execution:** phased, via **Chief tasklists** (~12–16), incremental merges + a single final cutover.
+- **Engine package name:** **`pinakes_engine`**.
+- **Corpus on clone:** regenerable **`build/`** output (gitignored); the bundled fixture covers first-run.
+- **`contracts/` bindings:** language-neutral source of truth (JSON/schema) with generated **Python and TS** bindings + a drift gate.

@@ -1,0 +1,36 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/62-port-analytics",
+  "baseBranch": "main",
+  "description": "Port the analytics/insight engines to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): cross-domain correlations, anomaly detection, hypothesis generation, and data-quality scoring, plus their routes. These are self-contained TS compute today. Runs in parallel with the other port tasklists.",
+  "dependsOn": ["50-engine-inprocess-graph"],
+  "touches": ["port-analytics"],
+  "iters": 8,
+  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Port correlations + anomaly detection",
+      "description": "Reimplement the cross-domain correlation graph and anomaly-detection services + routes on the FastAPI service.",
+      "acceptanceCriteria": [
+        "The correlation and anomaly routes pass the parity tests (same results on the baseline fixtures).",
+        "Where the TS used DuckDB as an in-memory TSV mirror, the Python port uses an equivalent (duckdb or a documented substitute) and matches outputs.",
+        "Express handlers removed or 501; coverage tracker updated."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Port hypothesis generation + data-quality scoring",
+      "description": "Reimplement hypothesis-generation and data-quality-scorer services + routes.",
+      "acceptanceCriteria": [
+        "hypotheses and data-quality routes pass the parity tests.",
+        "Numeric outputs match the baseline within a documented tolerance (or exactly where deterministic).",
+        ".chief/verify.sh passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
