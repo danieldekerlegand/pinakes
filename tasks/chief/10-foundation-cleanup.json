@@ -44,7 +44,7 @@
         "client/, core/, server/, shared/ are untouched by this tasklist.",
         "bun run check (tsc) still passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
