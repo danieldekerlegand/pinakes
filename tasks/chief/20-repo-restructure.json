@@ -2,11 +2,20 @@
   "project": "pinakes",
   "branchName": "chief/20-repo-restructure",
   "baseBranch": "main",
-  "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md §4): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only — NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
-  "dependsOn": ["10-foundation-cleanup"],
-  "touches": ["repo-layout"],
-  "warmup": ["bun install"],
-  "verify": ["bun run check", "uv run --project engine pytest -q -p no:cacheprovider"],
+  "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md \u00a74): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only \u2014 NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
+  "dependsOn": [
+    "10-foundation-cleanup"
+  ],
+  "touches": [
+    "repo-layout"
+  ],
+  "warmup": [
+    "bun install"
+  ],
+  "verify": [
+    "bun run check",
+    "uv run --project engine pytest -q -p no:cacheprovider"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -18,8 +27,8 @@
         "`git grep -in culturescrape -- engine` returns nothing (name fully erased inside the engine).",
         "`uv run --project engine pytest` matches the pre-move baseline (same passed/skipped counts; watch the skip count per the ml/CLAUDE.md silent-SKIP rule)."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "core/ -> engine/, culturescrape -> pinakes_engine (dist pinakes-engine, console script pinakes_engine). export/culturescrape -> build/corpus. pytest 1922 passed / 41 skipped = pre-move baseline exactly. OUT OF SCOPE, deliberately kept: the `cs:` id-space (data namespace shared with contracts/ + ml/ + client; renaming it is a corpus migration), the Datalog banner `culture-scrape` (byte-contract with the vendored agora translation_py wheel), and the server's CULTURESCRAPE_* env vars + /api/scraping/culturescrape/* routes (US-4 owns those)."
     },
     {
       "id": "US-2",
@@ -36,7 +45,7 @@
     {
       "id": "US-3",
       "title": "Relocate data + infra to the target layout",
-      "description": "Move lexicons/ under data/source/ (now cheap — see the plan; note server/tsv-storage.ts still reads it and its ~60 literals must be updated here since the file isn't rewritten until a later tasklist), and move docker-compose/Dockerfiles to infra/.",
+      "description": "Move lexicons/ under data/source/ (now cheap \u2014 see the plan; note server/tsv-storage.ts still reads it and its ~60 literals must be updated here since the file isn't rewritten until a later tasklist), and move docker-compose/Dockerfiles to infra/.",
       "acceptanceCriteria": [
         "lexicons/ is now data/source/lexicons/; every reader (notably server/tsv-storage.ts, the scripts, and web) resolves the new path.",
         "docker-compose.yml and the Dockerfiles are under infra/; `docker compose` config still validates.",
