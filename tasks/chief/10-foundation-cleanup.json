@@ -18,7 +18,7 @@
         "`git grep -n dvc -- server core ml/src` returns only comments/docs, never live imports or invocations.",
         "docs/ gains a short note on re-enabling DVC (or git-lfs) later via `dvc init` + a cloud remote."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
