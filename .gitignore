@@ -28,6 +28,10 @@ data/runtime/changelog/
 data/runtime/living-dataset/
 # US-... contributions — runtime queue (samples archived under data/archive/)
 data/runtime/contributions/
+# US-3 target-layout skeleton — build/ holds regenerable outputs only (docs/UNIFIED-PROJECT-PLAN.md §4).
+# Ignore the contents but keep the placeholder README so the directory stays visible.
+/build/*
+!/build/README.md
 # Playwright e2e (US-006) — installed browsers cache is global; test artifacts are local
 test-results/
 playwright-report/
