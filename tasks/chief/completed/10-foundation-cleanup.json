@@ -3,9 +3,16 @@
   "branchName": "chief/10-foundation-cleanup",
   "baseBranch": "main",
   "description": "Foundation step 1 of the flatten (docs/UNIFIED-PROJECT-PLAN.md §4/§9): remove vestigial infrastructure (DVC, Drizzle/Postgres) and lay down the empty target repo skeleton. No behavior change to the running app — this only deletes dead plumbing and adds structure that later tasklists move into.",
-  "touches": ["repo-layout", "deps"],
-  "warmup": ["bun install"],
-  "verify": ["bun run check"],
+  "touches": [
+    "repo-layout",
+    "deps"
+  ],
+  "warmup": [
+    "bun install"
+  ],
+  "verify": [
+    "bun run check"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -47,5 +54,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "d1b83aaa"
 }
