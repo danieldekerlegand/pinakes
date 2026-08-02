@@ -6,7 +6,7 @@
   "dependsOn": ["40-contracts-codegen"],
   "touches": ["python-api", "engine"],
   "iters": 8,
-  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "warmup": ["bun install"],
   "userStories": [
     {
       "id": "US-1",

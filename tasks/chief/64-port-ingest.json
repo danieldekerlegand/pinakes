@@ -6,7 +6,7 @@
   "dependsOn": ["50-engine-inprocess-graph"],
   "touches": ["port-ingest"],
   "iters": 8,
-  "warmup": ["uv sync --project services/api", "uv sync --project engine"],
+  "warmup": ["bun install"],
   "userStories": [
     {
       "id": "US-1",

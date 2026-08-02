@@ -14,7 +14,7 @@
   ],
   "touches": ["cutover", "python-api", "repo-layout"],
   "iters": 8,
-  "warmup": ["bun install", "uv sync --project services/api", "uv sync --project engine"],
+  "warmup": ["bun install"],
   "userStories": [
     {
       "id": "US-1",

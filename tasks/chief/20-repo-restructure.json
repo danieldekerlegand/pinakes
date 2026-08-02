@@ -5,7 +5,7 @@
   "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md §4): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only — NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
   "dependsOn": ["10-foundation-cleanup"],
   "touches": ["repo-layout"],
-  "warmup": ["bun install", "uv sync --project engine"],
+  "warmup": ["bun install"],
   "verify": ["bun run check", "uv run --project engine pytest -q -p no:cacheprovider"],
   "userStories": [
     {

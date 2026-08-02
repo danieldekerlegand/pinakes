@@ -5,7 +5,7 @@
   "description": "Foundation step 3 (docs/UNIFIED-PROJECT-PLAN.md §5/§7): stand up the Python FastAPI service shell that will replace the Node/Express backend, capture the current API as a parity baseline, set up an auto-registering router pattern so later port tasklists don't collide, and wire a REAL .chief/verify.sh. After this, the Python service can serve the client and every subsequent tasklist ports one route group behind the parity gate.",
   "dependsOn": ["20-repo-restructure"],
   "touches": ["python-api", "verify"],
-  "warmup": ["bun install", "uv sync --project services/api"],
+  "warmup": ["bun install"],
   "verify": ["bun run check", "uv run --project services/api pytest -q -p no:cacheprovider"],
   "userStories": [
     {
