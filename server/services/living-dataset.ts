@@ -216,7 +216,7 @@ interface LivingDatasetState {
 export class LivingDatasetStore {
   private readonly file: string;
 
-  constructor(dataDir: string = "data/living-dataset") {
+  constructor(dataDir: string = "data/runtime/living-dataset") {
     this.file = path.join(dataDir, "state.json");
   }
 

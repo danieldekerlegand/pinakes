@@ -259,7 +259,7 @@ export class AnnotationAccessError extends Error {
 export class AnnotationStore {
   private dir: string;
 
-  constructor(dataDir: string = "data/annotations") {
+  constructor(dataDir: string = "data/runtime/annotations") {
     this.dir = path.resolve(dataDir);
     if (!fs.existsSync(this.dir)) fs.mkdirSync(this.dir, { recursive: true });
   }

@@ -137,7 +137,7 @@ export class StewardshipStore {
   private dir: string;
   private file: string;
 
-  constructor(dataDir: string = "data/stewardship") {
+  constructor(dataDir: string = "data/runtime/stewardship") {
     this.dir = path.resolve(dataDir);
     this.file = path.join(this.dir, "stewards.json");
     if (!fs.existsSync(this.dir)) fs.mkdirSync(this.dir, { recursive: true });

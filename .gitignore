@@ -17,15 +17,15 @@ export/culturescrape/
 # for DVC-tracked builds live here; the committed pointers are the *.dvc files.
 dvc-storage/
 # US-007 collaborative collections — user runtime data (JSON per collection)
-data/collections/
+data/runtime/collections/
 # US-008 user annotations — user runtime data (JSON per annotation)
-data/annotations/
+data/runtime/annotations/
 # US-012 culture stewardship — user runtime data (stewards.json)
-data/stewardship/
+data/runtime/stewardship/
 # US-010 data changelog — runtime audit log (JSON per change entry)
-data/changelog/
+data/runtime/changelog/
 # US-011 living dataset — runtime state (ingestion timestamps + release history)
-data/living-dataset/
+data/runtime/living-dataset/
 # Playwright e2e (US-006) — installed browsers cache is global; test artifacts are local
 test-results/
 playwright-report/

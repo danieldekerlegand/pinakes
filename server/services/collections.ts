@@ -301,7 +301,7 @@ export class CollectionAccessError extends Error {
 export class CollectionStore {
   private dir: string;
 
-  constructor(dataDir: string = "data/collections") {
+  constructor(dataDir: string = "data/runtime/collections") {
     this.dir = path.resolve(dataDir);
     if (!fs.existsSync(this.dir)) fs.mkdirSync(this.dir, { recursive: true });
   }

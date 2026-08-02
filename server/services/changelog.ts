@@ -243,7 +243,7 @@ export class ChangelogStore {
   private dir: string;
   private cache: ChangelogEntry[] | null = null;
 
-  constructor(dir: string = "data/changelog") {
+  constructor(dir: string = "data/runtime/changelog") {
     this.dir = path.resolve(dir);
     this.ensureDir();
   }
