@@ -43,7 +43,26 @@ gui = [
     "jinja2>=3.1",
     "httpx>=0.27",
 ]
+
+# The dev toolchain is a PEP 735 dependency GROUP, not an extra, and `dev` is one
+# of uv's default groups — so `uv run --project engine pytest` and `uv sync` from
+# a fresh clone install pytest/ruff/mypy without anyone having to remember a flag.
+# (As an extra it did not: against a fresh root `.venv` that command installed the
+# 11 runtime deps and then died with `Failed to spawn: pytest`. CI's --all-extras
+# still covers everything, because groups are additive to extras.)
+# Keep it a group; do not move it back under [project.optional-dependencies].
+# And do not try to solve it with `[tool.uv] default-extras` instead — uv 0.11
+# has no such key (only `default-groups`); it parses as an unknown field, prints a
+# "settings discovery" warning to stderr, and is silently ignored.
+[dependency-groups]
 dev = [
+    # The suite is NOT extra-free: tests/test_explorer_data.py imports the explorer
+    # app (fastapi) at collection time and the converter tests import the neo4j
+    # driver, so without these a bare `pytest` dies during collection. Pulled in as
+    # a self-referential extra so the lists above stay the single source of truth.
+    # `graphrag` is deliberately absent — it drags torch in, and the vector-index
+    # tests skip without it (CI's `--all-extras` covers that path).
+    "pinakes-engine[gui,neo4j]",
     "pytest>=8",
     "mypy>=1.8",
     "ruff>=0.4",

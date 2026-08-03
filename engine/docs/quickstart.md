@@ -14,15 +14,20 @@ Every `pinakes_engine …` command below is exercised offline by the smoke test 
 
 ## 1. Install
 
-pinakes-engine is a Python package (≥ 3.11). Clone it, make a virtualenv, and
-install it editable with the dev and Neo4j extras:
+pinakes-engine is a Python package (≥ 3.11) and a member of the repo's uv
+workspace. Clone the repo and let uv build the environment — one `uv sync` gets
+the runtime deps, the `dev` dependency group (pytest/ruff/mypy) and the `gui` +
+`neo4j` extras that group pulls in:
 
 ```sh
-git clone https://github.com/your-org/pinakes-engine.git
-cd pinakes-engine
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev,neo4j]"
+git clone https://github.com/your-org/pinakes.git
+cd pinakes/engine
+uv sync
 ```
+
+On plain pip that is `python -m venv .venv && source .venv/bin/activate` followed
+by `pip install -e ".[gui,neo4j]" --group dev` (pip ≥ 25.1). Prefix the commands
+below with `uv run` (or activate the workspace `.venv` at the repo root).
 
 Confirm the CLI is on your path — it's the single entrypoint for every stage:
 

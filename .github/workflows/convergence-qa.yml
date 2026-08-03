@@ -64,9 +64,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Sync Python deps
-        # --all-extras pulls the dev tooling (ruff/mypy/pytest) plus the gui
-        # (fastapi/uvicorn) and neo4j extras mypy --strict needs to typecheck the
-        # explorer app; the bare `uv sync` installs only the runtime deps.
+        # The dev toolchain (ruff/mypy/pytest) is the `dev` dependency GROUP, which
+        # uv installs by default — including the gui (fastapi/uvicorn) and neo4j
+        # extras it self-references, which mypy --strict needs to typecheck the
+        # explorer app. --all-extras adds the one extra the group leaves out,
+        # `graphrag` (sentence-transformers), so the vector-index tests run here
+        # instead of skipping.
         run: uv sync --frozen --all-extras
       - name: Lint (ruff)
         run: uv run ruff check .

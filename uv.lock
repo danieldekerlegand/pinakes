@@ -1184,15 +1184,6 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-dev = [
-    { name = "lxml-stubs" },
-    { name = "mypy" },
-    { name = "problog" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "types-pyyaml" },
-    { name = "types-requests" },
-]
 graphrag = [
     { name = "sentence-transformers" },
 ]
@@ -1206,6 +1197,18 @@ neo4j = [
     { name = "neo4j" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "lxml-stubs" },
+    { name = "mypy" },
+    { name = "pinakes-engine", extra = ["gui", "neo4j"] },
+    { name = "problog" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+    { name = "types-requests" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "cssselect", specifier = ">=1.2" },
@@ -1213,22 +1216,27 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'gui'", specifier = ">=0.27" },
     { name = "jinja2", marker = "extra == 'gui'", specifier = ">=3.1" },
     { name = "lxml", specifier = ">=5" },
-    { name = "lxml-stubs", marker = "extra == 'dev'", specifier = ">=0.5" },
     { name = "mwparserfromhell", specifier = ">=0.6" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8" },
     { name = "neo4j", marker = "extra == 'neo4j'", specifier = ">=5" },
-    { name = "problog", marker = "extra == 'dev'", specifier = ">=2.2" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pyyaml", specifier = ">=6" },
     { name = "requests", specifier = ">=2.31" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
     { name = "sentence-transformers", marker = "extra == 'graphrag'", specifier = ">=2.2" },
     { name = "translation-py", path = "engine/vendor/translation_py-0.1.0-cp39-abi3-macosx_11_0_arm64.whl" },
-    { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6" },
-    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.31" },
     { name = "uvicorn", marker = "extra == 'gui'", specifier = ">=0.29" },
 ]
-provides-extras = ["neo4j", "graphrag", "gui", "dev"]
+provides-extras = ["neo4j", "graphrag", "gui"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "lxml-stubs", specifier = ">=0.5" },
+    { name = "mypy", specifier = ">=1.8" },
+    { name = "pinakes-engine", extras = ["gui", "neo4j"] },
+    { name = "problog", specifier = ">=2.2" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "ruff", specifier = ">=0.4" },
+    { name = "types-pyyaml", specifier = ">=6" },
+    { name = "types-requests", specifier = ">=2.31" },
+]
 
 [[package]]
 name = "pluggy"

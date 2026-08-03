@@ -13,6 +13,11 @@
 #   uv run --package pinakes-engine ...    # run against one member explicitly
 #
 # `uv lock` regenerates the ROOT `uv.lock`; members no longer carry their own.
+#
+# The second line works from a cold checkout (no `.venv`, no prior sync) because a
+# member's test toolchain lives in its `dev` DEPENDENCY GROUP — uv's default group
+# — not in an extra, which uv would not install without a flag. Give every member
+# a `dev` group for the same reason; see engine/pyproject.toml.
 
 [tool.uv.workspace]
 # `services/api` (the `pinakes` service package) joins this list the moment it

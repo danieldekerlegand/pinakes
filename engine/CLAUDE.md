@@ -23,6 +23,13 @@ Own toolchain, run from this directory:
 uv sync --frozen --all-extras && uv run ruff check . && uv run mypy src && uv run pytest
 ```
 
+…or, from anywhere in the repo and with no sync step at all:
+`uv run --project engine pytest`. That works from a **cold** checkout because
+ruff/mypy/pytest — plus the `gui` + `neo4j` extras the suite imports at collection
+time — are the `dev` **dependency group** (uv installs default groups
+automatically), not an extra (which needs a flag uv run has no reason to guess).
+`--all-extras` above is still what adds `graphrag`.
+
 ## GOTCHA — the lock and the venv live at the REPO ROOT, not here
 
 pinakes:20 US-4 made the repo root a **virtual uv workspace root**

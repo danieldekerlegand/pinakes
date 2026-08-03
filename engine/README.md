@@ -17,8 +17,8 @@ query.
 The whole pipeline runs from a single CLI:
 
 ```sh
-pip install -e ".[dev,neo4j]"
-pinakes_engine run jobs/seed-corpus.yml      # acquire → normalize → link → export
+uv sync                                      # or: pip install -e ".[gui,neo4j]"
+uv run pinakes_engine run jobs/seed-corpus.yml   # acquire → normalize → link → export
 ```
 
 ## How it works
@@ -85,8 +85,12 @@ how to execute them.
 ## Development
 
 ```sh
-pip install -e ".[dev,neo4j]"
-pytest          # tests
-ruff check .    # lint
-mypy            # types
+uv sync                  # dev toolchain + the extras the suite needs (dev group)
+uv run pytest            # tests
+uv run ruff check .      # lint
+uv run mypy src          # types
 ```
+
+The test toolchain is the PEP 735 `dev` dependency **group**, not an extra, so a
+bare `uv sync` / `uv run` picks it up (uv installs default groups). On plain pip
+that is `pip install -e ".[gui,neo4j]" --group dev` (pip ≥ 25.1).
