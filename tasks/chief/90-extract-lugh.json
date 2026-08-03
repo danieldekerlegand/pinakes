@@ -17,8 +17,8 @@
         "lugh is seeded with a .chief/ (config + a real verify.sh running `uv sync --extra dev` then pytest/ruff) and tasks/chief/ populated from this repo's tasks/extraction-staging/lugh/*.json (10-bootstrap … 40-port-general-train-harness).",
         "In a fresh clone of lugh, `uv sync --extra dev` succeeds and `uv run python -m pytest --co` collects the suite."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Done. `git subtree split -P ml -b lugh-export` -> 44 commits (of pinakes' 819), ml/ contents at the root, oldest commit `wip: US-001 - ml/ workspace scaffold` — history, not a snapshot. Repo: https://github.com/danieldekerlegand/lugh (private, default branch main, 45 commits incl. the seed). Seeded with .chief/{config,verify.sh,agent-context.md} + tasks/chief/ (the 4 staged lugh tasklists) + HANDOFF.md; .gitignore gained /.chief/state/. Fresh clone: `uv sync --extra dev` OK, `pytest --co` collects 485. The scaffolding branch lugh-export was deleted from pinakes after the push. KNOWN-RED at lugh main and deliberately so — 45 failed + 49 errors, ALL from four `_REPO_ROOT`-relative paths that used to reach into pinakes (engine/tests/fixtures/insimul/world-export.json x55, contracts/canonical-schema.json x13, the neo4j-export golden edges, and 3 docs/ links). That is precisely the coupling lugh:20-vendor-contracts-corpus is chartered to sever; HANDOFF.md documents it so lugh's first chief iteration does not mistake it for breakage."
     },
     {
       "id": "US-2",
