@@ -12,6 +12,10 @@ license = { text = "MIT" }
 dependencies = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
+    # The generated Python bindings for `contracts/*.json` — how this service
+    # locates the shared contract directory instead of path-joining its own way
+    # to it. Taken from the workspace; see [tool.uv.sources].
+    "pinakes-contracts",
     # The aggregation engine, in-process — the whole point of the flatten
     # (docs/UNIFIED-PROJECT-PLAN.md §1): no sidecar HTTP hop, no CLI subprocess.
     # Taken from the workspace, never from PyPI; see [tool.uv.sources].
@@ -36,6 +40,7 @@ dev = [
 ]
 
 [tool.uv.sources]
+pinakes-contracts = { workspace = true }
 pinakes-engine = { workspace = true }
 
 [tool.setuptools.packages.find]

@@ -10,6 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "pinakes",
+    "pinakes-contracts",
     "pinakes-engine",
 ]
 
@@ -1177,6 +1178,7 @@ version = "0.1.0"
 source = { editable = "services/api" }
 dependencies = [
     { name = "fastapi" },
+    { name = "pinakes-contracts" },
     { name = "pinakes-engine" },
     { name = "uvicorn" },
 ]
@@ -1192,6 +1194,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.110" },
+    { name = "pinakes-contracts", editable = "contracts/python" },
     { name = "pinakes-engine", editable = "engine" },
     { name = "uvicorn", specifier = ">=0.29" },
 ]
@@ -1205,6 +1208,27 @@ dev = [
 ]
 
 [[package]]
+name = "pinakes-contracts"
+version = "0.1.0"
+source = { editable = "contracts/python" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.8" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "ruff", specifier = ">=0.4" },
+]
+
+[[package]]
 name = "pinakes-engine"
 version = "0.1.0"
 source = { editable = "engine" }
@@ -1212,6 +1236,7 @@ dependencies = [
     { name = "cssselect" },
     { name = "lxml" },
     { name = "mwparserfromhell" },
+    { name = "pinakes-contracts" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "translation-py" },
@@ -1252,6 +1277,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=5" },
     { name = "mwparserfromhell", specifier = ">=0.6" },
     { name = "neo4j", marker = "extra == 'neo4j'", specifier = ">=5" },
+    { name = "pinakes-contracts", editable = "contracts/python" },
     { name = "pyyaml", specifier = ">=6" },
     { name = "requests", specifier = ">=2.31" },
     { name = "sentence-transformers", marker = "extra == 'graphrag'", specifier = ">=2.2" },

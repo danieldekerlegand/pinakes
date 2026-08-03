@@ -14,6 +14,14 @@
  * so introducing the rubric is data-neutral (see `docs/canonical-schema.md` §4.4).
  */
 import confidenceRubricJson from "./confidence-rubric.json";
+import type { ConfidenceClassName } from "./generated/confidence-rubric";
+
+export type { ConfidenceClassName } from "./generated/confidence-rubric";
+export {
+  CONFIDENCE_CLASS_ORDER,
+  CONFIDENCE_PRIORS,
+  CONFIDENCE_RUBRIC_VERSION,
+} from "./generated/confidence-rubric";
 
 /** One provenance class: its numeric prior in `[0, 1]` and the rationale. */
 export interface ConfidenceClassEntry {
@@ -34,8 +42,12 @@ export interface ConfidenceRubric {
 /** The confidence rubric. Structural drift in the JSON breaks `npm run check`. */
 export const CONFIDENCE_RUBRIC = confidenceRubricJson as ConfidenceRubric;
 
-/** A known provenance class name (keys of the rubric). */
-export type ConfidenceClass = keyof typeof confidenceRubricJson.classes;
+/**
+ * A known provenance class name. The generated literal union
+ * (`./generated/confidence-rubric`), which is the same set the Python binding's
+ * `ConfidenceClass` declares — one vocabulary, two languages.
+ */
+export type ConfidenceClass = ConfidenceClassName;
 
 /**
  * The confidence prior for a provenance class, in `[0, 1]`. Pass `scale: 100`

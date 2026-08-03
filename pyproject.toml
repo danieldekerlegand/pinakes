@@ -25,7 +25,12 @@
 # (services/api/pyproject.toml `[tool.uv.sources]`), never from PyPI — that is
 # what makes "the engine is imported in-process" (plan §1) a resolution fact and
 # not just an intention.
-members = ["engine", "services/api"]
+# `contracts/python` is `pinakes-contracts`: the GENERATED Python bindings for the
+# language-neutral `contracts/*.json` (plan §10). Both other members depend on it,
+# which is what makes "neither language is authoritative" a resolution fact rather
+# than a convention — there is no hand-maintained Python copy of the schema left to
+# drift. Regenerate with `npm run gen:contracts`.
+members = ["contracts/python", "engine", "services/api"]
 
 # `ml/` is deliberately its OWN workspace with its OWN uv.lock and .venv
 # (ml/pyproject.toml). Its torch/pykeen/sentence-transformers stack must never

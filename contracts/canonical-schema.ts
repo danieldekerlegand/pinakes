@@ -10,8 +10,40 @@
  * The column contracts mirror pinakes-engine's typed Neo4j-import headers
  * (`engine/src/pinakes_engine/schema/headers.py`) so exported
  * TSV is import-compatible with `neo4j-admin import` without transformation.
+ *
+ * The *vocabulary* — which node/edge types exist, their labels and `:TYPE`
+ * tokens, the header rows — comes from `./generated/canonical-schema`, emitted
+ * from the same JSON by `npm run gen:contracts` (40-contracts-codegen US-1). A
+ * JSON import widens every string cell to `string`, so the literal unions below
+ * cannot be recovered from `canonicalSchemaJson` at all; generating them is what
+ * makes `CanonicalNodeTypeName` a real type on this side of the stack, and what
+ * pairs it with the Python binding the engine imports.
  */
 import canonicalSchemaJson from "./canonical-schema.json";
+import {
+  CANONICAL_EDGE_HEADER_ROW,
+  CANONICAL_NODE_HEADER_ROW,
+} from "./generated/canonical-schema";
+
+export type {
+  CanonicalEdgeField,
+  CanonicalEdgeTypeName,
+  CanonicalEdgeTypeToken,
+  CanonicalNodeField,
+  CanonicalNodeLabel,
+  CanonicalNodeTypeName,
+} from "./generated/canonical-schema";
+export {
+  CANONICAL_EDGE_HEADER_ROW,
+  CANONICAL_EDGE_TYPE_NAMES,
+  CANONICAL_EDGE_TYPE_TOKENS,
+  CANONICAL_LABEL_BY_NODE_TYPE,
+  CANONICAL_NODE_HEADER_ROW,
+  CANONICAL_NODE_LABELS,
+  CANONICAL_NODE_TYPE_NAMES,
+  CANONICAL_SCHEMA_VERSION,
+  CANONICAL_TOKEN_BY_EDGE_TYPE,
+} from "./generated/canonical-schema";
 
 /** A Neo4j-import property type; drives the header suffix (`""`/`:int`/`:float`). */
 export type CanonicalColumnType = "string" | "int" | "float";
@@ -159,18 +191,17 @@ export function assertValidCanonicalSchema(
 /** Column delimiter for the canonical TSV family (tab). */
 export const CANONICAL_DELIMITER = CANONICAL_SCHEMA.delimiter;
 
-/** Ordered node header row (`csid:ID\t:LABEL\tname\t…`). */
+/**
+ * Ordered node header row (`csid:ID\t:LABEL\tname\t…`) — the generated constant,
+ * so the exact bytes the Python side's `NODE_HEADER_ROW` carries.
+ */
 export function nodeHeaderRow(): string {
-  return CANONICAL_SCHEMA.node.columns
-    .map((c) => c.header)
-    .join(CANONICAL_DELIMITER);
+  return CANONICAL_NODE_HEADER_ROW;
 }
 
 /** Ordered edge header row (`:START_ID\t:END_ID\t:TYPE\t…`). */
 export function edgeHeaderRow(): string {
-  return CANONICAL_SCHEMA.edge.columns
-    .map((c) => c.header)
-    .join(CANONICAL_DELIMITER);
+  return CANONICAL_EDGE_HEADER_ROW;
 }
 
 /** Provenance field names required on every node row. */

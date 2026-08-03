@@ -56,17 +56,20 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from pinakes_contracts import contract_path
+
 from pinakes_engine.datalog import Fact
 from pinakes_engine.datalog.edges import predicate_for_type
 from pinakes_engine.datalog.rules import Rule
 from pinakes_engine.schema.tsvio import encode_value, open_rows
 
-#: The canonical schema in the monorepo checkout (the compile source). Absent in a
-#: standalone vendored checkout — the extractor is then simply not runnable, and the
+#: The canonical schema in the monorepo checkout (the compile source). Located
+#: through the generated bindings package rather than by counting ``parents[n]`` up
+#: to the repo root — a wrong count there fails *silently* (the file "doesn't
+#: exist" and the ``.exists()`` guards below degrade to skips). Absent in a
+#: standalone vendored checkout, where the extractor is simply not runnable and the
 #: committed replay artifact remains the source of truth.
-CANONICAL_SCHEMA_JSON = (
-    Path(__file__).resolve().parents[4] / "contracts" / "canonical-schema.json"
-)
+CANONICAL_SCHEMA_JSON = contract_path("canonical-schema.json")
 
 #: The committed replay artifact: the schema's edge constraints with node-type names
 #: already resolved to ``:LABEL``\\ s, plus provenance. Read at runtime so this module

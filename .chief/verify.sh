@@ -29,6 +29,12 @@ run(){ echo "== $* =="; [ -n "$dry" ] && return 0; "$@" || { echo "FAIL: $*"; fa
 # touched <extended-regex> — did the diff touch a matching path?
 touched(){ printf '%s\n' "$changed" | grep -qE "$1"; }
 
+# The language-neutral contract sources (contracts/*.json, NOT contracts/parity/*.json) and the
+# bindings scripts/gen-contract-bindings.ts emits from them. Both halves of the stack consume the
+# generated side, so this set selects the drift gate AND both languages' suites below.
+CONTRACT_SRC_RE='^contracts/[^/]+\.json$'
+CONTRACT_GEN_RE="$CONTRACT_SRC_RE|^contracts/generated/|^contracts/python/|^scripts/gen-contract-bindings\.ts$"
+
 # This repo's chief program uses bun; fall back to npm. npm needs `--` before script args.
 if command -v bun >/dev/null; then RUN="bun run"; ARGSEP=""
 elif command -v npm >/dev/null; then RUN="npm run"; ARGSEP="--"
@@ -53,6 +59,9 @@ fi
 # contracts/parity on its own in that case.
 vitest_scope=""
 if touched '\.tsx?$'; then vitest_scope="all"
+# A neutral contract source edited WITHOUT regenerating ships no TS at all, yet it is exactly the
+# case the contract tests (and the drift gate below) exist to catch — run the whole suite.
+elif touched "$CONTRACT_SRC_RE"; then vitest_scope="all"
 elif touched '^contracts/parity/'; then vitest_scope="contracts/parity"; fi
 if [ -n "$vitest_scope" ]; then
   if [ -z "$RUN" ]; then echo "skip: no bun/npm for vitest"
@@ -67,10 +76,14 @@ fi
 # suites regardless of which project is selected, so a single-project env dies collecting the
 # other one on a cold checkout. Scope a run with a path argument instead.
 PY_ROOT_CONFIG='^(pyproject\.toml|uv\.lock|pytest\.ini)$'
+# `pinakes-contracts` (contracts/python/) is a workspace dependency of BOTH Python members, and its
+# modules are generated from contracts/*.json — a source edit is a Python source edit, imported at
+# module scope by pinakes_engine.schema.headers / .confidence. So both suites run for either.
+PY_CONTRACTS="$CONTRACT_SRC_RE|^contracts/python/"
 py_engine=0; py_api=0
-touched "^engine/|$PY_ROOT_CONFIG" && py_engine=1
+touched "^engine/|$PY_CONTRACTS|$PY_ROOT_CONFIG" && py_engine=1
 # contracts/parity/openapi.json IS the service's 501 catalog — it changes what the app registers.
-touched "^services/api/|^contracts/parity/|$PY_ROOT_CONFIG" && py_api=1
+touched "^services/api/|^contracts/parity/|$PY_CONTRACTS|$PY_ROOT_CONFIG" && py_api=1
 
 if [ "$py_engine" -eq 1 ] || [ "$py_api" -eq 1 ]; then
   if ! command -v uv >/dev/null; then
@@ -90,6 +103,16 @@ if [ "$py_engine" -eq 1 ] || [ "$py_api" -eq 1 ]; then
 fi
 
 # ---------------------------------------------------------------- Cross-cutting
+
+# Contract-bindings drift guard (40-contracts-codegen US-2). `contracts/*.json` is the
+# language-neutral source of truth and BOTH languages consume generated bindings, so a source
+# edited without `npm run gen:contracts` — or a hand-edited generated file — must block the merge.
+# Unlike the registry mirror below this needs no sibling checkout: everything it compares is in
+# this tree, so it never skips and is a hard gate. Read-only (`--check` writes nothing).
+if touched "$CONTRACT_GEN_RE"; then
+  if [ -z "$RUN" ]; then echo "skip: contract bindings (no runner)"
+  else run $RUN check:contracts; fi
+fi
 
 # koine registry-mirror drift guard, when the mirror or anything registry-shaped changed.
 # The guard reads the AUTHORITATIVE registry out of a sibling koine checkout

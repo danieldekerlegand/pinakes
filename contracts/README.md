@@ -8,10 +8,10 @@ a mechanical move; the TS alias is now `@contracts/*`.
 ## Purpose
 
 The canonical schema and registries that both sides of the stack must agree on —
-`canonical-schema.json`, the predicate mapping, and friends. Today they are
-TS-shaped and TS-only; here they become **language-neutral** (JSON/schema) with
-**generated Python and TS bindings** plus a drift gate, so the Python engine and
-the TS client cannot silently diverge (§10).
+`canonical-schema.json`, the predicate mapping, and friends. They are
+**language-neutral** (JSON) with **generated Python and TS bindings**, so the
+Python engine and the TS client cannot silently diverge (§10). Neither language is
+authoritative; the JSON is.
 
 Bindings are generated, never hand-maintained and never path-joined ad hoc — that
 is what makes the rest of the reorg safe (§8).
@@ -20,8 +20,17 @@ Working notes on the individual contracts (canonical schema, confidence rubric,
 trust tiers, capability manifest, predicate mapping, KGP) live in
 [`CLAUDE.md`](./CLAUDE.md).
 
-## Still to come
+## Layout
 
-| Item | Note |
+| Path | |
 |---|---|
-| generated Python bindings + a drift check | the Python side still reaches in by path (`_REPO_ROOT / "contracts" / "canonical-schema.json"` in `engine/` and `ml/`) — that is what the bindings replace |
+| `*.json` | the neutral **source of truth** — edit here |
+| `generated/*.ts` | generated TypeScript bindings (literal vocabularies the JSON import widens away) |
+| `python/` | the `pinakes-contracts` uv workspace package — generated Python bindings ([README](./python/README.md)) |
+| `*.ts` | the hand-written typed accessors + runtime validators, which consume the generated bindings |
+| `parity/` | the Express → FastAPI parity baseline (its own generators; see [`parity/README.md`](./parity/README.md)) |
+
+```sh
+npm run gen:contracts     # regenerate both language halves (scripts/gen-contract-bindings.ts)
+npm run check:contracts   # read-only staleness check
+```

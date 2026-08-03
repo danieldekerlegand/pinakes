@@ -10,6 +10,11 @@ readme = "PLAN.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
+    # The generated Python bindings for the repo's language-neutral contracts
+    # (`contracts/*.json`). The canonical column tuples and the confidence priors
+    # used to be transcribed into this package by hand; they are imported now, so
+    # there is no copy to drift. Taken from the workspace; see [tool.uv.sources].
+    "pinakes-contracts",
     "PyYAML>=6",
     "cssselect>=1.2",
     "lxml>=5",
@@ -90,6 +95,7 @@ where = ["src"]
 # to install). NOTE: the wheel is platform-specific; cross-platform / CI packaging
 # of the engine is handled when the sidecar is retired (pinakes:50 US-6).
 [tool.uv.sources]
+pinakes-contracts = { workspace = true }
 translation-py = { path = "vendor/translation_py-0.1.0-cp39-abi3-macosx_11_0_arm64.whl" }
 
 [tool.mypy]
