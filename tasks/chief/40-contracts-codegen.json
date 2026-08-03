@@ -27,7 +27,7 @@
         "A test regenerates from the contracts/ source and asserts byte-equality with the committed bindings (Python and TS).",
         "The gate is wired into .chief/verify.sh so a contract change without regeneration blocks merge."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
