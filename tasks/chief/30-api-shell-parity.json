@@ -30,7 +30,7 @@
         "A documented catalog of not-yet-ported routes returns HTTP 501 with a clear body, driven by the parity spec so coverage is trackable.",
         "services/api has a pyproject.toml in the root uv workspace and its own tests/ dir with the shell smoke test."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
