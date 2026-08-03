@@ -40,6 +40,12 @@ consumers pull now that DVC is gone — `corpus-<version>.tar.gz` + a `.tar.gz.s
 - **A missing corpus is `CorpusMissingError`, not `PackageError`** — nothing is wrong, it just
   hasn't been exported. The CLI no-ops with a regenerate-first message and exit 0; pass
   `--require-corpus` (CI) to make absence a failure instead.
+- **The release path is `.github/workflows/publish-corpus.yml` (91 US-2), and it reads
+  `--json`, not the print.** `publish_summary()` is that contract — `{published, version, tag,
+  archive, checksum, manifest, sha256, files, bytes}` — so the workflow keys the release tag
+  and its three assets off stable keys. The workflow is `workflow_dispatch`-only and is
+  asserted by `tests/test_publish_corpus.py` (a manual-dispatch path gets no other feedback
+  until someone tries to cut a release, so a renamed flag must fail the suite).
 - **`_write_archive` moves the release manifest to `release-manifest.json`** when the source
   already ships a top-level `manifest.json` — which a bare corpus dataset like `build/corpus`
   does. Two tar members under one arcname is silent data loss on extract. Job roots keep their

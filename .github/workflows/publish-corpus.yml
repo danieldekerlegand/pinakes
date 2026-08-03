@@ -1,0 +1,148 @@
+name: publish-corpus
+
+# The pinakes → consumer corpus handoff (91 US-2; docs/artifact-versioning.md
+# "The corpus handoff"). DVC is gone, so the canonical node/edge corpus travels as a
+# published, checksummed tarball rather than a pointer: this workflow regenerates it
+# from the committed lexicons, packages it deterministically, verifies its own
+# sidecar, and uploads the three assets to a release tagged `corpus-<version>`.
+# The repo is private, so the release — and therefore every asset on it — is private
+# too: the consumer (the `lugh` trainer's LUGH_CORPUS_DIR setup) must authenticate
+# its `gh release download`. That pull is documented in docs/artifact-versioning.md.
+#
+# Deliberate, not automatic. Publishing is workflow_dispatch-only because a corpus
+# release is a decision, not a side effect of a push. Safe to re-run: the default
+# version is content-addressed, so an unchanged corpus republishes onto the SAME tag
+# with byte-identical assets (the upload clobbers), and a new tag always means the
+# corpus really changed.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Artifact version (default: content-addressed, 12 hex digits)"
+        required: false
+        type: string
+      dry_run:
+        description: "Package and verify, but create no release"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write # gh release create / upload
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      # GOTCHA: scripts/export-for-engine.ts still writes export/pinakes_engine, not
+      # build/corpus — a known open item (docs/UNIFIED-PROJECT-PLAN.md §"target
+      # layout"). Flip this the day that lands; the packager takes any directory
+      # holding nodes/ + edges/, so nothing else here changes.
+      CORPUS_DIR: export/pinakes_engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Regenerate the corpus from the committed lexicons
+        # Deterministic: csids are minted from the lexicon rows and provenance
+        # propagates verbatim, so this is byte-identical for identical inputs — which
+        # is what makes the content-addressed version below meaningful.
+        run: npx tsx scripts/export-for-engine.ts
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Package it (tarball + sha256 + release manifest)
+        id: publish
+        env:
+          VERSION: ${{ inputs.version }}
+        # --require-corpus: the export ran immediately above, so an absent corpus is a
+        # real failure here, not the fresh-checkout no-op it is locally.
+        # --json: the machine-readable summary (version, tag, asset paths, sha256) the
+        # release step below keys on — never scrape the human print.
+        run: |
+          set -euo pipefail
+          uv run --all-packages pinakes_engine publish-corpus \
+            --corpus "$CORPUS_DIR" --out dist --require-corpus --json \
+            ${VERSION:+--version "$VERSION"} \
+            | tee "$RUNNER_TEMP/publish.json"
+          jq -r '
+            "version=\(.version)",
+            "tag=\(.tag)",
+            "sha256=\(.sha256)",
+            "archive=\(.archive)",
+            "checksum=\(.checksum)",
+            "manifest=\(.manifest)"
+          ' "$RUNNER_TEMP/publish.json" >> "$GITHUB_OUTPUT"
+      - name: Verify the sidecar exactly as a consumer will
+        # The same one-liner lugh runs after downloading. If it cannot pass here, on
+        # the bytes we just wrote, it will not pass there.
+        run: cd dist && sha256sum -c ./*.tar.gz.sha256
+      - name: Upload as a private release asset
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.publish.outputs.tag }}
+          VERSION: ${{ steps.publish.outputs.version }}
+          SHA256: ${{ steps.publish.outputs.sha256 }}
+          ARCHIVE: ${{ steps.publish.outputs.archive }}
+          CHECKSUM: ${{ steps.publish.outputs.checksum }}
+          MANIFEST: ${{ steps.publish.outputs.manifest }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          Canonical pinakes node/edge corpus, version \`$VERSION\` (built from
+          \`${GITHUB_SHA}\`).
+
+          \`\`\`
+          sha256  $SHA256
+          \`\`\`
+
+          Private asset — pull with an authenticated \`gh\`:
+
+          \`\`\`bash
+          gh release download $TAG --repo $GITHUB_REPOSITORY --pattern 'corpus-*'
+          sha256sum -c corpus-$VERSION.tar.gz.sha256
+          tar -xzf corpus-$VERSION.tar.gz
+          export LUGH_CORPUS_DIR="\$PWD/corpus-$VERSION"
+          \`\`\`
+
+          See \`docs/artifact-versioning.md\` for the full handoff.
+          EOF
+          # Idempotent by design: the content-addressed tag already existing means this
+          # is the same corpus, so --clobber re-uploads identical bytes rather than
+          # failing the run.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists (same corpus content) — re-uploading assets"
+            gh release upload "$TAG" "$ARCHIVE" "$CHECKSUM" "$MANIFEST" --clobber
+          else
+            # --latest=false: corpus releases are a data channel, not the repo's
+            # newest software release; they must not displace it.
+            gh release create "$TAG" "$ARCHIVE" "$CHECKSUM" "$MANIFEST" \
+              --title "corpus $VERSION" \
+              --notes-file "$RUNNER_TEMP/notes.md" \
+              --latest=false
+          fi
+      - name: Summary
+        env:
+          TAG: ${{ steps.publish.outputs.tag }}
+          VERSION: ${{ steps.publish.outputs.version }}
+          SHA256: ${{ steps.publish.outputs.sha256 }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          suffix=""
+          if [ "$DRY_RUN" = "true" ]; then suffix=" (dry run — not released)"; fi
+          {
+            echo "### corpus \`$VERSION\`"
+            echo
+            echo "- tag: \`$TAG\`$suffix"
+            echo "- sha256: \`$SHA256\`"
+            echo
+            echo '```bash'
+            echo "gh release download $TAG --repo $GITHUB_REPOSITORY --pattern 'corpus-*'"
+            echo "sha256sum -c corpus-$VERSION.tar.gz.sha256"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

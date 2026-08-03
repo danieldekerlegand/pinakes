@@ -5,8 +5,11 @@
 > the only large artifact this repo still owns is `build/corpus`, which is also the handoff
 > lugh now pulls. Any versioning scheme adopted here has to publish it, not just store it.
 
-**Status: Option C is implemented for `build/corpus`** — see
-[The corpus handoff](#the-corpus-handoff-buildcorpus--consumers) below. Everything else
+**Status: Option C is implemented for `build/corpus`**, producer *and* consumer side — see
+[The corpus handoff](#the-corpus-handoff-buildcorpus--consumers) below: a
+[packaging command](#the-corpus-handoff-buildcorpus--consumers), a
+[release workflow](#publishing-the-release-path) that uploads it as a private asset, and the
+[authenticated pull](#pulling-what-a-consumer-runs) consumers perform. Everything else
 in this repo is still an unversioned, git-ignored build output regenerated from committed
 inputs; DVC was removed in the flatten's Phase 0 (see
 [UNIFIED-PROJECT-PLAN.md](./UNIFIED-PROJECT-PLAN.md) §4/§9).
@@ -64,6 +67,65 @@ back into a failure.
 > landed on the wrong constant, and flipping it moves five other scripts' output). Until that
 > is resolved, publish with `--corpus export/pinakes_engine`. Everything else here is
 > unaffected: the packager takes any directory holding `nodes/` + `edges/`.
+
+### Publishing: the release path
+
+[`.github/workflows/publish-corpus.yml`](../.github/workflows/publish-corpus.yml) is the
+producer end-to-end. It is **`workflow_dispatch`-only** — a corpus release is a decision,
+not a side effect of a push — and runs the two steps above plus the release:
+
+| Step | What |
+|---|---|
+| `npx tsx scripts/export-for-engine.ts` | regenerate the corpus from the committed lexicons |
+| `pinakes_engine publish-corpus --require-corpus --json` | package + checksum; `--require-corpus` makes an absent corpus a failure (the export just ran), `--json` emits `{version, tag, archive, checksum, manifest, sha256, …}` for the release step to key on |
+| `sha256sum -c` | verify the sidecar *here*, on the bytes we just wrote — the same command the consumer runs |
+| `gh release create corpus-<version> …` | upload the three assets to a release tagged with the corpus version |
+
+Two inputs: `version` (blank = content-addressed) and `dry_run` (package + verify, release
+nothing). **Re-running is safe.** The tag is the content-addressed version, so republishing
+an unchanged corpus lands on the same tag with byte-identical assets (the workflow detects
+the existing release and re-uploads with `--clobber`); a *new* tag always means the corpus
+really changed. The release is created with `--latest=false` — a data channel must not
+displace the repo's newest software release.
+
+**The assets are private because the repo is.** GitHub release assets inherit repository
+visibility, so there is no public URL to leak and every pull must authenticate — which is
+exactly the property the handoff needs, since the corpus carries share-alike and
+non-commercial licensed records (the release manifest's `licenses` block says which).
+
+### Pulling: what a consumer runs
+
+The consumer is the private [`lugh`](./LUGH-EXTRACTION-PLAN.md) trainer, whose
+`LUGH_CORPUS_DIR` points at an extracted bundle (without it, its live-corpus tests skip and
+CI stays green fixture-only). The pull is authenticated `gh`, then verify, then extract:
+
+```bash
+gh auth status                                  # a token with read access to the private repo
+gh release download corpus-<version> \
+  --repo <owner>/pinakes --pattern 'corpus-*'   # tarball + .sha256 + manifest
+
+sha256sum -c corpus-<version>.tar.gz.sha256     # MUST pass before extracting
+tar -xzf corpus-<version>.tar.gz                # -> corpus-<version>/{nodes,edges}/…
+
+export LUGH_CORPUS_DIR="$PWD/corpus-<version>"
+```
+
+- **Verify before extracting, always.** The sidecar is plain `sha256sum` format over a bare
+  filename, so `sha256sum -c` works from whatever directory the asset landed in — no
+  arguments, no jq, no trust in the transport. On macOS, `shasum -a 256 -c` reads the same
+  file.
+- **`gh release download` needs the token, not a URL.** A private asset's browser URL is not
+  fetchable with a bare `curl`; use `gh` (or `curl -H "Authorization: Bearer $GH_TOKEN" -L`
+  against the *API* asset URL with `Accept: application/octet-stream`). In lugh's CI that
+  token is a repo secret with read access to this repo — `GITHUB_TOKEN` is scoped to the
+  repo it runs in and cannot read this one.
+- **Omitting `--pattern` also downloads the release manifest** — `corpus-<version>-manifest.json`
+  carries the node/edge counts, per-file SHA-256s and the licence partition. Pull it when the
+  consumer needs to record *what* it trained on, or to check a per-file hash after extraction.
+  (The same JSON also ships **inside** the tarball as `release-manifest.json`.)
+- **Pin the version, don't chase the newest.** Record `corpus-<version>` + the sha256 next to
+  any metric measured on it; the content-addressed tag is what makes that reference resolvable
+  later. `gh release list` shows what exists.
 
 ## What was removed
 
@@ -144,5 +206,6 @@ is the property DVC pointers provided.
 The lowest-friction option, and the one **taken** for `build/corpus`: publish a versioned
 tarball of a corpus build as a (private) release asset and record its sha256 next to any
 metric measured on it. No tooling, no daemon, no dependency tree. Implemented in
-[The corpus handoff](#the-corpus-handoff-buildcorpus--consumers) above; the other trees
-listed here are still unversioned.
+[The corpus handoff](#the-corpus-handoff-buildcorpus--consumers) above —
+`pinakes_engine publish-corpus` + `.github/workflows/publish-corpus.yml` +
+`gh release download`; the other trees listed here are still unversioned.

@@ -115,7 +115,9 @@ from pinakes_engine.orchestrate.package import PackageError, package_corpus
 from pinakes_engine.orchestrate.publish import (
     CorpusMissingError,
     default_corpus_dir,
+    nothing_published_summary,
     publish_corpus,
+    publish_summary,
 )
 from pinakes_engine.orchestrate.qa import GateThresholds, evaluate_directory
 from pinakes_engine.orchestrate.runner import DEFAULT_WORKERS, run_job
@@ -885,6 +887,12 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="fail when the corpus is absent instead of no-opping (use in CI, "
         "where the export step ran immediately before)",
+    )
+    publish.add_argument(
+        "--json",
+        action="store_true",
+        help="print a machine-readable summary (version, release tag, asset paths, "
+        "sha256) instead of the human report — what the release workflow reads",
     )
     publish.set_defaults(handler=_cmd_publish_corpus)
 
@@ -1741,10 +1749,16 @@ def _cmd_publish_corpus(args: argparse.Namespace) -> int:
             return _fail(str(exc))
         # Not an error: the corpus is a regenerable build output that simply has
         # not been exported in this checkout. Say what to run, and do nothing.
-        print(f"nothing to publish: {exc}")
+        if args.json:
+            print(json.dumps(nothing_published_summary(str(exc)), indent=2))
+        else:
+            print(f"nothing to publish: {exc}")
         return 0
     except PackageError as exc:
         return _fail(str(exc))
+    if args.json:
+        print(json.dumps(publish_summary(result), indent=2))
+        return 0
     print(
         f"published {result.name}: {len(result.package.files)} file(s), "
         f"{result.package.total_bytes} byte(s) -> {result.archive}"

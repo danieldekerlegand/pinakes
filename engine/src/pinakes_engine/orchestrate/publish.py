@@ -109,6 +109,36 @@ def sha256_line(digest: str, filename: str) -> str:
     return f"{digest}  {filename}\n"
 
 
+def publish_summary(result: PublishResult) -> dict[str, object]:
+    """A machine-readable summary of a publish, for the release path to consume.
+
+    ``.github/workflows/publish-corpus.yml`` needs the version (it keys the release
+    tag) and the three asset paths. Scraping those out of the human-readable print
+    would be a contract nobody declared, so ``--json`` emits this instead: stable
+    keys, paths exactly as written.
+    """
+    return {
+        "published": True,
+        "version": result.version,
+        "tag": result.name,
+        "archive": str(result.archive),
+        "checksum": str(result.checksum),
+        "manifest": str(result.manifest),
+        "sha256": result.sha256,
+        "files": len(result.package.files),
+        "bytes": result.package.total_bytes,
+    }
+
+
+def nothing_published_summary(reason: str) -> dict[str, object]:
+    """The ``--json`` counterpart of the no-corpus no-op (see :func:`publish_corpus`).
+
+    Same envelope, ``published: false`` — so a caller branches on one key rather
+    than on whether it got JSON at all.
+    """
+    return {"published": False, "reason": reason}
+
+
 def publish_corpus(
     source: str | Path | None = None,
     out_dir: str | Path = "dist",

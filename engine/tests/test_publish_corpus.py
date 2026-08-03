@@ -16,6 +16,7 @@ import tarfile
 from pathlib import Path
 
 import pytest
+import yaml
 
 from pinakes_engine import cli
 from pinakes_engine.orchestrate.package import PackageError, corpus_digest
@@ -25,7 +26,11 @@ from pinakes_engine.orchestrate.publish import (
     corpus_version,
     default_corpus_dir,
     publish_corpus,
+    repo_root,
 )
+
+#: The release path that turns a packaged corpus into a private release asset.
+WORKFLOW = "publish-corpus.yml"
 
 
 def _write(path: Path, text: str) -> None:
@@ -181,6 +186,91 @@ def test_cli_no_ops_when_the_corpus_is_absent(
 
     assert exit_code == 0
     assert "nothing to publish" in capsys.readouterr().out
+
+
+def test_cli_json_emits_the_release_paths_the_workflow_keys_on(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # `.github/workflows/publish-corpus.yml` reads THIS, not the human print: the tag
+    # names the release, the three paths are the assets it uploads, and the sha256
+    # goes in the release notes. Keep the keys stable.
+    source = _corpus(tmp_path)
+    out = tmp_path / "dist"
+
+    exit_code = cli.main(
+        ["publish-corpus", "--corpus", str(source), "--out", str(out), "--json"]
+    )
+
+    assert exit_code == 0
+    summary = json.loads(capsys.readouterr().out)
+    version = corpus_version(source)
+    assert summary["published"] is True
+    assert summary["version"] == version
+    assert summary["tag"] == f"corpus-{version}"
+    assert summary["sha256"] == hashlib.sha256(
+        (out / f"corpus-{version}.tar.gz").read_bytes()
+    ).hexdigest()
+    for key in ("archive", "checksum", "manifest"):
+        assert Path(summary[key]).is_file(), key
+    assert summary["files"] == 3
+    assert summary["bytes"] > 0
+
+
+def test_cli_json_no_op_still_emits_json(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # A caller branches on `published`, never on "did I get JSON at all".
+    exit_code = cli.main(
+        ["publish-corpus", "--corpus", str(tmp_path / "nope"), "--json"]
+    )
+
+    assert exit_code == 0
+    summary = json.loads(capsys.readouterr().out)
+    assert summary["published"] is False
+    assert "export-for-engine" in summary["reason"]
+
+
+def _workflow_steps() -> list[dict[str, object]]:
+    path = repo_root() / ".github" / "workflows" / WORKFLOW
+    # Hard assert, never a skip: this file IS the release path, and a walk that
+    # silently misses it would turn every assertion below into a no-op.
+    assert path.is_file(), path
+    workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
+    steps: list[dict[str, object]] = workflow["jobs"]["publish"]["steps"]
+    # `on:` parses as the YAML boolean True — the 1.1 gotcha, not a typo here.
+    assert "workflow_dispatch" in workflow[True], "publishing must stay deliberate"
+    return steps
+
+
+def test_the_release_workflow_drives_this_cli_with_the_flags_it_needs() -> None:
+    # The workflow is only exercised on a manual dispatch, so a renamed flag would
+    # otherwise go unnoticed until someone tries to cut a release.
+    run = " ".join(str(step.get("run", "")) for step in _workflow_steps())
+
+    assert "publish-corpus" in run
+    assert "--require-corpus" in run  # the export ran above; absence is a real failure
+    assert "--json" in run  # the machine-readable contract, not the human print
+    assert "sha256sum -c" in run  # verified here before a consumer ever pulls it
+
+
+def test_the_release_workflow_uploads_the_three_assets_to_a_versioned_release() -> None:
+    steps = _workflow_steps()
+    upload = next(s for s in steps if "gh release" in str(s.get("run", "")))
+    run = str(upload["run"])
+    env = upload["env"]
+    assert isinstance(env, dict)
+
+    # Keyed to the corpus version, and every asset the pull contract promises.
+    assert "gh release create" in run and 'create "$TAG"' in run
+    assert '"$ARCHIVE" "$CHECKSUM" "$MANIFEST"' in run
+    assert {"TAG", "ARCHIVE", "CHECKSUM", "MANIFEST"} <= set(env)
+    # Republishing an unchanged corpus hits the same content-addressed tag.
+    assert "--clobber" in run
+    # `contents: write` is what lets gh create the release at all.
+    workflow_permissions = yaml.safe_load(
+        (repo_root() / ".github" / "workflows" / WORKFLOW).read_text(encoding="utf-8")
+    )["permissions"]
+    assert workflow_permissions["contents"] == "write"
 
 
 def test_cli_require_corpus_turns_absence_into_a_failure(
