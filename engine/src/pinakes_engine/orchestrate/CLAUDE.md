@@ -24,6 +24,27 @@ per-class redistribute/model-training statement. Deterministic (sorted, integer 
   asserts it) — it predates the `licenses` block and is NOT regenerated here (a full rebuild is
   expensive + its bytes aren't reproducible). New packages carry the block automatically.
 
+## The corpus handoff — `publish.py` (91 US-1)
+
+`publish_corpus` is the thin, opinionated wrapper over `package_corpus` that publishes the
+**repo-root `build/corpus`** (the TS `scripts/export-for-engine.ts` output) as the artifact
+consumers pull now that DVC is gone — `corpus-<version>.tar.gz` + a `.tar.gz.sha256` sidecar in
+`sha256sum` format, so verification is `sha256sum -c` and nothing else. Runbook:
+[`docs/artifact-versioning.md`](../../../../docs/artifact-versioning.md).
+
+- **The default version is content-addressed** — 12 hex digits of `corpus_digest()` (new public
+  helper; the same value the manifest's `digest` carries, computed without packaging). Same
+  corpus ⇒ same version, same archive bytes, same sha256. This is only meaningful because the
+  *TS* export is byte-identical across re-runs; the engine's own `out/<job>/corpus` is not
+  (`retrieved_at` = ingestion wall-clock), so keep packaging that with plain `package`.
+- **A missing corpus is `CorpusMissingError`, not `PackageError`** — nothing is wrong, it just
+  hasn't been exported. The CLI no-ops with a regenerate-first message and exit 0; pass
+  `--require-corpus` (CI) to make absence a failure instead.
+- **`_write_archive` moves the release manifest to `release-manifest.json`** when the source
+  already ships a top-level `manifest.json` — which a bare corpus dataset like `build/corpus`
+  does. Two tar members under one arcname is silent data loss on extract. Job roots keep their
+  corpus manifest at `corpus/manifest.json`, so the published layout is unchanged.
+
 ## Building a merged, multi-source corpus — `merge.py` (US-004)
 
 `build_corpus(job)` stitches **every category in the job** into one graph (same-`csid`
