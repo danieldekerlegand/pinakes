@@ -16,7 +16,7 @@
         "The engine and services/api consume the generated Python bindings; web consumes the generated TS bindings; no side hand-maintains a divergent copy.",
         "Generated outputs are reproducible (re-running codegen is a no-op on a clean tree)."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
