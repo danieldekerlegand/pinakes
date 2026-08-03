@@ -3,9 +3,15 @@
   "branchName": "chief/40-contracts-codegen",
   "baseBranch": "main",
   "description": "Make contracts/ a language-neutral source of truth with generated Python AND TS bindings + a drift gate (docs/UNIFIED-PROJECT-PLAN.md §10). The Python backend and the TS client both consume the canonical schema/registries; neither language is authoritative — a JSON/schema source generates both, mirroring the koine-contracts pattern already used for predicate-mapping.",
-  "dependsOn": ["30-api-shell-parity"],
-  "touches": ["contracts"],
-  "warmup": ["bun install"],
+  "dependsOn": [
+    "30-api-shell-parity"
+  ],
+  "touches": [
+    "contracts"
+  ],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -30,5 +36,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "5b7d3632"
 }
