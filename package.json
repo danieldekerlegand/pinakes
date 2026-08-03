@@ -18,6 +18,8 @@
     "parity:record": "tsx scripts/record-parity-fixtures.ts",
     "regen:registry-mirror": "tsx scripts/regen-registry-mirror.ts",
     "check:registry-mirror": "tsx scripts/regen-registry-mirror.ts --check",
+    "gen:contracts": "tsx scripts/gen-contract-bindings.ts",
+    "check:contracts": "tsx scripts/gen-contract-bindings.ts --check",
     "test": "vitest run --config web/vitest.config.ts",
     "test:e2e": "playwright test --config web/playwright.config.ts",
     "secret-scan": "tsx scripts/secret-scan.ts",

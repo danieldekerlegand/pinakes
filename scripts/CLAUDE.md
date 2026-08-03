@@ -547,6 +547,25 @@ and confirmed against the entity description — filter search hits whose descri
 myth/folklore, since top-1 is noisy: it returned video games/films/plants for many terms). Fixed
 `RETRIEVED_AT` for a deterministic file; write back with the same `--add-rows` path.
 
+## Contract bindings codegen — `gen-contract-bindings.ts` (40-contracts-codegen US-1)
+
+Emits the Python **and** TypeScript bindings for the five language-neutral sources in
+`contracts/*.json` — `npm run gen:contracts` writes, `npm run check:contracts` is the
+read-only staleness check. Contract + rules: [`contracts/CLAUDE.md`](../contracts/CLAUDE.md).
+
+- Same pure-core/thin-fs shape as the rest of this directory: `buildBindings(documents)`
+  returns a `Map<repo-relative path, contents>` and is the whole contract of the script;
+  `readContractDocuments` / `staleBindings` / `writeBindings` / `runGen` / `runCheck` are
+  the fs shell. A test drives `buildBindings` with in-memory documents — no temp dirs.
+- **Output must stay deterministic.** No wall-clock, sources read in `CONTRACT_SOURCES`
+  order, object keys emitted in document order. A re-run on a clean tree is an empty diff;
+  the drift gate compares byte-for-byte.
+- **Emitting Python from a TS template literal: watch the backticks.** The generated
+  Python uses reST double-backtick markup, and a bare `` `` `` inside a JS template literal
+  closes it. Escape them (`` \`\` ``) or use a plain double-quoted string.
+- A JSON prior of `1` must be emitted as `1.0` (`pyFloat`), or the Python prior stops
+  being a `float` and `engine/tests/test_confidence.py` catches it.
+
 ## Koine registry re-vendor — `regen-registry-mirror.ts` (40-registry-mirror-autoregen)
 
 The deterministic re-vendor for the TWO on-disk koine mirrors pinakes keeps, replacing the

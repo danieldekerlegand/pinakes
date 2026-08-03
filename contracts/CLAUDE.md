@@ -2,6 +2,44 @@
 
 Code here is imported by both `server/` and `web/` (alias `@contracts/*`).
 
+## Generated bindings — `generated/*.ts` + `python/` (40-contracts-codegen US-1)
+
+The `*.json` files are the language-neutral **source of truth** and each has a
+generated binding on both sides, emitted by `scripts/gen-contract-bindings.ts`
+(`npm run gen:contracts`, read-only `npm run check:contracts`):
+
+- **`generated/*.ts`** — the literal vocabularies a JSON import cannot express
+  (`import x from './f.json'` widens every string cell to `string`, the gotcha at
+  the bottom of this file). `CanonicalNodeTypeName`, `CanonicalNodeLabel`,
+  `CanonicalEdgeTypeToken`, `ConfidenceClassName` and the header-row constants
+  live there; the hand-written `canonical-schema.ts` / `confidence-rubric.ts`
+  re-export them and use them on the runtime path (`nodeHeaderRow()` *is* the
+  generated `CANONICAL_NODE_HEADER_ROW`).
+- **`python/`** — the `pinakes-contracts` uv workspace package, a **declared
+  dependency** of both `pinakes-engine` and `pinakes` (`services/api`), so the
+  Python half no longer transcribes contract values or walks `parents[n]` up to
+  the repo root. Details in [`python/README.md`](./python/README.md).
+
+Rules:
+
+- **Never hand-edit a generated file.** Change the JSON, run `npm run gen:contracts`,
+  commit both. Same discipline as the koine registry mirror.
+- **Generation is deterministic** (no wall-clock, sources read in a fixed order), so
+  a re-run on a clean tree is an empty diff — which is what the drift gate rests on.
+- **The generated Python EMBEDS its literals**; it reads no JSON at import time, so
+  an installed wheel needs no repo layout. Only `document()` (the three registries)
+  and `contract_path` touch disk. That is why `pinakes_engine.schema.headers` can
+  import the canonical columns at module scope.
+- **Adding a source document** means adding its emitter *and* its entry in
+  `CONTRACT_SOURCES` / the generated `index.ts` / `pinakes_contracts.__init__` —
+  all three come out of the same generator, so it is one edit in one file.
+- The Python side derives, rather than restates: `NodeSchema.canonical()` is
+  `parse_column(...)` over the contract's own header cells, and
+  `pinakes_engine.confidence` is a re-export. Consequently the first four
+  assertions in `engine/tests/test_canonical_schema_parity.py` are now near-
+  tautologies — the load-bearing ones are the last two (header module vs. the
+  embedded agora translation engine).
+
 ## Canonical convergence schema
 
 - `canonical-schema.json` is the **machine-readable source of truth** for the shared

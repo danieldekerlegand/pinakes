@@ -7,6 +7,15 @@ package to **`pinakes_engine`** (the target layout of
 `import pinakes_engine.…`, the console script is `pinakes_engine`, and the dist is
 `pinakes-engine`.
 
+**Shared contract values are imported, not transcribed** (pinakes:40 US-1). This
+package depends on `pinakes-contracts` — the generated Python bindings for
+`contracts/*.json`, a workspace member at `contracts/python/`. `schema/headers.py`
+builds `NodeSchema.canonical()` / `EdgeSchema.canonical()` by parsing the
+contract's own header cells, `confidence.py` re-exports the rubric priors, and
+`datalog/schema_constraints.py` locates the schema JSON with
+`pinakes_contracts.contract_path` instead of a `parents[n]` walk. If you need a
+contract value here, import it; do not copy it in and pin it with a test.
+
 Two things the rename deliberately did **not** touch:
 
 - **The `cs:` id-space** — a data namespace shared with `contracts/`, `ml/` and the

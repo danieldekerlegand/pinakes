@@ -4,11 +4,16 @@
 canonical contract — the one ``contracts/canonical-schema.json`` declares and
 ``docs/canonical-schema.md`` says not to fork. The embedded agora translation
 engine (``pinakes_engine.translation``) renders *that* header, so any drift here
-silently breaks byte-parity with it; ``tests/test_canonical_schema_parity.py``
-pins the two together column-for-column. The tuples are transcribed rather than
-loaded from the JSON because the contract lives at the monorepo root, outside
-this package — a standalone checkout must still know its own schema — so the
-test, not an import, is what keeps them honest.
+silently breaks byte-parity with it.
+
+The tuples used to be **transcribed** from the JSON, because the contract lived at
+the monorepo root outside this package and a standalone checkout still had to know
+its own schema; a test, not an import, kept them honest. They are now
+:func:`parse_column`\\ ed straight out of the contract's own header cells, carried
+in by the generated ``pinakes_contracts.canonical_schema`` binding
+(40-contracts-codegen US-1). The binding *embeds* its literals, so the standalone
+argument no longer applies: an installed wheel knows the schema with no repo around
+it, and there is no second copy left to drift.
 
 Columns pinakes-engine needs but the contract does not declare (the acquisition
 ``parent_code`` ref, the ``extra`` overflow) are *extensions*: they hang off the
@@ -40,8 +45,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-#: Column delimiter for the TSV file family (see ``docs/data-model.md``).
-DELIMITER = "\t"
+from pinakes_contracts import canonical_schema as contract
+
+#: Column delimiter for the TSV file family (see ``docs/data-model.md``) — the
+#: contract's ``delimiter``, not a second literal.
+DELIMITER = contract.DELIMITER
 
 #: Round-trip alias column: the source-local id a pinakes row arrived with.
 #: Canonical on both node and edge (``idScheme.aliasColumn`` in the contract), so
@@ -149,6 +157,20 @@ def parse_column(cell: str) -> Column:
     return PropertyColumn(head, ptype)
 
 
+#: The canonical node/edge header, as :class:`Column`\\ s.
+#:
+#: Built by parsing the contract's own ``header`` cells (``csid:ID`` -> an
+#: :class:`IdColumn`, ``time_start:int`` -> an ``:int`` :class:`PropertyColumn`),
+#: so the column *order*, the names and the type suffixes all come from
+#: ``contracts/canonical-schema.json`` by construction. Nothing here restates it.
+_CANONICAL_NODE_COLUMNS: tuple[Column, ...] = tuple(
+    parse_column(column.header) for column in contract.NODE_COLUMNS
+)
+_CANONICAL_EDGE_COLUMNS: tuple[Column, ...] = tuple(
+    parse_column(column.header) for column in contract.EDGE_COLUMNS
+)
+
+
 #: Property names the node data model types, with their required type.
 #: A property column whose name appears here must carry the matching suffix.
 NODE_PROPERTY_TYPES: dict[str, PropertyType] = {
@@ -219,42 +241,12 @@ class NodeSchema:
     def canonical(cls) -> NodeSchema:
         """The full canonical node header (``contracts/canonical-schema.json``).
 
-        Column order is the contract's ``node.columns`` order, verbatim — see
-        the module docstring on why it is transcribed rather than loaded, and
-        ``tests/test_canonical_schema_parity.py`` for the drift guard.
+        The contract's ``node.columns``, in its order — parsed from the generated
+        binding, not restated here (see the module docstring). Construction still
+        runs the family's own validation, so a contract that lost its ``:LABEL``
+        would fail loudly right here.
         """
-        return cls(
-            (
-                IdColumn("csid"),
-                StructuralColumn(":LABEL"),
-                PropertyColumn("name"),
-                PropertyColumn("lang"),
-                PropertyColumn("wikidata_qid"),
-                PropertyColumn("getty_id"),
-                PropertyColumn("aliases"),
-                PropertyColumn("description"),
-                PropertyColumn(PINAKES_ID_KEY),
-                PropertyColumn("time_start", PropertyType.INT),
-                PropertyColumn("time_end", PropertyType.INT),
-                PropertyColumn("time_start_iso"),
-                PropertyColumn("period"),
-                PropertyColumn("lat", PropertyType.FLOAT),
-                PropertyColumn("lon", PropertyType.FLOAT),
-                PropertyColumn("place_qid"),
-                PropertyColumn("tgn_id"),
-                PropertyColumn("pleiades_id"),
-                PropertyColumn("language_code"),
-                PropertyColumn("script"),
-                PropertyColumn("etymology"),
-                PropertyColumn("derived_from_csid"),
-                PropertyColumn("source"),
-                PropertyColumn("source_url"),
-                PropertyColumn("source_query"),
-                PropertyColumn("retrieved_at"),
-                PropertyColumn("confidence", PropertyType.FLOAT),
-                PropertyColumn("license"),
-            )
-        )
+        return cls(_CANONICAL_NODE_COLUMNS)
 
 
 @dataclass(frozen=True)
@@ -284,26 +276,10 @@ class EdgeSchema:
     def canonical(cls) -> EdgeSchema:
         """The full canonical edge header (``contracts/canonical-schema.json``).
 
-        As with :meth:`NodeSchema.canonical`, this is the contract's
-        ``edge.columns`` order verbatim.
+        As with :meth:`NodeSchema.canonical`, the contract's ``edge.columns``
+        parsed from the generated binding.
         """
-        return cls(
-            (
-                StructuralColumn(":START_ID"),
-                StructuralColumn(":END_ID"),
-                StructuralColumn(":TYPE"),
-                PropertyColumn("weight", PropertyType.FLOAT),
-                PropertyColumn("time_start", PropertyType.INT),
-                PropertyColumn("time_end", PropertyType.INT),
-                PropertyColumn(PINAKES_ID_KEY),
-                PropertyColumn("source"),
-                PropertyColumn("source_url"),
-                PropertyColumn("source_query"),
-                PropertyColumn("retrieved_at"),
-                PropertyColumn("confidence", PropertyType.FLOAT),
-                PropertyColumn("license"),
-            )
-        )
+        return cls(_CANONICAL_EDGE_COLUMNS)
 
 
 def render_node_header(schema: NodeSchema) -> str:
