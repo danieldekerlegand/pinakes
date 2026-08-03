@@ -32,7 +32,7 @@
         "docs/artifact-versioning.md documents the authenticated `gh release download` (or object-store) pull + sha256 verification that lugh's LUGH_CORPUS_DIR setup performs.",
         "`bun run check` passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
