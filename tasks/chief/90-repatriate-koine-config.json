@@ -1,0 +1,59 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/90-repatriate-koine-config",
+  "baseBranch": "main",
+  "description": "Make pinakes a fully SELF-DESCRIBING koine participant that owns all of its own fabric-participation config IN-REPO, so it can join the ecosystem with only koine (the spec) + agora (the runtime) and NO external, closed config source. Today several pieces already live here (the KCB capability manifest, the /.well-known/kcb-manifest.json + agent-card.json fronts); this tasklist completes the set — the participant's namespace + minting-authority declaration, its egress/dialect policy, and the bridge mappings for its PUBLIC integrations — and proves pinakes participates without reaching for any config outside this repo. Follows koine's self-describing-participant convention (koine:30-self-describing-participant), which must land first so the on-disk shape and well-known layout are fixed before we populate them. Scope is pinakes-owned public config only: any integration whose far endpoint is a non-public service is deliberately out of scope and simply not represented here. Anti-fabrication: a story passes only when the declared config actually exists in-repo, validates, and the gate is green.",
+  "dependsOn": ["koine:30-self-describing-participant"],
+  "touches": ["participant-config", "capability-manifest", "docs"],
+  "iters": 8,
+  "warmup": [
+    "bun install",
+    "cat package.json",
+    "cat .chief/verify.sh",
+    "ls shared/ contracts/ 2>/dev/null && cat shared/capability-manifest.json 2>/dev/null | head -60",
+    "ls docs/ && cat docs/capability-bus.md | head -40"
+  ],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Declare pinakes as a self-describing participant in-repo (identity, namespace, minting authority, egress policy)",
+      "description": "Author, in-repo, the participant declaration koine:30 defines: pinakes's KINP participant identity, the canonical namespace it mints (the csid entity space and its default real-world world), the assertion that pinakes is the minting authority for that namespace, and its egress/dialect policy (the grounding-only dialect its knowledge ports emit under). These are the facts a peer needs to trust and dial pinakes; they must be stated here, not assumed from any external registry.",
+      "acceptanceCriteria": [
+        "A self-describing participant declaration exists in-repo in the layout/shape koine:30-self-describing-participant defines, and validates against the koine convention (schema/linter check green).",
+        "The declaration names pinakes's KINP participant identity, the canonical csid namespace + default real-world world it owns, and explicitly claims pinakes as the minting authority for that namespace.",
+        "An egress/dialect policy is declared in-repo stating that pinakes's knowledge ports emit grounding-only, and the existing capability manifest references it as the source of truth (no divergent second copy).",
+        "The participant identity, namespace, and ports in the declaration are consistent with the already-published KCB capability manifest — a drift check ties them together and fails if they disagree."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Own the PUBLIC integration bridge mappings in-repo",
+      "description": "Bring the bridge mappings for pinakes's public integrations under pinakes itself so they travel with the code that performs the crossing. Concretely, the pinakes<->insimul bridge (real-world grounding packs / world seeds out; SLM training datasets back) — both projects are public — becomes a first-class, in-repo bridge mapping owned by pinakes, resolving against pinakes's own canonical schema. Only all-public-endpoint bridges are in scope; any integration whose far endpoint is a non-public service is intentionally excluded and not represented in this repo.",
+      "acceptanceCriteria": [
+        "The pinakes<->insimul bridge mapping (the predicate/edge correspondences and id-space rules for grounding-pack export and dataset return) lives in-repo and resolves against pinakes's in-repo canonical schema.",
+        "The bridge mapping references only public endpoints; no mapping section for a non-public far endpoint is added to this public repo.",
+        "The grounding-pack / world-seed export path and the dataset return path exercise the in-repo mapping (existing exporter scripts/tests point at the in-repo mapping, not an external file), and their tests pass.",
+        "A validation asserts every canonical node/edge type referenced by the bridge mapping exists in pinakes's canonical schema (fails on an unmapped type)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "Participate with koine+agora only — no external config dependency — and document it",
+      "description": "Prove pinakes can advertise, be discovered, and be dialed using only what is now in-repo plus koine (spec) and agora (runtime): the well-known endpoints self-serve the manifest, agent-card, participant declaration, and public bridge mappings, and nothing in the participation path reads a config file from outside this repo. Then document the self-describing-participant surface so a peer (or a future maintainer) can find it.",
+      "acceptanceCriteria": [
+        "GET /.well-known/kcb-manifest.json and GET /.well-known/agent-card.json serve the in-repo manifest/agent-card, and the participant declaration + public bridge mappings are resolvable from in-repo sources with no read of any path outside the repo.",
+        "A check (grep/test) confirms no runtime or build path resolves participation config (manifest, namespace, egress policy, bridge mapping) from a location outside this repo.",
+        "docs/ documents pinakes as a self-describing koine participant: where the participant declaration, namespace/minting-authority, egress policy, and public bridge mappings live, and states pinakes needs only koine + agora to participate.",
+        "Gate green: bun run check (tsc) passes, the participant/manifest/bridge validation tests pass under vitest, and .chief/verify.sh exits 0."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ],
+  "mergedToMain": false,
+  "parked": false
+}
