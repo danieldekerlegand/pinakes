@@ -42,7 +42,7 @@
         "It uses $CHIEF_BASE_BRANCH to scope checks to what changed and is idempotent from a clean worktree.",
         "Running it on this branch passes; deliberately breaking a test makes it fail (demonstrated)."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
