@@ -6,7 +6,7 @@
   "dependsOn": ["20-repo-restructure"],
   "touches": ["python-api", "verify"],
   "warmup": ["bun install"],
-  "verify": ["bun run check", "uv run --project services/api pytest -q -p no:cacheprovider"],
+  "verify": ["bun run check", "uv run --all-packages pytest -q -p no:cacheprovider"],
   "userStories": [
     {
       "id": "US-1",
