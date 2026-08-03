@@ -10,6 +10,13 @@ plan to consolidate it.
 > pinakes:20 US-3 did the move: **`lexicons/` is now `data/source/lexicons/`**, and
 > `docker-compose.yml` + the sidecar Dockerfile are now under `infra/`. The paths below
 > are left as written so the risk analysis still reads coherently — read them as "was".
+>
+> **Also "was": `ml/`.** This inventory deliberately did not prejudge the ML split
+> (principle 1) and left the workspace alone. 90-extract-lugh later took the other branch of
+> that fork: `ml/` was extracted into the private **`lugh`** repo
+> ([LUGH-EXTRACTION-PLAN.md](LUGH-EXTRACTION-PLAN.md)), so every `ml/…` row and
+> "leave — already an island" recommendation below is historical. The `build/corpus` seam it
+> names is exactly the producer→consumer handoff the split now runs over.
 
 ## Principles (agreed)
 

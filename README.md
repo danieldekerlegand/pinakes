@@ -46,8 +46,11 @@ tooltip. See the runbook below to enable it.
   PRD-driven iteration loop under `tasks/ralph/` and `scripts/ralph/`.
 - **Capability bus (KCB) + the KFT `finetune` provider** —
   [`docs/capability-bus.md`](./docs/capability-bus.md): the manifest Pinakes publishes, its
-  MCP/A2A fronts, and the **specialized, local-only** fine-tuning provider that wraps
-  [`ml/`](./ml/). Fine-tuning is deliberately multi-provider (KFT §9/FT-K), and **two sibling
+  MCP/A2A fronts, and the **specialized, local-only** fine-tuning provider. Its trainer is
+  **no longer in this repo**: the `ml/` workspace was extracted into the private **`lugh`**
+  repo as `lugh:agent:finetune` ([`docs/LUGH-EXTRACTION-PLAN.md`](./docs/LUGH-EXTRACTION-PLAN.md)),
+  and the app-side wrapper dispatches to a lugh checkout resolved from `LUGH_ROOT`.
+  Fine-tuning is deliberately multi-provider (KFT §9/FT-K), and **two sibling
   legs are NOT built in this repo**: the *general*, cloud-capable trainer
   (`agora:90-finetune-trainer`) and the KCB client that calls both
   (`cuneiform:90-finetune-client`, replacing its `Runner::Stub`). Program map:

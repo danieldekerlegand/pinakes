@@ -184,11 +184,11 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   additions are `x_`-prefixed (`x_pinakes`, `x_surfaces`, `x_grant`, `x_produced_by`,
   `x_specialization`) so the document can be served verbatim to a registry.
 - **The KFT `finetune` capability (90-US-3) is the one specialized entry, and the validator
-  pins it to what `ml/` admits.** KFT is multi-provider (`koine/specs/fine-tuning.md` §9,
+  pins it to what lugh admits.** KFT is multi-provider (`koine/specs/fine-tuning.md` §9,
   FT-K): agora hosts the general trainer, Pinakes advertises a NARROW one. `x_specialization`
   (`provider_class`/`modality`/`methods`/`egress`/`domains`) is the tiebreak signal, and
   `assertFinetuneCapability` rejects an advertisement that widened past
-  `ml/src/pinakes_ml/kft.py` — a second modality, a `full`/`dpo` method, an `exportable`
+  lugh's admission gate — a second modality, a `full`/`dpo` method, an `exportable`
   egress. **Widening the manifest without widening admission routes jobs here that are then
   refused**, which is the exact failure FT-K's tiebreak exists to prevent. `cost.meter` must
   stay `gpu-seconds` (KFT §7 spend gating).

@@ -11,6 +11,7 @@ import { describe, it, expect } from "vitest";
  * and the capability degrades to an actionable error rather than a crash.
  */
 import {
+  DEFAULT_LUGH_ROOT,
   FinetuneJobStore,
   FinetuneRefusedError,
   FinetuneRunNotFoundError,
@@ -73,9 +74,9 @@ const REFUSAL: RefusalReport = {
 
 const CONFIG: FinetuneConfig = {
   enabled: true,
-  mlRoot: "/repo/ml",
+  lughRoot: "/repo/../lugh",
   uv: "uv",
-  artifactsRoot: "/repo/ml/artifacts/kcb",
+  artifactsRoot: "/repo/data/runtime/finetune",
   stub: true,
   timeoutMs: 1000,
 };
@@ -113,10 +114,11 @@ describe("loadFinetuneConfig", () => {
   it("is invocable out of the box — every value has a working default", () => {
     const config = loadFinetuneConfig({}, "/repo");
     expect(config.enabled).toBe(true);
-    expect(config.mlRoot).toBe("/repo/ml");
+    // lugh is a sibling checkout now (90-extract-lugh), resolved the KOINE_ROOT way.
+    expect(config.lughRoot).toBe(DEFAULT_LUGH_ROOT);
     expect(config.uv).toBe("uv");
-    // The runner writes only into the git-ignored artifacts tree (ml/CLAUDE.md).
-    expect(config.artifactsRoot).toContain("artifacts");
+    // Run dirs stay on the pinakes side — the wrapper never writes into lugh's checkout.
+    expect(config.artifactsRoot).toBe("/repo/data/runtime/finetune");
     expect(config.stub).toBe(false);
   });
 
@@ -129,12 +131,12 @@ describe("loadFinetuneConfig", () => {
     expect(loadFinetuneConfig({ PINAKES_FINETUNE_ENABLED: "" }, "/repo").enabled).toBe(true);
   });
 
-  it("takes the ml/ workspace root and the uv binary from the environment", () => {
+  it("takes the lugh checkout and the uv binary from the environment", () => {
     const config = loadFinetuneConfig(
-      { PINAKES_ML_DIR: "/elsewhere/ml", PINAKES_FINETUNE_UV: "/opt/bin/uv" },
+      { LUGH_ROOT: "/elsewhere/lugh", PINAKES_FINETUNE_UV: "/opt/bin/uv" },
       "/repo",
     );
-    expect(config.mlRoot).toBe("/elsewhere/ml");
+    expect(config.lughRoot).toBe("/elsewhere/lugh");
     expect(config.uv).toBe("/opt/bin/uv");
   });
 });
@@ -149,7 +151,7 @@ describe("parseTelemetryJsonl", () => {
 });
 
 describe("startFinetune", () => {
-  it("returns a run handle immediately and dispatches to the ml/ runner (KFT §6 async)", async () => {
+  it("returns a run handle immediately and dispatches to the lugh runner (KFT §6 async)", async () => {
     const store = new FinetuneJobStore();
     const calls: unknown[] = [];
     const runner = fakeRunner({ code: 0, telemetry: [event(), TERMINAL] }, calls);
@@ -203,12 +205,12 @@ describe("startFinetune", () => {
     expect(result.report?.detail).toMatchObject({ computeClass: "cloud-a100" });
   });
 
-  it("degrades to an actionable error when the ml/ runner is unreachable (AC3)", async () => {
+  it("degrades to an actionable error when the lugh runner is unreachable (AC3)", async () => {
     const store = new FinetuneJobStore();
     const run = await dispatch(
       fakeRunner(() => {
         throw new FinetuneUnavailableError(
-          "the ml/ training stack is not installed — `uv pip install trl peft accelerate`",
+          "the lugh training stack is not installed — `uv pip install trl peft accelerate`",
         );
       }),
       store,

@@ -350,7 +350,7 @@
       "kcb_version": "0.2.0",
       "identity": "pinakes:agent:resolver",
       "x_pinakes": {
-        "manifestVersion": "0.3.0",
+        "manifestVersion": "0.3.1",
         "title": "Pinakes capability manifest — the canonical resolver/producer on the Koine capability bus",
         "description": "The KCB (`koine/specs/capability-bus.md` §2) manifest Pinakes publishes as the authority provider named in that spec's §6 per-project mapping. It is a SURFACE WRAPPER, not an implementation: every cap…",
         "identityIri": "https://id.koine.example/agent/pinakes/resolver",

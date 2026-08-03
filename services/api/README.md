@@ -3,8 +3,9 @@
 The **`pinakes`** package: routing, auth, request/response shaping, and serving
 the built React client. The rewrite target for today's `server/` (TS/Express)
 ([`docs/UNIFIED-PROJECT-PLAN.md` §4/§5](../../docs/UNIFIED-PROJECT-PLAN.md)).
-Distinct from `pinakes_engine` in [`engine/`](../../engine/) and `pinakes_ml` in
-[`ml/`](../../ml/).
+Distinct from `pinakes_engine` in [`engine/`](../../engine/) and from the ML/training
+workspace, which now lives in the private `lugh` repo (see
+[`docs/LUGH-EXTRACTION-PLAN.md`](../../docs/LUGH-EXTRACTION-PLAN.md)).
 
 **Status: the shell is up; no route group is ported yet.** All 306 baseline
 routes answer `501`. Node/Express is still what serves them for real.

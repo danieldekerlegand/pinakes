@@ -1,5 +1,12 @@
 # Translation seam — canonical-graph ↔ format translators in `pinakes-engine`
 
+> **Bucket 3 left the repo.** This snapshot was taken while the ML derivations lived in the
+> in-repo `ml/` uv workspace. 90-extract-lugh moved that workspace into the private **`lugh`**
+> repo (`docs/LUGH-EXTRACTION-PLAN.md`), so everywhere below that reads "stays in `ml/`" now
+> means "stays in lugh" — which only *strengthens* the finding: Bucket 3 was already outside the
+> seam because it imports no `pinakes_engine` symbol and consumes the corpus as files. Modules are
+> named `lugh:<module>.py`; they sit at `src/…` in that repo. Bucket 1/2 are unaffected.
+
 **Status: READ-ONLY discovery artifact.** This document maps every
 canonical-graph↔format translator in `core` (and its `ml/`
 sidecar workspace) into three buckets *before* any code moves, so the downstream
@@ -27,8 +34,8 @@ The **six target formats** (plus the ML Scallop re-translation) and their single
 | 3 | **SWI-Prolog** `graph.pl` (`PROLOG_PROGRAM_NAME`) | `datalog/prolog.py` | GENERIC |
 | 4 | **Soufflé** `graph.dl` + `<predicate>.facts` (`SOUFFLE_PROGRAM_NAME`) | `datalog/souffle.py` | GENERIC |
 | 5 | **ProbLog** `graph.problog.pl` (`PROBLOG_PROGRAM_NAME`) | `datalog/problog.py` | GENERIC |
-| 6 | **PyKEEN triples** (`train/valid/test` triple files) | `ml/src/pinakes_ml/export_triples.py` | ML-DERIVATION |
-| + | **Scallop** `.scl` program (re-translation of the committed registry) | `ml/src/pinakes_ml/export_scallop.py` | ML-DERIVATION |
+| 6 | **PyKEEN triples** (`train/valid/test` triple files) | `lugh:export_triples.py` | ML-DERIVATION |
+| + | **Scallop** `.scl` program (re-translation of the committed registry) | `lugh:export_scallop.py` | ML-DERIVATION |
 
 Every format above is assigned to exactly one bucket; none is left unclassified.
 
@@ -37,7 +44,7 @@ Every format above is assigned to exactly one bucket; none is left unclassified.
 Each row names the translator by `file:function` (all symbols resolve in the current
 tree — spot-checkable with `grep`), its bucket, and a one-line code-grounded rationale.
 Paths are relative to `core/src/pinakes_engine/` unless prefixed with
-`ml/` (repo-root `ml/src/pinakes_ml/`).
+`lugh:` (a module in the `lugh` repo — a path under the `ml/` workspace at snapshot time).
 
 ### TSV — lossless row IO (`schema/tsvio.py`)
 
@@ -77,13 +84,13 @@ it rides across the seam as config (see Bucket 2, canonical-schema ownership).
 | `datalog/rules.py:RULES` | **PINAKES-SPECIFIC** | `RULES: tuple[Rule, ...]` (`rules.py:346`) is curated *inference content* (`ancestor`, `same_region`, temporal closures …), **not a translator** — it rides across the seam as data (the committed `rules_registry.tsv`), not as ported Rust logic. |
 | `datalog/constraints.py`, `datalog/schema_constraints.py`, `datalog/registry.py` (`active_curated_rules`), `datalog/taxonomy.py` | **PINAKES-SPECIFIC** | P2302 property constraints, canonical-schema violation rules, the provenanced rules registry, and the P279 `subclass_of` taxonomy — pinakes rule/vocab content the generic emitter *consumes*, not translation logic (detailed in Bucket 2). |
 
-### ML derivations (`ml/src/pinakes_ml/*`)
+### ML derivations (`lugh:*`)
 
 | `file:function` | Bucket | Rationale (code-grounded) |
 | --- | --- | --- |
-| `ml/src/pinakes_ml/export_triples.py` + `triples.py` | ML-DERIVATION | Reads `build/corpus/edges/*.tsv` header-driven into PyKEEN triples; excludes derived temporals (`EXCLUDED_RELATIONS = {CONTEMPORARY_WITH, PRECEDES, FOLLOWS}`, `triples.py:46`) and does leakage-safe unordered-pair splits. Consumes files, never `pinakes_engine`. |
-| `ml/src/pinakes_ml/export_scallop.py` + `scallop.py` | ML-DERIVATION | Re-translates the committed `datalog/rules_registry.tsv` (only `status=="active"`) into a Scallop `.scl` program; `csid_uniqueness_violation` (arity-3 `node/3`) is skipped + reported. An ML-side re-translation of the *same* registry the generic Datalog emitter uses. |
-| `ml/src/pinakes_ml/deepproblog_pilot.py` | ML-DERIVATION | Renders a ProbLog/DeepProbLog feasibility program (`render_problog_program`/`render_deepproblog_program`) to measure the per-query knowledge-compilation ceiling. Lives in the torch/pykeen/problog workspace. |
+| `lugh:export_triples.py` + `triples.py` | ML-DERIVATION | Reads `build/corpus/edges/*.tsv` header-driven into PyKEEN triples; excludes derived temporals (`EXCLUDED_RELATIONS = {CONTEMPORARY_WITH, PRECEDES, FOLLOWS}`, `triples.py:46`) and does leakage-safe unordered-pair splits. Consumes files, never `pinakes_engine`. |
+| `lugh:export_scallop.py` + `scallop.py` | ML-DERIVATION | Re-translates the committed `datalog/rules_registry.tsv` (only `status=="active"`) into a Scallop `.scl` program; `csid_uniqueness_violation` (arity-3 `node/3`) is skipped + reported. An ML-side re-translation of the *same* registry the generic Datalog emitter uses. |
+| `lugh:deepproblog_pilot.py` | ML-DERIVATION | Renders a ProbLog/DeepProbLog feasibility program (`render_problog_program`/`render_deepproblog_program`) to measure the per-query knowledge-compilation ceiling. Lives in the torch/pykeen/problog workspace. |
 
 **Why the ML bucket is not a translator seam:** the `ml/` workspace is a separate uv
 workspace (Python 3.11) whose whole point is to keep `torch`/`pykeen`/`problog` *out*
@@ -355,8 +362,9 @@ boundary invariant that must survive the split.
 
 ### 3a. Why the ML derivations STAY in `ml/`
 
-The `ml/` workspace is a **separate uv workspace (Python 3.11)** rooted at the *repo
-root* (`ml/src/pinakes_ml/`), not inside `core`. Its whole reason to
+The `ml/` workspace was a **separate uv workspace (Python 3.11)** rooted at the *repo
+root*, not inside `core` — and is now a separate repo (`lugh`), which is the same argument
+taken one step further. Its whole reason to
 exist is to keep `torch` / `pykeen` / `problog` **out** of the pinakes-engine sidecar so
 that package's Docker image stays slim (`ml/CLAUDE.md`: "Separate uv workspace (Python
 3.11), NOT the pinakes-engine sidecar — keep torch/pykeen OUT of the sidecar"). Because
@@ -562,7 +570,7 @@ modules simply revert to plain Pinakes code (nothing physically moves, §2d):
 
 ### STAYS in `ml/` (Bucket 3) — unaffected by the split
 
-`ml/src/pinakes_ml/{export_triples.py+triples.py, export_scallop.py+scallop.py,
+`lugh:{export_triples.py+triples.py, export_scallop.py+scallop.py,
 deepproblog_pilot.py}` stay in the separate `ml/` uv workspace. They import **no**
 `pinakes_engine` symbol and consume only the on-disk corpus
 (`build/corpus/{nodes,edges}/*.tsv`) + the committed `rules_registry.tsv`, so none

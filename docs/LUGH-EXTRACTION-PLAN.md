@@ -1,6 +1,11 @@
 # Extracting `ml/` → `lugh` — the fine-tuning platform
 
-**Status:** proposal for review — nothing executed. Concrete "how" for extracting
+**Status:** **EXECUTED** (`tasks/chief/90-extract-lugh.json`). The repo exists and is private
+(`github.com/danieldekerlegand/lugh`, 44 commits of `ml/` history preserved via `git subtree
+split`, seeded with its own `.chief/` + the four tasklists staged below); `ml/` and
+`tasks/extraction-staging/` are gone from pinakes, and the app-side KFT wrapper now dispatches
+to a lugh checkout resolved from `LUGH_ROOT`. What remains is lugh's own program (10→40) plus
+the argos/cuneiform reconciliation below. Original "how" for extracting
 `pinakes/ml/` into its own **private** repo, **`lugh`**, the ecosystem's specialized,
 local-only fine-tuning provider. Builds on [ML-EXTRACTION-ANALYSIS.md](ML-EXTRACTION-ANALYSIS.md)
 (the why + coupling) and the cross-project fine-tuning survey.
@@ -103,9 +108,11 @@ cuneiform (cuneiform/tasks/chief/)
   route-to-lugh + revise-export-templates  dependsOn lugh:30-kft-provider-manifest
 ```
 
-The pinakes tasklists are authored here now; the lugh tasklists are **staged** under
-`tasks/extraction-staging/lugh/` and copied into `lugh/tasks/chief/` by `90-extract-lugh`; the argos
-and cuneiform tasklists are authored **in those repos** when we get there (described above).
+The pinakes tasklists are authored here; the lugh tasklists **were staged** under
+`tasks/extraction-staging/lugh/` and copied into `lugh/tasks/chief/` by `90-extract-lugh` US-1 —
+that staging directory has since been removed from pinakes (US-2), so lugh's copies are the only
+ones. The argos and cuneiform tasklists are authored **in those repos** when we get there
+(described above).
 
 ## Risks & notes
 
@@ -120,7 +127,9 @@ and cuneiform tasklists are authored **in those repos** when we get there (descr
 ## Open questions
 
 - **Package import name:** keep `pinakes_ml` (least churn) or rename to `lugh`/`lugh_ml` (clean, but
-  touches every import + the argos fork)?
+  touches every import + the argos fork)? **Pinakes no longer constrains this** — US-2 made its
+  manifest point at the *console script* (`lugh:pinakes-train-slm`) rather than a module path, so a
+  package rename inside lugh does not break the advertisement. Renaming the console script would.
 - **Corpus artifact host:** GitHub release asset (private) vs an object store (R2/S3) — matches
   whatever `docs/artifact-versioning.md` Option A/C you settle on.
 - **Insimul fixture:** vendor `world-export.json`, or have Insimul publish it as the source of truth?

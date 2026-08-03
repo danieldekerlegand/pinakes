@@ -132,24 +132,33 @@ training provider (`koine/specs/fine-tuning.md` §9/FT-K — agora hosts the *ge
 Served as the MCP tools `finetune` (invoke) + `finetune_subscribe` (stream) and, via the
 manifest, as an A2A skill. Contract + env table: `docs/capability-bus.md`.
 
-- **It is a SURFACE WRAPPER over `ml/`, and that is load-bearing.** An invoke shells out to
-  the already-built console script (`uv run --project ml pinakes-train-slm --kft-job <manifest>
-  --output-dir <run> --no-mlflow --no-doc`) and reads back the two files it writes —
-  `kft-telemetry.jsonl` (the KFT §6 stream) and `kft-run.json` (the §5 minted model + KMI
-  weight assets). **No training logic and no admission logic on the TS side**; `ml/kft.py`
-  decides what is admissible, `ml/slm_finetune.py` is the sole trainer. The one thing read
-  out of the manifest app-side is `job` (the KINP activity id the stream is addressed by) —
-  everything else is forwarded verbatim.
+- **It is a SURFACE WRAPPER over the private `lugh` repo, and that is load-bearing.** The
+  trainer used to be this repo's `ml/` workspace; 90-extract-lugh moved it out
+  (`docs/LUGH-EXTRACTION-PLAN.md`). An invoke shells out to the already-built console script in
+  a **sibling checkout** (`uv run --project $LUGH_ROOT pinakes-train-slm --kft-job <manifest>
+  --output-dir <run> --no-mlflow --no-doc`; `LUGH_ROOT` else `~/Development/lugh`, the same
+  resolution `KOINE_ROOT` uses) and reads back the two files it writes — `kft-telemetry.jsonl`
+  (the KFT §6 stream) and `kft-run.json` (the §5 minted model + KMI weight assets). **No training
+  logic and no admission logic on the TS side**; lugh decides what is admissible and is the sole
+  trainer. The one thing read out of the manifest app-side is `job` (the KINP activity id the
+  stream is addressed by) — everything else is forwarded verbatim. **Run dirs stay on this side**
+  (`data/runtime/finetune/`, git-ignored): we read lugh's checkout, never write into it.
+- **The whole entry is transitional.** When `lugh:30-kft-provider-manifest` publishes lugh's own
+  KCB manifest as `lugh:agent:finetune`, this wrapper and the manifest's `finetune` capability are
+  retired and the fabric routes to lugh directly. Until then pinakes keeps advertising it so the
+  ecosystem is never left with no finetune provider.
 - **The runner's exit codes ARE the contract**: `0` ran, **`2` refused at admission** with a
   machine-readable report on stdout and no compute committed, anything else the runner itself
   is unusable. A refusal becomes a `failed` run carrying `report` (a router reads `.code` —
   `cross-boundary-compute`, `unsupported-modality`, …); an unusable runner throws
   `FinetuneUnavailableError`, which the MCP layer maps to the same "is unavailable" tool
   error shape as `GraphUnavailableError`.
-- **Optional-env degrade, `GEONAMES_USERNAME` shape.** The heavy `trl`/`peft`/`accelerate`
-  stack is deliberately undeclared in `ml/` (`ml/CLAUDE.md`), so the capability is **always
-  advertised** (manifest + `list_tools` + agent-card) and only the *invoke* degrades, with
-  the `require_finetune_deps` install message. `PINAKES_FINETUNE_ENABLED=0` is the same
+- **Optional-env degrade, `GEONAMES_USERNAME` shape — and it is now the DEFAULT.** A plain
+  pinakes checkout has no lugh beside it, and the heavy `trl`/`peft`/`accelerate` stack is
+  deliberately undeclared there, so the capability is **always advertised** (manifest +
+  `list_tools` + agent-card) and only the *invoke* degrades, naming what to clone or install.
+  `createLiveFinetuneRunner` checks the checkout exists **before** spawning, so "lugh isn't here"
+  reads as an actionable degrade rather than a bare non-zero uv exit. `PINAKES_FINETUNE_ENABLED=0` is the same
   degrade by operator choice. Never gate the advertisement on the runner being present.
 - **`invoke` is async by contract (KFT §6)** — `startFinetune` returns a handle in `pending`
   and dispatches fire-and-forget; `subscribeFinetune` drains the stream to the terminal
@@ -162,14 +171,15 @@ manifest, as an A2A skill. Contract + env table: `docs/capability-bus.md`.
   including over the real MCP wire in `routes/mcp.test.ts` — runs with no uv, no Python, no
   GPU. `onSettled` is how a test awaits the fire-and-forget dispatch deterministically (the
   same role `onJobSettled` plays for acquisition jobs).
-- **One spec deliberately does NOT use that seam.** `services/finetune-provider.integration.test.ts`
-  (90-US-4) drives `createLiveFinetuneRunner` against the actual console script under `--stub`
-  — the only way to prove the argv, the exit codes and the two files read back are the contract
-  `ml/` implements rather than the one the fakes agree on. It is fast (a stub run is <100 ms)
-  and needs no heavy deps, but it needs **uv**, so the live block is `describe.skipIf(!LIVE)`;
-  the things that could *rot* (the module path, the `[project.scripts]` entry, the manifest's
-  `x_surfaces`/`admission` paths) are asserted **unconditionally** so a relocation fails loudly
-  instead of vanishing into a skip. A stub run mints zero weight assets and reports
+- **One spec deliberately does NOT use that seam, and it is now cross-repo.**
+  `services/finetune-provider.integration.test.ts` (90-US-4) drives `createLiveFinetuneRunner`
+  against the actual console script under `--stub` — the only way to prove the argv, the exit
+  codes and the two files read back are the contract lugh implements rather than the one the
+  fakes agree on. It needs **uv AND a lugh checkout**, so since the extraction its five live
+  tests are `describe.skipIf(!LIVE)`-skipped on a plain checkout (they used to run). Name that
+  loss rather than paper over it: what pinakes still owns is asserted **unconditionally** — the
+  manifest's `lugh:` pointer and the `LUGH_ROOT` resolution — and the runner's own side of the
+  contract is gated in lugh's suite. A stub run mints zero weight assets and reports
   `pendingExports: [adapter, merged-fp16, gguf]` — assert that, not fabricated asset ids.
 
 ## KFT multi-provider routing — `services/finetune-routing.ts` (90-US-4)
@@ -177,7 +187,7 @@ manifest, as an A2A skill. Contract + env table: `docs/capability-bus.md`.
 The FT-K tiebreak (KFT §8/§9), pure and executable: manifests + a job in, a routing decision
 out. **Pinakes does not own the registry** (it is agora's); what lives here is the provider
 side — proof that our advertisement carries enough signal to be routed to correctly, and a gate
-that goes red if the manifest widens past what `ml/src/pinakes_ml/kft.py` admits.
+that goes red if the manifest widens past what lugh's admission gate admits.
 
 - **Admissibility and preference are separate, and conflating them is the bug to avoid.**
   `ProviderRejection` (codes mirroring `kft.py`: `unsupported-modality`/`-method`/

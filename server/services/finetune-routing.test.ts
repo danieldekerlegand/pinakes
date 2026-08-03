@@ -7,8 +7,8 @@ import { describe, it, expect } from "vitest";
  * but that **Pinakes's published manifest carries enough signal to be routed to
  * correctly**: a specialized SLM rule-authoring / neurosymbolic job lands here, a
  * generic `text-generation` job is left to the general trainer, and a job outside the
- * `ml/` pipeline's contract is refused at routing with the same code
- * `ml/src/pinakes_ml/kft.py` would refuse it with at admission.
+ * lugh pipeline's contract is refused at routing with the same code
+ * lugh would refuse it with at admission.
  *
  * Pinakes's side of the fixture is the **real, live manifest** (`CAPABILITY_MANIFEST`),
  * so a future widening of `x_specialization` fails here as well as in
@@ -201,7 +201,7 @@ describe("selectFinetuneProvider — the FT-K tiebreak (KFT §8/§9)", () => {
     expect(decision.provider).toBe("pinakes:agent:resolver");
     expect(decision.reason).toContain("explicitly");
     // The distinction that makes this correct: `fallback` is a *preference*, not a
-    // refusal — `ml/kft.py` admits a knowledge-plane text-generation qlora job either way.
+    // refusal — lugh admits a knowledge-plane text-generation qlora job either way.
     expect(decision.rejected).toEqual([]);
   });
 
@@ -249,8 +249,8 @@ describe("selectFinetuneProvider — the FT-K tiebreak (KFT §8/§9)", () => {
   });
 });
 
-describe("selectFinetuneProvider — routing refusals mirror ml/ admission", () => {
-  // Each code below is one `ml/src/pinakes_ml/kft.py` emits, so a job the registry
+describe("selectFinetuneProvider — routing refusals mirror lugh admission", () => {
+  // Each code below is one lugh emits, so a job the registry
   // declines to send here is declined for the reason admission would have given.
   it("refuses a non-text-generation job with `unsupported-modality`", () => {
     const decision = selectFinetuneProvider(
@@ -263,7 +263,7 @@ describe("selectFinetuneProvider — routing refusals mirror ml/ admission", () 
     ]);
   });
 
-  it("refuses a method the ml/ pipeline does not implement with `unsupported-method`", () => {
+  it("refuses a method the lugh pipeline does not implement with `unsupported-method`", () => {
     const decision = selectFinetuneProvider({ job: job({ method: "dpo" }) }, REGISTRY);
     expect(decision.provider).toBe("agora:agent:trainer");
     expect(decision.rejected[0]).toMatchObject({

@@ -51,7 +51,8 @@ Only mark a story done when the relevant checks are green.
 - **A bare `vitest` finds no config** — it lives at `web/vitest.config.ts`. Use `bun run test`.
 - **`.chief/state/prd.json` is gitignored** (`.gitignore` `.chief/state/`), so `git checkout` on
   it silently no-ops. Edit it in place; never try to restore it from git.
-- **`ml/` is a separate uv workspace** with its own `[tool.pytest.ini_options]`. Root commands
-  never reach it, and the merge gate doesn't cover it.
+- **The ML/training workspace is gone** — `ml/` was extracted into the private `lugh` repo
+  (90-extract-lugh; `docs/LUGH-EXTRACTION-PLAN.md`). Nothing here imports it, and the merge
+  gate has no ML leg. lugh runs its OWN `chief run` against its own tasklists.
 - The registry-mirror drift guard needs a sibling koine checkout (`$KOINE_ROOT`, else
   `~/Development/koine`). The gate *skips* it when absent — a check that cannot run is no signal.

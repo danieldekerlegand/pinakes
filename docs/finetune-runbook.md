@@ -1,5 +1,11 @@
 # QLoRA fine-tuning pipeline + rented-GPU runbook
 
+> **The code and artifacts described here now live in `lugh`.** The `ml/` workspace was
+> extracted into the private **`lugh`** repo (`docs/LUGH-EXTRACTION-PLAN.md`), so every
+> `ml/…` path and `uv run --project ml …` command below is relative to a **lugh checkout**
+> (`LUGH_ROOT`), not to this repo. The canonical corpus these pipelines read is still
+> produced here and handed over as a published artifact.
+
 > **DVC was removed** (flatten Phase 0). Every `dvc pull` / `dvc add` /
 > `dvc push` below is stale: those trees are plain git-ignored build outputs
 > now — regenerate them instead, and skip any "re-pin" step. Recorded DVC

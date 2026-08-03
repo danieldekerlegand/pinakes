@@ -32,12 +32,10 @@
 # drift. Regenerate with `npm run gen:contracts`.
 members = ["contracts/python", "engine", "services/api"]
 
-# `ml/` is deliberately its OWN workspace with its OWN uv.lock and .venv
-# (ml/pyproject.toml). Its torch/pykeen/sentence-transformers stack must never
-# enter the web service's environment — that isolation is the whole reason it is
-# a separate workspace (plan §2, §4). Excluding it here is what stops uv from
-# claiming it during workspace discovery when a command runs inside `ml/`.
-exclude = ["ml"]
+# The torch/pykeen/sentence-transformers ML workspace that used to live at `ml/`
+# (and was excluded here so uv never claimed it) now lives in the private `lugh`
+# repo — see docs/LUGH-EXTRACTION-PLAN.md. Nothing in this workspace depends on it;
+# the app-side KFT surface dispatches to a lugh checkout resolved from `LUGH_ROOT`.
 
 # NOTE — pytest configuration deliberately lives in the root `pytest.ini`, NOT in
 # a `[tool.pytest.ini_options]` table here. pytest picks the FIRST ini-bearing

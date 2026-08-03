@@ -466,15 +466,16 @@ per-record cell map (never hand-type TSV with many JSON columns — one stray ta
   metal — the sources name a category, and resolving to a specific good would invent precision.
   `NOT_TRADE_GOODS` is the explicit escape for non-commodities (tr-026's "royal dispatches" is
   correspondence; it belongs in the route `description`, which already carries it).
-- **GOTCHA — a node-lexicon row change cascades into `ml/manifests/`, not just `docs/`.** The
-  two-snapshot rule below is incomplete: five more committed manifests are built from the live
-  corpus and are asserted against a fresh build by `ml/tests/`. After changing any node lexicon
-  also run, from `ml/`: `pinakes-export-triples`, `pinakes-export-verbalizations`,
+- **GOTCHA — a node-lexicon row change cascades into the private `lugh` repo, not just `docs/`.**
+  The two-snapshot rule below is incomplete: five more committed manifests are built from the live
+  corpus and asserted against a fresh build by lugh's tests — they moved there with the `ml/`
+  workspace (`docs/LUGH-EXTRACTION-PLAN.md`). After changing any node lexicon, regenerate them
+  **in your lugh checkout**: `pinakes-export-triples`, `pinakes-export-verbalizations`,
   `pinakes-export-kgqa`, then `pinakes-export-queries`, then `pinakes-eval-kgqa` — **in that
-  order**, because the later ones read the `ml/data/` splits the earlier ones write. Their tests
-  are `skipif(not <export_dir>.exists())`, so in a checkout that has never run
-  `export-for-engine.ts` they silently **skip** and a stale manifest looks green; running
-  the export is what un-gates them. Regenerating in the wrong order just moves the failure.
+  order**, because the later ones read the splits the earlier ones write. Their tests are
+  `skipif(not <export_dir>.exists())`, so in a checkout that has never run the export they
+  silently **skip** and a stale manifest looks green; running the export is what un-gates them.
+  Nothing in pinakes's own gate covers this — the cascade is now cross-repo.
 - **`--add-rows` now also ensures a `sources` column.** `buildCultureAdditions` calls
   `ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"])`, so a target lexicon with no
   citation column today (migration-routes / trade-routes) gets one, and every appended row records

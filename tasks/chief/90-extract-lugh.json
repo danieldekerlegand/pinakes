@@ -3,9 +3,17 @@
   "branchName": "chief/90-extract-lugh",
   "baseBranch": "main",
   "description": "Extract pinakes/ml/ into its own PRIVATE repo `lugh` (the specialized local-only KFT fine-tuning provider), history-preserving, then sever it from pinakes. See docs/LUGH-EXTRACTION-PLAN.md. DELICATE: rewrites history + creates/pushes a new repo — intended to be run attended and reviewed before merge, NOT relied on for auto-merge. Independent of the paused flatten band (nothing imports ml/).",
-  "touches": ["repo-layout", "ml-extract"],
-  "warmup": ["bun install"],
-  "verify": ["bun run check", "uv run --project engine pytest -q -p no:cacheprovider"],
+  "touches": [
+    "repo-layout",
+    "ml-extract"
+  ],
+  "warmup": [
+    "bun install"
+  ],
+  "verify": [
+    "bun run check",
+    "uv run --project engine pytest -q -p no:cacheprovider"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -17,8 +25,8 @@
         "lugh is seeded with a .chief/ (config + a real verify.sh running `uv sync --extra dev` then pytest/ruff) and tasks/chief/ populated from this repo's tasks/extraction-staging/lugh/*.json (10-bootstrap … 40-port-general-train-harness).",
         "In a fresh clone of lugh, `uv sync --extra dev` succeeds and `uv run python -m pytest --co` collects the suite."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Done. `git subtree split -P ml -b lugh-export` -> 44 commits (of pinakes' 819), ml/ contents at the root, oldest commit `wip: US-001 - ml/ workspace scaffold` — history, not a snapshot. Repo: https://github.com/danieldekerlegand/lugh (private, default branch main, 45 commits incl. the seed). Seeded with .chief/{config,verify.sh,agent-context.md} + tasks/chief/ (the 4 staged lugh tasklists) + HANDOFF.md; .gitignore gained /.chief/state/. Fresh clone: `uv sync --extra dev` OK, `pytest --co` collects 485. The scaffolding branch lugh-export was deleted from pinakes after the push. KNOWN-RED at lugh main and deliberately so — 45 failed + 49 errors, ALL from four `_REPO_ROOT`-relative paths that used to reach into pinakes (engine/tests/fixtures/insimul/world-export.json x55, contracts/canonical-schema.json x13, the neo4j-export golden edges, and 3 docs/ links). That is precisely the coupling lugh:20-vendor-contracts-corpus is chartered to sever; HANDOFF.md documents it so lugh's first chief iteration does not mistake it for breakage."
     },
     {
       "id": "US-2",
@@ -30,8 +38,8 @@
         "pinakes still builds and tests pass without ml/: `bun run check` and `uv run --project engine pytest` are green.",
         "The tasks/extraction-staging/ directory is removed from pinakes (its contents now live in lugh)."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Done. `git rm -r ml tasks/extraction-staging .github/workflows/ml-ci.yml` (101 files). AC1: `git grep -l pinakes_ml -- ':!docs' ':!tasks'` is EMPTY — the only non-doc dependents were advertisement/comment strings in contracts/ + server/, not imports, exactly as the plan predicted. AC2: README, docs/capability-bus.md, ML-EXTRACTION-ANALYSIS (resolved banner), UNIFIED-PROJECT-PLAN (amended banner + every 'ml/ stays' line struck), DATA-INVENTORY (banner), LUGH-EXTRACTION-PLAN (status EXECUTED), plus pointer banners on the 13 docs that describe the moved pipelines. AC3: full merge gate PASS (check, check:scripts, vitest 3732 passed/13 skipped, engine 1922, services/api 37, ruff, mypy, check:contracts). AC4: tasks/extraction-staging/ removed. DESIGN CALL: the finetune capability was RETARGETED, not deleted. Deleting it would leave the fabric with no finetune provider until lugh:30-kft-provider-manifest publishes lugh:agent:finetune, so server/services/finetune-provider.ts now dispatches to a sibling lugh checkout (LUGH_ROOT, else ~/Development/lugh — the KOINE_ROOT idiom), the manifest points at `lugh:pinakes-train-slm` (console script, not a module path, so a package rename inside lugh cannot break it), manifestVersion 0.3.0 -> 0.3.1, and every touchpoint documents the entry as transitional. KNOWN COVERAGE LOSS: finetune-provider.integration.test.ts's 5 live tests used to RUN here and now skip (they need a lugh checkout) — 8 -> 13 skipped. Mitigated, not hidden: the two guard tests assert unconditionally what pinakes still owns (the manifest's lugh: pointer, the LUGH_ROOT resolution), and the docblock + server/CLAUDE.md name the loss."
     }
   ]
 }

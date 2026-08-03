@@ -51,7 +51,7 @@ const fakeHandlers: McpToolHandlers = {
   query: () => {
     throw new GraphUnavailableError("neo4j down");
   },
-  // The finetune pair runs against an in-memory store + a fake ml/ runner, so the
+  // The finetune pair runs against an in-memory store + a fake lugh runner, so the
   // KFT invoke→subscribe path is exercised over the wire with no uv/Python/GPU.
   finetune: (input) =>
     startFinetune(input, { config: FINETUNE_CONFIG, runner: FAKE_RUNNER, store: FINETUNE_STORE }),
@@ -60,9 +60,9 @@ const fakeHandlers: McpToolHandlers = {
 
 const FINETUNE_CONFIG: FinetuneConfig = {
   enabled: true,
-  mlRoot: "/repo/ml",
+  lughRoot: "/repo/../lugh",
   uv: "uv",
-  artifactsRoot: "/repo/ml/artifacts/kcb",
+  artifactsRoot: "/repo/data/runtime/finetune",
   stub: true,
   timeoutMs: 1000,
 };
@@ -103,7 +103,7 @@ const FINETUNE_TELEMETRY: TelemetryEvent[] = [
   },
 ];
 
-/** Stands in for `uv run --project ml pinakes-train-slm --kft-job …`. */
+/** Stands in for `uv run --project $LUGH_ROOT pinakes-train-slm --kft-job …`. */
 const FAKE_RUNNER: FinetuneRunner = {
   run: async () => ({ code: 0, telemetry: FINETUNE_TELEMETRY }),
 };
@@ -265,17 +265,17 @@ describe("MCP server surface (/mcp)", () => {
 });
 
 /**
- * AC3 — the optional-env degrade. With the `ml/` runner unreachable (or the surface
+ * AC3 — the optional-env degrade. With the lugh runner unreachable (or the surface
  * switched off) the capability is STILL advertised by `list_tools`; only an invoke
  * answers with an actionable error. That is the `GEONAMES_USERNAME` shape: a missing
  * optional dependency never removes a surface, it degrades one.
  */
-describe("MCP finetune degrade (ml/ runner absent)", () => {
+describe("MCP finetune degrade (lugh runner absent)", () => {
   const degraded: McpToolHandlers = {
     ...fakeHandlers,
     finetune: () => {
       throw new FinetuneUnavailableError(
-        "the ml/ training stack is not installed — `uv pip install trl peft accelerate`",
+        "the lugh training stack is not installed — `uv pip install trl peft accelerate`",
       );
     },
   };

@@ -49,7 +49,7 @@ in the contribution review queue, never as a live write — the KCB §5 merge-re
 | `resolve` | `invoke:resolve` | `GET /api/graph/resolve` | `server/services/graph-resolver.ts` |
 | `reconcile` | `invoke:reconcile` | `POST /api/scraping/engine` | `engine/src/pinakes_engine/schema/reconcile.py` |
 | `query` | `invoke:query` | `POST /api/graph/datalog` | `server/routes/graph.ts`, `server/services/graph-store.ts` |
-| `finetune` | `invoke:finetune` | MCP tools `finetune` / `finetune_subscribe` (`POST /mcp`) | `ml/src/pinakes_ml/train_slm.py` (+ `kft.py`/`kft_run.py`), fronted by `server/services/finetune-provider.ts` |
+| `finetune` | `invoke:finetune` | MCP tools `finetune` / `finetune_subscribe` (`POST /mcp`) | `lugh:pinakes-train-slm` — in the **private `lugh` repo**, not this one — fronted by `server/services/finetune-provider.ts` |
 
 Each capability carries an `x_surfaces` array — every built route behind it, first entry
 primary. `GET /api/kcb/capabilities` returns that directory in invocation-ready form.
@@ -57,14 +57,18 @@ primary. `GET /api/kcb/capabilities` returns that directory in invocation-ready 
 ### `finetune` — the specialized, local-only KFT provider
 
 `koine/specs/fine-tuning.md` (KFT) is deliberately **multi-provider** (§9, FT-K): agora hosts
-the *general* trainer and Pinakes runs its **own narrow** provider over the already-built `ml/`
-QLoRA pipeline. Both accept `text-generation`, so the manifest carries the tiebreak signal
+the *general* trainer and Pinakes fronts its **own narrow** provider over the already-built
+QLoRA pipeline in the private **`lugh`** repo (extracted from this repo's `ml/` workspace —
+`docs/LUGH-EXTRACTION-PLAN.md`). **This advertisement is transitional**: when
+`lugh:30-kft-provider-manifest` publishes lugh's own manifest as `lugh:agent:finetune`, the
+fabric routes there directly and this entry (plus its wrapper) is retired. Until then Pinakes
+keeps advertising it so the fabric is never left with no finetune provider. Both accept `text-generation`, so the manifest carries the tiebreak signal
 explicitly, in `x_specialization`:
 
 | Field | Value | Why |
 |---|---|---|
 | `provider_class` | `specialized` | KCB §3 prefers the more specialized matching provider (FT-K). |
-| `modality` / `methods` | `text-generation` / `sft`, `lora`, `qlora` | Exactly what `ml/src/pinakes_ml/kft.py` admits — advertising wider would route jobs here that admission then refuses. |
+| `modality` / `methods` | `text-generation` / `sft`, `lora`, `qlora` | Exactly what lugh's `pinakes-train-slm --kft-job` admits — advertising wider would route jobs here that admission then refuses. |
 | `egress` | `local-only` | The SLM corpora are `synthetic`/`proprietary`/`personal` tier, so the §4.2 gate resolves local-only and a cross-boundary `compute.class` is **refused with a report** before any compute. |
 | `domains` | `slm-rule-authoring`, `neurosymbolic` | What the provider is specialized *for* — the routing signal. |
 | `general_provider` | `agora:agent:trainer` | Where a non-matching job belongs. |
@@ -78,18 +82,20 @@ assets (`application/vnd.koine.model+safetensors`, `…+gguf`, KFT §5.3). `cost
 `model` is a KINP entity type from koine's `registry/entity-types.tsv`, **not** a canonical
 csid node type, so it is allowlisted in `KINP_ENTITY_TYPES` rather than resolved through
 `canonical-schema.json`. `assertValidCapabilityManifest` enforces every row of that table plus
-the port shape — the advertisement cannot drift from what `ml/` admits without failing the gate.
+the port shape — the advertisement cannot drift from the ports lugh implements without failing
+the gate. (What it can no longer prove in-repo is the *runner's* side: lugh is a separate repo,
+so the argv/exit-code contract is gated in lugh's suite and, here, only where a checkout exists.)
 
 **The surface is a wrapper, like every other one here.** `server/services/finetune-provider.ts`
 shells out to the already-built console script
 
 ```sh
-uv run --project ml pinakes-train-slm --kft-job <manifest> --output-dir <run> --no-mlflow --no-doc
+uv run --project $LUGH_ROOT pinakes-train-slm --kft-job <manifest> --output-dir <run> --no-mlflow --no-doc
 ```
 
 and reads back what it writes: `kft-telemetry.jsonl` (the KFT §6 training-telemetry stream) and
 `kft-run.json` (the §5 minted model + weight assets). No training logic exists on the TS side;
-`ml/` stays the sole trainer and the sole admission gate. The runner's exit codes are the
+lugh stays the sole trainer and the sole admission gate. The runner's exit codes are the
 contract — **0** ran, **2** refused at admission with a machine-readable report on stdout (no
 compute committed), anything else the runner itself is unusable.
 
@@ -102,15 +108,16 @@ consumer may replay from any index.
 | Env var | Default | Meaning |
 |---|---|---|
 | `PINAKES_FINETUNE_ENABLED` | on | `0`/`false` ⇒ the capability is still **advertised** but an invoke answers with an actionable error. |
-| `PINAKES_ML_DIR` | `<repo>/ml` | The uv workspace the console script lives in. |
+| `LUGH_ROOT` | `~/Development/lugh` | The **lugh checkout** whose uv workspace holds the console script (same sibling-checkout resolution as `KOINE_ROOT`). Absent ⇒ an actionable "runner unreachable" error. |
 | `PINAKES_FINETUNE_UV` | `uv` | The uv binary. Missing ⇒ an actionable "runner unreachable" error, never a crash. |
 | `PINAKES_FINETUNE_STUB` | off | Default `--stub` (the injectable model seam — the whole pipeline, no training stack, no GPU). |
-| `PINAKES_FINETUNE_ARTIFACTS` | `ml/artifacts/kcb` | Where run dirs are created (git-ignored). |
+| `PINAKES_FINETUNE_ARTIFACTS` | `<repo>/data/runtime/finetune` | Where run dirs are created (git-ignored). Deliberately on the **pinakes** side: the wrapper reads the lugh checkout, never writes into it. |
 
-Degrade is the `GEONAMES_USERNAME` shape: the heavy `trl`/`peft`/`accelerate` stack is
-deliberately **undeclared** in `ml/` (see `ml/CLAUDE.md`), so with it absent the capability
-stays on the manifest and in `list_tools`, and only the invoke returns the
-`require_finetune_deps` install message.
+Degrade is the `GEONAMES_USERNAME` shape, and it is now the **default** posture: lugh is a
+separate private repo, so a plain pinakes checkout has no runner at all. No checkout, no `uv`,
+or no `trl`/`peft`/`accelerate` (deliberately undeclared there) ⇒ the capability stays on the
+manifest and in `list_tools`, and only the invoke returns an actionable error naming what to
+install or clone.
 
 ### Multi-provider routing (KFT §8/§9, FT-K)
 
@@ -122,7 +129,7 @@ an unbroken tie is **surfaced to the caller**, not resolved silently.
 That registry is agora's, not ours. `server/services/finetune-routing.ts` is the **provider
 side** of the contract — a pure, executable reading of the rule that proves Pinakes's
 advertisement carries enough signal to be routed to correctly, and goes red if the manifest
-ever widens past what `ml/src/pinakes_ml/kft.py` admits. It keeps two things apart that are
+ever widens past what lugh's admission gate admits. It keeps two things apart that are
 easy to conflate:
 
 - **Admissibility** — would this provider refuse the job at the door? The rejection codes are
@@ -152,7 +159,7 @@ are named so a reader of this document knows what is deliberately missing rather
 | Tasklist | Repo | Role | Status here |
 |---|---|---|---|
 | `90-finetune-trainer` | **agora** | The **general** `finetune` provider — engine ladder LLaMA-Factory / Unsloth / Axolotl / diffusers, SkyPilot placement under the §4.2 egress gate, **cloud-capable**. | Not built here. Stubbed as a fixture manifest in `server/services/finetune-routing.test.ts`; named on our manifest as `x_specialization.general_provider`. |
-| `90-finetune-provider` | **pinakes** | This provider — the `ml/` TRL+PEFT SLM path, **local-only** by data tier. | This repo. |
+| `90-finetune-provider` | **pinakes** | This provider — the TRL+PEFT SLM path, **local-only** by data tier. | Fronted by this repo; the trainer itself lives in **lugh** (private) and is destined to become `lugh:agent:finetune`. |
 | `90-finetune-client` | **orchestrator** | The KCB **client** that replaces `Runner::Stub` — discover → invoke → **subscribe** to the real §6 telemetry (deleting its fabricated loss curve), un-404 export (§5.3) and the registry (§8), and issue `invoke:finetune` grants (§7). | Not built here. It is the caller of the surface described above; Pinakes serves it, does not implement it. |
 
 The two legs are **complements, not competitors**: agora's trainer can burst to rented GPU,

@@ -1,5 +1,11 @@
 # Rule-adherence eval tier (tier 4) — the VESPACE port
 
+> **The code and artifacts described here now live in `lugh`.** The `ml/` workspace was
+> extracted into the private **`lugh`** repo (`docs/LUGH-EXTRACTION-PLAN.md`), so every
+> `ml/…` path and `uv run --project ml …` command below is relative to a **lugh checkout**
+> (`LUGH_ROOT`), not to this repo. The canonical corpus these pipelines read is still
+> produced here and handed over as a published artifact.
+
 **insimul-bridge US-004.** The fourth tier of the `ml/` eval harness scores
 **generated Prolog rules against the world they were authored for**: can this
 rule ever fire, given the world's character-creation layer and its action set?

@@ -1,5 +1,10 @@
 # Artifact versioning — DVC removed, and how to bring it back
 
+> **The `ml/…` rows below are historical.** That workspace was extracted into the private
+> **`lugh`** repo (`docs/LUGH-EXTRACTION-PLAN.md`), taking its datasets/models with it — so
+> the only large artifact this repo still owns is `build/corpus`, which is also the handoff
+> lugh now pulls. Any versioning scheme adopted here has to publish it, not just store it.
+
 **Status: there is no content-addressed artifact versioning in this repo.** DVC was
 removed in the flatten's Phase 0 (see
 [UNIFIED-PROJECT-PLAN.md](./UNIFIED-PROJECT-PLAN.md) §4/§9). Large build outputs
