@@ -19,7 +19,7 @@
  * runtime (KFT §8 reuses the KCB §3 discovery registry). What lives here is the
  * *provider side* of the contract: proof that Pinakes's advertisement carries enough
  * signal to be routed to correctly, and a reference implementation of the tiebreak that
- * goes red if the manifest ever widens past what `ml/src/pinakes_ml/kft.py` admits. A
+ * goes red if the manifest ever widens past what lugh's admission gate admits. A
  * router that sends a job here which admission then refuses is the exact failure FT-K
  * exists to prevent, so **admissibility and preference are kept apart**:
  *
@@ -61,7 +61,7 @@ export interface ProviderManifest {
  * `dataset-jsonl-header.datasetKind` → the `x_specialization.domains` a job signals.
  *
  * Kinds are the ones koine's header schema names and this repo's own builders emit
- * (`ml/src/pinakes_ml/insimul_datasets.py`, `verbalize.py`, `kgqa.py`). A kind absent
+ * (lugh's `insimul_datasets.py`, `verbalize.py`, `kgqa.py`). A kind absent
  * from this table carries **no** specialization signal — which is the point: a generic
  * `text-generation` job is left to the general trainer rather than being guessed into a
  * narrow provider.
@@ -97,7 +97,7 @@ function record(value: unknown): Record<string, unknown> {
 
 /**
  * Read a job's routing signals. Deliberately tolerant: a malformed job is not this
- * module's to reject — `ml/src/pinakes_ml/kft.py` owns admission, and a job that routes
+ * module's to reject — lugh owns admission, and a job that routes
  * here and is then refused with a report is the intended flow, not a routing bug.
  */
 export function jobSignals(job: unknown): FinetuneJobSignals {
@@ -146,7 +146,7 @@ export interface ProviderCandidate {
 
 /**
  * A provider that would **refuse** the job at admission. The codes are
- * `ml/src/pinakes_ml/kft.py`'s, so the registry and the provider speak one vocabulary.
+ * lugh's, so the registry and the provider speak one vocabulary.
  */
 export interface ProviderRejection {
   readonly identity: string;

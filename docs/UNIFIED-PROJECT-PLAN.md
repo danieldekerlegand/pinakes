@@ -1,17 +1,25 @@
 # Unified project plan — one Python service, one clean repo
 
 **Status:** proposal for review — nothing has been executed. This consolidates every decision
-from the flatten/rewrite investigation into one plan. Supersedes the framing in
-[ML-EXTRACTION-ANALYSIS.md](ML-EXTRACTION-ANALYSIS.md) (ml/ stays for now) and builds on
+from the flatten/rewrite investigation into one plan. Builds on
 [DATA-INVENTORY.md](DATA-INVENTORY.md) (the data-layout cleanup already merged).
+
+> **Amended — `ml/` was extracted (90-extract-lugh).** This plan was written when `ml/` stayed
+> in-repo as a third workspace; it no longer does. The ML/training workspace now lives in the
+> **private `lugh` repo** as `lugh:agent:finetune`
+> ([LUGH-EXTRACTION-PLAN.md](LUGH-EXTRACTION-PLAN.md); the extract-vs-keep reasoning is in
+> [ML-EXTRACTION-ANALYSIS.md](ML-EXTRACTION-ANALYSIS.md), now resolved). Everything below that
+> says "ml/ stays a separate workspace-in-repo" is superseded: the end state is **one Python
+> service + one React client**, with training a cross-repo peer. Nothing else in the plan moves
+> — nothing here ever imported `ml/`.
 
 ## 1. The end state
 
-Pinakes becomes **one Python backend service + one React client + one isolated ML workspace**, in a **cleanly reorganized repo**, with the `culturescrape` name gone entirely.
+Pinakes becomes **one Python backend service + one React client**, in a **cleanly reorganized repo**, with the `culturescrape` name gone entirely. (The plan originally kept an isolated ML workspace as a third leg; that workspace left for `lugh`.)
 
 - **One Python (FastAPI) service** absorbs today's TypeScript Express backend *and* the Python `culturescrape` engine — no more sidecar HTTP hop, no CLI-subprocess boundary. The engine is imported in-process.
 - **The React client stays TypeScript** (it's a browser app) — served by the Python service, its API contract preserved.
-- **`ml/` stays a separate `uv` workspace-in-repo** — its torch/pykeen stack must never leak into the web service's environment.
+- ~~**`ml/` stays a separate `uv` workspace-in-repo**~~ — **extracted to the private `lugh` repo** (90-extract-lugh). The reason it was a separate workspace (keeping torch/pykeen out of the web service's environment) is now satisfied by it being a separate *repo*.
 - **A dramatically better file structure** (see §4 — a first-class goal of this work, not a side effect).
 - **No Node/Express, no Drizzle/pg, no DVC** in the running system.
 
@@ -23,14 +31,14 @@ Pinakes becomes **one Python backend service + one React client + one isolated M
 | **Python over Go/Rust** | Benchmark (2026-08-02): web-scraping is **network/politeness-bound** (`min_interval=1.0s`/host), not language-bound. CPU transform head-to-head (121k rows×50): Go 1.01s ≈ Rust 1.07s, **Python 2.54s, Bun/TS 6.72s**. Dropping TS is already a **2.6× CPU win**; Go/Rust's further 2.5× is irrelevant to scraping throughput. |
 | **Hybrid Rust/Go later, maybe** | A Rust/Go parser/normalizer for the **bulk offline transform** hot path — added via `pyo3` **only if** profiling the real corpus shows it matters. Not now. |
 | **Drop DVC** | The GGUF was never finetuned in production; all DVC trees are regenerable pilot/build outputs; the local-dir remote is stranded. Re-enable later (`dvc init` + cloud remote, or git-lfs) only if CI/collaborators/reproducible-pinning ever require it. |
-| **ml/ stays separate** | Cleanly extractable (its only real coupling is the corpus seam), but deferred. Keeping torch out of the web env is the reason it's a distinct workspace. |
+| ~~**ml/ stays separate**~~ → **extracted** | Judged cleanly extractable here (its only real coupling is the corpus seam) and deferred at the time; 90-extract-lugh executed it once the schema was codegen'd + drift-gated. |
 
 ## 3. Scope & non-goals
 
 **In scope:** rewrite the TS backend in Python; merge the engine in-process; erase `culturescrape`;
 **reorganize the whole repo (§4)**; unify the two scraping stacks (§6); delete Node/Express/Drizzle/DVC.
 
-**Non-goals (now):** extracting `ml/`; porting the React client off TS; adopting Rust/Go (reserved as a
+**Non-goals (now):** ~~extracting `ml/`~~ (done — 90-extract-lugh); porting the React client off TS; adopting Rust/Go (reserved as a
 targeted hot-path escape hatch); introducing a SQL database (persistence stays Neo4j + files).
 
 ## 4. Repo structure overhaul — a FIRST-CLASS GOAL
@@ -65,8 +73,6 @@ pinakes/
 ├── web/                        # React/Vite client — was client/ (stays TS); TS build configs live HERE, not root
 │   ├── src/
 │   └── (vite · tailwind · postcss · tsconfig · vitest · playwright)
-├── ml/                         # separate uv workspace (torch-isolated) — role unchanged
-│   └── src/pinakes_ml/ …
 ├── contracts/                  # shared schema + registries — was shared/ (canonical-schema.json, predicate-mapping, …)
 │                               #   with generated Python + TS bindings so both sides stay in sync
 ├── data/
@@ -88,7 +94,7 @@ pinakes/
 (`CULTURESCRAPE_*` → `PINAKES_ENGINE_*`), the API paths
 (`/api/scraping/culturescrape/*` → `/api/scraping/engine/*`) and the server's
 `CultureScrape*` exports (→ `Engine*`) are all done. Two deliberate survivors:
-the **`cs:` id-space** (a data namespace shared with `contracts/`, `ml/` and the
+the **`cs:` id-space** (a data namespace shared with `contracts/`, the `lugh` repo and the
 client — a corpus migration, not a rename) and the client's
 `culturescrape.adapter.ts` / `"culturescrape-graph"` **dataset id** (a UI/URL
 identifier the e2e `?ds=` links carry; it retires with the explorer work, not
@@ -108,7 +114,7 @@ with the package).
 | `export/pinakes_engine` (`EXPORT_DIR`) | `build/corpus` | **STILL OPEN** — US-1's blanket rename turned `export/culturescrape` into `export/pinakes_engine` in `scripts/export-for-engine.ts`'s `EXPORT_DIR` instead of `build/corpus`, so `convergence-qa` / `reconciliation-report` / `entity-grounding` / `insimul-pack` / `import-from-engine` all still write under a *tracked, un-gitignored* `export/`. Not in any 20 story's ACs (20 US-2/3/4 each deleted the stray dir rather than widen scope); flipping the one constant needs a check that the TS export and the engine's own `build/corpus` are the same artifact, not a collision. Owner: whichever tasklist next touches `scripts/`. |
 | `docker-compose.yml`, Dockerfiles | `infra/` | **done** (20 US-3) — `infra/{docker-compose.yml,engine.Dockerfile}`; invoke compose from the repo root with `-f` |
 | Drizzle/pg, DVC (`.dvc/`, `*.dvc`) | *(deleted)* | vestigial / stranded |
-| `engine/uv.lock` | `uv.lock` (root) | **done** (20 US-4) — the root `pyproject.toml` is a virtual uv workspace root; one lock + one `.venv` for `engine` (and `services/api` when it lands). `ml/` is `exclude`d and keeps its own. |
+| `engine/uv.lock` | `uv.lock` (root) | **done** (20 US-4) — the root `pyproject.toml` is a virtual uv workspace root; one lock + one `.venv` for `engine` (and `services/api` when it lands). `ml/` was `exclude`d and kept its own; it has since left for `lugh`, so there is one workspace. |
 
 ## 5. Target runtime architecture
 
@@ -136,9 +142,9 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 
 - **Rewrite scale (~72k LOC).** *Mitigation:* phased via Chief — parity harness first (foundation band), port in vertical slices each gated by `verify.sh`, keep the old server runnable until full parity, single rehearsed cutover with rollback.
 - **Client contract drift.** The 111k-LOC React app depends on exact API shapes. *Mitigation:* the Phase-0 OpenAPI/contract capture + contract tests the Python routes must satisfy.
-- **Losing the Python test net during moves.** *Mitigation:* the engine's 1,922 tests move with it; run them after every relocation (watch the skip count, per the `ml/CLAUDE.md` silent-SKIP lesson).
+- **Losing the Python test net during moves.** *Mitigation:* the engine's 1,922 tests move with it; run them after every relocation (watch the skip count, per the silent-SKIP lesson the `ml/` workspace taught — a gate that vanishes looks exactly like a gate that passes).
 - **Reorg breaking hardcoded paths.** *Mitigation:* the rewrite replaces the readers, so relocation is deliberate, not incidental; `contracts/` bindings are generated, not path-joined ad hoc.
-- **Two-lockfile / env bleed.** *Mitigation:* a `uv` workspace ties `pinakes` + `pinakes_engine`; `ml/` stays its own workspace so torch never enters the web env.
+- **Two-lockfile / env bleed.** *Mitigation:* a `uv` workspace ties `pinakes` + `pinakes_engine`; the torch stack is in a different repo entirely (`lugh`), so it cannot enter the web env.
 
 ## 9. Concrete first steps (Phase 0)
 1. Remove DVC + Drizzle/pg (safe, independent, immediate clutter reduction).

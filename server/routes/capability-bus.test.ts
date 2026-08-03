@@ -240,7 +240,7 @@ describe("capability-bus routes (signing configured)", () => {
 
       const status = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
       expect(status.signed).toBe(true);
-      expect(status.manifestVersion).toBe("0.3.0");
+      expect(status.manifestVersion).toBe("0.3.1");
     } finally {
       await close();
     }

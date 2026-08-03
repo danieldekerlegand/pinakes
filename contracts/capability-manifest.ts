@@ -120,7 +120,8 @@ export interface CapabilitySurface {
   readonly method: "GET" | "POST";
   /** Server-relative route path, e.g. `/api/graph/resolve`. */
   readonly path: string;
-  /** Repo-relative path of the merged code that implements it. */
+  /** Repo-relative path of the merged code that implements it, or a `lugh:`-qualified
+   * pointer when the implementation lives in the private lugh repo (the KFT trainer). */
   readonly implementation: string;
   readonly description: string;
   /** Absolute URL — present only on a manifest built for an origin. */
@@ -145,7 +146,11 @@ export interface CapabilitySpecialization {
   readonly domains: readonly string[];
   /** The general sibling a non-matching job belongs to. */
   readonly general_provider?: string;
-  /** Repo-relative path of the admission code that enforces all of the above. */
+  /**
+   * Pointer to the admission code that enforces all of the above. A `lugh:` prefix
+   * means the private lugh repo (`lugh:pinakes-train-slm`), not a path in this repo —
+   * the trainer was extracted by 90-extract-lugh.
+   */
   readonly admission?: string;
   readonly description?: string;
 }
@@ -361,10 +366,10 @@ function entityPortWith(ports: readonly Port[], type: string): EntityPort | unde
  * program (§9/FT-K) assigns Pinakes: a NARROW provider, not a general trainer.
  *
  * The point of the extra checks is that a `finetune` entry which quietly widened —
- * a second modality, a `full`/`dpo` method the `ml/` admission code refuses, an
+ * a second modality, a `full`/`dpo` method lugh's admission code refuses, an
  * `exportable` egress the §4.2 gate would never grant — would make the registry
  * route jobs here that admission then rejects. Validate the advertisement against
- * what `ml/src/pinakes_ml/kft.py` actually admits.
+ * what lugh's `pinakes-train-slm --kft-job` admission actually admits.
  */
 function assertFinetuneCapability(cap: Capability): void {
   const where = `capability "${cap.name}"`;

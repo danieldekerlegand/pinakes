@@ -8,28 +8,37 @@ import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 
 /**
- * KCB describe → invoke → subscribe against the **real `ml/` runner** (90-US-4).
+ * KCB describe → invoke → subscribe against the **real lugh runner** (90-US-4).
  *
  * Every other spec for this capability drives the wrapper with an injected
  * {@link FinetuneRunner}; this one does not. It shells out to the actual console script
- * (`uv run --project ml pinakes-train-slm --kft-job …`) through
+ * (`uv run --project $LUGH_ROOT pinakes-train-slm --kft-job …`) through
  * {@link createLiveFinetuneRunner}, which is the only way to prove that the argv the
  * wrapper builds, the exit codes it branches on, and the two files it reads back are the
- * contract `ml/` actually implements — a fake runner can only prove the wrapper is
+ * contract lugh actually implements — a fake runner can only prove the wrapper is
  * self-consistent.
  *
- * It needs **no heavy deps and no GPU**: the run goes through the injectable `--stub`
- * model seam (`ml/src/pinakes_ml/slm_finetune.py` `stub_trainer` / `stub_model_factory`),
- * which is the same seam `ml/`'s own CI exercises. A stub run takes well under a second.
+ * **The runner left this repo** (90-extract-lugh US-2): it lives in the private `lugh`
+ * repo now, so the live leg runs only where that checkout exists (`LUGH_ROOT`, else
+ * `~/Development/lugh` — the `KOINE_ROOT` sibling-checkout convention). A plain pinakes
+ * checkout skips it. What that costs is real and worth naming: the cross-repo argv/exit-code
+ * contract can no longer be proven from inside pinakes on every run. What still fails
+ * loudly here, unconditionally, is everything pinakes itself owns — the manifest's pointer
+ * into lugh and the wrapper's checkout resolution (the `LUGH_ROOT` handshake). The
+ * *runner's* side of the contract is lugh's to gate, in its own suite.
  *
- * **What a stub run legitimately does NOT produce: weight bytes.** `kft_run.mint_weight_assets`
- * content-addresses files that exist, so a stub run mints the model entity and reports
- * `pendingExports: [adapter, merged-fp16, gguf]` with **zero** assets rather than
- * fabricating placeholder ids (`ml/CLAUDE.md` — "nothing is minted for bytes that do not
- * exist"). So the assertions below pin the minted **model entity id** and the fact that the
- * GGUF asset is reported *pending*; the populated-asset shape of the terminal payload is
- * pinned in `finetune-provider.test.ts`, where a fake runner can hand back the outcome a
- * real `pinakes-export-gguf` produces without inventing a 2 GB file.
+ * It needs **no heavy deps and no GPU**: the run goes through lugh's injectable `--stub`
+ * model seam (`stub_trainer` / `stub_model_factory`), the same seam lugh's own CI
+ * exercises. A stub run takes well under a second.
+ *
+ * **What a stub run legitimately does NOT produce: weight bytes.** lugh's weight-asset
+ * minting content-addresses files that exist, so a stub run mints the model entity and
+ * reports `pendingExports: [adapter, merged-fp16, gguf]` with **zero** assets rather than
+ * fabricating placeholder ids ("nothing is minted for bytes that do not exist"). So the
+ * assertions below pin the minted **model entity id** and the fact that the GGUF asset is
+ * reported *pending*; the populated-asset shape of the terminal payload is pinned in
+ * `finetune-provider.test.ts`, where a fake runner can hand back the outcome a real GGUF
+ * export produces without inventing a 2 GB file.
  */
 import {
   createLiveFinetuneRunner,
@@ -45,16 +54,13 @@ import { registerCapabilityBusRoutes } from "../routes/capability-bus";
 import { CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
 
 const REPO_ROOT = process.cwd();
-const ML_ROOT = join(REPO_ROOT, "ml");
-const GOLDEN_JOB = join(ML_ROOT, "fixtures", "kft", "finetune-job.json");
-const RUNNER_MODULE = join(ML_ROOT, "src", "pinakes_ml", "train_slm.py");
+const LUGH_ROOT = loadFinetuneConfig(process.env, REPO_ROOT).lughRoot;
+const GOLDEN_JOB = join(LUGH_ROOT, "fixtures", "kft", "finetune-job.json");
 
 /**
- * Whether the `ml/` workspace can actually be driven here. `uv` is not a dependency of
- * the web app, so a checkout without it skips the live leg — but see the guard test
- * below: everything that could *rot* (paths, the console-script entry) is asserted
- * unconditionally, so a relocation fails loudly instead of silently vanishing into a
- * skip (the `ml/CLAUDE.md` "a stale path is a permanent SKIP, not a failure" gotcha).
+ * Whether the lugh workspace can actually be driven here. `uv` is not a dependency of
+ * the web app and lugh is a separate private repo, so a checkout without either skips
+ * the live leg — see the guard test below for what is asserted regardless.
  */
 function uvIsAvailable(): boolean {
   try {
@@ -64,26 +70,33 @@ function uvIsAvailable(): boolean {
   }
 }
 
-const LIVE = uvIsAvailable() && existsSync(RUNNER_MODULE);
+const LIVE = uvIsAvailable() && existsSync(GOLDEN_JOB);
 
-describe("the ml/ runner the wrapper dispatches to", () => {
-  it("is where the manifest says it is, and is a declared console script", () => {
-    expect(existsSync(RUNNER_MODULE)).toBe(true);
-    expect(existsSync(GOLDEN_JOB)).toBe(true);
-    const pyproject = readFileSync(join(ML_ROOT, "pyproject.toml"), "utf-8");
-    expect(pyproject).toContain('pinakes-train-slm = "pinakes_ml.train_slm:main"');
-    // The capability advertises that module by path; a move that broke this would make
-    // the manifest point at nothing (the `x_surfaces` wrapper invariant).
+describe("the lugh runner the wrapper dispatches to", () => {
+  it("is named as a lugh pointer on the manifest, not as a path in this repo", () => {
+    // The trainer left pinakes; an advertisement still pointing at `ml/…` would send a
+    // registry at a directory that no longer exists (the `x_surfaces` wrapper invariant).
     const finetune = CAPABILITY_MANIFEST.capabilities.find((c) => c.name === "finetune");
-    expect(finetune?.x_surfaces.map((s) => s.implementation)).toContain(
-      "ml/src/pinakes_ml/train_slm.py",
-    );
-    expect(finetune?.x_specialization?.admission).toBe("ml/src/pinakes_ml/kft.py");
-    expect(existsSync(join(REPO_ROOT, finetune!.x_specialization!.admission!))).toBe(true);
+    expect(finetune?.x_surfaces.map((s) => s.implementation)).toContain("lugh:pinakes-train-slm");
+    expect(finetune?.x_specialization?.admission).toBe("lugh:pinakes-train-slm");
+    for (const surface of finetune!.x_surfaces) {
+      // Every non-lugh surface must still resolve inside this repo.
+      if (surface.implementation.startsWith("lugh:")) continue;
+      expect(existsSync(join(REPO_ROOT, surface.implementation))).toBe(true);
+    }
+  });
+
+  it("resolves that checkout from LUGH_ROOT, and writes run dirs on the pinakes side", () => {
+    // The `LUGH_ROOT` handshake is the only part of the cross-repo dispatch pinakes owns,
+    // so it is asserted unconditionally — a silent rename here would leave the live leg
+    // permanently skipped instead of failing.
+    const config = loadFinetuneConfig({ LUGH_ROOT: "/elsewhere/lugh" }, REPO_ROOT);
+    expect(config.lughRoot).toBe("/elsewhere/lugh");
+    expect(config.artifactsRoot.startsWith(REPO_ROOT)).toBe(true);
   });
 });
 
-describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real ml/ runner, --stub)", () => {
+describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner, --stub)", () => {
   let artifactsRoot: string;
   let config: FinetuneConfig;
   let baseUrl: string;
@@ -91,7 +104,7 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real ml/ runner, 
 
   beforeAll(async () => {
     artifactsRoot = mkdtempSync(join(tmpdir(), "pinakes-kft-"));
-    config = { ...loadFinetuneConfig({}, REPO_ROOT), artifactsRoot, stub: true, timeoutMs: 600_000 };
+    config = { ...loadFinetuneConfig(process.env, REPO_ROOT), artifactsRoot, stub: true, timeoutMs: 600_000 };
     const app: Express = express();
     app.use(express.json());
     registerCapabilityBusRoutes(app, { origin: null, publish: async () => ({
@@ -176,7 +189,7 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real ml/ runner, 
       expect(event.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     }
     // The stub reports the schedule it really ran and NO loss — a fabricated curve is
-    // exactly what §6 exists to replace (ml/CLAUDE.md).
+    // exactly what §6 exists to replace.
     const train = events.filter((e) => e.kind === "train");
     expect(train.map((e) => e.step)).toEqual(train.map((_, i) => i + 1));
     for (const e of train) expect(e.metrics.train_loss).toBeUndefined();

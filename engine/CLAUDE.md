@@ -18,7 +18,8 @@ contract value here, import it; do not copy it in and pin it with a test.
 
 Two things the rename deliberately did **not** touch:
 
-- **The `cs:` id-space** — a data namespace shared with `contracts/`, `ml/` and the
+- **The `cs:` id-space** — a data namespace shared with `contracts/`, the private `lugh`
+  repo and the
   client, not a package name. Changing it is a corpus migration, not a move.
 - **The Datalog banner `culture-scrape — …`** in `datalog/{prolog,problog,souffle}.py`
   and the parity goldens. It is a byte-for-byte contract with the vendored agora
@@ -55,8 +56,9 @@ consequences:
   (`vendor/…whl`); uv rebases it to `engine/vendor/…whl` in the root lock itself.
   Do not "fix" that path by hand.
 
-`ml/` is deliberately NOT a member (`exclude = ["ml"]`) — it keeps its own
-`ml/uv.lock` + `ml/.venv` so torch/pykeen never enter this environment.
+The torch/pykeen ML workspace that used to sit at `ml/` (its own uv.lock + .venv,
+deliberately excluded from this workspace) is gone — it was extracted into the private
+`lugh` repo (`docs/LUGH-EXTRACTION-PLAN.md`). Nothing here depended on it.
 
 ## GOTCHA — this package sits ONE level below the repo root
 

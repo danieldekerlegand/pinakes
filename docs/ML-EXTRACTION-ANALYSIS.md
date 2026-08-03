@@ -1,5 +1,13 @@
 # Should `ml/` become its own repo? — extract-vs-keep analysis
 
+> **RESOLVED — `ml/` was extracted.** This document is the historical *why*; the answer it
+> reaches ("yes, extract, but stage it") was executed by `tasks/chief/90-extract-lugh.json`.
+> The workspace now lives in the **private `lugh` repo** as the specialized, local-only KFT
+> provider `lugh:agent:finetune` (44 commits of `ml/` history preserved via `git subtree
+> split`). The *how*, and the follow-on cross-repo program, are in
+> [LUGH-EXTRACTION-PLAN.md](LUGH-EXTRACTION-PLAN.md). Paths below that read `ml/…` refer to
+> the pre-extraction tree; their live counterparts are at the root of lugh.
+
 > **Stale on DVC.** Written before the flatten's Phase 0 removed DVC. The
 > `dvc-storage` remote referenced below no longer exists and the `*.dvc`
 > pointers are deleted, so the "shared DVC remote" option costs a fresh setup
@@ -107,14 +115,18 @@ If those four are acceptable, extraction is clean and one-directional. The estab
    resolving via an env/config override instead of a repo-relative path.
 3. **Vendor the 3 contract files** with drift-failing tests (mirror the existing koine-mirror
    pattern in `scripts/regen-registry-mirror.ts`).
-4. **Move `ml/` + its DVC pointers** (`ml/data.dvc`, `ml/models.dvc`) into the new repo; wire
-   its `uv` CI (remember `uv sync --extra dev` — the gap this session hit).
+4. **Move `ml/`** into the new repo; wire its `uv` CI (remember `uv sync --extra dev` — the
+   gap this session hit). *(Done — the DVC pointers were already deleted by the flatten's
+   Phase 0, so only the workspace itself moved.)*
 5. **Register it as a fabric peer** (KCB provider / KFT provider) so Insimul dials it directly,
    per ADR-0001 — no code in Pinakes should import it.
 6. **Leave a stub/pointer** in Pinakes docs (README + ECOSYSTEM) naming the new repo as the
-   training consumer.
+   training consumer. *(Done — README, `docs/capability-bus.md`, and this banner.)*
 
 ## Decision checklist
+
+*(Settled in favour of "extract now" — the schema is codegen'd + drift-gated since flatten
+tasklist 40, which is what tipped it. Kept for the reasoning.)*
 
 - Extract **now** if: the schema + rules registry are stable, and you want Pinakes to be purely
   the data hub.

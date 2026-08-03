@@ -12,7 +12,7 @@
  *   - `resolve`   → `server/services/graph-resolver.ts` (`GET /api/graph/resolve`)
  *   - `reconcile` → the pinakes-engine acquisition job (`POST /api/scraping/engine`)
  *   - `query`     → the sidecar Datalog console (`POST /api/graph/datalog`)
- *   - `finetune` / `finetune_subscribe` → the `ml/` QLoRA pipeline via
+ *   - `finetune` / `finetune_subscribe` → lugh's QLoRA pipeline via
  *     `server/services/finetune-provider.ts` (90-US-3), which shells out to the
  *     already-built `pinakes-train-slm --kft-job` console script
  * — nothing here reimplements a resolver, a reconciler or a trainer. The tool
@@ -21,7 +21,7 @@
  *
  * `finetune` is KFT's async pair (`koine/specs/fine-tuning.md` §6): `finetune`
  * *invokes* (returns a run handle immediately) and `finetune_subscribe` *streams* the
- * training-telemetry to the terminal event. It is advertised whether or not the `ml/`
+ * training-telemetry to the terminal event. It is advertised whether or not the lugh
  * runner is reachable — an unreachable runner degrades to an actionable tool error,
  * the same optional-env shape as `GEONAMES_USERNAME` / `KCB_REGISTRY_URL`.
  *
@@ -90,7 +90,7 @@ export interface McpToolHandlers {
   resolve(ref: EntityRef): Promise<unknown> | unknown;
   reconcile(input: ReconcileToolInput): Promise<unknown> | unknown;
   query(input: QueryToolInput): Promise<unknown> | unknown;
-  /** KFT `invoke` — start an async run on the `ml/` pipeline (KFT §6). */
+  /** KFT `invoke` — start an async run on the lugh pipeline (KFT §6). */
   finetune(input: FinetuneInvokeInput): Promise<unknown> | unknown;
   /** KFT `subscribe` — stream one run's training-telemetry (KFT §6). */
   finetuneSubscribe(input: FinetuneSubscribeInput): Promise<unknown> | unknown;
@@ -261,9 +261,9 @@ export const liveMcpToolHandlers: McpToolHandlers = {
   resolve: liveResolve,
   reconcile: liveReconcile,
   query: liveQuery,
-  // `finetune`/`finetune_subscribe` dispatch to the ml/ workspace. Both are thin
+  // `finetune`/`finetune_subscribe` dispatch to the lugh workspace. Both are thin
   // pass-throughs on purpose: the provider service owns the subprocess boundary and
-  // the run store, and `ml/` owns admission and training.
+  // the run store, and lugh owns admission and training.
   finetune: (input) => startFinetune(input),
   finetuneSubscribe: (input) => subscribeFinetune(input),
 };
@@ -371,7 +371,7 @@ export function buildMcpServer(handlers: McpToolHandlers): McpServer {
         .record(z.string(), z.unknown())
         .describe(
           "The KFT finetune-job manifest (koine/schemas/finetune-job.schema.json). " +
-            "Admitted by ml/src/pinakes_ml/kft.py; a job outside this provider's " +
+            "Admitted by lugh's pinakes-train-slm; a job outside this provider's " +
             "specialization, or one naming cross-boundary compute, is refused with a report.",
         ),
       stub: z

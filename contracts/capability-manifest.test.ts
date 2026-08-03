@@ -262,7 +262,7 @@ describe("assertValidCapabilityManifest", () => {
 
 /**
  * The KFT `finetune` capability (90-US-3). What these pin is not "the JSON has a
- * finetune entry" but that the ADVERTISEMENT matches what `ml/src/pinakes_ml/kft.py`
+ * finetune entry" but that the ADVERTISEMENT matches what lugh's admission gate
  * actually admits — a manifest that quietly widened (a second modality, a `full`/`dpo`
  * method, an `exportable` egress) would make the registry route jobs here that
  * admission then refuses, which is exactly the failure FT-K's tiebreak exists to avoid.
@@ -314,14 +314,16 @@ describe("the specialized KFT finetune capability", () => {
     expect(spec.domains).toContain("neurosymbolic");
     // …and it names the general sibling a non-matching job belongs to.
     expect(spec.general_provider).toContain("agora");
-    expect(spec.admission).toBe("ml/src/pinakes_ml/kft.py");
+    // The trainer lives in the private lugh repo now (90-extract-lugh), so the pointer
+    // is repo-qualified rather than a path in this checkout.
+    expect(spec.admission).toBe("lugh:pinakes-train-slm");
     // The three §6 capabilities are unspecialized — the marker is what distinguishes.
     for (const name of CAPABILITY_NAMES) expect(capabilitySpecialization(name)).toBeUndefined();
   });
 
-  it("wraps the already-built ml/ trainer rather than declaring new training code", () => {
+  it("wraps the already-built lugh trainer rather than declaring new training code", () => {
     const implementations = finetuneCapability()!.x_surfaces.map((s) => s.implementation);
-    expect(implementations).toContain("ml/src/pinakes_ml/train_slm.py");
+    expect(implementations).toContain("lugh:pinakes-train-slm");
     expect(implementations).toContain("server/services/finetune-provider.ts");
   });
 

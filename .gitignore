@@ -1,8 +1,7 @@
 node_modules
 dist
 .DS_Store
-# uv workspace root (pyproject.toml + uv.lock). All members share ONE venv here;
-# `ml/` is a separate workspace and ignores its own via ml/.gitignore.
+# uv workspace root (pyproject.toml + uv.lock). All members share ONE venv here.
 .venv/
 .pytest_cache/
 .mypy_cache/
@@ -30,6 +29,8 @@ data/runtime/stewardship/
 data/runtime/changelog/
 # US-011 living dataset — runtime state (ingestion timestamps + release history)
 data/runtime/living-dataset/
+# 90-US-2 KFT run dirs — the finetune wrapper's telemetry/run records (lugh writes here)
+data/runtime/finetune/
 # US-... contributions — runtime queue (samples archived under data/archive/)
 data/runtime/contributions/
 # US-3 target-layout skeleton — build/ holds regenerable outputs only (docs/UNIFIED-PROJECT-PLAN.md §4).

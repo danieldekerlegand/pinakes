@@ -2,18 +2,25 @@
  * The KCB `finetune` capability's invoke/subscribe surface (90-US-3).
  *
  * KFT (`koine/specs/fine-tuning.md`) is deliberately **multi-provider** (§9, FT-K):
- * agora hosts the *general* trainer, and Pinakes runs its **own specialized**
- * `finetune` provider over the already-built `ml/` uv workspace. This module is that
- * provider's app-side front — and it is a **SURFACE WRAPPER, nothing more**
- * (`contracts/CLAUDE.md`): an `invoke` shells out to the already-built console script
+ * agora hosts the *general* trainer, and Pinakes fronts the **specialized** `finetune`
+ * provider whose trainer now lives in the private **`lugh`** repo (extracted from this
+ * repo's `ml/` workspace by 90-extract-lugh — `docs/LUGH-EXTRACTION-PLAN.md`). This
+ * module is that provider's app-side front — and it is a **SURFACE WRAPPER, nothing
+ * more** (`contracts/CLAUDE.md`): an `invoke` shells out to the already-built console
+ * script in that sibling checkout
  *
- *     uv run --project ml pinakes-train-slm --kft-job <manifest> --output-dir <run>
+ *     uv run --project $LUGH_ROOT pinakes-train-slm --kft-job <manifest> --output-dir <run>
  *
  * and reads back the artifacts that script already writes — `kft-telemetry.jsonl`
  * (the KFT §6 training-telemetry stream) and `kft-run.json` (the §5 minted model +
- * KMI weight assets). **No training logic lives here**; `ml/src/pinakes_ml/` stays
- * the sole trainer, `ml/src/pinakes_ml/kft.py` stays the sole admission gate, and the
+ * KMI weight assets). **No training logic lives here**; lugh stays the sole trainer,
+ * its `pinakes-train-slm --kft-job` admission stays the sole admission gate, and the
  * TS side never decides whether a job is admissible.
+ *
+ * **This advertisement is transitional.** Once `lugh:30-kft-provider-manifest` publishes
+ * lugh's own KCB manifest as `lugh:agent:finetune`, the fabric routes to lugh directly
+ * and this wrapper (plus the manifest's `finetune` entry) is retired. Until then Pinakes
+ * keeps advertising it so the ecosystem is never left with no finetune provider.
  *
  * The runner's contract, fixed by 90-US-1/US-2 and relied on here:
  *   - exit **0** — the run completed; telemetry + run record are on disk;
@@ -24,9 +31,11 @@
  *
  * **Optional-env degrade** (the `GEONAMES_USERNAME` / `KCB_REGISTRY_URL` shape): the
  * capability is *always advertised* on the manifest, and a dispatch that cannot reach
- * the `ml/` runner returns an actionable {@link FinetuneUnavailableError} rather than
- * crashing the server. `PINAKES_FINETUNE_ENABLED=0` turns the invoke surface off the
- * same way — advertised, not invocable, with a message that says why.
+ * the lugh runner — no checkout, no `uv`, no training stack — returns an actionable
+ * {@link FinetuneUnavailableError} rather than crashing the server. That degrade is now
+ * the *default* posture: lugh is a separate private repo, so a plain pinakes checkout has
+ * no runner. `PINAKES_FINETUNE_ENABLED=0` turns the invoke surface off the same way —
+ * advertised, not invocable, with a message that says why.
  *
  * Everything network/subprocess-shaped sits behind the injectable {@link FinetuneRunner}
  * (the `engine-acquisition.ts` pattern), so the whole invoke→subscribe path is
@@ -34,7 +43,9 @@
  */
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
 /** The capability name this service fronts (mirrors the manifest entry). */
@@ -59,7 +70,7 @@ export type FinetuneState = "pending" | "running" | "succeeded" | "failed" | "ca
 export const TERMINAL_STATES: readonly FinetuneState[] = ["succeeded", "failed", "canceled"];
 
 /**
- * One KFT §6 training-telemetry event, exactly as `pinakes_ml.kft_run` emits it.
+ * One KFT §6 training-telemetry event, exactly as lugh's KFT run layer emits it.
  * `eventId` (`<job>#<kind>:<step>`) is the content address a consumer dedups on —
  * `job`+`step` alone is not unique here, because the eval and terminal events share
  * the final step.
@@ -89,7 +100,7 @@ export interface FinetuneRunRecord {
   readonly unsupportedExports?: readonly string[];
 }
 
-/** A KFT admission refusal report (`pinakes_ml.kft.JobRejected.report`). */
+/** A KFT admission refusal report (lugh's `JobRejected.report`). */
 export interface RefusalReport {
   readonly rejected: true;
   readonly code: string;
@@ -100,7 +111,7 @@ export interface RefusalReport {
 }
 
 /**
- * The `ml/` runner could not be reached or is switched off — the degrade path. The
+ * The lugh runner could not be reached or is switched off — the degrade path. The
  * capability stays advertised; the message tells the caller how to make it invocable.
  */
 export class FinetuneUnavailableError extends Error {
@@ -110,7 +121,7 @@ export class FinetuneUnavailableError extends Error {
   }
 }
 
-/** The job was refused **at admission** by `ml/`, before any compute (KFT §3.1/§4.2). */
+/** The job was refused **at admission** by lugh, before any compute (KFT §3.1/§4.2). */
 export class FinetuneRefusedError extends Error {
   readonly report: RefusalReport;
   constructor(report: RefusalReport) {
@@ -133,8 +144,8 @@ export class FinetuneRunNotFoundError extends Error {
 export interface FinetuneConfig {
   /** Whether an invoke may dispatch. False ⇒ advertised but not invocable. */
   readonly enabled: boolean;
-  /** The `ml/` uv workspace root the console script lives in. */
-  readonly mlRoot: string;
+  /** The **lugh** checkout (a sibling repo) whose uv workspace holds the console script. */
+  readonly lughRoot: string;
   /** The `uv` binary that runs it. */
   readonly uv: string;
   /** Where run dirs are created (git-ignored; the runner writes only here). */
@@ -147,6 +158,13 @@ export interface FinetuneConfig {
 
 const DEFAULT_TIMEOUT_MS = 3_600_000;
 
+/**
+ * Where the lugh checkout is looked for when `LUGH_ROOT` is unset — the same
+ * sibling-checkout resolution `KOINE_ROOT` uses (`scripts/regen-registry-mirror.ts`).
+ * lugh is private, so this path is absent on most checkouts and the invoke degrades.
+ */
+export const DEFAULT_LUGH_ROOT = join(homedir(), "Development", "lugh");
+
 function truthy(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined || value.trim() === "") return fallback;
   return !["0", "false", "no", "off"].includes(value.trim().toLowerCase());
@@ -155,23 +173,26 @@ function truthy(value: string | undefined, fallback: boolean): boolean {
 /**
  * Read the finetune surface's configuration from the environment.
  *
- * Every value has a working default, so the capability is invocable out of the box in
- * a checkout that has the `ml/` workspace synced — and `PINAKES_FINETUNE_ENABLED=0`
- * is the single switch an operator flips to advertise-only.
+ * Every value has a working default, so the capability is invocable out of the box on a
+ * machine that has the lugh checkout synced beside pinakes — and
+ * `PINAKES_FINETUNE_ENABLED=0` is the single switch an operator flips to advertise-only.
+ *
+ * **Run dirs stay on the pinakes side** (`data/runtime/finetune/`, git-ignored). The
+ * wrapper reads lugh but never writes into that checkout — a foreign working tree is not
+ * ours to dirty.
  */
 export function loadFinetuneConfig(
   env: NodeJS.ProcessEnv = process.env,
   repoRoot: string = process.cwd(),
 ): FinetuneConfig {
-  const mlRoot = env.PINAKES_ML_DIR ? resolve(env.PINAKES_ML_DIR) : join(repoRoot, "ml");
   const timeout = Number(env.PINAKES_FINETUNE_TIMEOUT_MS);
   return {
     enabled: truthy(env.PINAKES_FINETUNE_ENABLED, true),
-    mlRoot,
+    lughRoot: env.LUGH_ROOT ? resolve(env.LUGH_ROOT) : DEFAULT_LUGH_ROOT,
     uv: env.PINAKES_FINETUNE_UV || "uv",
     artifactsRoot: env.PINAKES_FINETUNE_ARTIFACTS
       ? resolve(env.PINAKES_FINETUNE_ARTIFACTS)
-      : join(mlRoot, "artifacts", "kcb"),
+      : join(repoRoot, "data", "runtime", "finetune"),
     stub: truthy(env.PINAKES_FINETUNE_STUB, false),
     timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : DEFAULT_TIMEOUT_MS,
   };
@@ -233,9 +254,9 @@ function execute(
       rejectPromise(
         error.code === "ENOENT"
           ? new FinetuneUnavailableError(
-              `the ml/ finetune runner is unreachable: "${command}" was not found. ` +
-                "Install uv (https://docs.astral.sh/uv/) and sync the workspace " +
-                "(`uv sync --project ml`), or set PINAKES_FINETUNE_UV / " +
+              `the lugh finetune runner is unreachable: "${command}" was not found. ` +
+                "Install uv (https://docs.astral.sh/uv/) and sync the lugh workspace " +
+                "(`uv sync --extra dev` in your lugh checkout), or set PINAKES_FINETUNE_UV / " +
                 "PINAKES_FINETUNE_ENABLED=0 to advertise the capability without dispatching.",
             )
           : error,
@@ -279,13 +300,25 @@ export function parseTelemetryJsonl(text: string): TelemetryEvent[] {
 }
 
 /**
- * The live runner: write the manifest, shell out to `pinakes-train-slm --kft-job`,
+ * The live runner: write the manifest, shell out to lugh's `pinakes-train-slm --kft-job`,
  * read back the telemetry + run record it wrote. That console script is the whole
  * implementation — this function adds no training behaviour of its own.
+ *
+ * The **checkout** is checked before anything is spawned: lugh is a separate private
+ * repo, so "not cloned here" is the ordinary case and deserves the actionable degrade
+ * message rather than a bare non-zero uv exit.
  */
 export function createLiveFinetuneRunner(config: FinetuneConfig): FinetuneRunner {
   return {
     async run({ manifest, runDir, stub }: FinetuneRunInput): Promise<FinetuneRunOutcome> {
+      if (!existsSync(config.lughRoot)) {
+        throw new FinetuneUnavailableError(
+          `the lugh finetune runner is unreachable: no checkout at ${config.lughRoot}. ` +
+            "The trainer lives in the private repo `lugh` (github.com/danieldekerlegand/lugh) — " +
+            "clone it and point LUGH_ROOT at it, or set PINAKES_FINETUNE_ENABLED=0 to " +
+            "advertise the capability without dispatching.",
+        );
+      }
       await mkdir(runDir, { recursive: true });
       const manifestPath = join(runDir, JOB_MANIFEST_FILE);
       await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf-8");
@@ -293,20 +326,20 @@ export function createLiveFinetuneRunner(config: FinetuneConfig): FinetuneRunner
       const args = [
         "run",
         "--project",
-        config.mlRoot,
+        config.lughRoot,
         "pinakes-train-slm",
         "--kft-job",
         manifestPath,
         "--output-dir",
         runDir,
-        // The KCB surface owns neither the MLflow store nor docs/ml-baselines.md.
+        // The KCB surface owns neither the MLflow store nor lugh's baselines doc.
         "--no-mlflow",
         "--no-doc",
       ];
       if (stub) args.push("--stub");
 
       const outcome = await execute(config.uv, args, {
-        cwd: config.mlRoot,
+        cwd: config.lughRoot,
         timeoutMs: config.timeoutMs,
       });
 
@@ -317,13 +350,13 @@ export function createLiveFinetuneRunner(config: FinetuneConfig): FinetuneRunner
         const detail = `${outcome.stderr}\n${outcome.stdout}`.trim();
         if (isMissingTrainingStack(detail)) {
           throw new FinetuneUnavailableError(
-            "the ml/ training stack is not installed — trl/peft/accelerate are " +
-              "deliberately undeclared dependencies (ml/CLAUDE.md). Install them " +
+            "the lugh training stack is not installed — trl/peft/accelerate are " +
+              "deliberately undeclared dependencies there. Install them " +
               "(`uv pip install trl peft accelerate`) or invoke with `stub: true` " +
               `to run the pipeline against the injectable stub model. Runner said: ${detail}`,
           );
         }
-        throw new Error(`the ml/ finetune runner exited ${outcome.code}: ${detail}`);
+        throw new Error(`the lugh finetune runner exited ${outcome.code}: ${detail}`);
       }
 
       const telemetry = parseTelemetryJsonl(
@@ -352,7 +385,7 @@ export interface FinetuneRun {
   readonly events: readonly TelemetryEvent[];
   /** Set once the run settles successfully. */
   readonly runRecord?: FinetuneRunRecord;
-  /** Set when `ml/` refused the job at admission (KFT §3.1/§4.2). */
+  /** Set when lugh refused the job at admission (KFT §3.1/§4.2). */
   readonly report?: RefusalReport;
   /** Set when the dispatch itself failed (runner unreachable, crash, timeout). */
   readonly error?: string;
@@ -379,7 +412,7 @@ function frozen(run: MutableRun): FinetuneRun {
  * In-memory registry of dispatched runs plus the `subscribe` fan-out.
  *
  * Deliberately not persisted: a run handle is only meaningful while the dispatching
- * process lives, and the durable record is the run dir the `ml/` runner wrote
+ * process lives, and the durable record is the run dir the lugh runner wrote
  * (`kft-run.json` + `kft-telemetry.jsonl`) — the same stance `jobStore` takes for
  * acquisition jobs.
  */
@@ -514,7 +547,7 @@ export interface FinetuneDeps {
 /**
  * The KINP activity id a job is keyed by — the ONE thing read out of the manifest
  * app-side. Every other admission rule (specialization, the §4.2 egress gate,
- * hyperparameter validation) belongs to `ml/src/pinakes_ml/kft.py` and is not
+ * hyperparameter validation) belongs to lugh's admission gate and is not
  * duplicated here; a manifest that gets past this check and is then refused is
  * exactly the intended flow.
  */
@@ -548,7 +581,7 @@ function terminalStateOf(events: readonly TelemetryEvent[]): FinetuneState {
 
 /**
  * Start a KFT run: validate we can address it, register the handle, and dispatch to
- * the `ml/` runner **fire-and-forget** (KFT §6 — `invoke` begins an *async* run, and
+ * the lugh runner **fire-and-forget** (KFT §6 — `invoke` begins an *async* run, and
  * a consumer follows it with `subscribe`). Returns as soon as the handle exists.
  *
  * Throws {@link FinetuneUnavailableError} when the surface is switched off and
