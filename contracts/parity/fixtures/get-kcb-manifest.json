@@ -1,0 +1,511 @@
+{
+  "id": "get-kcb-manifest",
+  "description": "Koine capability-bus manifest served on the API path.",
+  "request": {
+    "method": "GET",
+    "path": "/api/kcb/manifest",
+    "route": "/api/kcb/manifest"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "kcb_version": {
+          "kind": "string"
+        },
+        "identity": {
+          "kind": "string"
+        },
+        "x_pinakes": {
+          "kind": "object",
+          "properties": {
+            "manifestVersion": {
+              "kind": "string"
+            },
+            "title": {
+              "kind": "string"
+            },
+            "description": {
+              "kind": "string"
+            },
+            "identityIri": {
+              "kind": "string"
+            },
+            "defaultWorld": {
+              "kind": "string"
+            },
+            "wildcardEntityTypes": {
+              "kind": "string"
+            },
+            "endpointNote": {
+              "kind": "string"
+            },
+            "authNote": {
+              "kind": "string"
+            },
+            "specializationNote": {
+              "kind": "string"
+            },
+            "signingNote": {
+              "kind": "string"
+            }
+          }
+        },
+        "endpoints": {
+          "kind": "object",
+          "properties": {
+            "http": {
+              "kind": "string"
+            },
+            "manifest": {
+              "kind": "string"
+            },
+            "mcp": {
+              "kind": "string"
+            },
+            "a2a": {
+              "kind": "string"
+            }
+          }
+        },
+        "produces": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "plane": {
+                "kind": "string"
+              },
+              "dialect": {
+                "kind": "string"
+              },
+              "shape": {
+                "kind": "string"
+              },
+              "worlds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "x_produced_by": {
+                "kind": "string"
+              },
+              "description": {
+                "kind": "string"
+              },
+              "types": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              }
+            },
+            "optional": [
+              "dialect",
+              "shape",
+              "types",
+              "worlds",
+              "x_produced_by"
+            ]
+          }
+        },
+        "consumes": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "plane": {
+                "kind": "string"
+              },
+              "dialect": {
+                "kind": "string"
+              },
+              "worlds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "description": {
+                "kind": "string"
+              },
+              "types": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              }
+            },
+            "optional": [
+              "dialect",
+              "types",
+              "worlds"
+            ]
+          }
+        },
+        "capabilities": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "name": {
+                "kind": "string"
+              },
+              "description": {
+                "kind": "string"
+              },
+              "inputs": {
+                "kind": "array",
+                "items": {
+                  "kind": "object",
+                  "properties": {
+                    "plane": {
+                      "kind": "string"
+                    },
+                    "types": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "string"
+                      }
+                    },
+                    "shape": {
+                      "kind": "string"
+                    },
+                    "description": {
+                      "kind": "string"
+                    },
+                    "dialect": {
+                      "kind": "string"
+                    }
+                  },
+                  "optional": [
+                    "description",
+                    "dialect",
+                    "shape",
+                    "types"
+                  ]
+                }
+              },
+              "outputs": {
+                "kind": "array",
+                "items": {
+                  "kind": "object",
+                  "properties": {
+                    "plane": {
+                      "kind": "string"
+                    },
+                    "types": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "string"
+                      }
+                    },
+                    "dialect": {
+                      "kind": "string"
+                    },
+                    "shape": {
+                      "kind": "string"
+                    },
+                    "worlds": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "string"
+                      }
+                    },
+                    "description": {
+                      "kind": "string"
+                    },
+                    "media_types": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "string"
+                      }
+                    }
+                  },
+                  "optional": [
+                    "description",
+                    "dialect",
+                    "media_types",
+                    "shape",
+                    "types",
+                    "worlds"
+                  ]
+                }
+              },
+              "cost": {
+                "kind": "object",
+                "properties": {
+                  "tier": {
+                    "kind": "string"
+                  },
+                  "est_units": {
+                    "kind": "number"
+                  },
+                  "meter": {
+                    "kind": "string"
+                  }
+                },
+                "optional": [
+                  "meter"
+                ]
+              },
+              "x_grant": {
+                "kind": "string"
+              },
+              "x_surfaces": {
+                "kind": "array",
+                "items": {
+                  "kind": "object",
+                  "properties": {
+                    "method": {
+                      "kind": "string"
+                    },
+                    "path": {
+                      "kind": "string"
+                    },
+                    "implementation": {
+                      "kind": "string"
+                    },
+                    "description": {
+                      "kind": "string"
+                    },
+                    "url": {
+                      "kind": "string"
+                    }
+                  }
+                }
+              },
+              "x_specialization": {
+                "kind": "object",
+                "properties": {
+                  "provider_class": {
+                    "kind": "string"
+                  },
+                  "modality": {
+                    "kind": "string"
+                  },
+                  "methods": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "egress": {
+                    "kind": "string"
+                  },
+                  "domains": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "general_provider": {
+                    "kind": "string"
+                  },
+                  "admission": {
+                    "kind": "string"
+                  },
+                  "description": {
+                    "kind": "string"
+                  }
+                }
+              }
+            },
+            "optional": [
+              "x_specialization"
+            ]
+          }
+        },
+        "auth": {
+          "kind": "object",
+          "properties": {
+            "scheme": {
+              "kind": "string"
+            },
+            "grants_required": {
+              "kind": "array",
+              "items": {
+                "kind": "string"
+              }
+            }
+          }
+        },
+        "signing": {
+          "kind": "object",
+          "properties": {
+            "key_id": {
+              "kind": "null"
+            },
+            "alg": {
+              "kind": "string"
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "kcb_version": "0.2.0",
+      "identity": "pinakes:agent:resolver",
+      "x_pinakes": {
+        "manifestVersion": "0.3.0",
+        "title": "Pinakes capability manifest — the canonical resolver/producer on the Koine capability bus",
+        "description": "The KCB (`koine/specs/capability-bus.md` §2) manifest Pinakes publishes as the authority provider named in that spec's §6 per-project mapping. It is a SURFACE WRAPPER, not an implementation: every cap…",
+        "identityIri": "https://id.koine.example/agent/pinakes/resolver",
+        "defaultWorld": "pinakes:world:consensus-reality",
+        "wildcardEntityTypes": "*",
+        "endpointNote": "Pinakes fronts the KCB §6 capabilities as MCP tools at `endpoints.mcp` (`/mcp`, official `@modelcontextprotocol/sdk`) and as A2A skills on the agent-card at `endpoints.a2a` (`/.well-known/agent-card.j…",
+        "authNote": "`auth.grants_required` fixes the KCB §5 grant SHAPE only. Grant issuance and spend ceilings live in the orchestrator's workforce governance; Pinakes's own HTTP surfaces keep enforcing their existing `…",
+        "specializationNote": "KFT (`koine/specs/fine-tuning.md`) is deliberately MULTI-PROVIDER (§9, FT-K): agora hosts the *general* trainer, Pinakes runs its own NARROW, specialized `finetune` provider over the `ml/` QLoRA pipel…",
+        "signingNote": "KCB §5 says manifests SHOULD be signed. The served/published manifest is signed over a canonical serialization (`signature` excluded) by `server/services/manifest-signing.ts` (node:crypto Ed25519) whe…"
+      },
+      "endpoints": {
+        "http": "http://127.0.0.1:61468/api/kcb",
+        "manifest": "http://127.0.0.1:61468/.well-known/kcb-manifest.json",
+        "mcp": "http://127.0.0.1:61468/mcp",
+        "a2a": "http://127.0.0.1:61468/.well-known/agent-card.json"
+      },
+      "produces": [
+        {
+          "plane": "knowledge",
+          "dialect": "grounding-only",
+          "shape": "canonical-tsv",
+          "worlds": [
+            "pinakes:world:consensus-reality"
+          ],
+          "x_produced_by": "scripts/export-for-engine.ts",
+          "description": "The canonical node/edge TSV bundle — typed Neo4j-import headers from `contracts/canonical-schema.json`, csid-keyed, with the four provenance columns on every row. Grounding-only: reference data a cons…"
+        },
+        {
+          "plane": "knowledge",
+          "dialect": "grounding-only",
+          "shape": "grounding-pack",
+          "worlds": [
+            "pinakes:world:consensus-reality"
+          ],
+          "x_produced_by": "scripts/export-entity-grounding.ts",
+          "description": "The entity-grounding pack (csid, entity type, aliases, reconciliation, provenance, licence classes) in the KGP `koine/specs/grounding-pack.md` §2 envelope: content-addressed `pack_id`, `worlds`/`kind`…"
+        },
+        "…1 more"
+      ],
+      "consumes": [
+        {
+          "plane": "knowledge",
+          "dialect": "grounding-only",
+          "worlds": [
+            "pinakes:world:consensus-reality"
+          ],
+          "description": "Grounding-only knowledge from peer producers (media-analysis extraction deltas, Insimul world facts downshifted for export). Arrives through the contribution review queue, never as a live write — KCB …"
+        },
+        {
+          "plane": "entity",
+          "types": [
+            "*"
+          ],
+          "description": "Entity references to resolve or reconcile, in any canonical type."
+        }
+      ],
+      "capabilities": [
+        {
+          "name": "resolve",
+          "description": "Resolve a Pinakes entity reference (canonical node type + local `pinakes_id`, or a name) to its canonical `cs:<type>:<local>` csid — the KINP entity CURIE per `docs/canonical-schema.md` §3.1. Exact al…",
+          "inputs": [
+            {
+              "plane": "entity",
+              "types": [
+                "…"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "plane": "entity",
+              "types": [
+                "…"
+              ]
+            }
+          ],
+          "cost": {
+            "tier": "free",
+            "est_units": 0
+          },
+          "x_grant": "invoke:resolve",
+          "x_surfaces": [
+            {
+              "method": "GET",
+              "path": "/api/graph/resolve",
+              "implementation": "server/services/graph-resolver.ts",
+              "description": "Entity ref → csid, with the resolution method and confidence.",
+              "url": "http://127.0.0.1:61468/api/graph/resolve"
+            },
+            {
+              "method": "GET",
+              "path": "/api/entity/:domain/:id",
+              "implementation": "server/services/entity-resolver.ts",
+              "description": "Permanent entity id → canonical descriptor + canonical URL.",
+              "url": "http://127.0.0.1:61468/api/entity/:domain/:id"
+            }
+          ]
+        },
+        {
+          "name": "reconcile",
+          "description": "Reconcile a name-anchored row against Wikidata through the OpenRefine-style reconciliation API and, on a confident match, stamp the QID and re-mint the csid as QID-anchored — which is what collapses t…",
+          "inputs": [
+            {
+              "plane": "entity",
+              "types": [
+                "…"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "plane": "knowledge",
+              "dialect": "grounding-only",
+              "shape": "reconciliation-decision",
+              "worlds": [
+                "…"
+              ]
+            }
+          ],
+          "cost": {
+            "tier": "free",
+            "est_units": 1
+          },
+          "x_grant": "invoke:reconcile",
+          "x_surfaces": [
+            {
+              "method": "POST",
+              "path": "/api/scraping/engine",
+              "implementation": "engine/src/pinakes_engine/schema/reconcile.py",
+              "description": "Runs the Wikidata acquisition + reconciliation pipeline for one domain; every matched/ambiguous/none decision is recorded in the row's provenance and lands in the contribution review queue.",
+              "url": "http://127.0.0.1:61468/api/scraping/engine"
+            },
+            {
+              "method": "GET",
+              "path": "/api/scraping/engine/categories",
+              "implementation": "server/services/engine-acquisition.ts",
+              "description": "The reconcilable domains + their Wikidata classes (the input vocabulary for the POST above).",
+              "url": "http://127.0.0.1:61468/api/scraping/engine/categories"
+            }
+          ]
+        },
+        "…2 more"
+      ],
+      "auth": {
+        "scheme": "capability-token",
+        "grants_required": [
+          "invoke:resolve",
+          "invoke:reconcile",
+          "…2 more"
+        ]
+      },
+      "signing": {
+        "key_id": null,
+        "alg": "ed25519"
+      }
+    }
+  }
+}

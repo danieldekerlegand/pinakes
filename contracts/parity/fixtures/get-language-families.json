@@ -1,0 +1,97 @@
+{
+  "id": "get-language-families",
+  "description": "Language family list backing the family tree UI.",
+  "request": {
+    "method": "GET",
+    "path": "/api/language-families",
+    "route": "/api/language-families"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "array",
+      "items": {
+        "kind": "object",
+        "properties": {
+          "id": {
+            "kind": "string"
+          },
+          "name": {
+            "kind": "string"
+          },
+          "parentId": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "description": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "taxonomicLevel": {
+            "kind": "string"
+          },
+          "region": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "totalSpeakers": {
+            "kind": "null"
+          },
+          "languageCount": {
+            "kind": "number"
+          },
+          "source": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    "sample": [
+      {
+        "id": "sino_tibetan__sino_tibetan",
+        "name": "Sino-Tibetan",
+        "parentId": "sino_tibetan",
+        "description": "One of the largest language families in the world, primarily spoken in East Asia, Southeast Asia, and the Himalayas.",
+        "taxonomicLevel": "Family",
+        "region": "East Asia, Southeast Asia, South Asia",
+        "totalSpeakers": null,
+        "languageCount": 0,
+        "source": "scraped"
+      },
+      {
+        "id": "sino_tibetan__sinitic",
+        "name": "Sinitic",
+        "parentId": "sino_tibetan",
+        "description": "The branch containing the Chinese languages (dialects), characterized by SVO word order and tonality.",
+        "taxonomicLevel": "Subfamily",
+        "region": "Greater China, Southeast Asia",
+        "totalSpeakers": null,
+        "languageCount": 10,
+        "source": "scraped"
+      },
+      "…541 more"
+    ]
+  }
+}

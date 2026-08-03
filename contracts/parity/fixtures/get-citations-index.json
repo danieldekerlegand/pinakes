@@ -1,0 +1,42 @@
+{
+  "id": "get-citations-index",
+  "description": "Citation domains + export formats.",
+  "request": {
+    "method": "GET",
+    "path": "/api/citations",
+    "route": "/api/citations"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "domains": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "formats": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    "sample": {
+      "domains": [
+        "culture-profiles",
+        "civilizations",
+        "…2 more"
+      ],
+      "formats": [
+        "bibtex",
+        "ris",
+        "…1 more"
+      ]
+    }
+  }
+}

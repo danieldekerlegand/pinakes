@@ -1,0 +1,116 @@
+{
+  "id": "get-summaries-domain",
+  "description": "Paginated lightweight rows for one domain (progressive loading step 1).",
+  "request": {
+    "method": "GET",
+    "path": "/api/summaries/languages?limit=2&offset=0",
+    "route": "/api/summaries/:domain"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "domain": {
+          "kind": "string"
+        },
+        "fields": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "detailEndpoint": {
+          "kind": "string"
+        },
+        "summaries": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "id": {
+                "kind": "string"
+              },
+              "name": {
+                "kind": "string"
+              },
+              "nativeName": {
+                "kind": "string"
+              },
+              "iso639_1": {
+                "kind": "union",
+                "of": [
+                  {
+                    "kind": "string"
+                  },
+                  {
+                    "kind": "null"
+                  }
+                ]
+              },
+              "familyId": {
+                "kind": "string"
+              },
+              "region": {
+                "kind": "string"
+              },
+              "status": {
+                "kind": "string"
+              }
+            }
+          }
+        },
+        "total": {
+          "kind": "number"
+        },
+        "returned": {
+          "kind": "number"
+        },
+        "offset": {
+          "kind": "number"
+        },
+        "limit": {
+          "kind": "number"
+        },
+        "hasMore": {
+          "kind": "boolean"
+        }
+      }
+    },
+    "sample": {
+      "domain": "languages",
+      "fields": [
+        "id",
+        "name",
+        "…5 more"
+      ],
+      "detailEndpoint": "/api/languages/:id",
+      "summaries": [
+        {
+          "id": "cmn",
+          "name": "Mandarin",
+          "nativeName": "普通话 (Pǔtōnghuà) / 國語 (Guóyǔ)",
+          "iso639_1": "zh",
+          "familyId": "sino_tibetan__sinitic",
+          "region": "China, Taiwan, Singapore",
+          "status": "living"
+        },
+        {
+          "id": "yue",
+          "name": "Yue Chinese (Cantonese)",
+          "nativeName": "粵語 (Jyut6jyu5)",
+          "iso639_1": null,
+          "familyId": "sino_tibetan__sinitic",
+          "region": "Southern China, Hong Kong, Macau",
+          "status": "living"
+        }
+      ],
+      "total": 1099,
+      "returned": 2,
+      "offset": 0,
+      "limit": 2,
+      "hasMore": true
+    }
+  }
+}

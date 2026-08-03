@@ -1,0 +1,264 @@
+{
+  "id": "get-languages",
+  "description": "The language corpus list — the client's largest and most-depended-on read.",
+  "request": {
+    "method": "GET",
+    "path": "/api/languages",
+    "route": "/api/languages"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "array",
+      "items": {
+        "kind": "object",
+        "properties": {
+          "id": {
+            "kind": "string"
+          },
+          "name": {
+            "kind": "string"
+          },
+          "nativeName": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "iso639_1": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "iso639_2": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "familyId": {
+            "kind": "string"
+          },
+          "parentLanguageId": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "null"
+              },
+              {
+                "kind": "string"
+              }
+            ]
+          },
+          "region": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "countries": {
+            "kind": "array",
+            "items": {
+              "kind": "string"
+            }
+          },
+          "nativeSpeakers": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "totalSpeakers": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "status": {
+            "kind": "string"
+          },
+          "endangermentStatus": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "null"
+              },
+              {
+                "kind": "string"
+              }
+            ]
+          },
+          "timeOrigin": {
+            "kind": "string"
+          },
+          "timeEnd": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "null"
+              },
+              {
+                "kind": "string"
+              }
+            ]
+          },
+          "classification": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "null"
+              },
+              {
+                "kind": "string"
+              }
+            ]
+          },
+          "writingSystem": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "isHistoricalVariant": {
+            "kind": "boolean"
+          },
+          "isDialect": {
+            "kind": "boolean"
+          },
+          "chronologicalOrder": {
+            "kind": "number"
+          },
+          "historicalContext": {
+            "kind": "union",
+            "of": [
+              {
+                "kind": "null"
+              },
+              {
+                "kind": "string"
+              }
+            ]
+          },
+          "coordinates": {
+            "kind": "object",
+            "properties": {
+              "lat": {
+                "kind": "number"
+              },
+              "lng": {
+                "kind": "number"
+              }
+            }
+          },
+          "source": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    "sample": [
+      {
+        "id": "cmn",
+        "name": "Mandarin",
+        "nativeName": "普通话 (Pǔtōnghuà) / 國語 (Guóyǔ)",
+        "iso639_1": "zh",
+        "iso639_2": "cmn",
+        "familyId": "sino_tibetan__sinitic",
+        "parentLanguageId": null,
+        "region": "China, Taiwan, Singapore",
+        "countries": [
+          "China",
+          "Taiwan",
+          "…2 more"
+        ],
+        "nativeSpeakers": 920000000,
+        "totalSpeakers": 1120000000,
+        "status": "living",
+        "endangermentStatus": null,
+        "timeOrigin": "1100",
+        "timeEnd": null,
+        "classification": null,
+        "writingSystem": "Hanzi (Simplified & Traditional)",
+        "isHistoricalVariant": false,
+        "isDialect": false,
+        "chronologicalOrder": 0,
+        "historicalContext": null,
+        "coordinates": {
+          "lat": 0,
+          "lng": 0
+        },
+        "source": "scraped"
+      },
+      {
+        "id": "yue",
+        "name": "Yue Chinese (Cantonese)",
+        "nativeName": "粵語 (Jyut6jyu5)",
+        "iso639_1": null,
+        "iso639_2": "yue",
+        "familyId": "sino_tibetan__sinitic",
+        "parentLanguageId": null,
+        "region": "Southern China, Hong Kong, Macau",
+        "countries": [
+          "China",
+          "Hong Kong",
+          "…1 more"
+        ],
+        "nativeSpeakers": 84000000,
+        "totalSpeakers": 85000000,
+        "status": "living",
+        "endangermentStatus": null,
+        "timeOrigin": "800",
+        "timeEnd": null,
+        "classification": null,
+        "writingSystem": "Hanzi (Traditional & Simplified)",
+        "isHistoricalVariant": false,
+        "isDialect": false,
+        "chronologicalOrder": 0,
+        "historicalContext": null,
+        "coordinates": {
+          "lat": 0,
+          "lng": 0
+        },
+        "source": "scraped"
+      },
+      "…1097 more"
+    ]
+  }
+}

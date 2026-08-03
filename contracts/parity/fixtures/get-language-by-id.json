@@ -1,0 +1,144 @@
+{
+  "id": "get-language-by-id",
+  "description": "One language detail record by its stable corpus id.",
+  "request": {
+    "method": "GET",
+    "path": "/api/languages/cmn",
+    "route": "/api/languages/:id"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "id": {
+          "kind": "string"
+        },
+        "name": {
+          "kind": "string"
+        },
+        "nativeName": {
+          "kind": "string"
+        },
+        "iso639_1": {
+          "kind": "string"
+        },
+        "iso639_2": {
+          "kind": "string"
+        },
+        "familyId": {
+          "kind": "string"
+        },
+        "parentLanguageId": {
+          "kind": "null"
+        },
+        "region": {
+          "kind": "string"
+        },
+        "countries": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "nativeSpeakers": {
+          "kind": "number"
+        },
+        "totalSpeakers": {
+          "kind": "number"
+        },
+        "status": {
+          "kind": "string"
+        },
+        "endangermentStatus": {
+          "kind": "null"
+        },
+        "timeOrigin": {
+          "kind": "string"
+        },
+        "timeEnd": {
+          "kind": "null"
+        },
+        "classification": {
+          "kind": "null"
+        },
+        "writingSystem": {
+          "kind": "string"
+        },
+        "isHistoricalVariant": {
+          "kind": "boolean"
+        },
+        "isDialect": {
+          "kind": "boolean"
+        },
+        "chronologicalOrder": {
+          "kind": "number"
+        },
+        "historicalContext": {
+          "kind": "null"
+        },
+        "coordinates": {
+          "kind": "object",
+          "properties": {
+            "lat": {
+              "kind": "number"
+            },
+            "lng": {
+              "kind": "number"
+            }
+          }
+        },
+        "source": {
+          "kind": "string"
+        },
+        "completionPercentage": {
+          "kind": "number"
+        },
+        "historicalVariants": {
+          "kind": "array",
+          "items": null
+        },
+        "dialects": {
+          "kind": "array",
+          "items": null
+        }
+      }
+    },
+    "sample": {
+      "id": "cmn",
+      "name": "Mandarin",
+      "nativeName": "普通话 (Pǔtōnghuà) / 國語 (Guóyǔ)",
+      "iso639_1": "zh",
+      "iso639_2": "cmn",
+      "familyId": "sino_tibetan__sinitic",
+      "parentLanguageId": null,
+      "region": "China, Taiwan, Singapore",
+      "countries": [
+        "China",
+        "Taiwan",
+        "…2 more"
+      ],
+      "nativeSpeakers": 920000000,
+      "totalSpeakers": 1120000000,
+      "status": "living",
+      "endangermentStatus": null,
+      "timeOrigin": "1100",
+      "timeEnd": null,
+      "classification": null,
+      "writingSystem": "Hanzi (Simplified & Traditional)",
+      "isHistoricalVariant": false,
+      "isDialect": false,
+      "chronologicalOrder": 0,
+      "historicalContext": null,
+      "coordinates": {
+        "lat": 0,
+        "lng": 0
+      },
+      "source": "scraped",
+      "completionPercentage": 0,
+      "historicalVariants": [],
+      "dialects": []
+    }
+  }
+}

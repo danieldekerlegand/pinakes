@@ -1,0 +1,164 @@
+{
+  "id": "get-culture-profile-by-id",
+  "description": "One culture profile detail record.",
+  "request": {
+    "method": "GET",
+    "path": "/api/culture-profiles/cp-sumerian",
+    "route": "/api/culture-profiles/:id"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "id": {
+          "kind": "string"
+        },
+        "name": {
+          "kind": "string"
+        },
+        "alternateNames": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "civilizationId": {
+          "kind": "string"
+        },
+        "archaeologicalCultureId": {
+          "kind": "string"
+        },
+        "timePeriodStart": {
+          "kind": "number"
+        },
+        "timePeriodEnd": {
+          "kind": "number"
+        },
+        "region": {
+          "kind": "string"
+        },
+        "summaryDescription": {
+          "kind": "string"
+        },
+        "socialOrganization": {
+          "kind": "string"
+        },
+        "subsistenceType": {
+          "kind": "string"
+        },
+        "urbanismLevel": {
+          "kind": "string"
+        },
+        "populationEstimate": {
+          "kind": "number"
+        },
+        "technologyLevel": {
+          "kind": "string"
+        },
+        "associatedLanguageIds": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "associatedReligionIds": {
+          "kind": "array",
+          "items": null
+        },
+        "associatedWritingSystemIds": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "associatedArtTraditionIds": {
+          "kind": "array",
+          "items": null
+        },
+        "associatedMusicTraditionIds": {
+          "kind": "array",
+          "items": null
+        },
+        "associatedCuisineId": {
+          "kind": "string"
+        },
+        "associatedArchitecturalStyleIds": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "associatedLiteraryTraditionIds": {
+          "kind": "array",
+          "items": null
+        },
+        "notableSettlements": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "imageGalleryTags": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "sources": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    "sample": {
+      "id": "cp-sumerian",
+      "name": "Sumerian Culture",
+      "alternateNames": [
+        "Kengir"
+      ],
+      "civilizationId": "sumerian",
+      "archaeologicalCultureId": "",
+      "timePeriodStart": -4500,
+      "timePeriodEnd": -2000,
+      "region": "Mesopotamia",
+      "summaryDescription": "The earliest urban civilization in southern Mesopotamia, known for inventing cuneiform writing, developing irrigation agriculture, and building monumental ziggurats. Sumerians created the first known …",
+      "socialOrganization": "state",
+      "subsistenceType": "agricultural",
+      "urbanismLevel": "city-state",
+      "populationEstimate": 500000,
+      "technologyLevel": "bronze",
+      "associatedLanguageIds": [
+        "sumerian"
+      ],
+      "associatedReligionIds": [],
+      "associatedWritingSystemIds": [
+        "ws_026"
+      ],
+      "associatedArtTraditionIds": [],
+      "associatedMusicTraditionIds": [],
+      "associatedCuisineId": "",
+      "associatedArchitecturalStyleIds": [
+        "arch-001"
+      ],
+      "associatedLiteraryTraditionIds": [],
+      "notableSettlements": [
+        "ur",
+        "uruk",
+        "…3 more"
+      ],
+      "imageGalleryTags": [
+        "sumerian",
+        "mesopotamia",
+        "…2 more"
+      ],
+      "sources": [
+        "Kramer 1963",
+        "Crawford 2004"
+      ]
+    }
+  }
+}

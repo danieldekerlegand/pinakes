@@ -1,0 +1,46 @@
+{
+  "id": "get-contributions-stats",
+  "description": "Contribution queue aggregate backing the review dashboard.",
+  "request": {
+    "method": "GET",
+    "path": "/api/contributions/stats",
+    "route": "/api/contributions/stats"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "total": {
+          "kind": "number"
+        },
+        "pending": {
+          "kind": "number"
+        },
+        "approved": {
+          "kind": "number"
+        },
+        "rejected": {
+          "kind": "number"
+        },
+        "byEntityType": {
+          "kind": "object",
+          "properties": {}
+        },
+        "byAction": {
+          "kind": "object",
+          "properties": {}
+        }
+      }
+    },
+    "sample": {
+      "total": 0,
+      "pending": 0,
+      "approved": 0,
+      "rejected": 0,
+      "byEntityType": {},
+      "byAction": {}
+    }
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "id": "get-map-civilizations-viewport",
+  "description": "Same layer culled to a viewport bbox — pins the pagination/meta contract.",
+  "request": {
+    "method": "GET",
+    "path": "/api/map/civilizations?bbox=-10,30,60,60&zoom=4&limit=5",
+    "route": "/api/map/civilizations"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "type": {
+          "kind": "string"
+        },
+        "features": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "type": {
+                "kind": "string"
+              },
+              "id": {
+                "kind": "string"
+              },
+              "geometry": {
+                "kind": "object",
+                "properties": {
+                  "type": {
+                    "kind": "string"
+                  },
+                  "coordinates": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "array",
+                        "items": {
+                          "kind": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "properties": {
+                "kind": "object",
+                "properties": {
+                  "civilizationId": {
+                    "kind": "string"
+                  },
+                  "name": {
+                    "kind": "string"
+                  },
+                  "nativeName": {
+                    "kind": "string"
+                  },
+                  "timePeriod": {
+                    "kind": "object",
+                    "properties": {
+                      "start": {
+                        "kind": "number"
+                      },
+                      "end": {
+                        "kind": "number"
+                      },
+                      "label": {
+                        "kind": "string"
+                      }
+                    }
+                  },
+                  "associatedLanguageIds": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "writingSystems": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "politicalStructure": {
+                    "kind": "string"
+                  },
+                  "capital": {
+                    "kind": "string"
+                  },
+                  "population": {
+                    "kind": "number"
+                  },
+                  "sources": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "description": {
+                    "kind": "string"
+                  }
+                },
+                "optional": [
+                  "nativeName"
+                ]
+              }
+            }
+          }
+        },
+        "metadata": {
+          "kind": "object",
+          "properties": {
+            "bbox": {
+              "kind": "object",
+              "properties": {
+                "west": {
+                  "kind": "number"
+                },
+                "south": {
+                  "kind": "number"
+                },
+                "east": {
+                  "kind": "number"
+                },
+                "north": {
+                  "kind": "number"
+                }
+              }
+            },
+            "total": {
+              "kind": "number"
+            },
+            "returned": {
+              "kind": "number"
+            },
+            "offset": {
+              "kind": "number"
+            },
+            "limit": {
+              "kind": "number"
+            },
+            "hasMore": {
+              "kind": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": "roman-empire",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                "…",
+                "…",
+                "…8 more"
+              ]
+            ]
+          },
+          "properties": {
+            "civilizationId": "roman-empire",
+            "name": "Roman Empire",
+            "nativeName": "Imperium Romanum",
+            "timePeriod": {
+              "start": -27,
+              "end": 476,
+              "label": "Roman Empire (27 BCE - 476 CE)"
+            },
+            "associatedLanguageIds": [
+              "latin"
+            ],
+            "writingSystems": [
+              "Latin alphabet"
+            ],
+            "politicalStructure": "Empire",
+            "capital": "Rome",
+            "population": 60000000,
+            "sources": [
+              "Historical records",
+              "Archaeological evidence"
+            ],
+            "description": "Ancient Roman civilization centered on the Mediterranean"
+          }
+        },
+        {
+          "type": "Feature",
+          "id": "ancient-greece",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                "…",
+                "…",
+                "…11 more"
+              ]
+            ]
+          },
+          "properties": {
+            "civilizationId": "ancient-greece",
+            "name": "Ancient Greece",
+            "nativeName": "Ἑλλάς",
+            "timePeriod": {
+              "start": -800,
+              "end": -146,
+              "label": "Classical Greece (800-146 BCE)"
+            },
+            "associatedLanguageIds": [
+              "ancient-greek"
+            ],
+            "writingSystems": [
+              "Greek alphabet"
+            ],
+            "politicalStructure": "City-states",
+            "capital": "Athens",
+            "population": 8000000,
+            "sources": [
+              "Ancient texts",
+              "Archaeological sites"
+            ],
+            "description": "Collection of Greek city-states in classical antiquity"
+          }
+        },
+        "…3 more"
+      ],
+      "metadata": {
+        "bbox": {
+          "west": -10,
+          "south": 30,
+          "east": 60,
+          "north": 60
+        },
+        "total": 35,
+        "returned": 5,
+        "offset": 0,
+        "limit": 5,
+        "hasMore": true
+      }
+    }
+  }
+}

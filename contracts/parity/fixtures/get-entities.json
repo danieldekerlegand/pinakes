@@ -1,0 +1,59 @@
+{
+  "id": "get-entities",
+  "description": "Canonical entity-domain registry + URL template.",
+  "request": {
+    "method": "GET",
+    "path": "/api/entities",
+    "route": "/api/entities"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "pathTemplate": {
+          "kind": "string"
+        },
+        "domains": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "domain": {
+                "kind": "string"
+              },
+              "label": {
+                "kind": "string"
+              },
+              "entityType": {
+                "kind": "string"
+              },
+              "citable": {
+                "kind": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "pathTemplate": "/entity/:domain/:id",
+      "domains": [
+        {
+          "domain": "language",
+          "label": "Language",
+          "entityType": "language",
+          "citable": false
+        },
+        {
+          "domain": "language-family",
+          "label": "Language Family",
+          "entityType": "language-family",
+          "citable": false
+        },
+        "…10 more"
+      ]
+    }
+  }
+}

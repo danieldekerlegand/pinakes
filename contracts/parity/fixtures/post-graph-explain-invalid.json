@@ -1,0 +1,26 @@
+{
+  "id": "post-graph-explain-invalid",
+  "description": "Validation rejection for the connection-narrative endpoint — the 400 error contract.",
+  "request": {
+    "method": "POST",
+    "path": "/api/graph/explain",
+    "route": "/api/graph/explain",
+    "body": {},
+    "expectStatus": 400
+  },
+  "response": {
+    "status": 400,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "error": {
+          "kind": "string"
+        }
+      }
+    },
+    "sample": {
+      "error": "from: each of `from` and `to` must be an object"
+    }
+  }
+}

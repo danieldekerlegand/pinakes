@@ -1,0 +1,61 @@
+{
+  "id": "get-summaries-index",
+  "description": "Progressive-loading domain catalog.",
+  "request": {
+    "method": "GET",
+    "path": "/api/summaries",
+    "route": "/api/summaries"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "domains": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "domain": {
+                "kind": "string"
+              },
+              "detailEndpoint": {
+                "kind": "string"
+              },
+              "fields": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "domains": [
+        {
+          "domain": "languages",
+          "detailEndpoint": "/api/languages/:id",
+          "fields": [
+            "id",
+            "name",
+            "…5 more"
+          ]
+        },
+        {
+          "domain": "religions",
+          "detailEndpoint": "/api/religions/:id",
+          "fields": [
+            "id",
+            "name",
+            "…5 more"
+          ]
+        },
+        "…5 more"
+      ]
+    }
+  }
+}
