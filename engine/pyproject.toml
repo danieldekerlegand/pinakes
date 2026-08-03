@@ -84,6 +84,12 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
+# PEP 561: this package is type-checked under `mypy --strict` here, so say so —
+# without the marker a *consumer* running strict mypy (services/api does) gets
+# `import-untyped` on every `pinakes_engine.*` import and silently degrades every
+# engine value it touches to `Any`. The types were always there; only the
+# advertisement was missing (pinakes:50 US-1).
+pinakes_engine = ["py.typed"]
 "pinakes_engine.explorer" = ["templates/*.html"]
 "pinakes_engine.datalog" = ["taxonomy/*.tsv", "constraints/*.tsv", "schema/*.tsv", "rules_registry.tsv"]
 "pinakes_engine.experimental" = ["yago_sample/*.nt", "yago_sample/*.ttl", "yago_sample/*.md"]

@@ -54,3 +54,40 @@ pattern is that parallel port tasklists never touch a shared file.
   crash (`serveStatic` throws). The API half is useful without a build.
 - `/api/health` and `/api/_parity/coverage` are additive; the baseline has
   neither, and no baseline path contains `_`.
+
+## The engine layer — `src/pinakes/engine/` (pinakes:50 US-1)
+
+Everything this service asks of `pinakes_engine` goes through here, and it is
+**not** a route layer: plain arguments in, JSON-ready dicts out. A router is a
+thin adapter over it (`corpus.search(...)`, `graph.node(...)`, `datalog.run(...)`,
+`acquisition.fetch(...)`), which is what lets the same call run from a job or a
+test with no HTTP anywhere.
+
+- **The payload builders reproduce the sidecar's bodies field for field.** Those
+  shapes are what the client parses; the port preserves them rather than
+  improving them. Where a value can be *imported* from the engine instead of
+  restated it is (`COMPLETENESS_SORTS`, `ontology.metrics.to_json`,
+  `orchestrate.tiers.PERSONAL_SOURCES`) — that is what stops the two drifting.
+- **Two error classes, two status codes.** `EngineUnavailable` → **503**
+  `{available:false}` (no corpus, no Neo4j config, driver extra absent, store
+  down, no embedder); `EngineFailure` → **502** (a reachable backend rejected the
+  request — a Cypher syntax error is the canonical case). Do not collapse them:
+  503 says retry, 502 says the request was wrong.
+- **Every backend is injectable, and that is the test seam.** `graph.configure(
+  connect=…, retriever=…)` and `datalog.configure(console)`; `acquisition.fetch`
+  takes an `adapter=`. `conftest.py` ships a `fake_graph` fixture and a
+  `corpus_root`/`corpus_env` pair, so the whole layer is exercised with no
+  database, no model, and no network. Reset in teardown (`reset_handles()`).
+- **The corpus is `$PINAKES_ENGINE_CORPUS`, else `build/corpus`.** Same variable
+  the sidecar's docker service read, same artifact. `load_corpus` is `lru_cache`d
+  on the resolved path in the engine, so nothing caches it here.
+- **`test_no_sidecar_or_subprocess_seam` is an absence guard**, in the shape of
+  `server/security/*-proxy.test.ts`: it greps `src/pinakes/**.py` for a sidecar
+  URL, the port number, or a child-process spawn. Its literals match *code*
+  (`import subprocess`, not the bare word) so prose can still explain what was
+  removed — except the port number, which has no code-only form, so do not write
+  it under `src/`.
+- **`pinakes_engine` ships `py.typed`** (added by the same story). Without it a
+  strict-mypy consumer silently degrades every engine value to `Any`; with it,
+  engine types are real here. If a `pinakes_engine.*` import ever starts reporting
+  `import-untyped`, the marker fell out of `engine/pyproject.toml`'s package-data.

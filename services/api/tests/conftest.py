@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator, Mapping
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from pinakes.app import create_app
+from pinakes.engine import corpus as engine_corpus
+from pinakes.engine import graph as engine_graph
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 
@@ -76,3 +78,259 @@ def built_client(built_dist: Path) -> Iterator[TestClient]:
     """The app serving a built client at the root."""
     with TestClient(create_app(client_directory=built_dist)) as client:
         yield client
+
+
+# ── A corpus on disk ─────────────────────────────────────────────────────────
+
+#: A job output root: `corpus/` with the canonical TSVs beside the artifacts the
+#: pipeline writes (`catalog.json`, `metrics.json`, `qa.json`, `qa/<id>.qa.json`).
+#: Small on purpose — every assertion below names its rows.
+_NODES_TSV = "\n".join(
+    [
+        "csid:ID\t:LABEL\tname\twikidata_qid\tsource",
+        "cs:dish:ceviche\tDish;CulturalArtifact\tCeviche\tQ207681\twikidata",
+        "cs:dish:tiradito\tDish\tTiradito\tQ7807712\twikidata",
+        "cs:place:lima\tPlace\tLima\t\twikidata",
+    ]
+)
+
+_EDGES_TSV = "\n".join(
+    [
+        ":START_ID\t:END_ID\t:TYPE\tweight:float\tsource",
+        "cs:dish:tiradito\tcs:dish:ceviche\tDERIVED_FROM\t\twikidata",
+        "cs:dish:ceviche\tcs:place:lima\tLOCATED_IN\t\twikidata",
+    ]
+)
+
+
+@pytest.fixture
+def corpus_root(tmp_path: Path) -> Path:
+    """A minimal but complete corpus the engine calls can be driven against."""
+    root = tmp_path / "job"
+    corpus_dir = root / "corpus"
+    (corpus_dir / "nodes").mkdir(parents=True)
+    (corpus_dir / "edges").mkdir(parents=True)
+    (root / "qa").mkdir()
+    (corpus_dir / "nodes" / "entities.tsv").write_text(
+        _NODES_TSV + "\n", encoding="utf-8"
+    )
+    (corpus_dir / "edges" / "edges.tsv").write_text(
+        _EDGES_TSV + "\n", encoding="utf-8"
+    )
+    (corpus_dir / "metrics.json").write_text(
+        json.dumps(
+            {
+                "node_count": 3,
+                "edge_count": 2,
+                "edges_per_node": 0.667,
+                "component_count": 1,
+                "largest_component_size": 3,
+                "largest_component_fraction": 1.0,
+                "edges_by_dimension": {"genetic": 1, "geographic": 1},
+                "edges_by_type": {"DERIVED_FROM": 1, "LOCATED_IN": 1},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (corpus_dir / "qa.json").write_text(
+        json.dumps(
+            {
+                "node_count": 3,
+                "edge_count": 2,
+                "ok": False,
+                "gates": [
+                    {
+                        "key": "provenance_completeness",
+                        "label": "provenance completeness",
+                        "passed": False,
+                    },
+                    {"key": "row_count", "label": "row count", "passed": True},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (root / "catalog.json").write_text(
+        json.dumps(
+            {
+                "categories": [
+                    {
+                        "id": "peruvian-dishes",
+                        "label": "Dish",
+                        "source": "wikidata",
+                        "node_count": 2,
+                        "edge_count": 1,
+                        "dimensions": ["genetic"],
+                        "last_run": "2026-06-18T09:30:00",
+                        "provenance": {
+                            "adapter": "wikidata",
+                            "sources": ["wikidata"],
+                            "records": 2,
+                            "errors": 0,
+                        },
+                    },
+                    {
+                        "id": "andean-context",
+                        "label": "Place",
+                        "source": "wikidata",
+                        "node_count": 1,
+                        "edge_count": 1,
+                        "dimensions": ["geographic"],
+                        "last_run": "2026-06-18T09:30:00",
+                        "provenance": {
+                            "adapter": "wikidata",
+                            "sources": ["wikidata"],
+                            "records": 1,
+                            "errors": 2,
+                        },
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    (root / "qa" / "peruvian-dishes.qa.json").write_text(
+        json.dumps({"node_count": 2, "edge_count": 1, "ok": True, "gates": []}),
+        encoding="utf-8",
+    )
+    return root
+
+
+@pytest.fixture
+def corpus_env(corpus_root: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Point the engine layer at :func:`corpus_root` for the duration of a test."""
+    monkeypatch.setenv(engine_corpus.CORPUS_ENV, str(corpus_root))
+    return corpus_root
+
+
+# ── A fake Neo4j driver ──────────────────────────────────────────────────────
+#
+# The `neo4j` driver's own types are `Mapping`s over their properties, so the
+# fakes below are too — that is what lets `dict(node)` in the projection work
+# unchanged against either. Nothing here touches a database.
+
+
+class FakeNode(Mapping[str, Any]):
+    """Stand-in for `neo4j.graph.Node`."""
+
+    def __init__(
+        self, element_id: str, labels: list[str], properties: dict[str, Any]
+    ) -> None:
+        self.element_id = element_id
+        self.labels = labels
+        self._properties = properties
+
+    def __getitem__(self, key: str) -> Any:
+        return self._properties[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._properties)
+
+    def __len__(self) -> int:
+        return len(self._properties)
+
+
+class FakeRelationship(Mapping[str, Any]):
+    """Stand-in for `neo4j.graph.Relationship`."""
+
+    def __init__(
+        self,
+        element_id: str,
+        type_: str,
+        start: FakeNode,
+        end: FakeNode,
+        properties: dict[str, Any] | None = None,
+    ) -> None:
+        self.element_id = element_id
+        self.type = type_
+        self.start_node = start
+        self.end_node = end
+        self._properties = properties or {}
+
+    def __getitem__(self, key: str) -> Any:
+        return self._properties[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._properties)
+
+    def __len__(self) -> int:
+        return len(self._properties)
+
+
+class FakeResult(list[Any]):
+    """A driver result: a record list that also answers `keys()`."""
+
+    def __init__(self, records: list[Any], keys: list[str] | None = None) -> None:
+        super().__init__(records)
+        self._keys = keys or []
+
+    def keys(self) -> list[str]:
+        return self._keys
+
+
+class FakeSession:
+    def __init__(self, handler: Callable[[str, dict[str, Any]], Any]) -> None:
+        self._handler = handler
+
+    def __enter__(self) -> FakeSession:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def run(self, cypher: str, params: dict[str, Any] | None = None) -> Any:
+        return self._handler(cypher, params or {})
+
+
+class FakeDriver:
+    """A driver whose every query is answered by one injected handler."""
+
+    def __init__(
+        self,
+        handler: Callable[[str, dict[str, Any]], Any],
+        *,
+        reachable: bool = True,
+    ) -> None:
+        self.handler = handler
+        self.reachable = reachable
+        self.queries: list[tuple[str, dict[str, Any]]] = []
+        self.closed = 0
+        self.probes = 0
+
+    def _run(self, cypher: str, params: dict[str, Any]) -> Any:
+        self.queries.append((cypher, params))
+        return self.handler(cypher, params)
+
+    def session(self, **_kwargs: Any) -> FakeSession:
+        return FakeSession(self._run)
+
+    def verify_connectivity(self) -> None:
+        self.probes += 1
+        if not self.reachable:
+            raise RuntimeError("no route to the graph store")
+
+    def close(self) -> None:
+        self.closed += 1
+
+
+@pytest.fixture
+def fake_graph() -> Iterator[Callable[..., FakeDriver]]:
+    """Install a fake driver behind the engine's graph layer.
+
+    Yields a factory: call it with a handler (and optionally `reachable=False`)
+    and the returned driver is what every graph call in the test talks to.
+    """
+
+    def install(
+        handler: Callable[[str, dict[str, Any]], Any], *, reachable: bool = True
+    ) -> FakeDriver:
+        driver = FakeDriver(handler, reachable=reachable)
+        # `Connect` is typed to return a real `neo4j.Driver`; the fake satisfies
+        # every attribute the engine layer touches, which is the point of the
+        # injection seam, so the cast is the honest way to say so.
+        engine_graph.configure(connect=cast(Any, lambda *_a, **_k: driver))
+        return driver
+
+    engine_graph.reset_handles()
+    yield install
+    engine_graph.reset_handles()

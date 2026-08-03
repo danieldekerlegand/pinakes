@@ -19,7 +19,16 @@ dependencies = [
     # The aggregation engine, in-process — the whole point of the flatten
     # (docs/UNIFIED-PROJECT-PLAN.md §1): no sidecar HTTP hop, no CLI subprocess.
     # Taken from the workspace, never from PyPI; see [tool.uv.sources].
-    "pinakes-engine",
+    #
+    # The `neo4j` EXTRA is what makes the shared graph reachable from here. It is
+    # declared rather than inherited on purpose: this service is now the only
+    # process that talks to Neo4j (pinakes:50 US-1 retired the second, TypeScript
+    # driver), so the driver is a dependency of the service, not a convenience
+    # the engine's own dev group happens to install into the shared venv. The
+    # heavy `graphrag` extra is deliberately NOT taken — it drags torch in, and
+    # GraphRAG retrieval reports itself unavailable without it (a documented
+    # degraded state, not a broken one).
+    "pinakes-engine[neo4j]",
 ]
 
 [project.scripts]
