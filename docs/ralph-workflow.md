@@ -68,13 +68,13 @@ Before merging, `run-all.sh` runs only the checks for the areas the branch chang
 against `main`** — a check fails only on failures the branch *introduces* (pre-existing breakage on
 `main` never blocks a finished branch). Set `STRICT_VERIFY=1` to fail on any failure.
 
-- Web app (`client/`, `server/`, `shared/`): `npx tsc --noEmit` + `vitest run <changed specs>`
-- culture-scrape sidecar (`core/`): `mypy src` + `pytest` + `ruff check .`
+- Web app (`web/`, `server/`, `contracts/`): `npx tsc --noEmit` + `vitest run <changed specs>`
+- pinakes-engine sidecar (`engine/`): `mypy src` + `pytest` + `ruff check .`
 
 ## Notes
 
 - `main` stays clean; every PRD runs on its `ralph/<feature>` branch.
-- culture-scrape is vendored at `core/`; the same Ralph run commits to both the
+- pinakes-engine is vendored at `engine/`; the same Ralph run commits to both the
   TS app and the Python sidecar. Its **own** upstream `ralph/` (numbered `ralphy` tasklists) is kept
   as vendored reference and is not used by this workflow.
 - Requires `jq`, and `ralphy` is **not** needed. Uses `claude` (default) or `amp`.

@@ -5,7 +5,7 @@ import type { Server } from "node:http";
 
 /**
  * Integration tests for the first-party `/api/graph/*` routes (US-004). The
- * graph-store (Neo4j) and culturescrape-client (sidecar) are module-mocked — no
+ * graph-store (Neo4j) and engine-client (sidecar) are module-mocked — no
  * live Neo4j, no live network — while the real error classes are preserved so the
  * routes' `instanceof` degradation logic runs exactly as in production. The routes
  * are mounted on a real Express app and driven over real HTTP.
@@ -37,11 +37,11 @@ vi.mock("../services/graph-store", async (importOriginal) => {
   };
 });
 
-vi.mock("../services/culturescrape-client", async (importOriginal) => {
+vi.mock("../services/engine-client", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("../services/culturescrape-client")>();
+    await importOriginal<typeof import("../services/engine-client")>();
   return {
-    ...actual, // keep the real CultureScrape*Error classes
+    ...actual, // keep the real Engine*Error classes
     search: mocks.search,
     metrics: mocks.metrics,
     datalog: mocks.datalog,
@@ -65,9 +65,9 @@ import { registerGraphRoutes } from "./graph";
 import { resetGraphHealthCache } from "../services/graph-health";
 import { GraphUnavailableError } from "../services/graph-store";
 import {
-  CultureScrapeError,
-  CultureScrapeUnavailableError,
-} from "../services/culturescrape-client";
+  EngineError,
+  EngineUnavailableError,
+} from "../services/engine-client";
 
 // ── Test server ───────────────────────────────────────────────────────────────
 
@@ -148,14 +148,14 @@ describe("GET /api/graph/search", () => {
   });
 
   it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.search.mockRejectedValue(new CultureScrapeUnavailableError("down"));
+    mocks.search.mockRejectedValue(new EngineUnavailableError("down"));
     const { status, body } = await get("/api/graph/search?q=paella");
     expect(status).toBe(503);
     expect(body.available).toBe(false);
   });
 
   it("returns 502 when the sidecar sends an unusable response", async () => {
-    mocks.search.mockRejectedValue(new CultureScrapeError("bad body", 200));
+    mocks.search.mockRejectedValue(new EngineError("bad body", 200));
     const { status, body } = await get("/api/graph/search?q=paella");
     expect(status).toBe(502);
     expect(body.available).toBe(true);
@@ -218,7 +218,7 @@ describe("GET /api/graph/retrieve", () => {
 
   it("returns 503 { available:false } when GraphRAG is unavailable", async () => {
     mocks.retrieve.mockRejectedValue(
-      new CultureScrapeUnavailableError("no embedder"),
+      new EngineUnavailableError("no embedder"),
     );
     const { status, body } = await get("/api/graph/retrieve?q=x");
     expect(status).toBe(503);
@@ -226,7 +226,7 @@ describe("GET /api/graph/retrieve", () => {
   });
 
   it("returns 502 when the sidecar sends an unusable response", async () => {
-    mocks.retrieve.mockRejectedValue(new CultureScrapeError("bad body", 200));
+    mocks.retrieve.mockRejectedValue(new EngineError("bad body", 200));
     const { status, body } = await get("/api/graph/retrieve?q=x");
     expect(status).toBe(502);
     expect(body.available).toBe(true);
@@ -363,7 +363,7 @@ describe("GET /api/graph/metrics", () => {
   });
 
   it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.metrics.mockRejectedValue(new CultureScrapeUnavailableError());
+    mocks.metrics.mockRejectedValue(new EngineUnavailableError());
     const { status, body } = await get("/api/graph/metrics");
     expect(status).toBe(503);
     expect(body.available).toBe(false);
@@ -460,7 +460,7 @@ describe("POST /api/graph/datalog", () => {
   });
 
   it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.datalog.mockRejectedValue(new CultureScrapeUnavailableError("down"));
+    mocks.datalog.mockRejectedValue(new EngineUnavailableError("down"));
     const { status, body } = await post("/api/graph/datalog", { example: "x" });
     expect(status).toBe(503);
     expect(body.available).toBe(false);
@@ -502,7 +502,7 @@ describe("POST /api/graph/cypher", () => {
   });
 
   it("surfaces a sidecar syntax error as 502 (not swallowed)", async () => {
-    mocks.cypher.mockRejectedValue(new CultureScrapeError("invalid syntax", 400));
+    mocks.cypher.mockRejectedValue(new EngineError("invalid syntax", 400));
     const { status, body } = await post("/api/graph/cypher", {
       query: "MATCH (n) RETURN nope(",
     });
@@ -511,7 +511,7 @@ describe("POST /api/graph/cypher", () => {
   });
 
   it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.cypher.mockRejectedValue(new CultureScrapeUnavailableError());
+    mocks.cypher.mockRejectedValue(new EngineUnavailableError());
     const { status, body } = await post("/api/graph/cypher", {
       query: "MATCH (n) RETURN n LIMIT 1",
     });

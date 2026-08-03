@@ -10,8 +10,8 @@ vi.stubGlobal("fetch", mockFetch);
 import { WikimediaCommonsScraper } from "./wikimedia-commons-scraper";
 
 // The scraper resolves its output path lazily from `WIKIMEDIA_COMMONS_TSV`, so pointing it at
-// a temp file here is enough. It must NOT write into the real `lexicons/` tree: that races
-// `shared/lexicon-mapping.test.ts` (which reads the live directory and fails on an unmapped
+// a temp file here is enough. It must NOT write into the real `data/source/lexicons/` tree: that races
+// `contracts/lexicon-mapping.test.ts` (which reads the live directory and fails on an unmapped
 // file) and puts a unit test one bug away from clobbering curated data.
 const TEST_TSV_PATH = path.join(
   fs.mkdtempSync(path.join(os.tmpdir(), "wikimedia-commons-")),

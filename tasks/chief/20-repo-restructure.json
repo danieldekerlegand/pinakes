@@ -2,11 +2,20 @@
   "project": "pinakes",
   "branchName": "chief/20-repo-restructure",
   "baseBranch": "main",
-  "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md §4): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only — NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
-  "dependsOn": ["10-foundation-cleanup"],
-  "touches": ["repo-layout"],
-  "warmup": ["bun install"],
-  "verify": ["bun run check", "uv run --project engine pytest -q -p no:cacheprovider"],
+  "description": "Foundation step 2 (docs/UNIFIED-PROJECT-PLAN.md \u00a74): mechanically relocate the existing trees into the target layout and erase the culturescrape name at the package level. This is moves + renames + import/path fixups only \u2014 NO functional rewrite. The engine stays Python (renamed), the client stays TS (moved), and everything must still build/test at the new paths.",
+  "dependsOn": [
+    "10-foundation-cleanup"
+  ],
+  "touches": [
+    "repo-layout"
+  ],
+  "warmup": [
+    "bun install"
+  ],
+  "verify": [
+    "bun run check",
+    "uv run --project engine pytest -q -p no:cacheprovider"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -18,8 +27,8 @@
         "`git grep -in culturescrape -- engine` returns nothing (name fully erased inside the engine).",
         "`uv run --project engine pytest` matches the pre-move baseline (same passed/skipped counts; watch the skip count per the ml/CLAUDE.md silent-SKIP rule)."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "core/ -> engine/, culturescrape -> pinakes_engine (dist pinakes-engine, console script pinakes_engine). export/culturescrape -> build/corpus. pytest 1922 passed / 41 skipped = pre-move baseline exactly. OUT OF SCOPE, deliberately kept: the `cs:` id-space (data namespace shared with contracts/ + ml/ + client; renaming it is a corpus migration), the Datalog banner `culture-scrape` (byte-contract with the vendored agora translation_py wheel), and the server's CULTURESCRAPE_* env vars + /api/scraping/culturescrape/* routes (US-4 owns those)."
     },
     {
       "id": "US-2",
@@ -30,20 +39,20 @@
         "shared/ is now contracts/; all TS imports of the former shared/* resolve.",
         "`bun run check` (tsc) passes and the web vitest suite passes at the new paths."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "client/ -> web/ (index.html+public+src; web/README.md kept), shared/ -> contracts/, and the six root TS configs + components.json into web/. Alias @shared -> @contracts (superset of the AC; tsc catches any miss). Baselines held EXACTLY: vitest 218 files / 3654 passed / 8 skipped, engine pytest 1922/41, ml pytest 477/8 (the Python skipifs read contracts/canonical-schema.json, so an unchanged skip count is what proves the path). tsc clean via all 3 entry points (web/tsconfig.json, the root shim, scripts/tsconfig.json). Also verified: vite build (166KB tailwind CSS with utilities scanned from web/src), dev server boots + serves web/index.html through the vite middleware + @contracts routes 200, playwright collects 15 tests from ../e2e, docker compose config, secret-scan, convergence-qa. KEPT AT ROOT deliberately: a one-line tsconfig.json shim (tsx resolves aliases from the nearest tsconfig at/above cwd; without it npm run dev + every tsx script fails at runtime) \u2014 it retires with the TS server. package.json now names each config explicitly (check/test/test:e2e/build); added the missing `test` script."
     },
     {
       "id": "US-3",
       "title": "Relocate data + infra to the target layout",
-      "description": "Move lexicons/ under data/source/ (now cheap — see the plan; note server/tsv-storage.ts still reads it and its ~60 literals must be updated here since the file isn't rewritten until a later tasklist), and move docker-compose/Dockerfiles to infra/.",
+      "description": "Move lexicons/ under data/source/ (now cheap \u2014 see the plan; note server/tsv-storage.ts still reads it and its ~60 literals must be updated here since the file isn't rewritten until a later tasklist), and move docker-compose/Dockerfiles to infra/.",
       "acceptanceCriteria": [
         "lexicons/ is now data/source/lexicons/; every reader (notably server/tsv-storage.ts, the scripts, and web) resolves the new path.",
         "docker-compose.yml and the Dockerfiles are under infra/; `docker compose` config still validates.",
         "The server still boots and reads lexicons from the new path; existing tests pass."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "lexicons/ -> data/source/lexicons/ (57 TSVs) + docker-compose.yml -> infra/docker-compose.yml and engine/Dockerfile -> infra/engine.Dockerfile. ~925 lexicons references swept; the readers that mattered were the ~60 literals in server/tsv-storage.ts (cwd-relative), the LEXICONS_DIR constants in server/services + scripts + test, and the engine reconcile scripts (_REPO_ROOT / \"lexicons\"). Baselines held EXACTLY: vitest 218 files / 3654 passed / 8 skipped, engine pytest 1922/41, ml pytest 477/8; tsc clean via web/ + scripts/; ruff+mypy clean in engine and ml (fixed 2 pre-existing E501s in each). Server smoke against the new path: /api/languages 1099, /api/language-families 543, /api/map/civilizations 170, /api/map/archaeological-sites 550, /api/map/language-range-polygons 133, /api/map/routes 104, /api/data-quality 57 files + 6722 tier rows, DuckDB analytical-index facets live. docker compose -f infra/docker-compose.yml config validates. Also green: convergence-qa (6722 nodes), secret-scan, playwright --list (15 tests). Compose gotchas handled: project name PINNED to `pinakes` (else the move renames the project to `infra` and orphans the neo4j-data volume) and every call site passes -f from the repo root (${PWD} must be the repo root for the neo4j absolute-path bind mount). NOT swept, deliberately: docs/archive/**, docs/MIGRATION_SUMMARY.md and docs/DATA-INVENTORY.md are historical records that a blanket rewrite would turn into lies; DATA-INVENTORY got a superseded-on-this-point banner instead."
     },
     {
       "id": "US-4",
@@ -54,8 +63,8 @@
         "The TS server's CULTURESCRAPE_* env handling, the acquisition subprocess (now `python -m pinakes_engine.cli`), and the /api/scraping/culturescrape/* route paths are renamed to the new engine name and still function.",
         "`bun run dev` + `bun run check` pass; a smoke of the graph + acquisition seams against the renamed engine succeeds."
       ],
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Root pyproject.toml = virtual uv workspace root (members=[\"engine\"], exclude=[\"ml\"]); engine/uv.lock -> /uv.lock (uv rebased the vendored translation-py wheel path itself); one root .venv. services/api joins when tasklist 30 gives it a manifest (uv rejects a member with no pyproject) \u2014 the two-line recipe is in services/api/README.md. pytest config STAYS in the root pytest.ini per US-1's warning. Server rename: CULTURESCRAPE_* -> PINAKES_ENGINE_*, /api/scraping/culturescrape[/categories] -> /api/scraping/engine[...], {routes,services}/culturescrape-acquisition.ts -> engine-acquisition.ts, CultureScrape*/registerCultureScrape* -> Engine*/registerEngine*, capability-manifest x_surfaces, and the hyphenated \"Culture-scrape \u2026\" UI strings the culturescrape grep had missed. Baselines held EXACTLY: vitest 218 files / 3654 passed / 8 skipped; engine pytest 1922/41 (from engine/, from the root, and via uv run --project engine); ml pytest 477/8; ruff+mypy clean in both workspaces; uv lock --check in sync; tsc clean via web/ and scripts/. LIVE smoke: sidecar on the fixture corpus + bun run dev \u2014 /api/graph/status sidecar:true and /api/graph/metrics 9 nodes through PINAKES_ENGINE_API_URL; PINAKES_ENGINE_ENABLED=false flips it to 503 'sidecar is disabled (PINAKES_ENGINE_ENABLED=false)'; POST /api/scraping/engine {domain:sites,limit:3} spawned python -m pinakes_engine.cli fetch from engine/ and queued 3 contributions (the old path 404s \u2014 the dev 200 there is vite's SPA catch-all, verified against a nonsense /api path). Also green: compose config, secret-scan, convergence-qa 6722 nodes, playwright --list 15. KEPT: the cs: id-space and web's culturescrape.adapter.ts / \"culturescrape-graph\" dataset id (a UI/URL identifier the e2e ?ds= links carry). NOT fixed, now documented in the plan's move map with an owner: EXPORT_DIR is still export/pinakes_engine, not build/corpus. COLD-CHECKOUT FIX (post-hoc, commit c6a1ba9d): the `uv run --project engine pytest` verification above was run against a .venv that already carried the dev EXTRA, so it hid that the command dies with `Failed to spawn: pytest` on a fresh workspace .venv (uv installs no extras unless asked). The dev toolchain is now a PEP 735 [dependency-groups] dev \u2014 one of uv's default groups \u2014 self-referencing pinakes-engine[gui,neo4j] because the suite imports fastapi/neo4j at collection time; graphrag (torch) stays out. Re-verified from a deleted .venv via both entry points: 1922/41 exactly, ruff+mypy clean, uv lock --check in sync, bun run check clean, vitest 218/3654/8. NOTE: `[tool.uv] default-extras` is NOT a uv 0.11 key \u2014 it parses as an unknown field and is silently ignored (member-level AND workspace-root)."
     }
   ]
 }

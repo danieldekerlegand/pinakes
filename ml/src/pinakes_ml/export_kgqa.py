@@ -8,7 +8,7 @@ or via the console script::
 
     uv run pinakes-export-kgqa
 
-Reads the git-ignored canonical export (``export/culturescrape/{nodes,edges}``),
+Reads the git-ignored canonical export (``build/corpus/{nodes,edges}``),
 writes two HF-datasets-compatible JSONL splits into ``ml/data/kgqa/``
 (``train.jsonl`` + the held-out ``eval.jsonl``, both git-ignored),
 and writes the deterministic manifest to ``ml/manifests/kgqa-manifest.json``
@@ -45,7 +45,7 @@ from pinakes_ml.kgqa import (
 _ML_ROOT = Path(__file__).resolve().parents[2]
 _REPO_ROOT = _ML_ROOT.parent
 
-DEFAULT_EXPORT_DIR = _REPO_ROOT / "export" / "culturescrape"
+DEFAULT_EXPORT_DIR = _REPO_ROOT / "build" / "corpus"
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "kgqa"
 DEFAULT_MANIFEST = _ML_ROOT / "manifests" / "kgqa-manifest.json"
 
@@ -121,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             f"export not found: {args.export_dir}\n"
             "The canonical export is a git-ignored build output — regenerate "
-            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
+            "it with `npx tsx scripts/export-for-engine.ts` first."
         )
 
     splits, manifest = build(

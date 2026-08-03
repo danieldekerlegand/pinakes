@@ -7,7 +7,7 @@ import type {
   LanguageFamily,
   LanguageFamilyWithChildren,
   LanguageWithStats,
-} from "@shared/types";
+} from "@contracts/types";
 import type {
   LanguageRangeFeature,
   ArchaeologicalSiteFeature,
@@ -15,7 +15,7 @@ import type {
   EmpireTimelineFeature,
   HistoricalRouteFeature,
   MaterialCultureDistribution,
-} from "../client/src/lib/visualization/geospatial-types";
+} from "../web/src/lib/visualization/geospatial-types";
 
 // Phonological inventory types
 export interface PhonologicalInventory {
@@ -964,10 +964,10 @@ export class TsvStorage {
 
   constructor(config?: Partial<TsvStorageConfig>) {
     this.config = {
-      conceptDataPath: "lexicons/words-base.tsv",
-      languageDataPath: "lexicons/languages.tsv",
-      formsDataPath: "lexicons/words.tsv",
-      scrapedDir: "lexicons",
+      conceptDataPath: "data/source/lexicons/words-base.tsv",
+      languageDataPath: "data/source/lexicons/languages.tsv",
+      formsDataPath: "data/source/lexicons/words.tsv",
+      scrapedDir: "data/source/lexicons",
       ...config,
     };
   }
@@ -1014,7 +1014,7 @@ export class TsvStorage {
       if (base !== relOrAbsPath) {
         candidates.push(path.resolve(cwd, base));
       }
-      candidates.push(path.resolve(cwd, "lexicons", base));
+      candidates.push(path.resolve(cwd, "data", "source", "lexicons", base));
     }
 
     const existing = candidates.find((p) => fs.existsSync(p));
@@ -1033,7 +1033,7 @@ export class TsvStorage {
   }
 
   private loadScrapedFamilies(): LanguageFamily[] {
-    const familiesPath = "lexicons/families.tsv";
+    const familiesPath = "data/source/lexicons/families.tsv";
     const text = this.readFileIfExists(familiesPath);
     if (!text) return [];
 
@@ -1077,7 +1077,7 @@ export class TsvStorage {
   }
 
   private loadScrapedLanguages(): Language[] {
-    const languagesPath = "lexicons/languages.tsv";
+    const languagesPath = "data/source/lexicons/languages.tsv";
     const text = this.readFileIfExists(languagesPath);
     if (!text) return [];
 
@@ -1266,7 +1266,7 @@ export class TsvStorage {
   private loadScrapedForms(): Map<string, Map<string, { form: string; ipa: string | null }>> {
     const scrapedForms = new Map<string, Map<string, { form: string; ipa: string | null }>>();
 
-    const scrapedDir = path.resolve(process.cwd(), "lexicons");
+    const scrapedDir = path.resolve(process.cwd(), "data", "source", "lexicons");
     if (!fs.existsSync(scrapedDir)) return scrapedForms;
 
     try {
@@ -1554,7 +1554,7 @@ export class TsvStorage {
   private loadLanguageRanges(): void {
     if (this.cachedLanguageRanges) return;
 
-    const text = this.readFileIfExists("lexicons/language-ranges.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/language-ranges.tsv");
     if (!text) { this.cachedLanguageRanges = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -1609,7 +1609,7 @@ export class TsvStorage {
   private loadLanguageRangePolygons(): void {
     if (this.cachedLanguageRangePolygons) return;
 
-    const text = this.readFileIfExists("lexicons/language-range-polygons.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/language-range-polygons.tsv");
     if (!text) { this.cachedLanguageRangePolygons = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -1664,7 +1664,7 @@ export class TsvStorage {
   private loadArchaeologicalSites(): void {
     if (this.cachedArchaeologicalSites) return;
 
-    const text = this.readFileIfExists("lexicons/archaeological-sites.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/archaeological-sites.tsv");
     if (!text) { this.cachedArchaeologicalSites = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -1734,8 +1734,8 @@ export class TsvStorage {
     if (this.cachedCivilizations) return;
 
     // Load civilizations metadata
-    const civText = this.readFileIfExists("lexicons/civilizations.tsv");
-    const boundText = this.readFileIfExists("lexicons/civilization-boundaries.tsv");
+    const civText = this.readFileIfExists("data/source/lexicons/civilizations.tsv");
+    const boundText = this.readFileIfExists("data/source/lexicons/civilization-boundaries.tsv");
     if (!civText && !boundText) { this.cachedCivilizations = []; return; }
 
     // Parse boundaries first (they have geometry)
@@ -1942,7 +1942,7 @@ export class TsvStorage {
   private loadEmpiresTimeline(): void {
     if (this.cachedEmpiresTimeline) return;
 
-    const text = this.readFileIfExists("lexicons/empires-timeline.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/empires-timeline.tsv");
     if (!text) { this.cachedEmpiresTimeline = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2111,7 +2111,7 @@ export class TsvStorage {
   private loadMaterialCultures(): void {
     if (this.cachedMaterialCultures) return;
 
-    const text = this.readFileIfExists("lexicons/material-culture.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/material-culture.tsv");
     if (!text) { this.cachedMaterialCultures = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2258,7 +2258,7 @@ export class TsvStorage {
   private loadHaplogroups(): void {
     if (this.cachedHaplogroups) return;
 
-    const text = this.readFileIfExists("lexicons/haplogroups.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/haplogroups.tsv");
     if (!text) { this.cachedHaplogroups = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2360,7 +2360,7 @@ export class TsvStorage {
   private loadMusicTraditions(): void {
     if (this.cachedMusicTraditions) return;
 
-    const text = this.readFileIfExists("lexicons/music-traditions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/music-traditions.tsv");
     if (!text) { this.cachedMusicTraditions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2417,7 +2417,7 @@ export class TsvStorage {
   private loadMusicalInstruments(): void {
     if (this.cachedMusicalInstruments) return;
 
-    const text = this.readFileIfExists("lexicons/musical-instruments.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/musical-instruments.tsv");
     if (!text) { this.cachedMusicalInstruments = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2560,7 +2560,7 @@ export class TsvStorage {
   private loadDanceTraditions(): void {
     if (this.cachedDanceTraditions) return;
 
-    const text = this.readFileIfExists("lexicons/dance-traditions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/dance-traditions.tsv");
     if (!text) { this.cachedDanceTraditions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2671,7 +2671,7 @@ export class TsvStorage {
   private loadDeities(): void {
     if (this.cachedDeities) return;
 
-    const text = this.readFileIfExists("lexicons/deities.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/deities.tsv");
     if (!text) { this.cachedDeities = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2765,7 +2765,7 @@ export class TsvStorage {
   private loadMythMotifs(): void {
     if (this.cachedMythMotifs) return;
 
-    const text = this.readFileIfExists("lexicons/myth-motifs.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/myth-motifs.tsv");
     if (!text) { this.cachedMythMotifs = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2863,7 +2863,7 @@ export class TsvStorage {
   private loadReligions(): void {
     if (this.cachedReligions) return;
 
-    const text = this.readFileIfExists("lexicons/religions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/religions.tsv");
     if (!text) { this.cachedReligions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -2985,7 +2985,7 @@ export class TsvStorage {
   private loadCuisines(): void {
     if (this.cachedCuisines) return;
 
-    const text = this.readFileIfExists("lexicons/cuisines.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/cuisines.tsv");
     if (!text) {
       this.cachedCuisines = [];
       return;
@@ -3041,7 +3041,7 @@ export class TsvStorage {
   private loadCuisineItems(): void {
     if (this.cachedCuisineItems) return;
 
-    const text = this.readFileIfExists("lexicons/cuisine-items.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/cuisine-items.tsv");
     if (!text) {
       this.cachedCuisineItems = [];
       return;
@@ -3163,7 +3163,7 @@ export class TsvStorage {
   private loadIngredientOrigins(): void {
     if (this.cachedIngredientOrigins) return;
 
-    const text = this.readFileIfExists("lexicons/ingredient-origins.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/ingredient-origins.tsv");
     if (!text) { this.cachedIngredientOrigins = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3234,7 +3234,7 @@ export class TsvStorage {
   private loadCookingTechniques(): void {
     if (this.cachedCookingTechniques) return;
 
-    const text = this.readFileIfExists("lexicons/cooking-techniques.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/cooking-techniques.tsv");
     if (!text) { this.cachedCookingTechniques = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3312,7 +3312,7 @@ export class TsvStorage {
   private loadSampleTexts(): void {
     if (this.cachedSampleTexts) return;
 
-    const text = this.readFileIfExists("lexicons/sample-texts.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/sample-texts.tsv");
     if (!text) { this.cachedSampleTexts = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3351,7 +3351,7 @@ export class TsvStorage {
   private loadPhonologicalInventories(): void {
     if (this.cachedPhonologicalInventories) return;
 
-    const text = this.readFileIfExists("lexicons/phonological-inventories.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/phonological-inventories.tsv");
     if (!text) { this.cachedPhonologicalInventories = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3436,7 +3436,7 @@ export class TsvStorage {
   private loadEtymologyRelations(): void {
     if (this.cachedEtymologyRelations) return;
 
-    const text = this.readFileIfExists("lexicons/etymology-relations.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/etymology-relations.tsv");
     if (!text) { this.cachedEtymologyRelations = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3497,7 +3497,7 @@ export class TsvStorage {
   private loadGrammarFeatures(): void {
     if (this.cachedGrammarFeatures) return;
 
-    const text = this.readFileIfExists("lexicons/grammar-features.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/grammar-features.tsv");
     if (!text) { this.cachedGrammarFeatures = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3625,7 +3625,7 @@ export class TsvStorage {
   private loadWritingSystems(): void {
     if (this.cachedWritingSystems) return;
 
-    const text = this.readFileIfExists("lexicons/writing-systems.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/writing-systems.tsv");
     if (!text) { this.cachedWritingSystems = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3719,7 +3719,7 @@ export class TsvStorage {
   private loadVerbParadigms(): void {
     if (this.cachedVerbParadigms) return;
 
-    const text = this.readFileIfExists("lexicons/verb-paradigms.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/verb-paradigms.tsv");
     if (!text) { this.cachedVerbParadigms = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3785,7 +3785,7 @@ export class TsvStorage {
   private loadBattles(): void {
     if (this.cachedBattles) return;
 
-    const text = this.readFileIfExists("lexicons/battles.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/battles.tsv");
     if (!text) { this.cachedBattles = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3852,7 +3852,7 @@ export class TsvStorage {
   private loadMigrationRoutes(): void {
     if (this.cachedMigrationRoutes) return;
 
-    const text = this.readFileIfExists("lexicons/migration-routes.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/migration-routes.tsv");
     if (!text) { this.cachedMigrationRoutes = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3917,7 +3917,7 @@ export class TsvStorage {
   private loadLanguageContacts(): void {
     if (this.cachedLanguageContacts) return;
 
-    const text = this.readFileIfExists("lexicons/language-contacts.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/language-contacts.tsv");
     if (!text) { this.cachedLanguageContacts = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -3984,7 +3984,7 @@ export class TsvStorage {
   private loadSoundChanges(): void {
     if (this.cachedSoundChanges) return;
 
-    const text = this.readFileIfExists("lexicons/sound-changes.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/sound-changes.tsv");
     if (!text) { this.cachedSoundChanges = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4046,7 +4046,7 @@ export class TsvStorage {
   private loadFoodwayEvents(): void {
     if (this.cachedFoodwayEvents) return;
 
-    const text = this.readFileIfExists("lexicons/foodway-events.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/foodway-events.tsv");
     if (!text) { this.cachedFoodwayEvents = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4118,7 +4118,7 @@ export class TsvStorage {
   private loadArtTraditions(): void {
     if (this.cachedArtTraditions) return;
 
-    const text = this.readFileIfExists("lexicons/art-traditions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/art-traditions.tsv");
     if (!text) { this.cachedArtTraditions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4186,7 +4186,7 @@ export class TsvStorage {
   private loadStyleEvolutions(): void {
     if (this.cachedStyleEvolutions) return;
 
-    const text = this.readFileIfExists("lexicons/art-style-evolutions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/art-style-evolutions.tsv");
     if (!text) { this.cachedStyleEvolutions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4249,7 +4249,7 @@ export class TsvStorage {
   private loadArchitecturalStyles(): void {
     if (this.cachedArchitecturalStyles) return;
 
-    const text = this.readFileIfExists("lexicons/architectural-styles.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/architectural-styles.tsv");
     if (!text) { this.cachedArchitecturalStyles = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4328,7 +4328,7 @@ export class TsvStorage {
   private loadBuildingTypes(): void {
     if (this.cachedBuildingTypes) return;
 
-    const text = this.readFileIfExists("lexicons/building-types.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/building-types.tsv");
     if (!text) { this.cachedBuildingTypes = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4384,7 +4384,7 @@ export class TsvStorage {
   private loadKinshipSystems(): void {
     if (this.cachedKinshipSystems) return;
 
-    const text = this.readFileIfExists("lexicons/kinship-systems.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/kinship-systems.tsv");
     if (!text) { this.cachedKinshipSystems = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4436,7 +4436,7 @@ export class TsvStorage {
   private loadSocialOrganization(): void {
     if (this.cachedSocialOrganization) return;
 
-    const text = this.readFileIfExists("lexicons/social-organization.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/social-organization.tsv");
     if (!text) { this.cachedSocialOrganization = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4514,7 +4514,7 @@ export class TsvStorage {
   private loadSocialStructures(): void {
     if (this.cachedSocialStructures) return;
 
-    const text = this.readFileIfExists("lexicons/social-structures.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/social-structures.tsv");
     if (!text) { this.cachedSocialStructures = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4572,7 +4572,7 @@ export class TsvStorage {
   private loadTradeGoods(): void {
     if (this.cachedTradeGoods) return;
 
-    const text = this.readFileIfExists("lexicons/trade-goods.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/trade-goods.tsv");
     if (!text) { this.cachedTradeGoods = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4632,7 +4632,7 @@ export class TsvStorage {
   private loadTradeRoutes(): void {
     if (this.cachedTradeRoutes) return;
 
-    const text = this.readFileIfExists("lexicons/trade-routes.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/trade-routes.tsv");
     if (!text) { this.cachedTradeRoutes = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4707,7 +4707,7 @@ export class TsvStorage {
   private loadUrheimatHypotheses(): void {
     if (this.cachedUrheimatHypotheses) return;
 
-    const text = this.readFileIfExists("lexicons/urheimat-hypotheses.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/urheimat-hypotheses.tsv");
     if (!text) { this.cachedUrheimatHypotheses = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4781,7 +4781,7 @@ export class TsvStorage {
   private loadNarratives(): void {
     if (this.cachedNarratives) return;
 
-    const text = this.readFileIfExists("lexicons/narratives.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/narratives.tsv");
     if (!text) { this.cachedNarratives = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4830,7 +4830,7 @@ export class TsvStorage {
   private loadCulturalLineages(): void {
     if (this.cachedCulturalLineages) return;
 
-    const text = this.readFileIfExists("lexicons/cultural-lineages.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/cultural-lineages.tsv");
     if (!text) { this.cachedCulturalLineages = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -4947,7 +4947,7 @@ export class TsvStorage {
   private loadLiteraryTraditions(): void {
     if (this.cachedLiteraryTraditions) return;
 
-    const text = this.readFileIfExists("lexicons/literary-traditions.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/literary-traditions.tsv");
     if (!text) { this.cachedLiteraryTraditions = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5016,7 +5016,7 @@ export class TsvStorage {
   private loadLiteraryWorks(): void {
     if (this.cachedLiteraryWorks) return;
 
-    const text = this.readFileIfExists("lexicons/literary-works.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/literary-works.tsv");
     if (!text) { this.cachedLiteraryWorks = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5093,7 +5093,7 @@ export class TsvStorage {
   private loadArchaeologicalCultures(): void {
     if (this.cachedArchaeologicalCultures) return;
 
-    const text = this.readFileIfExists("lexicons/archaeological-cultures.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/archaeological-cultures.tsv");
     if (!text) { this.cachedArchaeologicalCultures = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5194,7 +5194,7 @@ export class TsvStorage {
   private loadEmpireTimeline(): void {
     if (this.cachedEmpireTimeline) return;
 
-    const text = this.readFileIfExists("lexicons/empires-timeline.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/empires-timeline.tsv");
     if (!text) {
       this.cachedEmpireTimeline = [];
       return;
@@ -5283,7 +5283,7 @@ export class TsvStorage {
   private loadSettlements(): void {
     if (this.cachedSettlements) return;
 
-    const text = this.readFileIfExists("lexicons/settlements.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/settlements.tsv");
     if (!text) { this.cachedSettlements = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5431,7 +5431,7 @@ export class TsvStorage {
   private loadRiversAndWaters(): void {
     if (this.cachedRiversAndWaters) return;
 
-    const text = this.readFileIfExists("lexicons/rivers-and-waters.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/rivers-and-waters.tsv");
     if (!text) { this.cachedRiversAndWaters = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5536,7 +5536,7 @@ export class TsvStorage {
   private loadDailyLife(): void {
     if (this.cachedDailyLife) return;
 
-    const text = this.readFileIfExists("lexicons/daily-life.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/daily-life.tsv");
     if (!text) { this.cachedDailyLife = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5615,7 +5615,7 @@ export class TsvStorage {
   private loadCultureEvents(): void {
     if (this.cachedCultureEvents) return;
 
-    const text = this.readFileIfExists("lexicons/culture-events.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/culture-events.tsv");
     if (!text) { this.cachedCultureEvents = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5654,7 +5654,7 @@ export class TsvStorage {
   private loadCultureProfiles(): void {
     if (this.cachedCultureProfiles) return;
 
-    const text = this.readFileIfExists("lexicons/culture-profiles.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/culture-profiles.tsv");
     if (!text) { this.cachedCultureProfiles = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5868,7 +5868,7 @@ export class TsvStorage {
   private loadCityLayouts(): void {
     if (this.cachedCityLayouts) return;
 
-    const text = this.readFileIfExists("lexicons/city-layouts.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/city-layouts.tsv");
     if (!text) { this.cachedCityLayouts = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -5946,7 +5946,7 @@ export class TsvStorage {
   private loadMediaAssets(): void {
     if (this.cachedMediaAssets) return;
 
-    const text = this.readFileIfExists("lexicons/media-assets.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/media-assets.tsv");
     if (!text) { this.cachedMediaAssets = []; return; }
 
     const { header, rows } = parseTsv(text);
@@ -6029,7 +6029,7 @@ export class TsvStorage {
   private loadInnovations(): void {
     if (this.cachedInnovations) return;
 
-    const text = this.readFileIfExists("lexicons/innovations.tsv");
+    const text = this.readFileIfExists("data/source/lexicons/innovations.tsv");
     if (!text) { this.cachedInnovations = []; return; }
 
     const { header, rows } = parseTsv(text);

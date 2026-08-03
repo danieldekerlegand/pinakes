@@ -11,8 +11,8 @@
     "allowImportingTsExtensions": true,
     "baseUrl": "..",
     "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+      "@/*": ["./web/src/*"],
+      "@contracts/*": ["./contracts/*"]
     },
     "types": ["node", "vitest/globals"]
   },

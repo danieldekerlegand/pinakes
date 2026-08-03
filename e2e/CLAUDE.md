@@ -1,7 +1,9 @@
 # e2e/ — Playwright browser smoke (US-006) + graph-UI verification (US-007)
 
 Headless-Chromium coverage of the core UI flows. Runner is `@playwright/test`
-(separate from vitest): `npm run test:e2e`. Config: `../playwright.config.ts`.
+(separate from vitest): `npm run test:e2e`. Config: `../web/playwright.config.ts`
+(it moved off the root with the other TS build configs — 20-repo-restructure US-2 —
+so `testDir`, the dev server's `cwd` and the artifact dirs there are all `../`-relative).
 
 `smoke.spec.ts` = the core-flow smoke (US-006). `graph-ui.spec.ts` = browser
 verification of the four graph-dependent features (US-007): the neighborhood
@@ -35,9 +37,9 @@ All TSV-backed, so it needs no graph.
 - **`*.spec.ts` here, `*.test.ts` everywhere else.** vitest's `include` is
   `**/*.test.ts` and Playwright's `testMatch` is `*.spec.ts`, so the two runners
   never pick up each other's files. Never name an e2e file `*.test.ts`.
-- **Not type-checked by `npm run check`.** The root `tsconfig.json` `include` is
-  only `client/src`/`shared`/`server`, so `e2e/` is outside it. Playwright
-  transpiles specs itself. (Keep them clean anyway.)
+- **Not type-checked by `npm run check`.** The project `web/tsconfig.json`
+  `include` is only `web/src`/`contracts`/`server`, so `e2e/` is outside it.
+  Playwright transpiles specs itself. (Keep them clean anyway.)
 - **The dev server is booted by Playwright** via `webServer` (`npm run dev` on
   `E2E_PORT`, default `3055` — distinct from the usual `3050`). Locally it reuses
   an already-running server; in CI (`process.env.CI`) it starts its own. No

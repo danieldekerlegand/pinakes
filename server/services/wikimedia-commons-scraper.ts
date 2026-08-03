@@ -70,11 +70,11 @@ interface WikimediaImageInfoResponse {
 
 /**
  * Where scraped images are persisted. Overridable via `WIKIMEDIA_COMMONS_TSV` so tests never
- * write into the real `lexicons/` tree — a unit test that drops an unmapped TSV there races
- * `shared/lexicon-mapping.test.ts` (which reads the live directory) and can clobber curated data.
+ * write into the real `data/source/lexicons/` tree — a unit test that drops an unmapped TSV there races
+ * `contracts/lexicon-mapping.test.ts` (which reads the live directory) and can clobber curated data.
  */
 export const WIKIMEDIA_COMMONS_TSV_PATH = (): string =>
-  path.resolve(process.env.WIKIMEDIA_COMMONS_TSV ?? "lexicons/wikimedia-commons-images.tsv");
+  path.resolve(process.env.WIKIMEDIA_COMMONS_TSV ?? "data/source/lexicons/wikimedia-commons-images.tsv");
 
 export class WikimediaCommonsScraper {
   private static isScraping = false;

@@ -1,7 +1,7 @@
 """Multi-hop KG-grounded QA synthesis (neurosymbolic roadmap Phase 5, US-003).
 
 Turns the canonical **node** + **edge** export
-(``export/culturescrape/{nodes,edges}/*.tsv``) into chain-of-reasoning question /
+(``build/corpus/{nodes,edges}/*.tsv``) into chain-of-reasoning question /
 answer training examples: each QA pair is grounded in an explicit **graph path**
 or a **rule derivation**, and that path/derivation IS the reference answer's
 justification (carried on the example as structured ``evidence``).

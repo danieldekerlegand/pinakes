@@ -10,7 +10,7 @@ import {
   AGENT_CARD_ROUTE_PATH,
   KCB_MANIFEST_EXTENSION_URI,
 } from "./a2a";
-import { CAPABILITY_MANIFEST } from "@shared/capability-manifest";
+import { CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
 
 /**
  * Integration tests for the A2A agent-card surface (41-US-2). A real Express server

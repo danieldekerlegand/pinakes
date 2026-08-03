@@ -9,7 +9,7 @@ import path from "path";
  * server-side `GOOGLE_TRANSLATE_API_KEY`; the key is never shipped in the Vite bundle.
  * These tests lock that invariant in place (mirrors the Gemini guard, US-001):
  *   1. `.env.example` declares the server key but no `VITE_`-exposed translate key;
- *   2. no `client/` source references a `VITE_GOOGLE_TRANSLATE*` key, `process.env`
+ *   2. no `web/` source references a `VITE_GOOGLE_TRANSLATE*` key, `process.env`
  *      translate key, or the raw Google Translate REST endpoint.
  *
  * The proxy's own behavior (mocked upstream, no key echoed) is covered in
@@ -17,7 +17,7 @@ import path from "path";
  */
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
-const CLIENT_SRC = path.join(REPO_ROOT, "client", "src");
+const CLIENT_SRC = path.join(REPO_ROOT, "web", "src");
 
 function collectSourceFiles(dir: string): string[] {
   const out: string[] = [];
@@ -40,7 +40,7 @@ describe("Google Translate key is server-side only (US-002)", () => {
     expect(env).not.toMatch(/VITE_GOOGLE_TRANSLATE/i);
   });
 
-  it("no client/ source references a translate key or the raw Google Translate endpoint", () => {
+  it("no web/ source references a translate key or the raw Google Translate endpoint", () => {
     const files = collectSourceFiles(CLIENT_SRC);
     const forbidden = [
       /VITE_GOOGLE_TRANSLATE/i, // client-exposed key

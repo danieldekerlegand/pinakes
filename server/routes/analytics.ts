@@ -5,7 +5,7 @@
  * analytical index (server/services/analytical-index.ts) instead of re-parsing
  * TSVs and looping in JS. Graph / correlation queries continue to go through
  * `/api/graph/*` (Neo4j); the index is a derived, read-only mirror of the
- * source-of-truth `lexicons/*.tsv` (docs/analytical-index.md).
+ * source-of-truth `data/source/lexicons/*.tsv` (docs/analytical-index.md).
  *
  * Handlers never crash the process: a bad table/column maps to 404, and an
  * unexpected index failure maps to 500 with a structured body.

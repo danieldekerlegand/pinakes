@@ -5,10 +5,10 @@
  * LineString) into a reviewable contribution. Nothing here touches fs / express
  * / the source-of-truth TSVs — the drawn shape lands in the *contribution queue*
  * (via `ContributionService.submit`) with `provenance source = 'user-drawn'`, so
- * a human reviewer promotes it into `lexicons/*.tsv` later (US-009).
+ * a human reviewer promotes it into `data/source/lexicons/*.tsv` later (US-009).
  *
  * The geometry is stored in the same shape the geometry TSVs use: GeoJSON with
- * standard `[lng, lat]` coordinate order (see `lexicons/civilization-boundaries
+ * standard `[lng, lat]` coordinate order (see `data/source/lexicons/civilization-boundaries
  * .tsv`, `migration-routes.tsv`). `serializeGeometry` produces exactly the JSON
  * string that would sit in a TSV `geometry`/`waypoints` cell.
  */

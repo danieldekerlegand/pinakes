@@ -3,7 +3,7 @@
  * Run with: npx tsx test/test-embed-and-export.ts
  */
 
-import { generateEmbedCode, type EmbedOptions } from '../client/src/lib/visualization/export-utils';
+import { generateEmbedCode, type EmbedOptions } from '../web/src/lib/visualization/export-utils';
 
 let passed = 0;
 let failed = 0;

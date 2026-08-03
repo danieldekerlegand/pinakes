@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Language, LanguageFamily } from "@shared/types";
+import type { Language, LanguageFamily } from "@contracts/types";
 import type { TradeGood, TradeRoute } from "../tsv-storage";
 
 export interface WordListEntry {
@@ -246,7 +246,7 @@ export class TsvWriter {
    */
   async appendToCentralWordsTSV(
     entries: CentralWordEntry[],
-    filePath: string = "lexicons/words.tsv"
+    filePath: string = "data/source/lexicons/words.tsv"
   ): Promise<void> {
     const fileExists = fs.existsSync(filePath);
 
@@ -282,7 +282,7 @@ export class TsvWriter {
    */
   async getScrapedConceptIdsForLanguage(
     languageId: string,
-    filePath: string = "lexicons/words.tsv"
+    filePath: string = "data/source/lexicons/words.tsv"
   ): Promise<Set<string>> {
     const scrapedIds = new Set<string>();
 

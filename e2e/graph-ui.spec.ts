@@ -24,7 +24,7 @@ import { test, expect, type Page, type Route } from "@playwright/test";
  * Selectors prefer stable `data-testid`s + accessible names over CSS.
  */
 
-// A language that exists in lexicons/languages.tsv; `?langDetail=<id>` opens its
+// A language that exists in data/source/lexicons/languages.tsv; `?langDetail=<id>` opens its
 // detail panel directly (dashboard reads it from the shareable URL state), which
 // is where the "Show in graph" affordance lives.
 const LANGUAGE_ID = "cmn";

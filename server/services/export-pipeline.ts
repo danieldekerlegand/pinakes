@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const LEXICONS_DIR = path.resolve("lexicons");
+const LEXICONS_DIR = path.resolve("data", "source", "lexicons");
 
 /** Supported export formats for open dataset contribution */
 export type ExportFormat = "cldf" | "csv" | "tsv" | "json";

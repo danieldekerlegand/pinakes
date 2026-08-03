@@ -39,7 +39,7 @@ from pinakes_ml.triples import (
 _ML_ROOT = Path(__file__).resolve().parents[2]
 _REPO_ROOT = _ML_ROOT.parent
 
-DEFAULT_EDGES_DIR = _REPO_ROOT / "export" / "culturescrape" / "edges"
+DEFAULT_EDGES_DIR = _REPO_ROOT / "build" / "corpus" / "edges"
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "triples"
 DEFAULT_MANIFEST = _ML_ROOT / "manifests" / "triples-split-manifest.json"
 
@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             f"edges dir not found: {args.edges_dir}\n"
             "The canonical export is a git-ignored build output — regenerate "
-            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
+            "it with `npx tsx scripts/export-for-engine.ts` first."
         )
 
     triples, splits, manifest = build(args.edges_dir, seed=args.seed)

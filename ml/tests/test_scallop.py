@@ -345,7 +345,7 @@ def test_committed_manifest_rule_translation_matches_registry() -> None:
 # --- Live reproducibility gate (skipped when the export is absent) --------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_LIVE_EDGES = _REPO_ROOT / "export" / "culturescrape" / "edges"
+_LIVE_EDGES = _REPO_ROOT / "build" / "corpus" / "edges"
 
 
 @pytest.mark.skipif(

@@ -14,8 +14,8 @@ import {
   computeTemporalCorrelation,
   computeGeographicOverlap,
   executeTask,
-} from "../shared/computation";
-import type { WordFormData, CorrelationEntity } from "../shared/computation";
+} from "../contracts/computation";
+import type { WordFormData, CorrelationEntity } from "../contracts/computation";
 
 let passed = 0;
 let failed = 0;

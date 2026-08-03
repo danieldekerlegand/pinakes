@@ -84,7 +84,7 @@ export class SettlementsScraper {
   private static isScraping = false;
   private tsvPath: string;
 
-  constructor(tsvPath: string = "lexicons/settlements.tsv") {
+  constructor(tsvPath: string = "data/source/lexicons/settlements.tsv") {
     this.tsvPath = tsvPath;
   }
 

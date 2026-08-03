@@ -99,7 +99,7 @@ async function testSoundChangeScraper() {
 
   // Test 8: Verify TSV file format
   console.log("Test 8: Verify TSV file format");
-  const tsvPath = "lexicons/sound-changes.tsv";
+  const tsvPath = "data/source/lexicons/sound-changes.tsv";
   assert(fs.existsSync(tsvPath), "sound-changes.tsv file exists");
   const content = fs.readFileSync(tsvPath, "utf8");
   const lines = content.split("\n").filter((l) => l.trim() !== "");

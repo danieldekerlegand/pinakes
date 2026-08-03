@@ -194,10 +194,10 @@ export class CuisineScraper {
         progressCallback("progress", "Writing to TSV files...");
       }
 
-      await this.appendToTsv("lexicons/cuisines.tsv", CUISINE_HEADERS, allCuisineRows);
-      await this.appendToTsv("lexicons/cuisine-items.tsv", CUISINE_ITEM_HEADERS, allItemRows);
-      await this.appendToTsv("lexicons/ingredient-origins.tsv", INGREDIENT_HEADERS, allIngredientRows);
-      await this.appendToTsv("lexicons/cooking-techniques.tsv", TECHNIQUE_HEADERS, allTechniqueRows);
+      await this.appendToTsv("data/source/lexicons/cuisines.tsv", CUISINE_HEADERS, allCuisineRows);
+      await this.appendToTsv("data/source/lexicons/cuisine-items.tsv", CUISINE_ITEM_HEADERS, allItemRows);
+      await this.appendToTsv("data/source/lexicons/ingredient-origins.tsv", INGREDIENT_HEADERS, allIngredientRows);
+      await this.appendToTsv("data/source/lexicons/cooking-techniques.tsv", TECHNIQUE_HEADERS, allTechniqueRows);
 
       const result: CuisineScrapeResult = {
         cuisines: allCuisineRows.length,
@@ -410,7 +410,7 @@ Generate detailed food culture data for ${cuisine.name} cuisine:
   }
 
   private loadExistingCuisineIds(): Set<string> {
-    const filePath = "lexicons/cuisines.tsv";
+    const filePath = "data/source/lexicons/cuisines.tsv";
     try {
       const content = fs.readFileSync(filePath, "utf8");
       const lines = content.trim().split("\n");

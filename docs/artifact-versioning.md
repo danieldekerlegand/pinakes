@@ -10,8 +10,8 @@ are plain git-ignored directories, regenerated from committed inputs.
 | Removed | Was |
 |---------|-----|
 | `.dvc/`, `.dvcignore` | repo-root DVC init + a `localremote` pointing at `dvc-storage/` |
-| `export/culturescrape.dvc` | pointer for the canonical node/edge TSV export |
-| `core/out/pinakes-full.dvc` | pointer for the full Datalog/Neo4j rebuild output |
+| `build/corpus.dvc` | pointer for the canonical node/edge TSV export |
+| `engine/out/pinakes-full.dvc` | pointer for the full Datalog/Neo4j rebuild output |
 | `ml/data.dvc`, `ml/models.dvc` | pointers for ML datasets/embeddings and the slm-pilot GGUF bundle |
 | `dvc>=3.0` in `ml/pyproject.toml` | 54 transitive packages in `ml/uv.lock` |
 
@@ -31,7 +31,7 @@ are plain git-ignored directories, regenerated from committed inputs.
   regeneration) bought nothing.
 
 The output paths stay git-ignored as regenerable build outputs:
-`export/culturescrape`, `core/out/`, `ml/data`, `ml/artifacts`, `ml/models`.
+`build/corpus`, `engine/out/`, `ml/data`, `ml/artifacts`, `ml/models`.
 
 ## Historical hashes
 
@@ -56,8 +56,8 @@ real storage from the start:
 uv add --project ml 'dvc[s3]>=3.0'          # or dvc[gs], dvc[azure]
 uv run --project ml dvc init                # recreates .dvc/ + .dvcignore at the repo root
 uv run --project ml dvc remote add -d origin s3://<bucket>/pinakes
-uv run --project ml dvc add export/culturescrape ml/data
-git add export/culturescrape.dvc ml/data.dvc .dvc .dvcignore
+uv run --project ml dvc add build/corpus ml/data
+git add build/corpus.dvc ml/data.dvc .dvc .dvcignore
 uv run --project ml dvc push
 ```
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { findCultureProfileIdForFeature } from "@/lib/visualization/culture-profile-lookup";
-import type { CultureProfile } from "@shared/types";
+import type { CultureProfile } from "@contracts/types";
 
 function makeProfile(overrides: Partial<CultureProfile>): CultureProfile {
   return {

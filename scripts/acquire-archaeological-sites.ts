@@ -1,6 +1,6 @@
 /**
  * Acquire notable archaeological sites from Wikidata (SPARQL) and curate them into a
- * committed additions TSV for write-back into `lexicons/archaeological-sites.tsv` (US-002,
+ * committed additions TSV for write-back into `data/source/lexicons/archaeological-sites.tsv` (US-002,
  * data-population at scale).
  *
  * This is the one networked step of the per-domain runbook
@@ -22,10 +22,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const OUT_FILE = path.join(
   REPO_ROOT,
   "scripts",
@@ -169,7 +169,7 @@ function isRealLabel(label: string): boolean {
   return !/^Q\d+$/.test(t);
 }
 
-/** Normalise a name for duplicate detection (matches import-from-culturescrape). */
+/** Normalise a name for duplicate detection (matches import-from-engine). */
 function normaliseName(name: string): string {
   return name
     .normalize("NFKD")
@@ -198,7 +198,7 @@ function slugify(name: string): string {
  */
 function placeLexiconFiles(): string[] {
   const mapping = JSON.parse(
-    fs.readFileSync(path.join(REPO_ROOT, "shared", "lexicon-mapping.json"), "utf8"),
+    fs.readFileSync(path.join(REPO_ROOT, "contracts", "lexicon-mapping.json"), "utf8"),
   ) as { files: { file: string; kind: string; node: string | null }[] };
   return mapping.files
     .filter((f) => f.kind === "node" && f.node === "place")

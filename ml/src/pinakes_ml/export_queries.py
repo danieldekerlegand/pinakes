@@ -49,7 +49,7 @@ _REPO_ROOT = _ML_ROOT.parent
 DEFAULT_TRIPLES_DIR = _ML_ROOT / "data" / "triples"
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "queries"
 DEFAULT_MANIFEST = _ML_ROOT / "manifests" / "training-queries-manifest.json"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 def _target(triples: list[Triple]) -> list[Triple]:

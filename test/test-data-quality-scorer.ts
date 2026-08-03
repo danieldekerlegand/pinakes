@@ -153,7 +153,7 @@ function testScoreConsistency() {
   assert(report.overallScore <= 1, "overall score <= 1");
 
   // File count matches
-  const tsvFiles = fs.readdirSync(path.resolve(import.meta.dirname, "../lexicons"))
+  const tsvFiles = fs.readdirSync(path.resolve(import.meta.dirname, "../data/source/lexicons"))
     .filter((f) => f.endsWith(".tsv"));
   assertEqual(report.fileCount, tsvFiles.length, `fileCount matches actual TSV file count (${tsvFiles.length})`);
 }

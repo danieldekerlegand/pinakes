@@ -1,4 +1,4 @@
-import type { ScrapingJob } from "@shared/types";
+import type { ScrapingJob } from "@contracts/types";
 
 /**
  * In-memory job store for tracking scraping jobs

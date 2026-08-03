@@ -127,11 +127,11 @@ async function testManifestSaveAndLoad() {
   const manifestPath = tmpFile("manifest.json");
   const mgr = new ScrapeManifestManager(manifestPath);
 
-  await mgr.updateEntry("lexicons/test.tsv", "id\tname\n1\talpha\n", 1);
+  await mgr.updateEntry("data/source/lexicons/test.tsv", "id\tname\n1\talpha\n", 1);
 
-  const entry = await mgr.getEntry("lexicons/test.tsv");
+  const entry = await mgr.getEntry("data/source/lexicons/test.tsv");
   assert(entry !== undefined, "Entry exists");
-  assert(entry!.file === "lexicons/test.tsv", "File matches");
+  assert(entry!.file === "data/source/lexicons/test.tsv", "File matches");
   assert(entry!.rowCount === 1, "Row count matches");
   assert(entry!.contentHash.length === 64, "Content hash is SHA-256");
 }

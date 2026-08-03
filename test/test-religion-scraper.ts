@@ -51,7 +51,7 @@ function assert(condition: boolean, message: string) {
 async function testReligionsTsv() {
   console.log("=== Testing religions.tsv ===\n");
 
-  const filePath = path.resolve(__dirname, "../lexicons/religions.tsv");
+  const filePath = path.resolve(__dirname, "../data/source/lexicons/religions.tsv");
   assert(fs.existsSync(filePath), "religions.tsv exists");
 
   const text = fs.readFileSync(filePath, "utf-8");

@@ -1,6 +1,6 @@
 /**
  * Curate hand-authored migration & trade route additions into committed TSVs for
- * write-back into `lexicons/migration-routes.tsv` and `lexicons/trade-routes.tsv`
+ * write-back into `data/source/lexicons/migration-routes.tsv` and `data/source/lexicons/trade-routes.tsv`
  * (US-003, data-population at scale).
  *
  * Unlike the sites/cultures acquire scripts, migration & trade routes are NOT bulk-acquired
@@ -22,7 +22,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
@@ -373,7 +373,7 @@ const TRADE_ROUTES: TradeRow[] = [
 ];
 
 /**
- * `traded_goods` is a foreign key into `lexicons/trade-goods.tsv`, so it must serialise as
+ * `traded_goods` is a foreign key into `data/source/lexicons/trade-goods.tsv`, so it must serialise as
  * `tg-NNN` ids — the routes above name goods in prose because that is what is readable to
  * curate. This map is the join, and `resolveTradedGoods` makes an unmapped name a **build
  * failure** rather than a dangling reference: tr-026..tr-039 originally shipped with the raw
@@ -410,7 +410,7 @@ function resolveTradedGoods(names: readonly string[], routeId: string): string[]
     if (!id) {
       throw new Error(
         `${routeId}: traded good ${JSON.stringify(name)} has no id in TRADE_GOOD_IDS. ` +
-          `Add a row to lexicons/trade-goods.tsv and map it here, or list it in NOT_TRADE_GOODS.`,
+          `Add a row to data/source/lexicons/trade-goods.tsv and map it here, or list it in NOT_TRADE_GOODS.`,
       );
     }
     if (!ids.includes(id)) ids.push(id);

@@ -22,7 +22,7 @@ export interface ReligionEntry {
 
 /**
  * Scraper that uses Gemini AI to generate comprehensive religion and belief system data.
- * Writes results to lexicons/religions.tsv.
+ * Writes results to data/source/lexicons/religions.tsv.
  */
 export class ReligionScraper {
   private static isScraping = false;
@@ -175,7 +175,7 @@ export class ReligionScraper {
 
   private async getExistingReligionIds(): Promise<Set<string>> {
     const ids = new Set<string>();
-    const filePath = "lexicons/religions.tsv";
+    const filePath = "data/source/lexicons/religions.tsv";
 
     if (!fs.existsSync(filePath)) {
       return ids;
@@ -367,7 +367,7 @@ Generate 15-25 entries. Be accurate with dates and classifications.`;
   }
 
   private async mergeAndWriteReligions(newReligions: ReligionEntry[]): Promise<void> {
-    const filePath = "lexicons/religions.tsv";
+    const filePath = "data/source/lexicons/religions.tsv";
 
     // Read existing content
     let existingContent = "";

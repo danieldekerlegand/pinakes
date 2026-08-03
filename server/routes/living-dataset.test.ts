@@ -8,7 +8,7 @@ import path from "node:path";
 
 /**
  * Integration tests for the living-dataset workflow (US-011, speculative). The
- * routes are wired to temp-dir stores, a fake culture-scrape runner (no Python /
+ * routes are wired to temp-dir stores, a fake pinakes-engine runner (no Python /
  * network), and a fake DOI minter (no live Zenodo call). The clock is injected so
  * cadence + schedule assertions are deterministic.
  */
@@ -19,9 +19,9 @@ import { ContributionService } from "../services/contribution-service";
 import { ChangelogStore } from "../services/changelog";
 import type {
   AcquisitionCategory,
-  CultureScrapeJobRunner,
+  EngineJobRunner,
   FetchOutcome,
-} from "../services/culturescrape-acquisition";
+} from "../services/engine-acquisition";
 import type { DoiMinter } from "../services/export-pipeline";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -32,7 +32,7 @@ function daysAgo(n: number): string {
 }
 
 /** A runner that returns two labelled records per category (both queueable). */
-const fakeRunner: CultureScrapeJobRunner = {
+const fakeRunner: EngineJobRunner = {
   async runFetch(category: AcquisitionCategory): Promise<FetchOutcome> {
     const coord = category.requireCoordinates ? "Point(12.5 41.9)" : "";
     return {

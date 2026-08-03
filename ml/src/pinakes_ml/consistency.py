@@ -10,7 +10,7 @@ the ways those predicted edges violate the corpus's logical constraints:
   self-loop) is logically impossible. This is the ML analogue of the datalog
   ``descends_from`` transitive-closure rule (T-SR-US-001).
 * **Canonical-schema type breaches** — every edge type declares the node types
-  allowed on each end in the machine-readable ``shared/canonical-schema.json``
+  allowed on each end in the machine-readable ``contracts/canonical-schema.json``
   (``edgeTypes[].from`` / ``.to``). A prediction whose endpoints (read off the
   ``cs:<node-type>:<id>`` csid) fall outside those sets is a breach. An empty
   ``from``/``to`` list means "unconstrained" (polymorphic edge — not checked).
@@ -81,7 +81,7 @@ def node_type_of(csid: str) -> str | None:
 def load_edge_constraints(schema_path: Path | str) -> dict[str, EdgeConstraint]:
     """Map each edge ``:TYPE`` to its ``(from, to)`` allowed node-type sets.
 
-    Read from the machine-readable ``shared/canonical-schema.json``. An empty
+    Read from the machine-readable ``contracts/canonical-schema.json``. An empty
     ``from``/``to`` list in the schema means the edge is polymorphic on that end
     (no constraint) and is represented here as ``None`` — such an end is skipped by
     :func:`check_schema_type_breaches`.

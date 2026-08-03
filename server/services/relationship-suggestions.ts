@@ -15,7 +15,7 @@
  * here creates an edge: {@link suggestRelationships} only ranks and returns.
  *
  * The relationship-type vocabulary is the canonical edge vocabulary
- * (`RELATIONSHIP_TYPE_OPTIONS`, from `@shared/canonical-schema` via
+ * (`RELATIONSHIP_TYPE_OPTIONS`, from `@contracts/canonical-schema` via
  * `relationship-edge.ts`) so a confirmed suggestion stays forward-compatible
  * with the shared graph.
  *

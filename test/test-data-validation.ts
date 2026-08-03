@@ -7,7 +7,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { DataValidationService, type ValidationReport } from "../server/services/data-validation";
 
-const LEXICONS_DIR = path.join(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = path.join(import.meta.dirname, "..", "data", "source", "lexicons");
 
 let passed = 0;
 let failed = 0;

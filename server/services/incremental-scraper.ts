@@ -137,7 +137,7 @@ export function diffTsv(
 
 // --- Scrape Manifest ---
 
-const DEFAULT_MANIFEST_PATH = "lexicons/.scrape-manifest.json";
+const DEFAULT_MANIFEST_PATH = "data/source/lexicons/.scrape-manifest.json";
 
 export class ScrapeManifestManager {
   private manifestPath: string;
@@ -200,7 +200,7 @@ export class ScrapeManifestManager {
 
 // --- Incremental Scraper ---
 
-const DEFAULT_DIFF_DIR = "lexicons/.diffs";
+const DEFAULT_DIFF_DIR = "data/source/lexicons/.diffs";
 
 export type IncrementalScrapeResult = {
   file: string;

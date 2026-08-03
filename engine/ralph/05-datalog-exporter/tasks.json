@@ -1,0 +1,51 @@
+{
+  "project": "pinakes-engine",
+  "description": "Prolog/Datalog exporter — projects the canonical TSV graph into engine-agnostic logical facts and ships runnable rule sets and example queries for both SWI-Prolog (interactive research querying via pyswip) and Souffle (high-performance bulk Datalog), enabling symbolic inference over the cultural network. This is the least-charted path; treat as original engineering.",
+  "tasks": [
+    {
+      "title": "T5-US-001: Add the datalog exporter module and define the fact model",
+      "description": "As a developer, I need a canonical, engine-neutral fact representation before targeting any specific engine.\n\nAcceptance criteria (all must be met before marking complete):\n- Create src/pinakes_engine/datalog/__init__.py and define a Fact dataclass (predicate, args, optional source)\n- Document the predicate schema in docs/datalog.md: node/3+, instance_of/2, rel/3 (or typed predicates per :TYPE), and dimension facts (time_start/2, located_in/2, descends_from/2, ...)\n- Provide a function to safely render an atom (quoting/escaping identifiers and string literals validly for Prolog and Datalog)\n- Tests pass (pytest) for atom escaping incl. quotes, spaces, and unicode\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-002: Map node TSV rows to facts",
+      "description": "As a developer, I want every node row to become well-formed facts so entities exist in the logic program.\n\nAcceptance criteria (all must be met before marking complete):\n- Each node emits node(Csid, Type, Name) plus one fact per populated dimension column (e.g. time_start(Csid, Year), located_at(Csid, Lat, Lon), language_code(Csid, Code))\n- csids are turned into valid lowercase atoms or quoted atoms deterministically; mapping is reversible-documented\n- Null/empty columns emit no fact (no nulls in the logic program)\n- Tests pass (pytest) mapping a fixture node file to the expected fact set\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-003: Map edge TSV rows to facts",
+      "description": "As a developer, I want every edge to become a relation fact so the graph structure is in logic.\n\nAcceptance criteria (all must be met before marking complete):\n- Each edge emits a typed predicate per :TYPE (e.g. located_in(A,B), derived_from(A,B)) and also a generic rel(Type,A,B) for uniform queries\n- Predicate names are derived from :TYPE via a documented, collision-free lowercasing scheme\n- Edge weight/confidence is exposed via an optional companion fact (e.g. rel_conf(Type,A,B,Conf))\n- Tests pass (pytest) mapping a fixture edge file to expected facts\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-004: Emit a SWI-Prolog program (.pl)",
+      "description": "As a researcher, I want a loadable Prolog file so I can query the network interactively.\n\nAcceptance criteria (all must be met before marking complete):\n- Write facts to a .pl file with appropriate :- discontiguous/:- dynamic declarations so SWI-Prolog loads it without warnings\n- File loads cleanly via swipl in a smoke test (skipped automatically if swipl is not installed, with the skip reason logged)\n- A header comment documents the predicate schema\n- Tests pass (pytest): the generated .pl parses; the swipl load test passes or is skipped\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-005: Emit a Souffle program (.dl) with type declarations",
+      "description": "As a data miner, I want a Souffle datalog file so I can run high-performance bulk inference.\n\nAcceptance criteria (all must be met before marking complete):\n- Generate a .dl file with .decl declarations for every predicate, .input/.output directives, and facts loaded from generated .facts TSV files (Souffle's native format)\n- souffle compiles/runs the program in a smoke test (skipped automatically if souffle is not installed, with the skip reason logged)\n- Generated .facts files reuse the strict TSV writer so they are lossless\n- Tests pass (pytest): generated .dl is well-formed; the souffle run test passes or is skipped\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-006: Author a shared rule library for derived relations",
+      "description": "As a researcher, I want inference rules so the logic layer adds value beyond the raw facts.\n\nAcceptance criteria (all must be met before marking complete):\n- Define rules (in both Prolog and Souffle syntax) for: transitive descends_from (ancestor/2), transitive located_in (within_region/2), contemporary_with as symmetric closure, and an influenced_transitively/2 over derived_from/influenced_by\n- Each rule has a documented intended meaning and a worked example query\n- Rules are stored as templates so they attach to any generated program\n- Tests pass (pytest) checking the rule text is emitted into both .pl and .dl outputs\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-007: Validate inference equivalence across engines on a fixture",
+      "description": "As a user, I want confidence that Prolog and Souffle agree so results are trustworthy.\n\nAcceptance criteria (all must be met before marking complete):\n- On a fixture graph, run the same query (e.g. ancestor/2 closure) in swipl and souffle and assert identical result sets\n- Test skips gracefully (with logged reason) if either engine is unavailable, but runs in CI when both are present\n- Differences, if any, are reported with the diverging tuples\n- Tests pass (pytest) for the equivalence check (or skip with reason)\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-008: Add a to-datalog CLI command",
+      "description": "As a user, I want one command that turns canonical TSV into a ready logic program.\n\nAcceptance criteria (all must be met before marking complete):\n- Add `pinakes_engine to-datalog <dir> --engine swipl|souffle|both --rules --out <dir>`\n- Command emits facts (+ rules when --rules) for the selected engine(s) and prints a load/run hint\n- Running on a fixture dataset produces a .pl and/or .dl that passes the relevant well-formedness test\n- Tests pass (pytest) invoking the CLI for each engine option\n- Type checks pass (mypy)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    },
+    {
+      "title": "T5-US-009: Ship example logic queries and document the workflow",
+      "description": "As a researcher, I want runnable example queries and docs so the symbolic layer is usable on day one.\n\nAcceptance criteria (all must be met before marking complete):\n- Add datalog/examples with queries: full ancestry of a dish, all entities within a region transitively, contemporaries of an event, shortest influence chain between two artifacts\n- docs/datalog.md documents the predicate schema, the csid<->atom mapping, how to load in swipl, how to run in souffle, and the example queries with expected output shape\n- Each example references a test (or doctest) that runs it on the fixture when the engine is available\n- Tests pass (pytest) for the example harness (skipping engine-specific parts when unavailable)\n- Lint passes (ruff)\n\nProject context: pinakes-engine — see PLAN.md, docs/data-model.md, docs/prior-art.md. Work in the repo root (src/pinakes_engine/). This story belongs to tasklist 'ralph/datalog-exporter'.",
+      "completed": true
+    }
+  ]
+}

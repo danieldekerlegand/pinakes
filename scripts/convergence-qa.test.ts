@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { lexiconMappingByFile } from "@contracts/lexicon-mapping";
 import {
   buildConvergenceQA,
   detectDrift,
@@ -23,7 +23,7 @@ import {
 } from "./convergence-qa";
 
 /** The real corpus — the clean baseline the gate must pass on. */
-const REAL_LEXICONS = path.resolve(process.cwd(), "lexicons");
+const REAL_LEXICONS = path.resolve(process.cwd(), "data", "source", "lexicons");
 
 /** Fresh temp dir; caller removes it. */
 function tmpDir(): string {
@@ -135,7 +135,7 @@ describe("convergence-qa (US-008)", () => {
       );
       expect(drift).toHaveLength(1);
       expect(drift[0].kind).toBe("registry-stale");
-      expect(drift[0].message).toContain("shared/predicate-mapping.json");
+      expect(drift[0].message).toContain("contracts/predicate-mapping.json");
       expect(drift[0].message).toContain("npm run regen:registry-mirror");
       expect(drift[0].message).toMatch(/never hand-edit/i);
     });
@@ -146,7 +146,7 @@ describe("convergence-qa (US-008)", () => {
       );
       expect(drift).toHaveLength(1);
       expect(drift[0].kind).toBe("registry-stale");
-      expect(drift[0].message).toContain("shared/kgp.ts");
+      expect(drift[0].message).toContain("contracts/kgp.ts");
     });
 
     it("still exactly one finding when BOTH mirrors are stale (one issue, both named)", () => {
@@ -154,8 +154,8 @@ describe("convergence-qa (US-008)", () => {
         probe({ diff: () => ({ jsonChanged: true, kgpChanged: true }) }),
       );
       expect(drift).toHaveLength(1);
-      expect(drift[0].message).toContain("shared/predicate-mapping.json");
-      expect(drift[0].message).toContain("shared/kgp.ts");
+      expect(drift[0].message).toContain("contracts/predicate-mapping.json");
+      expect(drift[0].message).toContain("contracts/kgp.ts");
     });
 
     it("a broken (present but unreadable) checkout fails the gate rather than crashing", () => {

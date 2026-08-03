@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import fs from "node:fs";
 import path from "node:path";
 import { jobStore } from "./job-store";
-import type { Language } from "@shared/types";
+import type { Language } from "@contracts/types";
 
 /**
  * Maps language names to their Wiktionary language codes and appendix page names.
@@ -110,7 +110,7 @@ export interface WiktionaryScrapeOptions {
  */
 class WiktionaryPhonologyScraper {
   private static isScraping = false;
-  private readonly filePath = "lexicons/phonological-inventories.tsv";
+  private readonly filePath = "data/source/lexicons/phonological-inventories.tsv";
   private readonly headers = [
     "id",
     "language_id",

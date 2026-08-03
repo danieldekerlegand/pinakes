@@ -1,36 +1,19 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "**/*.test.ts",
-    "client/src/components/advanced-search-filters.tsx",
-    "client/src/components/ai-translation-context.tsx",
-    "client/src/components/database-normalizer.tsx",
-    "client/src/components/language-evolution-timeline.tsx",
-    "client/src/components/language-map.tsx",
-    "client/src/components/user-contribution-panel.tsx"
+  "//": [
+    "NOT the project config — that is web/tsconfig.json (20-repo-restructure US-2).",
+    "This shim exists because `tsx` resolves path aliases from the nearest",
+    "tsconfig.json at or above its cwd, and the still-TypeScript entry points",
+    "(server/, scripts/) run from the repo root. Without it `npm run dev` and",
+    "every `tsx scripts/*.ts` fail to resolve @contracts/* at runtime.",
+    "The baseUrl/paths below are stated explicitly (not inherited) so they are",
+    "correct from HERE; keep them in sync with web/tsconfig.json's."
   ],
+  "extends": "./web/tsconfig.json",
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-    "noEmit": true,
-    "resolveJsonModule": true,
-    "target": "ES2020",
-    "module": "ESNext",
-    "strict": true,
-    "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
     "baseUrl": ".",
-    "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+      "@/*": ["./web/src/*"],
+      "@contracts/*": ["./contracts/*"]
     }
   }
 }

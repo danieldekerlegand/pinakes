@@ -26,14 +26,14 @@ into the running app.
 
 The 81 added rows were curated from the three **tightest** verified Wikidata classes:
 ancient civilization (Q28171280) ×21, civilization (Q8432) ×47, empire (Q48349) ×13.
-Source of truth is `lexicons/civilizations.tsv` (89→170); the built corpus stays gitignored.
+Source of truth is `data/source/lexicons/civilizations.tsv` (89→170); the built corpus stays gitignored.
 
 ## 2. Reconciliation / dedup rate
 
 Acquisition ran the 8 verified SPARQL queries in `jobs/civilizations.yml` and normalized
 into the canonical corpus: **4,743 nodes, 4,734 distinct `:Culture` by QID**, 100% connected.
 That acquired set was reconciled against the 89 curated civilizations
-(`src/culturescrape/schema/lexicon_reconcile.py`, cross-source fuzzy threshold 0.93):
+(`src/pinakes_engine/schema/lexicon_reconcile.py`, cross-source fuzzy threshold 0.93):
 
 | bucket | count |
 | --- | --- |
@@ -58,14 +58,14 @@ That acquired set was reconciled against the 89 curated civilizations
 - **Every added row carries full provenance.** All 81 appended rows have `wikidata_qid`,
   `source_url` (`http://www.wikidata.org/entity/<QID>`), `retrieved_at` (acquisition ISO-8601),
   `confidence = 1.0`, and a bibliographic `sources = ["Wikidata"]`. Four provenance columns were
-  added to `civilizations.tsv` and mapped in `shared/lexicon-mapping.json`; existing curated rows
+  added to `civilizations.tsv` and mapped in `contracts/lexicon-mapping.json`; existing curated rows
   carry them blank.
 - **QA gate passes.** The convergence QA gate is green: provenance coverage 0.999 (≥0.5 floor),
   `dup=0`, `dangling=0`, 0 drift. Python gate green throughout (ruff/mypy clean, pytest 1488
   passed / 20 skipped).
 - **No curated cell was clobbered.** Write-back is append-only by construction; a conflicting
   curated cell is *reported*, never silently overwritten (0 conflicts here).
-- **Known attribution gap (fix #1 below).** `scripts/export-for-culturescrape.ts` derives the
+- **Known attribution gap (fix #1 below).** `scripts/export-for-engine.ts` derives the
   canonical `source_url` only from the bibliographic citation, so the Wikidata entity URL lives in
   the lexicon (and is shown in-app, which reads the lexicon) but is **not yet propagated** to the
   canonical export / Neo4j for these rows. `source` is still force-stamped `pinakes` and the
@@ -78,10 +78,10 @@ That acquired set was reconciled against the 89 curated civilizations
 | acquire + normalize | 8 SPARQL queries (`jobs/civilizations.yml`) | **~75 s** | 4,734 distinct `:Culture` |
 | reconcile | `scripts/reconcile_civilizations.py` | seconds (in-memory) | matched/new/ambiguous report |
 | curate | manual + `scripts/data/civilizations-additions.tsv` | human step | 81 publishable rows |
-| write-back | `import-from-culturescrape.ts --add-cultures` | seconds | `civilizations.tsv` 89→170 |
-| canonical export | `export-for-culturescrape.ts` | seconds | 5,432 nodes / 5,526 edges (gitignored) |
-| Neo4j load | `culturescrape to-neo4j --mode loadcsv` | **~19 s** | 37 constraint/index + 24 LOAD CSV stmts |
-| verify counts | `culturescrape neo4j-counts` | seconds | `:Culture: 340`, idempotent on re-load |
+| write-back | `import-from-engine.ts --add-cultures` | seconds | `civilizations.tsv` 89→170 |
+| canonical export | `export-for-engine.ts` | seconds | 5,432 nodes / 5,526 edges (gitignored) |
+| Neo4j load | `pinakes_engine to-neo4j --mode loadcsv` | **~19 s** | 37 constraint/index + 24 LOAD CSV stmts |
+| verify counts | `pinakes_engine neo4j-counts` | seconds | `:Culture: 340`, idempotent on re-load |
 
 **Throughput reading:** the machine steps are cheap and fast (network acquisition ~75 s/domain,
 graph load ~19 s). The **curation step is the throughput bottleneck** — turning 4,677 raw "new"
@@ -106,15 +106,15 @@ rows into 81 trustworthy ones was human judgement, not compute. Scale-out cost s
    / `kingdom` return modern states, parties, militias, and movements alongside real
    civilizations, plus ~14% unlabelled (QID-named) rows. Curate down to the tight classes or add a
    noise filter — do **not** bulk-append the acquired set.
-2. **Neo4j `loadcsv` needs real infra, not `docker compose up`.** The `file://` LOAD CSV path
+2. **Neo4j `loadcsv` needs real infra, not `docker compose -f infra/docker-compose.yml up`.** The `file://` LOAD CSV path
    needs APOC + `allow_csv_import_from_file_urls=true` **and** `server.directories.import=/` to lift
    the import-dir jail (the trap: `allow_csv` alone still resolves `file:///abs` *under* the import
-   dir → `ExternalResourceFailed`). `docker-compose.yml`'s `neo4j` service now wires this.
+   dir → `ExternalResourceFailed`). `infra/docker-compose.yml`'s `neo4j` service now wires this.
 3. **`smoke:graph` needs the sidecar and Neo4j on the SAME corpus.** `dev:full` defaults the
    sidecar to a bundled 9-node demo while Neo4j holds the real export → the cross-backend `node/:id`
-   check 404s. Run `CULTURESCRAPE_CORPUS=/corpus docker compose up -d culturescrape neo4j`.
-4. **After any `lexicons/*.tsv` shape change, regenerate BOTH committed snapshots**
-   (`docs/culturescrape-export-manifest.json` via the export CLI, and `docs/reconciliation-report.json`
+   check 404s. Run `PINAKES_ENGINE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j`.
+4. **After any `data/source/lexicons/*.tsv` shape change, regenerate BOTH committed snapshots**
+   (`docs/engine-export-manifest.json` via the export CLI, and `docs/reconciliation-report.json`
    via the reconciliation CLI) or their live-corpus parity tests fail.
 5. **`source_url` does not reach the graph** (see §3). App-visible ≠ graph-visible for external URLs.
 
@@ -128,7 +128,7 @@ behind the same curate → QA → commit gate, not a single mega-run.
 Ship these fixes with (or before) the scale-out:
 
 - **Fix #1 — propagate `source_url`/`wikidata_qid` into the canonical export.** Make
-  `export-for-culturescrape.ts` emit the lexicon's `source_url`/`wikidata_qid` onto the canonical
+  `export-for-engine.ts` emit the lexicon's `source_url`/`wikidata_qid` onto the canonical
   node so Neo4j and the graph API carry the Wikidata attribution, not just the lexicon. Today the
   app shows it but the graph does not — an academic-credibility gap at scale.
 - **Fix #2 — add a reusable noise filter / curation harness.** The manual "drop QID-named, drop
@@ -136,7 +136,7 @@ Ship these fixes with (or before) the scale-out:
   civilization-specific. Generalise it (per-domain allow/deny class lists + a QID-named reject) so
   each domain isn't re-curated from scratch. Curation is the throughput bottleneck (§4) — invest here.
 - **Fix #3 — make corpus alignment the default for verification.** Bake the
-  `CULTURESCRAPE_CORPUS=/corpus` alignment into the `dev:full` / verification path so `smoke:graph`
+  `PINAKES_ENGINE_CORPUS=/corpus` alignment into the `dev:full` / verification path so `smoke:graph`
   is green out of the box against the real export, not the demo fixture.
 
 Optional but recommended: capture a per-domain "acquired → curated → published" yield metric in the
@@ -148,8 +148,8 @@ QA report so §15's progress table can be tracked automatically as domains fill 
 
 - Roadmap: [§15 Data population at scale](./prd-pinakes-deep-history-roadmap.md#15-data-population-at-scale--the-priority),
   [§16 Production-verification pass](./prd-pinakes-deep-history-roadmap.md), Guiding Principles #5 & #8.
-- Integration design: [`culturescrape-integration.md`](./culturescrape-integration.md),
-  [`core/docs/convergence-build.md`](../core/docs/convergence-build.md).
+- Integration design: [`engine-integration.md`](./engine-integration.md),
+  [`engine/docs/convergence-build.md`](../engine/docs/convergence-build.md).
 - Pilot artifacts: [`civilizations-writeback.md`](./civilizations-writeback.md),
   [`civilizations-neo4j-load.md`](./civilizations-neo4j-load.md),
   [`civilizations-app-verification.md`](./civilizations-app-verification.md).

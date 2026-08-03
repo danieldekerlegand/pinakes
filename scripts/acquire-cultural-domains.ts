@@ -40,10 +40,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 
 const WDQS_ENDPOINT = "https://query.wikidata.org/sparql";
@@ -127,7 +127,7 @@ function isRealLabel(label: string): boolean {
   return !/^Q\d+$/.test(t);
 }
 
-/** Normalise a name for duplicate detection (matches import-from-culturescrape). */
+/** Normalise a name for duplicate detection (matches import-from-engine). */
 function normaliseName(name: string): string {
   return name
     .normalize("NFKD")
@@ -157,7 +157,7 @@ function cleanText(value: string | undefined): string {
 /** Every lexicon file that maps to a canonical node type (for global id dedup). */
 function nodeLexiconFiles(): string[] {
   const mapping = JSON.parse(
-    fs.readFileSync(path.join(REPO_ROOT, "shared", "lexicon-mapping.json"), "utf8"),
+    fs.readFileSync(path.join(REPO_ROOT, "contracts", "lexicon-mapping.json"), "utf8"),
   ) as { files: { file: string; kind: string }[] };
   return mapping.files.filter((f) => f.kind === "node").map((f) => f.file);
 }

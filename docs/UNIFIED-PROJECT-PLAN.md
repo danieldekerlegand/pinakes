@@ -84,26 +84,38 @@ pinakes/
 - `pinakes_engine` — the **engine** package (`engine/`), the former `culturescrape`.
 - `pinakes_ml` — unchanged. → consistent `pinakes_*` family; the `culturescrape`/`cs:` name and the ~197 hits across 33 server files, env vars (`CULTURESCRAPE_*`), API paths (`/api/scraping/culturescrape/*`), and the docker service all disappear.
 
+**Status (20 US-1 + US-4):** the package, the docker service, the env vars
+(`CULTURESCRAPE_*` → `PINAKES_ENGINE_*`), the API paths
+(`/api/scraping/culturescrape/*` → `/api/scraping/engine/*`) and the server's
+`CultureScrape*` exports (→ `Engine*`) are all done. Two deliberate survivors:
+the **`cs:` id-space** (a data namespace shared with `contracts/`, `ml/` and the
+client — a corpus migration, not a rename) and the client's
+`culturescrape.adapter.ts` / `"culturescrape-graph"` **dataset id** (a UI/URL
+identifier the e2e `?ds=` links carry; it retires with the explorer work, not
+with the package).
+
 ### Move map (current → target)
 | Current | Target | Note |
 |---|---|---|
 | `server/` (TS) | `services/api/src/pinakes/` | **rewritten** in Python; Node/Express/Drizzle deleted |
 | `core/` (`culturescrape`) | `engine/src/pinakes_engine/` | renamed; kept + absorbed |
 | `core/inputs/` | `engine/inputs/` | moves with the engine |
-| `client/` | `web/` | stays TS; root TS configs move in with it |
-| `shared/` | `contracts/` | + generated Python bindings |
-| `lexicons/` (top-level) | `data/source/lexicons/` | free to move now (readers rewritten) |
+| `client/` | `web/` | stays TS; root TS configs move in with it — **done** (20 US-2) |
+| `shared/` | `contracts/` | + generated Python bindings — move **done** (20 US-2); bindings still to come |
+| `lexicons/` (top-level) | `data/source/lexicons/` | move **done** (20 US-3); readers' path literals rewritten in place |
 | `scripts/` (TS) | `tooling/` | heavily culled; acquisition scripts fold into the engine |
-| `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed |
-| `docker-compose.yml`, Dockerfiles | `infra/` | |
+| `export/culturescrape`, `core/out` | `build/` | regenerable, gitignored, DVC removed — `export/culturescrape` → `build/corpus` **done** (20 US-1) |
+| `export/pinakes_engine` (`EXPORT_DIR`) | `build/corpus` | **STILL OPEN** — US-1's blanket rename turned `export/culturescrape` into `export/pinakes_engine` in `scripts/export-for-engine.ts`'s `EXPORT_DIR` instead of `build/corpus`, so `convergence-qa` / `reconciliation-report` / `entity-grounding` / `insimul-pack` / `import-from-engine` all still write under a *tracked, un-gitignored* `export/`. Not in any 20 story's ACs (20 US-2/3/4 each deleted the stray dir rather than widen scope); flipping the one constant needs a check that the TS export and the engine's own `build/corpus` are the same artifact, not a collision. Owner: whichever tasklist next touches `scripts/`. |
+| `docker-compose.yml`, Dockerfiles | `infra/` | **done** (20 US-3) — `infra/{docker-compose.yml,engine.Dockerfile}`; invoke compose from the repo root with `-f` |
 | Drizzle/pg, DVC (`.dvc/`, `*.dvc`) | *(deleted)* | vestigial / stranded |
+| `engine/uv.lock` | `uv.lock` (root) | **done** (20 US-4) — the root `pyproject.toml` is a virtual uv workspace root; one lock + one `.venv` for `engine` (and `services/api` when it lands). `ml/` is `exclude`d and keeps its own. |
 
 ## 5. Target runtime architecture
 
 - **One FastAPI app** (the engine already uses FastAPI for the sidecar — grow that into the whole backend). It serves the built React client and all `/api/*` routes in one process.
 - **Neo4j** stays the graph store (already the shared substrate; Python already has 24 files using it — consolidate the 2 TS driver files into Python).
 - **Files** for the rest: TSV corpus/lexicons + `data/runtime/*` JSON. **No SQL** (Drizzle/pg removed — "TSV-only mode" is already the truth).
-- The two TS→Python seams **vanish**: `culturescrape-client.ts` (HTTP to :8800) and `culturescrape-acquisition.ts` (CLI subprocess) become direct in-process calls.
+- The two TS→Python seams **vanish**: `engine-client.ts` (HTTP to :8800, was `culturescrape-client.ts`) and `engine-acquisition.ts` (CLI subprocess, was `culturescrape-acquisition.ts`) become direct in-process calls.
 
 ## 6. Consolidate the two scraping stacks (directly serves the speed goal)
 
@@ -131,7 +143,7 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 ## 9. Concrete first steps (Phase 0)
 1. Remove DVC + Drizzle/pg (safe, independent, immediate clutter reduction).
 2. Generate the API contract spec from the current Express server (the parity baseline).
-3. Create the new skeleton (§4) and move `client/ → web/`, `core/ → engine/` (rename), `shared/ → contracts/` — mechanically, before any Python porting.
+3. Create the new skeleton (§4) and move `client/ → web/`, `core/ → engine/` (rename), `shared/ → contracts/` — mechanically, before any Python porting. **Done** (20 US-1 + US-2).
 4. Stand up the FastAPI shell that serves the client and returns 501 for not-yet-ported routes.
 
 ## 10. Decisions (resolved 2026-08-02)

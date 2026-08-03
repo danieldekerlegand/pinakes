@@ -302,7 +302,7 @@ Guidelines:
   }
 
   private loadExistingSoundChanges(): SoundChange[] {
-    const filePath = "lexicons/sound-changes.tsv";
+    const filePath = "data/source/lexicons/sound-changes.tsv";
     if (!fs.existsSync(filePath)) return [];
 
     const content = fs.readFileSync(filePath, "utf8");
@@ -343,7 +343,7 @@ Guidelines:
   }
 
   private appendSoundChangesToTSV(changes: SoundChange[]): void {
-    const filePath = "lexicons/sound-changes.tsv";
+    const filePath = "data/source/lexicons/sound-changes.tsv";
     const fileExists = fs.existsSync(filePath);
 
     if (!fileExists) {

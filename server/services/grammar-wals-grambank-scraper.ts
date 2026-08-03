@@ -6,7 +6,7 @@ const WALS_BASE_URL =
   "https://raw.githubusercontent.com/cldf-datasets/wals/master/cldf";
 const GRAMBANK_BASE_URL =
   "https://raw.githubusercontent.com/grambank/grambank/master/cldf";
-const OUTPUT_PATH = "lexicons/grammar-features-wals-grambank.tsv";
+const OUTPUT_PATH = "data/source/lexicons/grammar-features-wals-grambank.tsv";
 
 const TSV_HEADERS = [
   "id",
@@ -139,7 +139,7 @@ export class GrammarWalsGrambankScraper {
   /** Build mapping from ISO 639-3 / internal IDs to our language IDs */
   private async buildLanguageIdSet(): Promise<Set<string>> {
     const ids = new Set<string>();
-    const langFile = "lexicons/languages.tsv";
+    const langFile = "data/source/lexicons/languages.tsv";
     if (!fs.existsSync(langFile)) return ids;
 
     const content = await fs.promises.readFile(langFile, "utf8");

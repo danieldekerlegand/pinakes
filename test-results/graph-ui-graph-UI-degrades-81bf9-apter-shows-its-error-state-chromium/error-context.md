@@ -212,10 +212,10 @@ Call log:
   229 |   });
   230 | 
   231 |   test("the explorer graph adapter shows its error state", async ({ page }) => {
-  232 |     // `panel=explore` mounts UnifiedExplorer; `ds=culturescrape-graph` selects
+  232 |     // `panel=explore` mounts UnifiedExplorer; `ds=pinakes_engine-graph` selects
   233 |     // the shared-graph adapter, whose single GET to /api/graph/overview 503s
   234 |     // when Neo4j is down.
-  235 |     await page.goto("/?panel=explore&ds=culturescrape-graph");
+  235 |     await page.goto("/?panel=explore&ds=pinakes_engine-graph");
 > 236 |     await expect(page.getByText(/Failed to load/i)).toBeVisible();
       |                                                     ^ Error: expect(locator).toBeVisible() failed
   237 |     await page.screenshot({ path: `${SHOTS}/down-explorer-adapter.png` });
@@ -276,7 +276,7 @@ Call log:
   292 |   test("the explorer graph adapter loads the Shared Culture Graph", async ({
   293 |     page,
   294 |   }) => {
-  295 |     await page.goto("/?panel=explore&ds=culturescrape-graph");
+  295 |     await page.goto("/?panel=explore&ds=pinakes_engine-graph");
   296 |     // No error state, and the projected item count reflects the overview nodes.
   297 |     await expect(page.getByText(/Failed to load/i)).toHaveCount(0);
   298 |     await expect(page.getByText(/[1-9]\d* items/)).toBeVisible();
@@ -290,7 +290,7 @@ Call log:
   306 |     // The graph-sourced hit is tagged with the purple "Graph" source badge and
   307 |     // carries its provenance (source id) inline.
   308 |     await expect(page.getByText("Graph", { exact: true }).first()).toBeVisible();
-  309 |     await expect(page.getByText("culture-scrape").first()).toBeVisible();
+  309 |     await expect(page.getByText("pinakes-engine").first()).toBeVisible();
   310 |     await page.screenshot({ path: `${SHOTS}/up-federated-search.png` });
   311 |   });
   312 | });

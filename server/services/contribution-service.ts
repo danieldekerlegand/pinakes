@@ -379,7 +379,7 @@ export class ContributionService {
    * Record the outcome of an AI-draft field-level review (US-009): the human
    * reviewer, their per-field decisions, the final status, and — when approved
    * and promoted — the resulting TSV promotion record. The actual promotion to
-   * `lexicons/*.tsv` is done by `ai-review.promoteContribution` (kept out of
+   * `data/source/lexicons/*.tsv` is done by `ai-review.promoteContribution` (kept out of
    * this service so it stays lexicon-agnostic); pass the record here to persist.
    */
   recordAiReview(

@@ -3,10 +3,10 @@
  *
  * A single, network-free health check that both projects can run in CI to catch
  * schema / id drift between pinakes's lexicons and the shared canonical model
- * *before* it reaches culture-scrape's graph. It reports four convergence signals —
+ * *before* it reaches pinakes-engine's graph. It reports four convergence signals —
  *
  *   * **id-overlap**            — how much of the pinakes export overlaps
- *                                 culture-scrape's identity space (the reconciliation
+ *                                 pinakes-engine's identity space (the reconciliation
  *                                 dry-run's global-anchor matches), plus pinakes's
  *                                 own internal id-collision diagnostics;
  *   * **unreconciled rate**     — the share of exported nodes that would *not* collapse
@@ -15,7 +15,7 @@
  *                                 required provenance columns (US-006);
  *   * **schema drift**          — the machine-readable canonical schema (US-001) and the
  *                                 lexicon→canonical mapping (US-002) still validate, every
- *                                 `lexicons/*.tsv` on disk is mapped, and every mapped
+ *                                 `data/source/lexicons/*.tsv` on disk is mapped, and every mapped
  *                                 column still exists in its live header.
  *
  * Only **drift** fails the gate: {@link runQA} exits non-zero when the canonical schema
@@ -34,13 +34,13 @@ import path from "node:path";
 import {
   CANONICAL_SCHEMA,
   assertValidCanonicalSchema,
-} from "@shared/canonical-schema";
+} from "@contracts/canonical-schema";
 import {
   assertValidLexiconMapping,
   lexiconMappingByFile,
   mappedFiles,
-} from "@shared/lexicon-mapping";
-import { assertValidPredicateMapping } from "@shared/predicate-mapping";
+} from "@contracts/lexicon-mapping";
+import { assertValidPredicateMapping } from "@contracts/predicate-mapping";
 import {
   buildExport,
   EXPORT_DIR,
@@ -48,7 +48,7 @@ import {
   NODE_PROVENANCE_FIELDS,
   EDGE_PROVENANCE_FIELDS,
   type ExportManifest,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 import {
   buildReconciliation,
   type ReconciliationReport,
@@ -62,7 +62,7 @@ import {
 } from "./regen-registry-mirror.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the convergence-QA artifact. */
 export const QA_DIR = path.join(EXPORT_DIR, "convergence");
@@ -72,7 +72,7 @@ export const BASELINE_FILE = path.join(REPO_ROOT, "docs", "convergence-qa-baseli
 
 /**
  * Canonical field whose non-blank lexicon cell marks a row as **acquisition-imported**
- * (written by the culture-scrape pipeline, not hand-curated). A file with no column
+ * (written by the pinakes-engine pipeline, not hand-curated). A file with no column
  * mapped to this target has no imported rows — every row is curated seed.
  */
 export const IMPORT_MARKER_TARGET = "wikidata_qid";
@@ -81,7 +81,7 @@ export const IMPORT_MARKER_TARGET = "wikidata_qid";
  * Provenance every imported row MUST carry, non-blank (roadmap Guiding Principle #8):
  * which authority (`source`), the record URL (`source_url`), when it was retrieved
  * (`retrieved_at`), and the reconciliation confidence (`confidence`). These are canonical
- * *targets*; each lexicon file names the columns itself (via shared/lexicon-mapping.json),
+ * *targets*; each lexicon file names the columns itself (via contracts/lexicon-mapping.json),
  * so the gate generalises across domains without hard-coding column names.
  */
 export const REQUIRED_IMPORT_PROVENANCE_TARGETS = [
@@ -141,7 +141,7 @@ export interface RegressionIssue {
 /** id-overlap signal: cross-dataset overlap + pinakes-internal id health. */
 export interface IdentityMetrics {
   readonly nodes: number;
-  /** Nodes carrying a global anchor that overlaps culture-scrape's identity space. */
+  /** Nodes carrying a global anchor that overlaps pinakes-engine's identity space. */
   readonly anchoredOverlap: number;
   readonly overlapRate: number;
   /** pinakes ids reused by more than one node of the same type (export drops). */
@@ -241,7 +241,7 @@ export function defaultRegistryProbe(): RegistryStalenessProbe {
 
 /**
  * Registry-staleness gate: when a koine checkout is present, fail if either the JSON
- * mirror (`shared/predicate-mapping.json`) or the `kgp.ts` TSV vocabulary
+ * mirror (`contracts/predicate-mapping.json`) or the `kgp.ts` TSV vocabulary
  * (`KGP_CORE_RELATIONS`/`KGP_DOMAIN_RELATIONS`) is out of date vs the authoritative koine
  * registry. Guarded on koine presence exactly like the byte test in
  * `predicate-mapping.test.ts`, so a checkout WITHOUT the sibling repo adds no finding.
@@ -269,8 +269,8 @@ export function detectRegistryStaleness(
   }
   if (!diff.jsonChanged && !diff.kgpChanged) return [];
   const stale = [
-    diff.jsonChanged ? "shared/predicate-mapping.json" : null,
-    diff.kgpChanged ? "shared/kgp.ts (KGP_CORE_RELATIONS/KGP_DOMAIN_RELATIONS)" : null,
+    diff.jsonChanged ? "contracts/predicate-mapping.json" : null,
+    diff.kgpChanged ? "contracts/kgp.ts (KGP_CORE_RELATIONS/KGP_DOMAIN_RELATIONS)" : null,
   ].filter(Boolean);
   return [
     {
@@ -357,13 +357,13 @@ export function detectDrift(
     }
   }
 
-  // 4. Every lexicons/*.tsv on disk is mapped (US-002 totality); unmapped ⇒ drift.
+  // 4. Every data/source/lexicons/*.tsv on disk is mapped (US-002 totality); unmapped ⇒ drift.
   const mapped = new Set(mappedFiles());
   for (const file of lexiconFilesOnDisk(lexiconsDir)) {
     if (!mapped.has(file)) {
       drift.push({
         kind: "unmapped-lexicon-file",
-        message: `lexicons/${file} is present on disk but not in shared/lexicon-mapping.json`,
+        message: `data/source/lexicons/${file} is present on disk but not in contracts/lexicon-mapping.json`,
         file,
       });
     }
@@ -381,7 +381,7 @@ export function detectDrift(
     if (missing.length > 0) {
       drift.push({
         kind: "missing-source-column",
-        message: `lexicons/${file}: mapped column(s) absent from the live header: ${missing.join(", ")}`,
+        message: `data/source/lexicons/${file}: mapped column(s) absent from the live header: ${missing.join(", ")}`,
         file,
       });
     }
@@ -617,7 +617,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`## Schema drift`);
   if (report.drift.length === 0) {
     lines.push(`No drift: canonical schema + lexicon mapping validate, every `);
-    lines.push(`\`lexicons/*.tsv\` is mapped, and every mapped column exists.`);
+    lines.push(`\`data/source/lexicons/*.tsv\` is mapped, and every mapped column exists.`);
   } else {
     lines.push(`${report.drift.length} drift issue(s) — the gate fails:`);
     for (const d of report.drift) {
@@ -655,7 +655,7 @@ export function formatMarkdown(report: ConvergenceQAReport): string {
   lines.push(`## id-overlap (cross-dataset identity)`);
   const id = metrics.identity;
   lines.push(`- Nodes exported: **${id.nodes}**`);
-  lines.push(`- Overlap w/ culture-scrape identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
+  lines.push(`- Overlap w/ pinakes-engine identity space (global-anchor matches): **${id.anchoredOverlap}** (${pct(id.overlapRate)})`);
   lines.push(`- Duplicate csids dropped: ${id.duplicateCsids}`);
   lines.push(`- Ambiguous pinakes ids (id reused by ≥2 nodes of a type): ${id.ambiguousPinakesIds}`);
   lines.push(`- Edges dropped for an unresolved endpoint: ${id.edgesWithUnresolvedEndpoint}`);
@@ -746,7 +746,7 @@ export function writeBaseline(baselineFile: string = BASELINE_FILE): RegressionB
   return baseline;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   if (process.argv.includes("--write-baseline")) {
     const baseline = writeBaseline();

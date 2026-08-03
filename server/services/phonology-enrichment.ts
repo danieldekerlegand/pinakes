@@ -2,15 +2,15 @@ import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import fs from "node:fs";
 import path from "node:path";
 import { jobStore } from "./job-store";
-import type { Language } from "@shared/types";
+import type { Language } from "@contracts/types";
 
 /**
  * Service for enriching phonological inventories for languages using Google Gemini AI.
- * Writes to lexicons/phonological-inventories.tsv in TSV format with JSON-encoded fields.
+ * Writes to data/source/lexicons/phonological-inventories.tsv in TSV format with JSON-encoded fields.
  */
 class PhonologyEnrichmentService {
   private static isScraping = false;
-  private readonly filePath = "lexicons/phonological-inventories.tsv";
+  private readonly filePath = "data/source/lexicons/phonological-inventories.tsv";
   private readonly headers = [
     "id",
     "language_id",

@@ -16,8 +16,8 @@ translated to a `.scl` program, and a scallopy smoke run proves the round trip.
 - **CLI:** `uv run pinakes-export-scallop`
   (`ml/src/pinakes_ml/export_scallop.py`)
 - **Inputs:** the DVC-tracked canonical edge export
-  (`export/culturescrape/edges/*.tsv`) + the committed rules registry
-  (`core/src/culturescrape/datalog/rules_registry.tsv`)
+  (`build/corpus/edges/*.tsv`) + the committed rules registry
+  (`engine/src/pinakes_engine/datalog/rules_registry.tsv`)
 - **Committed artifacts:** the translated program `ml/scallop/program.scl` and the
   snapshot manifest `ml/manifests/scallop-export-manifest.json`
 - **DVC-tracked artifacts (git-ignored):** the interned relation CSVs +
@@ -65,7 +65,7 @@ registry stores the **Soufflé** clause text (the most complete dialect — it c
 the negation the Prolog column omits), so we translate from that column.
 
 **The one translatability constraint is `every predicate literal must be binary`** —
-exactly the constraint culture-scrape's own materializer imposes
+exactly the constraint pinakes-engine's own materializer imposes
 (`datalog/rules.py` `ARITY == 2`). The single registry rule that breaks it,
 `csid_uniqueness_violation` (reads the arity-3 `node/3`), is **skipped and reported**
 in the manifest's `skippedRules`, never silently dropped. Non-`active` rules are
@@ -88,7 +88,7 @@ Loads the program into `scallopy`, answers **`ancestor/2`** and the cross-domain
 **`influenced_transitively/2`** (the closure of `derived_from ∪ influenced_by`)
 over the real corpus, and asserts the derived extensions equal the **engine-free
 reference derivation** (`scallop.reference_derivations`, a naive-fixpoint transitive
-closure with the same semantics as culture-scrape's materializer). Today's
+closure with the same semantics as pinakes-engine's materializer). Today's
 reference: `ancestor` = **3,196** derived pairs from 1,683 `descends_from` facts;
 `influenced_transitively` = **510** from 115 facts. A disagreement raises
 `AssertionError` — this is the acceptance's "spot-checked against the
@@ -139,7 +139,7 @@ restricted to schema-compatible node types, so they are hard yet false).
   (`ml/src/pinakes_ml/export_queries.py`)
 - **Inputs:** the DVC-tracked triples splits (`ml/data/triples/{train,valid,test}.tsv`
   + `triples.tsv`, built by `pinakes-export-triples`) + the machine-readable
-  edge `from`/`to` type constraints in `shared/canonical-schema.json`
+  edge `from`/`to` type constraints in `contracts/canonical-schema.json`
 - **Committed artifact:** the snapshot manifest
   `ml/manifests/training-queries-manifest.json`
 - **DVC-tracked artifact (git-ignored):** `ml/data/queries/queries.jsonl`
@@ -168,7 +168,7 @@ For each positive `(h, r, t)` the generator emits `negative_ratio` negatives,
 alternating the corrupted end (tail, head, tail, …). The replacement is sampled from
 the **type-compatible pool** for that end — entities whose node type (read off the
 `cs:<node-type>:<id>` csid) is in the relation's `from`/`to` set in
-`shared/canonical-schema.json` (reusing `consistency.load_edge_constraints`). So a
+`contracts/canonical-schema.json` (reusing `consistency.load_edge_constraints`). So a
 `BORROWED_FROM` negative stays language→language; a `DESCENDS_FROM` negative stays
 within {language, language-family, culture, archaeological-culture}. An unconstrained
 end (empty `from`/`to`) draws from all entities.

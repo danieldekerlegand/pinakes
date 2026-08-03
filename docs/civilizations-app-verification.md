@@ -14,7 +14,7 @@ So US-005 added the minimal wiring, then browser-verified it.
 1. **Server** — `loadCivilizations()` (`server/tsv-storage.ts`) now emits the
    provenance columns (`description`, `wikidata_qid`, `source_url`, `retrieved_at`,
    `confidence`) into the `/api/map/civilizations` GeoJSON `properties`. The
-   `CivilizationProperties` type (`client/src/lib/visualization/geospatial-types.ts`,
+   `CivilizationProperties` type (`web/src/lib/visualization/geospatial-types.ts`,
    shared with the server) gained those as optional fields. Live response: **170
    features, 81 carrying `wikidataQid` + `sourceUrl` + `confidence=1.0`.**
 2. **Explorer adapter** — new `civilizations.adapter.ts` (registered in
@@ -25,8 +25,8 @@ So US-005 added the minimal wiring, then browser-verified it.
 
 ## How it was verified
 
-Stack: `docker compose` Neo4j 5 + culture-scrape sidecar (both serving the
-`export/culturescrape` corpus), app on `:3050`.
+Stack: `docker compose` Neo4j 5 + pinakes-engine sidecar (both serving the
+`build/corpus` corpus), app on `:3050`.
 
 - **Browser (Playwright, `e2e/civilizations.spec.ts`, 4/4 pass):**
   - **Map** — `/?view=map&layers=civilizations` loads the full corpus onto Leaflet
@@ -52,14 +52,14 @@ Stack: `docker compose` Neo4j 5 + culture-scrape sidecar (both serving the
 corpus**. `dev:full` builds the sidecar on its bundled 9-node demo fixture
 (`CORPUS` default) while US-004 loads the pinakes export into Neo4j — so the
 smoke's cross-backend `node/:id` check 404s (a sidecar csid absent from Neo4j).
-Fix wired here: `docker-compose.yml` mounts the gitignored `export/culturescrape`
+Fix wired here: `infra/docker-compose.yml` mounts the gitignored `build/corpus`
 at `/corpus:ro`; bring the stack up with
 
 ```
-CULTURESCRAPE_CORPUS=/corpus docker compose up -d culturescrape neo4j
+PINAKES_ENGINE_CORPUS=/corpus docker compose -f infra/docker-compose.yml up -d pinakes_engine neo4j
 ```
 
 so both backends read the same bare `nodes/`+`edges/` corpus. The default stays
-the demo fixture so a bare `docker compose up` still starts with no export built.
+the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still starts with no export built.
 
-See also `docs/civilizations-neo4j-load.md` (US-004), `docs/culturescrape-integration.md`.
+See also `docs/civilizations-neo4j-load.md` (US-004), `docs/engine-integration.md`.

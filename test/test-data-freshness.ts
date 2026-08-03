@@ -218,14 +218,14 @@ async function testIgnoresNonTsvFiles() {
 async function testRealLexiconsDir() {
   console.log("\n=== Real Lexicons Directory Tests ===\n");
 
-  const lexiconsDir = path.resolve(process.cwd(), "lexicons");
+  const lexiconsDir = path.resolve(process.cwd(), "data", "source", "lexicons");
   if (!fs.existsSync(lexiconsDir)) {
     console.log("  (skipping - no lexicons directory found)");
     return;
   }
 
   const summary = getFreshnessSummary(lexiconsDir);
-  assert(summary.totalDatasets > 0, `Found ${summary.totalDatasets} datasets in lexicons/`);
+  assert(summary.totalDatasets > 0, `Found ${summary.totalDatasets} datasets in data/source/lexicons/`);
   assert(summary.totalRecords > 0, `Found ${summary.totalRecords} total records`);
   assert(summary.oldestDataset !== null, `Oldest dataset: ${summary.oldestDataset}`);
   assert(summary.newestDataset !== null, `Newest dataset: ${summary.newestDataset}`);

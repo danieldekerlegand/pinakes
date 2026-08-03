@@ -33,7 +33,7 @@ import {
 export interface RelationshipRouteOptions {
   /** Contribution queue (default: real `data/runtime/contributions`). */
   contributions?: ContributionService;
-  /** Lexicons dir the corpus edges are read from (default: `./lexicons`). */
+  /** Lexicons dir the corpus edges are read from (default: `./data/source/lexicons`). */
   lexiconsDir?: string;
 }
 
@@ -81,7 +81,7 @@ export function registerRelationshipEdgeRoutes(
   options: RelationshipRouteOptions = {},
 ): void {
   const contributions = options.contributions ?? new ContributionService();
-  const lexiconsDir = options.lexiconsDir ?? path.resolve("lexicons");
+  const lexiconsDir = options.lexiconsDir ?? path.resolve("data", "source", "lexicons");
 
   /**
    * POST /api/relationships/edge

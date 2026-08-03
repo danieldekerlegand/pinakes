@@ -7,7 +7,7 @@ rule-derivation matcher and the per-world split. Three gates carry real weight:
 * the **committed-manifest snapshot** — a fresh build of the fixtures must equal
   ``ml/manifests/insimul-datasets-manifest.json`` byte for byte;
 * the **Bridge-2 seam** — ``build_world_graph`` must reproduce the nodes/edges the
-  culture-scrape ``insimul`` adapter emits, checked against the committed
+  pinakes-engine ``insimul`` adapter emits, checked against the committed
   ``ml/fixtures/insimul/bridge-graph.json`` (regenerate per ``ml/CLAUDE.md``);
 * the **containment invariant** — every emitted record is synthetic tier and
   proprietary-licensed, so nothing here can leak into an open-data release.

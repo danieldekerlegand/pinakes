@@ -3,25 +3,25 @@
 ## The `packages/culture-scrape` vendored shell (retired 2026-07-23)
 
 `packages/culture-scrape/` no longer exists. The Python data/correlation engine it
-vendored is now **first-party pinakes code at [`core/`](../core/)** — same
-`culturescrape` package namespace, same `culturescrape` console script, same `cs:` id
+vendored is now **first-party pinakes code at [`engine/`](../engine/)** — same
+`pinakes_engine` package namespace, same `pinakes_engine` console script, same `cs:` id
 space, only the checkout path moved. Nothing was deleted in the move; see
-[`core/CLAUDE.md`](../core/CLAUDE.md) for the repo-root path arithmetic that changed
+[`engine/CLAUDE.md`](../engine/CLAUDE.md) for the repo-root path arithmetic that changed
 with it (the package sits one level below the repo root now, not two).
 
 Retired along with the shell:
 
-- The **vendored-fork framing.** `core/` was never a two-way subtree link and is not one
-  now; [`culturescrape-fork-policy.md`](./culturescrape-fork-policy.md) records why the
+- The **vendored-fork framing.** `engine/` was never a two-way subtree link and is not one
+  now; [`engine-fork-policy.md`](./engine-fork-policy.md) records why the
   standalone `~/Development/culture-scrape` repo stays archived.
-- Build/config references to the old path — docker-compose's `culturescrape` service
-  builds `./core`, and `npm run sidecar:up` / `sidecar:down` drive that service by name.
+- Build/config references to the old path — docker-compose's `pinakes_engine` service
+  builds `./engine`, and `npm run sidecar:up` / `sidecar:down` drive that service by name.
 
 ### Translation handed off to agora:60
 
 Canonical **format rendering** moved out of pinakes and into the agora translation engine
 (`agora:60-translation-engine-rust`), embedded in-process as the `translation_py` PyO3
-extension and reached only through the adapter `culturescrape.translation` — never by
+extension and reached only through the adapter `pinakes_engine.translation` — never by
 importing `translation_py` directly. Delegating today:
 
 | Surface | Engine entry point |
@@ -31,7 +31,7 @@ importing `translation_py` directly. Delegating today:
 | `neo4j/export.py` (`from-neo4j`) | `to_neo4j_export` |
 
 Byte parity against the pre-migration Python emitters is pinned by committed goldens in
-`core/tests/fixtures/parity/` (`core/tests/test_translation_parity.py`), which cover all
+`engine/tests/fixtures/parity/` (`engine/tests/test_translation_parity.py`), which cover all
 six canonical conversions and survived the relocation unchanged.
 
 **Still hand-written Python, and why.** agora:60 ships exactly eight *whole-graph document*
@@ -65,9 +65,9 @@ could not be retired and are **not** dead code:
 Closing these needs upstream work in agora, not in pinakes: a TSV→graph **parser**, a
 **schema-parameterized** writer, a **fact-level** render surface, and a **rule-aware** one.
 agora:60 is complete and retired, so that is a *new* agora story rather than a pending
-decision — do not re-derive it by hand. `core/tests/test_engine_surface.py` pins the eight
+decision — do not re-derive it by hand. `engine/tests/test_engine_surface.py` pins the eight
 renderers and one row per missing capability; it fails the day any of them lands and names
-what became completable. `core/tests/test_engine_packaging.py` does the same for the
+what became completable. `engine/tests/test_engine_packaging.py` does the same for the
 macOS-only wheel that blocks the sidecar image.
 
 ## TSV read-only mode
@@ -81,7 +81,7 @@ neither of which was imported by any route), the stub `db:push` / `db:generate` 
 scripts, and the `drizzle-orm` / `drizzle-zod` / `drizzle-kit` / `pg` / `@neondatabase/serverless`
 / `connect-pg-simple` / `express-session` dependencies. Persistence is TSV + Neo4j + files;
 there is no `DATABASE_URL` any more. The record shapes the geospatial converters still need
-moved to `shared/types.ts` as plain TypeScript types.
+moved to `contracts/types.ts` as plain TypeScript types.
 
 ## Supported API Endpoints
 

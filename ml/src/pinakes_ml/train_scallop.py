@@ -63,7 +63,7 @@ _REPO_ROOT = _ML_ROOT.parent
 
 DEFAULT_CONFIG = _ML_ROOT / "configs" / "scallop-pilot.json"
 DEFAULT_DOC = _REPO_ROOT / "docs" / "ml-baselines.md"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 DEFAULT_ARTIFACTS = _ML_ROOT / "artifacts" / "scallop-pilot"
 
 

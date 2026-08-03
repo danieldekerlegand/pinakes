@@ -17,8 +17,8 @@ vi.mock("./graph-store", async (importOriginal) => {
   return { ...actual, isAvailable: mocks.graphIsAvailable };
 });
 
-vi.mock("./culturescrape-client", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./culturescrape-client")>();
+vi.mock("./engine-client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./engine-client")>();
   return { ...actual, isAvailable: mocks.clientIsAvailable };
 });
 

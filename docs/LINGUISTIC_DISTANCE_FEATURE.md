@@ -44,7 +44,7 @@ GET /api/linguistic-distance/nearest/:languageId?k=10
 Returns: Top k most similar languages to target
 ```
 
-### 3. UI Component (`client/src/components/linguistic-distance-analyzer.tsx`)
+### 3. UI Component (`web/src/components/linguistic-distance-analyzer.tsx`)
 
 **Features:**
 
@@ -233,7 +233,7 @@ This improvement is particularly valuable for historical linguistics and languag
 
 - `server/services/linguistic-distance-calculator.ts` - Core algorithm implementation
 - `server/services/phonetic-features.ts` - Phonetic feature database and weighted distance calculation
-- `client/src/components/linguistic-distance-analyzer.tsx` - UI component
+- `web/src/components/linguistic-distance-analyzer.tsx` - UI component
 - `test-distance-calculation.ts` - Validation tests
 - `test-phonetic-weighting.ts` - IPA+ weighted mode tests
 - `test-all-phonetic-modes.ts` - Comprehensive comparison of all modes
@@ -241,7 +241,7 @@ This improvement is particularly valuable for historical linguistics and languag
 
 ### Modified Files:
 - `server/routes.ts` - Added 3 new API endpoints
-- `client/src/pages/dashboard.tsx` - Integrated analyzer into UI
+- `web/src/pages/dashboard.tsx` - Integrated analyzer into UI
 
 ### No Database Changes Required:
 The feature uses existing TSV lexicon data with no schema modifications needed.

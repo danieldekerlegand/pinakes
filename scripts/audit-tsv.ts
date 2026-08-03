@@ -1,7 +1,7 @@
 /**
  * TSV Data Completeness Audit
  *
- * Analyzes all TSV files in lexicons/ for:
+ * Analyzes all TSV files in data/source/lexicons/ for:
  * - Row counts and empty-field rates per column
  * - Referential integrity (foreign key checks)
  * - Coverage gaps (low-data files, sparse columns)
@@ -10,7 +10,7 @@
 import fs from "fs";
 import path from "path";
 
-const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "data", "source", "lexicons");
 
 export interface ColumnStats {
   name: string;

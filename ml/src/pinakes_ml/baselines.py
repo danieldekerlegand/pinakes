@@ -303,7 +303,7 @@ def render_baselines_doc(
         "",
         "| Artifact | Hash |",
         "| --- | --- |",
-        f"| Canonical export (`export/culturescrape`, tree sha256) | `{corpus_hash}` |",
+        f"| Canonical export (`build/corpus`, tree sha256) | `{corpus_hash}` |",
         "| Split manifest (`ml/manifests/triples-split-manifest.json`, sha256) |"
         f" `{manifest_sha256}` |",
         f"| Triples content (`triplesSha256`) | `{triples_sha256}` |",
@@ -345,7 +345,7 @@ def render_baselines_doc(
             f"Each baseline's top-{top_k} link predictions (both directions, per test",
             "triple) are checked against the symbolic rules — **descent acyclicity**,",
             "canonical-schema **from/to type** constraints"
-            " (`shared/canonical-schema.json`),",
+            " (`contracts/canonical-schema.json`),",
             "and relation **antisymmetry** — by"
             " `pinakes_ml.consistency`. The violation",
             "counts are ratcheted in CI against"

@@ -1,7 +1,7 @@
 """Unit + snapshot tests for the triple-verbalization generator (US-002).
 
 Unit tests drive the pure core with tiny temp-dir fixtures, so they run in CI
-where the git-ignored ``export/culturescrape`` is absent. The snapshot test (live
+where the git-ignored ``build/corpus`` is absent. The snapshot test (live
 corpus vs committed manifest) is SKIPPED when the export is not present — the
 local reproducibility gate, mirroring the triples exporter (US-002 Phase 2).
 """
@@ -304,7 +304,7 @@ def test_load_nodes_is_header_driven(export_dir: Path) -> None:
 # --- Template-coverage gate: every non-derived edge type has a template --------
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 def _is_personal_tier_edge(edge_type: dict) -> bool:
@@ -356,7 +356,7 @@ def test_every_exported_edge_type_has_a_template() -> None:
 
 # --- Live reproducibility gate (skipped when the export is absent) ---------
 
-_LIVE_EXPORT = _REPO_ROOT / "export" / "culturescrape"
+_LIVE_EXPORT = _REPO_ROOT / "build" / "corpus"
 
 
 @pytest.mark.skipif(

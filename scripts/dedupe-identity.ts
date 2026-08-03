@@ -1,7 +1,7 @@
 /**
  * US-008 — Burn duplicate csids and ambiguous pinakes_ids to zero.
  *
- * The export (`scripts/export-for-culturescrape.ts`) minted 44 duplicate csids
+ * The export (`scripts/export-for-engine.ts`) minted 44 duplicate csids
  * (`cs:<type>:<id>` collisions — same `id` reused by ≥2 nodes of ONE type) and 16
  * ambiguous `pinakes_id`s (one raw `id` reused across ≥2 node TYPES → different
  * csids). Both poison every downstream join. This is the one-shot, deterministic,
@@ -30,7 +30,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 interface Rename {
   /** Lexicon file whose node `id` cell is rewritten. */

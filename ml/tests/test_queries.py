@@ -248,7 +248,7 @@ def test_serialize_is_flat_uniform_jsonl() -> None:
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _ML_ROOT = _REPO_ROOT / "ml"
 _TRIPLES_DIR = _ML_ROOT / "data" / "triples"
-_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 @pytest.mark.skipif(

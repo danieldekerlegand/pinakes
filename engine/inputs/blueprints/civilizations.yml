@@ -1,0 +1,24 @@
+# Civilizations, polities & states — verified Wikidata classes for the culture
+# corpus. These map to the canonical `culture` node type (:Culture), the same
+# type pinakes's data/source/lexicons/civilizations.tsv reconciles against.
+#
+# 8 classes. Each class's `instance of` (P31) count was verified live against
+# the Wikidata Query Service (2026-07) with `pinakes_engine generate --verify`;
+# the `# ~N` after each entry is that observed value. No class resolves to zero.
+#
+# Generate:  pinakes_engine generate blueprints/civilizations.yml \
+#                --out categories --job jobs/civilizations.yml --verify
+defaults:
+  label: Culture
+  dimensions: [temporal, geographic]
+  links:
+    - {type: LOCATED_IN, to: place}
+categories:
+  - {id: ancient-civilizations, name: "ancient civilization", wikidata_class: Q28171280}  # ~35
+  - {id: civilizations, name: "civilization", wikidata_class: Q8432}  # ~63
+  - {id: empires, name: "empire", wikidata_class: Q48349}  # ~17
+  - {id: city-states, name: "city-state", wikidata_class: Q133442}  # ~104
+  - {id: kingdoms, name: "kingdom", wikidata_class: Q417175}  # ~237
+  - {id: realms, name: "realm", wikidata_class: Q1250464}  # ~324
+  - {id: dynasties, name: "dynasty", wikidata_class: Q207320}  # ~486
+  - {id: historical-countries, name: "historical country", wikidata_class: Q3024240}  # ~3,839

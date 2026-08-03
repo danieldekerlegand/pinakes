@@ -23,6 +23,22 @@ services/api/
 └── pyproject.toml
 ```
 
+## Joining the uv workspace
+
+The repo root is a virtual uv workspace root since pinakes:20 US-4
+([`/pyproject.toml`](../../pyproject.toml)); `engine/` is its only member today.
+This directory is **not** listed yet because uv rejects a member with no
+manifest. Adding `pyproject.toml` here (tasks/chief/30-api-shell-parity.json
+US-2) is a two-line change:
+
+1. add `"services/api"` to `[tool.uv.workspace] members` in the root manifest;
+2. `uv lock` — one root `/uv.lock` then covers `pinakes` + `pinakes-engine`, and
+   `uv run --project services/api pytest` (tasklist 30's verify command) works.
+
+Depend on the engine as a workspace member, not from PyPI:
+`dependencies = ["pinakes-engine"]` plus
+`[tool.uv.sources] pinakes-engine = { workspace = true }`.
+
 ## Moves in later
 
 | Current | Note |

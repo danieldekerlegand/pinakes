@@ -9,7 +9,7 @@
  *
  * The registry is deliberately app-native (the domains a URL can resolve to a real
  * record in this app — mirroring the citation-export/summaries domain naming), not the
- * culture-scrape canonical node vocabulary. Each domain also carries the canonical
+ * pinakes-engine canonical node vocabulary. Each domain also carries the canonical
  * graph `entityType` (for `cs:<type>:<id>` stable ids) and whether it is `citable`
  * (has a `/api/citations` fetcher, US-008).
  */

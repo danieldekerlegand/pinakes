@@ -154,7 +154,7 @@ describe("generateId", () => {
 // ============================================================================
 
 describe("prompt TSV storage", () => {
-  const testTsvDir = path.join(process.cwd(), "lexicons");
+  const testTsvDir = path.join(process.cwd(), "data", "source", "lexicons");
   const testTsvPath = path.join(testTsvDir, "genai-prompts.tsv");
   let originalContent: string | null = null;
 

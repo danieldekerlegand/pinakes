@@ -1,5 +1,26 @@
 # server/ — Express API + TSV loaders
 
+## The corpus is at `data/source/lexicons/` (moved in pinakes:20 US-3)
+
+`lexicons/` is no longer a top-level directory. Every reader here resolves
+`data/source/lexicons` instead, in one of two shapes — match the surrounding file:
+
+- **`tsv-storage.ts`**: ~60 `readFileIfExists("data/source/lexicons/<x>.tsv")` literals,
+  resolved against `process.cwd()` by `readFileOrThrow` (which also falls back to
+  `<cwd>/data/source/lexicons/<basename>`). So **the server must be started from the repo
+  root** — that was already true, the path is just longer now.
+- **services / routes**: a `LEXICONS_DIR` constant, either
+  `path.resolve("data", "source", "lexicons")` (cwd-relative) or
+  `path.resolve(import.meta.dirname, "../../data/source/lexicons")` (file-relative), and on
+  routes an injectable `options.lexiconsDir` defaulting to it. Keep injectability — it is
+  what lets route tests point at a `mkdtempSync` dir.
+
+**A wrong path here fails quietly.** `readFileIfExists` returns `null` and the endpoint
+answers `[]`; `fs.readdirSync` on a missing dir *does* throw, which is why
+`data-quality-scorer.ts` was the one place that caught the miss during the move. When you
+touch these paths, assert on **counts** (`/api/languages` → 1099, `/api/map/civilizations`
+→ 170 features, `/api/data-quality` → 57 files) rather than on a 200.
+
 ## Quality-gate reality (read first)
 
 - **`npm run check` (`tsc`) is now CLEAN — 0 errors — and the gate is STRICT.**
@@ -35,7 +56,7 @@ asserted against the live corpus by `data-quality-scorer.test.ts`. Add a domain 
 `ROADMAP_TARGETS` and regenerating the committed report.
 
 US-004 added a **tier composition** section: `computeCorpusTiers(files)` (pure) + `buildCorpusTierReport
-(lexiconsDir)` classify every node-lexicon row by trust tier via the shared `@shared/trust-tier`
+(lexiconsDir)` classify every node-lexicon row by trust tier via the shared `@contracts/trust-tier`
 `classifyTrustTier`, so `/api/data-quality` `tierComposition` surfaces corpus size + quality by tier.
 Because auto-admission never writes lexicons, the whole app corpus is `curated` (`graphTier`); the
 `byTier` breakdown is **auto-admission readiness** (classify each curated row by its own provenance —
@@ -84,10 +105,10 @@ file avoids editing the large, already-error-heavy `routes.ts` body.
 `GET /.well-known/kcb-manifest.json` (+ `/api/kcb/manifest`) publishes Pinakes's Koine
 capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
 `/api/kcb/status` the registration outcome. The manifest itself is
-`@shared/capability-manifest` (`shared/CLAUDE.md`); full contract in `docs/capability-bus.md`.
+`@contracts/capability-manifest` (`contracts/CLAUDE.md`); full contract in `docs/capability-bus.md`.
 
 - **Nothing here implements a capability.** The routes serve a document that *points at*
-  already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/culturescrape`,
+  already-built surfaces (`/api/graph/resolve`, `POST /api/scraping/engine`,
   `/api/graph/datalog`). Extending the bus means editing the manifest JSON, not adding handlers.
 - **The registry is best-effort and never gates serving** (KCB §3 — it is a cache/index over
   the provider's own surfaces, and ADR-0001 makes it route-by-lookup, not a proxy).
@@ -194,10 +215,10 @@ key and makes the upstream call. Full posture: `docs/SECURITY.md`.
   `{text,to,from?}` reads `GOOGLE_TRANSLATE_API_KEY` (never a `VITE_` var). Network is behind an
   injectable `TranslateDeps` + injectable key so tests use a fake upstream and **no real key**.
   **Optional-key pattern** (like `GEONAMES_USERNAME`): no key ⇒ **503** and the client
-  (`client/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
+  (`web/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
   502 upstream failure.
 - **Invariant guards** (`server/security/{gemini,translate}-proxy.test.ts`) scan `.env.example`
-  + all `client/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
+  + all `web/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
   explanatory comments must not contain the literal `VITE_*` / provider-endpoint strings, or the
   guard fails on itself — reword them.
 
@@ -266,9 +287,9 @@ radius). The response also carries a `geojson` FeatureCollection for the map ove
   (`geometry.coordinates` `[lng,lat]`) + settlements (flat `latitude`/`longitude`). **500** only on a
   loader throw. These leads are **distinct from the curated `urheimat-hypotheses` dataset**
   (`DISTINCT_FROM_CURATED` note; never overwrite it). Client entry: the `/hypotheses` page
-  (`client/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
+  (`web/src/pages/hypotheses.tsx`) renders the predictions as **react-leaflet `<Circle>` overlays
   with uncertainty** (radius = `uncertaintyRadiusKm`); the styling math is pure in
-  `client/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
+  `web/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
 
 ## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
 
@@ -360,7 +381,7 @@ US-010 (this PRD) adds a preservation-status dashboard + an attributed field-upd
   `changelog` as the other pipelines in `registerRoutes`); tests use an in-memory loader + temp-dir
   `ContributionService`/`ChangelogStore` (no storage/fs). **400** validation, **404** unknown
   `languageId` (the route loads languages to enrich name/currentStatus + reject unknown ids). Client
-  entry: the `/endangered-languages` page (`client/src/pages/endangered-languages.tsx`), linked in
+  entry: the `/endangered-languages` page (`web/src/pages/endangered-languages.tsx`), linked in
   `AppSidebar` (`ShieldAlert`).
 
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
@@ -398,7 +419,7 @@ top of the contribution queue. Endpoints (all open, unguarded):
   `isSteward` into `confirm`. Confirm status codes: **200** ok, **400** missing reviewer
   / self-confirm, **404** unknown, **409** duplicate reviewer. Client entry: a "Confirm"
   button + verification badges in the Review tab of
-  `client/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
+  `web/src/components/visualizations/ContributionPanel.tsx`, plus a **Stewardship** tab
   (adopt-a-culture form + list).
 
 ## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
@@ -444,7 +465,7 @@ the per-profile `exportDataset`. Endpoints (all open, documented in the OpenAPI 
   (**removals ⇒ major, additions ⇒ minor, else patch**) + `nextVersionFromChangelog`,
   and `assembleSnapshotMetadata(exports, opts)` → `DatasetSnapshotMetadata` (version, DOI,
   license, per-dataset + total row/file counts). `buildDatasetSnapshot(options)` orchestrates:
-  it reuses `exportDataset` per profile, so it reads the real `lexicons/` (integration-test it
+  it reuses `exportDataset` per profile, so it reads the real `data/source/lexicons/` (integration-test it
   against the live corpus — assert `metadata.totalRows === sum(files.rowCount)`, not a
   hard-coded count that drifts). Version precedence: explicit `version` › changelog-derived
   (`previousVersion` + `changeCounts`) › `DATASET_RELEASE_VERSION` (`1.0.0`).
@@ -473,14 +494,14 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
 - **All decision logic is pure** (`living-dataset.ts`, clock is a param): `computeReleaseCadence`
   (**annual**, `RELEASE_CADENCE_DAYS=365`; never-released ⇒ due, else next = last + interval) →
   `{dueNow, nextReleaseDate, daysUntilDue}`; `computeIngestionSchedule(ingestions, now,
-  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors culture-scrape's
+  INGESTION_INTERVAL_DAYS=30)` grades each acquisition domain stale/fresh (mirrors pinakes-engine's
   `orchestrate/schedule.py` `select_stale` idea — an unparseable/absent timestamp ⇒ due);
   `selectDueDomains`; `currentReleaseFrom` (latest recorded release, else the seed `1.0.0` default).
 - **`LivingDatasetStore`** is the only fs boundary — one `state.json` (`{ingestions, releases}`)
   under an injectable dir (default the **gitignored** `data/living-dataset/`), same JSON-on-disk
   shape as the other `data/*` stores; unparseable/missing file ⇒ empty state.
-- **Ingest = scheduled culture-scrape acquisition.** The route reuses `runAcquisitionJob`
-  (`culturescrape-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
+- **Ingest = scheduled pinakes-engine acquisition.** The route reuses `runAcquisitionJob`
+  (`engine-acquisition.ts`) per due (or requested/`force`-all) domain → contributions land
   in the review queue (never a live write), then stamps `store.recordIngestion(domain, now)`. A
   per-domain runner failure is **collected in `errors[]`, never aborts the pass**. Body:
   `{domains?, force?, limit?}` (default limit 50); **400** only on an unknown requested domain.
@@ -492,7 +513,7 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
   Python/network/Zenodo). Wired in `registerRoutes` sharing the same `changelog` + a
   `createZenodoDoiMinter()`. **These endpoints are NOT in `docs/openapi.json`** (the spec-parity
   test only covers what's declared there — no regen needed). Client entry: the `/living-dataset`
-  page (`client/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
+  page (`web/src/pages/living-dataset.tsx`), linked in `AppSidebar` (`Library`).
 
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
@@ -534,7 +555,7 @@ domains + formats.
   `properties.civilizationId`, site id = `properties.siteId`). The entity URL is derived
   from the request host + `urlPath`. Streams `attachment; filename="<slug>.<ext>"`; **404**
   unknown domain/id, **400** unknown format. Client entry: a "Cite" dropdown
-  (`client/src/components/culture-profile/cite-button.tsx`) next to the Export button in
+  (`web/src/components/culture-profile/cite-button.tsx`) next to the Export button in
   `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
 
 ## Canonical per-entity URLs — `services/entity-resolver.ts` + `routes/entity-resolver.ts`
@@ -542,7 +563,7 @@ domains + formats.
 `GET /api/entity/:domain/:id` (US-009) resolves a **permanent** entity id to its
 canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:` id,
 `citable`, an optional richer `viewPath`). `GET /api/entities` lists the domains + the
-`/entity/:domain/:id` template. Backs the client landing page `client/src/pages/entity.tsx`.
+`/entity/:domain/:id` template. Backs the client landing page `web/src/pages/entity.tsx`.
 
 - **The id ⇄ path mapping is pure** (`entity-resolver.ts`, no fs/express/storage):
   `ENTITY_DOMAINS` registry (kebab domain → `{label, entityType, citable, citationDomain?,
@@ -631,7 +652,7 @@ reuse for any "author geometry in-app" feature:
   pattern as collections/annotations.
 - For `language-range`, `associatedEntityId` is mirrored into
   `entityData.languageId` to satisfy that type's required fields.
-- Client entry point is `client/src/components/visualizations/BoundaryDrawingPanel
+- Client entry point is `web/src/components/visualizations/BoundaryDrawingPanel
   .tsx` (uses the existing `useDrawingTool` hook); it posts the `DrawnGeometryInput`
   shape (geometry + target + associatedEntityId + timePeriodStart/End).
 
@@ -659,7 +680,7 @@ copy it for any "author temporal data in-app" feature:
   in the service instead.
 - Route takes an **injectable** `ContributionService`; test points it at a
   `mkdtempSync` dir (same as collections/drawn-geometry).
-- Client entry point: `client/src/components/visualizations/TimelineEventAuthoringPanel
+- Client entry point: `web/src/components/visualizations/TimelineEventAuthoringPanel
   .tsx` (a clickable SVG axis reusing `culture-evolution-timeline-utils`
   `xToYear`/`yearToX`), mounted via an "Add entry" toggle in
   `culture-profile/culture-evolution-timeline-section.tsx`.
@@ -674,7 +695,7 @@ it into `cultural-lineages.tsv`. Same pure-service + injectable-route shape as
 timeline-event/drawn-geometry — differences to know:
 
 - **Vocabulary is the canonical edge vocabulary**, not a local list:
-  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@shared/canonical-schema`
+  `RELATIONSHIP_TYPE_OPTIONS` is derived from `@contracts/canonical-schema`
   `CANONICAL_SCHEMA.edgeTypes` (14 kebab names + Neo4j tokens). Reuse it for any
   "pick a relationship type" UI so authored edges stay export-compatible.
 - **Dedup is enforced server-side against corpus + queue.** The route builds the
@@ -691,7 +712,7 @@ timeline-event/drawn-geometry — differences to know:
   temp dirs (seed a `cultural-lineages.tsv` in the temp lexicons dir to exercise
   corpus dedup). Added `relationship` to `ContributionEntityType` +
   `REQUIRED_FIELDS` (`["sourceId","targetId","relationshipType"]`).
-- Client entry: `client/src/components/visualizations/RelationshipBuilderPanel.tsx`
+- Client entry: `web/src/components/visualizations/RelationshipBuilderPanel.tsx`
   (HTML5 drag-and-drop palette → source/target drop slots → form), mounted behind
   a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
 
@@ -724,7 +745,7 @@ contributor confirms one via `POST /api/relationships/edge` (US-003).
   time). The default existing-edge loader is wrapped in try/catch — a missing lexicons dir
   degrades to "no exclusions", never a 500.
 - Client entry: a "Suggested for <entity>" section in
-  `client/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
+  `web/src/components/visualizations/RelationshipBuilderPanel.tsx` — appears once a
   source is chosen; each row shows the target, canonical type, confidence, and rationale
   chips, with a **Use** button that only *pre-fills* the composer (the contributor still
   clicks Create). The client query treats a 404 as "no suggestions".
@@ -741,9 +762,9 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   Wikidata is resolved via the REST endpoint `Special:EntityData/<QID>.json`
   (`liveDeps.fetchWikidataEntity`), not the Query Service. The statement →
   field vocabulary (P571 inception→start year, P625→lat/lng, P144/P737/P279→
-  relationships, …) is kept **aligned with culture-scrape's hydration profile**
-  (`core/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
-  acquisition stays culture-scrape's job (US-005) — don't add a TS SPARQL client.
+  relationships, …) is kept **aligned with pinakes-engine's hydration profile**
+  (`engine/.../acquire/wikidata_hydration.py`). Bulk SPARQL *set*
+  acquisition stays pinakes-engine's job (US-005) — don't add a TS SPARQL client.
 - **Network is behind an injectable `UrlExtractorDeps`** (`fetchWikidataEntity` +
   `fetchWikipediaPage`); tests pass fixture-backed deps reading
   `services/fixtures/url-extractor/*.json` (recorded WD entity + WP summary
@@ -797,7 +818,7 @@ notes (mirrors url-extractor US-004, but multi-entity + LLM):
 
 `/api/ai-review` (US-009) is the **promotion** leg for AI-generated drafts (the URL
 extractor US-004 + text extractor US-008): a human accepts/edits/rejects each field,
-and an approved draft is written into `lexicons/*.tsv` with provenance recording BOTH
+and an approved draft is written into `data/source/lexicons/*.tsv` with provenance recording BOTH
 the AI source and the reviewer. This is where "US-009 promotes" (referenced across the
 extractor notes) actually happens.
 
@@ -833,36 +854,36 @@ extractor notes) actually happens.
   where `fields` is `Record<field, {decision:'accept'|'edit'|'reject', value?}>`. **200**
   with the updated view (`promotion` populated on approve); **400** on bad decision /
   missing reviewer / rejected-required-field / non-promotable type; **404** for an unknown
-  or non-AI draft. Client entry: the `/ai-review` page (`client/src/pages/ai-review.tsx`),
+  or non-AI draft. Client entry: the `/ai-review` page (`web/src/pages/ai-review.tsx`),
   linked in `AppSidebar`.
 
-## culture-scrape Wikidata bulk acquisition — `services/culturescrape-acquisition.ts` + `routes/culturescrape-acquisition.ts`
+## pinakes-engine Wikidata bulk acquisition — `services/engine-acquisition.ts` + `routes/engine-acquisition.ts`
 
-`POST /api/scraping/culturescrape` (US-005) triggers **culture-scrape's** Wikidata
+`POST /api/scraping/engine` (US-005) triggers **pinakes-engine's** Wikidata
 SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods);
-`GET /api/scraping/culturescrape/categories` lists them. Reuse notes for any
+`GET /api/scraping/engine/categories` lists them. Reuse notes for any
 "trigger a background scraper from the dashboard" feature:
 
 - **Bulk SPARQL stays in Python — never add a TS SPARQL client.** The live runner
-  (`liveJobRunner`) writes a culture-scrape category spec (`buildCategorySpecYaml`,
-  matching `core/inputs/categories/*.yml`) to a temp file and spawns
-  `python -m culturescrape.cli fetch <spec> --out <dir>` (cwd = package dir,
+  (`liveJobRunner`) writes a pinakes-engine category spec (`buildCategorySpecYaml`,
+  matching `engine/inputs/categories/*.yml`) to a temp file and spawns
+  `python -m pinakes_engine.cli fetch <spec> --out <dir>` (cwd = package dir,
   `PYTHONPATH` includes its `src`; `python`/`packageDir`/`timeout` overridable via
-  `CULTURESCRAPE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
+  `PINAKES_ENGINE_{PYTHON,DIR,FETCH_TIMEOUT_MS}` env). It reads back the
   `<id>.jsonl` records + `<id>.report.json`. Single-**entity** lookups still use the
   REST `Special:EntityData` endpoint (`url-extractor.ts`); only bulk **sets** shell out.
-- **The runner is an injectable boundary** (`CultureScrapeJobRunner.runFetch`) so
+- **The runner is an injectable boundary** (`EngineJobRunner.runFetch`) so
   the whole pipeline is unit-tested with a fake returning recorded `RawRecord`s —
   no subprocess, no network. `runAcquisitionJob` (pure over runner + an injectable
   `ContributionService`) fetches then maps each record → `Partial<Contribution>`
   and enqueues it; it returns `{acquired, queued, skipped, contributionIds, report}`.
 - **Acquired records land in the contribution review queue**, never a live TSV
-  write — flagged `entityData.source='culturescrape-wikidata'` + `autoDerived:true`
+  write — flagged `entityData.source='pinakes_engine-wikidata'` + `autoDerived:true`
   (`aiGenerated:false` — it's a structured source, not an LLM), confidence clamped
   to 1..99 so it reads as needs-review. `recordToContribution` returns `null` to
   **skip** a row with no label (Wikidata's label service echoes the QID for
   unlabeled items — filter `name === qid`) or a missing required coordinate.
-- **`RawRecord` shape** (culture-scrape `.jsonl`): `{fields:{item,itemLabel,image,
+- **`RawRecord` shape** (pinakes-engine `.jsonl`): `{fields:{item,itemLabel,image,
   coord,qid}, provenance:{source,source_url,source_query,retrieved_at,confidence,
   license}}`. `coord` is WKT `Point(lng lat)` — `parseWktPoint` → `{lat,lng}`
   (note the lng/lat order swap).
@@ -873,20 +894,20 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
   + `REQUIRED_FIELDS`; `civilization` (name-only) is reused for civilizations.
 - **Progress streams through the existing `jobStore`** (dashboard polls
   `GET /api/scraping-jobs` every 2s) — the route creates a job
-  (`languageId='culturescrape:<domain>'`, `dataSource='other'`), runs
+  (`languageId='pinakes_engine:<domain>'`, `dataSource='other'`), runs
   `runAcquisitionJob` fire-and-forget, and maps `onProgress` →
   `updateJob({statusMessage, completedWords=queued, failedWords=skipped, totalWords})`.
   **Route test hook:** `onJobSettled(jobId, result, error)` lets a test await the
   background job deterministically instead of polling. POST returns **202**; **400**
   on unknown domain / non-positive limit. Client entry: the "Wikidata Bulk
-  Acquisition" card in `client/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
+  Acquisition" card in `web/src/pages/scraper-dashboard.tsx` (Start Scraping tab).
 
 ## Open Context / tDAR archaeological acquisition — adapters in `services/archaeological-site-scraper.ts` + `routes/archaeological-acquisition.ts`
 
 `POST /api/scraping/archaeology` (US-007) acquires archaeological sites from two
 external authorities (**Open Context**, **tDAR**) that complement the existing
 Pleiades/UNESCO paths in the same file; `GET /api/scraping/archaeology/sources`
-lists them. Same background-job + contribution-queue shape as culture-scrape
+lists them. Same background-job + contribution-queue shape as pinakes-engine
 (US-005) — differences to know:
 
 - **Adapters live in `archaeological-site-scraper.ts`** (per the story's file
@@ -912,7 +933,7 @@ lists them. Same background-job + contribution-queue shape as culture-scrape
   fire-and-forget, maps `onProgress`. **Route test hook:** `onJobSettled(jobId,
   result, error)` awaits the background job deterministically. POST returns **202**;
   **400** on unknown source / non-positive limit. Client entry: the "Archaeological
-  Sites (Open Context / tDAR)" card in `client/src/pages/scraper-dashboard.tsx`.
+  Sites (Open Context / tDAR)" card in `web/src/pages/scraper-dashboard.tsx`.
 
 ## Place resolution — `services/place-resolver.ts`
 
@@ -959,7 +980,7 @@ The module is **pure + dependency-free** (structural GeoJSON types, no Express/s
 import) so it is trivially unit-tested. Gotchas: features whose geometry yields no bounds
 (geometry-less/malformed) are conservatively **kept**, never dropped; a missing/garbage
 bbox is a no-op (full layer). Client side sends the bbox via the React Query key, not a
-manual fetch — see `client/src/lib/visualization/map-performance.ts` `viewportParams()`.
+manual fetch — see `web/src/lib/visualization/map-performance.ts` `viewportParams()`.
 
 ## Faceted global search — `services/global-search.ts`
 
@@ -988,7 +1009,7 @@ counts (per `entityType` + `source`) and filter params live in pure helpers:
 file was reduced to *in the browser* (only the ids — never the raw genotypes — are sent)
 and returns the languages/cultures/cuisines that ancestry is associated with, plus fixed
 caveats. `GET /api/ancestry/haplogroups` lists the reference haplogroups. The raw-DNA
-**parser + haplogroup inference are client-side** (`client/src/lib/dna/*`) — that is the
+**parser + haplogroup inference are client-side** (`web/src/lib/dna/*`) — that is the
 privacy guarantee; the server only enriches non-identifying ids.
 
 - **The mapping is pure** in `genetic-linguistic-correlation.ts` (`mapHaplogroupsToAncestry(ids,
@@ -1008,7 +1029,7 @@ privacy guarantee; the server only enriches non-identifying ids.
   minimal shape from live storage: haplogroups/families/languages/civilizations[.properties]/
   cuisines) so route tests run with in-memory fakes — no storage/fs. **400** on
   missing/empty `haplogroupIds`. Client entry: the `/ancestry` page
-  (`client/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
+  (`web/src/pages/ancestry.tsx`), linked in `AppSidebar`. The corpus haplogroups are
   **Y-chromosome only**, so inference is paternal-line only; a file with no Y calls yields a
   "no Y data" state client-side.
 
@@ -1071,7 +1092,7 @@ first-callers share one in-flight build promise), and a `close…()` wired into 
 
 ## Analytical index (DuckDB) — `services/analytical-index.ts`
 
-Runtime, in-memory DuckDB mirror of `lexicons/*.tsv` for **tabular/aggregate**
+Runtime, in-memory DuckDB mirror of `data/source/lexicons/*.tsv` for **tabular/aggregate**
 queries (faceting, `GROUP BY`); graph queries still go to Neo4j. Full contract:
 `docs/analytical-index.md`. Key gotchas:
 

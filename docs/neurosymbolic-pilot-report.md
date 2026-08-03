@@ -145,7 +145,7 @@ is the draw.
 
 | | Scallop | DeepProbLog / ProbLog |
 | --- | --- | --- |
-| Program syntax | `.scl` is closest to the existing Souffle export — US-001 translated **51/52** registry rules directly | Prolog; the ProbLog **emitter already exists** (Phase 2.3, `culturescrape/datalog/problog.py`) so facts + rules translate for free |
+| Program syntax | `.scl` is closest to the existing Souffle export — US-001 translated **51/52** registry rules directly | Prolog; the ProbLog **emitter already exists** (Phase 2.3, `pinakes_engine/datalog/problog.py`) so facts + rules translate for free |
 | Neural wiring | Tensor-native — the neural predicate is a `torch.nn.Module`; edge probs are a tensor fed straight into the provenance pass | Heavier — a DeepProbLog `Network` + per-example `Query` objects; probabilities cross the Python/engine boundary per example |
 | Runtime deps | `scallopy` wheel is **macOS/arm64-only** (US-001/003 gated it) — but the `minmaxprob` semantics is reproduced **engine-free in torch** and runs on any host | `problog` **is declared and runs in CI**; but exact inference shells out to the external **`dsharp`** d-DNNF binary, which **segfaults** on dense/batched instances on this host, and the SDD alternative **`pysdd` is not installed**. `deepproblog` itself is undeclared (pins a conflicting torch/problog matrix) |
 | In-process / GPU | Yes (PyTorch) | No — compilation is an external process; no GPU batching of inference |

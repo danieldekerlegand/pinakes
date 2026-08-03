@@ -4,14 +4,15 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
 
 ## Type-checking
 
-- **`scripts/` is excluded from the root `tsconfig.json` `include`, so `npm run check`
+- **`scripts/` is excluded from the project `web/tsconfig.json` `include`, so `npm run check`
   does NOT type-check anything here.** Type-check scripts explicitly with
   `npx tsc -p scripts/tsconfig.json` (0 errors expected — keep it that way).
-- `scripts/tsconfig.json` sets `baseUrl: ".."` + `paths` for `@shared/*` and `@/*`, so
-  scripts may import `@shared/...` and cross-workspace files (e.g.
-  `../server/services/...`). At runtime, `tsx` resolves `@shared` via the root tsconfig
-  paths, and vitest resolves it via its own alias config — a plain `@shared` import works
-  in all three (tsc/tsx/vitest).
+- `scripts/tsconfig.json` sets `baseUrl: ".."` + `paths` for `@contracts/*` and `@/*`, so
+  scripts may import `@contracts/...` and cross-workspace files (e.g.
+  `../server/services/...`). At runtime, `tsx` resolves `@contracts` via the **root
+  `tsconfig.json` shim** (tsx looks for the nearest tsconfig at or above its cwd, and the
+  real project config now lives in `web/`), and vitest resolves it via its own alias config
+  — a plain `@contracts` import works in all three (tsc/tsx/vitest).
 
 ## Conventions
 
@@ -20,6 +21,11 @@ Standalone TS run with `tsx` (e.g. `npx tsx scripts/<name>.ts`). Tests run under
 - Keep the data-transform core **pure over an input dir** (e.g. `buildExport(lexiconsDir)`)
   and put filesystem writes in a thin `writeExport`/`runExport` wrapper — tests then drive
   the core with temp-dir fixtures (`fs.mkdtempSync`) and assert without touching real output.
+- **The corpus lives at `data/source/lexicons/`, not `lexicons/`** (pinakes:20 US-3). The
+  house pattern is `const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons")`
+  as the *default argument* of an otherwise dir-pure function. Never write the path as a
+  bare string literal — a wrong dir does not throw here, it yields an empty file list and a
+  cheerfully green "0 rows, 0 drift" report.
 
 ## Secret scanning (US-003)
 
@@ -56,14 +62,14 @@ full-tree scan (`npm run secret-scan`, CI mode); `--staged` = staged-only
 
 The export stamps a `license` column on **every** node and edge and a `source_query`
 citation column on **edges** (nodes already had one). Both are v1.1 additions to
-`shared/canonical-schema.json` (role `provenance`; `license` required, edge `source_query`
+`contracts/canonical-schema.json` (role `provenance`; `license` required, edge `source_query`
 optional). Rules:
 
 - **`license` is resolved from the record's `source` via `SOURCE_LICENSES`** (a registry in
-  `export-for-culturescrape.ts`, `source id → SPDX`), defaulting to `DEFAULT_LICENSE`
+  `export-for-engine.ts`, `source id → SPDX`), defaulting to `DEFAULT_LICENSE`
   (`CC-BY-4.0`). The TS export stamps `source = pinakes` on every row, so today every
   exported record is `CC-BY-4.0`; the registry is the forward-looking mechanism (e.g.
-  `wikidata → CC0-1.0`, `wiktionary → CC-BY-SA-4.0`) that fires when culture-scrape's own
+  `wikidata → CC0-1.0`, `wiktionary → CC-BY-SA-4.0`) that fires when pinakes-engine's own
   acquisition paths stamp a different `source` — land it **before** the first share-alike
   source, not after.
 - **Edge citations stop being dropped.** Previously an edge citation had no canonical column
@@ -74,16 +80,16 @@ optional). Rules:
   set explicitly) and in `NODE_/EDGE_PROVENANCE_FIELDS` (so the manifest coverage + the
   convergence-QA drift check see them). `license` is also in the importer's
   `NON_WRITEBACK_FIELDS` (graph-owned; never written back to lexicons).
-- **Python lockstep:** culture-scrape's `pinakes-export` adapter already lifts
+- **Python lockstep:** pinakes-engine's `pinakes-export` adapter already lifts
   `source_query`/`license` into `Provenance` (its `_PROVENANCE_COLUMNS`); a row-level `license`
-  cell wins over the export-level `license` param. culture-scrape's OWN `headers.py`
+  cell wins over the export-level `license` param. pinakes-engine's OWN `headers.py`
   `NodeSchema/EdgeSchema.canonical()` were deliberately **not** changed (they already diverge
   from the TS export header, and touching them cascades into its neo4j export + categorizer +
   ~6 tests) — the adapter parses the extra columns fine (plain string columns).
-- **GOTCHA — `export-for-culturescrape.ts` contains literal NUL bytes** (`\x00`) as the edge
+- **GOTCHA — `export-for-engine.ts` contains literal NUL bytes** (`\x00`) as the edge
   sort-key separator, so plain `grep` reports it as a binary file — use `grep -a` / `rg --text`.
-- After any change here, regenerate `docs/culturescrape-export-manifest.json`
-  (`npx tsx scripts/export-for-culturescrape.ts`) and run `npm run convergence-qa` — a
+- After any change here, regenerate `docs/engine-export-manifest.json`
+  (`npx tsx scripts/export-for-engine.ts`) and run `npm run convergence-qa` — a
   live-corpus test asserts `snapshot.provenance` equals a fresh build's.
 
 ## Live-graph smoke test (US-005)
@@ -91,7 +97,7 @@ optional). Rules:
 `smoke-graph.ts` is the one script here that makes **HTTP** calls (not a data
 transform) — it probes the running app's `/api/graph/*` routes and asserts real,
 non-empty data (`npm run smoke:graph`, docs in
-`core/docs/convergence-build.md` "US-005"). Reusable shape for any
+`engine/docs/convergence-build.md` "US-005"). Reusable shape for any
 "hit the live app and check it" script:
 
 - **Never throw on a down backend.** Every `fetch` is wrapped so a transport failure
@@ -101,7 +107,7 @@ non-empty data (`npm run smoke:graph`, docs in
   services are not a failure); `1` = a backend was **up** but a check returned
   empty/wrong data (a real regression). This lets it run locally with nothing up.
 - Response **types are imported** from the server services (`graph-health`,
-  `graph-store`, `culturescrape-client`) via `import type` — parity with the routes,
+  `graph-store`, `engine-client`) via `import type` — parity with the routes,
   erased at runtime. It imports no runtime server code, so it starts instantly.
 - It discovers a real node `csid` from `/search` (sidecar), falling back to
   `/overview` (Neo4j) so the node/neighborhood checks can still run when only one
@@ -110,12 +116,12 @@ non-empty data (`npm run smoke:graph`, docs in
   `node/:id` check 404s.** `discoverCsid` takes a csid from the **sidecar** search
   then looks it up in **Neo4j**; if the sidecar is on its bundled 9-node demo
   fixture (the `CORPUS` default) while Neo4j holds the pinakes export
-  (loaded by `to-neo4j export/culturescrape`), the csid doesn't exist in Neo4j and
+  (loaded by `to-neo4j build/corpus`), the csid doesn't exist in Neo4j and
   the smoke fails. To run a fully green smoke: point the sidecar at the same bare
-  corpus — `docker-compose.yml` mounts the gitignored `export/culturescrape` at
-  `/corpus:ro`, so bring the stack up with `CULTURESCRAPE_CORPUS=/corpus docker
-  compose up -d culturescrape neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
-  directly). Default stays the demo fixture so a bare `docker compose up` still
+  corpus — `infra/docker-compose.yml` mounts the gitignored `build/corpus` at
+  `/corpus:ro`, so bring the stack up with `PINAKES_ENGINE_CORPUS=/corpus docker
+  compose up -d pinakes_engine neo4j` (`load_corpus` reads a `nodes/`+`edges/` dir
+  directly). Default stays the demo fixture so a bare `docker compose -f infra/docker-compose.yml up` still
   starts when no export has been built.
 
 ## Entity-grounding snapshot (KGP-retargeted, US-PKA3)
@@ -125,13 +131,13 @@ non-empty data (`npm run smoke:graph`, docs in
 per-file facts (the media-analysis bridge spec §4.2). Same pure-builder shape as the canonical export:
 `buildEntityGrounding(lexiconsDir, {licenseClasses, domains})` reads the node lexicons (via
 `nodeFiles()`), and `snapshotEnvelope`/`writeSnapshot`/`runExport` do the wrapping + fs side.
-Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored). Run with
+Live output: `build/corpus/entity-grounding/snapshot.json` (gitignored). Run with
 `npm run entity-grounding` (`--license-classes CC0,CC-BY` default, `--domains language,culture`,
 `--out <dir>`, `--emit-fixture`).
 
 - **Reuses the export/reconciliation helpers** — `mintCsid` (QID-anchored csid + csid dedup),
   `normaliseConfidence`, `licenseForSource`, `deriveSourceUrl`, `parseCitation`, `EXPORT_SOURCE`
-  from `export-for-culturescrape.ts`, and `normalizeKey`/`normalizeQid` from `reconciliation-report.ts`.
+  from `export-for-engine.ts`, and `normalizeKey`/`normalizeQid` from `reconciliation-report.ts`.
   Don't re-implement id minting / license resolution — import them so the snapshot stays consistent
   with the TSV export (same csids, same `source=pinakes → CC-BY-4.0` default).
 - **Size-conscious: keys + names only.** Each record is `{csid, entityType, name, aliases,
@@ -145,7 +151,7 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
   ever loses the v1.1 per-record `license` column; `licenseClasses: null` disables the filter and is
   for the Insimul projection's excluded-record tally only — never for emitting a pack),
   `"CC0-1.0"→"CC0"`). Default classes `CC0`+`CC-BY` **exclude** share-alike (`CC-BY-SA-*`). A row-level
-  `license` column wins over the source default (mirrors culture-scrape's adapter), so a future
+  `license` column wins over the source default (mirrors pinakes-engine's adapter), so a future
   mixed-license corpus grounds with genuine per-record licenses; today every real row is `CC-BY-4.0`.
 - **Determinism:** entities are csid-sorted, assertions claim-id-sorted, neither carries a
   wall-clock; two builds are byte-identical **modulo the envelope `generatedAt`/`manifest.created`**
@@ -161,7 +167,7 @@ Live output: `export/culturescrape/entity-grounding/snapshot.json` (gitignored).
   §2: `kgp_version`/`pack_id`/`producer`/`worlds`/`kind`/`basis`/`dialect` + a
   `manifest{counts,created,signing,license_policy}`, and `buildAssertions` mints one
   `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim per QID-bearing entity.
-  Normalization lives in `@shared/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
+  Normalization lives in `@contracts/kgp` — **never hand-roll a claim or pack hash**; `contractVersion`
   is `2.0.0` (the envelope broke, the records did not). Full contract: `docs/grounding-pack.md`.
 
 ## Insimul grounding pack (insimul-bridge US-002)
@@ -211,13 +217,13 @@ culture,place,language --license-classes CC0,CC-BY --out <dir> --emit-fixture]`.
 
 ## Canonical export (US-004)
 
-`export-for-culturescrape.ts` emits `export/culturescrape/{nodes,edges}/<type>.tsv`
+`export-for-engine.ts` emits `build/corpus/{nodes,edges}/<type>.tsv`
 (gitignored) + `manifest.json`, and a committed manifest snapshot at
-`docs/culturescrape-export-manifest.json`. It reuses `@shared/lexicon-mapping` (node
+`docs/engine-export-manifest.json`. It reuses `@contracts/lexicon-mapping` (node
 `target`/`property` dispositions) and `server/services/canonical-edges`
 (`extractAllCanonicalEdges`) for edges. **csid is QID-anchored (US-005):** a row with a
 non-blank `wikidata_qid` mints `cs:<node-type>:<QID>` (a known QID *is* the identity per
-`shared/canonical-schema.json` `idScheme`); a row without one falls back to
+`contracts/canonical-schema.json` `idScheme`); a row without one falls back to
 `cs:<node-type>:<pinakes-id>`. `mintCsid(nodeType, pinakesId, qid?)` is the single source —
 `wikidata_qid` must be read from the row *before* minting (it is a normal `target` column, so
 `targetIdx.get("wikidata_qid")`), and `reconciliation-report.ts` passes the same qid so both
@@ -232,7 +238,7 @@ Output is idempotent (rows sorted, no wall-clock written). Combined `*coordinate
   reconciliation report.** The manifest holds only counts + pinakesId-keyed unresolved samples (no
   csid strings), so if no dedup counts move it stays byte-identical. `docs/reconciliation-report.json`
   lists csids, so it DOES change — regenerate it (`npx tsx scripts/reconciliation-report.ts`).
-  The write-back round-trip stays a 0-change no-op because `import-from-culturescrape.ts` keys on
+  The write-back round-trip stays a 0-change no-op because `import-from-engine.ts` keys on
   `pinakes_id` (unchanged), and `csid` is in `NON_WRITEBACK_FIELDS`.
 
 - **Unresolved edge endpoints mint flagged stub nodes, not dropped edges (US-007).** An edge
@@ -264,7 +270,7 @@ The export stamps all four provenance columns on **every** node and edge (values
 blank, the column is always present). Rules:
 
 - `source` = `pinakes` (acquisition-source id) on 100% of rows — the reconciler
-  anchor **and** culture-scrape's `validate.py` requires a non-empty `source`.
+  anchor **and** pinakes-engine's `validate.py` requires a non-empty `source`.
 - The lexicon column mapped to canonical `source` actually holds **bibliographic
   citations**, not the adapter id. `parseCitation()` reshapes it (JSON array → `"; "`-joined)
   and it is preserved into the node **`source_query`** column — never dropped. `source` is
@@ -283,7 +289,7 @@ blank, the column is always present). Rules:
   columns), so edge `source_url`/`retrieved_at` stay `0` — the export change is node-only.
   The `node.source_url`/`node.retrieved_at` "0/N … left blank" flags now only appear when a
   build genuinely has zero (e.g. a fixture without the columns).
-- Edges have **no `source_query`** column (culture-scrape's edge schema omits it), so an
+- Edges have **no `source_query`** column (pinakes-engine's edge schema omits it), so an
   edge that carried a citation is counted in `manifest.provenance.edge.citationsWithoutCanonicalColumn`
   (never silently dropped; embedded-FK edges keep it on the host node's `source_query`).
 - **Coverage metric** = `manifest.provenance` (per-type non-blank counts for each
@@ -293,12 +299,12 @@ blank, the column is always present). Rules:
 
 ## Bidirectional write-back (US-007)
 
-`import-from-culturescrape.ts` is the **return leg** of the export: it reads the enriched
+`import-from-engine.ts` is the **return leg** of the export: it reads the enriched
 canonical node TSVs (`<canonicalDir>/nodes/<type>.tsv`) and writes graph-derived facts back
-into `lexicons/*.tsv` via the **reverse** of the US-002 `target` map. `buildWriteBack(canonicalDir,
+into `data/source/lexicons/*.tsv` via the **reverse** of the US-002 `target` map. `buildWriteBack(canonicalDir,
 lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
 `writeWriteBack`/`runWriteBack` do the filesystem side. Report →
-`export/culturescrape/writeback/report.json` (gitignored). Full contract + ownership table:
+`build/corpus/writeback/report.json` (gitignored). Full contract + ownership table:
 [`docs/canonical-schema.md` §9](../docs/canonical-schema.md).
 
 - **Only fills blanks by default** (enrichment). A differing curated cell is a **conflict** —
@@ -321,13 +327,13 @@ lexiconsDir, {overwrite})` is pure (returns edited in-memory files + a report);
 
 ## Column enrichment of existing rows (US-006, language ranges/endangerment)
 
-The **third** write-back mode in `import-from-culturescrape.ts`, alongside the export-driven
+The **third** write-back mode in `import-from-engine.ts`, alongside the export-driven
 write-back and `--add-rows`: `--enrich <file> --target <lexicon.tsv> [--key <col>] [--overwrite]`
 fills **blank cells on EXISTING rows** from a curated enrichment TSV (it does NOT append rows).
 Use it when a domain is already populated and you're back-filling a *property* (e.g. sourced
 UNESCO endangerment status onto `languages.tsv`). `buildEnrichment(target, records, {keyColumn,
 overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Report →
-`export/culturescrape/writeback/<lexicon>-enrichment-report.json` (gitignored).
+`build/corpus/writeback/<lexicon>-enrichment-report.json` (gitignored).
 
 - **Same conservatism as the write-back:** fills a blank target cell only; a differing curated
   cell is a **conflict** (reported, never resolved unless `--overwrite`). Existing rows are never
@@ -348,19 +354,19 @@ overwrite})` is pure; `runEnrichment`/`loadEnrichmentFile` do the fs side. Repor
 - **Dashboard wiring (AC3):** the enriched `endangerment_status` is a NEW column distinct from the
   free-text `status`. `server/routes/language-preservation.ts`'s loader **prefers** it when present
   (`(l.endangermentStatus ?? "").trim() || l.status`), so the endangered-language dashboard reflects
-  the sourced vitality. The runtime `Language` type lives in **`shared/types.ts`** (hand-written) —
+  the sourced vitality. The runtime `Language` type lives in **`contracts/types.ts`** (hand-written) —
   add the field there and read it in `tsv-storage.ts`'s `getLanguages` parse. (There is no longer a
   competing `@shared/schema`; the Drizzle module was deleted in `10-foundation-cleanup` US-2 and its
-  still-referenced record shapes moved into `shared/types.ts`.)
+  still-referenced record shapes moved into `contracts/types.ts`.)
 
 ## New-row additions (US-003, data-population pilot)
 
 Same file also grows the corpus: `--add-cultures [file]` **appends** curated,
-reconciliation-*new* civilizations into `lexicons/civilizations.tsv` (default input:
+reconciliation-*new* civilizations into `data/source/lexicons/civilizations.tsv` (default input:
 committed `scripts/data/civilizations-additions.tsv`, derived from the US-002 acquired
 corpus). `buildCultureAdditions(parsedFile, candidates)` is pure; `runCultureAdditions` /
 `loadCultureAdditions` do the fs side. Report →
-`export/culturescrape/writeback/civilizations-additions-report.json` (gitignored); committed
+`build/corpus/writeback/civilizations-additions-report.json` (gitignored); committed
 summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md).
 
 - **Generic path — `--add-rows <file> --target <lexicon.tsv>`** (data-population at scale,
@@ -391,12 +397,12 @@ summary: [`docs/civilizations-writeback.md`](../docs/civilizations-writeback.md)
   `lexicon-mapping.json` — and are all in `NON_WRITEBACK_FIELDS` (+ `wikidata_qid` added there),
   so the export→import round-trip stays a **no-op** (export force-blanks `source_url`/`retrieved_at`
   and copies `wikidata_qid`/`confidence`; import never writes any of them back).
-- **GOTCHA — after changing any `lexicons/*.tsv` row/column count, regenerate BOTH committed
-  snapshots** or their live-corpus parity tests fail: `npx tsx scripts/export-for-culturescrape.ts`
-  (→ `docs/culturescrape-export-manifest.json`) **and** `npx tsx scripts/reconciliation-report.ts`
+- **GOTCHA — after changing any `data/source/lexicons/*.tsv` row/column count, regenerate BOTH committed
+  snapshots** or their live-corpus parity tests fail: `npx tsx scripts/export-for-engine.ts`
+  (→ `docs/engine-export-manifest.json`) **and** `npx tsx scripts/reconciliation-report.ts`
   (→ `docs/reconciliation-report.json`). Adding a mapped column also needs its
-  `shared/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
-  won't catch that; `shared/lexicon-mapping.test.ts` will.
+  `contracts/lexicon-mapping.json` disposition (totality test) — `npx tsc -p scripts/tsconfig.json`
+  won't catch that; `contracts/lexicon-mapping.test.ts` will.
 
 ## Domain acquisition (US-002, data-population at scale)
 
@@ -424,7 +430,7 @@ TSV is the network-free source of truth the write-back + gate replay — CI neve
   column is a property and may be blank.
 - **Dedup ids across the WHOLE corpus, not just the same node type.** The export's
   `ambiguousPinakesIds` diagnostic keys on the raw `pinakes_id` across **every** node
-  type (`idIndex` in `export-for-culturescrape.ts`), so a generic culture id like `sumer`/`vedas`
+  type (`idIndex` in `export-for-engine.ts`), so a generic culture id like `sumer`/`vedas`
   colliding with a *civilization*/*place* id of the same string is a ratchet regression the gate
   blocks — even though the csids differ (`cs:archaeological-culture:sumer` ≠ `cs:culture:sumer`).
   `loadExisting` therefore seeds the used-id set from **all** `kind === "node"` files and suffixes
@@ -467,7 +473,7 @@ per-record cell map (never hand-type TSV with many JSON columns — one stray ta
   `pinakes-export-kgqa`, then `pinakes-export-queries`, then `pinakes-eval-kgqa` — **in that
   order**, because the later ones read the `ml/data/` splits the earlier ones write. Their tests
   are `skipif(not <export_dir>.exists())`, so in a checkout that has never run
-  `export-for-culturescrape.ts` they silently **skip** and a stale manifest looks green; running
+  `export-for-engine.ts` they silently **skip** and a stale manifest looks green; running
   the export is what un-gates them. Regenerating in the wrong order just moves the failure.
 - **`--add-rows` now also ensures a `sources` column.** `buildCultureAdditions` calls
   `ensureColumns(target, [...ADDITION_PROVENANCE_COLUMNS, "sources"])`, so a target lexicon with no
@@ -544,8 +550,8 @@ myth/folklore, since top-1 is noisy: it returned video games/films/plants for ma
 ## Koine registry re-vendor — `regen-registry-mirror.ts` (40-registry-mirror-autoregen)
 
 The deterministic re-vendor for the TWO on-disk koine mirrors pinakes keeps, replacing the
-old manual `cp`. `shared/predicate-mapping.json` is a byte copy of koine
-`registry/predicate-mapping.json`; `shared/kgp.ts`'s `KGP_CORE_RELATIONS` (from koine
+old manual `cp`. `contracts/predicate-mapping.json` is a byte copy of koine
+`registry/predicate-mapping.json`; `contracts/kgp.ts`'s `KGP_CORE_RELATIONS` (from koine
 `registry/relations.tsv`) + `KGP_DOMAIN_RELATIONS` (from
 `registry/relations/{cinematography,media,social}.tsv`) are the second mirror. **Never
 hand-edit either** — a published signature is immutable (KGP §3.2 / the registry
@@ -556,7 +562,7 @@ hand-edit either** — a published signature is immutable (KGP §3.2 / the regis
   read-only sibling: it reports whether either mirror is stale and exits `1` if so (naming
   `npm run regen:registry-mirror` as the remedy), writing nothing. Both resolve the koine
   checkout from `KOINE_ROOT`, else `~/Development/koine` — the SAME resolution
-  `shared/predicate-mapping.test.ts` uses (`resolveKoineRoot()`).
+  `contracts/predicate-mapping.test.ts` uses (`resolveKoineRoot()`).
 - Same pure-core/thin-fs shape as the other scripts: `parseRelationsTsv` / `renderEntries` /
   `regenerateKgpSource` / `buildRegen` are pure over the koine sources; `writeRegen`/`runRegen`
   (and read-only `diffRegen`/`runCheck`) do the fs side. `buildRegen` reads + validates all five
@@ -564,7 +570,7 @@ hand-edit either** — a published signature is immutable (KGP §3.2 / the regis
 - `kgp.ts` uses `// @generated:begin/end {core,domain}-relations` markers; the regen replaces
   only the entry lines between them (JSDoc + const decls preserved). The domain prefix is the TSV
   `domain` column, NOT the file stem (`cinematography.tsv` → `cine:`).
-- **The drift gates that pair with it:** `shared/predicate-mapping.test.ts` byte-compares the JSON
+- **The drift gates that pair with it:** `contracts/predicate-mapping.test.ts` byte-compares the JSON
   and signature-compares the TSV vocabulary under `skipIf(!hasKoine)`, and `convergence-qa.ts`
   `detectRegistryStaleness` emits a `registry-stale` `DriftIssue` (both guarded on koine presence,
   so a checkout without the sibling repo is unaffected). Running the regen against the live 0.4.2
@@ -578,7 +584,7 @@ existing pure builders — `buildExport` (§export) for the manifest + provenanc
 **one** source of truth per metric; don't recompute them here. `detectDrift(lexiconsDir)` is the
 cheap gate (header reads only, no export build): it runs `assertValidCanonicalSchema` +
 `assertValidLexiconMapping`, checks the export's provenance columns still exist, flags any
-`lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
+`data/source/lexicons/*.tsv` on disk that is unmapped, and flags any mapped column absent from a live header.
 `buildConvergenceQA` adds the metrics; `runQA` returns `{ report, exitCode }` (`1` on drift).
 
 - **Three hard checks fail the gate** (`report.ok === false` ⇒ non-zero exit), since US-001:
@@ -603,7 +609,7 @@ cheap gate (header reads only, no export build): it runs `assertValidCanonicalSc
   `lexiconMappingByFile(file).columns.map(c => c.column)` so it matches the mapping exactly (no
   false `missing-source-column`). Drop one column to simulate a rename; add an extra `*.tsv` to
   simulate an unmapped file. See `convergence-qa.test.ts`.
-- Artifact (`convergence-qa.{json,md}`) lands in the gitignored `export/culturescrape/convergence/`
+- Artifact (`convergence-qa.{json,md}`) lands in the gitignored `build/corpus/convergence/`
   tree — no committed snapshot (the metrics track the live corpus, so a snapshot would need
   constant re-sync). CI runbook: `docs/canonical-schema.md` §10.
 
@@ -634,27 +640,27 @@ sibling of `coverage-report.ts`: it imports `buildCorpusTierReport` from the sha
 The JSON is asserted against the live corpus by `server/services/data-quality-scorer.test.ts`, so
 **re-run `npx tsx scripts/corpus-tier-report.ts` after any node-lexicon change that moves QID /
 `source_url` coverage** (e.g. a QID backfill), or that parity test fails. Tiers come from
-`@shared/trust-tier` (`classifyTrustTier`, the TS mirror of culture-scrape's `orchestrate/tiers.py`);
+`@contracts/trust-tier` (`classifyTrustTier`, the TS mirror of pinakes-engine's `orchestrate/tiers.py`);
 the report tracks **auto-admission readiness** (the whole curated corpus is `graphTier: curated`).
 
 ## Reconciliation dry-run (US-005)
 
-`reconciliation-report.ts` emits the keys culture-scrape's reconciler keys on
+`reconciliation-report.ts` emits the keys pinakes-engine's reconciler keys on
 (language `iso639_1`/`iso639_2`/glottocode; normalized `(name, type, region)` for
 everything else) and a **dry-run** estimate — no network, no live graph — of how the
 export lands: `matched` (global anchor), `likely-new` (unique name key), or `ambiguous`
 (blocking-key collision, listed with competing candidates, **never auto-merged**). Output:
-`export/culturescrape/reconciliation/{keys.tsv,report.json}` (gitignored) + a committed
+`build/corpus/reconciliation/{keys.tsv,report.json}` (gitignored) + a committed
 snapshot `docs/reconciliation-report.json` (ambiguities bounded to 50). `buildReconciliation()`
 is pure over a lexicons dir; it reuses `mintCsid`/`normaliseConfidence` from
-`export-for-culturescrape.ts`. **Gotcha:** the committed snapshot is asserted against the live
+`export-for-engine.ts`. **Gotcha:** the committed snapshot is asserted against the live
 corpus by a test — re-run the CLI (`npx tsx scripts/reconciliation-report.ts`) after any
 change that shifts node counts/keys, or that live test fails. Region is read from the first
 header ending in `region` (`region`/`origin_region`/`proposed_region`). Language matching
 uses `iso639_1 || iso639_2 || glottocode` (US-006 added a `glottocode` column to
 `languages.tsv`, so the glottocode is a fallback anchor for languages lacking an ISO code; the
 report's `keyCoverage.languages.withGlottocode` tracks it). See
-`core/docs/reconcile-pinakes.md`.
+`engine/docs/reconcile-pinakes.md`.
 
 - **The QID anchor IS cascade step 1 (US-003).** The report originally bucketed on the
   language/name key only, so a node that already carried a `wikidata_qid` was miscounted as
@@ -681,7 +687,7 @@ and `--apply` fills the blanks from it.
   `ambiguous` (competing QIDs listed, **never auto-accepted**); 0 ⇒ `none`. `languages.tsv` is
   excluded (already ISO/glottocode-matched — a QID adds no `matched`).
 - **Apply = the enrichment write-back.** `applyAccepted` calls
-  `import-from-culturescrape.buildEnrichment` per file: fills the blank `wikidata_qid` plus full
+  `import-from-engine.buildEnrichment` per file: fills the blank `wikidata_qid` plus full
   provenance (`source_url`, `retrieved_at`, `confidence` from the `exact-reconciled` rubric class
   on the file's own 0–1/0–100 scale via `detectConfidenceScale`, `sources`). Blanks only — a
   differing curated cell (e.g. an existing `confidence`) is a reported conflict, never clobbered.
@@ -689,12 +695,12 @@ and `--apply` fills the blanks from it.
   QID-bearing row**, so an accepted row MUST end up with every provenance cell non-blank (it
   does — pre-existing or newly filled). Idempotent: re-running `--apply` adds 0.
 - **GOTCHA — filling a QID re-mints the csid** (`cs:<type>:<id>` → `cs:<type>:<QID>`), so after
-  `--apply` regenerate BOTH `docs/culturescrape-export-manifest.json` and
+  `--apply` regenerate BOTH `docs/engine-export-manifest.json` and
   `docs/reconciliation-report.json` and run `npm run convergence-qa`. A backfilled QID that
   collides with an existing same-type QID would create a `duplicateCsids` regression the gate
   blocks — none occurred, but verify the diagnostics after a fresh batch.
 - The matched-share ceiling (why one pass lands ~37%, not ≥50%) is documented in
-  `core/docs/reconcile-pinakes.md` (US-003): most remaining
+  `engine/docs/reconcile-pinakes.md` (US-003): most remaining
   `likely-new` nodes live in lexicon files that carry **no** `wikidata_qid` column yet, so
   backfilling them needs a per-file schema addition (a separate scale-up).
 
@@ -705,7 +711,7 @@ and `--apply` fills the blanks from it.
 macro-code collisions like `hmn`). Same shape as `acquire-language-status.ts`: the one
 networked step, emitting a committed replay TSV (`scripts/data/language-glottocode-enrichment
 .tsv`) the write-back + gate operate on (CI never hits Wikidata). Apply it with the generic
-enrichment write-back: `import-from-culturescrape --enrich <file> --target languages.tsv`.
+enrichment write-back: `import-from-engine --enrich <file> --target languages.tsv`.
 
 - **Two glottocode sources, Wikidata-first.** Wikidata **P1394** (`glottolog code`) keyed by the
   row's `wikidata_qid` is primary (every QID-bearing corpus language resolves one); `words.tsv`
@@ -730,7 +736,7 @@ enrichment write-back: `import-from-culturescrape --enrich <file> --target langu
 The one-shot, idempotent, byte-faithful migration that burned the export's 44 duplicate
 csids (`cs:<type>:<id>` collisions = same `id` reused by ≥2 nodes of ONE type) and 16
 ambiguous `pinakes_id`s (one raw `id` across ≥2 node TYPES → different csids) to zero.
-It edits `lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
+It edits `data/source/lexicons/*.tsv` in place (per-file EOL + trailing-newline preserved; only the
 targeted cells change) and is safe to re-run (a row whose old id is already gone is skipped).
 Reusable rules for any future id-collision cleanup:
 
@@ -755,7 +761,7 @@ Reusable rules for any future id-collision cleanup:
   culture but renaming the Nooksack *language* means re-pointing grammar-features/phonological-
   inventories `language_id` (the language FKs) but nothing else.
 - **The EDGE-endpoint columns are the ones that mint stubs if orphaned** (from
-  `shared/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
+  `contracts/lexicon-mapping.json` `edge`/`:START_ID`/`:END_ID` dispositions): archaeological-cultures
   predecessor/successor_culture_ids, cultural-lineages source_id/target_id (**polymorphic** — any
   node type), deities.syncretism_links, etymology-relations + language-contacts endpoints,
   families.parent_id, languages.family_id/parent_language_id, writing-systems.parent_system_id.

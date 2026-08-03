@@ -4,10 +4,10 @@
  * Maps a pinakes entity reference (a canonical node type + local
  * `pinakes_id`, e.g. a `language`/`culture`/`language-family` id) to its
  * shared-graph `csid` so "show in graph" affordances (US-007) can jump from an
- * app entity to its node in the culture-scrape graph.
+ * app entity to its node in the pinakes-engine graph.
  *
  * Resolution leans on the convergence reconciliation (tasklist 15 / the
- * `reconciliation-report` + `export-for-culturescrape` work):
+ * `reconciliation-report` + `export-for-engine` work):
  *
  *   1. **Alias hit** — the deterministic `cs:<node-type>:<pinakes-id>` id the
  *      export mints for every node *is* the alias between a pinakes row and its
@@ -29,11 +29,11 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { nodeTypeByName } from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
+import { nodeTypeByName } from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Default minimum name similarity (Dice coefficient) for a fuzzy match. */
 export const DEFAULT_FUZZY_THRESHOLD = 0.6;
@@ -95,7 +95,7 @@ export interface GraphResolver {
   readonly size: number;
 }
 
-/** Mint the deterministic canonical id (mirrors `scripts/export-for-culturescrape`). */
+/** Mint the deterministic canonical id (mirrors `scripts/export-for-engine`). */
 export function mintCsid(nodeType: string, pinakesId: string): string {
   return `cs:${nodeType}:${pinakesId}`;
 }
@@ -103,7 +103,7 @@ export function mintCsid(nodeType: string, pinakesId: string): string {
 /**
  * Normalize a name/region for keying and comparison: NFKC, whitespace-collapsed,
  * casefolded — mirrors the reconciliation `normalizeKey` so app-side resolution
- * blocks the same way culture-scrape's reconciler does.
+ * blocks the same way pinakes-engine's reconciler does.
  */
 export function normalizeName(value: string): string {
   return value.normalize("NFKC").split(/\s+/).filter(Boolean).join(" ").toLowerCase();

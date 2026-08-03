@@ -10,9 +10,9 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TSV_PATH = path.join(__dirname, "..", "lexicons", "language-range-polygons.tsv");
-const LANGUAGES_TSV = path.join(__dirname, "..", "lexicons", "languages.tsv");
-const FAMILIES_TSV = path.join(__dirname, "..", "lexicons", "families.tsv");
+const TSV_PATH = path.join(__dirname, "..", "data", "source", "lexicons", "language-range-polygons.tsv");
+const LANGUAGES_TSV = path.join(__dirname, "..", "data", "source", "lexicons", "languages.tsv");
+const FAMILIES_TSV = path.join(__dirname, "..", "data", "source", "lexicons", "families.tsv");
 
 const REQUIRED_COLUMNS = [
   "id", "language_id", "family_id", "geometry", "range_type",

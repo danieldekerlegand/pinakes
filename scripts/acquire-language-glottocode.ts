@@ -1,5 +1,5 @@
 /**
- * Acquire **glottocodes** for `lexicons/languages.tsv` and curate them into a committed
+ * Acquire **glottocodes** for `data/source/lexicons/languages.tsv` and curate them into a committed
  * enrichment TSV for write-back (US-006 — language identity must not rest solely on ISO
  * codes; macro-code collisions like `hmn` need Glottolog's stable languoid ids).
  *
@@ -7,7 +7,7 @@
  * EXISTING `languages.tsv` rows, keyed by the corpus `id`), not an append. It is the one
  * networked step of the runbook; the committed output
  * (`scripts/data/language-glottocode-enrichment.tsv`) is the network-free source of truth the
- * enrichment write-back (`import-from-culturescrape --enrich`) + QA gate operate on, so CI
+ * enrichment write-back (`import-from-engine --enrich`) + QA gate operate on, so CI
  * never touches Wikidata.
  *
  * Two glottocode sources (AC — "Wikidata P1394 and/or joined from words.tsv Glottocode"):
@@ -34,10 +34,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 const OUT_FILE = path.join(DATA_DIR, "language-glottocode-enrichment.tsv");
 

@@ -129,7 +129,7 @@ async function testCldrFetching() {
 
   // Test 6: Verify existing writing-systems.tsv loads properly
   console.log("Test 6: Verify existing writing-systems.tsv integrity");
-  const existingWs = (scraper as any).loadExistingWritingSystems("lexicons/writing-systems.tsv");
+  const existingWs = (scraper as any).loadExistingWritingSystems("data/source/lexicons/writing-systems.tsv");
   assert(existingWs.length >= 50, `Has at least 50 writing systems (got ${existingWs.length})`);
 
   const latin2 = existingWs.find((ws: any) => ws.name === "Latin");

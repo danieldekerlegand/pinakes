@@ -8,13 +8,13 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 
 ### 1. Core Infrastructure
 
-#### **Visualization Context** ([VisualizationContext.tsx](client/src/contexts/VisualizationContext.tsx))
+#### **Visualization Context** ([VisualizationContext.tsx](web/src/contexts/VisualizationContext.tsx))
 - Centralized state management using React Context + useReducer
 - Manages view mode, selection state, filters, and view-specific settings
 - Provides convenience methods for all state operations
 - Ensures consistent state across all visualization views
 
-#### **Data Transformation Layer** ([data-transformers.ts](client/src/lib/visualization/data-transformers.ts))
+#### **Data Transformation Layer** ([data-transformers.ts](web/src/lib/visualization/data-transformers.ts))
 - `transformToTreeData()` - Converts tree data to D3 hierarchy format
 - `transformToNetworkData()` - Creates nodes and links for force-directed graph
 - `transformToTimelineData()` - Extracts temporal data with time parsing
@@ -22,7 +22,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 - `applyFilters()` - Consistent filter application across all views
 - `parseTimeString()` - Intelligent time string parsing (BCE/CE, ranges, etc.)
 
-#### **D3 Helper Utilities** ([d3-helpers.ts](client/src/lib/visualization/d3-helpers.ts))
+#### **D3 Helper Utilities** ([d3-helpers.ts](web/src/lib/visualization/d3-helpers.ts))
 - Color scales for families, levels, and status
 - Number formatting (1.5M, 2K, etc.)
 - D3 drag behavior for force simulation
@@ -32,7 +32,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 - Transition helpers
 - Debounce and throttle utilities
 
-#### **Export Utilities** ([export-utils.ts](client/src/lib/visualization/export-utils.ts))
+#### **Export Utilities** ([export-utils.ts](web/src/lib/visualization/export-utils.ts))
 - Export SVG visualizations to .svg files
 - Export SVG visualizations to .png files (high resolution)
 - Export data to CSV format
@@ -41,7 +41,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 
 ### 2. Visualization Components
 
-#### **Hierarchical Tree View** ([LanguageTreeView.tsx](client/src/components/visualizations/LanguageTreeView.tsx))
+#### **Hierarchical Tree View** ([LanguageTreeView.tsx](web/src/components/visualizations/LanguageTreeView.tsx))
 - D3 tree layout with horizontal orientation
 - Collapsible/expandable nodes
 - Color-coded by level (preserves existing color scheme)
@@ -55,7 +55,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
   - Drag to pan
   - Hover for tooltips
 
-#### **Force-Directed Network Graph** ([LanguageNetworkView.tsx](client/src/components/visualizations/LanguageNetworkView.tsx))
+#### **Force-Directed Network Graph** ([LanguageNetworkView.tsx](web/src/components/visualizations/LanguageNetworkView.tsx))
 - D3 force simulation with physics-based layout
 - Nodes sized by speaker population
 - Color-coded by language family
@@ -69,7 +69,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
   - Scroll to zoom
   - Drag background to pan
 
-#### **Timeline View** ([LanguageTimelineView.tsx](client/src/components/visualizations/LanguageTimelineView.tsx))
+#### **Timeline View** ([LanguageTimelineView.tsx](web/src/components/visualizations/LanguageTimelineView.tsx))
 - Chronological display of language emergence
 - Grouped by family or region
 - Time scale with BCE/CE support
@@ -81,7 +81,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
   - Hover for details
   - View historical context
 
-#### **Geographic Map View** ([LanguageMapView.tsx](client/src/components/visualizations/LanguageMapView.tsx))
+#### **Geographic Map View** ([LanguageMapView.tsx](web/src/components/visualizations/LanguageMapView.tsx))
 - Leaflet map with OpenStreetMap tiles
 - Circle markers sized by speaker population
 - Color-coded by language family
@@ -96,13 +96,13 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 
 ### 3. Shared Components
 
-#### **VisualizationTooltip** ([VisualizationTooltip.tsx](client/src/components/visualizations/shared/VisualizationTooltip.tsx))
+#### **VisualizationTooltip** ([VisualizationTooltip.tsx](web/src/components/visualizations/shared/VisualizationTooltip.tsx))
 - Unified tooltip component for all views
 - Auto-positioning to stay within viewport
 - Displays relevant metadata based on node type
 - Dark mode support
 
-#### **ExportMenu** ([ExportMenu.tsx](client/src/components/visualizations/shared/ExportMenu.tsx))
+#### **ExportMenu** ([ExportMenu.tsx](web/src/components/visualizations/shared/ExportMenu.tsx))
 - Dropdown menu for export options
 - SVG export for D3 views
 - PNG export with high resolution
@@ -112,25 +112,25 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 
 ### 4. Custom Hooks
 
-#### **useVisualizationResize** ([useVisualizationResize.ts](client/src/components/visualizations/hooks/useVisualizationResize.ts))
+#### **useVisualizationResize** ([useVisualizationResize.ts](web/src/components/visualizations/hooks/useVisualizationResize.ts))
 - Responsive SVG sizing using ResizeObserver
 - Debounced updates for performance
 - Automatic cleanup
 
-#### **useD3Simulation** ([useD3Simulation.ts](client/src/components/visualizations/hooks/useD3Simulation.ts))
+#### **useD3Simulation** ([useD3Simulation.ts](web/src/components/visualizations/hooks/useD3Simulation.ts))
 - Manages D3 force simulation lifecycle
 - Configurable forces (link, charge, center, collision)
 - Tick handler integration
 - Automatic cleanup on unmount
 
-#### **useNodePinning** ([useD3Simulation.ts](client/src/components/visualizations/hooks/useD3Simulation.ts))
+#### **useNodePinning** ([useD3Simulation.ts](web/src/components/visualizations/hooks/useD3Simulation.ts))
 - Pin/unpin nodes in force simulation
 - Track pinned state
 - Toggle pinning functionality
 
 ### 5. Main Container
 
-#### **LanguageFamilyVisualization** ([LanguageFamilyVisualization.tsx](client/src/components/LanguageFamilyVisualization.tsx))
+#### **LanguageFamilyVisualization** ([LanguageFamilyVisualization.tsx](web/src/components/LanguageFamilyVisualization.tsx))
 - Unified container with tab-based view switching
 - Fetches data via TanStack Query
 - Memoized data transformations for performance
@@ -142,7 +142,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 
 ### 6. Dashboard Integration
 
-#### **Updated Dashboard** ([dashboard.tsx](client/src/pages/dashboard.tsx))
+#### **Updated Dashboard** ([dashboard.tsx](web/src/pages/dashboard.tsx))
 - Replaced old LanguageTree component with new LanguageFamilyVisualization
 - Preserved old component as comment for easy rollback
 - Maintained existing language selection functionality
@@ -151,7 +151,7 @@ The Language Family Tree UI has been successfully refactored into a comprehensiv
 ## 📁 File Structure
 
 ```
-client/src/
+web/src/
 ├── components/
 │   ├── LanguageFamilyVisualization.tsx     [NEW - Main container]
 │   ├── visualizations/                      [NEW FOLDER]
@@ -159,7 +159,7 @@ client/src/
 │   │   ├── LanguageNetworkView.tsx
 │   │   ├── LanguageTimelineView.tsx
 │   │   ├── LanguageMapView.tsx
-│   │   ├── shared/
+│   │   ├── contracts/
 │   │   │   ├── VisualizationTooltip.tsx
 │   │   │   └── ExportMenu.tsx
 │   │   └── hooks/
@@ -269,7 +269,7 @@ The implementation includes:
 
 If you need to revert to the old component:
 
-1. Open [dashboard.tsx](client/src/pages/dashboard.tsx)
+1. Open [dashboard.tsx](web/src/pages/dashboard.tsx)
 2. Uncomment the old import:
    ```typescript
    import LanguageTree from "@/components/language-tree";

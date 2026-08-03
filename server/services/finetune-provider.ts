@@ -5,7 +5,7 @@
  * agora hosts the *general* trainer, and Pinakes runs its **own specialized**
  * `finetune` provider over the already-built `ml/` uv workspace. This module is that
  * provider's app-side front — and it is a **SURFACE WRAPPER, nothing more**
- * (`shared/CLAUDE.md`): an `invoke` shells out to the already-built console script
+ * (`contracts/CLAUDE.md`): an `invoke` shells out to the already-built console script
  *
  *     uv run --project ml pinakes-train-slm --kft-job <manifest> --output-dir <run>
  *
@@ -29,7 +29,7 @@
  * same way — advertised, not invocable, with a message that says why.
  *
  * Everything network/subprocess-shaped sits behind the injectable {@link FinetuneRunner}
- * (the `culturescrape-acquisition.ts` pattern), so the whole invoke→subscribe path is
+ * (the `engine-acquisition.ts` pattern), so the whole invoke→subscribe path is
  * tested with an in-memory fake — no uv, no Python, no GPU.
  */
 import { spawn } from "node:child_process";

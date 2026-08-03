@@ -32,7 +32,7 @@
  * **Assertions are the reconciliation anchors.** Each QID-bearing entity yields one
  * `exact_match(pinakes:ent:<type>.<local>, wikidata:ent:<QID>)` claim whose `id` is
  * minted by the NORMATIVE KGP §3 normalization over the shared relation registry
- * (`@shared/kgp`), so the same anchor asserted by another producer mints the same claim
+ * (`@contracts/kgp`), so the same anchor asserted by another producer mints the same claim
  * id and merges. `links` stays empty: KINP's reserved equivalence/lifecycle relations
  * (`same_as`/`retracts`/…) are not what a grounding snapshot emits.
  *
@@ -64,9 +64,9 @@ import {
   CANONICAL_SCHEMA,
   nodeProvenanceColumns,
   nodeTypeByName,
-} from "@shared/canonical-schema";
-import { nodeFiles, lexiconMappingByFile } from "@shared/lexicon-mapping";
-import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@shared/capability-manifest";
+} from "@contracts/canonical-schema";
+import { nodeFiles, lexiconMappingByFile } from "@contracts/lexicon-mapping";
+import { RESOLVER_IDENTITY, type KnowledgeDialect } from "@contracts/capability-manifest";
 import {
   KGP_VERSION,
   KGP_PRODUCER,
@@ -83,7 +83,7 @@ import {
   type LicensePolicy,
   type PackElement,
   type PackKind,
-} from "@shared/kgp";
+} from "@contracts/kgp";
 import {
   mintCsid,
   normaliseConfidence,
@@ -94,11 +94,11 @@ import {
   licenseForSource,
   deriveSourceUrl,
   parseCitation,
-} from "./export-for-culturescrape.ts";
+} from "./export-for-engine.ts";
 import { normalizeKey, normalizeQid } from "./reconciliation-report.ts";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 
 /** Gitignored output tree for the full entity-grounding snapshot (live corpus). */
 export const GROUNDING_DIR = path.join(EXPORT_DIR, "entity-grounding");
@@ -279,7 +279,7 @@ export function assertLicenseColumn(
       "grounding-pack: canonical schema v" +
         CANONICAL_SCHEMA.version +
         ' declares no per-record "license" provenance column, so license-class filtering' +
-        " cannot be enforced. Upgrade shared/canonical-schema.json to v1.1+ (the" +
+        " cannot be enforced. Upgrade contracts/canonical-schema.json to v1.1+ (the" +
         " scale-ready-conversion US-003 SPDX column) before exporting a grounding pack.",
     );
   }
@@ -376,7 +376,7 @@ export function licenseAllowed(
  * no wall-clock). Mirrors the export's node pass: dedupes by csid, mints QID-anchored
  * csids, forces `source = pinakes` (the reconciler anchor), and resolves an SPDX
  * license per record. A row-level `license` column wins over the source default (the
- * same precedence culture-scrape's adapter uses), so a mixed-license corpus grounds
+ * same precedence pinakes-engine's adapter uses), so a mixed-license corpus grounds
  * with genuine per-record licenses. Entities are filtered by license class + domain
  * and returned csid-sorted.
  */
@@ -700,7 +700,7 @@ export function runExport(
   return pack;
 }
 
-// CLI entry — mirrors export-for-culturescrape.ts's main-module guard.
+// CLI entry — mirrors export-for-engine.ts's main-module guard.
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^file:\/\//, ""))) {
   const { licenseClasses, domains, outDir, emitFixture } = parseArgs(
     process.argv.slice(2),

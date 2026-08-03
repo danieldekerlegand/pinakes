@@ -49,9 +49,9 @@ from pinakes_ml.scallop import (
 _ML_ROOT = Path(__file__).resolve().parents[2]
 _REPO_ROOT = _ML_ROOT.parent
 
-DEFAULT_EDGES_DIR = _REPO_ROOT / "export" / "culturescrape" / "edges"
+DEFAULT_EDGES_DIR = _REPO_ROOT / "build" / "corpus" / "edges"
 DEFAULT_REGISTRY = (
-    _REPO_ROOT / "core" / "src" / "culturescrape" / "datalog" / "rules_registry.tsv"
+    _REPO_ROOT / "engine" / "src" / "pinakes_engine" / "datalog" / "rules_registry.tsv"
 )
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "scallop"
 DEFAULT_PROGRAM = _ML_ROOT / "scallop" / "program.scl"
@@ -207,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             f"edges dir not found: {args.edges_dir}\n"
             "The canonical export is a git-ignored build output — regenerate "
-            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
+            "it with `npx tsx scripts/export-for-engine.ts` first."
         )
 
     relations, symbols, translated, program_scl, manifest = build(

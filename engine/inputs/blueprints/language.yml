@@ -1,0 +1,17 @@
+# Language — verified Wikidata classes for the culture corpus.
+#
+# 5 classes, ~16,623 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  pinakes_engine generate blueprints/language.yml \
+#                --out categories --job jobs/language.yml
+defaults:
+  label: Language
+  dimensions: [linguistic, geographic]
+categories:
+  - {id: languages, name: "language", wikidata_class: Q34770}  # ~9,750
+  - {id: writing-systems, name: "writing system", wikidata_class: Q8192}  # ~316
+  - {id: dialects, name: "dialect", wikidata_class: Q33384}  # ~4,074
+  - {id: alphabets, name: "alphabet", wikidata_class: Q9779}  # ~186
+  - {id: language-families, name: "language family", wikidata_class: Q25295}  # ~2,297

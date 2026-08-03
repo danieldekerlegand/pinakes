@@ -1,0 +1,109 @@
+# Local orchestration for pinakes's data-layer integration.
+# Brings up the pinakes-engine FastAPI sidecar (built from the first-party engine at
+# ../engine — the packages/culture-scrape shell is retired, see docs/REMOVED_FEATURES.md)
+# and a Neo4j graph store.
+# Started together with the app by `npm run dev:full` (see scripts/dev-full.sh).
+#
+# ⚠️ ALWAYS INVOKE FROM THE REPO ROOT with an explicit `-f` (this file moved off the
+# root in pinakes:20 US-3). `${PWD}` below must be the repo root: the neo4j service
+# mounts the checkout at its own absolute host path so the `file://<abs-path>` LOAD
+# CSV URLs `to-neo4j` emits resolve inside the container. Every entry point does this
+# already (`npm run sidecar:up`, `scripts/dev-full.sh`); a `cd infra && docker compose
+# up` would mount the wrong tree.
+#
+# ⚠️ The `pinakes_engine` image does NOT build today — see the packaging note at the
+# top of infra/engine.Dockerfile. Everything the app does degrades gracefully without it
+# (docs/engine-integration.md §10b), so `npm run dev` is unaffected.
+#
+#   docker compose -f infra/docker-compose.yml up -d --build pinakes_engine neo4j
+#                                                       # sidecar + graph only
+#   docker compose -f infra/docker-compose.yml --profile graph up -d
+#                                                       # same, via the `graph` profile
+#   npm run dev:full                                    # sidecar + graph + app
+#
+# neo4j sits behind the `graph` profile (it is heavy), so a bare
+# `docker compose -f infra/docker-compose.yml up` starts only the sidecar; the scripts
+# above start both.
+#
+# The pinakes server reads PINAKES_ENGINE_API_URL / NEO4J_* from .env
+# (see .env.example) and degrades gracefully when these services are down.
+
+# Pinned so the project name (and therefore container + volume names such as
+# `neo4j-data`) does not follow the compose file's directory. Without it the move to
+# `infra/` would have silently renamed the project from the checkout dir to `infra`
+# and orphaned any existing local Neo4j volume.
+name: pinakes
+
+services:
+  pinakes_engine:
+    build:
+      # Context stays the engine package (its COPY paths are package-relative and the
+      # repo root would drag node_modules/ in); the Dockerfile itself lives here, so it
+      # is named out of the context. The Dockerfile is read by the client, not from the
+      # build context, so pointing outside `context` is fine.
+      context: ../engine
+      dockerfile: ../infra/engine.Dockerfile
+    ports:
+      - "8800:8800"
+    environment:
+      # Serve real data by pointing CORPUS at the mounted pinakes canonical
+      # export (below): `PINAKES_ENGINE_CORPUS=/corpus`. This is the SAME bare
+      # corpus (nodes/ + edges/) that `to-neo4j build/corpus` loads into
+      # Neo4j, so the sidecar's search and Neo4j's node lookups agree — which is
+      # what makes `npm run smoke:graph` green end to end (US-005). Left at the
+      # bundled 9-node fixture by default so a bare `docker compose -f infra/docker-compose.yml up` (no export
+      # built yet) still starts cleanly.
+      CORPUS: ${PINAKES_ENGINE_CORPUS:-tests/fixtures/explorer-corpus}
+    volumes:
+      # The gitignored canonical export (produced by
+      # `npx tsx scripts/export-for-engine.ts`). `load_corpus` reads a bare
+      # `nodes/`+`edges/` directory, so this dir is directly servable. Read-only;
+      # unused until PINAKES_ENGINE_CORPUS=/corpus. Mounting `${PWD}` (the repo
+      # root) subpath keeps parity with the neo4j service's `${PWD}` mount.
+      - ${PWD}/build/corpus:/corpus:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8800/')"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  neo4j:
+    image: neo4j:5
+    # Behind the `graph` profile so a bare `docker compose -f infra/docker-compose.yml up` stays lightweight
+    # (sidecar only). It still starts when named explicitly — which the
+    # `sidecar:up` npm script and scripts/dev-full.sh both do — or via
+    # `docker compose -f infra/docker-compose.yml --profile graph up`.
+    profiles: ["graph"]
+    ports:
+      - "7474:7474"   # HTTP browser
+      - "7687:7687"   # Bolt (NEO4J_URI=bolt://localhost:7687)
+    environment:
+      # Must match NEO4J_USER / NEO4J_PASSWORD in .env (format: user/password).
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pinakes}
+      # APOC is required by the incremental `pinakes_engine to-neo4j --mode loadcsv`
+      # path: node labels are reattached with apoc.create.addLabels and edges are
+      # merged with apoc.merge.relationship (a data-driven :TYPE can't be MERGE'd in
+      # core Cypher). The neo4j:5 image fetches the bundled apoc plugin from this var.
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
+      NEO4J_dbms_security_procedures_allowlist: "apoc.*"
+      # `LOAD CSV FROM file://<abs-path>` reads the corpus TSVs by their host path;
+      # allow absolute file: URLs and mount the repo read-only at its real path so
+      # the URLs `to-neo4j` emits (Path.resolve().as_uri()) resolve inside the container.
+      NEO4J_dbms_security_allow__csv__import__from__file__urls: "true"
+      # Point the import-dir root at `/` so `file://<abs-path>` resolves to the real
+      # absolute path (the default `import` jail would resolve it under <neo4j>/import).
+      NEO4J_server_directories_import: "/"
+    volumes:
+      - neo4j-data:/data
+      - ${PWD}:${PWD}:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  neo4j-data:

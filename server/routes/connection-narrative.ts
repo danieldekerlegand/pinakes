@@ -20,7 +20,7 @@
 import express, { type Express, type Request, type Response } from "express";
 import * as graphStore from "../services/graph-store";
 import { GraphUnavailableError } from "../services/graph-store";
-import * as culturescrape from "../services/culturescrape-client";
+import * as pinakes_engine from "../services/engine-client";
 import { getGraphResolver, type GraphResolver } from "../services/graph-resolver";
 import {
   explainConnection,
@@ -101,7 +101,7 @@ async function liveInferFacts(fromCsid: string, toCsid: string): Promise<Datalog
   const check = async (a: string, b: string): Promise<boolean> => {
     try {
       const goal = `main :- ancestor('${escape(a)}', '${escape(b)}'), format("~w~n", ['yes']).`;
-      const out = await culturescrape.datalog({ goal });
+      const out = await pinakes_engine.datalog({ goal });
       return out.ran && Array.isArray(out.rows) && out.rows.length > 0;
     } catch {
       return false;

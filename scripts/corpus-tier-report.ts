@@ -6,7 +6,7 @@
  *
  * Every pinakes lexicon row is human-curated, so in the shared graph the
  * whole app corpus is the `curated` tier (auto-admission never writes
- * `lexicons/*.tsv`). The readiness breakdown is the growth metric: as US-003's
+ * `data/source/lexicons/*.tsv`). The readiness breakdown is the growth metric: as US-003's
  * QID backfill converges the corpus with the global identity space, the
  * auto-admitted share rises.
  *
@@ -26,10 +26,10 @@ import {
   buildCorpusTierReport,
   type CorpusTierReport,
 } from "../server/services/data-quality-scorer";
-import { trustTierMeta } from "@shared/trust-tier";
+import { trustTierMeta } from "@contracts/trust-tier";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const JSON_OUT = path.join(REPO_ROOT, "docs", "corpus-tier-report.json");
 const MD_OUT = path.join(REPO_ROOT, "docs", "corpus-tier-report.md");
 
@@ -47,7 +47,7 @@ export function renderMarkdown(report: CorpusTierReport): string {
   lines.push(
     `Every lexicon row is human-curated, so in the shared graph the whole app ` +
       `corpus occupies the **${trustTierMeta(report.graphTier).label}** tier — ` +
-      `auto-admission never writes \`lexicons/*.tsv\`. The breakdown below is ` +
+      `auto-admission never writes \`data/source/lexicons/*.tsv\`. The breakdown below is ` +
       `**auto-admission readiness**: how each curated node row would classify by ` +
       `its own provenance.`,
   );
@@ -81,8 +81,8 @@ export function renderMarkdown(report: CorpusTierReport): string {
   }
   lines.push("");
   lines.push(
-    "*Tiers use the shared classifier (`shared/trust-tier.ts`), the TS mirror of " +
-      "culture-scrape's `orchestrate/tiers.py` `classify_tier`. See the JSON report " +
+    "*Tiers use the shared classifier (`contracts/trust-tier.ts`), the TS mirror of " +
+      "pinakes-engine's `orchestrate/tiers.py` `classify_tier`. See the JSON report " +
       "for the machine-readable form.*",
   );
   lines.push("");

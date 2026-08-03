@@ -9,9 +9,9 @@ import {
   buildCorpusTierReport,
   ROADMAP_TARGETS,
 } from "./data-quality-scorer";
-import { ALL_TRUST_TIERS } from "@shared/trust-tier";
+import { ALL_TRUST_TIERS } from "@contracts/trust-tier";
 
-const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../lexicons");
+const LEXICONS_DIR = path.resolve(import.meta.dirname, "../../data/source/lexicons");
 const COMMITTED_REPORT = path.resolve(import.meta.dirname, "../../docs/coverage-report.json");
 const COMMITTED_TIER_REPORT = path.resolve(
   import.meta.dirname,
@@ -63,7 +63,7 @@ describe("coverage against the live corpus", () => {
     expect(committed).toEqual(fresh);
   });
 
-  it("every tracked target file exists in lexicons/", () => {
+  it("every tracked target file exists in data/source/lexicons/", () => {
     for (const t of ROADMAP_TARGETS) {
       expect(fs.existsSync(path.join(LEXICONS_DIR, t.file))).toBe(true);
     }

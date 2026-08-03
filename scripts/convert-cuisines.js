@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 // Read the CSV file
 const csvPath = path.join(__dirname, '../data/source/top_100_foods_by_cuisine.csv');
-const tsvPath = path.join(__dirname, '../lexicons/cuisine-items.tsv');
+const tsvPath = path.join(__dirname, '../data/source/lexicons/cuisine-items.tsv');
 
 const csvContent = fs.readFileSync(csvPath, 'utf-8');
 const lines = csvContent.trim().split('\n');

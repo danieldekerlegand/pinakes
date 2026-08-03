@@ -24,7 +24,7 @@ vi.mock("@google/generative-ai", () => ({
   },
 }));
 
-const TEST_DIR = "lexicons";
+const TEST_DIR = "data/source/lexicons";
 
 function writeTestTsv(filename: string, headers: string[], rows: string[][]): string {
   const filePath = path.join(TEST_DIR, filename);
@@ -41,7 +41,7 @@ describe("batch-enrichment", () => {
     it("returns under-populated TSV files sorted by row count", () => {
       const results = analyzeTsvFiles(100);
 
-      // Should find at least some under-populated files in lexicons/
+      // Should find at least some under-populated files in data/source/lexicons/
       expect(Array.isArray(results)).toBe(true);
 
       // All should have fewer rows than threshold

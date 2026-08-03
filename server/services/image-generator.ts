@@ -105,7 +105,7 @@ export function buildImagePrompt(request: ImageGenerationRequest): string {
 // Prompt TSV Storage
 // ============================================================================
 
-const PROMPTS_TSV_PATH = path.join(process.cwd(), "lexicons", "genai-prompts.tsv");
+const PROMPTS_TSV_PATH = path.join(process.cwd(), "data", "source", "lexicons", "genai-prompts.tsv");
 const PROMPTS_HEADER = "id\tentity_type\tentity_id\tprompt_text\tscene_type\tstyle\tgenerated_at\tstatus";
 
 function ensurePromptsTsv(): void {

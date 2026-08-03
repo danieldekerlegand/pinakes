@@ -41,7 +41,7 @@ interface Narrative {
 }
 
 function loadNarratives(): Narrative[] {
-  const tsvPath = resolve(__dirname, "../lexicons/narratives.tsv");
+  const tsvPath = resolve(__dirname, "../data/source/lexicons/narratives.tsv");
   const text = readFileSync(tsvPath, "utf-8");
   const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
   const header = (lines.shift() ?? "").split("\t");

@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const inputPath = path.join(__dirname, '../data/source/haplogroups.txt');
-const outputPath = path.join(__dirname, '../lexicons/haplogroups.tsv');
+const outputPath = path.join(__dirname, '../data/source/lexicons/haplogroups.tsv');
 
 const content = fs.readFileSync(inputPath, 'utf-8');
 const lines = content.split('\n');

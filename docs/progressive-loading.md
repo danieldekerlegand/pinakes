@@ -54,7 +54,7 @@ fetcher in `DOMAIN_FETCHERS` (`server/routes/summaries.ts`).
 
 ## Client wiring
 
-`client/src/hooks/use-progressive-entity.ts`:
+`web/src/hooks/use-progressive-entity.ts`:
 
 - `useEntitySummaries<TSummary>(domain, { enabled, offset, limit })` — fetches the
   summary list up front.
@@ -62,13 +62,13 @@ fetcher in `DOMAIN_FETCHERS` (`server/routes/summaries.ts`).
   record, gated by `enabled`. Pass `enabled: false` while a card is collapsed and
   it fetches nothing.
 
-Query keys are built in `client/src/lib/progressive-loading.ts`
+Query keys are built in `web/src/lib/progressive-loading.ts`
 (`summaryListKey`, `detailKey`) and map straight to the fetch URLs via the shared
 `getQueryFn` (string parts → path, object part → query params). `detailKey` uses
 the canonical `/api/<domain>/<id>` endpoint, so it shares the React Query cache
 with any existing per-entity detail query.
 
-**Reference integration:** `client/src/components/culture-profile/religion-mythology-section.tsx`
+**Reference integration:** `web/src/components/culture-profile/religion-mythology-section.tsx`
 renders collapsed cards from `/api/summaries/religions`, then hydrates each card's
 heavy detail (description, pantheon, sacred texts, practices) from
 `/api/religions/:id` on expand, behind a pulse skeleton.

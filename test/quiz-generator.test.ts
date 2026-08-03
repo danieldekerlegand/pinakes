@@ -1,7 +1,7 @@
 /**
  * Vitest coverage for the quiz generator, focused on the dish-origin (cuisine)
  * map-click question type (US-004). Runs against the live lexicon TSVs
- * (`lexicons/cuisines.tsv`, `lexicons/cuisine-items.tsv`) loaded by storage.
+ * (`data/source/lexicons/cuisines.tsv`, `data/source/lexicons/cuisine-items.tsv`) loaded by storage.
  *
  * This is the vitest-runnable counterpart to the standalone
  * `test/test-quiz-generator.ts` script (which is invoked via `npx tsx`).

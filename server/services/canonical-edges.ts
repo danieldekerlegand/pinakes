@@ -10,7 +10,7 @@
  * relationships instead of dangling id strings.
  *
  * Which columns carry edges is *not* hard-coded here: it is driven by the
- * US-002 lexicon mapping (`@shared/lexicon-mapping`). Edge tables declare their
+ * US-002 lexicon mapping (`@contracts/lexicon-mapping`). Edge tables declare their
  * structural columns via `target` dispositions (`:START_ID`/`:END_ID`/`:TYPE`/
  * `time_start`/`time_end`/`confidence`/`source`); node tables declare embedded
  * relationships via `edge` dispositions (a canonical edge-type name). The only
@@ -28,15 +28,15 @@ import path from "node:path";
 import {
   edgeTypeByName,
   type CanonicalEdgeType,
-} from "@shared/canonical-schema";
+} from "@contracts/canonical-schema";
 import {
   LEXICON_MAPPING,
   lexiconMappingByFile,
   type LexiconFileMapping,
-} from "@shared/lexicon-mapping";
-import { confidenceForClass } from "@shared/confidence-rubric";
+} from "@contracts/lexicon-mapping";
+import { confidenceForClass } from "@contracts/confidence-rubric";
 
-const LEXICONS_DIR = path.resolve("lexicons");
+const LEXICONS_DIR = path.resolve("data", "source", "lexicons");
 
 /**
  * Confidence assigned to an edge whose source row carries no confidence value.

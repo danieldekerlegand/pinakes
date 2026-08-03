@@ -2,7 +2,7 @@
  * Graph-backed cross-domain correlation (US-007).
  *
  * The first correlation migrated off the bespoke in-memory TSV joins in
- * cross-domain-correlation.ts and onto the shared culture-scrape graph: instead
+ * cross-domain-correlation.ts and onto the shared pinakes-engine graph: instead
  * of loading each domain's entities from `TsvStorage`, this path loads them from
  * Neo4j via a Cypher `MATCH (n:<Label>)` query (graph-store.getNodesByLabel) and
  * projects the node properties into the same {@link DomainEntity} shape. The
@@ -13,7 +13,7 @@
  * It is **feature-flagged off by default** (`CORRELATION_GRAPH_ENABLED`) and
  * degrades cleanly: when the flag is off, a domain has no graph `:LABEL`, or
  * Neo4j is unreachable, the caller's in-memory fallback runs instead. See
- * docs/culturescrape-integration.md.
+ * docs/engine-integration.md.
  */
 import {
   scoreCorrelations,
@@ -28,7 +28,7 @@ import { GraphUnavailableError, type GraphNode } from "./graph-store";
 
 /**
  * The correlation domains that exist as node `:LABEL`s in the shared graph, per
- * the canonical schema (shared/canonical-schema.json). `music` and `haplogroup`
+ * the canonical schema (contracts/canonical-schema.json). `music` and `haplogroup`
  * are pinakes-only domains with no graph node type, so a query touching
  * them is not graph-eligible and always uses the in-memory path.
  */

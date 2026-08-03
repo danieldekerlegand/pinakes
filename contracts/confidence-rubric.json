@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "title": "Confidence rubric — per-provenance-class priors",
+  "description": "The single source of truth for what a confidence number MEANS. Before this rubric, confidence was a blanket per-source constant (Wikidata acquisition = 1.0, lexicon-derived = mid-scale), so a downstream probabilistic engine would have learned from fake uncertainty. Each provenance class here carries a numeric prior in [0,1] and a rationale; acquisition scripts, ontology linkers, and the canonical export stamp confidence by naming their class instead of hard-coding a literal. Priors are deliberately coarse (calibrated tiers, not measured probabilities) and are tuned in ONE place. Values were chosen to preserve every historically-emitted confidence (existing acquired/curated rows are grandfathered — see docs/canonical-schema.md §4.4), so introducing the rubric is data-neutral; future re-calibration happens here.",
+  "order": [
+    "qid-anchored",
+    "named-in-linker",
+    "referenced-wikidata",
+    "exact-reconciled",
+    "curated-verified",
+    "unreferenced-wikidata",
+    "fuzzy-reconciled",
+    "inferred",
+    "scraped-html",
+    "legacy-curated",
+    "stub-needs-curation"
+  ],
+  "classes": {
+    "qid-anchored": {
+      "prior": 1.0,
+      "rationale": "The record's identity IS a resolved external authority (Wikidata QID, Getty ULAN/AAT, Pleiades, PetScan class membership, an infobox keyed to an entity). The anchor is certain, so the fact inherits full confidence. Used by pinakes-engine's Wikidata/Getty/Pleiades/PetScan/Wikitext adapters and as the default when a curated lexicon row is silent but QID-anchored."
+    },
+    "named-in-linker": {
+      "prior": 0.95,
+      "rationale": "Produced by the ontology named-in linker: a high-precision string+type match of a mention to a canonical entity. Just below qid-anchored because the link is inferred, not asserted by the source."
+    },
+    "referenced-wikidata": {
+      "prior": 0.9,
+      "rationale": "A Wikidata acquisition whose statement is backed by an explicit reference or external authority (UNESCO endangerment P1999, Glottolog code P1394) or whose class is filtered by a strong notability floor (sitelinks). Higher than a bare class-membership pull because a citation / notability signal accompanies the value."
+    },
+    "exact-reconciled": {
+      "prior": 0.9,
+      "rationale": "A lexicon row reconciled to a global QID by an exact blocking-key match (ISO code, glottocode, or an unambiguous normalized (name,type,region) key). The identity join is exact. Forward-looking tier for the QID-backfill work (US-003)."
+    },
+    "curated-verified": {
+      "prior": 0.8,
+      "rationale": "A hand-curated record anchored to a manually verified Wikidata QID (confirmed against the entity description via wbsearchentities). Human review, but of one row at a time rather than an authority dump. Used by the offline curate scripts (routes, myth-motifs)."
+    },
+    "unreferenced-wikidata": {
+      "prior": 0.8,
+      "rationale": "A bulk Wikidata class-membership acquisition (WDQS) taken as-is, with no per-statement reference. The QID is real but the specific value is unvouched. Used by the food/drink, cultural-domains, and archaeological-culture acquire scripts."
+    },
+    "fuzzy-reconciled": {
+      "prior": 0.7,
+      "rationale": "A lexicon row reconciled to a QID by a fuzzy label match (near-string, transliteration). The identity join is plausible but not exact. Forward-looking tier for the QID-backfill work (US-003)."
+    },
+    "inferred": {
+      "prior": 0.6,
+      "rationale": "A fact derived by an inference or linker step with no external anchor on the value itself (e.g. a transitive relation, a heuristic classification). Forward-looking tier for correlation/inference outputs."
+    },
+    "scraped-html": {
+      "prior": 0.5,
+      "rationale": "Extracted by brittle HTML scraping (selectors break, tables shift). Deliberately mid-scale so the normalization stage can down-weight it. Used by pinakes-engine's html adapter."
+    },
+    "legacy-curated": {
+      "prior": 0.5,
+      "rationale": "A human-curated lexicon row that predates the rubric and carries no explicit confidence cell — 'present but unverified'. Grandfathered at mid-scale (the export's node/edge default) rather than back-filled, because re-deriving confidence for thousands of historical rows is out of scope for US-001; the corpus-merge job (US-002) is where lexicon rows earn a real tier."
+    },
+    "stub-needs-curation": {
+      "prior": 0.0,
+      "rationale": "An auto-minted placeholder node for an unresolved edge endpoint (US-007). Not a real fact — zero confidence signals a downstream consumer to ignore it until a curation pass replaces it with a typed node."
+    }
+  }
+}

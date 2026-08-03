@@ -55,9 +55,9 @@ DEFAULT_DOC = _REPO_ROOT / "docs" / "ml-baselines.md"
 # runs in CI without torch; the consistency baseline mirrors the split manifest.
 DEFAULT_PREDICTIONS_DIR = _ML_ROOT / "predictions"
 DEFAULT_CONSISTENCY_BASELINE = _ML_ROOT / "manifests" / "consistency-baseline.json"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 DEFAULT_TOP_K = 1
-_EXPORT_DIR = _REPO_ROOT / "export" / "culturescrape"
+_EXPORT_DIR = _REPO_ROOT / "build" / "corpus"
 
 
 def hash_tree(root: Path) -> str:

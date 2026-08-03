@@ -3,7 +3,7 @@ import { parseTsv, auditFile } from "./audit-tsv";
 import path from "path";
 import fs from "fs";
 
-const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "lexicons");
+const LEXICONS_DIR = path.resolve(import.meta.dirname, "..", "data", "source", "lexicons");
 const CITY_LAYOUTS_PATH = path.join(LEXICONS_DIR, "city-layouts.tsv");
 
 /**

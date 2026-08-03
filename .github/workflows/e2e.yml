@@ -2,7 +2,7 @@ name: e2e
 
 # Playwright e2e smoke (US-006). Boots the TSV-backed dev server and drives the
 # core flows (dashboard shell, Leaflet map, UnifiedExplorer, a graph feature) in
-# headless Chromium. The shared graph (Neo4j + culture-scrape sidecar) is
+# headless Chromium. The shared graph (Neo4j + pinakes-engine sidecar) is
 # OPTIONAL — the smoke asserts the graceful-degrade affordance when it is down —
 # so this job needs nothing but the app itself. See docs/SECURITY.md
 # "End-to-end verification".

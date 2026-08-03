@@ -1,0 +1,21 @@
+{
+  "_comment": "Data-driven links between Urheimat hypotheses and the migration routes each one implies (US-002). `byFamily` maps a language-family id to the migration-route ids that carry that family's expansion; `byHypothesis` (optional) overrides the family set for a specific competing hypothesis so switching hypotheses can change which routes light up. Route ids match data/source/lexicons/migration-routes.tsv; family ids match data/source/lexicons/urheimat-hypotheses.tsv `language_family_id`. Adding a link needs no code change.",
+  "byFamily": {
+    "indo-european": ["indo-european-expansion", "indo-aryan-migration"],
+    "afro-asiatic": ["arab-expansion", "arab-berber-iberia"],
+    "austronesian": ["austronesian-expansion", "polynesian-voyaging", "indian-ocean-austronesian"],
+    "niger-congo": ["bantu-expansion", "sahel-pastoral"],
+    "uralic": ["uralic-migration", "hungarian-migration"],
+    "sino-tibetan": ["tibetan-plateau", "han-dynasty-expansion"],
+    "dravidian": ["dravidian-migration"],
+    "tai-kadai": ["tai-migration"],
+    "turkic": ["turkic-migrations"],
+    "na-dene": ["na-dene-migration"],
+    "algonquian": ["land-bridge-americas"],
+    "kartvelian": [],
+    "japonic": ["japanese-archipelago"]
+  },
+  "byHypothesis": {
+    "ie-anatolian": ["indo-european-expansion"]
+  }
+}

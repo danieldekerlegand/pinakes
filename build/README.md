@@ -1,6 +1,6 @@
 # `build/` — regenerable outputs (gitignored)
 
-**Status: empty placeholder.** Part of the target repo skeleton from
+Part of the target repo skeleton from
 [`docs/UNIFIED-PROJECT-PLAN.md` §4](../docs/UNIFIED-PROJECT-PLAN.md).
 
 ## Purpose
@@ -14,9 +14,12 @@ DVC used to version some of these trees; it was stranded and has been removed �
 see [`docs/artifact-versioning.md`](../docs/artifact-versioning.md) for the
 one-command path to re-enable artifact versioning later against a *cloud* remote.
 
-## Moves in later
+## What lands here
 
-| Current | Note |
-|---|---|
-| `export/culturescrape/` | already gitignored today |
-| `core/out/` | already gitignored today |
+| Path | Was | Note |
+|---|---|---|
+| `build/corpus/` | `export/culturescrape/` | the canonical node/edge TSV export — moved with the engine rename (US-1) |
+| `build/out/` | `engine/out/` | full Datalog/Neo4j rebuild output — still written to `engine/out/` today |
+
+`export/` survives only for `export/insimul/` (the Insimul pack), which moves when
+its writer does.

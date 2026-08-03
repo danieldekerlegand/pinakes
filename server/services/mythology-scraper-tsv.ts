@@ -176,7 +176,7 @@ export class MythologyScraperTSV {
   private async loadExistingDeityIds(): Promise<Set<string>> {
     const ids = new Set<string>();
     try {
-      const text = await fs.promises.readFile("lexicons/deities.tsv", "utf-8");
+      const text = await fs.promises.readFile("data/source/lexicons/deities.tsv", "utf-8");
       const lines = text.trim().split("\n");
       for (let i = 1; i < lines.length; i++) {
         const id = lines[i].split("\t")[0];
@@ -498,7 +498,7 @@ Generate 30-40 motifs covering diverse categories. Each motif MUST have cross-cu
       JSON.stringify(d.sources),
     ]);
 
-    await tsvWriter.writeTSV("lexicons/deities.tsv", headers, rows);
+    await tsvWriter.writeTSV("data/source/lexicons/deities.tsv", headers, rows);
   }
 
   private async writeMotifsToTsv(motifs: ScrapedMythMotif[]): Promise<void> {
@@ -522,7 +522,7 @@ Generate 30-40 motifs covering diverse categories. Each motif MUST have cross-cu
       JSON.stringify(m.sources),
     ]);
 
-    await tsvWriter.writeTSV("lexicons/myth-motifs.tsv", headers, rows);
+    await tsvWriter.writeTSV("data/source/lexicons/myth-motifs.tsv", headers, rows);
   }
 
   private slugify(value: string): string {

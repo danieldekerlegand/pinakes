@@ -34,7 +34,7 @@ import {
   DEFAULT_LICENSE_CLASSES,
   FIXTURE_GENERATED_AT,
 } from "./export-entity-grounding";
-import { PREDICATE_MAPPING, externalPredicates } from "@shared/predicate-mapping";
+import { PREDICATE_MAPPING, externalPredicates } from "@contracts/predicate-mapping";
 
 /** Insimul's shipped contract artifacts (`INSIMUL_ROOT` overrides — same as the registry test). */
 const INSIMUL_ROOT =
@@ -45,7 +45,7 @@ const hasInsimulSchema = fs.existsSync(INSIMUL_SCHEMA);
 const INSIMUL_PREDICATE_SCHEMA = path.join(
   INSIMUL_ROOT,
   "packages",
-  "core",
+  "engine",
   "src",
   "prolog",
   "predicate-schema.ts",

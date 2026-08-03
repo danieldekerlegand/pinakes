@@ -35,7 +35,7 @@ import {
 } from "./capability-bus";
 import { generateSigningKeyPair, verifyManifestSignature } from "../services/manifest-signing";
 import { publishCapabilityManifest } from "../services/capability-registry";
-import type { CapabilityManifest } from "@shared/capability-manifest";
+import type { CapabilityManifest } from "@contracts/capability-manifest";
 import type { PublishResult } from "../services/capability-registry";
 
 /** The origin the provider absolutizes its dialable addresses against. */
@@ -50,7 +50,7 @@ const ENV_KEYS = [
   "PINAKES_SIGNING_KEY_ID",
   "PINAKES_PUBLIC_ORIGIN",
   "KCB_REGISTRY_URL",
-  "CULTURESCRAPE_ENABLED",
+  "PINAKES_ENGINE_ENABLED",
 ] as const;
 const savedEnv: Record<string, string | undefined> = {};
 
@@ -99,7 +99,7 @@ describe("dial Pinakes as the real authority (describe → invoke → verify)", 
     process.env.PINAKES_SIGNING_PRIVATE_KEY = SIGNING.privateKeyPem;
     // …and pin the sidecar "down" so the live `query` tool degrades deterministically to a
     // 503-equivalent MCP error (no localhost:8800 dependency in CI).
-    process.env.CULTURESCRAPE_ENABLED = "false";
+    process.env.PINAKES_ENGINE_ENABLED = "false";
     const started = await startProvider();
     baseUrl = started.baseUrl;
     close = started.close;
@@ -149,7 +149,7 @@ describe("dial Pinakes as the real authority (describe → invoke → verify)", 
         name: "query",
         arguments: { goal: "main :- true." },
       });
-      // The live handler forwarded to POST /api/graph/datalog (culturescrape.datalog); with
+      // The live handler forwarded to POST /api/graph/datalog (pinakes_engine.datalog); with
       // the sidecar down it surfaces as an MCP tool error, never a crash or a fixture.
       expect(result.isError).toBe(true);
       const body = decode(result as never) as { error: string };
@@ -237,7 +237,7 @@ describe("registration stays best-effort — the surfaces are served with the re
       delete process.env[key];
     }
     process.env.PINAKES_SIGNING_PRIVATE_KEY = SIGNING.privateKeyPem;
-    process.env.CULTURESCRAPE_ENABLED = "false";
+    process.env.PINAKES_ENGINE_ENABLED = "false";
     // The registry push resolves to "unreachable" — it must NOT gate serving any surface.
     const started = await startProvider({ publish: async () => UNREACHABLE, skipRegistration: false });
     baseUrl = started.baseUrl;

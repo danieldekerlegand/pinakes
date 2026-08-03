@@ -1,0 +1,40 @@
+# Pinakes — uv workspace root (docs/UNIFIED-PROJECT-PLAN.md §4).
+#
+# This file is a *virtual* workspace root: it has no `[project]` table, so it is
+# not itself an installable package. Its only job is to tie the repo's Python
+# packages into one resolution unit with a single root `uv.lock` and a single
+# root `.venv`, so `pinakes` (the FastAPI service) and `pinakes_engine` can never
+# drift apart on a shared dependency.
+#
+# Working with it:
+#
+#   uv sync --all-packages --all-extras   # from anywhere in the repo
+#   uv run --project engine pytest        # engine suite (see the pytest note below)
+#   uv run --package pinakes-engine ...    # run against one member explicitly
+#
+# `uv lock` regenerates the ROOT `uv.lock`; members no longer carry their own.
+#
+# The second line works from a cold checkout (no `.venv`, no prior sync) because a
+# member's test toolchain lives in its `dev` DEPENDENCY GROUP — uv's default group
+# — not in an extra, which uv would not install without a flag. Give every member
+# a `dev` group for the same reason; see engine/pyproject.toml.
+
+[tool.uv.workspace]
+# `services/api` (the `pinakes` service package) joins this list the moment it
+# has a `pyproject.toml` — see tasks/chief/30-api-shell-parity.json US-2. It is
+# an empty placeholder today (services/api/README.md), and uv rejects a member
+# directory with no manifest, so it cannot be listed yet.
+members = ["engine"]
+
+# `ml/` is deliberately its OWN workspace with its OWN uv.lock and .venv
+# (ml/pyproject.toml). Its torch/pykeen/sentence-transformers stack must never
+# enter the web service's environment — that isolation is the whole reason it is
+# a separate workspace (plan §2, §4). Excluding it here is what stops uv from
+# claiming it during workspace discovery when a command runs inside `ml/`.
+exclude = ["ml"]
+
+# NOTE — pytest configuration deliberately lives in the root `pytest.ini`, NOT in
+# a `[tool.pytest.ini_options]` table here. pytest picks the FIRST ini-bearing
+# file it finds in the rootdir and `pytest.ini` outranks `pyproject.toml`, so two
+# sources of truth would silently disagree. If you ever move it in here, delete
+# `pytest.ini` in the same commit.

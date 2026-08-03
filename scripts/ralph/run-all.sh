@@ -87,7 +87,7 @@ STRICT_VERIFY="${STRICT_VERIFY:-0}"
 #                                 richer hydration, incremental updates, scale report.
 #                                 OPERATOR: US-001 needs provisioned disk/bandwidth (see PRD).
 #   - tiered-trust-corpus:        Phase 3b — confidence rubric, auto-admission graph corpus
-#                                 (never writes lexicons/), QID backfill, tier surfacing.
+#                                 (never writes data/source/lexicons/), QID backfill, tier surfacing.
 #   - source-breadth-cldf:        Phase 4a — Glottolog/WALS/PHOIBLE/Lexibank/kaikki ingestion,
 #                                 license-partitioned packaging.
 #   - rules-layer:                Phase 4b — P279 taxonomy, P2302 property constraints, schema
@@ -233,8 +233,8 @@ verify_branch() {
     # shellcheck disable=SC2086
     gated_vitest "changed tests" $tst || return 1
   fi
-  # culture-scrape sidecar (Python, uv-managed .venv — `python` isn't on PATH here): mypy + pytest + ruff.
-  if echo "$files" | grep -q '^core/'; then
+  # pinakes-engine sidecar (Python, uv-managed .venv — `python` isn't on PATH here): mypy + pytest + ruff.
+  if echo "$files" | grep -q '^engine/'; then
     gated_check "mypy" 'cd "$REPO/core" && uv run --no-sync mypy src' _norm_mypy || return 1
     gated_check "pytest" 'cd "$REPO/core" && uv run --no-sync pytest -q' _norm_pytest || return 1
     gated_check "ruff" 'cd "$REPO/core" && uv run --no-sync ruff check .' _norm_ruff || return 1

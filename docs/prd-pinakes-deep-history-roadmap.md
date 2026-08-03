@@ -12,7 +12,7 @@ The ultimate goal: **given any modern culture, trace its origins back through mi
 
 **The entire roadmap below (Phases 7–14) is implemented and merged to `main`**, delivered in two
 waves: the earlier `ralphy` batches (Phases 7–10, archived under `docs/archive/ralphy/`) and the
-Ralph PRD runs (Phases 11–14 + the cross-cutting culture-scrape data-layer convergence, recorded in
+Ralph PRD runs (Phases 11–14 + the cross-cutting pinakes-engine data-layer convergence, recorded in
 `tasks/ralph/completed/`). See the ✅ markers on each phase header and the Completion Status table
 below. The March-2026 "Known Gaps" (3 archaeological sites, 2 civilizations, no migration routes, no
 organic boundaries, no lineage model, missing cultural domains) are all closed.
@@ -35,10 +35,10 @@ organic boundaries, no lineage model, missing cultural domains) are all closed.
   server-side bbox tiling, faceted search, collections & annotations, PWA/offline, i18n/RTL.
 - **Phase 14 — Speculative & long-term:** DNA-to-culture mapper, IPA/music audio, AI
   explain/anomaly/hypothesis generation, AR/VR, living-dataset ingestion.
-- **culture-scrape convergence (cross-cutting, new since March 2026):** the vendored culture-scrape
-  Python engine (`core/`) now shares one canonical node/edge schema with the
+- **pinakes-engine convergence (cross-cutting, new since March 2026):** the vendored pinakes-engine
+  Python engine (`engine/`) now shares one canonical node/edge schema with the
   lexicons; pinakes exports and reconciles into it and queries the shared **Neo4j + Datalog**
-  graph as the correlation system-of-record. See `docs/culturescrape-integration.md`.
+  graph as the correlation system-of-record. See `docs/engine-integration.md`.
 
 ### Not yet hardened (see "What's Next — Phase 15+")
 Everything above is implemented, unit-tested, and merged — but much of it is **not yet
@@ -60,17 +60,17 @@ API and a fully-populated Neo4j corpus remain operational work; and `npm run che
 - Model cultures as nodes in a directed acyclic graph with temporal edges
 - Support relationship types: **descended-from**, **split-from**, **merged-with**, **influenced-by**, **conquered-by**, **absorbed-into**
 - Each edge has a time range, confidence score, and evidence type (archaeological, linguistic, genetic, historical)
-- Schema: `lexicons/cultural-lineages.tsv` — source_id, target_id, relationship_type, time_start, time_end, confidence, evidence_types, sources
+- Schema: `data/source/lexicons/cultural-lineages.tsv` — source_id, target_id, relationship_type, time_start, time_end, confidence, evidence_types, sources
 - Example chain: Proto-Indo-Europeans → Proto-Indo-Iranians → Old Persians → Middle Persians → Modern Farsi speakers
 
 #### 7.2 Archaeological Cultures Database
-- Create `lexicons/archaeological-cultures.tsv` with 200+ entries
+- Create `data/source/lexicons/archaeological-cultures.tsv` with 200+ entries
 - Fields: id, name, time_start, time_end, region, coordinates, boundary_geometry, material_culture_traits, subsistence_pattern, burial_practices, pottery_style, probable_language_family, probable_haplogroups, successor_cultures, predecessor_cultures, confidence, sources
 - Cover key cultures: Yamnaya, Corded Ware, Bell Beaker, Cucuteni-Trypillia, Vinča, Jiahu, Jōmon, Clovis, Lapita, Bantu expansion cultures, Nok, Olmec, Caral-Supe, Indus Valley / Harappan, Longshan, Yangshao, Mehrgarh, Natufian, Göbekli Tepe builders, etc.
 - Include **probable language assignments** with confidence levels (e.g., "Yamnaya: probably Proto-Indo-European, confidence 85%")
 
 #### 7.3 Linguistic Urheimat Mapping
-- Create `lexicons/urheimat-hypotheses.tsv` tracking proposed homelands for language families
+- Create `data/source/lexicons/urheimat-hypotheses.tsv` tracking proposed homelands for language families
 - Fields: id, language_family_id, hypothesis_name, proposed_region, proposed_coordinates, proposed_boundary (GeoJSON), time_range_start, time_range_end, supporting_evidence (JSON: linguistic/archaeological/genetic), competing_hypotheses, scholarly_consensus_level, key_proponents, sources
 - Cover major debates: Indo-European (Steppe vs. Anatolian), Afro-Asiatic (Levant vs. Africa), Austronesian (Taiwan), Bantu (Cameroon-Nigeria border), Uralic, Sino-Tibetan, etc.
 - Visualize competing hypotheses as overlapping translucent regions on the map
@@ -114,7 +114,7 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 - Key transitional sites (e.g., sites showing Neolithic transition, Bronze Age collapse evidence, migration waypoints)
 
 #### 8.3 Migration Routes (Target: 100+)
-- Create `lexicons/migrations.tsv` with GeoJSON LineString routes
+- Create `data/source/lexicons/migrations.tsv` with GeoJSON LineString routes
 - **Prehistoric:** Out of Africa, Austronesian expansion, Bantu expansion, Indo-European migrations, Polynesian voyaging, peopling of the Americas
 - **Historical:** Völkerwanderung, Arab conquests, Mongol conquests, Viking expansion, Turkic migrations, Romani diaspora
 - **Colonial/Modern:** Atlantic slave trade routes, European colonization paths, modern refugee flows
@@ -138,26 +138,26 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 *(delivered by the archived `ralphy-phase12-culture-explorer` batch)*
 
 #### 9.1 Dance Traditions
-- `lexicons/dance-traditions.tsv`: id, name, region, origin_culture, time_origin, dance_type (ceremonial, social, performative, martial), associated_music_traditions, movement_characteristics, costume_requirements, cultural_significance, related_dances, sources
+- `data/source/lexicons/dance-traditions.tsv`: id, name, region, origin_culture, time_origin, dance_type (ceremonial, social, performative, martial), associated_music_traditions, movement_characteristics, costume_requirements, cultural_significance, related_dances, sources
 - Cover: Bharatanatyam, Flamenco, Capoeira, Haka, Samba, Waltz, Ballet, Sufi whirling, Chinese lion dance, West African griot dances, Native American powwow, Irish step dance, Balinese Legong, Tango, etc.
 - Map visualization: dance tradition regions with temporal spread
 - Link to music traditions and ceremonial contexts
 
 #### 9.2 Literature & Oral Traditions
-- `lexicons/literary-traditions.tsv`: id, name, language_id, region, time_origin, tradition_type (epic, poetry, drama, prose, oral_epic, mythology), key_works, writing_system_id, themes, influences, influenced_by, sources
-- `lexicons/literary-works.tsv`: id, title, tradition_id, author, language_id, date_composed, genre, significance, translations_count, sources
+- `data/source/lexicons/literary-traditions.tsv`: id, name, language_id, region, time_origin, tradition_type (epic, poetry, drama, prose, oral_epic, mythology), key_works, writing_system_id, themes, influences, influenced_by, sources
+- `data/source/lexicons/literary-works.tsv`: id, title, tradition_id, author, language_id, date_composed, genre, significance, translations_count, sources
 - Cover foundational texts: Epic of Gilgamesh, Rigveda, Iliad/Odyssey, Mahabharata, Beowulf, Tale of Genji, One Thousand and One Nights, Popol Vuh, Kalevala, Sundiata, Shahnameh, etc.
 - Track literary influence chains (e.g., Greek drama → Roman drama → Renaissance theater → modern Western drama)
 - Map showing where literary traditions emerged and spread
 
 #### 9.3 Architecture & Monumental Building
-- `lexicons/architectural-styles.tsv`: id, name, region, time_start, time_end, characteristics, materials, structural_innovations, associated_civilizations, influences, notable_examples, sources
+- `data/source/lexicons/architectural-styles.tsv`: id, name, region, time_start, time_end, characteristics, materials, structural_innovations, associated_civilizations, influences, notable_examples, sources
 - Cover: Megalithic, Egyptian, Mesopotamian, Classical Greek/Roman, Byzantine, Gothic, Islamic, Hindu temple, Chinese imperial, Mesoamerican pyramid, Khmer, Japanese, Art Deco, Brutalist, etc.
 - Notable structures as map points with construction dates
 - Style diffusion visualization showing how architectural ideas spread along trade/conquest routes
 
 #### 9.4 Writing Systems
-- `lexicons/writing-systems.tsv` (already planned in current PRD, expand scope)
+- `data/source/lexicons/writing-systems.tsv` (already planned in current PRD, expand scope)
 - Track evolution: Proto-Sinaitic → Phoenician → Greek → Latin → modern alphabets
 - Include undeciphered scripts: Linear A, Indus Valley script, Rongorongo, Proto-Elamite
 - Writing system family tree visualization
@@ -165,20 +165,20 @@ Expand from 2 to 150+ civilizations with time-varying boundaries:
 
 #### 9.5 Cuisine Deep Expansion
 - Expand from 21 to 80+ cuisines with sub-regional granularity
-- `lexicons/ingredient-origins.tsv`: track where key ingredients originated and how they spread (Columbian Exchange, Silk Road spices, etc.)
-- `lexicons/cooking-techniques.tsv`: fermentation, smoking, wok cooking, tandoor, etc. with origin cultures and spread patterns
+- `data/source/lexicons/ingredient-origins.tsv`: track where key ingredients originated and how they spread (Columbian Exchange, Silk Road spices, etc.)
+- `data/source/lexicons/cooking-techniques.tsv`: fermentation, smoking, wok cooking, tandoor, etc. with origin cultures and spread patterns
 - Dish origin stories with migration tracking (e.g., dumplings: Central Asian origin → spread to China, Turkey, Italy, etc.)
 - "Food family tree" showing how dishes evolved (e.g., Roman garum → Southeast Asian fish sauce → Worcestershire sauce)
 
 #### 9.6 Kinship & Social Systems
-- `lexicons/kinship-systems.tsv`: Eskimo, Hawaiian, Sudanese, Iroquois, Crow, Omaha systems mapped to cultures
-- `lexicons/social-structures.tsv`: governance types, stratification systems, property systems
+- `data/source/lexicons/kinship-systems.tsv`: Eskimo, Hawaiian, Sudanese, Iroquois, Crow, Omaha systems mapped to cultures
+- `data/source/lexicons/social-structures.tsv`: governance types, stratification systems, property systems
 - Kinship terminology comparison tool (like the word comparison tool but for kinship terms)
 - Governance evolution visualization (chiefdom → kingdom → empire patterns)
 
 #### 9.7 Mythology & Folklore Comparison
-- `lexicons/myth-motifs.tsv`: Track recurring narrative motifs across cultures (flood myths, trickster figures, creation stories, hero journeys, world tree/axis mundi)
-- `lexicons/deities.tsv`: Deity database with domains, associated cultures, syncretism links
+- `data/source/lexicons/myth-motifs.tsv`: Track recurring narrative motifs across cultures (flood myths, trickster figures, creation stories, hero journeys, world tree/axis mundi)
+- `data/source/lexicons/deities.tsv`: Deity database with domains, associated cultures, syncretism links
 - Comparative mythology tool: select a motif (e.g., "flood myth") and see all cultures that share it, mapped geographically
 - Deity family trees within pantheons and syncretism links across pantheons (Zeus ↔ Jupiter ↔ Indra ↔ Thor parallels)
 
@@ -423,7 +423,7 @@ into a **populated, verified, production-grade** atlas.
 
 ### 15. Data population at scale — **THE priority** — ✅ DONE (`data-population`)
 The single highest-leverage gap, now closed. The atlas was *seeded*, not *populated*;
-culture-scrape's Wikidata blueprints (verified against WDQS) have now been **run to expand every
+pinakes-engine's Wikidata blueprints (verified against WDQS) have now been **run to expand every
 thin domain** to its target. This was Guiding Principle #5 ("Data over features") in action. See
 the machine-readable [`docs/coverage-report.json`](coverage-report.json) /
 [`docs/coverage-report.md`](coverage-report.md) (generated by `scripts/coverage-report.ts`,

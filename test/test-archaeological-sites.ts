@@ -6,7 +6,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const TSV_PATH = path.join(import.meta.dirname!, "..", "lexicons", "archaeological-sites.tsv");
+const TSV_PATH = path.join(import.meta.dirname!, "..", "data", "source", "lexicons", "archaeological-sites.tsv");
 
 function parseTsv(content: string): { header: string[]; rows: string[][] } {
   const lines = content.trim().split("\n");

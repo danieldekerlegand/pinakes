@@ -5,13 +5,13 @@ as its differentiable-logic substrate. This module is the **pure, engine-free co
 of that bridge (US-001):
 
 * :func:`load_relations` reads the canonical **edge** export
-  (``export/culturescrape/edges/*.tsv``) into per-relation ``(head, tail)`` fact
+  (``build/corpus/edges/*.tsv``) into per-relation ``(head, tail)`` fact
   lists — the same header-driven parse as :mod:`pinakes_ml.triples`, keyed by
   the lower-cased ``:TYPE`` so the predicate names line up with the Datalog rules.
 * :func:`intern_symbols` assigns every csid a deterministic integer id (sorted
   vocab → index) so the relations can be exported as integer CSVs / tensors.
 * :func:`translate_registry` translates the provenanced Horn-rule registry
-  (``core/.../datalog/rules_registry.tsv``) into Scallop ``.scl``
+  (``engine/.../datalog/rules_registry.tsv``) into Scallop ``.scl``
   rules, **skipping and reporting** any rule it cannot express (see
   :class:`SkippedRule`).
 * :func:`transitive_closure` is the engine-free reference derivation the scallopy
@@ -30,7 +30,7 @@ syntax differs (``:-`` → ``=``, ``,`` → ``and``, ``!p`` → ``not p``, upper
 variables → lower-case). The registry stores each rule's Soufflé clause text
 (the most complete dialect — it carries the negation the Prolog column omits), so
 we translate from :data:`_CLAUSE_COLUMN`. The single translatability constraint —
-**every predicate literal must be binary** — is exactly the one the culture-scrape
+**every predicate literal must be binary** — is exactly the one the pinakes-engine
 materializer already imposes (``rules.ARITY == 2``); the one registry rule that
 breaks it (``csid_uniqueness_violation`` reads the arity-3 ``node/3``) is skipped
 and reported.
@@ -55,7 +55,7 @@ from pinakes_ml.triples import load_triples
 _CLAUSE_COLUMN = "clause_souffle"
 
 #: Only ``active`` rules are emitted (the exporter's governance stance — mirrors
-#: culture-scrape's ``active_curated_rules``). ``retired``/``proposed`` rules keep
+#: pinakes-engine's ``active_curated_rules``). ``retired``/``proposed`` rules keep
 #: their clauses in the registry but do not reach the program.
 _ACTIVE_STATUS = "active"
 
@@ -426,7 +426,7 @@ def transitive_closure(edges: set[tuple[str, str]]) -> set[tuple[str, str]]:
     """Least-fixpoint transitive closure of a binary relation.
 
     The engine-free reference the scallopy smoke run is checked against — same
-    semantics as culture-scrape's naive-fixpoint materializer for the recursive
+    semantics as pinakes-engine's naive-fixpoint materializer for the recursive
     closure rules (``ancestor`` = closure of ``descends_from``,
     ``influenced_transitively`` = closure of ``derived_from ∪ influenced_by``).
     Terminates on cyclic input (the corpus ``descends_from`` carries a data-error

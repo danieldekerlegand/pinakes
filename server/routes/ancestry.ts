@@ -8,7 +8,7 @@
  * haplogroups the mapper knows about.
  *
  * The privacy guarantee lives in the client (parsing + haplogroup inference happen in
- * `client/src/lib/dna/*`); this route only enriches non-identifying haplogroup ids from
+ * `web/src/lib/dna/*`); this route only enriches non-identifying haplogroup ids from
  * the public reference corpus. The mapping itself is the pure
  * `mapHaplogroupsToAncestry` in `services/genetic-linguistic-correlation.ts`; this
  * module owns only the storage load + HTTP wiring, and the data loader is **injectable**

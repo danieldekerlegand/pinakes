@@ -14,7 +14,7 @@ import { test, expect, type Page } from "@playwright/test";
  *      with a `<ProvenanceList>` showing its Wikidata source URL + confidence.
  *   4. EMPTY STATE — a no-match search still behaves (0 items, no crash).
  *
- * All of this is TSV-backed (`lexicons/civilizations.tsv`) and needs no shared
+ * All of this is TSV-backed (`data/source/lexicons/civilizations.tsv`) and needs no shared
  * graph — it runs the same locally and in CI against `npm run dev`.
  *
  * Selectors prefer stable `data-testid`s + accessible names over CSS.

@@ -5,10 +5,10 @@
  * Pinakes keeps TWO on-disk mirrors of koine's authoritative registry, and both used to
  * drift silently when koine bumped `registryVersion`:
  *
- *   1. `shared/predicate-mapping.json` — a byte copy of koine
+ *   1. `contracts/predicate-mapping.json` — a byte copy of koine
  *      `registry/predicate-mapping.json` (the file declares this in its own
  *      `canonicalHome`/`mirrors` blocks), historically kept in sync by a MANUAL `cp`;
- *   2. the vendored relation vocabulary in `shared/kgp.ts` (`KGP_CORE_RELATIONS` +
+ *   2. the vendored relation vocabulary in `contracts/kgp.ts` (`KGP_CORE_RELATIONS` +
  *      `KGP_DOMAIN_RELATIONS`) — a second, hand-transcribed mirror of koine
  *      `registry/relations.tsv` + `registry/relations/{cinematography,media,social}.tsv`.
  *
@@ -22,7 +22,7 @@
  *
  * Run: `npm run regen:registry-mirror` (or `npx tsx scripts/regen-registry-mirror.ts`).
  * Resolves the koine checkout from `KOINE_ROOT`, else `~/Development/koine` — the SAME
- * resolution `shared/predicate-mapping.test.ts` uses.
+ * resolution `contracts/predicate-mapping.test.ts` uses.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -31,7 +31,7 @@ import { join, resolve } from "node:path";
 /** The koine checkout holding the authoritative registry (`KOINE_ROOT` overrides). */
 export const DEFAULT_KOINE_ROOT = join(homedir(), "Development", "koine");
 
-/** Resolve the koine checkout exactly as `shared/predicate-mapping.test.ts` does. */
+/** Resolve the koine checkout exactly as `contracts/predicate-mapping.test.ts` does. */
 export function resolveKoineRoot(): string {
   return process.env.KOINE_ROOT ?? DEFAULT_KOINE_ROOT;
 }
@@ -55,15 +55,15 @@ export const KOINE_SOURCE_RELS: readonly string[] = [
 ];
 
 /** Repo-relative paths of the two mirrors this script regenerates. */
-export const KGP_PATH = resolve(import.meta.dirname, "..", "shared", "kgp.ts");
+export const KGP_PATH = resolve(import.meta.dirname, "..", "contracts", "kgp.ts");
 export const PREDICATE_MAPPING_PATH = resolve(
   import.meta.dirname,
   "..",
-  "shared",
+  "contracts",
   "predicate-mapping.json",
 );
 
-// The marker-delimited generated blocks inside `shared/kgp.ts`. The script replaces the
+// The marker-delimited generated blocks inside `contracts/kgp.ts`. The script replaces the
 // text BETWEEN each begin/end pair; everything else in the file (JSDoc, the const
 // declarations, the accessors) is hand-authored and preserved verbatim.
 export const CORE_BEGIN =
@@ -170,7 +170,7 @@ function applyGeneratedBlock(source: string, begin: string, end: string, body: s
   const stop = source.indexOf(end);
   if (start === -1 || stop === -1) {
     throw new Error(
-      `regen-registry-mirror: generated marker ${start === -1 ? begin.trim() : end.trim()} not found in shared/kgp.ts`,
+      `regen-registry-mirror: generated marker ${start === -1 ? begin.trim() : end.trim()} not found in contracts/kgp.ts`,
     );
   }
   return `${source.slice(0, start)}${begin}\n${body}\n${end}${source.slice(stop + end.length)}`;
@@ -208,7 +208,7 @@ export function readKoineSource(koineRoot: string, relPath: string): string {
 export interface RegenOutput {
   /** The byte-for-byte koine `predicate-mapping.json`. */
   readonly predicateMappingJson: string;
-  /** The regenerated `shared/kgp.ts` source. */
+  /** The regenerated `contracts/kgp.ts` source. */
   readonly kgpSource: string;
 }
 
@@ -349,8 +349,8 @@ export function runRegen(): void {
   const koineRoot = resolveKoineRoot();
   const { jsonChanged, kgpChanged } = writeRegen(koineRoot);
   const changed = [
-    jsonChanged ? "shared/predicate-mapping.json" : null,
-    kgpChanged ? "shared/kgp.ts" : null,
+    jsonChanged ? "contracts/predicate-mapping.json" : null,
+    kgpChanged ? "contracts/kgp.ts" : null,
   ].filter(Boolean);
   console.log(`regen-registry-mirror: re-vendored from ${koineRoot}`);
   console.log(
@@ -371,8 +371,8 @@ export function runCheck(): number {
   const koineRoot = resolveKoineRoot();
   const { jsonChanged, kgpChanged } = diffRegen(koineRoot);
   const stale = [
-    jsonChanged ? "shared/predicate-mapping.json" : null,
-    kgpChanged ? "shared/kgp.ts" : null,
+    jsonChanged ? "contracts/predicate-mapping.json" : null,
+    kgpChanged ? "contracts/kgp.ts" : null,
   ].filter(Boolean);
   if (stale.length === 0) {
     console.log(`check:registry-mirror: both mirrors up to date with ${koineRoot} (git status clean).`);

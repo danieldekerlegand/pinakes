@@ -31,11 +31,11 @@ export interface ContactScrapingResult {
 /**
  * Language Contact Events Scraper
  * Uses Google Gemini AI to generate language contact event data
- * and appends to lexicons/language-contacts.tsv
+ * and appends to data/source/lexicons/language-contacts.tsv
  */
 export class LanguageContactScraper {
   private static isScraping = false;
-  private static readonly TSV_PATH = "lexicons/language-contacts.tsv";
+  private static readonly TSV_PATH = "data/source/lexicons/language-contacts.tsv";
   private static readonly BATCH_SIZE = 50;
 
   private updateJobStatus(

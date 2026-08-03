@@ -8,7 +8,7 @@ or via the console script::
 
     uv run pinakes-export-verbalizations
 
-Reads the git-ignored canonical export (``export/culturescrape/{nodes,edges}``),
+Reads the git-ignored canonical export (``build/corpus/{nodes,edges}``),
 writes the HF-datasets-compatible JSONL into ``ml/data/verbalizations/`` (git-
 tracked, git-ignored), and writes the deterministic manifest to
 ``ml/manifests/verbalization-manifest.json`` (committed to git, snapshot-tested).
@@ -37,7 +37,7 @@ from pinakes_ml.verbalize import (
 _ML_ROOT = Path(__file__).resolve().parents[2]
 _REPO_ROOT = _ML_ROOT.parent
 
-DEFAULT_EXPORT_DIR = _REPO_ROOT / "export" / "culturescrape"
+DEFAULT_EXPORT_DIR = _REPO_ROOT / "build" / "corpus"
 DEFAULT_DATA_DIR = _ML_ROOT / "data" / "verbalizations"
 DEFAULT_MANIFEST = _ML_ROOT / "manifests" / "verbalization-manifest.json"
 
@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             f"export not found: {args.export_dir}\n"
             "The canonical export is a git-ignored build output — regenerate "
-            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
+            "it with `npx tsx scripts/export-for-engine.ts` first."
         )
 
     examples, manifest = build(args.export_dir, seed=args.seed)

@@ -114,7 +114,7 @@ export class ArtTraditionScraper {
 
   private loadExistingTraditionIds(): Set<string> {
     const ids = new Set<string>();
-    const filePath = "lexicons/art-traditions.tsv";
+    const filePath = "data/source/lexicons/art-traditions.tsv";
     if (!fs.existsSync(filePath)) return ids;
 
     try {
@@ -339,7 +339,7 @@ Identify all significant connections. A tradition can have multiple predecessors
   }
 
   private async writeArtTraditionsTSV(traditions: ArtTradition[], clearExisting: boolean): Promise<void> {
-    const filePath = "lexicons/art-traditions.tsv";
+    const filePath = "data/source/lexicons/art-traditions.tsv";
     const headers = [
       "id", "name", "category", "style_period", "origin_date", "end_date",
       "origin_coordinates", "description", "associated_civilizations",
@@ -378,7 +378,7 @@ Identify all significant connections. A tradition can have multiple predecessors
   }
 
   private async writeStyleEvolutionsTSV(evolutions: StyleEvolution[], clearExisting: boolean): Promise<void> {
-    const filePath = "lexicons/art-style-evolutions.tsv";
+    const filePath = "data/source/lexicons/art-style-evolutions.tsv";
     const headers = [
       "id", "from_tradition_id", "to_tradition_id", "transition_type",
       "transition_date", "description", "key_changes", "catalysts",

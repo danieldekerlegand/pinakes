@@ -2,11 +2,11 @@
  * First-party `/api/graph/*` routes (US-004).
  *
  * The browser talks only to the pinakes origin; these routes proxy the
- * shared culture-scrape graph on the server's behalf. Node/neighborhood lookups
+ * shared pinakes-engine graph on the server's behalf. Node/neighborhood lookups
  * go through the Neo4j driver layer (server/services/graph-store.ts); search and
- * metrics go through the FastAPI sidecar client (culturescrape-client.ts).
+ * metrics go through the FastAPI sidecar client (engine-client.ts).
  *
- * Everything degrades gracefully (docs/culturescrape-integration.md): when the
+ * Everything degrades gracefully (docs/engine-integration.md): when the
  * graph or sidecar is unreachable the handlers answer HTTP 503 with a structured
  * `{ available: false }` body and never crash the process. A malformed upstream
  * response (schema failure / non-JSON) maps to 502; a missing node maps to 404.
@@ -14,11 +14,11 @@
 import express, { type Express, type Request, type Response } from "express";
 import * as graphStore from "../services/graph-store";
 import { GraphUnavailableError } from "../services/graph-store";
-import * as culturescrape from "../services/culturescrape-client";
+import * as pinakes_engine from "../services/engine-client";
 import {
-  CultureScrapeError,
-  CultureScrapeUnavailableError,
-} from "../services/culturescrape-client";
+  EngineError,
+  EngineUnavailableError,
+} from "../services/engine-client";
 import { getGraphHealth } from "../services/graph-health";
 import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 
@@ -30,7 +30,7 @@ import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
 function handleError(res: Response, context: string, error: unknown): void {
   if (
     error instanceof GraphUnavailableError ||
-    error instanceof CultureScrapeUnavailableError
+    error instanceof EngineUnavailableError
   ) {
     res.status(503).json({
       available: false,
@@ -39,7 +39,7 @@ function handleError(res: Response, context: string, error: unknown): void {
     });
     return;
   }
-  if (error instanceof CultureScrapeError) {
+  if (error instanceof EngineError) {
     res.status(502).json({
       available: true,
       error: `${context} returned an unusable response`,
@@ -96,7 +96,7 @@ export function registerGraphRoutes(app: Express): void {
     const limitRaw = Number(req.query.limit);
     const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
     try {
-      const result = await culturescrape.search(q, limit);
+      const result = await pinakes_engine.search(q, limit);
       res.json(result);
     } catch (error) {
       handleError(res, "graph search", error);
@@ -176,7 +176,7 @@ export function registerGraphRoutes(app: Express): void {
     const depthRaw = Number(req.query.depth);
     const depth = Number.isFinite(depthRaw) && depthRaw >= 0 ? depthRaw : undefined;
     try {
-      const result = await culturescrape.retrieve(q, { k, depth });
+      const result = await pinakes_engine.retrieve(q, { k, depth });
       res.json(result);
     } catch (error) {
       handleError(res, "graph retrieval", error);
@@ -189,7 +189,7 @@ export function registerGraphRoutes(app: Express): void {
    */
   app.get("/api/graph/metrics", async (_req: Request, res: Response) => {
     try {
-      const metrics = await culturescrape.metrics();
+      const metrics = await pinakes_engine.metrics();
       res.json(metrics);
     } catch (error) {
       handleError(res, "graph metrics", error);
@@ -244,7 +244,7 @@ export function registerGraphRoutes(app: Express): void {
       return;
     }
     try {
-      const result = await culturescrape.datalog({
+      const result = await pinakes_engine.datalog({
         goal: goal || undefined,
         example: example || undefined,
       });
@@ -277,7 +277,7 @@ export function registerGraphRoutes(app: Express): void {
       return;
     }
     try {
-      const result = await culturescrape.cypher(query);
+      const result = await pinakes_engine.cypher(query);
       res.json(result);
     } catch (error) {
       handleError(res, "cypher query", error);

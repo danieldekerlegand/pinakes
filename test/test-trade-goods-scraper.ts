@@ -27,8 +27,8 @@ async function testTradeGoodsData() {
 
   // Test: File exists
   console.log("1. File existence");
-  assert(fs.existsSync("lexicons/trade-goods.tsv"), "trade-goods.tsv exists");
-  assert(fs.existsSync("lexicons/trade-routes.tsv"), "trade-routes.tsv exists");
+  assert(fs.existsSync("data/source/lexicons/trade-goods.tsv"), "trade-goods.tsv exists");
+  assert(fs.existsSync("data/source/lexicons/trade-routes.tsv"), "trade-routes.tsv exists");
 
   // Test: Load all trade goods
   console.log("\n2. Loading trade goods");
@@ -220,8 +220,8 @@ async function testTsvWriterRoundTrip() {
     },
   ];
 
-  const goodsPath = "lexicons/test-trade-goods-tmp.tsv";
-  const routesPath = "lexicons/test-trade-routes-tmp.tsv";
+  const goodsPath = "data/source/lexicons/test-trade-goods-tmp.tsv";
+  const routesPath = "data/source/lexicons/test-trade-routes-tmp.tsv";
 
   try {
     // Write test data

@@ -1,0 +1,28 @@
+# Architecture & built heritage — verified Wikidata classes for the culture corpus.
+#
+# 14 classes, ~718,984 entities. Each class's `instance of`
+# (P31) count was verified live against the Wikidata Query Service (2026-06);
+# the count after each entry is that observed value.
+#
+# Generate:  pinakes_engine generate blueprints/architecture.yml \
+#                --out categories --job jobs/architecture.yml
+defaults:
+  label: Building;CulturalArtifact
+  dimensions: [temporal, geographic]
+  links:
+    - {type: LOCATED_IN, to: place}
+categories:
+  - {id: castles, name: "castle", wikidata_class: Q23413}  # ~24,894
+  - {id: cathedrals, name: "cathedral", wikidata_class: Q2977}  # ~1,790
+  - {id: lighthouses, name: "lighthouse", wikidata_class: Q39715}  # ~9,742
+  - {id: palaces, name: "palace", wikidata_class: Q16560}  # ~16,586
+  - {id: monasteries, name: "monastery", wikidata_class: Q44613}  # ~14,487
+  - {id: mosques, name: "mosque", wikidata_class: Q32815}  # ~239,628
+  - {id: synagogues, name: "synagogue", wikidata_class: Q34627}  # ~5,073
+  - {id: bridges, name: "bridge", wikidata_class: Q12280}  # ~33,755
+  - {id: fortresses, name: "fortress", wikidata_class: Q57831}  # ~3,399
+  - {id: archaeological-sites, name: "archaeological site", wikidata_class: Q839954}  # ~65,966
+  - {id: windmills, name: "windmill", wikidata_class: Q38720}  # ~4,184
+  - {id: church-buildings, name: "church building", wikidata_class: Q16970}  # ~293,604
+  - {id: aqueducts, name: "aqueduct", wikidata_class: Q474}  # ~1,430
+  - {id: megalithic-tombs, name: "dolmen", wikidata_class: Q101659}  # ~4,446

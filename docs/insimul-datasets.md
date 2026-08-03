@@ -17,7 +17,7 @@ score on.
 - Manifest: [`ml/manifests/insimul-datasets-manifest.json`](../ml/manifests/insimul-datasets-manifest.json)
 - Data (DVC-tracked, git-ignored, **never committed**): `ml/data/insimul/`
 - Fixtures: `ml/fixtures/insimul/{world-export,rule-candidates.jsonl,bridge-graph}.json`
-  plus the Bridge-2 world at `core/tests/fixtures/insimul/world-export.json`
+  plus the Bridge-2 world at `engine/tests/fixtures/insimul/world-export.json`
 
 The Insimul bridge spec §5.1 is the spec: *"Rule-authoring SFT — (world context +
 vocabulary-grounded instruction → validated Prolog rule). Scale via rejection
@@ -33,7 +33,7 @@ world is generated content, not observation. Every record and the manifest carry
 `licenseClass: "proprietary"`; the datasets land in the DVC-tracked, git-ignored
 `ml/data/insimul/` tree and must never enter an open-data release
 (the Insimul bridge spec §7 "License leakage"). The corpus-side gate is
-`culturescrape.orchestrate.tiers.assert_no_synthetic_records`; the dataset-side
+`pinakes_engine.orchestrate.tiers.assert_no_synthetic_records`; the dataset-side
 gate is `test_every_record_is_synthetic_tier_and_proprietary`.
 
 ## Dataset 1 — rule-authoring SFT (`rule-sft.jsonl`)
@@ -113,7 +113,7 @@ canonical corpus would hold — the same nodes, names, edges and **csids** the
 Bridge-2 adapter mints (`cs:<type>:insimul:<worldId>:<entityId>`) — so the QA is
 grounded in the graph a converted world actually lands as, without a DVC corpus
 round-trip. That seam is gated: `ml/fixtures/insimul/bridge-graph.json` is
-generated *by the culture-scrape adapter* and the test asserts byte parity.
+generated *by the pinakes-engine adapter* and the test asserts byte parity.
 
 Two grounding kinds:
 

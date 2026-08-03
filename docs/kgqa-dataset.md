@@ -8,7 +8,7 @@
 
 Neurosymbolic roadmap **Phase 5, US-003**. Chain-of-reasoning question/answer
 training data synthesised deterministically from the canonical export
-(`export/culturescrape/{nodes,edges}`). Every QA pair is grounded in an explicit
+(`build/corpus/{nodes,edges}`). Every QA pair is grounded in an explicit
 **graph path** or **rule derivation**, and that path/derivation *is* the reference
 answer's justification (carried on each example as structured `evidence`).
 
@@ -149,7 +149,7 @@ uv run --project ml pinakes-eval-kgqa            # add --no-mlflow to skip loggi
 git add ml/manifests/kgqa-eval-baseline.json docs/ml-baselines.md
 
 # 1. Ensure the canonical corpus is checked out (not a locally-drifted export):
-uv run --project ml dvc checkout --force export/culturescrape.dvc
+uv run --project ml dvc checkout --force build/corpus.dvc
 
 # 2. Rebuild the deterministic core + committed manifest:
 uv run --project ml pinakes-export-kgqa            # add --no-mlflow to skip logging

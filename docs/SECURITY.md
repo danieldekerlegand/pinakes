@@ -17,19 +17,19 @@ Representative client-facing proxy endpoints (the client posts content, the serv
 
 **Config:** `.env.example` declares `GEMINI_API_KEY` (server) and deliberately **does not** declare `VITE_GEMINI_API_KEY`. Never reintroduce a `VITE_`-prefixed Gemini var.
 
-**Regression guard:** `server/security/gemini-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GEMINI*`, (2) no `client/` source references a Gemini key / the `@google/generative-ai` SDK / the raw `generativelanguage.googleapis.com` endpoint, and (3) the `/api/extract/text` proxy serves a keyless client request (LLM mocked) without echoing any key.
+**Regression guard:** `server/security/gemini-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GEMINI*`, (2) no `web/` source references a Gemini key / the `@google/generative-ai` SDK / the raw `generativelanguage.googleapis.com` endpoint, and (3) the `/api/extract/text` proxy serves a keyless client request (LLM mocked) without echoing any key.
 
 ### Google Translate (US-002)
 
 Translation is proxied server-side. The client calls **`POST /api/translate`** with `{ text, to, from? }`; the server (`server/services/translate.ts` + `server/routes/translate.ts`) makes the upstream Google Translation v2 call using the server-side **`GOOGLE_TRANSLATE_API_KEY`**. The key never reaches the browser.
 
-- **Client:** `client/src/lib/scraping.ts`'s `GoogleTranslateAPI` posts to `/api/translate` and no longer reads any `process.env` / `VITE_` key. A `503` (no key configured) or `502` (upstream failure) degrades gracefully to the next translation source.
+- **Client:** `web/src/lib/scraping.ts`'s `GoogleTranslateAPI` posts to `/api/translate` and no longer reads any `process.env` / `VITE_` key. A `503` (no key configured) or `502` (upstream failure) degrades gracefully to the next translation source.
 - **Server contract:** `200 { translation, source, from, to }`; `400` invalid body (missing `text`/`to`); `502` upstream failure; `503` when no server-side key is configured (translation is optional — the app runs without it, mirroring `GEONAMES_USERNAME`).
 - **Injectable boundary:** the network call is behind `TranslateDeps` and the key is injectable, so `server/routes/translate.test.ts` exercises the proxy with a fake upstream and **no real key** (asserts the server-side key is used and never echoed back).
 
 **Config:** `.env.example` declares `GOOGLE_TRANSLATE_API_KEY` (server) and the old `VITE_GOOGLE_TRANSLATE_API_KEY` was **removed**. Never reintroduce a `VITE_`-prefixed translate var.
 
-**Regression guard:** `server/security/translate-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GOOGLE_TRANSLATE*`, and (2) no `client/` source references a translate key or the raw `translation.googleapis.com` endpoint.
+**Regression guard:** `server/security/translate-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GOOGLE_TRANSLATE*`, and (2) no `web/` source references a translate key or the raw `translation.googleapis.com` endpoint.
 
 ## Secret scanning (US-003)
 
@@ -108,7 +108,7 @@ Four core flows in headless Chromium against a real dev build:
 4. **Graph feature** — `/advanced-tools` (the graph research console) opens, and
    the graph-dependent "Run" trigger is present either live or as the
    `GraphFeatureGate` disabled-with-tooltip affordance. **The shared graph (Neo4j
-   + culture-scrape sidecar) is optional**: the smoke asserts graceful degradation
+   + pinakes-engine sidecar) is optional**: the smoke asserts graceful degradation
    rather than requiring a live graph, so it runs the same locally and in CI.
 
 ### Running it
@@ -157,12 +157,12 @@ graph-down path just lets the real server return its unavailable responses.
 ### What it verifies
 
 1. **Graph neighborhood view** — the force-directed graph renders
-   (`data-testid="network-graph-svg"` on [`shared/NetworkGraph.tsx`](../client/src/components/visualizations/shared/NetworkGraph.tsx)),
+   (`data-testid="network-graph-svg"` on [`shared/NetworkGraph.tsx`](../web/src/components/visualizations/shared/NetworkGraph.tsx)),
    with the Depth 1/2/3 controls and the provenance (`SOURCED`) badge.
 2. **Explorer graph adapter** — the "Shared Culture Graph" dataset loads its item
    count when the graph is up, and shows a prompt "Failed to load" when it is down
    (rather than hanging).
-3. **Federated search** — a purple **Graph** source badge + culture-scrape
+3. **Federated search** — a purple **Graph** source badge + pinakes-engine
    provenance appears when up; local-only hits when down.
 4. **`GraphFeatureGate`** — the "Show in graph" button and the research-console
    trigger render **disabled with an offline/unavailable tooltip** when the graph
@@ -182,7 +182,7 @@ Result: **11/11 passing** (7 graph-ui + 4 smoke), screenshots under
 - **Invisible explorer error on cold deep-link:** on a `?panel=explore&ds=…` mount
   the flex content pane resolved to 0 height, hiding the loading/error states.
   Fixed with a `min-h` floor in
-  [`UnifiedExplorer.tsx`](../client/src/components/explorer/UnifiedExplorer.tsx).
+  [`UnifiedExplorer.tsx`](../web/src/components/explorer/UnifiedExplorer.tsx).
 
 ### Running it
 
@@ -222,5 +222,5 @@ Where each hardening story lands against the roadmap's
 **Out of scope / human-only:** rotating the previously-exposed `.env` secrets and
 purging the file from git history are manual operations (the untrack + `.gitignore`
 are already done). Sourcing real fallback assets (audio clips, glTF models) and
-building/loading the full culture-scrape corpus are roadmap §15 (data population)
+building/loading the full pinakes-engine corpus are roadmap §15 (data population)
 and §16 (production-verification) work, not security hardening.

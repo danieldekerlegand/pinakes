@@ -1,0 +1,73 @@
+# Lexibank ABVD (Austronesian Basic Vocabulary Database) wordlist ingested via
+# the generic tabular-dump adapter.
+#
+# Lexibank (docs/sources-linguistic.md) aggregates hundreds of CLDF **wordlist**
+# datasets — concept/form tables keyed by language, many with expert cognate
+# judgements — far beyond the ~108-language words.tsv the project curates. ABVD
+# (Austronesian Basic Vocabulary Database) is a substantial one: ~2,000 doculects
+# over ~1,050 distinct glottocodes, with ~250k expert cognate judgements. Its CLDF
+# release is plain CSV, so it needs only column mappings on the existing
+# tabular-dump adapter (src/pinakes_engine/acquire/tabular.py), not new adapter code.
+#
+# Like WALS/PHOIBLE, a wordlist is *enrichment* (a graph-side corpus, NOT a
+# words.tsv rewrite): each form lands as its own **Wordform** attribute-fact node
+# keyed by the language's **glottocode** (field.language_code) with its ISO 639-3 on
+# `lang`. The reconciler (schema/lexibank_reconcile.py) rolls forms up per language
+# and joins them to the Glottolog-anchored language nodes / data/source/lexicons/languages.tsv by
+# the glottocode -> ISO cascade — the join is a reconciliation, not a descent edge.
+#
+# COGNATE_WITH: a Lexibank cognate set groups forms across doculects that descend
+# from one proto-form. Mapping `field.cognateset: Cognateset_ID` carries the set id
+# onto the node (a linker-visible, non-persisted dimension ref, mapper._DIMENSION_REFS)
+# so the linguistic linker (ontology/linguistic.py) links each set's members into a
+# COGNATE_WITH **representative star** (n-1 edges/set, not the intractable n^2 clique
+# — an ABVD cognate set can span 1,500 forms). Datasets without cognacy (e.g. ASJP)
+# simply omit the column and no cognate edges are emitted.
+#
+# Mappings (denormalised CLDF column -> canonical field, docs/data-model.md):
+#   Name          -> name           ("<Concept>: <Form>" — a per-form label kept
+#                                     within-language-distinct so the normalize
+#                                     fuzzy-merge, which blocks on (:LABEL, lang),
+#                                     does not collapse forms of *different* concepts)
+#   Glottocode    -> language_code   (the language this form is from; reconcile key)
+#   ISO639P3code  -> lang            (ISO 639-3 — the fuzzy-merge BLOCK key so forms
+#                                     of different languages are never compared, AND
+#                                     the reconciler's ISO 639-3 fallback key)
+#   Cognateset_ID -> cognateset      (the cognate class; drives COGNATE_WITH)
+# Every unmapped column (Form, Concept, Concept_ID, Language_Name, ...) rides through
+# into the node's `extra` overflow, so the readable payload is preserved, nothing
+# dropped (the reconciler reads Language_Name from there for a legible report).
+#
+# Provenance: source=lexibank-abvd, license=CC-BY-4.0 — ABVD's own CLDF `dc:license`,
+# resolved via the PER-DATASET registry (schema/lexibank_licenses.py). Lexibank
+# licences vary per dataset, so the licence is keyed on the dataset id, never assumed
+# for the collection. confidence=0.8 (curated-verified rubric class).
+#
+# `source.query` points at the committed fixture slice so the job runs out of the box
+# and in CI (network-free). Repoint it at a real download: denormalise ABVD's
+# cldf/forms.csv (Form, Parameter_ID) against languages.csv (Glottocode / ISO639P3code)
+# and cognates.csv (Form_ID -> Cognateset_ID), synthesising a `Name` = "<Concept>:
+# <Form>" per form. See docs/lexibank-reconciliation.md.
+id: lexibank-abvd
+label: Wordform
+description: Lexibank ABVD Austronesian wordlist — forms keyed by glottocode with cognate sets.
+source:
+  type: dump
+  query: tests/fixtures/lexibank/abvd-wordlist.csv
+  params:
+    adapter: tabular-dump
+    format: csv
+    source: lexibank-abvd
+    license: CC-BY-4.0
+    confidence: "0.8"
+    id_column: ID
+    url_template: https://abvd.eva.mpg.de/utils/save/?type=word&section=austronesian&id={id}
+    field.name: Name
+    field.language_code: Glottocode
+    field.lang: ISO639P3code
+    field.cognateset: Cognateset_ID
+dimensions:
+  - linguistic
+links:
+  - type: COGNATE_WITH
+    to: term

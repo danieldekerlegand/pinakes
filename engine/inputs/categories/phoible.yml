@@ -1,0 +1,56 @@
+# PHOIBLE phoneme inventories ingested via the generic tabular-dump adapter.
+#
+# PHOIBLE 2.0 (docs/sources-linguistic.md) is the authoritative open **phonology**
+# database: ~3k inventories over ~2.1k languages, one segment (phoneme) per value. Its
+# CLDF dataset is plain CSV, so it needs only column mappings on the existing
+# tabular-dump adapter (src/pinakes_engine/acquire/tabular.py), not new adapter code.
+#
+# Like WALS, PHOIBLE is enrichment: each segment is a *fact about a language*
+# ("language X has phoneme /p/"), so a row lands as its own **Phoneme** attribute-fact
+# node keyed by the language's **glottocode** (field.language_code). The reconciler
+# (schema/typology_reconcile.py) joins those facts to the Glottolog-anchored Language
+# nodes / data/source/lexicons/languages.tsv by glottocode (then ISO 639-3).
+#
+# Mappings (denormalised CLDF column -> canonical field, docs/data-model.md):
+#   Segment     -> name           (the phoneme itself, e.g. "m" — the node's name IS
+#                                   its segment; kept SHORT so the entity-resolution
+#                                   fuzzy-merge, which blocks on (label, lang), never
+#                                   collapses two distinct segments of one language:
+#                                   "m" vs "p" are dissimilar, whereas a long shared
+#                                   label like "English phoneme /m/" vs "…/p/" would be)
+#   Glottocode  -> language_code   (the language this segment belongs to; reconcile key)
+#   ISO639P3code-> lang            (ISO 639-3 — the fuzzy-merge BLOCK key so segments of
+#                                   different languages are never compared, AND the
+#                                   reconciler's ISO 639-3 fallback key)
+# Every unmapped column (Language_ID, Parameter_ID, Name, ...) rides through into the
+# node's `extra` overflow, so the readable "English phoneme /m/" label and the rest of
+# the payload are preserved, nothing dropped.
+#
+# Provenance: source=phoible, license=**CC-BY-SA-3.0** (PHOIBLE's release licence — a
+# **share-alike** SPDX id, travels with every record so the packaged corpus can be
+# partitioned by licence class), confidence=0.8 (curated-verified rubric class).
+#
+# `source.query` points at the committed fixture slice so the job runs out of the box
+# and in CI (network-free). Repoint it at a real download: PHOIBLE's cldf/values.csv is
+# already glottocode-keyed (Language_ID references languages.csv.ID = the Glottocode),
+# so denormalisation only lifts Glottocode / ISO639P3code from languages.csv and
+# synthesises a unique `Name` per segment. See docs/wals-phoible-reconciliation.md.
+id: phoible
+label: Phoneme
+description: PHOIBLE phoneme inventories (phonology) as language-keyed attribute facts.
+source:
+  type: dump
+  query: tests/fixtures/phoible/values.csv
+  params:
+    adapter: tabular-dump
+    format: csv
+    source: phoible
+    license: CC-BY-SA-3.0
+    confidence: "0.8"
+    id_column: ID
+    url_template: https://phoible.org/values/{id}
+    field.name: Segment
+    field.language_code: Glottocode
+    field.lang: ISO639P3code
+dimensions:
+  - linguistic

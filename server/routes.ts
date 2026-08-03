@@ -75,7 +75,7 @@ import { registerUrlExtractorRoutes } from "./routes/url-extractor";
 import { registerTextExtractorRoutes } from "./routes/text-extractor";
 import { registerTranslateRoutes } from "./routes/translate";
 import { registerAiReviewRoutes } from "./routes/ai-review";
-import { registerCultureScrapeAcquisitionRoutes } from "./routes/culturescrape-acquisition";
+import { registerEngineAcquisitionRoutes } from "./routes/engine-acquisition";
 import { registerArchaeologyAcquisitionRoutes } from "./routes/archaeological-acquisition";
 import { registerContributionRoutes } from "./routes/contributions";
 import { registerCommunityVerificationRoutes } from "./routes/community-verification";
@@ -133,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // MCP server surface (/mcp, 41-US-1) — the KCB §4 invoke-by-MCP-tool front for
   // the three §6 capabilities. Each tool forwards to the already-built surface it
-  // wraps (resolve → graph-resolver, reconcile → culture-scrape acquisition,
+  // wraps (resolve → graph-resolver, reconcile → pinakes-engine acquisition,
   // query → the sidecar Datalog console); no resolver/reconciler is reimplemented.
   registerMcpRoutes(app);
 
@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerHypothesisRoutes(app);
 
   // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
-  // faceting/aggregates served from the DuckDB index over lexicons/*.tsv.
+  // faceting/aggregates served from the DuckDB index over data/source/lexicons/*.tsv.
   registerAnalyticsRoutes(app);
 
   // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
@@ -247,17 +247,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
   // field-level review workflow for AI-generated drafts (US-004/US-008): a human
   // accepts/edits/rejects each field (low-confidence fields flagged), and an
-  // approved draft is promoted into lexicons/*.tsv with provenance recording both
+  // approved draft is promoted into data/source/lexicons/*.tsv with provenance recording both
   // the AI source and the human reviewer.
   registerAiReviewRoutes(app, { changelog });
 
-  // culture-scrape Wikidata bulk-acquisition routes (/api/scraping/culturescrape,
-  // US-005) — trigger + monitor culture-scrape's Wikidata SPARQL acquisition of
+  // pinakes-engine Wikidata bulk-acquisition routes (/api/scraping/engine,
+  // US-005) — trigger + monitor pinakes-engine's Wikidata SPARQL acquisition of
   // civilizations/sites/figures/trade-goods from the scraper dashboard. Bulk
-  // SPARQL stays culture-scrape's job (no TS SPARQL client); acquired records
+  // SPARQL stays pinakes-engine's job (no TS SPARQL client); acquired records
   // land in the contribution review queue with Wikidata provenance. Progress
   // streams via the existing jobStore (GET /api/scraping-jobs).
-  registerCultureScrapeAcquisitionRoutes(app);
+  registerEngineAcquisitionRoutes(app);
 
   // Open Context / tDAR archaeological acquisition routes
   // (/api/scraping/archaeology, US-007) — complement the Pleiades path with two
@@ -1127,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const fs = await import("node:fs");
       const nodePath = await import("node:path");
-      const lexDir = nodePath.resolve(process.cwd(), "lexicons");
+      const lexDir = nodePath.resolve(process.cwd(), "data", "source", "lexicons");
 
       const countRows = (file: string): number => {
         try {
@@ -3155,7 +3155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Living dataset: discovery ingestion & DOI snapshots (US-011, speculative)
   // ============================================================================
   // The lifecycle layer that keeps the corpus current + citable: a scheduled
-  // discovery-ingestion pass (culture-scrape bulk acquisition → review queue),
+  // discovery-ingestion pass (pinakes-engine bulk acquisition → review queue),
   // an annual versioned-release cadence (reuses the snapshot builder + DOI minter),
   // and a freshness/versioning status feed. GET /api/living-dataset/status,
   // POST /api/living-dataset/{ingest,release}. See routes/living-dataset.ts.
@@ -5251,7 +5251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   const validationService = new DataValidationService(
-    path.join(import.meta.dirname, "..", "lexicons")
+    path.join(import.meta.dirname, "..", "data", "source", "lexicons")
   );
 
   /**
@@ -5355,7 +5355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thresholds = freshDays || agingDays
         ? { freshDays: freshDays ?? 7, agingDays: agingDays ?? 30 }
         : undefined;
-      const lexiconsDir = path.resolve(process.cwd(), "lexicons");
+      const lexiconsDir = path.resolve(process.cwd(), "data", "source", "lexicons");
       const summary = getFreshnessSummary(lexiconsDir, new Date(), thresholds);
       res.json(summary);
     } catch (error) {
@@ -6126,7 +6126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ── Media Assets ──────────────────────────────────────────────────
 
   const mediaAssetService = new MediaAssetService(
-    path.resolve(import.meta.dirname, "..", "lexicons")
+    path.resolve(import.meta.dirname, "..", "data", "source", "lexicons")
   );
 
   /**
@@ -6357,7 +6357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const artifactType = req.query.artifact_type as string | undefined;
       const region = req.query.region as string | undefined;
 
-      const filePath = path.resolve("lexicons/wikimedia-commons-images.tsv");
+      const filePath = path.resolve("data/source/lexicons/wikimedia-commons-images.tsv");
       if (!fs.existsSync(filePath)) {
         return res.json({ images: [], count: 0 });
       }

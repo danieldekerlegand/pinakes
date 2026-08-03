@@ -1,0 +1,25 @@
+# Typology + phonology corpus job — acquire + normalize + stitch the WALS and PHOIBLE
+# feature-fact catalogues into one graph. Run with: uv run pinakes_engine run jobs/typology.yml
+#
+# Ingests WALS structural features (categories/wals.yml, CC-BY-4.0) and PHOIBLE phoneme
+# inventories (categories/phoible.yml, CC-BY-SA-3.0) via the tabular-dump adapter. Both
+# are *enrichment* corpora: each row is an attribute fact about a language keyed by its
+# glottocode, so the language join is a reconciliation (schema/typology_reconcile.py),
+# NOT a graph descent edge. Building both sources in one job puts the two licence classes
+# in one corpus so the per-record `license` column is directly queryable across them.
+#
+# Points at the committed fixture slices by default (network-free); repoint each
+# category's source.query at the full denormalised download to build the whole
+# catalogue. Output lands under out/typology/ (gitignored).
+#
+# min_component_fraction is relaxed: typology/phonology facts are disjoint per-language
+# attribute stars (each fact links only to its synthetic type/category hubs), so the
+# corpus legitimately fragments below the multi-domain seed corpus's 0.9 connectivity —
+# the language join is the reconciliation, not descent connectivity.
+name: typology
+description: WALS typology + PHOIBLE phonology feature facts, language-keyed by glottocode.
+categories:
+  - ../categories/wals.yml
+  - ../categories/phoible.yml
+output_root: ../../out/typology
+min_component_fraction: 0.0

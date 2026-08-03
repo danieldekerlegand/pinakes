@@ -15,7 +15,7 @@
  * is absent it prints a clear "stack down" message and exits 0 rather than
  * throwing a connection stack trace — so running it with nothing up is a no-op,
  * not a hard failure. It exits **1 only when a backend is up but a check fails**
- * (a genuine regression). See docs — `core/docs/convergence-build.md`.
+ * (a genuine regression). See docs — `engine/docs/convergence-build.md`.
  *
  * Run:  npx tsx scripts/smoke-graph.ts   (optionally SMOKE_GRAPH_URL=… PORT=…)
  */
@@ -24,7 +24,7 @@ import type { GraphNode, Neighborhood } from "../server/services/graph-store";
 import type {
   MetricsResponse,
   SearchResponse,
-} from "../server/services/culturescrape-client";
+} from "../server/services/engine-client";
 
 /** Base URL of the running pinakes server (not the sidecar directly). */
 const BASE_URL = (
@@ -151,7 +151,7 @@ async function main(): Promise<number> {
     // eslint-disable-next-line no-console
     console.log(
       `\n⚠  Stack down: the pinakes server is not reachable at ${BASE_URL}.\n` +
-        `   Start it with 'npm run dev:full' (app + culture-scrape sidecar + Neo4j),\n` +
+        `   Start it with 'npm run dev:full' (app + pinakes-engine sidecar + Neo4j),\n` +
         `   then re-run 'npx tsx scripts/smoke-graph.ts'. (${status.error})`,
     );
     return 0; // graceful — absent services are not a hard failure
@@ -170,9 +170,9 @@ async function main(): Promise<number> {
   if (!sidecarUp && !neo4jUp) {
     // eslint-disable-next-line no-console
     console.log(
-      `\n⚠  Stack down: the server is up but neither Neo4j nor the culture-scrape\n` +
+      `\n⚠  Stack down: the server is up but neither Neo4j nor the pinakes-engine\n` +
         `   sidecar is reachable. Bring the graph stack up with 'npm run dev:full'\n` +
-        `   (see docker-compose.yml / .env.example), then re-run this smoke test.`,
+        `   (see infra/docker-compose.yml / .env.example), then re-run this smoke test.`,
     );
     return 0; // graceful — the graph backends are absent, not broken
   }

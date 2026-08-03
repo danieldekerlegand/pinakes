@@ -9,7 +9,7 @@ import * as path from "path";
 // We test the scraper's parsing/conversion logic by importing the class
 // and calling methods with mock data, without hitting the actual API.
 
-const LEXICONS_DIR = path.join(import.meta.dirname!, "..", "lexicons");
+const LEXICONS_DIR = path.join(import.meta.dirname!, "..", "data", "source", "lexicons");
 
 let passed = 0;
 let failed = 0;

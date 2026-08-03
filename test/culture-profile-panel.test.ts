@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TsvStorage } from "../server/tsv-storage";
-import type { CultureProfile } from "../shared/types";
+import type { CultureProfile } from "../contracts/types";
 
 describe("CultureProfile data layer", () => {
   const storage = new TsvStorage();

@@ -4,10 +4,10 @@
  * data-population at scale — language breadth: ranges & endangerment).
  *
  * Unlike US-002…US-005 (which APPEND new node rows), this is an **enrichment** step: it
- * fills gaps on the EXISTING `lexicons/languages.tsv` rows (the corpus's 1,099 languages),
+ * fills gaps on the EXISTING `data/source/lexicons/languages.tsv` rows (the corpus's 1,099 languages),
  * reconciled by ISO 639-3 code. The one networked step of the runbook (acquire →
  * reconcile); the committed output (`scripts/data/language-enrichment.tsv`) is the
- * network-free source of truth the enrichment write-back (`import-from-culturescrape
+ * network-free source of truth the enrichment write-back (`import-from-engine
  * --enrich`) + QA gate operate on, so CI never touches Wikidata.
  *
  * What Wikidata carries for our corpus (probed against the 994 ISO-3 codes on disk):
@@ -19,7 +19,7 @@
  *  - **Range polygon** (geoshape, P3896): **0** of the corpus languages carry one. Wikidata
  *    (and Glottolog) do not publish inline range polygons for these languages, so the range
  *    column is emitted but stays blank for now (honest "where available"). The curated
- *    `lexicons/language-range-polygons.tsv` (133 polygons) remains the polygon source; this
+ *    `data/source/lexicons/language-range-polygons.tsv` (133 polygons) remains the polygon source; this
  *    acquire wires the geoshape path so a future Wikidata backfill lands automatically.
  *
  * Reconciliation / safety rules:
@@ -36,10 +36,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
-const LEXICONS_DIR = path.join(REPO_ROOT, "lexicons");
+const LEXICONS_DIR = path.join(REPO_ROOT, "data", "source", "lexicons");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");
 const OUT_FILE = path.join(DATA_DIR, "language-enrichment.tsv");
 

@@ -1,6 +1,6 @@
 /**
  * Curate hand-authored myth/folklore motif additions into a committed TSV for write-back into
- * `lexicons/myth-motifs.tsv` (US-005, data-population at scale).
+ * `data/source/lexicons/myth-motifs.tsv` (US-005, data-population at scale).
  *
  * Unlike the bulk-acquire domains in acquire-cultural-domains.ts, myth motifs are NOT bulk-acquired
  * from a Wikidata class: the narrative-motif class (Q1697305) is badly polluted with modern tropes
@@ -18,7 +18,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { confidenceCellForClass } from "@shared/confidence-rubric";
+import { confidenceCellForClass } from "@contracts/confidence-rubric";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const DATA_DIR = path.join(REPO_ROOT, "scripts", "data");

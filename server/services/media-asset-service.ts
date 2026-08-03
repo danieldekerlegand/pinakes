@@ -3,7 +3,7 @@ import path from "node:path";
 import type { MediaAsset } from "../tsv-storage";
 import { TsvWriter } from "./tsv-writer";
 
-const MEDIA_ASSETS_FILE = "lexicons/media-assets.tsv";
+const MEDIA_ASSETS_FILE = "data/source/lexicons/media-assets.tsv";
 
 const VALID_ENTITY_TYPES = [
   "art_tradition",

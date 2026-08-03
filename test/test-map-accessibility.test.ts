@@ -7,8 +7,8 @@ import {
   STANDARD_PALETTE,
   getMapPalette,
   MAP_KEYBOARD_SHORTCUTS,
-} from '../client/src/lib/visualization/map-accessibility';
-import type { MapFeatureType, FeatureDescriptionInput } from '../client/src/lib/visualization/map-accessibility';
+} from '../web/src/lib/visualization/map-accessibility';
+import type { MapFeatureType, FeatureDescriptionInput } from '../web/src/lib/visualization/map-accessibility';
 
 // ---------------------------------------------------------------------------
 // formatYearForSR

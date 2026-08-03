@@ -16,7 +16,7 @@ import {
 } from "./capability-bus";
 import type { PublishResult } from "../services/capability-registry";
 import { generateSigningKeyPair, verifyManifestSignature } from "../services/manifest-signing";
-import type { CapabilityManifest } from "@shared/capability-manifest";
+import type { CapabilityManifest } from "@contracts/capability-manifest";
 
 const REGISTERED: PublishResult = {
   registered: true,
@@ -121,7 +121,7 @@ describe("capability-bus routes (registry reachable)", () => {
     expect(byName.reconcile.grant).toBe("invoke:reconcile");
     // The reconciler is the merged Python module; the manifest wraps it, never replaces it.
     expect(byName.reconcile.surfaces[0].implementation).toBe(
-      "core/src/culturescrape/schema/reconcile.py",
+      "engine/src/pinakes_engine/schema/reconcile.py",
     );
     expect(byName.resolve.surfaces[0].path).toBe("/api/graph/resolve");
     expect(byName.query.surfaces.map((s: { path: string }) => s.path)).toContain(

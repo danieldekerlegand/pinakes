@@ -1,0 +1,24 @@
+# kaikki.org Wiktionary etymology corpus job — acquire + normalize + stitch + link
+# the kaikki JSONL extract into a graph-side corpus. Run with:
+#   uv run pinakes_engine run jobs/kaikki.yml
+#
+# Ingests the kaikki.org etymology extract (categories/kaikki.yml, CC-BY-SA-3.0) via
+# the `kaikki` JSONL adapter as language-keyed **Wordform** nodes, and links each
+# entry's etymology relations into BORROWED_FROM / DERIVED_FROM / COGNATE_WITH edges
+# to the source-side terms (the linguistic linker reads the `etymology_relations`
+# overflow cell). Points at the committed fixture slice by default (network-free);
+# repoint the category's source.query at a real gitignored kaikki `*.jsonl` download
+# for the full corpus. Output lands under out/kaikki/ (gitignored).
+#
+# min_component_fraction is relaxed to 0.0: wordform nodes connect only through their
+# etymology edges, so the corpus fragments into per-etymon stars (plus the synthetic
+# type/category hubs) rather than the single connected genealogy the multi-domain seed
+# corpus requires — the language join is the reconciliation
+# (schema/kaikki_reconcile.py), not descent connectivity, exactly as for the
+# WALS/PHOIBLE typology and Lexibank wordlist jobs.
+name: kaikki
+description: kaikki.org Wiktionary etymology — wordforms with borrowed/derived/cognate edges.
+categories:
+  - ../categories/kaikki.yml
+output_root: ../../out/kaikki
+min_component_fraction: 0.0

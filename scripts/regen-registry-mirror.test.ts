@@ -6,8 +6,8 @@ import {
   assertValidPredicateMapping,
   PREDICATE_MAPPING,
   relationsForProject,
-} from "@shared/predicate-mapping";
-import { relationSignature } from "@shared/kgp";
+} from "@contracts/predicate-mapping";
+import { relationSignature } from "@contracts/kgp";
 import {
   parseRelationsTsv,
   renderEntries,

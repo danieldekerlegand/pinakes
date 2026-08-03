@@ -18,7 +18,7 @@ into MLflow. ``--check`` re-builds and exits non-zero on any drift from the
 committed manifest (no writes) — the retraining-free gate.
 
 Defaults build from the two committed fixture worlds (the Bridge-2 world at
-``core/tests/fixtures/insimul/world-export.json`` and the
+``engine/tests/fixtures/insimul/world-export.json`` and the
 VESPACE-shaped world at ``ml/fixtures/insimul/world-export.json``) plus the
 candidate export at ``ml/fixtures/insimul/rule-candidates.jsonl``, so the
 committed manifest needs no corpus build. Point ``--world`` at real converted
@@ -51,7 +51,7 @@ _REPO_ROOT = _ML_ROOT.parent
 #: truths, genealogy) and one VESPACE-shaped world (actions, no rules). Two
 #: worlds is the minimum for a meaningful per-world held-out split.
 DEFAULT_WORLDS = (
-    _REPO_ROOT / "core" / "tests" / "fixtures" / "insimul" / "world-export.json",
+    _REPO_ROOT / "engine" / "tests" / "fixtures" / "insimul" / "world-export.json",
     _ML_ROOT / "fixtures" / "insimul" / "world-export.json",
 )
 DEFAULT_CANDIDATES = (_ML_ROOT / "fixtures" / "insimul" / "rule-candidates.jsonl",)

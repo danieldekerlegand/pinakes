@@ -43,11 +43,11 @@ from pinakes_ml.kgqa_eval import (
 _ML_ROOT = Path(__file__).resolve().parents[2]
 _REPO_ROOT = _ML_ROOT.parent
 
-DEFAULT_EXPORT_DIR = _REPO_ROOT / "export" / "culturescrape"
+DEFAULT_EXPORT_DIR = _REPO_ROOT / "build" / "corpus"
 DEFAULT_EVAL_SPLIT = KGQA_EVAL_PATH
 DEFAULT_BASELINE = _ML_ROOT / "manifests" / "kgqa-eval-baseline.json"
 DEFAULT_DOC = _REPO_ROOT / "docs" / "ml-baselines.md"
-DEFAULT_SCHEMA = _REPO_ROOT / "shared" / "canonical-schema.json"
+DEFAULT_SCHEMA = _REPO_ROOT / "contracts" / "canonical-schema.json"
 
 
 def write_baseline(path: Path, report: dict[str, object]) -> None:
@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             f"export not found: {args.export_dir}\n"
             "The canonical export is a git-ignored build output — regenerate "
-            "it with `npx tsx scripts/export-for-culturescrape.ts` first."
+            "it with `npx tsx scripts/export-for-engine.ts` first."
         )
     if not args.eval_split.exists():
         parser.error(

@@ -10,12 +10,12 @@ const DEFAULT_ENTRIES_PER_DOMAIN = 8;
  *
  * Resolved lazily (not a module-scope const) so a test can point the whole service at a
  * throwaway directory via `PINAKES_LEXICONS_DIR`. This service is the only one that writes
- * into `lexicons/` in place, and its spec used to snapshot + restore the REAL corpus around
+ * into `data/source/lexicons/` in place, and its spec used to snapshot + restore the REAL corpus around
  * every case — one interrupted run was enough to leave generated "Test Law" rows committed
- * in `lexicons/daily-life.tsv`. Never point this at the live corpus from a test.
+ * in `data/source/lexicons/daily-life.tsv`. Never point this at the live corpus from a test.
  */
 function lexiconsDir(): string {
-  return process.env.PINAKES_LEXICONS_DIR || "lexicons";
+  return process.env.PINAKES_LEXICONS_DIR || "data/source/lexicons";
 }
 
 export type EnrichmentDomain = "daily-life" | "social-structures" | "city-layouts";

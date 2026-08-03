@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import fetch from "node-fetch";
-import type { BaseWord } from "@shared/types";
+import type { BaseWord } from "@contracts/types";
 import { tsvWriter, type CentralWordEntry } from "./tsv-writer";
 import { jobStore } from "./job-store";
 
@@ -303,7 +303,7 @@ export class UnderrepresentedVocabScraper {
     }
 
     const totalLanguages = allLanguages.length;
-    const centralWordsPath = "lexicons/words.tsv";
+    const centralWordsPath = "data/source/lexicons/words.tsv";
     const result: UnderrepresentedScrapingResult = {
       familiesProcessed: new Set(allLanguages.map((l) => l.familyId)).size,
       languagesProcessed: 0,

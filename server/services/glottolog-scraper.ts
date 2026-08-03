@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import type { Language, LanguageFamily } from "@shared/types";
+import type { Language, LanguageFamily } from "@contracts/types";
 import { tsvWriter } from "./tsv-writer";
 import { jobStore } from "./job-store";
 import path from "node:path";
@@ -367,8 +367,8 @@ export class GlottologScraper {
       }
 
       // Write results to TSV files
-      const familiesPath = path.resolve("lexicons", "glottolog-families.tsv");
-      const languagesPath = path.resolve("lexicons", "glottolog-languages.tsv");
+      const familiesPath = path.resolve("data", "source", "lexicons", "glottolog-families.tsv");
+      const languagesPath = path.resolve("data", "source", "lexicons", "glottolog-languages.tsv");
 
       await tsvWriter.writeLanguageFamilyTSV(allFamilies, familiesPath);
       await tsvWriter.writeLanguageTSV(allLanguages, languagesPath);

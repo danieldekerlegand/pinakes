@@ -6,11 +6,11 @@
  * *composes* an existing building block rather than reinventing it:
  *
  *   1. **Discovery ingestion** — a scheduled, incremental refresh that picks up
- *      newly-published discoveries via culture-scrape's bulk acquisition
- *      (`culturescrape-acquisition.ts`), landing every acquired record in the
+ *      newly-published discoveries via pinakes-engine's bulk acquisition
+ *      (`engine-acquisition.ts`), landing every acquired record in the
  *      contribution review queue (never a live write). This module decides *which*
  *      acquisition domains are stale enough to re-ingest (mirroring
- *      culture-scrape's own `orchestrate/schedule.py` `select_stale` staleness
+ *      pinakes-engine's own `orchestrate/schedule.py` `select_stale` staleness
  *      idea) against a per-domain "last ingested" timestamp.
  *   2. **Annual release cadence** — periodic, versioned, DOI-bearing snapshots of
  *      the whole corpus (`export-pipeline.ts` `buildDatasetSnapshot`). This module
@@ -32,7 +32,7 @@ import path from "node:path";
 import {
   ACQUISITION_CATALOG,
   type AcquisitionDomain,
-} from "./culturescrape-acquisition";
+} from "./engine-acquisition";
 import { DATASET_LICENSE, DATASET_RELEASE_VERSION } from "./export-pipeline";
 
 const DAY_MS = 24 * 60 * 60 * 1000;

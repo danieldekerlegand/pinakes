@@ -1,32 +1,32 @@
 # Canonical Node/Edge Schema — the shared data contract
 
 **Status:** Ratified (US-001) · **Last updated:** 2026-07-02
-**Machine-readable source of truth:** [`shared/canonical-schema.json`](../shared/canonical-schema.json)
-(typed + validated by [`shared/canonical-schema.ts`](../shared/canonical-schema.ts)).
+**Machine-readable source of truth:** [`contracts/canonical-schema.json`](../contracts/canonical-schema.json)
+(typed + validated by [`contracts/canonical-schema.ts`](../contracts/canonical-schema.ts)).
 
-This is the single canonical model both **culture-scrape** (Python pipeline) and
+This is the single canonical model both **pinakes-engine** (Python pipeline) and
 **pinakes** (TypeScript app) target so that a language, an archaeological culture,
 a cuisine, a deity, and a trade good mean the same thing in one correlatable graph.
 It is the concrete realisation of the contract sketched in
-[`culturescrape-integration.md` §5](./culturescrape-integration.md). The column
-contracts are culture-scrape's typed Neo4j-import headers
-([`core/.../schema/headers.py`](../core/src/culturescrape/schema/headers.py)
-and [`docs/data-model.md`](../core/docs/data-model.md)) so pinakes
+[`engine-integration.md` §5](./engine-integration.md). The column
+contracts are pinakes-engine's typed Neo4j-import headers
+([`engine/.../schema/headers.py`](../engine/src/pinakes_engine/schema/headers.py)
+and [`docs/data-model.md`](../engine/docs/data-model.md)) so pinakes
 exports are import-compatible with `neo4j-admin import` **without transformation**.
 
-> **How to consume it.** Import from `@shared/canonical-schema` in TS. On the Python
-> side, `shared/canonical-schema.json` is the artifact to validate exported node/edge
+> **How to consume it.** Import from `@contracts/canonical-schema` in TS. On the Python
+> side, `contracts/canonical-schema.json` is the artifact to validate exported node/edge
 > TSV headers against. Both repos read the *same file*; do not fork it.
 
 > **Which way the mirror points (pinakes:50).** This file leads and `headers.py`
 > follows — not the other way round. The embedded agora translation engine
 > (`agora:60-translation-engine-rust`) renders *this* contract's columns, so a
-> culture-scrape header that has drifted from it produces different bytes for the
+> pinakes-engine header that has drifted from it produces different bytes for the
 > same graph. `headers.py` transcribes the column tuples (the contract lives outside
 > that package, and a standalone checkout must still know its schema) and
-> `core/tests/test_canonical_schema_parity.py` pins the
+> `engine/tests/test_canonical_schema_parity.py` pins the
 > transcription to this file, and both to the engine, column-for-column. Columns
-> culture-scrape needs but this contract does not declare — the acquisition
+> pinakes-engine needs but this contract does not declare — the acquisition
 > `parent_code` ref, the `extra` overflow — are **extensions**: they are appended
 > after the canonical columns by `schema.mapper.node_schema()`, never inserted into
 > them. Add a column here first.
@@ -35,7 +35,7 @@ exports are import-compatible with `neo4j-admin import` **without transformation
 > recipe that turns lexicons into a live, queryable graph (export → build → publish →
 > Neo4j load → Datalog materialize → app smoke-test, plus refresh cadence and the
 > add-a-domain checklist) is the runbook
-> [`core/docs/convergence-build.md`](../core/docs/convergence-build.md).
+> [`engine/docs/convergence-build.md`](../engine/docs/convergence-build.md).
 
 ---
 
@@ -64,13 +64,13 @@ Each node type has a kebab-case canonical `name` and a PascalCase Neo4j `:LABEL`
 | `migration-route` | `MigrationRoute` | A route of human or cultural migration |
 
 The vocabulary is **extensible** — add an entry to `nodeTypes` in the JSON (and a row
-here). US-002 maps every `lexicons/*.tsv` onto one of these types.
+here). US-002 maps every `data/source/lexicons/*.tsv` onto one of these types.
 
 ## 2. Edge types
 
 Each edge type has a kebab-case canonical `name` and a SCREAMING_SNAKE Neo4j `:TYPE`
-token. Where an edge already exists in culture-scrape's ontology
-([`data-model.md`](../core/docs/data-model.md)) we reuse its exact
+token. Where an edge already exists in pinakes-engine's ontology
+([`data-model.md`](../engine/docs/data-model.md)) we reuse its exact
 token so the two graphs share relationship semantics.
 
 | `name` | `:TYPE` | Description |
@@ -91,18 +91,18 @@ token so the two graphs share relationship semantics.
 | `syncretized-with` | `SYNCRETIZED_WITH` | Religious/deity syncretism between traditions |
 
 > **Naming note.** The PRD lists the concept as `descended-from`; the Neo4j `:TYPE`
-> token is culture-scrape's pre-existing **`DESCENDS_FROM`** so both graphs use one
+> token is pinakes-engine's pre-existing **`DESCENDS_FROM`** so both graphs use one
 > token. The five tokens `SPLIT_FROM`, `MERGED_WITH`, `CONQUERED_BY`, `ABSORBED_INTO`,
 > and `SYNCRETIZED_WITH` are new — contributed by pinakes's lineage domains and
-> should be added to culture-scrape's `ontology/` as the graphs merge.
+> should be added to pinakes-engine's `ontology/` as the graphs merge.
 
 ## 3. Identity scheme
 
-- **Primary key: `csid`** — culture-scrape's global id, unique across all nodes,
+- **Primary key: `csid`** — pinakes-engine's global id, unique across all nodes,
   minted as `cs:<type>:<local>`. When a Wikidata QID is known it *is* the identity
   (`cs:language:Q1860`); otherwise the local part is a readable slug plus a hash of the
   normalized `(name, lang)` pair. Minting is deterministic, so re-runs are idempotent
-  (see [`ids.py`](../core/src/culturescrape/schema/ids.py)).
+  (see [`ids.py`](../engine/src/pinakes_engine/schema/ids.py)).
 - **Anchors** (drive reconciliation; see US-005):
   - all node types → `wikidata_qid`
   - `language` → `language_code` (ISO 639-3 / Glottocode)
@@ -148,7 +148,7 @@ The Prolog term form (KINP §3.3) follows mechanically: `id(ent, pinakes, 'langu
 ## 4. Column contract
 
 The exact header rows are emitted by `nodeHeaderRow()` / `edgeHeaderRow()` in
-`@shared/canonical-schema`. Headers use Neo4j's CSV conventions but **tab-delimited**:
+`@contracts/canonical-schema`. Headers use Neo4j's CSV conventions but **tab-delimited**:
 a structural cell (`csid:ID`, `:LABEL`, `:START_ID`, `:END_ID`, `:TYPE`) or a property
 cell `name` / `name:int` / `name:float`.
 
@@ -204,17 +204,17 @@ though `source_url` may be blank when no URL is derivable (never fabricated; fla
 The export (§7) applies these rules concretely:
 
 - **`source`** = `pinakes` (the acquisition-source id) on 100% of rows — "no fact
-  without a source", matching culture-scrape's `validate.py`.
+  without a source", matching pinakes-engine's `validate.py`.
 - **`source_query`** preserves the *original* pinakes bibliographic `sources` citation
   — it is never dropped. Schema **v1.1** added `source_query` to the **edge** family too, so
   an edge that carried a citation now keeps it (the earlier
   `provenance.edge.citationsWithoutCanonicalColumn` residue is now permanently `0`).
 - **`license`** (schema **v1.1**) is an SPDX identifier resolved from the record's `source`
-  via the per-source registry `SOURCE_LICENSES` (`scripts/export-for-culturescrape.ts`);
+  via the per-source registry `SOURCE_LICENSES` (`scripts/export-for-engine.ts`);
   `pinakes` → `CC-BY-4.0` (the curated-corpus default), `wikidata` → `CC0-1.0`,
   `wiktionary`/`kaikki` → `CC-BY-SA-4.0`, `phoible` → `CC-BY-SA-3.0`, … Landing the column
   **before** the first share-alike source means attribution/share-alike obligations travel
-  per record without a painful retrofit. culture-scrape's `pinakes-export` adapter lifts
+  per record without a painful retrofit. pinakes-engine's `pinakes-export` adapter lifts
   a row-level `license` cell into `Provenance.license` (a row cell wins over the export-level
   `license` param).
 - **`source_url`** is filled only when a real `http(s)` URL is present in the source
@@ -232,10 +232,10 @@ pulls stamped `1.0`, HTML scraping `0.5`, the named-in linker `0.95` — so a pr
 consumer would have learned from **fake uncertainty**. The **confidence rubric** replaces
 those literals with a single, documented table of per-provenance-class priors.
 
-- **Source of truth:** `shared/confidence-rubric.json` (typed accessors in
-  `shared/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
+- **Source of truth:** `contracts/confidence-rubric.json` (typed accessors in
+  `contracts/confidence-rubric.ts`: `confidenceForClass(cls, {scale})` /
   `confidenceCellForClass(...)`; `assertValidConfidenceRubric()` pins it well-formed).
-  culture-scrape mirrors it in `core/src/culturescrape/confidence.py`
+  pinakes-engine mirrors it in `engine/src/pinakes_engine/confidence.py`
   (`confidence_for(cls)`), kept in lockstep by `tests/test_confidence.py`.
 - **How it's stamped:** acquisition, linkers, and the TS export name their provenance
   **class** instead of hard-coding a number. TS acquire/curate scripts call
@@ -268,25 +268,25 @@ human-curated lexicon rows that carry no explicit `confidence` are **grandfather
 `legacy-curated` prior (the export default) rather than back-filled: re-deriving confidence
 for the thousands of pre-rubric rows is out of scope for US-001, and the corpus-merge job
 (US-002) is where lexicon rows earn a real tier. Re-calibrating any tier is now a one-line
-edit to `shared/confidence-rubric.json` (+ the Python mirror), after which the affected
+edit to `contracts/confidence-rubric.json` (+ the Python mirror), after which the affected
 acquire scripts re-emit and the snapshots are regenerated.
 
 ## 5. Validation
 
-- **Compile time:** `shared/canonical-schema.ts` asserts the JSON against the
+- **Compile time:** `contracts/canonical-schema.ts` asserts the JSON against the
   `CanonicalSchema` type, so structural drift breaks `npm run check`.
 - **Runtime:** `assertValidCanonicalSchema()` checks every column's `type`/`role`, the
   structural columns per family, and that each provenance name resolves to a real
-  column. Covered by `shared/canonical-schema.test.ts`.
-- **Python side:** validate exported headers against `shared/canonical-schema.json`
+  column. Covered by `contracts/canonical-schema.test.ts`.
+- **Python side:** validate exported headers against `contracts/canonical-schema.json`
   before ingestion (US-004/US-008).
 
 ## 6. Per-lexicon mapping table (US-002)
 
-The mapping from each of the 57 `lexicons/*.tsv` to a canonical node/edge type is ratified
-here and, machine-readably, in [`shared/lexicon-mapping.json`](../shared/lexicon-mapping.json)
-(typed accessors in `shared/lexicon-mapping.ts`; totality + real-column checks in
-`shared/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
+The mapping from each of the 57 `data/source/lexicons/*.tsv` to a canonical node/edge type is ratified
+here and, machine-readably, in [`contracts/lexicon-mapping.json`](../contracts/lexicon-mapping.json)
+(typed accessors in `contracts/lexicon-mapping.ts`; totality + real-column checks in
+`contracts/lexicon-mapping.test.ts`). The JSON is the source of truth; this table is the
 human-readable summary — the JSON carries the full column-by-column disposition.
 
 ### 6.1 File `kind`s
@@ -397,7 +397,7 @@ into `lat`/`lon` by the export (US-004). Loose `associated_*` id lists are kept 
 
 ### 6.5 Columns with no canonical home
 
-Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
+Handled two ways (see `contracts/lexicon-mapping.json` for the per-column list):
 
 - **Kept as property** — the majority: domain-specific descriptive columns
   (e.g. `pottery_style`, `word_order`, `deity_pantheon`), loose `associated_*` id lists,
@@ -412,25 +412,25 @@ Handled two ways (see `shared/lexicon-mapping.json` for the per-column list):
 
 ## 7. Canonical export (US-004)
 
-`scripts/export-for-culturescrape.ts` emits pinakes's lexicons in this canonical
-shape so culture-scrape's tabular adapter can ingest them without transformation. Run it
-with `npx tsx scripts/export-for-culturescrape.ts` (build/write API: `buildExport()` is
+`scripts/export-for-engine.ts` emits pinakes's lexicons in this canonical
+shape so pinakes-engine's tabular adapter can ingest them without transformation. Run it
+with `npx tsx scripts/export-for-engine.ts` (build/write API: `buildExport()` is
 pure over a lexicons dir; `writeExport()` / `runExport()` touch the filesystem).
 
-**Output location** — `export/culturescrape/` (gitignored; see `.gitignore`):
+**Output location** — `build/corpus/` (gitignored; see `.gitignore`):
 
 ```
-export/culturescrape/
+build/corpus/
   nodes/<node-type>.tsv   # one file per canonical node type, header = nodeHeaderRow()
   edges/<edge-type>.tsv   # one file per canonical edge type, header = edgeHeaderRow()
   manifest.json           # node/edge type counts + diagnostics
 ```
 
 A committed snapshot of the manifest lives at
-[`docs/culturescrape-export-manifest.json`](./culturescrape-export-manifest.json).
+[`docs/engine-export-manifest.json`](./engine-export-manifest.json).
 
 - **Headers** are the exact typed Neo4j-import rows from §4, so the output validates
-  against `shared/canonical-schema.json` (asserted by `scripts/export-for-culturescrape.test.ts`).
+  against `contracts/canonical-schema.json` (asserted by `scripts/export-for-engine.test.ts`).
 - **Identity** — `csid` is minted deterministically as `cs:<node-type>:<pinakes-id>`;
   every row keeps its original id in `pinakes_id` (the US-007 round-trip key). Edge
   `:START_ID`/`:END_ID` are rewritten from pinakes ids to the csids of exported nodes.
@@ -451,9 +451,9 @@ A committed snapshot of the manifest lives at
 
 ## 8. Reconciliation keys & dry-run report (US-005)
 
-culture-scrape merges the *same* real-world thing acquired from different sources onto one
+pinakes-engine merges the *same* real-world thing acquired from different sources onto one
 graph node by a strict **cascade** of identity signals (strongest first — see
-`core/src/culturescrape/schema/reconcile.py` and `.../merge.py`):
+`engine/src/pinakes_engine/schema/reconcile.py` and `.../merge.py`):
 
 | # | Signal | Meaning |
 |---|--------|---------|
@@ -474,7 +474,7 @@ the export would land. Run it with `npx tsx scripts/reconciliation-report.ts`
 **Output** — under the gitignored export tree, plus a committed snapshot:
 
 ```
-export/culturescrape/reconciliation/
+build/corpus/reconciliation/
   keys.tsv      # one row per exported node: csid, pinakes id, iso codes, region, name_key, bucket
   report.json   # full dry-run report (all ambiguity groups)
 docs/reconciliation-report.json   # committed snapshot (ambiguities bounded to 50)
@@ -494,26 +494,26 @@ Each node is classified into exactly one **bucket**:
 
 `report.json` also carries `keyCoverage` (language iso/glottocode coverage, region coverage,
 `duplicateCsidsDropped`) and `byType` roll-ups. See
-[`core/docs/reconcile-pinakes.md`](../core/docs/reconcile-pinakes.md)
-for how to feed the export into culture-scrape's reconcile step.
+[`engine/docs/reconcile-pinakes.md`](../engine/docs/reconcile-pinakes.md)
+for how to feed the export into pinakes-engine's reconcile step.
 
 ## 9. Bidirectional write-back & field ownership (US-007)
 
 The export (§7) is the **outbound** leg (lexicons → canonical → graph).
-[`scripts/import-from-culturescrape.ts`](../scripts/import-from-culturescrape.ts) is the
-**return** leg: it reads the *enriched* canonical node TSVs culture-scrape hands back
+[`scripts/import-from-engine.ts`](../scripts/import-from-engine.ts) is the
+**return** leg: it reads the *enriched* canonical node TSVs pinakes-engine hands back
 (graph-derived values, filled gaps) and writes those facts into the lexicon rows they came
-from, so the two stores do not drift and `lexicons/*.tsv` stays a complete,
-graph-independent source of truth. Run it with `npx tsx scripts/import-from-culturescrape.ts`
+from, so the two stores do not drift and `data/source/lexicons/*.tsv` stays a complete,
+graph-independent source of truth. Run it with `npx tsx scripts/import-from-engine.ts`
 (add `--overwrite` to apply graph values over curated ones; see below).
 `buildWriteBack(canonicalDir, lexiconsDir)` is pure; `writeWriteBack` / `runWriteBack` touch
-the filesystem. The report lands at `export/culturescrape/writeback/report.json` (gitignored).
+the filesystem. The report lands at `build/corpus/writeback/report.json` (gitignored).
 
 ### 9.1 Write-back rules (conservative by default)
 
 - **Join key = `pinakes_id`.** A canonical node is matched back to a lexicon row by the
   original pinakes id (the reverse of the §7 csid minting). Only canonical fields with a
-  real reverse `lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
+  real reverse `data/source/lexicons/*.tsv` column — the inverse of the US-002 `target` map — are
   writeable ("where a canonical→lexicon mapping exists").
 - **Enrichment (gap fill).** A *blank* lexicon cell for which the graph supplies a value is
   filled. This is the only edit applied by default.
@@ -531,7 +531,7 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
   facts into another entity's row.
 - **No-op round-trip.** A pure export→import with no graph enrichment changes nothing: every
   writeable cell already matches, so no lexicon file is rewritten (asserted by
-  `import-from-culturescrape.test.ts`, including a live-corpus round-trip).
+  `import-from-engine.test.ts`, including a live-corpus round-trip).
 - **Edges are graph-owned.** Relationships are never written back into lexicon FK columns — an
   edge has no lexicon row identity to target (see the ownership table below).
 
@@ -542,8 +542,8 @@ the filesystem. The report lands at `export/culturescrape/writeback/report.json`
 | Identity (`csid`, `pinakes_id`, `:LABEL`) | pinakes (ids) / schema (label) | Never written (join key / structural) |
 | Core descriptive fields with a lexicon column (`name`, `aliases`, `language_code`, `script`, `region`, `time_start`/`time_end`, `lat`/`lon`, `description`, …) | **pinakes (human-curated)** | Filled only when blank; disagreements are conflicts, kept unless `--overwrite` |
 | Provenance, confidence & licence (`source`, `source_url`, `source_query`, `retrieved_at`, `confidence`, `license`) | **pinakes** (see `NON_WRITEBACK_FIELDS`) | Never written — pinakes owns citations/confidence/licence; the graph's `source`/`confidence` are for triage only |
-| Relationships / edges | **culture-scrape graph** (correlation system-of-record) | Not written back to lexicons at all |
-| Graph-only enrichments with **no** lexicon column (external ids like `wikidata_qid`/`getty_id`, graph-derived metrics) | culture-scrape graph | No lexicon home → stay in the graph (surfaced, not written) |
+| Relationships / edges | **pinakes-engine graph** (correlation system-of-record) | Not written back to lexicons at all |
+| Graph-only enrichments with **no** lexicon column (external ids like `wikidata_qid`/`getty_id`, graph-derived metrics) | pinakes-engine graph | No lexicon home → stay in the graph (surfaced, not written) |
 
 Rule of thumb: **pinakes owns the CPU-domain / curated columns; the graph owns
 correlation (edges) and external-authority enrichment.** A blank curated cell is the only
@@ -552,7 +552,7 @@ thing the graph may fill; anything already curated wins until a human opts into 
 ### 9.3 Sync cadence & ownership process
 
 - **Outbound** (lexicons → graph): run the export (§7) whenever lexicons change; feed
-  `export/culturescrape/` into culture-scrape's reconcile + load. This is the frequent path.
+  `build/corpus/` into pinakes-engine's reconcile + load. This is the frequent path.
 - **Inbound** (graph → lexicons): run the write-back **on demand**, after a graph enrichment
   pass produces new facts — not on every graph write. Review `report.json` first:
   - `enrichments` are safe gap-fills and can be committed as a data PR.
@@ -571,13 +571,13 @@ check that both projects run to catch schema / id drift **before** it reaches th
 Run it with `npx tsx scripts/convergence-qa.ts`. `buildConvergenceQA(lexiconsDir)` /
 `detectDrift(lexiconsDir)` are pure; `writeConvergenceQA` / `runQA` do the filesystem side. The
 artifact (`convergence-qa.json` + human-readable `convergence-qa.md`) lands in the gitignored
-`export/culturescrape/convergence/` tree.
+`build/corpus/convergence/` tree.
 
 ### 10.1 What it reports
 
 | Signal | Meaning | Source |
 |---|---|---|
-| **id-overlap** | Nodes carrying a global anchor that overlaps culture-scrape's identity space (the reconciliation dry-run's `matched`), plus pinakes-internal id-collision counts (`duplicateCsids`, `ambiguousPinakesIds`, unresolved edge endpoints) | export manifest (§7) + reconciliation report (§8) |
+| **id-overlap** | Nodes carrying a global anchor that overlaps pinakes-engine's identity space (the reconciliation dry-run's `matched`), plus pinakes-internal id-collision counts (`duplicateCsids`, `ambiguousPinakesIds`, unresolved edge endpoints) | export manifest (§7) + reconciliation report (§8) |
 | **unreconciled rate** | `(ambiguous + likely-new) / nodes` — the share of exported nodes that will **not** collapse onto an existing node | reconciliation report (§8) |
 | **provenance completeness** | Per node/edge family, the non-blank rate of each required provenance column | export coverage report (§4.3, US-006) |
 | **schema drift** | The drift findings below | canonical schema (§5) + lexicon mapping (§6) + live headers |
@@ -595,13 +595,13 @@ a schema-drift check.
   a **renamed canonical column** surfaces here as a mapping `target` pointing at a field that no
   longer exists;
 - `canonical-column-missing` — a canonical **provenance** column the export writes disappeared;
-- `unmapped-lexicon-file` — a `lexicons/*.tsv` on disk that is not in `shared/lexicon-mapping.json`;
+- `unmapped-lexicon-file` — a `data/source/lexicons/*.tsv` on disk that is not in `contracts/lexicon-mapping.json`;
 - `missing-source-column` — a mapped column that no longer exists in its live TSV header.
 
 **2. Attribution** (`detectAttributionGaps`) — every **acquisition-imported** row must carry full
 provenance. A row is imported iff its `wikidata_qid`-mapped cell is non-blank; each such row must
 have a non-blank `source`, `source_url`, `retrieved_at`, and `confidence` (the columns are named
-per file by `shared/lexicon-mapping.json`, so this generalises across domains). It reads the
+per file by `contracts/lexicon-mapping.json`, so this generalises across domains). It reads the
 **lexicons** (source of truth) — *not* the canonical export, which force-blanks
 `source_url`/`retrieved_at`. Files with no `wikidata_qid` mapping have no imported rows (all
 curated seed) and are skipped.
@@ -627,11 +627,11 @@ which runs on every push / PR. Two jobs:
 - **`convergence-qa`** (TS) — `npm run check`, `npx tsc -p scripts/tsconfig.json`, the
   convergence-qa unit tests, then `npm run convergence-qa` (the gate; exits `1` on any of the three
   failures above).
-- **`culture-scrape`** (Python) — `uv run ruff check .`, `uv run mypy src`, `uv run pytest` in
-  `core/`.
+- **`pinakes-engine`** (Python) — `uv run ruff check .`, `uv run mypy src`, `uv run pytest` in
+  `engine/`.
 
 So a data change lands green only when **TS + Python** checks pass. Locally the equivalents are
-`npm run convergence-qa` and the `core` toolchain. The CLI prints a one-line
+`npm run convergence-qa` and the `engine` toolchain. The CLI prints a one-line
 summary (`PASS`/`FAIL`, node count, id-overlap %, unreconciled %, and drift / attribution /
 regression issue counts) and, on failure, one line per issue to stderr. The per-domain data
 workflow that this gate guards is [`data-population-runbook.md`](./data-population-runbook.md).

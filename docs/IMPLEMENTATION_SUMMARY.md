@@ -102,7 +102,7 @@ i → a (three steps + backness): 0.8  ✓ Complete vowel shift
 
 - ✅ `server/services/linguistic-distance-calculator.ts` - Integrated weighted mode
 - ✅ `server/routes.ts` - API validation updated
-- ✅ `client/src/components/linguistic-distance-analyzer.tsx` - UI updated
+- ✅ `web/src/components/linguistic-distance-analyzer.tsx` - UI updated
 - ✅ `LINGUISTIC_DISTANCE_FEATURE.md` - Documentation updated
 
 ### Build Status
