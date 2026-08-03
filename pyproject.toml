@@ -20,11 +20,12 @@
 # a `dev` group for the same reason; see engine/pyproject.toml.
 
 [tool.uv.workspace]
-# `services/api` (the `pinakes` service package) joins this list the moment it
-# has a `pyproject.toml` — see tasks/chief/30-api-shell-parity.json US-2. It is
-# an empty placeholder today (services/api/README.md), and uv rejects a member
-# directory with no manifest, so it cannot be listed yet.
-members = ["engine"]
+# `services/api` is the `pinakes` service package (FastAPI); `engine` is
+# `pinakes-engine`. The service depends on the engine as a workspace member
+# (services/api/pyproject.toml `[tool.uv.sources]`), never from PyPI — that is
+# what makes "the engine is imported in-process" (plan §1) a resolution fact and
+# not just an intention.
+members = ["engine", "services/api"]
 
 # `ml/` is deliberately its OWN workspace with its OWN uv.lock and .venv
 # (ml/pyproject.toml). Its torch/pykeen/sentence-transformers stack must never

@@ -1,0 +1,18 @@
+{
+  "id": "get-scraping-jobs",
+  "description": "Background job list the scraper dashboard polls every 2s.",
+  "request": {
+    "method": "GET",
+    "path": "/api/scraping-jobs",
+    "route": "/api/scraping-jobs"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "array",
+      "items": null
+    },
+    "sample": []
+  }
+}

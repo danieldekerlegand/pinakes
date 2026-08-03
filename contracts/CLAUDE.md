@@ -237,6 +237,39 @@ KINP identifier forms, and the §7.1 licence-class policy. Consumed by
   keeps its `Q` — an external authority's local id is not ours to lowercase. Our own locals are
   lowercased + percent-encoded by `csidToKinpCurie` per `docs/canonical-schema.md` §3.1.
 
+## Express → FastAPI parity baseline — `parity/` (30-api-shell-parity US-1)
+
+`parity/openapi.json` is the machine-readable contract the Python service
+(`services/api`) must satisfy as route groups move off `server/`. Full contract:
+[`parity/README.md`](./parity/README.md). What to know before touching it:
+
+- **It is HARVESTED, never hand-written** (`npm run parity:spec` →
+  `scripts/gen-parity-spec.ts`): the generator boots the real Express app, walks
+  `app._router.stack`, and attributes each registration to its **call site** by
+  instrumenting `app.get/post/...` and reading a stack frame. That last bit is why a
+  constant-path registration (`app.get(MCP_ROUTE_PATH, …)`, the `.well-known`
+  documents) is attributed correctly where a static regex misses it — all 306 routes
+  carry a `source`. Gotcha: `app.get(name)` with **no handler** is Express's settings
+  getter, not a route; the instrumentation guards on `handlers.length > 0`.
+- **Fixtures record SHAPES, not values** (`parity/shape.ts`). The corpus grows and ids
+  churn, so a value assertion would be a liability. The comparison is deliberately
+  asymmetric — a ported handler may return *more* than the baseline, never less; a
+  key the baseline carried only sometimes is `optional`; an empty array passes (data,
+  not shape); a baseline `null` matches anything, but a `null` **branch of a union**
+  means nullable and only matches null.
+- **`parity/requests.json` is the one hand-written file**, and every entry must be
+  **side-effect free** — a read, or a write rejected at validation before it reaches a
+  store (the `expectStatus: 400` entries). Never record something that mutates the
+  corpus or the contribution queue. Re-record with `npm run parity:record` **before**
+  `npm run parity:spec` (the spec folds recorded shapes into response schemas).
+- **`harness.ts` is fetch-injected on purpose** — the same fixtures grade Express
+  (`parity/parity.test.ts`) and, as routes land, the FastAPI service. It is the only
+  file in `contracts/` that touches `node:fs` (`loadParityFixtures`); never import it
+  from `web/src`.
+- Both artifacts are deterministic (no wall-clock), so an unchanged API re-generates
+  byte-identically — and `parity.test.ts` fails when `openapi.json` drifts from the
+  live routing table.
+
 ## Gotchas
 
 - **JSON imports widen string literals to `string`**, so `import x from './f.json'

@@ -1,0 +1,234 @@
+{
+  "id": "get-culture-profiles",
+  "description": "Culture profile list backing the culture browser.",
+  "request": {
+    "method": "GET",
+    "path": "/api/culture-profiles",
+    "route": "/api/culture-profiles"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "profiles": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "id": {
+                "kind": "string"
+              },
+              "name": {
+                "kind": "string"
+              },
+              "alternateNames": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "civilizationId": {
+                "kind": "string"
+              },
+              "archaeologicalCultureId": {
+                "kind": "string"
+              },
+              "timePeriodStart": {
+                "kind": "number"
+              },
+              "timePeriodEnd": {
+                "kind": "number"
+              },
+              "region": {
+                "kind": "string"
+              },
+              "summaryDescription": {
+                "kind": "string"
+              },
+              "socialOrganization": {
+                "kind": "string"
+              },
+              "subsistenceType": {
+                "kind": "string"
+              },
+              "urbanismLevel": {
+                "kind": "string"
+              },
+              "populationEstimate": {
+                "kind": "number"
+              },
+              "technologyLevel": {
+                "kind": "string"
+              },
+              "associatedLanguageIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedReligionIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedWritingSystemIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedArtTraditionIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedMusicTraditionIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedCuisineId": {
+                "kind": "string"
+              },
+              "associatedArchitecturalStyleIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "associatedLiteraryTraditionIds": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "notableSettlements": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "imageGalleryTags": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              },
+              "sources": {
+                "kind": "array",
+                "items": {
+                  "kind": "string"
+                }
+              }
+            }
+          }
+        },
+        "count": {
+          "kind": "number"
+        }
+      }
+    },
+    "sample": {
+      "profiles": [
+        {
+          "id": "cp-sumerian",
+          "name": "Sumerian Culture",
+          "alternateNames": [
+            "Kengir"
+          ],
+          "civilizationId": "sumerian",
+          "archaeologicalCultureId": "",
+          "timePeriodStart": -4500,
+          "timePeriodEnd": -2000,
+          "region": "Mesopotamia",
+          "summaryDescription": "The earliest urban civilization in southern Mesopotamia, known for inventing cuneiform writing, developing irrigation agriculture, and building monumental ziggurats. Sumerians created the first known …",
+          "socialOrganization": "state",
+          "subsistenceType": "agricultural",
+          "urbanismLevel": "city-state",
+          "populationEstimate": 500000,
+          "technologyLevel": "bronze",
+          "associatedLanguageIds": [
+            "sumerian"
+          ],
+          "associatedReligionIds": [],
+          "associatedWritingSystemIds": [
+            "ws_026"
+          ],
+          "associatedArtTraditionIds": [],
+          "associatedMusicTraditionIds": [],
+          "associatedCuisineId": "",
+          "associatedArchitecturalStyleIds": [
+            "arch-001"
+          ],
+          "associatedLiteraryTraditionIds": [],
+          "notableSettlements": [
+            "ur",
+            "uruk",
+            "…3 more"
+          ],
+          "imageGalleryTags": [
+            "sumerian",
+            "mesopotamia",
+            "…2 more"
+          ],
+          "sources": [
+            "Kramer 1963",
+            "Crawford 2004"
+          ]
+        },
+        {
+          "id": "cp-akkadian",
+          "name": "Akkadian Culture",
+          "alternateNames": [
+            "Agade"
+          ],
+          "civilizationId": "akkadian-empire",
+          "archaeologicalCultureId": "",
+          "timePeriodStart": -2334,
+          "timePeriodEnd": -2154,
+          "region": "Mesopotamia",
+          "summaryDescription": "The first empire in Mesopotamia under Sargon the Great, unifying Sumerian city-states and spreading Akkadian language and culture across the region. Known for naturalistic bronze sculpture and imperia…",
+          "socialOrganization": "empire",
+          "subsistenceType": "agricultural",
+          "urbanismLevel": "city-state",
+          "populationEstimate": 1000000,
+          "technologyLevel": "bronze",
+          "associatedLanguageIds": [
+            "akkadian"
+          ],
+          "associatedReligionIds": [],
+          "associatedWritingSystemIds": [
+            "ws_026"
+          ],
+          "associatedArtTraditionIds": [],
+          "associatedMusicTraditionIds": [],
+          "associatedCuisineId": "",
+          "associatedArchitecturalStyleIds": [
+            "arch-001"
+          ],
+          "associatedLiteraryTraditionIds": [],
+          "notableSettlements": [
+            "akkad",
+            "sippar"
+          ],
+          "imageGalleryTags": [
+            "akkadian",
+            "sargon",
+            "…1 more"
+          ],
+          "sources": [
+            "Foster 2016",
+            "Westenholz 1999"
+          ]
+        },
+        "…168 more"
+      ],
+      "count": 170
+    }
+  }
+}

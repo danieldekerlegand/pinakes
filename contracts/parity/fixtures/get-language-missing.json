@@ -1,0 +1,25 @@
+{
+  "id": "get-language-missing",
+  "description": "Unknown language id — the 404 contract for a detail read.",
+  "request": {
+    "method": "GET",
+    "path": "/api/languages/__not-a-language__",
+    "route": "/api/languages/:id",
+    "expectStatus": 404
+  },
+  "response": {
+    "status": 404,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "message": {
+          "kind": "string"
+        }
+      }
+    },
+    "sample": {
+      "message": "Language not found"
+    }
+  }
+}

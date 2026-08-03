@@ -1,0 +1,46 @@
+{
+  "id": "post-timeline-event-invalid",
+  "description": "Validation rejection for an authored timeline event — the 400 error contract. Rejected before the contribution store is touched.",
+  "request": {
+    "method": "POST",
+    "path": "/api/timeline/event",
+    "route": "/api/timeline/event",
+    "body": {},
+    "expectStatus": 400
+  },
+  "response": {
+    "status": 400,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "message": {
+          "kind": "string"
+        },
+        "errors": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        },
+        "warnings": {
+          "kind": "array",
+          "items": {
+            "kind": "string"
+          }
+        }
+      }
+    },
+    "sample": {
+      "message": "Invalid timeline entry",
+      "errors": [
+        "kind must be one of: event, period",
+        "title is required",
+        "…3 more"
+      ],
+      "warnings": [
+        "confidence not specified, defaulting to 60"
+      ]
+    }
+  }
+}

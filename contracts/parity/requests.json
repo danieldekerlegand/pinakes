@@ -1,0 +1,150 @@
+{
+  "$comment": "Curated catalog of representative requests recorded as the Express→FastAPI parity baseline (tasks/chief/30-api-shell-parity.json US-1). Replayed by scripts/record-parity-fixtures.ts, which writes contracts/parity/fixtures/<id>.json. RULES: every entry must be side-effect free (a read, or a write rejected at validation before it reaches a store); ids used in paths must be stable corpus rows; `route` is the Express template the entry exercises, and is what links the fixture to its operation in openapi.json. GET /api/openapi.json is deliberately NOT here — server/services/openapi-spec.ts is already asserted byte-equal against docs/openapi.json, and recording the shape of a whole OpenAPI document costs ~70 KB for no extra signal.",
+  "requests": [
+    {
+      "id": "get-languages",
+      "description": "The language corpus list — the client's largest and most-depended-on read.",
+      "method": "GET",
+      "path": "/api/languages",
+      "route": "/api/languages"
+    },
+    {
+      "id": "get-language-by-id",
+      "description": "One language detail record by its stable corpus id.",
+      "method": "GET",
+      "path": "/api/languages/cmn",
+      "route": "/api/languages/:id"
+    },
+    {
+      "id": "get-language-missing",
+      "description": "Unknown language id — the 404 contract for a detail read.",
+      "method": "GET",
+      "path": "/api/languages/__not-a-language__",
+      "route": "/api/languages/:id",
+      "expectStatus": 404
+    },
+    {
+      "id": "get-language-families",
+      "description": "Language family list backing the family tree UI.",
+      "method": "GET",
+      "path": "/api/language-families",
+      "route": "/api/language-families"
+    },
+    {
+      "id": "get-culture-profiles",
+      "description": "Culture profile list backing the culture browser.",
+      "method": "GET",
+      "path": "/api/culture-profiles",
+      "route": "/api/culture-profiles"
+    },
+    {
+      "id": "get-culture-profile-by-id",
+      "description": "One culture profile detail record.",
+      "method": "GET",
+      "path": "/api/culture-profiles/cp-sumerian",
+      "route": "/api/culture-profiles/:id"
+    },
+    {
+      "id": "get-map-civilizations",
+      "description": "Civilization GeoJSON layer — the map's primary source.",
+      "method": "GET",
+      "path": "/api/map/civilizations",
+      "route": "/api/map/civilizations"
+    },
+    {
+      "id": "get-map-civilizations-viewport",
+      "description": "Same layer culled to a viewport bbox — pins the pagination/meta contract.",
+      "method": "GET",
+      "path": "/api/map/civilizations?bbox=-10,30,60,60&zoom=4&limit=5",
+      "route": "/api/map/civilizations"
+    },
+    {
+      "id": "get-summaries-index",
+      "description": "Progressive-loading domain catalog.",
+      "method": "GET",
+      "path": "/api/summaries",
+      "route": "/api/summaries"
+    },
+    {
+      "id": "get-summaries-domain",
+      "description": "Paginated lightweight rows for one domain (progressive loading step 1).",
+      "method": "GET",
+      "path": "/api/summaries/languages?limit=2&offset=0",
+      "route": "/api/summaries/:domain"
+    },
+    {
+      "id": "get-search",
+      "description": "Federated search with facets — degrades to local-only when the graph is down.",
+      "method": "GET",
+      "path": "/api/search?q=sumer&limit=5",
+      "route": "/api/search"
+    },
+    {
+      "id": "get-entities",
+      "description": "Canonical entity-domain registry + URL template.",
+      "method": "GET",
+      "path": "/api/entities",
+      "route": "/api/entities"
+    },
+    {
+      "id": "get-entity",
+      "description": "Canonical per-entity descriptor (permanent URL resolution).",
+      "method": "GET",
+      "path": "/api/entity/language/cmn",
+      "route": "/api/entity/:domain/:id"
+    },
+    {
+      "id": "get-citations-index",
+      "description": "Citation domains + export formats.",
+      "method": "GET",
+      "path": "/api/citations",
+      "route": "/api/citations"
+    },
+    {
+      "id": "get-graph-status",
+      "description": "Shared-graph availability probe — the degraded contract the client tolerates.",
+      "method": "GET",
+      "path": "/api/graph/status",
+      "route": "/api/graph/status"
+    },
+    {
+      "id": "get-contributions-stats",
+      "description": "Contribution queue aggregate backing the review dashboard.",
+      "method": "GET",
+      "path": "/api/contributions/stats",
+      "route": "/api/contributions/stats"
+    },
+    {
+      "id": "get-scraping-jobs",
+      "description": "Background job list the scraper dashboard polls every 2s.",
+      "method": "GET",
+      "path": "/api/scraping-jobs",
+      "route": "/api/scraping-jobs"
+    },
+    {
+      "id": "get-kcb-manifest",
+      "description": "Koine capability-bus manifest served on the API path.",
+      "method": "GET",
+      "path": "/api/kcb/manifest",
+      "route": "/api/kcb/manifest"
+    },
+    {
+      "id": "post-timeline-event-invalid",
+      "description": "Validation rejection for an authored timeline event — the 400 error contract. Rejected before the contribution store is touched.",
+      "method": "POST",
+      "path": "/api/timeline/event",
+      "route": "/api/timeline/event",
+      "body": {},
+      "expectStatus": 400
+    },
+    {
+      "id": "post-graph-explain-invalid",
+      "description": "Validation rejection for the connection-narrative endpoint — the 400 error contract.",
+      "method": "POST",
+      "path": "/api/graph/explain",
+      "route": "/api/graph/explain",
+      "body": {},
+      "expectStatus": 400
+    }
+  ]
+}

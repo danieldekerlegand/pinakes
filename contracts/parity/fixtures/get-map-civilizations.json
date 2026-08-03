@@ -1,0 +1,257 @@
+{
+  "id": "get-map-civilizations",
+  "description": "Civilization GeoJSON layer — the map's primary source.",
+  "request": {
+    "method": "GET",
+    "path": "/api/map/civilizations",
+    "route": "/api/map/civilizations"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "type": {
+          "kind": "string"
+        },
+        "features": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "type": {
+                "kind": "string"
+              },
+              "id": {
+                "kind": "string"
+              },
+              "geometry": {
+                "kind": "object",
+                "properties": {
+                  "type": {
+                    "kind": "string"
+                  },
+                  "coordinates": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "array",
+                      "items": {
+                        "kind": "array",
+                        "items": {
+                          "kind": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "properties": {
+                "kind": "object",
+                "properties": {
+                  "civilizationId": {
+                    "kind": "string"
+                  },
+                  "name": {
+                    "kind": "string"
+                  },
+                  "nativeName": {
+                    "kind": "string"
+                  },
+                  "timePeriod": {
+                    "kind": "object",
+                    "properties": {
+                      "start": {
+                        "kind": "number"
+                      },
+                      "end": {
+                        "kind": "union",
+                        "of": [
+                          {
+                            "kind": "number"
+                          },
+                          {
+                            "kind": "null"
+                          }
+                        ]
+                      },
+                      "label": {
+                        "kind": "string"
+                      }
+                    }
+                  },
+                  "associatedLanguageIds": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "writingSystems": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "politicalStructure": {
+                    "kind": "string"
+                  },
+                  "capital": {
+                    "kind": "string"
+                  },
+                  "population": {
+                    "kind": "number"
+                  },
+                  "sources": {
+                    "kind": "array",
+                    "items": {
+                      "kind": "string"
+                    }
+                  },
+                  "description": {
+                    "kind": "string"
+                  },
+                  "wikidataQid": {
+                    "kind": "string"
+                  },
+                  "sourceUrl": {
+                    "kind": "string"
+                  },
+                  "retrievedAt": {
+                    "kind": "string"
+                  },
+                  "confidence": {
+                    "kind": "number"
+                  }
+                },
+                "optional": [
+                  "capital",
+                  "confidence",
+                  "description",
+                  "nativeName",
+                  "politicalStructure",
+                  "population",
+                  "retrievedAt",
+                  "sourceUrl",
+                  "wikidataQid"
+                ]
+              }
+            }
+          }
+        },
+        "metadata": {
+          "kind": "object",
+          "properties": {
+            "bbox": {
+              "kind": "null"
+            },
+            "total": {
+              "kind": "number"
+            },
+            "returned": {
+              "kind": "number"
+            },
+            "offset": {
+              "kind": "number"
+            },
+            "limit": {
+              "kind": "null"
+            },
+            "hasMore": {
+              "kind": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "sample": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "id": "roman-empire",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                "…",
+                "…",
+                "…8 more"
+              ]
+            ]
+          },
+          "properties": {
+            "civilizationId": "roman-empire",
+            "name": "Roman Empire",
+            "nativeName": "Imperium Romanum",
+            "timePeriod": {
+              "start": -27,
+              "end": 476,
+              "label": "Roman Empire (27 BCE - 476 CE)"
+            },
+            "associatedLanguageIds": [
+              "latin"
+            ],
+            "writingSystems": [
+              "Latin alphabet"
+            ],
+            "politicalStructure": "Empire",
+            "capital": "Rome",
+            "population": 60000000,
+            "sources": [
+              "Historical records",
+              "Archaeological evidence"
+            ],
+            "description": "Ancient Roman civilization centered on the Mediterranean"
+          }
+        },
+        {
+          "type": "Feature",
+          "id": "ancient-greece",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                "…",
+                "…",
+                "…11 more"
+              ]
+            ]
+          },
+          "properties": {
+            "civilizationId": "ancient-greece",
+            "name": "Ancient Greece",
+            "nativeName": "Ἑλλάς",
+            "timePeriod": {
+              "start": -800,
+              "end": -146,
+              "label": "Classical Greece (800-146 BCE)"
+            },
+            "associatedLanguageIds": [
+              "ancient-greek"
+            ],
+            "writingSystems": [
+              "Greek alphabet"
+            ],
+            "politicalStructure": "City-states",
+            "capital": "Athens",
+            "population": 8000000,
+            "sources": [
+              "Ancient texts",
+              "Archaeological sites"
+            ],
+            "description": "Collection of Greek city-states in classical antiquity"
+          }
+        },
+        "…168 more"
+      ],
+      "metadata": {
+        "bbox": null,
+        "total": 170,
+        "returned": 170,
+        "offset": 0,
+        "limit": null,
+        "hasMore": false
+      }
+    }
+  }
+}

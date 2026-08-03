@@ -1,0 +1,140 @@
+{
+  "id": "get-search",
+  "description": "Federated search with facets — degrades to local-only when the graph is down.",
+  "request": {
+    "method": "GET",
+    "path": "/api/search?q=sumer&limit=5",
+    "route": "/api/search"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "results": {
+          "kind": "array",
+          "items": {
+            "kind": "object",
+            "properties": {
+              "entityType": {
+                "kind": "string"
+              },
+              "id": {
+                "kind": "string"
+              },
+              "displayName": {
+                "kind": "string"
+              },
+              "description": {
+                "kind": "string"
+              },
+              "linkPath": {
+                "kind": "string"
+              },
+              "relevance": {
+                "kind": "number"
+              },
+              "source": {
+                "kind": "string"
+              },
+              "tier": {
+                "kind": "string"
+              }
+            }
+          }
+        },
+        "query": {
+          "kind": "string"
+        },
+        "totalCount": {
+          "kind": "number"
+        },
+        "facets": {
+          "kind": "object",
+          "properties": {
+            "entityType": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "properties": {
+                  "value": {
+                    "kind": "string"
+                  },
+                  "count": {
+                    "kind": "number"
+                  }
+                }
+              }
+            },
+            "source": {
+              "kind": "array",
+              "items": {
+                "kind": "object",
+                "properties": {
+                  "value": {
+                    "kind": "string"
+                  },
+                  "count": {
+                    "kind": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "filters": {
+          "kind": "object",
+          "properties": {}
+        }
+      }
+    },
+    "sample": {
+      "results": [
+        {
+          "entityType": "language",
+          "id": "sux",
+          "displayName": "Sumerian",
+          "description": "𒅴𒂠 — sux",
+          "linkPath": "/languages/sux",
+          "relevance": 1,
+          "source": "local",
+          "tier": "curated"
+        },
+        {
+          "entityType": "language-family",
+          "id": "sumerian-family",
+          "displayName": "Sumerian",
+          "description": "Language family",
+          "linkPath": "/language-families/sumerian-family",
+          "relevance": 1,
+          "source": "local",
+          "tier": "curated"
+        },
+        "…3 more"
+      ],
+      "query": "sumer",
+      "totalCount": 5,
+      "facets": {
+        "entityType": [
+          {
+            "value": "language-family",
+            "count": 2
+          },
+          {
+            "value": "civilization",
+            "count": 1
+          },
+          "…2 more"
+        ],
+        "source": [
+          {
+            "value": "local",
+            "count": 5
+          }
+        ]
+      },
+      "filters": {}
+    }
+  }
+}

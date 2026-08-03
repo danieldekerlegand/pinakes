@@ -1,43 +1,85 @@
 # `services/api/` — the unified Python backend (FastAPI)
 
-**Status: empty placeholder.** Part of the target repo skeleton from
-[`docs/UNIFIED-PROJECT-PLAN.md` §4](../../docs/UNIFIED-PROJECT-PLAN.md). Nothing
-has moved here yet; the live backend is still `server/` (TS/Express).
-
-## Purpose
-
-The web layer of the flattened service: routing, auth, request/response shaping,
-and serving the built client. It is the **rewrite** target for today's `server/`
-— Node/Express disappears when the port lands.
-
-Package name: **`pinakes`** (the service/web package), distinct from
-`pinakes_engine` in [`engine/`](../../engine/) and `pinakes_ml` in
+The **`pinakes`** package: routing, auth, request/response shaping, and serving
+the built React client. The rewrite target for today's `server/` (TS/Express)
+([`docs/UNIFIED-PROJECT-PLAN.md` §4/§5](../../docs/UNIFIED-PROJECT-PLAN.md)).
+Distinct from `pinakes_engine` in [`engine/`](../../engine/) and `pinakes_ml` in
 [`ml/`](../../ml/).
 
-## Planned shape
+**Status: the shell is up; no route group is ported yet.** All 306 baseline
+routes answer `501`. Node/Express is still what serves them for real.
 
 ```
 services/api/
-├── src/pinakes/     # routing · auth · request/response · serves the client
+├── src/pinakes/
+│   ├── app.py              # create_app() — the four wiring steps, in order
+│   ├── routers/            # drop a module in here and it is mounted
+│   ├── parity.py           # the Express baseline, read as data
+│   ├── not_implemented.py  # the 501 catalog (= baseline minus routers/)
+│   ├── client.py           # the built SPA at /, with fallback
+│   ├── paths.py            # repo root · dist/public · the parity spec
+│   └── __main__.py         # `python -m pinakes`
 ├── tests/
 └── pyproject.toml
 ```
 
-## Joining the uv workspace
+## Running it
 
-The repo root is a virtual uv workspace root since pinakes:20 US-4
-([`/pyproject.toml`](../../pyproject.toml)); `engine/` is its only member today.
-This directory is **not** listed yet because uv rejects a member with no
-manifest. Adding `pyproject.toml` here (tasks/chief/30-api-shell-parity.json
-US-2) is a two-line change:
+```bash
+uv sync --all-packages                        # once, from the repo root
+npx vite build --config web/vite.config.ts    # the client, into dist/public
+uv run --all-packages python -m pinakes       # http://localhost:3050
+```
 
-1. add `"services/api"` to `[tool.uv.workspace] members` in the root manifest;
-2. `uv lock` — one root `/uv.lock` then covers `pinakes` + `pinakes-engine`, and
-   `uv run --project services/api pytest` (tasklist 30's verify command) works.
+`$PORT` (default 3050) matches `server/index.ts`, so the client's same-origin
+`/api/...` fetches work unchanged. `PINAKES_RELOAD=1` turns on auto-reload.
+Without a client build the API still serves; `/` explains what to run.
 
-Depend on the engine as a workspace member, not from PyPI:
-`dependencies = ["pinakes-engine"]` plus
-`[tool.uv.sources] pinakes-engine = { workspace = true }`.
+## Testing it
+
+```bash
+uv run --all-packages pytest services/api/tests -q
+uv run --all-packages ruff check services/api
+uv run --directory services/api --all-packages mypy
+```
+
+`--all-packages` matters: this member and `engine/` share one root `.venv`, and
+`--project services/api` alone does not install the engine's test toolchain — so
+the repo-root `pytest` default (both suites, see `/pytest.ini`) would die during
+collection on a cold checkout.
+
+## Adding a route group (what every port tasklist does)
+
+1. Pick a port unit from `/api/_parity/coverage` or from `tags` in
+   [`contracts/parity/openapi.json`](../../contracts/parity/openapi.json).
+2. Add **one file**: `src/pinakes/routers/<unit>.py`, exposing
+   `router = APIRouter()` and registering the baseline's paths **verbatim**.
+3. Grade it with that unit's recorded fixtures
+   ([`contracts/parity/`](../../contracts/parity/README.md)).
+
+There is nothing else to edit — no router list, no `include_router` call, no
+status field. The 501 stub for a route disappears exactly when a router claims
+it, because the catalog is computed as *baseline minus routing table*. See
+[`src/pinakes/routers/__init__.py`](src/pinakes/routers/__init__.py) for the
+full drop-in contract and [`CLAUDE.md`](CLAUDE.md) for the traps.
+
+## Endpoints the shell adds
+
+| route | what |
+| --- | --- |
+| `GET /api/health` | liveness, discovered routers, whether the client is built |
+| `GET /api/_parity/coverage` | every baseline route, split ported/unported, per port unit |
+
+Neither is a parity route — the Express backend has no `/api/health`, and no
+baseline path contains `_`.
+
+## The uv workspace
+
+A member of the root virtual workspace ([`/pyproject.toml`](../../pyproject.toml))
+alongside `engine/`: one root `uv.lock`, one root `.venv`. It depends on
+`pinakes-engine` **as a workspace member** (`[tool.uv.sources]`), which is what
+makes "the engine is imported in-process" a resolution fact rather than an
+intention.
 
 ## Moves in later
 

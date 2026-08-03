@@ -1,0 +1,36 @@
+{
+  "id": "get-graph-status",
+  "description": "Shared-graph availability probe — the degraded contract the client tolerates.",
+  "request": {
+    "method": "GET",
+    "path": "/api/graph/status",
+    "route": "/api/graph/status"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "available": {
+          "kind": "boolean"
+        },
+        "neo4j": {
+          "kind": "boolean"
+        },
+        "sidecar": {
+          "kind": "boolean"
+        },
+        "checkedAt": {
+          "kind": "number"
+        }
+      }
+    },
+    "sample": {
+      "available": false,
+      "neo4j": false,
+      "sidecar": false,
+      "checkedAt": 1785720010757
+    }
+  }
+}

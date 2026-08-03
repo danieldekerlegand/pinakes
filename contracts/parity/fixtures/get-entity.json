@@ -1,0 +1,76 @@
+{
+  "id": "get-entity",
+  "description": "Canonical per-entity descriptor (permanent URL resolution).",
+  "request": {
+    "method": "GET",
+    "path": "/api/entity/language/cmn",
+    "route": "/api/entity/:domain/:id"
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "shape": {
+      "kind": "object",
+      "properties": {
+        "domain": {
+          "kind": "string"
+        },
+        "id": {
+          "kind": "string"
+        },
+        "name": {
+          "kind": "string"
+        },
+        "entityType": {
+          "kind": "string"
+        },
+        "label": {
+          "kind": "string"
+        },
+        "stableId": {
+          "kind": "string"
+        },
+        "canonicalPath": {
+          "kind": "string"
+        },
+        "canonicalUrl": {
+          "kind": "string"
+        },
+        "apiPath": {
+          "kind": "string"
+        },
+        "citable": {
+          "kind": "boolean"
+        },
+        "citationDomain": {
+          "kind": "null"
+        },
+        "viewPath": {
+          "kind": "null"
+        },
+        "region": {
+          "kind": "string"
+        },
+        "year": {
+          "kind": "null"
+        }
+      }
+    },
+    "sample": {
+      "domain": "language",
+      "id": "cmn",
+      "name": "Mandarin",
+      "entityType": "language",
+      "label": "Language",
+      "stableId": "cs:language:cmn",
+      "canonicalPath": "/entity/language/cmn",
+      "canonicalUrl": "http://127.0.0.1:61468/entity/language/cmn",
+      "apiPath": "/api/entity/language/cmn",
+      "citable": false,
+      "citationDomain": null,
+      "viewPath": null,
+      "region": "China, Taiwan, Singapore",
+      "year": null
+    }
+  }
+}

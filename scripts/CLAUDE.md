@@ -779,3 +779,26 @@ Reusable rules for any future id-collision cleanup:
   242→302. That is a **deliberate, explained** re-baseline of `docs/convergence-qa-baseline.json`
   (`npm run convergence-qa:baseline`), not a regression to hide. Lowering it is a follow-up
   glottocode/ISO-enrichment task.
+
+## API parity baseline — `gen-parity-spec.ts` + `record-parity-fixtures.ts` (30-api-shell-parity US-1)
+
+The two generators behind `contracts/parity/` (contract + rules:
+[`contracts/parity/README.md`](../contracts/parity/README.md)). `npm run parity:record`
+replays the curated catalog against the real Express app on an ephemeral port and writes
+`contracts/parity/fixtures/`; `npm run parity:spec` harvests the routing table into
+`contracts/parity/openapi.json`. **Record first** — the spec folds recorded shapes into each
+operation's response schema. `npm run parity:spec:check` is the read-only sibling (exit 1 when
+stale), and `contracts/parity/parity.test.ts` enforces both in CI.
+
+- **These are the only scripts here that boot the server.** `harvestRoutesFromApp` calls the
+  real `registerRoutes(app)` and never listens; the recorder listens on `127.0.0.1:0` (never a
+  bare `listen(0)` — see `server/CLAUDE.md`). Registration is side-effect-safe today (the KCB
+  registry push is fire-and-forget and no-ops without `KCB_REGISTRY_URL`); keep it that way, or
+  the generators start needing a live backend.
+- **Attribution comes from a stack frame, not a regex** (`instrumentRouteSources` +
+  `callerFile`) — that is what attributes `app.get(MCP_ROUTE_PATH, …)` to `routes/mcp.ts`.
+  `tsx` emits source maps, so frames name the original `.ts`.
+- **Both outputs are deterministic**: no timestamps, fixtures sorted by id, spec paths sorted.
+  Re-running against an unchanged API is an empty diff — keep any new field wall-clock-free.
+- A recorded response reflects the recording environment (no Neo4j / sidecar / API keys), so
+  degraded contracts (`/api/graph/status`) are recorded as such **on purpose**.

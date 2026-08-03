@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pinakes"
+version = "0.1.0"
+description = "The unified Pinakes web service: routing, request/response shaping, and serving the built React client."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    # The aggregation engine, in-process — the whole point of the flatten
+    # (docs/UNIFIED-PROJECT-PLAN.md §1): no sidecar HTTP hop, no CLI subprocess.
+    # Taken from the workspace, never from PyPI; see [tool.uv.sources].
+    "pinakes-engine",
+]
+
+[project.scripts]
+pinakes = "pinakes.__main__:main"
+
+# The dev toolchain is a PEP 735 dependency GROUP, not an extra, because `dev` is
+# one of uv's default groups — that is what makes `uv run --project services/api
+# pytest` work from a cold checkout with no flags. Same reasoning (and the same
+# hard-won lesson) as engine/pyproject.toml; keep it a group.
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    # fastapi.testclient is a thin wrapper over httpx's ASGI transport; without
+    # httpx installed `from fastapi.testclient import TestClient` raises at import.
+    "httpx>=0.27",
+    "mypy>=1.8",
+    "ruff>=0.4",
+]
+
+[tool.uv.sources]
+pinakes-engine = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+
+[tool.ruff]
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
