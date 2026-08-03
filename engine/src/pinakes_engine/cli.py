@@ -112,6 +112,13 @@ from pinakes_engine.orchestrate.jobs import (
 )
 from pinakes_engine.orchestrate.merge import MergeError, write_merged_job
 from pinakes_engine.orchestrate.package import PackageError, package_corpus
+from pinakes_engine.orchestrate.publish import (
+    CorpusMissingError,
+    default_corpus_dir,
+    nothing_published_summary,
+    publish_corpus,
+    publish_summary,
+)
 from pinakes_engine.orchestrate.qa import GateThresholds, evaluate_directory
 from pinakes_engine.orchestrate.runner import DEFAULT_WORKERS, run_job
 from pinakes_engine.orchestrate.schedule import (
@@ -850,6 +857,44 @@ def _build_parser() -> argparse.ArgumentParser:
         help="artifact name (default: the source directory's name)",
     )
     package.set_defaults(handler=_cmd_package)
+
+    publish = subparsers.add_parser(
+        "publish-corpus",
+        help="publish build/corpus as corpus-<version>.tar.gz + a .sha256 sidecar",
+    )
+    publish.add_argument(
+        "--corpus",
+        type=Path,
+        default=None,
+        help="corpus dataset directory to publish (default: the repo-root "
+        "build/corpus written by scripts/export-for-engine.ts)",
+    )
+    publish.add_argument(
+        "--out",
+        type=Path,
+        default=Path("dist"),
+        help="directory the archive, manifest and checksum are written to "
+        "(default: dist/)",
+    )
+    publish.add_argument(
+        "--version",
+        default=None,
+        help="artifact version (default: content-addressed — 12 hex digits of the "
+        "corpus content digest, so identical bytes republish under one name)",
+    )
+    publish.add_argument(
+        "--require-corpus",
+        action="store_true",
+        help="fail when the corpus is absent instead of no-opping (use in CI, "
+        "where the export step ran immediately before)",
+    )
+    publish.add_argument(
+        "--json",
+        action="store_true",
+        help="print a machine-readable summary (version, release tag, asset paths, "
+        "sha256) instead of the human report — what the release workflow reads",
+    )
+    publish.set_defaults(handler=_cmd_publish_corpus)
 
     serve = subparsers.add_parser(
         "serve",
@@ -1692,6 +1737,34 @@ def _cmd_package(args: argparse.Namespace) -> int:
     if by_class:
         summary = ", ".join(f"{cls}={count}" for cls, count in by_class.items())
         print(f"  licenses: {summary}")
+    return 0
+
+
+def _cmd_publish_corpus(args: argparse.Namespace) -> int:
+    source = args.corpus if args.corpus is not None else default_corpus_dir()
+    try:
+        result = publish_corpus(source, args.out, version=args.version)
+    except CorpusMissingError as exc:
+        if args.require_corpus:
+            return _fail(str(exc))
+        # Not an error: the corpus is a regenerable build output that simply has
+        # not been exported in this checkout. Say what to run, and do nothing.
+        if args.json:
+            print(json.dumps(nothing_published_summary(str(exc)), indent=2))
+        else:
+            print(f"nothing to publish: {exc}")
+        return 0
+    except PackageError as exc:
+        return _fail(str(exc))
+    if args.json:
+        print(json.dumps(publish_summary(result), indent=2))
+        return 0
+    print(
+        f"published {result.name}: {len(result.package.files)} file(s), "
+        f"{result.package.total_bytes} byte(s) -> {result.archive}"
+    )
+    print(f"  sha256:   {result.sha256}  ({result.checksum})")
+    print(f"  manifest: {result.manifest} ({result.package.digest})")
     return 0
 
 

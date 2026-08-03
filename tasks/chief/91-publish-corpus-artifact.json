@@ -3,8 +3,13 @@
   "branchName": "chief/91-publish-corpus-artifact",
   "baseBranch": "main",
   "description": "Set up the corpus handoff lugh consumes (docs/LUGH-EXTRACTION-PLAN.md): publish the regenerable build/corpus as a versioned, private release artifact (tarball + sha256), since DVC is gone (docs/artifact-versioning.md Option C). This is the producer side of the pinakes->lugh corpus seam. Independent of 90 (a consumer just needs the artifact to exist before it pulls real data).",
-  "touches": ["corpus", "ci"],
-  "warmup": ["bun install"],
+  "touches": [
+    "corpus",
+    "ci"
+  ],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -15,7 +20,7 @@
         "The script is documented in docs/artifact-versioning.md as the pinakes->consumer corpus handoff, and it no-ops with a clear message when build/corpus is absent (regenerate first).",
         "A test drives it over a tiny fixture corpus and asserts tarball + sha256 are produced and stable."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -27,7 +32,7 @@
         "docs/artifact-versioning.md documents the authenticated `gh release download` (or object-store) pull + sha256 verification that lugh's LUGH_CORPUS_DIR setup performs.",
         "`bun run check` passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

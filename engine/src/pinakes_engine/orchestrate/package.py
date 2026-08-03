@@ -45,6 +45,13 @@ from pinakes_engine.schema.license_class import (
 #: Top-level members of a job output root to include, in archive order.
 _JOB_MEMBERS = ("corpus", "corpus-neo4j", "corpus-datalog", "catalog.json")
 
+#: Archive-relative path of the release manifest embedded in the bundle.
+_ARCHIVE_MANIFEST = "manifest.json"
+
+#: Where the release manifest goes when the corpus already ships its own
+#: top-level ``manifest.json`` (a bare corpus dataset like ``build/corpus``).
+_ARCHIVE_MANIFEST_ALT = "release-manifest.json"
+
 #: Header cell of the per-record SPDX licence column on a canonical node TSV.
 _LICENSE_COLUMN = "license"
 
@@ -146,6 +153,27 @@ def package_corpus(
         files=entries,
         licenses=licenses,
     )
+
+
+def corpus_digest(source: str | Path) -> str:
+    """Return the content digest of the corpus at *source* without packaging it.
+
+    The same ``sha256:…`` value :func:`package_corpus` records as the manifest's
+    ``digest`` — a hash over the sorted per-file paths and hashes, so it depends on
+    the corpus *contents* and nothing else. Callers that must name an artifact after
+    what is in it (a content-addressed corpus version) need the digest before the
+    archive exists; this computes it in one pass and packages nothing.
+
+    Raises:
+        PackageError: If *source* is not a directory or holds no corpus.
+    """
+    source = Path(source)
+    if not source.is_dir():
+        raise PackageError(f"{source} is not a directory")
+    files = _collect(source, _select_members(source))
+    if not files:
+        raise PackageError(f"{source} holds no files to package")
+    return _digest(tuple(_entry(rel, abs_path) for rel, abs_path in files))
 
 
 def _assert_no_personal_tier(source: Path, members: Sequence[str]) -> None:
@@ -412,12 +440,26 @@ def _write_archive(
     with archive.open("wb") as raw, gzip.GzipFile(
         filename="", mode="wb", fileobj=raw, mtime=0
     ) as gz, tarfile.open(fileobj=gz, mode="w") as tar:
-        _add_bytes(tar, f"{name}/manifest.json", manifest)
+        _add_bytes(tar, f"{name}/{_manifest_arcname(files)}", manifest)
         for relpath, abs_path in files:
             info = _normalize(tarfile.TarInfo(f"{name}/{relpath}"))
             info.size = abs_path.stat().st_size
             with abs_path.open("rb") as handle:
                 tar.addfile(info, handle)
+
+
+def _manifest_arcname(files: Sequence[tuple[str, Path]]) -> str:
+    """Pick the in-archive name for the release manifest, avoiding a collision.
+
+    A job output root keeps its corpus manifest at ``corpus/manifest.json``, so the
+    release manifest owns the archive's top-level ``manifest.json`` — the published
+    layout, unchanged. A *bare corpus dataset* (``build/corpus``) ships its own
+    top-level ``manifest.json``, though, and emitting both under one arcname would
+    write two members with the same path: extraction silently keeps the last one and
+    the other is lost. In that case the release manifest moves aside.
+    """
+    taken = {relpath for relpath, _ in files}
+    return _ARCHIVE_MANIFEST_ALT if _ARCHIVE_MANIFEST in taken else _ARCHIVE_MANIFEST
 
 
 def _add_bytes(tar: tarfile.TarFile, arcname: str, data: bytes) -> None:

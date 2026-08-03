@@ -130,6 +130,9 @@ ones. The argos and cuneiform tasklists are authored **in those repos** when we 
   touches every import + the argos fork)? **Pinakes no longer constrains this** — US-2 made its
   manifest point at the *console script* (`lugh:pinakes-train-slm`) rather than a module path, so a
   package rename inside lugh does not break the advertisement. Renaming the console script would.
-- **Corpus artifact host:** GitHub release asset (private) vs an object store (R2/S3) — matches
-  whatever `docs/artifact-versioning.md` Option A/C you settle on.
+- ~~**Corpus artifact host:** GitHub release asset (private) vs an object store (R2/S3)~~ —
+  **settled by 91 US-2: a private GitHub release asset** (Option C). `pinakes_engine
+  publish-corpus` packages it, `.github/workflows/publish-corpus.yml` uploads it to a
+  `corpus-<version>` release, and lugh pulls it with an authenticated `gh release download` +
+  `sha256sum -c` into `LUGH_CORPUS_DIR`. Full contract: `docs/artifact-versioning.md`.
 - **Insimul fixture:** vendor `world-export.json`, or have Insimul publish it as the source of truth?
