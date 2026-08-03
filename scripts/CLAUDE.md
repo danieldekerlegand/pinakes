@@ -556,7 +556,13 @@ read-only staleness check. Contract + rules: [`contracts/CLAUDE.md`](../contract
 - Same pure-core/thin-fs shape as the rest of this directory: `buildBindings(documents)`
   returns a `Map<repo-relative path, contents>` and is the whole contract of the script;
   `readContractDocuments` / `staleBindings` / `writeBindings` / `runGen` / `runCheck` are
-  the fs shell. A test drives `buildBindings` with in-memory documents — no temp dirs.
+  the fs shell. `gen-contract-bindings.test.ts` drives `buildBindings` with in-memory
+  documents — no temp dirs.
+- **That same test is the drift gate (US-2).** It byte-compares every emitted file against
+  the committed one via `it.each`, so a failure names the stale path, and it carries a
+  **negative control** (a bogus root must report *everything* stale) — a byte-equality test
+  that can only pass is no gate. `.chief/verify.sh` pairs it with `npm run check:contracts`,
+  selected on `contracts/*.json` / `generated/` / `python/` / this script.
 - **Output must stay deterministic.** No wall-clock, sources read in `CONTRACT_SOURCES`
   order, object keys emitted in document order. A re-run on a clean tree is an empty diff;
   the drift gate compares byte-for-byte.

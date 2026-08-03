@@ -26,6 +26,17 @@ Rules:
   commit both. Same discipline as the koine registry mirror.
 - **Generation is deterministic** (no wall-clock, sources read in a fixed order), so
   a re-run on a clean tree is an empty diff — which is what the drift gate rests on.
+- **The drift gate (US-2) is enforced twice**, so neither CI nor a local run can miss it:
+  `scripts/gen-contract-bindings.test.ts` regenerates from `contracts/*.json` and
+  byte-compares **every** emitted file (Python *and* TS) against the committed one, and
+  `.chief/verify.sh` runs `npm run check:contracts` whenever the diff touches a neutral
+  source, `generated/`, `python/`, or the generator. Unlike the koine registry mirror this
+  guard needs no sibling checkout — everything it compares lives in this tree, so it never
+  skips. Editing a source and not regenerating blocks the merge.
+- **A neutral-source edit also runs BOTH languages' suites.** `contracts/python/` is a
+  workspace dependency of `pinakes-engine` and `services/api`, so `verify.sh` treats a
+  `contracts/*.json` change as a Python source change (and as a TS one — the contract tests
+  run even though a not-yet-regenerated change ships no `.ts`).
 - **The generated Python EMBEDS its literals**; it reads no JSON at import time, so
   an installed wheel needs no repo layout. Only `document()` (the three registries)
   and `contract_path` touch disk. That is why `pinakes_engine.schema.headers` can
