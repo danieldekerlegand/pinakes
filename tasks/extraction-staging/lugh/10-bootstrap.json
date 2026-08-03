@@ -1,0 +1,36 @@
+{
+  "project": "lugh",
+  "branchName": "chief/10-bootstrap",
+  "baseBranch": "main",
+  "description": "Bootstrap the newly-split lugh repo (the private fine-tuning platform) into a clean standalone package: uv workspace, real CI/verify, and a README establishing it as lugh:agent:finetune. Runs in the lugh repo after pinakes extracts it. See pinakes docs/LUGH-EXTRACTION-PLAN.md.",
+  "dependsOn": ["pinakes:90-extract-lugh"],
+  "touches": ["repo-setup"],
+  "warmup": ["uv sync --extra dev"],
+  "verify": ["uv run --extra dev python -m pytest -q -p no:cacheprovider"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Standalone uv workspace + CI",
+      "description": "Make lugh a self-contained repo: root pyproject/uv workspace, ruff + pytest gates, and a verify.sh that provisions the dev extra (the missing-pytest gap from the pinakes flatten).",
+      "acceptanceCriteria": [
+        "Root pyproject/uv workspace builds; `uv sync --extra dev` installs torch/pykeen/trl-optional + pytest + ruff.",
+        ".chief/verify.sh runs `uv sync --extra dev` then `uv run python -m pytest` + `uv run ruff check`, and exits non-zero on failure.",
+        "A CI workflow runs the same gates on push.",
+        "The full suite collects and the fixture-only (CI-safe) tests pass; live-corpus tests skipif the corpus is absent."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "README + identity",
+      "description": "Document lugh as the specialized local-only KFT fine-tuning provider lugh:agent:finetune, and its relationship to koine (contract), agora (general trainer), cuneiform (control plane), and pinakes (corpus producer).",
+      "acceptanceCriteria": [
+        "README states the role, the fabric id lugh:agent:finetune, and the corpus/contract inputs it consumes.",
+        "A CLAUDE.md (ported/trimmed from the old ml/CLAUDE.md) documents the workspace's gates and the neurosymbolic + SLM + KFT surfaces."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

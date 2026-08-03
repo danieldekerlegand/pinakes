@@ -1,0 +1,34 @@
+{
+  "project": "pinakes",
+  "branchName": "chief/91-publish-corpus-artifact",
+  "baseBranch": "main",
+  "description": "Set up the corpus handoff lugh consumes (docs/LUGH-EXTRACTION-PLAN.md): publish the regenerable build/corpus as a versioned, private release artifact (tarball + sha256), since DVC is gone (docs/artifact-versioning.md Option C). This is the producer side of the pinakes->lugh corpus seam. Independent of 90 (a consumer just needs the artifact to exist before it pulls real data).",
+  "touches": ["corpus", "ci"],
+  "warmup": ["bun install"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Deterministic corpus packaging script",
+      "description": "A script that packages build/corpus (nodes/ + edges/) into a versioned tarball with a recorded sha256, reproducibly.",
+      "acceptanceCriteria": [
+        "A tooling script tars build/corpus into corpus-<version>.tar.gz and writes its sha256; re-running on the same corpus yields the same sha256 (deterministic ordering, pinned mtimes).",
+        "The script is documented in docs/artifact-versioning.md as the pinakes->consumer corpus handoff, and it no-ops with a clear message when build/corpus is absent (regenerate first).",
+        "A test drives it over a tiny fixture corpus and asserts tarball + sha256 are produced and stable."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Publish + pull contract",
+      "description": "Wire publishing the tarball as a private GitHub release asset, and document the authenticated pull consumers (lugh) use.",
+      "acceptanceCriteria": [
+        "A CI/release path uploads corpus-<version>.tar.gz as a private release asset (or the chosen object store), keyed to a corpus version.",
+        "docs/artifact-versioning.md documents the authenticated `gh release download` (or object-store) pull + sha256 verification that lugh's LUGH_CORPUS_DIR setup performs.",
+        "`bun run check` passes."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

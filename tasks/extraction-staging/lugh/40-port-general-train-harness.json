@@ -1,0 +1,48 @@
+{
+  "project": "lugh",
+  "branchName": "chief/40-port-general-train-harness",
+  "baseBranch": "main",
+  "description": "Generalize lugh's trainer by porting the valuable pieces of cuneiform's retired archive/apps/web/scripts/train.py (a generic config-driven harness) that lugh's task-specialized pipelines lack, reconciled with the existing kft.py/kft_run.py contract layer. Turns lugh from 'trains our tasks' into 'executes any KFT job'. See pinakes docs/LUGH-EXTRACTION-PLAN.md.",
+  "dependsOn": ["30-kft-provider-manifest"],
+  "touches": ["trainer"],
+  "iters": 10,
+  "warmup": ["uv sync --extra dev"],
+  "userStories": [
+    {
+      "id": "US-1",
+      "title": "Generic multi-format dataset harness",
+      "description": "Port dataset auto-detection + formatters for alpaca / sharegpt / chatml / completion / text, so the executor accepts any KFT job's dataset shape (not only the ChatML rule-SFT corpus).",
+      "acceptanceCriteria": [
+        "A dataset layer detects and formats alpaca/sharegpt/chatml/completion/text inputs, unit-tested per format.",
+        "The KFT executor path (kft_run.py) uses it, so an admitted job with any supported dataset shape trains.",
+        "It reuses lugh's existing ChatML rendering where they overlap (no divergent second ChatML path)."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-2",
+      "title": "Unsloth fast path + method:full",
+      "description": "Add an optional unsloth-accelerated QLoRA/LoRA path (gated, undeclared dep like the rest of the heavy stack) and support method:full, alongside the existing trl/peft path.",
+      "acceptanceCriteria": [
+        "When unsloth is installed, the LoRA/QLoRA path uses FastLanguageModel; otherwise it falls back to trl/peft (require-deps gate + actionable message).",
+        "method:full is supported; the method x modality matrix matches the KCB manifest from tasklist 30.",
+        "CPU/tiny-fixture tests exercise the path selection without needing a GPU."
+      ],
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-3",
+      "title": "KFT §6 streaming telemetry + graceful cancellation",
+      "description": "Emit training telemetry as a stream shaped to KFT §6 (what cuneiform's Subprocess/Kcb runner reads), and handle SIGTERM/SIGINT graceful shutdown so a delegated job can be cancelled.",
+      "acceptanceCriteria": [
+        "A training callback streams KFT §6-shaped telemetry (step/epoch/loss/eval/lr/progress) that cuneiform's runner can consume.",
+        "SIGTERM/SIGINT stops training gracefully and records a cancelled status.",
+        "Telemetry shape is asserted against the vendored koine KFT §6 contract; the stub/tiny-fixture path runs in CI."
+      ],
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
