@@ -42,7 +42,7 @@ from pinakes.analytics.corpus import (
     load_language_families,
     load_languages,
 )
-from pinakes.analytics.jsmath import locale_key, round_to
+from pinakes.analytics.jsmath import LocaleKey, locale_key, round_to
 
 #: Everything `normalizeAssocKey`'s ``/[^a-z0-9]+/g`` collapses to a hyphen.
 _NON_ALPHANUMERIC = re.compile(r"[^a-z0-9]+")
@@ -347,7 +347,7 @@ def support_confidence(base: float, count: int, cap: float) -> float:
 
 def _by_confidence_then(
     name_key: str,
-) -> Callable[[Mapping[str, Any]], tuple[float, tuple[str, list[int], str]]]:
+) -> Callable[[Mapping[str, Any]], tuple[float, LocaleKey]]:
     """`(b.confidence - a.confidence) || a.<name>.localeCompare(b.<name>)`.
 
     Spelled as a named helper rather than inline because the association records
@@ -355,7 +355,7 @@ def _by_confidence_then(
     ``object``.
     """
 
-    def key(entry: Mapping[str, Any]) -> tuple[float, tuple[str, list[int], str]]:
+    def key(entry: Mapping[str, Any]) -> tuple[float, LocaleKey]:
         return -float(entry["confidence"]), locale_key(str(entry[name_key]))
 
     return key

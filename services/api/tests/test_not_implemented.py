@@ -14,8 +14,10 @@ from pinakes.parity import ParityRoute, load_parity_routes, split_coverage
 #: the React app actually asks for. Keep them **unported**: a route that lands a
 #: router stops being a 501 and belongs in that group's own test instead.
 SAMPLE_REQUESTS = [
-    ("GET", "/api/languages", "/api/languages"),
-    ("GET", "/api/languages/{id}", "/api/languages/lang-42"),
+    # Were `/api/languages` + `/api/languages/{id}` until pinakes:80 US-1 ported
+    # them; their coverage is `test_catalog_routes.py`.
+    ("GET", "/api/media-assets", "/api/media-assets"),
+    ("GET", "/api/media-assets/{id}", "/api/media-assets/asset-42"),
     ("POST", "/api/scraping-jobs", "/api/scraping-jobs"),
     # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it — a sample
     # here has to name a route that is still *un*ported, or the 501 assertion
@@ -79,9 +81,11 @@ def test_coverage_endpoint_matches_the_catalog(unbuilt_client: TestClient) -> No
     assert payload["spec"].endswith("openapi.json")
 
     entry = next(
-        item for item in payload["notImplemented"] if item["path"] == "/api/languages"
+        item
+        for item in payload["notImplemented"]
+        if item["path"] == "/api/media-assets"
     )
-    assert entry["portUnit"] == "languages"
+    assert entry["portUnit"] == "media-assets"
     assert entry["method"] == "GET"
 
     # Port units add up to the same total, so progress is trackable per group.

@@ -711,3 +711,51 @@ propose the third, DNA→culture ancestry, and `POST /api/graph/explain`. Covera
   **validation rejections**, refused before either backend touches a store, a graph or
   a model, and `test_timeline_event.py` / `test_connection_narrative.py` pin the two
   400 bodies. The other nine routes are fixture-free and retired to 501.
+
+## The cutover's first slice — `routers/{retired,catalog}.py` + `lexicons/catalog.py` (pinakes:80 US-1)
+
+The cutover band, and the first one that is not a tidy "port this route group": it
+opened against **222 outstanding routes**, not the handful the tasklist's `dependsOn`
+implied. Coverage 84/306 → **125/306**. Read the arithmetic before planning the next
+slice — `.chief/state/progress.txt` carries the breakdown and the recommended order.
+
+- **The 501s are not interchangeable, and this band added the third.** `not_ported`
+  (`not_implemented.py`) says *the TypeScript backend still serves this*; `ported`
+  says *another process serves it at this path*; `retired` (`routers/retired.py`)
+  says *nothing serves it — run `pinakes_engine fetch`*. The thirty-one retirement
+  routes were never going to be claimed by a port tasklist, because there is no
+  handler to port, and answering `not_ported` for them would have pointed callers at
+  a process that is being deleted. Registering them here is also what moves them out
+  of the coverage complement.
+- **A retired route's `route` field keeps Express's `:id` spelling while the
+  *registration* uses `{id}`.** One is prose that was recorded that way, the other is
+  the literal the parity diff matches. Conflating them moves the coverage number the
+  wrong way and nothing else notices.
+- **`lexicons/catalog.py` is the filter half of `tsv-storage.ts`, split from the
+  loader half deliberately.** A loader is graded by row counts on the live corpus
+  (`test_lexicon_storage.py`); a filter is graded by which rows survive
+  (`test_catalog_routes.py`). Fused, the second is untestable without the first.
+- **`jsmath.locale_key` was wrong and the family tree was where it showed.** It folded
+  case but not accents or punctuation, so `Aché` sorted after `Achuar` and `G||ana`
+  after `G|ui`. It is now four ICU levels (accent-stripped base with each character
+  ranked by class → combining marks → case → the raw string) and reproduces node's
+  `localeCompare` **exactly** across all 2,614 display names in the live corpus; the
+  old key disagreed in 2,267 positions. `LocaleKey` is the exported alias — annotate
+  with it rather than restating the tuple.
+- **Six recorded fixtures grade this slice** (`get-language{s,-families,-by-id,-missing}`,
+  `get-culture-profile{s,-by-id}`), and the whole group was additionally proved
+  byte-identical to Express over 31 live requests with the throwaway-script method the
+  earlier bands describe — every filter combination, both 404s, the 400 on bad
+  coordinates, and the full family forest.
+- **The envelopes are inconsistent and that is the port.** `/api/languages` answers a
+  bare array, `/api/culture-profiles` answers `{profiles, count}`, `/api/stats` answers
+  a flat object. Regularising them here would be a client change wearing a port's
+  clothes.
+- **`by-civilization` is registered before `{id}`**, as on Express. Starlette matches in
+  registration order, so the order of handlers in `routers/catalog.py` is routing, not
+  formatting — `test_by_civilization_outranks_the_id_route` is the guard.
+- **Four tests elsewhere named `/api/languages` as their stand-in for "an unported
+  route"** and went red the moment it landed (`test_app_shell`, `test_client_serving`
+  ×2, `test_not_implemented`). They name `/api/media-assets` now. Expect to do this
+  again: the next slice inherits the same chore, and the failure is loud, so do not
+  pre-emptively "fix" it by asserting on something vaguer.

@@ -31,8 +31,13 @@ def test_client_side_routes_fall_back_to_the_shell(built_client: TestClient) -> 
 
 
 def test_the_static_mount_never_shadows_the_api(built_client: TestClient) -> None:
-    """The mount is last, so a baseline route still answers its 501."""
-    assert built_client.get("/api/languages").status_code == 501
+    """The mount is last, so a baseline route still answers its 501.
+
+    Was `/api/languages` until pinakes:80 US-1 ported it; a *ported* route
+    answering 200 would prove the mount does not shadow it either, but only an
+    unported one proves the 501 catalog itself outranks the mount.
+    """
+    assert built_client.get("/api/media-assets").status_code == 501
     assert built_client.get("/api/health").status_code == 200
 
 
@@ -61,7 +66,7 @@ def test_without_a_build_the_root_explains_itself(unbuilt_client: TestClient) ->
 
 def test_without_a_build_the_api_still_works(unbuilt_client: TestClient) -> None:
     assert unbuilt_client.get("/api/health").status_code == 200
-    assert unbuilt_client.get("/api/languages").status_code == 501
+    assert unbuilt_client.get("/api/media-assets").status_code == 501
 
 
 def test_a_dist_without_index_html_counts_as_unbuilt(tmp_path: Path) -> None:
