@@ -16,7 +16,7 @@
         "entity-resolver and summaries routes pass the parity tests.",
         "Express handlers removed or 501; coverage tracker updated."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
