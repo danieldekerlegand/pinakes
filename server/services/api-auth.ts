@@ -1,6 +1,18 @@
 /**
  * Public contribution API — auth + rate limiting (US-011)
  *
+ * **Ported away** (pinakes:60 US-2). The contribution write endpoints this
+ * guarded are served by the Python service now, and the guard moved with them:
+ * `services/api/src/pinakes/contributions/auth.py` (the decisions) plus
+ * `services/api/src/pinakes/routers/_auth.py` (where they are enforced). Nothing
+ * in `server/` wires `createContributionWriteGuard` any more —
+ * `routes/contributions.ts` answers 501 for both writes.
+ *
+ * The file stays because it is the **spec the port is graded against**, and its
+ * unit tests are what say the two implementations agree: same env variables,
+ * same 401/403/429 split, same fixed-window arithmetic. Change a rule here and
+ * you have forked the guard; change it in both, or in neither.
+ *
  * Hardens the write side of the contribution API so programmatic contributions
  * are safe and supported. Two concerns, both pure/injectable so the route can be
  * unit-tested with no live env / no wall-clock:

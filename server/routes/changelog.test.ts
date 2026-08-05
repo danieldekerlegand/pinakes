@@ -39,11 +39,7 @@ beforeAll(async () => {
   app.use(express.json());
   // Share ONE changelog store across the three route groups.
   registerChangelogRoutes(app, { changelog });
-  registerContributionRoutes(app, {
-    contributions,
-    changelog,
-    writeGuard: (_req, _res, next) => next(), // open for the test
-  });
+  registerContributionRoutes(app, { contributions });
   registerAiReviewRoutes(app, { contributions, lexiconsDir, changelog });
 
   await new Promise<void>((resolve) => {
@@ -108,8 +104,17 @@ describe("GET /api/changelog", () => {
   });
 });
 
+/**
+ * The two write sides of this pipeline — approving a contribution and promoting
+ * an AI draft — moved to the Python service (pinakes:60 US-1), which records
+ * into the same `data/runtime/changelog` directory this store reads. That those
+ * routes *write* an entry is asserted where they live now
+ * (`services/api/tests/test_{contribution,ai_review}_routes.py`); what is still
+ * this file's job is that an entry written by the pipeline is legible through
+ * the read API, which is the half that did not move.
+ */
 describe("contribution pipeline integration", () => {
-  it("logs an approved contribution edit into the changelog", async () => {
+  it("surfaces an approved contribution edit through the read API", async () => {
     const submit = contributions.submit({
       entityType: "civilization",
       action: "add",
@@ -120,11 +125,19 @@ describe("contribution pipeline integration", () => {
     expect(submit.contribution).toBeDefined();
     const id = submit.contribution!.id;
 
-    const review = await req("PATCH", `/api/contributions/${id}/review`, {
-      decision: "approved",
-      note: "looks good",
+    // Byte-for-byte the record the ported `PATCH /api/contributions/:id/review`
+    // writes on approval.
+    changelog.record({
+      domain: "civilization",
+      changeType: "added",
+      targetId: submit.contribution!.entityId,
+      entityName: "Testtopia",
+      source: "contribution",
+      sourceUrl: "https://example.org/s",
+      contributionId: id,
+      confidence: 70,
+      summary: "looks good",
     });
-    expect(review.status).toBe(200);
 
     const log = await req("GET", "/api/changelog?source=contribution&domain=civilization");
     const logged = log.body.entries.find((e: any) => e.contributionId === id);
@@ -135,7 +148,7 @@ describe("contribution pipeline integration", () => {
     expect(logged.confidence).toBe(70);
   });
 
-  it("logs an approved AI-draft promotion into the changelog", async () => {
+  it("surfaces an AI-draft promotion through the read API", async () => {
     const submit = contributions.submit({
       entityType: "civilization",
       action: "add",
@@ -151,12 +164,19 @@ describe("contribution pipeline integration", () => {
     });
     const id = submit.contribution!.id;
 
-    const approve = await req("PATCH", `/api/ai-review/${id}`, {
-      decision: "approved",
+    // The record the ported `PATCH /api/ai-review/:id` writes on approval.
+    changelog.record({
+      domain: "civilization",
+      changeType: "added",
+      targetFile: "civilizations.tsv",
+      targetId: "aitlantis",
+      entityName: "AItlantis",
+      source: "ai-review",
+      contributionId: id,
       reviewer: "curator",
+      confidence: 60,
+      summary: "Promoted AI draft (text-extractor) into civilizations.tsv",
     });
-    expect(approve.status).toBe(200);
-    expect(approve.body.promotion).toBeDefined();
 
     const log = await req("GET", `/api/changelog?domain=civilization`);
     const logged = log.body.entries.find((e: any) => e.contributionId === id);
@@ -166,7 +186,14 @@ describe("contribution pipeline integration", () => {
     expect(logged.reviewer).toBe("curator");
     expect(logged.targetFile).toBe("civilizations.tsv");
     expect(logged.entityName).toBe("AItlantis");
-    // The row really landed in the temp lexicon.
-    expect(fs.existsSync(path.join(lexiconsDir, "civilizations.tsv"))).toBe(true);
+  });
+
+  it("does not promote into the lexicons from this backend any more", async () => {
+    const approve = await req("PATCH", `/api/ai-review/whatever`, {
+      decision: "approved",
+      reviewer: "curator",
+    });
+    expect(approve.status).toBe(501);
+    expect(fs.existsSync(path.join(lexiconsDir, "civilizations.tsv"))).toBe(false);
   });
 });

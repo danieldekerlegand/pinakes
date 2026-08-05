@@ -44,18 +44,24 @@ def test_a_ported_route_still_answers_its_recorded_shape(
     assert not mismatches, report(fixture, mismatches)
 
 
-def test_the_graph_group_is_actually_being_graded(
-    unbuilt_client: TestClient,
-) -> None:
-    """The pinakes:50 US-2 port must be under the replay, not merely skipped.
+#: Fixtures a landed port claims as its grade. Each entry is one port tasklist
+#: saying "this recording is replayed against my router" — without them the
+#: parametrized test above would pass just as green with every case skipped,
+#: which is what "ported" would then be resting on.
+GRADED: tuple[str, ...] = (
+    "get-graph-status",  # pinakes:50 US-2
+    "get-contributions-stats",  # pinakes:60 US-1
+)
 
-    Without this the parametrized test above would pass just as green with every
-    case skipped — which is what "ported" would then be resting on.
-    """
+
+@pytest.mark.parametrize("fixture_id", GRADED)
+def test_a_ported_group_is_actually_being_graded(
+    unbuilt_client: TestClient, fixture_id: str
+) -> None:
     ported = {route.key for route in coverage_of(unbuilt_client).ported}
     graded = {
         fixture.id
         for fixture in FIXTURES
         if (fixture.method, fixture.route) in ported
     }
-    assert "get-graph-status" in graded
+    assert fixture_id in graded

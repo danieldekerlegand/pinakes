@@ -46,6 +46,9 @@ The first ported group, and the shape to copy: **one router file, thin over
   `contracts/parity/shape.ts`; only the **matcher** is ported, deliberately —
   recording stays Express's job, or this service would author the contract it is
   graded against.
+- **Add your fixture id to `GRADED` in `tests/test_parity_replay.py`.** That
+  tuple is the list of "a port claims this recording"; the parametrized replay is
+  green either way, so the claim is what makes a skipped fixture a failure.
 - **`test_not_implemented.py`'s `SAMPLE_REQUESTS` must name only *unported*
   routes.** Porting a group that appears there turns its 501 assertion red; move
   the case into that group's own test.
@@ -70,6 +73,73 @@ The first ported group, and the shape to copy: **one router file, thin over
 - **`dist/public` is gitignored** and the tests never build it — they point
   `create_app(client_directory=…)` at a temp dir with an `index.html`. To see
   the real thing serve, build the client first.
+
+## The second ported group — `routers/{contributions,ai_review}.py` (pinakes:60 US-1)
+
+The contribution queue and the AI-draft review. Unlike the graph port there is no
+engine behind it, so the logic below HTTP lives in `src/pinakes/contributions/`
+(`store` / `ai_review` / `changelog`) — same discipline as `engine/`: plain
+arguments in, JSON-ready dicts out, no FastAPI import.
+
+- **Both servers read one queue during the cutover**, so the on-disk shape is
+  reproduced rather than improved. Two rules carry that: `_compact` drops unset
+  optionals (`JSON.stringify` emits no key for `undefined`, and a present-but-null
+  key is a *different* record to the TypeScript reader), and `js_truthy` spells
+  out JavaScript truthiness — `![]` is false in JS and true in Python, so an
+  empty-array required field would otherwise be valid on one server and not the
+  other. `parse_int_js`/`js_slice` are the same idea for `?limit=abc`, which
+  collapses the page to empty rather than 422ing.
+- **Absent ≠ null.** `data.get("confidence")` cannot tell them apart and JS can:
+  an omitted confidence warns and defaults to 50, a declared `null` is a 400. Use
+  `"key" in data` wherever the TypeScript read `!== undefined`.
+- **No store singleton.** `store.queue()` is built per call from
+  `paths.contributions_dir()`, which re-reads its env override every time — a
+  cached listing would be a listing of what *this* process last wrote, and there
+  are two processes. It is also the test seam: `conftest.py`'s autouse
+  `isolated_data_trees` redirects the queue, changelog **and lexicons** to
+  `tmp_path`. Keep that autouse. A test that promoted into the live
+  `data/source/lexicons/` would break an unrelated suite one run in six
+  (`server/CLAUDE.md`).
+- **`ContributionStore.list` shadows the builtin** for every annotation after it
+  in the class body, which is why `get_by_entity` is declared above it. mypy says
+  `Function ... is not valid as a type` if you move it back.
+- **The changelog write-half only.** `GET /api/changelog` is a different port
+  unit; `contributions/changelog.py` just appends records in the same shape and
+  directory, best-effort — a failed audit line must never cost a reviewer their
+  decision.
+
+## The write guard — `contributions/auth.py` + `routers/_auth.py` (pinakes:60 US-2)
+
+API-key auth + per-identity rate limiting on the two contribution **writes**
+(`POST /api/contributions`, `PATCH /api/contributions/{id}/review`). Every `GET`
+is open, and `PATCH /api/ai-review/{id}` is *not* guarded — neither was on
+Express, and adding it here would be new policy rather than a port.
+
+- **Open by default.** `$CONTRIBUTION_API_KEYS` unset ⇒ no keys ⇒ every write
+  passes. Configuring the variable is what turns enforcement on; there is no
+  second switch. Missing key ⇒ **401**, unknown key ⇒ **403** (constant-time,
+  length-guarded compare), over quota ⇒ **429** with `Retry-After` and the
+  `X-RateLimit-*` trio. Rate limiting applies even when auth is off, keyed on the
+  client address instead of the key.
+- **The dependency returns its rejection; it does not raise it.** A raised
+  `HTTPException` is serialised as `{"detail": …}` and this surface answers
+  `{"message": …}` — so `write_guard` hands back a `WriteGuard` whose `rejection`
+  the handler returns as its first statement. That is two lines of ceremony per
+  route, bought in exchange for needing **no exception handler on `app.py`** —
+  the one file parallel port tasklists must not touch.
+- **Config and counters are module state, built from the environment on first
+  use** — the counters have to outlive the request that opened their window, and
+  Express read its env once too (at registration). `_auth.configure(config=…,
+  now=…)` is the injection seam that replaced the TypeScript options bag, and
+  `conftest.py`'s autouse `reset_write_guard` is not optional: without it the
+  counters accumulate across the session and the 61st write 429s in whichever
+  test happens to make it.
+- **A NamedTuple field cannot be called `count`** — it shadows `tuple.count` and
+  strict mypy rejects the class outright (`_Bucket.hits`). Same family of trap as
+  `ContributionStore.list`.
+- `server/services/api-auth.ts` is retired but kept: it is the spec, and its unit
+  tests are the statement that the two agree. `tests/test_contribution_auth.py`
+  is that file's suite, case for case.
 
 ## Deliberate divergences from `server/`
 
