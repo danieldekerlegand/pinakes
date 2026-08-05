@@ -225,6 +225,57 @@ here are worth knowing before touching them.
   contribution queue's unit and still 501 here. That split works because both
   servers read one `stewards.json`.
 
+## The analytics engines — `analytics/` + `routers/{analytics,anomalies,correlations}.py` (pinakes:62 US-1)
+
+Four self-contained computations over the lexicon corpus — a DuckDB analytical
+index, cross-domain correlation, anomaly detection, genetic↔linguistic overlap —
+and the first port band whose *unit of agreement* is a number rather than a
+record shape. That changes what the discipline has to be.
+
+- **JavaScript's arithmetic is part of the contract, and Python disagrees with
+  it in three places.** `analytics/jsmath.py` is those three: `Math.round` breaks
+  ties toward +∞ (Python's `round` goes to even), `toFixed` breaks them away from
+  zero on the value's *exact binary* expansion (`format(.2f)` goes to even), and
+  `toLocaleString("en-US")` groups thousands. Every expectation in
+  `tests/test_analytics_js_semantics.py` came out of node. **And `sum()` is not
+  `Array.reduce`**: since 3.12 the builtin uses Neumaier compensated summation,
+  which is *more* accurate and therefore wrong here — it moved a correlation
+  summary's `avg score` by a digit. Accumulate in a loop.
+- **`analytics/tsv.py` is the reader's dialect, not a parser.** `getIdx` throws
+  and `indexOf` returns `-1`, and which one a column gets is the difference
+  between a broken corpus and an empty one. `Number()` must match the whole
+  string while `parseInt`/`parseFloat` read a prefix, and all three reach a real
+  cell or query parameter here.
+- **DuckDB was kept, deliberately.** The TypeScript's contract was `read_csv`'s
+  exact TSV dialect plus SQL's exact ordering; a hand-rolled Python equivalent
+  would be a rewrite whose output happens to agree, and the first disagreement
+  (collation, blank cells, tie-breaking) would surface as a corpus-shaped bug in
+  a facet list. `duckdb` is therefore a declared dependency of this service. The
+  TypeScript's `query()` escape hatch is **not** ported: no route reaches it, so
+  bringing it across would add an unrouted SQL entry point rather than port one.
+- **The index singleton is keyed on the directory it mirrors.**
+  `paths.lexicons_dir()` re-reads its env override per call precisely so a test
+  can point one request at a temp corpus; an index cached without that check
+  would be an index of whatever the first caller asked for.
+- **A blank coordinate cell is the origin, not nothing.** Three loaders default
+  `coordinates` to `{0, 0}` and the correlation projection reads them through a
+  nullish coalesce, which does not replace an object — so such rows really do
+  score geographic proximity to each other at Null Island. Reproduced, not fixed.
+- **The graph-backed correlation path came too**, including
+  `engine/graph.nodes_by_label` (the one graph read not addressed by csid). It is
+  off by default (`CORRELATION_GRAPH_ENABLED`), and `EngineUnavailable` — not any
+  exception — is what degrades it to the in-memory path. The shared-fixture test
+  in `tests/test_correlation.py` feeds one set of entities to both paths, which
+  is what the answer's `source` field rests on.
+- **Two `500` spellings live side by side, and that is a port.** The handlers
+  extracted into `server/routes/*.ts` answer `{error, detail}`; the ones that
+  stayed inline in `routes.ts` answer `{message, error}`. `routers/analytics.py`
+  and `routers/anomalies.py` use the first, `routers/correlations.py` the second.
+- Half of `server/services/genetic-linguistic-correlation.ts` is deliberately
+  left behind: `mapHaplogroupsToAncestry` backs `/api/ancestry/*`, a different
+  port unit. When it lands it should read `analytics/genetic.NOTABLE_DIVERGENCES`
+  rather than carry a second copy.
+
 ## Deliberate divergences from `server/`
 
 - Unknown `/api/*`, `/mcp*`, `/.well-known/*` URLs return **404 JSON**, not the

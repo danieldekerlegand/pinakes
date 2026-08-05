@@ -3,7 +3,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { closeGraphStore } from "./services/graph-store";
-import { getAnalyticalIndex, closeAnalyticalIndex } from "./services/analytical-index";
+// The analytical index no longer has a reader on this side (`/api/analytics/*`
+// was ported to `pinakes.routers.analytics` in pinakes:62 US-1), so it is not
+// warmed at startup any more — building a DuckDB mirror of the whole corpus for
+// nothing is not a free non-fatal step. The close stays: `closeAnalyticalIndex`
+// is a no-op unless something built one, and a lazy build is still reachable.
+import { closeAnalyticalIndex } from "./services/analytical-index";
 
 const app = express();
 app.use(express.json());
@@ -66,12 +71,6 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '3050', 10);
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
-    // Warm the runtime analytical index (US-001) so the first faceted/aggregate
-    // request isn't paying the build cost. Non-fatal: a failure here just defers
-    // the build to first use and never blocks serving.
-    getAnalyticalIndex()
-      .then((index) => log(`analytical index ready (${index.tables().length} tables)`))
-      .catch((err) => log(`analytical index warm-up deferred: ${String(err)}`));
   });
 
   // Graceful shutdown: release the Neo4j driver's connection pool so the

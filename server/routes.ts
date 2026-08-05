@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
@@ -121,6 +121,41 @@ import {
   type EnrichmentDomain,
 } from "./services/culture-profile-enrichment";
 
+/**
+ * The Python module serving the correlation routes this file handed over
+ * (pinakes:62 US-1). Route groups that live in their own `routes/<area>.ts` file
+ * export their own `PORTED_TO`; the handful of handlers still registered inline
+ * here name theirs next to the helper below.
+ */
+const CORRELATIONS_PORTED_TO = "services/api/src/pinakes/routers/correlations.py";
+
+/**
+ * A handler for a route this backend no longer owns — the inline twin of the
+ * `portedToPython` helper in `routes/{changelog,collections,analytics,…}.ts`.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed.
+ *
+ * It returns a handler rather than registering the route itself, deliberately:
+ * `scripts/gen-parity-spec.ts` attributes each registration to its **call site**
+ * by reading a stack frame, so registering from inside a helper would re-attribute
+ * these paths away from `server/routes.ts` and rewrite the harvested baseline.
+ */
+function portedToPython(route: string, servedBy: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: "ported",
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${servedBy}). The Express handler is retired.`,
+      route,
+      servedBy,
+      coverage: "/api/_parity/coverage",
+    });
+  };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
@@ -154,9 +189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI-labelled narrative of how they are connected.
   registerConnectionNarrativeRoutes(app);
 
-  // Anomaly-detection routes (GET /api/anomalies, US-006) — scan the cross-domain
-  // corpus for statistically unexpected similarities between distant, unrelated
-  // cultures (rare shared scales/pottery/motifs), ranked as research hypotheses.
+  // Anomaly-detection routes (GET /api/anomalies, US-006) — PORTED to the Python
+  // service (pinakes:62 US-1); the path answers 501 naming
+  // `pinakes.routers.anomalies`. See routes/anomaly-detection.ts.
   registerAnomalyRoutes(app);
 
   // Automated hypothesis & site-location generation (GET /api/hypotheses, US-007) —
@@ -165,8 +200,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // predicted from gaps along migration corridors (with an uncertainty radius).
   registerHypothesisRoutes(app);
 
-  // Runtime analytical-index routes (/api/analytics/*, US-001) — heavy tabular
-  // faceting/aggregates served from the DuckDB index over data/source/lexicons/*.tsv.
+  // Runtime analytical-index routes (/api/analytics/*, US-001) — PORTED to the
+  // Python service (pinakes:62 US-1), which builds its own DuckDB index over the
+  // same TSVs; both paths answer 501 naming `pinakes.routers.analytics`.
   registerAnalyticsRoutes(app);
 
   // Progressive summary/detail routes (/api/summaries/*, US-004) — lightweight
@@ -3005,63 +3041,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
-  // Cross-Domain Correlation API Routes (Phase 4)
+  // Cross-Domain Correlation API Routes (Phase 4) — PORTED (pinakes:62 US-1)
   // ============================================================================
-
-  const { CrossDomainCorrelation } = await import("./services/cross-domain-correlation");
-  const { correlateWithGraphFallback } = await import(
-    "./services/cross-domain-correlation-graph"
+  // Both routes are served by `services/api/src/pinakes/routers/correlations.py`
+  // over `pinakes.analytics.correlation`, which carries the scorers, the curated
+  // query catalog and the graph-vs-memory decision. They answer 501 here.
+  //
+  // `services/cross-domain-correlation{,-graph}.ts` stay as the graded spec —
+  // their unit tests are what say the two implementations agree, including that
+  // the graph path and the in-memory path score a shared fixture identically —
+  // but nothing in `server/` calls them any more.
+  app.post(
+    "/api/cross-domain/correlate",
+    portedToPython("POST /api/cross-domain/correlate", CORRELATIONS_PORTED_TO),
   );
-  const correlation = new CrossDomainCorrelation(storage);
-
-  /**
-   * POST /api/cross-domain/correlate - Compute correlations between two domains.
-   * When CORRELATION_GRAPH_ENABLED is set and the domains exist in the shared
-   * graph, this is served from Neo4j (US-007); otherwise (and if the graph is
-   * unreachable) it degrades to the in-memory TSV path. The `source` field
-   * reports which path answered.
-   */
-  app.post("/api/cross-domain/correlate", async (req, res) => {
-    try {
-      const { domainA, domainB, relationshipType } = req.body;
-      if (!domainA || !domainB || !relationshipType) {
-        res.status(400).json({
-          message: "Missing required fields: domainA, domainB, relationshipType",
-        });
-        return;
-      }
-
-      const { result, source } = await correlateWithGraphFallback(
-        domainA,
-        domainB,
-        relationshipType,
-        () => correlation.queryCorrelation(domainA, domainB, relationshipType),
-      );
-      res.json({ ...result, source });
-    } catch (error) {
-      console.error("Error computing cross-domain correlation:", error);
-      res.status(500).json({
-        message: "Failed to compute correlation",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/cross-domain/prebuilt-queries - Get list of pre-built correlation queries
-   */
-  app.get("/api/cross-domain/prebuilt-queries", async (_req, res) => {
-    try {
-      const queries = correlation.getPrebuiltQueries();
-      res.json({ queries, count: queries.length });
-    } catch (error) {
-      console.error("Error fetching prebuilt queries:", error);
-      res.status(500).json({
-        message: "Failed to fetch prebuilt queries",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.get(
+    "/api/cross-domain/prebuilt-queries",
+    portedToPython("GET /api/cross-domain/prebuilt-queries", CORRELATIONS_PORTED_TO),
+  );
 
   // ============================================================================
   // Cross-Domain Timeline Routes
@@ -3102,29 +3099,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
-  // Genetic-Linguistic Correlation Routes (Phase 4)
+  // Genetic-Linguistic Correlation Routes (Phase 4) — PORTED (pinakes:62 US-1)
   // ============================================================================
-
-  const { GeneticLinguisticCorrelationService } = await import("./services/genetic-linguistic-correlation");
-  const geneticLinguistic = new GeneticLinguisticCorrelationService(storage as any);
-
-  /**
-   * GET /api/genetic-linguistic-correlations - Compute genetic-linguistic correlations
-   * Query params: haplogroupType (optional) - 'Y-chromosome' or 'mtDNA'
-   */
-  app.get("/api/genetic-linguistic-correlations", async (req, res) => {
-    try {
-      const haplogroupType = req.query.haplogroupType as string | undefined;
-      const result = await geneticLinguistic.computeCorrelations(haplogroupType);
-      res.json(result);
-    } catch (error) {
-      console.error("Error computing genetic-linguistic correlations:", error);
-      res.status(500).json({
-        message: "Failed to compute genetic-linguistic correlations",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  // Served by `pinakes.routers.correlations` over `pinakes.analytics.genetic`.
+  // `services/genetic-linguistic-correlation.ts` is NOT retired: its other half,
+  // `mapHaplogroupsToAncestry`, still backs `/api/ancestry/*` — a different port
+  // unit — and both halves share the NOTABLE_DIVERGENCES table.
+  app.get(
+    "/api/genetic-linguistic-correlations",
+    portedToPython("GET /api/genetic-linguistic-correlations", CORRELATIONS_PORTED_TO),
+  );
 
   // ============================================================================
   // Contribution API Routes (Phase 5; hardened public API US-011)

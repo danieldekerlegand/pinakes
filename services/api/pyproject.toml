@@ -29,6 +29,13 @@ dependencies = [
     # GraphRAG retrieval reports itself unavailable without it (a documented
     # degraded state, not a broken one).
     "pinakes-engine[neo4j]",
+    # The analytical index over `data/source/lexicons/*.tsv` (pinakes:62 US-1).
+    # `server/services/analytical-index.ts` built the same read-only in-memory
+    # mirror with `@duckdb/node-api`, and the port keeps DuckDB rather than
+    # reimplementing `read_csv`'s byte-faithful TSV semantics and the GROUP BY
+    # ordering in Python — the two engines answering the same SQL is what makes
+    # `/api/analytics/facets` a port rather than a rewrite.
+    "duckdb>=1.0",
 ]
 
 [project.scripts]
