@@ -11,13 +11,14 @@ from pinakes.parity import ParityRoute, load_parity_routes, split_coverage
 
 #: Concrete URLs standing in for templated baseline routes, chosen across
 #: methods and port units. The value is that they are *client* URLs — the shapes
-#: the React app actually asks for.
+#: the React app actually asks for. Keep them **unported**: a route that lands a
+#: router stops being a 501 and belongs in that group's own test instead.
 SAMPLE_REQUESTS = [
     ("GET", "/api/languages", "/api/languages"),
     ("GET", "/api/languages/{id}", "/api/languages/lang-42"),
     ("POST", "/api/scraping-jobs", "/api/scraping-jobs"),
     ("GET", "/api/summaries/{domain}", "/api/summaries/religions"),
-    ("GET", "/api/graph/status", "/api/graph/status"),
+    ("GET", "/api/graph/resolve", "/api/graph/resolve"),
     ("GET", "/.well-known/kcb-manifest.json", "/.well-known/kcb-manifest.json"),
 ]
 
@@ -81,11 +82,24 @@ def test_coverage_endpoint_matches_the_catalog(unbuilt_client: TestClient) -> No
     assert per_unit == payload["total"]
 
 
-def test_nothing_is_ported_yet(unbuilt_client: TestClient) -> None:
-    """The shell ports no route group; that is the next tasklist's job."""
+def test_a_ported_route_leaves_the_catalog(unbuilt_client: TestClient) -> None:
+    """The catalog is the *complement* of the routing table, not a second list.
+
+    Landing a router has to remove its stubs and move the coverage number in one
+    step; if the two could disagree, the number would be the thing that lies.
+    """
     coverage = coverage_of(unbuilt_client)
-    assert coverage.ported == ()
-    assert unbuilt_client.get("/api/_parity/coverage").json()["portedFraction"] == 0.0
+    ported = {route.key for route in coverage.ported}
+    assert ("GET", "/api/graph/search") in ported
+
+    stubbed = {route.key for route in coverage.unported}
+    assert ported.isdisjoint(stubbed)
+
+    payload = unbuilt_client.get("/api/_parity/coverage").json()
+    assert payload["portedFraction"] == len(coverage.ported) / coverage.total
+    assert all(
+        entry["path"] != "/api/graph/search" for entry in payload["notImplemented"]
+    )
 
 
 def test_split_coverage_matches_on_method_and_template() -> None:

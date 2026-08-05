@@ -93,6 +93,20 @@ def corpus() -> Corpus:
         raise EngineUnavailable(f"no readable corpus at {source}: {exc}") from exc
 
 
+def available() -> bool:
+    """Whether the corpus can be read. Never raises — it is a probe.
+
+    The counterpart of :func:`pinakes.engine.graph.available`, and it needs no
+    cache of its own: a successful load is memoised by the engine on the resolved
+    path, and a failed one is a directory read that costs nothing to repeat.
+    """
+    try:
+        corpus()
+    except EngineUnavailable:
+        return False
+    return True
+
+
 def search(query: str, limit: int = SEARCH_LIMIT) -> dict[str, Any]:
     """Full-text search over the corpus — the sidecar's ``GET /search`` body.
 
@@ -183,6 +197,7 @@ __all__ = [
     "CORPUS_ENV",
     "CORPUS_RELPATH",
     "EMPTY_METRICS",
+    "available",
     "category_payload",
     "completeness",
     "corpus",

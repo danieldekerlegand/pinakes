@@ -24,6 +24,32 @@ pattern is that parallel port tasklists never touch a shared file.
   a "ported" group fall back to its own 501 stub and look fine.
 - Prefix a file with `_` for a shared helper; the scanner skips those.
 
+## The worked example — `routers/graph.py` (pinakes:50 US-2)
+
+The first ported group, and the shape to copy: **one router file, thin over
+`pinakes.engine`, plus two test files.** Nothing else was touched to land it.
+
+- **A route is an adapter, not logic.** Parse the query string, call one engine
+  function, map `EngineUnavailable`/`EngineFailure` onto 503/502. If a handler
+  needs more than that, the missing piece belongs in `src/pinakes/engine/`.
+- **Declare a numeric query param as `str | None` and parse it yourself.** Express
+  read these through `Number(...)` + `Number.isFinite(...)`, so `?limit=abc` fell
+  back to the default; a declared `int` param answers **422**, which is a
+  different contract — a stale bookmark must not become a hard failure. The
+  `_number`/`_positive`/`_depth` helpers are that JS semantic, including the two
+  surprises (absent → `NaN`; present-but-empty → `0`).
+- **Grade with `tests/test_parity_replay.py`**, which is generic: it replays every
+  recorded fixture whose route the app registers and *skips* the rest by name. A
+  port inherits it by landing its router — but add a "this group is actually being
+  graded" assertion, because a fully-skipped parametrization is just as green as a
+  passing one. `tests/parity_shape.py` is the Python half of
+  `contracts/parity/shape.ts`; only the **matcher** is ported, deliberately —
+  recording stays Express's job, or this service would author the contract it is
+  graded against.
+- **`test_not_implemented.py`'s `SAMPLE_REQUESTS` must name only *unported*
+  routes.** Porting a group that appears there turns its 501 assertion red; move
+  the case into that group's own test.
+
 ## Traps
 
 - **`registered_routes()` reads FastAPI internals.** Since 0.139

@@ -250,22 +250,32 @@ Python-side cross-links (same repo, `engine/`):
 
 The browser talks only to the pinakes origin. `server/routes/graph.ts`
 (`registerGraphRoutes`, wired in `server/routes.ts`) exposes a first-party proxy over
-the shared graph. Node/neighborhood lookups run through the Neo4j driver layer
-(`server/services/graph-store.ts`); search/metrics run through the FastAPI sidecar client
-(`server/services/engine-client.ts`).
+the shared graph.
+
+> **Ported (pinakes:50 US-2).** Eight of these routes now live in the Python service
+> (`services/api/src/pinakes/routers/graph.py`), served **in-process** over
+> `pinakes_engine`: no HTTP hop to the sidecar and no second, TypeScript Neo4j driver.
+> Their Express handlers are retired and answer **501** naming the replacement; the
+> paths stay registered because `contracts/parity/openapi.json` is harvested from the
+> registration set (and so is the guard below). The **Backend** column names the owner.
+> The success/degradation columns describe what the Python service answers — it
+> reproduces those shapes, which is what `services/api/tests/` grades it on. Two rows
+> are still served by Express: `/resolve` (lexicon-backed, no engine) and `/status`
+> (still replayed against this app by the recorded parity fixture, though the Python
+> service serves its own).
 
 | Method & path | Backend | Success | Notes |
 | --- | --- | --- | --- |
-| `GET /api/graph/search?q=&limit=` | sidecar `/search` | `{ query, results[] }` | empty `q` → `{ query:"", results:[] }` without hitting the sidecar |
-| `GET /api/graph/node/:id` | Neo4j `getNode` | `{ node }` | `:id` is the csid; missing node → **404** |
-| `GET /api/graph/neighborhood/:id?depth=` | Neo4j `getNeighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
-| `GET /api/graph/overview?limit=` | Neo4j `getGraphOverview` | `{ nodes[], edges[] }` | bounded snapshot (first `limit` nodes + edges among them; `limit` clamped 1..1000, default 250) powering the shared-graph explorer dataset (US-008) |
-| `GET /api/graph/retrieve?q=&k=&depth=` | sidecar `/retrieve` | `{ query, seeds[], nodes[], edges[] }` | hybrid GraphRAG retrieval — the query is embedded, the top-`k` nearest nodes come from the Neo4j vector index, each expanded into a subgraph; empty `q` → `{ query:"", seeds:[], nodes:[], edges:[] }` without hitting the sidecar; a missing embedder/Neo4j connection degrades to **503** like the rest of the catalog |
-| `GET /api/graph/metrics` | sidecar `/metrics` | graph-level metrics | — |
-| `POST /api/graph/datalog` | sidecar `/datalog` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
-| `POST /api/graph/cypher` | sidecar `/neo4j` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
+| `GET /api/graph/search?q=&limit=` | **ported** → `pinakes.engine.corpus.search` | `{ query, results[] }` | empty `q` → `{ query:"", results:[] }` without hitting the sidecar |
+| `GET /api/graph/node/:id` | **ported** → `pinakes.engine.graph.node` | `{ node }` | `:id` is the csid; missing node → **404** |
+| `GET /api/graph/neighborhood/:id?depth=` | **ported** → `pinakes.engine.graph.neighborhood` | `{ root, nodes[], edges[], depth }` | `depth` clamped to 1..3 (default 1); missing focus node → **404** |
+| `GET /api/graph/overview?limit=` | **ported** → `pinakes.engine.graph.overview` | `{ nodes[], edges[] }` | bounded snapshot (first `limit` nodes + edges among them; `limit` clamped 1..1000, default 250) powering the shared-graph explorer dataset (US-008) |
+| `GET /api/graph/retrieve?q=&k=&depth=` | **ported** → `pinakes.engine.graph.retrieve` | `{ query, seeds[], nodes[], edges[] }` | hybrid GraphRAG retrieval — the query is embedded, the top-`k` nearest nodes come from the Neo4j vector index, each expanded into a subgraph; empty `q` → `{ query:"", seeds:[], nodes:[], edges:[] }` without hitting the sidecar; a missing embedder/Neo4j connection degrades to **503** like the rest of the catalog |
+| `GET /api/graph/metrics` | **ported** → `pinakes.engine.corpus.metrics` | graph-level metrics | — |
+| `POST /api/graph/datalog` | **ported** → `pinakes.engine.datalog.run` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
+| `POST /api/graph/cypher` | **ported** → `pinakes.engine.graph.cypher` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
 | `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a pinakes entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
-| `GET /api/graph/status` | both | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
+| `GET /api/graph/status` | both (Express `graph-health`; Python `graph.available` + `corpus.available`) | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
 **Sidecar JSON contract (US-003).** The FastAPI explorer's `/search`, `/metrics`, and
 `/completeness` views content-negotiate on `Accept`: a browser gets the HTML explorer, and
@@ -294,8 +304,11 @@ trigger/tab in `<GraphFeatureGate backend=… mode="disable"|"hide">`
 feature when its backend is offline. Pure decision logic lives in
 `web/src/lib/graph/availability.ts` (`isGraphFeatureEnabled` / `graphUnavailableReason`).
 
-Integration tests: `server/routes/graph.test.ts` mounts the routes on a real Express app
-with both services module-mocked and exercises every route including the unavailable path.
+Integration tests: `services/api/tests/test_graph_routes.py` drives the ported routes
+against a fake Neo4j driver and a temp-dir corpus, including every degraded path, and
+`services/api/tests/test_parity_replay.py` replays the recorded fixtures at them.
+`server/routes/graph.test.ts` covers what Express still serves plus the 501 hand-off —
+including that a retired handler reaches no backend.
 
 **Neighborhood visualization (US-007).** Entity detail panels (language, culture profile)
 carry a `<ShowInGraphButton entity={{ type, id, name, region }}>`

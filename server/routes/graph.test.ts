@@ -4,11 +4,20 @@ import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 
 /**
- * Integration tests for the first-party `/api/graph/*` routes (US-004). The
- * graph-store (Neo4j) and engine-client (sidecar) are module-mocked — no
- * live Neo4j, no live network — while the real error classes are preserved so the
- * routes' `instanceof` degradation logic runs exactly as in production. The routes
- * are mounted on a real Express app and driven over real HTTP.
+ * Integration tests for the first-party `/api/graph/*` routes (US-004), after
+ * pinakes:50 US-2 moved most of them to the Python service.
+ *
+ * Two things are covered: the routes this backend still serves (`/resolve`,
+ * `/status`) behave as they always did, and the eight it handed over answer the
+ * 501 hand-off **without touching a backend**. The behavioural coverage those
+ * eight used to have here moved with the code — it lives in
+ * `services/api/tests/test_graph_routes.py`, driven against the same fakes.
+ *
+ * The graph-store (Neo4j) and engine-client (sidecar) are still module-mocked —
+ * no live Neo4j, no live network — because `/status` aggregates both through
+ * `graph-health`, and because a spy that is never called is what proves a retired
+ * handler is really retired. The routes are mounted on a real Express app and
+ * driven over real HTTP.
  */
 
 // Shared spies, hoisted so they exist before the vi.mock factories run.
@@ -61,13 +70,13 @@ vi.mock("../services/graph-resolver", async (importOriginal) => {
   };
 });
 
-import { registerGraphRoutes } from "./graph";
-import { resetGraphHealthCache } from "../services/graph-health";
-import { GraphUnavailableError } from "../services/graph-store";
 import {
-  EngineError,
-  EngineUnavailableError,
-} from "../services/engine-client";
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerGraphRoutes,
+} from "./graph";
+import { resetGraphHealthCache } from "../services/graph-health";
 
 // ── Test server ───────────────────────────────────────────────────────────────
 
@@ -113,262 +122,64 @@ async function post(
   return { status: res.status, body: await res.json() };
 }
 
-const NODE = {
-  csid: "cs:dish:paella",
-  labels: ["Dish"],
-  name: "Paella",
-  properties: {},
-};
+// ── The ported routes ───────────────────────────────────────────────────────
 
-// ── GET /api/graph/search ───────────────────────────────────────────────────
+/**
+ * Every route pinakes:50 US-2 handed to the Python service, with the concrete
+ * URL to drive it. What is under test is the hand-off itself: the path is still
+ * registered (the parity baseline and the §10b catalog guard both read the
+ * registration set), it answers 501 naming its replacement, and — the part worth
+ * a test — it reaches **no** backend on the way. A retired handler that still
+ * talked to the sidecar or the Neo4j driver would be a second implementation
+ * drifting quietly behind a 501.
+ */
+const PORTED: [method: "GET" | "POST", url: string][] = [
+  ["GET", "/api/graph/search?q=paella"],
+  ["GET", "/api/graph/node/cs:dish:paella"],
+  ["GET", "/api/graph/neighborhood/cs:dish:paella?depth=2"],
+  ["GET", "/api/graph/overview?limit=10"],
+  ["GET", "/api/graph/retrieve?q=paella"],
+  ["GET", "/api/graph/metrics"],
+  ["POST", "/api/graph/datalog"],
+  ["POST", "/api/graph/cypher"],
+];
 
-describe("GET /api/graph/search", () => {
-  it("returns sidecar search results on success", async () => {
-    mocks.search.mockResolvedValue({
-      query: "paella",
-      results: [{ csid: "cs:dish:paella", name: "Paella", label: "Dish" }],
-    });
-    const { status, body } = await get("/api/graph/search?q=paella");
-    expect(status).toBe(200);
-    expect(body.results).toHaveLength(1);
-    expect(mocks.search).toHaveBeenCalledWith("paella", undefined);
+describe("routes ported to the Python service", () => {
+  it.each(PORTED)("%s %s answers 501 naming its replacement", async (method, url) => {
+    const { status, body } =
+      method === "GET" ? await get(url) : await post(url, { goal: "main.", query: "MATCH (n) RETURN n" });
+
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.message).toContain("ported to the Python service");
   });
 
-  it("passes a numeric limit through", async () => {
-    mocks.search.mockResolvedValue({ query: "x", results: [] });
-    await get("/api/graph/search?q=x&limit=5");
-    expect(mocks.search).toHaveBeenCalledWith("x", 5);
+  it("reaches no backend on the way", async () => {
+    for (const [method, url] of PORTED) {
+      if (method === "GET") await get(url);
+      else await post(url, { goal: "main.", query: "MATCH (n) RETURN n" });
+    }
+
+    for (const [name, spy] of Object.entries(mocks)) {
+      expect(spy, `${name} was called by a retired handler`).not.toHaveBeenCalled();
+    }
   });
 
-  it("short-circuits an empty query without calling the sidecar", async () => {
-    const { status, body } = await get("/api/graph/search?q=%20%20");
-    expect(status).toBe(200);
-    expect(body).toEqual({ query: "", results: [] });
-    expect(mocks.search).not.toHaveBeenCalled();
-  });
+  it("still registers every ported path", () => {
+    // Deleting a registration would shrink `contracts/parity/openapi.json` on its
+    // next harvest — i.e. rewrite the baseline the port is graded against.
+    const registered = new Set<string>();
+    const record = (m: string) => (routePath: string) => {
+      registered.add(`${m} ${routePath}`);
+    };
+    registerGraphRoutes({ get: record("GET"), post: record("POST") } as unknown as Express);
 
-  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.search.mockRejectedValue(new EngineUnavailableError("down"));
-    const { status, body } = await get("/api/graph/search?q=paella");
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-
-  it("returns 502 when the sidecar sends an unusable response", async () => {
-    mocks.search.mockRejectedValue(new EngineError("bad body", 200));
-    const { status, body } = await get("/api/graph/search?q=paella");
-    expect(status).toBe(502);
-    expect(body.available).toBe(true);
-  });
-});
-
-// ── GET /api/graph/retrieve ──────────────────────────────────────────────────
-
-describe("GET /api/graph/retrieve", () => {
-  const RETRIEVAL = {
-    query: "iron-age hillforts",
-    available: true,
-    backend: "neo4j",
-    index: "entity_embedding",
-    k: 5,
-    depth: 1,
-    seeds: [
-      {
-        csid: "cs:site:maiden-castle",
-        name: "Maiden Castle",
-        label: "Site",
-        labels: ["Site"],
-        score: 0.88,
-      },
-    ],
-    nodes: [
-      {
-        csid: "cs:site:maiden-castle",
-        name: "Maiden Castle",
-        label: "Site",
-        labels: ["Site"],
-      },
-    ],
-    edges: [],
-  };
-
-  it("returns the hybrid-retrieval subgraph on success", async () => {
-    mocks.retrieve.mockResolvedValue(RETRIEVAL);
-    const { status, body } = await get("/api/graph/retrieve?q=iron-age%20hillforts");
-    expect(status).toBe(200);
-    expect(body.seeds[0].csid).toBe("cs:site:maiden-castle");
-    expect(mocks.retrieve).toHaveBeenCalledWith("iron-age hillforts", {
-      k: undefined,
-      depth: undefined,
-    });
-  });
-
-  it("passes numeric k and depth through", async () => {
-    mocks.retrieve.mockResolvedValue({ ...RETRIEVAL, k: 3, depth: 2 });
-    await get("/api/graph/retrieve?q=x&k=3&depth=2");
-    expect(mocks.retrieve).toHaveBeenCalledWith("x", { k: 3, depth: 2 });
-  });
-
-  it("short-circuits an empty query without calling the sidecar", async () => {
-    const { status, body } = await get("/api/graph/retrieve?q=%20%20");
-    expect(status).toBe(200);
-    expect(body).toEqual({ query: "", seeds: [], nodes: [], edges: [] });
-    expect(mocks.retrieve).not.toHaveBeenCalled();
-  });
-
-  it("returns 503 { available:false } when GraphRAG is unavailable", async () => {
-    mocks.retrieve.mockRejectedValue(
-      new EngineUnavailableError("no embedder"),
-    );
-    const { status, body } = await get("/api/graph/retrieve?q=x");
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-
-  it("returns 502 when the sidecar sends an unusable response", async () => {
-    mocks.retrieve.mockRejectedValue(new EngineError("bad body", 200));
-    const { status, body } = await get("/api/graph/retrieve?q=x");
-    expect(status).toBe(502);
-    expect(body.available).toBe(true);
+    for (const route of PORTED_ROUTES.get) expect(registered.has(`GET ${route}`)).toBe(true);
+    for (const route of PORTED_ROUTES.post) expect(registered.has(`POST ${route}`)).toBe(true);
   });
 });
 
-// ── GET /api/graph/node/:id ─────────────────────────────────────────────────
-
-describe("GET /api/graph/node/:id", () => {
-  it("returns the node on success", async () => {
-    mocks.getNode.mockResolvedValue(NODE);
-    const { status, body } = await get("/api/graph/node/cs:dish:paella");
-    expect(status).toBe(200);
-    expect(body.node.csid).toBe("cs:dish:paella");
-    expect(mocks.getNode).toHaveBeenCalledWith("cs:dish:paella");
-  });
-
-  it("returns 404 when the node does not exist", async () => {
-    mocks.getNode.mockResolvedValue(null);
-    const { status, body } = await get("/api/graph/node/cs:dish:missing");
-    expect(status).toBe(404);
-    expect(body.error).toMatch(/not found/);
-  });
-
-  it("returns 503 { available:false } when Neo4j is unavailable", async () => {
-    mocks.getNode.mockRejectedValue(new GraphUnavailableError());
-    const { status, body } = await get("/api/graph/node/cs:dish:paella");
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-});
-
-// ── GET /api/graph/neighborhood/:id ─────────────────────────────────────────
-
-describe("GET /api/graph/neighborhood/:id", () => {
-  const HOOD = { root: NODE, nodes: [NODE], edges: [], depth: 2 };
-
-  it("returns the neighborhood on success", async () => {
-    mocks.getNeighborhood.mockResolvedValue(HOOD);
-    const { status, body } = await get(
-      "/api/graph/neighborhood/cs:dish:paella?depth=2",
-    );
-    expect(status).toBe(200);
-    expect(body.depth).toBe(2);
-    expect(mocks.getNeighborhood).toHaveBeenCalledWith("cs:dish:paella", 2);
-  });
-
-  it("clamps an out-of-range depth to 3", async () => {
-    mocks.getNeighborhood.mockResolvedValue({ ...HOOD, depth: 3 });
-    await get("/api/graph/neighborhood/cs:dish:paella?depth=9");
-    expect(mocks.getNeighborhood).toHaveBeenCalledWith("cs:dish:paella", 3);
-  });
-
-  it("defaults to depth 1 when the param is missing or non-numeric", async () => {
-    mocks.getNeighborhood.mockResolvedValue({ ...HOOD, depth: 1 });
-    await get("/api/graph/neighborhood/cs:dish:paella?depth=abc");
-    expect(mocks.getNeighborhood).toHaveBeenCalledWith("cs:dish:paella", 1);
-  });
-
-  it("returns 404 when the focus node does not exist", async () => {
-    mocks.getNeighborhood.mockResolvedValue(null);
-    const { status } = await get("/api/graph/neighborhood/cs:dish:missing");
-    expect(status).toBe(404);
-  });
-
-  it("returns 503 { available:false } when Neo4j is unavailable", async () => {
-    mocks.getNeighborhood.mockRejectedValue(new GraphUnavailableError());
-    const { status, body } = await get(
-      "/api/graph/neighborhood/cs:dish:paella",
-    );
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-});
-
-// ── GET /api/graph/overview ─────────────────────────────────────────────────
-
-describe("GET /api/graph/overview", () => {
-  const SNAPSHOT = {
-    nodes: [NODE, { csid: "cs:region:iberia", labels: ["Region"], name: "Iberia", properties: {} }],
-    edges: [
-      { id: "e1", type: "ORIGINATES_IN", startCsid: "cs:dish:paella", endCsid: "cs:region:iberia", properties: {} },
-    ],
-  };
-
-  it("returns the graph snapshot on success", async () => {
-    mocks.getGraphOverview.mockResolvedValue(SNAPSHOT);
-    const { status, body } = await get("/api/graph/overview");
-    expect(status).toBe(200);
-    expect(body.nodes).toHaveLength(2);
-    expect(body.edges).toHaveLength(1);
-    expect(mocks.getGraphOverview).toHaveBeenCalledWith(undefined);
-  });
-
-  it("passes a numeric limit through", async () => {
-    mocks.getGraphOverview.mockResolvedValue({ nodes: [], edges: [] });
-    await get("/api/graph/overview?limit=50");
-    expect(mocks.getGraphOverview).toHaveBeenCalledWith(50);
-  });
-
-  it("ignores a non-positive limit (uses the default)", async () => {
-    mocks.getGraphOverview.mockResolvedValue({ nodes: [], edges: [] });
-    await get("/api/graph/overview?limit=0");
-    expect(mocks.getGraphOverview).toHaveBeenCalledWith(undefined);
-  });
-
-  it("returns 503 { available:false } when Neo4j is unavailable", async () => {
-    mocks.getGraphOverview.mockRejectedValue(new GraphUnavailableError());
-    const { status, body } = await get("/api/graph/overview");
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-});
-
-// ── GET /api/graph/metrics ──────────────────────────────────────────────────
-
-describe("GET /api/graph/metrics", () => {
-  const METRICS = {
-    node_count: 10,
-    edge_count: 20,
-    edges_per_node: 2,
-    component_count: 1,
-    largest_component_size: 10,
-    largest_component_fraction: 1,
-    edges_by_dimension: {},
-    edges_by_type: {},
-  };
-
-  it("returns sidecar metrics on success", async () => {
-    mocks.metrics.mockResolvedValue(METRICS);
-    const { status, body } = await get("/api/graph/metrics");
-    expect(status).toBe(200);
-    expect(body.node_count).toBe(10);
-  });
-
-  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.metrics.mockRejectedValue(new EngineUnavailableError());
-    const { status, body } = await get("/api/graph/metrics");
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-});
 
 // ── GET /api/graph/resolve ──────────────────────────────────────────────────
 
@@ -403,120 +214,6 @@ describe("GET /api/graph/resolve", () => {
     const { status } = await get("/api/graph/resolve?id=lat");
     expect(status).toBe(400);
     expect(mocks.resolve).not.toHaveBeenCalled();
-  });
-});
-
-// ── POST /api/graph/datalog ─────────────────────────────────────────────────
-
-describe("POST /api/graph/datalog", () => {
-  const OUTCOME = {
-    ran: true,
-    rows: [["cs:language:pie"], ["cs:language:proto-celtic"]],
-    problems: [],
-    error: null,
-    reason: null,
-  };
-
-  it("runs an ad-hoc goal and returns the outcome", async () => {
-    mocks.datalog.mockResolvedValue(OUTCOME);
-    const { status, body } = await post("/api/graph/datalog", {
-      goal: "main :- ancestor('cs:language:gaulish', A), format(\"~w~n\",[A]).",
-    });
-    expect(status).toBe(200);
-    expect(body.rows).toHaveLength(2);
-    expect(mocks.datalog).toHaveBeenCalledWith({
-      goal: expect.stringContaining("ancestor"),
-      example: undefined,
-    });
-  });
-
-  it("runs a named example slug", async () => {
-    mocks.datalog.mockResolvedValue(OUTCOME);
-    await post("/api/graph/datalog", { example: "language-descent" });
-    expect(mocks.datalog).toHaveBeenCalledWith({
-      goal: undefined,
-      example: "language-descent",
-    });
-  });
-
-  it("surfaces a sidecar lint error/reason instead of swallowing it", async () => {
-    mocks.datalog.mockResolvedValue({
-      ran: false,
-      rows: [],
-      problems: ["undefined predicate foo/1"],
-      error: null,
-      reason: "swipl not found, so the query was linted offline but not run.",
-    });
-    const { status, body } = await post("/api/graph/datalog", { goal: "main :- foo." });
-    expect(status).toBe(200);
-    expect(body.ran).toBe(false);
-    expect(body.reason).toMatch(/swipl/);
-  });
-
-  it("400s when neither goal nor example is provided", async () => {
-    const { status } = await post("/api/graph/datalog", {});
-    expect(status).toBe(400);
-    expect(mocks.datalog).not.toHaveBeenCalled();
-  });
-
-  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.datalog.mockRejectedValue(new EngineUnavailableError("down"));
-    const { status, body } = await post("/api/graph/datalog", { example: "x" });
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
-  });
-});
-
-// ── POST /api/graph/cypher ──────────────────────────────────────────────────
-
-describe("POST /api/graph/cypher", () => {
-  const RESULT = {
-    columns: ["n.name"],
-    rows: [["Paella"], ["Ceviche"]],
-  };
-
-  it("runs a read-only query and returns columns + rows", async () => {
-    mocks.cypher.mockResolvedValue(RESULT);
-    const { status, body } = await post("/api/graph/cypher", {
-      query: "MATCH (n:Dish) RETURN n.name LIMIT 25",
-    });
-    expect(status).toBe(200);
-    expect(body.columns).toEqual(["n.name"]);
-    expect(body.rows).toHaveLength(2);
-    expect(mocks.cypher).toHaveBeenCalledWith("MATCH (n:Dish) RETURN n.name LIMIT 25");
-  });
-
-  it("400s a write query without hitting the sidecar", async () => {
-    const { status, body } = await post("/api/graph/cypher", {
-      query: "MATCH (n) DETACH DELETE n",
-    });
-    expect(status).toBe(400);
-    expect(body.error).toMatch(/read-only/i);
-    expect(mocks.cypher).not.toHaveBeenCalled();
-  });
-
-  it("400s an empty query", async () => {
-    const { status } = await post("/api/graph/cypher", { query: "   " });
-    expect(status).toBe(400);
-    expect(mocks.cypher).not.toHaveBeenCalled();
-  });
-
-  it("surfaces a sidecar syntax error as 502 (not swallowed)", async () => {
-    mocks.cypher.mockRejectedValue(new EngineError("invalid syntax", 400));
-    const { status, body } = await post("/api/graph/cypher", {
-      query: "MATCH (n) RETURN nope(",
-    });
-    expect(status).toBe(502);
-    expect(body.detail).toMatch(/invalid syntax/);
-  });
-
-  it("returns 503 { available:false } when the sidecar is unavailable", async () => {
-    mocks.cypher.mockRejectedValue(new EngineUnavailableError());
-    const { status, body } = await post("/api/graph/cypher", {
-      query: "MATCH (n) RETURN n LIMIT 1",
-    });
-    expect(status).toBe(503);
-    expect(body.available).toBe(false);
   });
 });
 
