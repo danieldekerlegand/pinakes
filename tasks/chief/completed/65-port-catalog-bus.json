@@ -2,7 +2,7 @@
   "project": "pinakes",
   "branchName": "chief/65-port-catalog-bus",
   "baseBranch": "main",
-  "description": "Port the catalog, capability-bus, and remaining graph-adjacent routes to Python (docs/UNIFIED-PROJECT-PLAN.md \u00a77 port band): graph-catalog, capability-bus + a2a, the MCP server, connection-narrative (explain), timeline-event, relationship-edge/-suggestions, drawn-geometry, ancestry. Runs in parallel with the other port tasklists.",
+  "description": "Port the catalog, capability-bus, and remaining graph-adjacent routes to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): graph-catalog, capability-bus + a2a, the MCP server, connection-narrative (explain), timeline-event, relationship-edge/-suggestions, drawn-geometry, ancestry. Runs in parallel with the other port tasklists.",
   "dependsOn": [
     "50-engine-inprocess-graph"
   ],
@@ -36,5 +36,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "4190c7f0"
 }
