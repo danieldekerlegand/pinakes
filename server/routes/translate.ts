@@ -1,69 +1,58 @@
 /**
- * Server-side translation proxy route (US-002).
+ * Server-side translation proxy route — **ported away** (pinakes:64 US-1,
+ * docs/UNIFIED-PROJECT-PLAN.md §7).
  *
- * `POST /api/translate` accepts `{ text, to, from? }` and returns the translation,
- * making the upstream Google Translate call with the **server-side**
- * `GOOGLE_TRANSLATE_API_KEY`. The key is never exposed to the client — mirrors the
- * Gemini "server-side only" posture (docs/SECURITY.md).
+ * `POST /api/translate` is served by the Python service now
+ * (`services/api/src/pinakes/routers/translate.py` over `pinakes.ingest.translate`).
+ * The handler here answers **501**.
  *
- * Both the network boundary (`TranslateDeps`) and the resolved key are injectable so
- * tests run with a fixture-backed fake and no real API key (see
- * `server/routes/translate.test.ts`).
+ * **The security posture is unchanged and is the whole point of the route**
+ * (US-002, docs/SECURITY.md): `GOOGLE_TRANSLATE_API_KEY` is read server-side and
+ * the upstream call is made server-side, so the browser never holds the key.
+ * That is now true of the *Python* server; `server/security/translate-proxy.test.ts`
+ * still guards the invariant that no `web/` source names the key, and it does not
+ * care which backend answers. The three status codes the client depends on are
+ * reproduced exactly — 400 bad body, **503 when no key is configured** (which is
+ * what makes translation an optional enhancement `web/src/lib/scraping.ts` falls
+ * through), 502 upstream failure.
+ *
+ * **`server/services/translate.ts` is NOT retired.** It is the graded spec for
+ * the port; `services/api/tests/test_translate.py` is its suite, case for case.
+ *
+ * The path stays registered — the parity baseline was harvested from that path
+ * set (see `routes/text-extractor.ts`).
  */
 
-import type { Express } from "express";
-import {
-  liveDeps,
-  loadTranslateApiKey,
-  translateText,
-  TranslateError,
-  TranslateNotConfiguredError,
-  TranslateValidationError,
-  validateTranslateInput,
-  type TranslateDeps,
-} from "../services/translate";
+import { type Express, type Request, type Response } from "express";
 
-export interface TranslateRouteOptions {
-  /** Network boundary (default: live Google Translate REST). */
-  deps?: TranslateDeps;
-  /** Server-side key (default: read from `GOOGLE_TRANSLATE_API_KEY`). */
-  apiKey?: string | null;
+/** The Python module that now serves this route. */
+export const PORTED_TO = "services/api/src/pinakes/routers/translate.py";
+
+/** The route this backend handed over. */
+export const PORTED_ROUTES = {
+  post: ["/api/translate"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/** A handler for a route this backend no longer owns. 501, not 404 or 503. */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
 }
 
-export function registerTranslateRoutes(app: Express, options: TranslateRouteOptions = {}): void {
-  const deps = options.deps ?? liveDeps;
-  // Resolve the key once at registration; `undefined` means "read env now".
-  const apiKey = options.apiKey === undefined ? loadTranslateApiKey() : options.apiKey;
-
-  /**
-   * POST /api/translate
-   * Body: `{ text, to, from? }`.
-   * 200 `{ translation, source, from, to }`; 400 invalid body; 502 upstream failure;
-   * 503 when no server-side key is configured.
-   */
-  app.post("/api/translate", async (req, res) => {
-    let input;
-    try {
-      input = validateTranslateInput(req.body);
-    } catch (error) {
-      if (error instanceof TranslateValidationError) {
-        return res.status(400).json({ message: error.message });
-      }
-      throw error;
-    }
-
-    try {
-      const result = await translateText(input, deps, apiKey);
-      return res.status(200).json(result);
-    } catch (error) {
-      if (error instanceof TranslateNotConfiguredError) {
-        return res.status(503).json({ message: "Translation is not available (no server-side key configured)" });
-      }
-      if (error instanceof TranslateError) {
-        return res.status(502).json({ message: "Translation failed" });
-      }
-      console.error("Translation failed:", error);
-      return res.status(502).json({ message: "Translation failed" });
-    }
-  });
+export function registerTranslateRoutes(app: Express): void {
+  for (const route of PORTED_ROUTES.post) {
+    app.post(route, portedToPython(`POST ${route}`));
+  }
 }

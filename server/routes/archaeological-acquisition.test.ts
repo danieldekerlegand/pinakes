@@ -2,89 +2,54 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import express, { type Express } from "express";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
-import fs from "fs";
-import os from "os";
-import path from "path";
 
 /**
- * Integration tests for the Open Context / tDAR acquisition routes (US-007). The
- * network is faked with recorded fixtures (no live fetch) and the
- * ContributionService points at a temp dir. An `onJobSettled` hook lets each
- * test await the background job deterministically.
+ * What is left of the Open Context / tDAR acquisition routes on this backend
+ * (pinakes:64 US-2).
+ *
+ * Both are served by the Python service now, and their behavioural coverage
+ * moved with them: `services/api/tests/test_archaeology_routes.py` (the routes,
+ * including the acquired rows landing in `data/runtime/contributions`) and
+ * `services/api/tests/test_archaeology.py` (the adapters, case for case with
+ * `server/services/archaeological-site-scraper.test.ts` and against the same
+ * recorded fixtures). What this file asserts is the hand-off.
+ *
+ * The adapters themselves are **not** retired — that file is the graded spec,
+ * and its own suite still runs here.
  */
 
-import { registerArchaeologyAcquisitionRoutes } from "./archaeological-acquisition";
-import { ContributionService } from "../services/contribution-service";
-import type {
-  ArchaeologyAcquisitionResult,
-  ArchaeologyDeps,
-  OpenContextResponse,
-  TdarResponse,
-} from "../services/archaeological-site-scraper";
+import {
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerArchaeologyAcquisitionRoutes,
+} from "./archaeological-acquisition";
 
-const FIXTURE_DIR = path.join(__dirname, "..", "services", "fixtures", "archaeological");
-function loadFixture<T>(name: string): T {
-  return JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, `${name}.json`), "utf-8")) as T;
-}
-
-const fakeDeps: ArchaeologyDeps = {
-  async fetchOpenContext() {
-    return loadFixture<OpenContextResponse>("open-context-search");
-  },
-  async fetchTdar() {
-    return loadFixture<TdarResponse>("tdar-search");
-  },
-};
-
-let app: Express;
 let server: Server;
 let baseUrl: string;
-let dir: string;
-let contributions: ContributionService;
-
-const settlements = new Map<
-  string,
-  (r: { result: ArchaeologyAcquisitionResult | null; error?: Error }) => void
->();
-const pending = new Map<
-  string,
-  Promise<{ result: ArchaeologyAcquisitionResult | null; error?: Error }>
->();
-function awaitJob(jobId: string) {
-  let p = pending.get(jobId);
-  if (!p) {
-    p = new Promise((resolve) => settlements.set(jobId, resolve));
-    pending.set(jobId, p);
-  }
-  return p;
-}
 
 beforeAll(async () => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), "arch-acq-routes-"));
-  contributions = new ContributionService(dir);
-  app = express();
+  const app: Express = express();
   app.use(express.json());
-  registerArchaeologyAcquisitionRoutes(app, {
-    deps: fakeDeps,
-    contributions,
-    onJobSettled: (jobId, result, error) => {
-      awaitJob(jobId);
-      settlements.get(jobId)?.({ result, error });
-    },
-  });
+  registerArchaeologyAcquisitionRoutes(app);
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
-  const { port } = server.address() as AddressInfo;
-  baseUrl = `http://127.0.0.1:${port}`;
+  baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
 
 afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
-  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 type Res = { status: number; body: any };
+
+async function get(path: string): Promise<Res> {
+  const res = await fetch(`${baseUrl}${path}`);
+  const text = await res.text();
+  return { status: res.status, body: text ? JSON.parse(text) : null };
+}
+
 async function post(body: unknown): Promise<Res> {
   const res = await fetch(`${baseUrl}/api/scraping/archaeology`, {
     method: "POST",
@@ -95,43 +60,30 @@ async function post(body: unknown): Promise<Res> {
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-describe("GET /api/scraping/archaeology/sources", () => {
-  it("lists the two archaeological sources", async () => {
-    const res = await fetch(`${baseUrl}/api/scraping/archaeology/sources`);
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as { sources: Array<{ id: string }> };
-    expect(body.sources.map((s) => s.id).sort()).toEqual(["open-context", "tdar"]);
+describe("archaeological acquisition — ported to the Python service", () => {
+  it("answers 501 on the sources endpoint, naming its replacement", async () => {
+    const { status, body } = await get("/api/scraping/archaeology/sources");
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.route).toBe("GET /api/scraping/archaeology/sources");
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
-});
 
-describe("POST /api/scraping/archaeology", () => {
-  it("starts a job and queues acquired sites into the review queue", async () => {
+  it("answers 501 on the acquisition endpoint", async () => {
     const { status, body } = await post({ source: "tdar", limit: 50 });
-    expect(status).toBe(202);
-    expect(body.source).toBe("tdar");
-    expect(typeof body.jobId).toBe("string");
-
-    const { result, error } = await awaitJob(body.jobId);
-    expect(error).toBeUndefined();
-    expect(result).not.toBeNull();
-    expect(result!.acquired).toBe(2);
-    expect(result!.queued).toBe(2);
-
-    const stored = contributions.get(result!.contributionIds[0]);
-    expect(stored?.status).toBe("pending");
-    expect(stored?.entityType).toBe("archaeological-site");
-    expect(stored?.entityData.source).toBe("tdar");
-    expect(stored?.entityData.autoDerived).toBe(true);
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.route).toBe("POST /api/scraping/archaeology");
   });
 
-  it("rejects an unknown source with 400", async () => {
-    const { status, body } = await post({ source: "not-a-source" });
-    expect(status).toBe(400);
-    expect(body.validSources).toContain("open-context");
+  it("starts no job and queues nothing", async () => {
+    const { body } = await post({ source: "tdar" });
+    expect(body.jobId).toBeUndefined();
   });
 
-  it("rejects a non-positive limit with 400", async () => {
-    const { status } = await post({ source: "open-context", limit: -5 });
-    expect(status).toBe(400);
+  it("keeps both paths registered", () => {
+    expect(PORTED_ROUTES.get).toEqual(["/api/scraping/archaeology/sources"]);
+    expect(PORTED_ROUTES.post).toEqual(["/api/scraping/archaeology"]);
   });
 });

@@ -473,3 +473,98 @@ tasklist named: **the graph half of federated search is now in-process**
 - **`GET /api/search` is served by BOTH backends**, like `GET /api/citations` and
   the two entity-resolver routes: its `get-search` fixture is replayed against
   Express. The other six routes in the band are fixture-free and retired to 501.
+
+## Single-entity ingest — `ingest/` + `routers/{extract,translate}.py` (pinakes:64 US-1)
+
+`POST /api/extract/{text,url}` and `POST /api/translate`: three small pipelines that turn
+one paste into one reviewable draft (or one translated string). Coverage 59/306 → 62/306.
+This is the first band whose routes **reach the open internet**, and that is what shapes
+it.
+
+- **There is one door out, and it is the engine's.** Every outbound fetch goes through
+  `ingest/http.py`, which hands out `pinakes_engine.acquire.http.HttpClient` — the same
+  polite client the acquisition adapters use: per-host rate limiting, exponential backoff
+  honouring `Retry-After`, a real User-Agent, and an on-disk cache. The TypeScript called
+  bare `fetch` four times over and had none of it; a throttled model read as a failed
+  extraction on the first try. **Do not construct a second client anywhere in this
+  package.**
+- **A client is built per *source*, once, and shared** — a per-call client would rate-limit
+  nothing, because each one starts unthrottled. `WIKIMEDIA` keeps the one-second spacing the
+  Wikimedia User-Agent policy asks for; `GOOGLE` deliberately keeps **none**: those
+  endpoints are key-authenticated and quota-metered, and the client translates a vocabulary
+  word by word, so a one-second floor would be a minute of waiting per fifty words. Both
+  keep the retry budget. `conftest.py`'s autouse `reset_ingest_clients` is not optional —
+  without it a test that forgot to configure a fake would talk to the real Wikidata.
+- **The engine's client grew a `post()` for this** (never cached — a POST is a request to
+  *do* something, and replaying a stored answer would skip the doing; the cache counters
+  record neither a hit nor a miss). Its `Transport` protocol gained an optional `body`
+  keyword, and `HttpClient._send` passes it **only when there is one**, because every
+  transport written before POST existed takes no such keyword —
+  `test_a_get_never_passes_a_body_to_its_transport` is that guard.
+- **These handlers are `def`, not `async def`.** The engine's client is synchronous
+  (`requests` + `time.sleep`), so FastAPI runs them in its threadpool where blocking is
+  fine. Declared `async` they would block the event loop for the whole process while
+  Wikidata answers — and the rate limiter's own sleep would block it *deliberately*.
+- **The model is REST, not an SDK.** `@google/generative-ai` has no equivalent here worth
+  taking on for one route, so `text_extractor.LiveDeps` posts to `generateContent` with the
+  same prompt and the same response schema (the REST enum spells its types in upper case).
+  The key rides in an `x-goog-api-key` **header**: a query parameter is logged by every hop
+  between here and the model. Same rule made `translate` a POST rather than the GET form
+  that would have been cacheable — a cached response carries the URL it was fetched from.
+- **Both extractors write only to the contribution queue.** That was already true on
+  Express and is the premise of the surface: a paste is a *draft*, and the corpus changes
+  when a reviewer promotes it (`routers/ai_review.py`).
+- **The three Python suites are graded against the TypeScript's own recorded fixtures**
+  (`server/services/fixtures/{text,url}-extractor/`), read out of the repo rather than
+  copied. That is what makes them a port rather than a rewrite that happens to agree —
+  and it is why `server/services/{text-extractor,url-extractor,translate}.ts` are kept as
+  the graded spec while their *routes* are retired to 501.
+- **`?entityType=""` is not `entityType` absent.** `draft_to_contribution` resolves its
+  default with `??`, not `or`, so an explicitly blank type reaches the queue and is
+  rejected there — the same answer Express gave, and a clearer one than silently filing a
+  paste as a civilization. Same family as `"key" in data` in the contribution store.
+
+## Archaeological acquisition — `ingest/{archaeology,jobs}.py` + `routers/archaeology.py` (pinakes:64 US-2)
+
+`GET /api/scraping/archaeology/sources` and `POST /api/scraping/archaeology`: Open Context
+and tDAR, acquired into the contribution queue. Coverage 62/306 → 64/306. It is the same
+band as the extractors — one external record becomes one reviewable draft — but the unit
+is a *job* rather than a request, and that is what everything below is about.
+
+- **The POST answers 202 and works afterwards, as a `BackgroundTasks` task.** For a `def`
+  callable that means Starlette's threadpool, which is where the ingest layer's synchronous
+  client belongs. **`TestClient` runs a background task to completion before returning the
+  response**, so a test asserts on a settled job on the very next line — which is why the
+  TypeScript route's `onJobSettled` hook has no counterpart here. It existed only to make
+  the same thing deterministic.
+- **`ingest/jobs.py` has no route, and that is the point to know.** `/api/scraping-jobs` is
+  a different port unit and is still Express's, so a job started here is not visible to the
+  dashboard's poll yet. The acquisition is unaffected — it writes `data/runtime/contributions`,
+  which both servers read — but its *progress* is in-process until that group lands.
+  Do not "fix" this by having the store write to disk: Express's reader is an in-memory
+  `Map` and would not read it, so the only thing that would change is that a transient
+  would have become an artifact. `conftest.py`'s autouse `reset_scraping_jobs` is the same
+  class of module state as `reset_write_guard`.
+- **A fetch failure fails the *job*, not the request.** The 202 has already been sent, so
+  the job carries `status: "failed"` + `errorMessage` and there is nowhere else to report
+  it. A body this service can refuse *before* starting — an unknown source, a non-positive
+  limit — is a **400**, and starts no job at all. Neither is a 5xx.
+- **`Number(body.limit)`, not a declared `int`.** `"50"` is fifty and `"soon"` is a 400
+  rather than a 422 — the same rule `routers/graph.py` follows for its numeric params. The
+  refusal message reads `${body.source ?? "(none)"}`: *nullish*, so an explicitly blank
+  source is reported as the blank it was. Same family as `??` vs `or` in the extractors.
+- **Only the bottom half of `server/services/archaeological-site-scraper.ts` came across.**
+  That file is 1,376 lines and the split is the one it already drew in its own banner
+  comment: the Pleiades/UNESCO `ArchaeologicalSiteScraper` class above it writes TSVs
+  directly and is reached by no route. Porting a *route group* means porting what a route
+  reaches; the rest stays as the graded spec, and `tests/test_archaeology.py` reads the
+  same recorded fixtures its TypeScript suite does.
+- **Three refusals in the mappers are contract, not defensiveness**: a record with no name
+  is dropped, one off the globe is dropped, and one at **exactly `[0, 0]`** is dropped —
+  in this data that is never Null Island but always coordinates nobody filled in. A dropped
+  record is counted as `skipped`, never queued with a guess.
+- **The `AbortSignal` did not come across.** The TypeScript route never passed one and no
+  caller here could; a run is bounded by `limit`, which is what the dashboard sets.
+- `ingest/http.py` gained `OPEN_CONTEXT` and `TDAR`, both back on the one-second floor
+  `WIKIMEDIA` keeps — they are small unkeyed scholarly publishers, and an acquisition asks
+  each of them for exactly one page.

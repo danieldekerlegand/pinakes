@@ -15,6 +15,8 @@ from pinakes import paths
 from pinakes.app import create_app
 from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
+from pinakes.ingest import http as ingest_http
+from pinakes.ingest import jobs as ingest_jobs
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 from pinakes.routers import _auth as write_guard_handles
@@ -108,6 +110,33 @@ def reset_write_guard() -> Iterator[None]:
     write_guard_handles.reset()
     yield
     write_guard_handles.reset()
+
+
+@pytest.fixture(autouse=True)
+def reset_ingest_clients() -> Iterator[None]:
+    """Drop the memoised ingest HTTP clients between tests.
+
+    Autouse for two reasons. A client configured over a fake transport by one
+    test would otherwise still be installed for the next one — and a test that
+    forgot to configure one would build a *real* client and talk to Wikidata.
+    Same class of module state as :func:`reset_write_guard`.
+    """
+    ingest_http.reset()
+    yield
+    ingest_http.reset()
+
+
+@pytest.fixture(autouse=True)
+def reset_scraping_jobs() -> Iterator[None]:
+    """Give every test an empty job ledger.
+
+    The store is in-memory and process-wide (as Express's was), so without this
+    a test asserting on "the jobs this run started" would see every job every
+    earlier test started. Same class of module state as `reset_write_guard`.
+    """
+    ingest_jobs.reset()
+    yield
+    ingest_jobs.reset()
 
 
 @pytest.fixture(autouse=True)

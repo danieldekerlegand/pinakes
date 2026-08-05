@@ -20,8 +20,7 @@ import path from "path";
  */
 
 import { registerTextExtractorRoutes } from "../routes/text-extractor";
-import { ContributionService } from "../services/contribution-service";
-import type { RawTextExtraction, TextExtractorDeps } from "../services/text-extractor";
+import type { RawTextExtraction } from "../services/text-extractor";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const CLIENT_SRC = path.join(REPO_ROOT, "web", "src");
@@ -70,32 +69,29 @@ describe("Gemini key is server-side only (US-001)", () => {
 });
 
 /**
- * The proxy itself: `POST /api/extract/text` with the LLM served from a recorded
- * fixture (no live model, no API key). Proves a client can drive Gemini-backed work
- * without ever holding the key.
+ * The proxy itself moved (pinakes:64 US-1): `POST /api/extract/text` is served by
+ * `services/api/src/pinakes/routers/extract.py`, which reads the same server-side
+ * key — and reaches the model over REST with the key in an `x-goog-api-key`
+ * **header**, so it is not in a URL any hop can log. That the Python proxy needs
+ * no client-supplied key and never returns one is asserted in
+ * `services/api/tests/test_ingest_routes.py`.
+ *
+ * What is asserted here is that this backend's retired handler cannot leak a key
+ * either. The invariants above — the two that scan `.env.example` and every
+ * `web/` source — are the ones that actually keep the key out of the browser
+ * bundle, and they are backend-agnostic.
  */
-describe("Gemini proxy endpoint /api/extract/text (LLM mocked)", () => {
+describe("Gemini proxy endpoint /api/extract/text (retired here)", () => {
   let app: Express;
   let server: Server;
   let baseUrl: string;
   let dir: string;
 
-  const fixtureDeps: TextExtractorDeps = {
-    async extract() {
-      return JSON.parse(
-        fs.readFileSync(path.join(FIXTURES, "roman-empire-paragraph.json"), "utf-8"),
-      ) as RawTextExtraction;
-    },
-  };
-
   beforeAll(async () => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), "gemini-proxy-"));
     app = express();
     app.use(express.json());
-    registerTextExtractorRoutes(app, {
-      contributions: new ContributionService(dir),
-      deps: fixtureDeps,
-    });
+    registerTextExtractorRoutes(app);
     await new Promise<void>((resolve) => {
       server = app.listen(0, "127.0.0.1", () => resolve());
     });
@@ -107,16 +103,24 @@ describe("Gemini proxy endpoint /api/extract/text (LLM mocked)", () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it("serves a client request with no API key and never returns one", async () => {
+  it("answers 501 and never returns key material", async () => {
     // The client sends only content — no Authorization header, no key of any kind.
     const res = await fetch(`${baseUrl}/api/extract/text`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ text: "The Roman Empire was founded in 27 BCE." }),
     });
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(501);
     const body = await res.text();
-    // The proxy response must not leak any Gemini key material to the client.
     expect(body).not.toMatch(/GEMINI_API_KEY|VITE_GEMINI/i);
+  });
+
+  it("still names the recorded fixture the Python port is graded against", () => {
+    // The fixture is shared: `services/api/tests/test_text_extractor.py` reads
+    // this same file, which is what makes the two normalisers comparable.
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(FIXTURES, "roman-empire-paragraph.json"), "utf-8"),
+    ) as RawTextExtraction;
+    expect(raw.entities.length).toBeGreaterThan(0);
   });
 });

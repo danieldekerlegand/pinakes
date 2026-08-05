@@ -277,23 +277,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // edge; the contributor confirms one via POST /api/relationships/edge (US-003).
   registerRelationshipSuggestionRoutes(app);
 
-  // URL-paste extractor route (/api/extract/url, US-004) — a pasted Wikipedia/
-  // Wikidata URL becomes a structured entity draft (name/coords/dates/relations
-  // with per-field confidence) that lands in the contribution review queue
-  // flagged aiGenerated/autoDerived; a reviewer promotes it later. Wikidata
-  // resolves via the single-entity REST endpoint (no TS SPARQL client).
+  // URL-paste extractor route (/api/extract/url, US-004) — PORTED to the Python
+  // service (pinakes:64 US-1): a pasted Wikipedia/Wikidata URL becomes a
+  // structured entity draft in the contribution review queue, resolved through
+  // Wikidata's single-entity REST endpoint — now via the engine's rate-limited,
+  // cached HTTP client. The path answers 501 naming `pinakes.routers.extract`.
   registerUrlExtractorRoutes(app);
 
-  // LLM text-extraction route (/api/extract/text, US-008) — a pasted paragraph
-  // becomes structured entity/date/relationship drafts (each field with a
-  // confidence, flagged AI-generated) that land in the contribution review
-  // queue (US-009); never a live write. Uses the existing Gemini client.
+  // LLM text-extraction route (/api/extract/text, US-008) — PORTED to the Python
+  // service (pinakes:64 US-1), where the model is reached over REST through the
+  // same polite client (retried on 429/5xx, key in a header). Drafts still land
+  // in the review queue and never in the dataset. This path answers 501.
   registerTextExtractorRoutes(app);
 
-  // Translation proxy route (/api/translate, US-002) — translates a string via
-  // Google Translate using the SERVER-SIDE GOOGLE_TRANSLATE_API_KEY. The key is
-  // never shipped to the client (no VITE_-prefixed key); the client calls this
-  // proxy. Returns 503 when no key is configured (translation optional).
+  // Translation proxy route (/api/translate, US-002) — PORTED to the Python
+  // service (pinakes:64 US-1). The posture is unchanged and is the point of the
+  // route: the SERVER-SIDE GOOGLE_TRANSLATE_API_KEY is read there, never shipped
+  // to the client, and no key still means 503 (translation is optional). 501 here.
   registerTranslateRoutes(app);
 
   // AI-extraction review-queue routes (/api/ai-review, US-009) — PORTED to the

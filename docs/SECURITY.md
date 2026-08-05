@@ -4,7 +4,7 @@ Tracks the `ralph/security-hardening` work (US-001…US-008), cross-linked from 
 
 ## API keys are server-side only
 
-**Principle:** third-party API keys are read only by the Express server (`process.env.*`); they are never exposed to the browser bundle. Vite inlines any `import.meta.env.VITE_*` value into client JavaScript at build time, so a `VITE_`-prefixed secret is a shipped secret. The client therefore never holds a provider key — it calls an Express **proxy endpoint**, and the server makes the authenticated upstream call.
+**Principle:** third-party API keys are read only by the server (`process.env.*` on Express, `os.environ` on the Python service — both proxies below are Python's since pinakes:64 US-1); they are never exposed to the browser bundle. Vite inlines any `import.meta.env.VITE_*` value into client JavaScript at build time, so a `VITE_`-prefixed secret is a shipped secret. The client therefore never holds a provider key — it calls a **proxy endpoint**, and the server makes the authenticated upstream call. Which *backend* answers the proxy is an implementation detail the guards below deliberately do not depend on.
 
 ### Gemini (US-001)
 
@@ -12,20 +12,20 @@ All Gemini / `@google/generative-ai` usage lives under `server/services/*` and r
 
 Representative client-facing proxy endpoints (the client posts content, the server calls Gemini):
 
-- `POST /api/extract/text` — paste-a-paragraph → structured entity drafts (Gemini). LLM boundary is injectable (`TextExtractorDeps`) so it is tested against recorded fixtures with **no live model call and no key** — see `server/routes/text-extractor.ts` and `server/routes/text-extractor.test.ts`.
+- `POST /api/extract/text` — paste-a-paragraph → structured entity drafts (Gemini). **Served by the Python service** (`services/api/src/pinakes/routers/extract.py` over `pinakes.ingest.text_extractor`; the Express handler answers 501). The model is called over REST with the key in an `x-goog-api-key` **header** — never a query parameter, which every hop in between would log. The boundary is injectable (`TextExtractorDeps`) so it is tested against recorded fixtures with **no live model call and no key** — see `services/api/tests/test_text_extractor.py`.
 - `POST /api/scraping/*` and the enrichment routes — the client sends `dataSources: ["gemini"]`; the server-side scrapers (`server/services/*-scraper.ts`, `*-enrichment.ts`, `map-image-analyzer.ts`) each build their own Gemini client from `GEMINI_API_KEY`.
 
 **Config:** `.env.example` declares `GEMINI_API_KEY` (server) and deliberately **does not** declare `VITE_GEMINI_API_KEY`. Never reintroduce a `VITE_`-prefixed Gemini var.
 
-**Regression guard:** `server/security/gemini-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GEMINI*`, (2) no `web/` source references a Gemini key / the `@google/generative-ai` SDK / the raw `generativelanguage.googleapis.com` endpoint, and (3) the `/api/extract/text` proxy serves a keyless client request (LLM mocked) without echoing any key.
+**Regression guard:** `server/security/gemini-proxy.test.ts` asserts (1) `.env.example` has no `VITE_GEMINI*`, (2) no `web/` source references a Gemini key / the `@google/generative-ai` SDK / the raw `generativelanguage.googleapis.com` endpoint, and (3) this backend's retired `/api/extract/text` handler cannot echo key material either. That the *Python* proxy serves a keyless client request and returns no key is `services/api/tests/test_ingest_routes.py`. Guards (1) and (2) are the load-bearing ones and are backend-agnostic by construction.
 
 ### Google Translate (US-002)
 
-Translation is proxied server-side. The client calls **`POST /api/translate`** with `{ text, to, from? }`; the server (`server/services/translate.ts` + `server/routes/translate.ts`) makes the upstream Google Translation v2 call using the server-side **`GOOGLE_TRANSLATE_API_KEY`**. The key never reaches the browser.
+Translation is proxied server-side. The client calls **`POST /api/translate`** with `{ text, to, from? }`; the server (`services/api/src/pinakes/routers/translate.py` over `pinakes.ingest.translate` since pinakes:64 US-1 — `server/services/translate.ts` remains its graded spec) makes the upstream Google Translation v2 call using the server-side **`GOOGLE_TRANSLATE_API_KEY`**. The key never reaches the browser.
 
 - **Client:** `web/src/lib/scraping.ts`'s `GoogleTranslateAPI` posts to `/api/translate` and no longer reads any `process.env` / `VITE_` key. A `503` (no key configured) or `502` (upstream failure) degrades gracefully to the next translation source.
 - **Server contract:** `200 { translation, source, from, to }`; `400` invalid body (missing `text`/`to`); `502` upstream failure; `503` when no server-side key is configured (translation is optional — the app runs without it, mirroring `GEONAMES_USERNAME`).
-- **Injectable boundary:** the network call is behind `TranslateDeps` and the key is injectable, so `server/routes/translate.test.ts` exercises the proxy with a fake upstream and **no real key** (asserts the server-side key is used and never echoed back).
+- **Injectable boundary:** the network call is behind `TranslateDeps` and the key is a parameter, so `services/api/tests/{test_translate,test_ingest_routes}.py` exercise the proxy with a fake upstream and **no real key** (asserting the server-side key is used and never echoed back). The live call is a POST through the engine's rate-limited client, and is **not cached** — a cached response carries the URL it was fetched from.
 
 **Config:** `.env.example` declares `GOOGLE_TRANSLATE_API_KEY` (server) and the old `VITE_GOOGLE_TRANSLATE_API_KEY` was **removed**. Never reintroduce a `VITE_`-prefixed translate var.
 
