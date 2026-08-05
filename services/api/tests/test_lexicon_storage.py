@@ -399,6 +399,17 @@ def test_find_by_id_returns_the_first_match() -> None:
         (storage.load_kinship_systems, 30),
         (storage.load_foodway_events, 51),
         (storage.load_settlements, 642),
+        # The eight pinakes:80 US-1 geospatial loaders, likewise diffed against
+        # the live Express app before being pinned. `load_empires_timeline` has
+        # no entry because it *raises* on this corpus — see
+        # `test_the_empires_timeline_feature_loader_raises_on_the_live_corpus`.
+        (storage.load_language_ranges, 8),
+        (storage.load_language_range_polygons, 133),
+        (storage.load_historical_routes, 104),
+        (storage.load_material_cultures, 45),
+        (storage.load_archaeological_cultures, 277),
+        (storage.load_trade_routes, 39),
+        (storage.load_empire_timeline, 115),
     ],
 )
 def test_the_live_corpus_loads_the_row_counts_the_repo_documents(
@@ -436,10 +447,30 @@ def test_every_live_domain_loads_at_least_one_row() -> None:
             ("kinship-systems", storage.load_kinship_systems),
             ("foodway-events", storage.load_foodway_events),
             ("settlements", storage.load_settlements),
+            ("language-ranges", storage.load_language_ranges),
+            ("language-range-polygons", storage.load_language_range_polygons),
+            ("historical-routes", storage.load_historical_routes),
+            ("material-culture", storage.load_material_cultures),
+            ("archaeological-cultures", storage.load_archaeological_cultures),
+            ("trade-routes", storage.load_trade_routes),
+            ("empire-timeline", storage.load_empire_timeline),
         )
         if not load(LIVE_LEXICONS)
     ]
     assert not empty, f"loaded nothing for {empty}"
+
+
+def test_the_empires_timeline_feature_loader_raises_on_the_live_corpus() -> None:
+    """Two loaders read `empires-timeline.tsv` and only one of them can.
+
+    `loadEmpiresTimeline` asks for a `name` column with ``getIdx`` and the file
+    carries the *event* vocabulary (`year`, `event_type`, `empire_name`), so
+    `GET /api/map/empires-timeline` is a 500 on both backends. Asserting it here
+    rather than treating it as a bug is deliberate: the day the corpus grows the
+    phase vocabulary this test is the thing that says the layer just came alive.
+    """
+    with pytest.raises(tsv.MissingColumnError):
+        storage.load_empires_timeline(LIVE_LEXICONS)
 
 
 # ── The pinakes:63 US-2 loaders' own dialect decisions ───────────────────────

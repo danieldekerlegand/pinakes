@@ -811,3 +811,59 @@ whole of the work.
   corners, `?radius=near`, and the malformed-year echo.
 - **`test_not_implemented.py`'s `/api/religions` stand-in went red on landing**
   and names `/api/haplogroups` now. Expect this every slice.
+
+## The cutover's third slice — `routers/map_layers.py` + `lexicons/layers.py` (pinakes:80 US-1)
+
+The geospatial corpus: the nine corpus-backed `/api/map/*` layers plus the four flat
+groups over the same eight files (`trade-routes`, `material-culture`,
+`archaeological-cultures`, `empires-timeline`). Coverage 165/306 → **182/306**. This is
+the slice `geo/bbox.py` had been waiting for since pinakes:63 US-2 — the viewport
+culling is its, and no second one was written.
+
+- **`/api/map/empires-timeline` is a 500, on both backends, and the port keeps it.**
+  `loadEmpiresTimeline` requires a `name` column; `empires-timeline.tsv` carries the
+  *event* vocabulary (`year`, `event_type`, `empire_name`) instead, so `getIdx` throws.
+  Two loaders read that one file and only `load_empire_timeline` (the flat
+  `/api/empires-timeline` group) can. Quietly making the layer answer 200 would be a
+  behaviour change dressed as a fix —
+  `test_the_empires_timeline_feature_loader_raises_on_the_live_corpus` is the guard,
+  and it is also what will say so the day the corpus grows the phase vocabulary.
+- **`GET /api/trade-routes` is registered twice in `routes.ts` and the first wins.**
+  The live one is a GeoJSON view over `migration-routes.tsv` filtered to
+  `routeTypes: ["trade"]`; the dead one is a flat list over `trade-routes.tsv`. But
+  `GET /api/trade-routes/{id}` has only one registration — over the **dead** one's
+  loader. So the two halves of one client-visible resource read different files.
+  Grep for duplicate `app.get("<path>"` before porting anything out of that file.
+- **Three temporal filters, no two agreeing** (`lexicons/layers.py`'s docstring lists
+  them). `filterByTime` tests `!== undefined` and is an *overlap* over
+  `properties.timePeriod`; the archaeological-culture filter is the same overlap over
+  two flat columns; `getMaterialCultureDistributions` tests **truthiness**, so
+  `?timeStart=0` is no filter at all, and is *containment* against a single date. The
+  `NaN` defaults are opposite too — `filterByTime` is written with `<`/`>` so an
+  unreadable value is **kept**, the others with `>=`/`<=` so it is **dropped**. That is
+  what `_lt`/`_gt` vs `_gte`/`_lte` encode; picking the wrong pair is silent.
+- **`metadata` is not one shape.** Five layers answer `{...filters, ...meta}` — so the
+  raw `bbox` *string* is overwritten by the parsed box (or `null`) from the viewport
+  report. Four never call `applyViewport` at all and echo the string. Copied route by
+  route; guessing gives a plausible wrong answer.
+- **A bug the live diff caught, the same family as `belligerents`.** These loaders spell
+  a bare `JSON.parse` with a `[]` *fallback*, where `tsv.json_array` maps `str` over the
+  items **and** answers `[]` for a non-list. A `vassal_states` cell holding `150000`
+  really does reach the client as the number. Use `tsv.json_cell(row, idx, [])` unless
+  the TypeScript actually stringifies. **Check every new JSON column against the corpus
+  before trusting `json_array`.**
+- **The whole slice was proved byte-identical to Express over 235 live requests** with
+  the throwaway-script method the earlier bands describe — every filter, both bbox
+  corner orders, a three-corner bbox, `?limit=1.5`, repeated query parameters, both 404
+  spellings, both 500 spellings, and eight bulk-fetch bodies. The **only** two
+  differences were trailing-slash URLs (`/api/trade-routes/`), which Express answers as
+  the collection and this service 404s — an app-wide, pre-existing divergence that
+  `/api/health/` shares and no port introduced.
+- **`_string_param` is not `_text`.** Express hands a *repeated* query parameter over as
+  an array, and a read annotated `as string` (or guarded by `viewportOptionsFromQuery`'s
+  `typeof v === "string"`) treats an array as absent — so `?bbox=a&bbox=b` is **no
+  viewport**. `_list_param` is the opposite rule for the same shape: one blank value is
+  the filter's absence, two values keep the blank and match nothing.
+- **`test_not_implemented.py`'s `/api/empires-timeline` stand-in went red on landing**
+  and names `/api/linguistic-distance/available-languages` now — picked from the *back*
+  of the remaining port order, which is what stops the chore recurring every slice.

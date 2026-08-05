@@ -1377,6 +1377,480 @@ def load_settlements(lexicons: Path) -> list[Record]:
     ]
 
 
+# ── The geospatial layers ────────────────────────────────────────────────────
+
+
+#: The route types ``loadHistoricalRoutes`` recognises; anything else becomes
+#: ``"unknown"``. The record's own spelling is not kept anywhere alongside it, so
+#: a route typed `caravan` reaches the client indistinguishable from one whose
+#: `route_type` cell is blank.
+HISTORICAL_ROUTE_TYPES: frozenset[str] = frozenset(
+    {
+        "trade",
+        "migration",
+        "conquest",
+        "colonization",
+        "diaspora",
+        "pilgrimage",
+        "communication",
+    }
+)
+
+
+def _int_if_present(row: list[str], index: int) -> int | None:
+    """``idx >= 0 && cell ? parseInt(cell, 10) : undefined``.
+
+    The empires-timeline feature loader's read, and the one place a numeric
+    column is **not** guarded against the literal ``"null"`` — so that cell
+    reaches ``parseInt`` and yields ``NaN`` rather than the sentinel every other
+    loader recognises. Collapsed to absent here, per this module's `NaN` rule.
+    """
+    raw = tsv.cell(row, index)
+    if index < 0 or not raw:
+        return None
+    parsed = tsv.js_parse_int(raw)
+    return None if math.isnan(parsed) else int(parsed)
+
+
+def _int_present_or_zero(row: list[str], index: int) -> int | None:
+    """``idx >= 0 && cell ? parseInt(cell, 10) : 0`` — the same read, zero-based.
+
+    Absent is **0** and unparseable is absent, which is the distinction
+    :func:`_int_if_present` cannot carry on its own.
+    """
+    if index < 0 or not tsv.cell(row, index):
+        return 0
+    return _int_if_present(row, index)
+
+
+def _language_range_features(lexicons: Path, filename: str) -> list[Feature]:
+    """The body ``loadLanguageRanges`` and ``loadLanguageRangePolygons`` share.
+
+    The two TypeScript methods are the same fifty lines twice over the same
+    column vocabulary, differing only in the file they read — the expanded
+    polygon dataset is a second table in the first one's schema, not a second
+    schema. One function here, called with two filenames.
+
+    **A row with no geometry does not exist**, and neither does one whose
+    geometry will not parse: both are dropped before anything can find them, the
+    same rule `load_archaeological_sites` applies to its coordinates.
+    """
+    parsed = tsv.read_tsv(lexicons, filename)
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    language_index = tsv.required_index(header, "language_id")
+    family_index = tsv.required_index(header, "family_id")
+    geometry_index = tsv.required_index(header, "geometry")
+    type_index = tsv.required_index(header, "range_type")
+    start_index = tsv.index_of(header, "time_period_start")
+    end_index = tsv.index_of(header, "time_period_end")
+    label_index = tsv.index_of(header, "time_period_label")
+    confidence_index = tsv.index_of(header, "confidence")
+    sources_index = tsv.index_of(header, "sources")
+
+    features: list[Feature] = []
+    for row in rows:
+        if not tsv.cell(row, geometry_index).strip():
+            continue
+        geometry = tsv.json_cell(row, geometry_index, None)
+        if geometry is None:
+            continue
+        language_id = tsv.cell(row, language_index)
+        family_id = tsv.cell(row, family_index)
+        features.append(
+            {
+                "type": "Feature",
+                "id": tsv.cell(row, id_index),
+                "geometry": geometry,
+                "properties": {
+                    # Both names are the *id* again. The TypeScript's comment
+                    # says "will be enriched later" and nothing ever does, so
+                    # the client renders the id — reproduced, not corrected.
+                    "languageId": language_id,
+                    "languageName": language_id,
+                    "familyId": family_id,
+                    "familyName": family_id,
+                    "rangeType": tsv.text_cell(row, type_index, "historical"),
+                    "timePeriod": _time_period(
+                        _int_or(row, start_index, 0),
+                        _int(row, end_index),
+                        tsv.text_cell(row, label_index),
+                    ),
+                    "confidence": _int_default(row, confidence_index, 50),
+                    "sources": tsv.json_cell(row, sources_index, []),
+                },
+            }
+        )
+    return features
+
+
+def load_language_ranges(lexicons: Path) -> list[Feature]:
+    """`language-ranges.tsv` → GeoJSON territory features (``loadLanguageRanges``)."""
+    return _language_range_features(lexicons, "language-ranges.tsv")
+
+
+def load_language_range_polygons(lexicons: Path) -> list[Feature]:
+    """`language-range-polygons.tsv` → the expanded polygon dataset.
+
+    ``loadLanguageRangePolygons``. Same shape as :func:`load_language_ranges`,
+    and the only loader whose records carry a `rangeType` the route filters on.
+    """
+    return _language_range_features(lexicons, "language-range-polygons.tsv")
+
+
+def load_empires_timeline(lexicons: Path) -> list[Feature]:
+    """`empires-timeline.tsv` → GeoJSON empire-phase features.
+
+    ``loadEmpiresTimeline`` — and **on the corpus in this repo it raises**, which
+    is the port's job to reproduce rather than paper over. The file's columns are
+    the *event* vocabulary (`year`, `event_type`, `empire_name`); this loader
+    asks for `name` with ``getIdx``, which throws, so `GET /api/map/empires-timeline`
+    is a 500 on both backends. :func:`load_empire_timeline` is the loader that
+    reads the same file successfully, for the flat `/api/empires-timeline` group.
+
+    Two shapes are kept as found: a row with no usable geometry gets the
+    :data:`PLACEHOLDER_RING` square at the origin so the layer still renders it,
+    and `phase` is read *without* a ``|| "peak"`` fallback — a blank cell really
+    is a blank phase, and only an absent **column** defaults.
+    """
+    parsed = tsv.read_tsv(lexicons, "empires-timeline.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    empire_index = tsv.required_index(header, "empire_id")
+    name_index = tsv.required_index(header, "name")
+    phase_index = tsv.index_of(header, "phase")
+    start_index = tsv.index_of(header, "time_start")
+    end_index = tsv.index_of(header, "time_end")
+    label_index = tsv.index_of(header, "time_label")
+    geometry_index = tsv.index_of(header, "geometry")
+    capital_index = tsv.index_of(header, "capital")
+    area_index = tsv.index_of(header, "territory_km2")
+    population_index = tsv.index_of(header, "population")
+    event_index = tsv.index_of(header, "key_event")
+    successor_index = tsv.index_of(header, "successor_id")
+    predecessor_index = tsv.index_of(header, "predecessor_id")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    sources_index = tsv.index_of(header, "sources")
+    notes_index = tsv.index_of(header, "notes")
+
+    features: list[Feature] = []
+    for row in rows:
+        geometry = tsv.json_cell(row, geometry_index, None)
+        if not geometry:
+            geometry = {"type": "Polygon", "coordinates": PLACEHOLDER_RING}
+        features.append(
+            {
+                "type": "Feature",
+                "id": tsv.cell(row, id_index),
+                "geometry": geometry,
+                "properties": _defined(
+                    empireId=tsv.cell(row, empire_index),
+                    name=tsv.cell(row, name_index),
+                    phase=(
+                        tsv.cell(row, phase_index) if phase_index >= 0 else "peak"
+                    ),
+                    timePeriod=_time_period(
+                        _int_present_or_zero(row, start_index),
+                        _int(row, end_index),
+                        tsv.text_cell(row, label_index),
+                    ),
+                    capital=tsv.optional_text(row, capital_index),
+                    territoryKm2=_int_if_present(row, area_index),
+                    population=_int_if_present(row, population_index),
+                    keyEvent=tsv.text_cell(row, event_index),
+                    successorId=tsv.optional_text(row, successor_index),
+                    predecessorId=tsv.optional_text(row, predecessor_index),
+                    associatedLanguageIds=tsv.json_cell(row, language_index, []),
+                    sources=tsv.json_cell(row, sources_index, []),
+                    notes=tsv.optional_text(row, notes_index),
+                ),
+            }
+        )
+    return features
+
+
+def load_historical_routes(lexicons: Path) -> list[Feature]:
+    """migration routes + trade goods → GeoJSON route features.
+
+    ``loadHistoricalRoutes``. The only loader in this module that **joins** two
+    files: a trade good names the routes it travelled, so the reverse index
+    (route id → good names) has to be built from the goods side.
+
+    **A route whose `waypoints` is not a LineString does not exist here** — the
+    geometry *is* the feature, and there is nothing to draw without one. It is
+    still returned by `GET /api/migration-routes`, which reads the flat records.
+    """
+    goods_by_route: dict[str, list[str]] = {}
+    for good in load_trade_goods(lexicons):
+        for route_id in good["tradeRoutes"]:
+            goods_by_route.setdefault(route_id, []).append(good["name"])
+
+    features: list[Feature] = []
+    for route in load_migration_routes(lexicons):
+        waypoints = route["waypoints"]
+        if not isinstance(waypoints, dict) or waypoints.get("type") != "LineString":
+            continue
+        start_year = tsv.js_parse_int(route["startDate"])
+        end_year = tsv.js_parse_int(route["endDate"])
+        route_type = route["routeType"]
+        traded = goods_by_route.get(route["id"])
+        features.append(
+            {
+                "type": "Feature",
+                "id": route["id"],
+                "geometry": waypoints,
+                "properties": _defined(
+                    routeId=route["id"],
+                    name=route["name"],
+                    routeType=(
+                        route_type
+                        if route_type in HISTORICAL_ROUTE_TYPES
+                        else "unknown"
+                    ),
+                    timePeriod=_time_period(
+                        0 if math.isnan(start_year) else int(start_year),
+                        None if math.isnan(end_year) else int(end_year),
+                        f"{route['startDate']} to {route['endDate']}",
+                    ),
+                    associatedLanguageIds=route["associatedLanguages"],
+                    linguisticImpact=route["consequences"] or None,
+                    tradedGoods=traded or None,
+                    # The *raw* route type, not the validated one above: a route
+                    # typed `caravan` is `unknown` and unidirectional, but one
+                    # typed `trade` stays bidirectional whichever way it is read.
+                    direction=(
+                        "bidirectional" if route_type == "trade" else "unidirectional"
+                    ),
+                    sources=[],
+                ),
+            }
+        )
+    return features
+
+
+def load_material_cultures(lexicons: Path) -> list[Record]:
+    """`material-culture.tsv` → the material-culture records (``loadMaterialCultures``).
+
+    `origin_coordinates` is a **`[lat, lng]` pair**, not the `{lat, lng}` object
+    the archaeological loaders carry — and the distribution projection indexes it
+    positionally, so the two spellings are not interchangeable. `spread_data` is
+    a list of `{date, coordinates, associated_civilization}` objects, the one
+    column here read as objects rather than strings.
+    """
+    parsed = tsv.read_tsv(lexicons, "material-culture.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    category_index = tsv.required_index(header, "category")
+    origin_date_index = tsv.required_index(header, "origin_date")
+    origin_coordinates_index = tsv.required_index(header, "origin_coordinates")
+    spread_index = tsv.required_index(header, "spread_data")
+    description_index = tsv.index_of(header, "description")
+    language_index = tsv.index_of(header, "associated_languages")
+    significance_index = tsv.index_of(header, "significance")
+
+    def _spread(row: list[str]) -> list[Record]:
+        # `JSON.parse(cell).map(...)` inside one try/catch: a cell that is not a
+        # list makes `.map` throw, so the whole column degrades to empty rather
+        # than to a partial reading.
+        events = tsv.json_cell(row, spread_index, None)
+        if not isinstance(events, list):
+            return []
+        mapped: list[Record] = []
+        for event in events:
+            if not isinstance(event, dict):
+                return []
+            mapped.append(
+                _defined(
+                    date=event.get("date"),
+                    coordinates=event.get("coordinates"),
+                    associatedCivilization=event.get("associated_civilization") or "",
+                )
+            )
+        return mapped
+
+    def _languages(row: list[str]) -> list[str]:
+        raw = tsv.text_cell(row, language_index)
+        return [part.strip() for part in raw.split(",")] if raw else []
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "category": tsv.text_cell(row, category_index, "unknown"),
+            "originDate": tsv.int_or_zero(row, origin_date_index),
+            "originCoordinates": tsv.json_cell(
+                row, origin_coordinates_index, [0, 0]
+            ),
+            "spreadData": _spread(row),
+            "description": tsv.text_cell(row, description_index),
+            "associatedLanguages": _languages(row),
+            "significance": tsv.text_cell(row, significance_index),
+        }
+        for row in rows
+    ]
+
+
+def load_archaeological_cultures(lexicons: Path) -> list[Record]:
+    """`archaeological-cultures.tsv` → the culture records.
+
+    ``loadArchaeologicalCultures``.
+
+    Three columns this loader names are **not in the file**: `associated_language_ids`,
+    `associated_civilization_ids` and `material_goods`, plus `predecessor_culture_id`
+    where the corpus writes `predecessor_culture_ids`. All four are optional
+    reads, so they answer `[]`/`""` rather than raising — which is why
+    `?language=` on `/api/archaeological-cultures` selects nothing at all.
+    Reproduced: fixing it here would make the two backends disagree mid-cutover.
+    """
+    parsed = tsv.read_tsv(lexicons, "archaeological-cultures.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    region_index = tsv.index_of(header, "region")
+    coordinates_index = tsv.index_of(header, "coordinates")
+    start_index = tsv.index_of(header, "time_period_start")
+    end_index = tsv.index_of(header, "time_period_end")
+    label_index = tsv.index_of(header, "time_period_label")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    civilization_index = tsv.index_of(header, "associated_civilization_ids")
+    predecessor_index = tsv.index_of(header, "predecessor_culture_id")
+    successor_index = tsv.index_of(header, "successor_culture_ids")
+    goods_index = tsv.index_of(header, "material_goods")
+    description_index = tsv.index_of(header, "description")
+    confidence_index = tsv.index_of(header, "confidence")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "region": tsv.text_cell(row, region_index),
+            "coordinates": _coordinates(row, coordinates_index),
+            "timePeriodStart": _int(row, start_index),
+            "timePeriodEnd": _int(row, end_index),
+            "timePeriodLabel": tsv.text_cell(row, label_index),
+            "associatedLanguageIds": tsv.json_cell(row, language_index, []),
+            "associatedCivilizationIds": tsv.json_cell(row, civilization_index, []),
+            "predecessorCultureId": tsv.text_cell(row, predecessor_index),
+            "successorCultureIds": tsv.json_cell(row, successor_index, []),
+            "materialGoods": tsv.json_cell(row, goods_index, []),
+            "description": tsv.text_cell(row, description_index),
+            "confidence": tsv.int_or_zero(row, confidence_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_trade_routes(lexicons: Path) -> list[Record]:
+    """`trade-routes.tsv` → the trade-route records (``loadTradeRoutes``).
+
+    Not to be confused with :func:`load_historical_routes`, which is what
+    `GET /api/trade-routes` (the *list*) answers from — `routes.ts` registers
+    that path twice and the first registration wins. This loader is reached only
+    by `GET /api/trade-routes/{id}`, so the two halves of one client-visible
+    resource read different files. Reproduced; see `routers/map_layers.py`.
+    """
+    parsed = tsv.read_tsv(lexicons, "trade-routes.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.index_of(header, "name")
+    type_index = tsv.index_of(header, "route_type")
+    waypoints_index = tsv.index_of(header, "waypoints")
+    start_index = tsv.index_of(header, "start_date")
+    end_index = tsv.index_of(header, "end_date")
+    goods_index = tsv.index_of(header, "traded_goods")
+    cities_index = tsv.index_of(header, "key_cities")
+    powers_index = tsv.index_of(header, "controlling_powers")
+    language_index = tsv.index_of(header, "associated_languages")
+    description_index = tsv.index_of(header, "description")
+    impact_index = tsv.index_of(header, "economic_impact")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.text_cell(row, name_index),
+            "routeType": tsv.text_cell(row, type_index),
+            "waypoints": tsv.json_cell(row, waypoints_index, {}),
+            "startDate": tsv.text_cell(row, start_index),
+            "endDate": tsv.text_cell(row, end_index),
+            "tradedGoods": tsv.json_cell(row, goods_index, []),
+            "keyCities": tsv.json_cell(row, cities_index, []),
+            "controllingPowers": tsv.json_cell(row, powers_index, []),
+            "associatedLanguages": tsv.json_cell(row, language_index, []),
+            "description": tsv.text_cell(row, description_index),
+            "economicImpact": tsv.text_cell(row, impact_index),
+        }
+        for row in rows
+    ]
+
+
+def load_empire_timeline(lexicons: Path) -> list[Record]:
+    """`empires-timeline.tsv` → the empire *event* records (``loadEmpireTimeline``).
+
+    The second of two loaders over one file, and the one whose column vocabulary
+    the corpus actually has (:func:`load_empires_timeline` raises on it). `year`
+    is required and unguarded, so a row with an unparseable year carries a
+    ``null`` year and drops out of every bounded query — kept, because a year
+    this reader cannot read is not a year the filter should guess at.
+    """
+    parsed = tsv.read_tsv(lexicons, "empires-timeline.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    empire_index = tsv.required_index(header, "empire_id")
+    empire_name_index = tsv.index_of(header, "empire_name")
+    year_index = tsv.required_index(header, "year")
+    event_index = tsv.index_of(header, "event_type")
+    territory_index = tsv.index_of(header, "territory_change")
+    capital_index = tsv.index_of(header, "capital")
+    population_index = tsv.index_of(header, "population_estimate")
+    ruler_index = tsv.index_of(header, "ruler")
+    government_index = tsv.index_of(header, "government_type")
+    vassal_index = tsv.index_of(header, "vassal_states")
+    rival_index = tsv.index_of(header, "rival_empires")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    description_index = tsv.index_of(header, "description")
+
+    def _year(row: list[str]) -> int | None:
+        parsed_year = tsv.js_parse_int(tsv.cell(row, year_index))
+        return None if math.isnan(parsed_year) else int(parsed_year)
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "empireId": tsv.cell(row, empire_index),
+            "empireName": tsv.text_cell(row, empire_name_index),
+            "year": _year(row),
+            "eventType": tsv.text_cell(row, event_index),
+            "territoryChange": tsv.text_cell(row, territory_index),
+            "capital": tsv.text_cell(row, capital_index),
+            # `parseInt(cell) || null` guarded by a truthiness test on the cell:
+            # a population estimate of literally 0 reads as unknown.
+            "populationEstimate": _int_if_present(row, population_index),
+            "ruler": tsv.text_cell(row, ruler_index),
+            "governmentType": tsv.text_cell(row, government_index),
+            "vassalStates": tsv.json_cell(row, vassal_index, []),
+            "rivalEmpires": tsv.json_cell(row, rival_index, []),
+            "associatedLanguageIds": tsv.json_cell(row, language_index, []),
+            "description": tsv.text_cell(row, description_index),
+        }
+        for row in rows
+    ]
+
+
 def find_by_id(records: list[Record], identifier: str) -> Record | None:
     """The first record whose ``id`` is *identifier* — ``Array.find``, by id."""
     for record in records:

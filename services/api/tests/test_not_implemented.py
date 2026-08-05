@@ -31,7 +31,15 @@ SAMPLE_REQUESTS = [
     # `/api/ancestry/haplogroups` went the same way in US-2 —
     # `test_connection_narrative.py` and `test_ancestry.py`.
     ("GET", "/api/cross-domain/timeline", "/api/cross-domain/timeline"),
-    ("GET", "/api/empires-timeline", "/api/empires-timeline"),
+    # Was `/api/empires-timeline` until pinakes:80 US-1's third slice ported the
+    # geospatial corpus; its coverage is `test_map_routes.py`. Picked from the
+    # *back* of the remaining port order, which is what stops this chore
+    # recurring every slice.
+    (
+        "GET",
+        "/api/linguistic-distance/available-languages",
+        "/api/linguistic-distance/available-languages",
+    ),
 ]
 
 
