@@ -2,7 +2,7 @@
   "project": "pinakes",
   "branchName": "chief/64-port-ingest",
   "baseBranch": "main",
-  "description": "Port the single-entity ingest + external-adapter routes to Python (docs/UNIFIED-PROJECT-PLAN.md \u00a77 port band): text-extractor, url-extractor (Wikidata REST), translate (Google proxy), archaeological-acquisition (Open Context/tDAR). These feed the contribution queue. Runs in parallel with the other port tasklists; 70-unify-scrapers depends on it.",
+  "description": "Port the single-entity ingest + external-adapter routes to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): text-extractor, url-extractor (Wikidata REST), translate (Google proxy), archaeological-acquisition (Open Context/tDAR). These feed the contribution queue. Runs in parallel with the other port tasklists; 70-unify-scrapers depends on it.",
   "dependsOn": [
     "50-engine-inprocess-graph"
   ],
@@ -37,5 +37,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "a3c3992b"
 }
