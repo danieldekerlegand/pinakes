@@ -2,11 +2,17 @@
   "project": "pinakes",
   "branchName": "chief/60-port-contributions",
   "baseBranch": "main",
-  "description": "Port the contributions pipeline to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): the contribution review queue, AI-review promotion into the TSV corpus, API-key auth + rate-limiting. Pure-TS logic today; reimplement on the FastAPI service behind the parity gate. Runs in parallel with the other 6x-port tasklists.",
-  "dependsOn": ["50-engine-inprocess-graph"],
-  "touches": ["port-contributions"],
+  "description": "Port the contributions pipeline to Python (docs/UNIFIED-PROJECT-PLAN.md \u00a77 port band): the contribution review queue, AI-review promotion into the TSV corpus, API-key auth + rate-limiting. Pure-TS logic today; reimplement on the FastAPI service behind the parity gate. Runs in parallel with the other 6x-port tasklists.",
+  "dependsOn": [
+    "50-engine-inprocess-graph"
+  ],
+  "touches": [
+    "port-contributions"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -18,7 +24,7 @@
         "The Express handlers for these routes are removed or return 501; the coverage tracker is updated.",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
