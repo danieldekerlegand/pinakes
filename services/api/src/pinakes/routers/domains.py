@@ -43,6 +43,7 @@ from pinakes.analytics import tsv
 from pinakes.analytics.jsmath import js_number
 from pinakes.lexicons import domains, storage
 from pinakes.paths import lexicons_dir
+from pinakes.routers import _reads
 
 logger = logging.getLogger("pinakes.domains")
 
@@ -50,69 +51,34 @@ router = APIRouter(tags=["catalog"])
 
 
 # ── The four shapes every handler below is built out of ──────────────────────
+#
+# All five live in `routers/_reads.py`; three more router files use them now.
+# The two aliases below are the *choice* this file makes — which 500 spelling a
+# given handler answers with — and are worth keeping local for that reason.
 
 
 def _failed(context: str, message: str, error: Exception) -> JSONResponse:
     """The `{message, error}` 500 the mythology/cuisine/craft handlers answer."""
-    logger.exception("Error %s", context)
-    return JSONResponse(
-        status_code=500, content={"message": message, "error": str(error)}
-    )
+    return _reads.failed(logger, context, message, error)
 
 
 def _failed_plain(context: str, message: str) -> JSONResponse:
     """The `{message}`-only 500 the four settlement handlers answer."""
-    logger.exception("Error %s", context)
-    return JSONResponse(status_code=500, content={"message": message})
+    return _reads.failed_plain(logger, context, message)
 
 
-def _missing(message: str) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"message": message})
-
-
-def _text(request: Request, key: str) -> str | None:
-    return request.query_params.get(key)
-
-
-def _int(request: Request, key: str) -> float | None:
-    """`req.query.k ? parseInt(req.query.k, 10) : undefined`.
-
-    A blank parameter is falsy in JavaScript and so is the filter's absence; an
-    unparseable one is `NaN`, which is *not* absent — the filter applies and
-    matches nothing. Same helper, same reasoning, as `routers/catalog._query_int`.
-    """
-    raw = request.query_params.get(key)
-    if not raw:
-        return None
-    return tsv.js_parse_int(raw)
+_missing = _reads.missing
+_text = _reads.text
+_int = _reads.query_int
+_echo = _reads.echo
 
 
 def _float(request: Request, key: str) -> float | None:
-    """The same read through `parseFloat`, for the two fractional parameters."""
+    """The `parseFloat` read, for the two fractional parameters in this file."""
     raw = request.query_params.get(key)
     if not raw:
         return None
     return tsv.js_parse_float(raw)
-
-
-def _echo(**fields: Any) -> dict[str, Any]:
-    """The handler's filter bag, as `JSON.stringify` would have written it.
-
-    An `undefined` value emits **no key** and `NaN` emits `null`; Starlette's
-    `JSONResponse` refuses `NaN` outright, so the conversion has to happen here
-    rather than at serialisation. :func:`~pinakes.analytics.jsmath.js_number` is
-    the third rule: `parseInt` yields a Python `float`, and `50.0` on the wire
-    is not the `50` Express sent.
-    """
-    echoed: dict[str, Any] = {}
-    for key, value in fields.items():
-        if value is None:
-            continue
-        if isinstance(value, float):
-            echoed[key] = None if math.isnan(value) else js_number(value)
-        else:
-            echoed[key] = value
-    return echoed
 
 
 # ── Religions ────────────────────────────────────────────────────────────────

@@ -867,3 +867,76 @@ culling is its, and no second one was written.
 - **`test_not_implemented.py`'s `/api/empires-timeline` stand-in went red on landing**
   and names `/api/linguistic-distance/available-languages` now — picked from the *back*
   of the remaining port order, which is what stops the chore recurring every slice.
+
+## The cutover's fourth slice — `routers/{linguistics,ethnography}.py` + `lexicons/{ethnography,freshness}.py` (pinakes:80 US-1)
+
+The ~25 small flat domains whose loaders did **not** exist yet, plus the ten
+`/api/languages/{id}/*` and `/api/culture-profiles/{id}/*` sub-resources they
+unlocked for free. **59 routes**, coverage 182/306 → **241/306**. The biggest
+single slice of the cutover and the most mechanical — twenty-three new loaders
+that are all the same shape — which is exactly why the notes below are about the
+handful of places where they are *not*.
+
+- **The whole slice was proved byte-identical to Express over 347 live
+  requests** with the throwaway-script method the earlier bands describe (341
+  corpus reads plus six freshness reads, the latter modulo the clock). Two
+  divergences the diff caught, both of them "JavaScript's `??` is not Python's
+  `or`": the etymology trace's `language` fallback fired on a blank `?language=`
+  where `lang ?? …` keeps the blank, and `?freshDays=abc` applied a `NaN`
+  threshold because **`NaN` is falsy in JavaScript and truthy in Python**. Both
+  now have a named test.
+- **Two loaders raise on the committed corpus, and both are ports.**
+  `load_ingredient_origins` asks for a `category` column `ingredient-origins.tsv`
+  does not have (it carries `cuisine_id`), so `/api/ingredient-origins` and its
+  `{id}` are a **500 on both backends** — the `load_empires_timeline` situation
+  again, guarded by `test_the_ingredient_origin_loader_raises_on_the_live_corpus`,
+  which is also what will announce the fix. And
+  `wikimedia-commons-images.tsv` does not exist at all, so that route's live
+  answer is `{images: [], count: 0}`.
+- **`routers/_reads.py` is the four shapes, hoisted.** `failed` /
+  `failed_plain` / `missing` / `text` / `query_int` / `query_number` / `echo`
+  were inline in `routers/domains.py`; three router files need them now.
+  `domains.py` imports them and keeps only its own *choice* of which 500
+  spelling each handler answers with, which is the part that is per-handler.
+- **A sub-resource's empty answer is per-route and there is no rule.**
+  `/api/languages/{id}/verb-paradigms` and `/contacts` answer **404** for a
+  language with no rows; `/sample-texts` answers an empty counted list;
+  `/phonological-inventory` and `/grammar-features` answer 404 because they
+  resolve a *single* record. Four spellings, one file. Copied one by one and
+  each pinned in `tests/test_linguistics_routes.py`.
+- **A retired route can be shadowed by a wildcard in another module.**
+  `discover_routers` mounts in module-name order, so `ethnography` lands before
+  `retired` and `/api/building-types/{id}` swallowed
+  `GET /api/building-types/categories` — a *registered* retirement answering 404.
+  The fix is local: `ethnography.py` re-registers that static path ahead of its
+  own wildcard, delegating to `retired.retired_body`. **Check for this whenever a
+  port adds an `/api/x/{id}` and `retired.py` has an `/api/x/<static>`**; the
+  guard is `test_the_retired_categories_route_outranks_the_building_type_id_route`.
+- **`node`'s `stat.mtime` ROUNDS the fractional millisecond**, where
+  `new Date(x)` truncates. `/api/data-freshness`'s `lastModified` was a
+  millisecond off until `lexicons/freshness.py` read `st_mtime_ns` and applied
+  `jsmath.js_round`; `ageMs` still uses the *unrounded* value, because
+  `stat.mtimeMs` is what the TypeScript subtracts. Both halves matter.
+- **Filter dialects, again, and two are new.** `?parentId=null` is
+  *presence*-tested and compares the literal string `"null"` against a real
+  `null` parent — that is how the client asks for the roots of the haplogroup
+  tree, and a blank `?parentId=` genuinely selects nothing. And a `social_class`
+  or `gender_context` query on `/api/daily-life` **keeps the rows marked
+  `"all"`**; most of that table is `"all"`, so an exact match would empty
+  almost every query.
+- **`rivers-and-waters.tsv` is the only file whose reader sniffs its own cell**
+  (`[` ⇒ JSON, else comma-separated), and the two pipe-separated columns in this
+  slice disagree about trimming: `city-layouts.key_features` trims its parts,
+  `social-structures.key_roles` does not.
+- **The lineage walks return *edges*, not nodes.** A culture reachable by two
+  paths contributes both edges to `/api/cultural-lineages/{ancestors,descendants}`;
+  only the entities are visited-once. `?maxDepth=abc` is `NaN`, and `0 < NaN` is
+  false, so a junk depth is an **empty** walk rather than the 20-round default.
+- **One accepted divergence, shared with the other flat-catalog ports.** A
+  *repeated* query parameter (`?genre=a&genre=b`) reaches Express as an array
+  whose `.toLowerCase()` throws, yielding a 500; Starlette hands back the first
+  value and the filter applies. Reproducing a `TypeError` in every handler was
+  judged not worth it — `routers/map_layers._string_param` exists where the
+  distinction actually changes an answer.
+- **`test_not_implemented.py`'s `/api/haplogroups` stand-in went red on landing**
+  and names `/api/media/prompts` now.

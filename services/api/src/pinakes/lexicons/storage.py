@@ -1851,6 +1851,1064 @@ def load_empire_timeline(lexicons: Path) -> list[Record]:
     ]
 
 
+# ── The ethnographic, linguistic and literary tables (pinakes:80 US-1, slice 4) ─
+#
+# Twenty-three more ``load*`` methods, all of them the same shape as the ones
+# above. Two cell readers below are new because these files are the only ones
+# that use them: a pipe-separated list and the "either a JSON array or a
+# comma-separated string" column `rivers-and-waters.tsv` carries.
+
+
+def _text_unless_null(row: list[str], index: int) -> str | None:
+    """``idx >= 0 && cell && cell !== "null" ? cell : null``.
+
+    :func:`pinakes.analytics.tsv.optional_text` without the sentinel check — a
+    `parent_id` column written by a serializer that stringified ``null`` is the
+    reason this exists, and only the haplogroup loader spells it.
+    """
+    raw = tsv.cell(row, index)
+    return None if not raw or raw == "null" else raw
+
+
+def _pipe_list(row: list[str], index: int) -> list[str]:
+    """``(cell || "").split("|").map(trim).filter(Boolean)``.
+
+    The city-layout and social-structure files store lists this way rather than
+    as JSON, so a blank cell is an empty list and a trailing separator is not an
+    empty entry.
+    """
+    raw = tsv.cell(row, index)
+    if index < 0 or not raw:
+        return []
+    return [part.strip() for part in raw.split("|") if part.strip()]
+
+
+def _loose_list(row: list[str], index: int) -> list[str]:
+    """`rivers-and-waters.tsv`'s "JSON array *or* comma-separated" columns.
+
+    The only reader in the corpus that sniffs its own cell: a value starting
+    ``[`` is parsed as JSON (unparseable ⇒ empty), anything else is split on
+    commas. A hand-authored `associated_languages` cell really is written both
+    ways in that file.
+    """
+    raw = tsv.cell(row, index)
+    if index < 0 or not raw:
+        return []
+    trimmed = raw.strip()
+    if trimmed.startswith("["):
+        parsed = tsv.json_cell(row, index, None)
+        return parsed if isinstance(parsed, list) else []
+    return [part.strip() for part in trimmed.split(",") if part.strip()]
+
+
+def load_haplogroups(lexicons: Path) -> list[Record]:
+    """`haplogroups.tsv` → the Y-chromosome haplogroup records.
+
+    ``loadHaplogroups``. `haplogroup_type` defaults to ``"Y-chromosome"``
+    because that is all the corpus carries; the column exists so a maternal
+    line can be added without a reader change.
+    """
+    parsed = tsv.read_tsv(lexicons, "haplogroups.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    parent_index = tsv.index_of(header, "parent_id")
+    type_index = tsv.index_of(header, "haplogroup_type")
+    description_index = tsv.index_of(header, "description")
+    family_index = tsv.index_of(header, "associated_language_family_ids")
+    civilization_index = tsv.index_of(header, "associated_civilization_ids")
+    origin_index = tsv.index_of(header, "geographic_origin")
+    time_index = tsv.index_of(header, "time_origin")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "parentId": _text_unless_null(row, parent_index),
+            "haplogroupType": tsv.text_cell(row, type_index, "Y-chromosome"),
+            "description": tsv.text_cell(row, description_index),
+            "associatedLanguageFamilyIds": tsv.json_cell(row, family_index, []),
+            "associatedCivilizationIds": tsv.json_cell(row, civilization_index, []),
+            "geographicOrigin": tsv.text_cell(row, origin_index),
+            "timeOrigin": _int(row, time_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_dance_traditions(lexicons: Path) -> list[Record]:
+    """`dance-traditions.tsv` → the dance records (``loadDanceTraditions``)."""
+    parsed = tsv.read_tsv(lexicons, "dance-traditions.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    native_index = tsv.index_of(header, "native_name")
+    region_index = tsv.index_of(header, "region")
+    coordinates_index = tsv.index_of(header, "coordinates")
+    start_index = tsv.index_of(header, "time_origin")
+    end_index = tsv.index_of(header, "time_end")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    type_index = tsv.index_of(header, "dance_type")
+    music_index = tsv.index_of(header, "associated_music_tradition_ids")
+    costume_index = tsv.index_of(header, "costumes")
+    movement_index = tsv.index_of(header, "key_movements")
+    significance_index = tsv.index_of(header, "cultural_significance")
+    description_index = tsv.index_of(header, "description")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "nativeName": tsv.text_cell(row, native_index),
+            "region": tsv.text_cell(row, region_index),
+            "coordinates": _coordinates(row, coordinates_index),
+            "timeOrigin": _int(row, start_index),
+            "timeEnd": _int(row, end_index),
+            "associatedLanguageIds": tsv.json_cell(row, language_index, []),
+            "danceType": tsv.text_cell(row, type_index),
+            "associatedMusicTraditionIds": tsv.json_cell(row, music_index, []),
+            "costumes": tsv.json_cell(row, costume_index, []),
+            "keyMovements": tsv.json_cell(row, movement_index, []),
+            "culturalSignificance": tsv.text_cell(row, significance_index),
+            "description": tsv.text_cell(row, description_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_ingredient_origins(lexicons: Path) -> list[Record]:
+    """`ingredient-origins.tsv` → the ingredient records (``loadIngredientOrigins``)."""
+    parsed = tsv.read_tsv(lexicons, "ingredient-origins.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    category_index = tsv.required_index(header, "category")
+    region_index = tsv.index_of(header, "origin_region")
+    coordinates_index = tsv.index_of(header, "origin_coordinates")
+    domestication_index = tsv.index_of(header, "domestication_date")
+    spread_index = tsv.index_of(header, "spread_routes")
+    cuisines_index = tsv.index_of(header, "cuisines_adopted")
+    language_index = tsv.index_of(header, "associated_languages")
+    distribution_index = tsv.index_of(header, "modern_distribution")
+    description_index = tsv.index_of(header, "description")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "category": tsv.text_cell(row, category_index),
+            "originRegion": tsv.text_cell(row, region_index),
+            "originCoordinates": _coordinates(row, coordinates_index),
+            "domesticationDate": _int(row, domestication_index),
+            "spreadRoutes": tsv.json_cell(row, spread_index, []),
+            "cuisinesAdopted": tsv.json_cell(row, cuisines_index, []),
+            "associatedLanguages": tsv.json_cell(row, language_index, []),
+            "modernDistribution": tsv.text_cell(row, distribution_index),
+            "description": tsv.text_cell(row, description_index),
+        }
+        for row in rows
+    ]
+
+
+def load_cooking_techniques(lexicons: Path) -> list[Record]:
+    """`cooking-techniques.tsv` → the technique records (``loadCookingTechniques``)."""
+    parsed = tsv.read_tsv(lexicons, "cooking-techniques.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    category_index = tsv.required_index(header, "category")
+    region_index = tsv.index_of(header, "origin_region")
+    coordinates_index = tsv.index_of(header, "origin_coordinates")
+    time_index = tsv.index_of(header, "time_origin")
+    culture_index = tsv.index_of(header, "origin_culture")
+    spread_index = tsv.index_of(header, "spread_pattern")
+    cuisines_index = tsv.index_of(header, "cuisines_using")
+    related_index = tsv.index_of(header, "related_techniques")
+    language_index = tsv.index_of(header, "associated_languages")
+    description_index = tsv.index_of(header, "description")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "category": tsv.text_cell(row, category_index),
+            "originRegion": tsv.text_cell(row, region_index),
+            "originCoordinates": _coordinates(row, coordinates_index),
+            "timeOrigin": _int(row, time_index),
+            "originCulture": tsv.text_cell(row, culture_index),
+            "spreadPattern": tsv.json_cell(row, spread_index, []),
+            "cuisinesUsing": tsv.json_cell(row, cuisines_index, []),
+            "relatedTechniques": tsv.json_cell(row, related_index, []),
+            "associatedLanguages": tsv.json_cell(row, language_index, []),
+            "description": tsv.text_cell(row, description_index),
+        }
+        for row in rows
+    ]
+
+
+def load_sample_texts(lexicons: Path) -> list[Record]:
+    """`sample-texts.tsv` → the attested-text records (``loadSampleTexts``).
+
+    `transliteration` is the one cell in this file that is **trimmed**; the
+    others are not, so a text with leading whitespace keeps it.
+    """
+    parsed = tsv.read_tsv(lexicons, "sample-texts.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    language_index = tsv.required_index(header, "language_id")
+    title_index = tsv.index_of(header, "title")
+    text_index = tsv.index_of(header, "text")
+    transliteration_index = tsv.index_of(header, "transliteration")
+    translation_index = tsv.index_of(header, "translation_en")
+    source_index = tsv.index_of(header, "source")
+    date_index = tsv.index_of(header, "date_composed")
+    genre_index = tsv.index_of(header, "genre")
+    script_index = tsv.index_of(header, "script")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "languageId": tsv.cell(row, language_index),
+            "title": tsv.text_cell(row, title_index),
+            "text": tsv.text_cell(row, text_index),
+            "transliteration": tsv.text_cell(row, transliteration_index).strip(),
+            "translationEn": tsv.text_cell(row, translation_index),
+            "source": tsv.text_cell(row, source_index),
+            "dateComposed": tsv.text_cell(row, date_index),
+            "genre": tsv.text_cell(row, genre_index),
+            "script": tsv.text_cell(row, script_index),
+        }
+        for row in rows
+    ]
+
+
+def load_phonological_inventories(lexicons: Path) -> list[Record]:
+    """`phonological-inventories.tsv` → the inventories.
+
+    ``loadPhonologicalInventories``. `tones` is the only column in the corpus
+    with **three** readings: absent/`"null"` ⇒ ``null``, unparseable ⇒ ``null``,
+    parseable ⇒ whatever it parsed to. A tonal inventory of ``[]`` and a
+    non-tonal language are different claims and the client renders them
+    differently.
+    """
+    parsed = tsv.read_tsv(lexicons, "phonological-inventories.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    language_index = tsv.required_index(header, "language_id")
+    consonant_index = tsv.index_of(header, "consonants")
+    vowel_index = tsv.index_of(header, "vowels")
+    tone_index = tsv.index_of(header, "tones")
+    pattern_index = tsv.index_of(header, "phonotactic_patterns")
+    syllable_index = tsv.index_of(header, "syllable_structure")
+    stress_index = tsv.index_of(header, "stress_system")
+
+    def _tones(row: list[str]) -> Any:
+        raw = tsv.cell(row, tone_index)
+        if tone_index < 0 or not raw or raw == "null":
+            return None
+        return tsv.json_cell(row, tone_index, None)
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "languageId": tsv.cell(row, language_index),
+            "consonants": tsv.json_cell(row, consonant_index, []),
+            "vowels": tsv.json_cell(row, vowel_index, []),
+            "tones": _tones(row),
+            "phonotacticPatterns": tsv.json_cell(row, pattern_index, {}),
+            "syllableStructure": tsv.text_cell(row, syllable_index),
+            "stressSystem": tsv.text_cell(row, stress_index),
+        }
+        for row in rows
+    ]
+
+
+def load_etymology_relations(lexicons: Path) -> list[Record]:
+    """`etymology-relations.tsv` → the word-to-word relations.
+
+    ``loadEtymologyRelations``. Every column is required, and every cell is read
+    raw — this is the flattest loader in the corpus.
+    """
+    parsed = tsv.read_tsv(lexicons, "etymology-relations.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    source_word_index = tsv.required_index(header, "source_word")
+    source_language_index = tsv.required_index(header, "source_language")
+    target_word_index = tsv.required_index(header, "target_word")
+    target_language_index = tsv.required_index(header, "target_language")
+    relation_index = tsv.required_index(header, "relation_type")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "sourceWord": tsv.cell(row, source_word_index),
+            "sourceLanguage": tsv.cell(row, source_language_index),
+            "targetWord": tsv.cell(row, target_word_index),
+            "targetLanguage": tsv.cell(row, target_language_index),
+            "relationType": tsv.cell(row, relation_index),
+        }
+        for row in rows
+    ]
+
+
+def load_grammar_features(lexicons: Path) -> list[Record]:
+    """`grammar-features.tsv` → one typological profile per language.
+
+    ``loadGrammarFeatures``.
+    """
+    parsed = tsv.read_tsv(lexicons, "grammar-features.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    language_index = tsv.required_index(header, "language_id")
+    word_order_index = tsv.index_of(header, "word_order")
+    morphological_index = tsv.index_of(header, "morphological_type")
+    case_index = tsv.index_of(header, "case_system")
+    gender_index = tsv.index_of(header, "gender_system")
+    number_index = tsv.index_of(header, "number_system")
+    tam_index = tsv.index_of(header, "tense_aspect_mood")
+    agreement_index = tsv.index_of(header, "agreement_system")
+    negation_index = tsv.index_of(header, "negation_strategy")
+    question_index = tsv.index_of(header, "question_formation")
+    relative_index = tsv.index_of(header, "relative_clause_strategy")
+    noun_class_index = tsv.index_of(header, "noun_class_count")
+    valency_index = tsv.index_of(header, "verb_valency_changes")
+    evidentiality_index = tsv.index_of(header, "evidentiality")
+    ergativity_index = tsv.index_of(header, "ergativity")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "languageId": tsv.cell(row, language_index),
+            "wordOrder": tsv.text_cell(row, word_order_index),
+            "morphologicalType": tsv.text_cell(row, morphological_index),
+            "caseSystem": tsv.json_cell(row, case_index, []),
+            "genderSystem": tsv.json_cell(row, gender_index, []),
+            "numberSystem": tsv.json_cell(row, number_index, []),
+            "tenseAspectMood": tsv.json_cell(row, tam_index, []),
+            "agreementSystem": tsv.text_cell(row, agreement_index),
+            "negationStrategy": tsv.text_cell(row, negation_index),
+            "questionFormation": tsv.text_cell(row, question_index),
+            "relativeClauseStrategy": tsv.text_cell(row, relative_index),
+            "nounClassCount": tsv.int_or_zero(row, noun_class_index),
+            "verbValencyChanges": tsv.json_cell(row, valency_index, []),
+            "evidentiality": tsv.text_cell(row, evidentiality_index),
+            "ergativity": tsv.text_cell(row, ergativity_index),
+        }
+        for row in rows
+    ]
+
+
+def load_verb_paradigms(lexicons: Path) -> list[Record]:
+    """`verb-paradigms.tsv` → the conjugation tables (``loadVerbParadigms``).
+
+    `irregular` is ``cell === "true"``, so any other spelling — ``"TRUE"``,
+    ``"1"``, a blank — is **false**.
+    """
+    parsed = tsv.read_tsv(lexicons, "verb-paradigms.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    language_index = tsv.required_index(header, "language_id")
+    concept_index = tsv.index_of(header, "verb_concept")
+    infinitive_index = tsv.index_of(header, "infinitive_form")
+    conjugation_index = tsv.index_of(header, "conjugation_table")
+    irregular_index = tsv.index_of(header, "irregular")
+    complexity_index = tsv.index_of(header, "complexity_score")
+    notes_index = tsv.index_of(header, "notes")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "languageId": tsv.cell(row, language_index),
+            "verbConcept": tsv.text_cell(row, concept_index),
+            "infinitiveForm": tsv.text_cell(row, infinitive_index),
+            "conjugationTable": tsv.json_cell(row, conjugation_index, {}),
+            "irregular": tsv.cell(row, irregular_index) == "true",
+            "complexityScore": tsv.int_or_zero(row, complexity_index),
+            "notes": tsv.text_cell(row, notes_index),
+        }
+        for row in rows
+    ]
+
+
+def load_language_contacts(lexicons: Path) -> list[Record]:
+    """`language-contacts.tsv` → the contact events (``loadLanguageContacts``).
+
+    `features_transferred` falls back to the **three empty buckets** rather than
+    to ``{}``: the client indexes `phonological`/`lexical`/`grammatical`
+    unconditionally.
+    """
+    parsed = tsv.read_tsv(lexicons, "language-contacts.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    source_index = tsv.index_of(header, "source_language_id")
+    target_index = tsv.index_of(header, "target_language_id")
+    type_index = tsv.index_of(header, "contact_type")
+    period_index = tsv.index_of(header, "time_period")
+    region_index = tsv.index_of(header, "region")
+    features_index = tsv.index_of(header, "features_transferred")
+    example_index = tsv.index_of(header, "example_features")
+    intensity_index = tsv.index_of(header, "intensity")
+
+    def _features(row: list[str]) -> Any:
+        return tsv.json_cell(
+            row,
+            features_index,
+            {"phonological": [], "lexical": [], "grammatical": []},
+        )
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "sourceLanguageId": tsv.text_cell(row, source_index),
+            "targetLanguageId": tsv.text_cell(row, target_index),
+            "contactType": tsv.text_cell(row, type_index),
+            "timePeriod": tsv.text_cell(row, period_index),
+            "region": tsv.text_cell(row, region_index),
+            "featuresTransferred": _features(row),
+            "exampleFeatures": tsv.text_cell(row, example_index),
+            "intensity": tsv.text_cell(row, intensity_index),
+        }
+        for row in rows
+    ]
+
+
+def load_sound_changes(lexicons: Path) -> list[Record]:
+    """`sound-changes.tsv` → the historical sound laws (``loadSoundChanges``)."""
+    parsed = tsv.read_tsv(lexicons, "sound-changes.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.index_of(header, "name")
+    family_index = tsv.index_of(header, "family_id")
+    source_index = tsv.index_of(header, "source_language_id")
+    target_index = tsv.index_of(header, "target_language_id")
+    rule_index = tsv.index_of(header, "change_rule")
+    environment_index = tsv.index_of(header, "environment")
+    date_index = tsv.index_of(header, "date_range")
+    examples_index = tsv.index_of(header, "examples")
+    related_index = tsv.index_of(header, "related_changes")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.text_cell(row, name_index),
+            "familyId": tsv.text_cell(row, family_index),
+            "sourceLanguageId": tsv.text_cell(row, source_index),
+            "targetLanguageId": tsv.text_cell(row, target_index),
+            "changeRule": tsv.text_cell(row, rule_index),
+            "environment": tsv.text_cell(row, environment_index),
+            "dateRange": tsv.text_cell(row, date_index),
+            "examples": tsv.json_cell(row, examples_index, []),
+            "relatedChanges": tsv.json_cell(row, related_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_style_evolutions(lexicons: Path) -> list[Record]:
+    """`art-style-evolutions.tsv` → the tradition-to-tradition transitions.
+
+    ``loadStyleEvolutions``. Every column is required.
+    """
+    parsed = tsv.read_tsv(lexicons, "art-style-evolutions.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    from_index = tsv.required_index(header, "from_tradition_id")
+    to_index = tsv.required_index(header, "to_tradition_id")
+    type_index = tsv.required_index(header, "transition_type")
+    date_index = tsv.required_index(header, "transition_date")
+    description_index = tsv.required_index(header, "description")
+    changes_index = tsv.required_index(header, "key_changes")
+    catalysts_index = tsv.required_index(header, "catalysts")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "fromTraditionId": tsv.cell(row, from_index),
+            "toTraditionId": tsv.cell(row, to_index),
+            "transitionType": tsv.cell(row, type_index),
+            "transitionDate": tsv.int_or_zero(row, date_index),
+            "description": tsv.cell(row, description_index),
+            "keyChanges": tsv.json_cell(row, changes_index, []),
+            "catalysts": tsv.json_cell(row, catalysts_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_building_types(lexicons: Path) -> list[Record]:
+    """`building-types.tsv` → the building typology (``loadBuildingTypes``)."""
+    parsed = tsv.read_tsv(lexicons, "building-types.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    category_index = tsv.required_index(header, "category")
+    parent_index = tsv.required_index(header, "parent_type_id")
+    description_index = tsv.required_index(header, "description")
+    period_index = tsv.required_index(header, "historical_period")
+    regions_index = tsv.required_index(header, "regions")
+    styles_index = tsv.required_index(header, "associated_styles")
+    features_index = tsv.required_index(header, "structural_features")
+    function_index = tsv.required_index(header, "cultural_function")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "category": tsv.text_cell(row, category_index),
+            "parentTypeId": tsv.text_cell(row, parent_index),
+            "description": tsv.text_cell(row, description_index),
+            "historicalPeriod": tsv.text_cell(row, period_index),
+            "regions": tsv.json_cell(row, regions_index, []),
+            "associatedStyles": tsv.json_cell(row, styles_index, []),
+            "structuralFeatures": tsv.json_cell(row, features_index, []),
+            "culturalFunction": tsv.text_cell(row, function_index),
+        }
+        for row in rows
+    ]
+
+
+def load_city_layouts(lexicons: Path) -> list[Record]:
+    """`city-layouts.tsv` → the urban-form records (``loadCityLayouts``).
+
+    ``estimated_area_hectares`` carries the literal ``"undetermined"`` for a
+    site nobody has surveyed, and that is tested for by name — it is not the
+    same as a blank cell to the reader, though both answer ``null``.
+    """
+    parsed = tsv.read_tsv(lexicons, "city-layouts.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    settlement_index = tsv.index_of(header, "settlement_id")
+    culture_index = tsv.index_of(header, "culture_profile_id")
+    layout_index = tsv.index_of(header, "layout_type")
+    features_index = tsv.index_of(header, "key_features")
+    street_index = tsv.index_of(header, "street_pattern")
+    water_index = tsv.index_of(header, "water_management")
+    fortification_index = tsv.index_of(header, "fortification_type")
+    area_index = tsv.index_of(header, "estimated_area_hectares")
+    description_index = tsv.index_of(header, "description")
+    reconstruction_index = tsv.index_of(header, "reconstruction_notes")
+    sources_index = tsv.index_of(header, "sources")
+
+    def _area(row: list[str]) -> float | int | None:
+        raw = tsv.cell(row, area_index)
+        if area_index < 0 or not raw or raw == "undetermined":
+            return None
+        value = tsv.js_parse_float(raw)
+        if math.isnan(value):
+            return None
+        return int(value) if value.is_integer() else value
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "settlementId": tsv.text_cell(row, settlement_index),
+            "cultureProfileId": tsv.text_cell(row, culture_index),
+            "layoutType": tsv.text_cell(row, layout_index),
+            "keyFeatures": _pipe_list(row, features_index),
+            "streetPattern": tsv.text_cell(row, street_index),
+            "waterManagement": _pipe_list(row, water_index),
+            "fortificationType": tsv.text_cell(row, fortification_index),
+            "estimatedAreaHectares": _area(row),
+            "description": tsv.text_cell(row, description_index),
+            "reconstructionNotes": tsv.text_cell(row, reconstruction_index),
+            "sources": tsv.text_cell(row, sources_index),
+        }
+        for row in rows
+    ]
+
+
+def load_social_organization(lexicons: Path) -> list[Record]:
+    """`social-organization.tsv` → the ethnographic organisation records.
+
+    ``loadSocialOrganization``. The twelve columns up to `property_inheritance`
+    are required and read **raw**; the six after it are optional and blank-
+    defaulted. `time_origin`/`time_end` are free text here, not years.
+    """
+    parsed = tsv.read_tsv(lexicons, "social-organization.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    culture_index = tsv.required_index(header, "culture_or_language")
+    region_index = tsv.required_index(header, "region")
+    political_index = tsv.required_index(header, "political_structure")
+    stratification_index = tsv.required_index(header, "stratification_type")
+    subsistence_index = tsv.required_index(header, "subsistence_pattern")
+    marriage_index = tsv.required_index(header, "marriage_system")
+    descent_index = tsv.required_index(header, "descent_system")
+    residence_index = tsv.required_index(header, "residence_pattern")
+    kinship_index = tsv.required_index(header, "kinship_terminology")
+    property_index = tsv.required_index(header, "property_inheritance")
+    gender_index = tsv.index_of(header, "gender_roles")
+    age_index = tsv.index_of(header, "age_grades")
+    clan_index = tsv.index_of(header, "clan_or_moiety_system")
+    time_origin_index = tsv.index_of(header, "time_origin")
+    time_end_index = tsv.index_of(header, "time_end")
+    notes_index = tsv.index_of(header, "notes")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "cultureOrLanguage": tsv.cell(row, culture_index),
+            "region": tsv.cell(row, region_index),
+            "politicalStructure": tsv.cell(row, political_index),
+            "stratificationType": tsv.cell(row, stratification_index),
+            "subsistencePattern": tsv.cell(row, subsistence_index),
+            "marriageSystem": tsv.cell(row, marriage_index),
+            "descentSystem": tsv.cell(row, descent_index),
+            "residencePattern": tsv.cell(row, residence_index),
+            "kinshipTerminology": tsv.cell(row, kinship_index),
+            "propertyInheritance": tsv.cell(row, property_index),
+            "genderRoles": tsv.text_cell(row, gender_index),
+            "ageGrades": tsv.text_cell(row, age_index),
+            "clanOrMoietySystem": tsv.text_cell(row, clan_index),
+            "timeOrigin": tsv.text_cell(row, time_origin_index),
+            "timeEnd": tsv.text_cell(row, time_end_index),
+            "notes": tsv.text_cell(row, notes_index),
+        }
+        for row in rows
+    ]
+
+
+def load_social_structures(lexicons: Path) -> list[Record]:
+    """`social-structures.tsv` → the per-culture structures.
+
+    ``loadSocialStructures``. `key_roles` is pipe-separated, not JSON.
+    """
+    parsed = tsv.read_tsv(lexicons, "social-structures.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    culture_index = tsv.required_index(header, "culture_profile_id")
+    type_index = tsv.required_index(header, "structure_type")
+    name_index = tsv.required_index(header, "name")
+    description_index = tsv.required_index(header, "description")
+    roles_index = tsv.required_index(header, "key_roles")
+    inheritance_index = tsv.required_index(header, "inheritance_pattern")
+    decision_index = tsv.required_index(header, "decision_making")
+    kinship_index = tsv.required_index(header, "related_kinship_system_id")
+    start_index = tsv.required_index(header, "time_period_start")
+    end_index = tsv.required_index(header, "time_period_end")
+    sources_index = tsv.required_index(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "cultureProfileId": tsv.cell(row, culture_index),
+            "structureType": tsv.cell(row, type_index),
+            "name": tsv.cell(row, name_index),
+            "description": tsv.cell(row, description_index),
+            "keyRoles": [
+                part for part in tsv.cell(row, roles_index).split("|") if part
+            ],
+            "inheritancePattern": tsv.cell(row, inheritance_index),
+            "decisionMaking": tsv.cell(row, decision_index),
+            "relatedKinshipSystemId": tsv.text_cell(row, kinship_index),
+            "timePeriodStart": tsv.text_cell(row, start_index),
+            "timePeriodEnd": tsv.text_cell(row, end_index),
+            "sources": tsv.text_cell(row, sources_index),
+        }
+        for row in rows
+    ]
+
+
+def load_narratives(lexicons: Path) -> list[Record]:
+    """`narratives.tsv` → the guided map tours (``loadNarratives``).
+
+    The `steps` cell is a JSON array of snake_case objects renamed to camelCase
+    here. Anything that is not an array of objects degrades the **whole**
+    column to ``[]`` rather than to a partial reading — ``rawSteps.map`` throws
+    on a non-array, and that throw is caught.
+    """
+    parsed = tsv.read_tsv(lexicons, "narratives.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    title_index = tsv.required_index(header, "title")
+    description_index = tsv.required_index(header, "description")
+    steps_index = tsv.required_index(header, "steps")
+
+    def _steps(row: list[str]) -> list[Record]:
+        raw = tsv.json_cell(row, steps_index, None)
+        if not isinstance(raw, list):
+            return []
+        steps: list[Record] = []
+        for step in raw:
+            entry = step if isinstance(step, dict) else {}
+            steps.append(
+                {
+                    "text": entry.get("text") or "",
+                    "mapCenter": entry.get("map_center") or [0, 0],
+                    "mapZoom": entry.get("map_zoom") or 3,
+                    "timePoint": entry.get("time_point") or 0,
+                    "highlightedEntities": entry.get("highlighted_entities") or [],
+                    "layerConfig": entry.get("layer_config") or {"layers": []},
+                }
+            )
+        return steps
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "title": tsv.cell(row, title_index),
+            "description": tsv.cell(row, description_index),
+            "steps": _steps(row),
+        }
+        for row in rows
+    ]
+
+
+def load_cultural_lineages(lexicons: Path) -> list[Record]:
+    """`cultural-lineages.tsv` → the directed descent edges.
+
+    ``loadCulturalLineages``. `time_start`/`time_end`/`confidence` are
+    ``parseInt(cell) || 0``, so an unreadable or genuinely-zero value is **0** —
+    which is why a lineage dated to year 0 is indistinguishable from an undated
+    one here.
+    """
+    parsed = tsv.read_tsv(lexicons, "cultural-lineages.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    source_id_index = tsv.index_of(header, "source_id")
+    source_name_index = tsv.index_of(header, "source_name")
+    target_id_index = tsv.index_of(header, "target_id")
+    target_name_index = tsv.index_of(header, "target_name")
+    relationship_index = tsv.index_of(header, "relationship_type")
+    start_index = tsv.index_of(header, "time_start")
+    end_index = tsv.index_of(header, "time_end")
+    confidence_index = tsv.index_of(header, "confidence")
+    evidence_index = tsv.index_of(header, "evidence_types")
+    description_index = tsv.index_of(header, "description")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "sourceId": tsv.text_cell(row, source_id_index),
+            "sourceName": tsv.text_cell(row, source_name_index),
+            "targetId": tsv.text_cell(row, target_id_index),
+            "targetName": tsv.text_cell(row, target_name_index),
+            "relationshipType": tsv.text_cell(row, relationship_index),
+            "timeStart": tsv.int_or_zero(row, start_index),
+            "timeEnd": tsv.int_or_zero(row, end_index),
+            "confidence": tsv.int_or_zero(row, confidence_index),
+            "evidenceTypes": tsv.json_cell(row, evidence_index, []),
+            "description": tsv.text_cell(row, description_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_literary_traditions(lexicons: Path) -> list[Record]:
+    """`literary-traditions.tsv` → the tradition records.
+
+    ``loadLiteraryTraditions``. Every column is required.
+    """
+    parsed = tsv.read_tsv(lexicons, "literary-traditions.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    region_index = tsv.required_index(header, "region")
+    origin_index = tsv.required_index(header, "origin_date")
+    end_index = tsv.required_index(header, "end_date")
+    coordinates_index = tsv.required_index(header, "origin_coordinates")
+    language_index = tsv.required_index(header, "associated_language_ids")
+    genre_index = tsv.required_index(header, "genre_focus")
+    themes_index = tsv.required_index(header, "key_themes")
+    description_index = tsv.required_index(header, "description")
+    authors_index = tsv.required_index(header, "notable_authors")
+    influences_index = tsv.required_index(header, "influences")
+    sources_index = tsv.required_index(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "region": tsv.cell(row, region_index),
+            "originDate": tsv.int_or_zero(row, origin_index),
+            "endDate": _int(row, end_index),
+            "originCoordinates": _coordinates(row, coordinates_index),
+            "associatedLanguageIds": tsv.json_cell(row, language_index, []),
+            "genreFocus": tsv.json_cell(row, genre_index, []),
+            "keyThemes": tsv.json_cell(row, themes_index, []),
+            "description": tsv.cell(row, description_index),
+            "notableAuthors": tsv.json_cell(row, authors_index, []),
+            "influences": tsv.json_cell(row, influences_index, []),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_literary_works(lexicons: Path) -> list[Record]:
+    """`literary-works.tsv` → the individual works (``loadLiteraryWorks``)."""
+    parsed = tsv.read_tsv(lexicons, "literary-works.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    title_index = tsv.required_index(header, "title")
+    author_index = tsv.required_index(header, "author")
+    tradition_index = tsv.required_index(header, "tradition_id")
+    language_index = tsv.required_index(header, "language_id")
+    composed_index = tsv.required_index(header, "date_composed")
+    published_index = tsv.required_index(header, "date_published")
+    genre_index = tsv.required_index(header, "genre")
+    form_index = tsv.required_index(header, "form")
+    description_index = tsv.required_index(header, "description")
+    significance_index = tsv.required_index(header, "significance")
+    script_index = tsv.required_index(header, "original_script")
+    coordinates_index = tsv.required_index(header, "coordinates")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "title": tsv.cell(row, title_index),
+            "author": tsv.cell(row, author_index),
+            "traditionId": tsv.cell(row, tradition_index),
+            "languageId": tsv.cell(row, language_index),
+            "dateComposed": tsv.int_or_zero(row, composed_index),
+            "datePublished": _int(row, published_index),
+            "genre": tsv.cell(row, genre_index),
+            "form": tsv.cell(row, form_index),
+            "description": tsv.cell(row, description_index),
+            "significance": tsv.cell(row, significance_index),
+            "originalScript": tsv.cell(row, script_index),
+            "coordinates": _coordinates(row, coordinates_index),
+        }
+        for row in rows
+    ]
+
+
+def load_rivers_and_waters(lexicons: Path) -> list[Record]:
+    """`rivers-and-waters.tsv` → the hydrological features.
+
+    ``loadRiversAndWaters``. `length_km` is ``parseInt(cell) || null``, so a
+    river recorded as 0 km long reads as unmeasured.
+    """
+    parsed = tsv.read_tsv(lexicons, "rivers-and-waters.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    alternate_index = tsv.index_of(header, "alternate_names")
+    type_index = tsv.index_of(header, "water_type")
+    coordinates_index = tsv.index_of(header, "coordinates")
+    length_index = tsv.index_of(header, "length_km")
+    region_index = tsv.index_of(header, "region")
+    start_index = tsv.index_of(header, "time_start")
+    end_index = tsv.index_of(header, "time_end")
+    importance_index = tsv.index_of(header, "historical_importance")
+    civilizations_index = tsv.index_of(header, "associated_civilizations")
+    languages_index = tsv.index_of(header, "associated_languages")
+    modern_index = tsv.index_of(header, "modern_name")
+    description_index = tsv.index_of(header, "description")
+
+    def _length(row: list[str]) -> int | None:
+        parsed_length = _int(row, length_index)
+        return None if not parsed_length else parsed_length
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "alternateNames": _loose_list(row, alternate_index),
+            "waterType": tsv.text_cell(row, type_index),
+            "coordinates": tsv.json_cell(row, coordinates_index, []),
+            "lengthKm": _length(row),
+            "region": tsv.text_cell(row, region_index),
+            "timeStart": _int(row, start_index),
+            "timeEnd": _int(row, end_index),
+            "historicalImportance": tsv.text_cell(row, importance_index),
+            "associatedCivilizations": _loose_list(row, civilizations_index),
+            "associatedLanguages": _loose_list(row, languages_index),
+            "modernName": tsv.text_cell(row, modern_index),
+            "description": tsv.text_cell(row, description_index),
+        }
+        for row in rows
+    ]
+
+
+def load_daily_life(lexicons: Path) -> list[Record]:
+    """`daily-life.tsv` → the everyday-practice entries (``loadDailyLife``)."""
+    parsed = tsv.read_tsv(lexicons, "daily-life.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    culture_index = tsv.required_index(header, "culture_profile_id")
+    category_index = tsv.required_index(header, "category")
+    title_index = tsv.required_index(header, "title")
+    description_index = tsv.required_index(header, "description")
+    social_class_index = tsv.required_index(header, "social_class")
+    gender_index = tsv.required_index(header, "gender_context")
+    age_index = tsv.required_index(header, "age_group")
+    season_index = tsv.required_index(header, "season")
+    start_index = tsv.required_index(header, "time_period_start")
+    end_index = tsv.required_index(header, "time_period_end")
+    sources_index = tsv.required_index(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "cultureProfileId": tsv.cell(row, culture_index),
+            "category": tsv.cell(row, category_index),
+            "title": tsv.cell(row, title_index),
+            "description": tsv.cell(row, description_index),
+            "socialClass": tsv.cell(row, social_class_index),
+            "genderContext": tsv.cell(row, gender_index),
+            "ageGroup": tsv.cell(row, age_index),
+            "season": tsv.cell(row, season_index),
+            "timePeriodStart": tsv.text_cell(row, start_index),
+            "timePeriodEnd": tsv.text_cell(row, end_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+def load_culture_events(lexicons: Path) -> list[Record]:
+    """`culture-events.tsv` → the per-culture timeline events.
+
+    ``loadCultureEvents``. `year` is an unguarded ``parseInt``, so an unreadable
+    one is ``NaN`` over there — collapsed to absent here, per this module's rule.
+    Ordering is the caller's (:func:`pinakes.lexicons.ethnography.culture_events`).
+    """
+    parsed = tsv.read_tsv(lexicons, "culture-events.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    culture_index = tsv.required_index(header, "culture_profile_id")
+    year_index = tsv.required_index(header, "year")
+    lane_index = tsv.required_index(header, "lane")
+    type_index = tsv.required_index(header, "event_type")
+    title_index = tsv.required_index(header, "title")
+    description_index = tsv.required_index(header, "description")
+    magnitude_index = tsv.required_index(header, "magnitude")
+    sources_index = tsv.index_of(header, "sources")
+
+    def _year(row: list[str]) -> int | None:
+        value = tsv.js_parse_int(tsv.cell(row, year_index))
+        return None if math.isnan(value) else int(value)
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "cultureProfileId": tsv.cell(row, culture_index),
+            "year": _year(row),
+            "lane": tsv.cell(row, lane_index),
+            "eventType": tsv.cell(row, type_index),
+            "title": tsv.cell(row, title_index),
+            "description": tsv.cell(row, description_index),
+            "magnitude": tsv.cell(row, magnitude_index),
+            "sources": tsv.json_cell(row, sources_index, []),
+        }
+        for row in rows
+    ]
+
+
+#: The Wikimedia Commons image columns, in the order the handler emits them,
+#: paired with how each cell is read. The whole domain is inline in
+#: `routes.ts` rather than in `tsv-storage.ts`, which is why it has no `load*`
+#: twin over there and why :func:`load_wikimedia_commons_images` carries its own
+#: (subtly different) reader.
+_COMMONS_TEXT_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("id", "id"),
+    ("title", "title"),
+    ("description", "description"),
+    ("imageUrl", "image_url"),
+    ("thumbUrl", "thumb_url"),
+    ("artist", "artist"),
+    ("license", "license"),
+)
+
+
+def load_wikimedia_commons_images(lexicons: Path) -> list[Record]:
+    """`wikimedia-commons-images.tsv` → the scraped image records.
+
+    The handler this comes from reads the file **inline**, with its own parser,
+    and two things about that parser are observable. It splits on ``"\\n"``
+    alone, so a CRLF file keeps a ``\\r`` on the last column of every row; and a
+    file with a header but no rows answers the same empty payload a missing file
+    does. Both reproduced — this reader is deliberately *not*
+    :func:`pinakes.analytics.tsv.parse_tsv`.
+    """
+    path = Path(lexicons) / "wikimedia-commons-images.tsv"
+    if not path.is_file():
+        return []
+    content = path.read_text(encoding="utf-8")
+    lines = [line for line in content.split("\n") if line.strip() != ""]
+    if len(lines) <= 1:
+        return []
+    header = lines[0].split("\t")
+
+    def _index(name: str) -> int:
+        return tsv.index_of(header, name)
+
+    records: list[Record] = []
+    for line in lines[1:]:
+        row = line.split("\t")
+        record: Record = {
+            key: tsv.text_cell(row, _index(column))
+            for key, column in _COMMONS_TEXT_COLUMNS
+        }
+        record["categories"] = tsv.json_cell(row, _index("categories"), [])
+        record["coordinates"] = tsv.json_cell(row, _index("coordinates"), None)
+        record["dateCreated"] = tsv.text_cell(row, _index("date_created"))
+        record["associatedCulture"] = tsv.text_cell(row, _index("associated_culture"))
+        record["associatedLanguageIds"] = tsv.json_cell(
+            row, _index("associated_language_ids"), []
+        )
+        record["artifactType"] = tsv.text_cell(row, _index("artifact_type"))
+        record["region"] = tsv.text_cell(row, _index("region"))
+        record["source"] = tsv.text_cell(row, _index("source"))
+        records.append(record)
+    return records
+
+
 def find_by_id(records: list[Record], identifier: str) -> Record | None:
     """The first record whose ``id`` is *identifier* — ``Array.find``, by id."""
     for record in records:

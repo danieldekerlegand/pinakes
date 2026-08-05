@@ -60,6 +60,31 @@ def write(lexicons: Path, filename: str, *lines: str) -> Path:
         storage.load_kinship_systems,
         storage.load_foodway_events,
         storage.load_settlements,
+        # The pinakes:80 US-1 slice-four loaders.
+        storage.load_haplogroups,
+        storage.load_dance_traditions,
+        storage.load_ingredient_origins,
+        storage.load_cooking_techniques,
+        storage.load_sample_texts,
+        storage.load_phonological_inventories,
+        storage.load_etymology_relations,
+        storage.load_grammar_features,
+        storage.load_verb_paradigms,
+        storage.load_language_contacts,
+        storage.load_sound_changes,
+        storage.load_style_evolutions,
+        storage.load_building_types,
+        storage.load_city_layouts,
+        storage.load_social_organization,
+        storage.load_social_structures,
+        storage.load_narratives,
+        storage.load_cultural_lineages,
+        storage.load_literary_traditions,
+        storage.load_literary_works,
+        storage.load_rivers_and_waters,
+        storage.load_daily_life,
+        storage.load_culture_events,
+        storage.load_wikimedia_commons_images,
     ],
 )
 def test_a_missing_file_is_an_empty_domain_not_an_error(
@@ -410,6 +435,36 @@ def test_find_by_id_returns_the_first_match() -> None:
         (storage.load_archaeological_cultures, 277),
         (storage.load_trade_routes, 39),
         (storage.load_empire_timeline, 115),
+        # The twenty-three pinakes:80 US-1 slice-four loaders, each proved
+        # byte-identical to the live Express app over 341 requests before being
+        # pinned here. `load_ingredient_origins` has no entry because it
+        # *raises* on this corpus — see
+        # `test_the_ingredient_origin_loader_raises_on_the_live_corpus`, and
+        # `wikimedia-commons-images.tsv` does not exist at all, which is the
+        # empty payload both backends answer with.
+        (storage.load_haplogroups, 62),
+        (storage.load_dance_traditions, 92),
+        (storage.load_cooking_techniques, 92),
+        (storage.load_sample_texts, 150),
+        (storage.load_phonological_inventories, 1077),
+        (storage.load_etymology_relations, 5180),
+        (storage.load_grammar_features, 1091),
+        (storage.load_verb_paradigms, 94),
+        (storage.load_language_contacts, 95),
+        (storage.load_sound_changes, 48),
+        (storage.load_style_evolutions, 4),
+        (storage.load_building_types, 57),
+        (storage.load_city_layouts, 15),
+        (storage.load_social_organization, 5),
+        (storage.load_social_structures, 310),
+        (storage.load_narratives, 21),
+        (storage.load_cultural_lineages, 95),
+        (storage.load_literary_traditions, 62),
+        (storage.load_literary_works, 22),
+        (storage.load_rivers_and_waters, 21),
+        (storage.load_daily_life, 520),
+        (storage.load_culture_events, 78),
+        (storage.load_wikimedia_commons_images, 0),
     ],
 )
 def test_the_live_corpus_loads_the_row_counts_the_repo_documents(
@@ -454,6 +509,28 @@ def test_every_live_domain_loads_at_least_one_row() -> None:
             ("archaeological-cultures", storage.load_archaeological_cultures),
             ("trade-routes", storage.load_trade_routes),
             ("empire-timeline", storage.load_empire_timeline),
+            ("haplogroups", storage.load_haplogroups),
+            ("dance-traditions", storage.load_dance_traditions),
+            ("cooking-techniques", storage.load_cooking_techniques),
+            ("sample-texts", storage.load_sample_texts),
+            ("phonological-inventories", storage.load_phonological_inventories),
+            ("etymology-relations", storage.load_etymology_relations),
+            ("grammar-features", storage.load_grammar_features),
+            ("verb-paradigms", storage.load_verb_paradigms),
+            ("language-contacts", storage.load_language_contacts),
+            ("sound-changes", storage.load_sound_changes),
+            ("art-style-evolutions", storage.load_style_evolutions),
+            ("building-types", storage.load_building_types),
+            ("city-layouts", storage.load_city_layouts),
+            ("social-organization", storage.load_social_organization),
+            ("social-structures", storage.load_social_structures),
+            ("narratives", storage.load_narratives),
+            ("cultural-lineages", storage.load_cultural_lineages),
+            ("literary-traditions", storage.load_literary_traditions),
+            ("literary-works", storage.load_literary_works),
+            ("rivers-and-waters", storage.load_rivers_and_waters),
+            ("daily-life", storage.load_daily_life),
+            ("culture-events", storage.load_culture_events),
         )
         if not load(LIVE_LEXICONS)
     ]
@@ -626,3 +703,208 @@ def test_a_myth_motif_reads_every_optional_column_through_index_of(
     assert motif["associatedDeityIds"] == ["zeus"]
     assert motif["timeOrigin"] is None
     assert (motif["motifType"], motif["region"], motif["thompsonIndex"]) == ("", "", "")
+
+
+# ── The pinakes:80 US-1 slice-four loaders' own dialect decisions ────────────
+
+
+def test_the_ingredient_origin_loader_raises_on_the_live_corpus() -> None:
+    """`ingredient-origins.tsv` has no `category` column, and never had one.
+
+    `loadIngredientOrigins` asks for it with ``getIdx``, so both
+    `/api/ingredient-origins` and its `{id}` sibling are a **500** on both
+    backends against the committed corpus — the same shape as
+    `test_the_empires_timeline_feature_loader_raises_on_the_live_corpus`, and
+    kept for the same reason. The file carries `cuisine_id`; whichever way that
+    is reconciled, this test is what will say the domain came alive.
+    """
+    with pytest.raises(tsv.MissingColumnError):
+        storage.load_ingredient_origins(LIVE_LEXICONS)
+
+
+def test_a_haplogroup_parent_of_the_string_null_is_a_root(tmp_path: Path) -> None:
+    """`parent_id` is the one column tested against the literal ``"null"`` here,
+    and it is what makes `?parentId=null` select the roots of the tree."""
+    write(
+        tmp_path,
+        "haplogroups.tsv",
+        "id\tname\tparent_id",
+        "R\tR\tnull",
+        "R1\tR1\tR",
+        "R2\tR2\t",
+    )
+    root, child, blank = storage.load_haplogroups(tmp_path)
+    assert root["parentId"] is None
+    assert child["parentId"] == "R"
+    assert blank["parentId"] is None
+    assert root["haplogroupType"] == "Y-chromosome"
+
+
+def test_phonological_tones_keep_null_and_the_empty_list_apart(
+    tmp_path: Path,
+) -> None:
+    """A non-tonal language and a tonal one with no tones recorded are different
+    claims, and `tones` is the only column in the corpus that carries both."""
+    write(
+        tmp_path,
+        "phonological-inventories.tsv",
+        "id\tlanguage_id\tconsonants\ttones",
+        'p1\ta\t["p","t"]\t["high","low"]',
+        "p2\tb\t[]\t[]",
+        "p3\tc\t[]\tnull",
+        "p4\td\t[]\t",
+        "p5\te\t[]\tnot json",
+    )
+    tonal, empty, sentinel, blank, junk = storage.load_phonological_inventories(
+        tmp_path
+    )
+    assert tonal["tones"] == ["high", "low"]
+    assert empty["tones"] == []
+    assert sentinel["tones"] is None
+    assert blank["tones"] is None
+    assert junk["tones"] is None
+
+
+def test_a_river_reads_a_list_column_as_json_or_as_commas(tmp_path: Path) -> None:
+    """`rivers-and-waters.tsv` is the only file whose reader sniffs its own cell.
+
+    A value starting ``[`` is JSON; anything else is comma-separated. And
+    `length_km` is ``parseInt(cell) || null``, so a river recorded as 0 km long
+    reads as unmeasured rather than as zero.
+    """
+    write(
+        tmp_path,
+        "rivers-and-waters.tsv",
+        "id\tname\talternate_names\tassociated_languages\tlength_km",
+        'r1\tNile\t["Iteru","Hapi"]\takk, egy \t6650',
+        "r2\tTigris\t[not json\t\t0",
+    )
+    nile, tigris = storage.load_rivers_and_waters(tmp_path)
+    assert nile["alternateNames"] == ["Iteru", "Hapi"]
+    assert nile["associatedLanguages"] == ["akk", "egy"]
+    assert nile["lengthKm"] == 6650
+    # A cell that *looks* like JSON and is not falls back to empty rather than
+    # to a one-item comma split — only the leading `[` decides which rule runs.
+    assert tigris["alternateNames"] == []
+    assert tigris["lengthKm"] is None
+
+
+def test_pipe_separated_lists_are_trimmed_for_layouts_and_not_for_structures(
+    tmp_path: Path,
+) -> None:
+    """Two files store a list the same way and read it two different ways.
+
+    `getCityLayouts` maps `trim` over the parts before dropping the empty ones;
+    `getSocialStructures` only drops the empty ones. A cell written with spaces
+    after the separators therefore keeps them in one domain and not the other.
+    """
+    write(
+        tmp_path,
+        "city-layouts.tsv",
+        "id\tkey_features\testimated_area_hectares",
+        "c1\tgrid | citadel |\tundetermined",
+        "c2\t\t12.5",
+    )
+    write(
+        tmp_path,
+        "social-structures.tsv",
+        "id\tculture_profile_id\tstructure_type\tname\tdescription\tkey_roles"
+        "\tinheritance_pattern\tdecision_making\trelated_kinship_system_id"
+        "\ttime_period_start\ttime_period_end\tsources",
+        "s1\tcp\tclan\tClan\t-\telder | chief\t-\t-\t\t\t\t",
+    )
+    grid, blank = storage.load_city_layouts(tmp_path)
+    assert grid["keyFeatures"] == ["grid", "citadel"]
+    assert grid["estimatedAreaHectares"] is None
+    assert blank["keyFeatures"] == []
+    assert blank["estimatedAreaHectares"] == 12.5
+    structure = storage.load_social_structures(tmp_path)[0]
+    assert structure["keyRoles"] == ["elder ", " chief"]
+
+
+def test_a_narrative_with_unusable_steps_loses_the_whole_column(
+    tmp_path: Path,
+) -> None:
+    """``rawSteps.map`` throws on a non-array and the catch leaves `steps` empty
+    — a partial reading was never on the table. Snake_case keys are renamed."""
+    write(
+        tmp_path,
+        "narratives.tsv",
+        "id\ttitle\tdescription\tsteps",
+        'n1\tTour\t-\t[{"text":"Start","map_center":[10,20],"map_zoom":5}]',
+        'n2\tBroken\t-\t{"text":"not an array"}',
+        "n3\tJunk\t-\tnot json",
+    )
+    tour, broken, junk = storage.load_narratives(tmp_path)
+    assert tour["steps"] == [
+        {
+            "text": "Start",
+            "mapCenter": [10, 20],
+            "mapZoom": 5,
+            "timePoint": 0,
+            "highlightedEntities": [],
+            "layerConfig": {"layers": []},
+        }
+    ]
+    assert broken["steps"] == []
+    assert junk["steps"] == []
+
+
+def test_a_verb_paradigm_is_irregular_only_for_the_exact_string_true(
+    tmp_path: Path,
+) -> None:
+    """``cell === "true"`` — every other spelling is false, including ``"TRUE"``."""
+    write(
+        tmp_path,
+        "verb-paradigms.tsv",
+        "id\tlanguage_id\tirregular\tcomplexity_score",
+        "v1\ta\ttrue\t7",
+        "v2\tb\tTRUE\t",
+        "v3\tc\t1\tnope",
+    )
+    yes, upper, one = storage.load_verb_paradigms(tmp_path)
+    assert yes["irregular"] is True
+    assert (upper["irregular"], one["irregular"]) == (False, False)
+    assert (yes["complexityScore"], upper["complexityScore"]) == (7, 0)
+    assert one["complexityScore"] == 0
+
+
+def test_language_contacts_fall_back_to_three_empty_feature_buckets(
+    tmp_path: Path,
+) -> None:
+    """The client indexes `phonological`/`lexical`/`grammatical` unconditionally,
+    so a blank or unparseable cell is the three buckets and not ``{}``."""
+    write(
+        tmp_path,
+        "language-contacts.tsv",
+        "id\tsource_language_id\tfeatures_transferred",
+        "c1\ta\t",
+        "c2\tb\tnot json",
+    )
+    blank, junk = storage.load_language_contacts(tmp_path)
+    empty: dict[str, list[str]] = {
+        "phonological": [],
+        "lexical": [],
+        "grammatical": [],
+    }
+    assert blank["featuresTransferred"] == empty
+    assert junk["featuresTransferred"] == empty
+
+
+def test_the_commons_reader_treats_a_header_only_file_as_absent(
+    tmp_path: Path,
+) -> None:
+    """`GET /api/wikimedia-commons-images` parses the file inline rather than
+    through `tsv-storage.ts`, and ``lines.length <= 1`` is its own early exit."""
+    write(tmp_path, "wikimedia-commons-images.tsv", "id\ttitle\timage_url")
+    assert storage.load_wikimedia_commons_images(tmp_path) == []
+    write(
+        tmp_path,
+        "wikimedia-commons-images.tsv",
+        "id\ttitle\timage_url\tcategories\tcoordinates",
+        'w1\tVase\thttps://x/v.jpg\t["pottery"]\t',
+    )
+    image = storage.load_wikimedia_commons_images(tmp_path)[0]
+    assert image["categories"] == ["pottery"]
+    assert image["coordinates"] is None
+    assert image["artifactType"] == ""
