@@ -33,7 +33,7 @@
         "All listed routes pass the parity tests; connection-narrative uses the in-process engine datalog + the LLM proxy as before.",
         ".chief/verify.sh passes and the not-yet-ported (501) coverage tracker is now empty except routes owned by other port tasklists."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
