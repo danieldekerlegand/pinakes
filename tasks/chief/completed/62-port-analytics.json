@@ -3,10 +3,16 @@
   "branchName": "chief/62-port-analytics",
   "baseBranch": "main",
   "description": "Port the analytics/insight engines to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): cross-domain correlations, anomaly detection, hypothesis generation, and data-quality scoring, plus their routes. These are self-contained TS compute today. Runs in parallel with the other port tasklists.",
-  "dependsOn": ["50-engine-inprocess-graph"],
-  "touches": ["port-analytics"],
+  "dependsOn": [
+    "50-engine-inprocess-graph"
+  ],
+  "touches": [
+    "port-analytics"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -32,5 +38,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "f113bacf"
 }
