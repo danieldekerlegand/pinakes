@@ -37,12 +37,15 @@ from pathlib import Path
 from typing import Any
 
 from pinakes.analytics import tsv
+from pinakes.analytics.jsmath import js_number
 
 #: What a blank or unparseable coordinate cell means to the loaders that carry
 #: one — the origin, not nothing. `pinakes.analytics.corpus` documents why this
 #: is observable rather than harmless: such rows really do score geographic
 #: proximity to each other at Null Island.
-ORIGIN: dict[str, float] = {"lat": 0.0, "lng": 0.0}
+#: `{lat: 0, lng: 0}` — **integers**, because that is how the TypeScript
+#: literal serialises. A float zero would reach the wire as `0.0`.
+ORIGIN: dict[str, Any] = {"lat": 0, "lng": 0}
 
 #: The placeholder ring `loadCivilizations` gives a civilization with no
 #: boundary row, so every feature in the layer has a geometry to render.
@@ -278,8 +281,11 @@ def load_languages(lexicons: Path) -> list[Record]:
                     else (int(order) if order.is_integer() else order)
                 ),
                 "historicalContext": tsv.optional_text(row, context_index),
+                # `js_number` because `Number("61")` prints as `61` over there
+                # and a Python float prints as `61.0` — the same narrowing
+                # `_number` and `_finite_number` do for every other numeric cell.
                 "coordinates": (
-                    {"lat": latitude, "lng": longitude}
+                    {"lat": js_number(latitude), "lng": js_number(longitude)}
                     if math.isfinite(latitude) and math.isfinite(longitude)
                     else None
                 ),

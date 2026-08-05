@@ -158,6 +158,30 @@ def test_coordinates_need_both_halves_to_be_numbers(tmp_path: Path) -> None:
     assert d["coordinates"] == {"lat": 0.0, "lng": 0.0}
 
 
+def test_an_integral_coordinate_is_an_int_not_a_float(tmp_path: Path) -> None:
+    """`61`, not `61.0` — and `==` cannot see the difference, hence the types.
+
+    Express writes `"lat":61` and `"lat":0`, because every JavaScript number is
+    a double but an integral one serialises with no fractional part. A raw
+    Python float reaches the wire as `61.0`, which is what
+    `/api/languages`, `/api/languages/{id}` and every route that embeds a
+    language record were sending until pinakes:80 US-1's eighth slice diffed
+    them (`routers/linguistic_distance.py`).
+    """
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus\tlatitude\tlongitude",
+        "a\tA\tf\tliving\t61\t24.45",
+        "b\tB\tf\tliving\t\t",
+    )
+    a, b = storage.load_languages(tmp_path)
+    assert isinstance(a["coordinates"]["lat"], int)
+    assert isinstance(a["coordinates"]["lng"], float)
+    assert isinstance(b["coordinates"]["lat"], int)
+    assert isinstance(storage.ORIGIN["lat"], int)
+
+
 def test_a_zero_speaker_count_reads_as_unknown(tmp_path: Path) -> None:
     """`Number(cell) || null` — a zero is indistinguishable from unstated."""
     write(

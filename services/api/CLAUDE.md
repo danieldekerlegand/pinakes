@@ -1132,3 +1132,67 @@ corpus and a DELETE that rewrites it.
   name **`/api/openapi.json`** now, which the plan puts last of all — it ports
   with US-2, because doing so decides whether `openapi-spec.test.ts`'s
   byte-equal snapshot moves too.
+
+## The cutover's eighth slice — `distance/` + `routers/linguistic_distance.py` (pinakes:80 US-1)
+
+The six `/api/linguistic-distance/*` routes: ASJP/LDND over word forms, plus the
+multi-dimensional "enhanced" pair over phoneme inventories and typological
+profiles. Coverage 267/306 → **273/306**. The biggest single port unit left when
+the slice opened, and the first one whose answer is *not a function of the
+corpus alone*.
+
+- **LDND calls `Math.random()`, so the metric is nondeterministic on both
+  backends.** The different-meaning baseline is a sample of up to 100 random
+  concept pairs, redrawn per call; two identical requests disagree in the low
+  decimals, and always did. Reproduced rather than seeded —
+  `calculator.configure(random_source)` is the seam, the counterpart of
+  monkeypatching `Math.random` over there. **That seam is what made the diff
+  possible**: both sides were driven from the same mulberry32, reset before
+  every request, and every LDND matched digit for digit. Repairing the sampler
+  here would have made the two servers answer differently about the same pair
+  mid-cutover; the real fix is to the metric, upstream of both.
+- **Half the enhanced surface is a 500 on the live corpus, and the port keeps
+  it.** 105 of the 1,091 `grammar-features.tsv` rows hold an *object* in
+  `tense_aspect_mood` where the other 986 hold an array, and `new Set({...})`
+  throws — so `enhanced/pairwise?mode=grammatical` 500s for any pair touching
+  one of them, and `enhanced/nearest?mode=grammatical` (or `combined`) 500s for
+  **every** language that has a grammar row at all, because the walk reaches one
+  of the 105 eventually. `enhanced.NotIterableError` carries V8's exact message,
+  because the 500 body publishes it. `test_105_live_grammar_rows_hold_an_object`
+  is the notice for the day the corpus is repaired; nothing here changes then.
+- **The word table is loaded once per request, not once per pair.**
+  `parseLanguageWordForms` re-read all 121,633 rows of `words.tsv` for every
+  language it was asked about, which is why `GET .../nearest/{id}` takes **173
+  seconds** on Express. `distance.calculator.Lexicon` is that read hoisted —
+  same rows, same order, same per-language maps — and the same request answers
+  in 1.5 seconds here. It is per-request state, not a module cache, so
+  `paths.lexicons_dir()` is still the only thing between a test and live data.
+- **`utf16.py` exists because this corpus has cuneiform.** JavaScript indexes
+  **code units**; the orthographic fallback compares raw word forms, and an
+  astral character is one Python character and two JavaScript ones — so a
+  `wordform`-mode comparison touching Linear B would normalise by a different
+  divisor. For IPA and ASJP the two agree, which is exactly why this is easy to
+  miss.
+- **A bug the diff caught in a shared reader, not in this slice.**
+  `storage.load_languages` was emitting `"lat":61.0` and `"lat":0.0` where
+  Express writes `61` and `0` — so `/api/languages`, `/api/languages/{id}` and
+  every route embedding a language record had been off since the first slice.
+  The file already had the narrowing idiom (`_number`, `_finite_number`, and a
+  comment saying why); the coordinate path had just missed it. `ORIGIN` was a
+  float pair for the same reason. Fixed with `jsmath.js_number`, pinned by
+  `test_an_integral_coordinate_is_an_int_not_a_float`.
+- **The slice was proved byte-identical to Express over 54 live requests** —
+  every refusal, both 500 bodies, all four phonetic modes, the symmetric matrix,
+  the `-1`-sorts-first ranking and the availability scan. The **only** two
+  differences were `distanceKm` in the 16th significant digit: `sin`, `cos` and
+  `sqrt` agree with V8 bit for bit and **`atan2`** differs by one unit in the
+  last place. Same family as the `/api/search/spatial` divergence this service
+  already carries, one function along.
+- **`parseInt(k) || 10` has three falsy spellings and they are not obvious.**
+  `?k=abc`, `?k=0` and `?k=-0.5` (`parseInt` yields **-0**) are all the default
+  ten; `?k=-1` and `?k=101` are 400s. And the two enhanced routes validate
+  `mode` in opposite directions — the POST falls back to `combined`, the GET
+  400s.
+- **`test_not_implemented.py`'s `/api/linguistic-distance/available-languages`
+  stand-in went red on landing** and names `/api/openapi.json` now — the end of
+  the port order by construction, so this chore should not recur.

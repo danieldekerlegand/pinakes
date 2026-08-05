@@ -49,14 +49,13 @@ SAMPLE_REQUESTS = [
         "/api/contributions/nonexistent/verification",
     ),
     # Was `/api/empires-timeline` until pinakes:80 US-1's third slice ported the
-    # geospatial corpus; its coverage is `test_map_routes.py`. Picked from the
-    # *back* of the remaining port order, which is what stops this chore
-    # recurring every slice.
-    (
-        "GET",
-        "/api/linguistic-distance/available-languages",
-        "/api/linguistic-distance/available-languages",
-    ),
+    # geospatial corpus and `/api/linguistic-distance/available-languages` until
+    # its eighth; their coverage is `test_map_routes.py` and
+    # `test_linguistic_distance.py`. `/api/openapi.json` is the end of the port
+    # order by construction — it ports with US-2, because doing so decides
+    # whether `openapi-spec.test.ts`'s byte-equal snapshot moves too — so this
+    # chore should not recur again.
+    ("GET", "/api/openapi.json", "/api/openapi.json"),
 ]
 
 
@@ -89,10 +88,8 @@ def test_unported_routes_answer_501(
 
 def test_501_body_carries_the_grading_metadata(unbuilt_client: TestClient) -> None:
     """A porter needs to know what will grade the port, from the 501 itself."""
-    body = unbuilt_client.get(
-        "/api/linguistic-distance/available-languages"
-    ).json()
-    assert body["portUnit"] == "linguistic-distance"
+    body = unbuilt_client.get("/api/openapi.json").json()
+    assert body["portUnit"] == "openapi.json"
     assert body["clientUsed"] is True
     assert body["parityFixtures"] == []
 
@@ -143,9 +140,7 @@ def test_coverage_endpoint_matches_the_catalog(unbuilt_client: TestClient) -> No
     assert entry["method"] == "GET"
 
     # Port units add up to the same total, so progress is trackable per group.
-    per_unit = sum(
-        unit["ported"] + unit["unported"] for unit in payload["byPortUnit"]
-    )
+    per_unit = sum(unit["ported"] + unit["unported"] for unit in payload["byPortUnit"])
     assert per_unit == payload["total"]
 
 
