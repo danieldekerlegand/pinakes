@@ -207,7 +207,7 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner,
 
     const result = terminal.result as Record<string, unknown>;
     // KFT §5.1/§5.2 — minted off the base entity + the job's PROV activity id.
-    expect(result.model).toBe("pinakes:model:qwen2.5-3b-instruct-ft-run-insimul-slm-9f2a");
+    expect(result.model).toBe("lugh:model:qwen2.5-3b-instruct-ft-run-insimul-slm-9f2a");
     // §5.4 — the run's egress and union license inherit onto the outputs.
     expect(result.egress).toBe("local-only");
     expect(result.licenseClass).toBe("proprietary");
@@ -242,7 +242,7 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner,
     const run = await settled;
     expect(run.state).toBe("failed");
     expect(stream.report?.code).toBe("cross-boundary-compute");
-    expect(stream.report?.provider).toBe("pinakes");
+    expect(stream.report?.provider).toBe("lugh:agent:finetune");
     expect(stream.report?.detail).toMatchObject({
       computeClass: "single-gpu-a100-80gb",
       effective: "local-only",
