@@ -31,6 +31,7 @@
  * (`scripts/export-entity-grounding.ts`) supplies `node:crypto`.
  */
 import { DEFAULT_WORLD, type KnowledgeDialect } from "./capability-manifest";
+import { EGRESS_POLICY } from "./egress-policy";
 
 /** The KGP spec version this module implements. */
 export const KGP_VERSION = "0.4.0";
@@ -38,8 +39,12 @@ export const KGP_VERSION = "0.4.0";
 /** Pinakes's KINP namespace — the `producer` of every pack emitted here. */
 export const KGP_PRODUCER = "pinakes";
 
-/** The lowest (and default) dialect tier: ground facts + confidence, no rules (§5). */
-export const DEFAULT_DIALECT: KnowledgeDialect = "grounding-only";
+/**
+ * The lowest (and default) dialect tier: ground facts + confidence, no rules (§5).
+ * Read from `contracts/egress-policy.json`, which is Pinakes's single in-repo
+ * declaration of the dialect its knowledge ports emit — not a second copy of it.
+ */
+export const DEFAULT_DIALECT: KnowledgeDialect = EGRESS_POLICY.knowledgeDialect;
 
 /** The KINP IRI root (`identity.md` §3.1; production root TBD). */
 export const KINP_IRI_ROOT = "https://id.koine.example";

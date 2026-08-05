@@ -124,6 +124,13 @@ capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
   injectable on the route options so tests cover registered / unreachable / unconfigured with
   no network.
 - These endpoints are **not** in `docs/openapi.json`, so no spec-snapshot regen is needed.
+- **The two well-known fronts are the whole self-description, and `routes/participation-self-sufficiency.test.ts`
+  proves it** (90-repatriate-koine-config US-3): with no registry, no signing key and no
+  configured origin, `/.well-known/kcb-manifest.json` is **byte-identical** to
+  `contracts/capability-manifest.json` and the agent-card carries that same document as its KCB
+  extension. The same file scans the import closure behind both fronts for any read outside the
+  repo — see `contracts/CLAUDE.md` and [`docs/self-describing-participant.md`](../docs/self-describing-participant.md).
+  Keep `signManifestForServing`'s unsigned path a pass-through, or that byte-equality breaks.
 
 ## KFT `finetune` provider — `services/finetune-provider.ts` (90-US-3)
 

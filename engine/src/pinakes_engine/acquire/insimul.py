@@ -77,7 +77,7 @@ Configuration (all under ``source.params`` unless noted):
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -135,6 +135,13 @@ _LABELS: Mapping[str, str] = {
     NODE_TYPE_PLACE: "Place",
     NODE_TYPE_TRUTH: "MythMotif",
 }
+
+#: Every canonical node type this adapter mints, derived from :data:`_LABELS` so it
+#: cannot name one the adapter does not actually label. Together with
+#: :data:`CANONICAL_EDGE_TYPES` this is what ``engine/tests/test_insimul.py`` checks
+#: against the in-repo bridge mapping (``contracts/bridge-insimul.json``): the mapping
+#: declares the return leg's correspondences, and the adapter must emit exactly those.
+CANONICAL_NODE_TYPES: tuple[str, ...] = tuple(_LABELS)
 
 
 class InsimulExportError(RuntimeError):
@@ -295,16 +302,9 @@ def world_edges(export: WorldExport) -> list[dict[str, str]]:
     ``occupantIds`` *and* a character's ``homeResidenceId``), and the canonical
     graph holds one edge per fact, not one per stored direction.
     """
-    groups = (
-        ("PARENT_OF", _parent_of_pairs(export)),
-        ("SPOUSE_OF", _spouse_of_pairs(export)),
-        ("EMPLOYED_BY", _employed_by_pairs(export)),
-        ("RESIDES_IN", _resides_in_pairs(export)),
-        ("LOCATED_IN", _located_in_pairs(export)),
-        ("CAUSED_BY", _caused_by_pairs(export)),
-    )
     edges: list[dict[str, str]] = []
-    for edge_type, pairs in groups:
+    for edge_type, build_pairs in _EDGE_GROUPS:
+        pairs = build_pairs(export)
         for start, end in sorted(set(pairs)):
             edges.append({":START_ID": start, ":END_ID": end, ":TYPE": edge_type})
     return edges
@@ -845,3 +845,20 @@ def _int_text(value: Any) -> str:
         return str(int(value))
     except (TypeError, ValueError):
         return ""
+
+
+#: The ``(:TYPE, pair builder)`` groups :func:`world_edges` emits, in emission order.
+#: Defined after the builders so :data:`CANONICAL_EDGE_TYPES` is *derived* from what is
+#: actually emitted rather than restated beside it.
+_EdgeBuilder = Callable[["WorldExport"], list[tuple[str, str]]]
+_EDGE_GROUPS: tuple[tuple[str, _EdgeBuilder], ...] = (
+    ("PARENT_OF", _parent_of_pairs),
+    ("SPOUSE_OF", _spouse_of_pairs),
+    ("EMPLOYED_BY", _employed_by_pairs),
+    ("RESIDES_IN", _resides_in_pairs),
+    ("LOCATED_IN", _located_in_pairs),
+    ("CAUSED_BY", _caused_by_pairs),
+)
+
+#: Every canonical edge ``:TYPE`` this adapter emits (see :data:`CANONICAL_NODE_TYPES`).
+CANONICAL_EDGE_TYPES: tuple[str, ...] = tuple(name for name, _ in _EDGE_GROUPS)

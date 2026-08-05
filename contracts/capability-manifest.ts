@@ -28,6 +28,7 @@
  */
 import capabilityManifestJson from "./capability-manifest.json";
 import { CANONICAL_SCHEMA, nodeTypeByName } from "./canonical-schema";
+import { EGRESS_POLICY, EGRESS_POLICY_PATH, egressClassFor } from "./egress-policy";
 
 /** The capabilities Pinakes declares — KCB §6's three plus the KFT `finetune` provider. */
 export type CapabilityName = "resolve" | "reconcile" | "query" | "finetune";
@@ -42,8 +43,19 @@ export const CAPABILITY_NAMES: readonly CapabilityName[] = ["resolve", "reconcil
 /** The KFT training capability (`koine/specs/fine-tuning.md` §2). */
 export const FINETUNE_CAPABILITY = "finetune";
 
-/** KGP dialect (portability) tiers a knowledge port may declare (`grounding-pack.md` §5). */
-export type KnowledgeDialect = "grounding-only" | "horn-safe" | "full-prolog";
+/**
+ * KGP dialect (portability) tiers a knowledge port may declare (`grounding-pack.md` §5).
+ * Defined by `egress-policy.ts` — the policy is what fixes the tier Pinakes may publish,
+ * so the type travels with it; re-exported here for the modules that already import it
+ * from the manifest.
+ */
+export type { KnowledgeDialect } from "./egress-policy";
+
+/**
+ * The record class the KFT `finetune` capability's training data belongs to. Its egress
+ * is read out of the policy rather than restated here — see {@link assertFinetuneCapability}.
+ */
+export const FINETUNE_RECORD_CLASS = "slm-training-corpora";
 
 /** The default world for real-world knowledge (KINP §5). */
 export const DEFAULT_WORLD = "pinakes:world:consensus-reality";
@@ -201,6 +213,14 @@ export interface CapabilityManifestMeta {
   readonly defaultWorld: string;
   readonly wildcardEntityTypes: string;
   readonly endpointNote: string;
+  /**
+   * Repo-relative pointer to the egress + dialect policy this manifest's ports are
+   * validated against ({@link EGRESS_POLICY_PATH}) — a pointer, never a copy.
+   */
+  readonly egressPolicy: string;
+  readonly egressNote: string;
+  /** Repo-relative pointer to the participant self-description (`participant.json`). */
+  readonly participantDeclaration: string;
   readonly authNote: string;
   /** Why the `finetune` capability is narrow, and what it complements (KFT §9/FT-K). */
   readonly specializationNote: string;
@@ -343,11 +363,13 @@ function assertPort(port: Port, where: string): void {
   if (port.plane !== "knowledge") {
     throw new Error(`capability-manifest: ${where} port has unknown plane "${(port as Port).plane}"`);
   }
-  if (port.dialect !== undefined && port.dialect !== "grounding-only") {
-    // Pinakes emits and accepts reference data only; a horn-safe/full-prolog port
-    // would cross the dialect tier this project is allowed to publish (KGP §5).
+  // Pinakes emits and accepts reference data only; a horn-safe/full-prolog port would
+  // cross the dialect tier this project publishes under (KGP §5). The tier is NOT a
+  // literal here — it is read from the egress policy, which is the one in-repo source
+  // of truth for it, so widening a port means changing the policy first.
+  if (port.dialect !== undefined && port.dialect !== EGRESS_POLICY.knowledgeDialect) {
     throw new Error(
-      `capability-manifest: ${where} knowledge port declares dialect "${port.dialect}" — Pinakes ports are grounding-only`,
+      `capability-manifest: ${where} knowledge port declares dialect "${port.dialect}" — ${EGRESS_POLICY_PATH} declares Pinakes ports ${EGRESS_POLICY.knowledgeDialect}`,
     );
   }
   for (const world of port.worlds ?? []) {
@@ -397,9 +419,13 @@ function assertFinetuneCapability(cap: Capability): void {
       throw new Error(`capability-manifest: ${where} names unknown KFT §3 method "${method}"`);
     }
   }
-  if (spec.egress !== "local-only") {
+  // The advertised egress is the egress policy's class for the training corpora, read
+  // from the policy rather than restated: the SLM corpora are containment-gated there,
+  // so the §4.2 gate refuses cross-boundary compute for every run.
+  const trainingEgress = egressClassFor(FINETUNE_RECORD_CLASS);
+  if (spec.egress !== trainingEgress) {
     throw new Error(
-      `capability-manifest: ${where} must advertise egress "local-only" — Pinakes's SLM corpora are containment-gated and the §4.2 gate refuses cross-boundary compute, got "${spec.egress}"`,
+      `capability-manifest: ${where} must advertise egress "${trainingEgress}" — ${EGRESS_POLICY_PATH} classifies "${FINETUNE_RECORD_CLASS}" that way, got "${spec.egress}"`,
     );
   }
   if (spec.domains.length === 0) {
@@ -465,6 +491,14 @@ export function assertValidCapabilityManifest(
   }
   if (manifest.x_pinakes.defaultWorld !== DEFAULT_WORLD) {
     throw new Error(`capability-manifest: default world must be "${DEFAULT_WORLD}"`);
+  }
+  // The manifest does not decide its own egress/dialect — it names the policy that
+  // does. A manifest pointing somewhere else would be advertising against a document
+  // nothing validates it with.
+  if (manifest.x_pinakes.egressPolicy !== EGRESS_POLICY_PATH) {
+    throw new Error(
+      `capability-manifest: x_pinakes.egressPolicy must be "${EGRESS_POLICY_PATH}", got "${String(manifest.x_pinakes.egressPolicy)}"`,
+    );
   }
   for (const key of ["http", "manifest"] as const) {
     if (!isNonEmptyString(manifest.endpoints?.[key])) {

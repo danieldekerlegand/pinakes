@@ -1,0 +1,53 @@
+{
+  "policyVersion": "0.1.0",
+  "title": "Pinakes egress + dialect policy",
+  "description": "Pinakes's own answer to the KGP (`koine/specs/grounding-pack.md`) §7.2 egress question — may a record leave this project at all — and to the §5 dialect question — what logic a consumer of a Pinakes knowledge port is asked to evaluate. Koine holds the SHAPE of these two axes and nothing else (`koine/docs/self-describing-participant.md`, facet 3): the values below are Pinakes's instance data and live here, in the repo that emits them. No central component holds them, and no peer needs read access to this file — it is the source the served surfaces are checked against. The two axes are independent, and both are independent of the trust tier a row carries on its provenance (`contracts/trust-tier.ts`): egress says whether a record may cross a boundary, dialect says what a consumer may evaluate, trust says how much to believe it.",
+  "kgpVersion": "0.4.0",
+  "enforcedAt": "pack-construction",
+  "enforcedAtNote": "The only conformant answer (KGP §7.2, koine ADR-0007 decision 5): a `local-only` record is filtered out in the emitting producer BEFORE any encoding — TSV, JSON, Neo4j, ProbLog or RDF-star — is written. Egress is not advisory metadata a consumer is trusted to honour, so a projection of a boundary-crossing pack can never contain `local-only` content.",
+  "defaultEgress": "exportable",
+  "knowledgeDialect": "grounding-only",
+  "dialectNote": "Every knowledge port Pinakes publishes emits `grounding-only` (KGP §5) — reference facts about consensus reality, never evaluable runtime logic. This field is the SOURCE OF TRUTH for that claim: `contracts/capability-manifest.json` names this policy in `x_pinakes.egressPolicy` and `assertValidCapabilityManifest` rejects a port whose dialect is not this value, so a `horn-safe`/`full-prolog` port cannot be published without changing the policy first. `contracts/kgp.ts` reads the same field for its `DEFAULT_DIALECT`.",
+  "recordClasses": [
+    {
+      "id": "canonical-corpus",
+      "egress": "exportable",
+      "records": "Canonical node and edge rows in the `contracts/canonical-schema.json` column contract, exported from `data/source/lexicons/*.tsv` as the csid-keyed TSV bundle under `build/corpus/`.",
+      "producedBy": ["scripts/export-for-engine.ts"],
+      "rationale": "Reference data about the real world, admitted only under `licensePolicy` below — the corpus Pinakes exists to publish."
+    },
+    {
+      "id": "entity-grounding-pack",
+      "egress": "exportable",
+      "records": "The KGP §2 entity-grounding pack — csid, entity type, aliases, reconciliation decision, the four provenance columns and the §7.1 licence manifest — in the content-addressed pack envelope.",
+      "producedBy": ["scripts/export-entity-grounding.ts", "scripts/export-insimul-pack.ts"],
+      "rationale": "The grounding surface a peer anchors its own ids against (KINP §6 names Pinakes the canonical authority for real-world entities). Per-relation egress inside a pack is decided by `relationEgress` below."
+    },
+    {
+      "id": "contribution-queue",
+      "egress": "local-only",
+      "records": "Contribution review-queue entries, community verifications, annotations and hypotheses — the operator/contributor working state behind `server/routes/contributions.ts`, `annotations.ts`, `community-verification.ts` and `hypotheses.ts`.",
+      "producedBy": [],
+      "rationale": "In-flight curation state, not reference knowledge: a claim becomes exportable by being merged into a lexicon, not by sitting in the queue. `producedBy` is empty because no exporter reads it — the three exporters under `scripts/` read `data/source/lexicons/` and nothing else, which is what makes this class enforced rather than merely declared."
+    },
+    {
+      "id": "slm-training-corpora",
+      "egress": "local-only",
+      "records": "The rule-SFT / lore-QA SLM training records and every artifact of a KFT run over them — datasets, adapters, merged weights, GGUF exports.",
+      "producedBy": [],
+      "rationale": "`synthetic`/`proprietary`/`personal` tier, so the KFT (`koine/specs/fine-tuning.md`) §4.2 egress gate resolves every run LOCAL-ONLY and refuses a cross-boundary `compute.class` before any compute. This class is why the `finetune` capability advertises `x_specialization.egress: local-only`; `assertFinetuneCapability` reads the value from here rather than restating it."
+    }
+  ],
+  "relationEgress": {
+    "source": "contracts/predicate-mapping.json",
+    "field": "egress",
+    "note": "Per-RELATION egress (which bridged predicates may cross, and towards whom) is carried per entry in the vendored koine registry mirror, not restated here — that document is generated from koine `registry/predicate-mapping.json` and re-vendored with `npm run regen:registry-mirror`. `scripts/export-insimul-pack.ts` (`assertSeedMappingsRegistered`) refuses to seed from an entry whose `egress` is not `exportable`, which is this policy's per-relation enforcement point. This block is a pointer, deliberately: two copies of a per-relation table is exactly the divergence the policy exists to prevent."
+  },
+  "licensePolicy": {
+    "allowedSpdxClasses": ["CC0", "CC-BY"],
+    "allowedClasses": ["public-domain", "attribution"],
+    "onViolation": "reject-with-report",
+    "classifier": "contracts/kgp.ts",
+    "note": "The KGP §7.1 admission allowlist Pinakes releases under and admits on. `allowedSpdxClasses` is the SPDX-family filter the exporters actually apply (`DEFAULT_LICENSE_CLASSES` in `scripts/export-entity-grounding.ts`); `allowedClasses` is the same filter expressed in §7.1's class vocabulary, and `licensePolicyFor(allowedSpdxClasses)` in `contracts/kgp.ts` must reproduce it exactly — asserted by `egress-policy.test.ts`, so the two never drift. A record outside the allowlist is rejected with a report, never silently dropped."
+  }
+}

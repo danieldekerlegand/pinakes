@@ -203,6 +203,92 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   `consumes`; a capability-level knowledge port can legitimately omit `worlds` (the finetune
   training-set port does — its data is not consensus-reality knowledge).
 
+## Self-describing participant — `participant.json` + `egress-policy.json` (90-repatriate-koine-config US-1)
+
+Pinakes owns its fabric-participation config in-repo: koine has no central config store, so the
+namespace, the minting-authority claim, the egress/dialect policy and the mapping pointers are
+published from *this* repository (`koine/docs/self-describing-participant.md`, ADR-0007). Prose +
+the four-facet table live in `docs/self-describing-participant.md` (the manifest facet's own
+contract stays in `docs/capability-bus.md`).
+
+- **`egress-policy.json` is the SOURCE OF TRUTH for the dialect and the egress classes, and the
+  other contracts read it rather than restating it.** `capability-manifest.ts` validates every
+  knowledge port against `EGRESS_POLICY.knowledgeDialect` and the `finetune` capability's
+  advertised egress against the `slm-training-corpora` record class; `kgp.ts` takes
+  `DEFAULT_DIALECT` from the same field. Widening a port now means changing the policy first,
+  which is the point. **Keep `egress-policy.ts` a LEAF** — it imports no other contract, so the
+  manifest can depend on the policy without a cycle (the manifest references the policy, never
+  the reverse). Per-*relation* egress is NOT here: it lives per entry in the vendored
+  `predicate-mapping.json` mirror, and the policy points at it.
+- **`participant.json` is a SOURCE document, not a second manifest.** Pointers and references
+  only: koine's schema is `additionalProperties: false` on every facet block precisely so a
+  manifest payload, a mapping's rows or a node/edge ontology will not validate. Its value is
+  `assertParticipantManifestAgreement` — the drift check tying the declaration to what is
+  actually published (identity, namespace + kinds, the manifest/policy pointers both ways, the
+  served MCP/A2A endpoints, every port's dialect). Without that check the declaration would be
+  exactly the hand-maintained copy ADR-0007 bounds it against.
+- **A served endpoint's path rides in a location's `note`, and that is deliberate.** koine's
+  `location` shape admits `path`/`url`/`note` and nothing else, and pinakes ships no fixed public
+  origin (`PINAKES_PUBLIC_ORIGIN` is a deployment concern), so committing an absolute `url` would
+  be a guess. The drift check asserts the note names `endpoints.a2a` / `endpoints.mcp`, so moving
+  a front breaks the declaration loudly.
+- **`koine-schema.ts` is TEST SUPPORT and touches `node:fs`** — the second file in `contracts/`
+  that does, after `parity/harness.ts`. Never import it from `web/src`. It is a deliberately
+  small draft-2020-12 subset checker (koine ships shape without validators: "Validators live
+  downstream per ADR-0001"), and `assertSupportedKeywords` fails loudly on a keyword it does not
+  implement rather than passing a document by not looking at it. The conformance tests `skipIf`
+  when no sibling koine checkout is present — same rule as the registry-mirror gate.
+- **Every pointer must be relative to this repo's root.** `assertValidParticipant` rejects an
+  absolute path or one that climbs out (`../koine/...`): no participant reads another
+  participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
+  failure that convention exists to prevent.
+- **The participation path must stay filesystem-free**, and a test enforces it:
+  `server/routes/participation-self-sufficiency.test.ts` (US-3) walks the static import closure
+  of `server/routes/{a2a,capability-bus}.ts` + `participant.ts` + `bridge-insimul.ts` and fails
+  on any module in it that names a `*_ROOT` env var, calls `homedir()`, carries an absolute path
+  literal, or imports `node:fs`. Adding such an import to a contract on that closure — even a
+  harmless-looking one — goes red. Test support that needs the disk (`koine-schema.ts`,
+  `parity/harness.ts`) is fine precisely because nothing on the path imports it. The scan strips
+  comments first, so a doc comment may still explain the sibling-checkout flow.
+
+## Public bridge mapping — `bridge-insimul.json` + `bridge-insimul.ts` (90-repatriate-koine-config US-2)
+
+Pinakes's OWN bridge mapping for the pinakes↔insimul integration — koine's translation facet,
+instantiated. Koine holds the shape; the mapping belongs to the participant that performs the
+crossing and travels with the code that performs it (`scripts/export-insimul-pack.ts` for the
+outbound leg, `engine/src/pinakes_engine/acquire/insimul.py` for the return leg).
+
+- **It maps; it does not name a vocabulary.** A row carries `{direction, registryEntry,
+  canonicalKind, canonicalTypes, note}` — the predicates are read *through* the row's
+  `projects.insimul` entry in the vendored `predicate-mapping.json` mirror, never restated. A
+  test strips the prose `note`s and asserts no structured cell contains a predicate string;
+  prose may cite one to explain a correspondence. A vocabulary gap is still closed upstream in
+  koine and re-vendored — this document adds no way around that.
+- **`assertValidBridgeMapping(mapping, schema, registry)` resolves every reference**: each
+  `canonicalTypes` cell against `canonical-schema.json` for its kind (this is the "fails on an
+  unmapped type" gate, in both directions), each `registryEntry` against the registry, and the
+  entry's coverage / direction / egress / `pending` state against the leg. All three documents
+  are **parameters** — an accessor closing over the live one would validate the wrong doc under
+  test (same trap `capability-manifest.ts` documents).
+- **`typeReuseOnly` is the one documented way past the direction check**, and there are exactly
+  two rows: `place` (settlements coming back) and `myth-motif` (truths coming back). Their
+  registry entries cross `LS->IN` because their PREDICATES seed a world; the return leg only
+  anchors an ingested node on the canonical type the registry already pairs Insimul with. Setting
+  the flag on an entry that already crosses is an error, so it cannot be used to silence a real
+  mismatch.
+- **A non-public far endpoint is ABSENT, not redacted** (`assertPublicBridge`). A redacted
+  section still discloses the shape of what it hides, so the set of `contracts/bridge-*.json`
+  files IS the set of public integrations — which is also why this module reads no external file.
+- **The exporter resolves its registry entry through this document.** `SEED_MAPPINGS` carries no
+  `relationId` any more; `bridgeRowFor(seedMapping)` looks the correspondence up by canonical
+  node type, so the seed table and the bridge can never disagree about which entry authorizes a
+  seed. The emitted pack records `x_pinakes.bridgeMapping` — **regenerate the committed fixture
+  pack** (`npm run insimul-pack -- --emit-fixture`) after bumping `bridgeVersion`.
+- **Python reaches it via `pinakes_contracts.load_document("bridge-insimul.json")`**, not a
+  `parents[n]` walk. It is deliberately NOT a codegen source (same as `participant.json` /
+  `egress-policy.json`): nothing needs a literal union out of it, and `engine/tests/test_insimul.py`
+  asserts the adapter's `CANONICAL_NODE_TYPES` / `CANONICAL_EDGE_TYPES` equal the `return` rows.
+
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 
 The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of

@@ -71,6 +71,12 @@ world's WorldIR (`ir`) and Prolog KB (`prologKb`). Wired in the factory's three 
   node** — the canonical vocabulary has no general event type and v1.3 coined none, so a
   truth anchors on `myth-motif` (the type registry entry 6 already pairs Insimul truths
   with) and `caused-by` stays endpoint-unconstrained in the schema.
+- **The return leg's correspondences live in `contracts/bridge-insimul.json`** (pinakes's own
+  bridge mapping, 90-repatriate-koine-config US-2) — the `direction: return` rows. The adapter
+  exposes `CANONICAL_NODE_TYPES` (derived from `_LABELS`) and `CANONICAL_EDGE_TYPES` (derived
+  from `_EDGE_GROUPS`, which `world_edges` iterates), and `test_insimul.py` asserts the two sets
+  equal what the mapping declares — reading it via `pinakes_contracts.load_document`, never a
+  `parents[n]` walk. Emitting a new node/edge type means adding its row there first.
 - **Both stored directions collapse to one edge.** Insimul stores relationships from both
   ends (`childIds` *and* `parentIds`; a building's `occupantIds` *and* a character's
   `homeResidenceId`), and `SPOUSE_OF` is symmetric so its endpoints are sorted.
