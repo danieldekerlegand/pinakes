@@ -2,7 +2,7 @@
   "project": "pinakes",
   "branchName": "chief/70-unify-scrapers",
   "baseBranch": "main",
-  "description": "Consolidate the two scraping stacks into one (docs/UNIFIED-PROJECT-PLAN.md \u00a76): fold the parallel/legacy TS *-scraper.ts stack (~14.3k LOC, ~29 files) into the Python pinakes_engine acquisition layer, so there is ONE async fetch layer, ONE rate-limiter/politeness policy, ONE cache, and ONE set of domain adapters. This is where 'incredibly fast at AI-powered scraping' is actually won \u2014 the levers the benchmark showed matter (concurrency, caching, parsing), not the language.",
+  "description": "Consolidate the two scraping stacks into one (docs/UNIFIED-PROJECT-PLAN.md §6): fold the parallel/legacy TS *-scraper.ts stack (~14.3k LOC, ~29 files) into the Python pinakes_engine acquisition layer, so there is ONE async fetch layer, ONE rate-limiter/politeness policy, ONE cache, and ONE set of domain adapters. This is where 'incredibly fast at AI-powered scraping' is actually won — the levers the benchmark showed matter (concurrency, caching, parsing), not the language.",
   "dependsOn": [
     "50-engine-inprocess-graph",
     "64-port-ingest"
@@ -41,5 +41,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "62e1b67b"
 }
