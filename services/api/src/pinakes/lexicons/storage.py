@@ -2850,6 +2850,60 @@ def load_culture_events(lexicons: Path) -> list[Record]:
     ]
 
 
+#: The media-asset columns, in the order `loadMediaAssets` emits them, paired
+#: with the TSV column each reads. Every one of them goes through ``getIdx``
+#: over there, so all fifteen are required — the `trade-goods` posture, not the
+#: `city-layouts` one. The three non-text cells are read separately below.
+_MEDIA_TEXT_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("id", "id"),
+    ("entityType", "entity_type"),
+    ("entityId", "entity_id"),
+    ("mediaType", "media_type"),
+    ("url", "url"),
+    ("title", "title"),
+    ("description", "description"),
+    ("source", "source"),
+    ("license", "license"),
+    ("attribution", "attribution"),
+    ("mimeType", "mime_type"),
+)
+
+
+def load_media_assets(lexicons: Path) -> list[Record]:
+    """`media-assets.tsv` → the media records (``loadMediaAssets``).
+
+    **The same file has a second reader**, :mod:`pinakes.media.assets`, and the
+    split is the TypeScript's rather than an oversight: the three GETs go
+    through `tsv-storage.ts` (all columns required, so a header missing one is a
+    500) while the POST and the DELETE go through `MediaAssetService`, which
+    reads with ``indexOf`` and therefore treats a missing column as a blank
+    cell. That asymmetry is what lets a write *repair* a header the read side
+    refuses — `writeAssets` always emits the canonical fifteen. Fusing the two
+    would quietly make one of those two behaviours go away.
+    """
+    parsed = tsv.read_tsv(lexicons, "media-assets.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    text_indices = [
+        (key, tsv.required_index(header, column)) for key, column in _MEDIA_TEXT_COLUMNS
+    ]
+    width_index = tsv.required_index(header, "width")
+    height_index = tsv.required_index(header, "height")
+    tags_index = tsv.required_index(header, "tags")
+    date_index = tsv.required_index(header, "date_added")
+
+    records: list[Record] = []
+    for row in rows:
+        record: Record = {key: tsv.cell(row, index) for key, index in text_indices}
+        record["width"] = tsv.truthy_int(row, width_index)
+        record["height"] = tsv.truthy_int(row, height_index)
+        record["tags"] = tsv.json_cell(row, tags_index, [])
+        record["dateAdded"] = tsv.cell(row, date_index)
+        records.append(record)
+    return records
+
+
 #: The Wikimedia Commons image columns, in the order the handler emits them,
 #: paired with how each cell is read. The whole domain is inline in
 #: `routes.ts` rather than in `tsv-storage.ts`, which is why it has no `load*`

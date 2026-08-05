@@ -41,9 +41,10 @@ def test_app_serves_its_own_openapi(unbuilt_client: TestClient) -> None:
     assert "/api/health" in schema["paths"]
     # 501 stubs are registered with include_in_schema=False; advertising routes
     # the service does not implement would make its own contract a fiction.
-    # Was `/api/languages` until pinakes:80 US-1 ported it — the stand-in has to
-    # name a route that is still *un*ported, or this asserts nothing.
-    assert "/api/media-assets" not in schema["paths"]
+    # Was `/api/languages` until pinakes:80 US-1 ported it, then
+    # `/api/media-assets` until its seventh slice — the stand-in has to name a
+    # route that is still *un*ported, or this asserts nothing.
+    assert "/api/openapi.json" not in schema["paths"]
 
 
 def test_create_app_is_repeatable(built_dist: Path) -> None:

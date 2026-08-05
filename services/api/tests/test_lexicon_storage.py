@@ -85,6 +85,8 @@ def write(lexicons: Path, filename: str, *lines: str) -> Path:
         storage.load_daily_life,
         storage.load_culture_events,
         storage.load_wikimedia_commons_images,
+        # The pinakes:80 US-1 slice-seven loader.
+        storage.load_media_assets,
     ],
 )
 def test_a_missing_file_is_an_empty_domain_not_an_error(
@@ -465,6 +467,7 @@ def test_find_by_id_returns_the_first_match() -> None:
         (storage.load_daily_life, 520),
         (storage.load_culture_events, 78),
         (storage.load_wikimedia_commons_images, 0),
+        (storage.load_media_assets, 8),
     ],
 )
 def test_the_live_corpus_loads_the_row_counts_the_repo_documents(
@@ -531,6 +534,7 @@ def test_every_live_domain_loads_at_least_one_row() -> None:
             ("rivers-and-waters", storage.load_rivers_and_waters),
             ("daily-life", storage.load_daily_life),
             ("culture-events", storage.load_culture_events),
+            ("media-assets", storage.load_media_assets),
         )
         if not load(LIVE_LEXICONS)
     ]

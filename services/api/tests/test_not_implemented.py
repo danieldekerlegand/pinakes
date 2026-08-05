@@ -15,9 +15,14 @@ from pinakes.parity import ParityRoute, load_parity_routes, split_coverage
 #: router stops being a 501 and belongs in that group's own test instead.
 SAMPLE_REQUESTS = [
     # Were `/api/languages` + `/api/languages/{id}` until pinakes:80 US-1 ported
-    # them; their coverage is `test_catalog_routes.py`.
-    ("GET", "/api/media-assets", "/api/media-assets"),
-    ("GET", "/api/media-assets/{id}", "/api/media-assets/asset-42"),
+    # them (coverage: `test_catalog_routes.py`), then `/api/media-assets` +
+    # `/api/media-assets/{id}` until its seventh slice (`test_media_routes.py`).
+    # `/api/openapi.json` is the **last** route the cutover ports — it goes with
+    # US-2, because porting it decides whether `openapi-spec.test.ts`'s
+    # byte-equal snapshot moves too — so this pair should not need repointing
+    # again before the Express backend is deleted outright.
+    ("GET", "/api/openapi.json", "/api/openapi.json"),
+    ("GET", "/api/export/datasets/{id}", "/api/export/datasets/corpus-v1"),
     # Was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice ported
     # the scraper dashboard; its coverage is `test_scraping_routes.py`.
     ("POST", "/api/text-analysis/compare", "/api/text-analysis/compare"),
@@ -26,8 +31,9 @@ SAMPLE_REQUESTS = [
     # until its fourth — a sample here has to name a route that is still
     # *un*ported, or the 501 assertion goes red the day the group lands. Those
     # groups' own coverage is `test_summary_routes.py`, `test_domain_routes.py`
-    # and `test_ethnography_routes.py`.
-    ("GET", "/api/media/prompts", "/api/media/prompts"),
+    # and `test_ethnography_routes.py`. Then `/api/media/prompts` until the
+    # seventh slice — `test_media_routes.py`.
+    ("GET", "/api/visualizations/chord", "/api/visualizations/chord"),
     # Was `/api/graph/resolve` + `/.well-known/kcb-manifest.json` until
     # pinakes:65 US-1 ported them; their coverage is `test_graph_routes.py` and
     # `test_capability_bus.py`. Then `/api/graph/explain` +
@@ -131,9 +137,9 @@ def test_coverage_endpoint_matches_the_catalog(unbuilt_client: TestClient) -> No
     entry = next(
         item
         for item in payload["notImplemented"]
-        if item["path"] == "/api/media-assets"
+        if item["path"] == "/api/openapi.json"
     )
-    assert entry["portUnit"] == "media-assets"
+    assert entry["portUnit"] == "openapi.json"
     assert entry["method"] == "GET"
 
     # Port units add up to the same total, so progress is trackable per group.

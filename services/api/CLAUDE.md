@@ -1078,3 +1078,57 @@ shapes.
 - **`test_not_implemented.py`'s `/api/cross-domain/timeline` stand-in went red
   on landing** and names `GET /api/contributions/{id}/verification` now — from
   the back of the remaining order again.
+
+## The cutover's seventh slice — `media/` + `routers/media.py` (pinakes:80 US-1)
+
+The six `/api/media-assets*` routes and the two `/api/media/*` ones: a curated
+asset catalogue and the Gemini reconstruction images beside it. Coverage
+252/306 → **267/306**. Two port units in one router file because they are the
+two halves of one client surface — and this is the first slice since the
+collaborative stores whose routes **write**: a POST that appends to the live
+corpus and a DELETE that rewrites it.
+
+- **One TSV, two readers, and the asymmetry is load-bearing.**
+  `lexicons/storage.load_media_assets` takes all fifteen columns through
+  `getIdx`, so a header missing one is a **500**; `media/assets.load_assets` is
+  the `MediaAssetService`'s own reader and uses `indexOf`, so the same header is
+  a table of blanks — and its write then *repairs* the file with the canonical
+  header. Both are ports. Fusing them removes one of the two behaviours, and
+  which one you lose is invisible until a corpus is malformed.
+- **A dimension of zero is unrecorded, and it erodes.** Both readers spell
+  width/height `cell ? parseInt(cell) || null : null`
+  (`analytics.tsv.truthy_int`, added here — *not* `nullable_int`, which keeps a
+  `0`). So a POST carrying `height: 0` writes `0`, reads back `None`, and the
+  **next** write of any row in the file lands a blank cell. Reproduced rather
+  than repaired; the live diff shows Express doing exactly this.
+- **`Number.isInteger` decides the 400s, and four of the eight cases are
+  counter-intuitive.** `1920.0` passes (one number type), `"800"` fails, `true`
+  fails, and an explicit `null` fails **because the guard is `!== undefined`** —
+  a missing key is the only value that skips validation. A declared `int` field
+  would have answered 422 to half of these and accepted none of the rest.
+- **`storage.invalidateCache("media")` has no counterpart and that is correct.**
+  Express memoised the table on its storage singleton so a write had to evict
+  it; nothing here caches a lexicon table, so the next read already sees the row.
+- **`GET /api/media-assets/{id}` cannot swallow `entity/…` or `meta/types`** —
+  three segments and two against the wildcard's one. No re-registration trick is
+  needed, unlike `routers/ethnography.py`, and
+  `test_the_id_route_does_not_swallow_entity_or_meta` says so rather than
+  leaving the next reader to infer a rule that does not apply.
+- **The image ledger records failures but not a missing key.** The
+  `$GEMINI_API_KEY` check runs *before* the id is minted, so a checkout with no
+  key writes no row at all, while a model that refuses leaves a `status: error`
+  one. `media/images.py` is `urllib` against `generateContent` with
+  `responseModalities` in `generationConfig` — the same trade `narrative/llm.py`
+  makes, with the key in an `x-goog-api-key` header.
+- **The whole slice was proved byte-identical to Express over 47 live
+  requests** with the throwaway-script method the earlier slices describe —
+  every filter, every validation refusal, the create → list → delete → recreate
+  ledger, and **both written files compared byte for byte** (which is what
+  grades the writer: the soft hyphen in a title, the non-ASCII in a `tags` cell,
+  and the eroded `height` all survived). One test expectation was wrong on the
+  first run and the code was right, for the third slice running.
+- **The stand-in chore should now be over.** `test_not_implemented`,
+  `test_app_shell` and `test_client_serving` named `/api/media-assets`; they
+  name **`/api/openapi.json`** now, which the plan puts last of all — it ports
+  with US-2, because doing so decides whether `openapi-spec.test.ts`'s
+  byte-equal snapshot moves too.
