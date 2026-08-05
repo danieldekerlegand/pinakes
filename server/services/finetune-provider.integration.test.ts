@@ -206,7 +206,11 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner,
     expect(stream.terminal).toEqual(terminal.result);
 
     const result = terminal.result as Record<string, unknown>;
-    // KFT §5.1/§5.2 — minted off the base entity + the job's PROV activity id.
+    // KFT §5.1/§5.2 — minted off the base entity + the job's PROV activity id, in
+    // LUGH's namespace: lugh derives it from its own `PROVIDER_IDENTITY`
+    // (`lugh:agent:finetune`) now that it publishes as a provider in its own right.
+    // The base entity keeps whatever namespace its minter used, hence `pinakes:model:`
+    // below — the handover this wrapper's docblock calls transitional, in progress.
     expect(result.model).toBe("lugh:model:qwen2.5-3b-instruct-ft-run-insimul-slm-9f2a");
     // §5.4 — the run's egress and union license inherit onto the outputs.
     expect(result.egress).toBe("local-only");
@@ -242,6 +246,8 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner,
     const run = await settled;
     expect(run.state).toBe("failed");
     expect(stream.report?.code).toBe("cross-boundary-compute");
+    // The refusing provider names itself by its own KINP agent id — lugh's, since the
+    // admission gate is lugh's code and it now publishes as `lugh:agent:finetune`.
     expect(stream.report?.provider).toBe("lugh:agent:finetune");
     expect(stream.report?.detail).toMatchObject({
       computeClass: "single-gpu-a100-80gb",

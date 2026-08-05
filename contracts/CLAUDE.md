@@ -203,6 +203,45 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
   `consumes`; a capability-level knowledge port can legitimately omit `worlds` (the finetune
   training-set port does — its data is not consensus-reality knowledge).
 
+## Self-describing participant — `participant.json` + `egress-policy.json` (90-repatriate-koine-config US-1)
+
+Pinakes owns its fabric-participation config in-repo: koine has no central config store, so the
+namespace, the minting-authority claim, the egress/dialect policy and the mapping pointers are
+published from *this* repository (`koine/docs/self-describing-participant.md`, ADR-0007). Prose +
+the four-facet table live in `docs/capability-bus.md`.
+
+- **`egress-policy.json` is the SOURCE OF TRUTH for the dialect and the egress classes, and the
+  other contracts read it rather than restating it.** `capability-manifest.ts` validates every
+  knowledge port against `EGRESS_POLICY.knowledgeDialect` and the `finetune` capability's
+  advertised egress against the `slm-training-corpora` record class; `kgp.ts` takes
+  `DEFAULT_DIALECT` from the same field. Widening a port now means changing the policy first,
+  which is the point. **Keep `egress-policy.ts` a LEAF** — it imports no other contract, so the
+  manifest can depend on the policy without a cycle (the manifest references the policy, never
+  the reverse). Per-*relation* egress is NOT here: it lives per entry in the vendored
+  `predicate-mapping.json` mirror, and the policy points at it.
+- **`participant.json` is a SOURCE document, not a second manifest.** Pointers and references
+  only: koine's schema is `additionalProperties: false` on every facet block precisely so a
+  manifest payload, a mapping's rows or a node/edge ontology will not validate. Its value is
+  `assertParticipantManifestAgreement` — the drift check tying the declaration to what is
+  actually published (identity, namespace + kinds, the manifest/policy pointers both ways, the
+  served MCP/A2A endpoints, every port's dialect). Without that check the declaration would be
+  exactly the hand-maintained copy ADR-0007 bounds it against.
+- **A served endpoint's path rides in a location's `note`, and that is deliberate.** koine's
+  `location` shape admits `path`/`url`/`note` and nothing else, and pinakes ships no fixed public
+  origin (`PINAKES_PUBLIC_ORIGIN` is a deployment concern), so committing an absolute `url` would
+  be a guess. The drift check asserts the note names `endpoints.a2a` / `endpoints.mcp`, so moving
+  a front breaks the declaration loudly.
+- **`koine-schema.ts` is TEST SUPPORT and touches `node:fs`** — the second file in `contracts/`
+  that does, after `parity/harness.ts`. Never import it from `web/src`. It is a deliberately
+  small draft-2020-12 subset checker (koine ships shape without validators: "Validators live
+  downstream per ADR-0001"), and `assertSupportedKeywords` fails loudly on a keyword it does not
+  implement rather than passing a document by not looking at it. The conformance tests `skipIf`
+  when no sibling koine checkout is present — same rule as the registry-mirror gate.
+- **Every pointer must be relative to this repo's root.** `assertValidParticipant` rejects an
+  absolute path or one that climbs out (`../koine/...`): no participant reads another
+  participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
+  failure that convention exists to prevent.
+
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 
 The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of
