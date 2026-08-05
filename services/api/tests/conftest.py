@@ -17,6 +17,7 @@ from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
+from pinakes.routers import _auth as write_guard_handles
 
 
 def coverage_of(client: TestClient) -> ParityCoverage:
@@ -78,6 +79,21 @@ def isolated_data_trees(
         "changelog": trees[paths.CHANGELOG_DIR_ENV],
         "lexicons": trees[paths.LEXICONS_DIR_ENV],
     }
+
+
+@pytest.fixture(autouse=True)
+def reset_write_guard() -> Iterator[None]:
+    """Give every test its own auth config and its own rate-limit counters.
+
+    Autouse, and not optional either. The guard caches both in module state (as
+    the Express middleware cached them in a closure), so without this the
+    counters accumulate across the whole session and the sixty-first write lands
+    a 429 in whichever test happens to make it — and a test that configured keys
+    would leave them configured for everything after it.
+    """
+    write_guard_handles.reset()
+    yield
+    write_guard_handles.reset()
 
 
 @pytest.fixture

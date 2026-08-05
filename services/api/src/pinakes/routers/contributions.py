@@ -23,6 +23,11 @@ What the port preserves deliberately:
   (:func:`~pinakes.contributions.store.parse_int_js`).
 * **The unfiltered filters.** ``?status=nonsense`` matches nothing rather than
   400ing; the client's filter chips are free text on the wire.
+* **Only the two writes are guarded.** ``POST /api/contributions`` and ``PATCH
+  /api/contributions/{id}/review`` go through :mod:`pinakes.routers._auth`
+  (API-key auth + per-identity rate limiting); every ``GET`` here is open, as it
+  was on Express. Reading a queue the client is already displaying is not the
+  part worth a key.
 
 Two routes registered by the same Express file are **not** here.
 ``GET /api/openapi.json`` is its own port unit (it publishes the spec for the
@@ -36,12 +41,18 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from pinakes.contributions import changelog, store
+from pinakes.routers._auth import WriteGuard, write_guard
 
 router = APIRouter(tags=["contributions"])
+
+#: The guard on a write endpoint. Annotated rather than a bare default so the
+#: two handlers below read as "guarded" at a glance — the early return of
+#: ``guard.rejection`` is the enforcement, and it is easy to miss.
+Guarded = Annotated[WriteGuard, Depends(write_guard)]
 
 #: Review decisions the queue accepts. Anything else is a 400.
 REVIEW_DECISIONS = ("approved", "rejected")
@@ -59,8 +70,12 @@ def _not_found(contribution_id: str) -> JSONResponse:
 
 
 @router.post("/api/contributions", status_code=201)
-def submit(body: Annotated[dict[str, Any] | None, Body()] = None) -> Any:
+def submit(
+    guard: Guarded, body: Annotated[dict[str, Any] | None, Body()] = None
+) -> Any:
     """Submit a contribution. 400 with every validation error, or 201 queued."""
+    if guard.rejection is not None:
+        return guard.rejection
     result = store.queue().submit(body or {})
     if not result.validation.valid:
         return JSONResponse(
@@ -135,6 +150,7 @@ def get_contribution(id: str) -> Any:  # noqa: A002 - the baseline path paramete
 @router.patch("/api/contributions/{id}/review")
 def review(
     id: str,  # noqa: A002 - the baseline path parameter
+    guard: Guarded,
     body: Annotated[dict[str, Any] | None, Body()] = None,
 ) -> Any:
     """Approve or reject a contribution, and log an approved edit.
@@ -143,6 +159,8 @@ def review(
     written must not cost the reviewer their decision, so a failure is logged and
     swallowed (`pinakes.contributions.changelog`).
     """
+    if guard.rejection is not None:
+        return guard.rejection
     payload = body or {}
     decision = payload.get("decision")
     if decision not in REVIEW_DECISIONS:

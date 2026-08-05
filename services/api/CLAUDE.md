@@ -108,6 +108,39 @@ arguments in, JSON-ready dicts out, no FastAPI import.
   directory, best-effort — a failed audit line must never cost a reviewer their
   decision.
 
+## The write guard — `contributions/auth.py` + `routers/_auth.py` (pinakes:60 US-2)
+
+API-key auth + per-identity rate limiting on the two contribution **writes**
+(`POST /api/contributions`, `PATCH /api/contributions/{id}/review`). Every `GET`
+is open, and `PATCH /api/ai-review/{id}` is *not* guarded — neither was on
+Express, and adding it here would be new policy rather than a port.
+
+- **Open by default.** `$CONTRIBUTION_API_KEYS` unset ⇒ no keys ⇒ every write
+  passes. Configuring the variable is what turns enforcement on; there is no
+  second switch. Missing key ⇒ **401**, unknown key ⇒ **403** (constant-time,
+  length-guarded compare), over quota ⇒ **429** with `Retry-After` and the
+  `X-RateLimit-*` trio. Rate limiting applies even when auth is off, keyed on the
+  client address instead of the key.
+- **The dependency returns its rejection; it does not raise it.** A raised
+  `HTTPException` is serialised as `{"detail": …}` and this surface answers
+  `{"message": …}` — so `write_guard` hands back a `WriteGuard` whose `rejection`
+  the handler returns as its first statement. That is two lines of ceremony per
+  route, bought in exchange for needing **no exception handler on `app.py`** —
+  the one file parallel port tasklists must not touch.
+- **Config and counters are module state, built from the environment on first
+  use** — the counters have to outlive the request that opened their window, and
+  Express read its env once too (at registration). `_auth.configure(config=…,
+  now=…)` is the injection seam that replaced the TypeScript options bag, and
+  `conftest.py`'s autouse `reset_write_guard` is not optional: without it the
+  counters accumulate across the session and the 61st write 429s in whichever
+  test happens to make it.
+- **A NamedTuple field cannot be called `count`** — it shadows `tuple.count` and
+  strict mypy rejects the class outright (`_Bucket.hits`). Same family of trap as
+  `ContributionStore.list`.
+- `server/services/api-auth.ts` is retired but kept: it is the spec, and its unit
+  tests are the statement that the two agree. `tests/test_contribution_auth.py`
+  is that file's suite, case for case.
+
 ## Deliberate divergences from `server/`
 
 - Unknown `/api/*`, `/mcp*`, `/.well-known/*` URLs return **404 JSON**, not the

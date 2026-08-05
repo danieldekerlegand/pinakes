@@ -451,9 +451,17 @@ top of the contribution queue. Endpoints (all open, unguarded):
 
 ## Public contribution API — auth + rate limiting — `services/api-auth.ts` + `routes/contributions.ts`
 
-The contribution endpoints (previously inline in `routes.ts`) now live in
-`routes/contributions.ts` (`registerContributionRoutes(app, {contributions?,
-writeGuard?})`). US-011 hardened the **write** side; reads stay open.
+**Ported to Python** (pinakes:60 US-2): the guard is
+`services/api/src/pinakes/contributions/auth.py` (decisions) +
+`routers/_auth.py` (enforcement), and nothing in `server/` wires
+`createContributionWriteGuard` any more — both writes answer 501 here. The file
+below stays as the graded spec; its unit tests are what say the two agree. The
+rules it documents are still the rules, they are just enforced elsewhere.
+
+The contribution endpoints (previously inline in `routes.ts`) live in
+`routes/contributions.ts` (`registerContributionRoutes(app, {contributions?})` —
+the `writeGuard?` option went with the guard). US-011 hardened the **write**
+side; reads stay open.
 
 - **Write endpoints** (`POST /api/contributions`, `PATCH /api/contributions/:id/review`)
   are wrapped with `createContributionWriteGuard()` middleware = API-key auth +
