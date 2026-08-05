@@ -37,7 +37,7 @@
         "The corresponding Express /api/graph/* handlers are removed or return 501 (coverage tracker updated).",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
