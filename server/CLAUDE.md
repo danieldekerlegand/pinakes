@@ -1076,6 +1076,27 @@ SPARQL acquisition of one domain (civilizations / sites / figures / trade-goods)
 
 ## Open Context / tDAR archaeological acquisition — adapters in `services/archaeological-site-scraper.ts` + `routes/archaeological-acquisition.ts`
 
+**Both routes are ported** (pinakes:64 US-2): `GET /api/scraping/archaeology/sources` and
+`POST /api/scraping/archaeology` are served by
+`services/api/src/pinakes/routers/archaeology.py` over `pinakes.ingest.archaeology`, into
+the same `data/runtime/contributions` queue; both Express handlers answer 501 and
+`registerArchaeologyAcquisitionRoutes` no longer takes options.
+
+**Only the bottom half of `services/archaeological-site-scraper.ts` was ported, and none of
+it is retired.** The port took the Open Context / tDAR adapters below that file's banner
+comment — the part a route reaches. The Pleiades/UNESCO `ArchaeologicalSiteScraper` class
+above it is reached by no route and stayed. The whole file remains the graded spec;
+`services/api/tests/test_archaeology.py` reads the **same**
+`services/fixtures/archaeological/*.json` recordings, case for case with
+`archaeological-site-scraper.test.ts`.
+
+**The 202's `jobId` outlives its ledger, briefly.** `jobStore` is in-memory and
+per-process, and `/api/scraping-jobs` is a *different* port unit still served here — so a
+job started on the Python service is not visible to the dashboard's poll until that group
+lands. The acquisition is unaffected (it writes the shared on-disk queue); only its
+*progress* is in-process. Anything else that ports a `jobStore`-reporting route before
+`/api/scraping-jobs` inherits the same gap — `POST /api/scraping/engine` is next.
+
 `POST /api/scraping/archaeology` (US-007) acquires archaeological sites from two
 external authorities (**Open Context**, **tDAR**) that complement the existing
 Pleiades/UNESCO paths in the same file; `GET /api/scraping/archaeology/sources`

@@ -523,3 +523,48 @@ it.
   default with `??`, not `or`, so an explicitly blank type reaches the queue and is
   rejected there — the same answer Express gave, and a clearer one than silently filing a
   paste as a civilization. Same family as `"key" in data` in the contribution store.
+
+## Archaeological acquisition — `ingest/{archaeology,jobs}.py` + `routers/archaeology.py` (pinakes:64 US-2)
+
+`GET /api/scraping/archaeology/sources` and `POST /api/scraping/archaeology`: Open Context
+and tDAR, acquired into the contribution queue. Coverage 62/306 → 64/306. It is the same
+band as the extractors — one external record becomes one reviewable draft — but the unit
+is a *job* rather than a request, and that is what everything below is about.
+
+- **The POST answers 202 and works afterwards, as a `BackgroundTasks` task.** For a `def`
+  callable that means Starlette's threadpool, which is where the ingest layer's synchronous
+  client belongs. **`TestClient` runs a background task to completion before returning the
+  response**, so a test asserts on a settled job on the very next line — which is why the
+  TypeScript route's `onJobSettled` hook has no counterpart here. It existed only to make
+  the same thing deterministic.
+- **`ingest/jobs.py` has no route, and that is the point to know.** `/api/scraping-jobs` is
+  a different port unit and is still Express's, so a job started here is not visible to the
+  dashboard's poll yet. The acquisition is unaffected — it writes `data/runtime/contributions`,
+  which both servers read — but its *progress* is in-process until that group lands.
+  Do not "fix" this by having the store write to disk: Express's reader is an in-memory
+  `Map` and would not read it, so the only thing that would change is that a transient
+  would have become an artifact. `conftest.py`'s autouse `reset_scraping_jobs` is the same
+  class of module state as `reset_write_guard`.
+- **A fetch failure fails the *job*, not the request.** The 202 has already been sent, so
+  the job carries `status: "failed"` + `errorMessage` and there is nowhere else to report
+  it. A body this service can refuse *before* starting — an unknown source, a non-positive
+  limit — is a **400**, and starts no job at all. Neither is a 5xx.
+- **`Number(body.limit)`, not a declared `int`.** `"50"` is fifty and `"soon"` is a 400
+  rather than a 422 — the same rule `routers/graph.py` follows for its numeric params. The
+  refusal message reads `${body.source ?? "(none)"}`: *nullish*, so an explicitly blank
+  source is reported as the blank it was. Same family as `??` vs `or` in the extractors.
+- **Only the bottom half of `server/services/archaeological-site-scraper.ts` came across.**
+  That file is 1,376 lines and the split is the one it already drew in its own banner
+  comment: the Pleiades/UNESCO `ArchaeologicalSiteScraper` class above it writes TSVs
+  directly and is reached by no route. Porting a *route group* means porting what a route
+  reaches; the rest stays as the graded spec, and `tests/test_archaeology.py` reads the
+  same recorded fixtures its TypeScript suite does.
+- **Three refusals in the mappers are contract, not defensiveness**: a record with no name
+  is dropped, one off the globe is dropped, and one at **exactly `[0, 0]`** is dropped —
+  in this data that is never Null Island but always coordinates nobody filled in. A dropped
+  record is counted as `skipped`, never queued with a guess.
+- **The `AbortSignal` did not come across.** The TypeScript route never passed one and no
+  caller here could; a run is bounded by `limit`, which is what the dashboard sets.
+- `ingest/http.py` gained `OPEN_CONTEXT` and `TDAR`, both back on the one-second floor
+  `WIKIMEDIA` keeps — they are small unkeyed scholarly publishers, and an acquisition asks
+  each of them for exactly one page.

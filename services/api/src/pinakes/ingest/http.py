@@ -22,8 +22,11 @@ Two things follow from using it, and both are deliberate:
   does not space requests at all: those endpoints are key-authenticated and
   quota-metered by the provider, and `web/src/lib/scraping.ts` translates a
   vocabulary **word by word** — a one-second floor would turn a list of fifty
-  words into a minute of waiting for no one's benefit. Both keep the retry
-  budget, which is the part that matters when an endpoint pushes back.
+  words into a minute of waiting for no one's benefit. :data:`OPEN_CONTEXT` and
+  :data:`TDAR` are back on the one-second floor: they are small scholarly
+  publishers, unkeyed, and an acquisition asks them for one page. All of them
+  keep the retry budget, which is the part that matters when an endpoint pushes
+  back.
 
 A client is built once per source and shared, because the per-host rate limit
 and the counters only mean anything if every request goes through the same one.
@@ -64,6 +67,14 @@ WIKIMEDIA = Source(name="wikimedia", min_interval=1.0)
 
 #: Google's key-authenticated APIs (Translate, Gemini). Unspaced — see above.
 GOOGLE = Source(name="google", min_interval=0.0)
+
+#: Open Context (opencontext.org). A small, grant-funded scholarly publisher with
+#: no key and no published quota, so it gets the same one-second floor Wikimedia
+#: asks for. One acquisition is one request, so the floor costs a job nothing.
+OPEN_CONTEXT = Source(name="open-context", min_interval=1.0)
+
+#: tDAR / Digital Antiquity (core.tdar.org). Same reasoning as Open Context.
+TDAR = Source(name="tdar", min_interval=1.0)
 
 _clients: dict[str, HttpClient] = {}
 
@@ -119,6 +130,8 @@ def read_json(response: HttpResponse, *, context: str) -> Any:
 __all__ = [
     "CACHE_SUBDIR",
     "GOOGLE",
+    "OPEN_CONTEXT",
+    "TDAR",
     "USER_AGENT",
     "WIKIMEDIA",
     "Source",
