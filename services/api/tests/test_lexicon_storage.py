@@ -16,7 +16,7 @@ import pytest
 from pinakes_contracts import contracts_dir
 
 from pinakes.analytics import tsv
-from pinakes.lexicons import storage
+from pinakes.lexicons import forms, storage
 
 #: The live corpus, located through the contracts package rather than a
 #: `parents[n]` walk. `conftest.py` redirects the *env* to a temp tree, so every
@@ -908,3 +908,89 @@ def test_the_commons_reader_treats_a_header_only_file_as_absent(
     assert image["categories"] == ["pottery"]
     assert image["coordinates"] is None
     assert image["artifactType"] == ""
+
+
+# ── The word-form table (pinakes:80 US-1, slice 5) ───────────────────────────
+#
+# `lexicons/forms.py` is the one loader whose file is measured in megabytes, and
+# the two things worth pinning about it are both invisible in a row count: what
+# it does when the file is missing (warn, not raise — the opposite of
+# `load_base_words` right above it), and the fact that it keys on the concept ×
+# language *pair*, so its size is smaller than the file's line count.
+
+
+def test_a_missing_words_file_is_an_empty_form_table_not_an_error(
+    tmp_path: Path,
+) -> None:
+    """`loadForms` wraps its whole read in a `catch { console.warn(...) }`.
+
+    That is what makes `/api/scraping/coverage` answer "nothing scraped yet" on
+    a corpus with no `words.tsv`, rather than a 500. `load_base_words` next door
+    raises on exactly the same condition, and the asymmetry is Express's.
+    """
+    assert forms.load_forms(tmp_path) == {}
+
+
+def test_a_words_file_missing_a_required_column_is_also_empty(
+    tmp_path: Path,
+) -> None:
+    """`getIdx` throws *inside* the same try/catch, so a broken header degrades
+    the same way an absent file does."""
+    write(tmp_path, "words.tsv", "Language_ID\tConcept_ID\tWord_Form", "fin\ta\tsilmä")
+    assert forms.load_forms(tmp_path) == {}
+
+
+def test_a_scraped_language_file_overwrites_the_northeuralex_row(
+    tmp_path: Path,
+) -> None:
+    """`loadScrapedForms` merges last, and the filename is the language id.
+
+    On the shipped corpus this contributes nothing — no file in
+    `data/source/lexicons/` other than `words.tsv` has a `Concept_ID` column, so
+    every one of them is skipped by its own header. It is kept because the day
+    a per-language form file lands there it must win, which is this ordering.
+    """
+    write(
+        tmp_path,
+        "words.tsv",
+        "Language_ID\tConcept_ID\tWord_Form\tIPA",
+        "fin\tAuge::N\told\to l d",
+    )
+    write(tmp_path, "fin.tsv", "Concept_ID\tWord_Form", "Auge::N\tnew")
+    assert forms.load_forms(tmp_path)["Auge::N"]["fin"] == {
+        "form": "new",
+        "ipa": None,
+    }
+
+
+@pytest.mark.parametrize(
+    "filename", ["families.tsv", "languages.tsv", "words.tsv", "words-base.tsv"]
+)
+def test_the_four_corpus_spine_files_are_never_read_as_a_language(
+    tmp_path: Path, filename: str
+) -> None:
+    """They are excluded by name; everything else in the directory is offered to
+    the parser and rejected by its own header."""
+    write(tmp_path, filename, "Concept_ID\tWord_Form", "Auge::N\tnope")
+    assert forms.load_scraped_forms(tmp_path) == {}
+
+
+def test_the_live_form_table_size() -> None:
+    """105,768 concept × language cells over 1,016 concepts — fewer than the
+    121,633 lines `/api/data/stats` counts, because a repeated pair overwrites.
+    """
+    table = forms.load_forms(LIVE_LEXICONS)
+    assert len(table) == 1016
+    assert sum(len(by_language) for by_language in table.values()) == 105768
+
+
+def test_the_live_coverage_report_is_the_living_languages() -> None:
+    """Historical variants and dialects are excluded, so this is shorter than
+    `load_languages`. Sorted by raw word count, not by percentage."""
+    coverage = forms.word_coverage_by_language(LIVE_LEXICONS)
+    assert len(coverage) == 1047
+    assert coverage[0]["wordCount"] == 1016
+    assert coverage[0]["coveragePercent"] == 100
+    assert [row["wordCount"] for row in coverage] == sorted(
+        (row["wordCount"] for row in coverage), reverse=True
+    )

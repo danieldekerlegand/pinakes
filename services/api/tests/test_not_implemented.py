@@ -18,7 +18,9 @@ SAMPLE_REQUESTS = [
     # them; their coverage is `test_catalog_routes.py`.
     ("GET", "/api/media-assets", "/api/media-assets"),
     ("GET", "/api/media-assets/{id}", "/api/media-assets/asset-42"),
-    ("POST", "/api/scraping-jobs", "/api/scraping-jobs"),
+    # Was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice ported
+    # the scraper dashboard; its coverage is `test_scraping_routes.py`.
+    ("POST", "/api/text-analysis/compare", "/api/text-analysis/compare"),
     # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it, then
     # `/api/religions` until pinakes:80 US-1's second slice and `/api/haplogroups`
     # until its fourth — a sample here has to name a route that is still
@@ -71,12 +73,40 @@ def test_unported_routes_answer_501(
     assert "has not been ported" in body["message"]
 
 
-def test_501_body_carries_the_grading_fixtures(unbuilt_client: TestClient) -> None:
+def test_501_body_carries_the_grading_metadata(unbuilt_client: TestClient) -> None:
     """A porter needs to know what will grade the port, from the 501 itself."""
-    body = unbuilt_client.get("/api/scraping-jobs").json()
-    assert body["portUnit"] == "scraping-jobs"
-    assert body["parityFixtures"] == ["get-scraping-jobs"]
+    body = unbuilt_client.get(
+        "/api/linguistic-distance/available-languages"
+    ).json()
+    assert body["portUnit"] == "linguistic-distance"
     assert body["clientUsed"] is True
+    assert body["parityFixtures"] == []
+
+
+def test_no_outstanding_route_still_carries_a_recorded_fixture(
+    unbuilt_client: TestClient,
+) -> None:
+    """Every recorded parity fixture now belongs to a **ported** route.
+
+    This assertion used to be the other way round: `test_501_body_carries_the
+    _grading_fixtures` read `parityFixtures` off a 501 to prove a porter is told
+    what will grade the port. `get-scraping-jobs` was the last recording whose
+    route was outstanding, and pinakes:80 US-1's fifth slice ported it — so the
+    list is empty by construction now, and the useful statement is that it
+    *stays* empty.
+
+    What it means for the cutover: the routes still outstanding are the ones no
+    fixture was ever recorded for, so a porter's grading is their own test file,
+    not a replay. Should a future `npm run parity:record` add a recording for an
+    outstanding route, this goes red and says which — which is the moment to put
+    it back in `GRADED` instead.
+    """
+    outstanding = {
+        route.describe(): list(route.fixtures)
+        for route in coverage_of(unbuilt_client).unported
+        if route.fixtures
+    }
+    assert outstanding == {}
 
 
 def test_the_method_matters(unbuilt_client: TestClient) -> None:

@@ -940,3 +940,75 @@ handful of places where they are *not*.
   distinction actually changes an answer.
 - **`test_not_implemented.py`'s `/api/haplogroups` stand-in went red on landing**
   and names `/api/media/prompts` now.
+
+## The cutover's fifth slice — `routers/{scraping,words,data_stats}.py` + `lexicons/forms.py` (pinakes:80 US-1)
+
+The scraper dashboard and the word-form table under it: the four
+`/api/scraping-jobs` routes, `/api/scraping/{status,coverage}`, both
+`/api/scraping/engine*`, `/api/word-comparisons`, `/api/languages/{id}/word-list`
+and `/api/data/stats`. **11 routes**, coverage 241/306 → **252/306**. Two things
+make this slice different from the four before it: it is the first where a
+router *writes* to in-process state rather than reading a TSV, and it closes a
+hole two earlier bands documented rather than fixed.
+
+- **`ingest/jobs.py` and `acquire/job.py` both shipped with a note saying their
+  progress was invisible because `/api/scraping-jobs` was Express's.** It is not
+  any more, and neither module grew a second copy of anything: the job store
+  gained `cleanup()` (nothing else), and `POST /api/scraping/engine` is an
+  adapter over `acquire.job.run` exactly as `routers/archaeology.py` is one over
+  `ingest.archaeology`. `_js_number` moved from `archaeology.py` to
+  `_reads.body_number`, since both acquisition routes read a `limit` that way.
+- **`lexicons/forms.py` is the loader every earlier slice deferred**, and its one
+  surprising rule is the asymmetry with its neighbour: `loadForms` wraps its whole
+  read in a `catch { console.warn }` where `loadBaseWords` uses
+  `readFileOrThrow`. So a corpus with no `words.tsv` answers
+  `/api/scraping/coverage` with "nothing scraped yet" and a 200, while a corpus
+  with no `words-base.tsv` is a **500**. Both are ports; do not regularise them.
+- **`loadScrapedForms` reads the same directory the corpus lives in**, treating
+  every `*.tsv` except four spine files as a per-language form list and
+  discarding each one whose header has no `Concept_ID`. On the shipped corpus
+  that is all fifty-odd of them and the merge contributes nothing. Kept, because
+  a per-language file that *does* land there must win over the NorthEuraLex row —
+  that is the merge order. The per-file skip logs at **debug**, not warning:
+  Express memoised the table so it printed those ~50 lines once per process, and
+  nothing is cached here.
+- **Optional pagination changes the response's *type*.** No `?limit=` ⇒ a bare
+  array; a limit ⇒ `{items, total, limit, offset}`. And `?limit=abc` is an
+  **empty page echoed as `null`**, not the whole list and not a 422 —
+  `parseInt` ⇒ `NaN` ⇒ `slice` clamps to nothing. `words._page` is the one copy;
+  `store.parse_int_js` + `store.js_slice` are what it is built from.
+- **`?languages=fin,est` is ONE language.** `Array.isArray(q) ? q : [q]` never
+  splits on a comma, so the comma-joined form fails the "at least 2" check with a
+  400; the array form is the *repeated* parameter. Hence `getlist`, not `get` —
+  and `?languages=&languages=` is two blank ids, which passes both guards and
+  matches nothing.
+- **`PATCH /api/scraping-jobs/{id}` is an unguarded object spread**, so a body
+  can rename the record it is addressed by (`{"id": "hijacked"}` works) and an
+  **array** body contributes its indices as string keys. `jobs.update_job` takes
+  `job_id` positional-only for exactly this reason: without the `/`, a body field
+  called `job_id` would be a `TypeError` where Express simply set it.
+  `jobs.create_job` takes `Any` for the same reason — `totalWords || 0` keeps a
+  junk value, it does not validate one.
+- **`/api/data/stats` never parses and that is the point.** It counts non-blank
+  *lines*, so `ingredient-origins.tsv` — whose loader raises on the live corpus —
+  still reports a row count. `_lines` opens with `newline=""` because the split is
+  on `"\n"` alone: a CRLF file keeps a `\r` on its last header cell, and
+  `families.tsv` is CRLF today. Same trap `analytics/quality.py` documents.
+- **The whole slice was proved byte-identical to Express over 52 live requests**
+  — the ten routes plus `/api/data/stats`, every pagination edge, every refusal,
+  and the job ledger driven through create → list → patch → get. The only two
+  differences were job-list orderings, and both are the millisecond clock: the
+  tie-break rule itself agrees (V8's stable sort and Python's
+  `sorted(reverse=True)` both keep insertion order among equal timestamps) and is
+  pinned by `test_the_job_list_is_newest_first_and_ties_keep_insertion_order`.
+- **`POST /api/scraping/{families,mythology}` deliberately did not come across**
+  and are still 501. They are ~1,000 lines of Gemini prompt/schema plus a direct
+  TSV **write** into the live corpus — a port of a generator, not of a route.
+- **The stand-in chore came due twice, and the second one ended it.**
+  `test_not_implemented.SAMPLE_REQUESTS` and `test_router_discovery`'s drop-in
+  both named `/api/scraping-jobs`; they name `/api/text-analysis/compare` and
+  `/api/visualizations/chord` now. And `test_501_body_carries_the_grading_fixtures`
+  could not be repointed at all: **no outstanding route carries a recorded fixture
+  any more**. It was replaced by `test_no_outstanding_route_still_carries_a
+  _recorded_fixture`, which says so as an invariant — every remaining port is
+  graded by its own test file, not by a replay.

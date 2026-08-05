@@ -83,6 +83,34 @@ def query_number(request: Request, key: str) -> float | None:
     return tsv.js_number(raw)
 
 
+def body_number(value: Any) -> float:
+    """``Number(value)`` for a **JSON body** value; ``NaN`` when it is not one.
+
+    The body counterpart of :func:`query_number`, and the difference is where the
+    value comes from: a query parameter is always a string, a body field can
+    already be a number, a bool, a list or ``null``. Both acquisition routes read
+    their `limit` through `Number(...)` + `Number.isFinite(...)`, so `"50"` is
+    fifty and `"soon"` is a **400** rather than the 422 a declared `int` field
+    would answer.
+
+    Hoisted out of :mod:`pinakes.routers.archaeology` when the cutover's fifth
+    slice needed the same read for `POST /api/scraping/engine`.
+    """
+    if isinstance(value, bool):
+        return 1.0 if value else 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return 0.0
+        try:
+            return float(stripped)
+        except ValueError:
+            return math.nan
+    return math.nan
+
+
 def echo(**fields: Any) -> dict[str, Any]:
     """The handler's filter bag, as ``JSON.stringify`` would have written it.
 

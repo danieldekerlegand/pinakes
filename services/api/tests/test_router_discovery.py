@@ -20,15 +20,23 @@ from pinakes import routers
 from pinakes.app import create_app, registered_routes
 from pinakes.routers import RouterModuleError, discover_routers
 
-DROP_IN = """
+#: The drop-in serves a **still-unported** baseline path, because the second
+#: test asserts the stub disappears when it lands. Was `/api/scraping-jobs`
+#: until pinakes:80 US-1's fifth slice ported it; expect to move it again.
+#: The module name must be one no real router will ever take — a collision
+#: would have the committed file win the import and the drop-in do nothing.
+DROP_IN_ROUTE = "/api/visualizations/chord"
+DROP_IN_MODULE = "drop_in_probe"
+
+DROP_IN = f"""
 from fastapi import APIRouter
 
 router = APIRouter()
 
 
-@router.get("/api/scraping-jobs")
+@router.get("{DROP_IN_ROUTE}")
 def list_jobs() -> dict[str, list[str]]:
-    return {"jobs": []}
+    return {{"jobs": []}}
 """
 
 
@@ -76,14 +84,14 @@ def test_discovery_is_deterministically_ordered() -> None:
 
 
 def test_dropping_in_a_module_mounts_it(drop_in_dir: Path) -> None:
-    write_module(drop_in_dir, "scraping_jobs", DROP_IN)
+    write_module(drop_in_dir, DROP_IN_MODULE, DROP_IN)
 
     app = create_app(client_directory=drop_in_dir / "missing")
-    assert "pinakes.routers.scraping_jobs" in app.state.router_modules
-    assert ("GET", "/api/scraping-jobs") in registered_routes(app)
+    assert f"pinakes.routers.{DROP_IN_MODULE}" in app.state.router_modules
+    assert ("GET", DROP_IN_ROUTE) in registered_routes(app)
 
     with TestClient(app) as client:
-        response = client.get("/api/scraping-jobs")
+        response = client.get(DROP_IN_ROUTE)
     assert response.status_code == 200
     assert response.json() == {"jobs": []}
 
@@ -92,15 +100,15 @@ def test_a_dropped_in_route_leaves_the_501_catalog(drop_in_dir: Path) -> None:
     """Porting a route is what removes its stub — nothing else to update."""
     before = create_app(client_directory=drop_in_dir / "missing")
     assert any(
-        route.describe() == "GET /api/scraping-jobs"
+        route.describe() == f"GET {DROP_IN_ROUTE}"
         for route in before.state.parity_coverage.unported
     )
 
-    write_module(drop_in_dir, "scraping_jobs", DROP_IN)
+    write_module(drop_in_dir, DROP_IN_MODULE, DROP_IN)
     after = create_app(client_directory=drop_in_dir / "missing")
 
     assert any(
-        route.describe() == "GET /api/scraping-jobs"
+        route.describe() == f"GET {DROP_IN_ROUTE}"
         for route in after.state.parity_coverage.ported
     )
     assert len(after.state.parity_coverage.unported) == (

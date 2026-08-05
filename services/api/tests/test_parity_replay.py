@@ -115,6 +115,7 @@ GRADED: tuple[str, ...] = (
     "get-culture-profile-by-id",  # pinakes:80 US-1
     "get-map-civilizations",  # pinakes:80 US-1
     "get-map-civilizations-viewport",  # pinakes:80 US-1
+    "get-scraping-jobs",  # pinakes:80 US-1
 )
 
 
