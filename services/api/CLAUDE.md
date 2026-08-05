@@ -311,6 +311,52 @@ building toward; four notes are worth keeping.
   how the lexicon move was caught in the first place). Its 500 body is
   `{message}` alone, the inline-`routes.ts` spelling.
 
+## The general corpus reader — `lexicons/` + `routers/{entity_resolver,summaries}.py` (pinakes:63 US-1)
+
+Canonical per-entity URLs and progressive summary/detail — and, under both of them, the
+thing two earlier ports kept deferring: `server/tsv-storage.ts`'s loaders, as
+`lexicons/storage.py`. `collab/citable.py` (one row, four files) and `analytics/corpus.py`
+(nine files, the columns four computations score on) both say in their docstring that they
+are *not* the storage layer. This is what they were pointing at; **neither was folded into
+it**, because a reader that serves one purpose exactly is easier to keep honest than one
+that serves three approximately.
+
+- **The package is `lexicons/`, not `corpus/`.** Two other things in this service already
+  own that word — `engine.corpus` is the engine's `build/corpus` artifact and
+  `analytics.corpus` is the analytics slice of these same TSVs.
+- **Nothing is cached, deliberately.** The TypeScript memoised each table on its storage
+  singleton; here every loader re-reads, for the same reason `contributions.store` builds its
+  queue per call — `paths.lexicons_dir()` re-reads its env override every time, and that
+  override is the only thing between a test and the live corpus. The largest file is ~1,100
+  rows.
+- **A missing *file* is an empty domain; a missing required *column* is a 500.**
+  `readFileIfExists` returning null and `getIdx` throwing were two different statements over
+  there. The two **language** loaders are the exception — they catch their own `getIdx` and
+  degrade to `[]` — and `trade-goods` is the opposite extreme, reading all nine columns as
+  required. Both kept as found.
+- **Three JS coercions are load-bearing and disagree with each other.** `?? "living"` on a
+  language's status is *nullish* (a blank cell stays blank, only a short row defaults);
+  `row[idx] || ""` everywhere else is truthy; and `Number("")` is **0**, so a language with a
+  latitude and a blank longitude sits on the prime meridian rather than dropping out. Only a
+  cell that is not a number at all yields a null coordinate.
+- **`GET /api/entity/religion/:id` resolves with a null region, and that is a port.** The
+  Express fetcher reads `region`, which a `Religion` record calls `originRegion`. Fixing it
+  here would make the two backends disagree about the same entity during the cutover.
+- **Both entity routes and both summary *list* routes still answer on Express** — their
+  fixtures are replayed against that app (`server/routes/entity-resolver.ts`). Only
+  `/api/summaries/{domain}/{id}` was retired to 501. That is safe here in a way it would not
+  be for a store: both sides only read, and `test_lexicon_storage.py` pins the reader to the
+  live corpus's row counts.
+- **`test_parity_replay.py` now links a fixture to its operation through the spec**, not by
+  string equality. A fixture spells its route the Express way (`/api/entity/:domain/:id`) and
+  the spec spells it the OpenAPI way (`/api/entity/{domain}/{id}`), so **every parameterized
+  fixture had been silently skipping** — green either way, which is exactly what `GRADED`
+  exists to catch. `test_every_fixture_binds_to_an_operation_in_the_spec` is the guard.
+  The file also points `$PINAKES_LEXICONS_DIR` back at the **live** corpus for the duration
+  of a replay: a recording of `/api/entity/language/cmn` cannot be reproduced by a service
+  with no languages. Every recorded request is required to be side-effect free, so that read
+  is safe — do not extend it to anything that writes.
+
 ## Deliberate divergences from `server/`
 
 - Unknown `/api/*`, `/mcp*`, `/.well-known/*` URLs return **404 JSON**, not the

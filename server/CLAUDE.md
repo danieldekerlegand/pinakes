@@ -607,6 +607,14 @@ freshness scanner. Endpoints (reads open): `GET /api/living-dataset/status` (das
 
 ## Progressive summary/detail — `services/entity-summary.ts` + `routes/summaries.ts`
 
+**Ported to Python** (pinakes:63 US-1): the group is served by
+`services/api/src/pinakes/routers/summaries.py` over `pinakes.lexicons.{summary,storage}`,
+against the same corpus. The **detail** route answers 501 here; the index and the domain page
+**keep answering**, because their recorded fixtures are replayed against this app (same rule
+as `GET /api/citations` and `GET /api/graph/status`). `services/entity-summary.ts` stays as the
+graded spec. A test that asserted on the detail route's body must move to
+`services/api/tests/test_summary_routes.py` — that is what changed in `summaries.test.ts`.
+
 `/api/summaries/:domain` returns **lightweight** rows (a per-domain subset of the
 detail record, paginated `offset`/`limit`); `/api/summaries/:domain/:id` (or the
 canonical `/api/<domain>/:id`) returns the full record. The projection +
@@ -659,6 +667,19 @@ domains + formats.
   `culture-profile-panel.tsx` (Copy BibTeX + download .bib/.ris/.json).
 
 ## Canonical per-entity URLs — `services/entity-resolver.ts` + `routes/entity-resolver.ts`
+
+**Ported to Python** (pinakes:63 US-1): both routes are served by
+`services/api/src/pinakes/routers/entity_resolver.py` over `pinakes.lexicons.{entity,storage}`.
+**Neither is retired** — both carry a recorded fixture replayed against *this* app, so this is
+the `GET /api/citations` case twice over. Serving them twice is safe because both sides only
+*read* `data/source/lexicons/`, and `services/api/tests/test_entity_routes.py` pins them to the
+same rows. `services/entity-resolver.ts` stays as the graded spec.
+
+**The whole `server/tsv-storage.ts` loader vocabulary now has a Python twin** —
+`services/api/src/pinakes/lexicons/storage.py` — for the thirteen domains these two groups
+reach. It is asserted byte-equal against these loaders on the live corpus. A change to a
+loader here is a change there too, or the two backends start answering differently about the
+same row mid-cutover.
 
 `GET /api/entity/:domain/:id` (US-009) resolves a **permanent** entity id to its
 canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:` id,

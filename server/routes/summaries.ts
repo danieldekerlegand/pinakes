@@ -1,6 +1,23 @@
 /**
  * First-party `/api/summaries/*` routes (US-004, tasklist 13 platform-infra).
  *
+ * **Ported to Python** (pinakes:63 US-1): the whole group is served by
+ * `services/api/src/pinakes/routers/summaries.py` over
+ * `pinakes.lexicons.{summary,storage}`, against the same corpus. The detail
+ * route below is retired — it answers **501** naming its replacement.
+ *
+ * The **index and the domain page keep answering here**, for the same reason
+ * `GET /api/citations` and `GET /api/graph/status` do: their recordings
+ * (`contracts/parity/fixtures/get-summaries-{index,domain}.json`) are replayed
+ * against *this* app by `contracts/parity/parity.test.ts`, and a baseline that
+ * stops reproducing its own recording is no longer a baseline. Serving them
+ * twice is safe in a way a second *writer* would not be — both sides only read
+ * `data/source/lexicons/`, and `services/api/tests/test_summary_routes.py`
+ * pins them to the same rows.
+ *
+ * `services/entity-summary.ts` is **not** retired either: it is the graded
+ * spec, and `summaries.test.ts` is what says the two projections agree.
+ *
  * Progressive summary/detail loading: these endpoints return **lightweight**
  * per-domain records (the summary contract in server/services/entity-summary.ts),
  * so a client can render lists/cards fast and hydrate a single entity's full
@@ -48,6 +65,33 @@ function parseIntParam(raw: unknown): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/** The Python module that now serves the ported route. */
+export const PORTED_TO = "services/api/src/pinakes/routers/summaries.py";
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
+}
+
 export function registerSummaryRoutes(app: Express): void {
   /**
    * GET /api/summaries — the machine-readable contract: every domain, its
@@ -93,32 +137,13 @@ export function registerSummaryRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/summaries/:domain/:id — detail-on-demand: the full, unprojected
-   * record for one entity, in the uniform summaries namespace. Unknown domain →
-   * 404; unknown id → 404.
+   * GET /api/summaries/:domain/:id — detail-on-demand.
+   *
+   * Ported to the Python service (pinakes:63 US-1). Registered, not deleted:
+   * the path set is what `contracts/parity/openapi.json` is harvested from, so
+   * dropping the registration would rewrite the baseline the port is graded
+   * against. The only route in this group with no recorded fixture, which is
+   * why it is the only one that could be retired.
    */
-  app.get("/api/summaries/:domain/:id", async (req: Request, res: Response) => {
-    const { domain, id } = req.params;
-    if (!isSummaryDomain(domain)) {
-      res.status(404).json({
-        error: "Unknown summary domain",
-        detail: `No summary contract for ${JSON.stringify(domain)}`,
-        domains: summaryDomains(),
-      });
-      return;
-    }
-    try {
-      const records = await DOMAIN_FETCHERS[domain]();
-      const record = records.find((r) => r.id === id);
-      if (!record) {
-        res.status(404).json({ error: "Not found", detail: `No ${domain} with id ${JSON.stringify(id)}` });
-        return;
-      }
-      res.json(record);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error(`Unexpected error in summaries/${domain}/${id}:`, error);
-      res.status(500).json({ error: "detail lookup failed", detail: message });
-    }
-  });
+  app.get("/api/summaries/:domain/:id", portedToPython("GET /api/summaries/:domain/:id"));
 }
