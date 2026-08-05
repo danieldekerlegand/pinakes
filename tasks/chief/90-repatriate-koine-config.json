@@ -43,7 +43,7 @@
         "The grounding-pack / world-seed export path and the dataset return path exercise the in-repo mapping (existing exporter scripts/tests point at the in-repo mapping, not an external file), and their tests pass.",
         "A validation asserts every canonical node/edge type referenced by the bridge mapping exists in pinakes's canonical schema (fails on an unmapped type)."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
