@@ -17,6 +17,7 @@ from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import jobs as ingest_jobs
+from pinakes.kcb import registry as kcb_registry
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 from pinakes.routers import _auth as write_guard_handles
@@ -151,6 +152,31 @@ def reset_alias_index() -> Iterator[None]:
     graph_resolver_handles.reset_graph_resolver()
     yield
     graph_resolver_handles.reset_graph_resolver()
+
+
+@pytest.fixture(autouse=True)
+def reset_kcb(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Unconfigure the bus, and forget any registration attempt.
+
+    Three env vars change what the KCB fronts serve — a public origin, a signing
+    key, a discovery registry — and a checkout has none of them. Clearing them is
+    what makes "the served manifest is byte-identical to the contract" a property
+    of the code rather than of whoever ran the suite. `registry` also caches its
+    one attempt in module state, in the same family as `reset_write_guard`: left
+    set, the first test to hit `/api/kcb/*` would decide what every later test
+    sees under `registry`.
+    """
+    for variable in (
+        "PINAKES_PUBLIC_ORIGIN",
+        "PINAKES_SIGNING_PRIVATE_KEY",
+        "PINAKES_SIGNING_KEY_ID",
+        kcb_registry.REGISTRY_URL_ENV,
+        kcb_registry.REGISTRY_TIMEOUT_ENV,
+    ):
+        monkeypatch.delenv(variable, raising=False)
+    kcb_registry.reset_registration()
+    yield
+    kcb_registry.reset_registration()
 
 
 @pytest.fixture

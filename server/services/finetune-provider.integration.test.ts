@@ -50,8 +50,14 @@ import {
   type FinetuneRun,
 } from "./finetune-provider";
 import { selectFinetuneProvider, type ProviderManifest } from "./finetune-routing";
-import { registerCapabilityBusRoutes } from "../routes/capability-bus";
-import { CAPABILITY_MANIFEST } from "@contracts/capability-manifest";
+import {
+  MANIFEST_WELL_KNOWN_PATH,
+  registerCapabilityBusRoutes,
+} from "../routes/capability-bus";
+import {
+  CAPABILITY_MANIFEST,
+  type CapabilityManifest,
+} from "@contracts/capability-manifest";
 
 const REPO_ROOT = process.cwd();
 const LUGH_ROOT = loadFinetuneConfig(process.env, REPO_ROOT).lughRoot;
@@ -143,11 +149,18 @@ describe.skipIf(!LIVE)("KFT describe → invoke → subscribe (real lugh runner,
   }
 
   it("describes the capability with the FT-K signal a registry routes on", async () => {
-    const body = await fetch(`${baseUrl}/api/kcb/capabilities`).then((r) => r.json());
-    const finetune = body.capabilities.find((c: { name: string }) => c.name === "finetune");
-    expect(finetune.grant).toBe("invoke:finetune");
-    expect(finetune.cost.meter).toBe("gpu-seconds");
-    expect(finetune.specialization).toMatchObject({
+    // Read off the manifest, not `/api/kcb/capabilities`: that directory moved to
+    // the Python service (pinakes:65 US-1) and answers 501 here. The directory is a
+    // projection of these fields, and `services/api/tests/test_capability_bus.py`
+    // asserts it carries them — what this file owns is that *this* provider
+    // advertises the signal the tiebreak reads.
+    const manifest = (await fetch(`${baseUrl}${MANIFEST_WELL_KNOWN_PATH}`).then((r) =>
+      r.json(),
+    )) as CapabilityManifest;
+    const finetune = manifest.capabilities.find((c) => c.name === "finetune");
+    expect(finetune?.x_grant).toBe("invoke:finetune");
+    expect(finetune?.cost.meter).toBe("gpu-seconds");
+    expect(finetune?.x_specialization).toMatchObject({
       provider_class: "specialized",
       modality: "text-generation",
       egress: "local-only",

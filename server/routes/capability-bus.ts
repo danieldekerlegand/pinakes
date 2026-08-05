@@ -2,15 +2,29 @@
  * KCB capability-bus routes — how Pinakes publishes itself on the Koine control
  * plane (`koine/specs/capability-bus.md`).
  *
+ * **Ported to Python** (pinakes:65 US-1): the group is served by
+ * `services/api/src/pinakes/routers/capability_bus.py` over `pinakes.kcb`, which
+ * carries the same origin absolutization, the same Ed25519 signing (a signature
+ * minted on either side verifies on the other — the canonical signing input is
+ * byte-identical) and the same best-effort registry push.
+ *
  * `GET /.well-known/kcb-manifest.json` — the KCB §2 manifest (the **describe**
  *   verb, §4). Well-known so a crawler-populated registry can pull it, and so a
  *   consumer that cannot reach the registry can read it straight off the provider.
- * `GET /api/kcb/manifest` — the same document under the API prefix.
+ *   **Still answers here**, like `GET /api/citations`: it is what
+ *   `participation-self-sufficiency.test.ts` drives to prove this repo describes
+ *   itself with no external config. Serving it twice cannot drift — it is a pure
+ *   function of a committed JSON file, and the two outputs are asserted equal.
+ * `GET /api/kcb/manifest` — the same document under the API prefix. **Still
+ *   answers here** for a second reason: its recorded fixture
+ *   (`contracts/parity/fixtures/get-kcb-manifest.json`) is replayed against *this*
+ *   app, and a baseline that stops reproducing its own recording is no baseline.
  * `GET /api/kcb/capabilities` — the invocation directory: each capability with the
  *   already-built endpoints behind it. This is the fallback path that makes the
- *   registry optional (KCB §3 is route-by-lookup, never a proxy).
+ *   registry optional (KCB §3 is route-by-lookup, never a proxy). **Retired to 501.**
  * `GET /api/kcb/status` — whether registration with the discovery registry
  *   succeeded, and the standing fact that the capabilities are served regardless.
+ *   **Retired to 501.**
  *
  * These routes are a **surface wrapper only**: nothing here resolves, reconciles or
  * queries anything. Every capability points at merged code (`graph-resolver.ts`,
@@ -22,11 +36,7 @@
  */
 import { type Express, type Request, type Response } from "express";
 
-import {
-  capabilityManifestFor,
-  CAPABILITY_MANIFEST,
-  isManifestSigned,
-} from "@contracts/capability-manifest";
+import { capabilityManifestFor } from "@contracts/capability-manifest";
 import {
   configuredOrigin,
   publishCapabilityManifest,
@@ -36,6 +46,35 @@ import { signManifestForServing } from "../services/manifest-signing";
 
 /** Where the manifest is served for registry crawlers (KCB §3 pull population). */
 export const MANIFEST_WELL_KNOWN_PATH = "/.well-known/kcb-manifest.json";
+
+/** The Python module that now serves this group. */
+export const PORTED_TO = "services/api/src/pinakes/routers/capability_bus.py";
+
+/** The two routes this backend handed over; the manifest fronts still answer. */
+export const PORTED_ROUTES = ["/api/kcb/capabilities", "/api/kcb/status"] as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
+}
 
 export interface CapabilityBusRouteOptions {
   /**
@@ -69,35 +108,24 @@ export function registerCapabilityBusRoutes(
   const originOption = options.origin;
   const publish = options.publish ?? (() => publishCapabilityManifest());
 
-  /**
-   * The last publish outcome. Starts as "not attempted" so `/api/kcb/status` is
-   * answerable before (and if) registration ever completes — serving never waits
-   * on the registry.
-   */
-  let registration: PublishResult = {
-    registered: false,
-    servingDirectly: true,
-    registryUrl: null,
-    detail: "Registration not attempted yet — capabilities are already being served.",
-  };
-
   if (!options.skipRegistration) {
     // Fire-and-forget: a registry that is slow, down, or absent must not delay or
     // fail route registration (KCB §3 — the registry is an index, not a dependency).
+    //
+    // The *outcome* is no longer kept: `/api/kcb/status` reported it and that route
+    // is retired, so this process now only logs. Both backends publishing the same
+    // manifest to the same registry is harmless — the push is an idempotent index
+    // update keyed on `identity`, not a claim of ownership.
     void publish()
       .then((result) => {
-        registration = result;
         if (!result.registered && result.registryUrl) {
           console.warn(`[kcb] ${result.detail}`);
         }
       })
       .catch((error: unknown) => {
-        registration = {
-          registered: false,
-          servingDirectly: true,
-          registryUrl: null,
-          detail: `Registration failed (${error instanceof Error ? error.message : String(error)}) — capabilities remain invocable directly.`,
-        };
+        console.warn(
+          `[kcb] Registration failed (${error instanceof Error ? error.message : String(error)}) — capabilities remain invocable directly.`,
+        );
       });
   }
 
@@ -110,38 +138,12 @@ export function registerCapabilityBusRoutes(
   app.get(MANIFEST_WELL_KNOWN_PATH, sendManifest);
   app.get("/api/kcb/manifest", sendManifest);
 
-  /** The invocation directory — capabilities + the built endpoints behind them. */
-  app.get("/api/kcb/capabilities", (req: Request, res: Response) => {
-    const manifest = capabilityManifestFor(originFor(req, originOption));
-    res.json({
-      identity: manifest.identity,
-      kcbVersion: manifest.kcb_version,
-      manifest: manifest.endpoints.manifest,
-      capabilities: manifest.capabilities.map((c) => ({
-        name: c.name,
-        description: c.description,
-        cost: c.cost,
-        grant: c.x_grant,
-        // Present only on a narrow provider (today: `finetune`). The directory is a
-        // `describe` surface, and FT-K's tiebreak is decided on this block — a registry
-        // that discovered Pinakes here would otherwise have to re-fetch the manifest to
-        // learn it is the specialized leg.
-        ...(c.x_specialization ? { specialization: c.x_specialization } : {}),
-        surfaces: c.x_surfaces,
-      })),
-    });
-  });
-
-  /** Registry-registration status. `servingDirectly` is true no matter the outcome. */
-  app.get("/api/kcb/status", (_req: Request, res: Response) => {
-    res.json({
-      identity: CAPABILITY_MANIFEST.identity,
-      kcbVersion: CAPABILITY_MANIFEST.kcb_version,
-      manifestVersion: CAPABILITY_MANIFEST.x_pinakes.manifestVersion,
-      // True when a signing key is configured: sign the authored manifest and read the
-      // populated `key_id` off the result. Unconfigured ⇒ unsigned clone ⇒ false.
-      signed: isManifestSigned(signManifestForServing(CAPABILITY_MANIFEST)),
-      registry: registration,
-    });
-  });
+  // ── Ported to the Python service (pinakes:65 US-1) ─────────────────────────
+  //
+  // The invocation directory and the registration status are now served by
+  // `pinakes.routers.capability_bus`. Registered, not deleted: the path set is
+  // the parity baseline's own harvest source.
+  for (const route of PORTED_ROUTES) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
 }

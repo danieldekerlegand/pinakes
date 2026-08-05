@@ -7,11 +7,12 @@ import type { Server } from "node:http";
  * Integration tests for the first-party `/api/graph/*` routes (US-004), after
  * pinakes:50 US-2 moved most of them to the Python service.
  *
- * Two things are covered: the routes this backend still serves (`/resolve`,
- * `/status`) behave as they always did, and the eight it handed over answer the
- * 501 hand-off **without touching a backend**. The behavioural coverage those
- * eight used to have here moved with the code — it lives in
+ * Two things are covered: the one route this backend still serves (`/status`)
+ * behaves as it always did, and the nine it handed over answer the 501 hand-off
+ * **without touching a backend**. The behavioural coverage those nine used to
+ * have here moved with the code — it lives in
  * `services/api/tests/test_graph_routes.py`, driven against the same fakes.
+ * `/api/graph/resolve` joined them in pinakes:65 US-1.
  *
  * The graph-store (Neo4j) and engine-client (sidecar) are still module-mocked —
  * no live Neo4j, no live network — because `/status` aggregates both through
@@ -125,8 +126,8 @@ async function post(
 // ── The ported routes ───────────────────────────────────────────────────────
 
 /**
- * Every route pinakes:50 US-2 handed to the Python service, with the concrete
- * URL to drive it. What is under test is the hand-off itself: the path is still
+ * Every route this backend has handed to the Python service (pinakes:50 US-2,
+ * plus `/resolve` in pinakes:65 US-1), with the concrete URL to drive it. What is under test is the hand-off itself: the path is still
  * registered (the parity baseline and the §10b catalog guard both read the
  * registration set), it answers 501 naming its replacement, and — the part worth
  * a test — it reaches **no** backend on the way. A retired handler that still
@@ -140,6 +141,7 @@ const PORTED: [method: "GET" | "POST", url: string][] = [
   ["GET", "/api/graph/overview?limit=10"],
   ["GET", "/api/graph/retrieve?q=paella"],
   ["GET", "/api/graph/metrics"],
+  ["GET", "/api/graph/resolve?type=language&id=lat"],
   ["POST", "/api/graph/datalog"],
   ["POST", "/api/graph/cypher"],
 ];
@@ -180,42 +182,6 @@ describe("routes ported to the Python service", () => {
   });
 });
 
-
-// ── GET /api/graph/resolve ──────────────────────────────────────────────────
-
-describe("GET /api/graph/resolve", () => {
-  it("resolves an entity ref to a csid", async () => {
-    mocks.resolve.mockReturnValue({
-      csid: "cs:language:lat",
-      confidence: 1,
-      method: "alias",
-    });
-    const { status, body } = await get(
-      "/api/graph/resolve?type=language&id=lat&name=Latin",
-    );
-    expect(status).toBe(200);
-    expect(body.resolved.csid).toBe("cs:language:lat");
-    expect(mocks.resolve).toHaveBeenCalledWith({
-      type: "language",
-      id: "lat",
-      name: "Latin",
-      region: undefined,
-    });
-  });
-
-  it("returns resolved:null for a no-match/ambiguous ref", async () => {
-    mocks.resolve.mockReturnValue(null);
-    const { status, body } = await get("/api/graph/resolve?type=language&name=Klingon");
-    expect(status).toBe(200);
-    expect(body.resolved).toBeNull();
-  });
-
-  it("400s when type is missing", async () => {
-    const { status } = await get("/api/graph/resolve?id=lat");
-    expect(status).toBe(400);
-    expect(mocks.resolve).not.toHaveBeenCalled();
-  });
-});
 
 // ── GET /api/graph/status ───────────────────────────────────────────────────
 

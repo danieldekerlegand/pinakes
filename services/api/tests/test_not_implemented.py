@@ -22,8 +22,11 @@ SAMPLE_REQUESTS = [
     # goes red the day the group lands. That group's own coverage is
     # `test_summary_routes.py`.
     ("GET", "/api/religions", "/api/religions"),
-    ("GET", "/api/graph/resolve", "/api/graph/resolve"),
-    ("GET", "/.well-known/kcb-manifest.json", "/.well-known/kcb-manifest.json"),
+    # Was `/api/graph/resolve` + `/.well-known/kcb-manifest.json` until
+    # pinakes:65 US-1 ported them; their coverage is `test_graph_routes.py` and
+    # `test_capability_bus.py`.
+    ("POST", "/api/graph/explain", "/api/graph/explain"),
+    ("GET", "/api/ancestry/haplogroups", "/api/ancestry/haplogroups"),
 ]
 
 

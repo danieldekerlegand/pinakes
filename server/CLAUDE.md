@@ -146,6 +146,21 @@ file avoids editing the large, already-error-heavy `routes.ts` body.
 
 ## KCB capability bus — `routes/capability-bus.ts` + `services/capability-registry.ts`
 
+**Ported to Python** (pinakes:65 US-1): the group is served by
+`services/api/src/pinakes/routers/capability_bus.py` over `pinakes.kcb` — same origin
+absolutization, same Ed25519 signing (a signature minted on either side verifies on the
+other; the canonical signing input is byte-identical), same best-effort registry push.
+`/api/kcb/capabilities` and `/api/kcb/status` answer **501** here.
+
+**The two manifest fronts keep answering, for two different reasons.**
+`/api/kcb/manifest` carries a recorded fixture replayed against *this* app; the
+well-known path is what `routes/participation-self-sufficiency.test.ts` drives to prove
+the repo describes itself with no external config, and that guard is about the
+repository, not about which process answers. Same standing as `GET /api/citations` —
+and safe for a stronger reason than usual: both sides are pure functions of one
+committed JSON file, and `services/api/tests/test_capability_bus.py` asserts the served
+document equals `contracts/capability-manifest.json` verbatim.
+
 `GET /.well-known/kcb-manifest.json` (+ `/api/kcb/manifest`) publishes Pinakes's Koine
 capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
 `/api/kcb/status` the registration outcome. The manifest itself is
@@ -177,6 +192,16 @@ capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
   Keep `signManifestForServing`'s unsigned path a pass-through, or that byte-equality breaks.
 
 ## KFT `finetune` provider — `services/finetune-provider.ts` (90-US-3)
+
+**This is the one thing keeping `/mcp` and `routes/a2a.ts` alive on this backend.**
+pinakes:65 US-1 ported both fronts (`services/api/src/pinakes/routers/{mcp,a2a}.py`) and
+the Python `/mcp` serves the same five tools — but `finetune`/`finetune_subscribe`
+dispatch by *spawning a subprocess* into the sibling `lugh` checkout, and that service
+reaches every backend by import (`test_engine_inprocess.test_no_sidecar_or_subprocess_seam`
+fails the build on a spawn under `src/`). So the Python front advertises the pair and
+degrades the invoke, naming this one; retiring here would leave the capability invocable
+nowhere. It goes when lugh publishes its own KCB manifest — the retirement this wrapper
+was always waiting on — or at 80-cutover.
 
 The fourth capability on the bus, and the only **specialized** one: Pinakes's own KFT
 training provider (`koine/specs/fine-tuning.md` §9/FT-K — agora hosts the *general* trainer).

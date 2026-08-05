@@ -26,11 +26,15 @@ What the port preserves from `server/routes/graph.ts`, deliberately:
   different contract, so the params are declared as strings and parsed by
   :func:`_number` — a stale bookmark must not become a hard failure.
 
-Two routes in the baseline's ``graph`` group are **not** here, because neither is
-engine-backed: ``/api/graph/resolve`` (the convergence alias table, which is
-loaded from the local lexicons and answers even while the graph is offline) and
-``/api/graph/explain`` (the LLM connection narrative). Both keep answering 501
-until their own port lands — see ``/api/_parity/coverage``.
+``/api/graph/resolve`` joined the group in pinakes:65 US-1 and is the one handler
+here that is **not** engine-backed: it reads the convergence alias table out of
+the local lexicons (:mod:`pinakes.search.graph_resolver`) and so answers even
+while the graph is offline. Its failure modes are therefore not the engine's, and
+it is left with the same always-200 contract it had.
+
+One route in the baseline's ``graph`` group is still absent: ``/api/graph/explain``
+(the LLM connection narrative), which keeps answering 501 until pinakes:65 US-2
+lands — see ``/api/_parity/coverage``.
 """
 
 from __future__ import annotations
@@ -45,6 +49,8 @@ from fastapi.responses import JSONResponse
 
 from pinakes.engine import corpus, datalog, graph
 from pinakes.engine.errors import EngineError, EngineUnavailable
+from pinakes.paths import lexicons_dir
+from pinakes.search.graph_resolver import EntityRef, graph_resolver
 
 router = APIRouter(tags=["graph"])
 
@@ -236,6 +242,49 @@ def retrieve(q: str = "", k: str | None = None, depth: str | None = None) -> Any
         return graph.retrieve(query, **kwargs)
     except EngineError as exc:
         return engine_error("graph retrieval", exc)
+
+
+# ── Lexicon-backed resolution ────────────────────────────────────────────────
+
+
+@router.get("/api/graph/resolve")
+def resolve(
+    type: str | None = None,  # noqa: A002 - the baseline query parameter is `type`
+    id: str | None = None,  # noqa: A002 - ditto
+    name: str | None = None,
+    region: str | None = None,
+) -> Any:
+    """Resolve a pinakes entity ref to its shared-graph csid.
+
+    Backed by the convergence alias table, which is loaded from the local
+    lexicons and so does **not** depend on Neo4j — resolution succeeds even while
+    the graph itself is offline, which is what lets a "Show in graph" affordance
+    decide whether to render at all.
+
+    Always 200 with ``{resolved: {csid, confidence, method} | null}``; ``null``
+    covers both a no-match and an *ambiguous* match, which the resolver refuses
+    to guess at rather than mis-linking two entities into one.
+    """
+    node_type = _text(type)
+    if not node_type:
+        return _bad_request("type is required")
+    found = graph_resolver(lexicons_dir()).resolve(
+        EntityRef(
+            type=node_type,
+            id=_text(id) or None,
+            name=_text(name) or None,
+            region=_text(region) or None,
+        )
+    )
+    if found is None:
+        return {"resolved": None}
+    return {
+        "resolved": {
+            "csid": found.csid,
+            "confidence": found.confidence,
+            "method": found.method,
+        }
+    }
 
 
 # ── The research consoles ────────────────────────────────────────────────────

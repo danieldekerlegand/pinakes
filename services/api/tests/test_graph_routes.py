@@ -15,6 +15,7 @@ developer checkout is in by default and which the routes must answer, not crash 
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -337,19 +338,96 @@ def test_status_is_200_even_with_both_halves_down(
     }
 
 
+# ── Lexicon-backed resolution ────────────────────────────────────────────────
+
+
+def seed_languages(lexicons: Path) -> None:
+    """A two-row corpus the alias index can be built from."""
+    (lexicons / "languages.tsv").write_text(
+        "id\tname\tregion\n"
+        "lat\tLatin\tEurope\n"
+        "cmn\tMandarin\tChina\n",
+        encoding="utf-8",
+    )
+
+
+def test_resolve_returns_the_csid_with_its_method_and_confidence(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    seed_languages(isolated_data_trees["lexicons"])
+
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "id": "lat"}
+    ).json()
+
+    assert payload["resolved"] == {
+        "csid": "cs:language:lat",
+        "confidence": 1.0,
+        "method": "alias",
+    }
+
+
+def test_resolve_falls_back_to_a_fuzzy_name_match(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    seed_languages(isolated_data_trees["lexicons"])
+
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "name": "Latin"}
+    ).json()
+
+    assert payload["resolved"]["csid"] == "cs:language:lat"
+    assert payload["resolved"]["method"] == "fuzzy"
+
+
+def test_resolve_answers_null_rather_than_guessing(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    """`null` covers both a no-match and an ambiguous one; 200 either way."""
+    seed_languages(isolated_data_trees["lexicons"])
+
+    response = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "name": "Klingon"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["resolved"] is None
+
+
+def test_resolve_answers_while_the_graph_is_offline(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    """The whole reason this route is not engine-backed.
+
+    No `fake_graph`, no `corpus_env`: the state a developer checkout is in. The
+    alias table is read off the local lexicons, so resolution still succeeds —
+    which is what lets a "Show in graph" affordance decide whether to render.
+    """
+    seed_languages(isolated_data_trees["lexicons"])
+
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "id": "cmn"}
+    ).json()
+
+    assert payload["resolved"]["csid"] == "cs:language:cmn"
+
+
+def test_resolve_requires_a_type(unbuilt_client: TestClient) -> None:
+    response = unbuilt_client.get("/api/graph/resolve", params={"id": "lat"})
+
+    assert response.status_code == 400
+    assert response.json() == {"error": "type is required"}
+
+
 # ── Not this story's routes ──────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize(
-    ("method", "url"),
-    [("GET", "/api/graph/resolve"), ("POST", "/api/graph/explain")],
-)
-def test_the_non_engine_graph_routes_still_answer_501(
-    unbuilt_client: TestClient, method: str, url: str
+def test_the_connection_narrative_still_answers_501(
+    unbuilt_client: TestClient,
 ) -> None:
-    """Neither is engine-backed — the alias table and the LLM narrative are their
-    own ports — so they must still read as outstanding, not silently missing."""
-    response = unbuilt_client.request(method, url)
+    """The LLM narrative is its own port (pinakes:65 US-2) — it must read as
+    outstanding, not silently missing."""
+    response = unbuilt_client.post("/api/graph/explain")
 
     assert response.status_code == 501
     assert response.json()["error"] == "not_ported"

@@ -1,6 +1,16 @@
 /**
  * A2A agent-card surface for the KCB capabilities (US-2, `/.well-known/agent-card.json`).
  *
+ * **Ported to Python** (pinakes:65 US-1): `services/api/src/pinakes/routers/a2a.py`
+ * over `pinakes.kcb.agent_card` serves a **byte-identical** card (asserted both
+ * ways, with and without a configured origin). It is **not** retired here, for
+ * the same reason `/.well-known/kcb-manifest.json` is not:
+ * `participation-self-sufficiency.test.ts` drives this route to prove the repo
+ * describes itself with no external config, and that guard is about the
+ * repository, not about which process is answering. Serving it twice cannot
+ * drift — the card is a pure function of a committed JSON file, and the byte
+ * equality is what says so.
+ *
  * KCB §4 names an A2A message as one of the two ways to *invoke* a capability (the
  * other is an MCP tool call, US-1); KCB §2 (0.3.0) folds the whole KCB manifest onto
  * the provider's standard A2A **AgentCard** rather than a second document — the KCB
