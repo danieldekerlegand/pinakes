@@ -15,6 +15,16 @@
   routes an injectable `options.lexiconsDir` defaulting to it. Keep injectability — it is
   what lets route tests point at a `mkdtempSync` dir.
 
+**Never let a test WRITE into `data/source/lexicons/`.** Vitest runs test files
+concurrently, so a fixture TSV dropped in the live corpus — even one deleted in `afterEach`
+— is visible to every other file reading that directory in the same window, and the failure
+lands somewhere unrelated. `batch-enrichment.test.ts` wrote `__test_*.tsv` there and made
+`scripts/convergence-qa.test.ts` go red ~1 run in 6 on an `unmapped-lexicon-file` drift
+finding (the corpus is *read* by convergence-qa, coverage-report, data-quality-scorer,
+canonical-edges, export-pipeline, …). The fix is always the same: give the service an
+injectable `lexiconsDir` defaulting to `LEXICONS_DIR` and point the writing test at a
+`mkdtempSync` dir. Read-only specs against the live corpus are fine.
+
 **A wrong path here fails quietly.** `readFileIfExists` returns `null` and the endpoint
 answers `[]`; `fs.readdirSync` on a missing dir *does* throw, which is why
 `data-quality-scorer.ts` was the one place that caught the miss during the move. When you
