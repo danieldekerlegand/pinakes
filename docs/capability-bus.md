@@ -241,30 +241,17 @@ as-authored document gets server-relative paths.
 Koine has no central config store: a participant publishes everything a peer needs in order to
 trust and dial it **from its own repository and its own endpoints**
 (`koine/docs/self-describing-participant.md`, ADR-0007). The manifest above is one of the four
-facets that convention names. The other three, and the source document that ties them together,
-live here too:
+facets that convention names — capability. The other three (identity, egress, translation), the
+source document that ties them together, and the proof that Pinakes needs only koine + agora to
+participate are in **[`docs/self-describing-participant.md`](self-describing-participant.md)**;
+the facet table lives there rather than being restated here.
 
-| Facet | Where it lives | Enforced by |
-|---|---|---|
-| **Identity** — the `pinakes` namespace, sole minting authority for it, the kinds minted under it, the external authorities anchored to | `contracts/participant.json` `identity`; the id scheme itself is [`docs/canonical-schema.md`](canonical-schema.md) §3/§3.1 | `assertValidParticipant` |
-| **Capability** — the served AgentCard + its `https://koine.dev/kcb/manifest/0.3` extension | `contracts/capability-manifest.json`, served by `server/routes/{a2a,capability-bus}.ts` | `assertValidCapabilityManifest` |
-| **Egress** — which record classes may leave, the licence allowlist, and the `grounding-only` dialect every knowledge port emits | [`contracts/egress-policy.json`](../contracts/egress-policy.json) | `assertValidEgressPolicy` |
-| **Translation** — the bridge/predicate mappings, with per-entry dialect, egress and id-space rules | `contracts/predicate-mapping.json` (a re-vendored mirror of koine's registry — a mapping coins no relation name) | `assertValidPredicateMapping` |
-
-`contracts/participant.json` is the **source** document ADR-0007 decision 7 allows: pointers and
-references only — never a manifest payload, a mapping's rows, or a node/edge ontology. It exists
-so the served surface can be *derived from and checked against* a declared intent instead of
-hand-maintained, which is what `assertParticipantManifestAgreement` does: the participant id, the
-namespace and its kinds, the manifest and egress-policy pointers, the served MCP/A2A endpoints and
-every published port's dialect must agree with the manifest and the policy, or the suite goes red.
-`contracts/participant.test.ts` also validates the document against koine's own
-`schemas/participant-self-description.schema.json` when a sibling checkout is present
-(`KOINE_ROOT`, else `~/Development/koine`), and skips when it is not — the same rule the
-registry-mirror gate follows.
-
-The rule that makes all of this one-directional: **no participant reads another participant's
-repository.** Every pointer in the declaration is relative to this repo's root, and the validator
-rejects one that is absolute or climbs out of it.
+What the manifest owes that document: `contracts/participant.json` is a **source** document —
+pointers and references only, never a manifest payload — and it exists so the served surface can
+be *derived from and checked against* a declared intent instead of hand-maintained. That is what
+`assertParticipantManifestAgreement` does: the participant id, the namespace and its kinds, the
+manifest and egress-policy pointers, the served MCP/A2A endpoints and every published port's
+dialect must agree with the manifest and the policy, or the suite goes red.
 
 ## Not yet built
 

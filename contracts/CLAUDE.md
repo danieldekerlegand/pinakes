@@ -208,7 +208,8 @@ runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contr
 Pinakes owns its fabric-participation config in-repo: koine has no central config store, so the
 namespace, the minting-authority claim, the egress/dialect policy and the mapping pointers are
 published from *this* repository (`koine/docs/self-describing-participant.md`, ADR-0007). Prose +
-the four-facet table live in `docs/capability-bus.md`.
+the four-facet table live in `docs/self-describing-participant.md` (the manifest facet's own
+contract stays in `docs/capability-bus.md`).
 
 - **`egress-policy.json` is the SOURCE OF TRUTH for the dialect and the egress classes, and the
   other contracts read it rather than restating it.** `capability-manifest.ts` validates every
@@ -241,6 +242,14 @@ the four-facet table live in `docs/capability-bus.md`.
   absolute path or one that climbs out (`../koine/...`): no participant reads another
   participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
   failure that convention exists to prevent.
+- **The participation path must stay filesystem-free**, and a test enforces it:
+  `server/routes/participation-self-sufficiency.test.ts` (US-3) walks the static import closure
+  of `server/routes/{a2a,capability-bus}.ts` + `participant.ts` + `bridge-insimul.ts` and fails
+  on any module in it that names a `*_ROOT` env var, calls `homedir()`, carries an absolute path
+  literal, or imports `node:fs`. Adding such an import to a contract on that closure — even a
+  harmless-looking one — goes red. Test support that needs the disk (`koine-schema.ts`,
+  `parity/harness.ts`) is fine precisely because nothing on the path imports it. The scan strips
+  comments first, so a doc comment may still explain the sibling-checkout flow.
 
 ## Public bridge mapping — `bridge-insimul.json` + `bridge-insimul.ts` (90-repatriate-koine-config US-2)
 

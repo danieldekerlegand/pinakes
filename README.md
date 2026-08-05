@@ -44,6 +44,11 @@ tooltip. See the runbook below to enable it.
   node/edge schema, per-lexicon mapping, export/reconcile/write-back/QA tooling.
 - **Ralph workflow** — [`docs/ralph-workflow.md`](./docs/ralph-workflow.md): the autonomous
   PRD-driven iteration loop under `tasks/ralph/` and `scripts/ralph/`.
+- **Self-describing koine participant** —
+  [`docs/self-describing-participant.md`](./docs/self-describing-participant.md): the four facets
+  Pinakes owns in-repo — its namespace and minting authority, its capability manifest, its
+  egress/dialect policy, and its public bridge mappings — where each lives, and why Pinakes
+  needs only **koine** (the spec) and **agora** (the runtime) to join the fabric.
 - **Capability bus (KCB) + the KFT `finetune` provider** —
   [`docs/capability-bus.md`](./docs/capability-bus.md): the manifest Pinakes publishes, its
   MCP/A2A fronts, and the **specialized, local-only** fine-tuning provider. Its trainer is
