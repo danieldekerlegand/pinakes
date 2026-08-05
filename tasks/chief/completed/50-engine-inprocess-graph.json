@@ -2,7 +2,7 @@
   "project": "pinakes",
   "branchName": "chief/50-engine-inprocess-graph",
   "baseBranch": "main",
-  "description": "Collapse the TS<->Python seams and port the graph routes (docs/UNIFIED-PROJECT-PLAN.md \u00a75). The two integration points that exist today \u2014 the HTTP sidecar client and the CLI-subprocess acquisition \u2014 become direct in-process calls into pinakes_engine, and /api/graph/* is served from the Python service. This is the template every later port tasklist follows.",
+  "description": "Collapse the TS<->Python seams and port the graph routes (docs/UNIFIED-PROJECT-PLAN.md §5). The two integration points that exist today — the HTTP sidecar client and the CLI-subprocess acquisition — become direct in-process calls into pinakes_engine, and /api/graph/* is served from the Python service. This is the template every later port tasklist follows.",
   "dependsOn": [
     "40-contracts-codegen"
   ],
@@ -40,5 +40,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "51ce9714"
 }
