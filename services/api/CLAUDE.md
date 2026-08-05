@@ -23,6 +23,13 @@ pattern is that parallel port tasklists never touch a shared file.
   at app construction. That is deliberate — a silently skipped module would let
   a "ported" group fall back to its own 501 stub and look fine.
 - Prefix a file with `_` for a shared helper; the scanner skips those.
+- **Two files the one-file rule does not cover, and they are where parallel ports
+  collide on rebase**: this file (one section per band) and `tests/conftest.py`
+  (one autouse reset fixture per module holding global state). Both are *appended*
+  to, so a conflict in them is two bands' additions, never a disagreement —
+  concatenate, never choose. Restate your section's `N/306` delta afterwards:
+  coverage is computed and nothing asserts the number in this prose, so a rebase
+  silently strands it. Re-read it off `/api/_parity/coverage`.
 
 ## The worked example — `routers/graph.py` (pinakes:50 US-2)
 
