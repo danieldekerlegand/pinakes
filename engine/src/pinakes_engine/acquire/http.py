@@ -7,7 +7,9 @@ Adapters never call :mod:`requests` directly; they go through
 * **exponential backoff** (honouring ``Retry-After`` when present) on ``429``
   and ``5xx`` responses;
 * an on-disk **response cache** keyed on ``(url, params)`` so repeated requests
-  — including across runs and tests — skip the network entirely;
+  — including across runs and tests — skip the network entirely (:meth:`get`
+  only: :meth:`post` is rate-limited and retried but never cached, because a
+  POST is not a repeatable read);
 * a configurable **User-Agent** that identifies the project, as required by the
   `Wikimedia User-Agent policy
   <https://meta.wikimedia.org/wiki/User-Agent_policy>`_.
@@ -84,6 +86,7 @@ class Transport(Protocol):
         params: Mapping[str, str] | None,
         headers: Mapping[str, str],
         timeout: float,
+        body: str | None = ...,
     ) -> HttpResponse:
         """Perform one request and return its :class:`HttpResponse`."""
         ...
@@ -103,6 +106,7 @@ class RequestsTransport:
         params: Mapping[str, str] | None,
         headers: Mapping[str, str],
         timeout: float,
+        body: str | None = None,
     ) -> HttpResponse:
         response = self._session.request(
             method,
@@ -110,6 +114,7 @@ class RequestsTransport:
             params=dict(params) if params is not None else None,
             headers=dict(headers),
             timeout=timeout,
+            data=body.encode("utf-8") if body is not None else None,
         )
         return HttpResponse(
             url=response.url,
@@ -207,19 +212,45 @@ class HttpClient:
             self._write_cache(url, params, response)
         return response
 
+    def post(
+        self,
+        url: str,
+        *,
+        body: str,
+        params: Mapping[str, str] | None = None,
+        content_type: str = "application/json",
+        headers: Mapping[str, str] | None = None,
+    ) -> HttpResponse:
+        """POST *body* to *url*, rate-limited and retried — and **never cached**.
+
+        The politeness and the backoff are the parts a POST wants: an endpoint
+        that answers ``429`` deserves the same restraint whichever verb reached
+        it. The cache is the part it must not have — a POST is a request to *do*
+        something, so replaying a stored answer would silently skip the doing.
+        The counters therefore record no hit and no miss for this call.
+
+        *headers* is merged over the ``User-Agent`` and ``Content-Type`` this
+        sets, which is how an API key rides as a header rather than as a query
+        parameter (a query parameter would end up in a cache key elsewhere, and
+        in every log between here and the endpoint).
+        """
+        merged = {"Content-Type": content_type, **dict(headers or {})}
+        return self._fetch_with_retries("POST", url, params, body=body, extra=merged)
+
     def _fetch_with_retries(
-        self, method: str, url: str, params: Mapping[str, str] | None
+        self,
+        method: str,
+        url: str,
+        params: Mapping[str, str] | None,
+        *,
+        body: str | None = None,
+        extra: Mapping[str, str] | None = None,
     ) -> HttpResponse:
         attempt = 0
+        headers = {"User-Agent": self._user_agent, **dict(extra or {})}
         while True:
             self._respect_rate_limit(url)
-            response = self._transport.request(
-                method,
-                url,
-                params=params,
-                headers={"User-Agent": self._user_agent},
-                timeout=self._timeout,
-            )
+            response = self._send(method, url, params, headers, body)
             if not _is_retryable(response.status_code):
                 return response
             if attempt >= self._max_retries:
@@ -228,6 +259,34 @@ class HttpClient:
             with self._lock:
                 self._retries += 1
             attempt += 1
+
+    def _send(
+        self,
+        method: str,
+        url: str,
+        params: Mapping[str, str] | None,
+        headers: Mapping[str, str],
+        body: str | None,
+    ) -> HttpResponse:
+        """One transport call, passing ``body`` only when there is one.
+
+        A :class:`Transport` is duck-typed, and every one written before POST
+        existed here takes no ``body`` — a GET that started passing the keyword
+        unconditionally would break all of them for a value that is always
+        ``None``. So the bodyless call stays exactly the call it always was.
+        """
+        if body is None:
+            return self._transport.request(
+                method, url, params=params, headers=headers, timeout=self._timeout
+            )
+        return self._transport.request(
+            method,
+            url,
+            params=params,
+            headers=headers,
+            timeout=self._timeout,
+            body=body,
+        )
 
     def _respect_rate_limit(self, url: str) -> None:
         """Wait until this host's next polite slot, reserving it atomically.

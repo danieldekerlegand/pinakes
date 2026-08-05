@@ -7,33 +7,27 @@ import os from "os";
 import path from "path";
 
 /**
- * Integration tests for `POST /api/extract/text` (US-008). The LLM is served from
- * a recorded fixture (no live model call) and the `ContributionService` points at
- * a temp dir so drafts land in an isolated review queue.
+ * What is left of `POST /api/extract/text` on this backend (pinakes:64 US-1).
+ *
+ * The extraction, the drafting and the queue write are served by the Python
+ * service now, and their behavioural coverage moved with them:
+ * `services/api/tests/test_ingest_routes.py` (the route) and
+ * `services/api/tests/test_text_extractor.py` (normalisation, graded against the
+ * *same* recorded fixture this suite used). What this file asserts is the
+ * hand-off — the path is still registered, it answers 501 naming its
+ * replacement, and nothing on this side queues a contribution any more.
+ *
+ * `server/services/text-extractor.ts` is still unit-tested next door: it is the
+ * specification the port was read off.
  */
 
-import { registerTextExtractorRoutes } from "./text-extractor";
+import {
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerTextExtractorRoutes,
+} from "./text-extractor";
 import { ContributionService } from "../services/contribution-service";
-import type { RawTextExtraction, TextExtractorDeps } from "../services/text-extractor";
-
-const FIXTURES = path.join(__dirname, "..", "services", "fixtures", "text-extractor");
-
-function loadRaw(file: string): RawTextExtraction {
-  return JSON.parse(fs.readFileSync(path.join(FIXTURES, file), "utf-8")) as RawTextExtraction;
-}
-
-const fixtureDeps: TextExtractorDeps = {
-  async extract() {
-    return loadRaw("roman-empire-paragraph.json");
-  },
-};
-
-/** Deps whose extract throws (non-TextExtractionError) to exercise the 502 path. */
-const explodingDeps: TextExtractorDeps = {
-  async extract() {
-    throw new Error("boom (simulated model failure)");
-  },
-};
 
 let app: Express;
 let server: Server;
@@ -46,7 +40,7 @@ beforeAll(async () => {
   contributions = new ContributionService(dir);
   app = express();
   app.use(express.json());
-  registerTextExtractorRoutes(app, { contributions, deps: fixtureDeps });
+  registerTextExtractorRoutes(app);
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
@@ -69,63 +63,31 @@ async function post(body: unknown): Promise<Res> {
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-describe("POST /api/extract/text", () => {
-  it("extracts entities and queues one AI-flagged contribution each", async () => {
-    const { status, body } = await post({ text: "The Roman Empire spoke Latin; Pompeii was buried." });
-    expect(status).toBe(201);
-    expect(body.result.entities).toHaveLength(3);
-    expect(body.contributions).toHaveLength(3);
-    for (const c of body.contributions) {
-      expect(c.status).toBe("pending");
-      expect(c.entityData.source).toBe("ai-extracted");
-      expect(c.entityData.aiGenerated).toBe(true);
-    }
-    // Actually persisted to the temp-dir queue.
-    const stored = contributions.get(body.contributions[0].id);
-    expect(stored?.entityData.source).toBe("ai-extracted");
+describe("POST /api/extract/text — ported to the Python service", () => {
+  it("answers 501 naming its replacement", async () => {
+    const { status, body } = await post({ text: "The Roman Empire spoke Latin." });
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.route).toBe("POST /api/extract/text");
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
 
-  it("resolves entity types (site with coords → archaeological-site)", async () => {
-    const { body } = await post({ text: "Rome and Pompeii." });
-    const types = body.contributions.map((c: any) => c.entityType);
-    expect(types).toEqual(["civilization", "language", "archaeological-site"]);
+  it("keeps the path registered", () => {
+    // Deleting the registration would rewrite the parity baseline the port is
+    // graded against — `contracts/parity/openapi.json` is harvested from the
+    // Express routing table.
+    expect(PORTED_ROUTES.post).toEqual(["/api/extract/text"]);
   });
 
-  it("rejects empty/missing text with 400", async () => {
-    expect((await post({})).status).toBe(400);
-    expect((await post({ text: "   " })).status).toBe(400);
-  });
-});
-
-describe("POST /api/extract/text model failures", () => {
-  let app2: Express;
-  let server2: Server;
-  let base2: string;
-
-  beforeAll(async () => {
-    const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), "text-extractor-502-"));
-    app2 = express();
-    app2.use(express.json());
-    registerTextExtractorRoutes(app2, {
-      contributions: new ContributionService(dir2),
-      deps: explodingDeps,
-    });
-    await new Promise<void>((resolve) => {
-      server2 = app2.listen(0, "127.0.0.1", () => resolve());
-    });
-    base2 = `http://127.0.0.1:${(server2.address() as AddressInfo).port}`;
+  it("queues nothing on this side any more", async () => {
+    await post({ text: "The Roman Empire spoke Latin." });
+    expect(fs.readdirSync(dir)).toEqual([]);
+    expect(contributions.list().contributions).toEqual([]);
   });
 
-  afterAll(async () => {
-    await new Promise<void>((resolve) => server2.close(() => resolve()));
-  });
-
-  it("maps a model failure to 502", async () => {
-    const res = await fetch(`${base2}/api/extract/text`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: "anything" }),
-    });
-    expect(res.status).toBe(502);
+  it("never returns key material, not even in the refusal", async () => {
+    const { body } = await post({ text: "anything" });
+    expect(JSON.stringify(body)).not.toMatch(/GEMINI_API_KEY|VITE_GEMINI/i);
   });
 });

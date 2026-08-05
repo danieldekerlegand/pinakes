@@ -1,89 +1,64 @@
 /**
- * LLM text-extraction route (US-008).
+ * LLM text-extraction route — **ported away** (pinakes:64 US-1,
+ * docs/UNIFIED-PROJECT-PLAN.md §7).
  *
- * `POST /api/extract/text` accepts a pasted paragraph and returns a structured
- * draft — entities (name, description, coordinates, dates) and relationships,
- * each with per-field confidence — **and** queues one contribution per entity in
- * the review queue flagged `aiGenerated`/`autoDerived` (provenance
- * `source='ai-extracted'`). It never writes the live dataset — a reviewer (US-009)
- * promotes it later.
+ * `POST /api/extract/text` is served by the Python service now
+ * (`services/api/src/pinakes/routers/extract.py` over `pinakes.ingest.text_extractor`),
+ * against the same contribution queue. The handler here answers **501**.
  *
- * Both the LLM boundary (`TextExtractorDeps`) and the `ContributionService` are
- * injectable so tests use recorded fixtures + a temp-dir queue (no live model
- * call, no API key). See `server/routes/text-extractor.test.ts`.
+ * Two things came with the move. The model call is **REST through the engine's
+ * polite HTTP client** rather than the `@google/generative-ai` SDK, so it is
+ * rate-limited and retried on 429/5xx — this handler's bare `fetch` reported a
+ * throttled model to the user as a failed extraction on the first try. And the
+ * key rides in an `x-goog-api-key` header rather than anywhere it can be logged.
+ *
+ * **`server/services/text-extractor.ts` is NOT retired.** It is the graded spec —
+ * its unit tests are what say the two implementations normalise one model answer
+ * the same way, and `services/api/tests/test_text_extractor.py` reads the *same*
+ * recorded fixture (`server/services/fixtures/text-extractor/`). It is also still
+ * imported by `server/security/gemini-proxy.test.ts`.
+ *
+ * The path stays registered rather than being deleted, deliberately: the path set
+ * is what `contracts/parity/openapi.json` was harvested from, so removing a
+ * registration would rewrite the baseline the port is graded against.
  */
 
-import type { Express } from "express";
-import { ContributionService } from "../services/contribution-service";
-import {
-  extractDraftFromText,
-  extractionToContributions,
-  liveDeps,
-  TextExtractionError,
-  type TextExtractorDeps,
-} from "../services/text-extractor";
+import { type Express, type Request, type Response } from "express";
 
-export interface TextExtractorRouteOptions {
-  /** Contribution queue (default: real `data/runtime/contributions`). */
-  contributions?: ContributionService;
-  /** LLM boundary (default: live Gemini). */
-  deps?: TextExtractorDeps;
+/** The Python module that now serves this route. */
+export const PORTED_TO = "services/api/src/pinakes/routers/extract.py";
+
+/** The route this backend handed over. */
+export const PORTED_ROUTES = {
+  post: ["/api/extract/text"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
 }
 
-export function registerTextExtractorRoutes(
-  app: Express,
-  options: TextExtractorRouteOptions = {},
-): void {
-  const contributions = options.contributions ?? new ContributionService();
-  const deps = options.deps ?? liveDeps;
-
-  /**
-   * POST /api/extract/text
-   * Body: `{ text, contributorName?, contributorEmail? }`.
-   * 201 with `{ result, contributions, warnings }`; 400 on empty text;
-   * 502 on an LLM/model failure.
-   */
-  app.post("/api/extract/text", async (req, res) => {
-    const body = (req.body ?? {}) as {
-      text?: string;
-      contributorName?: string;
-      contributorEmail?: string;
-    };
-
-    if (!body.text || typeof body.text !== "string" || !body.text.trim()) {
-      return res.status(400).json({ message: "text is required" });
-    }
-
-    let result;
-    try {
-      result = await extractDraftFromText(body.text, deps);
-    } catch (error) {
-      if (error instanceof TextExtractionError) {
-        return res.status(400).json({ message: error.message });
-      }
-      console.error("Text extraction failed:", error);
-      return res.status(502).json({ message: "Failed to extract entities from the text" });
-    }
-
-    const drafts = extractionToContributions(result, {
-      sourceText: body.text,
-      contributorName: body.contributorName,
-      contributorEmail: body.contributorEmail,
-    });
-
-    const queued = [];
-    const warnings: string[] = [];
-    for (const draft of drafts) {
-      const { contribution, validation } = contributions.submit(draft);
-      if (contribution) {
-        queued.push(contribution);
-      } else {
-        warnings.push(
-          `Skipped "${String(draft.entityData?.name ?? "?")}": ${validation.errors.join("; ")}`,
-        );
-      }
-    }
-
-    return res.status(201).json({ result, contributions: queued, warnings });
-  });
+export function registerTextExtractorRoutes(app: Express): void {
+  for (const route of PORTED_ROUTES.post) {
+    app.post(route, portedToPython(`POST ${route}`));
+  }
 }

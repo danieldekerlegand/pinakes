@@ -242,3 +242,92 @@ def test_rate_limit_reserves_a_slot_per_concurrent_worker(tmp_path: Path) -> Non
         thread.join()
 
     assert sorted(sleeps) == [1.0, 2.0, 3.0]
+
+
+class _BodyTransport:
+    """Transport that records the body it was handed, and answers 200 or a script."""
+
+    def __init__(self, responses: list[HttpResponse] | None = None) -> None:
+        self._responses = list(responses or [])
+        self.calls: list[tuple[str, str, dict[str, str], str | None]] = []
+
+    def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        params: Mapping[str, str] | None,
+        headers: Mapping[str, str],
+        timeout: float,
+        body: str | None = None,
+    ) -> HttpResponse:
+        self.calls.append((method, url, dict(headers), body))
+        if self._responses:
+            return self._responses.pop(0)
+        return HttpResponse(url=url, status_code=200, text="ok", headers={})
+
+
+def test_post_sends_the_body_and_the_declared_content_type(tmp_path: Path) -> None:
+    transport = _BodyTransport()
+    sleeps: list[float] = []
+    client = _client(tmp_path, transport, sleeps)
+
+    response = client.post(
+        "https://example.org/q", body='{"a":1}', headers={"X-Api-Key": "k"}
+    )
+
+    assert response.status_code == 200
+    method, _, headers, body = transport.calls[0]
+    assert method == "POST"
+    assert body == '{"a":1}'
+    assert headers["Content-Type"] == "application/json"
+    # An extra header rides alongside the User-Agent rather than replacing it.
+    assert headers["X-Api-Key"] == "k"
+    assert headers["User-Agent"]
+
+
+def test_post_is_never_cached(tmp_path: Path) -> None:
+    """A POST asks for something to happen; a cached answer would skip the doing."""
+    transport = _BodyTransport()
+    sleeps: list[float] = []
+    client = _client(tmp_path, transport, sleeps)
+
+    client.post("https://example.org/q", body="same")
+    client.post("https://example.org/q", body="same")
+
+    assert len(transport.calls) == 2
+    assert client.stats.cache_hits == 0
+    assert client.stats.cache_misses == 0
+
+
+def test_post_is_rate_limited_and_retried_like_a_get(tmp_path: Path) -> None:
+    transport = _BodyTransport(
+        [HttpResponse("u", 429, "slow down", {}), HttpResponse("u", 200, "ok", {})]
+    )
+    sleeps: list[float] = []
+    client = HttpClient(
+        cache_dir=tmp_path,
+        min_interval=0.0,
+        transport=transport,
+        sleep=sleeps.append,
+        backoff_factor=0.5,
+    )
+
+    response = client.post("https://example.org/q", body="x")
+
+    assert response.status_code == 200
+    assert len(transport.calls) == 2
+    assert sleeps == [0.5]
+    assert client.stats.retries == 1
+
+
+def test_a_get_never_passes_a_body_to_its_transport(tmp_path: Path) -> None:
+    """Every transport written before POST existed takes no `body` keyword.
+
+    `_FakeTransport` is one of them — it is the guard, not just a stand-in.
+    """
+    transport = _FakeTransport([_ok()])
+    sleeps: list[float] = []
+    client = _client(tmp_path, transport, sleeps)
+
+    assert client.get("https://example.org/q").status_code == 200

@@ -247,15 +247,26 @@ that goes red if the manifest widens past what lugh's admission gate admits.
 ## Server-side key proxies (Gemini US-001, Google Translate US-002)
 
 Third-party API keys are **server-side only** — never `VITE_`-prefixed (Vite inlines those
-into the browser bundle). The client posts content to an Express proxy; the server holds the
+into the browser bundle). The client posts content to a proxy; the server holds the
 key and makes the upstream call. Full posture: `docs/SECURITY.md`.
+
+**Both proxies now run on the Python side** (pinakes:64 US-1) — `POST /api/translate` is
+`services/api/src/pinakes/routers/translate.py` and `POST /api/extract/text` is
+`routers/extract.py`; both Express handlers answer 501. Nothing about the *posture*
+changed: the key is still read from the server's environment, still never shipped to the
+browser, and no key still means a **503** that `web/src/lib/scraping.ts` degrades past.
+The two invariant guards below are unchanged and survive the port precisely because they
+scan `.env.example` and `web/` — not a backend.
 
 - **Translate** (`services/translate.ts` + `routes/translate.ts`): `POST /api/translate`
   `{text,to,from?}` reads `GOOGLE_TRANSLATE_API_KEY` (never a `VITE_` var). Network is behind an
   injectable `TranslateDeps` + injectable key so tests use a fake upstream and **no real key**.
   **Optional-key pattern** (like `GEONAMES_USERNAME`): no key ⇒ **503** and the client
   (`web/src/lib/scraping.ts`) silently degrades to the next translation source. 400 bad body,
-  502 upstream failure.
+  502 upstream failure. `services/translate.ts` is the **graded spec** for
+  `pinakes.ingest.translate` (`services/api/tests/test_translate.py`, case for case);
+  the injectable-key option went with the route, since the Python side reads the
+  environment per call.
 - **Invariant guards** (`server/security/{gemini,translate}-proxy.test.ts`) scan `.env.example`
   + all `web/` source for the literal key name / raw provider endpoint. **Gotcha:** your own
   explanatory comments must not contain the literal `VITE_*` / provider-endpoint strings, or the
@@ -889,6 +900,18 @@ contributor confirms one via `POST /api/relationships/edge` (US-003).
 
 ## URL-paste extractor — `services/url-extractor.ts` + `routes/url-extractor.ts`
 
+**The route is ported** (pinakes:64 US-1): `POST /api/extract/url` is served by
+`services/api/src/pinakes/routers/extract.py` over `pinakes.ingest.url_extractor`,
+against the same contribution queue, and the Express handler answers 501. The two REST
+calls now go through the **engine's polite `HttpClient`** — rate-limited per host,
+retried on 429/5xx, and cached, so resolving one article twice costs Wikidata one
+request. `registerUrlExtractorRoutes` no longer takes options.
+
+**`services/url-extractor.ts` is NOT retired** — it is the graded spec, and
+`services/api/tests/test_url_extractor.py` is graded against the **same** recorded
+fixtures under `services/fixtures/url-extractor/`. Everything below is still the
+contract; it is just enforced in Python.
+
 `POST /api/extract/url` (US-004) turns a pasted **Wikipedia/Wikidata** URL into a
 structured entity **draft** (name, description, coordinates, dates,
 relationships, each with a 0..1 confidence) and lands it in the **contribution
@@ -917,6 +940,18 @@ review queue** flagged `entityData.aiGenerated/autoDerived` + `source='auto-deri
   unsupported entityType, **502** on a source/network failure.
 
 ## LLM text extractor — `services/text-extractor.ts` + `routes/text-extractor.ts`
+
+**The route is ported** (pinakes:64 US-1): `POST /api/extract/text` is served by
+`services/api/src/pinakes/routers/extract.py` over `pinakes.ingest.text_extractor`,
+and this handler answers 501. The model is reached **over REST through the engine's
+`HttpClient`** rather than the `@google/generative-ai` SDK — same model, same prompt,
+same response schema (spelled in the REST enum's upper case), but retried on 429/5xx
+and with the key in an `x-goog-api-key` header instead of anywhere loggable.
+
+**`services/text-extractor.ts` is NOT retired** — it is the graded spec,
+`services/api/tests/test_text_extractor.py` reads the **same**
+`services/fixtures/text-extractor/roman-empire-paragraph.json`, and
+`server/security/gemini-proxy.test.ts` still imports its types.
 
 `POST /api/extract/text` (US-008) turns a pasted paragraph into structured
 **drafts** — entities (name/description/coordinates/dates, each a 0..1
