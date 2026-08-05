@@ -38,7 +38,7 @@
         "A short benchmark note (docs/) shows end-to-end acquisition throughput for a representative job and confirms where time goes (network vs parse).",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
