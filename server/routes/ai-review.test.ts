@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import express, { type Express } from "express";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
@@ -7,13 +7,26 @@ import os from "os";
 import path from "path";
 
 /**
- * Integration tests for the AI-extraction review queue (US-009). The queue and
- * the lexicons target both point at temp dirs, so approving a draft promotes it
- * into an isolated `civilizations.tsv` (never the live corpus).
+ * What is left of the AI-review routes on this backend (pinakes:60 US-1).
+ *
+ * All three moved to the Python service, and their behavioural coverage — the
+ * field-level projection, the accept/edit/reject decisions, and the promotion
+ * into a lexicon TSV — moved with them to
+ * `services/api/tests/test_ai_review_routes.py`.
+ *
+ * What is asserted here is that nothing on this side still writes. This was the
+ * one review path that appended to the live corpus, and two implementations
+ * each minting ids by de-duping against what they last read is exactly the race
+ * worth not having.
  */
 
-import { registerAiReviewRoutes } from "./ai-review";
-import { ContributionService, type Contribution } from "../services/contribution-service";
+import {
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerAiReviewRoutes,
+} from "./ai-review";
+import { ContributionService } from "../services/contribution-service";
 
 let app: Express;
 let server: Server;
@@ -22,30 +35,9 @@ let queueDir: string;
 let lexiconsDir: string;
 let contributions: ContributionService;
 
-function seedDraft(overrides: Partial<Contribution> = {}): Contribution {
-  const { contribution } = contributions.submit({
-    entityType: "civilization",
-    action: "add",
-    sources: [{ title: "AI extraction" }],
-    confidence: 70,
-    entityData: {
-      name: "Roman Empire",
-      description: "An ancient empire",
-      timePeriodStart: -27,
-      source: "ai-extracted",
-      aiGenerated: true,
-      autoDerived: true,
-      relationships: [],
-      perFieldConfidence: { name: 0.95, description: 0.3, timePeriodStart: 0.8 },
-    },
-    ...overrides,
-  });
-  return contribution!;
-}
-
-beforeEach(async () => {
+beforeAll(async () => {
   queueDir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-review-queue-"));
-  lexiconsDir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-review-lex-"));
+  lexiconsDir = fs.mkdtempSync(path.join(os.tmpdir(), "ai-review-lexicons-"));
   contributions = new ContributionService(queueDir);
   app = express();
   app.use(express.json());
@@ -53,159 +45,77 @@ beforeEach(async () => {
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
-  baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const { port } = server.address() as AddressInfo;
+  baseUrl = `http://127.0.0.1:${port}`;
 });
 
-afterEach(async () => {
+afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
-  fs.rmSync(queueDir, { recursive: true, force: true });
-  fs.rmSync(lexiconsDir, { recursive: true, force: true });
+  for (const d of [queueDir, lexiconsDir]) {
+    fs.rmSync(d, { recursive: true, force: true });
+  }
 });
 
 type Res = { status: number; body: any };
-async function req(method: string, url: string, body?: unknown): Promise<Res> {
-  const res = await fetch(`${baseUrl}${url}`, {
+
+async function req(method: string, p: string, body?: unknown): Promise<Res> {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const res = await fetch(`${baseUrl}${p}`, {
     method,
-    headers: { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-describe("GET /api/ai-review", () => {
-  it("lists AI drafts as field-level review views with low-confidence flags", async () => {
-    seedDraft();
-    // A non-AI human contribution must NOT appear.
-    contributions.submit({
+const RETIRED: ReadonlyArray<readonly [string, string]> = [
+  ["GET", "/api/ai-review"],
+  ["GET", "/api/ai-review/contrib-1"],
+  ["PATCH", "/api/ai-review/contrib-1"],
+];
+
+describe("routes ported to the Python service", () => {
+  it.each(RETIRED)("%s %s answers 501 naming its replacement", async (method, url) => {
+    const { status, body } = await req(method, url, method === "GET" ? undefined : {});
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.route).toBe(`${method} ${url.replace("contrib-1", ":id")}`);
+  });
+
+  it("keeps both paths registered", () => {
+    // Deleting a registration would rewrite the parity baseline the port is
+    // graded against — `contracts/parity/openapi.json` is harvested from the
+    // Express routing table.
+    expect([...PORTED_ROUTES.get]).toEqual(["/api/ai-review", "/api/ai-review/:id"]);
+    expect([...PORTED_ROUTES.patch]).toEqual(["/api/ai-review/:id"]);
+  });
+
+  it("promotes nothing into the lexicons — the corpus write moved", async () => {
+    const { contribution } = contributions.submit({
       entityType: "civilization",
       action: "add",
-      sources: [{ title: "book" }],
-      entityData: { name: "Sparta" },
-    });
-
-    const { status, body } = await req("GET", "/api/ai-review");
-    expect(status).toBe(200);
-    expect(body.total).toBe(1);
-    const draft = body.drafts[0];
-    expect(draft.aiGenerated).toBe(true);
-    expect(draft.promotable).toBe(true);
-    const desc = draft.fields.find((f: any) => f.field === "description");
-    expect(desc.lowConfidence).toBe(true);
-  });
-});
-
-describe("PATCH /api/ai-review/:id — approve + promote", () => {
-  it("promotes an approved draft into data/source/lexicons/*.tsv with reviewer + AI-source provenance", async () => {
-    const draft = seedDraft();
-    const { status, body } = await req("PATCH", `/api/ai-review/${draft.id}`, {
-      decision: "approved",
-      reviewer: "alice",
-      fields: { description: { decision: "edit", value: "The Roman Empire" } },
-    });
-
-    expect(status).toBe(200);
-    expect(body.status).toBe("approved");
-    expect(body.reviewer).toBe("alice");
-    expect(body.promotion.file).toBe("civilizations.tsv");
-    expect(body.promotion.targetId).toBe("roman-empire");
-
-    // Persisted transition on the contribution.
-    const stored = contributions.get(draft.id)!;
-    expect(stored.status).toBe("approved");
-    expect(stored.reviewer).toBe("alice");
-    expect(stored.fieldReviews?.description).toEqual({ decision: "edit", value: "The Roman Empire" });
-    expect(stored.promotion?.targetId).toBe("roman-empire");
-
-    // Actually written to the target TSV with the edited value.
-    const civ = fs.readFileSync(path.join(lexiconsDir, "civilizations.tsv"), "utf-8");
-    expect(civ).toContain("Roman Empire");
-    expect(civ).toContain("The Roman Empire");
-    // Provenance ledger records both AI source and reviewer.
-    const ledger = fs.readFileSync(path.join(lexiconsDir, "contribution-provenance.tsv"), "utf-8");
-    expect(ledger).toContain("ai-extracted");
-    expect(ledger).toContain("alice");
-  });
-
-  it("rejects the whole approval when a required field is rejected (400)", async () => {
-    const draft = seedDraft();
-    const { status, body } = await req("PATCH", `/api/ai-review/${draft.id}`, {
-      decision: "approved",
-      reviewer: "alice",
-      fields: { name: { decision: "reject" } },
-    });
-    expect(status).toBe(400);
-    expect(body.errors[0]).toMatch(/name/);
-    // Nothing was promoted; the draft stays pending.
-    expect(contributions.get(draft.id)!.status).toBe("pending");
-    expect(fs.existsSync(path.join(lexiconsDir, "civilizations.tsv"))).toBe(false);
-  });
-
-  it("returns 400 when approving a non-promotable entity type", async () => {
-    const draft = seedDraft({
-      entityType: "historical-figure",
+      sources: [{ title: "AI extraction" }],
+      confidence: 70,
       entityData: {
-        name: "Julius Caesar",
-        source: "ai-extracted",
+        name: "AItlantis",
+        description: "an AI-drafted civ",
         aiGenerated: true,
+        source: "text-extractor",
         perFieldConfidence: { name: 0.9 },
       },
     });
-    const { status } = await req("PATCH", `/api/ai-review/${draft.id}`, {
+    const id = contribution!.id;
+
+    const { status } = await req("PATCH", `/api/ai-review/${id}`, {
       decision: "approved",
-      reviewer: "alice",
+      reviewer: "curator",
     });
-    expect(status).toBe(400);
-    expect(contributions.get(draft.id)!.status).toBe("pending");
-  });
-});
 
-describe("PATCH /api/ai-review/:id — reject", () => {
-  it("records a rejection without writing TSV", async () => {
-    const draft = seedDraft();
-    const { status, body } = await req("PATCH", `/api/ai-review/${draft.id}`, {
-      decision: "rejected",
-      reviewer: "bob",
-      note: "duplicate",
-    });
-    expect(status).toBe(200);
-    expect(body.status).toBe("rejected");
-    const stored = contributions.get(draft.id)!;
-    expect(stored.status).toBe("rejected");
-    expect(stored.reviewer).toBe("bob");
-    expect(stored.reviewNote).toBe("duplicate");
-    expect(fs.existsSync(path.join(lexiconsDir, "civilizations.tsv"))).toBe(false);
-  });
-});
-
-describe("PATCH /api/ai-review/:id — validation", () => {
-  it("400 on a missing/invalid decision", async () => {
-    const draft = seedDraft();
-    expect((await req("PATCH", `/api/ai-review/${draft.id}`, { reviewer: "a" })).status).toBe(400);
-    expect(
-      (await req("PATCH", `/api/ai-review/${draft.id}`, { decision: "maybe", reviewer: "a" })).status,
-    ).toBe(400);
-  });
-
-  it("400 on a missing reviewer", async () => {
-    const draft = seedDraft();
-    expect((await req("PATCH", `/api/ai-review/${draft.id}`, { decision: "approved" })).status).toBe(
-      400,
-    );
-  });
-
-  it("404 for an unknown / non-AI draft", async () => {
-    expect((await req("PATCH", "/api/ai-review/nope", { decision: "rejected", reviewer: "a" })).status).toBe(
-      404,
-    );
-    const human = contributions.submit({
-      entityType: "civilization",
-      action: "add",
-      sources: [{ title: "book" }],
-      entityData: { name: "Sparta" },
-    }).contribution!;
-    expect(
-      (await req("PATCH", `/api/ai-review/${human.id}`, { decision: "rejected", reviewer: "a" })).status,
-    ).toBe(404);
+    expect(status).toBe(501);
+    expect(fs.readdirSync(lexiconsDir)).toEqual([]);
+    expect(contributions.get(id)!.status).toBe("pending");
   });
 });

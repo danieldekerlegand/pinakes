@@ -1,176 +1,72 @@
 /**
- * AI-extraction review-queue routes (US-009).
+ * AI-extraction review-queue routes (US-009) — **ported away** (pinakes:60 US-1,
+ * docs/UNIFIED-PROJECT-PLAN.md §7).
  *
- * A dedicated review workflow so nothing AI-generated (URL extractor US-004,
- * text extractor US-008) enters the live dataset unverified:
+ * All three routes are now served by the Python service
+ * (`pinakes.routers.ai_review`), over the same contribution queue and the same
+ * `data/source/lexicons/*.tsv` corpus. Their Express handlers are retired: they
+ * answer **501** naming the module that replaced them.
  *
- * - `GET  /api/ai-review`            — list AI drafts as field-level review views
- *                                      (per-field confidence, low-confidence flag).
- * - `GET  /api/ai-review/:id`        — a single draft's review view.
- * - `PATCH /api/ai-review/:id`       — submit per-field accept/edit/reject
- *                                      decisions + approve|reject. On approve the
- *                                      accepted draft is **promoted** into the
- *                                      appropriate `data/source/lexicons/*.tsv` with
- *                                      provenance (AI source + human reviewer).
+ * Retiring *these* handlers matters more than most. This is the one review path
+ * that **writes to the live corpus** — an approved draft is appended to a
+ * lexicon TSV with provenance. Two implementations of that, each minting ids by
+ * de-duping against what it last read, is exactly the race worth not having: the
+ * promotion lives in one process now.
  *
- * `ContributionService` and `lexiconsDir` are injectable so tests use a temp
- * queue + temp lexicons dir. See `server/routes/ai-review.test.ts`.
+ * The paths stay registered rather than deleted because the path set is what
+ * `contracts/parity/openapi.json` was harvested from — the baseline the port is
+ * graded against. `services/ai-review.ts` itself is untouched and still exports
+ * the promotion primitives its own unit tests cover.
  */
 
-import type { Express } from "express";
-import path from "path";
+import type { Express, Request, Response } from "express";
 import { ContributionService } from "../services/contribution-service";
 import { ChangelogStore } from "../services/changelog";
-import {
-  applyFieldReviews,
-  AiReviewError,
-  isAiDraft,
-  projectDraft,
-  promoteContribution,
-  validateAcceptedDraft,
-  type FieldDecision,
-} from "../services/ai-review";
 
 export interface AiReviewRouteOptions {
   contributions?: ContributionService;
-  /** Directory holding `data/source/lexicons/*.tsv` (default: repo `data/source/lexicons`). */
+  /** Directory holding `data/source/lexicons/*.tsv`. Accepted for compatibility;
+   * the promotion that read it now happens in the Python service. */
   lexiconsDir?: string;
-  /** Changelog store — an approved promotion is logged here (US-010). */
+  /** Changelog store. Accepted for compatibility; see `lexiconsDir`. */
   changelog?: ChangelogStore;
 }
 
-export function registerAiReviewRoutes(app: Express, options: AiReviewRouteOptions = {}): void {
-  const contributions = options.contributions ?? new ContributionService();
-  const lexiconsDir = options.lexiconsDir ?? path.resolve("data", "source", "lexicons");
-  const changelog = options.changelog ?? new ChangelogStore();
+/** The Python module that now serves these routes. */
+export const PORTED_TO = "services/api/src/pinakes/routers/ai_review.py";
 
-  /**
-   * GET /api/ai-review?status=pending
-   * Lists AI-generated drafts projected as field-level review views.
-   */
-  app.get("/api/ai-review", (req, res) => {
-    const status = req.query.status as string | undefined;
-    const { contributions: all } = contributions.list({
-      status: status as never,
-      limit: 1000,
+/** The routes this backend handed over, by method. */
+export const PORTED_ROUTES = {
+  get: ["/api/ai-review", "/api/ai-review/:id"],
+  patch: ["/api/ai-review/:id"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns. 501, not 404 or 503 — the
+ * route exists in the contract and is served, just not by this process.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
     });
-    const drafts = all.filter(isAiDraft).map(projectDraft);
-    res.json({ drafts, total: drafts.length });
-  });
+  };
+}
 
-  /**
-   * GET /api/ai-review/:id — one draft's review view.
-   */
-  app.get("/api/ai-review/:id", (req, res) => {
-    const contribution = contributions.get(req.params.id);
-    if (!contribution || !isAiDraft(contribution)) {
-      return res.status(404).json({ message: `AI draft '${req.params.id}' not found` });
-    }
-    res.json(projectDraft(contribution));
-  });
-
-  /**
-   * PATCH /api/ai-review/:id
-   * Body: `{ decision: 'approved'|'rejected', reviewer, fields?, note? }`
-   *   fields: Record<fieldName, { decision: 'accept'|'edit'|'reject', value? }>
-   *
-   * 200 with the updated draft view; on approve, `promotion` is populated.
-   * 400 on a bad decision / rejected-required field / non-promotable type;
-   * 404 when the draft doesn't exist.
-   */
-  app.patch("/api/ai-review/:id", (req, res) => {
-    const body = (req.body ?? {}) as {
-      decision?: "approved" | "rejected";
-      reviewer?: string;
-      fields?: Record<string, FieldDecision>;
-      note?: string;
-    };
-
-    if (!body.decision || !["approved", "rejected"].includes(body.decision)) {
-      return res.status(400).json({ message: "decision must be 'approved' or 'rejected'" });
-    }
-    if (!body.reviewer || typeof body.reviewer !== "string" || !body.reviewer.trim()) {
-      return res.status(400).json({ message: "reviewer is required" });
-    }
-
-    const contribution = contributions.get(req.params.id);
-    if (!contribution || !isAiDraft(contribution)) {
-      return res.status(404).json({ message: `AI draft '${req.params.id}' not found` });
-    }
-
-    let applied;
-    try {
-      applied = applyFieldReviews(contribution, body.fields ?? {});
-    } catch (error) {
-      if (error instanceof AiReviewError) {
-        return res.status(400).json({ message: error.message });
-      }
-      throw error;
-    }
-
-    if (body.decision === "rejected") {
-      const updated = contributions.recordAiReview(req.params.id, {
-        status: "rejected",
-        reviewer: body.reviewer,
-        fieldReviews: applied.fieldReviews,
-        note: body.note,
-      });
-      return res.json(updated ? projectDraft(updated) : null);
-    }
-
-    // Approve → validate accepted content, then promote to TSV.
-    const errors = validateAcceptedDraft(contribution.entityType, applied.acceptedData);
-    if (errors.length > 0) {
-      return res.status(400).json({ message: "Cannot approve draft", errors });
-    }
-
-    let promotion;
-    try {
-      promotion = promoteContribution({
-        contributionId: contribution.id,
-        entityType: contribution.entityType,
-        acceptedData: applied.acceptedData,
-        reviewer: body.reviewer,
-        aiSource: contribution.aiSource ?? "unknown",
-        overallConfidence: contribution.confidence,
-        lexiconsDir,
-        now: new Date().toISOString(),
-      });
-    } catch (error) {
-      if (error instanceof AiReviewError) {
-        return res.status(400).json({ message: error.message });
-      }
-      throw error;
-    }
-
-    // Log the approved edit into the changelog (US-010). A promotion always
-    // appends a new row, so the change type is "added". Never fail the review
-    // if changelog recording throws.
-    try {
-      changelog.record({
-        domain: contribution.entityType,
-        changeType: "added",
-        targetFile: promotion.file,
-        targetId: promotion.targetId,
-        entityName: typeof applied.acceptedData.name === "string" ? applied.acceptedData.name : undefined,
-        source: "ai-review",
-        sourceUrl: contribution.aiSource ?? undefined,
-        contributionId: contribution.id,
-        reviewer: body.reviewer,
-        confidence: contribution.confidence,
-        summary: `Promoted AI draft (${contribution.aiSource ?? "unknown"}) into ${promotion.file}`,
-      });
-    } catch (error) {
-      console.error("Failed to record changelog entry for promotion:", error);
-    }
-
-    const updated = contributions.recordAiReview(req.params.id, {
-      status: "approved",
-      reviewer: body.reviewer,
-      fieldReviews: applied.fieldReviews,
-      promotion,
-      note: body.note,
-    });
-    return res.json(updated ? projectDraft(updated) : null);
-  });
+export function registerAiReviewRoutes(app: Express, _options: AiReviewRouteOptions = {}): void {
+  for (const route of PORTED_ROUTES.get) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
+  for (const route of PORTED_ROUTES.patch) {
+    app.patch(route, portedToPython(`PATCH ${route}`));
+  }
 }

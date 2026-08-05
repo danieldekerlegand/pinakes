@@ -244,12 +244,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // proxy. Returns 503 when no key is configured (translation optional).
   registerTranslateRoutes(app);
 
-  // AI-extraction review-queue routes (/api/ai-review, US-009) — a dedicated
-  // field-level review workflow for AI-generated drafts (US-004/US-008): a human
-  // accepts/edits/rejects each field (low-confidence fields flagged), and an
-  // approved draft is promoted into data/source/lexicons/*.tsv with provenance recording both
-  // the AI source and the human reviewer.
-  registerAiReviewRoutes(app, { changelog });
+  // AI-extraction review-queue routes (/api/ai-review, US-009) — PORTED to the
+  // Python service (pinakes:60 US-1). The field-level review of AI-generated
+  // drafts, and the promotion of an approved one into data/source/lexicons/*.tsv,
+  // now happen in `pinakes.routers.ai_review`; these paths stay registered and
+  // answer 501 naming it. See routes/ai-review.ts.
+  registerAiReviewRoutes(app);
 
   // pinakes-engine Wikidata bulk-acquisition routes (/api/scraping/engine,
   // US-005) — trigger + monitor pinakes-engine's Wikidata SPARQL acquisition of
@@ -3126,10 +3126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
   // Contribution API Routes (Phase 5; hardened public API US-011)
   // ============================================================================
-  // Write endpoints (POST /api/contributions, PATCH .../:id/review) are guarded
-  // by API-key auth + per-key rate limiting; read endpoints stay open. The
-  // OpenAPI spec is published at GET /api/openapi.json. See routes/contributions.ts.
-  registerContributionRoutes(app, { changelog });
+  // PORTED to the Python service (pinakes:60 US-1) apart from two routes: the
+  // published OpenAPI spec (GET /api/openapi.json — its own port unit) and
+  // GET /api/contributions/stats, which keeps answering so its recorded parity
+  // fixture still replays against this app. The rest answer 501 naming
+  // `pinakes.routers.contributions`. See routes/contributions.ts.
+  registerContributionRoutes(app);
 
   // ============================================================================
   // Data versioning & changelog (US-010)

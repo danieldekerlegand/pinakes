@@ -11,6 +11,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from pinakes import paths
 from pinakes.app import create_app
 from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
@@ -45,6 +46,38 @@ def spec(spec_path: Path) -> dict[str, object]:
 @pytest.fixture(scope="session")
 def baseline_routes() -> tuple[ParityRoute, ...]:
     return load_parity_routes()
+
+
+@pytest.fixture(autouse=True)
+def isolated_data_trees(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> dict[str, Path]:
+    """Point every writable data tree at this test's own temp directory.
+
+    Autouse, and not optional. Two of these trees are shared state that outlives
+    the run: `data/runtime/contributions` is the live review queue, and
+    `data/source/lexicons` is the corpus every other reader in the repo reads.
+    A test that promoted a draft into the real corpus would leave a fixture row
+    visible to `convergence-qa`, `coverage-report`, `data-quality-scorer` and the
+    rest — a failure that lands somewhere else entirely, one run in six
+    (`server/CLAUDE.md`). The override is per-call in `pinakes.paths`, so
+    redirecting the environment is enough; there is no handle to reset.
+
+    Returns the three directories so a test can assert on what was written.
+    """
+    trees = {
+        paths.CONTRIBUTIONS_DIR_ENV: tmp_path / "contributions",
+        paths.CHANGELOG_DIR_ENV: tmp_path / "changelog",
+        paths.LEXICONS_DIR_ENV: tmp_path / "lexicons",
+    }
+    for variable, directory in trees.items():
+        directory.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv(variable, str(directory))
+    return {
+        "contributions": trees[paths.CONTRIBUTIONS_DIR_ENV],
+        "changelog": trees[paths.CHANGELOG_DIR_ENV],
+        "lexicons": trees[paths.LEXICONS_DIR_ENV],
+    }
 
 
 @pytest.fixture

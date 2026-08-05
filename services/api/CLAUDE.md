@@ -46,6 +46,9 @@ The first ported group, and the shape to copy: **one router file, thin over
   `contracts/parity/shape.ts`; only the **matcher** is ported, deliberately —
   recording stays Express's job, or this service would author the contract it is
   graded against.
+- **Add your fixture id to `GRADED` in `tests/test_parity_replay.py`.** That
+  tuple is the list of "a port claims this recording"; the parametrized replay is
+  green either way, so the claim is what makes a skipped fixture a failure.
 - **`test_not_implemented.py`'s `SAMPLE_REQUESTS` must name only *unported*
   routes.** Porting a group that appears there turns its 501 assertion red; move
   the case into that group's own test.
@@ -70,6 +73,40 @@ The first ported group, and the shape to copy: **one router file, thin over
 - **`dist/public` is gitignored** and the tests never build it — they point
   `create_app(client_directory=…)` at a temp dir with an `index.html`. To see
   the real thing serve, build the client first.
+
+## The second ported group — `routers/{contributions,ai_review}.py` (pinakes:60 US-1)
+
+The contribution queue and the AI-draft review. Unlike the graph port there is no
+engine behind it, so the logic below HTTP lives in `src/pinakes/contributions/`
+(`store` / `ai_review` / `changelog`) — same discipline as `engine/`: plain
+arguments in, JSON-ready dicts out, no FastAPI import.
+
+- **Both servers read one queue during the cutover**, so the on-disk shape is
+  reproduced rather than improved. Two rules carry that: `_compact` drops unset
+  optionals (`JSON.stringify` emits no key for `undefined`, and a present-but-null
+  key is a *different* record to the TypeScript reader), and `js_truthy` spells
+  out JavaScript truthiness — `![]` is false in JS and true in Python, so an
+  empty-array required field would otherwise be valid on one server and not the
+  other. `parse_int_js`/`js_slice` are the same idea for `?limit=abc`, which
+  collapses the page to empty rather than 422ing.
+- **Absent ≠ null.** `data.get("confidence")` cannot tell them apart and JS can:
+  an omitted confidence warns and defaults to 50, a declared `null` is a 400. Use
+  `"key" in data` wherever the TypeScript read `!== undefined`.
+- **No store singleton.** `store.queue()` is built per call from
+  `paths.contributions_dir()`, which re-reads its env override every time — a
+  cached listing would be a listing of what *this* process last wrote, and there
+  are two processes. It is also the test seam: `conftest.py`'s autouse
+  `isolated_data_trees` redirects the queue, changelog **and lexicons** to
+  `tmp_path`. Keep that autouse. A test that promoted into the live
+  `data/source/lexicons/` would break an unrelated suite one run in six
+  (`server/CLAUDE.md`).
+- **`ContributionStore.list` shadows the builtin** for every annotation after it
+  in the class body, which is why `get_by_entity` is declared above it. mypy says
+  `Function ... is not valid as a type` if you move it back.
+- **The changelog write-half only.** `GET /api/changelog` is a different port
+  unit; `contributions/changelog.py` just appends records in the same shape and
+  directory, best-effort — a failed audit line must never cost a reviewer their
+  decision.
 
 ## Deliberate divergences from `server/`
 

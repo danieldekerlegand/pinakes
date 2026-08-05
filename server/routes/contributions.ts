@@ -1,31 +1,88 @@
 /**
- * Contribution API routes (Phase 5; hardened in US-011).
+ * Contribution API routes (Phase 5; hardened in US-011) — **mostly ported away**
+ * (pinakes:60 US-1, docs/UNIFIED-PROJECT-PLAN.md §7).
  *
- * The public contribution surface. Write endpoints (`POST /api/contributions`,
- * `PATCH /api/contributions/:id/review`) are guarded by
- * `createContributionWriteGuard` — API-key auth + per-key rate limiting — so
- * programmatic contributions are safe and supported. Read endpoints
- * (`GET /api/contributions*`) are open. A submitted contribution enters the
- * review queue; it is never written to the live dataset unreviewed.
+ * The public contribution surface is now served by the Python service, over the
+ * same `data/runtime/contributions` queue this file's `ContributionService`
+ * writes. The Express handlers for those routes are retired: they answer **501**
+ * naming the module that replaced them, so a caller still on this origin is told
+ * where the route went instead of being served a second, drifting queue.
  *
- * `GET /api/openapi.json` publishes the OpenAPI spec for this surface.
+ * This file keeps *registering* the paths rather than deleting them, and that is
+ * deliberate — the path set is what `contracts/parity/openapi.json` was
+ * harvested from, so removing a registration would rewrite the very baseline the
+ * port is graded against.
  *
- * Both the `ContributionService` and the write guard are injectable so tests can
- * point them at a temp dir / a deterministic clock (see `contributions.test.ts`).
+ * Two routes are still genuinely served here:
+ *
+ * - **`GET /api/openapi.json`** — its own port unit. It publishes the spec for
+ *   the *whole* Express surface, most of which is still Express's, so it cannot
+ *   move until the surface does.
+ * - **`GET /api/contributions/stats`** — the Python service serves its own
+ *   (`pinakes.routers.contributions`), but this one keeps answering because its
+ *   recorded fixture (`contracts/parity/fixtures/get-contributions-stats.json`)
+ *   is replayed against *this* app: a baseline that stops reproducing its own
+ *   recording is no longer a baseline.
+ *
+ * `ContributionService` stays injectable for the same reason it always was —
+ * `changelog.test.ts` and the authoring routes still construct one against a
+ * temp dir.
  */
 
-import type { Express, RequestHandler } from "express";
-import { ContributionService, type ContributionStatus } from "../services/contribution-service";
-import { createContributionWriteGuard } from "../services/api-auth";
+import type { Express, Request, Response } from "express";
+import { ContributionService } from "../services/contribution-service";
 import { buildOpenApiSpec } from "../services/openapi-spec";
-import { ChangelogStore, type ChangeType } from "../services/changelog";
 
 export interface ContributionRoutesOptions {
   contributions?: ContributionService;
-  /** Guard applied to write endpoints. Defaults to env-configured auth + rate limit. */
-  writeGuard?: RequestHandler;
-  /** Changelog store — an approved add/edit is logged here (US-010). */
-  changelog?: ChangelogStore;
+}
+
+/** The Python module that now serves the ported routes. */
+export const PORTED_TO = "services/api/src/pinakes/routers/contributions.py";
+
+/**
+ * The routes this backend handed over, by method.
+ *
+ * `/api/contributions/stats` is absent because it is still served below, and
+ * `/api/openapi.json` because it was never part of this port unit. The one `get`
+ * entry split out as `getAfterStats` is `/:id`, which would otherwise swallow
+ * `/stats` — Express matches in registration order, and that ordering outlived
+ * the handlers it used to protect.
+ */
+export const PORTED_ROUTES = {
+  get: [
+    "/api/contributions",
+    "/api/contributions/export",
+    "/api/contributions/entity/:entityType/:entityId",
+  ],
+  getAfterStats: ["/api/contributions/:id"],
+  post: ["/api/contributions"],
+  patch: ["/api/contributions/:id/review"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed. The body names the replacement so the
+ * hand-off is discoverable from the response rather than from a changelog.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
 }
 
 export function registerContributionRoutes(
@@ -33,8 +90,6 @@ export function registerContributionRoutes(
   options: ContributionRoutesOptions = {},
 ): void {
   const contributions = options.contributions ?? new ContributionService();
-  const writeGuard = options.writeGuard ?? createContributionWriteGuard();
-  const changelog = options.changelog ?? new ChangelogStore();
 
   /**
    * GET /api/openapi.json - Published OpenAPI spec for the contribution + read API.
@@ -43,100 +98,24 @@ export function registerContributionRoutes(
     res.json(buildOpenApiSpec());
   });
 
-  /**
-   * POST /api/contributions - Submit a new contribution (auth + rate limited).
-   */
-  app.post("/api/contributions", writeGuard, (req, res) => {
-    try {
-      const result = contributions.submit(req.body);
-
-      if (!result.validation.valid) {
-        res.status(400).json({
-          message: "Validation failed",
-          errors: result.validation.errors,
-          warnings: result.validation.warnings,
-        });
-        return;
-      }
-
-      res.status(201).json({
-        contribution: result.contribution,
-        warnings: result.validation.warnings,
-      });
-    } catch (error) {
-      console.error("Error submitting contribution:", error);
-      res.status(500).json({
-        message: "Failed to submit contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions - List contributions with filtering.
-   */
-  app.get("/api/contributions", (req, res) => {
-    try {
-      const status = req.query.status as ContributionStatus | undefined;
-      const entityType = req.query.entityType as string | undefined;
-      const action = req.query.action as string | undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-
-      const result = contributions.list({
-        status,
-        entityType: entityType as never,
-        action: action as never,
-        limit,
-        offset,
-      });
-
-      res.json(result);
-    } catch (error) {
-      console.error("Error listing contributions:", error);
-      res.status(500).json({
-        message: "Failed to list contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/export - Export contributions as CSV.
-   */
-  app.get("/api/contributions/export", (_req, res) => {
-    try {
-      const csv = contributions.exportCsv();
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", "attachment; filename=contributions.csv");
-      res.send(csv);
-    } catch (error) {
-      console.error("Error exporting contributions:", error);
-      res.status(500).json({
-        message: "Failed to export contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/contributions/entity/:entityType/:entityId - Approved contributions for an entity.
-   */
-  app.get("/api/contributions/entity/:entityType/:entityId", (req, res) => {
-    try {
-      const contribs = contributions.getByEntity(req.params.entityType, req.params.entityId);
-      res.json({ contributions: contribs });
-    } catch (error) {
-      console.error("Error getting entity contributions:", error);
-      res.status(500).json({
-        message: "Failed to get entity contributions",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  // ── Ported to the Python service (pinakes:60 US-1) ────────────────────────
+  //
+  // Registered, not deleted: the path set is the parity baseline's own harvest
+  // source. Each answers 501 naming its replacement — see the module docstring.
+  // Declared before `/api/contributions/:id` for the same reason the real
+  // handlers were: Express matches in registration order.
+  for (const route of PORTED_ROUTES.post) {
+    app.post(route, portedToPython(`POST ${route}`));
+  }
+  for (const route of PORTED_ROUTES.get) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
 
   /**
    * GET /api/contributions/stats - Contribution statistics.
+   *
+   * The last read still served here — see the module docstring. Registered
+   * before `/api/contributions/:id` so "stats" is not read as a contribution id.
    */
   app.get("/api/contributions/stats", (_req, res) => {
     try {
@@ -151,74 +130,10 @@ export function registerContributionRoutes(
     }
   });
 
-  /**
-   * GET /api/contributions/:id - Get a single contribution.
-   */
-  app.get("/api/contributions/:id", (req, res) => {
-    try {
-      const contribution = contributions.get(req.params.id);
-      if (!contribution) {
-        res.status(404).json({ message: `Contribution '${req.params.id}' not found` });
-        return;
-      }
-      res.json(contribution);
-    } catch (error) {
-      console.error("Error getting contribution:", error);
-      res.status(500).json({
-        message: "Failed to get contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * PATCH /api/contributions/:id/review - Review (approve/reject) a contribution
-   * (auth + rate limited — moderation is a privileged write).
-   */
-  app.patch("/api/contributions/:id/review", writeGuard, (req, res) => {
-    try {
-      const { decision, note } = req.body;
-      if (!decision || !["approved", "rejected"].includes(decision)) {
-        res.status(400).json({ message: "decision must be 'approved' or 'rejected'" });
-        return;
-      }
-
-      const contribution = contributions.review(req.params.id, decision, note);
-      if (!contribution) {
-        res.status(404).json({ message: `Contribution '${req.params.id}' not found` });
-        return;
-      }
-
-      // Log an approved add/edit into the changelog (US-010). Flags aren't data
-      // edits, so they're not logged. Never fail the review if logging throws.
-      if (decision === "approved" && (contribution.action === "add" || contribution.action === "edit")) {
-        try {
-          const nameField = (contribution.entityData as Record<string, unknown>)?.name;
-          changelog.record({
-            domain: contribution.entityType,
-            changeType: (contribution.action === "add" ? "added" : "modified") as ChangeType,
-            targetId: contribution.entityId,
-            entityName: typeof nameField === "string" ? nameField : undefined,
-            source: "contribution",
-            sourceUrl: contribution.sources?.[0]?.url,
-            contributionId: contribution.id,
-            reviewer: contribution.reviewer,
-            confidence: contribution.confidence,
-            fields: contribution.fieldName ? [contribution.fieldName] : undefined,
-            summary: note,
-          });
-        } catch (error) {
-          console.error("Failed to record changelog entry for approved contribution:", error);
-        }
-      }
-
-      res.json(contribution);
-    } catch (error) {
-      console.error("Error reviewing contribution:", error);
-      res.status(500).json({
-        message: "Failed to review contribution",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  for (const route of PORTED_ROUTES.getAfterStats) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
+  for (const route of PORTED_ROUTES.patch) {
+    app.patch(route, portedToPython(`PATCH ${route}`));
+  }
 }
