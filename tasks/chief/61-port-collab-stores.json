@@ -2,11 +2,17 @@
   "project": "pinakes",
   "branchName": "chief/61-port-collab-stores",
   "baseBranch": "main",
-  "description": "Port the collaborative runtime stores to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): collections, annotations, changelog, stewardship, citations. Each is a JSON-per-record store under data/runtime/ with a thin route group. Runs in parallel with the other port tasklists.",
-  "dependsOn": ["50-engine-inprocess-graph"],
-  "touches": ["port-collab"],
+  "description": "Port the collaborative runtime stores to Python (docs/UNIFIED-PROJECT-PLAN.md \u00a77 port band): collections, annotations, changelog, stewardship, citations. Each is a JSON-per-record store under data/runtime/ with a thin route group. Runs in parallel with the other port tasklists.",
+  "dependsOn": [
+    "50-engine-inprocess-graph"
+  ],
+  "touches": [
+    "port-collab"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -17,7 +23,7 @@
         "Stores read/write data/runtime/{collections,annotations} matching current behavior.",
         "Express handlers removed or 501; coverage tracker updated."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
