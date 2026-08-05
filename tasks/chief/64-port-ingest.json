@@ -34,7 +34,7 @@
         "archaeological-acquisition routes pass the parity tests; acquired rows land in data/runtime/contributions.",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
