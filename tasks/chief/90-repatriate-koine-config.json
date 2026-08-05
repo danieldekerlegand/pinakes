@@ -56,7 +56,7 @@
         "docs/ documents pinakes as a self-describing koine participant: where the participant declaration, namespace/minting-authority, egress policy, and public bridge mappings live, and states pinakes needs only koine + agora to participate.",
         "Gate green: bun run check (tsc) passes, the participant/manifest/bridge validation tests pass under vitest, and .chief/verify.sh exits 0."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ],
