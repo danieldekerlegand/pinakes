@@ -3,10 +3,16 @@
   "branchName": "chief/63-port-entity-search",
   "baseBranch": "main",
   "description": "Port entity resolution, summaries, and search to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): entity-resolver, entity/summary generation, global (federated) search, place-resolver, geo-bbox. Runs in parallel with the other port tasklists.",
-  "dependsOn": ["50-engine-inprocess-graph"],
-  "touches": ["port-entity"],
+  "dependsOn": [
+    "50-engine-inprocess-graph"
+  ],
+  "touches": [
+    "port-entity"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -30,5 +36,6 @@
       "passes": true,
       "notes": ""
     }
-  ]
+  ],
+  "mergedToMain": "588b4b3b"
 }
