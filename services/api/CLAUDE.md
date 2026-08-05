@@ -141,6 +141,48 @@ Express, and adding it here would be new policy rather than a port.
   tests are the statement that the two agree. `tests/test_contribution_auth.py`
   is that file's suite, case for case.
 
+## The collaborative stores — `collab/` + `routers/{collections,annotations}.py` (pinakes:61 US-1)
+
+Curated collections and user notes: two JSON-per-record trees under
+`data/runtime/`, both **soft-owned**. There is no auth in this project, so a
+record belongs to an opaque owner id the client mints and persists per browser,
+and `routers/_owner.py` is the single place that knows how to read one.
+
+- **The owner is read header → query → body, in that order, and all three are
+  load-bearing.** The client sends `x-owner-id` on reads, `?owner=` is what makes
+  a URL work in a second tab, and the **body** field is how a `DELETE` carries an
+  owner at all (`use-collections.ts` posts `{owner}` on every mutation). Reading
+  it out of the body means a dependency that awaits `request.body()` — safe,
+  because Starlette caches the raw body, so a handler declaring its own `Body()`
+  still gets the payload.
+- **The body is read, not declared.** Express validated `req.body ?? {}` by hand,
+  so a junk body is a **400 listing the missing fields**; a declared FastAPI model
+  answers **422**, which is a different contract. Same family as `parse_int_js`
+  in the contribution port — see `_payload()`.
+- **Two ways to be refused, and they are not interchangeable.** Unknown id ⇒
+  **404**; someone else's record ⇒ **403**. And *visibility governs reads while
+  ownership governs writes*: a public collection is readable by anyone and
+  editable by no one but its owner. A collection's share token is a third,
+  orthogonal capability — it grants a read of the owner-free projection
+  regardless of visibility, which is what "share a private collection by URL"
+  means.
+- **Reproduce the Express 500 shape.** Every handler over there wrapped its work
+  in a try/catch answering `{error: "<doing> failed", detail}`. A bare exception
+  here would be a different (and uglier) contract, so each handler has that
+  `except` — including one for the access error, ahead of it.
+- **`from __future__ import annotations` collides with the `annotations`
+  submodule, twice.** In `collab/__init__.py` it binds the name on the *package*,
+  so `from pinakes.collab import annotations` yields a `__future__._Feature` and
+  every route 500s at request time — that file therefore does **not** have the
+  future import, and `test_the_annotations_submodule_is_not_shadowed` guards it.
+  In an importing module it binds the name locally, so the store is imported
+  under an alias (`as notes`); strict mypy catches that one for you
+  ("imported name has type Module, local name has type _Feature").
+- `conftest.py`'s autouse `isolated_data_trees` now redirects five trees. **Add
+  yours the moment a port starts writing one** — every store resolves its
+  directory through `pinakes.paths` per call precisely so that fixture is the
+  only thing between a test and live user data.
+
 ## Deliberate divergences from `server/`
 
 - Unknown `/api/*`, `/mcp*`, `/.well-known/*` URLs return **404 JSON**, not the

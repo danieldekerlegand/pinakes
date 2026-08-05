@@ -4,16 +4,17 @@ Several things live outside the Python package and have to be found on disk: the
 built React client (`dist/public`, produced by `web/vite.config.ts`), the
 generated parity baseline (`contracts/parity/openapi.json`, which drives the 501
 catalog), and the data trees the ported route groups read and write — the
-contribution queue, the changelog, and the lexicon corpus. All are located by
-walking up from this file to the repo root, and all can be pointed elsewhere
-with an environment variable — that is what lets the tests exercise the real
-code paths against a temporary directory, and what would let a packaged
-deployment place them anywhere.
+contribution queue, the changelog, the collaborative stores (collections and
+annotations), and the lexicon corpus. All are located by walking up from this
+file to the repo root, and all can be pointed elsewhere with an environment
+variable — that is what lets the tests exercise the real code paths against a
+temporary directory, and what would let a packaged deployment place them
+anywhere.
 
 The data-tree overrides are load-bearing for the test suite, not a nicety: a
 test that wrote into the live `data/source/lexicons/` would be visible to every
 other reader of the corpus in the same window (`server/CLAUDE.md` records how
-that failure actually landed), so `conftest.py` redirects all three by default.
+that failure actually landed), so `conftest.py` redirects all of them by default.
 """
 
 from __future__ import annotations
@@ -33,6 +34,10 @@ PARITY_SPEC_ENV = "PINAKES_PARITY_SPEC"
 CONTRIBUTIONS_DIR_ENV = "PINAKES_CONTRIBUTIONS_DIR"
 #: Env var pointing at the dataset changelog (JSON-per-record).
 CHANGELOG_DIR_ENV = "PINAKES_CHANGELOG_DIR"
+#: Env var pointing at the curated collections (JSON-per-record).
+COLLECTIONS_DIR_ENV = "PINAKES_COLLECTIONS_DIR"
+#: Env var pointing at the entity annotations (JSON-per-record).
+ANNOTATIONS_DIR_ENV = "PINAKES_ANNOTATIONS_DIR"
 #: Env var pointing at the lexicon corpus (`*.tsv`).
 LEXICONS_DIR_ENV = "PINAKES_LEXICONS_DIR"
 
@@ -50,6 +55,8 @@ CLIENT_DIST_RELPATH = Path("dist") / "public"
 #: implementations see one queue / one log / one corpus during the cutover.
 CONTRIBUTIONS_RELPATH = Path("data") / "runtime" / "contributions"
 CHANGELOG_RELPATH = Path("data") / "runtime" / "changelog"
+COLLECTIONS_RELPATH = Path("data") / "runtime" / "collections"
+ANNOTATIONS_RELPATH = Path("data") / "runtime" / "annotations"
 LEXICONS_RELPATH = Path("data") / "source" / "lexicons"
 
 
@@ -123,6 +130,16 @@ def contributions_dir() -> Path:
 def changelog_dir() -> Path:
     """The dataset changelog — one JSON file per recorded change."""
     return _data_dir(CHANGELOG_DIR_ENV, CHANGELOG_RELPATH)
+
+
+def collections_dir() -> Path:
+    """Curated entity collections — one JSON file per collection."""
+    return _data_dir(COLLECTIONS_DIR_ENV, COLLECTIONS_RELPATH)
+
+
+def annotations_dir() -> Path:
+    """User notes on entities — one JSON file per annotation."""
+    return _data_dir(ANNOTATIONS_DIR_ENV, ANNOTATIONS_RELPATH)
 
 
 def lexicons_dir() -> Path:

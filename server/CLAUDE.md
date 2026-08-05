@@ -621,6 +621,15 @@ canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:`
 
 ## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
 
+**Ported to Python** (pinakes:61 US-1): the surface is served by
+`services/api/src/pinakes/routers/collections.py` over `pinakes.collab.collections`,
+against the same `data/runtime/collections` tree. The Express handlers are retired —
+they answer 501 naming their replacement, and their paths stay registered because
+`contracts/parity/openapi.json` is harvested from this routing table. `services/collections.ts`
+below is kept as the graded spec; its unit tests are what say the two agree on the record
+shape. Nothing in `server/` calls it any more, and `registerCollectionRoutes` no longer
+takes a store.
+
 `/api/collections/*` (US-007) is user-curated groups of entities. **Persistence
 is JSON-per-record on disk** (like `contribution-service.ts`) — one file under the
 **gitignored** `data/collections/` — via a `CollectionStore` class, but every
@@ -645,6 +654,13 @@ as params so CRUD is unit-tested with no fs/clock.
   simpler than the summaries/graph mock pattern when the service owns its own fs.
 
 ## User annotations & notes — `services/annotations.ts` + `routes/annotations.ts`
+
+**Ported to Python** (pinakes:61 US-1), same hand-off as collections above:
+`pinakes.routers.annotations` over `pinakes.collab.annotations`, one
+`data/runtime/annotations` tree, Express handlers retired to 501. Retiring these
+mattered slightly more — the privacy of this surface rests on *every* response
+going through `toView`, and two implementations of that projection is two chances
+to leak an owner id.
 
 `/api/annotations/*` (US-008) is per-user free-text notes on entities — the same
 JSON-per-record + injectable-store + soft-owner pattern as collections (above), so

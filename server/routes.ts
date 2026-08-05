@@ -193,12 +193,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // recorded in the shared changelog. Same `changelog` store as the other pipelines.
   registerLanguagePreservationRoutes(app, { changelog });
 
-  // Collaborative collections routes (/api/collections/*, US-007) — user-curated
-  // groups of entities (stable-id references) with soft ownership + URL sharing.
+  // Collaborative collections routes (/api/collections/*, US-007) — PORTED to the
+  // Python service (pinakes:61 US-1). User-curated groups of entities with soft
+  // ownership and URL sharing now live in `pinakes.routers.collections`; these
+  // paths stay registered and answer 501 naming the module that took them over.
   registerCollectionRoutes(app);
 
-  // User annotations & notes routes (/api/annotations/*, US-008) — free-text notes
-  // on entities (stable-id references), private by default with an option to share.
+  // User annotations & notes routes (/api/annotations/*, US-008) — PORTED to the
+  // Python service (pinakes:61 US-1), same hand-off. One implementation of the
+  // owner-free `toView` projection is the point: it is the privacy boundary.
   registerAnnotationRoutes(app);
 
   // Drawn-geometry authoring routes (/api/map/drawn-geometry, US-001) — polygons
