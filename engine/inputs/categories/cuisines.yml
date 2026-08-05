@@ -1,0 +1,27 @@
+# Regional cuisines — the parent table the dish, technique and ingredient rows hang off.
+#
+# Migrated from `server/services/cuisine-scraper.ts` (pinakes:70 US-1). The
+# dishes are already acquired from Wikidata by fifteen `Dish;CulturalArtifact`
+# categories (breads, sauces, soups, desserts, cheeses, ...); what those need
+# and did not have is the cuisine each belongs to.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: cuisines
+label: Concept;CulturalArtifact
+description: Regional cuisines — the parent table the dish, technique and ingredient rows hang off.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,native_name,region,coordinates,associated_language_ids,time_origin,time_end,description,wikidata_qid,source_url,retrieved_at,confidence,sources"
+    existing: ../data/source/lexicons/cuisines.tsv
+    instruction: "Set wikidata_qid where the cuisine has an unambiguous Wikidata item, else \"null\"."
+dimensions:
+  - temporal
+  - geographic
+links:
+  - type: ORIGINATES_FROM
+    to: place

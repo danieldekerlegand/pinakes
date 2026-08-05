@@ -1,0 +1,25 @@
+# Language-contact events — borrowing, substrate, creolization, and what transferred.
+#
+# Migrated from `server/services/language-contact-scraper.ts` (pinakes:70 US-1).
+# Its Gemini call, its retry-less fetch and its copy of the shared rules block
+# are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: language-contacts
+label: Event
+description: Language-contact events — borrowing, substrate, creolization, and what transferred.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,source_language_id,target_language_id,contact_type,time_period,region,features_transferred,example_features,intensity"
+    existing: ../data/source/lexicons/language-contacts.tsv
+    instruction: "source_language_id and target_language_id are ISO 639-2/3 codes or slugified names matching languages.tsv. contact_type is one of borrowing, substrate, superstrate, adstrate, creolization, pidginization, language-shift, areal-diffusion."
+dimensions:
+  - linguistic
+  - temporal
+  - geographic

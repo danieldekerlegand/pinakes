@@ -1,0 +1,40 @@
+# Regular sound changes, per language family.
+#
+# Migrated from `server/services/sound-change-scraper.ts` (pinakes:70 US-1). Its
+# sixteen per-family briefs are the coverage and came across verbatim as the
+# `prompt.*` passes below; the sixteen copies of the surrounding boilerplate did
+# not.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: sound-changes
+label: Concept
+description: Regular sound changes, per language family.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,family_id,source_language_id,target_language_id,change_rule,environment,date_range,examples,related_changes"
+    existing: ../data/source/lexicons/sound-changes.tsv
+    instruction: "Write change_rule in the standard notation (e.g. \"p > f / #_\"). family_id, source_language_id and target_language_id must match families.tsv and languages.tsv ids."
+    prompt.indo_european: "Generate attested regular sound changes from the Indo-European language family (including Germanic, Romance, Slavic, Celtic, Indo-Iranian, Hellenic, Armenian, Albanian, Baltic, Italic, Tocharian, Anatolian branches)."
+    prompt.sino_tibetan: "Generate attested regular sound changes from the Sino-Tibetan language family (including Sinitic/Chinese, Tibeto-Burman branches)."
+    prompt.afroasiatic: "Generate attested regular sound changes from the Afroasiatic language family (including Semitic, Berber, Cushitic, Chadic, Egyptian, Omotic branches)."
+    prompt.austronesian: "Generate attested regular sound changes from the Austronesian language family (including Malayo-Polynesian, Formosan, Oceanic branches)."
+    prompt.niger_congo: "Generate attested regular sound changes from the Niger-Congo language family (including Bantu, Atlantic, Mande branches)."
+    prompt.uralic: "Generate attested regular sound changes from the Uralic language family (including Finno-Ugric, Samoyedic branches)."
+    prompt.dravidian: "Generate attested regular sound changes from the Dravidian language family (including South, Central, Northern Dravidian branches)."
+    prompt.turkic: "Generate attested regular sound changes from the Turkic language family (including Oghuz, Kipchak, Karluk, Siberian branches)."
+    prompt.austroasiatic: "Generate attested regular sound changes from the Austroasiatic language family (including Mon-Khmer, Munda branches)."
+    prompt.tai_kadai: "Generate attested regular sound changes from the Tai-Kadai language family (including Tai, Kam-Sui, Hlai branches)."
+    prompt.japonic: "Generate attested regular sound changes from the Japonic language family (Japanese, Ryukyuan languages)."
+    prompt.koreanic: Generate attested regular sound changes from the Koreanic language family.
+    prompt.quechuan: Generate attested regular sound changes from the Quechuan language family.
+    prompt.uto_aztecan: Generate attested regular sound changes from the Uto-Aztecan language family.
+    prompt.algonquian: Generate attested regular sound changes from the Algonquian language family.
+    prompt.mayan: Generate attested regular sound changes from the Mayan language family.
+dimensions:
+  - linguistic
+  - temporal

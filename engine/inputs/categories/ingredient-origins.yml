@@ -1,0 +1,24 @@
+# Where a cuisine's staple ingredients came from, and when.
+#
+# Migrated from `server/services/cuisine-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: ingredient-origins
+label: Concept;CulturalArtifact
+description: Where a cuisine's staple ingredients came from, and when.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,cuisine_id,origin_region,coordinates,time_origin,time_end,native_name,description,wikidata_qid,source_url,retrieved_at,confidence,sources"
+    existing: ../data/source/lexicons/ingredient-origins.tsv
+    instruction: "Record the ingredient's region of domestication or first cultivation, not where the cuisine is cooked today — the two differ for most New World crops."
+dimensions:
+  - temporal
+  - geographic

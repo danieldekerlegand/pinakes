@@ -1,0 +1,24 @@
+# Cooking techniques, by cuisine and period.
+#
+# Migrated from `server/services/cuisine-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: cooking-techniques
+label: Concept;CulturalArtifact
+description: Cooking techniques, by cuisine and period.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,cuisine_id,category,coordinates,time_origin,time_end,description,wikidata_qid,source_url,retrieved_at,confidence,sources"
+    existing: ../data/source/lexicons/cooking-techniques.tsv
+    instruction: cuisine_id must name a cuisine that exists in cuisines.tsv.
+dimensions:
+  - temporal
+  - geographic

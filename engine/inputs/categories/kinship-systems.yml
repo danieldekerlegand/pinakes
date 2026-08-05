@@ -1,0 +1,24 @@
+# Kinship terminologies and their descent and residence rules.
+#
+# Migrated from `server/services/ethnographic-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: kinship-systems
+label: Concept
+description: Kinship terminologies and their descent and residence rules.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,system_type,language_ids,terminology,descent_rule,residence_rule,associated_civilizations"
+    id_column: id
+    existing: ../data/source/lexicons/kinship-systems.tsv
+    instruction: "system_type is one of the six standard terminologies (Hawaiian, Eskimo, Iroquois, Crow, Omaha, Sudanese). language_ids are ISO 639-2/3 codes."
+dimensions:
+  - linguistic

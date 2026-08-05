@@ -1,0 +1,37 @@
+# Wiktionary pronunciation sections, via the MediaWiki API.
+#
+# Migrated from `server/services/wiktionary-phonology-scraper.ts` (pinakes:70
+# US-1). PHOIBLE is already acquired as coded inventory data by `phoible`;
+# Wiktionary is the long tail it does not reach. Change `query.gcmtitle` for
+# another language's pronunciation category.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/rest.py` for what the params mean.
+
+id: wiktionary-phonology
+label: Phoneme
+description: Wiktionary pronunciation sections, via the MediaWiki API.
+source:
+  type: http
+  query: https://en.wiktionary.org/w/api.php
+  params:
+    adapter: rest-api
+    source: wiktionary
+    license: CC-BY-SA-3.0
+    confidence: 0.7
+    query.action: query
+    query.prop: extracts
+    query.explaintext: 1
+    query.format: json
+    query.generator: categorymembers
+    query.gcmtitle: "Category:English terms with IPA pronunciation"
+    query.gcmlimit: 50
+    records: query.pages
+    next_path: continue.gcmcontinue
+    next_param: gcmcontinue
+    id_field: pageid
+    url_template: "https://en.wiktionary.org/?curid={id}"
+    field.name: title
+    field.description: extract
+dimensions:
+  - linguistic

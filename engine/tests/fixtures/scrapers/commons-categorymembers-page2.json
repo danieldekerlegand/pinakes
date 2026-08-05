@@ -1,0 +1,11 @@
+{
+  "query": {
+    "categorymembers": [
+      {
+        "pageid": 34567,
+        "ns": 6,
+        "title": "File:Antikythera mechanism.jpg"
+      }
+    ]
+  }
+}

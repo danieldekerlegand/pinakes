@@ -1,0 +1,27 @@
+# Traded commodities — where they came from and what they were worth.
+#
+# Migrated from `server/services/trade-goods-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: trade-goods
+label: CulturalArtifact
+description: Traded commodities — where they came from and what they were worth.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,category,origin_region,origin_coordinates,trade_routes,time_period,economic_significance,associated_languages"
+    existing: ../data/source/lexicons/trade-goods.tsv
+    instruction: trade_routes should name entries in trade-routes.tsv where one exists.
+dimensions:
+  - temporal
+  - geographic
+links:
+  - type: ORIGINATES_FROM
+    to: place

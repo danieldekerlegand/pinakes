@@ -1,0 +1,24 @@
+# Ethnographic social organization — stratification, subsistence, marriage and descent.
+#
+# Migrated from `server/services/ethnographic-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: social-organization
+label: Concept
+description: Ethnographic social organization — stratification, subsistence, marriage and descent.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,culture_or_language,region,political_structure,stratification_type,subsistence_pattern,marriage_system,descent_system,residence_pattern,kinship_terminology,property_inheritance,gender_roles,age_grades,clan_or_moiety_system,time_origin,time_end,notes"
+    existing: ../data/source/lexicons/social-organization.tsv
+    instruction: "Draw on the ethnographic record (HRAF/eHRAF, the Ethnographic Atlas) rather than on modern nation-states."
+dimensions:
+  - temporal
+  - geographic

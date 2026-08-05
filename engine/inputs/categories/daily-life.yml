@@ -1,0 +1,23 @@
+# Everyday practice within a culture profile, by class, gender, age and season.
+#
+# Migrated from `server/services/culture-profile-enrichment.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: daily-life
+label: Concept
+description: Everyday practice within a culture profile, by class, gender, age and season.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,culture_profile_id,category,title,description,social_class,gender_context,age_group,season,time_period_start,time_period_end,sources"
+    existing: ../data/source/lexicons/daily-life.tsv
+    instruction: "Cover the whole society, not only its elite: a profile whose entries are all palace life has told you nothing about the culture."
+dimensions:
+  - temporal

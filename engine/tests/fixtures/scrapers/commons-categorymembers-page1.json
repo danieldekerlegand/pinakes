@@ -1,0 +1,20 @@
+{
+  "continue": {
+    "cmcontinue": "file|4d59434e414549|21",
+    "continue": "-||"
+  },
+  "query": {
+    "categorymembers": [
+      {
+        "pageid": 12345,
+        "ns": 6,
+        "title": "File:Rosetta Stone.jpg"
+      },
+      {
+        "pageid": 23456,
+        "ns": 6,
+        "title": "File:Ishtar Gate detail.jpg"
+      }
+    ]
+  }
+}

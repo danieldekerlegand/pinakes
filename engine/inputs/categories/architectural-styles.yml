@@ -1,0 +1,27 @@
+# Architectural styles — periods, regions, and the features that identify them.
+#
+# Migrated from `server/services/architectural-styles-scraper.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: architectural-styles
+label: Concept;CulturalArtifact
+description: Architectural styles — periods, regions, and the features that identify them.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,style_period,origin_date,end_date,origin_coordinates,region,description,associated_civilizations,associated_languages,key_features,notable_examples,building_types,wikidata_qid,source_url,retrieved_at,confidence,sources"
+    existing: ../data/source/lexicons/architectural-styles.tsv
+    instruction: "Cover styles as periods of practice, not individual buildings: the castles, cathedrals, mosques, synagogues, palaces, bridges and aqueducts themselves are already acquired from Wikidata by their own categories. Name real surviving examples in notable_examples."
+dimensions:
+  - temporal
+  - geographic
+links:
+  - type: ORIGINATES_FROM
+    to: place

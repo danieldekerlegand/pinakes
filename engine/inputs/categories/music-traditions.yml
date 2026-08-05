@@ -1,0 +1,27 @@
+# Musical traditions — scales, rhythms, instruments and the languages they are sung in.
+#
+# Migrated from `server/services/music-scraper.ts` (pinakes:70 US-1). The
+# instruments themselves are already acquired from Wikidata by `musical-
+# instruments` and `percussion-instruments`; the traditions that play them had
+# no structured source.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: music-traditions
+label: Concept;CulturalArtifact
+description: Musical traditions — scales, rhythms, instruments and the languages they are sung in.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,native_name,region,coordinates,time_origin,time_end,associated_language_ids,instruments,scales,rhythmic_patterns,related_traditions,description,sources"
+    existing: ../data/source/lexicons/music-traditions.tsv
+    instruction: "instruments should name entries in musical-instruments.tsv where one exists. Give scales in their own tradition's terms (maqam, raga, pelog) rather than mapped onto Western modes."
+dimensions:
+  - temporal
+  - geographic
+links:
+  - type: ORIGINATES_FROM
+    to: place

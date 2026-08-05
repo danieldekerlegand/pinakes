@@ -1,5 +1,27 @@
 # server/ — Express API + TSV loaders
 
+## The scraper stack is GONE (pinakes:70 US-1)
+
+All 27 `services/*-scraper.ts` and `services/*-enrichment.ts` files are deleted, along with
+their suites and the 31 route handlers that drove them. Do not add another one: acquisition
+is `engine/src/pinakes_engine/acquire/` now, and every retired domain's replacement is named
+per-file in `acquire/migration.py` (gated by `engine/tests/test_scraper_migration.py`, which
+also fails if a `*-scraper.ts` reappears here).
+
+- **Their routes stay registered, answering 501 `retired`** via `retiredToEngine` in
+  `routes.ts` — the sibling of `portedToPython`, and the difference is load-bearing. A
+  *ported* route is served by another process at the same path; these are *retired*, because
+  there is no HTTP surface on the other side at all. The body therefore names the category
+  specs to run (`pinakes_engine fetch inputs/categories/<id>.yml`) instead of a replacement
+  endpoint. The paths stay because the parity baseline is harvested from this routing table.
+- **`web/src/pages/scraper-dashboard.tsx` still renders its Start-Scraping cards**, and those
+  buttons now get a 501. That is a known, deliberate gap: the dashboard is a client concern
+  and rewiring it to drive engine categories is not this story. Same shape as the `jobId`
+  gap pinakes:64 left behind — name it, don't paper over it.
+- Two lookalikes deliberately survive: `services/mythology-scraper-tsv.ts` and
+  `services/language-family-scraper-tsv.ts`. They end `-scraper-tsv.ts`, write TSVs from
+  already-local data, and were never part of the parallel fetch stack.
+
 ## The corpus is at `data/source/lexicons/` (moved in pinakes:20 US-3)
 
 `lexicons/` is no longer a top-level directory. Every reader here resolves

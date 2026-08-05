@@ -1,0 +1,27 @@
+# Grambank feature values, downloaded from the CLDF release.
+#
+# Migrated from `server/services/grammar-wals-grambank-scraper.ts` (pinakes:70
+# US-1). Grambank had no engine category at all — this is the half that was
+# genuinely missing.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/remote.py` for what the params mean.
+
+id: grambank-cldf
+label: Typology
+description: Grambank feature values, downloaded from the CLDF release.
+source:
+  type: http
+  query: https://raw.githubusercontent.com/grambank/grambank/master/cldf/values.csv
+  params:
+    adapter: remote-tabular
+    format: csv
+    source: grambank
+    license: CC-BY-4.0
+    confidence: 0.8
+    id_column: ID
+    url_template: "https://grambank.clld.org/valuesets/{id}"
+    field.language_code: Language_ID
+    field.name: Value
+dimensions:
+  - linguistic

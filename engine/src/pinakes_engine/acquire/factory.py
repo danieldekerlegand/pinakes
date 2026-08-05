@@ -17,6 +17,7 @@ from collections.abc import Callable
 
 from pinakes_engine.acquire.adapters import SourceAdapter
 from pinakes_engine.acquire.categories import CategorySpec
+from pinakes_engine.acquire.generate import LlmGenerationAdapter
 from pinakes_engine.acquire.getty import GettyDumpAdapter
 from pinakes_engine.acquire.html import HtmlScrapeAdapter
 from pinakes_engine.acquire.http import HttpClient
@@ -25,6 +26,8 @@ from pinakes_engine.acquire.kaikki import KaikkiAdapter
 from pinakes_engine.acquire.petscan import PetScanAdapter
 from pinakes_engine.acquire.pinakes import PinakesExportAdapter
 from pinakes_engine.acquire.pleiades import PleiadesDumpAdapter
+from pinakes_engine.acquire.remote import RemoteTabularAdapter
+from pinakes_engine.acquire.rest import RestApiAdapter
 from pinakes_engine.acquire.tabular import TabularDumpAdapter
 from pinakes_engine.acquire.wikidata import WikidataSparqlAdapter
 from pinakes_engine.acquire.wikidata_dump_adapter import WikidataDumpAdapter
@@ -42,6 +45,9 @@ _BUILDERS: dict[str, Callable[[HttpClient | None], SourceAdapter]] = {
     PetScanAdapter.name: lambda http: PetScanAdapter(_require(http)),
     WikitextAdapter.name: lambda http: WikitextAdapter(_require(http)),
     HtmlScrapeAdapter.name: lambda http: HtmlScrapeAdapter(_require(http)),
+    RestApiAdapter.name: lambda http: RestApiAdapter(_require(http)),
+    RemoteTabularAdapter.name: lambda http: RemoteTabularAdapter(_require(http)),
+    LlmGenerationAdapter.name: lambda http: LlmGenerationAdapter(_require(http)),
     GettyDumpAdapter.name: lambda http: GettyDumpAdapter(),
     PleiadesDumpAdapter.name: lambda http: PleiadesDumpAdapter(),
     TabularDumpAdapter.name: lambda http: TabularDumpAdapter(),
@@ -57,6 +63,9 @@ _NEEDS_HTTP = frozenset(
         PetScanAdapter.name,
         WikitextAdapter.name,
         HtmlScrapeAdapter.name,
+        RestApiAdapter.name,
+        RemoteTabularAdapter.name,
+        LlmGenerationAdapter.name,
     }
 )
 
@@ -68,6 +77,9 @@ for _cls in (
     PetScanAdapter,
     WikitextAdapter,
     HtmlScrapeAdapter,
+    RestApiAdapter,
+    RemoteTabularAdapter,
+    LlmGenerationAdapter,
     GettyDumpAdapter,
     PleiadesDumpAdapter,
     TabularDumpAdapter,

@@ -1,0 +1,36 @@
+# Wikimedia Commons category members, with licence and author metadata.
+#
+# Migrated from `server/services/wikimedia-commons-scraper.ts` (pinakes:70
+# US-1). MediaWiki hands back an opaque continuation **token**, not a next-page
+# URL, which is what `next_param` is for. Point `query.cmtitle` at any Commons
+# category.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/rest.py` for what the params mean.
+
+id: commons-images
+label: CulturalArtifact
+description: Wikimedia Commons category members, with licence and author metadata.
+source:
+  type: http
+  query: https://commons.wikimedia.org/w/api.php
+  params:
+    adapter: rest-api
+    source: wikimedia-commons
+    license: CC-BY-SA-4.0
+    confidence: 0.9
+    query.action: query
+    query.list: categorymembers
+    query.cmtitle: "Category:Archaeological artefacts"
+    query.cmtype: file
+    query.cmnamespace: 6
+    query.cmlimit: 50
+    query.format: json
+    records: query.categorymembers
+    next_path: continue.cmcontinue
+    next_param: cmcontinue
+    id_field: pageid
+    url_template: "https://commons.wikimedia.org/?curid={id}"
+    field.name: title
+dimensions:
+  - geographic

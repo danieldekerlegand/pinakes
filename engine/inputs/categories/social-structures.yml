@@ -1,0 +1,23 @@
+# Social structures within a culture profile — roles, inheritance, decision-making.
+#
+# Migrated from `server/services/culture-profile-enrichment.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: social-structures
+label: Concept
+description: Social structures within a culture profile — roles, inheritance, decision-making.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,culture_profile_id,structure_type,name,description,key_roles,inheritance_pattern,decision_making,related_kinship_system_id,time_period_start,time_period_end,sources"
+    existing: ../data/source/lexicons/social-structures.tsv
+    instruction: "related_kinship_system_id must name a row in kinship-systems.tsv, or be \"null\"."
+dimensions:
+  - temporal

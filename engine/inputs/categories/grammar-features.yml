@@ -1,0 +1,24 @@
+# Per-language grammatical profile — word order, morphology, case, agreement.
+#
+# Migrated from `server/services/grammar-enrichment.ts` (pinakes:70 US-1). It
+# fills the gaps WALS and Grambank leave: those two are acquired as real
+# typological data by `wals-cldf` and `grambank-cldf`, and a generated profile
+# must never overwrite a coded one.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: grammar-features
+label: Typology
+description: Per-language grammatical profile — word order, morphology, case, agreement.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,language_id,word_order,morphological_type,case_system,gender_system,number_system,tense_aspect_mood,agreement_system,negation_strategy,question_formation,relative_clause_strategy,noun_class_count,verb_valency_changes,evidentiality,ergativity"
+    id_column: language_id
+    existing: ../data/source/lexicons/grammar-features.tsv
+    instruction: "Use the standard typological vocabulary (SVO/SOV/VSO/…, agglutinative/fusional/isolating/polysynthetic, nominative-accusative/ergative-absolutive). language_id is an ISO 639-2/3 code matching languages.tsv."
+dimensions:
+  - linguistic

@@ -1,0 +1,23 @@
+# Transitions between art traditions — what changed, when, and what drove it.
+#
+# Migrated from `server/services/art-tradition-scraper.ts` (pinakes:70 US-1).
+# The traditions themselves are already acquired from Wikidata by `art-
+# movements` and its sibling categories; only the transitions between them had
+# no structured source.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: art-style-evolutions
+label: Event
+description: Transitions between art traditions — what changed, when, and what drove it.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,from_tradition_id,to_tradition_id,transition_type,transition_date,description,key_changes,catalysts"
+    existing: ../data/source/lexicons/art-style-evolutions.tsv
+    instruction: from_tradition_id and to_tradition_id must both name art traditions that exist in art-traditions.tsv.
+dimensions:
+  - temporal

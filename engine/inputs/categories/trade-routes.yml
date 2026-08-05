@@ -1,0 +1,24 @@
+# Historical trade routes, as waypoint geometry with their goods and controlling powers.
+#
+# Migrated from `server/services/trade-goods-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: trade-routes
+label: Concept
+description: Historical trade routes, as waypoint geometry with their goods and controlling powers.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,route_type,waypoints,start_date,end_date,traded_goods,key_cities,controlling_powers,associated_languages,description,economic_impact,wikidata_qid,source_url,retrieved_at,confidence,sources"
+    existing: ../data/source/lexicons/trade-routes.tsv
+    instruction: "waypoints is a GeoJSON LineString object with [lng, lat] positions — note the order, which is the opposite of the coordinate fields elsewhere."
+dimensions:
+  - temporal
+  - geographic
