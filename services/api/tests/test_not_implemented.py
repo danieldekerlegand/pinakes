@@ -33,7 +33,15 @@ SAMPLE_REQUESTS = [
     # `test_capability_bus.py`. Then `/api/graph/explain` +
     # `/api/ancestry/haplogroups` went the same way in US-2 —
     # `test_connection_narrative.py` and `test_ancestry.py`.
-    ("GET", "/api/cross-domain/timeline", "/api/cross-domain/timeline"),
+    # Was `/api/cross-domain/timeline` until pinakes:80 US-1's sixth slice; its
+    # coverage is `test_cross_domain_routes.py`. Picked from the *back* of the
+    # remaining port order — confirm/verification is the last third of a group
+    # pinakes:61 split deliberately, and lands near the end of the cutover.
+    (
+        "GET",
+        "/api/contributions/{id}/verification",
+        "/api/contributions/nonexistent/verification",
+    ),
     # Was `/api/empires-timeline` until pinakes:80 US-1's third slice ported the
     # geospatial corpus; its coverage is `test_map_routes.py`. Picked from the
     # *back* of the remaining port order, which is what stops this chore

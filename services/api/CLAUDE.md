@@ -1012,3 +1012,69 @@ hole two earlier bands documented rather than fixed.
   any more**. It was replaced by `test_no_outstanding_route_still_carries_a
   _recorded_fixture`, which says so as an invariant — every remaining port is
   graded by its own test file, not by a replay.
+
+## The cutover's sixth slice — `analytics/cross_domain{,_timeline}.py` + `routers/cross_domain.py` (pinakes:80 US-1)
+
+The seven `/api/cross-domain/*` reads that were not already the correlation
+group's: `search`, `connections/{type}/{id}`, `by-language/{languageId}`,
+`by-time/{year}`, `summary`, `entities` and `timeline`. Coverage 252/306 →
+**259/306**. This is the first slice with no `tsv-storage.ts` loader behind it —
+every remaining unit is a port of a `server/services/*.ts` — and the two services
+here are joins over loaders that already existed, so all of the work is in the
+shapes.
+
+- **This is the THIRD projection of the same six TSVs, and it has to stay the
+  third.** `analytics/correlation.load_domain` serves the correlation scorer and
+  `authoring/candidates.load_candidates` serves relationship suggestions; both
+  already say in their docstring that they are not this one. The differences are
+  small and each changes an answer: the correlation projection calls the music
+  domain `music` and omits `archaeological-site`; the candidate pool drops
+  `nativeName`/`description` and appends the whole language corpus. Collapsing
+  any two would silently re-rank a consumer.
+- **Which keys a projection OMITS is the contract.** `JSON.stringify` drops an
+  `undefined`, so a haplogroup has no `nativeName` and no `coordinates` key at
+  all, and a civilization or site has no `region`, `coordinates` or
+  `description`. `search` reads four of those through optional chaining, so an
+  absent key is a score of zero rather than a crash — which is why
+  `?q=levant` finds the cuisine, the music tradition and the religion but not
+  the civilization sitting in the same place.
+- **Only three of the six domains are filtered at all.** `?year=`/`?region=`
+  reach cuisines, music traditions and religions; haplogroups, civilizations and
+  archaeological sites come back whole. That is what makes
+  `/api/cross-domain/by-time/soon` a **200 with 782 entities** rather than an
+  empty answer — the `NaN` empties the dated domains and the other three are
+  untouched.
+- **`Math.min(x, NaN)` is `NaN` and `min(x, nan)` is `x`, and on the live corpus
+  that difference is most of the empires.** `empires-timeline.tsv` holds two
+  concatenated tables: the second one's header row is read as data and every one
+  of its 68 rows puts a *phase* word where the year belongs. `parseInt` yields
+  `NaN`, the span's min/max propagate it, and `Number.isFinite` then drops the
+  empire from the timeline — 9 of them survive. The Python loader spells that
+  `NaN` as `None`, so `cross_domain_timeline._js_min/_js_max` map it back;
+  writing the obvious `min()` would have put empires on the timeline that
+  Express does not show. The fix belongs in the corpus, not here.
+- **The timeline's two bounds are asymmetric**: `yearStart` is tested against
+  the event's *end* (falling back to its start) and `yearEnd` against its
+  *start*, so a window keeps what overlaps it rather than what it contains. And
+  an empty result reports the hard-coded `{min: -3000, max: 2024}` — the axis
+  the client draws when it has nothing to draw on.
+- **Append order survives the sort.** Over there the eight timeline loads are a
+  `Promise.all` of eight `async` functions that each `await` exactly once at the
+  top, so they resume in scheduling order and push their whole batch; the final
+  sort is on `startYear` alone and is stable. Events sharing a year therefore
+  come back grouped by domain in the loaders' declaration order, which
+  `TIMELINE_DOMAINS` names.
+- **`connections` answers 200-with-an-empty-list for an unknown entity**, never
+  a 404: the service cannot tell "no such entity" from "nothing connects to it".
+  Its `?limit=` is `slice`d, so `?limit=abc` is empty and `?limit=-4` drops the
+  last four rather than 422ing.
+- **The whole slice was proved byte-identical to Express over 107 live
+  requests** with the throwaway-script method the earlier slices describe —
+  every filter combination, both junk-limit forms, the `NaN` year path
+  parameter, all eight timeline domains and every bound. The **only** two
+  differences were the repeated-query-parameter divergence this service has
+  accepted since slice 4: `?types=a&types=b` reaches Express as an array whose
+  `.split` throws (a 500) and Starlette hands back one value.
+- **`test_not_implemented.py`'s `/api/cross-domain/timeline` stand-in went red
+  on landing** and names `GET /api/contributions/{id}/verification` now — from
+  the back of the remaining order again.
