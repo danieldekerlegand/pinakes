@@ -568,10 +568,11 @@ is a *job* rather than a request, and that is what everything below is about.
 - `ingest/http.py` gained `OPEN_CONTEXT` and `TDAR`, both back on the one-second floor
   `WIKIMEDIA` keeps — they are small unkeyed scholarly publishers, and an acquisition asks
   each of them for exactly one page.
+
 ## The capability bus, the agent-card and MCP — `kcb/` + `acquire/` + `routers/{capability_bus,a2a,mcp}.py` (pinakes:65 US-1)
 
 How Pinakes publishes *itself* on the Koine control plane, plus `/api/graph/resolve`,
-the last non-engine-backed route in the graph group. Coverage 59/306 → 68/306. Full
+the last non-engine-backed route in the graph group. Coverage 64/306 → 73/306. Full
 contract in `docs/capability-bus.md`; what is worth knowing before touching it:
 
 - **The manifest is read, never restated.** `kcb/manifest.py` calls
@@ -643,7 +644,7 @@ contract in `docs/capability-bus.md`; what is worth knowing before touching it:
 The eleven routes that finish the graph-adjacent band: the three in-app authoring
 surfaces (a timeline entry, a drawn geometry, a typed edge), the suggestions that
 propose the third, DNA→culture ancestry, and `POST /api/graph/explain`. Coverage
-68/306 → **79/306**, and the whole `graph` port unit is now ported.
+73/306 → **84/306**, and the whole `graph` port unit is now ported.
 
 - **`authoring/_js.py` is the load-bearing file, not `_`-prefixed by accident.** Two
   recorded fixtures grade this band and both record a **400 body**, so an error string
