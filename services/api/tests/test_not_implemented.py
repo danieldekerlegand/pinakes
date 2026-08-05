@@ -17,7 +17,11 @@ SAMPLE_REQUESTS = [
     ("GET", "/api/languages", "/api/languages"),
     ("GET", "/api/languages/{id}", "/api/languages/lang-42"),
     ("POST", "/api/scraping-jobs", "/api/scraping-jobs"),
-    ("GET", "/api/summaries/{domain}", "/api/summaries/religions"),
+    # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it — a sample
+    # here has to name a route that is still *un*ported, or the 501 assertion
+    # goes red the day the group lands. That group's own coverage is
+    # `test_summary_routes.py`.
+    ("GET", "/api/religions", "/api/religions"),
     ("GET", "/api/graph/resolve", "/api/graph/resolve"),
     ("GET", "/.well-known/kcb-manifest.json", "/.well-known/kcb-manifest.json"),
 ]

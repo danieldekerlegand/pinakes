@@ -68,7 +68,7 @@ vi.mock("../storage", () => ({
   },
 }));
 
-import { registerSummaryRoutes } from "./summaries";
+import { PORTED_ERROR, PORTED_TO, registerSummaryRoutes } from "./summaries";
 import { summaryFields } from "../services/entity-summary";
 
 let app: Express;
@@ -153,32 +153,28 @@ describe("GET /api/summaries/:domain", () => {
   });
 });
 
-describe("GET /api/summaries/:domain/:id (detail-on-demand)", () => {
-  it("returns the FULL record — a strict superset of the summary shape", async () => {
+/**
+ * The detail route was ported to the Python service (pinakes:63 US-1) and its
+ * behavioural coverage moved with it, to
+ * `services/api/tests/test_summary_routes.py` — including the subset property
+ * this file used to assert here, which is now checked against the *live* corpus
+ * rather than a fixture. What is left is the hand-off: the path is still
+ * registered (the parity baseline was harvested from that path set) and answers
+ * 501 naming its replacement.
+ */
+describe("GET /api/summaries/:domain/:id (retired — ported to Python)", () => {
+  it("answers 501 naming the module that serves it now", async () => {
     const { status, body } = await get("/api/summaries/religions/rel-1");
-    expect(status).toBe(200);
-    // detail carries the heavy fields the summary omits
-    expect(body).toMatchObject({
-      id: "rel-1",
-      name: "Roman polytheism",
-      description: "The polytheistic religion of ancient Rome.",
-      deityPantheon: ["Jupiter", "Juno"],
-      sacredTexts: ["Sibylline Books"],
-    });
-    // and every summary field is present in the detail (subset property)
-    for (const field of summaryFields("religions")) {
-      expect(body).toHaveProperty(field);
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+  });
+
+  it("answers the same way for an unknown id or domain — it never reads storage", async () => {
+    for (const path of ["/api/summaries/religions/does-not-exist", "/api/summaries/dragons/rel-1"]) {
+      const { status, body } = await get(path);
+      expect(status).toBe(501);
+      expect(body.servedBy).toBe(PORTED_TO);
     }
-  });
-
-  it("404s an unknown id", async () => {
-    const { status, body } = await get("/api/summaries/religions/does-not-exist");
-    expect(status).toBe(404);
-    expect(body.error).toMatch(/Not found/);
-  });
-
-  it("404s an unknown domain", async () => {
-    const { status } = await get("/api/summaries/dragons/rel-1");
-    expect(status).toBe(404);
   });
 });

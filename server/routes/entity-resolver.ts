@@ -1,6 +1,22 @@
 /**
  * Canonical per-entity URL resolver routes (US-009).
  *
+ * **Ported to Python** (pinakes:63 US-1): both routes are served by
+ * `services/api/src/pinakes/routers/entity_resolver.py` over
+ * `pinakes.lexicons.{entity,storage}`, against the same corpus. Neither is
+ * retired here, and that is not an omission — **both** carry a recorded fixture
+ * (`contracts/parity/fixtures/get-entit{ies,y}.json`) that
+ * `contracts/parity/parity.test.ts` replays against *this* app, and a baseline
+ * that stops reproducing its own recording is no longer a baseline (the same
+ * rule that keeps `GET /api/citations` and `GET /api/graph/status` alive here).
+ * Serving them twice is safe in a way a second writer would not be: both sides
+ * only read `data/source/lexicons/`, and
+ * `services/api/tests/test_entity_routes.py` pins them to the same rows.
+ *
+ * `services/entity-resolver.ts` is likewise **kept as the graded spec** —
+ * `entity-resolver.test.ts` is the statement that the two registries agree on
+ * the domain list, the `cs:` id format and the citation-domain mapping.
+ *
  * `GET /api/entity/:domain/:id` resolves a permanent entity id to its canonical
  * descriptor (name, canonical URL, stable `cs:` id, whether it is citable, a richer
  * view path when one exists). The client landing page at `/entity/:domain/:id`

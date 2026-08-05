@@ -85,7 +85,6 @@ import { registerAncestryRoutes } from "./routes/ancestry";
 import { registerLanguagePreservationRoutes } from "./routes/language-preservation";
 import { registerLivingDatasetRoutes } from "./routes/living-dataset";
 import { ChangelogStore } from "./services/changelog";
-import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { grammarWalsGrambankScraper } from "./services/grammar-wals-grambank-scraper";
@@ -99,12 +98,6 @@ import {
 } from "./services/export-pipeline";
 import { battleScraper } from "./services/battle-scraper";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
-import {
-  parseNaturalLanguageQuery,
-  spatialSearch,
-  whatWasHere,
-  getQuerySuggestions,
-} from "./services/natural-language-search";
 import { DataValidationService } from "./services/data-validation";
 import { getFreshnessSummary } from "./services/data-freshness";
 import {
@@ -133,6 +126,21 @@ const CORRELATIONS_PORTED_TO = "services/api/src/pinakes/routers/correlations.py
  * (pinakes:62 US-2).
  */
 const DATA_QUALITY_PORTED_TO = "services/api/src/pinakes/routers/data_quality.py";
+
+/**
+ * The Python modules serving the search + place-resolution routes this file
+ * handed over (pinakes:63 US-2).
+ *
+ * **`GET /api/search` itself is NOT retired** — `contracts/parity/parity.test.ts`
+ * replays its recorded `get-search` fixture against *this* app, so the handler
+ * has to keep answering. Same standing as `GET /api/citations` and the two
+ * entity-resolver routes; it is safe for the same reason (both sides only read
+ * `data/source/lexicons/`, and `services/api/tests/test_global_search.py` pins
+ * the two to the same rows). The three fixture-free `/api/search/*` routes and
+ * all three `/api/map/places/*` routes hand over cleanly.
+ */
+const SEARCH_PORTED_TO = "services/api/src/pinakes/routers/search.py";
+const PLACES_PORTED_TO = "services/api/src/pinakes/routers/places.py";
 
 /**
  * A handler for a route this backend no longer owns — the inline twin of the
@@ -1940,72 +1948,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
-   * GET /api/map/places/search?q=query&limit=15 - Search places (local + Nominatim)
+   * GET /api/map/places/{search,autocomplete,resolve} — retired to the Python
+   * service (pinakes:63 US-2). None of the three carries a recorded fixture, so
+   * unlike `GET /api/search` they hand over cleanly. `services/place-resolver.ts`
+   * is **kept** as the graded spec — `place-resolver.test.ts` is what says the
+   * two agree on the known-region table, the fuzzy tiers and the two
+   * bounding-box orderings.
    */
-  app.get("/api/map/places/search", async (req, res) => {
-    try {
-      const q = req.query.q as string | undefined;
-      if (!q || !q.trim()) {
-        res.json({ results: [], query: "" });
-        return;
-      }
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 15;
-      const result = await searchPlacesWithNominatim(q, limit);
-      res.json(result);
-    } catch (error) {
-      console.error("Error in place search:", error);
-      res.status(500).json({
-        message: "Failed to search places",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/map/places/autocomplete?q=query&limit=8 - Fast autocomplete (local only)
-   */
-  app.get("/api/map/places/autocomplete", async (req, res) => {
-    try {
-      const q = req.query.q as string | undefined;
-      if (!q || q.trim().length < 2) {
-        res.json([]);
-        return;
-      }
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
-      const results = await autocompletePlaces(q, limit);
-      res.json(results);
-    } catch (error) {
-      console.error("Error in place autocomplete:", error);
-      res.status(500).json({
-        message: "Failed to autocomplete places",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/map/places/resolve?q=query&limit=10 - Resolve a place to canonical
-   * records (name, lat/lng, geonames_id). Prefers GeoNames for standardized
-   * naming and falls back to Nominatim; results carry provenance.
-   */
-  app.get("/api/map/places/resolve", async (req, res) => {
-    try {
-      const q = req.query.q as string | undefined;
-      if (!q || !q.trim()) {
-        res.json({ results: [], query: "", source: null });
-        return;
-      }
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-      const result = await resolvePlace(q, limit);
-      res.json(result);
-    } catch (error) {
-      console.error("Error resolving place:", error);
-      res.status(500).json({
-        message: "Failed to resolve place",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.get(
+    "/api/map/places/search",
+    portedToPython("GET /api/map/places/search", PLACES_PORTED_TO),
+  );
+  app.get(
+    "/api/map/places/autocomplete",
+    portedToPython("GET /api/map/places/autocomplete", PLACES_PORTED_TO),
+  );
+  app.get(
+    "/api/map/places/resolve",
+    portedToPython("GET /api/map/places/resolve", PLACES_PORTED_TO),
+  );
 
   // Get empires timeline
   app.get("/api/map/empires-timeline", async (req, res) => {
@@ -4886,26 +4847,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   /**
-   * GET /api/search/natural?q=query - Natural language search with temporal-spatial parsing
+   * GET /api/search/natural — retired to the Python service (pinakes:63 US-2).
+   * `services/natural-language-search.ts` is **kept** as the graded spec: the
+   * location table, the entity-type keyword order and the two different
+   * "read this bound as a year" rules are what the two backends have to agree
+   * on, and its unit tests are that statement.
    */
-  app.get("/api/search/natural", async (req, res) => {
-    try {
-      const q = req.query.q as string | undefined;
-      if (!q || !q.trim()) {
-        res.json({ results: [], query: { raw: "" }, totalCount: 0 });
-        return;
-      }
-      const parsed = parseNaturalLanguageQuery(q);
-      const result = await spatialSearch(parsed);
-      res.json(result);
-    } catch (error) {
-      console.error("Error in natural language search:", error);
-      res.status(500).json({
-        message: "Failed to perform natural language search",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.get(
+    "/api/search/natural",
+    portedToPython("GET /api/search/natural", SEARCH_PORTED_TO),
+  );
 
   /**
    * GET /api/literary-traditions - Get all literary traditions with optional filtering
@@ -5127,28 +5078,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
-   * GET /api/search/spatial?lat=X&lng=Y&year=Z&radius=R - Spatial search by coordinates
+   * GET /api/search/spatial — retired to the Python service (pinakes:63 US-2).
    */
-  app.get("/api/search/spatial", async (req, res) => {
-    try {
-      const lat = parseFloat(req.query.lat as string);
-      const lng = parseFloat(req.query.lng as string);
-      if (isNaN(lat) || isNaN(lng)) {
-        res.status(400).json({ message: "lat and lng are required numeric parameters" });
-        return;
-      }
-      const year = req.query.year ? parseInt(req.query.year as string, 10) : null;
-      const radius = req.query.radius ? parseInt(req.query.radius as string, 10) : 200;
-      const result = await whatWasHere(lat, lng, isNaN(year as number) ? null : year, radius);
-      res.json(result);
-    } catch (error) {
-      console.error("Error in spatial search:", error);
-      res.status(500).json({
-        message: "Failed to perform spatial search",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.get(
+    "/api/search/spatial",
+    portedToPython("GET /api/search/spatial", SEARCH_PORTED_TO),
+  );
 
   /**
    * GET /api/literary-works/:id - Get a single literary work
@@ -5193,18 +5128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
-   * GET /api/search/suggestions?q=partial - Query autocomplete suggestions
+   * GET /api/search/suggestions — retired to the Python service (pinakes:63 US-2).
    */
-  app.get("/api/search/suggestions", async (req, res) => {
-    try {
-      const q = req.query.q as string | undefined;
-      const suggestions = getQuerySuggestions(q || "");
-      res.json({ suggestions });
-    } catch (error) {
-      console.error("Error in search suggestions:", error);
-      res.status(500).json({ message: "Failed to get suggestions" });
-    }
-  });
+  app.get(
+    "/api/search/suggestions",
+    portedToPython("GET /api/search/suggestions", SEARCH_PORTED_TO),
+  );
 
   /**
    * GET /api/urheimat-hypotheses - Get all urheimat hypotheses with optional filtering

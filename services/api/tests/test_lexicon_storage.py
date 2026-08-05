@@ -1,0 +1,552 @@
+"""The general corpus reader, against fixtures and against the live corpus.
+
+`server/tsv-storage.ts` is graded two ways here, the same shape
+`test_data_quality.py` uses. The synthetic half pins the dialect decisions a
+whole-corpus count can never see — a short row, a blank cell, a `"null"`
+sentinel, an unparseable JSON array — one case per decision. The live half is
+the strong one: it asserts the row counts the repo already documents, so the
+port goes red if either the reader or the corpus drifts.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from pinakes_contracts import contracts_dir
+
+from pinakes.analytics import tsv
+from pinakes.lexicons import storage
+
+#: The live corpus, located through the contracts package rather than a
+#: `parents[n]` walk. `conftest.py` redirects the *env* to a temp tree, so every
+#: reader here is handed this path explicitly and nothing writes.
+LIVE_LEXICONS = contracts_dir().parent / "data" / "source" / "lexicons"
+
+
+def write(lexicons: Path, filename: str, *lines: str) -> Path:
+    lexicons.mkdir(parents=True, exist_ok=True)
+    path = lexicons / filename
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+# ── An absent file is an empty domain ────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "load",
+    [
+        storage.load_languages,
+        storage.load_language_families,
+        storage.load_religions,
+        storage.load_battles,
+        storage.load_cuisines,
+        storage.load_deities,
+        storage.load_trade_goods,
+        storage.load_writing_systems,
+        storage.load_culture_profiles,
+        storage.load_innovations,
+        storage.load_urheimat_hypotheses,
+        storage.load_civilizations,
+        storage.load_archaeological_sites,
+        storage.load_music_traditions,
+        storage.load_musical_instruments,
+        storage.load_cuisine_items,
+        storage.load_migration_routes,
+        storage.load_art_traditions,
+        storage.load_architectural_styles,
+        storage.load_kinship_systems,
+        storage.load_foodway_events,
+        storage.load_settlements,
+    ],
+)
+def test_a_missing_file_is_an_empty_domain_not_an_error(
+    tmp_path: Path, load: object
+) -> None:
+    """`readFileIfExists` returning null is how the loaders spell "not here"."""
+    assert load(tmp_path) == []  # type: ignore[operator]
+
+
+# ── The two language loaders ─────────────────────────────────────────────────
+
+
+def test_a_language_without_a_family_is_not_a_language(tmp_path: Path) -> None:
+    """`id`, `name` *and* `family_id` are all required to survive the loader."""
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus",
+        "eng\tEnglish\tindo_european\tliving",
+        "orphan\tOrphan\t\tliving",
+        "\tNameless\tindo_european\tliving",
+    )
+    assert [row["id"] for row in storage.load_languages(tmp_path)] == ["eng"]
+
+
+def test_a_broken_language_file_is_empty_rather_than_an_error(tmp_path: Path) -> None:
+    """`loadScrapedLanguages` catches its own `getIdx` — a warn, then `[]`."""
+    write(tmp_path, "languages.tsv", "id\tname", "eng\tEnglish")
+    assert storage.load_languages(tmp_path) == []
+
+
+def test_a_blank_status_stays_blank_but_a_short_row_is_living(
+    tmp_path: Path,
+) -> None:
+    """`r[idx] ?? "living"` is nullish: only an *absent* cell takes the default."""
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus",
+        "a\tA\tf\t",
+        "b\tB\tf",
+    )
+    declared, short = storage.load_languages(tmp_path)
+    assert declared["status"] == ""
+    assert short["status"] == "living"
+
+
+def test_coordinates_need_both_halves_to_be_numbers(tmp_path: Path) -> None:
+    """A language is the one domain whose coordinate can be genuinely absent.
+
+    But "absent" means **not a number**, not "blank": `Number("")` is `0`, so a
+    row with a latitude and an empty longitude lands on the prime meridian
+    rather than dropping out. That is the TypeScript, and it is why the null
+    case has to be tested with a word rather than with a blank.
+    """
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus\tlatitude\tlongitude",
+        "a\tA\tf\tliving\t51.5\t-0.1",
+        "b\tB\tf\tliving\t51.5\t",
+        "c\tC\tf\tliving\tnorth\t-0.1",
+        "d\tD\tf\tliving\t\t",
+    )
+    a, b, c, d = storage.load_languages(tmp_path)
+    assert a["coordinates"] == {"lat": 51.5, "lng": -0.1}
+    assert b["coordinates"] == {"lat": 51.5, "lng": 0.0}
+    assert c["coordinates"] is None
+    assert d["coordinates"] == {"lat": 0.0, "lng": 0.0}
+
+
+def test_a_zero_speaker_count_reads_as_unknown(tmp_path: Path) -> None:
+    """`Number(cell) || null` — a zero is indistinguishable from unstated."""
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus\ttotal_speakers",
+        "a\tA\tf\tliving\t0",
+        "b\tB\tf\tliving\t1200",
+    )
+    zero, some = storage.load_languages(tmp_path)
+    assert zero["totalSpeakers"] is None
+    assert some["totalSpeakers"] == 1200
+
+
+def test_family_language_counts_are_recomputed_over_descendants(
+    tmp_path: Path,
+) -> None:
+    """The corpus's own `language_count` cell is advisory; the served one is derived."""
+    write(
+        tmp_path,
+        "families.tsv",
+        "id\tname\tparent_id\ttaxonomic_level\tlanguage_count",
+        "root\tRoot\t\tfamily\t999",
+        "branch\tBranch\troot\tbranch\t999",
+        "leaf\tLeaf\tbranch\tsubgroup\t999",
+    )
+    write(
+        tmp_path,
+        "languages.tsv",
+        "id\tname\tfamily_id\tstatus",
+        "one\tOne\tleaf\tliving",
+        "two\tTwo\tbranch\tliving",
+    )
+    counts = {
+        family["id"]: family["languageCount"]
+        for family in storage.language_families_with_counts(tmp_path)
+    }
+    assert counts == {"root": 2, "branch": 2, "leaf": 1}
+
+
+def test_a_self_parenting_family_terminates(tmp_path: Path) -> None:
+    """The TypeScript's recursion has no cycle guard; a finite answer is better."""
+    write(
+        tmp_path,
+        "families.tsv",
+        "id\tname\tparent_id\ttaxonomic_level",
+        "loop\tLoop\tloop\tfamily",
+    )
+    header = "id\tname\tfamily_id\tstatus"
+    write(tmp_path, "languages.tsv", header, "a\tA\tloop\tliving")
+    assert storage.language_families_with_counts(tmp_path)[0]["languageCount"] == 1
+
+
+# ── The GeoJSON layers ───────────────────────────────────────────────────────
+
+
+def test_a_site_without_parseable_coordinates_does_not_exist(tmp_path: Path) -> None:
+    """The loader filters it out, so its URL and its citation are both 404s."""
+    write(
+        tmp_path,
+        "archaeological-sites.tsv",
+        "id\tname\tcoordinates\tsite_type",
+        'good\tGood\t{"lat": 1, "lng": 2}\tsettlement',
+        "blank\tBlank\t\tsettlement",
+        "broken\tBroken\t{oops\tsettlement",
+    )
+    sites = storage.load_archaeological_sites(tmp_path)
+    assert [site["id"] for site in sites] == ["good"]
+    # GeoJSON is `[lng, lat]`; the corpus cell is `{lat, lng}`.
+    assert sites[0]["geometry"]["coordinates"] == [2, 1]
+
+
+def test_a_site_defaults_importance_and_confidence_to_fifty(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "archaeological-sites.tsv",
+        "id\tname\tcoordinates\tsite_type\timportance\tconfidence",
+        'a\tA\t{"lat": 1, "lng": 2}\tsettlement\t\t80',
+        'b\tB\t{"lat": 1, "lng": 2}\tsettlement\t10\t',
+    )
+    a, b = storage.load_archaeological_sites(tmp_path)
+    assert (a["properties"]["importance"], a["properties"]["confidence"]) == (50, 80)
+    assert (b["properties"]["importance"], b["properties"]["confidence"]) == (10, 50)
+
+
+def test_a_civilization_without_a_boundary_gets_a_placeholder(tmp_path: Path) -> None:
+    """Every feature in the layer has a geometry, so the map never drops one."""
+    write(tmp_path, "civilizations.tsv", "id\tname", "nowhere\tNowhere")
+    feature = storage.load_civilizations(tmp_path)[0]
+    assert feature["geometry"] == {
+        "type": "Polygon",
+        "coordinates": storage.PLACEHOLDER_RING,
+    }
+    assert feature["properties"]["timePeriod"] == {"start": 0, "end": None, "label": ""}
+
+
+def test_a_civilization_inherits_its_boundary_time_period(tmp_path: Path) -> None:
+    """A blank `time_period_start` falls through to the boundary row's."""
+    write(
+        tmp_path,
+        "civilizations.tsv",
+        "id\tname\ttime_period_start\ttime_period_end",
+        "rome\tRome\t\t",
+    )
+    write(
+        tmp_path,
+        "civilization-boundaries.tsv",
+        "civilization_id\tgeometry\ttime_period_start\ttime_period_end\ttime_period_label",
+        'rome\t{"type": "Point", "coordinates": [12, 41]}\t-753\t476\tRoman',
+    )
+    feature = storage.load_civilizations(tmp_path)[0]
+    assert feature["geometry"] == {"type": "Point", "coordinates": [12, 41]}
+    assert feature["properties"]["timePeriod"] == {
+        "start": -753,
+        "end": 476,
+        "label": "Roman",
+    }
+
+
+def test_a_blank_label_column_does_not_fall_through_to_the_boundary(
+    tmp_path: Path,
+) -> None:
+    """`row[labelIdx] || ""` — the boundary label backs a missing *column* only."""
+    write(
+        tmp_path,
+        "civilizations.tsv",
+        "id\tname\ttime_period_label",
+        "rome\tRome\t",
+    )
+    write(
+        tmp_path,
+        "civilization-boundaries.tsv",
+        "civilization_id\tgeometry\ttime_period_label",
+        'rome\t{"type": "Point", "coordinates": [12, 41]}\tRoman',
+    )
+    assert storage.load_civilizations(tmp_path)[0]["properties"]["timePeriod"][
+        "label"
+    ] == ""
+
+
+def test_undefined_civilization_properties_are_omitted_not_nulled(
+    tmp_path: Path,
+) -> None:
+    """`JSON.stringify` drops an `undefined` key; a null one is a different record."""
+    write(tmp_path, "civilizations.tsv", "id\tname\tcapital", "rome\tRome\t")
+    properties = storage.load_civilizations(tmp_path)[0]["properties"]
+    assert "capital" not in properties
+    assert "nativeName" not in properties
+
+
+def test_a_zero_confidence_survives_the_finiteness_test(tmp_path: Path) -> None:
+    """`Number.isFinite(0)` is true — the one place a zero is not "missing"."""
+    write(tmp_path, "civilizations.tsv", "id\tname\tconfidence", "rome\tRome\t0")
+    assert storage.load_civilizations(tmp_path)[0]["properties"]["confidence"] == 0
+
+
+# ── The flat domains ─────────────────────────────────────────────────────────
+
+
+def test_a_deity_reads_either_column_spelling(tmp_path: Path) -> None:
+    """`mythology` else `pantheon`, `equivalent_deity_ids` else `syncretism_links`."""
+    write(
+        tmp_path,
+        "deities.tsv",
+        "id\tname\tpantheon\tsyncretism_links",
+        'zeus\tZeus\tGreek\t["jupiter"]',
+    )
+    deity = storage.load_deities(tmp_path)[0]
+    assert deity["mythology"] == "Greek"
+    assert deity["equivalentDeityIds"] == ["jupiter"]
+
+
+def test_the_null_sentinel_is_read_by_name(tmp_path: Path) -> None:
+    """Several columns were written by a serializer that stringified `null`."""
+    write(
+        tmp_path,
+        "religions.tsv",
+        "id\tname\ttime_origin\ttime_end",
+        "a\tA\tnull\t400",
+    )
+    religion = storage.load_religions(tmp_path)[0]
+    assert religion["timeOrigin"] is None
+    assert religion["timeEnd"] == 400
+
+
+def test_an_unparseable_json_array_is_empty_never_an_error(tmp_path: Path) -> None:
+    """Half the corpus's array columns are hand-authored."""
+    write(
+        tmp_path,
+        "religions.tsv",
+        "id\tname\tsacred_texts",
+        "a\tA\t[not json",
+    )
+    assert storage.load_religions(tmp_path)[0]["sacredTexts"] == []
+
+
+def test_a_blank_coordinate_cell_is_the_origin(tmp_path: Path) -> None:
+    """Reproduced, not fixed: such rows really do cluster at Null Island."""
+    write(tmp_path, "cuisines.tsv", "id\tname\tcoordinates", "a\tA\t")
+    assert storage.load_cuisines(tmp_path)[0]["coordinates"] == storage.ORIGIN
+
+
+def test_trade_goods_require_every_column(tmp_path: Path) -> None:
+    """This loader reads all nine with `getIdx` — stricter than its neighbours."""
+    write(tmp_path, "trade-goods.tsv", "id\tname", "tg\tSilk")
+    with pytest.raises(tsv.MissingColumnError):
+        storage.load_trade_goods(tmp_path)
+
+
+def test_a_zero_population_estimate_reads_as_unknown(tmp_path: Path) -> None:
+    """`parseInt(cell, 10) || null` — the same shape as the speaker counts."""
+    write(
+        tmp_path,
+        "culture-profiles.tsv",
+        "id\tname\tpopulation_estimate",
+        "a\tA\t0",
+        "b\tB\t5000",
+    )
+    zero, some = storage.load_culture_profiles(tmp_path)
+    assert zero["populationEstimate"] is None
+    assert some["populationEstimate"] == 5000
+
+
+def test_find_by_id_returns_the_first_match() -> None:
+    records: list[storage.Record] = [
+        {"id": "a", "n": 1},
+        {"id": "b"},
+        {"id": "a", "n": 2},
+    ]
+    assert storage.find_by_id(records, "a") == {"id": "a", "n": 1}
+    assert storage.find_by_id(records, "z") is None
+
+
+# ── The live corpus ──────────────────────────────────────────────────────────
+#
+# `server/CLAUDE.md`: assert on **counts**, not on a 200. A wrong lexicons path
+# fails quietly — `readFileIfExists` returns null and the domain reads empty —
+# so a count is the only assertion that catches it.
+
+
+@pytest.mark.parametrize(
+    ("load", "expected"),
+    [
+        # The first two are the counts `server/CLAUDE.md` names as the assertion
+        # that catches a wrong lexicons path; the rest are this reader's own
+        # answer against the committed corpus, pinned so a loader that starts
+        # dropping rows says so.
+        (storage.load_languages, 1099),
+        (storage.language_families_with_counts, 543),
+        (storage.load_civilizations, 170),
+        (storage.load_archaeological_sites, 550),
+        (storage.load_deities, 206),
+        (storage.load_religions, 20),
+        (storage.load_cuisines, 101),
+        (storage.load_culture_profiles, 170),
+        # The ten pinakes:63 US-2 loaders, each checked against the same
+        # `storage.get*()` call on the live corpus before being pinned here.
+        (storage.load_base_words, 1016),
+        (storage.load_music_traditions, 20),
+        (storage.load_musical_instruments, 25),
+        (storage.load_cuisine_items, 2097),
+        (storage.load_migration_routes, 104),
+        (storage.load_art_traditions, 35),
+        (storage.load_architectural_styles, 90),
+        (storage.load_kinship_systems, 30),
+        (storage.load_foodway_events, 51),
+        (storage.load_settlements, 642),
+    ],
+)
+def test_the_live_corpus_loads_the_row_counts_the_repo_documents(
+    load: object, expected: int
+) -> None:
+    assert len(load(LIVE_LEXICONS)) == expected  # type: ignore[operator]
+
+
+def test_every_live_domain_loads_at_least_one_row() -> None:
+    """A loader that silently reads nothing is the failure mode to catch."""
+    empty = [
+        name
+        for name, load in (
+            ("languages", storage.load_languages),
+            ("families", storage.load_language_families),
+            ("civilizations", storage.load_civilizations),
+            ("archaeological-sites", storage.load_archaeological_sites),
+            ("deities", storage.load_deities),
+            ("religions", storage.load_religions),
+            ("cuisines", storage.load_cuisines),
+            ("battles", storage.load_battles),
+            ("trade-goods", storage.load_trade_goods),
+            ("writing-systems", storage.load_writing_systems),
+            ("culture-profiles", storage.load_culture_profiles),
+            ("innovations", storage.load_innovations),
+            ("urheimat-hypotheses", storage.load_urheimat_hypotheses),
+            ("words-base", storage.load_base_words),
+            ("music-traditions", storage.load_music_traditions),
+            ("musical-instruments", storage.load_musical_instruments),
+            ("cuisine-items", storage.load_cuisine_items),
+            ("migration-routes", storage.load_migration_routes),
+            ("art-traditions", storage.load_art_traditions),
+            ("architectural-styles", storage.load_architectural_styles),
+            ("kinship-systems", storage.load_kinship_systems),
+            ("foodway-events", storage.load_foodway_events),
+            ("settlements", storage.load_settlements),
+        )
+        if not load(LIVE_LEXICONS)
+    ]
+    assert not empty, f"loaded nothing for {empty}"
+
+
+# ── The pinakes:63 US-2 loaders' own dialect decisions ───────────────────────
+
+
+def test_words_base_is_the_one_loader_that_raises_on_a_missing_file(
+    tmp_path: Path,
+) -> None:
+    """``readFileOrThrow``, not ``readFileIfExists`` — and it is load-bearing.
+
+    Every other domain reads empty when its file is gone. The concept list is
+    the vocabulary spine, and an empty one would make `/api/search` answer as if
+    the corpus simply had no words rather than admitting it is broken.
+    """
+    with pytest.raises(FileNotFoundError):
+        storage.load_base_words(tmp_path)
+
+
+def test_base_words_drop_unusable_rows_and_sort_by_number(tmp_path: Path) -> None:
+    """No id, no gloss, or a non-numeric `number` and the row is gone.
+
+    The `number` cell is read with a comma swapped for a dot — the source list
+    writes European decimals — and only the **first** comma, as `String.replace`
+    with a string pattern does.
+    """
+    write(
+        tmp_path,
+        "words-base.tsv",
+        "number\tid_nelex\tgloss_en",
+        "3\tthree\tthree",
+        "1,5\thalf\tone and a half",
+        "2\t\tno id",
+        "4\tno-gloss\t",
+        "x\tnan\tnot a number",
+    )
+    words = storage.load_base_words(tmp_path)
+    assert [(word["id"], word["position"]) for word in words] == [
+        ("half", 1.5),
+        ("three", 3),
+    ]
+
+
+def test_a_migration_route_with_no_waypoints_gets_an_object_not_a_list(
+    tmp_path: Path,
+) -> None:
+    """The one JSON column here whose fallback is ``{}`` — it is a geometry."""
+    write(
+        tmp_path,
+        "migration-routes.tsv",
+        "id\tname\twaypoints\tpeoples",
+        "r1\tRoute\tnot json\tnot json",
+    )
+    route = storage.load_migration_routes(tmp_path)[0]
+    assert route["waypoints"] == {}
+    assert route["peoples"] == []
+
+
+def test_foodway_coordinates_are_pairs_and_art_coordinates_are_objects(
+    tmp_path: Path,
+) -> None:
+    """Two shapes for "where", in two files, both corpus rather than slip."""
+    write(
+        tmp_path,
+        "foodway-events.tsv",
+        "id\tname\tfood_item\torigin_region\torigin_coordinates"
+        "\tdestination_region\tdestination_coordinates\tdate",
+        "f1\tMaize\tmaize\tMesoamerica\tbroken\tIberia\t\t1500",
+    )
+    write(
+        tmp_path,
+        "art-traditions.tsv",
+        "id\tname\tcategory\tstyle_period\torigin_date\tend_date"
+        "\torigin_coordinates\tdescription\tassociated_languages"
+        "\tkey_features\tnotable_examples",
+        "a1\tMinoan\tfresco\tBronze Age\t-2000\t-1400\tbroken\t\t[]\t[]\t[]",
+    )
+    event = storage.load_foodway_events(tmp_path)[0]
+    assert event["originCoordinates"] == [0, 0]
+    assert event["destinationCoordinates"] == [0, 0]
+    assert storage.load_art_traditions(tmp_path)[0]["originCoordinates"] == {
+        "lat": 0.0,
+        "lng": 0.0,
+    }
+
+
+def test_a_settlement_with_a_blank_coordinate_sits_at_the_origin(
+    tmp_path: Path,
+) -> None:
+    """``parseFloat(cell) || 0`` — and a peak population of 0 is *unknown*."""
+    write(
+        tmp_path,
+        "settlements.tsv",
+        "id\tname\tlatitude\tlongitude\tpeak_population\tfounded_year",
+        "s1\tNowhere\t\tnot a number\t0\tnull",
+    )
+    settlement = storage.load_settlements(tmp_path)[0]
+    assert (settlement["latitude"], settlement["longitude"]) == (0, 0)
+    assert settlement["peakPopulation"] is None
+    assert settlement["foundedYear"] is None
+
+
+def test_a_kinship_system_has_no_name_column_at_all(tmp_path: Path) -> None:
+    """Which is why global search displays it as ``"<system type> (<id>)"``."""
+    write(
+        tmp_path,
+        "kinship-systems.tsv",
+        "id\tsystem_type\tlanguage_ids\tterminology\tdescent_rule",
+        "k1\tIroquois\t[]\t{}\tmatrilineal",
+    )
+    system = storage.load_kinship_systems(tmp_path)[0]
+    assert "name" not in system
+    assert system["systemType"] == "Iroquois"
+    assert system["residenceRule"] == ""

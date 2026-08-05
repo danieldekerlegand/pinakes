@@ -16,7 +16,7 @@
         "entity-resolver and summaries routes pass the parity tests.",
         "Express handlers removed or 501; coverage tracker updated."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -27,7 +27,7 @@
         "global search, place-resolver, and geo routes pass the parity tests; global search now merges the in-process engine search rather than the sidecar.",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
