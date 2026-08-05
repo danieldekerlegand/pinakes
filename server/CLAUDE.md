@@ -1074,6 +1074,17 @@ lists them. Same background-job + contribution-queue shape as pinakes-engine
 
 ## Place resolution — `services/place-resolver.ts`
 
+**All three routes are ported** (pinakes:63 US-2): `/api/map/places/{search,autocomplete,resolve}`
+are served by `services/api/src/pinakes/routers/places.py` over `pinakes.search.places`, and
+the Express handlers answer 501. None of the three carried a recorded fixture, so unlike
+`GET /api/search` they handed over cleanly. **`services/place-resolver.ts` is NOT retired** —
+it is the graded spec, and `place-resolver.test.ts` is what says the two agree on the
+known-region table, the fuzzy tiers and the bbox reordering. Everything below is still the
+contract; one thing did not come across: the Python `LiveDeps` does **not** carry the
+Nominatim rate-limit sleep (it guarded a module-level timestamp in a single-threaded event
+loop). The "skip the geocoder when the local corpus already answered well" short-circuit is
+what actually keeps request volume down, and that did come across.
+
 Maps historical + modern place names to coordinates from local TSV (settlements /
 sites / battles), known regions, and **external geocoders**. External geocoding
 (US-006) **prefers GeoNames** (standardized naming + a stable `geonamesId`) and
@@ -1109,6 +1120,12 @@ sites / battles), known regions, and **external geocoders**. External geocoding
 
 ## Map viewport/bbox culling — `services/geo-bbox.ts`
 
+**A Python twin exists and has no route yet**: `services/api/src/pinakes/geo/bbox.py`
+(pinakes:63 US-2). The `/api/map/*` GeoJSON layers are a different port unit, so nothing
+calls it here yet — it landed with the place resolver because the two are the halves of
+`server/services/*` the map layer sits on. When those routes land they should use it rather
+than growing a second viewport filter. This file stays as the graded spec.
+
 Any `/api/map/*` GeoJSON endpoint can cull to the client viewport with **one line**:
 `const { features, meta } = applyViewport(allFeatures, viewportOptionsFromQuery(req.query));`
 then return `features` and merge `meta` into the response `metadata`. Accepts
@@ -1120,6 +1137,27 @@ bbox is a no-op (full layer). Client side sends the bbox via the React Query key
 manual fetch — see `web/src/lib/visualization/map-performance.ts` `viewportParams()`.
 
 ## Faceted global search — `services/global-search.ts`
+
+**Ported, and `GET /api/search` still answers here too** (pinakes:63 US-2):
+`services/api/src/pinakes/routers/search.py` serves it over `pinakes.search.global_search`,
+and **neither** handler is retired, because `contracts/parity/parity.test.ts` replays the
+recorded `get-search` fixture against *this* app. Same standing as `GET /api/citations` and
+the two entity-resolver routes; safe for the same reason — both sides only read
+`data/source/lexicons/`, and `services/api/tests/test_global_search.py` asserts the Python
+answer to `?q=sumer` value for value against what Express recorded.
+
+**The graph half is no longer the sidecar.** Over there `federatedSearch` called
+`services/engine-client.ts` `search` over HTTP; the Python one calls
+`pinakes.engine.corpus.search` in-process. Same payload, same degradation contract: a graph
+that is unavailable, disabled or malformed is swallowed and the local results still come
+back. `services/global-search.ts` stays as the graded spec.
+
+The three sibling routes `/api/search/{natural,spatial,suggestions}` **are** retired to 501
+(`routers/search.py`, over `pinakes.search.natural`); `services/natural-language-search.ts`
+is kept as their spec. Two rules in it are easy to lose and are asserted on both sides: the
+entity-type keyword table is scanned **in declaration order** (first hit wins), and a range
+bound is read *twice* by two different rules — the filter falls back to `parseInt` where the
+label does not, so a bound of `"50"` filters as year 50 and renders as `?`.
 
 `/api/search` is federated (local corpus + shared graph) **and** faceted. Facet
 counts (per `entityType` + `source`) and filter params live in pure helpers:

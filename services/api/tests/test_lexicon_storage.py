@@ -50,6 +50,15 @@ def write(lexicons: Path, filename: str, *lines: str) -> Path:
         storage.load_urheimat_hypotheses,
         storage.load_civilizations,
         storage.load_archaeological_sites,
+        storage.load_music_traditions,
+        storage.load_musical_instruments,
+        storage.load_cuisine_items,
+        storage.load_migration_routes,
+        storage.load_art_traditions,
+        storage.load_architectural_styles,
+        storage.load_kinship_systems,
+        storage.load_foodway_events,
+        storage.load_settlements,
     ],
 )
 def test_a_missing_file_is_an_empty_domain_not_an_error(
@@ -376,6 +385,18 @@ def test_find_by_id_returns_the_first_match() -> None:
         (storage.load_religions, 20),
         (storage.load_cuisines, 101),
         (storage.load_culture_profiles, 170),
+        # The ten pinakes:63 US-2 loaders, each checked against the same
+        # `storage.get*()` call on the live corpus before being pinned here.
+        (storage.load_base_words, 1016),
+        (storage.load_music_traditions, 20),
+        (storage.load_musical_instruments, 25),
+        (storage.load_cuisine_items, 2097),
+        (storage.load_migration_routes, 104),
+        (storage.load_art_traditions, 35),
+        (storage.load_architectural_styles, 90),
+        (storage.load_kinship_systems, 30),
+        (storage.load_foodway_events, 51),
+        (storage.load_settlements, 642),
     ],
 )
 def test_the_live_corpus_loads_the_row_counts_the_repo_documents(
@@ -402,7 +423,130 @@ def test_every_live_domain_loads_at_least_one_row() -> None:
             ("culture-profiles", storage.load_culture_profiles),
             ("innovations", storage.load_innovations),
             ("urheimat-hypotheses", storage.load_urheimat_hypotheses),
+            ("words-base", storage.load_base_words),
+            ("music-traditions", storage.load_music_traditions),
+            ("musical-instruments", storage.load_musical_instruments),
+            ("cuisine-items", storage.load_cuisine_items),
+            ("migration-routes", storage.load_migration_routes),
+            ("art-traditions", storage.load_art_traditions),
+            ("architectural-styles", storage.load_architectural_styles),
+            ("kinship-systems", storage.load_kinship_systems),
+            ("foodway-events", storage.load_foodway_events),
+            ("settlements", storage.load_settlements),
         )
         if not load(LIVE_LEXICONS)
     ]
     assert not empty, f"loaded nothing for {empty}"
+
+
+# ── The pinakes:63 US-2 loaders' own dialect decisions ───────────────────────
+
+
+def test_words_base_is_the_one_loader_that_raises_on_a_missing_file(
+    tmp_path: Path,
+) -> None:
+    """``readFileOrThrow``, not ``readFileIfExists`` — and it is load-bearing.
+
+    Every other domain reads empty when its file is gone. The concept list is
+    the vocabulary spine, and an empty one would make `/api/search` answer as if
+    the corpus simply had no words rather than admitting it is broken.
+    """
+    with pytest.raises(FileNotFoundError):
+        storage.load_base_words(tmp_path)
+
+
+def test_base_words_drop_unusable_rows_and_sort_by_number(tmp_path: Path) -> None:
+    """No id, no gloss, or a non-numeric `number` and the row is gone.
+
+    The `number` cell is read with a comma swapped for a dot — the source list
+    writes European decimals — and only the **first** comma, as `String.replace`
+    with a string pattern does.
+    """
+    write(
+        tmp_path,
+        "words-base.tsv",
+        "number\tid_nelex\tgloss_en",
+        "3\tthree\tthree",
+        "1,5\thalf\tone and a half",
+        "2\t\tno id",
+        "4\tno-gloss\t",
+        "x\tnan\tnot a number",
+    )
+    words = storage.load_base_words(tmp_path)
+    assert [(word["id"], word["position"]) for word in words] == [
+        ("half", 1.5),
+        ("three", 3),
+    ]
+
+
+def test_a_migration_route_with_no_waypoints_gets_an_object_not_a_list(
+    tmp_path: Path,
+) -> None:
+    """The one JSON column here whose fallback is ``{}`` — it is a geometry."""
+    write(
+        tmp_path,
+        "migration-routes.tsv",
+        "id\tname\twaypoints\tpeoples",
+        "r1\tRoute\tnot json\tnot json",
+    )
+    route = storage.load_migration_routes(tmp_path)[0]
+    assert route["waypoints"] == {}
+    assert route["peoples"] == []
+
+
+def test_foodway_coordinates_are_pairs_and_art_coordinates_are_objects(
+    tmp_path: Path,
+) -> None:
+    """Two shapes for "where", in two files, both corpus rather than slip."""
+    write(
+        tmp_path,
+        "foodway-events.tsv",
+        "id\tname\tfood_item\torigin_region\torigin_coordinates"
+        "\tdestination_region\tdestination_coordinates\tdate",
+        "f1\tMaize\tmaize\tMesoamerica\tbroken\tIberia\t\t1500",
+    )
+    write(
+        tmp_path,
+        "art-traditions.tsv",
+        "id\tname\tcategory\tstyle_period\torigin_date\tend_date"
+        "\torigin_coordinates\tdescription\tassociated_languages"
+        "\tkey_features\tnotable_examples",
+        "a1\tMinoan\tfresco\tBronze Age\t-2000\t-1400\tbroken\t\t[]\t[]\t[]",
+    )
+    event = storage.load_foodway_events(tmp_path)[0]
+    assert event["originCoordinates"] == [0, 0]
+    assert event["destinationCoordinates"] == [0, 0]
+    assert storage.load_art_traditions(tmp_path)[0]["originCoordinates"] == {
+        "lat": 0.0,
+        "lng": 0.0,
+    }
+
+
+def test_a_settlement_with_a_blank_coordinate_sits_at_the_origin(
+    tmp_path: Path,
+) -> None:
+    """``parseFloat(cell) || 0`` — and a peak population of 0 is *unknown*."""
+    write(
+        tmp_path,
+        "settlements.tsv",
+        "id\tname\tlatitude\tlongitude\tpeak_population\tfounded_year",
+        "s1\tNowhere\t\tnot a number\t0\tnull",
+    )
+    settlement = storage.load_settlements(tmp_path)[0]
+    assert (settlement["latitude"], settlement["longitude"]) == (0, 0)
+    assert settlement["peakPopulation"] is None
+    assert settlement["foundedYear"] is None
+
+
+def test_a_kinship_system_has_no_name_column_at_all(tmp_path: Path) -> None:
+    """Which is why global search displays it as ``"<system type> (<id>)"``."""
+    write(
+        tmp_path,
+        "kinship-systems.tsv",
+        "id\tsystem_type\tlanguage_ids\tterminology\tdescent_rule",
+        "k1\tIroquois\t[]\t{}\tmatrilineal",
+    )
+    system = storage.load_kinship_systems(tmp_path)[0]
+    assert "name" not in system
+    assert system["systemType"] == "Iroquois"
+    assert system["residenceRule"] == ""

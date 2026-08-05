@@ -103,6 +103,7 @@ GRADED: tuple[str, ...] = (
     "get-entity",  # pinakes:63 US-1
     "get-summaries-index",  # pinakes:63 US-1
     "get-summaries-domain",  # pinakes:63 US-1
+    "get-search",  # pinakes:63 US-2
 )
 
 

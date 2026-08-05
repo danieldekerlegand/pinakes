@@ -18,6 +18,7 @@ from pinakes.engine import graph as engine_graph
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 from pinakes.routers import _auth as write_guard_handles
+from pinakes.search import graph_resolver as graph_resolver_handles
 
 
 def coverage_of(client: TestClient) -> ParityCoverage:
@@ -107,6 +108,20 @@ def reset_write_guard() -> Iterator[None]:
     write_guard_handles.reset()
     yield
     write_guard_handles.reset()
+
+
+@pytest.fixture(autouse=True)
+def reset_alias_index() -> Iterator[None]:
+    """Drop the memoised csid resolver between tests.
+
+    It is keyed on the lexicons directory, so a *different* temp corpus already
+    replaces it — but a test that seeds one corpus, resolves, then writes more
+    rows to the same directory would read the first index back. Same class of
+    module state as `reset_write_guard`, and just as cheap to clear.
+    """
+    graph_resolver_handles.reset_graph_resolver()
+    yield
+    graph_resolver_handles.reset_graph_resolver()
 
 
 @pytest.fixture

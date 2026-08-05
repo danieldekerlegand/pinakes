@@ -899,6 +899,436 @@ def load_urheimat_hypotheses(lexicons: Path) -> list[Record]:
     ]
 
 
+# ── The domains global search and place resolution reach (pinakes:63 US-2) ───
+#
+# Nine more list loaders plus `settlements.tsv`. Nothing new in kind — the same
+# `getIdx`/`indexOf` split and the same JSON-array cells — but two shapes recur
+# here that the first thirteen did not have, and both are corpus, not slips:
+# `origin_coordinates` is a **`[lat, lng]` pair** on foodway events (an object on
+# art traditions and trade goods), and `waypoints` is a whole GeoJSON geometry
+# whose fallback is `{}` rather than `[]`.
+
+
+def load_base_words(lexicons: Path) -> list[Record]:
+    """`words-base.tsv` → the concept list (``loadBaseWords``).
+
+    The one loader that filters *and* sorts: a row without an id, without a
+    gloss, or whose `number` is not finite is dropped, and what survives is
+    ordered by that number. `number` is read with the comma swapped for a dot
+    because the source list writes European decimals.
+
+    ``readFileOrThrow``, not ``readFileIfExists`` — a missing `words-base.tsv`
+    raises over there. Reproduced: this is the concept spine, and an empty word
+    list would read as a corpus with no vocabulary rather than as a broken one.
+    """
+    path = Path(lexicons) / "words-base.tsv"
+    if not path.is_file():
+        raise FileNotFoundError(f"Required data file not found: {path}")
+    header, rows = tsv.parse_tsv(path.read_text(encoding="utf-8"))
+    number_index = tsv.required_index(header, "number")
+    id_index = tsv.required_index(header, "id_nelex")
+    gloss_index = tsv.required_index(header, "gloss_en")
+
+    words: list[Record] = []
+    for row in rows:
+        number = tsv.js_number(tsv.cell(row, number_index).replace(",", ".", 1))
+        identifier = tsv.cell(row, id_index).strip()
+        gloss = tsv.cell(row, gloss_index).strip()
+        if not identifier or not gloss or not math.isfinite(number):
+            continue
+        words.append(
+            {
+                "id": identifier,
+                "word": gloss,
+                "position": int(number) if number.is_integer() else number,
+                "category": None,
+                "frequency": None,
+                "difficulty": None,
+                "pos": None,
+                "notes": None,
+                "definition": None,
+            }
+        )
+    words.sort(key=lambda word: word["position"])
+    return words
+
+
+def load_music_traditions(lexicons: Path) -> list[Record]:
+    """`music-traditions.tsv` → the tradition records (``loadMusicTraditions``)."""
+    parsed = tsv.read_tsv(lexicons, "music-traditions.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    native_index = tsv.index_of(header, "native_name")
+    region_index = tsv.index_of(header, "region")
+    coordinates_index = tsv.index_of(header, "coordinates")
+    origin_index = tsv.index_of(header, "time_origin")
+    end_index = tsv.index_of(header, "time_end")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    instruments_index = tsv.index_of(header, "instruments")
+    scales_index = tsv.index_of(header, "scales")
+    rhythm_index = tsv.index_of(header, "rhythmic_patterns")
+    related_index = tsv.index_of(header, "related_traditions")
+    description_index = tsv.index_of(header, "description")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "nativeName": tsv.text_cell(row, native_index),
+            "region": tsv.text_cell(row, region_index),
+            "coordinates": _coordinates(row, coordinates_index),
+            "timeOrigin": _int(row, origin_index),
+            "timeEnd": _int(row, end_index),
+            "associatedLanguageIds": tsv.json_array(row, language_index),
+            "instruments": tsv.json_array(row, instruments_index),
+            "scales": tsv.json_array(row, scales_index),
+            "rhythmicPatterns": tsv.json_array(row, rhythm_index),
+            "relatedTraditions": tsv.json_array(row, related_index),
+            "description": tsv.text_cell(row, description_index),
+            "sources": tsv.json_array(row, sources_index),
+        }
+        for row in rows
+    ]
+
+
+def load_musical_instruments(lexicons: Path) -> list[Record]:
+    """`musical-instruments.tsv` → the instrument records.
+
+    ``loadMusicalInstruments``.
+    """
+    parsed = tsv.read_tsv(lexicons, "musical-instruments.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    native_index = tsv.index_of(header, "native_name")
+    family_index = tsv.index_of(header, "instrument_family")
+    region_index = tsv.index_of(header, "origin_region")
+    coordinates_index = tsv.index_of(header, "coordinates")
+    origin_index = tsv.index_of(header, "time_origin")
+    materials_index = tsv.index_of(header, "construction_materials")
+    technique_index = tsv.index_of(header, "playing_technique")
+    tradition_index = tsv.index_of(header, "associated_tradition_ids")
+    language_index = tsv.index_of(header, "associated_language_ids")
+    description_index = tsv.index_of(header, "description")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "nativeName": tsv.text_cell(row, native_index),
+            "instrumentFamily": tsv.text_cell(row, family_index),
+            "originRegion": tsv.text_cell(row, region_index),
+            "coordinates": _coordinates(row, coordinates_index),
+            "timeOrigin": _int(row, origin_index),
+            "constructionMaterials": tsv.json_array(row, materials_index),
+            "playingTechnique": tsv.text_cell(row, technique_index),
+            "associatedTraditionIds": tsv.json_array(row, tradition_index),
+            "associatedLanguageIds": tsv.json_array(row, language_index),
+            "description": tsv.text_cell(row, description_index),
+            "sources": tsv.json_array(row, sources_index),
+        }
+        for row in rows
+    ]
+
+
+def load_cuisine_items(lexicons: Path) -> list[Record]:
+    """`cuisine-items.tsv` → the dish records (``loadCuisineItems``)."""
+    parsed = tsv.read_tsv(lexicons, "cuisine-items.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    cuisine_index = tsv.required_index(header, "cuisine_id")
+    name_index = tsv.required_index(header, "name")
+    type_index = tsv.index_of(header, "food_type")
+    origin_index = tsv.index_of(header, "time_origin")
+    end_index = tsv.index_of(header, "time_end")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "cuisineId": tsv.cell(row, cuisine_index),
+            "name": tsv.cell(row, name_index),
+            "foodType": tsv.text_cell(row, type_index),
+            "timeOrigin": _int(row, origin_index),
+            "timeEnd": _int(row, end_index),
+        }
+        for row in rows
+    ]
+
+
+def load_migration_routes(lexicons: Path) -> list[Record]:
+    """`migration-routes.tsv` → the route records (``loadMigrationRoutes``).
+
+    `waypoints` is a GeoJSON LineString, so its unparseable/absent fallback is an
+    empty **object** — every other JSON column here falls back to a list.
+    """
+    parsed = tsv.read_tsv(lexicons, "migration-routes.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.index_of(header, "name")
+    type_index = tsv.index_of(header, "route_type")
+    waypoints_index = tsv.index_of(header, "waypoints")
+    start_index = tsv.index_of(header, "start_date")
+    end_index = tsv.index_of(header, "end_date")
+    peoples_index = tsv.index_of(header, "peoples")
+    language_index = tsv.index_of(header, "associated_languages")
+    description_index = tsv.index_of(header, "description")
+    consequences_index = tsv.index_of(header, "consequences")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.text_cell(row, name_index),
+            "routeType": tsv.text_cell(row, type_index),
+            "waypoints": tsv.json_cell(row, waypoints_index, {}),
+            "startDate": tsv.text_cell(row, start_index),
+            "endDate": tsv.text_cell(row, end_index),
+            "peoples": tsv.json_array(row, peoples_index),
+            "associatedLanguages": tsv.json_array(row, language_index),
+            "description": tsv.text_cell(row, description_index),
+            "consequences": tsv.text_cell(row, consequences_index),
+        }
+        for row in rows
+    ]
+
+
+def load_art_traditions(lexicons: Path) -> list[Record]:
+    """`art-traditions.tsv` → the tradition records (``loadArtTraditions``).
+
+    ``associated_civilizations`` is read as a **string**, not a JSON array — the
+    one column in this file the loader does not parse. Kept as found.
+    """
+    parsed = tsv.read_tsv(lexicons, "art-traditions.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    category_index = tsv.required_index(header, "category")
+    period_index = tsv.required_index(header, "style_period")
+    origin_index = tsv.required_index(header, "origin_date")
+    end_index = tsv.required_index(header, "end_date")
+    coordinates_index = tsv.required_index(header, "origin_coordinates")
+    description_index = tsv.required_index(header, "description")
+    civilization_index = tsv.index_of(header, "associated_civilizations")
+    language_index = tsv.required_index(header, "associated_languages")
+    features_index = tsv.required_index(header, "key_features")
+    examples_index = tsv.required_index(header, "notable_examples")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "category": tsv.cell(row, category_index),
+            "stylePeriod": tsv.cell(row, period_index),
+            "originDate": tsv.int_or_zero(row, origin_index),
+            "endDate": tsv.int_or_zero(row, end_index),
+            "originCoordinates": _coordinates(row, coordinates_index),
+            "description": tsv.cell(row, description_index),
+            "associatedCivilizations": tsv.text_cell(row, civilization_index),
+            "associatedLanguages": tsv.json_array(row, language_index),
+            "keyFeatures": tsv.json_array(row, features_index),
+            "notableExamples": tsv.json_array(row, examples_index),
+        }
+        for row in rows
+    ]
+
+
+def load_architectural_styles(lexicons: Path) -> list[Record]:
+    """`architectural-styles.tsv` → the style records (``loadArchitecturalStyles``)."""
+    parsed = tsv.read_tsv(lexicons, "architectural-styles.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    period_index = tsv.required_index(header, "style_period")
+    origin_index = tsv.required_index(header, "origin_date")
+    end_index = tsv.required_index(header, "end_date")
+    coordinates_index = tsv.required_index(header, "origin_coordinates")
+    region_index = tsv.required_index(header, "region")
+    description_index = tsv.required_index(header, "description")
+    civilization_index = tsv.index_of(header, "associated_civilizations")
+    language_index = tsv.required_index(header, "associated_languages")
+    features_index = tsv.required_index(header, "key_features")
+    examples_index = tsv.required_index(header, "notable_examples")
+    building_index = tsv.required_index(header, "building_types")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "stylePeriod": tsv.cell(row, period_index),
+            "originDate": tsv.int_or_zero(row, origin_index),
+            "endDate": tsv.int_or_zero(row, end_index),
+            "originCoordinates": _coordinates(row, coordinates_index),
+            "region": tsv.text_cell(row, region_index),
+            "description": tsv.cell(row, description_index),
+            "associatedCivilizations": tsv.text_cell(row, civilization_index),
+            "associatedLanguages": tsv.json_array(row, language_index),
+            "keyFeatures": tsv.json_array(row, features_index),
+            "notableExamples": tsv.json_array(row, examples_index),
+            "buildingTypes": tsv.json_array(row, building_index),
+        }
+        for row in rows
+    ]
+
+
+def load_kinship_systems(lexicons: Path) -> list[Record]:
+    """`kinship-systems.tsv` → the kinship records (``loadKinshipSystems``).
+
+    The only domain here with **no name column** — a system is identified by its
+    `system_type` and its id, which is why global search displays it as
+    ``"<system type> (<id>)"``.
+    """
+    parsed = tsv.read_tsv(lexicons, "kinship-systems.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    type_index = tsv.required_index(header, "system_type")
+    language_index = tsv.required_index(header, "language_ids")
+    terminology_index = tsv.required_index(header, "terminology")
+    descent_index = tsv.required_index(header, "descent_rule")
+    residence_index = tsv.index_of(header, "residence_rule")
+    civilization_index = tsv.index_of(header, "associated_civilizations")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "systemType": tsv.cell(row, type_index),
+            "languageIds": tsv.json_array(row, language_index),
+            "terminology": tsv.json_cell(row, terminology_index, {}),
+            "descentRule": tsv.cell(row, descent_index),
+            "residenceRule": tsv.text_cell(row, residence_index),
+            "associatedCivilizations": tsv.text_cell(row, civilization_index),
+        }
+        for row in rows
+    ]
+
+
+def load_foodway_events(lexicons: Path) -> list[Record]:
+    """`foodway-events.tsv` → the diffusion records (``loadFoodwayEvents``).
+
+    Both coordinate columns are ``[lat, lng]`` **pairs** whose fallback is
+    ``[0, 0]`` — the same asymmetry `battles.tsv` has, and the opposite of the
+    ``{lat, lng}`` object art traditions and trade goods carry.
+    """
+    parsed = tsv.read_tsv(lexicons, "foodway-events.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    food_index = tsv.required_index(header, "food_item")
+    origin_region_index = tsv.required_index(header, "origin_region")
+    origin_coordinates_index = tsv.required_index(header, "origin_coordinates")
+    destination_region_index = tsv.required_index(header, "destination_region")
+    destination_coordinates_index = tsv.required_index(
+        header, "destination_coordinates"
+    )
+    date_index = tsv.required_index(header, "date")
+    mechanism_index = tsv.index_of(header, "mechanism")
+    route_index = tsv.index_of(header, "associated_route_id")
+    description_index = tsv.index_of(header, "description")
+    impact_index = tsv.index_of(header, "cultural_impact")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "foodItem": tsv.cell(row, food_index),
+            "originRegion": tsv.cell(row, origin_region_index),
+            "originCoordinates": tsv.json_cell(
+                row, origin_coordinates_index, [0, 0]
+            ),
+            "destinationRegion": tsv.cell(row, destination_region_index),
+            "destinationCoordinates": tsv.json_cell(
+                row, destination_coordinates_index, [0, 0]
+            ),
+            "date": tsv.int_or_zero(row, date_index),
+            "mechanism": tsv.text_cell(row, mechanism_index),
+            "associatedRouteId": tsv.text_cell(row, route_index),
+            "description": tsv.text_cell(row, description_index),
+            "culturalImpact": tsv.text_cell(row, impact_index),
+        }
+        for row in rows
+    ]
+
+
+def load_settlements(lexicons: Path) -> list[Record]:
+    """`settlements.tsv` → the settlement records (``loadSettlements``).
+
+    Coordinates are two flat columns read through ``parseFloat(cell) || 0``, so
+    a blank or unparseable latitude is the equator rather than a missing point —
+    the same "blank cell is the origin" rule the object-coordinate loaders have,
+    arrived at from the other direction.
+    """
+    parsed = tsv.read_tsv(lexicons, "settlements.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    alternate_index = tsv.index_of(header, "alternate_names")
+    latitude_index = tsv.index_of(header, "latitude")
+    longitude_index = tsv.index_of(header, "longitude")
+    type_index = tsv.index_of(header, "type")
+    culture_index = tsv.index_of(header, "culture_id")
+    civilization_index = tsv.index_of(header, "civilization_id")
+    founded_index = tsv.index_of(header, "founded_year")
+    abandoned_index = tsv.index_of(header, "abandoned_year")
+    population_index = tsv.index_of(header, "peak_population")
+    features_index = tsv.index_of(header, "notable_features")
+    language_index = tsv.index_of(header, "associated_languages")
+    modern_index = tsv.index_of(header, "modern_name")
+    region_index = tsv.index_of(header, "region")
+
+    def _degrees(row: list[str], index: int) -> float | int:
+        if index < 0:
+            return 0
+        value = tsv.js_parse_float(tsv.cell(row, index))
+        if math.isnan(value) or value == 0:
+            return 0
+        return int(value) if value.is_integer() else value
+
+    def _population(row: list[str], index: int) -> int | None:
+        # `parseInt(cell, 10) || null` — a population of literally 0 is unknown.
+        parsed_population = tsv.nullable_int(row, index)
+        return parsed_population or None
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "alternateNames": tsv.json_array(row, alternate_index),
+            "latitude": _degrees(row, latitude_index),
+            "longitude": _degrees(row, longitude_index),
+            "type": tsv.text_cell(row, type_index),
+            "cultureId": tsv.text_cell(row, culture_index),
+            "civilizationId": tsv.text_cell(row, civilization_index),
+            "foundedYear": _int(row, founded_index),
+            "abandonedYear": _int(row, abandoned_index),
+            "peakPopulation": _population(row, population_index),
+            "notableFeatures": tsv.json_array(row, features_index),
+            "associatedLanguages": tsv.json_array(row, language_index),
+            "modernName": tsv.text_cell(row, modern_index),
+            "region": tsv.text_cell(row, region_index),
+        }
+        for row in rows
+    ]
+
+
 def find_by_id(records: list[Record], identifier: str) -> Record | None:
     """The first record whose ``id`` is *identifier* — ``Array.find``, by id."""
     for record in records:

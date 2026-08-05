@@ -403,3 +403,73 @@ test with no HTTP anywhere.
   strict-mypy consumer silently degrades every engine value to `Any`; with it,
   engine types are real here. If a `pinakes_engine.*` import ever starts reporting
   `import-untyped`, the marker fell out of `engine/pyproject.toml`'s package-data.
+
+## Search, place resolution and viewport culling — `search/` + `geo/` + `routers/{search,places}.py` (pinakes:63 US-2)
+
+`GET /api/search` and its three natural-language siblings, the three
+`/api/map/places/*` endpoints, and — with no route of its own — the map layers'
+bbox culling. Coverage 52/306 → 59/306. The band's headline is the one the
+tasklist named: **the graph half of federated search is now in-process**
+(`pinakes.engine.corpus.search`) rather than an HTTP call to the sidecar.
+
+- **The corpus reader grew ten loaders and no new reader.** `lexicons/storage.py`
+  now covers `words-base`, `music-traditions`, `musical-instruments`,
+  `cuisine-items`, `migration-routes`, `art-traditions`, `architectural-styles`,
+  `kinship-systems`, `foodway-events` and `settlements` — every one checked
+  against the same `storage.get*()` call on the live corpus before its row count
+  was pinned in `test_lexicon_storage.py`. Three shapes in them are corpus, not
+  slips: `waypoints` is a geometry so its fallback is `{}` and not `[]`,
+  `foodway-events` carries `[lat, lng]` **pairs** where art traditions carry
+  `{lat, lng}` objects, and `kinship-systems` has **no name column at all**
+  (which is why search displays `"<system type> (<id>)"`).
+- **`load_base_words` is the one loader that RAISES on a missing file**, because
+  `readFileOrThrow` did. That makes `/api/search` a 500 on a corpus with no
+  `words-base.tsv` rather than a search that silently finds no words — and the
+  empty lexicons tree `conftest.py` hands every test is exactly that corpus, so
+  a route test has to seed the file. Kept deliberately: the concept list is the
+  vocabulary spine, and an empty one reads as a corpus without vocabulary rather
+  than a broken one.
+- **Facets are computed over the full, unfiltered match set** — before filtering
+  and before the 50-result cap — so the chip counts stay stable while a filter is
+  active. `totalCount` is the *filtered* count. The two disagreeing is the
+  contract, not a bug.
+- **`search/graph_resolver.py` landed here for the dedup, not for
+  `/api/graph/resolve`** (a different port unit, still 501). Two things about it
+  are load-bearing. It **refuses** rather than guesses: two distinct csids tying
+  the best score resolve to `None`, because a wrong link merges two entities into
+  one result. And it is the **only** reader in this service that is not
+  `lexicons.storage` — it reads every node file through the contract's column
+  mapping, including the eleven no typed loader covers.
+- **The app's entity types are not the schema's node types, and search passes the
+  app's.** `civilization` never matches `culture`, `archaeological-site` never
+  matches `place` — so those domains simply do not dedup against the graph. That
+  is the Express behaviour; narrowing it here would make the two backends
+  disagree about which results are duplicates mid-cutover.
+- **This resolver IS cached, keyed on the directory it indexes** — unlike every
+  loader in `lexicons/`, because building one reads ~24 files and federated
+  search wants one per request. Same rule as `analytics.index`; `conftest.py`'s
+  autouse `reset_alias_index` clears it between tests.
+- **`urllib`, not a new HTTP dependency.** GeoNames/Nominatim live behind
+  `places.PlaceResolverDeps` and the live implementation is stdlib — this service
+  declares no runtime HTTP client (`httpx` is a *dev* dependency, for
+  `TestClient`), and taking one on for two optional geocoders would be a poor
+  trade. No `$GEONAMES_USERNAME` ⇒ `fetch_geonames` raises ⇒ Nominatim, which is
+  the normal state of a checkout. The Nominatim **rate-limit sleep did not come
+  across**: it guarded a module-level timestamp in a single-threaded event loop,
+  and the local-results short-circuit is what actually caps request volume.
+- **`geo/bbox.py` has no route and that is on purpose.** The `/api/map/*` layers
+  are a different port unit; it landed with the place resolver because they are
+  the two halves of `server/services/*` the map sits on. `test_geo_bbox.py` is
+  therefore its only gate — including the three behaviours a rewrite would
+  quietly "improve": an uncomputable geometry is **kept**, a malformed bbox is a
+  **no-op**, and swapped corners are **normalized**.
+- **One irreducible divergence, and it is in the last ULP.** `distanceKm` on
+  `/api/search/spatial` differs from Express in the ~14th significant digit,
+  because V8's `Math.cos` and CPython's differ by one unit in the last place. The
+  haversine here is spelled operation for operation as the TypeScript spelled it
+  (`(x * pi) / 180` not `math.radians`, `sin(x) * sin(x)` not `sin(x) ** 2`, same
+  left-to-right association) — that closed every *other* gap; a whole-corpus diff
+  of 27 recorded queries is byte-identical apart from these distances.
+- **`GET /api/search` is served by BOTH backends**, like `GET /api/citations` and
+  the two entity-resolver routes: its `get-search` fixture is replayed against
+  Express. The other six routes in the band are fixture-free and retired to 501.
