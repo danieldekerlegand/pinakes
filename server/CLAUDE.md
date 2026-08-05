@@ -55,6 +55,18 @@ touch these paths, assert on **counts** (`/api/languages` → 1099, `/api/map/ci
 
 ## Data-quality + coverage report — `services/data-quality-scorer.ts`
 
+**The route is ported** (pinakes:62 US-2): `GET /api/data-quality` is served by
+`services/api/src/pinakes/routers/data_quality.py` over `pinakes.analytics.quality`, which
+carries all four sections below against the same corpus; the Express handler answers 501.
+A fresh Python build of the live corpus is asserted equal to the committed
+`docs/{coverage-report,corpus-tier-report}.json` by `services/api/tests/test_data_quality.py`,
+so the two implementations are pinned to the same numbers about the same rows.
+
+**`services/data-quality-scorer.ts` is NOT retired** — it is the graded spec, and
+`scripts/{coverage-report,corpus-tier-report}.ts` still import it to *generate* those
+committed snapshots. Regenerating a snapshot is still a TypeScript job; the Python side is
+graded against the result. Everything below is still the contract.
+
 `generateDataQualityReport()` backs `GET /api/data-quality` (per-file completeness / uniqueness /
 referential integrity). US-008 added a **coverage** section: `ROADMAP_TARGETS` (per-domain
 population goals — `kind: "roadmap"` = hard §8/§15 numbers, `kind: "breadth"` = story breadth
@@ -251,6 +263,16 @@ key and makes the upstream call. Full posture: `docs/SECURITY.md`.
 
 ## Anomaly detection — `services/anomaly-detection.ts` + `routes/anomaly-detection.ts`
 
+**The route is ported** (pinakes:62 US-1): `GET /api/anomalies` is served by
+`services/api/src/pinakes/routers/anomalies.py` over `pinakes.analytics.anomaly`, which
+carries the pure scoring **and** the storage → `CultureNode` projection, against the same
+corpus. The Express handler answers 501 and `registerAnomalyRoutes` no longer takes a loader.
+
+**`services/anomaly-detection.ts` is NOT retired.** It is the graded spec — its unit tests are
+what say the two engines agree on rarity, separation and the three exclusions — and
+`services/hypothesis-generation.ts` still imports its primitives (that route is a different
+port unit). The description below is still the contract; it is just enforced elsewhere.
+
 `GET /api/anomalies?domains=&minSurprise=&limit=` (US-006) scans the cross-domain corpus for
 **statistically unexpected** similarities between distant, unrelated cultures — a rare shared
 musical scale, pottery style, or art motif turning up on opposite sides of the world — and
@@ -284,6 +306,17 @@ Backend-only (no UI required by the ACs).
   lack per-culture coordinates, so feeding them richly is a future data task.
 
 ## Automated hypothesis & site-location generation — `services/hypothesis-generation.ts` + `routes/hypotheses.ts`
+
+**The route is ported** (pinakes:62 US-2): `GET /api/hypotheses` is served by
+`services/api/src/pinakes/routers/hypotheses.py` over `pinakes.analytics.hypothesis`, which
+carries the clustering, the corridor-gap heuristic, the GeoJSON overlay **and** the three
+storage → input projections, against the same corpus. The Express handler answers 501 and
+`registerHypothesisRoutes` no longer takes loaders. The node projection now exists once —
+`pinakes.analytics.anomaly.load_nodes` — instead of twice with a "keep in sync" note.
+
+**`services/hypothesis-generation.ts` is NOT retired.** It is the graded spec (same standing
+as `services/anomaly-detection.ts`, whose primitives it still imports), and its unit tests are
+what say the two engines agree. The contract below is unchanged; it is enforced elsewhere.
 
 `GET /api/hypotheses?minMembers=&minRarity=&minGapKm=&limit=` (US-007) returns two families of
 **generated, explicitly-speculative** research leads: **common-ancestor hypotheses** (clusters of
@@ -1143,6 +1176,15 @@ opts in.
 
 ## Migrating a correlation to the graph — `services/cross-domain-correlation-graph.ts`
 
+**Ported to Python** (pinakes:62 US-1): `POST /api/cross-domain/correlate`,
+`GET /api/cross-domain/prebuilt-queries` and `GET /api/genetic-linguistic-correlations` are
+served by `services/api/src/pinakes/routers/correlations.py` over
+`pinakes.analytics.{correlation,genetic}` — including the flag, the `:LABEL` table and the
+graph-vs-memory decision described below. All three answer 501 here (inline in `routes.ts`,
+via its local `portedToPython` helper). `services/cross-domain-correlation{,-graph}.ts` stay
+as the graded spec; `services/genetic-linguistic-correlation.ts` is not retired at all,
+because `mapHaplogroupsToAncestry` still backs `/api/ancestry/*`.
+
 US-007 is the template for retiring a bespoke in-memory TS join in favor of the shared
 Neo4j graph, feature-flagged with a clean fallback. The first migration is the
 cross-domain correlation (`POST /api/cross-domain/correlate`).
@@ -1174,6 +1216,16 @@ first-callers share one in-flight build promise), and a `close…()` wired into 
 `SIGTERM`/`SIGINT` handler in `server/index.ts`. See `services/analytical-index.ts`.
 
 ## Analytical index (DuckDB) — `services/analytical-index.ts`
+
+**The routes are ported** (pinakes:62 US-1): `/api/analytics/*` is served by
+`services/api/src/pinakes/routers/analytics.py` over `pinakes.analytics.index`, which builds
+its **own DuckDB index** over the same TSVs with the same `read_csv` settings — the port kept
+the engine rather than reimplementing its dialect. Both paths answer 501 here, and
+`server/index.ts` no longer warms this index at startup (nothing on this side reads it).
+
+The module stays as the graded spec — its unit tests are what say the two indexes agree — and
+`closeAnalyticalIndex` stays wired into the shutdown handler, where it is a no-op unless
+something lazily built one.
 
 Runtime, in-memory DuckDB mirror of `data/source/lexicons/*.tsv` for **tabular/aggregate**
 queries (faceting, `GROUP BY`); graph queries still go to Neo4j. Full contract:

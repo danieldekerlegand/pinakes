@@ -17,7 +17,7 @@
         "Where the TS used DuckDB as an in-memory TSV mirror, the Python port uses an equivalent (duckdb or a documented substitute) and matches outputs.",
         "Express handlers removed or 501; coverage tracker updated."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -29,7 +29,7 @@
         "Numeric outputs match the baseline within a documented tolerance (or exactly where deterministic).",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

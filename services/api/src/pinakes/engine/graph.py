@@ -32,6 +32,7 @@ fallback survives.
 from __future__ import annotations
 
 import os
+import re
 import time
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any
@@ -85,6 +86,10 @@ PERSONAL_TIER_ENV = "PERSONAL_TIER_ENABLED"
 ASSET_LABEL = "Asset"
 
 _TRUTHY = frozenset({"true", "1", "yes", "on"})
+
+#: A node `:LABEL` safe to interpolate into Cypher — there is no parameter slot
+#: for one, so the only defence is refusing anything that is not an identifier.
+_LABEL = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 _connect: Connect = default_connect
 _retriever: HybridRetriever | None = None
@@ -267,6 +272,25 @@ def overview(limit: int = DEFAULT_OVERVIEW_LIMIT) -> dict[str, Any]:
     )
     nodes, edges = gate_personal(nodes, edges)
     return {"nodes": nodes, "edges": edges}
+
+
+def nodes_by_label(label: str) -> list[dict[str, Any]]:
+    """Every node carrying a `:LABEL`, in the same projection :func:`node` returns.
+
+    The one graph read that is not addressed by csid. It backs the graph-backed
+    cross-domain correlation (`pinakes.analytics.correlation`), which loads a
+    whole domain and scores it in memory, so there is nothing to page through.
+
+    The label is interpolated rather than bound because Cypher has no parameter
+    slot for a label; it is validated against an identifier pattern first, and
+    every caller picks it out of a fixed table rather than off a request.
+    """
+    if not _LABEL.fullmatch(label):
+        raise EngineFailure(f"invalid node label: {label!r}")
+    records = _read(f"MATCH (n:`{label}`) RETURN n", {})
+    nodes = [project_node(record["n"]) for record in records]
+    gated, _ = gate_personal(nodes, [])
+    return gated
 
 
 def cypher(query: str, params: Mapping[str, Any] | None = None) -> dict[str, Any]:
