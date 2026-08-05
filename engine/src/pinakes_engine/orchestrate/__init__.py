@@ -1,5 +1,11 @@
 """Orchestration subsystem: pipeline jobs that drive categories end-to-end."""
 
+from pinakes_engine.orchestrate.benchmark import (
+    AcquisitionBenchmark,
+    benchmark_acquisition,
+    compare_workers,
+    render_markdown,
+)
 from pinakes_engine.orchestrate.catalog import (
     Catalog,
     CatalogEntry,
@@ -96,6 +102,7 @@ __all__ = [
     "synthetic_records",
     "STAGE_ORDER",
     "VALID_STAGES",
+    "AcquisitionBenchmark",
     "Catalog",
     "CatalogEntry",
     "CategoryDecision",
@@ -118,9 +125,11 @@ __all__ = [
     "TierComposition",
     "TierQaReport",
     "TieredManifest",
+    "benchmark_acquisition",
     "build_manifest",
     "build_corpus",
     "build_tier_manifest",
+    "compare_workers",
     "classify_tier",
     "corpus_component_fraction",
     "corpus_qa_policy",
@@ -133,6 +142,7 @@ __all__ = [
     "manifest_for_tier_dataset",
     "parse_duration",
     "partition_by_tier",
+    "render_markdown",
     "render_table",
     "run_job",
     "select_stale",

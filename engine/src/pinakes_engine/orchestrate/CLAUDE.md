@@ -6,6 +6,35 @@ links + validates + exports the whole job into one corpus. A `Job` (`jobs.py`) i
 parsed `jobs/*.yml`; add a new job key by extending `_OPTIONAL_KEYS` + the `Job`
 dataclass + a parser in `load_job` (mirror `min_component_fraction`).
 
+## Acquisition throughput — `benchmark.py` (70-unify-scrapers US-2)
+
+`benchmark_acquisition(job, workers=…)` runs a job's **acquire stage only** (the job is
+`replace`d down to `stages=("acquire",)` and forced) against a **fresh HTTP cache**, and
+returns an `AcquisitionBenchmark`. `compare_workers(job, [1, 4])` is the before/after.
+Driver: `scripts/benchmark_acquisition.py`; the committed numbers live in
+[`docs/acquisition-throughput.md`](../../../../docs/acquisition-throughput.md) (the JSON
+artifact is gitignored — commit numbers, never the artifact, same rule as the reconcilers).
+
+- **Three clocks, and two of them are worker-seconds.** `wall_seconds` is throughput;
+  `worker_seconds` (Σ per-category stage seconds) and `network_seconds` (the shared
+  `HttpClient`'s `request_seconds + wait_seconds`) are aggregated across threads. Split
+  network-vs-parse by comparing those two — comparing an aggregate against wall clock is
+  how a 4-worker run "spends 300% of its time on the network". `worker_seconds /
+  wall_seconds` is the effective parallelism actually achieved.
+- **`request_seconds` (transport) is kept apart from `wait_seconds` (politeness + backoff)
+  on purpose** — *slow* and *throttled* are different findings with different fixes. On
+  `seed-corpus` going 1→4 workers, `wait_seconds` quadruples while wall clock does not
+  move: 8 of 9 categories share `query.wikidata.org`, so the extra workers arrive early
+  and wait. **Throughput on a job scales with distinct hosts, not threads.**
+- **The measured split is 96–99% network / 1–4% parse** (12,150 rows: 7.05 s cold, 0.11 s
+  warm). Re-check that ratio after any acquisition change — the plan's deferred Rust/Go
+  transform layer is justified only if parse share leaves the low single digits.
+- **A live benchmark hits the live network.** Every configuration gets its own cold cache
+  (a shared one would report an unearned speedup), so a comparison re-issues real queries.
+  Beware the upstream's *own* cache: WDQS serves a repeated SPARQL query from its result
+  cache, which confounds a naive before/after — run the configurations in both orders and
+  say which effect is which. Tests inject `client=` + `adapter_factory=` and stay offline.
+
 ## License-partitioned packaging — `package.py` (source-breadth US-005)
 
 `package_corpus` now emits a `licenses` block in the release manifest so a shared corpus

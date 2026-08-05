@@ -74,6 +74,29 @@ Three things about these that are easy to get wrong:
 - **A malformed model answer raises.** The TypeScript pushed it onto an `errors[]` and
   continued, which is how a domain could acquire nothing and still report success.
 
+## One concurrency + politeness model (70-unify-scrapers US-2)
+
+There is one fetch layer and it is `http.py`. `HttpClient` is **synchronous** (`requests` +
+`time.sleep`) and shared across the orchestration layer's worker threads; concurrency is the
+runner's fan-out, not the client's. Two properties make that safe, and both are asserted:
+
+- **The lock guards the reservation, not the request.** `_respect_rate_limit` computes the
+  next polite slot for a host under the lock, records it, releases, and *then* sleeps. So
+  concurrent workers on one host get distinct evenly-spaced slots, and a worker waiting on
+  (or mid-flight to) one host never blocks a fetch to a different one — the limit is per
+  host, never global. `test_http.py::test_one_slow_host_does_not_block_a_request_to_another`
+  is the tripwire; read `_respect_rate_limit`'s docstring before touching it.
+- **`HttpStats` carries two timers**, `request_seconds` (inside the transport) and
+  `wait_seconds` (politeness gaps + retry backoff), aggregated across all callers. They are
+  worker-seconds, not wall clock. `wait_seconds` bills the delay it *asked* for rather than
+  re-reading the clock — deliberately, to keep the hot path at three clock reads per
+  request. **Adding a clock read changes that count**, and `test_http.py`'s injected
+  `monotonic` iterators are sized to it; a `StopIteration` there means you added one.
+
+The measured consequence — 96–99% network, 1–4% parse, per-host `min_interval` as the
+binding constraint — is `docs/acquisition-throughput.md`, produced by
+`orchestrate/benchmark.py`. **Do not optimise the parser without re-reading it.**
+
 ## Provenance placement (gotcha)
 
 `schema/mapper.py::_carry_provenance` stamps a node row's `source`/`source_url`/

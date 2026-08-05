@@ -19,8 +19,15 @@ a fake transport instead of touching the network.
 
 A single client is meant to be **shared** across an acquisition run — including
 across the concurrent workers the orchestration layer fans categories out to.
-The per-host rate limit and the hit/miss/retry counters are therefore guarded by
-a lock, so politeness is enforced globally rather than per worker.
+The per-host rate limit, the hit/miss/retry counters and the I/O timers are
+therefore guarded by a lock, so politeness is enforced globally rather than per
+worker.
+
+Politeness is enforced **per host and only per host**: the reservation is
+computed under the lock but the resulting sleep happens *outside* it, so a slow
+host never blocks a request to a different one. That is what makes a
+multi-source job concurrent in practice — see
+:mod:`pinakes_engine.orchestrate.benchmark` for the measured effect.
 """
 
 from __future__ import annotations
@@ -49,12 +56,36 @@ class HttpStats:
     """Counters describing what a :class:`HttpClient` did over its lifetime.
 
     Surfaced so an acquisition run report can record cache hit/miss and retry
-    activity (see ``docs/data-model.md`` provenance goals).
+    activity (see ``docs/data-model.md`` provenance goals), and so a benchmark
+    can say *where the time went* rather than guessing
+    (:mod:`pinakes_engine.orchestrate.benchmark`).
+
+    The two timers are **aggregated across every caller**, so under ``W``
+    concurrent workers they measure worker-seconds and may exceed the run's
+    wall-clock. Compare them against summed per-category stage seconds, never
+    against wall clock.
+
+    Attributes:
+        cache_hits: Responses served from the on-disk cache.
+        cache_misses: Responses that had to be fetched.
+        retries: Requests retried after a ``429``/``5xx``.
+        request_seconds: Time spent inside the transport — the network itself.
+        wait_seconds: Time spent *sleeping*: per-host politeness gaps plus
+            retry backoff. Deliberately separate from
+            :attr:`request_seconds`, because it is the cost of being polite,
+            not the cost of the network.
     """
 
     cache_hits: int = 0
     cache_misses: int = 0
     retries: int = 0
+    request_seconds: float = 0.0
+    wait_seconds: float = 0.0
+
+    @property
+    def network_seconds(self) -> float:
+        """Total time attributable to acquisition I/O (transport + politeness)."""
+        return self.request_seconds + self.wait_seconds
 
 
 @dataclass(frozen=True)
@@ -173,6 +204,8 @@ class HttpClient:
         self._cache_hits = 0
         self._cache_misses = 0
         self._retries = 0
+        self._request_seconds = 0.0
+        self._wait_seconds = 0.0
         #: Guards rate-limit reservations and counters so the client is safe to
         #: share across concurrent acquisition workers.
         self._lock = threading.Lock()
@@ -184,12 +217,15 @@ class HttpClient:
 
     @property
     def stats(self) -> HttpStats:
-        """A snapshot of cache hit/miss and retry counts so far."""
-        return HttpStats(
-            cache_hits=self._cache_hits,
-            cache_misses=self._cache_misses,
-            retries=self._retries,
-        )
+        """A snapshot of the cache/retry counts and I/O timers so far."""
+        with self._lock:
+            return HttpStats(
+                cache_hits=self._cache_hits,
+                cache_misses=self._cache_misses,
+                retries=self._retries,
+                request_seconds=self._request_seconds,
+                wait_seconds=self._wait_seconds,
+            )
 
     def get(
         self, url: str, params: Mapping[str, str] | None = None
@@ -250,12 +286,14 @@ class HttpClient:
         headers = {"User-Agent": self._user_agent, **dict(extra or {})}
         while True:
             self._respect_rate_limit(url)
+            started = self._monotonic()
             response = self._send(method, url, params, headers, body)
+            self._record_request_seconds(self._monotonic() - started)
             if not _is_retryable(response.status_code):
                 return response
             if attempt >= self._max_retries:
                 return response
-            self._sleep(self._retry_delay(response, attempt))
+            self._wait(self._retry_delay(response, attempt))
             with self._lock:
                 self._retries += 1
             attempt += 1
@@ -306,7 +344,23 @@ class HttpClient:
             self._last_request[host] = earliest
         wait = earliest - now
         if wait > 0:
-            self._sleep(wait)
+            self._wait(wait)
+
+    def _wait(self, seconds: float) -> None:
+        """Sleep *seconds* and bill it to :attr:`HttpStats.wait_seconds`.
+
+        The billed value is the delay we *asked* for, not a measured one: the
+        two agree to within scheduler jitter, and reading the clock again here
+        would double the clock calls on the hot path for no extra truth.
+        """
+        self._sleep(seconds)
+        with self._lock:
+            self._wait_seconds += seconds
+
+    def _record_request_seconds(self, seconds: float) -> None:
+        """Bill *seconds* of transport time to :attr:`HttpStats.request_seconds`."""
+        with self._lock:
+            self._request_seconds += seconds
 
     def _retry_delay(self, response: HttpResponse, attempt: int) -> float:
         retry_after = response.header("Retry-After")

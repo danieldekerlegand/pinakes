@@ -182,7 +182,10 @@ def test_stats_track_cache_hits_misses_and_retries(tmp_path: Path) -> None:
 def test_per_host_rate_limit_sleeps_between_requests(tmp_path: Path) -> None:
     transport = _FakeTransport([_ok("a"), _ok("b")])
     sleeps: list[float] = []
-    clock = iter([0.0, 0.3, 0.3])  # second request starts 0.3s after the first
+    # Three clock reads per request: the rate-limit reservation, then the pair
+    # bracketing the transport call that bills HttpStats.request_seconds. The
+    # second request's reservation therefore sees 0.3 — 0.3s after the first.
+    clock = iter([0.0, 0.0, 0.0, 0.3, 0.3, 0.3])
     client = HttpClient(
         cache_dir=tmp_path,
         min_interval=1.0,
@@ -195,6 +198,92 @@ def test_per_host_rate_limit_sleeps_between_requests(tmp_path: Path) -> None:
     client.get("https://example.org/b")  # same host, different path
 
     assert sleeps == [pytest.approx(0.7)]  # 1.0 - 0.3 elapsed
+
+
+def test_a_different_host_is_never_made_to_wait(tmp_path: Path) -> None:
+    # The politeness gap is per host: interleaving a second host costs nothing,
+    # and only the *repeat* of the first host pays the interval. A globally
+    # serialized limiter would have charged the second host too.
+    transport = _FakeTransport([_ok("a"), _ok("b"), _ok("a2")])
+    sleeps: list[float] = []
+    clock = iter([0.0] * 9)  # three requests, three clock reads each
+    client = HttpClient(
+        cache_dir=tmp_path,
+        min_interval=1.0,
+        transport=transport,
+        sleep=sleeps.append,
+        monotonic=lambda: next(clock),
+    )
+
+    client.get("https://alpha.example.org/q")
+    client.get("https://beta.example.org/q")  # different host — no gap owed
+    assert sleeps == []
+
+    client.get("https://alpha.example.org/other")  # first host again — pays
+    assert sleeps == [pytest.approx(1.0)]
+
+
+def test_stats_time_the_transport_and_the_politeness_separately(
+    tmp_path: Path,
+) -> None:
+    # request_seconds is the network; wait_seconds is the cost of being polite.
+    # Keeping them apart is what lets a benchmark say where the time went.
+    transport = _FakeTransport([_ok("a"), _ok("b")])
+    sleeps: list[float] = []
+    clock = iter(
+        [
+            0.0, 0.0, 0.25,  # reserve at 0.0, transport spans 0.25s
+            0.5, 1.0, 1.5,  # reserve at 0.5 (owes 0.5s), transport spans 0.5s
+        ]
+    )
+    client = HttpClient(
+        cache_dir=tmp_path,
+        min_interval=1.0,
+        transport=transport,
+        sleep=sleeps.append,
+        monotonic=lambda: next(clock),
+    )
+
+    client.get("https://example.org/a")
+    client.get("https://example.org/b")
+
+    assert sleeps == [pytest.approx(0.5)]
+    assert client.stats.request_seconds == pytest.approx(0.75)
+    assert client.stats.wait_seconds == pytest.approx(0.5)
+    assert client.stats.network_seconds == pytest.approx(1.25)
+
+
+def test_a_cache_hit_costs_no_network_or_wait_time(tmp_path: Path) -> None:
+    # The cache is the other half of the throughput story: a hit must not
+    # inflate either timer, or a warm run would look as expensive as a cold one.
+    transport = _FakeTransport([_ok("first")])
+    sleeps: list[float] = []
+    client = HttpClient(
+        cache_dir=tmp_path,
+        min_interval=1.0,
+        transport=transport,
+        sleep=sleeps.append,
+    )
+
+    client.get("https://example.org/q")
+    before = client.stats
+
+    client.get("https://example.org/q")  # served from cache
+
+    assert client.stats.cache_hits == 1
+    assert client.stats.request_seconds == before.request_seconds
+    assert client.stats.wait_seconds == before.wait_seconds
+
+
+def test_retry_backoff_is_billed_to_wait_seconds(tmp_path: Path) -> None:
+    transport = _FakeTransport([HttpResponse("u", 429, "slow down", {}), _ok("done")])
+    sleeps: list[float] = []
+    client = _client(tmp_path, transport, sleeps, backoff_factor=0.5)
+
+    client.get("https://example.org/q")
+
+    assert client.stats.retries == 1
+    assert client.stats.wait_seconds == pytest.approx(0.5)
 
 
 class _ConstantTransport:
@@ -242,6 +331,61 @@ def test_rate_limit_reserves_a_slot_per_concurrent_worker(tmp_path: Path) -> Non
         thread.join()
 
     assert sorted(sleeps) == [1.0, 2.0, 3.0]
+
+
+class _GatedTransport:
+    """Blocks requests to one host on an event; answers every other host at once."""
+
+    def __init__(self, blocked_host: str) -> None:
+        self._blocked_host = blocked_host
+        self.entered = threading.Event()
+        self.release = threading.Event()
+
+    def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        params: Mapping[str, str] | None,
+        headers: Mapping[str, str],
+        timeout: float,
+    ) -> HttpResponse:
+        if self._blocked_host in url:
+            self.entered.set()
+            if not self.release.wait(timeout=5.0):
+                raise AssertionError("the gated request was never released")
+        return HttpResponse(url=url, status_code=200, text="ok", headers={})
+
+
+def test_one_slow_host_does_not_block_a_request_to_another(tmp_path: Path) -> None:
+    # The load-bearing property behind concurrent multi-source acquisition: the
+    # shared client's lock guards the *reservation*, not the request. So while
+    # one host is mid-flight (and while another worker sleeps out its politeness
+    # gap), a fetch from a different host goes straight through. If the lock
+    # were held across the transport call, this would deadlock until the 5s
+    # timeout and the assertion below would never be reached.
+    transport = _GatedTransport("slow.example.org")
+    client = HttpClient(
+        cache_dir=tmp_path,
+        min_interval=1.0,
+        transport=transport,
+        sleep=lambda _seconds: None,
+    )
+
+    def slow() -> None:
+        client.get("https://slow.example.org/q")
+
+    worker = threading.Thread(target=slow)
+    worker.start()
+    try:
+        assert transport.entered.wait(timeout=5.0), "slow request never started"
+        response = client.get("https://fast.example.org/q")  # must not block
+        assert response.status_code == 200
+    finally:
+        transport.release.set()
+        worker.join(timeout=5.0)
+
+    assert not worker.is_alive()
 
 
 class _BodyTransport:
