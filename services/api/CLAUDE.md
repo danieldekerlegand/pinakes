@@ -759,3 +759,55 @@ slice — `.chief/state/progress.txt` carries the breakdown and the recommended 
   ×2, `test_not_implemented`). They name `/api/media-assets` now. Expect to do this
   again: the next slice inherits the same chore, and the failure is loud, so do not
   pre-emptively "fix" it by asserting on something vaguer.
+
+## The cutover's second slice — `routers/domains.py` + `lexicons/domains.py` (pinakes:80 US-1)
+
+Forty routes across eighteen `list` + `{id}` groups from `server/routes.ts`, all
+of them over loaders `lexicons/storage.py` already had. Coverage 125/306 →
+**165/306**. Cheap by design — the slice was picked because nothing under HTTP
+had to be written — which makes the envelopes and the JavaScript coercions the
+whole of the work.
+
+- **`_echo` is the file's load-bearing helper**, and it encodes three separate
+  rules. `JSON.stringify` emits **no key** for an `undefined` value, so
+  `?year=` (falsy ⇒ the read yielded `undefined`) comes back with no `year`;
+  but `?region=` was read *raw*, so it comes back as `""`. `NaN` serialises as
+  **`null`**, which Starlette's `JSONResponse` cannot do at all — it sets
+  `allow_nan=False` and raises — so the conversion has to happen in the handler.
+  And `parseInt` yields a Python `float`, so an echoed year needs
+  `jsmath.js_number` or the wire reads `-800.0`.
+- **Four filter dialects, no domain agreeing with its neighbour.** Exact,
+  case-folded-whole, case-folded-substring, and — on a trade good's
+  `timePeriod`, alone in the corpus — a **case-sensitive** substring. The module
+  docstring lists which is which. This is the rule most likely to be "tidied"
+  into one; don't.
+- **`?is_active=` really does filter.** `getWritingSystems` guarded that one
+  parameter with `!== undefined` where every other filter in the file is
+  truthiness, and compares `raw === "true"` — so a blank parameter selects the
+  *inactive* systems. It is the only presence-tested filter here.
+- **Migration-route dates are compared as strings and battle dates as
+  `parseInt` on both sides.** `"-3000" >= "-500"` is false lexicographically;
+  a battle dated `"sometime"` is `NaN` and drops out of every bounded query
+  while still appearing unfiltered. Both are the TypeScript's and both change
+  which rows come back.
+- **A bug the port found: `belligerents` were being stringified.**
+  `load_battles` read that column with `tsv.json_array`, which maps `str` over
+  its items — and it is the only JSON column in the whole corpus whose items are
+  **objects**. Every battle body carried `"{'name': …}"` strings and
+  `?civilization_id=` matched nothing. Now `tsv.json_cell`; the guard is
+  `test_belligerents_are_objects_not_stringified_items`.
+- **`load_myth_motifs` landed here**, without its own port unit driving it:
+  `GET /api/deities/{id}/motifs` reads the motif side of the join, so the deity
+  group cannot answer without the file. `/api/myth-motifs` and its `{id}` came
+  along because the loader was there.
+- **Two proximity defaults, both live.** `settlements/nearby` falls back to
+  **100 km** (`domains.DEFAULT_NEARBY_RADIUS_KM`), `culture-profiles/by-location`
+  to **500** (`catalog.DEFAULT_RADIUS_KM`). And `settlements_nearby` **culls by
+  haversine but orders by `Math.hypot` on raw degrees** — the two disagree away
+  from the equator, deliberately.
+- **The whole slice was proved byte-identical to Express over 234 live
+  requests** with the throwaway-script method the earlier bands describe: every
+  filter, both 404 spellings, both 500 spellings, the bounding box with three
+  corners, `?radius=near`, and the malformed-year echo.
+- **`test_not_implemented.py`'s `/api/religions` stand-in went red on landing**
+  and names `/api/haplogroups` now. Expect this every slice.

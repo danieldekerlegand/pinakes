@@ -560,6 +560,49 @@ def load_deities(lexicons: Path) -> list[Record]:
     ]
 
 
+def load_myth_motifs(lexicons: Path) -> list[Record]:
+    """`myth-motifs.tsv` → the motif records (``loadMythMotifs``).
+
+    Landed alongside the mythology routes because `GET /api/deities/{id}/motifs`
+    reaches it: a motif names its deities, not the other way round, so the deity
+    route cannot answer without this file.
+    """
+    parsed = tsv.read_tsv(lexicons, "myth-motifs.tsv")
+    if parsed is None:
+        return []
+    header, rows = parsed
+    id_index = tsv.required_index(header, "id")
+    name_index = tsv.required_index(header, "name")
+    type_index = tsv.index_of(header, "motif_type")
+    thompson_index = tsv.index_of(header, "thompson_index")
+    mythology_index = tsv.index_of(header, "mythology_ids")
+    deity_index = tsv.index_of(header, "associated_deity_ids")
+    region_index = tsv.index_of(header, "region")
+    origin_index = tsv.index_of(header, "time_origin")
+    end_index = tsv.index_of(header, "time_end")
+    related_index = tsv.index_of(header, "related_motif_ids")
+    description_index = tsv.index_of(header, "description")
+    sources_index = tsv.index_of(header, "sources")
+
+    return [
+        {
+            "id": tsv.cell(row, id_index),
+            "name": tsv.cell(row, name_index),
+            "motifType": tsv.text_cell(row, type_index),
+            "thompsonIndex": tsv.text_cell(row, thompson_index),
+            "mythologyIds": tsv.json_array(row, mythology_index),
+            "associatedDeityIds": tsv.json_array(row, deity_index),
+            "region": tsv.text_cell(row, region_index),
+            "timeOrigin": _int(row, origin_index),
+            "timeEnd": _int(row, end_index),
+            "relatedMotifIds": tsv.json_array(row, related_index),
+            "description": tsv.text_cell(row, description_index),
+            "sources": tsv.json_array(row, sources_index),
+        }
+        for row in rows
+    ]
+
+
 def load_religions(lexicons: Path) -> list[Record]:
     """`religions.tsv` → the religion records (``loadReligions``)."""
     parsed = tsv.read_tsv(lexicons, "religions.tsv")
@@ -665,7 +708,12 @@ def load_battles(lexicons: Path) -> list[Record]:
             # domains carry. `server/CLAUDE.md` records the same asymmetry for
             # material culture; both are corpus shape, not a slip.
             "coordinates": tsv.json_cell(row, coordinates_index, [0, 0]),
-            "belligerents": tsv.json_array(row, belligerents_index),
+            # `json_cell`, not `json_array`: the cell is an array of **objects**
+            # (`{name, civilization_id}`), and `json_array` stringifies its items
+            # — which turned every belligerent into `"{'name': …}"` on the wire
+            # and made `?civilization_id=` match nothing. The TypeScript's
+            # `JSON.parse` kept the objects; found porting `GET /api/battles`.
+            "belligerents": tsv.json_cell(row, belligerents_index, []),
             "outcome": tsv.text_cell(row, outcome_index),
             "casualtiesEstimate": tsv.text_cell(row, casualties_index),
             "significance": tsv.text_cell(row, significance_index),

@@ -19,11 +19,12 @@ SAMPLE_REQUESTS = [
     ("GET", "/api/media-assets", "/api/media-assets"),
     ("GET", "/api/media-assets/{id}", "/api/media-assets/asset-42"),
     ("POST", "/api/scraping-jobs", "/api/scraping-jobs"),
-    # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it — a sample
-    # here has to name a route that is still *un*ported, or the 501 assertion
-    # goes red the day the group lands. That group's own coverage is
-    # `test_summary_routes.py`.
-    ("GET", "/api/religions", "/api/religions"),
+    # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it, then
+    # `/api/religions` until pinakes:80 US-1's second slice — a sample here has
+    # to name a route that is still *un*ported, or the 501 assertion goes red
+    # the day the group lands. Those groups' own coverage is
+    # `test_summary_routes.py` and `test_domain_routes.py`.
+    ("GET", "/api/haplogroups", "/api/haplogroups"),
     # Was `/api/graph/resolve` + `/.well-known/kcb-manifest.json` until
     # pinakes:65 US-1 ported them; their coverage is `test_graph_routes.py` and
     # `test_capability_bus.py`. Then `/api/graph/explain` +

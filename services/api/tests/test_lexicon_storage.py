@@ -40,6 +40,7 @@ def write(lexicons: Path, filename: str, *lines: str) -> Path:
         storage.load_languages,
         storage.load_language_families,
         storage.load_religions,
+        storage.load_myth_motifs,
         storage.load_battles,
         storage.load_cuisines,
         storage.load_deities,
@@ -382,6 +383,7 @@ def test_find_by_id_returns_the_first_match() -> None:
         (storage.load_civilizations, 170),
         (storage.load_archaeological_sites, 550),
         (storage.load_deities, 206),
+        (storage.load_myth_motifs, 61),
         (storage.load_religions, 20),
         (storage.load_cuisines, 101),
         (storage.load_culture_profiles, 170),
@@ -415,6 +417,7 @@ def test_every_live_domain_loads_at_least_one_row() -> None:
             ("civilizations", storage.load_civilizations),
             ("archaeological-sites", storage.load_archaeological_sites),
             ("deities", storage.load_deities),
+            ("myth-motifs", storage.load_myth_motifs),
             ("religions", storage.load_religions),
             ("cuisines", storage.load_cuisines),
             ("battles", storage.load_battles),
@@ -550,3 +553,45 @@ def test_a_kinship_system_has_no_name_column_at_all(tmp_path: Path) -> None:
     assert "name" not in system
     assert system["systemType"] == "Iroquois"
     assert system["residenceRule"] == ""
+
+
+# ── The pinakes:80 US-1 additions ────────────────────────────────────────────
+
+
+def test_belligerents_are_objects_not_stringified_items(tmp_path: Path) -> None:
+    """The one JSON column in this corpus whose items are not strings.
+
+    It had been read with the string-array reader, which rendered each side as
+    ``"{'name': …}"`` — so `/api/battles?civilization_id=` matched nothing and
+    the response body was wrong wherever a battle appeared. `JSON.parse` kept
+    the objects; found porting the route.
+    """
+    write(
+        tmp_path,
+        "battles.tsv",
+        "id\tname\tdate\tbelligerents",
+        'b1\tKadesh\t-1274\t[{"name":"Egypt","civilization_id":"egypt"}]',
+        "b2\tUnparseable\t-1\tnot json",
+    )
+    battles = storage.load_battles(tmp_path)
+    assert battles[0]["belligerents"] == [
+        {"name": "Egypt", "civilization_id": "egypt"}
+    ]
+    assert battles[1]["belligerents"] == []
+
+
+def test_a_myth_motif_reads_every_optional_column_through_index_of(
+    tmp_path: Path,
+) -> None:
+    """Only `id` and `name` are required; the live file spells half of the rest
+    differently (`atu_index`, `geographic_distribution`) and simply reads blank."""
+    write(
+        tmp_path,
+        "myth-motifs.tsv",
+        "id\tname\tassociated_deity_ids\ttime_origin",
+        'm1\tGreat Flood\t["zeus"]\tnull',
+    )
+    motif = storage.load_myth_motifs(tmp_path)[0]
+    assert motif["associatedDeityIds"] == ["zeus"]
+    assert motif["timeOrigin"] is None
+    assert (motif["motifType"], motif["region"], motif["thompsonIndex"]) == ("", "", "")
