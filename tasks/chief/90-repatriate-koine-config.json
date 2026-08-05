@@ -3,8 +3,14 @@
   "branchName": "chief/90-repatriate-koine-config",
   "baseBranch": "main",
   "description": "Make pinakes a fully SELF-DESCRIBING koine participant that owns all of its own fabric-participation config IN-REPO, so it can join the ecosystem with only koine (the spec) + agora (the runtime) and NO external, closed config source. Today several pieces already live here (the KCB capability manifest, the /.well-known/kcb-manifest.json + agent-card.json fronts); this tasklist completes the set — the participant's namespace + minting-authority declaration, its egress/dialect policy, and the bridge mappings for its PUBLIC integrations — and proves pinakes participates without reaching for any config outside this repo. Follows koine's self-describing-participant convention (koine:30-self-describing-participant), which must land first so the on-disk shape and well-known layout are fixed before we populate them. Scope is pinakes-owned public config only: any integration whose far endpoint is a non-public service is deliberately out of scope and simply not represented here. Anti-fabrication: a story passes only when the declared config actually exists in-repo, validates, and the gate is green.",
-  "dependsOn": ["koine:30-self-describing-participant"],
-  "touches": ["participant-config", "capability-manifest", "docs"],
+  "dependsOn": [
+    "koine:30-self-describing-participant"
+  ],
+  "touches": [
+    "participant-config",
+    "capability-manifest",
+    "docs"
+  ],
   "iters": 8,
   "warmup": [
     "bun install",
@@ -24,7 +30,7 @@
         "An egress/dialect policy is declared in-repo stating that pinakes's knowledge ports emit grounding-only, and the existing capability manifest references it as the source of truth (no divergent second copy).",
         "The participant identity, namespace, and ports in the declaration are consistent with the already-published KCB capability manifest — a drift check ties them together and fails if they disagree."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
