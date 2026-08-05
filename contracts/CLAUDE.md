@@ -242,6 +242,44 @@ the four-facet table live in `docs/capability-bus.md`.
   participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
   failure that convention exists to prevent.
 
+## Public bridge mapping — `bridge-insimul.json` + `bridge-insimul.ts` (90-repatriate-koine-config US-2)
+
+Pinakes's OWN bridge mapping for the pinakes↔insimul integration — koine's translation facet,
+instantiated. Koine holds the shape; the mapping belongs to the participant that performs the
+crossing and travels with the code that performs it (`scripts/export-insimul-pack.ts` for the
+outbound leg, `engine/src/pinakes_engine/acquire/insimul.py` for the return leg).
+
+- **It maps; it does not name a vocabulary.** A row carries `{direction, registryEntry,
+  canonicalKind, canonicalTypes, note}` — the predicates are read *through* the row's
+  `projects.insimul` entry in the vendored `predicate-mapping.json` mirror, never restated. A
+  test strips the prose `note`s and asserts no structured cell contains a predicate string;
+  prose may cite one to explain a correspondence. A vocabulary gap is still closed upstream in
+  koine and re-vendored — this document adds no way around that.
+- **`assertValidBridgeMapping(mapping, schema, registry)` resolves every reference**: each
+  `canonicalTypes` cell against `canonical-schema.json` for its kind (this is the "fails on an
+  unmapped type" gate, in both directions), each `registryEntry` against the registry, and the
+  entry's coverage / direction / egress / `pending` state against the leg. All three documents
+  are **parameters** — an accessor closing over the live one would validate the wrong doc under
+  test (same trap `capability-manifest.ts` documents).
+- **`typeReuseOnly` is the one documented way past the direction check**, and there are exactly
+  two rows: `place` (settlements coming back) and `myth-motif` (truths coming back). Their
+  registry entries cross `LS->IN` because their PREDICATES seed a world; the return leg only
+  anchors an ingested node on the canonical type the registry already pairs Insimul with. Setting
+  the flag on an entry that already crosses is an error, so it cannot be used to silence a real
+  mismatch.
+- **A non-public far endpoint is ABSENT, not redacted** (`assertPublicBridge`). A redacted
+  section still discloses the shape of what it hides, so the set of `contracts/bridge-*.json`
+  files IS the set of public integrations — which is also why this module reads no external file.
+- **The exporter resolves its registry entry through this document.** `SEED_MAPPINGS` carries no
+  `relationId` any more; `bridgeRowFor(seedMapping)` looks the correspondence up by canonical
+  node type, so the seed table and the bridge can never disagree about which entry authorizes a
+  seed. The emitted pack records `x_pinakes.bridgeMapping` — **regenerate the committed fixture
+  pack** (`npm run insimul-pack -- --emit-fixture`) after bumping `bridgeVersion`.
+- **Python reaches it via `pinakes_contracts.load_document("bridge-insimul.json")`**, not a
+  `parents[n]` walk. It is deliberately NOT a codegen source (same as `participant.json` /
+  `egress-policy.json`): nothing needs a literal union out of it, and `engine/tests/test_insimul.py`
+  asserts the adapter's `CANONICAL_NODE_TYPES` / `CANONICAL_EDGE_TYPES` equal the `return` rows.
+
 ## Predicate-mapping registry — `predicate-mapping.json` + `predicate-mapping.ts`
 
 The bridge contract between the canonical node/edge vocabulary and the relation vocabularies of

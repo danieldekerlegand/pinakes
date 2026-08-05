@@ -24,9 +24,12 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import pytest
+from pinakes_contracts import canonical_schema, load_document
 
+from pinakes_engine.acquire import insimul
 from pinakes_engine.acquire.categories import CategorySpec, SourceSpec
 from pinakes_engine.acquire.factory import build_adapter
 from pinakes_engine.acquire.http import HttpClient
@@ -562,3 +565,78 @@ def test_a_non_json_file_is_rejected(tmp_path: Path) -> None:
     path.write_text("not json", encoding="utf-8")
     with pytest.raises(InsimulExportError, match="not valid JSON"):
         _fetch(_spec(str(path)))
+
+
+# ---------------------------------------------------------------------------
+# The in-repo bridge mapping (90-repatriate-koine-config US-2)
+# ---------------------------------------------------------------------------
+#
+# The return leg's correspondences are owned by pinakes and live in
+# ``contracts/bridge-insimul.json`` — beside the code that performs the crossing,
+# not in an external config source. These tests are how the return path
+# *exercises* that document: the adapter must emit exactly the canonical types the
+# mapping declares for ``return``, and each must resolve in pinakes's own schema.
+
+
+def _bridge_mapping() -> dict[str, Any]:
+    """The in-repo bridge mapping, located through ``pinakes_contracts``.
+
+    No ``parents[n]`` walk and no path outside this repo: the contracts package
+    is the single place that knows where the neutral sources live.
+    """
+    return load_document("bridge-insimul.json")
+
+
+def _return_rows(kind: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = _bridge_mapping()["rows"]
+    return [
+        r for r in rows if r["direction"] == "return" and r["canonicalKind"] == kind
+    ]
+
+
+def test_the_bridge_mapping_declares_the_return_leg_this_adapter_implements() -> None:
+    mapping = _bridge_mapping()
+    ret = next(d for d in mapping["directions"] if d["id"] == "return")
+    assert "engine/src/pinakes_engine/acquire/insimul.py" in ret["implementedBy"]
+    form = mapping["idSpaces"]["return"]["form"]
+    assert form == "cs:<type>:insimul:<worldId>:<entityId>"
+
+
+def test_the_adapter_emits_exactly_the_node_types_the_bridge_mapping_declares() -> None:
+    declared = {t for row in _return_rows("node") for t in row["canonicalTypes"]}
+    assert declared == set(insimul.CANONICAL_NODE_TYPES)
+
+
+def test_the_adapter_emits_exactly_the_edge_types_the_bridge_mapping_declares() -> None:
+    declared = {
+        canonical_schema.TOKEN_BY_EDGE_TYPE[t]
+        for row in _return_rows("edge")
+        for t in row["canonicalTypes"]
+    }
+    assert declared == set(insimul.CANONICAL_EDGE_TYPES)
+
+
+def test_every_canonical_type_the_bridge_mapping_names_exists_in_the_schema() -> None:
+    # The Python half of the "fails on an unmapped type" check: a row naming a
+    # type pinakes does not have would resolve to nothing here.
+    for row in _bridge_mapping()["rows"]:
+        for name in row["canonicalTypes"]:
+            if row["canonicalKind"] == "node":
+                assert canonical_schema.node_type_by_name(name) is not None, name
+            else:
+                assert canonical_schema.edge_type_by_name(name) is not None, name
+
+
+def test_the_returned_rows_are_the_types_the_bridge_mapping_covers() -> None:
+    # End-to-end over the committed fixture world: what actually lands is a subset
+    # of the declared return leg, never something undeclared.
+    records = list(_fetch(_spec(str(FIXTURE_WORLD))))
+    labels = {
+        canonical_schema.LABEL_BY_NODE_TYPE[t] for t in insimul.CANONICAL_NODE_TYPES
+    }
+    for record in records:
+        fields = record.fields
+        if ":LABEL" in fields:
+            assert fields[":LABEL"] in labels
+        else:
+            assert fields[":TYPE"] in set(insimul.CANONICAL_EDGE_TYPES)

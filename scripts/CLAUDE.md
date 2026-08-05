@@ -181,10 +181,15 @@ KGP `pack_id` rides across in `x_pinakes.kgpPackId`. Run: `npm run insimul-pack 
 culture,place,language --license-classes CC0,CC-BY --out <dir> --emit-fixture]`. Full contract:
 [`docs/grounding-pack.md`](../docs/grounding-pack.md) "The Insimul projection".
 
-- **`SEED_MAPPINGS` is the executable half of the US-001 predicate-mapping registry, and
-  `assertSeedMappingsRegistered()` enforces that** (at build time *and* in the test): a mapping
-  may only emit a predicate its `projects.insimul` registry entry's `external` cell names, only
-  through an entry that crosses `LS->IN`/`both`, is `exportable`, and is not `pending`. **Never
+- **`SEED_MAPPINGS` resolves its registry entry THROUGH the in-repo bridge mapping**
+  (`contracts/bridge-insimul.json`, 90-repatriate-koine-config US-2) — a seed names a canonical
+  node type and nothing else, and `bridgeRowFor()` looks the correspondence up. So a node type
+  the bridge does not declare as crossing outward cannot be seeded at all, and the emitted pack
+  records `x_pinakes.bridgeMapping` (**bump `bridgeVersion` ⇒ regenerate the fixture pack**).
+- **`assertSeedMappingsRegistered()` still enforces the registry** (at build time *and* in the
+  test): a mapping may only emit a predicate its resolved `projects.insimul` entry's `external`
+  cell names, only through an entry that crosses `LS->IN`/`both`, is `exportable`, and is not
+  `pending`. **Never
   widen the table to add a predicate** — upstream it to koine `registry/predicate-mapping.json`,
   bump `registryVersion`, `cp` the mirror back. That is how 0.4.1 added `country_name/2` /
   `settlement_name/2` / `item_name/2` (a nameless world seed is unusable; all three are in

@@ -14,6 +14,7 @@ import {
   packJson,
   parseArgs,
   prologAtom,
+  bridgeRowFor,
   registryEntryFor,
   seedRefKey,
   seedMappingFor,
@@ -35,6 +36,13 @@ import {
   FIXTURE_GENERATED_AT,
 } from "./export-entity-grounding";
 import { PREDICATE_MAPPING, externalPredicates } from "@contracts/predicate-mapping";
+import {
+  BRIDGE_INSIMUL,
+  BRIDGE_INSIMUL_PATH,
+  bridgeRows,
+  type BridgeMapping,
+  type BridgeRow,
+} from "@contracts/bridge-insimul";
 
 /** Insimul's shipped contract artifacts (`INSIMUL_ROOT` overrides — same as the registry test). */
 const INSIMUL_ROOT =
@@ -115,20 +123,56 @@ describe("export-insimul-pack (insimul-bridge US-002)", () => {
       );
     });
 
+    it("rejects a node type the in-repo bridge mapping does not carry outward", () => {
+      // `character` crosses INWARD only (Bridge 2), so it has no `export` row to seed under.
+      expect(() =>
+        assertSeedMappingsRegistered([{ nodeType: "character", fields: [], facts: [] }]),
+      ).toThrow(/is not declared by contracts\/bridge-insimul\.json/);
+    });
+
     it("rejects an entry that is pending, local-only, or does not cross to Insimul", () => {
-      // #9 (person/character) is IN->LS *and* pending an unlanded canonical addition.
+      // The bridge mapping is the lookup, so these are driven by mutating IT — which is
+      // also the point: a rogue correspondence has to be declared before it can be emitted.
+      const bridge = (row: Partial<BridgeRow>): BridgeMapping =>
+        ({
+          ...BRIDGE_INSIMUL,
+          rows: [
+            { direction: "export", canonicalKind: "node", note: "test", ...row } as BridgeRow,
+          ],
+        }) as BridgeMapping;
+      // #9 (person/character) is IN->LS — it does not cross outward.
       expect(() =>
-        assertSeedMappingsRegistered([
-          { nodeType: "character", relationId: 9, fields: [], facts: [] },
-        ]),
+        assertSeedMappingsRegistered([{ nodeType: "character", fields: [], facts: [] }], bridge({
+          registryEntry: 9,
+          canonicalTypes: ["character"],
+        })),
       ).toThrow(/does not cross to Insimul/);
-      // #19 is the local-only personal-tier catalogue entry.
+      // #19 is the local-only personal-tier catalogue entry, and covers no canonical type.
       expect(() =>
-        assertSeedMappingsRegistered([{ nodeType: "culture", relationId: 19, fields: [], facts: [] }]),
+        assertSeedMappingsRegistered([{ nodeType: "culture", fields: [], facts: [] }], bridge({
+          registryEntry: 19,
+          canonicalTypes: ["culture"],
+        })),
       ).toThrow(/canonical type the entry does not/);
       expect(() =>
-        assertSeedMappingsRegistered([{ nodeType: "culture", relationId: 404, fields: [], facts: [] }]),
+        assertSeedMappingsRegistered([{ nodeType: "culture", fields: [], facts: [] }], bridge({
+          registryEntry: 404,
+          canonicalTypes: ["culture"],
+        })),
       ).toThrow(/names no registry entry/);
+    });
+
+    it("resolves every seed's registry entry THROUGH the in-repo bridge mapping", () => {
+      // No seed names a registry entry id; the bridge mapping is the lookup, which is what
+      // "the exporter points at the in-repo mapping, not an external file" means concretely.
+      for (const mapping of SEED_MAPPINGS) {
+        const row = bridgeRowFor(mapping)!;
+        expect(row, `no export row for "${mapping.nodeType}"`).toBeDefined();
+        expect(row.canonicalTypes).toContain(mapping.nodeType);
+        expect(registryEntryFor(mapping)!.id).toBe(row.registryEntry);
+      }
+      const declared = bridgeRows("export").flatMap((r) => r.canonicalTypes);
+      expect(declared.sort()).toEqual(SEED_MAPPINGS.map((m) => m.nodeType).sort());
     });
 
     it("emits only predicates whose registry entry crosses LS->IN and is exportable", () => {

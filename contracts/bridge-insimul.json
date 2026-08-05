@@ -1,0 +1,194 @@
+{
+  "bridgeVersion": "1.0.0",
+  "bridge": "pinakes<->insimul",
+  "title": "Pinakes ↔ Insimul bridge mapping",
+  "description": "The bridge mapping for the one integration whose every endpoint is public: real-world grounding packs / world seeds go OUT to Insimul (Bridge 1), converted generated worlds and the SLM training datasets distilled from them come BACK (Bridge 2). Owned by Pinakes and versioned beside the code that performs the crossing, per `koine/docs/self-describing-participant.md` facet 4 (translation): koine holds the shape, a participant holds its own mapping. This document is a MAPPING, not a vocabulary — it coins no predicate and no relation name. Each row names the vendored registry entry (`contracts/predicate-mapping.json`, `projects.insimul`) that authorizes the predicates and the canonical type(s) from `contracts/canonical-schema.json` that cross under it, so the correspondences resolve in-repo and against Pinakes's own canonical schema, with no second copy of either vocabulary.",
+  "owner": "pinakes:agent:resolver",
+  "canonicalSchema": {
+    "path": "contracts/canonical-schema.json",
+    "note": "Every `canonicalTypes` cell below must resolve here — `assertValidBridgeMapping` fails on a type the schema does not declare, which is what keeps the bridge from mapping into a vocabulary Pinakes does not actually have."
+  },
+  "registry": {
+    "path": "contracts/predicate-mapping.json",
+    "project": "insimul",
+    "canonicalHome": "koine registry/predicate-mapping.json",
+    "note": "The vendored koine registry mirror. Every row's `registryEntry` is an entry id in `projects.insimul.relations`; the predicates themselves are read from that entry's `external` cell and are deliberately NOT restated here. A vocabulary gap is closed by upstreaming a row to koine and re-vendoring (`npm run regen:registry-mirror`), never by naming a predicate in this file."
+  },
+  "participants": [
+    {
+      "role": "local",
+      "id": "pinakes:agent:resolver",
+      "namespace": "pinakes",
+      "visibility": "public",
+      "location": {
+        "path": ".",
+        "note": "This repository. Pinakes's own side of the bridge — the canonical corpus, the exporter and the ingest adapter all live here."
+      }
+    },
+    {
+      "role": "remote",
+      "id": "insimul",
+      "namespace": "insimul",
+      "visibility": "public",
+      "location": {
+        "note": "A sibling `insimul-babylon` checkout, resolved by the tests as $INSIMUL_ROOT else ~/Development/workspace/insimul-babylon — the same skipIf-gated sibling-checkout probe the koine registry mirror uses. No absolute url is committed: Pinakes ships no address book, and the bridge is exercised against artifacts (`scripts/data/insimul-grounding-pack.schema.json`, `engine/tests/fixtures/insimul/world-export.json`), not against a live endpoint."
+      }
+    }
+  ],
+  "publicOnly": {
+    "rule": "A bridge is represented in this repository only when EVERY participant on it is public. `assertPublicBridge` rejects a mapping declaring a `non-public` participant.",
+    "note": "Pinakes integrates with non-public services too; their bridge mappings are deliberately absent from this repo rather than redacted in it, because a redacted section still leaks the shape of the far endpoint. Absence is the representation. `assertValidBridgeMapping` therefore never consults an external file — this document plus the two in-repo contracts it points at are the whole mapping."
+  },
+  "idSpaces": {
+    "export": {
+      "form": "cs:<type>:<local>",
+      "rule": "Pinakes csids cross outward verbatim as the seed's stable key; Insimul persists a csid → seeded-entity map per world, which is what makes a re-import idempotent. An Insimul entity id is a sanitized MongoDB ObjectId unique within ONE world — not across worlds, not across projects — so it is not a KINP id and never crosses back as one (`projects.insimul.idSpace` in the registry).",
+      "mintedBy": "scripts/export-for-engine.ts",
+      "mintedByNote": "`mintCsid` is imported by the exporter, never re-implemented, so the seed index and the entity list cannot mint different ids for the same row."
+    },
+    "return": {
+      "form": "cs:<type>:insimul:<worldId>:<entityId>",
+      "rule": "Pinakes mints the csid on ingest — alias-anchored and world-scoped — because the incoming ids are world-scoped only. The mint is a pure function of the export's own bytes, so re-ingesting the same artifact yields byte-identical rows.",
+      "mintedBy": "engine/src/pinakes_engine/acquire/insimul.py",
+      "mintedByNote": "Via `pinakes_engine.schema.ids.mint_csid`. Every returned row lands in the `synthetic` trust tier under the SPDX id `LicenseRef-Insimul-Proprietary`, and `pinakes_engine.orchestrate.tiers.assert_no_synthetic_records` keeps it out of every packaged or open-data artifact — a generated world is content, not observation."
+    }
+  },
+  "directions": [
+    {
+      "id": "export",
+      "summary": "Bridge 1 — real-world grounding packs / world seeds out.",
+      "registryDirections": ["LS->IN", "both"],
+      "requiredEgress": "exportable",
+      "implementedBy": [
+        "scripts/export-insimul-pack.ts",
+        "scripts/export-entity-grounding.ts"
+      ],
+      "note": "The exporter's seed table resolves its registry entry THROUGH this document (`bridgeRowForCanonicalType`), so a node type that seeds a world without a row here fails at build time. Egress is pinned `exportable`: a `local-only` entry may never leave the machine, and `contracts/egress-policy.json` classes the emitted pack `entity-grounding-pack`."
+    },
+    {
+      "id": "return",
+      "summary": "Bridge 2 — converted generated worlds back, and the SLM training datasets distilled from them.",
+      "registryDirections": ["IN->LS", "both"],
+      "implementedBy": [
+        "engine/src/pinakes_engine/acquire/insimul.py"
+      ],
+      "note": "The adapter emits one canonical node/edge per WorldIR entity; `engine/tests/test_insimul.py` asserts the types it emits are exactly the `return` rows below. The datasets distilled from those worlds are `slm-training-corpora` in `contracts/egress-policy.json` — `local-only`, which is why nothing on this leg is exportable and the return direction declares no `requiredEgress`."
+    }
+  ],
+  "rows": [
+    {
+      "direction": "export",
+      "registryEntry": 1,
+      "canonicalKind": "node",
+      "canonicalTypes": ["culture"],
+      "note": "Real government / social-structure fields seed `countries`. Reference data at ground time; no runtime predicate crosses."
+    },
+    {
+      "direction": "export",
+      "registryEntry": 2,
+      "canonicalKind": "node",
+      "canonicalTypes": ["place"],
+      "note": "Coordinates are real; Insimul lays out lots and streets procedurally around them. Canonical type is `place` — `settlement` is not a canonical node type (registry `collisions`)."
+    },
+    {
+      "direction": "export",
+      "registryEntry": 3,
+      "canonicalKind": "node",
+      "canonicalTypes": ["language"],
+      "note": "Real languages seed `WorldLanguage` with `language_kind/2` pinned to `real`."
+    },
+    {
+      "direction": "export",
+      "registryEntry": 4,
+      "canonicalKind": "node",
+      "canonicalTypes": ["deity"],
+      "note": "Registry entry 4 covers `deity` + `religion` and its `external` cell is prose — religion truths and backstory templates are seeded at ground time rather than crossing as predicates. Pinakes exports the `deity` half only, as fields with no facts; `religion` is listed by the entry but does not cross, and a row states what crosses."
+    },
+    {
+      "direction": "export",
+      "registryEntry": 5,
+      "canonicalKind": "node",
+      "canonicalTypes": ["cuisine", "ingredient"],
+      "note": "Both canonical types cross as Insimul `item/1`s, separated by the `item_category/2` constant the seed table supplies."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 9,
+      "canonicalKind": "node",
+      "canonicalTypes": ["character"],
+      "note": "`entities.characters[]` → `character`, the canonical vocabulary's first person-family type (schema v1.3)."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 13,
+      "canonicalKind": "node",
+      "canonicalTypes": ["building", "business"],
+      "note": "`entities.buildings[]` and `entities.businesses[]`. A building's WorldIR `position` is world-space metres around procedural terrain, NOT WGS-84, so it rides in the node overflow and never reaches the canonical geographic columns."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 2,
+      "canonicalKind": "node",
+      "canonicalTypes": ["place"],
+      "typeReuseOnly": true,
+      "note": "`geography.settlements[]` → `place`. The registry entry crosses `LS->IN` because its PREDICATES seed a world; nothing comes back as a predicate. What comes back is a node anchored on the canonical type the registry already pairs Insimul settlements with, which is type reuse, not a second crossing direction — hence `typeReuseOnly`."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 6,
+      "canonicalKind": "node",
+      "canonicalTypes": ["myth-motif"],
+      "typeReuseOnly": true,
+      "note": "`systems.truths[]` → `myth-motif`. The canonical vocabulary has no general event type and v1.3 deliberately did not coin one, so a truth anchors on the type the registry already pairs Insimul truths with (entry 6). Same type-reuse shape as the `place` row above."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 10,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["parent-of"],
+      "note": "`childIds` / `parentIds`, normalized to the canonical (parent, child) argument order. `child_of/2` is not a second relation — a producer emitting it normalizes by swapping arguments (KGP §3.2 rule 1)."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 11,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["spouse-of"],
+      "note": "`spouseId` → `SPOUSE_OF` with sorted endpoints (the relation is symmetric; one edge per fact, not one per stored direction)."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 12,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["caused-by"],
+      "note": "Truth `causedByTruthIds` / `causesTruthIds`, normalized to (effect, cause). `caused-by` is endpoint-unconstrained in the canonical schema precisely because a truth event has no canonical node type of its own."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 14,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["employed-by"],
+      "note": "A business's `ownerId` / `founderId` → `EMPLOYED_BY`."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 15,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["resides-in"],
+      "note": "A character's `homeResidenceId` and a building's `occupantIds` — the two stored directions of one fact, deduplicated on the endpoint pair."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 7,
+      "canonicalKind": "edge",
+      "canonicalTypes": ["located-in"],
+      "note": "A building's / business's `settlementId` → `LOCATED_IN`. Positional containment, not mereological `part-of` (registry `collisions`)."
+    },
+    {
+      "direction": "return",
+      "registryEntry": 17,
+      "canonicalKind": "rule",
+      "canonicalTypes": [],
+      "note": "`systems.rules[]` + `baseRules` become rules-registry entries carrying the world's ground-truth rule set. They are `full-prolog` — cuts, negation and `rule_likelihood/2` chance patterns do not cross into Pinakes's constrained-Horn Datalog layer, so a world rule is emitted with an empty `clause_souffle` and never joins the Datalog registry build. `canonicalKind: rule` has no canonical node/edge type by construction."
+    }
+  ]
+}

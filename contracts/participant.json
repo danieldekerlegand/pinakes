@@ -48,6 +48,14 @@
           "path": "contracts/predicate-mapping.json",
           "note": "The bridge/predicate mapping between Pinakes's canonical node/edge vocabulary and the relation vocabularies of the projects it bridges, with per-entry dialect, egress and id-space rules. A generated mirror of koine registry/predicate-mapping.json (re-vendored by `npm run regen:registry-mirror`), because a published relation signature is immutable — the mapping coins no relation name, and a vocabulary gap is closed by adding a row upstream, never by naming a relation only here."
         }
+      },
+      {
+        "direction": "both",
+        "plane": "knowledge",
+        "location": {
+          "path": "contracts/bridge-insimul.json",
+          "note": "Pinakes's OWN bridge mapping for the pinakes<->insimul integration — grounding packs / world seeds out, converted worlds and the SLM datasets distilled from them back — versioned beside the code that performs the crossing (`scripts/export-insimul-pack.ts` and `engine/src/pinakes_engine/acquire/insimul.py`). It carries the per-direction id-space rules and the canonical node/edge correspondences, each resolved against `contracts/canonical-schema.json` and authorized by a `projects.insimul` entry of the mirror above; it restates no predicate of its own. Only all-public-endpoint bridges live here: a bridge with a non-public far endpoint is absent from this repository rather than redacted in it, so this list IS the set of public integrations."
+        }
       }
     ],
     "target_registries": ["registry/relations.tsv"]

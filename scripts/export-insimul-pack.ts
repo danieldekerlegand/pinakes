@@ -53,9 +53,16 @@ import {
 import {
   PREDICATE_MAPPING,
   externalPredicates,
-  relationsForProject,
   type RelationMapping,
 } from "@contracts/predicate-mapping";
+import {
+  BRIDGE_INSIMUL,
+  BRIDGE_INSIMUL_PATH,
+  bridgeRowForCanonicalType,
+  registryEntryForRow,
+  type BridgeMapping,
+  type BridgeRow,
+} from "@contracts/bridge-insimul";
 import {
   EXPORT_DIR,
   mintCsid,
@@ -157,18 +164,18 @@ export interface SeedFieldSpec {
 
 /** How one canonical node type seeds an Insimul world. */
 export interface SeedMapping {
-  /** Canonical node type (`contracts/canonical-schema.json`). */
+  /** Canonical node type (`contracts/canonical-schema.json`) — the key into the bridge mapping. */
   readonly nodeType: string;
-  /** The `projects.insimul` registry entry that authorizes this mapping's predicates. */
-  readonly relationId: number;
   readonly fields: readonly SeedFieldSpec[];
   readonly facts: readonly FactSpec[];
 }
 
 /**
- * Canonical node type → Insimul world seed. Every `predicate` here is checked against the
- * registry entry named by `relationId` (see {@link assertSeedMappingsRegistered}), so this
- * table can never drift into a predicate the bridge contract does not sanction.
+ * Canonical node type → Insimul world seed. Each entry resolves its authorizing registry
+ * entry **through the in-repo bridge mapping** ({@link BRIDGE_INSIMUL_PATH}) rather than
+ * naming one itself, and every `predicate` is then checked against that entry's `external`
+ * cell (see {@link assertSeedMappingsRegistered}) — so this table can neither seed a node
+ * type the bridge does not declare nor drift into a predicate the registry does not sanction.
  *
  * Registry entries 4 (deity/religion) and 6 (myth-motif) carry *prose* `external` cells —
  * they seed truth/backstory templates at ground time rather than crossing as predicates —
@@ -177,7 +184,6 @@ export interface SeedMapping {
 export const SEED_MAPPINGS: readonly SeedMapping[] = [
   {
     nodeType: "culture",
-    relationId: 1,
     fields: [
       { key: "governmentType", columns: ["political_structure"] },
       { key: "capital", columns: ["capital"] },
@@ -201,7 +207,6 @@ export const SEED_MAPPINGS: readonly SeedMapping[] = [
   },
   {
     nodeType: "place",
-    relationId: 2,
     fields: [
       { key: "settlementType", columns: ["type", "site_type"] },
       { key: "region", columns: ["region"] },
@@ -220,7 +225,6 @@ export const SEED_MAPPINGS: readonly SeedMapping[] = [
   },
   {
     nodeType: "language",
-    relationId: 3,
     fields: [
       { key: "realCode", columns: ["iso639_1", "iso639_2"] },
       { key: "glottocode", columns: ["glottocode"] },
@@ -244,7 +248,6 @@ export const SEED_MAPPINGS: readonly SeedMapping[] = [
   },
   {
     nodeType: "cuisine",
-    relationId: 5,
     fields: [{ key: "region", columns: ["region"] }],
     facts: [
       { predicate: "item/1" },
@@ -254,7 +257,6 @@ export const SEED_MAPPINGS: readonly SeedMapping[] = [
   },
   {
     nodeType: "ingredient",
-    relationId: 5,
     fields: [
       { key: "region", columns: ["origin_region"] },
       { key: "foodType", columns: ["food_type"] },
@@ -273,7 +275,6 @@ export const SEED_MAPPINGS: readonly SeedMapping[] = [
   {
     // Registry entry 4 is prose (religion truths / backstory templates): seeds, no predicates.
     nodeType: "deity",
-    relationId: 4,
     fields: [
       { key: "pantheon", columns: ["pantheon"] },
       { key: "domain", columns: ["domain"] },
@@ -287,16 +288,34 @@ export function seedMappingFor(nodeType: string): SeedMapping | undefined {
   return SEED_MAPPINGS.find((m) => m.nodeType === nodeType);
 }
 
-/** The `projects.insimul` registry entry a seed mapping is authorized by. */
-export function registryEntryFor(mapping: SeedMapping): RelationMapping | undefined {
-  return relationsForProject(INSIMUL_PROJECT).find((r) => r.id === mapping.relationId);
+/**
+ * The bridge-mapping row a seed mapping crosses under, or `undefined`. The exporter looks
+ * its correspondence up in the in-repo mapping by canonical node type — it names no registry
+ * entry id of its own, so the two can never disagree about which entry authorizes a seed.
+ */
+export function bridgeRowFor(
+  mapping: SeedMapping,
+  bridge: BridgeMapping = BRIDGE_INSIMUL,
+): BridgeRow | undefined {
+  return bridgeRowForCanonicalType(mapping.nodeType, "export", bridge);
+}
+
+/** The `projects.insimul` registry entry a seed mapping is authorized by, via the bridge row. */
+export function registryEntryFor(
+  mapping: SeedMapping,
+  bridge: BridgeMapping = BRIDGE_INSIMUL,
+): RelationMapping | undefined {
+  const row = bridgeRowFor(mapping, bridge);
+  return row === undefined ? undefined : registryEntryForRow(row);
 }
 
 /**
- * Assert every seed mapping is sanctioned by the US-001 predicate-mapping registry. Throws
- * on the first violation:
+ * Assert every seed mapping is sanctioned by the in-repo bridge mapping and the registry
+ * entry it resolves to. Throws on the first violation:
  *
- *  - the named registry entry exists and targets this canonical node type;
+ *  - the node type is declared as crossing outward by `contracts/bridge-insimul.json` — a
+ *    seed for a type the bridge does not carry is a crossing nobody declared;
+ *  - the row's registry entry exists and targets this canonical node type;
  *  - it crosses towards Insimul (`LS->IN` or `both`) — a Bridge-2-only entry must not seed;
  *  - its egress class is `exportable` (a `local-only` entry may never leave the machine);
  *  - it is not `pending` on an unlanded canonical schema addition;
@@ -305,13 +324,25 @@ export function registryEntryFor(mapping: SeedMapping): RelationMapping | undefi
  *    predicate to koine `registry/predicate-mapping.json` and re-vendoring, never by
  *    emitting it here (registryVersion 0.4.1 added `country_name/2`, `settlement_name/2`
  *    and `item_name/2` exactly that way — a nameless seed is unusable).
+ *
+ * The last four are also enforced document-wide by `assertValidBridgeMapping`; they are
+ * re-checked here against the *resolved* entry so the exporter never emits a fact on the
+ * strength of a mapping it did not itself verify.
  */
 export function assertSeedMappingsRegistered(
   mappings: readonly SeedMapping[] = SEED_MAPPINGS,
+  bridge: BridgeMapping = BRIDGE_INSIMUL,
 ): void {
   for (const mapping of mappings) {
-    const where = `insimul-pack: seed mapping "${mapping.nodeType}" (registry #${mapping.relationId})`;
-    const entry = registryEntryFor(mapping);
+    const row = bridgeRowFor(mapping, bridge);
+    if (row === undefined) {
+      throw new Error(
+        `insimul-pack: seed mapping "${mapping.nodeType}" is not declared by ${BRIDGE_INSIMUL_PATH} ` +
+          "as crossing outward — declare the correspondence there before seeding it here",
+      );
+    }
+    const where = `insimul-pack: seed mapping "${mapping.nodeType}" (registry #${row.registryEntry})`;
+    const entry = registryEntryForRow(row);
     if (entry === undefined) {
       throw new Error(`${where} names no registry entry in projects.${INSIMUL_PROJECT}`);
     }
@@ -566,6 +597,8 @@ export interface InsimulPackExtension {
   readonly producer: string;
   /** The predicate-mapping registry version every emitted predicate was sanctioned by. */
   readonly registryVersion: string;
+  /** The in-repo bridge mapping this pack was built through, and its version. */
+  readonly bridgeMapping: { readonly path: string; readonly version: string };
   /** Registry entry id → the predicates this pack emitted through it. */
   readonly predicateProvenance: Readonly<Record<string, readonly string[]>>;
 }
@@ -614,7 +647,9 @@ function predicateProvenance(): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const mapping of SEED_MAPPINGS) {
     if (mapping.facts.length === 0) continue;
-    const key = String(mapping.relationId);
+    // Keyed by the entry the BRIDGE MAPPING resolves, so the pack records the same
+    // provenance chain the build validated against (never a second, restated id).
+    const key = String(bridgeRowFor(mapping)?.registryEntry ?? "");
     out[key] = [...new Set([...(out[key] ?? []), ...mapping.facts.map((f) => f.predicate)])].sort();
   }
   return out;
@@ -674,6 +709,7 @@ export function buildInsimulPack(options: InsimulPackOptions): InsimulGroundingP
     kgpPackId: kgpPack.pack_id,
     producer: "pinakes",
     registryVersion: PREDICATE_MAPPING.registryVersion,
+    bridgeMapping: { path: BRIDGE_INSIMUL_PATH, version: BRIDGE_INSIMUL.bridgeVersion },
     predicateProvenance: predicateProvenance(),
   };
 
