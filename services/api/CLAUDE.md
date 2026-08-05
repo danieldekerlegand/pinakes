@@ -103,10 +103,11 @@ arguments in, JSON-ready dicts out, no FastAPI import.
 - **`ContributionStore.list` shadows the builtin** for every annotation after it
   in the class body, which is why `get_by_entity` is declared above it. mypy says
   `Function ... is not valid as a type` if you move it back.
-- **The changelog write-half only.** `GET /api/changelog` is a different port
-  unit; `contributions/changelog.py` just appends records in the same shape and
-  directory, best-effort — a failed audit line must never cost a reviewer their
-  decision.
+- **The changelog write is best-effort, and that has outlived the split.** It
+  started as the write half of a store whose reader was still Express's; the
+  reader landed here in pinakes:61 US-2 and the two now share one module. What
+  did not change is that `record_change` swallows its failures — a failed audit
+  line must never cost a reviewer their decision.
 
 ## The write guard — `contributions/auth.py` + `routers/_auth.py` (pinakes:60 US-2)
 
@@ -140,6 +141,89 @@ Express, and adding it here would be new policy rather than a port.
 - `server/services/api-auth.ts` is retired but kept: it is the spec, and its unit
   tests are the statement that the two agree. `tests/test_contribution_auth.py`
   is that file's suite, case for case.
+
+## The collaborative stores — `collab/` + `routers/{collections,annotations}.py` (pinakes:61 US-1)
+
+Curated collections and user notes: two JSON-per-record trees under
+`data/runtime/`, both **soft-owned**. There is no auth in this project, so a
+record belongs to an opaque owner id the client mints and persists per browser,
+and `routers/_owner.py` is the single place that knows how to read one.
+
+- **The owner is read header → query → body, in that order, and all three are
+  load-bearing.** The client sends `x-owner-id` on reads, `?owner=` is what makes
+  a URL work in a second tab, and the **body** field is how a `DELETE` carries an
+  owner at all (`use-collections.ts` posts `{owner}` on every mutation). Reading
+  it out of the body means a dependency that awaits `request.body()` — safe,
+  because Starlette caches the raw body, so a handler declaring its own `Body()`
+  still gets the payload.
+- **The body is read, not declared.** Express validated `req.body ?? {}` by hand,
+  so a junk body is a **400 listing the missing fields**; a declared FastAPI model
+  answers **422**, which is a different contract. Same family as `parse_int_js`
+  in the contribution port — see `_payload()`.
+- **Two ways to be refused, and they are not interchangeable.** Unknown id ⇒
+  **404**; someone else's record ⇒ **403**. And *visibility governs reads while
+  ownership governs writes*: a public collection is readable by anyone and
+  editable by no one but its owner. A collection's share token is a third,
+  orthogonal capability — it grants a read of the owner-free projection
+  regardless of visibility, which is what "share a private collection by URL"
+  means.
+- **Reproduce the Express 500 shape.** Every handler over there wrapped its work
+  in a try/catch answering `{error: "<doing> failed", detail}`. A bare exception
+  here would be a different (and uglier) contract, so each handler has that
+  `except` — including one for the access error, ahead of it.
+- **`from __future__ import annotations` collides with the `annotations`
+  submodule, twice.** In `collab/__init__.py` it binds the name on the *package*,
+  so `from pinakes.collab import annotations` yields a `__future__._Feature` and
+  every route 500s at request time — that file therefore does **not** have the
+  future import, and `test_the_annotations_submodule_is_not_shadowed` guards it.
+  In an importing module it binds the name locally, so the store is imported
+  under an alias (`as notes`); strict mypy catches that one for you
+  ("imported name has type Module, local name has type _Feature").
+- `conftest.py`'s autouse `isolated_data_trees` now redirects six trees (US-2
+  added `stewardship`). **Add yours the moment a port starts writing one** — every store resolves its
+  directory through `pinakes.paths` per call precisely so that fixture is the
+  only thing between a test and live user data.
+
+## The changelog, stewardship and citations — `routers/{changelog,stewardship,citations}.py` (pinakes:61 US-2)
+
+Three small route groups that finish the collaborative-runtime band. Two things
+here are worth knowing before touching them.
+
+- **`contributions/changelog.py` is now the whole store, not half of it.** The
+  write half landed with the review pipeline; this story added filtering,
+  sorting, pagination and the aggregate to the *same module* rather than
+  splitting along the route boundary — the record shape and the id format are
+  what the two servers agree on, and a second module restating them is the drift
+  worth not having. `server/services/changelog.ts` is therefore **not retired**:
+  its write side is still live over there (field updates, release semver).
+- **The two failure modes are deliberately opposite, and both are ports.** A
+  malformed changelog file **raises** (→ 500): an entry silently dropped from an
+  *audit log* is worse than a log that admits it is broken. A malformed
+  `stewards.json` **degrades to empty**: a claim can be re-made in one request,
+  so failing loudly would cost every reviewer the endpoint. Do not "fix" either
+  into the other.
+- **`?limit=abc` means different things in different groups.** The contribution
+  queue propagates the `NaN` into `Array.slice` and returns an *empty* page;
+  `/api/changelog` drops it back to `undefined` and returns the *default* page,
+  because `parseFilters` did. `routers/changelog._number` is that second rule and
+  is not `store.parse_int_js`.
+- **Dates are `Date.parse`, not `fromisoformat`.** `changelog.date_parse_ms`
+  special-cases the date-only form to **UTC** (Python reads it as local), and a
+  bare `to=YYYY-MM-DD` bound covers the whole day (`T23:59:59.999Z`). Both rules
+  are load-bearing for the range filter.
+- **`collab/citable.py` is not the corpus storage layer** and must not grow into
+  one — it reads five fields out of four TSVs, and the general reader is
+  `tasks/chief/63-port-entity-search.json`'s job. Two shapes in it are
+  contract, not accident: an undated civilization cites **year 0** (falling back
+  to its boundary row first), and a site with no parseable `coordinates` has no
+  citation at all.
+- **`GET /api/citations` is served by BOTH backends on purpose.** Its recorded
+  fixture is replayed against the Express app, so retiring it there would break
+  the baseline. It is the one response in the group that is a constant.
+- The stewardship port took **three of the five** routes in
+  `server/routes/community-verification.ts`; confirm/verification are the
+  contribution queue's unit and still 501 here. That split works because both
+  servers read one `stewards.json`.
 
 ## Deliberate divergences from `server/`
 

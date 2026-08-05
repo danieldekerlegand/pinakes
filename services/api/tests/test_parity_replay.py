@@ -51,6 +51,7 @@ def test_a_ported_route_still_answers_its_recorded_shape(
 GRADED: tuple[str, ...] = (
     "get-graph-status",  # pinakes:50 US-2
     "get-contributions-stats",  # pinakes:60 US-1
+    "get-citations-index",  # pinakes:61 US-2
 )
 
 

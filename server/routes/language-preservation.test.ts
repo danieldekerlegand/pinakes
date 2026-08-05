@@ -14,7 +14,6 @@ import type { Server } from "node:http";
  */
 
 import { registerLanguagePreservationRoutes } from "./language-preservation";
-import { registerChangelogRoutes } from "./changelog";
 import { ContributionService } from "../services/contribution-service";
 import { ChangelogStore } from "../services/changelog";
 import type { PreservationLanguage } from "../services/language-preservation";
@@ -45,9 +44,6 @@ beforeAll(async () => {
     contributions,
     changelog,
   });
-  // Same shared changelog store, so /api/changelog reflects the field update.
-  registerChangelogRoutes(app, { changelog });
-
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
@@ -109,10 +105,13 @@ describe("POST /api/languages/field-update", () => {
     const queued = contributions.get(body.contribution.id);
     expect(queued?.entityData.source).toBe("field-research");
 
-    // The status change is versioned in the shared changelog (AC3).
-    const clRes = await fetch(`${baseUrl}/api/changelog?domain=language`);
-    const cl = await clRes.json();
-    const entry = cl.entries.find((e: { contributionId?: string }) => e.contributionId === body.contribution.id);
+    // The status change is versioned in the shared changelog (AC3). Asserted
+    // against the store rather than through `GET /api/changelog`, which was
+    // ported to the Python service (pinakes:61 US-2) and answers 501 here — the
+    // *write* is what this route owns, and it is the same store either reader
+    // lists.
+    const { entries } = changelog.list({ domain: "language" });
+    const entry = entries.find((e) => e.contributionId === body.contribution.id);
     expect(entry).toBeTruthy();
     expect(entry.source).toBe("field-research");
     expect(entry.reviewer).toBe("Dr. Jones");

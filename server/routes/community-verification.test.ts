@@ -10,9 +10,18 @@ import path from "path";
  * Integration tests for community verification & culture stewardship (US-012).
  * The contribution queue + stewardship store point at temp dirs, and a fixed
  * verification config drives the multi-confirmation threshold deterministically.
+ *
+ * Two thirds of this file's surface is still served here; the `/api/stewardship*`
+ * third was ported to Python (pinakes:61 US-2) and is asserted as a hand-off at
+ * the bottom.
  */
 
-import { registerCommunityVerificationRoutes } from "./community-verification";
+import {
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerCommunityVerificationRoutes,
+} from "./community-verification";
 import { ContributionService, type Contribution } from "../services/contribution-service";
 import { StewardshipStore } from "../services/stewardship";
 
@@ -152,30 +161,64 @@ describe("GET /api/contributions/:id/verification", () => {
   });
 });
 
-describe("stewardship (adopt a culture)", () => {
-  it("adopts, lists (by domain), and releases", async () => {
-    const adopt = await req("POST", "/api/stewardship/adopt", {
+/**
+ * Adopting, listing and releasing moved to the Python service (pinakes:61 US-2)
+ * and their behavioural coverage went with them to
+ * `services/api/tests/test_stewardship_routes.py`. What is left here is the
+ * hand-off — and, more importantly, the reason the *other* half of this file
+ * could stay behind: both servers read one `stewards.json`, so the confirm
+ * handler above still sees a claim regardless of which server recorded it.
+ */
+describe("stewardship routes ported to the Python service", () => {
+  const RETIRED: ReadonlyArray<readonly [string, string]> = [
+    ["GET", "/api/stewardship?domain=roman-empire"],
+    ["POST", "/api/stewardship/adopt"],
+    ["POST", "/api/stewardship/release"],
+  ];
+
+  it.each(RETIRED)("%s %s answers 501 naming its replacement", async (method, url) => {
+    const res = await req(method, url, method === "GET" ? undefined : {
       steward: "Alice",
       domain: "Roman Empire",
     });
-    expect(adopt.status).toBe(201);
-    expect(adopt.body.adoption.domain).toBe("roman-empire");
-
-    const list = await req("GET", "/api/stewardship?domain=roman-empire");
-    expect(list.body.total).toBe(1);
-
-    const dup = await req("POST", "/api/stewardship/adopt", { steward: "Alice", domain: "roman-empire" });
-    expect(dup.status).toBe(200);
-    expect(dup.body.alreadyOwned).toBe(true);
-
-    const rel = await req("POST", "/api/stewardship/release", { steward: "Alice", domain: "roman-empire" });
-    expect(rel.body.released).toBe(true);
-    const after = await req("GET", "/api/stewardship");
-    expect(after.body.total).toBe(0);
+    expect(res.status).toBe(501);
+    expect(res.body.error).toBe(PORTED_ERROR);
+    expect(res.body.servedBy).toBe(PORTED_TO);
+    expect(res.body.coverage).toBe("/api/_parity/coverage");
   });
 
-  it("400 without steward + domain", async () => {
-    const res = await req("POST", "/api/stewardship/adopt", { steward: "Alice" });
-    expect(res.status).toBe(400);
+  it("keeps every retired path registered, and only those three", () => {
+    // Deleting a registration would rewrite the parity baseline the port is
+    // graded against. Confirm and verification are deliberately absent — they
+    // are a different port unit and are still served above.
+    const registered = [...PORTED_ROUTES.get, ...PORTED_ROUTES.post];
+    expect(registered).toEqual([
+      "/api/stewardship",
+      "/api/stewardship/adopt",
+      "/api/stewardship/release",
+    ]);
+  });
+
+  it("never writes to the stewardship store on a retired write", async () => {
+    await req("POST", "/api/stewardship/adopt", { steward: "Alice", domain: "maya" });
+    expect(stewards.list()).toEqual([]);
+    expect(fs.readdirSync(stewardDir)).toEqual([]);
+  });
+
+  it("still reads a claim the ported routes recorded, for the confirm flow", async () => {
+    // Written the way the Python store writes it: one `stewards.json` array,
+    // under the same directory. That shared file is what lets the confirm
+    // handler stay here while adoption moved.
+    fs.writeFileSync(
+      path.join(stewardDir, "stewards.json"),
+      JSON.stringify([
+        { steward: "Expert", domain: "maya", adoptedAt: "2026-07-06T00:00:00.000Z" },
+      ]),
+      "utf-8",
+    );
+    const c = seed({ entityData: { name: "Maya" } });
+    const res = await req("POST", `/api/contributions/${c.id}/confirm`, { reviewer: "Expert" });
+    expect(res.body.confirmedAsSteward).toBe(true);
+    expect(res.body.verification.verified).toBe(true);
   });
 });

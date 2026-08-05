@@ -55,20 +55,30 @@ def isolated_data_trees(
 ) -> dict[str, Path]:
     """Point every writable data tree at this test's own temp directory.
 
-    Autouse, and not optional. Two of these trees are shared state that outlives
-    the run: `data/runtime/contributions` is the live review queue, and
-    `data/source/lexicons` is the corpus every other reader in the repo reads.
+    Autouse, and not optional. Several of these trees are shared state that
+    outlives the run: `data/runtime/contributions` is the live review queue,
+    `data/runtime/{collections,annotations}` hold real user records,
+    `data/runtime/stewardship` is the steward roster Express still reads for the
+    confirm flow, and `data/source/lexicons` is the corpus every other reader in
+    the repo reads.
     A test that promoted a draft into the real corpus would leave a fixture row
     visible to `convergence-qa`, `coverage-report`, `data-quality-scorer` and the
     rest — a failure that lands somewhere else entirely, one run in six
     (`server/CLAUDE.md`). The override is per-call in `pinakes.paths`, so
     redirecting the environment is enough; there is no handle to reset.
 
-    Returns the three directories so a test can assert on what was written.
+    **Add a tree here the moment a port starts writing one.** Every store in this
+    service resolves its directory through `pinakes.paths` on each call precisely
+    so that this fixture is the only thing standing between a test and live data.
+
+    Returns the directories so a test can assert on what was written.
     """
     trees = {
         paths.CONTRIBUTIONS_DIR_ENV: tmp_path / "contributions",
         paths.CHANGELOG_DIR_ENV: tmp_path / "changelog",
+        paths.COLLECTIONS_DIR_ENV: tmp_path / "collections",
+        paths.ANNOTATIONS_DIR_ENV: tmp_path / "annotations",
+        paths.STEWARDSHIP_DIR_ENV: tmp_path / "stewardship",
         paths.LEXICONS_DIR_ENV: tmp_path / "lexicons",
     }
     for variable, directory in trees.items():
@@ -77,6 +87,9 @@ def isolated_data_trees(
     return {
         "contributions": trees[paths.CONTRIBUTIONS_DIR_ENV],
         "changelog": trees[paths.CHANGELOG_DIR_ENV],
+        "collections": trees[paths.COLLECTIONS_DIR_ENV],
+        "annotations": trees[paths.ANNOTATIONS_DIR_ENV],
+        "stewardship": trees[paths.STEWARDSHIP_DIR_ENV],
         "lexicons": trees[paths.LEXICONS_DIR_ENV],
     }
 

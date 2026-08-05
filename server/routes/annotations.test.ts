@@ -7,24 +7,36 @@ import os from "os";
 import path from "path";
 
 /**
- * Integration tests for the `/api/annotations/*` routes (US-008). The route is
- * wired to an `AnnotationStore` pointed at a temp dir (no shared state, no real
- * `data/` writes). Ownership is exercised via the `x-owner-id` header.
+ * What is left of the `/api/annotations/*` routes on this backend
+ * (pinakes:61 US-1).
+ *
+ * The note CRUD — the entity-keyed list, the private-by-default visibility, the
+ * owner-free projection — is served by the Python service now, and its
+ * behavioural coverage moved with it to
+ * `services/api/tests/test_annotation_routes.py`. What this file asserts is the
+ * hand-off: the retired paths are still *registered* (the parity baseline was
+ * harvested from that path set) and answer 501 naming their replacement, and
+ * nothing on this side still writes to `data/runtime/annotations`.
+ *
+ * `server/services/annotations.ts` is still unit-tested next door — it is the
+ * specification the port was read off.
  */
 
-import { registerAnnotationRoutes } from "./annotations";
+import { PORTED_ERROR, PORTED_ROUTES, PORTED_TO, registerAnnotationRoutes } from "./annotations";
 import { AnnotationStore } from "../services/annotations";
 
 let app: Express;
 let server: Server;
 let baseUrl: string;
 let dir: string;
+let store: AnnotationStore;
 
 beforeAll(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "annotations-routes-"));
+  store = new AnnotationStore(dir);
   app = express();
   app.use(express.json());
-  registerAnnotationRoutes(app, new AnnotationStore(dir));
+  registerAnnotationRoutes(app);
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
@@ -39,11 +51,10 @@ afterAll(async () => {
 
 type Res = { status: number; body: any };
 
-async function req(method: string, path: string, owner?: string, body?: unknown): Promise<Res> {
-  const headers: Record<string, string> = {};
-  if (owner) headers["x-owner-id"] = owner;
+async function req(method: string, p: string, body?: unknown): Promise<Res> {
+  const headers: Record<string, string> = { "x-owner-id": "alice" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const res = await fetch(`${baseUrl}${path}`, {
+  const res = await fetch(`${baseUrl}${p}`, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -52,86 +63,48 @@ async function req(method: string, path: string, owner?: string, body?: unknown)
   return { status: res.status, body: text ? JSON.parse(text) : null };
 }
 
-describe("annotations CRUD over HTTP", () => {
-  it("rejects a note without an entity ref or body", async () => {
-    expect((await req("POST", "/api/annotations", "alice", { type: "", id: "", body: "" })).status).toBe(400);
-    expect((await req("POST", "/api/annotations", "alice", { type: "language", id: "eng" })).status).toBe(400);
+/** Concrete URLs for the retired templates, by the method that was retired. */
+const RETIRED: ReadonlyArray<readonly [string, string]> = [
+  ["GET", "/api/annotations?entity=cs:language:eng"],
+  ["GET", "/api/annotations/note_1"],
+  ["POST", "/api/annotations"],
+  ["PATCH", "/api/annotations/note_1"],
+  ["DELETE", "/api/annotations/note_1"],
+];
+
+describe("routes ported to the Python service", () => {
+  it.each(RETIRED)("%s %s answers 501 naming its replacement", async (method, url) => {
+    const { status, body } = await req(method, url, method === "GET" ? undefined : {});
+    expect(status).toBe(501);
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
 
-  it("400s a list with no entity", async () => {
-    expect((await req("GET", "/api/annotations", "alice")).status).toBe(400);
+  it("keeps every retired path registered", () => {
+    // Deleting a registration would rewrite the parity baseline the port is
+    // graded against — `contracts/parity/openapi.json` is harvested from the
+    // Express routing table.
+    const registered = [
+      ...PORTED_ROUTES.get,
+      ...PORTED_ROUTES.post,
+      ...PORTED_ROUTES.patch,
+      ...PORTED_ROUTES.delete,
+    ];
+    expect(registered).toContain("/api/annotations");
+    expect(registered).toContain("/api/annotations/:id");
+    // Five method+path pairs across two distinct paths — the baseline's five.
+    expect(registered).toHaveLength(5);
+    expect(new Set(registered).size).toBe(2);
   });
 
-  it("runs the full create → list → get → update → share → delete lifecycle", async () => {
-    // create (private by default)
-    const created = await req("POST", "/api/annotations", "alice", {
+  it("never writes to the annotations tree on a retired write", async () => {
+    await req("POST", "/api/annotations", {
       type: "language",
       id: "eng",
-      name: "English",
       body: "A note about English",
     });
-    expect(created.status).toBe(201);
-    const id = created.body.annotation.id;
-    expect(created.body.annotation).not.toHaveProperty("owner");
-    expect(created.body.annotation.editable).toBe(true);
-    expect(created.body.annotation.visibility).toBe("private");
-    expect(created.body.annotation.stableId).toBe("cs:language:eng");
-
-    // list by entity (owner sees own private)
-    const listed = await req("GET", "/api/annotations?entity=cs:language:eng", "alice");
-    expect(listed.status).toBe(200);
-    expect(listed.body.total).toBe(1);
-
-    // list via type+id params resolves the same entity
-    const byParams = await req("GET", "/api/annotations?type=language&id=eng", "alice");
-    expect(byParams.body.total).toBe(1);
-
-    // a different user does not see the private note
-    expect((await req("GET", "/api/annotations?entity=cs:language:eng", "bob")).body.total).toBe(0);
-
-    // get one (owner)
-    const got = await req("GET", `/api/annotations/${id}`, "alice");
-    expect(got.status).toBe(200);
-    expect(got.body.annotation.body).toBe("A note about English");
-
-    // edit body
-    const edited = await req("PATCH", `/api/annotations/${id}`, "alice", { body: "Edited note" });
-    expect(edited.status).toBe(200);
-    expect(edited.body.annotation.body).toBe("Edited note");
-
-    // share it (make public)
-    const shared = await req("PATCH", `/api/annotations/${id}`, "alice", { visibility: "public" });
-    expect(shared.body.annotation.visibility).toBe("public");
-
-    // now bob sees it, but cannot edit it
-    const bobList = await req("GET", "/api/annotations?entity=cs:language:eng", "bob");
-    expect(bobList.body.total).toBe(1);
-    expect(bobList.body.annotations[0].editable).toBe(false);
-    expect(bobList.body.annotations[0]).not.toHaveProperty("owner");
-
-    // delete
-    expect((await req("DELETE", `/api/annotations/${id}`, "alice")).status).toBe(200);
-    expect((await req("GET", `/api/annotations/${id}`, "alice")).status).toBe(404);
-  });
-
-  it("enforces ownership: a non-owner cannot read private or mutate", async () => {
-    const created = await req("POST", "/api/annotations", "alice", {
-      type: "battle",
-      id: "kadesh",
-      body: "private note",
-    });
-    const id = created.body.annotation.id;
-
-    expect((await req("GET", `/api/annotations/${id}`, "bob")).status).toBe(403);
-    expect((await req("PATCH", `/api/annotations/${id}`, "bob", { body: "hijack" })).status).toBe(403);
-    expect((await req("DELETE", `/api/annotations/${id}`, "bob")).status).toBe(403);
-  });
-
-  it("400s an empty-body edit and 404s unknown ids", async () => {
-    const created = await req("POST", "/api/annotations", "alice", { type: "culture", id: "sumer", body: "n" });
-    const id = created.body.annotation.id;
-    expect((await req("PATCH", `/api/annotations/${id}`, "alice", { body: "   " })).status).toBe(400);
-    expect((await req("GET", "/api/annotations/note_missing", "alice")).status).toBe(404);
-    expect((await req("DELETE", "/api/annotations/note_missing", "alice")).status).toBe(404);
+    expect(fs.readdirSync(dir)).toEqual([]);
+    expect(store.listForEntity("cs:language:eng", "alice")).toEqual([]);
   });
 });

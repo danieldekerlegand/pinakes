@@ -355,6 +355,19 @@ required by the ACs), same graceful-degradation contract as `/api/graph/*`.
 
 ## Data changelog / versioning — `services/changelog.ts` + `routes/changelog.ts`
 
+**The READ side is ported** (pinakes:61 US-2): `GET /api/changelog[/stats]` is served by
+`services/api/src/pinakes/routers/changelog.py` over `pinakes.contributions.changelog`,
+against the same `data/runtime/changelog` tree. Both Express handlers answer 501 and
+`registerChangelogRoutes` no longer takes a store.
+
+**`services/changelog.ts` is NOT retired** — unlike `collections.ts`/`annotations.ts`, its
+*write* side is still live on this backend: `registerLanguagePreservationRoutes` records a
+field update, and `dataset-releases` / `living-dataset` derive their next semver from
+`changelog.stats()`. The single shared `ChangelogStore` in `registerRoutes` is still built
+and passed to those groups. **A test that used to read a write back through
+`GET /api/changelog` must assert on `changelog.list(...)` instead** — that is exactly what
+broke `language-preservation.test.ts` during the port.
+
 `GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=` (US-010) is a
 browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` aggregates it.
 
@@ -412,6 +425,15 @@ US-010 (this PRD) adds a preservation-status dashboard + an attributed field-upd
   `AppSidebar` (`ShieldAlert`).
 
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
+
+**The stewardship third is ported** (pinakes:61 US-2): `GET /api/stewardship`,
+`POST /api/stewardship/{adopt,release}` are served by
+`services/api/src/pinakes/routers/stewardship.py` over `pinakes.collab.stewardship` and
+answer 501 here. The **confirm/verification** routes in the same file are a *different*
+port unit and still run on this backend — which is only safe because both servers share one
+`data/runtime/stewardship/stewards.json`: the confirm handler's `stewards.isSteward(...)`
+reads the roster the Python service now writes. `services/stewardship.ts` stays (it is the
+graded spec, and `resolveContributionDomain` is still called by the confirm handler).
 
 US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on
 top of the contribution queue. Endpoints (all open, unguarded):
@@ -567,6 +589,16 @@ Full contract table: `docs/progressive-loading.md`.
 
 ## Citation export — `services/citation-export.ts` + `routes/citations.ts`
 
+**Ported, except the index** (pinakes:61 US-2). The download
+`GET /api/citations/:domain/:id` is served by
+`services/api/src/pinakes/routers/citations.py` over `pinakes.collab.{citations,citable}`,
+reading the same four lexicon TSVs; the Express handler answers 501. **`GET /api/citations`
+keeps answering here**, because `contracts/parity/parity.test.ts` replays its recorded
+fixture (`get-citations-index`) against *this* app — that response is a constant (two
+lists), so serving it twice cannot drift the way a second corpus reader would.
+`services/citation-export.ts` and `defaultFetchers()` are both **kept as the graded spec**;
+`services/api/tests/test_citation_export.py` is this file's suite case for case.
+
 `GET /api/citations/:domain/:id?format=bibtex|ris|csljson` (US-008) downloads an academic
 citation for one entity, built from its `sources[]`. `GET /api/citations` lists the
 domains + formats.
@@ -621,6 +653,15 @@ canonical descriptor (name, `canonicalUrl` `/entity/<domain>/<id>`, stable `cs:`
 
 ## Collaborative collections — `services/collections.ts` + `routes/collections.ts`
 
+**Ported to Python** (pinakes:61 US-1): the surface is served by
+`services/api/src/pinakes/routers/collections.py` over `pinakes.collab.collections`,
+against the same `data/runtime/collections` tree. The Express handlers are retired —
+they answer 501 naming their replacement, and their paths stay registered because
+`contracts/parity/openapi.json` is harvested from this routing table. `services/collections.ts`
+below is kept as the graded spec; its unit tests are what say the two agree on the record
+shape. Nothing in `server/` calls it any more, and `registerCollectionRoutes` no longer
+takes a store.
+
 `/api/collections/*` (US-007) is user-curated groups of entities. **Persistence
 is JSON-per-record on disk** (like `contribution-service.ts`) — one file under the
 **gitignored** `data/collections/` — via a `CollectionStore` class, but every
@@ -645,6 +686,13 @@ as params so CRUD is unit-tested with no fs/clock.
   simpler than the summaries/graph mock pattern when the service owns its own fs.
 
 ## User annotations & notes — `services/annotations.ts` + `routes/annotations.ts`
+
+**Ported to Python** (pinakes:61 US-1), same hand-off as collections above:
+`pinakes.routers.annotations` over `pinakes.collab.annotations`, one
+`data/runtime/annotations` tree, Express handlers retired to 501. Retiring these
+mattered slightly more — the privacy of this surface rests on *every* response
+going through `toView`, and two implementations of that projection is two chances
+to leak an owner id.
 
 `/api/annotations/*` (US-008) is per-user free-text notes on entities — the same
 JSON-per-record + injectable-store + soft-owner pattern as collections (above), so

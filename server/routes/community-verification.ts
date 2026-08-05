@@ -1,20 +1,36 @@
 /**
- * Community verification & culture stewardship routes (US-012).
+ * Community verification & culture stewardship routes (US-012) — **the
+ * stewardship third ported away** (pinakes:61 US-2,
+ * docs/UNIFIED-PROJECT-PLAN.md §7).
+ *
+ * Still served here (the multi-confirmation flow, which belongs to the
+ * contribution queue's own port unit and has not moved yet):
  *
  * - `POST /api/contributions/:id/confirm` — an independent confirmation from a
  *   distinct reviewer. Raises confidence; N distinct reviewers verify the
  *   contribution (a domain steward lowers the bar). Steward + confidence are
  *   recorded with provenance.
  * - `GET  /api/contributions/:id/verification` — the current verification state.
+ *
+ * Retired to 501 — served by `services/api/src/pinakes/routers/stewardship.py`
+ * over `pinakes.collab.stewardship`:
+ *
  * - `GET  /api/stewardship` (optional `?domain=`) — list steward adoptions.
  * - `POST /api/stewardship/adopt` — adopt a cultural domain.
  * - `POST /api/stewardship/release` — release a claim.
+ *
+ * **The split is only safe because both servers share one `stewards.json`.**
+ * The confirm handler below still asks `stewards.isSteward(...)`, reading the
+ * very roster the Python service now writes — under `data/runtime/stewardship`,
+ * the same directory this `StewardshipStore` points at. A claim adopted over
+ * there takes effect here on the next request; that is the whole reason the two
+ * halves of this file could be ported at different times.
  *
  * `ContributionService`, the `StewardshipStore`, and the verification config are
  * injectable so route tests point them at temp dirs + a fixed config/clock.
  */
 
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { ContributionService } from "../services/contribution-service";
 import { StewardshipStore, resolveContributionDomain } from "../services/stewardship";
 import {
@@ -22,6 +38,45 @@ import {
   summarizeVerification,
   type VerificationConfig,
 } from "../services/community-verification";
+
+/** The Python module that now serves the retired stewardship routes. */
+export const PORTED_TO = "services/api/src/pinakes/routers/stewardship.py";
+
+/**
+ * The routes this backend handed over, by method.
+ *
+ * Three of the five this file registers. The other two — confirm and
+ * verification — are a *different* port unit (they are about the contribution
+ * queue, not about who has claimed what), so they are absent here and still
+ * served below.
+ */
+export const PORTED_ROUTES = {
+  get: ["/api/stewardship"],
+  post: ["/api/stewardship/adopt", "/api/stewardship/release"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
+}
 
 export interface CommunityVerificationRouteOptions {
   contributions?: ContributionService;
@@ -118,48 +173,15 @@ export function registerCommunityVerificationRoutes(
     });
   });
 
-  /**
-   * GET /api/stewardship — list steward adoptions (optional `?domain=`).
-   */
-  app.get("/api/stewardship", (req, res) => {
-    const domain = req.query.domain as string | undefined;
-    const adoptions = domain ? stewards.listForDomain(domain) : stewards.list();
-    res.json({ adoptions, total: adoptions.length });
-  });
-
-  /**
-   * POST /api/stewardship/adopt — body `{ steward, domain, note? }`. 201.
-   */
-  app.post("/api/stewardship/adopt", (req, res) => {
-    const steward = typeof req.body?.steward === "string" ? req.body.steward.trim() : "";
-    const domain = typeof req.body?.domain === "string" ? req.body.domain.trim() : "";
-    if (!steward || !domain) {
-      res.status(400).json({ message: "steward and domain are required" });
-      return;
-    }
-    const result = stewards.adopt({
-      steward,
-      domain,
-      note: typeof req.body?.note === "string" ? req.body.note : undefined,
-      now: now(),
-    });
-    res.status(result.alreadyOwned ? 200 : 201).json({
-      adoption: result.adoption,
-      alreadyOwned: result.alreadyOwned,
-    });
-  });
-
-  /**
-   * POST /api/stewardship/release — body `{ steward, domain }`.
-   */
-  app.post("/api/stewardship/release", (req, res) => {
-    const steward = typeof req.body?.steward === "string" ? req.body.steward.trim() : "";
-    const domain = typeof req.body?.domain === "string" ? req.body.domain.trim() : "";
-    if (!steward || !domain) {
-      res.status(400).json({ message: "steward and domain are required" });
-      return;
-    }
-    const released = stewards.release(steward, domain);
-    res.json({ released });
-  });
+  // The three `/api/stewardship*` handlers are retired — the roster is adopted
+  // and released through the Python service now. The paths stay registered
+  // rather than deleted: the path set is what `contracts/parity/openapi.json`
+  // was harvested from, so removing a registration would rewrite the very
+  // baseline the port is graded against.
+  for (const route of PORTED_ROUTES.get) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
+  for (const route of PORTED_ROUTES.post) {
+    app.post(route, portedToPython(`POST ${route}`));
+  }
 }
