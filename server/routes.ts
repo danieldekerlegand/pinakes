@@ -86,7 +86,6 @@ import { registerLanguagePreservationRoutes } from "./routes/language-preservati
 import { registerLivingDatasetRoutes } from "./routes/living-dataset";
 import { ChangelogStore } from "./services/changelog";
 import { searchPlacesWithNominatim, autocompletePlaces, resolvePlace } from "./services/place-resolver";
-import { generateDataQualityReport } from "./services/data-quality-scorer";
 import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
 import { grammarWalsGrambankScraper } from "./services/grammar-wals-grambank-scraper";
@@ -128,6 +127,12 @@ import {
  * here name theirs next to the helper below.
  */
 const CORRELATIONS_PORTED_TO = "services/api/src/pinakes/routers/correlations.py";
+
+/**
+ * The Python module serving the data-quality report this file handed over
+ * (pinakes:62 US-2).
+ */
+const DATA_QUALITY_PORTED_TO = "services/api/src/pinakes/routers/data_quality.py";
 
 /**
  * A handler for a route this backend no longer owns — the inline twin of the
@@ -5356,17 +5361,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
-   * GET /api/data-quality - Get data quality report for all TSV files
+   * GET /api/data-quality — PORTED (pinakes:62 US-2).
+   *
+   * Served by `services/api/src/pinakes/routers/data_quality.py` over
+   * `pinakes.analytics.quality`, which carries the per-file scoring, the six
+   * referential-integrity checks, the roadmap coverage table and the trust-tier
+   * composition, against the same corpus.
+   *
+   * `services/data-quality-scorer.ts` stays: its unit tests are the graded spec
+   * for all four sections, and `scripts/{coverage-report,corpus-tier-report}.ts`
+   * still import it to regenerate the committed `docs/*.json` snapshots — which
+   * is exactly what the Python side is asserted against.
    */
-  app.get("/api/data-quality", async (_req, res) => {
-    try {
-      const report = generateDataQualityReport();
-      res.json(report);
-    } catch (error) {
-      console.error("Error generating data quality report:", error);
-      res.status(500).json({ message: "Failed to generate data quality report" });
-    }
-  });
+  app.get(
+    "/api/data-quality",
+    portedToPython("GET /api/data-quality", DATA_QUALITY_PORTED_TO),
+  );
 
   /**
    * GET /api/export/datasets - List available dataset profiles for export

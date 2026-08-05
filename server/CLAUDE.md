@@ -55,6 +55,18 @@ touch these paths, assert on **counts** (`/api/languages` → 1099, `/api/map/ci
 
 ## Data-quality + coverage report — `services/data-quality-scorer.ts`
 
+**The route is ported** (pinakes:62 US-2): `GET /api/data-quality` is served by
+`services/api/src/pinakes/routers/data_quality.py` over `pinakes.analytics.quality`, which
+carries all four sections below against the same corpus; the Express handler answers 501.
+A fresh Python build of the live corpus is asserted equal to the committed
+`docs/{coverage-report,corpus-tier-report}.json` by `services/api/tests/test_data_quality.py`,
+so the two implementations are pinned to the same numbers about the same rows.
+
+**`services/data-quality-scorer.ts` is NOT retired** — it is the graded spec, and
+`scripts/{coverage-report,corpus-tier-report}.ts` still import it to *generate* those
+committed snapshots. Regenerating a snapshot is still a TypeScript job; the Python side is
+graded against the result. Everything below is still the contract.
+
 `generateDataQualityReport()` backs `GET /api/data-quality` (per-file completeness / uniqueness /
 referential integrity). US-008 added a **coverage** section: `ROADMAP_TARGETS` (per-domain
 population goals — `kind: "roadmap"` = hard §8/§15 numbers, `kind: "breadth"` = story breadth
@@ -294,6 +306,17 @@ Backend-only (no UI required by the ACs).
   lack per-culture coordinates, so feeding them richly is a future data task.
 
 ## Automated hypothesis & site-location generation — `services/hypothesis-generation.ts` + `routes/hypotheses.ts`
+
+**The route is ported** (pinakes:62 US-2): `GET /api/hypotheses` is served by
+`services/api/src/pinakes/routers/hypotheses.py` over `pinakes.analytics.hypothesis`, which
+carries the clustering, the corridor-gap heuristic, the GeoJSON overlay **and** the three
+storage → input projections, against the same corpus. The Express handler answers 501 and
+`registerHypothesisRoutes` no longer takes loaders. The node projection now exists once —
+`pinakes.analytics.anomaly.load_nodes` — instead of twice with a "keep in sync" note.
+
+**`services/hypothesis-generation.ts` is NOT retired.** It is the graded spec (same standing
+as `services/anomaly-detection.ts`, whose primitives it still imports), and its unit tests are
+what say the two engines agree. The contract below is unchanged; it is enforced elsewhere.
 
 `GET /api/hypotheses?minMembers=&minRarity=&minGapKm=&limit=` (US-007) returns two families of
 **generated, explicitly-speculative** research leads: **common-ancestor hypotheses** (clusters of
