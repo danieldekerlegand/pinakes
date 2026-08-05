@@ -103,10 +103,11 @@ arguments in, JSON-ready dicts out, no FastAPI import.
 - **`ContributionStore.list` shadows the builtin** for every annotation after it
   in the class body, which is why `get_by_entity` is declared above it. mypy says
   `Function ... is not valid as a type` if you move it back.
-- **The changelog write-half only.** `GET /api/changelog` is a different port
-  unit; `contributions/changelog.py` just appends records in the same shape and
-  directory, best-effort — a failed audit line must never cost a reviewer their
-  decision.
+- **The changelog write is best-effort, and that has outlived the split.** It
+  started as the write half of a store whose reader was still Express's; the
+  reader landed here in pinakes:61 US-2 and the two now share one module. What
+  did not change is that `record_change` swallows its failures — a failed audit
+  line must never cost a reviewer their decision.
 
 ## The write guard — `contributions/auth.py` + `routers/_auth.py` (pinakes:60 US-2)
 
@@ -178,10 +179,51 @@ and `routers/_owner.py` is the single place that knows how to read one.
   In an importing module it binds the name locally, so the store is imported
   under an alias (`as notes`); strict mypy catches that one for you
   ("imported name has type Module, local name has type _Feature").
-- `conftest.py`'s autouse `isolated_data_trees` now redirects five trees. **Add
-  yours the moment a port starts writing one** — every store resolves its
+- `conftest.py`'s autouse `isolated_data_trees` now redirects six trees (US-2
+  added `stewardship`). **Add yours the moment a port starts writing one** — every store resolves its
   directory through `pinakes.paths` per call precisely so that fixture is the
   only thing between a test and live user data.
+
+## The changelog, stewardship and citations — `routers/{changelog,stewardship,citations}.py` (pinakes:61 US-2)
+
+Three small route groups that finish the collaborative-runtime band. Two things
+here are worth knowing before touching them.
+
+- **`contributions/changelog.py` is now the whole store, not half of it.** The
+  write half landed with the review pipeline; this story added filtering,
+  sorting, pagination and the aggregate to the *same module* rather than
+  splitting along the route boundary — the record shape and the id format are
+  what the two servers agree on, and a second module restating them is the drift
+  worth not having. `server/services/changelog.ts` is therefore **not retired**:
+  its write side is still live over there (field updates, release semver).
+- **The two failure modes are deliberately opposite, and both are ports.** A
+  malformed changelog file **raises** (→ 500): an entry silently dropped from an
+  *audit log* is worse than a log that admits it is broken. A malformed
+  `stewards.json` **degrades to empty**: a claim can be re-made in one request,
+  so failing loudly would cost every reviewer the endpoint. Do not "fix" either
+  into the other.
+- **`?limit=abc` means different things in different groups.** The contribution
+  queue propagates the `NaN` into `Array.slice` and returns an *empty* page;
+  `/api/changelog` drops it back to `undefined` and returns the *default* page,
+  because `parseFilters` did. `routers/changelog._number` is that second rule and
+  is not `store.parse_int_js`.
+- **Dates are `Date.parse`, not `fromisoformat`.** `changelog.date_parse_ms`
+  special-cases the date-only form to **UTC** (Python reads it as local), and a
+  bare `to=YYYY-MM-DD` bound covers the whole day (`T23:59:59.999Z`). Both rules
+  are load-bearing for the range filter.
+- **`collab/citable.py` is not the corpus storage layer** and must not grow into
+  one — it reads five fields out of four TSVs, and the general reader is
+  `tasks/chief/63-port-entity-search.json`'s job. Two shapes in it are
+  contract, not accident: an undated civilization cites **year 0** (falling back
+  to its boundary row first), and a site with no parseable `coordinates` has no
+  citation at all.
+- **`GET /api/citations` is served by BOTH backends on purpose.** Its recorded
+  fixture is replayed against the Express app, so retiring it there would break
+  the baseline. It is the one response in the group that is a constant.
+- The stewardship port took **three of the five** routes in
+  `server/routes/community-verification.ts`; confirm/verification are the
+  contribution queue's unit and still 501 here. That split works because both
+  servers read one `stewards.json`.
 
 ## Deliberate divergences from `server/`
 

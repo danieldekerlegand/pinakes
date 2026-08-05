@@ -3139,10 +3139,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
   // Data versioning & changelog (US-010)
   // ============================================================================
-  // A browsable, filterable audit log of dataset changes. The contribution +
-  // ai-review pipelines record approved edits into the shared `changelog` store
-  // above; GET /api/changelog[/stats] exposes it filterable by domain + date.
-  registerChangelogRoutes(app, { changelog });
+  // A browsable, filterable audit log of dataset changes — READ side ported to
+  // Python (pinakes:61 US-2); these two paths answer 501 naming their
+  // replacement. The shared `changelog` store above is still written on this
+  // side (field updates, release semver), so it is still constructed and passed
+  // to the route groups that write it; this one no longer takes it.
+  registerChangelogRoutes(app);
 
   // ============================================================================
   // Versioned dataset releases + public dataset API (US-011)

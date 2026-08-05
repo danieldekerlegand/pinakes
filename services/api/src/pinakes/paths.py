@@ -4,12 +4,12 @@ Several things live outside the Python package and have to be found on disk: the
 built React client (`dist/public`, produced by `web/vite.config.ts`), the
 generated parity baseline (`contracts/parity/openapi.json`, which drives the 501
 catalog), and the data trees the ported route groups read and write — the
-contribution queue, the changelog, the collaborative stores (collections and
-annotations), and the lexicon corpus. All are located by walking up from this
-file to the repo root, and all can be pointed elsewhere with an environment
-variable — that is what lets the tests exercise the real code paths against a
-temporary directory, and what would let a packaged deployment place them
-anywhere.
+contribution queue, the changelog, the collaborative stores (collections,
+annotations, steward adoptions), and the lexicon corpus. All are located by
+walking up from this file to the repo root, and all can be pointed elsewhere
+with an environment variable — that is what lets the tests exercise the real
+code paths against a temporary directory, and what would let a packaged
+deployment place them anywhere.
 
 The data-tree overrides are load-bearing for the test suite, not a nicety: a
 test that wrote into the live `data/source/lexicons/` would be visible to every
@@ -38,6 +38,8 @@ CHANGELOG_DIR_ENV = "PINAKES_CHANGELOG_DIR"
 COLLECTIONS_DIR_ENV = "PINAKES_COLLECTIONS_DIR"
 #: Env var pointing at the entity annotations (JSON-per-record).
 ANNOTATIONS_DIR_ENV = "PINAKES_ANNOTATIONS_DIR"
+#: Env var pointing at the steward adoptions (a single `stewards.json`).
+STEWARDSHIP_DIR_ENV = "PINAKES_STEWARDSHIP_DIR"
 #: Env var pointing at the lexicon corpus (`*.tsv`).
 LEXICONS_DIR_ENV = "PINAKES_LEXICONS_DIR"
 
@@ -57,6 +59,7 @@ CONTRIBUTIONS_RELPATH = Path("data") / "runtime" / "contributions"
 CHANGELOG_RELPATH = Path("data") / "runtime" / "changelog"
 COLLECTIONS_RELPATH = Path("data") / "runtime" / "collections"
 ANNOTATIONS_RELPATH = Path("data") / "runtime" / "annotations"
+STEWARDSHIP_RELPATH = Path("data") / "runtime" / "stewardship"
 LEXICONS_RELPATH = Path("data") / "source" / "lexicons"
 
 
@@ -140,6 +143,11 @@ def collections_dir() -> Path:
 def annotations_dir() -> Path:
     """User notes on entities — one JSON file per annotation."""
     return _data_dir(ANNOTATIONS_DIR_ENV, ANNOTATIONS_RELPATH)
+
+
+def stewardship_dir() -> Path:
+    """Steward adoptions — a single `stewards.json`, not one file per record."""
+    return _data_dir(STEWARDSHIP_DIR_ENV, STEWARDSHIP_RELPATH)
 
 
 def lexicons_dir() -> Path:

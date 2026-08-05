@@ -1,99 +1,63 @@
 /**
- * Data changelog routes (/api/changelog, US-010).
+ * Data changelog routes (/api/changelog, US-010) — **ported away**
+ * (pinakes:61 US-2, docs/UNIFIED-PROJECT-PLAN.md §7).
  *
- * A browsable, filterable audit log of dataset changes recorded by the
- * contribution pipeline (approved edits) — see the `changelog` option on
- * `registerAiReviewRoutes` / `registerContributionRoutes`, which log an entry
- * whenever an approved change lands.
+ * The browsable audit log is served by the Python service now
+ * (`services/api/src/pinakes/routers/changelog.py` over
+ * `pinakes.contributions.changelog`), against the same `data/runtime/changelog`
+ * directory this backend's `ChangelogStore` writes. Both handlers here are
+ * retired: they answer **501** naming the module that replaced them.
  *
- * - `GET /api/changelog`        — filtered + paginated entries (+ total).
- * - `GET /api/changelog/stats`  — aggregate counts + date bounds over the filter.
+ * **`server/services/changelog.ts` is emphatically NOT retired.** The write side
+ * of this store is still live on this backend — `registerLanguagePreservationRoutes`
+ * records a field update, and `dataset-releases` / `living-dataset` derive the
+ * next semver from `changelog.stats()`. The single shared `ChangelogStore`
+ * instance in `registerRoutes` therefore keeps being created and passed around;
+ * what stopped is only this file's *reading* of it, which is why
+ * `registerChangelogRoutes` no longer takes a store.
  *
- * The `ChangelogStore` is injectable so tests point it at a temp dir; in
- * production the same store instance is shared with the contribution/ai-review
- * routes so their writes are visible here.
+ * The paths stay *registered* rather than being deleted, and that is deliberate
+ * — the path set is what `contracts/parity/openapi.json` was harvested from, so
+ * removing a registration would rewrite the very baseline the port is graded
+ * against.
  */
 
-import type { Express } from "express";
-import {
-  ChangelogStore,
-  CHANGE_TYPES,
-  type ChangeType,
-  type ChangelogFilters,
-} from "../services/changelog";
+import type { Express, Request, Response } from "express";
 
-export interface ChangelogRoutesOptions {
-  changelog?: ChangelogStore;
-}
+/** The Python module that now serves these routes. */
+export const PORTED_TO = "services/api/src/pinakes/routers/changelog.py";
 
-/** Parse shared query params into `ChangelogFilters`. */
-function parseFilters(query: Record<string, unknown>): ChangelogFilters {
-  const str = (v: unknown): string | undefined =>
-    typeof v === "string" && v.trim() ? v.trim() : undefined;
-  const num = (v: unknown): number | undefined => {
-    const s = str(v);
-    if (s === undefined) return undefined;
-    const n = parseInt(s, 10);
-    return Number.isNaN(n) ? undefined : n;
-  };
-  const changeTypeRaw = str(query.changeType);
-  const changeType =
-    changeTypeRaw && (CHANGE_TYPES as readonly string[]).includes(changeTypeRaw)
-      ? (changeTypeRaw as ChangeType)
-      : undefined;
-  return {
-    domain: str(query.domain),
-    changeType,
-    source: str(query.source),
-    contributionId: str(query.contributionId),
-    from: str(query.from),
-    to: str(query.to),
-    limit: num(query.limit),
-    offset: num(query.offset),
+/** The routes this backend handed over, by method. Both are reads. */
+export const PORTED_ROUTES = {
+  get: ["/api/changelog", "/api/changelog/stats"],
+} as const;
+
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
   };
 }
 
-export function registerChangelogRoutes(app: Express, options: ChangelogRoutesOptions = {}): void {
-  const changelog = options.changelog ?? new ChangelogStore();
-
-  /**
-   * GET /api/changelog?domain=&changeType=&source=&from=&to=&limit=&offset=
-   * Filtered + paginated changelog entries (newest first).
-   */
-  app.get("/api/changelog", (req, res) => {
-    try {
-      const filters = parseFilters(req.query as Record<string, unknown>);
-      const { entries, total } = changelog.list(filters);
-      res.json({
-        entries,
-        total,
-        offset: filters.offset ?? 0,
-        limit: filters.limit ?? 50,
-        changeTypes: CHANGE_TYPES,
-      });
-    } catch (error) {
-      console.error("Error listing changelog:", error);
-      res.status(500).json({
-        message: "Failed to list changelog",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
-
-  /**
-   * GET /api/changelog/stats?domain=&from=&to=... — aggregate counts + date bounds
-   * over the filtered set (pagination ignored).
-   */
-  app.get("/api/changelog/stats", (req, res) => {
-    try {
-      const filters = parseFilters(req.query as Record<string, unknown>);
-      res.json(changelog.stats(filters));
-    } catch (error) {
-      console.error("Error computing changelog stats:", error);
-      res.status(500).json({
-        message: "Failed to compute changelog stats",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+export function registerChangelogRoutes(app: Express): void {
+  for (const route of PORTED_ROUTES.get) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
 }

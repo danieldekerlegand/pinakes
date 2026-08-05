@@ -4,12 +4,29 @@ import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 
 /**
- * Integration tests for the `/api/citations/*` routes (US-008). The route is wired
- * with injectable in-memory fetchers (no storage/fs), so we assert HTTP status,
- * download headers, and the rendered citation for a known entity.
+ * What is left of the `/api/citations/*` routes on this backend
+ * (pinakes:61 US-2).
+ *
+ * The download — formats, headers, the rendered document, the three refusals —
+ * is served by the Python service now, and its coverage moved with it to
+ * `services/api/tests/test_citation_routes.py`. What this file asserts is the
+ * split: the detail route is retired to 501 naming its replacement, and the
+ * **index keeps answering**, because `contracts/parity/parity.test.ts` replays
+ * `get-citations-index` against this app.
+ *
+ * `server/services/citation-export.ts` is still unit-tested next door — it is
+ * the specification the port was read off, and
+ * `services/api/tests/test_citation_export.py` is that same suite case for
+ * case, which is what says the two agree on every rendered byte.
  */
 
-import { registerCitationRoutes, type CitationFetcher } from "./citations";
+import {
+  PORTED_ERROR,
+  PORTED_ROUTES,
+  PORTED_TO,
+  registerCitationRoutes,
+  type CitationFetcher,
+} from "./citations";
 import { type CitableEntity } from "../services/citation-export";
 
 const minoan: CitableEntity = {
@@ -22,6 +39,7 @@ const minoan: CitableEntity = {
 };
 
 const fetchProfile: CitationFetcher = async (id) => (id === "minoan" ? minoan : null);
+let fetched: string[] = [];
 
 let app: Express;
 let server: Server;
@@ -31,7 +49,15 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   registerCitationRoutes(app, {
-    fetchers: { "culture-profiles": { urlPath: "culture-profile", fetch: fetchProfile } },
+    fetchers: {
+      "culture-profiles": {
+        urlPath: "culture-profile",
+        fetch: async (id) => {
+          fetched.push(id);
+          return fetchProfile(id);
+        },
+      },
+    },
   });
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
@@ -44,8 +70,11 @@ afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
-describe("GET /api/citations", () => {
+describe("GET /api/citations — still served here", () => {
   it("lists the configured domains + formats", async () => {
+    // The recorded fixture `get-citations-index` is replayed against this app;
+    // a baseline that stops reproducing its own recording is no longer a
+    // baseline, which is why this one route did not retire with the other.
     const res = await fetch(`${baseUrl}/api/citations`);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -54,51 +83,32 @@ describe("GET /api/citations", () => {
   });
 });
 
-describe("GET /api/citations/:domain/:id", () => {
-  it("downloads BibTeX by default with an attachment filename", async () => {
+describe("GET /api/citations/:domain/:id — ported to the Python service", () => {
+  it("answers 501 naming its replacement", async () => {
     const res = await fetch(`${baseUrl}/api/citations/culture-profiles/minoan`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toContain("application/x-bibtex");
-    expect(res.headers.get("content-disposition")).toBe('attachment; filename="minoan.bib"');
-    const text = await res.text();
-    expect(text).toContain("@misc{pinakes-culture-profile-minoan,");
-    expect(text).toContain("title = {Minoan Civilization}");
-    expect(text).toContain("@misc{minoan-evans-1921,");
-    // the record entry's url is derived from the request host
-    expect(text).toMatch(/url = \{http:\/\/127\.0\.0\.1:\d+\/culture-profile\/minoan\}/);
+    expect(res.status).toBe(501);
+    const body = await res.json();
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
 
-  it("supports the ris format", async () => {
-    const res = await fetch(`${baseUrl}/api/citations/culture-profiles/minoan?format=ris`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-disposition")).toBe('attachment; filename="minoan.ris"');
-    const text = await res.text();
-    expect(text).toContain("TY  - DATA");
-  });
-
-  it("supports csljson and returns valid JSON", async () => {
-    const res = await fetch(`${baseUrl}/api/citations/culture-profiles/minoan?format=csljson`);
-    expect(res.status).toBe(200);
-    const items = await res.json();
-    expect(items).toHaveLength(3);
-    expect(items[0].type).toBe("dataset");
-  });
-
-  it("404s an unknown domain", async () => {
+  it("answers 501 for an unknown domain too, rather than 404ing first", async () => {
+    // The retired handler is a stub: it does not know which domains exist, and
+    // it must not — deciding that is the ported route's job now.
     const res = await fetch(`${baseUrl}/api/citations/dragons/smaug`);
-    expect(res.status).toBe(404);
-    expect((await res.json()).error).toBe("Unknown citation domain");
+    expect(res.status).toBe(501);
   });
 
-  it("404s an unknown id", async () => {
-    const res = await fetch(`${baseUrl}/api/citations/culture-profiles/atlantis`);
-    expect(res.status).toBe(404);
-    expect((await res.json()).error).toBe("Not found");
+  it("never reaches a fetcher", async () => {
+    fetched = [];
+    await fetch(`${baseUrl}/api/citations/culture-profiles/minoan?format=ris`);
+    expect(fetched).toEqual([]);
   });
 
-  it("400s an unknown format", async () => {
-    const res = await fetch(`${baseUrl}/api/citations/culture-profiles/minoan?format=mla`);
-    expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe("Unknown citation format");
+  it("keeps the retired path registered", () => {
+    // Deleting the registration would rewrite the parity baseline the port is
+    // graded against — and `/api/citations` is deliberately NOT in this list.
+    expect(PORTED_ROUTES.get).toEqual(["/api/citations/:domain/:id"]);
   });
 });
