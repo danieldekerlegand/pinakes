@@ -1,0 +1,27 @@
+# UniMorph inflected paradigms.
+#
+# Migrated from `server/services/verb-paradigm-scraper.ts` (pinakes:70 US-1).
+# UniMorph publishes bare lemma/form/features triples with **no header row**,
+# which is what `source.params.columns` is for. Repoint `source.query` at
+# another `unimorph/<iso>` repository for a different language.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/remote.py` for what the params mean.
+
+id: verb-paradigms
+label: Wordform
+description: UniMorph inflected paradigms.
+source:
+  type: http
+  query: https://raw.githubusercontent.com/unimorph/lat/master/lat
+  params:
+    adapter: remote-tabular
+    format: tsv
+    columns: "lemma,form,features"
+    source: unimorph
+    license: CC-BY-SA-3.0
+    confidence: 0.8
+    field.name: form
+    field.lemma: lemma
+dimensions:
+  - linguistic

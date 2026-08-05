@@ -1,0 +1,23 @@
+# Building typology — the functional kinds of structure a style is expressed in.
+#
+# Migrated from `server/services/architectural-styles-scraper.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: building-types
+label: Concept;CulturalArtifact
+description: Building typology — the functional kinds of structure a style is expressed in.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,category,parent_type_id,description,historical_period,regions,associated_styles,structural_features,cultural_function"
+    existing: ../data/source/lexicons/building-types.tsv
+    instruction: "parent_type_id must be another entry's id or \"null\"; the typology is a tree, so prefer adding leaves under types that already exist."
+dimensions:
+  - temporal

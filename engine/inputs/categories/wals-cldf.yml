@@ -1,0 +1,28 @@
+# WALS feature values, downloaded from the CLDF release.
+#
+# Migrated from `server/services/grammar-wals-grambank-scraper.ts` (pinakes:70
+# US-1). The `wals` category already reads this dataset off disk; this is the
+# same mapping over the same file fetched through the shared client, so a build
+# needs no manual download and the second one is served from the cache.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/remote.py` for what the params mean.
+
+id: wals-cldf
+label: Typology
+description: WALS feature values, downloaded from the CLDF release.
+source:
+  type: http
+  query: https://raw.githubusercontent.com/cldf-datasets/wals/master/cldf/values.csv
+  params:
+    adapter: remote-tabular
+    format: csv
+    source: wals
+    license: CC-BY-4.0
+    confidence: 0.8
+    id_column: ID
+    url_template: "https://wals.info/valuesets/{id}"
+    field.language_code: Language_ID
+    field.name: Value
+dimensions:
+  - linguistic

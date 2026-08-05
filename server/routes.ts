@@ -6,25 +6,8 @@ import { storage } from "./storage";
 import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
 import { applyViewport, viewportOptionsFromQuery } from "./services/geo-bbox";
 import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
-import { wordListScraper } from "./services/word-list-scraper";
-import { writingSystemScraper } from "./services/writing-system-scraper";
-import { glottologScraper } from "./services/glottolog-scraper";
-import { polityScraper, SESHAT_POLITIES_COUNT } from "./services/polity-scraper";
-import { religionScraper } from "./services/religion-scraper";
-import { cuisineScraper } from "./services/cuisine-scraper";
 import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
-import { soundChangeScraper } from "./services/sound-change-scraper";
-import { tradeGoodsScraper } from "./services/trade-goods-scraper";
-import { musicScraper } from "./services/music-scraper";
-import { artTraditionScraper } from "./services/art-tradition-scraper";
 import { jobStore } from "./services/job-store";
-import { languageContactScraper } from "./services/language-contact-scraper";
-import { architecturalStylesScraper } from "./services/architectural-styles-scraper";
-import { wikimediaCommonsScraper } from "./services/wikimedia-commons-scraper";
-import {
-  identifyUnderrepresentedFamilies,
-  underrepresentedVocabScraper,
-} from "./services/underrepresented-vocab-scraper";
 import { analyzeMapImage } from "./services/map-image-analyzer";
 import type { FeatureExtractionRequest } from "./services/map-image-analyzer";
 import { MediaAssetService } from "./services/media-asset-service";
@@ -85,9 +68,7 @@ import { registerAncestryRoutes } from "./routes/ancestry";
 import { registerLanguagePreservationRoutes } from "./routes/language-preservation";
 import { registerLivingDatasetRoutes } from "./routes/living-dataset";
 import { ChangelogStore } from "./services/changelog";
-import { ethnographicScraper } from "./services/ethnographic-scraper";
 import { bulkImport, getImportTargets } from "./services/bulk-import";
-import { grammarWalsGrambankScraper } from "./services/grammar-wals-grambank-scraper";
 import {
   exportDataset,
   getDatasetProfiles,
@@ -96,22 +77,9 @@ import {
   createZenodoDoiMinter,
   type ExportFormat,
 } from "./services/export-pipeline";
-import { battleScraper } from "./services/battle-scraper";
 import { generateQuiz, scoreMapClick, type QuizCategory, type Difficulty } from "./services/quiz-generator";
 import { DataValidationService } from "./services/data-validation";
 import { getFreshnessSummary } from "./services/data-freshness";
-import {
-  analyzeTsvFiles,
-  runBatchEnrichment,
-  getEnrichmentJob,
-  getAllEnrichmentJobs,
-} from "./services/batch-enrichment";
-import {
-  runCultureProfileEnrichment,
-  getCultureEnrichmentJob,
-  getAllCultureEnrichmentJobs,
-  type EnrichmentDomain,
-} from "./services/culture-profile-enrichment";
 
 /**
  * The Python module serving the correlation routes this file handed over
@@ -165,6 +133,51 @@ function portedToPython(route: string, servedBy: string) {
       route,
       servedBy,
       coverage: "/api/_parity/coverage",
+    });
+  };
+}
+
+/**
+ * The acquisition layer these scraping routes handed over to (pinakes:70 US-1,
+ * docs/UNIFIED-PROJECT-PLAN.md §6). Not a Python *route* — there is none, and
+ * that is the point.
+ */
+const ACQUISITION_RETIRED_TO = "engine/src/pinakes_engine/acquire";
+
+/**
+ * A handler for a scraping route whose domain is acquired by the engine now.
+ *
+ * This is `portedToPython`'s sibling, and the difference matters. A ported route
+ * is served by another process at the same path; these are **retired**, because
+ * the twenty-seven `server/services/*-scraper.ts` modules behind them were
+ * folded into `pinakes_engine.acquire` and there is no HTTP surface on the other
+ * side. So the body names the category specs to run rather than a replacement
+ * endpoint, and `error` reads `retired`, not `ported`.
+ *
+ * Still 501 rather than 404 or 410: the path stays in the API contract (the
+ * parity baseline is harvested from this routing table), and a client that finds
+ * it should be told where the capability went, not that it never existed.
+ *
+ * `categories` is a space-separated list of `engine/inputs/categories/<id>.yml`
+ * ids; it is empty only for the generic top-up routes, whose replacement is the
+ * generation adapter itself rather than any one category.
+ * `engine/src/pinakes_engine/acquire/migration.py` is the full table.
+ */
+function retiredToEngine(route: string, categories: string) {
+  const ids = categories.split(" ").filter(Boolean);
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: "retired",
+      message:
+        `${route} has been retired. Its domain is acquired by the Python engine ` +
+        `now (${ACQUISITION_RETIRED_TO}); this backend no longer scrapes.`,
+      route,
+      acquiredBy: ACQUISITION_RETIRED_TO,
+      categories: ids,
+      run: ids.length
+        ? ids.map((id) => `pinakes_engine fetch inputs/categories/${id}.yml`)
+        : ["pinakes_engine fetch inputs/categories/<category>.yml"],
+      migrationTable: "engine/src/pinakes_engine/acquire/migration.py",
     });
   };
 }
@@ -540,638 +553,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Scrape language families from Glottolog
-  app.post("/api/scraping/glottolog", async (req, res) => {
-    try {
-      const { maxFamilies, familyFilter, maxDepth } = req.body;
-
-      const job = jobStore.createJob(
-        "glottolog-families",
-        100,
-        "other"
-      );
-
-      glottologScraper
-        .scrapeGlottolog({
-          maxFamilies,
-          familyFilter,
-          maxDepth,
-          jobId: job.id,
-          progressCallback: (type, message, data) => {
-            console.log(`[Glottolog Scraping] ${type}: ${message}`, data || "");
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Glottolog scraping completed: ${result.families.length} families, ${result.languages.length} languages, ${result.totalApiCalls} API calls`
-          );
-        })
-        .catch((error) => {
-          console.error("Glottolog scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Glottolog scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting Glottolog scraping:", error);
-      res.status(500).json({
-        message: "Failed to start Glottolog scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/glottolog",
+    retiredToEngine("POST /api/scraping/glottolog", "glottolog"),
+  );
 
   // Scrape word list for a language
-  app.post("/api/scraping/words", async (req, res) => {
-    try {
-      const { languageId, languageName, dataSources } = req.body;
-
-      if (!languageId || !languageName) {
-        return res.status(400).json({
-          message: "languageId and languageName are required",
-        });
-      }
-
-      // Get base words for scraping
-      const baseWords = await storage.getBaseWords();
-
-      if (baseWords.length === 0) {
-        return res.status(400).json({
-          message: "No base words available for scraping",
-        });
-      }
-
-      // Create in-memory job for tracking
-      const job = jobStore.createJob(
-        languageId,
-        baseWords.length,
-        dataSources?.[0] || "gemini"
-      );
-
-      // Start scraping in the background
-      wordListScraper
-        .scrapeWordList({
-          languageId,
-          languageName,
-          baseWords,
-          dataSources: dataSources || ["gemini"],
-          resumable: true,
-          jobId: job.id,
-          progressCallback: (progress) => {
-            console.log(
-              `[Word Scraping ${languageId}] ${progress.type}: ${progress.message}`
-            );
-
-            // Update job with current status message for UI display
-            if (progress.type === 'progress') {
-              jobStore.updateJob(job.id, {
-                statusMessage: progress.message,
-              });
-            } else if (progress.type === 'error') {
-              jobStore.updateJob(job.id, {
-                errorMessage: progress.message,
-              });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Word scraping completed for ${languageId}: ${result.scrapedWords}/${result.totalWords} words`
-          );
-        })
-        .catch((error) => {
-          console.error(`Word scraping failed for ${languageId}:`, error);
-
-          // Update job status to failed
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: `Word scraping started for ${languageName}`,
-        status: "pending",
-        languageId,
-        totalWords: baseWords.length,
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting word scraping:", error);
-      res.status(500).json({
-        message: "Failed to start word scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/words",
+    retiredToEngine("POST /api/scraping/words", "kaikki lexibank-abvd underrepresented-vocab"),
+  );
 
   // Scrape historical polities/empires from Wikipedia and Seshat
-  app.post("/api/scraping/polities", async (req, res) => {
-    try {
-      const job = jobStore.createJob("polities", SESHAT_POLITIES_COUNT, "wikipedia+seshat");
-
-      polityScraper
-        .scrapePolities({
-          jobId: job.id,
-          progressCallback: (progress) => {
-            console.log(`[Polity Scraping] ${progress.type}: ${progress.message}`);
-            if (progress.type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: progress.message });
-            } else if (progress.type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: progress.message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Polity scraping completed: ${result.newPolities} new, ${result.skippedDuplicates} skipped`
-          );
-        })
-        .catch((error) => {
-          console.error("Polity scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Polity scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting polity scraping:", error);
-      res.status(500).json({
-        message: "Failed to start polity scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/polities",
+    retiredToEngine("POST /api/scraping/polities", "seshat-polities city-states kingdoms empires dynasties"),
+  );
 
   // Scrape battles and military history
-  app.post("/api/scraping/battles", async (req, res) => {
-    try {
-      const { clearExisting, eraFilter } = req.body;
-
-      const job = jobStore.createJob("battles", 4, "gemini");
-
-      battleScraper
-        .scrapeBattles({
-          clearExisting: clearExisting || false,
-          eraFilter: eraFilter || undefined,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Battle Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(`Battle scraping completed: ${result.length} battles`);
-        })
-        .catch((error) => {
-          console.error("Battle scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Battle scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting battle scraping:", error);
-      res.status(500).json({
-        message: "Failed to start battle scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/battles",
+    retiredToEngine("POST /api/scraping/battles", "battles naval-battles sieges wars"),
+  );
 
   // Scrape religions and belief systems
-  app.post("/api/scraping/religions", async (_req, res) => {
-    try {
-      const job = jobStore.createJob("religions", 3, "gemini");
-
-      religionScraper
-        .scrapeReligions({
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Religion Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(`Religion scraping completed: ${result.religions.length} new religions`);
-        })
-        .catch((error) => {
-          console.error("Religion scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Religion scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting religion scraping:", error);
-      res.status(500).json({
-        message: "Failed to start religion scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/religions",
+    retiredToEngine("POST /api/scraping/religions", "religions religious-texts deities"),
+  );
 
   // Scrape cuisine and food culture data
-  app.post("/api/scraping/cuisines", async (req, res) => {
-    try {
-      const { cuisineFilter } = req.body;
-
-      const job = jobStore.createJob(
-        "cuisines",
-        0,
-        "gemini"
-      );
-
-      cuisineScraper
-        .scrapeCuisines({
-          cuisineFilter: cuisineFilter || undefined,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Cuisine Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Cuisine scraping completed: ${result.cuisines} cuisines, ${result.cuisineItems} items`
-          );
-        })
-        .catch((error) => {
-          console.error("Cuisine scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Cuisine scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting cuisine scraping:", error);
-      res.status(500).json({
-        message: "Failed to start cuisine scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/cuisines",
+    retiredToEngine("POST /api/scraping/cuisines", "cuisines cuisine-items cooking-techniques ingredient-origins"),
+  );
 
   // Scrape language contact events with Gemini AI
-  app.post("/api/scraping/language-contacts", async (req, res) => {
-    try {
-      const { contactTypes, regions, targetCount } = req.body;
-
-      const job = jobStore.createJob(
-        "language-contacts",
-        targetCount || 300,
-        "gemini"
-      );
-
-      languageContactScraper
-        .scrapeLanguageContacts({
-          contactTypes,
-          regions,
-          targetCount: targetCount || 300,
-          jobId: job.id,
-          progressCallback: (type, message, data) => {
-            if (type === "error") {
-              console.error(`Contact scraping error: ${message}`);
-            } else {
-              console.log(`Contact scraping: ${message}`);
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Contact scraping completed: ${result.newEntries} new entries (total: ${result.totalAfter})`
-          );
-        })
-        .catch((error) => {
-          console.error("Contact scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Language contact scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting contact scraping:", error);
-      res.status(500).json({
-        message: "Failed to start language contact scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/language-contacts",
+    retiredToEngine("POST /api/scraping/language-contacts", "language-contacts"),
+  );
 
   // Scrape trade goods and economic data
-  app.post("/api/scraping/trade-goods", async (_req, res) => {
-    try {
-      const existingGoods = await storage.getTradeGoods();
-      const existingRoutes = await storage.getTradeRoutes();
-
-      const job = jobStore.createJob("trade-goods", 2, "gemini");
-
-      tradeGoodsScraper
-        .scrapeTradeGoods({
-          existingGoods,
-          existingRoutes,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Trade Goods Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Trade goods scraping completed: ${result.goods.length} goods, ${result.routes.length} routes`
-          );
-        })
-        .catch((error) => {
-          console.error("Trade goods scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Trade goods scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting trade goods scraping:", error);
-      res.status(500).json({
-        message: "Failed to start trade goods scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/trade-goods",
+    retiredToEngine("POST /api/scraping/trade-goods", "trade-goods trade-routes"),
+  );
 
   // Scrape music traditions and instruments with Gemini AI
-  app.post("/api/scraping/music", async (req, res) => {
-    try {
-      // Get existing IDs to inform the scraper
-      const existingTraditions = await storage.getMusicTraditions();
-      const existingInstruments = await storage.getMusicalInstruments();
-
-      const job = jobStore.createJob("music-traditions", 3, "gemini");
-
-      musicScraper
-        .scrapeMusicTraditionsAndInstruments({
-          existingTraditionIds: existingTraditions.map((t: any) => t.id),
-          existingInstrumentIds: existingInstruments.map((i: any) => i.id),
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Music Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Music scraping completed: ${result.traditions.length} traditions, ${result.instruments.length} instruments`
-          );
-        })
-        .catch((error) => {
-          console.error("Music scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Music traditions and instruments scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting music scraping:", error);
-      res.status(500).json({
-        message: "Failed to start music scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/music",
+    retiredToEngine("POST /api/scraping/music", "music-traditions musical-instruments"),
+  );
 
   // === Data Enrichment Endpoints ===
 
   // Enrich languages with coordinates and temporal data
-  app.post("/api/enrichment/languages", async (req, res) => {
-    try {
-      const { fields } = req.body;
-      const validFields = (fields || ['coordinates', 'temporal']).filter(
-        (f: string) => f === 'coordinates' || f === 'temporal'
-      );
-
-      const languages = await storage.getLanguages();
-      if (languages.length === 0) {
-        return res.status(400).json({ message: "No languages available to enrich" });
-      }
-
-      const job = jobStore.createJob("language-enrichment", languages.length, "gemini");
-
-      // Lazy import to avoid circular deps and only load when needed
-      const { languageEnrichmentService } = await import("./services/language-enrichment");
-
-      languageEnrichmentService
-        .enrichLanguages({
-          languages,
-          fields: validFields,
-          jobId: job.id,
-          progressCallback: (type: string, message: string) => {
-            console.log(`[Language Enrichment] ${type}: ${message}`);
-            if (type === 'progress') {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            }
-          },
-        })
-        .then((result: { enriched: number; failed: number }) => {
-          storage.invalidateCache('languages');
-          console.log(`Language enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
-        })
-        .catch((error: unknown) => {
-          console.error("Language enrichment failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Language enrichment started",
-        status: "pending",
-        totalLanguages: languages.length,
-        fields: validFields,
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting language enrichment:", error);
-      res.status(500).json({ message: "Failed to start language enrichment" });
-    }
-  });
+  app.post(
+    "/api/enrichment/languages",
+    retiredToEngine("POST /api/enrichment/languages", "languages dialects language-families glottolog"),
+  );
 
   // Enrich phonological inventories
-  app.post("/api/enrichment/phonology", async (req, res) => {
-    try {
-      const languages = await storage.getLanguages();
-      if (languages.length === 0) {
-        return res.status(400).json({ message: "No languages available" });
-      }
-
-      const job = jobStore.createJob("phonology-enrichment", languages.length, "gemini");
-
-      const { phonologyEnrichmentService } = await import("./services/phonology-enrichment");
-
-      phonologyEnrichmentService
-        .enrichPhonologies({
-          languages,
-          jobId: job.id,
-          progressCallback: (type: string, message: string) => {
-            console.log(`[Phonology Enrichment] ${type}: ${message}`);
-            if (type === 'progress') {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            }
-          },
-        })
-        .then((result: { enriched: number; failed: number }) => {
-          storage.invalidateCache('phonology');
-          console.log(`Phonology enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
-        })
-        .catch((error: unknown) => {
-          console.error("Phonology enrichment failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Phonology enrichment started",
-        status: "pending",
-        totalLanguages: languages.length,
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting phonology enrichment:", error);
-      res.status(500).json({ message: "Failed to start phonology enrichment" });
-    }
-  });
+  app.post(
+    "/api/enrichment/phonology",
+    retiredToEngine("POST /api/enrichment/phonology", "phoible wiktionary-phonology"),
+  );
 
   // Enrich grammar features
-  app.post("/api/enrichment/grammar", async (req, res) => {
-    try {
-      const languages = await storage.getLanguages();
-      if (languages.length === 0) {
-        return res.status(400).json({ message: "No languages available" });
-      }
-
-      const job = jobStore.createJob("grammar-enrichment", languages.length, "gemini");
-
-      const { grammarEnrichmentService } = await import("./services/grammar-enrichment");
-
-      grammarEnrichmentService
-        .enrichGrammar({
-          languages,
-          jobId: job.id,
-          progressCallback: (type: string, message: string) => {
-            console.log(`[Grammar Enrichment] ${type}: ${message}`);
-            if (type === 'progress') {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            }
-          },
-        })
-        .then((result: { enriched: number; failed: number }) => {
-          storage.invalidateCache('grammar');
-          console.log(`Grammar enrichment complete: ${result.enriched} enriched, ${result.failed} failed`);
-        })
-        .catch((error: unknown) => {
-          console.error("Grammar enrichment failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Grammar enrichment started",
-        status: "pending",
-        totalLanguages: languages.length,
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting grammar enrichment:", error);
-      res.status(500).json({ message: "Failed to start grammar enrichment" });
-    }
-  });
+  app.post(
+    "/api/enrichment/grammar",
+    retiredToEngine("POST /api/enrichment/grammar", "grammar-features wals-cldf grambank-cldf"),
+  );
 
   // Dataset statistics for the Data Overview page
   // Uses direct file reads to avoid parser failures in storage methods
@@ -1378,58 +831,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Scrape grammar features from WALS and Grambank
-  app.post("/api/scraping/grammar-wals-grambank", async (req, res) => {
-    try {
-      const { sources, languageIds } = req.body;
-
-      const job = jobStore.createJob(
-        "grammar-wals-grambank",
-        0,
-        "wals-grambank"
-      );
-
-      // Start scraping in the background
-      grammarWalsGrambankScraper
-        .scrape({
-          sources: sources || ["wals", "grambank"],
-          languageIds: languageIds || undefined,
-          jobId: job.id,
-          progressCallback: (progress) => {
-            console.log(`[Grammar WALS/Grambank] ${progress.type}: ${progress.message}`);
-            if (progress.type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: progress.message });
-            } else if (progress.type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: progress.message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Grammar WALS/Grambank scraping completed: ${result.totalFeatures} features for ${result.languagesMatched} languages`
-          );
-        })
-        .catch((error) => {
-          console.error("Grammar WALS/Grambank scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Grammar WALS/Grambank scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting grammar WALS/Grambank scraping:", error);
-      res.status(500).json({
-        message: "Failed to start grammar WALS/Grambank scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/grammar-wals-grambank",
+    retiredToEngine("POST /api/scraping/grammar-wals-grambank", "wals-cldf grambank-cldf"),
+  );
 
   // Linguistic Distance Analysis Endpoints
 
@@ -3164,57 +2569,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scrape/wiktionary-phonology - Scrape phonological inventories from Wiktionary
    */
-  app.post("/api/scrape/wiktionary-phonology", async (req, res) => {
-    try {
-      const { languageIds } = req.body;
-      let languages = await storage.getLanguages();
-
-      if (languageIds && Array.isArray(languageIds) && languageIds.length > 0) {
-        languages = languages.filter((l: any) => languageIds.includes(l.id));
-      }
-
-      if (languages.length === 0) {
-        return res.status(400).json({ message: "No languages available" });
-      }
-
-      const job = jobStore.createJob("wiktionary-phonology", languages.length, "wiktionary");
-
-      const { wiktionaryPhonologyScraper } = await import("./services/wiktionary-phonology-scraper");
-
-      wiktionaryPhonologyScraper
-        .scrapePhonologies({
-          languages,
-          jobId: job.id,
-          progressCallback: (type: string, message: string) => {
-            console.log(`[Wiktionary Phonology] ${type}: ${message}`);
-          },
-        })
-        .then((result: { scraped: number; failed: number; skipped: number }) => {
-          storage.invalidateCache("phonology");
-          console.log(
-            `Wiktionary phonology scraping complete: ${result.scraped} scraped, ${result.failed} failed, ${result.skipped} skipped`
-          );
-        })
-        .catch((error: unknown) => {
-          console.error("Wiktionary phonology scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Wiktionary phonology scraping started",
-        status: "pending",
-        totalLanguages: languages.length,
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting Wiktionary phonology scraping:", error);
-      res.status(500).json({ message: "Failed to start Wiktionary phonology scraping" });
-    }
-  });
+  app.post(
+    "/api/scrape/wiktionary-phonology",
+    retiredToEngine("POST /api/scrape/wiktionary-phonology", "wiktionary-phonology"),
+  );
 
   /**
    * GET /api/phonological-inventories - Get all phonological inventories
@@ -3467,47 +2825,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scraping/writing-systems - Scrape writing systems from Unicode CLDR + Gemini
    */
-  app.post("/api/scraping/writing-systems", async (req, res) => {
-    try {
-      const job = jobStore.createJob("writing-systems", 100, "cldr+gemini");
-
-      writingSystemScraper
-        .scrapeWritingSystems({
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Writing System Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((systems) => {
-          console.log(`Writing system scraping completed: ${systems.length} total systems`);
-        })
-        .catch((error) => {
-          console.error("Writing system scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Writing system scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting writing system scraping:", error);
-      res.status(500).json({
-        message: "Failed to start writing system scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/writing-systems",
+    retiredToEngine("POST /api/scraping/writing-systems", "writing-systems alphabets cldr-scripts"),
+  );
 
   /**
    * GET /api/writing-systems - Get all writing systems
@@ -3671,50 +2992,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/verb-paradigms/scrape - Scrape verb paradigms from UniMorph and Wiktionary
    */
-  app.post("/api/verb-paradigms/scrape", async (req, res) => {
-    try {
-      const { languageIds, verbs, sources } = req.body as {
-        languageIds?: string[];
-        verbs?: string[];
-        sources?: Array<"unimorph" | "wiktionary">;
-      };
-
-      if (!languageIds || !Array.isArray(languageIds) || languageIds.length === 0) {
-        res.status(400).json({ message: "languageIds array is required" });
-        return;
-      }
-
-      const { verbParadigmScraper } = await import("./services/verb-paradigm-scraper");
-
-      const entries = await verbParadigmScraper.scrapeVerbParadigms({
-        languageIds,
-        verbs,
-        sources,
-      });
-
-      const written = await verbParadigmScraper.writeParadigms(entries);
-
-      // Invalidate cache so next read picks up new data
-      (storage as any).cachedVerbParadigms = null;
-
-      res.json({
-        message: `Scraped and wrote ${written} new verb paradigm entries`,
-        count: written,
-        entries: entries.map((e) => ({
-          languageId: e.languageId,
-          verbConcept: e.verbConcept,
-          infinitiveForm: e.infinitiveForm,
-          source: e.source,
-        })),
-      });
-    } catch (error) {
-      console.error("Error scraping verb paradigms:", error);
-      res.status(500).json({
-        message: "Failed to scrape verb paradigms",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/verb-paradigms/scrape",
+    retiredToEngine("POST /api/verb-paradigms/scrape", "verb-paradigms"),
+  );
 
   /**
    * GET /api/battles - Get all battles
@@ -3956,41 +3237,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scraping/sound-changes - Scrape sound change rules from historical linguistics sources
    */
-  app.post("/api/scraping/sound-changes", async (req, res) => {
-    try {
-      const { familyIds } = req.body;
-
-      const job = jobStore.createJob("sound-changes", familyIds?.length ?? 12, "gemini");
-
-      res.json({
-        message: "Sound change scraping started",
-        jobId: job.id,
-      });
-
-      soundChangeScraper
-        .scrapeSoundChanges({
-          familyIds: familyIds || undefined,
-          jobId: job.id,
-          progressCallback: (progress) => {
-            console.log(`[Sound Changes] ${progress.message}`);
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Sound change scraping completed: ${result.newChanges} new changes (${result.totalScraped} total)`,
-          );
-        })
-        .catch((error) => {
-          console.error("Sound change scraping failed:", error);
-        });
-    } catch (error) {
-      console.error("Error starting sound change scraping:", error);
-      res.status(500).json({
-        message: "Failed to start sound change scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/sound-changes",
+    retiredToEngine("POST /api/scraping/sound-changes", "sound-changes"),
+  );
 
   /**
    * GET /api/foodway-events - Get all foodway events with optional filtering
@@ -4089,38 +3339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scrape/art-traditions - Scrape art traditions with style evolution tracking
    */
-  app.post("/api/scrape/art-traditions", async (req, res) => {
-    try {
-      const { categories, regions, clearExisting } = req.body || {};
-
-      const job = jobStore.createJob("art-traditions", 0, "gemini");
-
-      res.json({ jobId: job.id, message: "Art tradition scraping started" });
-
-      artTraditionScraper
-        .scrapeArtTraditions({
-          categories,
-          regions,
-          clearExisting,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[art-scraper] ${type}: ${message}`);
-          },
-        })
-        .then(() => {
-          storage.invalidateArtTraditionsCache();
-        })
-        .catch((err) => {
-          console.error("Art tradition scraping failed:", err);
-        });
-    } catch (error) {
-      console.error("Error starting art tradition scraping:", error);
-      res.status(500).json({
-        message: "Failed to start art tradition scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scrape/art-traditions",
+    retiredToEngine("POST /api/scrape/art-traditions", "art-movements art-style-evolutions"),
+  );
 
   /**
    * GET /api/architectural-styles - Get all architectural styles with optional filtering
@@ -4178,27 +3400,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/architectural-styles/scrape - Scrape additional architectural styles using Gemini
    */
-  app.post("/api/architectural-styles/scrape", async (req, res) => {
-    try {
-      const job = jobStore.createJob("architectural-styles", 30, "gemini");
-      res.json({ message: "Architectural styles scraping started", jobId: job.id });
-
-      architecturalStylesScraper.scrapeArchitecturalStyles({
-        jobId: job.id,
-        progressCallback: (type, message) => {
-          console.log(`[architectural-styles-scraper] ${type}: ${message}`);
-        },
-      }).catch((error) => {
-        console.error("Architectural styles scraping failed:", error);
-      });
-    } catch (error) {
-      console.error("Error starting architectural styles scraper:", error);
-      res.status(500).json({
-        message: "Failed to start architectural styles scraper",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/architectural-styles/scrape",
+    retiredToEngine("POST /api/architectural-styles/scrape", "architectural-styles building-types"),
+  );
 
   /**
    * GET /api/building-types - Get all building types with optional category filter
@@ -4220,18 +3425,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * GET /api/building-types/categories - Get building type categories
    */
-  app.get("/api/building-types/categories", async (_req, res) => {
-    try {
-      const categories = architecturalStylesScraper.getBuildingCategories();
-      res.json({ categories, count: categories.length });
-    } catch (error) {
-      console.error("Error fetching building type categories:", error);
-      res.status(500).json({
-        message: "Failed to fetch building type categories",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.get(
+    "/api/building-types/categories",
+    retiredToEngine("GET /api/building-types/categories", "building-types"),
+  );
 
   /**
    * GET /api/building-types/:id - Get a single building type
@@ -5409,64 +4606,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * GET /api/enrichment/analyze - Analyze TSV files for under-population
    */
-  app.get("/api/enrichment/analyze", async (req, res) => {
-    try {
-      const threshold = parseInt(req.query.threshold as string) || 100;
-      const analysis = analyzeTsvFiles(threshold);
-      res.json({
-        files: analysis,
-        totalUnderPopulated: analysis.length,
-        threshold,
-      });
-    } catch (error) {
-      console.error("Error analyzing TSV files:", error);
-      res.status(500).json({ message: "Failed to analyze TSV files" });
-    }
-  });
+  app.get(
+    "/api/enrichment/analyze",
+    retiredToEngine("GET /api/enrichment/analyze", ""),
+  );
 
   // Under-represented family vocabulary scraping
 
   /**
    * GET /api/scraping/underrepresented-families - List under-represented families and their scraping strategies
    */
-  app.get("/api/scraping/underrepresented-families", async (_req, res) => {
-    try {
-      const familiesRaw = await storage.getLanguageFamilies();
-      const languagesRaw = await storage.getLanguages();
-
-      const familiesData = familiesRaw.map((f: any) => ({
-        id: f.id,
-        name: f.name,
-        parent_id: f.parentId ?? "",
-        description: f.description ?? "",
-        taxonomic_level: f.taxonomicLevel ?? "",
-      }));
-
-      const languagesData = languagesRaw.map((l: any) => ({
-        id: l.id,
-        name: l.name,
-        family_id: l.familyId,
-        status: l.status ?? "living",
-      }));
-
-      const families = identifyUnderrepresentedFamilies(familiesData, languagesData);
-
-      res.json({
-        count: families.length,
-        totalLanguages: families.reduce((sum, f) => sum + f.languages.length, 0),
-        families: families.map((f) => ({
-          familyId: f.familyId,
-          familyName: f.familyName,
-          languageCount: f.languages.length,
-          strategyType: f.strategy.familyType,
-          languages: f.languages,
-        })),
-      });
-    } catch (error) {
-      console.error("Error listing underrepresented families:", error);
-      res.status(500).json({ message: "Failed to list underrepresented families" });
-    }
-  });
+  app.get(
+    "/api/scraping/underrepresented-families",
+    retiredToEngine(
+      "GET /api/scraping/underrepresented-families",
+      "underrepresented-vocab",
+    ),
+  );
 
   /**
    * POST /api/enrichment/culture-profiles - Enrich culture profile supporting TSVs
@@ -5474,96 +4630,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * specified culture profiles using Gemini AI. Returns the job record; clients
    * can poll GET /api/enrichment/culture-profiles/jobs/:id for progress.
    */
-  app.post("/api/enrichment/culture-profiles", async (req, res) => {
-    try {
-      const { profileIds, domains, entriesPerDomain } = req.body ?? {};
-
-      const validDomains: EnrichmentDomain[] = ["daily-life", "social-structures", "city-layouts"];
-      let requestedDomains: EnrichmentDomain[] | undefined;
-      if (Array.isArray(domains)) {
-        requestedDomains = domains.filter((d): d is EnrichmentDomain =>
-          validDomains.includes(d as EnrichmentDomain)
-        );
-        if (requestedDomains.length === 0) {
-          return res.status(400).json({
-            message: `domains must contain at least one of: ${validDomains.join(", ")}`,
-          });
-        }
-      }
-
-      let requestedProfileIds: string[] | undefined;
-      if (Array.isArray(profileIds)) {
-        requestedProfileIds = profileIds.filter((id): id is string => typeof id === "string" && id.length > 0);
-      }
-
-      const entriesCount =
-        typeof entriesPerDomain === "number" && entriesPerDomain > 0 && entriesPerDomain <= 25
-          ? entriesPerDomain
-          : undefined;
-
-      const job = await runCultureProfileEnrichment({
-        profileIds: requestedProfileIds,
-        domains: requestedDomains,
-        entriesPerDomain: entriesCount,
-        onProgress: (msg) => console.log(`[Culture Enrichment] ${msg}`),
-      });
-
-      storage.invalidateCache("all");
-      res.json(job);
-    } catch (error) {
-      console.error("Error running culture profile enrichment:", error);
-      res.status(500).json({ message: "Failed to run culture profile enrichment" });
-    }
-  });
+  app.post(
+    "/api/enrichment/culture-profiles",
+    retiredToEngine("POST /api/enrichment/culture-profiles", "culture-profiles city-layouts daily-life social-structures"),
+  );
 
   /**
    * GET /api/enrichment/culture-profiles/jobs - List culture enrichment jobs
    */
-  app.get("/api/enrichment/culture-profiles/jobs", async (_req, res) => {
-    try {
-      res.json(getAllCultureEnrichmentJobs());
-    } catch (error) {
-      console.error("Error fetching culture enrichment jobs:", error);
-      res.status(500).json({ message: "Failed to fetch culture enrichment jobs" });
-    }
-  });
+  app.get(
+    "/api/enrichment/culture-profiles/jobs",
+    retiredToEngine("GET /api/enrichment/culture-profiles/jobs", "culture-profiles city-layouts daily-life social-structures"),
+  );
 
   /**
    * GET /api/enrichment/culture-profiles/jobs/:id - Get a single job's status
    */
-  app.get("/api/enrichment/culture-profiles/jobs/:id", async (req, res) => {
-    try {
-      const job = getCultureEnrichmentJob(req.params.id);
-      if (!job) {
-        return res.status(404).json({ message: "Culture enrichment job not found" });
-      }
-      res.json(job);
-    } catch (error) {
-      console.error("Error fetching culture enrichment job:", error);
-      res.status(500).json({ message: "Failed to fetch culture enrichment job" });
-    }
-  });
+  app.get(
+    "/api/enrichment/culture-profiles/jobs/:id",
+    retiredToEngine("GET /api/enrichment/culture-profiles/jobs/:id", "culture-profiles city-layouts daily-life social-structures"),
+  );
 
   /**
    * POST /api/enrichment/batch - Start batch enrichment for under-populated TSVs
    */
-  app.post("/api/enrichment/batch", async (req, res) => {
-    try {
-      const { targetFiles, maxRowThreshold, batchesPerFile } = req.body;
-
-      const job = await runBatchEnrichment({
-        targetFiles,
-        maxRowThreshold: maxRowThreshold || 50,
-        batchesPerFile: batchesPerFile || 4,
-        onProgress: (msg) => console.log(`[Batch Enrichment] ${msg}`),
-      });
-
-      res.json(job);
-    } catch (error) {
-      console.error("Error starting batch enrichment:", error);
-      res.status(500).json({ message: "Failed to start batch enrichment" });
-    }
-  });
+  app.post(
+    "/api/enrichment/batch",
+    retiredToEngine("POST /api/enrichment/batch", ""),
+  );
 
   // ── Settlements endpoints ──────────────────────────────────
 
@@ -5603,14 +4697,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * GET /api/enrichment/jobs - List all enrichment jobs
    */
-  app.get("/api/enrichment/jobs", async (_req, res) => {
-    try {
-      res.json(getAllEnrichmentJobs());
-    } catch (error) {
-      console.error("Error fetching enrichment jobs:", error);
-      res.status(500).json({ message: "Failed to fetch enrichment jobs" });
-    }
-  });
+  app.get(
+    "/api/enrichment/jobs",
+    retiredToEngine("GET /api/enrichment/jobs", ""),
+  );
 
   /**
    * GET /api/settlements/by-civilization/:civilizationId - Get settlements by civilization
@@ -5628,18 +4718,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * GET /api/enrichment/jobs/:id - Get enrichment job status
    */
-  app.get("/api/enrichment/jobs/:id", async (req, res) => {
-    try {
-      const job = getEnrichmentJob(req.params.id);
-      if (!job) {
-        return res.status(404).json({ message: "Enrichment job not found" });
-      }
-      res.json(job);
-    } catch (error) {
-      console.error("Error fetching enrichment job:", error);
-      res.status(500).json({ message: "Failed to fetch enrichment job" });
-    }
-  });
+  app.get(
+    "/api/enrichment/jobs/:id",
+    retiredToEngine("GET /api/enrichment/jobs/:id", ""),
+  );
 
   /**
    * GET /api/settlements/nearby/:lat/:lng - Find settlements near coordinates
@@ -5758,28 +4840,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scrape-ethnographic - Trigger ethnographic data scraping
    */
-  app.post("/api/scrape-ethnographic", async (req, res) => {
-    try {
-      const { type } = req.body as { type?: "kinship" | "social-organization" | "both" };
-      const scrapeType = type || "both";
-
-      const job = jobStore.createJob("ethnographic", 0, "gemini");
-      res.json({ jobId: job.id, message: `Started ethnographic scraping (${scrapeType})` });
-
-      const progressCallback = (progressType: string, message: string) => {
-        console.log(`[ethnographic-scrape] ${progressType}: ${message}`);
-      };
-
-      if (scrapeType === "kinship" || scrapeType === "both") {
-        await ethnographicScraper.scrapeKinshipSystems({ jobId: job.id, progressCallback });
-      }
-      if (scrapeType === "social-organization" || scrapeType === "both") {
-        await ethnographicScraper.scrapeSocialOrganization({ jobId: job.id, progressCallback });
-      }
-    } catch (error) {
-      console.error("Error in ethnographic scraping:", error);
-    }
-  });
+  app.post(
+    "/api/scrape-ethnographic",
+    retiredToEngine("POST /api/scrape-ethnographic", "kinship-systems social-organization"),
+  );
 
   /**
    * GET /api/empires-timeline - List empire timeline events with optional filters
@@ -5927,77 +4991,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * POST /api/scraping/underrepresented-vocab - Scrape vocabulary for under-represented families
    * Body: { familyId?, languageId?, maxLanguages? }
    */
-  app.post("/api/scraping/underrepresented-vocab", async (req, res) => {
-    try {
-      const { familyId, languageId, maxLanguages } = req.body;
-
-      const familiesRaw = await storage.getLanguageFamilies();
-      const languagesRaw = await storage.getLanguages();
-
-      const familiesData = familiesRaw.map((f: any) => ({
-        id: f.id,
-        name: f.name,
-        parent_id: f.parentId ?? "",
-        description: f.description ?? "",
-        taxonomic_level: f.taxonomicLevel ?? "",
-      }));
-
-      const languagesData = languagesRaw.map((l: any) => ({
-        id: l.id,
-        name: l.name,
-        family_id: l.familyId,
-        status: l.status ?? "living",
-      }));
-
-      const families = identifyUnderrepresentedFamilies(familiesData, languagesData);
-
-      if (families.length === 0) {
-        return res.status(404).json({ message: "No under-represented families found" });
-      }
-
-      const job = jobStore.createJob(
-        familyId || languageId || "underrepresented",
-        families.reduce((sum, f) => sum + f.languages.length, 0) * 75,
-        "gemini"
-      );
-
-      underrepresentedVocabScraper
-        .scrape(families, {
-          familyId,
-          languageId,
-          maxLanguages: maxLanguages || 10,
-          jobId: job.id,
-          progressCallback: (progress) => {
-            console.log(`[Underrepresented Vocab] ${progress.type}: ${progress.message}`);
-            if (progress.type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: progress.message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Underrepresented vocab scraping completed: ${result.languagesProcessed} languages, ${result.totalWordsScraped} words`
-          );
-        })
-        .catch((error) => {
-          console.error("Underrepresented vocab scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Under-represented vocabulary scraping started",
-        jobId: job.id,
-        targetFamilies: familyId ? 1 : families.length,
-      });
-    } catch (error) {
-      console.error("Error starting underrepresented vocab scraping:", error);
-      res.status(500).json({ message: "Failed to start underrepresented vocab scraping" });
-    }
-  });
+  app.post(
+    "/api/scraping/underrepresented-vocab",
+    retiredToEngine("POST /api/scraping/underrepresented-vocab", "underrepresented-vocab"),
+  );
 
   /**
    * POST /api/map/analyze-image - Extract features from a georeferenced map image using AI
@@ -6252,31 +5249,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * POST /api/scrape/wikimedia-commons - Scrape cultural images from Wikimedia Commons
    */
-  app.post("/api/scrape/wikimedia-commons", async (req, res) => {
-    try {
-      const { categories, maxPerCategory } = req.body || {};
-      const job = jobStore.createJob("wikimedia-commons", 0, "wikimedia-api");
-      res.json({ jobId: job.id, message: "Wikimedia Commons image scraping started" });
-      wikimediaCommonsScraper
-        .scrapeImages({
-          categories,
-          maxPerCategory,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[wikimedia-commons] ${type}: ${message}`);
-          },
-        })
-        .catch((err) => {
-          console.error("Wikimedia Commons scraping failed:", err);
-        });
-    } catch (error) {
-      console.error("Error starting Wikimedia Commons scraping:", error);
-      res.status(500).json({
-        message: "Failed to start Wikimedia Commons scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scrape/wikimedia-commons",
+    retiredToEngine("POST /api/scrape/wikimedia-commons", "commons-images"),
+  );
 
   /**
    * GET /api/wikimedia-commons-images - Get scraped Wikimedia Commons images

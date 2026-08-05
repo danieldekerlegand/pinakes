@@ -1,0 +1,24 @@
+# Culture profiles — the spine record the daily-life, layout and structure tables hang off.
+#
+# Migrated from `server/services/culture-profile-enrichment.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: culture-profiles
+label: Culture
+description: Culture profiles — the spine record the daily-life, layout and structure tables hang off.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,alternate_names,civilization_id,archaeological_culture_id,time_period_start,time_period_end,region,summary_description,social_organization,subsistence_type,urbanism_level,population_estimate,technology_level,associated_language_ids,associated_religion_ids,associated_writing_system_ids,associated_art_tradition_ids,associated_music_tradition_ids,associated_cuisine_id,associated_architectural_style_ids,associated_literary_tradition_ids,notable_settlements,image_gallery_tags,sources"
+    existing: ../data/source/lexicons/culture-profiles.tsv
+    instruction: "Every associated_*_ids value must name rows that exist in the corresponding lexicon; leave it \"null\" rather than inventing an id."
+dimensions:
+  - temporal
+  - geographic

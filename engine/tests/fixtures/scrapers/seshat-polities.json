@@ -1,0 +1,25 @@
+{
+  "count": 3,
+  "next": null,
+  "results": [
+    {
+      "id": "AfAksumite",
+      "name": "Kingdom of Aksum",
+      "start_year": -100,
+      "end_year": 940,
+      "region": "Africa"
+    },
+    {
+      "id": "CnQin",
+      "name": "Qin Dynasty",
+      "start_year": -221,
+      "end_year": -206,
+      "region": "East Asia"
+    },
+    {
+      "id": "unnamed",
+      "start_year": 1,
+      "end_year": 2
+    }
+  ]
+}

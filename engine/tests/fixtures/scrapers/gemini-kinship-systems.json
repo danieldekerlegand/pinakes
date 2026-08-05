@@ -1,0 +1,14 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "{\"entries\": [{\"id\": \"hawaiian-generational\", \"system_type\": \"Hawaiian\", \"language_ids\": \"haw\", \"terminology\": \"generational\", \"descent_rule\": \"ambilineal\", \"residence_rule\": \"ambilocal\", \"associated_civilizations\": \"hawaii\"}, {\"id\": \"iroquois-bifurcate-merging\", \"system_type\": \"Iroquois\", \"language_ids\": \"moh;one\", \"terminology\": \"bifurcate merging\", \"descent_rule\": \"matrilineal\", \"residence_rule\": \"matrilocal\", \"associated_civilizations\": \"haudenosaunee\"}, {\"id\": \"hawaiian-generational\", \"system_type\": \"Hawaiian\", \"language_ids\": \"haw\", \"terminology\": \"duplicate of the first entry\", \"descent_rule\": \"\", \"residence_rule\": \"\", \"associated_civilizations\": \"\"}]}"
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ]
+}

@@ -22,6 +22,13 @@ dump path comes from ``source.query`` (or ``source.params.path``); the rest is
   a ``{id}`` template that builds each record's ``source_url``;
 * ``source`` — the provenance source name (default :data:`DEFAULT_SOURCE`);
 * ``license`` / ``confidence`` — stamped onto every record's provenance.
+
+The column-mapping half is **public and shared** (:func:`rename_map`,
+:func:`map_columns`, :func:`read_rows`, :func:`row_source_url`,
+:func:`confidence_param`): :mod:`pinakes_engine.acquire.remote` reads the same
+formats with the same ``field.<canonical>`` vocabulary over HTTP instead of off
+disk, and a second copy of that mapping is exactly the drift pinakes:70 exists to
+remove. Whether the bytes arrived by download or by dump is a transport detail.
 """
 
 from __future__ import annotations
@@ -85,17 +92,17 @@ class TabularDumpAdapter(SourceAdapter):
         except OSError as exc:
             raise TabularDumpError(f"cannot read dump {path}: {exc}") from exc
 
-        rename = _rename_map(params)
+        rename = rename_map(params)
         targets = frozenset(rename.values())
         source_name = params.get("source") or DEFAULT_SOURCE
         license_ = params.get("license")
-        confidence = _confidence(params)
+        confidence = confidence_param(params)
         id_column = params.get("id_column")
         url_template = params.get("url_template")
         retrieved_at = self._now().isoformat()
 
         return self._iter_records(
-            _read_rows(text, fmt, params.get("delimiter")),
+            read_rows(text, fmt, params.get("delimiter")),
             rename=rename,
             targets=targets,
             source_name=source_name,
@@ -122,13 +129,13 @@ class TabularDumpAdapter(SourceAdapter):
         retrieved_at: str,
     ) -> Iterator[RawRecord]:
         for row in rows:
-            fields = _map_columns(row, rename, targets)
+            fields = map_columns(row, rename, targets)
             if not fields:
                 continue
             row_id = row.get(id_column) if id_column else None
             provenance = Provenance(
                 source=source_name,
-                source_url=_source_url(row_id, url_template, source_query),
+                source_url=row_source_url(row_id, url_template, source_query),
                 source_query=source_query,
                 retrieved_at=retrieved_at,
                 confidence=confidence,
@@ -137,8 +144,15 @@ class TabularDumpAdapter(SourceAdapter):
             yield RawRecord(fields=fields, provenance=provenance)
 
 
-def _rename_map(params: Mapping[str, str]) -> dict[str, str]:
-    """Build ``{source-column: canonical}`` from ``field.<canonical>`` params."""
+def rename_map(params: Mapping[str, str]) -> dict[str, str]:
+    """Build ``{source-column: canonical}`` from ``field.<canonical>`` params.
+
+    GOTCHA — the map is keyed on the **source** column, so one column cannot
+    feed two canonical fields: ``field.a: X`` plus ``field.b: X`` keeps only
+    whichever came last, silently. That is the shape of the params, not a bug to
+    work around here; a spec that wants a column twice wants the second copy to
+    be a different column.
+    """
     rename: dict[str, str] = {}
     for key, value in params.items():
         if key.startswith(FIELD_PREFIX):
@@ -149,7 +163,7 @@ def _rename_map(params: Mapping[str, str]) -> dict[str, str]:
     return rename
 
 
-def _map_columns(
+def map_columns(
     row: Mapping[str, str], rename: Mapping[str, str], targets: frozenset[str]
 ) -> dict[str, str]:
     """Rename mapped columns; keep the rest unless they collide with a target."""
@@ -164,7 +178,7 @@ def _map_columns(
     return fields
 
 
-def _source_url(
+def row_source_url(
     row_id: str | None, url_template: str | None, fallback: str
 ) -> str:
     if row_id:
@@ -174,7 +188,7 @@ def _source_url(
     return fallback
 
 
-def _confidence(params: Mapping[str, str]) -> float:
+def confidence_param(params: Mapping[str, str]) -> float:
     raw = params.get("confidence")
     if raw is None:
         return 1.0
@@ -186,7 +200,7 @@ def _confidence(params: Mapping[str, str]) -> float:
         ) from exc
 
 
-def _read_rows(
+def read_rows(
     text: str, fmt: str, delimiter: str | None
 ) -> Iterator[dict[str, str]]:
     if fmt in _DELIMITERS:

@@ -1,0 +1,24 @@
+# Core vocabulary for languages the corpus under-covers.
+#
+# Migrated from `server/services/underrepresented-vocab-scraper.ts` (pinakes:70
+# US-1). Wiktionary and Lexibank are already acquired as real lexical data by
+# `kaikki` and `lexibank-abvd`; what neither reaches is a language with no
+# dictionary, which is the only reason this pass exists.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: underrepresented-vocab
+label: Wordform
+description: Core vocabulary for languages the corpus under-covers.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "Language_ID,Glottocode,Concept_ID,Word_Form,rawIPA,IPA,ASJP,List,Dolgo,Next_Step"
+    id_column: Word_Form
+    existing: ../data/source/lexicons/words.tsv
+    instruction: "Only generate for languages that are genuinely under-documented — if the language has a published Wiktionary or Lexibank wordlist, skip it and say so. Give rawIPA in IPA and leave ASJP/Dolgo/Next_Step blank rather than guessing."
+dimensions:
+  - linguistic

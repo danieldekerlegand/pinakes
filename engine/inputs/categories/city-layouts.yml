@@ -1,0 +1,23 @@
+# How a culture laid its cities out — street pattern, water, fortification.
+#
+# Migrated from `server/services/culture-profile-enrichment.ts` (pinakes:70
+# US-1). Its Gemini call, its retry-less fetch and its copy of the shared rules
+# block are gone; what survives is the domain brief below, driving the one `llm-
+# generate` adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: city-layouts
+label: Concept
+description: How a culture laid its cities out — street pattern, water, fortification.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,settlement_id,culture_profile_id,layout_type,key_features,street_pattern,water_management,fortification_type,estimated_area_hectares,description,reconstruction_notes,sources"
+    existing: ../data/source/lexicons/city-layouts.tsv
+    instruction: settlement_id and culture_profile_id must name existing rows. Put anything not directly attested into reconstruction_notes rather than into description.
+dimensions:
+  - geographic

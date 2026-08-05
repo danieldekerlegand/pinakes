@@ -1,0 +1,22 @@
+{
+  "scriptMetadata": {
+    "Latn": {
+      "rank": 1,
+      "sampleChar": "L",
+      "rtl": "NO",
+      "density": 5
+    },
+    "Arab": {
+      "rank": 6,
+      "sampleChar": "\u0628",
+      "rtl": "YES",
+      "density": 5
+    },
+    "Egyp": {
+      "rank": 137,
+      "sampleChar": "\ud80c\udc00",
+      "rtl": "NO",
+      "density": 1
+    }
+  }
+}

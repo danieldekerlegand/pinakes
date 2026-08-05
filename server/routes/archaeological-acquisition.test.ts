@@ -10,12 +10,14 @@ import type { Server } from "node:http";
  * Both are served by the Python service now, and their behavioural coverage
  * moved with them: `services/api/tests/test_archaeology_routes.py` (the routes,
  * including the acquired rows landing in `data/runtime/contributions`) and
- * `services/api/tests/test_archaeology.py` (the adapters, case for case with
- * `server/services/archaeological-site-scraper.test.ts` and against the same
- * recorded fixtures). What this file asserts is the hand-off.
+ * `services/api/tests/test_archaeology.py` (the adapters, against the same
+ * recorded fixtures the TypeScript suite read). What this file asserts is the
+ * hand-off.
  *
- * The adapters themselves are **not** retired — that file is the graded spec,
- * and its own suite still runs here.
+ * pinakes:70 US-1 then deleted `server/services/archaeological-site-scraper.ts`
+ * and its suite along with the rest of the scraper stack, so those Python tests
+ * are now the only grading there is — see
+ * `engine/src/pinakes_engine/acquire/migration.py`.
  */
 
 import {

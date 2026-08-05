@@ -1,0 +1,24 @@
+# Historical settlements — founding, abandonment, peak population and culture.
+#
+# Migrated from `server/services/settlements-scraper.ts` (pinakes:70 US-1). Its
+# Gemini call, its retry-less fetch and its copy of the shared rules block are
+# gone; what survives is the domain brief below, driving the one `llm-generate`
+# adapter.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/generate.py` for what the params mean.
+
+id: settlements
+label: Place
+description: Historical settlements — founding, abandonment, peak population and culture.
+source:
+  type: http
+  params:
+    adapter: llm-generate
+    source: llm-generated
+    columns: "id,name,alternate_names,latitude,longitude,type,culture_id,civilization_id,founded_year,abandoned_year,peak_population,notable_features,associated_languages,modern_name,region"
+    existing: ../data/source/lexicons/settlements.tsv
+    instruction: "latitude and longitude are bare decimal degrees here, not a coordinates object. Give modern_name only where the site is under or beside a living town, else \"null\"."
+dimensions:
+  - temporal
+  - geographic

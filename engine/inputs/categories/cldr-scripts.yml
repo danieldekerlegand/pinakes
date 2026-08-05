@@ -1,0 +1,30 @@
+# CLDR script metadata — direction, density, sample character, per script code.
+#
+# Migrated from `server/services/writing-system-scraper.ts` (pinakes:70 US-1).
+# CLDR keys its scripts by code in an **object**, not an array, so the code is
+# the only place the script's identity lives — `key_field` lifts it into a
+# column. The writing systems themselves are already acquired from Wikidata by
+# `writing-systems`.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/remote.py` for what the params mean.
+
+id: cldr-scripts
+label: Language
+description: CLDR script metadata — direction, density, sample character, per script code.
+source:
+  type: http
+  query: https://raw.githubusercontent.com/unicode-org/cldr-json/main/cldr-json/cldr-core/scriptMetadata.json
+  params:
+    adapter: remote-tabular
+    format: json
+    records: scriptMetadata
+    key_field: script_code
+    source: cldr
+    license: Unicode-3.0
+    confidence: 0.9
+    id_column: script_code
+    url_template: "https://www.unicode.org/iso15924/iso15924-codes.html#{id}"
+    field.script: script_code
+dimensions:
+  - linguistic

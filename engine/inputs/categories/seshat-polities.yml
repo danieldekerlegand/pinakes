@@ -1,0 +1,38 @@
+# Seshat Global History Databank polities.
+#
+# Migrated from `server/services/polity-scraper.ts` (pinakes:70 US-1). Its
+# forty-four hard-coded polity ids and their Wikipedia fallbacks are gone:
+# `city-states`, `kingdoms`, `empires`, `dynasties`, `realms` and `historical-
+# countries` already acquire polities from Wikidata by class, so what was worth
+# keeping is Seshat's own coded record.
+#
+# See `src/pinakes_engine/acquire/migration.py` for the full retirement table and
+# `src/pinakes_engine/acquire/rest.py` for what the params mean.
+
+id: seshat-polities
+label: Culture
+description: Seshat Global History Databank polities.
+source:
+  type: http
+  query: https://seshatdatabank.info/api/v1/polities/
+  params:
+    adapter: rest-api
+    source: seshat
+    license: CC-BY-NC-SA-4.0
+    confidence: 0.8
+    records: results
+    id_field: id
+    url_template: "https://seshatdatabank.info/browser/{id}"
+    field.name: name
+    field.start_year: start_year
+    field.end_year: end_year
+    field.region: region
+    page_param: page
+    start_page: 1
+    max_pages: 10
+dimensions:
+  - temporal
+  - geographic
+links:
+  - type: ORIGINATES_FROM
+    to: place

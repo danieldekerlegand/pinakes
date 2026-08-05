@@ -14,8 +14,88 @@ id) + `source_type` (the category `source.type` it consumes) and implement
 3. `__init__.py` — re-export the class/errors and add them to `__all__`.
 
 `source_type` must be one of `VALID_SOURCE_TYPES` (categories.py). When several adapters
-share a type (`dump` is shared by getty/pleiades/tabular/pinakes-export), the category
-disambiguates via `source.params.adapter: <name>`.
+share a type (`dump` is shared by getty/pleiades/tabular/pinakes-export; `http` by
+html-scrape/rest-api/remote-tabular/llm-generate), the category disambiguates via
+`source.params.adapter: <name>`.
+
+## The TS scraper stack lives here now (pinakes:70 US-1) — read `migration.py` first
+
+`server/services/*-scraper.ts` and `*-enrichment.ts` are **gone** (27 files, ~13.4k LOC).
+`migration.py` is the retirement table: one row per deleted file, naming its domain and the
+category spec — or Python module — that acquires it now. `tests/test_scraper_migration.py`
+is what makes that a claim rather than a comment, and it fails if a retired file comes back
+or a named category stops loading.
+
+**The headline is that most of it was deduplication.** Two thirds of those files never
+scraped: they asked Gemini for rows and appended them to a lexicon TSV, and for the majority
+of those domains this package already had *real* acquisition from a better source (battles,
+religions, instruments, writing systems, polities, dishes, art movements and buildings from
+Wikidata by class; WALS/PHOIBLE/Glottolog/Lexibank/Wiktionary from their own datasets). So
+before adding an adapter for a "missing" domain, check `inputs/categories/` — there are 160
+specs and the answer is usually already there.
+
+What was genuinely uncovered was three mechanisms, which is why there are three new adapters
+and not twenty-seven:
+
+- **`rest.py` (`rest-api`)** — a JSON REST endpoint plus a dotted-path field map. Handles
+  both pagination shapes: `next_path` alone reads the cursor as the **next page's URL**;
+  with `next_param` it reads it as an opaque **token** fed back as that query parameter
+  (MediaWiki). `max_pages` bounds a runaway, and a cursor that points at a page already read
+  terminates rather than spinning. `field.x: a.b.0.c` walks dicts and lists; a trailing `[]`
+  joins a list with `;` (the multi-value encoding — mind the downstream-safe-column gotcha
+  under hydration profiles below). A record that maps to **no** field is skipped, not emitted
+  empty.
+- **`remote.py` (`remote-tabular`)** — the same dataset `tabular-dump` reads off disk, fetched
+  through the shared client instead. The column mapping is **imported** from `tabular.py`
+  (`rename_map`/`map_columns`/`read_rows`/`row_source_url`/`confidence_param`, made public for
+  this), so download and dump provably yield identical rows — `test_remote_tabular.py` asserts
+  that pair directly. Two params exist for shapes a hand-written scraper had to special-case:
+  `columns` names the header of a **headerless** file (UniMorph ships bare triples), and
+  `records` + `key_field` lift an **object** keyed by code into rows (CLDR keys scripts by
+  `Latn`/`Arab`/…, and the code is the script's only identity).
+- **`generate.py` (`llm-generate`)** — a model asked for rows in a schema derived from the
+  **target's own columns**, which is what `batch-enrichment.ts` had already generalised to.
+  The rules block is shared (`SHARED_RULES`) so a fix to how dates or coordinates are asked
+  for lands in every domain at once; the domain-specific part is `instruction` plus any number
+  of `prompt.<key>` passes (a bespoke scraper's era or family list becomes those, verbatim —
+  they are the coverage). Rows are stamped at `confidence_for("inferred")`, deliberately: a
+  generated fact has no anchor on its value, and the TypeScript wrote these into the corpus at
+  no stated confidence at all.
+
+Three things about these that are easy to get wrong:
+
+- **A source column maps to ONE canonical field.** `rename_map` is keyed on the source column,
+  so `field.a: X` plus `field.b: X` silently keeps whichever came last. This bit `cldr-scripts`
+  during the migration.
+- **`llm-generate`'s `existing` points at the live corpus** (`../data/source/lexicons/*.tsv`,
+  resolved against the cwd the CLI runs from) so a real pass is told what not to regenerate.
+  A test must therefore strip it, or it passes or fails on whatever is in the corpus today —
+  see `test_scraper_migration.py::test_a_generated_domain_parses_a_recorded_model_answer`.
+- **A malformed model answer raises.** The TypeScript pushed it onto an `errors[]` and
+  continued, which is how a domain could acquire nothing and still report success.
+
+## One concurrency + politeness model (70-unify-scrapers US-2)
+
+There is one fetch layer and it is `http.py`. `HttpClient` is **synchronous** (`requests` +
+`time.sleep`) and shared across the orchestration layer's worker threads; concurrency is the
+runner's fan-out, not the client's. Two properties make that safe, and both are asserted:
+
+- **The lock guards the reservation, not the request.** `_respect_rate_limit` computes the
+  next polite slot for a host under the lock, records it, releases, and *then* sleeps. So
+  concurrent workers on one host get distinct evenly-spaced slots, and a worker waiting on
+  (or mid-flight to) one host never blocks a fetch to a different one — the limit is per
+  host, never global. `test_http.py::test_one_slow_host_does_not_block_a_request_to_another`
+  is the tripwire; read `_respect_rate_limit`'s docstring before touching it.
+- **`HttpStats` carries two timers**, `request_seconds` (inside the transport) and
+  `wait_seconds` (politeness gaps + retry backoff), aggregated across all callers. They are
+  worker-seconds, not wall clock. `wait_seconds` bills the delay it *asked* for rather than
+  re-reading the clock — deliberately, to keep the hot path at three clock reads per
+  request. **Adding a clock read changes that count**, and `test_http.py`'s injected
+  `monotonic` iterators are sized to it; a `StopIteration` there means you added one.
+
+The measured consequence — 96–99% network, 1–4% parse, per-host `min_interval` as the
+binding constraint — is `docs/acquisition-throughput.md`, produced by
+`orchestrate/benchmark.py`. **Do not optimise the parser without re-reading it.**
 
 ## Provenance placement (gotcha)
 

@@ -7,13 +7,15 @@
  * (`services/api/src/pinakes/routers/archaeology.py` over
  * `pinakes.ingest.archaeology`). The handlers here answer **501**.
  *
- * **`server/services/archaeological-site-scraper.ts` is NOT retired**, and only
- * part of it was ported at all. Its Pleiades/UNESCO half belongs to the
- * `ArchaeologicalSiteScraper` class, which no route reaches; what came across is
- * the Open Context / tDAR half below the banner comment in that file, and it is
- * still the graded spec — `services/api/tests/test_archaeology.py` reads the
- * **same** `services/fixtures/archaeological/*.json` recordings, case for case
- * with `archaeological-site-scraper.test.ts`.
+ * **`server/services/archaeological-site-scraper.ts` is gone** — pinakes:70 US-1
+ * deleted it along with the other twenty-six scraper/enrichment modules
+ * (`engine/src/pinakes_engine/acquire/migration.py` is the retirement table).
+ * When this file was written it was still the graded spec, because only its
+ * Open Context / tDAR half had been ported; the grading now rests on
+ * `services/api/tests/test_archaeology.py` alone, which still reads the same
+ * `services/fixtures/archaeological/*.json` recordings the TypeScript suite did.
+ * The Pleiades/UNESCO half that no route reached is the engine's
+ * `PleiadesDumpAdapter` plus the `archaeological-sites` category.
  *
  * **One thing did not come across, because its ledger has not yet.** The 202
  * carries a `jobId`, and `jobStore` is per-process — so a job started on the
