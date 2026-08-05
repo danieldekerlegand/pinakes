@@ -10,6 +10,22 @@ graph query routes, the canonical-TSV and entity-grounding exporters. Nothing in
 capability-bus surface resolves, reconciles, or queries anything itself; it exists so a peer
 project can *discover* those surfaces in KCB terms and dial them directly.
 
+> **Which process serves this (pinakes:65 US-1).** The bus is ported to the Python service
+> (`services/api/src/pinakes/kcb/`, routed by `routers/{capability_bus,a2a,mcp}.py`).
+> `/api/kcb/capabilities` and `/api/kcb/status` are retired on Express to 501. Three
+> surfaces are served by **both** backends during the cutover, each for a stated reason:
+> `/api/kcb/manifest` (its recorded parity fixture is replayed against Express),
+> `/.well-known/{kcb-manifest.json,agent-card.json}` (the self-sufficiency guard in
+> `server/routes/participation-self-sufficiency.test.ts` drives them), and `/mcp` — because
+> the KFT `finetune` pair dispatches to `lugh` by spawning a subprocess, which the Python
+> service structurally does not do. The Python `/mcp` advertises that pair and degrades its
+> *invoke* naming the Express front; retiring there would leave the capability invocable
+> nowhere. Both implementations serve byte-identical documents (asserted with and without a
+> configured origin), and an Ed25519 signature minted by either verifies against the other.
+> The MCP `resolve`/`reconcile`/`query` tools now reach the engine **in process**: no
+> sidecar hop for the Datalog console, no `pinakes_engine.cli` child process for the
+> acquisition.
+
 ## The manifest
 
 | | |

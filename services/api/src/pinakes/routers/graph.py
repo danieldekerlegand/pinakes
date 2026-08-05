@@ -26,15 +26,26 @@ What the port preserves from `server/routes/graph.ts`, deliberately:
   different contract, so the params are declared as strings and parsed by
   :func:`_number` — a stale bookmark must not become a hard failure.
 
-Two routes in the baseline's ``graph`` group are **not** here, because neither is
-engine-backed: ``/api/graph/resolve`` (the convergence alias table, which is
-loaded from the local lexicons and answers even while the graph is offline) and
-``/api/graph/explain`` (the LLM connection narrative). Both keep answering 501
-until their own port lands — see ``/api/_parity/coverage``.
+``/api/graph/resolve`` joined the group in pinakes:65 US-1 and is the one handler
+here that is **not** engine-backed: it reads the convergence alias table out of
+the local lexicons (:mod:`pinakes.search.graph_resolver`) and so answers even
+while the graph is offline. Its failure modes are therefore not the engine's, and
+it is left with the same always-200 contract it had.
+
+``/api/graph/explain`` joined in pinakes:65 US-2 and is the other handler here
+that is not purely engine-backed: it traverses the graph, augments the path with
+in-process Datalog inference (:mod:`pinakes.narrative.inference` — where Express
+posted to the sidecar console) and asks a model for the prose. It **also still
+answers on Express**, because its recorded fixture is replayed against that app;
+the recording is a validation rejection, so the double-served path reaches
+neither graph nor model.
+
+The whole ``graph`` group is now ported.
 """
 
 from __future__ import annotations
 
+import logging
 import math
 import re
 import time
@@ -45,6 +56,13 @@ from fastapi.responses import JSONResponse
 
 from pinakes.engine import corpus, datalog, graph
 from pinakes.engine.errors import EngineError, EngineUnavailable
+from pinakes.narrative import connection
+from pinakes.narrative.inference import infer_facts
+from pinakes.narrative.llm import live_narrative_llm
+from pinakes.paths import lexicons_dir
+from pinakes.search.graph_resolver import EntityRef, graph_resolver
+
+logger = logging.getLogger("pinakes.graph")
 
 router = APIRouter(tags=["graph"])
 
@@ -58,6 +76,11 @@ CYPHER_WRITE_CLAUSES = re.compile(
 #: The traversal depth `/api/graph/neighborhood/{id}` falls back to when the
 #: `depth` param is absent or unparseable.
 DEFAULT_NEIGHBORHOOD_DEPTH = graph.MIN_DEPTH
+
+#: Hops `/api/graph/explain` looks for a connection within. Not a request
+#: parameter on either backend: it bounds how long a chain a reader is asked to
+#: accept as an explanation, which is an editorial call, not a caller's.
+NARRATIVE_PATH_LENGTH = graph.DEFAULT_PATH_LENGTH
 
 
 # ── Adapting the query string ────────────────────────────────────────────────
@@ -236,6 +259,141 @@ def retrieve(q: str = "", k: str | None = None, depth: str | None = None) -> Any
         return graph.retrieve(query, **kwargs)
     except EngineError as exc:
         return engine_error("graph retrieval", exc)
+
+
+# ── Lexicon-backed resolution ────────────────────────────────────────────────
+
+
+@router.get("/api/graph/resolve")
+def resolve(
+    type: str | None = None,  # noqa: A002 - the baseline query parameter is `type`
+    id: str | None = None,  # noqa: A002 - ditto
+    name: str | None = None,
+    region: str | None = None,
+) -> Any:
+    """Resolve a pinakes entity ref to its shared-graph csid.
+
+    Backed by the convergence alias table, which is loaded from the local
+    lexicons and so does **not** depend on Neo4j — resolution succeeds even while
+    the graph itself is offline, which is what lets a "Show in graph" affordance
+    decide whether to render at all.
+
+    Always 200 with ``{resolved: {csid, confidence, method} | null}``; ``null``
+    covers both a no-match and an *ambiguous* match, which the resolver refuses
+    to guess at rather than mis-linking two entities into one.
+    """
+    node_type = _text(type)
+    if not node_type:
+        return _bad_request("type is required")
+    found = graph_resolver(lexicons_dir()).resolve(
+        EntityRef(
+            type=node_type,
+            id=_text(id) or None,
+            name=_text(name) or None,
+            region=_text(region) or None,
+        )
+    )
+    if found is None:
+        return {"resolved": None}
+    return {
+        "resolved": {
+            "csid": found.csid,
+            "confidence": found.confidence,
+            "method": found.method,
+        }
+    }
+
+
+# ── The connection narrative ─────────────────────────────────────────────────
+
+
+def _endpoint(
+    raw: Any, label: str
+) -> tuple[connection.Endpoint, None] | tuple[None, JSONResponse]:
+    """Resolve one request endpoint to a csid, or the 400 explaining why not.
+
+    A `csid` is used directly; otherwise the entity ref is resolved through the
+    same lexicon-backed alias table `/api/graph/resolve` publishes, so the two
+    routes cannot disagree about what an entity ref means.
+    """
+    if not isinstance(raw, dict):
+        return None, _bad_request(f"{label}: each of `from` and `to` must be an object")
+
+    csid = _text(raw.get("csid"))
+    name = _text(raw.get("name")) or None
+    if csid:
+        return connection.Endpoint(csid=csid, name=name), None
+
+    node_type = _text(raw.get("type"))
+    if not node_type:
+        return None, _bad_request(
+            f"{label}: an endpoint needs either a `csid` or a `type` + `id`/`name`"
+        )
+    identifier = _text(raw.get("id")) or None
+    found = graph_resolver(lexicons_dir()).resolve(
+        EntityRef(
+            type=node_type,
+            id=identifier,
+            name=name,
+            region=_text(raw.get("region")) or None,
+        )
+    )
+    if found is None:
+        reference = identifier or name or "?"
+        return None, _bad_request(
+            f"{label}: could not resolve {node_type}:{reference} to a graph node"
+        )
+    return connection.Endpoint(csid=found.csid, name=name), None
+
+
+@router.post("/api/graph/explain")
+def explain(body: Annotated[dict[str, Any] | None, Body()] = None) -> Any:
+    """Explain how two entities are connected, grounded in the graph's own edges.
+
+    The status codes are the degradation contract: **400** an unresolvable ref or
+    the same entity twice, **503** the graph is unreachable, **502** a path was
+    found but the model produced nothing usable. A *no-path* answer is a **200**
+    that says so — the model is never asked to invent a link, so "no connection"
+    is a finding, not a failure.
+    """
+    payload = body if isinstance(body, dict) else {}
+
+    source, rejection = _endpoint(payload.get("from"), "from")
+    if rejection is not None:
+        return rejection
+    target, rejection = _endpoint(payload.get("to"), "to")
+    if rejection is not None:
+        return rejection
+    assert source is not None and target is not None  # noqa: S101 - narrowing
+    if source.csid == target.csid:
+        return _bad_request("from and to resolve to the same entity")
+
+    deps = connection.NarrativeDeps(
+        find_path=lambda a, b: graph.find_path(a, b, NARRATIVE_PATH_LENGTH),
+        llm=live_narrative_llm,
+        infer_facts=infer_facts,
+    )
+    try:
+        return connection.explain_connection(source, target, deps)
+    except EngineUnavailable as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "available": False,
+                "error": "the shared graph is unavailable",
+                "detail": str(exc),
+            },
+        )
+    except Exception as exc:  # noqa: BLE001 - a model/engine failure, see below
+        # A failure *after* a path was found means the narrative could not be
+        # generated. Surfacing it as a bad upstream response is deliberate: the
+        # alternative is a 200 whose prose is missing, which reads exactly like
+        # the honest "no connection found" answer.
+        logger.exception("connection narrative generation failed")
+        return JSONResponse(
+            status_code=502,
+            content={"error": "narrative generation failed", "detail": str(exc)},
+        )
 
 
 # ── The research consoles ────────────────────────────────────────────────────

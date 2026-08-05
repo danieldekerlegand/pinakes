@@ -15,12 +15,13 @@ developer checkout is in by default and which the routes must answer, not crash 
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
-from conftest import FakeNode, FakeRelationship, FakeResult
+from conftest import FakeNode, FakeRelationship, FakeResult, coverage_of
 
 # ── Corpus-backed reads ──────────────────────────────────────────────────────
 
@@ -337,19 +338,100 @@ def test_status_is_200_even_with_both_halves_down(
     }
 
 
-# ── Not this story's routes ──────────────────────────────────────────────────
+# ── Lexicon-backed resolution ────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize(
-    ("method", "url"),
-    [("GET", "/api/graph/resolve"), ("POST", "/api/graph/explain")],
-)
-def test_the_non_engine_graph_routes_still_answer_501(
-    unbuilt_client: TestClient, method: str, url: str
+def seed_languages(lexicons: Path) -> None:
+    """A two-row corpus the alias index can be built from."""
+    (lexicons / "languages.tsv").write_text(
+        "id\tname\tregion\n"
+        "lat\tLatin\tEurope\n"
+        "cmn\tMandarin\tChina\n",
+        encoding="utf-8",
+    )
+
+
+def test_resolve_returns_the_csid_with_its_method_and_confidence(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
 ) -> None:
-    """Neither is engine-backed — the alias table and the LLM narrative are their
-    own ports — so they must still read as outstanding, not silently missing."""
-    response = unbuilt_client.request(method, url)
+    seed_languages(isolated_data_trees["lexicons"])
 
-    assert response.status_code == 501
-    assert response.json()["error"] == "not_ported"
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "id": "lat"}
+    ).json()
+
+    assert payload["resolved"] == {
+        "csid": "cs:language:lat",
+        "confidence": 1.0,
+        "method": "alias",
+    }
+
+
+def test_resolve_falls_back_to_a_fuzzy_name_match(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    seed_languages(isolated_data_trees["lexicons"])
+
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "name": "Latin"}
+    ).json()
+
+    assert payload["resolved"]["csid"] == "cs:language:lat"
+    assert payload["resolved"]["method"] == "fuzzy"
+
+
+def test_resolve_answers_null_rather_than_guessing(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    """`null` covers both a no-match and an ambiguous one; 200 either way."""
+    seed_languages(isolated_data_trees["lexicons"])
+
+    response = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "name": "Klingon"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["resolved"] is None
+
+
+def test_resolve_answers_while_the_graph_is_offline(
+    unbuilt_client: TestClient, isolated_data_trees: dict[str, Path]
+) -> None:
+    """The whole reason this route is not engine-backed.
+
+    No `fake_graph`, no `corpus_env`: the state a developer checkout is in. The
+    alias table is read off the local lexicons, so resolution still succeeds —
+    which is what lets a "Show in graph" affordance decide whether to render.
+    """
+    seed_languages(isolated_data_trees["lexicons"])
+
+    payload = unbuilt_client.get(
+        "/api/graph/resolve", params={"type": "language", "id": "cmn"}
+    ).json()
+
+    assert payload["resolved"]["csid"] == "cs:language:cmn"
+
+
+def test_resolve_requires_a_type(unbuilt_client: TestClient) -> None:
+    response = unbuilt_client.get("/api/graph/resolve", params={"id": "lat"})
+
+    assert response.status_code == 400
+    assert response.json() == {"error": "type is required"}
+
+
+# ── The rest of the group ────────────────────────────────────────────────────
+
+
+def test_the_whole_graph_group_is_ported(unbuilt_client: TestClient) -> None:
+    """`/api/graph/explain` was the last outstanding route in the group; it
+    landed in pinakes:65 US-2 and is covered by `test_connection_narrative.py`.
+
+    Asserted as a *set* rather than by spot-checking one route: a baseline route
+    whose path this app spells differently would register a handler and keep its
+    own 501 stub, which is quiet everywhere except here.
+    """
+    coverage = coverage_of(unbuilt_client)
+    outstanding = {
+        route.path for route in coverage.unported if route.port_unit == "graph"
+    }
+    assert outstanding == set()

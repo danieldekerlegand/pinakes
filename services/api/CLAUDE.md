@@ -23,6 +23,13 @@ pattern is that parallel port tasklists never touch a shared file.
   at app construction. That is deliberate — a silently skipped module would let
   a "ported" group fall back to its own 501 stub and look fine.
 - Prefix a file with `_` for a shared helper; the scanner skips those.
+- **Two files the one-file rule does not cover, and they are where parallel ports
+  collide on rebase**: this file (one section per band) and `tests/conftest.py`
+  (one autouse reset fixture per module holding global state). Both are *appended*
+  to, so a conflict in them is two bands' additions, never a disagreement —
+  concatenate, never choose. Restate your section's `N/306` delta afterwards:
+  coverage is computed and nothing asserts the number in this prose, so a rebase
+  silently strands it. Re-read it off `/api/_parity/coverage`.
 
 ## The worked example — `routers/graph.py` (pinakes:50 US-2)
 
@@ -568,3 +575,139 @@ is a *job* rather than a request, and that is what everything below is about.
 - `ingest/http.py` gained `OPEN_CONTEXT` and `TDAR`, both back on the one-second floor
   `WIKIMEDIA` keeps — they are small unkeyed scholarly publishers, and an acquisition asks
   each of them for exactly one page.
+
+## The capability bus, the agent-card and MCP — `kcb/` + `acquire/` + `routers/{capability_bus,a2a,mcp}.py` (pinakes:65 US-1)
+
+How Pinakes publishes *itself* on the Koine control plane, plus `/api/graph/resolve`,
+the last non-engine-backed route in the graph group. Coverage 64/306 → 73/306. Full
+contract in `docs/capability-bus.md`; what is worth knowing before touching it:
+
+- **The manifest is read, never restated.** `kcb/manifest.py` calls
+  `pinakes_contracts.capability_manifest.document()` and mutates its own clone, so
+  `contracts/capability-manifest.json` stays the one source. That is what makes the
+  proof possible: with no origin, no signing key and no registry, the served
+  well-known document is **byte-identical to the contract on disk**, which is the
+  self-describing-participant guarantee `server/routes/participation-self-sufficiency.test.ts`
+  makes on the other side.
+- **`canonical_json` needs `ensure_ascii=False`, and that is load-bearing.** The
+  manifest is full of `—` and `§`; `JSON.stringify` writes them literally, and a
+  Python escape to `\uXXXX` would be a different byte string and therefore a
+  different **signature**. A signature minted here verifies over there and vice
+  versa, the derived `key_id` matches digit for digit, and there is a test for both
+  — do not "tidy" that call.
+- **`cryptography` is a new runtime dependency, for Ed25519 only.** `node:crypto`
+  gave the Express front this for free and the stdlib has none. Serving unsigned
+  where an operator configured a key would be a silent downgrade, not a degrade —
+  which is the one thing the optional-env pattern must not do.
+- **`registry.ensure_published()` fires on the first `/api/kcb` request, not at
+  startup.** Express published at route-registration time; an `APIRouter` has no
+  startup hook and `app.py` is the file parallel port tasklists must not touch. The
+  push runs off the event loop and the outcome is module state — hence
+  `conftest.py`'s autouse `reset_kcb`, which also clears the three env vars that
+  change what the fronts serve.
+- **The agent-card is a reimplementation, not a port, because the SDK is the spec.**
+  Express builds it through `@a2a-js/sdk`'s codec, which **drops** empty and
+  default-valued fields (`tenant: ""`, `required: false`, the empty
+  `examples`/`inputModes`/`securitySchemes`/`signatures`). `kcb/agent_card.py` emits
+  the already-normalized document; `test_agent_card.py` pins the key set. Adding a
+  field means checking what the codec does with it first.
+- **`/mcp` is hand-rolled JSON-RPC, and that is the stateless transport's whole
+  surface**: `initialize` / `ping` / `tools/list` / `tools/call`, a notification
+  answered with **202 and no body**, GET/DELETE answered **405 with a JSON-RPC error
+  body** (not FastAPI's `{"detail": …}`). The `Accept` header is deliberately not
+  enforced — this front only ever answers JSON, so rejecting a JSON-only client
+  would be stricter than what it implements.
+- **Two MCP tools are advertised and not dispatchable here, on purpose.**
+  `finetune`/`finetune_subscribe` wrap the private `lugh` checkout by spawning a
+  subprocess, which `test_engine_inprocess.test_no_sidecar_or_subprocess_seam`
+  forbids under `src/`. Advertising them keeps `tools/list` in step with the
+  manifest (a describe surface that disagreed would tell a router Pinakes is not a
+  finetune provider at all); the *invoke* degrades naming the Express front. That is
+  also why `/mcp` still answers over there — retiring it would leave the capability
+  invocable nowhere.
+- **`acquire/` is not a bus concept and should not move under `kcb/`.** It is the
+  meaningful half of `server/services/engine-acquisition.ts` — the four-domain
+  catalog, the SPARQL, the record → contribution mapping — and today only the MCP
+  `reconcile` tool calls it. When `tasks/chief/70-unify-scrapers` ports
+  `POST /api/scraping/engine` it should wrap `acquire.job.run` and bring the job
+  store with it. The **spec is a dict, not YAML**: the YAML only ever existed to
+  hand a file to a child process.
+- **`reconcile` returns the outcome, not a job id.** Express minted a `jobStore` job
+  and streamed progress through `GET /api/scraping-jobs`, which this backend does
+  not serve — a `jobId` here would be one nothing can be polled about.
+- **`/api/graph/resolve` lives in `routers/graph.py` but is not engine-backed.** It
+  reads the alias table off the local lexicons, so it answers while Neo4j is down —
+  which is the entire reason the client can decide whether to render a "Show in
+  graph" affordance. It has no 503/502 path; `null` covers a no-match *and* an
+  ambiguous match, because a wrong link merges two entities into one.
+- **Three routes are served by BOTH backends**, the `GET /api/citations` precedent
+  with a reason each: `/api/kcb/manifest` (its `get-kcb-manifest` fixture is
+  replayed against Express), `/.well-known/{kcb-manifest.json,agent-card.json}` (the
+  self-sufficiency guard drives them) and `/mcp` (the KFT pair above). All three are
+  pure functions of a committed JSON file, and the byte equality is asserted.
+
+## Authoring, suggestions and the connection narrative — `authoring/` + `narrative/` + `routers/{timeline,drawn_geometry,relationships,ancestry}.py` (pinakes:65 US-2)
+
+The eleven routes that finish the graph-adjacent band: the three in-app authoring
+surfaces (a timeline entry, a drawn geometry, a typed edge), the suggestions that
+propose the third, DNA→culture ancestry, and `POST /api/graph/explain`. Coverage
+73/306 → **84/306**, and the whole `graph` port unit is now ported.
+
+- **`authoring/_js.py` is the load-bearing file, not `_`-prefixed by accident.** Two
+  recorded fixtures grade this band and both record a **400 body**, so an error string
+  is a contract. Three JavaScript distinctions decide those bodies and Python makes
+  none of them for free: `MISSING` keeps *absent* apart from *null* (an omitted
+  confidence warns and defaults, a declared `null` is a 400 — the same trap
+  `contributions/store` documents), `is_finite_number` refuses a bool where
+  `isinstance(True, int)` would accept year 1, and `number_text` prints an integral
+  float as `2500` rather than `2500.0`.
+- **`jsmath.js_number` is the fourth, and it is about the wire.** Every JavaScript
+  number is a double but an *integral* one serialises with no fractional part, so a
+  Jaccard ratio of exactly 1 is `1` and not `1.0`. Apply it to a **derived** value
+  reaching a response (`suggestions.compute_proximity`, `connection.path_confidence`);
+  a value read straight out of a request or a TSV already has the source's type.
+  `jsmath.locale_key` is the ordering counterpart — `localeCompare` sorts by base
+  letter and case *last*, so a code-point sort pushes every lowercase display name
+  behind every capitalised one.
+- **The whole band was proved byte-identical to the TypeScript before landing**, with
+  the throwaway-script method the US-1 notes describe: both 400 bodies, all three
+  contribution mappings, the relationship summary + the 21 canonical type options, the
+  path evidence + aggregate confidence + the **full LLM prompt**, the ranked
+  suggestions, the live-corpus ancestry map, and all **5,836 canonical edges / 1,531
+  skips**. Those last two numbers are pinned in `tests/test_canonical_edges.py`.
+- **`lexicons/canonical_edges.py` is the *dedup* reader, and merging it with the
+  TypeScript would break the exporter.** `server/services/canonical-edges.ts` is still
+  read by `scripts/export-for-engine.ts` to write `build/corpus/`. One gotcha the port
+  had to reproduce: that file's private `readTsv` **trims header cells** where
+  `analytics.tsv.parse_tsv` does not, and an untrimmed header makes every column of
+  that file read as absent.
+- **The candidate pool is a second projection of the same TSVs, deliberately.**
+  `authoring/candidates.py` ports `getAllEntities`, which differs from
+  `analytics.correlation.load_domain` in three ways that change what gets suggested:
+  the music domain is `music-tradition` not `music`, `archaeological-site` is included,
+  and a civilization is read through its GeoJSON `properties.timePeriod`. Collapsing
+  them would silently re-rank one consumer.
+- **A dimension neither entity carries is *unmeasured*, not zero** —
+  `combined_confidence` averages over the applicable dimensions only. A language with
+  no coordinates is not far away, and diluting its score would rank it below a
+  genuinely weaker match. This is the rule most likely to be "simplified" away.
+- **`narrative/` splits pure from networked, and the honesty guarantee lives in the
+  split.** With no path *and* no inferred fact the model is never called, so
+  `aiGenerated: false` is the absence of prose rather than a judgement about it. The
+  Datalog augmentation is `pinakes.engine.datalog` **in process** where Express posted
+  to the sidecar console, and it degrades to `[]` on any failure.
+- **`narrative/llm.py` is `urllib` against the Gemini REST endpoint, not the vendor
+  SDK** — the same trade as `kcb/registry.py` and `search/places.py`. A missing
+  `$GEMINI_API_KEY` **raises** (→ 502 naming the reason); degrading to empty prose
+  would read exactly like the honest "no connection found", which is the one answer
+  this surface must never fake. `$GEMINI_API_BASE_URL` exists so a test can point at a
+  stub instead of monkeypatching `urllib`.
+- **`engine/graph.find_path` withholds a whole path that traverses a personal-tier
+  node**, rather than pruning the node — a partial chain would misrepresent how the two
+  ends are connected. Same posture as `node()` returning `None`.
+- **Two routes are served by BOTH backends**, the `GET /api/citations` precedent:
+  `POST /api/timeline/event` and `POST /api/graph/explain` carry recorded fixtures
+  replayed against Express. Safe for a stronger reason than usual — both recordings are
+  **validation rejections**, refused before either backend touches a store, a graph or
+  a model, and `test_timeline_event.py` / `test_connection_narrative.py` pin the two
+  400 bodies. The other nine routes are fixture-free and retired to 501.

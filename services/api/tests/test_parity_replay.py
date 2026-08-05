@@ -104,6 +104,9 @@ GRADED: tuple[str, ...] = (
     "get-summaries-index",  # pinakes:63 US-1
     "get-summaries-domain",  # pinakes:63 US-1
     "get-search",  # pinakes:63 US-2
+    "get-kcb-manifest",  # pinakes:65 US-1
+    "post-graph-explain-invalid",  # pinakes:65 US-2
+    "post-timeline-event-invalid",  # pinakes:65 US-2
 )
 
 

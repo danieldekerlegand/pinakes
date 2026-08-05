@@ -2,7 +2,7 @@
  * First-party `/api/graph/*` routes (US-004) — **mostly ported away** (pinakes:50
  * US-2, docs/UNIFIED-PROJECT-PLAN.md §5 Phase 1).
  *
- * Eight of these routes are now served by the Python service, in-process over
+ * Nine of these routes are now served by the Python service, in-process over
  * `pinakes_engine`, and their Express handlers have been retired: they answer
  * **501** naming the module that replaced them, so a caller still on this origin
  * gets told where the route went instead of being served a second, drifting
@@ -12,60 +12,21 @@
  * guard reads, so removing a registration would rewrite the very baseline the
  * port is graded against.
  *
- * Two routes are still genuinely served here, because neither is engine-backed:
+ * One route is still genuinely served here:
  *
- * - **`/api/graph/resolve`** — the convergence alias table, loaded from the local
- *   lexicons, which answers even while the graph is offline;
  * - **`/api/graph/status`** — the availability probe. The Python service serves
  *   its own (`pinakes.routers.graph`), but this one keeps answering because its
  *   recorded fixture (`contracts/parity/fixtures/get-graph-status.json`) is
  *   replayed against *this* app: a baseline that stops reproducing its own
  *   recording is no longer a baseline.
  *
- * Both still degrade gracefully (docs/engine-integration.md §10b): an unreachable
- * backend answers HTTP 503 with a structured `{ available: false }` body and
- * never crashes the process; an unusable upstream response maps to 502.
+ * `/api/graph/resolve` was the last non-engine-backed holdout — it reads the
+ * convergence alias table off the local lexicons, so it answers while the graph
+ * is offline — and pinakes:65 US-1 handed it over once
+ * `pinakes.search.graph_resolver` was there to read the same table.
  */
 import { type Express, type Request, type Response } from "express";
-import { GraphUnavailableError } from "../services/graph-store";
-import {
-  EngineError,
-  EngineUnavailableError,
-} from "../services/engine-client";
 import { getGraphHealth } from "../services/graph-health";
-import { getGraphResolver, type EntityRef } from "../services/graph-resolver";
-
-/**
- * Map a caught error to an Express response, preserving the graceful-degradation
- * contract: an "unavailable" error becomes 503 `{ available: false }`; an upstream
- * "bad response" becomes 502; anything else becomes 500. Never throws.
- */
-function handleError(res: Response, context: string, error: unknown): void {
-  if (
-    error instanceof GraphUnavailableError ||
-    error instanceof EngineUnavailableError
-  ) {
-    res.status(503).json({
-      available: false,
-      error: `${context} is unavailable`,
-      detail: error.message,
-    });
-    return;
-  }
-  if (error instanceof EngineError) {
-    res.status(502).json({
-      available: true,
-      error: `${context} returned an unusable response`,
-      detail: error.message,
-    });
-    return;
-  }
-  console.error(`Unexpected error in ${context}:`, error);
-  res.status(500).json({
-    error: `${context} failed`,
-    detail: error instanceof Error ? error.message : "Unknown error",
-  });
-}
 
 /** The Python module that now serves the ported routes. */
 export const PORTED_TO = "services/api/src/pinakes/routers/graph.py";
@@ -75,8 +36,9 @@ export const PORTED_TO = "services/api/src/pinakes/routers/graph.py";
  *
  * Everything engine-backed: the three corpus/console surfaces that used to take
  * an HTTP hop to the sidecar and the three Neo4j reads that used to take a second
- * driver written in TypeScript. `/api/graph/resolve` and `/api/graph/status` are
- * absent because they are still served below.
+ * driver written in TypeScript — plus the lexicon-backed `/api/graph/resolve`
+ * (pinakes:65 US-1). Only `/api/graph/status` is absent, because it is still
+ * served below.
  */
 export const PORTED_ROUTES = {
   get: [
@@ -86,6 +48,7 @@ export const PORTED_ROUTES = {
     "/api/graph/overview",
     "/api/graph/retrieve",
     "/api/graph/metrics",
+    "/api/graph/resolve",
   ],
   post: ["/api/graph/datalog", "/api/graph/cypher"],
 } as const;
@@ -133,37 +96,6 @@ export function registerGraphRoutes(app: Express): void {
   for (const route of PORTED_ROUTES.post) {
     app.post(route, portedToPython(`POST ${route}`));
   }
-
-  /**
-   * GET /api/graph/resolve?type=&id=&name=&region= — resolve a pinakes
-   * entity ref to its shared-graph csid (US-006) so "Show in graph" affordances
-   * can jump into the neighborhood view. Backed by the convergence alias table,
-   * which is loaded from the local lexicons and so does NOT depend on Neo4j —
-   * resolution succeeds even while the graph itself is offline. Always 200 with
-   * `{ resolved: { csid, confidence, method } | null }`; `null` covers both a
-   * no-match and an ambiguous match (which the resolver refuses to guess at).
-   */
-  app.get("/api/graph/resolve", (req: Request, res: Response) => {
-    const type = typeof req.query.type === "string" ? req.query.type.trim() : "";
-    if (!type) {
-      res.status(400).json({ error: "type is required" });
-      return;
-    }
-    const str = (v: unknown): string | undefined =>
-      typeof v === "string" && v.trim() ? v.trim() : undefined;
-    const ref: EntityRef = {
-      type,
-      id: str(req.query.id),
-      name: str(req.query.name),
-      region: str(req.query.region),
-    };
-    try {
-      const resolved = getGraphResolver().resolve(ref);
-      res.json({ resolved });
-    } catch (error) {
-      handleError(res, "graph entity resolution", error);
-    }
-  });
 
   /**
    * GET /api/graph/status — availability of both backends, via the aggregated

@@ -2,11 +2,17 @@
   "project": "pinakes",
   "branchName": "chief/65-port-catalog-bus",
   "baseBranch": "main",
-  "description": "Port the catalog, capability-bus, and remaining graph-adjacent routes to Python (docs/UNIFIED-PROJECT-PLAN.md §7 port band): graph-catalog, capability-bus + a2a, the MCP server, connection-narrative (explain), timeline-event, relationship-edge/-suggestions, drawn-geometry, ancestry. Runs in parallel with the other port tasklists.",
-  "dependsOn": ["50-engine-inprocess-graph"],
-  "touches": ["port-catalog"],
+  "description": "Port the catalog, capability-bus, and remaining graph-adjacent routes to Python (docs/UNIFIED-PROJECT-PLAN.md \u00a77 port band): graph-catalog, capability-bus + a2a, the MCP server, connection-narrative (explain), timeline-event, relationship-edge/-suggestions, drawn-geometry, ancestry. Runs in parallel with the other port tasklists.",
+  "dependsOn": [
+    "50-engine-inprocess-graph"
+  ],
+  "touches": [
+    "port-catalog"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -16,7 +22,7 @@
         "graph-catalog, capability-bus, a2a, and mcp routes pass the parity tests; MCP tools proxy the in-process engine (not the old sidecar).",
         "Express handlers removed or 501; coverage tracker updated."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -27,7 +33,7 @@
         "All listed routes pass the parity tests; connection-narrative uses the in-process engine datalog + the LLM proxy as before.",
         ".chief/verify.sh passes and the not-yet-ported (501) coverage tracker is now empty except routes owned by other port tasklists."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

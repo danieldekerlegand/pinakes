@@ -36,6 +36,11 @@ dependencies = [
     # ordering in Python — the two engines answering the same SQL is what makes
     # `/api/analytics/facets` a port rather than a rewrite.
     "duckdb>=1.0",
+    # Ed25519 for the KCB §5 manifest signature (pinakes:65 US-1). `node:crypto`
+    # gave the Express front this for free; Python's stdlib has no Ed25519, and a
+    # signature an operator configured has to actually be minted — an unsigned
+    # manifest where a key is set would be a silent downgrade, not a degrade.
+    "cryptography>=42",
 ]
 
 [project.scripts]

@@ -277,13 +277,14 @@ describe("registration stays best-effort — the surfaces are served with the re
     )) as CapabilityManifest;
     expect(verifyManifestSignature(manifest, SIGNING.publicKeyPem)).toBe(true);
 
-    // …and status reports the capabilities are up regardless of the registry outcome.
-    const status = (await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json())) as {
-      signed: boolean;
-      registry: PublishResult;
-    };
-    expect(status.registry.registered).toBe(false);
-    expect(status.registry.servingDirectly).toBe(true);
-    expect(status.signed).toBe(true);
+    // `/api/kcb/status` — the route that *reported* servingDirectly — is retired to
+    // 501 here (pinakes:65 US-1 ported it). What that report asserted is asserted
+    // directly instead: every surface above answered with the registry unreachable,
+    // which is the standing fact `servingDirectly` was a claim about.
+    const status = await fetch(`${baseUrl}/api/kcb/status`);
+    expect(status.status).toBe(501);
+    expect((await status.json()).servedBy).toBe(
+      "services/api/src/pinakes/routers/capability_bus.py",
+    );
   });
 });

@@ -252,17 +252,18 @@ The browser talks only to the pinakes origin. `server/routes/graph.ts`
 (`registerGraphRoutes`, wired in `server/routes.ts`) exposes a first-party proxy over
 the shared graph.
 
-> **Ported (pinakes:50 US-2).** Eight of these routes now live in the Python service
+> **Ported (pinakes:50 US-2, pinakes:65 US-1).** Nine of these routes now live in the Python service
 > (`services/api/src/pinakes/routers/graph.py`), served **in-process** over
 > `pinakes_engine`: no HTTP hop to the sidecar and no second, TypeScript Neo4j driver.
 > Their Express handlers are retired and answer **501** naming the replacement; the
 > paths stay registered because `contracts/parity/openapi.json` is harvested from the
 > registration set (and so is the guard below). The **Backend** column names the owner.
 > The success/degradation columns describe what the Python service answers — it
-> reproduces those shapes, which is what `services/api/tests/` grades it on. Two rows
-> are still served by Express: `/resolve` (lexicon-backed, no engine) and `/status`
-> (still replayed against this app by the recorded parity fixture, though the Python
-> service serves its own).
+> reproduces those shapes, which is what `services/api/tests/` grades it on. One row is
+> still served by Express: `/status`, still replayed against this app by the recorded
+> parity fixture, though the Python service serves its own. `/resolve` is the row that
+> moved last (pinakes:65 US-1) — it is lexicon-backed rather than engine-backed, and
+> waited for `pinakes.search.graph_resolver` to be able to read the same alias table.
 
 | Method & path | Backend | Success | Notes |
 | --- | --- | --- | --- |
@@ -274,7 +275,7 @@ the shared graph.
 | `GET /api/graph/metrics` | **ported** → `pinakes.engine.corpus.metrics` | graph-level metrics | — |
 | `POST /api/graph/datalog` | **ported** → `pinakes.engine.datalog.run` | `{ ran, rows[][], problems[], error, reason }` | research console (US-011); body `{ goal }` (ad-hoc `main/0`) or `{ example }` (shipped slug); neither → **400**; sidecar lint `error`/`reason` passed through, not swallowed |
 | `POST /api/graph/cypher` | **ported** → `pinakes.engine.graph.cypher` | `{ columns[], rows[][] }` | research console (US-011); body `{ query }`; **read-only** — empty query or a write clause (CREATE/MERGE/DELETE/SET/REMOVE/DROP/FOREACH/LOAD CSV) → **400** before the sidecar is called; a sidecar syntax error surfaces as **502** |
-| `GET /api/graph/resolve?type=&id=&name=&region=` | graph-resolver (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a pinakes entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
+| `GET /api/graph/resolve?type=&id=&name=&region=` | **ported** → `pinakes.search.graph_resolver` (lexicons) | `{ resolved: { csid, confidence, method } \| null }` | resolves a pinakes entity ref → csid (US-006); lexicon-backed so it works even when Neo4j is offline; `null` covers no-match **and** ambiguous; missing `type` → **400** |
 | `GET /api/graph/status` | both (Express `graph-health`; Python `graph.available` + `corpus.available`) | `{ available, neo4j, sidecar, checkedAt }` | always **200**; `available = neo4j \|\| sidecar`; served from the short-cached graph-health service |
 
 **Sidecar JSON contract (US-003).** The FastAPI explorer's `/search`, `/metrics`, and

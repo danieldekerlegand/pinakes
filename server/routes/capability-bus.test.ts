@@ -6,12 +6,22 @@ import type { Server } from "node:http";
 /**
  * Integration tests for the KCB capability-bus routes. Registration is driven with
  * an injected publisher (no network), so both the registered and the
- * registry-unreachable paths are asserted to serve the same manifest + capabilities.
+ * registry-unreachable paths are asserted to serve the same manifest.
+ *
+ * **Half of this group is ported** (pinakes:65 US-1): `/api/kcb/capabilities` and
+ * `/api/kcb/status` answer 501 here and are served by
+ * `services/api/src/pinakes/routers/capability_bus.py` — their assertions moved to
+ * `services/api/tests/test_capability_bus.py`, where the directory's `specialization`
+ * block and the registration record are graded against the same manifest. The two
+ * manifest fronts keep answering here, for two different reasons the module
+ * docstring spells out (the recorded fixture; the self-sufficiency guard).
  */
 
 import {
   registerCapabilityBusRoutes,
   MANIFEST_WELL_KNOWN_PATH,
+  PORTED_ROUTES,
+  PORTED_ERROR,
   type CapabilityBusRouteOptions,
 } from "./capability-bus";
 import type { PublishResult } from "../services/capability-registry";
@@ -110,30 +120,15 @@ describe("capability-bus routes (registry reachable)", () => {
     expect(resolve.x_surfaces[0].url).toBe("https://pinakes.example/api/graph/resolve");
   });
 
-  it("lists the capabilities with the already-built endpoints behind them", async () => {
-    const res = await fetch(`${baseUrl}/api/kcb/capabilities`);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.identity).toBe("pinakes:agent:resolver");
-    const byName = Object.fromEntries(
-      body.capabilities.map((c: { name: string }) => [c.name, c]),
-    );
-    expect(byName.reconcile.grant).toBe("invoke:reconcile");
-    // The reconciler is the merged Python module; the manifest wraps it, never replaces it.
-    expect(byName.reconcile.surfaces[0].implementation).toBe(
-      "engine/src/pinakes_engine/schema/reconcile.py",
-    );
-    expect(byName.resolve.surfaces[0].path).toBe("/api/graph/resolve");
-    expect(byName.query.surfaces.map((s: { path: string }) => s.path)).toContain(
-      "/api/graph/datalog",
-    );
-  });
-
-  it("reports a successful registration", async () => {
-    const body = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
-    expect(body.registry.registered).toBe(true);
-    expect(body.registry.servingDirectly).toBe(true);
-    expect(body.signed).toBe(false);
+  it("retires the directory and the status route to 501, naming their replacement", async () => {
+    for (const route of PORTED_ROUTES) {
+      const res = await fetch(`${baseUrl}${route}`);
+      expect(res.status, route).toBe(501);
+      const body = await res.json();
+      expect(body.error).toBe(PORTED_ERROR);
+      expect(body.servedBy).toBe("services/api/src/pinakes/routers/capability_bus.py");
+      expect(body.route).toBe(`GET ${route}`);
+    }
   });
 });
 
@@ -162,19 +157,22 @@ describe("capability-bus routes (registry unreachable)", () => {
     expect((await res.json()).identity).toBe("pinakes:agent:resolver");
   });
 
-  it("still serves the capability directory so a consumer can invoke directly", async () => {
-    const body = await fetch(`${baseUrl}/api/kcb/capabilities`).then((r) => r.json());
-    expect(body.capabilities).toHaveLength(4);
-    for (const cap of body.capabilities) {
-      expect(cap.surfaces.length, cap.name).toBeGreaterThan(0);
+  it("still carries every capability with the endpoints behind it", async () => {
+    // The invocation directory moved to the Python service; what this front still
+    // owes a consumer that cannot reach the registry is the manifest those
+    // surfaces are read off — so assert on the document, not on the directory.
+    const manifest = await fetch(`${baseUrl}/api/kcb/manifest`).then((r) => r.json());
+    expect(manifest.capabilities).toHaveLength(4);
+    for (const cap of manifest.capabilities) {
+      expect(cap.x_surfaces.length, cap.name).toBeGreaterThan(0);
     }
   });
 
-  it("reports the failure without claiming the capabilities are down", async () => {
-    const body = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
-    expect(body.registry.registered).toBe(false);
-    expect(body.registry.servingDirectly).toBe(true);
-    expect(body.registry.detail).toMatch(/unreachable/i);
+  it("warns about the failure without letting it reach the manifest", async () => {
+    expect(warn).toHaveBeenCalled();
+    expect(String(warn.mock.calls[0]?.[0])).toMatch(/unreachable/i);
+    const res = await fetch(`${baseUrl}/api/kcb/manifest`);
+    expect(res.status).toBe(200);
   });
 });
 
@@ -185,9 +183,6 @@ describe("capability-bus routes (no registry configured)", () => {
       const manifest = await fetch(`${baseUrl}/api/kcb/manifest`).then((r) => r.json());
       expect(manifest.endpoints.manifest).toBe("/.well-known/kcb-manifest.json");
       expect(manifest.capabilities[0].x_surfaces[0].url).toBeUndefined();
-      const status = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
-      expect(status.registry.registered).toBe(false);
-      expect(status.registry.servingDirectly).toBe(true);
     } finally {
       await close();
     }
@@ -237,10 +232,7 @@ describe("capability-bus routes (signing configured)", () => {
       expect(manifest.signing.key_id).toBe(keyId);
       expect(typeof manifest.signing.signature).toBe("string");
       expect(verifyManifestSignature(manifest, publicKeyPem)).toBe(true);
-
-      const status = await fetch(`${baseUrl}/api/kcb/status`).then((r) => r.json());
-      expect(status.signed).toBe(true);
-      expect(status.manifestVersion).toBe("0.4.0");
+      expect(manifest.x_pinakes.manifestVersion).toBe("0.4.0");
     } finally {
       await close();
     }

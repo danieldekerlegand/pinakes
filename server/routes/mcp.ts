@@ -1,6 +1,23 @@
 /**
  * MCP server surface for the KCB capabilities (US-1, `/mcp`).
  *
+ * **Ported to Python** (pinakes:65 US-1): `services/api/src/pinakes/routers/mcp.py`
+ * over `pinakes.kcb.mcp` serves the same stateless JSON-RPC front with the same
+ * five tools, and `resolve`/`reconcile`/`query` reach the engine **in-process**
+ * there — no sidecar hop for the Datalog console, no `pinakes_engine.cli` child
+ * process for the acquisition.
+ *
+ * This front is **not** retired, and the reason is narrow and temporary: the KFT
+ * pair (`finetune` / `finetune_subscribe`) dispatches to the private `lugh`
+ * checkout by spawning a subprocess, which the Python service structurally
+ * cannot do — it reaches every backend by import, and
+ * `test_engine_inprocess.test_no_sidecar_or_subprocess_seam` fails the build on a
+ * spawn under `src/`. So the Python `/mcp` advertises the pair (the manifest
+ * advertises it, and describe surfaces must agree) but degrades the *invoke*,
+ * naming this front. Retiring here would leave the capability invocable nowhere.
+ * It goes when `lugh` publishes its own KCB provider — the retirement this
+ * wrapper was always waiting on — or, failing that, at 80-cutover.
+ *
  * KCB §4 names an MCP tool call as one of the two ways to *invoke* a capability
  * (the other is an A2A message, US-2). This mounts a real Model Context Protocol
  * server — built on the official `@modelcontextprotocol/sdk` (`McpServer` + the

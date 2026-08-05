@@ -146,6 +146,21 @@ file avoids editing the large, already-error-heavy `routes.ts` body.
 
 ## KCB capability bus — `routes/capability-bus.ts` + `services/capability-registry.ts`
 
+**Ported to Python** (pinakes:65 US-1): the group is served by
+`services/api/src/pinakes/routers/capability_bus.py` over `pinakes.kcb` — same origin
+absolutization, same Ed25519 signing (a signature minted on either side verifies on the
+other; the canonical signing input is byte-identical), same best-effort registry push.
+`/api/kcb/capabilities` and `/api/kcb/status` answer **501** here.
+
+**The two manifest fronts keep answering, for two different reasons.**
+`/api/kcb/manifest` carries a recorded fixture replayed against *this* app; the
+well-known path is what `routes/participation-self-sufficiency.test.ts` drives to prove
+the repo describes itself with no external config, and that guard is about the
+repository, not about which process answers. Same standing as `GET /api/citations` —
+and safe for a stronger reason than usual: both sides are pure functions of one
+committed JSON file, and `services/api/tests/test_capability_bus.py` asserts the served
+document equals `contracts/capability-manifest.json` verbatim.
+
 `GET /.well-known/kcb-manifest.json` (+ `/api/kcb/manifest`) publishes Pinakes's Koine
 capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
 `/api/kcb/status` the registration outcome. The manifest itself is
@@ -177,6 +192,16 @@ capability-bus manifest; `/api/kcb/capabilities` is the invocation directory and
   Keep `signManifestForServing`'s unsigned path a pass-through, or that byte-equality breaks.
 
 ## KFT `finetune` provider — `services/finetune-provider.ts` (90-US-3)
+
+**This is the one thing keeping `/mcp` and `routes/a2a.ts` alive on this backend.**
+pinakes:65 US-1 ported both fronts (`services/api/src/pinakes/routers/{mcp,a2a}.py`) and
+the Python `/mcp` serves the same five tools — but `finetune`/`finetune_subscribe`
+dispatch by *spawning a subprocess* into the sibling `lugh` checkout, and that service
+reaches every backend by import (`test_engine_inprocess.test_no_sidecar_or_subprocess_seam`
+fails the build on a spawn under `src/`). So the Python front advertises the pair and
+degrades the invoke, naming this one; retiring here would leave the capability invocable
+nowhere. It goes when lugh publishes its own KCB manifest — the retirement this wrapper
+was always waiting on — or at 80-cutover.
 
 The fourth capability on the bus, and the only **specialized** one: Pinakes's own KFT
 training provider (`koine/specs/fine-tuning.md` §9/FT-K — agora hosts the *general* trainer).
@@ -385,6 +410,16 @@ radius). The response also carries a `geojson` FeatureCollection for the map ove
   `web/src/lib/hypotheses/site-overlay.ts` (unit-tested in node).
 
 ## AI "explain the connection" narrative — `services/connection-narrative.ts` + `routes/connection-narrative.ts`
+
+**Ported to Python** (pinakes:65 US-2), and **still answering here**:
+`services/api/src/pinakes/routers/graph.py` serves it over `pinakes.narrative`, with
+the shortest-path traversal on `pinakes.engine.graph.find_path` and the Datalog
+augmentation **in process** rather than over the sidecar's `/datalog` console. The
+handler is not retired because `contracts/parity/parity.test.ts` replays its
+`post-graph-explain-invalid` fixture against *this* app — the `GET /api/citations`
+precedent, and safe for a stronger reason: the recording is a validation rejection, so
+the double-served path reaches neither graph nor model. `services/connection-narrative.ts`
+stays as the graded spec.
 
 `POST /api/graph/explain` (US-005) explains how two entities are connected: it finds the
 shortest connecting path in the shared graph, augments it with Datalog inference, and asks
@@ -802,6 +837,13 @@ copy that shape. Differences to know:
 
 ## Drawn-geometry authoring — `services/drawn-geometry.ts` + `routes/drawn-geometry.ts`
 
+**Both routes are ported** (pinakes:65 US-2): `services/api/src/pinakes/routers/drawn_geometry.py`
+serves them over `pinakes.authoring.drawn_geometry`, against the same contribution
+queue, and the Express handlers answer 501. Neither carried a recorded fixture, so the
+group handed over cleanly. `services/drawn-geometry.ts` is **not** retired — it is the
+graded spec, and its unit tests are what say the two validators agree about closed
+rings, world bounds and target/geometry disagreement.
+
 `POST /api/map/drawn-geometry` (US-001) takes a GeoJSON **Polygon or LineString**
 drawn on the map and lands it in the **contribution review queue** (never a
 direct TSV write) with provenance `entityData.source = 'user-drawn'`. Pattern to
@@ -827,6 +869,14 @@ reuse for any "author geometry in-app" feature:
   shape (geometry + target + associatedEntityId + timePeriodStart/End).
 
 ## Timeline-event authoring — `services/timeline-event.ts` + `routes/timeline-event.ts`
+
+**Ported to Python** (pinakes:65 US-2), with the POST still answering here:
+`services/api/src/pinakes/routers/timeline.py` serves both routes over
+`pinakes.authoring.timeline_event`. `GET /api/timeline/event/options` answers 501;
+`POST /api/timeline/event` does **not**, because its `post-timeline-event-invalid`
+fixture is replayed against this app — and that recording is a validation rejection, so
+neither backend touches the queue for it. `services/timeline-event.ts` stays as the
+graded spec.
 
 `POST /api/timeline/event` (US-002) takes an **event** (single year) or **period**
 (dated range) authored on the temporal axis and lands it in the **contribution
@@ -856,6 +906,15 @@ copy it for any "author temporal data in-app" feature:
   `culture-profile/culture-evolution-timeline-section.tsx`.
 
 ## Relationship-builder authoring — `services/relationship-edge.ts` + `routes/relationship-edge.ts`
+
+**Both routes are ported** (pinakes:65 US-2): `services/api/src/pinakes/routers/relationships.py`
+serves them over `pinakes.authoring.relationship_edge`, deduping against the same
+corpus edges — `pinakes.lexicons.canonical_edges` extracts the identical 5,836 edges
+(and the identical 1,531 skips) from the live lexicons. Both Express handlers answer
+501. `services/relationship-edge.ts` and `services/canonical-edges.ts` are **not**
+retired: both are the graded spec, and `canonical-edges.ts` additionally still has a
+live consumer in `scripts/export-for-engine.ts` — the Python twin is the *dedup* reader
+only, so do not merge them without moving the exporter too.
 
 `POST /api/relationships/edge` (US-003) takes a typed edge authored by dragging
 one entity onto another (source, target, relationship_type, time range,
@@ -887,6 +946,13 @@ timeline-event/drawn-geometry — differences to know:
   a "Build relationship" toggle in `CulturalLineageExplorer.tsx` (fed `graph.nodes`).
 
 ## Authoring-time suggested relationships — `services/relationship-suggestions.ts` + `routes/relationship-suggestions.ts`
+
+**Both methods are ported** (pinakes:65 US-2): `services/api/src/pinakes/routers/relationships.py`
+serves them over `pinakes.authoring.suggestions`, ranked over the same candidate pool
+(`pinakes.authoring.candidates`, the port of `defaultLoadEntities`). The Express
+handlers answer 501. `services/relationship-suggestions.ts` is **not** retired — it is
+the graded spec, and its unit tests are what say the two rankers agree, in particular
+that a dimension neither entity can supply is *unmeasured* rather than zero.
 
 `/api/relationships/suggestions` (US-010) surfaces the *most likely* relationships
 when a contributor creates/edits an entity — ranked by the same proximity math the
@@ -1257,6 +1323,15 @@ counts (per `entityType` + `source`) and filter params live in pure helpers:
   lives at `/api/analytics/facets/:table/:column` (see analytical index below).
 
 ## DNA-to-culture ancestry mapping — `services/genetic-linguistic-correlation.ts` + `routes/ancestry.ts`
+
+**Both routes are ported** (pinakes:65 US-2): `services/api/src/pinakes/routers/ancestry.py`
+serves them over `pinakes.analytics.genetic`, which now carries both halves of
+`services/genetic-linguistic-correlation.ts` and so shares one `NOTABLE_DIVERGENCES`
+table between the mapper and the correlation engine. The Express handlers answer 501.
+**The privacy guarantee is unaffected, because it never lived on this side** — raw-DNA
+parsing and haplogroup inference are the client's, and only non-identifying ids ever
+reached a server. `services/genetic-linguistic-correlation.ts` is **not** retired at
+all: it is the graded spec for both halves.
 
 `POST /api/ancestry/map` (US-001) takes the **Y-DNA haplogroup ids** a user's raw-DNA
 file was reduced to *in the browser* (only the ids — never the raw genotypes — are sent)

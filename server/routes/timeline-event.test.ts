@@ -10,9 +10,15 @@ import path from "path";
  * Integration tests for `POST /api/timeline/event` (US-002). The route is wired
  * to a `ContributionService` pointed at a temp dir so authored entries land in
  * an isolated queue (no real `data/runtime/contributions/` writes).
+ *
+ * The POST is **still served here** after pinakes:65 US-2, because its recorded
+ * `post-timeline-event-invalid` fixture is replayed against this app — so these
+ * cases stay. `GET /api/timeline/event/options` was retired to 501 and its
+ * behaviour is graded on the Python side by
+ * `services/api/tests/test_timeline_event.py`.
  */
 
-import { registerTimelineEventRoutes } from "./timeline-event";
+import { registerTimelineEventRoutes, PORTED_ROUTE, PORTED_TO, PORTED_ERROR } from "./timeline-event";
 import { ContributionService } from "../services/contribution-service";
 
 let app: Express;
@@ -139,14 +145,15 @@ describe("POST /api/timeline/event", () => {
     expect(status).toBe(400);
   });
 
-  it("exposes the authoring options (kinds, lanes, magnitudes, bounds)", async () => {
-    const res = await fetch(`${baseUrl}/api/timeline/event/options`);
+  it("answers 501 on the retired options route, naming the Python module", async () => {
+    // 501, not 404: a 404 would say "gone" and would drop the route out of
+    // contracts/parity/openapi.json the next time the spec is regenerated.
+    const res = await fetch(`${baseUrl}${PORTED_ROUTE}`);
+    expect(res.status).toBe(501);
     const body = await res.json();
-    expect(body.kinds).toContain("event");
-    expect(body.kinds).toContain("period");
-    expect(body.lanes).toContain("political");
-    expect(body.magnitudes).toContain("major");
-    expect(typeof body.minYear).toBe("number");
-    expect(typeof body.maxYear).toBe("number");
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.route).toBe(`GET ${PORTED_ROUTE}`);
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
 });
