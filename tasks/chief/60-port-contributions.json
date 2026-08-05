@@ -35,7 +35,7 @@
         "Auth + rate-limit behavior matches the current server (same accept/reject/429 semantics) and is covered by tests.",
         "Parity tests for the guarded endpoints pass."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
