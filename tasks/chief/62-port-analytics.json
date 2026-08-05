@@ -29,7 +29,7 @@
         "Numeric outputs match the baseline within a documented tolerance (or exactly where deterministic).",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
