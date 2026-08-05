@@ -24,6 +24,32 @@ pattern is that parallel port tasklists never touch a shared file.
   a "ported" group fall back to its own 501 stub and look fine.
 - Prefix a file with `_` for a shared helper; the scanner skips those.
 
+## The worked example — `routers/graph.py` (pinakes:50 US-2)
+
+The first ported group, and the shape to copy: **one router file, thin over
+`pinakes.engine`, plus two test files.** Nothing else was touched to land it.
+
+- **A route is an adapter, not logic.** Parse the query string, call one engine
+  function, map `EngineUnavailable`/`EngineFailure` onto 503/502. If a handler
+  needs more than that, the missing piece belongs in `src/pinakes/engine/`.
+- **Declare a numeric query param as `str | None` and parse it yourself.** Express
+  read these through `Number(...)` + `Number.isFinite(...)`, so `?limit=abc` fell
+  back to the default; a declared `int` param answers **422**, which is a
+  different contract — a stale bookmark must not become a hard failure. The
+  `_number`/`_positive`/`_depth` helpers are that JS semantic, including the two
+  surprises (absent → `NaN`; present-but-empty → `0`).
+- **Grade with `tests/test_parity_replay.py`**, which is generic: it replays every
+  recorded fixture whose route the app registers and *skips* the rest by name. A
+  port inherits it by landing its router — but add a "this group is actually being
+  graded" assertion, because a fully-skipped parametrization is just as green as a
+  passing one. `tests/parity_shape.py` is the Python half of
+  `contracts/parity/shape.ts`; only the **matcher** is ported, deliberately —
+  recording stays Express's job, or this service would author the contract it is
+  graded against.
+- **`test_not_implemented.py`'s `SAMPLE_REQUESTS` must name only *unported*
+  routes.** Porting a group that appears there turns its 501 assertion red; move
+  the case into that group's own test.
+
 ## Traps
 
 - **`registered_routes()` reads FastAPI internals.** Since 0.139
@@ -54,3 +80,40 @@ pattern is that parallel port tasklists never touch a shared file.
   crash (`serveStatic` throws). The API half is useful without a build.
 - `/api/health` and `/api/_parity/coverage` are additive; the baseline has
   neither, and no baseline path contains `_`.
+
+## The engine layer — `src/pinakes/engine/` (pinakes:50 US-1)
+
+Everything this service asks of `pinakes_engine` goes through here, and it is
+**not** a route layer: plain arguments in, JSON-ready dicts out. A router is a
+thin adapter over it (`corpus.search(...)`, `graph.node(...)`, `datalog.run(...)`,
+`acquisition.fetch(...)`), which is what lets the same call run from a job or a
+test with no HTTP anywhere.
+
+- **The payload builders reproduce the sidecar's bodies field for field.** Those
+  shapes are what the client parses; the port preserves them rather than
+  improving them. Where a value can be *imported* from the engine instead of
+  restated it is (`COMPLETENESS_SORTS`, `ontology.metrics.to_json`,
+  `orchestrate.tiers.PERSONAL_SOURCES`) — that is what stops the two drifting.
+- **Two error classes, two status codes.** `EngineUnavailable` → **503**
+  `{available:false}` (no corpus, no Neo4j config, driver extra absent, store
+  down, no embedder); `EngineFailure` → **502** (a reachable backend rejected the
+  request — a Cypher syntax error is the canonical case). Do not collapse them:
+  503 says retry, 502 says the request was wrong.
+- **Every backend is injectable, and that is the test seam.** `graph.configure(
+  connect=…, retriever=…)` and `datalog.configure(console)`; `acquisition.fetch`
+  takes an `adapter=`. `conftest.py` ships a `fake_graph` fixture and a
+  `corpus_root`/`corpus_env` pair, so the whole layer is exercised with no
+  database, no model, and no network. Reset in teardown (`reset_handles()`).
+- **The corpus is `$PINAKES_ENGINE_CORPUS`, else `build/corpus`.** Same variable
+  the sidecar's docker service read, same artifact. `load_corpus` is `lru_cache`d
+  on the resolved path in the engine, so nothing caches it here.
+- **`test_no_sidecar_or_subprocess_seam` is an absence guard**, in the shape of
+  `server/security/*-proxy.test.ts`: it greps `src/pinakes/**.py` for a sidecar
+  URL, the port number, or a child-process spawn. Its literals match *code*
+  (`import subprocess`, not the bare word) so prose can still explain what was
+  removed — except the port number, which has no code-only form, so do not write
+  it under `src/`.
+- **`pinakes_engine` ships `py.typed`** (added by the same story). Without it a
+  strict-mypy consumer silently degrades every engine value to `Any`; with it,
+  engine types are real here. If a `pinakes_engine.*` import ever starts reporting
+  `import-untyped`, the marker fell out of `engine/pyproject.toml`'s package-data.

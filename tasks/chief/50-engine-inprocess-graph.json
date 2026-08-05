@@ -2,11 +2,18 @@
   "project": "pinakes",
   "branchName": "chief/50-engine-inprocess-graph",
   "baseBranch": "main",
-  "description": "Collapse the TS<->Python seams and port the graph routes (docs/UNIFIED-PROJECT-PLAN.md §5). The two integration points that exist today — the HTTP sidecar client and the CLI-subprocess acquisition — become direct in-process calls into pinakes_engine, and /api/graph/* is served from the Python service. This is the template every later port tasklist follows.",
-  "dependsOn": ["40-contracts-codegen"],
-  "touches": ["python-api", "engine"],
+  "description": "Collapse the TS<->Python seams and port the graph routes (docs/UNIFIED-PROJECT-PLAN.md \u00a75). The two integration points that exist today \u2014 the HTTP sidecar client and the CLI-subprocess acquisition \u2014 become direct in-process calls into pinakes_engine, and /api/graph/* is served from the Python service. This is the template every later port tasklist follows.",
+  "dependsOn": [
+    "40-contracts-codegen"
+  ],
+  "touches": [
+    "python-api",
+    "engine"
+  ],
   "iters": 8,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -17,7 +24,7 @@
         "No HTTP call to a Python sidecar and no CLI subprocess remain in the request path.",
         "Neo4j access is consolidated in Python (the engine's driver); the former TS neo4j-driver usage for these paths is gone."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -30,7 +37,7 @@
         "The corresponding Express /api/graph/* handlers are removed or return 501 (coverage tracker updated).",
         ".chief/verify.sh passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

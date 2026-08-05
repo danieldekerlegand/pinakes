@@ -4,6 +4,12 @@ import path from "node:path";
 
 const BATCH_SIZE = 5;
 const BATCH_DELAY_MS = 2000;
+/**
+ * The live corpus. Injectable on both entry points below (`lexiconsDir`) — enrichment
+ * *writes* TSVs, and a test that writes into the real directory is visible to every other
+ * test file reading it concurrently (`scripts/convergence-qa.ts` reads exactly this dir and
+ * flags an unmapped `*.tsv` as drift). Keep the seam; point tests at a temp dir.
+ */
 const LEXICONS_DIR = "data/source/lexicons";
 
 export interface TsvFileInfo {
@@ -71,15 +77,18 @@ function countEmptyFields(headers: string[], rows: string[][]): Record<string, n
   return counts;
 }
 
-export function analyzeTsvFiles(minRowThreshold = 100): TsvFileInfo[] {
+export function analyzeTsvFiles(
+  minRowThreshold = 100,
+  lexiconsDir: string = LEXICONS_DIR
+): TsvFileInfo[] {
   const results: TsvFileInfo[] = [];
 
-  if (!fs.existsSync(LEXICONS_DIR)) return results;
+  if (!fs.existsSync(lexiconsDir)) return results;
 
-  const files = fs.readdirSync(LEXICONS_DIR).filter((f) => f.endsWith(".tsv"));
+  const files = fs.readdirSync(lexiconsDir).filter((f) => f.endsWith(".tsv"));
 
   for (const filename of files) {
-    const filePath = path.join(LEXICONS_DIR, filename);
+    const filePath = path.join(lexiconsDir, filename);
     const text = fs.readFileSync(filePath, "utf8");
     const { header, rows } = parseTsv(text);
 
@@ -263,12 +272,14 @@ export async function runBatchEnrichment(options: {
   maxRowThreshold?: number;
   batchesPerFile?: number;
   onProgress?: (msg: string) => void;
+  lexiconsDir?: string;
 }): Promise<EnrichmentJobStatus> {
   const {
     targetFiles,
     maxRowThreshold = 50,
     batchesPerFile = 4,
     onProgress,
+    lexiconsDir = LEXICONS_DIR,
   } = options;
 
   const jobId = `enrich_${Date.now()}`;
@@ -290,7 +301,7 @@ export async function runBatchEnrichment(options: {
 
   if (targetFiles && targetFiles.length > 0) {
     for (const filename of targetFiles) {
-      const filePath = path.join(LEXICONS_DIR, filename);
+      const filePath = path.join(lexiconsDir, filename);
       if (!fs.existsSync(filePath)) {
         job.errors.push(`File not found: ${filename}`);
         continue;
@@ -306,7 +317,7 @@ export async function runBatchEnrichment(options: {
       });
     }
   } else {
-    const analysis = analyzeTsvFiles(maxRowThreshold);
+    const analysis = analyzeTsvFiles(maxRowThreshold, lexiconsDir);
     filesToEnrich = analysis.map((info) => {
       const text = fs.readFileSync(info.path, "utf8");
       const { header, rows } = parseTsv(text);
@@ -341,7 +352,7 @@ export async function runBatchEnrichment(options: {
       );
 
       if (newRows.length > 0) {
-        const filePath = path.join(LEXICONS_DIR, target.filename);
+        const filePath = path.join(lexiconsDir, target.filename);
         appendRowsToTsv(filePath, target.headers, newRows);
         onProgress?.(`Wrote ${newRows.length} new rows to ${target.filename}`);
       }

@@ -1179,7 +1179,7 @@ source = { editable = "services/api" }
 dependencies = [
     { name = "fastapi" },
     { name = "pinakes-contracts" },
-    { name = "pinakes-engine" },
+    { name = "pinakes-engine", extra = ["neo4j"] },
     { name = "uvicorn" },
 ]
 
@@ -1195,7 +1195,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.110" },
     { name = "pinakes-contracts", editable = "contracts/python" },
-    { name = "pinakes-engine", editable = "engine" },
+    { name = "pinakes-engine", extras = ["neo4j"], editable = "engine" },
     { name = "uvicorn", specifier = ">=0.29" },
 ]
 

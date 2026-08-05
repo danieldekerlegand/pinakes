@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import {
   analyzeTsvFiles,
   runBatchEnrichment,
@@ -24,17 +25,22 @@ vi.mock("@google/generative-ai", () => ({
   },
 }));
 
-const TEST_DIR = "data/source/lexicons";
+/**
+ * Enrichment WRITES TSVs, so these fixtures go in a throwaway dir — never the live
+ * `data/source/lexicons/`. A stray `__test_*.tsv` there is visible to every test file
+ * reading the corpus at the same time, and `scripts/convergence-qa.test.ts` flags an
+ * unmapped `*.tsv` as drift, so writing into the real dir made that suite fail ~1 run
+ * in 6. `analyzeTsvFiles` still reads the live corpus below — that half is read-only.
+ */
+let enrichDir = "";
 
 function writeTestTsv(filename: string, headers: string[], rows: string[][]): string {
-  const filePath = path.join(TEST_DIR, filename);
+  const filePath = path.join(enrichDir, filename);
   const content =
     headers.join("\t") + "\n" + rows.map((r) => r.join("\t")).join("\n") + "\n";
   fs.writeFileSync(filePath, content, "utf8");
   return filePath;
 }
-
-const testFiles: string[] = [];
 
 describe("batch-enrichment", () => {
   describe("analyzeTsvFiles", () => {
@@ -109,19 +115,17 @@ describe("batch-enrichment", () => {
 
     beforeEach(() => {
       mockGenerateContent.mockReset();
+      enrichDir = fs.mkdtempSync(path.join(os.tmpdir(), "batch-enrichment-"));
     });
 
     afterEach(() => {
       process.env.GEMINI_API_KEY = originalEnv;
-      for (const f of testFiles) {
-        try { fs.unlinkSync(f); } catch {}
-      }
-      testFiles.length = 0;
+      fs.rmSync(enrichDir, { recursive: true, force: true });
+      enrichDir = "";
     });
 
     function createTestTsv(name: string, headers: string[], rows: string[][]): string {
-      const fp = writeTestTsv(`__test_${name}__.tsv`, headers, rows);
-      testFiles.push(fp);
+      writeTestTsv(`__test_${name}__.tsv`, headers, rows);
       return `__test_${name}__.tsv`;
     }
 
@@ -138,7 +142,7 @@ describe("batch-enrichment", () => {
       const filename = createTestTsv("data", ["id", "name", "description"], [["test-1", "Test One", "A test entry"]]);
       mockGeminiResponse([{ id: "test-2", name: "Test Two", description: "Another test" }]);
 
-      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1 });
+      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1, lexiconsDir: enrichDir });
 
       expect(job.id).toMatch(/^enrich_/);
       expect(job.status).toBe("completed");
@@ -153,7 +157,7 @@ describe("batch-enrichment", () => {
       const filename = createTestTsv("track", ["id", "name"], [["t-1", "One"]]);
       mockGeminiResponse([{ id: "t-2", name: "Two" }]);
 
-      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1 });
+      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1, lexiconsDir: enrichDir });
 
       const retrieved = getEnrichmentJob(job.id);
       expect(retrieved).toBeDefined();
@@ -167,7 +171,7 @@ describe("batch-enrichment", () => {
     it("handles missing files gracefully", async () => {
       process.env.GEMINI_API_KEY = "test-key";
 
-      const job = await runBatchEnrichment({ targetFiles: ["nonexistent-file.tsv"], batchesPerFile: 1 });
+      const job = await runBatchEnrichment({ targetFiles: ["nonexistent-file.tsv"], batchesPerFile: 1, lexiconsDir: enrichDir });
 
       expect(job.errors.length).toBeGreaterThan(0);
       expect(job.errors[0]).toContain("File not found");
@@ -177,7 +181,7 @@ describe("batch-enrichment", () => {
       delete process.env.GEMINI_API_KEY;
       const filename = createTestTsv("nokey", ["id", "name"], [["t-1", "One"]]);
 
-      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1 });
+      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1, lexiconsDir: enrichDir });
 
       expect(job.errors.length).toBeGreaterThan(0);
       expect(job.status).toBe("failed");
@@ -192,6 +196,7 @@ describe("batch-enrichment", () => {
       await runBatchEnrichment({
         targetFiles: [filename],
         batchesPerFile: 1,
+        lexiconsDir: enrichDir,
         onProgress: (msg) => messages.push(msg),
       });
 
@@ -208,9 +213,9 @@ describe("batch-enrichment", () => {
         { id: "new-1", name: "New Entry", description: "Should be added" },
       ]);
 
-      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1 });
+      const job = await runBatchEnrichment({ targetFiles: [filename], batchesPerFile: 1, lexiconsDir: enrichDir });
 
-      const content = fs.readFileSync(path.join(TEST_DIR, filename), "utf8");
+      const content = fs.readFileSync(path.join(enrichDir, filename), "utf8");
       const lines = content.split("\n").filter((l) => l.trim());
       // Header + existing + new (duplicate skipped)
       expect(lines.length).toBe(3);

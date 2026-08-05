@@ -1,20 +1,33 @@
 /**
- * First-party `/api/graph/*` routes (US-004).
+ * First-party `/api/graph/*` routes (US-004) — **mostly ported away** (pinakes:50
+ * US-2, docs/UNIFIED-PROJECT-PLAN.md §5 Phase 1).
  *
- * The browser talks only to the pinakes origin; these routes proxy the
- * shared pinakes-engine graph on the server's behalf. Node/neighborhood lookups
- * go through the Neo4j driver layer (server/services/graph-store.ts); search and
- * metrics go through the FastAPI sidecar client (engine-client.ts).
+ * Eight of these routes are now served by the Python service, in-process over
+ * `pinakes_engine`, and their Express handlers have been retired: they answer
+ * **501** naming the module that replaced them, so a caller still on this origin
+ * gets told where the route went instead of being served a second, drifting
+ * implementation. This file keeps registering the paths rather than deleting
+ * them, and that is deliberate — the path set is what
+ * `contracts/parity/openapi.json` was harvested from and what the §10b catalog
+ * guard reads, so removing a registration would rewrite the very baseline the
+ * port is graded against.
  *
- * Everything degrades gracefully (docs/engine-integration.md): when the
- * graph or sidecar is unreachable the handlers answer HTTP 503 with a structured
- * `{ available: false }` body and never crash the process. A malformed upstream
- * response (schema failure / non-JSON) maps to 502; a missing node maps to 404.
+ * Two routes are still genuinely served here, because neither is engine-backed:
+ *
+ * - **`/api/graph/resolve`** — the convergence alias table, loaded from the local
+ *   lexicons, which answers even while the graph is offline;
+ * - **`/api/graph/status`** — the availability probe. The Python service serves
+ *   its own (`pinakes.routers.graph`), but this one keeps answering because its
+ *   recorded fixture (`contracts/parity/fixtures/get-graph-status.json`) is
+ *   replayed against *this* app: a baseline that stops reproducing its own
+ *   recording is no longer a baseline.
+ *
+ * Both still degrade gracefully (docs/engine-integration.md §10b): an unreachable
+ * backend answers HTTP 503 with a structured `{ available: false }` body and
+ * never crashes the process; an unusable upstream response maps to 502.
  */
-import express, { type Express, type Request, type Response } from "express";
-import * as graphStore from "../services/graph-store";
+import { type Express, type Request, type Response } from "express";
 import { GraphUnavailableError } from "../services/graph-store";
-import * as pinakes_engine from "../services/engine-client";
 import {
   EngineError,
   EngineUnavailableError,
@@ -54,28 +67,53 @@ function handleError(res: Response, context: string, error: unknown): void {
   });
 }
 
-/** Parse a `depth` query param into the 1..3 range graph-store supports. */
-function parseDepth(raw: unknown): number {
-  const n = Number(raw);
-  return Number.isFinite(n) ? graphStore.clampDepth(n) : 1;
-}
+/** The Python module that now serves the ported routes. */
+export const PORTED_TO = "services/api/src/pinakes/routers/graph.py";
 
 /**
- * Cypher write clauses. The research console (US-011) is read-only: the browser
- * states it and the server enforces it, so a mutating query is rejected before it
- * ever reaches the sidecar rather than relying on the sidecar's own guard.
+ * The routes this backend handed over, by method.
+ *
+ * Everything engine-backed: the three corpus/console surfaces that used to take
+ * an HTTP hop to the sidecar and the three Neo4j reads that used to take a second
+ * driver written in TypeScript. `/api/graph/resolve` and `/api/graph/status` are
+ * absent because they are still served below.
  */
-const CYPHER_WRITE_CLAUSES =
-  /\b(CREATE|MERGE|DELETE|SET|REMOVE|DROP|FOREACH|LOAD\s+CSV)\b/i;
+export const PORTED_ROUTES = {
+  get: [
+    "/api/graph/search",
+    "/api/graph/node/:id",
+    "/api/graph/neighborhood/:id",
+    "/api/graph/overview",
+    "/api/graph/retrieve",
+    "/api/graph/metrics",
+  ],
+  post: ["/api/graph/datalog", "/api/graph/cypher"],
+} as const;
 
-/** True when `query` contains no write clause and can be run read-only. */
-function isReadOnlyCypher(query: string): boolean {
-  return !CYPHER_WRITE_CLAUSES.test(query);
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
+
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process. A 404 would say "gone", and a 503 would
+ * invite a retry that can never succeed. The body names the replacement so the
+ * hand-off is discoverable from the response rather than from a changelog.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
 }
-
-// JSON body parser scoped to the console POST routes, so they work whether or not
-// a global body parser is installed (it is, in server/index.ts).
-const jsonBody = express.json();
 
 /**
  * Register the `/api/graph/*` routes on the given Express app. Kept as a
@@ -83,118 +121,18 @@ const jsonBody = express.json();
  * mounted and exercised in isolation by the integration tests.
  */
 export function registerGraphRoutes(app: Express): void {
-  /**
-   * GET /api/graph/search?q=&limit= — full-text search over the shared graph via
-   * the sidecar. 503 when the sidecar is unavailable.
-   */
-  app.get("/api/graph/search", async (req: Request, res: Response) => {
-    const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
-    if (!q) {
-      res.json({ query: "", results: [] });
-      return;
-    }
-    const limitRaw = Number(req.query.limit);
-    const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
-    try {
-      const result = await pinakes_engine.search(q, limit);
-      res.json(result);
-    } catch (error) {
-      handleError(res, "graph search", error);
-    }
-  });
 
-  /**
-   * GET /api/graph/node/:id — look up a single node by csid. 404 when the node
-   * does not exist; 503 when Neo4j is unavailable.
-   */
-  app.get("/api/graph/node/:id", async (req: Request, res: Response) => {
-    try {
-      const node = await graphStore.getNode(req.params.id);
-      if (!node) {
-        res.status(404).json({ error: "node not found", csid: req.params.id });
-        return;
-      }
-      res.json({ node });
-    } catch (error) {
-      handleError(res, "graph node lookup", error);
-    }
-  });
-
-  /**
-   * GET /api/graph/neighborhood/:id?depth= — the sub-graph around a node out to
-   * `depth` (1..3) hops. 404 when the focus node does not exist; 503 when Neo4j
-   * is unavailable.
-   */
-  app.get("/api/graph/neighborhood/:id", async (req: Request, res: Response) => {
-    const depth = parseDepth(req.query.depth);
-    try {
-      const neighborhood = await graphStore.getNeighborhood(req.params.id, depth);
-      if (!neighborhood) {
-        res.status(404).json({ error: "node not found", csid: req.params.id });
-        return;
-      }
-      res.json(neighborhood);
-    } catch (error) {
-      handleError(res, "graph neighborhood", error);
-    }
-  });
-
-  /**
-   * GET /api/graph/overview?limit= — a bounded `{ nodes, edges }` snapshot of the
-   * shared graph, powering the shared-graph dataset in the UnifiedExplorer
-   * (US-008). Backed by Neo4j; 503 when the graph is unavailable.
-   */
-  app.get("/api/graph/overview", async (req: Request, res: Response) => {
-    const limitRaw = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined;
-    try {
-      const snapshot = await graphStore.getGraphOverview(limit);
-      res.json(snapshot);
-    } catch (error) {
-      handleError(res, "graph overview", error);
-    }
-  });
-
-  /**
-   * GET /api/graph/retrieve?q=&k=&depth= — hybrid GraphRAG retrieval over the
-   * shared graph via the sidecar: the query is embedded, the top-`k` nearest nodes
-   * come from the Neo4j native vector index, and each is expanded into a subgraph.
-   * An empty query short-circuits to an empty result without calling the sidecar.
-   * 503 `{ available:false }` when GraphRAG is unavailable (the sidecar's embedder
-   * or Neo4j connection is absent, or the sidecar itself is down) — the same
-   * graceful-degradation contract as the rest of `/api/graph/*`.
-   */
-  app.get("/api/graph/retrieve", async (req: Request, res: Response) => {
-    const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
-    if (!q) {
-      res.json({ query: "", seeds: [], nodes: [], edges: [] });
-      return;
-    }
-    const kRaw = Number(req.query.k);
-    const k = Number.isFinite(kRaw) && kRaw > 0 ? kRaw : undefined;
-    const depthRaw = Number(req.query.depth);
-    const depth = Number.isFinite(depthRaw) && depthRaw >= 0 ? depthRaw : undefined;
-    try {
-      const result = await pinakes_engine.retrieve(q, { k, depth });
-      res.json(result);
-    } catch (error) {
-      handleError(res, "graph retrieval", error);
-    }
-  });
-
-  /**
-   * GET /api/graph/metrics — graph-level metrics from the sidecar. 503 when the
-   * sidecar is unavailable.
-   */
-  app.get("/api/graph/metrics", async (_req: Request, res: Response) => {
-    try {
-      const metrics = await pinakes_engine.metrics();
-      res.json(metrics);
-    } catch (error) {
-      handleError(res, "graph metrics", error);
-    }
-  });
+  // ── Ported to the Python service (pinakes:50 US-2) ────────────────────────
+  //
+  // Registered, not deleted: the path set is the parity baseline's own harvest
+  // source and the §10b catalog guard's input. Each answers 501 naming its
+  // replacement — see the module docstring.
+  for (const route of PORTED_ROUTES.get) {
+    app.get(route, portedToPython(`GET ${route}`));
+  }
+  for (const route of PORTED_ROUTES.post) {
+    app.post(route, portedToPython(`POST ${route}`));
+  }
 
   /**
    * GET /api/graph/resolve?type=&id=&name=&region= — resolve a pinakes
@@ -224,63 +162,6 @@ export function registerGraphRoutes(app: Express): void {
       res.json({ resolved });
     } catch (error) {
       handleError(res, "graph entity resolution", error);
-    }
-  });
-
-  /**
-   * POST /api/graph/datalog — run a read-only Datalog inference query through the
-   * sidecar's `/datalog` console (US-011). Body: `{ goal }` for an ad-hoc `main/0`
-   * goal, or `{ example }` to run one of the sidecar's shipped example slugs; at
-   * least one is required (400 otherwise). The sidecar's own outcome — including a
-   * lint `error`/`reason` when SWI-Prolog is absent — is passed straight through so
-   * problems are surfaced, not swallowed. 503 when the sidecar is unavailable.
-   */
-  app.post("/api/graph/datalog", jsonBody, async (req: Request, res: Response) => {
-    const body = (req.body ?? {}) as { goal?: unknown; example?: unknown };
-    const goal = typeof body.goal === "string" ? body.goal.trim() : "";
-    const example = typeof body.example === "string" ? body.example.trim() : "";
-    if (!goal && !example) {
-      res.status(400).json({ error: "a datalog goal or example is required" });
-      return;
-    }
-    try {
-      const result = await pinakes_engine.datalog({
-        goal: goal || undefined,
-        example: example || undefined,
-      });
-      res.json(result);
-    } catch (error) {
-      handleError(res, "datalog query", error);
-    }
-  });
-
-  /**
-   * POST /api/graph/cypher — run a read-only Cypher query through the sidecar's
-   * `/neo4j` console (US-011). Body: `{ query }`. The query is rejected with 400
-   * when it is empty or contains a write clause (CREATE/MERGE/DELETE/SET/…), so the
-   * console cannot mutate the shared graph. A sidecar error (e.g. a syntax error)
-   * comes back as 502 with its detail, not swallowed; 503 when it is unavailable.
-   */
-  app.post("/api/graph/cypher", jsonBody, async (req: Request, res: Response) => {
-    const body = (req.body ?? {}) as { query?: unknown };
-    const query = typeof body.query === "string" ? body.query.trim() : "";
-    if (!query) {
-      res.status(400).json({ error: "a cypher query is required" });
-      return;
-    }
-    if (!isReadOnlyCypher(query)) {
-      res.status(400).json({
-        error: "the research console is read-only",
-        detail:
-          "write clauses (CREATE, MERGE, DELETE, SET, REMOVE, DROP, FOREACH, LOAD CSV) are not permitted",
-      });
-      return;
-    }
-    try {
-      const result = await pinakes_engine.cypher(query);
-      res.json(result);
-    } catch (error) {
-      handleError(res, "cypher query", error);
     }
   });
 
