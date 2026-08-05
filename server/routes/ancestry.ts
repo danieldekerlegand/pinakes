@@ -1,110 +1,63 @@
 /**
- * DNA-to-culture ancestry mapping routes (US-001).
+ * DNA-to-culture ancestry mapping routes (US-001) — **ported to Python**
+ * (pinakes:65 US-2).
  *
- * `POST /api/ancestry/map` takes the Y-DNA haplogroup ids a user's raw-DNA file was
- * reduced to **in the browser** (only the haplogroup ids — never the raw genotypes —
- * are sent) and returns the languages/cultures/cuisines that ancestry is associated
- * with, plus clear caveats. `GET /api/ancestry/haplogroups` lists the reference
- * haplogroups the mapper knows about.
+ * `GET /api/ancestry/haplogroups` and `POST /api/ancestry/map` are served by
+ * `services/api/src/pinakes/routers/ancestry.py` over
+ * `pinakes.analytics.genetic`, which now carries both halves of
+ * `services/genetic-linguistic-correlation.ts` and so shares one
+ * `NOTABLE_DIVERGENCES` table between the mapper and the correlation engine —
+ * the thing pinakes:62 US-1 left a note asking for. Both handlers here answer
+ * **501** naming their replacement.
  *
- * The privacy guarantee lives in the client (parsing + haplogroup inference happen in
- * `web/src/lib/dna/*`); this route only enriches non-identifying haplogroup ids from
- * the public reference corpus. The mapping itself is the pure
- * `mapHaplogroupsToAncestry` in `services/genetic-linguistic-correlation.ts`; this
- * module owns only the storage load + HTTP wiring, and the data loader is **injectable**
- * so route tests run with in-memory fakes (no storage/fs).
+ * **The privacy guarantee is unaffected, because it was never here.** Raw-DNA
+ * parsing and haplogroup inference happen in the browser (`web/src/lib/dna/*`);
+ * only non-identifying haplogroup ids ever left it, and the port moved the
+ * enrichment step alone.
+ *
+ * `services/genetic-linguistic-correlation.ts` is **not** retired — it is the
+ * graded spec, and `services/ancestry-mapper.test.ts` is what says the two
+ * mappers agree, including the bare-name → namespaced-id fallback without which
+ * the map is empty against live data.
  */
-import { type Express, type Request, type Response } from "express";
+import type { Express, Request, Response } from "express";
 
-import { storage } from "../storage";
-import {
-  mapHaplogroupsToAncestry,
-  type AncestryMapperData,
-} from "../services/genetic-linguistic-correlation";
+/** The Python module that owns these routes now. */
+export const PORTED_TO = "services/api/src/pinakes/routers/ancestry.py";
 
-export type AncestryDataLoader = () => Promise<AncestryMapperData>;
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
 
-/** Default loader: assemble the mapper's minimal data shape from live TSV storage. */
-async function loadAncestryData(): Promise<AncestryMapperData> {
-  const [haplogroups, families, languages, civFeatures, cuisines] = await Promise.all([
-    storage.getHaplogroups(),
-    storage.getLanguageFamilies(),
-    storage.getLanguages(),
-    storage.getCivilizations(),
-    storage.getCuisines(),
-  ]);
+/** The routes this file no longer serves. */
+export const PORTED_ROUTES = {
+  haplogroups: "/api/ancestry/haplogroups",
+  map: "/api/ancestry/map",
+} as const;
 
-  return {
-    haplogroups: haplogroups.map((h) => ({
-      id: h.id,
-      name: h.name,
-      geographicOrigin: h.geographicOrigin,
-      timeOrigin: h.timeOrigin,
-      associatedLanguageFamilyIds: h.associatedLanguageFamilyIds,
-      associatedCivilizationIds: h.associatedCivilizationIds,
-    })),
-    families: families.map((f) => ({ id: f.id, name: f.name, region: f.region ?? null })),
-    languages: languages.map((l) => ({ id: l.id, name: l.name, familyId: l.familyId })),
-    civilizations: civFeatures.map((c) => ({
-      id: c.properties.civilizationId,
-      name: c.properties.name,
-    })),
-    cuisines: cuisines.map((c) => ({
-      id: c.id,
-      name: c.name,
-      region: c.region,
-      associatedLanguageIds: c.associatedLanguageIds,
-    })),
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
   };
 }
 
-export interface AncestryRouteOptions {
-  /** Override the data loader (tests pass an in-memory fake). */
-  loadData?: AncestryDataLoader;
-}
-
-export function registerAncestryRoutes(app: Express, options: AncestryRouteOptions = {}): void {
-  const loadData = options.loadData ?? loadAncestryData;
-
-  /** GET /api/ancestry/haplogroups — reference haplogroups the mapper recognizes. */
-  app.get("/api/ancestry/haplogroups", async (_req: Request, res: Response) => {
-    try {
-      const data = await loadData();
-      res.json({
-        haplogroups: data.haplogroups.map((h) => ({
-          id: h.id,
-          name: h.name,
-          geographicOrigin: h.geographicOrigin,
-        })),
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      res.status(500).json({ error: "failed to load haplogroups", detail: message });
-    }
-  });
-
-  /**
-   * POST /api/ancestry/map — map inferred haplogroup ids to cultural associations.
-   * Body: `{ haplogroupIds: string[] }`. 400 when the list is missing/empty.
-   */
-  app.post("/api/ancestry/map", async (req: Request, res: Response) => {
-    const raw = (req.body ?? {}) as { haplogroupIds?: unknown };
-    if (!Array.isArray(raw.haplogroupIds) || raw.haplogroupIds.length === 0) {
-      res.status(400).json({ error: "haplogroupIds must be a non-empty array of strings" });
-      return;
-    }
-    const haplogroupIds = raw.haplogroupIds.filter((x): x is string => typeof x === "string");
-    if (haplogroupIds.length === 0) {
-      res.status(400).json({ error: "haplogroupIds must contain at least one string id" });
-      return;
-    }
-    try {
-      const data = await loadData();
-      res.json(mapHaplogroupsToAncestry(haplogroupIds, data));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("Unexpected error in /api/ancestry/map:", error);
-      res.status(500).json({ error: "ancestry mapping failed", detail: message });
-    }
-  });
+export function registerAncestryRoutes(app: Express): void {
+  app.get(
+    PORTED_ROUTES.haplogroups,
+    portedToPython(`GET ${PORTED_ROUTES.haplogroups}`),
+  );
+  app.post(PORTED_ROUTES.map, portedToPython(`POST ${PORTED_ROUTES.map}`));
 }

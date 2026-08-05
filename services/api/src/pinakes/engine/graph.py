@@ -67,6 +67,13 @@ MAX_DEPTH = 3
 DEFAULT_OVERVIEW_LIMIT = 250
 MAX_OVERVIEW_LIMIT = 1_000
 
+#: Hop bounds for :func:`find_path`. Four is what `/api/graph/explain` asks for;
+#: six is the ceiling, because a longer "connection" explains nothing a reader
+#: would accept.
+DEFAULT_PATH_LENGTH = 4
+MIN_PATH_LENGTH = 1
+MAX_PATH_LENGTH = 6
+
 #: How long a positive/negative availability probe is trusted, in seconds, so a
 #: burst of requests issues one connectivity check between them.
 AVAILABILITY_TTL_SECONDS = 5.0
@@ -291,6 +298,63 @@ def nodes_by_label(label: str) -> list[dict[str, Any]]:
     nodes = [project_node(record["n"]) for record in records]
     gated, _ = gate_personal(nodes, [])
     return gated
+
+
+def find_path(
+    from_csid: str, to_csid: str, max_length: int = DEFAULT_PATH_LENGTH
+) -> dict[str, Any] | None:
+    """The shortest connecting path between two csids, or ``None``.
+
+    ``None`` covers three cases the caller reports the same way: no path, and
+    either endpoint absent. That is one query rather than three, and the route
+    resolves its refs first, so "no connection" is the honest reading of all of
+    them.
+    """
+    clamped = clamp_path_length(max_length)
+    # The bound is clamped to an int above, so inlining it is safe — a
+    # variable-length bound cannot be a Cypher parameter. The csids stay ones.
+    records = _read(
+        "MATCH (a {csid: $from}), (b {csid: $to}) "
+        f"MATCH p = shortestPath((a)-[*1..{clamped}]-(b)) "
+        "RETURN nodes(p) AS pathNodes, relationships(p) AS pathRels",
+        {"from": from_csid, "to": to_csid},
+    )
+    if not records:
+        return None
+    record = records[0]
+
+    raw_nodes = [node for node in (record["pathNodes"] or []) if node is not None]
+    if not raw_nodes:
+        return None
+
+    csid_by_element: dict[str, str] = {}
+    nodes: list[dict[str, Any]] = []
+    for raw in raw_nodes:
+        projected = project_node(raw)
+        csid_by_element[raw.element_id] = projected["csid"]
+        nodes.append(projected)
+
+    # A path that *traverses* a personal-tier node is not surfaced at all while
+    # the tier is disabled: pruning the node would leave a partial chain that
+    # misrepresents how the two ends are connected.
+    if not personal_tier_enabled() and any(is_personal(node) for node in nodes):
+        return None
+
+    raw_edges = [edge for edge in (record["pathRels"] or []) if edge is not None]
+    edges = [project_edge(edge, csid_by_element) for edge in raw_edges]
+
+    return {
+        "from": nodes[0],
+        "to": nodes[-1],
+        "nodes": nodes,
+        "edges": edges,
+        "length": len(edges),
+    }
+
+
+def clamp_path_length(length: int) -> int:
+    """Clamp a requested hop count into the :data:`MIN_PATH_LENGTH` bounds."""
+    return min(MAX_PATH_LENGTH, max(MIN_PATH_LENGTH, int(length)))
 
 
 def cypher(query: str, params: Mapping[str, Any] | None = None) -> dict[str, Any]:

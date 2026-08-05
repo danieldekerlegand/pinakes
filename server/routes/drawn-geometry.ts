@@ -1,73 +1,55 @@
 /**
- * Drawn-geometry authoring route (US-001).
+ * Drawn-geometry authoring route (US-001) — **ported to Python** (pinakes:65 US-2).
  *
- * `POST /api/map/drawn-geometry` accepts a geometry drawn on the map (a GeoJSON
- * Polygon or LineString) plus its entity/time association, and lands it in the
- * *contribution review queue* with provenance `source = 'user-drawn'` — it never
- * writes the source-of-truth TSVs directly (a reviewer promotes it, US-009).
+ * `POST /api/map/drawn-geometry` and `GET /api/map/drawn-geometry/targets` are
+ * served by `services/api/src/pinakes/routers/drawn_geometry.py` over
+ * `pinakes.authoring.drawn_geometry`, against the same contribution queue. Both
+ * handlers here answer **501** naming their replacement.
  *
- * The `ContributionService` is injectable so tests can point it at a temp dir
- * (see `server/routes/collections.test.ts` for the pattern).
+ * Neither route carries a recorded parity fixture, so unlike
+ * `POST /api/timeline/event` this group handed over cleanly — there is nothing
+ * left driving it on this origin.
+ *
+ * `services/drawn-geometry.ts` is **not** retired: it is the graded spec, and
+ * `services/drawn-geometry.test.ts` is what says the two validators agree about
+ * closed rings, world bounds and target/geometry disagreement.
  */
 
-import type { Express } from "express";
-import { ContributionService } from "../services/contribution-service";
-import {
-  validateDrawnGeometry,
-  drawnGeometryToContribution,
-  DRAWN_GEOMETRY_TARGETS,
-  type DrawnGeometryInput,
-} from "../services/drawn-geometry";
+import type { Express, Request, Response } from "express";
 
-export function registerDrawnGeometryRoutes(
-  app: Express,
-  contributions: ContributionService = new ContributionService(),
-): void {
-  /**
-   * POST /api/map/drawn-geometry
-   * Body: DrawnGeometryInput. Returns 201 with the queued contribution, or 400
-   * with validation errors.
-   */
-  app.post("/api/map/drawn-geometry", (req, res) => {
-    try {
-      const input = req.body as Partial<DrawnGeometryInput>;
+/** The Python module that owns these routes now. */
+export const PORTED_TO = "services/api/src/pinakes/routers/drawn_geometry.py";
 
-      const validation = validateDrawnGeometry(input);
-      if (!validation.valid) {
-        return res.status(400).json({
-          message: "Invalid drawn geometry",
-          errors: validation.errors,
-          warnings: validation.warnings,
-        });
-      }
+/** Machine-readable discriminator in a retired route's body. */
+export const PORTED_ERROR = "ported";
 
-      const { contribution, validation: contribValidation } = contributions.submit(
-        drawnGeometryToContribution(input as DrawnGeometryInput),
-      );
+/** The routes this file no longer serves. */
+export const PORTED_ROUTES = {
+  submit: "/api/map/drawn-geometry",
+  targets: "/api/map/drawn-geometry/targets",
+} as const;
 
-      if (!contribution) {
-        return res.status(400).json({
-          message: "Invalid drawn geometry",
-          errors: contribValidation.errors,
-          warnings: contribValidation.warnings,
-        });
-      }
+/**
+ * A handler for a route this backend no longer owns.
+ *
+ * 501, not 404 or 503: the route still exists in the API contract and something
+ * does serve it — just not this process.
+ */
+function portedToPython(route: string) {
+  return (_req: Request, res: Response): void => {
+    res.status(501).json({
+      error: PORTED_ERROR,
+      message:
+        `${route} has been ported to the Python service and is served there ` +
+        `(${PORTED_TO}). The Express handler is retired.`,
+      route,
+      servedBy: PORTED_TO,
+      coverage: "/api/_parity/coverage",
+    });
+  };
+}
 
-      return res.status(201).json({
-        contribution,
-        warnings: [...validation.warnings, ...contribValidation.warnings],
-      });
-    } catch (error) {
-      console.error("Error submitting drawn geometry:", error);
-      return res.status(500).json({ message: "Failed to submit drawn geometry" });
-    }
-  });
-
-  /**
-   * GET /api/map/drawn-geometry/targets — the valid drawing targets, for the
-   * client's target selector.
-   */
-  app.get("/api/map/drawn-geometry/targets", (_req, res) => {
-    res.json({ targets: DRAWN_GEOMETRY_TARGETS });
-  });
+export function registerDrawnGeometryRoutes(app: Express): void {
+  app.post(PORTED_ROUTES.submit, portedToPython(`POST ${PORTED_ROUTES.submit}`));
+  app.get(PORTED_ROUTES.targets, portedToPython(`GET ${PORTED_ROUTES.targets}`));
 }

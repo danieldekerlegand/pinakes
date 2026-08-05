@@ -24,9 +24,11 @@ SAMPLE_REQUESTS = [
     ("GET", "/api/religions", "/api/religions"),
     # Was `/api/graph/resolve` + `/.well-known/kcb-manifest.json` until
     # pinakes:65 US-1 ported them; their coverage is `test_graph_routes.py` and
-    # `test_capability_bus.py`.
-    ("POST", "/api/graph/explain", "/api/graph/explain"),
-    ("GET", "/api/ancestry/haplogroups", "/api/ancestry/haplogroups"),
+    # `test_capability_bus.py`. Then `/api/graph/explain` +
+    # `/api/ancestry/haplogroups` went the same way in US-2 —
+    # `test_connection_narrative.py` and `test_ancestry.py`.
+    ("GET", "/api/cross-domain/timeline", "/api/cross-domain/timeline"),
+    ("GET", "/api/empires-timeline", "/api/empires-timeline"),
 ]
 
 

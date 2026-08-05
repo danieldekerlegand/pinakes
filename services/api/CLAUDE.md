@@ -637,3 +637,69 @@ contract in `docs/capability-bus.md`; what is worth knowing before touching it:
   replayed against Express), `/.well-known/{kcb-manifest.json,agent-card.json}` (the
   self-sufficiency guard drives them) and `/mcp` (the KFT pair above). All three are
   pure functions of a committed JSON file, and the byte equality is asserted.
+
+## Authoring, suggestions and the connection narrative — `authoring/` + `narrative/` + `routers/{timeline,drawn_geometry,relationships,ancestry}.py` (pinakes:65 US-2)
+
+The eleven routes that finish the graph-adjacent band: the three in-app authoring
+surfaces (a timeline entry, a drawn geometry, a typed edge), the suggestions that
+propose the third, DNA→culture ancestry, and `POST /api/graph/explain`. Coverage
+68/306 → **79/306**, and the whole `graph` port unit is now ported.
+
+- **`authoring/_js.py` is the load-bearing file, not `_`-prefixed by accident.** Two
+  recorded fixtures grade this band and both record a **400 body**, so an error string
+  is a contract. Three JavaScript distinctions decide those bodies and Python makes
+  none of them for free: `MISSING` keeps *absent* apart from *null* (an omitted
+  confidence warns and defaults, a declared `null` is a 400 — the same trap
+  `contributions/store` documents), `is_finite_number` refuses a bool where
+  `isinstance(True, int)` would accept year 1, and `number_text` prints an integral
+  float as `2500` rather than `2500.0`.
+- **`jsmath.js_number` is the fourth, and it is about the wire.** Every JavaScript
+  number is a double but an *integral* one serialises with no fractional part, so a
+  Jaccard ratio of exactly 1 is `1` and not `1.0`. Apply it to a **derived** value
+  reaching a response (`suggestions.compute_proximity`, `connection.path_confidence`);
+  a value read straight out of a request or a TSV already has the source's type.
+  `jsmath.locale_key` is the ordering counterpart — `localeCompare` sorts by base
+  letter and case *last*, so a code-point sort pushes every lowercase display name
+  behind every capitalised one.
+- **The whole band was proved byte-identical to the TypeScript before landing**, with
+  the throwaway-script method the US-1 notes describe: both 400 bodies, all three
+  contribution mappings, the relationship summary + the 21 canonical type options, the
+  path evidence + aggregate confidence + the **full LLM prompt**, the ranked
+  suggestions, the live-corpus ancestry map, and all **5,836 canonical edges / 1,531
+  skips**. Those last two numbers are pinned in `tests/test_canonical_edges.py`.
+- **`lexicons/canonical_edges.py` is the *dedup* reader, and merging it with the
+  TypeScript would break the exporter.** `server/services/canonical-edges.ts` is still
+  read by `scripts/export-for-engine.ts` to write `build/corpus/`. One gotcha the port
+  had to reproduce: that file's private `readTsv` **trims header cells** where
+  `analytics.tsv.parse_tsv` does not, and an untrimmed header makes every column of
+  that file read as absent.
+- **The candidate pool is a second projection of the same TSVs, deliberately.**
+  `authoring/candidates.py` ports `getAllEntities`, which differs from
+  `analytics.correlation.load_domain` in three ways that change what gets suggested:
+  the music domain is `music-tradition` not `music`, `archaeological-site` is included,
+  and a civilization is read through its GeoJSON `properties.timePeriod`. Collapsing
+  them would silently re-rank one consumer.
+- **A dimension neither entity carries is *unmeasured*, not zero** —
+  `combined_confidence` averages over the applicable dimensions only. A language with
+  no coordinates is not far away, and diluting its score would rank it below a
+  genuinely weaker match. This is the rule most likely to be "simplified" away.
+- **`narrative/` splits pure from networked, and the honesty guarantee lives in the
+  split.** With no path *and* no inferred fact the model is never called, so
+  `aiGenerated: false` is the absence of prose rather than a judgement about it. The
+  Datalog augmentation is `pinakes.engine.datalog` **in process** where Express posted
+  to the sidecar console, and it degrades to `[]` on any failure.
+- **`narrative/llm.py` is `urllib` against the Gemini REST endpoint, not the vendor
+  SDK** — the same trade as `kcb/registry.py` and `search/places.py`. A missing
+  `$GEMINI_API_KEY` **raises** (→ 502 naming the reason); degrading to empty prose
+  would read exactly like the honest "no connection found", which is the one answer
+  this surface must never fake. `$GEMINI_API_BASE_URL` exists so a test can point at a
+  stub instead of monkeypatching `urllib`.
+- **`engine/graph.find_path` withholds a whole path that traverses a personal-tier
+  node**, rather than pruning the node — a partial chain would misrepresent how the two
+  ends are connected. Same posture as `node()` returning `None`.
+- **Two routes are served by BOTH backends**, the `GET /api/citations` precedent:
+  `POST /api/timeline/event` and `POST /api/graph/explain` carry recorded fixtures
+  replayed against Express. Safe for a stronger reason than usual — both recordings are
+  **validation rejections**, refused before either backend touches a store, a graph or
+  a model, and `test_timeline_event.py` / `test_connection_narrative.py` pin the two
+  400 bodies. The other nine routes are fixture-free and retired to 501.

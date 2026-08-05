@@ -1,5 +1,21 @@
 /**
- * AI "explain the connection" narrative route (US-005).
+ * AI "explain the connection" narrative route (US-005) — **ported to Python**
+ * (pinakes:65 US-2), and still answering here.
+ *
+ * `services/api/src/pinakes/routers/graph.py` serves `/api/graph/explain` over
+ * `pinakes.narrative`, with two substitutions: the shortest-path traversal is
+ * `pinakes.engine.graph.find_path` rather than a second Neo4j driver, and the
+ * Datalog augmentation runs **in process** where `liveInferFacts` below posts to
+ * the sidecar console. Same goal, same both-directions probe.
+ *
+ * This handler is **not** retired, because `contracts/parity/parity.test.ts`
+ * replays the recorded `post-graph-explain-invalid` fixture against *this* app —
+ * the `GET /api/citations` precedent. The recording is a validation rejection,
+ * so the double-served path reaches neither graph nor model on either backend,
+ * and `services/api/tests/test_connection_narrative.py` pins the two 400 bodies
+ * to each other.
+ *
+ * `services/connection-narrative.ts` stays as the graded spec.
  *
  * `POST /api/graph/explain` — given two entities (each a shared-graph `csid`, or a
  * pinakes entity ref `{ type, id, name, region }` resolved to a csid), find

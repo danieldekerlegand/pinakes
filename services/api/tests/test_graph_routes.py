@@ -21,7 +21,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from conftest import FakeNode, FakeRelationship, FakeResult
+from conftest import FakeNode, FakeRelationship, FakeResult, coverage_of
 
 # ── Corpus-backed reads ──────────────────────────────────────────────────────
 
@@ -419,15 +419,19 @@ def test_resolve_requires_a_type(unbuilt_client: TestClient) -> None:
     assert response.json() == {"error": "type is required"}
 
 
-# ── Not this story's routes ──────────────────────────────────────────────────
+# ── The rest of the group ────────────────────────────────────────────────────
 
 
-def test_the_connection_narrative_still_answers_501(
-    unbuilt_client: TestClient,
-) -> None:
-    """The LLM narrative is its own port (pinakes:65 US-2) — it must read as
-    outstanding, not silently missing."""
-    response = unbuilt_client.post("/api/graph/explain")
+def test_the_whole_graph_group_is_ported(unbuilt_client: TestClient) -> None:
+    """`/api/graph/explain` was the last outstanding route in the group; it
+    landed in pinakes:65 US-2 and is covered by `test_connection_narrative.py`.
 
-    assert response.status_code == 501
-    assert response.json()["error"] == "not_ported"
+    Asserted as a *set* rather than by spot-checking one route: a baseline route
+    whose path this app spells differently would register a handler and keep its
+    own 501 stub, which is quiet everywhere except here.
+    """
+    coverage = coverage_of(unbuilt_client)
+    outstanding = {
+        route.path for route in coverage.unported if route.port_unit == "graph"
+    }
+    assert outstanding == set()
