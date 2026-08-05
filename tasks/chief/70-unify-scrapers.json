@@ -2,11 +2,19 @@
   "project": "pinakes",
   "branchName": "chief/70-unify-scrapers",
   "baseBranch": "main",
-  "description": "Consolidate the two scraping stacks into one (docs/UNIFIED-PROJECT-PLAN.md §6): fold the parallel/legacy TS *-scraper.ts stack (~14.3k LOC, ~29 files) into the Python pinakes_engine acquisition layer, so there is ONE async fetch layer, ONE rate-limiter/politeness policy, ONE cache, and ONE set of domain adapters. This is where 'incredibly fast at AI-powered scraping' is actually won — the levers the benchmark showed matter (concurrency, caching, parsing), not the language.",
-  "dependsOn": ["50-engine-inprocess-graph", "64-port-ingest"],
-  "touches": ["engine", "port-ingest"],
+  "description": "Consolidate the two scraping stacks into one (docs/UNIFIED-PROJECT-PLAN.md \u00a76): fold the parallel/legacy TS *-scraper.ts stack (~14.3k LOC, ~29 files) into the Python pinakes_engine acquisition layer, so there is ONE async fetch layer, ONE rate-limiter/politeness policy, ONE cache, and ONE set of domain adapters. This is where 'incredibly fast at AI-powered scraping' is actually won \u2014 the levers the benchmark showed matter (concurrency, caching, parsing), not the language.",
+  "dependsOn": [
+    "50-engine-inprocess-graph",
+    "64-port-ingest"
+  ],
+  "touches": [
+    "engine",
+    "port-ingest"
+  ],
   "iters": 10,
-  "warmup": ["bun install"],
+  "warmup": [
+    "bun install"
+  ],
   "userStories": [
     {
       "id": "US-1",
@@ -18,7 +26,7 @@
         "The TS *-scraper.ts / *-enrichment.ts files are removed.",
         "Acquisition parity: representative fetch+parse for each migrated domain yields the same normalized rows as before (on cached fixtures)."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
