@@ -25,7 +25,7 @@
         "The FastAPI service serves the web/ build at the root and all API routes in one process (no sidecar, no Node).",
         "An end-to-end smoke (start the Python service, load the client, exercise graph + a write flow) passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
