@@ -38,7 +38,7 @@
         "`git grep -in culturescrape` across the whole repo returns nothing outside historical docs/archive.",
         "A fresh clone can build web/, start the Python service, and run the full suite via .chief/verify.sh green."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]
