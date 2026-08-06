@@ -15,9 +15,11 @@ from pinakes import paths
 from pinakes.app import create_app
 from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
+from pinakes.geo import boundaries as boundary_handles
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import jobs as ingest_jobs
 from pinakes.kcb import registry as kcb_registry
+from pinakes.learning import quiz as quiz_handles
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 from pinakes.routers import _auth as write_guard_handles
@@ -179,6 +181,36 @@ def reset_kcb(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     kcb_registry.reset_registration()
     yield
     kcb_registry.reset_registration()
+
+
+@pytest.fixture(autouse=True)
+def reset_boundary_resolver() -> Iterator[None]:
+    """Forget the shared region resolver between tests.
+
+    It is built once and cached in module state (as `getDefaultBoundaryResolver`
+    cached its singleton), so without this the first test to touch
+    `/api/map/boundaries/*` decides what every later one sees — and in a plain
+    checkout that first answer is an *empty* index, which would then survive a
+    test that pointed `$PINAKES_BOUNDARIES_DIR` at a seeded directory. Same class
+    of module state as :func:`reset_write_guard`.
+    """
+    boundary_handles.reset_default_boundary_resolver()
+    yield
+    boundary_handles.reset_default_boundary_resolver()
+
+
+@pytest.fixture(autouse=True)
+def reset_quiz_random() -> Iterator[None]:
+    """Put the quiz sampler back on `random.random`.
+
+    `/api/quiz` draws every choice from an injectable source — the seam that
+    replaces monkeypatching `Math.random` — and a test that installs a scripted
+    one must not leave it installed. The counterpart of
+    `distance.calculator.configure(None)`.
+    """
+    quiz_handles.configure(None)
+    yield
+    quiz_handles.configure(None)
 
 
 @pytest.fixture

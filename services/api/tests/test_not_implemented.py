@@ -29,16 +29,26 @@ SAMPLE_REQUESTS = [
     # left unported at all, and both are the confirm/verification pair below.
     ("POST", "/api/contributions/{id}/confirm", "/api/contributions/nope/confirm"),
     # Was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice ported
-    # the scraper dashboard; its coverage is `test_scraping_routes.py`.
-    ("POST", "/api/text-analysis/compare", "/api/text-analysis/compare"),
+    # the scraper dashboard, then `POST /api/text-analysis/compare` until its
+    # tenth — `test_scraping_routes.py` and `test_text_analysis_routes.py`.
+    ("POST", "/api/scraping/mythology", "/api/scraping/mythology"),
     # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it, then
     # `/api/religions` until pinakes:80 US-1's second slice and `/api/haplogroups`
     # until its fourth — a sample here has to name a route that is still
     # *un*ported, or the 501 assertion goes red the day the group lands. Those
     # groups' own coverage is `test_summary_routes.py`, `test_domain_routes.py`
     # and `test_ethnography_routes.py`. Then `/api/media/prompts` until the
-    # seventh slice — `test_media_routes.py`.
-    ("GET", "/api/visualizations/chord", "/api/visualizations/chord"),
+    # seventh slice and `/api/visualizations/chord` until the tenth —
+    # `test_media_routes.py` and `test_visualization_routes.py`. There is no
+    # concrete unported GET left to name: `/api/openapi.json` is already the
+    # entry above and `/api/languages/preservation` is **shadowed** by
+    # `catalog.py`'s `/api/languages/{id}`, so it 404s rather than 501ing. The
+    # verification read is the honest stand-in, templated like its POST sibling.
+    (
+        "GET",
+        "/api/contributions/{id}/verification",
+        "/api/contributions/nope/verification",
+    ),
     # Was `/api/graph/resolve` + `/.well-known/kcb-manifest.json` until
     # pinakes:65 US-1 ported them; their coverage is `test_graph_routes.py` and
     # `test_capability_bus.py`. Then `/api/graph/explain` +

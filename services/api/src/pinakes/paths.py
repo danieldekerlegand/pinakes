@@ -44,6 +44,10 @@ STEWARDSHIP_DIR_ENV = "PINAKES_STEWARDSHIP_DIR"
 LIVING_DATASET_DIR_ENV = "PINAKES_LIVING_DATASET_DIR"
 #: Env var pointing at the lexicon corpus (`*.tsv`).
 LEXICONS_DIR_ENV = "PINAKES_LEXICONS_DIR"
+#: Env var pointing at the GeoJSON boundary files the region resolver indexes.
+BOUNDARIES_DIR_ENV = "PINAKES_BOUNDARIES_DIR"
+#: Env var pointing at Glottolog's voronoi macroarea polygons.
+GLOTTOLOG_VORONOI_DIR_ENV = "PINAKES_GLOTTOLOG_VORONOI_DIR"
 
 #: Relative to `contracts/`, which `pinakes_contracts` locates for us.
 PARITY_SPEC_CONTRACTS_RELPATH = Path("parity") / "openapi.json"
@@ -64,6 +68,16 @@ ANNOTATIONS_RELPATH = Path("data") / "runtime" / "annotations"
 STEWARDSHIP_RELPATH = Path("data") / "runtime" / "stewardship"
 LIVING_DATASET_RELPATH = Path("data") / "runtime" / "living-dataset"
 LEXICONS_RELPATH = Path("data") / "source" / "lexicons"
+
+#: The two directories `getDefaultBoundaryResolver` loads, both resolved against
+#: `process.cwd()` over there — which is the repo root, because the server has to
+#: be started from it. **Neither exists in a plain checkout**: `data/boundaries/`
+#: is unpopulated and `sources/glottolog/` is an unchecked-out submodule, so the
+#: resolver is legitimately empty (`geo/boundaries.py` says what that means).
+BOUNDARIES_RELPATH = Path("data") / "boundaries"
+GLOTTOLOG_VORONOI_RELPATH = (
+    Path("sources") / "glottolog" / "config" / "macroareas" / "voronoi"
+)
 
 
 class RepoRootNotFound(RuntimeError):
@@ -161,3 +175,13 @@ def living_dataset_dir() -> Path:
 def lexicons_dir() -> Path:
     """The lexicon corpus an approved AI draft is promoted into."""
     return _data_dir(LEXICONS_DIR_ENV, LEXICONS_RELPATH)
+
+
+def boundaries_dir() -> Path:
+    """GeoJSON region boundaries. Read-only, and absent in a plain checkout."""
+    return _data_dir(BOUNDARIES_DIR_ENV, BOUNDARIES_RELPATH)
+
+
+def glottolog_voronoi_dir() -> Path:
+    """Glottolog's macroarea polygons — the resolver's second source."""
+    return _data_dir(GLOTTOLOG_VORONOI_DIR_ENV, GLOTTOLOG_VORONOI_RELPATH)

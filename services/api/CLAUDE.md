@@ -1272,3 +1272,74 @@ than re-reading the corpus, exactly as they did over there.
   landing** and names `POST /api/contributions/{id}/confirm` now. Only two
   templated routes remain unported and they are that pair, so this chore is
   down to its last move.
+
+## The cutover's tenth slice — `routers/{visualizations,text_analysis,quiz,data_validation,map_boundaries}.py` (pinakes:80 US-1)
+
+The small service wrappers and the last of the `map` unit: three diagram feeds,
+two etymology posts, the quiz pair, the three data-validation reads, the three
+region-boundary endpoints and the map-image extractor. **14 routes**, coverage
+285/306 → **299/306**. Five router files because the units are five, and five
+new modules under them — `analytics/{visualizations,validation}.py`,
+`lexicons/etymology.py`, `learning/quiz.py`, `geo/boundaries.py` and
+`media/map_image.py`.
+
+- **The quiz was diffed against Express question for question, `id`s included.**
+  It draws every choice from `Math.random()`, so it is nondeterministic on both
+  backends — the LDND situation from the eighth slice — and the fix is the same:
+  `learning.quiz.configure(random_source)` is the seam that replaces
+  monkeypatching `Math.random`, both sides were driven from one mulberry32, and
+  eleven seeded quizzes came back **byte-identical**. That includes `make_id`,
+  which is `Math.random().toString(36).slice(2, 10)` — the base-36 *fraction
+  expansion* of the draw, so a draw of exactly 0.5 is the one-character id `"i"`
+  on both. Eight digits is a ceiling, not a width.
+- **`validCategories` is not the generator table, and both halves of that matter.**
+  It admits `mixed`, which has no generator, and omits `cuisine` and
+  `civilizations`, which have one each — so those two question kinds are
+  reachable **only** inside a `mixed` quiz and asking for either by name is a
+  400. `GENERATORS`' declaration order is what `mixed` flattens.
+- **`analytics/validation.py` is not `analytics/quality.py`**, and the third
+  private TSV reader in this service is deliberate. This one drops **every**
+  blank line rather than trailing ones and `trim()`s each cell at read time, so
+  a cell of spaces is empty here and is not there. Same `newline=""` trap: the
+  split is on `"\n"` alone, and `columns` publishes the `\r` a CRLF file leaves.
+- **A cross-reference rule omits `optional`/`isJsonArray` when unset**, because
+  `GET /api/data-validation/cross-references` publishes the rules verbatim and
+  `JSON.stringify` writes no key for an `undefined`. Defaulting them to `False`
+  would be a different document; `_reference()` is built to leave them out.
+- **`geo/boundaries.py` carries the slice's one deliberate divergence, and the
+  index is empty in a plain checkout anyway.** Neither `data/boundaries/` nor the
+  Glottolog submodule exists, so `resolve` is a 404 and `search` answers
+  `{boundaries: [], total: 0}` — the Express answer too. The port is written out
+  in full because those directories are configuration; what did **not** come
+  across is `turf.union`, which dissolves shared borders through a
+  polygon-clipping library with no stdlib equivalent. `_combine` aggregates into
+  a MultiPolygon instead: **identical** to turf for disjoint components, and it
+  keeps the internal borders for adjacent ones. Every registered composite is a
+  run of adjacent countries, so revisit this with a geometry library the day
+  `data/boundaries/` is populated rather than assuming it agrees. `simplify` *is*
+  a real port — simplify-js's Douglas-Peucker plus turf's ring repair.
+- **Two JavaScript character classes are spelled out in `lexicons/etymology.py`**,
+  because V8's `\s` has no `\x1c`-`\x1f` and no `\x85` but does have U+FEFF. A
+  character one engine calls whitespace and the other does not lands *inside* a
+  word rather than between two. `\d` in `analytics/visualizations.py` is `[0-9]`
+  for the same family of reason — the ninth slice's semver note.
+- **A non-string `text` is a 500 publishing V8's own message.**
+  `analyzeTextOrigins` reaches straight for `text.toLowerCase()`, and the 500
+  body carries `error.message`, so `routers/text_analysis._text_of` raises
+  `text.toLowerCase is not a function` — naming the *parameter*, not the caller's
+  `textA`. Same posture as `distance.enhanced.NotIterableError`.
+- **The whole slice was proved byte-identical to Express over 77 live requests**
+  with the throwaway-script method the earlier slices describe: every year-filter
+  edge (`0`, blank, `NaN`, negative), all four `?files=` spellings including the
+  trimmed and the stem-only one, every refusal, the empty boundary index, the
+  missing-key image 500, and the eleven seeded quizzes. **Zero differences** —
+  the `; charset=utf-8` strip aside, and the validation report's `timestamp`,
+  which is a clock.
+- **`test_not_implemented.py` and `test_router_discovery.py` both went red on
+  landing again, and their repointing hit a wall worth naming.** There is no
+  concrete unported `GET` left to stand in: `/api/openapi.json` was already the
+  first entry, and `/api/languages/preservation` is **shadowed** by `catalog.py`'s
+  `/api/languages/{id}`, so it 404s rather than 501ing (which is also why the
+  discovery drop-in now uses `/api/openapi.json`). The sample list therefore
+  names `GET /api/contributions/{id}/verification` — templated, like its POST
+  sibling.

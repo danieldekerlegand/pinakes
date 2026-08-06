@@ -22,10 +22,14 @@ from pinakes.routers import RouterModuleError, discover_routers
 
 #: The drop-in serves a **still-unported** baseline path, because the second
 #: test asserts the stub disappears when it lands. Was `/api/scraping-jobs`
-#: until pinakes:80 US-1's fifth slice ported it; expect to move it again.
+#: until pinakes:80 US-1's fifth slice ported it and `/api/visualizations/chord`
+#: until its tenth. It has to be a path **no committed router shadows** — a
+#: drop-in at `/api/languages/preservation` never answers, because
+#: `catalog.py`'s `/api/languages/{id}` mounts first and matches it. Expect to
+#: move this again with US-2, which is when `/api/openapi.json` lands.
 #: The module name must be one no real router will ever take — a collision
 #: would have the committed file win the import and the drop-in do nothing.
-DROP_IN_ROUTE = "/api/visualizations/chord"
+DROP_IN_ROUTE = "/api/openapi.json"
 DROP_IN_MODULE = "drop_in_probe"
 
 DROP_IN = f"""
