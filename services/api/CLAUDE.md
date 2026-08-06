@@ -1196,3 +1196,79 @@ corpus alone*.
 - **`test_not_implemented.py`'s `/api/linguistic-distance/available-languages`
   stand-in went red on landing** and names `/api/openapi.json` now — the end of
   the port order by construction, so this chore should not recur.
+
+## The cutover's ninth slice — `dataset/` + `routers/{export,dataset,living_dataset,bulk_import}.py` (pinakes:80 US-1)
+
+The publication group: the four `/api/export/*` routes, the three
+`/api/dataset/*` snapshot routes, the three `/api/living-dataset/*` lifecycle
+routes and the two `/api/import/*` ones. **12 routes**, coverage 273/306 →
+**285/306**. Four TypeScript files, one Python package, because the top of each
+is the bottom of the next — the release routes *compose* the exporter rather
+than re-reading the corpus, exactly as they did over there.
+
+- **This slice writes the corpus with no review step, and that is the headline.**
+  `POST /api/import/bulk` appends to — or in `replace` mode overwrites — a live
+  lexicon TSV. `routers/ai_review.py` promotes one accepted draft at a time;
+  this takes a paste. The backup into `.backups/<base>_<stamp>.tsv` is
+  unconditional, taken **after** every early refusal and **before** either write
+  branch, and the response names it. It is the only undo. `conftest.py`'s
+  autouse `isolated_data_trees` gained a seventh tree (`living-dataset`) and is
+  what keeps these tests off the real corpus — do not write a case in
+  `test_bulk_import_routes.py` that resolves `paths.lexicons_dir()` for real.
+- **`errors[]` carries two kinds of thing and a string prefix is the only
+  discriminator.** `Unmapped columns (ignored): …` is a *warning* and the route
+  still answers **200**; anything else is a 400. `has_blocking_errors` is that
+  rule, spelled once.
+- **The export pipeline's "column remap" never reorders anything.**
+  `remapHeaders` pushes `i` on both branches, so the index map is the identity
+  and the only observable effect is that every cell is **trimmed** and a short
+  row is **padded** with `""`. Written as written; the padding is what makes a
+  ragged corpus row exportable at all.
+- **A filter is a case-insensitive substring and an unknown column is ignored**
+  — `?nonsense=x` exports the whole file rather than nothing. And a file that is
+  missing or empty contributes **no entry**, so `fileCount` counts the files
+  that had data, not the files the profile names.
+- **`includeFiles` has two readings and validation only ever reaches one.**
+  `for (const f of includeFiles)` iterates a **string one character at a time**,
+  so `{"includeFiles": "families.tsv"}` is twelve 400s; the substring reading
+  `exportDataset`'s `.includes` would have given is unreachable. Both are
+  pinned, because a rewrite that "fixes" the first silently changes the second.
+- **The download's content type is wrong for TSV and is kept**:
+  `format === "json" ? "application/json" : "text/csv"`, so a `.tsv` attachment
+  is served as CSV. The filename already says otherwise; a client keying off the
+  header would change behaviour if it were repaired.
+- **Every failure in `/api/dataset/*` is a 400 carrying the thrown message** —
+  including a corpus that cannot be read. `errorMessage(error, fallback)`'s
+  fallback branch existed for a throw that was not an `Error`, which Python has
+  no equivalent of, so `_release.failed` does not spell one.
+- **`\d` is not `[0-9]`.** The semver pattern is ASCII-only in JavaScript, so
+  `١.٢.٣` parses in Python and not over there. Same family as the `\s` in
+  `_EXPORT_TITLE`, which is spelled out because Python's differs at both ends.
+- **Version precedence needs *both* middle inputs.** Explicit `version`, else
+  the changelog-derived bump — which applies only when `previousVersion` **and**
+  `changeCounts` are present — else the seed `1.0.0`. And the changelog is read
+  **unfiltered**, so a release bumps on every change since the log began, not
+  since the last release. `POST /api/dataset/release` defaults its previous
+  version to the seed; `POST /api/living-dataset/release` defaults it to the
+  *recorded current* release, which is the whole difference between them.
+- **`POST /api/living-dataset/ingest` never fails as a whole.** A domain whose
+  acquisition throws lands in `errors[]` and gets **no** ingestion stamp; the
+  pass carries on. An unknown *requested* domain is the one 400 and it refuses
+  the whole pass. The route calls `acquire.job.run` in process where Express
+  spawned `pinakes_engine fetch` — the only intended behavioural divergence in
+  the slice, and the reason its test stubs the runner rather than diffing it.
+- **`living.LivingDatasetStore` degrades a corrupt `state.json` to empty state**,
+  the `stewards.json` posture rather than the changelog's: losing the schedule
+  should cost a re-ingest, not the endpoint.
+- **The whole slice was proved byte-identical to Express over 71 live requests**
+  with the throwaway-script method the earlier slices describe — every format,
+  every refusal, both downloads, the release history driven through four mints,
+  and the import path driven through append/dedup/replace. **Both written
+  corpora were then diffed byte for byte and matched**, backups included. One
+  trap worth naming: the capture and the replay must each start from a *fresh*
+  copy of the corpus, or the second run's dedup silently reads the first run's
+  rows — that contaminated the first attempt end to end.
+- **`test_not_implemented.py`'s `/api/export/datasets/{id}` stand-in went red on
+  landing** and names `POST /api/contributions/{id}/confirm` now. Only two
+  templated routes remain unported and they are that pair, so this chore is
+  down to its last move.

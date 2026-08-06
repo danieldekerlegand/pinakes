@@ -40,6 +40,8 @@ COLLECTIONS_DIR_ENV = "PINAKES_COLLECTIONS_DIR"
 ANNOTATIONS_DIR_ENV = "PINAKES_ANNOTATIONS_DIR"
 #: Env var pointing at the steward adoptions (a single `stewards.json`).
 STEWARDSHIP_DIR_ENV = "PINAKES_STEWARDSHIP_DIR"
+#: Env var pointing at the living-dataset state (a single `state.json`).
+LIVING_DATASET_DIR_ENV = "PINAKES_LIVING_DATASET_DIR"
 #: Env var pointing at the lexicon corpus (`*.tsv`).
 LEXICONS_DIR_ENV = "PINAKES_LEXICONS_DIR"
 
@@ -60,6 +62,7 @@ CHANGELOG_RELPATH = Path("data") / "runtime" / "changelog"
 COLLECTIONS_RELPATH = Path("data") / "runtime" / "collections"
 ANNOTATIONS_RELPATH = Path("data") / "runtime" / "annotations"
 STEWARDSHIP_RELPATH = Path("data") / "runtime" / "stewardship"
+LIVING_DATASET_RELPATH = Path("data") / "runtime" / "living-dataset"
 LEXICONS_RELPATH = Path("data") / "source" / "lexicons"
 
 
@@ -148,6 +151,11 @@ def annotations_dir() -> Path:
 def stewardship_dir() -> Path:
     """Steward adoptions — a single `stewards.json`, not one file per record."""
     return _data_dir(STEWARDSHIP_DIR_ENV, STEWARDSHIP_RELPATH)
+
+
+def living_dataset_dir() -> Path:
+    """Living-dataset state — a single `state.json`, like the steward roster."""
+    return _data_dir(LIVING_DATASET_DIR_ENV, LIVING_DATASET_RELPATH)
 
 
 def lexicons_dir() -> Path:

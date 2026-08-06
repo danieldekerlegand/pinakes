@@ -83,6 +83,7 @@ def isolated_data_trees(
         paths.COLLECTIONS_DIR_ENV: tmp_path / "collections",
         paths.ANNOTATIONS_DIR_ENV: tmp_path / "annotations",
         paths.STEWARDSHIP_DIR_ENV: tmp_path / "stewardship",
+        paths.LIVING_DATASET_DIR_ENV: tmp_path / "living-dataset",
         paths.LEXICONS_DIR_ENV: tmp_path / "lexicons",
     }
     for variable, directory in trees.items():
@@ -94,6 +95,7 @@ def isolated_data_trees(
         "collections": trees[paths.COLLECTIONS_DIR_ENV],
         "annotations": trees[paths.ANNOTATIONS_DIR_ENV],
         "stewardship": trees[paths.STEWARDSHIP_DIR_ENV],
+        "living_dataset": trees[paths.LIVING_DATASET_DIR_ENV],
         "lexicons": trees[paths.LEXICONS_DIR_ENV],
     }
 

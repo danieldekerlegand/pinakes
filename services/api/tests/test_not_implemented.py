@@ -22,7 +22,12 @@ SAMPLE_REQUESTS = [
     # byte-equal snapshot moves too — so this pair should not need repointing
     # again before the Express backend is deleted outright.
     ("GET", "/api/openapi.json", "/api/openapi.json"),
-    ("GET", "/api/export/datasets/{id}", "/api/export/datasets/corpus-v1"),
+    # `/api/openapi.json` takes no path parameter, so a *templated* stand-in has
+    # to sit beside it — that is the whole job of this second entry. Was
+    # `/api/export/datasets/{id}` until pinakes:80 US-1's ninth slice ported the
+    # publication group (`test_export_routes.py`). Only two templated routes are
+    # left unported at all, and both are the confirm/verification pair below.
+    ("POST", "/api/contributions/{id}/confirm", "/api/contributions/nope/confirm"),
     # Was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice ported
     # the scraper dashboard; its coverage is `test_scraping_routes.py`.
     ("POST", "/api/text-analysis/compare", "/api/text-analysis/compare"),
