@@ -21,6 +21,15 @@ also fails if a `*-scraper.ts` reappears here).
 - Two lookalikes deliberately survive: `services/mythology-scraper-tsv.ts` and
   `services/language-family-scraper-tsv.ts`. They end `-scraper-tsv.ts`, write TSVs from
   already-local data, and were never part of the parallel fetch stack.
+  **Their two routes are now ported** (pinakes:80 US-1, twelfth slice):
+  `POST /api/scraping/{families,mythology}` answer 501 `ported` and
+  `services/api/src/pinakes/ingest/{family,mythology}_scraper.py` serve them. Both files
+  stay, along with `services/tsv-writer.ts`, as the graded spec — nothing in `server/`
+  imports them any more. Note what the pair actually does before touching either:
+  **a completed run REPLACES `families.tsv` + `languages.tsv`, or `deities.tsv` +
+  `myth-motifs.tsv`, with whatever the model answered.** `existingFamilies` /
+  `loadExistingDeityIds` are prompt hints asking the model not to repeat itself, not a
+  merge — so a run that honours the hint writes a strictly *smaller* corpus.
 
 ## The corpus is at `data/source/lexicons/` (moved in pinakes:20 US-3)
 

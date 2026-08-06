@@ -1410,3 +1410,75 @@ one request.
   prose about `/api/languages/preservation` being shadowed was updated rather
   than repointed. Four routes are left — `POST /api/scraping/{families,mythology}`,
   the confirm/verification pair, and `/api/openapi.json`.
+
+## The cutover's twelfth slice — `ingest/{generation,family_scraper,mythology_scraper}.py` + `lexicons/writer.py` (pinakes:80 US-1)
+
+The `scraping` unit's last two routes — `POST /api/scraping/{families,mythology}`,
+the two Gemini TSV **generators**. **2 routes**, coverage 301/306 → **303/306**.
+Every earlier slice ported a reader or a queue writer; this one ports the only
+pair of routes in the whole surface that **replace the corpus**.
+
+- **A completed run overwrites two lexicon tables in full, and no route says
+  so.** `families.tsv` + `languages.tsv`, or `deities.tsv` + `myth-motifs.tsv`,
+  become whatever the model answered. Neither `existingFamilies` nor
+  `loadExistingDeityIds` is a merge — both are *prompt hints* asking the model
+  not to repeat what the corpus already has, so a run that honours the hint
+  writes a strictly **smaller** corpus. That is the TypeScript's behaviour and
+  the dashboard's "Start Scraping" button has always cost it; the port
+  reproduces it rather than quietly adding an append mode, because the two
+  backends must not disagree about what that button does mid-cutover.
+  `conftest.py`'s autouse `isolated_data_trees` is the only thing between this
+  suite and the real corpus, and here it is load-bearing rather than hygienic.
+- **`[]` is truthy in JavaScript, and it is the one body that turns "start
+  scraping" into "empty the mythology corpus".** `{"pantheons": []}` scrapes
+  nothing, links nothing, generates nothing, and then writes two header-only
+  tables. Python's own truthiness would have substituted the eighteen defaults —
+  the opposite answer. `mythology_scraper._targets` is that rule; the diff
+  confirmed it against Express.
+- **`??` and `||` sit five lines apart in the deity mapping and mean different
+  things.** `timeOrigin ?? null` keeps a real `0`; `nativeName || ""` loses a
+  blank; `lang.nativeSpeakers || null` in the *sibling* generator loses a real
+  zero speaker count. Three spellings, one slice, all three pinned.
+- **Three failure postures, all deliberate.** `scrapeFamilyTree` swallows
+  everything and answers empty (so a lost branch is not a lost tree, and the
+  `try/catch` wrapped around it is therefore unreachable — ported anyway);
+  `buildSyncretismLinks` degrades to unlinked deities; `scrapeMythMotifs` and
+  `discoverAllLanguageFamilies` **throw**, and nothing is written. A corpus with
+  deities and no motifs is not a state this generator can leave behind. The
+  per-pantheon `completedWords` stamp is *outside* its catch, so a failed
+  pantheon still advances the counter.
+- **`ingest/generation.py` is the shared half, and it exists because the two
+  TypeScript files carried byte-identical private copies** of `slugify`,
+  `normalize` and the `getGenerativeModel` boilerplate.
+  `ingest/text_extractor.py`'s `LiveDeps` was **not** refactored onto it: it is
+  already ported, its error class maps onto a 502, and a port must not change
+  what an already-ported route answers. The one behavioural note is that
+  `SchemaType.OBJECT` is the string `"object"` — **lower case** — and the SDK
+  forwards it verbatim, so these schemas are spelled the way `text_extractor`'s
+  is not.
+- **The request body is the SDK's own, key for key**, including the empty
+  `safetySettings` its `formatGenerateContentInput` always emits and the
+  `generationConfig` / `safetySettings` / `contents` order. None of that changes
+  what the model answers; it is there so the bytes the two backends put on the
+  wire are identical, which is what the diff compared. The one header not
+  reproduced is `x-goog-api-client`, which identifies the SDK and would be a lie.
+- **`lexicons/writer.py` is the corpus's writer**, the counterpart of
+  `storage.py`, and only the three `tsv-writer.ts` methods a route reaches came
+  across. It does **not** escape a cell: a motif called `World\tTree` really does
+  write a row with an extra column, on both backends. `media/images.escape_tsv_field`
+  is the *prompt ledger's* rule and is not this one.
+- **The whole slice was proved byte-identical to Express over two live diff
+  rounds** with the throwaway-script method the earlier slices describe, with one
+  new trick: `globalThis.fetch` is stubbed in the capture script, which makes an
+  SDK-backed generator diffable at all. Compared: the five route responses, the
+  five-job ledger with no key, **eight model request bodies** (prompts and
+  schemas), both progress logs, both returned record sets, all four written TSV
+  files byte for byte, the job ledger driven through both generators, and the
+  failure / degrade / empty-input paths. **Zero unaccepted differences** — the
+  accepted ones are the millisecond in a job id and two headers.
+- **The stand-in chore is over by exhaustion.** `test_not_implemented`'s third
+  `SAMPLE_REQUESTS` entry named `POST /api/scraping/mythology`; only three
+  unported routes remain and all three were already in the list, so the entry
+  was **dropped** rather than repointed at a duplicate. What is left is the
+  `contributions` confirm/verification pair and `/api/openapi.json`, which goes
+  with US-2.

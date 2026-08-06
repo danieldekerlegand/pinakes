@@ -16,6 +16,7 @@ from pinakes.app import create_app
 from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
 from pinakes.geo import boundaries as boundary_handles
+from pinakes.ingest import family_scraper, mythology_scraper
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import jobs as ingest_jobs
 from pinakes.kcb import registry as kcb_registry
@@ -142,6 +143,23 @@ def reset_scraping_jobs() -> Iterator[None]:
     ingest_jobs.reset()
     yield
     ingest_jobs.reset()
+
+
+@pytest.fixture(autouse=True)
+def reset_tsv_generators() -> Iterator[None]:
+    """Release both TSV generators' concurrency guards between tests.
+
+    Each is a static `isScraping` boolean over there and module state here, and
+    the whole point of it is that it **outlives a failed run** — so a test that
+    drove a generator to a throw before the `finally` (the missing-key path
+    raises ahead of it) would otherwise leave the next test's run refused as a
+    duplicate. Same class of module state as :func:`reset_scraping_jobs`.
+    """
+    family_scraper.reset()
+    mythology_scraper.reset()
+    yield
+    family_scraper.reset()
+    mythology_scraper.reset()
 
 
 @pytest.fixture(autouse=True)

@@ -28,10 +28,14 @@ SAMPLE_REQUESTS = [
     # publication group (`test_export_routes.py`). Only two templated routes are
     # left unported at all, and both are the confirm/verification pair below.
     ("POST", "/api/contributions/{id}/confirm", "/api/contributions/nope/confirm"),
-    # Was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice ported
-    # the scraper dashboard, then `POST /api/text-analysis/compare` until its
-    # tenth — `test_scraping_routes.py` and `test_text_analysis_routes.py`.
-    ("POST", "/api/scraping/mythology", "/api/scraping/mythology"),
+    # A third entry used to live here and there is nothing left to point it at.
+    # It was `POST /api/scraping-jobs` until pinakes:80 US-1's fifth slice
+    # ported the scraper dashboard, `POST /api/text-analysis/compare` until its
+    # tenth, and `POST /api/scraping/mythology` until its twelfth ported the two
+    # Gemini TSV generators — `test_scraping_routes.py`,
+    # `test_text_analysis_routes.py` and `test_scraping_generators.py`. Only
+    # three unported routes remain and all three are already named in this list,
+    # so the entry was dropped rather than repointed at a duplicate.
     # Was `/api/summaries/{domain}` until pinakes:63 US-1 ported it, then
     # `/api/religions` until pinakes:80 US-1's second slice and `/api/haplogroups`
     # until its fourth — a sample here has to name a route that is still

@@ -14,12 +14,13 @@ grew a second copy of anything — `POST /api/scraping/engine` is an adapter ove
 `acquire.job.run` exactly as `routers/archaeology.py` is one over
 `ingest.archaeology`.
 
-Two routes of the unit deliberately did **not** come across and are still 501:
-`POST /api/scraping/{families,mythology}`. Those are ~1,000 lines of Gemini
-prompt/schema plus a direct TSV **write** into the live corpus
-(`server/services/{language-family,mythology}-scraper-tsv.ts`) — a real port of a
-generator, not of a route, and the only part of it a route touches is the job id
-it hands back. They are their own slice.
+The last two — `POST /api/scraping/{families,mythology}` — landed in the twelfth
+slice and finish the unit. They are the two Gemini TSV **generators**
+(:mod:`pinakes.ingest.family_scraper`, :mod:`pinakes.ingest.mythology_scraper`),
+and what they have in common with nothing else in this file is that they
+**overwrite the corpus**: a completed run replaces `families.tsv` +
+`languages.tsv`, or `deities.tsv` + `myth-motifs.tsv`, with the model's answer.
+Neither route says so, because neither route said so over there.
 
 * **The 500 spellings are `{message}` alone**, everywhere in this file: every one
   of these handlers stayed inline in `routes.ts`. `/api/scraping/engine*` is the
@@ -48,8 +49,8 @@ from pinakes.acquire import catalog
 from pinakes.acquire import job as acquisition_job
 from pinakes.contributions import store
 from pinakes.contributions.store import js_truthy
-from pinakes.ingest import jobs
-from pinakes.lexicons import forms
+from pinakes.ingest import family_scraper, jobs, mythology_scraper
+from pinakes.lexicons import forms, storage
 from pinakes.paths import lexicons_dir
 from pinakes.routers import _reads
 
@@ -172,6 +173,126 @@ def scraping_coverage() -> Any:
     except Exception:  # noqa: BLE001 - the handler's own try/catch
         return _reads.failed_plain(
             logger, "fetching word coverage", "Failed to fetch word coverage"
+        )
+
+
+# ── The two Gemini TSV generators ────────────────────────────────────────────
+
+
+def _progress(job_id: str) -> family_scraper.ProgressCallback:
+    """The route's `progressCallback`, identical in both handlers.
+
+    `progress` writes `statusMessage` and `error` writes `errorMessage`; every
+    other type — `completed` — updates nothing, which is why a finished job's
+    `statusMessage` is still "Writing to TSV files...". The generator's own
+    `status: "completed"` is what settles it.
+    """
+
+    def report(type: str, message: str, data: Any = None) -> None:
+        logger.info("[Scraping] %s: %s %s", type, message, data or "")
+        if type == "progress":
+            jobs.update_job(job_id, statusMessage=message)
+        elif type == "error":
+            jobs.update_job(job_id, errorMessage=message)
+
+    return report
+
+
+@router.post("/api/scraping/families")
+def start_family_scraping(
+    background: BackgroundTasks, body: Annotated[Any, Body()] = None
+) -> Any:
+    """Start the language-family generator. Answers a job id, not a result.
+
+    The corpus read happens **before** the job is opened, so a corpus this
+    service cannot read is a 500 with no job in the ledger — the one failure
+    mode of this route that is not reported through the job.
+    """
+    data = _payload(body)
+    try:
+        existing = storage.language_families_with_counts(lexicons_dir())
+    except Exception as error:  # noqa: BLE001 - the handler's own try/catch
+        logger.exception("Error starting family scraping")
+        return JSONResponse(
+            status_code=500,
+            content={"message": "Failed to start scraping", "error": str(error)},
+        )
+
+    job = jobs.create_job("language-families", 100, "gemini")
+    background.add_task(
+        _run_family_scrape,
+        job["id"],
+        data.get("clearExisting"),
+        data.get("familyFilter"),
+        existing,
+    )
+    return {
+        "message": "Language family scraping started",
+        "status": "pending",
+        "jobId": job["id"],
+    }
+
+
+def _run_family_scrape(
+    job_id: str, clear_existing: Any, family_filter: Any, existing: list[Any]
+) -> None:
+    """The fire-and-forget half. Its `catch` fails the job a second time.
+
+    The generator's own handler has already stamped `status`/`errorMessage`/
+    `completedAt` and then re-raised; this stamps them again with the bare
+    message, which is what a dashboard ends up showing — the generator's last
+    write was the `Scraping failed: Error: …` form.
+    """
+    try:
+        family_scraper.scrape_language_families(
+            lexicons_dir(),
+            clear_existing=js_truthy(clear_existing),
+            family_filter=family_filter if js_truthy(family_filter) else None,
+            existing_families=existing,
+            job_id=job_id,
+            progress=_progress(job_id),
+        )
+    except Exception as error:  # noqa: BLE001 - a failed run is a failed job
+        logger.exception("Family scraping failed")
+        jobs.update_job(
+            job_id,
+            status="failed",
+            errorMessage=str(error),
+            completedAt=store.iso_now(),
+        )
+
+
+@router.post("/api/scraping/mythology")
+def start_mythology_scraping(
+    background: BackgroundTasks, body: Annotated[Any, Body()] = None
+) -> Any:
+    """Start the mythology generator. Reads nothing, so it has no 500 path."""
+    data = _payload(body)
+    job = jobs.create_job("mythology", 100, "gemini")
+    background.add_task(_run_mythology_scrape, job["id"], data.get("pantheons"))
+    return {
+        "message": "Mythology scraping started",
+        "status": "pending",
+        "jobId": job["id"],
+    }
+
+
+def _run_mythology_scrape(job_id: str, pantheons: Any) -> None:
+    """The fire-and-forget half. Same double-stamp as the family one."""
+    try:
+        mythology_scraper.scrape_mythology(
+            lexicons_dir(),
+            pantheons=pantheons if js_truthy(pantheons) else None,
+            job_id=job_id,
+            progress=_progress(job_id),
+        )
+    except Exception as error:  # noqa: BLE001 - a failed run is a failed job
+        logger.exception("Mythology scraping failed")
+        jobs.update_job(
+            job_id,
+            status="failed",
+            errorMessage=str(error),
+            completedAt=store.iso_now(),
         )
 
 

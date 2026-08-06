@@ -5,8 +5,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getDefaultBoundaryResolver } from "./services/boundary-resolver";
 import { applyViewport, viewportOptionsFromQuery } from "./services/geo-bbox";
-import { languageFamilyScraperTSV } from "./services/language-family-scraper-tsv";
-import { mythologyScraperTSV } from "./services/mythology-scraper-tsv";
 import { jobStore } from "./services/job-store";
 import { analyzeMapImage } from "./services/map-image-analyzer";
 import type { FeatureExtractionRequest } from "./services/map-image-analyzer";
@@ -109,6 +107,20 @@ const DATA_QUALITY_PORTED_TO = "services/api/src/pinakes/routers/data_quality.py
  */
 const SEARCH_PORTED_TO = "services/api/src/pinakes/routers/search.py";
 const PLACES_PORTED_TO = "services/api/src/pinakes/routers/places.py";
+
+/**
+ * The two Gemini TSV generators (pinakes:80 US-1, twelfth slice) — the last two
+ * routes of the `scraping` port unit, and the last two of `routes.ts` bar
+ * `/api/openapi.json`.
+ *
+ * **`services/{language-family,mythology}-scraper-tsv.ts` are NOT retired** and
+ * neither is `services/tsv-writer.ts`: they are the graded spec, and
+ * `services/api/tests/test_scraping_generators.py` is what says the two
+ * implementations put the same prompt on the wire and write the same bytes to
+ * the corpus. Nothing in `server/` reaches them any more.
+ */
+const SCRAPING_GENERATORS_PORTED_TO =
+  "services/api/src/pinakes/routers/scraping.py";
 
 /**
  * A handler for a route this backend no longer owns — the inline twin of the
@@ -486,71 +498,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scraping Endpoints
 
   // Scrape language families with Gemini AI
-  app.post("/api/scraping/families", async (req, res) => {
-    try {
-      const { clearExisting, familyFilter } = req.body;
-
-      // Get existing families to avoid re-scraping
-      const existingFamilies = await storage.getLanguageFamilies();
-
-      // Create in-memory job for tracking
-      const job = jobStore.createJob(
-        "language-families",
-        100, // Estimated total families
-        "gemini"
-      );
-
-      // Start scraping in the background (don't wait for completion)
-      languageFamilyScraperTSV
-        .scrapeLanguageFamilies({
-          clearExisting: clearExisting || false,
-          familyFilter: familyFilter || undefined,
-          existingFamilies,
-          jobId: job.id,
-          progressCallback: (type, message, data) => {
-            console.log(`[Family Scraping] ${type}: ${message}`, data || "");
-
-            // Update job with current status message for UI display
-            if (type === 'progress') {
-              jobStore.updateJob(job.id, {
-                statusMessage: message,
-              });
-            } else if (type === 'error') {
-              jobStore.updateJob(job.id, {
-                errorMessage: message,
-              });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Family scraping completed: ${result.families.length} families, ${result.languages.length} languages`
-          );
-        })
-        .catch((error) => {
-          console.error("Family scraping failed:", error);
-
-          // Update job status to failed
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Language family scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting family scraping:", error);
-      res.status(500).json({
-        message: "Failed to start scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/families",
+    portedToPython("POST /api/scraping/families", SCRAPING_GENERATORS_PORTED_TO),
+  );
 
   // Scrape language families from Glottolog
   app.post(
@@ -2203,56 +2154,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/scraping/mythology", async (req, res) => {
-    try {
-      const { pantheons } = req.body;
-
-      const job = jobStore.createJob(
-        "mythology",
-        100,
-        "gemini"
-      );
-
-      mythologyScraperTSV
-        .scrapeMythology({
-          pantheons: pantheons || undefined,
-          jobId: job.id,
-          progressCallback: (type, message) => {
-            console.log(`[Mythology Scraping] ${type}: ${message}`);
-            if (type === "progress") {
-              jobStore.updateJob(job.id, { statusMessage: message });
-            } else if (type === "error") {
-              jobStore.updateJob(job.id, { errorMessage: message });
-            }
-          },
-        })
-        .then((result) => {
-          console.log(
-            `Mythology scraping completed: ${result.deities.length} deities, ${result.motifs.length} motifs`
-          );
-        })
-        .catch((error) => {
-          console.error("Mythology scraping failed:", error);
-          jobStore.updateJob(job.id, {
-            status: "failed",
-            errorMessage: error instanceof Error ? error.message : "Unknown error",
-            completedAt: new Date().toISOString(),
-          });
-        });
-
-      res.json({
-        message: "Mythology scraping started",
-        status: "pending",
-        jobId: job.id,
-      });
-    } catch (error) {
-      console.error("Error starting mythology scraping:", error);
-      res.status(500).json({
-        message: "Failed to start mythology scraping",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  });
+  app.post(
+    "/api/scraping/mythology",
+    portedToPython("POST /api/scraping/mythology", SCRAPING_GENERATORS_PORTED_TO),
+  );
 
   // ============================================================================
   // Cross-Domain Analysis API Routes (Phase 4)
