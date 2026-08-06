@@ -12,7 +12,7 @@ import {
 } from '@/components/culture-profile/culture-evolution-timeline-utils';
 
 // Vocabulary mirrors the server's timeline-event service
-// (server/services/timeline-event.ts). Kept small & local — the server is the
+// (services/api/src/pinakes/authoring/timeline_event.py). Kept small & local — the server is the
 // source of truth and re-validates every submission.
 const ENTRY_KINDS = [
   { value: 'event', label: 'Event (single year)' },

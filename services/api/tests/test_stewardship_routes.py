@@ -16,6 +16,7 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
+from pinakes.collab import stewardship
 from pinakes.collab.stewardship import STEWARDS_FILE
 
 
@@ -211,16 +212,27 @@ def test_a_broken_roster_degrades_to_nobody_rather_than_a_500(
     }
 
 
-# ── What did *not* move ──────────────────────────────────────────────────────
+# ── The other two thirds of the same Express file ────────────────────────────
 
 
-def test_the_confirm_flow_is_not_part_of_this_port(unbuilt_client: TestClient) -> None:
-    """`server/routes/community-verification.ts` registers five routes; only the
-    three `/api/stewardship*` ones are this unit. The other two belong to the
-    contribution queue's verification work and still answer 501 — which is safe
-    precisely because Express reads the roster this service writes."""
-    for method, url in (
-        ("POST", "/api/contributions/abc/confirm"),
-        ("GET", "/api/contributions/abc/verification"),
-    ):
-        assert unbuilt_client.request(method, url).status_code == 501
+def test_the_confirm_flow_now_reads_this_roster_in_process(
+    unbuilt_client: TestClient,
+) -> None:
+    """`server/routes/community-verification.ts` registers five routes, and this
+    port was the three `/api/stewardship*` ones.
+
+    The other two belonged to the contribution queue's port unit and answered
+    **501** here for two bands — which was only safe because Express read the
+    roster this service writes, out of one shared `stewards.json`. pinakes:80
+    US-1 ported them (`test_community_verification.py`), so that file is now
+    entirely retired and the steward lookup happens in this process. The
+    assertion is what that changed: a claim adopted through the route below is
+    visible to a confirmation immediately, with no second reader.
+    """
+    unbuilt_client.post(
+        "/api/stewardship/adopt", json={"steward": "Expert", "domain": "Maya"}
+    )
+    assert unbuilt_client.request(
+        "GET", "/api/contributions/abc/verification"
+    ).status_code == 404
+    assert stewardship.store().is_steward("expert", "maya") is True

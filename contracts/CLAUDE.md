@@ -1,6 +1,7 @@
 # contracts/ — cross-cutting contracts
 
-Code here is imported by both `server/` and `web/` (alias `@contracts/*`).
+Code here is imported by `web/` (the client), `scripts/` (repo tooling) and — through the
+generated `python/` bindings — the Python service and engine. Alias: `@contracts/*`.
 
 ## Generated bindings — `generated/*.ts` + `python/` (40-contracts-codegen US-1)
 
@@ -64,7 +65,8 @@ Rules:
   every `data/source/lexicons/*.tsv` gets a `kind` (node/edge/attribute/excluded), a node type, and a
   per-column disposition (`target` canonical field / `edge` type / `property` / `drop`).
   Consume via `@contracts/lexicon-mapping` (`lexiconMappingByFile`, `nodeFiles`, `edgeFiles`,
-  `assertValidLexiconMapping`). US-003 (`server/services/canonical-edges.ts`) reads the `edge`
+  `assertValidLexiconMapping`). US-003 (`scripts/lib/canonical-edges.ts`, and its Python twin
+  `pinakes.lexicons.canonical_edges`) reads the `edge`
   dispositions **and** the edge-table `target` dispositions (`:START_ID`/`:END_ID`/`:TYPE`/
   `time_start`/`confidence`/`source`) to emit `CanonicalEdge` records; free-text relationship
   vocabularies (e.g. `evolved-into`, `substrate`) are aligned to canonical edge types by the
@@ -73,7 +75,7 @@ Rules:
   reads headers from `resolve(process.cwd(), "data", "source", "lexicons")` and compares **unique** column names
   (some source headers, e.g. `words-base.tsv`, have duplicate columns).
 - **US-004 export** (`scripts/export-for-engine.ts`) consumes the node `target`/`property`
-  dispositions here + `server/services/canonical-edges` to emit `build/corpus/` canonical
+  dispositions here + `scripts/lib/canonical-edges` to emit `build/corpus/` canonical
   TSVs. See `scripts/CLAUDE.md`.
 
 ## Confidence rubric (tiered-trust, US-001)
@@ -109,7 +111,7 @@ Rules:
   the client provenance module `web/src/lib/graph/provenance.ts` (`provenanceTier(prov, isEdge)`,
   rendered by `ProvenanceBadge`/`ProvenanceList`/`TrustTierBadge`) surfaces the tier on graph
   detail/explorer panels + `global-search.ts` (`graphHitTier` on graph hits, local hits are
-  `curated` by definition); and `server/services/data-quality-scorer.ts` (`computeCorpusTiers` /
+  `curated` by definition); and `scripts/lib/data-quality-scorer.ts` (`computeCorpusTiers` /
   `buildCorpusTierReport`) reports corpus composition by tier.
 - **GOTCHA — the app corpus is entirely `curated`.** Auto-admission never writes `data/source/lexicons/*.tsv`,
   so every exported lexicon row is `source=pinakes` → `curated` in the graph. The corpus-tier
@@ -163,7 +165,7 @@ touch node/edge types again, update in lockstep (all pinned by tests):
 The Koine capability-bus manifest Pinakes publishes as the `pinakes:agent:resolver` authority
 provider (`koine/specs/capability-bus.md` §2/§6). Same JSON-source-of-truth + typed-accessor +
 runtime-validator shape as `predicate-mapping`/`canonical-schema` — full contract in
-`docs/capability-bus.md`, served by `server/routes/capability-bus.ts`.
+`docs/capability-bus.md`, served by `services/api/src/pinakes/routers/capability_bus.py`.
 
 - **It is a surface wrapper, and the validator enforces that.** Every capability must declare
   ≥1 `x_surfaces` entry naming an already-built route + the merged file implementing it, so a
@@ -243,13 +245,17 @@ contract stays in `docs/capability-bus.md`).
   participant's repository, and a shared-checkout dependency wearing a pointer's clothes is the
   failure that convention exists to prevent.
 - **The participation path must stay filesystem-free**, and a test enforces it:
-  `server/routes/participation-self-sufficiency.test.ts` (US-3) walks the static import closure
-  of `server/routes/{a2a,capability-bus}.ts` + `participant.ts` + `bridge-insimul.ts` and fails
-  on any module in it that names a `*_ROOT` env var, calls `homedir()`, carries an absolute path
-  literal, or imports `node:fs`. Adding such an import to a contract on that closure — even a
-  harmless-looking one — goes red. Test support that needs the disk (`koine-schema.ts`,
-  `parity/harness.ts`) is fine precisely because nothing on the path imports it. The scan strips
-  comments first, so a doc comment may still explain the sibling-checkout flow.
+  `server/routes/participation-self-sufficiency.test.ts` (US-3) walked the static import closure
+  of the two serving route files + `participant.ts` + `bridge-insimul.ts` and failed on any
+  module in it that named a `*_ROOT` env var, called `homedir()`, carried an absolute path
+  literal, or imported `node:fs`. **That test died with `server/` in 80-cutover US-2** — the
+  serving side is Python, and `services/api/tests/test_capability_bus.py` proves the same thing
+  the way that matters most (the served well-known document is byte-identical to the contract
+  on disk, with no origin, no key and no registry). What is no longer mechanically enforced is
+  the *contracts-side* half: keep `participant.ts`, `capability-manifest.ts`,
+  `egress-policy.ts` and `bridge-insimul.ts` free of `node:fs` and of any absolute/`*_ROOT`
+  path by hand. Test support that needs the disk (`koine-schema.ts`) is fine precisely because
+  nothing on the participation path imports it.
 
 ## Public bridge mapping — `bridge-insimul.json` + `bridge-insimul.ts` (90-repatriate-koine-config US-2)
 
@@ -372,38 +378,37 @@ KINP identifier forms, and the §7.1 licence-class policy. Consumed by
   keeps its `Q` — an external authority's local id is not ours to lowercase. Our own locals are
   lowercased + percent-encoded by `csidToKinpCurie` per `docs/canonical-schema.md` §3.1.
 
-## Express → FastAPI parity baseline — `parity/` (30-api-shell-parity US-1)
+## Express → FastAPI parity baseline — `parity/` (30-api-shell-parity US-1; FROZEN by 80-cutover US-2)
 
 `parity/openapi.json` is the machine-readable contract the Python service
-(`services/api`) must satisfy as route groups move off `server/`. Full contract:
+(`services/api`) was ported against and is still graded against. Full contract:
 [`parity/README.md`](./parity/README.md). What to know before touching it:
 
-- **It is HARVESTED, never hand-written** (`npm run parity:spec` →
-  `scripts/gen-parity-spec.ts`): the generator boots the real Express app, walks
-  `app._router.stack`, and attributes each registration to its **call site** by
-  instrumenting `app.get/post/...` and reading a stack frame. That last bit is why a
-  constant-path registration (`app.get(MCP_ROUTE_PATH, …)`, the `.well-known`
-  documents) is attributed correctly where a static regex misses it — all 306 routes
-  carry a `source`. Gotcha: `app.get(name)` with **no handler** is Express's settings
-  getter, not a route; the instrumentation guards on `handlers.length > 0`.
-- **Fixtures record SHAPES, not values** (`parity/shape.ts`). The corpus grows and ids
-  churn, so a value assertion would be a liability. The comparison is deliberately
-  asymmetric — a ported handler may return *more* than the baseline, never less; a
-  key the baseline carried only sometimes is `optional`; an empty array passes (data,
-  not shape); a baseline `null` matches anything, but a `null` **branch of a union**
-  means nullable and only matches null.
-- **`parity/requests.json` is the one hand-written file**, and every entry must be
-  **side-effect free** — a read, or a write rejected at validation before it reaches a
-  store (the `expectStatus: 400` entries). Never record something that mutates the
-  corpus or the contribution queue. Re-record with `npm run parity:record` **before**
-  `npm run parity:spec` (the spec folds recorded shapes into response schemas).
-- **`harness.ts` is fetch-injected on purpose** — the same fixtures grade Express
-  (`parity/parity.test.ts`) and, as routes land, the FastAPI service. It is the only
-  file in `contracts/` that touches `node:fs` (`loadParityFixtures`); never import it
-  from `web/src`.
-- Both artifacts are deterministic (no wall-clock), so an unchanged API re-generates
-  byte-identically — and `parity.test.ts` fails when `openapi.json` drifts from the
-  live routing table.
+- **It is FROZEN, and there is nothing left in `contracts/` to run.** The spec was
+  *harvested* from the live Express routing table and the fixtures were *recorded*
+  against the same app; 80-cutover US-2 deleted that app, and with it
+  `scripts/gen-parity-spec.ts`, `scripts/record-parity-fixtures.ts`, `harness.ts`,
+  `shape.ts` and `parity.test.ts`. What survives here is data:
+  `openapi.json`, `requests.json` and `fixtures/`. There are no `parity:*` npm
+  scripts any more.
+- **Every consumer is Python.** `pinakes.parity` loads the spec as the service's
+  route catalog and `services/api/tests/test_not_implemented.py` asserts the
+  unported set is **empty** (306/306) — the replacement for the old "the spec
+  matches the live routing table" check, and a stronger claim.
+  `services/api/tests/test_parity_replay.py` replays every fixture and asserts each
+  one still binds to an operation in the spec; `services/api/tests/parity_shape.py`
+  is the port of the matcher half of `shape.ts`.
+- **Fixtures record SHAPES, not values.** The corpus grows and ids churn, so a value
+  assertion would be a liability. The comparison is deliberately asymmetric — a
+  serving handler may return *more* than the baseline, never less; a key the baseline
+  carried only sometimes is `optional`; an empty array passes (data, not shape); a
+  baseline `null` matches anything, but a `null` **branch of a union** means nullable
+  and only matches null.
+- **Do not edit these files to describe a new route.** They describe what Express
+  served, and that is the whole of their value. Today's API is specified by
+  `GET /api/openapi.json` (`services/api/src/pinakes/openapi_spec.py`, snapshotted at
+  `docs/openapi.json`). `verify.sh` treats a `contracts/parity/` change as a **Python**
+  source change for exactly this reason.
 
 ## Gotchas
 
@@ -411,7 +416,10 @@ KINP identifier forms, and the §7.1 licence-class policy. Consumed by
   satisfies SomeType` fails when the type uses string-literal unions. Assert with
   `as SomeType` and add a runtime validator (see `assertValidCanonicalSchema`) for
   enum-level checks. `resolveJsonModule` is enabled in `web/tsconfig.json`.
-- **`npm run check` (tsc) has a large pre-existing error baseline** (~145 errors in
-  `server/tsv-storage.ts`, `contracts/computation.ts`, etc.). Judge your change by whether
-  it adds *new* errors in the files you touched, not by a zero exit. Scope tests with
-  `npx vitest run <path>`.
+- **`npm run check` (tsc) is CLEAN and is a hard gate.** It carried a ~145-error
+  baseline for most of this project's life, almost all of it in `server/tsv-storage.ts`;
+  80-cutover US-2 deleted that file with the rest of the Express backend and the
+  baseline went with it. `.chief/verify.sh` fails on any error now, so a zero exit is
+  the bar — do not reintroduce the "judge by new errors only" habit. Note `check`
+  covers `web/` + `contracts/` only; `scripts/` has its own project and its own
+  `check:scripts`. Scope tests with `npx vitest run <path>`.

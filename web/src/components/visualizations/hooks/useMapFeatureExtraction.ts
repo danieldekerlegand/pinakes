@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { MapFeatureExtractionResult } from '../../../../../server/services/map-image-analyzer';
+import type { MapFeatureExtractionResult } from '@/lib/map/feature-extraction-types';
 import {
   createInitialExtractionState,
   resultToReviewableFeatures,

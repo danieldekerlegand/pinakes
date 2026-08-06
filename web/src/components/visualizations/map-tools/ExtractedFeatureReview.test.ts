@@ -3,7 +3,7 @@ import {
   resultToReviewableFeatures,
   createInitialExtractionState,
 } from './extracted-feature-utils';
-import type { MapFeatureExtractionResult } from '../../../../../server/services/map-image-analyzer';
+import type { MapFeatureExtractionResult } from '@/lib/map/feature-extraction-types';
 
 describe('createInitialExtractionState', () => {
   it('returns a clean initial state', () => {

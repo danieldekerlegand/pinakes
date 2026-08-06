@@ -5,13 +5,12 @@ thing that could be. `POST /api/scraping/archaeology` answers **202 with a job
 id** and does the work afterwards, so the id has to name something; this is that
 something.
 
-**`/api/scraping-jobs` is a different port unit and is still Express's**, which
-has one consequence worth stating plainly rather than discovering: until it lands
-here, a job started on this service is not visible to the dashboard's poll. The
-acquisition itself is unaffected — it writes to the contribution queue, which
-both servers share on disk — but its *progress* is only readable in-process. That
-is the cost of porting the route before the ledger it reports into, and it is
-temporary.
+**`/api/scraping-jobs` landed in pinakes:80 US-1's fifth slice**
+(:mod:`pinakes.routers.scraping`), which closed the hole this docstring used to
+describe: a job started on this service — by the archaeological acquisition, the
+Wikidata acquisition, or `POST /api/scraping-jobs` itself — is now visible to the
+dashboard's poll. The two servers still keep *separate* ledgers, because this one
+is in memory and so was Express's; only jobs opened in this process appear here.
 
 The store is in-memory, as the TypeScript's was: a job is progress, not a record,
 and it is expected not to survive a restart. It is therefore also per-process,
@@ -37,9 +36,16 @@ _counter = 0
 
 
 def create_job(
-    language_id: str, total_words: int, data_source: str | None = None
+    language_id: Any, total_words: Any, data_source: Any = None
 ) -> Job:
     """Open a pending job and return it.
+
+    The three parameters are `Any` rather than their declared TypeScript types
+    because `POST /api/scraping-jobs` hands them **straight out of a request
+    body** — `createJob(languageId, totalWords || 0, dataSource)` — and
+    TypeScript's annotations are not runtime checks. A caller that posts
+    `{"languageId": "fin", "totalWords": "lots"}` gets a job carrying the string,
+    on both servers. Narrowing here would be new validation, not a port.
 
     The id is `job_<epoch ms>_<n>`, as Express minted it — two acquisitions
     started in the same millisecond are still distinct, which is what the
@@ -69,8 +75,14 @@ def create_job(
         return dict(job)
 
 
-def update_job(job_id: str, **updates: Any) -> Job | None:
-    """Merge *updates* into a job, or return ``None`` if there is no such job."""
+def update_job(job_id: str, /, **updates: Any) -> Job | None:
+    """Merge *updates* into a job, or return ``None`` if there is no such job.
+
+    ``job_id`` is **positional-only** because `PATCH /api/scraping-jobs/{id}`
+    spreads a caller's body straight in (`{...job, ...req.body}`), so any key at
+    all can arrive — including `job_id`. Without the ``/`` that one body field
+    would be a `TypeError` where Express simply set it on the record.
+    """
     with _lock:
         job = _jobs.get(job_id)
         if job is None:
@@ -93,6 +105,29 @@ def all_jobs() -> list[Job]:
     return sorted(jobs, key=lambda job: job.get("createdAt") or "", reverse=True)
 
 
+def cleanup() -> None:
+    """Drop all but the 50 most recent **settled** jobs (``JobStore.cleanup``).
+
+    Called from `GET /api/scraping-jobs` and nowhere else, exactly as Express
+    called it: the list request is the only moment anything knows the store has
+    grown, and there is no timer. Running or pending jobs are never dropped
+    however old they are — a job that has not settled still has a writer.
+
+    Note the ordering is `getAllJobs()`'s (newest first) *before* the completed
+    filter, so "the 50 most recent" is by `createdAt`, not by completion time.
+    """
+    settled = [
+        job
+        for job in all_jobs()
+        if job.get("status") in ("completed", "failed")
+    ]
+    if len(settled) <= 50:
+        return
+    with _lock:
+        for job in settled[50:]:
+            _jobs.pop(job["id"], None)
+
+
 def reset() -> None:
     """Forget every job. The test seam; nothing in the service calls it."""
     global _counter
@@ -104,6 +139,7 @@ def reset() -> None:
 __all__ = [
     "Job",
     "all_jobs",
+    "cleanup",
     "create_job",
     "get_job",
     "reset",

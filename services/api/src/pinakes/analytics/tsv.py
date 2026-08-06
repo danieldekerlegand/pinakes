@@ -156,6 +156,23 @@ def nullable_int(row: list[str], index: int) -> int | None:
     return None if math.isnan(parsed) else int(parsed)
 
 
+def truthy_int(row: list[str], index: int) -> int | None:
+    """``cell ? parseInt(cell) || null : null`` — and **a zero reads as absent**.
+
+    Not :func:`nullable_int`, which keeps a ``0``: the ``|| null`` here runs on
+    the *parsed* number, so a cell of ``"0"`` and a cell of ``"nope"`` both come
+    back as ``None``. Both media-asset readers spell their `width`/`height` this
+    way, which is why a zero-pixel dimension has always meant "unrecorded".
+    """
+    raw = cell(row, index)
+    if index < 0 or not raw:
+        return None
+    parsed = js_parse_int(raw)
+    if math.isnan(parsed) or parsed == 0:
+        return None
+    return int(parsed)
+
+
 def int_or_zero(row: list[str], index: int) -> int:
     """``parseInt(cell, 10) || 0`` — an unparseable or zero cell is ``0``."""
     parsed = js_parse_int(cell(row, index))

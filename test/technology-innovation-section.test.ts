@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { TsvStorage } from "../server/tsv-storage";
 import {
   type Innovation,
   filterInnovationsByCulture,
@@ -9,6 +8,12 @@ import {
   sortInnovationsByYear,
   INNOVATION_CATEGORY_COLORS,
 } from "../web/src/components/culture-profile/technology-innovation-utils";
+
+// The corpus-integration half of this file (a `TsvStorage`-backed "Data Layer"
+// suite) retired with the Express backend in tasks/chief/80-cutover.json US-2.
+// The corpus is read by the Python service now, and services/api/tests/test_domain_routes.py (innovations)
+// asserts the same rows against the live TSVs. What stays here is what this file
+// is actually about: the pure client-side helpers.
 
 const mockInnovations: Innovation[] = [
   {
@@ -136,83 +141,6 @@ describe("Technology & Innovation - Utility Functions", () => {
       ];
       for (const cat of expected) {
         expect(INNOVATION_CATEGORY_COLORS[cat]).toBeTruthy();
-      }
-    });
-  });
-});
-
-describe("Technology & Innovation - Data Layer", () => {
-  const storage = new TsvStorage();
-
-  describe("getInnovations", () => {
-    it("loads innovations from TSV", async () => {
-      const innovations = await storage.getInnovations();
-      expect(innovations.length).toBeGreaterThanOrEqual(15);
-    });
-
-    it("returns innovations with required fields", async () => {
-      const innovations = await storage.getInnovations();
-      for (const i of innovations) {
-        expect(i.id).toBeTruthy();
-        expect(i.name).toBeTruthy();
-        expect(i.category).toBeTruthy();
-        expect(Array.isArray(i.cultureProfileIds)).toBe(true);
-        expect(Array.isArray(i.diffusionPath)).toBe(true);
-        expect(Array.isArray(i.relatedInnovations)).toBe(true);
-        expect(Array.isArray(i.associatedLanguages)).toBe(true);
-        expect(Array.isArray(i.sources)).toBe(true);
-      }
-    });
-
-    it("filters by category", async () => {
-      const writing = await storage.getInnovations({ category: "writing" });
-      expect(writing.length).toBeGreaterThan(0);
-      for (const i of writing) {
-        expect(i.category).toBe("writing");
-      }
-    });
-
-    it("filters by culture profile ID", async () => {
-      const sumerian = await storage.getInnovations({ cultureProfileId: "cp-sumerian" });
-      expect(sumerian.length).toBeGreaterThan(0);
-      for (const i of sumerian) {
-        expect(i.cultureProfileIds).toContain("cp-sumerian");
-      }
-    });
-  });
-
-  describe("getInnovationById", () => {
-    it("returns a specific innovation", async () => {
-      const cuneiform = await storage.getInnovationById("inn-001");
-      expect(cuneiform).not.toBeNull();
-      expect(cuneiform?.name).toBe("Cuneiform Writing");
-      expect(cuneiform?.category).toBe("writing");
-    });
-
-    it("returns null for unknown id", async () => {
-      const result = await storage.getInnovationById("inn-nonexistent");
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("cross-referencing innovations", () => {
-    it("related innovations reference valid innovation IDs", async () => {
-      const innovations = await storage.getInnovations();
-      const ids = new Set(innovations.map((i) => i.id));
-      for (const i of innovations) {
-        for (const relatedId of i.relatedInnovations) {
-          expect(ids.has(relatedId)).toBe(true);
-        }
-      }
-    });
-
-    it("parses year_invented as a number or null", async () => {
-      const innovations = await storage.getInnovations();
-      for (const i of innovations) {
-        if (i.yearInvented !== null) {
-          expect(typeof i.yearInvented).toBe("number");
-          expect(Number.isNaN(i.yearInvented)).toBe(false);
-        }
       }
     });
   });

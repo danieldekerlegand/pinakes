@@ -33,6 +33,7 @@ from fastapi.responses import JSONResponse
 
 from pinakes.contributions import store
 from pinakes.ingest import archaeology, jobs
+from pinakes.routers import _reads
 
 logger = logging.getLogger("pinakes.archaeology")
 
@@ -42,29 +43,6 @@ router = APIRouter(tags=["archaeology"])
 def _payload(body: Any) -> dict[str, Any]:
     """``req.body ?? {}`` — anything that is not an object is no fields at all."""
     return body if isinstance(body, dict) else {}
-
-
-def _js_number(value: Any) -> float:
-    """``Number(value)`` for a JSON value, NaN when it is not a number at all.
-
-    Express read the limit through `Number(...)` + `Number.isFinite(...)`, so
-    `"50"` is fifty and `"soon"` is a 400 rather than a 422. Declaring an `int`
-    query/body field would answer 422 instead, which is a different contract —
-    the same rule `routers/graph.py` follows for its numeric params.
-    """
-    if isinstance(value, bool):
-        return 1.0 if value else 0.0
-    if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
-        stripped = value.strip()
-        if not stripped:
-            return 0.0
-        try:
-            return float(stripped)
-        except ValueError:
-            return math.nan
-    return math.nan
 
 
 @router.get("/api/scraping/archaeology/sources")
@@ -108,7 +86,7 @@ def start_archaeology_acquisition(
 
     limit: int | None = None
     if data.get("limit") is not None:
-        parsed = _js_number(data["limit"])
+        parsed = _reads.body_number(data["limit"])
         if not math.isfinite(parsed) or parsed <= 0:
             return JSONResponse(
                 status_code=400,

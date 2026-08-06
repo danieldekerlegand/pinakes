@@ -30,15 +30,17 @@ Two divergences from the Express tool set, both deliberate:
   minted a `jobStore` job and streamed progress through `GET /api/scraping-jobs`,
   a surface this backend does not serve yet — see :mod:`pinakes.acquire.job`.
 * **`finetune` / `finetune_subscribe` are advertised but not dispatchable here.**
-  The KFT provider is a wrapper that shells out to the private `lugh` checkout
-  (`server/services/finetune-provider.ts`), and this service reaches everything
-  by import — `test_engine_inprocess.test_no_sidecar_or_subprocess_seam` fails
-  the build on a child-process spawn under ``src/``. The capability stays
-  advertised because the manifest advertises it and describe surfaces must agree
-  (the same "never gate the advertisement on the runner being present" rule the
-  optional-env degrade already follows); the *invoke* degrades with a message
-  naming where it does run. The whole entry is transitional either way: it
-  retires when `lugh` publishes its own KCB manifest.
+  The KFT provider is a wrapper that shells out to the private `lugh` checkout,
+  and this service reaches everything by import —
+  `test_engine_inprocess.test_no_sidecar_or_subprocess_seam` fails the build on a
+  child-process spawn under ``src/``. Until the cutover the wrapper existed on the
+  Express front (`server/services/finetune-provider.ts`) and the degrade could send
+  a caller there; 80-cutover US-2 deleted it, so **nothing in this repo dispatches a
+  KFT job any more** and the degrade names lugh's console script directly. The
+  capability stays advertised because the manifest advertises it and describe
+  surfaces must agree (the same "never gate the advertisement on the runner being
+  present" rule the optional-env degrade already follows). The whole entry is
+  transitional either way: it retires when `lugh` publishes its own KCB manifest.
 """
 
 from __future__ import annotations
@@ -258,12 +260,12 @@ def tool_definitions() -> list[dict[str, Any]]:
 #: shape the provider's own optional-env degrade uses: it names *where* the
 #: capability runs rather than pretending it does not exist.
 FINETUNE_DEGRADE = (
-    "The KFT finetune provider runs out of the private `lugh` checkout via "
-    "`server/services/finetune-provider.ts`, which this service cannot dispatch "
-    "to: it reaches every backend by import and spawns no child process. The "
-    "capability stays advertised because the manifest advertises it; invoke it "
-    "on the Express front, or against lugh's own KCB provider once it publishes "
-    "one. See /api/_parity/coverage."
+    "The KFT finetune provider runs out of the private `lugh` checkout, which this "
+    "service cannot dispatch to: it reaches every backend by import and spawns no "
+    "child process. The capability stays advertised because the manifest advertises "
+    "it. Run the job directly \u2014 `uv run --project $LUGH_ROOT pinakes-train-slm "
+    "--kft-job <manifest>` \u2014 or invoke it against lugh's own KCB provider once "
+    "it publishes one."
 )
 
 

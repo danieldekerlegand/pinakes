@@ -1,11 +1,12 @@
 """`pinakes.ingest.url_extractor` — a pasted URL becomes a reviewable draft.
 
 Graded against the **same recorded fixtures** as
-`server/services/url-extractor.test.ts` (`server/services/fixtures/url-extractor/`),
-which is what says the two implementations read one Wikidata payload the same
-way. Nothing here touches the network: the deps are a fake, and the one test
-that exercises the live boundary drives it over a fake transport installed
-behind the engine's client.
+`server/services/url-extractor.test.ts` did (they live at
+`services/api/tests/fixtures/url-extractor/` since the cutover moved them off
+`server/`), which is what says the two implementations read one Wikidata
+payload the same way. Nothing here touches the network: the deps are a fake,
+and the one test that exercises the live boundary drives it over a fake
+transport installed behind the engine's client.
 """
 
 from __future__ import annotations
@@ -16,15 +17,12 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pinakes_contracts import contracts_dir
 from pinakes_engine.acquire.http import HttpClient, HttpResponse
 
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import url_extractor as extractor
 
-FIXTURES = (
-    contracts_dir().parent / "server" / "services" / "fixtures" / "url-extractor"
-)
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "url-extractor"
 
 
 def load(name: str) -> Any:

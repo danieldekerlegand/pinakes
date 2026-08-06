@@ -40,14 +40,21 @@ COLLECTIONS_DIR_ENV = "PINAKES_COLLECTIONS_DIR"
 ANNOTATIONS_DIR_ENV = "PINAKES_ANNOTATIONS_DIR"
 #: Env var pointing at the steward adoptions (a single `stewards.json`).
 STEWARDSHIP_DIR_ENV = "PINAKES_STEWARDSHIP_DIR"
+#: Env var pointing at the living-dataset state (a single `state.json`).
+LIVING_DATASET_DIR_ENV = "PINAKES_LIVING_DATASET_DIR"
 #: Env var pointing at the lexicon corpus (`*.tsv`).
 LEXICONS_DIR_ENV = "PINAKES_LEXICONS_DIR"
+#: Env var pointing at the GeoJSON boundary files the region resolver indexes.
+BOUNDARIES_DIR_ENV = "PINAKES_BOUNDARIES_DIR"
+#: Env var pointing at Glottolog's voronoi macroarea polygons.
+GLOTTOLOG_VORONOI_DIR_ENV = "PINAKES_GLOTTOLOG_VORONOI_DIR"
 
 #: Relative to `contracts/`, which `pinakes_contracts` locates for us.
 PARITY_SPEC_CONTRACTS_RELPATH = Path("parity") / "openapi.json"
 
 #: Relative to the repo root. Also the marker that *identifies* the repo root —
-#: it is generated (`npm run parity:spec`) and committed, so it is always there.
+#: it is committed, and frozen since the cutover deleted its generator, so it is
+#: always there (see `contracts/parity/README.md`).
 PARITY_SPEC_RELPATH = Path("contracts") / PARITY_SPEC_CONTRACTS_RELPATH
 
 #: Relative to the repo root. Must track `build.outDir` in `web/vite.config.ts`.
@@ -60,7 +67,18 @@ CHANGELOG_RELPATH = Path("data") / "runtime" / "changelog"
 COLLECTIONS_RELPATH = Path("data") / "runtime" / "collections"
 ANNOTATIONS_RELPATH = Path("data") / "runtime" / "annotations"
 STEWARDSHIP_RELPATH = Path("data") / "runtime" / "stewardship"
+LIVING_DATASET_RELPATH = Path("data") / "runtime" / "living-dataset"
 LEXICONS_RELPATH = Path("data") / "source" / "lexicons"
+
+#: The two directories `getDefaultBoundaryResolver` loads, both resolved against
+#: `process.cwd()` over there — which is the repo root, because the server has to
+#: be started from it. **Neither exists in a plain checkout**: `data/boundaries/`
+#: is unpopulated and `sources/glottolog/` is an unchecked-out submodule, so the
+#: resolver is legitimately empty (`geo/boundaries.py` says what that means).
+BOUNDARIES_RELPATH = Path("data") / "boundaries"
+GLOTTOLOG_VORONOI_RELPATH = (
+    Path("sources") / "glottolog" / "config" / "macroareas" / "voronoi"
+)
 
 
 class RepoRootNotFound(RuntimeError):
@@ -150,6 +168,21 @@ def stewardship_dir() -> Path:
     return _data_dir(STEWARDSHIP_DIR_ENV, STEWARDSHIP_RELPATH)
 
 
+def living_dataset_dir() -> Path:
+    """Living-dataset state — a single `state.json`, like the steward roster."""
+    return _data_dir(LIVING_DATASET_DIR_ENV, LIVING_DATASET_RELPATH)
+
+
 def lexicons_dir() -> Path:
     """The lexicon corpus an approved AI draft is promoted into."""
     return _data_dir(LEXICONS_DIR_ENV, LEXICONS_RELPATH)
+
+
+def boundaries_dir() -> Path:
+    """GeoJSON region boundaries. Read-only, and absent in a plain checkout."""
+    return _data_dir(BOUNDARIES_DIR_ENV, BOUNDARIES_RELPATH)
+
+
+def glottolog_voronoi_dir() -> Path:
+    """Glottolog's macroarea polygons — the resolver's second source."""
+    return _data_dir(GLOTTOLOG_VORONOI_DIR_ENV, GLOTTOLOG_VORONOI_RELPATH)

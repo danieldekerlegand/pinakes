@@ -15,9 +15,12 @@ from pinakes import paths
 from pinakes.app import create_app
 from pinakes.engine import corpus as engine_corpus
 from pinakes.engine import graph as engine_graph
+from pinakes.geo import boundaries as boundary_handles
+from pinakes.ingest import family_scraper, mythology_scraper
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import jobs as ingest_jobs
 from pinakes.kcb import registry as kcb_registry
+from pinakes.learning import quiz as quiz_handles
 from pinakes.parity import ParityCoverage, ParityRoute, load_parity_routes
 from pinakes.paths import parity_spec_path
 from pinakes.routers import _auth as write_guard_handles
@@ -83,6 +86,7 @@ def isolated_data_trees(
         paths.COLLECTIONS_DIR_ENV: tmp_path / "collections",
         paths.ANNOTATIONS_DIR_ENV: tmp_path / "annotations",
         paths.STEWARDSHIP_DIR_ENV: tmp_path / "stewardship",
+        paths.LIVING_DATASET_DIR_ENV: tmp_path / "living-dataset",
         paths.LEXICONS_DIR_ENV: tmp_path / "lexicons",
     }
     for variable, directory in trees.items():
@@ -94,6 +98,7 @@ def isolated_data_trees(
         "collections": trees[paths.COLLECTIONS_DIR_ENV],
         "annotations": trees[paths.ANNOTATIONS_DIR_ENV],
         "stewardship": trees[paths.STEWARDSHIP_DIR_ENV],
+        "living_dataset": trees[paths.LIVING_DATASET_DIR_ENV],
         "lexicons": trees[paths.LEXICONS_DIR_ENV],
     }
 
@@ -141,6 +146,23 @@ def reset_scraping_jobs() -> Iterator[None]:
 
 
 @pytest.fixture(autouse=True)
+def reset_tsv_generators() -> Iterator[None]:
+    """Release both TSV generators' concurrency guards between tests.
+
+    Each is a static `isScraping` boolean over there and module state here, and
+    the whole point of it is that it **outlives a failed run** — so a test that
+    drove a generator to a throw before the `finally` (the missing-key path
+    raises ahead of it) would otherwise leave the next test's run refused as a
+    duplicate. Same class of module state as :func:`reset_scraping_jobs`.
+    """
+    family_scraper.reset()
+    mythology_scraper.reset()
+    yield
+    family_scraper.reset()
+    mythology_scraper.reset()
+
+
+@pytest.fixture(autouse=True)
 def reset_alias_index() -> Iterator[None]:
     """Drop the memoised csid resolver between tests.
 
@@ -177,6 +199,36 @@ def reset_kcb(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     kcb_registry.reset_registration()
     yield
     kcb_registry.reset_registration()
+
+
+@pytest.fixture(autouse=True)
+def reset_boundary_resolver() -> Iterator[None]:
+    """Forget the shared region resolver between tests.
+
+    It is built once and cached in module state (as `getDefaultBoundaryResolver`
+    cached its singleton), so without this the first test to touch
+    `/api/map/boundaries/*` decides what every later one sees — and in a plain
+    checkout that first answer is an *empty* index, which would then survive a
+    test that pointed `$PINAKES_BOUNDARIES_DIR` at a seeded directory. Same class
+    of module state as :func:`reset_write_guard`.
+    """
+    boundary_handles.reset_default_boundary_resolver()
+    yield
+    boundary_handles.reset_default_boundary_resolver()
+
+
+@pytest.fixture(autouse=True)
+def reset_quiz_random() -> Iterator[None]:
+    """Put the quiz sampler back on `random.random`.
+
+    `/api/quiz` draws every choice from an injectable source — the seam that
+    replaces monkeypatching `Math.random` — and a test that installs a scripted
+    one must not leave it installed. The counterpart of
+    `distance.calculator.configure(None)`.
+    """
+    quiz_handles.configure(None)
+    yield
+    quiz_handles.configure(None)
 
 
 @pytest.fixture

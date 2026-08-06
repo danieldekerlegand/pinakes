@@ -31,9 +31,19 @@ def test_client_side_routes_fall_back_to_the_shell(built_client: TestClient) -> 
 
 
 def test_the_static_mount_never_shadows_the_api(built_client: TestClient) -> None:
-    """The mount is last, so a baseline route still answers its 501."""
-    assert built_client.get("/api/languages").status_code == 501
+    """The mount is last, so every `/api/*` route still answers.
+
+    This used to name a still-unported path and assert its **501**, because only
+    an unported route proved the 501 catalog itself outranks the mount. The
+    catalog is empty since pinakes:80 US-1 ported the last route, so what is
+    left to prove is the mount order against the routers — the deepest baseline
+    path and the shallowest additive one, both of which the SPA fallback would
+    otherwise answer with `index.html` and a 200.
+    """
+    assert built_client.get("/api/openapi.json").status_code == 200
+    assert built_client.get("/api/languages/nope").status_code == 404
     assert built_client.get("/api/health").status_code == 200
+    assert "<title>" not in built_client.get("/api/health").text
 
 
 def test_unknown_backend_paths_404_rather_than_serving_html(
@@ -61,7 +71,7 @@ def test_without_a_build_the_root_explains_itself(unbuilt_client: TestClient) ->
 
 def test_without_a_build_the_api_still_works(unbuilt_client: TestClient) -> None:
     assert unbuilt_client.get("/api/health").status_code == 200
-    assert unbuilt_client.get("/api/languages").status_code == 501
+    assert unbuilt_client.get("/api/openapi.json").status_code == 200
 
 
 def test_a_dist_without_index_html_counts_as_unbuilt(tmp_path: Path) -> None:

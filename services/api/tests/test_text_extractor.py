@@ -2,7 +2,7 @@
 
 Graded against the same recorded model payload as
 `server/services/text-extractor.test.ts`
-(`server/services/fixtures/text-extractor/roman-empire-paragraph.json`), which is
+(`services/api/tests/fixtures/text-extractor/roman-empire-paragraph.json`), which is
 what says the two implementations normalise one answer the same way. No model is
 called anywhere in this file; the one test that exercises the live boundary
 drives it over a fake transport behind the engine's client.
@@ -16,16 +16,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pinakes_contracts import contracts_dir
 from pinakes_engine.acquire.http import HttpClient, HttpResponse
 
 from pinakes.ingest import http as ingest_http
 from pinakes.ingest import text_extractor as extractor
 
 FIXTURE = (
-    contracts_dir().parent
-    / "server"
-    / "services"
+    Path(__file__).resolve().parent
     / "fixtures"
     / "text-extractor"
     / "roman-empire-paragraph.json"

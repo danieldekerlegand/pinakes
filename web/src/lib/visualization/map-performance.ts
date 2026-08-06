@@ -81,7 +81,7 @@ export function cullToViewport<T extends Feature>(features: T[], viewport: Bound
 
 /**
  * Serialize a viewport to the `west,south,east,north` bbox string understood by
- * the `/api/map/*` endpoints (see server/services/geo-bbox.ts). Coordinates are
+ * the `/api/map/*` endpoints (see services/api/src/pinakes/geo/bbox.py). Coordinates are
  * rounded to 5 decimal places (~1m) so identical viewports produce identical
  * cache keys.
  */

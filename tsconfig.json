@@ -2,9 +2,9 @@
   "//": [
     "NOT the project config — that is web/tsconfig.json (20-repo-restructure US-2).",
     "This shim exists because `tsx` resolves path aliases from the nearest",
-    "tsconfig.json at or above its cwd, and the still-TypeScript entry points",
-    "(server/, scripts/) run from the repo root. Without it `npm run dev` and",
-    "every `tsx scripts/*.ts` fail to resolve @contracts/* at runtime.",
+    "tsconfig.json at or above its cwd, and the remaining TypeScript entry",
+    "points (scripts/) run from the repo root. Without it every",
+    "`tsx scripts/*.ts` fails to resolve @contracts/* at runtime.",
     "The baseUrl/paths below are stated explicitly (not inherited) so they are",
     "correct from HERE; keep them in sync with web/tsconfig.json's."
   ],

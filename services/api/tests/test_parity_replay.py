@@ -107,6 +107,15 @@ GRADED: tuple[str, ...] = (
     "get-kcb-manifest",  # pinakes:65 US-1
     "post-graph-explain-invalid",  # pinakes:65 US-2
     "post-timeline-event-invalid",  # pinakes:65 US-2
+    "get-language-families",  # pinakes:80 US-1
+    "get-languages",  # pinakes:80 US-1
+    "get-language-by-id",  # pinakes:80 US-1
+    "get-language-missing",  # pinakes:80 US-1
+    "get-culture-profiles",  # pinakes:80 US-1
+    "get-culture-profile-by-id",  # pinakes:80 US-1
+    "get-map-civilizations",  # pinakes:80 US-1
+    "get-map-civilizations-viewport",  # pinakes:80 US-1
+    "get-scraping-jobs",  # pinakes:80 US-1
 )
 
 

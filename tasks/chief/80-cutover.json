@@ -25,7 +25,7 @@
         "The FastAPI service serves the web/ build at the root and all API routes in one process (no sidecar, no Node).",
         "An end-to-end smoke (start the Python service, load the client, exercise graph + a write flow) passes."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -38,7 +38,7 @@
         "`git grep -in culturescrape` across the whole repo returns nothing outside historical docs/archive.",
         "A fresh clone can build web/, start the Python service, and run the full suite via .chief/verify.sh green."
       ],
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

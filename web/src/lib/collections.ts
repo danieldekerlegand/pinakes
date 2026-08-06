@@ -1,7 +1,7 @@
 /**
  * Collaborative collections — client-side types + pure helpers (US-007).
  *
- * Mirrors the server contract in `server/services/collections.ts`. The pure,
+ * Mirrors the server contract in `services/api/src/pinakes/collab/collections.py`. The pure,
  * side-effect-free helpers here (stable-id, share-url, query-key builders,
  * membership checks) are unit-tested in the node-env vitest suite; the React
  * Query hooks live in `web/src/hooks/use-collections.ts` and the UI in

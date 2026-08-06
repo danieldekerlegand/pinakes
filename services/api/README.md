@@ -7,8 +7,10 @@ Distinct from `pinakes_engine` in [`engine/`](../../engine/) and from the ML/tra
 workspace, which now lives in the private `lugh` repo (see
 [`docs/LUGH-EXTRACTION-PLAN.md`](../../docs/LUGH-EXTRACTION-PLAN.md)).
 
-**Status: the shell is up; no route group is ported yet.** All 306 baseline
-routes answer `501`. Node/Express is still what serves them for real.
+**Status: the cutover is done — 306/306 baseline routes are served here** and
+the 501 catalog is empty (pinakes:80 US-1). This process serves the built React
+client at `/` and the whole `/api` surface, with no Node and no sidecar. Deleting
+`server/` is US-2.
 
 ```
 services/api/
@@ -43,6 +45,21 @@ uv run --all-packages pytest services/api/tests -q
 uv run --all-packages ruff check services/api
 uv run --directory services/api --all-packages mypy
 ```
+
+The suite drives the app in-process through `TestClient`. What that cannot check
+is that the *process* starts, binds and serves — so there is one end-to-end
+smoke over real HTTP, and it is what US-1's third acceptance criterion is:
+
+```bash
+npx vite build --config web/vite.config.ts    # the client half
+uv run --all-packages python scripts/smoke-cutover.py
+```
+
+It starts `python -m pinakes` on a free port, loads the client, reads the corpus,
+checks the graph surface's *contract* (a checkout with no Neo4j must degrade, not
+fail), and drives a write flow end to end into a temp runtime tree. It is not in
+the merge gate — it needs a client build — so run it after a change to `app.py`,
+`client.py` or `paths.py`.
 
 `--all-packages` matters: this member and `engine/` share one root `.venv`, and
 `--project services/api` alone does not install the engine's test toolchain — so

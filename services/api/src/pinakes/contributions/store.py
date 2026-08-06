@@ -31,6 +31,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
 
+from pinakes.collab import verification
 from pinakes.paths import contributions_dir
 
 #: A contribution record, as it is stored and served. Deliberately a plain dict:
@@ -110,6 +111,20 @@ class SubmitResult(NamedTuple):
     validation: ValidationResult
 
 
+class ConfirmResult(NamedTuple):
+    """``confirm``'s answer: the record, the state, and whether it counted.
+
+    ``added=False`` is not a failure of the *store* — it is a duplicate reviewer
+    or a self-confirmation, and only the route knows those are a 409 and a 400.
+    ``reason`` is what it discriminates on, and it is echoed to the client.
+    """
+
+    contribution: Contribution
+    verification: dict[str, Any]
+    added: bool
+    reason: str | None = None
+
+
 # ── JavaScript semantics the record shape depends on ─────────────────────────
 
 
@@ -166,9 +181,50 @@ def js_slice(items: list[Any], start: float, end: float) -> list[Any]:
     return items[lo:hi] if hi > lo else []
 
 
+class _JsonNull:
+    """A value ``JSON.stringify`` writes as ``null``.
+
+    This module spells *undefined* as ``None`` — :func:`_compact` drops the key
+    entirely, which is what the TypeScript writer does. A JavaScript ``NaN`` is
+    neither: it serialises as a **present** ``null``, and the difference is
+    observable one request later, because ``Math.round(undefined)`` is ``NaN``
+    while ``Math.round(null)`` is ``0``. One sentinel is cheaper than teaching
+    every optional in the record to carry a tri-state.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging aid
+        return "JSON_NULL"
+
+
+#: The sole :class:`_JsonNull`. Compare with ``is``.
+JSON_NULL = _JsonNull()
+
+
+def _first_present(*candidates: Any) -> Any:
+    """``a ?? b ?? c`` — the first candidate that is neither null nor undefined.
+
+    Not ``or``: a blank string and a zero are *present* to ``??`` and falsy to
+    ``||``, and the difference decides whether a steward attribution records the
+    domain it was made under.
+    """
+    for candidate in candidates:
+        if candidate is not None:
+            return candidate
+    return None
+
+
 def _compact(record: Contribution) -> Contribution:
-    """Drop unset optionals, the way ``JSON.stringify`` drops ``undefined``."""
-    return {key: value for key, value in record.items() if value is not None}
+    """Drop unset optionals, the way ``JSON.stringify`` drops ``undefined``.
+
+    :data:`JSON_NULL` survives, as the literal ``null`` it stands for.
+    """
+    return {
+        key: (None if value is JSON_NULL else value)
+        for key, value in record.items()
+        if value is not None
+    }
 
 
 def _epoch_ms(timestamp: Any) -> float:
@@ -493,6 +549,142 @@ class ContributionStore:
         contribution = _compact(contribution)
         self.save(contribution)
         return contribution
+
+    def confirm(
+        self,
+        contribution_id: str,
+        *,
+        reviewer: str,
+        is_steward: bool = False,
+        domain: str | None = None,
+        note: Any = None,
+        config: verification.VerificationConfig | None = None,
+        now: str | None = None,
+    ) -> ConfirmResult | None:
+        """Record an independent confirmation from a distinct reviewer.
+
+        ``None`` for an unknown id. Otherwise the updated contribution and its
+        verification state, with ``added=False`` and a ``reason`` when the
+        confirmation was a no-op — a duplicate reviewer, or the contributor
+        trying to confirm their own work.
+
+        Three shapes here are the TypeScript's and are load-bearing because both
+        servers read this queue:
+
+        * **``baseConfidence`` is preserved on first confirmation**, so the ramp
+          is recomputed from the original figure every time. Recomputing off the
+          already-raised ``confidence`` would compound.
+        * **``??``, not ``or``.** A base confidence of ``0`` is kept as ``0``;
+          an absent one stays absent (and rounds to ``NaN``, which reaches the
+          client as ``null``).
+        * **A confirmation's unset keys are absent.** A non-steward's record has
+          no ``isSteward`` and no ``domain`` key at all, because
+          ``JSON.stringify`` writes none.
+        """
+        contribution = self.get(contribution_id)
+        if contribution is None:
+            return None
+
+        settings = (
+            config if config is not None else verification.DEFAULT_VERIFICATION_CONFIG
+        )
+        stamp = now if now is not None else iso_now()
+
+        base_number = verification.base_confidence(contribution)
+        # `contribution.baseConfidence = contribution.baseConfidence ??
+        # contribution.confidence`. Assigning `undefined` writes no key, which
+        # `_compact` reproduces on save; assigning a `null` confidence through
+        # writes the null.
+        if contribution.get("baseConfidence") is None:
+            contribution["baseConfidence"] = (
+                JSON_NULL
+                if contribution.get("confidence") is None
+                and "confidence" in contribution
+                else contribution.get("confidence")
+            )
+        raw_existing = contribution.get("confirmations")
+        existing: list[verification.Confirmation] = (
+            list(raw_existing) if isinstance(raw_existing, list) else []
+        )
+
+        contributor = contribution.get("contributorName")
+        if js_truthy(contributor) and verification.reviewer_key(
+            str(contributor)
+        ) == verification.reviewer_key(reviewer):
+            return ConfirmResult(
+                contribution=_compact(contribution),
+                verification=verification.summarize_verification(
+                    base_number, existing, settings
+                ),
+                added=False,
+                reason="self",
+            )
+
+        candidate: verification.Confirmation = {
+            "reviewer": verification.js_trim(reviewer),
+            "confirmedAt": stamp,
+        }
+        if is_steward:
+            candidate["isSteward"] = True
+            if domain is not None:
+                candidate["domain"] = domain
+        if isinstance(note, str):
+            candidate["note"] = note
+
+        result = verification.add_confirmation(existing, candidate)
+        if not result.added:
+            return ConfirmResult(
+                contribution=_compact(contribution),
+                verification=verification.summarize_verification(
+                    base_number, existing, settings
+                ),
+                added=False,
+                reason=result.reason,
+            )
+
+        contribution["confirmations"] = result.confirmations
+        confidence = verification.compute_confidence(
+            base_number, result.confirmations, settings
+        )
+        contribution["confidence"] = (
+            JSON_NULL
+            if isinstance(confidence, float) and math.isnan(confidence)
+            else confidence
+        )
+
+        if verification.is_verified(result.confirmations, settings):
+            contribution["verified"] = True
+            if not js_truthy(contribution.get("verifiedAt")):
+                contribution["verifiedAt"] = stamp
+            if contribution.get("status") == "pending":
+                contribution["status"] = "approved"
+                contribution["reviewedAt"] = stamp
+
+        stewards = [c for c in result.confirmations if c.get("isSteward")]
+        if stewards:
+            contribution["stewardAttribution"] = [
+                {
+                    "steward": verification.js_trim(str(c.get("reviewer", ""))),
+                    # `c.domain ?? input.domain ?? ""` — an *earlier* steward's
+                    # recorded domain wins over this request's, so re-confirming
+                    # under a different domain does not rewrite the attribution
+                    # of a claim already made.
+                    "domain": _first_present(c.get("domain"), domain, ""),
+                }
+                for c in stewards
+            ]
+
+        # `save` compacts for itself, so it is handed the *raw* record — a
+        # `JSON_NULL` that has already been resolved to `None` would be dropped
+        # by the second pass.
+        self.save(contribution)
+        return ConfirmResult(
+            contribution=_compact(contribution),
+            verification=verification.summarize_verification(
+                base_number, result.confirmations, settings
+            ),
+            added=True,
+        )
 
     def record_ai_review(
         self,

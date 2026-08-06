@@ -35,13 +35,26 @@ def test_health_reports_a_wired_app(unbuilt_client: TestClient) -> None:
 
 
 def test_app_serves_its_own_openapi(unbuilt_client: TestClient) -> None:
-    """FastAPI's schema describes what this service serves — not the baseline."""
+    """FastAPI's schema describes what this service serves — not the baseline.
+
+    This used to assert that a *still-unported* baseline path was absent, which
+    is what said the 501 stubs are registered with ``include_in_schema=False``.
+    pinakes:80 US-1 ported the last of them, so there is no unported path left
+    to name; what is left to assert is the property directly, off the coverage
+    the app computed.
+    """
     schema = unbuilt_client.get("/openapi.json").json()
     assert schema["info"]["title"] == "pinakes"
     assert "/api/health" in schema["paths"]
-    # 501 stubs are registered with include_in_schema=False; advertising routes
-    # the service does not implement would make its own contract a fiction.
-    assert "/api/languages" not in schema["paths"]
+    assert coverage_of(unbuilt_client).unported == ()
+
+    # The two documents are different documents, and this is the difference:
+    # the generated one describes every route this process registers, the
+    # published one describes the API a third party integrates against.
+    published = unbuilt_client.get("/api/openapi.json").json()
+    assert published["info"]["title"] == "pinakes Public API"
+    assert "/api/health" not in published["paths"]
+    assert "/api/_parity/coverage" not in published["paths"]
 
 
 def test_create_app_is_repeatable(built_dist: Path) -> None:

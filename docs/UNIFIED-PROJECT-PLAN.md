@@ -93,17 +93,24 @@ pinakes/
 **Status (20 US-1 + US-4):** the package, the docker service, the env vars
 (`CULTURESCRAPE_*` → `PINAKES_ENGINE_*`), the API paths
 (`/api/scraping/culturescrape/*` → `/api/scraping/engine/*`) and the server's
-`CultureScrape*` exports (→ `Engine*`) are all done. Two deliberate survivors:
-the **`cs:` id-space** (a data namespace shared with `contracts/`, the `lugh` repo and the
-client — a corpus migration, not a rename) and the client's
-`culturescrape.adapter.ts` / `"culturescrape-graph"` **dataset id** (a UI/URL
-identifier the e2e `?ds=` links carry; it retires with the explorer work, not
-with the package).
+`CultureScrape*` exports (→ `Engine*`) are all done.
+
+**Status (80-cutover US-2): the name is gone from live code.** The client's
+`culturescrape.adapter.ts` / `"culturescrape-graph"` **dataset id** — the last
+survivor, a UI/URL identifier the e2e `?ds=` links carried — is now
+`shared-graph.adapter.ts` / `"pinakes-graph"`. `git grep -in culturescrape`
+returns only historical documentation (this file, `build/README.md`'s and
+`infra/README.md`'s move-map rows recording the rename, `docs/archive/`, and the
+completed tasklists under `tasks/chief/completed/`).
+
+**One deliberate survivor, and it is not a project name:** the **`cs:`
+id-space** — a data namespace shared with `contracts/`, the `lugh` repo and the
+client. Renaming it is a corpus migration, not a rename.
 
 ### Move map (current → target)
 | Current | Target | Note |
 |---|---|---|
-| `server/` (TS) | `services/api/src/pinakes/` | **rewritten** in Python; Node/Express/Drizzle deleted |
+| `server/` (TS) | `services/api/src/pinakes/` | **rewritten** in Python; Node/Express/Drizzle **deleted** (80 US-2) |
 | `core/` (`culturescrape`) | `engine/src/pinakes_engine/` | renamed; kept + absorbed |
 | `core/inputs/` | `engine/inputs/` | moves with the engine |
 | `client/` | `web/` | stays TS; root TS configs move in with it — **done** (20 US-2) |
@@ -142,7 +149,7 @@ Today scraping logic is split: the Python `culturescrape` acquire engine (~7k LO
 - **Phase 1 — Engine in-process.** Fold the sidecar + CLI seams into direct calls; port the graph routes (`/api/graph/*`) onto the in-process engine.
 - **Phase 2 — Port the pure-TS backend.** Route group by route group (contributions/review, collections, annotations, changelog, stewardship, analytics, correlations, entity resolver, etc.), each verified against the Phase-0 parity spec.
 - **Phase 3 — Unify scraping (§6).** Consolidate the TS `*-scraper.ts` stack into the Python acquisition layer.
-- **Phase 4 — Cutover.** Serve the client from FastAPI; delete Node/Express + the TS backend; single swap with a rollback path (keep the old server tag runnable until parity is signed off).
+- **Phase 4 — Cutover. DONE (pinakes:80, 2026-08-05).** US-1 ported the last of the 306 baseline routes — `/api/_parity/coverage` reports 306/306 and the 501 catalog is empty — and proved one Python process serves the built client plus the whole `/api` surface (`scripts/smoke-cutover.py`). US-2 deleted `server/` (81 test files with it), the Express `dev`/`start` entry points and the esbuild leg of `build`, and 21 backend-only npm dependencies. The rollback path is the git history rather than a runnable tag: `contracts/parity/` is **frozen** at the Express baseline and is what the Python service is still graded against (`contracts/parity/README.md`). Three things survived the delete on purpose — two pure-TSV libraries that repo tooling consumes (`scripts/lib/{data-quality-scorer,canonical-edges}.ts`), the recorded HTTP fixtures the ingest tests replay (now `services/api/tests/fixtures/`), and the `KCB_MANIFEST_EXTENSION_URI` constant (now `contracts/capability-manifest.ts`). One capability lost its runner: the KFT `finetune` MCP tool is still **advertised and described** but no longer dispatchable from this repo, because its wrapper was `server/services/finetune-provider.ts`; run lugh's console script directly (`docs/capability-bus.md`).
 - **Phase 5 — (Deferred) Rust/Go hot path.** Only if bulk-transform profiling over the real corpus justifies a `pyo3` component.
 
 ## 8. Risks & mitigations

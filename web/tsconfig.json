@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*", "../contracts/**/*", "../server/**/*"],
+  "include": ["src/**/*", "../contracts/**/*"],
   "exclude": [
     "../node_modules",
     "../build",

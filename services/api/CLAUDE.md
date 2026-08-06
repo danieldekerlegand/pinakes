@@ -711,3 +711,897 @@ propose the third, DNA→culture ancestry, and `POST /api/graph/explain`. Covera
   **validation rejections**, refused before either backend touches a store, a graph or
   a model, and `test_timeline_event.py` / `test_connection_narrative.py` pin the two
   400 bodies. The other nine routes are fixture-free and retired to 501.
+
+## The cutover's first slice — `routers/{retired,catalog}.py` + `lexicons/catalog.py` (pinakes:80 US-1)
+
+The cutover band, and the first one that is not a tidy "port this route group": it
+opened against **222 outstanding routes**, not the handful the tasklist's `dependsOn`
+implied. Coverage 84/306 → **125/306**. Read the arithmetic before planning the next
+slice — `.chief/state/progress.txt` carries the breakdown and the recommended order.
+
+- **The 501s are not interchangeable, and this band added the third.** `not_ported`
+  (`not_implemented.py`) says *the TypeScript backend still serves this*; `ported`
+  says *another process serves it at this path*; `retired` (`routers/retired.py`)
+  says *nothing serves it — run `pinakes_engine fetch`*. The thirty-one retirement
+  routes were never going to be claimed by a port tasklist, because there is no
+  handler to port, and answering `not_ported` for them would have pointed callers at
+  a process that is being deleted. Registering them here is also what moves them out
+  of the coverage complement.
+- **A retired route's `route` field keeps Express's `:id` spelling while the
+  *registration* uses `{id}`.** One is prose that was recorded that way, the other is
+  the literal the parity diff matches. Conflating them moves the coverage number the
+  wrong way and nothing else notices.
+- **`lexicons/catalog.py` is the filter half of `tsv-storage.ts`, split from the
+  loader half deliberately.** A loader is graded by row counts on the live corpus
+  (`test_lexicon_storage.py`); a filter is graded by which rows survive
+  (`test_catalog_routes.py`). Fused, the second is untestable without the first.
+- **`jsmath.locale_key` was wrong and the family tree was where it showed.** It folded
+  case but not accents or punctuation, so `Aché` sorted after `Achuar` and `G||ana`
+  after `G|ui`. It is now four ICU levels (accent-stripped base with each character
+  ranked by class → combining marks → case → the raw string) and reproduces node's
+  `localeCompare` **exactly** across all 2,614 display names in the live corpus; the
+  old key disagreed in 2,267 positions. `LocaleKey` is the exported alias — annotate
+  with it rather than restating the tuple.
+- **Six recorded fixtures grade this slice** (`get-language{s,-families,-by-id,-missing}`,
+  `get-culture-profile{s,-by-id}`), and the whole group was additionally proved
+  byte-identical to Express over 31 live requests with the throwaway-script method the
+  earlier bands describe — every filter combination, both 404s, the 400 on bad
+  coordinates, and the full family forest.
+- **The envelopes are inconsistent and that is the port.** `/api/languages` answers a
+  bare array, `/api/culture-profiles` answers `{profiles, count}`, `/api/stats` answers
+  a flat object. Regularising them here would be a client change wearing a port's
+  clothes.
+- **`by-civilization` is registered before `{id}`**, as on Express. Starlette matches in
+  registration order, so the order of handlers in `routers/catalog.py` is routing, not
+  formatting — `test_by_civilization_outranks_the_id_route` is the guard.
+- **Four tests elsewhere named `/api/languages` as their stand-in for "an unported
+  route"** and went red the moment it landed (`test_app_shell`, `test_client_serving`
+  ×2, `test_not_implemented`). They name `/api/media-assets` now. Expect to do this
+  again: the next slice inherits the same chore, and the failure is loud, so do not
+  pre-emptively "fix" it by asserting on something vaguer.
+
+## The cutover's second slice — `routers/domains.py` + `lexicons/domains.py` (pinakes:80 US-1)
+
+Forty routes across eighteen `list` + `{id}` groups from `server/routes.ts`, all
+of them over loaders `lexicons/storage.py` already had. Coverage 125/306 →
+**165/306**. Cheap by design — the slice was picked because nothing under HTTP
+had to be written — which makes the envelopes and the JavaScript coercions the
+whole of the work.
+
+- **`_echo` is the file's load-bearing helper**, and it encodes three separate
+  rules. `JSON.stringify` emits **no key** for an `undefined` value, so
+  `?year=` (falsy ⇒ the read yielded `undefined`) comes back with no `year`;
+  but `?region=` was read *raw*, so it comes back as `""`. `NaN` serialises as
+  **`null`**, which Starlette's `JSONResponse` cannot do at all — it sets
+  `allow_nan=False` and raises — so the conversion has to happen in the handler.
+  And `parseInt` yields a Python `float`, so an echoed year needs
+  `jsmath.js_number` or the wire reads `-800.0`.
+- **Four filter dialects, no domain agreeing with its neighbour.** Exact,
+  case-folded-whole, case-folded-substring, and — on a trade good's
+  `timePeriod`, alone in the corpus — a **case-sensitive** substring. The module
+  docstring lists which is which. This is the rule most likely to be "tidied"
+  into one; don't.
+- **`?is_active=` really does filter.** `getWritingSystems` guarded that one
+  parameter with `!== undefined` where every other filter in the file is
+  truthiness, and compares `raw === "true"` — so a blank parameter selects the
+  *inactive* systems. It is the only presence-tested filter here.
+- **Migration-route dates are compared as strings and battle dates as
+  `parseInt` on both sides.** `"-3000" >= "-500"` is false lexicographically;
+  a battle dated `"sometime"` is `NaN` and drops out of every bounded query
+  while still appearing unfiltered. Both are the TypeScript's and both change
+  which rows come back.
+- **A bug the port found: `belligerents` were being stringified.**
+  `load_battles` read that column with `tsv.json_array`, which maps `str` over
+  its items — and it is the only JSON column in the whole corpus whose items are
+  **objects**. Every battle body carried `"{'name': …}"` strings and
+  `?civilization_id=` matched nothing. Now `tsv.json_cell`; the guard is
+  `test_belligerents_are_objects_not_stringified_items`.
+- **`load_myth_motifs` landed here**, without its own port unit driving it:
+  `GET /api/deities/{id}/motifs` reads the motif side of the join, so the deity
+  group cannot answer without the file. `/api/myth-motifs` and its `{id}` came
+  along because the loader was there.
+- **Two proximity defaults, both live.** `settlements/nearby` falls back to
+  **100 km** (`domains.DEFAULT_NEARBY_RADIUS_KM`), `culture-profiles/by-location`
+  to **500** (`catalog.DEFAULT_RADIUS_KM`). And `settlements_nearby` **culls by
+  haversine but orders by `Math.hypot` on raw degrees** — the two disagree away
+  from the equator, deliberately.
+- **The whole slice was proved byte-identical to Express over 234 live
+  requests** with the throwaway-script method the earlier bands describe: every
+  filter, both 404 spellings, both 500 spellings, the bounding box with three
+  corners, `?radius=near`, and the malformed-year echo.
+- **`test_not_implemented.py`'s `/api/religions` stand-in went red on landing**
+  and names `/api/haplogroups` now. Expect this every slice.
+
+## The cutover's third slice — `routers/map_layers.py` + `lexicons/layers.py` (pinakes:80 US-1)
+
+The geospatial corpus: the nine corpus-backed `/api/map/*` layers plus the four flat
+groups over the same eight files (`trade-routes`, `material-culture`,
+`archaeological-cultures`, `empires-timeline`). Coverage 165/306 → **182/306**. This is
+the slice `geo/bbox.py` had been waiting for since pinakes:63 US-2 — the viewport
+culling is its, and no second one was written.
+
+- **`/api/map/empires-timeline` is a 500, on both backends, and the port keeps it.**
+  `loadEmpiresTimeline` requires a `name` column; `empires-timeline.tsv` carries the
+  *event* vocabulary (`year`, `event_type`, `empire_name`) instead, so `getIdx` throws.
+  Two loaders read that one file and only `load_empire_timeline` (the flat
+  `/api/empires-timeline` group) can. Quietly making the layer answer 200 would be a
+  behaviour change dressed as a fix —
+  `test_the_empires_timeline_feature_loader_raises_on_the_live_corpus` is the guard,
+  and it is also what will say so the day the corpus grows the phase vocabulary.
+- **`GET /api/trade-routes` is registered twice in `routes.ts` and the first wins.**
+  The live one is a GeoJSON view over `migration-routes.tsv` filtered to
+  `routeTypes: ["trade"]`; the dead one is a flat list over `trade-routes.tsv`. But
+  `GET /api/trade-routes/{id}` has only one registration — over the **dead** one's
+  loader. So the two halves of one client-visible resource read different files.
+  Grep for duplicate `app.get("<path>"` before porting anything out of that file.
+- **Three temporal filters, no two agreeing** (`lexicons/layers.py`'s docstring lists
+  them). `filterByTime` tests `!== undefined` and is an *overlap* over
+  `properties.timePeriod`; the archaeological-culture filter is the same overlap over
+  two flat columns; `getMaterialCultureDistributions` tests **truthiness**, so
+  `?timeStart=0` is no filter at all, and is *containment* against a single date. The
+  `NaN` defaults are opposite too — `filterByTime` is written with `<`/`>` so an
+  unreadable value is **kept**, the others with `>=`/`<=` so it is **dropped**. That is
+  what `_lt`/`_gt` vs `_gte`/`_lte` encode; picking the wrong pair is silent.
+- **`metadata` is not one shape.** Five layers answer `{...filters, ...meta}` — so the
+  raw `bbox` *string* is overwritten by the parsed box (or `null`) from the viewport
+  report. Four never call `applyViewport` at all and echo the string. Copied route by
+  route; guessing gives a plausible wrong answer.
+- **A bug the live diff caught, the same family as `belligerents`.** These loaders spell
+  a bare `JSON.parse` with a `[]` *fallback*, where `tsv.json_array` maps `str` over the
+  items **and** answers `[]` for a non-list. A `vassal_states` cell holding `150000`
+  really does reach the client as the number. Use `tsv.json_cell(row, idx, [])` unless
+  the TypeScript actually stringifies. **Check every new JSON column against the corpus
+  before trusting `json_array`.**
+- **The whole slice was proved byte-identical to Express over 235 live requests** with
+  the throwaway-script method the earlier bands describe — every filter, both bbox
+  corner orders, a three-corner bbox, `?limit=1.5`, repeated query parameters, both 404
+  spellings, both 500 spellings, and eight bulk-fetch bodies. The **only** two
+  differences were trailing-slash URLs (`/api/trade-routes/`), which Express answers as
+  the collection and this service 404s — an app-wide, pre-existing divergence that
+  `/api/health/` shares and no port introduced.
+- **`_string_param` is not `_text`.** Express hands a *repeated* query parameter over as
+  an array, and a read annotated `as string` (or guarded by `viewportOptionsFromQuery`'s
+  `typeof v === "string"`) treats an array as absent — so `?bbox=a&bbox=b` is **no
+  viewport**. `_list_param` is the opposite rule for the same shape: one blank value is
+  the filter's absence, two values keep the blank and match nothing.
+- **`test_not_implemented.py`'s `/api/empires-timeline` stand-in went red on landing**
+  and names `/api/linguistic-distance/available-languages` now — picked from the *back*
+  of the remaining port order, which is what stops the chore recurring every slice.
+
+## The cutover's fourth slice — `routers/{linguistics,ethnography}.py` + `lexicons/{ethnography,freshness}.py` (pinakes:80 US-1)
+
+The ~25 small flat domains whose loaders did **not** exist yet, plus the ten
+`/api/languages/{id}/*` and `/api/culture-profiles/{id}/*` sub-resources they
+unlocked for free. **59 routes**, coverage 182/306 → **241/306**. The biggest
+single slice of the cutover and the most mechanical — twenty-three new loaders
+that are all the same shape — which is exactly why the notes below are about the
+handful of places where they are *not*.
+
+- **The whole slice was proved byte-identical to Express over 347 live
+  requests** with the throwaway-script method the earlier bands describe (341
+  corpus reads plus six freshness reads, the latter modulo the clock). Two
+  divergences the diff caught, both of them "JavaScript's `??` is not Python's
+  `or`": the etymology trace's `language` fallback fired on a blank `?language=`
+  where `lang ?? …` keeps the blank, and `?freshDays=abc` applied a `NaN`
+  threshold because **`NaN` is falsy in JavaScript and truthy in Python**. Both
+  now have a named test.
+- **Two loaders raise on the committed corpus, and both are ports.**
+  `load_ingredient_origins` asks for a `category` column `ingredient-origins.tsv`
+  does not have (it carries `cuisine_id`), so `/api/ingredient-origins` and its
+  `{id}` are a **500 on both backends** — the `load_empires_timeline` situation
+  again, guarded by `test_the_ingredient_origin_loader_raises_on_the_live_corpus`,
+  which is also what will announce the fix. And
+  `wikimedia-commons-images.tsv` does not exist at all, so that route's live
+  answer is `{images: [], count: 0}`.
+- **`routers/_reads.py` is the four shapes, hoisted.** `failed` /
+  `failed_plain` / `missing` / `text` / `query_int` / `query_number` / `echo`
+  were inline in `routers/domains.py`; three router files need them now.
+  `domains.py` imports them and keeps only its own *choice* of which 500
+  spelling each handler answers with, which is the part that is per-handler.
+- **A sub-resource's empty answer is per-route and there is no rule.**
+  `/api/languages/{id}/verb-paradigms` and `/contacts` answer **404** for a
+  language with no rows; `/sample-texts` answers an empty counted list;
+  `/phonological-inventory` and `/grammar-features` answer 404 because they
+  resolve a *single* record. Four spellings, one file. Copied one by one and
+  each pinned in `tests/test_linguistics_routes.py`.
+- **A retired route can be shadowed by a wildcard in another module.**
+  `discover_routers` mounts in module-name order, so `ethnography` lands before
+  `retired` and `/api/building-types/{id}` swallowed
+  `GET /api/building-types/categories` — a *registered* retirement answering 404.
+  The fix is local: `ethnography.py` re-registers that static path ahead of its
+  own wildcard, delegating to `retired.retired_body`. **Check for this whenever a
+  port adds an `/api/x/{id}` and `retired.py` has an `/api/x/<static>`**; the
+  guard is `test_the_retired_categories_route_outranks_the_building_type_id_route`.
+- **`node`'s `stat.mtime` ROUNDS the fractional millisecond**, where
+  `new Date(x)` truncates. `/api/data-freshness`'s `lastModified` was a
+  millisecond off until `lexicons/freshness.py` read `st_mtime_ns` and applied
+  `jsmath.js_round`; `ageMs` still uses the *unrounded* value, because
+  `stat.mtimeMs` is what the TypeScript subtracts. Both halves matter.
+- **Filter dialects, again, and two are new.** `?parentId=null` is
+  *presence*-tested and compares the literal string `"null"` against a real
+  `null` parent — that is how the client asks for the roots of the haplogroup
+  tree, and a blank `?parentId=` genuinely selects nothing. And a `social_class`
+  or `gender_context` query on `/api/daily-life` **keeps the rows marked
+  `"all"`**; most of that table is `"all"`, so an exact match would empty
+  almost every query.
+- **`rivers-and-waters.tsv` is the only file whose reader sniffs its own cell**
+  (`[` ⇒ JSON, else comma-separated), and the two pipe-separated columns in this
+  slice disagree about trimming: `city-layouts.key_features` trims its parts,
+  `social-structures.key_roles` does not.
+- **The lineage walks return *edges*, not nodes.** A culture reachable by two
+  paths contributes both edges to `/api/cultural-lineages/{ancestors,descendants}`;
+  only the entities are visited-once. `?maxDepth=abc` is `NaN`, and `0 < NaN` is
+  false, so a junk depth is an **empty** walk rather than the 20-round default.
+- **One accepted divergence, shared with the other flat-catalog ports.** A
+  *repeated* query parameter (`?genre=a&genre=b`) reaches Express as an array
+  whose `.toLowerCase()` throws, yielding a 500; Starlette hands back the first
+  value and the filter applies. Reproducing a `TypeError` in every handler was
+  judged not worth it — `routers/map_layers._string_param` exists where the
+  distinction actually changes an answer.
+- **`test_not_implemented.py`'s `/api/haplogroups` stand-in went red on landing**
+  and names `/api/media/prompts` now.
+
+## The cutover's fifth slice — `routers/{scraping,words,data_stats}.py` + `lexicons/forms.py` (pinakes:80 US-1)
+
+The scraper dashboard and the word-form table under it: the four
+`/api/scraping-jobs` routes, `/api/scraping/{status,coverage}`, both
+`/api/scraping/engine*`, `/api/word-comparisons`, `/api/languages/{id}/word-list`
+and `/api/data/stats`. **11 routes**, coverage 241/306 → **252/306**. Two things
+make this slice different from the four before it: it is the first where a
+router *writes* to in-process state rather than reading a TSV, and it closes a
+hole two earlier bands documented rather than fixed.
+
+- **`ingest/jobs.py` and `acquire/job.py` both shipped with a note saying their
+  progress was invisible because `/api/scraping-jobs` was Express's.** It is not
+  any more, and neither module grew a second copy of anything: the job store
+  gained `cleanup()` (nothing else), and `POST /api/scraping/engine` is an
+  adapter over `acquire.job.run` exactly as `routers/archaeology.py` is one over
+  `ingest.archaeology`. `_js_number` moved from `archaeology.py` to
+  `_reads.body_number`, since both acquisition routes read a `limit` that way.
+- **`lexicons/forms.py` is the loader every earlier slice deferred**, and its one
+  surprising rule is the asymmetry with its neighbour: `loadForms` wraps its whole
+  read in a `catch { console.warn }` where `loadBaseWords` uses
+  `readFileOrThrow`. So a corpus with no `words.tsv` answers
+  `/api/scraping/coverage` with "nothing scraped yet" and a 200, while a corpus
+  with no `words-base.tsv` is a **500**. Both are ports; do not regularise them.
+- **`loadScrapedForms` reads the same directory the corpus lives in**, treating
+  every `*.tsv` except four spine files as a per-language form list and
+  discarding each one whose header has no `Concept_ID`. On the shipped corpus
+  that is all fifty-odd of them and the merge contributes nothing. Kept, because
+  a per-language file that *does* land there must win over the NorthEuraLex row —
+  that is the merge order. The per-file skip logs at **debug**, not warning:
+  Express memoised the table so it printed those ~50 lines once per process, and
+  nothing is cached here.
+- **Optional pagination changes the response's *type*.** No `?limit=` ⇒ a bare
+  array; a limit ⇒ `{items, total, limit, offset}`. And `?limit=abc` is an
+  **empty page echoed as `null`**, not the whole list and not a 422 —
+  `parseInt` ⇒ `NaN` ⇒ `slice` clamps to nothing. `words._page` is the one copy;
+  `store.parse_int_js` + `store.js_slice` are what it is built from.
+- **`?languages=fin,est` is ONE language.** `Array.isArray(q) ? q : [q]` never
+  splits on a comma, so the comma-joined form fails the "at least 2" check with a
+  400; the array form is the *repeated* parameter. Hence `getlist`, not `get` —
+  and `?languages=&languages=` is two blank ids, which passes both guards and
+  matches nothing.
+- **`PATCH /api/scraping-jobs/{id}` is an unguarded object spread**, so a body
+  can rename the record it is addressed by (`{"id": "hijacked"}` works) and an
+  **array** body contributes its indices as string keys. `jobs.update_job` takes
+  `job_id` positional-only for exactly this reason: without the `/`, a body field
+  called `job_id` would be a `TypeError` where Express simply set it.
+  `jobs.create_job` takes `Any` for the same reason — `totalWords || 0` keeps a
+  junk value, it does not validate one.
+- **`/api/data/stats` never parses and that is the point.** It counts non-blank
+  *lines*, so `ingredient-origins.tsv` — whose loader raises on the live corpus —
+  still reports a row count. `_lines` opens with `newline=""` because the split is
+  on `"\n"` alone: a CRLF file keeps a `\r` on its last header cell, and
+  `families.tsv` is CRLF today. Same trap `analytics/quality.py` documents.
+- **The whole slice was proved byte-identical to Express over 52 live requests**
+  — the ten routes plus `/api/data/stats`, every pagination edge, every refusal,
+  and the job ledger driven through create → list → patch → get. The only two
+  differences were job-list orderings, and both are the millisecond clock: the
+  tie-break rule itself agrees (V8's stable sort and Python's
+  `sorted(reverse=True)` both keep insertion order among equal timestamps) and is
+  pinned by `test_the_job_list_is_newest_first_and_ties_keep_insertion_order`.
+- **`POST /api/scraping/{families,mythology}` deliberately did not come across**
+  and are still 501. They are ~1,000 lines of Gemini prompt/schema plus a direct
+  TSV **write** into the live corpus — a port of a generator, not of a route.
+- **The stand-in chore came due twice, and the second one ended it.**
+  `test_not_implemented.SAMPLE_REQUESTS` and `test_router_discovery`'s drop-in
+  both named `/api/scraping-jobs`; they name `/api/text-analysis/compare` and
+  `/api/visualizations/chord` now. And `test_501_body_carries_the_grading_fixtures`
+  could not be repointed at all: **no outstanding route carries a recorded fixture
+  any more**. It was replaced by `test_no_outstanding_route_still_carries_a
+  _recorded_fixture`, which says so as an invariant — every remaining port is
+  graded by its own test file, not by a replay.
+
+## The cutover's sixth slice — `analytics/cross_domain{,_timeline}.py` + `routers/cross_domain.py` (pinakes:80 US-1)
+
+The seven `/api/cross-domain/*` reads that were not already the correlation
+group's: `search`, `connections/{type}/{id}`, `by-language/{languageId}`,
+`by-time/{year}`, `summary`, `entities` and `timeline`. Coverage 252/306 →
+**259/306**. This is the first slice with no `tsv-storage.ts` loader behind it —
+every remaining unit is a port of a `server/services/*.ts` — and the two services
+here are joins over loaders that already existed, so all of the work is in the
+shapes.
+
+- **This is the THIRD projection of the same six TSVs, and it has to stay the
+  third.** `analytics/correlation.load_domain` serves the correlation scorer and
+  `authoring/candidates.load_candidates` serves relationship suggestions; both
+  already say in their docstring that they are not this one. The differences are
+  small and each changes an answer: the correlation projection calls the music
+  domain `music` and omits `archaeological-site`; the candidate pool drops
+  `nativeName`/`description` and appends the whole language corpus. Collapsing
+  any two would silently re-rank a consumer.
+- **Which keys a projection OMITS is the contract.** `JSON.stringify` drops an
+  `undefined`, so a haplogroup has no `nativeName` and no `coordinates` key at
+  all, and a civilization or site has no `region`, `coordinates` or
+  `description`. `search` reads four of those through optional chaining, so an
+  absent key is a score of zero rather than a crash — which is why
+  `?q=levant` finds the cuisine, the music tradition and the religion but not
+  the civilization sitting in the same place.
+- **Only three of the six domains are filtered at all.** `?year=`/`?region=`
+  reach cuisines, music traditions and religions; haplogroups, civilizations and
+  archaeological sites come back whole. That is what makes
+  `/api/cross-domain/by-time/soon` a **200 with 782 entities** rather than an
+  empty answer — the `NaN` empties the dated domains and the other three are
+  untouched.
+- **`Math.min(x, NaN)` is `NaN` and `min(x, nan)` is `x`, and on the live corpus
+  that difference is most of the empires.** `empires-timeline.tsv` holds two
+  concatenated tables: the second one's header row is read as data and every one
+  of its 68 rows puts a *phase* word where the year belongs. `parseInt` yields
+  `NaN`, the span's min/max propagate it, and `Number.isFinite` then drops the
+  empire from the timeline — 9 of them survive. The Python loader spells that
+  `NaN` as `None`, so `cross_domain_timeline._js_min/_js_max` map it back;
+  writing the obvious `min()` would have put empires on the timeline that
+  Express does not show. The fix belongs in the corpus, not here.
+- **The timeline's two bounds are asymmetric**: `yearStart` is tested against
+  the event's *end* (falling back to its start) and `yearEnd` against its
+  *start*, so a window keeps what overlaps it rather than what it contains. And
+  an empty result reports the hard-coded `{min: -3000, max: 2024}` — the axis
+  the client draws when it has nothing to draw on.
+- **Append order survives the sort.** Over there the eight timeline loads are a
+  `Promise.all` of eight `async` functions that each `await` exactly once at the
+  top, so they resume in scheduling order and push their whole batch; the final
+  sort is on `startYear` alone and is stable. Events sharing a year therefore
+  come back grouped by domain in the loaders' declaration order, which
+  `TIMELINE_DOMAINS` names.
+- **`connections` answers 200-with-an-empty-list for an unknown entity**, never
+  a 404: the service cannot tell "no such entity" from "nothing connects to it".
+  Its `?limit=` is `slice`d, so `?limit=abc` is empty and `?limit=-4` drops the
+  last four rather than 422ing.
+- **The whole slice was proved byte-identical to Express over 107 live
+  requests** with the throwaway-script method the earlier slices describe —
+  every filter combination, both junk-limit forms, the `NaN` year path
+  parameter, all eight timeline domains and every bound. The **only** two
+  differences were the repeated-query-parameter divergence this service has
+  accepted since slice 4: `?types=a&types=b` reaches Express as an array whose
+  `.split` throws (a 500) and Starlette hands back one value.
+- **`test_not_implemented.py`'s `/api/cross-domain/timeline` stand-in went red
+  on landing** and names `GET /api/contributions/{id}/verification` now — from
+  the back of the remaining order again.
+
+## The cutover's seventh slice — `media/` + `routers/media.py` (pinakes:80 US-1)
+
+The six `/api/media-assets*` routes and the two `/api/media/*` ones: a curated
+asset catalogue and the Gemini reconstruction images beside it. Coverage
+252/306 → **267/306**. Two port units in one router file because they are the
+two halves of one client surface — and this is the first slice since the
+collaborative stores whose routes **write**: a POST that appends to the live
+corpus and a DELETE that rewrites it.
+
+- **One TSV, two readers, and the asymmetry is load-bearing.**
+  `lexicons/storage.load_media_assets` takes all fifteen columns through
+  `getIdx`, so a header missing one is a **500**; `media/assets.load_assets` is
+  the `MediaAssetService`'s own reader and uses `indexOf`, so the same header is
+  a table of blanks — and its write then *repairs* the file with the canonical
+  header. Both are ports. Fusing them removes one of the two behaviours, and
+  which one you lose is invisible until a corpus is malformed.
+- **A dimension of zero is unrecorded, and it erodes.** Both readers spell
+  width/height `cell ? parseInt(cell) || null : null`
+  (`analytics.tsv.truthy_int`, added here — *not* `nullable_int`, which keeps a
+  `0`). So a POST carrying `height: 0` writes `0`, reads back `None`, and the
+  **next** write of any row in the file lands a blank cell. Reproduced rather
+  than repaired; the live diff shows Express doing exactly this.
+- **`Number.isInteger` decides the 400s, and four of the eight cases are
+  counter-intuitive.** `1920.0` passes (one number type), `"800"` fails, `true`
+  fails, and an explicit `null` fails **because the guard is `!== undefined`** —
+  a missing key is the only value that skips validation. A declared `int` field
+  would have answered 422 to half of these and accepted none of the rest.
+- **`storage.invalidateCache("media")` has no counterpart and that is correct.**
+  Express memoised the table on its storage singleton so a write had to evict
+  it; nothing here caches a lexicon table, so the next read already sees the row.
+- **`GET /api/media-assets/{id}` cannot swallow `entity/…` or `meta/types`** —
+  three segments and two against the wildcard's one. No re-registration trick is
+  needed, unlike `routers/ethnography.py`, and
+  `test_the_id_route_does_not_swallow_entity_or_meta` says so rather than
+  leaving the next reader to infer a rule that does not apply.
+- **The image ledger records failures but not a missing key.** The
+  `$GEMINI_API_KEY` check runs *before* the id is minted, so a checkout with no
+  key writes no row at all, while a model that refuses leaves a `status: error`
+  one. `media/images.py` is `urllib` against `generateContent` with
+  `responseModalities` in `generationConfig` — the same trade `narrative/llm.py`
+  makes, with the key in an `x-goog-api-key` header.
+- **The whole slice was proved byte-identical to Express over 47 live
+  requests** with the throwaway-script method the earlier slices describe —
+  every filter, every validation refusal, the create → list → delete → recreate
+  ledger, and **both written files compared byte for byte** (which is what
+  grades the writer: the soft hyphen in a title, the non-ASCII in a `tags` cell,
+  and the eroded `height` all survived). One test expectation was wrong on the
+  first run and the code was right, for the third slice running.
+- **The stand-in chore should now be over.** `test_not_implemented`,
+  `test_app_shell` and `test_client_serving` named `/api/media-assets`; they
+  name **`/api/openapi.json`** now, which the plan puts last of all — it ports
+  with US-2, because doing so decides whether `openapi-spec.test.ts`'s
+  byte-equal snapshot moves too.
+
+## The cutover's eighth slice — `distance/` + `routers/linguistic_distance.py` (pinakes:80 US-1)
+
+The six `/api/linguistic-distance/*` routes: ASJP/LDND over word forms, plus the
+multi-dimensional "enhanced" pair over phoneme inventories and typological
+profiles. Coverage 267/306 → **273/306**. The biggest single port unit left when
+the slice opened, and the first one whose answer is *not a function of the
+corpus alone*.
+
+- **LDND calls `Math.random()`, so the metric is nondeterministic on both
+  backends.** The different-meaning baseline is a sample of up to 100 random
+  concept pairs, redrawn per call; two identical requests disagree in the low
+  decimals, and always did. Reproduced rather than seeded —
+  `calculator.configure(random_source)` is the seam, the counterpart of
+  monkeypatching `Math.random` over there. **That seam is what made the diff
+  possible**: both sides were driven from the same mulberry32, reset before
+  every request, and every LDND matched digit for digit. Repairing the sampler
+  here would have made the two servers answer differently about the same pair
+  mid-cutover; the real fix is to the metric, upstream of both.
+- **Half the enhanced surface is a 500 on the live corpus, and the port keeps
+  it.** 105 of the 1,091 `grammar-features.tsv` rows hold an *object* in
+  `tense_aspect_mood` where the other 986 hold an array, and `new Set({...})`
+  throws — so `enhanced/pairwise?mode=grammatical` 500s for any pair touching
+  one of them, and `enhanced/nearest?mode=grammatical` (or `combined`) 500s for
+  **every** language that has a grammar row at all, because the walk reaches one
+  of the 105 eventually. `enhanced.NotIterableError` carries V8's exact message,
+  because the 500 body publishes it. `test_105_live_grammar_rows_hold_an_object`
+  is the notice for the day the corpus is repaired; nothing here changes then.
+- **The word table is loaded once per request, not once per pair.**
+  `parseLanguageWordForms` re-read all 121,633 rows of `words.tsv` for every
+  language it was asked about, which is why `GET .../nearest/{id}` takes **173
+  seconds** on Express. `distance.calculator.Lexicon` is that read hoisted —
+  same rows, same order, same per-language maps — and the same request answers
+  in 1.5 seconds here. It is per-request state, not a module cache, so
+  `paths.lexicons_dir()` is still the only thing between a test and live data.
+- **`utf16.py` exists because this corpus has cuneiform.** JavaScript indexes
+  **code units**; the orthographic fallback compares raw word forms, and an
+  astral character is one Python character and two JavaScript ones — so a
+  `wordform`-mode comparison touching Linear B would normalise by a different
+  divisor. For IPA and ASJP the two agree, which is exactly why this is easy to
+  miss.
+- **A bug the diff caught in a shared reader, not in this slice.**
+  `storage.load_languages` was emitting `"lat":61.0` and `"lat":0.0` where
+  Express writes `61` and `0` — so `/api/languages`, `/api/languages/{id}` and
+  every route embedding a language record had been off since the first slice.
+  The file already had the narrowing idiom (`_number`, `_finite_number`, and a
+  comment saying why); the coordinate path had just missed it. `ORIGIN` was a
+  float pair for the same reason. Fixed with `jsmath.js_number`, pinned by
+  `test_an_integral_coordinate_is_an_int_not_a_float`.
+- **The slice was proved byte-identical to Express over 54 live requests** —
+  every refusal, both 500 bodies, all four phonetic modes, the symmetric matrix,
+  the `-1`-sorts-first ranking and the availability scan. The **only** two
+  differences were `distanceKm` in the 16th significant digit: `sin`, `cos` and
+  `sqrt` agree with V8 bit for bit and **`atan2`** differs by one unit in the
+  last place. Same family as the `/api/search/spatial` divergence this service
+  already carries, one function along.
+- **`parseInt(k) || 10` has three falsy spellings and they are not obvious.**
+  `?k=abc`, `?k=0` and `?k=-0.5` (`parseInt` yields **-0**) are all the default
+  ten; `?k=-1` and `?k=101` are 400s. And the two enhanced routes validate
+  `mode` in opposite directions — the POST falls back to `combined`, the GET
+  400s.
+- **`test_not_implemented.py`'s `/api/linguistic-distance/available-languages`
+  stand-in went red on landing** and names `/api/openapi.json` now — the end of
+  the port order by construction, so this chore should not recur.
+
+## The cutover's ninth slice — `dataset/` + `routers/{export,dataset,living_dataset,bulk_import}.py` (pinakes:80 US-1)
+
+The publication group: the four `/api/export/*` routes, the three
+`/api/dataset/*` snapshot routes, the three `/api/living-dataset/*` lifecycle
+routes and the two `/api/import/*` ones. **12 routes**, coverage 273/306 →
+**285/306**. Four TypeScript files, one Python package, because the top of each
+is the bottom of the next — the release routes *compose* the exporter rather
+than re-reading the corpus, exactly as they did over there.
+
+- **This slice writes the corpus with no review step, and that is the headline.**
+  `POST /api/import/bulk` appends to — or in `replace` mode overwrites — a live
+  lexicon TSV. `routers/ai_review.py` promotes one accepted draft at a time;
+  this takes a paste. The backup into `.backups/<base>_<stamp>.tsv` is
+  unconditional, taken **after** every early refusal and **before** either write
+  branch, and the response names it. It is the only undo. `conftest.py`'s
+  autouse `isolated_data_trees` gained a seventh tree (`living-dataset`) and is
+  what keeps these tests off the real corpus — do not write a case in
+  `test_bulk_import_routes.py` that resolves `paths.lexicons_dir()` for real.
+- **`errors[]` carries two kinds of thing and a string prefix is the only
+  discriminator.** `Unmapped columns (ignored): …` is a *warning* and the route
+  still answers **200**; anything else is a 400. `has_blocking_errors` is that
+  rule, spelled once.
+- **The export pipeline's "column remap" never reorders anything.**
+  `remapHeaders` pushes `i` on both branches, so the index map is the identity
+  and the only observable effect is that every cell is **trimmed** and a short
+  row is **padded** with `""`. Written as written; the padding is what makes a
+  ragged corpus row exportable at all.
+- **A filter is a case-insensitive substring and an unknown column is ignored**
+  — `?nonsense=x` exports the whole file rather than nothing. And a file that is
+  missing or empty contributes **no entry**, so `fileCount` counts the files
+  that had data, not the files the profile names.
+- **`includeFiles` has two readings and validation only ever reaches one.**
+  `for (const f of includeFiles)` iterates a **string one character at a time**,
+  so `{"includeFiles": "families.tsv"}` is twelve 400s; the substring reading
+  `exportDataset`'s `.includes` would have given is unreachable. Both are
+  pinned, because a rewrite that "fixes" the first silently changes the second.
+- **The download's content type is wrong for TSV and is kept**:
+  `format === "json" ? "application/json" : "text/csv"`, so a `.tsv` attachment
+  is served as CSV. The filename already says otherwise; a client keying off the
+  header would change behaviour if it were repaired.
+- **Every failure in `/api/dataset/*` is a 400 carrying the thrown message** —
+  including a corpus that cannot be read. `errorMessage(error, fallback)`'s
+  fallback branch existed for a throw that was not an `Error`, which Python has
+  no equivalent of, so `_release.failed` does not spell one.
+- **`\d` is not `[0-9]`.** The semver pattern is ASCII-only in JavaScript, so
+  `١.٢.٣` parses in Python and not over there. Same family as the `\s` in
+  `_EXPORT_TITLE`, which is spelled out because Python's differs at both ends.
+- **Version precedence needs *both* middle inputs.** Explicit `version`, else
+  the changelog-derived bump — which applies only when `previousVersion` **and**
+  `changeCounts` are present — else the seed `1.0.0`. And the changelog is read
+  **unfiltered**, so a release bumps on every change since the log began, not
+  since the last release. `POST /api/dataset/release` defaults its previous
+  version to the seed; `POST /api/living-dataset/release` defaults it to the
+  *recorded current* release, which is the whole difference between them.
+- **`POST /api/living-dataset/ingest` never fails as a whole.** A domain whose
+  acquisition throws lands in `errors[]` and gets **no** ingestion stamp; the
+  pass carries on. An unknown *requested* domain is the one 400 and it refuses
+  the whole pass. The route calls `acquire.job.run` in process where Express
+  spawned `pinakes_engine fetch` — the only intended behavioural divergence in
+  the slice, and the reason its test stubs the runner rather than diffing it.
+- **`living.LivingDatasetStore` degrades a corrupt `state.json` to empty state**,
+  the `stewards.json` posture rather than the changelog's: losing the schedule
+  should cost a re-ingest, not the endpoint.
+- **The whole slice was proved byte-identical to Express over 71 live requests**
+  with the throwaway-script method the earlier slices describe — every format,
+  every refusal, both downloads, the release history driven through four mints,
+  and the import path driven through append/dedup/replace. **Both written
+  corpora were then diffed byte for byte and matched**, backups included. One
+  trap worth naming: the capture and the replay must each start from a *fresh*
+  copy of the corpus, or the second run's dedup silently reads the first run's
+  rows — that contaminated the first attempt end to end.
+- **`test_not_implemented.py`'s `/api/export/datasets/{id}` stand-in went red on
+  landing** and names `POST /api/contributions/{id}/confirm` now. Only two
+  templated routes remain unported and they are that pair, so this chore is
+  down to its last move.
+
+## The cutover's tenth slice — `routers/{visualizations,text_analysis,quiz,data_validation,map_boundaries}.py` (pinakes:80 US-1)
+
+The small service wrappers and the last of the `map` unit: three diagram feeds,
+two etymology posts, the quiz pair, the three data-validation reads, the three
+region-boundary endpoints and the map-image extractor. **14 routes**, coverage
+285/306 → **299/306**. Five router files because the units are five, and five
+new modules under them — `analytics/{visualizations,validation}.py`,
+`lexicons/etymology.py`, `learning/quiz.py`, `geo/boundaries.py` and
+`media/map_image.py`.
+
+- **The quiz was diffed against Express question for question, `id`s included.**
+  It draws every choice from `Math.random()`, so it is nondeterministic on both
+  backends — the LDND situation from the eighth slice — and the fix is the same:
+  `learning.quiz.configure(random_source)` is the seam that replaces
+  monkeypatching `Math.random`, both sides were driven from one mulberry32, and
+  eleven seeded quizzes came back **byte-identical**. That includes `make_id`,
+  which is `Math.random().toString(36).slice(2, 10)` — the base-36 *fraction
+  expansion* of the draw, so a draw of exactly 0.5 is the one-character id `"i"`
+  on both. Eight digits is a ceiling, not a width.
+- **`validCategories` is not the generator table, and both halves of that matter.**
+  It admits `mixed`, which has no generator, and omits `cuisine` and
+  `civilizations`, which have one each — so those two question kinds are
+  reachable **only** inside a `mixed` quiz and asking for either by name is a
+  400. `GENERATORS`' declaration order is what `mixed` flattens.
+- **`analytics/validation.py` is not `analytics/quality.py`**, and the third
+  private TSV reader in this service is deliberate. This one drops **every**
+  blank line rather than trailing ones and `trim()`s each cell at read time, so
+  a cell of spaces is empty here and is not there. Same `newline=""` trap: the
+  split is on `"\n"` alone, and `columns` publishes the `\r` a CRLF file leaves.
+- **A cross-reference rule omits `optional`/`isJsonArray` when unset**, because
+  `GET /api/data-validation/cross-references` publishes the rules verbatim and
+  `JSON.stringify` writes no key for an `undefined`. Defaulting them to `False`
+  would be a different document; `_reference()` is built to leave them out.
+- **`geo/boundaries.py` carries the slice's one deliberate divergence, and the
+  index is empty in a plain checkout anyway.** Neither `data/boundaries/` nor the
+  Glottolog submodule exists, so `resolve` is a 404 and `search` answers
+  `{boundaries: [], total: 0}` — the Express answer too. The port is written out
+  in full because those directories are configuration; what did **not** come
+  across is `turf.union`, which dissolves shared borders through a
+  polygon-clipping library with no stdlib equivalent. `_combine` aggregates into
+  a MultiPolygon instead: **identical** to turf for disjoint components, and it
+  keeps the internal borders for adjacent ones. Every registered composite is a
+  run of adjacent countries, so revisit this with a geometry library the day
+  `data/boundaries/` is populated rather than assuming it agrees. `simplify` *is*
+  a real port — simplify-js's Douglas-Peucker plus turf's ring repair.
+- **Two JavaScript character classes are spelled out in `lexicons/etymology.py`**,
+  because V8's `\s` has no `\x1c`-`\x1f` and no `\x85` but does have U+FEFF. A
+  character one engine calls whitespace and the other does not lands *inside* a
+  word rather than between two. `\d` in `analytics/visualizations.py` is `[0-9]`
+  for the same family of reason — the ninth slice's semver note.
+- **A non-string `text` is a 500 publishing V8's own message.**
+  `analyzeTextOrigins` reaches straight for `text.toLowerCase()`, and the 500
+  body carries `error.message`, so `routers/text_analysis._text_of` raises
+  `text.toLowerCase is not a function` — naming the *parameter*, not the caller's
+  `textA`. Same posture as `distance.enhanced.NotIterableError`.
+- **The whole slice was proved byte-identical to Express over 77 live requests**
+  with the throwaway-script method the earlier slices describe: every year-filter
+  edge (`0`, blank, `NaN`, negative), all four `?files=` spellings including the
+  trimmed and the stem-only one, every refusal, the empty boundary index, the
+  missing-key image 500, and the eleven seeded quizzes. **Zero differences** —
+  the `; charset=utf-8` strip aside, and the validation report's `timestamp`,
+  which is a clock.
+- **`test_not_implemented.py` and `test_router_discovery.py` both went red on
+  landing again, and their repointing hit a wall worth naming.** There is no
+  concrete unported `GET` left to stand in: `/api/openapi.json` was already the
+  first entry, and `/api/languages/preservation` is **shadowed** by `catalog.py`'s
+  `/api/languages/{id}`, so it 404s rather than 501ing (which is also why the
+  discovery drop-in now uses `/api/openapi.json`). The sample list therefore
+  names `GET /api/contributions/{id}/verification` — templated, like its POST
+  sibling.
+
+## The cutover's eleventh slice — `lexicons/preservation.py` + `routers/preservation.py` (pinakes:80 US-1)
+
+The `languages` port unit's last two routes: the endangered-language dashboard
+and the field-research update workflow. **2 routes**, coverage 299/306 →
+**301/306**. Small, and the first slice since the collaborative stores whose
+POST writes **two** trees — the contribution queue *and* the changelog — from
+one request.
+
+- **It is the first ported route that another module has to re-register, and
+  `catalog.py` is the module.** `discover_routers` mounts in module-name order,
+  so `catalog`'s `/api/languages/{id}` lands ahead of `preservation`'s static
+  path and swallows it. `routers/catalog.language_preservation` is the
+  re-registration, delegating to the owning module's plain function — the
+  `routers/ethnography.py` shape (`/api/building-types/categories`), which had
+  only ever been used for a *retired* body before. **Check for this whenever a
+  port adds an `/api/x/<static>` and an earlier-sorting module already owns
+  `/api/x/{id}`.** The guard is
+  `test_the_preservation_route_outranks_the_language_id_route`.
+- **`?watchlistLimit=` is `Number`, not `parseInt`, and that is the *fifth*
+  distinct reading of a junk limit in this cutover.** `Number("")` is `0` and
+  finite, so a **blank** parameter answers an empty watchlist; `Number("abc")`
+  is `NaN`, fails the finiteness guard, and answers the default 25. Two junk
+  spellings, opposite answers.
+- **`routers/preservation._js_number` is not `analytics.tsv.js_number`, and the
+  difference is the whole `Number()` grammar.** That one is the *lexicon cell*
+  reading, documented as safe because no cell is a hex/binary/octal literal or
+  `Infinity` and every caller guards the result. A query parameter reaching a
+  real `Number()` is not that: `?watchlistLimit=0x10` bounds the watchlist at
+  **sixteen**, which the live diff caught.
+- **The one place a value straight out of a request still needs `js_number`.**
+  `JSON.parse("1234.0")` is the double `1234` and restringifies as `1234`;
+  Python's `json` keeps the `float`. A body carrying `{"nativeSpeakers": 1234.0}`
+  would otherwise persist `1234.0` into a queue **both servers read**. Applied
+  to the two speaker counts and the confidence — nowhere else, because nothing
+  else in the body is copied through as a number.
+- **`String(v)` is not `str(v)`, in four observable places.**
+  `lexicons/preservation.js_string` is the conversion: `String([])` is `""`, so
+  a `region` of `[]` proposes **no change at all**; `String(None)` is `"null"`,
+  so a declared-null speaker count really does render as `total speakers → null`
+  in the changelog summary; a plain object is `[object Object]`.
+  `authoring/_js.number_text` is only its numeric leg.
+- **`.trim()` is V8's whitespace set at both ends**, which decides the alias
+  lookup *and* the email warning's negated class. Same rule
+  `lexicons/etymology.py` spells out — the constant is copied rather than
+  shared, because neither module imports the other and hoisting it would put it
+  in an arbitrary third place.
+- **The changelog write is best-effort and says so by omission.** A failed
+  record leaves `changelogEntryId` `undefined`, which is **no key** — never
+  `null`. This is also the changelog's *write* side finally landing here: the
+  read half came in pinakes:61 US-2 and `server/services/changelog.ts` was kept
+  alive largely for this route.
+- **The whole slice was proved byte-identical to Express over 41 live requests**
+  with the throwaway-script method the earlier slices describe: every
+  `watchlistLimit` spelling (blank, `abc`, negative, fractional, `1e3`,
+  `Infinity`, `0x10`, `" 5 "`, repeated), every validation refusal, both 404
+  spellings, and the queued contribution **and** changelog entry compared file
+  for file. **Zero differences** once the two above were fixed.
+- **`normalize_status` on a non-string raises**, because `raw.trim()` throws
+  over there — and `validateFieldUpdate` is called *outside* the Express route's
+  try/catch, so that one rejection reaches its default error handler as an HTML
+  500. It is the only status code in the slice this port does not reproduce.
+- The stand-in chore did **not** come due: `test_not_implemented` and
+  `test_router_discovery` both already named `/api/openapi.json`, and their
+  prose about `/api/languages/preservation` being shadowed was updated rather
+  than repointed. Four routes are left — `POST /api/scraping/{families,mythology}`,
+  the confirm/verification pair, and `/api/openapi.json`.
+
+## The cutover's twelfth slice — `ingest/{generation,family_scraper,mythology_scraper}.py` + `lexicons/writer.py` (pinakes:80 US-1)
+
+The `scraping` unit's last two routes — `POST /api/scraping/{families,mythology}`,
+the two Gemini TSV **generators**. **2 routes**, coverage 301/306 → **303/306**.
+Every earlier slice ported a reader or a queue writer; this one ports the only
+pair of routes in the whole surface that **replace the corpus**.
+
+- **A completed run overwrites two lexicon tables in full, and no route says
+  so.** `families.tsv` + `languages.tsv`, or `deities.tsv` + `myth-motifs.tsv`,
+  become whatever the model answered. Neither `existingFamilies` nor
+  `loadExistingDeityIds` is a merge — both are *prompt hints* asking the model
+  not to repeat what the corpus already has, so a run that honours the hint
+  writes a strictly **smaller** corpus. That is the TypeScript's behaviour and
+  the dashboard's "Start Scraping" button has always cost it; the port
+  reproduces it rather than quietly adding an append mode, because the two
+  backends must not disagree about what that button does mid-cutover.
+  `conftest.py`'s autouse `isolated_data_trees` is the only thing between this
+  suite and the real corpus, and here it is load-bearing rather than hygienic.
+- **`[]` is truthy in JavaScript, and it is the one body that turns "start
+  scraping" into "empty the mythology corpus".** `{"pantheons": []}` scrapes
+  nothing, links nothing, generates nothing, and then writes two header-only
+  tables. Python's own truthiness would have substituted the eighteen defaults —
+  the opposite answer. `mythology_scraper._targets` is that rule; the diff
+  confirmed it against Express.
+- **`??` and `||` sit five lines apart in the deity mapping and mean different
+  things.** `timeOrigin ?? null` keeps a real `0`; `nativeName || ""` loses a
+  blank; `lang.nativeSpeakers || null` in the *sibling* generator loses a real
+  zero speaker count. Three spellings, one slice, all three pinned.
+- **Three failure postures, all deliberate.** `scrapeFamilyTree` swallows
+  everything and answers empty (so a lost branch is not a lost tree, and the
+  `try/catch` wrapped around it is therefore unreachable — ported anyway);
+  `buildSyncretismLinks` degrades to unlinked deities; `scrapeMythMotifs` and
+  `discoverAllLanguageFamilies` **throw**, and nothing is written. A corpus with
+  deities and no motifs is not a state this generator can leave behind. The
+  per-pantheon `completedWords` stamp is *outside* its catch, so a failed
+  pantheon still advances the counter.
+- **`ingest/generation.py` is the shared half, and it exists because the two
+  TypeScript files carried byte-identical private copies** of `slugify`,
+  `normalize` and the `getGenerativeModel` boilerplate.
+  `ingest/text_extractor.py`'s `LiveDeps` was **not** refactored onto it: it is
+  already ported, its error class maps onto a 502, and a port must not change
+  what an already-ported route answers. The one behavioural note is that
+  `SchemaType.OBJECT` is the string `"object"` — **lower case** — and the SDK
+  forwards it verbatim, so these schemas are spelled the way `text_extractor`'s
+  is not.
+- **The request body is the SDK's own, key for key**, including the empty
+  `safetySettings` its `formatGenerateContentInput` always emits and the
+  `generationConfig` / `safetySettings` / `contents` order. None of that changes
+  what the model answers; it is there so the bytes the two backends put on the
+  wire are identical, which is what the diff compared. The one header not
+  reproduced is `x-goog-api-client`, which identifies the SDK and would be a lie.
+- **`lexicons/writer.py` is the corpus's writer**, the counterpart of
+  `storage.py`, and only the three `tsv-writer.ts` methods a route reaches came
+  across. It does **not** escape a cell: a motif called `World\tTree` really does
+  write a row with an extra column, on both backends. `media/images.escape_tsv_field`
+  is the *prompt ledger's* rule and is not this one.
+- **The whole slice was proved byte-identical to Express over two live diff
+  rounds** with the throwaway-script method the earlier slices describe, with one
+  new trick: `globalThis.fetch` is stubbed in the capture script, which makes an
+  SDK-backed generator diffable at all. Compared: the five route responses, the
+  five-job ledger with no key, **eight model request bodies** (prompts and
+  schemas), both progress logs, both returned record sets, all four written TSV
+  files byte for byte, the job ledger driven through both generators, and the
+  failure / degrade / empty-input paths. **Zero unaccepted differences** — the
+  accepted ones are the millisecond in a job id and two headers.
+- **The stand-in chore is over by exhaustion.** `test_not_implemented`'s third
+  `SAMPLE_REQUESTS` entry named `POST /api/scraping/mythology`; only three
+  unported routes remain and all three were already in the list, so the entry
+  was **dropped** rather than repointed at a duplicate. What is left is the
+  `contributions` confirm/verification pair and `/api/openapi.json`, which goes
+  with US-2.
+
+## The cutover's last slice — `collab/verification.py` + `openapi_spec.py` + `routers/{community_verification,openapi}.py` (pinakes:80 US-1)
+
+The three routes that were left: `POST /api/contributions/{id}/confirm`,
+`GET /api/contributions/{id}/verification` and `GET /api/openapi.json`.
+Coverage 303/306 → **306/306**. The 501 catalog is empty, and this section is
+about what that costs the tests rather than about the routes, which are small.
+
+- **The multi-confirmation pair closes the split pinakes:61 opened on purpose.**
+  That band took three of the five routes in
+  `server/routes/community-verification.ts` and left these two, which was only
+  safe because both servers read one `data/runtime/stewardship/stewards.json` —
+  the confirm handler asked Express's `stewards.isSteward(...)` about a roster
+  the Python service had already taken over writing. Both sides of that question
+  are in one process now, and `server/routes/community-verification.ts` is
+  entirely retired (its 501s name **two** different modules, which is why
+  `servedBy` there is per-route rather than a file constant).
+- **`??` versus `or` decided three answers in one small port, and the live diff
+  found two of them.** `baseConfidence ?? confidence` keeps a real `0`;
+  `Math.round(undefined)` is **`NaN`** and serialises as a *present* `null`;
+  `Math.round(null)` is **`0`**, which clamps to 1 and ramps from there. The
+  last two are the same Python `None`, one request apart — a record written with
+  a NaN confidence reads back as 34 on the *next* confirmation. `collab
+  .verification.base_confidence` is the three-way reading, and it is the
+  `"key" in record` rule this service has now hit in four separate ports.
+- **`contributions.store.JSON_NULL` is new and is the narrow fix for that.**
+  `_compact` spells *undefined* as `None` and drops the key, which is right for
+  every optional in the record; a `NaN` is neither, because `JSON.stringify`
+  writes it as a **present** `null`. One sentinel beat teaching every optional a
+  tri-state. Its trap: `save()` compacts for itself, so it must be handed the
+  **raw** record — compacting first resolves the sentinel to `None` and the
+  second pass then drops it. That is exactly the bug the diff caught.
+- **`openapi_spec.py` is a port, not a read of `docs/openapi.json`**, and the
+  choice is the answer to the question the plan left open since the first slice.
+  `openapi-spec.test.ts` pins the TypeScript builder byte-equal to that
+  snapshot; `tests/test_openapi_document.py` now pins *this* builder to the same
+  file, byte for byte including key order and `ensure_ascii=False`. So the
+  snapshot keeps a generator and a guard after `server/` is deleted, where
+  reading the file would have left it an orphan nobody regenerates.
+- **`GET /api/openapi.json` is not FastAPI's `/openapi.json`** and must not
+  become an alias for it. The generated document describes every route this
+  process registers; the published one is the curated contract a third party
+  integrates against, and the baseline carries both paths.
+- **Two test files now grade the 501 machinery against a *synthetic* spec.**
+  There is no unported route left to stand in for one, so `test_not_implemented`
+  and `test_router_discovery` write a one-route baseline to `tmp_path` and pass
+  it as `create_app(parity_spec=…)`. That is the seam to reach for whenever a
+  test needs a gap in coverage — and it is a better test than the old one, which
+  could only ever assert about whichever route happened to be unported that
+  week. **The stand-in-repointing chore that ran through twelve slices of this
+  band is over by construction.**
+- **What the emptiness itself asserts**: `test_not_implemented` now says
+  `coverage.unported == ()`, `/api/_parity/coverage` reports `portedFraction:
+  1.0`, and `test_app_shell` reads that off the coverage object rather than
+  naming a path. With the baseline frozen (US-2) the remaining way that goes red
+  is a route that *stops* being served, which is exactly what it should catch.
+- **The pair was proved byte-identical to the live Express app over 44
+  requests** — every refusal, both 500-adjacent confidence readings, the steward
+  shortcut, the env-configured threshold *and* its clamp — with all 30 written
+  files compared byte for byte across two staged runs. The OpenAPI document was
+  compared in the same pass.
+- **`scripts/smoke-cutover.py` is the story's third acceptance criterion as a
+  runnable thing.** The pytest suite drives the app in-process; that cannot say
+  the *process* starts, binds and serves the built client. It is not in the
+  merge gate (it needs `dist/public`), so run it after touching `app.py`,
+  `client.py` or `paths.py`. Its graph checks assert the **contract in both
+  states** — an unconfigured checkout must degrade to `available:false` + 503,
+  not fail — which is what keeps it green on a machine with no Neo4j.
+
+## The cutover itself — `server/` is gone (pinakes:80 US-2)
+
+The Express backend, its 81 test files, the Node `dev`/`start` entry points, the esbuild
+leg of `build` and 21 backend-only npm dependencies are deleted. This service is the
+backend; `web/` is the client; `contracts/` and `scripts/` are what is left of the
+TypeScript. Nothing above this line changes — but several things it *refers to* moved.
+
+- **The parity baseline is FROZEN, and the guard that used to check it is now here.**
+  `contracts/parity/{harness,shape,parity.test}.ts`, `scripts/gen-parity-spec.ts` and
+  `scripts/record-parity-fixtures.ts` retired with the app they harvested and replayed
+  against; `openapi.json`, `requests.json` and `fixtures/` survive as data, and every
+  consumer is Python. `test_not_implemented.test_every_baseline_route_is_registered` —
+  "the unported set is empty" — is what replaced `parity.test.ts`'s "the spec matches the
+  live routing table", and it is the stronger claim: it fails if a route the baseline
+  promised ever *stops* being served. **There is no recorder any more.** A route added to
+  this service is specified by `GET /api/openapi.json` and covered by its own test file;
+  do not grow `contracts/parity/` to describe it, and do not write a generator that
+  harvests *this* app into it (a service that authors its own grading contract is graded
+  against nothing). See `contracts/parity/README.md`.
+- **The ingest fixtures moved into this suite**: `services/api/tests/fixtures/` (was
+  `server/services/fixtures/`), read with `Path(__file__).resolve().parent / "fixtures"`
+  rather than a `contracts_dir().parent` walk. They are recorded upstream payloads, not
+  synthesised ones — re-record or write a payload inline; never hand-edit one to make a
+  test pass. `place-resolver/` did not come across: `search/places.py` is tested against
+  inline payloads, so those three files had no reader left.
+- **`KCB_MANIFEST_EXTENSION_URI` is declared in `contracts/capability-manifest.ts` now**
+  (was `server/routes/a2a.ts`), and `test_agent_card
+  .test_the_extension_uri_is_the_one_the_participant_declaration_publishes` is the Python
+  half of the pin: it holds `kcb/agent_card.py`'s copy against
+  `contracts/participant.json`. Without it the three copies could drift silently — the
+  TypeScript test can no longer reach into this service to check.
+- **The KFT `finetune` tool lost its runner, and the degrade had to stop lying.** The
+  wrapper that shelled out to lugh was `server/services/finetune-provider.ts`, so
+  `mcp.FINETUNE_DEGRADE` used to tell a caller to "invoke it on the Express front". It now
+  names lugh's console script (`uv run --project $LUGH_ROOT pinakes-train-slm --kft-job
+  <manifest>`). The capability stays advertised — a describe surface that dropped it would
+  tell a router Pinakes is not a finetune provider at all — and
+  `contracts/capability-manifest.json`'s first `finetune` surface says so in as many words.
+- **Every `x_surfaces[].implementation` and every `participant.json` pointer now names a
+  module in this package.** Those documents are *served*, so a pointer at a deleted file
+  is a lie a consumer reads over HTTP. When you move a module that a capability names,
+  the manifest is part of the move.
+- **Two pure-TSV libraries survived the delete at `scripts/lib/`** —
+  `data-quality-scorer.ts` and `canonical-edges.ts`, because repo tooling imports them.
+  They are the graded spec for `analytics/quality.py` and `lexicons/canonical_edges.py`
+  respectively, and what binds each pair is the committed artifact both reproduce
+  (`docs/coverage-report.json`, `docs/corpus-tier-report.json`, the canonical-edge counts).
+  Change a rule on one side and the other's test goes red — which is the point.
+- **`npm run check` is clean and is a hard gate now.** The ~145-error tsc baseline this
+  repo carried for most of its life was almost entirely `server/tsv-storage.ts`.
+- **Running it**: `npm run build && npm start` (client build, then `python -m pinakes` on
+  `$PORT`, default 3050). `npm run dev` is a client-only Vite server that proxies `/api`
+  across to a service you started separately — the inversion of `server/vite.ts`, which
+  used to mount Vite *inside* the backend.

@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from pinakes_contracts import load_document
 
 from pinakes.kcb.agent_card import (
     AGENT_CARD_ROUTE_PATH,
@@ -103,6 +104,19 @@ def test_the_kcb_manifest_rides_as_one_extension(card: dict[str, Any]) -> None:
     assert params["capabilities"] == manifest["capabilities"]
     assert params["auth"] == manifest["auth"]
     assert params["signing"] == manifest["signing"]
+
+
+def test_the_extension_uri_is_the_one_the_participant_declaration_publishes() -> None:
+    """The declaration and the served card must name the same extension.
+
+    `server/routes/a2a.ts` owned this constant and `contracts/participant.test.ts`
+    held the declaration against it; the cutover (80-cutover US-2) deleted that
+    file, so the TypeScript now declares it in `contracts/capability-manifest.ts`
+    and this is the other half — the served side pinned to the same document.
+    Without it the two copies could drift with nothing to notice.
+    """
+    declared = load_document("participant.json")["capability"]["manifest_extension_uri"]
+    assert declared == KCB_MANIFEST_EXTENSION_URI
 
 
 def test_the_mcp_url_is_carried_twice_and_absolutized_together(

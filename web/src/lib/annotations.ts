@@ -1,7 +1,7 @@
 /**
  * User annotations & notes — client-side types + pure helpers (US-008).
  *
- * Mirrors the server contract in `server/services/annotations.ts`. The pure,
+ * Mirrors the server contract in `services/api/src/pinakes/collab/annotations.py`. The pure,
  * side-effect-free helpers here (stable-id, query-key builders, ref coercion)
  * are unit-tested in the node-env vitest suite; the React Query hooks live in
  * `web/src/hooks/use-annotations.ts` and the UI in

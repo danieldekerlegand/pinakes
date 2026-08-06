@@ -40,7 +40,7 @@ all the picker needs.
 
 The repo has **no jsdom/testing-library** (vitest env=node, `include=**/*.test.ts`).
 "Adapter tests" test the pure `unwrap`/`project`/`detail` functions and
-`compatibleVisualizations`, not DOM rendering. See `culturescrape.adapter.test.ts`.
+`compatibleVisualizations`, not DOM rendering. See `shared-graph.adapter.test.ts`.
 
 ## GeoJSON-endpoint adapter (`civilizations.adapter.ts`)
 
@@ -57,17 +57,20 @@ feature's `.properties`. Reuse notes for any map-GeoJSON dataset:
   (Wikidata `wikidataQid`/`sourceUrl`/`retrievedAt`/`confidence`, else fall back
   to `sources[0]`); return `undefined` when nothing is attributable so the panel
   omits the block. This is what surfaces the US-003 write-back provenance in-app.
-- **Placeholder geometry**: `server/tsv-storage.ts` stamps a tiny
+- **Placeholder geometry**: the corpus loader (`pinakes.lexicons.storage`) stamps a tiny
   `[[[0,0],[0,1],[1,1],[1,0],[0,0]]]` polygon for a civ with no curated boundary.
   The adapter's `isPlaceholderGeometry` drops those from the **spatial** projection
   only (they'd all pile at ~[0.5,0.5]); they still appear in temporal/categorical.
-- **The map-layer type is shared client↔server**: `CivilizationProperties`
-  (`geospatial-types.ts`) is imported by `server/tsv-storage.ts`, so a new
-  server-emitted field must be added there as an OPTIONAL property first (else the
-  server `tsc` breaks). The loader only emits a provenance column when the header
-  has it — so adding a `data/source/lexicons/civilizations.tsv` column is enough.
+- **The map-layer type mirrors what the service emits**: `CivilizationProperties`
+  (`geospatial-types.ts`) is the client's statement of the GeoJSON `properties` the
+  Python layer loader builds. It used to be imported *by* the loader
+  (`server/tsv-storage.ts`), which is what made a new field a compile error on both
+  sides; since 80-cutover US-2 the loader is Python, so add a new field here as an
+  OPTIONAL property and keep it in step with `pinakes.lexicons.layers` by hand. The
+  loader only emits a provenance column when the header has it — so adding a
+  `data/source/lexicons/civilizations.tsv` column is enough.
 
-## Shared-graph adapter (`culturescrape.adapter.ts`)
+## Shared-graph adapter (`shared-graph.adapter.ts`)
 
 Fetches `/api/graph/overview` (`{nodes, edges}` from Neo4j). Reuses the US-007
 payload types + `primaryLabel` from `@/lib/graph/neighborhood-graph` (that module

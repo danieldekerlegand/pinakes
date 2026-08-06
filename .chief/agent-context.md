@@ -10,10 +10,10 @@ selected by the branch's diff — so if your story passes the gate, it passes re
 
 | Half | Command | Warm |
 |---|---|---|
-| TypeScript typecheck (web/ + contracts/ + server/) | `bun run check` | ~2s |
+| TypeScript typecheck (web/ + contracts/) | `bun run check` | ~2s |
 | TypeScript typecheck (scripts/ — its OWN tsconfig, *not* in `check`) | `bun run check:scripts` | ~2s |
 | JS/TS tests | `bun run test` (= `vitest run --config web/vitest.config.ts`) | ~11s |
-| ...scoped | `bun run test contracts/parity` | ~2s |
+| ...scoped | `bun run test <path>` | ~2s |
 | Python engine | `uv run --all-packages pytest -q engine/tests` | ~5s |
 | Python service | `uv run --all-packages pytest -q services/api/tests` | ~1s |
 | Python lint | `uv run --all-packages ruff check services/api` | <1s |
@@ -30,14 +30,16 @@ Only mark a story done when the relevant checks are green.
 
 ## Conventions
 
-- **Two halves, one contract.** TypeScript client + legacy Express server on one side; Python
-  `engine/` + `services/api/` (the FastAPI service replacing Express) on the other.
-  `contracts/parity/` is the contract between them — a spec change is a change to *both*, and
-  the gate runs both suites for it.
-- **Porting a route group = adding one file** to `services/api/src/pinakes/routers/`. It is
-  auto-discovered; no shared wiring to edit, so port tasklists don't collide. Port status is
-  *computed* (parity spec routes minus routes the app registered), never stored — the coverage
-  number cannot disagree with the code.
+- **One service, one client.** `services/api/` (FastAPI) serves the whole `/api` surface *and*
+  the built React client from one process; `engine/` is imported in-process. The TypeScript
+  that remains is `web/` (the client), `contracts/` (cross-cutting contracts) and `scripts/`
+  (repo tooling). The Express backend was deleted by 80-cutover US-2.
+- **`contracts/parity/` is a FROZEN baseline**, not a live contract between two halves: the
+  Express app it was harvested from is gone. It is still the service's route catalog — a change
+  there selects the Python suite (see `contracts/parity/README.md`).
+- **Adding a route group = adding one file** to `services/api/src/pinakes/routers/`. It is
+  auto-discovered; no shared wiring to edit. Baseline coverage is *computed* (parity spec routes
+  minus routes the app registered), never stored — the number cannot disagree with the code.
 - Commit style: `feat: [Story ID] - [Story Title]`, per the Chief loop.
 
 ## Gotchas
@@ -51,6 +53,11 @@ Only mark a story done when the relevant checks are green.
 - **A bare `vitest` finds no config** — it lives at `web/vitest.config.ts`. Use `bun run test`.
 - **`.chief/state/prd.json` is gitignored** (`.gitignore` `.chief/state/`), so `git checkout` on
   it silently no-ops. Edit it in place; never try to restore it from git.
+- **The Node backend is gone** — `server/` was deleted by 80-cutover US-2, and with it the
+  `dev`/`start` Express entry points and the esbuild leg of `build`. `npm start` is the Python
+  service; `npm run build` is the client only; `npm run dev` is Vite with `/api` proxied across.
+  Two pure-TSV libraries survived the delete at `scripts/lib/` because repo tooling consumes
+  them (`data-quality-scorer.ts`, `canonical-edges.ts`).
 - **The ML/training workspace is gone** — `ml/` was extracted into the private `lugh` repo
   (90-extract-lugh; `docs/LUGH-EXTRACTION-PLAN.md`). Nothing here imports it, and the merge
   gate has no ML leg. lugh runs its OWN `chief run` against its own tasklists.

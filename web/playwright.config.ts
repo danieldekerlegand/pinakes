@@ -4,8 +4,9 @@ import path from "path";
 /**
  * Playwright e2e smoke config (US-006).
  *
- * The smoke boots the real dev server (`npm run dev`, TSV-backed, no external
- * services required) and drives the app in a headless Chromium. The shared graph
+ * The smoke builds the client and boots the real Pinakes service (`npm run build`
+ * then `npm start` — one Python process, TSV-backed, no external services
+ * required) and drives it in a headless Chromium. The shared graph
  * (Neo4j + pinakes-engine sidecar) is treated as OPTIONAL: when it is down the
  * graph-dependent UI degrades via `GraphFeatureGate` and the smoke asserts that
  * degraded affordance instead of requiring a live graph. So the suite runs the
@@ -14,14 +15,14 @@ import path from "path";
  * Run: `npm run test:e2e` (add `--headed`/`--ui` locally to watch it).
  */
 
-// Keep in sync with server/index.ts (defaults to 3050). A separate port avoids
-// colliding with a dev server the contributor may already have running.
+// Keep in sync with `services/api/src/pinakes/__main__.py` (defaults to 3050). A
+// separate port avoids colliding with a service the contributor already has up.
 const PORT = Number(process.env.E2E_PORT ?? 3055);
 const BASE_URL = `http://localhost:${PORT}`;
 
-// This config lives in `web/` (20-repo-restructure US-2) while the specs, the
-// server and the artifact directories stay at the repo root, so every path here
-// is `../`-relative. Playwright resolves them against the config's directory.
+// This config lives in `web/` (20-repo-restructure US-2) while the specs and the
+// artifact directories stay at the repo root, so every path here is
+// `../`-relative. Playwright resolves them against the config's directory.
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 
 export default defineConfig({
@@ -51,16 +52,17 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
-    // Defaults to the config's directory (`web/`); the server and package.json
-    // are at the repo root.
+    // The service serves the BUILT client (`dist/public`), so the build is part
+    // of booting it — there is no dev-middleware path any more (80-cutover US-2).
+    command: "npm run build && npm start",
+    // Defaults to the config's directory (`web/`); package.json is at the repo
+    // root, and so is the `dist/public` the build writes.
     cwd: REPO_ROOT,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
     env: {
       PORT: String(PORT),
-      NODE_ENV: "development",
     },
     stdout: "pipe",
     stderr: "pipe",

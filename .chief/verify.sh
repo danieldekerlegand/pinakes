@@ -2,10 +2,12 @@
 # .chief/verify.sh — pinakes merge gate. Path-scoped: run only the checks a branch's diff needs,
 # and skip a check gracefully if its toolchain isn't installed. Return 0 = allow merge, non-zero = block.
 #
-# The repo holds two halves that are being merged into one (docs/UNIFIED-PROJECT-PLAN.md §5/§7):
-# the TypeScript client + legacy Express server, and the Python engine + `services/api` FastAPI
-# service that is replacing it. `contracts/parity/` is the contract between them, so a change to
-# the parity spec is a change to BOTH sides and triggers both suites.
+# The repo is one Python service + one React client (docs/UNIFIED-PROJECT-PLAN.md §5/§7). The
+# TypeScript half is the client, the contracts, and the repo tooling under `scripts/`; the Python
+# half is the `engine/` package and the `services/api` FastAPI service that serves everything.
+# `contracts/parity/` is the frozen Express baseline the Python service is still graded against
+# (`contracts/parity/README.md`), and it IS that service's route catalog — so a change there is a
+# change to the Python half.
 #
 # Everything here is read-only and cheap (whole gate ≈ 20s warm), so the scoping is about signal,
 # not runtime — a failure names the half that broke.
@@ -35,16 +37,17 @@ touched(){ printf '%s\n' "$changed" | grep -qE "$1"; }
 CONTRACT_SRC_RE='^contracts/[^/]+\.json$'
 CONTRACT_GEN_RE="$CONTRACT_SRC_RE|^contracts/generated/|^contracts/python/|^scripts/gen-contract-bindings\.ts$"
 
-# This repo's chief program uses bun; fall back to npm. npm needs `--` before script args.
-if command -v bun >/dev/null; then RUN="bun run"; ARGSEP=""
-elif command -v npm >/dev/null; then RUN="npm run"; ARGSEP="--"
-else RUN=""; ARGSEP=""; fi
+# This repo's chief program uses bun; fall back to npm. No script here takes an argument any
+# more (the last one was the scoped `test contracts/parity` run), so there is no `--` to thread.
+if command -v bun >/dev/null; then RUN="bun run"
+elif command -v npm >/dev/null; then RUN="npm run"
+else RUN=""; fi
 
 # ---------------------------------------------------------------- TypeScript / client half
 
-# `bun run check` is `tsc -p web/tsconfig.json`, which covers web/ + contracts/ + server/.
+# `bun run check` is `tsc -p web/tsconfig.json`, which covers web/ + contracts/.
 # scripts/ has its OWN tsconfig and is NOT in that project — typecheck it separately, or a
-# broken generator (scripts/gen-parity-spec.ts) sails through.
+# broken generator (scripts/export-for-engine.ts) sails through.
 if touched '\.tsx?$'; then
   if [ -n "$RUN" ]; then
     run $RUN check
@@ -54,19 +57,16 @@ if touched '\.tsx?$'; then
   fi
 fi
 
-# Vitest. Any TS change runs the whole suite (~11s) — it subsumes the parity tests. A change to
-# the parity spec/fixtures alone ships no TS but still invalidates the recorded baseline, so run
-# contracts/parity on its own in that case.
-vitest_scope=""
-if touched '\.tsx?$'; then vitest_scope="all"
+# Vitest. Any TS change runs the whole suite (~11s). `contracts/parity/` no longer carries any
+# TypeScript — the replay harness retired with the Express app it replayed against (80-cutover
+# US-2) — so a parity-only change selects the PYTHON suite below and nothing here. Scoping a
+# vitest run at it would fail on "no test files found", which is a red gate reporting nothing.
+#
 # A neutral contract source edited WITHOUT regenerating ships no TS at all, yet it is exactly the
-# case the contract tests (and the drift gate below) exist to catch — run the whole suite.
-elif touched "$CONTRACT_SRC_RE"; then vitest_scope="all"
-elif touched '^contracts/parity/'; then vitest_scope="contracts/parity"; fi
-if [ -n "$vitest_scope" ]; then
+# case the contract tests (and the drift gate below) exist to catch — so it runs the suite too.
+if touched '\.tsx?$' || touched "$CONTRACT_SRC_RE"; then
   if [ -z "$RUN" ]; then echo "skip: no bun/npm for vitest"
-  elif [ "$vitest_scope" = "all" ]; then run $RUN test
-  else run $RUN test $ARGSEP "$vitest_scope"; fi
+  else run $RUN test; fi
 fi
 
 # ---------------------------------------------------------------- Python half

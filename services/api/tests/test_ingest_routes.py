@@ -18,12 +18,11 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from pinakes_contracts import contracts_dir
 
 from conftest import coverage_of
 from pinakes.ingest import text_extractor, translate, url_extractor
 
-FIXTURES = contracts_dir().parent / "server" / "services" / "fixtures"
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 PARAGRAPH = "The Roman Empire was founded in 27 BCE. Latin was its language."
 

@@ -70,6 +70,48 @@ def _same(adoption: Adoption, steward: str, domain: str) -> bool:
     ) and adoption.get("domain") == normalize_domain(domain)
 
 
+def resolve_contribution_domain(contribution: dict[str, Any]) -> str:
+    """The cultural domain a contribution belongs to.
+
+    The question the confirm flow asks before deciding whether a reviewer is a
+    steward. Three readings, in order: an explicit ``entityData`` domain
+    (``culturalDomain`` then ``cultureId`` then ``associatedCultureId``), a
+    **civilization**'s own name, else the entity type.
+
+    ``??`` and not ``or`` between the three explicit keys, so a blank
+    ``culturalDomain`` still shadows a real ``cultureId`` — and then fails the
+    ``typeof … && trim()`` guard and falls through to the entity type, which is
+    not the same as reading the next key. Reproduced rather than tidied: both
+    servers resolve the domain a confirmation is recorded against.
+    """
+    raw = contribution.get("entityData")
+    data: dict[str, Any] = raw if isinstance(raw, dict) else {}
+
+    explicit = data.get("culturalDomain")
+    if explicit is None:
+        explicit = data.get("cultureId")
+    if explicit is None:
+        explicit = data.get("associatedCultureId")
+    if isinstance(explicit, str) and explicit.strip():
+        return normalize_domain(explicit)
+
+    name = data.get("name")
+    if (
+        contribution.get("entityType") == "civilization"
+        and isinstance(name, str)
+        and name.strip()
+    ):
+        return normalize_domain(name)
+
+    entity_type = contribution.get("entityType")
+    if not isinstance(entity_type, str):
+        # `normalizeDomain(undefined)` is `undefined.trim()` over there — a
+        # throw, not a domain. Answering `"none"` would be a *wrong* steward
+        # lookup rather than a refusal, so the throw is what comes across.
+        raise TypeError("domain.trim is not a function")
+    return normalize_domain(entity_type)
+
+
 class AdoptResult(NamedTuple):
     """The outcome of an adoption: what to persist, and what to answer with."""
 
