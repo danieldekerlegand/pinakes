@@ -9,6 +9,7 @@ promise is broken.
 from __future__ import annotations
 
 import importlib
+import json
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -20,17 +21,20 @@ from pinakes import routers
 from pinakes.app import create_app, registered_routes
 from pinakes.routers import RouterModuleError, discover_routers
 
-#: The drop-in serves a **still-unported** baseline path, because the second
-#: test asserts the stub disappears when it lands. Was `/api/scraping-jobs`
-#: until pinakes:80 US-1's fifth slice ported it and `/api/visualizations/chord`
-#: until its tenth. It has to be a path **no committed router shadows** — a
-#: drop-in at `/api/languages/preservation` never answers, because `catalog.py`
+#: The drop-in used to serve a **still-unported** baseline path, so the second
+#: test could watch its 501 stub disappear. pinakes:80 US-1 ported the last of
+#: them, so there is no such path left: the route is now one the baseline does
+#: not contain at all, and the stub it displaces comes from a **synthetic**
+#: one-route spec passed to `create_app` — the same technique
+#: `test_not_implemented.py` uses, and for the same reason.
+#:
+#: It still has to be a path **no committed router shadows**: a drop-in at
+#: `/api/languages/preservation` would never answer, because `catalog.py`
 #: re-registers that path ahead of its own `/api/languages/{id}` wildcard and
-#: both mount before any scratch module. Expect to move this again with US-2,
-#: which is when `/api/openapi.json` lands.
+#: both mount before any scratch module.
 #: The module name must be one no real router will ever take — a collision
 #: would have the committed file win the import and the drop-in do nothing.
-DROP_IN_ROUTE = "/api/openapi.json"
+DROP_IN_ROUTE = "/api/drop-in-probe/jobs"
 DROP_IN_MODULE = "drop_in_probe"
 
 DROP_IN = f"""
@@ -102,23 +106,48 @@ def test_dropping_in_a_module_mounts_it(drop_in_dir: Path) -> None:
 
 
 def test_a_dropped_in_route_leaves_the_501_catalog(drop_in_dir: Path) -> None:
-    """Porting a route is what removes its stub — nothing else to update."""
-    before = create_app(client_directory=drop_in_dir / "missing")
-    assert any(
-        route.describe() == f"GET {DROP_IN_ROUTE}"
-        for route in before.state.parity_coverage.unported
+    """Porting a route is what removes its stub — nothing else to update.
+
+    Graded against a synthetic baseline that carries exactly the drop-in's
+    route, because the committed one has nothing outstanding left to port.
+    """
+    spec = drop_in_dir / "one-route-openapi.json"
+    spec.write_text(
+        json.dumps(
+            {
+                "openapi": "3.0.3",
+                "info": {"title": "drop-in baseline", "version": "0.0.0"},
+                "paths": {
+                    DROP_IN_ROUTE: {
+                        "get": {
+                            "operationId": "get-drop-in-probe-jobs",
+                            "tags": ["drop-in"],
+                            "responses": {"default": {"description": "unrecorded"}},
+                            "x-pinakes-parity": {
+                                "source": "server/routes/drop-in.ts",
+                                "clientUsed": False,
+                                "fixtures": [],
+                            },
+                        }
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
     )
+
+    before = create_app(client_directory=drop_in_dir / "missing", parity_spec=spec)
+    assert [route.describe() for route in before.state.parity_coverage.unported] == [
+        f"GET {DROP_IN_ROUTE}"
+    ]
 
     write_module(drop_in_dir, DROP_IN_MODULE, DROP_IN)
-    after = create_app(client_directory=drop_in_dir / "missing")
+    after = create_app(client_directory=drop_in_dir / "missing", parity_spec=spec)
 
-    assert any(
-        route.describe() == f"GET {DROP_IN_ROUTE}"
-        for route in after.state.parity_coverage.ported
-    )
-    assert len(after.state.parity_coverage.unported) == (
-        len(before.state.parity_coverage.unported) - 1
-    )
+    assert [route.describe() for route in after.state.parity_coverage.ported] == [
+        f"GET {DROP_IN_ROUTE}"
+    ]
+    assert after.state.parity_coverage.unported == ()
 
 
 def test_underscored_modules_are_helpers_not_routers(drop_in_dir: Path) -> None:

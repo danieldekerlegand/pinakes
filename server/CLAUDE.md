@@ -552,14 +552,21 @@ US-010 (this PRD) adds a preservation-status dashboard + an attributed field-upd
 
 ## Community verification & stewardship — `services/community-verification.ts` + `services/stewardship.ts` + `routes/community-verification.ts`
 
-**The stewardship third is ported** (pinakes:61 US-2): `GET /api/stewardship`,
-`POST /api/stewardship/{adopt,release}` are served by
-`services/api/src/pinakes/routers/stewardship.py` over `pinakes.collab.stewardship` and
-answer 501 here. The **confirm/verification** routes in the same file are a *different*
-port unit and still run on this backend — which is only safe because both servers share one
-`data/runtime/stewardship/stewards.json`: the confirm handler's `stewards.isSteward(...)`
-reads the roster the Python service now writes. `services/stewardship.ts` stays (it is the
-graded spec, and `resolveContributionDomain` is still called by the confirm handler).
+**The whole file is ported.** The stewardship third went in pinakes:61 US-2 (`GET
+/api/stewardship`, `POST /api/stewardship/{adopt,release}` →
+`services/api/src/pinakes/routers/stewardship.py`); the **confirm/verification** pair — a
+different port unit, the contribution queue's — went in pinakes:80 US-1 →
+`services/api/src/pinakes/routers/community_verification.py` over
+`pinakes.collab.verification`. All five answer 501, and because two modules replaced them
+`servedBy` is **per-route** rather than a file constant.
+
+**The thing that made the split safe is now moot, and worth remembering anyway.** For two
+bands the confirm handler ran here and asked `stewards.isSteward(...)` about
+`data/runtime/stewardship/stewards.json` — the roster the Python service had already taken
+over writing. One shared file is what let two halves of one route file be ported a band
+apart. `services/{community-verification,stewardship}.ts` both stay as the graded spec:
+their unit tests are what say the two implementations agree about thresholds, dedup and
+`resolveContributionDomain`.
 
 US-012 layers **multi-confirmation** + an **"adopt a culture"** ownership model on
 top of the contribution queue. Endpoints (all open, unguarded):
@@ -628,12 +635,17 @@ side; reads stay open.
   whose `check(identity, now)` takes the clock as a param, so rate-limit windows are
   deterministically unit-testable. Rate-limit identity = the presenting key (authed)
   else `req.ip`. Env: `CONTRIBUTION_RATE_LIMIT_{MAX,WINDOW_MS}` (default 60/60000).
-- **OpenAPI spec** is published at `GET /api/openapi.json` (open) and built by the
-  pure `services/openapi-spec.ts` `buildOpenApiSpec()`; a committed snapshot lives
-  at `docs/openapi.json` and is asserted byte-equal by `openapi-spec.test.ts`.
-  **Gotcha:** after editing the spec, regenerate the snapshot
+- **OpenAPI spec**: `GET /api/openapi.json` was the **last route of the whole cutover**
+  and is retired (pinakes:80 US-1) — `services/api/src/pinakes/routers/openapi.py` over
+  `pinakes.openapi_spec` serves it. `services/openapi-spec.ts` is **not** retired: it is
+  the graded spec, and `openapi-spec.test.ts` still asserts `buildOpenApiSpec()`
+  byte-equal to the committed `docs/openapi.json`. The Python port asserts the *same*
+  snapshot (`services/api/tests/test_openapi_document.py`), byte for byte including key
+  order — that pair is what says the two backends publish one document rather than two
+  that happen to agree, and it is what keeps the snapshot guarded after `server/` goes.
+  **Gotcha:** after editing the spec on *either* side, regenerate the snapshot
   (`npx tsx -e "..writeFileSync('docs/openapi.json', JSON.stringify(buildOpenApiSpec(),null,2)+'\n')"`)
-  or that parity test fails.
+  or both tests fail — which is the point.
 
 ## Versioned dataset releases + public dataset API — `services/export-pipeline.ts` + `routes/dataset-releases.ts`
 

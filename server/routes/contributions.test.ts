@@ -14,20 +14,26 @@ import path from "path";
  * `services/api/tests/test_contribution_routes.py`. What this file asserts is
  * the hand-off: the retired paths are still *registered* (the parity baseline
  * was harvested from that set) and answer 501 naming their replacement, and the
- * two routes that did **not** move still answer for real.
+ * one route that did **not** move still answers for real.
  *
  * `GET /api/contributions/stats` is the load-bearing one: its recorded fixture
  * is replayed against this app by `contracts/parity/parity.test.ts`, so a
  * baseline that stopped serving it would stop being a baseline.
+ *
+ * `GET /api/openapi.json` was retired in pinakes:80 US-1 — the last route of the
+ * cutover. `buildOpenApiSpec` is still exercised below, because the *document*
+ * is not retired: it is the graded spec for `pinakes.openapi_spec`.
  */
 
 import {
   PORTED_ERROR,
   PORTED_ROUTES,
   PORTED_TO,
+  PORTED_TO_OPENAPI,
   registerContributionRoutes,
 } from "./contributions";
 import { ContributionService } from "../services/contribution-service";
+import { buildOpenApiSpec } from "../services/openapi-spec";
 
 let app: Express;
 let server: Server;
@@ -83,6 +89,7 @@ const RETIRED: ReadonlyArray<readonly [string, string]> = [
   ["GET", "/api/contributions/entity/civilization/minoan"],
   ["GET", "/api/contributions/contrib-1"],
   ["PATCH", "/api/contributions/contrib-1/review"],
+  ["GET", "/api/openapi.json"],
 ];
 
 describe("routes ported to the Python service", () => {
@@ -90,7 +97,11 @@ describe("routes ported to the Python service", () => {
     const { status, body } = await req(method, url, method === "GET" ? undefined : {});
     expect(status).toBe(501);
     expect(body.error).toBe(PORTED_ERROR);
-    expect(body.servedBy).toBe(PORTED_TO);
+    // Two replacements: the queue's own module, and — for the last route of
+    // the whole cutover — the one that publishes the spec document.
+    expect(body.servedBy).toBe(
+      url === "/api/openapi.json" ? PORTED_TO_OPENAPI : PORTED_TO,
+    );
     expect(body.coverage).toBe("/api/_parity/coverage");
   });
 
@@ -105,6 +116,7 @@ describe("routes ported to the Python service", () => {
       ...PORTED_ROUTES.patch,
     ];
     expect(registered).toContain("/api/contributions/:id/review");
+    expect(registered).toContain("/api/openapi.json");
     expect(registered).toContain("/api/contributions/entity/:entityType/:entityId");
     expect(registered).not.toContain("/api/contributions/stats");
   });
@@ -134,17 +146,19 @@ describe("routes still served here", () => {
     expect(status).toBe(200);
   });
 
-  it("publishes an OpenAPI spec documenting write security + read endpoints", async () => {
-    // Its own port unit: the spec describes the whole Express surface, most of
-    // which is still Express's, so it cannot move until that surface does.
-    const { status, body } = await req("GET", "/api/openapi.json");
-    expect(status).toBe(200);
-    expect(body.openapi).toBe("3.0.3");
-    expect(body.paths["/api/contributions"].post.security).toEqual([
+  it("still builds the OpenAPI spec, which is now what grades the port", () => {
+    // The *route* is retired (pinakes:80 US-1) and the document is not:
+    // `buildOpenApiSpec` is the graded spec for `pinakes.openapi_spec`, and
+    // `openapi-spec.test.ts` pins it byte-equal to `docs/openapi.json` — the
+    // same snapshot `services/api/tests/test_openapi_document.py` asserts
+    // against, which is what makes the two backends publish one document.
+    const spec = buildOpenApiSpec() as any;
+    expect(spec.openapi).toBe("3.0.3");
+    expect(spec.paths["/api/contributions"].post.security).toEqual([
       { ApiKeyAuth: [] },
       { BearerAuth: [] },
     ]);
-    expect(body.paths["/api/contributions"].get.security).toEqual([]);
-    expect(body.components.securitySchemes.ApiKeyAuth.name).toBe("X-API-Key");
+    expect(spec.paths["/api/contributions"].get.security).toEqual([]);
+    expect(spec.components.securitySchemes.ApiKeyAuth.name).toBe("X-API-Key");
   });
 });

@@ -1482,3 +1482,71 @@ pair of routes in the whole surface that **replace the corpus**.
   was **dropped** rather than repointed at a duplicate. What is left is the
   `contributions` confirm/verification pair and `/api/openapi.json`, which goes
   with US-2.
+
+## The cutover's last slice — `collab/verification.py` + `openapi_spec.py` + `routers/{community_verification,openapi}.py` (pinakes:80 US-1)
+
+The three routes that were left: `POST /api/contributions/{id}/confirm`,
+`GET /api/contributions/{id}/verification` and `GET /api/openapi.json`.
+Coverage 303/306 → **306/306**. The 501 catalog is empty, and this section is
+about what that costs the tests rather than about the routes, which are small.
+
+- **The multi-confirmation pair closes the split pinakes:61 opened on purpose.**
+  That band took three of the five routes in
+  `server/routes/community-verification.ts` and left these two, which was only
+  safe because both servers read one `data/runtime/stewardship/stewards.json` —
+  the confirm handler asked Express's `stewards.isSteward(...)` about a roster
+  the Python service had already taken over writing. Both sides of that question
+  are in one process now, and `server/routes/community-verification.ts` is
+  entirely retired (its 501s name **two** different modules, which is why
+  `servedBy` there is per-route rather than a file constant).
+- **`??` versus `or` decided three answers in one small port, and the live diff
+  found two of them.** `baseConfidence ?? confidence` keeps a real `0`;
+  `Math.round(undefined)` is **`NaN`** and serialises as a *present* `null`;
+  `Math.round(null)` is **`0`**, which clamps to 1 and ramps from there. The
+  last two are the same Python `None`, one request apart — a record written with
+  a NaN confidence reads back as 34 on the *next* confirmation. `collab
+  .verification.base_confidence` is the three-way reading, and it is the
+  `"key" in record` rule this service has now hit in four separate ports.
+- **`contributions.store.JSON_NULL` is new and is the narrow fix for that.**
+  `_compact` spells *undefined* as `None` and drops the key, which is right for
+  every optional in the record; a `NaN` is neither, because `JSON.stringify`
+  writes it as a **present** `null`. One sentinel beat teaching every optional a
+  tri-state. Its trap: `save()` compacts for itself, so it must be handed the
+  **raw** record — compacting first resolves the sentinel to `None` and the
+  second pass then drops it. That is exactly the bug the diff caught.
+- **`openapi_spec.py` is a port, not a read of `docs/openapi.json`**, and the
+  choice is the answer to the question the plan left open since the first slice.
+  `openapi-spec.test.ts` pins the TypeScript builder byte-equal to that
+  snapshot; `tests/test_openapi_document.py` now pins *this* builder to the same
+  file, byte for byte including key order and `ensure_ascii=False`. So the
+  snapshot keeps a generator and a guard after `server/` is deleted, where
+  reading the file would have left it an orphan nobody regenerates.
+- **`GET /api/openapi.json` is not FastAPI's `/openapi.json`** and must not
+  become an alias for it. The generated document describes every route this
+  process registers; the published one is the curated contract a third party
+  integrates against, and the baseline carries both paths.
+- **Two test files now grade the 501 machinery against a *synthetic* spec.**
+  There is no unported route left to stand in for one, so `test_not_implemented`
+  and `test_router_discovery` write a one-route baseline to `tmp_path` and pass
+  it as `create_app(parity_spec=…)`. That is the seam to reach for whenever a
+  test needs a gap in coverage — and it is a better test than the old one, which
+  could only ever assert about whichever route happened to be unported that
+  week. **The stand-in-repointing chore that ran through twelve slices of this
+  band is over by construction.**
+- **What the emptiness itself asserts**: `test_not_implemented` now says
+  `coverage.unported == ()`, `/api/_parity/coverage` reports `portedFraction:
+  1.0`, and `test_app_shell` reads that off the coverage object rather than
+  naming a path. A future `npm run parity:record` that adds a route this service
+  does not serve fails there first.
+- **The pair was proved byte-identical to the live Express app over 44
+  requests** — every refusal, both 500-adjacent confidence readings, the steward
+  shortcut, the env-configured threshold *and* its clamp — with all 30 written
+  files compared byte for byte across two staged runs. The OpenAPI document was
+  compared in the same pass.
+- **`scripts/smoke-cutover.py` is the story's third acceptance criterion as a
+  runnable thing.** The pytest suite drives the app in-process; that cannot say
+  the *process* starts, binds and serves the built client. It is not in the
+  merge gate (it needs `dist/public`), so run it after touching `app.py`,
+  `client.py` or `paths.py`. Its graph checks assert the **contract in both
+  states** — an unconfigured checkout must degrade to `available:false` + 503,
+  not fail — which is what keeps it green on a machine with no Neo4j.

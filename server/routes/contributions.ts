@@ -13,16 +13,22 @@
  * harvested from, so removing a registration would rewrite the very baseline the
  * port is graded against.
  *
- * Two routes are still genuinely served here:
+ * One route is still genuinely served here:
  *
- * - **`GET /api/openapi.json`** — its own port unit. It publishes the spec for
- *   the *whole* Express surface, most of which is still Express's, so it cannot
- *   move until the surface does.
  * - **`GET /api/contributions/stats`** — the Python service serves its own
  *   (`pinakes.routers.contributions`), but this one keeps answering because its
  *   recorded fixture (`contracts/parity/fixtures/get-contributions-stats.json`)
  *   is replayed against *this* app: a baseline that stops reproducing its own
  *   recording is no longer a baseline.
+ *
+ * **`GET /api/openapi.json` was the last route of the whole cutover** and is
+ * retired here (pinakes:80 US-1). It is its own port unit — it publishes the
+ * spec for the *whole* public surface, so it could not move until that surface
+ * did — and it is now `services/api/src/pinakes/routers/openapi.py` over
+ * `pinakes.openapi_spec`. `services/openapi-spec.ts` is **not** retired: it is
+ * the graded spec, and `openapi-spec.test.ts` asserts it byte-equal against
+ * `docs/openapi.json` — the same assertion the Python port's test makes against
+ * the same snapshot, which is what says the two documents are one document.
  *
  * `ContributionService` stays injectable for the same reason it always was —
  * `changelog.test.ts` and the authoring routes still construct one against a
@@ -31,26 +37,33 @@
 
 import type { Express, Request, Response } from "express";
 import { ContributionService } from "../services/contribution-service";
-import { buildOpenApiSpec } from "../services/openapi-spec";
 
 export interface ContributionRoutesOptions {
   contributions?: ContributionService;
 }
 
-/** The Python module that now serves the ported routes. */
+/** The Python module that now serves the ported contribution routes. */
 export const PORTED_TO = "services/api/src/pinakes/routers/contributions.py";
+
+/**
+ * The Python module that now serves `GET /api/openapi.json`.
+ *
+ * A different file because it is a different port unit: the document describes
+ * the published API, not the queue.
+ */
+export const PORTED_TO_OPENAPI = "services/api/src/pinakes/routers/openapi.py";
 
 /**
  * The routes this backend handed over, by method.
  *
- * `/api/contributions/stats` is absent because it is still served below, and
- * `/api/openapi.json` because it was never part of this port unit. The one `get`
- * entry split out as `getAfterStats` is `/:id`, which would otherwise swallow
- * `/stats` — Express matches in registration order, and that ordering outlived
- * the handlers it used to protect.
+ * `/api/contributions/stats` is absent because it is still served below. The
+ * one `get` entry split out as `getAfterStats` is `/:id`, which would otherwise
+ * swallow `/stats` — Express matches in registration order, and that ordering
+ * outlived the handlers it used to protect.
  */
 export const PORTED_ROUTES = {
   get: [
+    "/api/openapi.json",
     "/api/contributions",
     "/api/contributions/export",
     "/api/contributions/entity/:entityType/:entityId",
@@ -59,6 +72,11 @@ export const PORTED_ROUTES = {
   post: ["/api/contributions"],
   patch: ["/api/contributions/:id/review"],
 } as const;
+
+/** Which replacement a retired path names. Everything but the spec is the queue. */
+function servedBy(route: string): string {
+  return route === "/api/openapi.json" ? PORTED_TO_OPENAPI : PORTED_TO;
+}
 
 /** Machine-readable discriminator in a retired route's body. */
 export const PORTED_ERROR = "ported";
@@ -71,15 +89,15 @@ export const PORTED_ERROR = "ported";
  * invite a retry that can never succeed. The body names the replacement so the
  * hand-off is discoverable from the response rather than from a changelog.
  */
-function portedToPython(route: string) {
+function portedToPython(route: string, target: string) {
   return (_req: Request, res: Response): void => {
     res.status(501).json({
       error: PORTED_ERROR,
       message:
         `${route} has been ported to the Python service and is served there ` +
-        `(${PORTED_TO}). The Express handler is retired.`,
+        `(${target}). The Express handler is retired.`,
       route,
-      servedBy: PORTED_TO,
+      servedBy: target,
       coverage: "/api/_parity/coverage",
     });
   };
@@ -91,24 +109,18 @@ export function registerContributionRoutes(
 ): void {
   const contributions = options.contributions ?? new ContributionService();
 
-  /**
-   * GET /api/openapi.json - Published OpenAPI spec for the contribution + read API.
-   */
-  app.get("/api/openapi.json", (_req, res) => {
-    res.json(buildOpenApiSpec());
-  });
-
-  // ── Ported to the Python service (pinakes:60 US-1) ────────────────────────
+  // ── Ported to the Python service (pinakes:60 US-1, and `/api/openapi.json`
+  // in pinakes:80 US-1) ─────────────────────────────────────────────────────
   //
   // Registered, not deleted: the path set is the parity baseline's own harvest
   // source. Each answers 501 naming its replacement — see the module docstring.
   // Declared before `/api/contributions/:id` for the same reason the real
   // handlers were: Express matches in registration order.
   for (const route of PORTED_ROUTES.post) {
-    app.post(route, portedToPython(`POST ${route}`));
+    app.post(route, portedToPython(`POST ${route}`, servedBy(route)));
   }
   for (const route of PORTED_ROUTES.get) {
-    app.get(route, portedToPython(`GET ${route}`));
+    app.get(route, portedToPython(`GET ${route}`, servedBy(route)));
   }
 
   /**
@@ -131,9 +143,9 @@ export function registerContributionRoutes(
   });
 
   for (const route of PORTED_ROUTES.getAfterStats) {
-    app.get(route, portedToPython(`GET ${route}`));
+    app.get(route, portedToPython(`GET ${route}`, servedBy(route)));
   }
   for (const route of PORTED_ROUTES.patch) {
-    app.patch(route, portedToPython(`PATCH ${route}`));
+    app.patch(route, portedToPython(`PATCH ${route}`, servedBy(route)));
   }
 }
