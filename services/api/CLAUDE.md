@@ -1343,3 +1343,70 @@ new modules under them — `analytics/{visualizations,validation}.py`,
   discovery drop-in now uses `/api/openapi.json`). The sample list therefore
   names `GET /api/contributions/{id}/verification` — templated, like its POST
   sibling.
+
+## The cutover's eleventh slice — `lexicons/preservation.py` + `routers/preservation.py` (pinakes:80 US-1)
+
+The `languages` port unit's last two routes: the endangered-language dashboard
+and the field-research update workflow. **2 routes**, coverage 299/306 →
+**301/306**. Small, and the first slice since the collaborative stores whose
+POST writes **two** trees — the contribution queue *and* the changelog — from
+one request.
+
+- **It is the first ported route that another module has to re-register, and
+  `catalog.py` is the module.** `discover_routers` mounts in module-name order,
+  so `catalog`'s `/api/languages/{id}` lands ahead of `preservation`'s static
+  path and swallows it. `routers/catalog.language_preservation` is the
+  re-registration, delegating to the owning module's plain function — the
+  `routers/ethnography.py` shape (`/api/building-types/categories`), which had
+  only ever been used for a *retired* body before. **Check for this whenever a
+  port adds an `/api/x/<static>` and an earlier-sorting module already owns
+  `/api/x/{id}`.** The guard is
+  `test_the_preservation_route_outranks_the_language_id_route`.
+- **`?watchlistLimit=` is `Number`, not `parseInt`, and that is the *fifth*
+  distinct reading of a junk limit in this cutover.** `Number("")` is `0` and
+  finite, so a **blank** parameter answers an empty watchlist; `Number("abc")`
+  is `NaN`, fails the finiteness guard, and answers the default 25. Two junk
+  spellings, opposite answers.
+- **`routers/preservation._js_number` is not `analytics.tsv.js_number`, and the
+  difference is the whole `Number()` grammar.** That one is the *lexicon cell*
+  reading, documented as safe because no cell is a hex/binary/octal literal or
+  `Infinity` and every caller guards the result. A query parameter reaching a
+  real `Number()` is not that: `?watchlistLimit=0x10` bounds the watchlist at
+  **sixteen**, which the live diff caught.
+- **The one place a value straight out of a request still needs `js_number`.**
+  `JSON.parse("1234.0")` is the double `1234` and restringifies as `1234`;
+  Python's `json` keeps the `float`. A body carrying `{"nativeSpeakers": 1234.0}`
+  would otherwise persist `1234.0` into a queue **both servers read**. Applied
+  to the two speaker counts and the confidence — nowhere else, because nothing
+  else in the body is copied through as a number.
+- **`String(v)` is not `str(v)`, in four observable places.**
+  `lexicons/preservation.js_string` is the conversion: `String([])` is `""`, so
+  a `region` of `[]` proposes **no change at all**; `String(None)` is `"null"`,
+  so a declared-null speaker count really does render as `total speakers → null`
+  in the changelog summary; a plain object is `[object Object]`.
+  `authoring/_js.number_text` is only its numeric leg.
+- **`.trim()` is V8's whitespace set at both ends**, which decides the alias
+  lookup *and* the email warning's negated class. Same rule
+  `lexicons/etymology.py` spells out — the constant is copied rather than
+  shared, because neither module imports the other and hoisting it would put it
+  in an arbitrary third place.
+- **The changelog write is best-effort and says so by omission.** A failed
+  record leaves `changelogEntryId` `undefined`, which is **no key** — never
+  `null`. This is also the changelog's *write* side finally landing here: the
+  read half came in pinakes:61 US-2 and `server/services/changelog.ts` was kept
+  alive largely for this route.
+- **The whole slice was proved byte-identical to Express over 41 live requests**
+  with the throwaway-script method the earlier slices describe: every
+  `watchlistLimit` spelling (blank, `abc`, negative, fractional, `1e3`,
+  `Infinity`, `0x10`, `" 5 "`, repeated), every validation refusal, both 404
+  spellings, and the queued contribution **and** changelog entry compared file
+  for file. **Zero differences** once the two above were fixed.
+- **`normalize_status` on a non-string raises**, because `raw.trim()` throws
+  over there — and `validateFieldUpdate` is called *outside* the Express route's
+  try/catch, so that one rejection reaches its default error handler as an HTML
+  500. It is the only status code in the slice this port does not reproduce.
+- The stand-in chore did **not** come due: `test_not_implemented` and
+  `test_router_discovery` both already named `/api/openapi.json`, and their
+  prose about `/api/languages/preservation` being shadowed was updated rather
+  than repointed. Four routes are left — `POST /api/scraping/{families,mythology}`,
+  the confirm/verification pair, and `/api/openapi.json`.

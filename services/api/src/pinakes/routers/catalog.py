@@ -30,6 +30,7 @@ from fastapi.responses import JSONResponse
 from pinakes.analytics import tsv
 from pinakes.lexicons import catalog, storage
 from pinakes.paths import lexicons_dir
+from pinakes.routers import preservation
 
 logger = logging.getLogger("pinakes.catalog")
 
@@ -107,6 +108,25 @@ def languages(request: Request) -> Any:
     except Exception:  # noqa: BLE001 - reported as the Express 500
         logger.exception("failed to fetch languages")
         return _failed("Failed to fetch languages")
+
+
+@router.get("/api/languages/preservation", include_in_schema=False)
+def language_preservation(request: Request) -> Any:
+    """Re-registered here **only** to keep it ahead of `/api/languages/{id}`.
+
+    :mod:`pinakes.routers.preservation` owns this path, its handler and its port
+    unit; on Express the static registration precedes the wildcard, so
+    `preservation` is never read as a language id. Here the two live in
+    different modules and `discover_routers` mounts them in module-name order —
+    `catalog` before `preservation` — so without this the wildcard would swallow
+    it and the dashboard would answer `Language not found`. The body is the
+    other module's, not a copy; the guard is
+    `test_the_preservation_route_outranks_the_language_id_route`, and
+    `tests/test_preservation_routes.py` grades the payload.
+
+    Same shape as `routers/ethnography.py`'s `/api/building-types/categories`.
+    """
+    return preservation.language_preservation(request)
 
 
 @router.get("/api/languages/{id}")

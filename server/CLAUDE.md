@@ -491,6 +491,22 @@ browsable, filterable audit log of dataset changes; `GET /api/changelog/stats` a
 
 ## Endangered-language dashboard + field-research — `services/language-preservation.ts` + `routes/language-preservation.ts`
 
+**Both routes are ported** (pinakes:80 US-1): `services/api/src/pinakes/routers/preservation.py`
+serves them over `pinakes.lexicons.preservation`, against the same corpus, the same
+contribution queue and the same changelog tree. Both Express handlers answer **501** and
+`registerLanguagePreservationRoutes` no longer takes options. Neither route carried a
+recorded fixture, so the group handed over cleanly.
+
+**`services/language-preservation.ts` is NOT retired** — it is the graded spec, and
+`language-preservation.test.ts` is what says the two agree on the alias table, the
+watchlist ordering and the shape of the queued contribution. Everything below is still
+the contract; it is just enforced in Python.
+
+**This was `services/changelog.ts`'s last live *write* on this backend bar the release
+semver.** The read half went in pinakes:61 US-2; the `ChangelogStore` is still built in
+`registerRoutes` for `dataset-releases` / `living-dataset`, which derive their next
+version from `changelog.stats()`.
+
 US-010 (this PRD) adds a preservation-status dashboard + an attributed field-update workflow.
 `GET /api/languages/preservation[?watchlistLimit=]` → the dashboard aggregation;
 `POST /api/languages/field-update` → a researcher's structured status/speaker update.

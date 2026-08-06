@@ -24,9 +24,10 @@ from pinakes.routers import RouterModuleError, discover_routers
 #: test asserts the stub disappears when it lands. Was `/api/scraping-jobs`
 #: until pinakes:80 US-1's fifth slice ported it and `/api/visualizations/chord`
 #: until its tenth. It has to be a path **no committed router shadows** — a
-#: drop-in at `/api/languages/preservation` never answers, because
-#: `catalog.py`'s `/api/languages/{id}` mounts first and matches it. Expect to
-#: move this again with US-2, which is when `/api/openapi.json` lands.
+#: drop-in at `/api/languages/preservation` never answers, because `catalog.py`
+#: re-registers that path ahead of its own `/api/languages/{id}` wildcard and
+#: both mount before any scratch module. Expect to move this again with US-2,
+#: which is when `/api/openapi.json` lands.
 #: The module name must be one no real router will ever take — a collision
 #: would have the committed file win the import and the drop-in do nothing.
 DROP_IN_ROUTE = "/api/openapi.json"

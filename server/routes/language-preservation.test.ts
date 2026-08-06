@@ -1,49 +1,39 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import express, { type Express } from "express";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import type { AddressInfo } from "node:net";
 import type { Server } from "node:http";
 
 /**
- * Integration tests for the `/api/languages/*` preservation routes (US-010). Wired with
- * an injectable in-memory language loader + temp-dir ContributionService/ChangelogStore
- * (no live storage / lexicons), asserting HTTP status, the dashboard shape, and that a
- * field update both queues a contribution and lands a changelog entry.
+ * The `/api/languages/*` preservation routes are **ported** (pinakes:80 US-1) —
+ * this file no longer exercises the dashboard or the field-update flow, it
+ * asserts the hand-over.
+ *
+ * What used to live here (the aggregation shape, `?watchlistLimit=`, the queued
+ * `language` edit with `field-research` provenance, the changelog entry it lands
+ * at submission time, the attribution 400 and the unknown-id 404) is now graded
+ * on the Python side by `services/api/tests/test_preservation_routes.py`, which
+ * drives the same cases against `pinakes.routers.preservation`. The model's own
+ * spec — `services/language-preservation.test.ts` — stays here and is
+ * unchanged: it is what says the two implementations agree.
  */
 
-import { registerLanguagePreservationRoutes } from "./language-preservation";
-import { ContributionService } from "../services/contribution-service";
-import { ChangelogStore } from "../services/changelog";
-import type { PreservationLanguage } from "../services/language-preservation";
-
-const LANGS: PreservationLanguage[] = [
-  { id: "en", name: "English", region: "Global", status: "living", totalSpeakers: 1_000 },
-  { id: "cy", name: "Welsh", region: "Europe", status: "vulnerable", totalSpeakers: 100 },
-  { id: "gd", name: "Scottish Gaelic", region: "Europe", status: "critically endangered", totalSpeakers: 10 },
-  { id: "la", name: "Latin", region: "Europe", status: "extinct", totalSpeakers: 0 },
-];
+import {
+  registerLanguagePreservationRoutes,
+  PORTED_ROUTES,
+  PORTED_TO,
+  PORTED_ERROR,
+} from "./language-preservation";
 
 let app: Express;
 let server: Server;
 let baseUrl: string;
-let tmpDir: string;
-let contributions: ContributionService;
-let changelog: ChangelogStore;
 
 beforeAll(async () => {
-  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "lang-preservation-"));
-  contributions = new ContributionService(path.join(tmpDir, "contributions"));
-  changelog = new ChangelogStore(path.join(tmpDir, "changelog"));
-
   app = express();
   app.use(express.json());
-  registerLanguagePreservationRoutes(app, {
-    loadLanguages: async () => LANGS,
-    contributions,
-    changelog,
-  });
+  registerLanguagePreservationRoutes(app);
+  // Bind the loopback explicitly — a bare listen(0) binds :: and lets another
+  // server claim the same IPv4 port (server/CLAUDE.md).
   await new Promise<void>((resolve) => {
     server = app.listen(0, "127.0.0.1", () => resolve());
   });
@@ -53,95 +43,45 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
-  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-describe("GET /api/languages/preservation", () => {
-  it("returns the preservation dashboard aggregation", async () => {
-    const res = await fetch(`${baseUrl}/api/languages/preservation`);
-    expect(res.status).toBe(200);
+describe("/api/languages preservation routes (retired)", () => {
+  it("answers 501 on the dashboard, naming the Python module", async () => {
+    const res = await fetch(`${baseUrl}${PORTED_ROUTES.dashboard}`);
+    expect(res.status).toBe(501);
     const body = await res.json();
-    expect(body.total).toBe(4);
-    expect(body.byCategory).toEqual({ living: 1, endangered: 2, extinct: 1, unknown: 0 });
-    expect(body.endangermentRate).toBeCloseTo(2 / 3, 5);
-    expect(body.speakersAtRisk).toBe(110);
-    expect(body.watchlist[0].id).toBe("gd"); // most endangered still-spoken language first
+    expect(body.error).toBe(PORTED_ERROR);
+    expect(body.servedBy).toBe(PORTED_TO);
+    expect(body.route).toBe(`GET ${PORTED_ROUTES.dashboard}`);
+    expect(body.coverage).toBe("/api/_parity/coverage");
   });
 
-  it("honours the watchlistLimit query param", async () => {
-    const res = await fetch(`${baseUrl}/api/languages/preservation?watchlistLimit=1`);
-    const body = await res.json();
-    expect(body.watchlist).toHaveLength(1);
-  });
-});
-
-describe("POST /api/languages/field-update", () => {
-  it("queues a language edit contribution and records a changelog entry", async () => {
-    const res = await fetch(`${baseUrl}/api/languages/field-update`, {
+  it("answers 501 on the field update, without touching a queue", async () => {
+    const res = await fetch(`${baseUrl}${PORTED_ROUTES.fieldUpdate}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         languageId: "cy",
         researcherName: "Dr. Jones",
         status: "endangered",
-        totalSpeakers: 90,
-        sources: [{ title: "2026 Welsh census field notes", url: "https://example.org/cy" }],
-        confidence: 70,
-        notes: "Speaker base declining in the north.",
+        sources: [{ title: "2026 Welsh census field notes" }],
       }),
     });
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(501);
     const body = await res.json();
-
-    // Contribution landed in the review queue as an attributed language edit.
-    expect(body.contribution.entityType).toBe("language");
-    expect(body.contribution.action).toBe("edit");
-    expect(body.contribution.entityId).toBe("cy");
-    expect(body.contribution.status).toBe("pending");
-    expect(body.contribution.contributorName).toBe("Dr. Jones");
-    expect(body.changedFields).toEqual(["status", "totalSpeakers"]);
-    expect(body.changelogEntryId).toBeTruthy();
-
-    const queued = contributions.get(body.contribution.id);
-    expect(queued?.entityData.source).toBe("field-research");
-
-    // The status change is versioned in the shared changelog (AC3). Asserted
-    // against the store rather than through `GET /api/changelog`, which was
-    // ported to the Python service (pinakes:61 US-2) and answers 501 here — the
-    // *write* is what this route owns, and it is the same store either reader
-    // lists.
-    const { entries } = changelog.list({ domain: "language" });
-    const entry = entries.find((e) => e.contributionId === body.contribution.id);
-    expect(entry).toBeTruthy();
-    expect(entry.source).toBe("field-research");
-    expect(entry.reviewer).toBe("Dr. Jones");
-    expect(entry.fields).toContain("status");
+    expect(body.route).toBe(`POST ${PORTED_ROUTES.fieldUpdate}`);
+    expect(body.servedBy).toBe(PORTED_TO);
   });
 
-  it("400s on a missing researcher (attribution required)", async () => {
-    const res = await fetch(`${baseUrl}/api/languages/field-update`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        languageId: "cy",
-        status: "endangered",
-        sources: [{ title: "x" }],
-      }),
-    });
-    expect(res.status).toBe(400);
-  });
-
-  it("404s for an unknown language id", async () => {
-    const res = await fetch(`${baseUrl}/api/languages/field-update`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        languageId: "nonexistent",
-        researcherName: "Dr. Jones",
-        status: "endangered",
-        sources: [{ title: "x" }],
-      }),
-    });
-    expect(res.status).toBe(404);
+  it("keeps both paths registered, so the harvested baseline is unchanged", async () => {
+    // 501, not 404: a 404 would say "gone" and would drop the routes out of
+    // contracts/parity/openapi.json the next time the spec is regenerated.
+    for (const [method, path] of [
+      ["GET", PORTED_ROUTES.dashboard],
+      ["POST", PORTED_ROUTES.fieldUpdate],
+    ] as const) {
+      const res = await fetch(`${baseUrl}${path}`, { method });
+      expect(res.status).toBe(501);
+    }
   });
 });

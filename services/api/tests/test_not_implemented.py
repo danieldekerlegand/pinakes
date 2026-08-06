@@ -41,9 +41,11 @@ SAMPLE_REQUESTS = [
     # seventh slice and `/api/visualizations/chord` until the tenth —
     # `test_media_routes.py` and `test_visualization_routes.py`. There is no
     # concrete unported GET left to name: `/api/openapi.json` is already the
-    # entry above and `/api/languages/preservation` is **shadowed** by
-    # `catalog.py`'s `/api/languages/{id}`, so it 404s rather than 501ing. The
-    # verification read is the honest stand-in, templated like its POST sibling.
+    # entry above, and `/api/languages/preservation` was never usable here
+    # either — it was **shadowed** by `catalog.py`'s `/api/languages/{id}` and
+    # 404'd rather than 501ing, and the eleventh slice ported it
+    # (`test_preservation_routes.py`). The verification read is the honest
+    # stand-in, templated like its POST sibling.
     (
         "GET",
         "/api/contributions/{id}/verification",
